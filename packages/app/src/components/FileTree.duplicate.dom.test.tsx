@@ -1,0 +1,1256 @@
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { MouseEventHandler, ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { FileEntry } from './file-tree-utils';
+import type { ResolvedNavigationTarget } from './navigation-targets';
+
+type MenuItemProps = {
+  children?: ReactNode;
+  checked?: boolean;
+  disabled?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  onSelect?: () => void;
+  [key: string]: unknown;
+};
+
+function PassThrough({ children }: { children?: ReactNode }) {
+  return <>{children}</>;
+}
+
+function MenuItem({
+  children,
+  checked,
+  disabled,
+  onCheckedChange,
+  onSelect,
+  variant: _variant,
+  ...props
+}: MenuItemProps) {
+  const handleClick = () => {
+    onCheckedChange?.(!checked);
+    onSelect?.();
+  };
+  if (checked !== undefined) {
+    return (
+      <button
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={handleClick}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+  return (
+    <button type="button" role="menuitem" disabled={disabled} onClick={handleClick} {...props}>
+      {children}
+    </button>
+  );
+}
+
+function MenuContent({ children }: { children?: ReactNode }) {
+  return <div role="menu">{children}</div>;
+}
+
+function MenuSeparator() {
+  return <hr />;
+}
+
+const toastSuccessMock = vi.fn(() => {});
+const toastErrorMock = vi.fn(() => {});
+const addPageMock = vi.fn(() => {});
+const openTargetMock = vi.fn(() => {});
+const notifySidebarFileSelectedMock = vi.fn(() => {});
+const closeTabsMock = vi.fn(() => {});
+const closeDocumentMock = vi.fn(() => {});
+const reconcileLocalRenameMock = vi.fn(async () => {});
+const reconcileLocalRemovalMock = vi.fn(async () => {});
+const dispatchHandoffMock = vi.fn(async () => ({ ok: true as const }));
+
+const DOCUMENTS: FileEntry[] = [
+  {
+    kind: 'folder',
+    path: 'notes',
+    size: 0,
+    modified: '2026-05-18T00:00:00.000Z',
+  },
+  {
+    kind: 'document',
+    docName: 'notes/source',
+    docExt: '.mdx',
+    size: 1,
+    modified: '2026-05-18T00:00:00.000Z',
+  },
+  {
+    kind: 'asset',
+    path: 'images/logo.png',
+    assetExt: '.png',
+    mediaKind: 'image',
+    referencedBy: ['notes/source'],
+    size: 1,
+    modified: '2026-05-18T00:00:00.000Z',
+  } as FileEntry,
+];
+
+interface FetchCall {
+  url: string;
+  init?: RequestInit;
+}
+
+class StubItem {
+  expanded = false;
+  selected = false;
+
+  constructor(
+    readonly path: string,
+    private readonly directory: boolean,
+  ) {}
+
+  getPath() {
+    return this.path;
+  }
+
+  isDirectory() {
+    return this.directory;
+  }
+
+  isExpanded() {
+    return this.expanded;
+  }
+
+  expand() {
+    this.expanded = true;
+  }
+
+  collapse() {
+    this.expanded = false;
+  }
+
+  isSelected() {
+    return this.selected;
+  }
+
+  select() {
+    this.selected = true;
+  }
+
+  deselect() {
+    this.selected = false;
+  }
+
+  focus() {}
+}
+
+class StubModel {
+  focusedPath: string | null = null;
+  selectedPaths: string[] = [];
+  items = new Map<string, StubItem>();
+  startRenaming = vi.fn(() => {});
+
+  getFocusedPath() {
+    return this.focusedPath;
+  }
+
+  getFocusedIndex() {
+    return -1;
+  }
+
+  getItemHeight() {
+    return 24;
+  }
+
+  getSelectedPaths() {
+    return this.selectedPaths;
+  }
+
+  getItem(path: string) {
+    return this.items.get(path) ?? null;
+  }
+
+  resetPaths(paths: string[]) {
+    this.items.clear();
+    for (const path of paths) {
+      this.items.set(path, new StubItem(path, path.endsWith('/')));
+    }
+  }
+
+  subscribe() {
+    return () => {};
+  }
+
+  onMutation() {
+    return () => {};
+  }
+
+  isSearchOpen() {
+    return false;
+  }
+
+  add(path: string) {
+    this.items.set(path, new StubItem(path, path.endsWith('/')));
+  }
+
+  scrollToPath() {}
+  move() {}
+  remove() {}
+}
+
+let model = new StubModel();
+let menuItem: { kind: 'file' | 'directory'; path: string };
+let closeMenuMock = vi.fn(() => {});
+let duplicateResponse: unknown;
+let duplicateStatus = 200;
+let duplicateGate: Promise<void> | null = null;
+let duplicateFetchError: Error | null = null;
+let fetchCalls: FetchCall[] = [];
+let extraDocuments: FileEntry[] = [];
+let okignoreBindingMock: {
+  current: () => string;
+  patch: ReturnType<typeof vi.fn>;
+} | null = null;
+let projectLocalBindingMock: { patch: ReturnType<typeof vi.fn> } | null = null;
+let mergedConfigMock: {
+  appearance?: { sidebar?: { showHiddenFiles?: boolean } };
+} | null = null;
+let deleteConfirmationProps: {
+  itemName?: string;
+  customTitle?: string;
+  customDescription?: string;
+  onDelete?: () => void | Promise<void>;
+} | null = null;
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
+
+function duplicateCalls() {
+  return fetchCalls.filter((call) => call.url === '/api/duplicate-path');
+}
+
+function deletePathCalls() {
+  return fetchCalls.filter((call) => call.url === '/api/delete-path');
+}
+
+function expectMenuOrder(labels: readonly RegExp[]) {
+  const items = Array.from(
+    document.querySelectorAll<HTMLElement>('[role="menuitem"], [role="menuitemcheckbox"]'),
+  );
+  let cursor = -1;
+  for (const label of labels) {
+    const next = items.findIndex(
+      (item, index) => index > cursor && label.test(item.textContent ?? ''),
+    );
+    expect(next, `expected menu item ${label} after index ${cursor}`).toBeGreaterThan(cursor);
+    cursor = next;
+  }
+}
+
+let conflictsPayload: Array<Record<string, unknown>> = [];
+
+function makeFetchMock() {
+  return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    fetchCalls.push({ url, init });
+    if (url.startsWith('/api/documents'))
+      return jsonResponse({ documents: [...DOCUMENTS, ...extraDocuments] });
+    if (url === '/api/workspace') {
+      return jsonResponse({
+        contentDir: '/tmp/open-knowledge',
+        pathSeparator: '/',
+        symlinkResolved: true,
+      });
+    }
+    if (url === '/api/delete-path') {
+      return jsonResponse({ deletedDocNames: [] });
+    }
+    if (url === '/api/sync/conflicts') {
+      return jsonResponse({ conflicts: conflictsPayload });
+    }
+    if (url === '/api/duplicate-path') {
+      if (duplicateGate) await duplicateGate;
+      if (duplicateFetchError) throw duplicateFetchError;
+      const dup = duplicateResponse as { kind?: string; path?: string } | undefined;
+      if (duplicateStatus === 200 && dup?.kind === 'folder' && typeof dup.path === 'string') {
+        extraDocuments = [
+          { kind: 'folder', path: dup.path, size: 0, modified: '2026-05-18T00:00:00.000Z' },
+        ];
+      }
+      return jsonResponse(duplicateResponse, duplicateStatus);
+    }
+    throw new Error(`unexpected fetch: ${url}`);
+  });
+}
+
+vi.doMock('sonner', () => ({
+  toast: {
+    success: toastSuccessMock,
+    error: toastErrorMock,
+  },
+}));
+
+vi.doMock('next-themes', () => ({
+  useTheme: () => ({ resolvedTheme: 'light' }),
+}));
+
+vi.doMock('@/editor/DocumentContext', () => ({
+  useDocumentContext: () => ({
+    activeDocName: 'notes/source',
+    activeTarget: { kind: 'doc', target: 'notes/source', docName: 'notes/source' },
+    closeTabs: closeTabsMock,
+    closeDocument: closeDocumentMock,
+    isNewTabActive: false,
+    openTarget: openTargetMock,
+    prewarm: () => {},
+    reconcileLocalRemoval: reconcileLocalRemovalMock,
+    reconcileLocalRename: reconcileLocalRenameMock,
+  }),
+}));
+
+vi.doMock('@/components/PageListContext', () => ({
+  usePageList: () => ({ addPage: addPageMock, pageMeta: new Map() }),
+}));
+
+vi.doMock('./ui/sidebar', () => ({
+  useSidebar: () => ({ notifySidebarFileSelected: notifySidebarFileSelectedMock }),
+}));
+
+vi.doMock('@/lib/config-provider', () => ({
+  useConfigContext: () => ({
+    okignoreBinding: okignoreBindingMock,
+    projectLocalBinding: projectLocalBindingMock,
+    merged: mergedConfigMock,
+  }),
+}));
+
+vi.doMock('./handoff/useInstalledAgents', () => ({
+  useInstalledAgents: () => ({ states: {} }),
+}));
+
+vi.doMock('./handoff/useHandoffDispatch', () => ({
+  buildFolderHandoffInput: () => null,
+  buildHandoffInput: () => null,
+  useHandoffDispatch: () => ({ dispatch: dispatchHandoffMock }),
+}));
+
+vi.doMock('./handoff/OpenInAgentContextSubmenu', () => ({
+  OpenInAgentContextSubmenu: () => (
+    <button type="button" role="menuitem" data-testid="file-tree-menu-open-in-agent">
+      Open with AI
+    </button>
+  ),
+}));
+
+vi.doMock('./sidebar-hover-prewarm', () => ({
+  cancelHoverPrewarm: () => {},
+  scheduleHoverPrewarm: () => {},
+}));
+
+vi.doMock('@/components/ui/button', () => ({
+  Button: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
+  ),
+}));
+
+vi.doMock('@/components/ui/dialog', () => ({
+  Dialog: PassThrough,
+}));
+
+vi.doMock('@/components/ui/dropdown-menu', () => ({
+  DropdownMenu: PassThrough,
+  DropdownMenuCheckboxItem: MenuItem,
+  DropdownMenuContent: MenuContent,
+  DropdownMenuItem: MenuItem,
+  DropdownMenuSeparator: MenuSeparator,
+  DropdownMenuSub: PassThrough,
+  DropdownMenuSubContent: MenuContent,
+  DropdownMenuSubTrigger: MenuItem,
+  DropdownMenuTrigger: PassThrough,
+}));
+
+vi.doMock('@/components/ui/skeleton', () => ({
+  Skeleton: ({ className }: { className?: string }) => <span className={className} />,
+}));
+
+vi.doMock('@/components/DeleteConfirmationDialog', () => ({
+  DeleteConfirmationDialog: (props: {
+    itemName?: string;
+    customTitle?: string;
+    customDescription?: string;
+    onDelete?: () => void | Promise<void>;
+  }) => {
+    deleteConfirmationProps = props;
+    return <div data-testid="delete-confirmation-dialog" />;
+  },
+}));
+
+vi.doMock('@/components/NewItemDialog', () => ({
+  NewItemDialog: () => null,
+}));
+
+vi.doMock('@/components/TrashFailureModal', () => ({
+  TrashFailureModal: () => null,
+  coerceTrashFailureReason: (reason: string) => reason,
+}));
+
+vi.doMock('@/components/use-selection-mirror', () => ({
+  asDirectoryHandle: (item: StubItem | null) => (item?.isDirectory() ? item : null),
+  useSelectionMirror: () => {},
+}));
+
+vi.doMock('@pierre/trees', () => ({
+  FILE_TREE_TAG_NAME: 'ok-file-tree',
+  themeToTreeStyles: () => ({}),
+}));
+
+vi.doMock('@pierre/trees/react', () => ({
+  useFileTree: () => ({ model }),
+  FileTree: ({
+    renderContextMenu,
+    onClickCapture,
+    onMouseMove,
+    onMouseLeave,
+    'data-state': dataState,
+  }: {
+    renderContextMenu?: (
+      item: typeof menuItem,
+      context: { close: typeof closeMenuMock },
+    ) => ReactNode;
+    onClickCapture?: MouseEventHandler<HTMLDivElement>;
+    onMouseMove?: MouseEventHandler<HTMLDivElement>;
+    onMouseLeave?: MouseEventHandler<HTMLDivElement>;
+    'data-state'?: string;
+  }) => (
+    <div
+      data-testid="fake-pierre-tree"
+      data-state={dataState}
+      role="tree"
+      onClickCapture={onClickCapture}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
+      <button type="button" data-testid="tree-focus-target">
+        Focus target
+      </button>
+      {renderContextMenu?.(menuItem, { close: closeMenuMock })}
+    </div>
+  ),
+}));
+
+const { FileTree } = await import('./FileTree');
+const { ConflictsProvider } = await import('@/hooks/use-conflicts');
+const { emitFileTreeMenuActionDelete, emitFileTreeMenuActionDuplicate } = await import(
+  '@/lib/file-tree-menu-action-events'
+);
+
+function renderFileTree() {
+  return render(<FileTree />);
+}
+
+function renderFileTreeWithConflicts() {
+  return render(
+    <ConflictsProvider>
+      <FileTree />
+    </ConflictsProvider>,
+  );
+}
+
+describe('FileTree duplicate action runtime behavior', () => {
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    model = new StubModel();
+    menuItem = { kind: 'file', path: 'notes/source.mdx' };
+    closeMenuMock = vi.fn(() => {});
+    duplicateResponse = {
+      kind: 'file',
+      path: 'notes/source copy',
+      duplicatedDocNames: ['notes/source copy'],
+    };
+    duplicateStatus = 200;
+    duplicateGate = null;
+    duplicateFetchError = null;
+    fetchCalls = [];
+    extraDocuments = [];
+    okignoreBindingMock = null;
+    projectLocalBindingMock = null;
+    mergedConfigMock = null;
+    deleteConfirmationProps = null;
+    conflictsPayload = [];
+    globalThis.fetch = makeFetchMock() as unknown as typeof fetch;
+    toastSuccessMock.mockClear();
+    toastErrorMock.mockClear();
+    addPageMock.mockClear();
+    openTargetMock.mockClear();
+    notifySidebarFileSelectedMock.mockClear();
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    cleanup();
+    consoleWarnSpy.mockRestore();
+  });
+
+  test('context-menu Duplicate posts the selected file target and applies a valid success response', async () => {
+    const user = userEvent.setup();
+    renderFileTree();
+
+    const duplicate = await screen.findByRole('menuitem', { name: /duplicate/i });
+    expect(duplicate.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+
+    fetchCalls = [];
+    await user.click(duplicate);
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    const [call] = duplicateCalls();
+    expect(call?.url).toBe('/api/duplicate-path');
+    expect(call?.init?.method).toBe('POST');
+    expect(JSON.parse(String(call?.init?.body))).toEqual({
+      kind: 'file',
+      path: 'notes/source',
+    });
+    expect(addPageMock).toHaveBeenCalledWith('notes/source copy');
+    expect(openTargetMock).toHaveBeenCalledWith(
+      {
+        kind: 'doc',
+        target: 'notes/source copy',
+        docName: 'notes/source copy',
+      },
+      { disposition: 'preview', consumeActiveNewTab: true },
+    );
+    await waitFor(() => expect(model.getItem('notes/source copy.mdx')).not.toBeNull());
+    expect(closeMenuMock).toHaveBeenCalled();
+  });
+
+  test('file context-menu Hide appends an anchored okignore pattern and shows reversible copy', async () => {
+    okignoreBindingMock = {
+      current: () => '',
+      patch: vi.fn(() => ({ ok: true })),
+    };
+    const user = userEvent.setup();
+    renderFileTree();
+
+    const hide = (await screen.findByTestId('file-tree-menu-hide')) as HTMLButtonElement;
+    expect(hide.disabled).toBe(false);
+    expect(hide.textContent).toContain('Hide this file');
+
+    await user.click(hide);
+
+    expect(closeMenuMock).toHaveBeenCalled();
+    expect(okignoreBindingMock.patch).toHaveBeenCalledWith('/notes/source.mdx\n');
+    expect(toastSuccessMock).toHaveBeenCalledWith('Hidden “source”', {
+      description: 'Manage hidden files in Settings → Ignore patterns.',
+      duration: 5000,
+    });
+  });
+
+  test('Hide is disabled without the shared okignore binding and dedupes existing patterns', async () => {
+    renderFileTree();
+    expect(((await screen.findByTestId('file-tree-menu-hide')) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    cleanup();
+
+    okignoreBindingMock = {
+      current: () => '/notes/source.mdx\n',
+      patch: vi.fn(() => ({ ok: true })),
+    };
+    const user = userEvent.setup();
+    renderFileTree();
+
+    await user.click(await screen.findByTestId('file-tree-menu-hide'));
+
+    expect(closeMenuMock).toHaveBeenCalled();
+    expect(okignoreBindingMock.patch).not.toHaveBeenCalled();
+    expect(toastSuccessMock).not.toHaveBeenCalledWith('Hidden “source”', expect.anything());
+  });
+
+  test('folder context-menu Duplicate posts the selected folder target and navigates to the copy', async () => {
+    menuItem = { kind: 'directory', path: 'notes/' };
+    duplicateResponse = {
+      kind: 'folder',
+      path: 'notes copy',
+      duplicatedDocNames: ['notes copy/index'],
+    };
+    const user = userEvent.setup();
+    renderFileTree();
+
+    fetchCalls = [];
+    await user.click(await screen.findByRole('menuitem', { name: /duplicate/i }));
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(JSON.parse(String(duplicateCalls()[0]?.init?.body))).toEqual({
+      kind: 'folder',
+      path: 'notes',
+    });
+    expect(addPageMock).toHaveBeenCalledWith('notes copy/index');
+    expect(openTargetMock).toHaveBeenCalledWith(
+      {
+        kind: 'folder',
+        target: 'notes copy',
+        folderPath: 'notes copy',
+      },
+      { disposition: 'preview', consumeActiveNewTab: true },
+    );
+    await waitFor(() => expect(model.getItem('notes copy/')).not.toBeNull());
+    expect(toastSuccessMock).toHaveBeenCalledWith('Folder duplicated', {
+      description: 'notes copy',
+    });
+    expect(closeMenuMock).toHaveBeenCalled();
+  });
+
+  test('folder context menu exposes runtime order, subtree actions, and folder hide', async () => {
+    menuItem = { kind: 'directory', path: 'notes/' };
+    okignoreBindingMock = {
+      current: () => '',
+      patch: vi.fn(() => ({ ok: true })),
+    };
+    const user = userEvent.setup();
+    renderFileTree();
+
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    expectMenuOrder([
+      /New file/,
+      /New from template/,
+      /New folder/,
+      /Open with AI/,
+      /Copy path/,
+      /Expand all/,
+      /Duplicate/,
+      /Rename/,
+      /Hide folder/,
+      /Delete/,
+    ]);
+
+    expect(screen.queryByTestId('file-tree-menu-show-hidden-files')).toBeNull();
+
+    await user.click(screen.getByRole('menuitem', { name: /expand all/i }));
+    expect(model.getItem('notes/')?.isExpanded()).toBe(true);
+
+    await user.click(screen.getByTestId('file-tree-menu-hide'));
+    expect(okignoreBindingMock.patch).toHaveBeenCalledWith('/notes/\n');
+    expect(toastSuccessMock).toHaveBeenCalledWith('Hidden folder “notes”', {
+      description: 'Manage hidden files in Settings → Ignore patterns.',
+      duration: 5000,
+    });
+  });
+
+  test('asset context menu keeps path actions and suppresses document-only actions', async () => {
+    menuItem = { kind: 'file', path: 'images/logo.png' };
+    renderFileTree();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('file-tree-menu-hide')).toBeNull();
+    });
+    expect(screen.queryByTestId('file-tree-menu-open-in-agent')).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /duplicate/i })).toBeNull();
+    expect(screen.getByRole('menuitem', { name: /rename/i })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /^delete/i })).toBeTruthy();
+    expect(screen.queryByTestId('file-tree-menu-show-hidden-files')).toBeNull();
+    expect(screen.getByRole('menuitem', { name: /copy path/i })).toBeTruthy();
+  });
+
+  test('.ok file row menu keeps read-only actions and drops every mutate action', async () => {
+    menuItem = { kind: 'file', path: '.ok/templates/greeting.md' };
+    okignoreBindingMock = {
+      current: () => '',
+      patch: vi.fn(() => ({ ok: true })),
+    };
+    renderFileTree();
+
+    await waitFor(() => {
+      expect(screen.getByRole('menuitem', { name: /copy path/i })).toBeTruthy();
+    });
+    expect(screen.queryByRole('menuitem', { name: /duplicate/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /rename/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /^delete/i })).toBeNull();
+    expect(screen.queryByTestId('file-tree-menu-hide')).toBeNull();
+  });
+
+  test('.ok folder row menu drops create and mutate sections, keeps path/tree actions', async () => {
+    menuItem = { kind: 'directory', path: '.ok/' };
+    okignoreBindingMock = {
+      current: () => '',
+      patch: vi.fn(() => ({ ok: true })),
+    };
+    renderFileTree();
+
+    await waitFor(() => {
+      expect(screen.getByRole('menuitem', { name: /copy path/i })).toBeTruthy();
+    });
+    expect(screen.queryByRole('menuitem', { name: /new file/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /new folder/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /new from template/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /duplicate/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /rename/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /^delete/i })).toBeNull();
+    expect(screen.queryByTestId('file-tree-menu-hide')).toBeNull();
+  });
+
+  test('duplicate response is schema-validated before UI reconciliation', async () => {
+    duplicateResponse = {
+      kind: 'file',
+      path: 42,
+      duplicatedDocNames: 'not-an-array',
+    };
+    const user = userEvent.setup();
+    renderFileTree();
+
+    fetchCalls = [];
+    await user.click(await screen.findByRole('menuitem', { name: /duplicate/i }));
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(addPageMock).not.toHaveBeenCalled();
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      '[parse-server-response] schema drift:',
+      'duplicate-path',
+      'bodyShape=',
+      ['kind', 'path', 'duplicatedDocNames'],
+      'issues=',
+      expect.any(Array),
+    );
+    expect(addPageMock).not.toHaveBeenCalled();
+    expect(openTargetMock).not.toHaveBeenCalled();
+    expect(toastSuccessMock).not.toHaveBeenCalled();
+    expect(toastErrorMock).toHaveBeenCalledWith(
+      'Duplicate succeeded but the sidebar may be out of date — refresh to resync',
+    );
+  });
+
+  test('duplicate error responses show the server problem title and do not reconcile', async () => {
+    duplicateStatus = 409;
+    duplicateResponse = {
+      type: 'urn:ok:error:doc-already-exists',
+      title: 'A file at the duplicate destination already exists.',
+      status: 409,
+      instance: 'urn:uuid:00000000-0000-4000-8000-000000000000',
+    };
+    const user = userEvent.setup();
+    renderFileTree();
+
+    fetchCalls = [];
+    await user.click(await screen.findByRole('menuitem', { name: /duplicate/i }));
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(addPageMock).not.toHaveBeenCalled();
+    expect(openTargetMock).not.toHaveBeenCalled();
+    expect(toastSuccessMock).not.toHaveBeenCalled();
+    expect(toastErrorMock).toHaveBeenCalledWith(
+      'A file at the duplicate destination already exists.',
+    );
+  });
+
+  test('duplicate fetch failures show a generic error toast and do not reconcile', async () => {
+    duplicateFetchError = new Error('network offline');
+    const user = userEvent.setup();
+    renderFileTree();
+
+    fetchCalls = [];
+    await user.click(await screen.findByRole('menuitem', { name: /duplicate/i }));
+
+    await waitFor(() =>
+      expect(toastErrorMock).toHaveBeenCalledWith('Could not duplicate item', {
+        description: 'network offline',
+      }),
+    );
+    expect(duplicateCalls()).toHaveLength(1);
+    expect(addPageMock).not.toHaveBeenCalled();
+    expect(openTargetMock).not.toHaveBeenCalled();
+    expect(toastSuccessMock).not.toHaveBeenCalled();
+  });
+
+  test('duplicate busy guard suppresses overlapping duplicate requests', async () => {
+    let releaseDuplicate: () => void = () => {};
+    ({ promise: duplicateGate, resolve: releaseDuplicate } = Promise.withResolvers<void>());
+    const user = userEvent.setup();
+    renderFileTree();
+
+    const duplicate = await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+    await user.click(duplicate);
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+
+    await user.click(duplicate);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(duplicateCalls()).toHaveLength(1);
+
+    releaseDuplicate();
+    await waitFor(() =>
+      expect(toastSuccessMock).toHaveBeenCalledWith('File duplicated', {
+        description: 'notes/source copy',
+      }),
+    );
+  });
+
+  test('Cmd/Ctrl+D duplicates the selected tree item without using the context menu', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/source.mdx'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'd', ctrlKey: true });
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(JSON.parse(String(duplicateCalls()[0]?.init?.body))).toEqual({
+      kind: 'file',
+      path: 'notes/source',
+    });
+  });
+
+  test('Cmd/Ctrl+D duplicates the selected folder tree item', async () => {
+    duplicateResponse = {
+      kind: 'folder',
+      path: 'notes copy',
+      duplicatedDocNames: ['notes copy/index'],
+    };
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'd', ctrlKey: true });
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(JSON.parse(String(duplicateCalls()[0]?.init?.body))).toEqual({
+      kind: 'folder',
+      path: 'notes',
+    });
+  });
+
+  test('Cmd/Ctrl+C then Cmd/Ctrl+V duplicates the copied tree item', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/source.mdx'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'c', ctrlKey: true });
+
+    model.focusedPath = 'images/logo.png';
+    model.selectedPaths = ['images/logo.png'];
+    fireEvent.keyDown(document, { key: 'v', ctrlKey: true });
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(JSON.parse(String(duplicateCalls()[0]?.init?.body))).toEqual({
+      kind: 'file',
+      path: 'notes/source',
+    });
+  });
+
+  test('Cmd/Ctrl+V without a copied tree item preserves native paste', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    screen.getByTestId('tree-focus-target').focus();
+    const pasteEvent = new KeyboardEvent('keydown', {
+      key: 'v',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(pasteEvent);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(pasteEvent.defaultPrevented).toBe(false);
+    expect(duplicateCalls()).toHaveLength(0);
+  });
+
+  test('Cmd/Ctrl+C on an asset row does not enqueue a paste target', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = 'images/logo.png';
+    model.selectedPaths = ['images/logo.png'];
+    screen.getByTestId('tree-focus-target').focus();
+    const copyEvent = new KeyboardEvent('keydown', {
+      key: 'c',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(copyEvent);
+    fireEvent.keyDown(document, { key: 'v', ctrlKey: true });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(copyEvent.defaultPrevented).toBe(false);
+    expect(duplicateCalls()).toHaveLength(0);
+  });
+
+  test('Cmd/Ctrl+C on an asset row does not clear the previous copied tree item', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/source.mdx'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'c', ctrlKey: true });
+
+    model.focusedPath = 'images/logo.png';
+    model.selectedPaths = ['images/logo.png'];
+    const assetCopyEvent = new KeyboardEvent('keydown', {
+      key: 'c',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(assetCopyEvent);
+    fireEvent.keyDown(document, { key: 'v', ctrlKey: true });
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(assetCopyEvent.defaultPrevented).toBe(false);
+    expect(JSON.parse(String(duplicateCalls()[0]?.init?.body))).toEqual({
+      kind: 'file',
+      path: 'notes/source',
+    });
+  });
+
+  test('Cmd/Ctrl+D ignores asset rows', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = 'images/logo.png';
+    model.selectedPaths = ['images/logo.png'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'd', ctrlKey: true });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(duplicateCalls()).toHaveLength(0);
+  });
+
+  test('Cmd/Ctrl+D ignores revealed .ok rows', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = '.ok/templates/greeting.md';
+    model.selectedPaths = ['.ok/templates/greeting.md'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'd', ctrlKey: true });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(duplicateCalls()).toHaveLength(0);
+  });
+
+  test('Cmd/Ctrl+C on a revealed .ok row keeps native copy and enqueues no paste target', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    model.focusedPath = 'notes/.ok/';
+    model.selectedPaths = ['notes/.ok/'];
+    screen.getByTestId('tree-focus-target').focus();
+    const copyEvent = new KeyboardEvent('keydown', {
+      key: 'c',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(copyEvent);
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/source.mdx'];
+    fireEvent.keyDown(document, { key: 'v', ctrlKey: true });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(copyEvent.defaultPrevented).toBe(false);
+    expect(duplicateCalls()).toHaveLength(0);
+  });
+
+  test('Cmd+Backspace opens delete confirmation for the selected tree item', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/source.mdx'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'Backspace', metaKey: true });
+
+    await screen.findByTestId('delete-confirmation-dialog');
+    expect(deleteConfirmationProps?.itemName).toBe('source.mdx');
+    expect(deleteConfirmationProps?.customTitle).toBeUndefined();
+  });
+
+  test('Delete opens delete confirmation for the focused tree item', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+
+    model.focusedPath = 'notes/source.mdx';
+    model.selectedPaths = [];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'Delete' });
+
+    await screen.findByTestId('delete-confirmation-dialog');
+    expect(deleteConfirmationProps?.itemName).toBe('source.mdx');
+    expect(deleteConfirmationProps?.customTitle).toBeUndefined();
+  });
+
+  test('Delete does not open confirmation while another file-tree action is busy', async () => {
+    let releaseDuplicate: () => void = () => {};
+    ({ promise: duplicateGate, resolve: releaseDuplicate } = Promise.withResolvers<void>());
+    const user = userEvent.setup();
+    renderFileTree();
+
+    const duplicate = await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+    await user.click(duplicate);
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+
+    model.focusedPath = 'notes/source.mdx';
+    model.selectedPaths = [];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'Delete' });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.queryByTestId('delete-confirmation-dialog')).toBeNull();
+    expect(deleteConfirmationProps).toBeNull();
+
+    releaseDuplicate();
+    await waitFor(() =>
+      expect(toastSuccessMock).toHaveBeenCalledWith('File duplicated', {
+        description: 'notes/source copy',
+      }),
+    );
+  });
+
+  test('the tree reports busy while a file-tree action is in flight and idle once it settles', async () => {
+    let releaseDuplicate: () => void = () => {};
+    ({ promise: duplicateGate, resolve: releaseDuplicate } = Promise.withResolvers<void>());
+    const user = userEvent.setup();
+    renderFileTree();
+
+    const duplicate = await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+    await user.click(duplicate);
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+
+    expect(screen.getByTestId('fake-pierre-tree').getAttribute('data-state')).toBe('busy');
+
+    releaseDuplicate();
+    await waitFor(() =>
+      expect(screen.getByTestId('fake-pierre-tree').getAttribute('data-state')).toBe('idle'),
+    );
+  });
+
+  test('Delete on a revealed .ok row opens no delete confirmation', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+
+    model.focusedPath = '.ok/';
+    model.selectedPaths = [];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'Delete' });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.queryByTestId('delete-confirmation-dialog')).toBeNull();
+    expect(deleteConfirmationProps).toBeNull();
+  });
+
+  test('Delete on a mixed selection confirms only the non-.ok targets', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/source.mdx', 'notes/.ok/'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'Delete' });
+
+    await screen.findByTestId('delete-confirmation-dialog');
+    expect(deleteConfirmationProps?.itemName).toBe('source.mdx');
+    expect(deleteConfirmationProps?.customTitle).toBeUndefined();
+  });
+
+  test('Delete opens one confirmation for multi-selected targets with nested paths deduped', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+
+    model.focusedPath = null;
+    model.selectedPaths = ['notes/', 'notes/source.mdx', 'images/logo.png'];
+    screen.getByTestId('tree-focus-target').focus();
+    fireEvent.keyDown(document, { key: 'Delete' });
+
+    await screen.findByTestId('delete-confirmation-dialog');
+    expect(deleteConfirmationProps?.customTitle).toBe('Delete selected items');
+    expect(deleteConfirmationProps?.customDescription).toContain('2 selected items');
+  });
+
+  test('desktop duplicate event bus resolves doc and folder targets through the same duplicate path', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    await act(async () => {
+      emitFileTreeMenuActionDuplicate({
+        kind: 'doc',
+        target: 'notes/source',
+        docName: 'notes/source',
+      } satisfies ResolvedNavigationTarget);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(1));
+    expect(JSON.parse(String(duplicateCalls()[0]?.init?.body))).toEqual({
+      kind: 'file',
+      path: 'notes/source',
+    });
+
+    await act(async () => {
+      emitFileTreeMenuActionDuplicate({
+        kind: 'folder',
+        target: 'notes',
+        folderPath: 'notes',
+      } satisfies ResolvedNavigationTarget);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(duplicateCalls()).toHaveLength(2));
+    expect(JSON.parse(String(duplicateCalls()[1]?.init?.body))).toEqual({
+      kind: 'folder',
+      path: 'notes',
+    });
+  });
+
+  test('desktop duplicate event bus ignores unsupported asset targets with a structured warning', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    act(() => {
+      emitFileTreeMenuActionDuplicate({
+        kind: 'asset',
+        target: 'images/logo.png',
+        assetPath: 'images/logo.png',
+        mediaKind: 'image',
+      } satisfies ResolvedNavigationTarget);
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(duplicateCalls()).toHaveLength(0);
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      JSON.stringify({
+        event: 'file-tree-menu-action-duplicate-unsupported-kind',
+        kind: 'asset',
+      }),
+    );
+  });
+
+  test('tab delete event opens the sidebar confirmation before any delete side effect', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    act(() => {
+      emitFileTreeMenuActionDelete({
+        kind: 'folder',
+        target: 'notes',
+        folderPath: 'notes',
+      } satisfies ResolvedNavigationTarget);
+    });
+
+    await screen.findByTestId('delete-confirmation-dialog');
+    expect(deleteConfirmationProps?.itemName).toBe('notes/');
+    expect(deletePathCalls()).toHaveLength(0);
+
+    await act(async () => {
+      await deleteConfirmationProps?.onDelete?.();
+    });
+
+    await waitFor(() => expect(deletePathCalls()).toHaveLength(1));
+    expect(JSON.parse(String(deletePathCalls()[0]?.init?.body))).toEqual({
+      kind: 'folder',
+      path: 'notes',
+    });
+  });
+
+  test('a conflicted doc is refused by the delete guard before any delete-path call', async () => {
+    conflictsPayload = [
+      {
+        file: 'notes/source.mdx',
+        detectedAt: '2026-05-20T00:00:00.000Z',
+        conflict: 'merge-native',
+        docName: 'notes/source',
+      },
+    ];
+    renderFileTreeWithConflicts();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    await waitFor(() =>
+      expect(fetchCalls.some((call) => call.url === '/api/sync/conflicts')).toBe(true),
+    );
+    fetchCalls = [];
+    toastErrorMock.mockClear();
+
+    act(() => {
+      emitFileTreeMenuActionDelete({
+        kind: 'doc',
+        target: 'notes/source',
+        docName: 'notes/source',
+      } satisfies ResolvedNavigationTarget);
+    });
+
+    await screen.findByTestId('delete-confirmation-dialog');
+    await act(async () => {
+      await deleteConfirmationProps?.onDelete?.();
+    });
+
+    expect(deletePathCalls()).toHaveLength(0);
+    expect(toastErrorMock).toHaveBeenCalled();
+  });
+
+  test('an unconflicted doc still reaches delete-path with the provider mounted', async () => {
+    renderFileTreeWithConflicts();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    await waitFor(() =>
+      expect(fetchCalls.some((call) => call.url === '/api/sync/conflicts')).toBe(true),
+    );
+    fetchCalls = [];
+
+    act(() => {
+      emitFileTreeMenuActionDelete({
+        kind: 'doc',
+        target: 'notes/source',
+        docName: 'notes/source',
+      } satisfies ResolvedNavigationTarget);
+    });
+
+    await screen.findByTestId('delete-confirmation-dialog');
+    await act(async () => {
+      await deleteConfirmationProps?.onDelete?.();
+    });
+
+    await waitFor(() => expect(deletePathCalls()).toHaveLength(1));
+  });
+
+  test('delete event bus drops .ok targets before opening confirmation', async () => {
+    renderFileTree();
+    await screen.findByRole('menuitem', { name: /duplicate/i });
+    fetchCalls = [];
+
+    act(() => {
+      emitFileTreeMenuActionDelete({
+        kind: 'folder',
+        target: '.ok',
+        folderPath: '.ok',
+      } satisfies ResolvedNavigationTarget);
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(deletePathCalls()).toHaveLength(0);
+    expect(screen.queryByTestId('delete-confirmation-dialog')).toBeNull();
+  });
+});

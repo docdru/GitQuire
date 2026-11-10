@@ -1,0 +1,200 @@
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { updateYFragment } from '@tiptap/y-tiptap';
+import simpleGit from 'simple-git';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type * as Y from 'yjs';
+import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
+import { expectStable } from './expect-stable.test-helper.ts';
+import { mdManager, schema } from './md-manager.ts';
+import { createServer } from './server-factory.ts';
+import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
+
+const FIXTURE_DIR = resolve(import.meta.dirname, 'persistence-tripwire.fixtures');
+
+function loadFixture(name: string): string {
+  return readFileSync(join(FIXTURE_DIR, name), 'utf-8');
+}
+
+interface Fixture {
+  tmpDir: string;
+  contentDir: string;
+  cleanup: () => void;
+}
+
+async function setupFixture(): Promise<Fixture> {
+  const tmpDir = mkdtempSync(join(tmpdir(), 'ok-tripwire-'));
+  const contentDir = tmpDir;
+  const git = simpleGit({ baseDir: tmpDir });
+  await git.init();
+  configureTestGitRepository(tmpDir);
+  await git.addConfig('user.name', 'Test User');
+  await git.addConfig('user.email', 'test@example.com');
+  return {
+    tmpDir,
+    contentDir,
+    cleanup: () => rmSync(tmpDir, { recursive: true, force: true }),
+  };
+}
+
+function replaceFragmentFromMarkdown(doc: Y.Doc, markdown: string): void {
+  const json = mdManager.parseWithFallback(markdown);
+  const pmNode = schema.nodeFromJSON(json);
+  const xmlFragment = doc.getXmlFragment('default');
+  doc.transact(
+    () => {
+      updateYFragment(doc, xmlFragment, pmNode, { mapping: new Map(), isOMark: new Map() });
+    },
+    { source: 'connection', connection: { context: { principalId: 'principal-test-tripwire' } } },
+  );
+}
+
+describe('persistence onStoreDocument tripwire', () => {
+  let fixture: Fixture;
+
+  beforeEach(async () => {
+    fixture = await setupFixture();
+  });
+
+  afterEach(() => {
+    fixture.cleanup();
+  });
+
+  test('blocks doubled candidate, leaves disk unchanged, resets the live doc to disk', async () => {
+    const docName = 'incident-changeset-readme';
+    const docPath = join(fixture.contentDir, `${docName}.md`);
+    const baseMarkdown = loadFixture('incident-changeset-readme-doubled.base.md');
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+    writeFileSync(docPath, baseMarkdown, 'utf-8');
+    const baselineBytes = readFileSync(docPath, 'utf-8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const server = createServer({
+      contentDir: fixture.contentDir,
+      projectDir: fixture.tmpDir,
+      quiet: true,
+      debounce: 100,
+      maxDebounce: 500,
+      gitEnabled: false,
+    });
+    try {
+      await server.ready;
+      const conn = await server.hocuspocus.openDirectConnection(docName);
+      const serverDoc = server.hocuspocus.documents.get(docName);
+      expect(serverDoc).toBeDefined();
+      if (!serverDoc) return;
+
+      const baseChildren = serverDoc.getXmlFragment('default').length;
+      expect(baseChildren).toBeGreaterThan(0);
+
+      replaceFragmentFromMarkdown(serverDoc, doubledMarkdown);
+      const doubledChildren = serverDoc.getXmlFragment('default').length;
+      expect(doubledChildren).toBe(baseChildren * 2);
+
+      await waitWithinTestBudget(
+        'an ok-persistence-duplication-blocked warning to be logged',
+        () =>
+          warnSpy.mock.calls.some((call) => {
+            const arg = String(call[0] ?? '');
+            return arg.includes('"event":"ok-persistence-duplication-blocked"');
+          }),
+        { timeoutMs: 5_000 },
+      );
+
+      await expectStable(`${docName}.md on disk`, () => readFileSync(docPath, 'utf-8'));
+      expect(readFileSync(docPath, 'utf-8')).toBe(baselineBytes);
+
+      await waitWithinTestBudget(
+        `the ${docName} fragment to be rolled back to its baseline child count`,
+        () => serverDoc.getXmlFragment('default').length === baseChildren,
+        { timeoutMs: 5_000 },
+      );
+      expect(serverDoc.getXmlFragment('default').length).toBe(baseChildren);
+      await waitWithinTestBudget(
+        `the ${docName} source text to be rolled back to the baseline bytes`,
+        () => serverDoc.getText('source').toString() === baselineBytes,
+        { timeoutMs: 5_000 },
+      );
+      expect(serverDoc.getText('source').toString()).toBe(baselineBytes);
+
+      const blockedCalls = warnSpy.mock.calls
+        .map((call) => String(call[0] ?? ''))
+        .filter((s) => s.includes('"event":"ok-persistence-duplication-blocked"'));
+      expect(blockedCalls.length).toBe(1);
+      const payload = JSON.parse(blockedCalls[0] ?? '{}') as Record<string, unknown>;
+      expect(payload.event).toBe('ok-persistence-duplication-blocked');
+      expect(payload['doc.name']).toBe(docName);
+      expect(payload.copies).toBe(2);
+      expect(payload.reason).toBe('structural-duplication');
+      expect(typeof payload.candidateBytes).toBe('number');
+      expect(typeof payload.baseBytes).toBe('number');
+      expect(typeof payload.fragmentChildren).toBe('number');
+      expect(new Set(Object.keys(payload))).toEqual(
+        new Set([
+          'event',
+          'doc.name',
+          'candidateBytes',
+          'baseBytes',
+          'fragmentChildren',
+          'copies',
+          'reason',
+        ]),
+      );
+
+      conn.disconnect();
+    } finally {
+      warnSpy.mockRestore();
+      await server.destroy();
+    }
+
+    expect(readFileSync(docPath, 'utf-8')).toBe(baselineBytes);
+  });
+
+  test('intentional whole-document duplicate edit falls through to the normal write path', async () => {
+    const docName = 'intentional-faq-repeated';
+    const docPath = join(fixture.contentDir, `${docName}.md`);
+    const baseMarkdown = loadFixture('intentional-faq-repeated-section.base.md');
+    const candidateMarkdown = loadFixture('intentional-faq-repeated-section.candidate.md');
+    writeFileSync(docPath, baseMarkdown, 'utf-8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const server = createServer({
+      contentDir: fixture.contentDir,
+      projectDir: fixture.tmpDir,
+      quiet: true,
+      debounce: 100,
+      maxDebounce: 500,
+      gitEnabled: false,
+    });
+    try {
+      await server.ready;
+      const conn = await server.hocuspocus.openDirectConnection(docName);
+      const serverDoc = server.hocuspocus.documents.get(docName);
+      expect(serverDoc).toBeDefined();
+      if (!serverDoc) return;
+
+      replaceFragmentFromMarkdown(serverDoc, candidateMarkdown);
+
+      const baselineSize = readFileSync(docPath, 'utf-8').length;
+      await waitWithinTestBudget(
+        `${docName}.md on disk to change size from its baseline`,
+        () => readFileSync(docPath, 'utf-8').length !== baselineSize,
+        { timeoutMs: 5_000 },
+      );
+
+      const finalContent = readFileSync(docPath, 'utf-8');
+      expect(finalContent.length).toBeGreaterThan(baselineSize);
+
+      const blockedCalls = warnSpy.mock.calls
+        .map((call) => String(call[0] ?? ''))
+        .filter((s) => s.includes('"event":"ok-persistence-duplication-blocked"'));
+      expect(blockedCalls.length).toBe(0);
+
+      conn.disconnect();
+    } finally {
+      warnSpy.mockRestore();
+      await server.destroy();
+    }
+  });
+});

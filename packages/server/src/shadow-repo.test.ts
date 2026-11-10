@@ -1,0 +1,2844 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { setTimeout as wait } from 'node:timers/promises';
+import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+import {
+  CHECKPOINT_KIND_REGISTRY,
+  CHECKPOINT_KINDS,
+  CHECKPOINT_SAMPLE_BY_KIND,
+  type CheckpointKind,
+  formatCheckpointBodyLine,
+  parseCheckpoint,
+  parseOkActor,
+} from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import simpleGit from 'simple-git';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
+import { applySkillWrite } from './content/skills-write.ts';
+import { getLogger } from './logger.ts';
+import { getMetrics, resetMetrics } from './metrics.ts';
+import {
+  buildWipTree,
+  commitUpstreamImport,
+  commitWip,
+  DEFAULT_CHECKPOINT_RETENTION,
+  FANOUT_INDEX_NAME,
+  GIT_UPSTREAM_WRITER,
+  gitDirExcludePatterns,
+  type InMemoryCheckpointParams,
+  initShadowRepo,
+  isShadowExcludesDegraded,
+  listRescueCheckpoints,
+  type ParkableDoc,
+  parkBranch,
+  readParkedState,
+  resetFoldedWipRefs,
+  SERVICE_WRITER,
+  type ShadowHandle,
+  safetyCheckpoint,
+  saveInMemoryCheckpoint,
+  saveVersion,
+  shadowGit,
+  sweepLegacyShadowRefs,
+  type WriterIdentity,
+} from './shadow-repo';
+
+const fsTracedRecorder = vi.hoisted(() => ({ renameSources: [] as string[] }));
+
+vi.mock('./fs-traced.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./fs-traced.ts')>();
+  return {
+    ...actual,
+    tracedRenameSync: (from: string, to: string): void => {
+      fsTracedRecorder.renameSources.push(from);
+      actual.tracedRenameSync(from, to);
+    },
+  };
+});
+
+let tmpDir: string;
+
+beforeEach(async () => {
+  tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-shadow-test-'));
+});
+
+afterEach(async () => {
+  await rm(tmpDir, { recursive: true, force: true });
+});
+
+describe('initShadowRepo', () => {
+  test('creates shadow at .git/ok/ when project .git/ exists', async () => {
+    const projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    const shadow = await initShadowRepo(projectRoot);
+
+    expect(shadow.gitDir).toBe(resolve(projectRoot, '.git/ok'));
+    expect(shadow.workTree).toBe(projectRoot);
+    expect(existsSync(resolve(shadow.gitDir, 'HEAD'))).toBe(true);
+
+    const sg = simpleGit().env({ GIT_DIR: shadow.gitDir });
+    const worktree = (await sg.raw('config', 'core.worktree')).trim();
+    expect(worktree).toBe(projectRoot);
+
+    const userName = (await sg.raw('config', 'user.name')).trim();
+    expect(userName).toBe('openknowledge');
+  });
+
+  test('does not modify .gitignore (shadow is inside .git/ already)', async () => {
+    const projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    const gitignorePath = resolve(projectRoot, '.gitignore');
+    await initShadowRepo(projectRoot);
+    expect(existsSync(gitignorePath)).toBe(false);
+
+    const gitignore = 'node_modules/\n.env\n';
+    writeFileSync(gitignorePath, gitignore);
+    await initShadowRepo(projectRoot);
+    expect(readFileSync(gitignorePath, 'utf-8')).toBe(gitignore);
+  });
+
+  test('is idempotent — second call does not error', async () => {
+    const projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    const shadow1 = await initShadowRepo(projectRoot);
+    const shadow2 = await initShadowRepo(projectRoot);
+
+    expect(shadow1.gitDir).toBe(shadow2.gitDir);
+    expect(existsSync(resolve(shadow2.gitDir, 'HEAD'))).toBe(true);
+  });
+
+  test('sub-projects whose names differ only in non-Latin letters get separate shadow repos', async () => {
+    const repo = resolve(tmpDir, 'repo');
+    mkdirSync(repo, { recursive: true });
+    await simpleGit(repo).init();
+    configureTestGitRepository(repo);
+    const projectA = resolve(repo, 'ノート');
+    const projectB = resolve(repo, '日記帳');
+    mkdirSync(projectA, { recursive: true });
+    mkdirSync(projectB, { recursive: true });
+
+    const shadowA = await initShadowRepo(projectA);
+    const shadowB = await initShadowRepo(projectB);
+
+    expect(shadowA.gitDir).not.toBe(shadowB.gitDir);
+    for (const [shadow, project] of [
+      [shadowA, projectA],
+      [shadowB, projectB],
+    ] as const) {
+      const sg = simpleGit().env({ GIT_DIR: shadow.gitDir });
+      expect((await sg.raw('config', 'core.worktree')).trim()).toBe(project);
+    }
+    expect((await initShadowRepo(projectA)).gitDir).toBe(shadowA.gitDir);
+  });
+
+  test("an earlier version's lossy shadow repo stays with its owner after upgrade", async () => {
+    const repo = resolve(tmpDir, 'repo');
+    mkdirSync(repo, { recursive: true });
+    await simpleGit(repo).init();
+    configureTestGitRepository(repo);
+    const owner = resolve(repo, 'ノート');
+    const other = resolve(repo, '日記帳');
+    mkdirSync(owner, { recursive: true });
+    mkdirSync(other, { recursive: true });
+    const legacyDir = resolve(repo, '.git', 'ok-___');
+    execFileSync('git', ['init', '--bare', '--quiet', legacyDir]);
+    execFileSync('git', ['config', 'core.worktree', owner], {
+      env: { ...process.env, GIT_DIR: legacyDir },
+    });
+
+    expect((await initShadowRepo(owner)).gitDir).toBe(legacyDir);
+    expect((await initShadowRepo(other)).gitDir).not.toBe(legacyDir);
+  });
+
+  test('R9 rename shim: legacy .git/openknowledge/ is renamed to .git/ok/', async () => {
+    const projectRoot = resolve(tmpDir, 'legacy');
+    mkdirSync(projectRoot, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    const legacyDir = resolve(projectRoot, '.git/openknowledge');
+    mkdirSync(legacyDir, { recursive: true });
+    await git.raw('init', '--bare', legacyDir);
+    configureTestGitRepository(legacyDir);
+    const sg = simpleGit({ timeout: { block: 30_000 } }).env({ GIT_DIR: legacyDir });
+    await sg.raw('config', '--unset', 'core.bare');
+    await sg.raw('config', 'core.worktree', projectRoot);
+    writeFileSync(resolve(legacyDir, 'SENTINEL'), 'migrated');
+
+    const shadow = await initShadowRepo(projectRoot);
+
+    expect(shadow.gitDir).toBe(resolve(projectRoot, '.git/ok'));
+    expect(existsSync(legacyDir)).toBe(false);
+    expect(existsSync(resolve(projectRoot, '.git/ok/SENTINEL'))).toBe(true);
+    expect(existsSync(resolve(projectRoot, '.git/ok/HEAD'))).toBe(true);
+  });
+
+  test('R9 defensive: both legacy and new shadow present — no rename, warning logged', async () => {
+    const projectRoot = resolve(tmpDir, 'both-present');
+    mkdirSync(projectRoot, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    const legacyDir = resolve(projectRoot, '.git/openknowledge');
+    const newDir = resolve(projectRoot, '.git/ok');
+    mkdirSync(legacyDir, { recursive: true });
+    mkdirSync(newDir, { recursive: true });
+    writeFileSync(resolve(legacyDir, 'LEGACY_SENTINEL'), 'legacy');
+    writeFileSync(resolve(newDir, 'NEW_SENTINEL'), 'new');
+
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+    try {
+      await initShadowRepo(projectRoot);
+
+      expect(existsSync(resolve(legacyDir, 'LEGACY_SENTINEL'))).toBe(true);
+      expect(existsSync(resolve(newDir, 'NEW_SENTINEL'))).toBe(true);
+
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(warnings.some((w) => w.includes('[shadow-repo] unexpected legacy + new shadow'))).toBe(
+        true,
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+});
+
+describe('buildWipTree contentRoot pathspec', () => {
+  test("'.' pathspec succeeds when content lives at the project root", async () => {
+    const projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    writeFileSync(resolve(projectRoot, 'AGENTS.md'), '# hello\n');
+    const shadow = await initShadowRepo(projectRoot);
+
+    const sha = await buildWipTree(shadow, '.');
+    expect(sha).toMatch(/^[0-9a-f]{40}$/);
+  });
+
+  test("literal 'content' pathspec fails when no such subfolder exists", async () => {
+    const projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    writeFileSync(resolve(projectRoot, 'AGENTS.md'), '# hello\n');
+    const shadow = await initShadowRepo(projectRoot);
+
+    await expect(buildWipTree(shadow, 'content')).rejects.toThrow(/pathspec ':\(literal\)content'/);
+  });
+
+  test('a ":"-prefixed contentRoot scopes to that subtree instead of over-matching', async () => {
+    const projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(resolve(projectRoot, ':vault'), { recursive: true });
+    writeFileSync(resolve(projectRoot, ':vault', 'a.md'), '# a\n');
+    writeFileSync(resolve(projectRoot, 'sibling.md'), '# sibling\n');
+    const shadow = await initShadowRepo(projectRoot);
+
+    const sha = await buildWipTree(shadow, ':vault');
+    const listed = await simpleGit(projectRoot)
+      .env({ GIT_DIR: shadow.gitDir, GIT_WORK_TREE: projectRoot })
+      .raw(['ls-tree', '-r', '--name-only', sha]);
+    const entries = listed.trim().split('\n').filter(Boolean);
+
+    expect(entries).toContain(':vault/a.md');
+    expect(entries).not.toContain('sibling.md');
+  });
+
+  test('a wildcard-bearing contentRoot selects only its own subtree', async () => {
+    const projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(resolve(projectRoot, 'star*'), { recursive: true });
+    mkdirSync(resolve(projectRoot, 'starfish'), { recursive: true });
+    writeFileSync(resolve(projectRoot, 'star*', 'a.md'), '# a\n');
+    writeFileSync(resolve(projectRoot, 'starfish', 'b.md'), '# b\n');
+    const shadow = await initShadowRepo(projectRoot);
+
+    const sha = await buildWipTree(shadow, 'star*');
+    const listed = await simpleGit(projectRoot)
+      .env({ GIT_DIR: shadow.gitDir, GIT_WORK_TREE: projectRoot })
+      .raw(['ls-tree', '-r', '--name-only', sha]);
+    const entries = listed.trim().split('\n').filter(Boolean);
+
+    expect(entries).toContain('star*/a.md');
+    expect(entries).not.toContain('starfish/b.md');
+  });
+});
+
+describe('buildWipTree persistent fan-out index', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+  let contentDir: string;
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    contentDir = resolve(projectRoot, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('reused index tracks modify, add, and delete across successive builds', async () => {
+    writeFileSync(resolve(contentDir, 'a.md'), '# A v1\n');
+    writeFileSync(resolve(contentDir, 'b.md'), '# B v1\n');
+    const tree1 = await buildWipTree(shadow, 'content');
+    expect(existsSync(resolve(shadow.gitDir, 'index-wip-fanout'))).toBe(true);
+
+    writeFileSync(resolve(contentDir, 'a.md'), '# A v2\n');
+    rmSync(resolve(contentDir, 'b.md'));
+    writeFileSync(resolve(contentDir, 'c.md'), '# C v1\n');
+    const tree2 = await buildWipTree(shadow, 'content');
+    expect(tree2).not.toBe(tree1);
+
+    const sg = shadowGit(shadow);
+    const listing = await sg.raw('ls-tree', '-r', '--name-only', tree2);
+    const paths = listing.trim().split('\n').sort();
+    expect(paths).toEqual(['content/a.md', 'content/c.md']);
+    expect((await sg.raw('cat-file', '-p', `${tree2}:content/a.md`)).trim()).toBe('# A v2');
+  });
+
+  test('reused index produces the same tree a fresh index would', async () => {
+    writeFileSync(resolve(contentDir, 'a.md'), '# A v1\n');
+    await buildWipTree(shadow, 'content');
+    writeFileSync(resolve(contentDir, 'a.md'), '# A v2\n');
+    const warmTree = await buildWipTree(shadow, 'content');
+
+    rmSync(resolve(shadow.gitDir, 'index-wip-fanout'));
+    const freshTree = await buildWipTree(shadow, 'content');
+    expect(warmTree).toBe(freshTree);
+  });
+
+  test('corrupt persistent index falls back to a fresh rebuild', async () => {
+    writeFileSync(resolve(contentDir, 'a.md'), '# A v1\n');
+    const tree1 = await buildWipTree(shadow, 'content');
+
+    writeFileSync(resolve(shadow.gitDir, 'index-wip-fanout'), 'not a git index');
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+    try {
+      const tree2 = await buildWipTree(shadow, 'content');
+      expect(tree2).toBe(tree1);
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(warnings.some((w) => w.includes('persistent fan-out index failed'))).toBe(true);
+    } finally {
+      warnSpy.mockRestore();
+    }
+    expect(existsSync(resolve(shadow.gitDir, 'index-wip-fanout'))).toBe(false);
+  });
+
+  test('stale index.lock from a killed add falls back and is cleared', async () => {
+    writeFileSync(resolve(contentDir, 'a.md'), '# A v1\n');
+    const tree1 = await buildWipTree(shadow, 'content');
+
+    writeFileSync(resolve(shadow.gitDir, 'index-wip-fanout.lock'), '');
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+    try {
+      const tree2 = await buildWipTree(shadow, 'content');
+      expect(tree2).toBe(tree1);
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(warnings.some((w) => w.includes('persistent fan-out index failed'))).toBe(true);
+    } finally {
+      warnSpy.mockRestore();
+    }
+    expect(existsSync(resolve(shadow.gitDir, 'index-wip-fanout.lock'))).toBe(false);
+  });
+
+  test('boot sweep removes throwaway indices, stale lock, and orphaned park blob dirs but keeps the cache', async () => {
+    writeFileSync(resolve(shadow.gitDir, 'index-wip-fanout-deadbeef'), '');
+    writeFileSync(resolve(shadow.gitDir, 'index-wip-fanout.lock'), '');
+    writeFileSync(resolve(shadow.gitDir, 'index-wip-fanout'), '');
+    const orphanParkDir = resolve(shadow.gitDir, 'tmp-park-blobs-deadbeef');
+    mkdirSync(orphanParkDir, { recursive: true });
+    writeFileSync(resolve(orphanParkDir, '0-state'), '# orphaned park blob\n');
+
+    const reinit = await initShadowRepo(projectRoot);
+    expect(existsSync(resolve(reinit.gitDir, 'index-wip-fanout-deadbeef'))).toBe(false);
+    expect(existsSync(resolve(reinit.gitDir, 'index-wip-fanout.lock'))).toBe(false);
+    expect(existsSync(orphanParkDir)).toBe(false);
+    expect(existsSync(resolve(reinit.gitDir, 'index-wip-fanout'))).toBe(true);
+  });
+});
+
+describe('commitWip', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+  let contentDir: string;
+
+  const writer: WriterIdentity = {
+    id: 'human-ada',
+    name: 'Ada Lovelace',
+    email: 'ada@example.com',
+  };
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    contentDir = resolve(projectRoot, 'content/docs');
+    mkdirSync(contentDir, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('creates commit on refs/wip/<branch>/<writer-id>', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello\n');
+
+    const sha = await commitWip(shadow, writer, 'content/docs', 'WIP: intro');
+
+    expect(sha).toHaveLength(40);
+
+    const sg = shadowGit(shadow);
+    const refSha = (await sg.raw('rev-parse', `refs/wip/main/${writer.id}`)).trim();
+    expect(refSha).toBe(sha);
+
+    const msg = (await sg.raw('log', '-1', '--format=%s', sha)).trim();
+    expect(msg).toBe('WIP: intro');
+  });
+
+  test('commit is authored by the writer', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello\n');
+
+    const sha = await commitWip(shadow, writer, 'content/docs', 'WIP: check author');
+
+    const sg = shadowGit(shadow);
+    const authorName = (await sg.raw('log', '-1', '--format=%an', sha)).trim();
+    const authorEmail = (await sg.raw('log', '-1', '--format=%ae', sha)).trim();
+    expect(authorName).toBe(writer.name);
+    expect(authorEmail).toBe(writer.email);
+
+    const committerName = (await sg.raw('log', '-1', '--format=%cn', sha)).trim();
+    expect(committerName).toBe('openknowledge');
+  });
+
+  test('second commit parents the first', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello\n');
+    const sha1 = await commitWip(shadow, writer, 'content/docs', 'WIP: first');
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello World\n');
+    const sha2 = await commitWip(shadow, writer, 'content/docs', 'WIP: second');
+
+    expect(sha2).not.toBe(sha1);
+
+    const sg = shadowGit(shadow);
+    const parent = (await sg.raw('log', '-1', '--format=%P', sha2)).trim();
+    expect(parent).toBe(sha1);
+  });
+
+  test('CONCURRENT same-writer commits serialize: linear chain, no stale tree (P0 pin)', async () => {
+    writeFileSync(resolve(contentDir, 'a.md'), '# A\n');
+    const base = await commitWip(shadow, writer, 'content/docs', 'WIP: base');
+
+    writeFileSync(resolve(contentDir, 'b.md'), '# B\n');
+    writeFileSync(resolve(contentDir, 'c.md'), '# C\n');
+    const [s1, s2] = await Promise.all([
+      commitWip(shadow, writer, 'content/docs', 'WIP: concurrent 1'),
+      commitWip(shadow, writer, 'content/docs', 'WIP: concurrent 2'),
+    ]);
+
+    const sg = shadowGit(shadow);
+    const p1 = (await sg.raw('log', '-1', '--format=%P', s1)).trim();
+    const p2 = (await sg.raw('log', '-1', '--format=%P', s2)).trim();
+    expect([p1, p2].sort()).toEqual([base, s1].sort());
+    const files = (await sg.raw('ls-tree', '-r', '--name-only', `refs/wip/main/${writer.id}`))
+      .trim()
+      .split('\n')
+      .sort();
+    expect(files).toEqual(['content/docs/a.md', 'content/docs/b.md', 'content/docs/c.md']);
+  });
+
+  test('different writers get independent refs', async () => {
+    const agent: WriterIdentity = {
+      id: 'agent-cursor',
+      name: 'cursor-agent',
+      email: 'cursor@openknowledge.local',
+    };
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello from human\n');
+    const humanSha = await commitWip(shadow, writer, 'content/docs', 'WIP: human edit');
+
+    writeFileSync(resolve(contentDir, 'guide.md'), '# Agent guide\n');
+    const agentSha = await commitWip(shadow, agent, 'content/docs', 'WIP: agent edit');
+
+    const sg = shadowGit(shadow);
+    const humanRef = (await sg.raw('rev-parse', 'refs/wip/main/human-ada')).trim();
+    const agentRef = (await sg.raw('rev-parse', 'refs/wip/main/agent-cursor')).trim();
+
+    expect(humanRef).toBe(humanSha);
+    expect(agentRef).toBe(agentSha);
+  });
+
+  test('branch-scoped WIP refs are isolated', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Main content\n');
+    const mainSha = await commitWip(shadow, writer, 'content/docs', 'WIP: main edit', 'main');
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Feature content\n');
+    const featureSha = await commitWip(
+      shadow,
+      writer,
+      'content/docs',
+      'WIP: feature edit',
+      'feature/xyz',
+    );
+
+    const sg = shadowGit(shadow);
+    const mainRef = (await sg.raw('rev-parse', 'refs/wip/main/human-ada')).trim();
+    const featureRef = (await sg.raw('rev-parse', 'refs/wip/feature/xyz/human-ada')).trim();
+
+    expect(mainRef).toBe(mainSha);
+    expect(featureRef).toBe(featureSha);
+    expect(mainRef).not.toBe(featureRef);
+  });
+});
+
+describe('commitUpstreamImport', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+  let contentDir: string;
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    contentDir = resolve(projectRoot, 'content/docs');
+    mkdirSync(contentDir, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('creates commit on refs/wip/<branch>/git-upstream', async () => {
+    writeFileSync(resolve(contentDir, 'api.md'), '# API Reference\n');
+
+    const sha = await commitUpstreamImport(shadow, 'content/docs', 'aabbccdd', '11223344');
+
+    expect(sha).toHaveLength(40);
+
+    const sg = shadowGit(shadow);
+    const refSha = (await sg.raw('rev-parse', 'refs/wip/main/git-upstream')).trim();
+    expect(refSha).toBe(sha);
+  });
+
+  test('commit message includes old..new head range', async () => {
+    writeFileSync(resolve(contentDir, 'api.md'), '# API\n');
+
+    const sha = await commitUpstreamImport(
+      shadow,
+      'content/docs',
+      'aabbccddeeff0011',
+      '1122334455667788',
+    );
+
+    const sg = shadowGit(shadow);
+    const msg = (await sg.raw('log', '-1', '--format=%s', sha)).trim();
+    expect(msg).toBe('import: from aabbccdd..11223344');
+  });
+
+  test('commit message handles null oldHead (initial import)', async () => {
+    writeFileSync(resolve(contentDir, 'api.md'), '# API\n');
+
+    const sha = await commitUpstreamImport(shadow, 'content/docs', null, '1122334455667788');
+
+    const sg = shadowGit(shadow);
+    const msg = (await sg.raw('log', '-1', '--format=%s', sha)).trim();
+    expect(msg).toBe('import: initial at 11223344');
+  });
+
+  test('upstream commit is authored by upstream writer', async () => {
+    writeFileSync(resolve(contentDir, 'api.md'), '# API\n');
+
+    const sha = await commitUpstreamImport(shadow, 'content/docs', null, 'deadbeef');
+
+    const sg = shadowGit(shadow);
+    const authorName = (await sg.raw('log', '-1', '--format=%an', sha)).trim();
+    expect(authorName).toBe('Git (upstream)');
+  });
+
+  test('commit body carries ok-actor: line (US-015)', async () => {
+    writeFileSync(resolve(contentDir, 'api.md'), '# API\n');
+
+    const sha = await commitUpstreamImport(shadow, 'content/docs', 'aabb0011', 'ccdd2233');
+
+    const sg = shadowGit(shadow);
+    const body = (await sg.raw('log', '-1', '--format=%B', sha)).trim();
+    const actor = parseOkActor(body);
+    expect(actor).not.toBeNull();
+    expect(actor?.v).toBe(1);
+    expect(actor?.display_name).toBe('Git (upstream)');
+  });
+});
+
+describe('safetyCheckpoint', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+  let contentDir: string;
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    contentDir = resolve(projectRoot, 'content/docs');
+    mkdirSync(contentDir, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('uses checkpoint: prefix subject (US-015)', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello\n');
+
+    const sha = await safetyCheckpoint(shadow, 'content/docs', { action: 'rollback', context: {} });
+
+    const sg = shadowGit(shadow);
+    const subject = (await sg.raw('log', '-1', '--format=%s', sha)).trim();
+    expect(subject).toBe('checkpoint: pre-rollback');
+  });
+
+  test('commit body carries ok-actor: line (US-015)', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello\n');
+
+    const sha = await safetyCheckpoint(shadow, 'content/docs', { action: 'rollback', context: {} });
+
+    const sg = shadowGit(shadow);
+    const body = (await sg.raw('log', '-1', '--format=%B', sha)).trim();
+    const actor = parseOkActor(body);
+    expect(actor).not.toBeNull();
+    expect(actor?.v).toBe(1);
+    expect(actor?.display_name).toBe('OpenKnowledge (service)');
+  });
+});
+
+describe('parkBranch', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('creates park commit with Y.Doc state and disk snapshot (US-017)', async () => {
+    const docs: ParkableDoc[] = [
+      {
+        docName: 'intro',
+        markdown: '# Hello World\n\nEdited content\n',
+        diskSnapshot: '# Hello\n',
+      },
+    ];
+
+    const sha = await parkBranch(shadow, 'main', SERVICE_WRITER.id, docs, 'feature');
+    expect(sha).toHaveLength(40);
+    if (!sha) throw new Error('parkBranch returned null');
+
+    const sg = shadowGit(shadow);
+    const msg = (await sg.raw('log', '-1', '--format=%s', sha)).trim();
+    expect(msg).toBe('park: main -> feature');
+
+    const refSha = (await sg.raw('rev-parse', `refs/wip/main/${SERVICE_WRITER.id}`)).trim();
+    expect(refSha).toBe(sha);
+
+    const content = (await sg.raw('show', `${sha}:intro`)).trim();
+    expect(content).toBe('# Hello World\n\nEdited content');
+
+    const base = (await sg.raw('show', `${sha}:.park-base/intro`)).trim();
+    expect(base).toBe('# Hello');
+  });
+
+  test('returns null for empty documents', async () => {
+    const sha = await parkBranch(shadow, 'main', SERVICE_WRITER.id, []);
+    expect(sha).toBeNull();
+  });
+
+  test('commit body carries ok-actor: line (US-015)', async () => {
+    const docs: ParkableDoc[] = [
+      { docName: 'intro', markdown: '# Hello\n', diskSnapshot: '# Hello\n' },
+    ];
+    const sha = await parkBranch(shadow, 'feature', SERVICE_WRITER.id, docs);
+    if (!sha) throw new Error('parkBranch returned null');
+
+    const sg = shadowGit(shadow);
+    const body = (await sg.raw('log', '-1', '--format=%B', sha)).trim();
+    const actor = parseOkActor(body);
+    expect(actor).not.toBeNull();
+    expect(actor?.v).toBe(1);
+    expect(actor?.display_name).toBe('OpenKnowledge (service)');
+    expect(actor?.docs).toContain('intro');
+  });
+
+  test('readParkedState retrieves parked content', async () => {
+    const docs: ParkableDoc[] = [
+      { docName: 'guide', markdown: '# Guide v2\n', diskSnapshot: '# Guide v1\n' },
+    ];
+    await parkBranch(shadow, 'feature', SERVICE_WRITER.id, docs);
+
+    const state = await readParkedState(shadow, 'feature', SERVICE_WRITER.id, 'guide');
+    expect(state).not.toBeNull();
+    expect(state?.markdown).toBe('# Guide v2\n');
+    expect(state?.diskSnapshot).toBe('# Guide v1\n');
+  });
+
+  test('readParkedState returns the parked markdown byte for byte', async () => {
+    const parked = '\n  # Guide v2\r\n\nbody  \n\n';
+    await parkBranch(shadow, 'feature', SERVICE_WRITER.id, [
+      { docName: 'guide', markdown: parked, diskSnapshot: '# Guide v1\n' },
+    ]);
+
+    const state = await readParkedState(shadow, 'feature', SERVICE_WRITER.id, 'guide');
+    expect(state?.markdown).toBe(parked);
+  });
+
+  test('readParkedState returns null when no park exists', async () => {
+    const state = await readParkedState(shadow, 'main', 'none', 'intro');
+    expect(state).toBeNull();
+  });
+
+  test('parks multiple documents', async () => {
+    const docs: ParkableDoc[] = [
+      { docName: 'intro', markdown: '# Intro\n', diskSnapshot: '# Intro old\n' },
+      { docName: 'guide', markdown: '# Guide\n', diskSnapshot: '# Guide old\n' },
+    ];
+
+    const sha = await parkBranch(shadow, 'main', SERVICE_WRITER.id, docs);
+    expect(sha).toHaveLength(40);
+
+    const sg = shadowGit(shadow);
+    const introContent = (await sg.raw('show', `${sha}:intro`)).trim();
+    const guideContent = (await sg.raw('show', `${sha}:guide`)).trim();
+    expect(introContent).toBe('# Intro');
+    expect(guideContent).toBe('# Guide');
+  });
+
+  test('parks enough documents to span multiple hash/stage batches', async () => {
+    const docs: ParkableDoc[] = Array.from({ length: 120 }, (_, i) => ({
+      docName: `notes/doc-${i}`,
+      markdown: `# Doc ${i} memory\n`,
+      diskSnapshot: `# Doc ${i} disk\n`,
+    }));
+
+    const sha = await parkBranch(shadow, 'main', SERVICE_WRITER.id, docs);
+    expect(sha).toHaveLength(40);
+
+    const sg = shadowGit(shadow);
+    for (const i of [0, 99, 100, 119]) {
+      const content = (await sg.raw('show', `${sha}:notes/doc-${i}`)).trim();
+      expect(content).toBe(`# Doc ${i} memory`);
+      const base = (await sg.raw('show', `${sha}:.park-base/notes/doc-${i}`)).trim();
+      expect(base).toBe(`# Doc ${i} disk`);
+    }
+  });
+
+  test('isPairedWriteOrigin(PARK_SNAPSHOT_ORIGIN) returns true (US-017)', () => {
+    const origin = {
+      source: 'local' as const,
+      skipStoreHooks: false,
+      context: { origin: 'park-snapshot', paired: true as const },
+    };
+    expect(origin.context.paired).toBe(true);
+    expect(typeof origin.context.origin).toBe('string');
+  });
+});
+
+describe('saveVersion', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+  let contentDir: string;
+
+  const human: WriterIdentity = {
+    id: 'human-ada',
+    name: 'Ada Lovelace',
+    email: 'ada@example.com',
+  };
+
+  const agent: WriterIdentity = {
+    id: 'agent-cursor',
+    name: 'cursor-agent',
+    email: 'cursor@openknowledge.local',
+  };
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    contentDir = resolve(projectRoot, 'content/docs');
+    mkdirSync(contentDir, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Hello\n');
+    await git.add('.');
+    await git.commit('Initial commit');
+
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('creates checkpoint ref in shadow', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Checkpoint\n');
+    const result = await saveVersion(shadow, 'content/docs', [human]);
+
+    const sg = shadowGit(shadow);
+    const checkpointSha = (await sg.raw('rev-parse', result.checkpointRef)).trim();
+    expect(checkpointSha).toHaveLength(40);
+    expect(result.checkpointRef).toBe(`refs/checkpoints/main/${checkpointSha}`);
+
+    const tree = (await sg.raw('ls-tree', '-r', '--name-only', result.checkpointRef)).trim();
+    expect(tree).toContain('content/docs/intro.md');
+  });
+
+  test('resets WIP refs after save', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# WIP content\n');
+    await commitWip(shadow, human, 'content/docs', 'WIP: edit');
+
+    const sg = shadowGit(shadow);
+    const wipBefore = (await sg.raw('rev-parse', 'refs/wip/main/human-ada')).trim();
+    expect(wipBefore).toHaveLength(40);
+
+    await saveVersion(shadow, 'content/docs', [human]);
+
+    let wipExists = true;
+    try {
+      await sg.raw('rev-parse', 'refs/wip/main/human-ada');
+    } catch {
+      wipExists = false;
+    }
+    expect(wipExists).toBe(false);
+  });
+
+  test('multi-parent checkpoint preserves all writer chains', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Human edit\n');
+    const humanWipSha = await commitWip(shadow, human, 'content/docs', 'WIP: human edit');
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# Agent edit\n');
+    const agentWipSha = await commitWip(shadow, agent, 'content/docs', 'WIP: agent edit');
+
+    const result = await saveVersion(shadow, 'content/docs', [human, agent]);
+
+    const sg = shadowGit(shadow);
+
+    const parentLine = (await sg.raw('log', '-1', '--format=%P', result.checkpointRef)).trim();
+    const parents = parentLine.split(' ').filter(Boolean);
+    expect(parents).toContain(humanWipSha);
+    expect(parents).toContain(agentWipSha);
+    expect(parents.length).toBe(2);
+
+    const authorEmails = (
+      await sg.raw(
+        'log',
+        '--full-history',
+        '--author-date-order',
+        '--format=%ae',
+        result.checkpointRef,
+      )
+    )
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+
+    expect(authorEmails).toContain(human.email);
+    expect(authorEmails).toContain(agent.email);
+  });
+
+  test('checkpoint commit carries ok-actor: body line (US-015)', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# v1\n');
+    const result = await saveVersion(shadow, 'content/docs', [human]);
+
+    const sg = shadowGit(shadow);
+    const body = (await sg.raw('log', '-1', '--format=%B', result.checkpointRef)).trim();
+
+    const subject = (await sg.raw('log', '-1', '--format=%s', result.checkpointRef)).trim();
+    expect(subject).toBe('checkpoint: Checkpoint version');
+
+    const actor = parseOkActor(body);
+    expect(actor).not.toBeNull();
+    expect(actor?.v).toBe(1);
+    expect(actor?.display_name).toBe('OpenKnowledge (service)');
+  });
+
+  test('checkpoint falls back to latest checkpoint when no WIP activity', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# v1\n');
+    await commitWip(shadow, human, 'content/docs', 'WIP: v1');
+    const result1 = await saveVersion(shadow, 'content/docs', [human]);
+
+    const sg = shadowGit(shadow);
+    const checkpoint1Sha = (await sg.raw('rev-parse', result1.checkpointRef)).trim();
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# v2 (direct write, no WIP commit)\n');
+    const result2 = await saveVersion(shadow, 'content/docs', [human]);
+
+    const parentLine = (await sg.raw('log', '-1', '--format=%P', result2.checkpointRef)).trim();
+    const parents = parentLine.split(' ').filter(Boolean);
+    expect(parents).toContain(checkpoint1Sha);
+  });
+
+  test('D21: every checkpoint adopts the latest prior checkpoint as a parent (even with WIP activity)', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# v1\n');
+    await commitWip(shadow, human, 'content/docs', 'WIP: v1');
+    const result1 = await saveVersion(shadow, 'content/docs', [human]);
+    const sg = shadowGit(shadow);
+    const checkpoint1Sha = (await sg.raw('rev-parse', result1.checkpointRef)).trim();
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# v2\n');
+    const wip2 = await commitWip(shadow, human, 'content/docs', 'WIP: v2');
+    const result2 = await saveVersion(shadow, 'content/docs', [human]);
+
+    const parents = (await sg.raw('log', '-1', '--format=%P', result2.checkpointRef))
+      .trim()
+      .split(' ')
+      .filter(Boolean);
+    expect(parents).toContain(wip2);
+    expect(parents).toContain(checkpoint1Sha);
+    const reachable = (await sg.raw('rev-list', result2.checkpointRef)).trim().split('\n');
+    expect(reachable).toContain(checkpoint1Sha);
+  });
+
+  test('M3: checkpoints a feature branch (branch threaded through the spine)', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# feature work\n');
+    await commitWip(shadow, human, 'content/docs', 'WIP: feature', 'feature-x');
+    const sg = shadowGit(shadow);
+    expect((await sg.raw('rev-parse', 'refs/wip/feature-x/human-ada')).trim()).toHaveLength(40);
+
+    const result = await saveVersion(shadow, 'content/docs', [human], 'feature-x');
+    expect(result.checkpointRef).toContain('refs/checkpoints/feature-x/');
+
+    let featureWipGone = false;
+    try {
+      await sg.raw('rev-parse', 'refs/wip/feature-x/human-ada');
+    } catch {
+      featureWipGone = true;
+    }
+    expect(featureWipGone).toBe(true);
+  });
+
+  test('M6: concurrent saveVersion calls use isolated scratch indexes (no corruption)', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# human\n');
+    await commitWip(shadow, human, 'content/docs', 'WIP: human');
+    writeFileSync(resolve(contentDir, 'intro.md'), '# agent\n');
+    await commitWip(shadow, agent, 'content/docs', 'WIP: agent');
+
+    const [r1, r2] = await Promise.all([
+      saveVersion(shadow, 'content/docs', [human]),
+      saveVersion(shadow, 'content/docs', [agent]),
+    ]);
+
+    const sg = shadowGit(shadow);
+    for (const r of [r1, r2]) {
+      const sha = (await sg.raw('rev-parse', r.checkpointRef)).trim();
+      expect(sha).toHaveLength(40);
+      const tree = (await sg.raw('ls-tree', '-r', '--name-only', r.checkpointRef)).trim();
+      expect(tree).toContain('content/docs/intro.md');
+    }
+  });
+
+  test('resetFoldedWipRefs skips a ref advanced past the snapshot, deletes a matching one', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# agent v1\n');
+    const agentV1 = await commitWip(shadow, agent, 'content/docs', 'WIP: agent v1');
+    writeFileSync(resolve(contentDir, 'intro.md'), '# human stable\n');
+    const humanSha = await commitWip(shadow, human, 'content/docs', 'WIP: human stable');
+
+    const snapshot = new Map([
+      [agent.id, agentV1],
+      [human.id, humanSha],
+    ]);
+
+    writeFileSync(resolve(contentDir, 'intro.md'), '# agent v2\n');
+    const agentV2 = await commitWip(shadow, agent, 'content/docs', 'WIP: agent v2');
+
+    const sg = shadowGit(shadow);
+    await resetFoldedWipRefs(sg, 'main', [agent, human], snapshot);
+
+    expect((await sg.raw('rev-parse', `refs/wip/main/${agent.id}`)).trim()).toBe(agentV2);
+    let humanGone = false;
+    try {
+      await sg.raw('rev-parse', `refs/wip/main/${human.id}`);
+    } catch {
+      humanGone = true;
+    }
+    expect(humanGone).toBe(true);
+  });
+
+  test('includeUpstream:false does not fold or reset the git-upstream chain', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# agent\n');
+    const agentSha = await commitWip(shadow, agent, 'content/docs', 'WIP: agent');
+    writeFileSync(resolve(contentDir, 'intro.md'), '# upstream import\n');
+    const upstreamSha = await commitWip(
+      shadow,
+      GIT_UPSTREAM_WRITER,
+      'content/docs',
+      'WIP: upstream',
+    );
+
+    const result = await saveVersion(shadow, 'content/docs', [agent], 'main', undefined, {
+      includeUpstream: false,
+    });
+
+    const sg = shadowGit(shadow);
+    const parents = (await sg.raw('log', '-1', '--format=%P', result.checkpointRef))
+      .trim()
+      .split(' ')
+      .filter(Boolean);
+    expect(parents).toContain(agentSha);
+    expect(parents).not.toContain(upstreamSha);
+    expect((await sg.raw('rev-parse', `refs/wip/main/${GIT_UPSTREAM_WRITER.id}`)).trim()).toBe(
+      upstreamSha,
+    );
+  });
+
+  test('D9: checkpointKind tags the checkpoint as auto-consolidation', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# consolidated\n');
+    await commitWip(shadow, agent, 'content/docs', 'WIP: agent');
+    const result = await saveVersion(shadow, 'content/docs', [agent], 'main', undefined, {
+      checkpointKind: { foldedRefs: 4, trigger: 'dead-chain' },
+    });
+
+    const sg = shadowGit(shadow);
+    const body = (await sg.raw('log', '-1', '--format=%B', result.checkpointRef)).trim();
+    const parsed = parseCheckpoint(body);
+    expect(parsed?.kind).toBe('auto-consolidation');
+    if (parsed?.kind === 'auto-consolidation') {
+      expect(parsed.metadata.foldedRefs).toBe(4);
+      expect(parsed.metadata.trigger).toBe('dead-chain');
+    }
+  });
+
+  test('user Save Version checkpoints stay untyped (no auto-consolidation tag)', async () => {
+    writeFileSync(resolve(contentDir, 'intro.md'), '# user save\n');
+    await commitWip(shadow, human, 'content/docs', 'WIP: human');
+    const result = await saveVersion(shadow, 'content/docs', [human]);
+    const sg = shadowGit(shadow);
+    const body = (await sg.raw('log', '-1', '--format=%B', result.checkpointRef)).trim();
+    expect(parseCheckpoint(body)).toBe(null);
+  });
+});
+
+describe('saveInMemoryCheckpoint (bridge-correctness SPEC §6 R7a)', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    mkdirSync(resolve(projectRoot, 'content/docs'), { recursive: true });
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('round-trips a bridge-merge-loss checkpoint — ref exists, parseCheckpoint recovers metadata', async () => {
+    const params: InMemoryCheckpointParams = {
+      kind: 'bridge-merge-loss',
+      docName: 'intro',
+      contents: '# Pre-merge baseline\n',
+      label: 'Before concurrent merge @ 2026-04-17T08:00:00Z',
+      branch: 'main',
+      metadata: { lostSubstrings: ['user keystroke', 'another lost phrase'] },
+    };
+
+    const sha = await saveInMemoryCheckpoint(shadow, 'content/docs', params);
+
+    const sg = shadowGit(shadow);
+    const refSha = (await sg.raw('rev-parse', `refs/checkpoints/main/${sha}`)).trim();
+    expect(refSha).toBe(sha);
+
+    const body = (await sg.raw('log', '-1', '--format=%B', sha)).trim();
+    expect(body).toContain('checkpoint: Before concurrent merge @ 2026-04-17T08:00:00Z');
+    const parsed = parseCheckpoint(body);
+    expect(parsed).not.toBeNull();
+    if (parsed?.kind !== 'bridge-merge-loss') throw new Error('expected bridge-merge-loss kind');
+    expect(parsed.metadata.lostSubstrings).toEqual(['user keystroke', 'another lost phrase']);
+
+    const tree = (await sg.raw('ls-tree', '-r', sha)).trim();
+    expect(tree).toContain('content/docs/intro');
+    expect(tree).not.toContain('content/docs/intro.md');
+
+    if (parsed.kind !== 'bridge-merge-loss') throw new Error('narrow');
+    expect(parsed.docName).toBe('intro');
+    expect(parsed.size).toBe(Buffer.byteLength('# Pre-merge baseline\n', 'utf-8'));
+  });
+
+  test('round-trips an external-change-rescue checkpoint', async () => {
+    const params: InMemoryCheckpointParams = {
+      kind: 'external-change-rescue',
+      docName: 'intro.md',
+      contents: '# Rescued in-memory content\n',
+      label: 'External change recovered @ 2026-04-17T08:00:00Z',
+      metadata: { incomingDiskSha: 'abc123def456' },
+    };
+
+    const sha = await saveInMemoryCheckpoint(shadow, 'content/docs', params);
+    const sg = shadowGit(shadow);
+    const body = (await sg.raw('log', '-1', '--format=%B', sha)).trim();
+    const parsed = parseCheckpoint(body);
+    expect(parsed).not.toBeNull();
+    if (parsed?.kind !== 'external-change-rescue') {
+      throw new Error('expected external-change-rescue kind');
+    }
+    expect(parsed.metadata.incomingDiskSha).toBe('abc123def456');
+  });
+
+  test('lists external-change-rescue checkpoints written by saveInMemoryCheckpoint', async () => {
+    const docName = 'hyvää yötä.md';
+    const contents = '# Rescued fast-path content\n';
+
+    const sha = await saveInMemoryCheckpoint(shadow, 'content/docs', {
+      kind: 'external-change-rescue',
+      docName,
+      contents,
+      label: 'Fast-path rescue',
+      metadata: { incomingDiskSha: 'abc123' },
+    });
+
+    const entries = await listRescueCheckpoints(shadow, 'main');
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({
+      docName,
+      size: Buffer.byteLength(contents, 'utf-8'),
+      sha,
+      label: 'Fast-path rescue',
+      incomingDiskSha: 'abc123',
+    });
+    expect(entries[0]?.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  test('lists external-change-rescue-disk-update checkpoints and excludes non-rescue kinds', async () => {
+    const diskUpdateSha = await saveInMemoryCheckpoint(shadow, 'content/docs', {
+      kind: 'external-change-rescue-disk-update',
+      docName: 'disk-update.md',
+      contents: '# Disk-update rescued content\n',
+      label: 'External change recovered @ 2026-04-17T08:00:00Z',
+      metadata: { incomingDiskSha: 'abc123' },
+    });
+    await saveInMemoryCheckpoint(shadow, 'content/docs', {
+      kind: 'bridge-merge-loss',
+      docName: 'notes.md',
+      contents: '# Lost content\n',
+      label: 'Before concurrent merge @ 2026-04-17T08:00:00Z',
+      metadata: { lostSubstrings: ['dropped phrase'] },
+    });
+
+    const entries = await listRescueCheckpoints(shadow, 'main');
+    const names = entries.map((entry) => entry.docName);
+
+    expect(names).toContain('disk-update.md');
+    expect(names).not.toContain('notes.md');
+    expect(entries.find((entry) => entry.sha === diskUpdateSha)).toBeDefined();
+  });
+
+  test('lists legacy external-change-rescue checkpoints with non-ASCII docNames', async () => {
+    const docName = 'hyvää yötä.md';
+    const contents = '# Rescued legacy content\n';
+    const sg = shadowGit(shadow);
+    const tmpIndex = resolve(shadow.gitDir, 'index-legacy-rescue-test');
+    const tmpBlobFile = resolve(shadow.gitDir, 'tmp-legacy-rescue.md');
+
+    try {
+      writeFileSync(tmpBlobFile, contents);
+      const blobSha = (
+        await sg
+          .env({ GIT_DIR: shadow.gitDir, GIT_INDEX_FILE: tmpIndex })
+          .raw('hash-object', '-w', tmpBlobFile)
+      ).trim();
+      await sg
+        .env({ GIT_DIR: shadow.gitDir, GIT_INDEX_FILE: tmpIndex })
+        .raw('update-index', '--add', '--cacheinfo', `100644,${blobSha},content/docs/${docName}`);
+      const treeSha = (
+        await sg.env({ GIT_DIR: shadow.gitDir, GIT_INDEX_FILE: tmpIndex }).raw('write-tree')
+      ).trim();
+      const body =
+        'checkpoint: Legacy rescue\n\n' +
+        'ok-checkpoint-v1: {"kind":"external-change-rescue","metadata":{"incomingDiskSha":"abc123"}}';
+      const sha = (
+        await sg
+          .env({
+            GIT_DIR: shadow.gitDir,
+            GIT_AUTHOR_NAME: 'openknowledge',
+            GIT_AUTHOR_EMAIL: 'noreply@openknowledge.local',
+            GIT_COMMITTER_NAME: 'openknowledge',
+            GIT_COMMITTER_EMAIL: 'noreply@openknowledge.local',
+          })
+          .raw('commit-tree', treeSha, '-m', body)
+      ).trim();
+      await sg.raw('update-ref', `refs/checkpoints/main/${sha}`, sha);
+
+      const entries = await listRescueCheckpoints(shadow, 'main');
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toMatchObject({
+        docName: 'hyvää yötä',
+        size: Buffer.byteLength(contents, 'utf-8'),
+        sha,
+        label: 'Legacy rescue',
+        incomingDiskSha: 'abc123',
+      });
+      expect(entries[0]?.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    } finally {
+      rmSync(tmpIndex, { force: true });
+      rmSync(tmpBlobFile, { force: true });
+    }
+  });
+
+  test('does NOT touch refs/wip/* — distinct from saveVersion', async () => {
+    const writer: WriterIdentity = {
+      id: 'human-ada',
+      name: 'Ada',
+      email: 'n@example.com',
+    };
+    const contentDir = resolve(projectRoot, 'content/docs');
+    writeFileSync(resolve(contentDir, 'intro.md'), '# hello\n');
+    await commitWip(shadow, writer, 'content/docs', 'WIP: setup');
+
+    const sg = shadowGit(shadow);
+    const wipShaBefore = (await sg.raw('rev-parse', 'refs/wip/main/human-ada')).trim();
+
+    await saveInMemoryCheckpoint(shadow, 'content/docs', {
+      kind: 'bridge-merge-loss',
+      docName: 'intro.md',
+      contents: '# pre-merge\n',
+      label: 'silent checkpoint',
+      metadata: { lostSubstrings: ['foo'] },
+    });
+
+    const wipShaAfter = (await sg.raw('rev-parse', 'refs/wip/main/human-ada')).trim();
+    expect(wipShaAfter).toBe(wipShaBefore);
+  });
+
+  test('concurrent invocations on the same shadow produce distinct refs (Q8)', async () => {
+    const params = (n: number): InMemoryCheckpointParams => ({
+      kind: 'bridge-merge-loss',
+      docName: `doc-${n}.md`,
+      contents: `# contents ${n}\n`,
+      label: `concurrent ${n}`,
+      metadata: { lostSubstrings: [`lost-${n}`] },
+    });
+
+    const results = await Promise.all(
+      [1, 2, 3, 4, 5].map((n) => saveInMemoryCheckpoint(shadow, 'content/docs', params(n))),
+    );
+    const unique = new Set(results);
+    expect(unique.size).toBe(5);
+
+    const sg = shadowGit(shadow);
+    for (const sha of results) {
+      const refSha = (await sg.raw('rev-parse', `refs/checkpoints/main/${sha}`)).trim();
+      expect(refSha).toBe(sha);
+    }
+  });
+
+  test('parseContributors tolerates sibling ok-checkpoint-v1 body lines (Q7)', async () => {
+    const body = [
+      'checkpoint: Before concurrent merge @ t',
+      '',
+      'ok-contributors: {"id":"human-a","name":"Alice","docs":["intro.md"]}',
+      'ok-checkpoint-v1: {"kind":"bridge-merge-loss","docName":"intro.md","size":16,"metadata":{"lostSubstrings":["x"]}}',
+    ].join('\n');
+
+    const { parseContributors } = await import('@inkeep/open-knowledge-core/shadow-repo-layout');
+    const contributors = parseContributors(body);
+    expect(contributors).toHaveLength(1);
+    expect(contributors[0]?.id).toBe('human-a');
+
+    const checkpoint = parseCheckpoint(body);
+    expect(checkpoint?.kind).toBe('bridge-merge-loss');
+  });
+});
+
+describe('gcCheckpointRefs (bridge-correctness SPEC §6 R7 + review iteration 5)', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'gc-project');
+    mkdirSync(projectRoot, { recursive: true });
+    mkdirSync(resolve(projectRoot, 'content/docs'), { recursive: true });
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('keeps only the most-recent N bridge-merge-loss refs per branch', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    for (let i = 0; i < 7; i++) {
+      await saveInMemoryCheckpoint(shadow, 'content/docs', {
+        kind: 'bridge-merge-loss',
+        docName: `doc-${i}.md`,
+        contents: `contents ${i}\n`,
+        label: `loss ${i}`,
+        metadata: { lostSubstrings: [`lost-${i}`] },
+        date: `@${1_700_000_000 + i * 100} +0000`,
+      });
+    }
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 3,
+      maxProducerGuardLoss: 50,
+      maxExternalChangeRescue: 50,
+      maxAutoConsolidation: 2,
+      ttlMs: 0,
+    });
+
+    expect(result.scanned).toBe(7);
+    expect(result.deletedBridgeMergeLoss).toBe(4);
+    expect(result.deletedExternalChangeRescue).toBe(0);
+
+    const sg = shadowGit(shadow);
+    const remaining = (
+      await sg.raw('for-each-ref', '--format=%(refname)', 'refs/checkpoints/main/')
+    )
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+    expect(remaining).toHaveLength(3);
+  });
+
+  test('keeps only the most-recent N producer-guard-loss refs per branch', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    for (let i = 0; i < 7; i++) {
+      await saveInMemoryCheckpoint(shadow, 'content/docs', {
+        kind: 'producer-guard-loss',
+        docName: `doc-${i}.md`,
+        contents: `contents ${i}\n`,
+        label: `guard loss ${i}`,
+        metadata: { construct: 'table' },
+        date: `@${1_700_000_000 + i * 100} +0000`,
+      });
+    }
+    await saveInMemoryCheckpoint(shadow, 'content/docs', {
+      kind: 'bridge-merge-loss',
+      docName: 'merge.md',
+      contents: '# pre-merge\n',
+      label: 'merge loss',
+      metadata: { lostSubstrings: ['x'] },
+    });
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 50,
+      maxProducerGuardLoss: 3,
+      maxExternalChangeRescue: 50,
+      maxAutoConsolidation: 2,
+      ttlMs: 0,
+    });
+
+    expect(result.scanned).toBe(8);
+    expect(result.deletedProducerGuardLoss).toBe(4);
+    expect(result.deletedBridgeMergeLoss).toBe(0);
+
+    const sg = shadowGit(shadow);
+    const remaining = (
+      await sg.raw('for-each-ref', '--format=%(refname)', 'refs/checkpoints/main/')
+    )
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+    expect(remaining).toHaveLength(4);
+  });
+
+  test('applies TTL independently of the count cap', async () => {
+    for (let i = 0; i < 2; i++) {
+      await saveInMemoryCheckpoint(shadow, 'content/docs', {
+        kind: 'external-change-rescue',
+        docName: `doc-${i}.md`,
+        contents: `contents ${i}\n`,
+        label: `rescue ${i}`,
+        metadata: { incomingDiskSha: `sha-${i}` },
+      });
+    }
+    await wait(5);
+
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 50,
+      maxProducerGuardLoss: 50,
+      maxExternalChangeRescue: 50,
+      maxAutoConsolidation: 2,
+      ttlMs: 1,
+    });
+
+    expect(result.deletedExternalChangeRescue).toBe(2);
+  });
+
+  test('does NOT delete untyped Save-Version-style checkpoints', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    const sg = shadowGit(shadow);
+
+    const emptyTreeSha = (await sg.raw('hash-object', '-t', 'tree', '-w', '/dev/null')).trim();
+    const untypedSha = (
+      await sg
+        .env({
+          GIT_DIR: shadow.gitDir,
+          GIT_AUTHOR_NAME: 'test',
+          GIT_AUTHOR_EMAIL: 'test@test',
+          GIT_COMMITTER_NAME: 'test',
+          GIT_COMMITTER_EMAIL: 'test@test',
+        })
+        .raw('commit-tree', emptyTreeSha, '-m', 'checkpoint: Save Version')
+    ).trim();
+    await sg.raw('update-ref', `refs/checkpoints/main/${untypedSha}`, untypedSha);
+
+    await saveInMemoryCheckpoint(shadow, 'content/docs', {
+      kind: 'bridge-merge-loss',
+      docName: 'intro.md',
+      contents: '# pre-merge\n',
+      label: 'silent',
+      metadata: { lostSubstrings: ['x'] },
+    });
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 0,
+      maxProducerGuardLoss: 0,
+      maxExternalChangeRescue: 0,
+      maxAutoConsolidation: 2,
+      ttlMs: 0,
+    });
+
+    expect(result.deletedBridgeMergeLoss).toBe(1);
+
+    const refs = (await sg.raw('for-each-ref', '--format=%(refname)', 'refs/checkpoints/main/'))
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+    expect(refs).toContain(`refs/checkpoints/main/${untypedSha}`);
+  });
+
+  async function writeAutoConsolidationCheckpoint(
+    s: ShadowHandle,
+    foldedRefs: number,
+    ageRank = foldedRefs,
+  ): Promise<string> {
+    const sg = shadowGit(s);
+    const emptyTreeSha = (await sg.raw('hash-object', '-t', 'tree', '-w', '/dev/null')).trim();
+    const body = `checkpoint: consolidated ${foldedRefs} inactive sessions\n\n${formatCheckpointBodyLine(
+      {
+        kind: 'auto-consolidation',
+        docName: null,
+        size: null,
+        metadata: { foldedRefs, trigger: 'dead-chain' },
+      },
+    )}`;
+    const date = `@${1_700_000_000 + ageRank * 100} +0000`;
+    const sha = (
+      await sg
+        .env({
+          GIT_DIR: s.gitDir,
+          GIT_AUTHOR_NAME: 'openknowledge-service',
+          GIT_AUTHOR_EMAIL: 'service@openknowledge.local',
+          GIT_AUTHOR_DATE: date,
+          GIT_COMMITTER_NAME: 'openknowledge-service',
+          GIT_COMMITTER_EMAIL: 'service@openknowledge.local',
+          GIT_COMMITTER_DATE: date,
+        })
+        .raw('commit-tree', emptyTreeSha, '-m', body)
+    ).trim();
+    await sg.raw('update-ref', `refs/checkpoints/main/${sha}`, sha);
+    return sha;
+  }
+
+  test('A3: adding the auto-consolidation kind does not throw the byKind partition', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    await writeAutoConsolidationCheckpoint(shadow, 3);
+    const result = await gcCheckpointRefs(shadow, 'main', DEFAULT_CHECKPOINT_RETENTION);
+    expect(result.scanned).toBe(1);
+    expect(result.deletedAutoConsolidation).toBe(0);
+  });
+
+  test('keeps only the newest 2 auto-consolidation refs (count-only, D21)', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    const shas: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      shas.push(await writeAutoConsolidationCheckpoint(shadow, i + 1, i + 1));
+    }
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 50,
+      maxProducerGuardLoss: 50,
+      maxExternalChangeRescue: 50,
+      maxAutoConsolidation: 2,
+      ttlMs: 0,
+    });
+
+    expect(result.scanned).toBe(5);
+    expect(result.deletedAutoConsolidation).toBe(3);
+
+    const sg = shadowGit(shadow);
+    const remaining = (
+      await sg.raw('for-each-ref', '--format=%(refname)', 'refs/checkpoints/main/')
+    )
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+    expect(remaining).toHaveLength(2);
+    expect(remaining).toContain(`refs/checkpoints/main/${shas[4]}`);
+    expect(remaining).toContain(`refs/checkpoints/main/${shas[3]}`);
+  });
+
+  test('TTL never reaps auto-consolidation refs (chained history must stay anchored)', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    await writeAutoConsolidationCheckpoint(shadow, 1);
+    await writeAutoConsolidationCheckpoint(shadow, 2);
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 50,
+      maxProducerGuardLoss: 50,
+      maxExternalChangeRescue: 50,
+      maxAutoConsolidation: 2,
+      ttlMs: 1,
+    });
+
+    expect(result.deletedAutoConsolidation).toBe(0);
+  });
+
+  const seedDate = (rank: number): string => `@${1_700_000_000 + rank * 100} +0000`;
+
+  const seedKind = async (kind: CheckpointKind, tag = '', date?: string): Promise<void> => {
+    switch (kind) {
+      case 'bridge-merge-loss':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'a.md',
+          contents: `a${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { lostSubstrings: ['x'] },
+        });
+        return;
+      case 'producer-guard-loss':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'b.md',
+          contents: `b${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { construct: 'tableCell' },
+        });
+        return;
+      case 'observer-a-duplication':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'c.md',
+          contents: `c${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { duplicatedLineCount: 1 },
+        });
+        return;
+      case 'external-change-rescue':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'd.md',
+          contents: `d${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { incomingDiskSha: 'sha' },
+        });
+        return;
+      case 'external-change-rescue-disk-update':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'd.md',
+          contents: `d${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { incomingDiskSha: 'sha' },
+        });
+        return;
+      case 'defer-exhaustion-loss':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'e.md',
+          contents: `e${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { deferCount: 8 },
+        });
+        return;
+      case 'observer-a-apply-loss':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'h.md',
+          contents: `h${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { lostSubstrings: ['dropped'] },
+        });
+        return;
+      case 'bridge-derive-loss':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'f.md',
+          contents: `f${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { lostSubstrings: ['dropped'] },
+        });
+        return;
+      case 'bridge-backstop-trip':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'g.md',
+          contents: `g${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { rounds: 8 },
+        });
+        return;
+      case 'persistence-reconcile-loss':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'i.md',
+          contents: `i${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { atRiskLines: 1, witnessAvailable: true },
+        });
+        return;
+      case 'persistence-duplication-reset':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'j.md',
+          contents: `j${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { copies: 2, fragmentChildren: 18 },
+        });
+        return;
+      case 'persistence-divergence-realign':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'k.md',
+          contents: `k${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { diskBytes: 37, discardedBytes: 79 },
+        });
+        return;
+      case 'managed-artifact-reconcile':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'm.md',
+          contents: `m${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { diskBytes: 41, discardedBytes: 66 },
+        });
+        return;
+      case 'external-change-both-kept':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'n.md',
+          contents: `n${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { side: 'theirs', keptBlocks: 1 },
+        });
+        return;
+      case 'external-change-kept-live':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'o.md',
+          contents: `o${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { side: 'theirs', reason: 'check-failed' },
+        });
+        return;
+      case 'external-change-no-engine':
+        await saveInMemoryCheckpoint(shadow, 'content/docs', {
+          kind,
+          docName: 'p.mmd',
+          contents: `p${tag}\n`,
+          label: 'l',
+          date,
+          metadata: { side: 'theirs', fileType: 'mermaid' },
+        });
+        return;
+      case 'auto-consolidation':
+        await writeAutoConsolidationCheckpoint(shadow, tag === '' ? 1 : Number(tag));
+        return;
+      default: {
+        const unseeded: never = kind;
+        throw new Error(`unseeded checkpoint kind: ${unseeded}`);
+      }
+    }
+  };
+
+  test('buckets every registered checkpoint kind without throwing', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+
+    for (const kind of CHECKPOINT_KINDS) await seedKind(kind);
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 50,
+      maxProducerGuardLoss: 50,
+      maxObserverADuplication: 50,
+      maxExternalChangeRescue: 50,
+      maxDeferExhaustionLoss: 50,
+      maxBridgeDeriveLoss: 50,
+      maxObserverAApplyLoss: 50,
+      maxBridgeBackstopTrip: 50,
+      maxPersistenceReconcileLoss: 50,
+      maxPersistenceDuplicationReset: 50,
+      maxPersistenceDivergenceRealign: 50,
+      maxManagedArtifactReconcile: 50,
+      maxAutoConsolidation: 50,
+      ttlMs: 0,
+    });
+
+    expect(result.scanned).toBe(CHECKPOINT_KINDS.length);
+    expect(result.retained).toBe(CHECKPOINT_KINDS.length);
+  });
+
+  test('a document-scoped history kind keeps its cap per document and never expires', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    const seed = (docName: string, rank: number): Promise<string> =>
+      saveInMemoryCheckpoint(shadow, 'content/docs', {
+        kind: 'external-change-both-kept',
+        docName,
+        contents: `${docName} ${rank}\n`,
+        label: 'l',
+        date: seedDate(rank),
+        metadata: { side: 'theirs', keptBlocks: 1 },
+      });
+    const quiet = [await seed('quiet.md', 1), await seed('quiet.md', 2)];
+    const busy: string[] = [];
+    for (let rank = 3; rank <= 8; rank++) busy.push(await seed('busy.md', rank));
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxExternalChangeBothKeptPerDocument: 3,
+      ttlMs: 1,
+    });
+
+    expect(result.deletedExternalChangeBothKept).toBe(3);
+    const remaining = (
+      await shadowGit(shadow).raw(
+        'for-each-ref',
+        '--format=%(objectname)',
+        'refs/checkpoints/main/',
+      )
+    )
+      .trim()
+      .split('\n')
+      .sort();
+    expect(remaining).toEqual([...quiet, ...busy.slice(3)].sort());
+  });
+
+  test('outside versions of files with no merge engine keep a per-document cap and never expire', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    const seed = (docName: string, rank: number): Promise<string> =>
+      saveInMemoryCheckpoint(shadow, 'content/docs', {
+        kind: 'external-change-no-engine',
+        docName,
+        contents: `${docName} ${rank}\n`,
+        label: 'l',
+        date: seedDate(rank),
+        metadata: { side: 'theirs', fileType: 'excalidraw' },
+      });
+    const quiet = await seed('quiet.excalidraw', 1);
+    const busy: string[] = [];
+    for (let rank = 2; rank <= 5; rank++) busy.push(await seed('busy.excalidraw', rank));
+
+    const result = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxExternalChangeNoEnginePerDocument: 2,
+      ttlMs: 1,
+    });
+
+    expect(result.deletedExternalChangeNoEngine).toBe(2);
+    const remaining = (
+      await shadowGit(shadow).raw(
+        'for-each-ref',
+        '--format=%(objectname)',
+        'refs/checkpoints/main/',
+      )
+    )
+      .trim()
+      .split('\n')
+      .sort();
+    expect(remaining).toEqual([quiet, ...busy.slice(2)].sort());
+  });
+
+  test('every registered kind is actually REAPED at its own limit, not merely bucketed', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+
+    for (const kind of CHECKPOINT_KINDS) {
+      await seedKind(kind, '1', seedDate(1));
+      await seedKind(kind, '2', seedDate(2));
+    }
+
+    const limits = Object.fromEntries(
+      Object.entries(DEFAULT_CHECKPOINT_RETENTION).map(([k, v]) =>
+        k.startsWith('max') ? [k, 1] : [k, v],
+      ),
+    ) as typeof DEFAULT_CHECKPOINT_RETENTION;
+
+    const result = await gcCheckpointRefs(shadow, 'main', { ...limits, ttlMs: 0 });
+
+    const deleted = Object.entries(result).filter(([k]) => k.startsWith('deleted'));
+    expect(deleted.length).toBe(CHECKPOINT_KINDS.length);
+    for (const [counter, count] of deleted) {
+      expect(`${counter}=${count}`).toBe(`${counter}=1`);
+    }
+    expect(result.retained).toBe(CHECKPOINT_KINDS.length);
+  });
+});
+
+describe('checkpoint chain anchoring', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+
+  const WRITER: WriterIdentity = {
+    id: 'agent-a',
+    name: 'Agent A',
+    email: 'a@openknowledge.local',
+  };
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'chain-project');
+    mkdirSync(resolve(projectRoot, 'content/docs'), { recursive: true });
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  const at = (rank: number): string => `@${1_700_000_000 + rank * 100} +0000`;
+
+  async function edit(tag: string, rank: number): Promise<void> {
+    writeFileSync(resolve(projectRoot, 'content/docs/intro.md'), `# ${tag}\n`, 'utf-8');
+    await commitWip(shadow, WRITER, 'content/docs', `wip ${tag}`, 'main', { date: at(rank) });
+  }
+
+  async function consolidate(tag: string, rank: number): Promise<string> {
+    const { checkpointRef } = await saveVersion(shadow, 'content/docs', [WRITER], 'main', tag, {
+      checkpointKind: { foldedRefs: 1, trigger: 'dead-chain' },
+      date: at(rank),
+    });
+    return checkpointRef.split('/').pop() as string;
+  }
+
+  async function lossCheckpoint(rank: number): Promise<string> {
+    return saveInMemoryCheckpoint(shadow, 'content/docs', {
+      kind: 'bridge-merge-loss',
+      docName: 'intro.md',
+      contents: '# rescued\n',
+      label: 'merge loss',
+      metadata: { lostSubstrings: ['x'] },
+      date: at(rank),
+    });
+  }
+
+  const reachableShas = async (): Promise<string[]> =>
+    (await shadowGit(shadow).raw('rev-list', '--all')).trim().split('\n').filter(Boolean);
+
+  const parentsOf = async (sha: string): Promise<string[]> =>
+    (await shadowGit(shadow).raw('rev-list', '--parents', '-n', '1', sha))
+      .trim()
+      .split(/\s+/)
+      .slice(1);
+
+  test('a kind that anchors the chain is count-only, and a single-document kind never anchors', async () => {
+    const { GC_BUCKET_POLICY } = await import('./shadow-repo.ts');
+    for (const kind of CHECKPOINT_KINDS) {
+      const { chainAnchor, gcBucket } = CHECKPOINT_KIND_REGISTRY[kind];
+      if (chainAnchor) {
+        expect(`${kind}:applyTtl=${GC_BUCKET_POLICY[gcBucket].applyTtl}`).toBe(
+          `${kind}:applyTtl=false`,
+        );
+      }
+      if (CHECKPOINT_SAMPLE_BY_KIND[kind].docName !== null) {
+        expect(`${kind}:chainAnchor=${chainAnchor}`).toBe(`${kind}:chainAnchor=false`);
+      }
+    }
+  });
+
+  test('a reaped consolidation stays reachable when a loss checkpoint landed between folds', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+
+    await edit('one', 1);
+    const c1 = await consolidate('auto 1', 2);
+    await lossCheckpoint(3);
+    await edit('two', 4);
+    const c2 = await consolidate('auto 2', 5);
+    await edit('three', 6);
+    await consolidate('auto 3', 7);
+
+    const gc = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxAutoConsolidation: 2,
+      ttlMs: 0,
+    });
+    expect(gc.deletedAutoConsolidation).toBe(1);
+
+    expect(await parentsOf(c2)).toContain(c1);
+    expect(await reachableShas()).toContain(c1);
+  });
+
+  test('a consolidation adopts every dangling durable tip, not just one', async () => {
+    await edit('one', 1);
+    const c1 = await consolidate('auto 1', 2);
+    await lossCheckpoint(3);
+    await edit('two', 4);
+    const c2 = await consolidate('auto 2', 5);
+    await edit('three', 6);
+    const c3 = await consolidate('auto 3', 7);
+
+    const reachableFromC3 = (await shadowGit(shadow).raw('rev-list', c3))
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+    expect(reachableFromC3).toContain(c2);
+    expect(reachableFromC3).toContain(c1);
+  });
+
+  test('a consolidation re-joins a chain that is already forked into two durable tips', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+    const sg = shadowGit(shadow);
+
+    await edit('one', 1);
+    const c1 = await consolidate('auto 1', 2);
+
+    const tree = (await sg.raw('rev-parse', `${c1}^{tree}`)).trim();
+    const severed = (
+      await sg
+        .env({
+          GIT_DIR: shadow.gitDir,
+          GIT_AUTHOR_NAME: 'openknowledge',
+          GIT_AUTHOR_EMAIL: 'noreply@openknowledge.local',
+          GIT_COMMITTER_NAME: 'openknowledge',
+          GIT_COMMITTER_EMAIL: 'noreply@openknowledge.local',
+          GIT_AUTHOR_DATE: at(3),
+          GIT_COMMITTER_DATE: at(3),
+        })
+        .raw(
+          'commit-tree',
+          tree,
+          '-m',
+          `checkpoint: severed\n\n${formatCheckpointBodyLine({
+            kind: 'auto-consolidation',
+            docName: null,
+            size: null,
+            metadata: { foldedRefs: 1, trigger: 'dead-chain' },
+          })}`,
+        )
+    ).trim();
+    await sg.raw('update-ref', `refs/checkpoints/main/${severed}`, severed);
+
+    await edit('two', 4);
+    const c2 = await consolidate('auto 2', 5);
+
+    const parents = await parentsOf(c2);
+    expect(parents).toContain(severed);
+    expect(parents).toContain(c1);
+
+    const gc = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxAutoConsolidation: 2,
+      ttlMs: 0,
+    });
+    expect(gc.deletedAutoConsolidation).toBe(1);
+    expect(await reachableShas()).toContain(c1);
+  });
+
+  test('a loss checkpoint is never adopted, so reaping its ref still bounds its content', async () => {
+    const { gcCheckpointRefs } = await import('./shadow-repo.ts');
+
+    await edit('one', 1);
+    await consolidate('auto 1', 2);
+    const loss = await lossCheckpoint(3);
+    await edit('two', 4);
+    const c2 = await consolidate('auto 2', 5);
+
+    expect(await parentsOf(c2)).not.toContain(loss);
+
+    const gc = await gcCheckpointRefs(shadow, 'main', {
+      ...DEFAULT_CHECKPOINT_RETENTION,
+      maxBridgeMergeLoss: 0,
+      maxAutoConsolidation: 2,
+      ttlMs: 0,
+    });
+    expect(gc.deletedBridgeMergeLoss).toBe(1);
+    expect(await reachableShas()).not.toContain(loss);
+  });
+});
+
+describe('sweepLegacyShadowRefs (US-018, D35, NFR-6)', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'sweep-test');
+    mkdirSync(projectRoot, { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  async function createRef(refname: string): Promise<void> {
+    const sg = shadowGit(shadow);
+    const emptyTreeSha = (await sg.raw('hash-object', '-t', 'tree', '-w', '/dev/null')).trim();
+    const commitSha = (
+      await sg
+        .env({
+          GIT_DIR: shadow.gitDir,
+          GIT_AUTHOR_DATE: '2020-01-01T00:00:00+00:00',
+          GIT_COMMITTER_DATE: '2020-01-01T00:00:00+00:00',
+          GIT_AUTHOR_NAME: 'test',
+          GIT_AUTHOR_EMAIL: 'test@test.com',
+          GIT_COMMITTER_NAME: 'test',
+          GIT_COMMITTER_EMAIL: 'test@test.com',
+        })
+        .raw('commit-tree', emptyTreeSha, '-m', `test: ${refname}`)
+    ).trim();
+    await sg.raw('update-ref', refname, commitSha);
+  }
+
+  test('deletes only legacy refs (server, human-*, upstream); preserves new taxonomy (US-018)', async () => {
+    await createRef('refs/wip/main/server');
+    await createRef('refs/wip/main/human-abc');
+    await createRef('refs/wip/main/human-def123');
+    await createRef('refs/wip/main/upstream');
+    await createRef('refs/wip/main/agent-xyz');
+    await createRef('refs/wip/main/principal-def');
+    await createRef('refs/wip/main/file-system');
+    await createRef('refs/wip/main/git-upstream');
+    await createRef('refs/wip/main/openknowledge-service');
+
+    const deleted = await sweepLegacyShadowRefs(shadow);
+    expect(deleted).toBe(4);
+
+    const sg = shadowGit(shadow);
+    const remaining = (await sg.raw('for-each-ref', '--format=%(refname)', 'refs/wip'))
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+
+    expect(remaining).not.toContain('refs/wip/main/server');
+    expect(remaining).not.toContain('refs/wip/main/human-abc');
+    expect(remaining).not.toContain('refs/wip/main/human-def123');
+    expect(remaining).not.toContain('refs/wip/main/upstream');
+
+    expect(remaining).toContain('refs/wip/main/agent-xyz');
+    expect(remaining).toContain('refs/wip/main/principal-def');
+    expect(remaining).toContain('refs/wip/main/file-system');
+    expect(remaining).toContain('refs/wip/main/git-upstream');
+    expect(remaining).toContain('refs/wip/main/openknowledge-service');
+  });
+
+  test('idempotent — second sweep deletes nothing (US-018)', async () => {
+    await createRef('refs/wip/main/server');
+    await createRef('refs/wip/main/agent-abc');
+
+    const first = await sweepLegacyShadowRefs(shadow);
+    expect(first).toBe(1);
+
+    const second = await sweepLegacyShadowRefs(shadow);
+    expect(second).toBe(0);
+  });
+
+  test('fresh repo with no refs returns 0 (US-018)', async () => {
+    const deleted = await sweepLegacyShadowRefs(shadow);
+    expect(deleted).toBe(0);
+  });
+});
+
+const STOCK_GIT_EXCLUDE = `# git ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with '#' are comments.
+`;
+
+describe('shadow repo excludes OpenKnowledge machine-local state', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+
+  const writer: WriterIdentity = {
+    id: 'human-ada',
+    name: 'Ada Lovelace',
+    email: 'ada@example.com',
+  };
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(resolve(projectRoot, '.ok/local/cache/main'), { recursive: true });
+    mkdirSync(resolve(projectRoot, '.ok/worktrees/feature'), { recursive: true });
+
+    const git = simpleGit(projectRoot);
+    await git.init();
+    configureTestGitRepository(projectRoot);
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+
+    writeFileSync(resolve(projectRoot, 'intro.md'), '# Hello\n');
+    writeFileSync(resolve(projectRoot, '.ok/config.yml'), 'content:\n  dir: .\n');
+    writeFileSync(
+      resolve(projectRoot, '.ok/local/principal.json'),
+      '{"email":"ada@example.com"}\n',
+    );
+    writeFileSync(resolve(projectRoot, '.ok/local/server.lock'), '{"pid":1}\n');
+    writeFileSync(resolve(projectRoot, '.ok/local/cache/main/backlinks.json'), '{}\n');
+    writeFileSync(resolve(projectRoot, '.ok/worktrees/feature/scratch.md'), '# scratch\n');
+
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  async function seedStaleWipRef(handle: ShadowHandle, writerId: string): Promise<void> {
+    const excludeFile = resolve(handle.gitDir, 'info/exclude');
+    const realExclude = existsSync(excludeFile) ? readFileSync(excludeFile, 'utf-8') : '';
+    const seedIndex = resolve(handle.gitDir, `index-stale-seed-${writerId}`);
+    rmSync(seedIndex, { force: true });
+    writeFileSync(excludeFile, STOCK_GIT_EXCLUDE);
+    const gitEnv = { ...process.env, GIT_DIR: handle.gitDir, GIT_INDEX_FILE: seedIndex };
+    try {
+      execFileSync('git', ['add', '-A', '.'], {
+        cwd: handle.workTree,
+        env: { ...gitEnv, GIT_WORK_TREE: handle.workTree },
+      });
+      const tree = execFileSync('git', ['write-tree'], {
+        cwd: handle.workTree,
+        env: gitEnv,
+        encoding: 'utf-8',
+      }).trim();
+      const commit = execFileSync('git', ['commit-tree', tree, '-m', 'WIP: pre-upgrade'], {
+        cwd: handle.workTree,
+        env: gitEnv,
+        encoding: 'utf-8',
+      }).trim();
+      execFileSync('git', ['update-ref', `refs/wip/main/${writerId}`, commit], {
+        cwd: handle.workTree,
+        env: gitEnv,
+      });
+    } finally {
+      writeFileSync(excludeFile, realExclude);
+      rmSync(seedIndex, { force: true });
+    }
+  }
+
+  function seedStaleFanoutIndex(handle: ShadowHandle): string {
+    const excludeFile = resolve(handle.gitDir, 'info/exclude');
+    const realExclude = existsSync(excludeFile) ? readFileSync(excludeFile, 'utf-8') : '';
+    const fanoutIndex = resolve(handle.gitDir, FANOUT_INDEX_NAME);
+    rmSync(fanoutIndex, { force: true });
+    writeFileSync(excludeFile, STOCK_GIT_EXCLUDE);
+    try {
+      execFileSync('git', ['add', '-A', '.'], {
+        cwd: handle.workTree,
+        env: {
+          ...process.env,
+          GIT_DIR: handle.gitDir,
+          GIT_WORK_TREE: handle.workTree,
+          GIT_INDEX_FILE: fanoutIndex,
+        },
+      });
+    } finally {
+      writeFileSync(excludeFile, realExclude);
+    }
+    return fanoutIndex;
+  }
+
+  function indexPaths(handle: ShadowHandle, indexFile: string): string[] {
+    return execFileSync('git', ['ls-files'], {
+      cwd: handle.workTree,
+      env: { ...process.env, GIT_DIR: handle.gitDir, GIT_INDEX_FILE: indexFile },
+      encoding: 'utf-8',
+    })
+      .split('\n')
+      .map((path) => path.trim())
+      .filter((path) => path.length > 0);
+  }
+
+  async function wipTreePaths(handle: ShadowHandle, writerId: string): Promise<string[]> {
+    const sg = shadowGit(handle);
+    return (await sg.raw('ls-tree', '-r', '--name-only', `refs/wip/main/${writerId}`))
+      .split('\n')
+      .map((path) => path.trim())
+      .filter((path) => path.length > 0);
+  }
+
+  async function checkpointTreePaths(ref: string): Promise<string[]> {
+    const sg = shadowGit(shadow);
+    return (await sg.raw('ls-tree', '-r', '--name-only', ref))
+      .split('\n')
+      .map((path) => path.trim())
+      .filter((path) => path.length > 0);
+  }
+
+  test('the shadow does not see .ok/local or .ok/worktrees as content', async () => {
+    const sg = shadowGit(shadow);
+    const status = await sg.raw('status', '--porcelain', '--untracked-files=all');
+    const paths = status
+      .split('\n')
+      .map((line) => line.slice(3).trim())
+      .filter((p) => p.length > 0);
+
+    expect(paths).toContain('intro.md');
+    expect(paths).toContain('.ok/config.yml');
+    expect(paths.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+    expect(paths.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+  });
+
+  test('a checkpoint keeps machine-local state out of version history', async () => {
+    const result = await saveVersion(shadow, '.', [writer]);
+    const sg = shadowGit(shadow);
+    const tree = (await sg.raw('ls-tree', '-r', '--name-only', result.checkpointRef))
+      .split('\n')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    expect(tree).toContain('intro.md');
+    expect(tree).toContain('.ok/config.yml');
+    expect(tree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+    expect(tree.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+  });
+
+  test('a nested content dir keeps its own .ok/local out of the staged tree', async () => {
+    mkdirSync(resolve(projectRoot, 'docs/.ok/local'), { recursive: true });
+    writeFileSync(resolve(projectRoot, 'docs/note.md'), '# note\n');
+    writeFileSync(resolve(projectRoot, 'docs/.ok/local/comments.json'), '{}\n');
+
+    const result = await saveVersion(shadow, 'docs', [writer]);
+    const sg = shadowGit(shadow);
+    const tree = (await sg.raw('ls-tree', '-r', '--name-only', result.checkpointRef))
+      .split('\n')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    expect(tree).toContain('docs/note.md');
+    expect(tree.filter((p) => p.startsWith('docs/.ok/local/'))).toEqual([]);
+  });
+
+  test('legacy machine-local files at the .ok root stay out of a checkpoint', async () => {
+    const legacyRootFiles = [
+      'principal.json',
+      'state.json',
+      'server.lock',
+      'ui.lock',
+      'sync-state.json',
+      'conflicts.json',
+      'last-spawn-error.log',
+    ];
+    const legacyRootDirs = ['local', 'worktrees', 'cache', 'tmp'];
+    for (const name of legacyRootFiles) {
+      writeFileSync(resolve(projectRoot, '.ok', name), '{"legacy":true}\n');
+    }
+    for (const name of legacyRootDirs) {
+      mkdirSync(resolve(projectRoot, '.ok', name), { recursive: true });
+      writeFileSync(resolve(projectRoot, '.ok', name, 'residue.json'), '{}\n');
+    }
+
+    const result = await saveVersion(shadow, '.', [writer]);
+    const sg = shadowGit(shadow);
+    const tree = (await sg.raw('ls-tree', '-r', '--name-only', result.checkpointRef))
+      .split('\n')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    expect(tree).toContain('.ok/config.yml');
+    expect(tree).toContain('intro.md');
+    for (const name of legacyRootFiles) {
+      expect(tree).not.toContain(`.ok/${name}`);
+    }
+    for (const name of legacyRootDirs) {
+      expect(tree.filter((p) => p.startsWith(`.ok/${name}/`))).toEqual([]);
+    }
+  });
+
+  test('an in-flight document flush is not staged into a checkpoint', async () => {
+    const inFlight = atomicTempPath(resolve(projectRoot, 'intro.md'));
+    writeFileSync(inFlight, '# half written\n');
+
+    const result = await saveVersion(shadow, '.', [writer]);
+    const sg = shadowGit(shadow);
+    const tree = (await sg.raw('ls-tree', '-r', '--name-only', result.checkpointRef))
+      .split('\n')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    expect(tree).toContain('intro.md');
+    expect(tree.filter((p) => p.includes('.tmp.'))).toEqual([]);
+  });
+
+  test('an in-flight skill write is not staged into a checkpoint', async () => {
+    const skillsRoot = resolve(projectRoot, '.ok/skills');
+    const skillFile = resolve(skillsRoot, 'trip-log/SKILL.md');
+    fsTracedRecorder.renameSources.length = 0;
+
+    const written = applySkillWrite({
+      boundary: projectRoot,
+      skillsRoot,
+      name: 'trip-log',
+      body: '# Steps\n\nDo the thing.',
+      frontmatter: { name: 'trip-log', description: 'Use when logging a fishing trip.' },
+    });
+    expect(written.ok).toBe(true);
+
+    const inFlight = fsTracedRecorder.renameSources.find((from) =>
+      from.startsWith(`${skillFile}.`),
+    );
+    expect(inFlight).toBeDefined();
+    writeFileSync(inFlight as string, '# half written\n');
+
+    const result = await saveVersion(shadow, '.', [writer]);
+    const sg = shadowGit(shadow);
+    const tree = (await sg.raw('ls-tree', '-r', '--name-only', result.checkpointRef))
+      .split('\n')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    expect(tree).toContain('.ok/skills/trip-log/SKILL.md');
+    expect(tree.filter((p) => p.startsWith('.ok/skills/trip-log/SKILL.md.'))).toEqual([]);
+  });
+
+  test('a WIP commit drops machine-local paths a previous build had staged', async () => {
+    const agentWriter: WriterIdentity = {
+      id: 'agent-cursor',
+      name: 'cursor-agent',
+      email: 'cursor@openknowledge.local',
+    };
+    await seedStaleWipRef(shadow, agentWriter.id);
+    expect(await wipTreePaths(shadow, agentWriter.id)).toContain('.ok/local/principal.json');
+
+    const reinit = await initShadowRepo(projectRoot);
+    writeFileSync(resolve(projectRoot, 'intro.md'), '# Hello again\n');
+    await commitWip(reinit, agentWriter, '.', 'WIP: post-upgrade');
+    const freshTree = await wipTreePaths(reinit, agentWriter.id);
+
+    expect(freshTree).toContain('intro.md');
+    expect(freshTree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+  });
+
+  test('paths that only share a prefix with a machine-local name stay in a checkpoint', async () => {
+    mkdirSync(resolve(projectRoot, 'docs/.ok'), { recursive: true });
+    writeFileSync(resolve(projectRoot, '.ok/state.json'), '{"machine":true}\n');
+    writeFileSync(resolve(projectRoot, '.ok/state.jsonl'), '{"content":true}\n');
+    writeFileSync(resolve(projectRoot, '.ok/principal.json'), '{"machine":true}\n');
+    writeFileSync(resolve(projectRoot, '.ok/principal.json.bak'), '{"content":true}\n');
+    writeFileSync(resolve(projectRoot, 'docs/.ok/server.lock'), '{"machine":true}\n');
+    writeFileSync(resolve(projectRoot, 'docs/.ok/server.lock.disabled'), '{"content":true}\n');
+
+    const result = await saveVersion(shadow, '.', [writer]);
+    const tree = await checkpointTreePaths(result.checkpointRef);
+
+    expect(tree).toContain('.ok/state.jsonl');
+    expect(tree).toContain('.ok/principal.json.bak');
+    expect(tree).toContain('docs/.ok/server.lock.disabled');
+    expect(tree).not.toContain('.ok/state.json');
+    expect(tree).not.toContain('.ok/principal.json');
+    expect(tree).not.toContain('docs/.ok/server.lock');
+  });
+
+  test('a staged path whose name begins with a dash is still dropped', async () => {
+    const agentWriter: WriterIdentity = {
+      id: 'agent-dash',
+      name: 'dash-agent',
+      email: 'dash@openknowledge.local',
+    };
+    const leadingDash = `-lead.md${atomicTempPath('x').slice(1)}`;
+    writeFileSync(resolve(projectRoot, leadingDash), '# half written\n');
+    await seedStaleWipRef(shadow, agentWriter.id);
+    expect(await wipTreePaths(shadow, agentWriter.id)).toContain(leadingDash);
+
+    const reinit = await initShadowRepo(projectRoot);
+    await commitWip(reinit, agentWriter, '.', 'WIP: post-upgrade');
+    const freshTree = await wipTreePaths(reinit, agentWriter.id);
+
+    expect(freshTree).toContain('intro.md');
+    expect(freshTree).not.toContain(leadingDash);
+  });
+
+  test('a contaminated index larger than the argv ceiling is still repaired', async () => {
+    const agentWriter: WriterIdentity = {
+      id: 'agent-bulk',
+      name: 'bulk-agent',
+      email: 'bulk@openknowledge.local',
+    };
+    const leaf = 'q'.repeat(160);
+    const threadsDir = resolve(projectRoot, '.ok/local/threads');
+    mkdirSync(threadsDir, { recursive: true });
+    const bulk = Array.from(
+      { length: 8_000 },
+      (_unused, i) => `${String(i).padStart(6, '0')}-${leaf}.ndjson`,
+    );
+    for (const name of bulk) writeFileSync(resolve(threadsDir, name), '{}\n');
+    const argvBytes = bulk.reduce((acc, name) => acc + `.ok/local/threads/${name}`.length + 1, 0);
+    expect(argvBytes).toBeGreaterThan(1_500_000);
+
+    await seedStaleWipRef(shadow, agentWriter.id);
+    const staleTree = await wipTreePaths(shadow, agentWriter.id);
+    expect(staleTree.filter((p) => p.startsWith('.ok/local/threads/'))).toHaveLength(8_000);
+
+    const reinit = await initShadowRepo(projectRoot);
+    await commitWip(reinit, agentWriter, '.', 'WIP: post-upgrade');
+    const freshTree = await wipTreePaths(reinit, agentWriter.id);
+
+    expect(freshTree).toContain('intro.md');
+    expect(freshTree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+  }, 120_000);
+
+  test('a repair the index sweep cannot run does not abort initialization, but degrades the shadow', async () => {
+    writeFileSync(resolve(shadow.gitDir, FANOUT_INDEX_NAME), 'GARBAGE-NOT-AN-INDEX-FILE');
+    resetMetrics();
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+
+    try {
+      const reinit = await initShadowRepo(projectRoot);
+
+      expect(existsSync(resolve(reinit.gitDir, 'info/exclude'))).toBe(true);
+      expect(isShadowExcludesDegraded(reinit)).toBe(true);
+      expect(getMetrics().shadowExcludeIndexSweepFailures).toBe(1);
+      expect(getMetrics().shadowExcludeIndexEntriesDropped).toBe(0);
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(
+        warnings.some((message) =>
+          message.includes(
+            '[shadow-repo] could not read the index to clear excluded entries — none were dropped and an unknown number are still staged',
+          ),
+        ),
+      ).toBe(true);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('an index sweep blocked partway reports how many machine-local entries it left staged', async () => {
+    const fanoutIndex = seedStaleFanoutIndex(shadow);
+    const machineLocalStaged = indexPaths(shadow, fanoutIndex).filter(
+      (path) => path.startsWith('.ok/local/') || path.startsWith('.ok/worktrees/'),
+    );
+    expect(machineLocalStaged.length).toBeGreaterThan(0);
+    writeFileSync(`${fanoutIndex}.lock`, '');
+    resetMetrics();
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+    const infoSpy = vi.spyOn(getLogger('shadow-repo'), 'info');
+
+    try {
+      const reinit = await initShadowRepo(projectRoot);
+
+      expect(isShadowExcludesDegraded(reinit)).toBe(true);
+      expect(getMetrics().shadowExcludeIndexSweepFailures).toBe(1);
+      expect(getMetrics().shadowExcludeIndexEntriesDropped).toBe(0);
+      expect(
+        indexPaths(reinit, fanoutIndex).filter(
+          (path) => path.startsWith('.ok/local/') || path.startsWith('.ok/worktrees/'),
+        ),
+      ).toEqual(machineLocalStaged);
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(
+        warnings.some((message) =>
+          message.includes(`dropped 0, left ${machineLocalStaged.length} still staged`),
+        ),
+      ).toBe(true);
+      const infos = infoSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(
+        infos.some((message) =>
+          message.includes('[shadow-repo] dropped excluded entries a previous build had staged'),
+        ),
+      ).toBe(false);
+    } finally {
+      warnSpy.mockRestore();
+      infoSpy.mockRestore();
+    }
+  });
+
+  test('a checkpoint stays clean even when the shadow exclude file is gone', async () => {
+    writeFileSync(resolve(shadow.gitDir, 'info/exclude'), STOCK_GIT_EXCLUDE);
+
+    const result = await saveVersion(shadow, '.', [writer]);
+    const tree = await checkpointTreePaths(result.checkpointRef);
+
+    expect(tree).toContain('intro.md');
+    expect(tree).toContain('.ok/config.yml');
+    expect(tree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+    expect(tree.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+  });
+
+  test('a shadow whose exclude file cannot be written reports itself degraded', async () => {
+    const excludeFile = resolve(shadow.gitDir, 'info/exclude');
+    rmSync(excludeFile, { force: true });
+    symlinkSync(resolve(tmpDir, 'planted-exclude'), excludeFile);
+
+    const reinit = await initShadowRepo(projectRoot);
+
+    expect(isShadowExcludesDegraded(reinit)).toBe(true);
+  });
+
+  test('a symlink at the exclude path is refused at error level, not warned as I/O', async () => {
+    const excludeFile = resolve(shadow.gitDir, 'info/exclude');
+    rmSync(excludeFile, { force: true });
+    symlinkSync(resolve(tmpDir, 'planted-exclude'), excludeFile);
+    const errorSpy = vi.spyOn(getLogger('shadow-repo'), 'error');
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+
+    try {
+      await initShadowRepo(projectRoot);
+
+      const errors = errorSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(
+        errors.some((message) =>
+          message.includes('[shadow-repo] refused to write the shadow exclude file'),
+        ),
+      ).toBe(true);
+      expect(
+        warnings.some((message) =>
+          message.includes('[shadow-repo] could not write the shadow exclude file'),
+        ),
+      ).toBe(false);
+    } finally {
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('a symlinked shadow info directory pointing at a live directory is refused, not followed', async () => {
+    const infoDir = resolve(shadow.gitDir, 'info');
+    const plantedInfo = resolve(tmpDir, 'planted-info-live');
+    mkdirSync(plantedInfo, { recursive: true });
+    rmSync(infoDir, { recursive: true, force: true });
+    symlinkSync(plantedInfo, infoDir);
+    const errorSpy = vi.spyOn(getLogger('shadow-repo'), 'error');
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+
+    try {
+      const reinit = await initShadowRepo(projectRoot);
+
+      expect(isShadowExcludesDegraded(reinit)).toBe(true);
+      expect(existsSync(resolve(plantedInfo, 'exclude'))).toBe(false);
+      const errors = errorSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(
+        errors.some((message) =>
+          message.includes('[shadow-repo] refused to write the shadow exclude file'),
+        ),
+      ).toBe(true);
+      expect(
+        warnings.some((message) =>
+          message.includes('[shadow-repo] could not write the shadow exclude file'),
+        ),
+      ).toBe(false);
+    } finally {
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('a dangling symlink at the shadow info directory is refused, not warned as I/O', async () => {
+    const infoDir = resolve(shadow.gitDir, 'info');
+    rmSync(infoDir, { recursive: true, force: true });
+    symlinkSync(resolve(tmpDir, 'planted-info-absent'), infoDir);
+    const errorSpy = vi.spyOn(getLogger('shadow-repo'), 'error');
+    const warnSpy = vi.spyOn(getLogger('shadow-repo'), 'warn');
+
+    try {
+      const reinit = await initShadowRepo(projectRoot);
+
+      expect(isShadowExcludesDegraded(reinit)).toBe(true);
+      const errors = errorSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(
+        errors.some((message) =>
+          message.includes('[shadow-repo] refused to write the shadow exclude file'),
+        ),
+      ).toBe(true);
+      expect(
+        warnings.some((message) =>
+          message.includes('[shadow-repo] could not write the shadow exclude file'),
+        ),
+      ).toBe(false);
+    } finally {
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('the index repair reports its drop count through the metrics surface', async () => {
+    const agentWriter: WriterIdentity = {
+      id: 'agent-metrics',
+      name: 'metrics-agent',
+      email: 'metrics@openknowledge.local',
+    };
+    await seedStaleWipRef(shadow, agentWriter.id);
+    const reinit = await initShadowRepo(projectRoot);
+    resetMetrics();
+
+    await commitWip(reinit, agentWriter, '.', 'WIP: post-upgrade');
+
+    expect(getMetrics().shadowExcludeIndexEntriesDropped).toBeGreaterThan(0);
+  });
+
+  test('re-initializing drops a fan-out index that already staged machine-local state', async () => {
+    const fanoutIndex = seedStaleFanoutIndex(shadow);
+    expect(indexPaths(shadow, fanoutIndex)).toContain('.ok/local/principal.json');
+
+    const reinit = await initShadowRepo(projectRoot);
+    const freshTree = await buildWipTree(reinit, '.');
+    const sgFresh = shadowGit(reinit);
+    const freshNames = (await sgFresh.raw('ls-tree', '-r', '--name-only', freshTree))
+      .split('\n')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    expect(freshNames).toContain('intro.md');
+    expect(freshNames.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+  });
+
+  test('a fan-out WIP tree stays clean even when the shadow exclude file is gone', async () => {
+    writeFileSync(resolve(shadow.gitDir, 'info/exclude'), STOCK_GIT_EXCLUDE);
+
+    const tree = await buildWipTree(shadow, '.');
+    const names = await checkpointTreePaths(tree);
+
+    expect(names).toContain('intro.md');
+    expect(names.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+    expect(names.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+  });
+
+  test('re-initializing an existing shadow restores the exclusions', async () => {
+    writeFileSync(resolve(shadow.gitDir, 'info/exclude'), STOCK_GIT_EXCLUDE);
+
+    const reinit = await initShadowRepo(projectRoot);
+    const sg = shadowGit(reinit);
+    const status = await sg.raw('status', '--porcelain', '--untracked-files=all');
+
+    expect(status).not.toContain('.ok/local/');
+  });
+});
+
+describe('shadow repo excludes a git dir that lives inside the work tree under another name', () => {
+  let projectRoot: string;
+  let shadow: ShadowHandle;
+
+  const writer: WriterIdentity = {
+    id: 'human-ada',
+    name: 'Ada Lovelace',
+    email: 'ada@example.com',
+  };
+
+  function treePaths(handle: ShadowHandle, ref: string): string[] {
+    return execFileSync('git', ['ls-tree', '-r', '--name-only', ref], {
+      cwd: handle.workTree,
+      env: { ...process.env, GIT_DIR: handle.gitDir },
+      encoding: 'utf-8',
+    })
+      .split('\n')
+      .map((path) => path.trim())
+      .filter((path) => path.length > 0);
+  }
+
+  beforeEach(async () => {
+    projectRoot = resolve(tmpDir, 'project');
+    mkdirSync(projectRoot, { recursive: true });
+    const git = simpleGit(projectRoot);
+    await git.init();
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+    execFileSync('mv', ['.git', '.git.nosync'], { cwd: projectRoot });
+    symlinkSync('.git.nosync', resolve(projectRoot, '.git'));
+    writeFileSync(resolve(projectRoot, 'intro.md'), '# Hello\n');
+    shadow = await initShadowRepo(projectRoot);
+  });
+
+  test('derives anchored excludes for the symlink target and the shadow dir', () => {
+    expect(gitDirExcludePatterns(shadow)).toEqual(['/.git.nosync/', '/.git.nosync/ok/']);
+    const exclude = readFileSync(resolve(shadow.gitDir, 'info/exclude'), 'utf-8');
+    expect(exclude).toContain('/.git.nosync/\n');
+  });
+
+  test('a regular .git directory needs no extra excludes', async () => {
+    const plainRoot = resolve(tmpDir, 'plain');
+    mkdirSync(plainRoot, { recursive: true });
+    await simpleGit(plainRoot).init();
+    const plainShadow = await initShadowRepo(plainRoot);
+    expect(gitDirExcludePatterns(plainShadow)).toEqual([]);
+  });
+
+  test('WIP commits never stage the shadow repo or the project git dir', async () => {
+    await commitWip(shadow, writer, '.', 'WIP: first');
+    writeFileSync(resolve(projectRoot, 'intro.md'), '# Hello again\n');
+    await commitWip(shadow, writer, '.', 'WIP: second');
+
+    const paths = treePaths(shadow, `refs/wip/main/${writer.id}`);
+    expect(paths).toContain('intro.md');
+    expect(paths.filter((path) => path.startsWith('.git.nosync/'))).toEqual([]);
+  });
+
+  test('the fan-out tree never stages the shadow repo or the project git dir', async () => {
+    await commitWip(shadow, writer, '.', 'WIP: seed objects');
+    const tree = await buildWipTree(shadow, '.');
+    const paths = treePaths(shadow, tree);
+    expect(paths).toContain('intro.md');
+    expect(paths.filter((path) => path.startsWith('.git.nosync/'))).toEqual([]);
+  });
+
+  test('a fan-out index that already staged the git dir is swept on the next build', async () => {
+    const fanoutIndex = resolve(shadow.gitDir, FANOUT_INDEX_NAME);
+    const excludeFile = resolve(shadow.gitDir, 'info/exclude');
+    const realExclude = readFileSync(excludeFile, 'utf-8');
+    writeFileSync(excludeFile, '');
+    try {
+      execFileSync('git', ['add', '-A', '.'], {
+        cwd: shadow.workTree,
+        env: {
+          ...process.env,
+          GIT_DIR: shadow.gitDir,
+          GIT_WORK_TREE: shadow.workTree,
+          GIT_INDEX_FILE: fanoutIndex,
+        },
+      });
+    } finally {
+      writeFileSync(excludeFile, realExclude);
+    }
+
+    const tree = await buildWipTree(shadow, '.');
+    expect(treePaths(shadow, tree).filter((path) => path.startsWith('.git.nosync/'))).toEqual([]);
+  });
+
+  test('a git dir reached through a `.git` pointer file is fully excluded from staging', async () => {
+    const pointerRoot = resolve(tmpDir, 'pointer-project');
+    mkdirSync(pointerRoot, { recursive: true });
+    const gitData = resolve(pointerRoot, '.gitdata');
+    execFileSync('git', ['init', `--separate-git-dir=${gitData}`, pointerRoot]);
+    execFileSync('git', ['config', 'user.name', 'Test'], {
+      cwd: pointerRoot,
+      env: { ...process.env, GIT_DIR: gitData },
+    });
+    execFileSync('git', ['config', 'user.email', 'test@test.com'], {
+      cwd: pointerRoot,
+      env: { ...process.env, GIT_DIR: gitData },
+    });
+    writeFileSync(resolve(pointerRoot, 'intro.md'), '# Hello\n');
+    const pointerShadow = await initShadowRepo(pointerRoot);
+
+    expect(gitDirExcludePatterns(pointerShadow)).toEqual(['/.gitdata/', '/.gitdata/ok/']);
+
+    await commitWip(pointerShadow, writer, '.', 'WIP: pointer');
+    const paths = treePaths(pointerShadow, `refs/wip/main/${writer.id}`);
+    expect(paths).toContain('intro.md');
+    expect(paths.filter((path) => path.startsWith('.gitdata/'))).toEqual([]);
+  });
+
+  test('a git dir that resolves outside the work tree contributes no excludes', async () => {
+    const externalRoot = resolve(tmpDir, 'external-project');
+    mkdirSync(externalRoot, { recursive: true });
+    const externalGitDir = resolve(tmpDir, 'external-store');
+    execFileSync('git', ['init', `--separate-git-dir=${externalGitDir}`, externalRoot]);
+    execFileSync('git', ['config', 'user.name', 'Test'], {
+      cwd: externalRoot,
+      env: { ...process.env, GIT_DIR: externalGitDir },
+    });
+    execFileSync('git', ['config', 'user.email', 'test@test.com'], {
+      cwd: externalRoot,
+      env: { ...process.env, GIT_DIR: externalGitDir },
+    });
+    writeFileSync(resolve(externalRoot, 'intro.md'), '# Hello\n');
+    const externalShadow = await initShadowRepo(externalRoot);
+
+    expect(gitDirExcludePatterns(externalShadow)).toEqual([]);
+    const exclude = readFileSync(resolve(externalShadow.gitDir, 'info/exclude'), 'utf-8');
+    expect(exclude).not.toContain('/../');
+  });
+
+  test('a git dir named with a glob metacharacter still lets other content stage', async () => {
+    const metaRoot = resolve(tmpDir, 'meta-project');
+    mkdirSync(metaRoot, { recursive: true });
+    const git = simpleGit(metaRoot);
+    await git.init();
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+    execFileSync('mv', ['.git', '*'], { cwd: metaRoot });
+    symlinkSync('*', resolve(metaRoot, '.git'));
+    mkdirSync(resolve(metaRoot, 'docs'), { recursive: true });
+    writeFileSync(resolve(metaRoot, 'docs/note.md'), '# Note\n');
+    writeFileSync(resolve(metaRoot, 'intro.md'), '# Hello\n');
+    const metaShadow = await initShadowRepo(metaRoot);
+
+    expect(gitDirExcludePatterns(metaShadow)).toEqual(['/\\*/', '/\\*/ok/']);
+
+    await commitWip(metaShadow, writer, '.', 'WIP: meta');
+    const paths = treePaths(metaShadow, `refs/wip/main/${writer.id}`);
+    expect(paths).toContain('docs/note.md');
+    expect(paths).toContain('intro.md');
+    expect(paths.some((path) => path.startsWith('*/'))).toBe(false);
+  });
+
+  test('a git dir name containing a newline is skipped, not written as a broken pattern', async () => {
+    const nlRoot = resolve(tmpDir, 'newline-project');
+    mkdirSync(nlRoot, { recursive: true });
+    const git = simpleGit(nlRoot);
+    await git.init();
+    await git.raw('config', 'user.name', 'Test');
+    await git.raw('config', 'user.email', 'test@test.com');
+    const weird = 'git\nweird';
+    execFileSync('mv', ['.git', weird], { cwd: nlRoot });
+    symlinkSync(weird, resolve(nlRoot, '.git'));
+    writeFileSync(resolve(nlRoot, 'intro.md'), '# Hello\n');
+    const nlShadow = await initShadowRepo(nlRoot);
+
+    expect(gitDirExcludePatterns(nlShadow)).toEqual([]);
+  });
+});

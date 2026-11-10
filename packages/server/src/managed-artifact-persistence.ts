@@ -1,0 +1,654 @@
+/**
+ * Verbatim fidelity (precedent #38, Y.Text-is-truth): the store serializes the body from
+ * `Y.Text('source')` — the raw source bytes — NEVER from the XmlFragment (which would
+ * re-canonicalize the markdown that gets projected verbatim into an agent's context).
+ */
+
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, relative, resolve, sep } from 'node:path';
+import {
+  LEGACY_SKILL_STORE_ROOT,
+  LINEAGE_EPOCH_KEY,
+  MANAGED_ARTIFACT_PREFIX_SKILL,
+  MANAGED_ARTIFACT_PREFIX_TEMPLATE,
+  type ManagedArtifactScope,
+  parseExternalSkillDocName,
+  parseManagedArtifactName,
+  SKILL_NAME_REGEX,
+  skillRootActivationPath,
+} from '@inkeep/open-knowledge-core';
+import {
+  atomicWriteFile,
+  FileLockTimeoutError,
+  okUserHomeDir,
+  withFileLock,
+} from '@inkeep/open-knowledge-core/server';
+import type * as Y from 'yjs';
+import type { DeriveLossDetectOptions } from './bridge-loss-detector.ts';
+import { applyDiskContentToDoc, FILE_WATCHER_ORIGIN } from './disk-content-intake.ts';
+import type { FileObservation } from './disk-receipts.ts';
+import { backUpDisplacedVersion } from './edit-backups.ts';
+import {
+  reportReconcileBothKept,
+  reportReconcileCheckFailed,
+  reportReconcileKeptLive,
+} from './external-change.ts';
+import { externalSkillAbsPath } from './external-skill-registry.ts';
+import { tracedAtomicFs, tracedMkdir } from './fs-traced.ts';
+import {
+  globalSkillGraphRoots,
+  knownSkillRootsFor,
+  resolveDefaultSkillHomeRel,
+  resolveGlobalNativeSkillDir,
+} from './in-place-skills.ts';
+import { getLogger } from './logger.ts';
+import type { MergeHistoryRecorder } from './merge-history.ts';
+import {
+  incrementManagedArtifactMerge,
+  incrementManagedArtifactReconcile,
+  incrementStoreRestatRefused,
+  type ManagedArtifactMergeOutcome,
+} from './metrics.ts';
+import { reconcile } from './reconciliation.ts';
+import { heldFor, heldNotUtf8, type SaveHold } from './save-hold.ts';
+import {
+  type ObservedTextRead,
+  readObservedText,
+  restatFile,
+  StoreRestatFailedError,
+  StoreRestatRefusedError,
+} from './store-compare.ts';
+
+const log = getLogger('managed-artifact-persistence');
+
+export interface ManagedArtifactCtx {
+  projectDir: string;
+  homedirOverride?: string;
+  lkgCache: Map<string, string>;
+  setReconciledBase: (docName: string, content: string) => void;
+  getReconciledBase: (docName: string) => string | undefined;
+  beforeReconcileDivergence?: (
+    document: Y.Doc,
+    documentName: string,
+    liveContent: string,
+    diskContent: string,
+  ) => DeriveLossDetectOptions | undefined;
+  history: Pick<MergeHistoryRecorder, 'bothKept' | 'keptLive' | 'noticeBackup'> | null;
+}
+
+type SettledMergeOutcome = Exclude<ManagedArtifactMergeOutcome, 'held'>;
+
+export type ManagedArtifactDrop =
+  | 'dropped-legacy-name'
+  | 'dropped-unresolvable'
+  | 'dropped-container-gone'
+  | 'dropped-intake-landed';
+
+export type StoreManagedArtifactOutcome =
+  | 'persisted'
+  | 'no-op'
+  | 'write-failed'
+  | 'outside-taken-in'
+  | ManagedArtifactDrop
+  | SettledMergeOutcome
+  | SaveHold;
+
+export function storeManagedArtifactWroteFile(outcome: StoreManagedArtifactOutcome): boolean {
+  if (typeof outcome === 'object') return false;
+  switch (outcome) {
+    case 'persisted':
+    case 'merged':
+    case 'both-kept':
+    case 'kept-live':
+    case 'stash-fallback':
+      return true;
+    case 'no-op':
+    case 'write-failed':
+    case 'applied':
+    case 'unchanged':
+    case 'outside-taken-in':
+    case 'dropped-legacy-name':
+    case 'dropped-unresolvable':
+    case 'dropped-container-gone':
+    case 'dropped-intake-landed':
+      return false;
+    default:
+      return assertNeverStoreOutcome(outcome);
+  }
+}
+
+function assertNeverStoreOutcome(outcome: never): never {
+  throw new Error(`unhandled skill store outcome: ${String(outcome)}`);
+}
+
+type ManagedArtifactLocation = Pick<ManagedArtifactCtx, 'projectDir' | 'homedirOverride'>;
+
+export function homeFor(ctx: Pick<ManagedArtifactCtx, 'homedirOverride'>): string {
+  return ctx.homedirOverride ?? homedir();
+}
+
+export function managedArtifactContributorAttribution(
+  documentName: string,
+): { docKey: string; subject: string } | null {
+  const parsed = parseManagedArtifactName(documentName);
+  if (parsed === null || parsed.kind !== 'skill' || parsed.scope !== 'project') return null;
+  return {
+    docKey: `${LEGACY_SKILL_STORE_ROOT}/${parsed.name}`,
+    subject: `skill-edit: ${parsed.name}/SKILL.md`,
+  };
+}
+
+export function managedArtifactTimelinePaths(
+  documentName: string,
+):
+  | { managed: false }
+  | { managed: true; versioned: false }
+  | { managed: true; versioned: true; docKey: string; filePath: string } {
+  const parsed = parseManagedArtifactName(documentName);
+  if (!parsed) return { managed: false };
+  const attr = managedArtifactContributorAttribution(documentName);
+  if (!attr) return { managed: true, versioned: false };
+  return {
+    managed: true,
+    versioned: true,
+    docKey: attr.docKey,
+    filePath: `${attr.docKey}/SKILL.md`,
+  };
+}
+
+export function managedArtifactSkillsRoots(ctx: ManagedArtifactCtx): string[] {
+  const home = homeFor(ctx);
+  return globalSkillGraphRoots(home).filter((abs) =>
+    existsSync(resolve(home, skillRootActivationPath(relative(home, abs).split(sep).join('/')))),
+  );
+}
+
+function resolveBundleFileOnDisk(baseNoExt: string): string {
+  return existsSync(`${baseNoExt}.md`)
+    ? `${baseNoExt}.md`
+    : existsSync(`${baseNoExt}.mdx`)
+      ? `${baseNoExt}.mdx`
+      : `${baseNoExt}.md`;
+}
+
+function managedSkillBundleDir(
+  scope: ManagedArtifactScope,
+  name: string,
+  ctx: ManagedArtifactLocation,
+  host: string | null = null,
+): string | null {
+  if (!SKILL_NAME_REGEX.test(name) || name.length > 64) {
+    throw new Error(`managedSkillBundleDir: invalid skill name: ${JSON.stringify(name)}`);
+  }
+  if (host !== null && (!SKILL_NAME_REGEX.test(host) || host.length > 64)) {
+    throw new Error(`managedSkillBundleDir: invalid host qualifier: ${JSON.stringify(host)}`);
+  }
+  const base = scope === 'global' ? homeFor(ctx) : ctx.projectDir;
+  if (scope !== 'global') {
+    return resolve(base, '.ok', 'skills', name);
+  }
+  if (host !== null) {
+    const root = knownSkillRootsFor(base, 'global').find((r) => r.editor === host);
+    return root === undefined ? null : resolve(base, root.root, name);
+  }
+  const native = resolveGlobalNativeSkillDir(base, name);
+  const storeDir = resolve(base, '.ok', 'skills', name);
+  if (native !== null) return native;
+  if (existsSync(resolve(storeDir, 'SKILL.md'))) return storeDir;
+  const homeRel = resolveDefaultSkillHomeRel(base, 'global');
+  return homeRel === null ? null : resolve(base, homeRel, name);
+}
+
+function managedArtifactContainerDir(
+  documentName: string,
+  ctx: ManagedArtifactLocation,
+): string | null {
+  const ext = parseExternalSkillDocName(documentName);
+  if (ext !== null) {
+    const abs = externalSkillAbsPath(ext.name, null);
+    return abs === null ? null : dirname(abs);
+  }
+  const parsed = parseManagedArtifactName(documentName);
+  if (parsed === null || parsed.kind !== 'skill') return null;
+  return managedSkillBundleDir(parsed.scope, parsed.name, ctx, parsed.host);
+}
+
+export function managedArtifactAbsPath(documentName: string, ctx: ManagedArtifactLocation): string {
+  const ext = parseExternalSkillDocName(documentName);
+  if (ext !== null) {
+    const abs = externalSkillAbsPath(ext.name, ext.rel);
+    if (abs === null) {
+      throw new Error(`managedArtifactAbsPath: external skill not registered: ${documentName}`);
+    }
+    return ext.rel === null ? abs : resolveBundleFileOnDisk(abs);
+  }
+  const parsed = parseManagedArtifactName(documentName);
+  if (parsed === null || parsed.kind !== 'skill') {
+    throw new Error(`managedArtifactAbsPath: not a managed skill doc name: ${documentName}`);
+  }
+  const skillDir = managedSkillBundleDir(parsed.scope, parsed.name, ctx, parsed.host);
+  if (skillDir === null) {
+    throw new Error(`managedArtifactAbsPath: no usable skill home for ${documentName}`);
+  }
+  let abs: string;
+  if (parsed.rel === null) {
+    abs = resolve(skillDir, 'SKILL.md');
+  } else {
+    const relSegs = parsed.rel.split('/').filter((s) => s !== '' && s !== '.');
+    if (relSegs.length === 0 || relSegs.some((s) => s === '..')) {
+      throw new Error(`managedArtifactAbsPath: invalid skill file path for ${documentName}`);
+    }
+    abs = resolveBundleFileOnDisk(resolve(skillDir, ...relSegs));
+  }
+  if (!abs.startsWith(skillDir + sep)) {
+    throw new Error(`managedArtifactAbsPath: path escape for ${documentName}`);
+  }
+  return abs;
+}
+
+export function managedArtifactDocNameForPath(
+  absPath: string,
+  ctx: ManagedArtifactCtx,
+): string | null {
+  const norm = resolve(absPath);
+  const home = homeFor(ctx);
+  const hostRoots = knownSkillRootsFor(home, 'global');
+  for (const root of globalSkillGraphRoots(home)) {
+    const globalSkillsRoot = resolve(root);
+    if (!norm.startsWith(globalSkillsRoot + sep)) continue;
+    const rel = norm.slice(globalSkillsRoot.length + 1).split(sep);
+    const name = rel[0];
+    if (name && SKILL_NAME_REGEX.test(name) && name.length <= 64 && rel.length >= 2) {
+      const bundleDir = resolve(globalSkillsRoot, name);
+      const defaultDir = resolveGlobalNativeSkillDir(home, name);
+      let qualifier = '';
+      if (defaultDir !== null && resolve(defaultDir) !== bundleDir) {
+        const editor = hostRoots.find((r) => resolve(home, r.root) === globalSkillsRoot)?.editor;
+        if (editor !== undefined) qualifier = `@${editor}`;
+      }
+      const tail = rel.slice(1);
+      if (tail.length === 1 && tail[0] === 'SKILL.md') {
+        return `${MANAGED_ARTIFACT_PREFIX_SKILL}global/${name}${qualifier}`;
+      }
+      const last = tail[tail.length - 1] ?? '';
+      if (/\.mdx?$/i.test(last) && !tail.includes('..')) {
+        const relNoExt = tail.join('/').replace(/\.mdx?$/i, '');
+        return `${MANAGED_ARTIFACT_PREFIX_SKILL}global/${name}${qualifier}/${relNoExt}`;
+      }
+    }
+    return null;
+  }
+  return null;
+}
+
+export function loadManagedArtifactDoc(
+  document: Y.Doc,
+  documentName: string,
+  ctx: ManagedArtifactCtx,
+): void {
+  const parsed = parseManagedArtifactName(documentName);
+  if (parsed?.kind === 'skill' && parsed.scope === 'project') return;
+
+  if (documentName.startsWith(MANAGED_ARTIFACT_PREFIX_TEMPLATE)) return;
+
+  const extParsed = parseExternalSkillDocName(documentName);
+  if (extParsed && externalSkillAbsPath(extParsed.name, extParsed.rel) === null) return;
+
+  const xmlFragment = document.getXmlFragment('default');
+  if (xmlFragment.length > 0) return;
+
+  const filePath = managedArtifactAbsPath(documentName, ctx);
+  if (!existsSync(filePath)) return;
+
+  let raw: string;
+  try {
+    raw = readFileSync(filePath, 'utf-8');
+  } catch (e) {
+    log.warn({ documentName, err: e }, 'load: could not read; seeding empty');
+    return;
+  }
+
+  document.transact(() => {
+    applyDiskContentToDoc(document, raw, undefined, documentName);
+    document.getMap('lifecycle').set(LINEAGE_EPOCH_KEY, crypto.randomUUID());
+  }, FILE_WATCHER_ORIGIN);
+
+  ctx.setReconciledBase(documentName, raw);
+  ctx.lkgCache.set(documentName, raw);
+}
+
+async function backupExternalSkillOnce(
+  filePath: string,
+  ext: { name: string; rel: string | null },
+  ctx: Pick<ManagedArtifactCtx, 'homedirOverride'>,
+): Promise<void> {
+  if (ext.rel !== null) return;
+  try {
+    if (!existsSync(filePath)) return;
+    const backupDir = resolve(okUserHomeDir(homeFor(ctx)), 'edit-backups', ext.name);
+    const backupPath = resolve(backupDir, 'SKILL.md.bak');
+    if (existsSync(backupPath)) return;
+    await tracedMkdir(backupDir, { recursive: true });
+    await atomicWriteFile(backupPath, readFileSync(filePath, 'utf-8'), { fs: tracedAtomicFs });
+  } catch (e) {
+    log.warn({ name: ext.name, err: e }, 'external-skill backup failed');
+  }
+}
+
+function applyToLive(
+  document: Y.Doc,
+  documentName: string,
+  ours: string,
+  text: string,
+  ctx: ManagedArtifactCtx,
+): void {
+  const detect = ctx.beforeReconcileDivergence?.(document, documentName, ours, text);
+  document.transact(() => {
+    applyDiskContentToDoc(document, text, undefined, documentName, undefined, detect);
+  }, FILE_WATCHER_ORIGIN);
+}
+
+function agree(documentName: string, text: string, ctx: ManagedArtifactCtx): void {
+  ctx.setReconciledBase(documentName, text);
+  ctx.lkgCache.set(documentName, text);
+}
+
+class LiveMovedOnError extends Error {
+  constructor(docName: string) {
+    super(`the version of ${docName} here changed while the merge was being written`);
+    this.name = 'LiveMovedOnError';
+  }
+}
+
+type CheckedWrite = 'written' | 'moved' | 'unreadable';
+
+async function writeChecked(
+  filePath: string,
+  documentName: string,
+  text: string,
+  observation: FileObservation | null,
+  beforeCommit?: () => boolean,
+): Promise<CheckedWrite> {
+  try {
+    await atomicWriteFile(filePath, text, {
+      fs: tracedAtomicFs,
+      beforeRename: () => {
+        const restat = restatFile(filePath, observation);
+        if (restat.kind === 'failed') throw new StoreRestatFailedError(documentName, restat.error);
+        if (restat.kind === 'moved') throw new StoreRestatRefusedError(documentName);
+        if (beforeCommit !== undefined && !beforeCommit()) throw new LiveMovedOnError(documentName);
+      },
+    });
+    return 'written';
+  } catch (err) {
+    if (err instanceof StoreRestatRefusedError) {
+      incrementStoreRestatRefused();
+      return 'moved';
+    }
+    if (err instanceof LiveMovedOnError) return 'moved';
+    if (err instanceof StoreRestatFailedError) return 'unreadable';
+    throw err;
+  }
+}
+
+type OutsideVersionResult = SettledMergeOutcome | SaveHold | 'retry';
+
+type OutsideRead = Extract<ObservedTextRead, { kind: 'read' }>;
+
+async function takeOutsideVersion(
+  document: Y.Doc,
+  documentName: string,
+  disk: OutsideRead,
+  filePath: string,
+  ctx: ManagedArtifactCtx,
+  site: 'store' | 'intake',
+): Promise<OutsideVersionResult> {
+  const reportSite = site === 'store' ? 'skill-store' : 'skill-intake';
+  const settle = (outcome: SettledMergeOutcome): SettledMergeOutcome => {
+    incrementManagedArtifactMerge(site, outcome);
+    return outcome;
+  };
+  const hold = (held: SaveHold): SaveHold => {
+    incrementManagedArtifactMerge(site, 'held');
+    return held;
+  };
+  if (!disk.lossless) {
+    log.info(
+      { documentName },
+      'the file changed outside to bytes that are not valid UTF-8; nothing was applied or written so they stay on disk',
+    );
+    return hold(heldNotUtf8(filePath, disk.observation));
+  }
+  const ours = document.getText('source').toString();
+  const base = ctx.getReconciledBase(documentName) ?? ctx.lkgCache.get(documentName) ?? '';
+  if (ours === base) {
+    applyToLive(document, documentName, ours, disk.text, ctx);
+    agree(documentName, disk.text, ctx);
+    return settle('applied');
+  }
+  const merge = reconcile({ docName: documentName, base, ours, theirs: disk.text });
+  switch (merge.kind) {
+    case 'noop':
+      return settle('unchanged');
+    case 'clean':
+      applyToLive(document, documentName, ours, merge.newContent, ctx);
+      agree(documentName, merge.newContent, ctx);
+      return settle('applied');
+    case 'merged':
+    case 'both-kept': {
+      const written = await writeChecked(
+        filePath,
+        documentName,
+        merge.newContent,
+        disk.observation,
+        () => {
+          if (document.getText('source').toString() !== ours) return false;
+          applyToLive(document, documentName, ours, merge.newContent, ctx);
+          return true;
+        },
+      );
+      if (written === 'moved') return 'retry';
+      if (written === 'unreadable') return hold(heldFor('unreadable'));
+      agree(documentName, merge.newContent, ctx);
+      if (merge.kind === 'merged') return settle('merged');
+      ctx.history?.bothKept(documentName, { ours, theirs: disk.text }, merge.kept);
+      reportReconcileBothKept(documentName, merge.kept, reportSite);
+      return settle('both-kept');
+    }
+    case 'refused': {
+      reportReconcileCheckFailed(documentName, merge, reportSite);
+      const saved =
+        ctx.history !== null &&
+        (await ctx.history.keptLive(
+          documentName,
+          { side: 'theirs', bytes: disk.text },
+          merge.reason,
+        ));
+      const backup = saved
+        ? null
+        : await backUpDisplacedVersion(homeFor(ctx), null, documentName, disk.text, 'SKILL.md');
+      if (!saved && backup === null) {
+        log.warn(
+          { documentName, reason: merge.reason },
+          'the outside version could not be merged or kept in history or the backup folder; nothing was written so it stays on disk',
+        );
+        return hold(heldFor('no-history-or-backup'));
+      }
+      if (backup !== null) ctx.history?.noticeBackup(documentName, 'theirs', merge.reason, backup);
+      const reread = readObservedText(filePath);
+      if (reread.kind !== 'read' || reread.text !== disk.text) return 'retry';
+      const written = await writeChecked(
+        filePath,
+        documentName,
+        document.getText('source').toString(),
+        reread.observation,
+      );
+      if (written === 'moved') return 'retry';
+      if (written === 'unreadable') return hold(heldFor('unreadable'));
+      agree(documentName, document.getText('source').toString(), ctx);
+      if (saved) {
+        reportReconcileKeptLive(documentName, merge.reason, reportSite);
+        return settle('kept-live');
+      }
+      log.warn(
+        { documentName, reason: merge.reason, backup: backup?.display },
+        'the outside version could not be merged or saved to history; it was kept in the backup folder and the version here stays',
+      );
+      return settle('stash-fallback');
+    }
+    default: {
+      const unhandled: never = merge;
+      throw new Error(`unhandled reconcile outcome: ${String(unhandled)}`);
+    }
+  }
+}
+
+const MAX_OUTSIDE_VERSIONS_PER_STORE = 3;
+
+/** Serializes from `Y.Text('source')` (verbatim — precedent #38). */
+export async function storeManagedArtifactDoc(
+  document: Y.Doc,
+  documentName: string,
+  lastTransactionOrigin: unknown,
+  ctx: ManagedArtifactCtx,
+): Promise<StoreManagedArtifactOutcome> {
+  const parsedStore = parseManagedArtifactName(documentName);
+  if (parsedStore?.kind === 'skill' && parsedStore.scope === 'project') {
+    return 'dropped-legacy-name';
+  }
+
+  if (documentName.startsWith(MANAGED_ARTIFACT_PREFIX_TEMPLATE)) return 'dropped-legacy-name';
+
+  const extStore = parseExternalSkillDocName(documentName);
+  if (extStore && externalSkillAbsPath(extStore.name, extStore.rel) === null) {
+    return 'dropped-unresolvable';
+  }
+
+  const current = document.getText('source').toString() === ctx.lkgCache.get(documentName);
+  if (lastTransactionOrigin === FILE_WATCHER_ORIGIN) {
+    return current ? 'outside-taken-in' : 'dropped-intake-landed';
+  }
+
+  if (current) return 'no-op';
+
+  const containerDir = managedArtifactContainerDir(documentName, ctx);
+  if (containerDir === null) return 'dropped-unresolvable';
+  if (!existsSync(containerDir)) {
+    log.warn(
+      { documentName, containerDir },
+      'store: artifact container is gone (deleted or moved); dropping the write rather than resurrecting it',
+    );
+    return 'dropped-container-gone';
+  }
+
+  const filePath = managedArtifactAbsPath(documentName, ctx);
+
+  try {
+    await tracedMkdir(resolve(filePath, '..'), { recursive: true });
+    if (extStore) await backupExternalSkillOnce(filePath, extStore, ctx);
+    return await withFileLock(`${filePath}.lock`, async () => {
+      for (let round = 0; round < MAX_OUTSIDE_VERSIONS_PER_STORE; round++) {
+        const content = document.getText('source').toString();
+        const lkg = ctx.lkgCache.get(documentName);
+        if (content === lkg) return 'no-op';
+        const disk = readObservedText(filePath);
+        if (disk.kind === 'failed') {
+          incrementManagedArtifactMerge('store', 'held');
+          log.warn(
+            { documentName, err: disk.error },
+            'store: the file could not be read for the compare before the write; nothing was written',
+          );
+          return heldFor('unreadable');
+        }
+        const base = ctx.getReconciledBase(documentName) ?? lkg;
+        if (
+          disk.kind === 'read' &&
+          disk.text !== lkg &&
+          disk.text !== base &&
+          disk.text !== content
+        ) {
+          incrementManagedArtifactReconcile();
+          const outcome = await takeOutsideVersion(
+            document,
+            documentName,
+            disk,
+            filePath,
+            ctx,
+            'store',
+          );
+          if (outcome === 'retry') continue;
+          return outcome;
+        }
+        const written = await writeChecked(
+          filePath,
+          documentName,
+          content,
+          disk.kind === 'read' ? disk.observation : null,
+        );
+        if (written === 'moved') continue;
+        if (written === 'unreadable') {
+          incrementManagedArtifactMerge('store', 'held');
+          return heldFor('unreadable');
+        }
+        agree(documentName, content, ctx);
+        return 'persisted';
+      }
+      incrementManagedArtifactMerge('store', 'held');
+      log.warn(
+        { documentName, rounds: MAX_OUTSIDE_VERSIONS_PER_STORE },
+        'store: the file kept changing outside while it was being saved; nothing more was written',
+      );
+      return heldFor('keeps-changing');
+    });
+  } catch (e) {
+    if (e instanceof FileLockTimeoutError) {
+      log.warn({ documentName }, 'store: file lock timeout; skipping write');
+      return 'write-failed';
+    }
+    log.warn({ documentName, err: e }, 'store: write failed');
+    return 'write-failed';
+  }
+}
+
+export type ApplyExternalManagedArtifactChangeOutcome = 'no-op' | ManagedArtifactMergeOutcome;
+
+export async function applyExternalManagedArtifactChange(
+  document: Y.Doc | null,
+  documentName: string,
+  raw: string,
+  ctx: ManagedArtifactCtx,
+): Promise<ApplyExternalManagedArtifactChangeOutcome> {
+  if (!document) return 'no-op';
+  const lkg = ctx.lkgCache.get(documentName);
+  if (lkg !== undefined && lkg === raw) return 'no-op';
+  if (document.getText('source').toString() === raw) {
+    agree(documentName, raw, ctx);
+    return 'no-op';
+  }
+  const filePath = managedArtifactAbsPath(documentName, ctx);
+  try {
+    return await withFileLock(`${filePath}.lock`, async () => {
+      const disk = readObservedText(filePath);
+      if (disk.kind !== 'read' || disk.text !== raw) return 'no-op';
+      const outcome = await takeOutsideVersion(
+        document,
+        documentName,
+        disk,
+        filePath,
+        ctx,
+        'intake',
+      );
+      if (outcome === 'retry') return 'no-op';
+      return typeof outcome === 'object' ? 'held' : outcome;
+    });
+  } catch (e) {
+    if (!(e instanceof FileLockTimeoutError)) throw e;
+    incrementManagedArtifactMerge('intake', 'held');
+    log.warn(
+      { documentName, err: e },
+      'intake: the file lock timed out, so the outside change was not taken in; the next save compares it',
+    );
+    return 'held';
+  }
+}

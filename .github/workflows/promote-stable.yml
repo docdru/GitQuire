@@ -1,0 +1,486 @@
+name: Promote stable
+
+# On-demand stable promotion on inkeep/open-knowledge.
+#
+# Triggered three equivalent ways (all resolve to a single beta tag):
+#   - workflow_dispatch with an explicit beta_tag (e.g., v0.4.0-beta.3).
+#   - workflow_dispatch with a blank beta_tag -> promotes the newest beta.
+#   - repository_dispatch {type: promote-stable-latest} from an external
+#     trigger (e.g., a Slack Workflow Builder button) -> promotes the newest
+#     beta with no inputs; the run resolves the tag itself.
+# The workflow:
+#   1. Resolves + verifies the beta tag.
+#   2. Derives the stable version from the beta tag NAME — strips the
+#      `v` prefix and `-beta.N` suffix (v0.4.0-beta.3 -> 0.4.0). The
+#      tagged commit's package.json is NOT read: release.yml's zero-
+#      commit-bump cadence applies -beta.N via a transient, never-
+#      committed jq override, so the tag name is the only authoritative
+#      source of the cycle version.
+#   3. Tags vX.Y.Z (no suffix) at the SAME SHA as the beta tag.
+#   4. Creates a non-prerelease GitHub Release at vX.Y.Z as a DRAFT.
+#      desktop-release.yml fires automatically and builds the stable DMG with
+#      --config.extraMetadata.version=X.Y.Z (override since the public repo's
+#      commit carries the previous stable's version in package.json).
+#   5. desktop-release.yml smokes that DMG, promotes the draft to published,
+#      and only then dispatches publish-stable to release.yml, which promotes
+#      the npm `latest` dist-tag using a transient package.json#version
+#      override (same primitive as D11/D13 of the spec — mutation lives only
+#      for the workflow run, not committed).
+#
+# Cascade order changed in the DMG-smoke-gate work: this workflow used to
+# dispatch publish-stable itself, immediately after creating the draft
+# Release and BEFORE desktop-release.yml had built anything. npm `latest`
+# could therefore move for a release whose DMG later failed to build at all.
+# The dispatch now lives in desktop-release.yml, downstream of the DMG smoke
+# verdict, so a broken stable artifact can never reach npm. A macOS build is
+# deliberately NOT added here: this workflow holds the shared
+# `ok-release-cadence` lock at WORKFLOW level, so a 15-75 min build here
+# would block every beta cut for the duration.
+#
+# Concurrency group is shared with release.yml so beta cuts and stable
+# promotions never race on the same public-repo state.
+#
+# Token model. We mint a GitHub App installation token via
+# actions/create-github-app-token for every identity-asserting call. The
+# workflow-default GITHUB_TOKEN is a GitHub App installation token that
+# cannot be granted the `workflows` permission via the permissions: block —
+# `workflows` is not a valid permissions key (only contents, issues, etc.
+# are). When this workflow tags an old beta SHA whose .github/workflows/
+# tree differs from main (the common case after a mirror import of
+# promote-stable.yml itself), the App-token policy refuses the push:
+#   ! [remote rejected]   v0.5.0 -> v0.5.0
+#       (refusing to allow a GitHub App to create or update workflow
+#        `.github/workflows/promote-stable.yml` without `workflows`
+#        permission)
+# The fix REQUIRES the INTERNAL_CI_APP installation on this repo to have
+# `workflows: write` — that grant is a one-time admin action in the App's
+# installation UI, not something this workflow file can change. If the
+# installation lacks the grant, the App token has the same scope problem
+# as GITHUB_TOKEN and the `remote rejected` signature recurs on the next
+# stale-tree promotion.
+
+on:
+  workflow_dispatch:
+    inputs:
+      beta_tag:
+        description: "Beta tag to promote (e.g., v0.4.0-beta.3). Leave blank to promote the newest beta."
+        required: false
+        type: string
+      dispatched_by:
+        description: "URL of the run that dispatched this promotion (run-to-run link). Blank for manual runs."
+        required: false
+        type: string
+  # Codeless external trigger (e.g., a Slack Workflow Builder button) fires
+  # this via POST /repos/inkeep/open-knowledge/dispatches with body
+  # {"event_type": "promote-stable-latest"}. No client_payload is read — the
+  # run resolves the newest vX.Y.Z-beta.N tag itself (see "Resolve beta tag
+  # to promote"), so "promote the latest beta" is a parameterless action.
+  # repository_dispatch only fires the workflow file on the default branch.
+  repository_dispatch:
+    types: [promote-stable-latest]
+
+permissions:
+  # Workflow-default GITHUB_TOKEN keeps contents: write so non-tag operations
+  # (gh release notes preview, etc.) work. All tag-push, release creation,
+  # and repository_dispatch calls run under the App-minted token (see
+  # `Generate GitHub App token` step). npm publish (id-token) is delegated
+  # to release.yml via repository_dispatch so this workflow does not need
+  # id-token; the dispatched run keeps its own OIDC identity. No packages:
+  # write.
+  contents: write
+  # Read-only: lets the dispatch steps resolve the run URLs of the workflows they
+  # trigger (release.yml, desktop-release.yml) for run-to-run links.
+  actions: read
+
+concurrency:
+  group: ok-release-cadence
+  cancel-in-progress: false
+
+jobs:
+  read-bumps:
+    name: Read changeset bumps (no release credential)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      beta_tag: ${{ steps.resolve.outputs.beta_tag }}
+      bump_verdicts: ${{ steps.bumps.outputs.bump_verdicts }}
+      note_levels: ${{ steps.levels.outputs.note_levels }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve beta tag to promote
+        id: resolve
+        env:
+          INPUT_BETA_TAG: ${{ inputs.beta_tag }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${INPUT_BETA_TAG:-}" ]]; then
+            RESOLVED="$INPUT_BETA_TAG"
+            echo "auto=false" >> "$GITHUB_OUTPUT"
+            echo "Using explicitly provided beta tag: $RESOLVED"
+          else
+            RESOLVED=$(git tag --list 'v*-beta.*' --sort=-version:refname \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$' \
+              | head -n 1 || true)
+            if [[ -z "$RESOLVED" ]]; then
+              echo "::error::No vX.Y.Z-beta.N tags found to promote. Did the auto-cadence beta release run?"
+              exit 1
+            fi
+            echo "auto=true" >> "$GITHUB_OUTPUT"
+            echo "Auto-resolved newest beta tag: $RESOLVED"
+          fi
+          echo "beta_tag=$RESOLVED" >> "$GITHUB_OUTPUT"
+
+      - name: Verify beta tag exists
+        env:
+          BETA_TAG: ${{ steps.resolve.outputs.beta_tag }}
+        run: |
+          set -euo pipefail
+          if ! git rev-parse "refs/tags/${BETA_TAG}" >/dev/null 2>&1; then
+            echo "::error::Beta tag '${BETA_TAG}' not found on the public repo. Did the auto-cadence release run?"
+            exit 1
+          fi
+          echo "Tag ${BETA_TAG} resolves to $(git rev-parse "refs/tags/${BETA_TAG}")"
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .node-version
+
+      - name: Install root dependencies for the Changesets reader
+        run: |
+          set -euo pipefail
+          corepack enable
+          pnpm install --frozen-lockfile --filter=. --ignore-scripts
+
+      - name: Read the bump of every changeset the promotion adds
+        id: bumps
+        env:
+          BETA_TAG: ${{ steps.resolve.outputs.beta_tag }}
+        run: |
+          set -euo pipefail
+          node scripts/compute-stable-version.mjs "$BETA_TAG"
+
+      - name: Read the release-note level of every changeset the stable ships
+        id: levels
+        if: steps.bumps.outputs.skip != 'true'
+        env:
+          BETA_SHA: ${{ steps.bumps.outputs.beta_sha }}
+        run: |
+          set -euo pipefail
+          node scripts/render-stable-notes.mjs --read-levels --commit "$BETA_SHA"
+
+  promote:
+    name: Promote ${{ inputs.beta_tag || 'newest beta' }} to stable
+    needs: read-bumps
+    runs-on: ubuntu-26.04
+    cache-mode: none
+    timeout-minutes: 20
+    steps:
+      - name: Generate GitHub App token
+        # See top-of-file token-model comment. The minted token only
+        # bypasses the App-token policy if the App's installation on
+        # this repo has `workflows: write` — which the workflow-default
+        # GITHUB_TOKEN cannot have (the `workflows` permission is not
+        # a valid permissions: key). The installation grant is a
+        # one-time admin action; see the PR's Required human follow-up.
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          # Public client ID for inkeep-internal-ci (non-secret; supersedes the deprecated app-id input).
+          client-id: Iv23liNt1mrrdgVKHn8K
+          private-key: ${{ secrets.INTERNAL_CI_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve beta tag to promote
+        # workflow_dispatch may carry an explicit beta_tag; repository_dispatch
+        # (and a blank manual dispatch) carry none, so promote the newest beta.
+        # Every candidate shares the vX.Y.Z-beta.<digits> shape, so version sort
+        # (versioncmp: numeric digit-run compare) orders BOTH the X.Y.Z and the
+        # beta.N components correctly — head of the descending sort is the
+        # current cycle head. `inputs.beta_tag` is empty (not an error) on
+        # repository_dispatch, which routes us into the auto-resolve branch.
+        id: resolve
+        env:
+          INPUT_BETA_TAG: ${{ inputs.beta_tag }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${INPUT_BETA_TAG:-}" ]]; then
+            RESOLVED="$INPUT_BETA_TAG"
+            echo "auto=false" >> "$GITHUB_OUTPUT"
+            echo "Using explicitly provided beta tag: $RESOLVED"
+          else
+            RESOLVED=$(git tag --list 'v*-beta.*' --sort=-version:refname \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$' \
+              | head -n 1 || true)
+            if [[ -z "$RESOLVED" ]]; then
+              echo "::error::No vX.Y.Z-beta.N tags found to promote. Did the auto-cadence beta release run?"
+              exit 1
+            fi
+            echo "auto=true" >> "$GITHUB_OUTPUT"
+            echo "Auto-resolved newest beta tag: $RESOLVED"
+          fi
+          echo "beta_tag=$RESOLVED" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse bumps read for a different beta
+        env:
+          RESOLVED: ${{ steps.resolve.outputs.beta_tag }}
+          READ_BUMPS_BETA_TAG: ${{ needs.read-bumps.outputs.beta_tag }}
+        run: |
+          set -euo pipefail
+          if [[ "$RESOLVED" != "$READ_BUMPS_BETA_TAG" ]]; then
+            echo "::error::read-bumps read changeset bumps for '${READ_BUMPS_BETA_TAG}', but this job resolved '${RESOLVED}'. Refusing to promote with bumps read for a different beta. This usually means only the failed jobs were re-run after a newer beta landed, which reuses read-bumps' earlier result. Re-run all jobs, or dispatch promote-stable with an explicit beta_tag."
+            exit 1
+          fi
+          echo "read-bumps read the same beta this job resolved: ${RESOLVED}"
+
+      - name: Guard - auto-resolved beta is fully cut
+        # Only the blank/auto dispatch path (promote-newest) needs this guard.
+        # The explicit beta_tag path is an operator override that keeps the
+        # workflow's idempotent recovery behavior (re-run to repair a partial
+        # promotion), so it bypasses this step. The "already promoted" no-op is
+        # no longer checked here — compute-stable-version.mjs derives the target
+        # from the changeset delta over the latest stable and emits skip=true (a
+        # clean no-op) when the beta is already shipped, so a stripped-name
+        # stable-tag existence check would be both redundant and wrong (one beta
+        # name no longer maps 1:1 to one stable version).
+        if: steps.resolve.outputs.auto == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BETA_TAG: ${{ steps.resolve.outputs.beta_tag }}
+        run: |
+          set -euo pipefail
+
+          # Guard B — the beta cut must be COMPLETE. release.yml creates the
+          # beta Release as --draft; desktop-release.yml flips it to published
+          # ONLY after the signed DMG + beta-mac.yml upload succeeds, and it
+          # runs on a SEPARATE concurrency group, so promote-stable can
+          # otherwise acquire the release lock while the DMG is still building
+          # (up to 45 min). npm beta publish happens earlier in the same
+          # pipeline, so a published release implies the npm artifact too. A
+          # draft or asset-less release = the cut is in-flight or failed;
+          # promoting it would build stable from an unvalidated SHA.
+          meta=$(gh release view "$BETA_TAG" --json isDraft,assets 2>/dev/null || true)
+          if [[ -z "$meta" ]]; then
+            echo "::error::No GitHub Release exists for ${BETA_TAG} yet — its beta cut has not finished creating the release. Wait for the cut to complete, then retry."
+            exit 1
+          fi
+          isDraft=$(printf '%s' "$meta" | jq -r '.isDraft')
+          dmg=$(printf '%s' "$meta" | jq -r '[.assets[].name | select(endswith(".dmg"))] | length')
+          manifest=$(printf '%s' "$meta" | jq -r '[.assets[].name | select(endswith("-mac.yml"))] | length')
+          if [[ "$isDraft" == "true" || "$dmg" -eq 0 || "$manifest" -eq 0 ]]; then
+            echo "::error::Beta ${BETA_TAG} is not fully cut (draft=${isDraft}, dmg=${dmg}, mac.yml=${manifest}). Its desktop-release build is still running or failed — wait a few minutes and retry, or fix the failed cut before promoting."
+            exit 1
+          fi
+          echo "Beta ${BETA_TAG} is complete (published, ${dmg} dmg, ${manifest} mac.yml); safe to promote."
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .node-version
+
+      - name: Compute stable version from beta tag
+        id: ver
+        env:
+          BETA_TAG: ${{ steps.resolve.outputs.beta_tag }}
+          BUMP_VERDICTS: ${{ needs.read-bumps.outputs.bump_verdicts }}
+        run: |
+          set -euo pipefail
+          # Compute the stable version as a SINGLE semver bump over the current
+          # latest stable, from the changeset delta between that stable's SHA and
+          # this beta's SHA — NOT by stripping -beta.N. Stripping collapsed every
+          # beta in a cycle to one stable, so a later beta could never promote and
+          # a manual re-promote collided with the existing vX.Y.Z tag. This script
+          # is the single source of version truth for manual + auto promotions; it
+          # writes skip / stable_version / stable_tag / beta_sha / latest_stable_sha
+          # to $GITHUB_OUTPUT. skip=true is a clean no-op (the beta is already
+          # shipped, or adds no changesets) and gates every step below.
+          node scripts/compute-stable-version.mjs "$BETA_TAG"
+
+      - name: Refuse a stable that carries the release hold
+        if: steps.ver.outputs.skip != 'true'
+        env:
+          BETA_TAG: ${{ steps.resolve.outputs.beta_tag }}
+          BETA_SHA: ${{ steps.ver.outputs.beta_sha }}
+          STABLE_TAG: ${{ steps.ver.outputs.stable_tag }}
+        run: node .github/scripts/release-hold.mjs --candidate "$BETA_SHA" --label "${STABLE_TAG} from ${BETA_TAG}" --main HEAD
+
+      - name: Refuse a stable that lacks a fix a published stable shipped
+        if: steps.ver.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BETA_TAG: ${{ steps.resolve.outputs.beta_tag }}
+          BETA_SHA: ${{ steps.ver.outputs.beta_sha }}
+          STABLE_TAG: ${{ steps.ver.outputs.stable_tag }}
+        run: node .github/scripts/shipped-fix-containment.mjs --candidate "$BETA_SHA" --label "${STABLE_TAG} from ${BETA_TAG}"
+
+      - name: Link to triggering run
+        # Back-link: who dispatched this promotion. Present on the automated path
+        # (select-beta-to-promote passes its run URL); blank on manual / external
+        # repository_dispatch runs.
+        env:
+          DISPATCHED_BY: ${{ inputs.dispatched_by }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${DISPATCHED_BY:-}" ]]; then
+            echo "::notice::Triggered by ${DISPATCHED_BY}"
+            { echo "### Triggered by"; echo "- ${DISPATCHED_BY}"; } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Triggered manually or by external repository_dispatch." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Attest production reader before promotion
+        if: steps.ver.outputs.skip != 'true'
+        uses: ./.github/composite-actions/share-contract-reader-gate
+        with:
+          origin: https://openknowledge.ai
+          evidence-name: share-contract-promote-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Render release notes from the stable's changesets
+        id: changelog
+        if: steps.ver.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          STABLE_TAG: ${{ steps.ver.outputs.stable_tag }}
+          BETA_SHA: ${{ steps.ver.outputs.beta_sha }}
+          NOTE_LEVELS: ${{ needs.read-bumps.outputs.note_levels }}
+        run: |
+          set -euo pipefail
+          BODY_FILE=$(mktemp)
+          node scripts/render-stable-notes.mjs --commit "$BETA_SHA" --exclude-tag "$STABLE_TAG" > "$BODY_FILE"
+
+          if [[ ! -s "$BODY_FILE" ]]; then
+            printf 'No changelog entries.\n' > "$BODY_FILE"
+          fi
+
+          MAX_BODY=120000
+          if [[ $(wc -c < "$BODY_FILE") -gt $MAX_BODY ]]; then
+            echo "Release notes are $(wc -c < "$BODY_FILE") chars, over ${MAX_BODY}; truncating."
+            TRUNC=$(mktemp)
+            # Cut at MAX_BODY bytes, then drop the (now-partial) last line.
+            head -c "$MAX_BODY" "$BODY_FILE" | sed '$d' > "$TRUNC"
+            {
+              printf '\n\n---\n\n'
+              printf '_Changelog truncated to fit GitHub'\''s 125,000-character release-body limit. '
+              printf 'The notes for every release are at https://github.com/%s/releases_\n' "$GITHUB_REPOSITORY"
+            } >> "$TRUNC"
+            mv "$TRUNC" "$BODY_FILE"
+          fi
+
+          echo "body_file=$BODY_FILE" >> "$GITHUB_OUTPUT"
+          echo "---- Release body preview ----"
+          cat "$BODY_FILE"
+          echo "------------------------------"
+
+      - name: Tag stable at beta SHA
+        if: steps.ver.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          STABLE_TAG: ${{ steps.ver.outputs.stable_tag }}
+          BETA_SHA: ${{ steps.ver.outputs.beta_sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Idempotency: a re-run after a transient failure should not
+          # explode if the tag already exists.
+          if git rev-parse "refs/tags/${STABLE_TAG}" >/dev/null 2>&1; then
+            EXISTING=$(git rev-parse "refs/tags/${STABLE_TAG}")
+            if [[ "$EXISTING" != "$BETA_SHA" ]]; then
+              echo "::error::Stable tag ${STABLE_TAG} already exists at ${EXISTING} (expected ${BETA_SHA}). Refusing to retag."
+              exit 1
+            fi
+            echo "Tag ${STABLE_TAG} already at ${BETA_SHA}; skipping git tag step."
+          else
+            git tag "$STABLE_TAG" "$BETA_SHA"
+            # shellcheck disable=SC2016
+            git -c credential.helper= \
+              -c 'credential.helper=!f() { test "$1" = get || return 0; echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' \
+              push origin "$STABLE_TAG"
+          fi
+
+      - name: Create stable GitHub Release
+        if: steps.ver.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          STABLE_TAG: ${{ steps.ver.outputs.stable_tag }}
+          BETA_SHA: ${{ steps.ver.outputs.beta_sha }}
+          BODY_FILE: ${{ steps.changelog.outputs.body_file }}
+        run: |
+          set -euo pipefail
+          # Idempotency: a re-run after a transient failure should not
+          # explode if the Release already exists.
+          if gh release view "$STABLE_TAG" >/dev/null 2>&1; then
+            echo "Release ${STABLE_TAG} already exists; updating notes and preserving publication state."
+            gh release edit "$STABLE_TAG" --notes-file "$BODY_FILE"
+          else
+            # Create as draft so the release is invisible in the .atom feed
+            # until desktop-release.yml uploads latest-mac.yml AND promotes
+            # draft → published. --latest is deferred to the promote step
+            # because GitHub's API rejects make_latest=true on drafts. See
+            # packages/desktop/src/main/auto-updater.ts:336-356 for the
+            # channel-mirror invariant this protects.
+            gh release create "$STABLE_TAG" \
+              --draft \
+              --target "$BETA_SHA" \
+              --title "$STABLE_TAG" \
+              --notes-file "$BODY_FILE"
+          fi
+
+      - name: Trigger desktop-release.yml to build + upload stable DMG
+        if: steps.ver.outputs.skip != 'true'
+        # The `gh release create` above creates the release as `--draft`
+        # so it stays out of the .atom feed until desktop-release.yml
+        # uploads latest-mac.yml AND promotes draft → published. GitHub
+        # does NOT fire `release: published` on a draft creation — it
+        # fires on the draft → published transition, which doesn't
+        # happen until desktop-release.yml does it later. Explicit
+        # `repository_dispatch` is how we kick off desktop-release.yml
+        # at draft-creation time. (App tokens, unlike GITHUB_TOKEN, do
+        # cascade workflow events; the token swap in this PR does not
+        # remove the need for the explicit dispatch — the draft state
+        # is the load-bearing reason.)
+        #
+        # This is now the ONLY cascade dispatch this workflow makes for the
+        # release itself: desktop-release.yml smokes the DMG it builds, and
+        # only then dispatches publish-stable to release.yml. This workflow
+        # deliberately no longer touches npm.
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          STABLE_TAG: ${{ steps.ver.outputs.stable_tag }}
+        run: |
+          set -euo pipefail
+          SELF_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          SINCE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          payload=$(jq -nc \
+            --arg tag "$STABLE_TAG" \
+            --arg ref "$STABLE_TAG" \
+            --arg by "$SELF_URL" \
+            '{event_type: "desktop-release", client_payload: {release_tag: $tag, ref: $ref, dispatched_by: $by}}')
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/dispatches" --input - <<<"$payload"
+          echo "Dispatched desktop-release for ${STABLE_TAG}; desktop-release.yml will build the signed DMG and upload it + latest-mac.yml to the stable Release."
+          # Best-effort forward-link to the desktop-release.yml run we just triggered.
+          CHILD=""
+          for _ in 1 2 3 4 5 6; do
+            CHILD=$(gh run list --workflow=desktop-release.yml --event=repository_dispatch --limit 8 --json url,createdAt \
+              --jq "[.[] | select(.createdAt >= \"$SINCE\")] | sort_by(.createdAt) | last | .url // empty" 2>/dev/null || true)
+            [[ -n "$CHILD" ]] && break
+            sleep 3
+          done
+          {
+            echo "### Dispatched desktop-release.yml (signed DMG)"
+            if [[ -n "$CHILD" ]]; then echo "- Run: ${CHILD}"; else echo "- (run link unresolved; open desktop-release.yml)"; fi
+            echo "- That run smokes the DMG, promotes the draft Release, then dispatches publish-stable to release.yml for npm. npm \`latest\` does NOT move until the smoke passes."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,1636 @@
+import { type ChildProcess, execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
+import { delimiter, join } from 'node:path';
+import { OK_HOSTED_AGENT_ENV } from '@inkeep/open-knowledge-core';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { pid1Reaps } from '../../../../test-support/capabilities.test-helper.ts';
+import { getLogger, type PinoLogger } from '../logger.ts';
+import { withLocalAcquisitionRegistry } from './acquisition-contract.test-helper.ts';
+import { createDiagnosticStderrCapture } from './diagnostics.ts';
+import {
+  AgentLaunchError,
+  brokenInterpreterHint,
+  declinedRepairHint,
+  ensureBinaryInstalled,
+  incompatibleNodeHint,
+  isPathQualified,
+  MINIMUM_NPX_NODE_MAJOR,
+  mergedEnv,
+  npxInstallRefused,
+  overlaySetsPath,
+  packageAcquisitionFailure,
+  preflightLaunch,
+  probeInterpreterHealth,
+  probeNpxNodeCompatibility,
+  type ResolvedLaunch,
+  resolveCustomLaunch,
+  resolveNpxNodeCommand,
+  resolveRegistryLaunch,
+  resolveWindowsCommand,
+  spawnAcpAgent,
+  staleNpxCacheEntry,
+  terminateAgentTree,
+  undeletableManagedRuntimeHint,
+  unrepairableManagedRuntimeHint,
+  windowsCmdWrap,
+  withHostedAgentMarker,
+  withLoginShellPath,
+  withPreferredLoginShellPath,
+} from './launch.ts';
+import {
+  registryPackage,
+  spawnNpxWithProjectCwd,
+  withAcquisitionHome,
+} from './package-acquisition.test-helper.ts';
+import type { RegistryBinaryTarget } from './registry.ts';
+
+describe('package acquisition descriptor boundaries', () => {
+  test.each([
+    'is-number',
+    'is-number@latest',
+    'is-number@^7.0.0',
+    'is-number@0.0.0 - 7.0.0',
+    '@scope/agent@1.2.3-beta.1',
+    'alias@npm:is-number@7.0.0',
+    'git+https://github.com/example/agent.git',
+    'https://example.com/agent-1.2.3.tgz',
+    'file:./agent',
+  ])('compatibility control: npm descriptor %s retains its caller contract', async (descriptor) => {
+    await withAcquisitionHome(async () => {
+      const env = {
+        npm_config_registry: 'https://registry.example.test/',
+        npm_config_before: '2020-01-01',
+        'npm_config_//registry.example.test/:_authToken': 'fixture-token',
+        ACP_FIXTURE: 'preserved',
+      };
+      const launch = await resolveRegistryLaunch(
+        registryPackage(descriptor, 'npx', env),
+        null,
+        getLogger('descriptor-test'),
+      );
+      expect(launch.args).toEqual(['-y', descriptor, '--version']);
+      expect(launch.env).toMatchObject(env);
+    });
+  });
+
+  test.each(['@agentclientprotocol/claude-agent-acp@0.75.1'])(
+    'compatibility control: admissible stable %s uses its package version instead of the catalog version',
+    async (descriptor) => {
+      await withLocalAcquisitionRegistry(async () => {
+        const launch = await resolveRegistryLaunch(
+          registryPackage(descriptor),
+          null,
+          getLogger('descriptor-test'),
+        );
+        expect(launch.args).toEqual(['-y', descriptor, '--version']);
+      });
+    },
+    90_000,
+  );
+
+  test.each(['ruff@0.12.0', 'ruff==0.12.0'])(
+    'stable Python descriptor %s emits an isolated bounded native tool request',
+    async (descriptor) => {
+      await withAcquisitionHome(async () => {
+        const env = {
+          UV_EXCLUDE_NEWER: '2025-01-01',
+          UV_INDEX_URL: 'https://python.example.test/simple',
+        };
+        const launch = await resolveRegistryLaunch(
+          registryPackage(descriptor, 'uvx', env),
+          null,
+          getLogger('descriptor-test'),
+        );
+        expect(launch.args).toEqual([
+          '--from',
+          'ruff<=0.12.0',
+          '--isolated',
+          '--upgrade-package',
+          'ruff',
+          'ruff',
+          '--version',
+        ]);
+        expect(launch.env).toMatchObject(env);
+      });
+    },
+  );
+
+  test.each([
+    'ruff',
+    'ruff>=0.12.0',
+    'ruff==0.12.0rc1',
+    'ruff@latest',
+    'git+https://example.com/ruff.git',
+  ])(
+    'compatibility control: non-stable Python descriptor %s passes through',
+    async (descriptor) => {
+      const launch = await resolveRegistryLaunch(
+        registryPackage(descriptor, 'uvx'),
+        null,
+        getLogger('descriptor-test'),
+      );
+      expect(launch.args).toEqual([descriptor, '--version']);
+    },
+  );
+
+  test('compatibility control: binary and custom launch contracts are outside package admission', async () => {
+    expect(
+      resolveCustomLaunch({
+        id: 'custom',
+        name: 'Custom',
+        command: 'node',
+        args: ['script.js'],
+        env: { ACP_FIXTURE: 'custom' },
+      }),
+    ).toMatchObject({
+      kind: 'custom',
+      cmd: 'node',
+      args: ['script.js'],
+      env: { ACP_FIXTURE: 'custom' },
+    });
+    await expect(
+      resolveRegistryLaunch(
+        { id: 'binary', name: 'Binary', version: '1.2.3', distribution: { binary: {} } },
+        null,
+        getLogger('descriptor-test'),
+      ),
+    ).rejects.toMatchObject({ code: 'unsupported-platform' });
+  });
+
+  test.each(['agent@0.0.0 - 1.2.3', '@scope/agent@0.0.0 - 1.2.3', 'agent<=1.2.3'])(
+    'compatibility control: Windows transports %s as one quoted operand',
+    (operand) => {
+      const wrapped = windowsCmdWrap('C:\\Program Files\\nodejs\\npm.cmd', [
+        'pack',
+        operand,
+        '--json',
+      ]);
+      expect(wrapped.args[3]).toContain(`"${operand}"`);
+      expect(wrapped.args.slice(0, 3)).toEqual(['/d', '/s', '/c']);
+    },
+  );
+});
+
+describe('mergedEnv PATH augmentation', () => {
+  test('an explicit overlay PATH is used verbatim — augmentation repairs only the inherited base', () => {
+    const key = 'PATH' in process.env ? 'PATH' : 'Path';
+    const out = mergedEnv({ [key]: '/sentinel/only' });
+    expect(out[key]).toBe('/sentinel/only');
+  });
+
+  test('appends without dropping any existing PATH entry', () => {
+    const key = 'PATH' in process.env ? 'PATH' : 'Path';
+    const after = new Set((mergedEnv()[key] ?? '').split(delimiter));
+    for (const dir of (process.env[key] ?? '').split(delimiter).filter(Boolean)) {
+      expect(after.has(dir)).toBe(true);
+    }
+  });
+
+  test('preserves non-PATH process.env entries', () => {
+    expect(mergedEnv().HOME).toBe(process.env.HOME);
+  });
+
+  test('drops inherited `npm_config_overrides` while preserving user-set npm env', () => {
+    const priors = {
+      npm_config_overrides: process.env.npm_config_overrides,
+      npm_config_userconfig: process.env.npm_config_userconfig,
+      'npm_config_//registry.example.com/:_authToken':
+        process.env['npm_config_//registry.example.com/:_authToken'],
+      npm_config_registry: process.env.npm_config_registry,
+      NPM_CONFIG_STRICT_PEER_DEPENDENCIES: process.env.NPM_CONFIG_STRICT_PEER_DEPENDENCIES,
+    };
+    process.env.npm_config_overrides = '{"@modelcontextprotocol/sdk>zod":"^3.25.7"}';
+    process.env.npm_config_userconfig = '/home/user/.npmrc-override';
+    process.env['npm_config_//registry.example.com/:_authToken'] = 'secret';
+    process.env.npm_config_registry = 'https://registry.example.com/';
+    process.env.NPM_CONFIG_STRICT_PEER_DEPENDENCIES = 'true';
+    try {
+      const out = mergedEnv();
+      expect(out.npm_config_overrides).toBeUndefined();
+      expect(out.npm_config_userconfig).toBe('/home/user/.npmrc-override');
+      expect(out['npm_config_//registry.example.com/:_authToken']).toBe('secret');
+      expect(out.npm_config_registry).toBe('https://registry.example.com/');
+      expect(out.NPM_CONFIG_STRICT_PEER_DEPENDENCIES).toBe('true');
+    } finally {
+      for (const [k, v] of Object.entries(priors)) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    }
+  });
+
+  test('managed-runtime overlay wins over a pnpm-broadcast `npm_config_cache` base', () => {
+    const prior = process.env.npm_config_cache;
+    process.env.npm_config_cache = '/pnpm/broadcast/cache';
+    try {
+      const out = mergedEnv({ npm_config_cache: '/tmp/managed-node-cache' });
+      expect(out.npm_config_cache).toBe('/tmp/managed-node-cache');
+    } finally {
+      if (prior === undefined) delete process.env.npm_config_cache;
+      else process.env.npm_config_cache = prior;
+    }
+  });
+
+  test('keeps the dev channel away from agents, whose MCP children may run a CLI that predates it', () => {
+    const prior = process.env.OK_CHANNEL;
+    process.env.OK_CHANNEL = 'dev';
+    try {
+      expect(mergedEnv().OK_CHANNEL).toBeUndefined();
+    } finally {
+      if (prior === undefined) delete process.env.OK_CHANNEL;
+      else process.env.OK_CHANNEL = prior;
+    }
+  });
+
+  test('passes a shipped channel through to agents', () => {
+    const prior = process.env.OK_CHANNEL;
+    process.env.OK_CHANNEL = 'beta';
+    try {
+      expect(mergedEnv().OK_CHANNEL).toBe('beta');
+    } finally {
+      if (prior === undefined) delete process.env.OK_CHANNEL;
+      else process.env.OK_CHANNEL = prior;
+    }
+  });
+
+  test('overlaySetsPath sees PATH under any spelling', () => {
+    expect(overlaySetsPath({ Path: '/x' })).toBe(true);
+    expect(overlaySetsPath({ PATH: '/x' })).toBe(true);
+    expect(overlaySetsPath({ HOME: '/x' })).toBe(false);
+    expect(overlaySetsPath(undefined)).toBe(false);
+  });
+});
+
+describe('withLoginShellPath', () => {
+  const key = 'PATH' in process.env ? 'PATH' : 'Path';
+
+  test('appends the login shell PATH to the launch env, key spelling preserved', () => {
+    const out = withLoginShellPath(
+      { cmd: 'npx', args: [], env: { [key]: '/usr/bin' }, kind: 'npx', pathFromOverlay: false },
+      `/nvm/bin${delimiter}/usr/bin`,
+    );
+    expect(out.env[key]).toBe(`/usr/bin${delimiter}/nvm/bin`);
+    expect(out.cmd).toBe('npx');
+  });
+
+  test('leaves the rest of the env untouched', () => {
+    const out = withLoginShellPath(
+      {
+        cmd: 'npx',
+        args: ['-y', 'pkg'],
+        env: { [key]: '/usr/bin', TOKEN: 'keep' },
+        kind: 'npx',
+        pathFromOverlay: false,
+      },
+      '/nvm/bin',
+    );
+    expect(out.env.TOKEN).toBe('keep');
+    expect(out.args).toEqual(['-y', 'pkg']);
+  });
+});
+
+describe('withPreferredLoginShellPath', () => {
+  const key = 'PATH' in process.env ? 'PATH' : 'Path';
+
+  test('promotes the login-shell PATH ahead of an incompatible inherited runtime', () => {
+    const out = withPreferredLoginShellPath(
+      {
+        cmd: 'npx',
+        args: ['-y', 'pkg'],
+        env: { [key]: `/old-node/bin${delimiter}/usr/bin`, TOKEN: 'keep' },
+        kind: 'npx',
+        pathFromOverlay: false,
+      },
+      `/new-node/bin${delimiter}/usr/bin`,
+    );
+    expect(out.env[key]).toBe(`/new-node/bin${delimiter}/usr/bin${delimiter}/old-node/bin`);
+    expect(out.env.TOKEN).toBe('keep');
+  });
+});
+
+describe('isPathQualified', () => {
+  test('a bare name is PATH-searched; a located command is not', () => {
+    expect(isPathQualified('npx')).toBe(false);
+    expect(isPathQualified('./agent')).toBe(true);
+    expect(isPathQualified('/opt/agent/bin/agent')).toBe(true);
+  });
+});
+
+const isAlive = (pid: number): boolean => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const plainEnv = (overlay: Record<string, string> = {}): Record<string, string> => {
+  const env: Record<string, string> = {};
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v !== undefined) env[k] = v;
+  }
+  return { ...env, ...overlay };
+};
+
+const launchFor = (
+  script: string,
+  overlay?: Record<string, string>,
+): ResolvedLaunch & { kind: 'custom' } => ({
+  cmd: 'node',
+  args: [script],
+  env: plainEnv(overlay),
+  kind: 'custom',
+  pathFromOverlay: overlaySetsPath(overlay),
+});
+
+const realSetTimeout = globalThis.setTimeout;
+
+const realTimePause = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    realSetTimeout(resolve, ms);
+  });
+
+async function waitFor(pred: () => boolean, ms: number, what: string): Promise<void> {
+  const deadline = Date.now() + ms;
+  while (!pred()) {
+    if (Date.now() > deadline) throw new Error(`timed out waiting for ${what}`);
+    await realTimePause(25);
+  }
+}
+
+let dirs: string[] = [];
+let strayChildren: ChildProcess[] = [];
+const GRANDCHILD_SELF_EXIT_MS = 60_000;
+const log = getLogger('acp-launch-test');
+function tmp(): string {
+  const d = mkdtempSync(join(tmpdir(), 'acp-launch-test-'));
+  dirs.push(d);
+  return d;
+}
+afterEach(() => {
+  for (const child of strayChildren) child.kill('SIGKILL');
+  strayChildren = [];
+  for (const d of dirs) rmSync(d, { recursive: true, force: true });
+  dirs = [];
+});
+
+function buildBinaryTarball(
+  dir: string,
+  label = 'agent',
+): { bytes: Buffer; sha: string; target: RegistryBinaryTarget } {
+  const treeRoot = join(dir, `tree-${label}`);
+  const command = join(treeRoot, 'package', 'bin', 'agent');
+  mkdirSync(join(command, '..'), { recursive: true });
+  writeFileSync(command, `#!/bin/sh\necho ${label}\n`, { mode: 0o755 });
+  const tarPath = join(dir, `${label}.tar.gz`);
+  execFileSync('tar', ['-czf', tarPath, '-C', treeRoot, 'package']);
+  const bytes = readFileSync(tarPath);
+  return {
+    bytes,
+    sha: createHash('sha256').update(bytes).digest('hex'),
+    target: {
+      archive: `https://example.com/${label}.tar.gz`,
+      cmd: './package/bin/agent',
+    },
+  };
+}
+
+function binaryFetch(bytes: Buffer): typeof fetch {
+  return (async () =>
+    new Response(new Uint8Array(bytes), {
+      status: 200,
+      headers: { 'content-length': String(bytes.length) },
+    })) as unknown as typeof fetch;
+}
+
+describe('ensureBinaryInstalled', () => {
+  test('stages beside the destination before downloading', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const agentDir = join(cacheDir, 'test-agent');
+    let observedStagingDir: string | undefined;
+    const baseFetch = binaryFetch(artifact.bytes);
+    const inspectingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      observedStagingDir = readdirSync(agentDir).find((name) => name.startsWith('.install-'));
+      return baseFetch(input, init);
+    }) as typeof fetch;
+
+    const installed = await ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      { ...artifact.target, sha256: artifact.sha },
+      cacheDir,
+      log,
+      { fetchImpl: inspectingFetch },
+    );
+
+    expect(installed).toBe(join(agentDir, '1.0.0'));
+    expect(observedStagingDir).toBeDefined();
+    expect(readdirSync(agentDir)).not.toContain(observedStagingDir);
+    expect(existsSync(join(installed, 'package', 'bin', 'agent'))).toBe(true);
+  });
+
+  test('removes crash-orphaned staging directories on the next install', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const staleDir = join(cacheDir, 'test-agent', '.install-1.0.0-orphaned');
+    mkdirSync(staleDir, { recursive: true });
+    writeFileSync(join(staleDir, 'partial-archive'), 'partial');
+    const staleTime = new Date(Date.now() - 25 * 60 * 60 * 1_000);
+    utimesSync(staleDir, staleTime, staleTime);
+
+    await ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      { ...artifact.target, sha256: artifact.sha },
+      cacheDir,
+      log,
+      { fetchImpl: binaryFetch(artifact.bytes) },
+    );
+
+    expect(existsSync(staleDir)).toBe(false);
+  });
+
+  test('a second install of the same binary joins the download already running', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const target = { ...artifact.target, sha256: artifact.sha };
+    let downloads = 0;
+    const baseFetch = binaryFetch(artifact.bytes);
+    const countingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      downloads += 1;
+      return baseFetch(input, init);
+    }) as typeof fetch;
+    const started: string[] = [];
+
+    const installed = await Promise.all([
+      ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+        fetchImpl: countingFetch,
+        onDownloadStart: () => started.push('first'),
+      }),
+      ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+        fetchImpl: countingFetch,
+        onDownloadStart: () => started.push('second'),
+      }),
+    ]);
+
+    expect(downloads).toBe(1);
+    expect(installed[0]).toBe(installed[1]);
+    expect(started.sort()).toEqual(['first', 'second']);
+  });
+
+  test('an install that joins after the download started is told it is installing', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const target = { ...artifact.target, sha256: artifact.sha };
+    const { promise: responseGate, resolve: releaseResponse } = Promise.withResolvers<void>();
+    const baseFetch = binaryFetch(artifact.bytes);
+    const gatedFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      await responseGate;
+      return baseFetch(input, init);
+    }) as typeof fetch;
+    const { promise: firstStarted, resolve: markFirstStarted } = Promise.withResolvers<void>();
+    const started: string[] = [];
+
+    const first = ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+      fetchImpl: gatedFetch,
+      onDownloadStart: () => {
+        started.push('first');
+        markFirstStarted();
+      },
+    });
+    await firstStarted;
+    const second = ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+      fetchImpl: gatedFetch,
+      onDownloadStart: () => started.push('second'),
+    });
+
+    expect(started).toEqual(['first', 'second']);
+    releaseResponse();
+    expect(await second).toBe(await first);
+  });
+
+  test('concurrent installers adopt the first completed binary', async () => {
+    const firstSource = tmp();
+    const secondSource = tmp();
+    const cacheDir = tmp();
+    const first = buildBinaryTarball(firstSource, 'first');
+    const second = buildBinaryTarball(secondSource, 'second');
+    let arrivals = 0;
+    const { promise: commitGate, resolve: releaseCommit } = Promise.withResolvers<void>();
+    const beforeCommit = async () => {
+      arrivals += 1;
+      if (arrivals === 2) releaseCommit();
+      await commitGate;
+    };
+    const installMessages: string[] = [];
+    const concurrentLog = {
+      info: (_context: unknown, message?: string) => {
+        if (message !== undefined) installMessages.push(message);
+      },
+      warn: log.warn.bind(log),
+    } as PinoLogger;
+    const install = (artifact: ReturnType<typeof buildBinaryTarball>) =>
+      ensureBinaryInstalled(
+        'test-agent',
+        '1.0.0',
+        { ...artifact.target, sha256: artifact.sha },
+        cacheDir,
+        concurrentLog,
+        { fetchImpl: binaryFetch(artifact.bytes), beforeCommit },
+      );
+
+    const installed = await Promise.all([install(first), install(second)]);
+
+    expect(arrivals).toBe(2);
+    expect(installed[0]).toBe(installed[1]);
+    expect(
+      installMessages.filter((message) => message === '[acp-launch] agent binary installed'),
+    ).toHaveLength(1);
+    expect(readFileSync(join(installed[0], 'package', 'bin', 'agent'), 'utf8')).toMatch(
+      /echo (first|second)/,
+    );
+    expect(
+      readdirSync(join(cacheDir, 'test-agent')).some((name) => name.startsWith('.install-')),
+    ).toBe(false);
+  });
+
+  test('replaces an incomplete existing directory instead of accepting it', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const versionDir = join(cacheDir, 'test-agent', '1.0.0');
+    mkdirSync(versionDir, { recursive: true });
+    writeFileSync(join(versionDir, 'partial'), 'incomplete');
+
+    const installed = await ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      { ...artifact.target, sha256: artifact.sha },
+      cacheDir,
+      log,
+      { fetchImpl: binaryFetch(artifact.bytes) },
+    );
+
+    expect(installed).toBe(versionDir);
+    expect(existsSync(join(versionDir, 'partial'))).toBe(false);
+    expect(existsSync(join(versionDir, 'package', 'bin', 'agent'))).toBe(true);
+  });
+
+  test('adopts a completed binary when the commit lock times out', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const versionDir = join(cacheDir, 'test-agent', '1.0.0');
+    const command = join(versionDir, 'package', 'bin', 'agent');
+
+    const installed = await ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      { ...artifact.target, sha256: artifact.sha },
+      cacheDir,
+      log,
+      {
+        fetchImpl: binaryFetch(artifact.bytes),
+        commitLockTimeoutMs: 100,
+        beforeCommit: async () => {
+          mkdirSync(join(command, '..'), { recursive: true });
+          writeFileSync(command, '#!/bin/sh\necho winner\n', { mode: 0o755 });
+          const lockPath = `${versionDir}.install.lock`;
+          writeFileSync(lockPath, 'held');
+          const future = new Date(Date.now() + 60_000);
+          utimesSync(lockPath, future, future);
+        },
+      },
+    );
+
+    expect(installed).toBe(versionDir);
+    expect(readFileSync(command, 'utf8')).toContain('winner');
+  });
+
+  test('rejects a lock timeout when no completed binary is available', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const versionDir = join(cacheDir, 'test-agent', '1.0.0');
+
+    const installation = ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      { ...artifact.target, sha256: artifact.sha },
+      cacheDir,
+      log,
+      {
+        fetchImpl: binaryFetch(artifact.bytes),
+        commitLockTimeoutMs: 100,
+        beforeCommit: async () => {
+          const lockPath = `${versionDir}.install.lock`;
+          writeFileSync(lockPath, 'held');
+          const future = new Date(Date.now() + 60_000);
+          utimesSync(lockPath, future, future);
+        },
+      },
+    );
+
+    await expect(installation).rejects.toMatchObject({
+      name: 'AgentLaunchError',
+      code: 'install-failed',
+    });
+    await expect(installation).rejects.toThrow(/could not acquire file lock/i);
+    expect(existsSync(versionDir)).toBe(false);
+    expect(
+      readdirSync(join(cacheDir, 'test-agent')).some((name) => name.startsWith('.install-')),
+    ).toBe(false);
+  });
+
+  test('rejects a checksum mismatch without committing or leaving staging behind', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const agentDir = join(cacheDir, 'test-agent');
+    const versionDir = join(agentDir, '1.0.0');
+
+    let caught: unknown;
+    try {
+      await ensureBinaryInstalled(
+        'test-agent',
+        '1.0.0',
+        { ...artifact.target, sha256: '0'.repeat(64) },
+        cacheDir,
+        log,
+        { fetchImpl: binaryFetch(artifact.bytes) },
+      );
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught).toMatchObject({
+      name: 'AgentLaunchError',
+      code: 'install-failed',
+      message: expect.stringContaining('checksum mismatch'),
+      cause: expect.any(Error),
+    });
+    expect(existsSync(versionDir)).toBe(false);
+    expect(readdirSync(agentDir).some((name) => name.startsWith('.install-'))).toBe(false);
+  });
+
+  test('reuses a valid cached binary without downloading again', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const target = { ...artifact.target, sha256: artifact.sha };
+    const installed = await ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+      fetchImpl: binaryFetch(artifact.bytes),
+    });
+    const failFetch = (async () => {
+      throw new Error('cached install attempted an unexpected download');
+    }) as typeof fetch;
+
+    const cached = await ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+      fetchImpl: failFetch,
+    });
+
+    expect(cached).toBe(installed);
+  });
+
+  test('rejects an archive whose command path is a directory', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+
+    await expect(
+      ensureBinaryInstalled(
+        'test-agent',
+        '1.0.0',
+        { ...artifact.target, cmd: './package/bin', sha256: artifact.sha },
+        cacheDir,
+        log,
+        { fetchImpl: binaryFetch(artifact.bytes) },
+      ),
+    ).rejects.toThrow(/no usable command/i);
+  });
+
+  test('installs with a loud warning when the manifest omits sha256', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const warnMessages: string[] = [];
+    const warnLog = {
+      info: log.info.bind(log),
+      warn: (_context: unknown, message?: string) => {
+        if (message !== undefined) warnMessages.push(message);
+      },
+    } as PinoLogger;
+
+    const installed = await ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      artifact.target,
+      cacheDir,
+      warnLog,
+      { fetchImpl: binaryFetch(artifact.bytes) },
+    );
+
+    expect(installed).toBe(join(cacheDir, 'test-agent', '1.0.0'));
+    expect(existsSync(join(installed, 'package', 'bin', 'agent'))).toBe(true);
+    expect(warnMessages.some((message) => message.includes('no sha256'))).toBe(true);
+  });
+
+  test('rejects a manifest cmd that escapes the extracted archive', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+
+    await expect(
+      ensureBinaryInstalled(
+        'test-agent',
+        '1.0.0',
+        { ...artifact.target, cmd: '../outside-agent', sha256: artifact.sha },
+        cacheDir,
+        log,
+        { fetchImpl: binaryFetch(artifact.bytes) },
+      ),
+    ).rejects.toMatchObject({
+      name: 'AgentLaunchError',
+      code: 'install-failed',
+      message: expect.stringContaining('escapes the extracted archive'),
+    });
+    expect(existsSync(join(cacheDir, 'test-agent', '1.0.0'))).toBe(false);
+  });
+
+  test('a deterministic manifest failure is remembered and fails fast without re-downloading', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const agentDir = join(cacheDir, 'test-agent');
+    const badTarget = { ...artifact.target, cmd: './package/bin/missing', sha256: artifact.sha };
+
+    await expect(
+      ensureBinaryInstalled('test-agent', '1.0.0', badTarget, cacheDir, log, {
+        fetchImpl: binaryFetch(artifact.bytes),
+      }),
+    ).rejects.toThrow(/no usable command/i);
+    expect(existsSync(join(agentDir, '.install-failed-1.0.0'))).toBe(true);
+
+    let fetched = 0;
+    const countingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      fetched += 1;
+      return binaryFetch(artifact.bytes)(input, init);
+    }) as typeof fetch;
+    const remembered = await ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      badTarget,
+      cacheDir,
+      log,
+      { fetchImpl: countingFetch },
+    ).catch((err: unknown) => err);
+    expect(remembered).toMatchObject({
+      name: 'AgentLaunchError',
+      code: 'install-failed',
+      message: expect.stringContaining('remembered from a recent attempt'),
+    });
+    expect(fetched).toBe(0);
+
+    const installed = await ensureBinaryInstalled(
+      'test-agent',
+      '1.0.0',
+      { ...artifact.target, sha256: artifact.sha },
+      cacheDir,
+      log,
+      { fetchImpl: countingFetch },
+    );
+    expect(fetched).toBe(1);
+    expect(existsSync(join(installed, 'package', 'bin', 'agent'))).toBe(true);
+    expect(existsSync(join(agentDir, '.install-failed-1.0.0'))).toBe(false);
+  });
+
+  test('a failure marker past its day cap does not block a retry', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const target = { ...artifact.target, sha256: artifact.sha };
+    const agentDir = join(cacheDir, 'test-agent');
+    const markerPath = join(agentDir, '.install-failed-1.0.0');
+    mkdirSync(agentDir, { recursive: true });
+    writeFileSync(
+      markerPath,
+      JSON.stringify({
+        archive: target.archive,
+        cmd: target.cmd,
+        sha256: target.sha256,
+        reason: 'old failure',
+      }),
+    );
+    const staleTime = new Date(Date.now() - 25 * 60 * 60 * 1_000);
+    utimesSync(markerPath, staleTime, staleTime);
+
+    const installed = await ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+      fetchImpl: binaryFetch(artifact.bytes),
+    });
+
+    expect(existsSync(join(installed, 'package', 'bin', 'agent'))).toBe(true);
+    expect(existsSync(markerPath)).toBe(false);
+  });
+
+  test('a malformed archive URL fails through the install-failed contract without orphaning staging', async () => {
+    const cacheDir = tmp();
+    const agentDir = join(cacheDir, 'test-agent');
+
+    await expect(
+      ensureBinaryInstalled(
+        'test-agent',
+        '1.0.0',
+        { archive: 'not a url', cmd: './bin/agent' },
+        cacheDir,
+        log,
+        {
+          fetchImpl: (async () => {
+            throw new Error('should not fetch');
+          }) as typeof fetch,
+        },
+      ),
+    ).rejects.toMatchObject({ name: 'AgentLaunchError', code: 'install-failed' });
+    expect(readdirSync(agentDir).some((name) => name.startsWith('.install-'))).toBe(false);
+  });
+
+  test('the fast path sweeps a stale lockfile orphaned by a crashed commit', async () => {
+    const source = tmp();
+    const cacheDir = tmp();
+    const artifact = buildBinaryTarball(source);
+    const target = { ...artifact.target, sha256: artifact.sha };
+    await ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+      fetchImpl: binaryFetch(artifact.bytes),
+    });
+    const orphanedLock = join(cacheDir, 'test-agent', '1.0.0.install.lock');
+    writeFileSync(orphanedLock, 'held by a crashed process');
+    const staleTime = new Date(Date.now() - 25 * 60 * 60 * 1_000);
+    utimesSync(orphanedLock, staleTime, staleTime);
+
+    await ensureBinaryInstalled('test-agent', '1.0.0', target, cacheDir, log, {
+      fetchImpl: (async () => {
+        throw new Error('fast path must not download');
+      }) as typeof fetch,
+    });
+
+    expect(existsSync(orphanedLock)).toBe(false);
+  });
+});
+
+describe('hosted-agent marker', () => {
+  test('sets the marker and leaves the rest of the env alone', () => {
+    const out = withHostedAgentMarker({ FOO: 'bar' });
+    expect(out[OK_HOSTED_AGENT_ENV]).toBe('1');
+    expect(out.FOO).toBe('bar');
+  });
+
+  test('wins over a launch env that already set the key — hosting is our fact, not the agent config’s', () => {
+    expect(withHostedAgentMarker({ [OK_HOSTED_AGENT_ENV]: '0' })[OK_HOSTED_AGENT_ENV]).toBe('1');
+  });
+
+  test('a really-spawned agent receives it in its environment', async () => {
+    const dir = tmp();
+    const script = join(dir, 'echo-marker.js');
+    writeFileSync(
+      script,
+      [
+        "const fs = require('node:fs');",
+        `fs.writeFileSync(process.argv[1] + '.tmp', String(process.env.${OK_HOSTED_AGENT_ENV} ?? 'ABSENT'));`,
+        "fs.renameSync(process.argv[1] + '.tmp', process.argv[1] + '.out');",
+      ].join('\n'),
+    );
+    const child = spawnAcpAgent(launchFor(script), dir);
+    if (child.pid !== undefined) strayChildren.push(child);
+    await waitFor(() => existsSync(`${script}.out`), 10_000, 'spawned agent to report its env');
+    expect(readFileSync(`${script}.out`, 'utf8')).toBe('1');
+  });
+});
+
+describe('spawnAcpAgent — cwd isolation for npx launches', () => {
+  function makeEchoCwdScript(dir: string): string {
+    const script = join(dir, 'echo-cwd.js');
+    writeFileSync(
+      script,
+      [
+        "const fs = require('node:fs');",
+        "fs.writeFileSync(process.argv[1] + '.tmp', process.cwd());",
+        "fs.renameSync(process.argv[1] + '.tmp', process.argv[1] + '.out');",
+      ].join('\n'),
+    );
+    return script;
+  }
+
+  test('npx-kind spawns use an isolated cwd without accepting a project cwd', async () => {
+    const dir = tmp();
+    const script = makeEchoCwdScript(dir);
+    const launch: ResolvedLaunch = {
+      cmd: 'node',
+      args: [script],
+      env: plainEnv(),
+      kind: 'npx',
+      pathFromOverlay: false,
+    };
+    expect(() => {
+      spawnNpxWithProjectCwd(launch, dir);
+    }).toThrow('spawnAcpAgent does not accept a project cwd for npx launches.');
+    const child = spawnAcpAgent(launch);
+    if (child.pid !== undefined) strayChildren.push(child);
+    await waitFor(() => existsSync(`${script}.out`), 10_000, 'spawned agent to report its cwd');
+    const observed = readFileSync(`${script}.out`, 'utf8');
+    expect(observed).not.toBe(dir);
+    expect(observed.endsWith('/.ok/acp-npx-cwd')).toBe(true);
+  });
+
+  test('the isolated cwd carries a private marker package.json so arborist walk terminates there', () => {
+    const dir =
+      spawnAcpAgent({
+        cmd: 'node',
+        args: ['-e', ''],
+        env: plainEnv(),
+        kind: 'npx',
+        pathFromOverlay: false,
+      }).spawnargs === undefined
+        ? ''
+        : '';
+    const markerPath = join(process.env.HOME ?? homedir(), '.ok', 'acp-npx-cwd', 'package.json');
+    const marker = JSON.parse(readFileSync(markerPath, 'utf8'));
+    expect(marker.private).toBe(true);
+    expect(marker.overrides).toBeUndefined();
+    void dir;
+  });
+
+  test.each(['uvx', 'binary', 'custom'] as const)(
+    '%s-kind spawns still run from the record cwd (agent contract)',
+    async (kind) => {
+      const dir = tmp();
+      const script = makeEchoCwdScript(dir);
+      const launch: Exclude<ResolvedLaunch, { kind: 'npx' }> = {
+        cmd: 'node',
+        args: [script],
+        env: plainEnv(),
+        kind,
+        pathFromOverlay: false,
+      };
+      const child = spawnAcpAgent(launch, dir);
+      if (child.pid !== undefined) strayChildren.push(child);
+      await waitFor(() => existsSync(`${script}.out`), 10_000, 'spawned agent to report its cwd');
+      const observed = readFileSync(`${script}.out`, 'utf8');
+      expect(observed.endsWith(dir) || dir.endsWith(observed)).toBe(true);
+    },
+  );
+});
+
+describe('preflightLaunch', () => {
+  const catchErr = (p: Promise<unknown>): Promise<unknown> => p.then(() => null).catch((e) => e);
+
+  test('a path-qualified command that exists resolves', async () => {
+    await expect(
+      preflightLaunch({
+        cmd: process.execPath,
+        args: [],
+        env: {},
+        kind: 'custom',
+        pathFromOverlay: false,
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  test('a missing npx surfaces an actionable Node.js hint', async () => {
+    const err = await catchErr(
+      preflightLaunch({
+        cmd: 'npx',
+        args: ['-y', 'x'],
+        env: { PATH: '' },
+        kind: 'npx',
+        pathFromOverlay: true,
+      }),
+    );
+    expect(err).toBeInstanceOf(AgentLaunchError);
+    expect((err as AgentLaunchError).code).toBe('command-not-found');
+    expect((err as AgentLaunchError).message).toContain('Node.js');
+  });
+
+  test('a missing uvx surfaces an actionable uv hint', async () => {
+    const err = await catchErr(
+      preflightLaunch({
+        cmd: 'uvx',
+        args: [],
+        env: { PATH: '' },
+        kind: 'uvx',
+        pathFromOverlay: true,
+      }),
+    );
+    expect(err).toBeInstanceOf(AgentLaunchError);
+    expect((err as AgentLaunchError).message).toContain('uv');
+  });
+
+  test('a bare command is found via a PATH search', async () => {
+    const dir = tmp();
+    const name = process.platform === 'win32' ? 'fakeagent.cmd' : 'fakeagent';
+    writeFileSync(join(dir, name), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    await expect(
+      preflightLaunch({
+        cmd: 'fakeagent',
+        args: [],
+        env: { PATH: dir },
+        kind: 'custom',
+        pathFromOverlay: true,
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  test('a missing binary distribution reports the offending path', async () => {
+    const missing = join(tmp(), 'does-not-exist-agent');
+    const err = await catchErr(
+      preflightLaunch({
+        cmd: missing,
+        args: [],
+        env: {},
+        kind: 'binary',
+        pathFromOverlay: false,
+      }),
+    );
+    expect(err).toBeInstanceOf(AgentLaunchError);
+    expect((err as AgentLaunchError).code).toBe('command-not-found');
+    expect((err as AgentLaunchError).message).toContain(missing);
+  });
+});
+
+describe.skipIf(process.platform === 'win32')('probeInterpreterHealth', () => {
+  const fakeNpx = (body: string): ResolvedLaunch => {
+    const dir = tmp();
+    writeFileSync(join(dir, 'npx'), `#!/bin/sh\n${body}\n`, { mode: 0o755 });
+    return {
+      cmd: 'npx',
+      args: ['-y', '@fake/agent'],
+      env: { PATH: dir },
+      kind: 'npx',
+      pathFromOverlay: true,
+    };
+  };
+
+  test('an interpreter that answers --version is healthy', async () => {
+    await expect(probeInterpreterHealth(fakeNpx('exit 0'))).resolves.toBeNull();
+  });
+
+  test('a non-zero exit reports the code and the first stderr line', async () => {
+    const detail = await probeInterpreterHealth(fakeNpx('echo "cannot find module" >&2\nexit 3'));
+    expect(detail).toContain('exit code 3');
+    expect(detail).toContain('cannot find module');
+  });
+
+  test('a crash reports the signal with the linker message', async () => {
+    const detail = await probeInterpreterHealth(
+      fakeNpx('echo "dyld[1]: Library not loaded: libicui18n.74.dylib" >&2\nkill -ABRT $$'),
+    );
+    expect(detail).toContain('SIGABRT');
+    expect(detail).toContain('libicui18n.74.dylib');
+  });
+
+  test('a failure with a silent stderr still reports the exit code', async () => {
+    expect(await probeInterpreterHealth(fakeNpx('exit 9'))).toBe('exit code 9');
+  });
+
+  test('an unspawnable command reports the spawn error rather than throwing', async () => {
+    const detail = await probeInterpreterHealth({
+      cmd: join(tmp(), 'not-a-real-npx'),
+      args: [],
+      env: {},
+      kind: 'npx',
+      pathFromOverlay: false,
+    });
+    expect(detail).not.toBeNull();
+  });
+
+  test('a hung probe times out as healthy and does not leak the process', async (ctx) => {
+    ctx.skip(!pid1Reaps, 'PID 1 must reap the orphans this test waits on');
+    const dir = tmp();
+    const kidPidFile = join(dir, 'kid.pid');
+    writeFileSync(
+      join(dir, 'npx'),
+      `#!/bin/sh\n(n=0; while [ "$n" -lt ${GRANDCHILD_SELF_EXIT_MS / 50} ]; do /bin/sleep 0.05; n=$((n + 1)); done) &\necho $! > ${kidPidFile}\nwait\n`,
+      { mode: 0o755 },
+    );
+    const launch: ResolvedLaunch = {
+      cmd: 'npx',
+      args: [],
+      env: { PATH: dir },
+      kind: 'npx',
+      pathFromOverlay: true,
+    };
+    const publishedKidPid = (): string =>
+      existsSync(kidPidFile) ? readFileSync(kidPidFile, 'utf8').trim() : '';
+
+    const PROBE_TIMEOUT_MS = 500;
+    let kidPid = 0;
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      let settledEarly: string | null | undefined;
+      const verdict = probeInterpreterHealth(launch, PROBE_TIMEOUT_MS).then(
+        (detail) => (settledEarly = detail),
+      );
+
+      await waitFor(
+        () => publishedKidPid() !== '' || settledEarly !== undefined,
+        5_000,
+        'the fixture to publish its grandchild pid',
+      );
+      kidPid = Number(publishedKidPid());
+
+      expect(
+        settledEarly,
+        'the probe settled before the fixture ever published a grandchild pid',
+      ).toBeUndefined();
+      expect(
+        Number.isInteger(kidPid) && kidPid > 0,
+        `the fixture published an unusable grandchild pid: ${JSON.stringify(publishedKidPid())}`,
+      ).toBe(true);
+      expect(isAlive(kidPid), 'the fixture published a grandchild pid already dead').toBe(true);
+
+      await realTimePause(PROBE_TIMEOUT_MS + 100);
+      expect(
+        isAlive(kidPid),
+        'the probe deadline fired on real time — the fake-timer hold is not in effect',
+      ).toBe(true);
+
+      await vi.advanceTimersByTimeAsync(PROBE_TIMEOUT_MS);
+      await expect(verdict).resolves.toBeNull();
+    } finally {
+      await vi.runAllTimersAsync();
+      vi.useRealTimers();
+    }
+    await waitFor(() => !isAlive(kidPid), 5_000, 'the detached grandchild to die');
+  }, 20_000);
+});
+
+describe.skipIf(process.platform === 'win32')('probeNpxNodeCompatibility', () => {
+  const launchWithNodeVersion = (body: string): ResolvedLaunch => {
+    const dir = tmp();
+    writeFileSync(join(dir, 'node'), `#!/bin/sh\n${body}\n`, { mode: 0o755 });
+    return {
+      cmd: 'npx',
+      args: ['-y', '@fake/agent'],
+      env: { PATH: dir },
+      kind: 'npx',
+      pathFromOverlay: true,
+    };
+  };
+
+  test(`accepts Node ${MINIMUM_NPX_NODE_MAJOR}`, async () => {
+    await expect(
+      probeNpxNodeCompatibility(launchWithNodeVersion(`echo v${MINIMUM_NPX_NODE_MAJOR}.0.0`)),
+    ).resolves.toBeNull();
+  });
+
+  test('rejects a runnable Node 16 with the found and required versions', async () => {
+    const detail = await probeNpxNodeCompatibility(launchWithNodeVersion('echo v16.14.2'));
+    expect(detail).toContain('Node.js v16.14.2 is incompatible');
+    expect(detail).toContain(`Node.js ${MINIMUM_NPX_NODE_MAJOR} or newer is required`);
+  });
+
+  test('fails closed when the runtime does not report a recognizable version', async () => {
+    await expect(
+      probeNpxNodeCompatibility(launchWithNodeVersion('echo unknown')),
+    ).resolves.toContain('unrecognized version');
+  });
+
+  test('a hung version probe times out as unknown instead of incompatible', async () => {
+    await expect(
+      probeNpxNodeCompatibility(launchWithNodeVersion('while :; do /bin/sleep 1; done'), 100),
+    ).resolves.toBeNull();
+  });
+
+  test('fails closed when Node is missing from the selected PATH', async () => {
+    const launch: ResolvedLaunch = {
+      cmd: 'npx',
+      args: ['-y', '@fake/agent'],
+      env: { PATH: tmp() },
+      kind: 'npx',
+      pathFromOverlay: true,
+    };
+    await expect(probeNpxNodeCompatibility(launch)).resolves.toContain(
+      'Node.js version probe failed',
+    );
+  });
+
+  test('fails closed when Node exits successfully without a version', async () => {
+    await expect(probeNpxNodeCompatibility(launchWithNodeVersion('exit 0'))).resolves.toContain(
+      'returned no version',
+    );
+  });
+
+  test('the dead-end hint explains compatibility rather than claiming Node is missing', () => {
+    const launch = launchWithNodeVersion('echo v16.14.2');
+    const hint = incompatibleNodeHint(launch, 'Node.js v16.14.2 is incompatible');
+    expect(hint).toContain('selected Node.js runtime');
+    expect(hint).toContain('private compatible copy');
+    expect(hint).not.toContain('was not found');
+  });
+});
+
+describe('brokenInterpreterHint', () => {
+  test('names Node.js for npx and points at the Homebrew icu4c cause', () => {
+    const hint = brokenInterpreterHint(
+      { cmd: 'npx', args: [], env: {}, kind: 'npx', pathFromOverlay: false },
+      'SIGABRT',
+    );
+    expect(hint).toContain('Node.js');
+    expect(hint).toContain('icu4c');
+    expect(hint).not.toContain('was not found');
+  });
+
+  test('names uv for uvx, with no Node-specific cause pasted in', () => {
+    const hint = brokenInterpreterHint(
+      { cmd: 'uvx', args: [], env: {}, kind: 'uvx', pathFromOverlay: false },
+      'exit code 1',
+    );
+    expect(hint).toContain('uv');
+    expect(hint).not.toContain('Node.js');
+    expect(hint).not.toContain('node');
+    expect(hint).not.toContain('icu4c');
+  });
+
+  test("a replacement that still won't run blames the machine, not the user", () => {
+    const hint = unrepairableManagedRuntimeHint(
+      {
+        cmd: '/home/u/.ok/runtimes/node/bin/npx',
+        args: [],
+        env: {},
+        kind: 'npx',
+        pathFromOverlay: false,
+      },
+      'SIGABRT',
+    );
+    expect(hint).toContain('SIGABRT');
+    expect(hint).not.toContain('delete that directory');
+    expect(hint).not.toContain('Reinstall or repair');
+    expect(hint).not.toContain('icu4c');
+  });
+
+  test('the managed-runtime hints name uv for a uvx runtime', () => {
+    const uvx: ResolvedLaunch = {
+      cmd: '/home/u/.ok/runtimes/uv/uvx',
+      args: [],
+      env: {},
+      kind: 'uvx',
+      pathFromOverlay: false,
+    };
+    for (const hint of [
+      unrepairableManagedRuntimeHint(uvx, 'SIGABRT'),
+      undeletableManagedRuntimeHint(uvx, 'SIGABRT'),
+      declinedRepairHint(uvx),
+    ]) {
+      expect(hint).toContain('uv');
+      expect(hint).not.toContain('Node.js');
+    }
+  });
+
+  test('the un-replaceable hint does not claim a fresh copy was tried', () => {
+    const hint = undeletableManagedRuntimeHint(
+      {
+        cmd: '/home/u/.ok/runtimes/node/bin/npx',
+        args: [],
+        env: {},
+        kind: 'npx',
+        pathFromOverlay: false,
+      },
+      'SIGABRT',
+    );
+    expect(hint).toContain('damaged');
+    expect(hint).not.toContain('downloaded a fresh copy');
+  });
+
+  test('the declined-repair hint says damaged, not missing', () => {
+    const hint = declinedRepairHint({
+      cmd: '/home/u/.ok/runtimes/node/bin/npx',
+      args: [],
+      env: {},
+      kind: 'npx',
+      pathFromOverlay: false,
+    });
+    expect(hint).toContain('damaged');
+    expect(hint).not.toContain("isn't installed");
+  });
+});
+
+describe('windows cmd wrapping (spawn on Windows)', () => {
+  test('resolveWindowsCommand leaves path-qualified commands untouched', () => {
+    expect(resolveWindowsCommand('C:\\x\\uvx.exe', 'C:\\x')).toBe('C:\\x\\uvx.exe');
+    expect(resolveWindowsCommand('/usr/bin/uvx', undefined)).toBe('/usr/bin/uvx');
+  });
+
+  test('resolveWindowsCommand picks the .cmd/.exe, never a bare extensionless file', () => {
+    const dir = tmp();
+    writeFileSync(join(dir, 'npx'), '#!/bin/sh\n');
+    writeFileSync(join(dir, 'npx.cmd'), '@echo off\n');
+    const resolved = resolveWindowsCommand('npx', dir);
+    expect(resolved).not.toBe(join(dir, 'npx'));
+    if (resolved !== 'npx') expect(/\.cmd$/i.test(resolved)).toBe(true);
+  });
+
+  test('the npx compatibility probe selects the node.exe beside the resolved shim', () => {
+    const priorPathExt = process.env.PATHEXT;
+    try {
+      process.env.PATHEXT = '.cmd;.exe';
+      const earlier = tmp();
+      const npmBin = tmp();
+      writeFileSync(join(earlier, 'node.exe'), 'unrelated node');
+      writeFileSync(join(npmBin, 'npx.cmd'), '@echo off\n');
+      writeFileSync(join(npmBin, 'node.exe'), 'npm shim node');
+      const launch: ResolvedLaunch = {
+        cmd: 'npx',
+        args: ['-y', '@fake/agent'],
+        env: { PATH: [earlier, npmBin].join(delimiter) },
+        kind: 'npx',
+        pathFromOverlay: true,
+      };
+
+      expect(resolveNpxNodeCommand(launch, 'win32')).toBe(join(npmBin, 'node.exe'));
+    } finally {
+      if (priorPathExt === undefined) delete process.env.PATHEXT;
+      else process.env.PATHEXT = priorPathExt;
+    }
+  });
+
+  test('outer-quotes the whole command so a spaced launcher path survives /s', () => {
+    const { cmd, args } = windowsCmdWrap('C:\\Program Files\\nodejs\\npx.cmd', ['-y', 'pkg']);
+    expect(cmd.toLowerCase()).toContain('cmd');
+    expect(args.slice(0, 3)).toEqual(['/d', '/s', '/c']);
+    expect(args[3]).toBe('""C:\\Program Files\\nodejs\\npx.cmd" -y pkg"');
+  });
+
+  test('quotes args that would otherwise split or be interpreted by cmd', () => {
+    const { args } = windowsCmdWrap('tool', ['a b', 'safe', 'a&b', '']);
+    expect(args[3]).toBe('""tool" "a b" safe "a&b" """');
+  });
+});
+
+describe('terminateAgentTree', () => {
+  test('a compliant agent exits on SIGTERM within the grace window', async () => {
+    const dir = tmp();
+    const script = join(dir, 'compliant.mjs');
+    writeFileSync(script, 'setInterval(() => {}, 1000);\n');
+    const child = spawnAcpAgent(launchFor(script), dir);
+    if (child.pid !== undefined) strayChildren.push(child);
+    await waitFor(() => child.pid !== undefined, 2_000, 'spawn');
+
+    const dead = await terminateAgentTree(child, { graceMs: 3_000 });
+    expect(dead).toBe(true);
+    expect(child.pid !== undefined && isAlive(child.pid)).toBe(false);
+    expect(child.signalCode).toBe('SIGTERM');
+  });
+
+  test('a SIGTERM-ignoring wrapper AND its grandchild both die via group escalation', async () => {
+    const dir = tmp();
+    const kidPidFile = join(dir, 'kid.pid');
+    const script = join(dir, 'stubborn.mjs');
+    writeFileSync(
+      script,
+      [
+        "import { spawn } from 'node:child_process';",
+        "import { renameSync, writeFileSync } from 'node:fs';",
+        "process.on('SIGTERM', () => {});",
+        'const kid = spawn(process.execPath, [',
+        "  '-e',",
+        `  "process.on('SIGTERM', () => {}); setTimeout(() => process.exit(0), ${GRANDCHILD_SELF_EXIT_MS});",`,
+        "], { stdio: 'ignore' });",
+        "const pendingPidFile = process.env.KID_PID_FILE + '.pending';",
+        'writeFileSync(pendingPidFile, String(kid.pid));',
+        'renameSync(pendingPidFile, process.env.KID_PID_FILE);',
+        'setInterval(() => {}, 1000);',
+        '',
+      ].join('\n'),
+    );
+    const child = spawnAcpAgent(launchFor(script, { KID_PID_FILE: kidPidFile }), dir);
+    if (child.pid !== undefined) strayChildren.push(child);
+    await waitFor(() => existsSync(kidPidFile), 5_000, 'grandchild pid file');
+    const kidPid = Number(readFileSync(kidPidFile, 'utf8'));
+    expect(Number.isInteger(kidPid) && kidPid > 0).toBe(true);
+    expect(isAlive(kidPid)).toBe(true);
+
+    const dead = await terminateAgentTree(child, { graceMs: 250 });
+    expect(dead).toBe(true);
+    expect(child.pid !== undefined && isAlive(child.pid)).toBe(false);
+    await waitFor(() => !isAlive(kidPid), 2_000, 'grandchild death');
+  });
+});
+
+describe('startup package policy classification', () => {
+  const launch: ResolvedLaunch = {
+    cmd: 'npx',
+    args: [],
+    env: {},
+    kind: 'npx',
+    pathFromOverlay: false,
+  };
+  test.each([
+    'npm error code E401',
+    'npm error code EINTEGRITY',
+    'npm error code ECONNREFUSED',
+    'npm error code ETARGET\nnpm error notarget No matching version found',
+  ])('preserves the initialization failure for %s', (stderr) => {
+    expect(packageAcquisitionFailure(launch, stderr)).toBeNull();
+  });
+  test('recognizes only a dated npm target refusal', () => {
+    const detail =
+      'npm error code ETARGET\nnpm error notarget No matching version found with a date before 1970-01-01';
+    const cause = new Error('initialize transport closed');
+    expect(packageAcquisitionFailure(launch, detail, cause)).toMatchObject({
+      code: 'install-failed',
+      cause,
+      machineDetail: detail,
+      message: expect.stringContaining('release-date policy'),
+    });
+  });
+  test('distinguishes uv cutoff refusal from another dependency failure', () => {
+    const uv: ResolvedLaunch = { ...launch, kind: 'uvx' };
+    const generic = 'No solution found when resolving tool dependencies';
+    expect(packageAcquisitionFailure(uv, generic)).toBeNull();
+    expect(
+      packageAcquisitionFailure(uv, `${generic}\nversions were filtered by \`exclude-newer\``),
+    ).toMatchObject({ code: 'install-failed' });
+  });
+});
+
+describe('staleNpxCacheEntry', () => {
+  const npm11 = [
+    'npm error code ENOENT',
+    'npm error syscall open',
+    'npm error path /Users/andrew/.npm/_npx/4142609e2aa780f6/package.json',
+    'npm error errno -2',
+    "npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/Users/andrew/.npm/_npx/4142609e2aa780f6/package.json'",
+    'npm error enoent This is related to npm not being able to find a file.',
+  ].join('\n');
+
+  test('names the npx cache entry npm could not read', () => {
+    expect(staleNpxCacheEntry(npm11)).toBe('/Users/andrew/.npm/_npx/4142609e2aa780f6');
+  });
+
+  test('reads the older npm ERR! spelling and a Windows cache path', () => {
+    const detail =
+      'npm ERR! code ENOENT\r\nnpm ERR! path C:\\Users\\Ann Smith\\AppData\\Local\\npm-cache\\_npx\\1a2b3c4d5e6f7a8b\\package.json\r\nnpm ERR! errno -4058\r\n';
+    expect(staleNpxCacheEntry(detail)).toBe(
+      'C:\\Users\\Ann Smith\\AppData\\Local\\npm-cache\\_npx\\1a2b3c4d5e6f7a8b',
+    );
+  });
+
+  test('falls back to the quoted path of the failed open', () => {
+    const detail =
+      "npm error code ENOENT\nnpm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/ann/.cache/npm/_npx/deadbeef00/package.json'";
+    expect(staleNpxCacheEntry(detail)).toBe('/home/ann/.cache/npm/_npx/deadbeef00');
+  });
+
+  test.each([
+    [
+      'a failure other than ENOENT',
+      'npm error code E401\nnpm error path /Users/andrew/.npm/_npx/4142609e2aa780f6/package.json',
+    ],
+    [
+      'a path outside the npx cache',
+      'npm error code ENOENT\nnpm error path /Users/andrew/project/package.json',
+    ],
+    [
+      'a cache entry that is not a hash',
+      'npm error code ENOENT\nnpm error path /Users/andrew/.npm/_npx/not-a-hash/package.json',
+    ],
+    [
+      'a file other than package.json',
+      'npm error code ENOENT\nnpm error path /Users/andrew/.npm/_npx/4142609e2aa780f6/package-lock.json',
+    ],
+    [
+      'a relative path',
+      'npm error code ENOENT\nnpm error path .npm/_npx/4142609e2aa780f6/package.json',
+    ],
+    [
+      'a parent segment',
+      'npm error code ENOENT\nnpm error path /tmp/../_npx/4142609e2aa780f6/package.json',
+    ],
+  ])('ignores %s', (_label, detail) => {
+    expect(staleNpxCacheEntry(detail)).toBeNull();
+  });
+});
+
+describe('npxInstallRefused', () => {
+  const refusal =
+    'npm error npx canceled due to missing packages and no YES option: ["ok-argv-probe@1.0.0"]';
+
+  test("recognizes npm's refusal to install a missing package", () => {
+    expect(npxInstallRefused(`${refusal}\n`)).toBe(true);
+  });
+
+  test('reads the older npm ERR! spelling', () => {
+    expect(
+      npxInstallRefused(
+        'npm ERR! npx canceled due to missing packages and no YES option: ["ok-argv-probe@1.0.0"]\r\n',
+      ),
+    ).toBe(true);
+  });
+
+  test('finds the refusal after an npm notice line', () => {
+    expect(
+      npxInstallRefused(
+        `npm notice New major version of npm available! 11.19.0 -> 12.2.0\n${refusal}\n`,
+      ),
+    ).toBe(true);
+  });
+
+  test('reads a refusal npm printed with color=always', () => {
+    expect(
+      npxInstallRefused(
+        '\u001b[1mnpm\u001b[22m \u001b[31merror\u001b[39m npx canceled due to missing packages and no YES option: ["ok-argv-probe@1.0.0"]\n',
+      ),
+    ).toBe(true);
+  });
+
+  test.each([
+    [
+      'a missing file',
+      "npm error code ENOENT\nnpm error syscall open\nnpm error path /Users/andrew/.npm/_npx/4142609e2aa780f6/package.json\nnpm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/Users/andrew/.npm/_npx/4142609e2aa780f6/package.json'",
+    ],
+    ['a missing version', 'npm error code ETARGET\nnpm error notarget No matching version found'],
+  ])('ignores %s', (_label, detail) => {
+    expect(npxInstallRefused(detail)).toBe(false);
+  });
+});
+
+test('diagnostic stderr hands each kept line to the raw inspector before redaction', () => {
+  const raw: string[] = [];
+  const lines: string[] = [];
+  const capture = createDiagnosticStderrCapture(
+    (line) => lines.push(line),
+    (line) => raw.push(line),
+  );
+  capture.write('npm error path /Users/andrew/.npm/_npx/4142609e2aa780f6/package.json\n');
+  capture.write(`https://alice:${'x'.repeat(16_000)}\n`);
+  capture.end();
+  expect(raw).toEqual(['npm error path /Users/andrew/.npm/_npx/4142609e2aa780f6/package.json']);
+  expect(lines).toEqual([
+    'npm error path ~/.npm/_npx/4142609e2aa780f6/package.json',
+    '[oversized diagnostic line omitted]',
+  ]);
+});
+
+test.each(['npx', 'uvx'] as const)('%s startup policy diagnostics redact credentials', (kind) => {
+  const signature =
+    kind === 'npx'
+      ? 'ETARGET No matching version found with a date before 1970-01-01'
+      : 'No solution found when resolving tool dependencies; filtered by `exclude-newer`';
+  const detail = `https://alice:fixture-long-secret${'z'.repeat(16_000)}@registry.example.test/pkg\n${signature} https://ci@example.com:fixture-multi-secret@registry.example.test/pkg https://alice:fixture-secret@registry.example.test/pkg https://0123456789abcdef@pypi.company.com/simple https://github_pat_${'a'.repeat(30)}@registry.example.test/pkg Authorization: Bearer fixture-token`;
+  const failure = packageAcquisitionFailure(
+    { cmd: kind, args: [], env: {}, kind, pathFromOverlay: false },
+    detail,
+  );
+  expect(failure?.machineDetail).toContain(signature);
+  expect(failure?.machineDetail).not.toMatch(
+    /fixture-secret|fixture-multi-secret|fixture-long-secret|fixture-token|github_pat_|0123456789abcdef|z{20}/,
+  );
+});
+
+test.each([
+  'https://0123456789abcdef@pypi.company.com/simple Authorization: Bearer fixture-token\n',
+  'https://ci@example.com:fixture-multi-secret@pypi.company.com/simple Authorization: Bearer fixture-token\n',
+])('diagnostic stderr redaction is independent of chunk boundaries: %s', (input) => {
+  for (let split = 0; split <= input.length; split += 1) {
+    const lines: string[] = [];
+    const capture = createDiagnosticStderrCapture((line) => lines.push(line));
+    capture.write(input.slice(0, split));
+    capture.write(input.slice(split));
+    capture.end();
+    expect(lines.join('\n')).toContain('pypi.company.com/simple');
+    expect(lines.join('\n')).not.toMatch(/0123456789abcdef|fixture-token|fixture-multi-secret/);
+  }
+});
+
+test('diagnostic stderr omits oversized lines through their end and resumes safely', () => {
+  const lines: string[] = [];
+  const capture = createDiagnosticStderrCapture((line) => lines.push(line));
+  capture.write(`https://alice:${'x'.repeat(16_000)}`);
+  capture.write('fixture-secret@registry.example.test');
+  capture.write('\nnext diagnostic\n');
+  capture.end();
+  expect(lines).toEqual(['[oversized diagnostic line omitted]', 'next diagnostic']);
+});
+
+test('diagnostic stderr flushes a final line without a newline', () => {
+  const lines: string[] = [];
+  const capture = createDiagnosticStderrCapture((line) => lines.push(line));
+  capture.write('https://0123456789abcdef@pypi.company.com/simple');
+  capture.end();
+  expect(lines).toEqual(['https://***@pypi.company.com/simple']);
+});

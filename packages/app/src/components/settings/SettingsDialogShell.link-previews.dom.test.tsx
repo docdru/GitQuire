@@ -1,0 +1,70 @@
+import { cleanup, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+
+let fileProtocolPage = false;
+
+vi.doMock('@/lib/file-protocol-page', () => ({
+  isFileProtocolPage: () => fileProtocolPage,
+}));
+
+vi.doMock('@/components/settings/SettingsDialogBodyLazy', () => ({
+  SettingsDialogBodyLazy: () => <div data-testid="settings-body-probe" />,
+}));
+
+vi.doMock('@/components/ui/dialog', () => ({
+  Dialog: ({ children, open }: { children?: ReactNode; open?: boolean }) =>
+    open ? <div role="dialog">{children}</div> : null,
+  DialogContent: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <div {...props}>{children}</div>
+  ),
+  DialogDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
+  DialogTitle: ({ children, id }: { children?: ReactNode; id?: string }) => (
+    <h2 id={id}>{children}</h2>
+  ),
+}));
+
+vi.doMock('@/components/ui/skeleton', () => ({
+  Skeleton: ({ className }: { className?: string }) => <div className={className} />,
+}));
+
+vi.doMock('@/editor/DocumentContext', () => ({
+  useDocumentContext: () => ({ collabUrl: 'ws://test.invalid' }),
+}));
+
+vi.doMock('@/lib/config-provider', () => ({
+  useConfigContext: () => ({
+    userBinding: null,
+    userSynced: false,
+    okignoreBinding: null,
+    okignoreSynced: false,
+  }),
+}));
+
+vi.doMock('@/lib/handoff/use-claude-desktop-integration', () => ({
+  useClaudeDesktopIntegration: () => ({ desktopPresent: false }),
+}));
+
+const { SettingsDialogShell } = await import('./SettingsDialogShell');
+
+describe('SettingsDialogShell link-previews nav item (no file:// renderer)', () => {
+  beforeEach(() => {
+    fileProtocolPage = false;
+  });
+  afterEach(() => {
+    cleanup();
+    fileProtocolPage = false;
+  });
+
+  test('hides the Link previews section on a file: page (packaged desktop)', () => {
+    fileProtocolPage = true;
+    render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
+    expect(screen.queryByTestId('settings-sidebar-item-link-previews')).toBeNull();
+  });
+
+  test('shows the Link previews section on http(s) hosts (web, dev desktop)', () => {
+    fileProtocolPage = false;
+    render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
+    expect(screen.getByTestId('settings-sidebar-item-link-previews')).not.toBeNull();
+  });
+});

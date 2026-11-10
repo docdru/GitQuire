@@ -1,0 +1,96 @@
+---
+title: "Image"
+description: "Image with click-to-zoom and HTML-native attributes"
+keywords: "image, zoom, picture, photo"
+---
+
+## Example
+
+<ComponentPreview>
+  <ImgPreview
+    src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80"
+    alt="Forest at sunrise"
+    caption="A photo from Unsplash — click to zoom in the app."
+  />
+</ComponentPreview>
+
+```md
+![A short description](./path/to/image.png)
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "src": {
+    description: "Image source URL",
+    type: "string",
+    required: true,
+    default: "",
+  },
+  "alt": {
+    description: "Alt text",
+    type: "string",
+    required: true,
+  },
+  "width": {
+    description: "Image width",
+    type: "number",
+    required: false,
+  },
+  "height": {
+    description: "Image height",
+    type: "number",
+    required: false,
+  },
+  "srcset": {
+    description: "Responsive image candidate set (e.g. \"x.png 1x, y.png 2x\")",
+    type: "string",
+    required: false,
+  },
+  "sizes": {
+    description: "Responsive image sizes hint paired with srcset",
+    type: "string",
+    required: false,
+  },
+  "loading": {
+    description: "Native img loading strategy (defaults to lazy)",
+    type: "'eager' | 'lazy'",
+    required: false,
+    default: "lazy",
+  },
+  "title": {
+    description: "Native HTML title attribute (tooltip)",
+    type: "string",
+    required: false,
+  },
+  "decoding": {
+    description: "Hint for how the browser should decode the image",
+    type: "'sync' | 'async' | 'auto'",
+    required: false,
+    default: "auto",
+  },
+  "fetchpriority": {
+    description: "Resource fetch priority hint",
+    type: "'high' | 'low' | 'auto'",
+    required: false,
+    default: "auto",
+  },
+  "crossorigin": {
+    description: "CORS mode for the image fetch",
+    type: "'anonymous' | 'use-credentials'",
+    required: false,
+  },
+  "referrerpolicy": {
+    description: "Referrer policy for the image fetch (HTML referrerpolicy values)",
+    type: "string",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `image`, `zoom`, `picture`, `photo`
+
+## Author it
+
+Type `/image` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

@@ -1,0 +1,329 @@
+import {
+  type FromProseMirrorOptions,
+  fromProseMirror,
+  type RemarkProseMirrorOptions,
+  remarkProseMirror,
+} from '@handlewithcare/remark-prosemirror';
+import type { Node as PmNode, Schema } from '@tiptap/pm/model';
+import type { Nodes as MdastNode, Root as MdastRoot } from 'mdast';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
+import remarkGithubAlerts from 'remark-github-alerts';
+import remarkMath from 'remark-math';
+import remarkParse from 'remark-parse';
+import remarkStringify from 'remark-stringify';
+import { type Processor, unified } from 'unified';
+import { VFile } from 'vfile';
+
+import './mdast-augmentation.ts';
+import { restoreFromMdx } from './autolink-void-html-guard.ts';
+import { restoreBackslashEscapesPlugin } from './backslash-escape-guard.ts';
+import { calloutTransformerPlugin, REMARK_GITHUB_ALERTS_OPTIONS } from './callout-transformer.ts';
+import { commentPromoterPlugin } from './comment-promoter.ts';
+import { dedentBlockJsxClose } from './dedent-block-jsx-close.ts';
+import { detailsAccordionPromoterPlugin } from './details-accordion-promoter.ts';
+import { divAlignPromoterPlugin } from './div-align-promoter.ts';
+import { materializeDocEdgeBlankRuns } from './doc-edge-blank-runs.ts';
+import { emptyTaskItemUnmintPlugin, mintEmptyTaskItemContent } from './empty-task-item.ts';
+import { restoreEntityRefsPlugin } from './entity-ref-guard.ts';
+import { escapeProvenancePlugin } from './escape-provenance.ts';
+import { highlightPromoterPlugin } from './highlight-promoter.ts';
+import { imagePromoterPlugin } from './image-promoter.ts';
+import { indentedCodePromoterPlugin } from './indented-code-promoter.ts';
+import { insertInteriorBlankRunParagraphs } from './interior-blank-runs.ts';
+import { linkReferenceDestinationPlugin } from './link-reference-destination.ts';
+import { mathPromoterPlugin } from './math-promoter.ts';
+import {
+  type EntityReferenceSpan,
+  type EscapeProvenanceEntry,
+  hasEscapeProvenance,
+  type SourceDocBoundary,
+} from './mdast-augmentation.ts';
+import { mergedPostParseWalkerPlugin } from './merged-walker.ts';
+import { mermaidPromoterPlugin } from './mermaid-promoter.ts';
+import { nonRenderingContextDemotePlugin } from './non-rendering-context-demote.ts';
+import { protectParserSource } from './parser-reservations.ts';
+import { positionAwareBlankLineJoin } from './position-aware-join.ts';
+import { remarkMdxAgnostic } from './remark-mdx-agnostic.ts';
+import { singleDollarMathPromoterPlugin } from './single-dollar-math-promoter.ts';
+import { stripTrailingEdge } from './strip-trailing-edge.ts';
+import { remarkTags } from './tag-to-markdown.ts';
+import { underlinePromoterPlugin } from './underline-promoter.ts';
+import { voidBrPromoterPlugin } from './void-br-promoter.ts';
+import { remarkWikiLink } from './wiki-link-micromark.ts';
+import { pruneZeroEmissionBlocks } from './zero-emission-blocks.ts';
+
+interface PipelineOptions {
+  schema: Schema;
+  handlers: RemarkProseMirrorOptions['handlers'];
+  pmNodeHandlers: FromProseMirrorOptions<string, string>['nodeHandlers'];
+  pmMarkHandlers: FromProseMirrorOptions<string, string>['markHandlers'];
+  toMarkdownHandlers?: Record<string, unknown>;
+}
+
+interface SerializeMdOptions {
+  schema: Schema;
+  pmNodeHandlers: FromProseMirrorOptions<string, string>['nodeHandlers'];
+  pmMarkHandlers: FromProseMirrorOptions<string, string>['markHandlers'];
+}
+
+function ensureNonEmptyDoc(tree: MdastRoot): MdastRoot {
+  const renderable = tree.children.some((n) => {
+    const type = (n as { type: string }).type;
+    return type !== 'yaml' && type !== 'toml';
+  });
+  if (renderable) return tree;
+  return {
+    ...tree,
+    children: [...tree.children, { type: 'paragraph', children: [] } as never],
+  };
+}
+
+export const ACTIVE_MDAST_PLUGINS = [
+  { name: 'remark-parse', plugin: remarkParse },
+  { name: 'escape-provenance', plugin: escapeProvenancePlugin },
+  { name: 'remark-mdx-agnostic', plugin: remarkMdxAgnostic },
+  { name: 'remark-gfm', plugin: remarkGfm },
+  { name: 'remark-math', plugin: remarkMath, options: { singleDollarTextMath: false } },
+  { name: 'remark-wiki-link', plugin: remarkWikiLink },
+  {
+    name: 'remark-github-alerts',
+    plugin: remarkGithubAlerts,
+    options: REMARK_GITHUB_ALERTS_OPTIONS,
+  },
+  { name: 'callout-transformer', plugin: calloutTransformerPlugin },
+  { name: 'restore-from-mdx', plugin: restoreFromMdx },
+  { name: 'void-br-promoter', plugin: voidBrPromoterPlugin },
+  { name: 'restore-entity-refs', plugin: restoreEntityRefsPlugin },
+  { name: 'restore-backslash-escapes', plugin: restoreBackslashEscapesPlugin },
+  { name: 'details-accordion-promoter', plugin: detailsAccordionPromoterPlugin },
+  { name: 'div-align-promoter', plugin: divAlignPromoterPlugin },
+  { name: 'image-promoter', plugin: imagePromoterPlugin },
+  { name: 'indented-code-promoter', plugin: indentedCodePromoterPlugin },
+  { name: 'math-promoter', plugin: mathPromoterPlugin },
+  { name: 'single-dollar-math-promoter', plugin: singleDollarMathPromoterPlugin },
+  { name: 'highlight-promoter', plugin: highlightPromoterPlugin },
+  { name: 'underline-promoter', plugin: underlinePromoterPlugin },
+  { name: 'mermaid-promoter', plugin: mermaidPromoterPlugin },
+  { name: 'comment-promoter', plugin: commentPromoterPlugin },
+  { name: 'merged-post-parse-walker', plugin: mergedPostParseWalkerPlugin },
+  { name: 'empty-task-item-unmint', plugin: emptyTaskItemUnmintPlugin },
+  { name: 'link-reference-destination', plugin: linkReferenceDestinationPlugin },
+  { name: 'non-rendering-context-demote', plugin: nonRenderingContextDemotePlugin },
+  { name: 'ensure-non-empty-doc', plugin: () => ensureNonEmptyDoc },
+] as const;
+
+export function createParseProcessor(opts: PipelineOptions): Processor {
+  let processor = unified() as unknown as Processor;
+  for (const entry of ACTIVE_MDAST_PLUGINS) {
+    const hasOptions = 'options' in entry && entry.options !== undefined;
+    processor = (
+      hasOptions
+        ? // biome-ignore lint/suspicious/noExplicitAny: heterogeneous plugin entries can't be narrowed in iteration
+          (processor as any).use(entry.plugin, entry.options)
+        : // biome-ignore lint/suspicious/noExplicitAny: same
+          (processor as any).use(entry.plugin)
+    ) as Processor;
+  }
+  processor = (
+    processor as unknown as {
+      use(plugin: typeof remarkProseMirror, opts: RemarkProseMirrorOptions): Processor;
+    }
+  ).use(remarkProseMirror, {
+    schema: opts.schema,
+    handlers: opts.handlers,
+  } as RemarkProseMirrorOptions);
+  processor.freeze();
+  return processor;
+}
+
+export function createSerializeProcessor(
+  opts: Pick<PipelineOptions, 'toMarkdownHandlers'>,
+): Processor {
+  const processor = unified()
+    .use(remarkFrontmatter, ['yaml'])
+    .use(remarkGfm, { tablePipeAlign: false })
+    .use(remarkMath, { singleDollarTextMath: false })
+    .use(remarkMdxAgnostic)
+    .use(remarkWikiLink)
+    .use(remarkTags)
+    .use(remarkStringify, {
+      bullet: '-',
+      fences: true,
+      rule: '-',
+      join: [positionAwareBlankLineJoin],
+      ...(opts.toMarkdownHandlers ? { handlers: opts.toMarkdownHandlers } : {}),
+    });
+  processor.freeze();
+  return processor as unknown as Processor;
+}
+
+function splitDocumentHeadBom(source: string): { source: string; hadBom: boolean } {
+  return source.charCodeAt(0) === 0xfeff
+    ? { source: source.slice(1), hadBom: true }
+    : { source, hadBom: false };
+}
+
+const LEADING_BOUNDARY_SHAPE = /^\n+$/;
+const TRAILING_BOUNDARY_SHAPE = /^\n{2,}$/;
+
+function captureDocBoundary(
+  root: MdastRoot,
+  source: string,
+  hadBom: boolean,
+): SourceDocBoundary | undefined {
+  let leading: string | undefined;
+  let trailing: string | undefined;
+
+  const children = root.children;
+  if (children.length > 0) {
+    const firstStart = children[0]?.position?.start?.offset;
+    if (typeof firstStart === 'number' && firstStart > 0) {
+      const gap = source.slice(0, firstStart);
+      if (LEADING_BOUNDARY_SHAPE.test(gap)) leading = gap;
+    }
+    const lastEnd = children[children.length - 1]?.position?.end?.offset;
+    if (typeof lastEnd === 'number' && lastEnd <= source.length) {
+      const gap = source.slice(lastEnd);
+      if (TRAILING_BOUNDARY_SHAPE.test(gap)) trailing = gap;
+    }
+  }
+
+  if (!hadBom && leading === undefined && trailing === undefined) {
+    return undefined;
+  }
+  const boundary: SourceDocBoundary = {
+    ...(hadBom ? { bom: true as const } : {}),
+    ...(leading !== undefined ? { leading } : {}),
+    ...(trailing !== undefined ? { trailing } : {}),
+  };
+  root.data ??= {};
+  root.data.sourceDocBoundary = boundary;
+  return boundary;
+}
+
+function readDocBoundary(value: unknown): SourceDocBoundary | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  const v = value as Record<string, unknown>;
+  const out: { bom?: true; leading?: string; trailing?: string } = {};
+  if (v.bom === true) out.bom = true;
+  if (typeof v.leading === 'string' && LEADING_BOUNDARY_SHAPE.test(v.leading)) {
+    out.leading = v.leading;
+  }
+  if (typeof v.trailing === 'string' && TRAILING_BOUNDARY_SHAPE.test(v.trailing)) {
+    out.trailing = v.trailing;
+  }
+  return out.bom || out.leading || out.trailing ? out : undefined;
+}
+
+export function parseMd(rawSource: string, processor: Processor): PmNode {
+  const { source: rawAfterBom, hadBom } = splitDocumentHeadBom(rawSource);
+  const source = dedentBlockJsxClose(rawAfterBom);
+  const protected_ = protectParserSource(source);
+
+  const file = new VFile(protected_);
+  const tree = processor.parse(file);
+  file.value = source;
+  const transformed = processor.runSync(tree, file) as MdastRoot;
+  insertInteriorBlankRunParagraphs(transformed, source);
+  const captured = captureDocBoundary(transformed, source, hadBom);
+  const boundary = captured ? materializeDocEdgeBlankRuns(transformed, captured) : undefined;
+  const doc = (processor as unknown as { stringify(tree: unknown): PmNode }).stringify(transformed);
+  if (!boundary) return doc;
+  return doc.type.create({ ...doc.attrs, sourceDocBoundary: boundary }, doc.content, doc.marks);
+}
+
+export function parseMdToMdast(rawSource: string, processor: Processor): MdastRoot {
+  return parseToMdast(rawSource, processor, false);
+}
+
+export function parseMdToEditorMdast(rawSource: string, processor: Processor): MdastRoot {
+  return parseToMdast(rawSource, processor, true);
+}
+
+function parseToMdast(
+  rawSource: string,
+  processor: Processor,
+  materializeBlankRuns: boolean,
+): MdastRoot {
+  const { source: rawAfterBom, hadBom } = splitDocumentHeadBom(rawSource);
+  const source = dedentBlockJsxClose(rawAfterBom);
+  const protected_ = protectParserSource(source);
+  const file = new VFile(protected_);
+  const tree = processor.parse(file);
+  file.value = source;
+  const transformed = processor.runSync(tree, file) as MdastRoot;
+  if (materializeBlankRuns) insertInteriorBlankRunParagraphs(transformed, source);
+  const captured = captureDocBoundary(transformed, source, hadBom);
+  if (materializeBlankRuns && captured) materializeDocEdgeBlankRuns(transformed, captured);
+  return transformed;
+}
+
+export function serializeMd(doc: PmNode, processor: Processor, opts: SerializeMdOptions): string {
+  const mdast: MdastRoot = fromProseMirror(doc, {
+    schema: opts.schema,
+    nodeHandlers: opts.pmNodeHandlers,
+    markHandlers: opts.pmMarkHandlers,
+  });
+
+  coalesceEscapedTextRuns(mdast);
+
+  mintEmptyTaskItemContent(mdast);
+
+  stripTrailingEdge(mdast);
+
+  pruneZeroEmissionBlocks(mdast);
+
+  const boundary = readDocBoundary(doc.attrs?.sourceDocBoundary);
+
+  let out = String(processor.stringify(mdast));
+  if (boundary?.leading) out = boundary.leading + out;
+  if (boundary?.trailing) {
+    out = out.replace(/\n+$/, '') + boundary.trailing;
+  }
+  if (boundary?.bom) out = `\uFEFF${out}`;
+  return out;
+}
+
+function coalesceEscapedTextRuns(node: MdastNode): void {
+  if (!('children' in node) || !Array.isArray(node.children)) return;
+  for (const child of node.children) coalesceEscapedTextRuns(child as MdastNode);
+  for (let index = 0; index + 1 < node.children.length; ) {
+    const left = node.children[index];
+    const right = node.children[index + 1];
+    const leftData = left?.data;
+    const rightData = right?.data;
+    const leftEscapedChars = hasEscapeProvenance(leftData) ? leftData.escapedChars : null;
+    const rightEscapedChars = hasEscapeProvenance(rightData) ? rightData.escapedChars : null;
+    if (
+      left?.type !== 'text' ||
+      right?.type !== 'text' ||
+      typeof left.data?.sourceRaw === 'string' ||
+      typeof right.data?.sourceRaw === 'string' ||
+      (leftEscapedChars === null && rightEscapedChars === null)
+    ) {
+      index += 1;
+      continue;
+    }
+    const leftLength = left.value.length;
+    left.value += right.value;
+    left.data ??= {};
+    left.data.escapedChars = [
+      ...(leftEscapedChars ?? []),
+      ...(rightEscapedChars ?? []).map((entry: EscapeProvenanceEntry) => ({
+        ...entry,
+        offset: entry.offset + leftLength,
+      })),
+    ];
+    if (right.data?.entityRefSpans?.length) {
+      left.data.entityRefSpans = [
+        ...(left.data.entityRefSpans ?? []),
+        ...right.data.entityRefSpans.map((span: EntityReferenceSpan) => ({
+          ...span,
+          offset: span.offset + leftLength,
+        })),
+      ];
+    }
+    node.children.splice(index + 1, 1);
+  }
+}

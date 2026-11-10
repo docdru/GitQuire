@@ -1,0 +1,248 @@
+import {
+  type ComponentEntryFull,
+  getAgentCanonicalDescriptors,
+  PREVIEW_EMBED_STARTERS,
+  PREVIEW_THEME_TOKENS,
+  previewEmbedFence,
+  projectFull,
+} from '@inkeep/open-knowledge-core';
+import { z } from 'zod';
+import type { ConfigOrResolver, ServerInstance } from './shared.ts';
+import { outputSchemaWithText, ROUTED_CWD_DESCRIPTION, textPlusStructured } from './shared.ts';
+
+const DESCRIPTION = [
+  'Read the authoring palette: markdown-native components/examples/guidance, themed html preview embedPatterns (charts, stat cards, SVG, interactive controls), and CSS tokens. No running OK server needed. Optional components:[ids] adds full JSX props in componentDetails plus notFound; ids are case-sensitive, max 32. cwd selects project.',
+  'Prefer native forms: > [!NOTE], <details>, mermaid fences, $math$. For interactive HTML/JS/CSS use html preview starters and var(--chart-1)/var(--foreground) tokens for light/dark themes. Inside SVG use style="fill: var(--chart-1)", not a fill presentation attribute.',
+  'Delimiters are live even in ordinary prose: ==highlight==, $inline math$/$$block math$$, %%comment%% and <!-- comment --> (HIDES text), ~~strikethrough~~. Keep literal pairs in an inline code span or backslash-escape either delimiter. For ~~ escape BOTH tildes on both sides; one-sided escaping is rewritten on save.',
+  'Preview iframes have open network access for external HTTPS resources/fetch/fonts/maps. They are sandboxed null-origin frames and cannot access the knowledge base, cookies or auth.',
+].join('\n');
+
+interface GetAuthoringPaletteDeps {
+  resolveCwd: (explicit?: string) => Promise<string>;
+  config: ConfigOrResolver;
+}
+
+const InputSchema = {
+  components: z
+    .array(z.string().min(1))
+    .max(32)
+    .optional()
+    .describe(
+      'Canonical ids to expand to full JSX-form detail (max 32, case-sensitive). Returns `componentDetails` + `notFound`.',
+    ),
+  cwd: z.string().optional().describe(ROUTED_CWD_DESCRIPTION),
+} as const;
+
+const OutputSchema = outputSchemaWithText({
+  version: z.literal(1).describe('Schema version stamp — bump for breaking shape changes.'),
+  components: z
+    .array(
+      z.object({
+        id: z.string(),
+        displayName: z.string(),
+        description: z.string(),
+        authoring: z
+          .enum(['markdown', 'jsx'])
+          .describe(
+            '`markdown` — write the markdown-native form OK auto-promotes; `jsx` — write the JSX tag directly (no markdown-native form exists).',
+          ),
+        example: z.string().describe('Copy-ready source for the authoring form.'),
+        guidance: z.string().describe('One line on when / how to use this construct.'),
+      }),
+    )
+    .describe('Canonical authoring constructs, keyed by the form an agent should write.'),
+  embedPatterns: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        description: z.string(),
+        snippet: z.string().describe('A complete, theme-wired ```html preview fenced block.'),
+      }),
+    )
+    .describe('Copy-ready themed `html preview` starters.'),
+  tokens: z
+    .array(
+      z.object({
+        name: z.string().describe('CSS custom-property name, e.g. `--chart-1`.'),
+        light: z.string(),
+        dark: z.string(),
+      }),
+    )
+    .describe('Theme tokens injected into every preview iframe — reference with `var(--name)`.'),
+  componentDetails: z
+    .array(z.record(z.string(), z.unknown()))
+    .optional()
+    .describe('Full JSX-form prop schema for the requested `components` ids (when provided).'),
+  notFound: z
+    .array(z.string())
+    .optional()
+    .describe('Requested `components` ids that did not match any canonical.'),
+});
+
+interface AuthoringFormSeed {
+  id: string;
+  registryName?: string;
+  fallbackDisplayName: string;
+  description: string;
+  authoring: 'markdown' | 'jsx';
+  example: string;
+  guidance: string;
+}
+
+const AUTHORING_FORMS: readonly AuthoringFormSeed[] = [
+  {
+    id: 'Callout',
+    registryName: 'Callout',
+    fallbackDisplayName: 'Callout',
+    description: 'Alert / admonition box in one of 15 themed type variants.',
+    authoring: 'markdown',
+    example: '> [!NOTE]\n> Body text. Swap NOTE for TIP, IMPORTANT, WARNING, CAUTION, …',
+    guidance:
+      'Write the GFM alert form — OK auto-promotes it to a themed Callout. 15 types; append `+` / `-` (e.g. `> [!NOTE]+`) to make it foldable.',
+  },
+  {
+    id: 'Accordion',
+    registryName: 'Accordion',
+    fallbackDisplayName: 'Accordion',
+    description: 'Collapsible section with a clickable summary.',
+    authoring: 'markdown',
+    example: '<details>\n<summary>Section title</summary>\n\nHidden body content.\n\n</details>',
+    guidance: 'Write a plain `<details>` — OK auto-promotes it to a themed Accordion.',
+  },
+  {
+    id: 'Mermaid',
+    fallbackDisplayName: 'Mermaid diagram',
+    description: 'Flowchart / sequence / class / state / ER / gantt / pie diagram.',
+    authoring: 'markdown',
+    example:
+      '```mermaid\ngraph LR\n  A["Start (label with punctuation)"] --> B[End]\n```\n\n```mermaid\nsequenceDiagram\n    A->>B: request queued #59; retried\n    B-->>A: done\n```',
+    guidance:
+      'Write a ` ```mermaid ` fenced block — it renders as a themed diagram. Sharp edge 1: raw `;` and `#` END message/label text in sequence-family grammars — use commas, or the entity escapes `#59;` / `#35;`. Sharp edge 2: quote flowchart labels containing punctuation (`A["label (with) punctuation"]`). Feedback: parse failures come back as `warnings` entries (kind `mermaid-parse-error`) on write/edit — fix the fence and re-edit.',
+  },
+  {
+    id: 'Math',
+    registryName: 'Math',
+    fallbackDisplayName: 'Math',
+    description: 'LaTeX math, rendered with KaTeX.',
+    authoring: 'markdown',
+    example: 'Inline: $E = mc^2$\n\nBlock:\n\n$$\n\\int_0^1 x^2 \\, dx\n$$',
+    guidance:
+      'Write LaTeX in `$…$` (inline) or `$$…$$` (block) — OK auto-promotes it to Math. `$` is live in ordinary prose too, so a currency pair like `Cost $5$ each` parses as math; write `` `$5` `` or `\\$5` to keep a literal dollar sign.',
+  },
+  {
+    id: 'Highlight',
+    fallbackDisplayName: 'Highlight',
+    description: 'Marked / highlighted inline text.',
+    authoring: 'markdown',
+    example: 'The ==key phrase== stands out.',
+    guidance:
+      'Write `==text==` — OK auto-promotes it to a highlight. `==` is live anywhere in prose, so to show a literal pair use an inline code span (`` `==x==` ``) or escape either side (`\\==x\\==`).',
+  },
+  {
+    id: 'Comment',
+    fallbackDisplayName: 'Comment',
+    description: 'Author-only note, hidden from the rendered document.',
+    authoring: 'markdown',
+    example: '%%Not shown to readers.%%\n\n<!-- Also not shown to readers. -->',
+    guidance:
+      'Write `%%text%%` or `<!-- text -->` — both render hidden and are dropped from the clipboard. Because they are live in prose, an accidental pair HIDES the text between it; to show a literal pair use an inline code span (`` `%%x%%` ``) or escape either side (`\\%\\%x\\%\\%`).',
+  },
+  {
+    id: 'wiki-embed',
+    fallbackDisplayName: 'Wiki embed',
+    description: 'Inline another document or an asset by name.',
+    authoring: 'markdown',
+    example: '![[document-name]]\n\n![[diagram.png]]',
+    guidance: 'Write a `![[file]]` wiki-embed to inline another doc or an uploaded asset.',
+  },
+  {
+    id: 'Tabs',
+    registryName: 'Tabs',
+    fallbackDisplayName: 'Tabs',
+    description: 'Tabbed panels — a pill strip with one panel visible at a time.',
+    authoring: 'jsx',
+    example:
+      '<Tabs>\n  <Tab label="First">First panel content.</Tab>\n  <Tab label="Second">Second panel content.</Tab>\n</Tabs>',
+    guidance: 'Tabs is the one canonical with no markdown-native form — write the JSX directly.',
+  },
+];
+
+interface AuthoringComponent {
+  id: string;
+  displayName: string;
+  description: string;
+  authoring: 'markdown' | 'jsx';
+  example: string;
+  guidance: string;
+}
+
+function buildComponents(): AuthoringComponent[] {
+  const byName = new Map(getAgentCanonicalDescriptors().map((d) => [d.name, d]));
+  return AUTHORING_FORMS.map((form) => {
+    const descriptor = form.registryName ? byName.get(form.registryName) : undefined;
+    return {
+      id: form.id,
+      displayName: descriptor?.displayName ?? descriptor?.name ?? form.fallbackDisplayName,
+      description: form.description,
+      authoring: form.authoring,
+      example: form.example,
+      guidance: form.guidance,
+    };
+  });
+}
+
+export function register(server: ServerInstance, _deps: GetAuthoringPaletteDeps): void {
+  server.registerTool(
+    'palette',
+    {
+      description: DESCRIPTION,
+      inputSchema: InputSchema,
+      outputSchema: OutputSchema,
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+      },
+    },
+    async (args: { components?: string[]; cwd?: string }) => {
+      void args.cwd;
+      const payload: {
+        version: 1;
+        components: ReturnType<typeof buildComponents>;
+        embedPatterns: Array<{ id: string; title: string; description: string; snippet: string }>;
+        tokens: Array<{ name: string; light: string; dark: string }>;
+        componentDetails?: ComponentEntryFull[];
+        notFound?: string[];
+      } = {
+        version: 1,
+        components: buildComponents(),
+        embedPatterns: PREVIEW_EMBED_STARTERS.map((s) => ({
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          snippet: previewEmbedFence(s),
+        })),
+        tokens: PREVIEW_THEME_TOKENS.map((t) => ({ name: t.name, light: t.light, dark: t.dark })),
+      };
+      if (args.components && args.components.length > 0) {
+        const byId = new Map(getAgentCanonicalDescriptors().map((d) => [d.name, d]));
+        const details: ComponentEntryFull[] = [];
+        const notFound: string[] = [];
+        const seen = new Set<string>();
+        for (const id of args.components) {
+          if (seen.has(id)) continue;
+          seen.add(id);
+          const descriptor = byId.get(id);
+          if (descriptor === undefined) {
+            notFound.push(id);
+            continue;
+          }
+          details.push(projectFull(descriptor));
+        }
+        payload.componentDetails = details;
+        payload.notFound = notFound;
+      }
+      return textPlusStructured(JSON.stringify(payload, null, 2), payload);
+    },
+  );
+}

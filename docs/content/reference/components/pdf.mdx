@@ -1,0 +1,44 @@
+---
+title: "PDF"
+description: "Embedded PDF viewer (`#page=N` to open at page N, `#height=N` for viewer height)"
+keywords: "pdf, document, embed, pdfjs"
+---
+
+## Example
+
+<ComponentPreview>
+  <PdfPreview src="https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf" />
+</ComponentPreview>
+
+```mdx
+<Pdf src="" title="Title" />
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "src": {
+    description: "PDF source URL",
+    type: "string",
+    required: true,
+    default: "",
+  },
+  "title": {
+    description: "Accessible label for the embedded PDF viewer",
+    type: "string",
+    required: false,
+  },
+  "anchor": {
+    description: "PDF viewer parameters as a single URL-fragment string (e.g. \\`page=3&height=600\\`)",
+    type: "string",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `pdf`, `document`, `embed`, `pdfjs`
+
+## Author it
+
+Type `/pdf` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

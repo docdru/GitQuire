@@ -1,0 +1,38 @@
+import type { FileTree } from '@pierre/trees';
+import { describe, expect, test, vi } from 'vitest';
+import { revealActiveRow } from './file-tree-reveal';
+
+type RevealModel = Pick<FileTree, 'getFocusedPath' | 'scrollToPath'>;
+
+function makeModel(focusedPath: string | null) {
+  const scrollToPath = vi.fn(() => {});
+  const model = {
+    getFocusedPath: () => focusedPath,
+    scrollToPath,
+  } as unknown as RevealModel;
+  return { model, scrollToPath };
+}
+
+describe('revealActiveRow', () => {
+  test('scrolls the active row into view without stealing DOM focus', () => {
+    const { model, scrollToPath } = makeModel('docs/quickstart');
+    revealActiveRow(model, 'docs/quickstart');
+    expect(scrollToPath).toHaveBeenCalledTimes(1);
+    expect(scrollToPath).toHaveBeenCalledWith('docs/quickstart', {
+      offset: 'nearest',
+      focus: false,
+    });
+  });
+
+  test('no-ops when there is no focused row', () => {
+    const { model, scrollToPath } = makeModel(null);
+    revealActiveRow(model, 'docs/quickstart');
+    expect(scrollToPath).not.toHaveBeenCalled();
+  });
+
+  test('no-ops when the focused row is not the active row (stale focus after the active doc lost its tree row)', () => {
+    const { model, scrollToPath } = makeModel('docs/previously-active');
+    revealActiveRow(model, '.scratch/hidden-note.md');
+    expect(scrollToPath).not.toHaveBeenCalled();
+  });
+});

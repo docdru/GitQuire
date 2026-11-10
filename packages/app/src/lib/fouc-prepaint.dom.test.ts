@@ -1,0 +1,295 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { ConfigSchema } from '@inkeep/open-knowledge-core';
+import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {
+  COLOR_THEMES,
+  type ColorTheme,
+  type ColorThemeSelection,
+  DEFAULT_CUSTOM_SCHEME,
+} from './color-themes';
+import {
+  applyColorThemeToDom,
+  COLOR_THEME_PAIR_STORAGE_KEY,
+  COLOR_THEME_STORAGE_KEY,
+  CUSTOM_THEME_STORAGE_KEY,
+  CUSTOM_THEME_STYLE_ID,
+  SAVED_THEME_STYLE_ID,
+} from './use-apply-config-color-theme';
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+function prePaintScript(): string {
+  const html = readFileSync(resolve(here, '../../index.html'), 'utf8');
+  const body = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .map((m) => m[1])
+    .find((s) => s.includes(COLOR_THEME_PAIR_STORAGE_KEY));
+  if (!body) throw new Error('pre-paint theme script not found in index.html');
+  return body;
+}
+
+let script: string;
+
+beforeAll(() => {
+  if (typeof localStorage === 'undefined') {
+    (globalThis as { localStorage?: Storage }).localStorage = window.localStorage;
+  }
+  script = prePaintScript();
+});
+
+function runPrePaint(prefersDark: boolean): void {
+  window.matchMedia = ((query: string) =>
+    ({
+      matches: prefersDark && query.includes('dark'),
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+      addListener() {},
+      removeListener() {},
+      onchange: null,
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList) as typeof window.matchMedia;
+  new Function(script)();
+}
+
+function reset(): void {
+  document.documentElement.className = '';
+  document.documentElement.removeAttribute('data-color-theme');
+  document.getElementById(CUSTOM_THEME_STYLE_ID)?.remove();
+  document.getElementById(SAVED_THEME_STYLE_ID)?.remove();
+  localStorage.clear();
+}
+
+function seed(
+  selection: ColorThemeSelection,
+  modePreference: 'light' | 'dark' | 'system',
+  slotMode: 'light' | 'dark',
+  customSeed?: Record<string, unknown>,
+  themes?: readonly ColorTheme[],
+): void {
+  applyColorThemeToDom({ selection, modePreference, slotMode, customSeed, themes });
+  document.documentElement.className = '';
+  document.documentElement.removeAttribute('data-color-theme');
+  document.getElementById(CUSTOM_THEME_STYLE_ID)?.remove();
+  document.getElementById(SAVED_THEME_STYLE_ID)?.remove();
+}
+
+const state = () => ({
+  attr: document.documentElement.getAttribute('data-color-theme'),
+  dark: document.documentElement.classList.contains('dark'),
+});
+
+const SAVED_THEMES: readonly ColorTheme[] = [
+  ...COLOR_THEMES,
+  {
+    id: 'saved-day',
+    label: 'Day',
+    kind: 'light',
+    scheme: {
+      ...DEFAULT_CUSTOM_SCHEME,
+      name: 'Day',
+      variant: 'light',
+      palette: { ...DEFAULT_CUSTOM_SCHEME.palette, base00: '#fafafa' },
+    },
+  },
+  {
+    id: 'saved-night',
+    label: 'Night',
+    kind: 'dark',
+    scheme: {
+      ...DEFAULT_CUSTOM_SCHEME,
+      name: 'Night',
+      palette: { ...DEFAULT_CUSTOM_SCHEME.palette, base00: '#08090a' },
+    },
+  },
+];
+
+describe('pre-paint FOUC script', () => {
+  beforeEach(reset);
+
+  test('reads the writer’s own cache — the field-name contract holds end to end', () => {
+    seed({ light: 'catppuccin-latte', dark: 'dracula' }, 'system', 'dark');
+    runPrePaint(true);
+    expect(state()).toEqual({ attr: 'dracula', dark: true });
+  });
+
+  test('follows the OS for a system preference, picking the other slot', () => {
+    seed({ light: 'catppuccin-latte', dark: 'dracula' }, 'system', 'dark');
+    runPrePaint(false);
+    expect(state()).toEqual({ attr: 'catppuccin-latte', dark: false });
+  });
+
+  test('an explicit preference ignores the OS', () => {
+    seed({ light: 'catppuccin-latte', dark: 'dracula' }, 'light', 'light');
+    runPrePaint(true);
+    expect(state()).toEqual({ attr: 'catppuccin-latte', dark: false });
+  });
+
+  test('a cross-variant palette paints its own variant, not the slot’s', () => {
+    seed({ light: 'dracula', dark: 'dracula' }, 'light', 'light');
+    runPrePaint(false);
+    expect(state()).toEqual({ attr: 'dracula', dark: true });
+  });
+
+  test('a default slot sets no attribute and takes the slot’s own mode', () => {
+    seed({ light: 'default', dark: 'dracula' }, 'system', 'dark');
+    runPrePaint(false);
+    expect(state()).toEqual({ attr: null, dark: false });
+  });
+
+  test('replays the custom stylesheet and its variant', () => {
+    seed({ light: 'catppuccin-latte', dark: 'custom' }, 'dark', 'dark', {
+      base00: '#0a0a0a',
+      base05: '#eeeeee',
+    });
+    runPrePaint(true);
+    expect(state()).toEqual({ attr: 'custom', dark: true });
+    expect(document.getElementById(CUSTOM_THEME_STYLE_ID)?.textContent).toContain(
+      '--background: #0a0a0a;',
+    );
+  });
+
+  test('replays the previous release custom cache while upgrading its pair shape', () => {
+    localStorage.setItem(
+      COLOR_THEME_PAIR_STORAGE_KEY,
+      JSON.stringify({
+        pref: 'dark',
+        light: { id: 'default', dark: false },
+        dark: { id: 'custom', dark: true },
+      }),
+    );
+    localStorage.setItem(
+      CUSTOM_THEME_STORAGE_KEY,
+      JSON.stringify({ css: 'html[data-color-theme] { --background: #123456; }', dark: true }),
+    );
+
+    runPrePaint(false);
+
+    expect(state()).toEqual({ attr: 'custom', dark: true });
+    expect(document.getElementById(CUSTOM_THEME_STYLE_ID)?.textContent).toContain(
+      '--background: #123456;',
+    );
+  });
+
+  test('replays the saved stylesheet belonging to either active mode slot', () => {
+    seed({ light: 'saved-day', dark: 'saved-night' }, 'system', 'dark', undefined, SAVED_THEMES);
+
+    runPrePaint(false);
+    expect(state()).toEqual({ attr: 'saved-day', dark: false });
+    expect(document.getElementById(SAVED_THEME_STYLE_ID)?.textContent).toContain(
+      '--background: #fafafa;',
+    );
+
+    document.documentElement.className = '';
+    document.documentElement.removeAttribute('data-color-theme');
+    document.getElementById(SAVED_THEME_STYLE_ID)?.remove();
+    runPrePaint(true);
+    expect(state()).toEqual({ attr: 'saved-night', dark: true });
+    expect(document.getElementById(SAVED_THEME_STYLE_ID)?.textContent).toContain(
+      '--background: #08090a;',
+    );
+  });
+
+  test('falls back to the pre-pair single-palette cache exactly once', () => {
+    localStorage.setItem(COLOR_THEME_STORAGE_KEY, 'monokai');
+    localStorage.setItem('ok-theme-v1', 'dark');
+    runPrePaint(false);
+    expect(state()).toEqual({ attr: 'monokai', dark: true });
+  });
+
+  test('legacy fallback with no mode cache leaves the dark class to the OS', () => {
+    localStorage.setItem(COLOR_THEME_STORAGE_KEY, 'monokai');
+    runPrePaint(false);
+    expect(state()).toEqual({ attr: 'monokai', dark: false });
+  });
+
+  test('a custom slot with no CSS cache applies no palette at all', () => {
+    seed({ light: 'default', dark: 'custom' }, 'dark', 'dark', { base00: '#0a0a0a' });
+    const cache = JSON.parse(localStorage.getItem(COLOR_THEME_PAIR_STORAGE_KEY) ?? '{}');
+    delete cache.dark.css;
+    localStorage.setItem(COLOR_THEME_PAIR_STORAGE_KEY, JSON.stringify(cache));
+    runPrePaint(true);
+    expect(state()).toEqual({ attr: null, dark: true });
+    expect(document.getElementById(CUSTOM_THEME_STYLE_ID)).toBeNull();
+  });
+
+  test('a saved slot with no CSS entry does not borrow the other slot stylesheet', () => {
+    seed({ light: 'saved-day', dark: 'saved-night' }, 'system', 'dark', undefined, SAVED_THEMES);
+    const cache = JSON.parse(localStorage.getItem(COLOR_THEME_PAIR_STORAGE_KEY) ?? '{}');
+    delete cache.dark.css;
+    localStorage.setItem(COLOR_THEME_PAIR_STORAGE_KEY, JSON.stringify(cache));
+
+    runPrePaint(true);
+    expect(state()).toEqual({ attr: null, dark: true });
+    expect(document.getElementById(SAVED_THEME_STYLE_ID)).toBeNull();
+  });
+
+  test('the pair wins over a stale pre-pair key', () => {
+    seed({ light: 'catppuccin-latte', dark: 'dracula' }, 'light', 'light');
+    localStorage.setItem(COLOR_THEME_STORAGE_KEY, 'monokai');
+    runPrePaint(false);
+    expect(state()).toEqual({ attr: 'catppuccin-latte', dark: false });
+  });
+
+  test('no cache at all paints the base theme in the OS mode', () => {
+    runPrePaint(true);
+    expect(state()).toEqual({ attr: null, dark: true });
+  });
+
+  test('survives corrupt cache JSON without throwing or painting a palette', () => {
+    localStorage.setItem(COLOR_THEME_PAIR_STORAGE_KEY, '{not json');
+    expect(() => runPrePaint(false)).not.toThrow();
+    expect(state()).toEqual({ attr: null, dark: false });
+  });
+});
+
+const THEME_ID_CORPUS = [
+  'a',
+  '0',
+  '-',
+  'a0-z9',
+  'a'.repeat(31),
+  'a'.repeat(32),
+  '',
+  'a'.repeat(33),
+  'A',
+  'has_underscore',
+  'two words',
+  'é',
+  'a.b',
+  'a/b',
+  'a\n',
+  '\na',
+  'a\r',
+  'a\t',
+  'a"',
+  "a'",
+  'a]',
+  'a[',
+];
+
+describe('pre-paint and ConfigSchema theme-id grammar', () => {
+  beforeEach(reset);
+
+  test.each(THEME_ID_CORPUS)('agrees on %j in both slots and the legacy cache', (id) => {
+    const admissions = ['colorTheme', 'colorThemeLight', 'colorThemeDark'].map(
+      (field) => ConfigSchema.safeParse({ appearance: { [field]: id } }).success,
+    );
+    expect(new Set(admissions).size).toBe(1);
+    const expected = admissions[0] ? id : null;
+    for (const mode of ['light', 'dark'] as const) {
+      reset();
+      seed({ light: 'catppuccin-latte', dark: 'dracula' }, mode, mode);
+      const cache = JSON.parse(localStorage.getItem(COLOR_THEME_PAIR_STORAGE_KEY) ?? '{}');
+      cache[mode].id = id;
+      localStorage.setItem(COLOR_THEME_PAIR_STORAGE_KEY, JSON.stringify(cache));
+      runPrePaint(mode === 'dark');
+      expect(document.documentElement.getAttribute('data-color-theme'), mode).toBe(expected);
+    }
+    reset();
+    localStorage.setItem(COLOR_THEME_STORAGE_KEY, id);
+    runPrePaint(false);
+    expect(document.documentElement.getAttribute('data-color-theme'), 'legacy').toBe(expected);
+  });
+});

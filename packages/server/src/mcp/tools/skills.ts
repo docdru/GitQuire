@@ -1,0 +1,401 @@
+import {
+  AGENTS_SKILLS_ROOT,
+  EDITOR_PROJECT_SKILL_ROOT,
+  EDITOR_USER_SKILL_ROOT,
+} from '@inkeep/open-knowledge-core';
+import { z } from 'zod';
+import { INTERNAL_BUNDLE_SKILL_NAMES, isInternalBundleSkillName } from '../../skill-bundles.ts';
+import {
+  type ConfigOrResolver,
+  hocuspocusNotRunningError,
+  httpGetRows,
+  outputSchemaWithText,
+  ROUTED_CWD_DESCRIPTION,
+  resolveProjectServerContext,
+  type ServerInstance,
+  type ServerUrlOrResolver,
+  textPlusStructured,
+  textResult,
+} from './shared.ts';
+import { fetchSkill, readSkillFile, type SkillScope } from './skill-target.ts';
+import { resolveSkillFilePath, SkillScopeArg } from './verb-schemas.ts';
+
+function bundleFileKind(path: string): 'reference' | 'script' {
+  return path.replace(/\\/g, '/').startsWith('scripts/') ? 'script' : 'reference';
+}
+
+function projectListRow(s: Record<string, unknown>): {
+  name: unknown;
+  scope: unknown;
+  description?: string;
+  installed: boolean;
+  hosts: string[];
+  locations: Array<{
+    id: string;
+    path: string;
+    role: 'source' | 'copy' | 'symlink';
+    audience?: string[];
+    drift?: boolean;
+  }>;
+  mode?: 'copy' | 'link';
+  conflicts?: string[];
+} {
+  const name = String(s.name);
+  const scope = s.scope === 'global' ? 'global' : 'project';
+  const hosts = Array.isArray(s.hosts) ? (s.hosts as string[]) : [];
+  const linked = new Set(Array.isArray(s.symlinkedHosts) ? (s.symlinkedHosts as string[]) : []);
+  const aliases = (s.hostAliases ?? {}) as Record<string, string>;
+  const drift = new Set(Array.isArray(s.driftPaths) ? (s.driftPaths as string[]) : []);
+  const rootOf = (h: string): string => {
+    if (h === 'agents') return AGENTS_SKILLS_ROOT;
+    if (h.includes('/')) return h;
+    const map = scope === 'project' ? EDITOR_PROJECT_SKILL_ROOT : EDITOR_USER_SKILL_ROOT;
+    return (map as Record<string, string | null>)[h] ?? h;
+  };
+  const subsOf = (root: string): string[] =>
+    Object.keys(aliases).filter((k) => aliases[k] === root);
+  const locations = hosts.map((h, i) => {
+    const root = rootOf(h);
+    const path = `${root}/${name}`;
+    const audience = subsOf(root);
+    return {
+      id: h,
+      path,
+      role: (i === 0 ? 'source' : linked.has(h) ? 'symlink' : 'copy') as
+        | 'source'
+        | 'copy'
+        | 'symlink',
+      ...(audience.length > 0 ? { audience } : {}),
+      ...(drift.has(path) ? { drift: true } : {}),
+    };
+  });
+  const placements = Array.isArray(s.customPlacements)
+    ? (s.customPlacements as Array<{ path: string; mode: 'copy' | 'link' }>)
+    : [];
+  for (const cp of placements) {
+    if (locations.some((l) => l.path === cp.path)) continue;
+    const root = cp.path.split('/').slice(0, -1).join('/');
+    const audience = subsOf(root);
+    locations.push({
+      id: root,
+      path: cp.path,
+      role: cp.mode === 'link' ? 'symlink' : 'copy',
+      ...(audience.length > 0 ? { audience } : {}),
+      ...(drift.has(cp.path) ? { drift: true } : {}),
+    });
+  }
+  const conflicts = Array.isArray(s.conflictHosts) ? (s.conflictHosts as string[]) : [];
+  return {
+    name: s.name,
+    scope: s.scope,
+    ...(typeof s.description === 'string' ? { description: s.description } : {}),
+    installed: s.installed === true,
+    hosts: locations.map((l) => l.id),
+    locations,
+    mode: s.linkMode === true ? ('link' as const) : ('copy' as const),
+    ...(conflicts.length > 0 ? { conflicts } : {}),
+  };
+}
+
+function internalSkillHint(name: string): string {
+  return [
+    `"${name}" is one of OpenKnowledge's built-in agent skills — it is NOT managed by this tool and cannot be read or listed here.`,
+    "It is already provided to you in your loaded skill list (a hidden runtime skill projected into your editor); don't fetch or re-load it — just follow the skill you already have.",
+    'The `skills` tool covers skills wherever they live — editor dirs (`.claude/skills`, …), the `.agents/skills` hub, custom roots, and the legacy `.ok/skills` store, at project AND global (user-home) level. Built-in `open-knowledge*` skills never appear.',
+  ].join(' ');
+}
+
+const SCOPE_FIELD_DESCRIBE =
+  'Which level the skill lives at. `project` = lives in this KB (wherever its folder is; shared via git); `global` = user-level under your home dir (available in every project on this machine, not shared).';
+
+const SkillLocationEntryOutputSchema = z.object({
+  id: z
+    .string()
+    .describe('Location id — editor host id, `agents`, or a custom root path. Pass to `install`.'),
+  path: z
+    .string()
+    .describe(
+      'Base-relative bundle dir (e.g. ".claude/skills/x"). INFORMATIONAL — for showing a user where a location lives. Skills are addressed by `name` + `scope`: pass `id` to `install`, and read bundle files with `skills({ name, file })`, never by handing this path to `exec` or a native file tool.',
+    ),
+  role: z
+    .enum(['source', 'copy', 'symlink'])
+    .describe(
+      'source = the REAL folder (the skill itself); copy = independent folder, refreshed from the source on watcher/startup sync while unedited (hand edits fork it); symlink = live link to the source.',
+    ),
+  audience: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Folders that RESOLVE INTO this location (folder-level symlinks) — their agents read what lands here.',
+    ),
+  drift: z
+    .boolean()
+    .optional()
+    .describe('Something outside OK rewrote this path since OK last wrote it.'),
+});
+
+const SkillListEntryOutputSchema = z.object({
+  name: z.string().describe('Skill name (its identity; pass to `edit`/`move`/`delete`/`install`).'),
+  scope: z.enum(['project', 'global']).describe(SCOPE_FIELD_DESCRIBE),
+  description: z.string().optional().describe("The skill's one-line description (when present)."),
+  installed: z
+    .boolean()
+    .describe(
+      'Always true for a managed skill — its source folder IS the skill, so it is never "not installed". Read `locations[]` for where it actually lives.',
+    ),
+  hosts: z
+    .array(z.string())
+    .describe('Flat location ids (locations[].id), SOURCE first — legacy projection.'),
+  locations: z
+    .array(SkillLocationEntryOutputSchema)
+    .describe(
+      "Everywhere the skill lives. Exactly one `source` (the skill's real folder); every other entry is a managed copy or symlink of it.",
+    ),
+  mode: z
+    .enum(['copy', 'link'])
+    .describe(
+      'The form a NEW location would take, derived from the ones the skill already uses. Not a stored preference and not a claim about existing locations — read `locations[].role` for those.',
+    ),
+  conflicts: z
+    .array(z.string())
+    .optional()
+    .describe('Host ids where a DIFFERENT skill with this name occupies the slot.'),
+});
+
+const SkillBundleFileEntrySchema = z.object({
+  path: z.string().describe('Skill-relative path (e.g. "references/tiers.md").'),
+  kind: z
+    .enum(['reference', 'script'])
+    .describe('`script` for anything under scripts/; `reference` for every other bundle file.'),
+});
+
+const SkillReadOutputSchema = z.object({
+  name: z.string().describe('Skill name (its identity).'),
+  scope: z.enum(['project', 'global']).describe(SCOPE_FIELD_DESCRIBE),
+  description: z.string().describe("The skill's one-line description (empty if none)."),
+  body: z.string().describe('The SKILL.md body (markdown, frontmatter stripped).'),
+  files: z
+    .array(SkillBundleFileEntrySchema)
+    .describe('Bundle files beside SKILL.md (path + kind, no inline text). Read one via `file`.'),
+});
+
+const SkillFileReadOutputSchema = z.object({
+  path: z.string().describe('Skill-relative path read.'),
+  kind: z.enum(['reference', 'script']).describe('`reference` or `script`.'),
+  text: z.string().describe('Full text of the bundle file.'),
+});
+
+const SkillMarketplaceResultOutputSchema = z.object({
+  name: z.string().describe('Skill name to pass as `skill` to `import`.'),
+  source: z
+    .string()
+    .describe(
+      'Import-ready repository coordinates or website hostname. Pass this exact value to `import`.',
+    ),
+  description: z
+    .string()
+    .describe('Marketplace description for deciding whether the skill matches the task.'),
+  installs: z
+    .number()
+    .int()
+    .nonnegative()
+    .nullable()
+    .describe('skills.sh install count, if known.'),
+  publisher: z.string().nullable().describe('Publisher, website, or GitHub owner, if known.'),
+});
+
+const DESCRIPTION = [
+  'Read-only skill discovery. Requires the Hocuspocus server. query searches the skills.sh marketplace and returns import-ready name/source/description/publisher/install-count rows. Import a chosen row with import({source,skill:name}); external rows are not managed or active editor content until imported/projected.',
+  'Omit name to list Project and Global managed skills with scope/description/hosts. name reads description/body plus a bundle files list (path/kind, no inline text); name+file reads one reference/script/bundle file. Optional scope; name-only prefers Project. Address skills by name/scope, never raw .ok/ paths or native cat.',
+  'Built-in open-knowledge* runtime skills are already in your skill list; do not fetch them here. Use write/edit/delete/move/install for changes.',
+].join('\n');
+
+export interface SkillsToolDeps {
+  serverUrl: ServerUrlOrResolver;
+  config: ConfigOrResolver;
+  resolveCwd: (explicit?: string) => Promise<string>;
+}
+
+export function register(server: ServerInstance, deps: SkillsToolDeps): void {
+  server.registerTool(
+    'skills',
+    {
+      description: DESCRIPTION,
+      inputSchema: {
+        query: z
+          .string()
+          .optional()
+          .describe(
+            'Marketplace search query for skills.sh. Use this before `import` when looking for an external skill; do not combine with `name` or `file`.',
+          ),
+        name: z
+          .string()
+          .optional()
+          .describe(
+            'Managed skill name. Omit to LIST all managed skills; pass a name to READ that skill.',
+          ),
+        file: z
+          .string()
+          .optional()
+          .describe(
+            'With `name`: read ONE bundle file by its skill-relative path (e.g. `references/x.md`, `agents/openai.yaml`).',
+          ),
+        scope: SkillScopeArg.optional(),
+        cwd: z.string().optional().describe(ROUTED_CWD_DESCRIPTION),
+      },
+      outputSchema: outputSchemaWithText({
+        skills: z
+          .array(SkillListEntryOutputSchema)
+          .optional()
+          .describe('Present in LIST mode: every skill across Project + Global levels.'),
+        skill: SkillReadOutputSchema.optional().describe(
+          'Present in READ-skill mode: the named skill (description, body, files list).',
+        ),
+        file: SkillFileReadOutputSchema.optional().describe(
+          'Present in READ-file mode: one bundle file (path, kind, text).',
+        ),
+        results: z
+          .array(SkillMarketplaceResultOutputSchema)
+          .optional()
+          .describe(
+            'Present in Marketplace search mode: import-ready external skill candidates. Pick one, then call `import({ source, skill: name })`.',
+          ),
+        backend: z
+          .enum(['skills.sh', 'github-fallback'])
+          .optional()
+          .describe('Marketplace backend that answered the query.'),
+        degraded: z
+          .boolean()
+          .optional()
+          .describe('True when the GitHub fallback answered instead of skills.sh.'),
+      }),
+    },
+    async (args: {
+      query?: string;
+      name?: string;
+      file?: string;
+      scope?: SkillScope;
+      cwd?: string;
+    }) => {
+      if (args.query !== undefined && (args.name !== undefined || args.file !== undefined)) {
+        return textResult(
+          'Error: `query` is marketplace search mode — do not combine it with `name` or `file`.',
+          true,
+        );
+      }
+
+      if (args.name !== undefined && INTERNAL_BUNDLE_SKILL_NAMES.has(args.name)) {
+        return textResult(`Error: ${internalSkillHint(args.name)}`, true);
+      }
+
+      const context = await resolveProjectServerContext(
+        deps.resolveCwd,
+        deps.config,
+        deps.serverUrl,
+        args.cwd,
+      );
+      if (!context.ok) return textResult(`Error: ${context.error}`, true);
+      const { url } = context;
+      if (!url) return textResult(hocuspocusNotRunningError(), true);
+
+      if (args.query !== undefined) {
+        const q = args.query.trim();
+        if (q.length < 2) {
+          return textResult(
+            'Error: `query` needs at least 2 characters — the skills.sh search rejects shorter terms.',
+            true,
+          );
+        }
+        const searchRes = await httpGetRows(
+          url,
+          `/api/skills/search?q=${encodeURIComponent(q)}`,
+          'results',
+        );
+        if ('error' in searchRes) return textResult(`Error: ${searchRes.error}`, true);
+        const { rows: rawResults, data } = searchRes;
+        const results = rawResults.flatMap((r) => {
+          if (typeof r.name !== 'string' || typeof r.source !== 'string') return [];
+          return [
+            {
+              name: r.name,
+              source: r.source,
+              description: typeof r.description === 'string' ? r.description : '',
+              installs:
+                typeof r.installs === 'number' && Number.isInteger(r.installs) && r.installs >= 0
+                  ? r.installs
+                  : null,
+              publisher: typeof r.publisher === 'string' ? r.publisher : null,
+            },
+          ];
+        });
+        const backend =
+          (data as { backend?: unknown }).backend === 'github-fallback'
+            ? 'github-fallback'
+            : 'skills.sh';
+        const degraded = (data as { degraded?: unknown }).degraded === true;
+        return textPlusStructured(JSON.stringify({ results, backend, degraded }, null, 2), {
+          results,
+          backend,
+          degraded,
+        });
+      }
+
+      if (args.file !== undefined && args.name === undefined) {
+        return textResult(
+          'Error: `file` reads ONE bundle file of a skill — pass `name` too: skills({ name, file: "references/x.md" }).',
+          true,
+        );
+      }
+      let bundleFilePath: string | undefined;
+      if (args.file !== undefined) {
+        const check = resolveSkillFilePath(args.file);
+        if (!check.ok) return textResult(`Error: ${check.error}`, true);
+        bundleFilePath = check.path;
+      }
+
+      if (args.name === undefined) {
+        const listRes = await httpGetRows(url, '/api/skills', 'skills');
+        if ('error' in listRes) return textResult(`Error: ${listRes.error}`, true);
+        const rawSkills = listRes.rows;
+        const authored = rawSkills.filter((s) => !isInternalBundleSkillName(String(s.name)));
+        const scoped =
+          args.scope === undefined ? authored : authored.filter((s) => s.scope === args.scope);
+        const skills = scoped.map((s) => projectListRow(s));
+        return textPlusStructured(JSON.stringify({ skills }, null, 2), { skills });
+      }
+
+      let scope = args.scope;
+      if (scope === undefined) {
+        const listRes = await httpGetRows(url, '/api/skills', 'skills');
+        if ('error' in listRes) return textResult(`Error: ${listRes.error}`, true);
+        const rows = listRes.rows;
+        const matches = rows.filter((s) => s.name === args.name);
+        if (matches.length === 0) {
+          return textResult(`Error: no skill named "${args.name}" (Project or Global).`, true);
+        }
+        scope =
+          matches.find((s) => s.scope === 'project') !== undefined
+            ? 'project'
+            : (matches[0]?.scope as SkillScope);
+      }
+
+      if (args.file !== undefined) {
+        const fileRead = await readSkillFile(url, scope, args.name, bundleFilePath ?? args.file);
+        if (!fileRead.ok) return textResult(`Error: ${fileRead.error}`, true);
+        const file = { path: fileRead.path, kind: fileRead.kind, text: fileRead.text };
+        return textPlusStructured(JSON.stringify({ file }, null, 2), { file });
+      }
+
+      const read = await fetchSkill(url, scope, args.name);
+      if (!read.ok) return textResult(`Error: ${read.error}`, true);
+      const skill = {
+        name: args.name,
+        scope,
+        description: read.description,
+        body: read.body,
+        files: read.files.map((f) => ({ path: f.path, kind: bundleFileKind(f.path) })),
+      };
+      return textPlusStructured(JSON.stringify({ skill }, null, 2), { skill });
+    },
+  );
+}

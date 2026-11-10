@@ -1,0 +1,60 @@
+---
+title: Overview
+icon: LuBookOpen
+description: Set up remote access to your OpenKnowledge server.
+---
+By default, OpenKnowledge is only available on the machine where it runs. Remote access lets your other devices, teammates, and agents connect to one shared project without installing OpenKnowledge on every machine.
+
+The setup has four parts: run the server, make it reachable, add access control, then connect through the browser or MCP.
+
+## Run the server
+
+There are three ways to run an OpenKnowledge server:
+
+- [**Desktop**](/docs/get-started/quickstart#install-the-desktop-app-macos-windows-linux)
+- [**CLI**](/docs/remote-control/methods/cli)
+- [**Docker**](/docs/remote-control/methods/docker)
+
+## Make the server reachable
+
+Choose the instructions that match where your server runs:
+
+| Your setup | What to follow |
+| --- | --- |
+| Desktop or CLI on your computer | [Connect the computer through a private network or tunnel](/docs/remote-control/methods/cli#your-laptop-behind-a-tunnel). If Desktop already runs the project, skip the CLI installation step. The networking settings are the same. |
+| CLI on an always-on machine | [Set up a server you manage](/docs/remote-control/methods/cli#a-server-you-manage). |
+| Docker | [Deploy the container](/docs/remote-control/methods/docker). |
+
+Each method provides an HTTPS URL and the required configuration. See the [configuration reference](/docs/reference/configuration) for all available settings.
+
+## Add access control
+
+<Callout type="warn">
+**Never expose OpenKnowledge directly to the public internet.** Use a private network, or put authentication in front of the server before opening or sharing a public URL.
+</Callout>
+
+OpenKnowledge does not have built-in user accounts yet. Everyone who can reach the server has full read and write access as the same owner.
+
+A private network such as Tailscale can be the access-control layer. A public URL needs an authentication edge or proxy in front of it. Follow [Authentication](/docs/remote-control/authentication) before continuing.
+
+## Try it out
+
+Once the server is reachable and protected, the same URL provides both connection points.
+
+Open the editor in a browser:
+
+```text
+https://<your-external-url>/
+```
+
+Connect agents to the MCP endpoint:
+
+```text
+https://<your-external-url>/mcp
+```
+
+Open the browser URL first to confirm the editor loads. Then follow [Connect remote agents](/docs/remote-control/connecting-agents) for Claude, Cursor, Codex, and other MCP clients. Give teammates the browser URL plus any network access or credential required by your access-control setup.
+
+## Turn off remote access
+
+Remove `allowExternal: true` from `.ok/local/config.yml`, or remove `OK_ALLOW_EXTERNAL=1`, then restart OpenKnowledge. The Docker setup on this site uses `OK_BIND=0.0.0.0`, so the container will refuse to start without external-access consent. Stop the tunnel or disable the public domain to close network access. If a public URL was exposed, regenerate it or rotate the domain at your tunnel or hosting provider.

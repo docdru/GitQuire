@@ -1,0 +1,296 @@
+import { MARKDOWNLINT_RULE_CATALOG } from '@inkeep/open-knowledge-core';
+import type { MessageDescriptor } from '@lingui/core';
+import { describe, expect, test, vi } from 'vitest';
+import { matchesCommandQuery } from '@/components/command-palette-search';
+import { FIELDS_USER_PREFERENCES } from './settings-fields';
+import { buildSettingsSearchIndex } from './settings-search-index';
+import type { SidebarGroup } from './settings-sidebar-types';
+
+const translate = (message: { id?: string }) => message.id ?? '';
+
+function groupsFixture(opts: {
+  projectEnabled?: boolean;
+  markdownlintVisible?: boolean;
+  themeVisible?: boolean;
+}): SidebarGroup[] {
+  const { projectEnabled = true, markdownlintVisible = true, themeVisible = true } = opts;
+  const pluginItems = [
+    ...(markdownlintVisible ? [{ id: 'plugin:markdownlint', label: 'markdownlint' }] : []),
+    ...(themeVisible ? [{ id: 'plugin:theme', label: 'Themes' }] : []),
+  ];
+  return [
+    {
+      id: 'user',
+      label: 'User',
+      enabled: true,
+      items: [{ id: 'preferences', label: 'Preferences' }],
+    },
+    {
+      id: 'project',
+      label: 'This project',
+      enabled: projectEnabled,
+      items: [
+        { id: 'sync', label: 'Sync' },
+        {
+          id: 'search',
+          label: 'Search',
+          subsections: [
+            {
+              id: 'performance',
+              label: 'Embedding request settings',
+              anchor: 'search.semantic.maxBatchSize',
+              keywords: ['batch', 'characters', 'timeout', 'embeddings', 'Ollama'],
+            },
+          ],
+        },
+      ],
+    },
+    { id: 'plugins', label: 'Plugins', enabled: true, items: pluginItems },
+  ];
+}
+
+describe('buildSettingsSearchIndex', () => {
+  test('skips a disabled item inside an enabled group', () => {
+    const entries = buildSettingsSearchIndex({
+      groups: [
+        {
+          id: 'user',
+          label: 'User',
+          enabled: true,
+          items: [
+            { id: 'preferences', label: 'Preferences' },
+            { id: 'account', label: 'Git', disabled: true },
+          ],
+        },
+      ],
+      translate,
+    });
+    expect(entries.some((e) => e.sectionId === 'preferences')).toBe(true);
+    expect(entries.some((e) => e.sectionId === 'account')).toBe(false);
+  });
+
+  test('emits a section entry per item of an ENABLED group only', () => {
+    const enabled = buildSettingsSearchIndex({
+      groups: groupsFixture({ projectEnabled: true }),
+      translate,
+    });
+    expect(enabled.some((e) => e.kind === 'section' && e.sectionId === 'sync')).toBe(true);
+
+    const disabled = buildSettingsSearchIndex({
+      groups: groupsFixture({ projectEnabled: false }),
+      translate,
+    });
+    expect(disabled.some((e) => e.sectionId === 'sync')).toBe(false);
+    expect(disabled.some((e) => e.sectionId === 'preferences')).toBe(true);
+  });
+
+  test('indexes preferences fields (visible section) with description keywords + targetField', () => {
+    const previewField = FIELDS_USER_PREFERENCES.find(
+      (field) => field.path.join('.') === 'editor.previewTabs',
+    );
+    expect(previewField).toBeDefined();
+    if (!previewField?.description) throw new Error('expected preview tabs field description');
+
+    const labelSentinel = 'preview-tabs-label-sentinel';
+    const descriptionSentinel = 'preview-tabs-description-sentinel';
+    const structuralTranslate = vi.fn((message: MessageDescriptor) => {
+      if (message === previewField.label) return labelSentinel;
+      if (message === previewField.description) return descriptionSentinel;
+      return message.id ?? '';
+    });
+    const entries = buildSettingsSearchIndex({
+      groups: groupsFixture({}),
+      translate: structuralTranslate,
+    });
+    const fieldEntries = entries.filter((e) => e.kind === 'field' && e.sectionId === 'preferences');
+    expect(fieldEntries.length).toBeGreaterThan(0);
+    const wordWrap = fieldEntries.find((e) => e.targetField === 'editor.wordWrap');
+    expect(wordWrap).toBeDefined();
+    expect(wordWrap?.kind).toBe('field');
+    expect(wordWrap?.sectionId).toBe('preferences');
+
+    const previewTabs = fieldEntries.find((e) => e.targetField === 'editor.previewTabs');
+    expect(previewTabs).toMatchObject({
+      kind: 'field',
+      sectionId: 'preferences',
+      label: labelSentinel,
+      keywords: [descriptionSentinel],
+      targetField: 'editor.previewTabs',
+    });
+    expect(structuralTranslate).toHaveBeenCalledWith(previewField.label);
+    expect(structuralTranslate).toHaveBeenCalledWith(previewField.description);
+  });
+
+  test('sections carry their group as context, so colliding labels stay tellable apart', () => {
+    const groups: SidebarGroup[] = [
+      {
+        id: 'user',
+        label: 'User',
+        enabled: true,
+        items: [{ id: 'preferences', label: 'Preferences' }],
+      },
+      {
+        id: 'project',
+        label: 'This project',
+        enabled: true,
+        items: [{ id: 'project-preferences', label: 'Preferences' }],
+      },
+    ];
+    const entries = buildSettingsSearchIndex({ groups, translate });
+    const preferences = entries.filter((e) => e.label === 'Preferences');
+
+    expect(preferences).toHaveLength(2);
+    expect(preferences.map((e) => e.context).sort()).toEqual(['This project', 'User']);
+  });
+
+  test('subsections emit field-kind entries that navigate to the parent and anchor its block', () => {
+    const groups: SidebarGroup[] = [
+      {
+        id: 'project',
+        label: 'This project',
+        enabled: true,
+        items: [
+          {
+            id: 'project-preferences',
+            label: 'Preferences',
+            subsections: [
+              { id: 'content-rules', label: 'Content rules', anchor: 'section:content-rules' },
+            ],
+          },
+        ],
+      },
+    ];
+    const entries = buildSettingsSearchIndex({ groups, translate });
+    const sub = entries.find((e) => e.id === 'subsection:project-preferences:content-rules');
+    expect(sub).toMatchObject({
+      kind: 'field',
+      sectionId: 'project-preferences',
+      label: 'Content rules',
+      context: 'This project → Preferences',
+      keywords: ['This project', 'Preferences'],
+      targetField: 'section:content-rules',
+    });
+
+    const disabled = buildSettingsSearchIndex({
+      groups: [{ ...groups[0], enabled: false }],
+      translate,
+    });
+    expect(disabled.some((e) => e.id.startsWith('subsection:'))).toBe(false);
+  });
+
+  test('a subsection can carry its own search synonyms alongside the inherited context', () => {
+    const groups: SidebarGroup[] = [
+      {
+        id: 'user',
+        label: 'User',
+        enabled: true,
+        items: [
+          {
+            id: 'preferences',
+            label: 'Preferences',
+            subsections: [
+              {
+                id: 'spellcheck',
+                label: 'Check spelling while typing',
+                anchor: 'spellcheck.enabled',
+                keywords: ['spellcheck'],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const entries = buildSettingsSearchIndex({ groups, translate });
+    const sub = entries.find((e) => e.id === 'subsection:preferences:spellcheck');
+
+    expect(sub?.keywords).toEqual(['User', 'Preferences', 'spellcheck']);
+    expect(matchesCommandQuery(sub?.label ?? '', 'spellcheck', sub?.keywords ?? [])).toBe(true);
+  });
+
+  test('theme field indexed only when the theme plugin is a visible section', () => {
+    const withTheme = buildSettingsSearchIndex({
+      groups: groupsFixture({ themeVisible: true }),
+      translate,
+    });
+    expect(withTheme.some((e) => e.targetField === 'appearance.colorThemeLight')).toBe(true);
+
+    const withoutTheme = buildSettingsSearchIndex({
+      groups: groupsFixture({ themeVisible: false }),
+      translate,
+    });
+    expect(withoutTheme.some((e) => e.targetField === 'appearance.colorThemeLight')).toBe(false);
+  });
+
+  test('markdownlint rules indexed only when the panel is visible (disabled plugin excluded)', () => {
+    const enabled = buildSettingsSearchIndex({
+      groups: groupsFixture({ markdownlintVisible: true }),
+      translate,
+    });
+    const ruleEntries = enabled.filter((e) => e.kind === 'rule');
+    expect(ruleEntries.length).toBe(MARKDOWNLINT_RULE_CATALOG.length);
+    expect(ruleEntries.every((e) => e.sectionId === 'plugin:markdownlint')).toBe(true);
+
+    const disabled = buildSettingsSearchIndex({
+      groups: groupsFixture({ markdownlintVisible: false }),
+      translate,
+    });
+    expect(disabled.some((e) => e.kind === 'rule')).toBe(false);
+  });
+
+  test('a rule entry carries id + alias + aliases as keywords', () => {
+    const entries = buildSettingsSearchIndex({ groups: groupsFixture({}), translate });
+    const sample = MARKDOWNLINT_RULE_CATALOG[0];
+    const entry = entries.find((e) => e.kind === 'rule' && e.ruleId === sample.id);
+    expect(entry).toBeDefined();
+    expect(entry?.keywords).toContain(sample.id);
+    expect(entry?.keywords).toContain(sample.alias);
+    for (const alias of sample.aliases) {
+      expect(entry?.keywords).toContain(alias);
+    }
+  });
+});
+
+describe('buildSettingsSearchIndex + matchesCommandQuery', () => {
+  const entries = buildSettingsSearchIndex({ groups: groupsFixture({}), translate });
+  const find = (query: string) =>
+    entries.filter((entry) => matchesCommandQuery(entry.label, query, entry.keywords));
+
+  test('a markdownlint rule is found by upstream name, id (case-insensitive), and alias', () => {
+    const md013 = MARKDOWNLINT_RULE_CATALOG.find((rule) => rule.id === 'MD013');
+    expect(md013).toBeDefined();
+    if (!md013) return;
+    expect(find(md013.name).some((e) => e.ruleId === 'MD013')).toBe(true);
+    expect(find('md013').some((e) => e.ruleId === 'MD013')).toBe(true);
+    expect(find(md013.alias).some((e) => e.ruleId === 'MD013')).toBe(true);
+  });
+
+  test('a section is found by its label', () => {
+    expect(find('Sync').some((e) => e.kind === 'section' && e.sectionId === 'sync')).toBe(true);
+  });
+
+  test.each(['batch', 'characters', 'timeout', 'embeddings', 'Ollama'])(
+    'embedding performance is found by the %s keyword',
+    (query) => {
+      expect(
+        find(query).some(
+          (entry) =>
+            entry.sectionId === 'search' && entry.targetField === 'search.semantic.maxBatchSize',
+        ),
+      ).toBe(true);
+    },
+  );
+
+  test('a query matching nothing returns no entries', () => {
+    expect(find('zzzznomatch')).toHaveLength(0);
+  });
+
+  test('a section is found by a multi-word query spanning its label and its group', () => {
+    expect(find('project sync').some((e) => e.kind === 'section' && e.sectionId === 'sync')).toBe(
+      true,
+    );
+  });
+
+  test('a query whose terms are not ALL present returns no entries', () => {
+    expect(find('sync zzzznomatch')).toHaveLength(0);
+  });
+});

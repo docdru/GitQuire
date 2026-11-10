@@ -1,0 +1,91 @@
+import { z } from 'zod';
+import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
+import type { AgentIdentity } from '../agent-identity.ts';
+import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';
+import {
+  apiTarget,
+  hocuspocusNotRunningError,
+  httpPost,
+  outputSchemaWithText,
+  previewUrlOutputField,
+  ROUTED_CWD_DESCRIPTION,
+  resolveProjectServerContext,
+  summaryArgSchema,
+  textPlusStructured,
+  textResult,
+  VERSION_FIELD_DESCRIBE,
+} from './shared.ts';
+
+export const DESCRIPTION = [
+  'Save a project-wide checkpoint of every document. Requires the Hocuspocus server. Optional summary ≤80 chars defaults to "Checkpoint version"; avoid secrets or PII because it persists in git history. Returns version (40-char SHA). Find it with history and restore one doc with restore_version({document,version}).',
+].join('\n');
+
+export interface CheckpointDeps {
+  serverUrl: ServerUrlOrResolver;
+  config: ConfigOrResolver;
+  resolveCwd: (explicit?: string) => Promise<string>;
+  identityRef?: { current: AgentIdentity };
+  localApi?: LocalApiDispatch;
+}
+
+export function register(server: ServerInstance, deps: CheckpointDeps): void {
+  server.registerTool(
+    'checkpoint',
+    {
+      description: DESCRIPTION,
+      inputSchema: {
+        summary: summaryArgSchema.describe(
+          'Optional one-line label for the checkpoint (≤80 chars). Defaults to "Checkpoint version". Persisted to git history.',
+        ),
+        cwd: z.string().optional().describe(ROUTED_CWD_DESCRIPTION),
+      },
+      outputSchema: outputSchemaWithText({
+        version: z.string().describe(VERSION_FIELD_DESCRIBE),
+        previewUrl: previewUrlOutputField.describe(
+          'Always null — a checkpoint is project-wide, not scoped to one doc.',
+        ),
+      }),
+    },
+    async (args: { summary?: string; cwd?: string }) => {
+      const context = await resolveProjectServerContext(
+        deps.resolveCwd,
+        deps.config,
+        deps.serverUrl,
+        args.cwd,
+      );
+      if (!context.ok) return textResult(`Error: ${context.error}`, true);
+      const { url } = context;
+      if (!url) return textResult(hocuspocusNotRunningError(), true);
+
+      const identity = deps.identityRef?.current;
+      const result = await httpPost(apiTarget(url, deps.localApi), '/api/save-version', {
+        ...(args.summary !== undefined ? { summary: args.summary } : {}),
+        ...(identity
+          ? {
+              writers: [
+                {
+                  id: `agent-${identity.connectionId}`,
+                  name: identity.displayName,
+                  email: `agent-${identity.connectionId}@openknowledge.local`,
+                },
+              ],
+            }
+          : {}),
+      });
+      if (!result.ok) return textResult(`Error: ${result.error}`, true);
+
+      const checkpointRef = typeof result.checkpointRef === 'string' ? result.checkpointRef : '';
+      const version = checkpointRef.split('/').pop() ?? '';
+      if (!/^[0-9a-f]{40}$/i.test(version)) {
+        return textResult(
+          `Error: checkpoint committed but the server returned no usable version ref ("${checkpointRef}"). Find the latest checkpoint via \`history\`.`,
+          true,
+        );
+      }
+      return textPlusStructured(`Checkpoint saved. Version: ${version}`, {
+        version,
+        previewUrl: null,
+      });
+    },
+  );
+}

@@ -1,0 +1,476 @@
+import {
+  type AdvisoryWarning,
+  type BrokenLink,
+  type LinkCheckDeferredWarning,
+  type LintViolationWarning,
+  type RenderWarning,
+  WRITE_WARNING_KINDS,
+  type WriteWarning,
+} from '@inkeep/open-knowledge-core';
+import { describe, expect, test } from 'vitest';
+import {
+  formatAdvisoryBriefs,
+  formatAdvisoryLines,
+  formatBrokenLinkBrief,
+  formatBrokenLinkLines,
+  formatRenderWarningsBrief,
+  formatRenderWarningsLine,
+  parseAdvisoryWarnings,
+  parseBrokenLinkSuppression,
+  parseBrokenLinks,
+} from './advisory-warnings.ts';
+
+function mermaidWarning(overrides: Partial<RenderWarning> = {}): RenderWarning {
+  return {
+    kind: 'mermaid-parse-error',
+    fenceIndex: 1,
+    fenceFirstLine: 'sequenceDiagram',
+    message: 'Parse error on line 2:\n...A->>B: hi; the\n--------^',
+    line: 2,
+    ...overrides,
+  };
+}
+
+const DIVERGENCE: WriteWarning = {
+  kind: 'content-divergence',
+  intendedBytes: 100,
+  actualBytes: 98,
+  byteDelta: -2,
+};
+
+const RECONCILED: WriteWarning = {
+  kind: 'disk-edit-reconciled',
+  intendedBytes: 50,
+  actualBytes: 80,
+  byteDelta: 30,
+};
+
+describe('parseAdvisoryWarnings', () => {
+  test('parses a valid mixed array and rejects absent/empty/malformed payloads', () => {
+    expect(parseAdvisoryWarnings([mermaidWarning(), DIVERGENCE, RECONCILED])).toHaveLength(3);
+    expect(parseAdvisoryWarnings(undefined)).toBeUndefined();
+    expect(parseAdvisoryWarnings([])).toBeUndefined();
+    expect(parseAdvisoryWarnings([{ kind: 'something-else' }])).toBeUndefined();
+    expect(parseAdvisoryWarnings('not-an-array')).toBeUndefined();
+  });
+
+  test('unrecognized entries drop individually, keeping recognized siblings', () => {
+    const parsed = parseAdvisoryWarnings([
+      mermaidWarning(),
+      { kind: 'future-fence-kind', payload: true },
+      DIVERGENCE,
+    ]);
+    expect(parsed).toHaveLength(2);
+    expect(parsed?.map((w) => w.kind)).toEqual(['mermaid-parse-error', 'content-divergence']);
+  });
+});
+
+describe('formatAdvisoryLines', () => {
+  test('one line per integrity entry plus one grouped render line', () => {
+    const lines = formatAdvisoryLines([
+      DIVERGENCE,
+      RECONCILED,
+      mermaidWarning(),
+      mermaidWarning({ fenceIndex: 2 }),
+    ]);
+    expect(lines).toHaveLength(3);
+    expect(lines[0]).toContain('Content divergence');
+    expect(lines[1]).toContain('reconciled');
+    expect(lines[2]).toContain('2 mermaid fences');
+  });
+
+  test('integrity-only and render-only arrays each produce their own lines', () => {
+    expect(formatAdvisoryLines([DIVERGENCE])).toHaveLength(1);
+    expect(formatAdvisoryLines([mermaidWarning()])).toHaveLength(1);
+  });
+
+  test('single render failure inlines locator, line number, and mermaid message', () => {
+    const [line] = formatAdvisoryLines([mermaidWarning()]);
+    expect(line).toContain('⚠');
+    expect(line).toContain('fence 1');
+    expect(line).toContain('sequenceDiagram');
+    expect(line).toContain('(line 2)');
+    expect(line).toContain('Parse error on line 2:');
+    expect(line).toContain('will not render');
+  });
+
+  test('empty fence body renders the (empty fence) locator, not ("")', () => {
+    const [line] = formatAdvisoryLines([mermaidWarning({ fenceFirstLine: '' })]);
+    expect(line).toContain('(empty fence)');
+    expect(line).not.toContain('("")');
+  });
+
+  test('no line number omits the (line N) qualifier', () => {
+    const [line] = formatAdvisoryLines([mermaidWarning({ line: undefined })]);
+    expect(line).toContain('fence 1');
+    expect(line).not.toContain('(line ');
+    expect(line).toContain('will not render');
+  });
+});
+
+describe('formatAdvisoryBriefs', () => {
+  test('mixed advisories produce per-family briefs', () => {
+    const briefs = formatAdvisoryBriefs([RECONCILED, mermaidWarning()]);
+    expect(briefs).toHaveLength(2);
+    expect(briefs[0]).toContain('reconciled');
+    expect(briefs[1]).toContain('1 mermaid fence will not render');
+    expect(briefs[1]).not.toContain('fences');
+  });
+
+  test('plural form for multiple render warnings', () => {
+    const briefs = formatAdvisoryBriefs([mermaidWarning(), mermaidWarning({ fenceIndex: 2 })]);
+    expect(briefs[0]).toContain('2 mermaid fences');
+  });
+
+  test('a both-kept or kept-live reconcile says the write landed and names its outcome', () => {
+    const counts = (duplicated: number, here: number, outside: number) => ({
+      ...RECONCILED,
+      mergeOutcome: 'both-kept',
+      nextStep: 're-read',
+      duplicatedBlocks: duplicated,
+      restoredDeletedHere: here,
+      restoredDeletedOutside: outside,
+    });
+    const [
+      duplicatesOnly,
+      restoredHereOnly,
+      restoredOutsideAndDuplicates,
+      restoredHereAndDuplicates,
+      restoredOutsideOnly,
+      keptLive,
+    ] = formatAdvisoryBriefs([
+      counts(2, 0, 0),
+      counts(0, 1, 0),
+      counts(1, 0, 1),
+      counts(1, 1, 0),
+      counts(0, 0, 1),
+      { ...RECONCILED, mergeOutcome: 'kept-live', nextStep: 're-read' },
+    ]);
+    expect(duplicatesOnly).toBe(
+      '⚠ An out-of-band edit to the same block was kept beside the version here; the write landed. Re-read and remove the duplicate if needed.',
+    );
+    expect(restoredHereOnly).toBe(
+      '⚠ A deletion here was undone and the out-of-band version restored; the write landed. Re-read and delete the restored block again if needed.',
+    );
+    expect(restoredOutsideAndDuplicates).toBe(
+      '⚠ An out-of-band edit to the same block was kept beside the version here; an out-of-band deletion was undone and the version here kept; the write landed. Re-read and remove the duplicate if needed.',
+    );
+    expect(restoredHereAndDuplicates).toBe(
+      '⚠ An out-of-band edit to the same block was kept beside the version here; a deletion here was undone and the out-of-band version restored; the write landed. Re-read and remove the duplicate or delete the restored block again if needed.',
+    );
+    expect(restoredOutsideOnly).toBe(
+      '⚠ An out-of-band deletion was undone and the version here kept; the write landed. Re-read before continuing.',
+    );
+    expect(keptLive).toContain('saved to history');
+    expect(keptLive).toContain('the write landed');
+  });
+});
+
+describe('a merge outcome this tool copy does not know', () => {
+  test('still parses and reaches the summary line through the generic reconcile brief', () => {
+    const future = { ...RECONCILED, mergeOutcome: 'future-outcome', nextStep: 'future-step' };
+    const parsed = parseAdvisoryWarnings([future]);
+
+    expect(parsed).toEqual([future]);
+    expect(formatAdvisoryBriefs(parsed ?? [])).toEqual([
+      '⚠ Out-of-band disk edit reconciled before this write — re-read for the combined result.',
+    ]);
+    expect(formatAdvisoryLines(parsed ?? [])).toEqual([
+      '⚠ An out-of-band edit was reconciled into this document before your edit landed on top — re-read for the combined result.',
+    ]);
+  });
+});
+
+describe('the reconcile next step', () => {
+  test('parses on a reconcile warning and survives into structured content', () => {
+    const parsed = parseAdvisoryWarnings([
+      { ...RECONCILED, mergeOutcome: 'both-kept', nextStep: 're-read', hint: 'Re-read.' },
+    ]);
+    expect(parsed).toEqual([
+      { ...RECONCILED, mergeOutcome: 'both-kept', nextStep: 're-read', hint: 'Re-read.' },
+    ]);
+    expect(formatAdvisoryLines(parsed ?? [])).toEqual(['⚠ Re-read.']);
+  });
+});
+
+describe('render-family bounds phrasing', () => {
+  test('a full page of 10 entries reads as 10+ (server caps render entries)', () => {
+    const warnings = Array.from({ length: 10 }, (_, i) => mermaidWarning({ fenceIndex: i + 1 }));
+    expect(formatRenderWarningsLine(warnings)).toContain('10+');
+    expect(formatRenderWarningsBrief(warnings)).toContain('10+');
+  });
+});
+
+const noSuchDoc: BrokenLink = {
+  href: './wiki/x',
+  resolvedTo: 'wiki/wiki/x',
+  reason: 'no-such-doc',
+};
+const unresolvable: BrokenLink = {
+  href: '../../escape.md',
+  resolvedTo: null,
+  reason: 'unresolvable',
+};
+const noSuchFile: BrokenLink = {
+  href: '../src/foo.py',
+  resolvedTo: 'src/foo.py',
+  reason: 'no-such-file',
+};
+
+const brokenImage: BrokenLink = {
+  href: './logo.png',
+  resolvedTo: 'assets/logo.png',
+  reason: 'no-such-file',
+  localTarget: {
+    href: './logo.png',
+    targetKind: 'file',
+    role: 'image',
+    sourceForm: 'markdown-inline',
+    resolvedTarget: 'assets/logo.png',
+    reason: 'no-such-file',
+    resolutionMethod: 'source-relative',
+  },
+};
+
+const brokenReference: BrokenLink = {
+  href: './spec.pdf',
+  resolvedTo: 'spec.pdf',
+  reason: 'no-such-file',
+  localTarget: {
+    href: './spec.pdf',
+    targetKind: 'file',
+    role: 'link',
+    sourceForm: 'markdown-reference',
+    resolvedTarget: 'spec.pdf',
+    reason: 'no-such-file',
+    resolutionMethod: 'source-relative',
+    definition: { line: 11, label: 'spec' },
+  },
+};
+
+describe('parseBrokenLinks', () => {
+  test('parses a well-formed array (all three reasons)', () => {
+    expect(parseBrokenLinks([noSuchDoc, noSuchFile, unresolvable])).toEqual([
+      noSuchDoc,
+      noSuchFile,
+      unresolvable,
+    ]);
+  });
+
+  test('drops malformed entries but keeps valid ones', () => {
+    const mixed = [
+      noSuchDoc,
+      { href: 'x', resolvedTo: null, reason: 'broken-anchor' },
+      { href: 42 },
+      unresolvable,
+    ];
+    expect(parseBrokenLinks(mixed)).toEqual([noSuchDoc, unresolvable]);
+  });
+
+  test('returns [] for a non-array (absent / wrong-typed field)', () => {
+    expect(parseBrokenLinks(undefined)).toEqual([]);
+    expect(parseBrokenLinks(null)).toEqual([]);
+    expect(parseBrokenLinks('nope')).toEqual([]);
+    expect(parseBrokenLinks({})).toEqual([]);
+  });
+
+  test('returns [] for an empty array (the all-resolve confirmation)', () => {
+    expect(parseBrokenLinks([])).toEqual([]);
+  });
+
+  test('preserves additive local-target evidence through the parse (image + reference)', () => {
+    expect(parseBrokenLinks([brokenImage, brokenReference])).toEqual([
+      brokenImage,
+      brokenReference,
+    ]);
+  });
+});
+
+describe('formatBrokenLinkLines', () => {
+  test('no links → no lines (clean write stays quiet)', () => {
+    expect(formatBrokenLinkLines([])).toEqual([]);
+  });
+
+  test('one link → singular header + a bullet with resolvedTo', () => {
+    const lines = formatBrokenLinkLines([noSuchDoc]);
+    expect(lines[0]).toContain('1 broken outbound link —');
+    expect(lines[0]).not.toContain('links —');
+    expect(lines[1]).toBe('  • ./wiki/x → wiki/wiki/x (no-such-doc)');
+  });
+
+  test('null resolvedTo omits the arrow', () => {
+    const lines = formatBrokenLinkLines([unresolvable]);
+    expect(lines[1]).toBe('  • ../../escape.md (unresolvable)');
+    expect(lines[1]).not.toContain('→');
+  });
+
+  test('a no-such-file entry renders the resolved path + reason', () => {
+    const lines = formatBrokenLinkLines([noSuchFile]);
+    expect(lines[1]).toBe('  • ../src/foo.py → src/foo.py (no-such-file)');
+  });
+
+  test('N links → plural header + one bullet each', () => {
+    const lines = formatBrokenLinkLines([noSuchDoc, unresolvable]);
+    expect(lines[0]).toContain('2 broken outbound links —');
+    expect(lines).toHaveLength(3);
+  });
+
+  test('an image finding renders its role so the break is not read as a doc link', () => {
+    const lines = formatBrokenLinkLines([brokenImage]);
+    expect(lines[1]).toBe('  • image ./logo.png → assets/logo.png (no-such-file)');
+  });
+
+  test('a reference-style finding points at its shared definition (1-based line)', () => {
+    const lines = formatBrokenLinkLines([brokenReference]);
+    expect(lines[1]).toBe(
+      '  • ./spec.pdf → spec.pdf (no-such-file) — fix the [spec] definition (line 12)',
+    );
+  });
+});
+
+describe('formatBrokenLinkBrief', () => {
+  test('no links → null (nothing appended to the batch line)', () => {
+    expect(formatBrokenLinkBrief([])).toBeNull();
+  });
+
+  test('one link → singular brief', () => {
+    expect(formatBrokenLinkBrief([noSuchDoc])).toBe('⚠ 1 broken outbound link (see brokenLinks).');
+  });
+
+  test('N links → plural brief', () => {
+    expect(formatBrokenLinkBrief([noSuchDoc, unresolvable])).toBe(
+      '⚠ 2 broken outbound links (see brokenLinks).',
+    );
+  });
+});
+
+describe('content-rule (lint) violations', () => {
+  const lint = (over: Partial<LintViolationWarning> = {}): LintViolationWarning => ({
+    kind: 'lint-violation',
+    source: 'markdownlint',
+    code: 'MD010',
+    message: 'Hard tabs',
+    severity: 'warning',
+    line: 3,
+    column: 1,
+    ...over,
+  });
+
+  test('formatAdvisoryLines emits one line per violation, with rule + line + message', () => {
+    const lines = formatAdvisoryLines([
+      lint(),
+      lint({
+        code: 'MD043',
+        message: 'Required heading structure',
+        severity: 'error',
+        line: 1,
+      }),
+    ]);
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain('markdownlint/MD010');
+    expect(lines[0]).toContain('line 3');
+    expect(lines[1]).toContain('markdownlint/MD043');
+    expect(lines[1]).toContain('error');
+  });
+
+  test('formatAdvisoryBriefs emits a brief per violation', () => {
+    const briefs = formatAdvisoryBriefs([lint()]);
+    expect(briefs.some((b) => b.includes('MD010'))).toBe(true);
+  });
+
+  test('coexists with render + integrity entries', () => {
+    const lines = formatAdvisoryLines([mermaidWarning(), lint()]);
+    expect(lines.some((l) => l.toLowerCase().includes('mermaid'))).toBe(true);
+    expect(lines.some((l) => l.includes('MD010'))).toBe(true);
+  });
+});
+
+describe('deferred link check', () => {
+  const deferred: LinkCheckDeferredWarning = {
+    kind: 'link-check-deferred',
+    message: 'Links in this document were not checked.',
+  };
+
+  test('parses and relays the server message instead of the unrecognized-kind fallback', () => {
+    expect(parseAdvisoryWarnings([deferred])).toEqual([deferred]);
+    expect(formatAdvisoryLines([deferred])).toEqual(['⚠ Links in this document were not checked.']);
+  });
+
+  test('formatAdvisoryBriefs emits one brief however many entries arrive', () => {
+    expect(formatAdvisoryBriefs([deferred, deferred])).toEqual([
+      '⚠ Links not checked yet: the link index is still building or busy (see warnings).',
+    ]);
+  });
+});
+
+describe('unrecognized-kind fallback', () => {
+  const future = { kind: 'future-advisory-kind', detail: 42 } as unknown as AdvisoryWarning;
+
+  test('formatAdvisoryLines emits a generic line instead of dropping the entry', () => {
+    const lines = formatAdvisoryLines([future]);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('⚠');
+    expect(lines[0]).toContain('future-advisory-kind');
+  });
+
+  test('formatAdvisoryBriefs emits a generic brief instead of dropping the entry', () => {
+    const briefs = formatAdvisoryBriefs([future]);
+    expect(briefs).toHaveLength(1);
+    expect(briefs[0]).toContain('future-advisory-kind');
+  });
+
+  test('recognized siblings keep their dedicated formats alongside the fallback', () => {
+    const lines = formatAdvisoryLines([DIVERGENCE, future, mermaidWarning()]);
+    expect(lines).toHaveLength(3);
+    expect(lines.some((l) => l.includes('Content divergence'))).toBe(true);
+    expect(lines.some((l) => l.toLowerCase().includes('mermaid'))).toBe(true);
+    expect(lines.some((l) => l.includes('future-advisory-kind'))).toBe(true);
+  });
+});
+
+describe('parseBrokenLinkSuppression', () => {
+  const wellFormed = { reason: 'reserved-log-policy', count: 3 };
+
+  test('a well-formed observation parses', () => {
+    expect(parseBrokenLinkSuppression(wellFormed)).toEqual(wellFormed);
+  });
+
+  test.each([
+    ['absent', undefined],
+    ['a non-object', 'reserved-log-policy'],
+    ['a zero count', { reason: 'reserved-log-policy', count: 0 }],
+    ['a fractional count', { reason: 'reserved-log-policy', count: 1.5 }],
+    ['a missing count', { reason: 'reserved-log-policy' }],
+    ['an empty reason', { reason: '', count: 3 }],
+  ])('%s yields undefined rather than a half-relayed observation', (_label, value) => {
+    expect(parseBrokenLinkSuppression(value)).toBeUndefined();
+  });
+
+  test('a reason this build has no prose for still parses', () => {
+    expect(parseBrokenLinkSuppression({ reason: 'some-future-policy', count: 3 })).toEqual({
+      reason: 'some-future-policy',
+      count: 3,
+    });
+  });
+});
+
+describe('the write-warning kind set is the one source both filters read', () => {
+  const fabricated = {
+    kind: 'byte-ledger-drift',
+    hint: 'from a newer server',
+  } as unknown as AdvisoryWarning;
+
+  test('a third write-shaped kind lands in the unrecognized channel, never in the integrity one', () => {
+    const lines = formatAdvisoryLines([DIVERGENCE, fabricated]);
+
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain('Content divergence');
+    expect(lines[1]).toContain('byte-ledger-drift');
+    expect(lines[1]).toContain('see structuredContent.document.warnings');
+    expect(lines.some((l) => l.includes('from a newer server'))).toBe(false);
+  });
+
+  test('every kind in WRITE_WARNING_KINDS formats through the integrity channel', () => {
+    expect([...WRITE_WARNING_KINDS].sort()).toEqual(['content-divergence', 'disk-edit-reconciled']);
+  });
+});

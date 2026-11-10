@@ -1,0 +1,226 @@
+import fs, { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { stripTypeScriptTypes } from 'node:module';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, test, vi } from 'vitest';
+import { bunFacade, installBunGlobal } from './bun-global-shim';
+
+const selfPath = fileURLToPath(import.meta.url);
+const selfDir = fileURLToPath(new URL('.', import.meta.url));
+
+function thrownCode(run: () => unknown): string | undefined {
+  try {
+    run();
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code;
+  }
+  return undefined;
+}
+
+function missingDirectory(): string {
+  return join(tmpdir(), `bun-glob-missing-${process.pid}-${Date.now()}`);
+}
+
+describe('Bun global facade', () => {
+  test('installs globalThis.Bun (idempotently)', () => {
+    installBunGlobal();
+    expect((globalThis as Record<string, unknown>).Bun).toBe(bunFacade);
+  });
+
+  test('Bun.file reads text and reports existence on Node', async () => {
+    const present = bunFacade.file(selfPath);
+    expect(await present.exists()).toBe(true);
+    expect(await present.text()).toContain('Bun global facade');
+    expect(await bunFacade.file('/no/such/path/here.txt').exists()).toBe(false);
+  });
+
+  test('Bun.file.stat reports mtime on Node', async () => {
+    const stats = await bunFacade.file(selfPath).stat();
+    expect(typeof stats.mtimeMs).toBe('number');
+    expect(stats.mtimeMs).toBeGreaterThan(0);
+  });
+
+  test('Bun.write writes bytes and creates parent directories on Node', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'bun-write-facade-'));
+    try {
+      const target = join(root, 'nested', 'dir', 'out.txt');
+      const written = await bunFacade.write(target, 'hello facade\n');
+      expect(written).toBe(Buffer.byteLength('hello facade\n'));
+      expect(await bunFacade.file(target).text()).toBe('hello facade\n');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('Bun.Glob matches and scans on Node', () => {
+    const glob = new bunFacade.Glob('**/*.test.ts');
+    expect(glob.match('bun-global-shim.test.ts')).toBe(true);
+    expect(glob.match('nested/dir/thing.test.ts')).toBe(true);
+    expect(glob.match('bun-global-shim.ts')).toBe(false);
+
+    const scanned = [...new bunFacade.Glob('*.test.ts').scanSync({ cwd: selfDir })];
+    expect(scanned).toContain('bun-global-shim.test.ts');
+    expect(scanned).not.toContain('bun-global-shim.ts');
+  });
+
+  test('Bun.Glob skips dotfiles and dot-directories (default dot:false parity)', () => {
+    const root = mkdtempSync(join(tmpdir(), 'bun-glob-dot-'));
+    try {
+      writeFileSync(join(root, 'visible.ts'), '');
+      writeFileSync(join(root, '.hidden.ts'), '');
+      mkdirSync(join(root, '.git'));
+      writeFileSync(join(root, '.git', 'inside.ts'), '');
+      mkdirSync(join(root, 'sub'));
+      writeFileSync(join(root, 'sub', 'nested.ts'), '');
+
+      const found = [...new bunFacade.Glob('**/*.ts').scanSync({ cwd: root })];
+      expect(found).toContain('visible.ts');
+      expect(found).toContain('sub/nested.ts');
+      expect(found).not.toContain('.hidden.ts');
+      expect(found).not.toContain('.git/inside.ts');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('Bun.Glob.scanSync throws ENOENT at the call for a missing cwd, as Bun does', () => {
+    expect(
+      thrownCode(() => new bunFacade.Glob('**/*.ts').scanSync({ cwd: missingDirectory() })),
+    ).toBe('ENOENT');
+  });
+
+  test('Bun.Glob.scanSync throws ENOTDIR when cwd is a file, as Bun does', () => {
+    expect(thrownCode(() => new bunFacade.Glob('**/*.ts').scanSync({ cwd: selfPath }))).toBe(
+      'ENOTDIR',
+    );
+  });
+
+  test('Bun.Glob.scanSync throws EACCES for an unreadable directory it walks, as Bun does', () => {
+    const root = mkdtempSync(join(tmpdir(), 'bun-glob-unreadable-'));
+    const locked = join(root, 'locked');
+    mkdirSync(locked);
+    writeFileSync(join(locked, 'inside.ts'), '');
+    const realReaddirSync = fs.readdirSync;
+    const readdirSpy = vi
+      .spyOn(fs, 'readdirSync')
+      .mockImplementation((target: fs.PathLike, options?: unknown) => {
+        if (String(target) === locked) {
+          throw Object.assign(new Error(`EACCES: permission denied, scandir '${locked}'`), {
+            code: 'EACCES',
+          });
+        }
+        return Reflect.apply(realReaddirSync, fs, [target, options]);
+      });
+    try {
+      expect(thrownCode(() => new bunFacade.Glob('**/*.ts').scanSync({ cwd: root }))).toBe(
+        'EACCES',
+      );
+    } finally {
+      readdirSpy.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('Bun.Glob.scanSync yields nothing for an empty cwd or a missing directory named in the pattern, as Bun does', () => {
+    const root = mkdtempSync(join(tmpdir(), 'bun-glob-empty-'));
+    try {
+      expect([...new bunFacade.Glob('**/*.ts').scanSync({ cwd: root })]).toEqual([]);
+      mkdirSync(join(root, 'src'));
+      writeFileSync(join(root, 'src', 'present.ts'), '');
+      expect([...new bunFacade.Glob('lib/**/*.ts').scanSync({ cwd: root })]).toEqual([]);
+      expect([...new bunFacade.Glob('src/**/*.ts').scanSync({ cwd: root })]).toEqual([
+        'src/present.ts',
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('Bun.Glob.scan rejects on the first step for a missing cwd, as Bun does', async () => {
+    const steps = new bunFacade.Glob('**/*.ts').scan({ cwd: missingDirectory() });
+    await expect(steps.next()).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  test('Bun.TOML parses on Node', () => {
+    expect(bunFacade.TOML.parse('a = 1\n[b]\nc = "x"')).toEqual({ a: 1, b: { c: 'x' } });
+  });
+
+  test('Bun.resolveSync ignores the development condition (matches bun production resolution)', () => {
+    const resolved = bunFacade.resolveSync('micromark', selfDir).replaceAll('\\', '/');
+    expect(resolved).toContain('/node_modules/micromark/');
+    expect(resolved).not.toContain('/micromark/dev/');
+  });
+
+  test('Bun.Transpiler compiles TypeScript and throws on a syntax error', () => {
+    const transpiler = new bunFacade.Transpiler({ loader: 'ts' });
+    const out = transpiler.transformSync('const x: number = 1;\n');
+    expect(out).not.toContain(': number');
+    expect(out).toContain('const x');
+    expect(() => transpiler.transformSync('const = ;')).toThrow();
+    let transformAvailable = true;
+    try {
+      stripTypeScriptTypes('0', { mode: 'transform' });
+    } catch {
+      transformAvailable = false;
+    }
+    const enumSource = 'enum E { A, B }\n';
+    if (transformAvailable) {
+      expect(transpiler.transformSync(enumSource)).toContain('E');
+    } else {
+      expect(() => transpiler.transformSync(enumSource)).toThrow();
+    }
+  });
+
+  test('which/sleep/spawnSync/gc behave on Node', async () => {
+    expect(bunFacade.which('node')).toBeTruthy();
+
+    const start = Date.now();
+    await bunFacade.sleep(5);
+    expect(Date.now() - start).toBeGreaterThanOrEqual(3);
+
+    const result = bunFacade.spawnSync([process.execPath, '-e', 'process.stdout.write("hi")']);
+    expect(result.success).toBe(true);
+    expect(result.stdout.toString()).toBe('hi');
+
+    expect(() => bunFacade.gc()).not.toThrow();
+  });
+
+  test('spawnSync surfaces a launch failure instead of reporting exit 0', () => {
+    expect(() => bunFacade.spawnSync(['definitely-not-a-real-binary-xyz'])).toThrow();
+    expect(() =>
+      bunFacade.spawnSync({
+        cmd: [process.execPath, '-e', 'process.exit(0)'],
+        cwd: join(tmpdir(), 'ok-shim-nonexistent-cwd-probe'),
+      }),
+    ).toThrow();
+  });
+
+  test('a real non-zero exit still reports its code (not swallowed by the guard)', () => {
+    const result = bunFacade.spawnSync([process.execPath, '-e', 'process.exit(78)']);
+    expect(result.exitCode).toBe(78);
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('Bun.CryptoHasher', () => {
+  const SHA256_ABC_HEX = 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad';
+  const SHA256_ABC_BASE64 = 'ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=';
+
+  test('digests a known vector in hex and base64', () => {
+    expect(new bunFacade.CryptoHasher('sha256').update('abc').digest('hex')).toBe(SHA256_ABC_HEX);
+    expect(new bunFacade.CryptoHasher('sha256').update('abc').digest('base64')).toBe(
+      SHA256_ABC_BASE64,
+    );
+  });
+
+  test('.update() returns the hasher and accumulates across chained calls', () => {
+    const hasher = new bunFacade.CryptoHasher('sha256');
+    expect(hasher.update('a')).toBe(hasher);
+    expect(hasher.update('bc').digest('hex')).toBe(SHA256_ABC_HEX);
+  });
+});
+
+test('self alias is defined for browser-targeting modules', () => {
+  expect(self).toBe(globalThis);
+});

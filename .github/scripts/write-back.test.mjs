@@ -1,0 +1,2799 @@
+/* biome-ignore-all lint/suspicious/noTemplateCurlyInString: GitHub expression fixtures must remain literal. */
+/* biome-ignore-all lint/suspicious/noUndeclaredEnvVars: Tests exercise the GitHub Actions environment outside Turbo. */
+import { readFileSync } from 'node:fs';
+import { Node, Project, SyntaxKind, ts } from 'ts-morph';
+import { describe, expect, test } from 'vitest';
+import { parse } from 'yaml';
+import { deriveChannel } from './published-release-tags.mjs';
+import {
+  attachContactEmails,
+  CANDIDATE_QUERY,
+  CONTACT_EMAIL_QUERY,
+  changesetDirFor,
+  createIssueClosureReader,
+  createRedactor,
+  createRunOutput,
+  deriveVersionForFixRefs,
+  emailIdempotencyKey,
+  findChangesetPath,
+  isFixRepoInRemit,
+  isRetryableNetworkError,
+  isRetryableStatus,
+  isSelfRepoPr,
+  isStableVersion,
+  LINEAR_RETRY_ATTEMPTS,
+  LINEAR_RETRY_CAP_MS,
+  LinearRateLimitError,
+  linearGraphql,
+  listCandidatesWithContacts,
+  makeReleaseWindow,
+  notificationMarkerUrl,
+  parseChangeset,
+  parseMergeShaOutput,
+  parseRetryAfterSeconds,
+  readIssueStateWith,
+  resolveEmailMode,
+  retryDelayMs,
+  runFailureMessage,
+  runSummary,
+  runWriteBack,
+  selectGhToken,
+  sendReporterEmail,
+  toContactNode,
+  toNode,
+} from './write-back.mjs';
+import { composeReply, planIssueClose } from './write-back-gate.mjs';
+
+const GH_ISSUE = 'https://github.com/inkeep/open-knowledge/issues/769';
+const GH_PULL = 'https://github.com/inkeep/agents-private/pull/2844';
+const SLACK_ARCHIVE = 'https://inkeep.slack.com/archives/C016VCYCL74/p1727122965001469';
+const LINEAR_UPLOAD = 'https://uploads.linear.app/abc/def/diagnostics.zip';
+const DISCORD_THREAD = 'https://discord.com/channels/1514363990740828223/1528881792063508610';
+const CHANGESET_BODY =
+  'Honor backslash escapes in the markdown promoters.\n\nTyping the escape now stays literal.';
+const CHANGESET = { title: CHANGESET_BODY.split('\n')[0], body: CHANGESET_BODY };
+
+const PRIVATE_SHA = 'da71f0c698ccaac11da915169ca6c7d585d5eb97';
+const MIRRORED_SHA = 'eb52a625cd86859a8ec43ddc8f96e9b418d092a7';
+const STABLE_TAGS = ['v0.35.0', 'v0.35.2', 'v0.35.6', 'v0.36.0'];
+
+const candidate = (overrides = {}) => ({
+  id: 'uuid-7539',
+  identifier: 'PRD-7539',
+  stateType: 'completed',
+  labels: ['Bug', 'ok:platform'],
+  attachmentUrls: [GH_PULL, GH_ISSUE],
+  ...overrides,
+});
+
+function harness(overrides = {}) {
+  const logs = [];
+  const writes = [];
+  const deps = {
+    listCandidates: async () => [candidate()],
+    listChildren: async () => [],
+    versionFor: async () => 'v0.36.0',
+    stableVersionFor: async () => null,
+    isPublishedVersion: () => true,
+    readChangesetProse: async () => CHANGESET,
+    postReply: async (origin, text) => writes.push({ kind: 'post', origin: origin.url, text }),
+    recordNotification: async (marker) => writes.push({ kind: 'mark', url: marker.url }),
+    readIssueClosure: async () => planIssueClose({ issueState: 'closed' }),
+    closeIssue: async (origin) => writes.push({ kind: 'close', origin: origin.url }),
+    classifyRelease: makeReleaseWindow({ releaseTag: 'v0.36.0', minimumVersion: '0.35.0' }),
+    selfRepo: 'inkeep/open-knowledge',
+    log: (m) => logs.push(m),
+    ...overrides,
+  };
+  return { deps, logs, writes, run: () => runWriteBack(deps) };
+}
+
+function inspectWriteBackBoundaries(source) {
+  const project = new Project({
+    useInMemoryFileSystem: true,
+    skipLoadingLibFiles: true,
+    compilerOptions: { allowJs: true },
+  });
+  const boundaries = [
+    ['published-release-tags', 'realPublishedReleaseTags'],
+    ['resolve-shipped-version', 'resolveShippedVersion'],
+    ['tag-containment', 'createTagContainment'],
+  ].map(([module, name]) =>
+    project
+      .createSourceFile(
+        `/${module}.mjs`,
+        readFileSync(new URL(`./${module}.mjs`, import.meta.url), 'utf8'),
+      )
+      .getFunctionOrThrow(name)
+      .getSymbolOrThrow(),
+  );
+  const file = project.createSourceFile('/write-back.ts', source);
+  const value = (node, seen = new Set()) => {
+    if (!node || seen.has(node)) return undefined;
+    const next = new Set(seen).add(node);
+    if (Node.isParenthesizedExpression(node)) return value(node.getExpression(), next);
+    if (Node.isVariableDeclaration(node) || Node.isPropertyAssignment(node))
+      return value(node.getInitializer(), next);
+    if (Node.isShorthandPropertyAssignment(node))
+      return value(node.getValueSymbol()?.getDeclarations()[0], next);
+    if (Node.isIdentifier(node)) return value(node.getSymbol()?.getDeclarations()[0], next);
+    return node;
+  };
+  const isCallOf = (node, symbol) =>
+    !!node && Node.isCallExpression(node) && node.getExpression().getType().getSymbol() === symbol;
+  const main = file.getFunction('main');
+  const derive = file.getFunction('deriveVersionForFixRefs');
+  const createVersion = file.getFunction('createVersionFor');
+  const census = Object.entries({
+    main: !!main?.getBody(),
+    deriveVersionForFixRefs: !!derive?.getBody(),
+    createVersionFor: !!createVersion?.getBody(),
+    forwarding: file
+      .getExportDeclarations()
+      .every((declaration) => !declaration.getModuleSpecifier()),
+    syntax: project.getProgram().getSyntacticDiagnostics(file).length === 0,
+  }).flatMap(([name, holds]) => (holds ? [] : [name]));
+  const consumers = (main?.getDescendantsOfKind(SyntaxKind.CallExpression) ?? []).filter((call) =>
+    isCallOf(call, createVersion?.getSymbol()),
+  );
+  const input = (call, key) =>
+    value(call.getArguments()[0]?.getType().getProperty(key)?.getDeclarations()[0]);
+  const localTags = file
+    .getDescendantsOfKind(SyntaxKind.FunctionDeclaration)
+    .some((fn) => ['realStableTags', 'realReleaseTags'].includes(fn.getName()));
+  const filterBindings = new Set(
+    file
+      .getDescendantsOfKind(SyntaxKind.Identifier)
+      .filter((node) => ts.idText(node.compilerNode) === 'STABLE_TAG_RE')
+      .map((node) => node.getSymbol()),
+  );
+  const localFilters = file
+    .getDescendantsOfKind(SyntaxKind.CallExpression)
+    .some((call) =>
+      call
+        .getDescendantsOfKind(SyntaxKind.Identifier)
+        .some((node) => filterBindings.has(node.getSymbol())),
+    );
+
+  const tags =
+    consumers.length > 0 &&
+    !localTags &&
+    !localFilters &&
+    consumers.every((call) => isCallOf(input(call, 'stableTags'), boundaries[0]));
+  const localContainment = file.getDescendants().some((node) => {
+    const literal = node.compilerNode;
+    return (
+      (ts.isStringLiteralLike(literal) ||
+        ts.isTemplateHead(literal) ||
+        ts.isTemplateMiddle(literal) ||
+        ts.isTemplateTail(literal) ||
+        ts.isRegularExpressionLiteral(literal)) &&
+      /merge-base|--contains/.test(literal.text)
+    );
+  });
+  const containment =
+    !localContainment &&
+    consumers.length > 0 &&
+    consumers.every((call) => isCallOf(input(call, 'contains'), boundaries[2])) &&
+    !!derive
+      ?.getDescendantsOfKind(SyntaxKind.CallExpression)
+      .some((call) => isCallOf(call, boundaries[1]));
+  return { census, tags, containment };
+}
+
+describe('candidate enumeration', () => {
+  test('the candidate page proves whether a child lookup is necessary without filtering child states', () => {
+    expect(CANDIDATE_QUERY).toContain(
+      'children(first: 1) { nodes { id } pageInfo { hasNextPage } }',
+    );
+    expect(toNode({ children: { nodes: [], pageInfo: { hasNextPage: false } } }).hasChildren).toBe(
+      false,
+    );
+    expect(
+      toNode({ children: { nodes: [{ id: 'child' }], pageInfo: { hasNextPage: false } } })
+        .hasChildren,
+    ).toBe(true);
+    expect(toNode({ children: { nodes: [], pageInfo: { hasNextPage: true } } }).hasChildren).toBe(
+      true,
+    );
+    expect(toNode({ children: { nodes: [] } }).hasChildren).toBe(true);
+    expect(toNode({}).hasChildren).toBeUndefined();
+  });
+  test('candidates come from a Linear ticket query, never from a walk over release commits', () => {
+    expect(CANDIDATE_QUERY).toContain('issues(');
+    expect(CANDIDATE_QUERY).toContain('state: { type: { eq: "completed" } }');
+    expect(CANDIDATE_QUERY).not.toMatch(/commits?\s*\(/);
+  });
+
+  test('no label narrows the enumeration, because a label was never what a reply depends on', () => {
+    expect(CANDIDATE_QUERY).not.toMatch(/labels\s*:/);
+    expect(CANDIDATE_QUERY).not.toContain('Bug');
+    expect(CANDIDATE_QUERY).toContain('state: { type: { eq: "completed" } }');
+  });
+
+  test('the not-yet-notified condition is not expressed inside the query', () => {
+    expect(CANDIDATE_QUERY).not.toMatch(/notified/i);
+    expect(CANDIDATE_QUERY).toContain('attachments');
+  });
+
+  test('the tag list comes from the shared boundary, never a private copy of it', () => {
+    const source = readFileSync(new URL('./write-back.mjs', import.meta.url), 'utf8');
+    expect(inspectWriteBackBoundaries(source)).toMatchObject({ census: [], tags: true });
+  });
+
+  test('the module imports the shared shipped-version resolver rather than reimplementing containment', () => {
+    const source = readFileSync(new URL('./write-back.mjs', import.meta.url), 'utf8');
+    expect(inspectWriteBackBoundaries(source)).toMatchObject({ census: [], containment: true });
+  });
+});
+
+describe('version derivation', () => {
+  const findMirrored = (sha) =>
+    sha === PRIVATE_SHA
+      ? [{ sha: MIRRORED_SHA, message: `subject\n\nGitOrigin-RevId: ${PRIVATE_SHA}\n` }]
+      : [];
+  const containsFrom = (map) => (tag, sha) => (map[sha] ?? []).includes(tag);
+
+  const derive = (overrides = {}) =>
+    deriveVersionForFixRefs({
+      stableTags: STABLE_TAGS,
+      findMirroredCommits: findMirrored,
+      contains: containsFrom({ [MIRRORED_SHA]: ['v0.36.0'] }),
+      resolvePrMergeSha: () => PRIVATE_SHA,
+      ...overrides,
+    });
+
+  test('a pull-request fix reference resolves through tag containment', () => {
+    expect(derive({ fixReferences: [{ channel: 'pull-request', url: GH_PULL }] })).toBe('0.36.0');
+  });
+
+  test('a commit fix reference resolves without needing a pull request', () => {
+    expect(
+      derive({
+        fixReferences: [
+          {
+            channel: 'commit',
+            url: 'https://github.com/x/y/commit/' + PRIVATE_SHA,
+            sha: PRIVATE_SHA,
+          },
+        ],
+        resolvePrMergeSha: () => {
+          throw new Error('a commit reference must not need the pull-request hop');
+        },
+      }),
+    ).toBe('0.36.0');
+  });
+
+  test('across several fix references the answer is the highest, so the build contains all of them', () => {
+    const otherSha = 'b'.repeat(40);
+    const otherMirrored = 'c'.repeat(40);
+    expect(
+      deriveVersionForFixRefs({
+        fixReferences: [
+          { channel: 'commit', url: 'u1', sha: PRIVATE_SHA },
+          { channel: 'commit', url: 'u2', sha: otherSha },
+        ],
+        stableTags: STABLE_TAGS,
+        findMirroredCommits: (sha) =>
+          sha === PRIVATE_SHA
+            ? [{ sha: MIRRORED_SHA, message: `GitOrigin-RevId: ${PRIVATE_SHA}` }]
+            : [{ sha: otherMirrored, message: `GitOrigin-RevId: ${otherSha}` }],
+        contains: containsFrom({
+          [MIRRORED_SHA]: ['v0.35.2', 'v0.35.6', 'v0.36.0'],
+          [otherMirrored]: ['v0.36.0'],
+        }),
+        resolvePrMergeSha: () => PRIVATE_SHA,
+      }),
+    ).toBe('0.36.0');
+  });
+
+  test('a fix reference that has not reached a stable release yields no version at all', () => {
+    expect(
+      derive({
+        fixReferences: [{ channel: 'commit', url: 'u', sha: PRIVATE_SHA }],
+        contains: () => false,
+      }),
+    ).toBeNull();
+  });
+
+  test('a ticket with no fix references yields no version rather than throwing', () => {
+    expect(derive({ fixReferences: [] })).toBeNull();
+  });
+
+  test('the beta channel threads through to the resolver and answers with the beta', () => {
+    const shared = {
+      fixReferences: [{ channel: 'pull-request', url: GH_PULL }],
+      stableTags: [...STABLE_TAGS, 'v0.37.0-beta.0', 'v0.37.0-beta.1'],
+      contains: containsFrom({ [MIRRORED_SHA]: ['v0.37.0-beta.0', 'v0.37.0-beta.1'] }),
+    };
+    expect(derive({ ...shared, channel: 'beta' })).toBe('0.37.0-beta.0');
+    expect(derive(shared)).toBeNull();
+  });
+
+  test('the beta channel still yields nothing for a fix that is in no tag at all', () => {
+    expect(
+      derive({
+        fixReferences: [{ channel: 'pull-request', url: GH_PULL }],
+        contains: () => false,
+        channel: 'beta',
+      }),
+    ).toBeNull();
+  });
+
+  test('the mirror-PR containment fallback honours the channel it was given', () => {
+    const mirrorMain = 'd'.repeat(40);
+    expect(
+      deriveVersionForFixRefs({
+        fixReferences: [
+          { channel: 'pull-request', url: 'https://github.com/inkeep/open-knowledge/pull/928' },
+        ],
+        stableTags: [...STABLE_TAGS, 'v0.37.0-beta.0'],
+        selfRepo: 'inkeep/open-knowledge',
+        resolvePrMergeSha: () => mirrorMain,
+        readCommitMessage: () => 'subject carrying no trailer at all',
+        findMirroredCommits: () => [],
+        contains: (tag, sha) => sha === mirrorMain && tag === 'v0.37.0-beta.0',
+        channel: 'beta',
+      }),
+    ).toBe('0.37.0-beta.0');
+  });
+
+  test('a mirror pull request in this repo resolves through its merge commit trailer', () => {
+    const mirrorMain = 'd'.repeat(40);
+    const cherryPick = 'e'.repeat(40);
+    expect(
+      deriveVersionForFixRefs({
+        fixReferences: [
+          { channel: 'pull-request', url: 'https://github.com/inkeep/open-knowledge/pull/928' },
+        ],
+        stableTags: STABLE_TAGS,
+        selfRepo: 'inkeep/open-knowledge',
+        resolvePrMergeSha: () => mirrorMain,
+        readCommitMessage: (sha) =>
+          sha === mirrorMain ? `subject\n\nGitOrigin-RevId: ${PRIVATE_SHA}\n` : null,
+        findMirroredCommits: (sha) =>
+          sha === PRIVATE_SHA
+            ? [
+                { sha: mirrorMain, message: `GitOrigin-RevId: ${PRIVATE_SHA}` },
+                { sha: cherryPick, message: `GitOrigin-RevId: ${PRIVATE_SHA}` },
+              ]
+            : [],
+        contains: containsFrom({ [cherryPick]: ['v0.35.6', 'v0.36.0'] }),
+      }),
+    ).toBe('0.35.6');
+  });
+
+  test('a private fix reference still derives with the mirror PR echo attached beside it', () => {
+    const mirrorEcho = 'f'.repeat(40);
+    expect(
+      deriveVersionForFixRefs({
+        fixReferences: [
+          { channel: 'pull-request', url: GH_PULL },
+          { channel: 'pull-request', url: 'https://github.com/inkeep/open-knowledge/pull/928' },
+        ],
+        stableTags: STABLE_TAGS,
+        selfRepo: 'inkeep/open-knowledge',
+        resolvePrMergeSha: ({ repo }) => (repo === 'agents-private' ? PRIVATE_SHA : mirrorEcho),
+        readCommitMessage: (sha) =>
+          sha === mirrorEcho ? `subject\n\nGitOrigin-RevId: ${PRIVATE_SHA}\n` : null,
+        findMirroredCommits: (sha) =>
+          sha === PRIVATE_SHA
+            ? [{ sha: MIRRORED_SHA, message: `GitOrigin-RevId: ${PRIVATE_SHA}` }]
+            : [],
+        contains: containsFrom({ [MIRRORED_SHA]: ['v0.36.0'] }),
+      }),
+    ).toBe('0.36.0');
+  });
+
+  test('a mirror pull request with no trailer falls back to containment of its merge commit', () => {
+    const directSha = 'a1'.repeat(20);
+    expect(
+      deriveVersionForFixRefs({
+        fixReferences: [
+          { channel: 'pull-request', url: 'https://github.com/inkeep/open-knowledge/pull/500' },
+        ],
+        stableTags: STABLE_TAGS,
+        selfRepo: 'inkeep/open-knowledge',
+        resolvePrMergeSha: () => directSha,
+        readCommitMessage: () => 'subject with no trailer\n',
+        findMirroredCommits: () => {
+          throw new Error('a trailerless self-repo merge must not be trailer-searched');
+        },
+        contains: containsFrom({ [directSha]: ['v0.36.0'] }),
+      }),
+    ).toBe('0.36.0');
+  });
+
+  test('a mirror merge commit with more than one origin trailer is ambiguous and falls back to containment', () => {
+    const otherSha = '9'.repeat(40);
+    const mergeSha = 'c3'.repeat(20);
+    const logs = [];
+    expect(
+      deriveVersionForFixRefs({
+        fixReferences: [
+          { channel: 'pull-request', url: 'https://github.com/inkeep/open-knowledge/pull/502' },
+        ],
+        stableTags: STABLE_TAGS,
+        selfRepo: 'inkeep/open-knowledge',
+        resolvePrMergeSha: () => mergeSha,
+        readCommitMessage: () => `GitOrigin-RevId: ${PRIVATE_SHA}\nGitOrigin-RevId: ${otherSha}\n`,
+        findMirroredCommits: () => {
+          throw new Error('an ambiguous trailer must not be trailer-searched');
+        },
+        contains: containsFrom({ [mergeSha]: ['v0.35.6'] }),
+        log: (m) => logs.push(m),
+      }),
+    ).toBe('0.35.6');
+    expect(logs.join(' ')).toContain('more than one origin trailer');
+  });
+
+  test('isSelfRepoPr is repo-identity plus a not-the-origin guard', () => {
+    const pr = (owner, repo) => ({ kind: 'pr', owner, repo, number: 1 });
+    expect(isSelfRepoPr(pr('inkeep', 'open-knowledge'), 'inkeep/open-knowledge')).toBe(true);
+    expect(isSelfRepoPr(pr('inkeep', 'Open-Knowledge'), 'inkeep/open-knowledge')).toBe(true);
+    expect(isSelfRepoPr(pr('inkeep', 'agents-private'), 'inkeep/open-knowledge')).toBe(false);
+    expect(isSelfRepoPr({ kind: 'sha', sha: 'a'.repeat(40) }, 'inkeep/open-knowledge')).toBe(false);
+    expect(isSelfRepoPr(pr('inkeep', 'open-knowledge'), undefined)).toBe(false);
+    expect(isSelfRepoPr(pr('inkeep', 'agents-private'), 'inkeep/agents-private')).toBe(false);
+    expect(isSelfRepoPr(pr('inkeep', 'some-fork'), 'inkeep/some-fork', 'inkeep/some-fork')).toBe(
+      false,
+    );
+  });
+
+  test('a mirror pull request contained in no stable yet yields no version', () => {
+    const logs = [];
+    expect(
+      deriveVersionForFixRefs({
+        fixReferences: [
+          { channel: 'pull-request', url: 'https://github.com/inkeep/open-knowledge/pull/501' },
+        ],
+        stableTags: STABLE_TAGS,
+        selfRepo: 'inkeep/open-knowledge',
+        resolvePrMergeSha: () => 'b2'.repeat(20),
+        readCommitMessage: () => 'subject with no trailer\n',
+        findMirroredCommits: () => [],
+        contains: () => false,
+        log: (m) => logs.push(m),
+      }),
+    ).toBeNull();
+    expect(logs.join(' ')).toContain('not-in-any-stable');
+  });
+
+  test('a fix reference naming a pull request that was closed unmerged is an answer, not a fault', () => {
+    const logs = [];
+    expect(
+      derive({
+        fixReferences: [{ channel: 'pull-request', url: GH_PULL }],
+        resolvePrMergeSha: () => null,
+        log: (m) => logs.push(m),
+      }),
+    ).toBeNull();
+    expect(logs.join(' ')).toContain('closed without merging');
+  });
+
+  test('the merge-sha reply distinguishes "never merged" from "cannot be accounted for"', () => {
+    const at = { owner: 'inkeep', repo: 'agents-private', number: 2844 };
+    const sha = 'da71f0c698ccaac11da915169ca6c7d585d5eb97';
+
+    expect(parseMergeShaOutput('null\n', at)).toBeNull();
+    expect(parseMergeShaOutput('\n', at)).toBeNull();
+    expect(parseMergeShaOutput('2026-07-23T14:19:56Z\n' + sha, at)).toBe(sha);
+    expect(parseMergeShaOutput('2026-07-23T14:19:56Z\n' + sha.toUpperCase(), at)).toBe(sha);
+
+    expect(() => parseMergeShaOutput('2026-07-23T14:19:56Z\nnot-a-sha', at)).toThrow(
+      /merge_commit_sha/,
+    );
+  });
+
+  test('a fix reference in a repo this workflow cannot reach is skipped, not attempted', () => {
+    const logs = [];
+    expect(
+      derive({
+        fixReferences: [
+          { channel: 'pull-request', url: 'https://github.com/inkeep/management/pull/272' },
+        ],
+        selfRepo: 'inkeep/open-knowledge',
+        resolvePrMergeSha: () => {
+          throw new Error('must not be attempted: this repo is out of remit');
+        },
+        log: (m) => logs.push(m),
+      }),
+    ).toBeNull();
+    expect(logs.join(' ')).toContain('outside');
+  });
+
+  test('the two repos it CAN read are still attempted, so the 404 bug cannot come back', () => {
+    for (const url of [
+      'https://github.com/inkeep/agents-private/pull/2864',
+      'https://github.com/inkeep/open-knowledge/pull/12',
+    ]) {
+      let attempted = false;
+      expect(
+        derive({
+          fixReferences: [{ channel: 'pull-request', url }],
+          selfRepo: 'inkeep/open-knowledge',
+          resolvePrMergeSha: () => {
+            attempted = true;
+            return PRIVATE_SHA;
+          },
+          readCommitMessage: (sha) =>
+            sha === PRIVATE_SHA ? `subject\n\nGitOrigin-RevId: ${PRIVATE_SHA}\n` : null,
+        }),
+      ).toBe('0.36.0');
+      expect(attempted, `${url} must be attempted`).toBe(true);
+    }
+  });
+
+  test('remit is decided by repo identity, and a bare commit SHA needs no repo at all', () => {
+    const at = { defaultRepo: 'inkeep/agents-private', selfRepo: 'inkeep/open-knowledge' };
+    expect(isFixRepoInRemit({ kind: 'pr', owner: 'inkeep', repo: 'agents-private' }, at)).toBe(
+      true,
+    );
+    expect(isFixRepoInRemit({ kind: 'pr', owner: 'InKeep', repo: 'Agents-Private' }, at)).toBe(
+      true,
+    );
+    expect(isFixRepoInRemit({ kind: 'pr', owner: 'inkeep', repo: 'open-knowledge' }, at)).toBe(
+      true,
+    );
+    expect(isFixRepoInRemit({ kind: 'pr', owner: 'inkeep', repo: 'management' }, at)).toBe(false);
+    expect(
+      isFixRepoInRemit({ kind: 'pr', owner: 'inkeep', repo: 'open-knowledge-legacy' }, at),
+    ).toBe(false);
+    expect(isFixRepoInRemit({ kind: 'sha', sha: PRIVATE_SHA }, at)).toBe(true);
+  });
+
+  test('an unreadable pull request still throws, because that one is not an answer', () => {
+    expect(() =>
+      derive({
+        fixReferences: [{ channel: 'pull-request', url: GH_PULL }],
+        resolvePrMergeSha: () => {
+          throw new Error('gh api pulls/2844 failed: HTTP 404');
+        },
+      }),
+    ).toThrow(/404/);
+  });
+
+  test('an infra failure in the git boundary propagates rather than reading as not-shipped', () => {
+    expect(() =>
+      derive({
+        fixReferences: [{ channel: 'commit', url: 'u', sha: PRIVATE_SHA }],
+        contains: () => {
+          throw new Error('git exploded');
+        },
+      }),
+    ).toThrow(/git exploded/);
+  });
+});
+
+describe('idempotency marker', () => {
+  test('the marker url is deterministic in the origin and the version', () => {
+    const a = notificationMarkerUrl({ version: '0.36.0', originUrl: GH_ISSUE });
+    const b = notificationMarkerUrl({ version: 'v0.36.0', originUrl: GH_ISSUE });
+    expect(a).toBe(b);
+    expect(a).toContain('/releases/tag/v0.36.0');
+    expect(a).toContain(encodeURIComponent(GH_ISSUE));
+  });
+
+  test('a different origin or a different version yields a different marker', () => {
+    const base = notificationMarkerUrl({ version: '0.36.0', originUrl: GH_ISSUE });
+    expect(notificationMarkerUrl({ version: '0.36.1', originUrl: GH_ISSUE })).not.toBe(base);
+    expect(notificationMarkerUrl({ version: '0.36.0', originUrl: `${GH_ISSUE}0` })).not.toBe(base);
+  });
+});
+
+describe('write-back run', () => {
+  test('an enumeration throttle returns an unknown deferred count without processing or writing', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => {
+        throw new LinearRateLimitError();
+      },
+    });
+    const result = await h.run();
+    expect(result.deferred).toBeNull();
+    expect(result.errored).toHaveLength(1);
+    expect(h.writes).toEqual([]);
+    expect(runFailureMessage(result)).toContain('remaining count is unknown');
+  });
+
+  test('quota diagnostics retain endpoint and complexity windows without mislabelling them as global', () => {
+    const headers = {
+      'x-ratelimit-endpoint-name': 'attachmentCreate',
+      'x-ratelimit-endpoint-requests-reset': '123',
+      'x-ratelimit-complexity-reset': '456',
+      'retry-after': '2',
+    };
+    const error = new LinearRateLimitError({ get: (name) => headers[name] });
+    expect(error.message).toContain('endpoint attachmentCreate reset epoch ms: 123');
+    expect(error.message).toContain('complexity reset epoch ms: 456');
+    expect(error.message).toContain('retry-after: 2');
+    expect(error.message).not.toContain('(request reset');
+  });
+  test('leaf issues spend no separate child-query request', async () => {
+    let calls = 0;
+    const leaf = toNode({
+      id: 'leaf',
+      identifier: 'PRD-7539',
+      state: { type: 'completed' },
+      attachments: { nodes: [{ url: GH_ISSUE }, { url: GH_PULL }] },
+      children: { nodes: [], pageInfo: { hasNextPage: false } },
+    });
+    const h = harness({
+      listCandidates: async () => [leaf],
+      listChildren: async () => {
+        calls++;
+        return [];
+      },
+    });
+    const result = await h.run();
+    expect(result.posted).toHaveLength(1);
+    expect(calls).toBe(0);
+  });
+
+  test.each([true, undefined])(
+    'a parent or unknown child hint still loads every child (hint=%s)',
+    async (hasChildren) => {
+      let calls = 0;
+      const h = harness({
+        listCandidates: async () => [candidate({ hasChildren })],
+        listChildren: async () => {
+          calls++;
+          return [candidate({ id: 'child', identifier: 'PRD-0002', stateType: 'started' })];
+        },
+      });
+      const result = await h.run();
+      expect(calls).toBe(1);
+      expect(result.posted).toEqual([]);
+    },
+  );
+
+  test('a Linear quota refusal stops the entire scan instead of querying every remaining candidate', async () => {
+    let calls = 0;
+    const h = harness({
+      live: true,
+      listCandidates: async () => [
+        candidate(),
+        candidate({ id: '2', identifier: 'PRD-2' }),
+        candidate({ id: '3', identifier: 'PRD-3' }),
+      ],
+      listChildren: async () => {
+        calls++;
+        throw new LinearRateLimitError({ get: () => '1790326800000' });
+      },
+    });
+    const result = await h.run();
+    expect(calls).toBe(1);
+    expect(result.deferred).toBe(2);
+    expect(result.errored).toHaveLength(1);
+    expect(result.errored[0].message).toContain('1790326800000');
+    expect(h.writes).toEqual([]);
+  });
+  test('with no explicit live mode it composes and logs but performs no writes at all', async () => {
+    const h = harness();
+    const result = await h.run();
+    expect(result.dryRun).toBe(true);
+    expect(h.writes).toEqual([]);
+    expect(result.posted).toHaveLength(1);
+    expect(h.logs.some((m) => m.includes('[dry run]'))).toBe(true);
+  });
+
+  test('in live mode it records the notification before posting to the origin', async () => {
+    const h = harness({ live: true });
+    await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post']);
+    const post = h.writes.find((w) => w.kind === 'post');
+    const mark = h.writes.find((w) => w.kind === 'mark');
+    expect(post.origin).toBe(GH_ISSUE);
+    expect(post.text).toContain('v0.36.0');
+    expect(post.text).not.toContain(CHANGESET.body);
+    expect(post.text).toContain('https://github.com/inkeep/open-knowledge/releases');
+    expect(mark.url).toBe(notificationMarkerUrl({ version: '0.36.0', originUrl: GH_ISSUE }));
+  });
+
+  test('a discord-thread origin is composed for Discord, not just classified as one', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, DISCORD_THREAD] })],
+    });
+    await h.run();
+    const post = h.writes.find((w) => w.kind === 'post');
+    expect(post.origin).toBe(DISCORD_THREAD);
+    expect(post.text).toContain('<https://github.com/inkeep/open-knowledge/releases/tag/v0.36.0>');
+  });
+
+  test('a failure while recording the marker leaves the reporter unmessaged', async () => {
+    const h = harness({
+      live: true,
+      recordNotification: async () => {
+        throw new Error('Linear attachmentCreate reported failure');
+      },
+    });
+    const result = await h.run();
+    expect(h.writes.filter((w) => w.kind === 'post')).toHaveLength(0);
+    expect(result.errored).toHaveLength(1);
+    expect(result.errored[0].message).toMatch(/attachmentCreate/);
+    expect(result.skipped).toEqual([]);
+  });
+
+  test('running twice against the same release posts exactly once', async () => {
+    const marker = notificationMarkerUrl({ version: '0.36.0', originUrl: GH_ISSUE });
+    const first = harness({ live: true });
+    await first.run();
+    expect(first.writes.filter((w) => w.kind === 'post')).toHaveLength(1);
+
+    const second = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, GH_ISSUE, marker] })],
+    });
+    const result = await second.run();
+    expect(second.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'already-notified' }]);
+  });
+
+  test('a candidate whose version cannot be derived posts nothing and warns distinguishably', async () => {
+    const h = harness({ live: true, versionFor: async () => null });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'version-underivable' }]);
+    expect(
+      h.logs.some(
+        (m) => m.startsWith('::warning::') && m.includes('no stable release could be derived'),
+      ),
+    ).toBe(true);
+  });
+
+  test('a candidate whose only origin cannot be replied to posts nothing and warns', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, SLACK_ARCHIVE] })],
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'origin-unrepliable' }]);
+    expect(
+      h.logs.some(
+        (m) => m.startsWith('::warning::') && m.includes('no origin on it can be replied to'),
+      ),
+    ).toBe(true);
+  });
+
+  test('a candidate with no origin at all is skipped quietly, because not every fix has a reporter', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL] })],
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'no-origin' }]);
+    expect(h.logs.some((m) => m.startsWith('::warning::'))).toBe(false);
+  });
+
+  test('an outstanding descendant withholds the whole reply', async () => {
+    const h = harness({
+      live: true,
+      listChildren: async () => [
+        {
+          id: 'a',
+          identifier: 'PRD-7398',
+          stateType: 'completed',
+          labels: ['Bug'],
+          attachmentUrls: [],
+        },
+        { id: 'b', identifier: 'PRD-7401', stateType: 'unstarted', labels: [], attachmentUrls: [] },
+      ],
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'fan-in-withheld' }]);
+  });
+
+  test('a candidate with no changeset prose posts nothing rather than a bare version', async () => {
+    const h = harness({ live: true, readChangesetProse: async () => null });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'no-prose' }]);
+    expect(
+      h.logs.some((m) => m.startsWith('::warning::') && m.includes('no changeset prose')),
+    ).toBe(true);
+  });
+
+  test('an infra failure throws out of the run rather than being folded into silence', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => {
+        throw new Error('Linear GraphQL returned HTTP 500');
+      },
+    });
+    await expect(h.run()).rejects.toThrow(/HTTP 500/);
+  });
+
+  test('the coverage of a fanned-in report reaches the reply', async () => {
+    const h = harness({
+      live: true,
+      listChildren: async () => [
+        {
+          id: 'a',
+          identifier: 'PRD-7398',
+          stateType: 'completed',
+          labels: ['Bug'],
+          attachmentUrls: [],
+        },
+        { id: 'b', identifier: 'PRD-7403', stateType: 'completed', labels: [], attachmentUrls: [] },
+      ],
+    });
+    await h.run();
+    expect(h.writes.find((w) => w.kind === 'post').text).toContain('Covers PRD-7398, PRD-7403.');
+  });
+});
+
+describe('emailing a reporter who left a contact email', () => {
+  const ADDRESS = 'jo.reporter@example.com';
+  const CONTACT = { address: ADDRESS, reportIdentifier: 'PRD-7539' };
+  const MAILTO = `mailto:${ADDRESS}`;
+  const emailHarness = (overrides = {}) => {
+    const h = harness({
+      emailMode: 'live',
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL], contacts: [CONTACT] })],
+      ...overrides,
+    });
+    h.deps.postReply =
+      overrides.postReply ??
+      (async (origin, text, message) => {
+        h.writes.push({ kind: 'post', origin: origin.url, text, ...message });
+        return origin.channel === 'email' ? { id: 'msg_123' } : undefined;
+      });
+    return h;
+  };
+  const leaked = (h, result) =>
+    [...h.logs, JSON.stringify(result), runFailureMessage(result) ?? ''].some((line) =>
+      line.includes(ADDRESS),
+    );
+
+  test('the email is sent first, under a key derived from its marker, and then marked', async () => {
+    const h = emailHarness({ live: true });
+    const result = await h.run();
+    const marker = notificationMarkerUrl({ version: '0.36.0', originUrl: MAILTO });
+    expect(h.writes.map((w) => w.kind)).toEqual(['post', 'mark']);
+    const [post, mark] = h.writes;
+    expect(mark.url).toBe(marker);
+    expect(post.origin).toBe(MAILTO);
+    expect(post.idempotencyKey).toBe(emailIdempotencyKey('uuid-7539', marker));
+    expect(post.subject).toBe('Your Open Knowledge report PRD-7539 is fixed in v0.36.0');
+    expect(post.text).toContain('https://github.com/inkeep/open-knowledge/releases/tag/v0.36.0');
+    expect(result.posted).toEqual([
+      expect.objectContaining({ origin: 'the contact email from PRD-7539', messageId: 'msg_123' }),
+    ]);
+    expect(h.logs.some((m) => m.includes('Resend message msg_123'))).toBe(true);
+  });
+
+  test('the idempotency key is the same on every run, so a retried send is not delivered twice', () => {
+    const marker = notificationMarkerUrl({ version: '0.36.0', originUrl: MAILTO });
+    expect(emailIdempotencyKey('uuid-7539', marker)).toBe(emailIdempotencyKey('uuid-7539', marker));
+    expect(emailIdempotencyKey('uuid-7539', marker)).not.toContain(ADDRESS);
+    expect(emailIdempotencyKey('uuid-7539', marker)).not.toBe(
+      emailIdempotencyKey(
+        'uuid-7539',
+        notificationMarkerUrl({ version: '0.36.1', originUrl: MAILTO }),
+      ),
+    );
+  });
+
+  test('two tickets from one address in one release are two sends, not one', () => {
+    const marker = notificationMarkerUrl({ version: '0.36.0', originUrl: MAILTO });
+    expect(emailIdempotencyKey('uuid-1', marker)).not.toBe(emailIdempotencyKey('uuid-2', marker));
+  });
+
+  test('a key Resend already accepted for this ticket is marked, and says it sent nothing new', async () => {
+    const h = emailHarness({
+      live: true,
+      postReply: async (origin) => {
+        h.writes.push({ kind: 'post', origin: origin.url });
+        return { id: null, alreadyAccepted: true };
+      },
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['post', 'mark']);
+    expect(result.errored).toEqual([]);
+    expect(
+      h.logs.some((m) => m.startsWith('::warning::') && m.includes('without sending again')),
+    ).toBe(true);
+    expect(h.logs.some((m) => m.includes('emailed the contact email'))).toBe(false);
+  });
+
+  test('the message id is logged before the marker, so a failed marker still names the send', async () => {
+    const h = emailHarness({
+      live: true,
+      recordNotification: async () => {
+        throw new Error('Linear attachmentCreate reported failure');
+      },
+    });
+    await h.run();
+    expect(h.logs.some((m) => m.includes('Resend message msg_123'))).toBe(true);
+  });
+
+  test('a send that fails writes no marker and is left for the next run', async () => {
+    const h = emailHarness({
+      live: true,
+      postReply: async () => {
+        throw new Error('Resend returned HTTP 503: unavailable');
+      },
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.errored).toEqual([
+      expect.objectContaining({ identifier: 'PRD-7539', disposition: 'retried-next-run' }),
+    ]);
+  });
+
+  test('the marker is keyed on the lowercased address, so a hand-written one matches', async () => {
+    const marker = notificationMarkerUrl({ version: '0.36.0', originUrl: MAILTO });
+    const h = emailHarness({
+      live: true,
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [GH_PULL, marker],
+          contacts: [{ ...CONTACT, address: 'Jo.Reporter@Example.com' }],
+        }),
+      ],
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'already-notified' }]);
+  });
+
+  test("one address that fails does not stop the ticket's other addresses", async () => {
+    const SAM = 'mailto:sam@example.com';
+    const h = emailHarness({
+      live: true,
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [GH_PULL],
+          contacts: [CONTACT, { address: 'sam@example.com', reportIdentifier: 'PRD-9945' }],
+        }),
+      ],
+      postReply: async (origin) => {
+        if (origin.url === MAILTO) throw new Error('Resend returned HTTP 422: invalid to');
+        h.writes.push({ kind: 'post', origin: origin.url });
+        return { id: 'msg_9' };
+      },
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => [w.kind, w.origin ?? w.url])).toEqual([
+      ['post', SAM],
+      ['mark', notificationMarkerUrl({ version: '0.36.0', originUrl: SAM })],
+    ]);
+    expect(result.errored).toEqual([
+      expect.objectContaining({ identifier: 'PRD-7539', disposition: 'retried-next-run' }),
+    ]);
+    expect(result.errored[0].message).toContain('the contact email from PRD-7539');
+    expect(result.errored[0].message).toContain('on the stable leg for v0.36.0');
+    expect(result.errored[0].message).toContain("attaching that address's marker");
+  });
+
+  test('a marker that fails after the send is left for the next run, not a person', async () => {
+    const h = emailHarness({
+      live: true,
+      recordNotification: async () => {
+        throw new Error('Linear attachmentCreate reported failure');
+      },
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['post']);
+    expect(result.errored[0].disposition).toBe('retried-next-run');
+  });
+
+  test('a report that also came from a GitHub issue answers both', async () => {
+    const h = emailHarness({
+      live: true,
+      listCandidates: async () => [
+        candidate({ attachmentUrls: [GH_PULL, GH_ISSUE], contacts: [CONTACT] }),
+      ],
+    });
+    await h.run();
+    expect(h.writes.filter((w) => w.kind === 'post').map((w) => w.origin)).toEqual([
+      GH_ISSUE,
+      MAILTO,
+    ]);
+  });
+
+  test('the address is emailed once per release, however many runs see it', async () => {
+    const marker = notificationMarkerUrl({ version: '0.36.0', originUrl: MAILTO });
+    const h = emailHarness({
+      live: true,
+      listCandidates: async () => [
+        candidate({ attachmentUrls: [GH_PULL, marker], contacts: [CONTACT] }),
+      ],
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'already-notified' }]);
+  });
+
+  test('a beta email names the beta and promises a second email', async () => {
+    const h = emailHarness({
+      live: true,
+      channel: 'beta',
+      versionFor: async () => '0.36.0-beta.1',
+      stableVersionFor: async () => null,
+      classifyRelease: makeReleaseWindow({
+        releaseTag: 'v0.36.0-beta.1',
+        channel: 'beta',
+        minimumVersion: '0.35.0-beta.0',
+      }),
+    });
+    await h.run();
+    const post = h.writes.find((w) => w.kind === 'post');
+    expect(post.subject).toBe(
+      'A fix for your Open Knowledge report PRD-7539 is in beta v0.36.0-beta.1',
+    );
+    expect(post.text).toContain('email you again');
+  });
+
+  test('an email that corrects an unavailable release says so in its subject', async () => {
+    const h = emailHarness({
+      live: true,
+      isPublishedVersion: (version) => version !== '0.35.9',
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [
+            GH_PULL,
+            notificationMarkerUrl({ version: '0.35.9', originUrl: MAILTO }),
+          ],
+          contacts: [CONTACT],
+        }),
+      ],
+    });
+    await h.run();
+    expect(h.writes.find((w) => w.kind === 'post').subject).toBe(
+      'Correction: your Open Knowledge report PRD-7539 is fixed in v0.36.0',
+    );
+  });
+
+  test('an Inkeep address is never emailed', async () => {
+    const h = emailHarness({
+      live: true,
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [GH_PULL],
+          contacts: [{ address: 'dev@inkeep.com', reportIdentifier: 'PRD-7539' }],
+        }),
+      ],
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'internal-reporter' }]);
+  });
+
+  test('an Inkeep address does not stop a reply to the GitHub issue beside it', async () => {
+    const h = emailHarness({
+      live: true,
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [GH_PULL, GH_ISSUE],
+          contacts: [{ address: 'dev@inkeep.com', reportIdentifier: 'PRD-7539' }],
+        }),
+      ],
+    });
+    await h.run();
+    expect(h.writes.filter((w) => w.kind === 'post').map((w) => w.origin)).toEqual([GH_ISSUE]);
+  });
+
+  test('with no mail transport configured the address is left alone, not marked', async () => {
+    const h = emailHarness({ live: true, emailMode: 'off' });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'email-unconfigured' }]);
+  });
+
+  test('a configured key alone previews email while the other channels stay live', async () => {
+    const h = emailHarness({
+      live: true,
+      emailMode: 'dry-run',
+      listCandidates: async () => [
+        candidate({ attachmentUrls: [GH_PULL, GH_ISSUE], contacts: [CONTACT] }),
+      ],
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => [w.kind, w.origin ?? w.url])).toEqual([
+      ['mark', notificationMarkerUrl({ version: '0.36.0', originUrl: GH_ISSUE })],
+      ['post', GH_ISSUE],
+    ]);
+    expect(result.posted.map((p) => [p.origin, p.dryRun])).toEqual([
+      [GH_ISSUE, false],
+      ['the contact email from PRD-7539', true],
+    ]);
+    expect(h.logs.some((m) => m.includes('[dry run] would reply to the contact email'))).toBe(true);
+  });
+
+  test('an email reporter is not shown the internal tickets a fix covers', async () => {
+    const h = emailHarness({
+      live: true,
+      listChildren: async () => [
+        {
+          id: 'a',
+          identifier: 'PRD-7398',
+          stateType: 'completed',
+          labels: ['Bug'],
+          attachmentUrls: [],
+        },
+      ],
+      listCandidates: async () => [
+        candidate({ attachmentUrls: [GH_PULL, GH_ISSUE], contacts: [CONTACT] }),
+      ],
+    });
+    await h.run();
+    const [github, email] = h.writes.filter((w) => w.kind === 'post');
+    expect(github.text).toContain('Covers PRD-7398.');
+    expect(email.text).not.toContain('PRD-7398');
+  });
+
+  test('feedback is answered without a ticket id the sender was never shown', async () => {
+    const h = emailHarness({
+      live: true,
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [GH_PULL],
+          contacts: [{ ...CONTACT, reportKind: 'feedback' }],
+        }),
+      ],
+    });
+    await h.run();
+    expect(h.writes.find((w) => w.kind === 'post').subject).toBe(
+      'What you told us about Open Knowledge is fixed in v0.36.0',
+    );
+  });
+
+  test('an unknown email mode is refused rather than read as off', async () => {
+    await expect(emailHarness({ emailMode: 'yes' }).run()).rejects.toThrow(/emailMode/);
+  });
+
+  test('the run itself names an email origin only by its label', async () => {
+    const dry = emailHarness();
+    expect(leaked(dry, await dry.run())).toBe(false);
+    expect(dry.logs.some((m) => m.includes('[dry run]') && m.includes('PRD-7539'))).toBe(true);
+
+    const live = emailHarness({ live: true });
+    expect(leaked(live, await live.run())).toBe(false);
+  });
+});
+
+describe('keeping addresses out of the public log', () => {
+  test('every form of a known address is scrubbed, whatever its case', () => {
+    const redactor = createRedactor();
+    redactor.add('Jo.Reporter+ok@Example.com');
+    const marker = notificationMarkerUrl({
+      version: '0.36.0',
+      originUrl: 'mailto:jo.reporter+ok@example.com',
+    });
+    const scrubbed = redactor.scrub(
+      `failed for JO.REPORTER+OK@EXAMPLE.COM and ${marker} and jo.reporter%2Bok%40example.com`,
+    );
+    expect(scrubbed).not.toMatch(/jo\.reporter/i);
+    expect(scrubbed).toContain('the contact email');
+  });
+
+  test("both of the run's output sinks scrub what they print", () => {
+    const printed = [];
+    const output = createRunOutput({
+      out: (m) => printed.push(['out', m]),
+      err: (m) => printed.push(['err', m]),
+    });
+    output.redactor.add('jo@example.com');
+    output.log('notice for jo@example.com');
+    output.error('error for JO%40EXAMPLE.COM');
+    expect(printed).toEqual([
+      ['out', 'notice for the contact email'],
+      ['err', 'error for the contact email'],
+    ]);
+  });
+
+  test('a redactor that knows no address changes nothing', () => {
+    expect(createRedactor().scrub('PRD-7539 at jo@example.com')).toBe('PRD-7539 at jo@example.com');
+  });
+});
+
+describe('finding the contact email on a ticket', () => {
+  test('a narrow query lists completed and duplicate intake tickets that name the field', () => {
+    expect(CONTACT_EMAIL_QUERY).toContain('state: { type: { in: ["completed", "duplicate"] } }');
+    expect(CONTACT_EMAIL_QUERY).toContain(
+      'labels: { some: { name: { in: ["ok:intake", "ok:feedback"] } } }',
+    );
+    expect(CONTACT_EMAIL_QUERY).toContain('description: { containsIgnoreCase: "Contact email:" }');
+    expect(CONTACT_EMAIL_QUERY).toContain('relations { nodes { type relatedIssue { id } } }');
+    expect(CANDIDATE_QUERY).not.toContain('description');
+  });
+
+  const raw = (id, description, { duplicateOf, label = 'ok:intake' } = {}) => ({
+    id,
+    identifier: `PRD-${id}`,
+    description,
+    labels: { nodes: [{ name: label }, { name: 'Bug' }] },
+    state: { type: duplicateOf ? 'duplicate' : 'completed' },
+    relations: {
+      nodes: duplicateOf ? [{ type: 'duplicate', relatedIssue: { id: duplicateOf } }] : [],
+    },
+  });
+  const line = (address) => `* Contact email: [${address}](<mailto:${address}>)`;
+  const merge = (raws) =>
+    attachContactEmails(
+      ['1', '2', '3'].map((id) => candidate({ id, identifier: `PRD-${id}` })),
+      raws.map(toContactNode),
+    ).map((c) => c.contacts ?? []);
+
+  test('the address found on a ticket rides on that ticket and on no other', () => {
+    expect(
+      merge([raw('1', line('jo@example.com')), raw('3', 'Mentions a Contact email: field only.')]),
+    ).toEqual([
+      [{ address: 'jo@example.com', reportIdentifier: 'PRD-1', reportKind: 'bug-report' }],
+      [],
+      [],
+    ]);
+  });
+
+  test('a report merged as a duplicate is answered when its canonical ships, under its own id', () => {
+    expect(
+      merge([
+        raw('9', line('sam@example.com'), { duplicateOf: '2' }),
+        raw('2', line('jo@example.com')),
+      ]),
+    ).toEqual([
+      [],
+      [
+        { address: 'jo@example.com', reportIdentifier: 'PRD-2', reportKind: 'bug-report' },
+        { address: 'sam@example.com', reportIdentifier: 'PRD-9', reportKind: 'bug-report' },
+      ],
+      [],
+    ]);
+  });
+
+  test('one address on a canonical and its duplicate is emailed once, under the canonical', () => {
+    expect(
+      merge([
+        raw('9', line('Jo@Example.com'), { duplicateOf: '1' }),
+        raw('1', line('jo@example.com')),
+      ])[0],
+    ).toEqual([{ address: 'jo@example.com', reportIdentifier: 'PRD-1', reportKind: 'bug-report' }]);
+  });
+
+  test('the run lists candidates and contacts together and learns every address to scrub', async () => {
+    const calls = [];
+    const redactor = createRedactor();
+    const merged = await listCandidatesWithContacts({
+      paginate: async (query, toItem) => {
+        calls.push([query, toItem]);
+        return query === CANDIDATE_QUERY
+          ? [candidate({ id: '1', identifier: 'PRD-1' })]
+          : [toItem(raw('1', line('jo@example.com')))];
+      },
+      redactor,
+    });
+    expect(calls).toEqual([
+      [CANDIDATE_QUERY, toNode],
+      [CONTACT_EMAIL_QUERY, toContactNode],
+    ]);
+    expect(merged[0].contacts).toEqual([
+      { address: 'jo@example.com', reportIdentifier: 'PRD-1', reportKind: 'bug-report' },
+    ]);
+    expect(redactor.scrub('jo@example.com')).toBe('the contact email');
+  });
+
+  test('an in-app report is a bug report and a feedback ticket is feedback', () => {
+    expect(toContactNode(raw('1', line('jo@example.com'))).reportKind).toBe('bug-report');
+    expect(
+      toContactNode(raw('1', line('jo@example.com'), { label: 'ok:feedback' })).reportKind,
+    ).toBe('feedback');
+  });
+
+  test('a duplicate that names no canonical rides on nothing', () => {
+    const orphan = raw('9', line('sam@example.com'), { duplicateOf: '1' });
+    orphan.relations.nodes = [];
+    expect(merge([orphan])).toEqual([[], [], []]);
+  });
+
+  test('each reporter on a canonical gets their own email, subject and marker', async () => {
+    const h = harness({
+      live: true,
+      emailMode: 'live',
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [GH_PULL],
+          contacts: [
+            { address: 'jo@example.com', reportIdentifier: 'PRD-7539' },
+            { address: 'sam@example.com', reportIdentifier: 'PRD-9945' },
+          ],
+        }),
+      ],
+    });
+    h.deps.postReply = async (origin, _text, message) =>
+      h.writes.push({ kind: 'post', origin: origin.url, subject: message.subject });
+    await h.run();
+    expect(h.writes.filter((w) => w.kind === 'mark').map((w) => w.url)).toEqual([
+      notificationMarkerUrl({ version: '0.36.0', originUrl: 'mailto:jo@example.com' }),
+      notificationMarkerUrl({ version: '0.36.0', originUrl: 'mailto:sam@example.com' }),
+    ]);
+    expect(h.writes.filter((w) => w.kind === 'post').map((w) => w.subject)).toEqual([
+      'Your Open Knowledge report PRD-7539 is fixed in v0.36.0',
+      'Your Open Knowledge report PRD-9945 is fixed in v0.36.0',
+    ]);
+  });
+});
+
+describe('arming the email leg', () => {
+  test('no key is off, a key alone previews, and only both switches live send', () => {
+    const mode = (resendKey, live, emailModeVariable) =>
+      resolveEmailMode({ resendKey, live, emailModeVariable });
+    expect(mode('', true, 'live')).toBe('off');
+    expect(mode('  ', true, 'live')).toBe('off');
+    expect(mode('re_x', false, undefined)).toBe('dry-run');
+    expect(mode('re_x', true, undefined)).toBe('dry-run');
+    expect(mode('re_x', false, 'live')).toBe('dry-run');
+    expect(mode('re_x', true, 'live')).toBe('live');
+  });
+
+  test('the closing line counts previewed emails apart from what was sent', () => {
+    const summary = runSummary(
+      {
+        dryRun: false,
+        deferred: 0,
+        skipped: [],
+        errored: [],
+        posted: [
+          { origin: GH_ISSUE, dryRun: false, closed: true },
+          { origin: 'the contact email from PRD-1', dryRun: true, closed: false },
+        ],
+      },
+      { linearRequests: 4 },
+    );
+    expect(summary).toMatchObject({ posted: 1, previewed: 1, closed: 1, linearRequests: 4 });
+    expect(
+      runSummary(
+        {
+          dryRun: true,
+          deferred: 0,
+          skipped: [],
+          errored: [],
+          posted: [{ origin: GH_ISSUE, dryRun: true, closed: true }],
+        },
+        { linearRequests: 1 },
+      ),
+    ).toMatchObject({ posted: 0, previewed: 1, closed: 0 });
+  });
+});
+
+describe('the mail transport', () => {
+  const origin = { channel: 'email', url: 'mailto:jo@example.com', address: 'jo@example.com' };
+  const reply = (status, body) => async () => ({
+    ok: status < 300,
+    status,
+    text: async () => JSON.stringify(body),
+  });
+  const send = (fetchImpl, overrides = {}) =>
+    sendReporterEmail({
+      origin,
+      text: 'This shipped.',
+      subject: 'Subject line',
+      idempotencyKey: 'write-back-abc',
+      apiKey: 're_test',
+      fetchImpl,
+      ...overrides,
+    });
+
+  test('sends one plain-text email from the verified sender, keyed, with replies to the team', async () => {
+    const requests = [];
+    const sent = await send(async (url, init) => {
+      requests.push({ url, init });
+      return { ok: true, status: 200, text: async () => '{"id":"msg_1"}' };
+    });
+    expect(sent).toEqual({ id: 'msg_1' });
+    expect(requests).toHaveLength(1);
+    expect(requests[0].url).toBe('https://api.resend.com/emails');
+    expect(requests[0].init.headers.authorization).toBe('Bearer re_test');
+    expect(requests[0].init.headers['idempotency-key']).toBe('write-back-abc');
+    expect(JSON.parse(requests[0].init.body)).toEqual({
+      from: 'OpenKnowledge <updates@updates.openknowledge.ai>',
+      to: ['jo@example.com'],
+      reply_to: 'feedback@inkeep.com',
+      subject: 'Subject line',
+      text: 'This shipped.',
+    });
+  });
+
+  test('a key Resend already used for a send counts as sent', async () => {
+    await expect(
+      send(reply(409, { name: 'invalid_idempotent_request', message: 'used' })),
+    ).resolves.toEqual({ id: null, alreadyAccepted: true });
+  });
+
+  test('a send still in flight under the same key is not counted as sent', async () => {
+    await expect(
+      send(reply(409, { name: 'concurrent_idempotent_requests', message: 'busy' })),
+    ).rejects.toThrow(/HTTP 409/);
+  });
+
+  test('any refused send throws with its status, for the next run to retry', async () => {
+    await expect(send(reply(422, { name: 'invalid_parameter' }))).rejects.toThrow(/HTTP 422/);
+    await expect(send(reply(503, { name: 'internal_server_error' }))).rejects.toThrow(/HTTP 503/);
+  });
+
+  test('no key or no idempotency key is a thrown error, never an unkeyed send', async () => {
+    await expect(send(fetch, { apiKey: '' })).rejects.toThrow(/RESEND_API_KEY/);
+    await expect(send(fetch, { idempotencyKey: '' })).rejects.toThrow(/idempotency key/);
+  });
+});
+
+describe('changeset parsing', () => {
+  test('the bump block is stripped and the release note is what remains', () => {
+    const parsed = parseChangeset(
+      [
+        '---',
+        "'@inkeep/open-knowledge': patch",
+        '---',
+        '',
+        'Honor backslash escapes in the promoters.',
+        '',
+      ].join('\n'),
+    );
+    expect(parsed).toEqual({
+      title: 'Honor backslash escapes in the promoters.',
+      body: 'Honor backslash escapes in the promoters.',
+    });
+  });
+
+  test('a multi-line note keeps its first line as the title and its whole text as the body', () => {
+    const parsed = parseChangeset(
+      ['---', "'x': patch", '---', '', 'Short subject', '', 'More detail.'].join('\n'),
+    );
+    expect(parsed.title).toBe('Short subject');
+    expect(parsed.body).toContain('More detail.');
+  });
+
+  test('a changeset with no prose yields nothing rather than an empty reply', () => {
+    expect(parseChangeset(['---', "'x': patch", '---', ''].join('\n'))).toBeNull();
+    expect(parseChangeset('')).toBeNull();
+  });
+
+  test('no real changeset shape leaks into the reply, whatever its prose looks like', () => {
+    const shapes = [
+      'Fixed an error thrown inside every CodeMirror-backed editor when selecting with the mouse. Double-clicking to select a word and triple-clicking to select a line both threw, and so did the handler that starts a drag from a widget.',
+      'Messages you send in an agent chat now carry their own actions:\n\n- Send the same prompt to a different agent.\n- Copy and edit a sent message.',
+      'The sync indicator recovers after a sleep, a Wi-Fi change, or a VPN flap.',
+    ];
+    for (const prose of shapes) {
+      const changeset = parseChangeset(['---', "'x': patch", '---', '', prose].join('\n'));
+      const text = composeReply({
+        changeset,
+        version: 'v0.36.0',
+        originChannel: 'github-issue',
+        coverage: ['PRD-7539'],
+      });
+      expect(text).not.toBeNull();
+      expect(text).not.toContain(changeset.title);
+      expect(text).not.toContain(changeset.body);
+      expect(text).toContain(
+        '[the release page](https://github.com/inkeep/open-knowledge/releases/tag/v0.36.0)',
+      );
+    }
+  });
+});
+
+describe('locating the changeset a fix shipped with', () => {
+  const MONOREPO_FILES = [
+    'public/open-knowledge/.changeset/default-theme-tile-own-colors.md',
+    'public/open-knowledge/packages/app/src/components/ThemeTile.tsx',
+  ];
+
+  test('a monorepo pull request keeps its changeset under the subtree, not at the root', () => {
+    expect(findChangesetPath(MONOREPO_FILES, { repo: 'agents-private' })).toBe(
+      'public/open-knowledge/.changeset/default-theme-tile-own-colors.md',
+    );
+  });
+
+  test('a pull request against the public mirror keeps it at the root, where that repo puts it', () => {
+    expect(findChangesetPath(['.changeset/some-fix.md'], { repo: 'open-knowledge' })).toBe(
+      '.changeset/some-fix.md',
+    );
+  });
+
+  test("another product's changeset is never picked for an Open Knowledge reporter", () => {
+    const foreign = [
+      'public/agents/.changeset/some-agents-fix.md',
+      '.changeset/a-stray-root-changeset.md',
+    ];
+    expect(findChangesetPath(foreign, { repo: 'agents-private' })).toBeNull();
+  });
+
+  test('the changeset README is never mistaken for a changeset', () => {
+    expect(
+      findChangesetPath(['public/open-knowledge/.changeset/README.md'], { repo: 'agents-private' }),
+    ).toBeNull();
+  });
+
+  test('a pull request that added no changeset yields nothing rather than a wrong file', () => {
+    expect(
+      findChangesetPath(['public/open-knowledge/packages/app/src/x.ts'], {
+        repo: 'agents-private',
+      }),
+    ).toBeNull();
+    expect(findChangesetPath([], { repo: 'agents-private' })).toBeNull();
+  });
+
+  test('the directory is chosen by repo, since only the mirror has it at the root', () => {
+    expect(changesetDirFor('open-knowledge')).toBe('.changeset/');
+    expect(changesetDirFor('agents-private')).toBe('public/open-knowledge/.changeset/');
+  });
+});
+
+describe('cross-repo token selection', () => {
+  const env = { CROSS_REPO_TOKEN: 'bridge-token', GITHUB_REPOSITORY: 'inkeep/open-knowledge' };
+
+  test('a read against the private monorepo uses the bridge token', () => {
+    expect(selectGhToken({ owner: 'inkeep', repo: 'agents-private', env })).toBe('bridge-token');
+  });
+
+  test('a read against this repo keeps the ambient token, which the bridge token cannot replace', () => {
+    expect(selectGhToken({ owner: 'inkeep', repo: 'open-knowledge', env })).toBeNull();
+    expect(selectGhToken({ owner: 'InKeep', repo: 'Open-Knowledge', env })).toBeNull();
+  });
+
+  test('with no bridge token configured every call falls back to the ambient one', () => {
+    const bare = { GITHUB_REPOSITORY: 'inkeep/open-knowledge' };
+    expect(selectGhToken({ owner: 'inkeep', repo: 'agents-private', env: bare })).toBeNull();
+    expect(
+      selectGhToken({
+        owner: 'inkeep',
+        repo: 'agents-private',
+        env: { ...bare, CROSS_REPO_TOKEN: '  ' },
+      }),
+    ).toBeNull();
+  });
+});
+
+describe('one unreadable candidate does not silence the rest', () => {
+  const two = (first, second) => ({
+    listCandidates: async () => [
+      candidate({ id: 'uuid-1', identifier: 'PRD-0001', attachmentUrls: [first, GH_ISSUE] }),
+      candidate({ id: 'uuid-2', identifier: 'PRD-0002', attachmentUrls: [second, GH_ISSUE] }),
+    ],
+  });
+
+  test('a candidate whose fix reference cannot be read is reported, and the next one still posts', async () => {
+    const h = harness({
+      ...two(GH_PULL, GH_PULL),
+      versionFor: async (node) => {
+        if (node.identifier === 'PRD-0001') throw new Error('gh api pulls/2844 failed: HTTP 404');
+        return 'v0.36.0';
+      },
+    });
+    const result = await h.run();
+
+    expect(result.errored.map((e) => e.identifier)).toEqual(['PRD-0001']);
+    expect(result.errored[0].message).toContain('404');
+    expect(result.posted.map((p) => p.identifier)).toEqual(['PRD-0002']);
+  });
+
+  test('a failure is never filed as a skip, so a broken run cannot read as a quiet one', async () => {
+    const h = harness({
+      ...two(GH_PULL, GH_PULL),
+      versionFor: async () => {
+        throw new Error('gh api failed: HTTP 404');
+      },
+    });
+    const result = await h.run();
+
+    expect(result.errored).toHaveLength(2);
+    expect(result.skipped).toEqual([]);
+  });
+
+  test('errors still turn the run red once the reachable reporters have been told', () => {
+    expect(runFailureMessage({ posted: [], skipped: [], errored: [] })).toBeNull();
+    expect(
+      runFailureMessage({ skipped: [{ identifier: 'PRD-1', reason: 'no-origin' }], errored: [] }),
+    ).toBeNull();
+
+    const message = runFailureMessage({
+      errored: [
+        { identifier: 'PRD-0001', message: 'HTTP 404' },
+        { identifier: 'PRD-0002', message: 'HTTP 502' },
+      ],
+    });
+    expect(message).toContain('2 of the candidates');
+    expect(message).toContain('PRD-0001');
+    expect(message).toContain('PRD-0002');
+  });
+
+  test('a reply that fails after its marker was written says so, because no run will retry it', async () => {
+    const h = harness({
+      live: true,
+      postReply: async () => {
+        throw new Error('notify endpoint returned HTTP 502');
+      },
+    });
+    const result = await h.run();
+
+    const [failure] = result.errored;
+    expect(failure.message).toContain('marker');
+    expect(failure.message).toContain('did NOT send');
+    expect(failure.message).toContain('by hand');
+    expect(failure.message).toContain('502');
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark']);
+  });
+});
+
+describe('telling a failure that waits from a failure that needs a person', () => {
+  test('a failure before the marker is filed as one the next run picks up', async () => {
+    const h = harness({
+      live: true,
+      versionFor: async () => {
+        throw new Error('Linear GraphQL returned HTTP 503');
+      },
+    });
+    const result = await h.run();
+
+    expect(h.writes).toEqual([]);
+    expect(result.errored[0].disposition).toBe('retried-next-run');
+  });
+
+  test('a reply lost after its marker was written is filed as one that needs a person', async () => {
+    const h = harness({
+      live: true,
+      postReply: async () => {
+        throw new Error('notify endpoint returned HTTP 502');
+      },
+    });
+    const result = await h.run();
+
+    expect(result.errored[0].disposition).toBe('needs-human');
+    expect(h.logs.some((m) => m.includes('needs-human'))).toBe(true);
+  });
+
+  test('the run verdict names the tickets a person has to pick up, and stays quiet when none do', () => {
+    const transient = runFailureMessage({
+      errored: [{ identifier: 'PRD-0001', message: 'HTTP 503', disposition: 'retried-next-run' }],
+    });
+    expect(transient).toContain('next release run picks them up');
+    expect(transient).not.toContain('ACTION REQUIRED');
+
+    const needsHuman = runFailureMessage({
+      errored: [
+        { identifier: 'PRD-0001', message: 'HTTP 503', disposition: 'retried-next-run' },
+        {
+          identifier: 'PRD-0002',
+          message: 'marker written, reply did NOT send',
+          disposition: 'needs-human',
+        },
+      ],
+    });
+    expect(needsHuman).toContain('ACTION REQUIRED');
+    expect(needsHuman).toContain('PRD-0002');
+    expect(needsHuman).not.toMatch(/ACTION REQUIRED[^.]*PRD-0001/);
+  });
+});
+
+describe('a Linear call that failed for reasons unrelated to the request', () => {
+  const ok = (data) => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ data }),
+    headers: { get: () => null },
+  });
+  const fail = (status, body = 'upstream connect error', headers = {}) => ({
+    ok: false,
+    status,
+    text: async () => body,
+    headers: { get: (name) => headers[String(name).toLowerCase()] ?? null },
+  });
+
+  function callLinear(replies, overrides = {}) {
+    const slept = [];
+    const logs = [];
+    let attempts = 0;
+    const call = linearGraphql({
+      apiKey: 'k',
+      query: 'query {}',
+      variables: {},
+      fetchImpl: async (_url, init) => {
+        const reply = replies[attempts];
+        attempts += 1;
+        if (typeof reply === 'function') return reply(init);
+        return reply;
+      },
+      sleep: async (ms) => slept.push(ms),
+      random: () => 0.5,
+      log: (m) => logs.push(m),
+      ...overrides,
+    });
+    return { call, slept, logs, attemptCount: () => attempts };
+  }
+
+  test('a 503 is asked again rather than failing the whole job', async () => {
+    const h = callLinear([
+      fail(503, 'upstream connect error or disconnect/reset before headers'),
+      ok({ issues: { nodes: [] } }),
+    ]);
+    await expect(h.call).resolves.toEqual({ issues: { nodes: [] } });
+    expect(h.attemptCount()).toBe(2);
+    expect(h.slept).toHaveLength(1);
+    expect(h.logs.join(' ')).toContain('retrying in');
+  });
+
+  test('a 401 is not asked again, because the answer would be the same', async () => {
+    const h = callLinear([fail(401, '{"errors":[{"type":"AUTHENTICATION_ERROR"}]}')]);
+    await expect(h.call).rejects.toThrow(/HTTP 401/);
+    await expect(h.call).rejects.toThrow(/AUTHENTICATION_ERROR/);
+    await expect(h.call).rejects.toThrow(/rotate the LINEAR_API_KEY secret/);
+    expect(h.attemptCount()).toBe(1);
+    expect(h.slept).toEqual([]);
+  });
+
+  test('4xx fails fast, while transient 5xx remains retryable', () => {
+    for (const status of [400, 401, 403, 404, 409, 422, 429])
+      expect(isRetryableStatus(status)).toBe(false);
+    for (const status of [500, 502, 503, 504]) expect(isRetryableStatus(status)).toBe(true);
+    expect(isRetryableStatus(200)).toBe(false);
+  });
+
+  test('a 429 stops without spending more quota or sleeping past the job budget', async () => {
+    const h = callLinear([fail(429, 'slow down', { 'retry-after': '2' }), ok({ issues: {} })]);
+    await expect(h.call).rejects.toBeInstanceOf(LinearRateLimitError);
+    expect(h.attemptCount()).toBe(1);
+    expect(h.slept).toEqual([]);
+  });
+
+  test.each([400, 200])(
+    'Linear GraphQL RATELIMITED on HTTP %s stops without retries',
+    async (status) => {
+      const payload = {
+        errors: [
+          { message: 'Rate limit exceeded', extensions: { code: 'RATELIMITED', statusCode: 429 } },
+        ],
+      };
+      const response =
+        status === 400
+          ? fail(400, JSON.stringify(payload))
+          : { ok: true, status: 200, json: async () => payload, headers: { get: () => null } };
+      const h = callLinear([response, ok({ issues: {} })]);
+      await expect(h.call).rejects.toBeInstanceOf(LinearRateLimitError);
+      expect(h.attemptCount()).toBe(1);
+      expect(h.slept).toEqual([]);
+    },
+  );
+
+  test('an outsized Retry-After is capped, so one reply cannot park the job', () => {
+    expect(retryDelayMs({ attempt: 1, retryAfterSeconds: 3600 })).toBe(LINEAR_RETRY_CAP_MS);
+    expect(parseRetryAfterSeconds('2')).toBe(2);
+    expect(parseRetryAfterSeconds('Wed, 30 Jul 2026 19:11:09 GMT')).toBeNull();
+    expect(parseRetryAfterSeconds(null)).toBeNull();
+    expect(parseRetryAfterSeconds('0')).toBeNull();
+  });
+
+  test('the wait grows between attempts and is never long enough to be unbounded', () => {
+    const first = retryDelayMs({ attempt: 1, random: () => 0.5 });
+    const second = retryDelayMs({ attempt: 2, random: () => 0.5 });
+    expect(second).toBeGreaterThan(first);
+    expect(retryDelayMs({ attempt: 20, random: () => 1 })).toBeLessThanOrEqual(LINEAR_RETRY_CAP_MS);
+    expect(retryDelayMs({ attempt: 1, random: () => 0 })).toBeLessThan(
+      retryDelayMs({ attempt: 1, random: () => 1 }),
+    );
+    expect(retryDelayMs({ attempt: 1, random: () => 0 })).toBeGreaterThan(0);
+  });
+
+  test('a connection that never produced a reply is retried like a 5xx', async () => {
+    const reset = Object.assign(new TypeError('fetch failed'), {
+      cause: Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' }),
+    });
+    const h = callLinear([
+      () => {
+        throw reset;
+      },
+      ok({ issues: {} }),
+    ]);
+    await expect(h.call).resolves.toEqual({ issues: {} });
+    expect(h.attemptCount()).toBe(2);
+  });
+
+  test('a throw with no sign the connection was at fault is not retried on a guess', async () => {
+    const h = callLinear([
+      () => {
+        throw new TypeError('Invalid header value');
+      },
+    ]);
+    await expect(h.call).rejects.toThrow(/before any reply/);
+    expect(h.attemptCount()).toBe(1);
+  });
+
+  test('a reply that never arrives is given up on rather than allowed to eat the job', async () => {
+    const h = callLinear(
+      [
+        (init) => {
+          if (!init?.signal) throw new Error('the request carried no deadline');
+          return new Promise((_resolve, reject) => {
+            init.signal.addEventListener('abort', () => reject(init.signal.reason), { once: true });
+          });
+        },
+        ok({ issues: {} }),
+      ],
+      { timeoutMs: 20 },
+    );
+    await expect(h.call).resolves.toEqual({ issues: {} });
+    expect(h.attemptCount()).toBe(2);
+  });
+
+  test('a request given up on at its deadline is retried, but a deliberate cancellation is not', async () => {
+    const signal = AbortSignal.timeout(1);
+    await new Promise((resolve) => signal.addEventListener('abort', resolve, { once: true }));
+    expect(signal.reason.name).toBe('TimeoutError');
+    expect(isRetryableNetworkError(signal.reason)).toBe(true);
+    expect(isRetryableNetworkError(new DOMException('cancelled', 'AbortError'))).toBe(false);
+  });
+
+  test('the network classifier reads codes anywhere in the cause chain, and refuses the rest', () => {
+    expect(isRetryableNetworkError(Object.assign(new Error('x'), { code: 'ECONNRESET' }))).toBe(
+      true,
+    );
+    expect(isRetryableNetworkError(Object.assign(new Error('x'), { code: 'UND_ERR_SOCKET' }))).toBe(
+      true,
+    );
+    expect(isRetryableNetworkError(new TypeError('fetch failed'))).toBe(true);
+    expect(isRetryableNetworkError(new Error('socket hang up'))).toBe(true);
+    expect(isRetryableNetworkError(new Error('Unexpected token < in JSON'))).toBe(false);
+    expect(isRetryableNetworkError(null)).toBe(false);
+  });
+
+  test('a 200 carrying GraphQL errors is a refusal, not a wobble, so it is not retried', async () => {
+    const h = callLinear([
+      {
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        json: async () => ({ errors: [{ message: 'Unknown field: notified' }] }),
+      },
+    ]);
+    await expect(h.call).rejects.toThrow(/Unknown field/);
+    expect(h.attemptCount()).toBe(1);
+  });
+
+  test('a service that stays down surfaces its own failure rather than a retry-shaped one', async () => {
+    const h = callLinear([fail(503), fail(503), fail(503), ok({ issues: {} })]);
+    await expect(h.call).rejects.toThrow(/HTTP 503/);
+    expect(h.attemptCount()).toBe(LINEAR_RETRY_ATTEMPTS);
+  });
+
+  test('a reply body that dies in transit is retried, since that is the connection failing a beat later', async () => {
+    const truncated = {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => {
+        throw Object.assign(new TypeError('terminated'), {
+          cause: Object.assign(new Error('other side closed'), { code: 'UND_ERR_SOCKET' }),
+        });
+      },
+    };
+    const h = callLinear([truncated, ok({ issues: {} })]);
+    await expect(h.call).resolves.toEqual({ issues: {} });
+    expect(h.attemptCount()).toBe(2);
+  });
+
+  test('a reply that arrived whole and simply is not JSON is not retried', async () => {
+    const h = callLinear([
+      {
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        json: async () => {
+          throw new SyntaxError('Unexpected token < in JSON at position 0');
+        },
+      },
+    ]);
+    await expect(h.call).rejects.toThrow(/could not be read/);
+    expect(h.attemptCount()).toBe(1);
+  });
+
+  test('an unreadable error body cannot cost the status that decides retryability', async () => {
+    const h = callLinear([
+      {
+        ok: false,
+        status: 503,
+        headers: { get: () => null },
+        text: async () => {
+          throw new Error('aborted');
+        },
+      },
+      ok({ issues: {} }),
+    ]);
+    await expect(h.call).resolves.toEqual({ issues: {} });
+    expect(h.attemptCount()).toBe(2);
+  });
+
+  test('the marker mutation is retried too, since its url is what makes it idempotent', async () => {
+    const h = callLinear([fail(503), ok({ attachmentCreate: { success: true } })]);
+    await expect(h.call).resolves.toEqual({ attachmentCreate: { success: true } });
+    expect(h.attemptCount()).toBe(2);
+  });
+});
+
+describe('workflow shape', () => {
+  const read = (name) => readFileSync(new URL(`../workflows/${name}`, import.meta.url), 'utf8');
+  const workflow = read('write-back.yml');
+
+  test('it triggers only on the post-publication dispatch', () => {
+    expect(workflow).toMatch(/repository_dispatch:\s*\n\s*types:\s*\[desktop-release-published\]/);
+    expect(workflow).not.toMatch(/^\s{2}release:/m);
+    expect(workflow).not.toContain('types: [published]');
+  });
+
+  test('scheduled reconciliation covers both channels and serializes across release tags', () => {
+    const parsed = parse(workflow);
+    expect(parsed.on.schedule).toEqual([{ cron: '43 * * * *' }]);
+    expect(parsed.jobs.notify.strategy.matrix.channel).toBe(
+      "${{ fromJSON(github.event_name == 'schedule' && '[\"stable\",\"beta\"]' || contains(github.event.client_payload.release_tag || inputs.release_tag, '-beta.') && '[\"beta\"]' || '[\"stable\"]') }}",
+    );
+    expect(parsed.jobs.notify.concurrency).toEqual({
+      group: 'reporter-write-back-${{ matrix.channel }}',
+      'cancel-in-progress': false,
+    });
+    expect(workflow).toMatch(/if:\s*steps\.tag\.outputs\.channel != 'none'/);
+    expect(workflow).toContain('run: node .github/scripts/write-back-target.mjs');
+  });
+
+  test('no working step is left outside the channel gate', () => {
+    const stepNames = [...workflow.matchAll(/^ {6}- (?:name:.*|uses:.*)$/gm)].length;
+    const gated = [...workflow.matchAll(/if: steps\.tag\.outputs\.channel != 'none'/g)].length;
+    expect(gated).toBe(stepNames - 3);
+  });
+
+  test('it carries its own concurrency group so a release can never queue behind it', () => {
+    const group = /concurrency:\s*\n(?:\s*#.*\n)*\s*group:\s*(.+)/.exec(workflow)?.[1] ?? '';
+    expect(group).toContain('reporter-write-back');
+    for (const other of ['release.yml', 'promote-stable.yml', 'linear-release.yml']) {
+      const otherGroup =
+        /concurrency:\s*\n(?:\s*#.*\n)*\s*group:\s*(.+)/.exec(read(other))?.[1] ?? '';
+      expect(group.trim()).not.toBe(otherGroup.trim());
+    }
+  });
+
+  test('the checkout provides full history and tags so containment can be computed', () => {
+    expect(workflow).toContain('fetch-depth: 0');
+    expect(workflow).toContain('fetch-tags: true');
+  });
+
+  test('no release workflow references the write-back, so it cannot fail a release', () => {
+    for (const name of ['release.yml', 'promote-stable.yml', 'desktop-release.yml']) {
+      expect(read(name)).not.toMatch(/write-back/i);
+    }
+  });
+
+  test('live posting needs an explicit mode on top of the credential', () => {
+    const parsed = parse(workflow);
+    expect(parsed.on.workflow_dispatch.inputs.dry_run).toMatchObject({
+      type: 'boolean',
+      default: true,
+    });
+    const notify = parsed.jobs.notify.steps.find(
+      (step) => step.name === 'Notify reporters whose fix reached this release',
+    );
+    expect(notify.env.WRITE_BACK_MODE).toBe(
+      "${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'dry-run' || vars.WRITE_BACK_MODE }}",
+    );
+    expect(workflow).toContain('WRITE_BACK_MODE');
+    expect(notify.env.RELEASE_TAG).toBe('${{ steps.tag.outputs.release_tag }}');
+    expect(workflow).toContain('LINEAR_API_KEY');
+  });
+
+  test('the private monorepo is read with a bridge App token, not with this repo own token', () => {
+    expect(workflow).toContain('CROSS_REPO_TOKEN: ${{ steps.bridge-token.outputs.token }}');
+    expect(workflow).toMatch(/uses: actions\/create-github-app-token@[0-9a-f]{40}/);
+    expect(workflow).toContain('repositories: agents-private');
+  });
+
+  test('the bridge token is minted read-only, and for both scopes the reads need', () => {
+    expect(workflow).toContain('permission-contents: read');
+    expect(workflow).toContain('permission-pull-requests: read');
+    expect(workflow).not.toMatch(/permission-\w+(-\w+)*: write/);
+  });
+
+  test('posting still uses this repo own token, which the scoped bridge token could not do', () => {
+    expect(workflow).toContain('GH_TOKEN: ${{ github.token }}');
+    expect(workflow).toContain('issues: write');
+  });
+
+  test('a missing bridge App degrades to a warning rather than failing the mint', () => {
+    expect(workflow).toMatch(/id: bridge-check/);
+    expect(workflow).toMatch(/if:.*steps\.bridge-check\.outputs\.configured == 'true'/);
+  });
+});
+
+describe('fixed reconciliation window', () => {
+  const windowFor = (releaseTag, minimumVersion = '0.35.0') =>
+    makeReleaseWindow({ releaseTag, minimumVersion });
+  test('missed releases remain eligible however many later releases appear', () => {
+    for (const releaseTag of ['v0.36.0', 'v0.90.0', 'v2.0.0']) {
+      expect(windowFor(releaseTag)('0.35.0')).toBe('in-window');
+      expect(windowFor(releaseTag)('0.34.0')).toBe('shipped-earlier');
+    }
+    expect(windowFor('v0.36.0')('0.37.0')).toBe('not-yet-shipped');
+    expect(windowFor('v0.36.0')(null)).toBe('unversioned');
+    expect(windowFor('0.36.0')('v0.36.0')).toBe('in-window');
+  });
+  test('invalid release or baseline refuses rather than enrolling all history', () => {
+    for (const releaseTag of [undefined, '', 'latest', 'v0.36.0-rc.1']) {
+      expect(() => makeReleaseWindow({ releaseTag })).toThrow('RELEASE_TAG');
+    }
+    expect(() => makeReleaseWindow({ releaseTag: 'v0.36.0', minimumVersion: 'garbage' })).toThrow(
+      'minimum',
+    );
+  });
+  test('the rollout retains the formerly eligible scope without extending into old unnotified history', () => {
+    const stable = makeReleaseWindow({ releaseTag: 'v0.77.9' });
+    expect(stable('0.77.6')).toBe('in-window');
+    expect(stable('0.77.5')).toBe('shipped-earlier');
+    const beta = makeReleaseWindow({ releaseTag: 'v0.78.0-beta.9' });
+    expect(beta('0.77.8-beta.0')).toBe('in-window');
+    expect(beta('0.77.7-beta.9')).toBe('shipped-earlier');
+  });
+});
+
+describe('release window applied to a run', () => {
+  test('a candidate that shipped before the window is skipped, not replied to', async () => {
+    const h = harness({
+      live: true,
+      classifyRelease: makeReleaseWindow({
+        releaseTag: 'v0.41.0',
+        minimumVersion: '0.38.0',
+      }),
+    });
+    const result = await h.run();
+    expect(result.skipped).toContainEqual({ identifier: 'PRD-7539', reason: 'shipped-earlier' });
+    expect(h.writes).toHaveLength(0);
+  });
+
+  test('a candidate whose fix is not in this release yet is skipped, not replied to', async () => {
+    const h = harness({
+      live: true,
+      classifyRelease: makeReleaseWindow({
+        releaseTag: 'v0.35.0',
+      }),
+    });
+    const result = await h.run();
+    expect(result.skipped).toContainEqual({ identifier: 'PRD-7539', reason: 'not-yet-shipped' });
+    expect(h.writes).toHaveLength(0);
+  });
+
+  test('a candidate inside the window still gets its reply', async () => {
+    const h = harness({
+      live: true,
+      classifyRelease: makeReleaseWindow({ releaseTag: 'v0.36.0', minimumVersion: '0.35.0' }),
+    });
+    await h.run();
+    expect(h.writes.filter((w) => w.kind === 'post')).toHaveLength(1);
+  });
+
+  test('runWriteBack refuses to run unscoped', async () => {
+    const h = harness({ live: true, classifyRelease: undefined });
+    await expect(h.run()).rejects.toThrow(/classifyRelease/);
+  });
+});
+
+describe('release channels', () => {
+  test('the two tag shapes this repo cuts are the two channels, and nothing else is a release', () => {
+    expect(deriveChannel('v0.36.0')).toBe('stable');
+    expect(deriveChannel('v0.36.0-beta.3')).toBe('beta');
+    for (const bad of [
+      undefined,
+      '',
+      'v0.36.0-rc.1',
+      '0.36.0',
+      'v0.36',
+      'latest',
+      'v0.36.0-beta',
+    ]) {
+      expect(deriveChannel(bad)).toBeNull();
+    }
+  });
+
+  test('a beta version is not a stable one, which is what keeps the two replies apart', () => {
+    expect(isStableVersion('0.36.0')).toBe(true);
+    expect(isStableVersion('v0.36.0')).toBe(true);
+    expect(isStableVersion('0.36.0-beta.0')).toBe(false);
+  });
+});
+
+describe('origin remit', () => {
+  const foreignIssue = 'https://github.com/inkeep/agents/issues/412';
+
+  test('a report from another repo is passed over instead of attempted', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, foreignIssue] })],
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'origin-elsewhere' }]);
+    expect(result.errored).toEqual([]);
+    expect(h.logs.some((m) => m.startsWith('::warning::'))).toBe(false);
+  });
+
+  test('a foreign origin costs no round trip, which is what makes the wider candidate list affordable', async () => {
+    let childrenCalls = 0;
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, foreignIssue] })],
+      listChildren: async () => {
+        childrenCalls += 1;
+        return [];
+      },
+      versionFor: async () => {
+        throw new Error('a foreign-origin candidate must never reach version resolution');
+      },
+    });
+    await h.run();
+    expect(childrenCalls).toBe(0);
+  });
+
+  test('a ticket whose only extra attachment is an upload is passed over as having no origin', async () => {
+    let childrenCalls = 0;
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, LINEAR_UPLOAD] })],
+      listChildren: async () => {
+        childrenCalls += 1;
+        return [];
+      },
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'no-origin' }]);
+    expect(h.logs.some((m) => m.startsWith('::warning::'))).toBe(false);
+    expect(childrenCalls).toBe(0);
+  });
+
+  test('the reachability warning names every origin that cannot be answered, not just one', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [
+        candidate({
+          attachmentUrls: [GH_PULL, 'https://github.com/inkeep/agents/issues/412', SLACK_ARCHIVE],
+        }),
+      ],
+    });
+    const result = await h.run();
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'origin-unrepliable' }]);
+    const warning = h.logs.find((m) => m.startsWith('::warning::'));
+    expect(warning).toContain('inkeep/agents');
+    expect(warning).toContain('slack-archive');
+    expect(warning).not.toContain('only origin');
+  });
+
+  test('a Slack archive is still a real origin, so it still reports a reachability gap', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, SLACK_ARCHIVE] })],
+    });
+    const result = await h.run();
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'origin-unrepliable' }]);
+    expect(
+      h.logs.some(
+        (m) => m.startsWith('::warning::') && m.includes('no origin on it can be replied to'),
+      ),
+    ).toBe(true);
+  });
+
+  test('a Discord thread is repliable wherever it lives, because the bot is not repo-scoped', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, DISCORD_THREAD] })],
+    });
+    await h.run();
+    expect(h.writes.filter((w) => w.kind === 'post')).toHaveLength(1);
+  });
+
+  test('an unknown self repo refuses the run rather than skipping every candidate as foreign', async () => {
+    const previous = process.env.GITHUB_REPOSITORY;
+    delete process.env.GITHUB_REPOSITORY;
+    try {
+      for (const missing of [undefined, '', '   ']) {
+        const h = harness({ live: true, selfRepo: missing });
+        await expect(h.run()).rejects.toThrow(/selfRepo|GITHUB_REPOSITORY/);
+      }
+    } finally {
+      if (previous === undefined) delete process.env.GITHUB_REPOSITORY;
+      else process.env.GITHUB_REPOSITORY = previous;
+    }
+  });
+
+  test('a channel that is neither is refused at the entry point, before any round trip', async () => {
+    const h = harness({
+      live: true,
+      channel: 'nightly',
+      listChildren: async () => {
+        throw new Error('an invalid channel must be refused before the children query');
+      },
+    });
+    await expect(h.run()).rejects.toThrow(/channel/);
+  });
+});
+
+describe('a linked pull request, not a label, is what a reply depends on', () => {
+  test('a ticket nobody linked a fix to is passed over quietly, not warned about', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_ISSUE] })],
+      versionFor: async () => null,
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'no-fix-reference' }]);
+    expect(h.logs.some((m) => m.startsWith('::warning::'))).toBe(false);
+  });
+
+  test('a fix reference that exists and does not resolve still warns, because that is a broken chain', async () => {
+    const h = harness({ live: true, versionFor: async () => null });
+    const result = await h.run();
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'version-underivable' }]);
+    expect(h.logs.some((m) => m.startsWith('::warning::') && m.includes('could be derived'))).toBe(
+      true,
+    );
+  });
+
+  test('a sibling that resolved does not make an unlinked sibling look like a broken chain', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_ISSUE] })],
+      listChildren: async () => [
+        {
+          id: 'a',
+          identifier: 'PRD-7398',
+          stateType: 'completed',
+          labels: [],
+          attachmentUrls: [GH_PULL],
+        },
+        { id: 'b', identifier: 'PRD-7401', stateType: 'completed', labels: [], attachmentUrls: [] },
+      ],
+      versionFor: async (node) => (node.identifier === 'PRD-7398' ? '0.36.0' : null),
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'no-fix-reference' }]);
+    expect(h.logs.some((m) => m.startsWith('::warning::'))).toBe(false);
+  });
+
+  test('the broken-chain warning names only the tickets that actually carry a link', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_ISSUE] })],
+      listChildren: async () => [
+        {
+          id: 'a',
+          identifier: 'PRD-7398',
+          stateType: 'completed',
+          labels: [],
+          attachmentUrls: [GH_PULL],
+        },
+        { id: 'b', identifier: 'PRD-7401', stateType: 'completed', labels: [], attachmentUrls: [] },
+      ],
+      versionFor: async () => null,
+    });
+    const result = await h.run();
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'version-underivable' }]);
+    const warning = h.logs.find(
+      (m) => m.startsWith('::warning::') && m.includes('could be derived'),
+    );
+    expect(warning).toContain('PRD-7398');
+    expect(warning).not.toContain('PRD-7401');
+  });
+
+  test('a fix reference on a child counts for the parent that has none of its own', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_ISSUE] })],
+      listChildren: async () => [
+        {
+          id: 'a',
+          identifier: 'PRD-7398',
+          stateType: 'completed',
+          labels: [],
+          attachmentUrls: [GH_PULL],
+        },
+      ],
+      versionFor: async () => null,
+    });
+    const result = await h.run();
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'version-underivable' }]);
+  });
+});
+
+describe('the beta leg', () => {
+  const betaHarness = (overrides = {}) =>
+    harness({
+      live: true,
+      channel: 'beta',
+      versionFor: async () => '0.37.0-beta.0',
+      classifyRelease: makeReleaseWindow({
+        releaseTag: 'v0.37.0-beta.1',
+        minimumVersion: '0.37.0-beta.0',
+      }),
+      ...overrides,
+    });
+
+  test('a fix whose earliest build is a beta is announced as a beta, with the stable promised', async () => {
+    const h = betaHarness();
+    await h.run();
+    const post = h.writes.find((w) => w.kind === 'post');
+    expect(post.text).toContain('v0.37.0-beta.0');
+    expect(post.text).toContain('available in Open Knowledge beta');
+    expect(post.text).toContain('follow up here');
+    expect(post.text).not.toContain('This shipped in');
+    expect(post.text).not.toContain(CHANGESET.body);
+    expect(post.text).toContain('https://github.com/inkeep/open-knowledge/releases');
+  });
+
+  test('the beta marker is not the stable one, so each channel is told at most once', async () => {
+    const beta = betaHarness();
+    await beta.run();
+    const stable = harness({ live: true });
+    await stable.run();
+    const betaMark = beta.writes.find((w) => w.kind === 'mark').url;
+    const stableMark = stable.writes.find((w) => w.kind === 'mark').url;
+    expect(betaMark).not.toBe(stableMark);
+    expect(betaMark).toContain('v0.37.0-beta.0');
+  });
+
+  test('a later beta of the same cycle re-reads the same marker and says nothing more', async () => {
+    const marked = notificationMarkerUrl({ version: '0.37.0-beta.0', originUrl: GH_ISSUE });
+    const h = betaHarness({
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, GH_ISSUE, marked] })],
+      classifyRelease: makeReleaseWindow({
+        releaseTag: 'v0.37.0-beta.5',
+        minimumVersion: '0.37.0-beta.0',
+      }),
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'already-notified' }]);
+  });
+
+  test('a fix that only ever appeared in a stable is left to the stable leg', async () => {
+    const h = betaHarness({ versionFor: async () => '0.35.6' });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'stable-covers-it' }]);
+  });
+
+  test('the stable leg still speaks in stable terms once the promotion happens', async () => {
+    const h = harness({ live: true });
+    await h.run();
+    const post = h.writes.find((w) => w.kind === 'post');
+    expect(post.text).toContain('This shipped in Open Knowledge v0.36.0');
+    expect(post.text).not.toContain('beta');
+  });
+
+  test('the stable leg links the notes instead of quoting the changeset', async () => {
+    const h = harness({ live: true });
+    const result = await h.run();
+    const post = h.writes.find((w) => w.kind === 'post');
+    expect(post.text).toContain('This shipped in Open Knowledge v0.36.0');
+    expect(post.text).not.toContain(CHANGESET.body);
+    expect(post.text).toContain('https://github.com/inkeep/open-knowledge/releases');
+    expect(result.posted.map((p) => p.identifier)).toEqual(['PRD-7539']);
+  });
+
+  test('no origin gets the changeset prose, whichever channel it came in on', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [
+        candidate({ attachmentUrls: [GH_PULL, GH_ISSUE, DISCORD_THREAD] }),
+      ],
+    });
+    await h.run();
+    const posts = h.writes.filter((w) => w.kind === 'post');
+    const forIssue = posts.find((p) => p.origin === GH_ISSUE);
+    const forDiscord = posts.find((p) => p.origin === DISCORD_THREAD);
+    expect(forIssue.text).not.toContain(CHANGESET.body);
+    expect(forIssue.text).toContain(
+      '[the release page](https://github.com/inkeep/open-knowledge/releases/tag/v0.36.0)',
+    );
+    expect(forDiscord.text).not.toContain(CHANGESET.body);
+    expect(forDiscord.text).toContain(
+      '<https://github.com/inkeep/open-knowledge/releases/tag/v0.36.0>',
+    );
+  });
+});
+
+describe('closing the GitHub issue the stable reply answers', () => {
+  const resolvedCarriers = [
+    { identifier: 'PRD-7539', stateType: 'completed' },
+    { identifier: 'PRD-8646', stateType: 'duplicate' },
+  ];
+  const closable = async () => planIssueClose({ issueState: 'open', carriers: resolvedCarriers });
+  const counting = () => {
+    const reads = [];
+    return {
+      reads,
+      readIssueClosure: async (origin) => {
+        reads.push(origin.url);
+        return closable();
+      },
+    };
+  };
+
+  test('an open issue whose synced ticket was marked duplicate is closed after the reply', async () => {
+    const h = harness({ live: true, readIssueClosure: closable });
+    const result = await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post', 'close']);
+    expect(h.writes.find((w) => w.kind === 'close').origin).toBe(GH_ISSUE);
+    expect(result.posted).toMatchObject([{ identifier: 'PRD-7539', closed: true }]);
+    expect(h.logs.some((m) => m.includes(`closed ${GH_ISSUE} for PRD-7539`))).toBe(true);
+  });
+
+  test('a ticket still open on the issue keeps it open and is named in the log', async () => {
+    const h = harness({
+      live: true,
+      readIssueClosure: async () =>
+        planIssueClose({
+          issueState: 'open',
+          carriers: [
+            ...resolvedCarriers,
+            { identifier: 'PRD-9002', stateType: 'triage' },
+            { identifier: 'PRD-9001', stateType: 'started' },
+          ],
+        }),
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post']);
+    expect(result.posted).toMatchObject([{ closed: false }]);
+    expect(
+      h.logs.some(
+        (m) =>
+          m.startsWith('::warning::') &&
+          m.includes(`did not close ${GH_ISSUE} (open-carrier: PRD-9001, PRD-9002)`) &&
+          m.includes('once every ticket on it is resolved'),
+      ),
+    ).toBe(true);
+  });
+
+  test('a carrier lookup that found nothing is reported as a lookup to check, not a ticket to wait on', async () => {
+    const h = harness({
+      live: true,
+      readIssueClosure: async () => planIssueClose({ issueState: 'open', carriers: [] }),
+    });
+    await h.run();
+    const line = h.logs.find((m) => m.includes(`did not close ${GH_ISSUE} (no-carrier)`));
+    expect(line).toMatch(/^::warning::/);
+    expect(line).toContain('no ticket was found under the canonical issue URL');
+    expect(line).not.toContain('once every ticket on it is resolved');
+  });
+
+  test('a pull request behind an issue url is a notice, not advice to close it by hand', async () => {
+    const h = harness({
+      live: true,
+      readIssueClosure: async () => planIssueClose({ issueState: 'pull-request' }),
+    });
+    await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post']);
+    const line = h.logs.find((m) => m.includes(`did not close ${GH_ISSUE}`));
+    expect(line).toMatch(/^::notice::/);
+    expect(line).not.toContain('by hand');
+  });
+
+  test('a gone issue is not closed, and its failed reply needs a person once', async () => {
+    const h = harness({
+      live: true,
+      readIssueClosure: async () => planIssueClose({ issueState: 'gone' }),
+      postReply: async () => {
+        throw new Error('gh: Not Found (HTTP 404)');
+      },
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark']);
+    expect(result.errored[0].disposition).toBe('needs-human');
+  });
+
+  test('a lost reply that was going to close the issue says the close is owed too', async () => {
+    const h = harness({
+      live: true,
+      readIssueClosure: closable,
+      postReply: async () => {
+        throw new Error('HTTP 502');
+      },
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark']);
+    expect(result.errored[0].message).toContain('post the reply by hand, then close the issue');
+  });
+
+  test('a Linear throttle while reading the close stops the scan before any marker', async () => {
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate(), candidate({ id: 'uuid-2', identifier: 'PRD-2' })],
+      readIssueClosure: async () => {
+        throw new LinearRateLimitError(new Headers());
+      },
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.errored).toHaveLength(1);
+    expect(result.errored[0].disposition).toBe('retried-next-run');
+    expect(result.deferred).toBe(1);
+  });
+
+  test('an issue Linear already closed from its own synced ticket is left alone', async () => {
+    const h = harness({ live: true });
+    await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post']);
+  });
+
+  test('the beta reply promises a follow-up, so it never inspects or closes the issue', async () => {
+    const spy = counting();
+    const h = harness({
+      live: true,
+      channel: 'beta',
+      versionFor: async () => '0.37.0-beta.0',
+      classifyRelease: makeReleaseWindow({
+        releaseTag: 'v0.37.0-beta.1',
+        minimumVersion: '0.37.0-beta.0',
+      }),
+      readIssueClosure: spy.readIssueClosure,
+    });
+    await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post']);
+    expect(spy.reads).toEqual([]);
+  });
+
+  test('a Discord thread is answered but has nothing to close', async () => {
+    const spy = counting();
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, DISCORD_THREAD] })],
+      readIssueClosure: spy.readIssueClosure,
+    });
+    await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post']);
+    expect(spy.reads).toEqual([]);
+  });
+
+  test('an origin already told about this release is neither replied to nor closed', async () => {
+    const marker = notificationMarkerUrl({ version: '0.36.0', originUrl: GH_ISSUE });
+    const spy = counting();
+    const h = harness({
+      live: true,
+      listCandidates: async () => [candidate({ attachmentUrls: [GH_PULL, GH_ISSUE, marker] })],
+      readIssueClosure: spy.readIssueClosure,
+    });
+    const result = await h.run();
+    expect(result.skipped).toEqual([{ identifier: 'PRD-7539', reason: 'already-notified' }]);
+    expect(h.writes).toEqual([]);
+    expect(spy.reads).toEqual([]);
+  });
+
+  test('a close lost after the reply was sent needs a person, because no run will retry it', async () => {
+    const h = harness({
+      live: true,
+      readIssueClosure: closable,
+      closeIssue: async () => {
+        throw new Error('HTTP 403: Resource not accessible by integration');
+      },
+    });
+    const result = await h.run();
+    expect(h.writes.map((w) => w.kind)).toEqual(['mark', 'post']);
+    expect(result.posted).toMatchObject([{ closed: false }]);
+    const [failure] = result.errored;
+    expect(failure.disposition).toBe('needs-human');
+    expect(failure.message).toContain('was sent but the issue did NOT close');
+    expect(failure.message).toContain('close it by hand');
+    const verdict = runFailureMessage(result);
+    expect(verdict).toContain('ACTION REQUIRED: PRD-7539');
+    expect(verdict).not.toContain('reply never sent');
+  });
+
+  test('a failed closure read stops before the marker, so the next run tries again', async () => {
+    const h = harness({
+      live: true,
+      readIssueClosure: async () => {
+        throw new Error('gh api issues/769 failed: HTTP 502');
+      },
+    });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.errored[0].disposition).toBe('retried-next-run');
+  });
+
+  test('a dry run reports the close it would make and makes none', async () => {
+    const h = harness({ readIssueClosure: closable });
+    const result = await h.run();
+    expect(h.writes).toEqual([]);
+    expect(result.posted).toMatchObject([{ dryRun: true, closed: true }]);
+    expect(h.logs.some((m) => m.includes(`[dry run] would close ${GH_ISSUE} as completed`))).toBe(
+      true,
+    );
+  });
+
+  test('stable reconciliation refuses to run without a way to close what it answers', async () => {
+    await expect(harness({ readIssueClosure: undefined }).run()).rejects.toThrow(
+      /readIssueClosure/,
+    );
+    await expect(harness({ closeIssue: undefined }).run()).rejects.toThrow(/closeIssue/);
+  });
+});
+
+describe('reading whether an answered issue may close', () => {
+  const origin = {
+    channel: 'github-issue',
+    url: GH_ISSUE,
+    owner: 'inkeep',
+    repo: 'open-knowledge',
+    number: 769,
+  };
+  const carriers = (nodes, hasNextPage = false) => ({
+    attachmentsForURL: { pageInfo: { hasNextPage }, nodes },
+  });
+  const carrier = (identifier, type) => ({ issue: { identifier, state: { type } } });
+
+  test('an issue that is already closed costs no Linear request', async () => {
+    const queried = [];
+    const read = createIssueClosureReader({
+      readIssueState: async () => 'closed',
+      queryCarriers: async (url) => {
+        queried.push(url);
+        return carriers([]);
+      },
+    });
+    expect(await read(origin)).toMatchObject({ close: false, reason: 'already-closed' });
+    expect(queried).toEqual([]);
+  });
+
+  test('the carriers are looked up under the issue url the sync uses and judged by state type', async () => {
+    const queried = [];
+    const read = createIssueClosureReader({
+      readIssueState: async () => 'open',
+      queryCarriers: async (url) => {
+        queried.push(url);
+        return carriers([carrier('PRD-8204', 'completed'), carrier('PRD-8646', 'duplicate')]);
+      },
+    });
+    expect(await read({ ...origin, url: `${GH_ISSUE}#issuecomment-1` })).toMatchObject({
+      close: true,
+    });
+    expect(queried).toEqual([GH_ISSUE]);
+  });
+
+  test('a pull request reached through an issue url is never closed', async () => {
+    const read = createIssueClosureReader({
+      readIssueState: async () => 'pull-request',
+      queryCarriers: async () => carriers([carrier('PRD-8204', 'completed')]),
+    });
+    expect(await read(origin)).toMatchObject({ close: false, reason: 'not-an-open-issue' });
+  });
+
+  test('a carrier list cut off by paging is not mistaken for the whole list', async () => {
+    const read = createIssueClosureReader({
+      readIssueState: async () => 'open',
+      queryCarriers: async () => carriers([carrier('PRD-8204', 'completed')], true),
+    });
+    expect(await read(origin)).toMatchObject({ close: false, reason: 'carriers-truncated' });
+  });
+
+  test('the state read asks GitHub for the issue, bounded, and tells a pull request apart', () => {
+    const calls = [];
+    const state = readIssueStateWith((args, target, options) => {
+      calls.push({ args, target, options });
+      return 'pull-request\n';
+    }, origin);
+    expect(state).toBe('pull-request');
+    expect(calls).toEqual([
+      {
+        args: [
+          'api',
+          'repos/inkeep/open-knowledge/issues/769',
+          '--jq',
+          'if .pull_request then "pull-request" else .state end',
+        ],
+        target: origin,
+        options: { timeout: expect.any(Number) },
+      },
+    ]);
+  });
+
+  test('a missing or deleted issue reads as gone, so it settles instead of retrying every run', () => {
+    const failing = (stderr) => () => {
+      throw Object.assign(new Error('Command failed: gh api'), { stderr });
+    };
+    expect(readIssueStateWith(failing('gh: Not Found (HTTP 404)\n'), origin)).toBe('gone');
+    expect(readIssueStateWith(failing('gh: This issue was deleted (HTTP 410)\n'), origin)).toBe(
+      'gone',
+    );
+  });
+
+  test('any other failed state read throws, so the next run retries it before any marker', () => {
+    const failing = (error) => () => {
+      throw error;
+    };
+    expect(() =>
+      readIssueStateWith(
+        failing(Object.assign(new Error('gh'), { stderr: 'gh: Bad Gateway (HTTP 502)\n' })),
+        origin,
+      ),
+    ).toThrow(/issues\/769 failed: gh: Bad Gateway \(HTTP 502\)/);
+    expect(() =>
+      readIssueStateWith(
+        failing(Object.assign(new Error('gh'), { stderr: 'gh: Forbidden (HTTP 403)\n' })),
+        origin,
+      ),
+    ).toThrow(/HTTP 403/);
+    expect(() => readIssueStateWith(failing(new Error('spawnSync gh ETIMEDOUT')), origin)).toThrow(
+      /ETIMEDOUT/,
+    );
+  });
+
+  test('a reply with no attachments connection throws rather than reading as no carriers', async () => {
+    const read = createIssueClosureReader({
+      readIssueState: async () => 'open',
+      queryCarriers: async () => ({}),
+    });
+    await expect(read(origin)).rejects.toThrow(/no attachments connection/);
+  });
+});
+
+describe('write-back boundary rule self-test', () => {
+  const source = (tags = 'published()', contains = 'containment()') => `
+    import { realPublishedReleaseTags as published } from './published-release-tags.mjs';
+    import { resolveShippedVersion as resolveVersion } from './resolve-shipped-version.mjs';
+    import { createTagContainment as containment } from './tag-containment.mjs';
+    function main() { const stableTags = ${tags}; const contains = ${contains}; createVersionFor({stableTags, contains}); }
+    function createVersionFor(options) { return options; }
+    function deriveVersionForFixRefs() { return resolveVersion({}); }
+  `;
+  test('resolves the shared boundary and rejects an adjacent private list or predicate', () => {
+    expect(inspectWriteBackBoundaries(source())).toEqual({
+      census: [],
+      tags: true,
+      containment: true,
+    });
+    expect(
+      inspectWriteBackBoundaries(source().replace('return resolveVersion({});', 'return {};')),
+    ).toEqual({ census: [], tags: true, containment: false });
+    expect(inspectWriteBackBoundaries(source('[]'))).toEqual({
+      census: [],
+      tags: false,
+      containment: true,
+    });
+    expect(inspectWriteBackBoundaries(source('published()', '() => true'))).toEqual({
+      census: [],
+      tags: true,
+      containment: false,
+    });
+    expect(
+      inspectWriteBackBoundaries(source().replace('createVersionFor({stableTags, contains});', '')),
+    ).toEqual({ census: [], tags: false, containment: false });
+  });
+  test.each([
+    'function realStableTags() { return []; }',
+    'function legacyTags(allTags, STABLE_TAG_RE) { return allTags.filter(tag => STABLE_TAG_RE.test(tag)); }',
+    'function legacyTags(allTags) { return allTags.filter(tag => STABLE_TAG_RE.test(tag)); }',
+    'function realReleaseTags() { return []; }',
+    'const STABLE_TAG_RE = /^v/; function legacyTags(allTags) { return allTags.filter(tag => STABLE_TAG_RE.test(tag)); }',
+  ])('rejects a local tag boundary: %s', (local) => {
+    expect(inspectWriteBackBoundaries(`${source()} ${local}`).tags).toBe(false);
+    expect(
+      inspectWriteBackBoundaries(`${source()} function unrelatedTags() { return []; }`).tags,
+    ).toBe(true);
+  });
+  test('rejects local containment values and ignores their comment spelling', () => {
+    expect(
+      inspectWriteBackBoundaries(`${source()} const command = 'merge-base';`).containment,
+    ).toBe(false);
+    expect(inspectWriteBackBoundaries(`${source()} /* merge-base */`)).toEqual({
+      census: [],
+      tags: true,
+      containment: true,
+    });
+  });
+  test('rejects forwarding or syntax errors instead of an empty census', () => {
+    expect(inspectWriteBackBoundaries("export * from './moved.mjs';").census).toEqual([
+      'main',
+      'deriveVersionForFixRefs',
+      'createVersionFor',
+      'forwarding',
+    ]);
+    expect(inspectWriteBackBoundaries(`${source()} const = ;`).census).toEqual(['syntax']);
+  });
+});

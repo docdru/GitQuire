@@ -1,0 +1,607 @@
+import { randomUUID } from 'node:crypto';
+import type { Page } from '@playwright/test';
+import {
+  type ApiHelpers,
+  escapeRegExp,
+  expect,
+  test,
+  waitForGraphSimulationSettled,
+} from './_helpers';
+
+type GraphHarness = {
+  clickDoc: (docName: string) => boolean;
+  clickBackground: () => boolean;
+  clickExternal: (url: string) => boolean;
+  getNodeVisualState: (docName: string) => string | null;
+  getNodeClickPoint: (nodeKey: string) => {
+    x: number;
+    y: number;
+  } | null;
+  getLayoutMetrics: () => {
+    graphHeight: number;
+    containerHeight: number;
+    availableHeight: number;
+  };
+  getLinkClickPoint: (
+    sourceDocName: string,
+    targetDocName: string,
+  ) => { x: number; y: number } | null;
+  isSimulationSettled: () => boolean;
+};
+
+interface GraphFixtures {
+  suffix: string;
+  alpha: string;
+  beta: string;
+  gamma: string;
+  zeta: string;
+}
+
+async function seedGraphFixtures(api: ApiHelpers, baseURL: string): Promise<GraphFixtures> {
+  const suffix = randomUUID().slice(0, 8);
+  const fixtures: GraphFixtures = {
+    suffix,
+    alpha: `alpha-${suffix}`,
+    beta: `beta-${suffix}`,
+    gamma: `gamma-${suffix}`,
+    zeta: `zeta-${suffix}`,
+  };
+
+  for (const docName of [fixtures.alpha, fixtures.beta, fixtures.gamma, fixtures.zeta]) {
+    await api.createPage(`${docName}.md`);
+  }
+
+  await api.replaceDoc(
+    fixtures.alpha,
+    `# Alpha\n\n[[${fixtures.beta}#deep-link]]\n\n[Example Docs](https://example.com/docs)`,
+  );
+  await api.replaceDoc(fixtures.beta, '# Beta');
+  await api.replaceDoc(fixtures.gamma, '# Gamma');
+  await api.replaceDoc(fixtures.zeta, `# Zeta\n\n[[${fixtures.beta}]]`);
+
+  await expect
+    .poll(
+      async () => {
+        const response = await fetch(`${baseURL}/api/orphans?mode=both`);
+        const data = (await response.json()) as {
+          orphans?: Array<{ docName: string }>;
+        };
+        const orphans = data.orphans?.map((entry) => entry.docName) ?? [];
+        return (
+          orphans.includes(fixtures.gamma) &&
+          !orphans.includes(fixtures.alpha) &&
+          !orphans.includes(fixtures.beta) &&
+          !orphans.includes(fixtures.zeta)
+        );
+      },
+      { timeout: 10_000, intervals: [200, 500, 1000] },
+    )
+    .toBe(true);
+
+  await expect
+    .poll(
+      async () => {
+        const response = await fetch(`${baseURL}/api/hubs?limit=50`);
+        const data = (await response.json()) as {
+          hubs?: Array<{ docName: string; count: number }>;
+        };
+        const betaHub = data.hubs?.find((h) => h.docName === fixtures.beta);
+        return betaHub ? `${betaHub.docName}:${betaHub.count}` : '';
+      },
+      { timeout: 10_000, intervals: [200, 500, 1000] },
+    )
+    .toBe(`${fixtures.beta}:2`);
+
+  return fixtures;
+}
+
+async function openGraph(
+  page: Page,
+  {
+    docName,
+    fullscreen = false,
+  }: {
+    docName: string;
+    fullscreen?: boolean;
+  },
+) {
+  await page.goto(`/#/${docName}`);
+  await page.waitForFunction(() => Boolean(window.__activeProvider?.isSynced), null, {
+    timeout: 15_000,
+  });
+  await page.getByRole('tab', { name: 'Graph' }).click();
+  await page.waitForFunction(
+    () =>
+      Boolean(
+        (
+          window as Window &
+            typeof globalThis & {
+              __graphHarness?: GraphHarness;
+            }
+        ).__graphHarness,
+      ),
+    null,
+    { timeout: 10_000 },
+  );
+
+  if (fullscreen) {
+    await page.getByLabel('Expand graph').click();
+    await expect(getExpandedGraphIndicator(page)).toBeVisible();
+  }
+}
+
+async function waitForGraphNode(page: Page, docName: string) {
+  await page.waitForFunction(
+    (targetDoc) =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.getNodeVisualState(targetDoc) !== null,
+    docName,
+    { timeout: 10_000 },
+  );
+}
+
+function getGraphSurface(page: Page) {
+  return page.getByRole('img', { name: 'Graph visualization of document links' });
+}
+
+function getExpandedGraphIndicator(page: Page) {
+  return page.getByRole('group', { name: 'Expanded graph mode' });
+}
+
+async function clickGraphDoc(page: Page, docName: string) {
+  return page.evaluate(
+    (targetDoc) =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.clickDoc(targetDoc) ?? false,
+    docName,
+  );
+}
+
+async function clickGraphBackground(page: Page) {
+  return page.evaluate(
+    () =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.clickBackground() ?? false,
+  );
+}
+
+async function clickGraphExternal(page: Page, url: string) {
+  return page.evaluate(
+    (targetUrl) =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.clickExternal(targetUrl) ?? false,
+    url,
+  );
+}
+
+async function getGraphNodeVisualState(page: Page, docName: string) {
+  return page.evaluate(
+    (targetDoc) =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.getNodeVisualState(targetDoc) ?? null,
+    docName,
+  );
+}
+
+async function getGraphNodeClickPoint(page: Page, nodeKey: string) {
+  return page.evaluate(
+    (targetNode) =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.getNodeClickPoint(targetNode) ?? null,
+    nodeKey,
+  );
+}
+
+async function waitForGraphNodeClickPoint(page: Page, nodeKey: string) {
+  await expect
+    .poll(async () => Boolean(await getGraphNodeClickPoint(page, nodeKey)), {
+      timeout: 10_000,
+      intervals: [100, 250, 500],
+    })
+    .toBe(true);
+}
+
+async function getGraphLayoutMetrics(page: Page) {
+  return page.evaluate(
+    () =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.getLayoutMetrics() ?? {
+        graphHeight: 0,
+        containerHeight: 0,
+        availableHeight: 0,
+      },
+  );
+}
+
+async function getGraphLinkClickPoint(page: Page, sourceDocName: string, targetDocName: string) {
+  return page.evaluate(
+    ({ source, target }) =>
+      (
+        window as Window &
+          typeof globalThis & {
+            __graphHarness?: GraphHarness;
+          }
+      ).__graphHarness?.getLinkClickPoint(source, target) ?? null,
+    { source: sourceDocName, target: targetDocName },
+  );
+}
+
+async function waitForGraphLinkClickPoint(
+  page: Page,
+  sourceDocName: string,
+  targetDocName: string,
+) {
+  await expect
+    .poll(async () => Boolean(await getGraphLinkClickPoint(page, sourceDocName, targetDocName)), {
+      timeout: 10_000,
+      intervals: [100, 250, 500],
+    })
+    .toBe(true);
+}
+
+async function expectGraphToFillAvailableHeight(page: Page) {
+  const metrics = await getGraphLayoutMetrics(page);
+  expect(metrics.graphHeight).toBeGreaterThan(0);
+  expect(Math.abs(metrics.availableHeight - metrics.graphHeight)).toBeLessThanOrEqual(16);
+  expect(Math.abs(metrics.containerHeight - metrics.graphHeight)).toBeLessThanOrEqual(16);
+}
+
+test('fullscreen graph exposes Explore, Orphans, Hubs, and a visible orphan toggle', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+
+  await expect(page.getByRole('radio', { name: 'Explore' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Orphans' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Hubs' })).toBeVisible();
+
+  await page.getByRole('radio', { name: 'Orphans' }).click();
+
+  const orphanPanel = page
+    .locator('section')
+    .filter({ has: page.getByText('Project-level disconnected pages') });
+
+  await expect(page.getByRole('radio', { name: 'Both' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'No Incoming' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'No Outgoing' })).toBeVisible();
+
+  const gammaButton = orphanPanel.getByRole('button', { name: fixtures.gamma });
+  const alphaButton = orphanPanel.getByRole('button', { name: fixtures.alpha });
+  const betaButton = orphanPanel.getByRole('button', { name: fixtures.beta });
+  const zetaButton = orphanPanel.getByRole('button', { name: fixtures.zeta });
+
+  await expect(gammaButton).toBeVisible();
+  await expect(alphaButton).toHaveCount(0);
+  await expect(betaButton).toHaveCount(0);
+  await expect(zetaButton).toHaveCount(0);
+
+  await page.getByRole('radio', { name: 'No Incoming' }).click();
+  await expect(orphanPanel.getByRole('button', { name: fixtures.alpha })).toBeVisible();
+  await expect(orphanPanel.getByRole('button', { name: fixtures.zeta })).toBeVisible();
+
+  await page.getByRole('radio', { name: 'No Outgoing' }).click();
+  await expect(orphanPanel.getByRole('button', { name: fixtures.beta })).toBeVisible();
+
+  await orphanPanel.getByRole('button', { name: fixtures.gamma }).click();
+  await expect(page).toHaveURL(new RegExp(`#/${escapeRegExp(fixtures.gamma)}$`));
+
+  const hubsResponse = page.waitForResponse(
+    (response) => response.ok() && response.url().includes('/api/hubs?limit=50'),
+  );
+  await page.getByRole('radio', { name: 'Hubs' }).click();
+  await hubsResponse;
+
+  const hubsPanel = page.locator('section').filter({ has: page.getByText('Top linked pages') });
+  await expect(hubsPanel.getByRole('button', { name: fixtures.beta })).toBeVisible();
+  await hubsPanel.getByRole('button', { name: fixtures.beta }).click();
+  await expect(page).toHaveURL(new RegExp(`#/${escapeRegExp(fixtures.beta)}$`));
+});
+
+test('fullscreen graph selects a document before explicitly opening it', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.alpha);
+  await waitForGraphNode(page, fixtures.beta);
+
+  expect(await clickGraphDoc(page, fixtures.beta)).toBe(true);
+  await expect(page).toHaveURL(new RegExp(`#/${escapeRegExp(fixtures.alpha)}$`));
+
+  const selectedDoc = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedDoc).toBeVisible();
+  await expect(selectedDoc).toContainText('Beta');
+  await expect(selectedDoc).toContainText(fixtures.beta);
+  expect(await getGraphNodeVisualState(page, fixtures.alpha)).toBe('active');
+  expect(await getGraphNodeVisualState(page, fixtures.beta)).toBe('selected');
+
+  await selectedDoc.getByRole('button', { name: 'Open' }).click();
+  await expect(getExpandedGraphIndicator(page)).toHaveCount(0);
+  await expect(page).toHaveURL(new RegExp(`#/${escapeRegExp(fixtures.beta)}#deep-link$`));
+});
+
+test('fullscreen graph selecting the active document shows the already-open state', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.alpha);
+
+  expect(await clickGraphDoc(page, fixtures.alpha)).toBe(true);
+
+  const selectedDoc = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedDoc).toBeVisible();
+  await expect(selectedDoc).toContainText('Already open');
+  await expect(selectedDoc).toContainText('Alpha');
+  expect(await getGraphNodeVisualState(page, fixtures.alpha)).toBe('active-selected');
+
+  await selectedDoc.getByRole('button', { name: 'Open' }).click();
+  await expect(getExpandedGraphIndicator(page)).toHaveCount(0);
+  await expect(page).toHaveURL(new RegExp(`#/${escapeRegExp(fixtures.alpha)}$`));
+});
+
+test('fullscreen graph background click clears selection', async ({ page, api, baseURL }) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.beta);
+
+  expect(await clickGraphDoc(page, fixtures.beta)).toBe(true);
+  const selectedDoc = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedDoc).toBeVisible();
+
+  expect(await clickGraphBackground(page)).toBe(true);
+  await expect(selectedDoc).toHaveCount(0);
+});
+
+test('graph canvas fills the available height in docked and fullscreen modes', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha });
+  await waitForGraphNode(page, fixtures.alpha);
+  await expectGraphToFillAvailableHeight(page);
+
+  await page.getByLabel('Expand graph').click();
+  await expect(getExpandedGraphIndicator(page)).toBeVisible();
+  await waitForGraphNode(page, fixtures.alpha);
+  await expectGraphToFillAvailableHeight(page);
+});
+
+test('fullscreen graph edge clicks clear selection on the first try', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.beta);
+  await waitForGraphNodeClickPoint(page, fixtures.beta);
+  await waitForGraphLinkClickPoint(page, fixtures.alpha, fixtures.beta);
+  await waitForGraphSimulationSettled(page);
+
+  const betaPoint = await getGraphNodeClickPoint(page, fixtures.beta);
+  expect(betaPoint).not.toBeNull();
+  if (!betaPoint) {
+    throw new Error('Expected beta click point to be available');
+  }
+
+  const linkPoint = await getGraphLinkClickPoint(page, fixtures.alpha, fixtures.beta);
+  expect(linkPoint).not.toBeNull();
+  if (!linkPoint) {
+    throw new Error('Expected an edge click point to be available');
+  }
+
+  await getGraphSurface(page).click({
+    position: { x: betaPoint.x, y: betaPoint.y },
+    force: true,
+  });
+
+  const selectedDoc = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedDoc).toBeVisible();
+  await expect(selectedDoc).toContainText('Beta');
+
+  await getGraphSurface(page).click({
+    position: { x: linkPoint.x, y: linkPoint.y },
+    force: true,
+  });
+  await expect(selectedDoc).toHaveCount(0);
+});
+
+test('fullscreen graph clicking the selected node toggles selection off', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.beta);
+  await waitForGraphNodeClickPoint(page, fixtures.beta);
+  await waitForGraphSimulationSettled(page);
+
+  const betaPoint = await getGraphNodeClickPoint(page, fixtures.beta);
+  expect(betaPoint).not.toBeNull();
+  if (!betaPoint) {
+    throw new Error('Expected beta click point to be available');
+  }
+
+  await getGraphSurface(page).click({
+    position: { x: betaPoint.x, y: betaPoint.y },
+    force: true,
+  });
+
+  const selectedDoc = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedDoc).toBeVisible();
+
+  await getGraphSurface(page).click({
+    position: { x: betaPoint.x, y: betaPoint.y },
+    force: true,
+  });
+  await expect(selectedDoc).toHaveCount(0);
+});
+
+test('fullscreen graph external nodes use the same selection affordance', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await page.getByLabel('Show external URL nodes').click();
+  expect(await clickGraphExternal(page, 'https://example.com/docs')).toBe(true);
+
+  const selectedNode = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedNode).toBeVisible();
+  await expect(selectedNode).toContainText('Example Docs');
+  await expect(selectedNode).toContainText('https://example.com/docs');
+  await expect(selectedNode.getByRole('button', { name: 'Open link' })).toBeVisible();
+});
+
+test('fullscreen graph selection clears when switching modes', async ({ page, api, baseURL }) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.beta);
+
+  expect(await clickGraphDoc(page, fixtures.beta)).toBe(true);
+  const selectedDoc = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedDoc).toBeVisible();
+
+  await page.getByRole('radio', { name: 'Orphans' }).click();
+  await expect(selectedDoc).toHaveCount(0);
+
+  await page.getByRole('radio', { name: 'Explore' }).click();
+  await waitForGraphNode(page, fixtures.beta);
+  await expect(selectedDoc).toHaveCount(0);
+});
+
+test('fullscreen graph selection clears after exiting fullscreen', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.beta);
+
+  expect(await clickGraphDoc(page, fixtures.beta)).toBe(true);
+  const selectedDoc = page.getByRole('status', { name: 'Selected graph item' });
+  await expect(selectedDoc).toBeVisible();
+
+  await page.getByLabel('Collapse graph').click();
+  await expect(getExpandedGraphIndicator(page)).toHaveCount(0);
+
+  await page.getByLabel('Expand graph').click();
+  await expect(getExpandedGraphIndicator(page)).toBeVisible();
+  await expect(selectedDoc).toHaveCount(0);
+});
+
+test('docked graph clicks still navigate immediately with anchor-preserving hashes', async ({
+  page,
+  api,
+  baseURL,
+}) => {
+  const fixtures = await seedGraphFixtures(api, baseURL ?? '');
+  await openGraph(page, { docName: fixtures.alpha });
+  await waitForGraphNode(page, fixtures.beta);
+  expect(await clickGraphDoc(page, fixtures.beta)).toBe(true);
+  await expect(page).toHaveURL(new RegExp(`#/${escapeRegExp(fixtures.beta)}#deep-link$`));
+});
+
+async function fetchLinkGraphNodes(baseURL: string) {
+  const response = await fetch(`${baseURL}/api/link-graph`);
+  const data: {
+    nodes?: Array<{ kind?: string; docName?: string; url?: string; label?: string }>;
+  } = await response.json();
+  return data.nodes ?? [];
+}
+
+async function expectGraphNodeTooltipText(page: Page, nodeKey: string, text: string) {
+  const tooltip = page.locator('.float-tooltip-kap');
+  await expect(async () => {
+    const point = await getGraphNodeClickPoint(page, nodeKey);
+    if (!point) {
+      throw new Error(`Expected a hover point for graph node ${nodeKey}`);
+    }
+    await page.mouse.move(0, 0);
+    await getGraphSurface(page).hover({ position: point, force: true });
+    await expect(tooltip).toHaveText(text, { timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+  await expect(tooltip.locator('*')).toHaveCount(0);
+}
+
+test('graph node tooltips show a markup document title as text', async ({ page, api, baseURL }) => {
+  const fixtures = await seedGraphFixtures(api, baseURL);
+  const title = `<i>Zeta ${fixtures.suffix}</i>`;
+  await api.replaceDoc(fixtures.zeta, `# ${title}\n\n[[${fixtures.beta}]]`);
+  await expect
+    .poll(
+      async () =>
+        (await fetchLinkGraphNodes(baseURL)).find((node) => node.docName === fixtures.zeta)?.label,
+      { timeout: 10_000, intervals: [200, 500, 1000] },
+    )
+    .toBe(title);
+
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await waitForGraphNode(page, fixtures.zeta);
+  await waitForGraphSimulationSettled(page);
+
+  await expectGraphNodeTooltipText(page, fixtures.zeta, title);
+});
+
+test('graph external node tooltips show a markup URL as text', async ({ page, api, baseURL }) => {
+  const fixtures = await seedGraphFixtures(api, baseURL);
+  const url = `https://example.com/${fixtures.suffix}<i>docs</i>`;
+  await api.replaceDoc(fixtures.alpha, `# Alpha\n\n[[${fixtures.beta}]]\n\n[Example](${url})`);
+  await expect
+    .poll(
+      async () =>
+        (await fetchLinkGraphNodes(baseURL)).some(
+          (node) => node.kind === 'external' && node.url === url,
+        ),
+      { timeout: 10_000, intervals: [200, 500, 1000] },
+    )
+    .toBe(true);
+
+  await openGraph(page, { docName: fixtures.alpha, fullscreen: true });
+  await page.getByLabel('Show external URL nodes').click();
+  await waitForGraphNodeClickPoint(page, url);
+  await waitForGraphSimulationSettled(page);
+
+  await expectGraphNodeTooltipText(page, url, url);
+});

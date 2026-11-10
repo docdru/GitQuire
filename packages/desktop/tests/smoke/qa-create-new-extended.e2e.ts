@@ -1,0 +1,650 @@
+import { execSync } from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { delimiter, join } from 'node:path';
+import { TERMINAL_CLIS } from '@inkeep/open-knowledge-core';
+import type { ElectronApplication, Page } from '@playwright/test';
+import { _electron as electron } from '@playwright/test';
+import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
+import { windowsPathKey } from '../../src/shared/windows-env.ts';
+import { configureDesktopGitRepositories } from '../support/git-fixture.test-helper.ts';
+import { typeProjectName } from './_helpers/create-new-dialog';
+import { captureAppProcess, closeAppBounded } from './_helpers/electron-cleanup';
+import { desktopLaunchOptions, resolveDesktopTarget } from './_helpers/launch-desktop';
+import { clickNavCreateNew } from './_helpers/navigator-actions';
+import {
+  homeEnv,
+  PLATFORM_SKIP_REASON,
+  PLATFORM_SUPPORTED,
+  SMOKE_ENABLED,
+} from './_helpers/platform-gate';
+import { findProjectEditorWindow } from './_helpers/project-editor-window';
+import { expect, test } from './_helpers/smoke-test';
+
+const TARGET = resolveDesktopTarget();
+
+const DESKTOP_PRODUCT_NAME = '@inkeep/open-knowledge-desktop';
+
+const CLI_BINS = Object.values(TERMINAL_CLIS).map((cli) => cli.bin);
+const CLI_SUFFIXES = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', '.ps1'] : [''];
+
+function holdsDetectableCli(dir: string): boolean {
+  return CLI_BINS.some((bin) => CLI_SUFFIXES.some((suffix) => existsSync(join(dir, bin + suffix))));
+}
+
+function hermeticPath(tmpHome: string): string {
+  const hostDirs = (process.env[windowsPathKey(process.env)] ?? '')
+    .split(delimiter)
+    .filter((dir) => dir.length > 0 && !holdsDetectableCli(dir));
+  return [join(tmpHome, 'bin'), ...hostDirs].join(delimiter);
+}
+
+function seedShellProfiles(tmpHome: string): void {
+  if (process.platform === 'win32') return;
+  const escaped = hermeticPath(tmpHome).replace(/["\\$`]/g, '\\$&');
+  for (const rc of ['.zprofile', '.zshrc', '.bash_profile', '.profile']) {
+    writeFileSync(join(tmpHome, rc), `export PATH="${escaped}"\n`);
+  }
+}
+
+function seedCliOnPath(tmpHome: string, bin: string): void {
+  const binDir = join(tmpHome, 'bin');
+  mkdirSync(binDir, { recursive: true });
+  if (process.platform === 'win32') {
+    writeFileSync(join(binDir, `${bin}.cmd`), '@exit /b 0\r\n');
+  } else {
+    writeFileSync(join(binDir, bin), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+  }
+}
+
+function seedTmpHome(prefix: string, stateOverride?: Record<string, unknown>): string {
+  const tmpHome = realpathSync(mkdtempSync(join(tmpdir(), `ok-qa-${prefix}-`)));
+  const userDataDir = join(tmpHome, 'Library', 'Application Support', DESKTOP_PRODUCT_NAME);
+  mkdirSync(userDataDir, { recursive: true });
+  writeFileSync(
+    join(userDataDir, 'state.json'),
+    JSON.stringify({
+      recentProjects: [],
+      lastOpenedProject: null,
+      versionPendingInstall: null,
+      lastSeenVersion: null,
+      lastSuccessfulCheckAt: null,
+      stuckHintShown: false,
+      ...stateOverride,
+    }),
+  );
+  seedShellProfiles(tmpHome);
+  return tmpHome;
+}
+
+interface LaunchOpts {
+  pickedParent?: string;
+}
+
+async function launchApp(tmpHome: string, opts: LaunchOpts = {}): Promise<ElectronApplication> {
+  const userDataDir = join(tmpHome, 'Library', 'Application Support', DESKTOP_PRODUCT_NAME);
+  return electron.launch(
+    desktopLaunchOptions({
+      target: TARGET,
+      args: [`--user-data-dir=${userDataDir}`],
+      timeout: 30_000,
+      env: {
+        ...process.env,
+        [windowsPathKey(process.env)]: hermeticPath(tmpHome),
+        ...homeEnv(tmpHome),
+        OK_DESKTOP_E2E_SMOKE: '1',
+        OK_DESKTOP_TEST_SCHEME_HANDLERS: '',
+        ...(opts.pickedParent !== undefined
+          ? { OK_DESKTOP_TEST_PICKED_PATH: opts.pickedParent }
+          : {}),
+      },
+    }),
+  );
+}
+
+async function findWindowByMode(
+  app: ElectronApplication,
+  mode: 'navigator' | 'editor',
+  timeoutMs = 20_000,
+): Promise<Page> {
+  await expect
+    .poll(
+      async () => {
+        for (const page of app.windows()) {
+          const m = await page
+            .evaluate(() => window.okDesktop?.config?.mode)
+            .catch(() => undefined);
+          if (m === mode) return true;
+        }
+        return false;
+      },
+      { timeout: timeoutMs, message: `${mode} window did not appear within timeout` },
+    )
+    .toBe(true);
+  for (const page of app.windows()) {
+    const m = await page.evaluate(() => window.okDesktop?.config?.mode).catch(() => undefined);
+    if (m === mode) return page;
+  }
+  throw new Error(`${mode} window vanished between poll resolution and read`);
+}
+
+async function countWindowsByMode(
+  app: ElectronApplication,
+  mode: 'navigator' | 'editor',
+): Promise<number> {
+  let n = 0;
+  for (const page of app.windows()) {
+    const m = await page.evaluate(() => window.okDesktop?.config?.mode).catch(() => undefined);
+    if (m === mode) n += 1;
+  }
+  return n;
+}
+
+async function findProjectEditor(app: ElectronApplication, projectDir: string): Promise<Page> {
+  const editor = await findProjectEditorWindow(app, projectDir);
+  if (!editor) throw new Error(`editor window not found for ${projectDir}`);
+  return editor;
+}
+
+const cleanupTargets: string[] = [];
+function trackForCleanup(...paths: string[]): void {
+  cleanupTargets.push(...paths);
+}
+
+test.describe('QA extended create-new-project', () => {
+  test.skip(!SMOKE_ENABLED, 'Set OK_DESKTOP_E2E_SMOKE=1 to run.');
+  test.skip(!PLATFORM_SUPPORTED, PLATFORM_SKIP_REASON);
+  test.skip(!TARGET.exists, TARGET.missingReason);
+
+  test.afterEach(async () => {
+    for (const target of cleanupTargets.splice(0)) {
+      try {
+        rmSync(target, { recursive: true, force: true });
+      } catch {}
+    }
+  });
+
+  test('QA-005 the AI-tool decision writes exactly the detected tools', async ({
+    captureStderrFor,
+  }) => {
+    const tmpHome = seedTmpHome('editors');
+    seedCliOnPath(tmpHome, 'cursor-agent');
+    const parent = join(tmpHome, 'projects');
+    mkdirSync(parent, { recursive: true });
+    const projectName = 'Customized';
+    const expected = join(parent, projectName);
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: parent });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeVisible();
+
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-location-display"]')).toContainText(
+      parent,
+      { timeout: 5_000 },
+    );
+    await typeProjectName(navigator, projectName);
+    await expect(navigator.locator('[data-testid="create-target-caption"]')).toContainText(
+      expected,
+      { timeout: 5_000 },
+    );
+
+    const connectBox = navigator.locator('[data-testid="create-editors-checkbox"]');
+    await expect(connectBox).toBeVisible({ timeout: 15_000 });
+    await expect(connectBox).toBeChecked();
+    const summary = navigator.locator('[data-testid="create-editors-summary"]');
+    await expect(summary).toContainText('Cursor');
+    await expect(summary).not.toContainText('Codex');
+    await expect(summary).not.toContainText('Claude');
+
+    const submit = navigator.locator('[data-testid="create-submit"]');
+    await expect(submit).toBeEnabled();
+    await submit.click();
+
+    await expect
+      .poll(() => countWindowsByMode(app, 'editor'), { timeout: 30_000 })
+      .toBeGreaterThanOrEqual(1);
+
+    await expect
+      .poll(() => existsSync(join(expected, '.ok', 'config.yml')), { timeout: 15_000 })
+      .toBe(true);
+
+    await expect
+      .poll(() => existsSync(join(expected, '.cursor', 'mcp.json')), { timeout: 15_000 })
+      .toBe(true);
+    expect(existsSync(join(expected, '.codex'))).toBe(false);
+    expect(existsSync(join(expected, '.claude'))).toBe(false);
+    expect(existsSync(join(expected, '.mcp.json'))).toBe(false);
+    await configureDesktopGitRepositories(await findProjectEditor(app, expected), expected);
+  });
+
+  test('QA-010 dialog UX — focus, location, checkboxes, ARIA', async ({ captureStderrFor }) => {
+    const tmpHome = seedTmpHome('uxshape');
+    seedCliOnPath(tmpHome, 'codex');
+    const parent = join(tmpHome, 'projects');
+    mkdirSync(parent, { recursive: true });
+    const projectName = 'Live Preview';
+    const expectedTarget = join(parent, projectName);
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: parent });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    const dialog = navigator.locator('[data-testid="create-project-dialog"]');
+    await expect(dialog).toBeVisible({ timeout: 15_000 });
+
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeFocused();
+
+    const locationDisplay = navigator.locator('[data-testid="create-location-display"]');
+    await expect(locationDisplay).toBeVisible();
+
+    const caption = navigator.locator('[data-testid="create-target-caption"]');
+    const ariaLive = await caption.getAttribute('aria-live');
+    expect(ariaLive).toBe('polite');
+
+    const connectBox = navigator.locator('[data-testid="create-editors-checkbox"]');
+    await expect(connectBox).toBeVisible({ timeout: 15_000 });
+    await expect(connectBox).toBeChecked();
+    await expect(navigator.locator('[data-testid="create-editors-summary"]')).toContainText(
+      'Codex',
+    );
+
+    const status = navigator.locator('[data-testid="create-editors-status"]');
+    expect(await status.getAttribute('aria-live')).toBe('polite');
+    await expect(status).toHaveAttribute('data-status', 'ready');
+
+    await navigator.locator('[data-testid="create-editors-details-toggle"]').click();
+    await expect(navigator.locator('[data-testid="create-editors-details"]')).toContainText(
+      '.codex/config.toml',
+    );
+    await connectBox.click();
+    await expect(connectBox).not.toBeChecked();
+    await connectBox.click();
+    await expect(connectBox).toBeChecked();
+
+    await typeProjectName(navigator, projectName);
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(caption).toContainText(expectedTarget, { timeout: 15_000 });
+  });
+
+  test('QA-011 + QA-016 — lastUsedProjectParent persists across opens; transient form state resets on reopen', async ({
+    captureStderrFor,
+  }) => {
+    if (process.env.CI) {
+      test.setTimeout(240_000);
+    }
+    const tmpHome = seedTmpHome('persist');
+    const parent = join(tmpHome, 'projects-persist');
+    mkdirSync(parent, { recursive: true });
+    const userDataDir = join(tmpHome, 'Library', 'Application Support', DESKTOP_PRODUCT_NAME);
+    const projectName = 'First';
+    trackForCleanup(tmpHome);
+
+    const app1 = await launchApp(tmpHome, { pickedParent: parent });
+    captureStderrFor(app1, { home: tmpHome });
+    const app1Proc = captureAppProcess(app1);
+    const navigator = await findWindowByMode(app1, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeVisible();
+    await typeProjectName(navigator, projectName);
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-location-display"]')).toContainText(
+      parent,
+      { timeout: 15_000 },
+    );
+    const submit = navigator.locator('[data-testid="create-submit"]');
+    await expect(submit).toBeEnabled();
+    await submit.click();
+    await expect
+      .poll(() => countWindowsByMode(app1, 'editor'), { timeout: 30_000 })
+      .toBeGreaterThanOrEqual(1);
+
+    const firstProject = join(parent, projectName);
+    await expect
+      .poll(() => existsSync(join(firstProject, '.ok', 'config.yml')), { timeout: 15_000 })
+      .toBe(true);
+    expect(existsSync(join(firstProject, '.cursor'))).toBe(false);
+    expect(existsSync(join(firstProject, '.mcp.json'))).toBe(false);
+    await configureDesktopGitRepositories(
+      await findProjectEditor(app1, firstProject),
+      firstProject,
+    );
+
+    await closeAppBounded(app1Proc, { gracefulMs: 5_000 }).catch((error: unknown) => {
+      throw new Error(
+        'app1 did not close; app2 shares this userDataDir and would fail requestSingleInstanceLock',
+        { cause: error },
+      );
+    });
+
+    const stateAfterSubmit = JSON.parse(readFileSync(join(userDataDir, 'state.json'), 'utf8'));
+    expect(stateAfterSubmit.lastUsedProjectParent).toBe(parent);
+
+    const persistedParent = stateAfterSubmit.lastUsedProjectParent;
+    writeFileSync(
+      join(userDataDir, 'state.json'),
+      JSON.stringify({
+        recentProjects: [],
+        lastOpenedProject: null,
+        lastUsedProjectParent: persistedParent,
+        versionPendingInstall: null,
+        lastSeenVersion: null,
+        lastSuccessfulCheckAt: null,
+        stuckHintShown: false,
+      }),
+    );
+
+    rmSync(join(userDataDir, 'bug-report-dirty-shutdown.json'), { force: true });
+
+    const app2 = await launchApp(tmpHome);
+    captureStderrFor(app2, { home: tmpHome });
+    const navigator2 = await findWindowByMode(app2, 'navigator', 30_000);
+    await clickNavCreateNew(navigator2);
+    await expect(navigator2.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    const nameInput = navigator2.locator('[data-testid="create-name"]');
+    await expect(nameInput).toBeVisible();
+    await expect(nameInput).toHaveValue('');
+    await expect(navigator2.locator('[data-testid="create-location-display"]')).toContainText(
+      persistedParent,
+      { timeout: 15_000 },
+    );
+    await expect(navigator2.locator('[data-testid="create-editors-status"]')).toHaveAttribute(
+      'data-status',
+      'none',
+      { timeout: 15_000 },
+    );
+    await expect(navigator2.locator('[data-testid="create-editors-checkbox"]')).toHaveCount(0);
+    await expect(navigator2.locator('[data-testid="create-sharing"]')).toBeVisible();
+    await expect(navigator2.locator('[data-testid="create-sharing-local-only"]')).toHaveAttribute(
+      'data-state',
+      'checked',
+    );
+  });
+
+  test('submit with no name does not create; typing the name enables creation', async ({
+    captureStderrFor,
+  }) => {
+    const tmpHome = seedTmpHome('toast-when-empty');
+    const parent = join(tmpHome, 'projects-san');
+    mkdirSync(parent, { recursive: true });
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: parent });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    const nameInput = navigator.locator('[data-testid="create-name"]');
+    await expect(nameInput).toHaveValue('');
+    const submit = navigator.locator('[data-testid="create-submit"]');
+    await expect(submit).toBeEnabled();
+    const caption = navigator.locator('[data-testid="create-target-caption"]');
+    await expect(caption).toHaveText('', { timeout: 5_000 });
+
+    await submit.click();
+    await navigator.waitForTimeout(2_000);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible();
+    expect(await countWindowsByMode(app, 'editor')).toBe(0);
+
+    await typeProjectName(navigator, 'AfterPick');
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(caption).toContainText(join(parent, 'AfterPick'), { timeout: 15_000 });
+    await expect(submit).toBeEnabled();
+  });
+
+  test('QA-019 — double-click Create produces exactly one project', async ({
+    captureStderrFor,
+  }) => {
+    const tmpHome = seedTmpHome('dblclick');
+    const parent = join(tmpHome, 'projects-dbl');
+    mkdirSync(parent, { recursive: true });
+    const projectName = 'Unique';
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: parent });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeVisible();
+    await typeProjectName(navigator, projectName);
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-target-caption"]')).toContainText(
+      join(parent, projectName),
+      { timeout: 15_000 },
+    );
+
+    const submit = navigator.locator('[data-testid="create-submit"]');
+    await expect(submit).toBeEnabled();
+
+    await submit.click();
+    try {
+      await submit.click({ timeout: 1_000, force: true });
+    } catch {}
+
+    await expect
+      .poll(() => countWindowsByMode(app, 'editor'), { timeout: 30_000 })
+      .toBeGreaterThanOrEqual(1);
+    await new Promise((r) => setTimeout(r, 2_000));
+    const editorCount = await countWindowsByMode(app, 'editor');
+    expect(editorCount).toBe(1);
+    expect(existsSync(join(parent, projectName, '.ok', 'config.yml'))).toBe(true);
+    const projectDir = join(parent, projectName);
+    await configureDesktopGitRepositories(await findProjectEditor(app, projectDir), projectDir);
+  });
+
+  test('QA-025 — banner ARIA roles per severity', async ({ captureStderrFor }) => {
+    const tmpHome = seedTmpHome('aria');
+    const rootPath = join(tmpHome, 'existing-project');
+    mkdirSync(join(rootPath, '.ok'), { recursive: true });
+    writeFileSync(join(rootPath, '.ok', 'config.yml'), 'schemaVersion: 1\ncontent:\n  dir: "."\n');
+    const subFolder = join(rootPath, 'sub');
+    mkdirSync(subFolder, { recursive: true });
+    const projectName = 'Nested';
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: subFolder });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeVisible();
+    await typeProjectName(navigator, projectName);
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-location-display"]')).toContainText(
+      subFolder,
+      { timeout: 15_000 },
+    );
+
+    const nestedBanner = navigator.locator('[data-testid="create-banner-nested"]');
+    await expect(nestedBanner).toBeVisible({ timeout: 15_000 });
+    const nestedRole = await nestedBanner.getAttribute('role');
+    expect(nestedRole).toBe('alert');
+  });
+
+  test('QA-025b — git-confirm banner role=status, aria-live=polite', async ({
+    captureStderrFor,
+  }) => {
+    const tmpHome = seedTmpHome('aria-git');
+    const repoRoot = join(tmpHome, 'website');
+    mkdirSync(repoRoot, { recursive: true });
+    execSync('git init -q', { cwd: repoRoot });
+    configureTestGitRepository(repoRoot);
+    const pickedParent = join(repoRoot, 'notes');
+    mkdirSync(pickedParent, { recursive: true });
+    const projectName = 'MyProj';
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeVisible();
+    await typeProjectName(navigator, projectName);
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-location-display"]')).toContainText(
+      pickedParent,
+      { timeout: 15_000 },
+    );
+
+    const gitBanner = navigator.locator('[data-testid="create-banner-git-confirm"]');
+    await expect(gitBanner).toBeVisible({ timeout: 15_000 });
+    const role = await gitBanner.getAttribute('role');
+    expect(role).toBe('status');
+    const ariaLive = await gitBanner.getAttribute('aria-live');
+    expect(ariaLive).toBe('polite');
+  });
+
+  test('Enter on Submit button submits the form', async ({ captureStderrFor }) => {
+    const tmpHome = seedTmpHome('kbd');
+    const parent = join(tmpHome, 'projects-kbd');
+    mkdirSync(parent, { recursive: true });
+    const projectName = 'KbdSubmit';
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: parent });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeVisible();
+    await typeProjectName(navigator, projectName);
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-target-caption"]')).toContainText(
+      join(parent, projectName),
+      { timeout: 15_000 },
+    );
+
+    const submit = navigator.locator('[data-testid="create-submit"]');
+    await expect(submit).toBeEnabled({ timeout: 10_000 });
+
+    await submit.focus();
+    await submit.press('Enter');
+
+    await expect
+      .poll(() => countWindowsByMode(app, 'editor'), { timeout: 30_000 })
+      .toBeGreaterThanOrEqual(1);
+    expect(existsSync(join(parent, projectName, '.ok', 'config.yml'))).toBe(true);
+    const projectDir = join(parent, projectName);
+    await configureDesktopGitRepositories(await findProjectEditor(app, projectDir), projectDir);
+  });
+
+  test('QA-002 — clicking Open <basename> dispatches openProject and closes dialog', async ({
+    captureStderrFor,
+  }) => {
+    const tmpHome = seedTmpHome('open-nested');
+    const rootPath = join(tmpHome, 'NestedTarget');
+    mkdirSync(join(rootPath, '.ok'), { recursive: true });
+    writeFileSync(join(rootPath, '.ok', 'config.yml'), 'schemaVersion: 1\ncontent:\n  dir: "."\n');
+    const subFolder = join(rootPath, 'sub');
+    mkdirSync(subFolder, { recursive: true });
+    const projectName = 'Anything';
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: subFolder });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-name"]')).toBeVisible();
+    await typeProjectName(navigator, projectName);
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-location-display"]')).toContainText(
+      subFolder,
+      { timeout: 15_000 },
+    );
+
+    const openBtn = navigator.locator('[data-testid="create-banner-nested-open"]');
+    await expect(openBtn).toBeVisible({ timeout: 15_000 });
+    await expect(openBtn).toHaveText(/Open NestedTarget/);
+    const navigatorClosed = navigator.waitForEvent('close');
+    await openBtn.click();
+
+    await expect
+      .poll(() => countWindowsByMode(app, 'editor'), { timeout: 30_000 })
+      .toBeGreaterThanOrEqual(1);
+    await Promise.race([
+      navigatorClosed,
+      expect(navigator.locator('[data-testid="create-project-dialog"]')).not.toBeVisible({
+        timeout: 5_000,
+      }),
+    ]);
+  });
+
+  test('PRD-7129 — name resolving to a non-empty folder shows inline name-taken error', async ({
+    captureStderrFor,
+  }) => {
+    const tmpHome = seedTmpHome('name-taken');
+    const parent = join(tmpHome, 'projects-taken');
+    mkdirSync(parent, { recursive: true });
+    const taken = join(parent, 'Notes');
+    mkdirSync(taken, { recursive: true });
+    writeFileSync(join(taken, 'existing.md'), '# existing\n');
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedParent: parent });
+    captureStderrFor(app, { home: tmpHome });
+    const navigator = await findWindowByMode(app, 'navigator');
+    await clickNavCreateNew(navigator);
+    await expect(navigator.locator('[data-testid="create-project-dialog"]')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await navigator.locator('[data-testid="create-browse"]').click();
+    await expect(navigator.locator('[data-testid="create-location-display"]')).toContainText(
+      parent,
+      { timeout: 15_000 },
+    );
+
+    await typeProjectName(navigator, 'Notes');
+
+    await expect(navigator.locator('[data-testid="create-name-error-taken"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-submit"]')).toBeDisabled();
+    await expect(navigator.locator('[data-testid="create-subfolder-rescue"]')).toHaveCount(0);
+
+    await typeProjectName(navigator, 'FreshNotes');
+    await expect(navigator.locator('[data-testid="create-name-error-taken"]')).toHaveCount(0, {
+      timeout: 15_000,
+    });
+    await expect(navigator.locator('[data-testid="create-submit"]')).toBeEnabled({
+      timeout: 15_000,
+    });
+  });
+});

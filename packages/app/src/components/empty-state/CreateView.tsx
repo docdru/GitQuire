@@ -1,0 +1,256 @@
+import type {
+  TemplatesListEntry,
+  TemplatesListSuccess,
+} from '@inkeep/open-knowledge-core/schemas/api';
+import { plural } from '@lingui/core/macro';
+import { Trans, useLingui } from '@lingui/react/macro';
+import { ArrowRightIcon, Info, Plus } from 'lucide-react';
+import { CopyablePromptList } from '@/components/empty-state/CopyablePromptList';
+import { CreatePromptComposer } from '@/components/empty-state/CreatePromptComposer';
+import { EmptyStateHeader } from '@/components/empty-state/EmptyStateHeader';
+import { getEmptyStateCopy } from '@/components/empty-state/empty-state-copy';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import type { AsyncState } from '@/hooks/use-folder-config';
+import { useIsEmbedded } from '@/hooks/use-is-embedded';
+import { emitCreateTopLevelFile } from '@/lib/create-file-events';
+import { cn } from '@/lib/utils';
+
+interface CreateViewProps {
+  readonly templatesState: AsyncState<TemplatesListSuccess>;
+  readonly celebrateSignal: number;
+  readonly onAddStarterPack: () => void;
+  readonly onRageStreak?: () => void;
+}
+
+export function CreateView({
+  templatesState,
+  celebrateSignal,
+  onAddStarterPack,
+  onRageStreak,
+}: CreateViewProps) {
+  const { t } = useLingui();
+  const isEmbedded = useIsEmbedded();
+  const { title, subtitle } = getEmptyStateCopy({ isOnboarding: false, isEmbedded });
+
+  return (
+    <div className="flex w-full flex-col gap-8 py-12 max-w-5xl my-auto" data-testid="create-view">
+      <EmptyStateHeader
+        title={t(title)}
+        subtitle={t(subtitle)}
+        celebrateSignal={celebrateSignal}
+        onRageStreak={onRageStreak}
+      />
+
+      {isEmbedded ? (
+        <CopyablePromptList scenario="existing-repo" />
+      ) : (
+        <CreatePromptComposer scenario="existing-repo" />
+      )}
+
+      <FileCreationActions templatesState={templatesState} onAddStarterPack={onAddStarterPack} />
+    </div>
+  );
+}
+
+interface FileCreationActionsProps {
+  readonly templatesState: AsyncState<TemplatesListSuccess>;
+  readonly compact?: boolean;
+  readonly onAddStarterPack?: () => void;
+}
+
+export function FileCreationActions({
+  templatesState,
+  compact = false,
+  onAddStarterPack,
+}: FileCreationActionsProps) {
+  const initialDir = '';
+
+  const templates = templatesState.status === 'ready' ? templatesState.data.templates : [];
+  const templatesTruncated = templatesState.status === 'ready' && templatesState.data.truncated;
+  const templatesLoading = templatesState.status === 'loading' || templatesState.status === 'idle';
+  const templatesError = templatesState.status === 'error';
+  const templatesSectionVisible =
+    templatesLoading || templatesError || templatesTruncated || templates.length > 0;
+
+  return (
+    <div className="flex w-full flex-col gap-8">
+      {templatesSectionVisible ? (
+        <TemplatesSection
+          compact={compact}
+          templates={templates}
+          loading={templatesLoading}
+          error={templatesError}
+          truncated={templatesTruncated}
+          onSelect={(folder, name) => emitCreateTopLevelFile({ template: { folder, name } })}
+        />
+      ) : null}
+
+      <div
+        data-testid="file-creation-action-row"
+        className={cn(
+          'flex w-full flex-wrap items-center justify-end gap-4',
+          templatesSectionVisible && '-mt-6',
+        )}
+      >
+        {onAddStarterPack ? (
+          <Button
+            onClick={onAddStarterPack}
+            variant="link-muted"
+            size="xs"
+            className="me-auto font-mono text-xs uppercase tracking-wider"
+          >
+            <Plus aria-hidden="true" className="size-3" />
+            <Trans>Add a starter pack</Trans>
+          </Button>
+        ) : null}
+        <Button
+          variant="link-muted"
+          size="sm"
+          onClick={() => emitCreateTopLevelFile({ initialDir })}
+        >
+          <Trans>
+            or create a new file <ArrowRightIcon aria-hidden="true" className="size-3" />
+          </Trans>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface TemplatesSectionProps {
+  readonly compact: boolean;
+  readonly templates: readonly TemplatesListEntry[];
+  readonly loading: boolean;
+  readonly error: boolean;
+  readonly truncated: boolean;
+  readonly onSelect: (folder: string, name: string) => void;
+}
+
+function TemplatesSection({
+  compact,
+  templates,
+  loading,
+  error,
+  truncated,
+  onSelect,
+}: TemplatesSectionProps) {
+  const { t } = useLingui();
+  const listVisible = loading || error || templates.length > 0;
+  const countVisible = !loading && !error && (!truncated || templates.length > 0);
+  return (
+    <section aria-label={t`From template`} className="flex w-full flex-col gap-3">
+      <header className="flex items-center gap-2 font-mono text-2xs uppercase tracking-wider text-muted-foreground">
+        <span>
+          <Trans>From template</Trans>
+        </span>
+        {countVisible ? (
+          <Badge className="text-2xs" variant="gray">
+            <span aria-hidden="true">{truncated ? `${templates.length}+` : templates.length}</span>
+            <span className="sr-only">
+              {truncated
+                ? t`${plural(templates.length, {
+                    one: 'At least # template found',
+                    other: 'At least # templates found',
+                  })}`
+                : t`${plural(templates.length, {
+                    one: '# template available',
+                    other: '# templates available',
+                  })}`}
+            </span>
+          </Badge>
+        ) : null}
+      </header>
+      {listVisible ? (
+        <div className="w-full overflow-hidden rounded-xl border border-border/60 bg-card">
+          <section
+            aria-busy={loading}
+            aria-label={t`Template list`}
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- focusable scroll region per WCAG 2.1.1 (keyboard-operable)
+            tabIndex={0}
+            className={cn(
+              'subtle-scrollbar scroll-fade-mask flex max-h-[260px] w-full flex-col overflow-y-auto focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+              !compact && 'overscroll-contain',
+            )}
+          >
+            {loading ? (
+              <p className="p-4 text-1sm text-muted-foreground">
+                <Trans>Loading templates</Trans>
+              </p>
+            ) : error ? (
+              <p role="alert" className="p-4 text-1sm text-destructive">
+                <Trans>Could not load templates. Try again later.</Trans>
+              </p>
+            ) : (
+              templates.map((tpl) => {
+                const targetLabel = tpl.source_folder === '' ? '/' : `${tpl.source_folder}/`;
+                return (
+                  <TemplateRow
+                    key={`${tpl.source_folder}/${tpl.name}`}
+                    template={tpl}
+                    targetLabel={targetLabel}
+                    onClick={() => onSelect(tpl.source_folder, tpl.name)}
+                  />
+                );
+              })
+            )}
+          </section>
+        </div>
+      ) : null}
+      {truncated ? (
+        <Alert role="note" className="bg-muted/40 text-start">
+          <Info aria-hidden />
+          <AlertDescription>
+            <Trans>
+              Some templates may not be listed because this knowledge base has too many folders to
+              scan. To see a folder's templates, open its menu in the file tree and choose New from
+              template.
+            </Trans>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+    </section>
+  );
+}
+
+interface TemplateRowProps {
+  readonly template: TemplatesListEntry;
+  readonly targetLabel: string;
+  readonly onClick: () => void;
+}
+
+function TemplateRow({ template, targetLabel, onClick }: TemplateRowProps) {
+  const { t } = useLingui();
+  const displayTitle = template.title?.trim() || template.name;
+  const fileName = `${template.name}.md`;
+  const targetIsRoot = template.source_folder === '';
+  const accessibleName = targetIsRoot
+    ? t`New file from template "${displayTitle}" (${fileName}) in the project root`
+    : t`New file from template "${displayTitle}" (${fileName}) in ${targetLabel}`;
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      onClick={onClick}
+      aria-label={accessibleName}
+      className="group flex h-auto w-full items-center justify-between gap-4 rounded-none p-4 text-left transition-colors hover:bg-muted/50 focus-visible:bg-muted/50"
+    >
+      <span className="flex min-w-0 items-baseline gap-2">
+        <span className="truncate text-sm font-medium leading-tight text-foreground/80">
+          {displayTitle}
+        </span>
+        <span className="truncate font-mono text-1sm font-normal text-muted-foreground">
+          {fileName}
+        </span>
+      </span>
+      <span
+        className={`shrink-0 font-mono text-1sm ${
+          targetIsRoot ? 'text-muted-foreground/70' : 'text-muted-foreground'
+        }`}
+      >
+        {targetLabel}
+      </span>
+    </Button>
+  );
+}

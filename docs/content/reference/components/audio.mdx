@@ -1,0 +1,68 @@
+---
+title: "Audio"
+description: "HTML5 audio player with native controls"
+keywords: "audio, sound, music, mp3, podcast, player"
+---
+
+## Example
+
+<ComponentPreview>
+  <AudioPreview
+    src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+    controls
+  />
+</ComponentPreview>
+
+```md
+![[podcast-episode.mp3]]
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "src": {
+    description: "Audio source URL",
+    type: "string",
+    required: true,
+    default: "",
+  },
+  "controls": {
+    description: "Show native HTML5 audio controls (defaults to true)",
+    type: "boolean",
+    required: false,
+    default: "true",
+  },
+  "autoplay": {
+    description: "Begin playback as soon as possible (usually requires muted)",
+    type: "boolean",
+    required: false,
+  },
+  "title": {
+    description: "Native HTML title attribute (tooltip)",
+    type: "string",
+    required: false,
+  },
+  "muted": {
+    description: "Mute audio on load",
+    type: "boolean",
+    required: false,
+  },
+  "loop": {
+    description: "Restart from the beginning when playback ends",
+    type: "boolean",
+    required: false,
+  },
+  "preload": {
+    description: "Hint for how much of the audio to preload",
+    type: "'none' | 'metadata' | 'auto'",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `audio`, `sound`, `music`, `mp3`, `podcast`, `player`
+
+## Author it
+
+Type `/audio` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

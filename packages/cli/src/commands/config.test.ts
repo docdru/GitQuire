@@ -1,0 +1,815 @@
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { ConfigSchema, getLeafFieldMeta, REMOVED_KEYS } from '@inkeep/open-knowledge-core';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
+import {
+  buildClearPatchForTest,
+  configCommand,
+  DROPPED_FIELD_PATHS,
+  runMigrate,
+  runValidate,
+  shouldAnnounceRemovedKeys,
+} from './config.ts';
+
+function makeTempProject(): { cwd: string; userHome: string; cleanup: () => void } {
+  const root = mkdtempSync(join(tmpdir(), 'ok-config-test-'));
+  const cwd = join(root, 'project');
+  const userHome = join(root, 'home');
+  mkdirSync(cwd, { recursive: true });
+  mkdirSync(userHome, { recursive: true });
+  return {
+    cwd,
+    userHome,
+    cleanup: () => {
+      try {
+        rmSync(root, { recursive: true, force: true });
+      } catch {}
+    },
+  };
+}
+
+function projectConfigPath(cwd: string): string {
+  return join(cwd, OK_DIR, CONFIG_FILENAME);
+}
+
+function projectLocalConfigPath(cwd: string): string {
+  return join(cwd, OK_DIR, 'local', CONFIG_FILENAME);
+}
+
+function userConfigPath(home: string): string {
+  return join(home, OK_DIR, 'global.yml');
+}
+
+function writeConfigYaml(absPath: string, content: string): void {
+  mkdirSync(join(absPath, '..'), { recursive: true });
+  writeFileSync(absPath, content, { encoding: 'utf-8' });
+}
+
+describe('runValidate', () => {
+  test('success → ok:true and ✓ message to stderr; nothing to stdout', () => {
+    const stderr: string[] = [];
+    const stdout: string[] = [];
+    const outcome = runValidate({
+      readProjectLocalFn: () => [],
+      loadConfigFn: () =>
+        ({
+          config: {} as never,
+          sources: ['/home/test/project/.ok/config.yml'],
+          diagnostics: [],
+          sidelined: [],
+        }) as never,
+      log: (msg) => stderr.push(msg),
+      error: (msg) => stderr.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(stderr.some((m) => m.includes('✓ Configuration valid'))).toBe(true);
+    expect(stderr.some((m) => m.includes('/home/test/project/.ok/config.yml'))).toBe(true);
+    expect(stdout).toEqual([]);
+  });
+
+  test('degraded layer → headline does not claim valid, and names the file it moved aside', () => {
+    const stderr: string[] = [];
+    const outcome = runValidate({
+      readProjectLocalFn: () => [],
+      loadConfigFn: () =>
+        ({
+          config: {} as never,
+          sources: ['/home/test/project/.ok/config.yml'],
+          diagnostics: [{ code: 'YAML_PARSE', detail: 'unexpected end of flow sequence' }],
+          sidelined: [
+            {
+              from: '/home/test/.ok/global.yml',
+              to: '/home/test/.ok/global.yml.invalid-2026-01-01T00-00-00-000Z',
+            },
+          ],
+        }) as never,
+      log: (msg) => stderr.push(msg),
+      error: (msg) => stderr.push(msg),
+    });
+    const joined = stderr.join('\n');
+    expect(outcome.ok).toBe(true);
+    expect(joined).not.toContain('✓ Configuration valid');
+    expect(joined).toContain('config layer(s) had issues');
+    expect(joined).not.toContain('could not be read');
+    expect(joined).toContain('unexpected end of flow sequence');
+    expect(joined).toContain('/home/test/.ok/global.yml.invalid-2026-01-01T00-00-00-000Z');
+  });
+
+  test('removed keys alone do not qualify the headline', () => {
+    const stderr: string[] = [];
+    runValidate({
+      readProjectLocalFn: () => [],
+      loadConfigFn: () =>
+        ({
+          config: {} as never,
+          sources: ['/home/test/project/.ok/config.yml'],
+          diagnostics: [{ code: 'REMOVED_KEY', path: ['server', 'host'], redirect: 'Use --host.' }],
+          sidelined: [],
+        }) as never,
+      log: (msg) => stderr.push(msg),
+      error: (msg) => stderr.push(msg),
+    });
+    const joined = stderr.join('\n');
+    expect(joined).toContain('✓ Configuration valid');
+    expect(joined).toContain('server.host');
+  });
+
+  test('no sources → "defaults only"', () => {
+    const stderr: string[] = [];
+    const outcome = runValidate({
+      readProjectLocalFn: () => [],
+      loadConfigFn: () =>
+        ({ config: {} as never, sources: [], diagnostics: [], sidelined: [] }) as never,
+      log: (msg) => stderr.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(stderr.some((m) => m.includes('defaults only'))).toBe(true);
+  });
+
+  test('removed key in project config → valid (exit 0) with the finding + redirect reported', () => {
+    const project = makeTempProject();
+    try {
+      writeConfigYaml(
+        projectConfigPath(project.cwd),
+        'content:\n  dir: docs\nserver:\n  host: 0.0.0.0\n',
+      );
+      const out: string[] = [];
+      const outcome = runValidate({
+        cwd: project.cwd,
+        log: (msg) => out.push(msg),
+        error: (msg) => out.push(msg),
+      });
+      expect(outcome.ok).toBe(true);
+      const joined = out.join('\n');
+      expect(joined).toContain('✓ Configuration valid');
+      expect(joined).toContain('server.host');
+      expect(joined).toContain('server.bind');
+      expect(joined).toContain('--bind');
+    } finally {
+      project.cleanup();
+    }
+  });
+
+  test('removed remote-access keys → valid with each finding + successor reported', () => {
+    const project = makeTempProject();
+    try {
+      writeConfigYaml(
+        projectConfigPath(project.cwd),
+        'content:\n  dir: docs\nremote:\n  url: https://kb.example.com\n  port: 24550\nserver:\n  publicUrl: https://kb.example.com\n',
+      );
+      const out: string[] = [];
+      const outcome = runValidate({
+        cwd: project.cwd,
+        log: (msg) => out.push(msg),
+        error: (msg) => out.push(msg),
+      });
+      expect(outcome.ok).toBe(true);
+      const joined = out.join('\n');
+      expect(joined).toContain('✓ Configuration valid');
+      expect(joined).toContain('remote.url');
+      expect(joined).toContain('remote.port');
+      expect(joined).toContain('server.publicUrl');
+      expect(joined).toContain('server.externalUrl');
+      expect(joined).toContain('server.port');
+    } finally {
+      project.cleanup();
+    }
+  });
+
+  test('schema-fail → ok:false and stderr contains the thrown error message', () => {
+    const stderr: string[] = [];
+    const outcome = runValidate({
+      readProjectLocalFn: () => [],
+      loadConfigFn: () => {
+        throw new Error('Invalid configuration at /tmp/.ok/config.yml:7:18\n  ...');
+      },
+      error: (msg) => stderr.push(msg),
+    });
+    expect(outcome.ok).toBe(false);
+    expect(stderr.some((m) => m.includes('Invalid configuration'))).toBe(true);
+    expect(stderr.some((m) => m.includes(':7:18'))).toBe(true);
+  });
+
+  test('a removed key in project-local config is reported, not answered with ✓', () => {
+    const project = makeTempProject();
+    try {
+      writeConfigYaml(
+        projectLocalConfigPath(project.cwd),
+        'autoSync:\n  mode: full\nappearance:\n  sidebar:\n    showAllFiles: false\n',
+      );
+      const out: string[] = [];
+      const outcome = runValidate({
+        cwd: project.cwd,
+        log: (msg) => out.push(msg),
+        error: (msg) => out.push(msg),
+      });
+
+      const joined = out.join('\n');
+      expect(outcome.ok).toBe(true);
+      expect(joined).toContain('appearance.sidebar.showAllFiles');
+      expect(joined).toContain('✓ Configuration valid');
+    } finally {
+      project.cleanup();
+    }
+  });
+
+  test('reporting the project-local layer never renames it', () => {
+    const project = makeTempProject();
+    try {
+      const localPath = projectLocalConfigPath(project.cwd);
+      writeConfigYaml(localPath, 'autoSync:\n  mode: [invalid yaml');
+      const out: string[] = [];
+
+      const outcome = runValidate({
+        cwd: project.cwd,
+        log: (msg) => out.push(msg),
+        error: (msg) => out.push(msg),
+      });
+
+      expect(outcome.ok).toBe(true);
+      expect(out.join('\n')).toContain('config layer(s) had issues');
+      expect(existsSync(localPath)).toBe(true);
+    } finally {
+      project.cleanup();
+    }
+  });
+
+  test('recovered transport overrides report their default and source without rejecting the config', () => {
+    const project = makeTempProject();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const localPath = projectLocalConfigPath(project.cwd);
+      const source = 'search:\n  semantic:\n    enabled: true\n    docTimeoutMs: 900000\n';
+      writeConfigYaml(localPath, source);
+      const out: string[] = [];
+
+      const outcome = runValidate({ cwd: project.cwd, log: (message) => out.push(message) });
+
+      expect(outcome.ok).toBe(true);
+      const output = out.join('\n');
+      expect(output).toContain('1 config layer(s) had issues');
+      expect(output).toContain('Configuration loaded with defaults for invalid settings:');
+      expect(output).not.toContain('Invalid configuration');
+      expect(output).not.toContain('✓ Configuration valid');
+      expect(output).toContain('search.semantic.docTimeoutMs');
+      expect(output).toContain('between 1 and 600000; using default 30000');
+      expect(output).toContain(`${localPath}:4:19`);
+      expect(output).not.toContain('900000');
+      expect(warn).not.toHaveBeenCalled();
+      expect(readFileSync(localPath, 'utf-8')).toBe(source);
+    } finally {
+      warn.mockRestore();
+      project.cleanup();
+    }
+  });
+
+  test('source-located error rendering through real loadConfig', () => {
+    const project = makeTempProject();
+    try {
+      const wsPath = projectConfigPath(project.cwd);
+      writeConfigYaml(wsPath, `server:\n  port: 99999999\n`);
+      const stderr: string[] = [];
+      const outcome = runValidate({
+        cwd: project.cwd,
+        error: (msg) => stderr.push(msg),
+      });
+      expect(outcome.ok).toBe(false);
+      const joined = stderr.join('\n');
+      expect(joined).toContain(`${wsPath}:`);
+      expect(joined).toContain('^');
+    } finally {
+      project.cleanup();
+    }
+  });
+});
+
+describe('shouldAnnounceRemovedKeys', () => {
+  test('suppressed for the config command family, which reports them itself', () => {
+    expect(shouldAnnounceRemovedKeys('config')).toBe(false);
+  });
+
+  test('announced for every other command, which would otherwise never show them', () => {
+    for (const name of ['start', 'ui', 'mcp', 'status', 'embeddings', undefined]) {
+      expect(shouldAnnounceRemovedKeys(name)).toBe(true);
+    }
+  });
+});
+
+describe('runMigrate', () => {
+  let project: ReturnType<typeof makeTempProject>;
+
+  beforeEach(() => {
+    project = makeTempProject();
+  });
+
+  afterEach(() => {
+    project.cleanup();
+  });
+
+  test('no files → "No deprecated fields found." and ok:true', async () => {
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(stdout).toEqual(['No deprecated fields found.']);
+    expect(outcome.outcomes.every((o) => o.found.length === 0)).toBe(true);
+  });
+
+  test('clean project + missing user → no-op summary', async () => {
+    writeConfigYaml(projectConfigPath(project.cwd), 'content:\n  dir: docs\n');
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(stdout).toEqual(['No deprecated fields found.']);
+  });
+
+  test('removes sync.* + preserves comments and unrelated fields (project)', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const original = `# Header comment\n\n# --- content ---\ncontent:\n  dir: docs\n\n# Should be migrated away\nsync:\n  pushIntervalSeconds: 30\n  enabled: true\n\n# Trailing comment\n`;
+    writeConfigYaml(wsPath, original);
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    const migrated = readFileSync(wsPath, 'utf-8');
+    expect(migrated).not.toContain('sync:');
+    expect(migrated).not.toContain('pushIntervalSeconds');
+    expect(migrated).toContain('content:');
+    expect(migrated).toContain('dir: docs');
+    expect(migrated).toContain('# Header comment');
+    expect(migrated).toContain('# --- content ---');
+    expect(migrated).toContain('# Trailing comment');
+    expect(stdout.some((m) => m.includes('removed') && m.includes('sync'))).toBe(true);
+  });
+
+  test('removes persistence.* leaf fields while preserving the live server.port key (project)', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const original = `content:\n  dir: docs\nserver:\n  port: 3000\npersistence:\n  debounceMs: 5000\n  maxDebounceMs: 10000\n`;
+    writeConfigYaml(wsPath, original);
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    const migrated = readFileSync(wsPath, 'utf-8');
+    expect(migrated).not.toContain('debounceMs');
+    expect(migrated).not.toContain('maxDebounceMs');
+    expect(migrated).toContain('port: 3000');
+    expect(migrated).toContain('dir: docs');
+    const wsOutcome = outcome.outcomes.find((o) => o.scope === 'project');
+    expect(wsOutcome?.removed.sort()).toEqual(
+      ['persistence.debounceMs', 'persistence.maxDebounceMs'].sort(),
+    );
+  });
+
+  test('removes remote.* and server.publicUrl while preserving live server.* keys (project)', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const original = `content:\n  dir: docs\nremote:\n  url: https://old-remote.example.com\n  port: 24550\nserver:\n  port: 8080\n  externalUrl: https://kb.example.com\n  publicUrl: https://old-public.example.com\n`;
+    writeConfigYaml(wsPath, original);
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    const migrated = readFileSync(wsPath, 'utf-8');
+    expect(migrated).not.toContain('publicUrl');
+    expect(migrated).not.toContain('old-remote.example.com');
+    expect(migrated).not.toContain('old-public.example.com');
+    expect(migrated).not.toContain('24550');
+    expect(migrated).toContain('port: 8080');
+    expect(migrated).toContain('externalUrl: https://kb.example.com');
+    expect(migrated).toContain('dir: docs');
+    const wsOutcome = outcome.outcomes.find((o) => o.scope === 'project');
+    expect(wsOutcome?.removed.sort()).toEqual(
+      ['remote.port', 'remote.url', 'server.publicUrl'].sort(),
+    );
+  });
+
+  test('removes content.{include,exclude} leaf fields (project)', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const original = `content:\n  dir: .\n  include:\n    - "**/*.md"\n  exclude:\n    - drafts/**\n`;
+    writeConfigYaml(wsPath, original);
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    const migrated = readFileSync(wsPath, 'utf-8');
+    expect(migrated).not.toContain('include:');
+    expect(migrated).not.toContain('exclude:');
+    expect(migrated).toContain('dir: .');
+    const wsOutcome = outcome.outcomes.find((o) => o.scope === 'project');
+    expect(wsOutcome?.removed.sort()).toEqual(['content.exclude', 'content.include'].sort());
+  });
+
+  test('idempotent — second run is a no-op', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    writeConfigYaml(wsPath, 'sync:\n  pushIntervalSeconds: 30\nmcp:\n  autoStart: true\n');
+    await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    const afterFirst = readFileSync(wsPath, 'utf-8');
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(stdout).toEqual(['No deprecated fields found.']);
+    expect(readFileSync(wsPath, 'utf-8')).toBe(afterFirst);
+  });
+
+  test('--dry-run on file with deprecated fields → preview, no write', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const original = 'sync:\n  pushIntervalSeconds: 30\nmcp:\n  autoStart: true\n';
+    writeConfigYaml(wsPath, original);
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      dryRun: true,
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(wsPath, 'utf-8')).toBe(original);
+    expect(stdout.some((m) => m.includes('[dry-run]') && m.includes('sync'))).toBe(true);
+    const wsOutcome = outcome.outcomes.find((o) => o.scope === 'project');
+    expect(wsOutcome?.found).toContain('sync');
+    expect(wsOutcome?.removed).toEqual([]);
+  });
+
+  test('--dry-run on clean file → "No deprecated fields found.", no write', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const original = 'content:\n  dir: docs\n';
+    writeConfigYaml(wsPath, original);
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      dryRun: true,
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(stdout).toEqual(['No deprecated fields found.']);
+    expect(readFileSync(wsPath, 'utf-8')).toBe(original);
+  });
+
+  test('--scope project → does not touch user file', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const userPath = userConfigPath(project.userHome);
+    writeConfigYaml(wsPath, 'sync:\n  pushIntervalSeconds: 30\n');
+    writeConfigYaml(userPath, 'sync:\n  pushIntervalSeconds: 60\n');
+    const userOriginal = readFileSync(userPath, 'utf-8');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(wsPath, 'utf-8')).not.toContain('sync:');
+    expect(readFileSync(userPath, 'utf-8')).toBe(userOriginal);
+    expect(outcome.outcomes.every((o) => o.scope === 'project')).toBe(true);
+  });
+
+  test('--scope user → does not touch project file', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const userPath = userConfigPath(project.userHome);
+    writeConfigYaml(wsPath, 'sync:\n  pushIntervalSeconds: 30\n');
+    writeConfigYaml(userPath, 'sync:\n  pushIntervalSeconds: 60\n');
+    const wsOriginal = readFileSync(wsPath, 'utf-8');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'user',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(wsPath, 'utf-8')).toBe(wsOriginal);
+    expect(readFileSync(userPath, 'utf-8')).not.toContain('sync:');
+    expect(outcome.outcomes.every((o) => o.scope === 'user')).toBe(true);
+  });
+
+  test('--scope both processes both files', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const userPath = userConfigPath(project.userHome);
+    writeConfigYaml(wsPath, 'sync:\n  pushIntervalSeconds: 30\n');
+    writeConfigYaml(userPath, 'persistence:\n  debounceMs: 5000\n');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'both',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(wsPath, 'utf-8')).not.toContain('sync:');
+    expect(readFileSync(userPath, 'utf-8')).not.toContain('debounceMs');
+    expect(outcome.outcomes.length).toBe(2);
+  });
+
+  test('--scope project-local strips removed keys, preserves other local settings', async () => {
+    const localPath = projectLocalConfigPath(project.cwd);
+    writeConfigYaml(
+      localPath,
+      'autoSync:\n  mode: full\nappearance:\n  sidebar:\n    showAllFiles: true\n',
+    );
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project-local',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    const migrated = readFileSync(localPath, 'utf-8');
+    expect(migrated).not.toContain('showAllFiles');
+    expect(migrated).toContain('mode: full');
+    const localOutcome = outcome.outcomes.find((o) => o.scope === 'project-local');
+    expect(localOutcome?.removed).toContain('appearance.sidebar.showAllFiles');
+    expect(outcome.outcomes.every((o) => o.scope === 'project-local')).toBe(true);
+  });
+
+  test('--scope project-local is idempotent — second run writes nothing', async () => {
+    const localPath = projectLocalConfigPath(project.cwd);
+    writeConfigYaml(
+      localPath,
+      'autoSync:\n  mode: full\nappearance:\n  sidebar:\n    showAllFiles: true\n',
+    );
+    await runMigrate({
+      cwd: project.cwd,
+      scope: 'project-local',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    const afterFirst = readFileSync(localPath, 'utf-8');
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project-local',
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(stdout).toEqual(['No deprecated fields found.']);
+    expect(readFileSync(localPath, 'utf-8')).toBe(afterFirst);
+  });
+
+  test('--scope project-local --dry-run previews without writing', async () => {
+    const localPath = projectLocalConfigPath(project.cwd);
+    const original = 'autoSync:\n  mode: full\nappearance:\n  sidebar:\n    showAllFiles: true\n';
+    writeConfigYaml(localPath, original);
+    const stdout: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project-local',
+      dryRun: true,
+      homedirOverride: project.userHome,
+      log: (msg) => stdout.push(msg),
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(localPath, 'utf-8')).toBe(original);
+    expect(stdout.some((m) => m.includes('[dry-run]') && m.includes('showAllFiles'))).toBe(true);
+    const localOutcome = outcome.outcomes.find((o) => o.scope === 'project-local');
+    expect(localOutcome?.removed).toEqual([]);
+  });
+
+  test('--scope all migrates project, project-local, and user files', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const localPath = projectLocalConfigPath(project.cwd);
+    const userPath = userConfigPath(project.userHome);
+    writeConfigYaml(wsPath, 'folders:\n  - notes\ncontent:\n  dir: docs\n');
+    writeConfigYaml(
+      localPath,
+      'autoSync:\n  mode: full\nappearance:\n  sidebar:\n    showAllFiles: true\n',
+    );
+    writeConfigYaml(userPath, 'appearance:\n  editorModeDefault: source\n');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'all',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(wsPath, 'utf-8')).not.toContain('folders');
+    expect(readFileSync(wsPath, 'utf-8')).toContain('dir: docs');
+    expect(readFileSync(localPath, 'utf-8')).not.toContain('showAllFiles');
+    expect(readFileSync(localPath, 'utf-8')).toContain('mode: full');
+    expect(readFileSync(userPath, 'utf-8')).not.toContain('editorModeDefault');
+    expect(outcome.outcomes.map((o) => o.scope).sort()).toEqual([
+      'project',
+      'project-local',
+      'user',
+    ]);
+  });
+
+  test('--scope both leaves the project-local file untouched (alias = project + user)', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const localPath = projectLocalConfigPath(project.cwd);
+    const userPath = userConfigPath(project.userHome);
+    writeConfigYaml(wsPath, 'folders:\n  - notes\n');
+    writeConfigYaml(localPath, 'appearance:\n  sidebar:\n    showAllFiles: true\n');
+    writeConfigYaml(userPath, 'appearance:\n  editorModeDefault: source\n');
+    const localOriginal = readFileSync(localPath, 'utf-8');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'both',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(wsPath, 'utf-8')).not.toContain('folders');
+    expect(readFileSync(userPath, 'utf-8')).not.toContain('editorModeDefault');
+    expect(readFileSync(localPath, 'utf-8')).toBe(localOriginal);
+    expect(outcome.outcomes.map((o) => o.scope).sort()).toEqual(['project', 'user']);
+  });
+
+  test('the default scope reaches project-local, so the redirect hint is truthful', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    const localPath = projectLocalConfigPath(project.cwd);
+    const userPath = userConfigPath(project.userHome);
+    writeConfigYaml(wsPath, 'folders:\n  - notes\n');
+    writeConfigYaml(localPath, 'appearance:\n  sidebar:\n    showAllFiles: true\n');
+    writeConfigYaml(userPath, 'appearance:\n  editorModeDefault: source\n');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    expect(readFileSync(localPath, 'utf-8')).not.toContain('showAllFiles');
+    expect(outcome.outcomes.map((o) => o.scope).sort()).toEqual([
+      'project',
+      'project-local',
+      'user',
+    ]);
+  });
+
+  test('content.include is stripped without writing .okignore', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    writeConfigYaml(wsPath, 'content:\n  dir: .\n  include:\n    - "docs/**/*.md"\n');
+    const okignorePath = join(project.cwd, '.okignore');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+    });
+    expect(outcome.ok).toBe(true);
+    const migrated = readFileSync(wsPath, 'utf-8');
+    expect(migrated).not.toContain('include:');
+    expect(migrated).toContain('dir: .');
+    expect(existsSync(okignorePath)).toBe(false);
+    const wsOutcome = outcome.outcomes.find((o) => o.scope === 'project');
+    expect(wsOutcome?.removed).toContain('content.include');
+  });
+
+  test('unparseable YAML in project → ok:false with parse error reported', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    writeConfigYaml(wsPath, '{{{ not yaml at all\n');
+    const wsOriginal = readFileSync(wsPath, 'utf-8');
+    const stderr: string[] = [];
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+      error: (msg) => stderr.push(msg),
+    });
+    expect(outcome.ok).toBe(false);
+    expect(readFileSync(wsPath, 'utf-8')).toBe(wsOriginal);
+    expect(stderr.some((m) => m.includes('Could not parse'))).toBe(true);
+  });
+
+  test('writeConfigPatch error path → ok:false, file untouched', async () => {
+    const wsPath = projectConfigPath(project.cwd);
+    writeConfigYaml(wsPath, 'sync:\n  pushIntervalSeconds: 30\n');
+    const wsOriginal = readFileSync(wsPath, 'utf-8');
+    const outcome = await runMigrate({
+      cwd: project.cwd,
+      scope: 'project',
+      homedirOverride: project.userHome,
+      log: () => {},
+      error: () => {},
+      writeConfigPatchFn: async () => ({
+        ok: false,
+        error: { code: 'WRITE_ERROR', detail: 'simulated disk full' },
+      }),
+    });
+    expect(outcome.ok).toBe(false);
+    expect(readFileSync(wsPath, 'utf-8')).toBe(wsOriginal);
+    const wsOutcome = outcome.outcomes.find((o) => o.scope === 'project');
+    expect(wsOutcome?.error).toContain('simulated disk full');
+  });
+});
+
+describe('configCommand migrate --scope', () => {
+  function migrateSubcommand() {
+    const migrate = configCommand().commands.find((c) => c.name() === 'migrate');
+    if (migrate === undefined) throw new Error('migrate subcommand not registered');
+    return migrate;
+  }
+
+  test('help advertises project | project-local | user | all', () => {
+    const migrate = migrateSubcommand();
+    const scopeOption = migrate.options.find((o) => o.long === '--scope');
+    expect(scopeOption?.description).toBe(
+      'Which scope to migrate: project | project-local | user | all',
+    );
+    expect(migrate.helpInformation()).toContain('project-local');
+  });
+
+  test('unrecognized --scope prints the accepted values and exits 2', async () => {
+    const savedExitCode = process.exitCode;
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await configCommand().parseAsync(['migrate', '--scope', 'bogus'], { from: 'user' });
+      expect(process.exitCode).toBe(2);
+      const printed = errorSpy.mock.calls.map((c) => c.join(' ')).join('\n');
+      expect(printed).toContain('project | project-local | user | all');
+    } finally {
+      process.exitCode = savedExitCode;
+      errorSpy.mockRestore();
+    }
+  });
+});
+
+describe('DROPPED_FIELD_PATHS', () => {
+  test('is the silent-drop set followed by every removed-key registry path', () => {
+    expect(DROPPED_FIELD_PATHS.slice(0, 3)).toEqual([
+      ['sync'],
+      ['persistence', 'debounceMs'],
+      ['persistence', 'maxDebounceMs'],
+    ]);
+    expect(DROPPED_FIELD_PATHS.slice(3)).toEqual(REMOVED_KEYS.map((k) => k.path));
+    const dotted = DROPPED_FIELD_PATHS.map((p) => p.join('.'));
+    expect(dotted).toContain('folders');
+    expect(dotted).toContain('appearance.editorModeDefault');
+    expect(dotted).toContain('content.include');
+  });
+
+  test('no dropped path is a live ConfigSchema leaf (codemod never deletes a key the engine reads)', () => {
+    const live = DROPPED_FIELD_PATHS.filter(
+      (path) => getLeafFieldMeta(ConfigSchema, path) !== undefined,
+    ).map((path) => path.join('.'));
+    expect(live).toEqual([]);
+  });
+});
+
+describe('buildClearPatchForTest (internal)', () => {
+  test('flat path → null at the leaf', () => {
+    const patch = buildClearPatchForTest([['sync']]);
+    expect(patch).toEqual({ sync: null } as never);
+  });
+
+  test('nested paths → nested null leaves; siblings share parent object', () => {
+    const patch = buildClearPatchForTest([
+      ['persistence', 'debounceMs'],
+      ['persistence', 'maxDebounceMs'],
+    ]);
+    expect(patch).toEqual({
+      persistence: { debounceMs: null, maxDebounceMs: null },
+    } as never);
+  });
+
+  test('mixed paths → all-null leaves rooted in single tree', () => {
+    const patch = buildClearPatchForTest([
+      ['sync'],
+      ['persistence', 'debounceMs'],
+      ['server', 'port'],
+    ]);
+    expect(patch).toEqual({
+      sync: null,
+      persistence: { debounceMs: null },
+      server: { port: null },
+    } as never);
+  });
+
+  test('empty paths → empty patch', () => {
+    expect(buildClearPatchForTest([])).toEqual({} as never);
+  });
+});

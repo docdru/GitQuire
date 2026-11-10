@@ -1,0 +1,426 @@
+import { addsBlankLines, normalizeBridge } from '@inkeep/open-knowledge-core';
+import type * as Y from 'yjs';
+import { getMsSinceLastUserTx } from './bridge-quiescence.ts';
+import { isPersistenceExcludedDoc } from './cc1-broadcast.ts';
+import type { FreezingLifecycleStatus, LifecycleView } from './conflict-kinds.ts';
+import { getLogger } from './logger.ts';
+import {
+  incrementHeldSaveRetry,
+  incrementHeldSaveRetryFailures,
+  incrementPersistenceStalenessDetected,
+  incrementPersistenceStalenessForcedStores,
+  incrementPersistenceStalenessForceStoreTimeouts,
+  incrementPersistenceStalenessStoodDown,
+} from './metrics.ts';
+import { normalizedSourceForm } from './persistence.ts';
+
+const log = getLogger('persistence-staleness');
+
+export class StructuralDiskReadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StructuralDiskReadError';
+  }
+}
+
+const DEFAULT_STALENESS_GRACE_MS = 5 * 60_000;
+const DEFAULT_STALENESS_SWEEP_INTERVAL_MS = 60_000;
+const DEFAULT_FORCE_STORE_TIMEOUT_MS = 30_000;
+
+export interface StalenessWatchdogOptions {
+  getLoadedDocuments: () => Iterable<readonly [string, Y.Doc]>;
+  forceStore: (document: Y.Doc, documentName: string) => Promise<void>;
+  readDiskBytes: (documentName: string) => string | null;
+  lifecycleOf?: (document: Y.Doc, documentName: string) => LifecycleView | null;
+  graceMs?: number;
+  sweepIntervalMs?: number;
+  now?: () => number;
+  getBase: (documentName: string) => string | undefined;
+  isBatchActive: () => boolean;
+  hasInFlight: (documentName: string) => boolean;
+  forceStoreTimeoutMs?: number;
+  msSinceLastUserTx?: (doc: Y.Doc, nowMs: number) => number | null;
+  isHeldSaveDue?: (documentName: string) => boolean;
+  retryHeldSave?: (document: Y.Doc, documentName: string) => Promise<void>;
+}
+
+export interface StalenessWatchdogHandle {
+  sweep: () => Promise<void>;
+  dispose: () => Promise<void>;
+}
+
+type SettleDisposition = 'resumed' | 'superseded' | 'watchdog-disposed';
+
+interface AttemptRecord {
+  fingerprint: string;
+  atMs: number;
+  firstDetectedAtMs: number;
+  declined: boolean;
+}
+
+export function createPersistenceStalenessWatchdog(
+  options: StalenessWatchdogOptions,
+): StalenessWatchdogHandle {
+  const graceMs = options.graceMs ?? DEFAULT_STALENESS_GRACE_MS;
+  const sweepIntervalMs = options.sweepIntervalMs ?? DEFAULT_STALENESS_SWEEP_INTERVAL_MS;
+  const now = options.now ?? Date.now;
+  const forceStoreTimeoutMs = options.forceStoreTimeoutMs ?? DEFAULT_FORCE_STORE_TIMEOUT_MS;
+  const { getBase, isBatchActive, hasInFlight } = options;
+  const msSinceLastUserTx = options.msSinceLastUserTx ?? getMsSinceLastUserTx;
+
+  const attempts = new Map<string, AttemptRecord>();
+  const heldRetriesInFlight = new Set<string>();
+  const heldRetryFailures = new Map<string, number>();
+  let disposed = false;
+  let sweepInFlight: Promise<void> | null = null;
+
+  function candidateFromRaw(rawYText: string): string {
+    return normalizedSourceForm(rawYText);
+  }
+
+  function normalizedBaseFor(base: string | undefined): string | undefined {
+    return base === undefined ? undefined : normalizeBridge(base);
+  }
+
+  function frozenStatusOf(document: Y.Doc, documentName: string): FreezingLifecycleStatus | null {
+    const view = options.lifecycleOf?.(document, documentName) ?? null;
+    return view === null ? null : view.status;
+  }
+
+  function isDivergent(
+    candidate: string,
+    normalizedBase: string | undefined,
+    rawYText: string,
+    base: string | undefined,
+  ): boolean {
+    if (normalizedBase === undefined) return candidate !== '';
+    if (candidate !== normalizedBase) return true;
+    return base !== undefined && addsBlankLines(base, rawYText);
+  }
+
+  async function sweepOnce(): Promise<void> {
+    if (disposed) return;
+    if (isBatchActive()) return;
+
+    const startedMs = now();
+    let scanned = 0;
+    let skippedInFlight = 0;
+    let divergent = 0;
+    let forced = 0;
+    let stoodDown = 0;
+    let heldRetried = 0;
+    const seen = new Set<string>();
+    for (const [documentName, document] of options.getLoadedDocuments()) {
+      if (disposed) return;
+      seen.add(documentName);
+      if (isPersistenceExcludedDoc(documentName)) {
+        if (
+          options.retryHeldSave &&
+          !heldRetriesInFlight.has(documentName) &&
+          options.isHeldSaveDue?.(documentName) === true
+        ) {
+          heldRetried++;
+          await retryHeldSaveWithin(options.retryHeldSave, document, documentName);
+        }
+        continue;
+      }
+      if (frozenStatusOf(document, documentName) !== null) {
+        continue;
+      }
+      if (hasInFlight(documentName)) {
+        skippedInFlight++;
+        continue;
+      }
+
+      scanned++;
+      const rawYText = document.getText('source').toString();
+      const base = getBase(documentName);
+      if (base !== undefined && rawYText === base) {
+        attempts.delete(documentName);
+        continue;
+      }
+      const candidate = candidateFromRaw(rawYText);
+      const normalizedBase = normalizedBaseFor(base);
+      if (!isDivergent(candidate, normalizedBase, rawYText, base)) {
+        attempts.delete(documentName);
+        continue;
+      }
+      divergent++;
+
+      const nowMs = now();
+      const ageMs = msSinceLastUserTx(document, nowMs);
+      if (ageMs !== null && ageMs < graceMs) continue;
+
+      const previous = attempts.get(documentName);
+      if (previous && previous.fingerprint === candidate) {
+        if (previous.declined) continue;
+        if (nowMs - previous.atMs < graceMs) continue;
+      }
+      const firstSighting = previous?.fingerprint !== candidate;
+      if (firstSighting) incrementPersistenceStalenessDetected();
+      const firstDetectedAtMs = !firstSighting && previous ? previous.firstDetectedAtMs : nowMs;
+      const staleForMs = nowMs - firstDetectedAtMs;
+
+      let standDownReason: string | null = null;
+      let standDownRetryable = false;
+      try {
+        const diskBytes = options.readDiskBytes(documentName);
+        if (normalizedBase === undefined) {
+          if (diskBytes !== null) standDownReason = 'disk-file-never-loaded';
+        } else if (diskBytes === null) {
+          standDownReason = 'disk-file-missing';
+        }
+      } catch (err) {
+        if (err instanceof StructuralDiskReadError) {
+          standDownReason = 'disk-read-refused';
+          log.error(
+            { err, docName: documentName },
+            '[persistence-staleness] disk read refused; standing down until content changes',
+          );
+        } else {
+          standDownReason = 'disk-read-failed';
+          standDownRetryable = true;
+          log.warn(
+            { err, docName: documentName },
+            '[persistence-staleness] disk read failed; standing down',
+          );
+        }
+      }
+
+      if (standDownReason !== null) {
+        stoodDown++;
+        incrementPersistenceStalenessStoodDown();
+        attempts.set(documentName, {
+          fingerprint: candidate,
+          atMs: nowMs,
+          firstDetectedAtMs,
+          declined: !standDownRetryable,
+        });
+        log.warn(
+          {
+            docName: documentName,
+            ageMs,
+            staleForMs,
+            candidateBytes: candidate.length,
+            baseBytes: base?.length ?? 0,
+            action: 'stood-down',
+            reason: standDownReason,
+          },
+          `[persistence-staleness] Unflushed edits detected for ${documentName} but disk state is unverified or unreconciled; not overwriting`,
+        );
+        continue;
+      }
+
+      log.warn(
+        {
+          docName: documentName,
+          ageMs,
+          staleForMs,
+          candidateBytes: candidate.length,
+          baseBytes: base?.length ?? 0,
+          action: 'forced-store',
+        },
+        `[persistence-staleness] Doc ${documentName} has unpersisted edits past the grace window with no pending store; forcing a store`,
+      );
+      attempts.set(documentName, {
+        fingerprint: candidate,
+        atMs: nowMs,
+        firstDetectedAtMs,
+        declined: false,
+      });
+      incrementPersistenceStalenessForcedStores();
+      forced++;
+      let pendingStore: Promise<void>;
+      try {
+        pendingStore = options.forceStore(document, documentName);
+      } catch (err) {
+        pendingStore = Promise.reject(err);
+      }
+      const forceStoreOutcome = await raceForceStore(pendingStore).catch((err: unknown) => {
+        log.error(
+          { err, docName: documentName, staleForMs },
+          `[persistence-staleness] Forced store failed for ${documentName}; will retry`,
+        );
+        return 'failed' as const;
+      });
+      if (forceStoreOutcome === 'failed') continue;
+      if (forceStoreOutcome === 'timeout') {
+        incrementPersistenceStalenessForceStoreTimeouts();
+        log.error(
+          { docName: documentName, staleForMs, forceStoreTimeoutMs },
+          `[persistence-staleness] Forced store for ${documentName} did not settle within ${forceStoreTimeoutMs}ms; setting it aside until that store settles or its content changes, so the sweep stays live for other documents`,
+        );
+        const declinedRecord: AttemptRecord = {
+          fingerprint: candidate,
+          atMs: now(),
+          firstDetectedAtMs,
+          declined: true,
+        };
+        attempts.set(documentName, declinedRecord);
+        const resumeAfterSettle = (): SettleDisposition => {
+          if (disposed) return 'watchdog-disposed';
+          if (attempts.get(documentName) !== declinedRecord) return 'superseded';
+          attempts.set(documentName, { ...declinedRecord, declined: false });
+          return 'resumed';
+        };
+        void pendingStore
+          .then(
+            () => {
+              const disposition = resumeAfterSettle();
+              log.info(
+                {
+                  docName: documentName,
+                  disposition,
+                  settledAfterTimeoutMs: now() - declinedRecord.atMs,
+                },
+                `[persistence-staleness] Previously timed-out forced store for ${documentName} landed`,
+              );
+            },
+            (err: unknown) => {
+              const disposition = resumeAfterSettle();
+              log.warn(
+                {
+                  err,
+                  docName: documentName,
+                  disposition,
+                  settledAfterTimeoutMs: now() - declinedRecord.atMs,
+                },
+                `[persistence-staleness] Previously timed-out forced store for ${documentName} settled with an error`,
+              );
+            },
+          )
+          .catch(() => {});
+        continue;
+      }
+      if (disposed) return;
+      if (isBatchActive()) return;
+
+      const afterRawYText = document.getText('source').toString();
+      const afterBase = getBase(documentName);
+      const afterCandidate = candidateFromRaw(afterRawYText);
+      const afterNormalizedBase = normalizedBaseFor(afterBase);
+      if (
+        isDivergent(afterCandidate, afterNormalizedBase, afterRawYText, afterBase) &&
+        afterCandidate === candidate
+      ) {
+        attempts.set(documentName, {
+          fingerprint: candidate,
+          atMs: nowMs,
+          firstDetectedAtMs,
+          declined: true,
+        });
+        log.info(
+          { docName: documentName },
+          `[persistence-staleness] Store completed without clearing divergence for ${documentName}; suppressing until content changes`,
+        );
+      } else {
+        attempts.delete(documentName);
+      }
+    }
+
+    for (const name of attempts.keys()) {
+      if (!seen.has(name)) attempts.delete(name);
+    }
+    for (const name of heldRetryFailures.keys()) {
+      if (!seen.has(name)) heldRetryFailures.delete(name);
+    }
+
+    const summary = {
+      scanned,
+      divergent,
+      forced,
+      stoodDown,
+      heldRetried,
+      skippedInFlight,
+      elapsedMs: now() - startedMs,
+    };
+    if (divergent > 0 || forced > 0 || stoodDown > 0 || heldRetried > 0) {
+      log.info(summary, '[persistence-staleness] sweep complete');
+    } else {
+      log.debug(summary, '[persistence-staleness] sweep complete');
+    }
+  }
+
+  async function retryHeldSaveWithin(
+    retryHeldSave: NonNullable<StalenessWatchdogOptions['retryHeldSave']>,
+    document: Y.Doc,
+    documentName: string,
+  ): Promise<void> {
+    incrementHeldSaveRetry();
+    let pendingRetry: Promise<void>;
+    try {
+      pendingRetry = retryHeldSave(document, documentName);
+    } catch (err) {
+      pendingRetry = Promise.reject(err);
+    }
+    heldRetriesInFlight.add(documentName);
+    void pendingRetry
+      .finally(() => {
+        heldRetriesInFlight.delete(documentName);
+      })
+      .catch(() => {});
+    const outcome = await raceForceStore(pendingRetry).catch((err: unknown) => {
+      log.warn(
+        { err, docName: documentName, failedAttempts: countHeldRetryFailure(documentName) },
+        '[persistence-staleness] retrying a held save failed; it is tried again at the next sweep',
+      );
+      return 'failed' as const;
+    });
+    if (outcome === 'settled') {
+      heldRetryFailures.delete(documentName);
+      return;
+    }
+    if (outcome === 'timeout') {
+      log.warn(
+        {
+          docName: documentName,
+          forceStoreTimeoutMs,
+          failedAttempts: countHeldRetryFailure(documentName),
+        },
+        `[persistence-staleness] retrying the held save of ${documentName} did not settle within ${forceStoreTimeoutMs}ms; counted as a failed attempt, and it is tried again at a sweep after it settles`,
+      );
+    }
+  }
+
+  function countHeldRetryFailure(documentName: string): number {
+    incrementHeldSaveRetryFailures();
+    const failed = (heldRetryFailures.get(documentName) ?? 0) + 1;
+    heldRetryFailures.set(documentName, failed);
+    return failed;
+  }
+
+  async function raceForceStore(pendingStore: Promise<void>): Promise<'settled' | 'timeout'> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<'timeout'>((resolve) => {
+      timer = setTimeout(() => resolve('timeout'), forceStoreTimeoutMs);
+      timer.unref?.();
+    });
+    return Promise.race([pendingStore.then(() => 'settled' as const), deadline]).finally(() => {
+      if (timer !== undefined) clearTimeout(timer);
+    });
+  }
+
+  function sweep(): Promise<void> {
+    if (sweepInFlight) return sweepInFlight;
+    sweepInFlight = sweepOnce().finally(() => {
+      sweepInFlight = null;
+    });
+    return sweepInFlight;
+  }
+
+  const timer = setInterval(() => {
+    void sweep().catch((err) => {
+      log.error({ err }, '[persistence-staleness] sweep failed');
+    });
+  }, sweepIntervalMs);
+  timer.unref?.();
+
+  return {
+    sweep,
+    dispose: () => {
+      disposed = true;
+      clearInterval(timer);
+      return sweepInFlight ?? Promise.resolve();
+    },
+  };
+}

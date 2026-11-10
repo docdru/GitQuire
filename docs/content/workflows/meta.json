@@ -1,0 +1,15 @@
+{
+  "title": "Use Cases",
+  "icon": "LuLightbulb",
+  "pages": [
+    "karpathy-llm-wiki",
+    "codebase-wiki",
+    "software-lifecycle",
+    "writing-pipeline",
+    "plain-notes",
+    "worldbuilding",
+    "supporting-open-knowledge-format",
+    "meeting-ingestion",
+    "entity-vault"
+  ]
+}

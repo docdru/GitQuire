@@ -1,0 +1,57 @@
+---
+title: Translate the interface
+icon: LuLanguages
+description: Community driven translations
+---
+
+The app is natively written in English and we did our best to provide machine generated translations for some of the most spoken languages in the world.
+
+OpenKnowledge's interface is available in many languages. The language selection can be found at **Settings → Preferences → Language**.
+
+This changes the interface, not the languages used to check your writing. Desktop [spelling settings](/docs/features/editor#right-click-menu-and-spell-check) are separate.
+
+Language is an app appearance setting and can be set directly in the config [configuration reference](/docs/reference/configuration#schema). That table is the source of truth, so this page doesn't repeat it.
+
+## How you can help
+
+- Fix errors, improve existing translations
+- Request support for another language
+
+## Run OpenKnowledge in the language you're checking
+
+Set the language in the UI setting or set it by hand in `~/.ok/global.yml` (`~/.ok-beta/global.yml` in OpenKnowledge Beta):
+
+```yaml
+appearance:
+  language: bn # <-- set to the language you are testing
+```
+
+Use the tag exactly as it appears in the configuration reference (`zh-Hans`, `pt-BR`, and so on). The editor picks the change up without a restart.
+
+Reading the interface in your own language is the best review there is, and the one nobody here can do for you.
+
+On the desktop app, the `OK_LANG` environment variable additionally overrides the **native menus** for a single run, which is the quickest way to check menu translations without touching config. The rest of the window follows `appearance.language`, so set both if you want everything in one language at once.
+
+## Report a translation correction
+
+Choose **Feature request** in the [issue chooser](https://github.com/inkeep/open-knowledge/issues/new/choose). In **What problem are you trying to solve?**, include:
+
+- The language you are checking and whether you speak it natively.
+- The screen or menu where the text appears, with a screenshot when useful.
+- The current text.
+
+Put your suggested wording and why it is clearer in **Proposed solution**.
+
+If you found the entry in `packages/app/src/locales/<locale>/messages.po`, include its `msgid` so we can locate it. The [glossary](https://github.com/inkeep/open-knowledge/blob/main/packages/app/src/locales/GLOSSARY.md) lists the words we use consistently; mention any glossary wording that needs correcting too.
+
+## What is and isn't translated
+
+- **The application strings ARE translated.**
+- **User Generated content is NEVER translated:&#x20;**Document bodies, titles, file and folder names, frontmatter values and tags stay exactly as you wrote them, in every language.
+- **The CLI's commands, flags and machine-readable output REMAIN English ONLY** on purpose, so scripts keep working whatever the machine's locale is.
+- **This documentation site is English only** for now.
+- **The embedded Excalidraw board follows the interface language wherever Excalidraw offers a translation for it.** The board's toolbar, menus and settings come from Excalidraw itself rather than from these catalogs, so translating them here is not possible. Hindi, Bengali and Urdu get an English board, because Excalidraw does not offer a translation for them that it considers complete enough to ship; every other supported language gets a translated one.
+
+## A language that isn't on the list
+
+Choose **Feature request** in the [issue chooser](https://github.com/inkeep/open-knowledge/issues/new/choose), name the language and describe who would benefit.

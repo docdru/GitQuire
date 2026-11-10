@@ -1,0 +1,548 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { type Config, ConfigSchema } from '../../config/schema.ts';
+import type { AuditDeps } from './audit.ts';
+import { DESCRIPTION, register } from './audit.ts';
+import { type FetchTestServer, startFetchTestServer } from './fetch-test-server.test-helper.ts';
+import { register as registerLint } from './lint.ts';
+import type { ServerInstance } from './shared.ts';
+import {
+  AUDIT_FILE_CAP,
+  AUDIT_FILE_DIAGNOSTIC_CAP,
+  AUDIT_WARNING_CAP,
+  hocuspocusNotRunningError,
+} from './shared.ts';
+
+const BASE_CONFIG: Config = ConfigSchema.parse({});
+
+interface ToolResult {
+  content: Array<{ type: 'text'; text: string }>;
+  structuredContent?: Record<string, unknown>;
+  isError?: boolean;
+}
+
+interface AuditHandlerArgs {
+  path?: string;
+}
+
+interface RegisteredTool {
+  name: string;
+  description: string;
+  annotations?: Record<string, unknown>;
+  handler: (args: AuditHandlerArgs, signal?: AbortSignal) => Promise<ToolResult>;
+}
+
+function createFakeServer() {
+  let registered: RegisteredTool | undefined;
+  const server = {
+    registerTool(
+      name: string,
+      cfg: { description?: string; annotations?: Record<string, unknown> },
+      handler: (args: AuditHandlerArgs, extra: { signal: AbortSignal }) => Promise<ToolResult>,
+    ) {
+      registered = {
+        name,
+        description: cfg.description ?? '',
+        annotations: cfg.annotations,
+        handler: (args, signal = new AbortController().signal) => handler(args, { signal }),
+      };
+    },
+  } as unknown as ServerInstance;
+  return {
+    server,
+    getTool(): RegisteredTool {
+      if (!registered) throw new Error('Tool was not registered');
+      return registered;
+    },
+  };
+}
+
+function makeDeps(serverUrl: string | undefined, cwdDir: string): AuditDeps {
+  return { serverUrl, config: BASE_CONFIG, resolveCwd: async () => cwdDir };
+}
+
+let testServer: FetchTestServer;
+let baseUrl: string;
+let tmpDir: string;
+const seenRequests: string[] = [];
+
+function lintWarning(line: number) {
+  return {
+    range: { start: { line, character: 0 }, end: { line, character: 1 } },
+    severity: 'warning',
+    source: 'markdownlint',
+    code: 'MD010',
+    message: 'Hard tabs',
+  };
+}
+
+function deadLinkError(line: number, target: string) {
+  return {
+    range: { start: { line, character: 4 }, end: { line, character: 4 } },
+    severity: 'error',
+    source: 'links',
+    code: 'dead-link',
+    message: `Link target "${target}" does not resolve to an existing document.`,
+  };
+}
+
+function deadImageWarning(line: number, href: string, resolved: string) {
+  return {
+    range: { start: { line, character: 0 }, end: { line, character: 0 } },
+    severity: 'warning',
+    source: 'links',
+    code: 'dead-link',
+    message: `Image target "${href}" does not resolve to an existing file.`,
+    localTarget: {
+      href,
+      targetKind: 'file',
+      role: 'image',
+      sourceForm: 'markdown-inline',
+      resolvedTarget: resolved,
+      reason: 'no-such-file',
+      resolutionMethod: 'source-relative',
+    },
+  };
+}
+
+function auditPayloadOf(fileCount: number, diagnosticsPerFile: number) {
+  const files = Array.from({ length: fileCount }, (_, i) => ({
+    file: `doc-${String(i).padStart(2, '0')}.md`,
+    diagnostics: Array.from({ length: diagnosticsPerFile }, (_, line) =>
+      line % 2 === 0 ? lintWarning(line) : deadLinkError(line, 'ghost'),
+    ),
+  }));
+  const all = files.flatMap((f) => f.diagnostics);
+  const errorCount = all.filter((d) => d.severity === 'error').length;
+  return {
+    ok: true,
+    files,
+    fileCount,
+    errorCount,
+    warningCount: all.length - errorCount,
+    warnings: [],
+  };
+}
+
+beforeAll(async () => {
+  testServer = await startFetchTestServer({
+    port: 0,
+    hostname: '127.0.0.1',
+    fetch(req) {
+      const url = new URL(req.url);
+      seenRequests.push(`${url.pathname}?${url.searchParams.toString()}`);
+      if (url.pathname === '/api/audit') {
+        const path = url.searchParams.get('path');
+        if (path === 'clean') {
+          return Response.json({
+            ok: true,
+            files: [],
+            fileCount: 4,
+            errorCount: 0,
+            warningCount: 0,
+            warnings: [],
+          });
+        }
+        if (path === 'suppressed') {
+          return Response.json({
+            ok: true,
+            files: [],
+            fileCount: 4,
+            errorCount: 0,
+            warningCount: 0,
+            warnings: [],
+            brokenLinkSuppression: { reason: 'reserved-log-policy', count: 3 },
+          });
+        }
+        if (path === 'suppressed-malformed') {
+          return Response.json({
+            ok: true,
+            files: [],
+            fileCount: 4,
+            errorCount: 0,
+            warningCount: 0,
+            warnings: [],
+            brokenLinkSuppression: { reason: 'reserved-log-policy' },
+          });
+        }
+        if (path === 'over-cap') {
+          return Response.json(auditPayloadOf(AUDIT_FILE_CAP + 2, AUDIT_FILE_DIAGNOSTIC_CAP + 3));
+        }
+        if (path === 'degraded') {
+          return Response.json({
+            ok: true,
+            files: [],
+            fileCount: 3,
+            errorCount: 0,
+            warningCount: 0,
+            warnings: ['source family "links" validation failed: backlink index is not configured'],
+          });
+        }
+        if (path === 'local-targets') {
+          return Response.json({
+            ok: true,
+            files: [
+              {
+                file: 'notes/pics.md',
+                diagnostics: [deadImageWarning(3, './logo.png', 'assets/logo.png')],
+              },
+            ],
+            fileCount: 1,
+            errorCount: 0,
+            warningCount: 1,
+            warnings: [],
+          });
+        }
+        if (path === 'problems-and-warnings') {
+          return Response.json({
+            ok: true,
+            files: [{ file: 'notes/ideas.md', diagnostics: [deadLinkError(9, 'ghost')] }],
+            fileCount: 3,
+            errorCount: 1,
+            warningCount: 0,
+            warnings: ['could not read drafts: EACCES'],
+          });
+        }
+        if (path === 'many-warnings') {
+          return Response.json({
+            ok: true,
+            files: [],
+            fileCount: 20,
+            errorCount: 0,
+            warningCount: 0,
+            warnings: Array.from({ length: AUDIT_WARNING_CAP + 5 }, (_, i) =>
+              i === AUDIT_WARNING_CAP + 4
+                ? 'source family "okf" validation failed: EACCES'
+                : `could not read dir-${i}: EACCES`,
+            ),
+          });
+        }
+        return Response.json({
+          ok: true,
+          files: [
+            { file: 'guides/tabs.md', diagnostics: [lintWarning(2)] },
+            { file: 'notes/ideas.md', diagnostics: [deadLinkError(9, 'ghost')] },
+          ],
+          fileCount: 4,
+          errorCount: 1,
+          warningCount: 1,
+          warnings: [],
+        });
+      }
+      return Response.json({ ok: false, error: 'Not found' }, { status: 404 });
+    },
+  });
+  baseUrl = `http://127.0.0.1:${testServer.port}`;
+});
+
+afterAll(() => {
+  testServer.stop();
+});
+
+beforeEach(async () => {
+  tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-audit-test-'));
+  seenRequests.length = 0;
+});
+
+afterEach(async () => {
+  await rm(tmpDir, { recursive: true, force: true });
+});
+
+describe('audit — registration + DESCRIPTION', () => {
+  test('registers exactly one tool named "audit"', () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    expect(getTool().name).toBe('audit');
+  });
+
+  test('declares read-only tool annotations', () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    expect(getTool().annotations).toEqual({
+      readOnlyHint: true,
+      idempotentHint: true,
+    });
+  });
+
+  test('DESCRIPTION routes link-validation intent here and away from the navigation reader', () => {
+    expect(DESCRIPTION).toContain('markdownlint');
+    expect(DESCRIPTION).toContain('broken');
+    expect(DESCRIPTION).toContain('`links`');
+    expect(DESCRIPTION).toContain('navigation');
+    expect(DESCRIPTION).toContain('`path`');
+  });
+
+  test('returns Hocuspocus-unavailable error when no serverUrl is configured', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(undefined, tmpDir));
+    const result = await getTool().handler({});
+    expect(result.isError).toBe(true);
+    expect(result.content[0]?.text).toBe(hocuspocusNotRunningError());
+  });
+});
+
+describe('audit request lifetime', () => {
+  test('honors the MCP request cancellation signal', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const signal = AbortSignal.abort(new DOMException('Caller deadline expired', 'TimeoutError'));
+
+    const result = await getTool().handler({}, signal);
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0]?.text).toContain('Caller deadline expired');
+  });
+
+  test('real MCP project scans can finish after the old 30-second HTTP deadline', async () => {
+    const slowServer = await startFetchTestServer({
+      async fetch() {
+        await delay(31_000);
+        return Response.json({
+          ok: true,
+          files: [],
+          fileCount: 1,
+          errorCount: 0,
+          warningCount: 0,
+          warnings: [],
+        });
+      },
+    });
+    const mcp = new McpServer({ name: 'audit-deadline-test', version: '1.0.0' });
+    const client = new Client({ name: 'audit-deadline-client', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    try {
+      register(mcp, makeDeps(`http://127.0.0.1:${slowServer.port}`, tmpDir));
+      registerLint(mcp, makeDeps(`http://127.0.0.1:${slowServer.port}`, tmpDir));
+      await Promise.all([mcp.connect(serverTransport), client.connect(clientTransport)]);
+
+      const results = await Promise.all(
+        ['audit', 'lint'].map((name) =>
+          client.callTool({ name, arguments: {} }, undefined, { timeout: 45_000 }),
+        ),
+      );
+
+      for (const result of results) {
+        expect(result.isError ?? false).toBe(false);
+        expect(result.structuredContent).toMatchObject({
+          fileCount: 1,
+          errorCount: 0,
+          warningCount: 0,
+        });
+      }
+    } finally {
+      slowServer.stop();
+      await Promise.all([client.close(), mcp.close()]);
+    }
+  }, 60_000);
+});
+
+describe('audit — unified project audit', () => {
+  test('no args hits /api/audit and returns both validator sources tagged', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({});
+    expect(seenRequests).toContain('/api/audit?');
+    const s = result.structuredContent as {
+      files: Array<{ file: string; diagnostics: Array<{ source: string; severity: string }> }>;
+      fileCount: number;
+      errorCount: number;
+      warningCount: number;
+    };
+    expect(s.files).toHaveLength(2);
+    expect(s.files.map((f) => f.file)).toEqual(['guides/tabs.md', 'notes/ideas.md']);
+    expect(s.files[0]?.diagnostics[0]?.source).toBe('markdownlint');
+    expect(s.files[1]?.diagnostics[0]?.source).toBe('links');
+    expect(s.files[1]?.diagnostics[0]?.severity).toBe('error');
+    expect(s.fileCount).toBe(4);
+    expect(s.errorCount).toBe(1);
+    expect(s.warningCount).toBe(1);
+    const text = result.content[0]?.text ?? '';
+    expect(text).toContain('1 error');
+    expect(text).toContain('1 warning');
+    expect(text).toContain('markdownlint/MD010');
+    expect(text).toContain('links/dead-link');
+    expect(text).toContain('line 10');
+    expect(text).toContain('"ghost"');
+  });
+
+  test('preserves local-target evidence in structured output; text message stays intelligible', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({ path: 'local-targets' });
+    const s = result.structuredContent as {
+      files: Array<{ diagnostics: Array<{ localTarget?: Record<string, unknown> }> }>;
+    };
+    expect(s.files[0]?.diagnostics[0]?.localTarget).toEqual({
+      href: './logo.png',
+      targetKind: 'file',
+      role: 'image',
+      sourceForm: 'markdown-inline',
+      resolvedTarget: 'assets/logo.png',
+      reason: 'no-such-file',
+      resolutionMethod: 'source-relative',
+    });
+    const text = result.content[0]?.text ?? '';
+    expect(text).toContain('Image target "./logo.png" does not resolve to an existing file');
+    expect(text).toContain('links/dead-link');
+  });
+
+  test('passes a sub-path scope through to the audit endpoint', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    await getTool().handler({ path: 'sub/dir' });
+    expect(seenRequests).toContain('/api/audit?path=sub%2Fdir');
+  });
+
+  test('a clean scope reports no problems with the scanned-doc total', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({ path: 'clean' });
+    const s = result.structuredContent as {
+      files: unknown[];
+      fileCount: number;
+      errorCount: number;
+      warningCount: number;
+    };
+    expect(s.files).toHaveLength(0);
+    expect(s.fileCount).toBe(4);
+    expect(s.errorCount).toBe(0);
+    expect(s.warningCount).toBe(0);
+    expect(result.content[0]?.text).toContain('No problems across 4 documents');
+  });
+});
+
+describe('audit — broken-link suppression', () => {
+  test('a filtered clean audit exposes a content-free suppression marker', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({ path: 'suppressed' });
+    const s = result.structuredContent as {
+      brokenLinkSuppression?: { reason: string; count: number };
+    };
+    expect(s.brokenLinkSuppression).toEqual({ reason: 'reserved-log-policy', count: 3 });
+    const text = result.content[0]?.text ?? '';
+    expect(text).toContain('3 broken-link findings withheld by project policy');
+    expect(text).toContain('audit result is filtered');
+    expect(text).toContain('does NOT prove every link resolves');
+    expect(text).toContain('links({ kind: "dead" })');
+    expect(text).toContain('not as a repair queue');
+  });
+
+  test('a suppression this build cannot read reaches structuredContent, not only the text block', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+
+    const clean = await getTool().handler({ path: 'clean' });
+    expect((clean.structuredContent as { warnings?: string[] }).warnings).toBeUndefined();
+
+    const result = await getTool().handler({ path: 'suppressed-malformed' });
+    const s = result.structuredContent as {
+      brokenLinkSuppression?: unknown;
+      warnings?: string[];
+    };
+    expect(s.brokenLinkSuppression).toBeUndefined();
+    expect(s.warnings ?? []).toEqual([expect.stringContaining('in a form this build cannot read')]);
+    expect(s.warnings?.[0]).toContain('does NOT prove every link resolves');
+
+    const text = result.content[0]?.text ?? '';
+    expect(text).not.toContain('undefined');
+    expect(text).toContain('could not fully complete');
+    expect(text).toContain('Audit incomplete');
+    expect(text).toContain('withheld by project policy in a form this build cannot read');
+    expect(text).toContain('does NOT prove every link resolves');
+    expect((text.match(/does NOT prove every link resolves/g) ?? []).length).toBe(1);
+    expect(text).toContain('links({ kind: "dead" })');
+    expect(text).toContain('not as a repair queue');
+  });
+});
+
+describe('audit — degradation visibility', () => {
+  test('a degraded run surfaces the warning in text and is not reported as clean', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({ path: 'degraded' });
+    const text = result.content[0]?.text ?? '';
+    expect(text).toContain(
+      'source family "links" validation failed: backlink index is not configured',
+    );
+    expect(text).toContain('could not fully complete');
+    expect(text).toContain('Audit incomplete');
+    const s = result.structuredContent as { warnings?: string[] };
+    expect(s.warnings).toEqual([
+      'source family "links" validation failed: backlink index is not configured',
+    ]);
+  });
+
+  test('warnings surface alongside problems, not only in the structured channel', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({ path: 'problems-and-warnings' });
+    const text = result.content[0]?.text ?? '';
+    expect(text).toContain('links/dead-link');
+    expect(text).toContain('could not read drafts: EACCES');
+    expect(text).toContain('Audit incomplete');
+  });
+
+  test('the warnings channel is capped like the diagnostics channels', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({ path: 'many-warnings' });
+    const s = result.structuredContent as { warnings?: string[]; omittedWarningCount?: number };
+    expect(s.warnings).toHaveLength(AUDIT_WARNING_CAP);
+    expect(s.warnings?.[0]).toBe('source family "okf" validation failed: EACCES');
+    expect(s.omittedWarningCount).toBe(5);
+    expect(result.content[0]?.text ?? '').toContain('… and 5 more warnings');
+  });
+});
+
+describe('audit — output cap', () => {
+  interface AuditStructured {
+    files: Array<{
+      file: string;
+      diagnostics: Array<{ source?: string }>;
+      omittedDiagnosticCount?: number;
+    }>;
+    fileCount: number;
+    errorCount: number;
+    warningCount: number;
+    omittedFileCount?: number;
+  }
+
+  test('over-cap audits truncate both channels but keep totals uncapped', async () => {
+    const { server, getTool } = createFakeServer();
+    register(server, makeDeps(baseUrl, tmpDir));
+    const result = await getTool().handler({ path: 'over-cap' });
+
+    const s = result.structuredContent as unknown as AuditStructured;
+    expect(s.files).toHaveLength(AUDIT_FILE_CAP);
+    expect(s.omittedFileCount).toBe(2);
+    for (const file of s.files) {
+      expect(file.diagnostics).toHaveLength(AUDIT_FILE_DIAGNOSTIC_CAP);
+      expect(file.omittedDiagnosticCount).toBe(3);
+    }
+    const perFile = AUDIT_FILE_DIAGNOSTIC_CAP + 3;
+    const errorsPerFile = Math.floor(perFile / 2);
+    expect(s.fileCount).toBe(AUDIT_FILE_CAP + 2);
+    expect(s.errorCount).toBe((AUDIT_FILE_CAP + 2) * errorsPerFile);
+    expect(s.warningCount).toBe((AUDIT_FILE_CAP + 2) * (perFile - errorsPerFile));
+
+    const text = result.content[0]?.text ?? '';
+    expect(text).toContain(`${AUDIT_FILE_CAP + 2} of ${AUDIT_FILE_CAP + 2} documents`);
+    expect(text).toContain('… and 3 more problems');
+    expect(text).toContain('lint({ document: "doc-00.md" })');
+    expect(text).toContain('links({ kind: "dead", sourceDocuments: ["doc-00.md"] })');
+    expect(text).toContain('Project-tree OKF findings remain capped');
+    expect(text).toContain('… and 2 more files with problems');
+    expect(text).toContain('Narrow path to reduce competing files; per-file caps still apply');
+    expect(text).toContain('markdownlint/MD010');
+    expect(text).toContain('links/dead-link');
+    const shownFileHeaders = text.match(/^doc-\d+\.md:$/gm) ?? [];
+    expect(shownFileHeaders).toHaveLength(AUDIT_FILE_CAP);
+  });
+});

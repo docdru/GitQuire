@@ -1,0 +1,813 @@
+import type {
+  OkBugReportCrashDetectedEvent,
+  OkBugReportScreenshot,
+  ReportBundleSummary,
+} from '@inkeep/open-knowledge-core/logger-types';
+import {
+  BUG_REPORT_SCREENSHOT_ZIP_ENTRY,
+  isBugReportAgentChatEntry,
+  isBugReportAttachmentEntry,
+  isBugReportCrashDumpEntry,
+} from '@inkeep/open-knowledge-core/logger-types';
+import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
+import { Plural, Trans, useLingui } from '@lingui/react/macro';
+import {
+  AlertCircleIcon,
+  ArchiveIcon,
+  ChevronRightIcon,
+  ExpandIcon,
+  ShieldIcon,
+  TriangleAlertIcon,
+} from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { BugReportPreviousReports } from '@/components/BugReportHistory';
+import { ImageAttachmentTextarea, useImageAttachmentIntake } from '@/components/ImageAttachments';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import { useContactEmail } from '@/hooks/use-contact-email';
+import { bugReportSendManager } from '@/lib/bug-report-send-manager';
+import { formatBundleSize, zipBasename } from '@/lib/bug-report-support';
+import { okCliCommandName } from '@/lib/channel-cli-copy';
+import { commitContactEmail } from '@/lib/contact-email-store';
+import { isImageAttachmentType } from '@/lib/image-attachments';
+import { revealInFileManagerLabel } from '@/lib/platform-labels';
+import { isValidContactEmail } from '@/lib/validate-email';
+
+export interface ReportBugCrashContext {
+  source: string;
+  docName?: string;
+  errorMessage?: string;
+  componentStack?: string;
+}
+
+interface CreatedReport {
+  zipPath: string;
+  zipSizeBytes: number;
+  summary: ReportBundleSummary;
+}
+
+function composeNote(userNote: string, contextLines: string[] | undefined): string | undefined {
+  const trimmed = userNote.trim();
+  if (contextLines === undefined) return trimmed === '' ? undefined : trimmed;
+  const context = contextLines.join('\n');
+  return trimmed === '' ? context : `${trimmed}\n\n${context}`;
+}
+
+const COMPONENT_STACK_FRAME_LIMIT = 25;
+
+function trimFrameLocation(frame: string): string {
+  return frame.replace(/\(([^)]*)\)/, (whole, location: string) => {
+    const leaf = location.split(/[/\\]/).pop();
+    return leaf === undefined || leaf === '' ? whole : `(${leaf})`;
+  });
+}
+
+function componentStackLines(componentStack: string): string[] {
+  const frames = componentStack
+    .split('\n')
+    .map((line) => trimFrameLocation(line.trim()))
+    .filter((line) => line !== '');
+  if (frames.length === 0) return [];
+  const kept = frames.slice(0, COMPONENT_STACK_FRAME_LIMIT);
+  const omitted = frames.length - kept.length;
+  return [
+    'Component stack:',
+    ...kept,
+    ...(omitted > 0 ? [`... ${omitted} more frame(s) omitted`] : []),
+  ];
+}
+
+function crashContextLines(crashContext: ReportBugCrashContext): string[] {
+  const lines = [`Crash source: ${crashContext.source}`];
+  if (crashContext.docName !== undefined) lines.push(`Document: ${crashContext.docName}`);
+  if (crashContext.errorMessage !== undefined) lines.push(`Error: ${crashContext.errorMessage}`);
+  if (crashContext.componentStack !== undefined) {
+    lines.push(...componentStackLines(crashContext.componentStack));
+  }
+  return lines;
+}
+
+function crashInviteLines(invite: OkBugReportCrashDetectedEvent): string[] {
+  const source =
+    invite.kind === 'render-process-gone'
+      ? `renderer process crash (reason: ${invite.context.reason})`
+      : invite.kind === 'child-process-gone'
+        ? `${invite.context.processType} process crash (reason: ${invite.context.reason})`
+        : invite.context.dirtyShutdown
+          ? 'previous session ended without a clean quit'
+          : 'new crash dump found from the previous session';
+  const lines = [`Crash source: ${source}`, `Crash event: ${invite.eventId}`];
+  if (invite.kind === 'boot' && invite.crashedAppVersion !== undefined) {
+    lines.push(`Crashed app version: ${invite.crashedAppVersion}`);
+  }
+  if (invite.kind === 'boot' && invite.crashedAt !== undefined) {
+    lines.push(`Crashed at: ${invite.crashedAt} (${formatRelativeAge(invite.crashedAt)})`);
+  }
+  return lines;
+}
+
+type Phase =
+  | { step: 'compose'; creating: boolean; createError: string | null }
+  | {
+      step: 'review';
+      report: CreatedReport;
+      conversationMissing: boolean;
+      crashDumpMissing: boolean;
+    };
+
+const COMPOSE_IDLE: Phase = { step: 'compose', creating: false, createError: null };
+
+function reportIncludesRawDump(report: CreatedReport): boolean {
+  return report.summary.files.some(isBugReportCrashDumpEntry);
+}
+
+function reportIncludesAttachments(report: CreatedReport): boolean {
+  return report.summary.files.some(isBugReportAttachmentEntry);
+}
+
+async function toAttachmentInputs(files: readonly File[]) {
+  const inputs = [];
+  for (const file of files) {
+    if (!isImageAttachmentType(file.type)) continue;
+    inputs.push({ contentType: file.type, bytes: new Uint8Array(await file.arrayBuffer()) });
+  }
+  return inputs;
+}
+
+export interface ReportBugDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  systemWide?: boolean;
+  crashContext?: ReportBugCrashContext;
+  crashInvite?: OkBugReportCrashDetectedEvent;
+  screenshot?: OkBugReportScreenshot | null;
+  pointerMarked?: boolean;
+  crashDumpAvailable?: boolean;
+  agentChat?: { readonly threadId: string };
+}
+
+function ReportBugDialog({
+  open,
+  onOpenChange,
+  systemWide = false,
+  crashContext,
+  crashInvite,
+  screenshot = null,
+  pointerMarked = false,
+  crashDumpAvailable: probedCrashDumpAvailable = false,
+  agentChat,
+}: ReportBugDialogProps) {
+  const { t } = useLingui();
+  const cliCommand = okCliCommandName();
+  const desktopPlatform = typeof window !== 'undefined' ? window.okDesktop?.platform : undefined;
+  const isMacOS = desktopPlatform === 'darwin';
+  const [phase, setPhase] = useState<Phase>(COMPOSE_IDLE);
+  const [note, setNote] = useState('');
+  const [detailed, setDetailed] = useState(crashContext !== undefined || crashInvite !== undefined);
+  const crashDumpAvailable =
+    crashInvite !== undefined ? crashInvite.minidumpAvailable === true : probedCrashDumpAvailable;
+  const [includeDump, setIncludeDump] = useState(crashInvite?.minidumpAvailable === true);
+  const [includeScreenshot, setIncludeScreenshot] = useState(true);
+  const [includeChat, setIncludeChat] = useState(true);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const attachmentIntake = useImageAttachmentIntake({
+    files: attachments,
+    onChange: setAttachments,
+    disabled: phase.step !== 'compose' || phase.creating,
+  });
+  const [shareEmail, setShareEmail] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const opSeqRef = useRef(0);
+  const noteId = useId();
+  const logsId = useId();
+  const logsHintId = useId();
+  const detailedId = useId();
+  const detailedHintId = useId();
+  const dumpId = useId();
+  const dumpHintId = useId();
+  const chatId = useId();
+  const chatHintId = useId();
+  const screenshotId = useId();
+  const screenshotHintId = useId();
+  const shareEmailId = useId();
+  const emailId = useId();
+  const emailErrorId = useId();
+
+  const rememberedEmail = useContactEmail().email;
+
+  useEffect(() => {
+    if (!open) return;
+    setShareEmail(rememberedEmail !== null);
+    setEmail(rememberedEmail ?? '');
+    setEmailError(null);
+  }, [open, rememberedEmail]);
+
+  const noteContextLines =
+    crashContext !== undefined
+      ? crashContextLines(crashContext)
+      : crashInvite !== undefined
+        ? crashInviteLines(crashInvite)
+        : undefined;
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      opSeqRef.current += 1;
+      setPhase(COMPOSE_IDLE);
+    }
+    onOpenChange(nextOpen);
+  }
+
+  async function handleCreate() {
+    const bugReport = window.okDesktop?.bugReport;
+    if (!bugReport) {
+      setPhase({
+        step: 'compose',
+        creating: false,
+        createError: t`Bug reporting needs the OpenKnowledge desktop app.`,
+      });
+      return;
+    }
+    if (shareEmail && !isValidContactEmail(email.trim())) {
+      setEmailError(t`Please enter a valid email.`);
+      return;
+    }
+    setEmailError(null);
+    const seq = ++opSeqRef.current;
+    setPhase({ step: 'compose', creating: true, createError: null });
+    const attachmentInputs = await toAttachmentInputs(attachments);
+    if (opSeqRef.current !== seq) return;
+    const conversationRequested = agentChat !== undefined && includeChat;
+    const crashDumpRequested = crashDumpAvailable && includeDump;
+    const result = await bugReport.create({
+      level: detailed ? 'full' : 'standard',
+      note: composeNote(note, noteContextLines),
+      ...(crashDumpAvailable ? { includeCrashDump: includeDump } : {}),
+      ...(crashDumpAvailable && crashInvite !== undefined
+        ? { crashEventId: crashInvite.eventId }
+        : {}),
+      ...(screenshot !== null ? { includeScreenshot } : {}),
+      ...(attachmentInputs.length > 0 ? { attachments: attachmentInputs } : {}),
+      ...(conversationRequested ? { agentChatThreadId: agentChat.threadId } : {}),
+    });
+    if (opSeqRef.current !== seq) return;
+    if (result.ok) {
+      attachmentIntake.clearProblem();
+      setPhase({
+        step: 'review',
+        report: {
+          zipPath: result.zipPath,
+          zipSizeBytes: result.zipSizeBytes,
+          summary: result.summary,
+        },
+        conversationMissing:
+          conversationRequested && !result.summary.files.some(isBugReportAgentChatEntry),
+        crashDumpMissing:
+          crashDumpRequested && !result.summary.files.some(isBugReportCrashDumpEntry),
+      });
+    } else {
+      setPhase({ step: 'compose', creating: false, createError: result.error });
+    }
+  }
+
+  function handleSend(report: CreatedReport) {
+    const trimmedEmail = email.trim();
+    commitContactEmail(shareEmail, trimmedEmail);
+    bugReportSendManager.startBugReportSend({
+      kind: 'created-report',
+      report,
+      note: composeNote(note, noteContextLines),
+      includeScreenshot: report.summary.files.includes(BUG_REPORT_SCREENSHOT_ZIP_ENTRY),
+      includeAttachments: reportIncludesAttachments(report),
+      ...(shareEmail && isValidContactEmail(trimmedEmail) ? { email: trimmedEmail } : {}),
+    });
+    setNote('');
+    setDetailed(crashContext !== undefined || crashInvite !== undefined);
+    setIncludeDump(crashInvite?.minidumpAvailable === true);
+    setIncludeScreenshot(true);
+    setIncludeChat(true);
+    setAttachments([]);
+    handleOpenChange(false);
+  }
+
+  function revealZip(zipPath: string) {
+    void window.okDesktop?.shell.showItemInFolder(zipPath);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="gap-2 sm:max-w-[46.25rem]" onPaste={attachmentIntake.onPaste}>
+        {phase.step === 'compose' && (
+          <>
+            <DialogHeader
+              // oxlint-disable-next-line ok/no-physical-direction-utility -- Matches the shared dialog close button's physical right-2 position, including RTL.
+              className="gap-2 pr-6"
+            >
+              <DialogTitle>
+                <Trans>Report a bug</Trans>
+              </DialogTitle>
+              {crashInvite === undefined && (
+                <DialogDescription>
+                  <Trans>Nothing leaves your computer until you review and send the report.</Trans>
+                </DialogDescription>
+              )}
+            </DialogHeader>
+            <DialogBody className="flex flex-auto flex-col gap-2 pb-2 [&>*]:shrink-0">
+              {crashInvite !== undefined && (
+                <div
+                  data-testid="report-bug-crash-invite"
+                  className="flex items-start gap-2.5 rounded-md border border-chart-3/35 bg-chart-3/10 px-3 py-2.5 text-sm"
+                >
+                  <TriangleAlertIcon
+                    className="mt-0.5 size-4 shrink-0 text-chart-3"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <p className="font-medium">
+                      <Trans>OpenKnowledge quit unexpectedly last time.</Trans>
+                    </p>
+                    <DialogDescription className="mt-0.5 text-xs">
+                      <Trans>
+                        A report helps us find the cause. Nothing is sent until you review it.
+                      </Trans>
+                    </DialogDescription>
+                  </div>
+                </div>
+              )}
+              {phase.createError !== null && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2.5 rounded-md border border-destructive/35 px-3 py-2.5 text-sm"
+                >
+                  <AlertCircleIcon
+                    className="mt-0.5 size-4 shrink-0 text-destructive"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <p className="font-medium">
+                      <Trans>Couldn't create the report</Trans>
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{phase.createError}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      <Trans>
+                        You can also create one from a terminal with{' '}
+                        <code className="font-mono">{cliCommand} bug-report</code>.
+                      </Trans>
+                    </p>
+                  </div>
+                </div>
+              )}
+              {crashContext !== undefined && (
+                <p className="text-xs text-muted-foreground">
+                  <Trans>
+                    Error details, including the document name when available, are included in the
+                    report.
+                  </Trans>
+                </p>
+              )}
+              <div className="flex flex-col gap-2">
+                <label htmlFor={noteId} className="text-sm font-medium">
+                  {crashInvite !== undefined ? (
+                    <Trans>What were you doing?</Trans>
+                  ) : (
+                    <Trans>What happened?</Trans>
+                  )}{' '}
+                  <span className="font-normal text-muted-foreground">
+                    <Trans>(optional)</Trans>
+                  </span>
+                </label>
+                <ImageAttachmentTextarea
+                  id={noteId}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder={
+                    crashInvite !== undefined
+                      ? t`e.g. Switching projects while a sync was running`
+                      : t`e.g. The editor froze after I pasted a large table`
+                  }
+                  rows={2}
+                  className="min-h-20"
+                  intake={attachmentIntake}
+                  hint={<Trans>Images aren't redacted.</Trans>}
+                />
+              </div>
+              {screenshot !== null && (
+                <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+                  <div className="flex items-center gap-2.5 pt-0.5">
+                    <Checkbox
+                      id={screenshotId}
+                      checked={includeScreenshot}
+                      onCheckedChange={(value) => setIncludeScreenshot(value === true)}
+                      aria-describedby={screenshotHintId}
+                      disabled={phase.creating}
+                    />
+                    <label htmlFor={screenshotId} className="text-sm font-medium">
+                      <Trans>Screenshot</Trans>
+                    </label>
+                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="relative block h-auto w-40 shrink-0 overflow-hidden rounded-md bg-muted/40 p-0"
+                        aria-label={t`Enlarge screenshot`}
+                      >
+                        <img
+                          src={screenshot.dataUrl}
+                          alt={t`Preview of the screenshot`}
+                          className={`h-24 w-full object-contain ${includeScreenshot ? '' : 'opacity-40'}`}
+                        />
+                        <span className="absolute end-1 top-1 flex items-center rounded bg-popover/90 p-1">
+                          <ExpandIcon className="size-3" aria-hidden="true" />
+                        </span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-5xl">
+                      <DialogHeader
+                        // oxlint-disable-next-line ok/no-physical-direction-utility -- Matches the shared dialog close button's physical right-2 position, including RTL.
+                        className="pr-6"
+                      >
+                        <DialogTitle>
+                          <Trans>Screenshot preview</Trans>
+                        </DialogTitle>
+                        <DialogDescription>
+                          <Trans>Not redacted. Check the image before sharing.</Trans>
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogBody>
+                        <img
+                          src={screenshot.dataUrl}
+                          alt={t`Preview of the screenshot`}
+                          className="max-h-[70dvh] w-full object-contain"
+                        />
+                      </DialogBody>
+                    </DialogContent>
+                  </Dialog>
+                  <p
+                    id={screenshotHintId}
+                    className="min-w-40 flex-1 text-xs text-muted-foreground"
+                  >
+                    {pointerMarked ? (
+                      <Trans>Captured before this dialog, with the pointer marked.</Trans>
+                    ) : (
+                      <Trans>Captured before this dialog.</Trans>
+                    )}{' '}
+                    <Trans>Not redacted. Check the image before sharing.</Trans>
+                  </p>
+                </div>
+              )}
+              <fieldset className="grid min-w-0 gap-3 border-t pt-3 sm:grid-cols-[1fr_1.25fr]">
+                <legend className="sr-only">
+                  <Trans>What to include</Trans>
+                </legend>
+                <div className="flex items-start gap-2.5">
+                  <Checkbox
+                    id={logsId}
+                    checked
+                    disabled
+                    aria-describedby={logsHintId}
+                    className="mt-0.5"
+                  />
+                  <div className="flex flex-col gap-0.5">
+                    <label
+                      htmlFor={logsId}
+                      className="flex flex-wrap items-center gap-2 text-sm font-medium text-foreground"
+                    >
+                      <Trans>Logs & system info</Trans>
+                      <Badge variant="primary" className="text-2xs">
+                        <Trans>Always included</Trans>
+                      </Badge>
+                    </label>
+                    <p id={logsHintId} className="text-1sm text-muted-foreground">
+                      {systemWide ? (
+                        <Trans>
+                          OpenKnowledge logs across projects. No project is open, so project server
+                          logs are not included.
+                        </Trans>
+                      ) : (
+                        <Trans>OpenKnowledge logs, including activity across projects.</Trans>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <Checkbox
+                    id={detailedId}
+                    checked={detailed}
+                    onCheckedChange={(value) => setDetailed(value === true)}
+                    aria-describedby={detailedHintId}
+                    disabled={phase.creating}
+                    className="mt-0.5"
+                  />
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label htmlFor={detailedId} className="text-sm font-medium">
+                        <Trans>Detailed diagnostics</Trans>
+                      </label>
+                      <Badge variant="primary" className="text-2xs">
+                        <Trans>Recommended</Trans>
+                      </Badge>
+                    </div>
+                    <p className="text-1sm text-muted-foreground">
+                      <Trans>Helps us investigate the cause.</Trans>
+                    </p>
+                    <p id={detailedHintId} className="text-1sm text-muted-foreground">
+                      <Trans>May include unredacted document names.</Trans>
+                    </p>
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="group -ms-2 h-7 justify-start px-2 text-1sm font-normal"
+                        >
+                          <ChevronRightIcon
+                            className="size-3.5 group-data-[state=open]:rotate-90"
+                            aria-hidden="true"
+                          />
+                          <Trans>What's included</Trans>
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <p className="rounded-md bg-muted/50 p-3 text-1sm text-muted-foreground">
+                          <Trans>
+                            Adds telemetry, server state, and runtime info when available.
+                            Credentials are always removed; document names, if included, appear in
+                            cleartext (not redacted).
+                          </Trans>{' '}
+                          {isMacOS && (
+                            <Trans>
+                              It also adds the low-memory reports macOS wrote in the past week that
+                              list OpenKnowledge's processes, with each one's memory use and whether
+                              macOS ended it.
+                            </Trans>
+                          )}
+                          {desktopPlatform === 'linux' && (
+                            <Trans>
+                              It also adds the out-of-memory kills of OpenKnowledge that the system
+                              journal recorded in the past week, without the machine name, account
+                              id, or folder paths.
+                            </Trans>
+                          )}{' '}
+                          {desktopPlatform === 'linux' && (
+                            <Trans>
+                              It also adds any display-connection errors OpenKnowledge wrote to your
+                              user journal in the past week, each message cut to 200 characters.
+                            </Trans>
+                          )}
+                          {desktopPlatform === 'win32' && (
+                            <Trans>
+                              It also adds the crash and hang records Windows logged for
+                              OpenKnowledge in the past week, without file paths, and the times of
+                              every shutdown, restart, power loss, and low-memory warning on this
+                              computer in that week, whatever caused them.
+                            </Trans>
+                          )}{' '}
+                          {isMacOS && (
+                            <Trans>
+                              It also adds the crash reports macOS recorded for OpenKnowledge and
+                              its helper processes, never another app's report, though ours do name
+                              the processes they were running alongside. Each one carries machine
+                              details macOS puts in every report: your account uid, the Mac model,
+                              and the name of the process that launched the app. On a managed
+                              machine, that launching process can be internal tooling. The
+                              identifiers that would link the bug reports you file to each other are
+                              replaced first, so a collected report is not byte-identical to the one
+                              macOS wrote.
+                            </Trans>
+                          )}
+                        </p>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                </div>
+              </fieldset>
+              {crashDumpAvailable && (
+                <div className="flex items-start gap-2.5">
+                  <Checkbox
+                    id={dumpId}
+                    checked={includeDump}
+                    onCheckedChange={(value) => setIncludeDump(value === true)}
+                    aria-describedby={dumpHintId}
+                    disabled={phase.creating}
+                    className="mt-0.5"
+                  />
+                  <div className="flex flex-col gap-0.5">
+                    <label htmlFor={dumpId} className="text-sm font-medium">
+                      <Trans>Crash dump</Trans>
+                    </label>
+                    <p id={dumpHintId} className="text-1sm text-muted-foreground">
+                      <Trans>
+                        A memory snapshot from the crash, and the artifact that helps us most. It
+                        can contain document content and can't be redacted, so uncheck it if you'd
+                        rather not share it.
+                      </Trans>
+                    </p>
+                  </div>
+                </div>
+              )}
+              {agentChat !== undefined && (
+                <div className="flex items-start gap-2.5">
+                  <Checkbox
+                    id={chatId}
+                    checked={includeChat}
+                    onCheckedChange={(value) => setIncludeChat(value === true)}
+                    aria-describedby={chatHintId}
+                    disabled={phase.creating}
+                    className="mt-0.5"
+                  />
+                  <div className="flex flex-col gap-0.5">
+                    <label htmlFor={chatId} className="text-sm font-medium">
+                      <Trans>This conversation</Trans>
+                    </label>
+                    <p id={chatHintId} className="text-1sm text-muted-foreground">
+                      <Trans>
+                        The chat's messages, tool calls, and their output, so we can see what the
+                        agent did, plus the chat's title, the project folder's path, the document it
+                        started from, and the agent and its settings. Images are replaced by their
+                        type and size, and attached text files are included. It can contain document
+                        content, so uncheck it if you'd rather not share it.
+                      </Trans>
+                    </p>
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                <Trans>
+                  Known secrets are scrubbed, but other sensitive information may remain. Review the
+                  ZIP before sending.
+                </Trans>
+              </p>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2.5">
+                  <Checkbox
+                    id={shareEmailId}
+                    checked={shareEmail}
+                    onCheckedChange={(value) => {
+                      setShareEmail(value === true);
+                      setEmailError(null);
+                    }}
+                    disabled={phase.creating}
+                  />
+                  <label htmlFor={shareEmailId} className="text-sm">
+                    <Trans>Share your email for followups</Trans>
+                  </label>
+                </div>
+                {shareEmail && (
+                  <div className="flex flex-col gap-1.5">
+                    <Input
+                      id={emailId}
+                      aria-label={t`Email for followups`}
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setEmailError(null);
+                      }}
+                      placeholder={t`you@company.com`}
+                      disabled={phase.creating}
+                      aria-invalid={emailError !== null}
+                      aria-describedby={emailError !== null ? emailErrorId : undefined}
+                    />
+                    {emailError !== null && (
+                      <p id={emailErrorId} className="text-destructive text-sm">
+                        {emailError}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              {crashInvite === undefined && crashContext === undefined ? (
+                <BugReportPreviousReports />
+              ) : null}
+            </DialogBody>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => handleOpenChange(false)}>
+                {crashInvite !== undefined ? <Trans>Not now</Trans> : <Trans>Cancel</Trans>}
+              </Button>
+              <Button onClick={() => void handleCreate()} disabled={phase.creating}>
+                {phase.creating && <Spinner className="size-4" aria-hidden="true" />}
+                <Trans>Create report</Trans>
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {phase.step === 'review' && (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                <Trans>Review your report</Trans>
+              </DialogTitle>
+              <DialogDescription>
+                <Trans>Take a look if you'd like. This exact file is what we receive.</Trans>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogBody className="flex flex-col gap-4">
+              <ZipCard
+                zipPath={phase.report.zipPath}
+                zipSizeBytes={phase.report.zipSizeBytes}
+                fileCount={phase.report.summary.files.length}
+                rawDumpIncluded={reportIncludesRawDump(phase.report)}
+                onReveal={revealZip}
+              />
+              {phase.conversationMissing ? (
+                <p className="text-xs text-muted-foreground">
+                  <Trans>The conversation couldn't be added to this report.</Trans>
+                </p>
+              ) : null}
+              {phase.crashDumpMissing ? (
+                <p className="text-xs text-muted-foreground">
+                  <Trans>The crash dump couldn't be added to this report.</Trans>
+                </p>
+              ) : null}
+              <div className="flex items-start gap-2 rounded-md border bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
+                <ShieldIcon
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <span>
+                  <Trans>
+                    Sent privately to the OpenKnowledge team, along with your note and app version.
+                    Never posted publicly.
+                  </Trans>
+                </span>
+              </div>
+            </DialogBody>
+            <DialogFooter className="sm:justify-between">
+              <Button variant="ghost" onClick={() => setPhase(COMPOSE_IDLE)}>
+                <Trans>Back</Trans>
+              </Button>
+              <Button onClick={() => handleSend(phase.report)}>
+                <Trans>Send report</Trans>
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface ZipCardProps {
+  zipPath: string;
+  zipSizeBytes: number;
+  fileCount: number;
+  rawDumpIncluded: boolean;
+  onReveal: (zipPath: string) => void;
+}
+
+function ZipCard({ zipPath, zipSizeBytes, fileCount, rawDumpIncluded, onReveal }: ZipCardProps) {
+  const name = zipBasename(zipPath);
+  const sizeText = formatBundleSize(zipSizeBytes);
+  return (
+    <div className="flex items-center gap-2.5 rounded-md border px-3 py-2.5">
+      <div className="flex items-center justify-center size-8 rounded-md bg-muted">
+        <ArchiveIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      </div>
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <p className="truncate text-1sm" title={name}>
+          {name}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {rawDumpIncluded ? (
+            <Trans>
+              {sizeText} · secrets redacted ·{' '}
+              <Plural value={fileCount} one="# file" other="# files" /> · crash dump not redacted
+            </Trans>
+          ) : (
+            <Trans>
+              {sizeText} · secrets redacted ·{' '}
+              <Plural value={fileCount} one="# file" other="# files" />
+            </Trans>
+          )}
+        </p>
+      </div>
+      <Button
+        variant="link"
+        className="h-auto shrink-0 p-0 text-xs"
+        onClick={() => onReveal(zipPath)}
+      >
+        {revealInFileManagerLabel(
+          typeof window !== 'undefined' ? window.okDesktop?.platform : undefined,
+        )}
+      </Button>
+    </div>
+  );
+}
+
+export default ReportBugDialog;

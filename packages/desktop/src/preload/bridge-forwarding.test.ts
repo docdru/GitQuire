@@ -1,0 +1,420 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { withCliCommandNameArg } from '../main/cli-command-name-arg.ts';
+import { withMcpServerNameArg } from '../main/mcp-server-name-arg.ts';
+
+const invokeMock = vi.fn(() => Promise.resolve({ ok: true }));
+const exposed = new Map<string, Record<string, unknown>>();
+
+vi.mock('electron', () => ({
+  contextBridge: {
+    exposeInMainWorld: (key: string, value: Record<string, unknown>) => {
+      exposed.set(key, value);
+    },
+  },
+  ipcRenderer: {
+    invoke: (...args: unknown[]) => invokeMock(...(args as [])),
+    on: () => {},
+    removeListener: () => {},
+    send: () => {},
+  },
+}));
+
+type BridgeProbe = {
+  mcpServerName: string | null;
+  cliCommandName: string | null;
+  state: { query(): Promise<unknown> };
+  update: {
+    relaunchNow(): Promise<void>;
+    checkNow(): Promise<void>;
+    dismissWhatsNew(version: string): Promise<void>;
+    dismissDownloaded(version: string): Promise<void>;
+    setMode(mode: 'auto' | 'off'): Promise<void>;
+  };
+  config: {
+    languagePreference?: string;
+    themePreference?: string;
+  };
+  bugReport: {
+    send(request: {
+      zipPath: string;
+      metadata: Record<string, unknown>;
+      includeScreenshot?: boolean;
+      includeAttachments?: boolean;
+    }): Promise<unknown>;
+    create(request: Record<string, unknown>): Promise<unknown>;
+  };
+  assetUpload: {
+    uploadImage(request: {
+      contentType: string;
+      bytes: Uint8Array;
+      filename: string;
+    }): Promise<unknown>;
+  };
+  terminal: {
+    setDockState(state: {
+      surface: 'terminal';
+      order: string[];
+      activeKey: string | null;
+      terminalSnapshot: { tabs: []; activeOrdinal: null };
+    }): Promise<{ ok: true } | { ok: false; reason: string }>;
+  };
+  userConfig: {
+    onChanged(cb: (snapshot: { text: string }) => void): () => void;
+  };
+  editor: {
+    notifyViewMenuStateChanged(state: {
+      terminalVisible?: boolean;
+      terminalPlacement?: 'bottom' | 'right';
+    }): void;
+  };
+};
+
+async function loadBridge(): Promise<BridgeProbe> {
+  exposed.clear();
+  vi.resetModules();
+  await import('./index.ts');
+  const bridge = exposed.get('okDesktop');
+  if (bridge === undefined) throw new Error('preload did not expose okDesktop');
+  return bridge as unknown as BridgeProbe;
+}
+
+function dispatchedPayload(channel: string): Record<string, unknown> {
+  const call = invokeMock.mock.calls.find((c) => c[0] === channel);
+  if (call === undefined) throw new Error(`nothing dispatched on ${channel}`);
+  return call[1] as Record<string, unknown>;
+}
+
+beforeEach(() => {
+  invokeMock.mockClear();
+});
+
+const originalArgv = process.argv;
+
+afterEach(() => {
+  process.argv = originalArgv;
+  vi.unstubAllEnvs();
+});
+
+describe('preload argv config', () => {
+  it('recovers language and theme preferences from their value-carrying flags', async () => {
+    process.argv = [...originalArgv, '--ok-language-preference=es', '--ok-theme-preference=dark'];
+
+    const bridge = await loadBridge();
+
+    expect(bridge.config).toMatchObject({
+      languagePreference: 'es',
+      themePreference: 'dark',
+    });
+  });
+
+  it('leaves both preferences absent when the window receives neither flag', async () => {
+    process.argv = originalArgv.filter(
+      (arg) =>
+        !arg.startsWith('--ok-language-preference=') && !arg.startsWith('--ok-theme-preference='),
+    );
+
+    const bridge = await loadBridge();
+
+    expect(bridge.config).not.toHaveProperty('languagePreference');
+    expect(bridge.config).not.toHaveProperty('themePreference');
+  });
+
+  it('exposes the server key main hands a Beta window', async () => {
+    vi.stubEnv('OK_CHANNEL', 'beta');
+    process.argv = withMcpServerNameArg(originalArgv);
+
+    const bridge = await loadBridge();
+
+    expect(bridge.mcpServerName).toBe('open-knowledge-beta');
+  });
+
+  it('exposes the CLI command main hands a Beta window', async () => {
+    vi.stubEnv('OK_CHANNEL', 'beta');
+    process.argv = withCliCommandNameArg(originalArgv);
+
+    const bridge = await loadBridge();
+
+    expect(bridge.cliCommandName).toBe('ok-beta');
+  });
+
+  it('exposes no CLI command when main sent none', async () => {
+    process.argv = originalArgv.filter((arg) => !arg.startsWith('--ok-cli-command-name='));
+
+    const bridge = await loadBridge();
+
+    expect(bridge.cliCommandName).toBeNull();
+  });
+});
+
+describe('preload state query marshalling', () => {
+  it('state.query forwards to ok:state:query and passes the snapshot through', async () => {
+    const about = {
+      productName: 'OpenKnowledge',
+      version: '0.82.3',
+      releasesUrl: 'https://example.test/releases',
+      releaseNotesUrl: 'https://example.test/releases/tag/v0.82.3',
+      updateChecks: 'available',
+    };
+    const bridge = await loadBridge();
+    const snapshot = { channel: 'latest', schemaIncompatibility: null, about };
+    invokeMock.mockResolvedValueOnce(snapshot as never);
+
+    const result = await bridge.state.query();
+
+    expect(invokeMock.mock.calls.map((c) => c[0])).toEqual(['ok:state:query']);
+    expect(result).toEqual(snapshot);
+  });
+});
+
+describe('preload editor view-menu state marshalling', () => {
+  it('forwards terminal placement through the existing view-state channel', async () => {
+    const bridge = await loadBridge();
+
+    bridge.editor.notifyViewMenuStateChanged({
+      terminalVisible: true,
+      terminalPlacement: 'right',
+    });
+
+    expect(dispatchedPayload('ok:editor:view-menu-state-changed')).toEqual({
+      terminalVisible: true,
+      terminalPlacement: 'right',
+    });
+  });
+});
+
+describe('preload bugReport.send marshalling', () => {
+  it('forwards the screenshot consent flag to main', async () => {
+    const bridge = await loadBridge();
+
+    await bridge.bugReport.send({
+      zipPath: '/tmp/report.zip',
+      metadata: { level: 'standard' },
+      includeScreenshot: true,
+    });
+
+    expect(dispatchedPayload('ok:bug-report:dispatch')).toMatchObject({
+      kind: 'send',
+      zipPath: '/tmp/report.zip',
+      includeScreenshot: true,
+    });
+  });
+
+  it('forwards a withheld consent flag rather than omitting it', async () => {
+    const bridge = await loadBridge();
+
+    await bridge.bugReport.send({
+      zipPath: '/tmp/report.zip',
+      metadata: { level: 'standard' },
+      includeScreenshot: false,
+    });
+
+    expect(dispatchedPayload('ok:bug-report:dispatch').includeScreenshot).toBe(false);
+  });
+
+  it('leaves the consent flag absent when the caller omits it', async () => {
+    const bridge = await loadBridge();
+
+    await bridge.bugReport.send({
+      zipPath: '/tmp/report.zip',
+      metadata: { level: 'standard' },
+    });
+
+    const payload = dispatchedPayload('ok:bug-report:dispatch');
+    expect(payload.includeScreenshot).toBeUndefined();
+  });
+
+  it('dispatches the caller request verbatim under the send discriminant', async () => {
+    const bridge = await loadBridge();
+    const request = {
+      zipPath: '/tmp/report.zip',
+      metadata: { level: 'full', systemWide: false, email: 'me@example.com' },
+      includeScreenshot: true,
+      includeAttachments: true,
+    };
+
+    await bridge.bugReport.send(request);
+
+    expect(dispatchedPayload('ok:bug-report:dispatch')).toEqual({ ...request, kind: 'send' });
+  });
+});
+
+describe('preload bugReport.create marshalling', () => {
+  it('dispatches the caller request verbatim under the create discriminant', async () => {
+    const bridge = await loadBridge();
+    const request = {
+      level: 'full',
+      note: 'a note',
+      includeCrashDump: true,
+      includeScreenshot: true,
+      attachments: [{ contentType: 'image/png', bytes: new Uint8Array([1, 2, 3]) }],
+      crashEventId: 'boot:dump:1751871600000',
+    };
+
+    await bridge.bugReport.create(request);
+
+    expect(dispatchedPayload('ok:bug-report:dispatch')).toEqual({
+      ...request,
+      kind: 'create',
+    });
+  });
+
+  it('carries the attachment bytes as a typed array, not a plain object', async () => {
+    const bridge = await loadBridge();
+    const bytes = new Uint8Array([9, 8, 7]);
+
+    await bridge.bugReport.create({
+      level: 'standard',
+      attachments: [{ contentType: 'image/webp', bytes }],
+    });
+
+    const payload = dispatchedPayload('ok:bug-report:dispatch') as {
+      attachments: { bytes: unknown }[];
+    };
+    expect(payload.attachments[0]?.bytes).toBeInstanceOf(Uint8Array);
+  });
+});
+
+describe('preload assetUpload marshalling', () => {
+  it('folds the image into the bug-report channel under the upload-image discriminant', async () => {
+    const bridge = await loadBridge();
+    const bytes = new Uint8Array([1, 2, 3, 4]);
+
+    await bridge.assetUpload.uploadImage({
+      contentType: 'image/jpeg',
+      bytes,
+      filename: 'feedback-1.jpg',
+    });
+
+    expect(dispatchedPayload('ok:bug-report:dispatch')).toEqual({
+      kind: 'upload-image',
+      contentType: 'image/jpeg',
+      bytes,
+      filename: 'feedback-1.jpg',
+    });
+  });
+});
+
+describe('preload terminal dock-state marshalling', () => {
+  it('forwards terminal tab state and returns the main-process persistence result', async () => {
+    const bridge = await loadBridge();
+
+    const result = await bridge.terminal.setDockState({
+      surface: 'terminal',
+      order: ['pty-a', 'pty-b'],
+      activeKey: 'pty-b',
+      terminalSnapshot: { tabs: [], activeOrdinal: null },
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(dispatchedPayload('ok:terminal:set-dock-state')).toEqual({
+      surface: 'terminal',
+      order: ['pty-a', 'pty-b'],
+      activeKey: 'pty-b',
+      terminalSnapshot: { tabs: [], activeOrdinal: null },
+    });
+  });
+
+  it('propagates an unrecognized invoke failure instead of reporting false success', async () => {
+    invokeMock.mockRejectedValueOnce(new Error('serialization bug'));
+    const bridge = await loadBridge();
+
+    await expect(
+      bridge.terminal.setDockState({
+        surface: 'terminal',
+        order: [],
+        activeKey: null,
+        terminalSnapshot: { tabs: [], activeOrdinal: null },
+      }),
+    ).rejects.toThrow('serialization bug');
+  });
+
+  it('classifies a destroyed IPC endpoint as an unavailable write', async () => {
+    invokeMock.mockRejectedValueOnce(new Error('Object has been destroyed'));
+    const bridge = await loadBridge();
+
+    await expect(
+      bridge.terminal.setDockState({
+        surface: 'terminal',
+        order: [],
+        activeKey: null,
+        terminalSnapshot: { tabs: [], activeOrdinal: null },
+      }),
+    ).resolves.toEqual({ ok: false, reason: 'ipc-unavailable' });
+  });
+});
+
+describe('preload userConfig subscription', () => {
+  function userConfigRequests(): unknown[] {
+    return invokeMock.mock.calls
+      .filter((c) => c[0] === 'ok:user-config:dispatch')
+      .map((c) => c[1] as unknown);
+  }
+
+  it('subscribes on listen and unsubscribes when the listener is disposed', async () => {
+    const bridge = await loadBridge();
+
+    const dispose = bridge.userConfig.onChanged(() => {});
+    expect(userConfigRequests()).toEqual([{ kind: 'subscribe' }]);
+
+    dispose();
+    expect(userConfigRequests()).toEqual([{ kind: 'subscribe' }, { kind: 'unsubscribe' }]);
+  });
+
+  it('does not hand the subscribe reply to the listener as a change', async () => {
+    invokeMock.mockResolvedValueOnce({ text: 'appearance:\n  theme: dark\n' } as never);
+    const bridge = await loadBridge();
+    const cb = vi.fn();
+
+    bridge.userConfig.onChanged(cb);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(cb).not.toHaveBeenCalled();
+  });
+});
+
+describe('preload update dispatch marshalling', () => {
+  const echoKind = (_channel: unknown, request: unknown) =>
+    Promise.resolve({ kind: (request as { kind: string }).kind, ok: true, mode: 'off' });
+
+  it('sends each update method as its own dispatch kind', async () => {
+    const bridge = await loadBridge();
+    for (let i = 0; i < 5; i++) invokeMock.mockImplementationOnce(echoKind as never);
+
+    await bridge.update.relaunchNow();
+    await bridge.update.checkNow();
+    await bridge.update.dismissWhatsNew('0.3.1');
+    await bridge.update.dismissDownloaded('0.3.2');
+    await bridge.update.setMode('off');
+
+    expect(invokeMock.mock.calls).toEqual([
+      ['ok:update:dispatch', { kind: 'relaunch-now' }],
+      ['ok:update:dispatch', { kind: 'check-now' }],
+      ['ok:update:dispatch', { kind: 'whats-new-dismiss', version: '0.3.1' }],
+      ['ok:update:dispatch', { kind: 'downloaded-dismiss', version: '0.3.2' }],
+      ['ok:update:dispatch', { kind: 'set-mode', mode: 'off' }],
+    ]);
+  });
+
+  it('rejects a reply whose kind does not match the request', async () => {
+    const bridge = await loadBridge();
+    invokeMock.mockResolvedValueOnce({ kind: 'check-now' } as never);
+
+    await expect(bridge.update.relaunchNow()).rejects.toThrow(
+      'ok:update:dispatch: expected relaunch-now, got check-now',
+    );
+  });
+
+  it('turns a refused set-mode into a rejection that names the reason', async () => {
+    const bridge = await loadBridge();
+    invokeMock.mockResolvedValueOnce({
+      kind: 'set-mode',
+      ok: false,
+      reason: 'persist-failed',
+    } as never);
+
+    await expect(bridge.update.setMode('off')).rejects.toThrow(
+      'ok:update:dispatch: set-mode refused (persist-failed)',
+    );
+  });
+});

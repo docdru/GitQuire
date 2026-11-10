@@ -1,0 +1,87 @@
+---
+title: "Tabs"
+description: "Horizontal tab strip + active panel below. Each `<Tab>` child is one panel; clickable pills at the top switch the active one. Active selection is ephemeral (resets on reload)"
+keywords: "tabs, tabbed, panels, tabgroup, switcher"
+---
+
+## Example
+
+<ComponentPreview>
+  <TabsPreview>
+    <TabPreview label="Install">
+      Run `npm install @inkeep/open-knowledge` to add the CLI to your project.
+    </TabPreview>
+    <TabPreview label="Configure">
+      Point `.ok/config.yml` at your content directory. Frontmatter, ignore
+      patterns, and folder defaults all live in this one file.
+    </TabPreview>
+    <TabPreview label="Serve">
+      `ok start` boots the collaboration server and opens the editor.
+    </TabPreview>
+  </TabsPreview>
+</ComponentPreview>
+
+```mdx
+<Tabs>
+  <Tab label="One">Body of the first tab panel.</Tab>
+  <Tab label="Two">Body of the second tab panel.</Tab>
+</Tabs>
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "id": {
+    description: "HTML id attribute for deep-linking (e.g. \\`#install-tabs\\`)",
+    type: "string",
+    required: false,
+  },
+}}
+/>
+
+## Also: `<Tab>`
+
+A single tab panel inside a `<Tabs>` container — carries the strip label and the block-content body.
+
+<ComponentPreview>
+  <TabsPreview>
+    <TabPreview label="A single Tab">
+      Each <code>&lt;Tab&gt;</code> is one panel of a <code>&lt;Tabs&gt;</code>
+      group. The <code>label</code> becomes the pill at the top; the body
+      renders when the pill is active.
+    </TabPreview>
+    <TabPreview label="Second panel">
+      Switch between panels without losing scroll — the parent tracks which
+      one is active client-side.
+    </TabPreview>
+  </TabsPreview>
+</ComponentPreview>
+
+```mdx
+<Tab label="Tab">
+  Panel content — must be nested inside a `<Tabs>` parent.
+</Tab>
+```
+
+<TypeTable
+  type={{
+  "label": {
+    description: "Tab strip label — shown in the clickable pill at the top",
+    type: "string",
+    required: true,
+    default: "Tab",
+  },
+  "id": {
+    description: "HTML id attribute for deep-linking (e.g. \\`#tab-npm\\`)",
+    type: "string",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `tabs`, `tabbed`, `panels`, `tabgroup`, `switcher`
+
+## Author it
+
+Type `/tabs` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

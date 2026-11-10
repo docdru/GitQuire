@@ -1,0 +1,517 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join, resolve } from 'node:path';
+import {
+  currentCliCommandName,
+  DESKTOP_PRODUCTS,
+  desktopWindowsExecutableName,
+  desktopWindowsInstallDirNames,
+} from '@inkeep/open-knowledge-core';
+import { findEnclosingProjectRoot, withHiddenWindowsConsole } from '@inkeep/open-knowledge-server';
+import checkbox from '@inquirer/checkbox';
+import { Command } from 'commander';
+import { PACKAGE_VERSION } from '../constants.ts';
+import { desktopUserDataDir, readDesktopRecentProjects } from '../integrations/desktop-state.ts';
+import { readPathInstallMarker } from '../integrations/path-shim.ts';
+import { accent, dim, error as errorColor, info, success, warning } from '../ui/colors.ts';
+import { confirmDestructive } from '../ui/confirm.ts';
+import { discoverLockDirs } from '../utils/process-scan.ts';
+import { desktopProductsVisibleTo, runningDesktopProduct } from './desktop-dispatch.ts';
+import {
+  buildUninstallPlan,
+  describeAttachedClients,
+  type RunRemovalDeps,
+  runRemoval,
+  sharedOkEntriesList,
+} from './removal-plan.ts';
+import {
+  formatRemovalOutcome,
+  formatRemovalPlan,
+  removalOutcomeToJson,
+  removalPlanToJson,
+} from './removal-render.ts';
+import { promptUninstallFeedback, type UninstallFeedbackPromptDeps } from './uninstall-feedback.ts';
+
+export interface InstallMethod {
+  method: 'app' | 'npm-global' | 'npx';
+  label: string;
+  instruction: string;
+}
+
+export function detectInstallMethods(
+  home: string,
+  argv1: string | undefined,
+  runNpmLs: (args: string[]) => string | null = defaultNpmLs,
+  exists: (path: string) => boolean = existsSync,
+  opts: {
+    platform?: NodeJS.Platform;
+    env?: NodeJS.ProcessEnv;
+    execPath?: string;
+    queryPackageDatabase?: (command: string, args: string[]) => string | null;
+  } = {},
+): InstallMethod[] {
+  const methods: InstallMethod[] = [];
+  const platform = opts.platform ?? process.platform;
+  const env = opts.env ?? process.env;
+  const desktopProducts = desktopProductsVisibleTo(
+    runningDesktopProduct(env, opts.execPath ?? process.execPath),
+  ).map((name) => DESKTOP_PRODUCTS[name]);
+
+  if (platform === 'darwin') {
+    for (const product of desktopProducts) {
+      for (const applicationsDir of ['/Applications', join(home, 'Applications')]) {
+        const app = join(applicationsDir, `${product.productName}.app`);
+        if (exists(app)) {
+          methods.push({
+            method: 'app',
+            label: `${product.productName} (${app})`,
+            instruction: `Move ${app} to the Trash (or: rm -rf "${app}")`,
+          });
+        }
+      }
+    }
+  } else if (platform === 'win32') {
+    const localAppData = env.LOCALAPPDATA;
+    if (localAppData) {
+      for (const product of desktopProducts) {
+        for (const dirName of desktopWindowsInstallDirNames(product)) {
+          const exe = join(
+            localAppData,
+            'Programs',
+            dirName,
+            desktopWindowsExecutableName(product),
+          );
+          if (exists(exe)) {
+            methods.push({
+              method: 'app',
+              label: `${product.productName} (${exe})`,
+              instruction: `Uninstall from Windows Settings → Apps → Installed apps → ${product.productName}`,
+            });
+            break;
+          }
+        }
+      }
+    }
+  } else if (platform === 'linux') {
+    const query = opts.queryPackageDatabase ?? defaultRunCommand;
+    for (const product of desktopProducts) {
+      const installDir = `/opt/${product.productName}`;
+      const executable = join(installDir, product.linuxExecutableName);
+      if (exists(executable)) {
+        const { deb: debPackageName, rpm: rpmPackageName } = product.linuxPackageNames;
+        const owner = linuxPackageOwner(executable, query);
+        methods.push({
+          method: 'app',
+          label: `${product.productName} (${installDir})`,
+          instruction: `Remove with your package manager: ${
+            owner === null
+              ? `sudo apt remove ${debPackageName} (Debian/Ubuntu), ${rpmRemoveCommands(rpmPackageName)}`
+              : owner.format === 'deb'
+                ? `sudo apt remove ${owner.name}`
+                : rpmRemoveCommands(owner.name)
+          }`,
+        });
+      }
+    }
+  }
+
+  const npmOut = runNpmLs(['ls', '-g', '--depth=0', '@inkeep/open-knowledge']);
+  if (npmOut?.includes('@inkeep/open-knowledge@')) {
+    methods.push({
+      method: 'npm-global',
+      label: 'npm global install',
+      instruction: 'npm uninstall -g @inkeep/open-knowledge',
+    });
+  }
+
+  if (argv1 && /[/\\]_npx[/\\]/.test(argv1)) {
+    methods.push({
+      method: 'npx',
+      label: 'npx (ephemeral)',
+      instruction:
+        'Nothing to uninstall — npx runs from a temporary cache. (Optional: npm cache clean --force)',
+    });
+  }
+
+  return methods;
+}
+
+function defaultRunCommand(command: string, args: string[]): string | null {
+  try {
+    return execFileSync(
+      command,
+      args,
+      withHiddenWindowsConsole({
+        encoding: 'utf-8',
+        timeout: 5000,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }),
+    );
+  } catch {
+    return null;
+  }
+}
+
+function rpmRemoveCommands(name: string): string {
+  return `sudo dnf remove ${name} (Fedora/RHEL) or sudo zypper remove ${name} (openSUSE)`;
+}
+
+function linuxPackageOwner(
+  path: string,
+  query: (command: string, args: string[]) => string | null,
+): { format: 'deb' | 'rpm'; name: string } | null {
+  const debName = query('dpkg-query', ['-S', path])
+    ?.split('\n')[0]
+    ?.split(':')[0]
+    ?.split(',')[0]
+    ?.trim();
+  if (debName && /^[a-z0-9][a-z0-9.+-]*$/.test(debName)) return { format: 'deb', name: debName };
+  const rpmName = query('rpm', ['-qf', '--queryformat', '%{NAME}\n', path])?.split('\n')[0]?.trim();
+  if (rpmName && /^[A-Za-z0-9._+-]+$/.test(rpmName)) return { format: 'rpm', name: rpmName };
+  return null;
+}
+
+function defaultNpmLs(args: string[]): string | null {
+  return defaultRunCommand('npm', args);
+}
+
+const CALLOUT_RULE = '━'.repeat(64);
+
+function formatInstallInstructions(
+  methods: InstallMethod[],
+  platform: NodeJS.Platform = process.platform,
+): string {
+  const lines: string[] = [
+    warning(CALLOUT_RULE),
+    accent('  One more step — remove the OpenKnowledge app itself'),
+    dim("  (OpenKnowledge can't delete its own running binary — do this by hand.)"),
+    '',
+  ];
+  if (methods.length === 0) {
+    const appFallback =
+      platform === 'win32'
+        ? 'uninstall from Settings → Apps → Installed apps → OpenKnowledge'
+        : platform === 'linux'
+          ? 'remove the openknowledge package with your package manager (apt / dnf)'
+          : 'move /Applications/OpenKnowledge.app to the Trash';
+    lines.push(dim('  Install method not detected. If you installed it, remove it via:'));
+    lines.push(`    ${info('OK Desktop')} — ${appFallback}`);
+    lines.push(`    ${info('npm global')} — npm uninstall -g @inkeep/open-knowledge`);
+    lines.push(`    ${info('npx')} — nothing to remove (runs from a temporary cache)`);
+  } else {
+    for (const m of methods) {
+      lines.push(`  ${info(m.label)}`);
+      lines.push(`    ${m.instruction}`);
+    }
+  }
+  lines.push(warning(CALLOUT_RULE));
+  return lines.join('\n');
+}
+
+interface ProjectCandidate {
+  path: string;
+  running: boolean;
+  current: boolean;
+}
+
+function projectRootFromLockDir(lockDir: string): string {
+  return resolve(lockDir, '..', '..');
+}
+
+function isDeinitableProject(dir: string): boolean {
+  return existsSync(join(dir, '.ok'));
+}
+
+export interface ResolveRecentProjectsInput {
+  home: string;
+  platform: NodeJS.Platform;
+  env?: NodeJS.ProcessEnv;
+  cwd: string;
+  lockDirs: string[];
+  yes?: boolean;
+  allProjects?: boolean;
+  dryRun?: boolean;
+  isTTY?: boolean;
+  promptFn?: (candidates: ProjectCandidate[]) => Promise<string[]>;
+  readRecents?: (userDataDir: string) => Array<{ path: string }>;
+  findRoot?: typeof findEnclosingProjectRoot;
+}
+
+export async function resolveRecentDeinitProjects(
+  input: ResolveRecentProjectsInput,
+): Promise<string[]> {
+  const findRoot = input.findRoot ?? findEnclosingProjectRoot;
+  const readRecents = input.readRecents ?? readDesktopRecentProjects;
+
+  const currentRoot = findRoot(input.cwd)?.rootPath ?? null;
+  const userDataDir = desktopUserDataDir({
+    home: input.home,
+    platformName: input.platform,
+    env: input.env,
+  });
+
+  const recentPaths = new Set<string>();
+  for (const p of readRecents(userDataDir)) recentPaths.add(resolve(p.path));
+  const runningRoots = new Set(input.lockDirs.map(projectRootFromLockDir));
+  for (const r of runningRoots) recentPaths.add(r);
+  if (currentRoot) recentPaths.delete(currentRoot);
+
+  const candidates: ProjectCandidate[] = [];
+  if (currentRoot && isDeinitableProject(currentRoot)) {
+    candidates.push({ path: currentRoot, running: runningRoots.has(currentRoot), current: true });
+  }
+  for (const p of recentPaths) {
+    if (!isDeinitableProject(p)) continue;
+    candidates.push({ path: p, running: runningRoots.has(p), current: false });
+  }
+  if (candidates.length === 0) return [];
+
+  if (input.allProjects) return candidates.map((c) => c.path);
+  if (input.yes) return [];
+  if (input.dryRun) return [];
+  const tty = input.isTTY ?? process.stdout.isTTY;
+  if (!tty) return [];
+  const prompt = input.promptFn ?? defaultProjectCheckbox;
+  return prompt(candidates);
+}
+
+async function defaultProjectCheckbox(candidates: ProjectCandidate[]): Promise<string[]> {
+  return checkbox({
+    message:
+      'Also remove OpenKnowledge from these projects? (space to toggle; none selected by default)\n' +
+      "  Removes each project's .ok/ config, editor MCP entries, and OK edit-history\n" +
+      `  (.git/ok/). Your markdown content is kept — \`${currentCliCommandName()} start\` re-adds OK later.\n`,
+    required: false,
+    theme: { icon: { checked: '[x]', unchecked: '[ ]' } },
+    choices: candidates.map((c) => ({
+      name: `${c.path}${c.current ? '  (current)' : ''}${c.running ? '  (running — will be stopped)' : ''}`,
+      value: c.path,
+      checked: false,
+    })),
+  });
+}
+
+interface UninstallDeps {
+  discoverLockDirs?: () => Promise<string[]>;
+  resolveRecentProjects?: typeof resolveRecentDeinitProjects;
+  detectInstallMethods?: typeof detectInstallMethods;
+  runRemovalDeps?: RunRemovalDeps;
+  feedback?: Pick<UninstallFeedbackPromptDeps, 'collect' | 'submit'>;
+  probeClients?: (lockDir: string) => Promise<number | null>;
+}
+
+export interface UninstallOptions {
+  home?: string;
+  platform?: NodeJS.Platform;
+  env?: NodeJS.ProcessEnv;
+  cwd?: string;
+  host?: string;
+  yes?: boolean;
+  dryRun?: boolean;
+  json?: boolean;
+  purgeContent?: boolean;
+  allProjects?: boolean;
+  isTTY?: boolean;
+  isStdinTTY?: boolean;
+  argv1?: string;
+  execPath?: string;
+  confirmStream?: NodeJS.ReadableStream;
+  deps?: UninstallDeps;
+}
+
+export interface UninstallResult {
+  status: 'dry-run' | 'cancelled' | 'done' | 'failed';
+  message: string;
+  exitCode: number;
+  runFeedbackAfterReport?: () => Promise<void>;
+}
+
+function urlSchemeNote(env: NodeJS.ProcessEnv, execPath: string): string {
+  const { protocolScheme } = DESKTOP_PRODUCTS[runningDesktopProduct(env, execPath)];
+  return dim(
+    `The ${protocolScheme}:// URL scheme deregisters itself once the app is removed — no action needed.`,
+  );
+}
+
+export async function runUninstall(opts: UninstallOptions = {}): Promise<UninstallResult> {
+  const home = opts.home ?? homedir();
+  const platform = opts.platform ?? process.platform;
+  const env = opts.env ?? process.env;
+  const execPath = opts.execPath ?? process.execPath;
+  const cwd = resolve(opts.cwd ?? process.cwd());
+  const host = opts.host ?? 'github.com';
+  const purgeContent = opts.purgeContent ?? false;
+
+  const discoverLocks = opts.deps?.discoverLockDirs ?? discoverLockDirs;
+  const resolveRecents = opts.deps?.resolveRecentProjects ?? resolveRecentDeinitProjects;
+  const detectInstall = opts.deps?.detectInstallMethods ?? detectInstallMethods;
+
+  const lockDirs = await discoverLocks();
+  const marker = readPathInstallMarker(home, undefined, platform, env);
+  const recentDeinitProjectRoots = await resolveRecents({
+    home,
+    platform,
+    env,
+    cwd,
+    lockDirs,
+    yes: opts.yes,
+    allProjects: opts.allProjects,
+    dryRun: opts.dryRun,
+    isTTY: opts.isTTY,
+  });
+
+  const plan = buildUninstallPlan({
+    home,
+    platform,
+    env,
+    host,
+    lockDirs,
+    marker,
+    recentDeinitProjectRoots,
+    purgeContent,
+  });
+
+  const attached = await describeAttachedClients(plan, opts.deps?.probeClients);
+  const attachedBlock =
+    attached.length > 0 ? `\n\n${attached.map((l) => warning(l)).join('\n')}` : '';
+
+  const fallbackNote = dim(
+    'Individual projects are only removed when you select them (or pass --all-projects). ' +
+      `To remove OpenKnowledge from one project, run \`${currentCliCommandName()} deinit\` inside it.`,
+  );
+  const binaryBlock = (): string =>
+    formatInstallInstructions(
+      detectInstall(home, opts.argv1 ?? process.argv[1], undefined, undefined, {
+        platform,
+        env,
+        execPath,
+      }),
+      platform,
+    );
+
+  if (opts.dryRun) {
+    const body = opts.json
+      ? JSON.stringify(removalPlanToJson(plan, attached), null, 2)
+      : [
+          accent('Would remove (dry-run — no changes made):'),
+          '',
+          `${formatRemovalPlan(plan)}${attachedBlock}`,
+          '',
+          fallbackNote,
+          '',
+          binaryBlock(),
+        ].join('\n');
+    return { status: 'dry-run', message: body, exitCode: 0 };
+  }
+
+  if (opts.json && !opts.yes) {
+    return {
+      status: 'failed',
+      message: `${errorColor('Error:')} --json requires --yes (or --dry-run) so there is no interactive prompt.`,
+      exitCode: 1,
+    };
+  }
+
+  if (!opts.yes) {
+    const tty = opts.isTTY ?? process.stdout.isTTY;
+    if (!tty) {
+      return {
+        status: 'cancelled',
+        message: `${errorColor('Aborted:')} refusing to uninstall non-interactively without --yes.`,
+        exitCode: 1,
+      };
+    }
+    process.stderr.write(
+      `${accent('This will remove OpenKnowledge from your machine:')}\n\n${formatRemovalPlan(plan)}${attachedBlock}\n\n${warning('This cannot be undone.')}\n\n`,
+    );
+    const confirmed = await confirmDestructive(
+      `${accent('Remove all of the above?')} ${dim('[y/N] ')}`,
+      opts.confirmStream,
+    );
+    if (!confirmed) {
+      return { status: 'cancelled', message: dim('Cancelled. Nothing was removed.'), exitCode: 0 };
+    }
+  }
+
+  const outcome = await runRemoval(plan, {
+    env: opts.env ?? (opts.home === undefined ? process.env : {}),
+    ...opts.deps?.runRemovalDeps,
+  });
+
+  const runFeedbackAfterReport =
+    outcome.failed.length === 0
+      ? async (): Promise<void> => {
+          await promptUninstallFeedback({
+            stdinIsTTY: opts.isStdinTTY,
+            stdoutIsTTY: opts.isTTY,
+            yes: opts.yes,
+            json: opts.json,
+            appVersion: PACKAGE_VERSION,
+            platform,
+            ...opts.deps?.feedback,
+          });
+        }
+      : undefined;
+
+  const parts = [
+    opts.json
+      ? JSON.stringify(removalOutcomeToJson('uninstall', outcome, attached), null, 2)
+      : formatRemovalOutcome(outcome),
+  ];
+  if (!opts.json) {
+    parts.push('', fallbackNote, urlSchemeNote(env, execPath));
+    if (outcome.failed.length === 0) {
+      parts.push('', success("OpenKnowledge's files have been removed from this machine."));
+    }
+    parts.push('', binaryBlock());
+  }
+
+  return {
+    status: outcome.failed.length > 0 ? 'failed' : 'done',
+    message: parts.join('\n'),
+    exitCode: outcome.failed.length > 0 ? 1 : 0,
+    runFeedbackAfterReport,
+  };
+}
+
+export function uninstallCommand(): Command {
+  return new Command('uninstall')
+    .description(
+      `Remove OpenKnowledge from your machine — credentials, PATH entries, editor MCP configs, skill bundles, app data, and ~/${DESKTOP_PRODUCTS.stable.userHomeDirName} (~/${DESKTOP_PRODUCTS.beta.userHomeDirName} on Beta). Keeps your markdown content and your authored skills (~/.ok/skills) unless --purge-content, and always keeps ${sharedOkEntriesList(true)}, shared by every channel. Detects the app install and prints how to remove it; never self-deletes.`,
+    )
+    .option(
+      '-y, --yes',
+      'Skip the confirmation prompt (removes the global footprint only; add --all-projects to also deinit projects)',
+    )
+    .option('--dry-run', 'Print the removal plan and exit without changing anything')
+    .option('--json', 'Emit a machine-readable plan/outcome (requires --yes or --dry-run)')
+    .option(
+      '--purge-content',
+      `Also remove user-authored content (~/.ok/skills, shared by every channel); still keeps ${sharedOkEntriesList(true)}`,
+    )
+    .option(
+      '--all-projects',
+      'Also deinit every recent/running project (by default no project is removed — you pick them interactively)',
+    )
+    .action(
+      async (options: {
+        yes?: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+        purgeContent?: boolean;
+        allProjects?: boolean;
+      }) => {
+        const result = await runUninstall({
+          yes: options.yes,
+          dryRun: options.dryRun,
+          json: options.json,
+          purgeContent: options.purgeContent,
+          allProjects: options.allProjects,
+        });
+        process.stdout.write(`${result.message}\n`);
+        await result.runFeedbackAfterReport?.();
+        if (result.exitCode !== 0) process.exitCode = result.exitCode;
+      },
+    );
+}

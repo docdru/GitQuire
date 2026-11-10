@@ -1,0 +1,14 @@
+{
+  "title": "Reference",
+  "icon": "LuBookText",
+  "pages": [
+    "core-concepts",
+    "agentic-search",
+    "cli",
+    "configuration",
+    "mcp",
+    "components",
+    "what-open-knowledge-writes",
+    "[LuHistory][Changelog](/docs/changelog)"
+  ]
+}

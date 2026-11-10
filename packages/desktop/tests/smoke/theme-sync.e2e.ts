@@ -1,0 +1,330 @@
+import { execSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { _electron as electron } from '@playwright/test';
+import { configureDesktopGitRepositories } from '../support/git-fixture.test-helper.ts';
+import { desktopLaunchOptions, resolveDesktopTarget } from './_helpers/launch-desktop';
+import { homeEnv, userDataDirFor } from './_helpers/platform-gate';
+import { expect, test } from './_helpers/smoke-test';
+import {
+  observeThemeSourcePushes,
+  waitForEveryWindowToPushItsThemeSource,
+} from './_helpers/theme-source-pushes';
+
+const TARGET = resolveDesktopTarget();
+
+const SMOKE_ENABLED = process.env.OK_DESKTOP_E2E_SMOKE === '1';
+const DARWIN = process.platform === 'darwin';
+
+function createTestDirs(prefix: string): { tmpHome: string; projectDir: string } {
+  return {
+    tmpHome: realpathSync(mkdtempSync(join(tmpdir(), `${prefix}-home-`))),
+    projectDir: realpathSync(mkdtempSync(join(tmpdir(), `${prefix}-project-`))),
+  };
+}
+
+test.describe('chrome-modernization theme-sync smoke', () => {
+  test.skip(!SMOKE_ENABLED, 'Set OK_DESKTOP_E2E_SMOKE=1 to run Electron smoke tests.');
+  test.skip(!DARWIN, 'Driver uses macOS open(1) and chrome stack is darwin-only in v0.');
+  test.skip(!TARGET.exists, TARGET.missingReason);
+
+  test('cold-launch chrome correct + setThemeSource roundtrips through main', async ({
+    captureStderrFor,
+  }) => {
+    const docName = `theme-sync-${randomUUID()}`;
+    const { tmpHome, projectDir } = createTestDirs('ok-theme-sync');
+    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    writeFileSync(
+      join(projectDir, '.ok', 'config.yml'),
+      "content:\n  dir: '.'\n  include: ['**/*.md']\n  exclude: []\n",
+    );
+    writeFileSync(
+      join(projectDir, `${docName}.md`),
+      '# Theme Sync Smoke\n\nFixture for cold-launch chrome verification.\n',
+    );
+
+    const app = await electron.launch(
+      desktopLaunchOptions({
+        target: TARGET,
+        args: [`--user-data-dir=${userDataDirFor(tmpHome)}`],
+        env: homeEnv(tmpHome),
+        timeout: 30_000,
+      }),
+    );
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: [tmpHome, projectDir] });
+
+    const firstWindow = await app.firstWindow({ timeout: 15_000 });
+    expect(firstWindow).toBeDefined();
+
+    const deepLink = `openknowledge://open?project=${encodeURIComponent(projectDir)}&doc=${encodeURIComponent(docName)}`;
+    execSync(`open -g "${deepLink}"`, { stdio: 'pipe' });
+
+    let editorPage: import('@playwright/test').Page | undefined;
+    const expectedHashSuffix = `#/${docName}`;
+    await expect(async () => {
+      for (const page of app.windows()) {
+        const hash = await page.evaluate(() => window.location.hash).catch(() => '');
+        if (hash.endsWith(expectedHashSuffix)) {
+          editorPage = page;
+          return;
+        }
+      }
+      throw new Error(`no window matches ${expectedHashSuffix} yet`);
+    }).toPass({ timeout: 15_000 });
+    if (!editorPage) throw new Error('unreachable');
+    await configureDesktopGitRepositories(editorPage, projectDir);
+    const resolvedEditorPage = editorPage;
+
+    const bridgeShape = await editorPage.evaluate(() => ({
+      hasBridge: typeof window.okDesktop !== 'undefined',
+      hasSetThemeSource: typeof window.okDesktop?.setThemeSource === 'function',
+      hasSignalThemeApplied: typeof window.okDesktop?.signalThemeApplied === 'function',
+      mode: window.okDesktop?.config.mode,
+    }));
+    expect(bridgeShape.hasBridge).toBe(true);
+    expect(bridgeShape.hasSetThemeSource).toBe(true);
+    expect(bridgeShape.hasSignalThemeApplied).toBe(true);
+    expect(bridgeShape.mode).toBe('editor');
+
+    const electronModeOnHtml = await editorPage.evaluate(() =>
+      document.documentElement.classList.contains('electron-mode'),
+    );
+    expect(electronModeOnHtml).toBe(true);
+
+    const bootSource = await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource);
+    expect(bootSource).toBe('system');
+
+    for (const target of ['dark', 'light', 'system'] as const) {
+      await expect(async () => {
+        await resolvedEditorPage.evaluate(async (t) => {
+          await window.okDesktop?.setThemeSource?.(t);
+        }, target);
+        expect(await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource)).toBe(target);
+      }).toPass({ timeout: 5_000 });
+    }
+  });
+
+  test('rapid theme changes settle on final value; IPC rejection still releases the show-gate', async ({
+    captureStderrFor,
+  }) => {
+    const docName = `theme-sync-rapid-${randomUUID()}`;
+    const { tmpHome, projectDir } = createTestDirs('ok-theme-sync-rapid');
+    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    writeFileSync(
+      join(projectDir, '.ok', 'config.yml'),
+      "content:\n  dir: '.'\n  include: ['**/*.md']\n  exclude: []\n",
+    );
+    writeFileSync(
+      join(projectDir, `${docName}.md`),
+      '# Theme Sync Rapid\n\nFixture for rapid theme change + IPC rejection.\n',
+    );
+
+    const app = await electron.launch(
+      desktopLaunchOptions({
+        target: TARGET,
+        args: [`--user-data-dir=${userDataDirFor(tmpHome)}`],
+        env: homeEnv(tmpHome),
+        timeout: 30_000,
+      }),
+    );
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: [tmpHome, projectDir] });
+
+    await app.firstWindow({ timeout: 15_000 });
+    const deepLink = `openknowledge://open?project=${encodeURIComponent(projectDir)}&doc=${encodeURIComponent(docName)}`;
+    execSync(`open -g "${deepLink}"`, { stdio: 'pipe' });
+
+    let editorPage: import('@playwright/test').Page | undefined;
+    const expectedHashSuffix = `#/${docName}`;
+    await expect(async () => {
+      for (const page of app.windows()) {
+        const hash = await page.evaluate(() => window.location.hash).catch(() => '');
+        if (hash.endsWith(expectedHashSuffix)) {
+          editorPage = page;
+          return;
+        }
+      }
+      throw new Error(`no window matches ${expectedHashSuffix} yet`);
+    }).toPass({ timeout: 15_000 });
+    if (!editorPage) throw new Error('unreachable');
+    await configureDesktopGitRepositories(editorPage, projectDir);
+
+    await editorPage.evaluate(async () => {
+      const bridge = window.okDesktop;
+      if (!bridge?.setThemeSource) return;
+      const p1 = bridge.setThemeSource('dark');
+      const p2 = bridge.setThemeSource('light');
+      const p3 = bridge.setThemeSource('system');
+      await Promise.all([p1, p2, p3]);
+    });
+    await expect(async () => {
+      const after = await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource);
+      expect(after).toBe('system');
+    }).toPass({ timeout: 1_000 });
+
+    await app.evaluate(({ ipcMain }) => {
+      const g = globalThis as unknown as Record<string, unknown>;
+      const themeAppliedCalls: Array<{ opts: unknown; at: number }> = [];
+      g.__okThemeAppliedCalls = themeAppliedCalls;
+      ipcMain.removeHandler('ok:theme:applied');
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- E2E test scaffolding — installs mock IPC handler inside the Electron process under test
+      ipcMain.handle('ok:theme:applied', async (_event, opts) => {
+        themeAppliedCalls.push({ opts, at: Date.now() });
+        return undefined;
+      });
+
+      ipcMain.removeHandler('ok:theme:set-source');
+      let alreadyThrew = false;
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- E2E test scaffolding — installs mock IPC handler inside the Electron process under test
+      ipcMain.handle('ok:theme:set-source', async (_e, _args) => {
+        if (!alreadyThrew) {
+          alreadyThrew = true;
+          throw new Error('synthetic rejection — testing .finally() contract');
+        }
+        return { ok: true } as const;
+      });
+    });
+
+    const themeAppliedBefore = await app.evaluate(() => {
+      const g = globalThis as unknown as { __okThemeAppliedCalls?: unknown[] };
+      return g.__okThemeAppliedCalls?.length ?? 0;
+    });
+
+    const renderObserved = await editorPage.evaluate(async () => {
+      const bridge = window.okDesktop;
+      if (!bridge?.setThemeSource || !bridge.signalThemeApplied) {
+        return { drove: false, rejected: false };
+      }
+      let rejected = false;
+      await bridge
+        .setThemeSource('dark')
+        .catch(() => {
+          rejected = true;
+        })
+        .finally(() => {
+          const reducedTransparency = window.matchMedia(
+            '(prefers-reduced-transparency: reduce)',
+          ).matches;
+          bridge.signalThemeApplied({ reducedTransparency });
+        });
+      return { drove: true, rejected };
+    });
+    expect(renderObserved.drove).toBe(true);
+    expect(renderObserved.rejected).toBe(true);
+
+    await expect(async () => {
+      const themeAppliedAfter = await app.evaluate(() => {
+        const g = globalThis as unknown as { __okThemeAppliedCalls?: unknown[] };
+        return g.__okThemeAppliedCalls?.length ?? 0;
+      });
+      expect(themeAppliedAfter).toBeGreaterThan(themeAppliedBefore);
+    }).toPass({ timeout: 2_000 });
+
+    await editorPage.evaluate(async () => {
+      await window.okDesktop?.setThemeSource?.('light');
+    });
+  });
+
+  test('signalThemeApplied propagates reducedTransparency to vibrancy material', async ({
+    captureStderrFor,
+  }) => {
+    const docName = `theme-sync-rt-${randomUUID()}`;
+    const { tmpHome, projectDir } = createTestDirs('ok-theme-sync-rt');
+    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    writeFileSync(
+      join(projectDir, '.ok', 'config.yml'),
+      "content:\n  dir: '.'\n  include: ['**/*.md']\n  exclude: []\n",
+    );
+    writeFileSync(
+      join(projectDir, `${docName}.md`),
+      '# Theme Sync RT\n\nFixture for prefers-reduced-transparency propagation.\n',
+    );
+
+    const app = await electron.launch(
+      desktopLaunchOptions({
+        target: TARGET,
+        args: [`--user-data-dir=${userDataDirFor(tmpHome)}`],
+        env: homeEnv(tmpHome),
+        timeout: 30_000,
+      }),
+    );
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: [tmpHome, projectDir] });
+    const pushedBy = observeThemeSourcePushes(app);
+
+    await app.firstWindow({ timeout: 15_000 });
+    const deepLink = `openknowledge://open?project=${encodeURIComponent(projectDir)}&doc=${encodeURIComponent(docName)}`;
+    execSync(`open -g "${deepLink}"`, { stdio: 'pipe' });
+
+    let editorPage: import('@playwright/test').Page | undefined;
+    const expectedHashSuffix = `#/${docName}`;
+    await expect(async () => {
+      for (const page of app.windows()) {
+        const hash = await page.evaluate(() => window.location.hash).catch(() => '');
+        if (hash.endsWith(expectedHashSuffix)) {
+          editorPage = page;
+          return;
+        }
+      }
+      throw new Error(`no window matches ${expectedHashSuffix} yet`);
+    }).toPass({ timeout: 15_000 });
+    if (!editorPage) throw new Error('unreachable');
+    await configureDesktopGitRepositories(editorPage, projectDir);
+
+    await app.evaluate(({ BrowserWindow }) => {
+      const g = globalThis as unknown as Record<string, unknown>;
+      const calls: Array<{ winId: number; material: string | null; at: number }> = [];
+      g.__okSetVibrancyCalls = calls;
+      const windows = BrowserWindow.getAllWindows();
+      g.__okSetVibrancyWindowIds = windows.map((win) => win.id);
+      for (const win of windows) {
+        const original = win.setVibrancy.bind(win);
+        win.setVibrancy = (material: Parameters<typeof original>[0]) => {
+          calls.push({
+            winId: win.id,
+            material: material ?? null,
+            at: Date.now(),
+          });
+          return original(material);
+        };
+      }
+    });
+
+    await editorPage.evaluate(() => {
+      window.okDesktop?.signalThemeApplied?.({ reducedTransparency: false });
+      window.okDesktop?.signalThemeApplied?.({ reducedTransparency: true });
+      window.okDesktop?.signalThemeApplied?.({ reducedTransparency: false });
+    });
+
+    await expect(async () => {
+      const observation = await app.evaluate(({ BrowserWindow }) => {
+        const g = globalThis as unknown as {
+          __okSetVibrancyCalls?: Array<{ winId: number; material: string | null }>;
+          __okSetVibrancyWindowIds?: number[];
+        };
+        const liveWindowIds = new Set(
+          BrowserWindow.getAllWindows()
+            .filter((win) => !win.isDestroyed())
+            .map((win) => win.id),
+        );
+        return {
+          calls: g.__okSetVibrancyCalls ?? [],
+          windowIds: (g.__okSetVibrancyWindowIds ?? []).filter((id) => liveWindowIds.has(id)),
+        };
+      });
+      expect(observation.windowIds.length).toBeGreaterThan(0);
+      for (const windowId of observation.windowIds) {
+        const materials = observation.calls
+          .filter((call) => call.winId === windowId)
+          .map((call) => call.material);
+        expect(materials.slice(-2)).toEqual([null, 'sidebar']);
+      }
+    }).toPass({ timeout: 2_000 });
+
+    await waitForEveryWindowToPushItsThemeSource(app, pushedBy);
+    await editorPage.evaluate(async () => {
+      await window.okDesktop?.setThemeSource?.('light');
+    });
+    expect(await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource)).toBe('light');
+  });
+});

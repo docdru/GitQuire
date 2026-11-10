@@ -1,0 +1,59 @@
+import type { Counter, Histogram } from '@opentelemetry/api';
+import { getMeter } from './telemetry.ts';
+
+export type MaintenanceOp = 'gc' | 'consolidation' | 'reap';
+
+export type MaintenanceOutcome = 'ok' | 'skipped' | 'error';
+
+export type ConsolidationTriggerLabel = 'dead-chain' | 'session-close' | 'boot' | 'ttl';
+
+let _runDuration: Histogram | null = null;
+let _gcLatch: Counter | null = null;
+let _consolidation: Counter | null = null;
+
+function runDurationHist(): Histogram {
+  _runDuration ||= getMeter().createHistogram('ok.shadow.maintenance.run_duration_ms', {
+    description:
+      'Wall-clock duration of one maintenance op. Bounded labels: op ∈ {gc, consolidation, reap}, outcome ∈ {ok, skipped, error}.',
+    unit: 'ms',
+  });
+  return _runDuration;
+}
+
+function gcLatchCounter(): Counter {
+  _gcLatch ||= getMeter().createCounter('ok.shadow.maintenance.gc_latch_total', {
+    description:
+      'Distinct gc.log latch EPISODES (counted on the absent→present transition, not per observation, so one persistent ~1-day latch counts once). A latch means auto-gc is silently disabled until it self-expires; a nonzero rate means a repo is re-degrading invisibly.',
+  });
+  return _gcLatch;
+}
+
+function consolidationCounter(): Counter {
+  _consolidation ||= getMeter().createCounter('ok.shadow.maintenance.consolidation_total', {
+    description:
+      'Auto-consolidation runs that folded ≥1 dead chain. Bounded label: trigger ∈ {dead-chain, session-close, boot, ttl}. Width before/after ride the structured log, not metric labels.',
+  });
+  return _consolidation;
+}
+
+export function recordMaintenanceRun(
+  op: MaintenanceOp,
+  outcome: MaintenanceOutcome,
+  durationMs: number,
+): void {
+  runDurationHist().record(Math.max(0, durationMs), { op, outcome });
+}
+
+export function recordGcLatch(): void {
+  gcLatchCounter().add(1);
+}
+
+export function recordConsolidation(trigger: ConsolidationTriggerLabel): void {
+  consolidationCounter().add(1, { trigger });
+}
+
+export function __resetMaintenanceTelemetryForTesting(): void {
+  _runDuration = null;
+  _gcLatch = null;
+  _consolidation = null;
+}

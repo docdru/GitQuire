@@ -1,0 +1,1243 @@
+import { createHash, randomUUID } from 'node:crypto';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve, sep } from 'node:path';
+import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+import { afterEach, describe, expect, onTestFinished, test, vi } from 'vitest';
+import { ZipFile } from 'yazl';
+import type { LanguageMetadata } from '../report-language.ts';
+import {
+  CHECKPOINT_REF_GIT_FORMAT,
+  type CollectBundleDeps,
+  collectBundle,
+  writeBundle,
+} from './bundle.ts';
+
+const tmpDirs: string[] = [];
+
+function makeTmpDir(prefix = 'ok-bundle-test-'): string {
+  const dir = mkdtempSync(resolve(tmpdir(), prefix));
+  tmpDirs.push(dir);
+  return dir;
+}
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  for (const d of tmpDirs) {
+    if (existsSync(d)) rmSync(d, { recursive: true, force: true });
+  }
+  tmpDirs.length = 0;
+});
+
+const DETERMINISTIC_LANGUAGE = {
+  preference: 'system',
+  locale: 'en',
+  source: 'fallback',
+  systemLanguages: [],
+} as const satisfies LanguageMetadata;
+
+function makeDeterministicDeps(over: Partial<CollectBundleDeps> = {}): CollectBundleDeps {
+  return {
+    fetchAgentPresence: async () => null,
+    fetchAgentEffects: async () => null,
+    fetchWatcherRecent: async () => null,
+    readShadowHead: () => null,
+    readCheckpointRefs: () => null,
+    now: () => new Date('2026-05-28T14:22:01.000Z'),
+    okVersion: () => '0.7.99',
+    readDesktopEnv: () => null,
+    readLanguage: () => DETERMINISTIC_LANGUAGE,
+    readRuntime: () => ({
+      nodeVersion: 'v22.18.0',
+      platform: 'darwin',
+      arch: 'arm64',
+    }),
+    isOtlpPushEnabled: () => false,
+    ...over,
+  };
+}
+
+function writeAt(contentDir: string, relPath: string, body: string): void {
+  const full = join(contentDir, relPath);
+  mkdirSync(dirname(full), { recursive: true });
+  writeFileSync(full, body);
+}
+
+function expectedProjectLogsDir(projectDir: string): string {
+  const key = createHash('sha256').update(realpathSync.native(projectDir)).digest('hex');
+  return join(okUserHomeDir(), 'logs', 'projects', key);
+}
+
+const relocatedDiagnostics = [
+  ['server-current.jsonl', '.ok/local/logs/server-current.jsonl', 'logs/server-current.jsonl'],
+  ['server-prev.jsonl', '.ok/local/logs/server-prev.jsonl', 'logs/server-prev.jsonl'],
+  [
+    'spans-current.jsonl',
+    '.ok/local/telemetry/spans-current.jsonl',
+    'telemetry/spans-current.jsonl',
+  ],
+  ['spans-prev.jsonl', '.ok/local/telemetry/spans-prev.jsonl', 'telemetry/spans-prev.jsonl'],
+  ['last-spawn-error.log', '.ok/local/last-spawn-error.log', 'state/last-spawn-error.log'],
+] as const;
+
+describe('collectBundle — relocated project diagnostics', () => {
+  test('does not present legacy evidence as current when the current path cannot be copied', async () => {
+    const home = makeTmpDir();
+    vi.stubEnv('HOME', home);
+    vi.stubEnv('USERPROFILE', home);
+    const projectDir = makeTmpDir();
+    mkdirSync(join(expectedProjectLogsDir(projectDir), 'server-current.jsonl'), {
+      recursive: true,
+    });
+    writeAt(projectDir, '.ok/local/logs/server-current.jsonl', 'older incident\n');
+    const collected = await collectBundle({
+      contentDir: projectDir,
+      deps: makeDeterministicDeps(),
+    });
+    onTestFinished(collected.cleanup);
+    expect(existsSync(join(collected.stagingDir, 'logs/server-current.jsonl'))).toBe(false);
+    expect(
+      readFileSync(join(collected.stagingDir, 'legacy/logs/server-current.jsonl'), 'utf8'),
+    ).toBe('older incident\n');
+  });
+
+  test.each([
+    ['stable', '~/.ok/logs/projects'],
+    ['beta', '~/.ok-beta/logs/projects'],
+  ] as const)(
+    'records the %s diagnostic root without exposing the account home',
+    async (channel, directory) => {
+      const home = makeTmpDir();
+      vi.stubEnv('HOME', home);
+      vi.stubEnv('USERPROFILE', home);
+      vi.stubEnv('OK_CHANNEL', channel);
+      const contentDir = makeTmpDir();
+      const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+      onTestFinished(collected.cleanup);
+      expect(collected.manifest.telemetry.localSink.directory).toBe(directory);
+      expect(JSON.stringify(collected.manifest)).not.toContain(home);
+    },
+  );
+
+  test.each(['current', 'legacy', 'both'] as const)(
+    'collects %s evidence without overwriting incidents or reading another project',
+    async (source) => {
+      const home = makeTmpDir();
+      vi.stubEnv('HOME', home);
+      vi.stubEnv('USERPROFILE', home);
+      const projectDir = makeTmpDir();
+      const contentDir = join(projectDir, 'knowledge');
+      mkdirSync(contentDir);
+      const currentDir = expectedProjectLogsDir(projectDir);
+      const foreignDir = expectedProjectLogsDir(makeTmpDir());
+      for (const [filename, legacyPath] of relocatedDiagnostics) {
+        if (source !== 'legacy') writeAt(currentDir, filename, `current:${filename}\n`);
+        if (source !== 'current') writeAt(projectDir, legacyPath, `legacy:${filename}\n`);
+        writeAt(contentDir, legacyPath, 'content-subdir-decoy\n');
+        writeAt(foreignDir, filename, 'foreign-project-decoy\n');
+      }
+      const collected = await collectBundle({
+        contentDir,
+        projectDir,
+        deps: makeDeterministicDeps(),
+      });
+      onTestFinished(collected.cleanup);
+      for (const [filename, , entry] of relocatedDiagnostics) {
+        const origin = source === 'legacy' ? 'legacy' : 'current';
+        expect(readFileSync(join(collected.stagingDir, entry), 'utf8')).toBe(
+          `${origin}:${filename}\n`,
+        );
+        const legacyEntry = join(collected.stagingDir, 'legacy', entry);
+        expect(existsSync(legacyEntry)).toBe(source === 'both');
+        if (source === 'both')
+          expect(readFileSync(legacyEntry, 'utf8')).toBe(`legacy:${filename}\n`);
+      }
+      expect(existsSync(currentDir)).toBe(source !== 'legacy');
+      expect(collected.manifest.schemaVersion).toBe(2);
+      for (const file of collected.manifest.files) {
+        const body = readFileSync(join(collected.stagingDir, file.path), 'utf8');
+        expect(body).not.toContain('foreign-project-decoy');
+        expect(body).not.toContain('content-subdir-decoy');
+      }
+      const outputPath = join(makeTmpDir(), 'bundle.zip');
+      await writeBundle({ collected, outputPath });
+      const entries = await readZipEntries(outputPath);
+      expect(new Set(entries).size).toBe(entries.length);
+      expect(entries.sort()).toEqual(
+        ['manifest.json', ...collected.manifest.files.map((file) => file.path)].sort(),
+      );
+    },
+  );
+
+  test('redacts current and legacy diagnostics and counts both log/span histories', async () => {
+    const home = makeTmpDir();
+    vi.stubEnv('HOME', home);
+    vi.stubEnv('USERPROFILE', home);
+    const projectDir = makeTmpDir();
+    const contentDir = join(projectDir, 'knowledge');
+    mkdirSync(contentDir);
+    const currentDir = expectedProjectLogsDir(projectDir);
+    const secret = `ghp_${'a'.repeat(40)}`;
+    const body = `${JSON.stringify({ docName: 'private-note', path: `${contentDir}/note.md`, token: secret })}\n`;
+    const diagnostics = relocatedDiagnostics.filter(
+      ([filename]) => filename !== 'server-prev.jsonl' && filename !== 'spans-prev.jsonl',
+    );
+    for (const [filename, legacyPath] of diagnostics) {
+      writeAt(currentDir, filename, body);
+      writeAt(projectDir, legacyPath, body);
+    }
+    const collected = await collectBundle({
+      contentDir,
+      projectDir,
+      redact: true,
+      scrubSecrets: true,
+      deps: makeDeterministicDeps(),
+    });
+    onTestFinished(collected.cleanup);
+    for (const [, , entry] of diagnostics) {
+      for (const path of [entry, `legacy/${entry}`]) {
+        const staged = readFileSync(join(collected.stagingDir, path), 'utf8');
+        expect(staged).not.toContain(contentDir);
+        expect(staged).toContain('<CONTENT_DIR>/note.md');
+        expect(staged).not.toContain(secret);
+        expect(
+          collected.manifest.redaction.secretScrub?.redactions.some((audit) => audit.file === path),
+        ).toBe(true);
+      }
+    }
+    expect(collected.summary.docNameCount).toBe(4);
+  });
+});
+
+describe('collectBundle — diagnostic-report staging count', () => {
+  test('counts what was staged, not what the sweep selected', async () => {
+    const contentDir = makeTmpDir();
+    const reportsDir = makeTmpDir();
+    const present = join(reportsDir, 'OpenKnowledge-present.ips');
+    writeFileSync(
+      present,
+      `${JSON.stringify({ name: 'OpenKnowledge' })}\n{"procName":"OpenKnowledge"}\n`,
+    );
+
+    const collected = await collectBundle({
+      contentDir,
+      deps: makeDeterministicDeps(),
+      diagnosticReports: {
+        files: [present, join(reportsDir, 'OpenKnowledge-vanished.ips')],
+        outcome: 'collected',
+        foreignIgnored: 0,
+        unparseable: 0,
+        droppedOverCap: 0,
+        windowDays: 7,
+      },
+    });
+
+    expect(
+      readFileSync(join(collected.stagingDir, 'state', 'diagnostic-reports-status.txt'), 'utf-8'),
+    ).toBe(
+      '1 collected (7d; 0 other-process report(s) ignored; 0 unparseable; 1 vanished before staging)\n',
+    );
+    expect(collected.summary.stagedDiagnosticReports).toBe(1);
+    collected.cleanup();
+  });
+});
+
+describe('collectBundle — smoke', () => {
+  test('produces a v2 manifest on a fresh content-dir with no server', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+
+    expect(collected.manifest.schemaVersion).toBe(2);
+    expect(collected.manifest.createdAt).toBe('2026-05-28T14:22:01.000Z');
+    expect(collected.manifest.ok).toEqual({
+      version: '0.7.99',
+      nodeVersion: 'v22.18.0',
+      platform: 'darwin',
+      arch: 'arm64',
+    });
+    expect(collected.manifest.host).toEqual({
+      desktop: null,
+      language: DETERMINISTIC_LANGUAGE,
+    });
+    expect(collected.manifest.serverStatus).toBe('not-running');
+    expect(collected.manifest.redaction).toEqual({ applied: false });
+
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).toContain('state/runtime.json');
+    expect(paths).toContain('state/server-status.txt');
+
+    collected.cleanup();
+    expect(existsSync(collected.stagingDir)).toBe(false);
+  });
+});
+
+describe('collectBundle — file inventory', () => {
+  test('lists staged spans-current.jsonl with correct bytes + lines', async () => {
+    const contentDir = makeTmpDir();
+    const spansBody = `{"resourceSpans":[]}\n{"resourceSpans":[{"x":1}]}\n`;
+    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', spansBody);
+
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+
+    const entry = collected.manifest.files.find((f) => f.path === 'telemetry/spans-current.jsonl');
+    expect(entry).toBeDefined();
+    expect(entry?.bytes).toBe(Buffer.byteLength(spansBody, 'utf-8'));
+    expect(entry?.lines).toBe(2);
+    collected.cleanup();
+  });
+
+  test('harvests sink + lock from projectDir, not the content sub-folder', async () => {
+    const projectDir = makeTmpDir();
+    const contentDir = join(projectDir, 'docs');
+    mkdirSync(contentDir, { recursive: true });
+
+    const realSpans = '{"resourceSpans":[]}\n';
+    writeAt(projectDir, '.ok/local/telemetry/spans-current.jsonl', realSpans);
+    writeAt(projectDir, '.ok/local/logs/server-current.jsonl', '{"level":30,"msg":"x"}\n');
+    writeAt(projectDir, '.ok/local/server.lock', JSON.stringify({ port: 6111 }));
+    writeAt(
+      projectDir,
+      '.ok/local/acp-launch-failures.log',
+      '=== acp launch failure 2026-09-23T12:00:00.000Z thread=t agent=codex-acp source=registry reason=connect ===\n',
+    );
+    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":["DECOY"]}\n');
+
+    const collected = await collectBundle({
+      contentDir,
+      projectDir,
+      deps: makeDeterministicDeps(),
+    });
+
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).toContain('telemetry/spans-current.jsonl');
+    expect(paths).toContain('logs/server-current.jsonl');
+    expect(paths).toContain('state/server.lock');
+    expect(paths).toContain('state/acp-launch-failures.log');
+    const staged = readFileSync(
+      join(collected.stagingDir, 'telemetry', 'spans-current.jsonl'),
+      'utf-8',
+    );
+    expect(staged).toBe(realSpans);
+    expect(staged).not.toContain('DECOY');
+    collected.cleanup();
+  });
+
+  test('defaults to contentDir as the project root when projectDir is omitted', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
+    writeAt(contentDir, '.ok/local/server.lock', JSON.stringify({ port: 6222 }));
+
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).toContain('telemetry/spans-current.jsonl');
+    expect(paths).toContain('state/server.lock');
+    collected.cleanup();
+  });
+
+  test('lists both spans-current.jsonl and spans-prev.jsonl when both exist', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
+    writeAt(contentDir, '.ok/local/telemetry/spans-prev.jsonl', '{"resourceSpans":[1]}\n');
+
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).toContain('telemetry/spans-current.jsonl');
+    expect(paths).toContain('telemetry/spans-prev.jsonl');
+    collected.cleanup();
+  });
+
+  test('omits missing telemetry/log files silently', async () => {
+    const contentDir = makeTmpDir();
+
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).not.toContain('telemetry/spans-current.jsonl');
+    expect(paths).not.toContain('telemetry/spans-prev.jsonl');
+    expect(paths).not.toContain('logs/server-current.jsonl');
+    expect(paths).not.toContain('logs/server-prev.jsonl');
+    collected.cleanup();
+  });
+
+  test('records server-current.jsonl in logs/ when present', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/logs/server-current.jsonl',
+      '{"level":30,"msg":"hi"}\n{"level":30,"msg":"there"}\n',
+    );
+
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const entry = collected.manifest.files.find((f) => f.path === 'logs/server-current.jsonl');
+    expect(entry).toBeDefined();
+    expect(entry?.lines).toBe(2);
+    collected.cleanup();
+  });
+
+  test('partial trailing line is not counted (mid-write resilience)', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/telemetry/spans-current.jsonl',
+      `{"resourceSpans":[]}\n{"resourceSpans":[1]}\n{"resourceSpans"`,
+    );
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const entry = collected.manifest.files.find((f) => f.path === 'telemetry/spans-current.jsonl');
+    expect(entry?.lines).toBe(2);
+    collected.cleanup();
+  });
+});
+
+describe('collectBundle — contentDir.pathSha256', () => {
+  test('is 64-hex SHA-256 of the absolute path', async () => {
+    const contentDir = makeTmpDir();
+    const { createHash } = await import('node:crypto');
+    const expected = createHash('sha256').update(resolve(contentDir)).digest('hex');
+
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(collected.manifest.contentDir.pathSha256).toBe(expected);
+    expect(collected.manifest.contentDir.pathSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(collected.manifest.contentDir.absolutePath).toBe(resolve(contentDir));
+    collected.cleanup();
+  });
+});
+
+describe('collectBundle — server status', () => {
+  test('lock present + agent-presence 2xx → running, agent-presence.json staged', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/server.lock',
+      JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
+    );
+    let queriedPort = -1;
+    const deps = makeDeterministicDeps({
+      fetchAgentPresence: async (port) => {
+        queriedPort = port;
+        return JSON.stringify({ agents: [] });
+      },
+    });
+    const collected = await collectBundle({ contentDir, deps });
+
+    expect(queriedPort).toBe(4711);
+    expect(collected.manifest.serverStatus).toBe('running');
+    const presencePath = join(collected.stagingDir, 'state', 'agent-presence.json');
+    expect(existsSync(presencePath)).toBe(true);
+    expect(JSON.parse(readFileSync(presencePath, 'utf-8'))).toEqual({ agents: [] });
+    collected.cleanup();
+  });
+
+  test('lock present but endpoint unreachable → not-running, lock staged', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/server.lock',
+      JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
+    );
+    const collected = await collectBundle({
+      contentDir,
+      deps: makeDeterministicDeps({ fetchAgentPresence: async () => null }),
+    });
+
+    expect(collected.manifest.serverStatus).toBe('not-running');
+    expect(existsSync(join(collected.stagingDir, 'state', 'server.lock'))).toBe(true);
+    expect(existsSync(join(collected.stagingDir, 'state', 'agent-presence.json'))).toBe(false);
+    const status = readFileSync(join(collected.stagingDir, 'state', 'server-status.txt'), 'utf-8');
+    expect(status).toContain('not-running');
+    expect(status).toContain('4711');
+    collected.cleanup();
+  });
+
+  test('no lock file → not-running, no server.lock in bundle, no presence fetch', async () => {
+    const contentDir = makeTmpDir();
+    let fetched = false;
+    const deps = makeDeterministicDeps({
+      fetchAgentPresence: async () => {
+        fetched = true;
+        return null;
+      },
+    });
+    const collected = await collectBundle({ contentDir, deps });
+
+    expect(collected.manifest.serverStatus).toBe('not-running');
+    expect(fetched).toBe(false);
+    expect(existsSync(join(collected.stagingDir, 'state', 'server.lock'))).toBe(false);
+    collected.cleanup();
+  });
+
+  test('lock present + agent-effects 2xx → agent-effects.json staged', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/server.lock',
+      JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
+    );
+    let queriedPort = -1;
+    const deps = makeDeterministicDeps({
+      fetchAgentPresence: async () => JSON.stringify({ presence: {} }),
+      fetchAgentEffects: async (port) => {
+        queriedPort = port;
+        return JSON.stringify({ effects: [] });
+      },
+    });
+    const collected = await collectBundle({ contentDir, deps });
+
+    expect(queriedPort).toBe(4711);
+    const effectsPath = join(collected.stagingDir, 'state', 'agent-effects.json');
+    expect(existsSync(effectsPath)).toBe(true);
+    expect(JSON.parse(readFileSync(effectsPath, 'utf-8'))).toEqual({ effects: [] });
+    collected.cleanup();
+  });
+
+  test('lock present + watcher-recent 2xx → watcher-recent.jsonl staged as one line per decision', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/server.lock',
+      JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
+    );
+    let queriedPort = -1;
+    const decisions = [
+      {
+        ts: 1,
+        decision: 'dispatched',
+        kind: 'create',
+        'doc.name': '.../notes/a.md',
+        pathRole: 'content-md',
+      },
+      {
+        ts: 2,
+        decision: 'drop-symlink-escape',
+        kind: 'update',
+        'doc.name': '.../x/b.md',
+        pathRole: 'content-md',
+      },
+    ];
+    const deps = makeDeterministicDeps({
+      fetchAgentPresence: async () => JSON.stringify({ presence: {} }),
+      fetchWatcherRecent: async (port) => {
+        queriedPort = port;
+        return JSON.stringify({ decisions });
+      },
+    });
+    const collected = await collectBundle({ contentDir, deps });
+
+    expect(queriedPort).toBe(4711);
+    const watcherPath = join(collected.stagingDir, 'state', 'watcher-recent.jsonl');
+    expect(existsSync(watcherPath)).toBe(true);
+    const lines = readFileSync(watcherPath, 'utf-8').trim().split('\n');
+    expect(lines).toHaveLength(2);
+    expect(JSON.parse(lines[0] ?? '')).toEqual(decisions[0]);
+    expect(JSON.parse(lines[1] ?? '')).toEqual(decisions[1]);
+    const entry = collected.manifest.files.find((f) => f.path === 'state/watcher-recent.jsonl');
+    expect(entry?.lines).toBe(2);
+    collected.cleanup();
+  });
+
+  test('watcher-recent empty ring stages an empty file; malformed body is skipped', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/server.lock',
+      JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
+    );
+    const emptyDeps = makeDeterministicDeps({
+      fetchAgentPresence: async () => JSON.stringify({ presence: {} }),
+      fetchWatcherRecent: async () => JSON.stringify({ decisions: [] }),
+    });
+    const emptyCollected = await collectBundle({ contentDir, deps: emptyDeps });
+    const watcherPath = join(emptyCollected.stagingDir, 'state', 'watcher-recent.jsonl');
+    expect(existsSync(watcherPath)).toBe(true);
+    expect(readFileSync(watcherPath, 'utf-8')).toBe('');
+    emptyCollected.cleanup();
+
+    const malformedDeps = makeDeterministicDeps({
+      fetchAgentPresence: async () => JSON.stringify({ presence: {} }),
+      fetchWatcherRecent: async () => 'not json {',
+    });
+    const malformedCollected = await collectBundle({ contentDir, deps: malformedDeps });
+    expect(existsSync(join(malformedCollected.stagingDir, 'state', 'watcher-recent.jsonl'))).toBe(
+      false,
+    );
+    malformedCollected.cleanup();
+  });
+
+  test('watcher-recent failure never affects serverStatus (presence is the probe)', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/server.lock',
+      JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
+    );
+    const deps = makeDeterministicDeps({
+      fetchAgentPresence: async () => JSON.stringify({ presence: {} }),
+      fetchWatcherRecent: async () => null,
+    });
+    const collected = await collectBundle({ contentDir, deps });
+
+    expect(collected.manifest.serverStatus).toBe('running');
+    expect(existsSync(join(collected.stagingDir, 'state', 'watcher-recent.jsonl'))).toBe(false);
+    collected.cleanup();
+  });
+
+  test('agent-effects failure never affects serverStatus (presence is the probe)', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/server.lock',
+      JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
+    );
+    const deps = makeDeterministicDeps({
+      fetchAgentPresence: async () => JSON.stringify({ presence: {} }),
+      fetchAgentEffects: async () => null,
+    });
+    const collected = await collectBundle({ contentDir, deps });
+
+    expect(collected.manifest.serverStatus).toBe('running');
+    expect(existsSync(join(collected.stagingDir, 'state', 'agent-effects.json'))).toBe(false);
+    collected.cleanup();
+  });
+
+  test('corrupt lock → not-running, lock still staged for forensics', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(contentDir, '.ok/local/server.lock', 'not json {');
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+
+    expect(collected.manifest.serverStatus).toBe('not-running');
+    expect(existsSync(join(collected.stagingDir, 'state', 'server.lock'))).toBe(true);
+    collected.cleanup();
+  });
+});
+
+describe('collectBundle — state files', () => {
+  test('shadow-head.txt is written when readShadowHead returns content', async () => {
+    const contentDir = makeTmpDir();
+    const deps = makeDeterministicDeps({
+      readShadowHead: () => 'deadbee initial\ncafe sync\n',
+    });
+    const collected = await collectBundle({ contentDir, deps });
+    expect(readFileSync(join(collected.stagingDir, 'state', 'shadow-head.txt'), 'utf-8')).toBe(
+      'deadbee initial\ncafe sync\n',
+    );
+    collected.cleanup();
+  });
+
+  test('shadow-head.txt is omitted when readShadowHead returns null', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(existsSync(join(collected.stagingDir, 'state', 'shadow-head.txt'))).toBe(false);
+    collected.cleanup();
+  });
+
+  test('checkpoint-refs.txt is written when readCheckpointRefs returns content', async () => {
+    const contentDir = makeTmpDir();
+    const listing =
+      'refs/checkpoints/main/deadbee\t2026-05-28T14:00:00+00:00\tcheckpoint: Before concurrent merge @ 2026-05-28T14:00:00.000Z\n';
+    const deps = makeDeterministicDeps({
+      readCheckpointRefs: () => listing,
+    });
+    const collected = await collectBundle({ contentDir, deps });
+    expect(readFileSync(join(collected.stagingDir, 'state', 'checkpoint-refs.txt'), 'utf-8')).toBe(
+      listing,
+    );
+    expect(collected.manifest.files.map((f) => f.path)).toContain('state/checkpoint-refs.txt');
+    collected.cleanup();
+  });
+
+  test('checkpoint-refs.txt is omitted when readCheckpointRefs returns null', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(existsSync(join(collected.stagingDir, 'state', 'checkpoint-refs.txt'))).toBe(false);
+    collected.cleanup();
+  });
+
+  test('last-server-exit.json is staged when the desktop host wrote one', async () => {
+    const contentDir = makeTmpDir();
+    const body = `${JSON.stringify(
+      { at: '2026-07-16T21:02:24.000Z', pid: 51502, code: null, reason: 'killed' },
+      null,
+      2,
+    )}\n`;
+    writeAt(contentDir, '.ok/local/last-server-exit.json', body);
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(
+      readFileSync(join(collected.stagingDir, 'state', 'last-server-exit.json'), 'utf-8'),
+    ).toBe(body);
+    collected.cleanup();
+  });
+
+  test('last-server-exit.json is omitted when the host never recorded an exit', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(existsSync(join(collected.stagingDir, 'state', 'last-server-exit.json'))).toBe(false);
+    collected.cleanup();
+  });
+
+  test('last-server-crash.json is staged when the server recorded a fatal crash', async () => {
+    const contentDir = makeTmpDir();
+    const body = `${JSON.stringify(
+      {
+        timestamp: '2026-07-18T09:00:00.000Z',
+        origin: 'uncaughtException',
+        error: { name: 'TypeError', message: 'boom', stack: 'TypeError: boom\n    at x' },
+        pid: 51502,
+        uptimeSec: 12.5,
+      },
+      null,
+      2,
+    )}\n`;
+    writeAt(contentDir, '.ok/local/last-server-crash.json', body);
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(
+      readFileSync(join(collected.stagingDir, 'state', 'last-server-crash.json'), 'utf-8'),
+    ).toBe(body);
+    collected.cleanup();
+  });
+
+  test('last-server-crash.json is omitted when the server never crashed', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(existsSync(join(collected.stagingDir, 'state', 'last-server-crash.json'))).toBe(false);
+    collected.cleanup();
+  });
+
+  test('runtime.json carries ok, host blocks; desktop is null by default', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const runtime = JSON.parse(
+      readFileSync(join(collected.stagingDir, 'state', 'runtime.json'), 'utf-8'),
+    );
+    expect(runtime.ok).toEqual({
+      version: '0.7.99',
+      nodeVersion: 'v22.18.0',
+      platform: 'darwin',
+      arch: 'arm64',
+    });
+    expect(runtime.host).toEqual({ desktop: null, language: DETERMINISTIC_LANGUAGE });
+    collected.cleanup();
+  });
+
+  test('runtime.json + manifest.host.desktop reflect OK_DESKTOP_* env block', async () => {
+    const contentDir = makeTmpDir();
+    const deps = makeDeterministicDeps({
+      readDesktopEnv: () => ({ electronVersion: '38.0.0', packaged: true, channel: 'beta' }),
+    });
+    const collected = await collectBundle({ contentDir, deps });
+    expect(collected.manifest.host.desktop).toEqual({
+      electronVersion: '38.0.0',
+      packaged: true,
+      channel: 'beta',
+    });
+    const runtime = JSON.parse(
+      readFileSync(join(collected.stagingDir, 'state', 'runtime.json'), 'utf-8'),
+    );
+    expect(runtime.host.desktop).toEqual({
+      electronVersion: '38.0.0',
+      packaged: true,
+      channel: 'beta',
+    });
+    collected.cleanup();
+  });
+});
+
+describe('collectBundle — process/ subdir', () => {
+  test('copies processDir contents under process/ when supplied', async () => {
+    const contentDir = makeTmpDir();
+    const processSource = makeTmpDir('ok-bundle-procsrc-');
+    writeFileSync(join(processSource, 'metadata.json'), '{"pid":42}');
+    writeFileSync(join(processSource, 'lsof.txt'), 'COMMAND PID ...\n');
+
+    const collected = await collectBundle({
+      contentDir,
+      processDir: processSource,
+      deps: makeDeterministicDeps(),
+    });
+
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).toContain('process/metadata.json');
+    expect(paths).toContain('process/lsof.txt');
+    expect(readFileSync(join(collected.stagingDir, 'process', 'metadata.json'), 'utf-8')).toBe(
+      '{"pid":42}',
+    );
+    collected.cleanup();
+  });
+
+  test('no process/ directory when processDir is omitted', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(existsSync(join(collected.stagingDir, 'process'))).toBe(false);
+    collected.cleanup();
+  });
+});
+
+describe('collectBundle — summary', () => {
+  test('docNameCount counts "doc.name" occurrences across telemetry JSONLs', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/telemetry/spans-current.jsonl',
+      '{"resourceSpans":[{"attributes":[{"key":"doc.name","value":"a"}]}]}\n' +
+        '{"resourceSpans":[{"attributes":[{"key":"doc.name","value":"b"}]}]}\n',
+    );
+    writeAt(
+      contentDir,
+      '.ok/local/telemetry/spans-prev.jsonl',
+      '{"resourceSpans":[{"attributes":[{"key":"doc.name","value":"c"}]}]}\n',
+    );
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(collected.summary.docNameCount).toBe(3);
+    collected.cleanup();
+  });
+
+  test('docNameCount also counts the renderer-log spelling, in the log files', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/logs/server-current.jsonl',
+      '{"source":"renderer-console","event":"ok-outline-nav","docName":"notes/a"}\n' +
+        '{"source":"renderer-console","event":"ok/scroll-restore/abandoned","docName":"notes/b"}\n',
+    );
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(collected.summary.docNameCount).toBe(2);
+    collected.cleanup();
+  });
+
+  test('docNameCount sees the `.log` sink, which is the only one the desktop build writes', async () => {
+    const contentDir = makeTmpDir();
+    const userLogsDir = makeTmpDir();
+    writeAt(
+      userLogsDir,
+      'desktop.2026-08-25.log',
+      '{"subsystem":"renderer","event":"ok-outline-nav","docName":"notes/a"}\n' +
+        '{"subsystem":"renderer","event":"ok-outline-nav-settled","docName":"notes/a"}\n',
+    );
+    const collected = await collectBundle({
+      contentDir,
+      userLogFiles: [join(userLogsDir, 'desktop.2026-08-25.log')],
+      deps: makeDeterministicDeps(),
+    });
+    expect(collected.summary.docNameCount).toBe(2);
+    collected.cleanup();
+  });
+
+  test('contentDirVisible flips true when path appears in any staged file', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/local/logs/server-current.jsonl',
+      `{"level":30,"msg":"opened ${contentDir}/notes.md"}\n`,
+    );
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    expect(collected.summary.contentDirVisible).toBe(true);
+    collected.cleanup();
+  });
+
+  test('totalBytes is the sum of bytes across files[]', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const expected = collected.manifest.files.reduce((s, f) => s + f.bytes, 0);
+    expect(collected.summary.totalBytes).toBe(expected);
+    expect(collected.summary.fileCount).toBe(collected.manifest.files.length);
+    collected.cleanup();
+  });
+});
+
+type SpellingRelation = 'same' | 'disjoint' | 'typed-within-native' | 'native-within-typed';
+
+function spellingRelation(typed: string, native: string): SpellingRelation {
+  if (typed === native) return 'same';
+  if (native.includes(typed)) return 'typed-within-native';
+  if (typed.includes(native)) return 'native-within-typed';
+  return 'disjoint';
+}
+
+function makeAliasedRoot(
+  link: string,
+  target: string,
+): { projectDir: string; typed: string; native: string } {
+  const projectDir = realpathSync.native(makeTmpDir('ok-bundle-alias-'));
+  const real = join(projectDir, target);
+  mkdirSync(real);
+  const typed = join(projectDir, link);
+  symlinkSync(real, typed, process.platform === 'win32' ? 'junction' : 'dir');
+  return { projectDir, typed, native: realpathSync.native(typed) };
+}
+
+function jsonl(lines: readonly Record<string, unknown>[]): string {
+  return lines.map((line) => `${JSON.stringify(line)}\n`).join('');
+}
+
+function readStagedJsonl(stagingDir: string, relPath: string): unknown[] {
+  return readFileSync(join(stagingDir, relPath), 'utf-8')
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+}
+
+describe('collectBundle — a content root typed through a directory alias', () => {
+  test.each([
+    { shape: 'unrelated names', link: 'notes-link', target: 'vault', relation: 'disjoint' },
+    {
+      shape: 'link name prefixes the target name',
+      link: 'notes',
+      target: 'notes-real',
+      relation: 'typed-within-native',
+    },
+    {
+      shape: 'target name prefixes the link name',
+      link: 'notes-link',
+      target: 'notes',
+      relation: 'native-within-typed',
+    },
+  ] as const)(
+    'redaction masks both the typed and the native spelling of the root ($shape)',
+    async ({ link, target, relation }) => {
+      const { projectDir, typed, native } = makeAliasedRoot(link, target);
+      expect(spellingRelation(typed, native)).toBe(relation);
+      writeAt(
+        projectDir,
+        '.ok/local/logs/server-current.jsonl',
+        jsonl([
+          {
+            level: 30,
+            contentDir: native,
+            backend: 'parcel',
+            msg: 'watching for external .md changes',
+          },
+          {
+            level: 20,
+            kind: 'change',
+            path: join(native, 'note.md'),
+            msg: '[file-watcher] Dispatching: change',
+          },
+          { level: 30, path: join(typed, 'note.md'), msg: 'opened' },
+        ]),
+      );
+      const processDir = makeTmpDir('ok-bundle-procsrc-');
+      writeFileSync(
+        join(processDir, 'lsof.txt'),
+        `node 4242 jane cwd DIR ${native}\nnode 4242 jane 21r REG ${join(typed, 'note.md')}\n`,
+      );
+
+      const collected = await collectBundle({
+        contentDir: typed,
+        projectDir,
+        processDir,
+        redact: true,
+        deps: makeDeterministicDeps(),
+      });
+      onTestFinished(() => collected.cleanup());
+
+      expect
+        .soft(readStagedJsonl(collected.stagingDir, 'logs/server-current.jsonl'), 'server log')
+        .toEqual([
+          {
+            level: 30,
+            contentDir: '<CONTENT_DIR>',
+            backend: 'parcel',
+            msg: 'watching for external .md changes',
+          },
+          {
+            level: 20,
+            kind: 'change',
+            path: `<CONTENT_DIR>${sep}note.md`,
+            msg: '[file-watcher] Dispatching: change',
+          },
+          { level: 30, path: `<CONTENT_DIR>${sep}note.md`, msg: 'opened' },
+        ]);
+      expect
+        .soft(readFileSync(join(collected.stagingDir, 'process', 'lsof.txt'), 'utf-8'), 'lsof')
+        .toBe(
+          `node 4242 jane cwd DIR <CONTENT_DIR>\nnode 4242 jane 21r REG <CONTENT_DIR>${sep}note.md\n`,
+        );
+    },
+  );
+
+  test('contentDirVisible reports a root that appears only in its native spelling', async () => {
+    const { projectDir, typed, native } = makeAliasedRoot('notes-link', 'vault');
+    expect(spellingRelation(typed, native)).toBe('disjoint');
+    const processDir = makeTmpDir('ok-bundle-procsrc-');
+    writeFileSync(join(processDir, 'lsof.txt'), `node 4242 jane cwd DIR ${native}\n`);
+
+    const collected = await collectBundle({
+      contentDir: typed,
+      projectDir,
+      processDir,
+      deps: makeDeterministicDeps(),
+    });
+    onTestFinished(() => collected.cleanup());
+
+    expect(readFileSync(join(collected.stagingDir, 'process', 'lsof.txt'), 'utf-8')).toBe(
+      `node 4242 jane cwd DIR ${native}\n`,
+    );
+    expect(collected.summary.contentDirVisible).toBe(true);
+  });
+
+  test('redaction still masks the typed spelling of a root that does not exist on disk', async () => {
+    const projectDir = makeTmpDir();
+    const contentDir = join(projectDir, 'notes-not-created');
+    expect(existsSync(contentDir)).toBe(false);
+    writeAt(
+      projectDir,
+      '.ok/local/logs/server-current.jsonl',
+      jsonl([{ level: 30, path: join(contentDir, 'note.md'), msg: 'opened' }]),
+    );
+
+    const collected = await collectBundle({
+      contentDir,
+      projectDir,
+      redact: true,
+      deps: makeDeterministicDeps(),
+    });
+    onTestFinished(() => collected.cleanup());
+
+    expect(readStagedJsonl(collected.stagingDir, 'logs/server-current.jsonl')).toEqual([
+      { level: 30, path: `<CONTENT_DIR>${sep}note.md`, msg: 'opened' },
+    ]);
+  });
+
+  test('redaction still masks the typed spelling of a root whose path runs through a file', async () => {
+    const projectDir = makeTmpDir();
+    writeFileSync(join(projectDir, 'notes.txt'), 'not a directory\n');
+    const contentDir = join(projectDir, 'notes.txt', 'notes');
+    expect(statSync(dirname(contentDir)).isFile()).toBe(true);
+    writeAt(
+      projectDir,
+      '.ok/local/logs/server-current.jsonl',
+      jsonl([{ level: 30, path: join(contentDir, 'note.md'), msg: 'opened' }]),
+    );
+
+    const collected = await collectBundle({
+      contentDir,
+      projectDir,
+      redact: true,
+      deps: makeDeterministicDeps(),
+    });
+    onTestFinished(() => collected.cleanup());
+
+    expect(readStagedJsonl(collected.stagingDir, 'logs/server-current.jsonl')).toEqual([
+      { level: 30, path: `<CONTENT_DIR>${sep}note.md`, msg: 'opened' },
+    ]);
+  });
+});
+
+describe('collectBundle — loss-capture ring', () => {
+  test('stages the content-loss ring under state/ with its raw doc name intact', async () => {
+    const contentDir = makeTmpDir();
+    const lossEvent = JSON.stringify({
+      ts: 1,
+      schemaVersion: 1,
+      seq: 1,
+      event: 'guard-defer',
+      docName: 'meetings/plan',
+      writerId: null,
+      site: 'site-2',
+      lostLen: 12,
+      digest: 'abc12345',
+    });
+    writeAt(contentDir, '.ok/local/loss-capture/loss-current.jsonl', `${lossEvent}\n`);
+    writeAt(contentDir, '.ok/local/loss-capture/loss-prev.jsonl', `${lossEvent}\n`);
+
+    const collected = await collectBundle({
+      contentDir,
+      redact: true,
+      deps: makeDeterministicDeps(),
+    });
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).toContain('state/loss-current.jsonl');
+    expect(paths).toContain('state/loss-prev.jsonl');
+
+    const staged = readFileSync(join(collected.stagingDir, 'state', 'loss-current.jsonl'), 'utf-8');
+    expect(staged).toContain('meetings/plan');
+    collected.cleanup();
+  });
+
+  test('omits the loss ring when no producer has recorded an event', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const paths = collected.manifest.files.map((f) => f.path);
+    expect(paths).not.toContain('state/loss-current.jsonl');
+    expect(paths).not.toContain('state/loss-prev.jsonl');
+    collected.cleanup();
+  });
+});
+
+async function readZipEntries(zipPath: string): Promise<string[]> {
+  const { execSync } = await import('node:child_process');
+  const out = execSync(`unzip -Z1 ${JSON.stringify(zipPath)}`, { encoding: 'utf-8' });
+  return out
+    .trim()
+    .split('\n')
+    .filter((l) => l.length > 0);
+}
+
+describe('writeBundle', () => {
+  test('produces a zip whose entries match collected.manifest.files[] + manifest.json', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+
+    const outDir = makeTmpDir('ok-bundle-out-');
+    const outputPath = join(outDir, 'bundle.zip');
+    const written = await writeBundle({ collected, outputPath });
+    expect(written).toBe(outputPath);
+    expect(existsSync(outputPath)).toBe(true);
+
+    const entries = (await readZipEntries(outputPath)).sort();
+    const expected = ['manifest.json', ...collected.manifest.files.map((f) => f.path)].sort();
+    expect(entries).toEqual(expected);
+    collected.cleanup();
+  });
+
+  test('rejects when parent directory does not exist', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const missing = '/tmp/ok-bundle-nope-XXXXX/bundle.zip';
+    await expect(writeBundle({ collected, outputPath: missing })).rejects.toThrow(
+      /parent directory does not exist/,
+    );
+    collected.cleanup();
+  });
+
+  test('zip contents survive a round-trip — manifest.json parses to the same data', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
+    const outDir = makeTmpDir('ok-bundle-out-');
+    const outputPath = join(outDir, 'bundle.zip');
+    await writeBundle({ collected, outputPath });
+
+    const { execSync } = await import('node:child_process');
+    const extractDir = makeTmpDir('ok-bundle-extract-');
+    execSync(
+      `unzip -q ${JSON.stringify(outputPath)} manifest.json -d ${JSON.stringify(extractDir)}`,
+    );
+    const parsed = JSON.parse(readFileSync(join(extractDir, 'manifest.json'), 'utf-8'));
+    expect(parsed.schemaVersion).toBe(2);
+    expect(parsed.contentDir.pathSha256).toBe(collected.manifest.contentDir.pathSha256);
+    expect(parsed.files).toEqual(collected.manifest.files);
+    collected.cleanup();
+  });
+
+  test('yazl ZipFile end-state — explicit smoke that the underlying lib is wired', async () => {
+    const outDir = makeTmpDir('ok-bundle-yazl-');
+    const outputPath = join(outDir, 'tiny.zip');
+    const zip = new ZipFile();
+    zip.addBuffer(Buffer.from('hello', 'utf-8'), 'a.txt');
+    zip.end();
+    const writer = (await import('node:fs')).createWriteStream(outputPath);
+    zip.outputStream.pipe(writer);
+    await new Promise<void>((r, j) => {
+      writer.on('close', r);
+      writer.on('error', j);
+    });
+    expect(existsSync(outputPath)).toBe(true);
+  });
+});
+
+describe('collectBundle — manifest.telemetry.localSink cascade', () => {
+  test("project's explicit `enabled: false` survives schema defaults in an empty project-local config", async () => {
+    const contentDir = makeTmpDir();
+    writeAt(contentDir, '.ok/config.yml', 'telemetry:\n  localSink:\n    enabled: false\n');
+    writeAt(contentDir, '.ok/local/config.yml', '');
+
+    const collected = await collectBundle({
+      contentDir,
+      deps: makeDeterministicDeps(),
+    });
+    expect(collected.manifest.telemetry.localSink.enabled).toBe(false);
+    collected.cleanup();
+  });
+
+  test('project-local explicit `enabled: false` wins over project `true`', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(contentDir, '.ok/config.yml', 'telemetry:\n  localSink:\n    enabled: true\n');
+    writeAt(contentDir, '.ok/local/config.yml', 'telemetry:\n  localSink:\n    enabled: false\n');
+    const collected = await collectBundle({
+      contentDir,
+      deps: makeDeterministicDeps(),
+    });
+    expect(collected.manifest.telemetry.localSink.enabled).toBe(false);
+    collected.cleanup();
+  });
+
+  test('per-leaf cascade: project-local spans.maxBytes wins over project', async () => {
+    const contentDir = makeTmpDir();
+    writeAt(
+      contentDir,
+      '.ok/config.yml',
+      'telemetry:\n  localSink:\n    spans:\n      maxBytes: 999\n',
+    );
+    writeAt(
+      contentDir,
+      '.ok/local/config.yml',
+      'telemetry:\n  localSink:\n    spans:\n      maxBytes: 7\n',
+    );
+    const collected = await collectBundle({
+      contentDir,
+      deps: makeDeterministicDeps(),
+    });
+    expect(collected.manifest.telemetry.localSink.spansMaxBytes).toBe(7);
+    collected.cleanup();
+  });
+
+  test('absent both files → manifest reports schema defaults', async () => {
+    const contentDir = makeTmpDir();
+    const collected = await collectBundle({
+      contentDir,
+      deps: makeDeterministicDeps(),
+    });
+    expect(collected.manifest.telemetry.localSink.enabled).toBe(true);
+    expect(collected.manifest.telemetry.localSink.spansMaxBytes).toBe(52_428_800);
+    expect(collected.manifest.telemetry.localSink.logsMaxBytes).toBe(26_214_400);
+    collected.cleanup();
+  });
+});
+
+describe('collectBundle — staging cleanup on throw', () => {
+  test('a mid-staging throw removes the staging dir instead of stranding staged copies', async () => {
+    const marker = `staging-leak-${randomUUID()}`;
+    const contentDir = makeTmpDir();
+    writeAt(contentDir, '.ok/local/logs/server-current.jsonl', `{"msg":"${marker}"}\n`);
+
+    await expect(
+      collectBundle({
+        contentDir,
+        deps: makeDeterministicDeps({
+          readRuntime: () => {
+            throw new Error('runtime probe failed');
+          },
+        }),
+      }),
+    ).rejects.toThrow('runtime probe failed');
+
+    const candidates = readdirSync(tmpdir()).filter((d) => d.startsWith('ok-bundle-'));
+    for (const dir of candidates) {
+      let staged = '';
+      try {
+        staged = readFileSync(join(tmpdir(), dir, 'logs', 'server-current.jsonl'), 'utf-8');
+      } catch {}
+      expect(staged).not.toContain(marker);
+    }
+  });
+});
+
+describe('checkpoint-ref staging format (privacy enforcement)', () => {
+  test('stages only the content-free commit subject, never the body', () => {
+    expect(CHECKPOINT_REF_GIT_FORMAT).toContain('%(contents:subject)');
+    for (const bodyToken of ['%(contents:body)', '%(contents)', '%(body)', '%(trailers)']) {
+      expect(CHECKPOINT_REF_GIT_FORMAT).not.toContain(bodyToken);
+    }
+  });
+});

@@ -1,0 +1,717 @@
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { stringify } from 'yaml';
+import { resolveThemePlugin } from '../theme/theme-plugins.ts';
+import { serializeEveryFieldExceptCallerSuppliedPathsUnderTheFileKey } from './config-leak-serializer.test-helper.ts';
+import { isKnownConfigError } from './errors.ts';
+import { readConfigSafely } from './read-config-safely.ts';
+import { REMOVED_KEYS } from './removed-keys.ts';
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function setPath(root: Record<string, unknown>, path: readonly string[], leaf: unknown): void {
+  let cur = root;
+  for (let i = 0; i < path.length - 1; i++) {
+    const seg = path[i] as string;
+    if (!isPlainObject(cur[seg])) cur[seg] = {};
+    cur = cur[seg] as Record<string, unknown>;
+  }
+  cur[path[path.length - 1] as string] = leaf;
+}
+
+function leafPresent(value: unknown, path: readonly string[]): boolean {
+  let cur: unknown = value;
+  for (let i = 0; i < path.length - 1; i++) {
+    if (!isPlainObject(cur)) return false;
+    cur = cur[path[i] as string];
+  }
+  return isPlainObject(cur) && (path[path.length - 1] as string) in cur;
+}
+
+let testDir: string;
+
+const CONFIG_VALUES_THE_VALUE_FALLBACK_ARM_MUST_NEVER_ECHO = ['PRIVATE_INVALID_VALUE'] as const;
+
+const FIXTURE_PATH_DELIBERATELY_CARRIES_EVERY_FORBIDDEN_VALUE =
+  CONFIG_VALUES_THE_VALUE_FALLBACK_ARM_MUST_NEVER_ECHO.join('-');
+
+beforeEach(() => {
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  testDir = resolve(
+    tmpdir(),
+    `ok-readconfig-test-${FIXTURE_PATH_DELIBERATELY_CARRIES_EVERY_FORBIDDEN_VALUE}-${stamp}`,
+  );
+  mkdirSync(testDir, { recursive: true });
+});
+
+afterEach(() => {
+  rmSync(testDir, { recursive: true, force: true });
+});
+
+describe('readConfigSafely', () => {
+  test('keeps the valid autolinks and reports each invalid entry where it is', () => {
+    const absPath = resolve(testDir, 'config.yml');
+    writeFileSync(
+      absPath,
+      stringify({
+        autolinks: [
+          { prefix: 'PRD-', url: 'https://linear.app/inkeep/issue/PRD-<num>' },
+          { prefix: '1BAD', url: 'https://x.example/<num>' },
+          { prefix: 'GH-', url: 'https://github.com/o/r/issues/1' },
+        ],
+      }),
+    );
+    const warnings: string[] = [];
+    const result = readConfigSafely({ absPath, warn: (message) => warnings.push(message) });
+    expect(result.valid).toBe(true);
+    expect(result.value.autolinks).toEqual([
+      { prefix: 'PRD-', url: 'https://linear.app/inkeep/issue/PRD-<num>' },
+      null,
+      null,
+    ]);
+    expect(result.diagnostics).toContainEqual({
+      code: 'VALUE_FALLBACK',
+      issues: [
+        expect.objectContaining({ path: ['autolinks', '1', 'prefix'], source: expect.anything() }),
+        expect.objectContaining({ path: ['autolinks', '2', 'url'], source: expect.anything() }),
+      ],
+    });
+    expect(warnings.join('\n')).toContain('autolinks.1.prefix');
+    expect(warnings.join('\n')).toContain('ignoring this autolink entry.');
+  });
+
+  test('reports an autolinks value that is not a list and ignores it', () => {
+    const absPath = resolve(testDir, 'config.yml');
+    writeFileSync(absPath, stringify({ autolinks: 'PRD-' }));
+    const result = readConfigSafely({ absPath, warn: () => {} });
+    expect(result.valid).toBe(true);
+    expect(result.value.autolinks).toEqual([]);
+    expect(result.diagnostics).toContainEqual({
+      code: 'VALUE_FALLBACK',
+      issues: [
+        expect.objectContaining({
+          path: ['autolinks'],
+          message: expect.stringContaining('ignoring autolinks.'),
+        }),
+      ],
+    });
+  });
+
+  test('reports a discarded non-map hosts section', () => {
+    const absPath = resolve(testDir, 'config.yml');
+    writeFileSync(absPath, stringify({ git: { hosts: 'invalid' } }));
+    const result = readConfigSafely({ absPath, warn: () => {} });
+    expect(result.valid).toBe(true);
+    expect(result.value.git.hosts).toEqual({});
+    expect(result.diagnostics).toContainEqual({
+      code: 'VALUE_FALLBACK',
+      issues: [expect.objectContaining({ path: ['git', 'hosts'] })],
+    });
+  });
+
+  test('retains host fallback diagnostics and siblings alongside unrelated schema errors', () => {
+    const absPath = resolve(testDir, 'config.yml');
+    writeFileSync(
+      absPath,
+      stringify({
+        git: { hosts: { good: { provider: 'github' }, bad: null } },
+        autoSync: { mode: 'invalid' },
+      }),
+    );
+    const result = readConfigSafely({ absPath, sideline: false, warn: () => {} });
+    expect(result.valid).toBe(false);
+    expect(result.value.git.hosts.good?.provider).toBe('github');
+    expect(result.diagnostics).toContainEqual({
+      code: 'VALUE_FALLBACK',
+      issues: [expect.objectContaining({ path: ['git', 'hosts', 'bad'] })],
+    });
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: 'SCHEMA_INVALID' }));
+  });
+  test.each([null, 'not-an-object', []].map((bad) => ({ bad })))(
+    'contains malformed host entry $bad and reports it',
+    ({ bad }) => {
+      const absPath = resolve(testDir, 'config.yml');
+      writeFileSync(absPath, stringify({ git: { hosts: { good: { provider: 'github' }, bad } } }));
+      const warnings: string[] = [];
+      const result = readConfigSafely({ absPath, warn: (message) => warnings.push(message) });
+      expect(result.valid).toBe(true);
+      expect(result.value.git.hosts.good?.provider).toBe('github');
+      expect(result.value.git.hosts.bad?.provider).toBeUndefined();
+      expect(result.diagnostics).toContainEqual({
+        code: 'VALUE_FALLBACK',
+        issues: [expect.objectContaining({ path: ['git', 'hosts', 'bad'] })],
+      });
+      expect(warnings.join('\n')).toContain('git.hosts');
+    },
+  );
+
+  test('preserves host declarations after an unrelated schema failure', () => {
+    const absPath = resolve(testDir, 'config.yml');
+    writeFileSync(
+      absPath,
+      stringify({
+        git: { hosts: { good: { provider: 'github' } } },
+        autoSync: { mode: 'invalid' },
+      }),
+    );
+    const result = readConfigSafely({ absPath, sideline: false, warn: () => {} });
+    expect(result.valid).toBe(false);
+    expect(result.value.git.hosts.good?.provider).toBe('github');
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: 'SCHEMA_INVALID' }));
+  });
+
+  test.each(['unsupported', 12, null])('reports invalid provider %j', (provider) => {
+    const absPath = resolve(testDir, 'config.yml');
+    writeFileSync(absPath, stringify({ git: { hosts: { h: { provider } } } }));
+    const result = readConfigSafely({ absPath, warn: () => {} });
+    expect(result.value.git.hosts.h?.provider).toBeUndefined();
+    expect(result.diagnostics).toContainEqual({
+      code: 'VALUE_FALLBACK',
+      issues: [expect.objectContaining({ path: ['git', 'hosts', 'h', 'provider'] })],
+    });
+  });
+
+  test('the fixture path carries every value the VALUE_FALLBACK arm must not echo, so no absence check can pass on path luck', () => {
+    for (const value of CONFIG_VALUES_THE_VALUE_FALLBACK_ARM_MUST_NEVER_ECHO) {
+      expect(testDir, `testDir must carry ${value}`).toContain(value);
+    }
+  });
+
+  test('the REMOVED_KEY arm echoes three raw config lines centred on where the removed value begins, so the window reaches past the stale key into a still-supported setting value, which the VALUE_FALLBACK arm omits', () => {
+    const path = resolve(testDir, 'removed-with-snippet.yml');
+    writeFileSync(
+      path,
+      [
+        'alphaUnknown: OUTSIDE_WINDOW_ABOVE',
+        'folders:',
+        '  - path: "FLAGGED_ENTRY_ECHOED/**"',
+        'content: {dir: NEIGHBOUR_FOREIGN_VALUE_ECHOED}',
+        'deltaUnknown: OUTSIDE_WINDOW_BELOW',
+        '',
+      ].join('\n'),
+      'utf-8',
+    );
+
+    const result = readConfigSafely({ absPath: path, warn: () => {} });
+
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.content.dir).toBe('NEIGHBOUR_FOREIGN_VALUE_ECHOED');
+      const removed = result.diagnostics.filter((d) => d.code === 'REMOVED_KEY');
+      expect(removed).toHaveLength(1);
+      const [diag] = removed;
+      if (diag?.code === 'REMOVED_KEY') {
+        const snippet = diag.source?.snippet;
+        expect(snippet).toContain('folders:');
+        expect(snippet).toContain('FLAGGED_ENTRY_ECHOED');
+        expect(snippet).toContain('NEIGHBOUR_FOREIGN_VALUE_ECHOED');
+        expect(snippet).not.toContain('OUTSIDE_WINDOW_ABOVE');
+        expect(snippet).not.toContain('OUTSIDE_WINDOW_BELOW');
+      }
+    }
+  });
+
+  test('the leak serializer exempts exactly the caller-supplied paths under the file key, and no other value and no other key', () => {
+    const supplied = resolve(testDir, 'supplied.yml');
+    const suppliedPathUnderAKeyOtherThanFile = resolve(testDir, 'second-supplied.yml');
+    const configValueThatHappensToSitUnderTheFixtureRoot = resolve(
+      testDir,
+      'DECOY_UNDER_FIXTURE_ROOT',
+    );
+
+    const serialized = serializeEveryFieldExceptCallerSuppliedPathsUnderTheFileKey(
+      {
+        file: supplied,
+        sidelinedTo: suppliedPathUnderAKeyOtherThanFile,
+        issues: [{ file: 'VALUE_KEYED_FILE_BUT_NOT_THE_SUPPLIED_PATH' }],
+        detail: configValueThatHappensToSitUnderTheFixtureRoot,
+      },
+      [supplied, suppliedPathUnderAKeyOtherThanFile],
+    );
+
+    expect(serialized).not.toContain(JSON.stringify(supplied));
+    expect(
+      serialized,
+      'the exemption is not confined to the file key: it stripped a supplied path from another key',
+    ).toContain(JSON.stringify(suppliedPathUnderAKeyOtherThanFile));
+    expect(serialized).toContain(JSON.stringify('VALUE_KEYED_FILE_BUT_NOT_THE_SUPPLIED_PATH'));
+    expect(serialized).toContain(JSON.stringify(configValueThatHappensToSitUnderTheFixtureRoot));
+  });
+
+  test('a fixture with both a removed key and a non-integer embeddings batch size reports exactly REMOVED_KEY and VALUE_FALLBACK, and no third code', () => {
+    const path = resolve(testDir, 'recovered-and-removed.yml');
+    writeFileSync(
+      path,
+      [
+        'folders:',
+        '  - path: "LEGACY_ENTRY/**"',
+        'search:',
+        '  semantic:',
+        '    maxBatchSize: NOT_AN_INTEGER',
+        '',
+      ].join('\n'),
+      'utf-8',
+    );
+
+    const result = readConfigSafely({ absPath: path, warn: () => {} });
+
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+
+    const codes = result.diagnostics.map((d) => d.code);
+    expect(
+      codes,
+      'the fixture produced no recovered diagnostics, so the exclusion check below is vacuous',
+    ).toEqual(expect.arrayContaining(['REMOVED_KEY', 'VALUE_FALLBACK']));
+    expect([...new Set(codes)].sort()).toEqual(['REMOVED_KEY', 'VALUE_FALLBACK']);
+  });
+
+  test('missing file → valid=true, value is schema defaults', () => {
+    const result = readConfigSafely({ absPath: resolve(testDir, 'absent.yml') });
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.source).toBeUndefined();
+      expect(result.value.content.dir).toBe('.');
+      expect(result.value.autoSync.enabled).toBeNull();
+      expect(result.value.linkPreviews.enabled).toBe(true);
+    }
+  });
+
+  test('valid file → valid=true, value is parsed config', () => {
+    const path = resolve(testDir, 'good.yml');
+    writeFileSync(path, 'content:\n  dir: docs\n', 'utf-8');
+    const result = readConfigSafely({ absPath: path });
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.content.dir).toBe('docs');
+      expect(result.source).toBe(path);
+    }
+  });
+
+  test.each([
+    ['maxBatchSize', 2_049, 96, 2_048],
+    ['maxBatchChars', 16_384_001, 96_000, 16_384_000],
+    ['docTimeoutMs', 2_147_483_648, 30_000, 600_000],
+  ] as const)(
+    'invalid %s uses its default without discarding other settings',
+    (field, invalid, fallback, maximum) => {
+      const path = resolve(testDir, 'transport.yml');
+      const configured = {
+        autoSync: { mode: 'follow', pullIntervalSeconds: 45, pushIntervalSeconds: 90 },
+        linkPreviews: { enabled: false },
+        search: {
+          semantic: {
+            enabled: true,
+            baseUrl: 'http://localhost:11434/v1',
+            model: 'nomic-embed-text',
+            maxBatchSize: 2,
+            maxBatchChars: 16_000,
+            docTimeoutMs: 120_000,
+            [field]: invalid,
+          },
+        },
+      };
+      const source = stringify(configured);
+      writeFileSync(path, source, 'utf-8');
+
+      const warnings: string[] = [];
+      const result = readConfigSafely({ absPath: path, warn: (message) => warnings.push(message) });
+
+      expect(result.valid).toBe(true);
+      expect(result.value.autoSync).toMatchObject(configured.autoSync);
+      expect(result.value.linkPreviews).toEqual(configured.linkPreviews);
+      expect(result.value.search.semantic).toMatchObject({
+        ...configured.search.semantic,
+        [field]: fallback,
+      });
+      expect(readFileSync(path, 'utf-8')).toBe(source);
+      const message = `Expected an integer between 1 and ${maximum}; using default ${fallback}.`;
+      expect(result.diagnostics).toMatchObject([
+        {
+          code: 'VALUE_FALLBACK',
+          issues: [
+            {
+              path: ['search', 'semantic', field],
+              message,
+              source: { file: path, line: expect.any(Number), column: expect.any(Number) },
+            },
+          ],
+        },
+      ]);
+      expect(warnings).toEqual([]);
+    },
+  );
+
+  test('repeated reads report recovered leaves without warnings or raw values', () => {
+    const path = resolve(testDir, 'fallbacks.yml');
+    const source =
+      'search:\n  semantic:\n    maxBatchSize: PRIVATE_INVALID_VALUE\n    docTimeoutMs: null\n';
+    writeFileSync(path, source, 'utf-8');
+    const warnings: string[] = [];
+
+    const result = readConfigSafely({ absPath: path, warn: (message) => warnings.push(message) });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toMatchObject([
+      {
+        code: 'VALUE_FALLBACK',
+        issues: [
+          {
+            path: ['search', 'semantic', 'maxBatchSize'],
+            source: { file: path, line: 3, column: 19 },
+          },
+          {
+            path: ['search', 'semantic', 'docTimeoutMs'],
+            source: { file: path, line: 4, column: 19 },
+          },
+        ],
+      },
+    ]);
+    expect(readConfigSafely({ absPath: path, warn: (message) => warnings.push(message) })).toEqual(
+      result,
+    );
+    expect(warnings).toEqual([]);
+    const valueBearingFields = serializeEveryFieldExceptCallerSuppliedPathsUnderTheFileKey(
+      result.diagnostics,
+      [path],
+    );
+    expect(
+      valueBearingFields,
+      'the leak serializer produced no haystack, so the absence check below is vacuous',
+    ).toContain(JSON.stringify(['search', 'semantic', 'maxBatchSize']));
+    expect(valueBearingFields).not.toContain('PRIVATE_INVALID_VALUE');
+    expect(result.diagnostics).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'SCHEMA_INVALID' })]),
+    );
+    expect(readFileSync(path, 'utf-8')).toBe(source);
+  });
+
+  test.each([
+    ['absent', 'search:\n  semantic:\n    enabled: true\n'],
+    [
+      'defaults',
+      'search:\n  semantic:\n    maxBatchSize: 96\n    maxBatchChars: 96000\n    docTimeoutMs: 30000\n',
+    ],
+    [
+      'minimums',
+      'search:\n  semantic:\n    maxBatchSize: 1\n    maxBatchChars: 1\n    docTimeoutMs: 1\n',
+    ],
+    [
+      'maximums',
+      'search:\n  semantic:\n    maxBatchSize: 2048\n    maxBatchChars: 16384000\n    docTimeoutMs: 600000\n',
+    ],
+    ['scalar alias', 'batch: &batch 2\nsearch:\n  semantic:\n    maxBatchSize: *batch\n'],
+    [
+      'mapping alias',
+      'tuning: &tuning\n  maxBatchSize: 2\n  docTimeoutMs: 120000\nsearch:\n  semantic: *tuning\n',
+    ],
+  ])('valid transport values (%s) produce no fallback diagnostics', (_name, source) => {
+    const path = resolve(testDir, 'valid-transport.yml');
+    writeFileSync(path, source, 'utf-8');
+    const warnings: string[] = [];
+
+    const result = readConfigSafely({ absPath: path, warn: (message) => warnings.push(message) });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(warnings).toEqual([]);
+    expect(readFileSync(path, 'utf-8')).toBe(source);
+  });
+
+  test('malformed YAML → valid=false, error.code=YAML_PARSE, file sidelined, value is defaults', () => {
+    const path = resolve(testDir, 'broken.yml');
+    writeFileSync(path, 'content:\n  dir: [invalid yaml', 'utf-8');
+    const warnings: string[] = [];
+    const result = readConfigSafely({
+      absPath: path,
+      timestamp: '2026-04-29T00-00-00-000Z',
+      warn: (msg) => warnings.push(msg),
+    });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error.code).toBe('YAML_PARSE');
+      expect(result.value.content.dir).toBe('.');
+      expect(existsSync(path)).toBe(false);
+      expect(result.sidelinedTo).toBeDefined();
+      if (result.sidelinedTo) {
+        expect(existsSync(result.sidelinedTo)).toBe(true);
+        expect(result.sidelinedTo).toContain('.invalid-');
+      }
+    }
+    expect(warnings.length).toBeGreaterThan(0);
+  });
+
+  test('removed keys → valid=true, keys stripped, siblings preserved, file not sidelined', () => {
+    const path = resolve(testDir, 'stale.yml');
+    writeFileSync(
+      path,
+      'folders:\n  - path: "x/**"\nserver:\n  host: 0.0.0.0\ncontent:\n  dir: docs\n',
+      'utf-8',
+    );
+    const warnings: string[] = [];
+    const result = readConfigSafely({ absPath: path, warn: (msg) => warnings.push(msg) });
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.content.dir).toBe('docs');
+      expect(leafPresent(result.value, ['folders'])).toBe(false);
+      expect(leafPresent(result.value, ['server', 'host'])).toBe(false);
+      const removed = result.diagnostics.filter((d) => d.code === 'REMOVED_KEY');
+      const dotted = removed.map((d) => (d.code === 'REMOVED_KEY' ? d.path.join('.') : ''));
+      expect(dotted).toContain('folders');
+      expect(dotted).toContain('server.host');
+      expect(removed).toHaveLength(2);
+    }
+    expect(existsSync(path)).toBe(true);
+    const siblings = readdirSync(testDir).filter((f) => f.includes('.invalid-'));
+    expect(siblings).toEqual([]);
+  });
+
+  test('an unrecognized theme id degrades that slot only; siblings survive; file not sidelined', () => {
+    const path = resolve(testDir, 'global.yml');
+    writeFileSync(
+      path,
+      [
+        'editor:',
+        '  wordWrap: false',
+        'appearance:',
+        '  theme: dark',
+        '  colorThemeLight: saved-my-personal',
+        '  colorThemeDark: dracula',
+        '',
+      ].join('\n'),
+      'utf-8',
+    );
+    const result = readConfigSafely({ absPath: path, warn: () => {} });
+
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.editor.wordWrap).toBe(false);
+      expect(result.value.appearance.theme).toBe('dark');
+      expect(result.value.appearance.colorThemeLight).toBe('saved-my-personal');
+      expect(result.value.appearance.colorThemeDark).toBe('dracula');
+    }
+    expect(resolveThemePlugin('saved-my-personal').id).toBe('default');
+    expect(resolveThemePlugin('dracula').id).toBe('dracula');
+    expect(existsSync(path)).toBe(true);
+    const siblings = readdirSync(testDir).filter((f) => f.includes('.invalid-'));
+    expect(siblings).toEqual([]);
+  });
+
+  test('a removed key is never sidelined, regardless of the sideline option', () => {
+    for (const sideline of [true, false] as const) {
+      const path = resolve(testDir, `stale-${sideline}.yml`);
+      writeFileSync(
+        path,
+        'preview:\n  baseUrl: https://example.test\ncontent:\n  dir: docs\n',
+        'utf-8',
+      );
+      const result = readConfigSafely({ absPath: path, sideline, warn: () => {} });
+      expect(result.valid).toBe(true);
+      if (result.valid) {
+        expect(result.value.content.dir).toBe('docs');
+        expect(result.diagnostics.some((d) => d.code === 'REMOVED_KEY')).toBe(true);
+      }
+      expect(existsSync(path)).toBe(true);
+    }
+  });
+
+  test('schema-invalid YAML → valid=false, error.code=SCHEMA_INVALID with structured issues + source', () => {
+    const path = resolve(testDir, 'bad.yml');
+    const yaml = `appearance:
+  theme: midnight
+`;
+    writeFileSync(path, yaml, 'utf-8');
+    const result = readConfigSafely({
+      absPath: path,
+      warn: () => {},
+    });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error.code).toBe('SCHEMA_INVALID');
+      if (isKnownConfigError(result.error) && result.error.code === 'SCHEMA_INVALID') {
+        expect(result.error.issues.length).toBeGreaterThan(0);
+        const issue = result.error.issues[0];
+        expect(issue.path).toEqual(['appearance', 'theme']);
+        expect(issue.source).toBeDefined();
+        expect(issue.source?.file).toBe(path);
+        expect(issue.source?.line).toBe(2);
+      }
+      expect(existsSync(path)).toBe(false);
+      expect(result.sidelinedTo).toBeDefined();
+    }
+  });
+
+  test('sideline=false leaves file in place when invalid', () => {
+    const path = resolve(testDir, 'broken.yml');
+    writeFileSync(path, 'content:\n  dir: [invalid yaml', 'utf-8');
+    const result = readConfigSafely({
+      absPath: path,
+      sideline: false,
+      warn: () => {},
+    });
+    expect(result.valid).toBe(false);
+    expect(existsSync(path)).toBe(true);
+    if (!result.valid) {
+      expect(result.sidelinedTo).toBeUndefined();
+    }
+  });
+
+  test('sideline rename failure logs warning and falls through (file stays in place)', () => {
+    const path = resolve(testDir, 'broken.yml');
+    writeFileSync(path, 'appearance:\n  theme: midnight\n', 'utf-8');
+    const warnings: string[] = [];
+    const result = readConfigSafely({
+      absPath: path,
+      sideline: false,
+      warn: (m) => warnings.push(m),
+    });
+    expect(result.valid).toBe(false);
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings.join('\n')).toContain('schema validation');
+  });
+
+  test('sidelined filename is filesystem-safe (no colons or dots from ISO timestamp)', () => {
+    const path = resolve(testDir, 'broken.yml');
+    writeFileSync(path, 'appearance:\n  theme: midnight\n', 'utf-8');
+    const result = readConfigSafely({
+      absPath: path,
+      timestamp: '2026-04-29T01:23:45.678Z',
+      warn: () => {},
+    });
+    expect(result.valid).toBe(false);
+    if (!result.valid && result.sidelinedTo) {
+      const tail = result.sidelinedTo.split('.invalid-')[1] ?? '';
+      expect(tail.includes(':')).toBe(false);
+    }
+  });
+
+  test('schema defaults are used regardless of failure mode', () => {
+    const path = resolve(testDir, 'broken.yml');
+    writeFileSync(path, 'appearance:\n  theme: midnight\n', 'utf-8');
+    const result = readConfigSafely({ absPath: path, warn: () => {} });
+    expect(result.valid).toBe(false);
+    expect(result.value.content.dir).toBe('.');
+  });
+
+  test('valid YAML with unknown fields (looseObject) is accepted', () => {
+    const path = resolve(testDir, 'loose.yml');
+    writeFileSync(path, 'sync:\n  pushIntervalSeconds: 30\ncontent:\n  dir: docs\n', 'utf-8');
+    const result = readConfigSafely({ absPath: path });
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.content.dir).toBe('docs');
+    }
+  });
+
+  test('sideline does not run if input is valid', () => {
+    const path = resolve(testDir, 'good.yml');
+    writeFileSync(path, 'content:\n  dir: docs\n', 'utf-8');
+    const result = readConfigSafely({ absPath: path });
+    expect(result.valid).toBe(true);
+    expect(existsSync(path)).toBe(true);
+    const siblings = readdirSync(testDir).filter((f) => f.includes('.invalid-'));
+    expect(siblings).toEqual([]);
+    expect(readFileSync(path, 'utf-8')).toContain('dir: docs');
+  });
+});
+
+describe('readConfigSafely — strip-and-continue invariant', () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = resolve(tmpdir(), `ok-strip-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(dir, { recursive: true });
+  });
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  for (const entry of REMOVED_KEYS) {
+    const dotted = entry.path.join('.');
+    test(`${dotted}: sibling resolves to on-disk value; key stripped; one diagnostic`, () => {
+      const obj: Record<string, unknown> = { content: { dir: 'docs' } };
+      setPath(obj, entry.path, 'sentinel');
+      const path = resolve(dir, 'cfg.yml');
+      writeFileSync(path, stringify(obj), 'utf-8');
+
+      const result = readConfigSafely({ absPath: path, warn: () => {} });
+
+      expect(result.valid).toBe(true);
+      if (result.valid) {
+        expect(result.value.content.dir).toBe('docs');
+        expect(leafPresent(result.value, entry.path)).toBe(false);
+        const removed = result.diagnostics.filter((d) => d.code === 'REMOVED_KEY');
+        expect(removed).toHaveLength(1);
+        const [diag] = removed;
+        if (diag?.code === 'REMOVED_KEY') {
+          expect(diag.path).toEqual(entry.path);
+          expect(diag.redirect).toBe(entry.redirect);
+        }
+      }
+      expect(existsSync(path)).toBe(true);
+    });
+  }
+});
+
+describe('readConfigSafely — diagnostics on the invalid arm', () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = resolve(tmpdir(), `ok-invalid-diag-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(dir, { recursive: true });
+  });
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('YAML parse failure surfaces a YAML_PARSE diagnostic', () => {
+    const path = resolve(dir, 'broken.yml');
+    writeFileSync(path, 'content:\n  dir: [invalid yaml', 'utf-8');
+    const result = readConfigSafely({ absPath: path, sideline: false, warn: () => {} });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]?.code).toBe('YAML_PARSE');
+    }
+  });
+
+  test('schema-invalid config surfaces a SCHEMA_INVALID diagnostic', () => {
+    const path = resolve(dir, 'bad.yml');
+    writeFileSync(path, 'appearance:\n  theme: midnight\n', 'utf-8');
+    const result = readConfigSafely({ absPath: path, sideline: false, warn: () => {} });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.diagnostics.some((d) => d.code === 'SCHEMA_INVALID')).toBe(true);
+    }
+  });
+
+  test('a clean config reports an empty diagnostics array', () => {
+    const path = resolve(dir, 'clean.yml');
+    writeFileSync(path, 'content:\n  dir: docs\n', 'utf-8');
+    const result = readConfigSafely({ absPath: path });
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.diagnostics).toEqual([]);
+    }
+  });
+
+  test('a file that exists but cannot be read reports UNREADABLE, not silence', () => {
+    const path = resolve(dir, 'a-directory.yml');
+    mkdirSync(path, { recursive: true });
+    const result = readConfigSafely({ absPath: path, sideline: false, warn: () => {} });
+    expect(result.valid).toBe(false);
+    expect(result.diagnostics.map((d) => d.code)).toEqual(['UNREADABLE']);
+  });
+
+  test('a removed key is still reported when the same file also fails schema validation', () => {
+    const path = resolve(dir, 'both-problems.yml');
+    writeFileSync(path, 'appearance:\n  theme: midnight\nserver:\n  host: 0.0.0.0\n', 'utf-8');
+    const result = readConfigSafely({ absPath: path, sideline: false, warn: () => {} });
+    expect(result.valid).toBe(false);
+    const codes = result.diagnostics.map((d) => d.code);
+    expect(codes).toContain('REMOVED_KEY');
+    expect(codes).toContain('SCHEMA_INVALID');
+  });
+});

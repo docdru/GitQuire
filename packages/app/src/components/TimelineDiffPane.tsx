@@ -1,0 +1,519 @@
+// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+
+import { ProblemDetailsSchema } from '@inkeep/open-knowledge-core/schemas/api';
+import { Plural, Trans, useLingui } from '@lingui/react/macro';
+import { ChevronDown, ChevronUp, PanelRightClose, PanelRightOpen, Undo2, X } from 'lucide-react';
+import { lazy, Suspense, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { MAX_RENDERED_CHANGES, PropertyDiffBlock } from '@/components/PropertyDiffBlock';
+import { computeRenderedDiff, RenderedDiffView } from '@/components/RenderedDiffView';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  collectChangeAnchors,
+  PROPERTY_CHANGE_ANCHOR_SELECTOR,
+  watchPierreShadowRoots,
+} from '@/lib/diff-change-nav';
+import { LruStringCache } from '@/lib/lru-string-cache';
+import { isOverlayLayerOpen } from '@/lib/overlay-layers';
+import {
+  countRenderedDiffAnchors,
+  RENDERED_DIFF_CHANGE_SELECTOR,
+} from '@/lib/rendered-diff/diff-decorations';
+import { closeTimelineDiff, type TimelineDiffView } from '@/lib/timeline-diff-store';
+import {
+  HISTORICAL_CONTENT_CACHE_LIMIT,
+  timelineEntryCacheKey,
+  useTimelineEntryDiff,
+} from '@/lib/use-timeline-entry-diff';
+
+const LazyActivityPanelDiffView = lazy(async () => {
+  const mod = await import('@/components/ActivityPanelDiffView');
+  return { default: mod.ActivityPanelDiffView };
+});
+
+interface TimelineDiffPaneProps {
+  view: TimelineDiffView;
+  isPanelCollapsed: boolean;
+  onTogglePanel: () => void;
+  onDestinationComplete?: (target?: HTMLElement) => void;
+  onDestinationFailed?: () => void;
+}
+
+export function TimelineDiffPane({
+  view,
+  isPanelCollapsed,
+  onTogglePanel,
+  onDestinationComplete,
+  onDestinationFailed,
+}: TimelineDiffPaneProps) {
+  const { t } = useLingui();
+  const { docName, sha, parentSha, laterEdits, authorName, relativeTime } = view;
+  const [cache] = useState(() => new LruStringCache(HISTORICAL_CONTENT_CACHE_LIMIT));
+  const [renderMode, setRenderMode] = useState<'rendered' | 'source'>('rendered');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const diffBodyRef = useRef<HTMLDivElement>(null);
+  const [currentChange, setCurrentChange] = useState(0);
+  const [pierreChangeCount, setPierreChangeCount] = useState(0);
+  const [pierreSettled, setPierreSettled] = useState(false);
+  const [propertiesOpen, setPropertiesOpen] = useState(true);
+  const result = useTimelineEntryDiff(sha, docName, cache, 'vs-parent', parentSha);
+  const completeDestination = useEffectEvent(() => {
+    onDestinationComplete?.(closeButtonRef.current ?? undefined);
+  });
+  const failDestination = useEffectEvent(() => onDestinationFailed?.());
+  const settledRequestRef = useRef<TimelineDiffView | null>(null);
+  useEffect(() => {
+    if (settledRequestRef.current === view) return;
+    if (result.status !== 'ready' && result.status !== 'error') return;
+    if (result.key !== timelineEntryCacheKey(docName, sha)) return;
+    if (result.status === 'ready') {
+      settledRequestRef.current = view;
+      completeDestination();
+    } else {
+      settledRequestRef.current = view;
+      failDestination();
+    }
+  }, [result, docName, sha, view]);
+
+  const rendered =
+    result.status === 'ready' ? computeRenderedDiff(result.before, result.after) : null;
+  const usingRendered = renderMode === 'rendered' && rendered?.ok === true;
+
+  const properties = result.status === 'ready' ? result.properties : null;
+  const propertyCount = properties?.changes.length ?? 0;
+  const hasPropertyBlock =
+    properties !== null && (properties.changes.length > 0 || properties.unparseable !== null);
+
+  const bodyChangeCount =
+    result.status !== 'ready'
+      ? 0
+      : usingRendered && rendered?.ok
+        ? countRenderedDiffAnchors(rendered)
+        : pierreSettled
+          ? pierreChangeCount
+          : 0;
+  const propertyAnchorCount =
+    properties === null
+      ? 0
+      : properties.unparseable !== null
+        ? 1
+        : propertiesOpen
+          ? Math.min(propertyCount, MAX_RENDERED_CHANGES)
+          : 0;
+  const changeCount = bodyChangeCount + propertyAnchorCount;
+
+  function goToChange(next: number): void {
+    const container = diffBodyRef.current;
+    if (!container) return;
+    const anchors = [
+      ...container.querySelectorAll<HTMLElement>(PROPERTY_CHANGE_ANCHOR_SELECTOR),
+      ...(usingRendered
+        ? Array.from(container.querySelectorAll<HTMLElement>(RENDERED_DIFF_CHANGE_SELECTOR))
+        : pierreSettled
+          ? collectChangeAnchors(container)
+          : []),
+    ];
+    if (anchors.length === 0) return;
+    const clamped = (next + anchors.length) % anchors.length;
+    setCurrentChange(clamped);
+    anchors[clamped]?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
+  const diffKey = result.status === 'ready' ? `${renderMode}:${result.diff}` : '';
+  useEffect(() => {
+    const container = diffBodyRef.current;
+    if (diffKey === '' || !container) return;
+    setCurrentChange(0);
+    setPierreChangeCount(0);
+    setPierreSettled(false);
+
+    let hasScrolled = false;
+    let observer: MutationObserver | null = null;
+    let settleTimer: ReturnType<typeof setTimeout> | undefined;
+    let rafId: number | undefined;
+
+    const measureChanges = (): Element[] => {
+      shadowWatcher.sync();
+      const pierreAnchors = collectChangeAnchors(container);
+      setPierreChangeCount(pierreAnchors.length);
+      setPierreSettled(true);
+      return pierreAnchors;
+    };
+
+    const measureAndMaybeScroll = (): void => {
+      const pierreAnchors = measureChanges();
+      if (hasScrolled) return;
+      const el =
+        container.querySelector<HTMLElement>(PROPERTY_CHANGE_ANCHOR_SELECTOR) ??
+        container.querySelector<HTMLElement>(RENDERED_DIFF_CHANGE_SELECTOR) ??
+        pierreAnchors[0];
+      if (!el) return;
+      hasScrolled = true;
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+    };
+
+    const settleMs = 120;
+    const scheduleAfterSettle = (): void => {
+      if (settleTimer !== undefined) clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        if (rafId !== undefined) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          rafId = requestAnimationFrame(measureAndMaybeScroll);
+        });
+      }, settleMs);
+    };
+
+    const shadowWatcher = watchPierreShadowRoots(container, scheduleAfterSettle);
+
+    observer = new MutationObserver(scheduleAfterSettle);
+    observer.observe(container, { childList: true, subtree: true });
+    scheduleAfterSettle();
+
+    const failsafe = setTimeout(() => {
+      measureChanges();
+      observer?.disconnect();
+      shadowWatcher.disconnect();
+    }, 5000);
+    return () => {
+      observer?.disconnect();
+      shadowWatcher.disconnect();
+      if (settleTimer !== undefined) clearTimeout(settleTimer);
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
+      clearTimeout(failsafe);
+    };
+  }, [diffKey]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape') return;
+      if (dialogOpen) return;
+      if (isOverlayLayerOpen()) return;
+      closeTimelineDiff();
+    };
+    window.addEventListener('keydown', onKey, { capture: true });
+    return () => window.removeEventListener('keydown', onKey, { capture: true });
+  }, [dialogOpen]);
+
+  async function handleRestore(): Promise<void> {
+    setRestoring(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    function cleanup(): void {
+      if (!controller.signal.aborted) setRestoring(false);
+      if (abortRef.current === controller) abortRef.current = null;
+    }
+
+    let res: Response;
+    try {
+      res = await fetch('/api/rollback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ docName, commitSha: sha }),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (
+        !controller.signal.aborted &&
+        !(err instanceof DOMException && err.name === 'AbortError')
+      ) {
+        toast.error(t`Restore failed — document unchanged`, { duration: 4000 });
+      }
+      cleanup();
+      return;
+    }
+
+    if (controller.signal.aborted) {
+      cleanup();
+      return;
+    }
+    if (res.ok) {
+      cleanup();
+      setDialogOpen(false);
+      closeTimelineDiff();
+      return;
+    }
+    let detail = `HTTP ${res.status}`;
+    try {
+      const problem = ProblemDetailsSchema.safeParse(await res.json());
+      if (problem.success) detail = problem.data.title;
+    } catch {}
+    toast.error(t`Restore failed`, { description: detail, duration: 6000 });
+    cleanup();
+  }
+
+  const showStat = result.status === 'ready' && (result.additions > 0 || result.deletions > 0);
+
+  return (
+    <div
+      className="absolute inset-0 z-20 flex flex-col bg-background"
+      data-testid="timeline-diff-pane"
+    >
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border px-3 py-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              ref={closeButtonRef}
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              data-testid="timeline-diff-close"
+              aria-label={t`Close diff`}
+              onClick={() => closeTimelineDiff()}
+            >
+              <X className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{t`Close diff`}</TooltipContent>
+        </Tooltip>
+
+        <div className="min-w-[8rem] flex-1">
+          <div className="truncate text-sm font-medium text-foreground">{docName}</div>
+          <div className="truncate text-xs text-muted-foreground">
+            {authorName} · {relativeTime}
+          </div>
+        </div>
+
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {propertyCount > 0 && (
+            <span
+              className="shrink-0 text-xs text-muted-foreground tabular-nums"
+              data-testid="timeline-diff-property-stat"
+            >
+              <Plural value={propertyCount} one="# property" other="# properties" />
+            </span>
+          )}
+
+          {showStat && result.status === 'ready' && (
+            <span
+              role="img"
+              className="shrink-0 text-xs tabular-nums"
+              data-testid="timeline-diff-stat"
+              aria-label={t`${result.additions} added, ${result.deletions} removed`}
+            >
+              <span aria-hidden="true" className="text-success">
+                +{result.additions}
+              </span>{' '}
+              <span aria-hidden="true" className="text-destructive">
+                −{result.deletions}
+              </span>
+            </span>
+          )}
+
+          <ToggleGroup
+            type="single"
+            value={renderMode}
+            onValueChange={(v) => {
+              if (v === 'rendered' || v === 'source') setRenderMode(v);
+            }}
+            aria-label={t`Diff render mode`}
+            variant="segmented"
+            size="sm"
+            spacing={1}
+            className="shrink-0 rounded-md bg-muted p-0.5 dark:bg-background"
+          >
+            <ToggleGroupItem
+              value="rendered"
+              className="h-6 px-2 text-xs"
+              data-testid="timeline-diff-render-rendered"
+            >
+              <Trans>Rendered</Trans>
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="source"
+              className="h-6 px-2 text-xs"
+              data-testid="timeline-diff-render-source"
+            >
+              <Trans>Source</Trans>
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          {changeCount > 1 && (
+            <div className="flex shrink-0 items-center gap-0.5 rounded-md border border-border bg-muted/40 p-0.5 dark:bg-background">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6"
+                aria-label={t`Previous change`}
+                data-testid="timeline-diff-prev"
+                onClick={() => goToChange(currentChange - 1)}
+              >
+                <ChevronUp className="size-3.5" />
+              </Button>
+              <span
+                className="px-0.5 text-xs tabular-nums text-muted-foreground"
+                aria-live="polite"
+              >
+                {currentChange + 1} / {changeCount}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6"
+                aria-label={t`Next change`}
+                data-testid="timeline-diff-next"
+                onClick={() => goToChange(currentChange + 1)}
+              >
+                <ChevronDown className="size-3.5" />
+              </Button>
+            </div>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 shrink-0"
+            data-testid="timeline-diff-restore"
+            disabled={restoring}
+            onClick={() => (laterEdits > 0 ? setDialogOpen(true) : handleRestore())}
+          >
+            {restoring ? (
+              <Spinner aria-hidden="true" className="mr-1.5 size-3.5" />
+            ) : (
+              <Undo2 className="mr-1.5 size-3.5" />
+            )}
+            <Trans>Restore</Trans>
+          </Button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                data-testid="timeline-diff-toggle-panel"
+                aria-label={isPanelCollapsed ? t`Show panel` : t`Hide panel`}
+                aria-expanded={!isPanelCollapsed}
+                onClick={onTogglePanel}
+              >
+                {isPanelCollapsed ? (
+                  <PanelRightOpen className="size-4" />
+                ) : (
+                  <PanelRightClose className="size-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {isPanelCollapsed ? t`Show panel` : t`Hide panel`}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+
+      <div ref={diffBodyRef} className="min-h-0 flex-1 overflow-auto subtle-scrollbar">
+        {result.status === 'loading' && (
+          <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
+            <Spinner aria-hidden="true" className="size-3" />
+            <Trans>Loading diff</Trans>
+          </div>
+        )}
+        {result.status === 'error' && (
+          <p className="px-4 py-3 text-xs text-destructive">
+            <Trans>Diff unavailable</Trans>
+          </p>
+        )}
+        {result.status === 'ready' && properties !== null && (
+          <PropertyDiffBlock
+            delta={properties}
+            open={propertiesOpen}
+            onOpenChange={(next) => {
+              setPropertiesOpen(next);
+              setCurrentChange(0);
+            }}
+          />
+        )}
+        {result.status === 'ready' &&
+          (renderMode === 'rendered' && rendered?.ok ? (
+            <RenderedDiffView diff={rendered} docName={docName} />
+          ) : result.diff === '' ? (
+            <>
+              <p className="border-b border-border px-4 py-2 text-xs text-muted-foreground italic">
+                {hasPropertyBlock ? (
+                  <Trans>No body changes in this version</Trans>
+                ) : (
+                  <Trans>No content changes in this version</Trans>
+                )}
+              </p>
+              <pre className="whitespace-pre-wrap px-4 py-3 font-mono text-xs text-foreground/90">
+                {result.after}
+              </pre>
+            </>
+          ) : (
+            <Suspense
+              fallback={
+                <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
+                  <Spinner aria-hidden="true" className="size-3" />
+                  <Trans>Loading diff renderer</Trans>
+                </div>
+              }
+            >
+              <LazyActivityPanelDiffView
+                before={result.before}
+                after={result.after}
+                cacheKey={`${docName}@${sha}`}
+              />
+            </Suspense>
+          ))}
+      </div>
+
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(next) => {
+          if (!next && !restoring) setDialogOpen(false);
+          else if (next) setDialogOpen(true);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t`Restore to this version?`}</DialogTitle>
+            <DialogDescription>
+              <Plural
+                value={laterEdits}
+                one="Rolls back # later edit."
+                other="Rolls back # later edits."
+              />{' '}
+              <Trans>Your current version is saved first, so this is reversible.</Trans>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              data-testid="timeline-diff-restore-cancel"
+              onClick={() => setDialogOpen(false)}
+            >
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              variant="destructive"
+              data-testid="timeline-diff-restore-confirm"
+              disabled={restoring}
+              onClick={() => handleRestore()}
+            >
+              {restoring ? <Spinner aria-hidden="true" className="mr-2 size-4" /> : null}
+              <Trans>Restore</Trans>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    UPSTREAM(electron@44.9.1): the helper stub `scripts/afterPack.mjs` clones
+      into this bundle reads its own `_NSGetExecutablePath()` basename early in
+      boot and silently SIGTRAPs (exit 133, empty stderr) unless it is
+      `<productName> Helper`, so `CFBundleExecutable` carries that name
+      (Stable here; `scripts/desktop-variant-config.ts` rewrites it for Beta).
+      Runtime guard: `scripts/assert-packaged-helper-runs-as-node.mjs`, run in CI against the
+      packaged app.
+
+    `LSUIElement=true` is the Dock-suppression key that PR #1290 was
+    written to introduce — without it, LaunchServices keys on the spawn
+    binary path and pins a stuck "exec" Dock placeholder for the lifetime
+    of the detached server.
+
+    `LSEnvironment.MallocNanoZone=0` and `NSSupportsAutomaticGraphicsSwitching`
+    mirror the keys Electron ships in its own helper Info.plists. They are
+    NOT load-bearing for the SIGTRAP fix (verified empirically — the trap
+    persisted with these set when the executable basename was wrong), but
+    they bring this bundle structurally closer to the sibling Helper
+    bundles for forward compatibility.
+-->
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.inkeep.open-knowledge.server</string>
+    <key>CFBundleName</key>
+    <string>OpenKnowledge Server</string>
+    <key>CFBundleDisplayName</key>
+    <string>OpenKnowledge Server</string>
+    <key>CFBundleExecutable</key>
+    <string>OpenKnowledge Helper</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>LSEnvironment</key>
+    <dict>
+      <key>MallocNanoZone</key>
+      <string>0</string>
+    </dict>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+</dict>
+</plist>

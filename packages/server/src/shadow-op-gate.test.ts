@@ -1,0 +1,256 @@
+import { describe, expect, test } from 'vitest';
+import { releaseShadowOpGate, ShadowOpGate, shadowOpGateFor } from './shadow-op-gate.ts';
+
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
+describe('ShadowOpGate (forced interleavings, deterministic)', () => {
+  test('mutators run concurrently with each other', async () => {
+    const gate = new ShadowOpGate();
+    const a = Promise.withResolvers<void>();
+    const b = Promise.withResolvers<void>();
+    let aStarted = false;
+    let bStarted = false;
+    const pa = gate.withMutator(async () => {
+      aStarted = true;
+      await a.promise;
+    });
+    const pb = gate.withMutator(async () => {
+      bStarted = true;
+      await b.promise;
+    });
+    await tick();
+    expect(aStarted).toBe(true);
+    expect(bStarted).toBe(true);
+    expect(gate.activeMutators).toBe(2);
+    a.resolve();
+    b.resolve();
+    await Promise.all([pa, pb]);
+    expect(gate.activeMutators).toBe(0);
+  });
+
+  test('exclusive waits for an in-flight mutator to drain before running', async () => {
+    const gate = new ShadowOpGate();
+    const hold = Promise.withResolvers<void>();
+    let gcRan = false;
+    const mutator = gate.withMutator(() => hold.promise);
+    await tick();
+    const gc = gate.withExclusive(async () => {
+      gcRan = true;
+    });
+    await tick();
+    expect(gcRan).toBe(false);
+    expect(gate.isExclusiveHeld).toBe(false);
+    hold.resolve();
+    await gc;
+    expect(gcRan).toBe(true);
+    await mutator;
+  });
+
+  test('mutators queue while exclusive holds, run after release', async () => {
+    const gate = new ShadowOpGate();
+    const gcHold = Promise.withResolvers<void>();
+    let mutatorRan = false;
+    const gc = gate.withExclusive(() => gcHold.promise);
+    await tick();
+    expect(gate.isExclusiveHeld).toBe(true);
+    const mutator = gate.withMutator(async () => {
+      mutatorRan = true;
+    });
+    await tick();
+    expect(mutatorRan).toBe(false);
+    gcHold.resolve();
+    await gc;
+    await mutator;
+    expect(mutatorRan).toBe(true);
+  });
+
+  test('new top-level mutator is not blocked by a waiting (not holding) exclusive', async () => {
+    const gate = new ShadowOpGate();
+    const mutatorHold = Promise.withResolvers<void>();
+    const firstMutator = gate.withMutator(() => mutatorHold.promise);
+    await tick();
+    let gcRan = false;
+    const gc = gate.withExclusive(async () => {
+      gcRan = true;
+    });
+    await tick();
+    expect(gate.isExclusiveHeld).toBe(false);
+    let newMutatorRan = false;
+    const newMutator = gate.withMutator(async () => {
+      newMutatorRan = true;
+    });
+    await tick();
+    expect(newMutatorRan).toBe(true);
+    mutatorHold.resolve();
+    await Promise.all([firstMutator, newMutator, gc]);
+    expect(gcRan).toBe(true);
+  });
+
+  test('nested mutator holds never deadlock against a waiting exclusive', async () => {
+    const gate = new ShadowOpGate();
+    const outerHold = Promise.withResolvers<void>();
+    let innerRan = false;
+    const outer = gate.withMutator(async () => {
+      await outerHold.promise;
+      await gate.withMutator(async () => {
+        innerRan = true;
+      });
+    });
+    await tick();
+    let gcRan = false;
+    const gc = gate.withExclusive(async () => {
+      gcRan = true;
+    });
+    await tick();
+    expect(gcRan).toBe(false);
+    outerHold.resolve();
+    await outer;
+    expect(innerRan).toBe(true);
+    await gc;
+    expect(gcRan).toBe(true);
+  });
+
+  test('exclusives serialize against each other', async () => {
+    const gate = new ShadowOpGate();
+    const firstHold = Promise.withResolvers<void>();
+    const order: string[] = [];
+    const first = gate.withExclusive(async () => {
+      order.push('first-start');
+      await firstHold.promise;
+      order.push('first-end');
+    });
+    await tick();
+    const second = gate.withExclusive(async () => {
+      order.push('second-start');
+    });
+    await tick();
+    expect(order).toEqual(['first-start']);
+    firstHold.resolve();
+    await Promise.all([first, second]);
+    expect(order).toEqual(['first-start', 'first-end', 'second-start']);
+  });
+
+  test('two exclusives queued behind one mutator still serialize', async () => {
+    const gate = new ShadowOpGate();
+    const mutatorHold = Promise.withResolvers<void>();
+    const firstHold = Promise.withResolvers<void>();
+    const order: string[] = [];
+    const mutator = gate.withMutator(() => mutatorHold.promise);
+    await tick();
+    const first = gate.withExclusive(async () => {
+      order.push('first-start');
+      await firstHold.promise;
+      order.push('first-end');
+    });
+    const second = gate.withExclusive(async () => {
+      order.push('second-start');
+    });
+    await tick();
+    expect(order).toEqual([]);
+    mutatorHold.resolve();
+    await mutator;
+    await tick();
+    expect(order).toEqual(['first-start']);
+    firstHold.resolve();
+    await Promise.all([first, second]);
+    expect(order).toEqual(['first-start', 'first-end', 'second-start']);
+  });
+
+  test('mutator errors release the hold (exclusive still proceeds)', async () => {
+    const gate = new ShadowOpGate();
+    await expect(
+      gate.withMutator(async () => {
+        throw new Error('boom');
+      }),
+    ).rejects.toThrow('boom');
+    expect(gate.activeMutators).toBe(0);
+    let gcRan = false;
+    await gate.withExclusive(async () => {
+      gcRan = true;
+    });
+    expect(gcRan).toBe(true);
+  });
+
+  test('exclusive errors release the hold (mutators still proceed)', async () => {
+    const gate = new ShadowOpGate();
+    await expect(
+      gate.withExclusive(async () => {
+        throw new Error('gc-boom');
+      }),
+    ).rejects.toThrow('gc-boom');
+    expect(gate.isExclusiveHeld).toBe(false);
+    let mutatorRan = false;
+    await gate.withMutator(async () => {
+      mutatorRan = true;
+    });
+    expect(mutatorRan).toBe(true);
+  });
+
+  test('drain resolves immediately when no mutator is in flight', async () => {
+    const gate = new ShadowOpGate();
+    let drained = false;
+    void gate.drain().then(() => {
+      drained = true;
+    });
+    await tick();
+    expect(drained).toBe(true);
+  });
+
+  test('drain waits for the last of several concurrent mutators', async () => {
+    const gate = new ShadowOpGate();
+    const a = Promise.withResolvers<void>();
+    const b = Promise.withResolvers<void>();
+    const pa = gate.withMutator(() => a.promise);
+    const pb = gate.withMutator(() => b.promise);
+    await tick();
+    expect(gate.activeMutators).toBe(2);
+
+    let drained = false;
+    const drain = gate.drain().then(() => {
+      drained = true;
+    });
+
+    a.resolve();
+    await pa;
+    await tick();
+    expect(drained).toBe(false);
+    expect(gate.activeMutators).toBe(1);
+
+    b.resolve();
+    await pb;
+    await drain;
+    expect(drained).toBe(true);
+    expect(gate.activeMutators).toBe(0);
+  });
+
+  test('drain does not acquire the gate — a later mutator still runs freely', async () => {
+    const gate = new ShadowOpGate();
+    const held = Promise.withResolvers<void>();
+    const first = gate.withMutator(() => held.promise);
+    await tick();
+
+    const drain = gate.drain();
+    held.resolve();
+    await first;
+    await drain;
+
+    expect(gate.isExclusiveHeld).toBe(false);
+    let ran = false;
+    await gate.withMutator(async () => {
+      ran = true;
+    });
+    expect(ran).toBe(true);
+  });
+
+  test('registry: same gitDir shares one gate; release drops it', () => {
+    const a = shadowOpGateFor({ gitDir: '/tmp/gate-test-a' });
+    const b = shadowOpGateFor({ gitDir: '/tmp/gate-test-a' });
+    const c = shadowOpGateFor({ gitDir: '/tmp/gate-test-c' });
+    expect(a).toBe(b);
+    expect(a).not.toBe(c);
+    releaseShadowOpGate('/tmp/gate-test-a');
+    expect(shadowOpGateFor({ gitDir: '/tmp/gate-test-a' })).not.toBe(a);
+    releaseShadowOpGate('/tmp/gate-test-a');
+    releaseShadowOpGate('/tmp/gate-test-c');
+  });
+});

@@ -1,0 +1,192 @@
+import { execFileSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { cpus, hostname, totalmem } from 'node:os';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, test } from 'vitest';
+import { sharedExtensions } from '../../src/extensions/shared.ts';
+import {
+  loadPerfFixture,
+  PERF_BLOCK_COUNTS,
+  type PerfBlockCount,
+} from '../../src/markdown/fixtures/index.ts';
+import { MarkdownManager } from '../../src/markdown/index.ts';
+import { collectGarbage, gcAvailable } from './gc.ts';
+import type { FreshResults } from './regression-gate.ts';
+
+const BENCH_ENABLED = process.env.RUN_BENCH === '1' || process.env.RUN_BENCH === 'true';
+
+const describeBench = BENCH_ENABLED ? describe : describe.skip;
+
+const WARMUP_ITERS = 10;
+const MEASURED_ITERS = 10;
+
+interface Stats {
+  mean: number;
+  min: number;
+  max: number;
+  p50: number;
+  p95: number;
+  p99: number;
+}
+
+function stats(samples: number[]): Stats {
+  const sorted = [...samples].sort((a, b) => a - b);
+  const pct = (p: number) => {
+    const idx = Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length));
+    return sorted[idx];
+  };
+  const sum = samples.reduce((a, b) => a + b, 0);
+  return {
+    mean: sum / samples.length,
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    p50: pct(50),
+    p95: pct(95),
+    p99: pct(99),
+  };
+}
+
+const HARNESS_DIR = dirname(fileURLToPath(import.meta.url));
+
+function readGitSha(): string {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: HARNESS_DIR,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+function readVitestVersion(): string {
+  try {
+    return createRequire(import.meta.url)('vitest/package.json').version ?? 'unknown';
+  } catch (err) {
+    console.warn(`[bench] could not resolve the vitest version: ${String(err)}`);
+    return 'unknown';
+  }
+}
+
+type RunnerInfo = {
+  nodeVersion: string;
+  vitestVersion: string;
+  gitSha: string;
+  hostname: string;
+  cpuModel: string;
+  cpuCores: number;
+  ramGB: number;
+  platform: string;
+  runnerClass: string;
+};
+
+function runnerInfo(): RunnerInfo {
+  const cpuList = cpus();
+  return {
+    nodeVersion: process.versions.node,
+    vitestVersion: readVitestVersion(),
+    gitSha: readGitSha(),
+    hostname: hostname(),
+    cpuModel: cpuList[0]?.model ?? 'unknown',
+    cpuCores: cpuList.length,
+    ramGB: Math.round(totalmem() / 1024 ** 3),
+    platform: `${process.platform}-${process.arch}`,
+    runnerClass: process.env.BENCH_RUNNER_CLASS ?? 'local',
+  };
+}
+
+const GC_FORCED = gcAvailable();
+
+function measure(op: () => void, n: number): number[] {
+  const samples: number[] = [];
+  for (let i = 0; i < n; i++) {
+    collectGarbage();
+    const t0 = performance.now();
+    op();
+    samples.push(performance.now() - t0);
+  }
+  return samples;
+}
+
+interface BlockResult {
+  blockCount: PerfBlockCount;
+  docSizeChars: number;
+  parseMs: Stats;
+  serializeMs: Stats;
+  roundTripMs: Stats;
+}
+
+function benchmarkBlockCount(mm: MarkdownManager, blockCount: PerfBlockCount): BlockResult {
+  const md = loadPerfFixture(blockCount);
+
+  for (let i = 0; i < WARMUP_ITERS; i++) mm.parse(md);
+  const pmWarm = mm.parse(md);
+  for (let i = 0; i < WARMUP_ITERS; i++) mm.serialize(pmWarm);
+
+  const parseSamples = measure(() => {
+    mm.parse(md);
+  }, MEASURED_ITERS);
+  const pm = mm.parse(md);
+  const serializeSamples = measure(() => {
+    mm.serialize(pm);
+  }, MEASURED_ITERS);
+  const roundTripSamples = measure(() => {
+    mm.serialize(mm.parse(md));
+  }, MEASURED_ITERS);
+
+  return {
+    blockCount,
+    docSizeChars: md.length,
+    parseMs: stats(parseSamples),
+    serializeMs: stats(serializeSamples),
+    roundTripMs: stats(roundTripSamples),
+  };
+}
+
+describeBench('markdown pipeline benchmark harness (R1)', () => {
+  test(
+    'parse/serialize/round-trip at pinned block counts',
+    () => {
+      const mm = new MarkdownManager({ extensions: sharedExtensions });
+      const startedAt = new Date().toISOString();
+      const results: BlockResult[] = [];
+      for (const count of PERF_BLOCK_COUNTS) {
+        const result = benchmarkBlockCount(mm, count);
+        results.push(result);
+        console.log(
+          `[bench] ${count} blocks (${result.docSizeChars.toLocaleString()} chars): ` +
+            `parse p50=${result.parseMs.p50.toFixed(1)}ms p99=${result.parseMs.p99.toFixed(1)}ms | ` +
+            `serialize p50=${result.serializeMs.p50.toFixed(1)}ms p99=${result.serializeMs.p99.toFixed(1)}ms`,
+        );
+        expect(result.parseMs.p50).toBeGreaterThan(0);
+        expect(result.serializeMs.p50).toBeGreaterThan(0);
+      }
+
+      const output = {
+        schemaVersion: 2,
+        startedAt,
+        finishedAt: new Date().toISOString(),
+        methodology: {
+          warmupIters: WARMUP_ITERS,
+          measuredIters: MEASURED_ITERS,
+          gcBetweenRuns: GC_FORCED,
+        },
+        toolchain: {
+          runtime: `node@${process.versions.node}`,
+          testRunner: `vitest@${readVitestVersion()}`,
+        },
+        runner: runnerInfo(),
+        results,
+      } satisfies FreshResults;
+
+      const stamp = startedAt.replace(/[:.]/g, '-');
+      const target = resolve(HARNESS_DIR, `results.${stamp}.json`);
+      writeFileSync(target, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
+      console.log(`[bench] wrote ${target}`);
+    },
+    10 * 60_000,
+  );
+});

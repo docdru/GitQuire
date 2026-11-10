@@ -1,0 +1,71 @@
+import { TERMINAL_CLIS } from '@inkeep/open-knowledge-core';
+import * as actualLinguiMacro from '@lingui/react/macro';
+import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
+
+vi.doMock('@lingui/react/macro', () => ({
+  ...actualLinguiMacro,
+  Trans: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useLingui: () => ({
+    t: (strings: TemplateStringsArray, ...values: unknown[]) =>
+      strings.reduce((acc, part, index) => `${acc}${part}${values[index] ?? ''}`, ''),
+  }),
+}));
+
+const { TerminalCliMissingBanner } = await import('./TerminalCliMissingBanner');
+
+function makeBridge() {
+  const openExternal = vi.fn(async (_url: string) => {});
+  return {
+    bridge: { shell: { openExternal } } as unknown as OkDesktopBridge,
+    openExternal,
+  };
+}
+
+describe('TerminalCliMissingBanner', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  test('"Get Codex" opens the Codex CLI docs URL', async () => {
+    const { bridge, openExternal } = makeBridge();
+    render(<TerminalCliMissingBanner cli="codex" bridge={bridge} onDismiss={() => {}} />);
+
+    expect(screen.getByText(/Codex \(codex\) isn't installed/)).toBeTruthy();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Get Codex' }));
+    expect(openExternal).toHaveBeenCalledTimes(1);
+    expect(openExternal).toHaveBeenCalledWith(TERMINAL_CLIS.codex.docsUrl);
+  });
+
+  test('Claude uses the missing-CLI banner and opens its installation docs', async () => {
+    const { bridge, openExternal } = makeBridge();
+    render(<TerminalCliMissingBanner cli="claude" bridge={bridge} onDismiss={() => {}} />);
+    expect(screen.getByTestId('terminal-cli-missing-banner').textContent).toContain('Claude Code');
+    expect(screen.queryByTestId('terminal-readiness-banner')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Get Claude Code' }));
+    expect(openExternal).toHaveBeenCalledWith(TERMINAL_CLIS.claude.docsUrl);
+  });
+
+  test('"Get Cursor" opens the Cursor CLI docs URL (binary is cursor-agent)', async () => {
+    const { bridge, openExternal } = makeBridge();
+    render(<TerminalCliMissingBanner cli="cursor" bridge={bridge} onDismiss={() => {}} />);
+
+    expect(screen.getByText(/Cursor \(cursor-agent\) isn't installed/)).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Get Cursor' }));
+    expect(openExternal).toHaveBeenCalledWith(TERMINAL_CLIS.cursor.docsUrl);
+  });
+
+  test('the dismiss control fires onDismiss without opening docs', async () => {
+    const { bridge, openExternal } = makeBridge();
+    const onDismiss = vi.fn(() => {});
+    render(<TerminalCliMissingBanner cli="codex" bridge={bridge} onDismiss={onDismiss} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(openExternal).not.toHaveBeenCalled();
+  });
+});

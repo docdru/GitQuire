@@ -1,0 +1,45 @@
+---
+title: "Math"
+description: "Block math equation rendered with KaTeX from a LaTeX source string"
+keywords: "math, latex, equation, formula, katex, tex"
+---
+
+## Example
+
+<ComponentPreview>
+  <MathPreview formula="E = mc^2" />
+</ComponentPreview>
+
+```md
+$$
+E = mc^2
+$$
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "formula": {
+    description: "LaTeX math source (rendered with KaTeX in the browser)",
+    type: "string",
+    required: true,
+  },
+  "id": {
+    description: "HTML id attribute for deep-linking (e.g. \\`#eq-pythagoras\\`)",
+    type: "string",
+    required: false,
+  },
+  "language": {
+    description: "Forward-compat hint for the math source language (default \\`latex\\`). Reserved for future MathJax / Typst / AsciiMath substrates.",
+    type: "string",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `math`, `latex`, `equation`, `formula`, `katex`, `tex`
+
+## Author it
+
+Type `/math` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

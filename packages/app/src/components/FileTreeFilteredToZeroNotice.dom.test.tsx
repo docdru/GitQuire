@@ -1,0 +1,122 @@
+/** Runs under the jsdom substrate (precedent #43). */
+
+import * as actualLinguiMacro from '@lingui/react/macro';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
+
+vi.doMock('@lingui/react/macro', () => ({
+  ...actualLinguiMacro,
+  useLingui: () => ({ t: renderLinguiTemplate }),
+}));
+
+let projectLocalBindingNull = false;
+let projectLocalSynced = true;
+let patchResultOk = true;
+const patchCalls: unknown[] = [];
+const toastErrors: unknown[][] = [];
+
+vi.doMock('@/lib/config-provider', () => ({
+  useConfigContext: () => ({
+    merged: null,
+    projectLocalSynced,
+    projectLocalBinding: projectLocalBindingNull
+      ? null
+      : {
+          patch: (value: unknown) => {
+            patchCalls.push(value);
+            return patchResultOk
+              ? { ok: true, appliedPaths: [], effective: {} }
+              : { ok: false, error: { issues: [] } };
+          },
+        },
+  }),
+}));
+
+vi.doMock('sonner', () => ({
+  toast: {
+    error: (...args: unknown[]) => toastErrors.push(args),
+    success: () => {},
+  },
+}));
+
+const { FileTreeFilteredToZeroNotice } = await import('./FileTreeFilteredToZeroNotice');
+
+const resetButton = () => screen.queryByTestId('reset-view-filters');
+
+describe('FileTreeFilteredToZeroNotice', () => {
+  beforeEach(() => {
+    projectLocalBindingNull = false;
+    projectLocalSynced = true;
+    patchResultOk = true;
+    patchCalls.length = 0;
+    toastErrors.length = 0;
+  });
+
+  afterEach(() => cleanup());
+
+  test('explains the state and offers the reset action', () => {
+    render(<FileTreeFilteredToZeroNotice />);
+
+    expect(screen.queryByTestId('file-tree-filtered-to-zero')).toBeTruthy();
+    expect(screen.queryByText('All files are hidden by view filters.')).toBeTruthy();
+    expect(resetButton()).toBeTruthy();
+  });
+
+  test('reset restores the tree-content toggles to defaults and leaves the Skills section alone', () => {
+    render(<FileTreeFilteredToZeroNotice />);
+
+    fireEvent.click(resetButton() as HTMLElement);
+    expect(patchCalls).toEqual([
+      {
+        appearance: {
+          sidebar: {
+            showHiddenFiles: false,
+            showOnlyMarkdownFiles: false,
+            showOkFolders: false,
+          },
+        },
+      },
+    ]);
+  });
+
+  test('reset is disabled while the project-local binding is unavailable', () => {
+    projectLocalBindingNull = true;
+    render(<FileTreeFilteredToZeroNotice />);
+
+    expect((resetButton() as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(resetButton() as HTMLElement);
+    expect(patchCalls).toEqual([]);
+  });
+
+  test('reset rejects input until the project-local binding first syncs', () => {
+    projectLocalSynced = false;
+    const rendered = render(<FileTreeFilteredToZeroNotice />);
+
+    const syncingButton = resetButton() as HTMLButtonElement;
+    const pendingReason = screen.getByText('Settings are still loading. Try again in a moment.');
+    expect(syncingButton.disabled).toBe(true);
+    expect(syncingButton.getAttribute('aria-describedby')).toBe(pendingReason.id);
+    fireEvent.click(syncingButton);
+    expect(patchCalls).toEqual([]);
+
+    projectLocalSynced = true;
+    rendered.rerender(<FileTreeFilteredToZeroNotice />);
+
+    const readyButton = resetButton() as HTMLButtonElement;
+    expect(readyButton.disabled).toBe(false);
+    expect(readyButton.getAttribute('aria-describedby')).toBeNull();
+    expect(screen.queryByText('Settings are still loading. Try again in a moment.')).toBeNull();
+    fireEvent.click(readyButton);
+    expect(patchCalls).toHaveLength(1);
+  });
+
+  test('a rejected patch surfaces the shared settings toast', () => {
+    patchResultOk = false;
+    render(<FileTreeFilteredToZeroNotice />);
+
+    fireEvent.click(resetButton() as HTMLElement);
+    expect(toastErrors.length).toBe(1);
+    expect(toastErrors[0]?.[0]).toBe('Could not update sidebar settings');
+  });
+});

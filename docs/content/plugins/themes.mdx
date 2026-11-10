@@ -1,0 +1,42 @@
+---
+title: Themes
+icon: LuPalette
+description: Recolor the editor with built-in palettes or your own base16 schemes, one palette per light mode and one per dark, saved as portable YAML files.
+---
+
+Themes recolors the whole OpenKnowledge interface with a [base16](https://github.com/tinted-theming/schemes) palette. It's a user plugin: on by default, personal to your device, never committed.
+
+Open **Settings → Plugins → Themes**. The page is a gallery of tiles: **Default**, the built-ins (Dracula, Catppuccin Frappé, Catppuccin Latte, Monokai, Gruvbox, Solarized), and any themes you've created, plus a **Create new theme** tile.
+
+## One palette per mode
+
+Every tile carries a sun and a moon: the sun assigns that palette to light mode, the moon to dark mode. Clicking the tile itself assigns it to whichever mode is currently active. The light/dark switch in **Settings → Preferences** decides which of the two slots is live. On **System**, your OS does, so the palette follows the OS appearance.
+
+A palette forces its own light or dark variant wherever it sits. Put Dracula in the light slot and switching to light mode shows Dracula's dark colors: the slot decides *when* a palette applies, and the palette decides how it looks. **Default** means no palette: the base stylesheet shows through.
+
+Palette colors never change your Light, Dark, or System preference. That preference controls the light/dark identity used by native window chrome and operating-system integration. The active palette also colors the window background on Windows and Linux, plus the title-bar controls on Windows.
+
+Selections are saved to your user config as `appearance.colorThemeLight` / `appearance.colorThemeDark`. See the [configuration reference](/docs/reference/configuration).
+
+## Create your own
+
+Click **Create new theme**, name it, and the editor opens. Two ways to fill it in:
+
+- **Paste a scheme.** The paste box accepts any [Tinted Theming](https://github.com/tinted-theming/schemes) base16 scheme (hundreds are published), in either the current layout (`palette:` nested) or the original chriskempson one, YAML or JSON.
+- **Edit the sixteen slots by hand.** Each `base00`–`base0F` slot names its role. Edits apply live and save automatically.
+
+Four slots also color status: `base0B` success, `base0A` warning, `base08` errors and `base0D` information. Four others tell threads apart: `base0E`, `base0C`, `base09` and `base0F`. Status text has to stay readable on the page and card backgrounds (`base00` and `base01`), and on a light wash of its own color, the way badges and hover states draw it. A status slot that falls short is drawn darker or lighter than the hex you entered, as far as it takes to pass, which can be a noticeable shift for a pale or mid-tone color. Links (`base0D`) shift the same way to stay readable on the page, cards, menus and callouts, and unresolved links (`base08`) and code block title text (`base04`) shift too. Secondary text (`base04`) shifts until it reads at 4.5:1 on the page and card backgrounds (`base00` and `base01`), which menus and the sidebar share. In the command palette and the pickers that share its rows, a highlighted row's secondary text (`base04`) is also drawn darker or lighter, as far as it takes to read at 4.5:1 on its `base02` background, and its label uses whichever of `base00`, `base05` and `base07` reads best there, or black or white if none reaches 4.5:1. Deleted text in diffs (`base08`) shifts until it reads at 4.5:1 on the red wash behind it, and the comment highlight (`base0D`) until its resting underline reaches 3:1 against the page. The file tree's carets, guides and Markdown icons use `base03`, shifted as far as it takes to stay visible on the sidebar (`base01`). The graph colors its clusters with all eight accent slots, `base08` through `base0F`, and skill preview cards draw their tints from six of them. On the graph, an accent, or `base04` for default nodes and edges, that reads under 3:1 on the page background (`base00`) is drawn closer to the text color (`base05`) until it passes, so it can look darker or lighter than the hex you entered.
+
+Find highlights shift the other way: `base0A` for every match, and `base0D` for the editor's current match, move toward the page's end of the scale, darker on a dark page and lighter on a light one, until `base05` text reads at 4.5:1 through them. That can leave them close to the page color. In Solarized the editor's and the viewer's find highlights are faint, and the editor's current match shows mostly by its outline; in Catppuccin Frappé, Catppuccin Latte and Gruvbox the viewer's highlights are fainter than the Default theme's.
+
+**Copy as YAML** exports the scheme in the standard layout, so a theme you tuned here is pasteable anywhere else in the base16 ecosystem.
+
+## Theme files
+
+Saved themes are plain Tinted Theming YAML files in `~/.ok/themes/` (`~/.ok-beta/themes/` in OpenKnowledge Beta), one file per theme, filename as identity. Drop a downloaded scheme file there (`.yaml` or `.yml` only) and it appears in the gallery, since the folder is re-scanned when the Themes page opens. A file that doesn't parse is listed with the reason rather than silently dropped, so it can always be fixed.
+
+Deleting a theme from its tile deletes the file, with an undo window before it's gone for good.
+
+## Turn it off
+
+Themes ships enabled. Switch it off in **Settings → User ▸ Plugins**: the palette drops back to the default stylesheet and the page leaves the sidebar. Your selections stay in config, so switching it back on restores them.

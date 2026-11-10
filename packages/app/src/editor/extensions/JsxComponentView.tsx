@@ -1,0 +1,1121 @@
+/**
+ * Descriptor-dispatch NodeView with zero permanent chrome: unknown and render-failed descriptors
+ * auto-convert to an editable `rawMdxFallback` through direct PM dispatch (precedent #28), and
+ * NodeViewContent is always rendered rather than hidden (precedent #30).
+ */
+
+import { commentLeafText } from '@inkeep/open-knowledge-core/comments/leaf-text';
+import {
+  incrementJsxAutoConvertFailed,
+  incrementJsxAutoConvertSucceeded,
+  incrementJsxChromeDeleteFailed,
+  incrementJsxKeyboardDeleteFailed,
+  incrementJsxMoveFailed,
+  incrementJsxPopoverCloseRestoreFailed,
+  incrementJsxStuckCopyFailed,
+  incrementJsxStuckDeleteFailed,
+  type JsxNodeAction,
+} from '@inkeep/open-knowledge-core/metrics/parse-health';
+import { componentPropsBudgetError } from '@inkeep/open-knowledge-core/registry';
+import { Trans, useLingui } from '@lingui/react/macro';
+import type { NodeViewProps } from '@tiptap/core';
+import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ExternalLink,
+  Maximize2,
+  Pencil,
+  Settings2,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import { emitStartComment } from '@/comments/store';
+import { Button } from '@/components/ui/button';
+import { useIsEmbedded } from '@/hooks/use-is-embedded';
+import { hashFromDocName, hashFromMirrorSource } from '@/lib/doc-hash';
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverTrigger,
+} from '../../components/ui/popover.tsx';
+import { ViewInSourceBubbleButton } from '../bubble-menu/ViewInSourceBubbleButton.tsx';
+import { OPT_OUT_ATTR } from '../clipboard/index.ts';
+import { CodePreviewEditModal } from '../components/CodePreviewEditModal';
+import { DescriptorPlaceholder } from '../components/DescriptorPlaceholder.tsx';
+import { isLiveBoardSrc } from '../components/ExcalidrawEmbed.tsx';
+import { JsxComponentHostProvider } from '../components/jsx-host-context.tsx';
+import { MermaidLightbox } from '../components/Mermaid';
+import { PropPanel } from '../components/PropPanel.tsx';
+import { getWrapperBridgeId } from '../extensions/selection-state-plugin.ts';
+import { useBlockSelection } from '../hooks/use-block-selection.ts';
+import { markUserTyping } from '../observers.ts';
+import { getDescriptor } from '../registry/index.ts';
+import {
+  resolveDescriptorPlaceholder,
+  shouldRenderPlaceholder,
+} from '../registry/resolve-descriptor-placeholder.ts';
+import type { JsxComponentDescriptor } from '../registry/types.ts';
+import { moveCaretAfterNode, placeGapCursorAfterNode } from '../selection/place-caret.ts';
+import {
+  consumeAutoOpen,
+  createChildNode,
+  focusInsertedComponent,
+} from '../slash-command/component-items.tsx';
+import { authoredText } from '../utils/authored-text.ts';
+import { formatContainerAriaLabel } from '../utils/editor-strings.ts';
+import { getEditorView } from '../utils/get-editor-view.ts';
+import { reconstructSource } from '../utils/reconstruct-source.ts';
+import {
+  autonomousFragmentEditAllowed,
+  markAutonomousFragmentEdit,
+} from './autonomous-fragment-edit.ts';
+import { reportJsxActionAborted, resolveJsxActionTarget } from './jsx-node-action.ts';
+import { isSameJsxElement, resolveJsxNodeTarget } from './jsx-node-target.ts';
+import {
+  JSX_WRAPPER_CLASS,
+  jsxChildrenClassName,
+  jsxWrapperDataAttributes,
+  prepareJsxProps,
+  reportJsxRenderFailure,
+  resolveJsxRenderProps,
+  resolveJsxSourceDocName,
+} from './jsx-render-contract.ts';
+
+interface ComponentErrorBoundaryProps {
+  children: ReactNode;
+  resetKey: string;
+  onError: (error: Error) => void;
+  descriptorName: string;
+  rawComponentName: string;
+}
+
+function ComponentErrorFallback({ children }: FallbackProps & { children?: ReactNode }) {
+  return <div className="jsx-component-error-fallback">{children}</div>;
+}
+
+function ComponentErrorBoundary(props: ComponentErrorBoundaryProps) {
+  const { children, resetKey, onError, descriptorName, rawComponentName } = props;
+  return (
+    <ErrorBoundary
+      resetKeys={[resetKey]}
+      onError={(error, info) => {
+        onError(reportJsxRenderFailure(descriptorName, rawComponentName, error, info));
+      }}
+      fallbackRender={(fbProps) => (
+        <ComponentErrorFallback {...fbProps}>{children}</ComponentErrorFallback>
+      )}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+
+export function stableHash(value: unknown): string {
+  const budgetError = componentPropsBudgetError(value);
+  if (budgetError) throw new RangeError(budgetError);
+  return stableHashWithinBudget(value);
+}
+
+function stableHashWithinBudget(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(stableHashWithinBudget).join(',')}]`;
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  entries.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stableHashWithinBudget(v)}`).join(',')}}`;
+}
+
+interface ElementJsxAttrs extends Record<string, unknown> {
+  kind: 'element';
+  props: Record<string, unknown>;
+}
+
+export function getElementJsxAttrs(attrs: Record<string, unknown>): ElementJsxAttrs | null {
+  return attrs.kind === 'element' ? (attrs as ElementJsxAttrs) : null;
+}
+
+function isMdxJsxAttributeNamed(attribute: unknown, names: ReadonlySet<string>): boolean {
+  if (attribute == null || typeof attribute !== 'object') return false;
+  const { type, name } = attribute as Record<string, unknown>;
+  return type === 'mdxJsxAttribute' && typeof name === 'string' && names.has(name);
+}
+
+export function attrsWithChangedProp(
+  elementAttrs: ElementJsxAttrs,
+  descriptor: Pick<JsxComponentDescriptor, 'props'>,
+  propName: string,
+  value: unknown,
+): ElementJsxAttrs {
+  const legacyNames = descriptor.props.find((prop) => prop.name === propName)?.legacyNames ?? [];
+  const removedNames = new Set(value === undefined ? [propName, ...legacyNames] : legacyNames);
+  const nextProps: Record<string, unknown> = { ...elementAttrs.props };
+  for (const removedName of removedNames) delete nextProps[removedName];
+  if (value !== undefined) nextProps[propName] = value;
+  if (
+    propName === 'src' &&
+    elementAttrs.componentName === 'CommonMarkImage' &&
+    value !== elementAttrs.props.src
+  ) {
+    delete nextProps.sourceUrl;
+  }
+  const attributes = Array.isArray(elementAttrs.attributes) ? elementAttrs.attributes : [];
+  return {
+    ...elementAttrs,
+    attributes:
+      removedNames.size === 0
+        ? attributes
+        : attributes.filter((attribute) => !isMdxJsxAttributeNamed(attribute, removedNames)),
+    props: nextProps,
+    sourceDirty: true,
+  };
+}
+
+const MAX_AUTO_CONVERT_ATTEMPTS = 3;
+
+export function JsxComponentView({ node, editor, extension, getPos, selected }: NodeViewProps) {
+  const { t } = useLingui();
+  const descriptor = getDescriptor(node.attrs.componentName as string);
+  const [renderError, setRenderError] = useState<Error | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const panelInteractedOutside = useRef(false);
+  const wasSelected = useRef(false);
+
+  const pos = typeof getPos === 'function' ? getPos() : undefined;
+  const isEmbedded = useIsEmbedded();
+
+  let isChildOfComponent = false;
+  let siblingIndex = 0;
+  let siblingCount = 1;
+  try {
+    if (pos !== undefined) {
+      const $pos = editor.state.doc.resolve(pos);
+      if ($pos.depth > 0 && $pos.parent.type.name === 'jsxComponent') {
+        isChildOfComponent = true;
+        siblingIndex = $pos.index($pos.depth);
+        siblingCount = $pos.parent.childCount;
+      }
+    }
+  } catch (err) {
+    if (!(err instanceof RangeError)) throw err;
+  }
+  const canMoveUp = isChildOfComponent && siblingIndex > 0;
+  const canMoveDown = isChildOfComponent && siblingIndex < siblingCount - 1;
+
+  const blockSelection = useBlockSelection(editor);
+  const wrapperBridgeId = typeof pos === 'number' ? getWrapperBridgeId(editor.state, pos) : null;
+  const isRangeEncompassed =
+    wrapperBridgeId !== null &&
+    (blockSelection?.rangeEncompassedBlockIds.has(wrapperBridgeId) ?? false);
+  const chainLeafBridgeId = blockSelection?.ancestorChain.at(-1)?.bridgeId ?? null;
+  const isInnermostInChain = wrapperBridgeId !== null && chainLeafBridgeId === wrapperBridgeId;
+  const isInnermostSelected = selected && !isRangeEncompassed && isInnermostInChain;
+  const hasChildSelected =
+    wrapperBridgeId !== null &&
+    !isInnermostInChain &&
+    (blockSelection?.ancestorChain.some((entry) => entry.bridgeId === wrapperBridgeId) ?? false);
+  const selectionOrigin =
+    isInnermostSelected && blockSelection ? blockSelection.selectionOrigin : undefined;
+  const isDraggingSelf = isInnermostSelected && (blockSelection?.isDragging ?? false);
+
+  const hasEditableProps = descriptor.props.some(
+    (p) => !('hidden' in p && p.hidden) && p.type !== 'reactnode',
+  );
+
+  const currentProps = (node.attrs.props as Record<string, unknown>) ?? {};
+  const { props: primitiveProps, error: propsError } = prepareJsxProps(node.attrs, descriptor);
+  const needsConfig =
+    hasEditableProps &&
+    descriptor.props.some((p) => {
+      if (p.type !== 'string') return false;
+      if (!p.required) return false;
+      if ('hidden' in p && p.hidden) return false;
+      return !Object.hasOwn(primitiveProps, p.name);
+    });
+
+  const showPlaceholder = shouldRenderPlaceholder(descriptor, currentProps);
+  const resolvedPlaceholder = showPlaceholder ? resolveDescriptorPlaceholder(descriptor) : null;
+
+  const isSelfClosingLeaf = !descriptor.hasChildren || !!descriptor.isSelfClosing;
+
+  const editableSource: { propName: string; language: 'mermaid' | 'latex' } | null =
+    descriptor.name === 'MermaidFence'
+      ? { propName: 'chart', language: 'mermaid' }
+      : descriptor.name === 'Math' ||
+          descriptor.name === 'DollarMath' ||
+          descriptor.name === 'MathFence'
+        ? { propName: 'formula', language: 'latex' }
+        : null;
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [diagramLightboxOpen, setDiagramLightboxOpen] = useState(false);
+  const [boardLightboxOpen, setBoardLightboxOpen] = useState(false);
+
+  const isSourceBearing = editableSource !== null;
+  const sourcePropValue = editableSource ? currentProps[editableSource.propName] : undefined;
+  const showSourcePlaceholder =
+    isSourceBearing &&
+    !hasEditableProps &&
+    editor.isEditable &&
+    (typeof sourcePropValue !== 'string' || sourcePropValue.trim() === '');
+  const sourcePlaceholder = showSourcePlaceholder ? resolveDescriptorPlaceholder(descriptor) : null;
+
+  useEffect(() => {
+    if (
+      selected &&
+      !wasSelected.current &&
+      (hasEditableProps || isSourceBearing) &&
+      consumeAutoOpen(pos)
+    ) {
+      if (hasEditableProps) {
+        setPopoverOpen(true);
+      } else {
+        setEditModalOpen(true);
+      }
+    }
+    wasSelected.current = selected;
+  }, [selected, hasEditableProps, isSourceBearing, pos]);
+
+  const renderProps = resolveJsxRenderProps(
+    descriptor,
+    primitiveProps,
+    resolveJsxSourceDocName(extension.options, editor),
+  );
+  const lightboxRenderChart =
+    descriptor.name === 'MermaidFence' && typeof renderProps.chart === 'string'
+      ? renderProps.chart
+      : null;
+  const expandableChart =
+    lightboxRenderChart !== null && lightboxRenderChart.trim() !== '' ? lightboxRenderChart : null;
+  const diagramExpandable = expandableChart !== null;
+  useEffect(() => {
+    if (!diagramExpandable) setDiagramLightboxOpen(false);
+  }, [diagramExpandable]);
+  const boardExpandable = descriptor.name === 'Excalidraw' && isLiveBoardSrc(renderProps.src);
+  useEffect(() => {
+    if (!boardExpandable) setBoardLightboxOpen(false);
+  }, [boardExpandable]);
+  const resetKey = `${descriptor.name}::${stableHash(primitiveProps)}`;
+
+  const actionContext = { editor, getPos, node, descriptorName: descriptor.name };
+  const reportAbortedAction = (action: JsxNodeAction, reason: 'changed' | 'removed') =>
+    reportJsxActionAborted(actionContext, action, reason);
+  const resolveActionTarget = (action: JsxNodeAction) =>
+    resolveJsxActionTarget(actionContext, action);
+
+  const resolveElementActionTarget = (action: JsxNodeAction) => {
+    const target = resolveJsxNodeTarget(editor.state.doc, getPos, node);
+    if (target.kind === 'removed' || !isSameJsxElement(target.node, node)) {
+      reportAbortedAction(action, target.kind === 'removed' ? 'removed' : 'changed');
+      return null;
+    }
+    return target;
+  };
+
+  const insertChild = (childName: string) => {
+    const target = resolveActionTarget('insert-child');
+    if (!target) return;
+    const insertPos = target.pos + 1 + target.node.content.size;
+    editor.chain().focus().insertContentAt(insertPos, createChildNode(childName)).run();
+    focusInsertedComponent(editor, insertPos, getDescriptor(childName));
+  };
+
+  const needsConversion = descriptor.name === '*' || renderError !== null;
+  const convertedRef = useRef(false);
+  const attemptCountRef = useRef(0);
+  const [stuck, setStuck] = useState(false);
+  useEffect(() => {
+    if (!needsConversion || convertedRef.current || stuck) return;
+
+    const source = reconstructSource(node);
+    const reason =
+      descriptor.name === '*'
+        ? `Unregistered component: ${node.attrs.componentName as string}`
+        : `Render error in <${descriptor.displayName ?? descriptor.name}>: ${renderError?.message ?? 'unknown'}`;
+
+    const fallbackNode = node.type.schema.nodes.rawMdxFallback.create(
+      { reason },
+      node.type.schema.text(source),
+    );
+
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const dispatchOnce = () => {
+      if (cancelled) return;
+      if (!autonomousFragmentEditAllowed(editor)) return;
+      const failTransiently = (failureReason: string) => {
+        const clampedComponent = descriptor.name === '*' ? 'wildcard' : descriptor.name;
+        console.warn(
+          JSON.stringify({
+            event: 'jsx-component-auto-convert-failed',
+            component: clampedComponent,
+            rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+            reason: failureReason.slice(0, 500),
+            retry: attemptCountRef.current,
+          }),
+        );
+        incrementJsxAutoConvertFailed(clampedComponent);
+
+        attemptCountRef.current += 1;
+        if (attemptCountRef.current < MAX_AUTO_CONVERT_ATTEMPTS) {
+          const delay = 50 * (2 ** attemptCountRef.current - 1);
+          timeoutId = setTimeout(() => {
+            if (cancelled) return;
+            dispatchOnce();
+          }, delay);
+        } else {
+          if (!cancelled) setStuck(true);
+        }
+      };
+
+      const view = getEditorView(editor);
+      if (!view) {
+        failTransiently('ProseMirror view not mounted');
+        return;
+      }
+      try {
+        const target = resolveJsxNodeTarget(view.state.doc, getPos, node);
+        if (target.kind !== 'current') return;
+        const p = target.pos;
+        view.dispatch(
+          markAutonomousFragmentEdit(view.state.tr.replaceWith(p, p + node.nodeSize, fallbackNode)),
+        );
+        convertedRef.current = true;
+        const clampedComponent = descriptor.name === '*' ? 'wildcard' : descriptor.name;
+        incrementJsxAutoConvertSucceeded(clampedComponent);
+      } catch (err) {
+        failTransiently(err instanceof Error ? err.message : String(err));
+      }
+    };
+
+    const frameId = requestAnimationFrame(dispatchOnce);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frameId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
+  }, [needsConversion, node, editor, getPos, descriptor, renderError, stuck]);
+
+  if (stuck) {
+    const componentName = node.attrs.componentName as string;
+    const descriptorLabel = descriptor.displayName ?? descriptor.name;
+    const label =
+      descriptor.name === '*'
+        ? t`<${componentName}> isn't a known component. Copy the source to use it elsewhere, or delete the block.`
+        : t`<${descriptorLabel}> failed to render (likely a bad prop). Copy the source to see what went wrong, or delete the block.`;
+    const copySource = () => {
+      try {
+        const src = reconstructSource(node);
+        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+          void navigator.clipboard.writeText(src);
+        }
+      } catch (err) {
+        incrementJsxStuckCopyFailed(descriptor.name);
+        console.warn(
+          JSON.stringify({
+            event: 'jsx-component-stuck-copy-failed',
+            component: descriptor.name,
+            rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+            reason: err instanceof Error ? err.message.slice(0, 500) : String(err).slice(0, 500),
+          }),
+        );
+      }
+    };
+    const deleteNode = () => {
+      try {
+        const target = resolveActionTarget('delete-stuck');
+        if (!target) return;
+        editor.chain().focus().setNodeSelection(target.pos).deleteSelection().run();
+      } catch (err) {
+        if (!(err instanceof RangeError)) throw err;
+        incrementJsxStuckDeleteFailed(descriptor.name);
+        console.warn(
+          JSON.stringify({
+            event: 'jsx-component-stuck-delete-failed',
+            component: descriptor.name,
+            rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+            reason: err.message.slice(0, 500),
+          }),
+        );
+      }
+    };
+    return (
+      <NodeViewWrapper className="jsx-component-wrapper my-2">
+        <div
+          className="text-xs font-mono text-muted-foreground px-2 py-2 border border-destructive/40 rounded flex items-center gap-2"
+          contentEditable={false}
+          {...{ [OPT_OUT_ATTR]: 'true' }}
+        >
+          <span className="flex-1">{label}</span>
+          <button
+            type="button"
+            className="text-xs underline hover:no-underline"
+            onClick={copySource}
+          >
+            {t`Copy source`}
+          </button>
+          <button
+            type="button"
+            className="text-xs underline hover:no-underline"
+            onClick={deleteNode}
+          >
+            {t`Delete`}
+          </button>
+        </div>
+        <NodeViewContent className="component-children" />
+      </NodeViewWrapper>
+    );
+  }
+
+  if (propsError) {
+    return (
+      <NodeViewWrapper className="jsx-component-wrapper my-2" data-jsx-props-error="">
+        <div
+          className="flex flex-wrap items-center gap-2 px-2 py-1 text-xs text-warning"
+          contentEditable={false}
+          {...{ [OPT_OUT_ATTR]: 'true' }}
+        >
+          <span role="status">
+            <Trans>This component is too large to render.</Trans>
+          </span>
+          <ViewInSourceBubbleButton
+            editor={editor}
+            getTargetPosition={() => resolveActionTarget('edit-source')?.pos}
+          />
+        </div>
+        <NodeViewContent className="component-children" />
+      </NodeViewWrapper>
+    );
+  }
+
+  if (needsConversion) {
+    const componentName = node.attrs.componentName as string;
+    const descriptorLabel = descriptor.displayName ?? descriptor.name;
+    const label =
+      descriptor.name === '*'
+        ? t`Unknown component: ${componentName} — source editable below`
+        : t`${descriptorLabel} — render error, source editable below`;
+    return (
+      <NodeViewWrapper className="jsx-component-wrapper my-2">
+        <div className="text-xs font-mono text-muted-foreground px-2 py-1" contentEditable={false}>
+          {label}
+        </div>
+        <NodeViewContent className="component-children" />
+      </NodeViewWrapper>
+    );
+  }
+
+  const Comp = descriptor.Component;
+  const deleteDescriptorLabel = descriptor.displayName ?? descriptor.name;
+  const settingsDescriptorLabel = descriptor.displayName ?? descriptor.name;
+  const propPanelDescriptorLabel = descriptor.displayName ?? descriptor.name;
+
+  const handleBodyClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (showPlaceholder || showSourcePlaceholder) return;
+    if (!isSelfClosingLeaf) return;
+    const target = e.target as HTMLElement;
+    if (!e.currentTarget.contains(target)) return;
+    if (target.closest('.jsx-component-chrome')) return;
+    if (target.closest('.jsx-add-child-pill, .jsx-empty-child-placeholder')) return;
+    if (target.closest('a[href]')) return;
+    const targetNode = resolveJsxNodeTarget(editor.state.doc, getPos, node);
+    if (targetNode.kind !== 'current') return;
+    const p = targetNode.pos;
+    const nodeEnd = p + node.nodeSize;
+    const selFrom = editor.state.selection.from;
+    if (selFrom < p || selFrom >= nodeEnd) return;
+    editor.chain().focus().setNodeSelection(p).run();
+  };
+
+  const openPanel = () => {
+    const target = resolveActionTarget('open-properties');
+    if (!target) return;
+    editor.chain().focus().setNodeSelection(target.pos).run();
+    setPopoverOpen(true);
+  };
+
+  const componentLabel = descriptor.displayName ?? descriptor.name;
+  const isGroupContainer = Boolean(descriptor.emptyChildName);
+  const groupAriaLabel = isGroupContainer
+    ? formatContainerAriaLabel(componentLabel, descriptor.emptyChildName, node.childCount)
+    : undefined;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      if (!isInnermostSelected) return;
+      if (!e.currentTarget.contains(target)) return;
+      if (target.matches('input, textarea')) return;
+      e.preventDefault();
+      try {
+        const targetNode = resolveActionTarget('delete-keyboard');
+        if (!targetNode) return;
+        const dispatched = editor
+          .chain()
+          .focus()
+          .setNodeSelection(targetNode.pos)
+          .deleteSelection()
+          .run();
+        if (!dispatched) {
+          incrementJsxKeyboardDeleteFailed(descriptor.name);
+          console.warn(
+            JSON.stringify({
+              event: 'jsx-component-keyboard-delete-failed',
+              component: descriptor.name,
+              rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+              reason: 'chain-dispatch-returned-false',
+            }),
+          );
+        }
+      } catch (err) {
+        if (!(err instanceof RangeError)) throw err;
+        incrementJsxKeyboardDeleteFailed(descriptor.name);
+        console.warn(
+          JSON.stringify({
+            event: 'jsx-component-keyboard-delete-failed',
+            component: descriptor.name,
+            rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+            reason: err.message.slice(0, 500),
+          }),
+        );
+      }
+      return;
+    }
+
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (!selected) return;
+    if (!hasEditableProps) return;
+    if (target.closest('.jsx-component-chrome')) return;
+    if (target.closest('input, textarea, select, button')) return;
+    e.preventDefault();
+    setPopoverOpen(true);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setPopoverOpen(open);
+    if (open) return;
+    requestAnimationFrame(() => {
+      try {
+        const target = resolveJsxNodeTarget(editor.state.doc, getPos, node);
+        if (target.kind !== 'current') return;
+        const { pos: p, node: curNode } = target;
+        const nodeEnd = p + curNode.nodeSize;
+        const selFrom = editor.state.selection.from;
+        if (selFrom < p || selFrom >= nodeEnd) return;
+        if (
+          !isSelfClosingLeaf ||
+          (!moveCaretAfterNode(editor.view, p, curNode.nodeSize) &&
+            !placeGapCursorAfterNode(editor.view, p, curNode.nodeSize))
+        ) {
+          editor.chain().setNodeSelection(p).run();
+        }
+      } catch (err) {
+        if (!(err instanceof RangeError)) throw err;
+        incrementJsxPopoverCloseRestoreFailed(descriptor.name);
+        console.warn(
+          JSON.stringify({
+            event: 'jsx-component-popover-close-restore-failed',
+            component: descriptor.name,
+            rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+            reason: err.message.slice(0, 500),
+          }),
+        );
+      }
+    });
+  };
+
+  return (
+    <Popover open={popoverOpen} onOpenChange={handleOpenChange}>
+      <NodeViewWrapper
+        className={JSX_WRAPPER_CLASS}
+        {...jsxWrapperDataAttributes(descriptor, currentProps)}
+        data-selected={isInnermostSelected ? 'true' : undefined}
+        data-has-child-selected={hasChildSelected ? 'true' : undefined}
+        data-range-selected={isRangeEncompassed ? 'true' : undefined}
+        data-selection-origin={selectionOrigin}
+        data-dragging={isDraggingSelf ? 'true' : undefined}
+        data-needs-config={needsConfig ? 'true' : undefined}
+        role={isGroupContainer ? 'group' : undefined}
+        aria-label={groupAriaLabel}
+        tabIndex={isInnermostSelected ? 0 : -1}
+        {...(!isChildOfComponent
+          ? { 'data-drag-handle': '', draggable: 'true' }
+          : { draggable: 'false', onDragStart: (e: React.DragEvent) => e.preventDefault() })}
+        onClick={handleBodyClick}
+        onKeyDown={handleKeyDown}
+      >
+        <div // oxlint-disable-line jsx-a11y/no-static-element-interactions -- stopPropagation required inside PM NodeView
+          className="jsx-component-chrome"
+          contentEditable={false}
+          onMouseDown={(e) => e.stopPropagation()}
+          {...{ [OPT_OUT_ATTR]: 'true' }}
+        >
+          {descriptor.name === 'Embed' &&
+            typeof primitiveProps.src === 'string' &&
+            /^https?:\/\//i.test(primitiveProps.src) && (
+              <a
+                href={primitiveProps.src as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="jsx-chrome-btn"
+                aria-label={t`Open embedded URL in new tab`}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <ExternalLink size={12} aria-hidden="true" />
+              </a>
+            )}
+
+          {descriptor.name === 'Mirror' &&
+            authoredText(primitiveProps.src) !== '' &&
+            (() => {
+              const mirrorSrc = authoredText(primitiveProps.src);
+              const mirrorName = authoredText(primitiveProps.name);
+              return (
+                <a
+                  href={
+                    mirrorName !== ''
+                      ? hashFromMirrorSource(mirrorSrc, mirrorName)
+                      : hashFromDocName(mirrorSrc)
+                  }
+                  className="jsx-chrome-btn"
+                  aria-label={t`Open source doc: ${mirrorSrc}`}
+                  title={t`Open source: ${mirrorSrc}`}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink size={12} aria-hidden="true" />
+                </a>
+              );
+            })()}
+
+          {canMoveUp && (
+            <button
+              type="button"
+              className="jsx-chrome-btn"
+              aria-label={t`Move up`}
+              onClick={() => {
+                try {
+                  const target = resolveActionTarget('move-up');
+                  if (!target) return;
+                  const p = target.pos;
+                  const $p = editor.state.doc.resolve(p);
+                  const idx = $p.index($p.depth);
+                  if (idx === 0) return;
+                  const parent = $p.node($p.depth);
+                  const prev = parent.child(idx - 1);
+                  const from = p - prev.nodeSize;
+                  const to = p + node.nodeSize;
+                  const tr = editor.state.tr;
+                  const cur = editor.state.doc.slice(p, p + node.nodeSize);
+                  const pre = editor.state.doc.slice(from, p);
+                  tr.replaceWith(from, to, cur.content.append(pre.content));
+                  editor.view.dispatch(tr.scrollIntoView());
+                } catch (err) {
+                  if (!(err instanceof RangeError)) throw err;
+                  incrementJsxMoveFailed('up');
+                  console.warn(
+                    JSON.stringify({
+                      event: 'jsx-component-move-failed',
+                      direction: 'up',
+                      component: descriptor.name,
+                      rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+                      reason: err.message.slice(0, 500),
+                    }),
+                  );
+                }
+              }}
+            >
+              <ArrowUp size={12} aria-hidden="true" />
+            </button>
+          )}
+
+          {canMoveDown && (
+            <button
+              type="button"
+              className="jsx-chrome-btn"
+              aria-label={t`Move down`}
+              onClick={() => {
+                try {
+                  const target = resolveActionTarget('move-down');
+                  if (!target) return;
+                  const p = target.pos;
+                  const $p = editor.state.doc.resolve(p);
+                  const idx = $p.index($p.depth);
+                  const parent = $p.node($p.depth);
+                  if (idx >= parent.childCount - 1) return;
+                  const next = parent.child(idx + 1);
+                  const from = p;
+                  const to = p + node.nodeSize + next.nodeSize;
+                  const tr = editor.state.tr;
+                  const cur = editor.state.doc.slice(p, p + node.nodeSize);
+                  const nxt = editor.state.doc.slice(p + node.nodeSize, to);
+                  tr.replaceWith(from, to, nxt.content.append(cur.content));
+                  editor.view.dispatch(tr.scrollIntoView());
+                } catch (err) {
+                  if (!(err instanceof RangeError)) throw err;
+                  incrementJsxMoveFailed('down');
+                  console.warn(
+                    JSON.stringify({
+                      event: 'jsx-component-move-failed',
+                      direction: 'down',
+                      component: descriptor.name,
+                      rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+                      reason: err.message.slice(0, 500),
+                    }),
+                  );
+                }
+              }}
+            >
+              <ArrowDown size={12} aria-hidden="true" />
+            </button>
+          )}
+
+          {editableSource && typeof pos === 'number' ? (
+            <button
+              type="button"
+              className="jsx-chrome-btn"
+              aria-label={t`Edit ${descriptor.displayName ?? descriptor.name} source`}
+              data-testid="jsx-component-edit-btn"
+              onClick={() => setEditModalOpen(true)}
+            >
+              <Pencil size={12} aria-hidden="true" />
+            </button>
+          ) : null}
+
+          {expandableChart !== null ? (
+            <button
+              type="button"
+              className="jsx-chrome-btn"
+              aria-label={t`Expand diagram`}
+              data-testid="jsx-component-expand-btn"
+              onClick={() => setDiagramLightboxOpen(true)}
+            >
+              <Maximize2 size={12} aria-hidden="true" />
+            </button>
+          ) : null}
+
+          {boardExpandable ? (
+            <button
+              type="button"
+              className="jsx-chrome-btn"
+              aria-label={t`Expand board`}
+              data-testid="jsx-component-expand-board-btn"
+              onClick={() => setBoardLightboxOpen(true)}
+            >
+              <Maximize2 size={12} aria-hidden="true" />
+            </button>
+          ) : null}
+
+          {!isEmbedded && commentLeafText(node).length > 0 && typeof pos === 'number' ? (
+            <button
+              type="button"
+              className="jsx-chrome-btn"
+              aria-label={t`Comment or ask AI about this ${descriptor.displayName ?? descriptor.name}`}
+              data-testid="jsx-component-ask-ai-btn"
+              onClick={() => {
+                try {
+                  const target = resolveActionTarget('comment');
+                  if (!target) return;
+                  editor.commands.setNodeSelection(target.pos);
+                } catch (err) {
+                  console.warn(
+                    JSON.stringify({
+                      event: 'jsx-component-chrome-ask-ai-failed',
+                      component: descriptor.name,
+                      rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+                      reason: err instanceof Error ? err.message.slice(0, 500) : String(err),
+                    }),
+                  );
+                  return;
+                }
+                requestAnimationFrame(() => {
+                  try {
+                    emitStartComment();
+                  } catch (err) {
+                    console.warn(
+                      JSON.stringify({
+                        event: 'jsx-component-chrome-ask-ai-emit-failed',
+                        component: descriptor.name,
+                        rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+                        reason: err instanceof Error ? err.message.slice(0, 500) : String(err),
+                      }),
+                    );
+                  }
+                });
+              }}
+            >
+              <Sparkles size={12} aria-hidden="true" />
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            className="jsx-chrome-btn jsx-chrome-btn--delete"
+            aria-label={t`Delete ${deleteDescriptorLabel}`}
+            onClick={() => {
+              try {
+                const target = resolveActionTarget('delete-chrome');
+                if (!target) return;
+                const dispatched = editor
+                  .chain()
+                  .focus()
+                  .setNodeSelection(target.pos)
+                  .deleteSelection()
+                  .run();
+                if (!dispatched) {
+                  incrementJsxChromeDeleteFailed(descriptor.name);
+                  console.warn(
+                    JSON.stringify({
+                      event: 'jsx-component-chrome-delete-failed',
+                      component: descriptor.name,
+                      rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+                      reason: 'chain-dispatch-returned-false',
+                    }),
+                  );
+                }
+              } catch (err) {
+                if (!(err instanceof RangeError)) throw err;
+                incrementJsxChromeDeleteFailed(descriptor.name);
+                console.warn(
+                  JSON.stringify({
+                    event: 'jsx-component-chrome-delete-failed',
+                    component: descriptor.name,
+                    rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
+                    reason: err.message.slice(0, 500),
+                  }),
+                );
+              }
+            }}
+          >
+            <Trash2 size={12} aria-hidden="true" />
+          </button>
+
+          {hasEditableProps && (
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="jsx-chrome-btn"
+                data-jsx-gear=""
+                aria-label={t`${settingsDescriptorLabel} properties`}
+              >
+                <Settings2 size={12} aria-hidden="true" />
+              </button>
+            </PopoverTrigger>
+          )}
+        </div>
+
+        {showPlaceholder && resolvedPlaceholder ? (
+          <PopoverAnchor asChild>
+            <DescriptorPlaceholder
+              label={resolvedPlaceholder.label}
+              Icon={resolvedPlaceholder.Icon}
+              onClick={openPanel}
+              selected={isInnermostSelected}
+            />
+          </PopoverAnchor>
+        ) : showSourcePlaceholder && sourcePlaceholder ? (
+          <DescriptorPlaceholder
+            label={sourcePlaceholder.label}
+            Icon={sourcePlaceholder.Icon}
+            onClick={() => setEditModalOpen(true)}
+            selected={isInnermostSelected}
+          />
+        ) : (
+          <ComponentErrorBoundary
+            resetKey={resetKey}
+            onError={setRenderError}
+            descriptorName={descriptor.name === '*' ? 'wildcard' : descriptor.name}
+            rawComponentName={(node.attrs.componentName as string) ?? ''}
+          >
+            <JsxComponentHostProvider
+              value={
+                typeof getPos === 'function'
+                  ? {
+                      editor,
+                      getPos: () => {
+                        const target = resolveJsxNodeTarget(editor.state.doc, getPos, node);
+                        return target.kind !== 'removed' && isSameJsxElement(target.node, node)
+                          ? target.pos
+                          : undefined;
+                      },
+                      addChild: descriptor.emptyChildName
+                        ? () => {
+                            const childName = descriptor.emptyChildName as string;
+                            insertChild(childName);
+                          }
+                        : null,
+                    }
+                  : null
+              }
+            >
+              <Comp
+                {...renderProps}
+                {...(expandableChart !== null
+                  ? { onExpand: () => setDiagramLightboxOpen(true) }
+                  : {})}
+                {...(boardExpandable
+                  ? { expandOpen: boardLightboxOpen, onExpandOpenChange: setBoardLightboxOpen }
+                  : {})}
+              >
+                <NodeViewContent
+                  className={jsxChildrenClassName(descriptor, node)}
+                  {...(!descriptor.hasChildren || descriptor.isSelfClosing
+                    ? { contentEditable: false }
+                    : {})}
+                />
+              </Comp>
+            </JsxComponentHostProvider>
+          </ComponentErrorBoundary>
+        )}
+
+        {descriptor.emptyChildName &&
+          !(descriptor.name === 'Tabs' && node.childCount > 0) &&
+          (() => {
+            const addChildName = descriptor.emptyChildName;
+            return (
+              <button
+                type="button"
+                contentEditable={false}
+                className={
+                  node.childCount === 0 ? 'jsx-empty-child-placeholder' : 'jsx-add-child-pill'
+                }
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  const childName = descriptor.emptyChildName as string;
+                  insertChild(childName);
+                }}
+                {...{ [OPT_OUT_ATTR]: 'true' }}
+              >
+                <span>
+                  <Trans>+ Add {addChildName}</Trans>
+                </span>
+              </button>
+            );
+          })()}
+      </NodeViewWrapper>
+      {expandableChart !== null ? (
+        <MermaidLightbox
+          chart={expandableChart}
+          open={diagramLightboxOpen}
+          onOpenChange={setDiagramLightboxOpen}
+        />
+      ) : null}
+      {editableSource && typeof pos === 'number' ? (
+        <CodePreviewEditModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          initialValue={
+            typeof currentProps[editableSource.propName] === 'string'
+              ? (currentProps[editableSource.propName] as string)
+              : ''
+          }
+          language={editableSource.language}
+          title={t`Edit ${descriptor.displayName ?? descriptor.name} source`}
+          renderPreview={(value, setValue) => {
+            const Component = descriptor.Component;
+            const previewProps = {
+              ...renderProps,
+              [editableSource.propName]: value,
+              ...(descriptor.name === 'MermaidFence' && {
+                className: 'border-0 bg-transparent rounded-none',
+                editBinding: { canEdit: editor.isEditable, commitChart: setValue },
+              }),
+            };
+
+            return (
+              <div className="flex h-full w-full items-center justify-center p-4">
+                <Component {...previewProps} />
+              </div>
+            );
+          }}
+          onSave={(value) => {
+            const target = resolveElementActionTarget('edit-source');
+            if (!target) return;
+            const { pos: livePos, node: curNode } = target;
+            const elementAttrs = getElementJsxAttrs(curNode.attrs);
+            if (!elementAttrs) return;
+            try {
+              const currentNodeProps = elementAttrs.props;
+              const nextProps = {
+                ...currentNodeProps,
+                [editableSource.propName]: value,
+              };
+              const nextAttrs = {
+                ...elementAttrs,
+                props: nextProps,
+                sourceDirty: true,
+              };
+              editor.view.dispatch(editor.state.tr.setNodeMarkup(livePos, null, nextAttrs));
+              markUserTyping();
+            } catch (err) {
+              if (!(err instanceof RangeError)) throw err;
+              console.warn('[JsxComponentView] edit-save failed — position race', err);
+            }
+          }}
+        />
+      ) : null}
+      {hasEditableProps && (
+        <PopoverContent
+          side={showPlaceholder ? 'bottom' : 'right'}
+          align={showPlaceholder ? 'center' : 'start'}
+          sideOffset={showPlaceholder ? -4 : 8}
+          className="w-64 p-3 z-60 overflow-y-auto subtle-scrollbar max-h-(--radix-popper-available-height) overscroll-contain"
+          onInteractOutside={() => {
+            panelInteractedOutside.current = true;
+          }}
+          onCloseAutoFocus={(e) => {
+            const interactedOutside = panelInteractedOutside.current;
+            panelInteractedOutside.current = false;
+            if (!isSelfClosingLeaf && interactedOutside) return;
+            e.preventDefault();
+            const view = getEditorView(editor);
+            if (view && !view.isDestroyed) view.focus();
+          }}
+        >
+          <div className="text-xs font-medium text-muted-foreground mb-2">
+            <Trans>{propPanelDescriptorLabel} Properties</Trans>
+          </div>
+          <PropPanel
+            descriptor={descriptor}
+            values={primitiveProps}
+            onDismiss={() => setPopoverOpen(false)}
+            onChange={(propName, value) => {
+              const target = resolveElementActionTarget('edit-properties');
+              if (!target) return;
+              const { pos: p, node: curNode } = target;
+              const elementAttrs = getElementJsxAttrs(curNode.attrs);
+              if (!elementAttrs) return;
+              editor.view.dispatch(
+                editor.state.tr.setNodeMarkup(
+                  p,
+                  null,
+                  attrsWithChangedProp(elementAttrs, descriptor, propName, value),
+                ),
+              );
+              markUserTyping();
+            }}
+          />
+          <div className="mt-3 flex justify-end border-t border-border pt-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setPopoverOpen(false)}
+              className="h-7 px-3 text-xs"
+            >
+              <Trans>Done</Trans>
+            </Button>
+          </div>
+        </PopoverContent>
+      )}
+    </Popover>
+  );
+}

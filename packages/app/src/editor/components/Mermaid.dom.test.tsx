@@ -1,0 +1,748 @@
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { StrictMode } from 'react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
+
+type WindowGlobals = { NodeFilter?: typeof NodeFilter };
+type GlobalWithDomShims = typeof globalThis &
+  WindowGlobals & { window?: WindowGlobals; ResizeObserver?: unknown };
+const globalWithDomShims = globalThis as GlobalWithDomShims;
+if (
+  globalWithDomShims.NodeFilter === undefined &&
+  globalWithDomShims.window?.NodeFilter !== undefined
+) {
+  globalWithDomShims.NodeFilter = globalWithDomShims.window.NodeFilter;
+}
+if (globalWithDomShims.ResizeObserver === undefined) {
+  class NoopResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  globalWithDomShims.ResizeObserver = NoopResizeObserver;
+}
+
+const renderMermaid = vi.fn(async (_id: string, _chart: string) => ({
+  svg: '<svg viewBox="0 0 100 100"><g><text>Graph</text></g></svg>',
+}));
+const initializeMermaid = vi.fn(() => {});
+
+import * as actualLinguiMacro from '@lingui/react/macro';
+
+vi.doMock('mermaid', () => ({
+  default: {
+    initialize: initializeMermaid,
+    render: renderMermaid,
+  },
+}));
+
+vi.doMock('@lingui/react/macro', () => ({
+  ...actualLinguiMacro,
+  Trans: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useLingui: () => ({ t: renderLinguiTemplate }),
+}));
+
+type MockPanzoomInstance = {
+  zoomIn: ReturnType<typeof vi.fn>;
+  zoomOut: ReturnType<typeof vi.fn>;
+  pan: ReturnType<typeof vi.fn>;
+  reset: ReturnType<typeof vi.fn>;
+  destroy: ReturnType<typeof vi.fn>;
+  zoomWithWheel: ReturnType<typeof vi.fn>;
+  getScale: ReturnType<typeof vi.fn>;
+};
+type MockPanzoomOptions = {
+  cursor?: string;
+  noBind?: boolean;
+  touchAction?: string;
+};
+
+const panzoomInstances: MockPanzoomInstance[] = [];
+const panzoomOptions: MockPanzoomOptions[] = [];
+const createPanzoom = vi.fn((_element: SVGElement, options?: MockPanzoomOptions) => {
+  const instance: MockPanzoomInstance = {
+    zoomIn: vi.fn(() => ({ scale: 1.25 })),
+    zoomOut: vi.fn(() => ({ scale: 0.75 })),
+    pan: vi.fn(() => ({ x: 0, y: 0, scale: 1 })),
+    reset: vi.fn(() => ({ x: 0, y: 0, scale: 1 })),
+    destroy: vi.fn(() => {}),
+    zoomWithWheel: vi.fn(() => ({ scale: 1 })),
+    getScale: vi.fn(() => 1),
+  };
+  panzoomInstances.push(instance);
+  panzoomOptions.push(options ?? {});
+  return instance;
+});
+
+vi.doMock('@panzoom/panzoom', () => ({
+  default: createPanzoom,
+}));
+
+const { MermaidLightbox, MermaidView } = await import('./Mermaid');
+const { TooltipProvider } = await import('@/components/ui/tooltip');
+const { ParkingActivity } = await import('@/lib/activity-park');
+
+function renderMermaidView(chart: string) {
+  return render(
+    <TooltipProvider>
+      <MermaidView chart={chart} />
+    </TooltipProvider>,
+  );
+}
+
+async function waitForPanzoomInstance(index = 0) {
+  await waitFor(() => {
+    expect(panzoomInstances.length).toBeGreaterThan(index);
+  });
+  return panzoomInstances[index];
+}
+
+describe('MermaidView controls', () => {
+  beforeEach(() => {
+    renderMermaid.mockClear();
+    initializeMermaid.mockClear();
+    createPanzoom.mockClear();
+    panzoomInstances.length = 0;
+    panzoomOptions.length = 0;
+    Object.defineProperty(globalThis.navigator, 'clipboard', {
+      configurable: true,
+      value: undefined,
+    });
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  test('renders toolbar buttons for a ready diagram', async () => {
+    renderMermaidView('graph TD; A-->B;');
+
+    for (const label of [
+      'Zoom in',
+      'Zoom out',
+      'Pan up',
+      'Pan down',
+      'Pan left',
+      'Pan right',
+      'Reset view',
+    ]) {
+      expect(await screen.findByRole('button', { name: label })).not.toBeNull();
+    }
+  });
+
+  test('labels the controls as a toolbar', async () => {
+    renderMermaidView('graph TD; A-->B;');
+
+    await waitForPanzoomInstance();
+
+    expect(screen.getByRole('toolbar', { name: 'Mermaid diagram controls' })).not.toBeNull();
+  });
+
+  test('toolbar controls call the Panzoom instance', async () => {
+    renderMermaidView('graph TD; A-->B;');
+    const panzoom = await waitForPanzoomInstance();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reset view' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pan up' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pan down' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pan left' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pan right' }));
+
+    expect(panzoom.zoomIn.mock.calls.length).toBe(1);
+    expect(panzoom.zoomOut.mock.calls.length).toBe(1);
+    expect(panzoom.reset.mock.calls.length).toBe(1);
+    const panOpts = {
+      animate: true,
+      duration: 200,
+      easing: 'ease-out',
+      relative: true,
+    };
+    expect(panzoom.pan.mock.calls).toEqual([
+      [0, 48, panOpts],
+      [0, -48, panOpts],
+      [48, 0, panOpts],
+      [-48, 0, panOpts],
+    ]);
+  });
+
+  test('honors prefers-reduced-motion by skipping the pan animation', async () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes('reduce'),
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })) as typeof window.matchMedia;
+    try {
+      renderMermaidView('graph TD; A-->B;');
+      const panzoom = await waitForPanzoomInstance();
+      fireEvent.click(screen.getByRole('button', { name: 'Pan up' }));
+      expect(panzoom.pan.mock.calls[0]?.[2]).toEqual({
+        animate: false,
+        duration: 200,
+        easing: 'ease-out',
+        relative: true,
+      });
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
+  test('does not register wheel zoom listeners inside the diagram', async () => {
+    const originalAddEventListener = EventTarget.prototype.addEventListener;
+    const addEventListenerCalls: Array<{ target: EventTarget; type: string }> = [];
+    EventTarget.prototype.addEventListener = function (
+      this: EventTarget,
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: AddEventListenerOptions | boolean,
+    ) {
+      addEventListenerCalls.push({ target: this, type });
+      return originalAddEventListener.call(this, type, listener, options);
+    };
+
+    try {
+      renderMermaidView('graph TD; A-->B;');
+
+      await waitForPanzoomInstance();
+
+      const mermaidWheelListeners = addEventListenerCalls.filter(
+        ({ target, type }) =>
+          type === 'wheel' &&
+          target instanceof Element &&
+          target.closest('[data-component-type="mermaid"]'),
+      );
+      expect(mermaidWheelListeners).toHaveLength(0);
+    } finally {
+      EventTarget.prototype.addEventListener = originalAddEventListener;
+    }
+  });
+
+  test('logs when Panzoom setup fails', async () => {
+    const originalWarn = console.warn;
+    const warn = vi.fn(() => {});
+    console.warn = warn;
+    createPanzoom.mockImplementationOnce(() => {
+      throw new Error('panzoom unavailable');
+    });
+
+    try {
+      renderMermaidView('graph TD; A-->B;');
+
+      await waitFor(() => {
+        expect(warn.mock.calls.length).toBe(1);
+      });
+      expect(warn.mock.calls[0]?.[0]).toBe('[Mermaid] panzoom setup failed:');
+      expect(warn.mock.calls[0]?.[1]).toBeInstanceOf(Error);
+    } finally {
+      console.warn = originalWarn;
+    }
+  });
+
+  test('does not bind pointer drag gestures to the diagram', async () => {
+    renderMermaidView('graph TD; A-->B;');
+
+    await waitForPanzoomInstance();
+
+    expect(panzoomOptions[0]?.noBind).toBe(true);
+    expect(panzoomOptions[0]?.cursor).toBe('default');
+    expect(panzoomOptions[0]?.touchAction).toBe('auto');
+  });
+
+  test('standalone .mmd binding wires two-finger wheel to pan and ctrl/meta+wheel to zoom', async () => {
+    const editBinding = { canEdit: true, commitChart: vi.fn() };
+    const { container } = render(
+      <TooltipProvider>
+        <MermaidView chart="graph TD; A-->B;" editBinding={editBinding} />
+      </TooltipProvider>,
+    );
+
+    const panzoom = await waitForPanzoomInstance();
+    const scroller = container.querySelector('.ok-mermaid-svg') as HTMLElement;
+    expect(scroller).not.toBeNull();
+
+    const trackpad = new WheelEvent('wheel', {
+      deltaX: 30,
+      deltaY: 40,
+      bubbles: true,
+      cancelable: true,
+    });
+    scroller.dispatchEvent(trackpad);
+    expect(panzoom.pan).toHaveBeenCalledWith(-30, -40, { relative: true });
+    expect(panzoom.zoomWithWheel).not.toHaveBeenCalled();
+    expect(trackpad.defaultPrevented).toBe(true);
+
+    panzoom.pan.mockClear();
+    panzoom.getScale.mockReturnValueOnce(2);
+    const scaled = new WheelEvent('wheel', {
+      deltaX: 60,
+      deltaY: 0,
+      bubbles: true,
+      cancelable: true,
+    });
+    scroller.dispatchEvent(scaled);
+    expect(panzoom.pan).toHaveBeenCalledWith(-30, -0, { relative: true });
+
+    const zoom = new WheelEvent('wheel', {
+      deltaY: -10,
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    scroller.dispatchEvent(zoom);
+    expect(panzoom.zoomWithWheel).toHaveBeenCalledWith(zoom);
+    expect(zoom.defaultPrevented).toBe(true);
+
+    panzoom.zoomWithWheel.mockClear();
+    const cmdZoom = new WheelEvent('wheel', {
+      deltaY: -10,
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    scroller.dispatchEvent(cmdZoom);
+    expect(panzoom.zoomWithWheel).toHaveBeenCalledWith(cmdZoom);
+    expect(cmdZoom.defaultPrevented).toBe(true);
+  });
+
+  test('standalone wheel listener does not accumulate across re-renders', async () => {
+    const editBinding = { canEdit: true, commitChart: vi.fn() };
+    const { container, rerender } = render(
+      <TooltipProvider>
+        <MermaidView chart="graph TD; A-->B;" editBinding={editBinding} />
+      </TooltipProvider>,
+    );
+    const first = await waitForPanzoomInstance();
+
+    rerender(
+      <TooltipProvider>
+        <MermaidView chart="graph TD; B-->C;" editBinding={editBinding} />
+      </TooltipProvider>,
+    );
+    await waitFor(() => {
+      expect(panzoomInstances.length).toBe(2);
+      expect(first.destroy.mock.calls.length).toBe(1);
+    });
+    const current = panzoomInstances[1];
+
+    const scroller = container.querySelector('.ok-mermaid-svg') as HTMLElement;
+    const wheel = new WheelEvent('wheel', {
+      deltaX: 10,
+      deltaY: 20,
+      bubbles: true,
+      cancelable: true,
+    });
+    scroller.dispatchEvent(wheel);
+    expect(current.pan.mock.calls.length).toBe(1);
+    expect(first.pan.mock.calls.length).toBe(0);
+  });
+
+  test('re-rendering with a different chart destroys the old Panzoom instance', async () => {
+    const { rerender } = render(
+      <TooltipProvider>
+        <MermaidView chart="graph TD; A-->B;" />
+      </TooltipProvider>,
+    );
+    const firstPanzoom = await waitForPanzoomInstance();
+
+    rerender(
+      <TooltipProvider>
+        <MermaidView chart="graph TD; B-->C;" />
+      </TooltipProvider>,
+    );
+
+    await waitFor(() => {
+      expect(firstPanzoom.destroy.mock.calls.length).toBe(1);
+      expect(panzoomInstances.length).toBe(2);
+    });
+  });
+
+  test('ready diagram fills its preview host', async () => {
+    const { container } = renderMermaidView('graph TD; A-->B;');
+
+    await waitForPanzoomInstance();
+
+    const root = container.querySelector<HTMLElement>('[data-component-type="mermaid"]');
+    const svgHost = container.querySelector<HTMLElement>('.ok-mermaid-svg');
+    const stage = svgHost?.parentElement;
+    expect(root?.className).toContain('h-full');
+    expect(root?.className).toContain('w-full');
+    expect(svgHost?.className).toContain('flex-1');
+    expect(stage?.className).not.toContain('p-4');
+  });
+
+  test('action cluster is compact and anchored bottom-right', async () => {
+    const { container } = renderMermaidView('graph TD; A-->B;');
+
+    await waitForPanzoomInstance();
+
+    const cluster = screen.getByTestId('mermaid-actions');
+    const resetButton = screen.getByRole('button', { name: 'Reset view' });
+    const resetIcon = resetButton.querySelector('svg');
+    expect(cluster?.className).toContain('right-3');
+    expect(cluster?.className).toContain('bottom-3');
+    expect(resetButton.getAttribute('data-size')).toBe('icon-sm');
+    expect(resetIcon?.classList).toContain('size-4');
+    expect(container.querySelector('.top-1\\/2')).toBeNull();
+  });
+
+  test('error state does not render toolbar controls', async () => {
+    renderMermaid.mockImplementationOnce(async () => {
+      throw new Error('invalid mermaid');
+    });
+
+    renderMermaidView('graph TD; A-->');
+
+    expect(await screen.findByRole('alert')).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
+  });
+});
+
+describe('MermaidView expand control', () => {
+  test('renders only when a host passes onExpand, and forwards the click', async () => {
+    const onExpand = vi.fn(() => {});
+    render(
+      <TooltipProvider>
+        <MermaidView chart="graph TD; A-->B;" onExpand={onExpand} />
+      </TooltipProvider>,
+    );
+    await waitForPanzoomInstance();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand diagram' }));
+    expect(onExpand).toHaveBeenCalledTimes(1);
+  });
+
+  test('is absent when no host opts in', async () => {
+    renderMermaidView('graph TD; A-->B;');
+    await waitForPanzoomInstance();
+
+    expect(screen.queryByRole('button', { name: 'Expand diagram' })).toBeNull();
+  });
+});
+
+describe('MermaidLightbox', () => {
+  beforeEach(() => {
+    renderMermaid.mockClear();
+    createPanzoom.mockClear();
+    panzoomInstances.length = 0;
+    panzoomOptions.length = 0;
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  test('hosts a complete toolbar, a view-only cue, and no expand control', async () => {
+    render(
+      <TooltipProvider>
+        <MermaidLightbox chart="graph TD; A-->B;" open onOpenChange={() => {}} />
+      </TooltipProvider>,
+    );
+
+    const dialog = await screen.findByRole('dialog', { name: 'Mermaid diagram' });
+    await waitForPanzoomInstance();
+    expect(
+      within(dialog).getByRole('toolbar', { name: 'Mermaid diagram controls' }),
+    ).not.toBeNull();
+    expect(within(dialog).queryByRole('button', { name: 'Expand diagram' })).toBeNull();
+    expect(within(dialog).getByText('View only')).not.toBeNull();
+  });
+
+  test('a chart edit while open reaches the canvas', async () => {
+    const { rerender } = render(
+      <TooltipProvider>
+        <MermaidLightbox chart="graph TD; A-->B;" open onOpenChange={() => {}} />
+      </TooltipProvider>,
+    );
+    await waitForPanzoomInstance();
+
+    rerender(
+      <TooltipProvider>
+        <MermaidLightbox chart="graph TD; C-->D;" open onOpenChange={() => {}} />
+      </TooltipProvider>,
+    );
+
+    await waitFor(() => {
+      const charts = renderMermaid.mock.calls.map((call) => call[1]);
+      expect(charts.some((chart) => chart.includes('C-->D'))).toBe(true);
+    });
+  });
+
+  test('the close control reports through onOpenChange and closing tears the canvas down', async () => {
+    const onOpenChange = vi.fn((_open: boolean) => {});
+    const { rerender } = render(
+      <TooltipProvider>
+        <MermaidLightbox chart="graph TD; A-->B;" open onOpenChange={onOpenChange} />
+      </TooltipProvider>,
+    );
+    await screen.findByRole('dialog', { name: 'Mermaid diagram' });
+    const panzoom = await waitForPanzoomInstance();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+
+    rerender(
+      <TooltipProvider>
+        <MermaidLightbox chart="graph TD; A-->B;" open={false} onOpenChange={onOpenChange} />
+      </TooltipProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    expect(panzoom.destroy.mock.calls.length).toBeGreaterThan(0);
+  });
+});
+
+describe('MermaidView editBinding (standalone .mmd path)', () => {
+  test('renders an editable diagram with no JSX host when an editBinding is supplied', async () => {
+    let committed: string | null = null;
+    render(
+      <TooltipProvider>
+        <MermaidView
+          chart="graph TD; A-->B;"
+          editBinding={{
+            canEdit: true,
+            commitChart: (next) => {
+              committed = next;
+            },
+          }}
+        />
+      </TooltipProvider>,
+    );
+    await waitForPanzoomInstance();
+    expect(screen.getByRole('toolbar')).toBeDefined();
+    expect(committed).toBeNull();
+  });
+});
+
+function TabHost({
+  visible,
+  chart,
+  diagram = true,
+}: {
+  visible: boolean;
+  chart: string;
+  diagram?: boolean;
+}) {
+  return (
+    <StrictMode>
+      <TooltipProvider>
+        <ParkingActivity visible={visible}>
+          {diagram && <MermaidView chart={chart} />}
+        </ParkingActivity>
+      </TooltipProvider>
+    </StrictMode>
+  );
+}
+
+type Tab = 'diagram' | 'notes';
+
+function TabStrip({ order, visible }: { order: Tab[]; visible: Tab }) {
+  return (
+    <StrictMode>
+      <TooltipProvider>
+        {order.map((tab) => (
+          <ParkingActivity key={tab} visible={tab === visible}>
+            {tab === 'diagram' ? <MermaidView chart="graph TD; A-->B;" /> : <p>Notes</p>}
+          </ParkingActivity>
+        ))}
+      </TooltipProvider>
+    </StrictMode>
+  );
+}
+
+async function nextUserEvent(): Promise<void> {
+  await act(async () => {});
+}
+
+function trackDocumentPointerdownListeners() {
+  const live = new Set<EventListenerOrEventListenerObject>();
+  const add = document.addEventListener.bind(document);
+  const remove = document.removeEventListener.bind(document);
+  const spies = [
+    vi.spyOn(document, 'addEventListener').mockImplementation((type, listener, options) => {
+      if (type === 'pointerdown' && listener) live.add(listener);
+      add(type, listener, options);
+    }),
+    vi.spyOn(document, 'removeEventListener').mockImplementation((type, listener, options) => {
+      if (type === 'pointerdown' && listener) live.delete(listener);
+      remove(type, listener, options);
+    }),
+  ];
+  return {
+    count: () => live.size,
+    restore: () => {
+      for (const spy of spies) spy.mockRestore();
+    },
+  };
+}
+
+async function readyDiagram(container: HTMLElement): Promise<Element> {
+  const selector = '[data-component-type="mermaid"].mermaid-ready .mw-svg-host svg';
+  await waitFor(() => {
+    expect(container.querySelector(selector)).not.toBeNull();
+  });
+  const svg = container.querySelector(selector);
+  if (!svg) throw new Error('the diagram never became ready');
+  return svg;
+}
+
+describe('MermaidView in a tab that is hidden and shown again', () => {
+  beforeEach(() => {
+    renderMermaid.mockClear();
+    initializeMermaid.mockClear();
+    panzoomInstances.length = 0;
+    document.documentElement.classList.remove('dark');
+  });
+
+  afterEach(() => {
+    cleanup();
+    document.documentElement.classList.remove('dark');
+  });
+
+  test('shows the diagram it already rendered instead of rendering it again', async () => {
+    const chart = 'graph TD; A-->B;';
+    const { container, rerender } = render(<TabHost visible chart={chart} />);
+    const rendered = await readyDiagram(container);
+
+    rerender(<TabHost visible={false} chart={chart} />);
+    await nextUserEvent();
+    rerender(<TabHost visible chart={chart} />);
+
+    expect(await readyDiagram(container)).toBe(rendered);
+  });
+
+  test('shows the diagram it already rendered when switching tabs reorders them', async () => {
+    const { container, rerender } = render(
+      <TabStrip order={['diagram', 'notes']} visible="diagram" />,
+    );
+    const rendered = await readyDiagram(container);
+
+    rerender(<TabStrip order={['notes', 'diagram']} visible="notes" />);
+    await nextUserEvent();
+    rerender(<TabStrip order={['diagram', 'notes']} visible="diagram" />);
+
+    expect(await readyDiagram(container)).toBe(rendered);
+  });
+
+  test('renders the chart that changed while the tab was hidden', async () => {
+    const { container, rerender } = render(<TabHost visible chart="graph TD; A-->B;" />);
+    await readyDiagram(container);
+
+    rerender(<TabHost visible={false} chart="graph TD; A-->B;" />);
+    rerender(<TabHost visible={false} chart="graph TD; C-->D;" />);
+    rerender(<TabHost visible chart="graph TD; C-->D;" />);
+
+    await waitFor(() => {
+      const charts = renderMermaid.mock.calls.map((call) => call[1]);
+      expect(charts.some((chart) => chart.includes('C-->D'))).toBe(true);
+    });
+  });
+
+  test('switches to the theme chosen while the tab was hidden', async () => {
+    const chart = 'graph TD; A-->B;';
+    const { container, rerender } = render(<TabHost visible chart={chart} />);
+    await readyDiagram(container);
+    const rendersBefore = renderMermaid.mock.calls.length;
+
+    rerender(<TabHost visible={false} chart={chart} />);
+    document.documentElement.classList.add('dark');
+    rerender(<TabHost visible chart={chart} />);
+
+    await waitFor(() => {
+      expect(renderMermaid.mock.calls.length).toBeGreaterThan(rendersBefore);
+    });
+    expect(initializeMermaid).toHaveBeenLastCalledWith(expect.objectContaining({ theme: 'dark' }));
+  });
+
+  test('the toolbar still pans and zooms the diagram after the tab is shown again', async () => {
+    const chart = 'graph TD; A-->B;';
+    const { rerender } = render(<TabHost visible chart={chart} />);
+    const kept = await waitForPanzoomInstance();
+
+    rerender(<TabHost visible={false} chart={chart} />);
+    await nextUserEvent();
+    rerender(<TabHost visible chart={chart} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Zoom in' }));
+
+    expect(kept.zoomIn).toHaveBeenCalledTimes(1);
+    expect(panzoomInstances).toEqual([kept]);
+  });
+});
+
+describe('MermaidView removed for good', () => {
+  let listeners: ReturnType<typeof trackDocumentPointerdownListeners>;
+
+  beforeEach(() => {
+    renderMermaid.mockClear();
+    panzoomInstances.length = 0;
+    listeners = trackDocumentPointerdownListeners();
+  });
+
+  afterEach(() => {
+    cleanup();
+    listeners.restore();
+  });
+
+  test('stops listening to the document once unmounted', async () => {
+    const { container, unmount } = renderMermaidView('graph TD; A-->B;');
+    await readyDiagram(container);
+    expect(listeners.count()).toBe(1);
+
+    unmount();
+
+    expect(listeners.count()).toBe(0);
+  });
+
+  test('stops listening to the document once its hidden tab closes', async () => {
+    const chart = 'graph TD; A-->B;';
+    const { container, rerender, unmount } = render(<TabHost visible chart={chart} />);
+    await readyDiagram(container);
+    expect(listeners.count()).toBe(1);
+
+    rerender(<TabHost visible={false} chart={chart} />);
+    await nextUserEvent();
+    expect(listeners.count()).toBe(1);
+    unmount();
+
+    await waitFor(() => {
+      expect(listeners.count()).toBe(0);
+    });
+  });
+
+  test('stops listening to the document once removed from a hidden tab that is shown again', async () => {
+    const chart = 'graph TD; A-->B;';
+    const { container, rerender } = render(<TabHost visible chart={chart} />);
+    await readyDiagram(container);
+    expect(listeners.count()).toBe(1);
+
+    rerender(<TabHost visible={false} chart={chart} />);
+    await nextUserEvent();
+    expect(listeners.count()).toBe(1);
+    rerender(<TabHost visible={false} chart={chart} diagram={false} />);
+    await nextUserEvent();
+    rerender(<TabHost visible chart={chart} diagram={false} />);
+
+    expect(listeners.count()).toBe(0);
+  });
+
+  test('keeps only the restored diagram listening after its chart is cleared and restored', async () => {
+    const chart = 'graph TD; A-->B;';
+    const { container, rerender } = render(<TabHost visible chart={chart} />);
+    await readyDiagram(container);
+    expect(listeners.count()).toBe(1);
+
+    rerender(<TabHost visible chart="" />);
+    await waitFor(() => {
+      expect(listeners.count()).toBe(0);
+    });
+    rerender(<TabHost visible chart={chart} />);
+    await readyDiagram(container);
+
+    expect(listeners.count()).toBe(1);
+  });
+});

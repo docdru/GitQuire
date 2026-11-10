@@ -1,0 +1,117 @@
+import { describe, expect, test } from 'vitest';
+import { isTargetOfferedOnHost, KNOWN_TARGETS, VISIBLE_TARGETS } from './targets.ts';
+
+describe('KNOWN_TARGETS', () => {
+  test('has exactly ten targets (four GUI + terminal-only Copilot, OpenCode, Pi, Antigravity, OpenClaw, Hermes)', () => {
+    expect(KNOWN_TARGETS.length).toBe(10);
+  });
+
+  test('ids cover the full HandoffTarget union', () => {
+    const ids = new Set(KNOWN_TARGETS.map((t) => t.id));
+    expect(ids).toEqual(
+      new Set([
+        'claude-cowork',
+        'claude-code',
+        'codex',
+        'cursor',
+        'copilot',
+        'opencode',
+        'pi',
+        'antigravity',
+        'openclaw',
+        'hermes',
+      ]),
+    );
+  });
+
+  test('copilot, opencode, pi, antigravity, openclaw, and hermes are terminal-only — no URL scheme', () => {
+    for (const id of ['copilot', 'opencode', 'pi', 'antigravity', 'openclaw', 'hermes'] as const) {
+      expect(KNOWN_TARGETS.find((t) => t.id === id)?.schemes).toEqual([]);
+    }
+  });
+
+  test('claude-cowork + claude-code share the claude: scheme (single install state)', () => {
+    const cowork = KNOWN_TARGETS.find((t) => t.id === 'claude-cowork');
+    const code = KNOWN_TARGETS.find((t) => t.id === 'claude-code');
+    expect(cowork?.schemes).toEqual(['claude:']);
+    expect(code?.schemes).toEqual(['claude:']);
+  });
+
+  test('codex maps to codex: and cursor maps to cursor:', () => {
+    const codex = KNOWN_TARGETS.find((t) => t.id === 'codex');
+    const cursor = KNOWN_TARGETS.find((t) => t.id === 'cursor');
+    expect(codex?.schemes).toEqual(['codex:']);
+    expect(cursor?.schemes).toEqual(['cursor:']);
+  });
+
+  test('every target has an https install URL', () => {
+    for (const t of KNOWN_TARGETS) {
+      expect(t.installUrl.startsWith('https://')).toBe(true);
+    }
+  });
+
+  test('displayNames match SPEC §7.2 (PQ4 DIRECTED)', () => {
+    const byId = new Map(KNOWN_TARGETS.map((t) => [t.id, t.displayName]));
+    expect(byId.get('claude-cowork')).toBe('Claude Cowork');
+    expect(byId.get('claude-code')).toBe('Claude');
+    expect(byId.get('codex')).toBe('ChatGPT');
+    expect(byId.get('cursor')).toBe('Cursor');
+    expect(byId.get('copilot')).toBe('GitHub Copilot');
+    expect(byId.get('opencode')).toBe('OpenCode');
+    expect(byId.get('pi')).toBe('Pi');
+    expect(byId.get('antigravity')).toBe('Antigravity');
+    expect(byId.get('openclaw')).toBe('OpenClaw');
+    expect(byId.get('hermes')).toBe('Hermes');
+  });
+});
+
+describe('VISIBLE_TARGETS (UI render allow-list)', () => {
+  test('hides claude-cowork from the UI', () => {
+    const ids = new Set(VISIBLE_TARGETS.map((t) => t.id));
+    expect(ids.has('claude-cowork')).toBe(false);
+  });
+
+  test('hides every terminal-only target (copilot/opencode/pi/antigravity/openclaw/hermes) from the GUI deep-link list', () => {
+    const ids = new Set(VISIBLE_TARGETS.map((t) => t.id));
+    for (const id of ['copilot', 'opencode', 'pi', 'antigravity', 'openclaw', 'hermes'] as const) {
+      expect(ids.has(id)).toBe(false);
+    }
+  });
+
+  test('keeps the remaining three targets visible', () => {
+    const ids = new Set(VISIBLE_TARGETS.map((t) => t.id));
+    expect(ids).toEqual(new Set(['claude-code', 'codex', 'cursor']));
+  });
+
+  test('is a strict subset of KNOWN_TARGETS (data preserved, just filtered)', () => {
+    for (const target of VISIBLE_TARGETS) {
+      expect(KNOWN_TARGETS).toContain(target);
+    }
+    expect(VISIBLE_TARGETS.length).toBeLessThan(KNOWN_TARGETS.length);
+  });
+});
+
+describe('isTargetOfferedOnHost', () => {
+  const macAndWindowsOnly = { platforms: ['darwin', 'win32'] as const };
+
+  test('withholds an app the host OS has no build for', () => {
+    expect(isTargetOfferedOnHost(macAndWindowsOnly, { platform: 'linux', installed: false })).toBe(
+      false,
+    );
+    expect(isTargetOfferedOnHost(macAndWindowsOnly, { platform: 'linux', installed: null })).toBe(
+      false,
+    );
+  });
+
+  test('offers an app detected on the host whatever its declared platforms', () => {
+    expect(isTargetOfferedOnHost(macAndWindowsOnly, { platform: 'linux', installed: true })).toBe(
+      true,
+    );
+  });
+
+  test('offers every app when the host OS is unknown', () => {
+    expect(
+      isTargetOfferedOnHost(macAndWindowsOnly, { platform: undefined, installed: false }),
+    ).toBe(true);
+  });
+});

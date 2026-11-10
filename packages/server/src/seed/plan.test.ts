@@ -1,0 +1,268 @@
+import { mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { planSeed } from './plan.ts';
+import { STARTER_PACKS } from './starter.ts';
+import { SeedPrerequisiteError, SeedRootDirError } from './types.ts';
+
+const STARTER_FOLDERS = STARTER_PACKS['knowledge-base'].folders;
+
+describe('planSeed — nested .ok/ era', () => {
+  let projectDir: string;
+
+  beforeEach(async () => {
+    projectDir = await mkdtemp(join(tmpdir(), 'seed-plan-'));
+    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+  });
+
+  afterEach(async () => {
+    await rm(projectDir, { recursive: true, force: true });
+  });
+
+  test('throws SeedPrerequisiteError when .ok/config.yml is absent', async () => {
+    const bare = await mkdtemp(join(tmpdir(), 'seed-bare-'));
+    try {
+      await expect(planSeed({ projectDir: bare })).rejects.toThrow(SeedPrerequisiteError);
+    } finally {
+      await rm(bare, { recursive: true, force: true });
+    }
+  });
+
+  test('the missing-config error names the running channel init command', async () => {
+    const bare = await mkdtemp(join(tmpdir(), 'seed-bare-'));
+    try {
+      vi.stubEnv('OK_CHANNEL', 'stable');
+      await expect(planSeed({ projectDir: bare })).rejects.toThrow(
+        'Run `ok init` first to scaffold the tool config.',
+      );
+      vi.stubEnv('OK_CHANNEL', 'beta');
+      await expect(planSeed({ projectDir: bare })).rejects.toThrow(
+        'Run `ok-beta init` first to scaffold the tool config.',
+      );
+    } finally {
+      vi.unstubAllEnvs();
+      await rm(bare, { recursive: true, force: true });
+    }
+  });
+
+  test('throws SeedPrerequisiteError when .ok/ exists but config.yml is absent', async () => {
+    const bare = await mkdtemp(join(tmpdir(), 'seed-sidecar-'));
+    try {
+      mkdirSync(join(bare, '.ok'), { recursive: true });
+      writeFileSync(join(bare, '.ok', 'frontmatter.yml'), 'title: x\n', 'utf-8');
+      await expect(planSeed({ projectDir: bare })).rejects.toThrow(SeedPrerequisiteError);
+    } finally {
+      await rm(bare, { recursive: true, force: true });
+    }
+  });
+
+  test('skipPrerequisite bypasses the gate — previews an all-created plan in a bare dir', async () => {
+    const bare = await mkdtemp(join(tmpdir(), 'seed-preview-'));
+    try {
+      const plan = await planSeed({ projectDir: bare, skipPrerequisite: true });
+      expect(plan.created.length).toBeGreaterThan(0);
+      expect(plan.skipped.length).toBe(0);
+    } finally {
+      await rm(bare, { recursive: true, force: true });
+    }
+  });
+
+  test('plans every starter folder + nested .ok/ + frontmatter.yml + templates/<name>.md', async () => {
+    const plan = await planSeed({ projectDir });
+    const createdPaths = new Set(plan.created.map((e) => e.path));
+
+    for (const folder of STARTER_FOLDERS) {
+      expect(createdPaths.has(folder.path)).toBe(true);
+      expect(createdPaths.has(`${folder.path}/.ok`)).toBe(true);
+      expect(createdPaths.has(`${folder.path}/.ok/frontmatter.yml`)).toBe(true);
+      expect(createdPaths.has(`${folder.path}/.ok/templates`)).toBe(true);
+      expect(createdPaths.has(`${folder.path}/.ok/templates/${folder.starterTemplate}.md`)).toBe(
+        true,
+      );
+    }
+    expect(createdPaths.has('log.md')).toBe(true);
+  });
+
+  test('plan has no configEdits field — folders[] write path retired (FR8 / D19)', async () => {
+    const plan = await planSeed({ projectDir });
+    expect((plan as unknown as Record<string, unknown>).configEdits).toBeUndefined();
+  });
+
+  test('frontmatter.yml + template entries carry their template id for apply()', async () => {
+    const plan = await planSeed({ projectDir });
+    for (const folder of STARTER_FOLDERS) {
+      const fmEntry = plan.created.find((e) => e.path === `${folder.path}/.ok/frontmatter.yml`);
+      expect(fmEntry?.template).toBe(`${folder.path}/.ok/frontmatter.yml`);
+
+      const tplEntry = plan.created.find(
+        (e) => e.path === `${folder.path}/.ok/templates/${folder.starterTemplate}.md`,
+      );
+      expect(tplEntry?.template).toBe(`${folder.path}/.ok/templates/${folder.starterTemplate}.md`);
+    }
+  });
+
+  test('skips entries that already exist on disk', async () => {
+    mkdirSync(join(projectDir, 'external-sources', '.ok'), { recursive: true });
+    writeFileSync(
+      join(projectDir, 'external-sources', '.ok', 'frontmatter.yml'),
+      'title: User had this already\n',
+    );
+
+    const plan = await planSeed({ projectDir });
+    const skippedPaths = new Set(plan.skipped.map((e) => e.path));
+    expect(skippedPaths.has('external-sources')).toBe(true);
+    expect(skippedPaths.has('external-sources/.ok')).toBe(true);
+    expect(skippedPaths.has('external-sources/.ok/frontmatter.yml')).toBe(true);
+
+    const createdPaths = new Set(plan.created.map((e) => e.path));
+    expect(createdPaths.has('research')).toBe(true);
+    expect(createdPaths.has('articles')).toBe(true);
+  });
+
+  test('rootDir scopes the scaffold under a subfolder', async () => {
+    const plan = await planSeed({ projectDir, rootDir: 'brain' });
+    const createdPaths = new Set(plan.created.map((e) => e.path));
+
+    expect(createdPaths.has('brain')).toBe(true);
+    for (const folder of STARTER_FOLDERS) {
+      expect(createdPaths.has(`brain/${folder.path}`)).toBe(true);
+      expect(createdPaths.has(`brain/${folder.path}/.ok/frontmatter.yml`)).toBe(true);
+      expect(
+        createdPaths.has(`brain/${folder.path}/.ok/templates/${folder.starterTemplate}.md`),
+      ).toBe(true);
+    }
+    expect(createdPaths.has('brain/log.md')).toBe(true);
+  });
+
+  test('rootDir rejects absolute paths', async () => {
+    await expect(planSeed({ projectDir, rootDir: '/etc/evil' })).rejects.toThrow(SeedRootDirError);
+  });
+
+  test('rootDir rejects path traversal', async () => {
+    await expect(planSeed({ projectDir, rootDir: '../escape' })).rejects.toThrow(SeedRootDirError);
+  });
+
+  test('no agent folder: pack skills are not pending, and the plan says why', async () => {
+    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
+    expect(plan.packSkills?.length).toBeGreaterThan(0);
+    expect(plan.packSkills?.some((s) => s.pending)).toBe(false);
+    expect(plan.packSkillHomeRefusal).toBe('no-agent-folder');
+  });
+
+  test('with an adopted agent folder, an absent pack skill is pending', async () => {
+    mkdirSync(join(projectDir, '.claude'), { recursive: true });
+    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
+    expect(plan.packSkills?.some((s) => s.pending)).toBe(true);
+    expect(plan.packSkillHomeRefusal).toBeUndefined();
+  });
+
+  test('an agent folder symlinked outside the project refuses with home-escapes-project', async () => {
+    const outside = await mkdtemp(join(tmpdir(), 'seed-outside-'));
+    try {
+      symlinkSync(outside, join(projectDir, '.claude'));
+      mkdirSync(join(outside, 'skills'), { recursive: true });
+
+      const plan = await planSeed({ projectDir, packId: 'plain-notes' });
+
+      expect(plan.packSkillHomeRefusal).toBe('home-escapes-project');
+      expect(plan.packSkills?.some((s) => s.pending)).toBe(false);
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('planSeed — codebase-wiki nested paths', () => {
+  let projectDir: string;
+  const WIKI_PACK = STARTER_PACKS['codebase-wiki'];
+
+  beforeEach(async () => {
+    projectDir = await mkdtemp(join(tmpdir(), 'seed-plan-wiki-'));
+    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+  });
+
+  afterEach(async () => {
+    await rm(projectDir, { recursive: true, force: true });
+  });
+
+  test('plans nested folder + .ok/frontmatter.yml + template entries with slash-bearing template ids', async () => {
+    const plan = await planSeed({ projectDir, packId: 'codebase-wiki' });
+    const byPath = new Map(plan.created.map((e) => [e.path, e]));
+
+    for (const folder of WIKI_PACK.folders) {
+      expect(byPath.has(folder.path)).toBe(true);
+      expect(byPath.get(`${folder.path}/.ok/frontmatter.yml`)?.template).toBe(
+        `${folder.path}/.ok/frontmatter.yml`,
+      );
+      expect(
+        byPath.get(`${folder.path}/.ok/templates/${folder.starterTemplate}.md`)?.template,
+      ).toBe(`${folder.path}/.ok/templates/${folder.starterTemplate}.md`);
+    }
+  });
+
+  test('plans wiki/-prefixed rootFiles at their nested paths', async () => {
+    const plan = await planSeed({ projectDir, packId: 'codebase-wiki' });
+    const createdPaths = new Set(plan.created.map((e) => e.path));
+    expect(createdPaths.has('wiki/OVERVIEW.md')).toBe(true);
+    expect(createdPaths.has('wiki/log.md')).toBe(true);
+  });
+
+  test('a pack skill installed under its old name reads as present, not pending, not conflicted', async () => {
+    const oldName = 'open-knowledge-pack-plain-notes';
+    const skillDir = join(projectDir, '.claude', 'skills', oldName);
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(
+      join(skillDir, 'SKILL.md'),
+      `---\nname: ${oldName}\ndescription: "Plain notes."\nmetadata:\n  pack: "plain-notes"\n---\n\nBody.\n`,
+      'utf-8',
+    );
+
+    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
+
+    const orientation = plan.packSkills?.find((s) => s.name === 'note-taking');
+    expect(orientation).toBeDefined();
+    expect(orientation?.pending).toBe(false);
+    expect(orientation?.conflict).toBeUndefined();
+  });
+
+  test('an updated legacy install (no metadata.pack) is still ours, via its old lock key', async () => {
+    const oldName = 'open-knowledge-pack-plain-notes';
+    const skillDir = join(projectDir, '.claude', 'skills', oldName);
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(
+      join(skillDir, 'SKILL.md'),
+      `---\nname: ${oldName}\ndescription: "Plain notes."\n---\n\nBody.\n`,
+      'utf-8',
+    );
+    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    writeFileSync(
+      join(projectDir, '.ok', 'skills-lock.json'),
+      `${JSON.stringify(
+        {
+          schema: 1,
+          skills: {
+            [oldName]: {
+              source: 'inkeep/open-knowledge-skills',
+              skill: oldName,
+              contentHash: 'h',
+              importedAt: '2026-01-01T00:00:00.000Z',
+            },
+          },
+        },
+        null,
+        2,
+      )}\n`,
+      'utf-8',
+    );
+
+    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
+
+    const orientation = plan.packSkills?.find((s) => s.name === 'note-taking');
+    expect(orientation?.pending).toBe(false);
+    expect(orientation?.conflict).toBeUndefined();
+  });
+});

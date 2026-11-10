@@ -1,0 +1,52 @@
+---
+title: "Embed"
+description: "Inline web embed (iframe) — drop a URL, get a resizable preview pane. For YouTube / Vimeo / Loom prefer `<video src=\"…\">` (player props, click-facade); `<Embed>` auto-rewrites watch URLs as a fallback"
+keywords: "embed, iframe, website, page, inline, frame, preview"
+---
+
+## Example
+
+<ComponentPreview>
+  <EmbedPreview
+    src="https://openknowledge.ai/"
+    title="OpenKnowledge marketing site"
+  />
+</ComponentPreview>
+
+```mdx
+<Embed src="" title="Title" />
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "src": {
+    description: "Embedded page URL (must start with http:// or https://)",
+    type: "string",
+    required: true,
+    default: "",
+  },
+  "title": {
+    description: "Iframe title (accessible label for screen readers)",
+    type: "string",
+    required: false,
+  },
+  "width": {
+    description: "Embed width as a CSS length (e.g. \"100%\", \"640px\")",
+    type: "string",
+    required: false,
+  },
+  "height": {
+    description: "Embed height as a CSS length (e.g. \"26rem\", \"480px\")",
+    type: "string",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `embed`, `iframe`, `website`, `page`, `inline`, `frame`, `preview`
+
+## Author it
+
+Type `/embed` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

@@ -1,0 +1,40 @@
+import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
+import type { OkignoreBinding } from '@inkeep/open-knowledge-core/config/bind-okignore-doc';
+import type { Config } from '@inkeep/open-knowledge-core/config/schema';
+import { useLingui } from '@lingui/react/macro';
+import { createContext, use } from 'react';
+
+export interface ConfigContextValue {
+  userBinding: ConfigBinding | null;
+  userSynced: boolean;
+  userLoadFailed?: boolean;
+  projectBinding: ConfigBinding | null;
+  projectLocalBinding: ConfigBinding | null;
+  okignoreBinding: OkignoreBinding | null;
+  okignoreSynced: boolean;
+  userConfig: Config | null;
+  projectConfig: Config | null;
+  projectSynced: boolean;
+  projectLocalConfig: Config | null;
+  projectLocalSynced: boolean;
+  merged: Config | null;
+}
+
+export const ConfigContext = createContext<ConfigContextValue | null>(null);
+
+export function useConfigContext(): ConfigContextValue {
+  const ctx = use(ConfigContext);
+  if (!ctx) {
+    throw new Error('useConfigContext must be used within <ConfigProvider />');
+  }
+  return ctx;
+}
+
+export function useConfigContextOptional(): ConfigContextValue | null {
+  return use(ConfigContext);
+}
+
+export function useSettingsLoadingReason(): string {
+  const { t } = useLingui();
+  return t`Settings are still loading. Try again in a moment.`;
+}

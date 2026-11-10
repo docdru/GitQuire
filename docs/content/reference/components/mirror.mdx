@@ -1,0 +1,77 @@
+---
+title: "Mirror"
+description: "Render a read-only copy of a `<MirrorSource>` block from another doc. Use to keep the same content in sync across multiple docs without copy-paste — edits land at the source, every Mirror reflects the change"
+keywords: "mirror, sync, synced, transclude, embed, reference, shared block"
+---
+
+## Example
+
+<ComponentPreview>
+  <MirrorPreview src="specs/architecture" name="overview-diagram">
+    This body renders live from wherever the `<MirrorSource name="overview-diagram">`
+    with a matching name lives — edits there ripple here without a copy step.
+  </MirrorPreview>
+</ComponentPreview>
+
+````text
+```mdx
+<Mirror src="specs/architecture" name="overview-diagram" />
+```
+````
+
+## Props
+
+<TypeTable
+  type={{
+  "src": {
+    description: "Path of the source doc, extension-less (e.g. \\`api-spec\\`).",
+    type: "string",
+    required: true,
+  },
+  "name": {
+    description: "Name of the \\`<MirrorSource>\\` block in the source doc. Also read as \\`anchor\\`; write \\`name\\` instead.",
+    type: "string",
+    required: true,
+  },
+}}
+/>
+
+## Also: `<MirrorSource>`
+
+Mark a block as the source of truth for content that appears in multiple docs. Wrap any block content; `<Mirror src="…" name="…">` references render this verbatim read-only at every call-site. Edit here, propagate everywhere.
+
+<ComponentPreview>
+  <MirrorSourcePreview name="overview-diagram">
+    The canonical content this block owns. Every `<Mirror>` that references
+    this name anywhere in the project reads from here.
+  </MirrorSourcePreview>
+</ComponentPreview>
+
+```mdx
+<MirrorSource name="overview-diagram">
+  Authoritative content lives inside this block — edits here propagate to every `<Mirror>` that references this name.
+</MirrorSource>
+```
+
+<TypeTable
+  type={{
+  "name": {
+    description: "Stable name a \\`<Mirror>\\` uses to reference this block. Also read as \\`id\\`; write \\`name\\` instead.",
+    type: "string",
+    required: true,
+  },
+  "children": {
+    description: "Block content this MirrorSource owns — paragraphs, callouts, code, nested JSX, anything.",
+    type: "ReactNode",
+    required: true,
+  },
+}}
+/>
+
+_Also matches:_ `mirror`, `sync`, `synced`, `transclude`, `embed`, `reference`, `shared block`
+
+## Author it
+
+Type `/mirror` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.
+
+A Mirror Source inserted from the slash menu takes its name from the nearest heading above it, as a slug of at most 40 characters cut at a word: `## Pricing Plans` gives `pricing-plans`. With no heading above it the name is `source`, and `-1`, `-2` and so on are added when another Mirror Source in the doc already has that name. In a Mirror's Properties panel, `src` suggests documents and `name` suggests the Mirror Source names in the chosen document.

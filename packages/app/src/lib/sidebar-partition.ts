@@ -1,0 +1,26 @@
+import type { EmbeddedHost } from '@inkeep/open-knowledge-core/constants/embedded-host';
+
+export type Partition = 'above' | 'below' | 'embedded';
+export type SidebarState = 'open' | 'collapsed';
+export type SidebarSide = 'left' | 'right';
+
+export const LEFT_COLLAPSE_THRESHOLD = 1024;
+export const RIGHT_COLLAPSE_THRESHOLD = 1280;
+
+const THRESHOLDS = {
+  left: LEFT_COLLAPSE_THRESHOLD,
+  right: RIGHT_COLLAPSE_THRESHOLD,
+} as const satisfies Record<SidebarSide, number>;
+
+export function resolvePartition(
+  embeddedHost: EmbeddedHost,
+  viewportWidth: number,
+  sidebar: SidebarSide,
+): Partition {
+  if (embeddedHost != null) return 'embedded';
+  return viewportWidth >= THRESHOLDS[sidebar] ? 'above' : 'below';
+}
+
+export function smartDefault(partition: Partition): SidebarState {
+  return partition === 'above' ? 'open' : 'collapsed';
+}

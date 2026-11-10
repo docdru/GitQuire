@@ -1,0 +1,894 @@
+name: Release
+run-name: ${{ inputs.sha && format('Beta cut at {0}', inputs.sha) || '' }}
+
+# Release workflow on inkeep/open-knowledge. Single npm publisher
+# for BOTH auto-cadence beta releases AND on-demand stable promotions.
+#
+# Beta path: two triggers can cut a beta, and the repository variable
+# OK_BETA_CUT picks which one does. Unset or `push` (the default): the
+# push trigger below cuts. `inertia`: Inertia on agents-private
+# (.github/workflows/ok-inertia.yml there) cuts, by dispatching this
+# workflow with a `sha` input once its scheduled full-suite run on
+# agents-private main is green, and a push here skips with a summary line.
+# Any other value fails the push run rather than guess. RELEASES.md
+# "Beta cadence" has the rollout and the way back.
+#
+# Push trigger: event-driven on `push` to open-knowledge/main with a paths
+# filter on `.changeset/**`. Copybara mirrors
+# `public/open-knowledge/.changeset/*.md` and `config.json` from
+# agents-private. When agents-private merges a PR with a changeset,
+# Copybara batches it into a Project-import commit on open-knowledge/main;
+# that import push IS the release trigger. The workflow then runs
+# `compute-next-beta.mjs` locally to derive baseVersion
+# + release notes from the pending changeset pile (skip-gated by the
+# previous beta's embedded consumed-set marker), resolves -beta.N inside
+# the ok-release-cadence concurrency slot, and tags `github.sha` —
+# guaranteed to be the import that contains the change because checkout
+# happens AT the push event. This replaces the prior cross-repo
+# repository_dispatch model, which suffered an off-by-one: the dispatch
+# from agents-private fired before Copybara's mirror push landed, so
+# open-knowledge/main HEAD was still the previous import when checkout resolved
+# `github.sha`, tagging the wrong commit (Linear PRD-6701).
+#
+# Inertia's dispatch does not reopen that off-by-one: it never tags the
+# HEAD the run happens to see. It names the commit in the `sha` input,
+# the newest open-knowledge/main commit whose GitOrigin-RevId trailer is
+# the green agents-private SHA or an ancestor of it, and only once
+# Copybara has exported everything up to that SHA. After cut-commit
+# confirms main contains it, the build job checks out and packs exactly
+# that commit and the release job tags it, so a dispatch that lands before
+# or after an import tags the same commit.
+#
+# Three trigger types:
+#
+# 1. event_name=push (auto-cadence beta, when OK_BETA_CUT is unset or push):
+#    Fires when Copybara mirrors a commit touching `.changeset/**`.
+#    Workflow:
+#      - Runs `compute-next-beta.mjs` to read `.changeset/*.md`, the
+#        stable tags and which of their Releases are published, compute
+#        the delta, and emit { baseVersion, maxBumpType, releaseNotes }.
+#        The base is the newest stable tag bumped by the pending
+#        changesets its tree lacks. Empty delta
+#        (e.g., Copybara import that only touched non-changeset files
+#        matching the paths filter) → skip cleanly.
+#      - Resolves -beta.N counter from existing vX.Y.Z-beta.* tags
+#        (race-free inside the ok-release-cadence concurrency slot).
+#      - Overrides every fixed-group packages/*/package.json#version
+#        to X.Y.Z-beta.N (transient jq, never committed).
+#      - Tags vX.Y.Z-beta.N at `github.sha` + creates a prerelease GitHub
+#        Release with the rendered notes (consumed-set marker embedded
+#        for the next cut to read).
+#      - Dispatches desktop-release.yml so the signed DMG +
+#        `beta-mac.yml` land on the prerelease.
+#
+# 2. event_name=workflow_dispatch:
+#    Same code path as the push trigger, and never gated by OK_BETA_CUT.
+#    With `sha` set (Inertia's dispatch, or a person forcing a cut at a
+#    commit Inertia proved), it cuts at exactly that commit, refusing one
+#    that is not a 40-hex commit reachable from main; its run is named
+#    `Beta cut at <sha>`, which is how Inertia finds the cuts it started.
+#    With `sha` empty (manual recovery), it cuts at the current main HEAD,
+#    used after a transient flake to re-fire without waiting for a new
+#    mirror import.
+#
+# 3. repository_dispatch type=publish-stable (fired by desktop-release.yml
+#    on this same repo, after its DMG smoke gate passes and it has
+#    published the vX.Y.Z GitHub Release that promote-stable.yml or
+#    point-release.yml drafted):
+#      client_payload: { ref: "vX.Y.Z", version: "X.Y.Z" }
+#    Workflow:
+#      - Checks out the stable tag (the promoted beta's SHA, or the
+#        synthetic commit a point release tags).
+#      - Overrides every fixed-group package.json#version to the clean
+#        X.Y.Z (the public repo's commit at that SHA carries the committed
+#        placeholder 0.0.0-unknown).
+#      - Publishes @inkeep/open-knowledge@X.Y.Z to npm with
+#        `--tag latest --provenance`.
+#    desktop-release.yml is dispatched by promote-stable.yml or
+#    point-release.yml; it lands the stable DMG + `latest-mac.yml` on the
+#    stable Release and then sends this one.
+#
+# Why explicit `repository_dispatch` for the beta path here instead of
+# relying on `release: published` to cascade: GitHub deliberately
+# suppresses downstream workflow runs from GITHUB_TOKEN-authored
+# events. This workflow's `gh release create` runs under GITHUB_TOKEN,
+# so a `release: published` event from it would NOT cascade to desktop-release.yml.
+# `repository_dispatch` and `workflow_dispatch` are the documented
+# exemption that cascade even when fired via GITHUB_TOKEN.
+#
+# `promote-stable.yml` reaches the same place via a different route:
+# it uses an App-minted token (which DOES cascade) but creates the
+# release as `--draft`, so `release: published` doesn't fire until
+# desktop-release.yml later promotes the draft. Its dispatch comment
+# documents that path.
+#
+# Why ONE workflow handles both beta and stable: npm Trusted Publishing
+# only allows ONE trusted publisher per package. Both
+# event-driven betas and promote-stable route their npm publishes here.
+#
+# Concurrency group is shared with promote-stable.yml so beta cuts and
+# stable promotions never race on the same public-repo state.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".changeset/**"
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Cut the beta at this full commit SHA on main (Inertia passes the commit its green run proved). Empty cuts at main HEAD.
+        type: string
+        default: ''
+      dispatched_by:
+        description: URL of the run that dispatched this one, shown in the build summary
+        type: string
+        default: ''
+      proved_by_run:
+        description: Run id (the number in the run's URL, not its run number) of the internal Inertia validation run whose green verdict proved the commit, named in the beta notes. Empty names none.
+        type: string
+        default: ''
+      proved_at:
+        description: Full agents-private commit SHA that run validated, named in the beta notes beside it. Empty names none.
+        type: string
+        default: ''
+  repository_dispatch:
+    types: [publish-stable]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ok-release-cadence
+  cancel-in-progress: false
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  # Its own job, with contents: read, so read-releases keeps running nothing
+  # but its Release reads under its contents: write token.
+  cut-commit:
+    name: Decide whether this run cuts a beta, and at which commit
+    runs-on: ubuntu-26.04
+    cache-mode: none
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      push_skipped: ${{ steps.cut.outputs.push_skipped }}
+      ref: ${{ steps.cut.outputs.ref }}
+    steps:
+      - name: Decide whether this run cuts a beta, and at which commit
+        id: cut
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          BETA_CUT: ${{ vars.OK_BETA_CUT }}
+          CUT_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == push ]]; then
+            case "${BETA_CUT:-push}" in
+              push)
+                echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+                ;;
+              inertia)
+                echo "::notice::No beta cut on this push: OK_BETA_CUT is inertia, so betas are cut from Inertia on agents-private."
+                echo "No beta cut on this push: OK_BETA_CUT is \`inertia\`, so betas are cut from Inertia on agents-private, which dispatches this workflow with the commit its green run proved (RELEASES.md, Beta cadence)." >> "$GITHUB_STEP_SUMMARY"
+                echo "push_skipped=true" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                echo "::error::The repository variable OK_BETA_CUT is '${BETA_CUT}', not push, inertia or unset, so this run cannot tell which trigger cuts betas. Fix the variable, then re-run."
+                exit 1
+                ;;
+            esac
+          elif [[ "$EVENT_NAME" == workflow_dispatch ]]; then
+            if [[ -z "${CUT_SHA:-}" ]]; then
+              echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [[ ! "$CUT_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::The sha input is not a full 40-character lowercase commit SHA. Refusing to cut."
+              exit 1
+            fi
+            if ! status=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${CUT_SHA}...main" --jq .status); then
+              echo "::error::Could not compare ${CUT_SHA} with main, so this run cannot confirm main contains it. Refusing to cut."
+              exit 1
+            fi
+            if [[ "$status" != ahead && "$status" != identical ]]; then
+              echo "::error::${CUT_SHA} is not reachable from main (compare status ${status}). Refusing to cut a commit main does not contain."
+              exit 1
+            fi
+            echo "ref=$CUT_SHA" >> "$GITHUB_OUTPUT"
+            echo "Cutting the beta at ${CUT_SHA}, given by the sha input; main contains it (compare status ${status})." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  read-releases:
+    name: Read the previous beta Release and the stable Releases
+    runs-on: ubuntu-26.04
+    cache-mode: none
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      release_list_status: ${{ steps.read.outputs.release_list_status }}
+      release_list_stdout: ${{ steps.read.outputs.release_list_stdout }}
+      release_list_stderr: ${{ steps.read.outputs.release_list_stderr }}
+      release_view_tag: ${{ steps.read.outputs.release_view_tag }}
+      release_view_status: ${{ steps.read.outputs.release_view_status }}
+      release_view_stdout: ${{ steps.read.outputs.release_view_stdout }}
+      stable_releases_status: ${{ steps.read.outputs.stable_releases_status }}
+      stable_releases_stdout: ${{ steps.read.outputs.stable_releases_stdout }}
+      stable_releases_stderr: ${{ steps.read.outputs.stable_releases_stderr }}
+    steps:
+      - name: Read the newest beta Release and its body, and list the stable Releases, drafts included
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        id: read
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          record() {
+            local delimiter
+            delimiter="ghadelimiter_$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
+            printf '%s<<%s\n%s\n%s\n' "$1" "$delimiter" "$2" "$delimiter" >> "$GITHUB_OUTPUT"
+          }
+          list_stderr_file=$(mktemp)
+          if list_stdout=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 50 --json tagName,isPrerelease --jq '[.[] | select(.isPrerelease) | select(.tagName | test("^v[0-9]+\\.[0-9]+\\.[0-9]+-beta\\.[0-9]+$")) | .tagName] | first // ""' 2>"$list_stderr_file"); then
+            list_status=0
+          else
+            list_status=$?
+          fi
+          list_stderr=$(cat "$list_stderr_file")
+          cat "$list_stderr_file" >&2
+          record release_list_status "$list_status"
+          record release_list_stdout "$list_stdout"
+          record release_list_stderr "$list_stderr"
+          if [[ "$list_status" -eq 0 && -n "$list_stdout" ]]; then
+            if view_stdout=$(gh release view "$list_stdout" --repo "$GITHUB_REPOSITORY" --json body --jq .body); then
+              view_status=0
+            else
+              view_status=$?
+            fi
+            record release_view_tag "$list_stdout"
+            record release_view_status "$view_status"
+            record release_view_stdout "$view_stdout"
+          fi
+          echo "Previous beta Release: ${list_stdout:-none} (list exit ${list_status}${view_status:+, view exit ${view_status}})"
+          stable_stderr_file=$(mktemp)
+          if stable_stdout=$(gh api -X GET "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --paginate --jq '.[] | select(.tag_name | test("^v[0-9]+[.][0-9]+[.][0-9]+$")) | {tag_name, draft}' 2>"$stable_stderr_file"); then
+            stable_status=0
+          else
+            stable_status=$?
+          fi
+          stable_stderr=$(cat "$stable_stderr_file")
+          cat "$stable_stderr_file" >&2
+          record stable_releases_status "$stable_status"
+          record stable_releases_stdout "$stable_stdout"
+          record stable_releases_stderr "$stable_stderr"
+          echo "Stable Release listing: exit ${stable_status}"
+
+  build:
+    name: Build + pack (${{ github.event.action || github.event_name }})
+    needs: [cut-commit, read-releases]
+    if: needs.cut-commit.outputs.push_skipped != 'true'
+    runs-on: ubuntu-26.04
+    cache-mode: none
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      run_beta: ${{ steps.compute-beta.outputs.run_beta }}
+      base_version: ${{ steps.compute-beta.outputs.base_version }}
+      notes_b64: ${{ steps.compute-beta.outputs.notes_b64 }}
+      version: ${{ steps.resolve-beta.outputs.version }}
+    steps:
+      - name: Link to triggering run
+        # Back-link: on the publish-stable path, desktop-release forwards its run
+        # URL in client_payload.dispatched_by; an Inertia dispatch passes its run
+        # URL in the dispatched_by input. Blank on the beta push path.
+        env:
+          DISPATCHED_BY: ${{ github.event.client_payload.dispatched_by || inputs.dispatched_by }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${DISPATCHED_BY:-}" ]]; then
+            echo "::notice::Triggered by ${DISPATCHED_BY}"
+            { echo "### Triggered by"; echo "- ${DISPATCHED_BY}"; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          # publish-stable: client_payload.ref carries the stable tag,
+          #   on the promoted beta's SHA or on the synthetic commit a
+          #   point release tags.
+          # push / workflow_dispatch (beta path): no client_payload — fall
+          #   through to cut-commit's ref: github.sha, which IS the
+          #   just-pushed Copybara import for `push` events (no race; this
+          #   is the off-by-one fix from Linear PRD-6701), or the sha input
+          #   of a dispatch, already checked to be on main.
+          ref: ${{ github.event.client_payload.ref || needs.cut-commit.outputs.ref || github.sha }}
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          cache: false
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Refuse a stable that carries the release hold
+        if: github.event.action == 'publish-stable'
+        env:
+          STABLE_REF: ${{ github.event.client_payload.ref }}
+        run: |
+          set -euo pipefail
+          git cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null || git fetch --no-tags origin "$GITHUB_SHA"
+          hold="$RUNNER_TEMP/release-hold"
+          rm -rf "$hold"
+          mkdir -p "$hold"
+          git archive "$GITHUB_SHA" .github/scripts/release-hold.mjs scripts/git-clean-env.mjs | tar -x -C "$hold"
+          node "$hold/.github/scripts/release-hold.mjs" --candidate HEAD --label "$STABLE_REF"
+
+      - name: Ensure npm 11 for the cli's package surface check
+        run: |
+          npm install -g npm@11.21.0
+          echo "npm $(npm --version)"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Compile the i18n catalogs from the .po files this build ships
+        shell: bash
+        working-directory: packages/app
+        run: |
+          if grep -q '"i18n:compile"' package.json; then
+            pnpm_config_script_shell=$(command -v bash)
+            if command -v cygpath >/dev/null; then
+              pnpm_config_script_shell=$(cygpath -w "$pnpm_config_script_shell")
+            fi
+            export pnpm_config_script_shell
+            pnpm run i18n:compile
+          else
+            echo "packages/app/package.json defines no i18n:compile script, so this build compiles no i18n catalogs"
+          fi
+
+      - name: Stage native-config prebuilt binaries
+        id: stage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SERVES: mac,windows,linux
+          REQUIRES: mac,windows,linux
+        run: |
+          summarize() {
+            echo "Staged native-config binaries: $1" >> "$GITHUB_STEP_SUMMARY"
+          }
+          download_bindings() {
+            for attempt in 1 2 3; do
+              rm -rf /tmp/nc-bindings
+              if gh run download "$1" --name native-config-bindings-all --dir /tmp/nc-bindings; then
+                return 0
+              fi
+              if [ "$attempt" -lt 3 ]; then sleep $((attempt * ${NC_RETRY_BACKOFF_S:-5})); fi
+            done
+            return 1
+          }
+          judge_staging() {
+            summarize "$1"
+            if [ ! -s "$judge" ]; then
+              echo "::error::the native-set judge is missing at $GITHUB_SHA and in the release checkout; refusing this cut"
+              exit 1
+            fi
+            node "$judge" staged --serves "$SERVES" --requires "$REQUIRES" --reason "$1" \
+              --recovery "If no prebuild run matches this commit's packages/native-config tree, re-run native-config-prebuild.yml on an ancestor of this commit; if staging failed for another reason, re-run this workflow. Either way resume per RELEASES.md 'Native addon staging'."
+            exit $?
+          }
+
+          # Which prebuild run may be staged is release policy shared with the
+          # other publish path and predicted by point-release-plan.mjs, so the
+          # selection lives in one tested script instead of three copies of this
+          # shell. It walks the green prebuild runs on `main` newest -> oldest
+          # and returns the first whose commit is contained in this release AND
+          # whose packages/native-config source matches it — the newest ANCESTOR,
+          # not the newest run. Taking the newest run refused every stable tag
+          # cut before the most recent native-config change, because that run is
+          # then a descendant of the release commit rather than an ancestor.
+          #
+          # The workflow file comes from the DEFAULT branch, but the checkout is
+          # the RELEASE ref — so for any tag cut before this selector landed, the
+          # script is simply absent from the workspace. Materialize it from the
+          # same commit the workflow itself came from, falling back to the
+          # checked-out copy. Pairing the two is what lets a re-fire on a stale
+          # tag run CURRENT release machinery rather than whatever was frozen in
+          # that tag, which is the only way re-firing a blocked release can ever
+          # clear it. fetch-depth:0 in checkout has $GITHUB_SHA. The native-set
+          # judge that decides what staging may package comes the same way.
+          judge="${RUNNER_TEMP:-/tmp}/assert-native-set.mjs"
+          if ! git show "$GITHUB_SHA:.github/scripts/assert-native-set.mjs" > "$judge" 2>/dev/null; then
+            cp .github/scripts/assert-native-set.mjs "$judge" 2>/dev/null || true
+          fi
+          selector="${RUNNER_TEMP:-/tmp}/select-native-config-prebuild.mjs"
+          if ! git show "$GITHUB_SHA:.github/scripts/select-native-config-prebuild.mjs" > "$selector" 2>/dev/null; then
+            cp .github/scripts/select-native-config-prebuild.mjs "$selector" 2>/dev/null || true
+          fi
+          if [ ! -s "$selector" ]; then
+            judge_staging "native-config prebuild selector is missing at $GITHUB_SHA and in the release checkout"
+          fi
+          nc_err="${RUNNER_TEMP:-/tmp}/native-config-select.err"
+          if ! selection=$(node "$selector" 2>"$nc_err"); then
+            reason=$(tr '\n' ' ' < "$nc_err" | sed 's/  *$//')
+            judge_staging "${reason:-could not select a native-config prebuild run}"
+          fi
+          # Assert the WHOLE shape, on ONE line. Testing for a tab anywhere is
+          # not enough: a stray line ahead of the real answer still contains a
+          # tab, so it passes and leaves that noise in run_id, which only
+          # surfaces later as a confusing `gh run download` failure. Anchoring
+          # the whole value is what actually rejects it. The message is flattened
+          # because ::error:: annotations are single-line — an interpolated
+          # multi-line value would truncate the page.
+          selection_shape='^[0-9]+'$'\t''[0-9a-f]{7,40}$'
+          if [[ ! $selection =~ $selection_shape ]]; then
+            flattened=$(printf '%s' "$selection" | tr '\n' ' ')
+            judge_staging "native-config prebuild selector returned an unusable answer: $flattened"
+          fi
+          run_id="${selection%%$'\t'*}"
+          head_sha="${selection##*$'\t'}"
+
+          if ! download_bindings "$run_id"; then
+            judge_staging "could not download native-config-bindings-all from run $run_id after 3 attempts"
+          fi
+          find /tmp/nc-bindings -name '*.node' -exec cp -f {} packages/native-config/ \;
+          count=$(find packages/native-config -maxdepth 1 -name '*.node' | wc -l | tr -d ' ')
+          echo "staged $count native-config prebuilt binaries from run $run_id (commit $head_sha)"
+          judge_staging "staged $count native-config binaries from run $run_id (commit $head_sha)"
+
+      - name: Install the declared Rust toolchain
+        run: |
+          rustup toolchain install --no-self-update
+          rustc -vV
+
+      # --- BETA PATH (push + workflow_dispatch) ---
+
+      # Compute baseVersion + maxBumpType + rendered release notes locally
+      # from the changesets in the just-pushed commit that no published
+      # stable tag's tree holds. compute-next-beta.mjs reads `.changeset/*.md`,
+      # the stable tags (fetch-depth: 0 has them all) and the stable Release
+      # listing read-releases recorded; emits `{skip: true, reason}` when no
+      # new changesets exist since the last beta (e.g., a Copybara import
+      # that touched `.changeset/config.json` but no `.md` files). The
+      # script MUTATES the working tree (writes a transient pre.json, which
+      # main does not commit, + CHANGELOG.md + package.json, and deletes
+      # .changeset/*.md); the final `Restore working tree` step restores the
+      # tracked files.
+      - name: Compute next beta base version + render release notes
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        id: compute-beta
+        env:
+          RELEASE_LIST_STATUS: ${{ needs.read-releases.outputs.release_list_status }}
+          RELEASE_LIST_STDOUT: ${{ needs.read-releases.outputs.release_list_stdout }}
+          RELEASE_LIST_STDERR: ${{ needs.read-releases.outputs.release_list_stderr }}
+          RELEASE_VIEW_TAG: ${{ needs.read-releases.outputs.release_view_tag }}
+          RELEASE_VIEW_STATUS: ${{ needs.read-releases.outputs.release_view_status }}
+          RELEASE_VIEW_STDOUT: ${{ needs.read-releases.outputs.release_view_stdout }}
+          STABLE_RELEASES_STATUS: ${{ needs.read-releases.outputs.stable_releases_status }}
+          STABLE_RELEASES_STDOUT: ${{ needs.read-releases.outputs.stable_releases_stdout }}
+          STABLE_RELEASES_STDERR: ${{ needs.read-releases.outputs.stable_releases_stderr }}
+          OK_PROVED_BY_RUN: ${{ inputs.proved_by_run }}
+          OK_PROVED_AT: ${{ inputs.proved_at }}
+        run: |
+          set -euo pipefail
+          OUTPUT=$(node scripts/compute-next-beta.mjs)
+          echo "Compute output:"
+          echo "$OUTPUT" | jq .
+          SKIP=$(echo "$OUTPUT" | jq -r '.skip // false')
+          if [ "$SKIP" = "true" ]; then
+            REASON=$(echo "$OUTPUT" | jq -r .reason)
+            echo "::notice::Skipping beta cut: $REASON"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          BASE=$(echo "$OUTPUT" | jq -r .baseVersion)
+          BUMP=$(echo "$OUTPUT" | jq -r .maxBumpType)
+          COUNT=$(echo "$OUTPUT" | jq -r .pendingCount)
+          NOTES_B64=$(echo "$OUTPUT" | jq -r .releaseNotes | base64 | tr -d '\n')
+          # `run_beta` is the single signal downstream beta steps gate on.
+          # Absent (publish-stable path didn't run this step) or `false`
+          # (skip branch above) both evaluate as not-beta downstream.
+          {
+            echo "skip=false"
+            echo "run_beta=true"
+            echo "base_version=$BASE"
+            echo "max_bump_type=$BUMP"
+            echo "pending_count=$COUNT"
+            echo "notes_b64=$NOTES_B64"
+          } >> "$GITHUB_OUTPUT"
+          echo "Computed: base=$BASE bump=$BUMP pending=$COUNT"
+
+      # Resolve the -beta.N counter inside this concurrency slot so
+      # concurrent push events (e.g., two rapid Copybara imports that each
+      # carry a changeset) see different N's and never collide on tag
+      # creation. The concurrency group serializes runs against the same
+      # public-repo state, so the max-N scan is race-free.
+      - name: Resolve -beta.N counter
+        if: steps.compute-beta.outputs.run_beta == 'true'
+        id: resolve-beta
+        env:
+          BASE_VERSION: ${{ steps.compute-beta.outputs.base_version }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BASE_VERSION:-}" ]]; then
+            echo "::error::compute-beta did not emit base_version"
+            exit 1
+          fi
+          if [[ ! "$BASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::compute-beta base_version '${BASE_VERSION}' is not bare semver (X.Y.Z)"
+            exit 1
+          fi
+
+          MAX_N=-1
+          while IFS= read -r tag; do
+            [[ -z "$tag" ]] && continue
+            if [[ "$tag" =~ ^v${BASE_VERSION//./\\.}-beta\.([0-9]+)$ ]]; then
+              n="${BASH_REMATCH[1]}"
+              if (( n > MAX_N )); then MAX_N="$n"; fi
+            fi
+          done < <(git tag --list "v${BASE_VERSION}-beta.*")
+
+          NEXT_N=$((MAX_N + 1))
+          VERSION="${BASE_VERSION}-beta.${NEXT_N}"
+          TAG="v${VERSION}"
+          echo "Existing max -beta.N for base ${BASE_VERSION}: ${MAX_N} -> emitting ${TAG}"
+
+          {
+            echo "version=$VERSION"
+            echo "tag=$TAG"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Override fixed-group versions to X.Y.Z-beta.N
+        if: steps.compute-beta.outputs.run_beta == 'true'
+        env:
+          VERSION: ${{ steps.resolve-beta.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Same primitive as the publish-stable path: jq edits the
+          # version field directly, never committed. The change lives
+          # only for this workflow run and is discarded with the runner.
+          # `npm version` would walk workspace deps and reject pnpm's
+          # `workspace:*` protocol with EUNSUPPORTEDPROTOCOL — jq sidesteps.
+          for pkg in cli core server app desktop; do
+            f="packages/${pkg}/package.json"
+            jq --arg v "$VERSION" '.version=$v' "$f" > "${f}.tmp"
+            mv "${f}.tmp" "$f"
+          done
+          echo "All fixed-group package.json files now at ${VERSION} (in-memory only)."
+
+      - name: Validate stable_version + override package.json (publish-stable)
+        if: github.event.action == 'publish-stable'
+        env:
+          STABLE_VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${STABLE_VERSION:-}" ]]; then
+            echo "::error::publish-stable dispatch missing client_payload.version"
+            exit 1
+          fi
+          if [[ ! "$STABLE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::publish-stable client_payload.version '${STABLE_VERSION}' is not bare semver (X.Y.Z)"
+            exit 1
+          fi
+
+          for pkg in cli core server app desktop; do
+            f="packages/${pkg}/package.json"
+            jq --arg v "$STABLE_VERSION" '.version=$v' "$f" > "${f}.tmp"
+            mv "${f}.tmp" "$f"
+          done
+          echo "All fixed-group package.json files now at ${STABLE_VERSION} (in-memory only)."
+
+      - name: Build the cli and its workspace dependencies at the overridden versions
+        run: |
+          pnpm exec turbo run build --filter=@inkeep/open-knowledge --cache=local:,remote:
+
+      - name: Assert the native-config binary set
+        env:
+          NATIVE_SET_PLATFORMS: ${{ steps.stage.outputs.platforms }}
+        run: |
+          set -euo pipefail
+          git cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          git show "$GITHUB_SHA:.github/scripts/assert-native-set.mjs" > "$RUNNER_TEMP/assert-native-set.mjs"
+          node "$RUNNER_TEMP/assert-native-set.mjs" platforms "$NATIVE_SET_PLATFORMS"
+
+      - name: Run the cli's prepublishOnly against the overridden versions
+        if: github.event.action == 'publish-stable' || steps.compute-beta.outputs.run_beta == 'true'
+        working-directory: packages/cli
+        run: pnpm run prepublishOnly
+
+      - name: Assert the browser bundle bakes the version being published
+        if: github.event.action == 'publish-stable' || steps.compute-beta.outputs.run_beta == 'true'
+        run: |
+          set -euo pipefail
+          git cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          git show "$GITHUB_SHA:packages/cli/scripts/assert-bundle-version.mjs" > "$RUNNER_TEMP/assert-bundle-version.mjs"
+          node "$RUNNER_TEMP/assert-bundle-version.mjs" packages/cli
+
+      - name: Pack the cli tarball
+        if: github.event.action == 'publish-stable' || steps.compute-beta.outputs.run_beta == 'true'
+        working-directory: packages/cli
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/npm-package"
+          pnpm pack --pack-destination "$RUNNER_TEMP/npm-package"
+
+      - name: Upload the packed tarball for the publish job
+        if: github.event.action == 'publish-stable' || steps.compute-beta.outputs.run_beta == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/npm-package/*.tgz
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Restore working tree (defensive)
+        if: always()
+        run: git restore . || true
+
+  release:
+    name: Tag + release (${{ github.event.action || github.event_name }})
+    needs: [cut-commit, build]
+    if: github.event.action == 'publish-stable' || needs.build.outputs.run_beta == 'true'
+    runs-on: ubuntu-26.04
+    cache-mode: none
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.resolve-beta.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Refuse build outputs that are not well-formed versions
+        if: needs.build.outputs.run_beta == 'true'
+        env:
+          BASE_VERSION: ${{ needs.build.outputs.base_version }}
+          BUILD_VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$BASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The build job's base_version is not bare semver (X.Y.Z). Refusing to use it."
+            exit 1
+          fi
+          if [[ ! "$BUILD_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+            echo "::error::The build job's version is not X.Y.Z-beta.N. Refusing to use it."
+            exit 1
+          fi
+
+      - name: Refuse a beta base that does not lead the newest stable tag
+        if: needs.build.outputs.run_beta == 'true'
+        env:
+          BASE_VERSION: ${{ needs.build.outputs.base_version }}
+        run: |
+          set -euo pipefail
+          NEWEST_STABLE=$(git tag --list 'v*' --sort=-version:refname | grep -E -m1 '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          if [[ -z "$NEWEST_STABLE" ]]; then
+            echo "::error::This checkout has no vX.Y.Z tag, so it cannot confirm that beta base ${BASE_VERSION} leads every stable."
+            exit 1
+          fi
+          TOP=$(printf '%s\n%s\n' "$BASE_VERSION" "${NEWEST_STABLE#v}" | sort -V | tail -n1)
+          if [[ "$BASE_VERSION" == "${NEWEST_STABLE#v}" || "$TOP" != "$BASE_VERSION" ]]; then
+            echo "::error::The build job numbered this beta from base ${BASE_VERSION}, which does not lead the newest stable tag ${NEWEST_STABLE}: a stable was tagged after build ran. Use \"Re-run all jobs\", not \"Re-run failed jobs\", so build numbers the beta again."
+            exit 1
+          fi
+          echo "Beta base ${BASE_VERSION} leads the newest stable tag ${NEWEST_STABLE}."
+
+      - name: Resolve -beta.N counter
+        if: needs.build.outputs.run_beta == 'true'
+        id: resolve-beta
+        env:
+          BASE_VERSION: ${{ needs.build.outputs.base_version }}
+        run: |
+          set -euo pipefail
+          MAX_N=-1
+          while IFS= read -r tag; do
+            [[ -z "$tag" ]] && continue
+            if [[ "$tag" =~ ^v${BASE_VERSION//./\\.}-beta\.([0-9]+)$ ]]; then
+              n="${BASH_REMATCH[1]}"
+              if (( n > MAX_N )); then MAX_N="$n"; fi
+            fi
+          done < <(git tag --list "v${BASE_VERSION}-beta.*")
+
+          NEXT_N=$((MAX_N + 1))
+          VERSION="${BASE_VERSION}-beta.${NEXT_N}"
+          TAG="v${VERSION}"
+          echo "Existing max -beta.N for base ${BASE_VERSION}: ${MAX_N} -> emitting ${TAG}"
+
+          {
+            echo "version=$VERSION"
+            echo "tag=$TAG"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Refuse a beta the build job resolved differently
+        if: needs.build.outputs.run_beta == 'true'
+        env:
+          RESOLVED: ${{ steps.resolve-beta.outputs.version }}
+          BUILD_VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ "$RESOLVED" != "$BUILD_VERSION" ]]; then
+            echo "::error::The build job packed ${BUILD_VERSION}, but this job resolved ${RESOLVED} from the tags. Refusing to tag and publish a beta the build job did not pack. This usually means only the failed jobs were re-run after a tag landed, which reuses the build job's earlier result. Re-run all jobs."
+            exit 1
+          fi
+          echo "The build job packed the beta this job resolved: ${RESOLVED}"
+
+      - name: Attest production reader before release
+        if: github.event.action == 'publish-stable' || needs.build.outputs.run_beta == 'true'
+        uses: ./.github/composite-actions/share-contract-reader-gate
+        with:
+          origin: https://openknowledge.ai
+          evidence-name: share-contract-release-${{ github.run_id }}-${{ github.run_attempt }}
+
+      # This job checks out the workflow revision (github.sha), so the reader
+      # gate above runs current code. The tag goes on the commit build packed:
+      # github.sha for a push or a bare dispatch, the sha input otherwise.
+      - name: Tag + create prerelease GitHub Release
+        if: needs.build.outputs.run_beta == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.resolve-beta.outputs.tag }}
+          NOTES_B64: ${{ needs.build.outputs.notes_b64 }}
+          CUT_REF: ${{ needs.cut-commit.outputs.ref || github.sha }}
+        run: |
+          set -euo pipefail
+          if ! git cat-file -e "${CUT_REF}^{commit}" 2>/dev/null; then
+            echo "::error::The commit build packed, ${CUT_REF}, is not in this checkout of main. Refusing to tag."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG" "$CUT_REF"
+          # shellcheck disable=SC2016
+          git -c credential.helper= \
+            -c 'credential.helper=!f() { test "$1" = get || return 0; echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' \
+            push origin "$TAG"
+
+          BODY_FILE=$(mktemp)
+          if [[ -n "${NOTES_B64:-}" ]]; then
+            echo "$NOTES_B64" | base64 --decode > "$BODY_FILE"
+          else
+            printf 'Auto-cadence beta release.\n' > "$BODY_FILE"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; updating notes."
+            gh release edit "$TAG" --notes-file "$BODY_FILE"
+          else
+            # Create as draft so the release is invisible in the .atom feed
+            # until desktop-release.yml uploads beta-mac.yml AND promotes
+            # draft → published. This closes the publish-window race that
+            # surfaced misleading latest-mac.yml 404 errors in user logs
+            # during the gap between release creation and DMG upload
+            # (typical 5-10 min; up to ~45 min if notary or sign is slow —
+            # desktop-release.yml's job timeout-minutes is 45). Channel-
+            # mirror invariant: see
+            # packages/desktop/src/main/auto-updater.ts:336-356.
+            gh release create "$TAG" \
+              --draft \
+              --prerelease \
+              --title "$TAG" \
+              --notes-file "$BODY_FILE"
+          fi
+
+      - name: Trigger desktop-release.yml to build + upload the desktop installers
+        if: needs.build.outputs.run_beta == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.resolve-beta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          payload=$(jq -nc \
+            --arg tag "$TAG" \
+            --arg ref "$TAG" \
+            '{event_type: "desktop-release", client_payload: {release_tag: $tag, ref: $ref}}')
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/dispatches" --input - <<<"$payload"
+          echo "Dispatched desktop-release for ${TAG}; desktop-release.yml will build every platform installer and upload them + the beta channel manifests to the prerelease."
+
+  publish:
+    name: Publish to npm (${{ github.event.action || github.event_name }})
+    needs: [build, release]
+    if: github.event.action == 'publish-stable' || needs.build.outputs.run_beta == 'true'
+    runs-on: ubuntu-26.04
+    cache-mode: none
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+    steps:
+      - name: Setup Node for npm OIDC publish
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24.21.0"
+          registry-url: "https://registry.npmjs.org"
+
+      # UPSTREAM(npm/cli#9722): npm 12.0.0 shipped without the sigstore module libnpmpublish loads for provenance.
+      - name: Install npm 11.21.0 for OIDC + provenance
+        run: |
+          npm install -g npm@11.21.0
+          echo "npm $(npm --version)"
+
+      - name: Download the tarball the build job packed
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/npm-package
+
+      - name: Publish to npm via Trusted Publishing
+        env:
+          ACTION: ${{ github.event.action }}
+          BETA_VERSION: ${{ needs.release.outputs.version }}
+          STABLE_VERSION: ${{ github.event.client_payload.version }}
+          PACKAGE_NAME: "@inkeep/open-knowledge"
+          PACKAGE_DIR: ${{ runner.temp }}/npm-package
+        run: |
+          set -euo pipefail
+
+          if [[ "$ACTION" == "publish-stable" ]]; then
+            TAG=latest
+            VERSION="$STABLE_VERSION"
+          else
+            TAG=beta
+            VERSION="$BETA_VERSION"
+          fi
+
+          shopt -s nullglob
+          tarballs=("$PACKAGE_DIR"/*.tgz)
+          if (( ${#tarballs[@]} != 1 )); then
+            echo "::error::The build job's npm-package artifact holds ${#tarballs[@]} tarballs, not one. Refusing to publish."
+            exit 1
+          fi
+          TARBALL="${tarballs[0]}"
+          pacote="$(npm root -g)/npm/node_modules/pacote"
+          read_status=0
+          manifest=$(node -e '
+            const fail = (status) => (error) => {
+              process.stderr.write(JSON.stringify(String(error && error.message)) + "\n");
+              process.exit(status);
+            };
+            let reading;
+            try {
+              reading = require(process.argv[1])
+                .manifest("file:" + process.argv[2], { fullMetadata: true, fullReadJson: true });
+            } catch (error) {
+              fail(2)(error);
+            }
+            reading.then((manifest) => process.stdout.write(JSON.stringify(manifest)), fail(1));
+          ' "$pacote" "$TARBALL") || read_status=$?
+          if (( read_status == 2 )); then
+            echo "::error::npm's pacote did not load from ${pacote}, or threw before opening the tarball; its reason is printed above, JSON-encoded. Refusing to publish."
+            exit 1
+          fi
+          if (( read_status != 0 )); then
+            echo "::error::npm cannot read the packed tarball's manifest; its reason is printed above, JSON-encoded. Refusing to publish."
+            exit 1
+          fi
+          if ! jq -e --arg name "$PACKAGE_NAME" --arg version "$VERSION" \
+            '.name == $name and .version == $version and ((.publishConfig // {}) | keys - ["access"] | length == 0)' \
+            <<<"$manifest" >/dev/null; then
+            echo "::error::The packed tarball's manifest, as npm reads it, is $(jq -c '{name, version, publishConfig}' <<<"$manifest"). This job publishes only ${PACKAGE_NAME}@${VERSION}, whose publishConfig may set access and nothing else. Refusing to publish."
+            exit 1
+          fi
+
+          if [[ "$(npm view "${PACKAGE_NAME}@${VERSION}" version 2>/dev/null || true)" == "$VERSION" ]]; then
+            echo "::notice::${PACKAGE_NAME}@${VERSION} is already on npm; nothing to publish."
+            exit 0
+          fi
+
+          echo "Publishing with --tag ${TAG} (VERSION=${VERSION})"
+          npm publish "$TARBALL" --access public --tag "$TAG" --provenance --registry https://registry.npmjs.org/

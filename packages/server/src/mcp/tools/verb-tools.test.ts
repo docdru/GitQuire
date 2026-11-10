@@ -1,0 +1,368 @@
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { afterAll, describe, expect, test } from 'vitest';
+import { createTempDirFactory } from '../../../../../test-support/temp-dir.test-helper.ts';
+import { type Config, ConfigSchema } from '../../config/schema.ts';
+import { register as registerDelete } from './delete.ts';
+import { register as registerEdit } from './edit.ts';
+import { startFetchTestServer } from './fetch-test-server.test-helper.ts';
+import type { ServerInstance } from './shared.ts';
+import { register as registerWrite } from './write.ts';
+
+const makeTempDir = createTempDirFactory(afterAll);
+
+const BASE_CONFIG: Config = ConfigSchema.parse({});
+
+interface ToolResult {
+  content: Array<{ type: 'text'; text: string }>;
+  structuredContent?: Record<string, unknown>;
+  isError?: true;
+}
+type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
+
+function capture<D>(register: (server: ServerInstance, deps: D) => void, cwd: string): Handler {
+  let handler: Handler | undefined;
+  const server = {
+    registerTool(_name: string, _cfg: unknown, h: Handler) {
+      handler = h;
+    },
+  } as unknown as ServerInstance;
+  register(server, {
+    serverUrl: undefined,
+    config: BASE_CONFIG,
+    resolveCwd: async () => cwd,
+  } as unknown as D);
+  if (!handler) throw new Error('tool did not register');
+  return handler;
+}
+
+function newProject(): string {
+  return makeTempDir('ok-verb-tools-');
+}
+
+function textOf(r: ToolResult): string {
+  return r.content.map((c) => c.text).join('\n');
+}
+
+describe('write — exactly-one-target teaching error (D8/D9 mitigation)', () => {
+  test('zero targets returns the corrective shape', async () => {
+    const write = capture(registerWrite, newProject());
+    const r = await write({});
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toContain('Name exactly one of');
+    expect(textOf(r)).toContain('document');
+  });
+
+  test('two targets returns a "name exactly ONE" error', async () => {
+    const write = capture(registerWrite, newProject());
+    const r = await write({ document: { path: 'a', content: '# a' }, folder: { path: 'b' } });
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toMatch(/name exactly ONE/i);
+    expect(textOf(r)).toContain('document');
+    expect(textOf(r)).toContain('folder');
+  });
+});
+
+describe('edit — body-XOR-frontmatter + exactly-one-target teaching errors', () => {
+  test('find without replace teaches the corrective shape', async () => {
+    const edit = capture(registerEdit, newProject());
+    const r = await edit({ document: { path: 'a', find: 'x' } });
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toContain('`find` needs a `replace`');
+  });
+
+  test('body + frontmatter in one call is rejected', async () => {
+    const edit = capture(registerEdit, newProject());
+    const r = await edit({
+      document: { path: 'a', find: 'x', replace: 'y', frontmatter: { t: 1 } },
+    });
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toMatch(/Pick ONE/i);
+  });
+
+  test('zero targets teaches exactly-one-target', async () => {
+    const edit = capture(registerEdit, newProject());
+    const r = await edit({});
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toContain('Name exactly one of');
+  });
+});
+
+describe('edit — occurrence on a path with no document', () => {
+  test('names the missing document instead of implying it is pending', async () => {
+    let requests = 0;
+    const server = await startFetchTestServer({
+      fetch() {
+        requests += 1;
+        return Response.json({ error: 'unexpected request' }, { status: 500 });
+      },
+    });
+    try {
+      const cwd = newProject();
+      let handler: Handler | undefined;
+      registerEdit(
+        {
+          registerTool(_name: string, _cfg: unknown, h: Handler) {
+            handler = h;
+          },
+        } as unknown as ServerInstance,
+        {
+          serverUrl: `http://127.0.0.1:${server.port}`,
+          config: BASE_CONFIG,
+          resolveCwd: async () => cwd,
+        } as unknown as Parameters<typeof registerEdit>[1],
+      );
+      if (!handler) throw new Error('tool did not register');
+      const r = await handler({
+        document: { path: 'system/ops', find: 'x', replace: 'y', occurrence: 2 },
+      });
+      expect(r.isError).toBe(true);
+      expect(textOf(r)).toContain('No document at "system/ops" on disk');
+      expect(textOf(r)).not.toContain('not on disk yet');
+      expect(requests).toBe(0);
+    } finally {
+      server.stop();
+    }
+  });
+});
+
+describe('delete — exactly-one-target teaching error', () => {
+  test('two targets rejected', async () => {
+    const del = capture(registerDelete, newProject());
+    const r = await del({ document: 'a', folder: 'b' });
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toMatch(/name exactly ONE/i);
+  });
+});
+
+describe('edit({ folder }) frontmatter — server-routed for attribution (PRD-6933 P2)', () => {
+  test('requires a running server (attribution lives server-side)', async () => {
+    const edit = capture(registerEdit, newProject());
+    const r = await edit({
+      folder: { path: 'meetings', frontmatter: { title: 'Meetings', tags: ['m'] } },
+    });
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toContain('Hocuspocus server is not running');
+  });
+});
+
+describe('write/edit/delete({ template }) — server-routed for attribution (PRD-6933 P2)', () => {
+  test('mutations require a running server (attribution lives server-side)', async () => {
+    const cwd = newProject();
+    const write = capture(registerWrite, cwd);
+    const edit = capture(registerEdit, cwd);
+    const del = capture(registerDelete, cwd);
+    const results = [
+      await write({
+        template: {
+          path: 'fishing-log/trip-log',
+          content: '# x',
+          frontmatter: { title: 'Trip Log' },
+        },
+      }),
+      await edit({ template: { path: 'fishing-log/trip-log', find: 'x', replace: 'y' } }),
+      await del({ template: { path: 'fishing-log/trip-log' } }),
+    ];
+    for (const r of results) {
+      expect(r.isError).toBe(true);
+      expect(textOf(r)).toContain('Hocuspocus server is not running');
+    }
+  });
+
+  test('invalid template name is rejected by the name grammar', async () => {
+    const cwd = newProject();
+    const write = capture(registerWrite, cwd);
+    const r = await write({
+      template: { path: 'x/a.b', content: 'ok', frontmatter: { title: 'A' } },
+    });
+    expect(r.isError).toBe(true);
+    expect(textOf(r)).toContain('must use letters and digits');
+    expect(existsSync(join(cwd, 'x', '.ok', 'templates', 'a.b.md'))).toBe(false);
+  });
+});
+
+describe('edit({ template }) — fence trailing whitespace (fm-delimiter hazard)', () => {
+  test('a body edit preserves frontmatter stored under trailing-whitespace fences', async () => {
+    const cwd = newProject();
+    mkdirSync(join(cwd, 'fishing-log', '.ok', 'templates'), { recursive: true });
+    writeFileSync(
+      join(cwd, 'fishing-log', '.ok', 'templates', 'trip-log.md'),
+      '--- \ntitle: Trip Log\ndescription: Catch log\n---\n\n# Log\n\nFish: none\n',
+    );
+
+    let putPayload: Record<string, unknown> | undefined;
+    const stub = await startFetchTestServer({
+      port: 0,
+      async fetch(req) {
+        if (req.method === 'PUT' && new URL(req.url).pathname === '/api/template') {
+          putPayload = (await req.json()) as Record<string, unknown>;
+          return Response.json({ path: 'fishing-log/.ok/templates/trip-log.md' });
+        }
+        return Response.json({ error: 'unexpected request' }, { status: 404 });
+      },
+    });
+    try {
+      let handler: Handler | undefined;
+      const server = {
+        registerTool(_name: string, _cfg: unknown, h: Handler) {
+          handler = h;
+        },
+      } as unknown as ServerInstance;
+      registerEdit(server, {
+        serverUrl: `http://127.0.0.1:${stub.port}`,
+        config: BASE_CONFIG,
+        resolveCwd: async () => cwd,
+      } as unknown as Parameters<typeof registerEdit>[1]);
+      if (!handler) throw new Error('tool did not register');
+
+      const r = await handler({
+        template: { path: 'fishing-log/trip-log', find: 'none', replace: 'two bass' },
+      });
+
+      expect(r.isError).toBeUndefined();
+      const fm = putPayload?.frontmatter as Record<string, unknown> | undefined;
+      expect(fm?.title).toBe('Trip Log');
+      expect(fm?.description).toBe('Catch log');
+      const body = putPayload?.body as string | undefined;
+      expect(body).toContain('two bass');
+      expect(body).not.toContain('title: Trip Log');
+    } finally {
+      stub.stop(true);
+    }
+  });
+});
+
+describe('write({ document }) — template-availability nudge on create', () => {
+  async function withWriteStub(cwd: string, run: (handler: Handler) => Promise<void>) {
+    const stub = await startFetchTestServer({
+      port: 0,
+      async fetch(req) {
+        if (req.method === 'POST' && new URL(req.url).pathname === '/api/agent-write-md') {
+          const body = (await req.json()) as { docName?: string };
+          return Response.json({
+            docName: body.docName,
+            systemSubscriberCount: 1,
+            brokenLinks: [],
+          });
+        }
+        return Response.json({ error: 'unexpected request' }, { status: 404 });
+      },
+    });
+    let handler: Handler | undefined;
+    const server = {
+      registerTool(_name: string, _cfg: unknown, h: Handler) {
+        handler = h;
+      },
+    } as unknown as ServerInstance;
+    registerWrite(server, {
+      serverUrl: `http://127.0.0.1:${stub.port}`,
+      config: BASE_CONFIG,
+      resolveCwd: async () => cwd,
+    } as unknown as Parameters<typeof registerWrite>[1]);
+    if (!handler) throw new Error('tool did not register');
+    try {
+      await run(handler);
+    } finally {
+      stub.stop(true);
+    }
+  }
+
+  function seedNoteTemplate(cwd: string) {
+    mkdirSync(join(cwd, 'notes', '.ok', 'templates'), { recursive: true });
+    writeFileSync(
+      join(cwd, 'notes', '.ok', 'templates', 'note.md'),
+      '---\ntitle: Note\ndescription: A plain note\n---\n\n# \n',
+    );
+  }
+
+  test('create with no template nudges toward the folder template (text + structured)', async () => {
+    const cwd = newProject();
+    seedNoteTemplate(cwd);
+    await withWriteStub(cwd, async (write) => {
+      const r = await write({ document: { path: 'notes/first', content: '# First\n' } });
+      expect(r.isError).toBeUndefined();
+      expect(textOf(r)).toContain('templates you can start from: note (A plain note)');
+      const doc = (r.structuredContent?.document ?? {}) as Record<string, unknown>;
+      const hint = doc.templateHint as Array<{ name: string }> | undefined;
+      expect(hint?.[0]?.name).toBe('note');
+    });
+  });
+
+  test('create WITH a template does not nudge', async () => {
+    const cwd = newProject();
+    seedNoteTemplate(cwd);
+    await withWriteStub(cwd, async (write) => {
+      const r = await write({ document: { path: 'notes/second', template: 'note' } });
+      expect(r.isError).toBeUndefined();
+      expect(textOf(r)).not.toContain('templates you can start from');
+    });
+  });
+
+  test('a decomposed template name finds the composed template', async () => {
+    const cwd = newProject();
+    mkdirSync(join(cwd, 'menus', '.ok', 'templates'), { recursive: true });
+    writeFileSync(
+      join(cwd, 'menus', '.ok', 'templates', 'café.md'),
+      '---\ntitle: Café\ndescription: A menu\n---\n\n## Menu\n',
+    );
+    await withWriteStub(cwd, async (write) => {
+      const r = await write({ document: { path: 'menus/today', template: 'cafe\u0301' } });
+      expect(r.isError).toBeUndefined();
+    });
+  });
+
+  test('create in a folder with no templates does not nudge', async () => {
+    const cwd = newProject();
+    mkdirSync(join(cwd, 'scratch'), { recursive: true });
+    await withWriteStub(cwd, async (write) => {
+      const r = await write({ document: { path: 'scratch/note', content: '# Note\n' } });
+      expect(r.isError).toBeUndefined();
+      expect(textOf(r)).not.toContain('templates you can start from');
+    });
+  });
+});
+
+describe('D13 migration meta-test — no retired tool name survives in the skill surface', () => {
+  const RETIRED = [
+    'write_document',
+    'edit_document',
+    'edit_frontmatter',
+    'delete_document',
+    'folder_config',
+    'set_folder_rule',
+    'write_template',
+    'delete_template',
+    'rename_document',
+    'rename_folder',
+    'get_history',
+    'get_config',
+    'get_preview_url',
+    'get_components',
+    'get_authoring_palette',
+    'list_conflicts',
+    'get_conflict_content',
+  ];
+
+  function mdFiles(dir: string): string[] {
+    const out: string[] = [];
+    for (const entry of readdirSync(dir)) {
+      const p = join(dir, entry);
+      if (statSync(p).isDirectory()) out.push(...mdFiles(p));
+      else if (entry.endsWith('.md') || entry.endsWith('.mdx')) out.push(p);
+    }
+    return out;
+  }
+
+  test('packages/server/assets/skills/** teaches only the verb surface', () => {
+    const skillsDir = fileURLToPath(new URL('../../../assets/skills', import.meta.url));
+    const offenders: string[] = [];
+    for (const file of mdFiles(skillsDir)) {
+      const body = readFileSync(file, 'utf-8');
+      for (const name of RETIRED) {
+        if (body.includes(name)) offenders.push(`${file}: ${name}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});

@@ -1,0 +1,80 @@
+---
+title: Slidev
+icon: LuPresentation
+description: Present a markdown document as a slide deck in its own window, rendered by the Slidev CLI.
+---
+
+[Slidev](https://sli.dev/) renders a markdown file as a presentation, with slides separated by `---`. Mark a document, click the toolbar action, and the deck opens in its own OpenKnowledge window.
+
+<Callout>
+  **Beta.** Desktop app only. Rendering is Slidev's, so it moves at Slidev's pace.
+</Callout>
+
+OpenKnowledge does not bundle or download Slidev. You install it yourself.
+
+## Install Slidev
+
+Install the CLI **and a theme**. Themes ship as separate packages and a deck cannot open without the one it declares; `@slidev/theme-default` covers decks that declare none.
+
+```bash
+npm install -g @slidev/cli @slidev/theme-default
+```
+
+Or add both packages to the project. A project-local install takes precedence over a global one, which is how you pin a deck to a Slidev version.
+
+Other install routes are in [Slidev's install guide](https://sli.dev/guide/install).
+
+## Turn on the plugin
+
+Open Settings → **User ▸ Plugins** and switch on **Slidev**. It's a user plugin, so the choice stays on your device and is never committed.
+
+The **Slidev** page in the sidebar reports whether OpenKnowledge found Slidev. If it didn't, the page offers the install command to copy and a **Run in terminal** button. Install, click back into OpenKnowledge, and the status updates without a restart.
+
+## Mark a document as a deck
+
+Add `slides: true` to the document's frontmatter:
+
+```md
+---
+title: Product launch
+slides: true
+---
+
+# Product launch
+
+---
+
+## Where we are
+
+- Beta since March
+- 40 teams onboarded
+```
+
+An **Open in Slidev** action appears in the editor toolbar. Activating it starts a Slidev server for that document and opens the deck in its own window.
+
+The action appears only when Slidev resolves. If you expect it and don't see it, check the plugin page.
+
+## Editing while presenting
+
+Edit the document and the open deck updates — Slidev watches the same file OpenKnowledge saves to. Your position in the deck is preserved. Expect a beat between typing and the refresh; OpenKnowledge debounces its writes to disk.
+
+Closing a deck window stops that deck's Slidev process. Quitting OpenKnowledge stops all of them.
+
+## Environment for the deck process
+
+A globally installed Slidev is started through your shell on macOS and Linux, so the `PATH` and the variables your startup files set are what the deck sees. A project-local install is started directly, without a shell, so startup files do not apply to it. On Windows both are run through `cmd.exe` with AutoRun disabled, so no shell startup file reaches the deck either way.
+
+On Linux that shell is interactive but not a login shell. Variables set only in your shell's login-only startup files (a proxy, a `JAVA_HOME`, a version manager init) do not reach the deck. For `bash` those are `/etc/profile`, `/etc/profile.d/`, `~/.profile` and `~/.bash_profile`, and for `zsh` they are `/etc/zprofile` and `~/.zprofile`. Put them in the file your shell reads for every interactive session (`~/.bashrc` for `bash`, `~/.zshrc` for `zsh`) if your deck's toolchain needs them. On macOS the deck runs in a login interactive shell, so every startup file applies.
+
+## Writing decks
+
+Past the frontmatter flag it's ordinary Slidev:
+
+- [Syntax guide](https://sli.dev/guide/syntax) — separators, per-slide frontmatter, layouts, speaker notes, click animations, code blocks.
+- [Themes gallery](https://sli.dev/resources/theme-gallery) — install a theme's package before a deck declares it.
+- [Built-in components](https://sli.dev/builtin/components) — the Vue components available inside slides.
+
+Two notes for longer decks:
+
+- **Multi-file decks work.** Slidev's `src:` include pulls a slide's content from another file, so a deck can be one entry file plus a folder of slides.
+- **Keep the deck inside the project.** OpenKnowledge only opens documents that resolve inside the open project, including through symlinks.

@@ -1,0 +1,151 @@
+import { execFileSync, spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { setTimeout as wait } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
+import { afterEach, describe, expect, test } from 'vitest';
+import { pid1Reaps } from '../../../../test-support/capabilities.test-helper.ts';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const CLI_ENTRY = join(HERE, '..', '..', 'dist', 'cli.mjs');
+
+const STARTUP_BUDGET_MS = 6_000;
+const EXIT_BUDGET_MS = 12_000;
+
+function isAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function diagnoseStuckChild(childPid: number, errPath: string): string {
+  let ppid: string;
+  try {
+    ppid = execFileSync('ps', ['-o', 'ppid=', '-p', String(childPid)], {
+      encoding: 'utf-8',
+    }).trim();
+  } catch {
+    ppid = 'gone';
+  }
+  let stderr: string;
+  try {
+    stderr = readFileSync(errPath, 'utf-8').trim();
+  } catch (err) {
+    stderr = `<unreadable: ${String(err)}>`;
+  }
+  return `pid=${childPid} ppid=${ppid || 'gone'} stderr=${stderr || '<empty>'}`;
+}
+
+async function pollUntil(
+  predicate: () => boolean,
+  timeoutMs: number,
+  intervalMs = 200,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (predicate()) return true;
+    await wait(intervalMs);
+  }
+  return predicate();
+}
+
+describe('ok mcp orphan reaping (PRD-6917)', () => {
+  const cleanups: Array<() => void> = [];
+
+  afterEach(() => {
+    for (const fn of cleanups.splice(0).reverse()) {
+      try {
+        fn();
+      } catch {}
+    }
+  });
+
+  test('ok mcp exits when its launching parent dies even if stdin never EOFs (no orphan to launchd)', async (ctx) => {
+    ctx.skip(!pid1Reaps, 'PID 1 must reap the orphans this test waits on');
+    const dir = mkdtempSync(join(tmpdir(), 'ok-orphan-reaping-'));
+    cleanups.push(() => rmSync(dir, { recursive: true, force: true }));
+
+    const fifo = join(dir, 'mcp.stdin');
+    execFileSync('mkfifo', [fifo]);
+    const mcpErr = join(dir, 'mcp.err');
+    writeFileSync(mcpErr, '');
+
+    const keeperScript = join(dir, 'keeper.mjs');
+    writeFileSync(
+      keeperScript,
+      [
+        "import { openSync } from 'node:fs';",
+        'openSync(process.argv[2], "a");',
+        'setInterval(() => {}, 1 << 30);',
+      ].join('\n'),
+      'utf-8',
+    );
+    const keeper = spawn(process.execPath, [keeperScript, fifo], {
+      detached: true,
+      stdio: 'ignore',
+    });
+    keeper.unref();
+    cleanups.push(() => keeper.kill('SIGKILL'));
+
+    const parentScript = join(dir, 'parent.mjs');
+    writeFileSync(
+      parentScript,
+      [
+        "import { spawn } from 'node:child_process';",
+        "import { openSync } from 'node:fs';",
+        'const [cliEntry, fifoPath, errPath] = process.argv.slice(2);',
+        'const rfd = openSync(fifoPath, "r");',
+        'const efd = openSync(errPath, "a");',
+        'const child = spawn("node", [cliEntry, "mcp"], {',
+        '  cwd: process.cwd(),',
+        '  stdio: [rfd, "ignore", efd],',
+        '  env: { ...process.env, OK_BUNDLE_PROXY: "0" },',
+        '});',
+        // biome-ignore lint/suspicious/noTemplateCurlyInString: literal source emitted into the spawned child script, not a template string in this file
+        'process.stdout.write(`CHILDPID:${child.pid}\\n`);',
+        'setInterval(() => {}, 1 << 30);',
+      ].join('\n'),
+      'utf-8',
+    );
+
+    const parent = spawn(process.execPath, [parentScript, CLI_ENTRY, fifo, mcpErr], {
+      cwd: dir,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: process.env,
+    });
+    cleanups.push(() => parent.kill('SIGKILL'));
+
+    let stdoutBuf = '';
+    parent.stdout.on('data', (chunk) => {
+      stdoutBuf += String(chunk);
+    });
+    const gotPid = await pollUntil(() => /CHILDPID:(\d+)/.test(stdoutBuf), 15_000, 100);
+    const match = stdoutBuf.match(/CHILDPID:(\d+)/);
+    expect(gotPid && match).toBeTruthy();
+    const childPid = Number(match?.[1]);
+
+    const cameUp = await pollUntil(() => isAlive(childPid), STARTUP_BUDGET_MS, 100);
+    expect(
+      cameUp,
+      cameUp
+        ? ''
+        : `grandchild never came up within ${STARTUP_BUDGET_MS}ms — ${diagnoseStuckChild(childPid, mcpErr)}`,
+    ).toBe(true);
+    const diedWhileParented = await pollUntil(() => !isAlive(childPid), 3_000, 250);
+    expect(diedWhileParented).toBe(false);
+
+    parent.kill('SIGKILL');
+
+    const exited = await pollUntil(() => !isAlive(childPid), EXIT_BUDGET_MS, 250);
+    expect(
+      exited,
+      exited
+        ? ''
+        : `orphan still alive ${EXIT_BUDGET_MS}ms after its host was SIGKILLed — ${diagnoseStuckChild(childPid, mcpErr)}. ppid=1 means the reparenting the watch keys on DID happen, so look downstream of detection (keepalive close, shutdown); any other ppid means it never happened and the watch never had its signal.`,
+    ).toBe(true);
+  }, 40_000);
+});

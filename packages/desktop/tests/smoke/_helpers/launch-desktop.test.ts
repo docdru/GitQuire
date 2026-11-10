@@ -1,0 +1,270 @@
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  applyConfigOverlay,
+  type Config,
+  idleShutdownToMs,
+  resolveEnvConfigLayer,
+  resolveServerRuntimeConfig,
+} from '@inkeep/open-knowledge-core';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { isTestOnlySourceFile } from '../../../../../test-support/test-only-source-file.mjs';
+import { SPAWN_STARTUP_DEADLINE_MS } from '../../../src/shared/boot-narration.ts';
+import {
+  DEFAULT_LAUNCH_TIMEOUT_MS,
+  DEFAULT_LOCAL_PACKAGED_APP,
+  DESKTOP_ROOT,
+  desktopLaunchOptions,
+  executableForAppBundle,
+  PACKAGED_APP_ENV,
+  PACKAGED_SMOKE_SERVER_IDLE_SHUTDOWN_MS,
+  resolveDesktopTarget,
+  type SmokeLaunchEnv,
+  UNPACKAGED_MAIN_ENTRY,
+} from './launch-desktop';
+
+const unpackaged = {
+  mode: 'unpackaged' as const,
+  targetPath: '/repo/out/main/index.js',
+  exists: true,
+  missingReason: 'x',
+};
+const packaged = {
+  mode: 'packaged' as const,
+  appPath: '/mnt/OpenKnowledge.app',
+  targetPath: '/mnt/OpenKnowledge.app/Contents/MacOS/OpenKnowledge',
+  exists: true,
+  missingReason: 'x',
+};
+
+describe('resolveDesktopTarget', () => {
+  it('resolves the unpackaged main entry when no packaged override is set', () => {
+    const target = resolveDesktopTarget({ env: {} });
+    expect(target.mode).toBe('unpackaged');
+    expect(target.targetPath).toBe(UNPACKAGED_MAIN_ENTRY);
+    expect(target.appPath).toBeUndefined();
+  });
+
+  it('treats an empty override as absent', () => {
+    expect(resolveDesktopTarget({ env: { [PACKAGED_APP_ENV]: '' } }).mode).toBe('unpackaged');
+  });
+
+  it('resolves the bundle executable when the override names an .app', () => {
+    const target = resolveDesktopTarget({
+      env: { [PACKAGED_APP_ENV]: '/mnt/OpenKnowledge.app' },
+      platform: 'darwin',
+    });
+    expect(target.mode).toBe('packaged');
+    expect(target.appPath).toBe('/mnt/OpenKnowledge.app');
+    expect(target.targetPath).toBe('/mnt/OpenKnowledge.app/Contents/MacOS/OpenKnowledge');
+  });
+
+  it('falls back to the local packaged build for packaged-only suites', () => {
+    const target = resolveDesktopTarget({ env: {}, requirePackaged: true, platform: 'darwin' });
+    expect(target.mode).toBe('packaged');
+    expect(target.appPath).toBe(DEFAULT_LOCAL_PACKAGED_APP);
+  });
+
+  it.each([
+    ['x64', 'linux-unpacked'],
+    ['arm64', 'linux-arm64-unpacked'],
+  ] as const)('resolves the canonical %s Linux packaged executable', (arch, directory) => {
+    const target = resolveDesktopTarget({
+      env: {},
+      requirePackaged: true,
+      platform: 'linux',
+      arch,
+    });
+    expect(target.mode).toBe('packaged');
+    expect(target.appPath).toBe(join(DESKTOP_ROOT, 'dist-desktop', directory));
+    expect(target.targetPath).toBe(join(DESKTOP_ROOT, 'dist-desktop', directory, 'openknowledge'));
+  });
+
+  it('resolves a Linux unpacked directory override to its packaged executable', () => {
+    const target = resolveDesktopTarget({
+      env: { [PACKAGED_APP_ENV]: '/mnt/linux-unpacked' },
+      requirePackaged: true,
+      platform: 'linux',
+      arch: 'x64',
+    });
+    expect(target.appPath).toBe('/mnt/linux-unpacked');
+    expect(target.targetPath).toBe('/mnt/linux-unpacked/openknowledge');
+    expect(target.exists).toBe(false);
+  });
+
+  it('lets the override win over the packaged-only fallback', () => {
+    const target = resolveDesktopTarget({
+      env: { [PACKAGED_APP_ENV]: '/mnt/OpenKnowledge.app' },
+      requirePackaged: true,
+      platform: 'darwin',
+    });
+    expect(target.appPath).toBe('/mnt/OpenKnowledge.app');
+  });
+
+  it('reports a mode-appropriate skip reason', () => {
+    const missing = resolveDesktopTarget({
+      env: { [PACKAGED_APP_ENV]: '/nope/Absent.app' },
+      platform: 'darwin',
+    });
+    expect(missing.missingReason).toContain('/nope/Absent.app/Contents/MacOS/Absent');
+    expect(resolveDesktopTarget({ env: {} }).missingReason).toContain('pnpm run build:desktop');
+    expect(resolveDesktopTarget({ env: {} }).missingReason).not.toContain('bun run');
+  });
+
+  it('probes the target when existence is read, not when the target resolves', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ok-launch-target-'));
+    try {
+      const target = resolveDesktopTarget({
+        env: { [PACKAGED_APP_ENV]: join(root, 'Absent.app') },
+        platform: 'darwin',
+      });
+      expect(target.exists).toBe(false);
+      mkdirSync(dirname(target.targetPath), { recursive: true });
+      writeFileSync(target.targetPath, '');
+      expect(target.exists).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('executableForAppBundle', () => {
+  it('derives Contents/MacOS/<name> from the bundle name', () => {
+    expect(executableForAppBundle('/Applications/OpenKnowledge.app')).toBe(
+      '/Applications/OpenKnowledge.app/Contents/MacOS/OpenKnowledge',
+    );
+  });
+});
+
+describe('desktopLaunchOptions', () => {
+  it('unpackaged: main entry leads args and no executablePath is set', () => {
+    const opts = desktopLaunchOptions({ target: unpackaged, args: ['--user-data-dir=/tmp/u'] });
+    expect(opts.args).toEqual(['/repo/out/main/index.js', '--user-data-dir=/tmp/u']);
+    expect('executablePath' in opts).toBe(false);
+  });
+
+  it('packaged: executablePath is set and the main entry is omitted from args', () => {
+    const opts = desktopLaunchOptions({ target: packaged, args: ['--user-data-dir=/tmp/u'] });
+    expect(opts.executablePath).toBe('/mnt/OpenKnowledge.app/Contents/MacOS/OpenKnowledge');
+    expect(opts.args).toEqual(['--user-data-dir=/tmp/u']);
+    expect(opts.args).not.toContain(UNPACKAGED_MAIN_ENTRY);
+    expect(opts.args.some((a) => a.endsWith('out/main/index.js'))).toBe(false);
+  });
+
+  it('inherits the parent environment when the caller supplies none', () => {
+    const opts = desktopLaunchOptions({ target: unpackaged });
+    expect(opts.env?.PATH).toBe(process.env.PATH);
+    expect(opts.env?.OK_DESKTOP_E2E_SMOKE).toBe(process.env.OK_DESKTOP_E2E_SMOKE);
+  });
+
+  it('pins the interface language to English on every launch', () => {
+    expect(desktopLaunchOptions({ target: unpackaged }).env?.OK_LANG).toBe('en');
+    expect(desktopLaunchOptions({ target: packaged }).env?.OK_LANG).toBe('en');
+    expect(desktopLaunchOptions({ target: unpackaged, env: { OK_LANG: 'es' } }).env?.OK_LANG).toBe(
+      'en',
+    );
+  });
+
+  it('opts the unpackaged build into claiming the URL scheme so open -g deep links reach it', () => {
+    expect(desktopLaunchOptions({ target: unpackaged }).env?.OK_DEV_PROTOCOL).toBe('1');
+  });
+
+  it('passes a supplied env through, over the inherited copy', () => {
+    const env = { HOME: '/tmp/home', OK_DESKTOP_E2E_SMOKE: '1' };
+    const opts = desktopLaunchOptions({ target: unpackaged, env });
+    expect(opts.env?.HOME).toBe('/tmp/home');
+    expect(opts.env?.OK_DESKTOP_E2E_SMOKE).toBe('1');
+  });
+
+  it('defaults the timeout to 30s and lets a caller override it', () => {
+    expect(desktopLaunchOptions({ target: unpackaged }).timeout).toBe(DEFAULT_LAUNCH_TIMEOUT_MS);
+    expect(DEFAULT_LAUNCH_TIMEOUT_MS).toBe(30_000);
+    expect(desktopLaunchOptions({ target: unpackaged, timeout: 90_000 }).timeout).toBe(90_000);
+  });
+
+  it('does not alias the caller args array', () => {
+    const args = ['--flag'];
+    const opts = desktopLaunchOptions({ target: packaged, args });
+    args.push('--mutated-after');
+    expect(opts.args).toEqual(['--flag']);
+  });
+});
+
+function idleThresholdTheServerDerivesFrom(
+  env: SmokeLaunchEnv | undefined,
+): number | null | string {
+  let layer: Record<string, unknown>;
+  try {
+    layer = resolveEnvConfigLayer({ OK_IDLE_SHUTDOWN: env?.OK_IDLE_SHUTDOWN }).layer;
+  } catch (error) {
+    return `rejected by the server's env layer: ${error instanceof Error ? error.message : String(error)}`;
+  }
+  return idleShutdownToMs(
+    resolveServerRuntimeConfig(applyConfigOverlay({}, layer) as Config).idleShutdown,
+  );
+}
+
+describe("desktopLaunchOptions — a packaged launch bounds its detached server's lifetime", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it.each<[string, string | undefined, string | undefined]>([
+    ['neither the parent env nor the caller sets one', undefined, undefined],
+    ["the parent env sets 'off'", 'off', undefined],
+    ["the parent env sets '30m'", '30m', undefined],
+    ["the caller's env sets 'off'", undefined, 'off'],
+    ["the caller's env sets '30m'", undefined, '30m'],
+  ])(
+    "the server's own config parsing turns a packaged launch's env into exactly the exported lifetime bound when %s",
+    (_case, parent, supplied) => {
+      vi.stubEnv('OK_IDLE_SHUTDOWN', parent);
+      const opts = desktopLaunchOptions({
+        target: packaged,
+        env: supplied === undefined ? {} : { OK_IDLE_SHUTDOWN: supplied },
+      });
+      expect({
+        lifetimeBoundIsExported: typeof PACKAGED_SMOKE_SERVER_IDLE_SHUTDOWN_MS === 'number',
+        serverIdleThresholdMs: idleThresholdTheServerDerivesFrom(opts.env),
+      }).toEqual({
+        lifetimeBoundIsExported: true,
+        serverIdleThresholdMs: PACKAGED_SMOKE_SERVER_IDLE_SHUTDOWN_MS,
+      });
+    },
+  );
+
+  it('an unpackaged launch sets no idle shutdown of its own, while a packaged launch from the same env sets one', () => {
+    vi.stubEnv('OK_IDLE_SHUTDOWN', undefined);
+    const supplied = { HOME: '/tmp/home' };
+
+    expect({
+      packagedLaunchSetsOne:
+        desktopLaunchOptions({ target: packaged, env: supplied }).env?.OK_IDLE_SHUTDOWN !==
+        undefined,
+      unpackagedLaunchSetsOne:
+        desktopLaunchOptions({ target: unpackaged, env: supplied }).env?.OK_IDLE_SHUTDOWN !==
+        undefined,
+    }).toEqual({ packagedLaunchSetsOne: true, unpackagedLaunchSetsOne: false });
+  });
+
+  it("the packaged server's lifetime bound outlasts the app's own deadline for that server's lock", () => {
+    expect({
+      lifetimeBoundIsExported: typeof PACKAGED_SMOKE_SERVER_IDLE_SHUTDOWN_MS === 'number',
+      outlastsTheLockDeadline: PACKAGED_SMOKE_SERVER_IDLE_SHUTDOWN_MS > SPAWN_STARTUP_DEADLINE_MS,
+    }).toEqual({ lifetimeBoundIsExported: true, outlastsTheLockDeadline: true });
+  });
+});
+
+describe('no smoke file references __dirname without defining it', () => {
+  const SMOKE_DIR = join(dirname(fileURLToPath(import.meta.url)), '..');
+  const files = readdirSync(SMOKE_DIR)
+    .filter((file) => isTestOnlySourceFile(file, 'playwright'))
+    .map((file) => ({ file, src: readFileSync(join(SMOKE_DIR, file), 'utf8') }))
+    .filter(({ src }) => src.includes('__dirname'));
+
+  it.each(files)('$file', ({ file, src }) => {
+    expect(src, `${file} uses __dirname without defining it`).toMatch(/const __dirname\s*=/);
+  });
+});

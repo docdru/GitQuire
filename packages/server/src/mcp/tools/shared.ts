@@ -1,0 +1,721 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import {
+  AdvisoryWarningSchema,
+  BrokenLinkSchema,
+  BrokenLinkSuppressionSchema,
+  currentCliCommandName,
+  getAgentCanonicalDescriptors,
+  isAuditEmptyScopeWarning,
+  SERVER_TIMEOUT_ERROR_PREFIX,
+  SERVER_UNREACHABLE_ERROR_PREFIX,
+  UNREADABLE_WARNINGS_TEXT,
+  validateDocName,
+} from '@inkeep/open-knowledge-core';
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
+import type { Config } from '../../config/schema.ts';
+import { SUPPORTED_DOC_EXTENSIONS } from '../../doc-extensions.ts';
+import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
+import type { AgentIdentity } from '../agent-identity.ts';
+import { resolveWithinRoot } from './path-safety.ts';
+
+export type ServerInstance = McpServer;
+export type ConfigOrResolver = Config | ((cwd?: string) => Promise<Config>);
+
+/** The agent-identity fields every mutating route accepts for attribution (precedent #24/#25). */
+export function agentIdentityFields(identity: AgentIdentity | undefined): Record<string, unknown> {
+  return identity
+    ? {
+        agentId: identity.connectionId,
+        agentName: identity.displayName,
+        clientName: identity.clientInfo?.name,
+        colorSeed: identity.colorSeed,
+      }
+    : {};
+}
+export const ROUTED_CWD_DESCRIPTION =
+  'Absolute OK project/worktree path. Routed stdio: required until set unless one client root exists. Project-bound HTTP: optional, confined to its root.';
+
+export const CANONICAL_COMPONENT_GUIDANCE = `Canonical ids: ${getAgentCanonicalDescriptors()
+  .map((descriptor) => descriptor.name)
+  .join(
+    ', ',
+  )}. Call palette({components:[ids]}) before authoring for syntax/props, markdown-native forms, Mermaid and themed html preview for interactive charts/demos. Other JSX stays raw MDX when no canonical fits.`;
+
+const SUMMARY_TRANSPORT_CAP = 200;
+
+export const summaryArgSchema = z
+  .string()
+  .max(SUMMARY_TRANSPORT_CAP)
+  .optional()
+  .describe(
+    'Optional one-line user-outcome description (≤80 chars). Appears as a bullet in the timeline.',
+  );
+
+export const VERSION_FIELD_DESCRIBE =
+  'A 40-character commit SHA identifying a saved version. Produced by `checkpoint`, listed by `history` as `entries[].version`, and consumed here — the same `version` field name across all three.';
+
+export const versionInputSchema = z
+  .string()
+  .length(40)
+  .regex(/^[0-9a-f]+$/i)
+  .describe(VERSION_FIELD_DESCRIBE);
+
+export const previewUrlOutputField = z
+  .string()
+  .nullable()
+  .describe('Route-only preview URL (`/#/<doc>`, no host:port), or null when no UI is running.');
+
+export const previewUrlSourceField = z
+  .string()
+  .optional()
+  .describe('How the previewUrl was resolved (e.g. the UI lock).');
+
+export const previousPreviewUrlField = z
+  .string()
+  .optional()
+  .describe('Route of the prior/removed path, for closing a stale preview tab.');
+
+export const summaryOutputSchema = z
+  .object({
+    value: z.string(),
+    truncatedFrom: z.number().optional(),
+    hint: z.string().optional(),
+  })
+  .describe('Normalized change-note summary, when one was recorded.');
+
+export const looseObjectArray = z.array(z.record(z.string(), z.unknown()));
+
+export const previewAttachWarningField = z
+  .record(z.string(), z.unknown())
+  .optional()
+  .describe('Preview-attach hint (`{ action, previewUrl?, message? }`) when relevant.');
+
+const brokenLinksOutputField = z
+  .array(BrokenLinkSchema)
+  .describe(
+    'Outbound internal links in the just-written doc that do not resolve. Always present — `[]` means every link resolves UNLESS `brokenLinkSuppression` is also present, in which case a project policy withheld findings, or `warnings` carries `link-check-deferred`, in which case the links were not checked because the server is still starting or busy with other writes. A withholding that arrives in a shape this build cannot validate is dropped rather than relayed, so `brokenLinkSuppression` stays absent even though findings were withheld. The `audit` tool is the surface that discloses that case, through its `warnings`. Each: `{ href (as written), resolvedTo (the docName or content-root file path it pointed at, or null), reason: "no-such-doc" | "no-such-file" | "unresolvable" | "excluded" }`. `excluded` means the file exists on disk but a .gitignore or .okignore rule keeps it out of the project; a `!` rule in .okignore re-includes it or its folder. Report-only — the write landed regardless; fix in a follow-up edit.',
+  );
+
+const brokenLinkSuppressionOutputField = BrokenLinkSuppressionSchema.optional().describe(
+  'Present ONLY when a project policy omitted detected broken links from `brokenLinks` — so an empty `brokenLinks` beside it does NOT mean every link resolves. `{ reason, count }`; `reason` today is `"reserved-log-policy"` (a reserved `log.md` records history whose links are expected not to resolve) and is an open token, so treat one you do not recognize as a withholding policy all the same. `count` is how many findings were withheld; the hrefs are deliberately not returned, because none of them is yours to repair.',
+);
+
+export function docExtensionOnDisk(
+  contentDir: string,
+  docName: string,
+): (typeof SUPPORTED_DOC_EXTENSIONS)[number] | undefined {
+  for (const ext of SUPPORTED_DOC_EXTENSIONS) {
+    const contained = resolveWithinRoot(contentDir, `${docName}${ext}`);
+    if (contained.ok && existsSync(contained.abs)) return ext;
+  }
+  return undefined;
+}
+
+export const documentResultBaseShape = {
+  summary: summaryOutputSchema.optional(),
+  warnings: z
+    .array(AdvisoryWarningSchema)
+    .min(1)
+    .optional()
+    .describe(
+      "Advisory entries discriminated by `kind`. Write-integrity kinds — `content-divergence` (converged Y.Text didn't byte-match what you composed) and `disk-edit-reconciled` (an out-of-band disk edit was folded in before your write) — mean re-read the doc. The renderability kind `mermaid-parse-error` means the write landed but that fence will not render — fix it and re-edit. `link-check-deferred` means links were not checked because the server is still starting or busy with other writes — that doc is re-checked only by a later write or edit of it, or an `audit`, which can time out until startup finishes.",
+    ),
+  brokenLinks: brokenLinksOutputField,
+  brokenLinkSuppression: brokenLinkSuppressionOutputField,
+  templateHint: z
+    .array(z.object({ name: z.string(), description: z.string().optional() }))
+    .min(1)
+    .optional()
+    .describe(
+      "Templates the parent folder offers, present only when a create passed no `template`. A nudge — the write already landed; pass `template` next time to match the folder's shape.",
+    ),
+} as const;
+
+export function nestDocResult(
+  preview: { url: string; source: string } | null | undefined,
+  warning: Record<string, unknown> | undefined,
+  docFields: Record<string, unknown>,
+): Record<string, unknown> {
+  const structured: Record<string, unknown> = {};
+  if (preview) {
+    structured.previewUrl = preview.url;
+    structured.previewUrlSource = preview.source;
+  }
+  if (warning) structured.warning = warning;
+  if (Object.keys(docFields).length > 0) structured.document = docFields;
+  return structured;
+}
+
+export function requestFailureText(result: { [key: string]: unknown }): string {
+  const title = typeof result.error === 'string' ? result.error : 'request failed';
+  const detail =
+    typeof result.detail === 'string' && result.detail.length > 0 ? ` (${result.detail})` : '';
+  const retryAfter =
+    typeof result.retryAfterSeconds === 'number'
+      ? ` Retry after ${result.retryAfterSeconds}s.`
+      : '';
+  return `${title}${detail}${retryAfter}`;
+}
+
+export function errorTextWithDetail(
+  result: { [key: string]: unknown },
+  invalidRequestAdvice?: string,
+): string {
+  const advice =
+    result.type === 'urn:ok:error:invalid-request' &&
+    result.contentControlAdmission === true &&
+    invalidRequestAdvice
+      ? ` ${invalidRequestAdvice}`
+      : '';
+  return `Error: ${requestFailureText(result)}${advice}`;
+}
+
+export function textResult(text: string, isError?: boolean) {
+  return {
+    content: [{ type: 'text' as const, text }],
+    ...(isError ? { isError: true as const } : {}),
+  };
+}
+
+export const TEXT_CHANNEL_FIELD = z
+  .string()
+  .optional()
+  .describe(
+    'Auto-duplicated body text. `textPlusStructured` mirrors the visible body here as a Claude / Claude Desktop client-quirk workaround (those clients hide `content[]` when `structuredContent` is present). Internal — programmatic consumers should prefer the `content[0].text` channel.',
+  );
+
+export function outputSchemaWithText<S extends z.ZodRawShape>(
+  shape: S,
+): Omit<{ text: typeof TEXT_CHANNEL_FIELD }, keyof S> & S {
+  return {
+    text: TEXT_CHANNEL_FIELD,
+    ...shape,
+  } as Omit<{ text: typeof TEXT_CHANNEL_FIELD }, keyof S> & S;
+}
+
+export function textPlusStructured<T>(text: string, structured: T, isError?: boolean) {
+  const structuredContent: { text: string } & Record<string, unknown> = {
+    text,
+    ...(structured as unknown as Record<string, unknown>),
+  };
+  return {
+    content: [{ type: 'text' as const, text }],
+    structuredContent,
+    ...(isError ? { isError: true as const } : {}),
+  };
+}
+
+export function hocuspocusNotRunningError(): string {
+  return `Error: Hocuspocus server is not running. Start it with \`${currentCliCommandName()} start\`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through OpenKnowledge so attribution and live sync stay intact.`;
+}
+
+export type ServerUrlOrResolver =
+  | string
+  | undefined
+  | ((cwd?: string) => Promise<string | undefined>);
+
+export async function resolveServerUrl(
+  x: ServerUrlOrResolver,
+  cwd?: string,
+): Promise<string | undefined> {
+  return typeof x === 'function' ? await x(cwd) : x;
+}
+
+async function resolveConfig(x: ConfigOrResolver, cwd?: string): Promise<Config> {
+  return typeof x === 'function' ? await x(cwd) : x;
+}
+
+export async function resolveProjectConfigContext(
+  resolveCwd: (explicit?: string) => Promise<string>,
+  config: ConfigOrResolver,
+  explicitCwd?: string,
+): Promise<
+  { ok: true; cwd: string; executionCwd: string; config: Config } | { ok: false; error: string }
+> {
+  let cwd: string;
+  try {
+    cwd = await resolveCwd(explicitCwd);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+  const executionCwd = explicitCwd !== undefined ? resolve(explicitCwd) : cwd;
+  try {
+    const resolvedConfig = await resolveConfig(config, cwd);
+    return { ok: true, cwd, executionCwd, config: resolvedConfig };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export async function requireProjectServer(
+  resolveCwd: (explicit?: string) => Promise<string>,
+  config: ConfigOrResolver,
+  serverUrl: ServerUrlOrResolver,
+  explicitCwd?: string,
+): Promise<
+  | { ok: true; cwd: string; executionCwd: string; config: Config; url: string }
+  | { ok: false; result: ReturnType<typeof textResult> }
+> {
+  const context = await resolveProjectServerContext(resolveCwd, config, serverUrl, explicitCwd);
+  if (!context.ok) return { ok: false, result: textResult(`Error: ${context.error}`, true) };
+  if (!context.url) return { ok: false, result: textResult(hocuspocusNotRunningError(), true) };
+  return {
+    ok: true,
+    cwd: context.cwd,
+    executionCwd: context.executionCwd,
+    config: context.config,
+    url: context.url,
+  };
+}
+
+export async function resolveProjectServerContext(
+  resolveCwd: (explicit?: string) => Promise<string>,
+  config: ConfigOrResolver,
+  serverUrl: ServerUrlOrResolver,
+  explicitCwd?: string,
+): Promise<
+  | { ok: true; cwd: string; executionCwd: string; config: Config; url: string | undefined }
+  | { ok: false; error: string }
+> {
+  const configContext = await resolveProjectConfigContext(resolveCwd, config, explicitCwd);
+  if (!configContext.ok) {
+    return configContext;
+  }
+  const { cwd, executionCwd, config: resolvedConfig } = configContext;
+  try {
+    const url = await resolveServerUrl(serverUrl, cwd);
+    return { ok: true, cwd, executionCwd, config: resolvedConfig, url };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export function okReservedPathRedirect(path: string): string | null {
+  const p = path.replace(/^\/+/, '');
+  if (p !== '.ok' && !p.startsWith('.ok/')) return null;
+  if (p.startsWith('.ok/skills/')) {
+    return 'Skills are authored with the `skill` target, not a raw document path: `write({ skill: { name, description, body?, scope? } })` writes the SKILL.md wherever the skill lives (a NEW skill lands at the project default skill home, e.g. `.agents/skills/<name>/`). To author or improve a skill, use the `open-knowledge-write-skill` skill.';
+  }
+  if (p.startsWith('.ok/templates/')) {
+    return 'Templates are authored with the `template` target (`write({ template: { … } })`), not a raw document path.';
+  }
+  return 'Paths under `.ok/` are not addressable as documents. Edit folder config/frontmatter via the `folder` target, skills via the `skill` target, and templates via the `template` target.';
+}
+
+export function normalizeDocName(
+  raw: string,
+): { ok: true; docName: string } | { ok: false; error: string } {
+  const lower = raw.toLowerCase();
+  if (lower.endsWith('.markdown')) {
+    return {
+      ok: false,
+      error: `Error: "${raw}" ends in ".markdown", which is not a supported extension. Use ".md" or ".mdx", or strip the extension to let the server auto-detect.`,
+    };
+  }
+  let candidate = raw;
+  let lowerCandidate = lower;
+  while (lowerCandidate.endsWith('.mdx') || lowerCandidate.endsWith('.md')) {
+    candidate = candidate.slice(0, lowerCandidate.endsWith('.mdx') ? -4 : -3);
+    lowerCandidate = candidate.toLowerCase();
+  }
+  const validation = validateDocName(candidate);
+  if (!validation.ok) {
+    return { ok: false, error: `Error: "${raw}" is invalid — ${validation.reason}.` };
+  }
+  return { ok: true, docName: candidate };
+}
+
+/**
+ * The boundary canonicalizer pattern lets tool handlers stay unaware of HTTP status semantics or
+ * the RFC 9457 wire shape (precedent #38).
+ */
+function normalizeResponse(
+  res: { ok: boolean; status: number },
+  body: unknown,
+): { ok: boolean; [key: string]: unknown } {
+  if (res.ok) {
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+      return { ok: true, data: body };
+    }
+    const { ok: _ok, ...rest } = body as Record<string, unknown>;
+    return { ok: true, ...rest };
+  }
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return {
+      ok: false,
+      error: `Server returned HTTP ${res.status} with non-object body`,
+    };
+  }
+  const record = body as Record<string, unknown>;
+  if (typeof record.type === 'string' && typeof record.title === 'string') {
+    const { type, title, status, instance, detail, ...extensions } = record;
+    return {
+      ...extensions,
+      ok: false,
+      error: title,
+      type,
+      ...(typeof status === 'number' ? { status } : {}),
+      ...(typeof instance === 'string' ? { instance } : {}),
+      ...(typeof detail === 'string' ? { detail } : {}),
+    };
+  }
+  const { ok: _ok, error: bodyError, ...rest } = record;
+  const fallbackError =
+    typeof bodyError === 'string'
+      ? bodyError
+      : typeof record.message === 'string'
+        ? record.message
+        : `Server returned HTTP ${res.status}`;
+  return { ...rest, ok: false, error: fallbackError };
+}
+
+export type ApiTarget = string | { url: string; local: LocalApiDispatch };
+
+export function apiTarget(url: string, local: LocalApiDispatch | undefined): ApiTarget {
+  return local ? { url, local } : url;
+}
+
+export function isTimeoutError(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    (err.name === 'TimeoutError' ||
+      [err, err.cause].some(
+        (cause) =>
+          cause instanceof Error &&
+          'code' in cause &&
+          (cause.code === 'UND_ERR_HEADERS_TIMEOUT' || cause.code === 'UND_ERR_BODY_TIMEOUT'),
+      ))
+  );
+}
+
+export function serverRequestFailure(err: unknown, opts?: { mutating?: boolean }): string {
+  const detail = err instanceof Error ? err.message : String(err);
+  if (!isTimeoutError(err)) return `${SERVER_UNREACHABLE_ERROR_PREFIX} ${detail}`;
+  const caution =
+    opts?.mutating === false
+      ? ''
+      : ' The server may still have applied the request, so check before retrying.';
+  return `${SERVER_TIMEOUT_ERROR_PREFIX} ${detail}.${caution}`;
+}
+
+async function localApiCall(
+  local: LocalApiDispatch,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  path: string,
+  serializedBody: string | undefined,
+  includeHttpStatus: boolean,
+): Promise<{ ok: boolean; [key: string]: unknown } | null> {
+  let raw: { status: number; bodyText: string } | null;
+  try {
+    raw = await local(
+      method,
+      path,
+      serializedBody !== undefined
+        ? { body: serializedBody, contentType: 'application/json' }
+        : undefined,
+    );
+  } catch (err) {
+    return { ok: false, error: serverRequestFailure(err) };
+  }
+  if (raw === null) return null;
+  const ok = raw.status >= 200 && raw.status <= 299;
+  let body: unknown;
+  try {
+    body = JSON.parse(raw.bodyText);
+  } catch (parseErr) {
+    const detail = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    const statusFields = includeHttpStatus ? { httpStatus: raw.status } : {};
+    if (ok) {
+      return {
+        ok: false,
+        ...statusFields,
+        error: `Server returned 2xx response with non-JSON body: ${detail}`,
+      };
+    }
+    return {
+      ok: false,
+      ...statusFields,
+      error: `Server returned HTTP ${raw.status} with non-JSON body: ${detail}`,
+    };
+  }
+  const normalized = normalizeResponse({ ok, status: raw.status }, body);
+  return includeHttpStatus ? { ...normalized, httpStatus: raw.status } : normalized;
+}
+
+export function httpGet(
+  base: string,
+  path: string,
+  signal: AbortSignal,
+): Promise<{ ok: boolean; [key: string]: unknown }>;
+export function httpGet(
+  base: ApiTarget,
+  path: string,
+): Promise<{ ok: boolean; [key: string]: unknown }>;
+export async function httpGet(
+  base: ApiTarget,
+  path: string,
+  signal?: AbortSignal,
+): Promise<{ ok: boolean; [key: string]: unknown }> {
+  if (typeof base !== 'string') {
+    const local = await localApiCall(base.local, 'GET', path, undefined, true);
+    if (local !== null) return local;
+    base = base.url;
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, { signal: signal ?? AbortSignal.timeout(30_000) });
+  } catch (err) {
+    return { ok: false, error: serverRequestFailure(err, { mutating: false }) };
+  }
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch (parseErr) {
+    if (isTimeoutError(parseErr)) {
+      return {
+        ok: false,
+        httpStatus: res.status,
+        error: serverRequestFailure(parseErr, { mutating: false }),
+      };
+    }
+    const detail = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    if (res.ok) {
+      return {
+        ok: false,
+        httpStatus: res.status,
+        error: `Server returned 2xx response with non-JSON body: ${detail}`,
+      };
+    }
+    return {
+      ok: false,
+      httpStatus: res.status,
+      error: `Server returned HTTP ${res.status} with non-JSON body: ${detail}`,
+    };
+  }
+  return { ...normalizeResponse(res, body), httpStatus: res.status };
+}
+
+export async function httpGetRows(
+  base: ApiTarget,
+  path: string,
+  field: string,
+): Promise<
+  { error: string } | { rows: Array<Record<string, unknown>>; data: Record<string, unknown> }
+> {
+  const result = await httpGet(base, path);
+  if (!result.ok) {
+    return { error: typeof result.error === 'string' ? result.error : 'request failed' };
+  }
+  const { ok: _ok, ...data } = result;
+  const raw = (data as Record<string, unknown>)[field];
+  const rows = Array.isArray(raw) ? (raw as Array<Record<string, unknown>>) : [];
+  return { rows, data };
+}
+
+async function httpSend(
+  method: 'POST' | 'PUT' | 'DELETE',
+  base: ApiTarget,
+  path: string,
+  body?: Record<string, unknown>,
+): Promise<{ ok: boolean; [key: string]: unknown }> {
+  let serializedBody: string | undefined;
+  if (body !== undefined) {
+    try {
+      serializedBody = JSON.stringify(body);
+    } catch (stringifyErr) {
+      return {
+        ok: false,
+        error: `Request body is not JSON-serializable: ${stringifyErr instanceof Error ? stringifyErr.message : String(stringifyErr)}`,
+      };
+    }
+  }
+  if (typeof base !== 'string') {
+    const local = await localApiCall(base.local, method, path, serializedBody, false);
+    if (local !== null) return local;
+    base = base.url;
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, {
+      method,
+      headers: serializedBody !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      body: serializedBody,
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch (err) {
+    return { ok: false, error: serverRequestFailure(err) };
+  }
+  let parsed: unknown;
+  try {
+    parsed = await res.json();
+  } catch (parseErr) {
+    if (isTimeoutError(parseErr)) return { ok: false, error: serverRequestFailure(parseErr) };
+    const detail = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    if (res.ok) {
+      return {
+        ok: false,
+        error: `Server returned 2xx response with non-JSON body: ${detail}`,
+      };
+    }
+    return {
+      ok: false,
+      error: `Server returned HTTP ${res.status} with non-JSON body: ${detail}`,
+    };
+  }
+  return normalizeResponse(res, parsed);
+}
+
+export function httpPost(
+  base: ApiTarget,
+  path: string,
+  body?: Record<string, unknown>,
+): Promise<{ ok: boolean; [key: string]: unknown }> {
+  return httpSend('POST', base, path, body);
+}
+
+export function httpPut(
+  base: ApiTarget,
+  path: string,
+  body?: Record<string, unknown>,
+): Promise<{ ok: boolean; [key: string]: unknown }> {
+  return httpSend('PUT', base, path, body);
+}
+
+export function httpDelete(
+  base: ApiTarget,
+  path: string,
+): Promise<{ ok: boolean; [key: string]: unknown }> {
+  return httpSend('DELETE', base, path);
+}
+
+export interface RenameCollisionPair {
+  existing: string;
+  incoming: string;
+  to: string;
+}
+
+export function parseRenameCollidingPairs(value: unknown): RenameCollisionPair[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const { existing, incoming, to } = entry as Record<string, unknown>;
+    return typeof existing === 'string' && typeof incoming === 'string' && typeof to === 'string'
+      ? [{ existing, incoming, to }]
+      : [];
+  });
+}
+
+export { UNREADABLE_WARNINGS_TEXT };
+
+export function alignWarningCodes(
+  warnings: unknown,
+  codes: unknown,
+  known: ReadonlySet<string>,
+): { warnings: string[]; warningCodes?: string[] } {
+  if (warnings !== undefined && !Array.isArray(warnings)) {
+    return { warnings: [UNREADABLE_WARNINGS_TEXT] };
+  }
+  const text = (Array.isArray(warnings) ? warnings : []).map((entry) =>
+    typeof entry === 'string' ? entry : String(entry),
+  );
+  const rawCodes = Array.isArray(codes) ? (codes as string[]) : [];
+  if (text.length !== rawCodes.length) return { warnings: text };
+  return rawCodes.every((code) => known.has(code))
+    ? { warnings: text, warningCodes: rawCodes }
+    : { warnings: text };
+}
+
+export function warningCodesContract(reporter: string): string {
+  return `Machine-readable codes aligned 1:1 with \`warnings\` (\`warnings[i]\` is the display text for \`warningCodes[i]\`) — switch on these, never on the English. Absent when ${reporter} sent warning text it did not pair with codes, or paired one with a code this build does not recognise; \`warnings\` still carries the full text either way, so treat a missing field as unknown rather than as an all-clear.`;
+}
+
+export const WARNING_CODES_CONTRACT = warningCodesContract('the server');
+
+export function warningsFieldContract(reporter: string): string {
+  return `Always emitted, \`[]\` when there were none. \`warningCodes\` accompanies this list 1:1 whenever ${reporter} paired every warning it sent with a code this build recognises; otherwise \`warningCodes\` is absent and this list still carries the full text. \`content[0].text\` lists every warning either way. A \`warnings\` payload in a shape this build cannot read at all becomes one entry saying so, with \`warningCodes\` absent — \`[]\` never means "unreadable".`;
+}
+
+export const WARNINGS_FIELD_CONTRACT = warningsFieldContract('the server');
+
+export const AUTHORING_WARNING_CODE_GLOSS =
+  '`skill-name-vendor-word`: the name contains a vendor word. `skill-body-too-long`: the body exceeds the 500-line soft cap.';
+
+export const INSTALL_WARNING_CODE_GLOSS =
+  '`no-targets`: nothing was projected, no editor is configured for this project. `scripts-present`: the skill ships executable `scripts/` (projected, never auto-run). `no-description`: installed, but its `description` is empty, so agents cannot route to it. `name-conflict`: a DIFFERENT skill already holds that name at a location. `place-path-invalid`: a named location is not a placeable root. `place-fork-refused`: a copy differing from the current source was left alone rather than deleted. `skill-fork-name-unpatched`: a fork rename moved the folder but could not rewrite `name` in its SKILL.md. `links-not-permitted`: the OS refused symlinks, so the named locations are copies that refresh while unedited and fork when edited.';
+
+export const AUDIT_FILE_CAP = 10;
+export const AUDIT_FILE_DIAGNOSTIC_CAP = 10;
+
+export const AUDIT_WARNING_CAP = 10;
+
+const ATTRIBUTED_VALIDATION_FAILURE = /^(?:source(?: family)?|validator) "/;
+
+export function capAuditWarnings(warnings: readonly string[]): {
+  shownWarnings: string[];
+  omittedWarningCount: number;
+} {
+  const attributed: string[] = [];
+  const generic: string[] = [];
+  for (const warning of warnings) {
+    (ATTRIBUTED_VALIDATION_FAILURE.test(warning) ? attributed : generic).push(warning);
+  }
+  const shownWarnings = [...attributed, ...generic].slice(0, AUDIT_WARNING_CAP);
+  return {
+    shownWarnings,
+    omittedWarningCount: warnings.length - shownWarnings.length,
+  };
+}
+
+export function degradationBlock(
+  kind: 'Lint' | 'Audit',
+  shown: readonly string[],
+  omitted = 0,
+): string[] {
+  const degraded = shown.filter((warning) => !isAuditEmptyScopeWarning(warning));
+  const total = degraded.length + omitted;
+  if (total === 0) return [];
+  return [
+    `${kind} incomplete — ${total} warning${total === 1 ? '' : 's'} (findings may be partial):`,
+    ...degraded.map((warning) => `  ⚠ ${warning}`),
+    ...(omitted > 0 ? [`  … and ${omitted} more warning${omitted === 1 ? '' : 's'}`] : []),
+  ];
+}
+
+export function zeroFindingsSummary(
+  kind: 'Lint' | 'Audit',
+  fileCount: number,
+  warnings: readonly string[],
+  scope: string,
+): string {
+  if (fileCount === 0 && warnings.some(isAuditEmptyScopeWarning))
+    return `No documents were checked${scope}; this scope contains no admitted documents.`;
+  const documents = `${fileCount} document${fileCount === 1 ? '' : 's'}${scope}`;
+  return warnings.length > 0
+    ? `No problems found across ${documents}, but the ${kind.toLowerCase()} could not fully complete.`
+    : `No problems across ${documents}.`;
+}
+
+export interface FormattableDiagnostic {
+  severity?: string;
+  range?: { start?: { line?: number } };
+  source?: string;
+  code?: string;
+  message?: string;
+}
+
+export function formatDiagnosticLine(d: FormattableDiagnostic): string {
+  const marker = d.severity === 'error' ? '✘' : '⚠';
+  const startLine = d.range?.start?.line;
+  const where = startLine !== undefined ? `line ${startLine + 1}` : 'line ?';
+  const flatId = d.source !== undefined && d.code !== undefined ? `${d.source}/${d.code}` : '?';
+  return `  ${marker} ${where} ${flatId}: ${d.message ?? ''}`.trimEnd();
+}
+
+export function countSummary(errorCount: number, warningCount: number): string {
+  const parts: string[] = [];
+  if (errorCount > 0) parts.push(`${errorCount} error${errorCount === 1 ? '' : 's'}`);
+  if (warningCount > 0) parts.push(`${warningCount} warning${warningCount === 1 ? '' : 's'}`);
+  return parts.length > 0 ? parts.join(', ') : 'no problems';
+}

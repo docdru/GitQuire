@@ -1,0 +1,102 @@
+import type { HocuspocusProvider } from '@hocuspocus/provider';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, test, vi } from 'vitest';
+import * as Y from 'yjs';
+import * as linguiShim from '../../tests/lingui-macro-shim';
+
+vi.doMock('@lingui/react/macro', () => linguiShim);
+
+const { TemplateProperties } = await import('./TemplateProperties');
+
+function makeProvider(source: string): { provider: HocuspocusProvider; ytext: Y.Text } {
+  const document = new Y.Doc();
+  const ytext = document.getText('source');
+  ytext.insert(0, source);
+  const provider = {
+    document,
+    configuration: { name: 'notes/.ok/templates/meeting' },
+    on: () => {},
+    off: () => {},
+  } as unknown as HocuspocusProvider;
+  return { provider, ytext };
+}
+
+const SOURCE = '---\ntitle: Meeting\ndescription: initial desc\n---\n\n# Agenda\n';
+
+describe('TemplateProperties (CRDT)', () => {
+  test('seeds title + description from the doc frontmatter', () => {
+    const { provider } = makeProvider(SOURCE);
+    render(<TemplateProperties provider={provider} name="meeting" folder="notes" />);
+    expect((screen.getByTestId('template-title-input') as HTMLInputElement).value).toBe('Meeting');
+    expect((screen.getByTestId('template-description-input') as HTMLTextAreaElement).value).toBe(
+      'initial desc',
+    );
+  });
+
+  test('editing the title patches the YAML region of Y.Text (CRDT)', () => {
+    const { provider, ytext } = makeProvider(SOURCE);
+    render(<TemplateProperties provider={provider} name="meeting" folder="notes" />);
+    const title = screen.getByTestId('template-title-input');
+    fireEvent.change(title, { target: { value: 'Standup' } });
+    fireEvent.blur(title);
+    expect(ytext.toString()).toContain('title: Standup');
+    expect(ytext.toString()).toContain('# Agenda');
+  });
+
+  test('committing a changed name fires onRename (a git-mv rename), not a patch', () => {
+    const { provider, ytext } = makeProvider(SOURCE);
+    const onRename = vi.fn((_next: string) => {});
+    render(
+      <TemplateProperties provider={provider} name="meeting" folder="notes" onRename={onRename} />,
+    );
+    const nameInput = screen.getByTestId('template-name-input');
+    fireEvent.change(nameInput, { target: { value: 'standup' } });
+    fireEvent.blur(nameInput);
+    expect(onRename).toHaveBeenCalledWith('standup');
+    expect(ytext.toString()).toContain('# Agenda');
+  });
+
+  test('blurring an unedited decomposed name does not fire onRename', () => {
+    const { provider } = makeProvider(SOURCE);
+    const onRename = vi.fn((_next: string) => {});
+    render(
+      <TemplateProperties
+        provider={provider}
+        name={'cafe\u{0301}'}
+        folder="notes"
+        onRename={onRename}
+      />,
+    );
+    fireEvent.blur(screen.getByTestId('template-name-input'));
+    expect(onRename).not.toHaveBeenCalled();
+  });
+
+  test('re-entering a composed name in decomposed form does not fire onRename', () => {
+    const { provider } = makeProvider(SOURCE);
+    const onRename = vi.fn((_next: string) => {});
+    render(
+      <TemplateProperties
+        provider={provider}
+        name={'caf\u{00E9}'}
+        folder="notes"
+        onRename={onRename}
+      />,
+    );
+    const nameInput = screen.getByTestId('template-name-input');
+    fireEvent.change(nameInput, { target: { value: 'cafe\u{0301}' } });
+    fireEvent.blur(nameInput);
+    expect(onRename).not.toHaveBeenCalled();
+  });
+
+  test('renaming to a decomposed name sends its composed spelling', () => {
+    const { provider } = makeProvider(SOURCE);
+    const onRename = vi.fn((_next: string) => {});
+    render(
+      <TemplateProperties provider={provider} name="meeting" folder="notes" onRename={onRename} />,
+    );
+    const nameInput = screen.getByTestId('template-name-input');
+    fireEvent.change(nameInput, { target: { value: 'cafe\u{0301}' } });
+    fireEvent.blur(nameInput);
+    expect(onRename).toHaveBeenCalledWith('caf\u{00E9}');
+  });
+});

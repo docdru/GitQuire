@@ -1,0 +1,225 @@
+import { t } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
+import { FilePlus2 } from 'lucide-react';
+import { useEffect, useId, useRef } from 'react';
+import type { WikiLinkSuggestionItem } from '../extensions/wiki-link-suggestion';
+import { getFileIcon } from '../registry/file-icons';
+
+function itemIcon(item: WikiLinkSuggestionItem) {
+  if (item.kind === 'create') {
+    return <FilePlus2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
+  }
+  const assetExt = item.kind === 'asset' ? (item.path.split('.').pop() ?? '') : undefined;
+  const Icon = getFileIcon({ kind: item.kind, assetExt });
+  return <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
+}
+
+interface WikiLinkSuggestionMenuProps {
+  items: WikiLinkSuggestionItem[];
+  query: string;
+  selectedIndex: number;
+  onSelect: (item: WikiLinkSuggestionItem) => void;
+  loading?: boolean;
+  error?: string | null;
+  mode?: 'page' | 'anchor';
+  pageTarget?: string;
+  anchorQuery?: string;
+  hasMore?: boolean;
+}
+
+function itemKey(item: WikiLinkSuggestionItem): string {
+  if (item.kind === 'asset') return item.target;
+  return item.kind === 'anchor' ? `${item.docName}#${item.slug}` : item.docName;
+}
+
+function announcementText(item: WikiLinkSuggestionItem): string {
+  if (item.kind === 'anchor') {
+    const { level, text } = item;
+    return t`Heading H${level}: ${text}`;
+  }
+  if (item.kind === 'asset') {
+    const { title } = item;
+    return t`Asset: ${title}`;
+  }
+  if (item.kind === 'create') return item.actionLabel;
+  return item.title;
+}
+
+export function WikiLinkSuggestionMenu({
+  items,
+  query,
+  selectedIndex,
+  onSelect,
+  loading = false,
+  error = null,
+  mode = 'page',
+  pageTarget = '',
+  anchorQuery = '',
+  hasMore = false,
+}: WikiLinkSuggestionMenuProps) {
+  const { t } = useLingui();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listboxId = useId();
+  const activeDescendant =
+    selectedIndex >= 0 && selectedIndex < items.length
+      ? `${listboxId}-option-${selectedIndex}`
+      : undefined;
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const options = container.querySelectorAll('[role="option"]');
+    const selected = options.item(selectedIndex);
+    if (selected) selected.scrollIntoView({ block: 'nearest' });
+  }, [selectedIndex]);
+
+  const preventFocusSteal = (e: React.MouseEvent) => e.preventDefault();
+
+  if (loading) {
+    return (
+      <div
+        ref={containerRef}
+        role="status"
+        aria-live="polite"
+        className="w-80 rounded-lg border bg-popover p-2 shadow-md text-sm text-muted-foreground"
+        style={{ maxHeight: 'var(--suggestion-menu-max-height, 40vh)' }}
+        onMouseDown={preventFocusSteal}
+      >
+        {mode === 'anchor' ? t`Loading headings for ${pageTarget}` : t`Loading pages`}
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    const trimmedAnchorQuery = anchorQuery.trim();
+    const trimmedQuery = query.trim();
+    const emptyMsg =
+      error ??
+      (mode === 'anchor'
+        ? trimmedAnchorQuery
+          ? t`No headings match "${trimmedAnchorQuery}"`
+          : t`No headings in ${pageTarget}`
+        : trimmedQuery
+          ? t`No pages found for "${trimmedQuery}"`
+          : t`No pages found`);
+
+    return (
+      <div
+        ref={containerRef}
+        role="status"
+        aria-live="polite"
+        className="w-80 rounded-lg border bg-popover p-2 shadow-md text-sm text-muted-foreground"
+        style={{ maxHeight: 'var(--suggestion-menu-max-height, 40vh)' }}
+        onMouseDown={preventFocusSteal}
+      >
+        {emptyMsg}
+      </div>
+    );
+  }
+
+  const selectedItem =
+    selectedIndex >= 0 && selectedIndex < items.length ? items[selectedIndex] : null;
+
+  return (
+    <div
+      ref={containerRef}
+      role="listbox"
+      aria-label={mode === 'anchor' ? t`Heading suggestions` : t`Wiki link suggestions`}
+      aria-activedescendant={activeDescendant}
+      tabIndex={-1}
+      onMouseDown={preventFocusSteal}
+      className="w-80 overflow-y-auto subtle-scrollbar rounded-lg border bg-popover p-1 shadow-md"
+      style={{ maxHeight: 'var(--suggestion-menu-max-height, 40vh)' }}
+    >
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {selectedItem ? announcementText(selectedItem) : ''}
+      </span>
+      {error && <div className="rounded-md px-2 py-1.5 text-xs text-warning">{error}</div>}
+      {mode === 'anchor' && (
+        <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          {pageTarget}
+        </div>
+      )}
+      {items.map((item, idx) => {
+        const isSelected = idx === selectedIndex;
+        const key = itemKey(item);
+
+        if (item.kind === 'anchor') {
+          return (
+            <button
+              key={key}
+              id={`${listboxId}-option-${idx}`}
+              type="button"
+              role="option"
+              aria-selected={isSelected}
+              data-selected={isSelected}
+              className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-left ${
+                isSelected ? 'bg-accent text-accent-foreground' : ''
+              }`}
+              style={{ paddingLeft: `${(item.level - 1) * 10 + 8}px` }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onSelect(item);
+              }}
+            >
+              <span className="w-6 shrink-0 font-mono text-[10px] text-muted-foreground">
+                H{item.level}
+              </span>
+              <span className="truncate font-medium">{item.text}</span>
+            </button>
+          );
+        }
+
+        return (
+          <button
+            key={key}
+            id={`${listboxId}-option-${idx}`}
+            type="button"
+            role="option"
+            aria-selected={isSelected}
+            data-selected={isSelected}
+            className={`flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-sm text-left ${
+              isSelected ? 'bg-accent text-accent-foreground' : ''
+            }`}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onSelect(item);
+            }}
+          >
+            <span className="mt-0.5">{itemIcon(item)}</span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate font-medium">
+                {item.kind === 'create' ? item.actionLabel : item.title}
+              </span>
+              {item.kind === 'page' && item.title !== item.docName && (
+                <span className="line-clamp-2 break-all text-xs text-muted-foreground">
+                  {item.docName}
+                </span>
+              )}
+              {item.kind === 'asset' && (
+                <span className="line-clamp-2 break-all text-xs text-muted-foreground">
+                  {item.path}
+                </span>
+              )}
+              {item.kind === 'create' && (
+                <span className="line-clamp-2 break-all text-xs text-muted-foreground">
+                  {item.docName}.md
+                </span>
+              )}
+            </span>
+          </button>
+        );
+      })}
+      {hasMore && (
+        <div
+          data-prop-suggestion-more-hint=""
+          className="border-t border-border mt-1 px-2 py-1.5 text-xs text-muted-foreground"
+        >
+          {mode === 'anchor'
+            ? t`Showing top ${items.length} headings — keep typing to narrow`
+            : t`Showing top ${items.length} matches — keep typing to narrow`}
+        </div>
+      )}
+    </div>
+  );
+}

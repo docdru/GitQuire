@@ -1,0 +1,445 @@
+import {
+  isReLintFailedWarning,
+  isReLintFailureReason,
+  type LintFixResult,
+  RE_LINT_FAILED_WARNING_PREFIX,
+  type ReLintFailure,
+  ReLintFailureSchema,
+  validationCoverageLines,
+} from '@inkeep/open-knowledge-core';
+import { z } from 'zod';
+import type { AgentIdentity } from '../agent-identity.ts';
+import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';
+import {
+  AUDIT_FILE_CAP,
+  AUDIT_FILE_DIAGNOSTIC_CAP,
+  agentIdentityFields,
+  capAuditWarnings,
+  countSummary,
+  degradationBlock,
+  errorTextWithDetail,
+  formatDiagnosticLine,
+  hocuspocusNotRunningError,
+  httpGet,
+  httpPost,
+  looseObjectArray,
+  normalizeDocName,
+  outputSchemaWithText,
+  ROUTED_CWD_DESCRIPTION,
+  resolveProjectServerContext,
+  textPlusStructured,
+  textResult,
+  zeroFindingsSummary,
+} from './shared.ts';
+import {
+  failedWriteResult,
+  landedLead,
+  landedWithoutSuccess,
+  needsAttention,
+  refusedDespiteSuccess,
+  refusedWriteResult,
+  writeOutcomeFields,
+  writeOutcomeLine,
+  writeOutcomeOf,
+  writeOutcomeOutputShape,
+} from './write-outcome.ts';
+
+export const DESCRIPTION = [
+  "Lint markdown and optionally auto-fix. Requires the Hocuspocus server. `document` selects one extension-less doc and overrides path. Otherwise scan all in-scope .md/.mdx; path narrows to file/folder. `fix: true` requires document and applies fixable rules through the live collaborative doc with attribution. Use edit/write for remaining findings; the OpenKnowledge CLI's lint --fix is the unattributed headless/CI path.",
+  'ran lists selected `markdownlint`, `frontmatter` and document-level `okf` families. A family absent from `ran` was not checked. Project-tree OKF checks and link validation run only through audit.',
+  'Findings carry source, code, message, 0-based LSP range and severity; only problematic files are listed. Counts reflect the full scan. Project output is capped at 10 files × 10 diagnostics each and project-wide at 10 warnings; omittedWarningCount reports dropped warnings. Narrow path reduces competing files; per-file caps still apply. Follow truncation recovery text.',
+  'Configure lint in Settings → Plugins and native .markdownlint.* rules.',
+  'If a project-wide scan times out, narrow `path` to a file or folder and retry.',
+].join('\n');
+
+export const LINT_WARNINGS_DESCRIPTION =
+  'Anything that made this run less than a full answer: unreadable files/dirs (audit), lint-config problems such as a broken frontmatter schema file, and selected lint plugins that threw. A source family named here is still listed in `ran`: it was selected, it just could not finish. In fix mode this array carries the plugin failures from BOTH lint passes, so a post-write re-lint failure can appear here as the failing plugin, but never as the `Re-lint after fix failed: ` entry an older server sends, which is filtered out. The prose explanation is in `reLintFailure.message`, its machine-readable discriminant in `reLintFailure.reason`, and `diagnosticsArePreFix` is the flag to branch on.';
+
+const DIAGNOSTICS_ARE_PRE_FIX_DESCRIPTION =
+  'Fix mode only. Present and true when the server flags pre-fix diagnostics, supplies `reLintFailure`, or reports a legacy re-lint-failure warning; absent when none of those signals is present. The reported `files[].diagnostics` and their `errorCount`/`warningCount` describe the pre-fix set and may overstate what remains. Treat the fix as applied and re-run `lint` to confirm. A non-empty explanation, when available, is in `reLintFailure.message`, and `reLintFailure.reason` says which of the two failure shapes it was.';
+
+function singleDocFixHint(fixableCount: number, total: number): string {
+  if (fixableCount === 0) {
+    return 'None are auto-fixable — these need content edits via `edit`/`write`.';
+  }
+  const remaining = total - fixableCount;
+  const remainder =
+    remaining > 0 ? ` The other ${remaining} need content edits via \`edit\`/\`write\`.` : '';
+  return `${fixableCount} of ${total} are auto-fixable — pass \`fix: true\` to apply in place (attributed, live preview).${remainder}`;
+}
+
+const AUDIT_FIX_HINT =
+  'Auto-fix a single file with `lint({ document, fix: true })` (attributed, live preview). Violations that resist auto-fix need content edits.';
+
+interface LintPositionPayload {
+  line?: number;
+  character?: number;
+}
+
+interface LintTextEditPayload {
+  range?: { start?: LintPositionPayload; end?: LintPositionPayload };
+  newText?: string;
+}
+
+interface LintDiagnosticPayload {
+  source?: string;
+  code?: string;
+  message?: string;
+  severity?: string;
+  range?: { start?: LintPositionPayload; end?: LintPositionPayload };
+  fixes?: LintTextEditPayload[];
+}
+
+interface LintDocPayload {
+  file?: string;
+  diagnostics?: LintDiagnosticPayload[];
+  warnings?: string[];
+  ran?: string[];
+}
+
+type LintFixPayload = Omit<Partial<LintFixResult>, 'diagnostics'> & {
+  diagnostics?: LintDiagnosticPayload[];
+};
+
+interface LintAuditPayload {
+  files?: LintDocPayload[];
+  fileCount?: number;
+  errorCount?: number;
+  warningCount?: number;
+  warnings?: string[];
+  ran?: string[];
+}
+
+export interface LintDeps {
+  serverUrl: ServerUrlOrResolver;
+  config: ConfigOrResolver;
+  resolveCwd: (explicit?: string) => Promise<string>;
+  identityRef?: { current: AgentIdentity };
+}
+
+interface LintArgs {
+  document?: string;
+  path?: string;
+  fix?: boolean;
+  cwd?: string;
+}
+
+export function register(server: ServerInstance, deps: LintDeps): void {
+  server.registerTool(
+    'lint',
+    {
+      description: DESCRIPTION,
+      inputSchema: {
+        document: z
+          .string()
+          .optional()
+          .describe('Doc to lint (path, extension-less). Omit to audit the whole project.'),
+        path: z
+          .string()
+          .optional()
+          .describe(
+            'Audit scope when `document` is omitted: a folder or single file (content-dir-relative). Default: the whole project.',
+          ),
+        fix: z
+          .boolean()
+          .optional()
+          .describe(
+            'Auto-fix fixable rules in `document` IN PLACE (attributed, live preview), then report what remains. Requires `document`.',
+          ),
+        cwd: z.string().optional().describe(ROUTED_CWD_DESCRIPTION),
+      },
+      outputSchema: outputSchemaWithText({
+        ...writeOutcomeOutputShape,
+        files: looseObjectArray
+          .optional()
+          .describe(
+            'Per-file diagnostics. For a single-doc lint, the one file (even if clean). Pre-fix, and so possibly an overstatement, when `diagnosticsArePreFix` is true.',
+          ),
+        fileCount: z.number().optional().describe('Audit only: total in-scope documents scanned.'),
+        errorCount: z
+          .number()
+          .optional()
+          .describe(
+            'Total error-severity violations. Pre-fix, and so possibly an overstatement, when `diagnosticsArePreFix` is true.',
+          ),
+        warningCount: z
+          .number()
+          .optional()
+          .describe(
+            'Total warning-severity violations. Pre-fix, and so possibly an overstatement, when `diagnosticsArePreFix` is true.',
+          ),
+        warnings: z.array(z.string()).optional().describe(LINT_WARNINGS_DESCRIPTION),
+        diagnosticsArePreFix: z.boolean().optional().describe(DIAGNOSTICS_ARE_PRE_FIX_DESCRIPTION),
+        reLintFailure: ReLintFailureSchema.optional().describe(
+          'Fix mode only: why the post-write re-lint could not report. `reason` is the machine-readable discriminant — `re-lint-threw` when the re-lint pass itself threw, `source-went-blind` when a lint source that read the pre-fix text failed on the post-fix text — and `message` is the trimmed, non-empty prose, normalized from the server’s typed failure or a legacy prefixed warning. When present, `diagnosticsArePreFix` is true; that flag can also be present without a failure.',
+        ),
+        ran: z
+          .array(z.string())
+          .optional()
+          .describe(
+            'Lint source families selected for this run. A family absent from `ran` was not checked.',
+          ),
+        omittedWarningCount: z
+          .number()
+          .optional()
+          .describe('Audit only: warnings omitted from `warnings` by the output cap.'),
+        omittedFileCount: z
+          .number()
+          .optional()
+          .describe('Audit only: files with problems omitted from `files` by the output cap.'),
+        fixedCount: z
+          .number()
+          .optional()
+          .describe(
+            'Fix mode only: the server-reported number of problems resolved by auto-fix, or 0 if omitted. When `diagnosticsArePreFix` is true, the post-fix result is unavailable; do not treat 0 as evidence that nothing was fixed.',
+          ),
+        cwd: z
+          .string()
+          .optional()
+          .describe('Absolute directory the lint ran against; absent when a fix did not land.'),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+      },
+    },
+    async (args: LintArgs, { signal }) => {
+      const context = await resolveProjectServerContext(
+        deps.resolveCwd,
+        deps.config,
+        deps.serverUrl,
+        args.cwd,
+      );
+      if (!context.ok) return textResult(`Error: ${context.error}`, true);
+      const { cwd, url } = context;
+      if (!url) return textResult(hocuspocusNotRunningError(), true);
+
+      if (args.fix === true) {
+        if (args.document === undefined) {
+          return textResult(
+            'Error: `fix: true` requires `document` (fix one doc at a time). Omit `fix` to audit the whole project.',
+            true,
+          );
+        }
+        return fixLintDoc(args.document, url, cwd, deps.identityRef?.current);
+      }
+
+      return args.document !== undefined
+        ? lintSingleDoc(args.document, url, cwd)
+        : lintAudit(args.path, url, cwd, signal);
+    },
+  );
+}
+
+async function fixLintDoc(
+  document: string,
+  url: string,
+  cwd: string,
+  identity: AgentIdentity | undefined,
+) {
+  const normalized = normalizeDocName(document);
+  if (!normalized.ok) return textResult(normalized.error, true);
+  const result = await httpPost(url, '/api/lint/fix', {
+    docName: normalized.docName,
+    ...agentIdentityFields(identity),
+  });
+  const outcome = writeOutcomeOf(result);
+  if (!result.ok) return failedWriteResult(errorTextWithDetail(result), outcome);
+  if (refusedDespiteSuccess(outcome)) {
+    return refusedWriteResult(`The auto-fix of ${normalized.docName}`, outcome);
+  }
+  const { ok: _ok, ...rest } = result;
+  const data = rest as LintFixPayload;
+  const file = data.file ?? normalized.docName;
+  const diagnostics = data.diagnostics ?? [];
+  const fixedCount = data.fixedCount ?? 0;
+  const errorCount = diagnostics.filter((d) => d.severity === 'error').length;
+  const warningCount = diagnostics.length - errorCount;
+  const legacyReLintWarning =
+    typeof (rest as { warning?: unknown }).warning === 'string' &&
+    isReLintFailedWarning((rest as { warning: string }).warning)
+      ? (rest as { warning: string }).warning
+      : undefined;
+  const responseWarnings = [
+    ...(data.warnings ?? []),
+    ...(legacyReLintWarning === undefined ? [] : [legacyReLintWarning]),
+  ];
+  const legacyPrefixedWarning = responseWarnings.find(isReLintFailedWarning);
+  const warnings = responseWarnings.filter((warning) => !isReLintFailedWarning(warning));
+  const diagnosticsArePreFix =
+    data.diagnosticsArePreFix === true ||
+    data.reLintFailure !== undefined ||
+    legacyPrefixedWarning !== undefined;
+  const typedMessage =
+    typeof data.reLintFailure?.message === 'string' ? data.reLintFailure.message.trim() : '';
+  const typedFailure: ReLintFailure | undefined = typedMessage
+    ? {
+        reason: isReLintFailureReason(data.reLintFailure?.reason)
+          ? data.reLintFailure.reason
+          : 're-lint-threw',
+        message: typedMessage,
+      }
+    : undefined;
+  const legacyMessage = legacyPrefixedWarning?.slice(RE_LINT_FAILED_WARNING_PREFIX.length).trim();
+  const reLintFailure: ReLintFailure | undefined =
+    typedFailure ??
+    (legacyMessage ? { reason: 're-lint-threw' as const, message: legacyMessage } : undefined);
+  const reLintCause = reLintFailure ? ` (${reLintFailure.message})` : '';
+  const coverageLines = validationCoverageLines(data.ran);
+  const structured = {
+    files: [{ file, diagnostics }],
+    fixedCount,
+    errorCount,
+    warningCount,
+    ...(warnings.length > 0 ? { warnings } : {}),
+    ...(diagnosticsArePreFix ? { diagnosticsArePreFix: true } : {}),
+    ...(reLintFailure ? { reLintFailure } : {}),
+    ...(data.ran === undefined ? {} : { ran: data.ran }),
+    cwd,
+    ...writeOutcomeFields(outcome),
+  };
+
+  const header = diagnosticsArePreFix
+    ? `Applied auto-fixes to ${file}, but re-lint failed${reLintCause}; the fix landed — problems below are the pre-fix set, re-run \`lint\` to confirm.`
+    : fixedCount > 0
+      ? `Fixed ${fixedCount} problem${fixedCount === 1 ? '' : 's'} in ${file}.`
+      : warnings.length > 0
+        ? `No auto-fixable problems in ${file}, but the lint could not fully complete.`
+        : `No auto-fixable problems in ${file}.`;
+  const lines = diagnostics.map(formatDiagnosticLine);
+  const warningBlock = degradationBlock('Lint', warnings);
+  const footer =
+    diagnostics.length > 0 && !diagnosticsArePreFix
+      ? [
+          `${diagnostics.length} problem${diagnostics.length === 1 ? '' : 's'} remain (${countSummary(errorCount, warningCount)}) — need content edits via \`edit\`/\`write\`.`,
+        ]
+      : [];
+  const outcomeLine =
+    outcome === undefined || outcome.outcome === 'applied' ? [] : [writeOutcomeLine(outcome) ?? ''];
+  const landedLine =
+    outcome !== undefined && landedWithoutSuccess(outcome)
+      ? [landedLead(outcome, `Applied auto-fixes to ${file}`)]
+      : [];
+  const textLines =
+    diagnostics.length === 0
+      ? [...landedLine, header, ...outcomeLine, ...coverageLines, ...warningBlock]
+      : [
+          ...landedLine,
+          header,
+          ...outcomeLine,
+          ...lines,
+          ...warningBlock,
+          ...footer,
+          ...coverageLines,
+        ];
+  return textPlusStructured(textLines.join('\n'), structured, needsAttention(outcome));
+}
+
+async function lintSingleDoc(document: string, url: string, cwd: string) {
+  const normalized = normalizeDocName(document);
+  if (!normalized.ok) return textResult(normalized.error, true);
+  const result = await httpGet(url, `/api/lint?doc=${encodeURIComponent(normalized.docName)}`);
+  if (!result.ok) return textResult(`Error: ${String(result.error)}`, true);
+  const { ok: _ok, ...rest } = result;
+  const data = rest as LintDocPayload;
+  const diagnostics = data.diagnostics ?? [];
+  const configWarnings = data.warnings ?? [];
+  const errorCount = diagnostics.filter((d) => d.severity === 'error').length;
+  const warningCount = diagnostics.length - errorCount;
+  const coverageLines = validationCoverageLines(data.ran);
+  const file = { file: data.file ?? normalized.docName, diagnostics };
+  const structured = {
+    files: [file],
+    errorCount,
+    warningCount,
+    ...(configWarnings.length > 0 ? { warnings: configWarnings } : {}),
+    ...(data.ran === undefined ? {} : { ran: data.ran }),
+    cwd,
+  };
+
+  const header =
+    diagnostics.length > 0
+      ? `${file.file}: ${countSummary(errorCount, warningCount)}`
+      : configWarnings.length > 0
+        ? `No problems found in ${file.file}, but the lint could not fully complete.`
+        : `No problems in ${file.file}.`;
+  const lines = diagnostics.map(formatDiagnosticLine);
+  const warningBlock = degradationBlock('Lint', configWarnings);
+  const fixableCount = diagnostics.filter((d) => (d.fixes?.length ?? 0) > 0).length;
+  const footer = diagnostics.length > 0 ? [singleDocFixHint(fixableCount, diagnostics.length)] : [];
+  const textLines =
+    diagnostics.length === 0
+      ? [header, ...coverageLines, ...warningBlock]
+      : [header, ...lines, ...warningBlock, ...footer, ...coverageLines];
+  return textPlusStructured(textLines.join('\n'), structured);
+}
+
+async function lintAudit(path: string | undefined, url: string, cwd: string, signal: AbortSignal) {
+  const query = path ? `?path=${encodeURIComponent(path)}` : '';
+  const result = await httpGet(url, `/api/lint/audit${query}`, signal);
+  if (!result.ok) return textResult(`Error: ${String(result.error)}`, true);
+  const { ok: _ok, ...rest } = result;
+  const data = rest as LintAuditPayload;
+  const files = data.files ?? [];
+  const fileCount = data.fileCount ?? 0;
+  const errorCount = data.errorCount ?? 0;
+  const warningCount = data.warningCount ?? 0;
+  const coverageLines = validationCoverageLines(data.ran, fileCount);
+
+  const shownFiles = files.slice(0, AUDIT_FILE_CAP).map((file) => {
+    const diagnostics = file.diagnostics ?? [];
+    const shown = diagnostics.slice(0, AUDIT_FILE_DIAGNOSTIC_CAP);
+    const omitted = diagnostics.length - shown.length;
+    return {
+      ...file,
+      diagnostics: shown,
+      ...(omitted > 0 ? { omittedDiagnosticCount: omitted } : {}),
+    };
+  });
+  const omittedFileCount = files.length - shownFiles.length;
+
+  const warnings = data.warnings ?? [];
+  const { shownWarnings, omittedWarningCount } = capAuditWarnings(warnings);
+
+  const structured = {
+    files: shownFiles,
+    fileCount,
+    errorCount,
+    warningCount,
+    ...(shownWarnings.length > 0 ? { warnings: shownWarnings } : {}),
+    ...(omittedWarningCount > 0 ? { omittedWarningCount } : {}),
+    ...(data.ran === undefined ? {} : { ran: data.ran }),
+    ...(omittedFileCount > 0 ? { omittedFileCount } : {}),
+    cwd,
+  };
+
+  const scope = path ? ` in ${path}` : '';
+  const warningBlock = degradationBlock('Lint', shownWarnings, omittedWarningCount);
+  if (files.length === 0) {
+    const summary = zeroFindingsSummary('Lint', fileCount, warnings, scope);
+    return textPlusStructured([summary, ...coverageLines, ...warningBlock].join('\n'), structured);
+  }
+  const header = `${files.length} of ${fileCount} document${fileCount === 1 ? '' : 's'}${scope} with problems — ${countSummary(errorCount, warningCount)}:`;
+  const fileBlocks = shownFiles.map((file) => {
+    const lines = file.diagnostics.map(formatDiagnosticLine);
+    if (file.omittedDiagnosticCount !== undefined) {
+      lines.push(
+        `  … and ${file.omittedDiagnosticCount} more problem${file.omittedDiagnosticCount === 1 ? '' : 's'}; use lint({ document: ${JSON.stringify(file.file)} }) for all document lint findings.`,
+      );
+    }
+    return [`${file.file ?? '(unknown)'}:`, ...lines].join('\n');
+  });
+  const footer =
+    omittedFileCount > 0
+      ? [
+          `… and ${omittedFileCount} more file${omittedFileCount === 1 ? '' : 's'} with problems. Narrow path to reduce competing files; per-file caps still apply.`,
+        ]
+      : [];
+  return textPlusStructured(
+    [header, ...fileBlocks, ...footer, ...warningBlock, AUDIT_FIX_HINT, ...coverageLines].join(
+      '\n',
+    ),
+    structured,
+  );
+}

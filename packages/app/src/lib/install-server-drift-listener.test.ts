@@ -1,0 +1,265 @@
+import * as actualSonner from 'sonner';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
+import type {
+  OkDesktopBridge,
+  OkServerRestartOutcome,
+  OkServerVersionDriftInfo,
+} from '@/lib/desktop-bridge-types';
+
+const toastWarning = vi.fn((_msg: string, _opts?: unknown) => 'warn-id');
+const toastSuccess = vi.fn((_msg: string) => 'success-id');
+const toastLoading = vi.fn((_msg: string, _opts?: unknown) => 'loading-id');
+const toastError = vi.fn((_msg: string, _opts?: unknown) => 'error-id');
+const toastDismiss = vi.fn((_id?: unknown) => {});
+const toastCustom = vi.fn((_render: (id: unknown) => unknown, _opts?: unknown) => 'custom-id');
+vi.doMock('sonner', () => ({
+  ...actualSonner,
+  toast: Object.assign(
+    vi.fn(() => {}),
+    {
+      warning: toastWarning,
+      success: toastSuccess,
+      loading: toastLoading,
+      error: toastError,
+      dismiss: toastDismiss,
+      custom: toastCustom,
+    },
+  ),
+}));
+
+type DriftModule = typeof import('@/lib/install-server-drift-listener');
+let driftToastBody: DriftModule['driftToastBody'];
+let installServerDriftListener: DriftModule['installServerDriftListener'];
+let restartDisruptionWarning: DriftModule['restartDisruptionWarning'];
+let restartFailureMessage: DriftModule['restartFailureMessage'];
+let restartSuccessMessage: DriftModule['restartSuccessMessage'];
+beforeAll(async () => {
+  ({
+    driftToastBody,
+    installServerDriftListener,
+    restartDisruptionWarning,
+    restartFailureMessage,
+    restartSuccessMessage,
+  } = await import('@/lib/install-server-drift-listener'));
+});
+
+const olderInfo: OkServerVersionDriftInfo = {
+  relation: 'older',
+  dimension: 'runtime',
+  serverRuntime: '0.8.0',
+  appRuntime: '0.8.2',
+};
+
+function makeBridge(opts?: { restartOutcome?: OkServerRestartOutcome; restartReject?: boolean }): {
+  bridge: OkDesktopBridge;
+  fireDrift: (info: OkServerVersionDriftInfo) => void;
+  fireRestarted: (appRuntime: string) => void;
+  restartServer: ReturnType<typeof vi.fn>;
+  unsubDrift: ReturnType<typeof vi.fn>;
+  unsubRestarted: ReturnType<typeof vi.fn>;
+} {
+  let driftCb: ((info: OkServerVersionDriftInfo) => void) | null = null;
+  let restartedCb: ((info: { appRuntime: string }) => void) | null = null;
+  const unsubDrift = vi.fn(() => {});
+  const unsubRestarted = vi.fn(() => {});
+  const restartServer = vi.fn(async () => {
+    if (opts?.restartReject) throw new Error('channel closed');
+    return opts?.restartOutcome ?? { ok: true };
+  });
+  const bridge = {
+    config: { projectPath: '/tmp/proj' },
+    onServerVersionDrift: (cb: (info: OkServerVersionDriftInfo) => void) => {
+      driftCb = cb;
+      return unsubDrift;
+    },
+    onServerRestarted: (cb: (info: { appRuntime: string }) => void) => {
+      restartedCb = cb;
+      return unsubRestarted;
+    },
+    restartServer,
+  } as unknown as OkDesktopBridge;
+  return {
+    bridge,
+    fireDrift: (info) => driftCb?.(info),
+    fireRestarted: (appRuntime) => restartedCb?.({ appRuntime }),
+    restartServer,
+    unsubDrift,
+    unsubRestarted,
+  };
+}
+
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
+describe('drift copy', () => {
+  test('older body names both versions and "older"', () => {
+    const body = driftToastBody(olderInfo);
+    expect(body).toContain('older');
+    expect(body).toContain('0.8.0');
+    expect(body).toContain('0.8.2');
+  });
+
+  test('newer body says the server is newer', () => {
+    const body = driftToastBody({ ...olderInfo, relation: 'newer', serverRuntime: '0.9.0' });
+    expect(body).toContain('newer');
+    expect(body).toContain('0.9.0');
+  });
+
+  test('protocol drift with equal semver avoids "older v0.8.2 than v0.8.2"', () => {
+    const body = driftToastBody({
+      relation: 'older',
+      dimension: 'protocol',
+      serverRuntime: '0.8.2',
+      appRuntime: '0.8.2',
+    });
+    expect(body).toContain('incompatible build');
+    expect(body).not.toContain('older version');
+  });
+
+  test('disruption warning names MCP and the agent remedy', () => {
+    expect(restartDisruptionWarning()).toContain('MCP');
+    expect(restartDisruptionWarning().toLowerCase()).toContain('restart the agent');
+    expect(restartDisruptionWarning()).toContain('Claude Code');
+  });
+
+  test('success message names the running version', () => {
+    expect(restartSuccessMessage('0.8.2')).toContain('0.8.2');
+  });
+
+  test('eperm failure points at a different account + reboot, never `ok stop all`', () => {
+    const msg = restartFailureMessage({ ok: false, reason: 'eperm' });
+    expect(msg.toLowerCase()).toContain('different account');
+    expect(msg.toLowerCase()).toContain('restart your computer');
+    expect(msg).not.toContain('ok stop all');
+  });
+
+  test('other failure suggests `ok stop all`', () => {
+    expect(restartFailureMessage({ ok: false, reason: 'other' })).toBe(
+      "Couldn't restart the server automatically. Try running `ok stop all` in a terminal, then reopen this project — or restart your computer if it persists.",
+    );
+  });
+
+  test.each([
+    [
+      false,
+      "Couldn't restart the server: OpenKnowledge could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project.",
+    ],
+    [
+      true,
+      "Couldn't restart the server: OpenKnowledge asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project.",
+    ],
+  ])('an unverified holder (sigtermSent %s) names no CLI command', (sigtermSent, expected) => {
+    expect(restartFailureMessage({ ok: false, reason: 'unverified', sigtermSent })).toBe(expected);
+  });
+
+  test('other failure in a Beta window suggests `ok-beta stop all`', () => {
+    vi.stubGlobal('window', { okDesktop: { cliCommandName: 'ok-beta' } });
+    try {
+      expect(restartFailureMessage({ ok: false, reason: 'other' })).toContain(
+        'Try running `ok-beta stop all` in a terminal',
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  test("another channel's server is left running and never offered `ok stop all`", () => {
+    expect(
+      restartFailureMessage({ ok: false, reason: 'other-channel', holderChannel: 'stable' }),
+    ).toBe(
+      "OpenKnowledge (Stable) is serving this project, so this app won't stop it. Close this window and open the project again to stop OpenKnowledge (Stable)'s server and open the project here.",
+    );
+  });
+});
+
+describe('installServerDriftListener', () => {
+  test('no-op without a bridge (web / CLI)', () => {
+    expect(installServerDriftListener({ bridge: undefined })).toBeUndefined();
+  });
+
+  test('subscribes to both events and unsubscribes on teardown', () => {
+    const h = makeBridge();
+    const cleanup = installServerDriftListener({ bridge: h.bridge });
+    expect(cleanup).toBeDefined();
+    cleanup?.();
+    expect(h.unsubDrift).toHaveBeenCalledTimes(1);
+    expect(h.unsubRestarted).toHaveBeenCalledTimes(1);
+  });
+
+  type DriftNode = {
+    props: { body: string; detail: string; onAction: () => void; onDismiss: () => void };
+  };
+  function fireDriftAndRender(h: ReturnType<typeof makeBridge>, id = 'toast-1'): DriftNode {
+    h.fireDrift(olderInfo);
+    const render = toastCustom.mock.calls.at(-1)?.[0] as (id: unknown) => DriftNode;
+    return render(id);
+  }
+
+  test('drift event renders the custom restart toast with wired actions', () => {
+    toastCustom.mockClear();
+    const h = makeBridge();
+    installServerDriftListener({ bridge: h.bridge });
+    const node = fireDriftAndRender(h);
+    expect(toastCustom).toHaveBeenCalledTimes(1);
+    expect(toastCustom.mock.calls[0]?.[1]).toMatchObject({ duration: Number.POSITIVE_INFINITY });
+    expect(node.props.body).toBe(driftToastBody(olderInfo));
+    expect(node.props.detail).toBe(restartDisruptionWarning());
+    expect(typeof node.props.onAction).toBe('function');
+    expect(typeof node.props.onDismiss).toBe('function');
+  });
+
+  test('the restart action invokes the bridge; an eperm failure shows the failure toast', async () => {
+    toastCustom.mockClear();
+    toastError.mockClear();
+    toastDismiss.mockClear();
+    const h = makeBridge({ restartOutcome: { ok: false, reason: 'eperm' } });
+    installServerDriftListener({ bridge: h.bridge });
+    fireDriftAndRender(h).props.onAction();
+    await flush();
+    expect(toastDismiss).toHaveBeenCalledWith('toast-1');
+    expect(h.restartServer).toHaveBeenCalledWith('/tmp/proj');
+    expect(toastError).toHaveBeenCalledTimes(1);
+    expect(toastError.mock.calls[0]?.[0]).toBe(
+      restartFailureMessage({ ok: false, reason: 'eperm' }),
+    );
+  });
+
+  test('a restart that recreates the window (invoke rejects) shows no failure toast', async () => {
+    toastCustom.mockClear();
+    toastError.mockClear();
+    const h = makeBridge({ restartReject: true });
+    installServerDriftListener({ bridge: h.bridge });
+    fireDriftAndRender(h).props.onAction();
+    await flush();
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  test('a restart that resolves ok:true still dismisses the loading toast', async () => {
+    toastCustom.mockClear();
+    toastDismiss.mockClear();
+    toastError.mockClear();
+    const h = makeBridge({ restartOutcome: { ok: true } });
+    installServerDriftListener({ bridge: h.bridge });
+    fireDriftAndRender(h).props.onAction();
+    await flush();
+    expect(toastDismiss).toHaveBeenCalledWith('loading-id');
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  test('the cancel action dismisses the toast', () => {
+    toastCustom.mockClear();
+    toastDismiss.mockClear();
+    const h = makeBridge();
+    installServerDriftListener({ bridge: h.bridge });
+    fireDriftAndRender(h, 'toast-9').props.onDismiss();
+    expect(toastDismiss).toHaveBeenCalledWith('toast-9');
+  });
+
+  test('restarted event shows a success toast', () => {
+    toastSuccess.mockClear();
+    const h = makeBridge();
+    installServerDriftListener({ bridge: h.bridge });
+    h.fireRestarted('0.8.2');
+    expect(toastSuccess).toHaveBeenCalledTimes(1);
+    expect(toastSuccess.mock.calls[0]?.[0]).toBe(restartSuccessMessage('0.8.2'));
+  });
+});

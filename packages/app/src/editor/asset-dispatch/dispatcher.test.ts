@@ -1,0 +1,191 @@
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { dispatchAssetClick } from './dispatcher.ts';
+import { AssetViewerRegistry, assetViewerRegistry } from './registry.ts';
+import type { AssetClickContext } from './types.ts';
+
+function ctx(overrides: Partial<AssetClickContext> = {}): AssetClickContext {
+  return {
+    url: './meeting.pdf',
+    projectRelPath: 'notes/meeting.pdf',
+    ext: 'pdf',
+    title: 'meeting.pdf',
+    forceOsDelegation: false,
+    ...overrides,
+  };
+}
+
+describe('dispatchAssetClick', () => {
+  beforeEach(() => {
+    assetViewerRegistry.clearForTests();
+  });
+
+  test('empty registry + no desktop bridge → web fallback fires with url', async () => {
+    const openUrl = vi.fn((_: string) => {});
+    await dispatchAssetClick(ctx({ url: './meeting.pdf' }), {
+      desktopBridge: undefined,
+      openUrl,
+    });
+    expect(openUrl).toHaveBeenCalledTimes(1);
+    expect(openUrl).toHaveBeenCalledWith('./meeting.pdf');
+  });
+
+  test('registered viewer for ext fires with the context', async () => {
+    const openUrl = vi.fn((_: string) => {});
+    const viewer = { exts: ['pdf'] as const, render: vi.fn(() => {}) };
+    const r = new AssetViewerRegistry();
+    r.register(viewer);
+
+    const context = ctx();
+    await dispatchAssetClick(context, { registry: r, desktopBridge: undefined, openUrl });
+
+    expect(viewer.render).toHaveBeenCalledTimes(1);
+    expect(viewer.render).toHaveBeenCalledWith(context);
+    expect(openUrl).not.toHaveBeenCalled();
+  });
+
+  test('Cmd/Ctrl+click bypasses a registered viewer (D-A6)', async () => {
+    const openUrl = vi.fn((_: string) => {});
+    const viewer = { exts: ['pdf'] as const, render: vi.fn(() => {}) };
+    const r = new AssetViewerRegistry();
+    r.register(viewer);
+
+    await dispatchAssetClick(ctx({ forceOsDelegation: true }), {
+      registry: r,
+      desktopBridge: undefined,
+      openUrl,
+    });
+
+    expect(viewer.render).not.toHaveBeenCalled();
+    expect(openUrl).toHaveBeenCalledTimes(1);
+  });
+
+  test('desktop bridge present → openAsset fires with projectRelPath', async () => {
+    const openAsset = vi.fn(async (_: string) => ({ ok: true }) as const);
+    const openUrl = vi.fn((_: string) => {});
+    const desktopBridge = {
+      shell: { openAsset },
+    } as unknown as NonNullable<typeof window.okDesktop>;
+
+    await dispatchAssetClick(ctx({ projectRelPath: 'notes/meeting.pdf' }), {
+      desktopBridge,
+      openUrl,
+    });
+
+    expect(openAsset).toHaveBeenCalledTimes(1);
+    expect(openAsset).toHaveBeenCalledWith('notes/meeting.pdf');
+    expect(openUrl).not.toHaveBeenCalled();
+  });
+
+  test('Cmd+click with desktop bridge present → openAsset still fires (Cmd only skips registry)', async () => {
+    const openAsset = vi.fn(async (_: string) => ({ ok: true }) as const);
+    const viewer = { exts: ['pdf'] as const, render: vi.fn(() => {}) };
+    const r = new AssetViewerRegistry();
+    r.register(viewer);
+    const desktopBridge = {
+      shell: { openAsset },
+    } as unknown as NonNullable<typeof window.okDesktop>;
+
+    await dispatchAssetClick(ctx({ forceOsDelegation: true }), {
+      registry: r,
+      desktopBridge,
+    });
+
+    expect(viewer.render).not.toHaveBeenCalled();
+    expect(openAsset).toHaveBeenCalledTimes(1);
+  });
+
+  test('extension-blocked refusal reveals the asset in the file manager (no web fallback)', async () => {
+    const openAsset = vi.fn(
+      async (_: string) => ({ ok: false, reason: 'extension-blocked' }) as const,
+    );
+    const revealAsset = vi.fn(async (_: string) => ({ ok: true }) as const);
+    const openUrl = vi.fn((_: string) => {});
+    const desktopBridge = {
+      shell: { openAsset, revealAsset },
+    } as unknown as NonNullable<typeof window.okDesktop>;
+
+    await dispatchAssetClick(ctx({ ext: 'html', projectRelPath: 'fishing-log/trip-viewer.html' }), {
+      desktopBridge,
+      openUrl,
+    });
+
+    expect(openAsset).toHaveBeenCalledTimes(1);
+    expect(revealAsset).toHaveBeenCalledTimes(1);
+    expect(revealAsset).toHaveBeenCalledWith('fishing-log/trip-viewer.html');
+    expect(openUrl).not.toHaveBeenCalled();
+  });
+
+  test('not-a-file refusal (a directory or app bundle) reveals it instead of opening', async () => {
+    const openAsset = vi.fn(async (_: string) => ({ ok: false, reason: 'not-a-file' }) as const);
+    const revealAsset = vi.fn(async (_: string) => ({ ok: true }) as const);
+    const openUrl = vi.fn((_: string) => {});
+    const desktopBridge = {
+      shell: { openAsset, revealAsset },
+    } as unknown as NonNullable<typeof window.okDesktop>;
+
+    await dispatchAssetClick(ctx({ ext: 'app', projectRelPath: 'tools/Calculator.app' }), {
+      desktopBridge,
+      openUrl,
+    });
+
+    expect(revealAsset).toHaveBeenCalledWith('tools/Calculator.app');
+    expect(openUrl).not.toHaveBeenCalled();
+  });
+
+  test('a refusal reason unknown to this renderer is logged, not thrown', async () => {
+    const openAsset = vi.fn(async (_: string) => ({ ok: false, reason: 'quarantined' }) as const);
+    const revealAsset = vi.fn(async (_: string) => ({ ok: true }) as const);
+    const desktopBridge = {
+      shell: { openAsset, revealAsset },
+    } as unknown as NonNullable<typeof window.okDesktop>;
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await dispatchAssetClick(ctx(), { desktopBridge });
+      expect(revealAsset).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledWith(
+        '[asset-dispatch] openAsset refused:',
+        'quarantined',
+        expect.objectContaining({ projectRelPath: 'notes/meeting.pdf' }),
+      );
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  test('non-blocked refusal (resolve-error) is logged, does not reveal or fall through to web', async () => {
+    const openAsset = vi.fn(async (_: string) => ({ ok: false, reason: 'resolve-error' }) as const);
+    const revealAsset = vi.fn(async (_: string) => ({ ok: true }) as const);
+    const openUrl = vi.fn((_: string) => {});
+    const desktopBridge = {
+      shell: { openAsset, revealAsset },
+    } as unknown as NonNullable<typeof window.okDesktop>;
+
+    const consoleWarn = vi.fn((..._args: unknown[]) => {});
+    const origWarn = console.warn;
+    console.warn = consoleWarn as unknown as typeof console.warn;
+    try {
+      await dispatchAssetClick(ctx({ ext: 'pdf', projectRelPath: 'notes/meeting.pdf' }), {
+        desktopBridge,
+        openUrl,
+      });
+    } finally {
+      console.warn = origWarn;
+    }
+
+    expect(openAsset).toHaveBeenCalledTimes(1);
+    expect(revealAsset).not.toHaveBeenCalled();
+    expect(openUrl).not.toHaveBeenCalled();
+    expect(consoleWarn).toHaveBeenCalled();
+  });
+
+  test('dispatcher uses the module-level singleton registry when no deps passed', async () => {
+    const viewer = { exts: ['pdf'] as const, render: vi.fn(() => {}) };
+    assetViewerRegistry.register(viewer);
+
+    const openUrl = vi.fn((_: string) => {});
+    await dispatchAssetClick(ctx(), { desktopBridge: undefined, openUrl });
+
+    expect(viewer.render).toHaveBeenCalledTimes(1);
+    expect(openUrl).not.toHaveBeenCalled();
+  });
+});

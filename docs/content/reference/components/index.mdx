@@ -1,0 +1,36 @@
+---
+title: Overview
+description: The rich content blocks the OpenKnowledge editor understands — callouts, media, math, mermaid diagrams, accordions, tabs, and transclusion.
+---
+
+OpenKnowledge documents are plain markdown, plus a small set of rich content blocks the editor understands out of the box — callouts, media, math, mermaid diagrams, accordions, tabs, and transclusion. Type `/` in the editor to insert one from the slash menu, or write it directly in source mode.
+
+Every block on this page uses the same tag syntax in the raw markdown file:
+
+```mdx
+<Callout type="tip" title="Nice">
+  Prose or nested markdown lives in the body.
+</Callout>
+```
+
+## Content
+
+- [Callout](/docs/reference/components/callout) — alerts and admonitions with 15 type variants
+- [Accordion](/docs/reference/components/accordion) — collapsible sections
+- [Tabs](/docs/reference/components/tabs) — grouped panel switcher (with `<Tab>` children)
+- [Math](/docs/reference/components/math) — KaTeX-rendered inline or block equations
+- [MermaidFence](/docs/reference/components/mermaid-fence) — diagrams from a ` ```mermaid ` fence
+
+## Media
+
+- [img](/docs/reference/components/img) — image with click-to-zoom
+- [video](/docs/reference/components/video) — video player
+- [audio](/docs/reference/components/audio) — audio player
+- [Pdf](/docs/reference/components/pdf) — embedded multi-page PDF viewer
+- [File](/docs/reference/components/file) — inline download row for arbitrary attachments
+- [Embed](/docs/reference/components/embed) — sandboxed iframe for external URLs
+- [Excalidraw](/docs/reference/components/excalidraw) — live snapshot of an `.excalidraw` board, with a full-screen viewer and a jump to its canvas editor
+
+## Transclusion
+
+- [Mirror](/docs/reference/components/mirror) — read-only view of a `<MirrorSource>` block from another doc

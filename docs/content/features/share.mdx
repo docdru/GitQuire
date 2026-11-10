@@ -1,0 +1,76 @@
+---
+title: Share links
+icon: LuShare2
+description: Copy a link to any doc or folder and send it to a teammate. OpenKnowledge handles the GitHub round-trip, the deep link, and the branch on the other end.
+---
+
+OpenKnowledge has a Share button on the right of the header at the top of the window, in its [**More actions**](/docs/features/editor#when-the-header-runs-out-of-room) menu when the header is full. Click it and the app copies a `https://openknowledge.ai/d/…` URL to your clipboard. Anyone you send it to lands on a splash page that knows the project and target, and a single click opens it in their copy of OpenKnowledge.
+
+Share links give each recipient their own copy, kept in sync through GitHub. For real-time editing where everyone works on one live server instead, see the [Remote Control overview](/docs/remote-control/overview).
+
+## Sending a share link
+
+Click the Share button to copy a deep link to the current doc or folder to your clipboard. The sharing functionality is backed by GitHub and requires that your project has a remote origin.
+
+### Without a remote
+
+If the project has no `origin` configured, the Share button opens the **Publish to GitHub** wizard. The wizard:
+
+1. Lists the GitHub accounts and orgs you can push to.
+2. Validates the repo name as you type; name collisions surface inline.
+3. On submit, creates the repository through GitHub's API, sets it as `origin`, and runs the initial `git push`. SAML SSO blocks and other GitHub errors surface as a banner.
+4. Once the push lands, shows the share URL with a **Copy share link** button.
+
+If the push fails after the repo was created (auth lost mid-flow, network blip), the wizard shows a **Retry push** affordance. The GitHub-side repo isn't recreated, only the push is retried.
+
+### Freshness warnings
+
+A share link points at GitHub, but your local edits only reach GitHub through **Auto (Pull and Push)** or a manual push — in Manual and Auto (Pull only), nothing is pushed on a schedule. When you click Share, OpenKnowledge checks the shared doc or folder against its last-known state on GitHub and, if the link won't yet show what you're looking at, adds a non-blocking warning row to the popover:
+
+- **Not on GitHub yet.** The target has never been pushed, so the link won't resolve until it is. When the project isn't on Auto (Pull and Push), the row offers **Enable Auto (Pull and Push)** and **How to push manually**; when it is, it offers **Sync now** and clears itself once the push lands. While sync is paused on an unfinished Git operation or on [unsafe symlinks](/docs/features/git/sync#incoming-changes-with-unsafe-symlinks), a notice explaining the pause takes the place of **Sync now**.
+- **Unpushed changes.** The target is on GitHub but has local edits that aren't, so recipients see the last pushed version. On Auto (Pull and Push) this stays silent — the next scheduled push closes the gap.
+- **Empty folder.** The folder holds nothing Git can track — it has no documents, or everything inside it is ignored — so the link won't resolve, and unlike the never-pushed case no push will fix it. The row names the only remedy, adding a document, and offers no sync actions at all. Only folders reach this state: a doc is trackable at any size, including zero bytes.
+
+If you don't have write access to the repo, the row explains that instead of offering a push action. The check is local, adds no network round-trip, and never blocks sharing: if it can't run, the link still copies with no warning. Folder shares get the same treatment as docs, and can additionally hit the empty-folder case above, which a doc never can. Links minted by an agent get the same check: the [`share_link` MCP tool](/docs/reference/mcp) prepends the warning to its response so the agent can relay it with the link.
+
+## Opening a share link
+
+The recipient clicks the URL and lands on a splash page showing the target (file or folder) name, the `owner/repo` path, and — for shares from a non-default branch — the branch name.
+
+The splash offers two ways to receive:
+
+- **Desktop app.** Click **Open in desktop app** to fire the deep link into the OpenKnowledge desktop app — on the shared doc, folder overview, or project root depending on what was shared. **Download the app** routes recipients to the matching macOS, Windows, or Linux download flow, with a download page listing all available builds when the browser cannot identify the platform. The download remembers the share (a first-party cookie, valid for seven days), and the app opens the shared target on its first launch.
+- **CLI (any platform).** Copy the pre-filled `npm install -g @inkeep/open-knowledge` then `ok clone <owner/repo> -b <branch>` from the splash to clone the repo locally and open the editor. The clone command is always branch-pinned, but if the feature branch has been deleted, it will fall back to the default branch. See the [CLI reference](/docs/reference/cli#clone-from-github) for `ok clone` and related commands.
+
+## What the desktop app does when it receives the link
+
+The deep link arrives at the desktop app's handler, which runs a three-question receive flow:
+
+1. **Q1: Do you already have this repo?** The app scans recent projects for one whose `gitRemoteUrl` matches the share's `owner/repo`. A hit silently routes to that project (no dialog, the window just opens and navigates to the shared doc, folder, or project root).
+2. **Q2: Clone or locate?** If Q1 misses, a dialog asks "Clone to a new folder" or "I already have it locally". The locate path lets you point at an existing folder.
+3. **Q3: Clone.** On the clone path, the app runs an auth check, asks where to put the folder, then runs `git clone -b <share-branch>` so the new checkout lands on the right branch before opening.
+
+### Receiving on a different branch
+
+If you have the repo open locally but on a different branch, the app opens a branch-switch dialog instead of silently showing the wrong content. It compares the shared target (file or folder) against your current branch and against GitHub, then offers the action that matches what it finds:
+
+- **On your current branch.** Open it where you are, or switch to the share's branch and open.
+- **Not local yet, but on GitHub (your local copy is behind).** **Switch and update branch** fast-forwards your local branch to GitHub's tip and opens the doc. This is fast-forward-only — the receive flow never merges. A branch that has diverged from GitHub instead gets a plain switch with a note that the doc will appear once the branch syncs.
+- **Moved.** If GitHub shows the target was renamed, the dialog offers to open it at its new path.
+- **Removed, or never pushed.** A deleted target is messaged as removed from the branch; a path that never existed on the branch is messaged as "may not have been pushed yet." The two are distinct, and neither drops you into an empty create-mode editor.
+
+If uncommitted changes conflict with the switch, switching is disabled until you commit or stash them; if the share's branch is already checked out in another worktree, the dialog offers to open that worktree instead. If the branch has a symlink that would be unsafe to check out, the switch is refused and the refused links are listed; see [Incoming changes with unsafe symlinks](/docs/features/git/sync#incoming-changes-with-unsafe-symlinks) for what to do.
+
+If OpenKnowledge can't reach GitHub to make this call, the dialog falls back to the plain switch.
+
+### When the shared target is not on your local copy
+
+Even on the right branch, a shared target (file or folder) can be renamed or deleted after a link is minted. In this case, OpenKnowledge offers to open the renamed target at its new path, a plain "removed from this branch" message with a link back to the parent folder, or "not pushed yet" when the path never existed.
+If the target was moved, renamed, or deleted in your own local copy, OpenKnowledge tells you to commit your changes manually or enable Auto (Pull and Push). On Auto (Pull and Push) it says the change hasn't synced yet and offers **Sync now**; while sync is paused on an unfinished Git operation or on [unsafe symlinks](/docs/features/git/sync#incoming-changes-with-unsafe-symlinks), a notice explaining the pause takes its place.
+If the target is on GitHub but hasn't reached your local copy yet, OpenKnowledge alerts you that your local copy is behind. The **Pull latest changes** button on this message fetches from GitHub and fast-forwards your copy in place. It only ever pulls: nothing is committed or pushed on your behalf, and your uncommitted edits ride on top of what comes in. If the pull can't run — another sync operation is already in flight, or GitHub is unreachable — the reason appears under the message and the button stays available to retry. If the incoming changes have an unsafe symlink, the pull is refused and sync pauses until the link is fixed; see [Incoming changes with unsafe symlinks](/docs/features/git/sync#incoming-changes-with-unsafe-symlinks).
+
+### Receiving without push permission
+
+If the shared repo is one your GitHub account can't push to (you're not a collaborator on a public repo, or you have read-only access on a private one), OpenKnowledge offers **[Auto (Pull only)](/docs/features/git/sync#auto-pull-only)** at first open instead of the full "Enable Auto (Pull and Push)?" prompt: your copy keeps up to date by pulling the latest from GitHub automatically, while your own edits stay on your computer. You can keep editing — an incoming update combines with your non-overlapping changes automatically, and an edit to the same lines surfaces as a conflict to resolve.
+
+See [Git sync](/docs/features/git/sync) for how to automatically sync changes to GitHub, and [Timeline and recovery](/docs/features/timeline-and-recovery) for per-doc history once the doc is open.

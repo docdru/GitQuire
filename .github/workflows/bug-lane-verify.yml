@@ -1,0 +1,780 @@
+name: Bug lane verify
+
+# The expensive half of the bug lane: cherry-pick the qualifying batch onto the
+# current stable, run the fast test tiers against that synthetic tree, and (when
+# armed) dispatch the point release. Split out of bug-lane.yml on 2026-08-21.
+#
+# WHY THE SPLIT. Both halves used to share one job under a single global
+# `ok-bug-lane` concurrency group with `cancel-in-progress: true`, while the
+# lane fired on a 20-minute cron AND every push to main. A tick that found
+# candidates spent ~15 minutes here, so the next tick killed it mid-verify.
+# That was harmless by design — the evaluation is idempotent and the next tick
+# redoes it — but it had two costs the design did not intend:
+#
+#   1. A cancelled run's check is welded to whatever commit was HEAD when the
+#      cron fired, and GitHub's status rollup scores `cancelled` as FAILURE.
+#      Measured 2026-08-21 over three weeks: 173 of 1293 runs cancelled, and 66
+#      of 312 commits on the public main left carrying a permanent red X for a
+#      superseded evaluator that had nothing to say about their contents. The
+#      public repo runs no test, lint or typecheck workflow at all — every code
+#      gate is upstream in the monorepo — so that X could never mean what a
+#      reader takes it to mean.
+#   2. ~11 minutes of verify work discarded per cancellation, re-run from
+#      scratch on the tick that replaced it.
+#
+# Both follow from ONE job doing a 24-second thing and a 15-minute thing under
+# a cancel-on-supersede group. Splitting them fixes both: the evaluator stays
+# in bug-lane.yml, finishes in seconds and is essentially never superseded, and
+# this half runs on `workflow_dispatch` — which GitHub attaches to the commit
+# but EXCLUDES from the status-check rollup, so it can never colour a commit
+# icon whatever it concludes. (point-release.yml has always behaved this way;
+# its refusals are why that exclusion is a known quantity rather than a guess.)
+#
+# SERIALIZATION, which the old single group provided and this must preserve.
+# Two verifies must never run at once, or two batches could dispatch two point
+# releases against the same stable. Two guards, in order:
+#   1. bug-lane.yml refuses to dispatch while a run of THIS workflow is queued
+#      or in progress, so a second one is normally never requested.
+#   2. The group below, as the backstop for a manual dispatch or a race in (1).
+#      It QUEUES rather than cancels: superseding a verify is what produced the
+#      discarded work above, and there is nothing to supersede for — the batch
+#      this run holds was already qualified and is idempotent to re-derive.
+#
+# Everything downstream is unchanged. point-release.yml re-guards the pick,
+# the delta, the patch-only bump, the anchor and provenance, and its cascade
+# smokes the signed DMG before anything publishes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      fix_refs:
+        description: "Comma-joined qualifying fix refs, from bug-lane.yml's evaluator"
+        required: true
+        type: string
+      stable:
+        description: "The stable tag to cherry-pick onto"
+        required: true
+        type: string
+      fix_tickets:
+        description: "JSON map of ref -> Linear tickets, used to name the bug on a refusal page"
+        required: false
+        default: "{}"
+        type: string
+      dispatched_by:
+        description: "URL of the evaluator run that requested this verify"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+  # Dispatching point-release.yml and reading in-flight runs.
+  actions: write
+
+concurrency:
+  # Queue, never cancel — see SERIALIZATION above.
+  group: ok-bug-lane-verify
+  cancel-in-progress: false
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+
+  # THE ARMING SWITCH. It lives here rather than in bug-lane.yml because every
+  # step that reads it — the dispatch, the partial-drop notice, and the refusal
+  # page — is in this workflow. While "true" a verified batch dispatches
+  # point-release.yml for real. Disarming back to log-only (verify and log,
+  # dispatch nothing) is a one-line reviewed flip to "false" — read the "Bug
+  # lane" section of RELEASES.md first.
+  BUG_LANE_ARMED: "true"
+
+jobs:
+  bug-lane-verify:
+    name: Verify the synthetic tree and (when armed) dispatch
+    runs-on: ubuntu-26.04
+    cache-mode: write
+    # 60 not 45: bounding turbo's concurrency below trades wall clock for the
+    # contention that was refusing good fixes, and the 25m06s this used to run
+    # in was measured in the UNBOUNDED shape. This is the outer backstop only.
+    # It does not protect a verdict -- reaching it is a hard kill that mints
+    # none -- which is why the tiers carry their own budget and why the step
+    # below refuses out loud when no verdict was produced.
+    timeout-minutes: 60
+    steps:
+      - name: Refuse an empty batch
+        # Only reachable via a hand-typed dispatch: the evaluator never asks
+        # for a verify without candidates. Fail rather than proceed — an empty
+        # FIX_REFS would cherry-pick nothing and read as a clean pass.
+        env:
+          # Every inputs.* reference in this workflow goes through env, never
+          # `${{ }}` inside a run: block — the expression engine splices before
+          # the shell parses, so a dispatch value carrying `$(...)` or a quote
+          # break executes in a job that later holds GITHUB_TOKEN and the Slack
+          # webhook secrets. Same convention and same reason as
+          # publish-linux-repo.yml's TAG and point-release.yml's ten inputs.
+          FIX_REFS: ${{ inputs.fix_refs }}
+          STABLE: ${{ inputs.stable }}
+          DISPATCHED_BY: ${{ inputs.dispatched_by }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$FIX_REFS" ]]; then
+            echo "::error::bug-lane-verify: fix_refs is empty; nothing to verify."
+            exit 1
+          fi
+          echo "::notice::bug-lane-verify: ${FIX_REFS} over ${STABLE} (requested by ${DISPATCHED_BY:-a manual dispatch})."
+
+      - name: Checkout with full history and tags
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Check out the stable tag
+        env:
+          STABLE: ${{ inputs.stable }}
+        run: git checkout --detach "$STABLE"
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Setup uv for ACP package acquisition tests
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: '0.11.28'
+          enable-cache: false
+
+      - name: Verify ACP package acquisition prerequisites
+        run: |
+          uv --version
+          uvx --version
+          curl --version
+          python3 --version
+
+      - name: Verify the synthetic tree (cherry-pick + fast test tiers)
+        id: verify
+        env:
+          FIX_REFS: ${{ inputs.fix_refs }}
+          STABLE: ${{ inputs.stable }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Drop conflicting refs iteratively instead of aborting the batch: a
+          # ref that does not apply onto the current stack (stable + earlier
+          # clean picks) is dropped and the remainder continues — conflicts are
+          # the common case late in a cycle, and abort-on-first holds every
+          # clean fix hostage to the oldest drifted one. Each iteration is its
+          # own single-commit cherry-pick sequence, so --abort unwinds only the
+          # in-progress pick and keeps earlier survivors on the stack.
+          IFS=',' read -ra REFS <<< "$FIX_REFS"
+          SURVIVORS=()
+          DROPPED=()
+          # Which paths collided, per dropped ref, as JSON for the refusal page.
+          # "conflict" alone cannot distinguish a fix that genuinely depends on
+          # later work from one blocked by an unrelated rewrite of a line of CI
+          # config, and that is the whole question a reader has.
+          CONFLICT_JSON='[]'
+          # Refs whose pick landed empty: the stable already contains the
+          # change. Not survivors (committing one would re-release), and
+          # emphatically not conflicts.
+          ALREADY=()
+          for ref in "${REFS[@]}"; do
+            if git cherry-pick "$ref"; then
+              SURVIVORS+=("$ref")
+            else
+              # BEFORE the abort: --abort clears the index, and with it the
+              # unmerged-path list this reads. Capturing after yields nothing.
+              # A plain read loop rather than `mapfile` so the shell does not
+              # depend on a bash 4 builtin.
+              CONFLICTED=()
+              while IFS= read -r f; do
+                [[ -n "$f" ]] && CONFLICTED+=("$f")
+              done < <(git diff --name-only --diff-filter=U || true)
+              # An EMPTY pick, not a conflict. git exits non-zero for both, but
+              # empty means every hunk was already present — the stable already
+              # ships this fix under a different SHA, which is how every point
+              # release lands. Zero unmerged paths AND a tree identical to HEAD
+              # is the signature; a real conflict leaves unmerged paths, and a
+              # partial application leaves a dirty tree.
+              #
+              # Reporting this as a conflict is what made a shipped fix page as
+              # "does not apply to the current stable": the refusal carried no
+              # conflicting path, and the payload builder fails closed to the
+              # severe wording when it has no paths to judge. The containment
+              # pre-filter should have caught this upstream; this is the
+              # backstop that makes the silence a guarantee rather than a
+              # consequence of that filter being right.
+              if [[ ${#CONFLICTED[@]} -eq 0 ]] && git diff --quiet HEAD; then
+                git cherry-pick --abort || true
+                ALREADY+=("$ref")
+                echo "::notice::bug-lane: ${ref} is already contained in ${STABLE} (the pick applies empty); skipped — nothing left to ship, and nothing to report."
+                continue
+              fi
+              TOTAL_FILES=$(git show --pretty=format: --name-only "$ref" | grep -c . || true)
+              # `${a[@]+"${a[@]}"}` so an empty array is not an unbound-variable
+              # error under `set -u`: a pick can fail without conflicting (an
+              # empty commit), and that must still mint a report.
+              CONFLICT_JSON=$(jq -c \
+                --arg ref "$ref" \
+                --argjson total "${TOTAL_FILES:-0}" \
+                --args '. + [{ref: $ref, totalFiles: $total, conflicts: $ARGS.positional}]' \
+                <<< "$CONFLICT_JSON" ${CONFLICTED[@]+"${CONFLICTED[@]}"})
+              git cherry-pick --abort || true
+              DROPPED+=("$ref")
+              echo "::notice::bug-lane: ${ref} does not apply cleanly onto ${STABLE} (conflicted in: ${CONFLICTED[*]:-none}); dropped from this batch — it will ship with its cycle's stable instead."
+            fi
+          done
+          {
+            echo "conflicts<<CONFLICTS_EOF"
+            echo "$CONFLICT_JSON"
+            echo "CONFLICTS_EOF"
+          } >> "$GITHUB_OUTPUT"
+          if [[ ${#DROPPED[@]} -gt 0 ]]; then
+            echo "dropped_refs=$(IFS=','; echo "${DROPPED[*]}")" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ ${#ALREADY[@]} -gt 0 ]]; then
+            echo "already_refs=$(IFS=','; echo "${ALREADY[*]}")" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ ${#SURVIVORS[@]} -eq 0 ]]; then
+            # Nothing survived AND nothing genuinely conflicted: every candidate
+            # was already in the stable. That is a no-op tick, not a refusal —
+            # there is no question for a human and therefore no message. A
+            # distinct verdict rather than reusing "conflict" is the whole
+            # point: the paging steps gate on conflict/fail, so this is silent
+            # by construction instead of by a suppression rule someone could
+            # later relax. Visible in the run summary for anyone who looks.
+            if [[ ${#DROPPED[@]} -eq 0 ]]; then
+              echo "verdict=already-in-stable" >> "$GITHUB_OUTPUT"
+              echo "::notice::bug-lane: every qualifying fix is already contained in ${STABLE}; nothing to ship, nothing to page."
+              {
+                echo "### Bug lane — already in the stable"
+                echo "Every qualifying fix is already contained in \`${STABLE}\`: ${ALREADY[*]}."
+                echo "The picks apply empty, so there is nothing left to release. No page — this is a no-op tick, not a refusal."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "verdict=conflict" >> "$GITHUB_OUTPUT"
+            echo "::notice::bug-lane: no qualifying fix is self-contained over ${STABLE}; nothing ships this tick."
+            exit 0
+          fi
+          SURVIVING_REFS=$(IFS=','; echo "${SURVIVORS[*]}")
+          echo "surviving_refs=${SURVIVING_REFS}" >> "$GITHUB_OUTPUT"
+          if [[ "$SURVIVING_REFS" != "$FIX_REFS" ]]; then
+            echo "::notice::bug-lane: continuing with the self-contained subset ${SURVIVING_REFS} (of ${FIX_REFS})."
+          fi
+          # The tree that would ship. Fast tiers only: typecheck + unit catch a
+          # fix that assumed something the stable does not have; the DMG smoke
+          # later in the cascade covers boot-level integration. An install
+          # failure must still mint a verdict — an unguarded exit here skips
+          # the paging step and the refusal disappears into a red-X no one
+          # watches.
+          if ! pnpm install --frozen-lockfile; then
+            echo "verdict=fail" >> "$GITHUB_OUTPUT"
+            echo "::warning::bug-lane: pnpm install --frozen-lockfile failed on the synthetic tree (${STABLE} + ${SURVIVING_REFS}); treated as a red verification."
+            exit 0
+          fi
+          if ! { rustup toolchain install --no-self-update && rustc -vV; }; then
+            {
+              echo "verdict=could-not-verify"
+              echo "cause=toolchain"
+              echo "failures<<FAILURES_EOF"
+              echo '["the declared Rust toolchain could not be installed"]'
+              echo "FAILURES_EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "::warning::bug-lane: the declared Rust toolchain could not be installed for ${STABLE} + ${SURVIVING_REFS}. COULD NOT VERIFY, which is not a verdict on the batch."
+            exit 0
+          fi
+          # `--continue` on the FIRST attempt is what keeps the retry cheap. turbo
+          # defaults to `--continue=never`: the first failure cancels every
+          # in-flight and unstarted task, so none of those cache and the retry
+          # re-runs them too — a failure late in the tiers would cost close to
+          # two full passes, which this job's wall-clock budget has no room
+          # for. (The cancel window that once made this urgent belongs to
+          # bug-lane.yml; since the split this half queues rather than
+          # cancels, per the group above.) Running the first
+          # attempt to completion caches every task that genuinely passed, so
+          # the retry re-executes only what actually failed. `--force` is
+          # omitted for the same reason: it would discard those cached passes.
+          # The retry's output is captured because a red verdict has to be able
+          # to SAY what went red. The refusal page renders per-ref CONFLICT
+          # evidence under "Why it refused", and a red tier produces no
+          # conflicts by construction — every survivor picked cleanly, which is
+          # how it reached the tiers at all. So the most severe verdict was the
+          # one paging with an empty reason, sending a reader to the run log to
+          # discover what this step already knew.
+          #
+          # `--concurrency=2` caps how many turbo task-graph nodes are
+          # SCHEDULED at once. It does not reach inside a node: each of the two
+          # still runs its Vitest fork pool at the default width, so the shape
+          # is two supervisors sharing four cores, not the one-tier-per-box the
+          # PR tier gets. A fivefold cut from turbo's default of ten, which is
+          # not the same thing as isolation.
+          #
+          # The workspace does own a cap that WOULD reach the pools --
+          # `boundedMaxForks` in test-support/vitest.base.ts -- and it cannot
+          # help here: it applies only when `!CI && cpuCount >= 8`, and this
+          # runner fails BOTH halves. Widening the `CI` guard alone would change
+          # nothing on a four-core box, which is why the bound has to come from
+          # this side instead.
+          RETRY_LOG="${RUNNER_TEMP}/bug-lane-tiers-retry.log"
+          # Created up front because a first-attempt blow skips the retry
+          # entirely, and the extraction below reads this file either way.
+          : > "$RETRY_LOG"
+          # The tiers carry their own ceiling because the job's is a hard kill:
+          # it sets no verdict, and every paging step below gates on one, so a
+          # tick that hits it refuses NOTHING. And nothing queues behind it:
+          # bug-lane.yml declines to dispatch while a verify is in flight, so
+          # the ~20-minute ticks in that window evaluate and skip, and the lane
+          # simply stops verifying for as long as the wedge lasts. Wrapping
+          # turns that into exit 124, which this step can report and the page
+          # can render.
+          #
+          # Sized from the one measurement taken on THIS runner: the last
+          # unbounded tick spent 1460s in this step, covering cherry-pick,
+          # install and BOTH attempts, which bounds a single attempt well under
+          # 1500s without measuring it directly.
+          #
+          # The bounded single-attempt cost is still unmeasured -- it needs a
+          # dispatch of this workflow -- and it is the number to re-check if a
+          # tick ever runs out of budget. Both attempts carry this ceiling, so the bound
+          # is 2x1500s, about 50 minutes against the job's 60 -- the remaining
+          # ten cover checkout, setup, the cherry-pick loop and the install,
+          # none of which are bounded themselves.
+          TIER_BUDGET_SECONDS=1500
+          FIRST_STATUS=0
+          timeout --foreground --kill-after=10s "${TIER_BUDGET_SECONDS}s" \
+            pnpm exec turbo run typecheck test test:uncached --concurrency=2 --continue --output-logs=errors-only --log-prefix=none \
+            || FIRST_STATUS=$?
+          RETRY_STATUS=0
+          if [[ "$FIRST_STATUS" -ne 0 ]]; then
+            case "$FIRST_STATUS" in
+              124|137)
+                RETRY_STATUS="$FIRST_STATUS"
+                ;;
+              *)
+                if timeout --foreground --kill-after=10s "${TIER_BUDGET_SECONDS}s" \
+                  pnpm exec turbo run typecheck test test:uncached --concurrency=2 --output-logs=errors-only --log-prefix=none 2>&1 | tee "$RETRY_LOG"; then
+                  RETRY_STATUS=0
+                else
+                  # Read BEFORE any other command: the next one clobbers it.
+                  RETRY_STATUS="${PIPESTATUS[0]}"
+                fi
+                ;;
+            esac
+          fi
+          # 124 is timeout's own signal, 137 the SIGKILL that --kill-after
+          # escalates to. Reading it here is sufficient because a blow is never
+          # retried: reaching the retry at all implies attempt 1 failed the
+          # ordinary way, so this is whichever attempt produced the verdict.
+          #
+          # It becomes its OWN verdict rather than riding `fail` with a flag
+          # beside it. The page, the refusal signature and the step gates all
+          # key on the verdict, so a flag has to be threaded to each of them
+          # separately -- and one wiring mistake is silent, because every reader
+          # defaults it. A verdict cannot be half-delivered that way.
+          TIER_VERDICT=fail
+          case "$RETRY_STATUS" in 124|137) TIER_VERDICT=could-not-verify ;; esac
+          if [[ "$FIRST_STATUS" -eq 0 ]]; then
+            echo "verdict=pass" >> "$GITHUB_OUTPUT"
+          elif [[ "$RETRY_STATUS" -eq 0 ]]; then
+            echo "verdict=pass" >> "$GITHUB_OUTPUT"
+            echo "::warning::bug-lane: fast tiers passed on retry for ${STABLE} + ${SURVIVING_REFS} — the first attempt failed (flake-class); see its log before trusting this tick."
+          else
+            echo "verdict=${TIER_VERDICT}" >> "$GITHUB_OUTPUT"
+            # Vitest names the failing test on a `FAIL` line. A typecheck-only
+            # failure produces none, so fall back to turbo's own failed-task
+            # lines rather than paging empty again. Sorted-unique and capped:
+            # the page is a pointer to the log, not a copy of it. Extraction is
+            # inline shell and not a helper script on purpose — this step runs
+            # against the SYNTHETIC tree, detached at the stable, where a script
+            # added after that stable was cut does not exist.
+            # The ESC is built with printf rather than written as `\x1b`, which
+            # only GNU sed understands — the runner has GNU sed today, and a
+            # silent no-op on any host that does not would strip nothing and
+            # leave every extracted name wrapped in escape codes.
+            ESC="$(printf '\033')"
+            strip_ansi() { sed -e "s/${ESC}\[[0-9;]*m//g" "$RETRY_LOG"; }
+            # The 200 cap is a runaway bound, not the page's display limit —
+            # the page shows a handful and computes "…and N more" from what it
+            # receives, so a cap tight enough to bite would silently understate
+            # that remainder. A red tier producing 200 distinct failures is a
+            # broken base, not a fix, and the count is a floor at that point.
+            FAILURES="$(strip_ansi | grep -E '^[[:space:]]*FAIL[[:space:]]' \
+              | sed -E 's/^[[:space:]]*FAIL[[:space:]]+//' | sort -u | head -200 || true)"
+            if [[ -z "$FAILURES" ]]; then
+              # Anchored on turbo's `<pkg>#<task>:` prefix, which is the only
+              # one of its three exit lines that names the task that failed.
+              # Measured against the pinned turbo, one failing task emits
+              # `::error::command (…) exited (1)`, `<pkg>#<task>:  ERROR  command
+              # (…) exited (1)` and ` ERROR  run failed: command  exited (1)`: a
+              # bare `command .* exited` match yields three bullets for one
+              # failure, two of them redundant and one naming nothing at all.
+              FAILURES="$(strip_ansi | grep -E '#[^ ]+:.*exited \([0-9]+\)' | sort -u | head -200 || true)"
+            fi
+            # A budget blow names no test, so the extraction above has nothing
+            # to find. Saying that outright is the point of separating it: the
+            # incident this lane exists to avoid is a refusal that blames a fix
+            # for something the runner did. Defaulted so the block above stays
+            # liftable and runnable on its own.
+            if [[ "${TIER_VERDICT:-fail}" == "could-not-verify" ]]; then
+              # Just the fact. The page's own framing carries what it means,
+              # in the meaning line and again in the options, and rendering all
+              # three showed the same sentence three times over.
+              FAILURES="the tiers did not finish within ${TIER_BUDGET_SECONDS}s (exit ${RETRY_STATUS})"
+            fi
+            # Encoded into a variable BEFORE the heredoc block, with a fallback.
+            # Under `set -e` a jq that exits non-zero mid-block (invalid UTF-8
+            # surviving in the captured log, say) would abort between the
+            # `failures<<` line and its terminator, leaving an unterminated
+            # multiline block in $GITHUB_OUTPUT and failing the step — and the
+            # paging step has no `if: always()`, so the refusal would vanish
+            # silently. That is precisely the failure mode this whole change
+            # exists to remove, so it must not be reintroduced by its own
+            # plumbing.
+            FAILURES_JSON="$(printf '%s\n' "$FAILURES" | jq -cRn '[inputs | select(length > 0)]' || echo '[]')"
+            {
+              echo "failures<<FAILURES_EOF"
+              printf '%s\n' "$FAILURES_JSON"
+              echo "FAILURES_EOF"
+            } >> "$GITHUB_OUTPUT"
+            # Says what is known and stops there. The previous wording asserted
+            # the fix assumed something the stable lacks, which is only one of
+            # the causes: a tier can equally be red because the stable's own
+            # tree is red, and reading a base failure as an incompatible fix is
+            # how a lane-wide outage looks like a series of bad fixes.
+            if [[ "${TIER_VERDICT:-fail}" == "could-not-verify" ]]; then
+              echo "::warning::bug-lane: fast tiers ran out of budget on ${STABLE} + ${SURVIVING_REFS} — COULD NOT VERIFY, which is not a verdict on the batch. What ran out is the clock; whether that is the runner or the tree, this tick cannot say. It stays on its cycle's path."
+            else
+              echo "::warning::bug-lane: fast tiers failed TWICE on ${STABLE} + ${SURVIVING_REFS} — not flake-class. Either the fix assumes something the stable does not have, or the stable is red on its own; the named failures below decide which. It stays on its cycle's path."
+            fi
+          fi
+
+      - name: Upload per-test results
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ok-per-test-results-bug-lane-verify-attempt${{ github.run_attempt }}
+          path: |
+            test-results/vitest-*.json
+            docs/test-results/vitest-*.json
+            packages/*/test-results/vitest-*.json
+            packages/*/test-results/node-test-*.xml
+            packages/md-conformance/md-audit/test-results/vitest-*.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Dispatch the point release (or log what would ship)
+        if: steps.verify.outputs.verdict == 'pass'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The verified survivors, not the full qualifying set — dropped refs
+          # ride their cycle's stable.
+          FIX_REFS: ${{ steps.verify.outputs.surviving_refs }}
+          STABLE: ${{ inputs.stable }}
+        run: |
+          set -euo pipefail
+          if [[ "${BUG_LANE_ARMED}" != "true" ]]; then
+            echo "::notice::bug-lane LOG-ONLY: would dispatch point-release (cherry-pick) of ${FIX_REFS} over ${STABLE}."
+            {
+              echo "### Bug lane — log-only"
+              echo "- Would point-release: \`${FIX_REFS}\` over \`${STABLE}\` (verify passed)"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # Re-check just before dispatching: the earlier in-flight check is
+          # ~15 minutes stale after the verify stage, and a promotion may have
+          # started meanwhile. point-release's shared concurrency group would
+          # serialize anyway; this avoids queuing a release that the next tick
+          # would have re-derived against the newer stable.
+          active=0
+          for wf in point-release.yml promote-stable.yml; do
+            n=$(gh run list --workflow="$wf" --json status \
+              --jq '[.[] | select(.status=="in_progress" or .status=="queued")] | length')
+            active=$((active + n))
+          done
+          if [[ "$active" -gt 0 ]]; then
+            echo "::notice::bug-lane: a release run started during verify (${active}); retrying next tick."
+            exit 0
+          fi
+          SELF_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh workflow run point-release.yml \
+            -f mode=cherry-pick -f fix_refs="$FIX_REFS" -f dry_run=false -f dispatched_by="$SELF_URL"
+          echo "::notice::bug-lane: dispatched point-release (cherry-pick) of ${FIX_REFS} over ${STABLE}."
+
+      # A partial drop is a STANDING ANSWER too, exactly like the refusal below:
+      # the same ref conflicts with the same stable on every tick, so the
+      # notification re-derives an unchanged fact every ~20 minutes. Observed
+      # 2026-08-21: four identical overnight pages while a point-release
+      # dispatch that could never land (anchor-drift) kept the candidate set
+      # frozen, so nothing about the message could change on its own.
+      #
+      # The stable is deliberately OUT of the signature, matching the refusal's
+      # reasoning one step down: the operator's move — "investigate whether any
+      # needs a manual point release" — does not change when the stable rolls.
+      # The surviving set IS in it, because a different dispatched subset is
+      # genuinely new news rather than the same fact restated.
+      - name: Drop signature
+        id: drop
+        if: env.BUG_LANE_ARMED == 'true' && steps.verify.outputs.verdict == 'pass' && steps.verify.outputs.dropped_refs != ''
+        env:
+          DROPPED_REFS: ${{ steps.verify.outputs.dropped_refs }}
+          SURVIVING_REFS: ${{ steps.verify.outputs.surviving_refs }}
+        run: |
+          set -euo pipefail
+          sig="$(printf '%s|%s' "$DROPPED_REFS" "$SURVIVING_REFS" | sha256sum | cut -c1-32)"
+          echo "sig=${sig}" >> "$GITHUB_OUTPUT"
+          echo "marker=${RUNNER_TEMP}/bug-lane-drop-marker" >> "$GITHUB_OUTPUT"
+
+      - name: Has this drop already been paged?
+        id: drop_paged_before
+        if: steps.drop.outputs.sig != ''
+        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: ${{ steps.drop.outputs.marker }}
+          key: bug-lane-drop-${{ steps.drop.outputs.sig }}
+          lookup-only: true
+
+      - name: Note a suppressed drop
+        if: steps.drop_paged_before.outputs.cache-hit == 'true'
+        env:
+          SIG: ${{ steps.drop.outputs.sig }}
+          DROPPED_REFS: ${{ steps.verify.outputs.dropped_refs }}
+        run: |
+          set -euo pipefail
+          {
+            echo "### Bug lane — drop still standing, page suppressed"
+            echo "Dropped \`${DROPPED_REFS}\`, signature \`${SIG}\`, already paged on an earlier tick."
+            echo "The channel stays quiet by design; this re-pages only if the dropped or dispatched set changes."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::bug-lane: drop ${SIG} already paged; suppressing the duplicate page."
+
+      - name: Notify on a partial drop (armed only)
+        id: drop_page
+        # A drop with a surviving batch is verdict=pass, so the refusal page
+        # never fires — yet a bug fix silently deferred to the 24h path is the
+        # lane's most common non-trivial outcome and must not be log-only.
+        if: steps.drop.outputs.sig != '' && steps.drop_paged_before.outputs.cache-hit != 'true'
+        env:
+          SLACK_RELEASES_WEBHOOK_URL: ${{ secrets.SLACK_RELEASES_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DROPPED_REFS: ${{ steps.verify.outputs.dropped_refs }}
+          SURVIVING_REFS: ${{ steps.verify.outputs.surviving_refs }}
+          STABLE: ${{ inputs.stable }}
+        run: |
+          set -uo pipefail
+          # `delivered` is the ONLY thing the markers may key on, so it is
+          # written on EVERY path — no early exit. An unset output and an
+          # explicit 'false' both fail the `== 'true'` gate today, so this is
+          # inert either way; it is written out because the contract is what
+          # the markers depend on, and an implicit GHA default is a thinner
+          # thing to depend on than a value this step always states. Same shape
+          # as the refusal step below, deliberately.
+          delivered=false
+          WEBHOOK_URL="${SLACK_RELEASES_WEBHOOK_URL:-${SLACK_WEBHOOK_URL:-}}"
+          if [[ -z "$WEBHOOK_URL" ]]; then
+            echo "::notice::No Slack webhook secret set — drop notification skipped."
+          else
+            RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            TEXT="⚠️ Bug lane dropped ${DROPPED_REFS} (cherry-pick conflict with ${STABLE}); they ride their cycle's 24h path — investigate whether any needs a manual point release. Dispatched the self-contained subset ${SURVIVING_REFS}. ${RUN_URL}"
+            payload="$(jq -nc --arg t "$TEXT" '{text: $t}')"
+            if curl -sS --fail -X POST -H 'Content-type: application/json' --data "$payload" "$WEBHOOK_URL"; then
+              delivered=true
+            else
+              echo "::warning::bug-lane drop notification failed to POST — the dispatch itself is unaffected, and the drop stays un-marked so the next tick pages it again."
+            fi
+          fi
+          echo "delivered=${delivered}" >> "$GITHUB_OUTPUT"
+
+      # Gated on DELIVERY, not on the step's conclusion — same contract as the
+      # refusal marker below. Writing it after a failed POST would turn a
+      # transient Slack outage into permanent silence for that drop, which is
+      # strictly worse than the per-tick flood this replaces.
+      - name: Record that this drop was paged
+        if: steps.drop_page.outputs.delivered == 'true'
+        run: printf '%s\n' "${{ steps.drop.outputs.sig }}" > "${{ steps.drop.outputs.marker }}"
+
+      - name: Remember the drop across ticks
+        if: steps.drop_page.outputs.delivered == 'true'
+        uses: actions/cache/save@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: ${{ steps.drop.outputs.marker }}
+          key: bug-lane-drop-${{ steps.drop.outputs.sig }}
+
+      # Everything above gates on a verdict, and a step that dies before minting
+      # one skips all of it: a bad stable ref, a checkout or setup step dying,
+      # or the job's own ceiling reached while the cherry-pick loop or install
+      # runs, none of which are inside the tiers' budget. (A failed install is
+      # NOT one of these -- the guards above mint a verdict for it explicitly.)
+      # The tier wrapper closes the commonest door. This leaves a trace for the
+      # rest of the class -- but only in the run log, and this workflow's whole
+      # argument for a `could-not-verify` VERDICT is that the run log is not a
+      # channel anyone reads. So the honest claim is narrow: no tick ends
+      # without a record, and a tick that dies before minting a verdict still
+      # does not reach Slack. Closing that properly means paging from here, in
+      # the bare jq+curl shape the drop notifier already uses, which needs no
+      # file from a workspace that may be detached or half-built.
+      - name: A tick that produced no verdict is still a refusal
+        if: always() && steps.verify.outputs.verdict == ''
+        env:
+          STABLE: ${{ inputs.stable }}
+        run: |
+          echo "::warning::bug-lane: verify produced no verdict for ${STABLE} — COULD NOT VERIFY. Nothing here is evidence about the queued fixes; read the run log for where it stopped."
+
+      # `could-not-verify` is enrolled here too, and it is the one verdict that
+      # is NOT a standing answer. The trade is deliberate and bounded -- the
+      # batch churns as new fixes qualify, so the signature moves and the lane
+      # re-pages -- and the page itself tells the reader to check recent runs
+      # rather than wait.
+      #
+      - name: Refusal signature
+        id: refusal
+        if: env.BUG_LANE_ARMED == 'true' && (steps.verify.outputs.verdict == 'conflict' || steps.verify.outputs.verdict == 'fail' || steps.verify.outputs.verdict == 'could-not-verify')
+        env:
+          VERDICT: ${{ steps.verify.outputs.verdict }}
+          FIX_REFS: ${{ inputs.fix_refs }}
+          SURVIVING_REFS: ${{ steps.verify.outputs.surviving_refs }}
+          STABLE: ${{ inputs.stable }}
+          FAILURES: ${{ steps.verify.outputs.failures }}
+        run: |
+          set -euo pipefail
+          if ! git show "${GITHUB_SHA}:.github/scripts/bug-lane-refusal-key.mjs" > "${RUNNER_TEMP}/bug-lane-refusal-key.mjs" \
+            || ! sig="$(node "${RUNNER_TEMP}/bug-lane-refusal-key.mjs")"; then
+            echo "::warning::Could not group the refusal; retaining batch-based paging."
+            sig="$(printf '%s|%s|%s' "$VERDICT" "$FIX_REFS" "$SURVIVING_REFS" | sha256sum | cut -c1-32)"
+          fi
+          echo "sig=${sig}" >> "$GITHUB_OUTPUT"
+          echo "marker=${RUNNER_TEMP}/bug-lane-refusal-marker" >> "$GITHUB_OUTPUT"
+
+      - name: Has this refusal already been paged?
+        id: paged_before
+        if: steps.refusal.outputs.sig != ''
+        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: ${{ steps.refusal.outputs.marker }}
+          key: bug-lane-refusal-${{ steps.refusal.outputs.sig }}
+          lookup-only: true
+
+      - name: Note a suppressed refusal
+        if: steps.paged_before.outputs.cache-hit == 'true'
+        env:
+          SIG: ${{ steps.refusal.outputs.sig }}
+          VERDICT: ${{ steps.verify.outputs.verdict }}
+        run: |
+          set -euo pipefail
+          {
+            echo "### Bug lane — refusal still standing, page suppressed"
+            echo "Verdict \`${VERDICT}\`, signature \`${SIG}\`, already paged on an earlier tick."
+            echo "For named verification failures, grouping is per stable and failing suite for the UTC day. Conflicts, could-not-verify ticks and unnamed failures use verdict and batch identity. Batch details remain in each run."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::bug-lane: refusal ${SIG} already paged; suppressing the duplicate page."
+
+      - name: Page on a refusal (armed only)
+        id: page
+        if: steps.refusal.outputs.sig != '' && steps.paged_before.outputs.cache-hit != 'true'
+        env:
+          SLACK_RELEASES_WEBHOOK_URL: ${{ secrets.SLACK_RELEASES_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          FIX_REFS: ${{ inputs.fix_refs }}
+          FIX_TICKETS: ${{ inputs.fix_tickets }}
+          CONFLICTS: ${{ steps.verify.outputs.conflicts }}
+          FAILURES: ${{ steps.verify.outputs.failures }}
+          STABLE: ${{ inputs.stable }}
+          VERDICT: ${{ steps.verify.outputs.verdict }}
+          CAUSE: ${{ steps.verify.outputs.cause }}
+        run: |
+          set -uo pipefail
+          # `delivered` is the ONLY thing the marker may key on. The step's own
+          # conclusion cannot stand in for it: a dead webhook is downgraded to
+          # a warning (losing a notification must never fail a release job), and
+          # an unset secret exits early, so this step reports success in both
+          # cases while nothing reached anyone.
+          delivered=false
+          WEBHOOK_URL="${SLACK_RELEASES_WEBHOOK_URL:-${SLACK_WEBHOOK_URL:-}}"
+          if [[ -z "$WEBHOOK_URL" ]]; then
+            echo "::notice::No Slack webhook secret set — refusal page skipped."
+          else
+            RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            # The verify step left the workspace detached at the stable tag,
+            # which predates this tooling — every step shares one workspace, so
+            # the builder below is simply absent from disk. Restore the lane's
+            # own scripts from the ref the workflow is running from. Restored
+            # per path, never as one pathspec: `git checkout <ref> -- a b` is
+            # atomic, so a path missing at that ref would silently take the
+            # other one down with it and leave the page permanently degraded.
+            # The synthetic tree has already served its purpose here — verify
+            # is done, and dispatch (which reads no repo file) is mutually
+            # exclusive with this step.
+            for p in .github/scripts scripts; do
+              git checkout "$GITHUB_SHA" -- "$p" 2>/dev/null \
+                || echo "::warning::bug-lane: could not restore ${p}; the page may fall back."
+            done
+            # Defaults go through intermediate variables, NOT `${V:-{\}}`: a
+            # brace in a parameter-expansion default is taken literally
+            # (backslash and all), so jq --argjson would reject it and every
+            # page would silently degrade to the fallback below.
+            TICKETS_JSON="${FIX_TICKETS:-}"
+            [[ -z "$TICKETS_JSON" ]] && TICKETS_JSON='{}'
+            CONFLICTS_JSON="${CONFLICTS:-}"
+            [[ -z "$CONFLICTS_JSON" ]] && CONFLICTS_JSON='[]'
+            FAILURES_JSON="${FAILURES:-}"
+            [[ -z "$FAILURES_JSON" ]] && FAILURES_JSON='[]'
+            # Join each dropped ref to the tickets that qualified it, so the
+            # page names the bug rather than only a SHA.
+            INPUT="$(jq -nc \
+              --arg verdict "$VERDICT" \
+              --arg cause "${CAUSE:-}" \
+              --arg stable "$STABLE" \
+              --arg runUrl "$RUN_URL" \
+              --argjson conflicts "$CONFLICTS_JSON" \
+              --argjson failures "$FAILURES_JSON" \
+              --argjson tickets "$TICKETS_JSON" \
+              '{verdict: $verdict, cause: $cause, stable: $stable, runUrl: $runUrl, failures: $failures,
+                refs: [$conflicts[] | . + {tickets: ($tickets[.ref] // [])}]}')"
+            # A page that cannot be composed must not become silence: fall back
+            # to the bare facts rather than skipping the POST, and leave the
+            # marker unwritten so the next tick tries again.
+            if ! payload="$(node .github/scripts/bug-lane-refusal-payload.mjs --input "$INPUT")"; then
+              echo "::warning::bug-lane: could not compose the refusal page; falling back to a plain message."
+              payload="$(jq -nc --arg t "Bug lane: ${FIX_REFS} did not ship in the fast lane (${VERDICT}) over ${STABLE}. ${RUN_URL}" '{text: $t}')"
+            fi
+            if curl -sS --fail -X POST -H 'Content-type: application/json' --data "$payload" "$WEBHOOK_URL"; then
+              delivered=true
+            else
+              echo "::warning::bug-lane refusal page failed to POST — the refusal still holds and stays un-marked, so the next tick pages it again."
+            fi
+          fi
+          echo "delivered=${delivered}" >> "$GITHUB_OUTPUT"
+
+      # Gated on DELIVERY, not on the page step's conclusion. The marker means
+      # "the operator has been told"; writing it after a failed POST would
+      # convert a transient Slack outage into permanent silence for that
+      # refusal — strictly worse than the per-tick flood this replaced, which
+      # at least self-healed on the next tick.
+      - name: Record that this refusal was paged
+        if: steps.page.outputs.delivered == 'true'
+        run: printf '%s\n' "${{ steps.refusal.outputs.sig }}" > "${{ steps.refusal.outputs.marker }}"
+
+      - name: Remember the refusal across ticks
+        if: steps.page.outputs.delivered == 'true'
+        uses: actions/cache/save@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: ${{ steps.refusal.outputs.marker }}
+          key: bug-lane-refusal-${{ steps.refusal.outputs.sig }}
+
+      - name: Fail the run on a refusing verdict
+        if: always()
+        env:
+          VERDICT: ${{ steps.verify.outputs.verdict }}
+        run: |
+          set -euo pipefail
+          case "$VERDICT" in
+            conflict|fail|could-not-verify)
+              echo "::error::bug-lane: verdict ${VERDICT} refuses this batch, so the run concludes failure."
+              exit 1
+              ;;
+          esac

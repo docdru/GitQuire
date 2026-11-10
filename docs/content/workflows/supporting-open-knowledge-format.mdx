@@ -1,0 +1,75 @@
+---
+title: Supporting the Open Knowledge Format
+sidebarTitle: Open Knowledge Format
+icon: LuFileCode
+description: "Start with a small OKF v0.2 knowledge base, keep it portable as it grows, and give agents the format guidance they need."
+---
+
+The **Open Knowledge Format (OKF)** is a portable convention for agent-readable knowledge: Markdown files, YAML frontmatter, and standard links. Use this workflow when the knowledge base may move between tools, teams, or organizations and you want that portability built in from the first file.
+
+OpenKnowledge's **Open Knowledge Format** starter pack creates the minimum useful OKF v0.2 bundle. It also enables the [OKF plugin](/docs/plugins/okf), which warns when later edits would be misread by another OKF consumer.
+
+<Callout type="info">
+  **OKF here means Google's Open Knowledge _Format_.** The format keeps its conformance floor deliberately small: every non-reserved document needs parseable YAML frontmatter with a non-empty `type`. Read the [OKF v0.2 specification](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md).
+</Callout>
+
+## Start with the OKF pack
+
+Seeding needs an initialized project. Run [`ok init`](../get-started/quickstart.mdx), then pick **Open Knowledge Format** in the starter-pack picker, or run:
+
+```bash
+ok seed --pack okf
+```
+
+The pack adds:
+
+| Path | What it provides |
+| --- | --- |
+| `index.md` | The bundle root, declaring `okf_version: "0.2"` and linking to Getting started |
+| `concepts/getting-started.md` | A typed guide to the bundle's purpose and conventions |
+| `concepts/.ok/templates/concept.md` | A starting shape for new concepts, including `type: Concept` and `status: draft` |
+| Project configuration | The OKF plugin enabled for this project |
+| `okf-knowledge-base` | Project skill that teaches agents the format's types, provenance, links, indexes, and logs |
+
+Existing files with the same paths are left alone. Re-seeding fills only what is missing.
+
+## Keep the bundle portable
+
+The starter gives the project a conformant starting point. Three habits keep it portable:
+
+1. Give every non-reserved `.md` document parseable frontmatter with a non-empty `type`.
+2. Keep reserved `index.md` and `log.md` filenames lowercase. An index normally has no frontmatter; only the bundle-root index may declare `okf_version`.
+3. Use standard Markdown links. OpenKnowledge understands `[[wiki-links]]`, but another OKF consumer may not.
+
+Types are an open vocabulary. Choose a useful, stable name for the concept instead of forcing every document into a fixed taxonomy.
+
+## Use the plugin for ongoing feedback
+
+The starter pack shapes the initial files; the **OKF project plugin** watches what happens afterward. Its warnings are advisory and never block a save or an agent edit.
+
+The plugin:
+
+- checks document structure, frontmatter, reserved files, links, and `.mdx` use;
+- advertises generated OKF schemas to agents so they can read the contract before writing;
+- offers the companion OKF agent skill when it is not already in the project;
+- can optionally maintain an `index.md` in every Markdown folder.
+
+Open **Settings → Plugins → OKF** to tune its rules or generated indexes. See the [OKF plugin](/docs/plugins/okf) page for the controls and complete rule reference.
+
+You can also enable the plugin in an existing project without seeding the starter pack. It reports portability gaps but does not rewrite your documents. Index generation is a separate opt-in because those files are machine-owned.
+
+## Work with agents
+
+The project skill gives an agent the judgment the deterministic rules cannot: choosing useful types, recording only real provenance, and preserving trust and lifecycle metadata without inventing it.
+
+Try:
+
+<CopyPrompt>Create a concept for our deployment policy. Follow the OKF guidance, use standard Markdown links, and record only provenance supported by the project.</CopyPrompt>
+
+The plugin checks the resulting shape. The skill guides the content decision.
+
+## Further reading
+
+- **[OKF plugin](/docs/plugins/okf).** Enable the plugin, install its recommended skill, tune rules, and opt into generated indexes.
+- **[Content rules overview](/docs/advanced/content-rules/overview).** Where warnings appear in the editor, CLI, and agent tools.
+- **[Open Knowledge Format v0.2 specification](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md).** The portable format OpenKnowledge implements.

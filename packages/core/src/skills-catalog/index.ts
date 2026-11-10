@@ -1,0 +1,114 @@
+export {
+  ALLOWED_GIT_TRANSPORTS,
+  type Fetched,
+  type FetchedListing,
+  fetchSource,
+  fetchSourceListing,
+  parseSkillsShSource,
+  parseSource,
+  SkillDestinationPolicyError,
+  SkillFetchError,
+  SkillSubpathNotFoundError,
+  type SkillsShSourceRef,
+  type SourceSpec,
+} from './acquire/fetch.ts';
+export {
+  emptySkillsLock,
+  findByContentHash,
+  packMarkerOf,
+  parseSkillsLock,
+  retrofitPackLockEntry,
+  SKILLS_LOCK_FILENAME,
+  SKILLS_LOCK_REL,
+  SKILLS_LOCK_SCHEMA_VERSION,
+  type SkillLockEntry,
+  SkillLockEntrySchema,
+  type SkillsLock,
+  SkillsLockSchema,
+  upsertLockEntry,
+} from './acquire/lockfile.ts';
+export {
+  type AcquiredFile,
+  type AcquiredSkill,
+  acquiredBundleTooLarge,
+  BUNDLE_WALK_IGNORE,
+  discoverSkillDirs,
+  parseSkillDir,
+  parseSkillDirAsync,
+  readSkillDirMeta,
+} from './acquire/parse.ts';
+export {
+  parseSkillsShWebsiteSource,
+  type ResolvedSkillsShImportSource,
+  resolveSkillsShImportSource,
+  type SkillsShWebsiteSource,
+} from './acquire/skills-sh.ts';
+export {
+  discoverWellKnownSkills,
+  type FetchedWellKnownSkill,
+  fetchWellKnownSkill,
+  readWellKnownIndex,
+  type WellKnownFetchOptions,
+  type WellKnownIndex,
+  type WellKnownSkillSummary,
+  type WellKnownSourceSpec,
+} from './acquire/well-known.ts';
+export {
+  groupSkillsByIdentity,
+  SKILL_CANONICAL_PRECEDENCE,
+  type SkillHostId,
+  type SkillIdentityGroup,
+  type SkillOccurrence,
+} from './dedup.ts';
+export {
+  type EnumerateOptions,
+  enumerateInstalledSkills,
+  type InstalledSkillsResult,
+} from './enumerate.ts';
+export { harnessHomes, userGlobalSkillRoots } from './harness-homes.ts';
+export {
+  SKILL_IMPORT_MAX_BUNDLE_FILES,
+  SKILL_IMPORT_MAX_FILE_BYTES,
+  SKILL_IMPORT_MAX_TOTAL_BYTES,
+} from './import-limits.ts';
+export {
+  parseSkillsShLeaderboard,
+  parseSkillsShLeaderboardCards,
+} from './leaderboard.ts';
+export {
+  enumeratePluginProvider,
+  inspectPluginBundleDir,
+  inspectPluginSource,
+  pluginRepositoryUrl,
+  resolvePluginUpdateSource,
+} from './plugin-providers/registry.ts';
+export type {
+  PluginBundleInspection,
+  PluginCapabilities,
+  PluginProviderAdapter,
+  PluginProviderId,
+  PluginSourceInspection,
+} from './plugin-providers/types.ts';
+export { type PluginUpstream, pluginUpstreamsByName } from './plugin-upstream.ts';
+export { parseSkillsShPublisherPage } from './publisher.ts';
+export {
+  type RepoMarketplacePlugin,
+  readRepoMarketplacePlugins,
+  repoMarketplacePluginFor,
+} from './repo-marketplace.ts';
+export { parseGitHubRepoSearch, parseOpenGraph, parseSkillsShSearch } from './search.ts';
+export {
+  buildSkillRegistry,
+  type LocatedSkillOccurrence,
+  type SkillRegistry,
+  skillRegistryKey,
+} from './skill-registry.ts';
+export {
+  isLocalSkillSource,
+  ownerOf,
+  parseSkillsShCatalogSource,
+  type SkillsShCatalogSource,
+  type SkillsShSkillLinks,
+  skillsShSkillLinks,
+  slug,
+} from './source-fields.ts';

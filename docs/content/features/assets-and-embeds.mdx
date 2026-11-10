@@ -1,0 +1,74 @@
+---
+title: Assets and embeds
+icon: LuPaperclip
+description: Drop files into the editor and reference them with wiki-style embeds.
+---
+
+OpenKnowledge treats assets (images, PDFs, video, audio) as first-class content alongside markdown.
+
+## Adding files
+
+Drag files into the editor or paste them. Screenshots paste straight from the clipboard, and any file type is accepted. The file uploads into the project, and the matching block is inserted. You can also insert an image, video, or audio block from the `/` insert menu and upload from its settings.
+
+If the target folder already has a file with the same bytes, OpenKnowledge reuses it instead of writing a duplicate.
+
+AI agents add assets through the MCP [`write`](/docs/reference/mcp) tool's `asset` target, passing exactly one of `content` (the bytes as base64, for small files) or `source` (a local filesystem path the server reads — use it for large files).
+
+### Attachment folder
+
+By default, each document gets its own upload folder beside it: a file added to `notes/meeting.md` goes to `notes/meeting.assets/`. Files uploaded earlier stay where they are. To change this, set **Settings → This project → Preferences → Attachments**, or [`content.attachmentFolderPath`](/docs/reference/configuration) in `.ok/config.yml`.
+
+The path must start with `./`, relative to the document, or `/`, relative to the content root. The settings field rejects a bare name such as `attachments`: write `/attachments` instead. A bare name in an existing config keeps working and is read as `/attachments`. Version 0.86.18 and earlier reject `/attachments`, so update every collaborator before you save it.
+
+| Value | Where files go |
+| --- | --- |
+| `./{{filename}}.assets` (default) | A folder per document, named after it |
+| `./` | Next to the document |
+| `./assets` | A folder next to the document |
+| `/` | The content root |
+| `/attachments` | One folder at the content root |
+
+- `{{filename}}` is the document name without its extension. It is the only variable.
+- The settings field marks an unknown variable, such as `{{FILENAME}}`, and does not save it. If one is in `.ok/config.yml`, uploads are refused until you fix it.
+- Links to these files are content-root paths. They work inside the project, but not in a copy of the document outside it.
+- Renaming or moving a document does not rename its folder, and its links keep working.
+- In shared projects, linkable files in the attachment folder sync to teammates, even when no document sits beside them.
+
+## How assets render
+
+- **Images render inline** with click-to-zoom. Select one to align it left / center / right from the bubble menu, or set alt text and dimensions in its settings.
+- **Video and audio render native players.** The video block also takes YouTube, Vimeo, and Loom URLs and renders each host's own player.
+- **PDFs and other documents** (`.docx`, `.zip`, `.csv`, …) insert a file attachment row — icon, name, size — linking to the file. To render pages in the doc, use the **PDF** block instead: a multi-page viewer with thumbnails, page navigation, and zoom; set `page=3` in its `anchor` setting to open at that page.
+
+In the markdown source, dropped media serializes as `<img>` / `<video>` / `<audio>` and file attachments as wiki-style embeds (`![[report.pdf]]`). You can author the wiki form directly: `![[diagram.png]]` on its own line follows the type rules above, inside a sentence it stays a link, a fragment (`![[report.pdf#page=3]]`) is preserved on the rendered link, and an alias on an image embed sets its alt text (`![[diagram.png|Diagram]]`). Standard `![alt](./chart.png)` image syntax works too. Inside a table cell, escape the alias separator: `![[diagram.png\|Diagram]]` resolves identically to the unescaped form. Byte-for-byte preservation has narrow exceptions, none of them reached by authoring the escape — see [Tables](/docs/features/editor#tables) for what they are.
+
+## Embedding web pages
+
+The **Embed** block renders an external page in an inline iframe — docs, demos, Figma, CodeSandbox. Drag its handles to resize; the dimensions persist into the markdown. Only `http://` / `https://` URLs load, never the editor's own origin; a site that forbids framing renders an empty pane — that's the remote site's policy. YouTube, Vimeo, and Loom watch URLs are rewritten to their embeddable player URLs at render.
+
+## Live HTML embeds
+
+A code block fenced as ` ```html preview ` renders its HTML in a live sandboxed iframe instead of showing the code. The editor's theme tokens (`var(--foreground)`, `var(--chart-1)`, …) are injected into the preview so embeds track light and dark mode; toggle any HTML block between code and preview from its controls.
+
+Type `/embed` for starters: a blank **HTML** canvas plus **Chart**, **Stat cards**, **Custom SVG**, and **Interactive control** templates. Agents get the same starters from the MCP [`palette`](/docs/reference/mcp) tool.
+
+## Diagrams
+
+A ` ```mermaid ` fence renders as a diagram — flowchart, sequence, class, state, ER, gantt, or pie; the **Mermaid** entry in the `/` menu inserts one. Rendered diagrams carry buttons for zoom, pan, and reset; mouse-wheel zoom and drag panning are off, so a diagram holds still while you scroll the doc. Standalone Mermaid files (`.mmd`, `.mermaid`) open the same way — rendered as a diagram in their own pane, with a toggle to read or edit the raw source directly. For a standalone Mermaid file, switching from the rendered diagram to raw source does not by itself discard diagram-label history. That history belongs to the current document session: closing the file's last tab, closing the app, or opening enough other documents that the file drops out of your recently opened set are examples of events that start it fresh. A full replacement from disk also starts it fresh, so an older diagram edit cannot be replayed into the replacement.
+
+## Sharing across apps
+
+Local-path images (`![chart](./Q3-sales.png)`), wiki-embeds (`![[diagram.png]]`), and any other reference whose URL only resolves on your machine cannot render in apps that don't have access to your filesystem. When you copy a section containing one of these and paste into Gmail, Outlook, Notion, Slack, Discord, or Google Docs, OpenKnowledge degrades visibly instead of silently:
+
+- **Non-portable URLs surface as a styled code block.** Recipients see the literal markdown source (e.g. `![chart](./Q3-sales.png)`) in monospace, not a broken-image icon. They can read what the section was meant to include and ask for the file or accept the textual reference.
+- **Inline images in paragraphs surface as inline source.** A paragraph with a local-path image keeps its prose flow; only the `<img>` collapses to inline source markup, and the surrounding sentence is unaffected.
+- **Wiki-links surface as anchor links.** `[[OtherDoc]]` cross-app becomes a clickable `<a href="#otherdoc">OtherDoc</a>`. The link shape signals that something was referenced, though the fragment href will not resolve in the destination.
+
+Two affordances are preserved across the cross-app boundary, not degradations themselves:
+
+- **Markdown-aware destinations get the source.** Linear, Outline, Obsidian, and similar apps that read `text/plain` first receive clean canonical markdown; the cross-app degradation only affects the `text/html` payload that destinations like Gmail render.
+- **OpenKnowledge → OpenKnowledge paste round-trips images and wiki-links.** Copying out of one OpenKnowledge doc and pasting into another preserves the original markdown image and wiki-link shape. Wiki-embeds round-trip when the copied selection carries other markdown signals (a heading, a list, bold); a selection that is only a wiki-embed — or plain prose around one — pastes as literal source text, not a rendered embed.
+
+Source-mode copy (the CodeMirror toggle) works the same way: the clipboard's `text/html` payload is always a styled code block of the raw markdown bytes, never the rendered output. Pasting a `# Heading` from source-mode into Gmail produces a code block, not a rendered heading. This is consistent with VS Code, Obsidian source mode, GitHub textareas, and CodeMirror itself.
+
+If you want recipients to see rendered images cross-app, host the file at a public URL (`https://...`) and reference it that way; public URLs are passed through unchanged. Public IP literals (`https://1.2.3.4/img.png`, `https://[2001:4860:4860::8888]/img.png`) are also passed through; only private, loopback, link-local, and other non-public ranges trigger the source-fallback shape.

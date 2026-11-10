@@ -1,0 +1,546 @@
+import { mkdirSync, utimesSync, writeFileSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { okfAdvertisedSchemaMappings } from '@inkeep/open-knowledge-core';
+import { commitWip, initShadowRepo, type WriterIdentity } from '@inkeep/open-knowledge-server';
+import simpleGit from 'simple-git';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
+import {
+  computeGraphRole,
+  enrichDirectory,
+  enrichPath,
+  parseCommentThreads,
+} from './enrichment.ts';
+
+let tmpDir: string;
+
+beforeEach(async () => {
+  tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-enrich-test-'));
+});
+
+afterEach(async () => {
+  await rm(tmpDir, { recursive: true, force: true });
+});
+
+async function bootstrapProject(): Promise<string> {
+  const project = resolve(tmpDir, 'project');
+  mkdirSync(project, { recursive: true });
+  const git = simpleGit(project);
+  await git.init();
+  configureTestGitRepository(project);
+  await git.raw('config', 'user.name', 'Test');
+  await git.raw('config', 'user.email', 't@t.test');
+  writeFileSync(resolve(project, 'README.md'), '# root\n');
+  await git.add('README.md');
+  await git.commit('init');
+  return project;
+}
+
+describe('enrichPath — slim (multi-path) shape', () => {
+  test('rich fields are null when includeRichFields is false/absent', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(
+      resolve(contentDir, 'auth.md'),
+      '---\ntitle: Auth\ndescription: OAuth\ntags:\n  - auth\n  - oauth\n---\n\nBody\n',
+    );
+
+    const meta = await enrichPath('content/auth.md', { projectDir: project });
+
+    expect(meta.path).toBe('content/auth.md');
+    expect(meta.title).toBe('Auth');
+    expect(meta.description).toBe('OAuth');
+    expect(meta.tags).toEqual(['auth', 'oauth']);
+    expect(meta.backlinkCount).toBe(null);
+    expect(meta.history).toBe(null);
+    expect(meta.historySource).toBe(null);
+  });
+
+  test('tolerates missing frontmatter — title/description undefined, tags empty', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(resolve(contentDir, 'plain.md'), 'Just body\n');
+
+    const meta = await enrichPath('content/plain.md', { projectDir: project });
+
+    expect(meta.title).toBeUndefined();
+    expect(meta.description).toBeUndefined();
+    expect(meta.tags).toEqual([]);
+  });
+
+  test('falls back to the first H1 when frontmatter carries no title', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(resolve(contentDir, 'someday.md'), '# Someday / Open Loops\n\nBody\n');
+    writeFileSync(resolve(contentDir, 'loops.md'), '---\ntags:\n  - inbox\n---\n\n# Open Loops\n');
+    writeFileSync(resolve(contentDir, 'auth.md'), '---\ntitle: Auth\n---\n\n# Ignore me\n');
+
+    const someday = await enrichPath('content/someday.md', { projectDir: project });
+    const loops = await enrichPath('content/loops.md', { projectDir: project });
+    const auth = await enrichPath('content/auth.md', { projectDir: project });
+
+    expect(someday.title).toBe('Someday / Open Loops');
+    expect(loops.title).toBe('Open Loops');
+    expect(auth.title).toBe('Auth');
+  });
+
+  test('frontmatter under trailing-whitespace fences still enriches title/description/tags', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(
+      resolve(contentDir, 'open-space.md'),
+      '--- \ntitle: Auth\ndescription: OAuth\ntags:\n  - auth\n---\n\nBody\n',
+    );
+    writeFileSync(resolve(contentDir, 'close-tab.md'), '---\ntitle: Sessions\n---\t\n\nBody\n');
+
+    const openSpace = await enrichPath('content/open-space.md', { projectDir: project });
+    expect(openSpace.title).toBe('Auth');
+    expect(openSpace.description).toBe('OAuth');
+    expect(openSpace.tags).toEqual(['auth']);
+
+    const closeTab = await enrichPath('content/close-tab.md', { projectDir: project });
+    expect(closeTab.title).toBe('Sessions');
+  });
+
+  test('missing file still returns a slim shape with tags=[]', async () => {
+    const project = await bootstrapProject();
+    const meta = await enrichPath('does-not-exist.md', { projectDir: project });
+    expect(meta.path).toBe('does-not-exist.md');
+    expect(meta.tags).toEqual([]);
+  });
+});
+
+describe('enrichPath — rich (single-path) shape', () => {
+  test('populates history from shadow repo and backlinkCount=null when no serverUrl', async () => {
+    const project = await bootstrapProject();
+    const shadow = await initShadowRepo(project);
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(resolve(contentDir, 'auth.md'), '---\ntitle: Auth\n---\nBody\n');
+    const writer: WriterIdentity = { id: 'agent-x', name: 'X', email: 'x@t.test' };
+    const branch = (await simpleGit(project).revparse(['--abbrev-ref', 'HEAD'])).trim();
+    await commitWip(shadow, writer, contentDir, 'initial', branch);
+
+    const meta = await enrichPath(
+      'content/auth.md',
+      { projectDir: project },
+      { includeRichFields: true },
+    );
+
+    expect(meta.title).toBe('Auth');
+    expect(meta.historySource).toBe('shadow-repo');
+    expect(meta.history).not.toBeNull();
+    expect(meta.history?.length).toBe(1);
+    expect(meta.history?.[0].writerClassification).toBe('agent');
+    expect(meta.history?.[0].message).toBe('initial');
+    expect(meta.backlinkCount).toBe(null);
+  });
+
+  test('returns historySource="shadow-repo-absent" when no shadow repo exists', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(resolve(contentDir, 'auth.md'), '---\ntitle: Auth\n---\nBody\n');
+
+    const meta = await enrichPath(
+      'content/auth.md',
+      { projectDir: project },
+      { includeRichFields: true },
+    );
+
+    expect(meta.historySource).toBe('shadow-repo-absent');
+    expect(meta.history).toEqual([]);
+    expect(meta.backlinkCount).toBe(null);
+  });
+});
+
+describe('enrichPath — folder frontmatter does NOT cascade into docs (self-only)', () => {
+  test('a doc with no frontmatter, inside a folder whose .ok sets tags, returns {} / []', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'specs/.ok'), { recursive: true });
+    writeFileSync(resolve(project, 'specs/foo.md'), '# foo\n');
+    writeFileSync(
+      resolve(project, 'specs/.ok/frontmatter.yml'),
+      'title: Specs\ndescription: Spec docs\ntags:\n  - spec\n',
+    );
+
+    const meta = await enrichPath('specs/foo.md', { projectDir: project });
+    expect(meta.title).toBe('foo');
+    expect(meta.description).toBeUndefined();
+    expect(meta.tags).toEqual([]);
+    expect(meta.frontmatter).toEqual({});
+  });
+
+  test("a doc's own frontmatter is returned unmodified by the folder's .ok/frontmatter.yml", async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'specs/.ok'), { recursive: true });
+    writeFileSync(
+      resolve(project, 'specs/foo.md'),
+      '---\ntitle: File\ntags:\n  - file-tag\n---\nBody\n',
+    );
+    writeFileSync(
+      resolve(project, 'specs/.ok/frontmatter.yml'),
+      'title: Nested\ndescription: Nested desc\ntags:\n  - nested-tag\n',
+    );
+
+    const meta = await enrichPath('specs/foo.md', { projectDir: project });
+    expect(meta.title).toBe('File');
+    expect(meta.description).toBeUndefined();
+    expect(meta.tags).toEqual(['file-tag']);
+    expect(meta.frontmatter).toEqual({ title: 'File', tags: ['file-tag'] });
+  });
+
+  test('a root doc does not inherit the project-root .ok/frontmatter.yml', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, '.ok'), { recursive: true });
+    writeFileSync(resolve(project, 'top.md'), '# top\n');
+    writeFileSync(resolve(project, '.ok/frontmatter.yml'), 'title: Root Default\ntags:\n  - kb\n');
+
+    const meta = await enrichPath('top.md', { projectDir: project });
+    expect(meta.title).toBe('top');
+    expect(meta.tags).toEqual([]);
+    expect(meta.frontmatter).toEqual({});
+  });
+});
+
+describe('enrichDirectory — self-only folder frontmatter', () => {
+  test('no nested .ok/frontmatter.yml → DirectoryMeta has no title/description/tags', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'specs'), { recursive: true });
+    writeFileSync(resolve(project, 'specs/foo.md'), '---\ntitle: Foo\n---\nBody\n');
+
+    const meta = await enrichDirectory('specs', { projectDir: project });
+    expect(meta.type).toBe('directory');
+    expect(meta.title).toBeUndefined();
+    expect(meta.description).toBeUndefined();
+    expect(meta.tags).toBeUndefined();
+    expect(meta.recursiveMdCount).toBe(1);
+  });
+
+  test("the folder's own .ok/frontmatter.yml attaches title/description/tags to the directory", async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'specs/.ok'), { recursive: true });
+    writeFileSync(resolve(project, 'specs/foo.md'), '---\ntitle: Foo\n---\nBody\n');
+    writeFileSync(
+      resolve(project, 'specs/.ok/frontmatter.yml'),
+      'title: Specs\ndescription: Spec docs\ntags:\n  - spec\n',
+    );
+
+    const meta = await enrichDirectory('specs', { projectDir: project });
+    expect(meta.title).toBe('Specs');
+    expect(meta.description).toBe('Spec docs');
+    expect(meta.tags).toEqual(['spec']);
+    expect(meta.recursiveMdCount).toBe(1);
+  });
+
+  test('does NOT inherit folder frontmatter from ancestor directories', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'a/.ok'), { recursive: true });
+    mkdirSync(resolve(project, 'a/b/.ok'), { recursive: true });
+    writeFileSync(resolve(project, 'a/.ok/frontmatter.yml'), 'description: A desc\ntags:\n  - a\n');
+    writeFileSync(resolve(project, 'a/b/.ok/frontmatter.yml'), 'title: B\n');
+    writeFileSync(resolve(project, 'a/b/foo.md'), '# foo\n');
+
+    const meta = await enrichDirectory('a/b', { projectDir: project });
+    expect(meta.title).toBe('B');
+    expect(meta.description).toBeUndefined();
+    expect(meta.tags).toBeUndefined();
+  });
+});
+
+describe('enrichPath/enrichDirectory — defense-in-depth path containment', () => {
+  test('enrichPath rejects `../` escape from projectDir', async () => {
+    const project = await bootstrapProject();
+    await expect(enrichPath('../etc/passwd', { projectDir: project })).rejects.toThrow(
+      /escapes the configured root/,
+    );
+  });
+
+  test('enrichPath rejects absolute path outside projectDir', async () => {
+    const project = await bootstrapProject();
+    await expect(enrichPath('/etc/passwd', { projectDir: project })).rejects.toThrow(
+      /escapes the configured root/,
+    );
+  });
+
+  test('enrichDirectory rejects `../` escape from projectDir', async () => {
+    const project = await bootstrapProject();
+    await expect(enrichDirectory('../', { projectDir: project })).rejects.toThrow(
+      /escapes the configured root/,
+    );
+  });
+
+  test('enrichDirectory rejects absolute path outside projectDir', async () => {
+    const project = await bootstrapProject();
+    await expect(enrichDirectory('/etc', { projectDir: project })).rejects.toThrow(
+      /escapes the configured root/,
+    );
+  });
+});
+
+describe('computeGraphRole', () => {
+  test('null when neither count is known', () => {
+    expect(computeGraphRole(null, null)).toBe(null);
+  });
+  test('null on partial data (one count unknown)', () => {
+    expect(computeGraphRole(null, 3)).toBe(null);
+    expect(computeGraphRole(3, null)).toBe(null);
+  });
+  test('orphan when there are no links', () => {
+    expect(computeGraphRole(0, 0)).toBe('orphan');
+  });
+  test('hub at or above the inbound floor', () => {
+    expect(computeGraphRole(5, 0)).toBe('hub');
+    expect(computeGraphRole(9, 2)).toBe('hub');
+  });
+  test('connector with links in and out below the hub floor', () => {
+    expect(computeGraphRole(2, 3)).toBe('connector');
+  });
+  test('one below the hub floor is a connector, not a hub', () => {
+    expect(computeGraphRole(4, 1)).toBe('connector');
+  });
+  test('leaf with a few links in one direction only', () => {
+    expect(computeGraphRole(0, 2)).toBe('leaf');
+    expect(computeGraphRole(2, 0)).toBe('leaf');
+  });
+});
+
+describe('schemas_applicable — read-time schema advertisement', () => {
+  const MAPPINGS = [
+    { appliesTo: ['docs/**', '!**/{index,log}'], file: '.ok/schemas/doc.schema.json' },
+    { appliesTo: 'specs/**', file: '.ok/schemas/spec.schema.json' },
+  ];
+
+  test('a doc matching one mapping advertises that schema file', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'docs'), { recursive: true });
+    writeFileSync(resolve(project, 'docs', 'guide.md'), '---\ntitle: G\n---\n');
+    const meta = await enrichPath('docs/guide.md', {
+      projectDir: project,
+      frontmatterSchemas: MAPPINGS,
+    });
+    expect(meta.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
+  });
+
+  test('the OKF profile advertises by path, scoped per document', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'notes'), { recursive: true });
+    writeFileSync(resolve(project, 'notes', 'concept.md'), '---\ntype: Metric\n---\n');
+    writeFileSync(resolve(project, 'index.md'), '---\nokf_version: "0.2"\n---\n');
+    writeFileSync(resolve(project, 'notes', 'index.md'), '# Notes\n');
+    writeFileSync(resolve(project, 'log.md'), '---\ntype: Log\n---\n');
+
+    const advertise = async (path: string) =>
+      (
+        await enrichPath(path, {
+          projectDir: project,
+          frontmatterSchemas: okfAdvertisedSchemaMappings(undefined),
+        })
+      ).schemas_applicable;
+
+    expect(await advertise('notes/concept.md')).toEqual([
+      '.ok/okf/required.schema.json',
+      '.ok/okf/recommended.schema.json',
+      '.ok/okf/provenance.schema.json',
+      '.ok/okf/computation.schema.json',
+    ]);
+    expect(await advertise('index.md')).toEqual(['.ok/okf/root-index.schema.json']);
+    expect(await advertise('notes/index.md')).toEqual(['.ok/okf/reserved-index.schema.json']);
+    expect(await advertise('log.md')).toBeUndefined();
+  });
+
+  test('a rule switched off stops advertising its schema', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'notes'), { recursive: true });
+    writeFileSync(resolve(project, 'notes', 'concept.md'), '---\ntype: Metric\n---\n');
+    const meta = await enrichPath('notes/concept.md', {
+      projectDir: project,
+      frontmatterSchemas: okfAdvertisedSchemaMappings({
+        'frontmatter-provenance': false,
+        'frontmatter-computation': false,
+      }),
+    });
+    expect(meta.schemas_applicable).toEqual([
+      '.ok/okf/required.schema.json',
+      '.ok/okf/recommended.schema.json',
+    ]);
+  });
+
+  test('a disabled mapping is not advertised', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'docs'), { recursive: true });
+    writeFileSync(resolve(project, 'docs', 'guide.md'), '---\ntitle: G\n---\n');
+    const meta = await enrichPath('docs/guide.md', {
+      projectDir: project,
+      frontmatterSchemas: [
+        { appliesTo: 'docs/**', file: '.ok/schemas/doc.schema.json', enabled: false },
+      ],
+    });
+    expect(meta.schemas_applicable).toBeUndefined();
+  });
+
+  test('a doc matching no mapping (negated name) has no advertisement', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'docs'), { recursive: true });
+    writeFileSync(resolve(project, 'docs', 'index.md'), '---\ntitle: I\n---\n');
+    const meta = await enrichPath('docs/index.md', {
+      projectDir: project,
+      frontmatterSchemas: MAPPINGS,
+    });
+    expect(meta.schemas_applicable).toBeUndefined();
+  });
+
+  test('no mappings passed (plugin disabled) means no advertisement', async () => {
+    const project = await bootstrapProject();
+    writeFileSync(resolve(project, 'a.md'), '# A\n');
+    const meta = await enrichPath('a.md', { projectDir: project });
+    expect(meta.schemas_applicable).toBeUndefined();
+  });
+
+  test('folder-level advertisement covers the new-file gap', async () => {
+    const project = await bootstrapProject();
+    mkdirSync(resolve(project, 'docs'), { recursive: true });
+    const dir = await enrichDirectory('docs', {
+      projectDir: project,
+      frontmatterSchemas: MAPPINGS,
+    });
+    expect(dir.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
+    const other = await enrichDirectory('', { projectDir: project, frontmatterSchemas: MAPPINGS });
+    expect(other.schemas_applicable).toBeUndefined();
+  });
+
+  test('content.dir rebasing: appliesTo matches content-relative paths', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'kb');
+    mkdirSync(resolve(contentDir, 'docs'), { recursive: true });
+    writeFileSync(resolve(contentDir, 'docs', 'guide.md'), '---\ntitle: G\n---\n');
+    const meta = await enrichPath('kb/docs/guide.md', {
+      projectDir: project,
+      contentDir,
+      frontmatterSchemas: MAPPINGS,
+    });
+    expect(meta.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
+  });
+});
+
+describe('parseCommentThreads', () => {
+  const wireThread = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+    threadId: 't1',
+    docName: 'notes/rollout',
+    anchor: { exact: 'minimal downtime', prefix: 'with ', suffix: '.', start: 10, end: 26 },
+    state: 'anchored',
+    queued: false,
+    latestComment: 'still accurate?',
+    createdBy: 'principal-x',
+    createdAt: 1,
+    ...overrides,
+  });
+
+  test('lifts the ask and the anchored passage', () => {
+    expect(parseCommentThreads([wireThread()])).toEqual([
+      {
+        threadId: 't1',
+        body: 'still accurate?',
+        quote: 'minimal downtime',
+        state: 'anchored',
+        queued: false,
+      },
+    ]);
+  });
+
+  test('keeps orphaned threads, drops resolved ones', () => {
+    expect(parseCommentThreads([wireThread({ state: 'orphaned' })])[0]?.state).toBe('orphaned');
+    expect(parseCommentThreads([wireThread({ state: 'resolved' })])).toEqual([]);
+  });
+
+  test('carries the queued flag — staged to send, still outstanding', () => {
+    expect(parseCommentThreads([wireThread({ queued: true })])[0]?.queued).toBe(true);
+  });
+
+  test('skips malformed rows without blanking the rest', () => {
+    const parsed = parseCommentThreads([
+      null,
+      'nonsense',
+      wireThread({ threadId: '' }),
+      wireThread({ state: 'unheard-of' }),
+      wireThread({ threadId: 'good' }),
+    ]);
+    expect(parsed.map((c) => c.threadId)).toEqual(['good']);
+  });
+
+  test('tolerates a missing anchor or non-string body', () => {
+    expect(parseCommentThreads([wireThread({ anchor: undefined, latestComment: 7 })])).toEqual([
+      { threadId: 't1', body: '', quote: '', state: 'anchored', queued: false },
+    ]);
+  });
+
+  test('a non-array payload is no comments, not a crash', () => {
+    expect(parseCommentThreads(undefined)).toEqual([]);
+    expect(parseCommentThreads({ threads: [] })).toEqual([]);
+  });
+});
+
+describe('the title ladder reads the same on every surface', () => {
+  test('a blank or whitespace-only `title:` falls through to the H1, not over it', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(resolve(contentDir, 'empty.md'), '---\ntitle: ""\n---\n\n# Real Title\n');
+    writeFileSync(resolve(contentDir, 'spaces.md'), '---\ntitle: "   "\n---\n\n# Also Real\n');
+    writeFileSync(resolve(contentDir, 'bare.md'), '---\ntitle: ""\n---\n\nBody only\n');
+
+    expect((await enrichPath('content/empty.md', { projectDir: project })).title).toBe(
+      'Real Title',
+    );
+    expect((await enrichPath('content/spaces.md', { projectDir: project })).title).toBe(
+      'Also Real',
+    );
+    expect((await enrichPath('content/bare.md', { projectDir: project })).title).toBeUndefined();
+  });
+
+  test('a padded `title:` is trimmed, matching extractPageTitle', async () => {
+    const project = await bootstrapProject();
+    const contentDir = resolve(project, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    writeFileSync(resolve(contentDir, 'padded.md'), '---\ntitle: "  Foo  "\n---\n\n# Heading\n');
+
+    expect((await enrichPath('content/padded.md', { projectDir: project })).title).toBe('Foo');
+  });
+
+  test('enrichDirectory mostRecentMd walks the SAME ladder', async () => {
+    const project = await bootstrapProject();
+    const dir = resolve(project, 'notes');
+    mkdirSync(dir, { recursive: true });
+
+    let tick = 1_700_000_000;
+    const writeNewest = (name: string, body: string): void => {
+      const p = resolve(dir, name);
+      writeFileSync(p, body);
+      tick += 60;
+      const t = new Date(tick * 1000);
+      utimesSync(p, t, t);
+    };
+
+    writeNewest('a.md', '# From The Heading\n');
+    const headingOnly = await enrichDirectory('notes', { projectDir: project });
+    expect(headingOnly.mostRecentMd?.title).toBe('From The Heading');
+
+    writeNewest('b.md', '---\ntitle: Explicit\n---\n\n# Ignored\n');
+    const titled = await enrichDirectory('notes', { projectDir: project });
+    expect(titled.mostRecentMd?.title).toBe('Explicit');
+
+    writeNewest('c.md', '---\ntitle: "  "\n---\n\n# Blank Falls Through\n');
+    const blank = await enrichDirectory('notes', { projectDir: project });
+    expect(blank.mostRecentMd?.title).toBe('Blank Falls Through');
+
+    writeNewest('d.md', 'just a body\n');
+    const bare = await enrichDirectory('notes', { projectDir: project });
+    expect(bare.mostRecentMd?.title).toBe('d.md');
+  });
+});

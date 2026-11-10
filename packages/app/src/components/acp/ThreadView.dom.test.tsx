@@ -1,0 +1,6550 @@
+import {
+  THREAD_EXIT_STDERR_WINDOW_LINES,
+  type ThreadAuthTerminalLaunch,
+  type ThreadEvent,
+  type ThreadExitDiagnosis,
+  type ThreadInfo,
+} from '@inkeep/open-knowledge-core/acp/thread-protocol';
+import { i18n } from '@lingui/core';
+import {
+  act,
+  cleanup,
+  createEvent,
+  fireEvent,
+  render as rtlRender,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, expect, onTestFinished, test, vi } from 'vitest';
+import { notifySignInTerminalExited } from '@/components/handoff/sign-in-terminal-events';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { MAX_TOTAL_ATTACHMENT_BYTES } from '@/lib/acp/image-attachment';
+import { stubImageCanvas } from '@/lib/acp/image-canvas.test-helper';
+import type { RemoteModelCandidate } from '@/lib/acp/model-candidates';
+import type {
+  RenderedItem,
+  RenderedTerminal,
+  ThreadRenderModel,
+} from '@/lib/acp/thread-event-model';
+import { installPointerPositionTracker } from '@/lib/pointer-position';
+import { consumeWorkspaceHashWrite } from '@/lib/workspace-hash-writes';
+import {
+  expectVisualClassTokens,
+  expectVisualClassTokensAbsent,
+} from '@/test-utils/visual-contract';
+import { MockComposerMentionInput } from './composer-mention-input.test-helper';
+
+i18n.load('en', {});
+i18n.activate('en');
+
+const render = (ui: Parameters<typeof rtlRender>[0]) => rtlRender(ui, { wrapper: TooltipProvider });
+
+let model: ThreadRenderModel | null = null;
+let threadState = {
+  info: undefined,
+  events: [] as unknown[],
+  lastSeq: 5,
+  replayThroughSeq: 5,
+};
+const respondPermission = vi.fn((_threadId: string, _requestId: string, _outcome: unknown) => {});
+const setConfigOption = vi.fn(
+  (_threadId: string, _configId: string, _value: string | boolean) => {},
+);
+const setMode = vi.fn((_threadId: string, _modeId: string) => {});
+let setContextWindowResult: () => Promise<unknown> = () => Promise.resolve({});
+const setContextWindow = vi.fn((_threadId: string, _tokens: number) => setContextWindowResult());
+const prompt = vi.fn((_threadId: string, _content: string) => {});
+const steer = vi.fn((_threadId: string, _content: string) => {});
+let editQueuedResult: Promise<void> = Promise.resolve();
+const editQueued = vi.fn((_threadId: string, _id: string, _content: string) => editQueuedResult);
+const holdQueued = vi.fn((_threadId: string, _id: string, _held: boolean) => {});
+const removeQueued = vi.fn((_threadId: string, _id: string) => {});
+const sendQueuedNow = vi.fn((_threadId: string, _id: string) => {});
+const setChatGrant = vi.fn((_threadId: string, _grant: string, _enabled: boolean) => {});
+const toastError = vi.fn((_message: string) => {});
+const cancel = vi.fn((_threadId: string) => {});
+const retryThread = vi.fn(
+  async (_threadId: string): Promise<ThreadInfo> => makeInfo({ status: 'ready' }),
+);
+const FIXTURE_TERMINAL_LAUNCH: ThreadAuthTerminalLaunch = {
+  executable: '/rt/bin/npx',
+  args: ['-y', '@augmentcode/auggie@1.2.3', '--acp', 'login'],
+  env: { AUGGIE_LOGIN_FLOW: 'terminal' },
+  pathPrepend: ['/rt/bin'],
+};
+const terminalAuthLaunch = vi.fn(
+  async (_threadId: string, _methodId: string): Promise<ThreadAuthTerminalLaunch> =>
+    FIXTURE_TERMINAL_LAUNCH,
+);
+const createThread = vi.fn(
+  async (_params: unknown): Promise<unknown> => ({
+    threadId: 'thread-2',
+  }),
+);
+const resumeThread = vi.fn(
+  async (_threadId: string, _prompt?: string, _attachments?: unknown) => {},
+);
+let authenticateResult: Promise<void> = Promise.resolve();
+const authenticateThread = vi.fn((_threadId: string, _methodId: string) => authenticateResult);
+
+vi.doMock('@/lib/acp/thread-client', () => ({
+  getAgentThreadClient: () => ({
+    respondPermission,
+    respondRuntimeConsent: () => {},
+    cancel,
+    prompt,
+    steer,
+    editQueued,
+    holdQueued,
+    removeQueued,
+    sendQueuedNow,
+    setChatGrant,
+    setMode,
+    setConfigOption,
+    setContextWindow,
+    closeThread: () => {},
+    createThread,
+    resumeThread,
+    retryThread,
+    terminalAuthLaunch,
+    authenticateThread,
+    getThread: () => null,
+    subscribe: () => () => {},
+  }),
+  ThreadResumeError: class ThreadResumeError extends Error {
+    readonly code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+    }
+  },
+  ThreadRetryError: class ThreadRetryError extends Error {
+    readonly code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+    }
+  },
+  ThreadContextWindowError: class ThreadContextWindowError extends Error {
+    readonly code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+    }
+  },
+  ThreadChannelUnavailableError: class ThreadChannelUnavailableError extends Error {},
+  useAgentThread: () => threadState,
+  useAgentThreadModel: () => model,
+}));
+
+vi.doMock('sonner', () => ({
+  toast: { error: toastError, success: vi.fn(), info: vi.fn() },
+}));
+
+let activeDocName: string | null = null;
+vi.doMock('@/editor/DocumentContext', () => ({
+  useDocumentContext: () => ({ systemProvider: null, activeDocName }),
+}));
+
+vi.doMock('@/lib/use-workspace', () => ({
+  useWorkspace: () => null,
+}));
+
+vi.doMock('@/components/acp/AgentMarkdown', () => ({
+  AgentMarkdown: ({ text }: { text: string }) => <div data-testid="rendered-markdown">{text}</div>,
+}));
+
+vi.doMock('@/editor/ComposerMentionInput', () => ({
+  ComposerMentionInput: MockComposerMentionInput,
+}));
+
+let modelCandidates: readonly RemoteModelCandidate[] = [];
+vi.doMock('@/lib/acp/model-candidates', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/acp/model-candidates')>(
+    '@/lib/acp/model-candidates',
+  );
+  return { ...actual, useModelCandidates: () => modelCandidates };
+});
+
+const { ThreadView } = await import('./ThreadView');
+const {
+  readThreadDraft,
+  resetStagedThreadDrafts,
+  stageThreadDraftContent,
+  subscribeStagedThreadDraft,
+} = await import('@/lib/acp/thread-draft-staging');
+const { launchAgentThread } = await import('@/lib/acp/launch-agent-thread');
+const { ThreadContextWindowError, ThreadResumeError, ThreadRetryError } = await import(
+  '@/lib/acp/thread-client'
+);
+const { buildThreadRenderModel } = await import('@/lib/acp/thread-event-model');
+const {
+  agentSettingsKey,
+  getRememberedAgentConfig,
+  getRememberedAgentContextWindow,
+  getRememberedAgentMode,
+} = await import('@/lib/acp/agent-settings-store');
+
+function makeInfo(overrides?: Partial<ThreadInfo>): ThreadInfo {
+  return {
+    threadId: 'thread-1',
+    agent: { id: 'claude', name: 'Claude Agent', source: 'registry' },
+    title: 'Test thread',
+    status: 'running',
+    createdAt: 1,
+    lastActivityAt: 2,
+    lastSeq: 5,
+    archived: false,
+    ...overrides,
+  };
+}
+
+function makeModel(overrides?: Partial<ThreadRenderModel>): ThreadRenderModel {
+  return {
+    items: [],
+    plan: [],
+    turnActive: true,
+    tokenUsage: null,
+    terminals: {},
+    permissionsByToolCall: {},
+    ...overrides,
+  };
+}
+
+function toolCall(overrides?: Partial<Extract<RenderedItem, { kind: 'tool_call' }>>) {
+  return {
+    kind: 'tool_call' as const,
+    toolCallId: 'c1',
+    title: 'Run tests',
+    toolKind: 'execute',
+    status: 'in_progress' as const,
+    diffs: [],
+    terminalIds: [],
+    content: [],
+    locations: [],
+    rawInput: undefined,
+    ...overrides,
+  };
+}
+
+describe('ThreadView failed tool rows', () => {
+  const okTool = 'mcp__open-knowledge__write';
+
+  test('a failure it recognises says what to do about it and offers the error for pasting', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        toolCall({
+          title: okTool,
+          status: 'failed',
+          content: ['Error: Server unreachable: fetch failed'],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const help = screen.getByTestId('agent-thread-tool-failure-help');
+    expect(help.textContent).toContain('start a new chat');
+    expect(screen.getByRole('button', { name: 'Copy error' })).toBeTruthy();
+  });
+
+  test('a denial shows even when the failed call left nothing else to show', () => {
+    const denial = permission({
+      toolCallId: 'c1',
+      mergedIntoToolCall: true,
+      options: [{ optionId: 'no', name: 'Reject', kind: 'reject_once' }],
+      resolved: { optionId: 'no', auto: false },
+    });
+    model = makeModel({
+      turnActive: false,
+      items: [toolCall({ status: 'failed' }), denial],
+      permissionsByToolCall: { c1: denial },
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-tool-failure-help').textContent).toContain(
+      'You denied this',
+    );
+    expect(screen.queryByRole('button', { name: 'Copy error' })).toBeNull();
+  });
+
+  test('another tool with a lookalike error gets no OpenKnowledge advice', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [toolCall({ status: 'failed', content: ['TypeError: fetch failed'] })],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-tool-failure-help').textContent?.trim()).toBe('');
+  });
+
+  test('a tool you denied says so and how to let it run', () => {
+    const denial = permission({
+      toolCallId: 'c1',
+      mergedIntoToolCall: true,
+      options: [{ optionId: 'no', name: 'Reject', kind: 'reject_once' }],
+      resolved: { optionId: 'no', auto: false },
+    });
+    model = makeModel({
+      turnActive: false,
+      items: [toolCall({ status: 'failed', content: ['User refused permission'] }), denial],
+      permissionsByToolCall: { c1: denial },
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-tool-failure-help').textContent).toContain(
+      'You denied this',
+    );
+  });
+
+  test('a failure it does not recognise still offers the error, and invents no advice', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [toolCall({ status: 'failed', content: ['Error: exit code 2'] })],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const help = screen.getByTestId('agent-thread-tool-failure-help');
+    expect(help.textContent?.trim()).toBe('');
+    expect(screen.getByTestId('agent-thread-tool-failure-copy')).toBeTruthy();
+  });
+
+  test('a tool call that has not failed carries no error help at all', () => {
+    for (const status of ['in_progress', 'completed'] as const) {
+      model = makeModel({
+        turnActive: false,
+        items: [toolCall({ status, content: ['all good'] })],
+      });
+      const view = render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+      expect({ status, help: screen.queryByTestId('agent-thread-tool-failure-help') }).toEqual({
+        status,
+        help: null,
+      });
+      view.unmount();
+    }
+  });
+
+  test('the copy button carries the raw error, not the rendered hint', async () => {
+    const writeText = vi.fn((_text: string) => Promise.resolve());
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+    try {
+      model = makeModel({
+        turnActive: false,
+        items: [
+          toolCall({
+            title: okTool,
+            status: 'failed',
+            content: ['Error: Server unreachable: fetch failed'],
+          }),
+        ],
+      });
+      render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+      await userEvent.click(screen.getByRole('button', { name: 'Copy error' }));
+      await waitFor(() =>
+        expect(writeText).toHaveBeenCalledWith('Error: Server unreachable: fetch failed'),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe('ThreadView permission gate shows the command', () => {
+  const COMPOUND =
+    'ps -p $$ -o pid,command 2>/dev/null | tail -n +1; echo "----unavailable----"; curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://localhost:5173/ 2>&1 || echo "curl failed"';
+
+  const request = (toolCall: Record<string, unknown>): ThreadEvent => ({
+    kind: 'permission_request',
+    requestId: 'r1',
+    toolCall: {
+      toolCallId: 'tc1',
+      title: 'Run a diagnostic',
+      kind: 'execute',
+      ...toolCall,
+    } as never,
+    options: [{ optionId: 'yes', name: 'Allow', kind: 'allow_once' }],
+    ts: 3,
+  });
+  const call = (update: Record<string, unknown>): ThreadEvent => ({
+    kind: 'session_update',
+    update: {
+      sessionUpdate: 'tool_call',
+      toolCallId: 'tc1',
+      title: 'Run a diagnostic',
+      kind: 'execute',
+      status: 'pending',
+      ...update,
+    } as never,
+    ts: 2,
+  });
+  const showGate = (...events: ThreadEvent[]): void => {
+    model = buildThreadRenderModel([{ kind: 'turn_started', ts: 1 }, ...events], null);
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+  };
+  const commandLines = (): string[] =>
+    [...screen.getByTestId('agent-thread-permission-command').querySelectorAll('code > span')].map(
+      (row) => row.textContent ?? '',
+    );
+
+  test('the gate shows the command it is asking you to approve, not just the description', () => {
+    showGate(
+      call({ rawInput: { command: COMPOUND } }),
+      request({
+        title: 'Run a long compound diagnostic',
+        rawInput: { command: COMPOUND, description: 'Run a long compound diagnostic' },
+      }),
+    );
+
+    const body = screen.getByTestId('agent-thread-permission-command');
+    expect(body.textContent).toContain('ps -p $$');
+    expect(body.textContent).toContain('curl failed');
+  });
+
+  test('a request that arrives before its call shows the command it carries', () => {
+    showGate(request({ rawInput: { command: 'ls -la' } }));
+
+    expect(commandLines()).toEqual(['ls -la']);
+  });
+
+  test('a Codex exec approval, which lands before its call, shows the script inside its shell wrapper', () => {
+    showGate(
+      request({
+        rawInput: {
+          call_id: 'tc1',
+          command: ['/bin/zsh', '-lc', 'ls; pwd'],
+          cwd: '/repo',
+          parsed_cmd: [],
+        },
+      }),
+    );
+
+    expect(commandLines()).toEqual(['ls;', 'pwd']);
+  });
+
+  test("the gate shows the request's own command, not the one on the call it gates", () => {
+    showGate(
+      call({ rawInput: { command: 'echo from-call' } }),
+      request({ rawInput: { command: 'echo from-request' } }),
+    );
+
+    expect(commandLines()).toEqual(['echo from-request']);
+  });
+
+  test('each statement lands on its own line rather than one unreadable run', () => {
+    showGate(request({ rawInput: { command: 'one && two; three' } }));
+
+    expect(commandLines()).toEqual(['one &&', 'two;', 'three']);
+  });
+
+  test('a long command stays whole, with nothing to expand, while the gate waits for an answer', () => {
+    const long = Array.from({ length: 10 }, (_, index) => `step${index}`).join('; ');
+    showGate(request({ rawInput: { command: long } }));
+
+    expect(commandLines()).toHaveLength(10);
+    expect(commandLines().at(-1)).toBe('step9');
+    expect(
+      within(screen.getByTestId('agent-thread-permission-command')).queryByRole('button'),
+    ).toBeNull();
+  });
+
+  test('the command reads left to right as code and is never auto-translated, whatever the page direction', () => {
+    document.documentElement.dir = 'rtl';
+    try {
+      showGate(request({ rawInput: { command: 'one && two' } }));
+
+      const pre = screen.getByTestId('agent-thread-permission-command').querySelector('pre');
+      expect(pre?.getAttribute('dir')).toBe('ltr');
+      expect(pre?.getAttribute('translate')).toBe('no');
+      expect(pre?.querySelector('code')?.textContent).toBe('one &&\ntwo');
+      expect(pre?.querySelector('div')).toBeNull();
+    } finally {
+      document.documentElement.dir = '';
+    }
+  });
+
+  test('the button that takes focus is described by the command, inside a group named by the request', () => {
+    showGate(request({ title: 'Run the tests', rawInput: { command: 'npm test' } }));
+
+    const gate = screen.getByRole('group', { name: 'Run the tests' });
+    expect(
+      within(gate).getByRole('button', { name: 'Allow', description: 'npm test' }),
+    ).toBeTruthy();
+  });
+
+  test('hidden characters in the command are spelled out, with a warning', () => {
+    showGate(request({ rawInput: { command: 'echo safe\u202e; rm -rf ~' } }));
+
+    const block = screen.getByTestId('agent-thread-permission-command');
+    expect(block.textContent).toContain('⟨U+202E⟩');
+    expect(block.textContent).not.toContain('\u202e');
+    expect(within(block).getByText(/hidden characters/)).toBeTruthy();
+  });
+
+  test('a non-execute tool is never rendered as a shell command', () => {
+    const renameInput = { command: 'rename; this is not a shell command' };
+    showGate(
+      call({ kind: 'edit', rawInput: renameInput }),
+      request({ kind: 'edit', rawInput: renameInput }),
+    );
+
+    expect(screen.queryByTestId('agent-thread-permission-command')).toBeNull();
+  });
+
+  test('a permission with no shell command behind it shows no command block', () => {
+    showGate(request({ toolCallId: undefined }));
+
+    expect(screen.queryByTestId('agent-thread-permission-command')).toBeNull();
+  });
+});
+
+function permission(overrides?: Partial<Extract<RenderedItem, { kind: 'permission' }>>) {
+  return {
+    kind: 'permission' as const,
+    requestId: 'r1',
+    title: 'Run npm test?',
+    toolKind: 'execute',
+    command: null,
+    options: [{ optionId: 'yes', name: 'Allow', kind: 'allow_once' }],
+    readOnlyShell: false,
+    resolved: null,
+    toolCallId: null,
+    mergedIntoToolCall: false,
+    ...overrides,
+  };
+}
+
+async function openToolCall(): Promise<void> {
+  await userEvent.click(screen.getByRole('button', { name: /Run tests/ }));
+}
+
+afterEach(() => {
+  cleanup();
+  i18n.activate('en');
+  localStorage.clear();
+  vi.useRealTimers();
+  respondPermission.mockClear();
+  setChatGrant.mockClear();
+  setConfigOption.mockClear();
+  setMode.mockClear();
+  setContextWindow.mockClear();
+  setContextWindowResult = () => Promise.resolve({});
+  modelCandidates = [];
+  prompt.mockClear();
+  steer.mockClear();
+  editQueued.mockClear();
+  editQueuedResult = Promise.resolve();
+  holdQueued.mockClear();
+  removeQueued.mockClear();
+  sendQueuedNow.mockClear();
+  toastError.mockClear();
+  cancel.mockClear();
+  retryThread.mockClear();
+  terminalAuthLaunch.mockClear();
+  createThread.mockClear();
+  resumeThread.mockClear();
+  resetStagedThreadDrafts();
+  authenticateThread.mockClear();
+  authenticateResult = Promise.resolve();
+  model = null;
+  threadState = { info: undefined, events: [], lastSeq: 5, replayThroughSeq: 5 };
+  window.location.hash = '';
+});
+
+describe('ThreadView agent settings', () => {
+  test('groups agent-advertised selectors and booleans into one settings menu', async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'sonnet',
+              options: [
+                { value: 'sonnet', name: 'Sonnet' },
+                { value: 'opus', name: 'Opus' },
+              ],
+            },
+            {
+              id: 'effort',
+              name: 'Reasoning effort',
+              category: 'thought_level',
+              type: 'select',
+              currentValue: 'medium',
+              options: [
+                { value: 'medium', name: 'Medium' },
+                { value: 'high', name: 'High' },
+              ],
+            },
+            {
+              id: 'fast',
+              name: 'Fast mode',
+              category: 'model_config',
+              type: 'boolean',
+              currentValue: false,
+            },
+          ],
+        })}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    const follow = screen.getByRole('button', { name: "Follow the agent's edits" });
+    expect(screen.queryByTestId('agent-thread-agent-name')).toBeNull();
+    expect(trigger.textContent).toContain('Sonnet');
+    expect(follow.compareDocumentPosition(trigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByTestId('agent-thread-config-model')).toBeNull();
+
+    await userEvent.click(trigger);
+    const modelRow = screen.getByTestId('agent-thread-config-model');
+    expect(modelRow.textContent).toContain('Sonnet');
+    const effortRow = screen.getByTestId('agent-thread-config-effort');
+    expect(effortRow.textContent).toContain('Medium');
+
+    const fastRow = screen.getByTestId('agent-thread-config-fast');
+    expect(fastRow.textContent).toContain('Fast mode');
+    expect(fastRow.getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(fastRow);
+    expect(setConfigOption).toHaveBeenCalledWith('thread-1', 'fast', true);
+
+    await userEvent.click(modelRow);
+    await userEvent.click(await screen.findByTestId('agent-thread-config-option-opus'));
+    expect(setConfigOption).toHaveBeenCalledWith('thread-1', 'model', 'opus');
+  });
+
+  test('a pick lands on a real pointer press, not just a synthetic click', async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'sonnet',
+              options: [
+                { value: 'sonnet', name: 'Sonnet' },
+                { value: 'opus', name: 'Opus' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-config-model'));
+    await userEvent.click(await screen.findByTestId('agent-thread-config-option-opus'));
+
+    expect(setConfigOption).toHaveBeenCalledWith('thread-1', 'model', 'opus');
+    expect(document.activeElement).not.toBe(screen.getByTestId('agent-thread-composer'));
+  });
+
+  test('an archived thread keeps the menu usable and says when a pick lands', async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'exited',
+          archived: true,
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'sonnet',
+              options: [
+                { value: 'sonnet', name: 'Sonnet' },
+                { value: 'opus', name: 'Opus' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: /Agent settings/ });
+    expect(trigger.getAttribute('aria-label')).toMatch(/pick this conversation back up/);
+
+    await userEvent.click(trigger);
+    expect(screen.getByTestId('agent-thread-settings-archived-hint')).toBeTruthy();
+
+    await userEvent.click(screen.getByTestId('agent-thread-config-model'));
+    await userEvent.click(await screen.findByTestId('agent-thread-config-option-opus'));
+    expect(setConfigOption).toHaveBeenCalledWith('thread-1', 'model', 'opus');
+  });
+
+  test('a live thread carries no archived hint', async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'sonnet',
+              options: [
+                { value: 'sonnet', name: 'Sonnet' },
+                { value: 'opus', name: 'Opus' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    expect(trigger.getAttribute('aria-label')).not.toMatch(/pick this conversation back up/);
+    await userEvent.click(trigger);
+    expect(screen.queryByTestId('agent-thread-settings-archived-hint')).toBeNull();
+  });
+
+  test('remembers every pick for this agent, modes included', async () => {
+    const key = agentSettingsKey({ source: 'registry', id: 'claude' });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'sonnet',
+              options: [
+                { value: 'sonnet', name: 'Sonnet' },
+                { value: 'opus', name: 'Opus' },
+              ],
+            },
+            {
+              id: 'permission',
+              name: 'Permission mode',
+              category: 'mode',
+              type: 'select',
+              currentValue: 'default',
+              options: [
+                { value: 'default', name: 'Default' },
+                { value: 'bypass', name: 'Bypass permissions' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+
+    await userEvent.click(screen.getByTestId('agent-thread-config-model'));
+    await userEvent.click(await screen.findByTestId('agent-thread-config-option-opus'));
+    expect(setConfigOption).toHaveBeenCalledWith('thread-1', 'model', 'opus');
+    expect(getRememberedAgentConfig(key)).toEqual({ model: 'opus' });
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-config-permission'));
+    await userEvent.click(await screen.findByTestId('agent-thread-config-option-bypass'));
+    expect(setConfigOption).toHaveBeenCalledWith('thread-1', 'permission', 'bypass');
+    expect(getRememberedAgentConfig(key)).toEqual({ model: 'opus', permission: 'bypass' });
+  });
+});
+
+describe('ThreadView chat header', () => {
+  const headerInfo = (over?: { effort?: string; fast?: boolean; mode?: string }) =>
+    makeInfo({
+      status: 'ready',
+      configOptions: [
+        {
+          id: 'permission',
+          name: 'Permission mode',
+          category: 'mode',
+          type: 'select',
+          currentValue: over?.mode ?? 'default',
+          options: [
+            { value: 'default', name: 'Default' },
+            { value: 'acceptEdits', name: 'Accept Edits' },
+            { value: 'bypassPermissions', name: 'Bypass permissions' },
+          ],
+        },
+        {
+          id: 'model',
+          name: 'Model',
+          category: 'model',
+          type: 'select',
+          currentValue: 'opus',
+          options: [{ value: 'opus', name: 'Opus 5' }],
+        },
+        ...(over?.effort === undefined
+          ? []
+          : [
+              {
+                id: 'effort',
+                name: 'Effort',
+                category: 'thought_level' as const,
+                type: 'select' as const,
+                currentValue: over.effort,
+                options: [
+                  { value: 'max', name: 'Max' },
+                  { value: 'low', name: 'Low' },
+                ],
+              },
+            ]),
+        {
+          id: 'fast',
+          name: 'Fast mode',
+          category: 'model_config',
+          type: 'boolean',
+          currentValue: over?.fast ?? false,
+        },
+      ],
+    });
+
+  test('keeps the model, the effort and Fast mode all visible without opening anything', () => {
+    render(<ThreadView info={headerInfo({ effort: 'max', fast: true })} />);
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    expect(trigger.textContent).toContain('Opus 5');
+    expect(screen.getByTestId('agent-thread-effort').textContent).toBe('Max');
+    expect(screen.getByTestId('agent-thread-fast').textContent).toBe('Fast');
+  });
+
+  test('Fast mode is shown by its presence, so it is absent when off', () => {
+    render(<ThreadView info={headerInfo({ effort: 'max', fast: false })} />);
+    expect(screen.getByTestId('agent-thread-effort').textContent).toBe('Max');
+    expect(screen.queryByTestId('agent-thread-fast')).toBeNull();
+  });
+
+  test('an agent that reports no effort shows none rather than a placeholder', () => {
+    render(<ThreadView info={headerInfo({ fast: true })} />);
+    expect(screen.queryByTestId('agent-thread-effort')).toBeNull();
+    expect(screen.getByTestId('agent-thread-fast')).toBeTruthy();
+  });
+
+  test('effort tracks the live value', () => {
+    const { rerender } = render(<ThreadView info={headerInfo({ effort: 'max' })} />);
+    expect(screen.getByTestId('agent-thread-effort').textContent).toBe('Max');
+    rerender(<ThreadView info={headerInfo({ effort: 'low' })} />);
+    expect(screen.getByTestId('agent-thread-effort').textContent).toBe('Low');
+  });
+
+  test('an agent with only a reasoning level shows it once, not as model and effort both', () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          configOptions: [
+            {
+              id: 'effort',
+              name: 'Effort',
+              category: 'thought_level',
+              type: 'select',
+              currentValue: 'max',
+              options: [{ value: 'max', name: 'Max' }],
+            },
+          ],
+        })}
+      />,
+    );
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    expect(trigger.textContent).toBe('Max');
+  });
+
+  test('a model_config boolean whose display name merely says fast is not the Fast badge', () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'opus',
+              options: [{ value: 'opus', name: 'Opus 5' }],
+            },
+            {
+              id: 'thinking',
+              name: 'Fast thinking',
+              category: 'model_config',
+              type: 'boolean',
+              currentValue: true,
+            },
+          ],
+        })}
+      />,
+    );
+    expect(screen.queryByTestId('agent-thread-fast')).toBeNull();
+  });
+
+  test('the state the header shows is also the name assistive tech reads', () => {
+    render(<ThreadView info={headerInfo({ effort: 'max', fast: true })} />);
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    expect(trigger.getAttribute('aria-label')).toBe('Agent settings — Opus 5, Fast, Max');
+  });
+
+  test('the label joins its parts the way the active locale does, not with a fixed comma', () => {
+    i18n.load('ar', {});
+    i18n.activate('ar');
+    render(<ThreadView info={headerInfo({ effort: 'max', fast: true })} />);
+    const label =
+      screen.getByRole('button', { name: /^Agent settings/ }).getAttribute('aria-label') ?? '';
+    expect(label).toContain('\u060c');
+    expect(label).not.toContain('Opus 5, Fast');
+  });
+
+  test.each(['default', 'acceptEdits', 'bypassPermissions'])(
+    'the %s mode reaches the header neither as text nor as a colour',
+    (mode) => {
+      render(<ThreadView info={headerInfo({ mode, effort: 'max' })} />);
+
+      expect(screen.queryByTestId('agent-thread-mode-accent')).toBeNull();
+      expect(screen.queryByTestId('agent-thread-permissive-mode')).toBeNull();
+      expect(
+        screen.getByRole('button', { name: /^Agent settings/ }).getAttribute('aria-label'),
+      ).toBe('Agent settings — Opus 5, Max');
+    },
+  );
+
+  test('a mode-only agent still names its mode, since that is the only select there is', () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          configOptions: [
+            {
+              id: 'permission',
+              name: 'Permission mode',
+              category: 'mode',
+              type: 'select',
+              currentValue: 'bypassPermissions',
+              options: [
+                { value: 'default', name: 'Default' },
+                { value: 'bypassPermissions', name: 'Bypass permissions' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    expect(trigger.textContent).toBe('Bypass permissions');
+    expect(screen.queryByTestId('agent-thread-permissive-mode')).toBeNull();
+    expect(trigger.getAttribute('aria-label')).toBe('Agent settings — Bypass permissions');
+  });
+
+  test('a default effort is named, not described with the menu sentence', () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'opus',
+              options: [{ value: 'opus', name: 'Opus 5' }],
+            },
+            {
+              id: 'effort',
+              name: 'Effort',
+              category: 'thought_level',
+              type: 'select',
+              currentValue: 'default',
+              options: [
+                { value: 'default', name: 'Default' },
+                { value: 'max', name: 'Max' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+    expect(screen.getByTestId('agent-thread-effort').textContent).toBe('Default');
+    expect(screen.getByRole('button', { name: /^Agent settings/ }).getAttribute('aria-label')).toBe(
+      'Agent settings — Opus 5, Default',
+    );
+  });
+
+  test('hovering the settings trigger opens no tooltip over the chat', async () => {
+    const user = userEvent.setup();
+    render(<ThreadView info={headerInfo({ effort: 'max', fast: true })} />);
+
+    await user.hover(screen.getByRole('button', { name: /^Agent settings/ }));
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
+  test('composer tooltips close once the pointer leaves the trigger, even toward the tooltip', async () => {
+    const user = userEvent.setup();
+    render(<ThreadView info={headerInfo()} />);
+    const addToPrompt = screen.getByTestId('agent-thread-add-to-prompt');
+
+    await user.hover(addToPrompt);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    await screen.findByRole('tooltip');
+    await user.unhover(addToPrompt);
+
+    await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull(), { timeout: 200 });
+  });
+
+  test('an archived thread announces the same state it shows', () => {
+    render(<ThreadView info={{ ...headerInfo({ effort: 'max', fast: true }), archived: true }} />);
+    const label =
+      screen.getByRole('button', { name: /^Agent settings/ }).getAttribute('aria-label') ?? '';
+    expect(label).toContain('Opus 5');
+    expect(label).toContain('Max');
+    expect(screen.getByTestId('agent-thread-effort').textContent).toBe('Max');
+  });
+});
+
+describe('ThreadView agent settings (modes)', () => {
+  test('includes the legacy ACP mode selector when no mode config option is advertised', async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          modes: {
+            currentModeId: 'code',
+            availableModes: [
+              { id: 'ask', name: 'Ask' },
+              { id: 'code', name: 'Code' },
+            ],
+          },
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-config-legacy-mode'));
+    await userEvent.click(await screen.findByTestId('agent-thread-config-option-ask'));
+    expect(setMode).toHaveBeenCalledWith('thread-1', 'ask');
+    expect(getRememberedAgentMode(agentSettingsKey({ source: 'registry', id: 'claude' }))).toBe(
+      'ask',
+    );
+  });
+
+  test('a permissive legacy mode persists like any other — it is flagged, not withheld', async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          modes: {
+            currentModeId: 'default',
+            availableModes: [
+              { id: 'default', name: 'Default' },
+              { id: 'yolo', name: 'YOLO' },
+            ],
+          },
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-config-legacy-mode'));
+    await userEvent.click(await screen.findByTestId('agent-thread-config-option-yolo'));
+    expect(setMode).toHaveBeenCalledWith('thread-1', 'yolo');
+    expect(getRememberedAgentMode(agentSettingsKey({ source: 'registry', id: 'claude' }))).toBe(
+      'yolo',
+    );
+  });
+});
+
+describe('ThreadView agent settings (disable, not hide)', () => {
+  test('an agent with nothing to configure keeps the trigger, disabled with the reason', () => {
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const trigger = screen.getByTestId('agent-thread-settings');
+    expect(trigger.getAttribute('aria-disabled')).toBe('true');
+    expect(trigger.getAttribute('aria-describedby')).toBeTruthy();
+    expect(screen.getByText("Claude Agent doesn't offer any settings to adjust")).toBeTruthy();
+    fireEvent.click(trigger);
+    expect(screen.queryByTestId('agent-thread-settings-popover')).toBeNull();
+  });
+
+  test("before the session settles the reason says 'not yet', not 'none'", () => {
+    render(<ThreadView info={makeInfo({ status: 'spawning' })} />);
+    const trigger = screen.getByTestId('agent-thread-settings');
+    expect(trigger.getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByText("Claude Agent hasn't reported its settings yet")).toBeTruthy();
+  });
+
+  test("an exited thread that never advertised settings reads 'none', not 'not yet'", () => {
+    render(<ThreadView info={makeInfo({ status: 'exited' })} />);
+    expect(screen.getByText("Claude Agent doesn't offer any settings to adjust")).toBeTruthy();
+  });
+});
+
+describe('ThreadView permission posture badge', () => {
+  test('a verified autonomous agent warns that prompts cannot be added', () => {
+    render(
+      <ThreadView
+        info={makeInfo({ agent: { id: 'pi-acp', name: 'pi ACP', source: 'registry' } })}
+      />,
+    );
+    const badge = screen.getByTestId('agent-thread-posture');
+    expect(badge.closest('[role="img"]')?.getAttribute('aria-label')).toContain(
+      'acts without asking',
+    );
+  });
+
+  test('every milder posture renders no badge — those signals live elsewhere', () => {
+    const { unmount: unmountAsks } = render(
+      <ThreadView
+        info={makeInfo({ agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' } })}
+      />,
+    );
+    expect(screen.queryByTestId('agent-thread-posture')).toBeNull();
+    unmountAsks();
+
+    const { unmount: unmountModes } = render(
+      <ThreadView
+        info={makeInfo({
+          agent: { id: 'someagent', name: 'Some Agent', source: 'registry' },
+          modes: {
+            currentModeId: 'agent',
+            availableModes: [
+              { id: 'agent', name: 'Agent (full access)' },
+              { id: 'plan', name: 'Plan' },
+            ],
+          },
+        })}
+      />,
+    );
+    expect(screen.queryByTestId('agent-thread-posture')).toBeNull();
+    unmountModes();
+
+    render(<ThreadView info={makeInfo()} />);
+    expect(screen.queryByTestId('agent-thread-posture')).toBeNull();
+  });
+});
+
+describe('ThreadView terminal card', () => {
+  const terminal = (overrides?: Partial<RenderedTerminal>): RenderedTerminal => ({
+    terminalId: 't1',
+    command: 'npm',
+    args: ['test'],
+    output: 'ok 12 tests\n',
+    truncated: false,
+    exit: { exitCode: 0, signal: null },
+    ...overrides,
+  });
+
+  test('renders command line, output, and a neutral exit-0 badge', async () => {
+    model = makeModel({
+      items: [toolCall({ terminalIds: ['t1'], status: 'completed' })],
+      terminals: { t1: terminal() },
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await userEvent.click(screen.getByRole('button', { name: /Run tests/ }));
+    const card = screen.getByTestId('agent-thread-terminal');
+    expect(card.textContent).toContain('npm test');
+    expect(card.textContent).toContain('ok 12 tests');
+    expect(screen.getByTestId('agent-thread-terminal-exit').textContent).toBe('exit 0');
+  });
+
+  test('a failing command shows a destructive exit badge; ANSI is stripped', async () => {
+    model = makeModel({
+      items: [toolCall({ terminalIds: ['t1'] })],
+      terminals: {
+        t1: terminal({
+          output: '\x1b[31mFAIL\x1b[0m assertion',
+          exit: { exitCode: 3, signal: null },
+        }),
+      },
+    });
+    render(<ThreadView info={makeInfo()} />);
+    await openToolCall();
+    const badge = screen.getByTestId('agent-thread-terminal-exit');
+    expect(badge.textContent).toBe('exit 3');
+    const card = screen.getByTestId('agent-thread-terminal');
+    expect(card.textContent).toContain('FAIL assertion');
+    expect(card.textContent).not.toContain('[31m');
+  });
+
+  test('a still-running terminal shows no exit badge', async () => {
+    model = makeModel({
+      items: [toolCall({ terminalIds: ['t1'] })],
+      terminals: { t1: terminal({ exit: null }) },
+    });
+    render(<ThreadView info={makeInfo()} />);
+    await openToolCall();
+    expect(screen.getByTestId('agent-thread-terminal').textContent).toContain('running');
+    expect(screen.queryByTestId('agent-thread-terminal-exit')).toBeNull();
+  });
+});
+
+describe('ThreadView inline diff', () => {
+  test('unchanged lines render once as context, not as remove+add pairs', async () => {
+    model = makeModel({
+      items: [
+        toolCall({
+          status: 'in_progress',
+          diffs: [{ path: 'notes.md', oldText: 'same\nold\n', newText: 'same\nnew\n' }],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo()} />);
+    await openToolCall();
+    const transcript = screen.getByTestId('agent-thread-transcript');
+    const occurrences = (transcript.textContent?.match(/same/g) ?? []).length;
+    expect(occurrences).toBe(1);
+    expect(transcript.textContent).toContain('- old');
+    expect(transcript.textContent).toContain('+ new');
+  });
+
+  test('long unchanged runs collapse into a gap row', async () => {
+    const lines = Array.from({ length: 30 }, (_, i) => `line ${i}`).join('\n');
+    model = makeModel({
+      items: [
+        toolCall({
+          status: 'in_progress',
+          diffs: [{ path: 'big.md', oldText: `${lines}\nend`, newText: `${lines}\nEND` }],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo()} />);
+    await openToolCall();
+    expect(screen.getByTestId('agent-thread-transcript').textContent).toContain('unchanged lines');
+  });
+});
+
+describe('ThreadView permissions', () => {
+  test('a read-only shell command offers to allow read-only commands for the chat', async () => {
+    model = makeModel({ items: [permission({ command: 'ls -la', readOnlyShell: true })] });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+
+    const offer = screen.getByTestId('agent-thread-permission-allow-read-only');
+    expect(offer.textContent).toBe('Allow read-only commands while this chat is open');
+    const primary = screen.getByTestId('agent-thread-permission-allow');
+    expect(primary.compareDocumentPosition(offer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await userEvent.click(offer);
+    expect(setChatGrant).toHaveBeenCalledWith('thread-1', 'read_only_shell', true);
+    expect(respondPermission).toHaveBeenCalledWith('thread-1', 'r1', {
+      kind: 'selected',
+      optionId: 'yes',
+    });
+  });
+
+  test('a command the server did not vouch for gets no read-only offer', () => {
+    model = makeModel({ items: [permission({ command: 'rm -rf scratch' })] });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+
+    expect(screen.queryByTestId('agent-thread-permission-allow-read-only')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-permission-stack')).toBeNull();
+    expect(screen.getByTestId('agent-thread-permission-allow')).toBeTruthy();
+  });
+
+  test('the settings menu can make read-only commands ask again', async () => {
+    const modes = {
+      currentModeId: 'code',
+      availableModes: [
+        { id: 'ask', name: 'Ask' },
+        { id: 'code', name: 'Code' },
+      ],
+    };
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ status: 'ready', modes, chatGrants: ['read_only_shell'] })} />,
+    );
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    expect(trigger.getAttribute('aria-label')).toContain('Read-only allowed');
+    expect(screen.getByTestId('agent-thread-read-only-shell').textContent).toBe(
+      'Read-only allowed',
+    );
+    await userEvent.click(trigger);
+    const row = await screen.findByTestId('agent-thread-settings-read-only-shell');
+    expect(row.textContent).toContain('Ask again before read-only commands');
+    await userEvent.click(row);
+    expect(setChatGrant).toHaveBeenCalledWith('thread-1', 'read_only_shell', false);
+
+    rerender(<ThreadView info={makeInfo({ status: 'ready', modes })} />);
+    expect(screen.queryByTestId('agent-thread-read-only-shell')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: /^Agent settings/ }).getAttribute('aria-label'),
+    ).not.toContain('Read-only');
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    expect(screen.queryByTestId('agent-thread-settings-read-only-shell')).toBeNull();
+  });
+
+  test('moves focus from the composer to the primary permission when no overlay is open', () => {
+    model = makeModel();
+    const runningInfo = makeInfo({ status: 'running' });
+    const awaitingInfo = makeInfo({ status: 'awaiting_permission' });
+    const { rerender } = render(<ThreadView info={runningInfo} />);
+    screen.getByTestId('agent-thread-composer').focus();
+
+    model = makeModel({ items: [permission()] });
+    rerender(<ThreadView info={awaitingInfo} />);
+
+    expect(document.activeElement).toBe(screen.getByTestId('agent-thread-permission-allow'));
+  });
+
+  test('defers follow-the-agent navigation until settings closes', () => {
+    model = makeModel();
+    window.location.hash = '#settings';
+    let dialogOpen = true;
+    const view = () => (
+      <>
+        {dialogOpen ? (
+          <Dialog open>
+            <DialogContent>
+              <DialogTitle>Settings</DialogTitle>
+              <DialogDescription>Project preferences</DialogDescription>
+            </DialogContent>
+          </Dialog>
+        ) : null}
+        <ThreadView info={makeInfo({ status: 'awaiting_permission' })} />
+      </>
+    );
+    const { rerender } = render(view());
+    screen.getByRole('dialog');
+
+    model = makeModel({
+      items: [
+        toolCall({ toolKind: 'edit', rawInput: { docName: 'notes/today' } }),
+        permission({ toolCallId: 'c1' }),
+      ],
+    });
+    threadState = { info: undefined, events: [], lastSeq: 6, replayThroughSeq: 6 };
+    rerender(view());
+
+    screen.getByTestId('agent-thread-permission');
+    expect(window.location.hash).toBe('#settings');
+
+    dialogOpen = false;
+    threadState = { info: undefined, events: [], lastSeq: 7, replayThroughSeq: 7 };
+    rerender(view());
+
+    expect(window.location.hash).toBe('#/notes/today');
+  });
+
+  test('follow-the-agent navigation is a hash change the workspace did not write, which the navigation handler treats as a deliberate open', async () => {
+    model = makeModel();
+    window.location.hash = '#/notes/yesterday';
+    const hashChanges: string[] = [];
+    const onHashChange = (event: HashChangeEvent) => hashChanges.push(event.newURL);
+    window.addEventListener('hashchange', onHashChange);
+    const view = () => <ThreadView info={makeInfo({ status: 'awaiting_permission' })} />;
+    const { rerender } = render(view());
+
+    model = makeModel({
+      items: [
+        toolCall({ toolKind: 'edit', rawInput: { docName: 'notes/today' } }),
+        permission({ toolCallId: 'c1' }),
+      ],
+    });
+    threadState = { info: undefined, events: [], lastSeq: 6, replayThroughSeq: 6 };
+    rerender(view());
+    threadState = { info: undefined, events: [], lastSeq: 7, replayThroughSeq: 7 };
+    rerender(view());
+
+    expect(window.location.hash).toBe('#/notes/today');
+    await waitFor(() => expect(hashChanges.at(-1)).toMatch(/#\/notes\/today$/));
+    window.removeEventListener('hashchange', onHashChange);
+    expect(consumeWorkspaceHashWrite(window.location.hash)).toBe(false);
+  });
+
+  test('stacks three-plus options top-to-bottom with the primary grant emphasized', () => {
+    model = makeModel({
+      items: [
+        permission({
+          options: [
+            {
+              optionId: 'always',
+              name: 'Always allow all mcp__open-knowledge__exec',
+              kind: 'allow_always',
+            },
+            { optionId: 'yes', name: 'Allow', kind: 'allow_once' },
+            { optionId: 'no', name: 'Reject', kind: 'reject_once' },
+          ],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+
+    const card = screen.getByTestId('agent-thread-permission');
+    const stack = screen.getByTestId('agent-thread-permission-stack');
+    const deny = screen.getByTestId('agent-thread-permission-deny');
+    const primary = screen.getByTestId('agent-thread-permission-allow');
+
+    expect(primary.compareDocumentPosition(deny) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const escalating = within(stack).getByRole('button', {
+      name: 'Always allow all mcp__open-knowledge__exec',
+    });
+    expect(escalating).toBeDefined();
+
+    expect(primary.textContent).toBe('Allow');
+    expect(primary.getAttribute('data-variant')).toBe('default');
+    expect(escalating.getAttribute('data-variant')).toBe('outline');
+    expect(deny.getAttribute('data-variant')).toBe('outline');
+
+    expect(within(card).queryByTestId('agent-thread-permission-allow-more')).toBeNull();
+    expect(within(card).queryByTestId('agent-thread-permission-allow-more-more')).toBeNull();
+  });
+
+  test('renders every one of four options as a full-width button — no overflow menu', async () => {
+    model = makeModel({
+      items: [
+        permission({
+          options: [
+            { optionId: 'yes', name: 'Allow', kind: 'allow_once' },
+            { optionId: 'session', name: 'Allow for This Session', kind: 'allow_always' },
+            { optionId: 'forever', name: "Allow and Don't Ask Again", kind: 'allow_always' },
+            { optionId: 'no', name: 'Decline', kind: 'reject_once' },
+          ],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+
+    const primary = screen.getByTestId('agent-thread-permission-allow');
+    const deny = screen.getByTestId('agent-thread-permission-deny');
+    expect(primary.textContent).toBe('Allow');
+    expect(deny.textContent).toBe('Decline');
+    const session = screen.getByRole('button', { name: 'Allow for This Session' });
+    const forever = screen.getByRole('button', { name: "Allow and Don't Ask Again" });
+    expect(session).toBeDefined();
+    expect(forever).toBeDefined();
+
+    await userEvent.click(session);
+    expect(respondPermission).toHaveBeenCalledWith('thread-1', 'r1', {
+      kind: 'selected',
+      optionId: 'session',
+    });
+
+    await userEvent.click(forever);
+    expect(respondPermission).toHaveBeenCalledWith('thread-1', 'r1', {
+      kind: 'selected',
+      optionId: 'forever',
+    });
+  });
+
+  test('stacks even when the extra option is a second allow with no reject', async () => {
+    model = makeModel({
+      items: [
+        permission({
+          options: [
+            { optionId: 'once', name: 'Allow', kind: 'allow_once' },
+            { optionId: 'always', name: 'Allow for This Session', kind: 'allow_always' },
+          ],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+    expect(screen.getByTestId('agent-thread-permission-stack')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Allow for This Session' })).toBeDefined();
+    const deny = screen.getByTestId('agent-thread-permission-deny');
+    expect(deny.textContent).toBe('Deny');
+    await userEvent.click(deny);
+    expect(respondPermission).toHaveBeenCalledWith('thread-1', 'r1', { kind: 'cancelled' });
+  });
+
+  test('stacks two reject options with no allow so the escalating refusal is reachable', () => {
+    model = makeModel({
+      items: [
+        permission({
+          options: [
+            { optionId: 'no', name: 'Reject', kind: 'reject_once' },
+            { optionId: 'stop', name: 'Reject and Stop Session', kind: 'reject_always' },
+          ],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+    expect(screen.getByTestId('agent-thread-permission-stack')).toBeDefined();
+    expect(screen.getByTestId('agent-thread-permission-deny').textContent).toBe('Reject');
+    expect(screen.getByRole('button', { name: 'Reject and Stop Session' })).toBeDefined();
+  });
+
+  test('clicking an offered option approves with that optionId (selected outcome)', async () => {
+    model = makeModel({ items: [permission()] });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Allow' }));
+    expect(respondPermission).toHaveBeenCalledWith('thread-1', 'r1', {
+      kind: 'selected',
+      optionId: 'yes',
+    });
+  });
+
+  test('adds an explicit Deny when the agent offers no reject option, wired to the cancelled outcome', async () => {
+    model = makeModel({ items: [permission()] });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+    await userEvent.click(screen.getByTestId('agent-thread-permission-deny'));
+    expect(respondPermission).toHaveBeenCalledWith('thread-1', 'r1', { kind: 'cancelled' });
+  });
+
+  test("answers with the agent's own reject option rather than a second Deny", async () => {
+    model = makeModel({
+      items: [
+        permission({
+          options: [
+            { optionId: 'yes', name: 'Allow', kind: 'allow_once' },
+            { optionId: 'no', name: 'Reject', kind: 'reject_once' },
+          ],
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+    const deny = screen.getByTestId('agent-thread-permission-deny');
+    expect(deny.textContent).toBe('Reject');
+    await userEvent.click(deny);
+    expect(respondPermission).toHaveBeenCalledWith('thread-1', 'r1', {
+      kind: 'selected',
+      optionId: 'no',
+    });
+  });
+
+  test("summarizes a chosen reject option as denied, never 'Approved'", () => {
+    model = makeModel({
+      items: [
+        permission({
+          options: [
+            { optionId: 'yes', name: 'Allow', kind: 'allow_once' },
+            { optionId: 'no', name: 'Reject', kind: 'reject_once' },
+          ],
+          resolved: { optionId: 'no', auto: false },
+        }),
+      ],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const outcome = screen.getByTestId('agent-thread-permission-outcome');
+    expect(outcome.textContent).toContain('Denied');
+    expect(outcome.textContent).not.toContain('Approved');
+  });
+
+  test('an unresolved request on a dead turn renders inert (no buttons)', () => {
+    model = makeModel({ items: [permission()], turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'exited' })} />);
+    const card = screen.getByTestId('agent-thread-permission');
+    expect(card.querySelector('button')).toBeNull();
+    expect(card.textContent).toContain('no longer active');
+  });
+});
+
+describe('ThreadView status + usage', () => {
+  test("shows 'Waiting for your approval' instead of the working spinner while parked", () => {
+    model = makeModel({ items: [permission()] });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+    expect(screen.getByTestId('agent-thread-awaiting-permission').textContent).toContain(
+      'Waiting for your approval',
+    );
+  });
+
+  test('renders the context-usage ring with a percentage and compact token counts in its label', () => {
+    model = makeModel({ tokenUsage: { used: 12_345, size: 200_000 } });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const usage = screen.getByTestId('agent-thread-usage');
+    const label = usage.getAttribute('aria-label') ?? '';
+    expect(label).toContain('6%');
+    expect(label).toContain('12k');
+    expect(label).toContain('200k');
+  });
+
+  test('shows no usage ring when the agent reports usage but no context size', () => {
+    model = makeModel({ tokenUsage: { used: 500, size: undefined } });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-usage')).toBeNull();
+  });
+
+  test('no ring at all until the agent reports usage', () => {
+    model = makeModel();
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-usage')).toBeNull();
+  });
+});
+
+describe('ThreadView tool-call status', () => {
+  test('a settled successful call carries no visible status chrome', () => {
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['out'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-tool-check')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-tool-failed')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-tool-spinner')).toBeNull();
+    expect(screen.getByRole('button', { name: /Run tests/ }).textContent).toContain('done');
+  });
+
+  test('a live call spins, then flashes a check on completion', () => {
+    model = makeModel({ items: [toolCall({ status: 'in_progress', content: ['out'] })] });
+    const { rerender } = render(<ThreadView info={makeInfo()} />);
+    expect(screen.getByTestId('agent-thread-tool-spinner')).toBeDefined();
+    expect(screen.queryByTestId('agent-thread-tool-check')).toBeNull();
+
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['out'] })],
+      turnActive: false,
+    });
+    rerender(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-tool-spinner')).toBeNull();
+    expect(screen.getByTestId('agent-thread-tool-check')).toBeDefined();
+  });
+
+  test('a fenced output block is unwrapped and handed on as a json code block', async () => {
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['```json\n{"ok":true}\n```'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await openToolCall();
+    const block = screen.getByTestId('agent-thread-tool-json');
+    expect(block.textContent).toBe('```json\n{\n  "ok": true\n}\n```');
+  });
+
+  test('shell output stays verbatim even when it is shaped like markdown', async () => {
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['# not a heading\n- a\n- b\n- c'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await openToolCall();
+    expect(screen.queryByTestId('agent-thread-tool-markdown')).toBeNull();
+    const pre = screen.getByTestId('agent-thread-tool-call').querySelector('pre');
+    expect(pre?.textContent).toBe('# not a heading\n- a\n- b\n- c');
+  });
+
+  test('markdown-shaped output from a non-shell tool renders as markdown', async () => {
+    model = makeModel({
+      items: [
+        toolCall({
+          title: 'Fetch notes',
+          toolKind: 'other',
+          status: 'completed',
+          content: ['## Results\n- one\n- two\n- three'],
+        }),
+      ],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await userEvent.click(screen.getByRole('button', { name: /Fetch notes/ }));
+    const block = screen.getByTestId('agent-thread-tool-markdown');
+    expect(within(block).getByTestId('rendered-markdown').textContent).toBe(
+      '## Results\n- one\n- two\n- three',
+    );
+    expect(screen.getByTestId('agent-thread-tool-call').querySelector('pre')).toBeNull();
+  });
+
+  test('JSON output is reindented and shown as a code block', async () => {
+    model = makeModel({
+      items: [
+        toolCall({
+          title: 'Lookup',
+          toolKind: 'other',
+          status: 'completed',
+          content: ['{"ok":true,"n":1}'],
+        }),
+      ],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await userEvent.click(screen.getByRole('button', { name: /Lookup/ }));
+    expect(screen.getByTestId('agent-thread-tool-json').textContent).toBe(
+      '```json\n{\n  "ok": true,\n  "n": 1\n}\n```',
+    );
+  });
+
+  test('a tall body is capped with a fade until Show all lifts the cap', async () => {
+    const proto = HTMLElement.prototype;
+    Object.defineProperty(proto, 'scrollHeight', { configurable: true, get: () => 1000 });
+    Object.defineProperty(proto, 'clientHeight', { configurable: true, get: () => 320 });
+    Object.defineProperty(proto, 'scrollTo', { configurable: true, value: () => {} });
+    try {
+      model = makeModel({
+        items: [toolCall({ status: 'completed', content: ['line'] })],
+        turnActive: false,
+      });
+      render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+      await openToolCall();
+      const body = screen.getByTestId('agent-thread-tool-body');
+      expect(body.getAttribute('data-capped')).toBe('true');
+      expect(body.className).toContain('scroll-fade-mask-bottom');
+
+      const toggle = screen.getByTestId('agent-thread-tool-show-all');
+      expect(toggle.textContent).toBe('Show all');
+      await userEvent.click(toggle);
+      expect(body.getAttribute('data-capped')).toBeNull();
+      expect(body.className).not.toContain('max-h-80');
+      expect(toggle.textContent).toBe('Show less');
+    } finally {
+      delete (proto as { scrollHeight?: unknown }).scrollHeight;
+      delete (proto as { clientHeight?: unknown }).clientHeight;
+      delete (proto as { scrollTo?: unknown }).scrollTo;
+    }
+  });
+
+  test('a short body has no cap and no Show all', async () => {
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['line'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await openToolCall();
+    expect(screen.getByTestId('agent-thread-tool-body').getAttribute('data-capped')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-tool-show-all')).toBeNull();
+  });
+
+  test('hovering a row says what the tool does and shows its raw id', async () => {
+    const user = userEvent.setup();
+    model = makeModel({
+      items: [
+        toolCall({
+          title: 'mcp__open-knowledge__exec',
+          toolKind: 'other',
+          rawInput: { command: 'ls' },
+          content: ['out'],
+        }),
+      ],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await user.hover(screen.getByRole('button', { name: /OpenKnowledge ran ls/ }));
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toContain('read-only shell commands');
+    expect(tooltip.textContent).toContain('mcp__open-knowledge__exec');
+    const surface = screen.getByTestId('agent-thread-tool-tooltip');
+    expect(surface.className).toContain('bg-popover');
+    expect(surface.className).toContain('text-popover-foreground');
+    expect(surface.className).not.toContain('bg-foreground');
+    expect(surface.className).not.toContain('text-background');
+    expect(surface.querySelector('svg')).toBeNull();
+  });
+
+  test('a tool with nothing to add gets no tooltip wrapper at all', async () => {
+    const user = userEvent.setup();
+    model = makeModel({
+      items: [toolCall({ title: 'Run tests', toolKind: 'other', content: ['out'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const button = screen.getByRole('button', { name: /Run tests/ });
+    expect(button.getAttribute('data-state')).toBeNull();
+    await user.hover(button);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
+  test('a row with no body keeps its explanation as a title, readable without hover', () => {
+    model = makeModel({
+      items: [toolCall({ title: 'mcp__open-knowledge__exec', toolKind: 'other', rawInput: {} })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const row = screen.getByTestId('agent-thread-tool-call');
+    expect(row.querySelector('button')).toBeNull();
+    const title = row.querySelector('[title]')?.getAttribute('title') ?? '';
+    expect(title).toContain('read-only shell commands');
+    expect(title).toContain('mcp__open-knowledge__exec');
+  });
+
+  test('a built-in tool is explained by its kind', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ items: [toolCall({ content: ['out'] })], turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await user.hover(screen.getByRole('button', { name: /Run tests/ }));
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toContain('Runs a shell command');
+    expect(tooltip.textContent).toContain('Run tests');
+  });
+
+  test('a fence opening partway through is output, not a wrapper', async () => {
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['see:\n```\ncode\n```'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await openToolCall();
+    expect(screen.getByTestId('agent-thread-tool-call').textContent).toContain('```');
+  });
+
+  test('the completion check fades out once its window elapses', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    model = makeModel({ items: [toolCall({ status: 'in_progress', content: ['out'] })] });
+    const { rerender } = render(<ThreadView info={makeInfo()} />);
+
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['out'] })],
+      turnActive: false,
+    });
+    rerender(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-tool-check').getAttribute('class')).toContain(
+      'opacity-100',
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(2_000);
+    });
+    expect(screen.getByTestId('agent-thread-tool-check').getAttribute('class')).toContain(
+      'opacity-0',
+    );
+  });
+
+  test('a failed call keeps its badge — the exception is what gets marked', () => {
+    model = makeModel({
+      items: [toolCall({ status: 'failed', content: ['boom'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-tool-failed').textContent).toBe('failed');
+  });
+
+  test('a call with nothing to reveal is not an interactive control', () => {
+    model = makeModel({ items: [toolCall({ status: 'completed' })], turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByRole('button', { name: /Run tests/ })).toBeNull();
+    expect(screen.getByTestId('agent-thread-tool-call').textContent).toContain('Run tests');
+  });
+
+  test('an Open Knowledge call says what it did, not the name the adapter sent', () => {
+    model = makeModel({
+      items: [
+        toolCall({
+          status: 'completed',
+          title: 'mcp__open-knowledge__write',
+          toolKind: 'other',
+          rawInput: { document: { path: 'meetings/standup.md' } },
+        }),
+      ],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const row = screen.getByTestId('agent-thread-tool-call').textContent ?? '';
+    expect(row).toContain('OpenKnowledge wrote to meetings/standup');
+    expect(row).not.toContain('mcp__open-knowledge__write');
+  });
+
+  test('the raw id the label replaced stays reachable on hover', async () => {
+    const user = userEvent.setup();
+    model = makeModel({
+      items: [
+        toolCall({
+          status: 'completed',
+          title: 'mcp__linear-server__list_issues',
+          toolKind: 'other',
+          rawInput: {},
+          content: ['out'],
+        }),
+      ],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const row = screen.getByTestId('agent-thread-tool-call');
+    expect(row.textContent).toContain('linear-server · list_issues');
+    expect(row.textContent).not.toContain('mcp__linear-server__list_issues');
+
+    await user.hover(screen.getByRole('button', { name: /list_issues/ }));
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toContain('list_issues from the linear-server MCP server');
+    expect(tooltip.textContent).toContain('mcp__linear-server__list_issues');
+  });
+});
+
+describe('ThreadView permission merged into its tool call', () => {
+  const gated = (resolved: { optionId: string | null; auto: boolean }) =>
+    permission({ toolCallId: 'c1', mergedIntoToolCall: true, resolved });
+
+  function modelWithGatedCall(resolved: { optionId: string | null; auto: boolean }) {
+    const item = gated(resolved);
+    return makeModel({
+      items: [toolCall({ status: 'completed' }), item],
+      permissionsByToolCall: { c1: item },
+      turnActive: false,
+    });
+  }
+
+  test('an approval leaves no trace — the card goes, and nothing replaces it', () => {
+    model = modelWithGatedCall({ optionId: 'yes', auto: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-permission')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-tool-permission')).toBeNull();
+  });
+
+  test('an auto-approval leaves no trace either', () => {
+    model = modelWithGatedCall({ optionId: 'yes', auto: true });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-permission')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-tool-permission')).toBeNull();
+  });
+
+  test('a refusal marks the row in words — it changed what happened', () => {
+    model = modelWithGatedCall({ optionId: null, auto: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-tool-permission').textContent).toContain('Denied');
+  });
+
+  test('a dismissed prompt marks the row too — it also did not get an answer', () => {
+    model = modelWithGatedCall({ optionId: null, auto: true });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-tool-permission').textContent).toContain(
+      'Not answered',
+    );
+  });
+
+  test('stays quiet when the failed row already says the call did not run', () => {
+    const item = gated({ optionId: null, auto: false });
+    model = makeModel({
+      items: [toolCall({ status: 'failed', content: ['User refused permission'] }), item],
+      permissionsByToolCall: { c1: item },
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-tool-permission')).toBeNull();
+  });
+
+  test('drops an option name that only repeats the outcome, keeps a distinctive one', () => {
+    const synonym = permission({
+      toolCallId: 'c1',
+      mergedIntoToolCall: true,
+      options: [{ optionId: 'no', name: 'Reject', kind: 'reject_once' }],
+      resolved: { optionId: 'no', auto: false },
+    });
+    model = makeModel({
+      items: [toolCall({ status: 'completed' }), synonym],
+      permissionsByToolCall: { c1: synonym },
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-tool-permission').textContent).toBe('Denied');
+
+    cleanup();
+    const distinctive = permission({
+      toolCallId: 'c1',
+      mergedIntoToolCall: true,
+      options: [{ optionId: 'never', name: 'Always deny', kind: 'reject_always' }],
+      resolved: { optionId: 'never', auto: false },
+    });
+    model = makeModel({
+      items: [toolCall({ status: 'completed' }), distinctive],
+      permissionsByToolCall: { c1: distinctive },
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-tool-permission').textContent).toContain('Always deny');
+  });
+
+  test('a pending prompt keeps its card — it is the thing you act on', () => {
+    const item = permission({ toolCallId: 'c1', mergedIntoToolCall: true });
+    model = makeModel({
+      items: [toolCall({ status: 'in_progress' }), item],
+      permissionsByToolCall: { c1: item },
+    });
+    render(<ThreadView info={makeInfo({ status: 'awaiting_permission' })} />);
+    expect(screen.getByTestId('agent-thread-permission')).toBeDefined();
+    expect(screen.queryByTestId('agent-thread-tool-permission')).toBeNull();
+  });
+
+  test('an unmergeable outcome keeps the standalone card as its fallback', () => {
+    model = makeModel({
+      items: [permission({ resolved: { optionId: 'yes', auto: false } })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-permission-outcome').textContent).toContain('Approved');
+  });
+});
+
+describe('ThreadView tool-call collapse', () => {
+  test('stays collapsed through a live run — no open-then-fold flicker', async () => {
+    model = makeModel({
+      items: [toolCall({ status: 'in_progress', content: ['running output'] })],
+    });
+    const { rerender } = render(<ThreadView info={makeInfo()} />);
+    expect(screen.queryByText('running output')).toBeNull();
+
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['running output'] })],
+      turnActive: false,
+    });
+    rerender(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByText('running output')).toBeNull();
+    expect(screen.getByRole('button', { name: /Run tests/ }).getAttribute('aria-expanded')).toBe(
+      'false',
+    );
+
+    await openToolCall();
+    expect(screen.getByText('running output')).toBeDefined();
+  });
+
+  test('opens a call that fails while you watch, and leaves replayed ones closed', () => {
+    model = makeModel({ items: [toolCall({ status: 'in_progress', content: ['boom'] })] });
+    const { rerender } = render(<ThreadView info={makeInfo()} />);
+    expect(screen.queryByText('boom')).toBeNull();
+
+    model = makeModel({
+      items: [toolCall({ status: 'failed', content: ['boom'] })],
+      turnActive: false,
+    });
+    rerender(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByText('boom')).toBeDefined();
+
+    cleanup();
+    model = makeModel({
+      items: [toolCall({ status: 'failed', content: ['old failure'] })],
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByText('old failure')).toBeDefined();
+  });
+
+  test('keeps a card open when the user expanded it before completion', async () => {
+    model = makeModel({
+      items: [toolCall({ status: 'in_progress', content: ['review me'] })],
+    });
+    const { rerender } = render(<ThreadView info={makeInfo()} />);
+    expect(screen.queryByText('review me')).toBeNull();
+    await openToolCall();
+    expect(screen.getByText('review me')).toBeDefined();
+
+    model = makeModel({
+      items: [toolCall({ status: 'completed', content: ['review me'] })],
+      turnActive: false,
+    });
+    rerender(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.getByText('review me')).toBeDefined();
+    expect(screen.getByRole('button', { name: /Run tests/ }).getAttribute('aria-expanded')).toBe(
+      'true',
+    );
+  });
+});
+
+describe('ThreadView tool-call grouping', () => {
+  const reads = (count: number) =>
+    Array.from({ length: count }, (_, index) =>
+      toolCall({
+        toolCallId: `r${index}`,
+        title: `Read file-${index}.ts`,
+        toolKind: 'read',
+        status: 'completed',
+        locations: [{ path: `src/file-${index}.ts` }],
+      }),
+    );
+
+  test('folds a run of same-kind calls into one row that counts them by tool, not by title', () => {
+    model = makeModel({ turnActive: false, items: reads(3) });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    expect(screen.queryAllByTestId('agent-thread-tool-call')).toHaveLength(0);
+    const group = screen.getByTestId('agent-thread-tool-group');
+    expect(group.textContent).toContain('3 × Read');
+    expect(group.textContent).not.toContain('3 × Read file-0.ts');
+    expect(group.textContent).toContain('file-0.ts, file-1.ts +1 more');
+  });
+
+  test('expanding gives every call in the run its own row back', async () => {
+    model = makeModel({ turnActive: false, items: reads(3) });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    await userEvent.click(screen.getByTestId('agent-thread-tool-group-expand'));
+
+    expect(screen.queryByTestId('agent-thread-tool-group')).toBeNull();
+    expect(screen.getAllByTestId('agent-thread-tool-call')).toHaveLength(3);
+  });
+
+  test('leaves a pair alone, and a call of another tool splits the run around it', () => {
+    model = makeModel({ turnActive: false, items: reads(2) });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByTestId('agent-thread-tool-group')).toBeNull();
+    expect(screen.getAllByTestId('agent-thread-tool-call')).toHaveLength(2);
+
+    cleanup();
+    const [first, second, third, fourth, fifth] = reads(5);
+    model = makeModel({
+      turnActive: false,
+      items: [
+        first,
+        second,
+        toolCall({ toolCallId: 'x', title: 'Run tests', status: 'completed' }),
+        third,
+        fourth,
+        fifth,
+      ].filter((item): item is RenderedItem => item !== undefined),
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-tool-group').textContent).toContain('3 × Read');
+    expect(screen.getAllByTestId('agent-thread-tool-call')).toHaveLength(3);
+  });
+
+  test('a call still running holds its own row rather than being folded away', () => {
+    const [first, second, third] = reads(3);
+    model = makeModel({
+      items: [first, second, { ...third, status: 'in_progress' as const }].filter(
+        (item): item is RenderedItem => item !== undefined,
+      ),
+    });
+    render(<ThreadView info={makeInfo()} />);
+
+    expect(screen.queryByTestId('agent-thread-tool-group')).toBeNull();
+    expect(screen.getAllByTestId('agent-thread-tool-call')).toHaveLength(3);
+  });
+});
+
+describe('ThreadView raw input', () => {
+  test('collapses raw tool input by default and reveals it on request', async () => {
+    model = makeModel({
+      items: [toolCall({ rawInput: { docName: 'notes/today', position: 'append' } })],
+    });
+    render(<ThreadView info={makeInfo()} />);
+    await openToolCall();
+    const block = screen.getByTestId('agent-thread-tool-raw-input');
+    const trigger = screen.getByRole('button', { name: 'Input' });
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(block.textContent).not.toContain('notes/today');
+
+    await userEvent.click(trigger);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    expect(within(block).getByTestId('rendered-markdown').textContent).toBe(
+      '```json\n{\n  "docName": "notes/today",\n  "position": "append"\n}\n```',
+    );
+  });
+
+  test('an empty rawInput object renders no input block', () => {
+    model = makeModel({ items: [toolCall({ rawInput: {} })] });
+    render(<ThreadView info={makeInfo()} />);
+    expect(screen.queryByTestId('agent-thread-tool-raw-input')).toBeNull();
+  });
+});
+
+describe('ThreadView message queue', () => {
+  test('mid-turn the action slot holds Stop until a draft exists, then yields to Send', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    expect(screen.getByTestId('agent-thread-cancel')).toBeTruthy();
+    expect(screen.queryByTestId('agent-thread-send')).toBeNull();
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'queued while running' },
+    });
+
+    expect(screen.queryByTestId('agent-thread-cancel')).toBeNull();
+    const send = screen.getByTestId('agent-thread-send');
+    expect(send.getAttribute('aria-label')).toBe('Queue message');
+    expect((send as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.click(send);
+    expect(prompt).toHaveBeenCalledWith('thread-1', 'queued while running', undefined);
+  });
+
+  test('Escape cancels the turn while a draft holds the action slot', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer');
+    fireEvent.change(composer, { target: { value: 'typed mid-turn' } });
+    expect(screen.queryByTestId('agent-thread-cancel')).toBeNull();
+
+    fireEvent.keyDown(composer, { key: 'Escape' });
+    expect(cancel).toHaveBeenCalledWith('thread-1');
+    expect((composer as HTMLTextAreaElement).value).toBe('typed mid-turn');
+  });
+
+  test('a pending cancel keeps the Stopping spinner even as the user types', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-cancel'));
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'typed while stopping' },
+    });
+
+    const stopping = screen.getByTestId('agent-thread-cancel');
+    expect(stopping.getAttribute('aria-label')).toBe('Stopping');
+    expect((stopping as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByTestId('agent-thread-send')).toBeNull();
+  });
+
+  test('outside a turn the slot is Send, disabled only by an empty draft', () => {
+    model = makeModel({ turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    expect(screen.queryByTestId('agent-thread-cancel')).toBeNull();
+    const send = screen.getByTestId('agent-thread-send');
+    expect(send.getAttribute('aria-label')).toBe('Send');
+    expect((send as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'idle send' },
+    });
+    expect((screen.getByTestId('agent-thread-send') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  test('Escape stays scoped to the composer and does not cancel from the transcript', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'typed, then clicked away' },
+    });
+
+    fireEvent.keyDown(screen.getByTestId('agent-thread-transcript'), { key: 'Escape' });
+    expect(cancel).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(screen.getByTestId('agent-thread-composer'), { key: 'Escape' });
+    expect(cancel).toHaveBeenCalledWith('thread-1');
+  });
+
+  test('the composer carries no add-context control', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    expect(screen.queryByTestId('composer-add-context')).toBeNull();
+  });
+
+  test('Escape cancels with an empty draft too, while Stop is also on screen', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    expect(screen.getByTestId('agent-thread-cancel')).toBeTruthy();
+    fireEvent.keyDown(screen.getByTestId('agent-thread-composer'), { key: 'Escape' });
+    expect(cancel).toHaveBeenCalledWith('thread-1');
+  });
+
+  test('Escape is a no-op while a cancel is already pending', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-cancel'));
+    expect(cancel).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(screen.getByTestId('agent-thread-composer'), { key: 'Escape' });
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
+  test('Escape outside a turn does not fire a cancel', () => {
+    model = makeModel({ turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer');
+    fireEvent.change(composer, { target: { value: 'idle draft' } });
+    fireEvent.keyDown(composer, { key: 'Escape' });
+
+    expect(cancel).not.toHaveBeenCalled();
+  });
+
+  test('Stop advertises the Escape shortcut, so it is learned before it is needed', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    await user.hover(screen.getByTestId('agent-thread-cancel'));
+
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toContain('Esc');
+  });
+
+  test('Escape in the queued-message editor exits editing without cancelling the turn', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          queue: [{ id: 'q1', content: 'original text', ts: 1 }],
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    fireEvent.keyDown(screen.getByTestId('agent-thread-queued-input'), { key: 'Escape' });
+
+    expect(screen.queryByTestId('agent-thread-queued-input')).toBeNull();
+    expect(cancel).not.toHaveBeenCalled();
+  });
+
+  test('queued messages render between transcript and composer with a remove control', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          queue: [
+            { id: 'q1', content: 'first queued', ts: 1 },
+            { id: 'q2', content: 'second queued', ts: 2 },
+          ],
+        })}
+      />,
+    );
+
+    const rows = screen.getAllByTestId('agent-thread-queued');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.textContent).toContain('first queued');
+    expect(rows[1]?.textContent).toContain('second queued');
+
+    const firstRow = rows[0];
+    if (firstRow === undefined) throw new Error('missing queue row');
+    fireEvent.click(within(firstRow).getByTestId('agent-thread-queued-remove'));
+    expect(removeQueued).toHaveBeenCalledWith('thread-1', 'q1');
+  });
+
+  test('in-place edit opens with the current content and saves on Enter', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          queue: [{ id: 'q1', content: 'original text', ts: 1 }],
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    const input = screen.getByTestId('agent-thread-queued-input') as HTMLTextAreaElement;
+    expect(input.value).toBe('original text');
+
+    fireEvent.change(input, { target: { value: 'sharper text' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(editQueued).toHaveBeenCalledWith('thread-1', 'q1', 'sharper text');
+    expect(screen.queryByTestId('agent-thread-queued-input')).toBeNull();
+    expect(screen.getByTestId('agent-thread-queued')).toBeTruthy();
+  });
+
+  test('Escape abandons the edit without sending anything', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          queue: [{ id: 'q1', content: 'keep me', ts: 1 }],
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    const input = screen.getByTestId('agent-thread-queued-input') as HTMLTextAreaElement;
+    fireEvent.change(input, { target: { value: 'discarded' } });
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    expect(editQueued).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('agent-thread-queued-input')).toBeNull();
+    expect(screen.getByTestId('agent-thread-queued').textContent).toContain('keep me');
+  });
+});
+
+describe('ThreadView thought collapse', () => {
+  const thought = {
+    kind: 'message' as const,
+    role: 'thought' as const,
+    text: 'First thought line\nLast thought line',
+    messageId: 'default',
+  };
+
+  test('collapsed by default with a tail-line preview while streaming', () => {
+    model = makeModel({ turnActive: true, items: [thought] });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    const toggle = screen.getByTestId('agent-thread-thought-toggle');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(toggle.textContent).toContain('Last thought line');
+    expect(toggle.textContent).not.toContain('First thought line');
+    expect(screen.getByTestId('agent-thread-thought').textContent).not.toContain(
+      'First thought line',
+    );
+  });
+
+  test('settled preview is the head line; expanding reveals the full text', async () => {
+    model = makeModel({ turnActive: false, items: [thought] });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const toggle = screen.getByTestId('agent-thread-thought-toggle');
+    expect(toggle.textContent).toContain('First thought line');
+
+    await userEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    const block = screen.getByTestId('agent-thread-thought');
+    expect(block.textContent).toContain('First thought line');
+    expect(block.textContent).toContain('Last thought line');
+  });
+
+  test('the collapsed preview shows the markdown as plain text', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [{ ...thought, text: '**Planning the change**\n\nRead `ThreadView.tsx` first.' }],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const toggle = screen.getByTestId('agent-thread-thought-toggle');
+    expect(toggle.textContent).toContain('Planning the change');
+    expect(toggle.textContent).not.toContain('**');
+  });
+
+  test('a streaming preview hides the markers of a bold title still arriving', () => {
+    model = makeModel({
+      turnActive: true,
+      items: [{ ...thought, text: 'Earlier line\n**Checking the te' }],
+    });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    const toggle = screen.getByTestId('agent-thread-thought-toggle');
+    expect(toggle.textContent).toContain('Checking the te');
+    expect(toggle.textContent).not.toContain('**');
+  });
+
+  test.each([
+    ['Earlier line\nNow checking the **config file', 'Now checking the config file'],
+    ['Earlier line\n**Running the\ntest suite**', 'test suite'],
+  ])('a streaming preview of %j hides its emphasis markers', (text, preview) => {
+    model = makeModel({ turnActive: true, items: [{ ...thought, text }] });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    const toggle = screen.getByTestId('agent-thread-thought-toggle');
+    expect(toggle.textContent).toContain(preview);
+    expect(toggle.textContent).not.toContain('**');
+  });
+
+  test('the preview keeps the text of inline code that starts the line', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [{ ...thought, text: '`**kwargs` must be forwarded' }],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-thought-toggle').textContent).toContain(
+      '**kwargs must be forwarded',
+    );
+  });
+
+  test('a streaming preview skips a line that renders no text', () => {
+    model = makeModel({
+      turnActive: true,
+      items: [{ ...thought, text: 'Planning the edit\n\n```ts' }],
+    });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    expect(screen.getByTestId('agent-thread-thought-toggle').textContent).toContain(
+      'Planning the edit',
+    );
+  });
+});
+
+describe('ThreadView config value hints', () => {
+  test("a bare adapter 'Default' resolves via the hint table on the row and in the flyout", async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          configOptions: [
+            {
+              id: 'effort',
+              name: 'Effort',
+              category: 'thought_level',
+              type: 'select',
+              currentValue: 'default',
+              options: [
+                { value: 'default', name: 'Default' },
+                { value: 'high', name: 'High' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    const effortRow = screen.getByTestId('agent-thread-config-effort');
+    expect(effortRow.textContent).toContain("Model's default effort");
+
+    await userEvent.click(effortRow);
+    const entry = await screen.findByTestId('agent-thread-config-option-default');
+    expect(entry.textContent).toContain('Default');
+    expect(entry.textContent).toContain("Model's default effort");
+  });
+
+  test("a default sharing a sibling's description resolves to the sibling's name", async () => {
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          configOptions: [
+            {
+              id: 'model',
+              name: 'Model',
+              category: 'model',
+              type: 'select',
+              currentValue: 'default',
+              options: [
+                {
+                  value: 'default',
+                  name: 'Default (recommended)',
+                  description: 'Opus 5 with 1M context · Best for everyday, complex tasks',
+                },
+                {
+                  value: 'opus[1m]',
+                  name: 'Opus (1M context)',
+                  description: 'Opus 5 with 1M context · Best for everyday, complex tasks',
+                },
+                { value: 'sonnet', name: 'Sonnet', description: 'Sonnet 5 · Efficient' },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: /^Agent settings/ });
+    expect(trigger.textContent).toContain('Opus (1M context) · default');
+
+    await userEvent.click(trigger);
+    const modelRow = screen.getByTestId('agent-thread-config-model');
+    expect(modelRow.textContent).toContain('Opus (1M context) · default');
+  });
+});
+
+describe('ThreadView queue rescue on Stop', () => {
+  test('Stop folds every queued message back into the composer', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          queue: [
+            { id: 'q1', content: 'first correction', ts: 1 },
+            { id: 'q2', content: 'second correction', ts: 2 },
+          ],
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('agent-thread-cancel'));
+
+    expect(cancel).toHaveBeenCalledWith('thread-1');
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    expect(composer.value).toBe('first correction\n\nsecond correction');
+  });
+
+  test('the Escape cancel path rescues the queue too, appended to the draft', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          queue: [{ id: 'q1', content: 'queued fix', ts: 1 }],
+        })}
+      />,
+    );
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: 'already typing' } });
+    fireEvent.keyDown(composer, { key: 'Escape' });
+
+    expect(cancel).toHaveBeenCalledWith('thread-1');
+    expect(composer.value).toBe('already typing\n\nqueued fix');
+  });
+
+  test('an empty queue leaves the draft exactly as typed', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: 'just this' } });
+    fireEvent.keyDown(composer, { key: 'Escape' });
+
+    expect(composer.value).toBe('just this');
+  });
+});
+
+describe('ThreadView stalled turn', () => {
+  test('a silent turn says how long the agent has been quiet', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView info={makeInfo({ status: 'running', stalledSince: Date.now() - 4 * 60_000 })} />,
+    );
+    const strip = screen.getByTestId('agent-thread-stalled');
+    const region = screen.getByTestId('agent-thread-stalled-region');
+    expect(region.getAttribute('role')).toBe('status');
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(strip.textContent).toContain('for 4 minutes');
+    expect(strip.textContent).toContain('If it looks stuck, Stop and try again.');
+  });
+
+  test('a stall that appears mid-session shows its real age on first paint', () => {
+    model = makeModel({ turnActive: true });
+    const { rerender } = render(<ThreadView info={makeInfo({ status: 'running' })} />);
+    expect(screen.queryByTestId('agent-thread-stalled')).toBeNull();
+
+    rerender(
+      <ThreadView info={makeInfo({ status: 'running', stalledSince: Date.now() - 3 * 60_000 })} />,
+    );
+    expect(screen.getByTestId('agent-thread-stalled').textContent).toContain('for 3 minutes');
+  });
+
+  test('a stall that just started reads as one minute, never zero', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running', stalledSince: Date.now() })} />);
+    expect(screen.getByTestId('agent-thread-stalled').textContent).toContain('for 1 minute.');
+  });
+
+  test('the live region is already in the DOM before a stall, so the text lands in it', () => {
+    model = makeModel({ turnActive: true });
+    const { rerender } = render(<ThreadView info={makeInfo({ status: 'running' })} />);
+    const region = screen.getByTestId('agent-thread-stalled-region');
+    expect(region.textContent).toBe('');
+
+    rerender(
+      <ThreadView info={makeInfo({ status: 'running', stalledSince: Date.now() - 5 * 60_000 })} />,
+    );
+    expect(screen.getByTestId('agent-thread-stalled-region')).toBe(region);
+    expect(region.textContent).toContain('for 5 minutes');
+  });
+
+  test('pressing Stop retires the notice instead of telling you to press it again', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView info={makeInfo({ status: 'running', stalledSince: Date.now() - 60_000 })} />,
+    );
+    expect(screen.getByTestId('agent-thread-stalled')).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId('agent-thread-cancel'));
+    expect(cancel).toHaveBeenCalledWith('thread-1');
+    expect(screen.queryByTestId('agent-thread-stalled')).toBeNull();
+  });
+
+  test('once the turn is over the notice goes away', () => {
+    model = makeModel({ turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready', stalledSince: Date.now() - 60_000 })} />);
+    expect(screen.queryByTestId('agent-thread-stalled')).toBeNull();
+  });
+});
+
+describe('ThreadView steer now', () => {
+  test('mid-turn with a draft, Steer now sends the correction and clears the composer', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    expect(screen.queryByTestId('agent-thread-steer')).toBeNull();
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: '  actually, do this instead  ' } });
+
+    expect(screen.getByTestId('agent-thread-send').getAttribute('aria-label')).toBe(
+      'Queue message',
+    );
+    const steerButton = screen.getByTestId('agent-thread-steer');
+    expect(steerButton.getAttribute('aria-label')).toBe('Steer now');
+
+    fireEvent.click(steerButton);
+    expect(steer).toHaveBeenCalledWith('thread-1', 'actually, do this instead', undefined);
+    expect(prompt).not.toHaveBeenCalled();
+    expect(composer.value).toBe('');
+  });
+
+  test('Enter still queues — steering is only ever an explicit click', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer');
+    fireEvent.change(composer, { target: { value: 'queue me' } });
+    fireEvent.keyDown(composer, { key: 'Enter' });
+
+    expect(prompt).toHaveBeenCalledWith('thread-1', 'queue me', undefined);
+    expect(steer).not.toHaveBeenCalled();
+  });
+
+  test('outside a turn there is nothing to steer away from', () => {
+    model = makeModel({ turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'plain send' },
+    });
+    expect(screen.queryByTestId('agent-thread-steer')).toBeNull();
+  });
+
+  test('a parked steer shows the waiting strip with the correction previewed', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({ status: 'running', steer: { content: 'use the other API', ts: 1 } })}
+      />,
+    );
+
+    const strip = screen.getByTestId('agent-thread-steer-pending');
+    expect(strip.textContent).toContain('waiting for the current run to stop');
+    expect(strip.textContent).toContain('use the other API');
+  });
+
+  test('Stop rescues the parked steer ahead of the queue', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          steer: { content: 'the correction', ts: 3 },
+          queue: [{ id: 'q1', content: 'queued after', ts: 4 }],
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('agent-thread-cancel'));
+
+    expect(cancel).toHaveBeenCalledWith('thread-1');
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    expect(composer.value).toBe('the correction\n\nqueued after');
+  });
+});
+
+describe('ThreadView queued-message holds', () => {
+  const oneQueued = (content = 'original text', held?: boolean) =>
+    makeInfo({
+      status: 'running',
+      queue: [{ id: 'q1', content, ts: 1, ...(held === undefined ? {} : { held }) }],
+    });
+
+  test('opening the editor holds the row so the drain cannot take it', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    expect(holdQueued).toHaveBeenCalledWith('thread-1', 'q1', true);
+  });
+
+  test('cancelling the edit releases the hold', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    fireEvent.click(screen.getByTestId('agent-thread-queued-cancel-edit'));
+
+    expect(holdQueued).toHaveBeenLastCalledWith('thread-1', 'q1', false);
+    expect(editQueued).not.toHaveBeenCalled();
+  });
+
+  test('Escape releases the hold as well', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    fireEvent.keyDown(screen.getByTestId('agent-thread-queued-input'), { key: 'Escape' });
+
+    expect(holdQueued).toHaveBeenLastCalledWith('thread-1', 'q1', false);
+  });
+
+  test('saving changed text resubmits through the edit; the server clears the hold', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    fireEvent.change(screen.getByTestId('agent-thread-queued-input'), {
+      target: { value: 'sharper text' },
+    });
+    fireEvent.keyDown(screen.getByTestId('agent-thread-queued-input'), { key: 'Enter' });
+
+    expect(editQueued).toHaveBeenCalledWith('thread-1', 'q1', 'sharper text');
+    expect(holdQueued).toHaveBeenCalledTimes(1);
+    expect(holdQueued).toHaveBeenCalledWith('thread-1', 'q1', true);
+  });
+
+  test('saving unchanged text just releases the hold — nothing to edit', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    fireEvent.keyDown(screen.getByTestId('agent-thread-queued-input'), { key: 'Enter' });
+
+    expect(editQueued).not.toHaveBeenCalled();
+    expect(holdQueued).toHaveBeenLastCalledWith('thread-1', 'q1', false);
+  });
+
+  test('a held row is marked as held and offers to send it', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued('parked text', true)} />);
+
+    const row = screen.getByTestId('agent-thread-queued');
+    expect(row.textContent).toContain('Held');
+    expect(row.getAttribute('data-held')).toBe('true');
+
+    fireEvent.click(within(row).getByTestId('agent-thread-queued-release'));
+    expect(holdQueued).toHaveBeenCalledWith('thread-1', 'q1', false);
+  });
+
+  test('an ordinary queued row carries no held marking', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    const row = screen.getByTestId('agent-thread-queued');
+    expect(row.getAttribute('data-held')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-queued-release')).toBeNull();
+  });
+
+  test('mid-turn, Send now on a queued row jumps it ahead of the run', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued('jump me')} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-send-now'));
+    expect(sendQueuedNow).toHaveBeenCalledWith('thread-1', 'q1');
+    expect(steer).not.toHaveBeenCalled();
+    expect(removeQueued).not.toHaveBeenCalled();
+    expect(cancel).not.toHaveBeenCalled();
+  });
+
+  test('a held row offers Send now too, next to its release', () => {
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued('parked text', true)} />);
+
+    const row = screen.getByTestId('agent-thread-queued');
+    expect(within(row).getByTestId('agent-thread-queued-release')).toBeTruthy();
+    fireEvent.click(within(row).getByTestId('agent-thread-queued-send-now'));
+    expect(sendQueuedNow).toHaveBeenCalledWith('thread-1', 'q1');
+    expect(holdQueued).not.toHaveBeenCalled();
+  });
+
+  test('with no run to interrupt, a held row only offers its release', () => {
+    model = makeModel({ turnActive: false });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          queue: [{ id: 'q1', content: 'parked text', ts: 1, held: true }],
+        })}
+      />,
+    );
+
+    expect(screen.queryByTestId('agent-thread-queued-send-now')).toBeNull();
+    expect(screen.getByTestId('agent-thread-queued-release')).toBeTruthy();
+  });
+
+  test('Send now says what it costs before it is pressed', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    await user.hover(screen.getByTestId('agent-thread-queued-send-now'));
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toContain('Stops the current run and sends this instead');
+  });
+
+  test('an edit that lost its race says so instead of vanishing', async () => {
+    editQueuedResult = Promise.reject(new Error('queued message already dispatched'));
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={oneQueued()} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-queued-edit'));
+    fireEvent.change(screen.getByTestId('agent-thread-queued-input'), {
+      target: { value: 'too late' },
+    });
+    fireEvent.keyDown(screen.getByTestId('agent-thread-queued-input'), { key: 'Enter' });
+
+    await vi.waitFor(() => expect(toastError).toHaveBeenCalledTimes(1));
+    expect(String(toastError.mock.calls[0]?.[0])).toContain("wasn't applied");
+  });
+});
+
+describe('ThreadView send-vs-queue labelling', () => {
+  test('the queue header says when the messages actually go out', () => {
+    model = makeModel({ turnActive: true });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'running',
+          queue: [{ id: 'q1', content: 'waiting', ts: 1 }],
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId('agent-thread-queue').textContent).toContain(
+      'sends when this run finishes',
+    );
+  });
+
+  test('mid-turn the action button wears the queue icon and explains itself', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'queued while running' },
+    });
+
+    const send = screen.getByTestId('agent-thread-send');
+    expect(send.querySelector('svg')?.getAttribute('class')).toContain('list-plus');
+
+    await user.hover(send);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toContain('Queues behind the running turn');
+  });
+
+  test('outside a turn it is a plain send arrow with no queue tooltip', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'idle send' },
+    });
+
+    const send = screen.getByTestId('agent-thread-send');
+    expect(send.querySelector('svg')?.getAttribute('class')).toContain('arrow-up');
+
+    await user.hover(send);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+});
+
+describe('ThreadView attachment disclosure', () => {
+  test('a references-only agent explains that behavior in the add menu', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: false });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          promptCapabilities: { embeddedContext: false },
+        })}
+      />,
+    );
+
+    await user.click(screen.getByTestId('agent-thread-add-to-prompt'));
+
+    expect(
+      screen.getByRole('menuitem', {
+        name: 'Attach files · project files as references',
+      }).textContent,
+    ).toBe('Attach files · project files as references');
+  });
+
+  test('an embedding-capable agent keeps the file option concise', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: false });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          promptCapabilities: { embeddedContext: true },
+        })}
+      />,
+    );
+
+    await user.click(screen.getByTestId('agent-thread-add-to-prompt'));
+
+    expect(screen.getByRole('menuitem', { name: 'Attach files' }).textContent).toBe('Attach files');
+  });
+
+  test('unknown capabilities do not flash a references-only claim during handshake', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready', promptCapabilities: null })} />);
+
+    await user.click(screen.getByTestId('agent-thread-add-to-prompt'));
+
+    expect(screen.getByRole('menuitem', { name: 'Attach files' }).textContent).toBe('Attach files');
+  });
+});
+
+describe('ThreadView retry', () => {
+  function failureNotice(
+    reason: 'auth-required' | 'connect' | 'session-setup' | 'prompt',
+  ): Extract<RenderedItem, { kind: 'notice' }> {
+    return {
+      kind: 'notice',
+      text: '',
+      tone: 'error',
+      failure: { reason, agentMessage: 'harness not installed' },
+      attempts: 1,
+    };
+  }
+
+  test('a startup failure offers Retry and re-runs the launch', async () => {
+    model = makeModel({ turnActive: false, items: [failureNotice('session-setup')] });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    await userEvent.click(screen.getByTestId('agent-thread-retry'));
+    expect(retryThread).toHaveBeenCalledWith('thread-1');
+  });
+
+  test('a retry the agent fails is left to the thread notice, with no toast and no second message', async () => {
+    retryThread.mockRejectedValueOnce(
+      new ThreadRetryError('spawn-failed', 'harness not installed'),
+    );
+    model = makeModel({ turnActive: false, items: [failureNotice('connect')] });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    await userEvent.click(screen.getByTestId('agent-thread-retry'));
+    await waitFor(() =>
+      expect(screen.getByTestId('agent-thread-retry').hasAttribute('disabled')).toBe(false),
+    );
+    expect(screen.getByTestId('agent-thread-notice').textContent).toContain(
+      "Claude couldn't start.",
+    );
+    expect(screen.queryByTestId('agent-thread-retry-failed')).toBeNull();
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  test('a retry that never reaches the agent says so in the pane, with the detail behind a disclosure and no toast', async () => {
+    retryThread.mockRejectedValueOnce(
+      new ThreadRetryError('install-failed', 'agent registry unavailable: fetch failed'),
+    );
+    model = makeModel({ turnActive: false, items: [failureNotice('connect')] });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    await userEvent.click(screen.getByTestId('agent-thread-retry'));
+    const failed = await screen.findByTestId('agent-thread-retry-failed');
+    const alerts = within(failed).getAllByRole('alert');
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]?.textContent).toBe("Couldn't restart Claude.");
+    expect(failed.textContent).not.toContain('fetch failed');
+    await userEvent.click(within(failed).getByRole('button', { name: 'Show details' }));
+    expect(screen.getByTestId('agent-thread-retry-failed-details').textContent).toBe(
+      'agent registry unavailable: fetch failed',
+    );
+    expect(toastError).not.toHaveBeenCalled();
+
+    retryThread.mockReturnValueOnce(new Promise(() => {}));
+    await userEvent.click(screen.getByTestId('agent-thread-retry'));
+    expect(screen.queryByTestId('agent-thread-retry-failed')).toBeNull();
+  });
+
+  test('a retry rejection that lands after the thread moved on never surfaces when the thread fails again', async () => {
+    const { promise: pendingRetry, reject: rejectRetry } = Promise.withResolvers<ThreadInfo>();
+    retryThread.mockReturnValueOnce(pendingRetry);
+    model = makeModel({ turnActive: false, items: [failureNotice('connect')] });
+    const view = render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    await userEvent.click(screen.getByTestId('agent-thread-retry'));
+    view.rerender(<ThreadView info={makeInfo({ status: 'spawning' })} />);
+    await act(async () => {
+      rejectRetry(new ThreadRetryError('timeout', 'retry timed out'));
+    });
+    view.rerender(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    await waitFor(() =>
+      expect(screen.getByTestId('agent-thread-retry').hasAttribute('disabled')).toBe(false),
+    );
+    expect(screen.queryByTestId('agent-thread-retry-failed')).toBeNull();
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  test('a message stranded by a sign-in failure comes back once the thread can send again', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' },
+        failureNotice('auth-required'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    expect(composer.value).toBe('');
+
+    await userEvent.click(screen.getByTestId('agent-thread-restore'));
+
+    expect(composer.value).toBe('summarise the standup');
+    expect(screen.queryByTestId('agent-thread-user-message')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-notice')).toBeNull();
+  });
+
+  test('a thread still parked on sign-in is not offered a resend it cannot deliver', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' },
+        failureNotice('auth-required'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    expect(screen.queryByTestId('agent-thread-restore')).toBeNull();
+    expect(screen.getByTestId('agent-thread-auth-status')).toBeDefined();
+    const signInMark = screen.getByTestId('agent-thread-notice').firstElementChild;
+    expect(signInMark?.tagName.toLowerCase()).toBe('svg');
+    expectVisualClassTokensAbsent(signInMark?.getAttribute('class') ?? '', [
+      'opacity-25',
+      'grayscale',
+    ]);
+  });
+
+  test('a prompt failure offers Edit and resend instead of Retry, seeds the composer, and hides the failed pair', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'message',
+          role: 'user',
+          text: 'give me a haiku about tokens',
+          messageId: 'u1',
+        },
+        failureNotice('prompt'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    expect(screen.queryByTestId('agent-thread-retry')).toBeNull();
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    expect(composer.value).toBe('');
+    expect(screen.getByTestId('agent-thread-user-message')).toBeDefined();
+    expect(screen.getByTestId('agent-thread-notice')).toBeDefined();
+
+    await userEvent.click(screen.getByTestId('agent-thread-restore'));
+
+    expect(composer.value).toBe('give me a haiku about tokens');
+    expect(screen.queryByTestId('agent-thread-user-message')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-notice')).toBeNull();
+  });
+
+  test('only the last prompt failure carries the button, seeds from nearest, and hides only the reverted pair', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'first try', messageId: 'u1' },
+        failureNotice('prompt'),
+        { kind: 'message', role: 'user', text: 'second try', messageId: 'u2' },
+        failureNotice('prompt'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const buttons = screen.getAllByTestId('agent-thread-restore');
+    expect(buttons).toHaveLength(1);
+    expect(screen.getAllByTestId('agent-thread-user-message')).toHaveLength(2);
+    expect(screen.getAllByTestId('agent-thread-notice')).toHaveLength(2);
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    const button = buttons[0];
+    if (!button) throw new Error('restore button missing');
+    await userEvent.click(button);
+
+    expect(composer.value).toBe('second try');
+    const users = screen.getAllByTestId('agent-thread-user-message');
+    expect(users).toHaveLength(1);
+    expect(users[0]?.textContent).toContain('first try');
+    expect(screen.getAllByTestId('agent-thread-notice')).toHaveLength(1);
+  });
+
+  test('after Edit-and-resend the composer is usable — Send button becomes enabled and can send', async () => {
+    const promptFn = prompt as ReturnType<typeof vi.fn>;
+    promptFn.mockClear();
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'give me a haiku', messageId: 'u1' },
+        failureNotice('prompt'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const send = screen.getByTestId('agent-thread-send');
+    expect(send.hasAttribute('disabled')).toBe(true);
+
+    await userEvent.click(screen.getByTestId('agent-thread-restore'));
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    expect(composer.value).toBe('give me a haiku');
+    expect(send.hasAttribute('disabled')).toBe(false);
+
+    await userEvent.click(send);
+    expect(promptFn).toHaveBeenCalledWith('thread-1', 'give me a haiku', undefined);
+  });
+
+  test('an exited thread offers no Edit-and-resend', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'give me a haiku', messageId: 'u1' },
+        failureNotice('prompt'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'exited', archived: false })} />);
+
+    expect(screen.queryByTestId('agent-thread-restore')).toBeNull();
+  });
+
+  test('Edit-and-resend is a no-op when the failed prompt has no text', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: '', messageId: 'u1' },
+        failureNotice('prompt'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    await userEvent.click(screen.getByTestId('agent-thread-restore'));
+    expect(composer.value).toBe('');
+  });
+
+  test('an attachment-only failed prompt does not restore text from an earlier turn', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'earlier unrelated turn', messageId: 'u1' },
+        { kind: 'message', role: 'agent', text: 'ok', messageId: 'a1' },
+        { kind: 'message', role: 'user', text: '', messageId: 'u2' },
+        failureNotice('prompt'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    await userEvent.click(screen.getByTestId('agent-thread-restore'));
+    expect(composer.value).toBe('');
+  });
+
+  test('an archived thread offers no Edit-and-resend', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'give me a haiku', messageId: 'u1' },
+        failureNotice('prompt'),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error', archived: true })} />);
+
+    expect(screen.queryByTestId('agent-thread-restore')).toBeNull();
+  });
+
+  test('only the last startup failure carries the button', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [failureNotice('connect'), failureNotice('session-setup')],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    expect(screen.getAllByTestId('agent-thread-notice')).toHaveLength(2);
+    const buttons = screen.getAllByTestId('agent-thread-retry');
+    expect(buttons).toHaveLength(1);
+    const notices = screen.getAllByTestId('agent-thread-notice');
+    expect(notices[1]?.contains(buttons[0] ?? null)).toBe(true);
+  });
+
+  test('an archived thread offers no Retry — that one resumes', () => {
+    model = makeModel({ turnActive: false, items: [failureNotice('session-setup')] });
+    render(<ThreadView info={makeInfo({ status: 'error', archived: true })} />);
+
+    expect(screen.queryByTestId('agent-thread-retry')).toBeNull();
+  });
+
+  test('an auth failure offers a sign-in button that authenticates in place', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+          attempts: 1,
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    const button = screen.getByTestId('agent-thread-auth-method');
+    expect(button.getAttribute('data-auth-method-id')).toBe('test_login');
+    expect(button.textContent).toContain('Sign in with Test Login');
+    await userEvent.click(button);
+    expect(authenticateThread).toHaveBeenCalledWith('thread-1', 'test_login');
+    expect(screen.getByTestId('agent-thread-retry')).toBeDefined();
+  });
+
+  test('only the first sign-in method carries the primary weight', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [
+              { id: 'ioa', name: 'IoA' },
+              { id: 'google', name: 'Google' },
+              { id: 'sso', name: 'Enterprise domain' },
+            ],
+          },
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    const variants = screen
+      .getAllByTestId('agent-thread-auth-method')
+      .map((b) => b.getAttribute('data-variant'));
+    expect(variants).toHaveLength(3);
+    expect(variants[0]).toBe('default');
+    expect(variants.slice(1).every((v) => v !== 'default')).toBe(true);
+  });
+
+  test('Retry is framed as a question only when it stands alone', () => {
+    const authFailure = (machineDetail?: string): Extract<RenderedItem, { kind: 'notice' }> => ({
+      kind: 'notice',
+      text: '',
+      tone: 'info',
+      failure: {
+        reason: 'auth-required',
+        authMethods: [{ id: 'test_login', name: 'Test Login' }],
+        ...(machineDetail === undefined ? {} : { machineDetail }),
+      },
+    });
+
+    model = makeModel({ turnActive: false, items: [authFailure()] });
+    const alone = render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+    expect(screen.getByTestId('agent-thread-notice').textContent).toContain('Already signed in?');
+    alone.unmount();
+
+    model = makeModel({ turnActive: false, items: [authFailure('{"detail":"x"}')] });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+    expect(screen.getByTestId('agent-thread-notice-details-toggle')).toBeDefined();
+    expect(screen.getByTestId('agent-thread-notice').textContent).not.toContain(
+      'Already signed in?',
+    );
+  });
+
+  test('a sign-in in flight reads as a wait, not as the agent starting', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'authenticating' })} />);
+
+    const card = screen.getByTestId('agent-thread-notice');
+    expect(card.textContent).toContain('Signing in to Claude');
+    expect(screen.queryByTestId('agent-thread-auth-method')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-starting')).toBeNull();
+    expect(card.textContent).not.toContain('Already signed in?');
+    expect(screen.getByTestId('agent-thread-retry')).toBeDefined();
+  });
+
+  test('a sign-in in flight shows what the agent printed', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+        },
+      ],
+    });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'authenticating',
+          signInOutput: [
+            '[acp/auth] Starting OAuth login for cline…',
+            '[acp/auth] Enter this code in your browser: CRQT-NXNT',
+            '[acp/auth] https://authkit.cline.bot/device?user_code=CRQT-NXNT',
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId('agent-thread-sign-in-code').textContent).toContain('CRQT-NXNT');
+    expect(screen.getByTestId('agent-thread-sign-in-url').textContent).toBe(
+      'authkit.cline.bot/device',
+    );
+  });
+
+  test('the sign-in transition is announced to assistive tech', () => {
+    const authNotice: Extract<RenderedItem, { kind: 'notice' }> = {
+      kind: 'notice',
+      text: '',
+      tone: 'info',
+      failure: { reason: 'auth-required', authMethods: [{ id: 'test_login', name: 'Test Login' }] },
+    };
+
+    model = makeModel({ turnActive: false, items: [authNotice] });
+    const parked = render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+    const regions = () => screen.getAllByRole('status').map((n) => n.textContent);
+    expect(regions()).toContain('');
+    parked.unmount();
+
+    model = makeModel({ turnActive: false, items: [authNotice] });
+    render(<ThreadView info={makeInfo({ status: 'authenticating' })} />);
+    expect(regions().join(' ')).toContain('Signing in to Claude');
+  });
+
+  test('copying the code is announced to assistive tech', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+        },
+      ],
+    });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'authenticating',
+          signInOutput: ['[acp/auth] Enter this code in your browser: CRQT-NXNT'],
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByTestId('agent-thread-sign-in-code'));
+
+    expect(writeText).toHaveBeenCalledWith('CRQT-NXNT');
+    await vi.waitFor(() =>
+      expect(screen.getAllByRole('status').map((n) => n.textContent)).toContain('Code copied'),
+    );
+    vi.unstubAllGlobals();
+  });
+
+  test('a sign-in that prints something unrecognized shows it verbatim', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+        },
+      ],
+    });
+    render(
+      <ThreadView
+        info={makeInfo({ status: 'authenticating', signInOutput: ['[auth] check your email'] })}
+      />,
+    );
+
+    expect(screen.queryByTestId('agent-thread-sign-in-code')).toBeNull();
+    expect(screen.getByTestId('agent-thread-sign-in-output').textContent).toContain(
+      'check your email',
+    );
+  });
+
+  test('a sign-in with nothing printed shows no output block', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'authenticating' })} />);
+
+    expect(screen.queryByTestId('agent-thread-sign-in-output')).toBeNull();
+  });
+
+  test('a sign-in on an unstarted thread replaces the startup notices', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        failureNotice('connect'),
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    const notices = screen.getAllByTestId('agent-thread-notice');
+    expect(notices).toHaveLength(1);
+    expect(notices[0]?.contains(screen.getByTestId('agent-thread-auth-method'))).toBe(true);
+    expect(notices[0]?.textContent).not.toContain("couldn't start");
+  });
+
+  test('a sign-in cut short by the agent stopping opens no toast, since the crash card explains it', async () => {
+    authenticateResult = Promise.reject(
+      Object.assign(new Error('connection closed'), { code: 'agent-exited' }),
+    );
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+          attempts: 1,
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-auth-method'));
+
+    await vi.waitFor(() =>
+      expect(screen.getByTestId('agent-thread-auth-method').hasAttribute('disabled')).toBe(false),
+    );
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  test('a refused sign-in surfaces the reason and leaves the button usable', async () => {
+    authenticateResult = Promise.reject(new Error('wrong account'));
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+          attempts: 1,
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    fireEvent.click(screen.getByTestId('agent-thread-auth-method'));
+
+    await vi.waitFor(() => expect(toastError).toHaveBeenCalledTimes(1));
+    expect(String(toastError.mock.calls[0]?.[0])).toContain('wrong account');
+    expect(screen.getByTestId('agent-thread-auth-method').hasAttribute('disabled')).toBe(false);
+  });
+
+  test('a terminal-kind method is named, not offered as a button', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            authMethods: [
+              {
+                id: 'cli_login',
+                name: 'CLI Login',
+                description: 'Run `agent login`',
+                kind: 'terminal',
+              },
+            ],
+          },
+          attempts: 1,
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    expect(screen.queryByTestId('agent-thread-auth-method')).toBeNull();
+    expect(screen.getByTestId('agent-thread-auth-manual').textContent).toContain('CLI Login');
+    expect(screen.getByTestId('agent-thread-auth-manual').textContent).toContain('agent login');
+    expect(screen.getByTestId('agent-thread-retry')).toBeDefined();
+  });
+
+  test('the composer stays typable while the thread waits on sign-in', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer');
+    expect(composer.hasAttribute('disabled')).toBe(false);
+    fireEvent.change(composer, { target: { value: 'draft while signing in' } });
+    expect((composer as HTMLTextAreaElement).value).toBe('draft while signing in');
+    expect(screen.getByTestId('agent-thread-send').hasAttribute('disabled')).toBe(true);
+  });
+
+  test('the composer stays typable once the sign-in is under way', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ status: 'authenticating' })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer');
+    expect(composer.hasAttribute('disabled')).toBe(false);
+    fireEvent.change(composer, { target: { value: 'kept across the sign-in' } });
+    expect((composer as HTMLTextAreaElement).value).toBe('kept across the sign-in');
+    expect(screen.getByTestId('agent-thread-send').hasAttribute('disabled')).toBe(true);
+  });
+
+  test('an exiting agent closes the add menu and moves focus to settings', async () => {
+    const user = userEvent.setup();
+    model = makeModel({ turnActive: false, items: [] });
+    const view = render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    await user.click(screen.getByTestId('agent-thread-add-to-prompt'));
+    expect(screen.getByRole('menuitem', { name: 'Attach files' })).toBeDefined();
+
+    view.rerender(<ThreadView info={makeInfo({ status: 'exited' })} />);
+
+    expect(screen.getByTestId('agent-thread-composer').hasAttribute('disabled')).toBe(true);
+    const addMenu = screen.getByTestId('agent-thread-add-to-prompt');
+    expect(addMenu.hasAttribute('disabled')).toBe(true);
+    await waitFor(() => {
+      expect(screen.queryByRole('menuitem', { name: 'Attach files' })).toBeNull();
+      expect(document.activeElement).toBe(screen.getByTestId('agent-thread-settings'));
+    });
+
+    view.rerender(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    expect(screen.queryByRole('menuitem', { name: 'Attach files' })).toBeNull();
+  });
+
+  test('the header names the build OK launched', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(
+      <ThreadView
+        info={makeInfo({
+          status: 'ready',
+          agent: { id: 'claude', name: 'Claude Agent', source: 'registry', version: '0.53.0' },
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId('agent-thread-agent-version').textContent).toBe('0.53.0');
+  });
+});
+describe('ThreadView failure notices', () => {
+  function notice(
+    overrides?: Partial<Extract<RenderedItem, { kind: 'notice' }>>,
+  ): Extract<RenderedItem, { kind: 'notice' }> {
+    return {
+      kind: 'notice',
+      text: '',
+      tone: 'error',
+      failure: null,
+      attempts: 1,
+      ...overrides,
+    };
+  }
+
+  test('an auth failure reads as sign-in copy, quotes the agent, and hides the wire payload', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        notice({
+          tone: 'info',
+          failure: {
+            reason: 'auth-required',
+            agentMessage: 'Authentication required',
+            machineDetail: '{"detail":"run /login first"}',
+            authMethods: [{ id: 'test_login', name: 'Test Login' }],
+          },
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'auth_required' })} />);
+
+    const card = screen.getByTestId('agent-thread-notice');
+    expect(card.textContent).toContain('Sign in to Claude to continue');
+    expect(within(card).getAllByTestId('agent-thread-auth-method')).toHaveLength(1);
+    expect(card.textContent).toContain('Authentication required');
+    expect(card.textContent).not.toContain('run /login first');
+    expect(screen.queryByTestId('agent-thread-notice-details')).toBeNull();
+
+    const toggle = screen.getByTestId('agent-thread-notice-details-toggle');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    await userEvent.click(toggle);
+
+    expect(screen.getByTestId('agent-thread-notice-details').textContent).toContain(
+      'run /login first',
+    );
+    expect(
+      screen.getByTestId('agent-thread-notice-details-toggle').getAttribute('aria-expanded'),
+    ).toBe('true');
+  });
+
+  test('a session-setup failure names the step that broke', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        notice({
+          failure: {
+            reason: 'session-setup',
+            agentMessage: 'Failed to initialize session services',
+          },
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const card = screen.getByTestId('agent-thread-notice');
+    expect(card.textContent).toContain("Claude couldn't start a conversation");
+    expect(card.textContent).toContain('Failed to initialize session services');
+    expect(screen.queryByTestId('agent-thread-notice-details-toggle')).toBeNull();
+  });
+
+  test('a legacy detail-only error still renders its raw text', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [notice({ text: 'session setup failed: boom' })],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const card = screen.getByTestId('agent-thread-notice');
+    expect(card.textContent).toBe('session setup failed: boom');
+    expect(screen.queryByTestId('agent-thread-notice-details-toggle')).toBeNull();
+  });
+
+  test('root-cause line picks the CAUSE, not the "complete log" epilogue', () => {
+    const stderr = [
+      'npm error code EUSAGE',
+      'npm error',
+      'npm error usage: npm ci',
+      'npm error',
+      'npm error Run npm help ci for more info',
+      'npm error',
+      'npm error A complete log of this run can be found in: /tmp/log.txt',
+    ].join('\n');
+    model = makeModel({
+      turnActive: false,
+      items: [
+        notice({
+          failure: {
+            reason: 'connect',
+            agentMessage: 'initialize failed',
+            machineDetail: stderr,
+          },
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const rootCause = screen.getByTestId('agent-thread-notice-root-cause');
+    expect(rootCause.textContent).toContain('code EUSAGE');
+    expect(rootCause.textContent).not.toContain('complete log of this run');
+  });
+
+  test('compatibility control: acquisition explanation and native refusal details coexist', async () => {
+    const explanation =
+      "No release of the adapter is available under your package manager's release-date policy. Try again after an allowed release becomes available.";
+    const detail =
+      'npm error code ETARGET\nnpm error notarget No matching version found with a date before 2026-09-07.\n';
+    model = makeModel({
+      turnActive: false,
+      items: [
+        notice({
+          failure: {
+            reason: 'connect',
+            agentMessage: explanation,
+            machineDetail: detail,
+          },
+        }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+    expect(screen.getByTestId('agent-thread-notice').textContent).toContain(explanation);
+    expect(screen.getByTestId('agent-thread-notice-root-cause').textContent).toContain('ETARGET');
+    await userEvent.click(screen.getByTestId('agent-thread-notice-details-toggle'));
+    expect(screen.getByTestId('agent-thread-notice-details').textContent).toContain(detail.trim());
+    expect(screen.getByTestId('agent-thread-notice').textContent).toContain(explanation);
+  });
+});
+
+describe('ThreadView browser notice', () => {
+  test('says in the chat why the browser is not available', () => {
+    for (const [reason, text] of [
+      ['no-node', 'no Node.js install that can start it was found'],
+      ['failed', "it couldn't be set up"],
+    ] as const) {
+      model = makeModel({
+        turnActive: false,
+        items: [{ kind: 'browser_unavailable', reason, seq: 0 }],
+      });
+      const { unmount } = render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+      const notice = screen.getByTestId('agent-thread-browser-unavailable');
+      expect(notice.getAttribute('role')).toBe('note');
+      expect(notice.textContent).toContain(text);
+      unmount();
+    }
+  });
+});
+
+describe('ThreadView agent notices', () => {
+  const WARNING_TEXT = 'Warning: Skill "foo" was not loaded because its manifest is invalid.\n\n';
+
+  function agentNotice(text = WARNING_TEXT): Extract<RenderedItem, { kind: 'agent_notice' }> {
+    return { kind: 'agent_notice', source: 'codex_legacy', severity: 'warning', text, seq: 0 };
+  }
+
+  test('reads as a runtime warning, not as the agent speaking', () => {
+    model = makeModel({ turnActive: false, items: [agentNotice()] });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const card = screen.getByRole('note');
+    expect(card).toBe(screen.getByTestId('agent-thread-agent-notice'));
+    expect(card.textContent).toContain('Warning');
+    expect(card.className).toContain('border');
+    expect(card.className).toContain('border-warning');
+    const glyph = card.querySelector('svg');
+    expect(glyph?.getAttribute('aria-hidden')).toBe('true');
+    expect(screen.queryByTestId('agent-thread-agent-message')).toBeNull();
+  });
+
+  test('shows the producer text verbatim through the same renderer as a reply', () => {
+    model = makeModel({ turnActive: false, items: [agentNotice()] });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const rendered = within(screen.getByTestId('agent-thread-agent-notice')).getByTestId(
+      'rendered-markdown',
+    );
+    expect(rendered.textContent).toBe(WARNING_TEXT);
+  });
+
+  test('offers nothing to act on and opens no toast', () => {
+    model = makeModel({ turnActive: false, items: [agentNotice()] });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const card = screen.getByTestId('agent-thread-agent-notice');
+    expect(within(card).queryAllByRole('button')).toHaveLength(0);
+    expect(within(card).queryAllByRole('link')).toHaveLength(0);
+    expect(screen.queryByTestId('agent-thread-retry')).toBeNull();
+    expect(screen.queryByTestId('agent-thread-restore')).toBeNull();
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  test('sits in source order between the turns it interrupted', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'ship it', messageId: 'u1' },
+        agentNotice(),
+        { kind: 'message', role: 'agent', text: 'Done.', messageId: 'a1' },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const card = screen.getByTestId('agent-thread-agent-notice');
+    const answer = screen.getByTestId('agent-thread-agent-message');
+    expect(screen.getByTestId('agent-thread-user-message').compareDocumentPosition(card)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(card.compareDocumentPosition(answer)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(within(answer).getByTestId('rendered-markdown').textContent).toBe('Done.');
+  });
+
+  test('two warnings in one turn stay two rows', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [agentNotice('Warning: first\n\n'), agentNotice('Warning: second\n\n')],
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+    const cards = screen.getAllByTestId('agent-thread-agent-notice');
+    expect(cards.map((card) => within(card).getByTestId('rendered-markdown').textContent)).toEqual([
+      'Warning: first\n\n',
+      'Warning: second\n\n',
+    ]);
+  });
+
+  test('leaves an adjacent failure notice its own actions', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        agentNotice(),
+        {
+          kind: 'notice',
+          text: '',
+          tone: 'error',
+          attempts: 1,
+          failure: { reason: 'connect', agentMessage: 'initialize failed' },
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ status: 'error' })} />);
+
+    const failure = screen.getByTestId('agent-thread-notice');
+    expect(failure.textContent).toContain("Claude couldn't start");
+    const retry = screen.getByTestId('agent-thread-retry');
+    expect(failure.contains(retry)).toBe(true);
+    expect(screen.getByTestId('agent-thread-agent-notice').contains(retry)).toBe(false);
+
+    await userEvent.click(retry);
+    expect(retryThread).toHaveBeenCalledWith('thread-1');
+  });
+});
+
+describe('ThreadView warning announcements', () => {
+  const CODEX = { id: 'codex-acp', name: 'Codex', source: 'registry' as const };
+  const FIRST = 'Warning: skill "alpha" was skipped\n\nIts manifest is invalid.\n\n';
+  const SECOND = 'Warning: skill "beta" was skipped\n\n';
+
+  function notice(text: string, seq: number): Extract<RenderedItem, { kind: 'agent_notice' }> {
+    return { kind: 'agent_notice', source: 'codex_legacy', severity: 'warning', text, seq };
+  }
+
+  function announcer(): HTMLElement {
+    return screen.getByTestId('agent-thread-warning-announcer');
+  }
+
+  function settled(seq: number) {
+    threadState = { info: undefined, events: [], lastSeq: seq, replayThroughSeq: seq };
+    return makeInfo({ status: 'ready', agent: CODEX, lastSeq: seq });
+  }
+
+  test('mounts the region empty, before any warning exists', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={settled(5)} />);
+
+    const region = announcer();
+    expect(region.getAttribute('role')).toBe('status');
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(region.getAttribute('aria-atomic')).toBe('true');
+    expect(region.className).toContain('sr-only');
+    expect(region.textContent).toBe('');
+  });
+
+  test('announces a warning that arrives during the session', async () => {
+    model = makeModel({ turnActive: true, items: [] });
+    const { rerender } = render(<ThreadView info={settled(5)} />);
+
+    threadState = { info: undefined, events: [], lastSeq: 6, replayThroughSeq: 5 };
+    model = makeModel({ turnActive: true, items: [notice(FIRST, 6)] });
+    rerender(<ThreadView info={settled(5)} />);
+
+    await waitFor(() =>
+      expect(announcer().textContent).toBe('Codex reported: Warning: skill "alpha" was skipped'),
+    );
+  });
+
+  test('serializes two warnings from one turn in source order', async () => {
+    model = makeModel({ turnActive: true, items: [] });
+    const { rerender } = render(<ThreadView info={settled(5)} />);
+
+    threadState = { info: undefined, events: [], lastSeq: 7, replayThroughSeq: 5 };
+    model = makeModel({ turnActive: true, items: [notice(FIRST, 6), notice(SECOND, 7)] });
+    rerender(<ThreadView info={settled(5)} />);
+
+    await waitFor(() =>
+      expect(announcer().textContent).toBe('Codex reported: Warning: skill "alpha" was skipped'),
+    );
+    await waitFor(
+      () =>
+        expect(announcer().textContent).toBe('Codex reported: Warning: skill "beta" was skipped'),
+      { timeout: 2000 },
+    );
+  });
+
+  test('draws a replayed transcript without announcing any of it', () => {
+    threadState = { info: undefined, events: [], lastSeq: -1, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: false, items: [] });
+    const info = makeInfo({ status: 'ready', agent: CODEX, lastSeq: 4 });
+    const { rerender } = render(<ThreadView info={info} />);
+
+    threadState = { info: undefined, events: [], lastSeq: 4, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: false, items: [notice(FIRST, 2), notice(SECOND, 4)] });
+    rerender(<ThreadView info={info} />);
+
+    expect(screen.getAllByTestId('agent-thread-agent-notice')).toHaveLength(2);
+    expect(announcer().textContent).toBe('');
+  });
+
+  test('speaks the first warning that lands after a replayed transcript settles', async () => {
+    threadState = { info: undefined, events: [], lastSeq: -1, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: false, items: [] });
+    const info = makeInfo({ status: 'ready', agent: CODEX, lastSeq: 4 });
+    const { rerender } = render(<ThreadView info={info} />);
+
+    threadState = { info: undefined, events: [], lastSeq: 4, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: false, items: [notice(FIRST, 3)] });
+    rerender(<ThreadView info={info} />);
+    expect(announcer().textContent).toBe('');
+
+    threadState = { info: undefined, events: [], lastSeq: 5, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: true, items: [notice(FIRST, 3), notice(SECOND, 5)] });
+    rerender(<ThreadView info={info} />);
+
+    await waitFor(() =>
+      expect(announcer().textContent).toBe('Codex reported: Warning: skill "beta" was skipped'),
+    );
+  });
+
+  test('speaks a warning that lands in the batch that closes the replay window', async () => {
+    threadState = { info: undefined, events: [], lastSeq: -1, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ status: 'ready', agent: CODEX, lastSeq: 4 })} />,
+    );
+
+    threadState = { info: undefined, events: [], lastSeq: 4, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: false, items: [notice(FIRST, 2)] });
+    rerender(<ThreadView info={makeInfo({ status: 'ready', agent: CODEX, lastSeq: 8 })} />);
+    expect(announcer().textContent).toBe('');
+
+    threadState = { info: undefined, events: [], lastSeq: 8, replayThroughSeq: 4 };
+    model = makeModel({ turnActive: true, items: [notice(FIRST, 2), notice(SECOND, 8)] });
+    rerender(<ThreadView info={makeInfo({ status: 'ready', agent: CODEX, lastSeq: 8 })} />);
+
+    await waitFor(() =>
+      expect(announcer().textContent).toBe('Codex reported: Warning: skill "beta" was skipped'),
+    );
+  });
+
+  test('stays silent when a reconnect replays a warning it already delivered', async () => {
+    const info = makeInfo({ status: 'ready', agent: CODEX, lastSeq: 6 });
+    threadState = { info: undefined, events: [], lastSeq: 6, replayThroughSeq: 5 };
+    model = makeModel({ turnActive: true, items: [notice(FIRST, 6)] });
+    const { rerender } = render(<ThreadView info={info} />);
+    await waitFor(() =>
+      expect(announcer().textContent).toBe('Codex reported: Warning: skill "alpha" was skipped'),
+    );
+
+    const spoken: string[] = [];
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of Array.from(record.addedNodes)) {
+          const text = node.textContent ?? '';
+          if (text !== '') spoken.push(text);
+        }
+      }
+    });
+    observer.observe(announcer(), { childList: true });
+
+    threadState = { info: undefined, events: [], lastSeq: -1, replayThroughSeq: 6 };
+    model = makeModel({ turnActive: false, items: [] });
+    rerender(<ThreadView info={info} />);
+    threadState = { info: undefined, events: [], lastSeq: 6, replayThroughSeq: 6 };
+    model = makeModel({ turnActive: false, items: [notice(FIRST, 6)] });
+    rerender(<ThreadView info={info} />);
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    observer.disconnect();
+    expect(spoken).toEqual([]);
+  });
+
+  test('leaves the active element alone when a warning arrives', async () => {
+    model = makeModel({ turnActive: true, items: [] });
+    const { rerender } = render(<ThreadView info={settled(5)} />);
+    const composer = screen.getByTestId('agent-thread-composer');
+    composer.focus();
+    expect(document.activeElement).toBe(composer);
+
+    threadState = { info: undefined, events: [], lastSeq: 6, replayThroughSeq: 5 };
+    model = makeModel({ turnActive: true, items: [notice(FIRST, 6)] });
+    rerender(<ThreadView info={settled(5)} />);
+
+    await waitFor(() => expect(announcer().textContent).not.toBe(''));
+    expect(document.activeElement).toBe(composer);
+  });
+});
+
+describe('the transcript renders both sides as markdown', () => {
+  test('a sent message goes through the renderer', async () => {
+    model = {
+      items: [{ kind: 'message', role: 'user', text: '> quoted', messageId: 'u1' }],
+      plan: [],
+      turnActive: false,
+      tokenUsage: null,
+      terminals: {},
+      permissionsByToolCall: {},
+    };
+    render(<ThreadView info={makeInfo()} />);
+    const bubble = screen.getByTestId('agent-thread-user-message');
+    expect(bubble.querySelector('[data-testid="rendered-markdown"]')).not.toBeNull();
+  });
+
+  test('the sent bubble does not also pre-wrap, which would fight the renderer', async () => {
+    model = {
+      items: [{ kind: 'message', role: 'user', text: 'hello', messageId: 'u1' }],
+      plan: [],
+      turnActive: false,
+      tokenUsage: null,
+      terminals: {},
+      permissionsByToolCall: {},
+    };
+    render(<ThreadView info={makeInfo()} />);
+    expect(screen.getByTestId('agent-thread-user-message').className).not.toContain(
+      'whitespace-pre-wrap',
+    );
+  });
+});
+
+describe('ThreadView drop notice and dropped files', () => {
+  const makeFile = (name: string, type: string) => new File(['content'], name, { type });
+  const halfBudgetPng = (name: string) =>
+    new File([new Uint8Array(Math.ceil(MAX_TOTAL_ATTACHMENT_BYTES * 0.6))], name, {
+      type: 'image/png',
+    });
+
+  const fireDrop = (files: readonly File[]) => {
+    const dt = {
+      types: ['Files'],
+      files,
+      items: files.map((file) => ({ kind: 'file', getAsFile: () => file })),
+      dropEffect: 'copy',
+    };
+    const root = document.querySelector('[data-agent-thread-root]');
+    if (root === null) throw new Error('agent-thread-root not mounted');
+    act(() => {
+      fireEvent.dragEnter(root, { dataTransfer: dt });
+      fireEvent.dragOver(root, { dataTransfer: dt });
+      fireEvent.drop(root, { dataTransfer: dt });
+    });
+  };
+
+  test('a web-host drop of non-image files attaches them instead of skipping them', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    fireDrop([makeFile('foo.ts', 'text/typescript'), makeFile('bar.md', 'text/markdown')]);
+    await waitFor(() =>
+      expect(screen.getAllByTestId('agent-thread-pending-image-remove')).toHaveLength(2),
+    );
+    const notice = screen.getByTestId('agent-thread-drop-notice');
+    expect(notice.textContent).toBe('');
+    expect(notice.getAttribute('role')).toBe('status');
+    expect(notice.getAttribute('aria-live')).toBe('polite');
+  });
+
+  test('binary files dropped together are refused in one notice that names them, with no toast', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    fireDrop([
+      new File([new Uint8Array([0xff, 0xfe, 0xfd])], 'receipt.pdf', { type: 'application/pdf' }),
+      new File([new Uint8Array([0xc3, 0x28])], 'archive.zip', { type: 'application/zip' }),
+    ]);
+    const notice = screen.getByTestId('agent-thread-drop-notice');
+    await vi.waitFor(() =>
+      expect(notice.textContent).toBe(
+        "receipt.pdf and archive.zip aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.",
+      ),
+    );
+    expect(toastError).not.toHaveBeenCalled();
+    expect(screen.queryAllByTestId('agent-thread-pending-image-remove')).toHaveLength(0);
+  });
+
+  test('the notice clears after the auto-dismiss window', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      model = makeModel({ items: [], turnActive: false });
+      render(
+        <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+      );
+      fireDrop([halfBudgetPng('one.png'), halfBudgetPng('two.png')]);
+      await vi.waitFor(() =>
+        expect(screen.getByTestId('agent-thread-drop-notice').textContent).toContain('Skipped'),
+      );
+      act(() => {
+        vi.advanceTimersByTime(4100);
+      });
+      expect(screen.getByTestId('agent-thread-drop-notice').textContent).toBe('');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('an identical repeat drop still re-fires the notice — state carries a fresh identity so React re-runs the auto-clear effect', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+    fireDrop([halfBudgetPng('one.png'), halfBudgetPng('two.png')]);
+    const notice = await screen.findByTestId('agent-thread-drop-notice');
+    await vi.waitFor(() => expect(notice.textContent).toContain('Skipped'));
+    fireDrop([halfBudgetPng('two.png')]);
+    await vi.waitFor(() => expect(notice.textContent).toContain('Skipped'));
+  });
+});
+
+describe('ThreadView plan approval wiring (PRD-8022)', () => {
+  const plan = [{ content: 'read the files' }, { content: 'write the fix' }];
+
+  test('Approve sends the canned English string via client.prompt', async () => {
+    model = makeModel({
+      plan,
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await userEvent.click(screen.getByTestId('agent-thread-plan-approval-approve'));
+    expect(prompt).toHaveBeenCalledWith(
+      'thread-1',
+      'Approve. Please proceed with the plan.',
+      undefined,
+    );
+  });
+
+  test('Reject sends the canned English string via client.prompt', async () => {
+    model = makeModel({
+      plan,
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await userEvent.click(screen.getByTestId('agent-thread-plan-approval-reject'));
+    expect(prompt).toHaveBeenCalledWith(
+      'thread-1',
+      'Reject. Please stop and do not proceed with this plan.',
+      undefined,
+    );
+  });
+
+  test('Ask changes prefills the composer without clobbering existing draft', async () => {
+    model = makeModel({
+      plan,
+      turnActive: false,
+    });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    await userEvent.type(composer, 'hey ');
+    await userEvent.click(screen.getByTestId('agent-thread-plan-approval-ask-changes'));
+    expect(composer.value).toBe('hey\n\nIn the plan above, please ');
+    await userEvent.click(screen.getByTestId('agent-thread-plan-approval-ask-changes'));
+    expect(composer.value).toBe('hey\n\nIn the plan above, please ');
+    expect(prompt).not.toHaveBeenCalled();
+  });
+
+  test('approval row hides while the thread is not ready', () => {
+    model = makeModel({ plan, turnActive: true });
+    render(<ThreadView info={makeInfo({ status: 'running' })} />);
+    expect(screen.queryByTestId('agent-thread-plan-approval')).toBeNull();
+  });
+
+  test('approval row hides after a click until the next turn ends (double-click guard)', async () => {
+    model = makeModel({ plan, turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await userEvent.click(screen.getByTestId('agent-thread-plan-approval-approve'));
+    expect(prompt).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('agent-thread-plan-approval')).toBeNull();
+  });
+
+  test('approval row hides on an archived thread even with a pending plan', () => {
+    model = makeModel({ plan, turnActive: false });
+    render(<ThreadView info={makeInfo({ status: 'ready', archived: true })} />);
+    expect(screen.queryByTestId('agent-thread-plan-approval')).toBeNull();
+  });
+});
+
+describe('ThreadView auth-required dead ends', () => {
+  type NoticeItem = Extract<RenderedItem, { kind: 'notice' }>;
+  type Failure = NonNullable<NoticeItem['failure']>;
+
+  const SIGN_IN_INSTRUCTION = /Sign in to .+ to continue/;
+  const LAUNCH_FAILED = "Couldn't start the agent thread — please try again.";
+
+  let stopStaging: (() => void) | null = null;
+  afterEach(() => {
+    stopStaging?.();
+    stopStaging = null;
+  });
+
+  function authNotice(failure?: Partial<Failure>): NoticeItem {
+    return {
+      kind: 'notice',
+      text: '',
+      tone: 'info',
+      failure: {
+        reason: 'auth-required',
+        agentMessage: 'Authentication required',
+        machineDetail: '{"detail":"run /login first"}',
+        authMethods: [{ id: 'test_login', name: 'Test Login' }],
+        ...failure,
+      },
+      attempts: 1,
+    };
+  }
+
+  function authSurface(): HTMLElement {
+    const cards = screen.queryAllByTestId('agent-thread-notice');
+    return cards[0] ?? screen.getByTestId('agent-thread-transcript');
+  }
+
+  function offerButton(): HTMLElement {
+    return within(authSurface()).getByTestId('agent-thread-auth-action');
+  }
+
+  test('an archived thread holding an auth failure offers the resume its copy names', () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    const surface = authSurface();
+    expect(surface.textContent).toContain(
+      'Claude needed you to sign in. Resume this chat to try again.',
+    );
+    expect(SIGN_IN_INSTRUCTION.test(surface.textContent ?? '')).toBe(false);
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('resume');
+    expect(within(surface).getByRole('button', { name: 'Resume chat' })).toBeTruthy();
+  });
+
+  test('an archived thread that never opened an agent session offers the new chat instead', () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    const surface = authSurface();
+    expect(surface.textContent).toContain("Claude isn't running. Start a new chat to sign in.");
+    expect(surface.textContent).not.toContain('Resume this chat to try again');
+    expect(SIGN_IN_INSTRUCTION.test(surface.textContent ?? '')).toBe(false);
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('new-chat');
+    expect(screen.queryByRole('button', { name: 'Resume chat' })).toBeNull();
+  });
+
+  test('the unresumable archived offer starts a fresh thread rather than a doomed resume', async () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    await userEvent.click(offerButton());
+    expect(resumeThread).not.toHaveBeenCalled();
+    expect(createThread).toHaveBeenCalledWith(
+      {
+        agent: { source: 'registry', id: 'claude' },
+        prompt: undefined,
+      },
+      undefined,
+    );
+  });
+
+  test('a new chat that lost the race to another launch says so rather than going quiet', async () => {
+    const { promise: pendingCreate, resolve: releaseCreate } = Promise.withResolvers<void>();
+    createThread.mockReturnValueOnce(pendingCreate);
+    const inflight = launchAgentThread({ source: 'registry', id: 'claude' }, null, null, null);
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        'Already starting a chat with this agent — try again in a moment.',
+      ),
+    );
+    expect(createThread).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      releaseCreate();
+      await inflight;
+    });
+  });
+
+  test('an archived thread the server can still resume keeps the resume offer', () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: true })} />);
+
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('resume');
+  });
+
+  test('an archived thread does not offer a sign-in the server would refuse', () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    expect(screen.queryAllByTestId('agent-thread-auth-method')).toHaveLength(0);
+    expect(offerButton()).toBeTruthy();
+  });
+
+  test('the archived offer resumes the chat when pressed', async () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    expect(resumeThread).toHaveBeenCalledWith('thread-1', undefined, undefined);
+  });
+
+  test('a failed resume re-enables the offer and explains itself', async () => {
+    resumeThread.mockRejectedValueOnce(new Error('agent session is gone'));
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+    expect(screen.getByTestId('agent-thread-resume-failed').textContent).toContain(
+      "Couldn't resume this chat: agent session is gone",
+    );
+    expect(offerButton().hasAttribute('disabled')).toBe(false);
+  });
+
+  test('an exited live thread holding an auth failure offers the new chat its copy names', () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+
+    const surface = authSurface();
+    expect(surface.textContent).toContain("Claude isn't running. Start a new chat to sign in.");
+    expect(SIGN_IN_INSTRUCTION.test(surface.textContent ?? '')).toBe(false);
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('new-chat');
+    expect(within(surface).getByRole('button', { name: 'New chat with Claude' })).toBeTruthy();
+  });
+
+  function stagedDraftFor(threadId: string): { text: string | null } {
+    const seen = { text: null as string | null };
+    stopStaging = subscribeStagedThreadDraft(threadId, (text) => {
+      seen.text = text;
+      return true;
+    });
+    return seen;
+  }
+
+  test('the exited offer carries an unsent draft into the new chat rather than sending it', async () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+    const staged = stagedDraftFor('thread-2');
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: 'draft I have not sent yet' } });
+
+    await userEvent.click(offerButton());
+    expect(createThread).toHaveBeenCalledWith(
+      {
+        agent: { source: 'registry', id: 'claude' },
+        prompt: undefined,
+      },
+      undefined,
+    );
+    await waitFor(() => expect(staged.text).toBe('draft I have not sent yet'));
+    expect(composer.value).toBe('draft I have not sent yet');
+  });
+
+  test('both New chat controls treat an unsent draft the same way', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('capacity', 'maximum of 8 concurrent agent threads'),
+    );
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+    const staged = stagedDraftFor('thread-2');
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: 'half-finished instruction' } });
+
+    await userEvent.click(screen.getByTestId('agent-thread-resume-fallback-new'));
+    expect(createThread).toHaveBeenCalledWith(
+      {
+        agent: { source: 'registry', id: 'claude' },
+        prompt: undefined,
+      },
+      undefined,
+    );
+    await waitFor(() => expect(staged.text).toBe('half-finished instruction'));
+    expect(composer.value).toBe('half-finished instruction');
+  });
+
+  test('the banner New chat control resends the prompt the archived chat could not deliver', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('resume-unsupported', "couldn't resume the previous session"),
+    );
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: true })} />);
+    const staged = stagedDraftFor('thread-2');
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'finish the migration' },
+    });
+    await userEvent.click(screen.getByTestId('agent-thread-send'));
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+
+    await userEvent.click(screen.getByTestId('agent-thread-resume-fallback-new'));
+    await waitFor(() => expect(createThread).toHaveBeenCalledTimes(1));
+    expect(createThread).toHaveBeenLastCalledWith(
+      {
+        agent: { source: 'registry', id: 'claude' },
+        prompt: 'finish the migration',
+      },
+      undefined,
+    );
+    expect(staged.text).toBeNull();
+  });
+
+  test('the card New chat control carries the draft an unresumable chat could never send', async () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+    const staged = stagedDraftFor('thread-2');
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: 'finish the migration' } });
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(createThread).toHaveBeenCalledTimes(1));
+    expect(createThread).toHaveBeenLastCalledWith(
+      {
+        agent: { source: 'registry', id: 'claude' },
+        prompt: undefined,
+      },
+      undefined,
+    );
+    await waitFor(() => expect(staged.text).toBe('finish the migration'));
+  });
+
+  test('registers a draft reader for its composer while mounted', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const view = render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: '  typed so far  ' } });
+    const draft = readThreadDraft('thread-1');
+    expect(draft?.text).toBe('typed so far');
+    expect(draft?.doc).toEqual({
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: '  typed so far  ' }] }],
+    });
+    expect(draft?.attachments).toEqual([]);
+    expect(draft?.uploadsPending).toBe(false);
+    view.unmount();
+    expect(readThreadDraft('thread-1')).toBeNull();
+  });
+
+  test('images carried into an agent that does not accept them are dropped with a notice', async () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: false } })} />,
+    );
+    await act(async () => {
+      stageThreadDraftContent('thread-1', {
+        doc: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'carried over' }] }],
+        },
+        attachments: [{ kind: 'image', mimeType: 'image/png', data: 'aGk=', name: 'a.png' }],
+      });
+    });
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    expect(composer.value).toBe('carried over');
+    await waitFor(() =>
+      expect(screen.queryByTestId('agent-thread-pending-image-preview')).toBeNull(),
+    );
+    expect(toastError).toHaveBeenCalledWith("Claude doesn't accept image attachments.");
+  });
+
+  test('staged draft content fills the composer and queues its attachments', async () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    await act(async () => {
+      stageThreadDraftContent('thread-1', {
+        doc: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'carried over' }] }],
+        },
+        attachments: [{ kind: 'image', mimeType: 'image/png', data: 'aGk=', name: 'a.png' }],
+      });
+    });
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    expect(composer.value).toBe('carried over');
+    expect(screen.getByTestId('agent-thread-pending-images')).toBeTruthy();
+    expect(screen.getAllByTestId('agent-thread-pending-image-preview')).toHaveLength(1);
+  });
+
+  const IN_FLIGHT_CASES = [
+    {
+      kind: 'new-chat',
+      info: { archived: false, status: 'exited' } as Partial<ThreadInfo>,
+      items: [authNotice()],
+      spy: () => createThread,
+      announcement: 'Starting Claude…',
+    },
+    {
+      kind: 'resume',
+      info: { archived: true, status: 'exited' } as Partial<ThreadInfo>,
+      items: [authNotice()],
+      spy: () => resumeThread,
+      announcement: 'Resuming the chat',
+    },
+    {
+      kind: 'retry',
+      info: { archived: false, status: 'auth_required' } as Partial<ThreadInfo>,
+      items: [],
+      spy: () => retryThread,
+      announcement: 'Retrying',
+    },
+  ] as const;
+
+  test.each(IN_FLIGHT_CASES)(
+    'the $kind offer is disabled and announced while it is in flight',
+    async ({ info, items, spy, announcement }) => {
+      const { promise: pending, resolve: release } = Promise.withResolvers<void>();
+      spy().mockReturnValueOnce(pending);
+      model = makeModel({ turnActive: false, items: [...items] });
+      render(<ThreadView info={makeInfo(info)} />);
+
+      await userEvent.click(offerButton());
+      expect(offerButton().hasAttribute('disabled')).toBe(true);
+      expect(offerButton().getAttribute('aria-busy')).toBe('true');
+      expect(screen.getByTestId('agent-thread-auth-status').textContent).toBe(announcement);
+
+      await userEvent.click(offerButton());
+      expect(spy()).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        release();
+      });
+      await waitFor(() => expect(offerButton().hasAttribute('disabled')).toBe(false));
+      expect(offerButton().getAttribute('aria-busy')).toBe('false');
+      expect(screen.getByTestId('agent-thread-auth-status').textContent).toBe('');
+    },
+  );
+
+  test('a failed retry says so in the pane, not in a toast', async () => {
+    retryThread.mockRejectedValueOnce(
+      new ThreadRetryError('install-failed', 'agent registry unavailable: fetch failed'),
+    );
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    await userEvent.click(offerButton());
+    const failed = await screen.findByTestId('agent-thread-retry-failed');
+    expect(failed.textContent).toContain("Couldn't restart Claude.");
+    expect(toastError).not.toHaveBeenCalled();
+    expect(offerButton().hasAttribute('disabled')).toBe(false);
+  });
+
+  test('a resume the server turns down explains itself and hands over the escape', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('resume-unsupported', 'this thread never completed an agent session'),
+    );
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() =>
+      expect(screen.getByTestId('agent-thread-resume-failed').textContent).toContain(
+        'this thread never completed an agent session',
+      ),
+    );
+    expect(screen.getByTestId('agent-thread-resume-failed').textContent).toContain(
+      "Couldn't resume this chat",
+    );
+    expect(screen.getByTestId('agent-thread-resume-failed').textContent).not.toContain(
+      "can't pick this chat back up",
+    );
+    expect(screen.getByTestId('agent-thread-resume-fallback-new')).toBeTruthy();
+  });
+
+  test('an unresumable archived chat explains itself without waiting for a failed attempt', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    expect(screen.queryByTestId('agent-thread-auth-action')).toBeNull();
+    const banner = screen.getByTestId('agent-thread-resume-failed');
+    expect(banner.textContent).toContain("Claude can't pick this chat back up");
+    expect(banner.textContent).toContain('The transcript is kept, so start a new chat to continue');
+    expect(screen.getByTestId('agent-thread-resume-fallback-new').hasAttribute('disabled')).toBe(
+      false,
+    );
+    expect(resumeThread).not.toHaveBeenCalled();
+  });
+
+  test('the escape on an unresumable archived chat starts a new chat with the same agent', async () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    await userEvent.click(screen.getByTestId('agent-thread-resume-fallback-new'));
+    await waitFor(() => expect(createThread).toHaveBeenCalledTimes(1));
+    expect(createThread).toHaveBeenCalledWith(
+      {
+        agent: { source: 'registry', id: 'claude' },
+        prompt: undefined,
+      },
+      undefined,
+    );
+  });
+
+  test('a thread the server says it cannot resume leaves no control that still says resume', async () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    const offers = screen.getAllByTestId('agent-thread-auth-action');
+    expect(offers.map((node) => node.getAttribute('data-auth-offer-kind'))).toEqual(['new-chat']);
+    expect(screen.queryByRole('button', { name: 'Resume chat' })).toBeNull();
+    await userEvent.click(offerButton());
+    expect(resumeThread).not.toHaveBeenCalled();
+    expect(createThread).toHaveBeenCalledWith(
+      {
+        agent: { source: 'registry', id: 'claude' },
+        prompt: undefined,
+      },
+      undefined,
+    );
+  });
+
+  test('one rejection does not retire a resume the server still says is available', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('resume-unsupported', "couldn't resume the previous session"),
+    );
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: true })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('resume');
+    expect(screen.getByTestId('agent-thread-resume-fallback-new')).toBeTruthy();
+
+    await userEvent.click(offerButton());
+    expect(resumeThread).toHaveBeenCalledTimes(2);
+  });
+
+  test('the resume-failure live region is mounted before there is a failure to announce', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('resume-unsupported', 'this thread never completed an agent session'),
+    );
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    const region = screen.getByTestId('agent-thread-resume-status');
+    expect(region.getAttribute('role')).toBe('status');
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(region.textContent).toBe('');
+    expect(screen.queryByTestId('agent-thread-resume-failed')).toBeNull();
+
+    await userEvent.click(offerButton());
+    await waitFor(() =>
+      expect(screen.getByTestId('agent-thread-resume-status').textContent).toContain(
+        'this thread never completed an agent session',
+      ),
+    );
+    expect(screen.getByTestId('agent-thread-resume-status')).toBe(region);
+  });
+
+  test('an auth control is only busy while its own action is the one running', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('capacity', 'maximum of 8 concurrent agent threads'),
+    );
+    const { promise: pendingCreate, resolve: releaseCreate } = Promise.withResolvers<void>();
+    createThread.mockReturnValueOnce(pendingCreate);
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('resume');
+
+    await userEvent.click(screen.getByTestId('agent-thread-resume-fallback-new'));
+    expect(offerButton().hasAttribute('disabled')).toBe(true);
+    expect(offerButton().getAttribute('aria-busy')).toBe('false');
+    expect(within(offerButton()).queryByRole('status')).toBeNull();
+
+    await act(async () => {
+      releaseCreate();
+    });
+    await waitFor(() => expect(offerButton().hasAttribute('disabled')).toBe(false));
+  });
+
+  test('a transient resume failure keeps the offer and announces the action actually running', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('capacity', 'maximum of 8 concurrent agent threads'),
+    );
+    const { promise: pendingCreate, resolve: releaseCreate } = Promise.withResolvers<void>();
+    createThread.mockReturnValueOnce(pendingCreate);
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() =>
+      expect(screen.getByTestId('agent-thread-resume-failed').textContent).toContain(
+        'maximum of 8 concurrent agent threads',
+      ),
+    );
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('resume');
+
+    await userEvent.click(screen.getByTestId('agent-thread-resume-fallback-new'));
+    expect(screen.getByTestId('agent-thread-auth-status').textContent).toBe('Starting Claude…');
+    expect(offerButton().hasAttribute('disabled')).toBe(true);
+
+    await act(async () => {
+      releaseCreate();
+    });
+    await waitFor(() => expect(createThread).toHaveBeenCalledTimes(1));
+  });
+
+  test('an unresumable chat keeps its new-chat offer through the launch it starts', async () => {
+    const { promise: pendingCreate, resolve: releaseCreate } = Promise.withResolvers<void>();
+    createThread.mockReturnValueOnce(pendingCreate);
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    await userEvent.click(offerButton());
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('new-chat');
+
+    await act(async () => {
+      releaseCreate();
+    });
+    await waitFor(() => expect(createThread).toHaveBeenCalledTimes(1));
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('new-chat');
+    expect(authSurface().textContent).not.toContain('Resume this chat to try again');
+  });
+
+  test('a new chat that fails from the recovery banner reports once and blames the right call', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('resume-unsupported', 'this thread never completed an agent session'),
+    );
+    createThread.mockRejectedValueOnce(new Error('at capacity'));
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+
+    await userEvent.click(screen.getByTestId('agent-thread-resume-fallback-new'));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(LAUNCH_FAILED));
+    expect(toastError).toHaveBeenCalledTimes(1);
+    const banner = screen.getByTestId('agent-thread-resume-failed');
+    expect(banner.textContent).toContain(
+      "Couldn't resume this chat: this thread never completed an agent session",
+    );
+    expect(banner.textContent).not.toContain(LAUNCH_FAILED);
+  });
+
+  test('a failed new chat says so instead of leaving the card silent', async () => {
+    createThread.mockRejectedValueOnce(new Error('at capacity'));
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(LAUNCH_FAILED));
+    expect(offerButton().hasAttribute('disabled')).toBe(false);
+  });
+
+  test('the banner control announces its launch and cannot be pressed twice', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('resume-unsupported', 'this thread never completed an agent session'),
+    );
+    const { promise: pendingCreate, resolve: releaseCreate } = Promise.withResolvers<void>();
+    createThread.mockReturnValueOnce(pendingCreate);
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+
+    const banner = screen.getByTestId('agent-thread-resume-fallback-new');
+    expect(banner.hasAttribute('disabled')).toBe(false);
+    expect(banner.getAttribute('aria-busy')).toBe('false');
+
+    await userEvent.click(banner);
+    expect(screen.queryByTestId('agent-thread-resume-fallback-new')).toBeNull();
+    expect(screen.getByTestId('agent-thread-auth-status').textContent).toBe('Starting Claude…');
+    expect(offerButton().hasAttribute('disabled')).toBe(true);
+
+    await act(async () => {
+      releaseCreate();
+    });
+    await waitFor(() => expect(createThread).toHaveBeenCalledTimes(1));
+  });
+
+  test('an archived chat the server cannot resume will not send a message into that resume', async () => {
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: false })} />);
+
+    const composer = screen.getByTestId('agent-thread-composer') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: 'this would be lost' } });
+
+    expect(composer.hasAttribute('disabled')).toBe(false);
+    expect(screen.getByTestId('agent-thread-send').hasAttribute('disabled')).toBe(true);
+
+    fireEvent.keyDown(composer, { key: 'Enter' });
+    await waitFor(() => expect(resumeThread).not.toHaveBeenCalled());
+  });
+
+  test('a resume the agent turned down once leaves the composer usable', async () => {
+    resumeThread.mockRejectedValueOnce(
+      new ThreadResumeError('resume-unsupported', "couldn't resume the previous session"),
+    );
+    model = makeModel({ turnActive: false, items: [authNotice()] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited', resumable: true })} />);
+
+    fireEvent.change(screen.getByTestId('agent-thread-composer'), {
+      target: { value: 'try once more' },
+    });
+    expect(screen.getByTestId('agent-thread-send').hasAttribute('disabled')).toBe(false);
+
+    await userEvent.click(offerButton());
+    await waitFor(() => expect(screen.getByTestId('agent-thread-resume-failed')).toBeTruthy());
+
+    expect(screen.getByTestId('agent-thread-send').hasAttribute('disabled')).toBe(false);
+    expect(resumeThread).toHaveBeenCalledTimes(1);
+  });
+
+  test('only the last auth notice carries the offer', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        authNotice({ machineDetail: 'first stderr tail' }),
+        authNotice({ machineDetail: 'second stderr tail' }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    const cards = screen.getAllByTestId('agent-thread-notice');
+    expect(cards).toHaveLength(2);
+    expect(screen.getAllByTestId('agent-thread-auth-action')).toHaveLength(1);
+    expect(within(cards[1] as HTMLElement).getByTestId('agent-thread-auth-action')).toBeTruthy();
+    expect(cards[0]?.textContent).toContain('Claude needed you to sign in.');
+    expect(cards[0]?.textContent).not.toContain('Resume this chat to try again');
+  });
+
+  test('a thread awaiting sign-in with nothing in its transcript offers the retry its copy names', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    const surface = authSurface();
+    expect(surface.textContent).toContain('Claude needs you to sign in.');
+    expect(surface.textContent).not.toContain('Retry to sign in');
+    expect(SIGN_IN_INSTRUCTION.test(surface.textContent ?? '')).toBe(false);
+    expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('retry');
+    expect(within(surface).getByRole('button', { name: 'Try again' })).toBeTruthy();
+  });
+
+  test('an empty transcript on a dead thread offers a way out instead of claiming it is connecting', () => {
+    for (const [status, kind, label] of [
+      ['exited', 'new-chat', 'New chat with Claude'],
+      ['error', 'retry', 'Try again'],
+    ] as const) {
+      const view = render(<ThreadView info={makeInfo({ archived: false, status })} />);
+      const surface = screen.getByTestId('agent-thread-transcript');
+      expect({ status, connecting: surface.textContent?.includes('Connecting to') }).toEqual({
+        status,
+        connecting: false,
+      });
+      const offer = screen.getByTestId('agent-thread-auth-action');
+      expect({
+        status,
+        kind: offer.getAttribute('data-auth-offer-kind'),
+        label: offer.textContent,
+      }).toEqual({ status, kind, label });
+      view.unmount();
+    }
+  });
+
+  test('a thread genuinely still starting keeps its progress message and offers nothing', () => {
+    vi.useFakeTimers();
+    const progressMessages = ['Installing Claude…', 'Starting Claude…'] as const;
+    for (const [status, message] of [
+      ['installing', 'Installing Claude…'],
+      ['spawning', 'Starting Claude…'],
+    ] as const) {
+      const view = render(<ThreadView info={makeInfo({ archived: false, status })} />);
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(screen.queryByTestId('agent-thread-auth-action')).toBeNull();
+      const surface = screen.getByTestId('agent-thread-transcript');
+      const shown = progressMessages.filter((candidate) =>
+        surface.textContent?.includes(candidate),
+      );
+      expect({ status, shown }).toEqual({ status, shown: [message] });
+      view.unmount();
+    }
+  });
+
+  test('an agent whose own CLI is installed offers to sign in in the terminal', async () => {
+    const launches: { prompt: unknown; cli: unknown }[] = [];
+    const onLaunch = (event: Event) => {
+      const { prompt, cli } = (event as CustomEvent).detail;
+      launches.push({ prompt, cli });
+    };
+    window.addEventListener('open-knowledge:terminal-launch', onLaunch);
+    Object.assign(window, {
+      okDesktop: {
+        config: { ptyAvailable: true },
+        terminal: { cliInstalledMap: () => Promise.resolve({ claude: true }) },
+      },
+    });
+    try {
+      model = makeModel({ turnActive: false, items: [] });
+      render(
+        <ThreadView
+          info={makeInfo({
+            archived: false,
+            status: 'auth_required',
+            agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          })}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('terminal-sign-in'),
+      );
+      const surface = authSurface();
+      expect(surface.textContent).toContain('Claude needs you to sign in.');
+      expect(
+        within(surface).getByRole('button', { name: 'Open terminal to sign in' }),
+      ).toBeTruthy();
+
+      await userEvent.click(offerButton());
+      expect(launches).toEqual([{ prompt: '', cli: 'claude' }]);
+      expect(retryThread).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener('open-knowledge:terminal-launch', onLaunch);
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('the live auth card itself carries the terminal action, not just the sentence', async () => {
+    const launches: { prompt: unknown; cli: unknown }[] = [];
+    const onLaunch = (event: Event) => {
+      const { prompt, cli } = (event as CustomEvent).detail;
+      launches.push({ prompt, cli });
+    };
+    window.addEventListener('open-knowledge:terminal-launch', onLaunch);
+    Object.assign(window, {
+      okDesktop: {
+        config: { ptyAvailable: true },
+        terminal: { cliInstalledMap: () => Promise.resolve({ claude: true }) },
+      },
+    });
+    try {
+      const noMethods = authNotice({ authMethods: undefined, machineDetail: '' });
+      model = makeModel({ turnActive: false, items: [noMethods] });
+      render(
+        <ThreadView
+          info={makeInfo({
+            archived: false,
+            status: 'auth_required',
+            agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          })}
+        />,
+      );
+
+      const surface = authSurface();
+      await waitFor(() =>
+        expect(within(surface).getByTestId('agent-thread-auth-action')).toBeTruthy(),
+      );
+      expect(
+        within(surface)
+          .getByTestId('agent-thread-auth-action')
+          .getAttribute('data-auth-offer-kind'),
+      ).toBe('terminal-sign-in');
+      expect(surface.textContent).toContain('Claude needs you to sign in.');
+
+      await userEvent.click(within(surface).getByTestId('agent-thread-auth-action'));
+      expect(launches).toEqual([{ prompt: '', cli: 'claude' }]);
+    } finally {
+      window.removeEventListener('open-knowledge:terminal-launch', onLaunch);
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('an agent whose sign-in is a terminal command runs that command in the terminal', async () => {
+    const launches: unknown[] = [];
+    const onLaunch = (event: Event) => launches.push((event as CustomEvent).detail);
+    window.addEventListener('open-knowledge:terminal-launch', onLaunch);
+    Object.assign(window, {
+      okDesktop: {
+        config: { ptyAvailable: true },
+        terminal: { cliInstalledMap: () => Promise.resolve({}) },
+      },
+    });
+    try {
+      model = makeModel({
+        turnActive: false,
+        items: [
+          authNotice({
+            authMethods: [
+              {
+                id: 'auggie-login',
+                name: 'Log in with Auggie',
+                kind: 'terminal',
+                terminalLaunchAvailable: true,
+              },
+            ],
+          }),
+        ],
+      });
+      render(
+        <ThreadView
+          info={makeInfo({
+            archived: false,
+            status: 'auth_required',
+            agent: { id: 'auggie', name: 'Auggie', source: 'custom' },
+          })}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('terminal-sign-in'),
+      );
+      expect(authSurface().textContent).toContain('Log in with Auggie');
+
+      await userEvent.click(offerButton());
+      await waitFor(() =>
+        expect(launches).toEqual([
+          {
+            kind: 'command',
+            label: 'Log in with Auggie',
+            command: FIXTURE_TERMINAL_LAUNCH,
+            signInThreadId: 'thread-1',
+          },
+        ]),
+      );
+      expect(terminalAuthLaunch).toHaveBeenCalledWith('thread-1', 'auggie-login');
+      expect(retryThread).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener('open-knowledge:terminal-launch', onLaunch);
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('a sign-in launch the server refuses becomes a toast, never a terminal', async () => {
+    const launches: unknown[] = [];
+    const onLaunch = (event: Event) => launches.push((event as CustomEvent).detail);
+    window.addEventListener('open-knowledge:terminal-launch', onLaunch);
+    Object.assign(window, {
+      okDesktop: {
+        config: { ptyAvailable: true },
+        terminal: { cliInstalledMap: () => Promise.resolve({}) },
+      },
+    });
+    terminalAuthLaunch.mockRejectedValueOnce(
+      new Error('this agent offers no terminal sign-in by that name'),
+    );
+    try {
+      model = makeModel({
+        turnActive: false,
+        items: [
+          authNotice({
+            authMethods: [
+              {
+                id: 'auggie-login',
+                name: 'Log in with Auggie',
+                kind: 'terminal',
+                terminalLaunchAvailable: true,
+              },
+            ],
+          }),
+        ],
+      });
+      render(
+        <ThreadView
+          info={makeInfo({
+            archived: false,
+            status: 'auth_required',
+            agent: { id: 'auggie', name: 'Auggie', source: 'custom' },
+          })}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('terminal-sign-in'),
+      );
+      await userEvent.click(offerButton());
+      await waitFor(() =>
+        expect(toastError).toHaveBeenCalledWith(
+          'Sign-in failed: this agent offers no terminal sign-in by that name',
+        ),
+      );
+      expect(launches).toEqual([]);
+      expect(retryThread).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener('open-knowledge:terminal-launch', onLaunch);
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('a harness CLI sign-in names the chat that opened the terminal', async () => {
+    const launches: unknown[] = [];
+    const onLaunch = (event: Event) => launches.push((event as CustomEvent).detail);
+    window.addEventListener('open-knowledge:terminal-launch', onLaunch);
+    Object.assign(window, {
+      okDesktop: {
+        config: { ptyAvailable: true },
+        terminal: { cliInstalledMap: () => Promise.resolve({ claude: true }) },
+      },
+    });
+    try {
+      model = makeModel({ turnActive: false, items: [] });
+      render(
+        <ThreadView
+          info={makeInfo({
+            archived: false,
+            status: 'auth_required',
+            agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          })}
+        />,
+      );
+      await waitFor(() =>
+        expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('terminal-sign-in'),
+      );
+      await userEvent.click(offerButton());
+      expect(launches).toEqual([
+        { kind: 'cli', prompt: '', cli: 'claude', stage: false, signInThreadId: 'thread-1' },
+      ]);
+    } finally {
+      window.removeEventListener('open-knowledge:terminal-launch', onLaunch);
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('closing the sign-in terminal retries the chat and re-sends the message it held back', async () => {
+    retryThread.mockResolvedValueOnce(makeInfo({ status: 'ready' }));
+    const agent = { id: 'claude-acp', name: 'Claude Agent', source: 'registry' as const };
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' },
+        authNotice({ authMethods: undefined }),
+      ],
+    });
+    const view = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'auth_required', agent })} />,
+    );
+    await screen.findByTestId('agent-thread-auth-status');
+
+    act(() => {
+      notifySignInTerminalExited('thread-1');
+    });
+    await waitFor(() => expect(retryThread).toHaveBeenCalledWith('thread-1'));
+    await waitFor(() =>
+      expect(prompt).toHaveBeenCalledWith('thread-1', 'summarise the standup', undefined),
+    );
+
+    view.rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready', agent })} />);
+    expect(screen.queryByTestId('agent-thread-user-message')).toBeNull();
+  });
+
+  test('a sign-in terminal closing for another chat, or after recovery, retries nothing', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' },
+        authNotice({ authMethods: undefined }),
+      ],
+    });
+    const view = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />,
+    );
+    await screen.findByTestId('agent-thread-auth-status');
+    act(() => {
+      notifySignInTerminalExited('thread-2');
+    });
+    expect(retryThread).not.toHaveBeenCalled();
+
+    view.rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+    act(() => {
+      notifySignInTerminalExited('thread-1');
+    });
+    expect(retryThread).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
+  });
+
+  test('Already signed in? Try again re-sends the held message once the agent is ready', async () => {
+    retryThread.mockResolvedValueOnce(makeInfo({ status: 'ready' }));
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' },
+        authNotice({ authMethods: undefined }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    await userEvent.click(within(authSurface()).getByTestId('agent-thread-retry'));
+    await waitFor(() =>
+      expect(prompt).toHaveBeenCalledWith('thread-1', 'summarise the standup', undefined),
+    );
+  });
+
+  test('a retry that leaves the agent signed out re-sends nothing', async () => {
+    retryThread.mockResolvedValueOnce(makeInfo({ status: 'auth_required' }));
+    model = makeModel({
+      turnActive: false,
+      items: [
+        { kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' },
+        authNotice({ authMethods: undefined }),
+      ],
+    });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    await userEvent.click(within(authSurface()).getByTestId('agent-thread-retry'));
+    await waitFor(() => expect(retryThread).toHaveBeenCalledWith('thread-1'));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(prompt).not.toHaveBeenCalled();
+  });
+
+  test('a refused resume shows New chat once when the sign-in notice already offers it', () => {
+    model = makeModel({ turnActive: false, items: [authNotice({ authMethods: undefined })] });
+    render(<ThreadView info={makeInfo({ archived: true, resumable: false, status: 'exited' })} />);
+    expect(screen.queryByTestId('agent-thread-resume-failed')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'New chat with Claude' })).toHaveLength(1);
+  });
+
+  test('a refused resume without a sign-in notice keeps the banner as the way out', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: true, resumable: false, status: 'exited' })} />);
+    expect(screen.getByTestId('agent-thread-resume-failed')).toBeDefined();
+  });
+
+  test('a clickable sign-in method still wins over the terminal fallback', async () => {
+    Object.assign(window, {
+      okDesktop: {
+        config: { ptyAvailable: true },
+        terminal: { cliInstalledMap: () => Promise.resolve({ claude: true }) },
+      },
+    });
+    try {
+      model = makeModel({ turnActive: false, items: [authNotice({ machineDetail: '' })] });
+      render(
+        <ThreadView
+          info={makeInfo({
+            archived: false,
+            status: 'auth_required',
+            agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          })}
+        />,
+      );
+
+      const surface = authSurface();
+      expect(within(surface).getAllByTestId('agent-thread-auth-method')).toHaveLength(1);
+      await waitFor(() =>
+        expect(within(surface).queryByTestId('agent-thread-auth-action')).toBeNull(),
+      );
+      expect(surface.textContent).toContain('Sign in to Claude to continue.');
+    } finally {
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('an agent whose CLI is missing keeps the retry rather than a terminal it cannot open', async () => {
+    Object.assign(window, {
+      okDesktop: {
+        config: { ptyAvailable: true },
+        terminal: { cliInstalledMap: () => Promise.resolve({ claude: false }) },
+      },
+    });
+    try {
+      model = makeModel({ turnActive: false, items: [] });
+      render(
+        <ThreadView
+          info={makeInfo({
+            archived: false,
+            status: 'auth_required',
+            agent: { id: 'claude-acp', name: 'Claude Agent', source: 'registry' },
+          })}
+        />,
+      );
+
+      expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('retry');
+      await waitFor(() => expect(offerButton().getAttribute('data-auth-offer-kind')).toBe('retry'));
+    } finally {
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('the empty-transcript offer retries the thread when pressed', async () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    await userEvent.click(offerButton());
+    expect(retryThread).toHaveBeenCalledWith('thread-1');
+  });
+
+  test('an auth failure that carries no sign-in methods offers retry without the sign-in framing', () => {
+    const noMethods = authNotice({ authMethods: undefined, machineDetail: '' });
+    model = makeModel({ turnActive: false, items: [noMethods] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    const surface = authSurface();
+    expect(surface.textContent).toContain('Claude needs you to sign in.');
+    expect(surface.textContent).not.toContain('Retry to sign in');
+    expect(SIGN_IN_INSTRUCTION.test(surface.textContent ?? '')).toBe(false);
+    expect(surface.textContent).not.toContain('Already signed in?');
+    expect(within(surface).getByTestId('agent-thread-retry')).toBeTruthy();
+  });
+
+  test('an out-of-band sign-in method keeps the framing that names the order', () => {
+    const manualOnly = authNotice({
+      authMethods: [{ id: 'cli', name: 'CLI', kind: 'terminal', description: 'run /login' }],
+      machineDetail: '',
+    });
+    model = makeModel({ turnActive: false, items: [manualOnly] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    const surface = authSurface();
+    expect(within(surface).getAllByTestId('agent-thread-auth-manual')).toHaveLength(1);
+    expect(within(surface).queryAllByTestId('agent-thread-auth-method')).toHaveLength(0);
+    expect(surface.textContent).toContain('Claude needed you to sign in.');
+    expect(screen.queryByTestId('agent-thread-auth-action')).toBeNull();
+    expect(surface.textContent).toContain('Already signed in?');
+  });
+
+  test('a sign-in method the user can click keeps the sign-in copy and its framing', () => {
+    model = makeModel({ turnActive: false, items: [authNotice({ machineDetail: '' })] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+
+    const surface = authSurface();
+    expect(surface.textContent).toContain('Sign in to Claude to continue.');
+    expect(within(surface).getAllByTestId('agent-thread-auth-method')).toHaveLength(1);
+    expect(surface.textContent).toContain('Already signed in?');
+  });
+});
+
+describe('ThreadView start progress', () => {
+  function transcriptItem(): RenderedItem {
+    return { kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' };
+  }
+
+  test('a thread that already has a transcript still says installing rather than starting', () => {
+    vi.useFakeTimers();
+    const progressMessages = ['Installing Claude…', 'Starting Claude…'] as const;
+    for (const [status, message] of [
+      ['installing', 'Installing Claude…'],
+      ['spawning', 'Starting Claude…'],
+    ] as const) {
+      model = makeModel({ turnActive: false, items: [transcriptItem()] });
+      const view = render(<ThreadView info={makeInfo({ archived: false, status })} />);
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+
+      const starting = screen.getByTestId('agent-thread-starting');
+      const shown = progressMessages.filter((candidate) =>
+        starting.textContent?.includes(candidate),
+      );
+      expect({ status, shown }).toEqual({ status, shown: [message] });
+      view.unmount();
+    }
+  });
+
+  test('a thread that already has a transcript still announces its start status', () => {
+    vi.useFakeTimers();
+    for (const [status, message] of [
+      ['installing', 'Installing Claude…'],
+      ['spawning', 'Starting Claude…'],
+    ] as const) {
+      model = makeModel({ turnActive: false, items: [transcriptItem()] });
+      const view = render(<ThreadView info={makeInfo({ archived: false, status })} />);
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe(message);
+      expect(screen.getByTestId('agent-thread-starting').textContent).toContain(message);
+      view.unmount();
+    }
+  });
+
+  test('the start-status live region is mounted before there is a start to announce', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+
+    const region = screen.getByTestId('agent-thread-start-status');
+    expect(region.getAttribute('role')).toBe('status');
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(region.getAttribute('aria-atomic')).toBe('true');
+    expect(region.textContent).toBe('');
+  });
+
+  test('the start status is announced on the same region across the install probe', () => {
+    vi.useFakeTimers();
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+
+    const region = screen.getByTestId('agent-thread-start-status');
+    expect(region.textContent).toBe('Starting Claude…');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'installing' })} />);
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Installing Claude…');
+    expect(screen.getByTestId('agent-thread-start-status')).toBe(region);
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />);
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+    expect(screen.getByTestId('agent-thread-start-status')).toBe(region);
+  });
+
+  test('reaching ready announces the end of the wait', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Claude is ready');
+  });
+
+  test('a thread that was already ready announces nothing', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('');
+  });
+
+  test('returning to ready after a turn does not re-announce the start', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Claude is ready');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'running' })} />);
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('');
+  });
+
+  test('a start that pauses for sign-in still announces when it becomes ready', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'authenticating' })} />);
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Claude is ready');
+  });
+
+  test('a thread that mounts already waiting on sign-in announces when it becomes ready', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />,
+    );
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'authenticating' })} />);
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Claude is ready');
+  });
+
+  test('a sign-in forced mid-conversation announces that the thread is usable again', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'ready' })} />,
+    );
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'running' })} />);
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />);
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'authenticating' })} />);
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Claude is ready');
+  });
+
+  test.each(['error', 'exited'] as const)(
+    'a wait that begins at sign-in and ends in %s announces the failure',
+    (status) => {
+      model = makeModel({ turnActive: false, items: [] });
+      const { rerender } = render(
+        <ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />,
+      );
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('');
+
+      rerender(<ThreadView info={makeInfo({ archived: false, status })} />);
+
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe(
+        "Claude couldn't start",
+      );
+    },
+  );
+
+  test.each(['error', 'exited'] as const)(
+    'a start that ends in %s announces the failure',
+    (status) => {
+      model = makeModel({ turnActive: false, items: [] });
+      const { rerender } = render(
+        <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+      );
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+
+      rerender(<ThreadView info={makeInfo({ archived: false, status })} />);
+
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe(
+        "Claude couldn't start",
+      );
+    },
+  );
+
+  test.each([
+    ['error', 'exited'],
+    ['exited', 'error'],
+  ] as const)(
+    'a start that ends in %s and then %s holds the failure announcement',
+    (first, second) => {
+      model = makeModel({ turnActive: false, items: [] });
+      const { rerender } = render(
+        <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+      );
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+
+      rerender(<ThreadView info={makeInfo({ archived: false, status: first })} />);
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe(
+        "Claude couldn't start",
+      );
+
+      rerender(<ThreadView info={makeInfo({ archived: false, status: second })} />);
+
+      expect(screen.getByTestId('agent-thread-start-status').textContent).toBe(
+        "Claude couldn't start",
+      );
+    },
+  );
+
+  test('a crash after start shows a plain headline and summary, with the stderr behind Show details', async () => {
+    model = makeModel({
+      turnActive: false,
+      items: [
+        {
+          kind: 'notice',
+          tone: 'error',
+          attempts: 1,
+          text: 'agent exited (127)',
+          failure: {
+            reason: 'exited',
+            exit: { exitCode: 127, signal: null, cause: 'command-not-found' },
+            machineDetail:
+              'npm warn deprecated node-domexception@1.0.0\nsh: cline: command not found',
+          },
+        },
+      ],
+    });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+
+    const card = screen.getByTestId('agent-thread-notice');
+    expect(card.textContent).toContain('Claude stopped unexpectedly.');
+    expect(card.textContent).toContain('A command the agent needs was not found (exit code 127).');
+    expect(card.textContent).not.toContain('agent exited (127)');
+    expect(card.getAttribute('aria-live')).toBeNull();
+    const newChat = screen.getByTestId('agent-thread-auth-action');
+    expect(newChat.getAttribute('data-auth-offer-kind')).toBe('new-chat');
+    expect(newChat.textContent).toContain('New chat with Claude');
+    expect(screen.queryByTestId('agent-thread-notice-details')).toBeNull();
+    await userEvent.click(screen.getByTestId('agent-thread-notice-details-toggle'));
+    expect(screen.getByTestId('agent-thread-notice-details').textContent).toContain(
+      'sh: cline: command not found',
+    );
+  });
+
+  const crashNotice = (exit: ThreadExitDiagnosis, machineDetail: string): RenderedItem => ({
+    kind: 'notice',
+    tone: 'error',
+    attempts: 1,
+    text: 'agent exited',
+    failure: { reason: 'exited', exit, machineDetail },
+  });
+
+  test('a crash is announced through a region mounted before it, and opening details adds nothing to it', async () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'ready' })} />,
+    );
+    const region = screen.getByTestId('agent-thread-crash-status');
+    expect(region.getAttribute('role')).toBe('status');
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(region.textContent).toBe('');
+
+    model = makeModel({
+      turnActive: false,
+      items: [
+        crashNotice(
+          { exitCode: 127, signal: null, cause: 'command-not-found' },
+          'sh: cline: command not found',
+        ),
+      ],
+    });
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+
+    expect(screen.getByTestId('agent-thread-crash-status')).toBe(region);
+    expect(region.textContent).toMatch(
+      /^Claude stopped unexpectedly\. A command the agent needs was not found \(exit code 127\)\./,
+    );
+    const announced = region.textContent;
+    await userEvent.click(screen.getByTestId('agent-thread-notice-details-toggle'));
+    expect(screen.getByTestId('agent-thread-notice-details').closest('[aria-live]')).toBeNull();
+    expect(region.textContent).toBe(announced);
+  });
+
+  test('a crash that ends a start is announced once, by the start region', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+    model = makeModel({
+      turnActive: false,
+      items: [
+        crashNotice(
+          { exitCode: 127, signal: null, cause: 'command-not-found' },
+          'sh: cline: command not found',
+        ),
+      ],
+    });
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe(
+      "Claude couldn't start",
+    );
+    expect(screen.getByTestId('agent-thread-crash-status').textContent).toBe('');
+  });
+
+  test('a crash while waiting for sign-in leaves one card with an action and one announcement', () => {
+    const signIn: RenderedItem = {
+      kind: 'notice',
+      tone: 'info',
+      attempts: 1,
+      text: 'sign in required',
+      failure: { reason: 'auth-required', authMethods: [{ id: 'login', name: 'Login' }] },
+    };
+    model = makeModel({ turnActive: false, items: [signIn] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'auth_required' })} />,
+    );
+    model = makeModel({
+      turnActive: false,
+      items: [
+        signIn,
+        crashNotice(
+          { exitCode: 127, signal: null, cause: 'command-not-found' },
+          'sh: cline: command not found',
+        ),
+      ],
+    });
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+
+    const [signInCard, crashCard] = screen.getAllByTestId('agent-thread-notice');
+    expect(signInCard?.textContent).toContain('Claude needed you to sign in.');
+    expect(crashCard?.textContent).toContain('Claude stopped unexpectedly.');
+    const actions = screen.getAllByTestId('agent-thread-auth-action');
+    expect(actions).toHaveLength(1);
+    expect(crashCard?.contains(actions[0] ?? null)).toBe(true);
+    expect(actions[0]?.getAttribute('data-auth-offer-kind')).toBe('new-chat');
+    const announcements = [
+      screen.getByTestId('agent-thread-start-status').textContent,
+      screen.getByTestId('agent-thread-crash-status').textContent,
+    ].filter((text) => text !== '');
+    expect(announcements).toHaveLength(1);
+  });
+
+  test('a crash in a closed chat is not announced again', () => {
+    model = makeModel({
+      turnActive: false,
+      items: [crashNotice({ exitCode: 1, signal: null, cause: 'unknown' }, 'boom')],
+    });
+    render(<ThreadView info={makeInfo({ archived: true, status: 'exited' })} />);
+    expect(screen.getByTestId('agent-thread-notice')).toBeDefined();
+    expect(screen.getByTestId('agent-thread-crash-status').textContent).toBe('');
+  });
+
+  test('the inline error line on a crash comes from the recent stderr the cause was read from', () => {
+    const recent = Array.from(
+      { length: THREAD_EXIT_STDERR_WINDOW_LINES },
+      (_, index) => `progress line ${index}`,
+    ).join('\n');
+    const outOfMemory: ThreadExitDiagnosis = {
+      exitCode: 134,
+      signal: null,
+      cause: 'out-of-memory',
+    };
+    model = makeModel({
+      turnActive: false,
+      items: [crashNotice(outOfMemory, `Error: retrying connection\n${recent}`)],
+    });
+    const { unmount } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'exited' })} />,
+    );
+    expect(screen.queryByTestId('agent-thread-notice-root-cause')).toBeNull();
+    unmount();
+
+    model = makeModel({
+      turnActive: false,
+      items: [crashNotice(outOfMemory, `${recent}\nError: listen EADDRINUSE`)],
+    });
+    render(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+    expect(screen.getByTestId('agent-thread-notice-root-cause').textContent).toBe(
+      'Error: listen EADDRINUSE',
+    );
+  });
+
+  test('a start that had already succeeded when the agent exited announces no failure', () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'ready' })} />);
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Claude is ready');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'exited' })} />);
+
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('');
+  });
+
+  test('a probe that settles inside the show delay never paints the install label', () => {
+    vi.useFakeTimers();
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'installing' })} />);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+    expect(screen.getByTestId('agent-thread-transcript').textContent).not.toContain('Installing');
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />);
+    act(() => {
+      vi.advanceTimersByTime(1_000);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+    expect(screen.getByTestId('agent-thread-transcript').textContent).not.toContain('Installing');
+  });
+
+  test('the install label paints only after the show delay and in both places at once', () => {
+    vi.useFakeTimers();
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'installing' })} />);
+    act(() => {
+      vi.advanceTimersByTime(199);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+    expect(screen.getByTestId('agent-thread-transcript').textContent).toContain('Starting Claude…');
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Installing Claude…');
+    expect(screen.getByTestId('agent-thread-transcript').textContent).toContain(
+      'Installing Claude…',
+    );
+  });
+
+  test('once painted, the install label holds for its minimum visible window', () => {
+    vi.useFakeTimers();
+    model = makeModel({ turnActive: false, items: [] });
+    const { rerender } = render(
+      <ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />,
+    );
+
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'installing' })} />);
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Installing Claude…');
+
+    act(() => {
+      vi.advanceTimersByTime(50);
+    });
+    rerender(<ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />);
+    act(() => {
+      vi.advanceTimersByTime(249);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Installing Claude…');
+    expect(screen.getByTestId('agent-thread-transcript').textContent).toContain(
+      'Installing Claude…',
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByTestId('agent-thread-start-status').textContent).toBe('Starting Claude…');
+    expect(screen.getByTestId('agent-thread-transcript').textContent).toContain('Starting Claude…');
+  });
+
+  test('a brand-new thread commits the start-status region before its first label', async () => {
+    model = makeModel({ turnActive: false, items: [] });
+    const steps: string[] = [];
+    const inRegion = (node: Node | null): boolean => {
+      const el = node instanceof HTMLElement ? node : (node?.parentElement ?? null);
+      return el?.getAttribute('data-testid') === 'agent-thread-start-status';
+    };
+    let regionSeen = false;
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (inRegion(record.target)) {
+          steps.push('label');
+          continue;
+        }
+        for (const added of record.addedNodes) {
+          if (
+            !regionSeen &&
+            added instanceof HTMLElement &&
+            added.querySelector('[data-testid="agent-thread-start-status"]') !== null
+          ) {
+            regionSeen = true;
+            steps.push('region');
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+    try {
+      render(<ThreadView info={makeInfo({ archived: false, status: 'spawning' })} />);
+      await waitFor(() => {
+        expect(steps).toEqual(['region', 'label']);
+      });
+    } finally {
+      observer.disconnect();
+    }
+  });
+});
+
+describe('ThreadView attachment budget and clear fence (PRD-8453)', () => {
+  const makeDropTransfer = (files: readonly File[]) => ({
+    types: ['Files'],
+    files,
+    items: files.map((file) => ({ kind: 'file', getAsFile: () => file })),
+    dropEffect: 'copy',
+  });
+
+  const fireDrop = (files: readonly File[]) => {
+    const root = document.querySelector('[data-agent-thread-root]');
+    if (root === null) throw new Error('agent-thread-root not mounted');
+    act(() => {
+      fireEvent.drop(root, { dataTransfer: makeDropTransfer(files) });
+    });
+  };
+
+  const overBudgetPng = (name: string) =>
+    new File([new Uint8Array(Math.ceil(MAX_TOTAL_ATTACHMENT_BYTES * 0.6))], name, {
+      type: 'image/png',
+    });
+
+  const smallPng = (name: string) =>
+    new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], name, { type: 'image/png' });
+
+  test('an image dropped on an agent that takes none is refused and logged', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    onTestFinished(() => warn.mockRestore());
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: false } })} />,
+    );
+
+    fireDrop([smallPng('a.png')]);
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith("Claude doesn't accept image attachments."),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      '[acp-attachment] refused',
+      expect.objectContaining({ surface: 'agent-chat', reason: 'images-not-accepted' }),
+    );
+  });
+
+  test('a photo too big to send whole attaches as a copy shrunk to fit', async () => {
+    stubImageCanvas({ width: 4000, height: 3000 });
+    onTestFinished(() => vi.unstubAllGlobals());
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+
+    fireDrop([
+      new File([new Uint8Array(MAX_TOTAL_ATTACHMENT_BYTES * 3)], 'photo.png', {
+        type: 'image/png',
+      }),
+    ]);
+
+    await waitFor(() =>
+      expect(screen.queryAllByTestId('agent-thread-pending-image-preview')).toHaveLength(1),
+    );
+    expect(screen.getByTestId('agent-thread-drop-notice').textContent).toBe('');
+  });
+
+  test('a second photo too big to send whole is shrunk into what the first left of the budget', async () => {
+    stubImageCanvas({ width: 4000, height: 3000, bytesPerPixel: 0.15 });
+    onTestFinished(() => vi.unstubAllGlobals());
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+    const photo = (name: string) =>
+      new File([new Uint8Array(MAX_TOTAL_ATTACHMENT_BYTES * 3)], name, { type: 'image/png' });
+
+    fireDrop([photo('one.png'), photo('two.png')]);
+
+    await waitFor(() =>
+      expect(screen.queryAllByTestId('agent-thread-pending-image-preview')).toHaveLength(2),
+    );
+    expect(screen.getByTestId('agent-thread-drop-notice').textContent).toBe('');
+  });
+
+  test('interleaved drops cannot stack attachments past the aggregate byte budget', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+
+    fireDrop([overBudgetPng('one.png')]);
+    fireDrop([overBudgetPng('two.png')]);
+
+    const notice = await screen.findByTestId('agent-thread-drop-notice');
+    await waitFor(() => expect(notice.textContent).toContain("can't total more than"));
+    expect(screen.queryAllByTestId('agent-thread-pending-image-preview')).toHaveLength(1);
+  });
+
+  test('a drop past the budget attaches what fits, text files included, and names only the budget refusal', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+
+    fireDrop([
+      overBudgetPng('one.png'),
+      overBudgetPng('two.png'),
+      new File(['content'], 'notes.txt', { type: 'text/plain' }),
+    ]);
+
+    const notice = await screen.findByTestId('agent-thread-drop-notice');
+    await waitFor(() => expect(notice.textContent).toContain("can't total more than"));
+    expect(notice.textContent).toContain('Skipped 1 file');
+    expect(screen.getAllByTestId('agent-thread-pending-image-remove')).toHaveLength(2);
+  });
+
+  test('Enter during an in-flight read is held — the attachment survives to ride the send once it settles', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+    const composer = screen.getByTestId('agent-thread-composer');
+
+    fireEvent.change(composer, { target: { value: 'first prompt' } });
+    fireDrop([smallPng('late.png')]);
+    expect(screen.queryAllByTestId('agent-thread-pending-upload')).toHaveLength(1);
+    expect(screen.getByTestId('agent-thread-drop-notice').textContent).toContain('Uploading');
+    fireEvent.keyDown(composer, { key: 'Enter' });
+
+    expect(prompt).not.toHaveBeenCalled();
+    expect(screen.queryAllByTestId('agent-thread-pending-upload')).toHaveLength(1);
+
+    await waitFor(() =>
+      expect(screen.queryAllByTestId('agent-thread-pending-image-preview')).toHaveLength(1),
+    );
+    expect(screen.getByTestId('agent-thread-drop-notice').textContent).not.toContain('Uploading');
+
+    fireEvent.keyDown(composer, { key: 'Enter' });
+    expect(prompt).toHaveBeenCalledTimes(1);
+    expect(prompt).toHaveBeenCalledWith(
+      'thread-1',
+      'first prompt',
+      expect.arrayContaining([expect.objectContaining({ kind: 'image', name: 'late.png' })]),
+    );
+    expect(screen.queryByTestId('agent-thread-pending-images')).toBeNull();
+  });
+
+  test('Steer is held while an attachment read is in flight — nothing ships without the image', async () => {
+    model = makeModel({ items: [], turnActive: true });
+    render(
+      <ThreadView info={makeInfo({ status: 'running', promptCapabilities: { image: true } })} />,
+    );
+    const composer = screen.getByTestId('agent-thread-composer');
+
+    fireEvent.change(composer, { target: { value: 'actually, do this instead' } });
+    fireDrop([smallPng('late.png')]);
+    expect(screen.queryAllByTestId('agent-thread-pending-upload')).toHaveLength(1);
+
+    const steerButton = screen.getByTestId('agent-thread-steer');
+    expect(steerButton).toHaveProperty('disabled', true);
+    fireEvent.click(steerButton);
+
+    expect(steer).not.toHaveBeenCalled();
+    expect(screen.queryAllByTestId('agent-thread-pending-upload')).toHaveLength(1);
+  });
+
+  test('the send button waits for an in-flight read to settle', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+    const composer = screen.getByTestId('agent-thread-composer');
+    fireEvent.change(composer, { target: { value: 'describe the screenshot' } });
+
+    fireDrop([smallPng('shot.png')]);
+
+    expect(screen.getByTestId('agent-thread-send')).toHaveProperty('disabled', true);
+    await waitFor(() =>
+      expect(screen.queryAllByTestId('agent-thread-pending-image-preview')).toHaveLength(1),
+    );
+    expect(screen.getByTestId('agent-thread-send')).toHaveProperty('disabled', false);
+  });
+
+  test('the draft reader reports an in-flight read and clears it once the read settles', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+    const composer = screen.getByTestId('agent-thread-composer');
+    fireEvent.change(composer, { target: { value: 'describe the screenshot' } });
+
+    fireDrop([smallPng('shot.png')]);
+
+    expect(screen.queryAllByTestId('agent-thread-pending-upload')).toHaveLength(1);
+    expect(readThreadDraft('thread-1')?.uploadsPending).toBe(true);
+    await waitFor(() =>
+      expect(screen.queryAllByTestId('agent-thread-pending-image-preview')).toHaveLength(1),
+    );
+    const settled = readThreadDraft('thread-1');
+    expect(settled?.uploadsPending).toBe(false);
+    expect(settled?.attachments).toEqual([
+      expect.objectContaining({ kind: 'image', name: 'shot.png' }),
+    ]);
+  });
+
+  test('the drop highlight survives a dragleave that bubbles from a child', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(
+      <ThreadView info={makeInfo({ status: 'ready', promptCapabilities: { image: true } })} />,
+    );
+    const root = document.querySelector('[data-agent-thread-root]');
+    if (root === null) throw new Error('agent-thread-root not mounted');
+    const child = screen.getByTestId('agent-thread-composer');
+    const dataTransfer = makeDropTransfer([smallPng('shot.png')]);
+
+    act(() => {
+      fireEvent.dragEnter(root, { dataTransfer });
+    });
+    expect(screen.queryByTestId('agent-thread-drop-overlay')).not.toBeNull();
+
+    const leaveToChild = createEvent.dragLeave(root, { dataTransfer });
+    Object.defineProperty(leaveToChild, 'relatedTarget', { value: child });
+    act(() => {
+      fireEvent.dragEnter(child, { dataTransfer });
+      fireEvent(root, leaveToChild);
+    });
+    expect(screen.queryByTestId('agent-thread-drop-overlay')).not.toBeNull();
+
+    act(() => {
+      fireEvent.dragLeave(root, { dataTransfer });
+    });
+    expect(screen.queryByTestId('agent-thread-drop-overlay')).toBeNull();
+  });
+});
+
+describe('ThreadView context window', () => {
+  const codex = { id: 'codex-acp', name: 'Codex', source: 'registry' as const };
+  const modelOption = {
+    id: 'model',
+    name: 'Model',
+    category: 'model' as const,
+    type: 'select' as const,
+    currentValue: 'gpt-5.6-sol',
+    options: [
+      { value: 'gpt-5.6-sol', name: '5.6 Sol' },
+      { value: 'gpt-5.5', name: '5.5' },
+    ],
+  };
+
+  const twoWindows: readonly RemoteModelCandidate[] = [
+    {
+      value: 'gpt-5.6-sol',
+      label: '5.6 Sol',
+      contextChoices: [272_000, 872_000],
+      context: { effectiveTokens: 258_400, origin: 'native-cli' },
+    },
+    {
+      value: 'gpt-5.5',
+      label: '5.5',
+      contextChoices: [272_000],
+      context: { effectiveTokens: 258_400, origin: 'native-cli' },
+    },
+  ];
+
+  test('a fresh conversation offers the windows its model supports and remembers the pick', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({ turnActive: false, items: [] });
+    render(
+      <ThreadView
+        info={makeInfo({ agent: codex, status: 'ready', configOptions: [modelOption] })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    const row = screen.getByTestId('agent-thread-context-window');
+    expect(row.textContent).toContain('Context window');
+    expect(row.textContent).toContain('Default');
+
+    await userEvent.click(row);
+    expect(await screen.findByTestId('agent-thread-context-window-272000')).toBeTruthy();
+    await userEvent.click(screen.getByTestId('agent-thread-context-window-872000'));
+
+    expect(setContextWindow).toHaveBeenCalledWith('thread-1', 872_000);
+    await waitFor(() =>
+      expect(getRememberedAgentContextWindow(agentSettingsKey(codex))).toBe(872_000),
+    );
+  });
+
+  test('the row reports the window this thread launched with, not the remembered one', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({ turnActive: false, items: [] });
+    localStorage.setItem(
+      'ok-acp-agent-settings-v1',
+      JSON.stringify({ 'registry:codex-acp': { contextWindow: 872_000 } }),
+    );
+    render(
+      <ThreadView
+        info={makeInfo({
+          agent: codex,
+          status: 'ready',
+          contextWindow: 272_000,
+          configOptions: [modelOption],
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    const row = screen.getByTestId('agent-thread-context-window');
+    expect(row.textContent).toContain('272K');
+    expect(row.textContent).not.toContain('872K');
+  });
+
+  test('a thread that launched with no window of its own reads Default', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({ turnActive: false, items: [] });
+    localStorage.setItem(
+      'ok-acp-agent-settings-v1',
+      JSON.stringify({ 'registry:codex-acp': { contextWindow: 872_000 } }),
+    );
+    render(
+      <ThreadView
+        info={makeInfo({ agent: codex, status: 'ready', configOptions: [modelOption] })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    expect(screen.getByTestId('agent-thread-context-window').textContent).toContain('Default');
+  });
+
+  test('a refused pick is not remembered and says so', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({ turnActive: false, items: [] });
+    setContextWindowResult = () => Promise.reject(new Error('start a new chat to change it'));
+    render(
+      <ThreadView
+        info={makeInfo({ agent: codex, status: 'ready', configOptions: [modelOption] })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-context-window'));
+    await userEvent.click(await screen.findByTestId('agent-thread-context-window-872000'));
+
+    await waitFor(() => expect(toastError).toHaveBeenCalled());
+    expect(String(toastError.mock.calls[0]?.[0])).toContain('kept its current context window');
+    expect(getRememberedAgentContextWindow(agentSettingsKey(codex))).toBeUndefined();
+  });
+
+  test('a pick whose relaunch died points at the recovery already on screen', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({ turnActive: false, items: [] });
+    setContextWindowResult = () =>
+      Promise.reject(new ThreadContextWindowError('spawn-failed', 'the agent failed to start'));
+    render(
+      <ThreadView
+        info={makeInfo({ agent: codex, status: 'ready', configOptions: [modelOption] })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-context-window'));
+    await userEvent.click(await screen.findByTestId('agent-thread-context-window-872000'));
+
+    await waitFor(() => expect(toastError).toHaveBeenCalled());
+    expect(String(toastError.mock.calls[0]?.[0])).toContain("couldn't restart");
+    expect(getRememberedAgentContextWindow(agentSettingsKey(codex))).toBeUndefined();
+  });
+
+  test('a model with one window shows no choice to make', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({ turnActive: false, items: [] });
+    render(
+      <ThreadView
+        info={makeInfo({
+          agent: codex,
+          status: 'ready',
+          configOptions: [{ ...modelOption, currentValue: 'gpt-5.5' }],
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    expect(screen.queryByTestId('agent-thread-context-window')).toBeNull();
+  });
+
+  test('an agent with no discovered windows shows no row either', async () => {
+    modelCandidates = [];
+    model = makeModel({ turnActive: false, items: [] });
+    render(
+      <ThreadView
+        info={makeInfo({ agent: codex, status: 'ready', configOptions: [modelOption] })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    expect(screen.queryByTestId('agent-thread-context-window')).toBeNull();
+  });
+
+  test('a conversation that has already run keeps its window and offers a new chat instead', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({
+      turnActive: false,
+      items: [{ kind: 'message', role: 'user', text: 'summarise the standup', messageId: 'u1' }],
+    });
+    render(
+      <ThreadView
+        info={makeInfo({ agent: codex, status: 'ready', configOptions: [modelOption] })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-context-window'));
+
+    expect((await screen.findByTestId('agent-thread-context-window-locked')).textContent).toContain(
+      'keeps the window it started with',
+    );
+    expect(screen.queryByTestId('agent-thread-context-window-872000')).toBeNull();
+
+    await userEvent.click(screen.getByTestId('agent-thread-context-window-new-chat'));
+    expect(setContextWindow).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(createThread).toHaveBeenCalledWith(
+        expect.objectContaining({ agent: { source: 'registry', id: 'codex-acp' } }),
+        undefined,
+      ),
+    );
+  });
+
+  test('an archived conversation is locked the same way', async () => {
+    modelCandidates = twoWindows;
+    model = makeModel({ turnActive: false, items: [] });
+    render(
+      <ThreadView
+        info={makeInfo({
+          agent: codex,
+          status: 'exited',
+          archived: true,
+          configOptions: [modelOption],
+        })}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /Agent settings/ }));
+    await userEvent.click(screen.getByTestId('agent-thread-context-window'));
+
+    expect(await screen.findByTestId('agent-thread-context-window-locked')).toBeTruthy();
+    expect(screen.queryByTestId('agent-thread-context-window-872000')).toBeNull();
+  });
+});
+
+describe('ThreadView hands the composer what to list first', () => {
+  test('the open doc and the paths this chat attached, newest first', () => {
+    activeDocName = 'notes/today';
+    try {
+      model = makeModel({
+        turnActive: false,
+        items: [
+          {
+            kind: 'message',
+            role: 'user',
+            text: 'first',
+            messageId: 'm1',
+            attachments: [{ kind: 'file', path: 'specs/a.md', name: 'a' }],
+          },
+          {
+            kind: 'message',
+            role: 'user',
+            text: 'second',
+            messageId: 'm2',
+            attachments: [
+              { kind: 'folder', path: 'plans', name: 'plans' },
+              { kind: 'image', data: 'AAAA', mimeType: 'image/png', name: 'shot.png' },
+            ],
+          },
+        ],
+      });
+      render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+
+      const handed = screen
+        .getByTestId('agent-thread-composer')
+        .getAttribute('data-mention-recency');
+      expect(JSON.parse(handed ?? 'null')).toEqual({
+        currentDocName: 'notes/today',
+        recentPaths: ['plans', 'specs/a.md'],
+      });
+    } finally {
+      activeDocName = null;
+    }
+  });
+});
+
+describe('ThreadView reporting a problem with the chat', () => {
+  const withSettings = () =>
+    makeInfo({
+      status: 'ready',
+      configOptions: [
+        {
+          id: 'model',
+          name: 'Model',
+          category: 'model',
+          type: 'select',
+          currentValue: 'opus',
+          options: [
+            { value: 'opus', name: 'Opus' },
+            { value: 'sonnet', name: 'Sonnet' },
+          ],
+        },
+      ],
+    });
+  const installReportBridge = () =>
+    Object.assign(window, {
+      okDesktop: {
+        bugReport: {
+          crashDumpAvailability: () => Promise.resolve({ available: false }),
+          captureScreenshot: () => Promise.resolve(null),
+        },
+      },
+    });
+
+  test('the settings trigger keeps a muted label and chevron when it only opens the report', () => {
+    installReportBridge();
+    try {
+      model = makeModel({ items: [], turnActive: false });
+      render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+      const trigger = screen.getByTestId('agent-thread-settings');
+      const label = within(trigger).getByText('Settings');
+      const chevron = trigger.querySelector('svg');
+
+      for (const part of [label, chevron]) {
+        expectVisualClassTokens(part?.getAttribute('class'), ['text-muted-foreground']);
+        expectVisualClassTokensAbsent(part?.getAttribute('class'), ['text-muted-foreground/50']);
+      }
+      expect(trigger.hasAttribute('aria-disabled')).toBe(false);
+    } finally {
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('the settings trigger dims fully when it opens nothing and not at all when it opens settings', () => {
+    model = makeModel({ items: [], turnActive: false });
+    const view = render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+    const disabled = screen.getByTestId('agent-thread-settings');
+    for (const part of [within(disabled).getByText('Settings'), disabled.querySelector('svg')]) {
+      expectVisualClassTokens(part?.getAttribute('class'), ['text-muted-foreground/50']);
+    }
+    expect(disabled.getAttribute('aria-disabled')).toBe('true');
+
+    view.rerender(<ThreadView info={withSettings()} />);
+    const normal = screen.getByTestId('agent-thread-settings');
+    expectVisualClassTokensAbsent(normal.querySelector('svg')?.getAttribute('class'), [
+      'text-muted-foreground',
+      'text-muted-foreground/50',
+    ]);
+    expect(normal.hasAttribute('aria-disabled')).toBe(false);
+  });
+
+  test('the settings menu offers no report where reports cannot be sent', async () => {
+    model = makeModel({ items: [], turnActive: false });
+    render(<ThreadView info={withSettings()} />);
+    await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+    await screen.findByRole('menu');
+    expect(screen.queryByTestId('agent-thread-report-problem')).toBeNull();
+  });
+
+  test('a chat whose agent offers settings lists the report below them', async () => {
+    installReportBridge();
+    try {
+      model = makeModel({ items: [], turnActive: false });
+      render(<ThreadView info={withSettings()} />);
+      await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+      const item = await screen.findByTestId('agent-thread-report-problem');
+      expect(item.textContent).toBe('Report a problem with this chat…');
+    } finally {
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  });
+
+  test('a chat with no settings to adjust still opens a report that carries it', async () => {
+    installReportBridge();
+    try {
+      model = makeModel({ items: [], turnActive: false });
+      render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+      await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+      await userEvent.click(await screen.findByTestId('agent-thread-report-problem'));
+      const chat = await screen.findByRole(
+        'checkbox',
+        { name: 'This conversation' },
+        { timeout: 15_000 },
+      );
+      expect(chat.getAttribute('aria-checked')).toBe('true');
+    } finally {
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  }, 30_000);
+
+  test('the screenshot is shot before the report opens, with the settings menu marked as its launcher and no row marked', async () => {
+    const stopPointerTracking = installPointerPositionTracker();
+    window.dispatchEvent(
+      new PointerEvent('pointermove', { clientX: 240, clientY: 160, bubbles: true }),
+    );
+    let captures = 0;
+    let markersAtCapture = -1;
+    let reportOpenAtCapture: boolean | null = null;
+    Object.assign(window, {
+      okDesktop: {
+        bugReport: {
+          crashDumpAvailability: () => Promise.resolve({ available: false }),
+          captureScreenshot: () => {
+            captures += 1;
+            markersAtCapture = document.querySelectorAll('.ok-pointer-marker').length;
+            reportOpenAtCapture =
+              screen.queryByRole('checkbox', { name: 'This conversation' }) !== null;
+            return Promise.resolve(null);
+          },
+        },
+      },
+    });
+    try {
+      model = makeModel({ items: [], turnActive: false });
+      render(<ThreadView info={makeInfo({ status: 'ready' })} />);
+      await userEvent.click(screen.getByRole('button', { name: /^Agent settings/ }));
+      const menu = await screen.findByTestId('agent-thread-settings-popover');
+      expect(menu.hasAttribute('data-bug-report-launcher')).toBe(true);
+      await userEvent.click(await screen.findByTestId('agent-thread-report-problem'));
+      await screen.findByRole('checkbox', { name: 'This conversation' }, { timeout: 15_000 });
+
+      expect(captures).toBe(1);
+      expect(markersAtCapture).toBe(0);
+      expect(reportOpenAtCapture).toBe(false);
+    } finally {
+      stopPointerTracking();
+      Reflect.deleteProperty(window, 'okDesktop');
+    }
+  }, 30_000);
+});

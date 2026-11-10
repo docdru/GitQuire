@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "//": "Pre-1.0 convention: NEVER declare 'major' in changesets — see .changeset/README.md. The fixed group below bumps in lock-step.",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@inkeep/open-knowledge",
+      "@inkeep/open-knowledge-core",
+      "@inkeep/open-knowledge-server",
+      "@inkeep/open-knowledge-app",
+      "@inkeep/open-knowledge-desktop"
+    ]
+  ],
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [],
+  "privatePackages": {
+    "version": true,
+    "tag": true
+  }
+}

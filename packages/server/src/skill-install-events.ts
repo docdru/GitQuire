@@ -1,0 +1,74 @@
+import { dirname, join } from 'node:path';
+import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+import type { BundleId } from './build-skill-zip.ts';
+import { tracedMkdir, tracedWriteFile } from './fs-traced.ts';
+import { getLogger } from './logger.ts';
+import type { SkillStateLogger, SkillStateTarget } from './skill-state.ts';
+
+export const SKILL_INSTALL_EVENTS_FILENAME = 'skill-install-events.jsonl';
+
+export type SkillInstallEventSurface =
+  | 'server-build-and-open'
+  | 'electron-build-and-open'
+  | 'cli-npx-skills-add'
+  | 'desktop-direct'
+  | 'cli-start';
+
+export type SkillInstallEventOutcome = 'installed' | 'built' | 'skip-current' | 'failed';
+
+export interface SkillInstallEvent {
+  readonly ts: string;
+  readonly surface: SkillInstallEventSurface;
+  readonly target: SkillStateTarget;
+  readonly outcome: SkillInstallEventOutcome;
+  readonly bundle?: BundleId;
+  readonly version?: string;
+  readonly reason?: string;
+}
+
+interface RecordSkillInstallEventDeps {
+  readonly homedir: () => string;
+  readonly warn?: SkillStateLogger['warn'];
+}
+
+export async function recordSkillInstallEvent(
+  event: SkillInstallEvent,
+  deps?: Partial<RecordSkillInstallEventDeps>,
+): Promise<void> {
+  const homedirFn = deps?.homedir ?? (() => process.env.HOME ?? '');
+  const warn =
+    deps?.warn ??
+    ((data: unknown, message: string) => {
+      getLogger('skills').warn(data, message);
+    });
+
+  const home = homedirFn();
+  if (!home) {
+    warn(
+      { event: 'skill-install-events.no-home' },
+      '[skill-install-events] HOME not resolvable; telemetry skipped',
+    );
+    return;
+  }
+  const file = join(okUserHomeDir(home), SKILL_INSTALL_EVENTS_FILENAME);
+  const json = `${JSON.stringify(event)}\n`;
+
+  try {
+    await tracedMkdir(dirname(file), { recursive: true });
+  } catch (err) {
+    warn(
+      { event: 'skill-install-events.mkdir-failed', err },
+      '[skill-install-events] mkdir failed; telemetry skipped',
+    );
+    return;
+  }
+
+  try {
+    await tracedWriteFile(file, json, { flag: 'a', encoding: 'utf-8' });
+  } catch (err) {
+    warn(
+      { event: 'skill-install-events.append-failed', err },
+      '[skill-install-events] append failed; telemetry skipped',
+    );
+  }
+}

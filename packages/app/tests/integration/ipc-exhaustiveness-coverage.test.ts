@@ -1,0 +1,265 @@
+import { readFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
+import {
+  type Expression,
+  type Node,
+  Project,
+  type SourceFile,
+  type Statement,
+  type SwitchStatement,
+  SyntaxKind,
+} from 'ts-morph';
+import { describe, expect, test } from 'vitest';
+import { isTestOnlySourceFile } from '../../../../test-support/test-only-source-file.mjs';
+import { IPC_SCAN_GLOB, IPC_SCAN_ROOTS } from './ipc-exhaustiveness-coverage.reads';
+
+const REPO_ROOT = resolve(import.meta.dirname, '../../../..');
+const SCAN_ROOTS = IPC_SCAN_ROOTS.map((root) => join(REPO_ROOT, root));
+
+interface DuRegistration {
+  readonly name: string;
+  readonly helper: string;
+  readonly variantLabels: ReadonlySet<string>;
+  readonly uniqueLabels: ReadonlySet<string>;
+}
+
+const REGISTRY: readonly DuRegistration[] = [
+  {
+    name: 'UrnIpcLookup',
+    helper: 'assertNeverUrnIpcLookup',
+    variantLabels: new Set(['mapped', 'http-only', 'unknown']),
+    uniqueLabels: new Set(['mapped', 'http-only']),
+  },
+  {
+    name: 'SpawnFailureReason',
+    helper: 'assertNeverSpawnFailureReason',
+    variantLabels: new Set(['invalid-path', 'not-installed', 'timeout', 'spawn-error']),
+    uniqueLabels: new Set(['spawn-error', 'not-installed']),
+  },
+  {
+    name: 'OkPtyAdoptReason',
+    helper: 'assertNeverPtyAdoptReason',
+    variantLabels: new Set(['unknown-session', 'not-started', 'not-consented', 'host-unavailable']),
+    uniqueLabels: new Set(['unknown-session', 'not-started', 'host-unavailable']),
+  },
+  {
+    name: 'OkPtyCreateReason',
+    helper: 'assertNeverPtyCreateReason',
+    variantLabels: new Set(['no-project', 'not-consented']),
+    uniqueLabels: new Set(['no-project']),
+  },
+];
+
+export const IPC_EXHAUSTIVENESS_OPT_OUT_LIMIT = 2;
+
+const OPT_OUT_MARKER = /\/\/\s*ipc-exhaustiveness-check:\s*opt-out\s*—/;
+
+function isExcludedPath(absPath: string): boolean {
+  if (absPath.endsWith('.d.ts')) return true;
+  if (isTestOnlySourceFile(absPath)) return true;
+  if (absPath.includes('/node_modules/')) return true;
+  if (absPath.includes('/dist/')) return true;
+  return false;
+}
+
+function* enumerateSourceFiles(): Generator<string> {
+  for (const root of SCAN_ROOTS) {
+    const glob = new Bun.Glob(IPC_SCAN_GLOB);
+    for (const rel of glob.scanSync({ cwd: root })) {
+      const abs = join(root, rel);
+      if (isExcludedPath(abs)) continue;
+      yield abs;
+    }
+  }
+}
+
+function makeProject(): Project {
+  return new Project({
+    skipFileDependencyResolution: true,
+    skipLoadingLibFiles: true,
+    skipAddingFilesFromTsConfig: true,
+    compilerOptions: {
+      noLib: true,
+      allowJs: false,
+    },
+  });
+}
+
+interface SwitchInfo {
+  readonly node: SwitchStatement;
+  readonly line: number;
+  readonly caseLabels: readonly string[];
+  readonly hasDefault: boolean;
+  readonly defaultStatements: readonly Statement[];
+  readonly hasOptOutComment: boolean;
+}
+
+function getStringCaseLabel(expr: Expression): string | null {
+  if (expr.isKind(SyntaxKind.StringLiteral)) return expr.getLiteralText();
+  if (expr.isKind(SyntaxKind.NoSubstitutionTemplateLiteral)) return expr.getLiteralText();
+  return null;
+}
+
+function collectSwitches(sf: SourceFile, content: string): SwitchInfo[] {
+  const out: SwitchInfo[] = [];
+  for (const sw of sf.getDescendantsOfKind(SyntaxKind.SwitchStatement)) {
+    const caseLabels: string[] = [];
+    let hasDefault = false;
+    let defaultStatements: readonly Statement[] = [];
+    let nonLiteralCase = false;
+    for (const clause of sw.getCaseBlock().getClauses()) {
+      if (clause.isKind(SyntaxKind.DefaultClause)) {
+        hasDefault = true;
+        defaultStatements = clause.getStatements();
+      } else {
+        const label = getStringCaseLabel(clause.getExpression());
+        if (label === null) {
+          nonLiteralCase = true;
+        } else {
+          caseLabels.push(label);
+        }
+      }
+    }
+    if (!nonLiteralCase && caseLabels.length > 0) {
+      const start = sw.getStart();
+      const lineStart = content.lastIndexOf('\n', start - 1) + 1;
+      const previousLineEnd = lineStart - 1;
+      const previousLineStart = content.lastIndexOf('\n', previousLineEnd - 1) + 1;
+      const previousLine = content.slice(previousLineStart, previousLineEnd);
+      const hasOptOutComment = OPT_OUT_MARKER.test(previousLine);
+      out.push({
+        node: sw,
+        line: sw.getStartLineNumber(),
+        caseLabels,
+        hasDefault,
+        defaultStatements,
+        hasOptOutComment,
+      });
+    }
+  }
+  return out;
+}
+
+function matchesDu(caseLabels: readonly string[], du: DuRegistration): boolean {
+  if (caseLabels.length === 0) return false;
+  for (const label of caseLabels) {
+    if (!du.variantLabels.has(label)) return false;
+  }
+  for (const label of caseLabels) {
+    if (du.uniqueLabels.has(label)) return true;
+  }
+  return false;
+}
+
+function defaultEndsWithHelper(defaultStatements: readonly Statement[], helper: string): boolean {
+  if (defaultStatements.length === 0) return false;
+  for (const stmt of defaultStatements) {
+    if (statementCallsHelper(stmt, helper)) return true;
+  }
+  return false;
+}
+
+function statementCallsHelper(stmt: Statement | Node, helper: string): boolean {
+  if (stmt.isKind(SyntaxKind.ExpressionStatement)) {
+    return expressionCallsHelper(stmt.getExpression(), helper);
+  }
+  if (stmt.isKind(SyntaxKind.ReturnStatement)) {
+    const expr = stmt.getExpression();
+    return expr !== undefined && expressionCallsHelper(expr, helper);
+  }
+  if (stmt.isKind(SyntaxKind.ThrowStatement)) {
+    return expressionCallsHelper(stmt.getExpression(), helper);
+  }
+  if (stmt.isKind(SyntaxKind.Block)) {
+    for (const inner of stmt.getStatements()) {
+      if (statementCallsHelper(inner, helper)) return true;
+    }
+  }
+  return false;
+}
+
+function expressionCallsHelper(expr: Expression, helper: string): boolean {
+  if (!expr.isKind(SyntaxKind.CallExpression)) return false;
+  const callee = expr.getExpression();
+  return callee.isKind(SyntaxKind.Identifier) && callee.getText() === helper;
+}
+
+interface Violation {
+  readonly file: string;
+  readonly line: number;
+  readonly du: string;
+  readonly missing: string;
+}
+
+function collectViolations(): {
+  violations: Violation[];
+  optOutCount: number;
+} {
+  const violations: Violation[] = [];
+  let optOutCount = 0;
+  const project = makeProject();
+  for (const file of enumerateSourceFiles()) {
+    const content = readFileSync(file, 'utf8');
+    if (!/switch\s*\(/.test(content)) continue;
+    const sf = project.addSourceFileAtPath(file);
+    for (const sw of collectSwitches(sf, content)) {
+      for (const du of REGISTRY) {
+        if (!matchesDu(sw.caseLabels, du)) continue;
+        if (sw.hasOptOutComment) {
+          optOutCount++;
+          continue;
+        }
+        if (!sw.hasDefault || !defaultEndsWithHelper(sw.defaultStatements, du.helper)) {
+          violations.push({
+            file: relative(REPO_ROOT, file),
+            line: sw.line,
+            du: du.name,
+            missing: du.helper,
+          });
+        }
+      }
+    }
+    project.removeSourceFile(sf);
+  }
+  return { violations, optOutCount };
+}
+
+const MIN_SCANNED_FILES = 50;
+
+describe('IPC exhaustiveness coverage', () => {
+  test('scan covers ≥ MIN_SCANNED_FILES source files (anti-vacuousness)', () => {
+    let count = 0;
+    for (const _ of enumerateSourceFiles()) count++;
+    expect(count).toBeGreaterThanOrEqual(MIN_SCANNED_FILES);
+  });
+
+  test('every switch over a registered IPC DU terminates in `default: <helper>(target)`', () => {
+    const { violations } = collectViolations();
+    if (violations.length > 0) {
+      const list = violations
+        .map(
+          (v) =>
+            `  ${v.file}:${v.line} — switch over ${v.du}; missing default ${v.missing}(target)`,
+        )
+        .join('\n');
+      throw new Error(
+        `IPC discriminated-union switch is not exhaustive.\n` +
+          `Each switch over a registered IPC DU must terminate in \`default: <helper>(target)\`\n` +
+          `where <helper> is an \`assertNeverXyz\` function whose param is typed \`never\`.\n` +
+          `Violations:\n${list}`,
+      );
+    }
+    expect(violations).toEqual([]);
+  });
+
+  test(`opt-out comment marker count is gated by IPC_EXHAUSTIVENESS_OPT_OUT_LIMIT (= ${IPC_EXHAUSTIVENESS_OPT_OUT_LIMIT})`, () => {
+    const { optOutCount } = collectViolations();
+    if (optOutCount > IPC_EXHAUSTIVENESS_OPT_OUT_LIMIT) {
+      throw new Error(
+        `Too many \`// ipc-exhaustiveness-check: opt-out — ...\` markers (${optOutCount} > ${IPC_EXHAUSTIVENESS_OPT_OUT_LIMIT}).\n` +
+          `Either remove unnecessary opt-outs OR raise IPC_EXHAUSTIVENESS_OPT_OUT_LIMIT (each opt-out should map to a documented dynamic-dispatch site).`,
+      );
+    }
+    expect(optOutCount).toBeLessThanOrEqual(IPC_EXHAUSTIVENESS_OPT_OUT_LIMIT);
+  });
+});

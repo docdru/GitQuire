@@ -1,0 +1,1552 @@
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  DEFAULT_LINTER_CONFIG,
+  type LinterConfig,
+  SUPPORTED_DOC_EXTENSIONS,
+  ValidationAuditCountsResponseSchema,
+  ValidationAuditResponseSchema,
+} from '@inkeep/open-knowledge-core';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { BacklinkIndex } from '../backlink-index.ts';
+import { createContentFilter } from '../content-filter.ts';
+import type { LinkAdvisoryPolicy } from '../link-advisory-policy.ts';
+import { LocalTargetIndex } from '../local-target-index.ts';
+import { resolveAuditScope } from './audit-scope.ts';
+import {
+  createProjectValidators,
+  type ProjectValidator,
+  runValidationAudit,
+  toValidationCountsPlane,
+  type ValidationAuditDeps,
+} from './validation-audit.ts';
+
+let root: string;
+let index: BacklinkIndex;
+let localTargets: LocalTargetIndex;
+let admitted: Set<string>;
+
+const lintOn: LinterConfig = {
+  ...DEFAULT_LINTER_CONFIG,
+  plugins: {
+    ...DEFAULT_LINTER_CONFIG.plugins,
+    markdownlint: { ...DEFAULT_LINTER_CONFIG.plugins.markdownlint, enabled: true },
+  },
+};
+
+const DOC_WITH_TAB = '# Title\n\n\tindented with a tab\n';
+
+beforeEach(() => {
+  root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-validation-audit-')));
+  index = new BacklinkIndex({ projectDir: root, contentDir: root });
+  localTargets = new LocalTargetIndex({ contentDir: root });
+  admitted = new Set();
+});
+afterEach(() => {
+  rmSync(root, { recursive: true, force: true });
+});
+
+function seedDoc(docName: string, markdown: string): void {
+  const abs = join(root, `${docName}.md`);
+  mkdirSync(join(abs, '..'), { recursive: true });
+  writeFileSync(abs, markdown, 'utf-8');
+  index.updateDocumentFromMarkdown(docName, markdown);
+  localTargets.setSource(docName, markdown);
+  admitted.add(docName);
+}
+
+function seedFile(contentRootRelativePath: string): void {
+  localTargets.setFileTarget(contentRootRelativePath, true);
+}
+
+function docFilePathFor(docName: string): string | null {
+  for (const ext of SUPPORTED_DOC_EXTENSIONS) {
+    if (existsSync(join(root, `${docName}${ext}`))) return `${docName}${ext}`;
+  }
+  return null;
+}
+
+function linkPolicy(overrides: Partial<LinkAdvisoryPolicy> = {}): LinkAdvisoryPolicy {
+  return { links: 'warning', suppressLogLinkAdvisories: true, ...overrides };
+}
+
+function deps(overrides: Partial<ValidationAuditDeps> = {}): ValidationAuditDeps {
+  return {
+    projectDir: root,
+    contentDir: root,
+    baseConfig: lintOn,
+    linkPolicy: linkPolicy(),
+    derivedDocumentIndex: {
+      getDeadLinks: (a, s) => index.getDeadLinks(a, s),
+      getLocalTargetAssessmentsForSources: (s) => localTargets.getAssessmentsForSources(s),
+    },
+    admittedDocNames: () => admitted,
+    docFilePathFor,
+    ...overrides,
+  };
+}
+
+describe('runValidationAudit', () => {
+  test('merges lint and link findings into one source-tagged plane', async () => {
+    seedDoc('dirty', DOC_WITH_TAB);
+    seedDoc('linker', '# Linker\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files.map((f) => f.file)).toEqual(['dirty.md', 'linker.md']);
+    const lintDiagnostics = result.files[0]?.diagnostics ?? [];
+    expect(lintDiagnostics.some((d) => d.source === 'markdownlint' && d.code === 'MD010')).toBe(
+      true,
+    );
+    expect(result.files[1]?.diagnostics).toEqual([
+      {
+        range: { start: { line: 2, character: 4 }, end: { line: 2, character: 4 } },
+        severity: 'warning',
+        source: 'links',
+        code: 'dead-link',
+        message: 'Link target "ghost" does not resolve to an existing document.',
+        linkTarget: 'ghost',
+      },
+    ]);
+    expect(result.errorCount).toBe(0);
+    expect(result.warningCount).toBeGreaterThan(1);
+    expect(result.fileCount).toBe(2);
+    expect(result.ran).toEqual(['markdownlint', 'links']);
+    expect(ValidationAuditResponseSchema.parse(result)).toEqual(result);
+  });
+
+  test('a target broken from two source docs is attributed to both files', async () => {
+    seedDoc('a', '# A\n\nSee [[ghost]].\n');
+    seedDoc('b', '# B\n\nAlso [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files.map((f) => f.file)).toEqual(['a.md', 'b.md']);
+    for (const entry of result.files) {
+      expect(entry.diagnostics).toHaveLength(1);
+      expect(entry.diagnostics[0]?.source).toBe('links');
+      expect(entry.diagnostics[0]?.message).toContain('"ghost"');
+      expect(entry.diagnostics[0]?.linkTarget).toBe('ghost');
+    }
+    expect(result.warningCount).toBe(2);
+  });
+
+  test('validation.links=error raises dead links to errors; off silences them cleanly', async () => {
+    seedDoc('linker', '# Linker\n\nSee [[ghost]].\n');
+
+    const asError = await runValidationAudit(
+      createProjectValidators(deps({ linkPolicy: linkPolicy({ links: 'error' }) })),
+    );
+    expect(asError.files[0]?.diagnostics[0]?.severity).toBe('error');
+    expect(asError.errorCount).toBe(1);
+
+    const off = await runValidationAudit(
+      createProjectValidators(deps({ linkPolicy: linkPolicy({ links: 'off' }) })),
+    );
+    expect(off.files.every((f) => f.diagnostics.every((d) => d.source !== 'links'))).toBe(true);
+    expect(off.ran).toEqual(['markdownlint']);
+    expect(off.warnings).toEqual([]);
+  });
+
+  test('returns link findings when the project has not enabled markdownlint', async () => {
+    seedDoc('dirty', DOC_WITH_TAB);
+    seedDoc('linker', '# Linker\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(
+      createProjectValidators(deps({ baseConfig: DEFAULT_LINTER_CONFIG })),
+    );
+
+    expect(result.files.map((f) => f.file)).toEqual(['linker.md']);
+    expect(result.files[0]?.diagnostics.map((d) => d.source)).toEqual(['links']);
+    expect(result.errorCount).toBe(0);
+    expect(result.warningCount).toBe(1);
+    expect(result.fileCount).toBe(2);
+    expect(result.ran).toEqual(['links']);
+  });
+
+  test('a doc with lint and link problems yields one file entry sorted by position', async () => {
+    seedDoc('both', '# Both\n\n\tindented with a tab\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files.map((f) => f.file)).toEqual(['both.md']);
+    const diagnostics = result.files[0]?.diagnostics ?? [];
+    const tabIndex = diagnostics.findIndex((d) => d.code === 'MD010');
+    const linkIndex = diagnostics.findIndex((d) => d.code === 'dead-link');
+    expect(tabIndex).toBeGreaterThanOrEqual(0);
+    expect(linkIndex).toBeGreaterThanOrEqual(0);
+    expect(diagnostics[tabIndex]?.range.start.line).toBe(2);
+    expect(diagnostics[linkIndex]?.range.start.line).toBe(4);
+    expect(tabIndex).toBeLessThan(linkIndex);
+  });
+
+  test('a folder scope restricts both validators to docs under it', async () => {
+    seedDoc('top', '# Top\n\nSee [[ghost]].\n');
+    seedDoc('sub/inner', '# Inner\n\n\tindented with a tab\n\nSee [[ghost2]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()), {
+      targetPath: 'sub',
+    });
+
+    expect(result.files.map((f) => f.file)).toEqual(['sub/inner.md']);
+    const codes = result.files[0]?.diagnostics.map((d) => d.code) ?? [];
+    expect(codes).toContain('MD010');
+    expect(codes).toContain('dead-link');
+    const messages = result.files.flatMap((f) => f.diagnostics.map((d) => d.message));
+    expect(messages.some((m) => m.includes('"ghost"'))).toBe(false);
+    expect(result.fileCount).toBe(1);
+  });
+
+  test('a doc-file scope returns exactly the whole-project findings for that doc', async () => {
+    seedDoc('dirty', DOC_WITH_TAB);
+    seedDoc('linker', '# Linker\n\nSee [[ghost]].\n');
+    const validators = createProjectValidators(deps());
+
+    const whole = await runValidationAudit(validators);
+    const scoped = await runValidationAudit(validators, { targetPath: 'linker.md' });
+
+    expect(scoped.files).toEqual([
+      whole.files.find((f) => f.file === 'linker.md') ?? { file: 'missing', diagnostics: [] },
+    ]);
+    expect(scoped.fileCount).toBe(1);
+    expect(scoped.warningCount).toBe(1);
+  });
+
+  test('an extensionless direct scope selects the same physical document in every validator', async () => {
+    const source = '# Guide\n\n\tTabbed.\n\nSee [[ghost]].\n';
+    writeFileSync(join(root, 'guide.md'), '# Other\n');
+    writeFileSync(join(root, 'guide.mdx'), source);
+    index.updateDocumentFromMarkdown('guide', source);
+    localTargets.setSource('guide', source);
+    admitted.add('guide');
+    const config: LinterConfig = {
+      ...lintOn,
+      plugins: { ...lintOn.plugins, okf: { enabled: true } },
+    };
+
+    const result = await runValidationAudit(createProjectValidators(deps({ baseConfig: config })), {
+      targetPath: 'guide',
+    });
+
+    expect(result.fileCount).toBe(1);
+    expect(result.files.map((file) => file.file)).toEqual(['guide.mdx']);
+    expect(result.files[0]?.diagnostics.map((diagnostic) => diagnostic.source)).toEqual(
+      expect.arrayContaining(['markdownlint', 'links', 'okf']),
+    );
+  });
+
+  test('a scope matching no docs returns no findings even when dead links exist elsewhere', async () => {
+    seedDoc('linker', '# Linker\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()), {
+      targetPath: 'empty',
+    });
+
+    expect(result.files).toEqual([]);
+    expect(result.errorCount).toBe(0);
+  });
+
+  test('degrades to lint-only with a warning when no backlink index is configured', async () => {
+    seedDoc('dirty', DOC_WITH_TAB);
+    seedDoc('linker', '# Linker\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(
+      createProjectValidators(deps({ derivedDocumentIndex: null })),
+    );
+
+    expect(result.files.map((f) => f.file)).toEqual(['dirty.md']);
+    expect(result.errorCount).toBe(0);
+    expect(result.warnings).toContain(
+      'source family "links" validation failed: backlink index is not configured',
+    );
+    expect(result.ran).toEqual(['markdownlint', 'links']);
+  });
+
+  test('an additional registered validator merges into the plane', async () => {
+    seedDoc('dirty', DOC_WITH_TAB);
+    const extra = {
+      id: 'extra',
+      sourceFamilies: [] as const,
+      run: async () => ({
+        files: [
+          {
+            file: 'dirty.md',
+            diagnostics: [
+              {
+                range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                severity: 'error' as const,
+                source: 'links' as const,
+                code: 'extra-rule',
+                message: 'extra finding',
+              },
+            ],
+          },
+        ],
+        fileCount: 0,
+        warnings: ['extra warning'],
+      }),
+    };
+
+    const result = await runValidationAudit([...createProjectValidators(deps()), extra]);
+
+    expect(result.files.map((f) => f.file)).toEqual(['dirty.md']);
+    const codes = result.files[0]?.diagnostics.map((d) => d.code) ?? [];
+    expect(codes).toContain('MD010');
+    expect(codes).toContain('extra-rule');
+    expect(result.warnings).toContain('extra warning');
+  });
+
+  test('a clean, fully-linked project audits clean', async () => {
+    seedDoc('a', '# A\n\nSee [[b]].\n');
+    seedDoc('b', '# B\n\nBack to [[a]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files).toEqual([]);
+    expect(result.errorCount).toBe(0);
+    expect(result.warningCount).toBe(0);
+    expect(result.fileCount).toBe(2);
+    expect(result.warnings).toEqual([]);
+  });
+
+  test('a validator that throws degrades to a warning without discarding the others', async () => {
+    seedDoc('dirty', DOC_WITH_TAB);
+    const boom = {
+      id: 'boom',
+      sourceFamilies: ['okf'] as const,
+      failureSourceFamily: 'okf' as const,
+      run: async () => {
+        throw new Error('kaboom');
+      },
+    };
+
+    const result = await runValidationAudit([...createProjectValidators(deps()), boom]);
+
+    expect(result.files.map((f) => f.file)).toEqual(['dirty.md']);
+    expect(result.files[0]?.diagnostics.some((d) => d.code === 'MD010')).toBe(true);
+    expect(result.warnings).toContain('source family "okf" validation failed: kaboom');
+    expect(result.ran).toEqual(['markdownlint', 'links', 'okf']);
+  });
+
+  test('a lint-walk failure keeps its label whatever the enabled plugin count is', async () => {
+    const walkFailure = async (baseConfig: LinterConfig) => {
+      const validators = createProjectValidators(
+        deps({ baseConfig, linkPolicy: linkPolicy({ links: 'off' }) }),
+      );
+      const lint = validators.find((validator) => validator.id === 'lint');
+      if (!lint) throw new Error('lint validator missing');
+      const failing: ProjectValidator = {
+        ...lint,
+        run: async () => {
+          throw new Error('EACCES');
+        },
+      };
+      const result = await runValidationAudit([failing]);
+      return result.warnings;
+    };
+
+    const twoFamilies = {
+      ...lintOn,
+      plugins: { ...lintOn.plugins, okf: { enabled: true } },
+    } as LinterConfig;
+
+    expect(await walkFailure(lintOn)).toEqual(['validator "lint" failed: EACCES']);
+    expect(await walkFailure(twoFamilies)).toEqual(['validator "lint" failed: EACCES']);
+  });
+
+  test('a project-validator failure reports under its public source family', async () => {
+    const okfOn = {
+      ...lintOn,
+      plugins: { ...lintOn.plugins, okf: { enabled: true } },
+    } as LinterConfig;
+    const validators = createProjectValidators(
+      deps({ baseConfig: okfOn, linkPolicy: linkPolicy({ links: 'off' }) }),
+    );
+    const okfProject = validators.find((validator) => validator.id === 'okf-project');
+    if (!okfProject) throw new Error('okf project validator missing');
+    const failing: ProjectValidator = {
+      ...okfProject,
+      run: async () => {
+        throw new Error('kaboom');
+      },
+    };
+
+    const result = await runValidationAudit([failing]);
+
+    expect(result.warnings).toEqual(['source family "okf" validation failed: kaboom']);
+    expect(result.ran).toEqual(['okf']);
+  });
+
+  test('a dead link from an admitted-but-unsaved source still names a file', async () => {
+    const fakeIndex = {
+      getDeadLinks: () => [
+        {
+          target: 'ghost',
+          sources: [{ source: 'unsaved', anchor: null, snippet: null, line: 3, column: 2 }],
+        },
+      ],
+      getLocalTargetAssessmentsForSources: () => [],
+    };
+
+    const result = await runValidationAudit(
+      createProjectValidators(
+        deps({
+          derivedDocumentIndex: fakeIndex,
+          admittedDocNames: () => ['unsaved'],
+          docFilePathFor: () => null,
+        }),
+      ),
+    );
+
+    expect(result.files).toHaveLength(1);
+    expect(result.files[0]?.file).toBe('unsaved.md');
+    expect(result.files[0]?.diagnostics[0]?.range.start).toEqual({ line: 3, character: 2 });
+    expect(ValidationAuditResponseSchema.parse(result)).toEqual(result);
+  });
+
+  test('a dead link from a pre-position cache degrades to the start of the doc', async () => {
+    const fakeIndex = {
+      getDeadLinks: () => [
+        { target: 'ghost', sources: [{ source: 'legacy', anchor: null, snippet: null }] },
+      ],
+      getLocalTargetAssessmentsForSources: () => [],
+    };
+
+    const result = await runValidationAudit(
+      createProjectValidators(
+        deps({
+          derivedDocumentIndex: fakeIndex,
+          admittedDocNames: () => ['legacy'],
+          docFilePathFor: () => 'legacy.md',
+        }),
+      ),
+    );
+
+    expect(result.files[0]?.file).toBe('legacy.md');
+    expect(result.files[0]?.diagnostics[0]?.range).toEqual({
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 0 },
+    });
+    expect(ValidationAuditResponseSchema.parse(result)).toEqual(result);
+  });
+
+  test('graph findings survive when the local-target index is unavailable', async () => {
+    const fakeIndex = {
+      getDeadLinks: () => [
+        {
+          target: 'ghost',
+          sources: [{ source: 'source', anchor: null, snippet: null, line: 1, column: 2 }],
+        },
+      ],
+      getLocalTargetAssessmentsForSources: () => {
+        throw new Error('Local-target index is not ready');
+      },
+    };
+
+    const result = await runValidationAudit(
+      createProjectValidators(
+        deps({
+          derivedDocumentIndex: fakeIndex,
+          admittedDocNames: () => ['source'],
+          docFilePathFor: () => 'source.md',
+        }),
+      ),
+    );
+
+    expect(result.files[0]?.diagnostics).toEqual([
+      expect.objectContaining({ code: 'dead-link', linkTarget: 'ghost' }),
+    ]);
+    expect(result.warnings).toContain(
+      'source family "links" validation degraded: local-target projection unavailable: Local-target index is not ready',
+    );
+  });
+});
+
+describe('local-target findings (files, images, reference-style)', () => {
+  test('a missing ordinary-file link is a positioned finding with file evidence and no create affordance', async () => {
+    seedDoc('doc', '# Doc\n\n[report](./report.pdf)\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files.map((f) => f.file)).toEqual(['doc.md']);
+    const diagnostics = result.files[0]?.diagnostics ?? [];
+    expect(diagnostics).toHaveLength(1);
+    const d = diagnostics[0];
+    expect(d?.source).toBe('links');
+    expect(d?.code).toBe('dead-link');
+    expect(d?.severity).toBe('warning');
+    expect(d?.message).toBe('Link target "report.pdf" does not resolve to an existing file.');
+    expect(d?.linkTarget).toBeUndefined();
+    expect(d?.localTarget).toEqual({
+      href: './report.pdf',
+      targetKind: 'file',
+      role: 'link',
+      sourceForm: 'markdown-inline',
+      resolvedTarget: 'report.pdf',
+      reason: 'no-such-file',
+      resolutionMethod: 'source-relative',
+    });
+    expect(d?.range.start).toEqual({ line: 2, character: 0 });
+    expect(ValidationAuditResponseSchema.parse(result)).toEqual(result);
+  });
+
+  test('a missing markdown image reports the image with a not-found message', async () => {
+    seedDoc('doc', '# Doc\n\n![logo](./logo.png)\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const d = result.files[0]?.diagnostics[0];
+    expect(d?.message).toBe('Image target "logo.png" does not resolve to an existing file.');
+    expect(d?.linkTarget).toBeUndefined();
+    expect(d?.localTarget?.role).toBe('image');
+    expect(d?.localTarget?.targetKind).toBe('file');
+    expect(d?.localTarget?.sourceForm).toBe('markdown-inline');
+    expect(d?.localTarget?.reason).toBe('no-such-file');
+  });
+
+  test('a bare HTML img with a missing source reports as an html-img image finding', async () => {
+    seedDoc('doc', '# Doc\n\n<img src="./banner.png">\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const d = result.files[0]?.diagnostics[0];
+    expect(d?.message).toBe('Image target "banner.png" does not resolve to an existing file.');
+    expect(d?.localTarget?.role).toBe('image');
+    expect(d?.localTarget?.sourceForm).toBe('html-img');
+    expect(d?.localTarget?.reason).toBe('no-such-file');
+    expect(ValidationAuditResponseSchema.parse(result)).toEqual(result);
+  });
+
+  test('a file that exists but is excluded by ignore rules says so and names the .okignore remedy (PRD-8896)', async () => {
+    writeFileSync(join(root, '.gitignore'), 'ignored/\n');
+    mkdirSync(join(root, 'ignored'));
+    writeFileSync(join(root, 'ignored', 'ig.png'), 'png');
+    localTargets = new LocalTargetIndex({
+      contentDir: root,
+      contentFilter: createContentFilter({ projectDir: root, contentDir: root }),
+    });
+    seedDoc(
+      'doc',
+      '# Doc\n\n[d](./ignored/ig.png)\n\n![e](./ignored/ig.png)\n\n[m](./ignored/missing.png)\n',
+    );
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const diagnostics = result.files[0]?.diagnostics ?? [];
+    expect(diagnostics.map((d) => [d.message, d.localTarget?.reason])).toEqual([
+      [
+        'Link target "ignored/ig.png" exists but is excluded by .gitignore or .okignore. Re-include it, or its folder, with a "!" rule in .okignore.',
+        'excluded',
+      ],
+      [
+        'Image target "ignored/ig.png" exists but is excluded by .gitignore or .okignore. Re-include it, or its folder, with a "!" rule in .okignore.',
+        'excluded',
+      ],
+      ['Link target "ignored/missing.png" does not resolve to an existing file.', 'no-such-file'],
+    ]);
+    expect(diagnostics.every((d) => d.linkTarget === undefined)).toBe(true);
+    expect(ValidationAuditResponseSchema.parse(result)).toEqual(result);
+  });
+
+  test('an existing file target produces no finding', async () => {
+    seedDoc('doc', '# Doc\n\n[report](./report.pdf)\n');
+    seedFile('report.pdf');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files).toEqual([]);
+    expect(result.warningCount).toBe(0);
+  });
+
+  test('a missing wiki asset target is a dead-link finding like a missing markdown file', async () => {
+    seedDoc('doc', '# Doc\n\n![[nothere.gif]] and [[media/nothere.png]]\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files.map((f) => f.file)).toEqual(['doc.md']);
+    const diagnostics = result.files[0]?.diagnostics ?? [];
+    expect(diagnostics.map((d) => [d.code, d.message])).toEqual([
+      ['dead-link', 'Image target "nothere.gif" does not resolve to an existing file.'],
+      ['dead-link', 'Link target "media/nothere.png" does not resolve to an existing file.'],
+    ]);
+    expect(diagnostics[0]?.localTarget).toEqual({
+      href: 'nothere.gif',
+      targetKind: 'file',
+      role: 'image',
+      sourceForm: 'wiki-embed',
+      resolvedTarget: 'nothere.gif',
+      reason: 'no-such-file',
+      resolutionMethod: 'root-relative',
+    });
+    expect(diagnostics[1]?.localTarget).toMatchObject({
+      role: 'link',
+      sourceForm: 'wiki-link',
+      resolvedTarget: 'media/nothere.png',
+      reason: 'no-such-file',
+    });
+    expect(diagnostics.every((d) => d.linkTarget === undefined)).toBe(true);
+    expect(ValidationAuditResponseSchema.parse(result)).toEqual(result);
+  });
+
+  test('an existing wiki asset target produces no finding by path, basename, or equivalent spelling', async () => {
+    seedFile('media/photo.png');
+    seedFile('media/Café.png');
+    seedDoc('doc', '# Doc\n\n![[photo.png]] [[media/photo.png]] ![[Café.png]] [[photo.png]]\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files).toEqual([]);
+    expect(result.warningCount).toBe(0);
+  });
+
+  test('an exact file link does not suppress a same-target missing wiki document', async () => {
+    seedDoc('doc', '# Doc\n\n[file](assets/NOTICE) and [[assets/NOTICE]]\n');
+    seedFile('assets/NOTICE');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const diagnostics = result.files.find((file) => file.file === 'doc.md')?.diagnostics ?? [];
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        source: 'links',
+        code: 'dead-link',
+        message: 'Link target "assets/NOTICE" does not resolve to an existing document.',
+        linkTarget: 'assets/NOTICE',
+      }),
+    ]);
+    expect(diagnostics[0]?.localTarget).toBeUndefined();
+  });
+
+  test('a missing markdown document link does not suppress a same-target wiki occurrence', async () => {
+    seedDoc('doc', '# Doc\n\n[markdown](ghost) and [[ghost]]\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const diagnostics = result.files.find((file) => file.file === 'doc.md')?.diagnostics ?? [];
+    expect(diagnostics).toHaveLength(2);
+    expect(diagnostics.filter((diagnostic) => diagnostic.linkTarget === 'ghost')).toHaveLength(2);
+    expect(diagnostics.filter((diagnostic) => diagnostic.localTarget !== undefined)).toHaveLength(
+      1,
+    );
+  });
+
+  test('every reference-style use is positioned and points at the shared definition', async () => {
+    seedDoc('doc', '# Doc\n\n[one][r] and [two][r]\n\n[r]: ./missing.pdf\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const diagnostics = result.files[0]?.diagnostics ?? [];
+    expect(diagnostics).toHaveLength(2);
+    for (const d of diagnostics) {
+      expect(d.localTarget?.sourceForm).toBe('markdown-reference');
+      expect(d.localTarget?.targetKind).toBe('file');
+      expect(d.localTarget?.reason).toBe('no-such-file');
+      expect(d.localTarget?.definition).toEqual({ line: 4, label: 'r' });
+      expect(d.linkTarget).toBeUndefined();
+    }
+    expect(diagnostics.map((d) => d.range.start.character)).toEqual([0, 13]);
+  });
+
+  test('a reference-style link to a missing document keeps the Create-page affordance', async () => {
+    seedDoc('doc', '# Doc\n\n[it][d]\n\n[d]: ./ghost-doc\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const d = result.files[0]?.diagnostics[0];
+    expect(result.files[0]?.diagnostics).toHaveLength(1);
+    expect(d?.linkTarget).toBe('ghost-doc');
+    expect(d?.localTarget?.targetKind).toBe('document');
+    expect(d?.localTarget?.definition).toEqual({ line: 4, label: 'd' });
+    expect(d?.message).toBe('Link target "ghost-doc" does not resolve to an existing document.');
+  });
+
+  test('a tolerant document fallback stays a finding but never offers Create page', async () => {
+    seedDoc('Guide', '# Guide\n');
+    seedDoc('doc', '# Doc\n\n[it][d]\n\n[d]: guide\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const d = result.files.find((file) => file.file === 'doc.md')?.diagnostics[0];
+    expect(d?.localTarget).toMatchObject({
+      targetKind: 'document',
+      resolvedTarget: 'guide',
+      reason: 'no-such-doc',
+      resolutionMethod: 'tolerant',
+      fallbackTarget: 'Guide',
+    });
+    expect(d?.linkTarget).toBeUndefined();
+  });
+
+  test('an inline-markdown document link is reported once, by the canonical classifier', async () => {
+    seedDoc('doc', '# Doc\n\n[other](./ghost-doc)\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const diagnostics = result.files[0]?.diagnostics ?? [];
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]?.linkTarget).toBe('ghost-doc');
+    expect(diagnostics[0]?.localTarget).toMatchObject({
+      targetKind: 'document',
+      resolvedTarget: 'ghost-doc',
+      reason: 'no-such-doc',
+    });
+  });
+
+  test('a root-escaping file target is reported as unresolvable without a resolved target', async () => {
+    seedDoc('doc', '# Doc\n\n[x](../../../secrets.pdf)\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const d = result.files[0]?.diagnostics[0];
+    expect(d?.localTarget?.reason).toBe('unresolvable');
+    expect(d?.localTarget?.resolvedTarget).toBeNull();
+    expect(d?.localTarget?.resolutionMethod).toBe('none');
+    expect(d?.linkTarget).toBeUndefined();
+    expect(d?.message).toBe(
+      'Link target "../../../secrets.pdf" could not be resolved to a project-local target.',
+    );
+  });
+
+  test('validation.links=off silences file findings; =error raises them uniformly with dead links', async () => {
+    seedDoc('doc', '# Doc\n\n[report](./report.pdf)\n');
+
+    const off = await runValidationAudit(
+      createProjectValidators(deps({ linkPolicy: linkPolicy({ links: 'off' }) })),
+    );
+    expect(off.files).toEqual([]);
+    expect(off.warnings).toEqual([]);
+
+    const asError = await runValidationAudit(
+      createProjectValidators(deps({ linkPolicy: linkPolicy({ links: 'error' }) })),
+    );
+    expect(asError.files[0]?.diagnostics[0]?.severity).toBe('error');
+    expect(asError.errorCount).toBe(1);
+  });
+
+  test('a folder scope restricts file findings to sources under it', async () => {
+    seedDoc('top', '# Top\n\n[a](./top-file.pdf)\n');
+    seedDoc('sub/inner', '# Inner\n\n[b](./inner-file.pdf)\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()), { targetPath: 'sub' });
+
+    expect(result.files.map((f) => f.file)).toEqual(['sub/inner.md']);
+    expect(result.files[0]?.diagnostics[0]?.localTarget?.resolvedTarget).toBe('sub/inner-file.pdf');
+  });
+
+  test('a legacy validation payload with no localTarget field still parses', () => {
+    const legacy = {
+      files: [
+        {
+          file: 'doc.md',
+          diagnostics: [
+            {
+              range: { start: { line: 2, character: 0 }, end: { line: 2, character: 0 } },
+              severity: 'warning',
+              source: 'links',
+              code: 'dead-link',
+              message: 'Link target "ghost" does not resolve to an existing document.',
+              linkTarget: 'ghost',
+            },
+          ],
+        },
+      ],
+      fileCount: 1,
+      errorCount: 0,
+      warningCount: 1,
+      warnings: [],
+    };
+    expect(ValidationAuditResponseSchema.parse(legacy)).toEqual(legacy);
+  });
+});
+
+describe('the OKF project validator', () => {
+  const okfOnly: LinterConfig = {
+    ...DEFAULT_LINTER_CONFIG,
+    plugins: {
+      ...DEFAULT_LINTER_CONFIG.plugins,
+      markdownlint: { ...DEFAULT_LINTER_CONFIG.plugins.markdownlint, enabled: false },
+      okf: { enabled: true },
+    },
+  } as LinterConfig;
+
+  function writeFile(rel: string, body = '---\ntype: Note\n---\n\nBody.\n'): void {
+    const abs = join(root, rel);
+    mkdirSync(join(abs, '..'), { recursive: true });
+    writeFileSync(abs, body, 'utf-8');
+  }
+
+  const auditOkf = async (overrides: Partial<ValidationAuditDeps> = {}) =>
+    runValidationAudit(
+      createProjectValidators(
+        deps({ baseConfig: okfOnly, linkPolicy: linkPolicy({ links: 'off' }), ...overrides }),
+      ),
+    );
+
+  test('reports okf in ran exactly once — the lint and tree validators share the family', async () => {
+    writeFile('index.md', '# Index\n\n* [a](a.md) - a\n');
+    writeFile('a.md');
+    const result = await auditOkf();
+    expect(result.ran).toEqual(['okf']);
+  });
+
+  test('a mis-cased reserved file reaches the plane under the okf source', async () => {
+    writeFile('Index.md', '# Index\n\n* [a](a.md) - a\n');
+    const result = await auditOkf();
+    const row = result.files.find((f) => f.file === 'Index.md');
+    expect(row?.diagnostics.map((d) => d.code)).toContain('reserved-casing');
+    expect(row?.diagnostics.every((d) => d.source === 'okf')).toBe(true);
+  });
+
+  test('a DOC-SCOPED audit still reports — the shape the Problems panel asks for', async () => {
+    writeFile('guide.md');
+    writeFile('guide.mdx');
+    const scoped = await runValidationAudit(
+      createProjectValidators(
+        deps({ baseConfig: okfOnly, linkPolicy: linkPolicy({ links: 'off' }) }),
+      ),
+      { targetPath: 'guide.mdx' },
+    );
+    expect(scoped.files.flatMap((f) => f.diagnostics).map((d) => d.code)).toEqual([
+      'project-no-mdx',
+    ]);
+    expect(scoped.warnings).toEqual([]);
+  });
+
+  test('a doc-scoped audit keeps its sibling context', async () => {
+    writeFile('guide.md');
+    writeFile('guide.mdx');
+    const scoped = await runValidationAudit(
+      createProjectValidators(
+        deps({ baseConfig: okfOnly, linkPolicy: linkPolicy({ links: 'off' }) }),
+      ),
+      { targetPath: 'guide.mdx' },
+    );
+    const message = scoped.files.flatMap((f) => f.diagnostics)[0]?.message ?? '';
+    expect(message).toContain("won't be picked up");
+    expect(message).toContain('shadowed by');
+  });
+
+  test('a doc-scoped audit reports only that document', async () => {
+    writeFile('one.mdx');
+    writeFile('two.mdx');
+    const scoped = await runValidationAudit(
+      createProjectValidators(
+        deps({ baseConfig: okfOnly, linkPolicy: linkPolicy({ links: 'off' }) }),
+      ),
+      { targetPath: 'one.mdx' },
+    );
+    expect(scoped.files.map((f) => f.file)).toEqual(['one.mdx']);
+  });
+
+  test('an .mdx beside its .md is flagged, and the .md is not', async () => {
+    writeFile('guide.md');
+    writeFile('guide.mdx');
+    const result = await auditOkf();
+    expect(result.files.find((f) => f.file === 'guide.mdx')?.diagnostics[0]?.code).toBe(
+      'project-no-mdx',
+    );
+    expect(result.files.find((f) => f.file === 'guide.md')).toBeUndefined();
+  });
+
+  test('a clean project produces no okf findings', async () => {
+    writeFile('index.md', '# Index\n\n* [a](a.md) - a\n');
+    writeFile('a.md');
+    const result = await auditOkf();
+    const okf = result.files.flatMap((f) => f.diagnostics).filter((d) => d.source === 'okf');
+    expect(okf).toEqual([]);
+  });
+
+  test('the plugin switched off is a clean empty contribution, not a warning', async () => {
+    writeFile('Index.md');
+    const off = {
+      ...okfOnly,
+      plugins: { ...okfOnly.plugins, okf: { enabled: false } },
+    } as LinterConfig;
+    const result = await auditOkf({ baseConfig: off });
+    expect(result.files.flatMap((f) => f.diagnostics)).toEqual([]);
+    expect(result.warnings).toEqual([]);
+  });
+
+  test('a single rule can be switched off without silencing its siblings', async () => {
+    writeFile('Index.md');
+    writeFile('guide.mdx');
+    const oneOff = {
+      ...okfOnly,
+      plugins: {
+        ...okfOnly.plugins,
+        okf: { enabled: true, rules: { 'reserved-casing': false } },
+      },
+    } as LinterConfig;
+    const result = await auditOkf({ baseConfig: oneOff });
+    const codes = result.files.flatMap((f) => f.diagnostics).map((d) => d.code);
+    expect(codes).toContain('project-no-mdx');
+    expect(codes).not.toContain('reserved-casing');
+  });
+
+  test('a scoped audit sees only its subtree', async () => {
+    writeFile('Index.md');
+    mkdirSync(join(root, 'sub'), { recursive: true });
+    writeFile('sub/keeper.md');
+
+    const whole = await auditOkf();
+    expect(whole.files.flatMap((f) => f.diagnostics).map((d) => d.code)).toContain(
+      'reserved-casing',
+    );
+
+    const scoped = await runValidationAudit(
+      createProjectValidators(
+        deps({ baseConfig: okfOnly, linkPolicy: linkPolicy({ links: 'off' }) }),
+      ),
+      { targetPath: 'sub' },
+    );
+    expect(scoped.files.flatMap((f) => f.diagnostics)).toEqual([]);
+  });
+});
+
+describe('toValidationCountsPlane', () => {
+  test('tallies the merged plane per file and per source, dropping the bodies', async () => {
+    seedDoc('a', '# A\n\n\tTab line.\n\nSee [[ghost]].\n');
+    seedDoc('b', '# B\n\n\tTab line.\n');
+    const result = await runValidationAudit(createProjectValidators(deps()));
+    const counts = toValidationCountsPlane(result);
+
+    expect(ValidationAuditCountsResponseSchema.safeParse(counts).success).toBe(true);
+    const a = counts.files.find((f) => f.file === 'a.md');
+    expect(a?.links).toEqual({ errorCount: 0, warningCount: 1 });
+    expect(a?.lint.warningCount).toBeGreaterThan(0);
+    expect(a?.lint.errorCount).toBe(0);
+
+    expect(counts.files.map((f) => f.file)).toEqual(result.files.map((f) => f.file));
+    expect(counts.fileCount).toBe(result.fileCount);
+    expect(counts.errorCount).toBe(result.errorCount);
+    expect(counts.warningCount).toBe(result.warningCount);
+    expect(counts.warnings).toEqual(result.warnings);
+  });
+
+  test('per-file tallies sum to the plane rollups', async () => {
+    seedDoc('a', '# A\n\n\tTab.\n\nSee [[ghost]] and [[phantom]].\n');
+    seedDoc('b', '# B\n\n\tTab.\n');
+    const result = await runValidationAudit(createProjectValidators(deps()));
+    const counts = toValidationCountsPlane(result);
+
+    const errors = counts.files.reduce((n, f) => n + f.lint.errorCount + f.links.errorCount, 0);
+    const warnings = counts.files.reduce(
+      (n, f) => n + f.lint.warningCount + f.links.warningCount,
+      0,
+    );
+    expect(errors).toBe(result.errorCount);
+    expect(warnings).toBe(result.warningCount);
+  });
+
+  test('an empty plane tallies to an empty plane', () => {
+    expect(
+      toValidationCountsPlane({
+        files: [],
+        fileCount: 7,
+        errorCount: 0,
+        warningCount: 0,
+        warnings: ['a config warning'],
+      }),
+    ).toEqual({
+      files: [],
+      fileCount: 7,
+      errorCount: 0,
+      warningCount: 0,
+      warnings: ['a config warning'],
+    });
+  });
+});
+
+describe('skill-bundle doc scoping', () => {
+  const LIVE_SKILL_MD =
+    '# Live skill\n\nSee [[live-skill-ghost]] and [artifact](artifacts/output.md).\n';
+
+  function seedLiveSkillDoc(docName: string): void {
+    index.updateDocumentFromMarkdown(docName, LIVE_SKILL_MD);
+    localTargets.setSource(docName, LIVE_SKILL_MD);
+    admitted.add(docName);
+  }
+
+  test('project skill bundle docs project no findings into the plane', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedDoc(
+      '.claude/skills/record-a-decision/SKILL',
+      '# Record a decision\n\nSee [[skill-ghost]] and [artifact](decisions/0007-use-rest-api.md).\n',
+    );
+    seedDoc(
+      '.claude/skills/record-a-decision/references/patterns',
+      '# Patterns\n\nSee [[skill-ref-ghost]].\n',
+    );
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+
+    expect(result.files.map((f) => f.file)).toEqual(['control.md']);
+  });
+
+  test('global skill bundle docs project no findings into the plane', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedLiveSkillDoc('__skill__/global/record-a-decision');
+    seedLiveSkillDoc('__skill__/global/record-a-decision/references/patterns');
+
+    const assessed = await localTargets.getAssessmentsForSources([
+      '__skill__/global/record-a-decision',
+    ]);
+    expect(
+      assessed.some(({ assessments }) => assessments.some((a) => a.status === 'missing')),
+    ).toBe(true);
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+
+    expect(result.files.map((f) => f.file)).toEqual(['control.md']);
+  });
+
+  test('project skill bundle scripts docs project no findings into the plane', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedDoc(
+      '.claude/skills/record-a-decision/scripts/notes',
+      '# Notes\n\nSee [[skill-script-ghost]] and [artifact](fixtures/sample-output.md).\n',
+    );
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+
+    expect(result.files.map((f) => f.file)).toEqual(['control.md']);
+  });
+
+  test('external skill live docs project no findings into the plane', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedLiveSkillDoc('__extskill__/record-a-decision');
+    seedLiveSkillDoc('__extskill__/record-a-decision/references/patterns');
+
+    const assessed = await localTargets.getAssessmentsForSources([
+      '__extskill__/record-a-decision',
+    ]);
+    expect(
+      assessed.some(({ assessments }) => assessments.some((a) => a.status === 'missing')),
+    ).toBe(true);
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+
+    expect(result.files.map((f) => f.file)).toEqual(['control.md']);
+  });
+
+  test('doc-scoped audit of a skill bundle file also answers empty', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedDoc(
+      '.claude/skills/record-a-decision/SKILL',
+      '# Record a decision\n\nSee [[skill-ghost]] and [artifact](decisions/0007-use-rest-api.md).\n',
+    );
+
+    const result = await runValidationAudit(createProjectValidators(deps()), {
+      targetPath: '.claude/skills/record-a-decision/SKILL.md',
+    });
+
+    expect(result.files).toEqual([]);
+  });
+
+  test('folder templates keep their link findings', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedDoc('.ok/templates/daily', '# Daily\n\nSee [[template-ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const template = result.files.find((f) => f.file === '.ok/templates/daily.md');
+    expect(template?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+  });
+
+  test('a dot-dir doc outside any skills root keeps its link findings', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedDoc('.github/CI_RUNBOOK', '# Runbook\n\nSee [[runbook-ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const runbook = result.files.find((f) => f.file === '.github/CI_RUNBOOK.md');
+    expect(runbook?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+  });
+
+  test('a skill bundle at a visible custom root stays in the plane', async () => {
+    seedDoc('team/skills/record-a-decision/SKILL', '# Custom root\n\nSee [[custom-root-ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const skill = result.files.find((f) => f.file === 'team/skills/record-a-decision/SKILL.md');
+    expect(skill?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+  });
+
+  test('dead links from an ordinary doc INTO a skill bundle are still reported', async () => {
+    seedDoc(
+      'control',
+      '# Control\n\nWiki: [[.claude/skills/absent/SKILL]]\n\nMd: [skill](.claude/skills/absent/SKILL.md)\n',
+    );
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.filter((d) => d.code === 'dead-link').length).toBeGreaterThan(0);
+  });
+
+  test('the raw graph dead-links view keeps skill-bundle sources the plane suppresses', async () => {
+    seedDoc(
+      '.claude/skills/record-a-decision/SKILL',
+      '# Record a decision\n\nSee [[skill-ghost]].\n',
+    );
+
+    const raw = await index.getDeadLinks([...admitted]);
+    expect(
+      raw.some(({ sources }) =>
+        sources.some((o) => o.source === '.claude/skills/record-a-decision/SKILL'),
+      ),
+    ).toBe(true);
+
+    const plane = await runValidationAudit(createProjectValidators(deps()));
+    expect(plane.files).toEqual([]);
+  });
+});
+
+describe('reserved-log link advisory policy', () => {
+  const EVERY_LINK_FORM = [
+    '# Log',
+    '',
+    'Wiki: [[ghost]]',
+    '',
+    'Markdown: [doc](./ghost-doc.md)',
+    '',
+    'File: [report](./report.pdf)',
+    '',
+    'Image: ![logo](./logo.png)',
+    '',
+    'Reference: [one][r]',
+    '',
+    '[r]: ./missing.pdf',
+    '',
+  ].join('\n');
+
+  function seedMdxDoc(docName: string, markdown: string): void {
+    const abs = join(root, `${docName}.mdx`);
+    mkdirSync(join(abs, '..'), { recursive: true });
+    writeFileSync(abs, markdown, 'utf-8');
+    index.updateDocumentFromMarkdown(docName, markdown);
+    localTargets.setSource(docName, markdown);
+    admitted.add(docName);
+  }
+
+  const deadLinkFilesIn = (result: {
+    files: { file: string; diagnostics: { code: string }[] }[];
+  }) =>
+    result.files
+      .filter((f) => f.diagnostics.some((d) => d.code === 'dead-link'))
+      .map((f) => f.file);
+
+  test('the reserved lowercase log document contributes no link findings by default', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedDoc('log', '# Log\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
+    expect(result.files.find((f) => f.file === 'log.md')).toBeUndefined();
+    expect(result.brokenLinkSuppression).toEqual({
+      reason: 'reserved-log-policy',
+      count: 1,
+    });
+    expect(result.warnings).toEqual([]);
+    expect(result.ran).toContain('links');
+  });
+
+  test('a nested log is suppressed at any depth', async () => {
+    seedDoc('team/notes/log', '# Log\n\nSee [[ghost]].\n');
+    seedDoc('team/notes/journal', '# Journal\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(deadLinkFilesIn(result)).toEqual(['team/notes/journal.md']);
+  });
+
+  test('an .mdx reserved log is suppressed like its .md spelling', async () => {
+    seedMdxDoc('log', '# Log\n\nSee [[ghost]].\n');
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(deadLinkFilesIn(result)).toEqual(['control.md']);
+  });
+
+  test('LOG.md and other casings are ordinary documents that keep their findings', async () => {
+    seedDoc('LOG', '# Log\n\nSee [[ghost]].\n');
+    seedDoc('notes/Log', '# Log\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(deadLinkFilesIn(result)).toEqual(['LOG.md', 'notes/Log.md']);
+    expect(result.brokenLinkSuppression).toBeUndefined();
+  });
+
+  test('a stem that merely ends in the reserved word keeps its findings', async () => {
+    seedDoc('catalog', '# Catalog\n\nSee [[ghost]].\n');
+    seedDoc('changelog', '# Changelog\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(deadLinkFilesIn(result)).toEqual(['catalog.md', 'changelog.md']);
+  });
+
+  test('both detection planes are suppressed, not just the graph', async () => {
+    seedDoc('log', EVERY_LINK_FORM);
+    seedDoc('control', EVERY_LINK_FORM);
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    const forms = new Set(
+      (control?.diagnostics ?? []).map((d) => d.localTarget?.sourceForm ?? 'graph'),
+    );
+    expect(forms).toEqual(new Set(['graph', 'markdown-inline', 'markdown-reference']));
+    expect(result.files.find((f) => f.file === 'log.md')).toBeUndefined();
+    expect(result.brokenLinkSuppression).toEqual({
+      reason: 'reserved-log-policy',
+      count: 5,
+    });
+    expect(toValidationCountsPlane(result).brokenLinkSuppression).toEqual(
+      result.brokenLinkSuppression,
+    );
+  });
+
+  test('the findings return in full when the policy is disabled', async () => {
+    seedDoc('log', EVERY_LINK_FORM);
+    seedDoc('control', EVERY_LINK_FORM);
+
+    const on = await runValidationAudit(createProjectValidators(deps()));
+    const off = await runValidationAudit(
+      createProjectValidators(
+        deps({ linkPolicy: linkPolicy({ suppressLogLinkAdvisories: false }) }),
+      ),
+    );
+
+    const controlDiagnostics = (result: typeof off) =>
+      result.files.find((f) => f.file === 'control.md')?.diagnostics;
+    const logRow = off.files.find((f) => f.file === 'log.md');
+    expect(logRow?.diagnostics).toEqual(controlDiagnostics(off));
+    expect(controlDiagnostics(on)).toEqual(controlDiagnostics(off));
+    expect(on.brokenLinkSuppression).toEqual({ reason: 'reserved-log-policy', count: 5 });
+    expect(off.brokenLinkSuppression).toBeUndefined();
+  });
+
+  test('a doc-scoped audit of the reserved log answers empty, and reports when disabled', async () => {
+    seedDoc('log', '# Log\n\nSee [[ghost]].\n');
+    const scope = { targetPath: 'log.md' };
+
+    const suppressed = await runValidationAudit(createProjectValidators(deps()), scope);
+    expect(suppressed.files).toEqual([]);
+    expect(suppressed.brokenLinkSuppression).toEqual({
+      reason: 'reserved-log-policy',
+      count: 1,
+    });
+
+    const reported = await runValidationAudit(
+      createProjectValidators(
+        deps({ linkPolicy: linkPolicy({ suppressLogLinkAdvisories: false }) }),
+      ),
+      scope,
+    );
+    expect(reported.files.map((f) => f.file)).toEqual(['log.md']);
+    expect(reported.brokenLinkSuppression).toBeUndefined();
+  });
+
+  test('dead links from an ordinary doc INTO a log document are still reported', async () => {
+    seedDoc('control', '# Control\n\nWiki: [[archive/log]]\n\nMd: [log](archive/log.md)\n');
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    const control = result.files.find((f) => f.file === 'control.md');
+    expect(control?.diagnostics.filter((d) => d.code === 'dead-link').length).toBeGreaterThan(0);
+  });
+
+  test('the raw graph and assessment views keep the sources the plane suppresses', async () => {
+    seedDoc('log', '# Log\n\nSee [[ghost]] and [report](./report.pdf).\n');
+
+    const rawGraph = await index.getDeadLinks([...admitted]);
+    expect(rawGraph.some(({ sources }) => sources.some((o) => o.source === 'log'))).toBe(true);
+    const rawAssessed = await localTargets.getAssessmentsForSources(['log']);
+    expect(
+      rawAssessed.some(({ assessments }) => assessments.some((a) => a.status === 'missing')),
+    ).toBe(true);
+
+    const plane = await runValidationAudit(createProjectValidators(deps()));
+    expect(plane.files).toEqual([]);
+  });
+
+  test('validation.links=off silences the plane whatever the log policy says', async () => {
+    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
+    seedDoc('log', '# Log\n\nSee [[ghost]].\n');
+
+    const result = await runValidationAudit(
+      createProjectValidators(deps({ linkPolicy: linkPolicy({ links: 'off' }) })),
+    );
+
+    expect(result.files).toEqual([]);
+    expect(result.brokenLinkSuppression).toBeUndefined();
+  });
+});
+
+describe('selected physical scope with same-stem document siblings', () => {
+  test('each explicit suffix checks its own lint and link source without mutating the live index', async () => {
+    seedDoc('guides/dual', '# MD\n\nA\ttab.\n\n[[md-ghost]] and [missing](./md-file.txt).\n');
+    writeFileSync(
+      join(root, 'guides/dual.mdx'),
+      '# MDX\n\nA\ttab.\n\n[[mdx-ghost]] and [missing](./mdx-file.txt).\n',
+    );
+    const before = index.getDeadLinks(admitted);
+    const validators = createProjectValidators(deps());
+    const results = new Map<string, Awaited<ReturnType<typeof runValidationAudit>>>();
+    for (const path of ['guides/dual', 'guides/dual.mdx', 'guides/dual.md']) {
+      const resolution = resolveAuditScope(path, root);
+      if (!resolution.ok) throw new Error(resolution.title);
+      const result = await runValidationAudit(validators, {
+        targetPath: path,
+        resolvedScope: resolution.scope,
+      });
+      results.set(path, result);
+      const target = path.endsWith('.md') ? 'md' : 'mdx';
+      expect(result.ran).toEqual(['markdownlint', 'links']);
+      expect(result.fileCount).toBe(1);
+      expect(result.files.map((file) => file.file)).toEqual([`guides/dual.${target}`]);
+      const links =
+        result.files[0]?.diagnostics.filter((diagnostic) => diagnostic.source === 'links') ?? [];
+      expect(links).toHaveLength(2);
+      expect(links.map((diagnostic) => diagnostic.linkTarget).filter(Boolean)).toEqual([
+        `${target}-ghost`,
+      ]);
+      expect(links.find((diagnostic) => diagnostic.localTarget)?.localTarget?.resolvedTarget).toBe(
+        `guides/${target}-file.txt`,
+      );
+      expect(result.warningCount).toBe(
+        result.files
+          .flatMap((file) => file.diagnostics)
+          .filter((diagnostic) => diagnostic.severity !== 'error').length,
+      );
+    }
+    expect(results.get('guides/dual')).toEqual(results.get('guides/dual.mdx'));
+    expect(index.getDeadLinks(admitted)).toEqual(before);
+  });
+
+  test('an overlong link target is reported as missing instead of failing the links validator', async () => {
+    const overlong = `${'x'.repeat(300)}.txt`;
+    seedDoc('long', `# MD\n\n[[ghost]] and [missing](./${overlong}).\n`);
+    writeFileSync(join(root, 'long.mdx'), '# MDX\n');
+    const resolution = resolveAuditScope('long.md', root);
+    if (!resolution.ok) throw new Error(resolution.title);
+    const result = await runValidationAudit(createProjectValidators(deps()), {
+      targetPath: 'long.md',
+      resolvedScope: resolution.scope,
+    });
+    expect(result.warnings ?? []).toEqual([]);
+    const links = result.files
+      .flatMap((file) => file.diagnostics)
+      .filter((diagnostic) => diagnostic.source === 'links');
+    expect(links.map((diagnostic) => diagnostic.linkTarget).filter(Boolean)).toEqual(['ghost']);
+    expect(links.find((diagnostic) => diagnostic.localTarget)?.localTarget?.resolvedTarget).toBe(
+      overlong,
+    );
+  });
+
+  test('file and folder targets resolve through the tracked inventory, as on the index path', async () => {
+    const links = [
+      '[nfc folder](Caf\u00e9/)',
+      '[exact file](assets/Cafe\u0301.png)',
+      '[nfc file](assets/Caf\u00e9.png)',
+      '[nfd file](assets/Zoe\u0308.png)',
+      '[leaf case](assets/CAF\u00c9.PNG)',
+      '[folder case](Assets/Caf\u00e9.png)',
+      '[folder case dir](CAF\u00c9/)',
+      '![[shared/pics/pic.png]]',
+    ].join('\n\n');
+    const fileTargets = ['Shared/Pics/pic.png'];
+    for (const dir of ['twin', 'single']) {
+      seedDoc(`${dir}/Cafe\u0301/note`, '# note\n');
+      fileTargets.push(`${dir}/assets/Cafe\u0301.png`, `${dir}/assets/Zo\u00eb.png`);
+      seedDoc(`${dir}/Probe`, `# Probe\n\n${links}\n`);
+    }
+    for (const file of fileTargets) {
+      mkdirSync(join(root, file, '..'), { recursive: true });
+      writeFileSync(join(root, file), 'png');
+      seedFile(file);
+    }
+    writeFileSync(join(root, 'twin/Probe.mdx'), '# Probe mdx\n');
+    const validators = createProjectValidators(
+      deps({
+        localTargetInventory: () => ({
+          documentTargets: [...admitted],
+          fileTargets,
+          folderTargets: ['Shared', 'Shared/Pics', 'single/Cafe\u0301', 'twin/Cafe\u0301'],
+        }),
+      }),
+    );
+    const findings = async (dir: string): Promise<string[]> => {
+      const resolution = resolveAuditScope(`${dir}/Probe.md`, root);
+      if (!resolution.ok) throw new Error(resolution.title);
+      const result = await runValidationAudit(validators, {
+        targetPath: `${dir}/Probe.md`,
+        resolvedScope: resolution.scope,
+      });
+      return result.files
+        .flatMap((file) => file.diagnostics)
+        .filter((diagnostic) => diagnostic.source === 'links')
+        .map((diagnostic) =>
+          (diagnostic.localTarget?.href ?? diagnostic.linkTarget ?? '').replace(`${dir}/`, ''),
+        )
+        .sort();
+    };
+    expect(await findings('single')).toEqual(['Assets/Caf\u00e9.png', 'CAF\u00c9/']);
+    expect(await findings('twin')).toEqual(await findings('single'));
+  });
+
+  test('a slash-free wiki asset embed gets the same verdict in the physical scope as on the index path', async () => {
+    const fileTargets = ['media/photo.png'];
+    mkdirSync(join(root, 'media'), { recursive: true });
+    writeFileSync(join(root, 'media/photo.png'), 'png');
+    seedFile('media/photo.png');
+    for (const dir of ['twin', 'single']) {
+      seedDoc(`${dir}/Probe`, '# Probe\n\n![[photo.png]] and ![[ghost.png]]\n');
+    }
+    writeFileSync(join(root, 'twin/Probe.mdx'), '# Probe mdx\n');
+    const validators = createProjectValidators(
+      deps({
+        localTargetInventory: () => ({
+          documentTargets: [...admitted],
+          fileTargets,
+          folderTargets: ['media'],
+        }),
+      }),
+    );
+    const findings = async (dir: string): Promise<string[]> => {
+      const resolution = resolveAuditScope(`${dir}/Probe.md`, root);
+      if (!resolution.ok) throw new Error(resolution.title);
+      const result = await runValidationAudit(validators, {
+        targetPath: `${dir}/Probe.md`,
+        resolvedScope: resolution.scope,
+      });
+      return result.files
+        .flatMap((file) => file.diagnostics)
+        .filter((diagnostic) => diagnostic.source === 'links')
+        .map((diagnostic) => diagnostic.localTarget?.href ?? diagnostic.linkTarget ?? '')
+        .sort();
+    };
+    expect(await findings('single')).toEqual(['ghost.png']);
+    expect(await findings('twin')).toEqual(['ghost.png']);
+  });
+
+  test('without a tracked inventory, a slash-free wiki asset embed in the physical scope gets no verdict', async () => {
+    mkdirSync(join(root, 'media'), { recursive: true });
+    writeFileSync(join(root, 'media/photo.png'), 'png');
+    seedDoc('twin/Probe', '# Probe\n\n![[photo.png]], ![[ghost.png]] and ![[media/gone.png]]\n');
+    writeFileSync(join(root, 'twin/Probe.mdx'), '# Probe mdx\n');
+    const validators = createProjectValidators(deps({ localTargetInventory: () => null }));
+    const resolution = resolveAuditScope('twin/Probe.md', root);
+    if (!resolution.ok) throw new Error(resolution.title);
+    const result = await runValidationAudit(validators, {
+      targetPath: 'twin/Probe.md',
+      resolvedScope: resolution.scope,
+    });
+    const findings = result.files
+      .flatMap((file) => file.diagnostics)
+      .filter((diagnostic) => diagnostic.source === 'links')
+      .map((diagnostic) => diagnostic.localTarget?.href ?? diagnostic.linkTarget ?? '')
+      .sort();
+    expect(findings).toEqual(['media/gone.png']);
+  });
+
+  test('an ignored file target is excluded in the physical scope, as on the index path', async () => {
+    writeFileSync(join(root, '.gitignore'), 'ignored/\n');
+    mkdirSync(join(root, 'ignored'));
+    writeFileSync(join(root, 'ignored', 'ig.png'), 'png');
+    localTargets = new LocalTargetIndex({
+      contentDir: root,
+      contentFilter: createContentFilter({ projectDir: root, contentDir: root }),
+    });
+    const body = '# Doc\n\n![e](../ignored/ig.png)\n\n[m](../ignored/missing.png)\n';
+    seedDoc('single/doc', body);
+    seedDoc('twin/doc', body);
+    writeFileSync(join(root, 'twin/doc.mdx'), '# Doc mdx\n');
+    const validators = createProjectValidators(
+      deps({
+        localTargetInventory: () => ({
+          documentTargets: [...admitted],
+          fileTargets: [],
+          folderTargets: [],
+        }),
+      }),
+    );
+    const reasons = async (dir: string): Promise<unknown[]> => {
+      const resolution = resolveAuditScope(`${dir}/doc.md`, root);
+      if (!resolution.ok) throw new Error(resolution.title);
+      const result = await runValidationAudit(validators, {
+        targetPath: `${dir}/doc.md`,
+        resolvedScope: resolution.scope,
+      });
+      return result.files
+        .flatMap((file) => file.diagnostics)
+        .map((d) => [d.localTarget?.resolvedTarget, d.localTarget?.reason]);
+    };
+    expect(await reasons('single')).toEqual([
+      ['ignored/ig.png', 'excluded'],
+      ['ignored/missing.png', 'no-such-file'],
+    ]);
+    expect(await reasons('twin')).toEqual(await reasons('single'));
+  });
+
+  test('uses live source for the canonical sibling and disk source for the alternate sibling', async () => {
+    seedDoc('dual', '# MD\n\n[[md-disk-ghost]]\n');
+    writeFileSync(join(root, 'dual.mdx'), '# MDX\n\n[[mdx-disk-ghost]]\n');
+    const validators = createProjectValidators(
+      deps({ liveSourceFor: () => '# Live\n\n[[live-ghost]]\n' }),
+    );
+    for (const [path, expected] of [
+      ['dual.mdx', 'live-ghost'],
+      ['dual.md', 'md-disk-ghost'],
+    ]) {
+      const resolution = resolveAuditScope(path, root);
+      if (!resolution.ok) throw new Error(resolution.title);
+      const result = await runValidationAudit(validators, {
+        targetPath: path,
+        resolvedScope: resolution.scope,
+      });
+      expect(
+        result.files
+          .flatMap((file) => file.diagnostics)
+          .filter((diagnostic) => diagnostic.source === 'links')
+          .map((diagnostic) => diagnostic.linkTarget),
+      ).toEqual([expected]);
+    }
+  });
+});
+
+describe('canonically equivalent spellings', () => {
+  test('NFC links to NFD documents and files are not dead links on either plane', async () => {
+    seedDoc('people/Rene\u0301', '# Ren\u00e9\n');
+    seedFile('assets/Rene\u0301.png');
+    seedDoc(
+      'linker',
+      '# Linker\n\nSee [Ren\u00e9](people/Ren\u00e9.md), [[people/Ren\u00e9]] and ![pic](assets/Ren\u00e9.png).\n',
+    );
+
+    const result = await runValidationAudit(createProjectValidators(deps()));
+
+    expect(result.files).toEqual([]);
+    expect(result.warningCount).toBe(0);
+  });
+});

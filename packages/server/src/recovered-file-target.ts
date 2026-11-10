@@ -1,0 +1,53 @@
+import { realpathSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { filesystemIdentity, statMtimeMs } from '@inkeep/open-knowledge-core/server';
+import type { WatcherHandle } from './file-watcher.ts';
+import { getLogger } from './logger.ts';
+
+const log = getLogger('recovered-file-target');
+
+interface ReconcileRecoveredFileTargetOptions {
+  watcher: Pick<WatcherHandle, 'mutateFileIndex'>;
+  contentDir: string;
+  relativePath: string;
+  exists: boolean;
+  invalidateReferencedAssetsCache: (() => void) | null;
+}
+
+export function reconcileRecoveredFileTarget({
+  watcher,
+  contentDir,
+  relativePath,
+  exists,
+  invalidateReferencedAssetsCache,
+}: ReconcileRecoveredFileTargetOptions): void {
+  const absolutePath = join(contentDir, relativePath);
+  if (!exists) {
+    watcher.mutateFileIndex({ kind: 'file-delete', path: absolutePath, relativePath });
+    invalidateReferencedAssetsCache?.();
+    return;
+  }
+
+  try {
+    const canonicalPath = realpathSync(absolutePath);
+    const stats = statSync(canonicalPath, { bigint: true });
+    watcher.mutateFileIndex({
+      kind: 'file-create',
+      path: canonicalPath,
+      relativePath,
+      size: Number(stats.size),
+      modifiedTs: statMtimeMs(stats),
+      inode: filesystemIdentity(stats),
+    });
+  } catch (error) {
+    const code =
+      error instanceof Error && 'code' in error && typeof error.code === 'string'
+        ? error.code
+        : 'UNKNOWN';
+    if (code !== 'ENOENT') {
+      log.warn({ code }, 'recovered file metadata unavailable; treating local target as deleted');
+    }
+    watcher.mutateFileIndex({ kind: 'file-delete', path: absolutePath, relativePath });
+  }
+  invalidateReferencedAssetsCache?.();
+}

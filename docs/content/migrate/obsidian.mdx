@@ -1,0 +1,78 @@
+---
+title: From Obsidian
+icon: custom/Obsidian
+description: How to open an existing Obsidian vault in OpenKnowledge, which markdown syntax carries over, and where the two differ.
+---
+
+OpenKnowledge and Obsidian are both editors over a [folder of plain markdown](/docs/reference/core-concepts#the-file-system-is-the-database). This means that you can point OpenKnowledge at your existing vault and your notes, links, tags, and frontmatter work out of the box.
+
+<Callout type="info">
+  OpenKnowledge works **directly on your markdown files** — it never moves, renames, or rewrites them just for opening a vault. It keeps its own state in a `.ok/` directory and ignores Obsidian's `.obsidian/` folder, so your Obsidian setup stays exactly where it is. To back out, `ok deinit` removes everything OpenKnowledge added to the vault and leaves your markdown untouched.
+</Callout>
+
+## Open your vault
+
+### Desktop app (macOS 13+, Windows, Linux)
+
+Open OpenKnowledge, choose **Open folder on disk**, and select your existing vault folder, then proceed through the **Setup** screen. OpenKnowledge uses the folder in place — it doesn't copy or move your notes.
+
+### Web app (any platform, including Intel Macs)
+
+Install the [ok CLI](/docs/reference/cli), `cd` into your vault, and run `ok init && ok start`.
+
+<Callout type="info">
+  Want to know exactly what these commands write to your machine — in your vault, your home directory, and your editors' configs? See [What OpenKnowledge writes to your system](/docs/reference/what-open-knowledge-writes).
+</Callout>
+
+## What carries over
+
+Most of what you write in Obsidian renders and round-trips in OpenKnowledge unchanged. Existing syntax is **preserved byte-for-byte** when a file is saved, so opening a vault is non-destructive.
+
+| Obsidian syntax | Example | In OpenKnowledge |
+| --- | --- | --- |
+| Wiki links | `[[Page]]`, `[[Page\|alias]]`, `[[Page#Heading]]` | Resolved to the target doc; feed backlinks and the graph. Preserved as written. Inside a table cell, escape the alias separator (see below). |
+| Markdown links | `[text](./page.md)` | Fully supported and the [recommended form](/docs/reference/core-concepts#links-and-backlinks) for new links. Wiki links keep working as a superset. |
+| YAML frontmatter | `---` block at the top | Open-shape — any keys. `aliases`, `tags`, `cssclasses`, dates, and lists are preserved. Edit them in the [Properties panel](/docs/features/editor#properties). |
+| Tags | `#tag`, or `tags:` in frontmatter | Both forms are indexed and searchable. |
+| Callouts | `> [!note]`, `> [!warning]`, foldable `> [!tip]-` | Rendered with icons. 15 types including Obsidian's set (`success`, `question`, `failure`, `bug`, `example`, `quote`, …); aliases like `summary` / `tldr` fold to `abstract`. |
+| Highlights | `==highlighted==` | Rendered as a highlight mark. |
+| Comments | `%%hidden note%%` | Shown dimmed in the editor (Obsidian live-preview style), hidden in published output and cross-app paste, kept byte-for-byte in the file. (`<!-- -->` works too.) |
+| Math | `$inline$`, `$$block$$` | Rendered as LaTeX math. |
+| Mermaid | ` ```mermaid ` fenced blocks | Rendered as diagrams. |
+| Footnotes | `[^1]` with `[^1]: …` | Supported, including named footnotes. |
+| Asset embeds | `![[image.png]]`, `![[file.pdf#page=3]]` | Images and PDFs render inline. See [Assets and embeds](/docs/features/assets-and-embeds). |
+
+Inside a table cell, an aliased wiki link or embed has to escape its separator as `\|`, because a bare `|` ends the cell: the cell form is `[[Page\|alias]]`, or `![[image.png\|alt]]` for embeds. Each literal `|` inside the alias carries its own backslash too, so an alias like `Some | Alias` is written `[[Page\|Some \| Alias]]` in a cell, or `![[image.png\|Some \| Alias]]` as an embed. The escaped form resolves identically to the unescaped one, and the escape you author stays in the file. A target that is only whitespace or only the escape (`[[ ]]`, `[[\|alias]]`) is not a link. Byte-for-byte preservation has narrow exceptions, none of them reached by authoring the escape — see [Tables](/docs/features/editor#tables) for what they are.
+
+## Where the two differ
+
+A handful of Obsidian features are not supported, or behave differently. None of them corrupt your files — the syntax is preserved on disk; it just isn't interpreted the same way.
+
+| Feature | What happens in OpenKnowledge |
+| --- | --- |
+| **Note transclusion** — `![[Some Note]]` to embed another note's *content* | Renders as a working link to the note rather than inlining its content — the target is one click away, just not pulled in. Only file assets (images, PDFs) embed inline; documents do not transclude. |
+| **Block references** — `^block-id` and `[[Page#^block-id]]` | Not recognized. Heading links (`[[Page#Heading]]`) resolve, but a `#^block-id` fragment won't point at a block. |
+| **The `.obsidian/` folder** | Ignored. OpenKnowledge does not read Obsidian's theme, hotkeys, plugin config, or vault preferences. Configure OpenKnowledge in [`.ok/config.yml`](/docs/reference/configuration) instead. |
+| **Community plugins** | Don't run. OpenKnowledge is a separate app, not an Obsidian plugin host. Many features people reach for plugins for in Obsidian — callouts, tags, math, Mermaid, embeds — are built in here, but plugin-specific syntax (for example Dataview queries) is left as plain text. |
+| **Canvas (`.canvas`) and Bases (`.base`)** | Open in a read-only text view rather than as interactive canvases or bases. They're still indexed and linkable from your notes. |
+
+<Callout type="info">
+  OpenKnowledge reads a standard vault as-is, wiki links included. One default differs: a file you paste or drop goes to a folder named after the note, such as `notes/meeting.assets/`, while Obsidian puts it at the vault root. To keep your vault's layout, set the [attachment folder](/docs/features/assets-and-embeds#attachment-folder): `/` matches Obsidian's "Vault folder", `./` its "Same folder as current file", `/folder` "In the folder specified below", and `./folder` "In subfolder under current folder". There's no migration step today; if you have a vault with heavily non-default settings, [let us know](https://github.com/inkeep/open-knowledge/issues).
+</Callout>
+
+## Agent skills, built in
+
+Getting an AI agent to work *well* inside an Obsidian vault usually means adding an agent-skills layer on top — a set of `SKILL.md` instructions that teach the agent your conventions and how to read and write the vault. OpenKnowledge builds that layer in, so there's nothing to bolt on:
+
+- **A project skill is installed for you.** `ok init` (or the desktop setup) drops in a project-local skill that teaches your agent OpenKnowledge's tools and conventions — no hand-written `CLAUDE.md` to maintain.
+- **Agents get first-class tools, not just file access.** The [MCP server](/docs/reference/mcp) gives any MCP-capable agent — Claude Code, Cursor, Codex, OpenCode, OpenClaw — typed `exec` (read) / `write` / `search` / `links` tools over the same files, so edits are consistent, attributed, and keep your link graph healthy.
+
+## See also
+
+- [Quickstart](/docs/get-started/quickstart): the five-minute setup
+- [Core concepts](/docs/reference/core-concepts): links, backlinks, and the file-system-as-database model
+- [Editor](/docs/features/editor): WYSIWYG, source mode, and the graph, backlinks, and properties panels
+- [Timeline and recovery](/docs/features/timeline-and-recovery): version history and point-in-time rollback
+- [Ignore patterns](/docs/features/ignore-patterns): keep folders out of the editor, search, and agents
+- [Assets and embeds](/docs/features/assets-and-embeds): how images and file references behave
+- [Git sync](/docs/features/git/sync): keep your project synced with your team through Git

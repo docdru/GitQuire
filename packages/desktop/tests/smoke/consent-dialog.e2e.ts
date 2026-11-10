@@ -1,0 +1,218 @@
+import { execSync } from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import type { ElectronApplication, Page } from '@playwright/test';
+import { _electron as electron } from '@playwright/test';
+import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
+import { configureDesktopGitRepositories } from '../support/git-fixture.test-helper.ts';
+import { reapDetachedServers } from './_helpers/electron-cleanup';
+import { desktopLaunchOptions, resolveDesktopTarget } from './_helpers/launch-desktop';
+import { launchDesktopApp, waitForWindowByMode } from './_helpers/launch-readiness';
+import { seedMcpConsentComplete } from './_helpers/mcp-consent';
+import { clickNavOpen } from './_helpers/navigator-actions';
+import { sumOfDeclaredBoundsMs } from './_helpers/parse-timeouts';
+import {
+  homeEnv,
+  PLATFORM_SKIP_REASON,
+  PLATFORM_SUPPORTED,
+  SMOKE_ENABLED,
+} from './_helpers/platform-gate';
+import { expect, test } from './_helpers/smoke-test';
+
+const TARGET = resolveDesktopTarget();
+
+const DESKTOP_PRODUCT_NAME = '@inkeep/open-knowledge-desktop';
+
+function seedTmpHome(prefix: string): string {
+  const tmpHome = realpathSync(mkdtempSync(join(tmpdir(), `ok-consent-dialog-${prefix}-`)));
+  const userDataDir = join(tmpHome, 'Library', 'Application Support', DESKTOP_PRODUCT_NAME);
+  mkdirSync(userDataDir, { recursive: true });
+  writeFileSync(
+    join(userDataDir, 'state.json'),
+    JSON.stringify({
+      recentProjects: [],
+      lastOpenedProject: null,
+      versionPendingInstall: null,
+      lastSeenVersion: null,
+      lastSuccessfulCheckAt: null,
+      stuckHintShown: false,
+    }),
+  );
+  return tmpHome;
+}
+
+function seedFreshNonGitProject(prefix: string): string {
+  return realpathSync(mkdtempSync(join(tmpdir(), `ok-consent-${prefix}-fresh-`)));
+}
+
+function seedGitRepoWithSubFolder(
+  tmpHome: string,
+  prefix: string,
+): { repoRoot: string; subFolder: string } {
+  const repoRoot = join(tmpHome, `ok-consent-${prefix}-git`);
+  mkdirSync(repoRoot, { recursive: true });
+  execSync('git init -q', { cwd: repoRoot });
+  configureTestGitRepository(repoRoot);
+  const subFolder = join(repoRoot, 'docs');
+  mkdirSync(subFolder, { recursive: true });
+  return { repoRoot, subFolder };
+}
+
+interface LaunchOpts {
+  pickedPath?: string;
+}
+
+async function launchApp(tmpHome: string, opts: LaunchOpts = {}): Promise<ElectronApplication> {
+  const userDataDir = join(tmpHome, 'Library', 'Application Support', DESKTOP_PRODUCT_NAME);
+  seedMcpConsentComplete(tmpHome);
+  return launchDesktopApp(
+    electron,
+    desktopLaunchOptions({
+      target: TARGET,
+      args: [`--user-data-dir=${userDataDir}`],
+      env: {
+        ...process.env,
+        ...homeEnv(tmpHome),
+        OK_DESKTOP_E2E_SMOKE: '1',
+        ...(opts.pickedPath !== undefined ? { OK_DESKTOP_TEST_PICKED_PATH: opts.pickedPath } : {}),
+      },
+    }),
+    { home: tmpHome },
+  );
+}
+
+async function findWindowByMode(
+  app: ElectronApplication,
+  mode: 'navigator' | 'editor',
+): Promise<Page> {
+  return waitForWindowByMode(app, mode);
+}
+
+async function expandAdvancedSettings(page: Page): Promise<void> {
+  const contentDir = page.locator('[data-testid="consent-content-dir"]');
+  if (await contentDir.isVisible().catch(() => false)) {
+    return;
+  }
+
+  const trigger = page.locator('[data-testid="consent-advanced-trigger"]');
+  await expect(trigger).toBeVisible({ timeout: 15_000 });
+  await trigger.click({ force: true });
+  await expect(contentDir).toBeVisible({ timeout: 15_000 });
+}
+
+const cleanupTargets: string[] = [];
+function trackForCleanup(...paths: string[]): void {
+  cleanupTargets.push(...paths);
+}
+
+test.describe('Consent-dialog smoke', () => {
+  test.skip(!SMOKE_ENABLED, 'Set OK_DESKTOP_E2E_SMOKE=1 to run Electron smoke tests.');
+  test.skip(!PLATFORM_SUPPORTED, PLATFORM_SKIP_REASON);
+  test.skip(!TARGET.exists, TARGET.missingReason);
+
+  test.afterEach(async () => {
+    const targets = cleanupTargets.splice(0);
+    await reapDetachedServers(targets);
+    for (const target of targets) {
+      try {
+        rmSync(target, { recursive: true, force: true });
+      } catch {}
+    }
+  });
+
+  test('Enter on a focused dialog input fires Start', async ({ captureStderrFor }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const tmpHome = seedTmpHome('enter-to-start');
+    const projectDir = seedFreshNonGitProject('enter-to-start');
+    trackForCleanup(tmpHome, projectDir);
+
+    const app = await launchApp(tmpHome, { pickedPath: projectDir });
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: cleanupTargets.splice(0) });
+    const navigator = await findWindowByMode(app, 'navigator');
+
+    await clickNavOpen(navigator);
+    await expandAdvancedSettings(navigator);
+    const contentDir = navigator.locator('[data-testid="consent-content-dir"]');
+    await expect(navigator.locator('[data-testid="consent-start"]')).toBeEnabled({
+      timeout: 30_000,
+    });
+
+    await contentDir.focus();
+    await contentDir.press('Enter');
+
+    const editor = await findWindowByMode(app, 'editor');
+    await expect
+      .poll(() => existsSync(join(projectDir, '.ok', 'config.yml')), { timeout: 15_000 })
+      .toBe(true);
+    await configureDesktopGitRepositories(editor, projectDir);
+  });
+
+  test('Browse button populates content.dir with project-relative path', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const tmpHome = seedTmpHome('browse');
+    const projectDir = seedFreshNonGitProject('browse');
+    trackForCleanup(tmpHome, projectDir);
+
+    const app = await launchApp(tmpHome, { pickedPath: projectDir });
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: cleanupTargets.splice(0) });
+    const navigator = await findWindowByMode(app, 'navigator');
+
+    await clickNavOpen(navigator);
+    await expandAdvancedSettings(navigator);
+
+    const contentDirInput = navigator.locator('[data-testid="consent-content-dir"]');
+
+    await contentDirInput.fill('docs');
+    await expect(contentDirInput).toHaveValue('docs');
+
+    const browseBtn = navigator.locator('[data-testid="consent-content-dir-browse"]');
+    await expect(browseBtn).toBeVisible();
+    await browseBtn.click();
+
+    await expect(contentDirInput).toHaveValue('.', { timeout: 15_000 });
+  });
+
+  test('Pick Existing on a sub-folder of a git repo lands .ok/ at the git root', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const tmpHome = seedTmpHome('git-root-promote');
+    const { repoRoot, subFolder } = seedGitRepoWithSubFolder(tmpHome, 'git-root-promote');
+    trackForCleanup(tmpHome);
+
+    const app = await launchApp(tmpHome, { pickedPath: subFolder });
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: cleanupTargets.splice(0) });
+    const navigator = await findWindowByMode(app, 'navigator');
+
+    await clickNavOpen(navigator);
+    await expandAdvancedSettings(navigator);
+
+    const contentDir = navigator.locator('[data-testid="consent-content-dir"]');
+    await expect(contentDir).toHaveValue('.');
+
+    const startBtn = navigator.locator('[data-testid="consent-start"]');
+    await startBtn.click();
+
+    const editor = await findWindowByMode(app, 'editor');
+    await expect
+      .poll(() => existsSync(join(repoRoot, '.ok', 'config.yml')), { timeout: 15_000 })
+      .toBe(true);
+    expect(existsSync(join(subFolder, '.ok', 'config.yml'))).toBe(false);
+
+    const cfg = readFileSync(join(repoRoot, '.ok', 'config.yml'), 'utf8');
+    expect(cfg).not.toMatch(/^\s*dir:\s*docs/m);
+    expect(cfg).toMatch(/^# content:/m);
+    await configureDesktopGitRepositories(editor, repoRoot);
+  });
+});

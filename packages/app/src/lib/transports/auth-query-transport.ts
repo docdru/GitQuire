@@ -1,0 +1,167 @@
+import { type ProblemDetails, ProblemDetailsSchema } from '@inkeep/open-knowledge-core/schemas/api';
+import { t } from '@lingui/core/macro';
+import { z } from 'zod';
+import type {
+  OkDesktopBridge,
+  OkLocalOpAuthReposResponse,
+  OkLocalOpAuthSignoutResponse,
+  OkLocalOpAuthStatusResponse,
+} from '@/lib/desktop-bridge-types';
+
+const DEFAULT_AUTH_QUERY_HOST = 'github.com';
+const authStatusInFlight = new Map<string, Promise<AuthQueryStatus>>();
+
+const NonGitHubOriginProblemSchema = ProblemDetailsSchema.extend({
+  type: z.literal('urn:ok:error:non-github-origin'),
+  host: z.string().min(1).nullish().catch(null),
+});
+
+async function readJsonBody(res: Response): Promise<unknown> {
+  try {
+    return (await res.json()) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+async function extractProblem(res: Response): Promise<ProblemDetails | undefined> {
+  return ProblemDetailsSchema.safeParse(await readJsonBody(res)).data;
+}
+
+type AuthStatusMember<Authenticated extends boolean> = Extract<
+  OkLocalOpAuthStatusResponse,
+  { authenticated: Authenticated }
+>;
+
+export type AuthQueryStatus =
+  | (AuthStatusMember<true> & { unsupportedOrigin?: never })
+  | (AuthStatusMember<false> & { unsupportedOrigin?: { host: string | null } });
+
+export interface AuthQueryTransport {
+  status(request?: { host?: string }): Promise<AuthQueryStatus>;
+  repos(request?: { host?: string }): Promise<OkLocalOpAuthReposResponse>;
+  signout?(request?: { host?: string }): Promise<OkLocalOpAuthSignoutResponse>;
+}
+
+async function postJson(path: string, body: unknown): Promise<Response> {
+  return fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body ?? {}),
+  });
+}
+
+async function requestAuthStatus(request?: { host?: string }): Promise<AuthQueryStatus> {
+  const host = request?.host ?? DEFAULT_AUTH_QUERY_HOST;
+  const res = await postJson('/api/local-op/auth/status', request);
+  if (!res.ok) {
+    const body = await readJsonBody(res);
+    const refusal = NonGitHubOriginProblemSchema.safeParse(body);
+    if (refusal.success) {
+      const rejected = refusal.data.host ?? null;
+      return {
+        authenticated: false,
+        host: rejected ?? host,
+        error: refusal.data.title,
+        unsupportedOrigin: { host: rejected },
+      };
+    }
+    return { authenticated: false, host, error: ProblemDetailsSchema.safeParse(body).data?.title };
+  }
+  const data = (await res.json()) as Record<string, unknown>;
+  const h = typeof data.host === 'string' ? data.host : host;
+  const ghAvailable = data.ghAvailable === true;
+  if (data.authenticated === true && typeof data.login === 'string') {
+    const tier =
+      data.tier === 'A' || data.tier === 'B' || data.tier === 'C' ? data.tier : undefined;
+    return {
+      authenticated: true,
+      host: h,
+      login: data.login,
+      tier,
+      name: typeof data.name === 'string' ? data.name : undefined,
+      email: typeof data.email === 'string' ? data.email : undefined,
+      ghAvailable,
+    };
+  }
+  return {
+    authenticated: false,
+    host: h,
+    error: typeof data.error === 'string' ? data.error : undefined,
+    ghAvailable,
+  };
+}
+
+function coalescedAuthStatus(request?: { host?: string }): Promise<AuthQueryStatus> {
+  const host = request?.host ?? DEFAULT_AUTH_QUERY_HOST;
+  const existing = authStatusInFlight.get(host);
+  if (existing) return existing;
+
+  const promise = requestAuthStatus(request).finally(() => {
+    authStatusInFlight.delete(host);
+  });
+  authStatusInFlight.set(host, promise);
+  return promise;
+}
+
+function lastJsonLine(text: string): Record<string, unknown> | null {
+  const lines = text.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i]?.trim();
+    if (!line) continue;
+    try {
+      const v = JSON.parse(line);
+      if (v && typeof v === 'object') return v as Record<string, unknown>;
+    } catch {}
+  }
+  return null;
+}
+
+export function httpAuthQueryTransport(): AuthQueryTransport {
+  return {
+    status: coalescedAuthStatus,
+    async repos(request) {
+      const host = request?.host ?? 'github.com';
+      const res = await postJson('/api/local-op/auth/repos', request);
+      if (!res.ok) {
+        const title = (await extractProblem(res))?.title;
+        return { ok: false, error: title ?? t`Failed to fetch repositories` };
+      }
+      const data = lastJsonLine(await res.text());
+      if (data && data.type === 'error' && data.problem && typeof data.problem === 'object') {
+        const p = data.problem as { title?: string; detail?: string };
+        return { ok: false, error: p.detail || p.title || t`Failed to fetch repositories` };
+      }
+      if (!data || !Array.isArray(data.repos)) {
+        return { ok: false, error: t`Failed to fetch repositories` };
+      }
+      const repos: { full_name: string; clone_url: string; private: boolean }[] = [];
+      for (const r of data.repos) {
+        const rec = r as Record<string, unknown>;
+        if (typeof rec?.full_name === 'string' && typeof rec.clone_url === 'string') {
+          repos.push({
+            full_name: rec.full_name,
+            clone_url: rec.clone_url,
+            private: rec.private === true,
+          });
+        }
+      }
+      return { ok: true, host: typeof data.host === 'string' ? data.host : host, repos };
+    },
+    async signout(request) {
+      const res = await postJson('/api/local-op/auth/signout', request);
+      if (!res.ok) {
+        const problem = await extractProblem(res);
+        return { ok: false, error: problem?.detail || problem?.title };
+      }
+      return { ok: true };
+    },
+  };
+}
+
+export function ipcAuthQueryTransport(bridge: OkDesktopBridge): AuthQueryTransport {
+  return {
+    status: (request) => bridge.localOp.authStatus(request),
+    repos: (request) => bridge.localOp.authRepos(request),
+  };
+}

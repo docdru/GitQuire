@@ -1,0 +1,718 @@
+{
+  "nodes": {
+    "paragraph": {
+      "attrs": {},
+      "content": "inline*",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "listItem": {
+      "attrs": {
+        "checked": {
+          "hasDefault": true
+        },
+        "spread": {
+          "hasDefault": true
+        },
+        "sourceMarkerSpacing": {
+          "hasDefault": true
+        },
+        "sourceOrdinal": {
+          "hasDefault": true
+        },
+        "sourceCheckboxChar": {
+          "hasDefault": true
+        },
+        "sourceContinuationIndent": {
+          "hasDefault": true
+        }
+      },
+      "content": "paragraph block*",
+      "group": "",
+      "inline": false,
+      "atom": false
+    },
+    "doc": {
+      "attrs": {
+        "sourceDocBoundary": {
+          "hasDefault": true
+        }
+      },
+      "content": "block+",
+      "group": "",
+      "inline": false,
+      "atom": false
+    },
+    "text": {
+      "attrs": {},
+      "content": "",
+      "group": "inline",
+      "inline": false,
+      "atom": false
+    },
+    "tableRow": {
+      "attrs": {},
+      "content": "(tableCell | tableHeader)*",
+      "group": "",
+      "inline": false,
+      "atom": false
+    },
+    "jsxComponent": {
+      "attrs": {
+        "componentName": {
+          "hasDefault": true
+        },
+        "kind": {
+          "hasDefault": true
+        },
+        "attributes": {
+          "hasDefault": true
+        },
+        "sourceRaw": {
+          "hasDefault": true
+        },
+        "sourceDirty": {
+          "hasDefault": true
+        },
+        "props": {
+          "hasDefault": true
+        }
+      },
+      "content": "block*",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "rawMdxFallback": {
+      "attrs": {
+        "reason": {
+          "hasDefault": true
+        },
+        "originalSpan": {
+          "hasDefault": true
+        }
+      },
+      "content": "text*",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "jsxInline": {
+      "attrs": {
+        "componentName": {
+          "hasDefault": true
+        },
+        "kind": {
+          "hasDefault": true
+        },
+        "attributes": {
+          "hasDefault": true
+        },
+        "sourceRaw": {
+          "hasDefault": true
+        },
+        "sourceDirty": {
+          "hasDefault": true
+        },
+        "props": {
+          "hasDefault": true
+        }
+      },
+      "content": "text*",
+      "group": "inline",
+      "inline": true,
+      "atom": false
+    },
+    "mathInline": {
+      "attrs": {
+        "formula": {
+          "hasDefault": true
+        },
+        "id": {
+          "hasDefault": true
+        },
+        "language": {
+          "hasDefault": true
+        },
+        "sourceDelimiter": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": true
+    },
+    "wikiLink": {
+      "attrs": {
+        "target": {
+          "hasDefault": true
+        },
+        "alias": {
+          "hasDefault": true
+        },
+        "anchor": {
+          "hasDefault": true
+        },
+        "resolved": {
+          "hasDefault": true
+        },
+        "sourceTarget": {
+          "hasDefault": true
+        },
+        "sourceAnchor": {
+          "hasDefault": true
+        },
+        "sourceAlias": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": true
+    },
+    "wikiLinkEmbed": {
+      "attrs": {
+        "target": {
+          "hasDefault": true
+        },
+        "alias": {
+          "hasDefault": true
+        },
+        "anchor": {
+          "hasDefault": true
+        },
+        "resolvedSrc": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": true
+    },
+    "tag": {
+      "attrs": {
+        "value": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": true
+    },
+    "list": {
+      "attrs": {
+        "ordered": {
+          "hasDefault": true
+        },
+        "start": {
+          "hasDefault": true
+        },
+        "spread": {
+          "hasDefault": true
+        },
+        "bulletMarker": {
+          "hasDefault": true
+        },
+        "listMarkerDelimiter": {
+          "hasDefault": true
+        }
+      },
+      "content": "listItem+",
+      "group": "block list",
+      "inline": false,
+      "atom": false
+    },
+    "codeBlock": {
+      "attrs": {
+        "language": {
+          "hasDefault": true
+        },
+        "fenceDelimiter": {
+          "hasDefault": true
+        },
+        "fenceLength": {
+          "hasDefault": true
+        },
+        "meta": {
+          "hasDefault": true
+        },
+        "sourceStyle": {
+          "hasDefault": true
+        },
+        "sourceClosingFenceLength": {
+          "hasDefault": true
+        },
+        "sourceUnclosedFence": {
+          "hasDefault": true
+        },
+        "sourceFenceIndent": {
+          "hasDefault": true
+        },
+        "sourceInfoPadding": {
+          "hasDefault": true
+        },
+        "sourceIndents": {
+          "hasDefault": true
+        }
+      },
+      "content": "text*",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "blockquote": {
+      "attrs": {
+        "sourceMarkerSpacings": {
+          "hasDefault": true
+        }
+      },
+      "content": "block+",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "heading": {
+      "attrs": {
+        "level": {
+          "hasDefault": true
+        },
+        "headingStyle": {
+          "hasDefault": true
+        },
+        "sourceTrailingHashes": {
+          "hasDefault": true
+        },
+        "sourceUnderlineLength": {
+          "hasDefault": true
+        },
+        "sourceContiguousNext": {
+          "hasDefault": true
+        },
+        "sourceLeadingIndent": {
+          "hasDefault": true
+        },
+        "sourceInteriorSpacing": {
+          "hasDefault": true
+        }
+      },
+      "content": "inline*",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "thematicBreak": {
+      "attrs": {
+        "sourceRaw": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "htmlBlock": {
+      "attrs": {
+        "content": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "block",
+      "inline": false,
+      "atom": true
+    },
+    "linkRefDef": {
+      "attrs": {
+        "label": {
+          "hasDefault": true
+        },
+        "href": {
+          "hasDefault": true
+        },
+        "title": {
+          "hasDefault": true
+        },
+        "sourceLayout": {
+          "hasDefault": true
+        },
+        "sourceTitleMarker": {
+          "hasDefault": true
+        },
+        "sourceUrlForm": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "block",
+      "inline": false,
+      "atom": true
+    },
+    "hardBreak": {
+      "attrs": {
+        "hardBreakStyle": {
+          "hasDefault": true
+        },
+        "sourceRaw": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": false
+    },
+    "table": {
+      "attrs": {
+        "sourceDashCounts": {
+          "hasDefault": true
+        },
+        "sourceOuterPipes": {
+          "hasDefault": true
+        },
+        "sourceAlignmentPadding": {
+          "hasDefault": true
+        }
+      },
+      "content": "tableRow+",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "tableHeader": {
+      "attrs": {
+        "colspan": {
+          "hasDefault": true
+        },
+        "rowspan": {
+          "hasDefault": true
+        },
+        "colwidth": {
+          "hasDefault": true
+        },
+        "align": {
+          "hasDefault": true
+        },
+        "sourcePadding": {
+          "hasDefault": true
+        }
+      },
+      "content": "block+",
+      "group": "",
+      "inline": false,
+      "atom": false
+    },
+    "tableCell": {
+      "attrs": {
+        "colspan": {
+          "hasDefault": true
+        },
+        "rowspan": {
+          "hasDefault": true
+        },
+        "colwidth": {
+          "hasDefault": true
+        },
+        "align": {
+          "hasDefault": true
+        },
+        "sourcePadding": {
+          "hasDefault": true
+        }
+      },
+      "content": "block+",
+      "group": "",
+      "inline": false,
+      "atom": false
+    },
+    "image": {
+      "attrs": {
+        "src": {
+          "hasDefault": true
+        },
+        "alt": {
+          "hasDefault": true
+        },
+        "title": {
+          "hasDefault": true
+        },
+        "width": {
+          "hasDefault": true
+        },
+        "height": {
+          "hasDefault": true
+        },
+        "sourceUrl": {
+          "hasDefault": true
+        },
+        "sourceUrlForm": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": false
+    },
+    "imageReference": {
+      "attrs": {
+        "alt": {
+          "hasDefault": true
+        },
+        "label": {
+          "hasDefault": true
+        },
+        "identifier": {
+          "hasDefault": true
+        },
+        "referenceType": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": true
+    },
+    "commentBlock": {
+      "attrs": {
+        "sourceForm": {
+          "hasDefault": true
+        },
+        "sourceLayout": {
+          "hasDefault": true
+        }
+      },
+      "content": "block+",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    },
+    "footnoteReference": {
+      "attrs": {
+        "identifier": {
+          "hasDefault": true
+        },
+        "label": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": true
+    },
+    "footnoteDefinition": {
+      "attrs": {
+        "identifier": {
+          "hasDefault": true
+        },
+        "label": {
+          "hasDefault": true
+        }
+      },
+      "content": "block+",
+      "group": "block",
+      "inline": false,
+      "atom": false
+    }
+  },
+  "marks": {
+    "code": {
+      "attrs": {
+        "sourceFenceChar": {
+          "hasDefault": true
+        },
+        "sourceFenceLength": {
+          "hasDefault": true
+        },
+        "sourcePadded": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "",
+      "group": "",
+      "inclusive": true,
+      "spanning": true
+    },
+    "highlight": {
+      "attrs": {},
+      "excludes": "highlight",
+      "group": "",
+      "inclusive": true,
+      "spanning": true
+    },
+    "emphasis": {
+      "attrs": {
+        "sourceDelimiter": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "emphasis",
+      "group": "",
+      "inclusive": true,
+      "spanning": true
+    },
+    "strong": {
+      "attrs": {
+        "sourceDelimiter": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "strong",
+      "group": "",
+      "inclusive": true,
+      "spanning": true
+    },
+    "strike": {
+      "attrs": {
+        "sourceDelimiter": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "strike",
+      "group": "",
+      "inclusive": true,
+      "spanning": true
+    },
+    "underline": {
+      "attrs": {
+        "sourceForm": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "underline",
+      "group": "",
+      "inclusive": true,
+      "spanning": true
+    },
+    "link": {
+      "attrs": {
+        "href": {
+          "hasDefault": true
+        },
+        "target": {
+          "hasDefault": true
+        },
+        "rel": {
+          "hasDefault": true
+        },
+        "class": {
+          "hasDefault": true
+        },
+        "title": {
+          "hasDefault": true
+        },
+        "linkStyle": {
+          "hasDefault": true
+        },
+        "refLabel": {
+          "hasDefault": true
+        },
+        "sourceForm": {
+          "hasDefault": true
+        },
+        "anchor": {
+          "hasDefault": true
+        },
+        "alias": {
+          "hasDefault": true
+        },
+        "sourceUrlForm": {
+          "hasDefault": true
+        },
+        "sourceTitleMarker": {
+          "hasDefault": true
+        },
+        "sourceTarget": {
+          "hasDefault": true
+        },
+        "sourceAnchor": {
+          "hasDefault": true
+        },
+        "sourceAlias": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "link",
+      "group": "",
+      "inclusive": true,
+      "spanning": true
+    },
+    "escapeMark": {
+      "attrs": {},
+      "excludes": "",
+      "group": "",
+      "inclusive": false,
+      "spanning": true
+    },
+    "sourceLiteral": {
+      "attrs": {
+        "sourceRaw": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "",
+      "group": "",
+      "inclusive": false,
+      "spanning": true
+    },
+    "comment": {
+      "attrs": {
+        "sourceForm": {
+          "hasDefault": true
+        }
+      },
+      "excludes": "",
+      "group": "",
+      "inclusive": false,
+      "spanning": true
+    }
+  },
+  "extensionOrder": [
+    "jsxComponent",
+    "rawMdxFallback",
+    "jsxInline",
+    "mathInline",
+    "wikiLink",
+    "wikiLinkEmbed",
+    "tag",
+    "list",
+    "listItem",
+    "emphasis",
+    "strong",
+    "strike",
+    "underline",
+    "code",
+    "codeBlock",
+    "blockquote",
+    "heading",
+    "thematicBreak",
+    "link",
+    "htmlBlock",
+    "linkRefDef",
+    "hardBreak",
+    "escapeMark",
+    "docFidelity",
+    "sourceLiteral",
+    "plainTextClipboard",
+    "starterKit",
+    "listBoundaryMerge",
+    "table",
+    "tableRow",
+    "tableHeader",
+    "tableCell",
+    "image",
+    "imageReference",
+    "highlight",
+    "comment",
+    "commentBlock",
+    "footnoteReference",
+    "footnoteDefinition"
+  ]
+}

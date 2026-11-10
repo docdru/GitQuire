@@ -1,0 +1,88 @@
+// oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
+import type { SkillsListEntry } from '@inkeep/open-knowledge-core/schemas/api';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
+import { AlertDialog } from '@/components/ui/alert-dialog';
+import { useDocumentContext } from '@/editor/DocumentContext';
+import { tabIdsForSkill } from '@/hooks/use-reconcile-skill-tabs';
+import { deleteSkill } from '@/lib/skills-api';
+
+interface Props {
+  skills: readonly SkillsListEntry[] | null;
+  onOpenChange: (open: boolean) => void;
+  onDeleted: () => void;
+}
+
+export function SkillBulkDeleteDialog({ skills, onOpenChange, onDeleted }: Props) {
+  const { t } = useLingui();
+  const { closeTabs, openTabs } = useDocumentContext();
+  const [deleting, setDeleting] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  async function handleDelete(targets: readonly SkillsListEntry[]) {
+    setDeleting(true);
+    setProgress(0);
+    let deleted = 0;
+    const warned: { key: string; name: string; text: string }[] = [];
+    for (const target of targets) {
+      setProgress((n) => n + 1);
+      const result = await deleteSkill(target.scope, target.name, target.hostQualifier);
+      if (!result.ok) {
+        const { error } = result;
+        toast.error(t`Couldn't delete ${target.name}: ${error}`);
+        continue;
+      }
+      deleted += 1;
+      if (result.warnings.length > 0) {
+        warned.push({
+          key: `${target.scope}/${target.name}`,
+          name: target.name,
+          text: result.warnings.join(' '),
+        });
+      }
+      closeTabs(tabIdsForSkill(openTabs, target.scope, target.name), { force: true });
+    }
+    setDeleting(false);
+    if (warned.length > 0) {
+      toast.warning(t`Some skills were deleted with a warning`, {
+        duration: 30_000,
+        description: (
+          <ul className="flex list-none flex-col gap-1">
+            {warned.map((entry) => (
+              <li key={entry.key}>
+                {entry.name}: {entry.text}
+              </li>
+            ))}
+          </ul>
+        ),
+      });
+    } else if (deleted > 0) {
+      toast.success(t`Deleted ${deleted} skills`);
+    }
+    onDeleted();
+    onOpenChange(false);
+  }
+
+  const names = (skills ?? []).map((s) => s.name).join(', ');
+  const count = skills?.length ?? 0;
+  return (
+    <AlertDialog
+      open={skills !== null}
+      onOpenChange={(open) => {
+        if (!open && !deleting) onOpenChange(false);
+      }}
+    >
+      {skills ? (
+        <DeleteConfirmationDialog
+          itemName={t`${count} skills`}
+          isSubmitting={deleting}
+          customConfirmLabelBusy={t`Deleting ${progress} of ${count}`}
+          onDelete={() => handleDelete(skills)}
+          customDescription={t`This permanently removes ${names}. Agents that invoke these skills by name will fail until they're recreated.`}
+        />
+      ) : null}
+    </AlertDialog>
+  );
+}

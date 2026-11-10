@@ -1,0 +1,632 @@
+{
+  "documents": [
+    {
+      "id": "page:auth/session-token-refresh",
+      "kind": "page",
+      "path": "auth/session-token-refresh",
+      "title": "Session Token Refresh",
+      "name": "session-token-refresh",
+      "pathSegments": "auth session-token-refresh",
+      "content": "How the session token refresh flow re-issues credentials when they expire. Retry with backoff.",
+      "modifiedTs": 5000
+    },
+    {
+      "id": "page:auth/login",
+      "kind": "page",
+      "path": "auth/login",
+      "title": "Login",
+      "name": "login",
+      "pathSegments": "auth login",
+      "content": "The login page authenticates a user and starts a session.",
+      "modifiedTs": 3000
+    },
+    {
+      "id": "page:guides/authentication-overview",
+      "kind": "page",
+      "path": "guides/authentication-overview",
+      "title": "Authentication Overview",
+      "name": "authentication-overview",
+      "pathSegments": "guides authentication-overview",
+      "content": "An overview of authentication, authorization, tokens, and sessions across the platform.",
+      "modifiedTs": 9000
+    },
+    {
+      "id": "page:recipes/sourdough",
+      "kind": "page",
+      "path": "recipes/sourdough",
+      "title": "Sourdough Bread",
+      "name": "sourdough",
+      "pathSegments": "recipes sourdough",
+      "content": "A recipe for sourdough bread with a long cold ferment and a crackly crust.",
+      "modifiedTs": 1000
+    },
+    {
+      "id": "page:recipes/focaccia",
+      "kind": "page",
+      "path": "recipes/focaccia",
+      "title": "Focaccia",
+      "name": "focaccia",
+      "pathSegments": "recipes focaccia",
+      "content": "Olive oil focaccia with rosemary; uses the same starter as the sourdough.",
+      "modifiedTs": 2000
+    },
+    {
+      "id": "page:notes/retry-strategies",
+      "kind": "page",
+      "path": "notes/retry-strategies",
+      "title": "Retry Strategies",
+      "name": "retry-strategies",
+      "pathSegments": "notes retry-strategies",
+      "content": "Exponential backoff, jitter, and idempotency keys for retrying failed requests.",
+      "modifiedTs": 8000
+    },
+    {
+      "id": "page:auth",
+      "kind": "page",
+      "path": "auth",
+      "title": "auth",
+      "name": "auth",
+      "pathSegments": "auth",
+      "content": "Index of authentication topics.",
+      "modifiedTs": 4000
+    },
+    {
+      "id": "page:misc/login-history",
+      "kind": "page",
+      "path": "misc/login-history",
+      "title": "Login History",
+      "name": "login-history",
+      "pathSegments": "misc login-history",
+      "content": "A record of past login events and session activity for the account.",
+      "modifiedTs": 6000
+    },
+    {
+      "id": "folder:auth",
+      "kind": "folder",
+      "path": "auth",
+      "title": "auth",
+      "name": "auth",
+      "pathSegments": "auth",
+      "content": "",
+      "modifiedTs": 7000
+    },
+    {
+      "id": "folder:recipes",
+      "kind": "folder",
+      "path": "recipes",
+      "title": "recipes",
+      "name": "recipes",
+      "pathSegments": "recipes",
+      "content": "",
+      "modifiedTs": 1500
+    }
+  ],
+  "cases": [
+    {
+      "query": "",
+      "options": {},
+      "expected": [
+        {
+          "id": "page:auth",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "folder:auth",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:auth/login",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:auth/session-token-refresh",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:misc/login-history",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:notes/retry-strategies",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "folder:recipes",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:recipes/focaccia",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:recipes/sourdough",
+          "score": 0,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0,
+            "recency": 0
+          }
+        }
+      ]
+    },
+    {
+      "query": "login",
+      "options": {
+        "intent": "omnibar"
+      },
+      "expected": [
+        {
+          "id": "page:auth/login",
+          "score": 700001.25,
+          "signals": {
+            "lexical": 700,
+            "fullText": 49.734450245304735,
+            "recency": 12.5
+          }
+        },
+        {
+          "id": "page:misc/login-history",
+          "score": 600001.47759861,
+          "signals": {
+            "lexical": 600,
+            "fullText": 42.40352314871397,
+            "recency": 31.25
+          }
+        }
+      ]
+    },
+    {
+      "query": "login",
+      "options": {
+        "intent": "autocomplete"
+      },
+      "expected": [
+        {
+          "id": "page:auth/login",
+          "score": 700001.25,
+          "signals": {
+            "lexical": 700,
+            "fullText": 58.92061945276085,
+            "recency": 12.5
+          }
+        },
+        {
+          "id": "page:misc/login-history",
+          "score": 600001.4694744988,
+          "signals": {
+            "lexical": 600,
+            "fullText": 49.756960582022394,
+            "recency": 31.25
+          }
+        }
+      ]
+    },
+    {
+      "query": "session token refresh",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:auth/session-token-refresh",
+          "score": 1919.9498027912073,
+          "signals": {
+            "lexical": 700,
+            "fullText": 59.74749013956037,
+            "recency": 25
+          }
+        },
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 85.22683776896082,
+          "signals": {
+            "lexical": 0,
+            "fullText": 1.7613418884480405,
+            "recency": 50
+          }
+        },
+        {
+          "id": "page:misc/login-history",
+          "score": 40.54046425448354,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0.46452321272417674,
+            "recency": 31.25
+          }
+        },
+        {
+          "id": "page:auth/login",
+          "score": 24.792405644684873,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0.6146202822342437,
+            "recency": 12.5
+          }
+        }
+      ]
+    },
+    {
+      "query": "auth",
+      "options": {
+        "intent": "omnibar"
+      },
+      "expected": [
+        {
+          "id": "folder:auth",
+          "score": 700001.6623001031,
+          "signals": {
+            "lexical": 700,
+            "fullText": 41.783510617663595,
+            "recency": 37.5
+          }
+        },
+        {
+          "id": "page:auth",
+          "score": 700001.2873001031,
+          "signals": {
+            "lexical": 700,
+            "fullText": 41.783510617663595,
+            "recency": 18.75
+          }
+        },
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 600002,
+          "signals": {
+            "lexical": 600,
+            "fullText": 45.80018184180731,
+            "recency": 50
+          }
+        },
+        {
+          "id": "page:auth/session-token-refresh",
+          "score": 550000.6511841159,
+          "signals": {
+            "lexical": 550,
+            "fullText": 6.9242600015889,
+            "recency": 25
+          }
+        },
+        {
+          "id": "page:auth/login",
+          "score": 550000.4011841159,
+          "signals": {
+            "lexical": 550,
+            "fullText": 6.9242600015889,
+            "recency": 12.5
+          }
+        }
+      ]
+    },
+    {
+      "query": "auth",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 1596.714689887646,
+          "signals": {
+            "lexical": 600,
+            "fullText": 47.3357344943823,
+            "recency": 50
+          }
+        },
+        {
+          "id": "page:auth",
+          "score": 1586.048341132585,
+          "signals": {
+            "lexical": 700,
+            "fullText": 43.364917056629245,
+            "recency": 18.75
+          }
+        },
+        {
+          "id": "page:auth/login",
+          "score": 722.372911924148,
+          "signals": {
+            "lexical": 550,
+            "fullText": 7.993645596207396,
+            "recency": 12.5
+          }
+        },
+        {
+          "id": "page:auth/session-token-refresh",
+          "score": 713.485200031778,
+          "signals": {
+            "lexical": 550,
+            "fullText": 6.9242600015889,
+            "recency": 25
+          }
+        }
+      ]
+    },
+    {
+      "query": "authentication",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 1579.1012710031655,
+          "signals": {
+            "lexical": 600,
+            "fullText": 46.45506355015828,
+            "recency": 50
+          }
+        },
+        {
+          "id": "page:auth",
+          "score": 50.378128779313016,
+          "signals": {
+            "lexical": 0,
+            "fullText": 1.581406438965651,
+            "recency": 18.75
+          }
+        }
+      ]
+    },
+    {
+      "query": "retry backoff",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:notes/retry-strategies",
+          "score": 993.4562852139901,
+          "signals": {
+            "lexical": 0,
+            "fullText": 47.485314260699504,
+            "recency": 43.75
+          }
+        },
+        {
+          "id": "page:auth/session-token-refresh",
+          "score": 49.16444617605368,
+          "signals": {
+            "lexical": 0,
+            "fullText": 1.208222308802684,
+            "recency": 25
+          }
+        }
+      ]
+    },
+    {
+      "query": "sourdough",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:recipes/sourdough",
+          "score": 1628.0239020710135,
+          "signals": {
+            "lexical": 700,
+            "fullText": 46.40119510355068,
+            "recency": 0
+          }
+        },
+        {
+          "id": "page:recipes/focaccia",
+          "score": 19.347634167019383,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0.6548817083509691,
+            "recency": 6.25
+          }
+        }
+      ]
+    },
+    {
+      "query": "bread",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:recipes/sourdough",
+          "score": 781.1319323262233,
+          "signals": {
+            "lexical": 500,
+            "fullText": 14.056596616311161,
+            "recency": 0
+          }
+        }
+      ]
+    },
+    {
+      "query": "recipes",
+      "options": {
+        "intent": "omnibar",
+        "scopes": ["folder"]
+      },
+      "expected": [
+        {
+          "id": "folder:recipes",
+          "score": 700001,
+          "signals": {
+            "lexical": 700,
+            "fullText": 55.43437205022377,
+            "recency": 0
+          }
+        }
+      ]
+    },
+    {
+      "query": "login",
+      "options": {
+        "intent": "full_text",
+        "limit": 2
+      },
+      "expected": [
+        {
+          "id": "page:auth/login",
+          "score": 1723.0932667574211,
+          "signals": {
+            "lexical": 700,
+            "fullText": 50.52966333787105,
+            "recency": 12.5
+          }
+        },
+        {
+          "id": "page:misc/login-history",
+          "score": 1491.3407282091468,
+          "signals": {
+            "lexical": 600,
+            "fullText": 43.00453641045734,
+            "recency": 31.25
+          }
+        }
+      ]
+    },
+    {
+      "query": "authentication",
+      "options": {
+        "intent": "full_text",
+        "scopes": ["page", "content"]
+      },
+      "expected": [
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 1579.1012710031655,
+          "signals": {
+            "lexical": 600,
+            "fullText": 46.45506355015828,
+            "recency": 50
+          }
+        },
+        {
+          "id": "page:auth",
+          "score": 50.378128779313016,
+          "signals": {
+            "lexical": 0,
+            "fullText": 1.581406438965651,
+            "recency": 18.75
+          }
+        }
+      ]
+    },
+    {
+      "query": "token",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:auth/session-token-refresh",
+          "score": 708.2690256615901,
+          "signals": {
+            "lexical": 500,
+            "fullText": 9.163451283079505,
+            "recency": 25
+          }
+        },
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 67.61341888448041,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0.8806709442240203,
+            "recency": 50
+          }
+        }
+      ]
+    },
+    {
+      "query": "sessions",
+      "options": {
+        "intent": "full_text"
+      },
+      "expected": [
+        {
+          "id": "page:auth/session-token-refresh",
+          "score": 202.3754508192539,
+          "signals": {
+            "lexical": 0,
+            "fullText": 8.868772540962695,
+            "recency": 25
+          }
+        },
+        {
+          "id": "page:guides/authentication-overview",
+          "score": 67.61341888448041,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0.8806709442240203,
+            "recency": 50
+          }
+        },
+        {
+          "id": "page:misc/login-history",
+          "score": 40.54046425448354,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0.46452321272417674,
+            "recency": 31.25
+          }
+        },
+        {
+          "id": "page:auth/login",
+          "score": 24.792405644684873,
+          "signals": {
+            "lexical": 0,
+            "fullText": 0.6146202822342437,
+            "recency": 12.5
+          }
+        }
+      ]
+    }
+  ]
+}

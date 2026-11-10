@@ -1,0 +1,488 @@
+import { relative, resolve } from 'node:path';
+import {
+  type BrokenLinkSuppression,
+  countDiagnosticsBySource,
+  deriveValidationRunSources,
+  type LinterConfig,
+  type LintPluginId,
+  type ValidationDiagnostic,
+  type ValidationDocCounts,
+  type ValidationSource,
+} from '@inkeep/open-knowledge-core';
+import { createReservedLogBrokenLinkSuppression } from '../broken-link-suppression.ts';
+import { isProblemsPlaneExcludedDoc } from '../cc1-broadcast.ts';
+import type { DerivedDocumentIndexApiPort } from '../derived-document-index.ts';
+import {
+  type LinkAdvisoryPolicy,
+  shouldSuppressLogLinkAdvisories,
+} from '../link-advisory-policy.ts';
+import {
+  buildLocalTargetEvidence,
+  type LocalTargetAssessment,
+} from '../local-target-assessment.ts';
+import type { WatcherLocalTargetInventory } from '../local-target-inventory.ts';
+import { getLogger } from '../logger.ts';
+import { toPosix } from '../path-utils.ts';
+import { AuditSupersededError, auditProject, auditScopeWarning, resolveScope } from './audit.ts';
+import type { AuditCache } from './audit-cache.ts';
+import type { AuditScope } from './audit-scope.ts';
+import { createOkfProjectValidator } from './okf-project-validator.ts';
+import { physicalScopeLinks } from './physical-scope-links.ts';
+
+type DeadLinksResult = Awaited<ReturnType<DerivedDocumentIndexApiPort['getDeadLinks']>>;
+type LocalTargetsResult = Awaited<
+  ReturnType<DerivedDocumentIndexApiPort['getLocalTargetAssessmentsForSources']>
+>;
+
+interface ValidationDerivedIndexReader {
+  getDeadLinks(
+    admittedDocuments: Iterable<string>,
+    sourceDocumentNames?: readonly string[],
+  ): DeadLinksResult | Promise<DeadLinksResult>;
+  getLocalTargetAssessmentsForSources(
+    sourceDocumentNames?: readonly string[],
+  ): LocalTargetsResult | Promise<LocalTargetsResult>;
+}
+
+export type ValidationDiagnosticFor<Source extends ValidationSource> = Omit<
+  ValidationDiagnostic,
+  'source'
+> & { source: Source };
+
+interface FileValidationResult<Source extends ValidationSource = ValidationSource> {
+  file: string;
+  diagnostics: ValidationDiagnosticFor<Source>[];
+}
+
+export interface ValidationAuditResult {
+  files: FileValidationResult[];
+  fileCount: number;
+  errorCount: number;
+  warningCount: number;
+  warnings: string[];
+  ran: ValidationSource[];
+  brokenLinkSuppression?: BrokenLinkSuppression;
+}
+
+export interface ValidationAuditCountsResult {
+  files: ValidationDocCounts[];
+  fileCount: number;
+  errorCount: number;
+  warningCount: number;
+  warnings: string[];
+  brokenLinkSuppression?: BrokenLinkSuppression;
+}
+
+export function toValidationCountsPlane(
+  result: ValidationAuditResult,
+): ValidationAuditCountsResult {
+  return {
+    files: result.files.map((entry) => ({
+      file: entry.file,
+      ...countDiagnosticsBySource(entry.diagnostics),
+    })),
+    fileCount: result.fileCount,
+    errorCount: result.errorCount,
+    warningCount: result.warningCount,
+    warnings: result.warnings,
+    ...(result.brokenLinkSuppression === undefined
+      ? {}
+      : { brokenLinkSuppression: result.brokenLinkSuppression }),
+  };
+}
+
+export interface ValidationScope {
+  targetPath?: string;
+  resolvedScope?: AuditScope;
+}
+
+interface ValidatorRunResult<Source extends ValidationSource = ValidationSource> {
+  files: FileValidationResult<Source>[];
+  fileCount: number;
+  warnings: string[];
+  ran?: readonly Source[];
+  suppressedBrokenLinkCount?: number;
+}
+
+export interface ProjectValidator<Source extends ValidationSource = ValidationSource> {
+  readonly id: string;
+  readonly sourceFamilies: readonly Source[];
+  readonly failureSourceFamily?: Source;
+  run(scope: ValidationScope): Promise<ValidatorRunResult<Source>>;
+}
+
+type ValidatorFailureAttribution =
+  | { kind: 'validator'; id: string }
+  | { kind: 'source-family'; sourceFamily: ValidationSource };
+
+export function formatValidatorFailureWarning(
+  attribution: ValidatorFailureAttribution,
+  message: string,
+): string {
+  return attribution.kind === 'validator'
+    ? `validator "${attribution.id}" failed: ${message}`
+    : `source family "${attribution.sourceFamily}" validation failed: ${message}`;
+}
+
+export function formatValidatorDegradationWarning(
+  sourceFamily: ValidationSource,
+  message: string,
+): string {
+  return `source family "${sourceFamily}" validation degraded: ${message}`;
+}
+
+export interface ValidationAuditDeps {
+  projectDir: string;
+  contentDir: string;
+  baseConfig: LinterConfig;
+  liveSourceFor?: (docRelPath: string) => string | null;
+  derivedDocumentIndex: ValidationDerivedIndexReader | null;
+  linkPolicy: LinkAdvisoryPolicy;
+  admittedDocNames: () => Iterable<string> | Promise<Iterable<string>>;
+  docFilePathFor: (docName: string) => string | null;
+  cache?: AuditCache;
+  auditGeneration?: () => string;
+  localTargetInventory?: () => WatcherLocalTargetInventory | null;
+}
+
+export function createProjectValidators(deps: ValidationAuditDeps): ProjectValidator[] {
+  return [createLintValidator(deps), createLinksValidator(deps), createOkfProjectValidator(deps)];
+}
+
+export async function runValidationAudit(
+  validators: readonly ProjectValidator[],
+  scope: ValidationScope = {},
+): Promise<ValidationAuditResult> {
+  const results = await Promise.all(
+    validators.map(async (validator) => {
+      const declared = validator.sourceFamilies;
+      try {
+        const result = await validator.run(scope);
+        return { ...result, ran: result.ran ?? declared };
+      } catch (error) {
+        if (error instanceof AuditSupersededError) throw error;
+        getLogger('validation-audit').error(
+          { err: error, validatorId: validator.id },
+          '[audit] validator threw; degrading to a plane warning',
+        );
+        const message = error instanceof Error ? error.message : String(error);
+        const failureWarning = formatValidatorFailureWarning(
+          validator.failureSourceFamily === undefined
+            ? { kind: 'validator', id: validator.id }
+            : { kind: 'source-family', sourceFamily: validator.failureSourceFamily },
+          message,
+        );
+        return {
+          files: [],
+          fileCount: 0,
+          warnings: [failureWarning],
+          ran: declared,
+        } satisfies ValidatorRunResult;
+      }
+    }),
+  );
+
+  const byFile = new Map<string, ValidationDiagnostic[]>();
+  const warnings: string[] = [];
+  const ran = new Set<ValidationSource>();
+  let suppressedBrokenLinkCount = 0;
+  let fileCount = 0;
+  for (const result of results) {
+    warnings.push(...result.warnings);
+    for (const source of result.ran ?? []) ran.add(source);
+    suppressedBrokenLinkCount += result.suppressedBrokenLinkCount ?? 0;
+    fileCount = Math.max(fileCount, result.fileCount);
+    for (const entry of result.files) {
+      const merged = byFile.get(entry.file);
+      if (merged) merged.push(...entry.diagnostics);
+      else byFile.set(entry.file, [...entry.diagnostics]);
+    }
+  }
+
+  const files = [...byFile.entries()]
+    .map(([file, diagnostics]) => ({ file, diagnostics: diagnostics.sort(byPosition) }))
+    .sort((a, b) => a.file.localeCompare(b.file));
+
+  let errorCount = 0;
+  let warningCount = 0;
+  for (const entry of files) {
+    for (const diagnostic of entry.diagnostics) {
+      if (diagnostic.severity === 'error') errorCount++;
+      else warningCount++;
+    }
+  }
+
+  const brokenLinkSuppression = createReservedLogBrokenLinkSuppression(suppressedBrokenLinkCount);
+
+  return {
+    files,
+    fileCount,
+    errorCount,
+    warningCount,
+    warnings,
+    ran: [...ran],
+    ...(brokenLinkSuppression === undefined ? {} : { brokenLinkSuppression }),
+  };
+}
+
+function byPosition(a: ValidationDiagnostic, b: ValidationDiagnostic): number {
+  return (
+    a.range.start.line - b.range.start.line ||
+    a.range.start.character - b.range.start.character ||
+    a.source.localeCompare(b.source) ||
+    a.code.localeCompare(b.code)
+  );
+}
+
+function createLintValidator(deps: ValidationAuditDeps): ProjectValidator<LintPluginId> {
+  const sourceFamilies = deriveValidationRunSources(deps.baseConfig, { mode: 'lint' });
+  return {
+    id: 'lint',
+    sourceFamilies,
+    async run(scope) {
+      const audit = await auditProject({
+        projectDir: deps.projectDir,
+        contentDir: deps.contentDir,
+        baseConfig: deps.baseConfig,
+        targetPath: scope.targetPath,
+        resolvedScope: scope.resolvedScope,
+        liveSourceFor: deps.liveSourceFor,
+        cache: deps.cache,
+        auditGeneration: deps.auditGeneration,
+      });
+      return {
+        files: audit.files,
+        fileCount: audit.fileCount,
+        warnings: audit.warnings,
+        ran: audit.ran,
+      };
+    },
+  };
+}
+
+function createLinksValidator(deps: ValidationAuditDeps): ProjectValidator<'links'> {
+  const setting = deps.linkPolicy.links;
+  const suppressLogAdvisories = deps.linkPolicy.suppressLogLinkAdvisories;
+  const sourceFamilies = deriveValidationRunSources(deps.baseConfig, {
+    mode: 'audit',
+    linksValidation: setting,
+  }).filter((source): source is 'links' => source === 'links');
+  return {
+    id: 'links',
+    sourceFamilies,
+    failureSourceFamily: 'links',
+    async run(scope) {
+      if (setting === 'off') {
+        return { files: [], fileCount: 0, warnings: [] };
+      }
+      if (
+        auditScopeWarning(
+          scope.resolvedScope ?? { path: resolve(deps.contentDir, scope.targetPath ?? '') },
+          deps.contentDir,
+          scope.targetPath,
+        ) !== undefined
+      ) {
+        return { files: [], fileCount: 0, warnings: [] };
+      }
+      const severity = setting === 'error' ? 'error' : 'warning';
+      if (!deps.derivedDocumentIndex) {
+        return {
+          files: [],
+          fileCount: 0,
+          warnings: [
+            formatValidatorFailureWarning(
+              { kind: 'source-family', sourceFamily: 'links' },
+              'backlink index is not configured',
+            ),
+          ],
+        };
+      }
+      const startGeneration = deps.auditGeneration?.();
+      const assertCurrent = (): void => {
+        if (deps.auditGeneration !== undefined && deps.auditGeneration() !== startGeneration) {
+          throw new AuditSupersededError();
+        }
+      };
+      const admitted = [...(await deps.admittedDocNames())];
+      const normalizedScope = {
+        ...scope,
+        resolvedScope: scope.resolvedScope ?? resolveScope(scope.targetPath, deps.contentDir),
+      };
+      const physical = physicalScopeLinks(normalizedScope, deps, admitted);
+      const sourceFilter =
+        physical === undefined
+          ? scopedSourceDocNames(admitted, normalizedScope.resolvedScope, deps)
+          : [physical.source];
+      const filePathFor = (source: string): string =>
+        physical?.source === source
+          ? physical.file
+          : (deps.docFilePathFor(source) ?? `${source}.md`);
+      if (sourceFilter !== undefined && sourceFilter.length === 0) {
+        assertCurrent();
+        return { files: [], fileCount: 0, warnings: [] };
+      }
+      const deadLinks =
+        physical?.deadLinks ??
+        (await deps.derivedDocumentIndex.getDeadLinks(admitted, sourceFilter));
+
+      const isSuppressedLogAdvisorySource = (source: string): boolean =>
+        shouldSuppressLogLinkAdvisories(source, suppressLogAdvisories);
+
+      const byFile = new Map<string, ValidationDiagnosticFor<'links'>[]>();
+      const push = (file: string, diagnostic: ValidationDiagnosticFor<'links'>): void => {
+        const diagnostics = byFile.get(file) ?? [];
+        diagnostics.push(diagnostic);
+        byFile.set(file, diagnostics);
+      };
+
+      const localTargetDiagnostics: Array<{
+        file: string;
+        diagnostic: ValidationDiagnosticFor<'links'>;
+      }> = [];
+      const documentTargetsFromAssessment = new Set<string>();
+      const resolvedTargetsFromAssessment = new Set<string>();
+      const warnings: string[] = [];
+      let suppressedBrokenLinkCount = 0;
+      try {
+        const assessed =
+          physical?.localTargets ??
+          (await deps.derivedDocumentIndex.getLocalTargetAssessmentsForSources(sourceFilter));
+        for (const { source, assessments } of assessed) {
+          if (isProblemsPlaneExcludedDoc(source)) continue;
+          const suppressSource = isSuppressedLogAdvisorySource(source);
+          const file = filePathFor(source);
+          for (const assessment of assessments) {
+            const diagnostic = toLocalTargetDiagnostic(assessment, severity);
+            if (!diagnostic) continue;
+            if (suppressSource) suppressedBrokenLinkCount++;
+            else localTargetDiagnostics.push({ file, diagnostic });
+            if (assessment.targetKind === 'document' && assessment.resolvedTarget !== null) {
+              documentTargetsFromAssessment.add(`${source}\0${assessment.resolvedTarget}`);
+            }
+          }
+          for (const assessment of assessments) {
+            if (assessment.status === 'exact' && assessment.resolvedTarget !== null) {
+              resolvedTargetsFromAssessment.add(`${source}\0${assessment.resolvedTarget}`);
+            }
+          }
+        }
+      } catch (error) {
+        if (error instanceof AuditSupersededError) throw error;
+        getLogger('validation-audit').warn(
+          { err: error },
+          '[audit] local-target projection unavailable; preserving graph link findings',
+        );
+        const message = error instanceof Error ? error.message : String(error);
+        warnings.push(
+          formatValidatorDegradationWarning(
+            'links',
+            `local-target projection unavailable: ${message}`,
+          ),
+        );
+      }
+
+      for (const { target, sources } of deadLinks) {
+        for (const occurrence of sources) {
+          if (isProblemsPlaneExcludedDoc(occurrence.source)) continue;
+          const key = `${occurrence.source}\0${target}`;
+          if (
+            occurrence.sourceForm !== 'wiki' &&
+            (documentTargetsFromAssessment.has(key) || resolvedTargetsFromAssessment.has(key))
+          ) {
+            continue;
+          }
+          if (isSuppressedLogAdvisorySource(occurrence.source)) {
+            suppressedBrokenLinkCount++;
+            continue;
+          }
+          const file = filePathFor(occurrence.source);
+          const line = occurrence.line ?? 0;
+          const character = occurrence.column ?? 0;
+          push(file, {
+            range: { start: { line, character }, end: { line, character } },
+            severity,
+            source: 'links',
+            code: 'dead-link',
+            message: `Link target "${target}" does not resolve to an existing document.`,
+            linkTarget: target,
+          });
+        }
+      }
+
+      for (const { file, diagnostic } of localTargetDiagnostics) push(file, diagnostic);
+
+      assertCurrent();
+
+      return {
+        files: [...byFile.entries()].map(([file, diagnostics]) => ({ file, diagnostics })),
+        fileCount: 0,
+        warnings,
+        ...(suppressedBrokenLinkCount > 0 ? { suppressedBrokenLinkCount } : {}),
+      };
+    },
+  };
+}
+
+function localTargetMessage(assessment: LocalTargetAssessment, shown: string): string {
+  const isImage = assessment.occurrence.role === 'image';
+  if (assessment.reason === 'unresolvable') {
+    return isImage
+      ? `Image target "${shown}" could not be resolved to a project-local file.`
+      : `Link target "${shown}" could not be resolved to a project-local target.`;
+  }
+  if (assessment.reason === 'excluded') {
+    return isImage
+      ? `Image target "${shown}" exists but is excluded by .gitignore or .okignore. Re-include it, or its folder, with a "!" rule in .okignore.`
+      : `Link target "${shown}" exists but is excluded by .gitignore or .okignore. Re-include it, or its folder, with a "!" rule in .okignore.`;
+  }
+  if (assessment.targetKind === 'file') {
+    return isImage
+      ? `Image target "${shown}" does not resolve to an existing file.`
+      : `Link target "${shown}" does not resolve to an existing file.`;
+  }
+  return `Link target "${shown}" does not resolve to an existing document.`;
+}
+
+function toLocalTargetDiagnostic(
+  assessment: LocalTargetAssessment,
+  severity: 'error' | 'warning',
+): ValidationDiagnosticFor<'links'> | null {
+  if (assessment.reason === null) return null;
+  const { occurrence, targetKind } = assessment;
+
+  const localTarget = buildLocalTargetEvidence(assessment, assessment.reason);
+  if (localTarget === null) return null;
+
+  const shown = assessment.resolvedTarget ?? occurrence.href;
+  const line = occurrence.line;
+  const character = occurrence.column;
+  const diagnostic: ValidationDiagnosticFor<'links'> = {
+    range: { start: { line, character }, end: { line, character } },
+    severity,
+    source: 'links',
+    code: 'dead-link',
+    message: localTargetMessage(assessment, shown),
+    localTarget,
+  };
+  if (
+    targetKind === 'document' &&
+    assessment.status === 'missing' &&
+    assessment.resolvedTarget !== null
+  ) {
+    diagnostic.linkTarget = assessment.resolvedTarget;
+  }
+  return diagnostic;
+}
+
+function scopedSourceDocNames(
+  admitted: readonly string[],
+  scope: AuditScope,
+  deps: Pick<ValidationAuditDeps, 'contentDir' | 'docFilePathFor'>,
+): string[] | undefined {
+  const scopePath = toPosix(relative(deps.contentDir, scope.path));
+  if (scope.kind === 'file') {
+    return admitted.filter((name) => deps.docFilePathFor(name) === scopePath);
+  }
+  if (scopePath === '') return undefined;
+  return admitted.filter((name) => deps.docFilePathFor(name)?.startsWith(`${scopePath}/`));
+}

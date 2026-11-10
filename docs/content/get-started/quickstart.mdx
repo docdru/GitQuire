@@ -1,0 +1,216 @@
+---
+title: Quickstart
+icon: LuZap
+description: Set up a knowledge base with OpenKnowledge in less than five minutes.
+---
+<Tabs groupId="ok-install" persist className="ok-flush-tabs" items={['Desktop app', 'Web app']}>
+
+<Tab>
+
+<Steps>
+
+<Step>
+
+### Install the desktop app (macOS, Windows, Linux)
+
+Download the installer for your platform. On a Mac, the desktop app needs macOS 13 (Ventura) or later:
+
+<DownloadButton />
+
+<Callout type="info" title="Opening the app on Linux">
+  Open OpenKnowledge from your desktop's app menu, or run `openknowledge` in a terminal (`openknowledge-beta` for Beta). `open-knowledge` and `ok` (`open-knowledge-beta` and `ok-beta` for Beta) are the command-line tools. Run with no arguments in a desktop terminal, they open the app too; over SSH or without a display, they run `ok start` in the current folder instead.
+</Callout>
+
+<Callout type="info" title="Arch Linux (community package)">
+  Arch users can install [`openknowledge-bin`](https://aur.archlinux.org/packages/openknowledge-bin) from the AUR, for example with `yay -S openknowledge-bin`. It repackages our stable `.deb` and updates through pacman instead of in the app. It is maintained by the community, not by the OpenKnowledge team, and we don't test it.
+</Callout>
+
+<Callout type="info" title="Verify Git is installed">
+  Open a terminal and run:
+  ```bash
+  git --version
+  ```
+  OpenKnowledge uses Git for timeline and recovery. If Git isn't installed, you can follow the instructions at [git-scm.com](https://git-scm.com/install/).
+</Callout>
+
+</Step>
+
+<Step>
+
+### Create a new project
+
+- Open the OpenKnowledge app. On first launch, a setup dialog offers to connect your AI tools to OpenKnowledge and to add the `ok` command to your terminal. Every option starts unchecked: tick the ones you want, then click **Finish setup**. If you skip it, re-open it later from **File → Set up OpenKnowledge integrations…**. **Settings…** from the project navigator opens your user-level preferences and hotkeys; [Settings in an editor](/docs/reference/configuration) opens the full settings pane.
+- You'll then land on the launcher. To follow this guide, choose **Create new project** — or pick a starter pack from the **or use a starter pack** line beneath the cards (for example **Knowledge base**) to scaffold ready-made folders and templates up front and skip the Initialize step below. The count at the end of that line opens the full set of packs.
+- Type a name for your project (for example, *Team Wiki*).
+- Optionally click **Browse** to change where the project is saved, then click **Create**.
+
+</Step>
+
+<Step>
+
+### Initialize a knowledge base
+
+From your newly created project, select **Knowledge base** from the landing page, leave **Project root** selected, and click **Initialize**.
+
+<Callout type="info">
+  Curious what the app writes to your machine — including the `PATH` changes it manages? See [What OpenKnowledge writes to your system](/docs/reference/what-open-knowledge-writes).
+</Callout>
+
+</Step>
+
+<Step>
+
+### Open the knowledge base in your AI agent
+
+With no documents open, you will see a screen with an input box and a button labeled **Ask** followed by an agent's name. When an in-app agent is available, that is the default, so the conversation stays inside OpenKnowledge; on a machine where none is set up yet the button falls back to a Terminal CLI, and then to an external app. Type what you want to learn about in the input box and click the button; it hands your project to the agent with your prompt as the starter. Use the chevron beside the button to pick a different agent instead — another in-app agent, a Terminal CLI, or an external app such as Claude, Codex, or Cursor — and the pick is remembered next time. Your agent may take a few seconds to load the project.
+
+Not sure what to write? Paste this into the input box (or use a topic of your choice):
+
+<CopyPrompt>Create a knowledge base about Large Language Models. Include an overview page and separate pages for three key concepts.</CopyPrompt>
+
+<Callout type="info">
+  To avoid having to approve all OpenKnowledge tool calls, set your agent to auto-mode, full-access, or an equivalent setting.
+</Callout>
+
+<Callout type="info">
+  If your agent asks you to approve a new MCP server, approve `open-knowledge`. Cursor doesn't ask. See [Cursor → Enable the project server](/docs/integrations/cursor#enable-the-project-server).
+</Callout>
+
+</Step>
+
+<Step>
+
+### Watch your agent work
+
+An in-app agent works in OpenKnowledge's Agents panel, which opens beside the editor. If you handed the project to an external app instead — Cursor, Codex, or Claude Desktop — that agent opens the OpenKnowledge editor in an embedded window.
+
+You will see your agent's icon on the right of the header at the top of the window, or in its [**More actions**](/docs/features/editor#when-the-header-runs-out-of-room) menu when the header is full. Click on the icon to see the agent's [activity](/docs/features/agent-activity) across files in the knowledge base.
+
+If the agent icon is greyed out, your agent may not have started writing yet. Wait a few seconds and check again.
+
+</Step>
+
+<Step>
+
+### Explore the knowledge base
+
+The editor's sidebar shows every doc in your knowledge base. Each doc has:
+
+- A WYSIWYG body and a source-mode toggle
+- A frontmatter panel for properties
+
+When viewing a document, check out the right side pane for:
+- An outline of the document's structure
+- A list of incoming and outgoing links to other docs
+- A graph view of the document's links in the knowledge base
+- A [timeline](/docs/features/timeline-and-recovery) of recent edits with per-burst diffs and selective rollback
+
+Right-click anywhere in the sidebar (empty space, a folder, or a file) to create, reveal, rename, hide, delete (to your system's trash), and **Open with AI**. The full feature tour is under [Features](/docs/features/editor).
+
+</Step>
+
+</Steps>
+
+</Tab>
+
+<Tab>
+
+The same editor, served locally and accessible in your browser — for any platform the desktop app doesn't cover (an Intel Mac, a server) or when you just prefer the terminal.
+
+<Callout type="info" title="Prerequisites — Verify Node and Git are installed">
+Open a terminal and run:
+```
+node --version
+git --version
+```
+  - **Node.js 24+.** OpenKnowledge requires Node.js 24 or higher. Download from [nodejs.org](https://nodejs.org/en/download/).
+  - **`git`.** OpenKnowledge uses Git for timeline and recovery. Install it from [git-scm.com](https://git-scm.com/install/).
+</Callout>
+
+<Steps>
+
+<Step>
+
+### Install the CLI and open the editor
+
+Install the CLI from npm, initialize a project, and start the editor in your browser:
+
+```bash
+# Install the CLI globally
+npm install -g @inkeep/open-knowledge
+
+# Create (or enter) a project folder, then initialize a knowledge base.
+# `ok init` scaffolds .ok/ and wires up Claude Code, Claude Desktop, Cursor, Codex, OpenCode, OpenClaw, Pi, Antigravity, LM Studio, and Hermes.
+mkdir my-knowledge-base && cd my-knowledge-base
+ok init
+
+# Serve the editor and open it in your browser.
+ok start
+```
+
+<Callout type="info">
+  Want to know exactly what these commands write to your machine — in your project, your home directory, and your editors' configs? See [What OpenKnowledge writes to your system](/docs/reference/what-open-knowledge-writes).
+</Callout>
+
+</Step>
+
+<Step>
+
+### Open the knowledge base in your AI agent
+
+The quickest route is inside the editor: the empty state's **Ask** button (or, with a document open, the bottom **Ask AI** field) hands your prompt to an in-app agent when one is available, so you can chat without leaving OpenKnowledge. To use an external editor instead, `ok init` already registered OpenKnowledge with the AI editors it could configure, so your agent can use the OpenKnowledge tools right away — open your project there, or right-click the project in the sidebar, choose **Open with AI ▸**, and pick one. If a tool's MCP entry didn't appear, see [registration outcomes](/docs/reference/cli#set-up-a-project).
+
+In the agent's chat window, add the following to get started or use a topic of your choice:
+
+<CopyPrompt>Create a knowledge base about Large Language Models. Include an overview page and separate pages for three key concepts.</CopyPrompt>
+
+<Callout type="info">
+  To avoid having to approve all OpenKnowledge tool calls, set your agent to auto-mode, full-access, or an equivalent setting.
+</Callout>
+
+<Callout type="info">
+  If your agent asks you to approve a new MCP server, approve `open-knowledge`. Cursor doesn't ask. See [Cursor → Enable the project server](/docs/integrations/cursor#enable-the-project-server).
+</Callout>
+
+</Step>
+
+<Step>
+
+### Watch your agent work
+
+You will see your agent's icon on the right of the header at the top of the window, or in its [**More actions**](/docs/features/editor#when-the-header-runs-out-of-room) menu when the header is full. Click on the icon to see the agent's [activity](/docs/features/agent-activity) across files in the knowledge base.
+
+If the agent icon is greyed out, your agent may not have started writing yet. Wait a few seconds and check again.
+
+</Step>
+
+<Step>
+
+### Explore the knowledge base
+
+The editor's sidebar shows every doc in your knowledge base. Each doc has:
+
+- A WYSIWYG body and a source-mode toggle
+- A frontmatter panel for properties
+
+When viewing a document, check out the right side pane for:
+- An outline of the document's structure
+- A list of incoming and outgoing links to other docs
+- A graph view of the document's links in the knowledge base
+- A [timeline](/docs/features/timeline-and-recovery) of recent edits with per-burst diffs and selective rollback
+
+Right-click anywhere in the sidebar (empty space, a folder, or a file) to create, reveal, rename, hide, delete, and **Open with AI**. The full feature tour is under [Features](/docs/features/editor).
+
+</Step>
+
+</Steps>
+
+</Tab>
+
+</Tabs>
+
+## What's next
+
+- Syncing your knowledge base to GitHub: [Syncing](/docs/features/git/sync)
+- Learn more about the editor: [Editor](/docs/features/editor)
+- Configure OpenKnowledge: [Configuration](/docs/reference/configuration)

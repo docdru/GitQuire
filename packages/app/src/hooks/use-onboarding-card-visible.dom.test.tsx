@@ -1,0 +1,154 @@
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import {
+  createOnboardingCardStore,
+  type OnboardingCardStorage,
+  type OnboardingCardStore,
+} from '@/lib/onboarding-card-store';
+import { useOnboardingCardVisible } from './use-onboarding-card-visible';
+
+const CURRENT_PATH = '/Users/me/project';
+
+function memoryStorage(): OnboardingCardStorage {
+  const map = new Map<string, string>();
+  return {
+    getItem: (k) => map.get(k) ?? null,
+    setItem: (k, v) => {
+      map.set(k, v);
+    },
+  };
+}
+
+function setDesktopHost(recents: Array<{ path: string }>): void {
+  (window as unknown as { okDesktop: unknown }).okDesktop = {
+    project: { listRecent: () => Promise.resolve(recents) },
+    config: { projectPath: CURRENT_PATH },
+  };
+}
+
+function clearDesktopHost(): void {
+  (window as unknown as { okDesktop?: unknown }).okDesktop = undefined;
+}
+
+function mockDocuments(documents: unknown[]): void {
+  globalThis.fetch = vi.fn(() =>
+    Promise.resolve(new Response(JSON.stringify({ documents }), { status: 200 })),
+  ) as never;
+}
+
+function Probe({ store }: { store: OnboardingCardStore }) {
+  const visible = useOnboardingCardVisible(store);
+  return <div data-testid="visible">{String(visible)}</div>;
+}
+
+let originalFetch: typeof globalThis.fetch;
+beforeEach(() => {
+  originalFetch = globalThis.fetch;
+});
+afterEach(() => {
+  cleanup();
+  globalThis.fetch = originalFetch;
+  clearDesktopHost();
+});
+
+describe('useOnboardingCardVisible', () => {
+  test('no desktop host → never visible, never activates', async () => {
+    clearDesktopHost();
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response(JSON.stringify({ documents: [] }), { status: 200 })),
+    );
+    globalThis.fetch = fetchMock as never;
+    const store = createOnboardingCardStore(memoryStorage());
+    render(<Probe store={store} />);
+    await act(async () => {});
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId('visible').textContent).toBe('false');
+    expect(store.getSnapshot().initialized).toBe(false);
+  });
+
+  test('fresh single-project desktop session → activates and becomes visible', async () => {
+    setDesktopHost([{ path: CURRENT_PATH }]);
+    mockDocuments([]);
+    const store = createOnboardingCardStore(memoryStorage());
+    render(<Probe store={store} />);
+    await waitFor(() => expect(screen.getByTestId('visible').textContent).toBe('true'));
+    expect(store.getSnapshot().initialized).toBe(true);
+  });
+
+  test('established session (other project present) → stays hidden', async () => {
+    const listRecent = vi.fn(() => Promise.resolve([{ path: CURRENT_PATH }, { path: '/other' }]));
+    (window as unknown as { okDesktop: unknown }).okDesktop = {
+      project: { listRecent },
+      config: { projectPath: CURRENT_PATH },
+    };
+    mockDocuments([]);
+    const store = createOnboardingCardStore(memoryStorage());
+    render(<Probe store={store} />);
+    await waitFor(() => expect(listRecent).toHaveBeenCalled());
+    await act(async () => {});
+    expect(screen.getByTestId('visible').textContent).toBe('false');
+    expect(store.getSnapshot().initialized).toBe(false);
+  });
+
+  test('dismissed store → hidden and skips evaluation', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response(JSON.stringify({ documents: [] }), { status: 200 })),
+    );
+    globalThis.fetch = fetchMock as never;
+    setDesktopHost([{ path: CURRENT_PATH }]);
+    const store = createOnboardingCardStore(memoryStorage());
+    store.dismiss();
+    render(<Probe store={store} />);
+    await act(async () => {});
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId('visible').textContent).toBe('false');
+  });
+
+  test('latch: stays visible after a step completes (entry count no longer 0)', async () => {
+    setDesktopHost([{ path: CURRENT_PATH }]);
+    mockDocuments([]);
+    const store = createOnboardingCardStore(memoryStorage());
+    render(<Probe store={store} />);
+    await waitFor(() => expect(screen.getByTestId('visible').textContent).toBe('true'));
+    act(() => {
+      store.markStepComplete('file');
+    });
+    expect(screen.getByTestId('visible').textContent).toBe('true');
+  });
+
+  test('completed store → hidden forever', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response(JSON.stringify({ documents: [] }), { status: 200 })),
+    );
+    globalThis.fetch = fetchMock as never;
+    setDesktopHost([{ path: CURRENT_PATH }]);
+    const store = createOnboardingCardStore(memoryStorage());
+    store.markCompleted();
+    render(<Probe store={store} />);
+    await act(async () => {});
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId('visible').textContent).toBe('false');
+  });
+
+  test('cancels a pending activation when the probe unmounts mid-flight', async () => {
+    let resolveRecents!: (r: Array<{ path: string }>) => void;
+    const listRecent = vi.fn(() => {
+      const { promise, resolve } = Promise.withResolvers<Array<{ path: string }>>();
+      resolveRecents = resolve;
+      return promise;
+    });
+    (window as unknown as { okDesktop: unknown }).okDesktop = {
+      project: { listRecent },
+      config: { projectPath: CURRENT_PATH },
+    };
+    mockDocuments([]);
+    const store = createOnboardingCardStore(memoryStorage());
+    const view = render(<Probe store={store} />);
+    await waitFor(() => expect(listRecent).toHaveBeenCalled());
+    view.unmount();
+    await act(async () => {
+      resolveRecents([{ path: CURRENT_PATH }]);
+    });
+    expect(store.getSnapshot().initialized).toBe(false);
+  });
+});

@@ -1,0 +1,86 @@
+---
+title: Find and install skills
+description: Find a skill, read what it does, and choose the AI tools that can use it.
+---
+
+Start with a skill someone has already written, or bring in one you keep elsewhere.
+
+## Find one
+
+<Steps>
+
+<Step>
+
+### Open the catalog
+
+Hover the **Skills Studio** dock header and click **Explore skills**. Search [skills.sh](https://skills.sh) for a task, such as writing or research.
+
+<Image src="/images/skills-studio/explore-skills.png" alt="The Add skill dialog with Explore selected and results for a writing search." width={1600} height={1630} />
+
+</Step>
+
+<Step>
+
+### Read it before you add it
+
+Open a result to see its full instructions, its bundled files, and how much context it costs. **Install** takes it from here, at Project or Global scope; if the source holds several skills, choose the one you want.
+
+<Image src="/images/skills-studio/explore-preview.png" alt="A skill's preview open as an editor tab, showing its instructions, token cost, and the control to add it." width={1600} height={1333} />
+
+</Step>
+
+<Step>
+
+### Choose your AI tools
+
+Open the skill's **Install** menu and check the tools that should use it, or **All**.
+
+<Image src="/images/skills-studio/install-destinations.png" alt="The Install menu lists Claude Code, Cursor, Codex, and the shared source folder, with an All control at the top." width={1600} height={860} />
+
+Each checked location points at the same source, so your tools cannot drift. Where the system does not allow symlinks, such as Windows without administrator rights or Developer Mode, a location gets a copy that refreshes from the source while unedited. [Symlink skills](./symlink-skills.mdx) covers sharing a whole folder instead.
+
+</Step>
+
+</Steps>
+
+A skill is live for its agent the moment it lands. There is no separate install step to flip: the menu controls *where* it is available.
+
+## Bring one you already have
+
+Use the **Upload** tab. It takes a GitHub repository, a git URL, a local path, a folder, or a `.zip` / `.skill` file.
+
+<Image src="/images/skills-studio/add-skill-upload.png" alt="The Add skill dialog on the Upload tab, with a repository entered and a picker for which skill to import." width={1600} height={1157} />
+
+Skills already in your AI tools' folders show up in the dock on their own. Open one to edit it in place; a read-only plugin skill offers **Edit a copy**.
+
+<Callout type="warn">
+A skill can include scripts that run on your machine. Read what it does and use sources you trust. OpenKnowledge does not run a skill's scripts during import.
+</Callout>
+
+## Use a private website source
+
+Website skill downloads require public network addresses by default. To use a trusted website on a private network, add its exact HTTPS origin to the **user** config at `~/.ok/global.yml` (`~/.ok-beta/global.yml` for Beta):
+
+```yaml
+skills:
+  trustedPrivateOrigins:
+    - https://skills.example.com
+```
+
+Use the canonical origin: a lowercase hostname and no explicit default `:443` port. Include a nondefault port if the source needs one, such as `https://skills.example.com:8443`. Do not include credentials, a trailing slash, path, wildcard, query, or fragment. Trust applies only to that exact origin, not its subdomains or other ports. Project configuration and catalog entries cannot grant this permission.
+
+The website still needs a trusted HTTPS certificate matching its hostname. Removing an origin from the list blocks subsequent private-network requests without restarting OpenKnowledge.
+
+Add approvals by editing this user file on the computer or inside the container running OpenKnowledge. There is no Settings control for this list. Collaboration sessions, including remote browser sessions, may remove approvals and change unrelated settings, but cannot add approvals.
+
+Invalid entries are ignored individually and reported by `ok config validate`; other valid approvals remain active. A malformed user config cannot grant private-network access.
+
+Unapproved sources use direct connections to public unicast addresses. Private, reserved, and translated addresses such as NAT64 are blocked. Proxy-only networks may also need explicit origin approval. Approved sources keep the runtime's configured proxy routing; approval does not disable certificate or hostname verification.
+
+## Keep it up to date
+
+An imported skill remembers where it came from.
+
+<Snippet file="skill-update-states.mdx" />
+
+Skills imported from a folder on your own machine stay in sync by default.

@@ -1,0 +1,557 @@
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import type { ElectronApplication, Locator, Page } from '@playwright/test';
+import { _electron as electron } from '@playwright/test';
+import { configureDesktopGitRepositories } from '../support/git-fixture.test-helper.ts';
+import { desktopLaunchOptions, resolveDesktopTarget } from './_helpers/launch-desktop';
+import { launchDesktopApp, waitForWindowByMode } from './_helpers/launch-readiness';
+import { sumOfDeclaredBoundsMs } from './_helpers/parse-timeouts';
+import {
+  PTY_PLATFORM_SKIP_REASON,
+  PTY_PLATFORM_SUPPORTED,
+  userDataDirFor,
+} from './_helpers/platform-gate';
+import { expect, test } from './_helpers/smoke-test';
+import { waitForShellReady } from './_helpers/terminal-ready';
+import {
+  buildInputReadyProbe,
+  readWindowsShellProfileFailure,
+  seedTerminalShellProfiles,
+  terminalSmokeEnvironment,
+  terminalSmokeShellCommands,
+  WINDOWS_PSREADLINE_PREDICTION_UNSUPPORTED,
+  type WindowsPSReadLineStateField,
+  windowsPSReadLineStateCommand,
+  windowsPSReadLineStateField,
+} from './_helpers/terminal-smoke-shell';
+import {
+  expectTerminalTabOrder,
+  openBareTerminalTab,
+  renameTerminalTab,
+  terminalTabById,
+  terminalTabIds,
+  terminalTabRow,
+  terminalTabs,
+} from './_helpers/terminal-tabs.test-helper';
+
+const TARGET = resolveDesktopTarget();
+
+const SMOKE_ENABLED = process.env.OK_DESKTOP_E2E_SMOKE === '1';
+const PRIMARY_MODIFIER = process.platform === 'darwin' ? 'Meta' : 'Control';
+const WINDOWS = process.platform === 'win32';
+const SHELL_COMMANDS = terminalSmokeShellCommands();
+
+interface Seed {
+  tmpHome: string;
+  userDataDir: string;
+  projectDir: string;
+}
+
+function seed(prefix: string): Seed {
+  const tmpHome = realpathSync(mkdtempSync(join(tmpdir(), `ok-tabs-${prefix}-home-`)));
+  const projectDir = realpathSync(mkdtempSync(join(tmpdir(), `ok-tabs-${prefix}-proj-`)));
+  mkdirSync(join(projectDir, '.ok', 'local'), { recursive: true });
+  writeFileSync(join(projectDir, '.ok', 'config.yml'), "content:\n  dir: '.'\n");
+  writeFileSync(join(projectDir, '.ok', 'local', 'config.yml'), 'terminal:\n  enabled: true\n');
+  writeFileSync(join(projectDir, 'start.md'), '# Start\n\nSeed document.\n');
+  seedTerminalShellProfiles(tmpHome, { posixRestrictPath: true });
+
+  const userDataDir = userDataDirFor(tmpHome);
+  mkdirSync(userDataDir, { recursive: true });
+  writeFileSync(
+    join(userDataDir, 'state.json'),
+    JSON.stringify({
+      recentProjects: [
+        { path: projectDir, name: 'Terminal Tabs Smoke', lastOpenedAt: new Date().toISOString() },
+      ],
+      lastOpenedProject: projectDir,
+      versionPendingInstall: null,
+      lastSeenVersion: null,
+      lastSuccessfulCheckAt: null,
+      stuckHintShown: false,
+    }),
+  );
+  return { tmpHome, userDataDir, projectDir };
+}
+
+async function launchApp(s: Seed): Promise<ElectronApplication> {
+  const deepLink = `openknowledge://open?project=${encodeURIComponent(s.projectDir)}&doc=start`;
+  return launchDesktopApp(
+    electron,
+    desktopLaunchOptions({
+      target: TARGET,
+      args: [`--user-data-dir=${s.userDataDir}`, deepLink],
+      timeout: 30_000,
+      env: {
+        ...process.env,
+        ...terminalSmokeEnvironment(s.tmpHome, { restrictPath: true }),
+        OK_DESKTOP_E2E_SMOKE: '1',
+        OK_RECLAIM_DISABLE: '1',
+      },
+    }),
+    { home: s.tmpHome },
+  ).catch((error) => {
+    for (const target of [s.tmpHome, s.projectDir]) {
+      try {
+        rmSync(target, { recursive: true, force: true });
+      } catch {}
+    }
+    throw error;
+  });
+}
+
+async function findEditorWindow(app: ElectronApplication): Promise<Page> {
+  return waitForWindowByMode(app, 'editor', { capMs: 25_000 });
+}
+
+async function clickViewTerminalItem(app: ElectronApplication): Promise<void> {
+  await app.evaluate(async ({ Menu }) => {
+    const menu = Menu.getApplicationMenu();
+    if (!menu) throw new Error('application menu is unavailable');
+    const view = menu.items.find((i) => i.label === 'View');
+    const item = view?.submenu?.items.find(
+      (i) => i.label === 'Show Terminal' || i.label === 'Hide Terminal',
+    );
+    if (!item) throw new Error('View menu is missing the required Terminal visibility item');
+    item.click();
+  });
+}
+
+const visibleSection = (page: Page) => page.locator('section[aria-label="Terminal"]:visible');
+const activeTerminalPanel = (page: Page) =>
+  page.locator('[data-terminal-session][data-state="active"]').first();
+async function openTerminal(app: ElectronApplication, page: Page): Promise<void> {
+  await expect(async () => {
+    if (!(await visibleSection(page).isVisible())) await clickViewTerminalItem(app);
+    await expect(visibleSection(page)).toBeVisible({ timeout: 5_000 });
+    await expect(activeTerminalPanel(page).locator('[data-terminal-status]')).toHaveAttribute(
+      'data-terminal-status',
+      'running',
+      { timeout: 5_000 },
+    );
+  }).toPass({ timeout: 15_000, intervals: [2_000] });
+  await waitForShellReady(
+    () => readActiveText(page),
+    (command) => typeInActive(page, `${command}\r`),
+  );
+}
+
+async function waitActiveRunning(page: Page, timeoutMs = 15_000): Promise<void> {
+  await expect(visibleSection(page)).toBeVisible({ timeout: 5_000 });
+  await expect(activeTerminalPanel(page).locator('[data-terminal-status]')).toHaveAttribute(
+    'data-terminal-status',
+    'running',
+    { timeout: timeoutMs },
+  );
+  await waitForShellReady(
+    () => readActiveText(page),
+    (command) => typeInActive(page, `${command}\r`),
+  );
+}
+
+async function openBareTab(page: Page): Promise<void> {
+  await openBareTerminalTab(page, () => waitActiveRunning(page));
+}
+
+async function activateTab(tab: Locator): Promise<void> {
+  await tab.click();
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
+}
+
+async function dragTabOnto(page: Page, fromTab: Locator, toTab: Locator): Promise<void> {
+  const from = await fromTab.boundingBox();
+  const to = await toTab.boundingBox();
+  if (!from || !to) throw new Error('terminal tab bounding box missing');
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + from.width / 2 + 14, from.y + from.height / 2, { steps: 4 });
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
+  await page.mouse.up();
+}
+
+async function typeInActive(page: Page, text: string): Promise<void> {
+  const term = activeTerminalPanel(page).locator('.xterm').first();
+  await expect(term).toBeVisible({ timeout: 5_000 });
+  await term.click();
+  await page.keyboard.type(text);
+}
+
+async function readActiveText(page: Page): Promise<string> {
+  const panel = activeTerminalPanel(page);
+  await expect(panel).toBeVisible({ timeout: 5_000 });
+  return panel.evaluate((root) => {
+    const a11y = root.querySelector('.xterm-accessibility')?.textContent ?? '';
+    const rows = root.querySelector('.xterm-rows')?.textContent ?? '';
+    return `${a11y}\n${rows}`;
+  });
+}
+
+test.describe('Terminal tabs — live Electron', () => {
+  test.skip(!SMOKE_ENABLED, 'Set OK_DESKTOP_E2E_SMOKE=1 to run Electron smoke tests.');
+  test.skip(!PTY_PLATFORM_SUPPORTED, PTY_PLATFORM_SKIP_REASON);
+  test.skip(!TARGET.exists, TARGET.missingReason);
+
+  test('first and second tabs display their initial prompt without keyboard input', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('initial-prompts');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    const expectPrompt = async () => {
+      await expect(visibleSection(page)).toBeVisible();
+      await expect
+        .poll(async () => (await readActiveText(page)).trim(), { timeout: 25_000 })
+        .not.toBe('');
+      await expect(visibleSection(page).getByTestId('terminal-starting-notice')).toHaveCount(0);
+    };
+    await clickViewTerminalItem(app);
+    await expectPrompt();
+    await openBareTerminalTab(page, expectPrompt);
+    await expect(terminalTabs(page)).toHaveCount(2);
+  });
+
+  test('no output arrives before the explicit start, and the initial prompt survives a late one', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('delayed-attach');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await clickViewTerminalItem(app);
+    await expect(visibleSection(page)).toBeVisible();
+    await expect
+      .poll(async () => (await readActiveText(page)).trim(), { timeout: 25_000 })
+      .not.toBe('');
+    const output = await page.evaluate(async () => {
+      const bridge = window.okDesktop;
+      if (!bridge) throw new Error('missing desktop bridge');
+      const created = await bridge.terminal.create({ cols: 80, rows: 24 });
+      if (!created.ok) throw new Error(created.reason);
+      const beforeStart: string[] = [];
+      let onData = (data: string): void => {
+        beforeStart.push(data);
+      };
+      const unsubscribe = bridge.terminal.onData((message) => {
+        if (message.ptyId !== created.ptyId || message.data.length === 0) return;
+        bridge.terminal.drain(message.ptyId, message.data.length);
+        onData(message.data);
+      });
+      let unsubscribeExit = () => {};
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const started = await new Promise<string>((resolve, reject) => {
+          timer = setTimeout(() => reject(new Error('initial prompt did not arrive')), 15_000);
+          onData = resolve;
+          unsubscribeExit = bridge.terminal.onExit((message) => {
+            if (message.ptyId === created.ptyId) {
+              reject(
+                new Error(
+                  message.error ??
+                    (message.neverStarted
+                      ? 'shell never started'
+                      : `shell exited: ${message.exitCode}`),
+                ),
+              );
+            }
+          });
+          void bridge.terminal.start(created.ptyId).then((attached) => {
+            if (!attached.ok) reject(new Error(attached.reason));
+          }, reject);
+        });
+        return { beforeStart, started };
+      } finally {
+        clearTimeout(timer);
+        unsubscribe();
+        unsubscribeExit();
+        await bridge.terminal.kill(created.ptyId);
+      }
+    });
+    expect(output.beforeStart).toEqual([]);
+    expect(output.started).not.toBe('');
+  });
+
+  test('a second tab spawns its own live shell (independent sessions)', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('two-shells');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await openTerminal(app, page);
+
+    const marker1 = `TAB1_PID_${Date.now().toString(36)}`;
+    await typeInActive(page, `${SHELL_COMMANDS.processId(marker1)}\r`);
+    let pid1 = '';
+    await expect
+      .poll(
+        async () => {
+          const match = (await readActiveText(page)).match(new RegExp(`${marker1}=(\\d+)`));
+          pid1 = match?.[1] ?? '';
+          return pid1.length > 0;
+        },
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    await openBareTab(page);
+    await expect(terminalTabs(page)).toHaveCount(2);
+
+    const marker2 = `TAB2_PID_${Date.now().toString(36)}`;
+    await typeInActive(page, `${SHELL_COMMANDS.processId(marker2)}\r`);
+    let pid2 = '';
+    await expect
+      .poll(
+        async () => {
+          const match = (await readActiveText(page)).match(new RegExp(`${marker2}=(\\d+)`));
+          pid2 = match?.[1] ?? '';
+          return pid2.length > 0;
+        },
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+    expect(pid2).not.toBe(pid1);
+    expect(await readActiveText(page), 'tab 1 output reached tab 2').not.toMatch(
+      new RegExp(`${marker1}=\\d+`),
+    );
+  });
+
+  test('closing a tab reaps only that shell; the survivor stays interactive', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('close-one');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await openTerminal(app, page);
+    await openBareTab(page);
+    const [, survivingTabId] = await terminalTabIds(page);
+    if (survivingTabId === undefined) throw new Error('second terminal tab was not created');
+
+    await terminalTabRow(page)
+      .getByRole('button', { name: /^Close / })
+      .first()
+      .click();
+    await expectTerminalTabOrder(page, [survivingTabId]);
+    await waitActiveRunning(page);
+    const afterSurvivor = buildInputReadyProbe();
+    await typeInActive(page, `${afterSurvivor.command}\r`);
+    await expect
+      .poll(() => readActiveText(page), { timeout: 15_000 })
+      .toContain(afterSurvivor.marker);
+  });
+
+  test('a manual rename pins over the program’s OSC title', async ({ captureStderrFor }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('rename-pin');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await openTerminal(app, page);
+
+    await typeInActive(page, `${SHELL_COMMANDS.oscTitle('PROGRAM_TITLE_ZZZ', 'OSC_FED_QQQ')}\r`);
+    const afterProgramTitle = buildInputReadyProbe();
+    await typeInActive(page, `${afterProgramTitle.command}\r`);
+    await expect
+      .poll(() => readActiveText(page), { timeout: 15_000 })
+      .toContain(afterProgramTitle.marker);
+    await expect(page.getByRole('tab', { name: 'PROGRAM_TITLE_ZZZ' })).toHaveCount(1, {
+      timeout: 5_000,
+    });
+
+    await terminalTabs(page).first().dblclick();
+    const input = page.getByRole('textbox', { name: /^Rename/ });
+    await input.fill('my build');
+    await input.press('Enter');
+    await expect(page.getByRole('tab', { name: 'my build' })).toBeVisible({ timeout: 5_000 });
+
+    await typeInActive(page, `${SHELL_COMMANDS.oscTitle('LATER_TITLE_XXX', 'OSC_LATER_PPP')}\r`);
+    const afterOscTitle = buildInputReadyProbe();
+    await typeInActive(page, `${afterOscTitle.command}\r`);
+    await expect
+      .poll(() => readActiveText(page), { timeout: 15_000 })
+      .toContain(afterOscTitle.marker);
+    await expect(terminalTabs(page)).toHaveText(['my build']);
+
+    await terminalTabs(page).first().dblclick();
+    const clearLabel = page.getByRole('textbox', { name: /^Rename/ });
+    await clearLabel.fill('');
+    await clearLabel.press('Enter');
+    await expect(terminalTabs(page)).toHaveText(['LATER_TITLE_XXX'], { timeout: 5_000 });
+  });
+
+  test('the seeded profile pins the shell’s PSReadLine state inside the run home', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    test.skip(!WINDOWS, 'PSReadLine state only exists on the Windows shell rungs.');
+    const s = seed('psreadline-state');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await openTerminal(app, page);
+
+    expect(
+      readWindowsShellProfileFailure(s.tmpHome),
+      'kind "record" is the seeded profile reporting its own failure; kind "unreadable" is a runner fault reading the harness log, not evidence about the profile',
+    ).toEqual({ kind: 'absent' });
+
+    const marker = `PSRL_STATE_${Date.now().toString(36)}`;
+    const stateField = async (field: WindowsPSReadLineStateField): Promise<string | null> =>
+      windowsPSReadLineStateField(marker, await readActiveText(page), field);
+    await typeInActive(page, `${windowsPSReadLineStateCommand(marker, s.tmpHome)}\r`);
+
+    await expect
+      .poll(() => stateField('version'), {
+        message: 'the shell reported no loaded PSReadLine for the profile to configure',
+        timeout: 15_000,
+      })
+      .toMatch(/^\d+\.\d+/);
+    await expect
+      .poll(() => stateField('history'), {
+        message: 'the PSReadLine history file resolved outside the run home',
+        timeout: 5_000,
+      })
+      .toBe('True');
+    await expect
+      .poll(() => stateField('prediction'), {
+        message: 'inline prediction stayed on, so other tests can bleed into the scraped buffer',
+        timeout: 5_000,
+      })
+      .toMatch(new RegExp(`^(None|${WINDOWS_PSREADLINE_PREDICTION_UNSUPPORTED})$`));
+  });
+
+  test('keyboard reorder changes order, keeps sticky numbers, and preserves the live shell', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('reorder-survive');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await openTerminal(app, page);
+
+    await typeInActive(page, `${SHELL_COMMANDS.setEnvironment('OK_TABMARK', 'SURVIVED_888')}\r`);
+    if (!WINDOWS) {
+      await typeInActive(page, `${SHELL_COMMANDS.output('BEFORE_REORDER_DDD')}\r`);
+    }
+    const beforeReorder = buildInputReadyProbe();
+    await typeInActive(page, `${beforeReorder.command}\r`);
+    await expect
+      .poll(() => readActiveText(page), { timeout: 15_000 })
+      .toContain(beforeReorder.marker);
+
+    const [firstTabId] = await terminalTabIds(page);
+    if (firstTabId === undefined) throw new Error('first terminal tab was not created');
+    await openBareTab(page);
+    const [, secondTabId] = await terminalTabIds(page);
+    if (secondTabId === undefined) throw new Error('second terminal tab was not created');
+    await expectTerminalTabOrder(page, [firstTabId, secondTabId]);
+    await activateTab(terminalTabById(page, firstTabId));
+    await visibleSection(page).locator('.xterm').click();
+
+    await page.keyboard.press(`${PRIMARY_MODIFIER}+Shift+ArrowRight`);
+
+    await expectTerminalTabOrder(page, [secondTabId, firstTabId]);
+    if (process.platform !== 'win32') {
+      await expect(terminalTabs(page)).toHaveText(['Terminal 2', 'Terminal 1']);
+    }
+
+    await expect(terminalTabById(page, firstTabId)).toHaveAttribute('aria-selected', 'true');
+    if (!WINDOWS) {
+      await expect
+        .poll(() => readActiveText(page), { timeout: 15_000 })
+        .toContain('BEFORE_REORDER_DDD');
+    }
+    await typeInActive(page, `${SHELL_COMMANDS.readEnvironment('OK_TABMARK', 'mk')}\r`);
+    await expect
+      .poll(() => readActiveText(page), { timeout: 15_000 })
+      .toContain('mk=[SURVIVED_888]');
+  });
+
+  test('pointer-drag reorder changes order and preserves the live shell', async ({
+    captureStderrFor,
+  }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('drag-survive');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await openTerminal(app, page);
+
+    await typeInActive(
+      page,
+      `${SHELL_COMMANDS.setEnvironment('OK_DRAGMARK', 'DRAG_SURVIVED_444')}\r`,
+    );
+    if (!WINDOWS) {
+      await typeInActive(page, `${SHELL_COMMANDS.output('BEFORE_DRAG_EEE')}\r`);
+    }
+    const beforeDrag = buildInputReadyProbe();
+    await typeInActive(page, `${beforeDrag.command}\r`);
+    await expect.poll(() => readActiveText(page), { timeout: 15_000 }).toContain(beforeDrag.marker);
+
+    const [firstTabId] = await terminalTabIds(page);
+    if (firstTabId === undefined) throw new Error('first terminal tab was not created');
+    await openBareTab(page);
+    const [, secondTabId] = await terminalTabIds(page);
+    if (secondTabId === undefined) throw new Error('second terminal tab was not created');
+    await expectTerminalTabOrder(page, [firstTabId, secondTabId]);
+    await dragTabOnto(page, terminalTabById(page, firstTabId), terminalTabById(page, secondTabId));
+
+    await expectTerminalTabOrder(page, [secondTabId, firstTabId]);
+    if (process.platform !== 'win32') {
+      await expect(terminalTabs(page)).toHaveText(['Terminal 2', 'Terminal 1']);
+    }
+
+    await activateTab(terminalTabById(page, firstTabId));
+    await visibleSection(page).locator('.xterm').click();
+    if (!WINDOWS) {
+      expect(await readActiveText(page)).toContain('BEFORE_DRAG_EEE');
+    }
+    await typeInActive(page, `${SHELL_COMMANDS.readEnvironment('OK_DRAGMARK', 'dm')}\r`);
+    await expect
+      .poll(() => readActiveText(page), { timeout: 15_000 })
+      .toContain('dm=[DRAG_SURVIVED_444]');
+  });
+
+  test('a renderer reload preserves tab labels and order', async ({ captureStderrFor }) => {
+    test.setTimeout(sumOfDeclaredBoundsMs(test.info()));
+    const s = seed('reload-preserve');
+    const app = await launchApp(s);
+    captureStderrFor(app, { home: s.tmpHome, cleanupDirs: [s.tmpHome, s.projectDir] });
+    const page = await findEditorWindow(app);
+    await configureDesktopGitRepositories(page, s.projectDir);
+    await openTerminal(app, page);
+
+    await openBareTab(page);
+    const [firstTabId, secondTabId] = await terminalTabIds(page);
+    if (firstTabId === undefined || secondTabId === undefined) {
+      throw new Error('two terminal tabs were not created');
+    }
+    await renameTerminalTab(page, terminalTabById(page, firstTabId), 'build');
+    const secondLabel = process.platform === 'win32' ? 'shell' : 'Terminal 2';
+    if (process.platform === 'win32') {
+      await renameTerminalTab(page, terminalTabById(page, secondTabId), secondLabel);
+    }
+    await dragTabOnto(page, terminalTabById(page, firstTabId), terminalTabById(page, secondTabId));
+    await expectTerminalTabOrder(page, [secondTabId, firstTabId]);
+
+    await page.reload();
+    await expect(visibleSection(page)).toBeVisible({ timeout: 20_000 });
+    await expect(terminalTabs(page)).toHaveText([secondLabel, 'build'], { timeout: 25_000 });
+  });
+});

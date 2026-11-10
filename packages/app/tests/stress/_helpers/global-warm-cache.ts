@@ -1,0 +1,185 @@
+import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { setTimeout as wait } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
+import { APP_PACKAGE_ROOT, computeSeedKey } from './seed-key.ts';
+import {
+  beginViteStartup,
+  closeServerLog,
+  createViteStartupRequest,
+  killGracefully,
+  openServerLog,
+  resolveViteSeedDir,
+  tailServerLog,
+  VITE_E2E_SEED_DIR,
+  VITE_E2E_SEED_POINTER,
+  waitForBoundViteEndpoint,
+  waitForHttpReady,
+} from './server-process.ts';
+import { removeAllDuringTeardown } from './teardown-fs.ts';
+
+const SEED_KEY_FILENAME = '.seed-key';
+const OPTIMIZER_SETTLE_BUDGET_MS = 90_000;
+const WARM_ATTEMPTS = 2;
+const OWNER_GUARD = fileURLToPath(new URL('./warm-cache-owner-guard.cjs', import.meta.url));
+
+function appendNodeOption(options: string | undefined, option: string): string {
+  if (options?.split(/\s+/).includes(option)) return options;
+  return [options, option]
+    .filter((value): value is string => value !== undefined && value !== '')
+    .join(' ');
+}
+
+function publishSeed(buildDir: string): void {
+  const seedParent = dirname(VITE_E2E_SEED_DIR);
+  const publishedDir = join(seedParent, `.vite-e2e-seed-published-${process.pid}-${randomUUID()}`);
+  const pointerTemp = join(seedParent, `.vite-e2e-seed-pointer-${process.pid}-${randomUUID()}`);
+  try {
+    renameSync(buildDir, publishedDir);
+    writeFileSync(pointerTemp, `${publishedDir}\n`, 'utf-8');
+    renameSync(pointerTemp, VITE_E2E_SEED_POINTER);
+  } catch (err) {
+    removeAllDuringTeardown(buildDir, publishedDir, pointerTemp);
+    throw err;
+  }
+}
+
+function depsDirSignature(depsDir: string): string {
+  try {
+    return readdirSync(depsDir)
+      .map((name) => {
+        try {
+          return `${name}:${statSync(join(depsDir, name)).size}`;
+        } catch {
+          return `${name}:?`;
+        }
+      })
+      .sort()
+      .join('|');
+  } catch {
+    return 'absent';
+  }
+}
+
+async function buildSeedOnce(key: string): Promise<void> {
+  const contentDir = mkdtempSync(join(tmpdir(), 'ok-warm-cache-content-'));
+  const seedParent = dirname(VITE_E2E_SEED_DIR);
+  mkdirSync(seedParent, { recursive: true });
+  const buildDir = mkdtempSync(join(seedParent, '.vite-e2e-seed-building-'));
+  const log = openServerLog('warm-cache');
+  const request = createViteStartupRequest('127.0.0.1');
+  const proc = spawn('pnpm', ['run', 'dev', '--host', request.host], {
+    cwd: APP_PACKAGE_ROOT,
+    detached: true,
+    env: {
+      ...process.env,
+      ...request.environment,
+      OK_WARM_CACHE_OWNER_PID: String(process.pid),
+      NODE_OPTIONS: appendNodeOption(
+        process.env.NODE_OPTIONS,
+        `--require=${JSON.stringify(OWNER_GUARD)}`,
+      ),
+      OK_TEST_CONTENT_DIR: contentDir,
+      OK_TEST_VITE_CACHE_DIR: buildDir,
+      OK_TEST_SKIP_I18N_COMPILE: '1',
+      NO_COLOR: process.env.NO_COLOR ?? '1',
+    },
+    stdio: ['ignore', log.fd, log.fd],
+  });
+  proc.on('error', (err) => {
+    console.warn('[e2e warm-cache] spawn error:', err);
+  });
+  const pending = beginViteStartup(request, proc);
+  let succeeded = false;
+  try {
+    const { baseURL } = await waitForBoundViteEndpoint(pending, 60_000);
+    await waitForHttpReady(baseURL, 60_000, proc, pending.startedAt);
+    const depsDir = join(buildDir, 'deps');
+    const metaPath = join(depsDir, '_metadata.json');
+    const deadline = Date.now() + OPTIMIZER_SETTLE_BUDGET_MS;
+    let lastSignature = '';
+    let stablePolls = 0;
+    while (Date.now() < deadline) {
+      if (existsSync(metaPath)) {
+        const signature = depsDirSignature(depsDir);
+        if (signature === lastSignature) {
+          stablePolls += 1;
+          if (stablePolls >= 2) break;
+        } else {
+          stablePolls = 0;
+          lastSignature = signature;
+        }
+      }
+      await wait(1_000);
+    }
+    if (!existsSync(metaPath)) {
+      throw new Error(`optimizer metadata never appeared within ${OPTIMIZER_SETTLE_BUDGET_MS}ms`);
+    }
+    if (stablePolls < 2) {
+      throw new Error(
+        `optimizer deps dir did not stabilize within ${OPTIMIZER_SETTLE_BUDGET_MS}ms (stablePolls=${stablePolls})`,
+      );
+    }
+    writeFileSync(join(buildDir, SEED_KEY_FILENAME), key, 'utf-8');
+    succeeded = true;
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    throw new Error(`${reason}\n--- dev server log tail (${log.path}) ---\n${tailServerLog(log)}`);
+  } finally {
+    try {
+      await killGracefully(proc);
+    } finally {
+      closeServerLog(log);
+      removeAllDuringTeardown(contentDir, request.receiptDir, ...(succeeded ? [] : [buildDir]));
+    }
+  }
+  try {
+    publishSeed(buildDir);
+    removeAllDuringTeardown(log.path);
+  } catch (promoteErr) {
+    removeAllDuringTeardown(buildDir, log.path);
+    throw promoteErr;
+  }
+}
+
+export default async function globalWarmViteCache(): Promise<void> {
+  const key = computeSeedKey(APP_PACKAGE_ROOT);
+  const seedDir = resolveViteSeedDir();
+  const keyPath = seedDir === undefined ? undefined : join(seedDir, SEED_KEY_FILENAME);
+  const metaPath = seedDir === undefined ? undefined : join(seedDir, 'deps', '_metadata.json');
+  if (
+    keyPath !== undefined &&
+    metaPath !== undefined &&
+    existsSync(keyPath) &&
+    existsSync(metaPath) &&
+    readFileSync(keyPath, 'utf-8') === key
+  ) {
+    return;
+  }
+  for (let attempt = 1; attempt <= WARM_ATTEMPTS; attempt += 1) {
+    try {
+      await buildSeedOnce(key);
+      return;
+    } catch (err) {
+      console.warn(
+        `[e2e warm-cache] seed build attempt ${attempt}/${WARM_ATTEMPTS} failed${
+          attempt === WARM_ATTEMPTS
+            ? ' — workers will boot with a cold optimizer cache'
+            : ', retrying'
+        }: ${String(err)}`,
+      );
+    }
+  }
+}

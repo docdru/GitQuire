@@ -1,0 +1,121 @@
+// oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
+// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+import { useEffect, useState } from 'react';
+import { OkBlob } from '@/components/OkBlob';
+import { useDocumentContext, useOpenBlobRunner } from '@/editor/DocumentContext';
+import { okCliCommandName } from '@/lib/channel-cli-copy';
+
+const GRACE_PERIOD_MS = 500;
+
+type BannerMode = 'hidden' | 'retrying' | 'terminal';
+
+export function computeBannerMode(
+  collabUrl: string | null,
+  collabTerminal: boolean,
+  graceElapsed: boolean,
+): BannerMode {
+  if (collabTerminal) return 'terminal';
+  if (collabUrl !== null) return 'hidden';
+  return graceElapsed ? 'retrying' : 'hidden';
+}
+
+type CollabError =
+  | { kind: 'error'; code: number | 'network' | 'invalid-body' }
+  | { kind: 'null-collab' }
+  | null;
+
+export function isNoCollabServerError(err: CollabError): boolean {
+  return err?.kind === 'null-collab';
+}
+
+export function describeError(err: CollabError): string {
+  if (err === null) return t`no response`;
+  if (err.kind === 'null-collab') return t`the server responded but server.lock has no port yet`;
+  if (err.code === 'network') {
+    const cliCommand = okCliCommandName();
+    return t`network error (is \`${cliCommand} start\` running?)`;
+  }
+  if (err.code === 'invalid-body') return t`/api/config returned a malformed body`;
+  const code = err.code;
+  return t`/api/config returned HTTP ${code}`;
+}
+
+export function ConnectingBanner() {
+  const openBlobRunner = useOpenBlobRunner();
+  const { collabUrl, collabTerminal, collabLastError, retryCollab } = useDocumentContext();
+  const [graceElapsed, setGraceElapsed] = useState(false);
+
+  useEffect(() => {
+    if (collabUrl !== null || collabTerminal) {
+      setGraceElapsed(false);
+      return;
+    }
+    const timer = setTimeout(() => setGraceElapsed(true), GRACE_PERIOD_MS);
+    return () => clearTimeout(timer);
+  }, [collabUrl, collabTerminal]);
+
+  const mode = computeBannerMode(collabUrl, collabTerminal, graceElapsed);
+
+  if (mode === 'hidden') return null;
+
+  if (mode === 'terminal') {
+    const isNoCollabServer = isNoCollabServerError(collabLastError);
+    const errorDetail = describeError(collabLastError);
+    const cliCommand = okCliCommandName();
+    return (
+      <div
+        role="alert"
+        aria-live="assertive"
+        className="fixed top-[var(--ok-app-header-height,0px)] inset-x-0 z-50 bg-destructive text-background text-sm text-center py-2 px-4 pl-[var(--ok-titlebar-reserve-left,1rem)] shadow-md flex items-center justify-center gap-3 flex-wrap"
+      >
+        <span>
+          {isNoCollabServer ? (
+            <Trans>
+              No collab server for this worktree — run{' '}
+              <code className="bg-background/20 px-1 rounded">{cliCommand} start</code> here, or
+              reopen the project.
+            </Trans>
+          ) : (
+            <Trans>
+              Couldn't reach collab server — {errorDetail}. Try{' '}
+              <code className="bg-background/20 px-1 rounded">{cliCommand} status</code> or collect
+              logs with{' '}
+              <code className="bg-background/20 px-1 rounded">{cliCommand} diagnose bundle</code>.
+            </Trans>
+          )}
+        </span>
+        <button
+          type="button"
+          onClick={retryCollab}
+          className="bg-background text-foreground px-2 py-0.5 rounded text-xs font-medium hover:bg-background/90"
+        >
+          <Trans>Try again</Trans>
+        </button>
+        {openBlobRunner ? (
+          <button
+            type="button"
+            onClick={openBlobRunner}
+            aria-label={t`Play Blob Run`}
+            title={t`Play Blob Run`}
+            className="ml-1 flex items-center rounded bg-background/20 px-1.5 py-1 transition-colors hover:bg-background/30"
+          >
+            <OkBlob size={22} trackMouse={false} variant="sleeping" />
+          </button>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed top-[var(--ok-app-header-height,0px)] inset-x-0 z-50 bg-warning text-background text-sm text-center py-2 px-4 pl-[var(--ok-titlebar-reserve-left,1rem)] shadow-md"
+    >
+      <Trans>Connecting — waiting for collab server</Trans>
+    </div>
+  );
+}

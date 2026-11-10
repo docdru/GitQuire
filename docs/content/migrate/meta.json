@@ -1,0 +1,5 @@
+{
+  "title": "Migrate",
+  "icon": "LuArrowRightLeft",
+  "pages": ["obsidian", "notion"]
+}

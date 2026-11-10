@@ -1,0 +1,335 @@
+// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+
+import { getGitHubStars } from '@inkeep/open-knowledge-core/utils/github-stars';
+import type { MessageDescriptor } from '@lingui/core';
+import { msg } from '@lingui/core/macro';
+import { Trans, useLingui } from '@lingui/react/macro';
+import {
+  BookOpen,
+  Bug,
+  CircleHelp,
+  Download,
+  Mail,
+  Megaphone,
+  MessageSquare,
+  RefreshCw,
+  Star,
+} from 'lucide-react';
+import type { ComponentProps, FC, ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import { ReportBugDialog } from '@/components/ReportBugDialog';
+import { SubscribeForm } from '@/components/SubscribeForm';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useBugReport } from '@/lib/bug-report-capture';
+import type { OkAboutInfo } from '@/lib/desktop-bridge-types';
+import { dispatchExternalLinkClick } from '@/lib/external-link';
+import { feedbackNudgeStore } from '@/lib/feedback-nudge-store';
+import { DISCORD_INVITE_URL, DOCS_URL, GITHUB_REPO_URL, X_PROFILE_URL } from '@/lib/social-links';
+import { subscribeCardStore } from '@/lib/subscribe-card-store';
+import { openAboutSettings } from '@/lib/use-settings-route';
+import { cn } from '@/lib/utils';
+import { FeedbackFormDialog } from './FeedbackFormDialog';
+import { DiscordIcon } from './icons/discord';
+import { GithubIcon } from './icons/github';
+import { XTwitterIcon } from './icons/x-twitter';
+
+interface ResourceLink {
+  label: string | MessageDescriptor;
+  href: string;
+  icon: FC<ComponentProps<'svg'>>;
+}
+
+interface ResourceSection {
+  key: string;
+  heading: MessageDescriptor;
+  links: ResourceLink[];
+}
+
+const sections: ResourceSection[] = [
+  {
+    key: 'resources',
+    heading: msg`Resources`,
+    links: [
+      { label: msg`Docs`, href: DOCS_URL, icon: BookOpen },
+      { label: msg`Download app`, href: 'https://openknowledge.ai/download', icon: Download },
+    ],
+  },
+  {
+    key: 'community',
+    heading: msg`Community`,
+    links: [
+      { label: 'GitHub', href: GITHUB_REPO_URL, icon: GithubIcon },
+      { label: 'X (Twitter)', href: X_PROFILE_URL, icon: XTwitterIcon },
+      { label: 'Discord', href: DISCORD_INVITE_URL, icon: DiscordIcon },
+    ],
+  },
+];
+
+const WHATS_NEW_HREF = `${GITHUB_REPO_URL}/releases`;
+
+const rowClassName =
+  'group flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-hover dark:hover:bg-sidebar-hover hover:text-sidebar-hover-foreground';
+
+function formatStarCount(count: number): string {
+  if (count < 1000) return String(count);
+  const thousands = count / 1000;
+  return `${thousands >= 10 ? Math.round(thousands) : thousands.toFixed(1)}k`;
+}
+
+const StarCount: FC<{ count: number }> = ({ count }) => {
+  const { t } = useLingui();
+  const formatted = formatStarCount(count);
+  return (
+    <span
+      role="img"
+      className="ml-auto flex items-center gap-1 text-xs tabular-nums text-muted-foreground group-hover:text-sidebar-hover-muted-foreground"
+      aria-label={t`${formatted} GitHub stars`}
+    >
+      <Star className="size-3 fill-current" aria-hidden="true" />
+      {formatted}
+    </span>
+  );
+};
+
+const ResourceLinkRow: FC<{ link: ResourceLink; trailing?: ReactNode }> = ({ link, trailing }) => {
+  const { t } = useLingui();
+  const { label, href, icon: Icon } = link;
+  return (
+    <li>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => dispatchExternalLinkClick(e, href)}
+        onAuxClick={(e) => dispatchExternalLinkClick(e, href)}
+        className={rowClassName}
+      >
+        <Icon aria-hidden="true" className="size-4 shrink-0" />
+        {typeof label === 'string' ? label : t(label)}
+        {trailing}
+      </a>
+    </li>
+  );
+};
+
+const ActionRow: FC<{
+  icon: FC<ComponentProps<'svg'>>;
+  onSelect: () => void;
+  children: ReactNode;
+}> = ({ icon: Icon, onSelect, children }) => (
+  <li>
+    <Button
+      variant="ghost"
+      className={cn(rowClassName, 'h-auto w-full justify-start font-normal')}
+      onClick={onSelect}
+    >
+      <Icon aria-hidden="true" className="size-4 shrink-0" />
+      {children}
+    </Button>
+  </li>
+);
+
+const SectionHeading: FC<{ children: ReactNode }> = ({ children }) => (
+  <p className="font-mono tracking-wide uppercase text-muted-foreground text-xs mb-1">{children}</p>
+);
+
+export const HelpPopover: FC = () => {
+  const { t } = useLingui();
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
+  const bugReport = useBugReport();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [starCount, setStarCount] = useState<number | null>(null);
+  const [about, setAbout] = useState<OkAboutInfo | null>(null);
+
+  const bridge = typeof window !== 'undefined' ? (window.okDesktop ?? null) : null;
+  const hasDesktopBridge = bridge != null;
+  const appVersion = bridge?.appVersion;
+  const whatsNewHref = about?.releasesUrl ?? WHATS_NEW_HREF;
+
+  useEffect(() => {
+    if (!popoverOpen || !bridge) return;
+    let cancelled = false;
+    bridge.state
+      .query()
+      .then((snapshot) => {
+        if (!cancelled && snapshot.about) setAbout(snapshot.about);
+      })
+      .catch((err: unknown) => {
+        console.warn('[help-popover] bridge.state.query() failed', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [popoverOpen, bridge]);
+
+  useEffect(() => {
+    if (!popoverOpen || starCount !== null) return;
+    const controller = new AbortController();
+    getGitHubStars({ signal: controller.signal }).then((count) => {
+      if (count !== null) setStarCount(count);
+    });
+    return () => controller.abort();
+  }, [popoverOpen, starCount]);
+
+  return (
+    <>
+      <Popover
+        open={popoverOpen}
+        onOpenChange={(open) => {
+          setPopoverOpen(open);
+          if (!open) setSubscribeOpen(false);
+        }}
+      >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 hover:bg-accent text-muted-foreground"
+              >
+                <CircleHelp className="size-4" />
+                <span className="sr-only">
+                  <Trans>Resources</Trans>
+                </span>
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <Trans>Resources</Trans>
+          </TooltipContent>
+        </Tooltip>
+        <PopoverContent
+          align="end"
+          aria-label={t`Resources`}
+          data-bug-report-launcher=""
+          className="w-56 p-3 subtle-scrollbar max-h-(--radix-popover-content-available-height) overflow-y-auto data-[state=closed]:overflow-hidden"
+        >
+          {sections.map((section, index) => (
+            <div key={section.key} className={cn(index > 0 && 'mt-3')}>
+              <SectionHeading>{t(section.heading)}</SectionHeading>
+              <nav aria-label={t(section.heading)}>
+                <ul className="space-y-0.5">
+                  {section.links.map((link) => (
+                    <ResourceLinkRow
+                      key={link.href}
+                      link={link}
+                      trailing={
+                        link.href === GITHUB_REPO_URL && starCount !== null ? (
+                          <StarCount count={starCount} />
+                        ) : undefined
+                      }
+                    />
+                  ))}
+                  {section.key === 'resources' && (
+                    <>
+                      {hasDesktopBridge && (
+                        <ActionRow
+                          icon={Bug}
+                          onSelect={() =>
+                            bugReport.start({ launcherBorne: true }, () => setPopoverOpen(false))
+                          }
+                        >
+                          <Trans>Report a bug</Trans>
+                        </ActionRow>
+                      )}
+                      <ActionRow
+                        icon={MessageSquare}
+                        onSelect={() => {
+                          setPopoverOpen(false);
+                          setFeedbackOpen(true);
+                        }}
+                      >
+                        <Trans>Send feedback</Trans>
+                      </ActionRow>
+                    </>
+                  )}
+                </ul>
+              </nav>
+            </div>
+          ))}
+
+          <div className="mt-3">
+            <SectionHeading>
+              <Trans>Product updates</Trans>
+            </SectionHeading>
+            <nav aria-label={t`Product updates`}>
+              <ul className="space-y-0.5">
+                <ResourceLinkRow
+                  link={{ label: msg`What's new`, href: whatsNewHref, icon: Megaphone }}
+                />
+                {bridge && about?.updateChecks === 'available' ? (
+                  <ActionRow
+                    icon={RefreshCw}
+                    onSelect={() => {
+                      setPopoverOpen(false);
+                      bridge.update.checkNow().catch((err: unknown) => {
+                        console.warn('[help-popover] bridge.update.checkNow() failed', err);
+                      });
+                    }}
+                  >
+                    <Trans>Check for updates</Trans>
+                  </ActionRow>
+                ) : null}
+                <li>
+                  <Popover open={subscribeOpen} onOpenChange={setSubscribeOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className={cn(rowClassName, 'h-auto w-full justify-start font-normal')}
+                      >
+                        <Mail aria-hidden="true" className="size-4 shrink-0" />
+                        <Trans>Subscribe</Trans>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent side="left" align="center" sideOffset={20} className="w-80">
+                      <SubscribeForm
+                        source="resources_menu"
+                        autoFocus
+                        onDismiss={() => setSubscribeOpen(false)}
+                        onSuccess={() => subscribeCardStore.markSubscribed()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          {appVersion ? (
+            <div className="mt-3 border-t pt-2">
+              <Button
+                variant="ghost"
+                className={cn(
+                  rowClassName,
+                  'h-auto w-full flex-wrap justify-between gap-y-0.5 text-start font-mono text-xs font-normal whitespace-normal',
+                )}
+                onClick={() => {
+                  setPopoverOpen(false);
+                  openAboutSettings();
+                }}
+                data-testid="help-popover-version"
+              >
+                <span className="min-w-0 max-w-full truncate">v{appVersion}</span>{' '}
+                <span className="font-sans text-muted-foreground group-hover:text-sidebar-hover-muted-foreground">
+                  <Trans>About & updates</Trans>
+                </span>
+              </Button>
+            </div>
+          ) : null}
+        </PopoverContent>
+      </Popover>
+      {hasDesktopBridge && (
+        <ReportBugDialog capture={bugReport.capture} onClose={bugReport.close} />
+      )}
+      <FeedbackFormDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        onSuccess={() => feedbackNudgeStore.dismiss()}
+      />
+    </>
+  );
+};

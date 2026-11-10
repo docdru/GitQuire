@@ -1,0 +1,624 @@
+/**
+ * Exercises the `render` API surface (via `<HookProbe>` wrapper) under the jsdom substrate
+ * (precedent #43). Pairs with the verbatim user-intent contract
+ * documented in precedent #40(a).
+ */
+
+import { act, cleanup, render, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
+import { useThemeBridge } from './use-theme-bridge';
+
+const ASYNC_EFFECT_TIMEOUT_MS = 1000;
+
+interface StubBridge {
+  setThemeSource: (value: string) => Promise<{ ok: true }>;
+  signalThemeApplied: (payload: { reducedTransparency: boolean }) => void;
+  readonly setThemeSourceCalls: ReadonlyArray<string>;
+  readonly signalThemeAppliedCalls: ReadonlyArray<{ reducedTransparency: boolean }>;
+}
+
+function makeStubBridge(): StubBridge {
+  const setCalls: string[] = [];
+  const signalCalls: Array<{ reducedTransparency: boolean }> = [];
+  return {
+    setThemeSource: (value: string) => {
+      setCalls.push(value);
+      return Promise.resolve({ ok: true as const });
+    },
+    signalThemeApplied: (payload: { reducedTransparency: boolean }) => {
+      signalCalls.push(payload);
+    },
+    setThemeSourceCalls: setCalls,
+    signalThemeAppliedCalls: signalCalls,
+  };
+}
+
+function makeRejectingBridge(rejectionError: Error): StubBridge {
+  const setCalls: string[] = [];
+  const signalCalls: Array<{ reducedTransparency: boolean }> = [];
+  return {
+    setThemeSource: (value: string) => {
+      setCalls.push(value);
+      return Promise.reject(rejectionError);
+    },
+    signalThemeApplied: (payload: { reducedTransparency: boolean }) => {
+      signalCalls.push(payload);
+    },
+    setThemeSourceCalls: setCalls,
+    signalThemeAppliedCalls: signalCalls,
+  };
+}
+
+interface DeferredBridge extends StubBridge {
+  resolveCall: (index: number) => void;
+  rejectCall: (index: number, error: Error) => void;
+}
+
+function makeDeferredBridge(): DeferredBridge {
+  const setCalls: string[] = [];
+  const signalCalls: Array<{ reducedTransparency: boolean }> = [];
+  const pending: Array<{ resolve: () => void; reject: (error: Error) => void }> = [];
+  return {
+    setThemeSource: (value: string) => {
+      setCalls.push(value);
+      return new Promise<{ ok: true }>((resolve, reject) => {
+        pending.push({ resolve: () => resolve({ ok: true as const }), reject });
+      });
+    },
+    signalThemeApplied: (payload: { reducedTransparency: boolean }) => {
+      signalCalls.push(payload);
+    },
+    setThemeSourceCalls: setCalls,
+    signalThemeAppliedCalls: signalCalls,
+    resolveCall: (index: number) => {
+      const deferred = pending[index];
+      if (!deferred) throw new Error(`no pending setThemeSource call at index ${index}`);
+      deferred.resolve();
+    },
+    rejectCall: (index: number, error: Error) => {
+      const deferred = pending[index];
+      if (!deferred) throw new Error(`no pending setThemeSource call at index ${index}`);
+      deferred.reject(error);
+    },
+  };
+}
+
+function HookProbe({
+  bridge,
+  themeValue,
+  colorThemeKey,
+}: {
+  bridge: OkDesktopBridge | undefined;
+  themeValue: string | undefined;
+  colorThemeKey?: string;
+}) {
+  useThemeBridge(bridge, themeValue, colorThemeKey);
+  return <div data-testid="theme-bridge-probe" />;
+}
+
+function installControllableMatchMedia(initialMatches: boolean) {
+  const originalWindowMatchMedia = window.matchMedia;
+  const originalGlobalMatchMedia = globalThis.matchMedia;
+  const listeners = new Set<(event: MediaQueryListEvent) => void>();
+  const queries: string[] = [];
+  let matches = initialMatches;
+  const mql = {
+    get matches() {
+      return matches;
+    },
+    media: '',
+    onchange: null,
+    addEventListener: (type: string, listener: EventListenerOrEventListenerObject) => {
+      if (type !== 'change') return;
+      listeners.add(listener as (event: MediaQueryListEvent) => void);
+    },
+    removeEventListener: (type: string, listener: EventListenerOrEventListenerObject) => {
+      if (type !== 'change') return;
+      listeners.delete(listener as (event: MediaQueryListEvent) => void);
+    },
+    addListener: (listener: (event: MediaQueryListEvent) => void) => {
+      listeners.add(listener);
+    },
+    removeListener: (listener: (event: MediaQueryListEvent) => void) => {
+      listeners.delete(listener);
+    },
+    dispatchEvent: () => false,
+  } as unknown as MediaQueryList;
+  const matchMedia = (query: string) => {
+    queries.push(query);
+    (mql as { media: string }).media = query;
+    return mql;
+  };
+
+  window.matchMedia = matchMedia;
+  globalThis.matchMedia = matchMedia;
+
+  return {
+    queries,
+    get listenerCount() {
+      return listeners.size;
+    },
+    dispatchChange(nextMatches: boolean) {
+      matches = nextMatches;
+      const event = { matches: nextMatches, media: mql.media } as MediaQueryListEvent;
+      for (const listener of listeners) listener(event);
+    },
+    restore() {
+      window.matchMedia = originalWindowMatchMedia;
+      globalThis.matchMedia = originalGlobalMatchMedia;
+    },
+  };
+}
+
+describe('useThemeBridge (Tier-3 mount)', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    cleanup();
+    consoleErrorSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+  });
+
+  test('exports the hook', async () => {
+    const mod = await import('./use-theme-bridge');
+    expect(typeof mod.useThemeBridge).toBe('function');
+  });
+
+  test('no-ops without a bridge or a valid theme value', async () => {
+    const stubBridge = makeStubBridge();
+    let view!: ReturnType<typeof render>;
+    await act(async () => {
+      view = render(<HookProbe bridge={undefined} themeValue="system" />);
+      await Promise.resolve();
+    });
+
+    expect(stubBridge.setThemeSourceCalls).toHaveLength(0);
+    expect(stubBridge.signalThemeAppliedCalls).toHaveLength(0);
+
+    await act(async () => {
+      view.rerender(
+        <HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="solarized" />,
+      );
+      await Promise.resolve();
+    });
+
+    expect(stubBridge.setThemeSourceCalls).toHaveLength(0);
+    expect(stubBridge.signalThemeAppliedCalls).toHaveLength(0);
+  });
+
+  test('forwards themeValue verbatim to setThemeSource on mount', async () => {
+    const stubBridge = makeStubBridge();
+    render(<HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="system" />);
+
+    await waitFor(
+      () => {
+        expect(stubBridge.setThemeSourceCalls.length).toBe(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.setThemeSourceCalls[0]).toBe('system');
+  });
+
+  test('signalThemeApplied fires after the .finally(...) drain with the matchMedia reading', async () => {
+    const stubBridge = makeStubBridge();
+    render(<HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="dark" />);
+
+    await waitFor(
+      () => {
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.signalThemeAppliedCalls[0]).toEqual({
+      reducedTransparency: false,
+    });
+  });
+
+  test('cleanup on unmount: signalThemeApplied does NOT fire after unmount, no React warning', async () => {
+    const stubBridge = makeStubBridge();
+    const { unmount } = render(
+      <HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="light" />,
+    );
+
+    unmount();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(stubBridge.signalThemeAppliedCalls.length).toBe(0);
+
+    const sawPostUnmountWarning = consoleErrorSpy.mock.calls.some((call: unknown[]) => {
+      const message = call[0];
+      return typeof message === 'string' && /unmount(ed)? component/i.test(message);
+    });
+    expect(sawPostUnmountWarning).toBe(false);
+  });
+
+  test('rerender with the same themeValue forwards the original verbatim user-intent', async () => {
+    const stubBridge = makeStubBridge();
+    const { rerender } = render(
+      <HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="system" />,
+    );
+
+    await waitFor(
+      () => {
+        expect(stubBridge.setThemeSourceCalls.length).toBe(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.setThemeSourceCalls[0]).toBe('system');
+
+    rerender(<HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="system" />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(stubBridge.setThemeSourceCalls.length).toBe(1);
+    expect(stubBridge.setThemeSourceCalls[0]).toBe('system');
+  });
+
+  test('rerender with a changed themeValue re-fires setThemeSource and releases gate', async () => {
+    const stubBridge = makeStubBridge();
+    const { rerender } = render(
+      <HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="system" />,
+    );
+
+    await waitFor(
+      () => {
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.setThemeSourceCalls.length).toBe(1);
+    expect(stubBridge.setThemeSourceCalls[0]).toBe('system');
+
+    rerender(<HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="dark" />);
+
+    await waitFor(
+      () => {
+        expect(stubBridge.setThemeSourceCalls.length).toBe(2);
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(2);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.setThemeSourceCalls[1]).toBe('dark');
+  });
+
+  test('reports the desk, not the file list surface, as the hex window chrome colour', async () => {
+    const tokens = {
+      '--sidebar': 'rgb(250, 250, 250)',
+      '--desk': 'rgb(245, 245, 245)',
+      '--sidebar-foreground': 'rgb(10, 10, 10)',
+    };
+    for (const [name, value] of Object.entries(tokens)) {
+      document.documentElement.style.setProperty(name, value);
+    }
+    const computedStyle = window.getComputedStyle.bind(window);
+    const resolveVarReferences = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((element, pseudo) => {
+        const style = computedStyle(element, pseudo);
+        const token = /^var\((--[\w-]+)\)$/.exec(style.backgroundColor)?.[1];
+        if (token === undefined) return style;
+        const value = document.documentElement.style.getPropertyValue(token).trim();
+        return { backgroundColor: value || 'rgba(0, 0, 0, 0)' } as CSSStyleDeclaration;
+      });
+    const stubBridge = makeStubBridge();
+    try {
+      render(
+        <HookProbe
+          bridge={stubBridge as unknown as OkDesktopBridge}
+          themeValue="light"
+          colorThemeKey="default:"
+        />,
+      );
+      await waitFor(
+        () => {
+          expect(stubBridge.signalThemeAppliedCalls.length).toBe(1);
+        },
+        { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+      );
+      expect(stubBridge.signalThemeAppliedCalls[0]?.chrome).toEqual({
+        bg: '#f5f5f5',
+        symbol: '#0a0a0a',
+      });
+    } finally {
+      resolveVarReferences.mockRestore();
+      for (const name of Object.keys(tokens)) {
+        document.documentElement.style.removeProperty(name);
+      }
+    }
+  });
+
+  test('a same-mode palette switch re-reports chrome even though themeValue is unchanged', async () => {
+    const stubBridge = makeStubBridge();
+    const { rerender } = render(
+      <HookProbe
+        bridge={stubBridge as unknown as OkDesktopBridge}
+        themeValue="dark"
+        colorThemeKey="dracula:"
+      />,
+    );
+
+    await waitFor(
+      () => {
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+
+    rerender(
+      <HookProbe
+        bridge={stubBridge as unknown as OkDesktopBridge}
+        themeValue="dark"
+        colorThemeKey="monokai:"
+      />,
+    );
+
+    await waitFor(
+      () => {
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(2);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.setThemeSourceCalls).toEqual(['dark']);
+  });
+
+  test('a readiness re-entry with an unchanged preference re-reports chrome without re-pushing the source', async () => {
+    const stubBridge = makeStubBridge();
+    const typedBridge = stubBridge as unknown as OkDesktopBridge;
+    const { rerender } = render(<HookProbe bridge={undefined} themeValue={undefined} />);
+
+    rerender(<HookProbe bridge={typedBridge} themeValue="system" />);
+    await waitFor(
+      () => {
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.setThemeSourceCalls).toEqual(['system']);
+
+    rerender(<HookProbe bridge={undefined} themeValue={undefined} />);
+    rerender(<HookProbe bridge={typedBridge} themeValue="system" />);
+
+    await waitFor(
+      () => {
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(2);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(stubBridge.setThemeSourceCalls).toEqual(['system']);
+  });
+
+  test('a re-render with a referentially distinct bridge re-pushes the unchanged preference', async () => {
+    const firstBridge = makeStubBridge();
+    const secondBridge = makeStubBridge();
+    expect(secondBridge).not.toBe(firstBridge);
+    const { rerender } = render(
+      <HookProbe bridge={firstBridge as unknown as OkDesktopBridge} themeValue="system" />,
+    );
+    await waitFor(
+      () => {
+        expect(firstBridge.setThemeSourceCalls).toEqual(['system']);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+
+    rerender(<HookProbe bridge={secondBridge as unknown as OkDesktopBridge} themeValue="system" />);
+
+    await waitFor(
+      () => {
+        expect(secondBridge.setThemeSourceCalls).toEqual(['system']);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+    expect(firstBridge.setThemeSourceCalls).toEqual(['system']);
+  });
+
+  test('a superseded push that later fails leaves the push that replaced it recorded', async () => {
+    const deferredBridge = makeDeferredBridge();
+    const typedBridge = deferredBridge as unknown as OkDesktopBridge;
+    const { rerender } = render(
+      <HookProbe bridge={typedBridge} themeValue="light" colorThemeKey="before" />,
+    );
+    expect(deferredBridge.setThemeSourceCalls).toEqual(['light']);
+
+    rerender(<HookProbe bridge={typedBridge} themeValue="dark" colorThemeKey="before" />);
+    expect(deferredBridge.setThemeSourceCalls).toEqual(['light', 'dark']);
+
+    await act(async () => {
+      deferredBridge.resolveCall(1);
+    });
+    await act(async () => {
+      deferredBridge.rejectCall(0, new Error('ipc-teardown: superseded push unreachable'));
+    });
+
+    rerender(<HookProbe bridge={typedBridge} themeValue="dark" colorThemeKey="after" />);
+
+    expect(deferredBridge.setThemeSourceCalls).toEqual(['light', 'dark']);
+  });
+
+  test('a re-entry that skips the push waits for that push before signalling the theme applied', async () => {
+    const deferredBridge = makeDeferredBridge();
+    const typedBridge = deferredBridge as unknown as OkDesktopBridge;
+    const { rerender } = render(
+      <HookProbe bridge={typedBridge} themeValue="system" colorThemeKey="before" />,
+    );
+    expect(deferredBridge.setThemeSourceCalls).toEqual(['system']);
+    expect(deferredBridge.signalThemeAppliedCalls).toHaveLength(0);
+
+    rerender(<HookProbe bridge={typedBridge} themeValue="system" colorThemeKey="after" />);
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(deferredBridge.setThemeSourceCalls).toEqual(['system']);
+    expect(deferredBridge.signalThemeAppliedCalls).toHaveLength(0);
+
+    await act(async () => {
+      deferredBridge.resolveCall(0);
+    });
+    await waitFor(
+      () => {
+        expect(deferredBridge.signalThemeAppliedCalls).toHaveLength(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+  });
+
+  test('a push that fails without being superseded is re-attempted on the next re-entry', async () => {
+    const deferredBridge = makeDeferredBridge();
+    const typedBridge = deferredBridge as unknown as OkDesktopBridge;
+    const { rerender } = render(
+      <HookProbe bridge={typedBridge} themeValue="dark" colorThemeKey="before" />,
+    );
+    expect(deferredBridge.setThemeSourceCalls).toEqual(['dark']);
+
+    await act(async () => {
+      deferredBridge.rejectCall(0, new Error('ipc-teardown: setThemeSource bridge unreachable'));
+    });
+
+    rerender(<HookProbe bridge={typedBridge} themeValue="dark" colorThemeKey="after" />);
+
+    expect(deferredBridge.setThemeSourceCalls).toEqual(['dark', 'dark']);
+  });
+
+  test('waits for the final transition sample without rerendering its owner', async () => {
+    let active = true;
+    let renders = 0;
+    const getAnimations = document.documentElement.getAnimations;
+    document.documentElement.getAnimations = () =>
+      active ? ([{ transitionProperty: '--background' }] as unknown as Animation[]) : [];
+    const stubBridge = makeStubBridge();
+    function Owner() {
+      renders += 1;
+      useThemeBridge(stubBridge as unknown as OkDesktopBridge, 'dark');
+      return null;
+    }
+    const view = render(<Owner />);
+    try {
+      await act(async () => {
+        await Promise.resolve();
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      });
+      expect(stubBridge.signalThemeAppliedCalls).toHaveLength(0);
+      const rendersBeforeSettlement = renders;
+      active = false;
+      await waitFor(() => expect(stubBridge.signalThemeAppliedCalls).toHaveLength(1));
+      expect(renders).toBe(rendersBeforeSettlement);
+      await act(async () => {
+        document.head.appendChild(document.createElement('style')).remove();
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      });
+      expect(stubBridge.signalThemeAppliedCalls).toHaveLength(1);
+    } finally {
+      view.unmount();
+      document.documentElement.getAnimations = getAnimations;
+    }
+  });
+
+  test('rejection path: signalThemeApplied still fires via .finally so the show-gate releases', async () => {
+    const rejectionError = new Error('ipc-teardown: setThemeSource bridge unreachable');
+    const stubBridge = makeRejectingBridge(rejectionError);
+    render(<HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="system" />);
+
+    await waitFor(
+      () => {
+        expect(stubBridge.signalThemeAppliedCalls.length).toBe(1);
+      },
+      { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+    );
+
+    expect(stubBridge.setThemeSourceCalls.length).toBe(1);
+    expect(stubBridge.signalThemeAppliedCalls[0]).toEqual({
+      reducedTransparency: false,
+    });
+    const sawStructuredWarn = consoleWarnSpy.mock.calls.some((call: unknown[]) => {
+      const message = call[0];
+      if (typeof message !== 'string') return false;
+      try {
+        const parsed = JSON.parse(message) as { event?: string; themeValue?: string };
+        return parsed.event === 'theme-source-set-failed' && parsed.themeValue === 'system';
+      } catch {
+        return false;
+      }
+    });
+    expect(sawStructuredWarn).toBe(true);
+  });
+
+  test('reduced-transparency changes signal main and the listener is removed on unmount', async () => {
+    const media = installControllableMatchMedia(false);
+    try {
+      const stubBridge = makeStubBridge();
+      const { unmount } = render(
+        <HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="system" />,
+      );
+
+      await waitFor(
+        () => {
+          expect(stubBridge.signalThemeAppliedCalls.length).toBe(1);
+        },
+        { timeout: ASYNC_EFFECT_TIMEOUT_MS },
+      );
+      expect(media.queries).toContain('(prefers-reduced-transparency: reduce)');
+      expect(media.listenerCount).toBe(1);
+
+      media.dispatchChange(true);
+      expect(stubBridge.signalThemeAppliedCalls.at(-1)).toEqual({
+        reducedTransparency: true,
+      });
+
+      unmount();
+      expect(media.listenerCount).toBe(0);
+      media.dispatchChange(false);
+      expect(stubBridge.signalThemeAppliedCalls).toHaveLength(2);
+    } finally {
+      media.restore();
+    }
+  });
+
+  test('coalesces reduced-transparency changes until the theme fade settles', async () => {
+    const media = installControllableMatchMedia(false);
+    let active = false;
+    const getAnimations = document.documentElement.getAnimations;
+    document.documentElement.getAnimations = () =>
+      active ? ([{ transitionProperty: '--background' }] as unknown as Animation[]) : [];
+    const stubBridge = makeStubBridge();
+    const view = render(
+      <HookProbe bridge={stubBridge as unknown as OkDesktopBridge} themeValue="dark" />,
+    );
+    try {
+      await waitFor(() => expect(stubBridge.signalThemeAppliedCalls).toHaveLength(1));
+      await act(async () => {
+        active = true;
+        const event = new Event('transitionrun');
+        Object.defineProperty(event, 'propertyName', { value: '--background' });
+        document.documentElement.dispatchEvent(event);
+        media.dispatchChange(true);
+        media.dispatchChange(false);
+        media.dispatchChange(true);
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      });
+      expect(stubBridge.signalThemeAppliedCalls).toHaveLength(1);
+      active = false;
+      await waitFor(() => expect(stubBridge.signalThemeAppliedCalls).toHaveLength(2));
+      expect(stubBridge.signalThemeAppliedCalls.at(-1)).toEqual({ reducedTransparency: true });
+      media.dispatchChange(true);
+      expect(stubBridge.signalThemeAppliedCalls).toHaveLength(2);
+    } finally {
+      view.unmount();
+      document.documentElement.getAnimations = getAnimations;
+      media.restore();
+    }
+  });
+});

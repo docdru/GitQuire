@@ -1,0 +1,72 @@
+---
+title: "Callout"
+description: "Alert / admonition with 15 type variants — 5 GFM (note, tip, important, warning, caution) plus 10 extended (abstract, info, todo, success, question, failure, danger, bug, example, quote)"
+keywords: "note, tip, important, warning, caution, abstract, info, todo, success, question, failure, danger"
+---
+
+## Example
+
+<ComponentPreview>
+  <CalloutPreview type="tip" title="Ship a good default">
+    Pick the type that matches the intent — <code>tip</code> for advice,
+    <code>warning</code> for things that can bite, <code>note</code> for
+    background context. The icon and accent color track the type automatically.
+  </CalloutPreview>
+</ComponentPreview>
+
+```md
+> [!TIP]
+> Pick the type that matches the intent — `tip` for advice, `warning`
+> for things that can bite, `note` for background context.
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "type": {
+    description: "Callout variant",
+    type: "'note' | 'tip' | 'important' | 'warning' | 'caution' | 'abstract' | 'info' | 'todo' | 'success' | 'question' | 'failure' | 'danger' | 'bug' | 'example' | 'quote'",
+    required: false,
+    default: "note",
+  },
+  "title": {
+    description: "Optional heading shown above the body",
+    type: "string",
+    required: false,
+  },
+  "icon": {
+    description: "Custom lucide icon override (e.g. \\`lucide:Lightbulb\\`)",
+    type: "string",
+    required: false,
+  },
+  "color": {
+    description: "Optional accent color override (hex — e.g. \\`#F05032\\`)",
+    type: "string",
+    required: false,
+  },
+  "collapsible": {
+    description: "Render as a foldable \\`<details>\\`; in the blockquote form, \\`> [!TYPE]+\\` starts open and \\`> [!TYPE]-\\` starts closed",
+    type: "boolean",
+    required: false,
+    default: "false",
+  },
+  "defaultOpen": {
+    description: "When collapsible, start in the open state",
+    type: "boolean",
+    required: false,
+    default: "true",
+  },
+  "children": {
+    description: "Callout content",
+    type: "ReactNode",
+    required: true,
+  },
+}}
+/>
+
+_Also matches:_ `note`, `tip`, `important`, `warning`, `caution`, `abstract`, `info`, `todo`, `success`, `question`, `failure`, `danger`, `bug`, `example`, `quote`, `alert`, `admonition`, `callout`
+
+## Author it
+
+Type `/note` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

@@ -1,0 +1,252 @@
+---
+title: Agentic search
+icon: LuSearch
+description: "How an agent finds things with no vector database: it searches, greps, and follows backlinks in a loop over live files that come back with their graph context attached, not a vector copy."
+---
+
+OpenKnowledge answers questions across thousands of files with no vector database. Two techniques do the work: retrieval runs as a **loop**, over **virtualized files** that hand the agent a briefing on every read.
+
+## Retrieval is a loop
+
+```html preview
+<div style="padding:18px">
+  <div id="row" style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch"></div>
+  <div class="cap">Each step is an MCP tool call; the model picks the next one. A wrong hit just loops back. No fixed pipeline.</div>
+</div>
+<style>
+#row .node{flex:1;min-width:112px;border:1px solid var(--border);border-radius:12px;padding:11px 13px;background:var(--card);transition:box-shadow .3s,border-color .3s;cursor:pointer}
+#row .node .t{font-weight:600;font-size:13px}
+#row .node .s{color:var(--muted-foreground);font-size:11.5px;margin-top:2px}
+#row .node.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--accent-soft)}
+#row .node.on .t{color:var(--accent-ink)}
+#row .arrow{align-self:center;color:var(--muted-foreground)}
+.cap{margin-top:12px;color:var(--muted-foreground);font-size:12.5px}
+.cap::before{content:"\21BB  ";color:var(--primary);font-weight:700}
+@media (prefers-reduced-motion:reduce){#row .node{transition:none}}
+</style>
+<script>
+var steps=[["Ask","your question"],["search / grep / ls","over live files"],["read a file","with graph context"],["decide","enough to answer?"],["answer","with citations"]];
+var row=document.getElementById("row"),nodes=[];
+steps.forEach(function(s,i){
+  if(i){var a=document.createElement("div");a.className="arrow";a.textContent="→";row.appendChild(a);}
+  var d=document.createElement("div");d.className="node";
+  var t=document.createElement("div");t.className="t";t.textContent=s[0];
+  var sub=document.createElement("div");sub.className="s";sub.textContent=s[1];
+  d.appendChild(t);d.appendChild(sub);
+  d.onclick=function(){pinned=true;set(i);};
+  row.appendChild(d);nodes.push(d);
+});
+var cur=0,pinned=false;
+function set(i){cur=i;nodes.forEach(function(n,j){n.classList.toggle("on",j===i);});}
+set(0);
+if(!matchMedia("(prefers-reduced-motion:reduce)").matches){setInterval(function(){if(!pinned)set((cur+1)%nodes.length);},1400);}
+</script>
+```
+
+Classic RAG embeds your question once and pastes in the nearest chunks; if they are wrong, so is the answer. Here each step is an MCP tool call and the model picks the next one: search, read, follow a backlink, reformulate. A wrong first hit costs one more step, not the whole answer.
+
+## Every read is a briefing
+
+A `cat` through OpenKnowledge returns more than the bytes on disk: the file, frontmatter and all, plus its place in the graph: the backlinks pointing at it, its outbound links, and its version history.
+
+```html preview
+<div style="padding:18px">
+  <div class="seg">
+    <button data-v="raw">raw disk &middot; cat</button>
+    <button data-v="ok" class="on">OpenKnowledge &middot; exec</button>
+  </div>
+  <pre id="code"></pre>
+  <div id="rich"><div class="inner"></div></div>
+</div>
+<style>
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;padding:2px;background:var(--muted);margin-bottom:12px}
+.seg button{border:0;background:transparent;color:var(--muted-foreground);font:inherit;font-size:12.5px;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+#code{margin:0;background:var(--muted);border-radius:10px;padding:12px 14px;font:12.5px ui-monospace,Menlo,monospace;color:var(--foreground);white-space:pre-wrap}
+.fm{color:var(--muted-foreground)}
+.dim{color:var(--muted-foreground)}
+#rich{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s ease,opacity .45s ease}
+#rich.show{grid-template-rows:1fr;opacity:1;margin-top:12px}
+#rich .inner{overflow:hidden}
+.card{border:1px dashed var(--primary);border-radius:10px;padding:13px}
+.hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);margin-bottom:10px}
+.rowk{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:9px;font-size:12.5px}
+.k{width:80px;flex:none;color:var(--muted-foreground);font-family:ui-monospace,monospace}
+.chip{border:1px solid var(--border);background:var(--card);border-radius:7px;padding:1px 7px;font-family:ui-monospace,monospace;font-size:11.5px}
+.ver{display:flex;flex-direction:column;gap:3px;font-family:ui-monospace,monospace;font-size:11.5px}
+.ver b{color:var(--foreground)}
+</style>
+<script>
+var code=document.getElementById("code"),rich=document.getElementById("rich"),btns=document.querySelectorAll(".seg button");
+var file='<span class="fm">---\ntitle: Authentication\nstatus: canonical\n---</span>\n# Authentication\n...the file...';
+rich.querySelector(".inner").innerHTML='<div class="card"><div class="hd">attached by exec &middot; graph + history</div>'
++'<div class="rowk"><span class="k">graph</span><span class="chip">hub</span> <span class="dim">many docs link here</span></div>'
++'<div class="rowk"><span class="k">backlinks</span><span class="chip">login.md</span><span class="chip">sessions.md</span><span class="chip">sso.md</span><span class="dim">who points here</span></div>'
++'<div class="rowk"><span class="k">links to</span><span class="chip">tokens.md</span><span class="chip">oauth.md</span></div>'
++'<div class="rowk"><span class="k">history</span><span class="ver"><span><b>you</b> &middot; add SSO section</span><span><b>claude-code</b> &middot; tighten token refresh</span></span></div>'
++'</div>';
+function set(v){
+  code.innerHTML=(v==="ok"?'<span class="dim">exec("cat architecture/auth.md")</span>':'<span class="dim">$ cat architecture/auth.md</span>')+"\n"+file;
+  rich.classList.toggle("show",v==="ok");
+  btns.forEach(function(b){b.classList.toggle("on",b.dataset.v===v);});
+}
+btns.forEach(function(b){b.onclick=function(){set(b.dataset.v);};});
+set("ok");
+</script>
+```
+
+The same holds for a whole folder. A raw `ls` is a list of filenames; through OpenKnowledge it comes back as a map, so the agent knows where to look next without opening anything.
+
+```html preview
+<div style="padding:18px">
+  <div class="seg">
+    <button data-v="raw">raw disk &middot; ls</button>
+    <button data-v="ok" class="on">OpenKnowledge &middot; exec</button>
+  </div>
+  <pre id="code"></pre>
+  <div id="rich"><div class="inner"></div></div>
+</div>
+<style>
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;padding:2px;background:var(--muted);margin-bottom:12px}
+.seg button{border:0;background:transparent;color:var(--muted-foreground);font:inherit;font-size:12.5px;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+#code{margin:0;background:var(--muted);border-radius:10px;padding:12px 14px;font:12.5px ui-monospace,Menlo,monospace;color:var(--foreground);white-space:pre-wrap}
+.dim{color:var(--muted-foreground)}
+#rich{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s ease,opacity .45s ease}
+#rich.show{grid-template-rows:1fr;opacity:1;margin-top:12px}
+#rich .inner{overflow:hidden}
+.card{border:1px dashed var(--primary);border-radius:10px;padding:13px}
+.hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);margin-bottom:10px}
+.rowk{display:flex;gap:9px;flex-wrap:wrap;align-items:baseline;margin-bottom:9px;font-size:12.5px}
+.k{width:94px;flex:none;color:var(--foreground);font-family:ui-monospace,monospace}
+.chip{border:1px solid var(--border);background:var(--card);border-radius:7px;padding:1px 7px;font-size:11.5px}
+</style>
+<script>
+var code=document.getElementById("code"),rich=document.getElementById("rich"),btns=document.querySelectorAll(".seg button");
+rich.querySelector(".inner").innerHTML='<div class="card"><div class="hd">added by OpenKnowledge &middot; beyond the filenames</div>'
++'<div class="rowk"><span class="k">description</span><span>how auth, sessions, and tokens fit together</span></div>'
++'<div class="rowk"><span class="k">tags</span><span class="dim">auth, security</span></div>'
++'<div class="rowk"><span class="k">templates</span><span class="chip">adr</span><span class="dim">Architecture decision record</span></div>'
++'<div class="rowk"><span class="k">contains</span><span class="dim">8 md files &middot; 1 subdir (providers/)</span></div>'
++'<div class="rowk"><span class="k">auth.md</span><span class="chip">Authentication</span><span class="dim">status: canonical &middot; 4 backlinks</span></div>'
++'<div class="rowk"><span class="k">sessions.md</span><span class="chip">Session lifecycle</span><span class="dim">2 backlinks</span></div>'
++'<div class="rowk"><span class="k">most recent</span><span class="chip">auth.md</span></div>'
++'</div>';
+var files="auth.md    login.md    oauth.md    sessions.md    sso.md    tokens.md    providers/";
+function set(v){
+  code.innerHTML=(v==="ok"?'<span class="dim">exec("ls architecture/")</span>':'<span class="dim">$ ls architecture/</span>')+"\n"+files;
+  rich.classList.toggle("show",v==="ok");
+  btns.forEach(function(b){b.classList.toggle("on",b.dataset.v===v);});
+}
+btns.forEach(function(b){b.onclick=function(){set(b.dataset.v);};});
+set("ok");
+</script>
+```
+
+And a `grep` returns more than matching lines: each hit carries its file's title, status, and backlink count, so the agent can tell a well-connected hub from a stray mention before opening either.
+
+```html preview
+<div style="padding:18px">
+  <div class="seg">
+    <button data-v="raw">raw disk &middot; grep</button>
+    <button data-v="ok" class="on">OpenKnowledge &middot; exec</button>
+  </div>
+  <pre id="code"></pre>
+  <div id="rich"><div class="inner"></div></div>
+</div>
+<style>
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;padding:2px;background:var(--muted);margin-bottom:12px}
+.seg button{border:0;background:transparent;color:var(--muted-foreground);font:inherit;font-size:12.5px;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+#code{margin:0;background:var(--muted);border-radius:10px;padding:12px 14px;font:12.5px ui-monospace,Menlo,monospace;color:var(--foreground);white-space:pre-wrap;line-height:1.7}
+.dim{color:var(--muted-foreground)}
+.m{color:var(--accent-ink);background:var(--accent-soft);border-radius:3px;padding:0 2px;font-weight:600}
+#rich{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s ease,opacity .45s ease}
+#rich.show{grid-template-rows:1fr;opacity:1;margin-top:12px}
+#rich .inner{overflow:hidden}
+.card{border:1px dashed var(--primary);border-radius:10px;padding:13px}
+.hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);margin-bottom:10px}
+.rowk{display:flex;gap:9px;flex-wrap:wrap;align-items:baseline;margin-bottom:9px;font-size:12.5px}
+.k{width:94px;flex:none;color:var(--foreground);font-family:ui-monospace,monospace}
+.chip{border:1px solid var(--border);background:var(--card);border-radius:7px;padding:1px 7px;font-size:11.5px}
+</style>
+<script>
+var code=document.getElementById("code"),rich=document.getElementById("rich"),btns=document.querySelectorAll(".seg button");
+var hl=function(s){return s.replace(/token refresh/g,'<span class="m">token refresh</span>');};
+var lines=hl('architecture/auth.md:42:  the token refresh flow re-issues a short-lived token\narchitecture/sessions.md:88:  a token refresh extends the session silently');
+rich.querySelector(".inner").innerHTML='<div class="card"><div class="hd">added by OpenKnowledge &middot; context on each hit</div>'
++'<div class="rowk"><span class="k">auth.md</span><span class="chip">Authentication</span><span class="dim">4 backlinks</span></div>'
++'<div class="rowk"><span class="k">sessions.md</span><span class="chip">Session lifecycle</span><span class="dim">2 backlinks</span></div>'
++'</div>';
+function set(v){
+  var cmd=v==="ok"?'<span class="dim">exec("grep -rn \'token refresh\' architecture/")</span>':'<span class="dim">$ grep -rn "token refresh" architecture/</span>';
+  code.innerHTML=cmd+"\n"+lines;
+  rich.classList.toggle("show",v==="ok");
+  btns.forEach(function(b){b.classList.toggle("on",b.dataset.v===v);});
+}
+btns.forEach(function(b){b.onclick=function(){set(b.dataset.v);};});
+set("ok");
+</script>
+```
+
+That folder briefing is why the loop stays short: the backlinks are what it follows, and the purpose plus recency tell it where to look next.
+
+Three read tools ride this layer: ranked **search** (BM25 and recency, the same index as cmd-K), **`exec`** (sandboxed `grep`/`ls`/`cat`/`find` and friends, pipeable, straight off disk; works with the server down, minus backlinks and outbound links), and **`links`** (the link graph: `backlinks`, `forward`, `dead`, `orphans`, `hubs`, `suggest`). `search` takes an `intent` (`omnibar` for fast title/path/folder lookups; the default `full_text` ranks body content too), result `scopes`, and a `limit` (default 20, max 100). Right after the server boots it can answer `ready: false` with empty results while the index builds; retry after a couple of seconds instead of treating that as no matches, and fall back to `exec` grep if it persists.
+
+## Writing talks back too
+
+A `cat >>` or a vim save drops bytes on disk and goes quiet. A `write` or `edit` through OpenKnowledge validates what you wrote and hands back what it found, so mistakes surface at write time instead of rotting in the graph.
+
+```html preview
+<div style="padding:18px">
+  <div class="seg">
+    <button data-v="raw">raw shell &middot; cat &gt;&gt;</button>
+    <button data-v="ok" class="on">OpenKnowledge &middot; write</button>
+  </div>
+  <pre id="code"></pre>
+  <div id="rich"><div class="inner"></div></div>
+</div>
+<style>
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;padding:2px;background:var(--muted);margin-bottom:12px}
+.seg button{border:0;background:transparent;color:var(--muted-foreground);font:inherit;font-size:12.5px;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+#code{margin:0;background:var(--muted);border-radius:10px;padding:12px 14px;font:12.5px ui-monospace,Menlo,monospace;color:var(--foreground);white-space:pre-wrap}
+.dim{color:var(--muted-foreground)}
+#rich{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s ease,opacity .45s ease}
+#rich.show{grid-template-rows:1fr;opacity:1;margin-top:12px}
+#rich .inner{overflow:hidden}
+.card{border:1px dashed var(--primary);border-radius:10px;padding:13px}
+.hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);margin-bottom:10px}
+.rowk{display:flex;gap:9px;flex-wrap:wrap;align-items:baseline;margin-bottom:9px;font-size:12.5px}
+.k{width:74px;flex:none;color:var(--muted-foreground);font-family:ui-monospace,monospace}
+.warn{color:var(--chart-5);font-weight:600}
+.good{color:var(--chart-2);font-weight:600}
+</style>
+<script>
+var code=document.getElementById("code"),rich=document.getElementById("rich"),btns=document.querySelectorAll(".seg button");
+rich.querySelector(".inner").innerHTML='<div class="card"><div class="hd">what the write checked &middot; a raw cat &gt;&gt; cannot</div>'
++'<div class="rowk"><span class="k">links</span><span><span class="good">3 resolve</span> &middot; <span class="warn">1 broken</span>: oauth-v2.md &rarr; not found</span></div>'
++'<div class="rowk"><span class="k">orphan</span><span>nothing links here yet &rarr; link from architecture/INDEX</span></div>'
++'<div class="rowk"><span class="k">renders</span><span>mermaid <span class="good">OK</span></span></div>'
++'<div class="rowk"><span class="k">saved</span><span>versioned &middot; attributed to you &middot; live in the editor</span></div>'
++'</div>';
+function set(v){
+  code.innerHTML=(v==="ok"?'<span class="dim">write("architecture/auth.md", ...)</span>\nwritten.':'<span class="dim">$ cat &gt;&gt; architecture/auth.md</span>\nbytes appended. silence.');
+  rich.classList.toggle("show",v==="ok");
+  btns.forEach(function(b){b.classList.toggle("on",b.dataset.v===v);});
+}
+btns.forEach(function(b){b.onclick=function(){set(b.dataset.v);};});
+set("ok");
+</script>
+```
+
+`brokenLinks` comes back on every write and edit (empty when they all resolve, unless a `brokenLinkSuppression` beside it reports that the project's reserved-log policy withheld some, or a `link-check-deferred` warning reports that nothing was checked yet because the server was still starting or was busy with other writes), so the agent needs a follow-up dead-link check only after that warning. A brand-new doc nothing points to usually comes back flagged as an orphan with a hub to link it from, but a busy server can skip that hint, so a missing hint does not prove the doc is linked. Every write and edit is versioned, attributed, and the preview updates as it lands. Append to a file by hand and the edit still lands: the file watcher folds it into the live doc and versions it, but anonymously, as `file-system`, and nothing talks back. [Skills](../features/skills/index.mdx) teach the conventions, and the write path enforces the connective tissue.
+
+## The index is authored, not extracted
+
+No vector store means no second copy to rebuild, mis-chunk, or drift. Your links, folders, titles, and folder descriptions *are* the index. Other tools extract structure with an embedding model or an entity-extracting LLM; OpenKnowledge reads the structure you already wrote, so the agent traverses the source of truth. A well-linked base retrieves better because good links shorten the loop. [Folder templates](../advanced/folders-and-templates.mdx) keep that structure consistent as it grows: a folder can carry a template that the write path surfaces at create time, so docs the agent starts from it share the same frontmatter and shape, and the fields search ranks on stay uniform.
+
+## Semantic search (optional)
+
+Off by default. Enable it per project, per machine (each collaborator opts in on their own), and an embeddings signal blends into the ranking; it never replaces lexical search. Vectors sit in a local cache. Turning it on sends your query and matching text to your configured provider. See [Configuration](./configuration.mdx).
+

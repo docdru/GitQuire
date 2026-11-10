@@ -1,0 +1,1942 @@
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { type ReactNode, useLayoutEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { Toaster } from '@/components/ui/sonner';
+import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
+import { hashFromAssetPath } from '@/lib/doc-hash';
+import { emitLocalMenuAction } from '@/lib/local-menu-action-bus';
+import {
+  __resetPaneVisibilityStoreForTests,
+  type PaneVisibilityRequest,
+  paneVisibilityStore,
+} from '@/lib/pane-visibility-store';
+import {
+  consumeHashNavigationSuppression,
+  recordAppShellCrashTrip,
+  resetTabSessionRestoreSuppression,
+} from '@/lib/tab-session-restore-suppression';
+import { assetTabId, docTabId, localTabSessionStorageKey, skillFileTabId } from './editor-tabs';
+import {
+  requestPreviewTabPromotion,
+  requestPreviewTabPromotionForTab,
+} from './preview-tab-promotion';
+
+let mockCollabUrl: string | null = null;
+
+vi.doMock('@/lib/use-collab-url', () => ({
+  useCollabUrl: () => ({
+    collabUrl: mockCollabUrl,
+    attempts: 0,
+    terminal: false,
+    lastError: null,
+    retry: () => {},
+  }),
+}));
+
+const mockSkillsStatus: 'idle' | 'loading' | 'ready' = 'idle';
+
+vi.doMock('@/hooks/use-skills', () => ({
+  useSkills: () => ({ status: mockSkillsStatus, data: [] }),
+}));
+
+const { DocumentProvider, useDocumentContext } = await import('./DocumentContext');
+
+const PINNED_TAB_ID = docTabId('Pinned');
+const OTHER_TAB_ID = docTabId('Other');
+const THIRD_TAB_ID = docTabId('Third');
+const PREVIEW_TAB_ID = docTabId('Preview');
+const LICENSE_TAB_ID = assetTabId('LICENSE');
+const SKILL_TAB_ID = skillFileTabId({ scope: 'project', name: 'example', path: 'SKILL.md' });
+const originalFetch = globalThis.fetch;
+
+function persistedTabSession(
+  openTabs: string[],
+  pinnedTabIds: string[],
+  activeTabId: string | null,
+  updatedAt: string | null,
+) {
+  return {
+    updatedAt,
+    panes: [
+      {
+        id: 'pane-main',
+        openTabs,
+        pinnedTabIds,
+        activeTabId,
+        size: 100,
+      },
+    ],
+    focusedPaneId: 'pane-main',
+  };
+}
+
+function seedTabSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [PINNED_TAB_ID, OTHER_TAB_ID],
+        [PINNED_TAB_ID],
+        PINNED_TAB_ID,
+        new Date('2026-05-13T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function seedActiveOtherTabSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [PINNED_TAB_ID, OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-05-13T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function seedThreeTabSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [PINNED_TAB_ID, OTHER_TAB_ID, THIRD_TAB_ID],
+        [],
+        PINNED_TAB_ID,
+        new Date('2026-05-13T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function seedOnlyPinnedTabSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [PINNED_TAB_ID],
+        [PINNED_TAB_ID],
+        PINNED_TAB_ID,
+        new Date('2026-05-13T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function seedPaneWorkspaceSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify({
+      panes: [
+        {
+          id: 'pane-left',
+          openTabs: [PINNED_TAB_ID, OTHER_TAB_ID],
+          pinnedTabIds: [PINNED_TAB_ID],
+          activeTabId: PINNED_TAB_ID,
+          size: 50,
+        },
+        {
+          id: 'pane-right',
+          openTabs: [THIRD_TAB_ID],
+          pinnedTabIds: [],
+          activeTabId: THIRD_TAB_ID,
+          size: 50,
+        },
+      ],
+      focusedPaneId: 'pane-right',
+      updatedAt: new Date('2026-07-23T00:00:00.000Z').toISOString(),
+    }),
+  );
+}
+
+function seedMixedSurfacePaneWorkspaceSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify({
+      panes: [
+        {
+          id: 'pane-left',
+          openTabs: [PINNED_TAB_ID],
+          pinnedTabIds: [],
+          activeTabId: PINNED_TAB_ID,
+          size: 50,
+        },
+        {
+          id: 'pane-right',
+          openTabs: [OTHER_TAB_ID, SKILL_TAB_ID],
+          pinnedTabIds: [],
+          activeTabId: SKILL_TAB_ID,
+          size: 50,
+        },
+      ],
+      focusedPaneId: 'pane-left',
+      updatedAt: new Date('2026-08-04T00:00:00.000Z').toISOString(),
+    }),
+  );
+}
+
+function seedCloseFallbackPaneSession(leftPinned = false) {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify({
+      panes: [
+        {
+          id: 'pane-left',
+          openTabs: [OTHER_TAB_ID],
+          pinnedTabIds: leftPinned ? [OTHER_TAB_ID] : [],
+          activeTabId: OTHER_TAB_ID,
+          size: 50,
+        },
+        {
+          id: 'pane-right',
+          openTabs: [PINNED_TAB_ID],
+          pinnedTabIds: [PINNED_TAB_ID],
+          activeTabId: PINNED_TAB_ID,
+          size: 50,
+        },
+      ],
+      focusedPaneId: 'pane-right',
+      updatedAt: new Date('2026-08-04T00:00:00.000Z').toISOString(),
+    }),
+  );
+}
+
+type MenuActionLike = 'close-active-tab-or-window' | 'new-doc';
+
+interface EditorBridgeStub {
+  bridge: OkDesktopBridge;
+  fire(action: MenuActionLike): void;
+}
+
+interface DeferredSessionBridgeStub {
+  bridge: OkDesktopBridge;
+  resolveSession(): void;
+}
+
+function makeEditorBridgeStub(
+  sessionState = persistedTabSession([], [], null, null),
+): EditorBridgeStub {
+  const bridge = {
+    config: {
+      mode: 'editor',
+      collabUrl: '',
+      apiOrigin: '',
+      projectPath: '',
+      projectName: 'Test Project',
+    },
+    onMenuAction: () => () => {},
+    project: {
+      getSessionState: async () => sessionState,
+      setSessionState: async () => undefined,
+    },
+  } as unknown as OkDesktopBridge;
+
+  return {
+    bridge,
+    fire: (action) => {
+      act(() => emitLocalMenuAction(action));
+    },
+  };
+}
+
+function makeDeferredSessionBridgeStub(
+  state: ReturnType<typeof persistedTabSession>,
+): DeferredSessionBridgeStub {
+  let resolveSession: (() => void) | null = null;
+  const sessionLoaded = new Promise<typeof state>((resolve) => {
+    resolveSession = () => resolve(state);
+  });
+  const bridge = {
+    config: {
+      mode: 'editor',
+      collabUrl: '',
+      apiOrigin: '',
+      projectPath: '',
+      projectName: 'Test Project',
+    },
+    onMenuAction: () => () => {},
+    project: {
+      getSessionState: async () => sessionLoaded,
+      setSessionState: async () => undefined,
+    },
+  } as unknown as OkDesktopBridge;
+
+  return {
+    bridge,
+    resolveSession: () => {
+      resolveSession?.();
+    },
+  };
+}
+
+function Harness() {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="pinned-tabs">{ctx.pinnedTabIds.join('|')}</span>
+      <button type="button" onClick={() => ctx.closeTabs([PINNED_TAB_ID])}>
+        Close pinned
+      </button>
+      <button type="button" onClick={() => ctx.closeTabs([PINNED_TAB_ID], { force: true })}>
+        Force close pinned
+      </button>
+    </>
+  );
+}
+
+function CloseActiveHarness() {
+  const ctx = useDocumentContext();
+  const [handled, setHandled] = useState<string>('');
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="active-tab">{ctx.activeTabId ?? ''}</span>
+      <span data-testid="new-tabs">{ctx.newTabIds.join('|')}</span>
+      <span data-testid="active-new-tab">{ctx.activeNewTabId ?? ''}</span>
+      <span data-testid="pane-state">
+        {ctx.panes
+          .map(
+            (pane) =>
+              `${pane.id}:${pane.openTabs.join(',')}:${pane.newTabIds.join(',')}:${pane.activeTabId ?? pane.activeNewTabId ?? ''}`,
+          )
+          .join('|')}
+      </span>
+      <span data-testid="close-handled">{handled}</span>
+      <button type="button" onClick={() => ctx.openNewTab()}>
+        Open new
+      </button>
+      <button type="button" onClick={() => ctx.openNewTabInPane('pane-left')}>
+        Open new in left
+      </button>
+      <button type="button" onClick={() => ctx.focusPane('pane-right')}>
+        Focus right
+      </button>
+      <button type="button" onClick={() => ctx.openDocument('Other')}>
+        Open other
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.openTarget(
+            { kind: 'doc', target: 'Other', docName: 'Other' },
+            { disposition: 'permanent', consumeActiveNewTab: true },
+          )
+        }
+      >
+        Replace blank with other
+      </button>
+      <button type="button" onClick={() => ctx.closeTab(OTHER_TAB_ID)}>
+        Close other
+      </button>
+      <button type="button" onClick={() => ctx.closeTab(THIRD_TAB_ID)}>
+        Close third
+      </button>
+      <button type="button" onClick={() => setHandled(String(ctx.closeActiveTabOrWindow()))}>
+        Close active
+      </button>
+      <button type="button" onClick={() => ctx.reopenClosedTab()}>
+        Reopen closed
+      </button>
+      <button type="button" onClick={() => ctx.openTarget({ kind: 'skills', target: 'skills' })}>
+        Resolve skills hub
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const first = ctx.newTabIds[0];
+          if (first) ctx.activateNewTabInPane(ctx.focusedPaneId, first);
+        }}
+      >
+        Activate first new tab
+      </button>
+    </>
+  );
+}
+
+function HiddenEditorRevealHarness() {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.openTargetTransition({ kind: 'skills', target: 'skills' }, { deliberate: false })
+        }
+      >
+        Sync skills
+      </button>
+      <button type="button" onClick={() => ctx.clearTarget()}>
+        Clear target
+      </button>
+      <button type="button" onClick={() => ctx.openBlobRunner()}>
+        Blob run
+      </button>
+    </>
+  );
+}
+
+function BridgeHiddenEditorRevealHarness({ bridge }: { bridge: OkDesktopBridge }) {
+  useLayoutEffect(() => {
+    window.okDesktop = bridge;
+    return () => {
+      delete window.okDesktop;
+    };
+  }, [bridge]);
+  return <HiddenEditorRevealHarness />;
+}
+
+function hideEditorAndRecordRequests(): PaneVisibilityRequest[] {
+  const requests: PaneVisibilityRequest[] = [];
+  paneVisibilityStore.subscribeRequests((request) => requests.push(request));
+  paneVisibilityStore.publish({
+    editor: { open: false, onScreen: false },
+    agents: null,
+    terminal: null,
+  });
+  return requests;
+}
+
+function BridgeCloseActiveHarness({ bridge }: { bridge: OkDesktopBridge }) {
+  useLayoutEffect(() => {
+    window.okDesktop = bridge;
+    return () => {
+      delete window.okDesktop;
+    };
+  }, [bridge]);
+  return <CloseActiveHarness />;
+}
+
+function OpenLicenseDuringRestoreHarness() {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="visible-tabs">{ctx.visibleTabIds.join('|')}</span>
+      <span data-testid="active-tab">{ctx.activeTabId ?? ''}</span>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.openTarget(
+            {
+              kind: 'asset',
+              target: 'LICENSE',
+              assetPath: 'LICENSE',
+              mediaKind: null,
+            },
+            { disposition: 'permanent', consumeActiveNewTab: true },
+          )
+        }
+      >
+        Open license
+      </button>
+    </>
+  );
+}
+
+function OpenPreviewDuringRestoreHarness() {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="preview-tab">
+        {[...ctx.previewTabIdsByPane.values()].map((tabId) => tabId ?? '').join('|')}
+      </span>
+      <span data-testid="session-loaded">{String(ctx.tabSessionLoaded)}</span>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.openTarget(
+            { kind: 'doc', target: 'Preview', docName: 'Preview' },
+            { disposition: 'preview', consumeActiveNewTab: true },
+          )
+        }
+      >
+        Open preview
+      </button>
+    </>
+  );
+}
+
+function PaneWorkspaceHarness() {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="pane-count">{ctx.panes.length}</span>
+      <span data-testid="stored-pane-count">{ctx.workspace.panes.length}</span>
+      <span data-testid="focused-pane">{ctx.focusedPaneId}</span>
+      <span data-testid="active-pane-tab">{ctx.activeTabId ?? ''}</span>
+      <span data-testid="pane-tabs">
+        {ctx.panes.map((pane) => `${pane.id}:${pane.openTabs.join(',')}`).join('|')}
+      </span>
+      <span data-testid="pane-visible-tabs">
+        {ctx.panes
+          .map((pane) => `${pane.id}:${(ctx.visibleTabIdsByPane.get(pane.id) ?? []).join(',')}`)
+          .join('|')}
+      </span>
+      <span data-testid="session-loaded">{String(ctx.tabSessionLoaded)}</span>
+      <button type="button" onClick={() => ctx.focusPane('pane-left')}>
+        Focus left
+      </button>
+      <button type="button" onClick={() => ctx.focusPane('pane-right')}>
+        Focus right
+      </button>
+      <button type="button" onClick={() => ctx.activateTabInPane('pane-files', PINNED_TAB_ID)}>
+        Activate file surface
+      </button>
+      <button type="button" onClick={() => ctx.activateTabInPane('pane-skills', SKILL_TAB_ID)}>
+        Activate skill surface
+      </button>
+      <button type="button" onClick={() => ctx.activateTabInPane('pane-left', OTHER_TAB_ID)}>
+        Activate other in left
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.openTarget(
+            { kind: 'doc', target: 'Third', docName: 'Third' },
+            { disposition: 'permanent', consumeActiveNewTab: true },
+          )
+        }
+      >
+        Open existing third
+      </button>
+      <button type="button" onClick={() => ctx.splitTab(OTHER_TAB_ID, 'pane-left', 'right')}>
+        Split other
+      </button>
+      <button type="button" onClick={() => ctx.closeTabInPane('pane-left', OTHER_TAB_ID)}>
+        Close other in left
+      </button>
+      <button type="button" onClick={() => ctx.openNewTabInPane('pane-left')}>
+        Open blank in left
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const newTabId = ctx.panes.find((pane) => pane.id === 'pane-left')?.newTabIds[0];
+          if (!newTabId) return;
+          ctx.reorderTabsInPane('pane-left', [PINNED_TAB_ID, newTabId, OTHER_TAB_ID], newTabId);
+        }}
+      >
+        Interleave blank in left
+      </button>
+      <button type="button" onClick={() => ctx.moveTabToPane(THIRD_TAB_ID, 'pane-left', 2)}>
+        Move third into visible slot
+      </button>
+      <button type="button" onClick={() => ctx.reopenClosedTab()}>
+        Reopen pane tab
+      </button>
+    </>
+  );
+}
+
+function ProviderHarness({ children }: { children: ReactNode }) {
+  return <DocumentProvider>{children}</DocumentProvider>;
+}
+
+function PreviewEditHarness() {
+  const ctx = useDocumentContext();
+  const openPreview = (docName: string) =>
+    ctx.openTarget(
+      { kind: 'doc', target: docName, docName },
+      { disposition: 'preview', consumeActiveNewTab: false },
+    );
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="preview-tab">
+        {[...ctx.previewTabIdsByPane.values()].map((tabId) => tabId ?? '').join('|')}
+      </span>
+      <span data-testid="session-loaded">{String(ctx.tabSessionLoaded)}</span>
+      <button type="button" onClick={() => openPreview('First.md')}>
+        Preview first
+      </button>
+      <button type="button" onClick={() => openPreview('Second.md')}>
+        Preview second
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.openTarget(
+            { kind: 'asset', target: 'LICENSE', assetPath: 'LICENSE', mediaKind: null },
+            { disposition: 'preview', consumeActiveNewTab: false },
+          )
+        }
+      >
+        Preview asset
+      </button>
+    </>
+  );
+}
+
+describe('DocumentContext preview-tab promotion on user edit', () => {
+  afterEach(() => {
+    cleanup();
+    mockCollabUrl = null;
+    globalThis.fetch = originalFetch;
+    window.localStorage.clear();
+    window.location.hash = '';
+  });
+
+  async function renderSettled() {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    window.localStorage.setItem(
+      localTabSessionStorageKey(window.location.origin),
+      JSON.stringify(
+        persistedTabSession([], [], null, new Date('2026-05-13T00:00:00.000Z').toISOString()),
+      ),
+    );
+    render(<PreviewEditHarness />, { wrapper: ProviderHarness });
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    return userEvent.setup();
+  }
+
+  test('an edit promotes the preview tab, so the next sidebar click opens beside it', async () => {
+    const user = await renderSettled();
+
+    await user.click(screen.getByRole('button', { name: 'Preview first' }));
+    expect(screen.getByTestId('preview-tab').textContent).toBe(docTabId('First.md'));
+
+    act(() => {
+      requestPreviewTabPromotion('First.md');
+    });
+    expect(screen.getByTestId('preview-tab').textContent).toBe('');
+
+    await user.click(screen.getByRole('button', { name: 'Preview second' }));
+    expect(screen.getByTestId('open-tabs').textContent).toBe(
+      `${docTabId('First.md')}|${docTabId('Second.md')}`,
+    );
+  });
+
+  test('without an edit the preview tab is still replaced', async () => {
+    const user = await renderSettled();
+
+    await user.click(screen.getByRole('button', { name: 'Preview first' }));
+    await user.click(screen.getByRole('button', { name: 'Preview second' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(docTabId('Second.md'));
+  });
+
+  test('an edit to a document with no open tab changes nothing', async () => {
+    const user = await renderSettled();
+
+    await user.click(screen.getByRole('button', { name: 'Preview first' }));
+    act(() => {
+      requestPreviewTabPromotion('Unopened.md');
+    });
+
+    expect(screen.getByTestId('preview-tab').textContent).toBe(docTabId('First.md'));
+    expect(screen.getByTestId('open-tabs').textContent).toBe(docTabId('First.md'));
+  });
+
+  test('the listener is torn down with the provider', () => {
+    const { unmount } = render(<PreviewEditHarness />, { wrapper: ProviderHarness });
+    unmount();
+    expect(() => requestPreviewTabPromotion('First.md')).not.toThrow();
+  });
+
+  test('a non-document preview tab promotes too, via its tab id', async () => {
+    const user = await renderSettled();
+
+    await user.click(screen.getByRole('button', { name: 'Preview asset' }));
+    expect(screen.getByTestId('preview-tab').textContent).toBe(LICENSE_TAB_ID);
+
+    act(() => {
+      requestPreviewTabPromotionForTab(LICENSE_TAB_ID);
+    });
+    expect(screen.getByTestId('preview-tab').textContent).toBe('');
+
+    await user.click(screen.getByRole('button', { name: 'Preview first' }));
+    expect(screen.getByTestId('open-tabs').textContent).toBe(
+      `${LICENSE_TAB_ID}|${docTabId('First.md')}`,
+    );
+  });
+});
+
+describe('DocumentContext tab close force contract', () => {
+  afterEach(() => {
+    __resetPaneVisibilityStoreForTests();
+    mockCollabUrl = null;
+    cleanup();
+    delete window.okDesktop;
+    globalThis.fetch = originalFetch;
+    window.localStorage.clear();
+    window.location.hash = '';
+  });
+
+  test('closeTabs skips pinned tabs unless force is explicitly set', async () => {
+    seedTabSession();
+    render(<Harness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe(PINNED_TAB_ID);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close pinned' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe(PINNED_TAB_ID);
+
+    await user.click(screen.getByRole('button', { name: 'Force close pinned' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(OTHER_TAB_ID);
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe('');
+  });
+
+  test('closeActiveTabOrWindow closes one active tab and reports the menu action handled', async () => {
+    seedActiveOtherTabSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+    expect(screen.getByTestId('active-tab').textContent).toBe(OTHER_TAB_ID);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('true');
+    expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
+    expect(screen.getByTestId('active-tab').textContent).toBe(PINNED_TAB_ID);
+  });
+
+  test('reopenClosedTab restores the most recently closed tab and activates it', async () => {
+    seedActiveOtherTabSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
+    expect(screen.getByTestId('active-tab').textContent).toBe(PINNED_TAB_ID);
+
+    await user.click(screen.getByRole('button', { name: 'Reopen closed' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+    expect(screen.getByTestId('active-tab').textContent).toBe(OTHER_TAB_ID);
+  });
+
+  test('reopenClosedTab skips already-open entries and continues to the next closed tab', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    seedThreeTabSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close third' }));
+    await user.click(screen.getByRole('button', { name: 'Close other' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
+
+    await user.click(screen.getByRole('button', { name: 'Open other' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+    expect(screen.getByTestId('active-tab').textContent).toBe(OTHER_TAB_ID);
+
+    await user.click(screen.getByRole('button', { name: 'Reopen closed' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(
+      `${PINNED_TAB_ID}|${OTHER_TAB_ID}|${THIRD_TAB_ID}`,
+    );
+    expect(screen.getByTestId('active-tab').textContent).toBe(THIRD_TAB_ID);
+  });
+
+  test('reopenClosedTab ignores closed new-tab placeholders', async () => {
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open new' }));
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('new-tabs').textContent).toBe('');
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('');
+
+    await user.click(screen.getByRole('button', { name: 'Reopen closed' }));
+
+    expect(screen.getByTestId('new-tabs').textContent).toBe('');
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('');
+  });
+
+  test('permanent navigation consumes a blank tab when the target is already open', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    seedActiveOtherTabSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open new' }));
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('new-tab:1');
+
+    await user.click(screen.getByRole('button', { name: 'Replace blank with other' }));
+
+    expect(screen.getByTestId('new-tabs').textContent).toBe('');
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('');
+    expect(screen.getByTestId('active-tab').textContent).toBe(OTHER_TAB_ID);
+  });
+
+  test('closeActiveTabOrWindow skips active pinned tab and closes the next visible unpinned tab', async () => {
+    seedTabSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+    expect(screen.getByTestId('active-tab').textContent).toBe(PINNED_TAB_ID);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('true');
+    expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
+    expect(screen.getByTestId('active-tab').textContent).toBe(PINNED_TAB_ID);
+  });
+
+  test('closeActiveTabOrWindow reports unhandled when only pinned tabs remain', async () => {
+    seedOnlyPinnedTabSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('false');
+    expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
+    expect(screen.getByTestId('active-tab').textContent).toBe(PINNED_TAB_ID);
+  });
+
+  test('closeActiveTabOrWindow closes an active new tab before falling back to the window', async () => {
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open new' }));
+
+    expect(screen.getByTestId('new-tabs').textContent).toBe('new-tab:1');
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('new-tab:1');
+
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('true');
+    expect(screen.getByTestId('new-tabs').textContent).toBe('');
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('');
+  });
+
+  test('closing the last document tab leaves no tab rather than a blank one', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    seedActiveOtherTabSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe('');
+    expect(screen.getByTestId('active-tab').textContent).toBe('');
+    expect(screen.getByTestId('new-tabs').textContent).toBe('');
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('');
+  });
+
+  test('closeActiveTabOrWindow reports unhandled when no visible tabs remain', async () => {
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('false');
+    expect(screen.getByTestId('open-tabs').textContent).toBe('');
+    expect(screen.getByTestId('active-tab').textContent).toBe('');
+  });
+
+  test('closeActiveTabOrWindow falls back to an unpinned tab in another pane', async () => {
+    seedCloseFallbackPaneSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('true');
+    expect(screen.getByTestId('pane-state').textContent).toBe(
+      `pane-right:${PINNED_TAB_ID}::${PINNED_TAB_ID}`,
+    );
+  });
+
+  test('closeActiveTabOrWindow reports unhandled when every pane contains only pinned tabs', async () => {
+    seedCloseFallbackPaneSession(true);
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('false');
+    expect(screen.getByTestId('pane-state').textContent).toContain(
+      `pane-left:${OTHER_TAB_ID}::${OTHER_TAB_ID}`,
+    );
+    expect(screen.getByTestId('pane-state').textContent).toContain(
+      `pane-right:${PINNED_TAB_ID}::${PINNED_TAB_ID}`,
+    );
+  });
+
+  test('closeActiveTabOrWindow prefers a blank tab when falling back to another pane', async () => {
+    seedCloseFallbackPaneSession();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open new in left' }));
+    await user.click(screen.getByRole('button', { name: 'Focus right' }));
+    await user.click(screen.getByRole('button', { name: 'Close active' }));
+
+    expect(screen.getByTestId('close-handled').textContent).toBe('true');
+    expect(screen.getByTestId('pane-state').textContent).toContain(
+      `pane-left:${OTHER_TAB_ID}::${OTHER_TAB_ID}`,
+    );
+    expect(screen.getByTestId('pane-state').textContent).not.toContain('new-tab:1');
+  });
+
+  test('with the editor hidden, Close Tab asks it to show first', async () => {
+    seedActiveOtherTabSession();
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [PINNED_TAB_ID, OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-05-13T00:00:00.000Z').toISOString(),
+      ),
+    );
+    render(<BridgeCloseActiveHarness bridge={stub.bridge} />, { wrapper: ProviderHarness });
+    await new Promise((r) => setTimeout(r, 0));
+    const requests = hideEditorAndRecordRequests();
+
+    stub.fire('close-active-tab-or-window');
+
+    expect(requests).toEqual([{ pane: 'editor', open: true }]);
+    expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
+  });
+
+  test('a non-deliberate skills sync leaves a hidden editor hidden, while Blob Run shows it', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    render(<HiddenEditorRevealHarness />, { wrapper: ProviderHarness });
+    await new Promise((r) => setTimeout(r, 0));
+    const requests = hideEditorAndRecordRequests();
+
+    act(() => screen.getByRole('button', { name: 'Sync skills' }).click());
+    expect(requests).toEqual([]);
+
+    act(() => screen.getByRole('button', { name: 'Blob run' }).click());
+    expect(requests).toEqual([{ pane: 'editor', open: true }]);
+  });
+
+  test('clearing the target over restored tabs leaves a hidden editor hidden', async () => {
+    seedActiveOtherTabSession();
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [PINNED_TAB_ID, OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-05-13T00:00:00.000Z').toISOString(),
+      ),
+    );
+    render(<BridgeHiddenEditorRevealHarness bridge={stub.bridge} />, { wrapper: ProviderHarness });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+    const requests = hideEditorAndRecordRequests();
+
+    act(() => screen.getByRole('button', { name: 'Clear target' }).click());
+
+    expect(requests).toEqual([]);
+  });
+
+  test('desktop close-active-tab-or-window action closes tabs before closing the editor window', async () => {
+    seedActiveOtherTabSession();
+    const closeSpy = vi.spyOn(window, 'close').mockImplementation(() => {});
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [PINNED_TAB_ID, OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-05-13T00:00:00.000Z').toISOString(),
+      ),
+    );
+
+    render(<BridgeCloseActiveHarness bridge={stub.bridge} />, { wrapper: ProviderHarness });
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
+
+    stub.fire('close-active-tab-or-window');
+
+    expect(closeSpy).toHaveBeenCalledTimes(0);
+    expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
+
+    cleanup();
+    delete window.okDesktop;
+    window.localStorage.clear();
+
+    const emptyStub = makeEditorBridgeStub();
+    render(<BridgeCloseActiveHarness bridge={emptyStub.bridge} />, { wrapper: ProviderHarness });
+    await new Promise((r) => setTimeout(r, 0));
+
+    emptyStub.fire('close-active-tab-or-window');
+
+    expect(closeSpy).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('open-tabs').textContent).toBe('');
+    closeSpy.mockRestore();
+  });
+});
+
+const REORDER_A = docTabId('A');
+const REORDER_B = docTabId('B');
+const REORDER_C = docTabId('C');
+
+function seedReorderSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [REORDER_A, REORDER_B, REORDER_C],
+        [REORDER_A],
+        REORDER_A,
+        new Date('2026-05-16T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function ReorderHarness({
+  newOrder,
+  draggedTabId,
+}: {
+  newOrder: readonly string[];
+  draggedTabId: string;
+}) {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="pinned-tabs">{ctx.pinnedTabIds.join('|')}</span>
+      <span data-testid="visible-tabs">{ctx.visibleTabIds.join('|')}</span>
+      <button type="button" onClick={() => ctx.reorderTabs(newOrder, draggedTabId)}>
+        Reorder
+      </button>
+    </>
+  );
+}
+
+describe('DocumentContext reorderTabs — order + drag-mutable pin', () => {
+  afterEach(() => {
+    cleanup();
+    window.localStorage.clear();
+    window.location.hash = '';
+  });
+
+  test('dragging the lone pinned tab out of the pinned zone unpins it (wired end-to-end)', async () => {
+    seedReorderSession();
+    render(
+      <ReorderHarness newOrder={[REORDER_B, REORDER_A, REORDER_C]} draggedTabId={REORDER_A} />,
+      {
+        wrapper: ProviderHarness,
+      },
+    );
+
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe(REORDER_A);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Reorder' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(
+      `${REORDER_B}|${REORDER_A}|${REORDER_C}`,
+    );
+    expect(screen.getByTestId('visible-tabs').textContent).toBe(
+      `${REORDER_B}|${REORDER_A}|${REORDER_C}`,
+    );
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe('');
+  });
+
+  test('dragging an unpinned tab into the pinned zone pins it; non-dragged tabs keep state', async () => {
+    seedReorderSession();
+    render(
+      <ReorderHarness newOrder={[REORDER_C, REORDER_A, REORDER_B]} draggedTabId={REORDER_C} />,
+      {
+        wrapper: ProviderHarness,
+      },
+    );
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Reorder' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(
+      `${REORDER_C}|${REORDER_A}|${REORDER_B}`,
+    );
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe(`${REORDER_C}|${REORDER_A}`);
+  });
+
+  test('reorderTabs is a no-op when the supplied order matches the current order', async () => {
+    seedReorderSession();
+    render(
+      <ReorderHarness newOrder={[REORDER_A, REORDER_B, REORDER_C]} draggedTabId={REORDER_A} />,
+      {
+        wrapper: ProviderHarness,
+      },
+    );
+
+    const beforeOpen = screen.getByTestId('open-tabs').textContent;
+    const beforePinned = screen.getByTestId('pinned-tabs').textContent;
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Reorder' }));
+    expect(screen.getByTestId('open-tabs').textContent).toBe(beforeOpen);
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe(beforePinned);
+  });
+
+  test('reorderTabs commits a new-tab-placeholder reorder among doc-tabs (QA-024)', async () => {
+    seedReorderSession();
+    function NewTabReorderHarness() {
+      const ctx = useDocumentContext();
+      return (
+        <>
+          <span data-testid="visible-tabs">{ctx.visibleTabIds.join('|')}</span>
+          <button
+            type="button"
+            onClick={() => {
+              ctx.openNewTab();
+            }}
+          >
+            New tab
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const visible = ctx.visibleTabIds;
+              const newTabId = ctx.newTabIds[0];
+              if (!newTabId) return;
+              const next = visible.filter((id) => id !== newTabId);
+              next.splice(1, 0, newTabId);
+              ctx.reorderTabs(next, newTabId);
+            }}
+          >
+            Move new-tab to middle
+          </button>
+        </>
+      );
+    }
+    render(<NewTabReorderHarness />, { wrapper: ProviderHarness });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'New tab' }));
+    const beforeReorder = screen.getByTestId('visible-tabs').textContent ?? '';
+    const beforeParts = beforeReorder.split('|');
+    expect(beforeParts).toEqual([REORDER_A, REORDER_B, REORDER_C, beforeParts[3] ?? '']);
+    const newTabId = beforeParts[3];
+    expect(newTabId).toMatch(/^new-tab:/);
+    await user.click(screen.getByRole('button', { name: 'Move new-tab to middle' }));
+    const afterParts = (screen.getByTestId('visible-tabs').textContent ?? '').split('|');
+    expect(afterParts).toEqual([REORDER_A, newTabId, REORDER_B, REORDER_C]);
+  });
+
+  test('reorderTabs defensively appends any open tab the caller forgot to include', async () => {
+    seedReorderSession();
+    render(<ReorderHarness newOrder={[REORDER_C, REORDER_A]} draggedTabId={REORDER_B} />, {
+      wrapper: ProviderHarness,
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Reorder' }));
+    const tabs = screen.getByTestId('open-tabs').textContent ?? '';
+    expect(tabs.split('|')).toEqual([REORDER_C, REORDER_A, REORDER_B]);
+    expect(screen.getByTestId('pinned-tabs').textContent).toBe(REORDER_A);
+  });
+});
+
+const COLD_START_DOC = docTabId('event_watcher');
+const SAME_STEM_MD_TAB = docTabId('foo.md');
+const SAME_STEM_MDX_TAB = docTabId('foo.mdx');
+
+function seedColdStartSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [COLD_START_DOC],
+        [],
+        COLD_START_DOC,
+        new Date('2026-06-07T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function seedSameStemActiveMdxSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [SAME_STEM_MD_TAB, SAME_STEM_MDX_TAB],
+        [],
+        SAME_STEM_MDX_TAB,
+        new Date('2026-06-07T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function ColdStartSyncHarness() {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.syncOpenTabsWithKnownTargets({
+            pages: new Set(),
+            folderPaths: new Set(),
+            assetPaths: new Set(),
+          })
+        }
+      >
+        Sync empty pages
+      </button>
+    </>
+  );
+}
+
+function SameStemSyncHarness() {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="active-tab">{ctx.activeTabId ?? ''}</span>
+      <button
+        type="button"
+        onClick={() =>
+          ctx.syncOpenTabsWithKnownTargets({
+            pages: new Set(['foo']),
+            folderPaths: new Set(),
+            assetPaths: new Set(),
+          })
+        }
+      >
+        Sync canonical page
+      </button>
+    </>
+  );
+}
+
+describe('DocumentContext syncOpenTabsWithKnownTargets — cold-start hash preservation', () => {
+  afterEach(() => {
+    cleanup();
+    mockCollabUrl = null;
+    globalThis.fetch = originalFetch;
+    window.localStorage.clear();
+    window.location.hash = '';
+  });
+
+  test('a sync against transiently-empty pages keeps the hash-targeted doc (no empty-state splash)', async () => {
+    seedColdStartSession();
+    window.location.hash = '#/event_watcher';
+    render(<ColdStartSyncHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(COLD_START_DOC);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Sync empty pages' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(COLD_START_DOC);
+    expect(window.location.hash).toBe('#/event_watcher');
+  });
+
+  test('same-stem md and mdx tabs survive canonical extensionless page sync', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    seedSameStemActiveMdxSession();
+    window.location.hash = '#/foo.mdx';
+    render(<SameStemSyncHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(
+      `${SAME_STEM_MD_TAB}|${SAME_STEM_MDX_TAB}`,
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId('active-tab').textContent).toBe(SAME_STEM_MDX_TAB);
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Sync canonical page' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(
+      `${SAME_STEM_MD_TAB}|${SAME_STEM_MDX_TAB}`,
+    );
+    expect(screen.getByTestId('active-tab').textContent).toBe(SAME_STEM_MDX_TAB);
+    expect(window.location.hash).toBe('#/foo.mdx');
+  });
+});
+
+describe('DocumentContext repeat-crash recovery notice', () => {
+  const RECOVERY_NOTICE = /last open document couldn't be restored/i;
+
+  afterEach(() => {
+    cleanup();
+    toast.dismiss();
+    delete window.okDesktop;
+    mockCollabUrl = null;
+    globalThis.fetch = originalFetch;
+    window.localStorage.clear();
+    window.location.hash = '';
+    resetTabSessionRestoreSuppression();
+    consumeHashNavigationSuppression();
+  });
+
+  function renderWithToaster() {
+    render(
+      <>
+        <PaneWorkspaceHarness />
+        <Toaster closeButton />
+      </>,
+      { wrapper: ProviderHarness },
+    );
+  }
+
+  test('tells the user the last document could not be restored when a repeat crash suppresses the bridge session', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-07-28T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+    recordAppShellCrashTrip(new Error('same crash'));
+    recordAppShellCrashTrip(new Error('same crash'));
+
+    renderWithToaster();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe('');
+    await screen.findByText(RECOVERY_NOTICE);
+  });
+
+  test('shows no notice when the bridge session restores normally', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-07-28T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+
+    renderWithToaster();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+      expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
+    });
+    expect(screen.queryByText(RECOVERY_NOTICE)).toBeNull();
+  });
+});
+
+describe('DocumentContext tab restore', () => {
+  afterEach(() => {
+    cleanup();
+    delete window.okDesktop;
+    mockCollabUrl = null;
+    globalThis.fetch = originalFetch;
+    window.localStorage.clear();
+    window.location.hash = '';
+    resetTabSessionRestoreSuppression();
+    consumeHashNavigationSuppression();
+  });
+
+  test('suppresses the synchronous web session restore after a repeat app-shell crash', () => {
+    seedActiveOtherTabSession();
+    recordAppShellCrashTrip(new Error('same crash'));
+    recordAppShellCrashTrip(new Error('same crash'));
+
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('active-tab').textContent).toBe('');
+    expect(screen.getByTestId('open-tabs').textContent).toBe('');
+  });
+
+  test('restores the web session on a first crash trip', () => {
+    seedActiveOtherTabSession();
+    recordAppShellCrashTrip(new Error('first crash'));
+
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('active-tab').textContent).toBe(OTHER_TAB_ID);
+  });
+
+  test('a suppressed recovery leaves the stored session intact while the workspace is empty', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    const setSessionState = vi.fn(async () => undefined);
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-07-28T00:00:00.000Z').toISOString(),
+      ),
+    );
+    stub.bridge.project.setSessionState = setSessionState as never;
+    window.okDesktop = stub.bridge;
+    recordAppShellCrashTrip(new Error('same crash'));
+    recordAppShellCrashTrip(new Error('same crash'));
+
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    expect(setSessionState).not.toHaveBeenCalled();
+  });
+
+  test('opening a tab after a suppressed bridge recovery does not overwrite the stored session', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    const setSessionState = vi.fn(async () => undefined);
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [PINNED_TAB_ID, OTHER_TAB_ID],
+        [PINNED_TAB_ID],
+        OTHER_TAB_ID,
+        new Date('2026-07-28T00:00:00.000Z').toISOString(),
+      ),
+    );
+    stub.bridge.project.setSessionState = setSessionState as never;
+    window.okDesktop = stub.bridge;
+    recordAppShellCrashTrip(new Error('same crash'));
+    recordAppShellCrashTrip(new Error('same crash'));
+
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open existing third' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pane-tabs').textContent).toContain(THIRD_TAB_ID);
+    });
+    expect(setSessionState).not.toHaveBeenCalled();
+  });
+
+  test('opening a tab after a suppressed web recovery does not overwrite the stored session', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    seedTabSession();
+    const storageKey = localTabSessionStorageKey(window.location.origin);
+    const storedBefore = window.localStorage.getItem(storageKey);
+    recordAppShellCrashTrip(new Error('same crash'));
+    recordAppShellCrashTrip(new Error('same crash'));
+
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open existing third' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pane-tabs').textContent).toContain(THIRD_TAB_ID);
+    });
+    const storedAfter = window.localStorage.getItem(storageKey);
+    expect(storedAfter).toBe(storedBefore);
+    const parsed = JSON.parse(storedAfter ?? '{}');
+    expect(parsed.panes[0].openTabs).toEqual([PINNED_TAB_ID, OTHER_TAB_ID]);
+    expect(parsed.panes[0].pinnedTabIds).toEqual([PINNED_TAB_ID]);
+  });
+
+  test('restores the desktop session before collaboration identity resolves', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    const stub = makeDeferredSessionBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-07-28T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('session-loaded').textContent).toBe('false');
+    act(() => {
+      stub.resolveSession();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+      expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
+    });
+  });
+
+  test('suppresses the desktop bridge session restore after a repeat app-shell crash', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-07-28T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+    recordAppShellCrashTrip(new Error('same crash'));
+    recordAppShellCrashTrip(new Error('same crash'));
+
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe('');
+  });
+
+  test('a later mount with no new crash trips restores the session the recovery suppressed', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
+    const stub = makeEditorBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-07-28T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+    recordAppShellCrashTrip(new Error('same crash'));
+    recordAppShellCrashTrip(new Error('same crash'));
+
+    const first = render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+    await waitFor(() => {
+      expect(first.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    expect(first.getByTestId('active-pane-tab').textContent).toBe('');
+    first.unmount();
+
+    const second = render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+    await waitFor(() => {
+      expect(second.getByTestId('session-loaded').textContent).toBe('true');
+      expect(second.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
+    });
+  });
+
+  test('restores an extension-qualified mdx tab over an ambiguous extensionless hash', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    seedSameStemActiveMdxSession();
+    window.location.hash = '#/foo';
+
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-tab').textContent).toBe(SAME_STEM_MDX_TAB);
+    });
+    expect(window.location.hash).toBe('#/foo.mdx');
+  });
+
+  test('keeps saved tab order when an active asset hash opens before session restore resolves', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    const stub = makeDeferredSessionBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID, LICENSE_TAB_ID],
+        [],
+        LICENSE_TAB_ID,
+        new Date('2026-06-07T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+    window.location.hash = hashFromAssetPath('LICENSE');
+
+    render(<OpenLicenseDuringRestoreHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open license' }));
+
+    expect(screen.getByTestId('visible-tabs').textContent).toBe(LICENSE_TAB_ID);
+
+    act(() => {
+      stub.resolveSession();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('open-tabs').textContent).toBe(`${OTHER_TAB_ID}|${LICENSE_TAB_ID}`);
+      expect(screen.getByTestId('visible-tabs').textContent).toBe(
+        `${OTHER_TAB_ID}|${LICENSE_TAB_ID}`,
+      );
+      expect(screen.getByTestId('active-tab').textContent).toBe(LICENSE_TAB_ID);
+    });
+    expect(window.location.hash).toBe(hashFromAssetPath('LICENSE'));
+  });
+
+  test('keeps a preview marker when a sidebar preview opens before session restore resolves', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    const stub = makeDeferredSessionBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-06-07T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+    window.location.hash = '#/Other';
+
+    render(<OpenPreviewDuringRestoreHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open preview' }));
+    expect(screen.getByTestId('preview-tab').textContent).toBe(PREVIEW_TAB_ID);
+
+    act(() => {
+      stub.resolveSession();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+      expect(screen.getByTestId('preview-tab').textContent).toBe(PREVIEW_TAB_ID);
+    });
+  });
+
+  test('keeps a saved tab permanent when a live preview shares its id', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    const stub = makeDeferredSessionBridgeStub(
+      persistedTabSession(
+        [PREVIEW_TAB_ID],
+        [],
+        PREVIEW_TAB_ID,
+        new Date('2026-06-07T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+    window.location.hash = '#/Preview';
+
+    render(<OpenPreviewDuringRestoreHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open preview' }));
+    expect(screen.getByTestId('preview-tab').textContent).toBe(PREVIEW_TAB_ID);
+
+    act(() => {
+      stub.resolveSession();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+      expect(screen.getByTestId('preview-tab').textContent).toBe('');
+    });
+  });
+
+  test('keeps a new tab active when session restore resolves afterward', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    const stub = makeDeferredSessionBridgeStub(
+      persistedTabSession(
+        [OTHER_TAB_ID],
+        [],
+        OTHER_TAB_ID,
+        new Date('2026-06-07T00:00:00.000Z').toISOString(),
+      ),
+    );
+    window.okDesktop = stub.bridge;
+    window.location.hash = '#/Other';
+
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open new' }));
+    expect(screen.getByTestId('active-new-tab').textContent).toBe('new-tab:1');
+
+    act(() => {
+      stub.resolveSession();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-new-tab').textContent).toBe('new-tab:1');
+      expect(screen.getByTestId('active-tab').textContent).toBe('');
+    });
+  });
+});
+
+describe('DocumentContext pane workspace', () => {
+  afterEach(() => {
+    cleanup();
+    delete window.okDesktop;
+    mockCollabUrl = null;
+    globalThis.fetch = originalFetch;
+    window.localStorage.clear();
+    window.location.hash = '';
+  });
+
+  test('restores pane membership and projects the focused pane through compatibility globals', async () => {
+    seedPaneWorkspaceSession();
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('pane-count').textContent).toBe('2');
+    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-right');
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe(THIRD_TAB_ID);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Activate other in left' }));
+
+    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-left');
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
+    expect(window.location.hash).toBe('#/Other');
+  });
+
+  test('activates the first tab when a reloaded pane has no valid active tab', () => {
+    seedPaneWorkspaceSession();
+    const storageKey = localTabSessionStorageKey(window.location.origin);
+    const session = JSON.parse(window.localStorage.getItem(storageKey) ?? '{}');
+    session.panes[1].activeTabId = 'missing';
+    window.localStorage.setItem(storageKey, JSON.stringify(session));
+    window.location.hash = '#/not-open';
+
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-right');
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe(THIRD_TAB_ID);
+  });
+
+  test('focuses the owning pane instead of duplicating an already-open target', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    seedPaneWorkspaceSession();
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
+    });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Focus left' }));
+    await user.click(screen.getByRole('button', { name: 'Open existing third' }));
+
+    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-right');
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe(THIRD_TAB_ID);
+    expect(screen.getByTestId('pane-tabs').textContent?.match(/Third/g)).toHaveLength(1);
+  });
+
+  test('splits a tab into a focused pane without duplicating its target', async () => {
+    seedPaneWorkspaceSession();
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Split other' }));
+
+    expect(screen.getByTestId('pane-count').textContent).toBe('3');
+    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-1');
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
+    expect(screen.getByTestId('pane-tabs').textContent?.match(/Other/g)).toHaveLength(1);
+  });
+
+  test('shows file and skill tabs together across panes', async () => {
+    seedMixedSurfacePaneWorkspaceSession();
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    const visible = () => screen.getByTestId('pane-visible-tabs').textContent ?? '';
+    expect(visible()).toContain(PINNED_TAB_ID);
+    expect(visible()).toContain(SKILL_TAB_ID);
+    expect(screen.getByTestId('pane-count').textContent).toBe('2');
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Focus right' }));
+
+    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-right');
+    expect(visible()).toContain(PINNED_TAB_ID);
+    expect(visible()).toContain(SKILL_TAB_ID);
+  });
+
+  test('maps a cross-pane visible drop slot around a blank tab to regular-tab order', async () => {
+    seedPaneWorkspaceSession();
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Open blank in left' }));
+    await user.click(screen.getByRole('button', { name: 'Interleave blank in left' }));
+    await user.click(screen.getByRole('button', { name: 'Move third into visible slot' }));
+
+    expect(screen.getByTestId('pane-tabs').textContent).toBe(
+      `pane-left:${PINNED_TAB_ID},${THIRD_TAB_ID},${OTHER_TAB_ID}`,
+    );
+    expect(screen.getByTestId('pane-visible-tabs').textContent).toBe(
+      `pane-left:${PINNED_TAB_ID},new-tab:1,${THIRD_TAB_ID},${OTHER_TAB_ID}`,
+    );
+  });
+
+  test('reopens a background pane tab in its surviving owner pane', async () => {
+    seedPaneWorkspaceSession();
+    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Close other in left' }));
+    expect(screen.getByTestId('pane-tabs').textContent).not.toContain(OTHER_TAB_ID);
+
+    await user.click(screen.getByRole('button', { name: 'Reopen pane tab' }));
+
+    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-left');
+    expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
+    expect(screen.getByTestId('pane-tabs').textContent).toContain(
+      `pane-left:${PINNED_TAB_ID},${OTHER_TAB_ID}`,
+    );
+  });
+});
+
+const RENAME_FOO = docTabId('foo');
+const RENAME_BAR = docTabId('bar');
+const RENAME_BAZZ = docTabId('bazz');
+
+function seedRenameSession() {
+  window.localStorage.setItem(
+    localTabSessionStorageKey(window.location.origin),
+    JSON.stringify(
+      persistedTabSession(
+        [RENAME_FOO, RENAME_BAR],
+        [],
+        RENAME_FOO,
+        new Date('2026-05-16T00:00:00.000Z').toISOString(),
+      ),
+    ),
+  );
+}
+
+function RenameHarness({ fromDocName, toDocName }: { fromDocName: string; toDocName: string }) {
+  const ctx = useDocumentContext();
+  return (
+    <>
+      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
+      <span data-testid="visible-tabs">{ctx.visibleTabIds.join('|')}</span>
+      <span data-testid="active-tab">{ctx.activeTabId ?? ''}</span>
+      <button
+        type="button"
+        onClick={() => void ctx.reconcileLocalRename({ renamed: [{ fromDocName, toDocName }] })}
+      >
+        Rename
+      </button>
+    </>
+  );
+}
+
+function AuthRenameHarness() {
+  const ctx = useDocumentContext();
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        ctx.openTarget(
+          { kind: 'doc', target: 'from.md', docName: 'from.md' },
+          { disposition: 'permanent', consumeActiveNewTab: true },
+        )
+      }
+    >
+      Select source
+    </button>
+  );
+}
+
+describe('DocumentContext local rename reconciliation — preserves tab position', () => {
+  afterEach(() => {
+    cleanup();
+    window.localStorage.clear();
+    window.location.hash = '';
+  });
+
+  test('renaming an open tab keeps its index in both openTabs and visibleTabIds', async () => {
+    seedRenameSession();
+    render(<RenameHarness fromDocName="foo" toDocName="bazz" />, {
+      wrapper: ProviderHarness,
+    });
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${RENAME_FOO}|${RENAME_BAR}`);
+    expect(screen.getByTestId('visible-tabs').textContent).toBe(`${RENAME_FOO}|${RENAME_BAR}`);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+
+    expect(screen.getByTestId('open-tabs').textContent).toBe(`${RENAME_BAZZ}|${RENAME_BAR}`);
+    expect(screen.getByTestId('visible-tabs').textContent).toBe(`${RENAME_BAZZ}|${RENAME_BAR}`);
+  });
+
+  test('renaming the active tab commits the remapped tab id to activeTabId', async () => {
+    seedRenameSession();
+    render(<RenameHarness fromDocName="foo" toDocName="bazz" />, {
+      wrapper: ProviderHarness,
+    });
+
+    expect(screen.getByTestId('active-tab').textContent).toBe(RENAME_FOO);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+
+    expect(screen.getByTestId('active-tab').textContent).toBe(RENAME_BAZZ);
+  });
+
+  test('renaming a non-active tab leaves activeTabId untouched', async () => {
+    seedRenameSession();
+    render(<RenameHarness fromDocName="bar.md" toDocName="bazz.md" />, {
+      wrapper: ProviderHarness,
+    });
+
+    expect(screen.getByTestId('active-tab').textContent).toBe(RENAME_FOO);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+
+    expect(screen.getByTestId('active-tab').textContent).toBe(RENAME_FOO);
+  });
+
+  test('auth rename navigates when the current target matches even if another pool doc is active', async () => {
+    mockCollabUrl = 'ws://localhost:1/collab';
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
+    render(<AuthRenameHarness />, { wrapper: ProviderHarness });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Select source' }));
+
+    const pool = (
+      window as unknown as {
+        __providerPool?: {
+          open(docName: string): void;
+          setActive(docName: string): void;
+          onRenameRedirect?: (input: {
+            fromDocName: string;
+            toDocName: string;
+            hadOpenProvider: boolean;
+          }) => void;
+        };
+      }
+    ).__providerPool;
+    expect(pool).toBeDefined();
+    pool?.open('other.md');
+    pool?.setActive('other.md');
+
+    act(() => {
+      pool?.onRenameRedirect?.({
+        fromDocName: 'from.md',
+        toDocName: 'to.md',
+        hadOpenProvider: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/to.md');
+    });
+  });
+});

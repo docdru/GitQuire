@@ -1,0 +1,646 @@
+import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { Hocuspocus } from '@hocuspocus/server';
+import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import type * as Y from 'yjs';
+import { AGENT_WRITE_ORIGIN, applyAgentMarkdownWrite } from './agent-sessions.ts';
+import { DocumentDurabilityState } from './document-durability-state.ts';
+import { applyExternalChange } from './external-change.ts';
+import type { FileIndexEntry } from './file-watcher.ts';
+import { installTestLoggers, loggerFactory } from './logger.ts';
+import { suggestLinks } from './suggest-links.ts';
+
+function buildFileIndex(dir: string, docNames: string[]): ReadonlyMap<string, FileIndexEntry> {
+  const index = new Map<string, FileIndexEntry>();
+  for (const docName of docNames) {
+    const filePath = join(dir, `${docName}.md`);
+    const stats = statSync(filePath);
+    const statsIdentity = filesystemIdentity(statSync(filePath, { bigint: true }));
+    index.set(docName, {
+      size: stats.size,
+      modified: stats.mtime.toISOString(),
+      canonicalPath: filePath,
+      inode: statsIdentity,
+      aliases: [],
+    });
+  }
+  return index;
+}
+
+type Conn = Awaited<ReturnType<Hocuspocus['openDirectConnection']>>;
+
+function getDoc(conn: Conn): Y.Doc {
+  const doc = (conn as unknown as { document: Y.Doc }).document;
+  if (!doc) throw new Error('DirectConnection has no document');
+  return doc;
+}
+
+describe('suggestLinks', () => {
+  beforeEach(() => {
+    installTestLoggers();
+  });
+
+  afterEach(() => {
+    loggerFactory.reset();
+  });
+
+  test('canonical wiki spellings suppress linked labels while unrelated prose remains suggestible', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'ok-suggest-resolved-'));
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    try {
+      mkdirSync(join(root, 'notes'));
+      writeFileSync(join(root, 'notes/beta.md'), '# Beta\n');
+      writeFileSync(
+        join(root, 'source.md'),
+        [
+          '[[beta|Beta]]',
+          '[[NOTES/BETA|Beta]]',
+          '[[beta.md|Beta]]',
+          '[[notes/beta.mdx#intro|Beta]]',
+          'Plain Beta remains useful.',
+        ].join('\n'),
+      );
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(root, ['notes/beta', 'source']),
+        docName: 'notes/beta',
+      });
+      expect(result.mentions).toEqual([
+        expect.objectContaining({ source: 'source', excerpt: 'Plain Beta remains useful.' }),
+      ]);
+      writeFileSync(join(root, 'source.md'), '[[missing|Beta]]\n');
+      const edited = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(root, ['notes/beta', 'source']),
+        docName: 'notes/beta',
+      });
+      expect(edited.mentions).toEqual([
+        expect.objectContaining({ source: 'source', excerpt: 'Beta' }),
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('bundle-relative wiki links suppress only mentions of the target in their own bundle', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'ok-suggest-bundle-'));
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const bundle = '.agents/skills/demo';
+    const pages = {
+      [`${bundle}/references/beta`]: '# Beta\n',
+      [`${bundle}/SKILL`]: '[[references/beta.md#intro|Beta]]\nPlain Beta remains useful.\n',
+      [`${bundle}/references/nested/guide`]: '[[references/beta|Beta]]\n',
+      '.agents/skills/other/references/beta': '# Other target\n',
+      '.agents/skills/other/SKILL': '[[references/beta|Beta]]\n',
+    };
+    try {
+      for (const [name, body] of Object.entries(pages)) {
+        const path = join(root, `${name}.md`);
+        mkdirSync(dirname(path), { recursive: true });
+        writeFileSync(path, body);
+      }
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(root, Object.keys(pages)),
+        docName: `${bundle}/references/beta`,
+      });
+      expect(result.mentions).toEqual([
+        expect.objectContaining({
+          source: `${bundle}/SKILL`,
+          excerpt: 'Plain Beta remains useful.',
+        }),
+        expect.objectContaining({ source: '.agents/skills/other/SKILL', excerpt: 'Beta' }),
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('returns a plain unlinked mention from the admitted disk corpus', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(
+        join(contentDir, 'notes.md'),
+        'We should document Project Alpha before launch.\n',
+        'utf-8',
+      );
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.target.docName).toBe('project-alpha');
+      expect(result.target.title).toBe('Project Alpha');
+      expect(result.truncated).toBe(false);
+      expect(result.mentions).toEqual([
+        {
+          source: 'notes',
+          excerpt: 'We should document Project Alpha before launch.',
+          offset: 19,
+        },
+      ]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('matches title and aliases case-insensitively without substring false positives', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const source =
+      'project alpha ships soon. PA owners are ready. alphabet soup stays unrelated.\n';
+
+    try {
+      writeFileSync(
+        join(contentDir, 'project-alpha.md'),
+        ['---', 'title: Project Alpha', 'aliases:', '  - PA', '---', '', 'Body.'].join('\n'),
+        'utf-8',
+      );
+      writeFileSync(join(contentDir, 'notes.md'), source, 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.mentions).toHaveLength(2);
+      expect(result.mentions.map((mention) => mention.offset)).toEqual([
+        source.indexOf('project alpha'),
+        source.indexOf('PA'),
+      ]);
+      expect(result.mentions.map((mention) => mention.excerpt)).toEqual([
+        'project alpha ships soon.…',
+        '…PA owners are ready.…',
+      ]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ignores frontmatter, fenced code, inline code, and existing links', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const source = [
+      '---',
+      'summary: Project Alpha frontmatter mention',
+      '---',
+      '',
+      'Inline `Project Alpha` should be ignored.',
+      '',
+      '```ts',
+      'const target = "Project Alpha";',
+      '```',
+      '',
+      'Already linked: [[Project Alpha]] and [Project Alpha](./project-alpha.md).',
+      '',
+      'Plain Project Alpha mention.',
+    ].join('\n');
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), source, 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.mentions).toEqual([
+        {
+          source: 'notes',
+          excerpt: 'Plain Project Alpha mention.',
+          offset: source.indexOf('Project Alpha', source.indexOf('Plain Project Alpha mention.')),
+        },
+      ]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ignores HTML and JSX tag markup but keeps text between tags matchable', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const source = [
+      '<Callout type="warn">',
+      'Always use a Callout for warnings.',
+      '</Callout>',
+      '',
+      '<Image src="/callout.png" alt="Callout" />',
+      '',
+      'Mark it <b>Callout</b> in bold.',
+      '',
+      '<!-- Callout is disabled here -->',
+    ].join('\n');
+
+    try {
+      writeFileSync(join(contentDir, 'callout.md'), '# Callout\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), source, 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['callout', 'notes']),
+        docName: 'callout',
+      });
+
+      expect(result.mentions).toEqual([
+        {
+          source: 'notes',
+          excerpt: 'Always use a Callout for warnings.',
+          offset: source.indexOf('Callout for warnings'),
+        },
+        {
+          source: 'notes',
+          excerpt: 'Mark it <b>Callout</b> in bold.',
+          offset: source.indexOf('<b>Callout') + '<b>'.length,
+        },
+      ]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps prose around a stray angle bracket matchable', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const source = 'When a<b holds, prefer the Callout pattern over x>y checks.';
+
+    try {
+      writeFileSync(join(contentDir, 'callout.md'), '# Callout\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), source, 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['callout', 'notes']),
+        docName: 'callout',
+      });
+
+      expect(result.mentions).toEqual([
+        { source: 'notes', excerpt: source, offset: source.indexOf('Callout') },
+      ]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps labels linked to other pages matchable', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const source = [
+      'See [Project Alpha](./other.md) for the external plan.',
+      'Alias form [[other|  Project Alpha  ]] should also stay matchable.',
+    ].join('\n');
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(join(contentDir, 'other.md'), '# Other\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), source, 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'other', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      const firstOffset = source.indexOf('Project Alpha');
+      const secondOffset = source.indexOf('Project Alpha', firstOffset + 1);
+
+      expect(result.mentions).toEqual([
+        {
+          source: 'notes',
+          excerpt: 'See Project Alpha for the external plan.',
+          offset: firstOffset,
+        },
+        {
+          source: 'notes',
+          excerpt: 'Alias form Project Alpha should also stay matchable.',
+          offset: secondOffset,
+        },
+      ]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('prefers live open-doc content over stale disk content', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    let conn: Conn | null = null;
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), 'No mention on disk.\n', 'utf-8');
+
+      conn = await hocuspocus.openDirectConnection('notes');
+      const doc = getDoc(conn);
+      doc.transact(() => {
+        applyAgentMarkdownWrite(doc, 'Project Alpha only in live state.\n', 'replace');
+      }, AGENT_WRITE_ORIGIN);
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.mentions).toEqual([
+        {
+          source: 'notes',
+          excerpt: 'Project Alpha only in live state.',
+          offset: 0,
+        },
+      ]);
+    } finally {
+      if (conn) await conn.disconnect();
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('FR-43: doc-start `---` thematic-break form survives via ytext (discriminating)', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const durabilityState = new DocumentDurabilityState();
+    let conn: Conn | null = null;
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), 'Stale disk.\n', 'utf-8');
+
+      conn = await hocuspocus.openDirectConnection('notes');
+      const doc = getDoc(conn);
+      applyExternalChange(
+        durabilityState,
+        hocuspocus,
+        'notes',
+        '---\n# Notes\n\nProject Alpha discussion.\n',
+      );
+
+      const yText = doc.getText('source').toString();
+      expect(yText).toBe('---\n# Notes\n\nProject Alpha discussion.\n');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.mentions).toHaveLength(1);
+      expect(result.mentions[0]?.offset).toBe(13);
+      expect(result.mentions[0]?.source).toBe('notes');
+    } finally {
+      if (conn) await conn.disconnect();
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('FR-43: angle-bracket autolink survives in mention excerpt (live doc body via ytext)', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    let conn: Conn | null = null;
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), 'No mention on disk.\n', 'utf-8');
+
+      conn = await hocuspocus.openDirectConnection('notes');
+      const doc = getDoc(conn);
+      doc.transact(() => {
+        applyAgentMarkdownWrite(doc, 'Visit <https://example> for Project Alpha.\n', 'replace');
+      }, AGENT_WRITE_ORIGIN);
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.mentions).toHaveLength(1);
+      const excerpt = result.mentions[0]?.excerpt ?? '';
+      expect(excerpt).toContain('<https://example>');
+      expect(excerpt).not.toContain('](https://example)');
+    } finally {
+      if (conn) await conn.disconnect();
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('orders results by mention density then source name', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(
+        join(contentDir, 'alpha.md'),
+        'Project Alpha once. Project Alpha twice.\n',
+        'utf-8',
+      );
+      writeFileSync(
+        join(contentDir, 'beta.md'),
+        'Project Alpha one. Project Alpha two.\n',
+        'utf-8',
+      );
+      writeFileSync(join(contentDir, 'zeta.md'), 'Project Alpha only.\n', 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'alpha', 'beta', 'zeta']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.mentions.map((mention) => mention.source)).toEqual([
+        'alpha',
+        'alpha',
+        'beta',
+        'beta',
+        'zeta',
+      ]);
+      expect(result.mentions.map((mention) => mention.offset)).toEqual([0, 20, 0, 19, 0]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('returns partial ordered results and scan observations when budget is exceeded', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const observations: Array<{
+      durationMs: number;
+      corpusDocCount: number;
+      candidateCount: number;
+      truncated: boolean;
+    }> = [];
+    const nowValues = [0, 0, 600, 600];
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(join(contentDir, 'alpha.md'), 'Project Alpha first.\n', 'utf-8');
+      writeFileSync(join(contentDir, 'beta.md'), 'Project Alpha second.\n', 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'alpha', 'beta']),
+        docName: 'project-alpha',
+        scanBudgetMs: 500,
+        now: () => nowValues.shift() ?? 600,
+        onComplete: (observation) => observations.push(observation),
+      });
+
+      expect(result.truncated).toBe(true);
+      expect(result.mentions.map((mention) => mention.source)).toEqual(['alpha']);
+      expect(observations).toEqual([
+        {
+          durationMs: 600,
+          corpusDocCount: 2,
+          candidateCount: 1,
+          truncated: true,
+        },
+      ]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  async function suggestAgainst(
+    targetMarkdown: string,
+    sourceMarkdown: string,
+  ): Promise<Array<{ source: string; excerpt: string; offset: number }>> {
+    const contentDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-unicode-'));
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    try {
+      writeFileSync(join(contentDir, 'target.md'), targetMarkdown, 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), sourceMarkdown, 'utf-8');
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['target', 'notes']),
+        docName: 'target',
+      });
+      return result.mentions;
+    } finally {
+      rmSync(contentDir, { recursive: true, force: true });
+    }
+  }
+
+  test.each([
+    ['Japanese', '東京', '来週東京に行きます。'],
+    ['Chinese', '北京', '我们下周去北京开会。'],
+    ['Thai', 'กรุงเทพ', 'พรุ่งนี้ฉันจะไปกรุงเทพกับเพื่อน'],
+    ['Lao', 'ລາວ', 'ດິນແດນລາວງາມ'],
+    ['Katakana beside Latin', 'テスト', 'Unitテスト'],
+    ['Khmer', 'ភ្នំពេញ', 'ភ្នំពេញជាទីក្រុង'],
+    ['Myanmar', 'ဗမာ', 'ဗမာစကားပြော'],
+    ['Latin beside Japanese', 'React', 'Reactは便利です。'],
+    ['Japanese beside Latin', '日本語', 'Python日本語ガイド'],
+  ])('finds a %s mention in text written without spaces', async (_script, title, source) => {
+    const mentions = await suggestAgainst(`# ${title}\n`, `${source}\n`);
+    expect(mentions).toEqual([{ source: 'notes', excerpt: source, offset: source.indexOf(title) }]);
+  });
+
+  test.each([
+    ['Japanese', '京都', '東京都に住んでいます。'],
+    ['Thai', 'ท', 'ที่นี่'],
+  ])(
+    'rejects a %s mention that splits a word written without spaces',
+    async (_script, title, source) => {
+      const mentions = await suggestAgainst(`# ${title}\n`, `${source}\n`);
+      expect(mentions).toEqual([]);
+    },
+  );
+
+  test('still rejects a Latin title inside a longer Latin word', async () => {
+    const mentions = await suggestAgainst('# Cat\n', 'The category is not a cat.\n');
+    expect(mentions).toEqual([
+      { source: 'notes', excerpt: 'The category is not a cat.', offset: 22 },
+    ]);
+  });
+
+  test('reads a neighbouring character outside the Basic Multilingual Plane as one letter', async () => {
+    const source = '𝐀cat and cat𝐀 and cat.';
+    const mentions = await suggestAgainst('# Cat\n', `${source}\n`);
+    expect(mentions.map((mention) => mention.offset)).toEqual([source.lastIndexOf('cat')]);
+  });
+
+  test.each([
+    ['C++', 'We write C++ daily.', [9]],
+    ['Node.js', 'Use Node.js, not Nodexjs.', [4]],
+    ['(a|b)?', 'Pick (a|b)? or ab.', [5]],
+  ])('matches the title %s literally', async (title, source, offsets) => {
+    const mentions = await suggestAgainst(`# ${title}\n`, `${source}\n`);
+    expect(mentions.map((mention) => mention.offset)).toEqual(offsets);
+  });
+
+  test('rejects a Latin title followed by a combining accent', async () => {
+    const mentions = await suggestAgainst('# Cafe\n', 'Cafe\u0301 society.\n');
+    expect(mentions).toEqual([]);
+  });
+
+  test('returns source offsets when lowercasing the text would change its length', async () => {
+    const source = 'İİ notes mention Project Alpha here.';
+    const mentions = await suggestAgainst('# Project Alpha\n', `${source}\n`);
+    expect(mentions).toEqual([
+      { source: 'notes', excerpt: source, offset: source.indexOf('Project Alpha') },
+    ]);
+  });
+
+  test('matches a title whose lowercase form is longer than the title', async () => {
+    const source = 'We flew to İzmir and to İZMIR again.';
+    const mentions = await suggestAgainst('# İzmir\n', `${source}\n`);
+    expect(mentions.map((mention) => mention.offset)).toEqual([
+      source.indexOf('İzmir'),
+      source.indexOf('İZMIR'),
+    ]);
+  });
+
+  test('returns an empty success result when no candidates exist', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-suggest-links-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    const hocuspocus = new Hocuspocus({ quiet: true });
+
+    try {
+      writeFileSync(join(contentDir, 'project-alpha.md'), '# Project Alpha\n', 'utf-8');
+      writeFileSync(join(contentDir, 'notes.md'), 'No relevant content here.\n', 'utf-8');
+
+      const result = await suggestLinks({
+        hocuspocus,
+        fileIndex: buildFileIndex(contentDir, ['project-alpha', 'notes']),
+        docName: 'project-alpha',
+      });
+
+      expect(result.truncated).toBe(false);
+      expect(result.mentions).toEqual([]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+});

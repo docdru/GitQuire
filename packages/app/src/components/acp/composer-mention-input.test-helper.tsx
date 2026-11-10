@@ -1,0 +1,145 @@
+import type { JSONContent } from '@tiptap/core';
+import { type Ref, useImperativeHandle, useRef } from 'react';
+import type { ComposerMentionInputHandle } from '@/editor/ComposerMentionInput';
+import type { MentionRecency } from '@/editor/composer-mention/composer-mention';
+
+function docPlainText(doc: {
+  content?: readonly { content?: readonly Record<string, unknown>[] }[];
+}): string {
+  return (doc.content ?? [])
+    .map((paragraph) =>
+      (paragraph.content ?? [])
+        .map((node) => {
+          if (node.type === 'text') return String(node.text ?? '');
+          const attrs = (node.attrs ?? {}) as Record<string, unknown>;
+          if (node.type === 'composerMention') return `@${String(attrs.path ?? '')}`;
+          if (node.type === 'composerCommand') return `/${String(attrs.name ?? '')}`;
+          return '';
+        })
+        .join(''),
+    )
+    .join('\n');
+}
+
+export function mentionRecencyAttribute(recency: MentionRecency | undefined): string | undefined {
+  return recency === undefined ? undefined : JSON.stringify(recency);
+}
+
+export function MockComposerMentionInput({
+  ref,
+  ariaLabel,
+  ariaDescribedBy,
+  onEmptyChange,
+  onContentChange,
+  onSubmit,
+  onEscape,
+  className,
+  placeholder,
+  disabled,
+  testId,
+  mentionRecency,
+}: {
+  ref?: Ref<ComposerMentionInputHandle>;
+  ariaLabel: string;
+  ariaDescribedBy?: string;
+  onEmptyChange: (isEmpty: boolean) => void;
+  onContentChange?: (doc: JSONContent) => void;
+  onSubmit: () => void;
+  onEscape?: () => void;
+  className?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  testId?: string;
+  mentionRecency?: MentionRecency;
+}) {
+  const localRef = useRef<HTMLTextAreaElement>(null);
+  const notify = () => {
+    const value = localRef.current?.value ?? '';
+    onEmptyChange(value.trim() === '');
+    onContentChange?.({
+      type: 'doc',
+      content: [
+        value === ''
+          ? { type: 'paragraph' }
+          : { type: 'paragraph', content: [{ type: 'text', text: value }] },
+      ],
+    });
+  };
+  useImperativeHandle(ref, () => ({
+    focus: () => localRef.current?.focus(),
+    refuseDrop: () => {},
+    focusEnd: () => {
+      const el = localRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    },
+    blur: () => localRef.current?.blur(),
+    clear: () => {
+      if (localRef.current) localRef.current.value = '';
+      notify();
+    },
+    setText: (text: string) => {
+      if (localRef.current) localRef.current.value = text;
+      notify();
+    },
+    appendText: (text: string) => {
+      const el = localRef.current;
+      if (text === '') return true;
+      if (!el) return false;
+      el.value = el.value.trim() === '' ? text : `${el.value.replace(/\s+$/, '')}\n\n${text}`;
+      notify();
+      return true;
+    },
+    getDoc: () => ({
+      type: 'doc',
+      content: (localRef.current?.value ?? '')
+        .split('\n')
+        .map((line) =>
+          line === ''
+            ? { type: 'paragraph' }
+            : { type: 'paragraph', content: [{ type: 'text', text: line }] },
+        ),
+    }),
+    setDoc: (doc) => {
+      const el = localRef.current;
+      if (!el) return false;
+      el.value = docPlainText(doc);
+      notify();
+      return true;
+    },
+    getContent: () => ({
+      instruction: localRef.current?.value ?? '',
+      mentions: [],
+      attachments: [],
+    }),
+    openMentionPicker: () => {},
+    openSlashCommandPicker: () => {
+      if (localRef.current) localRef.current.value = '/';
+      notify();
+    },
+  }));
+  return (
+    <textarea
+      ref={localRef}
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
+      placeholder={placeholder}
+      disabled={disabled}
+      data-testid={testId}
+      data-mention-recency={mentionRecencyAttribute(mentionRecency)}
+      className={className}
+      onChange={notify}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+          event.preventDefault();
+          onSubmit();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          if (onEscape !== undefined) onEscape();
+          else localRef.current?.blur();
+        }
+      }}
+    />
+  );
+}

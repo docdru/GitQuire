@@ -1,0 +1,2734 @@
+import type { EventEmitter } from 'node:events';
+import { readFileSync, realpathSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
+import {
+  DEFAULT_SERVER_HOST,
+  DEFAULT_SIGTERM_GRACE_MS,
+  DEFAULT_SIGTERM_POLL_MS,
+  type DesktopProductName,
+  desktopChannelLabel,
+  sliceLastSpawnAttempt,
+} from '@inkeep/open-knowledge-core';
+import type {
+  OkDeepLinkPayload,
+  OkShareReceivedPayload,
+} from '@inkeep/open-knowledge-core/desktop-bridge';
+import type { KeepaliveHandle } from '@inkeep/open-knowledge-core/keepalive';
+import { projectSpawnErrorLogPath } from '@inkeep/open-knowledge-core/server';
+import {
+  assessLockHolder,
+  getLocalDir,
+  type LockHolderIdentity,
+  type ProcessStart,
+  readBootStartedAtMs,
+  readProcessStart,
+} from '@inkeep/open-knowledge-server';
+import {
+  BOOT_HEARTBEAT_EVENTS,
+  isUtilityInitPhase,
+  SPAWN_STARTUP_DEADLINE_MS,
+  SPAWN_WAIT_HEARTBEAT_MS,
+  startupWaitHardCapMs,
+  UTILITY_INIT_COUNTERS,
+  UTILITY_INIT_TIMEOUT_MS,
+  UTILITY_WAIT_EXPIRED_EVENT,
+  UTILITY_WAIT_EXTENDED_EVENT,
+  UTILITY_WAIT_LATE_KILL_EVENT,
+  type UtilityInitPhase,
+  utilityInitPhaseEvent,
+} from '../shared/boot-narration.ts';
+import type { OkServerRestartOutcome } from '../shared/bridge-contract.ts';
+import { registerPendingDelivery, sendToRenderer } from '../shared/ipc-send.ts';
+import type { AssetOpenResult } from './asset-allowlist.ts';
+import { attachAssetSafetyNet } from './asset-safety-net.ts';
+import { startBootHeartbeat } from './boot-heartbeat.ts';
+import type { WindowInstanceLabels } from './instance-identity.ts';
+import {
+  type HostCliInvocation,
+  resolveLocalOpCliArgsForUtilityFork,
+} from './local-op-cli-invocation.ts';
+import type { ServerExitInfo } from './server-exit-record.ts';
+import type { ShowGateRegistry } from './show-gate.ts';
+import type { RestoredWindow } from './state-store.ts';
+import type { ShareDeepLinkBranchSwitchPayload } from './url-scheme.ts';
+import { classifyServerVersion } from './version-drift.ts';
+import { SINGLE_FILE_WINDOW_CHROME_KIND, type WindowChromeKind } from './window-chrome.ts';
+
+const RESTART_SIGTERM_GRACE_MS = 3_000;
+
+export { SPAWN_WAIT_HEARTBEAT_MS };
+
+const FOREIGN_LOCK_PROBE_ATTEMPTS = 3;
+const FOREIGN_LOCK_PROBE_RETRY_MS = 500;
+
+type ProbePhase = 'attach' | 'spawn-foreign-lock' | 'restart-recovery' | 'force-stop-recovery';
+
+function isDialablePort(port: unknown): port is number {
+  return typeof port === 'number' && Number.isInteger(port) && port > 0 && port <= 65535;
+}
+
+type RecoveryCaller = 'restart' | 'force-stop';
+
+const RECOVERY_CALLERS: Record<
+  RecoveryCaller,
+  { event: 'desktop-server-restart' | 'desktop-force-stop-conflicting-server'; phase: ProbePhase }
+> = {
+  restart: { event: 'desktop-server-restart', phase: 'restart-recovery' },
+  'force-stop': {
+    event: 'desktop-force-stop-conflicting-server',
+    phase: 'force-stop-recovery',
+  },
+};
+
+const EPHEMERAL_SERVER_WATCH_POLL_MS = 3_000;
+
+function terminationOutcome(term: TerminationResult): string {
+  if (term.ok) return term.outcome;
+  if (term.reason === 'unverified')
+    return term.sigtermSent ? 'sigterm-sent-unverified' : 'unverified';
+  return term.reason;
+}
+
+function restartFailure(term: Extract<TerminationResult, { ok: false }>): OkServerRestartOutcome {
+  switch (term.reason) {
+    case 'eperm':
+    case 'other':
+      return { ok: false, reason: term.reason };
+    case 'unverified':
+      return { ok: false, reason: 'unverified', sigtermSent: term.sigtermSent };
+    default: {
+      const exhaustive: never = term;
+      return exhaustive;
+    }
+  }
+}
+
+function terminationEscalated(term: TerminationResult): boolean {
+  return term.ok && term.outcome === 'stopped' && term.escalated;
+}
+
+function isValidLockPidLocal(value: unknown): value is number {
+  if (typeof value !== 'number') return false;
+  if (!Number.isInteger(value)) return false;
+  if (value < 2) return false;
+  if (value > 0x7fffffff) return false;
+  return true;
+}
+
+type UtilityInitCounter = (typeof UTILITY_INIT_COUNTERS)[number];
+
+type UtilityInitPhaseMark = { phase?: unknown } & Partial<Record<UtilityInitCounter, unknown>>;
+
+function nonNegativeInitCounters(
+  mark: UtilityInitPhaseMark,
+): Partial<Record<UtilityInitCounter, number>> {
+  const counters: Partial<Record<UtilityInitCounter, number>> = {};
+  for (const counter of UTILITY_INIT_COUNTERS) {
+    const value = mark[counter];
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+      counters[counter] = value;
+    }
+  }
+  return counters;
+}
+
+let windowInstanceLabel: string | null = null;
+let rendererInstanceLabel: string | null = null;
+
+export function setWindowInstanceLabels(labels: WindowInstanceLabels): void {
+  windowInstanceLabel = labels.title;
+  rendererInstanceLabel = labels.renderer;
+}
+
+function instanceLabelArgs(): string[] {
+  return rendererInstanceLabel ? [`--ok-instance-label=${rendererInstanceLabel}`] : [];
+}
+
+function formatEditorTitle(projectName: string): string {
+  const suffix = windowInstanceLabel ? ` (${windowInstanceLabel})` : '';
+  return `${projectName} — OpenKnowledge${suffix}`;
+}
+
+export interface BrowserWindowLike {
+  focus(): void;
+  show?(): void;
+  showInactive?(): void;
+  restore?(): void;
+  isMinimized?(): boolean;
+  isDestroyed?(): boolean;
+  isVisible?(): boolean;
+  moveTop?(): void;
+  isFocused?(): boolean;
+  close?(): void;
+  destroy?(): void;
+  on(event: 'closed', cb: () => void): void;
+  once(event: 'ready-to-show', cb: () => void): void;
+  webContents: {
+    send(channel: string, ...args: unknown[]): void;
+    once(event: 'dom-ready' | 'did-finish-load', cb: () => void): void;
+    executeJavaScript(code: string): Promise<unknown>;
+    setWindowOpenHandler(handler: (details: { url: string }) => { action: 'allow' | 'deny' }): void;
+    on(
+      event: 'will-navigate' | 'will-redirect',
+      handler: (event: { preventDefault: () => void }, url: string) => void,
+    ): void;
+  };
+  loadFile(filePath: string): Promise<void>;
+  loadURL(url: string): Promise<void>;
+}
+
+export interface UtilityProcessLike {
+  pid: number | undefined;
+  postMessage(msg: unknown): void;
+  on(event: 'message', cb: (msg: unknown) => void): void;
+  on(event: 'exit', cb: (code: number | null) => void): void;
+  once(event: 'message', cb: (msg: unknown) => void): void;
+  once(event: 'spawn', cb: () => void): void;
+  removeListener?(event: 'message', cb: (msg: unknown) => void): void;
+  removeListener?(event: 'exit', cb: (code: number | null) => void): void;
+  kill(signal?: NodeJS.Signals): boolean;
+}
+
+export interface ServerLockMetadataLike {
+  pid: number;
+  hostname: string;
+  port: number;
+  url?: string;
+  startedAt: string;
+  worktreeRoot: string;
+  kind?: 'interactive' | 'mcp-spawned';
+  capabilities?: string[];
+  protocolVersion?: number;
+  runtimeVersion?: string;
+  machineId?: string;
+  draining?: boolean;
+  channel?: string;
+  processStart?: unknown;
+}
+
+export type OtherChannelHolderError = Error & {
+  kind: 'other-channel-holder';
+  holderPid: number;
+  holderChannel: string;
+  holderKind: ServerLockMetadataLike['kind'];
+  selfChannel: string;
+};
+
+function otherChannelHolderError(
+  lock: ServerLockMetadataLike,
+  { holderChannel, selfChannel }: ChannelConflict,
+): OtherChannelHolderError {
+  return Object.assign(
+    new Error(
+      `${desktopChannelLabel(holderChannel)} is serving this project (pid ${lock.pid}). Only one ` +
+        `OpenKnowledge app can edit a project at a time.`,
+    ),
+    {
+      name: 'OtherChannelHolderError',
+      kind: 'other-channel-holder' as const,
+      holderPid: lock.pid,
+      holderChannel,
+      holderKind: lock.kind,
+      selfChannel,
+    },
+  );
+}
+
+export const APP_QUITTING_OPEN_KIND = 'app-quitting';
+
+interface TrackedUtility {
+  readonly exited: Promise<void>;
+  readonly serviceName: string;
+  spawnedPid(): number | undefined;
+}
+
+function openCancelledByQuitError(projectPath: string, cause: unknown): Error {
+  return Object.assign(
+    new Error(`opening ${projectPath} was cancelled because the app is quitting`, { cause }),
+    { name: 'OpenCancelledByQuitError', kind: APP_QUITTING_OPEN_KIND },
+  );
+}
+
+export function isOtherChannelHolderError(err: unknown): err is OtherChannelHolderError {
+  if (!(err instanceof Error)) return false;
+  const fields = err as Partial<OtherChannelHolderError>;
+  return (
+    fields.kind === 'other-channel-holder' &&
+    typeof fields.holderPid === 'number' &&
+    typeof fields.holderChannel === 'string' &&
+    typeof fields.selfChannel === 'string'
+  );
+}
+
+export type OtherChannelHolder = Pick<
+  OtherChannelHolderError,
+  'holderPid' | 'holderChannel' | 'holderKind' | 'selfChannel'
+>;
+
+export function otherChannelStopOffer(
+  holder: Pick<OtherChannelHolderError, 'holderChannel' | 'holderKind' | 'selfChannel'>,
+): { detail: string; button: string } {
+  const holderLabel = desktopChannelLabel(holder.holderChannel);
+  const selfLabel = desktopChannelLabel(holder.selfChannel);
+  const situation =
+    holder.holderKind === 'mcp-spawned'
+      ? `An agent or editor started this ${holderLabel} server over MCP. It does not stop when ` +
+        `that session ends: it stops on its own once nothing has had the project open for a ` +
+        `while (30 minutes by default).`
+      : `This ${holderLabel} server keeps running after any window showing the project closes, ` +
+        `so the project stays busy until the server stops.`;
+  const loses =
+    holder.holderKind === 'mcp-spawned'
+      ? 'Whatever the agent or editor is doing right now is interrupted, and its next request ' +
+        'reaches the server opened here.'
+      : 'Every window, editor, or agent connected to it loses its connection to this project.';
+  return {
+    detail: `${situation} ${selfLabel} can stop it now and open the project here. ${loses}`,
+    button: `Stop ${holderLabel} Server & Open Here`,
+  };
+}
+
+type ChannelConflict = { holderChannel: string; selfChannel: DesktopProductName };
+
+export type ForceStopOutcome =
+  | { ok: true }
+  | { ok: false; reason: 'eperm' | 'other' | 'holder-changed' }
+  | { ok: false; reason: 'unverified'; sigtermSent: boolean };
+
+type TerminationTarget =
+  | { kind: 'lock'; lock: LockHolderIdentity }
+  | { kind: 'spawned'; server: SpawnedServer };
+
+type TerminationResult =
+  | { ok: true; outcome: 'stopped'; escalated: boolean }
+  | { ok: true; outcome: 'already-gone' | 'holder-replaced' }
+  | { ok: false; reason: 'eperm' | 'other' }
+  | { ok: false; reason: 'unverified'; sigtermSent: boolean };
+
+type RawServerLockFields = Partial<
+  Record<
+    'pid' | 'port' | 'url' | 'channel' | 'startedAt' | 'machineId' | 'hostname' | 'processStart',
+    unknown
+  >
+>;
+
+function loopbackOriginFromUrl(url: unknown): string | null {
+  if (typeof url !== 'string' || url.length === 0) return null;
+  let parsed: URL | null = null;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+  const host = parsed.hostname;
+  const loopback =
+    host === 'localhost' || host === '[::1]' || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host);
+  return loopback ? parsed.origin : null;
+}
+
+function lockMayHaveServer(lock: { port?: unknown; url?: unknown }): boolean {
+  if (loopbackOriginFromUrl(lock.url) !== null) return true;
+  const port = typeof lock.port === 'string' ? Number(lock.port) : lock.port;
+  return isDialablePort(port);
+}
+
+function lockIsAttachable(lock: { port?: unknown }): boolean {
+  return isDialablePort(lock.port);
+}
+
+export function lockApiOrigin(lock: { port?: unknown; url?: unknown }): string {
+  return loopbackOriginFromUrl(lock.url) ?? `http://localhost:${lock.port}`;
+}
+
+function httpOriginToWsOrigin(origin: string): string {
+  return origin.replace(/^http/, 'ws');
+}
+
+export function lockWsOrigin(lock: Pick<ServerLockMetadataLike, 'port' | 'url'>): string {
+  return httpOriginToWsOrigin(lockApiOrigin(lock));
+}
+
+export function collabUrlFromApiOrigin(apiOrigin: string): string {
+  return `${httpOriginToWsOrigin(apiOrigin)}/collab`;
+}
+
+export function lockCollabUrl(lock: { port?: unknown; url?: unknown }): string {
+  return collabUrlFromApiOrigin(lockApiOrigin(lock));
+}
+
+interface ProjectContext {
+  projectPath: string;
+  canonicalKey: string;
+  projectName: string;
+  port: number;
+  apiOrigin: string;
+  window: BrowserWindowLike;
+  utility: UtilityProcessLike | null;
+  ownsServer: boolean;
+  ephemeral?: {
+    projectDir: string;
+    server: SpawnedServer;
+    lockDir: string;
+  };
+}
+
+export interface EphemeralOpenIdentity {
+  canonicalFilePath: string;
+  contentDir: string;
+  docName: string;
+}
+
+export interface PendingDeepLinkOpts {
+  pendingDeepLinkTarget?: {
+    kind: 'doc' | 'folder';
+    path: string;
+    repositoryPath?: string;
+    contentRootDepth?: number;
+  };
+  pendingBranch?: string | null;
+  pendingMultiCandidate?: boolean;
+  pendingTargetMissing?: boolean;
+}
+
+interface CreateProjectWindowOpts extends PendingDeepLinkOpts {
+  projectPath: string;
+  pendingShareBranchSwitch?: ShareDeepLinkBranchSwitchPayload;
+  didEnsureGit?: boolean;
+  consentVersion?: number;
+  localOpCliInvocation?: HostCliInvocation;
+  pendingServerRestartedToast?: boolean;
+  freshlyCreated?: boolean;
+}
+
+export function pendingDeepLinkPayload(opts: PendingDeepLinkOpts): OkDeepLinkPayload | undefined {
+  const target = opts.pendingDeepLinkTarget;
+  if (target === undefined) return undefined;
+  return {
+    doc: target.path,
+    kind: target.kind,
+    branch: opts.pendingBranch ?? null,
+    multiCandidate: opts.pendingMultiCandidate === true,
+    ...(target.repositoryPath === undefined ? {} : { repositoryPath: target.repositoryPath }),
+    ...(target.contentRootDepth === undefined ? {} : { contentRootDepth: target.contentRootDepth }),
+    ...(opts.pendingTargetMissing === true ? { targetMissing: true } : {}),
+  };
+}
+
+export function shareBranchSwitchPayload(
+  branchSwitch: ShareDeepLinkBranchSwitchPayload,
+): OkShareReceivedPayload {
+  return {
+    kind: 'project-branch-switch',
+    share: branchSwitch.share,
+    projectPath: branchSwitch.projectPath,
+    currentBranch: branchSwitch.currentBranch,
+  };
+}
+
+export interface SpawnedServer {
+  readonly pid: number;
+  readExit(): { code: number | null; signal: string | null } | null;
+  signal(signal: NodeJS.Signals): void;
+}
+
+export function heldChildServer(
+  child: Pick<EventEmitter, 'on' | 'off'> & { kill(signal: NodeJS.Signals): boolean },
+  pid: number,
+  readExit: SpawnedServer['readExit'],
+): SpawnedServer {
+  return {
+    pid,
+    readExit,
+    signal: (signal) => {
+      let failure: Error | undefined;
+      const recordFailure = (err: Error): void => {
+        failure = err;
+      };
+      child.on('error', recordFailure);
+      try {
+        if (child.kill(signal)) return;
+      } finally {
+        child.off('error', recordFailure);
+      }
+      throw (
+        failure ??
+        Object.assign(
+          new Error(`kill ${signal} was not delivered: the server has already exited`),
+          {
+            code: 'ESRCH',
+            syscall: 'kill',
+          },
+        )
+      );
+    },
+  };
+}
+
+type SpawnCliServer = (opts: {
+  contentDir: string;
+  reactShellDistDir: string;
+  singleFile?: string;
+  projectDir?: string;
+}) => Promise<SpawnedServer>;
+
+export interface WindowManagerDeps {
+  createWindow(opts: {
+    additionalArguments: string[];
+    title: string;
+    projectPath?: string;
+    focusKey?: string;
+    chrome?: WindowChromeKind;
+  }): BrowserWindowLike;
+  forkUtility(
+    entry: string,
+    args: string[],
+    opts: { windowLifecycleBound?: boolean; serviceName: string },
+  ): UtilityProcessLike;
+  utilityEntryPath: string;
+  spawnDetachedServer?: SpawnCliServer;
+  spawnSingleFileServer?: SpawnCliServer;
+  createEphemeralProjectDir?(contentDir: string): string;
+  removeDir?(dir: string): Promise<void>;
+  spawnLockPollDeadlineMs?: number;
+  spawnLockProgressDeadlineMs?: number;
+  flushLog?: () => void;
+  sigtermGraceMs?: number;
+  createKeepalive?(opts: { lockDir: string }): KeepaliveHandle;
+  rendererEntryPath: string;
+  rendererDevUrl?: string | null;
+  terminalAuthAvailable: boolean;
+  appVersion: string;
+  selfProtocolVersion?: number;
+  selfRuntimeVersion?: string;
+  selfChannel?: DesktopProductName;
+  reclaimForeignServerInDev?: boolean;
+  isFirstLaunchAfterUpgrade?(): boolean;
+  setTimeout(cb: () => void, ms: number): unknown;
+  setInterval?(cb: () => void, ms: number): unknown;
+  clearInterval?(handle: unknown): void;
+  killProbe(pid: number, signal: number | NodeJS.Signals): void;
+  showGate: ShowGateRegistry;
+  runClean?(opts: { lockDir: string }): Promise<void>;
+  realpathSync?(p: string): string;
+  activateApp?(): void;
+  readServerLock?(lockDir: string): ServerLockMetadataLike | null;
+  removeServerLock?(lockDir: string, expected: { pid: number }): boolean;
+  isProcessAlive?(pid: number): boolean;
+  readProcessStart?(pid: number): ProcessStart | null;
+  readBootInstant?(): number | null;
+  hostname?(): string;
+  probeWsUpgrade?(url: string, timeoutMs: number): Promise<boolean>;
+  utilityInitTimeoutMs?: number;
+  onProjectServerRestarted?(args: {
+    readonly projectPath: string;
+    readonly apiOrigin: string;
+  }): void;
+  log?: {
+    info(obj: object, msg: string): void;
+    warn(obj: object, msg: string): void;
+    error(obj: object, msg: string): void;
+  };
+  onUtilityMessage?(msg: unknown): void;
+  onUtilityExit?(utility: UtilityProcessLike): void;
+  recordServerExit?(info: Pick<ServerExitInfo, 'lockDir' | 'pid' | 'code'>): void;
+  startup?: {
+    traceparent?: string;
+    markServerLockReady?(info?: { startedAt?: string; apiOrigin?: string }): void;
+    markWindowCreated?(): void;
+    markLoadUrlResolved?(): void;
+  };
+  safetyNet?: {
+    openExternal: (url: string) => Promise<void>;
+    openAsset: (projectPath: string, relPath: string) => Promise<AssetOpenResult>;
+  };
+}
+
+export function signalDetachedServerStop(
+  entries: ReadonlyArray<readonly [string, SpawnedServer]>,
+  log?: { warn(obj: object, msg: string): void },
+): number {
+  let signalled = 0;
+  for (const [projectPath, server] of entries) {
+    if (server.readExit() !== null) continue;
+    const { pid } = server;
+    try {
+      server.signal('SIGTERM');
+      signalled++;
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ESRCH') continue;
+      log?.warn(
+        {
+          event: 'update-install-server-stop-failed',
+          err,
+          code,
+          pid,
+          projectPath,
+        },
+        'SIGTERM failed during before-quit-for-update teardown',
+      );
+    }
+  }
+  return signalled;
+}
+
+export function signalStopOwnedUtilityForks(
+  contexts: Iterable<Pick<ProjectContext, 'ownsServer' | 'utility' | 'projectPath'>>,
+  log?: { warn(obj: object, msg: string): void },
+): void {
+  for (const ctx of contexts) {
+    if (!ctx.ownsServer || !ctx.utility) continue;
+    try {
+      ctx.utility.kill('SIGKILL');
+    } catch (err) {
+      log?.warn(
+        { err, projectPath: ctx.projectPath },
+        'utility SIGKILL failed during owned-server teardown',
+      );
+    }
+  }
+}
+
+export function bringWindowToFront(
+  win: BrowserWindowLike,
+  activateApp: () => void,
+  opts?: { activate?: boolean },
+): void {
+  const activate = opts?.activate ?? true;
+  if (win.isMinimized?.()) win.restore?.();
+  if (activate) {
+    win.show?.();
+  } else if (win.isVisible?.() !== true) {
+    if (win.showInactive !== undefined) win.showInactive();
+    else win.show?.();
+  }
+  const alreadyFrontmost = win.isFocused?.() === true;
+  win.moveTop?.();
+  win.focus();
+  if (activate && !alreadyFrontmost) activateApp();
+}
+
+export class WindowManager {
+  private readonly windowsByPath = new Map<string, ProjectContext>();
+
+  private readonly ephemeralWindowIdentity = new Map<BrowserWindowLike, EphemeralOpenIdentity>();
+
+  private readonly loadingContextByWindow = new Map<BrowserWindowLike, ProjectContext>();
+
+  private readonly spawnedDetachedServers = new Map<string, SpawnedServer>();
+
+  private readonly ephemeralPendingByPath = new Map<string, Promise<ProjectContext>>();
+
+  private readonly projectPendingByPath = new Map<string, Promise<ProjectContext>>();
+
+  private readonly keepalives = new Map<string, KeepaliveHandle>();
+
+  private readonly liveUtilities = new Map<UtilityProcessLike, TrackedUtility>();
+  private quitDrainStarted = false;
+
+  private projectServerSequence = 0;
+
+  private readonly deps: WindowManagerDeps;
+
+  constructor(deps: WindowManagerDeps) {
+    this.deps = deps;
+  }
+
+  private canonicalizeKey(projectPath: string): string {
+    const absolute = resolve(projectPath);
+    const rp = this.deps.realpathSync ?? realpathSync;
+    try {
+      return rp(absolute);
+    } catch {
+      return absolute;
+    }
+  }
+
+  getWindowFor(projectPath: string): ProjectContext | undefined {
+    return this.windowsByPath.get(this.canonicalizeKey(projectPath));
+  }
+
+  focusWindowForProject(
+    projectPath: string,
+    opts?: { activate?: boolean },
+  ): BrowserWindowLike | null {
+    const ctx = this.windowsByPath.get(this.canonicalizeKey(projectPath));
+    if (!ctx) return null;
+    if (ctx.window.isDestroyed?.() === true) return null;
+    this.bringToFront(ctx.window, opts);
+    return ctx.window;
+  }
+
+  private bringToFront(win: BrowserWindowLike, opts?: { activate?: boolean }): void {
+    bringWindowToFront(win, () => this.deps.activateApp?.(), opts);
+  }
+
+  private focusOpenProjectWindow(
+    ctx: ProjectContext,
+    opts: CreateProjectWindowOpts,
+  ): ProjectContext {
+    this.bringToFront(ctx.window);
+    const deepLink = pendingDeepLinkPayload(opts);
+    if (deepLink) {
+      sendToRenderer(ctx.window.webContents, 'ok:deep-link', deepLink);
+    }
+    if (opts.pendingShareBranchSwitch) {
+      sendToRenderer(
+        ctx.window.webContents,
+        'ok:share:received',
+        shareBranchSwitchPayload(opts.pendingShareBranchSwitch),
+      );
+    }
+    return ctx;
+  }
+
+  getContextForBrowserWindow(win: BrowserWindowLike): ProjectContext | undefined {
+    for (const ctx of this.windowsByPath.values()) {
+      if (ctx.window === win) return ctx;
+    }
+    return this.loadingContextByWindow.get(win);
+  }
+
+  private publishLoadingContext(context: ProjectContext): () => void {
+    this.loadingContextByWindow.set(context.window, context);
+    return () => {
+      this.loadingContextByWindow.delete(context.window);
+    };
+  }
+
+  getOpenProjectPaths(): string[] {
+    const paths: string[] = [];
+    for (const ctx of this.windowsByPath.values()) {
+      if (ctx.window.isDestroyed?.() === true) continue;
+      paths.push(ctx.projectPath);
+    }
+    return paths;
+  }
+
+  getOpenWindows(): RestoredWindow[] {
+    const windows: RestoredWindow[] = [];
+    for (const ctx of this.windowsByPath.values()) {
+      if (ctx.window.isDestroyed?.() === true) continue;
+      windows.push(
+        ctx.ephemeral !== undefined
+          ? { kind: 'file', filePath: ctx.canonicalKey }
+          : { kind: 'project', projectPath: ctx.projectPath },
+      );
+    }
+    return windows;
+  }
+
+  windowCount(): number {
+    return this.windowsByPath.size;
+  }
+
+  async stopAllOwnedServers(): Promise<void> {
+    signalStopOwnedUtilityForks(this.windowsByPath.values(), this.deps.log);
+
+    const stopOne = async (canonicalKey: string, server: SpawnedServer): Promise<void> => {
+      const projectPath = canonicalKey;
+      const { pid } = server;
+      if (server.readExit() !== null) return;
+      try {
+        server.signal('SIGTERM');
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'ESRCH') {
+          return;
+        }
+        this.deps.log?.warn({ err, pid, projectPath }, 'SIGTERM failed during stopAllOwnedServers');
+      }
+      {
+        const graceMs = this.deps.sigtermGraceMs ?? DEFAULT_SIGTERM_GRACE_MS;
+        const deadline = Date.now() + graceMs;
+        while (Date.now() < deadline) {
+          if (server.readExit() !== null) return;
+          await new Promise<void>((resolveSleep) => {
+            this.deps.setTimeout(() => {
+              resolveSleep();
+            }, DEFAULT_SIGTERM_POLL_MS);
+          });
+        }
+      }
+      if (server.readExit() !== null) return;
+      try {
+        server.signal('SIGKILL');
+        this.deps.log?.warn(
+          { event: 'auto-update-server-stop-escalated', pid, projectPath },
+          '[window-manager] SIGTERM grace expired — escalated to SIGKILL',
+        );
+      } catch (err) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'ESRCH') return;
+        this.deps.log?.warn(
+          {
+            event: 'auto-update-server-stop-sigkill-failed',
+            err,
+            code,
+            pid,
+            projectPath,
+          },
+          '[window-manager] SIGKILL escalation failed — server may still be running',
+        );
+      }
+    };
+    const entries = [...this.spawnedDetachedServers.entries()];
+    this.spawnedDetachedServers.clear();
+
+    const ephemeralSessions = [...this.windowsByPath.values()]
+      .map((ctx) => ctx.ephemeral)
+      .filter((e): e is NonNullable<ProjectContext['ephemeral']> => e !== undefined);
+
+    await Promise.all([
+      ...entries.map(([key, server]) => stopOne(key, server)),
+      ...ephemeralSessions.map((session) => this.teardownEphemeralSession(session)),
+    ]);
+  }
+
+  async drainOwnedUtilities(): Promise<void> {
+    this.quitDrainStarted = true;
+    const live = [...this.liveUtilities];
+    if (live.length === 0) return;
+    const graceMs = this.deps.sigtermGraceMs ?? DEFAULT_SIGTERM_GRACE_MS;
+    this.deps.log?.info(
+      { event: 'desktop-project-server-quit-drain', count: live.length, graceMs },
+      '[window-manager] waiting for project servers to exit before quit',
+    );
+    await Promise.all(
+      live.map(([utility, tracked]) => this.drainUtility(utility, tracked, graceMs)),
+    );
+  }
+
+  private drainUtility(
+    utility: UtilityProcessLike,
+    tracked: TrackedUtility,
+    graceMs: number,
+  ): Promise<void> {
+    const identity = () => ({ name: tracked.serviceName, pid: tracked.spawnedPid() });
+    let hasExited = false;
+    let graceExpired = false;
+    void tracked.exited.then(() => {
+      hasExited = true;
+      this.deps.log?.info(
+        { event: 'desktop-project-server-quit-drain-exited', ...identity(), graceExpired },
+        '[window-manager] project server exited during the quit drain',
+      );
+    });
+    try {
+      utility.postMessage({ type: 'shutdown' });
+    } catch (err) {
+      this.deps.log?.warn(
+        { err, ...identity() },
+        'utility shutdown IPC failed at quit (likely already exited)',
+      );
+    }
+    this.deps.setTimeout(() => {
+      if (hasExited) return;
+      graceExpired = true;
+      const termination = utility.kill() ? 'killed' : 'kill-refused';
+      this.deps.log?.warn(
+        {
+          event: 'desktop-project-server-quit-drain-grace-expired',
+          ...identity(),
+          graceMs,
+          termination,
+        },
+        '[window-manager] project server did not exit within its grace at quit, terminating it',
+      );
+      this.deps.flushLog?.();
+    }, graceMs);
+    return tracked.exited;
+  }
+
+  private trackUtilityUntilExit(utility: UtilityProcessLike, serviceName: string): void {
+    let pid = utility.pid;
+    utility.once('spawn', () => {
+      pid = utility.pid;
+    });
+    const exited = new Promise<void>((resolveExit) => {
+      utility.on('exit', () => {
+        this.liveUtilities.delete(utility);
+        resolveExit();
+      });
+    });
+    this.liveUtilities.set(utility, { exited, serviceName, spawnedPid: () => pid });
+  }
+
+  signalStopAllOwnedServers(): void {
+    signalStopOwnedUtilityForks(this.windowsByPath.values(), this.deps.log);
+
+    const detached = [...this.spawnedDetachedServers.entries()];
+    this.spawnedDetachedServers.clear();
+    const ephemeral = [...this.windowsByPath.values()]
+      .map((ctx) => ctx.ephemeral)
+      .filter((e): e is NonNullable<ProjectContext['ephemeral']> => e !== undefined)
+      .map((e) => [e.projectDir, e.server] as const);
+    const entries = [...detached, ...ephemeral];
+    const signalled = signalDetachedServerStop(entries, this.deps.log);
+    if (entries.length > 0) {
+      this.deps.log?.info(
+        { event: 'update-install-server-stop', count: entries.length, signalled },
+        '[window-manager] signalled owned detached servers to stop for update install',
+      );
+    }
+  }
+
+  private isPidAlive(pid: number): boolean {
+    const probe = this.deps.isProcessAlive;
+    if (probe) return probe(pid);
+    try {
+      this.deps.killProbe(pid, 0);
+      return true;
+    } catch (err) {
+      return (err as NodeJS.ErrnoException).code === 'EPERM';
+    }
+  }
+
+  private runningSpawnedServer(canonicalKey: string): SpawnedServer | undefined {
+    const server = this.spawnedDetachedServers.get(canonicalKey);
+    if (server === undefined || server.readExit() === null) return server;
+    this.spawnedDetachedServers.delete(canonicalKey);
+    return undefined;
+  }
+
+  private heldChildExit(handle: Pick<SpawnedServer, 'pid' | 'readExit'>): {
+    exit: ReturnType<SpawnedServer['readExit']>;
+    exited: boolean | undefined;
+  } {
+    const exit = handle.readExit();
+    if (exit !== null) return { exit, exited: true };
+    const isAlive = this.deps.isProcessAlive;
+    return { exit, exited: isAlive ? !isAlive(handle.pid) : undefined };
+  }
+
+  private readHolderStart(pid: number): ProcessStart | null {
+    const read = this.deps.readProcessStart;
+    return read ? read(pid) : readProcessStart(pid);
+  }
+
+  private readBootInstant(): number | null {
+    const read = this.deps.readBootInstant;
+    return read ? read() : readBootStartedAtMs();
+  }
+
+  private settleUnlessLockWriter(
+    lock: LockHolderIdentity,
+    sigtermSent: boolean,
+  ): TerminationResult | null {
+    const assessment = assessLockHolder(lock, {
+      isAlive: (pid) => this.isPidAlive(pid),
+      readProcessStart: (pid) => this.readHolderStart(pid),
+      readBootInstant: () => this.readBootInstant(),
+    });
+    const withheld = sigtermSent ? 'SIGKILL' : 'SIGTERM';
+    switch (assessment.verdict) {
+      case 'writer':
+        return null;
+      case 'gone':
+        return sigtermSent
+          ? { ok: true, outcome: 'stopped', escalated: false }
+          : { ok: true, outcome: 'already-gone' };
+      case 'replaced':
+        this.deps.log?.warn(
+          { event: 'desktop-lock-holder-replaced', lockPid: lock.pid, sigtermSent },
+          `[window-manager] lock pid now belongs to a process that did not write the lock; not sending it ${withheld}`,
+        );
+        return sigtermSent
+          ? { ok: true, outcome: 'stopped', escalated: false }
+          : { ok: true, outcome: 'holder-replaced' };
+      case 'unverified':
+        this.deps.log?.warn(
+          {
+            event: 'desktop-lock-holder-unverified',
+            lockPid: lock.pid,
+            sigtermSent,
+            cause: assessment.cause,
+          },
+          `[window-manager] could not verify that the lock pid is the server that wrote the lock; not sending it ${withheld}`,
+        );
+        return { ok: false, reason: 'unverified', sigtermSent };
+    }
+  }
+
+  private isEphemeralServerAlive(ctx: ProjectContext): boolean {
+    const eph = ctx.ephemeral;
+    if (eph === undefined) return true;
+    if (eph.server.readExit() !== null) return false;
+    const reader = this.deps.readServerLock;
+    if (!reader) return true;
+    const lock = reader(eph.lockDir);
+    return lock !== null && lock.draining !== true;
+  }
+
+  private otherChannelOf(lock: Pick<ServerLockMetadataLike, 'channel'>): ChannelConflict | null {
+    const self = this.deps.selfChannel;
+    return self !== undefined && lock.channel !== undefined && lock.channel !== self
+      ? { holderChannel: lock.channel, selfChannel: self }
+      : null;
+  }
+
+  private logOtherChannelRefusal(args: {
+    lock: Pick<ServerLockMetadataLike, 'pid'>;
+    holderChannel: string;
+    projectPath: string;
+    operation: 'attach' | 'spawn' | 'restart' | 'force-stop';
+  }): void {
+    this.deps.log?.warn(
+      {
+        event: 'desktop-server-refused-other-channel',
+        operation: args.operation,
+        lockPid: args.lock.pid,
+        holderChannel: args.holderChannel,
+        selfChannel: this.deps.selfChannel ?? null,
+        projectPath: args.projectPath,
+      },
+      "[window-manager] refusing another channel's server for this project",
+    );
+  }
+
+  private sigtermSpawnOrphan(server: SpawnedServer, projectPath: string, message: string): void {
+    const { pid } = server;
+    try {
+      server.signal('SIGTERM');
+    } catch (signalErr) {
+      const code = (signalErr as NodeJS.ErrnoException).code;
+      if (code !== 'ESRCH') {
+        this.deps.log?.warn(
+          { event: 'desktop-spawn-orphan-sigterm-failed', err: signalErr, code, pid, projectPath },
+          message,
+        );
+      }
+    }
+  }
+
+  private async terminateServerByPid(target: TerminationTarget): Promise<TerminationResult> {
+    if (target.kind === 'spawned') return this.terminateSpawnedServer(target.server);
+    const { lock } = target;
+    const settled = this.settleUnlessLockWriter(lock, false);
+    if (settled !== null) return settled;
+    try {
+      this.deps.killProbe(lock.pid, 'SIGTERM');
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ESRCH') return { ok: true, outcome: 'already-gone' };
+      return { ok: false, reason: code === 'EPERM' ? 'eperm' : 'other' };
+    }
+    if (await this.awaitExitWithinGrace(() => !this.isPidAlive(lock.pid))) {
+      return { ok: true, outcome: 'stopped', escalated: false };
+    }
+    const settledAfterGrace = this.settleUnlessLockWriter(lock, true);
+    if (settledAfterGrace !== null) return settledAfterGrace;
+    try {
+      this.deps.killProbe(lock.pid, 'SIGKILL');
+      return { ok: true, outcome: 'stopped', escalated: true };
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ESRCH') return { ok: true, outcome: 'stopped', escalated: true };
+      return { ok: false, reason: code === 'EPERM' ? 'eperm' : 'other' };
+    }
+  }
+
+  private async terminateSpawnedServer(server: SpawnedServer): Promise<TerminationResult> {
+    const exited = () => server.readExit() !== null;
+    if (exited()) return { ok: true, outcome: 'already-gone' };
+    try {
+      server.signal('SIGTERM');
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ESRCH') return { ok: true, outcome: 'already-gone' };
+      return { ok: false, reason: code === 'EPERM' ? 'eperm' : 'other' };
+    }
+    if (await this.awaitExitWithinGrace(exited)) {
+      return { ok: true, outcome: 'stopped', escalated: false };
+    }
+    if (exited()) return { ok: true, outcome: 'stopped', escalated: false };
+    try {
+      server.signal('SIGKILL');
+      return { ok: true, outcome: 'stopped', escalated: true };
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ESRCH') return { ok: true, outcome: 'stopped', escalated: true };
+      return { ok: false, reason: code === 'EPERM' ? 'eperm' : 'other' };
+    }
+  }
+
+  private async awaitExitWithinGrace(hasExited: () => boolean): Promise<boolean> {
+    const graceMs = this.deps.sigtermGraceMs ?? RESTART_SIGTERM_GRACE_MS;
+    const deadline = Date.now() + graceMs;
+    while (Date.now() < deadline) {
+      if (hasExited()) return true;
+      await new Promise<void>((resolveSleep) => {
+        this.deps.setTimeout(() => resolveSleep(), DEFAULT_SIGTERM_POLL_MS);
+      });
+    }
+    return false;
+  }
+
+  private async breakUnservingHolderLock(args: {
+    lockDir: string;
+    lock: Pick<ServerLockMetadataLike, 'pid' | 'url'> & { port: unknown };
+    projectPath: string;
+    caller: RecoveryCaller;
+  }): Promise<boolean> {
+    const { lockDir, lock, projectPath, caller } = args;
+    const { event, phase } = RECOVERY_CALLERS[caller];
+    const port = lock.port;
+    if (!lockMayHaveServer(lock)) {
+      if (port === 0) {
+        this.deps.log?.warn(
+          {
+            event,
+            outcome: 'eperm-stale-lock-break-skipped',
+            reason: 'booting',
+            lockPid: lock.pid,
+            projectPath,
+          },
+          '[window-manager] holder has not bound a port yet — leaving its lock alone',
+        );
+        return false;
+      }
+      this.deps.log?.warn(
+        {
+          event,
+          outcome: 'eperm-stale-lock-break-decided',
+          reason: 'unservable-origin',
+          lockPid: lock.pid,
+          port,
+          projectPath,
+        },
+        '[window-manager] holder names nowhere that could serve — breaking its stale lock',
+      );
+      return this.unlinkHolderLock({ lockDir, lock, projectPath, event });
+    }
+    const dialable = { pid: lock.pid, port, url: lock.url };
+    if (await this.probeForeignLockWithGrace(dialable, phase)) return false;
+    return this.unlinkHolderLock({ lockDir, lock, projectPath, event });
+  }
+
+  private unlinkHolderLock(args: {
+    lockDir: string;
+    lock: Pick<ServerLockMetadataLike, 'pid'> & { port?: unknown };
+    projectPath: string;
+    event: string;
+  }): boolean {
+    const { lockDir, lock, projectPath, event } = args;
+    let broke = false;
+    try {
+      broke = this.deps.removeServerLock?.(lockDir, { pid: lock.pid }) ?? false;
+    } catch (err) {
+      this.deps.log?.warn(
+        { event, outcome: 'eperm-stale-lock-break-failed', err, lockPid: lock.pid, projectPath },
+        '[window-manager] could not break the stale lock',
+      );
+      return false;
+    }
+    if (!broke) {
+      this.deps.log?.warn(
+        { event, outcome: 'eperm-stale-lock-break-declined', lockPid: lock.pid, projectPath },
+        '[window-manager] stale lock was not broken',
+      );
+      return false;
+    }
+    this.deps.log?.warn(
+      {
+        event,
+        outcome: 'eperm-stale-lock-broken',
+        lockPid: lock.pid,
+        port: lock.port,
+        projectPath,
+      },
+      "[window-manager] broke the unkillable holder's stale lock",
+    );
+    return true;
+  }
+
+  otherChannelLockHolder(projectPath: string): OtherChannelHolder | null {
+    const lock = this.deps.readServerLock?.(getLocalDir(resolve(projectPath))) ?? null;
+    if (lock === null || !isValidLockPidLocal(lock.pid)) return null;
+    const conflict = this.otherChannelOf(lock);
+    if (conflict === null) return null;
+    return {
+      holderPid: lock.pid,
+      holderChannel: conflict.holderChannel,
+      holderKind: lock.kind,
+      selfChannel: conflict.selfChannel,
+    };
+  }
+
+  async forceStopConflictingServer(
+    projectPath: string,
+    expectedHolder?: { pid: number; channel: string },
+  ): Promise<ForceStopOutcome> {
+    const lockDir = getLocalDir(resolve(projectPath));
+    let raw: RawServerLockFields | null;
+    try {
+      raw = JSON.parse(
+        readFileSync(join(lockDir, 'server.lock'), 'utf-8'),
+      ) as RawServerLockFields | null;
+    } catch {
+      return { ok: true };
+    }
+    const pid = raw?.pid;
+    const rawPort = raw?.port;
+    const rawUrl = raw?.url;
+    const rawChannel = raw?.channel;
+    if (!isValidLockPidLocal(pid) || pid === process.pid) {
+      return { ok: true };
+    }
+    const holderChannel = typeof rawChannel === 'string' ? rawChannel : null;
+    const unboundConflict =
+      expectedHolder === undefined
+        ? this.otherChannelOf({ channel: holderChannel ?? undefined })
+        : null;
+    if (unboundConflict !== null) {
+      this.logOtherChannelRefusal({
+        lock: { pid },
+        holderChannel: unboundConflict.holderChannel,
+        projectPath,
+        operation: 'force-stop',
+      });
+      return { ok: false, reason: 'holder-changed' };
+    }
+    if (
+      expectedHolder !== undefined &&
+      (pid !== expectedHolder.pid || holderChannel !== expectedHolder.channel)
+    ) {
+      this.deps.log?.warn(
+        {
+          event: 'desktop-force-stop-conflicting-server',
+          outcome: 'holder-changed',
+          lockPid: pid,
+          holderChannel,
+          expectedPid: expectedHolder.pid,
+          expectedHolderChannel: expectedHolder.channel,
+          projectPath,
+        },
+        '[window-manager] lock holder changed since the user agreed to stop it; not signalling',
+      );
+      return { ok: false, reason: 'holder-changed' };
+    }
+    const term = await this.terminateServerByPid({
+      kind: 'lock',
+      lock: {
+        pid,
+        startedAt: typeof raw?.startedAt === 'string' ? raw.startedAt : undefined,
+        machineId: typeof raw?.machineId === 'string' ? raw.machineId : undefined,
+        hostname: typeof raw?.hostname === 'string' ? raw.hostname : undefined,
+        processStart: raw?.processStart,
+      },
+    });
+    if (!term.ok && term.reason === 'eperm') {
+      const broke = await this.breakUnservingHolderLock({
+        lockDir,
+        lock: {
+          pid,
+          port: rawPort,
+          ...(typeof rawUrl === 'string' ? { url: rawUrl } : {}),
+        },
+        projectPath,
+        caller: 'force-stop',
+      });
+      if (broke) return { ok: true };
+    }
+    this.deps.log?.info(
+      {
+        event: 'desktop-force-stop-conflicting-server',
+        lockPid: pid,
+        holderChannel,
+        projectPath,
+        outcome: terminationOutcome(term),
+      },
+      '[window-manager] force-stopped conflicting server holder on user request',
+    );
+    if (term.ok) return { ok: true };
+    return term;
+  }
+
+  async restartAttachedServer(
+    projectPath: string,
+    opts?: { localOpCliInvocation?: HostCliInvocation },
+  ): Promise<OkServerRestartOutcome> {
+    const resolved = resolve(projectPath);
+    const canonicalKey = this.canonicalizeKey(resolved);
+    const lockDir = getLocalDir(resolved);
+    const lock = this.deps.readServerLock?.(lockDir) ?? null;
+    const conflict = lock === null ? null : this.otherChannelOf(lock);
+    if (lock !== null && conflict !== null) {
+      this.logOtherChannelRefusal({
+        lock,
+        holderChannel: conflict.holderChannel,
+        projectPath: resolved,
+        operation: 'restart',
+      });
+      return { ok: false, reason: 'other-channel', holderChannel: conflict.holderChannel };
+    }
+    if (lock && isValidLockPidLocal(lock.pid)) {
+      const held = this.runningSpawnedServer(canonicalKey);
+      const target: TerminationTarget =
+        held !== undefined && held.pid === lock.pid
+          ? { kind: 'spawned', server: held }
+          : { kind: 'lock', lock };
+      const term = await this.terminateServerByPid(target);
+      if (!term.ok) {
+        const broke =
+          term.reason === 'eperm' &&
+          (await this.breakUnservingHolderLock({
+            lockDir,
+            lock,
+            projectPath: resolved,
+            caller: 'restart',
+          }));
+        if (!broke) {
+          this.deps.log?.warn(
+            {
+              event: 'desktop-server-restart',
+              outcome: terminationOutcome(term),
+              lockPid: lock.pid,
+              projectPath: resolved,
+            },
+            '[window-manager] server restart could not terminate the attached server',
+          );
+          return restartFailure(term);
+        }
+      } else {
+        this.deps.log?.info(
+          {
+            event: 'desktop-server-restart',
+            outcome: terminationOutcome(term),
+            escalated: terminationEscalated(term),
+            lockPid: lock.pid,
+            appRuntime: this.deps.selfRuntimeVersion ?? null,
+            projectPath: resolved,
+          },
+          '[window-manager] terminated attached server for restart',
+        );
+      }
+    }
+    const originating = this.windowsByPath.get(canonicalKey);
+    let releaseOriginatingContext: (() => void) | undefined;
+    if (originating) {
+      this.windowsByPath.delete(canonicalKey);
+      releaseOriginatingContext = this.publishLoadingContext(originating);
+    }
+    try {
+      let recreated: ProjectContext;
+      try {
+        recreated = await this.createProjectWindow({
+          projectPath: resolved,
+          pendingServerRestartedToast: true,
+          localOpCliInvocation: opts?.localOpCliInvocation,
+        });
+      } catch (err) {
+        this.deps.log?.warn(
+          {
+            event: 'desktop-server-restart',
+            outcome: 'recreate-failed',
+            err: err instanceof Error ? (err.stack ?? err.message) : String(err),
+            projectPath: resolved,
+          },
+          '[window-manager] server restart killed the old server but could not respawn',
+        );
+        if (originating && originating.window.isDestroyed?.() !== true) {
+          this.windowsByPath.set(canonicalKey, originating);
+        }
+        return { ok: false, reason: 'other' };
+      }
+      releaseOriginatingContext?.();
+      try {
+        this.deps.onProjectServerRestarted?.({
+          projectPath: resolved,
+          apiOrigin: recreated.apiOrigin,
+        });
+      } catch (err) {
+        this.deps.log?.warn(
+          {
+            event: 'desktop-server-restart',
+            outcome: 'note-recreate-failed',
+            err: err instanceof Error ? (err.stack ?? err.message) : String(err),
+            projectPath: resolved,
+          },
+          '[window-manager] project window recreated, but a note-window recreate threw',
+        );
+      }
+      if (originating) await this.closeAndAwait(originating.window);
+      return { ok: true };
+    } finally {
+      releaseOriginatingContext?.();
+    }
+  }
+
+  getEphemeralIdentityForWindow(win: BrowserWindowLike): EphemeralOpenIdentity | undefined {
+    return this.ephemeralWindowIdentity.get(win);
+  }
+
+  async restartEphemeralServer(
+    identity: EphemeralOpenIdentity,
+    requestingWindow: BrowserWindowLike,
+  ): Promise<OkServerRestartOutcome> {
+    this.deps.log?.info(
+      {
+        event: 'desktop-ephemeral-restart',
+        outcome: 'requested',
+        file: identity.canonicalFilePath,
+      },
+      '[window-manager] ephemeral server restart requested',
+    );
+    try {
+      const canonicalKey = this.canonicalizeKey(identity.canonicalFilePath);
+      const current = this.windowsByPath.get(canonicalKey);
+      if (
+        current &&
+        current.window === requestingWindow &&
+        current.window.isDestroyed?.() !== true &&
+        this.isEphemeralServerAlive(current)
+      ) {
+        this.deps.log?.info(
+          {
+            event: 'desktop-ephemeral-restart',
+            outcome: 'terminated-live',
+            file: identity.canonicalFilePath,
+          },
+          '[window-manager] terminating the live ephemeral server before respawn',
+        );
+        this.windowsByPath.delete(canonicalKey);
+        this.closeKeepalive(canonicalKey);
+        if (current.ephemeral) await this.teardownEphemeralSession(current.ephemeral);
+      }
+      const recreated = await this.createEphemeralWindow({
+        canonicalFilePath: identity.canonicalFilePath,
+        contentDir: identity.contentDir,
+        docName: identity.docName,
+      });
+      this.deps.log?.info(
+        {
+          event: 'desktop-ephemeral-restart',
+          outcome: 'respawned',
+          file: identity.canonicalFilePath,
+          apiOrigin: recreated.apiOrigin,
+        },
+        '[window-manager] ephemeral server restart respawned',
+      );
+      return { ok: true };
+    } catch (err) {
+      this.deps.log?.warn(
+        {
+          event: 'desktop-ephemeral-restart',
+          outcome: 'recreate-failed',
+          err: err instanceof Error ? (err.stack ?? err.message) : String(err),
+          file: identity.canonicalFilePath,
+        },
+        '[window-manager] ephemeral server restart could not respawn',
+      );
+      return { ok: false, reason: 'other' };
+    }
+  }
+
+  async restartServerForWindow(
+    sender: BrowserWindowLike | null,
+    projectPath: string,
+    opts: { localOpCliInvocation?: HostCliInvocation },
+  ): Promise<OkServerRestartOutcome> {
+    if (sender !== null) {
+      const ephemeralIdentity = this.getEphemeralIdentityForWindow(sender);
+      if (ephemeralIdentity !== undefined) {
+        return this.restartEphemeralServer(ephemeralIdentity, sender);
+      }
+    }
+    return this.restartAttachedServer(projectPath, opts);
+  }
+
+  private retireStaleWindowsForFile(canonicalKey: string, keepWindow: BrowserWindowLike): void {
+    const stale: BrowserWindowLike[] = [];
+    for (const [win, identity] of this.ephemeralWindowIdentity) {
+      if (win === keepWindow) continue;
+      if (this.canonicalizeKey(identity.canonicalFilePath) !== canonicalKey) continue;
+      stale.push(win);
+    }
+    if (stale.length === 0) return;
+    this.deps.log?.info(
+      { event: 'desktop-ephemeral-retire-stale', canonicalKey, retired: stale.length },
+      '[window-manager] retiring stale ephemeral window(s) for the file',
+    );
+    for (const win of stale) void this.closeAndAwait(win);
+  }
+
+  private closeKeepalive(canonicalKey: string): void {
+    const keepalive = this.keepalives.get(canonicalKey);
+    if (keepalive) {
+      keepalive.close();
+      this.keepalives.delete(canonicalKey);
+    }
+  }
+
+  private async closeAndAwait(window: BrowserWindowLike): Promise<void> {
+    if (window.isDestroyed?.() === true) return;
+    await new Promise<void>((resolveClosed) => {
+      let settled = false;
+      const finish = (): void => {
+        if (settled) return;
+        settled = true;
+        resolveClosed();
+      };
+      window.on('closed', finish);
+      window.close?.();
+      this.deps.setTimeout(() => {
+        if (!settled && window.isDestroyed?.() !== true) window.destroy?.();
+        finish();
+      }, 2_000);
+    });
+  }
+
+  private attachSafetyNet(
+    webContents: BrowserWindowLike['webContents'],
+    editorOrigin: string,
+    assetRoot: string,
+  ): void {
+    const net = this.deps.safetyNet;
+    if (!net) return;
+    attachAssetSafetyNet(webContents, {
+      editorOrigin,
+      openExternal: net.openExternal,
+      openAsset: (relPath) => net.openAsset(assetRoot, relPath),
+    });
+  }
+
+  async createProjectWindow(opts: CreateProjectWindowOpts): Promise<ProjectContext> {
+    const canonicalKey = this.canonicalizeKey(resolve(opts.projectPath));
+    const inFlight = this.projectPendingByPath.get(canonicalKey);
+    if (inFlight) {
+      const ctx = await inFlight;
+      if (ctx.window.isDestroyed?.() !== true) {
+        return this.focusOpenProjectWindow(ctx, opts);
+      }
+    }
+    const work = (async (): Promise<ProjectContext> => {
+      try {
+        return await this.spawnProjectWindow(opts);
+      } catch (err) {
+        throw this.quitDrainStarted ? openCancelledByQuitError(opts.projectPath, err) : err;
+      } finally {
+        this.projectPendingByPath.delete(canonicalKey);
+      }
+    })();
+    this.projectPendingByPath.set(canonicalKey, work);
+    return work;
+  }
+
+  private async spawnProjectWindow(opts: CreateProjectWindowOpts): Promise<ProjectContext> {
+    const projectPath = resolve(opts.projectPath);
+    const canonicalKey = this.canonicalizeKey(projectPath);
+    const existing = this.windowsByPath.get(canonicalKey);
+    if (existing) {
+      if (existing.window.isDestroyed?.() !== true) {
+        return this.focusOpenProjectWindow(existing, opts);
+      }
+      this.deps.log?.warn(
+        { canonicalKey },
+        '[window-manager] stale destroyed-window entry — clearing and re-creating',
+      );
+      this.windowsByPath.delete(canonicalKey);
+    }
+    const projectName = basename(projectPath);
+
+    const lockDir = getLocalDir(projectPath);
+
+    const candidate = this.tryAttachExistingServer(lockDir);
+    const attached =
+      candidate !== null && (await this.probeAttachableLock(candidate)) ? candidate : null;
+    const attachedConflict = attached === null ? null : this.otherChannelOf(attached);
+    if (attached !== null && attachedConflict !== null) {
+      this.logOtherChannelRefusal({
+        lock: attached,
+        holderChannel: attachedConflict.holderChannel,
+        projectPath,
+        operation: 'attach',
+      });
+      throw otherChannelHolderError(attached, attachedConflict);
+    }
+    if (attached) {
+      const isForeign = this.runningSpawnedServer(canonicalKey)?.pid !== attached.pid;
+      let reclaimed = false;
+      if (this.deps.reclaimForeignServerInDev === true && isForeign) {
+        const term = await this.terminateServerByPid({ kind: 'lock', lock: attached });
+        if (term.ok) {
+          this.deps.log?.info(
+            {
+              event: 'desktop-dev-reclaim',
+              outcome: terminationOutcome(term),
+              escalated: terminationEscalated(term),
+              lockPid: attached.pid,
+              projectPath,
+            },
+            '[window-manager] dev-mode reclaimed foreign server; spawning fresh own-build server',
+          );
+          reclaimed = true;
+        } else {
+          this.deps.log?.warn(
+            {
+              event: 'desktop-dev-reclaim',
+              outcome: terminationOutcome(term),
+              lockPid: attached.pid,
+              projectPath,
+            },
+            '[window-manager] dev-mode reclaim could not terminate the foreign server; attaching to it instead',
+          );
+        }
+      }
+      if (!reclaimed && this.deps.isFirstLaunchAfterUpgrade?.() === true && isForeign) {
+        const selfProtocol = this.deps.selfProtocolVersion;
+        const selfRuntime = this.deps.selfRuntimeVersion;
+        if (selfProtocol !== undefined && selfRuntime !== undefined) {
+          const drift = classifyServerVersion(
+            { protocolVersion: attached.protocolVersion, runtimeVersion: attached.runtimeVersion },
+            { protocolVersion: selfProtocol, runtimeVersion: selfRuntime },
+          );
+          if (drift.relation === 'older' || drift.relation === 'newer') {
+            const term = await this.terminateServerByPid({ kind: 'lock', lock: attached });
+            if (term.ok) {
+              this.deps.log?.info(
+                {
+                  event: 'desktop-upgrade-reconcile',
+                  outcome: terminationOutcome(term),
+                  escalated: terminationEscalated(term),
+                  relation: drift.relation,
+                  lockPid: attached.pid,
+                  projectPath,
+                },
+                '[window-manager] first launch after upgrade — auto-terminated pre-upgrade server; spawning fresh own-version server',
+              );
+              reclaimed = true;
+            } else {
+              this.deps.log?.warn(
+                {
+                  event: 'desktop-upgrade-reconcile',
+                  outcome: terminationOutcome(term),
+                  relation: drift.relation,
+                  lockPid: attached.pid,
+                  projectPath,
+                },
+                '[window-manager] upgrade auto-terminate failed; attaching to the pre-upgrade server (the manual version-drift prompt still offers a restart)',
+              );
+            }
+          }
+        }
+      }
+      if (!reclaimed) {
+        return this.attachToExistingServer({
+          projectPath,
+          canonicalKey,
+          projectName,
+          lock: attached,
+          pendingDeepLinkTarget: opts.pendingDeepLinkTarget,
+          pendingBranch: opts.pendingBranch,
+          pendingMultiCandidate: opts.pendingMultiCandidate,
+          pendingTargetMissing: opts.pendingTargetMissing,
+          pendingShareBranchSwitch: opts.pendingShareBranchSwitch,
+          pendingServerRestartedToast: opts.pendingServerRestartedToast,
+          freshlyCreated: opts.freshlyCreated,
+        });
+      }
+    }
+
+    if (this.deps.runClean) {
+      try {
+        await this.deps.runClean({ lockDir });
+      } catch (err) {
+        this.deps.log?.warn({ err, lockDir }, 'runClean failed; proceeding to spawn server');
+      }
+    }
+
+    if (this.deps.spawnDetachedServer) {
+      const spawnErrorLogPath = projectSpawnErrorLogPath(projectPath);
+      const reactShellDistDir = dirname(this.deps.rendererEntryPath);
+      const handle = await this.deps.spawnDetachedServer({
+        contentDir: projectPath,
+        reactShellDistDir,
+      });
+      this.spawnedDetachedServers.set(canonicalKey, handle);
+      const POLL_DEADLINE_MS = this.deps.spawnLockPollDeadlineMs ?? SPAWN_STARTUP_DEADLINE_MS;
+      const { lock, waitedDeadlineMs } = await this.pollServerLock(
+        lockDir,
+        POLL_DEADLINE_MS,
+        handle,
+        this.deps.spawnLockProgressDeadlineMs,
+      );
+      if (lock === null) {
+        const { exit: childExit, exited: childExited } = this.heldChildExit(handle);
+        this.sigtermSpawnOrphan(
+          handle,
+          projectPath,
+          '[window-manager] SIGTERM on orphan after spawn-lock-timeout failed',
+        );
+        this.spawnedDetachedServers.delete(canonicalKey);
+        throw this.buildSpawnFailureError({
+          pid: handle.pid,
+          exit: childExit,
+          lockDir,
+          spawnErrorLogPath,
+          deadlineMs: waitedDeadlineMs,
+          spawnLabel: 'spawn',
+          childExited,
+        });
+      }
+      const adoptedForeignLock = lock.pid !== handle.pid;
+      const unusableLock = !lockIsAttachable(lock);
+      if (unusableLock || (adoptedForeignLock && !(await this.probeForeignLockWithGrace(lock)))) {
+        const { exit: childExit, exited: childExited } = this.heldChildExit(handle);
+        this.sigtermSpawnOrphan(
+          handle,
+          projectPath,
+          '[window-manager] SIGTERM on orphan after refusing a stale lock failed',
+        );
+        this.spawnedDetachedServers.delete(canonicalKey);
+        const staleConflict = adoptedForeignLock ? this.otherChannelOf(lock) : null;
+        this.deps.log?.warn(
+          {
+            event: 'desktop-server-spawn-refused-stale-lock',
+            reason: unusableLock ? 'lock-not-attachable' : 'holder-not-serving',
+            pid: handle.pid,
+            lockPid: lock.pid,
+            ...(staleConflict !== null && { holderChannel: staleConflict.holderChannel }),
+            port: lock.port,
+            portType: typeof lock.port,
+            rawPort: String(lock.port),
+            lockDir,
+            projectPath,
+          },
+          '[window-manager] refusing to attach the spawn to a lock we cannot use',
+        );
+        const holder = adoptedForeignLock
+          ? `Another process (pid ${lock.pid})`
+          : `The server OpenKnowledge just started (pid ${lock.pid})`;
+        throw Object.assign(
+          new Error(
+            unusableLock
+              ? `${holder} holds this project's server lock, but the lock does not name a port ` +
+                  `OpenKnowledge can keep a connection open on (${String(lock.port)}).`
+              : `${holder} holds this project's server lock but is not serving on port ${lock.port}.`,
+          ),
+          {
+            name: 'StaleLockHolderError',
+            kind: 'stale-lock-holder' as const,
+            reason: unusableLock
+              ? ('lock-not-attachable' as const)
+              : ('holder-not-serving' as const),
+            holderIsOwnChild: !adoptedForeignLock,
+            holderPid: lock.pid,
+            holderPort: lock.port,
+            pid: handle.pid,
+            childExited,
+            exitCode: childExit?.code ?? null,
+            exitSignal: childExit?.signal ?? null,
+          },
+        );
+      }
+      const adoptedConflict = adoptedForeignLock ? this.otherChannelOf(lock) : null;
+      if (adoptedConflict !== null) {
+        this.sigtermSpawnOrphan(
+          handle,
+          projectPath,
+          "[window-manager] SIGTERM on orphan after refusing another channel's server failed",
+        );
+        this.spawnedDetachedServers.delete(canonicalKey);
+        this.logOtherChannelRefusal({
+          lock,
+          holderChannel: adoptedConflict.holderChannel,
+          projectPath,
+          operation: 'spawn',
+        });
+        throw otherChannelHolderError(lock, adoptedConflict);
+      }
+      this.deps.log?.info(
+        {
+          event: 'desktop-server-spawned-detached',
+          pid: handle.pid,
+          lockPid: lock.pid,
+          readiness: adoptedForeignLock ? 'foreign-lock-probe-verified' : 'own-child',
+          port: lock.port,
+          lockDir,
+        },
+        '[window-manager] detached server ready',
+      );
+      this.deps.startup?.markServerLockReady?.({
+        startedAt: lock.startedAt,
+        apiOrigin: lockApiOrigin(lock),
+      });
+      return this.attachToExistingServer({
+        projectPath,
+        canonicalKey,
+        projectName,
+        lock,
+        pendingDeepLinkTarget: opts.pendingDeepLinkTarget,
+        pendingBranch: opts.pendingBranch,
+        pendingMultiCandidate: opts.pendingMultiCandidate,
+        pendingTargetMissing: opts.pendingTargetMissing,
+        pendingShareBranchSwitch: opts.pendingShareBranchSwitch,
+        pendingServerRestartedToast: opts.pendingServerRestartedToast,
+        freshlyCreated: opts.freshlyCreated,
+      });
+    }
+
+    const localOpCliArgs = opts.localOpCliInvocation
+      ? resolveLocalOpCliArgsForUtilityFork(opts.localOpCliInvocation)
+      : null;
+
+    if (this.quitDrainStarted) {
+      throw new Error('no project server is started once the app has begun quitting');
+    }
+    const serviceName = `OpenKnowledge Project Server ${++this.projectServerSequence}`;
+    const utility = this.deps.forkUtility(
+      this.deps.utilityEntryPath,
+      [`--ok-lock-dir-b64=${Buffer.from(lockDir, 'utf8').toString('base64url')}`],
+      {
+        windowLifecycleBound: true,
+        serviceName,
+      },
+    );
+    this.trackUtilityUntilExit(utility, serviceName);
+    const forkedAt = Date.now();
+    this.deps.log?.info(
+      {
+        event: 'desktop-project-server-forked',
+        name: serviceName,
+        projectPath,
+      },
+      '[window-manager] project server utility forked',
+    );
+    const ready = this.waitForForkedUtilityReady(utility, lockDir, forkedAt);
+
+    const reactShellDistDir = this.deps.rendererDevUrl
+      ? null
+      : dirname(this.deps.rendererEntryPath);
+
+    utility.postMessage({
+      type: 'init',
+      opts: {
+        contentDir: projectPath,
+        projectDir: projectPath,
+        port: 0,
+        host: DEFAULT_SERVER_HOST,
+        didEnsureGit: opts.didEnsureGit === true,
+        consentVersion: opts.consentVersion ?? 1,
+        ...(reactShellDistDir !== null ? { reactShellDistDir } : {}),
+        ...(localOpCliArgs ? { localOpCliArgs } : {}),
+        terminalAuthAvailable: this.deps.terminalAuthAvailable,
+      },
+    });
+
+    const { port, apiOrigin } = await ready;
+    this.deps.startup?.markServerLockReady?.({ apiOrigin });
+
+    if (this.deps.onUtilityMessage) {
+      const onMessage = this.deps.onUtilityMessage;
+      utility.on('message', (msg) => onMessage(msg));
+    }
+
+    utility.on('exit', (code) => {
+      this.deps.log?.info({ pid: utility.pid, code }, 'utility exited');
+      this.deps.recordServerExit?.({ lockDir, pid: utility.pid ?? null, code });
+      this.windowsByPath.delete(canonicalKey);
+      this.deps.onUtilityExit?.(utility);
+    });
+
+    const additionalArguments = [
+      `--ok-collab-url=ws://localhost:${port}/collab`,
+      `--ok-api-origin=${apiOrigin}`,
+      `--ok-project-path=${projectPath}`,
+      `--ok-project-name=${projectName}`,
+      `--ok-mode=editor`,
+      `--ok-app-version=${this.deps.appVersion}`,
+      ...instanceLabelArgs(),
+      ...(this.deps.startup?.traceparent !== undefined
+        ? [`--ok-startup-traceparent=${this.deps.startup.traceparent}`]
+        : []),
+      ...(opts.freshlyCreated ? ['--ok-fresh-create=1'] : []),
+    ];
+    const window = this.deps.createWindow({
+      additionalArguments,
+      title: formatEditorTitle(projectName),
+      projectPath,
+      chrome: 'app-header',
+    });
+    this.deps.startup?.markWindowCreated?.();
+    this.attachSafetyNet(window.webContents, apiOrigin, projectPath);
+
+    const deepLink = pendingDeepLinkPayload(opts);
+    if (deepLink) {
+      registerPendingDelivery(window.webContents, 'ok:deep-link', deepLink);
+    }
+
+    if (opts.pendingShareBranchSwitch) {
+      registerPendingDelivery(
+        window.webContents,
+        'ok:share:received',
+        shareBranchSwitchPayload(opts.pendingShareBranchSwitch),
+      );
+    }
+
+    const disposeShowGate = this.deps.showGate.register(window, { kind: 'editor' });
+
+    const context: ProjectContext = {
+      projectPath,
+      canonicalKey,
+      projectName,
+      port,
+      apiOrigin,
+      window,
+      utility,
+      ownsServer: true,
+    };
+    const releaseLoadingContext = this.publishLoadingContext(context);
+    const stopRendererLoadHeartbeat = startBootHeartbeat(
+      this.deps,
+      BOOT_HEARTBEAT_EVENTS.rendererLoad,
+      '[window-manager] still waiting for the renderer to finish loading',
+      () => ({ projectPath }),
+    );
+    try {
+      if (this.deps.rendererDevUrl) {
+        await window.loadURL(this.deps.rendererDevUrl);
+      } else {
+        await window.loadFile(this.deps.rendererEntryPath);
+      }
+      this.deps.startup?.markLoadUrlResolved?.();
+
+      window.on('closed', () => {
+        disposeShowGate();
+        try {
+          utility.postMessage({ type: 'shutdown' });
+        } catch (err) {
+          this.deps.log?.warn(
+            { err, projectPath },
+            'utility shutdown IPC failed on window close (likely already exited)',
+          );
+        }
+      });
+
+      this.windowsByPath.set(canonicalKey, context);
+    } finally {
+      stopRendererLoadHeartbeat();
+      releaseLoadingContext();
+    }
+    return context;
+  }
+
+  private waitForForkedUtilityReady(
+    utility: UtilityProcessLike,
+    lockDir: string,
+    forkedAt: number,
+  ): Promise<{ port: number; apiOrigin: string }> {
+    const startupDeadlineMs = this.deps.utilityInitTimeoutMs ?? UTILITY_INIT_TIMEOUT_MS;
+    const hardCapMs = startupWaitHardCapMs(startupDeadlineMs);
+    let declaredBudgetMs = startupDeadlineMs;
+    const utilityWaitHeartbeat = startBootHeartbeat(
+      this.deps,
+      BOOT_HEARTBEAT_EVENTS.utilityWait,
+      '[window-manager] still waiting for the utility process to report ready',
+      () => ({ pid: utility.pid, lockDir, initTimeoutMs: declaredBudgetMs }),
+    );
+    return new Promise((resolveReady, reject) => {
+      let settled = false;
+      let lastInitPhase: UtilityInitPhase | null = null;
+      const settle = (fn: () => void) => {
+        if (settled) return;
+        settled = true;
+        utilityWaitHeartbeat();
+        utility.removeListener?.('message', onMessage);
+        utility.removeListener?.('exit', onExit);
+        fn();
+      };
+      const logInitPhase = (mark: UtilityInitPhaseMark) => {
+        const { phase } = mark;
+        if (!isUtilityInitPhase(phase)) return;
+        lastInitPhase = phase;
+        this.deps.log?.info(
+          {
+            event: utilityInitPhaseEvent(phase),
+            pid: utility.pid,
+            phase,
+            sinceForkMs: Date.now() - forkedAt,
+            ...nonNegativeInitCounters(mark),
+          },
+          '[window-manager] utility reached a startup phase',
+        );
+        this.deps.flushLog?.();
+      };
+      const killOnceSpawned = () => {
+        const termination = utility.kill() ? 'killed' : 'kill-refused';
+        this.deps.log?.warn(
+          { event: UTILITY_WAIT_LATE_KILL_EVENT, pid: utility.pid, termination },
+          '[window-manager] utility spawned after its wait expired, terminating it',
+        );
+        this.deps.flushLog?.();
+      };
+      const terminate = (): 'killed' | 'deferred-until-spawn' | 'kill-refused' => {
+        // UPSTREAM(electron@44.9.1): kill() before spawn returns false and leaves the launch running.
+        if (utility.kill()) return 'killed';
+        if (utility.pid !== undefined) return 'kill-refused';
+        utility.once('spawn', killOnceSpawned);
+        utility.postMessage({ type: 'shutdown' });
+        return 'deferred-until-spawn';
+      };
+      const expire = (budgetMs: number, graduated: boolean) => {
+        if (settled) return;
+        settle(() => reject(new Error(`utility init timed out after ${budgetMs}ms`)));
+        const pid = utility.pid;
+        const termination = terminate();
+        this.deps.log?.warn(
+          {
+            event: UTILITY_WAIT_EXPIRED_EVENT,
+            pid,
+            budgetMs,
+            graduated,
+            termination,
+            lastInitPhase,
+          },
+          '[window-manager] utility did not report ready within its wait',
+        );
+        this.deps.flushLog?.();
+      };
+      const onMessage = (msg: unknown) => {
+        const m = msg as {
+          type?: string;
+          port?: number;
+          apiOrigin?: string;
+          message?: string;
+          kind?: string;
+          existingLock?: ServerLockMetadataLike;
+        };
+        if (m.type === 'init-phase') {
+          logInitPhase(msg as UtilityInitPhaseMark);
+        } else if (
+          m.type === 'ready' &&
+          typeof m.port === 'number' &&
+          typeof m.apiOrigin === 'string'
+        ) {
+          const p = m.port;
+          const o = m.apiOrigin;
+          settle(() => resolveReady({ port: p, apiOrigin: o }));
+        } else if (m.type === 'error') {
+          const richError = Object.assign(new Error(m.message ?? 'utility init failed'), {
+            name: m.kind === 'lock-collision' ? 'LockCollisionError' : 'UtilityInitError',
+            kind: m.kind,
+            existingLock: m.existingLock,
+          });
+          settle(() => reject(richError));
+        }
+      };
+      const onExit = (code: number | null) => {
+        settle(() => reject(new Error(`utility exited before ready (code=${code})`)));
+      };
+      utility.on('message', onMessage);
+      utility.on('exit', onExit);
+
+      this.deps.setTimeout(() => {
+        if (settled) return;
+        const pid = utility.pid;
+        if (!isValidLockPidLocal(pid) || this.deps.isProcessAlive?.(pid) !== true) {
+          expire(startupDeadlineMs, false);
+          return;
+        }
+        declaredBudgetMs = hardCapMs;
+        this.deps.log?.info(
+          { event: UTILITY_WAIT_EXTENDED_EVENT, pid, startupDeadlineMs, hardCapMs, lastInitPhase },
+          '[window-manager] utility still starting at its startup deadline, extending the wait',
+        );
+        utilityWaitHeartbeat.beat();
+        this.deps.setTimeout(
+          () => expire(hardCapMs, true),
+          Math.max(0, forkedAt + hardCapMs - Date.now()),
+        );
+      }, startupDeadlineMs);
+    });
+  }
+
+  async createEphemeralWindow(opts: {
+    canonicalFilePath: string;
+    contentDir: string;
+    docName: string;
+  }): Promise<ProjectContext> {
+    const canonicalKey = this.canonicalizeKey(opts.canonicalFilePath);
+    const existing = this.windowsByPath.get(canonicalKey);
+    if (existing) {
+      const windowAlive = existing.window.isDestroyed?.() !== true;
+      if (windowAlive && this.isEphemeralServerAlive(existing)) {
+        this.bringToFront(existing.window);
+        this.retireStaleWindowsForFile(canonicalKey, existing.window);
+        return existing;
+      }
+      this.deps.log?.warn(
+        {
+          event: 'desktop-ephemeral-stale-entry',
+          canonicalKey,
+          windowAlive,
+          pid: existing.ephemeral?.server.pid,
+          apiOrigin: existing.apiOrigin,
+          lockDir: existing.ephemeral?.lockDir,
+        },
+        windowAlive
+          ? '[window-manager] ephemeral entry has a dead server — clearing and re-spawning'
+          : '[window-manager] stale destroyed ephemeral entry — clearing and re-creating',
+      );
+      this.windowsByPath.delete(canonicalKey);
+      this.closeKeepalive(canonicalKey);
+      if (windowAlive && existing.ephemeral) {
+        void this.teardownEphemeralSession(existing.ephemeral);
+      }
+    }
+
+    const inFlight = this.ephemeralPendingByPath.get(canonicalKey);
+    if (inFlight) {
+      const ctx = await inFlight;
+      if (ctx.window.isDestroyed?.() !== true) {
+        this.bringToFront(ctx.window);
+        return ctx;
+      }
+      return this.createEphemeralWindow(opts);
+    }
+
+    const work = (async (): Promise<ProjectContext> => {
+      try {
+        return await this.spawnEphemeralWindow(opts, canonicalKey);
+      } finally {
+        this.ephemeralPendingByPath.delete(canonicalKey);
+      }
+    })();
+    this.ephemeralPendingByPath.set(canonicalKey, work);
+    return work;
+  }
+
+  private async spawnEphemeralWindow(
+    opts: { canonicalFilePath: string; contentDir: string; docName: string },
+    canonicalKey: string,
+  ): Promise<ProjectContext> {
+    const { createEphemeralProjectDir, spawnSingleFileServer, removeDir } = this.deps;
+    if (!createEphemeralProjectDir || !spawnSingleFileServer || !removeDir) {
+      throw new Error(
+        'createEphemeralWindow requires createEphemeralProjectDir + spawnSingleFileServer + removeDir deps to be wired',
+      );
+    }
+
+    const projectName = basename(opts.canonicalFilePath);
+
+    const tempProjectDir = createEphemeralProjectDir(opts.contentDir);
+    const lockDir = getLocalDir(tempProjectDir);
+    const spawnErrorLogPath = projectSpawnErrorLogPath(tempProjectDir);
+
+    const reactShellDistDir = dirname(this.deps.rendererEntryPath);
+    let handle: Awaited<ReturnType<SpawnCliServer>>;
+    try {
+      handle = await spawnSingleFileServer({
+        contentDir: opts.contentDir,
+        reactShellDistDir,
+        singleFile: opts.canonicalFilePath,
+        projectDir: tempProjectDir,
+      });
+    } catch (err) {
+      await removeDir(tempProjectDir).catch(() => {});
+      throw err;
+    }
+
+    const POLL_DEADLINE_MS = this.deps.spawnLockPollDeadlineMs ?? SPAWN_STARTUP_DEADLINE_MS;
+    const { lock, waitedDeadlineMs } = await this.pollServerLock(
+      lockDir,
+      POLL_DEADLINE_MS,
+      handle,
+      this.deps.spawnLockProgressDeadlineMs,
+    );
+    if (lock === null) {
+      const { exit: childExit, exited: childExited } = this.heldChildExit(handle);
+      try {
+        handle.signal('SIGTERM');
+      } catch (signalErr) {
+        const code = (signalErr as NodeJS.ErrnoException).code;
+        if (code !== 'ESRCH') {
+          this.deps.log?.warn(
+            {
+              event: 'desktop-ephemeral-spawn-orphan-sigterm-failed',
+              err: signalErr,
+              code,
+              pid: handle.pid,
+            },
+            '[window-manager] SIGTERM on ephemeral orphan after spawn-lock-timeout failed',
+          );
+        }
+      }
+      await removeDir(tempProjectDir).catch(() => {});
+      throw this.buildSpawnFailureError({
+        pid: handle.pid,
+        exit: childExit,
+        lockDir,
+        spawnErrorLogPath,
+        deadlineMs: waitedDeadlineMs,
+        spawnLabel: 'ephemeral spawn',
+        childExited,
+      });
+    }
+
+    const port = lock.port;
+    const apiOrigin = lockApiOrigin(lock);
+    this.deps.log?.info(
+      {
+        event: 'desktop-ephemeral-server-spawned',
+        pid: handle.pid,
+        port,
+        lockDir,
+        file: opts.canonicalFilePath,
+      },
+      '[window-manager] ephemeral single-file server ready',
+    );
+
+    const window = this.deps.createWindow({
+      additionalArguments: [
+        `--ok-collab-url=${lockCollabUrl(lock)}`,
+        `--ok-api-origin=${apiOrigin}`,
+        `--ok-project-path=${opts.contentDir}`,
+        `--ok-project-name=${projectName}`,
+        `--ok-mode=editor`,
+        `--ok-single-file=1`,
+        `--ok-initial-doc=${opts.docName}`,
+        `--ok-app-version=${this.deps.appVersion}`,
+        ...instanceLabelArgs(),
+      ],
+      title: formatEditorTitle(projectName),
+      focusKey: canonicalKey,
+      chrome: SINGLE_FILE_WINDOW_CHROME_KIND,
+    });
+    this.attachSafetyNet(window.webContents, apiOrigin, opts.contentDir);
+
+    const disposeShowGate = this.deps.showGate.register(window, { kind: 'editor' });
+
+    const context: ProjectContext = {
+      projectPath: opts.contentDir,
+      canonicalKey,
+      projectName,
+      port,
+      apiOrigin,
+      window,
+      utility: null,
+      ownsServer: false,
+      ephemeral: { projectDir: tempProjectDir, server: handle, lockDir },
+    };
+    let watchHandle: unknown;
+    let watchCleared = false;
+    const stopExitWatch = (): void => {
+      if (watchCleared) return;
+      watchCleared = true;
+      if (watchHandle !== undefined) this.deps.clearInterval?.(watchHandle);
+    };
+
+    const releaseLoadingContext = this.publishLoadingContext(context);
+
+    try {
+      try {
+        if (this.deps.rendererDevUrl) {
+          await window.loadURL(this.deps.rendererDevUrl);
+        } else {
+          await window.loadFile(this.deps.rendererEntryPath);
+        }
+      } catch (err) {
+        releaseLoadingContext();
+        disposeShowGate();
+        window.destroy?.();
+        await this.teardownEphemeralSession({
+          projectDir: tempProjectDir,
+          server: handle,
+          lockDir,
+        });
+        throw err;
+      }
+
+      window.on('closed', () => {
+        stopExitWatch();
+        disposeShowGate();
+        this.ephemeralWindowIdentity.delete(window);
+        if (this.windowsByPath.get(canonicalKey) !== context) return;
+        this.windowsByPath.delete(canonicalKey);
+        this.closeKeepalive(canonicalKey);
+        void this.teardownEphemeralSession(
+          context.ephemeral as NonNullable<ProjectContext['ephemeral']>,
+        );
+      });
+
+      this.windowsByPath.set(canonicalKey, context);
+      if (this.deps.createKeepalive) {
+        const existingKeepalive = this.keepalives.get(canonicalKey);
+        if (existingKeepalive) existingKeepalive.close();
+        this.keepalives.set(canonicalKey, this.deps.createKeepalive({ lockDir }));
+      }
+      this.ephemeralWindowIdentity.set(window, {
+        canonicalFilePath: opts.canonicalFilePath,
+        contentDir: opts.contentDir,
+        docName: opts.docName,
+      });
+      this.retireStaleWindowsForFile(canonicalKey, window);
+    } finally {
+      releaseLoadingContext();
+    }
+
+    if (this.deps.setInterval) {
+      watchHandle = this.deps.setInterval(() => {
+        try {
+          if (watchCleared) return;
+          if (this.windowsByPath.get(canonicalKey) !== context) {
+            stopExitWatch();
+            return;
+          }
+          if (this.isEphemeralServerAlive(context)) return;
+          stopExitWatch();
+          const eph = context.ephemeral as NonNullable<ProjectContext['ephemeral']>;
+          this.deps.log?.warn(
+            {
+              event: 'desktop-ephemeral-server-exited',
+              pid: eph.server.pid,
+              lockDir: eph.lockDir,
+              file: opts.canonicalFilePath,
+            },
+            '[window-manager] ephemeral server exited while its window was open — reaping the dead session temp dir',
+          );
+          this.closeKeepalive(canonicalKey);
+          void this.teardownEphemeralSession(eph);
+        } catch (err) {
+          this.deps.log?.warn(
+            {
+              event: 'desktop-ephemeral-watch-probe-failed',
+              err,
+              file: opts.canonicalFilePath,
+              pid: context.ephemeral?.server.pid,
+              lockDir: context.ephemeral?.lockDir,
+            },
+            '[window-manager] ephemeral server-liveness probe threw — skipping this poll cycle',
+          );
+        }
+      }, EPHEMERAL_SERVER_WATCH_POLL_MS);
+    }
+
+    return context;
+  }
+
+  private async teardownEphemeralSession(session: {
+    projectDir: string;
+    server: SpawnedServer;
+    lockDir: string;
+  }): Promise<void> {
+    try {
+      const term = await this.terminateServerByPid({ kind: 'spawned', server: session.server });
+      if (!term.ok) {
+        this.deps.log?.warn(
+          {
+            event: 'desktop-ephemeral-teardown',
+            outcome: terminationOutcome(term),
+            pid: session.server.pid,
+            projectDir: session.projectDir,
+          },
+          '[window-manager] ephemeral server termination did not confirm; removing temp dir anyway',
+        );
+      }
+      await this.deps.removeDir?.(session.projectDir).catch((err: unknown) => {
+        this.deps.log?.warn(
+          {
+            event: 'desktop-ephemeral-teardown',
+            err,
+            projectDir: session.projectDir,
+          },
+          '[window-manager] failed to remove ephemeral temp dir',
+        );
+      });
+    } catch (err) {
+      this.deps.log?.warn(
+        {
+          event: 'desktop-ephemeral-teardown-unexpected',
+          err,
+          pid: session.server.pid,
+          projectDir: session.projectDir,
+        },
+        '[window-manager] unexpected error tearing down ephemeral session',
+      );
+    }
+  }
+
+  closeProjectWindow(projectPath: string): boolean {
+    const ctx = this.windowsByPath.get(this.canonicalizeKey(projectPath));
+    if (!ctx) return false;
+    if (!ctx.ownsServer || !ctx.utility) {
+      return true;
+    }
+    try {
+      ctx.utility.postMessage({ type: 'shutdown' });
+    } catch (err) {
+      this.deps.log?.warn(
+        { err, projectPath },
+        'utility shutdown IPC failed in closeProjectWindow (likely already exited)',
+      );
+    }
+    return true;
+  }
+
+  private buildSpawnFailureError(opts: {
+    pid: number;
+    exit: { code: number | null; signal: string | null } | null;
+    lockDir: string;
+    spawnErrorLogPath: string;
+    deadlineMs: number;
+    spawnLabel: string;
+    childExited: boolean | undefined;
+  }): Error {
+    const { pid, exit, lockDir, spawnErrorLogPath, deadlineMs, spawnLabel, childExited } = opts;
+    const STDERR_TAIL_BYTES = 8192;
+    let stderrTail: string | undefined;
+    try {
+      const attempt = sliceLastSpawnAttempt(readFileSync(spawnErrorLogPath, 'utf-8')).trim();
+      stderrTail =
+        attempt.length > STDERR_TAIL_BYTES ? `…${attempt.slice(-STDERR_TAIL_BYTES)}` : attempt;
+    } catch (readErr) {
+      const code = (readErr as NodeJS.ErrnoException).code;
+      if (code !== 'ENOENT' && code !== 'ENOTDIR') {
+        this.deps.log?.warn(
+          {
+            event: 'desktop-spawn-error-log-read-failed',
+            err: readErr,
+            code,
+            lockDir,
+            spawnErrorLogPath,
+          },
+          '[window-manager] could not read the spawn error log',
+        );
+      }
+    }
+
+    const exited = exit !== null || childExited === true;
+
+    let messageBase: string;
+    if (exited) {
+      const reason =
+        exit === null
+          ? ''
+          : exit.signal !== null
+            ? `, killed by ${exit.signal}`
+            : exit.code !== null
+              ? `, exit code ${exit.code}`
+              : '';
+      messageBase = `OpenKnowledge server exited before binding a port (pid=${pid}${reason}).`;
+    } else {
+      const liveness = childExited === false ? ', still running' : '';
+      messageBase = `OpenKnowledge server did not bind a port within ${deadlineMs}ms after ${spawnLabel} (pid=${pid}${liveness}).`;
+    }
+
+    const stderrHeading = exited
+      ? '--- stderr ---'
+      : '--- server output (printed during startup; probably not the cause) ---';
+    return Object.assign(
+      new Error(stderrTail ? `${messageBase}\n${stderrHeading}\n${stderrTail}` : messageBase),
+      {
+        name: 'SpawnLockTimeoutError' as const,
+        kind: 'spawn-lock-timeout' as const,
+        pid,
+        ...(exit !== null && { exitCode: exit.code, exitSignal: exit.signal }),
+        ...(stderrTail !== undefined && { stderrTail }),
+      },
+    );
+  }
+
+  private async pollServerLock(
+    lockDir: string,
+    deadlineMs: number,
+    child?: Pick<SpawnedServer, 'pid' | 'readExit'>,
+    progressDeadlineMs?: number,
+  ): Promise<{ lock: ServerLockMetadataLike | null; waitedDeadlineMs: number }> {
+    const POLL_INTERVAL_MS = 50;
+    const reader = this.deps.readServerLock;
+    if (!reader) return { lock: null, waitedDeadlineMs: deadlineMs };
+    const isAlive = this.deps.isProcessAlive;
+    const started = Date.now();
+    const hardCapMs = startupWaitHardCapMs(deadlineMs, progressDeadlineMs);
+    let effectiveDeadlineMs = deadlineMs;
+    let deadline = started + deadlineMs;
+    let extended = false;
+    let lastHeartbeatAt = started;
+    for (;;) {
+      const lock = reader(lockDir);
+      if (lock !== null && lock.draining !== true && lock.port > 0 && lock.kind !== undefined) {
+        return { lock, waitedDeadlineMs: effectiveDeadlineMs };
+      }
+      if (child !== undefined && child.readExit() !== null) {
+        const winnerStillStarting =
+          lock !== null &&
+          lock.draining !== true &&
+          lock.pid !== child.pid &&
+          isAlive?.(lock.pid) === true;
+        if (!winnerStillStarting) return { lock: null, waitedDeadlineMs: effectiveDeadlineMs };
+      }
+      if (Date.now() >= deadline) {
+        const childStarting = child !== undefined && child.readExit() === null;
+        const holderStarting =
+          lock !== null && lock.draining !== true && isAlive?.(lock.pid) === true;
+        const stillStarting =
+          !extended && hardCapMs > deadlineMs && (childStarting || holderStarting);
+        if (!stillStarting) return { lock: null, waitedDeadlineMs: effectiveDeadlineMs };
+        extended = true;
+        effectiveDeadlineMs = hardCapMs;
+        deadline = started + hardCapMs;
+        this.deps.log?.info(
+          {
+            event: 'desktop-spawn-wait-extended',
+            pid: child?.pid,
+            lockDir,
+            startupDeadlineMs: deadlineMs,
+            hardCapMs,
+            startingParty: childStarting ? 'child' : 'lock-holder',
+            lockPublished: lock !== null,
+          },
+          '[window-manager] server still starting at the spawn deadline — extending the wait',
+        );
+      }
+      const nowMs = Date.now();
+      if (nowMs - lastHeartbeatAt >= SPAWN_WAIT_HEARTBEAT_MS) {
+        lastHeartbeatAt = nowMs;
+        this.deps.log?.info(
+          {
+            event: BOOT_HEARTBEAT_EVENTS.spawnWait,
+            pid: child?.pid,
+            lockDir,
+            elapsedMs: nowMs - started,
+            childAlive: child !== undefined ? child.readExit() === null : undefined,
+            lockPublished: lock !== null,
+            extended,
+          },
+          '[window-manager] still waiting for the server lock',
+        );
+        this.deps.flushLog?.();
+      }
+      await new Promise<void>((resolveSleep) => {
+        this.deps.setTimeout(() => {
+          resolveSleep();
+        }, POLL_INTERVAL_MS);
+      });
+    }
+  }
+
+  private tryAttachExistingServer(lockDir: string): ServerLockMetadataLike | null {
+    const read = this.deps.readServerLock;
+    const alive = this.deps.isProcessAlive;
+    const getHost = this.deps.hostname;
+    if (!read || !alive || !getHost) return null;
+    const lock = read(lockDir);
+    if (!lock) return null;
+    const refuse = (reason: string): null => {
+      this.deps.log?.warn(
+        { event: 'desktop-attach-refused', reason, lockDir, lockPid: lock.pid },
+        '[window-manager] refusing attach',
+      );
+      return null;
+    };
+    if (!isValidLockPidLocal(lock.pid)) return refuse('invalid-lock-pid');
+    if (lock.machineId === undefined && lock.hostname !== getHost()) {
+      return refuse('foreign-hostname');
+    }
+    if (!alive(lock.pid)) return refuse('lock-pid-dead');
+    if (lock.draining === true) return refuse('lock-draining');
+    if (!lockIsAttachable(lock)) return refuse('lock-not-attachable');
+    if (lock.kind === undefined) return refuse('legacy-lock-no-kind');
+    if (lock.capabilities !== undefined && !lock.capabilities.includes('ws')) {
+      return refuse('capabilities-missing-ws');
+    }
+    return lock;
+  }
+
+  private async probeForeignLockWithGrace(
+    lock: { pid: number; port?: unknown; url?: unknown },
+    phase: ProbePhase = 'spawn-foreign-lock',
+  ): Promise<boolean> {
+    for (let attempt = 1; attempt <= FOREIGN_LOCK_PROBE_ATTEMPTS; attempt++) {
+      if (await this.probeAttachableLock(lock, phase)) return true;
+      if (attempt < FOREIGN_LOCK_PROBE_ATTEMPTS) {
+        await new Promise<void>((resolveSleep) => {
+          this.deps.setTimeout(() => resolveSleep(), FOREIGN_LOCK_PROBE_RETRY_MS);
+        });
+      }
+    }
+    return false;
+  }
+
+  private async probeAttachableLock(
+    lock: { pid: number; port?: unknown; url?: unknown },
+    phase: ProbePhase = 'attach',
+  ): Promise<boolean> {
+    const probe = this.deps.probeWsUpgrade;
+    if (!probe) return true;
+    const url = `${lockCollabUrl(lock)}/__attach_probe__`;
+    let upgradeOk = false;
+    try {
+      upgradeOk = await probe(url, 500);
+    } catch {
+      upgradeOk = false;
+    }
+    if (!upgradeOk) {
+      this.deps.log?.warn(
+        {
+          event: 'desktop-attach-refused',
+          reason: 'ws-upgrade-failed',
+          lockPid: lock.pid,
+          phase,
+        },
+        '[window-manager] refusing attach',
+      );
+    }
+    return upgradeOk;
+  }
+
+  private async attachToExistingServer(
+    args: PendingDeepLinkOpts & {
+      projectPath: string;
+      canonicalKey: string;
+      projectName: string;
+      lock: ServerLockMetadataLike;
+      pendingShareBranchSwitch?: ShareDeepLinkBranchSwitchPayload;
+      pendingServerRestartedToast?: boolean;
+      freshlyCreated?: boolean;
+    },
+  ): Promise<ProjectContext> {
+    const {
+      projectPath,
+      canonicalKey,
+      projectName,
+      lock,
+      pendingShareBranchSwitch,
+      pendingServerRestartedToast,
+      freshlyCreated,
+    } = args;
+    const port = lock.port;
+    const apiOrigin = lockApiOrigin(lock);
+
+    this.deps.log?.info(
+      {
+        projectPath,
+        holderPid: lock.pid,
+        port,
+        startedAt: lock.startedAt,
+        apiOrigin,
+        capabilities: lock.capabilities,
+      },
+      'attaching to existing OpenKnowledge server',
+    );
+
+    this.deps.startup?.markServerLockReady?.({ startedAt: lock.startedAt, apiOrigin });
+
+    const window = this.deps.createWindow({
+      additionalArguments: [
+        `--ok-collab-url=${lockCollabUrl(lock)}`,
+        `--ok-api-origin=${apiOrigin}`,
+        `--ok-project-path=${projectPath}`,
+        `--ok-project-name=${projectName}`,
+        `--ok-mode=editor`,
+        `--ok-app-version=${this.deps.appVersion}`,
+        ...instanceLabelArgs(),
+        ...(this.deps.startup?.traceparent !== undefined
+          ? [`--ok-startup-traceparent=${this.deps.startup.traceparent}`]
+          : []),
+        ...(freshlyCreated ? ['--ok-fresh-create=1'] : []),
+      ],
+      title: formatEditorTitle(projectName),
+      projectPath,
+      chrome: 'app-header',
+    });
+    this.deps.startup?.markWindowCreated?.();
+    this.attachSafetyNet(window.webContents, apiOrigin, projectPath);
+
+    const deepLink = pendingDeepLinkPayload(args);
+    if (deepLink) {
+      registerPendingDelivery(window.webContents, 'ok:deep-link', deepLink);
+    }
+
+    if (pendingShareBranchSwitch) {
+      registerPendingDelivery(
+        window.webContents,
+        'ok:share:received',
+        shareBranchSwitchPayload(pendingShareBranchSwitch),
+      );
+    }
+
+    const selfProtocol = this.deps.selfProtocolVersion;
+    const selfRuntime = this.deps.selfRuntimeVersion;
+    const serverRuntime = lock.runtimeVersion;
+    if (selfProtocol !== undefined && selfRuntime !== undefined) {
+      const drift = classifyServerVersion(
+        { protocolVersion: lock.protocolVersion, runtimeVersion: serverRuntime },
+        { protocolVersion: selfProtocol, runtimeVersion: selfRuntime },
+      );
+      if (
+        (drift.relation === 'older' || drift.relation === 'newer') &&
+        serverRuntime !== undefined
+      ) {
+        const payload = {
+          relation: drift.relation,
+          dimension: drift.dimension ?? 'runtime',
+          serverRuntime,
+          appRuntime: selfRuntime,
+        } as const;
+        registerPendingDelivery(window.webContents, 'ok:server-version-drift', payload);
+      }
+    }
+
+    if (pendingServerRestartedToast && selfRuntime !== undefined) {
+      registerPendingDelivery(
+        window.webContents,
+        'ok:server-restarted',
+        { appRuntime: selfRuntime },
+        { event: 'did-finish-load' },
+      );
+    }
+
+    const disposeShowGate = this.deps.showGate.register(window, { kind: 'editor' });
+
+    const context: ProjectContext = {
+      projectPath,
+      canonicalKey,
+      projectName,
+      port,
+      apiOrigin,
+      window,
+      utility: null,
+      ownsServer: false,
+    };
+    const releaseLoadingContext = this.publishLoadingContext(context);
+    const stopRendererLoadHeartbeat = startBootHeartbeat(
+      this.deps,
+      BOOT_HEARTBEAT_EVENTS.rendererLoad,
+      '[window-manager] still waiting for the renderer to finish loading',
+      () => ({ projectPath }),
+    );
+    try {
+      if (this.deps.rendererDevUrl) {
+        await window.loadURL(this.deps.rendererDevUrl);
+      } else {
+        await window.loadFile(this.deps.rendererEntryPath);
+      }
+      this.deps.startup?.markLoadUrlResolved?.();
+
+      if (this.deps.createKeepalive) {
+        const existingKeepalive = this.keepalives.get(canonicalKey);
+        if (existingKeepalive) existingKeepalive.close();
+        const lockDir = getLocalDir(projectPath);
+        const handle = this.deps.createKeepalive({ lockDir });
+        this.keepalives.set(canonicalKey, handle);
+      }
+
+      window.on('closed', () => {
+        disposeShowGate();
+        if (this.windowsByPath.get(canonicalKey) !== context) return;
+        const keepalive = this.keepalives.get(canonicalKey);
+        if (keepalive) {
+          keepalive.close();
+          this.keepalives.delete(canonicalKey);
+        }
+        this.windowsByPath.delete(canonicalKey);
+      });
+
+      this.windowsByPath.set(canonicalKey, context);
+    } finally {
+      stopRendererLoadHeartbeat();
+      releaseLoadingContext();
+    }
+    return context;
+  }
+}

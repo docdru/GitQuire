@@ -1,0 +1,217 @@
+import { describe, expect, test } from 'vitest';
+import {
+  FRONTMATTER_TYPES,
+  FrontmatterMapSchema,
+  FrontmatterPatchSchema,
+  FrontmatterValueSchema,
+  frontmatterValuesEqual,
+  inferType,
+  isFrontmatterValueEmpty,
+} from './schema.ts';
+
+describe('isFrontmatterValueEmpty', () => {
+  test('treats null, empty string, and empty array as empty', () => {
+    expect(isFrontmatterValueEmpty(null)).toBe(true);
+    expect(isFrontmatterValueEmpty('')).toBe(true);
+    expect(isFrontmatterValueEmpty([])).toBe(true);
+  });
+
+  test('treats `0` and `false` as non-empty (valid stored values)', () => {
+    expect(isFrontmatterValueEmpty(0)).toBe(false);
+    expect(isFrontmatterValueEmpty(false)).toBe(false);
+  });
+
+  test('treats non-empty strings and arrays as non-empty', () => {
+    expect(isFrontmatterValueEmpty('x')).toBe(false);
+    expect(isFrontmatterValueEmpty(' ')).toBe(false);
+    expect(isFrontmatterValueEmpty(['a'])).toBe(false);
+  });
+
+  test('treats other primitives as non-empty', () => {
+    expect(isFrontmatterValueEmpty(42)).toBe(false);
+    expect(isFrontmatterValueEmpty(true)).toBe(false);
+  });
+});
+
+describe('FRONTMATTER_TYPES', () => {
+  test('includes object for nested mapping support', () => {
+    expect(FRONTMATTER_TYPES).toContain('object');
+  });
+});
+
+describe('inferType', () => {
+  test('returns object for a plain mapping', () => {
+    expect(inferType({})).toBe('object');
+    expect(inferType({ version: '1.0' })).toBe('object');
+    expect(inferType({ a: { b: 'c' } })).toBe('object');
+  });
+
+  test('returns list for arrays regardless of element shape', () => {
+    expect(inferType([])).toBe('list');
+    expect(inferType(['a', 'b'])).toBe('list');
+    expect(inferType([{ k: 'v' }])).toBe('list');
+    expect(inferType([{ a: 1 }, { b: 2 }])).toBe('list');
+  });
+
+  test('preserves scalar inference (boolean, number, date, text)', () => {
+    expect(inferType(true)).toBe('boolean');
+    expect(inferType(42)).toBe('number');
+    expect(inferType('2026-06-09')).toBe('date');
+    expect(inferType('hello')).toBe('text');
+  });
+});
+
+describe('frontmatterValuesEqual', () => {
+  test('scalars compare by value', () => {
+    expect(frontmatterValuesEqual('a', 'a')).toBe(true);
+    expect(frontmatterValuesEqual(1, 1)).toBe(true);
+    expect(frontmatterValuesEqual(true, true)).toBe(true);
+    expect(frontmatterValuesEqual('a', 'b')).toBe(false);
+    expect(frontmatterValuesEqual(1, 2)).toBe(false);
+  });
+
+  test('structurally-equal nested objects are equal across references', () => {
+    expect(
+      frontmatterValuesEqual(
+        { version: '1.0.0', author: 'Inkeep' },
+        { version: '1.0.0', author: 'Inkeep' },
+      ),
+    ).toBe(true);
+    expect(frontmatterValuesEqual({ a: 1, b: 2 }, { b: 2, a: 1 })).toBe(true);
+  });
+
+  test('differing nested leaf is unequal', () => {
+    expect(frontmatterValuesEqual({ version: '1.0.0' }, { version: '2.0.0' })).toBe(false);
+  });
+
+  test('extra key in either side is unequal', () => {
+    expect(frontmatterValuesEqual({ a: 1 }, { a: 1, b: 2 })).toBe(false);
+    expect(frontmatterValuesEqual({ a: 1, b: 2 }, { a: 1 })).toBe(false);
+  });
+
+  test('arrays recurse into element structure (not reference)', () => {
+    expect(frontmatterValuesEqual(['a', 'b'], ['a', 'b'])).toBe(true);
+    expect(frontmatterValuesEqual([{ k: 1 }], [{ k: 1 }])).toBe(true);
+    expect(frontmatterValuesEqual([{ k: 1 }], [{ k: 2 }])).toBe(false);
+    expect(frontmatterValuesEqual(['a'], ['a', 'b'])).toBe(false);
+  });
+
+  test('deeply nested structures compare structurally', () => {
+    expect(
+      frontmatterValuesEqual(
+        { meta: { tags: ['x'], nested: { n: 1 } } },
+        { meta: { tags: ['x'], nested: { n: 1 } } },
+      ),
+    ).toBe(true);
+    expect(
+      frontmatterValuesEqual({ meta: { nested: { n: 1 } } }, { meta: { nested: { n: 2 } } }),
+    ).toBe(false);
+  });
+
+  test('cross-type mismatches are unequal', () => {
+    expect(frontmatterValuesEqual({}, [])).toBe(false);
+    expect(frontmatterValuesEqual('1', 1)).toBe(false);
+    expect(frontmatterValuesEqual({ a: 1 }, 'a')).toBe(false);
+  });
+
+  test('null is handled by the guard path (only equal to itself)', () => {
+    expect(frontmatterValuesEqual(null, null)).toBe(true);
+    expect(frontmatterValuesEqual(null, {})).toBe(false);
+    expect(frontmatterValuesEqual({}, null)).toBe(false);
+    expect(frontmatterValuesEqual(null, 'a')).toBe(false);
+  });
+
+  test('same key count but different key set is unequal (Object.hasOwn guard)', () => {
+    expect(frontmatterValuesEqual({ a: 1, b: 2 }, { a: 1, c: 2 })).toBe(false);
+  });
+});
+
+describe('FrontmatterMapSchema — Obsidian null coercion', () => {
+  test('drops null sequence elements ([null] → [])', () => {
+    const result = FrontmatterMapSchema.safeParse({ tags: [null] });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toEqual({ tags: [] });
+  });
+
+  test('drops null elements but keeps real items in a mixed sequence', () => {
+    const result = FrontmatterMapSchema.safeParse({ aliases: ['Real', null, 'Also'] });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toEqual({ aliases: ['Real', 'Also'] });
+  });
+
+  test('coerces a bare-key null scalar to an empty string (key stays visible)', () => {
+    const result = FrontmatterMapSchema.safeParse({ tags: null, author: 'Alice' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toEqual({ tags: '', author: 'Alice' });
+  });
+
+  test('coerces null nested inside a mapping subtree', () => {
+    const result = FrontmatterMapSchema.safeParse({ metadata: { version: null, name: 'x' } });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toEqual({ metadata: { version: '', name: 'x' } });
+  });
+
+  test('leaves null-free maps untouched (no behavior change for valid input)', () => {
+    const input = { title: 'Hello', tags: ['a', 'b'], meta: { n: 1 } };
+    const result = FrontmatterMapSchema.safeParse(input);
+    expect(result.success).toBe(true);
+    if (result.success)
+      expect(result.data).toEqual({ title: 'Hello', tags: ['a', 'b'], meta: { n: 1 } });
+  });
+});
+
+function countedLeafChain(depth: number, wrap: (child: unknown) => unknown) {
+  let inspections = 0;
+  const leaf = new Proxy(
+    { leaf: 'value' },
+    {
+      ownKeys(target) {
+        inspections += 1;
+        return Reflect.ownKeys(target);
+      },
+      getOwnPropertyDescriptor(target, key) {
+        inspections += 1;
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      },
+      get(target, key, receiver) {
+        inspections += 1;
+        return Reflect.get(target, key, receiver);
+      },
+      has(target, key) {
+        inspections += 1;
+        return Reflect.has(target, key);
+      },
+    },
+  );
+  let root: unknown = leaf;
+  for (let level = 0; level < depth; level += 1) root = { child: wrap(root) };
+  return { root, inspections: () => inspections };
+}
+
+const nestingShapes = [
+  { name: 'nested objects', wrap: (child: unknown) => child },
+  { name: 'objects inside lists', wrap: (child: unknown) => [child] },
+];
+
+const entrySchemas = [
+  { name: 'FrontmatterPatchSchema', schema: FrontmatterPatchSchema },
+  { name: 'FrontmatterValueSchema', schema: FrontmatterValueSchema },
+];
+
+describe('frontmatter record validation cost', () => {
+  describe.each(entrySchemas)('$name', ({ schema }) => {
+    test.each(nestingShapes)(
+      'inspects the innermost record of $name as often at depth 40 as at depth 4',
+      ({ wrap }) => {
+        const leafInspectionsAt = (depth: number) => {
+          const chain = countedLeafChain(depth, wrap);
+          expect(schema.safeParse(chain.root).success).toBe(true);
+          return chain.inspections();
+        };
+        const shallow = leafInspectionsAt(4);
+        expect(shallow).toBeGreaterThan(0);
+        expect(leafInspectionsAt(40)).toBe(shallow);
+      },
+    );
+  });
+});

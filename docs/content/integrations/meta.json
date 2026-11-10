@@ -1,0 +1,16 @@
+{
+  "title": "Integrations",
+  "icon": "LuPlug",
+  "pages": [
+    "claude-code",
+    "codex",
+    "cursor",
+    "opencode",
+    "pi",
+    "openclaw",
+    "hermes",
+    "antigravity",
+    "github-copilot-cli",
+    "lm-studio"
+  ]
+}

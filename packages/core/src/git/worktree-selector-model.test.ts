@@ -1,0 +1,176 @@
+import { describe, expect, test } from 'vitest';
+import type { BridgeWorktreeEntry } from './worktree-list-parser.ts';
+import {
+  buildWorktreeSelectorModel,
+  projectWorktreeCreateResult,
+} from './worktree-selector-model.ts';
+
+function wt(partial: Partial<BridgeWorktreeEntry> & { path: string }): BridgeWorktreeEntry {
+  return {
+    branch: null,
+    headSha: 'abc123',
+    locked: false,
+    prunable: false,
+    ...partial,
+  };
+}
+
+describe('buildWorktreeSelectorModel', () => {
+  test('main root is the first worktree entry', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [
+        wt({ path: '/repo', branch: 'main' }),
+        wt({ path: '/repo/.ok/worktrees/dev', branch: 'dev' }),
+      ],
+      branches: ['main', 'dev'],
+      currentProjectPath: '/repo',
+    });
+    expect(model.mainRoot).toBe('/repo');
+  });
+
+  test('every local branch yields an entry; worktree-backed branches carry their path', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [
+        wt({ path: '/repo', branch: 'main' }),
+        wt({ path: '/repo/.ok/worktrees/dev', branch: 'dev' }),
+      ],
+      branches: ['main', 'dev', 'feature-x'],
+      currentProjectPath: '/repo',
+    });
+    const byBranch = new Map(model.entries.map((e) => [e.branch, e]));
+    expect(byBranch.get('main')?.worktreePath).toBe('/repo');
+    expect(byBranch.get('dev')?.worktreePath).toBe('/repo/.ok/worktrees/dev');
+    expect(byBranch.get('feature-x')?.worktreePath).toBeNull();
+  });
+
+  test('flags the current window and the main worktree', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [
+        wt({ path: '/repo', branch: 'main' }),
+        wt({ path: '/repo/.ok/worktrees/dev', branch: 'dev' }),
+      ],
+      branches: ['main', 'dev'],
+      currentProjectPath: '/repo/.ok/worktrees/dev',
+    });
+    const main = model.entries.find((e) => e.branch === 'main');
+    const dev = model.entries.find((e) => e.branch === 'dev');
+    expect(main?.isMain).toBe(true);
+    expect(main?.isCurrent).toBe(false);
+    expect(dev?.isCurrent).toBe(true);
+    expect(dev?.isMain).toBe(false);
+    expect(model.currentBranch).toBe('dev');
+  });
+
+  test('orders current first, then main, then worktree-backed, then plain branches', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [
+        wt({ path: '/repo', branch: 'main' }),
+        wt({ path: '/repo/.ok/worktrees/zeta', branch: 'zeta' }),
+      ],
+      branches: ['main', 'zeta', 'alpha', 'beta'],
+      currentProjectPath: '/repo/.ok/worktrees/zeta',
+    });
+    expect(model.entries.map((e) => e.branch)).toEqual(['zeta', 'main', 'alpha', 'beta']);
+  });
+
+  test('ignores prunable worktrees', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [
+        wt({ path: '/repo', branch: 'main' }),
+        wt({ path: '/gone', branch: 'ghost', prunable: true }),
+      ],
+      branches: ['main', 'ghost'],
+      currentProjectPath: '/repo',
+    });
+    expect(model.entries.find((e) => e.branch === 'ghost')?.worktreePath).toBeNull();
+  });
+
+  test('includes a detached-HEAD worktree not present in the branch list', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [
+        wt({ path: '/repo', branch: 'main' }),
+        wt({ path: '/repo/.ok/worktrees/detached', branch: null }),
+      ],
+      branches: ['main'],
+      currentProjectPath: '/repo/.ok/worktrees/detached',
+    });
+    const detached = model.entries.find((e) => e.worktreePath === '/repo/.ok/worktrees/detached');
+    expect(detached?.branch).toBeNull();
+    expect(detached?.isCurrent).toBe(true);
+  });
+
+  test('falls back to currentProjectPath as mainRoot when no worktrees reported', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [],
+      branches: ['main'],
+      currentProjectPath: '/repo',
+    });
+    expect(model.mainRoot).toBe('/repo');
+  });
+
+  test('remoteBranches defaults to [] when the caller supplies none', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [wt({ path: '/repo', branch: 'main' })],
+      branches: ['main'],
+      currentProjectPath: '/repo',
+    });
+    expect(model.remoteBranches).toEqual([]);
+  });
+
+  test('remoteBranches keeps the full remote ref list (incl. refs with a matching local branch) deduped + ordered', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [wt({ path: '/repo', branch: 'main' })],
+      branches: ['main', 'dev'],
+      currentProjectPath: '/repo',
+      remoteBranches: ['origin/main', 'origin/dev', 'origin/feature-x', 'origin/feature-x'],
+    });
+    expect(model.remoteBranches).toEqual(['origin/main', 'origin/dev', 'origin/feature-x']);
+  });
+
+  test('per-branch behind counts thread onto the matching entry; unknown branches carry no behind field', () => {
+    const model = buildWorktreeSelectorModel({
+      worktrees: [wt({ path: '/repo', branch: 'main' })],
+      branches: ['main', 'dev', 'no-upstream'],
+      currentProjectPath: '/repo',
+      behind: { main: 3, dev: 0 },
+    });
+    const byBranch = new Map(model.entries.map((e) => [e.branch, e]));
+    expect(byBranch.get('main')?.behind).toBe(3);
+    expect(byBranch.get('dev')?.behind).toBe(0);
+    expect(byBranch.get('no-upstream')?.behind).toBeUndefined();
+    expect('behind' in (byBranch.get('no-upstream') ?? {})).toBe(false);
+  });
+});
+
+describe('projectWorktreeCreateResult', () => {
+  test('projects a created checkout onto the active nested project root', () => {
+    expect(
+      projectWorktreeCreateResult(
+        { ok: true, path: '/repo/.ok/worktrees/feature', created: true },
+        'packages/docs',
+      ),
+    ).toEqual({
+      ok: true,
+      path: '/repo/.ok/worktrees/feature/packages/docs',
+      created: true,
+    });
+  });
+
+  test('preserves root-scoped and failed results', () => {
+    const success = { ok: true, path: '/repo/.ok/worktrees/feature', created: false } as const;
+    const failure = { ok: false, reason: 'no-git' } as const;
+    expect(projectWorktreeCreateResult(success, '')).toBe(success);
+    expect(projectWorktreeCreateResult(failure, 'packages/docs')).toBe(failure);
+  });
+
+  test('never projects a created worktree whose project scope was rejected', () => {
+    const failure = {
+      ok: false,
+      reason: 'project-scope-unavailable',
+      issue: 'outside-worktree',
+      path: '/repo/.ok/worktrees/feature',
+      created: true,
+    } as const;
+    expect(projectWorktreeCreateResult(failure, 'packages/docs')).toBe(failure);
+  });
+});

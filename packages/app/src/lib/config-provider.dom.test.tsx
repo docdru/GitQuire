@@ -1,0 +1,98 @@
+/** Exercises `render` + the React Context API surface under the jsdom substrate (precedent #43). */
+
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+
+vi.doMock('@/hooks/use-theme-bridge', () => ({
+  useThemeBridge: () => {},
+}));
+
+const useThemeColorTransitions = vi.fn();
+vi.doMock('./theme-color-transitions', () => ({ useThemeColorTransitions }));
+
+const { ConfigProvider, useConfigContext } = await import('./config-provider');
+
+const EXPECTED_NULL_KEYS = [
+  'userBinding',
+  'projectBinding',
+  'projectLocalBinding',
+  'okignoreBinding',
+  'userConfig',
+  'projectConfig',
+  'projectLocalConfig',
+  'merged',
+] as const;
+
+function Consumer() {
+  const ctx = useConfigContext();
+  return (
+    <div data-testid="consumer">
+      {EXPECTED_NULL_KEYS.map((key) => (
+        <span key={key} data-testid={`field:${key}`}>
+          {String(ctx[key])}
+        </span>
+      ))}
+      <span data-testid="field:userSynced">{String(ctx.userSynced)}</span>
+      <span data-testid="field:projectLocalSynced">{String(ctx.projectLocalSynced)}</span>
+      <span data-testid="field:okignoreSynced">{String(ctx.okignoreSynced)}</span>
+    </div>
+  );
+}
+
+describe('ConfigProvider runtime (Tier-3)', () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+    useThemeColorTransitions.mockClear();
+  });
+
+  test('arms color transitions only once collaboration resolution has settled', () => {
+    const view = render(
+      <ConfigProvider collabUrl={null}>
+        <Consumer />
+      </ConfigProvider>,
+    );
+    expect(useThemeColorTransitions).toHaveBeenLastCalledWith(false);
+    view.rerender(
+      <ConfigProvider collabUrl={null} collabTerminal>
+        <Consumer />
+      </ConfigProvider>,
+    );
+    expect(useThemeColorTransitions).toHaveBeenLastCalledWith(true);
+  });
+
+  test('propagates the all-null value when collabUrl is null (cold-start window)', () => {
+    render(
+      <ConfigProvider collabUrl={null}>
+        <Consumer />
+      </ConfigProvider>,
+    );
+
+    expect(screen.getByTestId('consumer')).toBeDefined();
+
+    for (const key of EXPECTED_NULL_KEYS) {
+      expect(screen.getByTestId(`field:${key}`).textContent).toBe('null');
+    }
+    expect(screen.getByTestId('field:userSynced').textContent).toBe('false');
+    expect(screen.getByTestId('field:projectLocalSynced').textContent).toBe('false');
+    expect(screen.getByTestId('field:okignoreSynced').textContent).toBe('false');
+  });
+
+  describe('useConfigContext outside provider', () => {
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
+    test('throws the documented message when used outside <ConfigProvider />', () => {
+      expect(() => {
+        render(<Consumer />);
+      }).toThrow('useConfigContext must be used within <ConfigProvider />');
+    });
+  });
+});

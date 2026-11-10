@@ -1,0 +1,283 @@
+import { beforeEach, describe, expect, test } from 'vitest';
+import {
+  _resetDocExtensionsForTests,
+  canonicalDocName,
+  docNameToRelativePath,
+  forgetDocExtension,
+  getDocExtension,
+  isSupportedDocFile,
+  linkNamesDocumentFile,
+  registerDocExtension,
+  SUPPORTED_DOC_EXTENSIONS,
+  stripDocExtension,
+} from './doc-extensions.ts';
+
+beforeEach(() => {
+  _resetDocExtensionsForTests();
+});
+
+describe('SUPPORTED_DOC_EXTENSIONS', () => {
+  test('is ordered by precedence — .mdx before .md', () => {
+    expect(SUPPORTED_DOC_EXTENSIONS).toEqual(['.mdx', '.md']);
+  });
+});
+
+describe('isSupportedDocFile', () => {
+  test('matches .md and .mdx', () => {
+    expect(isSupportedDocFile('foo.md')).toBe(true);
+    expect(isSupportedDocFile('foo.mdx')).toBe(true);
+    expect(isSupportedDocFile('nested/path/foo.mdx')).toBe(true);
+  });
+
+  test('is case-insensitive', () => {
+    expect(isSupportedDocFile('foo.MD')).toBe(true);
+    expect(isSupportedDocFile('foo.MDX')).toBe(true);
+  });
+
+  test('rejects other extensions', () => {
+    expect(isSupportedDocFile('foo.txt')).toBe(false);
+    expect(isSupportedDocFile('foo.markdown')).toBe(false);
+    expect(isSupportedDocFile('foo')).toBe(false);
+    expect(isSupportedDocFile('foo.mdown')).toBe(false);
+  });
+});
+
+describe('linkNamesDocumentFile', () => {
+  test('judges the resolved project path, so a fragment or query does not hide the extension', () => {
+    expect(linkNamesDocumentFile('./Guide.md', 'notes/a')).toBe(true);
+    expect(linkNamesDocumentFile('./Guide.md#intro', 'notes/a')).toBe(true);
+    expect(linkNamesDocumentFile('./Help.mdx?v=1', 'notes/a')).toBe(true);
+    expect(linkNamesDocumentFile('../Makefile', 'notes/a')).toBe(false);
+    expect(linkNamesDocumentFile('./guide', 'notes/a')).toBe(false);
+  });
+});
+
+describe('stripDocExtension', () => {
+  test('strips .md', () => {
+    expect(stripDocExtension('foo.md')).toBe('foo');
+    expect(stripDocExtension('nested/foo.md')).toBe('nested/foo');
+  });
+
+  test('strips .mdx', () => {
+    expect(stripDocExtension('foo.mdx')).toBe('foo');
+    expect(stripDocExtension('nested/foo.mdx')).toBe('nested/foo');
+  });
+
+  test('is case-insensitive', () => {
+    expect(stripDocExtension('foo.MD')).toBe('foo');
+    expect(stripDocExtension('foo.MDX')).toBe('foo');
+    expect(stripDocExtension('nested/foo.Md')).toBe('nested/foo');
+  });
+
+  test('passes through non-supported extensions untouched', () => {
+    expect(stripDocExtension('foo.txt')).toBe('foo.txt');
+    expect(stripDocExtension('releases/v1.0')).toBe('releases/v1.0');
+    expect(stripDocExtension('foo')).toBe('foo');
+  });
+});
+
+describe('docNameToRelativePath', () => {
+  test('passes through extension-qualified docNames unchanged', () => {
+    registerDocExtension('docs/guide', '.MDX');
+    expect(docNameToRelativePath('docs/guide.mdx')).toBe('docs/guide.mdx');
+    expect(docNameToRelativePath('docs/guide.md')).toBe('docs/guide.md');
+  });
+
+  test('appends the registered extension for extension-less docNames', () => {
+    registerDocExtension('docs/guide', '.MDX');
+    expect(docNameToRelativePath('docs/guide')).toBe('docs/guide.MDX');
+  });
+
+  test('defaults extension-less docNames to .md', () => {
+    expect(docNameToRelativePath('docs/new')).toBe('docs/new.md');
+  });
+
+  test('returns editable text docNames verbatim (extension retained, no .md appended)', () => {
+    expect(docNameToRelativePath('src/util.ts')).toBe('src/util.ts');
+    expect(docNameToRelativePath('config.json')).toBe('config.json');
+  });
+
+  test('a docName recorded as markdown wins over the text-doc string shape', () => {
+    registerDocExtension('notes.ts', '.md');
+    expect(docNameToRelativePath('notes.ts')).toBe('notes.ts.md');
+  });
+
+  test.each(['.md', '.mdx', '.MD', '.MDX'])(
+    'appends the observed %s extension to an exact dotted identity',
+    (extension) => {
+      registerDocExtension('notes.md', extension);
+      expect(docNameToRelativePath('notes.md')).toBe(`notes.md${extension}`);
+    },
+  );
+
+  test('returns Mermaid docNames verbatim (extension retained, no .md appended)', () => {
+    expect(docNameToRelativePath('assets/flow.mmd')).toBe('assets/flow.mmd');
+    expect(docNameToRelativePath('diagrams/seq.mermaid')).toBe('diagrams/seq.mermaid');
+  });
+});
+
+describe('registerDocExtension / getDocExtension', () => {
+  test('defaults to .md when no file observed', () => {
+    expect(getDocExtension('foo')).toBe('.md');
+  });
+
+  test('records observed extension', () => {
+    const result = registerDocExtension('foo', '.mdx');
+    expect(result).toEqual({ effective: '.mdx', changed: true, shadowed: null });
+    expect(getDocExtension('foo')).toBe('.mdx');
+  });
+
+  test('.mdx wins over .md when both seen', () => {
+    registerDocExtension('foo', '.md');
+    const second = registerDocExtension('foo', '.mdx');
+    expect(second).toEqual({ effective: '.mdx', changed: true, shadowed: '.md' });
+    expect(getDocExtension('foo')).toBe('.mdx');
+  });
+
+  test('.mdx keeps precedence when .md arrives after', () => {
+    registerDocExtension('foo', '.mdx');
+    const second = registerDocExtension('foo', '.md');
+    expect(second).toEqual({ effective: '.mdx', changed: false, shadowed: '.md' });
+    expect(getDocExtension('foo')).toBe('.mdx');
+  });
+
+  test('re-registering the same extension is a no-op', () => {
+    registerDocExtension('foo', '.md');
+    const second = registerDocExtension('foo', '.md');
+    expect(second).toEqual({ effective: '.md', changed: false, shadowed: null });
+  });
+
+  test('forgetDocExtension removes the mapping', () => {
+    registerDocExtension('foo', '.mdx');
+    forgetDocExtension('foo');
+    expect(getDocExtension('foo')).toBe('.md');
+  });
+
+  test('forgetDocExtension after collision returns to default (no shadow restore)', () => {
+    registerDocExtension('foo', '.md');
+    registerDocExtension('foo', '.mdx');
+    expect(getDocExtension('foo')).toBe('.mdx');
+
+    forgetDocExtension('foo');
+    expect(getDocExtension('foo')).toBe('.md');
+  });
+
+  test('preserves uppercase .MD casing observed on disk', () => {
+    const result = registerDocExtension('foo', '.MD');
+    expect(result).toEqual({ effective: '.MD', changed: true, shadowed: null });
+    expect(getDocExtension('foo')).toBe('.MD');
+  });
+
+  test('preserves uppercase .MDX casing observed on disk', () => {
+    const result = registerDocExtension('foo', '.MDX');
+    expect(result).toEqual({ effective: '.MDX', changed: true, shadowed: null });
+    expect(getDocExtension('foo')).toBe('.MDX');
+  });
+
+  test('precedence applies case-insensitively: .MDX wins over .MD', () => {
+    registerDocExtension('foo', '.MD');
+    const second = registerDocExtension('foo', '.MDX');
+    expect(second).toEqual({ effective: '.MDX', changed: true, shadowed: '.MD' });
+    expect(getDocExtension('foo')).toBe('.MDX');
+  });
+
+  test('precedence applies case-insensitively: .MDX wins over later .md', () => {
+    registerDocExtension('foo', '.MDX');
+    const second = registerDocExtension('foo', '.md');
+    expect(second).toEqual({ effective: '.MDX', changed: false, shadowed: '.md' });
+    expect(getDocExtension('foo')).toBe('.MDX');
+  });
+
+  test('same canonical extension is a no-op regardless of case', () => {
+    registerDocExtension('foo', '.MD');
+    const second = registerDocExtension('foo', '.md');
+    expect(second).toEqual({ effective: '.MD', changed: false, shadowed: null });
+    expect(getDocExtension('foo')).toBe('.MD');
+  });
+
+  test('rejects unsupported extensions', () => {
+    expect(() => registerDocExtension('foo', '.txt')).toThrow();
+    expect(() => registerDocExtension('foo', '.markdown')).toThrow();
+    expect(() => registerDocExtension('foo', '')).toThrow();
+  });
+});
+
+describe('canonicalDocName', () => {
+  test('collapses a stray extension onto its extension-less twin', () => {
+    expect(canonicalDocName('specs/demo/SPEC.md')).toBe('specs/demo/SPEC');
+    expect(canonicalDocName('notes.mdx')).toBe('notes');
+  });
+
+  test('collapses repeated extensions rather than leaving a qualified name', () => {
+    expect(canonicalDocName('foo.md.md')).toBe('foo');
+    expect(canonicalDocName('foo.mdx.md')).toBe('foo');
+  });
+
+  test('leaves an extension-less docName untouched', () => {
+    expect(canonicalDocName('specs/demo/SPEC')).toBe('specs/demo/SPEC');
+  });
+
+  test('preserves the shadowed half of a real same-stem pair', () => {
+    registerDocExtension('foo', '.md');
+    registerDocExtension('foo', '.mdx');
+    expect(canonicalDocName('foo.md')).toBe('foo.md');
+  });
+
+  test('collapses the winning half, which the bare stem already reaches', () => {
+    registerDocExtension('foo', '.md');
+    registerDocExtension('foo', '.mdx');
+    expect(canonicalDocName('foo.mdx')).toBe('foo');
+  });
+
+  test('collapses when only one file exists under the stem', () => {
+    registerDocExtension('solo', '.md');
+    expect(canonicalDocName('solo.md')).toBe('solo');
+  });
+
+  test('collapses once the shadowing file is gone', () => {
+    registerDocExtension('foo', '.md');
+    registerDocExtension('foo', '.mdx');
+    expect(canonicalDocName('foo.md')).toBe('foo.md');
+    forgetDocExtension('foo');
+    expect(canonicalDocName('foo.md')).toBe('foo');
+  });
+
+  test('preserves an exact registered dotted identity before removing a suffix', () => {
+    registerDocExtension('notes', '.md');
+    registerDocExtension('notes.md', '.md');
+    expect(canonicalDocName('notes.md')).toBe('notes.md');
+    expect(canonicalDocName('notes.md.md')).toBe('notes.md');
+    expect(canonicalDocName(canonicalDocName('notes.md.md'))).toBe('notes.md');
+  });
+
+  test('stops at a registered identity after removing one suffix', () => {
+    registerDocExtension('nested/topic.md.md', '.MDX');
+    expect(canonicalDocName('nested/topic.md.md')).toBe('nested/topic.md.md');
+    expect(canonicalDocName('nested/topic.md.md.MDX')).toBe('nested/topic.md.md');
+  });
+
+  test('an exact dotted identity wins over a same-stem shadowed sibling', () => {
+    registerDocExtension('notes', '.md');
+    registerDocExtension('notes', '.mdx');
+    registerDocExtension('notes.md', '.md');
+    expect(canonicalDocName('notes.md')).toBe('notes.md');
+    expect(docNameToRelativePath(canonicalDocName('notes.md'))).toBe('notes.md.md');
+  });
+
+  test('leaves non-markdown docNames that own their extension alone', () => {
+    expect(canonicalDocName('diagram.mermaid')).toBe('diagram.mermaid');
+    expect(canonicalDocName('board.excalidraw')).toBe('board.excalidraw');
+    expect(canonicalDocName('script.ts')).toBe('script.ts');
+  });
+
+  test('is idempotent', () => {
+    const once = canonicalDocName('specs/demo/SPEC.md');
+    expect(canonicalDocName(once)).toBe(once);
+  });
+
+  test('resolves to the same file path as the name it collapses', () => {
+    expect(docNameToRelativePath(canonicalDocName('specs/demo/SPEC.md'))).toBe(
+      docNameToRelativePath('specs/demo/SPEC.md'),
+    );
+  });
+});

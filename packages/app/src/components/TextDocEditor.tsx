@@ -1,0 +1,105 @@
+/**
+ * Mounted by `EditorActivityPool` inside the doc's `DocumentBoundary` (peer to the MermaidDocEditor
+ * branch), so `provider` is sync-gated and the precedent #18(b) hybrid render tree is preserved.
+ */
+
+import { type Language, syntaxHighlighting } from '@codemirror/language';
+import { Compartment, EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
+import {
+  codeLanguageForExtension,
+  EDITABLE_TEXT_EXTRA_LANGUAGE,
+} from '@inkeep/open-knowledge-core/constants/code-languages';
+import { extensionOf } from '@inkeep/open-knowledge-core/utils/extension';
+import { useLingui } from '@lingui/react/macro';
+import { basicSetup } from 'codemirror';
+import { useTheme } from 'next-themes';
+import { useEffect, useRef } from 'react';
+import { yCollab } from 'y-codemirror.next';
+import { codeMirrorContentAttributes } from '@/editor/code-mirror-content-attributes';
+import { propEditorHighlight } from '@/editor/components/CodeMirrorPropInput';
+import { okCmTheme } from '@/editor/extensions/cm-theme';
+import { registerFullPageCmView, unregisterFullPageCmView } from '@/editor/full-page-cm-views';
+import { acquireDocUndoManager } from './doc-undo-manager';
+import { loadCodeMirrorLanguageForExtension } from './text-viewer-languages';
+
+const darkTheme = okCmTheme({
+  dark: true,
+  background: 'var(--background)',
+  gutterBackground: 'var(--muted)',
+});
+const lightTheme = okCmTheme({
+  dark: false,
+  background: 'var(--background)',
+  gutterBackground: 'var(--muted)',
+});
+
+export function TextDocEditor({
+  docName,
+  provider,
+}: {
+  docName: string;
+  provider: HocuspocusProvider;
+}) {
+  const { t } = useLingui();
+  const basename = docName.slice(docName.lastIndexOf('/') + 1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
+  const ytext = provider.document.getText('source');
+  const undoManager = acquireDocUndoManager(provider, ytext);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const theme = resolvedTheme === 'dark' ? darkTheme : lightTheme;
+    const languageSlot = new Compartment();
+    const wrapSlot = new Compartment();
+    const hasGrammar =
+      (EDITABLE_TEXT_EXTRA_LANGUAGE[extensionOf(docName)] ??
+        codeLanguageForExtension(extensionOf(docName))) !== null && extensionOf(docName) !== '';
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: ytext.toString(),
+        extensions: [
+          codeMirrorContentAttributes(t`${basename} — text editor`),
+          basicSetup,
+          yCollab(ytext, provider.awareness, { undoManager }),
+          languageSlot.of([]),
+          syntaxHighlighting(propEditorHighlight),
+          wrapSlot.of(hasGrammar ? [] : EditorView.lineWrapping),
+          EditorView.theme({ '&': { height: '100%' } }),
+          theme,
+        ],
+      }),
+      parent: el,
+    });
+    registerFullPageCmView(docName, view, 'textDocEditor');
+    let disposed = false;
+    const extension = extensionOf(docName) || null;
+    if (extension) {
+      void loadCodeMirrorLanguageForExtension(
+        extension,
+        EDITABLE_TEXT_EXTRA_LANGUAGE[extension] ?? codeLanguageForExtension(extension),
+      ).then((language: Language | null) => {
+        if (disposed || !language) return;
+        view.dispatch({ effects: languageSlot.reconfigure(language) });
+      });
+    }
+    return () => {
+      disposed = true;
+      unregisterFullPageCmView(docName, view);
+      view.destroy();
+    };
+  }, [ytext, provider, resolvedTheme, docName, undoManager, basename, t]);
+
+  return (
+    <section
+      className="flex h-full min-h-0 flex-col bg-background"
+      aria-label={t`${basename} — text editor`}
+      data-text-doc-editor=""
+    >
+      <div ref={containerRef} className="min-h-0 flex-1 overflow-auto" />
+    </section>
+  );
+}

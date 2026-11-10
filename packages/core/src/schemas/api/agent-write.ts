@@ -1,0 +1,388 @@
+/**
+ * Cluster A: agent-write / -write-md / -patch / -undo Mutating handlers that write to Y.Docs
+ * through the agent attribution path (precedent #24).
+ */
+
+import type { StandardSchemaV1 } from '@standard-schema/spec';
+import { z } from 'zod';
+import { SUPPORTED_DOC_EXTENSIONS } from '../../constants/doc-extensions.ts';
+
+import { FRONTMATTER_TYPES, FrontmatterPatchSchema } from '../../frontmatter/schema.ts';
+import { ProblemTypeSchema } from './_envelope.ts';
+import {
+  agentContentField,
+  agentIdentityFields,
+  requiredSafeDocNameField,
+  safeDocNameField,
+  summaryField,
+} from './_shared.ts';
+import { agentWriteOutcomeWireFields } from './agent-write-outcome.ts';
+
+export const AgentWriteRequestSchema = z
+  .object({
+    docName: safeDocNameField,
+    summary: summaryField,
+    content: agentContentField.optional(),
+    ...agentIdentityFields,
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentWriteRequest = z.infer<typeof AgentWriteRequestSchema>;
+
+export const AgentWriteMdRequestSchema = z
+  .object({
+    docName: safeDocNameField,
+    summary: summaryField,
+    markdown: agentContentField,
+    position: z.enum(['append', 'prepend', 'replace']).optional(),
+    extension: z.enum(SUPPORTED_DOC_EXTENSIONS).optional(),
+    ...agentIdentityFields,
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentWriteMdRequest = z.infer<typeof AgentWriteMdRequestSchema>;
+
+export const AgentPatchRequestSchema = z
+  .object({
+    docName: safeDocNameField,
+    summary: summaryField,
+    find: z.string().min(1),
+    replace: agentContentField,
+    offset: z.number().int().nonnegative().optional(),
+    ...agentIdentityFields,
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentPatchRequest = z.infer<typeof AgentPatchRequestSchema>;
+
+export const AgentUndoRequestSchema = z
+  .object({
+    docName: safeDocNameField,
+    connectionId: z.string().min(1),
+    scope: z.enum(['last', 'session', 'file', 'count']).optional(),
+    count: z.number().int().positive().optional(),
+    ...agentIdentityFields,
+  })
+  .loose()
+  .refine((body) => body.scope !== 'count' || body.count !== undefined, {
+    message: "count is required when scope is 'count'",
+    path: ['count'],
+  }) satisfies StandardSchemaV1;
+export type AgentUndoRequest = z.infer<typeof AgentUndoRequestSchema>;
+
+export const SummaryResponseFieldSchema = z
+  .object({
+    value: z.string(),
+    truncatedFrom: z.number().int().nonnegative().optional(),
+    hint: z.string().optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type SummaryResponseField = z.infer<typeof SummaryResponseFieldSchema>;
+
+export const ContentDivergenceCurrentStateSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('inline'), content: z.string() }),
+  z.object({
+    kind: z.literal('truncated'),
+    byteLength: z.number().int().nonnegative(),
+    hint: z.string(),
+  }),
+]);
+export type ContentDivergenceCurrentState = z.infer<typeof ContentDivergenceCurrentStateSchema>;
+
+export const ContentDivergenceWarningSchema = z
+  .object({
+    kind: z.literal('content-divergence'),
+    intendedBytes: z.number().int().nonnegative(),
+    actualBytes: z.number().int().nonnegative(),
+    byteDelta: z.number().int(),
+    divergenceType: z.string().optional(),
+    currentState: ContentDivergenceCurrentStateSchema.optional(),
+    hint: z.string().optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type ContentDivergenceWarning = z.infer<typeof ContentDivergenceWarningSchema>;
+
+export const OrphanHintSchema = z
+  .object({
+    type: z.literal('orphan'),
+    parentCandidates: z.array(z.string()),
+    message: z.string(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type OrphanHint = z.infer<typeof OrphanHintSchema>;
+
+export const RECONCILE_MERGE_OUTCOMES = ['clean', 'merged', 'both-kept', 'kept-live'] as const;
+export type ReconcileMergeOutcome = (typeof RECONCILE_MERGE_OUTCOMES)[number];
+
+export function isReconcileMergeOutcome(value: unknown): value is ReconcileMergeOutcome {
+  return (RECONCILE_MERGE_OUTCOMES as readonly unknown[]).includes(value);
+}
+
+export const DiskEditReconciledWarningSchema = z
+  .object({
+    kind: z.literal('disk-edit-reconciled'),
+    intendedBytes: z.number().int().nonnegative(),
+    actualBytes: z.number().int().nonnegative(),
+    byteDelta: z.number().int(),
+    mergeOutcome: z.string().optional(),
+    duplicatedBlocks: z.number().int().nonnegative().optional(),
+    restoredDeletedHere: z.number().int().nonnegative().optional(),
+    restoredDeletedOutside: z.number().int().nonnegative().optional(),
+    nextStep: z.string().optional().meta({ deprecated: true }),
+    hint: z.string().optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type DiskEditReconciledWarning = z.infer<typeof DiskEditReconciledWarningSchema>;
+
+export const WriteWarningSchema = z.discriminatedUnion('kind', [
+  ContentDivergenceWarningSchema,
+  DiskEditReconciledWarningSchema,
+]);
+export type WriteWarning = z.infer<typeof WriteWarningSchema>;
+
+const WRITE_WARNING_KIND_TABLE = {
+  'content-divergence': true,
+  'disk-edit-reconciled': true,
+} as const satisfies Record<WriteWarning['kind'], true>;
+
+export type WriteWarningKind = keyof typeof WRITE_WARNING_KIND_TABLE;
+export const WRITE_WARNING_KINDS = Object.keys(
+  WRITE_WARNING_KIND_TABLE,
+) as readonly WriteWarningKind[];
+
+export function isWriteWarningKind(kind: string): kind is WriteWarningKind {
+  return (WRITE_WARNING_KINDS as readonly string[]).includes(kind);
+}
+
+export function assertNeverWriteWarning(value: never): never {
+  throw new Error(`Unexpected WriteWarning variant: ${JSON.stringify(value)}`);
+}
+
+export const RenderWarningSchema = z
+  .object({
+    kind: z.literal('mermaid-parse-error'),
+    fenceIndex: z.number().int().positive(),
+    fenceFirstLine: z.string(),
+    message: z.string(),
+    line: z.number().int().positive().optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type RenderWarning = z.infer<typeof RenderWarningSchema>;
+
+export const LocalTargetDiagnosticEvidenceSchema = z
+  .object({
+    href: z.string(),
+    targetKind: z.string(),
+    role: z.string(),
+    sourceForm: z.string(),
+    resolvedTarget: z.string().nullable(),
+    reason: z.string(),
+    resolutionMethod: z.string(),
+    fallbackTarget: z.string().nullable().optional(),
+    definition: z
+      .object({ line: z.number().int().nonnegative(), label: z.string() })
+      .loose()
+      .optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type LocalTargetDiagnosticEvidenceWire = z.infer<typeof LocalTargetDiagnosticEvidenceSchema>;
+
+export const LintViolationWarningSchema = z
+  .object({
+    kind: z.literal('lint-violation'),
+    source: z.string(),
+    code: z.string(),
+    message: z.string(),
+    severity: z.enum(['error', 'warning', 'info', 'hint']),
+    line: z.number().int().positive(),
+    column: z.number().int().positive(),
+    linkTarget: z.string().optional(),
+    localTarget: LocalTargetDiagnosticEvidenceSchema.optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type LintViolationWarning = z.infer<typeof LintViolationWarningSchema>;
+
+export const LinkCheckDeferredWarningSchema = z
+  .object({
+    kind: z.literal('link-check-deferred'),
+    message: z.string(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type LinkCheckDeferredWarning = z.infer<typeof LinkCheckDeferredWarningSchema>;
+
+export const AdvisoryWarningSchema = z.discriminatedUnion('kind', [
+  ContentDivergenceWarningSchema,
+  DiskEditReconciledWarningSchema,
+  RenderWarningSchema,
+  LintViolationWarningSchema,
+  LinkCheckDeferredWarningSchema,
+]);
+export type AdvisoryWarning = z.infer<typeof AdvisoryWarningSchema>;
+
+export const AdvisoryWarningsSchema = z.array(AdvisoryWarningSchema).min(1);
+
+export const BROKEN_LINK_REASONS = [
+  'no-such-doc',
+  'no-such-file',
+  'unresolvable',
+  'excluded',
+] as const;
+export type BrokenLinkReason = (typeof BROKEN_LINK_REASONS)[number];
+
+export const BrokenLinkSchema = z
+  .object({
+    href: z.string(),
+    resolvedTo: z.string().nullable(),
+    reason: z.enum(BROKEN_LINK_REASONS),
+    localTarget: LocalTargetDiagnosticEvidenceSchema.optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type BrokenLink = z.infer<typeof BrokenLinkSchema>;
+
+export const BrokenLinksSchema = z.array(BrokenLinkSchema);
+
+export const BROKEN_LINK_SUPPRESSION_REASONS = ['reserved-log-policy'] as const;
+export type BrokenLinkSuppressionReason = (typeof BROKEN_LINK_SUPPRESSION_REASONS)[number];
+
+export const BrokenLinkSuppressionSchema = z
+  .object({
+    reason: z.string().min(1),
+    count: z.number().int().positive(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type BrokenLinkSuppression = z.infer<typeof BrokenLinkSuppressionSchema>;
+
+export const AgentWriteSuccessSchema = z
+  .object({
+    ...agentWriteOutcomeWireFields,
+    timestamp: z.string().min(1),
+    summary: SummaryResponseFieldSchema.optional(),
+    warnings: AdvisoryWarningsSchema.optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentWriteSuccess = z.infer<typeof AgentWriteSuccessSchema>;
+
+export const AgentWriteMdSuccessSchema = z
+  .object({
+    ...agentWriteOutcomeWireFields,
+    timestamp: z.string().min(1),
+    subscriberCount: z.number().int().nonnegative(),
+    systemSubscriberCount: z.number().int().nonnegative(),
+    hints: z.array(OrphanHintSchema).optional(),
+    summary: SummaryResponseFieldSchema.optional(),
+    warnings: AdvisoryWarningsSchema.optional(),
+    brokenLinks: BrokenLinksSchema,
+    brokenLinkSuppression: BrokenLinkSuppressionSchema.optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentWriteMdSuccess = z.infer<typeof AgentWriteMdSuccessSchema>;
+
+export const AgentPatchSuccessSchema = z
+  .object({
+    ...agentWriteOutcomeWireFields,
+    timestamp: z.string().min(1),
+    subscriberCount: z.number().int().nonnegative(),
+    systemSubscriberCount: z.number().int().nonnegative(),
+    summary: SummaryResponseFieldSchema.optional(),
+    warnings: AdvisoryWarningsSchema.optional(),
+    brokenLinks: BrokenLinksSchema,
+    brokenLinkSuppression: BrokenLinkSuppressionSchema.optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentPatchSuccess = z.infer<typeof AgentPatchSuccessSchema>;
+
+export const AgentUndoSuccessSchema = z
+  .object({
+    ...agentWriteOutcomeWireFields,
+    docName: z.string().min(1),
+    scope: z.enum(['last', 'session', 'count']),
+    undone: z.boolean(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentUndoSuccess = z.infer<typeof AgentUndoSuccessSchema>;
+
+export const AGENT_WRITE_BATCH_MAX_DOCS = 100;
+
+export const AgentWriteBatchEntrySchema = z
+  .object({
+    docName: requiredSafeDocNameField,
+    markdown: agentContentField,
+    position: z.enum(['append', 'prepend', 'replace']).optional(),
+    extension: z.enum(SUPPORTED_DOC_EXTENSIONS).optional(),
+    summary: summaryField,
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentWriteBatchEntry = z.infer<typeof AgentWriteBatchEntrySchema>;
+
+export const AgentWriteBatchRequestSchema = z
+  .object({
+    docs: z.array(AgentWriteBatchEntrySchema).min(1).max(AGENT_WRITE_BATCH_MAX_DOCS),
+    ...agentIdentityFields,
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentWriteBatchRequest = z.infer<typeof AgentWriteBatchRequestSchema>;
+
+export const BatchEntryErrorSchema = z
+  .object({
+    type: ProblemTypeSchema,
+    title: z.string(),
+    detail: z.string().optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type BatchEntryError = z.infer<typeof BatchEntryErrorSchema>;
+
+export const AgentWriteBatchResultSchema = z.discriminatedUnion('status', [
+  z
+    .object({
+      status: z.literal('written'),
+      docName: z.string().min(1),
+      ...agentWriteOutcomeWireFields,
+      summary: SummaryResponseFieldSchema.optional(),
+      warnings: AdvisoryWarningsSchema.optional(),
+      brokenLinks: BrokenLinksSchema,
+      brokenLinkSuppression: BrokenLinkSuppressionSchema.optional(),
+    })
+    .loose(),
+  z
+    .object({
+      status: z.literal('error'),
+      docName: z.string().min(1),
+      ...agentWriteOutcomeWireFields,
+      error: BatchEntryErrorSchema,
+    })
+    .loose(),
+]);
+export type AgentWriteBatchResult = z.infer<typeof AgentWriteBatchResultSchema>;
+
+export const AgentWriteBatchSuccessSchema = z
+  .object({
+    timestamp: z.string().min(1),
+    results: z.array(AgentWriteBatchResultSchema),
+    written: z.number().int().nonnegative(),
+    failed: z.number().int().nonnegative(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type AgentWriteBatchSuccess = z.infer<typeof AgentWriteBatchSuccessSchema>;
+
+export const FrontmatterPatchRequestSchema = z
+  .object({
+    docName: safeDocNameField,
+    patch: FrontmatterPatchSchema,
+    types: z.record(z.string(), z.enum(FRONTMATTER_TYPES)).optional(),
+    summary: summaryField,
+    ...agentIdentityFields,
+  })
+  .loose() satisfies StandardSchemaV1;
+export type FrontmatterPatchRequest = z.infer<typeof FrontmatterPatchRequestSchema>;
+
+export const FrontmatterPatchSuccessSchema = z
+  .object({
+    ...agentWriteOutcomeWireFields,
+    timestamp: z.string().min(1),
+    subscriberCount: z.number().int().nonnegative(),
+    systemSubscriberCount: z.number().int().nonnegative(),
+    appliedKeys: z.array(z.string()),
+    summary: SummaryResponseFieldSchema.optional(),
+    warnings: AdvisoryWarningsSchema.optional(),
+    brokenLinks: BrokenLinksSchema,
+    brokenLinkSuppression: BrokenLinkSuppressionSchema.optional(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type FrontmatterPatchSuccess = z.infer<typeof FrontmatterPatchSuccessSchema>;

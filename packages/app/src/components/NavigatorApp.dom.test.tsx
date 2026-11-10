@@ -1,0 +1,341 @@
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { expectVisualClassTokens } from '@/test-utils/visual-contract';
+
+let themeBridgeCalls: Array<[unknown, string]> = [];
+let createDialogProps: Array<{ open: boolean; bridge: unknown }> = [];
+let cloneDialogProps: Array<{
+  open: boolean;
+  onCloneComplete: (payload: { dir: string }) => void;
+}> = [];
+
+vi.doMock('next-themes', () => ({
+  useTheme: () => ({ theme: undefined }),
+}));
+
+vi.doMock('@/hooks/use-theme-bridge', () => ({
+  useThemeBridge: (bridge: unknown, theme: string) => {
+    themeBridgeCalls.push([bridge, theme]);
+  },
+}));
+
+vi.doMock('./BetaBadge', () => ({
+  BetaBadge: () => <span data-testid="beta-badge">Beta</span>,
+}));
+
+vi.doMock('./ui/button', () => ({
+  Button: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
+  ),
+}));
+
+vi.doMock('./ui/badge', () => ({
+  Badge: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <span {...props}>{children}</span>
+  ),
+}));
+
+vi.doMock('./CreateProjectDialog', () => ({
+  CreateProjectDialog: (props: { open: boolean; bridge: unknown }) => {
+    createDialogProps.push(props);
+    return <div data-testid="create-project-dialog" data-open={String(props.open)} />;
+  },
+}));
+
+vi.doMock('./CloneDialog', () => ({
+  CloneDialog: (props: { open: boolean; onCloneComplete: (payload: { dir: string }) => void }) => {
+    cloneDialogProps.push(props);
+    return <div data-testid="clone-dialog" data-open={String(props.open)} />;
+  },
+}));
+
+vi.doMock('./AuthModal', () => ({
+  AuthModal: () => null,
+}));
+
+vi.doMock('./ConsentDialog', () => ({
+  ConsentDialog: () => null,
+}));
+
+vi.doMock('./McpConsentDialog', () => ({
+  McpConsentDialog: () => null,
+}));
+
+vi.doMock('./ShareReceiveDialog', () => ({
+  ShareReceiveDialog: () => null,
+}));
+
+vi.doMock('@/lib/share/clone-controller', () => ({
+  createCloneController: () => ({}),
+}));
+
+vi.doMock('@/lib/transports/auth-query-transport', () => ({
+  ipcAuthQueryTransport: () => ({}),
+}));
+
+vi.doMock('@/lib/transports/auth-transport', () => ({
+  ipcAuthTransport: () => ({}),
+}));
+
+vi.doMock('@/lib/transports/clone-transport', () => ({
+  ipcCloneTransport: () => ({}),
+}));
+
+function createBridge(themePreference?: 'system' | 'light' | 'dark') {
+  return {
+    appVersion: '0.4.0-beta.1',
+    onMenuAction: vi.fn(() => () => {}),
+    onRecentRemovedMissing: vi.fn(
+      (_cb: (info: { path: string; projectName: string }) => void) => () => {},
+    ),
+    config: {
+      collabUrl: '',
+      apiOrigin: '',
+      projectPath: '',
+      projectName: 'Project Navigator',
+      mode: 'navigator',
+      ...(themePreference === undefined ? {} : { themePreference }),
+    },
+    integrations: {
+      status: async () => ({
+        available: false,
+        editors: [],
+        path: { shellDetected: false, rcFilesToTouch: [], installed: false },
+        skills: [],
+        detectedEditorIds: [],
+      }),
+    },
+    project: {
+      listRecent: vi.fn(() =>
+        Promise.resolve([{ path: '/projects/recent', name: 'Recent Project' }]),
+      ),
+      removeRecent: vi.fn(() => Promise.resolve()),
+      getSessionState: vi.fn(() => Promise.resolve({})),
+      setSessionState: vi.fn(() => Promise.resolve()),
+      open: vi.fn(() => Promise.resolve()),
+      openFile: vi.fn(() => Promise.resolve()),
+      createNew: vi.fn(() => Promise.resolve()),
+      recordCreateNewBannerShown: vi.fn(() => Promise.resolve()),
+      close: vi.fn(() => Promise.resolve()),
+    },
+    dialog: {
+      openFolder: vi.fn(() => Promise.resolve('/picked/folder')),
+    },
+  };
+}
+
+async function renderNavigator(bridge: ReturnType<typeof createBridge>) {
+  Object.defineProperty(window, 'okDesktop', {
+    configurable: true,
+    value: bridge,
+  });
+  render(
+    <TooltipProvider>
+      <NavigatorApp bridge={bridge as never} />
+    </TooltipProvider>,
+  );
+  await waitFor(() => expect(bridge.project.listRecent).toHaveBeenCalledTimes(1));
+}
+
+const { NavigatorApp } = await import('./NavigatorApp');
+
+describe('NavigatorApp launcher runtime behavior', () => {
+  beforeEach(() => {
+    cleanup();
+    Reflect.deleteProperty(window, 'okDesktop');
+    themeBridgeCalls = [];
+    createDialogProps = [];
+    cloneDialogProps = [];
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  test('renders the launcher chrome, beta badge, drag strip, and theme bridge fallback', async () => {
+    const bridge = createBridge();
+    await renderNavigator(bridge);
+
+    expect(screen.getByRole('heading', { name: 'OpenKnowledge' })).not.toBeNull();
+    expect(screen.getByTestId('beta-badge').textContent).toBe('Beta');
+    expect(document.body.textContent).not.toContain('Stable');
+
+    expect(themeBridgeCalls.at(-1)).toEqual([bridge, 'system']);
+
+    const chromeRow = screen.getByTestId('nav-chrome-row');
+    expect(chromeRow.getAttribute('data-electron-drag')).toBe('');
+    expectVisualClassTokens(chromeRow.className, ['inset-x-0', 'h-9']);
+    expect(screen.getByTestId('nav-open').getAttribute('data-electron-no-drag')).toBeNull();
+    expect(screen.getByTestId('nav-create-new').getAttribute('data-electron-no-drag')).toBeNull();
+    await screen.findByTestId('nav-recent-list');
+    expect(document.querySelector('[data-electron-no-drag]')).toBeNull();
+  });
+
+  test('bridges the authored preference rather than the palette-forced renderer mode', async () => {
+    const bridge = createBridge('light');
+    await renderNavigator(bridge);
+
+    expect(themeBridgeCalls.at(-1)).toEqual([bridge, 'light']);
+  });
+
+  test('routes open, recent, create, and clone-complete actions through the expected entry points', async () => {
+    const bridge = createBridge();
+    await renderNavigator(bridge);
+
+    fireEvent.click(screen.getByTestId('nav-open'));
+    await waitFor(() => {
+      expect(bridge.project.open).toHaveBeenCalledWith({
+        path: '/picked/folder',
+        target: 'new-window',
+        entryPoint: 'pick-existing',
+      });
+    });
+
+    fireEvent.click(screen.getByTestId('nav-open-file'));
+    await waitFor(() => expect(bridge.project.openFile).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(await screen.findByText('Recent Project'));
+    await waitFor(() => {
+      expect(bridge.project.open).toHaveBeenCalledWith({
+        path: '/projects/recent',
+        target: 'new-window',
+        entryPoint: 'recents',
+      });
+    });
+
+    fireEvent.click(screen.getByTestId('nav-create-new'));
+    await waitFor(() => {
+      expect(screen.getByTestId('create-project-dialog').getAttribute('data-open')).toBe('true');
+    });
+    expect(createDialogProps.at(-1)?.bridge).toBe(bridge);
+
+    fireEvent.click(screen.getByTestId('nav-clone'));
+    await waitFor(() => {
+      expect(screen.getByTestId('clone-dialog').getAttribute('data-open')).toBe('true');
+    });
+
+    act(() => {
+      cloneDialogProps.at(-1)?.onCloneComplete({ dir: '/cloned/project' });
+    });
+
+    await waitFor(() => {
+      expect(bridge.project.open).toHaveBeenCalledWith({
+        path: '/cloned/project',
+        target: 'new-window',
+        entryPoint: 'pick-existing',
+      });
+    });
+  });
+
+  test('shows the "Opening…" overlay while a project open is in flight, then clears it', async () => {
+    const bridge = createBridge();
+    let resolveOpen: (() => void) | undefined;
+    bridge.project.open = vi.fn(() => {
+      const { promise, resolve } = Promise.withResolvers<void>();
+      resolveOpen = resolve;
+      return promise;
+    });
+    await renderNavigator(bridge);
+
+    expect(screen.queryByTestId('nav-opening-overlay')).toBeNull();
+    fireEvent.click(await screen.findByText('Recent Project'));
+
+    const overlay = await screen.findByTestId('nav-opening-overlay');
+    expect(overlay.textContent).toContain('Opening recent');
+    expect(overlay.getAttribute('role')).toBe('status');
+
+    act(() => {
+      resolveOpen?.();
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId('nav-opening-overlay')).toBeNull();
+    });
+  });
+
+  test('labels a linked-worktree recent with its branch over its base project, leaving plain projects unchanged', async () => {
+    const bridge = createBridge();
+    bridge.project.listRecent = vi.fn(() =>
+      Promise.resolve([
+        {
+          path: '/Users/x/pnw-fishing/.ok/worktrees/dev',
+          name: 'dev',
+          isLinkedWorktree: true,
+          mainRoot: '/Users/x/pnw-fishing',
+          branch: 'dev',
+        },
+        { path: '/Users/x/plain-notes', name: 'Plain Notes' },
+      ]),
+    );
+    await renderNavigator(bridge);
+
+    const list = await screen.findByTestId('nav-recent-list');
+    expect(list.textContent).toContain('dev');
+    expect(list.textContent).toContain('pnw-fishing');
+    expect(list.textContent).toContain('Plain Notes');
+    expect(list.textContent).toContain('/Users/x/plain-notes');
+  });
+
+  test('flags worktrees with a badge + branch chip; projects show their path', async () => {
+    const bridge = createBridge();
+    bridge.project.listRecent = vi.fn(() =>
+      Promise.resolve([
+        {
+          path: '/Users/x/pnw-fishing/.ok/worktrees/dev',
+          name: 'dev',
+          isLinkedWorktree: true,
+          mainRoot: '/Users/x/pnw-fishing',
+          branch: 'dev',
+        },
+        { path: '/Users/x/plain-notes', name: 'Plain Notes' },
+      ]),
+    );
+    await renderNavigator(bridge);
+
+    const list = await screen.findByTestId('nav-recent-list');
+    const rows = list.querySelectorAll('li');
+    expect(rows.length).toBe(2);
+
+    const [worktreeRow, plainRow] = rows;
+    if (!worktreeRow || !plainRow) throw new Error('expected two recent rows');
+
+    expect(worktreeRow.querySelector('svg.lucide-folder')).not.toBeNull();
+    expect(worktreeRow.textContent).toContain('dev');
+    expect(worktreeRow.textContent).toContain('worktree');
+    expect(worktreeRow.textContent).toContain('of pnw-fishing');
+    expect(
+      worktreeRow.querySelector(
+        '[data-testid="nav-recent-branch-/Users/x/pnw-fishing/.ok/worktrees/dev"]',
+      ),
+    ).not.toBeNull();
+
+    expect(plainRow.querySelector('svg.lucide-folder')).not.toBeNull();
+    expect(plainRow.textContent).toContain('Plain Notes');
+    expect(plainRow.textContent).toContain('/Users/x/plain-notes');
+    expect(plainRow.textContent).not.toContain('worktree');
+  });
+
+  test('drops only the matching row when main pushes recent-removed-missing', async () => {
+    const bridge = createBridge();
+    bridge.project.listRecent = vi.fn(() =>
+      Promise.resolve([
+        { path: '/projects/keep', name: 'Keep Project' },
+        { path: '/projects/gone', name: 'Gone Project' },
+      ]),
+    );
+    await renderNavigator(bridge);
+    await screen.findByText('Keep Project');
+    await screen.findByText('Gone Project');
+
+    expect(bridge.onRecentRemovedMissing).toHaveBeenCalledTimes(1);
+    const onRemovedMissing = bridge.onRecentRemovedMissing.mock.calls[0]?.[0];
+    expect(onRemovedMissing).toBeDefined();
+    act(() => onRemovedMissing?.({ path: '/projects/gone', projectName: 'Gone Project' }));
+
+    await waitFor(() => expect(screen.queryByText('Gone Project')).toBeNull());
+    expect(screen.getByText('Keep Project')).not.toBeNull();
+  });
+});

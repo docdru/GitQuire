@@ -1,0 +1,95 @@
+import {
+  type GitDetected,
+  GitNotAvailableError,
+  GitProbeTimeoutError,
+  GitTooOldError,
+  type InstallGuidance,
+} from '@inkeep/open-knowledge-server';
+import { describe, expect, test } from 'vitest';
+import { makeGitCheck } from './git.ts';
+
+const ctx = { cwd: '/tmp/git-check-test' };
+
+const guidance: InstallGuidance = {
+  product: 'Git',
+  url: 'https://git-scm.com/download/linux',
+  options: [{ label: 'Install via apt', command: 'sudo apt install git' }],
+};
+
+describe('git check', () => {
+  test('passes with summary including version, source, and resolved path', async () => {
+    const detected: GitDetected = {
+      ok: true,
+      version: '2.42.0',
+      resolvedPath: '/usr/bin/git',
+      source: 'PATH',
+    };
+    const def = makeGitCheck({ assert: () => detected });
+    const result = await def.run(ctx);
+    expect(result.status).toBe('pass');
+    expect(result.summary).toContain('2.42.0');
+    expect(result.summary).toContain('PATH');
+    expect(result.summary).toContain('/usr/bin/git');
+  });
+
+  test('warns below the Git version sync needs to check symlink merges', async () => {
+    const detected: GitDetected = {
+      ok: true,
+      version: '2.34.1',
+      resolvedPath: '/usr/bin/git',
+      source: 'PATH',
+    };
+    const result = await makeGitCheck({ assert: () => detected }).run(ctx);
+    expect(result.status).toBe('warn');
+    expect(result.summary).toContain('2.34.1');
+    expect(result.remediation).toBe('Update Git to 2.38 or newer');
+  });
+
+  test('fails when assert throws GitNotAvailableError; embeds install guidance', async () => {
+    const def = makeGitCheck({
+      assert: () => {
+        throw new GitNotAvailableError('linux', guidance);
+      },
+    });
+    const result = await def.run(ctx);
+    expect(result.status).toBe('fail');
+    expect(result.summary).toBe('git not found');
+    expect(result.remediation).toContain('sudo apt install git');
+    expect(result.detail).toContain('OpenKnowledge needs Git');
+  });
+
+  test('fails distinctly when the Git probe times out', async () => {
+    const def = makeGitCheck({
+      assert: () => {
+        throw new GitProbeTimeoutError('linux', guidance, { path: 'timeout', fallback: null });
+      },
+    });
+    const result = await def.run(ctx);
+    expect(result.status).toBe('fail');
+    expect(result.summary).toBe('git probe timed out');
+    expect(result.remediation).toContain('retry');
+    expect(result.detail).toContain('could not verify Git');
+  });
+
+  test('fails when assert throws GitTooOldError; surfaces detected + required', async () => {
+    const def = makeGitCheck({
+      assert: () => {
+        throw new GitTooOldError('linux', '2.20.0', '2.31.0', '/usr/bin/git', guidance);
+      },
+    });
+    const result = await def.run(ctx);
+    expect(result.status).toBe('fail');
+    expect(result.summary).toContain('2.20.0');
+    expect(result.summary).toContain('2.31.0');
+    expect(result.remediation).toContain('sudo apt install git');
+  });
+
+  test('re-throws unexpected errors (runner catches at outer layer)', async () => {
+    const def = makeGitCheck({
+      assert: () => {
+        throw new Error('unexpected');
+      },
+    });
+    await expect(def.run(ctx)).rejects.toThrow('unexpected');
+  });
+});

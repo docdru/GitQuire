@@ -1,0 +1,45 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, test } from 'vitest';
+import {
+  createWorkspaceSearchCorpus,
+  searchWorkspaceCorpus,
+  type WorkspaceSearchDocument,
+  type WorkspaceSearchOptions,
+} from './workspace-search.ts';
+
+interface FixtureCase {
+  query: string;
+  options: WorkspaceSearchOptions;
+  expected: Array<{ id: string; score: number; signals: Record<string, number> }>;
+}
+interface Fixture {
+  documents: WorkspaceSearchDocument[];
+  cases: FixtureCase[];
+}
+
+const fixture = JSON.parse(
+  readFileSync(new URL('./workspace-search.baseline.fixture.json', import.meta.url), 'utf-8'),
+) as Fixture;
+
+describe('flag-OFF parity with the pre-embeddings baseline', () => {
+  const corpus = createWorkspaceSearchCorpus(fixture.documents);
+
+  test('fixture is non-trivial', () => {
+    expect(fixture.cases.length).toBeGreaterThan(5);
+    expect(fixture.documents.length).toBeGreaterThan(5);
+  });
+
+  for (const [i, c] of fixture.cases.entries()) {
+    test(`case ${i}: "${c.query}" ${JSON.stringify(c.options)} is byte-identical`, () => {
+      const actual = searchWorkspaceCorpus(corpus, c.query, c.options).map((r) => ({
+        id: r.document.id,
+        score: r.score,
+        signals: r.signals,
+      }));
+      expect(actual).toEqual(c.expected);
+      for (const r of actual) {
+        expect('vector' in r.signals).toBe(false);
+      }
+    });
+  }
+});

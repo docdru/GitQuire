@@ -1,0 +1,633 @@
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { OkShareReceivedPayload } from '@/lib/desktop-bridge-types';
+import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
+
+type SharePayload = OkShareReceivedPayload | null;
+
+function createTestStore(initial: SharePayload) {
+  let current = initial;
+  const listeners = new Set<() => void>();
+  return {
+    dismiss: vi.fn(() => {
+      current = null;
+      for (const listener of listeners) listener();
+    }),
+    getSnapshot: () => current,
+    install: () => undefined,
+    set(next: SharePayload) {
+      current = next;
+      for (const listener of listeners) listener();
+    },
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+}
+
+function okPayload(
+  overrides: Partial<Extract<OkShareReceivedPayload, { kind: 'launcher-miss' }>['share']> = {},
+): Extract<OkShareReceivedPayload, { kind: 'launcher-miss' }> {
+  return {
+    kind: 'launcher-miss',
+    share: {
+      contentRootDepth: null,
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      branch: 'main',
+      sharedUrl: 'https://github.com/inkeep/open-knowledge/blob/main/docs/guide.md',
+      repositoryTarget: { kind: 'doc', docPath: 'docs/guide.md' },
+      target: { kind: 'doc', docPath: 'docs/guide.md' },
+      ...overrides,
+    },
+  };
+}
+
+const toast = {
+  error: vi.fn((_message: string, _opts?: unknown) => {}),
+  info: vi.fn((_message: string, _opts?: unknown) => {}),
+  success: vi.fn((_message: string, _opts?: unknown) => {}),
+};
+
+import * as actualLinguiMacro from '@lingui/react/macro';
+
+vi.doMock('@lingui/react/macro', () => ({
+  ...actualLinguiMacro,
+  Trans: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  useLingui: () => ({ t: renderLinguiTemplate }),
+}));
+
+vi.doMock('sonner', () => ({
+  toast,
+}));
+
+vi.doMock('@/components/ui/button', () => ({
+  Button: ({
+    children,
+    className: _className,
+    variant: _variant,
+    ...props
+  }: {
+    children?: ReactNode;
+    className?: string;
+    variant?: string;
+    [key: string]: unknown;
+  }) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
+  ),
+}));
+
+vi.doMock('@/components/ui/dialog', () => ({
+  Dialog: ({ children, open }: { children?: ReactNode; open?: boolean }) =>
+    open ? <div data-testid="dialog-root">{children}</div> : null,
+  DialogBody: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  DialogContent: ({
+    children,
+    onInteractOutside: _onInteractOutside,
+    onPointerDownOutside: _onPointerDownOutside,
+    ...props
+  }: {
+    children?: ReactNode;
+    onInteractOutside?: unknown;
+    onPointerDownOutside?: unknown;
+    [key: string]: unknown;
+  }) => <section {...props}>{children}</section>,
+  DialogDescription: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <p {...props}>{children}</p>
+  ),
+  DialogFooter: ({ children }: { children?: ReactNode }) => <footer>{children}</footer>,
+  DialogHeader: ({ children }: { children?: ReactNode }) => <header>{children}</header>,
+  DialogTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
+}));
+
+function createBridge() {
+  const folderPicks: Array<string | null> = [];
+  const validationResults: unknown[] = [];
+  return {
+    __folderPicks: folderPicks,
+    __validationResults: validationResults,
+    dialog: {
+      openFolder: vi.fn(() => Promise.resolve(folderPicks.shift() ?? null)),
+    },
+    navigator: {
+      open: vi.fn(() => Promise.resolve()),
+    },
+    project: {
+      awaitBranchSwitched: vi.fn(() => Promise.resolve({ ok: true as const })),
+      checkDocExists: vi.fn(() => Promise.resolve('exists')),
+      fetchBranchInfo: vi.fn(() =>
+        Promise.resolve({
+          branchIsLocal: true,
+          currentBranch: 'main',
+          currentHeadSha: null,
+          detached: false,
+          dirtyConflicts: { conflicts: false, files: [] },
+          shareFileExists: true,
+        }),
+      ),
+      listRecent: vi.fn(() => Promise.resolve([])),
+      open: vi.fn(() => Promise.resolve()),
+      readHeadBranch: vi.fn(() =>
+        Promise.resolve({ currentBranch: 'main', detached: false, headSha: null }),
+      ),
+      runCheckout: vi.fn(() => Promise.resolve({ ok: true as const })),
+    },
+    share: {
+      validateLocalFolder: vi.fn(() =>
+        Promise.resolve(validationResults.shift() ?? { kind: 'ok', gitRemoteUrl: '' }),
+      ),
+    },
+  };
+}
+
+async function renderDialog({
+  bridge = createBridge(),
+  cloneController,
+  store = createTestStore(okPayload()),
+}: {
+  bridge?: ReturnType<typeof createBridge>;
+  cloneController?: {
+    getAuthStatus: () => Promise<{ authenticated: boolean; host: string; login?: string }>;
+    runClone: (args: { url: string; branch?: string | null }) => Promise<unknown>;
+    startSignIn: () => Promise<{ authenticated: boolean; host: string; login?: string } | null>;
+  };
+  store?: ReturnType<typeof createTestStore>;
+} = {}) {
+  const { ShareReceiveDialog } = await import('./ShareReceiveDialog');
+  render(
+    <ShareReceiveDialog
+      bridge={bridge as never}
+      cloneController={cloneController as never}
+      store={store as never}
+    />,
+  );
+  return { bridge, store };
+}
+
+describe('ShareReceiveDialog runtime behavior', () => {
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    for (const fn of [toast.error, toast.info, toast.success]) fn.mockClear();
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    cleanup();
+    consoleLogSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+  });
+
+  test('exports the named component through a runtime import', async () => {
+    const mod = await import('./ShareReceiveDialog');
+    expect(typeof mod.ShareReceiveDialog).toBe('function');
+  });
+
+  test('clone failure leaves the dialog mounted and the sign-in affordance visible', async () => {
+    const cloneController = {
+      getAuthStatus: vi.fn(() => Promise.resolve({ authenticated: false, host: 'github.com' })),
+      runClone: vi.fn(() => Promise.resolve({ kind: 'error' })),
+      startSignIn: vi.fn(() => Promise.resolve(null)),
+    };
+
+    await renderDialog({ cloneController });
+
+    await waitFor(() =>
+      expect((screen.getByTestId('share-receive-clone') as HTMLButtonElement).disabled).toBe(false),
+    );
+
+    fireEvent.click(screen.getByTestId('share-receive-clone'));
+    await waitFor(() => expect(cloneController.runClone).toHaveBeenCalled());
+
+    expect(screen.getByTestId('share-receive-dialog')).toBeTruthy();
+    expect(screen.getByTestId('share-receive-signin')).toBeTruthy();
+  });
+
+  test('clone failure surfaces a persistent in-dialog error view with the GitHub error, reasons, and recovery', async () => {
+    const cloneController = {
+      getAuthStatus: vi.fn(() => Promise.resolve({ authenticated: false, host: 'github.com' })),
+      runClone: vi.fn(() =>
+        Promise.resolve({
+          kind: 'error',
+          detail: [
+            "Cloning into '/Users/me/Documents/sharing-repo'...",
+            'remote: Repository not found.',
+            "fatal: repository 'https://github.com/inkeep/open-knowledge.git/' not found",
+          ].join('\n'),
+        }),
+      ),
+      startSignIn: vi.fn(() => Promise.resolve(null)),
+    };
+
+    await renderDialog({ cloneController });
+
+    await waitFor(() =>
+      expect((screen.getByTestId('share-receive-clone') as HTMLButtonElement).disabled).toBe(false),
+    );
+
+    fireEvent.click(screen.getByTestId('share-receive-clone'));
+    await waitFor(() => expect(cloneController.runClone).toHaveBeenCalled());
+
+    await screen.findByTestId('share-receive-clone-error');
+    expect(screen.getByRole('alert').textContent).toContain("We couldn't clone this repository");
+
+    const message = screen.getByTestId('share-receive-clone-error-message').textContent ?? '';
+    expect(message).toContain('Error:');
+    expect(message).toContain('Repository not found');
+    expect(message).not.toMatch(/Cloning into/i);
+    expect(message).not.toContain('/Users/me');
+    expect(message).not.toContain('github.com/inkeep/open-knowledge');
+    expect(screen.queryByTestId('share-receive-clone-error-url')).toBeNull();
+    expect(screen.queryByTestId('share-receive-clone-error-detail')).toBeNull();
+
+    expect(screen.getByTestId('share-receive-clone-error-reasons').textContent).toMatch(/private/i);
+
+    expect(screen.getByTestId('share-receive-clone-retry')).toBeTruthy();
+    expect(screen.getByTestId('share-receive-signin')).toBeTruthy();
+
+    expect(screen.getByTestId('share-receive-dialog')).toBeTruthy();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  test('clone error with no detail omits the error-message line but still shows the error view', async () => {
+    const cloneController = {
+      getAuthStatus: vi.fn(() => Promise.resolve({ authenticated: false, host: 'github.com' })),
+      runClone: vi.fn(() => Promise.resolve({ kind: 'error' })),
+      startSignIn: vi.fn(() => Promise.resolve(null)),
+    };
+
+    await renderDialog({ cloneController });
+    await waitFor(() =>
+      expect((screen.getByTestId('share-receive-clone') as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByTestId('share-receive-clone'));
+
+    await screen.findByTestId('share-receive-clone-error');
+    expect(screen.getByTestId('share-receive-clone-error-reasons')).toBeTruthy();
+    expect(screen.queryByTestId('share-receive-clone-error-message')).toBeNull();
+  });
+
+  test('"Try again" clears the error view and re-invokes the clone', async () => {
+    let call = 0;
+    const cloneController = {
+      getAuthStatus: vi.fn(() => Promise.resolve({ authenticated: false, host: 'github.com' })),
+      runClone: vi.fn(() => {
+        call += 1;
+        return Promise.resolve(
+          call === 1 ? { kind: 'error', detail: 'boom' } : { kind: 'cancelled' },
+        );
+      }),
+      startSignIn: vi.fn(() => Promise.resolve(null)),
+    };
+
+    await renderDialog({ cloneController });
+    await waitFor(() =>
+      expect((screen.getByTestId('share-receive-clone') as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByTestId('share-receive-clone'));
+
+    const retry = await screen.findByTestId('share-receive-clone-retry');
+    fireEvent.click(retry);
+
+    await waitFor(() => expect(cloneController.runClone).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByTestId('share-receive-clone-error')).toBeNull());
+  });
+
+  test('error view "I already have it locally" clears the error and opens the folder picker', async () => {
+    const bridge = createBridge();
+    const cloneController = {
+      getAuthStatus: vi.fn(() => Promise.resolve({ authenticated: false, host: 'github.com' })),
+      runClone: vi.fn(() => Promise.resolve({ kind: 'error', detail: 'boom' })),
+      startSignIn: vi.fn(() => Promise.resolve(null)),
+    };
+
+    await renderDialog({ bridge, cloneController });
+    await waitFor(() =>
+      expect((screen.getByTestId('share-receive-clone') as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByTestId('share-receive-clone'));
+
+    const localBtn = await screen.findByTestId('share-receive-error-local');
+    fireEvent.click(localBtn);
+
+    await waitFor(() => expect(screen.queryByTestId('share-receive-clone-error')).toBeNull());
+    await waitFor(() => expect(bridge.dialog.openFolder).toHaveBeenCalled());
+    expect(screen.getByTestId('share-receive-clone')).toBeTruthy();
+  });
+
+  test('non-ok payloads toast and dismiss without mounting the dialog', async () => {
+    const store = createTestStore({ kind: 'invalid' });
+    await renderDialog({ store });
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Invalid share URL.'));
+    expect(store.dismiss).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('share-receive-dialog')).toBeNull();
+  });
+
+  test('GHES miss: the auth banner shows the identity for the share host, not github.com', async () => {
+    const store = createTestStore(
+      okPayload({
+        host: 'ghes.acme.test',
+        owner: 'acme',
+        repo: 'kb',
+        sharedUrl: 'https://ghes.acme.test/acme/kb/blob/main/README.md',
+      }),
+    );
+    const seenHosts: Array<string | undefined> = [];
+    const cloneController = {
+      getAuthStatus: vi.fn((host?: string) => {
+        seenHosts.push(host);
+        return Promise.resolve(
+          host === 'ghes.acme.test'
+            ? { authenticated: true, host, login: 'omar-acme' }
+            : { authenticated: true, host: 'github.com', login: 'omar-inkeep' },
+        );
+      }),
+      runClone: vi.fn(() => Promise.resolve({ kind: 'ok', dir: '/cloned/kb' })),
+      startSignIn: vi.fn(() => Promise.resolve(null)),
+    };
+
+    await renderDialog({ cloneController, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByTestId('share-receive-auth-banner').textContent).toContain('omar-acme'),
+    );
+    expect(screen.getByTestId('share-receive-auth-banner').textContent).not.toContain(
+      'omar-inkeep',
+    );
+    expect(seenHosts).toEqual(['ghes.acme.test']);
+  });
+
+  test('Q2 miss renders metadata, anonymous clone without sign-in, sign-in affordance, clone success, and local picker recovery', async () => {
+    const bridge = createBridge();
+    const store = createTestStore(okPayload({ branch: 'feat/share' }));
+    const cloneController = {
+      getAuthStatus: vi.fn(() => Promise.resolve({ authenticated: false, host: 'github.com' })),
+      runClone: vi.fn(() => Promise.resolve({ kind: 'ok', dir: '/cloned/open-knowledge' })),
+      startSignIn: vi.fn(() =>
+        Promise.resolve({ authenticated: true, host: 'github.com', login: 'alice' }),
+      ),
+    };
+    bridge.__folderPicks.push('/wrong', '/right');
+    bridge.__validationResults.push(
+      { kind: 'wrong-repo', actualOwner: 'fork', actualRepo: 'repo' },
+      { kind: 'ok', gitRemoteUrl: 'https://github.com/inkeep/open-knowledge.git' },
+    );
+
+    await renderDialog({ bridge, cloneController, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    expect(screen.getByTestId('share-receive-metadata').textContent).toContain(
+      'inkeep/open-knowledge',
+    );
+    expect(screen.getByTestId('share-receive-metadata').textContent).toContain('docs/guide.md');
+    expect(screen.getByTestId('share-receive-metadata-branch').textContent).toBe('feat/share');
+    await waitFor(() =>
+      expect(screen.getByTestId('share-receive-clone').textContent).toContain(
+        'Clone to a new folder',
+      ),
+    );
+    expect((screen.getByTestId('share-receive-clone') as HTMLButtonElement).disabled).toBe(false);
+    expect(await screen.findByTestId('share-receive-signin')).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId('share-receive-clone'));
+    await waitFor(() =>
+      expect(cloneController.runClone).toHaveBeenCalledWith({
+        branch: 'feat/share',
+        url: 'https://github.com/inkeep/open-knowledge.git',
+      }),
+    );
+    await waitFor(() =>
+      expect(bridge.project.open).toHaveBeenCalledWith({
+        entryPoint: 'share-receive',
+        path: '/cloned/open-knowledge',
+        pendingDeepLinkTarget: {
+          kind: 'doc',
+          path: 'docs/guide.md',
+          repositoryPath: 'docs/guide.md',
+        },
+        target: 'new-window',
+      }),
+    );
+
+    act(() => {
+      store.set(okPayload({ branch: 'feat/share' }));
+    });
+    await screen.findByTestId('share-receive-dialog');
+    fireEvent.click(screen.getByTestId('share-receive-local'));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'This folder is a clone of fork/repo, not inkeep/open-knowledge. Pick a different folder?',
+      ),
+    );
+    await waitFor(() => expect(bridge.project.readHeadBranch).toHaveBeenCalledWith('/right'));
+    await waitFor(() => {
+      const openArg = (bridge.project.open as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as {
+        path?: string;
+        pendingDeepLinkTarget?: unknown;
+        pendingShareBranchSwitch?: { projectPath?: string; currentBranch?: string | null };
+      };
+      expect(openArg.path).toBe('/right');
+      expect(openArg.pendingShareBranchSwitch?.currentBranch).toBe('main');
+      expect(openArg.pendingDeepLinkTarget).toBeUndefined();
+    });
+  });
+
+  test('I have it locally: branch mismatch routes to the branch-switch surface, not a plain open', async () => {
+    const bridge = createBridge();
+    const store = createTestStore(okPayload({ branch: 'feat/share' }));
+    bridge.__folderPicks.push('/local/clone');
+    bridge.__validationResults.push({
+      kind: 'ok',
+      gitRemoteUrl: 'https://github.com/inkeep/open-knowledge.git',
+    });
+
+    await renderDialog({ bridge, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('share-receive-local'));
+
+    await waitFor(() => expect(bridge.project.readHeadBranch).toHaveBeenCalledWith('/local/clone'));
+
+    await waitFor(() => expect(bridge.project.open).toHaveBeenCalled());
+    const openArg = (bridge.project.open as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as {
+      path?: string;
+      pendingDeepLinkTarget?: unknown;
+      pendingShareBranchSwitch?: {
+        projectPath?: string;
+        currentBranch?: string | null;
+        share?: { owner?: string; repo?: string; branch?: string; target?: unknown };
+      };
+    };
+    expect(openArg.path).toBe('/local/clone');
+    expect(openArg.pendingShareBranchSwitch).toBeDefined();
+    expect(openArg.pendingShareBranchSwitch?.projectPath).toBe('/local/clone');
+    expect(openArg.pendingShareBranchSwitch?.currentBranch).toBe('main');
+    expect(openArg.pendingShareBranchSwitch?.share).toMatchObject({
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      branch: 'feat/share',
+      target: { kind: 'doc', docPath: 'docs/guide.md' },
+    });
+    expect(openArg.pendingDeepLinkTarget).toBeUndefined();
+    expect(store.dismiss).toHaveBeenCalled();
+  });
+
+  test('I have it locally: branch match opens directly without a branch-switch', async () => {
+    const bridge = createBridge();
+    const store = createTestStore(okPayload({ branch: 'main' }));
+    bridge.__folderPicks.push('/local/clone');
+    bridge.__validationResults.push({
+      kind: 'ok',
+      gitRemoteUrl: 'https://github.com/inkeep/open-knowledge.git',
+    });
+
+    await renderDialog({ bridge, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('share-receive-local'));
+
+    await waitFor(() => expect(bridge.project.open).toHaveBeenCalled());
+    const openArg = (bridge.project.open as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as {
+      pendingDeepLinkTarget?: unknown;
+      pendingShareBranchSwitch?: unknown;
+    };
+    expect(openArg.pendingDeepLinkTarget).toEqual({
+      kind: 'doc',
+      path: 'docs/guide.md',
+      repositoryPath: 'docs/guide.md',
+    });
+    expect(openArg.pendingShareBranchSwitch).toBeUndefined();
+    expect(store.dismiss).toHaveBeenCalled();
+  });
+
+  test('I have it locally: detached HEAD with a share branch routes to the branch-switch surface', async () => {
+    const bridge = createBridge();
+    const store = createTestStore(okPayload({ branch: 'feat/share' }));
+    bridge.__folderPicks.push('/local/clone');
+    bridge.__validationResults.push({
+      kind: 'ok',
+      gitRemoteUrl: 'https://github.com/inkeep/open-knowledge.git',
+    });
+    bridge.project.readHeadBranch = vi.fn(() =>
+      Promise.resolve({ currentBranch: null, detached: true, headSha: '1234567' }),
+    );
+
+    await renderDialog({ bridge, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('share-receive-local'));
+
+    await waitFor(() => expect(bridge.project.open).toHaveBeenCalled());
+    const openArg = (bridge.project.open as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as {
+      pendingDeepLinkTarget?: unknown;
+      pendingShareBranchSwitch?: {
+        currentBranch?: string | null;
+        share?: { branch?: string; target?: unknown };
+      };
+    };
+    expect(openArg.pendingShareBranchSwitch).toBeDefined();
+    expect(openArg.pendingShareBranchSwitch?.currentBranch).toBeNull();
+    expect(openArg.pendingShareBranchSwitch?.share).toMatchObject({
+      branch: 'feat/share',
+      target: { kind: 'doc', docPath: 'docs/guide.md' },
+    });
+    expect(openArg.pendingDeepLinkTarget).toBeUndefined();
+  });
+
+  test('I have it locally: unreadable HEAD (all-null sentinel) opens directly, no needless switch', async () => {
+    const bridge = createBridge();
+    const store = createTestStore(okPayload({ branch: 'feat/share' }));
+    bridge.__folderPicks.push('/local/clone');
+    bridge.__validationResults.push({
+      kind: 'ok',
+      gitRemoteUrl: 'https://github.com/inkeep/open-knowledge.git',
+    });
+    bridge.project.readHeadBranch = vi.fn(() =>
+      Promise.resolve({ currentBranch: null, detached: false, headSha: null }),
+    );
+
+    await renderDialog({ bridge, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('share-receive-local'));
+
+    await waitFor(() => expect(bridge.project.open).toHaveBeenCalled());
+    const openArg = (bridge.project.open as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as {
+      pendingDeepLinkTarget?: unknown;
+      pendingShareBranchSwitch?: unknown;
+    };
+    expect(openArg.pendingDeepLinkTarget).toEqual({
+      kind: 'doc',
+      path: 'docs/guide.md',
+      repositoryPath: 'docs/guide.md',
+    });
+    expect(openArg.pendingShareBranchSwitch).toBeUndefined();
+    expect(store.dismiss).toHaveBeenCalled();
+  });
+
+  test('I have it locally: share with no branch opens directly', async () => {
+    const bridge = createBridge();
+    const store = createTestStore(okPayload({ branch: '' }));
+    bridge.__folderPicks.push('/local/clone');
+    bridge.__validationResults.push({
+      kind: 'ok',
+      gitRemoteUrl: 'https://github.com/inkeep/open-knowledge.git',
+    });
+
+    await renderDialog({ bridge, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('share-receive-local'));
+
+    await waitFor(() => expect(bridge.project.open).toHaveBeenCalled());
+    const openArg = (bridge.project.open as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as {
+      pendingDeepLinkTarget?: unknown;
+      pendingShareBranchSwitch?: unknown;
+    };
+    expect(openArg.pendingDeepLinkTarget).toEqual({
+      kind: 'doc',
+      path: 'docs/guide.md',
+      repositoryPath: 'docs/guide.md',
+    });
+    expect(openArg.pendingShareBranchSwitch).toBeUndefined();
+    expect(store.dismiss).toHaveBeenCalled();
+  });
+
+  test('I have it locally: readHeadBranch IPC rejection falls back to a plain open', async () => {
+    const bridge = createBridge();
+    const store = createTestStore(okPayload({ branch: 'feat/share' }));
+    bridge.__folderPicks.push('/local/clone');
+    bridge.__validationResults.push({
+      kind: 'ok',
+      gitRemoteUrl: 'https://github.com/inkeep/open-knowledge.git',
+    });
+    bridge.project.readHeadBranch = vi.fn(() => Promise.reject(new Error('ipc channel closed')));
+
+    await renderDialog({ bridge, store });
+
+    expect(await screen.findByTestId('share-receive-dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('share-receive-local'));
+
+    await waitFor(() => expect(bridge.project.open).toHaveBeenCalled());
+    const openArg = (bridge.project.open as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as {
+      pendingDeepLinkTarget?: unknown;
+      pendingShareBranchSwitch?: unknown;
+    };
+    expect(openArg.pendingDeepLinkTarget).toEqual({
+      kind: 'doc',
+      path: 'docs/guide.md',
+      repositoryPath: 'docs/guide.md',
+    });
+    expect(openArg.pendingShareBranchSwitch).toBeUndefined();
+    expect(store.dismiss).toHaveBeenCalled();
+  });
+});

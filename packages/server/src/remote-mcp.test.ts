@@ -1,0 +1,548 @@
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import {
+  createServer as createHttpServer,
+  type Server as HttpServer,
+  request as httpRequest,
+} from 'node:http';
+import { connect as createNetConnection } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import type { Hocuspocus } from '@hocuspocus/server';
+import { resolveServerRuntimeConfig } from '@inkeep/open-knowledge-core';
+import { afterEach, describe, expect, test } from 'vitest';
+import { ConfigSchema } from './config/schema.ts';
+import { buildIngressPolicy } from './ingress-policy.ts';
+import { listenOnLoopback } from './loopback-rig-test-helpers.ts';
+import { createMcpHttpHandler, type McpHttpHandler } from './mcp-http.ts';
+import { type MountMcpAndApiHandle, mountMcpAndApi } from './mcp-mount.ts';
+
+const MCP_PROTOCOL_VERSION = '2025-06-18';
+const EXTERNAL_URL = 'https://myproject.ngrok.app';
+const EXTERNAL_HOST = 'myproject.ngrok.app';
+
+const TUNNEL_HEADERS = { host: EXTERNAL_HOST };
+const TUNNEL_FORWARDED_HEADERS = {
+  host: EXTERNAL_HOST,
+  'x-forwarded-for': '203.0.113.7',
+  'x-forwarded-proto': 'https',
+};
+
+const log = {
+  error: () => {},
+  warn: () => {},
+  info: () => {},
+  debug: () => {},
+  child: () => log,
+} as never;
+
+const hocuspocus = {
+  hooks: async () => {},
+  handleConnection: () => ({ handleMessage: () => {}, handleClose: () => {} }),
+} as unknown as Hocuspocus;
+
+interface Rig {
+  port: number;
+  contentDir: string;
+  cleanup: () => Promise<void>;
+}
+
+let rigs: Rig[] = [];
+
+afterEach(async () => {
+  await Promise.allSettled(rigs.map((r) => r.cleanup()));
+  rigs = [];
+});
+
+interface RigExtras {
+  reactShellMiddleware?: (
+    req: import('node:http').IncomingMessage,
+    res: import('node:http').ServerResponse,
+    next: () => void,
+  ) => void;
+  acpThreadManager?: unknown;
+}
+
+async function bootRemoteRig(externalUrl: string | null, extras: RigExtras = {}): Promise<Rig> {
+  const contentDir = mkdtempSync(join(tmpdir(), 'ok-remote-mcp-'));
+  const localDir = join(contentDir, '.ok', 'local');
+  mkdirSync(localDir, { recursive: true });
+  const config = ConfigSchema.parse(
+    externalUrl === null ? {} : { server: { externalUrl, allowExternal: true } },
+  );
+  const handler: McpHttpHandler = createMcpHttpHandler({
+    contentDir,
+    projectDir: contentDir,
+    config,
+    getServerUrl: () => `http://127.0.0.1:${port}`,
+  });
+  const httpServer: HttpServer = createHttpServer();
+  const mount: MountMcpAndApiHandle = mountMcpAndApi({
+    httpServer,
+    nativeApi: undefined,
+    hocuspocus,
+    mcpHttpHandler: handler,
+    ingressPolicy: buildIngressPolicy({ serverRuntime: resolveServerRuntimeConfig(config) }),
+    ...(extras.reactShellMiddleware ? { reactShellMiddleware: extras.reactShellMiddleware } : {}),
+    ...(extras.acpThreadManager !== undefined
+      ? { acpThreadManager: extras.acpThreadManager as never }
+      : {}),
+    log,
+  });
+  const { port } = await listenOnLoopback(httpServer);
+  const rig: Rig = {
+    port,
+    contentDir,
+    cleanup: async () => {
+      await handler.close();
+      await mount.shutdown();
+      await new Promise<void>((resolve) => {
+        httpServer.close(() => resolve());
+      });
+      rmSync(contentDir, { recursive: true, force: true });
+    },
+  };
+  rigs.push(rig);
+  return rig;
+}
+
+interface RawResponse {
+  status: number;
+  headers: Record<string, string | string[] | undefined>;
+  body: string;
+}
+
+function raw(
+  port: number,
+  opts: {
+    method?: string;
+    path: string;
+    headers?: Record<string, string>;
+    body?: string;
+  },
+): Promise<RawResponse> {
+  return new Promise((resolve, reject) => {
+    const req = httpRequest(
+      {
+        hostname: '127.0.0.1',
+        port,
+        path: opts.path,
+        method: opts.method ?? 'GET',
+        headers: opts.headers,
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c) => chunks.push(Buffer.from(c)));
+        res.on('end', () =>
+          resolve({
+            status: res.statusCode ?? 0,
+            headers: res.headers,
+            body: Buffer.concat(chunks).toString('utf8'),
+          }),
+        );
+      },
+    );
+    req.on('error', reject);
+    req.end(opts.body);
+  });
+}
+
+async function openSession(
+  port: number,
+  gateHeaders: Record<string, string>,
+): Promise<{ sessionId: string }> {
+  const init = await raw(port, {
+    method: 'POST',
+    path: '/mcp',
+    headers: {
+      ...gateHeaders,
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        capabilities: {},
+        clientInfo: { name: 'remote-mcp-test', version: '0.0.0' },
+      },
+    }),
+  });
+  expect(init.status).toBe(200);
+  const sessionId = init.headers['mcp-session-id'];
+  expect(typeof sessionId).toBe('string');
+  const initialized = await raw(port, {
+    method: 'POST',
+    path: '/mcp',
+    headers: {
+      ...gateHeaders,
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-session-id': sessionId as string,
+      'mcp-protocol-version': MCP_PROTOCOL_VERSION,
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }),
+  });
+  expect(initialized.status).toBe(202);
+  return { sessionId: sessionId as string };
+}
+
+async function listToolNames(port: number, gateHeaders: Record<string, string>): Promise<string[]> {
+  const { sessionId } = await openSession(port, gateHeaders);
+  const res = await raw(port, {
+    method: 'POST',
+    path: '/mcp',
+    headers: {
+      ...gateHeaders,
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-session-id': sessionId,
+      'mcp-protocol-version': MCP_PROTOCOL_VERSION,
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }),
+  });
+  expect(res.status).toBe(200);
+  const parsed = JSON.parse(res.body) as { result?: { tools?: Array<{ name: string }> } };
+  const tools = parsed.result?.tools;
+  expect(Array.isArray(tools)).toBe(true);
+  return (tools ?? []).map((t) => t.name);
+}
+
+const WRITE_TOOLS = ['write', 'edit', 'delete', 'move', 'install', 'checkpoint', 'restore_version'];
+
+function attemptCollabUpgrade(
+  port: number,
+  headers: Record<string, string>,
+  path = '/collab',
+): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const socket = createNetConnection({ host: '127.0.0.1', port });
+    const timer = setTimeout(() => {
+      socket.destroy();
+      reject(new Error('timed out waiting for /collab upgrade outcome'));
+    }, 2000);
+    const headerLines = Object.entries(headers).map(([k, v]) => `${k}: ${v}`);
+    socket.on('connect', () => {
+      socket.write(
+        [
+          `GET ${path} HTTP/1.1`,
+          ...headerLines,
+          'Connection: Upgrade',
+          'Upgrade: websocket',
+          'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==',
+          'Sec-WebSocket-Version: 13',
+          '',
+          '',
+        ].join('\r\n'),
+      );
+    });
+    socket.on('data', (chunk: Buffer) => {
+      if (chunk.toString('utf8').includes('101 Switching Protocols')) {
+        clearTimeout(timer);
+        socket.destroy();
+        resolve('upgraded');
+      }
+    });
+    socket.on('close', () => {
+      clearTimeout(timer);
+      resolve('closed');
+    });
+    socket.on('error', () => {
+      clearTimeout(timer);
+      resolve('closed');
+    });
+  });
+}
+
+describe('remote enabled — trust-the-tunnel admission', () => {
+  test('tunnel-Host /mcp is admitted with the full tool set (no server-side auth tier)', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const names = await listToolNames(rig.port, TUNNEL_HEADERS);
+    expect(names).toContain('exec');
+    expect(names).toContain('search');
+    for (const tool of WRITE_TOOLS) expect(names).toContain(tool);
+  });
+
+  test('local loopback sessions keep the full tool set when remote is enabled', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const names = await listToolNames(rig.port, { host: `127.0.0.1:${rig.port}` });
+    for (const tool of WRITE_TOOLS) expect(names).toContain(tool);
+  });
+
+  test('wrong Host is refused everywhere (DNS-rebinding shape)', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const mcp = await raw(rig.port, {
+      method: 'POST',
+      path: '/mcp',
+      headers: { host: 'evil.example.com' },
+    });
+    expect(mcp.status).toBe(403);
+    const api = await raw(rig.port, { path: '/api/pages', headers: { host: 'evil.example.com' } });
+    expect(api.status).toBe(403);
+    expect(api.body).toContain('urn:ok:error:host-not-allowed');
+  });
+
+  test('non-/mcp surfaces are reachable under the tunnel Host (one gate for everything)', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const api = await raw(rig.port, { path: '/api/pages', headers: TUNNEL_HEADERS });
+    expect(api.status).toBe(404);
+    const spa = await raw(rig.port, { path: '/', headers: TUNNEL_HEADERS });
+    expect(spa.status).toBe(404);
+  });
+
+  test('forwarding headers are fine when remote is enabled (tunnels always inject them)', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const api = await raw(rig.port, { path: '/api/pages', headers: TUNNEL_FORWARDED_HEADERS });
+    expect(api.status).toBe(404);
+  });
+
+  test('vendor identity/marker headers are inert — admission is Host-only', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const names = await listToolNames(rig.port, {
+      host: EXTERNAL_HOST,
+      'tailscale-funnel-request': '?1',
+      'tailscale-user-login': 'someone@example',
+    });
+    for (const tool of WRITE_TOOLS) expect(names).toContain(tool);
+  });
+
+  test('/collab upgrade admits the tunnel Host and drops wrong Hosts', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    await expect(attemptCollabUpgrade(rig.port, { Host: EXTERNAL_HOST })).resolves.toBe('upgraded');
+    await expect(attemptCollabUpgrade(rig.port, { Host: 'evil.example.com' })).resolves.toBe(
+      'closed',
+    );
+  });
+
+  test('/collab/keepalive upgrade admits the tunnel Host and drops wrong Hosts', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    await expect(
+      attemptCollabUpgrade(rig.port, { Host: EXTERNAL_HOST }, '/collab/keepalive'),
+    ).resolves.toBe('upgraded');
+    await expect(
+      attemptCollabUpgrade(rig.port, { Host: 'evil.example.com' }, '/collab/keepalive'),
+    ).resolves.toBe('closed');
+  });
+
+  test('/collab/thread upgrade admits the tunnel Host so Ask AI works over the tunnel', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL, { acpThreadManager: { listThreads: () => [] } });
+    await expect(
+      attemptCollabUpgrade(rig.port, { Host: EXTERNAL_HOST }, '/collab/thread'),
+    ).resolves.toBe('upgraded');
+    await expect(
+      attemptCollabUpgrade(rig.port, { Host: 'evil.example.com' }, '/collab/thread'),
+    ).resolves.toBe('closed');
+    await expect(
+      attemptCollabUpgrade(
+        rig.port,
+        { Host: EXTERNAL_HOST, Origin: 'https://evil.example.com' },
+        '/collab/thread',
+      ),
+    ).resolves.toBe('closed');
+  });
+
+  test('default-port Host suffix still matches', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const api = await raw(rig.port, {
+      path: '/api/pages',
+      headers: { host: `${EXTERNAL_HOST}:443` },
+    });
+    expect(api.status).toBe(404);
+  });
+});
+
+describe('session verbs through the native mount', () => {
+  test('GET with a live session opens the standalone SSE stream unbuffered', async () => {
+    const rig = await bootRemoteRig(null);
+    const gateHeaders = { host: `127.0.0.1:${rig.port}` };
+    const { sessionId } = await openSession(rig.port, gateHeaders);
+
+    const outcome = await new Promise<{ status: number; contentType?: string }>(
+      (resolvePromise, reject) => {
+        const req = httpRequest(
+          {
+            hostname: '127.0.0.1',
+            port: rig.port,
+            path: '/mcp',
+            method: 'GET',
+            headers: {
+              ...gateHeaders,
+              accept: 'text/event-stream',
+              'mcp-session-id': sessionId,
+              'mcp-protocol-version': MCP_PROTOCOL_VERSION,
+            },
+          },
+          (res) => {
+            let ended = false;
+            res.on('end', () => {
+              ended = true;
+            });
+            setTimeout(() => {
+              const status = res.statusCode ?? 0;
+              const contentType = res.headers['content-type'];
+              req.destroy();
+              if (ended) {
+                reject(new Error('standalone SSE stream ended instead of staying open'));
+                return;
+              }
+              resolvePromise({ status, contentType });
+            }, 250);
+          },
+        );
+        req.on('error', reject);
+        req.setTimeout(5_000, () =>
+          req.destroy(new Error('timed out waiting for the /mcp GET response head')),
+        );
+        req.end();
+      },
+    );
+
+    expect(outcome.status).toBe(200);
+    expect(outcome.contentType).toBe('text/event-stream');
+  });
+
+  test('DELETE tears the session down — a follow-up POST on it is a 404', async () => {
+    const rig = await bootRemoteRig(null);
+    const gateHeaders = { host: `127.0.0.1:${rig.port}` };
+    const { sessionId } = await openSession(rig.port, gateHeaders);
+
+    const del = await raw(rig.port, {
+      method: 'DELETE',
+      path: '/mcp',
+      headers: {
+        ...gateHeaders,
+        'mcp-session-id': sessionId,
+        'mcp-protocol-version': MCP_PROTOCOL_VERSION,
+      },
+    });
+    expect(del.status).toBeLessThan(300);
+
+    const after = await raw(rig.port, {
+      method: 'POST',
+      path: '/mcp',
+      headers: {
+        ...gateHeaders,
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        'mcp-session-id': sessionId,
+        'mcp-protocol-version': MCP_PROTOCOL_VERSION,
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'tools/list' }),
+    });
+    expect(after.status).toBe(404);
+  });
+});
+
+describe('remote disabled — the forwarding-header tripwire', () => {
+  test('a proxied POST /mcp is refused with the exposure-consent hint', async () => {
+    const rig = await bootRemoteRig(null);
+    const res = await raw(rig.port, {
+      method: 'POST',
+      path: '/mcp',
+      headers: { host: `127.0.0.1:${rig.port}`, 'x-forwarded-for': '203.0.113.7' },
+    });
+    expect(res.status).toBe(403);
+    expect(res.body).toContain('OK_ALLOW_EXTERNAL');
+  });
+
+  test('proxied requests are refused with the exposure-consent hint', async () => {
+    const rig = await bootRemoteRig(null);
+    const res = await raw(rig.port, {
+      path: '/api/pages',
+      headers: { host: `127.0.0.1:${rig.port}`, 'x-forwarded-for': '203.0.113.7' },
+    });
+    expect(res.status).toBe(403);
+    expect(res.body).toContain('OK_ALLOW_EXTERNAL');
+  });
+
+  test('vendor proxy headers (X-Real-IP, CF-Connecting-IP, True-Client-IP) also trip the wire', async () => {
+    const rig = await bootRemoteRig(null);
+    for (const header of ['x-real-ip', 'cf-connecting-ip', 'true-client-ip']) {
+      const res = await raw(rig.port, {
+        path: '/api/pages',
+        headers: { host: `127.0.0.1:${rig.port}`, [header]: '203.0.113.7' },
+      });
+      expect(res.status, `${header} should trip the wire`).toBe(403);
+      expect(res.body).toContain('OK_ALLOW_EXTERNAL');
+    }
+  });
+
+  test('unproxied local requests are served as always', async () => {
+    const rig = await bootRemoteRig(null);
+    const api = await raw(rig.port, {
+      path: '/api/pages',
+      headers: { host: `127.0.0.1:${rig.port}` },
+    });
+    expect(api.status).toBe(404);
+    const names = await listToolNames(rig.port, { host: `127.0.0.1:${rig.port}` });
+    for (const tool of WRITE_TOOLS) expect(names).toContain(tool);
+  });
+
+  test('a proxied /collab upgrade is dropped', async () => {
+    const rig = await bootRemoteRig(null);
+    await expect(
+      attemptCollabUpgrade(rig.port, {
+        Host: `127.0.0.1:${rig.port}`,
+        'X-Forwarded-For': '203.0.113.7',
+      }),
+    ).resolves.toBe('closed');
+  });
+
+  test('tunnel Host without remote enabled is refused (no forwarding headers needed)', async () => {
+    const rig = await bootRemoteRig(null);
+    const res = await raw(rig.port, {
+      method: 'POST',
+      path: '/mcp',
+      headers: { host: EXTERNAL_HOST },
+    });
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('remote enabled — UI over the same port', () => {
+  const shell = (
+    req: import('node:http').IncomingMessage,
+    res: import('node:http').ServerResponse,
+    _next: () => void,
+  ): void => {
+    res.setHeader('Content-Type', 'text/html');
+    res.end(`SHELL ${req.url ?? ''}`);
+  };
+
+  test('the shell serves at / and /assets/* under the tunnel Host', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL, { reactShellMiddleware: shell });
+    const root = await raw(rig.port, { path: '/', headers: TUNNEL_HEADERS });
+    expect(root.status).toBe(200);
+    expect(root.body).toContain('SHELL /');
+    const asset = await raw(rig.port, { path: '/assets/app.js', headers: TUNNEL_HEADERS });
+    expect(asset.status).toBe(200);
+    const mcp = await raw(rig.port, { method: 'POST', path: '/mcp', headers: TUNNEL_HEADERS });
+    expect(mcp.body).not.toContain('SHELL');
+  });
+
+  test('the shell is refused under a wrong Host', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL, { reactShellMiddleware: shell });
+    const res = await raw(rig.port, { path: '/', headers: { host: 'evil.example.com' } });
+    expect(res.status).toBe(403);
+  });
+
+  test('a browser Origin from the tunnel host is admitted on /mcp', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const names = await listToolNames(rig.port, {
+      host: EXTERNAL_HOST,
+      origin: `https://${EXTERNAL_HOST}`,
+    });
+    expect(names).toContain('search');
+  });
+
+  test('a foreign browser Origin is still refused on /mcp', async () => {
+    const rig = await bootRemoteRig(EXTERNAL_URL);
+    const res = await raw(rig.port, {
+      method: 'POST',
+      path: '/mcp',
+      headers: { host: EXTERNAL_HOST, origin: 'https://evil.example.com' },
+    });
+    expect(res.status).toBe(403);
+  });
+});

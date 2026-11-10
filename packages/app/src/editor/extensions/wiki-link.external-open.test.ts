@@ -1,0 +1,151 @@
+import { toWikiLinkSlug } from '@inkeep/open-knowledge-core';
+import { Editor } from '@tiptap/core';
+import { TextSelection } from '@tiptap/pm/state';
+import StarterKit from '@tiptap/starter-kit';
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
+import { getInteractionLayer } from '../interaction-layer-host';
+import {
+  resetLinkValidationPolicyForTest,
+  setLinkValidationVisible,
+} from '../link-validation-policy';
+import {
+  __resetPageListCacheForTests,
+  buildPagesBySlugIndex,
+  setPageListCache,
+} from '../page-list-cache';
+import { installDomGlobals } from '../walk-currency-test-harness';
+import { WikiLink } from './wiki-link';
+
+let restoreDomGlobals: (() => void) | null = null;
+
+beforeAll(() => {
+  restoreDomGlobals = installDomGlobals();
+});
+
+afterAll(() => {
+  restoreDomGlobals?.();
+  restoreDomGlobals = null;
+});
+
+type OpenExternalBridge = { shell?: { openExternal?: (url: string) => Promise<void> } };
+
+interface OpenExternalWindow {
+  okDesktop?: OpenExternalBridge;
+  open: (url?: string, target?: string, features?: string) => unknown;
+}
+
+function testWindow(): OpenExternalWindow {
+  return globalThis.window as unknown as OpenExternalWindow;
+}
+
+const liveEditors = new Set<Editor>();
+
+afterEach(() => {
+  for (const editor of liveEditors) editor.destroy();
+  liveEditors.clear();
+  __resetPageListCacheForTests();
+  resetLinkValidationPolicyForTest();
+  delete testWindow().okDesktop;
+});
+
+function mountWithExternalWikiLink(url: string): {
+  editor: Editor;
+  activate: (newTab: boolean) => boolean | undefined;
+} {
+  const host = document.createElement('div');
+  document.body.appendChild(host);
+  const editor = new Editor({
+    element: host,
+    content: `<p><span data-wiki-link data-target="${url}"></span></p>`,
+    extensions: [StarterKit, WikiLink.configure({ docName: 'notes/test' })],
+  });
+  liveEditors.add(editor);
+
+  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, 1)));
+
+  const chip = host.querySelector('[data-node-id]');
+  const nodeId = chip?.getAttribute('data-node-id') ?? undefined;
+  if (nodeId === undefined) {
+    throw new Error(
+      'setup: no wiki-link chip — external target was not parsed into a wikiLink node',
+    );
+  }
+  const registration = getInteractionLayer(editor).getRegistration(nodeId);
+  if (!registration?.handlePrimary) {
+    throw new Error('setup: wiki-link chip did not register a handlePrimary hook');
+  }
+  return {
+    editor,
+    activate: (newTab) => registration.handlePrimary?.({ nodeId, type: 'wikiLink', newTab }),
+  };
+}
+
+function mountWikiLink(target: string): { editor: Editor; chip: HTMLElement } {
+  const host = document.createElement('div');
+  document.body.appendChild(host);
+  const editor = new Editor({
+    element: host,
+    content: `<p><span data-wiki-link data-target="${target}"></span></p>`,
+    extensions: [StarterKit, WikiLink.configure({ docName: 'notes/test' })],
+  });
+  liveEditors.add(editor);
+  const chip = host.querySelector<HTMLElement>('[data-wiki-link]');
+  if (!chip) throw new Error('setup: no wiki-link chip');
+  return { editor, chip };
+}
+
+describe('WYSIWYG wiki-link external activation — desktop (bridge present)', () => {
+  test('bare click routes to the OS browser via okDesktop.shell.openExternal, NOT window.open', () => {
+    const url = 'https://youtube.com/watch?v=abc';
+    const openExternal = vi.fn(async (_url: string) => {});
+    const openWindow = vi.fn(() => null);
+    const w = testWindow();
+    w.okDesktop = { shell: { openExternal } };
+    w.open = openWindow as unknown as OpenExternalWindow['open'];
+
+    const { activate } = mountWithExternalWikiLink(url);
+    const handled = activate(false);
+
+    expect(handled).toBe(true);
+    expect(openExternal).toHaveBeenCalledTimes(1);
+    expect(openExternal).toHaveBeenCalledWith(url);
+    expect(openWindow).not.toHaveBeenCalled();
+  });
+});
+
+describe('WYSIWYG wiki-link external activation — web (no bridge)', () => {
+  test('bare click falls back to window.open with the new-tab + noopener features', () => {
+    const url = 'https://example.com/web';
+    const openWindow = vi.fn(() => null);
+    const w = testWindow();
+    delete w.okDesktop;
+    w.open = openWindow as unknown as OpenExternalWindow['open'];
+
+    const { activate } = mountWithExternalWikiLink(url);
+    const handled = activate(false);
+
+    expect(handled).toBe(true);
+    expect(openWindow).toHaveBeenCalledTimes(1);
+    expect(openWindow).toHaveBeenCalledWith(url, '_blank', 'noopener,noreferrer');
+  });
+});
+
+describe('WYSIWYG wiki-link validation visibility', () => {
+  test('a missing chip repaints when validation visibility changes at runtime', () => {
+    const pages = new Set<string>();
+    setPageListCache({
+      pages,
+      folderPaths: new Set(),
+      assetPaths: new Set(),
+      filePaths: new Set(),
+      pagesBySlug: buildPagesBySlugIndex(pages, toWikiLinkSlug),
+    });
+    const { chip } = mountWikiLink('missing-page');
+
+    expect(chip.getAttribute('data-resolution-state')).toBe('unresolved');
+    setLinkValidationVisible(false);
+    expect(chip.hasAttribute('data-resolution-state')).toBe(false);
+    setLinkValidationVisible(true);
+    expect(chip.getAttribute('data-resolution-state')).toBe('unresolved');
+  });
+});

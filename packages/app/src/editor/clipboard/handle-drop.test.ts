@@ -1,0 +1,368 @@
+import * as actualHtmlToMdast from '@inkeep/open-knowledge-core/markdown/html-to-mdast';
+import * as actualSonner from 'sonner';
+import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
+import { createServedBindingLog } from '@/test-utils/served-binding.test-helper';
+
+const servedCore = createServedBindingLog();
+
+vi.doMock('@inkeep/open-knowledge-core/markdown/html-to-mdast', () => {
+  return servedCore.serve('@inkeep/open-knowledge-core/markdown/html-to-mdast', {
+    ...actualHtmlToMdast,
+    htmlToMdast: vi.fn((_html: string) => ({ type: 'root', children: [] })),
+    mdastToMarkdown: vi.fn((_tree: unknown) => '**bold**'),
+  });
+});
+
+vi.doMock('sonner', () => ({ ...actualSonner, toast: { error: vi.fn(() => {}) } }));
+
+let createHandleDrop: typeof import('./handle-paste.ts').createHandleDrop;
+beforeAll(async () => {
+  ({ createHandleDrop } = await import('./handle-paste.ts'));
+});
+
+interface FakeDropOptions {
+  data: Record<string, string>;
+  filesCount?: number;
+  shiftKey?: boolean;
+}
+
+function fakeDropEvent({ data, filesCount = 0, shiftKey = false }: FakeDropOptions): DragEvent {
+  const files = { length: filesCount } as unknown as FileList;
+  const evt = {
+    dataTransfer: {
+      types: Object.keys(data),
+      getData: (k: string) => data[k] ?? '',
+      files,
+    },
+    shiftKey,
+  } as unknown as DragEvent;
+  return evt;
+}
+
+function fakeMdManager() {
+  return {
+    parse: vi.fn((_md: string) => ({
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'parsed' }] }],
+    })),
+  };
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: narrow fake view for unit test
+function fakeView(opts: { inCodeBlock?: boolean } = {}): any {
+  const dispatch = vi.fn(() => {});
+  const codeBlockType = {
+    create: vi.fn((_attrs: unknown, _content: unknown) => ({
+      slice: (_f: number, _t: number) => 'CODE-SLICE',
+    })),
+  };
+  const $from = {
+    depth: 1,
+    node: (_d: number) => ({ type: { name: opts.inCodeBlock ? 'codeBlock' : 'paragraph' } }),
+  };
+  return {
+    state: {
+      selection: { $from, empty: true },
+      schema: {
+        nodes: { codeBlock: codeBlockType },
+        text: (s: string) => ({ textContent: s }),
+        // biome-ignore lint/suspicious/noExplicitAny: fake schema for unit test
+        nodeFromJSON: (json: any) => ({
+          slice: (_f: number, _t: number) => ({ json, size: 10, content: { size: 10 } }),
+          content: { size: 10 },
+        }),
+      },
+      tr: {
+        replaceSelectionWith: vi.fn(function (this: unknown, _node: unknown) {
+          return this;
+        }),
+        replaceSelection: vi.fn(function (this: unknown, _slice: unknown) {
+          return this;
+        }),
+        setMeta: vi.fn(function (this: unknown, _key: unknown, _value: unknown) {
+          return this;
+        }),
+        scrollIntoView: vi.fn(function (this: unknown) {
+          return this;
+        }),
+      },
+    },
+    dispatch,
+  };
+}
+
+let origWarn: typeof console.warn;
+beforeEach(() => {
+  origWarn = console.warn;
+  console.warn = () => {};
+});
+afterEach(() => {
+  console.warn = origWarn;
+});
+
+describe('WYSIWYG drop dispatcher — file-defer + branch routing parity', () => {
+  test('defers to FileHandler when dataTransfer.files is non-empty (returns false)', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/plain': 'irrelevant' },
+      filesCount: 1,
+    });
+    expect(drop(view, evt)).toBe(false);
+    expect(md.parse).not.toHaveBeenCalled();
+  });
+
+  test('empty dataTransfer returns false (PM default runs)', () => {
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: fakeMdManager() as any,
+    });
+    const view = fakeView();
+    const evt = {
+      dataTransfer: { types: [] as string[], getData: () => '', files: { length: 0 } },
+      shiftKey: false,
+    } as unknown as DragEvent;
+    expect(drop(view, evt)).toBe(false);
+  });
+
+  test('FR-10 cursor-in-codeBlock short-circuits to plain-text insert', () => {
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: fakeMdManager() as any,
+    });
+    const view = fakeView({ inCodeBlock: true });
+    const evt = fakeDropEvent({
+      data: { 'text/plain': 'raw code', 'text/html': '<b>bold</b>' },
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(view.state.tr.replaceSelectionWith).toHaveBeenCalled();
+  });
+
+  test('Branch A: vscode-editor-data produces a codeBlock with language', () => {
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: fakeMdManager() as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: {
+        'vscode-editor-data': '{"mode":"typescript"}',
+        'text/plain': 'const x = 1;',
+      },
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(view.state.schema.nodes.codeBlock.create).toHaveBeenCalledWith(
+      { language: 'typescript' },
+      expect.anything(),
+    );
+  });
+
+  test('Branch B (text/x-gfm): routes through MarkdownManager.parse', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/x-gfm': '# gfm heading', 'text/plain': '# gfm heading' },
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalledWith('# gfm heading');
+  });
+
+  test('Branch B (markdown-first tiebreak): plain+html with markdown-shaped plain → markdown path', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const markdownPlain = '# H\n\n- a\n- b\n\n```\ncode\n```\n';
+    const evt = fakeDropEvent({
+      data: { 'text/plain': markdownPlain, 'text/html': '<h1>H</h1>' },
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalledWith(markdownPlain);
+  });
+
+  test('Branch C: data-pm-slice fingerprint returns false (PM handles)', () => {
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: fakeMdManager() as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: {
+        'text/html': '<div data-pm-slice="0 0 paragraph"><p>hi</p></div>',
+        'text/plain': 'hi',
+      },
+    });
+    expect(drop(view, evt)).toBe(false);
+  });
+
+  test('Branch D: generic HTML routes through htmlToMdast', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: {
+        'text/plain': 'plain prose no signals',
+        'text/html': '<p>rich <b>html</b></p>',
+      },
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalledWith('**bold**');
+  });
+
+  test('Branch E (text/plain only with markdown signals): parses as markdown', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/plain': '# H\n\n- a\n- b\n\n```\ncode\n```\n' },
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalled();
+  });
+
+  test('Branch E (plain prose): inserts verbatim, no markdown parse', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/plain': 'hello world, plain prose' },
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).not.toHaveBeenCalled();
+    expect(view.state.tr.replaceSelectionWith).toHaveBeenCalled();
+  });
+});
+
+describe('WYSIWYG drop dispatcher — shift-key plaintext override (FR-37)', () => {
+  test('shift-held drop reads DragEvent.shiftKey directly (no latch needed)', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/plain': '# H', 'text/html': '<h1>H</h1>' },
+      shiftKey: true,
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).not.toHaveBeenCalled();
+    expect(view.state.tr.replaceSelectionWith).toHaveBeenCalled();
+  });
+
+  test('shift-not-held drop with markdown plain runs the heuristic + parse', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/plain': '# H\n\n- a\n- b\n\n```\ncode\n```\n' },
+      shiftKey: false,
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalled();
+  });
+});
+
+describe('WYSIWYG drop dispatcher — paste/drop parity on canonical inputs', () => {
+  test('FR-38 widened heuristic: dropping `__foo__` text/plain routes through markdown parse', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({ data: { 'text/plain': '__foo__' } });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalledWith('__foo__');
+  });
+
+  test('files + text payload: file path always wins over text dispatch', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/plain': '# Title\n\n- bullet\n' },
+      filesCount: 1,
+    });
+    expect(drop(view, evt)).toBe(false);
+    expect(md.parse).not.toHaveBeenCalled();
+  });
+
+  test('drop of a lone GFM URL routes through the markdown parse, same as paste', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({ data: { 'text/plain': 'https://inkeep.com\n' } });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalledWith('https://inkeep.com');
+  });
+
+  test('shift-held drop of a lone URL inserts verbatim (no linkify)', () => {
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const view = fakeView();
+    const evt = fakeDropEvent({
+      data: { 'text/plain': 'https://inkeep.com' },
+      shiftKey: true,
+    });
+    expect(drop(view, evt)).toBe(true);
+    expect(md.parse).not.toHaveBeenCalled();
+    expect(view.state.tr.replaceSelectionWith).toHaveBeenCalled();
+  });
+});
+
+describe('WYSIWYG drop dispatcher — core replacement liveness', () => {
+  test('a generic HTML drop parses the markdown the html-to-mdast replacement serves', () => {
+    const since = servedCore.mark();
+    const md = fakeMdManager();
+    const drop = createHandleDrop({
+      // biome-ignore lint/suspicious/noExplicitAny: narrow fake md manager
+      mdManager: md as any,
+    });
+    const evt = fakeDropEvent({
+      data: {
+        'text/plain': 'plain prose no signals',
+        'text/html': '<p>rich <b>html</b></p>',
+      },
+    });
+
+    expect(drop(fakeView(), evt)).toBe(true);
+    expect(md.parse).toHaveBeenCalledWith('**bold**');
+    for (const member of ['htmlToMdast', 'mdastToMarkdown']) {
+      expect(
+        servedCore.readersOf('@inkeep/open-knowledge-core/markdown/html-to-mdast', member, since),
+      ).toEqual(['editor/clipboard/handle-paste.ts']);
+    }
+  });
+});

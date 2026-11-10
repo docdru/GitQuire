@@ -1,0 +1,668 @@
+// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+
+import { Trans, useLingui } from '@lingui/react/macro';
+import { FileText, Folder, FolderOpenIcon, GitBranch, PlusIcon, XIcon } from 'lucide-react';
+import { type ComponentType, lazy, Suspense, useEffect, useState } from 'react';
+import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
+import { Spinner } from '@/components/ui/spinner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useLanguageBridge } from '@/hooks/use-language-bridge';
+import { useThemeBridge } from '@/hooks/use-theme-bridge';
+import { useBugReport } from '@/lib/bug-report-capture';
+import { ConfigContext } from '@/lib/config-context';
+import type {
+  OkDesktopBridge,
+  OkLocalOpAuthStatusResponse,
+  OkPackId,
+  OkProjectEntryPoint,
+  OkSeedPackInfo,
+  RecentProjectEntry,
+} from '@/lib/desktop-bridge-types';
+import {
+  resolveErrorMessage,
+  runWithErrorStatePure as runWithErrorStatePureBase,
+} from '@/lib/error-state';
+import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
+import { seedClient } from '@/lib/seed-client';
+import { createCloneController } from '@/lib/share/clone-controller';
+import { useThemeColorTransitions } from '@/lib/theme-color-transitions';
+import { ipcAuthQueryTransport } from '@/lib/transports/auth-query-transport';
+import { ipcAuthTransport } from '@/lib/transports/auth-transport';
+import { ipcCloneTransport } from '@/lib/transports/clone-transport';
+import {
+  narrowLanguagePreference,
+  readCachedLanguagePreference,
+  useApplyConfigLanguage,
+} from '@/lib/use-apply-config-language';
+import { narrowThemePreference, useApplyConfigTheme } from '@/lib/use-apply-config-theme';
+import {
+  navigatorConfigContextValue,
+  useNavigatorUserConfig,
+} from '@/lib/use-navigator-user-config';
+import { useSettingsRoute } from '@/lib/use-settings-route';
+import { AuthModal } from './AuthModal';
+import { BetaBadge } from './BetaBadge';
+import { CloneDialog } from './CloneDialog';
+import { ConsentDialog } from './ConsentDialog';
+import { CreateProjectDialog } from './CreateProjectDialog';
+import { FeedbackFormDialog } from './FeedbackFormDialog';
+import { GithubIcon } from './icons/github';
+import { OkIcon } from './icons/ok';
+import { McpConsentDialog } from './McpConsentDialog';
+import { iconForPack } from './PackCardGrid';
+import { basenameOf } from './project-switcher-recents';
+import { ReportBugDialog } from './ReportBugDialog';
+import { RecentItemContextMenu } from './recent-remove-controls';
+import { SettingsDialogShell } from './settings/SettingsDialogShell';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+
+const ShareReceiveDialog = lazy(() =>
+  import('./ShareReceiveDialog').then((m) => ({ default: m.ShareReceiveDialog })),
+);
+
+const AppMenubar = lazy(() => import('./AppMenubar').then((m) => ({ default: m.AppMenubar })));
+
+export { resolveErrorMessage };
+export const runWithErrorStatePure = (
+  fn: () => Promise<void>,
+  fallback: string,
+  setError: (msg: string | null) => void,
+) => runWithErrorStatePureBase(fn, fallback, setError, 'NavigatorApp');
+
+type RecentProject = RecentProjectEntry;
+
+function NavigatorSettings() {
+  const route = useSettingsRoute();
+  return (
+    <SettingsDialogShell
+      host="navigator"
+      open={route.open}
+      initialSection={route.section}
+      onOpenChange={(next) => {
+        if (!next) route.close();
+      }}
+    />
+  );
+}
+
+export function removeRecentFromList(
+  recents: readonly RecentProjectEntry[],
+  path: string,
+): RecentProjectEntry[] {
+  return recents.filter((recent) => recent.path !== path);
+}
+
+export function NavigatorApp({ bridge }: { bridge: OkDesktopBridge }) {
+  const [recents, setRecents] = useState<RecentProject[]>([]);
+  const [recentBranches, setRecentBranches] = useState<Map<string, string | null>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const [recentsLoadFailed, setRecentsLoadFailed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [openingLabel, setOpeningLabel] = useState<string | null>(null);
+  const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const bugReport = useBugReport();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [createPackId, setCreatePackId] = useState<OkPackId | undefined>(undefined);
+  const [createPacks, setCreatePacks] = useState<OkSeedPackInfo[] | undefined>(undefined);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [returnToCloneAfterAuth, setReturnToCloneAfterAuth] = useState(false);
+  const [shareSignInResolver, setShareSignInResolver] = useState<
+    ((status: OkLocalOpAuthStatusResponse | null) => void) | null
+  >(null);
+  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const [authInitialStep, setAuthInitialStep] = useState<'auth' | 'identity'>('auth');
+  const { t } = useLingui();
+
+  const userConfig = useNavigatorUserConfig(bridge);
+  const configuredTheme = userConfig.synced
+    ? narrowThemePreference(userConfig.config?.appearance?.theme)
+    : undefined;
+  const configuredLanguage = userConfig.synced
+    ? (narrowLanguagePreference(userConfig.config?.appearance?.language) ?? 'system')
+    : undefined;
+
+  useThemeColorTransitions(true);
+  useApplyConfigTheme(configuredTheme);
+  useThemeBridge(bridge, configuredTheme ?? bridge.config.themePreference ?? 'system');
+
+  useApplyConfigLanguage({
+    preference:
+      configuredLanguage ??
+      narrowLanguagePreference(bridge.config.languagePreference) ??
+      readCachedLanguagePreference(),
+    userConfigSynced: true,
+  });
+  useLanguageBridge(bridge, configuredLanguage, userConfig.synced);
+
+  useEffect(() => {
+    let cancelled = false;
+    bridge.project
+      .listRecent()
+      .then(async (result) => {
+        if (cancelled) return;
+        setRecents(result);
+        const eligible = result.filter((r) => !r.missing);
+        const entries = await Promise.all(
+          eligible.map(async (r): Promise<[string, string | null]> => {
+            try {
+              const { currentBranch } = await bridge.project.readHeadBranch(r.path);
+              return [r.path, currentBranch];
+            } catch {
+              return [r.path, null];
+            }
+          }),
+        );
+        if (cancelled) return;
+        setRecentBranches((prev) => {
+          const next = new Map(prev);
+          for (const [path, branch] of entries) next.set(path, branch);
+          return next;
+        });
+      })
+      .catch((err) => {
+        console.error('[NavigatorApp] listRecent failed:', err);
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : t`Failed to load recent projects.`);
+          setRecentsLoadFailed(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bridge, t]);
+
+  useEffect(() => {
+    return subscribeLocalMenuAction((action, origin) => {
+      if (action === 'new-project') setCreateDialogOpen(true);
+      if (action === 'report-bug') bugReport.start(origin);
+      if (action === 'send-feedback') setFeedbackOpen(true);
+      if (action === 'close-active-tab-or-window') window.close();
+    });
+  }, [bugReport.start]);
+
+  useEffect(() => {
+    return bridge.onRecentRemovedMissing(({ path }) => {
+      setRecents((current) => removeRecentFromList(current, path));
+      setRecentBranches((current) => {
+        if (!current.has(path)) return current;
+        const next = new Map(current);
+        next.delete(path);
+        return next;
+      });
+    });
+  }, [bridge]);
+
+  const runWithErrorState = (fn: () => Promise<void>, fallback: string) =>
+    runWithErrorStatePure(fn, fallback, setError);
+
+  const openWithIndicator = (path: string, entryPoint: OkProjectEntryPoint, label: string) =>
+    runWithErrorState(() => {
+      setOpeningLabel(label);
+      return openProject(bridge, path, entryPoint).finally(() => setOpeningLabel(null));
+    }, t`Failed to open project.`);
+
+  const onClone = () => setCloneDialogOpen(true);
+
+  const onOpenFolder = () =>
+    runWithErrorState(async () => {
+      const path = await bridge.dialog.openFolder();
+      if (!path) return;
+      setOpeningLabel(displayNameForPath(path));
+      await openProject(bridge, path, 'pick-existing').finally(() => setOpeningLabel(null));
+    }, t`Failed to open folder.`);
+
+  const onCreate = () => setCreateDialogOpen(true);
+
+  const onOpenFile = () =>
+    runWithErrorState(() => bridge.project.openFile(), t`Failed to open file.`);
+
+  const onPackSelect = (packId: OkPackId | undefined, packs: OkSeedPackInfo[]) => {
+    setCreatePackId(packId);
+    setCreatePacks(packs);
+    setCreateDialogOpen(true);
+  };
+
+  const onCreateDialogOpenChange = (next: boolean) => {
+    setCreateDialogOpen(next);
+    if (!next) {
+      setCreatePackId(undefined);
+      setCreatePacks(undefined);
+    }
+  };
+
+  const onOpenRecent = (path: string) =>
+    openWithIndicator(path, 'recents', displayNameForPath(path));
+
+  const onRemoveRecent = (path: string) =>
+    runWithErrorState(async () => {
+      await bridge.project.removeRecent(path);
+      setRecents((current) => removeRecentFromList(current, path));
+      setRecentBranches((current) => {
+        if (!current.has(path)) return current;
+        const next = new Map(current);
+        next.delete(path);
+        return next;
+      });
+    }, t`Failed to remove project.`);
+
+  return (
+    <div className="relative flex h-screen w-screen flex-col overflow-hidden bg-primary-foreground dark:bg-background text-foreground">
+      <div
+        className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-9 ${
+          isElectronHost ? '[-webkit-app-region:drag]' : ''
+        }`}
+        data-electron-drag={isElectronHost ? '' : undefined}
+        data-testid="nav-chrome-row"
+      >
+        {shouldShowAppMenubar() && (
+          <div className="pointer-events-auto flex h-full items-center px-2">
+            <Suspense fallback={null}>
+              <AppMenubar />
+            </Suspense>
+          </div>
+        )}
+      </div>
+      {openingLabel !== null ? (
+        <div
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-primary-foreground/85 dark:bg-background/85 backdrop-blur-sm"
+          data-testid="nav-opening-overlay"
+          role="status"
+          aria-live="polite"
+        >
+          <Spinner aria-hidden="true" className="size-6 text-muted-foreground" />
+          <p className="text-muted-foreground text-sm">{t`Opening ${openingLabel}…`}</p>
+        </div>
+      ) : null}
+      <div className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden px-12 py-12">
+        <div className="my-auto flex min-h-0 flex-col space-y-10">
+          <header className="shrink-0 flex-wrap flex items-center gap-2.5">
+            <OkIcon className="size-12 shrink-0" />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <h1 className="font-medium text-xl tracking-tight">OpenKnowledge</h1>
+                <BetaBadge />
+              </div>
+              <p className="text-muted-foreground text-xs font-mono">v{bridge.appVersion}</p>
+            </div>
+          </header>
+
+          <div className="shrink-0 space-y-6">
+            <section className="grid sm:grid-cols-2 gap-3">
+              <NavigatorCard
+                title={t`Create new project`}
+                description={t`Start a new OpenKnowledge project.`}
+                onClick={onCreate}
+                dataTestId="nav-create-new"
+                Icon={PlusIcon}
+              />
+              <NavigatorCard
+                title={t`Open folder on disk`}
+                description={t`Use a folder you already have.`}
+                onClick={onOpenFolder}
+                dataTestId="nav-open"
+                Icon={FolderOpenIcon}
+              />
+              <NavigatorCard
+                title={t`Open file on disk`}
+                description={t`Open a single markdown file — no project setup.`}
+                onClick={onOpenFile}
+                dataTestId="nav-open-file"
+                Icon={FileText}
+              />
+              <NavigatorCard
+                title={t`Clone from GitHub`}
+                description={t`Bring a remote repository onto this machine.`}
+                onClick={onClone}
+                dataTestId="nav-clone"
+                Icon={GithubIcon}
+              />
+            </section>
+
+            {!loading && !recentsLoadFailed && recents.length === 0 ? (
+              <StarterPackRow onPackSelect={onPackSelect} />
+            ) : null}
+          </div>
+
+          {error !== null ? (
+            <div
+              className="flex shrink-0 items-start justify-between gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2"
+              data-testid="nav-error-banner"
+              role="alert"
+            >
+              <span className="text-destructive text-xs">{error}</span>
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                onClick={() => setError(null)}
+                className="h-auto p-0 text-destructive text-xs"
+                data-testid="nav-error-dismiss"
+              >
+                <Trans>Dismiss</Trans>
+              </Button>
+            </div>
+          ) : null}
+
+          {loading ? (
+            <section className="flex shrink-0 flex-col items-center">
+              <Spinner className="size-4 text-muted-foreground/60" />
+            </section>
+          ) : recents.length > 0 ? (
+            <section className="flex min-h-0 flex-col">
+              <h2 className="mb-2 shrink-0 font-medium text-muted-foreground font-mono text-xs uppercase tracking-wide">
+                <Trans>Recent</Trans>
+              </h2>
+              <ul
+                className="min-h-0 max-h-48 subtle-scrollbar scroll-fade-mask overflow-y-auto space-y-0.5 -mx-4"
+                data-testid="nav-recent-list"
+              >
+                {recents.map((r) => (
+                  <RecentRow
+                    key={r.path}
+                    project={r}
+                    branch={recentBranches.get(r.path) ?? null}
+                    onOpen={() => onOpenRecent(r.path)}
+                    onRemove={() => onRemoveRecent(r.path)}
+                  />
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+      </div>
+
+      <ConfigContext value={navigatorConfigContextValue(userConfig)}>
+        <NavigatorSettings />
+      </ConfigContext>
+
+      <McpConsentDialog />
+
+      <ConsentDialog />
+
+      <CreateProjectDialog
+        open={createDialogOpen}
+        onOpenChange={onCreateDialogOpenChange}
+        bridge={bridge}
+        initialPackId={createPackId}
+        packs={createPacks}
+      />
+
+      <ReportBugDialog capture={bugReport.capture} onClose={bugReport.close} systemWide />
+
+      <FeedbackFormDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} source="help_menu" />
+
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={(next) => {
+          setAuthModalOpen(next);
+          if (!next) {
+            setReturnToCloneAfterAuth(false);
+            if (shareSignInResolver) {
+              shareSignInResolver(null);
+              setShareSignInResolver(null);
+            }
+          }
+        }}
+        transport={ipcAuthTransport(bridge)}
+        queryTransport={ipcAuthQueryTransport(bridge)}
+        identityPrompt={authInitialStep === 'identity'}
+        onSuccess={(result) => {
+          setAuthModalOpen(false);
+          if (returnToCloneAfterAuth) {
+            setReturnToCloneAfterAuth(false);
+            setCloneDialogOpen(true);
+          }
+          if (shareSignInResolver) {
+            shareSignInResolver({
+              authenticated: true,
+              host: 'github.com',
+              login: result.login,
+            });
+            setShareSignInResolver(null);
+          }
+        }}
+      />
+      <CloneDialog
+        open={cloneDialogOpen}
+        onOpenChange={setCloneDialogOpen}
+        transport={ipcCloneTransport(bridge)}
+        authQueryTransport={ipcAuthQueryTransport(bridge)}
+        pickParentFolder={() => bridge.dialog.openFolder()}
+        onSignIn={() => {
+          setCloneDialogOpen(false);
+          setAuthInitialStep('auth');
+          setReturnToCloneAfterAuth(true);
+          setAuthModalOpen(true);
+        }}
+        onCloneComplete={({ dir }) => {
+          void runWithErrorState(() => {
+            setOpeningLabel(displayNameForPath(dir));
+            return openProject(bridge, dir, 'pick-existing').finally(() => setOpeningLabel(null));
+          }, t`Failed to open cloned project.`);
+        }}
+      />
+
+      <Suspense fallback={null}>
+        <ShareReceiveDialog
+          bridge={bridge}
+          cloneController={createCloneController({
+            bridge,
+            authQueryTransport: ipcAuthQueryTransport(bridge),
+            cloneTransport: ipcCloneTransport(bridge),
+            openSignIn: () =>
+              new Promise<OkLocalOpAuthStatusResponse | null>((resolve) => {
+                setShareSignInResolver(() => resolve);
+                setAuthModalOpen(true);
+              }),
+          })}
+        />
+      </Suspense>
+    </div>
+  );
+}
+
+interface NavigatorCardProps {
+  title: string;
+  description: string;
+  onClick: () => void;
+  dataTestId?: string;
+  Icon?: ComponentType<{ className?: string }>;
+}
+
+function NavigatorCard({ title, description, onClick, dataTestId, Icon }: NavigatorCardProps) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onClick}
+      data-testid={dataTestId}
+      className="h-auto flex-col items-start justify-start gap-1.5 whitespace-normal bg-card px-4 py-3.5 text-left"
+    >
+      <div className="flex items-center gap-2">
+        {Icon ? <Icon className="size-4 shrink-0 text-muted-foreground" /> : null}
+        <span className="font-medium text-foreground text-sm">{title}</span>
+      </div>
+      <span className="line-clamp-2 text-muted-foreground text-xs leading-snug">{description}</span>
+    </Button>
+  );
+}
+
+const PILL_PACK_COUNT = 3;
+
+function StarterPackRow({
+  onPackSelect,
+}: {
+  onPackSelect: (packId: OkPackId | undefined, packs: OkSeedPackInfo[]) => void;
+}) {
+  const { t } = useLingui();
+  const [packs, setPacks] = useState<OkSeedPackInfo[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = await seedClient().listPacks();
+        if (cancelled) return;
+        if (result.ok) {
+          setPacks(result.packs);
+        } else {
+          console.error('[NavigatorApp] listPacks returned error:', result);
+          setPacks([]);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error('[NavigatorApp] listPacks failed:', err);
+        setPacks([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (packs === null || packs.length === 0) return null;
+
+  const pillPacks = packs.slice(0, PILL_PACK_COUNT);
+  const overflowCount = packs.length - pillPacks.length;
+
+  const selectPack = (packId: OkPackId) => onPackSelect(packId, packs);
+
+  return (
+    <section
+      className="flex flex-wrap items-center gap-x-3 gap-y-2"
+      data-testid="nav-starter-packs"
+    >
+      <span className="text-muted-foreground text-sm">
+        <Trans>or use a starter pack</Trans>
+      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {pillPacks.map((pack) => {
+          const Icon = iconForPack(pack.id);
+          return (
+            <Tooltip key={pack.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => selectPack(pack.id)}
+                  data-testid={`nav-pack-pill-${pack.id}`}
+                >
+                  <Icon className="size-3.5 text-muted-foreground" />
+                  {pack.name}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{pack.description}</TooltipContent>
+            </Tooltip>
+          );
+        })}
+        {overflowCount > 0 ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="rounded-full"
+            onClick={() => onPackSelect(undefined, packs)}
+            aria-label={t`See all ${packs.length} starter packs`}
+            data-testid="nav-pack-more"
+          >
+            <Trans>+{overflowCount} more</Trans>
+          </Button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function RecentRow({
+  project,
+  branch,
+  onOpen,
+  onRemove,
+}: {
+  project: RecentProject;
+  branch: string | null;
+  onOpen: () => void;
+  onRemove: () => void;
+}) {
+  const { t } = useLingui();
+  const { name: projectName } = project;
+  const isWorktree = project.isLinkedWorktree === true;
+  const rowBranch = isWorktree ? (project.branch ?? branch) : branch;
+  return (
+    <RecentItemContextMenu path={project.path} onRemoveRecent={onRemove} testIdPrefix="nav-recent">
+      <li className="group flex items-center justify-between rounded-lg hover:bg-accent">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onOpen}
+          className="h-auto min-w-0 flex-1 justify-between gap-3 py-3.5 pl-4 pr-2 text-left hover:bg-transparent"
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <Folder aria-hidden="true" className="size-[18px] shrink-0 text-muted-foreground" />
+            <div className="flex min-w-0 flex-col gap-1 truncate">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-medium text-sm text-foreground">{project.name}</span>
+                {isWorktree ? (
+                  <Badge
+                    variant="secondary"
+                    className="shrink-0 gap-1 rounded-full border-transparent bg-success/10 px-2 py-0 font-medium text-2xs text-success"
+                  >
+                    <GitBranch aria-hidden="true" className="size-2.5" />
+                    <Trans>worktree</Trans>
+                  </Badge>
+                ) : null}
+              </div>
+              <span
+                className="truncate w-full text-muted-foreground text-xs"
+                title={isWorktree ? (project.mainRoot ?? '') : project.path}
+              >
+                {isWorktree ? <Trans>of {basenameOf(project.mainRoot ?? '')}</Trans> : project.path}
+              </span>
+            </div>
+          </div>
+          {rowBranch != null ? (
+            <span
+              className="flex max-w-[40%] items-center gap-1 text-muted-foreground text-xs"
+              data-testid={`nav-recent-branch-${project.path}`}
+            >
+              <GitBranch aria-hidden="true" className="size-3 shrink-0" />
+              <span className="truncate font-mono">{rowBranch}</span>
+            </span>
+          ) : null}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={onRemove}
+          aria-label={t`Remove ${projectName} from recent projects`}
+          title={t`Remove from recent projects`}
+          className="pointer-events-none mr-2 opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100"
+          data-testid={`nav-recent-remove-${project.path}`}
+        >
+          <XIcon aria-hidden="true" />
+        </Button>
+      </li>
+    </RecentItemContextMenu>
+  );
+}
+
+async function openProject(
+  bridge: OkDesktopBridge,
+  path: string,
+  entryPoint: OkProjectEntryPoint,
+): Promise<void> {
+  await bridge.project.open({ path, target: 'new-window', entryPoint });
+}
+
+export function displayNameForPath(path: string): string {
+  const segments = path.split(/[/\\]/).filter(Boolean);
+  return segments.length > 0 ? (segments[segments.length - 1] ?? path) : path;
+}

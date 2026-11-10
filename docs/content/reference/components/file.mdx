@@ -1,0 +1,34 @@
+---
+title: "File"
+description: "Downloadable file attachment — inline row with name + size + download link"
+keywords: "file, attachment, download, document, zip, docx, doc"
+---
+
+## Example
+
+<ComponentPreview>
+  <FilePreview name="quarterly-report.pdf" size="124 KB" />
+</ComponentPreview>
+
+```md
+![[quarterly-report.pdf]]
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "src": {
+    description: "File URL",
+    type: "string",
+    required: true,
+    default: "",
+  },
+}}
+/>
+
+_Also matches:_ `file`, `attachment`, `download`, `document`, `zip`, `docx`, `doc`
+
+## Author it
+
+Type `/file` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

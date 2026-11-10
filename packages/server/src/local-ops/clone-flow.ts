@@ -1,0 +1,179 @@
+import { dirname, isAbsolute } from 'node:path';
+import { REFUSED_SYMLINK_PATHS_CAP } from '@inkeep/open-knowledge-core';
+import {
+  assertGitAvailable,
+  type GitDetected,
+  GitNotAvailableError,
+  GitProbeTimeoutError,
+  GitTooOldError,
+} from '../git-preflight.ts';
+import {
+  describeGitPreflightFailure,
+  emitPreflightFailureSpan,
+} from '../git-preflight-telemetry.ts';
+import { expandTilde, isAllowedGitUrl, isSafeLocalPath } from '../local-op-security.ts';
+import { getLogger } from '../logger.ts';
+import { redactedStderrDetail, stderrDetailSuffix } from './clone-error-classify.ts';
+import { type LocalOpCliInvocation, runOkCliSubprocess } from './subprocess.ts';
+
+const log = getLogger('clone-flow');
+
+export const UNSAFE_SYMLINKS_CLONE_MESSAGE =
+  'The repository has symlinks that are unsafe to check out, so the clone was removed. Fix or remove those links on the remote, then clone again.';
+
+export type RawCloneEvent =
+  | { type: 'progress'; phase: string; pct: number }
+  | { type: 'complete'; dir: string }
+  | { type: 'branch-fallback'; branch: string }
+  | {
+      type: 'error';
+      message: string;
+      code?: 'unsafe-symlinks';
+      refusedSymlinkPaths?: string[];
+    };
+
+export interface RunCloneOptions extends LocalOpCliInvocation {
+  url: string;
+  dir: string;
+  branch?: string | null;
+  timeoutMs?: number;
+  onEvent: (event: RawCloneEvent) => void;
+}
+
+export interface RunCloneController {
+  done: Promise<void>;
+  cancel(): void;
+}
+
+type CloneInputValidation = { ok: true } | { ok: false; reason: 'invalid-url' | 'invalid-dir' };
+
+const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
+
+export function validateCloneInputs(url: string, dir: string): CloneInputValidation {
+  if (!isAllowedGitUrl(url)) return { ok: false, reason: 'invalid-url' };
+  if (!isSafeLocalPath(dir)) return { ok: false, reason: 'invalid-dir' };
+  return { ok: true };
+}
+
+function asRawCloneEvent(parsed: Record<string, unknown>): RawCloneEvent | null {
+  const type = parsed.type;
+  if (type === 'progress') {
+    if (typeof parsed.phase === 'string' && typeof parsed.pct === 'number') {
+      return { type: 'progress', phase: parsed.phase, pct: parsed.pct };
+    }
+    return null;
+  }
+  if (type === 'complete') {
+    if (typeof parsed.dir === 'string') {
+      return { type: 'complete', dir: parsed.dir };
+    }
+    return null;
+  }
+  if (type === 'branch-fallback') {
+    if (typeof parsed.branch === 'string' && parsed.branch.length > 0) {
+      return { type: 'branch-fallback', branch: parsed.branch };
+    }
+    return null;
+  }
+  if (type === 'error' && parsed.code === 'unsafe-symlinks') {
+    const paths = Array.isArray(parsed.refusedSymlinkPaths) ? parsed.refusedSymlinkPaths : [];
+    return {
+      type: 'error',
+      code: 'unsafe-symlinks',
+      message: UNSAFE_SYMLINKS_CLONE_MESSAGE,
+      refusedSymlinkPaths: paths
+        .filter((path): path is string => typeof path === 'string' && path.length > 0)
+        .slice(0, REFUSED_SYMLINK_PATHS_CAP),
+    };
+  }
+  if (type === 'error') {
+    const message = typeof parsed.message === 'string' ? redactedStderrDetail(parsed.message) : '';
+    return { type: 'error', message: message || 'Unknown error' };
+  }
+  return null;
+}
+
+export function runCloneSubprocess(opts: RunCloneOptions): RunCloneController {
+  const targetDir = expandTilde(opts.dir);
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+  let detected: GitDetected;
+  try {
+    detected = assertGitAvailable();
+  } catch (err) {
+    if (
+      err instanceof GitNotAvailableError ||
+      err instanceof GitProbeTimeoutError ||
+      err instanceof GitTooOldError
+    ) {
+      const failure = describeGitPreflightFailure(err);
+      emitPreflightFailureSpan(err);
+      log.warn(
+        {
+          event: 'git_preflight_fail',
+          platform: err.platform,
+          reason: failure.reason,
+          detectedVersion: failure.detectedVersion,
+        },
+        failure.logMessage,
+      );
+    } else {
+      log.error(
+        {
+          event: 'clone_preflight_unexpected_error',
+          err,
+        },
+        'unexpected error during clone preflight',
+      );
+    }
+    const message = err instanceof Error ? err.message : String(err);
+    const done = Promise.resolve().then(() => {
+      opts.onEvent({ type: 'error', message });
+    });
+    return { done, cancel: () => {} };
+  }
+
+  const extraPathDirs = isAbsolute(detected.resolvedPath) ? [dirname(detected.resolvedPath)] : [];
+
+  let sawTerminal = false;
+
+  const branchArgs =
+    typeof opts.branch === 'string' && opts.branch.length > 0 ? ['-b', opts.branch] : [];
+  const proc = runOkCliSubprocess(opts.cli, {
+    trailingArgs: ['clone', '--json', ...branchArgs, opts.url, targetDir],
+    extraPathDirs,
+    timeoutMs,
+    onLine: ({ parsed }) => {
+      if (!parsed) return;
+      const event = asRawCloneEvent(parsed);
+      if (!event) return;
+      if (event.type === 'complete' || event.type === 'error') {
+        sawTerminal = true;
+      }
+      opts.onEvent(event);
+    },
+  });
+
+  const done = proc.done.then((result) => {
+    if ('refused' in result) {
+      opts.onEvent({ type: 'error', message: result.refused });
+      return;
+    }
+    if (sawTerminal) return;
+    if (result.timedOut) {
+      opts.onEvent({ type: 'error', message: 'Clone timed out after 10 minutes' });
+      return;
+    }
+    if (result.cancelled) return;
+    if (result.code !== 0) {
+      opts.onEvent({
+        type: 'error',
+        message: `Clone process exited with code ${result.code ?? -1}${stderrDetailSuffix(result.stderr)}`,
+      });
+      return;
+    }
+    opts.onEvent({ type: 'complete', dir: targetDir });
+  });
+
+  return { done, cancel: proc.cancel };
+}

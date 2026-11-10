@@ -1,0 +1,73 @@
+import { describe, expect, test, vi } from 'vitest';
+import { STABLE_DMG_URL } from '../../../lib/download-links.ts';
+import { DOWNLOAD_TARGETS, targetQuery } from '../../../lib/download-targets.ts';
+
+type CaptureOpts = {
+  event: string;
+  distinctId: string;
+  properties?: Record<string, string | undefined>;
+};
+
+let _lastCapture: CaptureOpts | null = null;
+vi.doMock('../../../lib/track.ts', () => ({
+  captureServerEvent: (opts: CaptureOpts) => {
+    _lastCapture = opts;
+  },
+  resolveDistinctId: () => 'visitor-1',
+  attribution: () => ({ referrer: 'news.ycombinator.com', utm_content: 'landing-hero' }),
+  isPrefetchRequest: (request: Request) => request.headers.get('sec-purpose') === 'prefetch',
+}));
+
+const { GET } = await import('./route.ts');
+
+describe('GET /download/stable', () => {
+  test('keeps the bare legacy URL on the stable Apple Silicon DMG', () => {
+    _lastCapture = null;
+    const res = GET(new Request('https://openknowledge.ai/download/stable'));
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(STABLE_DMG_URL);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(_lastCapture?.event).toBe('dmg_downloaded');
+    expect(_lastCapture?.distinctId).toBe('visitor-1');
+    expect(_lastCapture?.properties?.channel).toBe('stable');
+    expect(_lastCapture?.properties?.referrer).toBe('news.ycombinator.com');
+    expect(_lastCapture?.properties?.utm_content).toBe('landing-hero');
+  });
+
+  test('every catalog build is reachable and reports its own os/arch/format', () => {
+    for (const target of DOWNLOAD_TARGETS) {
+      _lastCapture = null;
+      const res = GET(
+        new Request(`https://openknowledge.ai/download/stable?${targetQuery(target)}`),
+      );
+      expect(res.status).toBe(302);
+      expect(res.headers.get('location')).toBe(target.assetUrl);
+      expect(_lastCapture?.properties).toMatchObject({
+        os: target.os,
+        arch: target.arch,
+        format: target.format,
+      });
+    }
+  });
+
+  test('an unknown platform triple falls back to the DMG rather than 404ing', () => {
+    _lastCapture = null;
+    const res = GET(
+      new Request('https://openknowledge.ai/download/stable?os=solaris&arch=sparc&format=pkg'),
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(STABLE_DMG_URL);
+  });
+
+  test('a prefetch still redirects but is NOT counted', () => {
+    _lastCapture = null;
+    const res = GET(
+      new Request('https://openknowledge.ai/download/stable', {
+        headers: { 'sec-purpose': 'prefetch' },
+      }),
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(STABLE_DMG_URL);
+    expect(_lastCapture).toBeNull();
+  });
+});

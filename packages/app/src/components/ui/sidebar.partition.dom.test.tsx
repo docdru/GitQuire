@@ -1,0 +1,313 @@
+/** Substrate: jsdom (precedent #43). */
+
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { readPins, SIDEBAR_PINS_KEY } from '@/lib/sidebar-pin-store';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from './sidebar';
+
+type Listener = (event: MediaQueryListEvent) => void;
+
+type ControllableMql = MediaQueryList & {
+  __setMatches: (next: boolean) => void;
+};
+
+let originalInnerWidth: number;
+let originalMatchMedia: typeof window.matchMedia;
+let originalUserAgent: string;
+
+function installMatchMedia(initialMatches: boolean): ControllableMql {
+  const listeners = new Set<Listener>();
+  const mql = {
+    matches: initialMatches,
+    media: '(min-width: 1024px)',
+    onchange: null,
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+      if (type === 'change' && typeof listener === 'function') {
+        listeners.add(listener as Listener);
+      }
+    },
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+      if (type === 'change' && typeof listener === 'function') {
+        listeners.delete(listener as Listener);
+      }
+    },
+    dispatchEvent() {
+      return false;
+    },
+    __setMatches(next: boolean) {
+      this.matches = next;
+      for (const l of listeners) {
+        l({ matches: next, media: this.media } as MediaQueryListEvent);
+      }
+    },
+  } as ControllableMql;
+  window.matchMedia = ((_query: string) => mql) as typeof window.matchMedia;
+  return mql;
+}
+
+function setInnerWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+}
+
+function setUserAgent(ua: string) {
+  Object.defineProperty(window.navigator, 'userAgent', { configurable: true, value: ua });
+}
+
+function getSidebarState(): 'expanded' | 'collapsed' | null {
+  const el = document.querySelector('[data-slot="sidebar"]');
+  const v = el?.getAttribute('data-state');
+  return v === 'expanded' || v === 'collapsed' ? v : null;
+}
+
+function Fixture() {
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton data-testid="content-item">Notes</SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarTrigger />
+    </SidebarProvider>
+  );
+}
+
+beforeEach(() => {
+  originalInnerWidth = window.innerWidth;
+  originalMatchMedia = window.matchMedia;
+  originalUserAgent = window.navigator.userAgent;
+  window.localStorage.clear();
+});
+
+afterEach(() => {
+  cleanup();
+  setInnerWidth(originalInnerWidth);
+  window.matchMedia = originalMatchMedia;
+  setUserAgent(originalUserAgent);
+  window.localStorage.clear();
+});
+
+describe('SidebarProvider — partition × pin resolution at mount (FR-1, FR-3, FR-4, FR-6)', () => {
+  test('non-embedded, ≥1024px, no pin → expanded (smart default)', () => {
+    setInnerWidth(1280);
+    installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('expanded');
+  });
+
+  test('non-embedded, <1024px, no pin → collapsed (smart default — kills the clip bug)', () => {
+    setInnerWidth(900);
+    installMatchMedia(false);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('collapsed');
+  });
+
+  test('embedded host UA → collapsed regardless of width (Cursor)', () => {
+    setUserAgent('Mozilla/5.0 Cursor(Beta)/1.5.0 (KHTML, like Gecko) Chrome/130');
+    setInnerWidth(1920);
+    installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('collapsed');
+  });
+
+  test('embedded host UA → collapsed regardless of width (Codex(Dev) parenthetical-tolerant)', () => {
+    setUserAgent('Mozilla/5.0 Codex(Dev)/26.513.31313 Chrome/130');
+    setInnerWidth(1920);
+    installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('collapsed');
+  });
+
+  test('above-partition slot overrides smart default (slot: collapsed at wide viewport)', () => {
+    window.localStorage.setItem(SIDEBAR_PINS_KEY, JSON.stringify({ left: { above: 'collapsed' } }));
+    setInnerWidth(1280);
+    installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('collapsed');
+  });
+
+  test('below-partition slot overrides smart default (slot: open at narrow viewport)', () => {
+    window.localStorage.setItem(SIDEBAR_PINS_KEY, JSON.stringify({ left: { below: 'open' } }));
+    setInnerWidth(900);
+    installMatchMedia(false);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('expanded');
+  });
+
+  test('absent slot for current partition falls back to smart default', () => {
+    window.localStorage.setItem(SIDEBAR_PINS_KEY, JSON.stringify({ left: { above: 'open' } }));
+    setInnerWidth(900);
+    installMatchMedia(false);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('collapsed');
+  });
+
+  test('corrupt localStorage falls back to smart default and does not throw', () => {
+    window.localStorage.setItem(SIDEBAR_PINS_KEY, 'not json {');
+    setInnerWidth(1280);
+    installMatchMedia(true);
+    expect(() => render(<Fixture />)).not.toThrow();
+    expect(getSidebarState()).toBe('expanded');
+  });
+});
+
+describe('SidebarProvider — matchMedia re-resolution (FR-3, FR-6)', () => {
+  test('above → below: above slot does not apply to below; below smart default applies', () => {
+    window.localStorage.setItem(SIDEBAR_PINS_KEY, JSON.stringify({ left: { above: 'open' } }));
+    setInnerWidth(1280);
+    const mql = installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('expanded');
+    setInnerWidth(900);
+    act(() => {
+      mql.__setMatches(false);
+    });
+    expect(getSidebarState()).toBe('collapsed');
+  });
+
+  test('below → above: smart default re-applies when no pin', () => {
+    setInnerWidth(900);
+    const mql = installMatchMedia(false);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('collapsed');
+    setInnerWidth(1280);
+    act(() => {
+      mql.__setMatches(true);
+    });
+    expect(getSidebarState()).toBe('expanded');
+  });
+
+  test('above → below with same-partition slot: slot for the NEW partition is respected', () => {
+    window.localStorage.setItem(SIDEBAR_PINS_KEY, JSON.stringify({ left: { below: 'open' } }));
+    setInnerWidth(1280);
+    const mql = installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('expanded');
+    setInnerWidth(900);
+    act(() => {
+      mql.__setMatches(false);
+    });
+    expect(getSidebarState()).toBe('expanded');
+  });
+});
+
+describe('SidebarProvider — focus safety on auto-collapse (FR-9 left side)', () => {
+  test('focus inside the sidebar is moved to the toggle when matchMedia auto-collapses', () => {
+    setInnerWidth(1280);
+    const mql = installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('expanded');
+
+    const contentItem = screen.getByTestId('content-item') as HTMLElement;
+    contentItem.focus();
+    expect(document.activeElement).toBe(contentItem);
+
+    setInnerWidth(900);
+    act(() => {
+      mql.__setMatches(false);
+    });
+
+    expect(getSidebarState()).toBe('collapsed');
+    const trigger = document.querySelector<HTMLElement>('[data-sidebar="trigger"]');
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  test('focus outside the sidebar is NOT moved on auto-collapse', () => {
+    setInnerWidth(1280);
+    const mql = installMatchMedia(true);
+    render(
+      <>
+        <Fixture />
+        <button type="button" data-testid="outside">
+          Outside
+        </button>
+      </>,
+    );
+    expect(getSidebarState()).toBe('expanded');
+
+    const outside = screen.getByTestId('outside') as HTMLElement;
+    outside.focus();
+    expect(document.activeElement).toBe(outside);
+
+    setInnerWidth(900);
+    act(() => {
+      mql.__setMatches(false);
+    });
+
+    expect(getSidebarState()).toBe('collapsed');
+    expect(document.activeElement).toBe(outside);
+  });
+});
+
+describe('SidebarProvider — trigger click writes one intent for every partition', () => {
+  test('click in above partition writes the same slot for every partition', () => {
+    setInnerWidth(1280);
+    installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('expanded');
+
+    const trigger = document.querySelector<HTMLElement>('[data-sidebar="trigger"]');
+    expect(trigger).not.toBeNull();
+    act(() => {
+      fireEvent.click(trigger as HTMLElement);
+    });
+
+    expect(getSidebarState()).toBe('collapsed');
+    expect(readPins(window.localStorage)).toEqual({
+      left: { above: 'collapsed', below: 'collapsed', embedded: 'collapsed' },
+    });
+  });
+
+  test('click in below partition replaces an earlier slot in every partition', () => {
+    window.localStorage.setItem(SIDEBAR_PINS_KEY, JSON.stringify({ left: { above: 'open' } }));
+    setInnerWidth(900);
+    installMatchMedia(false);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('collapsed');
+
+    const trigger = document.querySelector<HTMLElement>('[data-sidebar="trigger"]');
+    expect(trigger).not.toBeNull();
+    act(() => {
+      fireEvent.click(trigger as HTMLElement);
+    });
+
+    expect(getSidebarState()).toBe('expanded');
+    expect(readPins(window.localStorage)).toEqual({
+      left: { above: 'open', below: 'open', embedded: 'open' },
+    });
+  });
+
+  test('matchMedia re-resolution followed by click writes the fresh intent everywhere (closure freshness)', () => {
+    setInnerWidth(1280);
+    const mql = installMatchMedia(true);
+    render(<Fixture />);
+    expect(getSidebarState()).toBe('expanded');
+
+    setInnerWidth(900);
+    act(() => {
+      mql.__setMatches(false);
+    });
+    expect(getSidebarState()).toBe('collapsed');
+
+    const trigger = document.querySelector<HTMLElement>('[data-sidebar="trigger"]');
+    act(() => {
+      fireEvent.click(trigger as HTMLElement);
+    });
+
+    expect(readPins(window.localStorage)).toEqual({
+      left: { above: 'open', below: 'open', embedded: 'open' },
+    });
+  });
+});

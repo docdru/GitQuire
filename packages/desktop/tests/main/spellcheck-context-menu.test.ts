@@ -1,0 +1,189 @@
+import { describe, expect, test, vi } from 'vitest';
+import {
+  attachSpellcheckContextMenu,
+  type ContextMenuHandlerParams,
+} from '../../src/main/spellcheck-context-menu.ts';
+import type { BuildSpellcheckMenuTemplateParams } from '../../src/main/spellcheck-menu.ts';
+
+const allEditFlags = {
+  canCut: true,
+  canCopy: true,
+  canPaste: true,
+  canSelectAll: true,
+} as const;
+
+function makeParams(overrides: Partial<ContextMenuHandlerParams> = {}): ContextMenuHandlerParams {
+  return {
+    isEditable: true,
+    misspelledWord: '',
+    dictionarySuggestions: [],
+    selectionText: '',
+    editFlags: allEditFlags,
+    ...overrides,
+  };
+}
+
+function makeWebContents() {
+  let handler: ((event: unknown, params: ContextMenuHandlerParams) => void) | undefined;
+  return {
+    on: vi.fn(
+      (
+        _event: 'context-menu',
+        listener: (event: unknown, params: ContextMenuHandlerParams) => void,
+      ) => {
+        handler = listener;
+      },
+    ),
+    replaceMisspelling: vi.fn((_: string) => {}),
+    showDefinitionForSelection: vi.fn(() => {}),
+    fire(params: ContextMenuHandlerParams) {
+      if (!handler) throw new Error('no context-menu handler registered');
+      handler({}, params);
+    },
+  };
+}
+
+function makeDeps(
+  isSpellCheckEnabled: () => boolean = () => true,
+  canViewInSource: () => boolean = () => true,
+) {
+  return {
+    isSpellCheckEnabled,
+    canViewInSource,
+    setSpellCheckEnabled: vi.fn((_: boolean) => {}),
+    addToDictionary: vi.fn((_: string) => {}),
+    openExternal: vi.fn((_: string) => {}),
+    viewInSource: vi.fn(() => {}),
+    popMenu: vi.fn((_: BuildSpellcheckMenuTemplateParams) => {}),
+  };
+}
+
+describe('attachSpellcheckContextMenu — isEditable gate', () => {
+  test('non-editable target pops no menu', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    attachSpellcheckContextMenu(wc, deps);
+    wc.fire(makeParams({ isEditable: false }));
+    expect(deps.popMenu).not.toHaveBeenCalled();
+  });
+
+  test('editable target pops the menu once', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    attachSpellcheckContextMenu(wc, deps);
+    wc.fire(makeParams({ isEditable: true }));
+    expect(deps.popMenu).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('attachSpellcheckContextMenu — spellCheckEnabled flag', () => {
+  test('reads the flag fresh on each right-click', () => {
+    const wc = makeWebContents();
+    const values = [true, false];
+    const deps = makeDeps(() => values.shift() ?? true);
+    attachSpellcheckContextMenu(wc, deps);
+    wc.fire(makeParams());
+    wc.fire(makeParams());
+    const firstInput = deps.popMenu.mock.calls[0]?.[0];
+    const secondInput = deps.popMenu.mock.calls[1]?.[0];
+    expect(firstInput?.spellCheckEnabled).toBe(true);
+    expect(secondInput?.spellCheckEnabled).toBe(false);
+  });
+});
+
+describe('attachSpellcheckContextMenu — canViewInSource capability', () => {
+  test('reads the capability fresh on each right-click', () => {
+    const wc = makeWebContents();
+    const values = [true, false];
+    const deps = makeDeps(
+      () => true,
+      () => values.shift() ?? true,
+    );
+    attachSpellcheckContextMenu(wc, deps);
+    wc.fire(makeParams());
+    wc.fire(makeParams());
+    expect(deps.popMenu.mock.calls[0]?.[0]?.canViewInSource).toBe(true);
+    expect(deps.popMenu.mock.calls[1]?.[0]?.canViewInSource).toBe(false);
+  });
+});
+
+describe('attachSpellcheckContextMenu — params forwarding', () => {
+  test('popMenu receives the fired params object', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    attachSpellcheckContextMenu(wc, deps);
+    const fired = makeParams({ misspelledWord: 'teh', selectionText: 'teh fox' });
+    wc.fire(fired);
+    expect(deps.popMenu.mock.calls[0]?.[0]?.params).toBe(fired);
+  });
+});
+
+describe('attachSpellcheckContextMenu — action wiring', () => {
+  function fireAndGetActions(
+    wc: ReturnType<typeof makeWebContents>,
+    deps: ReturnType<typeof makeDeps>,
+    params: ContextMenuHandlerParams,
+  ): BuildSpellcheckMenuTemplateParams['actions'] {
+    attachSpellcheckContextMenu(wc, deps);
+    wc.fire(params);
+    const input = deps.popMenu.mock.calls[0]?.[0];
+    if (!input) throw new Error('popMenu was not called');
+    return input.actions;
+  }
+
+  test('replaceMisspelling routes to webContents.replaceMisspelling', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    const actions = fireAndGetActions(wc, deps, makeParams({ misspelledWord: 'teh' }));
+    actions.replaceMisspelling('the');
+    expect(wc.replaceMisspelling).toHaveBeenCalledWith('the');
+  });
+
+  test('addToDictionary routes to the injected capability', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    const actions = fireAndGetActions(wc, deps, makeParams({ misspelledWord: 'teh' }));
+    actions.addToDictionary('teh');
+    expect(deps.addToDictionary).toHaveBeenCalledWith('teh');
+  });
+
+  test('setSpellCheckEnabled routes to the injected capability', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    const actions = fireAndGetActions(wc, deps, makeParams({ misspelledWord: 'teh' }));
+    actions.setSpellCheckEnabled(false);
+    expect(deps.setSpellCheckEnabled).toHaveBeenCalledWith(false);
+  });
+
+  test('lookUp routes to webContents.showDefinitionForSelection', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    const actions = fireAndGetActions(wc, deps, makeParams({ selectionText: 'flow' }));
+    actions.lookUp();
+    expect(wc.showDefinitionForSelection).toHaveBeenCalledTimes(1);
+  });
+
+  test('search opens a Google query URL for the word', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    const actions = fireAndGetActions(wc, deps, makeParams({ selectionText: 'flow' }));
+    actions.search('flow');
+    expect(deps.openExternal).toHaveBeenCalledWith('https://www.google.com/search?q=flow');
+  });
+
+  test('search percent-encodes the query', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    const actions = fireAndGetActions(wc, deps, makeParams({ selectionText: 'a b&c' }));
+    actions.search('a b&c');
+    expect(deps.openExternal).toHaveBeenCalledWith('https://www.google.com/search?q=a%20b%26c');
+  });
+
+  test('viewInSource routes to the injected capability', () => {
+    const wc = makeWebContents();
+    const deps = makeDeps();
+    const actions = fireAndGetActions(wc, deps, makeParams());
+    actions.viewInSource();
+    expect(deps.viewInSource).toHaveBeenCalledTimes(1);
+  });
+});

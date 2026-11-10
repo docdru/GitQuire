@@ -1,0 +1,732 @@
+import { describe, expect, test } from 'vitest';
+import {
+  ConflictEntrySchema,
+  InstallSkillSuccessSchema,
+  ProblemTypeSchema,
+  PullOutcomeSchema,
+  PushPermissionSchema,
+  SeedApplyRequestSchema,
+  SeedApplySuccessSchema,
+  SeedInstallPackSkillRequestSchema,
+  SeedInstallPackSkillSuccessSchema,
+  SeedPlanSuccessSchema,
+  SyncConflictContentSuccessSchema,
+  SyncConflictsSuccessSchema,
+  SyncModeSchema,
+  SyncRemoteSchema,
+  SyncResolveConflictRequestSchema,
+  SyncResolveConflictSuccessSchema,
+  SyncStateSchema,
+  SyncStatusSchema,
+  SyncTriggerRequestSchema,
+  SyncTriggerSuccessSchema,
+} from './index.ts';
+
+describe('Cluster H URN tokens (US-013)', () => {
+  test('parses urn:ok:error:sync-not-active', () => {
+    expect(ProblemTypeSchema.safeParse('urn:ok:error:sync-not-active').success).toBe(true);
+  });
+  test('parses urn:ok:error:project-repo-not-configured', () => {
+    expect(ProblemTypeSchema.safeParse('urn:ok:error:project-repo-not-configured').success).toBe(
+      true,
+    );
+  });
+  test('parses urn:ok:error:seed-prerequisite-missing', () => {
+    expect(ProblemTypeSchema.safeParse('urn:ok:error:seed-prerequisite-missing').success).toBe(
+      true,
+    );
+  });
+  test('parses urn:ok:error:seed-invalid-root', () => {
+    expect(ProblemTypeSchema.safeParse('urn:ok:error:seed-invalid-root').success).toBe(true);
+  });
+});
+
+describe('SyncStateSchema', () => {
+  test('accepts every documented state', () => {
+    for (const s of [
+      'dormant',
+      'idle',
+      'fetching',
+      'pulling',
+      'pushing',
+      'conflict',
+      'offline',
+      'auth-error',
+      'disabled',
+    ]) {
+      expect(SyncStateSchema.safeParse(s).success).toBe(true);
+    }
+  });
+  test('rejects unknown state', () => {
+    expect(SyncStateSchema.safeParse('exploding').success).toBe(false);
+  });
+});
+
+describe('SyncModeSchema', () => {
+  test('accepts every documented mode', () => {
+    for (const m of ['off', 'follow', 'full']) {
+      expect(SyncModeSchema.safeParse(m).success).toBe(true);
+    }
+  });
+  test('rejects unknown mode', () => {
+    expect(SyncModeSchema.safeParse('bidirectional').success).toBe(false);
+    expect(SyncModeSchema.safeParse(true).success).toBe(false);
+  });
+});
+
+describe('PullOutcomeSchema', () => {
+  test('accepts every documented outcome', () => {
+    for (const o of ['succeeded', 'up-to-date', 'conflict', 'refused', 'error']) {
+      expect(PullOutcomeSchema.safeParse(o).success).toBe(true);
+    }
+  });
+  test('rejects an unknown outcome', () => {
+    expect(PullOutcomeSchema.safeParse('error-class').success).toBe(false);
+    expect(PullOutcomeSchema.safeParse('pending').success).toBe(false);
+  });
+});
+
+describe('SyncStatusSchema', () => {
+  const validStatus = {
+    state: 'idle' as const,
+    lastSyncUtc: null,
+    lastFetchUtc: null,
+    lastPushedSha: null,
+    ahead: 0,
+    behind: 0,
+    consecutiveFailures: 0,
+    conflictCount: 0,
+    hasRemote: false,
+    syncEnabled: false,
+    identityUnresolved: false,
+  };
+  test('parses minimal status (no error/pausedReason)', () => {
+    expect(SyncStatusSchema.safeParse(validStatus).success).toBe(true);
+  });
+  test('parses status with optional fields populated', () => {
+    expect(
+      SyncStatusSchema.safeParse({
+        ...validStatus,
+        lastSyncUtc: '2026-04-30T10:00:00.000Z',
+        lastFetchUtc: '2026-04-30T09:50:00.000Z',
+        lastPushedSha: 'abc1234',
+        ahead: 3,
+        behind: 1,
+        error: 'Network unavailable',
+        pausedReason: 'manual',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses a status carrying the identity-ambiguous not-found push error code', () => {
+    expect(
+      SyncStatusSchema.safeParse({
+        ...validStatus,
+        pushErrorCode: 'auth-not-found-as-identity',
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects negative ahead/behind/conflictCount', () => {
+    expect(SyncStatusSchema.safeParse({ ...validStatus, ahead: -1 }).success).toBe(false);
+    expect(SyncStatusSchema.safeParse({ ...validStatus, behind: -1 }).success).toBe(false);
+    expect(SyncStatusSchema.safeParse({ ...validStatus, conflictCount: -1 }).success).toBe(false);
+  });
+  test('rejects missing required field', () => {
+    const { state: _state, ...incomplete } = validStatus;
+    expect(SyncStatusSchema.safeParse(incomplete).success).toBe(false);
+  });
+  test('accepts a null remote (no remote configured)', () => {
+    expect(SyncStatusSchema.safeParse({ ...validStatus, remote: null }).success).toBe(true);
+  });
+  test('accepts a populated remote with a github webUrl', () => {
+    expect(
+      SyncStatusSchema.safeParse({
+        ...validStatus,
+        hasRemote: true,
+        remote: {
+          label: 'inkeep/open-knowledge',
+          webUrl: 'https://github.com/inkeep/open-knowledge',
+        },
+      }).success,
+    ).toBe(true);
+  });
+  test('accepts a remote with a null webUrl (non-github, name only)', () => {
+    expect(
+      SyncStatusSchema.safeParse({
+        ...validStatus,
+        hasRemote: true,
+        remote: { label: 'gitlab.com/team/notes', webUrl: null },
+      }).success,
+    ).toBe(true);
+  });
+  test('accepts a populated syncMode', () => {
+    for (const m of ['off', 'follow', 'full'] as const) {
+      expect(SyncStatusSchema.safeParse({ ...validStatus, syncMode: m }).success).toBe(true);
+    }
+  });
+  test('syncMode is additive: a status without it still parses', () => {
+    expect('syncMode' in validStatus).toBe(false);
+    expect(SyncStatusSchema.safeParse(validStatus).success).toBe(true);
+  });
+  test('rejects an invalid syncMode', () => {
+    expect(SyncStatusSchema.safeParse({ ...validStatus, syncMode: 'sideways' }).success).toBe(
+      false,
+    );
+  });
+  test('accepts a populated lastPullUtc + lastPullOutcome', () => {
+    expect(
+      SyncStatusSchema.safeParse({
+        ...validStatus,
+        lastPullUtc: '2026-07-22T04:00:00.000Z',
+        lastPullOutcome: 'succeeded',
+      }).success,
+    ).toBe(true);
+  });
+  test('lastPullUtc/lastPullOutcome are additive: a status without them still parses', () => {
+    expect('lastPullUtc' in validStatus).toBe(false);
+    expect('lastPullOutcome' in validStatus).toBe(false);
+    expect(SyncStatusSchema.safeParse(validStatus).success).toBe(true);
+  });
+  test('accepts null lastPullUtc/lastPullOutcome (no pull yet)', () => {
+    expect(
+      SyncStatusSchema.safeParse({ ...validStatus, lastPullUtc: null, lastPullOutcome: null })
+        .success,
+    ).toBe(true);
+  });
+  test('rejects an invalid lastPullOutcome', () => {
+    expect(
+      SyncStatusSchema.safeParse({ ...validStatus, lastPullOutcome: 'error-class' }).success,
+    ).toBe(false);
+  });
+  test('accepts a populated consecutivePushFailures', () => {
+    expect(SyncStatusSchema.safeParse({ ...validStatus, consecutivePushFailures: 6 }).success).toBe(
+      true,
+    );
+  });
+  test('consecutivePushFailures is additive: a status without it still parses', () => {
+    expect('consecutivePushFailures' in validStatus).toBe(false);
+    expect(SyncStatusSchema.safeParse(validStatus).success).toBe(true);
+  });
+  test('rejects a negative consecutivePushFailures', () => {
+    expect(
+      SyncStatusSchema.safeParse({ ...validStatus, consecutivePushFailures: -1 }).success,
+    ).toBe(false);
+  });
+});
+
+describe('PushPermissionSchema', () => {
+  test('parses every unknown variant including ssh-unverified', () => {
+    for (const unknownError of [
+      'network',
+      'timeout',
+      'rate-limit',
+      'token-invalid',
+      'malformed-response',
+      'ssh-unverified',
+    ]) {
+      const parsed = PushPermissionSchema.safeParse({ checkStatus: 'unknown', unknownError });
+      expect(parsed.success).toBe(true);
+    }
+  });
+  test('round-trips the ssh-unverified member', () => {
+    const wire = { checkStatus: 'unknown' as const, unknownError: 'ssh-unverified' as const };
+    const parsed = PushPermissionSchema.parse(wire);
+    expect(parsed).toEqual(wire);
+  });
+  test('rejects an unlisted unknownError code', () => {
+    expect(
+      PushPermissionSchema.safeParse({ checkStatus: 'unknown', unknownError: 'bogus' }).success,
+    ).toBe(false);
+  });
+  test('round-trips a denial naming the authenticated identity and a declared miss', () => {
+    const wire = {
+      checkStatus: 'denied' as const,
+      deniedReason: 'private-no-access' as const,
+      resolvedLogin: 'bob',
+      declaredLogin: 'alice',
+      declaredSource: 'remote-url',
+    };
+    const parsed = PushPermissionSchema.parse(wire);
+    expect(parsed).toEqual(wire);
+  });
+  test('parses a denial without identity fields (payload from an older server)', () => {
+    const parsed = PushPermissionSchema.parse({
+      checkStatus: 'denied',
+      deniedReason: 'private-no-access',
+    });
+    expect(parsed).toEqual({ checkStatus: 'denied', deniedReason: 'private-no-access' });
+  });
+  test('accepts a declaredSource value it has never heard of', () => {
+    const parsed = PushPermissionSchema.safeParse({
+      checkStatus: 'denied',
+      deniedReason: 'private-no-access',
+      declaredLogin: 'alice',
+      declaredSource: 'owner-map',
+    });
+    expect(parsed.success).toBe(true);
+  });
+  test('rejects a non-string resolvedLogin (typed field, not loose passthrough)', () => {
+    expect(
+      PushPermissionSchema.safeParse({
+        checkStatus: 'denied',
+        deniedReason: 'private-no-access',
+        resolvedLogin: 123,
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('SyncRemoteSchema', () => {
+  test('accepts a github remote with label + https webUrl', () => {
+    expect(
+      SyncRemoteSchema.safeParse({
+        label: 'inkeep/open-knowledge',
+        webUrl: 'https://github.com/inkeep/open-knowledge',
+      }).success,
+    ).toBe(true);
+  });
+  test('accepts a null webUrl', () => {
+    expect(SyncRemoteSchema.safeParse({ label: 'gitlab.com/x/y', webUrl: null }).success).toBe(
+      true,
+    );
+  });
+  test('rejects an empty label', () => {
+    expect(SyncRemoteSchema.safeParse({ label: '', webUrl: null }).success).toBe(false);
+  });
+  test('rejects a non-url webUrl string', () => {
+    expect(SyncRemoteSchema.safeParse({ label: 'x/y', webUrl: 'not-a-url' }).success).toBe(false);
+  });
+});
+
+describe('SyncTriggerRequestSchema', () => {
+  test('parses empty body (op defaults server-side)', () => {
+    expect(SyncTriggerRequestSchema.safeParse({}).success).toBe(true);
+  });
+  test('parses op:sync', () => {
+    expect(SyncTriggerRequestSchema.safeParse({ op: 'sync' }).success).toBe(true);
+  });
+  test('parses op:push and op:pull', () => {
+    expect(SyncTriggerRequestSchema.safeParse({ op: 'push' }).success).toBe(true);
+    expect(SyncTriggerRequestSchema.safeParse({ op: 'pull' }).success).toBe(true);
+  });
+  test('rejects unknown op (stricter than legacy silent fallthrough)', () => {
+    expect(SyncTriggerRequestSchema.safeParse({ op: 'gibberish' }).success).toBe(false);
+  });
+});
+
+describe('SyncTriggerSuccessSchema', () => {
+  test('parses op echo', () => {
+    expect(SyncTriggerSuccessSchema.safeParse({ op: 'sync' }).success).toBe(true);
+  });
+  test('rejects missing op', () => {
+    expect(SyncTriggerSuccessSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe('ConflictEntrySchema', () => {
+  test('parses minimal entry', () => {
+    expect(
+      ConflictEntrySchema.safeParse({
+        file: 'docs/foo.md',
+        detectedAt: '2026-04-30T10:00:00.000Z',
+        conflict: 'merge-native',
+        docName: 'docs/foo',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses entry with optional SHAs', () => {
+    expect(
+      ConflictEntrySchema.safeParse({
+        file: 'docs/foo.md',
+        detectedAt: '2026-04-30T10:00:00.000Z',
+        conflict: 'working-tree',
+        docName: 'docs/foo',
+        theirsSha: 'def5678',
+        baseSha: '0000000',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses an entry outside the content dir with a null docName', () => {
+    expect(
+      ConflictEntrySchema.safeParse({
+        file: 'outside/foo.md',
+        detectedAt: '2026-04-30T10:00:00.000Z',
+        conflict: 'reconcile',
+        reason: 'disk-markers',
+        docName: null,
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects an entry with no conflict', () => {
+    expect(
+      ConflictEntrySchema.safeParse({
+        file: 'docs/foo.md',
+        detectedAt: '2026-04-30T10:00:00.000Z',
+        docName: 'docs/foo',
+      }).success,
+    ).toBe(false);
+  });
+  test('rejects empty file', () => {
+    expect(
+      ConflictEntrySchema.safeParse({
+        file: '',
+        detectedAt: '2026-04-30T10:00:00.000Z',
+        conflict: 'merge-native',
+        docName: null,
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('SyncConflictsSuccessSchema', () => {
+  test('parses empty conflicts list', () => {
+    expect(SyncConflictsSuccessSchema.safeParse({ conflicts: [] }).success).toBe(true);
+  });
+  test('parses populated list', () => {
+    expect(
+      SyncConflictsSuccessSchema.safeParse({
+        conflicts: [
+          {
+            file: 'a.md',
+            detectedAt: '2026-04-30T10:00:00.000Z',
+            conflict: 'merge-native',
+            docName: 'a',
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects missing conflicts field', () => {
+    expect(SyncConflictsSuccessSchema.safeParse({}).success).toBe(false);
+  });
+  test('keeps every entry when one carries a reason this client does not know', () => {
+    const parsed = SyncConflictsSuccessSchema.safeParse({
+      conflicts: [
+        {
+          file: 'a.md',
+          detectedAt: '2026-04-30T10:00:00.000Z',
+          conflict: 'reconcile',
+          reason: 'refused-no-base',
+          docName: 'a',
+        },
+        {
+          file: 'b.md',
+          detectedAt: '2026-04-30T10:00:01.000Z',
+          conflict: 'reconcile',
+          reason: 'a-reason-shipped-after-this-client',
+          docName: 'b',
+        },
+      ],
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.conflicts.map((entry) => entry.file)).toEqual(['a.md', 'b.md']);
+    expect(parsed.data?.conflicts[1]?.reason).toBeUndefined();
+  });
+});
+
+describe('SyncResolveConflictRequestSchema', () => {
+  test('parses {file, strategy:mine}', () => {
+    expect(
+      SyncResolveConflictRequestSchema.safeParse({
+        file: 'a.md',
+        strategy: 'mine',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses {file, strategy:content, content}', () => {
+    expect(
+      SyncResolveConflictRequestSchema.safeParse({
+        file: 'a.md',
+        strategy: 'content',
+        content: 'merged body',
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects missing file', () => {
+    expect(
+      SyncResolveConflictRequestSchema.safeParse({
+        strategy: 'mine',
+      }).success,
+    ).toBe(false);
+  });
+  test('rejects empty file', () => {
+    expect(
+      SyncResolveConflictRequestSchema.safeParse({
+        file: '',
+        strategy: 'mine',
+      }).success,
+    ).toBe(false);
+  });
+  test('rejects unknown strategy', () => {
+    expect(
+      SyncResolveConflictRequestSchema.safeParse({
+        file: 'a.md',
+        strategy: 'magic',
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('SyncConflictContentSuccessSchema', () => {
+  test('parses populated stages', () => {
+    expect(
+      SyncConflictContentSuccessSchema.safeParse({
+        file: 'a.md',
+        base: 'before',
+        ours: 'mine',
+        theirs: 'theirs',
+        kind: 'both-modified',
+        conflict: 'merge-native',
+        resolutionOptions: ['mine', 'theirs', 'content', 'delete'],
+      }).success,
+    ).toBe(true);
+  });
+  test('parses empty stages (delete/edit conflict)', () => {
+    expect(
+      SyncConflictContentSuccessSchema.safeParse({
+        file: 'a.md',
+        base: '',
+        ours: '',
+        theirs: '',
+        kind: 'delete-modify',
+        conflict: 'merge-native',
+        resolutionOptions: ['mine', 'theirs', 'content', 'delete'],
+      }).success,
+    ).toBe(true);
+  });
+  test('parses a marker-bearing reconcile payload whose options omit theirs', () => {
+    expect(
+      SyncConflictContentSuccessSchema.safeParse({
+        file: 'a.md',
+        base: 'b',
+        ours: 'o',
+        theirs: 't',
+        kind: 'both-modified',
+        conflict: 'reconcile',
+        reason: 'disk-markers',
+        resolutionOptions: ['mine', 'content', 'delete'],
+      }).success,
+    ).toBe(true);
+  });
+  test('keeps the payload when the reason is one this client does not know', () => {
+    const parsed = SyncConflictContentSuccessSchema.safeParse({
+      file: 'a.md',
+      base: 'b',
+      ours: 'o',
+      theirs: 't',
+      kind: 'both-modified',
+      conflict: 'reconcile',
+      reason: 'a-reason-shipped-after-this-client',
+      resolutionOptions: ['mine', 'content', 'delete'],
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.reason).toBeUndefined();
+    expect(parsed.data?.resolutionOptions).toEqual(['mine', 'content', 'delete']);
+  });
+  test('rejects missing file', () => {
+    expect(
+      SyncConflictContentSuccessSchema.safeParse({
+        base: '',
+        ours: '',
+        theirs: '',
+        kind: 'both-modified',
+        conflict: 'merge-native',
+        resolutionOptions: [],
+      }).success,
+    ).toBe(false);
+  });
+  test('rejects a payload with no resolutionOptions', () => {
+    expect(
+      SyncConflictContentSuccessSchema.safeParse({
+        file: 'a.md',
+        base: 'b',
+        ours: 'o',
+        theirs: 't',
+        kind: 'both-modified',
+        conflict: 'merge-native',
+      }).success,
+    ).toBe(false);
+  });
+  test('rejects missing kind (always-required discriminator)', () => {
+    expect(
+      SyncConflictContentSuccessSchema.safeParse({
+        file: 'a.md',
+        base: 'b',
+        ours: 'o',
+        theirs: 't',
+        conflict: 'merge-native',
+        resolutionOptions: ['mine'],
+      }).success,
+    ).toBe(false);
+  });
+  test('rejects unknown kind value', () => {
+    expect(
+      SyncConflictContentSuccessSchema.safeParse({
+        file: 'a.md',
+        base: 'b',
+        ours: 'o',
+        theirs: 't',
+        kind: 'made-up-shape',
+        conflict: 'merge-native',
+        resolutionOptions: ['mine'],
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('SyncResolveConflictSuccessSchema', () => {
+  test('parses empty body', () => {
+    expect(SyncResolveConflictSuccessSchema.safeParse({}).success).toBe(true);
+  });
+});
+
+describe('SeedPlanSuccessSchema', () => {
+  test('parses {plan: ...} (plan is z.unknown — opaque)', () => {
+    expect(
+      SeedPlanSuccessSchema.safeParse({
+        plan: { created: [], skipped: [], configEdits: [], warnings: [] },
+      }).success,
+    ).toBe(true);
+  });
+  test('parses {plan: anything}', () => {
+    expect(SeedPlanSuccessSchema.safeParse({ plan: null }).success).toBe(true);
+    expect(SeedPlanSuccessSchema.safeParse({ plan: 'string' }).success).toBe(true);
+  });
+  test('rejects missing plan field', () => {
+    expect(SeedPlanSuccessSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe('SeedApplyRequestSchema', () => {
+  test('parses {plan: ...}', () => {
+    expect(
+      SeedApplyRequestSchema.safeParse({
+        plan: { created: [], skipped: [], configEdits: [], warnings: [] },
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects missing plan field', () => {
+    expect(SeedApplyRequestSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe('SeedApplySuccessSchema', () => {
+  test('parses {result: ...}', () => {
+    expect(
+      SeedApplySuccessSchema.safeParse({
+        result: { applied: 3, errors: [], durationMs: 42 },
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects missing result field', () => {
+    expect(SeedApplySuccessSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe('SeedInstallPackSkill schemas', () => {
+  test('require a pack id and report created-vs-existing skills', () => {
+    expect(SeedInstallPackSkillRequestSchema.safeParse({ packId: 'okf' }).success).toBe(true);
+    expect(SeedInstallPackSkillRequestSchema.safeParse({}).success).toBe(false);
+    expect(
+      SeedInstallPackSkillSuccessSchema.safeParse({
+        installedHosts: ['Claude Code'],
+        skills: [{ name: 'okf-knowledge-base', created: true }],
+      }).success,
+    ).toBe(true);
+  });
+
+  test('rejects incomplete skill results', () => {
+    expect(
+      SeedInstallPackSkillSuccessSchema.safeParse({
+        installedHosts: [],
+        skills: [{ name: 'okf-knowledge-base' }],
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('InstallSkillSuccessSchema (discriminated union)', () => {
+  test('parses installed variant — all artifact fields required', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'installed',
+        outputPath: '/tmp/skill.zip',
+        size: 1024,
+        sha256: 'a'.repeat(64),
+        skillVersion: '1.0.0',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses built variant with optional handoffError absent', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'built',
+        outputPath: '/tmp/skill.zip',
+        size: 1024,
+        sha256: 'a'.repeat(64),
+        skillVersion: '1.0.0',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses built variant with handoffError present', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'built',
+        outputPath: '/tmp/skill.zip',
+        size: 1024,
+        sha256: 'a'.repeat(64),
+        skillVersion: '1.0.0',
+        handoffError: { reason: 'unsupported-platform', message: 'linux not supported' },
+      }).success,
+    ).toBe(true);
+  });
+  test('parses failed variant — buildError required', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'failed',
+        buildError: 'esbuild exit 1',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses skip-current with skillVersion + recordedAt', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'skip-current',
+        skillVersion: '1.0.0',
+        recordedAt: '2026-05-07T12:00:00Z',
+      }).success,
+    ).toBe(true);
+  });
+  test('parses skip-current with skillVersion only (recordedAt optional)', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'skip-current',
+        skillVersion: '1.0.0',
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects skip-current without required skillVersion', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'skip-current',
+        recordedAt: '2026-05-07T12:00:00Z',
+      }).success,
+    ).toBe(false);
+  });
+  test('accepts forward-compat extra fields per .loose() variants', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'failed',
+        buildError: 'x',
+        futureField: 42,
+      }).success,
+    ).toBe(true);
+  });
+  test('rejects unknown status discriminant', () => {
+    expect(
+      InstallSkillSuccessSchema.safeParse({
+        status: 'unknown-status',
+        skillVersion: '1.0.0',
+      }).success,
+    ).toBe(false);
+  });
+});

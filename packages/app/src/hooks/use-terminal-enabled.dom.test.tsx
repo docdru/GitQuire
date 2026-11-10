@@ -1,0 +1,183 @@
+import type { Config, ConfigBinding, ConfigPatch } from '@inkeep/open-knowledge-core';
+import { cleanup, render } from '@testing-library/react';
+import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
+import { ConfigContext, type ConfigContextValue } from '@/lib/config-context';
+import type { TerminalConsentState, TerminalEnabledWriter } from './use-terminal-enabled';
+
+const consentGrants: true[] = [];
+vi.doMock('@/lib/terminal-telemetry', () => ({
+  recordShellConsentGranted: () => consentGrants.push(true),
+  recordTerminalOpened: () => undefined,
+}));
+
+let useTerminalConsentState: typeof import('./use-terminal-enabled').useTerminalConsentState;
+let useTerminalEnabledWriter: typeof import('./use-terminal-enabled').useTerminalEnabledWriter;
+beforeAll(async () => {
+  const mod = await import('./use-terminal-enabled');
+  useTerminalConsentState = mod.useTerminalConsentState;
+  useTerminalEnabledWriter = mod.useTerminalEnabledWriter;
+});
+
+const emptyContext: ConfigContextValue = {
+  userBinding: null,
+  userSynced: false,
+  projectBinding: null,
+  projectLocalBinding: null,
+  okignoreBinding: null,
+  okignoreSynced: false,
+  userConfig: null,
+  projectConfig: null,
+  projectLocalConfig: null,
+  projectSynced: false,
+  projectLocalSynced: false,
+  merged: null,
+};
+
+type FakePatchResult = { ok: true } | { ok: false; error: { code: 'WRITE_ERROR'; detail: string } };
+
+function makeFakeBinding(result: FakePatchResult): {
+  binding: ConfigBinding;
+  patches: ConfigPatch[];
+} {
+  const patches: ConfigPatch[] = [];
+  const binding = {
+    patch: (patch: ConfigPatch) => {
+      patches.push(patch);
+      return result;
+    },
+  } as unknown as ConfigBinding;
+  return { binding, patches };
+}
+
+let captured: { state: TerminalConsentState; writer: TerminalEnabledWriter | null } | null = null;
+
+function Probe() {
+  const state = useTerminalConsentState();
+  const writer = useTerminalEnabledWriter();
+  captured = { state, writer };
+  return null;
+}
+
+function renderWith(value: ConfigContextValue) {
+  render(
+    <ConfigContext value={value}>
+      <Probe />
+    </ConfigContext>,
+  );
+}
+
+describe('useTerminalConsentState', () => {
+  afterEach(() => {
+    cleanup();
+    captured = null;
+  });
+
+  test('reads the project-local terminal.enabled tri-state', () => {
+    renderWith({
+      ...emptyContext,
+      projectLocalConfig: { terminal: { enabled: true } } as unknown as Config,
+      projectLocalSynced: true,
+    });
+    expect(captured?.state).toEqual({ enabled: true, synced: true });
+
+    cleanup();
+    renderWith({
+      ...emptyContext,
+      projectLocalConfig: { terminal: { enabled: false } } as unknown as Config,
+      projectLocalSynced: true,
+    });
+    expect(captured?.state).toEqual({ enabled: false, synced: true });
+  });
+
+  test('coalesces an absent terminal leaf to null (unanswered)', () => {
+    renderWith({
+      ...emptyContext,
+      projectLocalConfig: {} as unknown as Config,
+      projectLocalSynced: true,
+    });
+    expect(captured?.state).toEqual({ enabled: null, synced: true });
+  });
+
+  test('reports synced:false during cold start so null is not mistaken for unanswered', () => {
+    renderWith({ ...emptyContext, projectLocalConfig: null, projectLocalSynced: false });
+    expect(captured?.state).toEqual({ enabled: null, synced: false });
+  });
+});
+
+describe('useTerminalEnabledWriter', () => {
+  afterEach(() => {
+    cleanup();
+    captured = null;
+    consentGrants.length = 0;
+  });
+
+  test('is null until the project-local binding mounts', () => {
+    renderWith(emptyContext);
+    expect(captured?.writer).toBeNull();
+  });
+
+  test('is null while a replacement project-local binding awaits its first sync', () => {
+    const { binding, patches } = makeFakeBinding({ ok: true });
+    renderWith({ ...emptyContext, projectLocalBinding: binding, projectLocalSynced: false });
+
+    expect(captured?.writer).toBeNull();
+    expect(patches).toEqual([]);
+  });
+
+  test('after first sync, grant patches terminal.enabled true on the project-local binding', () => {
+    const { binding, patches } = makeFakeBinding({ ok: true });
+    renderWith({ ...emptyContext, projectLocalBinding: binding, projectLocalSynced: true });
+
+    const result = captured?.writer?.(true);
+    expect(result).toEqual({ ok: true });
+    expect(patches).toEqual([{ terminal: { enabled: true } }]);
+  });
+
+  test('revoke patches terminal.enabled false on the project-local binding', () => {
+    const { binding, patches } = makeFakeBinding({ ok: true });
+    renderWith({ ...emptyContext, projectLocalBinding: binding, projectLocalSynced: true });
+
+    const result = captured?.writer?.(false);
+    expect(result).toEqual({ ok: true });
+    expect(patches).toEqual([{ terminal: { enabled: false } }]);
+  });
+
+  test('maps a binding write failure to a tagged error result', () => {
+    const { binding } = makeFakeBinding({
+      ok: false,
+      error: { code: 'WRITE_ERROR', detail: 'disk full' },
+    });
+    renderWith({ ...emptyContext, projectLocalBinding: binding, projectLocalSynced: true });
+
+    const result = captured?.writer?.(true);
+    expect(result?.ok).toBe(false);
+    if (result && !result.ok) expect(typeof result.error).toBe('string');
+  });
+
+  test('a successful grant records the shell-consent-granted event once', () => {
+    const { binding } = makeFakeBinding({ ok: true });
+    renderWith({ ...emptyContext, projectLocalBinding: binding, projectLocalSynced: true });
+
+    captured?.writer?.(true);
+    expect(consentGrants).toHaveLength(1);
+  });
+
+  test('a revoke does not record a consent grant', () => {
+    const { binding } = makeFakeBinding({ ok: true });
+    renderWith({ ...emptyContext, projectLocalBinding: binding, projectLocalSynced: true });
+
+    captured?.writer?.(false);
+    expect(consentGrants).toEqual([]);
+  });
+
+  test('a failed grant write does not record a consent grant', () => {
+    const { binding } = makeFakeBinding({
+      ok: false,
+      error: { code: 'WRITE_ERROR', detail: 'disk full' },
+    });
+    renderWith({ ...emptyContext, projectLocalBinding: binding, projectLocalSynced: true });
+
+    captured?.writer?.(true);
+    expect(consentGrants).toEqual([]);
+  });
+});

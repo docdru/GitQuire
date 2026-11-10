@@ -1,0 +1,184 @@
+import type { BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
+import { describe, expect, test, vi } from 'vitest';
+
+const warn = vi.hoisted(() => vi.fn());
+vi.mock('../../src/main/desktop-logger.ts', () => ({
+  getLogger: () => ({ info: () => {}, warn, error: () => {}, debug: () => {} }),
+}));
+
+import {
+  buildAssetMenuTemplate,
+  popAssetMenu,
+  revealMenuLabel,
+} from '../../src/main/asset-menu.ts';
+
+describe('revealMenuLabel — platform-specific Reveal text', () => {
+  test('macOS → Reveal in Finder', () => {
+    expect(revealMenuLabel('darwin')).toBe('Reveal in Finder');
+  });
+  test('Windows → Reveal in File Explorer', () => {
+    expect(revealMenuLabel('win32')).toBe('Reveal in File Explorer');
+  });
+  test('Linux → Open containing folder', () => {
+    expect(revealMenuLabel('linux')).toBe('Open containing folder');
+  });
+});
+
+describe('buildAssetMenuTemplate', () => {
+  function makeActions() {
+    return {
+      reveal: vi.fn(() => {}),
+      openInDefault: vi.fn(() => {}),
+      copyLink: vi.fn(() => {}),
+    };
+  }
+
+  test('emits [Reveal, Open in default app, separator, Copy link]', () => {
+    const actions = makeActions();
+    const template = buildAssetMenuTemplate({
+      kind: 'asset',
+      platform: 'darwin',
+      actions,
+    });
+    expect(template).toHaveLength(4);
+    expect(template[0]?.label).toBe('Reveal in Finder');
+    expect(template[1]?.label).toBe('Open in default app');
+    expect(template[2]?.type).toBe('separator');
+    expect(template[3]?.label).toBe('Copy link');
+  });
+
+  test('Reveal entry fires the reveal action', () => {
+    const actions = makeActions();
+    const template = buildAssetMenuTemplate({
+      kind: 'asset',
+      platform: 'darwin',
+      actions,
+    });
+    // biome-ignore lint/suspicious/noExplicitAny: test invokes the click callback
+    (template[0] as any).click();
+    expect(actions.reveal).toHaveBeenCalledTimes(1);
+    expect(actions.openInDefault).not.toHaveBeenCalled();
+    expect(actions.copyLink).not.toHaveBeenCalled();
+  });
+
+  test('Open-in-default fires the openInDefault action', () => {
+    const actions = makeActions();
+    const template = buildAssetMenuTemplate({
+      kind: 'asset',
+      platform: 'darwin',
+      actions,
+    });
+    // biome-ignore lint/suspicious/noExplicitAny: test invokes the click callback
+    (template[1] as any).click();
+    expect(actions.openInDefault).toHaveBeenCalledTimes(1);
+  });
+
+  test('Copy link fires the copyLink action', () => {
+    const actions = makeActions();
+    const template = buildAssetMenuTemplate({
+      kind: 'asset',
+      platform: 'darwin',
+      actions,
+    });
+    // biome-ignore lint/suspicious/noExplicitAny: test invokes the click callback
+    (template[3] as any).click();
+    expect(actions.copyLink).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    ['reveal', 0],
+    ['openInDefault', 1],
+    ['copyLink', 3],
+  ] as const)(
+    'a rejected or throwing %s action is logged, not left unhandled',
+    async (name, index) => {
+      for (const failure of [
+        () => Promise.reject(new Error('clipboard write failed')),
+        () => {
+          throw new Error('sync failure');
+        },
+      ]) {
+        warn.mockClear();
+        const actions = { ...makeActions(), [name]: vi.fn(failure) };
+        const template = buildAssetMenuTemplate({ kind: 'asset', platform: 'darwin', actions });
+        // biome-ignore lint/suspicious/noExplicitAny: test invokes the click callback
+        (template[index] as any).click();
+        await vi.waitFor(() => expect(warn).toHaveBeenCalledTimes(1));
+        expect(warn).toHaveBeenCalledWith(
+          { err: expect.any(Error), action: name },
+          'asset menu action failed',
+        );
+      }
+    },
+  );
+
+  test('wiki-link kind produces the same template shape (uniform UX)', () => {
+    const wikiActions = makeActions();
+    const assetActions = makeActions();
+    const wikiTpl = buildAssetMenuTemplate({
+      kind: 'wiki-link',
+      platform: 'darwin',
+      actions: wikiActions,
+    });
+    const assetTpl = buildAssetMenuTemplate({
+      kind: 'asset',
+      platform: 'darwin',
+      actions: assetActions,
+    });
+    expect(wikiTpl.map((e) => e.label ?? e.type)).toEqual(assetTpl.map((e) => e.label ?? e.type));
+  });
+});
+
+describe('popAssetMenu', () => {
+  test('builds template + pops via injected Menu ctor', () => {
+    const popup = vi.fn((_: unknown) => {});
+    const menuInstance = { popup } as unknown as ReturnType<typeof Menu.buildFromTemplate>;
+    const buildFromTemplate = vi.fn((_: MenuItemConstructorOptions[]) => menuInstance);
+    const fakeWindow = { id: 42, isDestroyed: () => false } as unknown as BrowserWindow;
+
+    popAssetMenu(
+      {
+        Menu: { buildFromTemplate },
+        window: fakeWindow,
+      },
+      {
+        kind: 'asset',
+        platform: 'darwin',
+        actions: {
+          reveal: () => {},
+          openInDefault: () => {},
+          copyLink: () => {},
+        },
+      },
+    );
+
+    expect(buildFromTemplate).toHaveBeenCalledTimes(1);
+    expect(popup).toHaveBeenCalledWith({ window: fakeWindow });
+  });
+
+  test('destroyed window → no build, no popup (right-click racing window close)', () => {
+    const popup = vi.fn((_: unknown) => {});
+    const menuInstance = { popup } as unknown as ReturnType<typeof Menu.buildFromTemplate>;
+    const buildFromTemplate = vi.fn((_: MenuItemConstructorOptions[]) => menuInstance);
+    const fakeWindow = { id: 42, isDestroyed: () => true } as unknown as BrowserWindow;
+
+    popAssetMenu(
+      {
+        Menu: { buildFromTemplate },
+        window: fakeWindow,
+      },
+      {
+        kind: 'asset',
+        platform: 'darwin',
+        actions: {
+          reveal: () => {},
+          openInDefault: () => {},
+          copyLink: () => {},
+        },
+      },
+    );
+
+    expect(buildFromTemplate).not.toHaveBeenCalled();
+    expect(popup).not.toHaveBeenCalled();
+  });
+});

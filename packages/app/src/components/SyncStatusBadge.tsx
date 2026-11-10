@@ -1,0 +1,1504 @@
+// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+
+import { isSyncMode } from '@inkeep/open-knowledge-core/config/auto-sync-mode';
+import type {
+  GitStatusCode,
+  GitWorktreeEntry,
+  GitWorktreeOpenTarget,
+  PushPermissionWire,
+  SyncErrorCode,
+} from '@inkeep/open-knowledge-core/schemas/api';
+import type { SyncPausedReason } from '@inkeep/open-knowledge-core/sync-paused-reason';
+import type { MessageDescriptor } from '@lingui/core';
+import { msg, plural, t } from '@lingui/core/macro';
+import { Plural, Trans, useLingui } from '@lingui/react/macro';
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpRight,
+  ChevronRight,
+  Cloud,
+  CloudAlert,
+  CloudOff,
+  LogIn,
+  RefreshCw,
+  Settings2,
+  UserCog,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Spinner } from '@/components/ui/spinner';
+import { useConflicts } from '@/hooks/use-conflicts';
+import { useBadgeSyncControls } from '@/hooks/use-enable-sync-with-confirm';
+import type { GitSyncStatus } from '@/hooks/use-git-sync-status';
+import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
+import type { GitWorktreeStatus } from '@/hooks/use-git-worktree-status';
+import { useGitWorktreeStatus } from '@/hooks/use-git-worktree-status';
+import { useConfigContext } from '@/lib/config-provider';
+import { hashFromAssetPath, hashFromDocName, isSameHash } from '@/lib/doc-hash';
+import { engineSyncMode } from '@/lib/engine-sync-mode';
+import { revealEditor } from '@/lib/reveal-editor';
+import { triggerSync } from '@/lib/trigger-sync';
+import { openAccountSettings, openSyncSettings } from '@/lib/use-settings-route';
+import { EnableSyncConfirmDialog } from './EnableSyncConfirmDialog';
+import { SyncBlockingChanges } from './SyncBlockingChanges';
+import {
+  groupWorktreeEntries,
+  MAX_ROWS_PER_GROUP,
+  type WorktreeFolderGroup,
+  type WorktreeRowModel,
+} from './sync-worktree-grouping.ts';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+
+type ManualSyncOp = 'sync' | 'push' | 'pull';
+
+function triggerSyncFromBadge(op: ManualSyncOp = 'sync', onFailure?: () => void): void {
+  triggerSync(op).catch((err) => {
+    console.warn(
+      '[sync-badge] manual sync trigger failed',
+      err instanceof Error ? err.message : err,
+    );
+    onFailure?.();
+  });
+}
+
+function navigateToHash(nextHash: string): void {
+  if (typeof window === 'undefined') return;
+  revealEditor();
+  if (!isSameHash(window.location.hash, nextHash)) {
+    window.location.hash = nextHash;
+  }
+}
+
+function hashForOpenTarget(target: GitWorktreeOpenTarget): string {
+  return target.kind === 'doc' ? hashFromDocName(target.docName) : hashFromAssetPath(target.path);
+}
+
+const STALENESS_TICK_MS = 30_000;
+
+type ReactiveTranslate = ReturnType<typeof useLingui>['t'];
+
+function formatRelativeSince(translate: ReactiveTranslate, at: number, now: number): string {
+  const diff = now - at;
+  if (diff < 60_000) return translate(msg`just now`);
+  if (diff < 3_600_000) {
+    const minutes = Math.floor(diff / 60_000);
+    return translate(msg`${minutes}m ago`);
+  }
+  if (diff < 86_400_000) {
+    const hours = Math.floor(diff / 3_600_000);
+    return translate(msg`${hours}h ago`);
+  }
+  return new Date(at).toLocaleDateString();
+}
+
+function formatRelativeCompact(translate: ReactiveTranslate, iso: string): string {
+  return formatRelativeSince(translate, new Date(iso).getTime(), Date.now());
+}
+
+function useNowTick(): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), STALENESS_TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+function isFollowingMode(status: GitSyncStatus): boolean {
+  return status.syncMode === 'follow';
+}
+
+const SYNC_DISABLING_PAUSED_REASONS = [
+  'git-operation-in-progress',
+  'unsafe-incoming-symlinks',
+] as const satisfies readonly SyncPausedReason[];
+
+export type SyncDisablingPausedReason = (typeof SYNC_DISABLING_PAUSED_REASONS)[number];
+
+export function isSyncDisablingPausedReason(
+  reason: string | undefined,
+): reason is SyncDisablingPausedReason {
+  return (SYNC_DISABLING_PAUSED_REASONS as readonly (string | undefined)[]).includes(reason);
+}
+
+export function displayState(status: GitSyncStatus): GitSyncStatus['state'] {
+  if (status.state === 'idle' && status.conflictCount > 0) {
+    return 'conflict';
+  }
+  if (
+    (status.state === 'idle' || status.state === 'offline') &&
+    isSyncDisablingPausedReason(status.pausedReason)
+  ) {
+    return 'disabled';
+  }
+  return status.state;
+}
+
+interface BadgeIconProps {
+  status: GitSyncStatus;
+  size?: 'size-3.5' | 'size-4';
+}
+
+function BadgeIcon({ status, size = 'size-3.5' }: BadgeIconProps) {
+  const cls = size;
+  switch (displayState(status)) {
+    case 'dormant':
+      return <Cloud className={`${cls} text-muted-foreground`} />;
+    case 'idle':
+      if (status.ahead > 0 || status.behind > 0) {
+        return <RefreshCw className={`${cls} text-muted-foreground`} />;
+      }
+      return <Cloud className={`${cls} text-muted-foreground`} />;
+    case 'fetching':
+    case 'pulling':
+    case 'pushing':
+      return (
+        <Spinner aria-hidden="true" icon={RefreshCw} className={`${cls} text-muted-foreground`} />
+      );
+    case 'conflict':
+      return <AlertTriangle className={`${cls} text-warning`} />;
+    case 'offline':
+      return <CloudOff className={`${cls} text-muted-foreground`} />;
+    case 'auth-error':
+      return hasNotFoundAsIdentityError(status) ? (
+        <CloudAlert className={`${cls} text-destructive`} />
+      ) : (
+        <LogIn className={`${cls} text-destructive`} />
+      );
+    case 'disabled':
+      if (status.pausedReason) return <AlertTriangle className={`${cls} text-warning`} />;
+      if (status.ahead > 0 || status.behind > 0) {
+        return <RefreshCw className={`${cls} text-muted-foreground`} />;
+      }
+      return <Cloud className={`${cls} text-muted-foreground`} />;
+    default:
+      return <Cloud className={`${cls} text-muted-foreground`} />;
+  }
+}
+
+function badgeLabel(status: GitSyncStatus): string {
+  switch (displayState(status)) {
+    case 'idle':
+      if (!isFollowingMode(status) && status.ahead > 0) return `↑${status.ahead}`;
+      if (status.behind > 0) return `↓${status.behind}`;
+      return '';
+    case 'fetching':
+    case 'pulling':
+    case 'pushing':
+      return '';
+    case 'conflict':
+      return status.conflictCount > 0 ? `${status.conflictCount}` : '';
+    case 'offline':
+      return '';
+    case 'auth-error':
+      return '';
+    default:
+      return '';
+  }
+}
+
+function stateLabel(status: GitSyncStatus): string {
+  const following = isFollowingMode(status);
+  const state = displayState(status);
+  switch (state) {
+    case 'dormant':
+      return t`No git remote`;
+    case 'idle':
+      return following ? t`Up to date` : t`Synced`;
+    case 'fetching':
+      return following ? t`Checking for updates` : t`Fetching`;
+    case 'pulling':
+      return following ? t`Updating` : t`Pulling`;
+    case 'pushing':
+      return t`Pushing`;
+    case 'conflict':
+      return t`Conflict`;
+    case 'offline':
+      return t`Offline`;
+    case 'auth-error':
+      return t`Reconnect required`;
+    case 'disabled':
+      return status.pausedReason ? t`Sync paused` : t`Manual`;
+    default:
+      return state;
+  }
+}
+
+const NODE_RENDERED_PAUSED_REASONS = [
+  'git-index-locked',
+] as const satisfies readonly SyncPausedReason[];
+
+type NodeRenderedPausedReason = (typeof NODE_RENDERED_PAUSED_REASONS)[number];
+
+const PAUSED_REASON_MESSAGES: Record<SyncPausedReason, MessageDescriptor> = {
+  'git-index-locked': msg`Another program is using Git here — wait for it to finish, then sync again (it holds .git/index.lock)`,
+  'git-operation-in-progress': msg`Git syncing is paused because a Git operation or unresolved conflicts need attention. Your edits still save locally. Finish the operation or resolve the conflicts in your terminal, then retry sync.`,
+  'external-changes-pending': msg`Local changes overlap with incoming sync`,
+  'dirty-tree': msg`Local changes blocked the merge`,
+  'non-content-merge-failure': msg`Resolve conflict in your terminal`,
+  'detached-head': msg`Detached HEAD — checkout a branch to resume`,
+  'diverged-local-commits': msg`Local commits are keeping this copy from updating`,
+  'auth-error': msg`Reconnect required`,
+  'protected-branch': msg`Protected branch — cannot push`,
+  'no-push-permission': msg`You don't have permission to push to this repo.`,
+  'no-commits-yet': msg`This repository has no commits yet — reopen the project to create the first commit, then Push will work`,
+  'unsafe-incoming-symlinks': msg`Sync is paused because incoming changes leave a symlink pointing outside the repository or into private files, or with a target that cannot be checked. Ask whoever pushed them to fix the link, or update Git if yours is older than 2.38. Automatic sync then resumes; in Manual mode, pull again.`,
+};
+
+function isKnownPausedReason(reason: string): reason is SyncPausedReason {
+  return Object.hasOwn(PAUSED_REASON_MESSAGES, reason);
+}
+
+export function formatPausedReason(translate: ReactiveTranslate, reason: string): string {
+  return isKnownPausedReason(reason) ? translate(PAUSED_REASON_MESSAGES[reason]) : reason;
+}
+
+function isNodeRenderedPausedReason(reason: string): reason is NodeRenderedPausedReason {
+  return (NODE_RENDERED_PAUSED_REASONS as readonly string[]).includes(reason);
+}
+
+function assertNeverPausedReasonNode(reason: never): never {
+  throw new Error(`Unhandled node-rendered paused reason: ${String(reason)}`);
+}
+
+function PausedReasonNode({ reason }: { reason: NodeRenderedPausedReason }) {
+  switch (reason) {
+    case 'git-index-locked':
+      return (
+        <Trans>
+          Another program is using Git here — wait for it to finish, then sync again (it holds{' '}
+          <span dir="ltr" className="font-mono">
+            .git/index.lock
+          </span>
+          )
+        </Trans>
+      );
+    default:
+      return assertNeverPausedReasonNode(reason);
+  }
+}
+
+export function SyncRefusedSymlinks({ paths }: { paths: readonly string[] | undefined }) {
+  if (paths === undefined || paths.length === 0) return null;
+  return (
+    <ul
+      className="flex max-h-28 flex-col gap-1 overflow-y-auto overscroll-contain"
+      data-testid="sync-refused-symlinks"
+    >
+      {paths.map((path) => (
+        <li
+          key={path}
+          title={path}
+          dir="ltr"
+          className="min-w-0 truncate font-mono text-2xs text-foreground"
+        >
+          {path}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function PausedReasonNotice({ reason }: { reason: string }) {
+  const { t } = useLingui();
+  if (isNodeRenderedPausedReason(reason)) {
+    return <PausedReasonNode reason={reason} />;
+  }
+  return <>{formatPausedReason(t, reason)}</>;
+}
+
+type PushPermissionDeniedIdentity = Pick<
+  Extract<PushPermissionWire, { checkStatus: 'denied' }>,
+  'resolvedLogin' | 'declaredLogin' | 'declaredSource'
+>;
+
+export function formatPushPermissionDenied(
+  reason:
+    | 'no-collaborator'
+    | 'private-no-access'
+    | 'repo-not-found'
+    | 'not-authenticated'
+    | undefined,
+  identity?: PushPermissionDeniedIdentity,
+): string[] {
+  const sentences: string[] = [];
+  switch (reason) {
+    case 'not-authenticated':
+      sentences.push(t`You're signed out — sign in to resume syncing.`);
+      break;
+    case 'no-collaborator':
+      sentences.push(t`You don't have permission to push to this repo.`);
+      break;
+    case 'private-no-access':
+      sentences.push(
+        t`You don't have access to this private repo. Sign in with an account that does.`,
+      );
+      break;
+    case 'repo-not-found':
+      sentences.push(t`Repository not found. It may have been renamed, deleted, or moved.`);
+      break;
+    default:
+      sentences.push(t`You don't have permission to push to this repo.`);
+  }
+  sentences.push(...formatDeniedIdentitySentences(identity));
+  return sentences;
+}
+
+export function formatDeniedIdentitySentences(identity?: PushPermissionDeniedIdentity): string[] {
+  const sentences: string[] = [];
+  if (identity?.resolvedLogin) {
+    const login = identity.resolvedLogin;
+    sentences.push(t`Authenticated as ${login}.`);
+  }
+  if (identity?.declaredLogin) {
+    sentences.push(formatDeclaredAccountMiss(identity.declaredLogin, identity.declaredSource));
+  }
+  return sentences;
+}
+
+function formatDeclaredAccountMiss(declaredLogin: string, declaredSource: string | undefined) {
+  switch (declaredSource) {
+    case 'remote-url':
+      return t`Your remote URL names ${declaredLogin}, but that account's credentials couldn't be used.`;
+    case 'credential-config':
+      return t`Your Git credential configuration names ${declaredLogin}, but that account's credentials couldn't be used.`;
+    default:
+      return t`Your Git configuration names ${declaredLogin}, but that account's credentials couldn't be used.`;
+  }
+}
+
+export function hasNotFoundAsIdentityError(
+  status: Pick<GitSyncStatus, 'pushErrorCode' | 'pullErrorCode'>,
+): boolean {
+  return (
+    status.pushErrorCode === 'auth-not-found-as-identity' ||
+    status.pullErrorCode === 'auth-not-found-as-identity'
+  );
+}
+
+export function isParkedOnNotFoundAsIdentity(
+  status:
+    | Pick<GitSyncStatus, 'pausedReason' | 'pushErrorCode' | 'pullErrorCode'>
+    | null
+    | undefined,
+): boolean {
+  return status?.pausedReason === 'auth-error' && hasNotFoundAsIdentityError(status);
+}
+
+export function shouldOfferReconnect(pushPermission: PushPermissionWire | undefined): boolean {
+  return (
+    pushPermission?.checkStatus === 'denied' && pushPermission.deniedReason === 'not-authenticated'
+  );
+}
+
+export function isGitHubRemote(remote: GitSyncStatus['remote']): boolean {
+  return typeof remote?.webUrl === 'string';
+}
+
+export function hasNonGitHubRemote(remote: GitSyncStatus['remote']): boolean {
+  return remote != null && !isGitHubRemote(remote);
+}
+
+export function remoteTakesStoredToken(remote: GitSyncStatus['remote'] | undefined): boolean {
+  return remote?.transport === undefined || remote.transport === 'https';
+}
+
+export function formatAuthFailureCode(code: SyncErrorCode, isGitHub: boolean): string | null {
+  switch (code) {
+    case 'auth-401':
+      return isGitHub
+        ? t`GitHub authentication failed. Try signing in again.`
+        : t`Authentication failed for this git host. Add a token for it in Settings, or replace the one stored.`;
+    case 'auth-scope-mismatch':
+      return isGitHub
+        ? t`Your GitHub token is missing required scopes. Try signing in again.`
+        : t`The stored token is missing the permissions this host needs to push.`;
+    case 'auth-no-credential':
+      return isGitHub
+        ? t`GitHub sign-in is missing or expired. Reconnect to resume syncing.`
+        : t`No credential is stored for this git host. Add a token in Settings, or let git use the credentials it already has.`;
+    default:
+      return null;
+  }
+}
+
+export function formatPushFailureCode(code: SyncErrorCode, isGitHub: boolean): string {
+  const authMessage = formatAuthFailureCode(code, isGitHub);
+  if (authMessage !== null) return authMessage;
+  switch (code) {
+    case 'auth-403':
+      return t`You don't have permission to push to this repo.`;
+    case 'semantic-protected-branch':
+      return t`The default branch is protected — pushes need a pull request.`;
+    case 'auth-not-found-as-identity':
+      return t`Repository not found — it may not exist, or the account used may not have access.`;
+    default:
+      return t`Push failed — check the server logs for details.`;
+  }
+}
+
+export function formatPullFailureCode(code: SyncErrorCode, isGitHub: boolean): string {
+  const authMessage = formatAuthFailureCode(code, isGitHub);
+  if (authMessage !== null) return authMessage;
+  switch (code) {
+    case 'auth-403':
+      return t`You don't have access to this repository.`;
+    case 'auth-not-found-as-identity':
+      return t`Repository not found — it may not exist, or the account used may not have access.`;
+    default:
+      return t`Fetch failed — check the server logs for details.`;
+  }
+}
+
+export function formatSyncFailureCode(code: SyncErrorCode, isGitHub: boolean): string {
+  const authMessage = formatAuthFailureCode(code, isGitHub);
+  if (authMessage !== null) return authMessage;
+  switch (code) {
+    case 'auth-403':
+      return t`You don't have access to this repository.`;
+    case 'semantic-protected-branch':
+      return t`The default branch is protected — pushes need a pull request.`;
+    case 'auth-not-found-as-identity':
+      return t`Repository not found — it may not exist, or the account used may not have access.`;
+    default:
+      return t`Sync failed — check the server logs for details.`;
+  }
+}
+
+type SyncErrorDirection = 'push' | 'pull';
+
+export interface SyncErrorLine {
+  key: 'sync' | 'push' | 'pull';
+  direction: SyncErrorDirection | null;
+  message: string;
+}
+
+export function computeSyncErrorLines(
+  status: Pick<
+    GitSyncStatus,
+    'pushError' | 'pushErrorCode' | 'pullError' | 'pullErrorCode' | 'remote'
+  >,
+): SyncErrorLine[] {
+  const isGitHub = isGitHubRemote(status.remote);
+  const pushPresent = status.pushErrorCode != null || status.pushError != null;
+  const pullPresent = status.pullErrorCode != null || status.pullError != null;
+
+  if (pushPresent && pullPresent) {
+    const sameRootCause =
+      status.pushErrorCode != null
+        ? status.pushErrorCode === status.pullErrorCode
+        : status.pullErrorCode == null && status.pushError === status.pullError;
+    if (sameRootCause) {
+      return [
+        {
+          key: 'sync',
+          direction: null,
+          message:
+            status.pushErrorCode != null
+              ? formatSyncFailureCode(status.pushErrorCode, isGitHub)
+              : (status.pushError as string),
+        },
+      ];
+    }
+  }
+
+  const labelDirections = pushPresent && pullPresent;
+  const lines: SyncErrorLine[] = [];
+  if (pushPresent) {
+    lines.push({
+      key: 'push',
+      direction: labelDirections ? 'push' : null,
+      message: status.pushErrorCode
+        ? formatPushFailureCode(status.pushErrorCode, isGitHub)
+        : (status.pushError as string),
+    });
+  }
+  if (pullPresent) {
+    lines.push({
+      key: 'pull',
+      direction: labelDirections ? 'pull' : null,
+      message: status.pullErrorCode
+        ? formatPullFailureCode(status.pullErrorCode, isGitHub)
+        : (status.pullError as string),
+    });
+  }
+  return lines;
+}
+
+export function shouldOfferSignInAgain(pushPermission: PushPermissionWire | undefined): boolean {
+  return (
+    pushPermission?.checkStatus === 'unknown' && pushPermission.unknownError === 'token-invalid'
+  );
+}
+
+function syncStateLabelFor(status: GitSyncStatus): string {
+  if (displayState(status) === 'auth-error' && hasNotFoundAsIdentityError(status)) {
+    return t`Repository not found`;
+  }
+  return stateLabel(status);
+}
+
+export function tooltipLabel(status: GitSyncStatus): string {
+  const following = isFollowingMode(status);
+  const state = displayState(status);
+  if (state === 'conflict' && status.conflictCount > 0) {
+    const { conflictCount } = status;
+    return plural(conflictCount, { one: '# conflict', other: '# conflicts' });
+  }
+  if (state === 'idle') {
+    const { ahead, behind } = status;
+    if (following) {
+      if (behind > 0) return t`${behind} behind`;
+      return t`Up to date`;
+    }
+    if (ahead > 0 && behind > 0) {
+      return t`${ahead} ahead, ${behind} behind`;
+    }
+    if (ahead > 0) return t`${ahead} ahead`;
+    if (behind > 0) return t`${behind} behind`;
+    return t`Synced`;
+  }
+  return syncStateLabelFor(status);
+}
+
+interface PopoverBodyProps {
+  status: GitSyncStatus;
+  onSignIn?: () => void;
+  onSetIdentity?: () => void;
+}
+
+function SectionLabel({ children, id }: { children: React.ReactNode; id?: string }) {
+  return (
+    <span id={id} className="font-mono uppercase tracking-wide text-2xs text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+function statusCodeLabel(code: GitStatusCode): string {
+  switch (code) {
+    case 'M':
+      return t`Modified`;
+    case 'A':
+      return t`Added`;
+    case 'D':
+      return t`Deleted`;
+    case 'R':
+      return t`Renamed`;
+    case 'C':
+      return t`Copied`;
+    case 'U':
+      return t`Unmerged`;
+    case 'T':
+      return t`Type changed`;
+    case '?':
+      return t`Untracked`;
+    case '!':
+      return t`Ignored`;
+    default:
+      return t`Changed`;
+  }
+}
+
+function statusCodeVariant(code: GitStatusCode): 'gray' | 'warning' | 'destructive' {
+  switch (code) {
+    case 'D':
+      return 'destructive';
+    case 'U':
+      return 'warning';
+    default:
+      return 'gray';
+  }
+}
+
+function WorktreeRow({
+  entry,
+  dimmed,
+  label,
+}: {
+  entry: GitWorktreeEntry;
+  dimmed: boolean;
+  label: string;
+}) {
+  const codeLabel = statusCodeLabel(entry.code);
+  const openTarget = entry.open;
+  const pathClassName = `truncate text-start font-mono text-2xs ${dimmed ? 'text-muted-foreground/60' : 'text-foreground'}`;
+  return (
+    <li className="flex min-w-0 items-center gap-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge
+            variant={statusCodeVariant(entry.code)}
+            className="size-4 shrink-0 justify-center p-0 text-2xs leading-none"
+          >
+            <span aria-hidden>{entry.code}</span>
+            <span className="sr-only">{codeLabel}</span>
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent>{codeLabel}</TooltipContent>
+      </Tooltip>
+      {openTarget ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverClose asChild>
+              <Button
+                variant="link-muted"
+                size="xs"
+                className="h-auto min-h-6 min-w-0 shrink justify-start overflow-hidden p-0 font-normal"
+                aria-label={entry.path}
+                onClick={() => navigateToHash(hashForOpenTarget(openTarget))}
+                data-testid="worktree-row-open"
+              >
+                <span dir="auto" className={`min-w-0 ${pathClassName}`}>
+                  {label}
+                </span>
+              </Button>
+            </PopoverClose>
+          </TooltipTrigger>
+          <TooltipContent dir="auto" className="font-mono text-2xs">
+            {entry.path}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                dir="auto"
+                // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- tooltip-on-static-text pattern (see EditorFooter) — Radix opens on the trigger's focus, so a non-focusable span leaves sighted keyboard-only users no way to recover a truncated path. Sibling rows that link are buttons and already take focus, so this also stops the list silently skipping the rows whose path is their only content.
+                tabIndex={0}
+                className={`min-w-0 rounded-xs focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${pathClassName}`}
+              >
+                {label}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent dir="auto" className="font-mono text-2xs">
+              {entry.path}
+            </TooltipContent>
+          </Tooltip>
+          {label !== entry.path && <span className="sr-only">{entry.path}</span>}
+        </>
+      )}
+    </li>
+  );
+}
+
+function WorktreeRows({ rows, dimmed }: { rows: WorktreeRowModel[]; dimmed: boolean }) {
+  const [showAll, setShowAll] = useState(false);
+  const hasOverflow = rows.length > MAX_ROWS_PER_GROUP;
+  const shown = showAll ? rows : rows.slice(0, MAX_ROWS_PER_GROUP);
+  const overflowCount = rows.length - MAX_ROWS_PER_GROUP;
+  return (
+    <ul className="flex flex-col gap-1">
+      {shown.map(({ entry, label }) => (
+        <WorktreeRow
+          key={`${entry.code}:${entry.path}`}
+          entry={entry}
+          dimmed={dimmed}
+          label={label}
+        />
+      ))}
+      {hasOverflow && (
+        <li>
+          <Button
+            variant="link-muted"
+            size="xs"
+            aria-expanded={showAll}
+            className="h-auto min-h-6 justify-start p-0 text-2xs font-normal"
+            onClick={() => setShowAll((v) => !v)}
+            data-testid="worktree-rows-show-all"
+          >
+            {showAll ? <Trans>Collapse</Trans> : <Trans>+{overflowCount} more</Trans>}
+          </Button>
+        </li>
+      )}
+    </ul>
+  );
+}
+
+function WorktreeFolder({
+  group,
+  prefix,
+  dimmed,
+}: {
+  group: WorktreeFolderGroup;
+  prefix: string;
+  dimmed: boolean;
+}) {
+  const fileCount = group.rows.length;
+  const [open, setOpen] = useState(false);
+  const fullDir = prefix === '' ? group.dir : `${prefix}/${group.dir}`;
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="flex flex-col gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="xs"
+              className="h-auto min-h-6 w-full justify-start gap-1 px-0 font-normal"
+            >
+              <ChevronRight
+                className={`size-3 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none ${open ? 'rotate-90' : ''}`}
+                aria-hidden
+              />
+              <span
+                dir="auto"
+                className="min-w-0 truncate text-start font-mono text-2xs text-muted-foreground"
+              >
+                {group.dir}
+              </span>
+              <span
+                aria-hidden
+                className="ms-auto shrink-0 ps-1 text-2xs text-muted-foreground tabular-nums"
+              >
+                {fileCount}
+              </span>
+              <span className="sr-only">
+                <Plural value={fileCount} one="# file" other="# files" />
+              </span>
+            </Button>
+          </CollapsibleTrigger>
+        </TooltipTrigger>
+        <TooltipContent dir="auto" className="font-mono text-2xs">
+          {fullDir}
+        </TooltipContent>
+      </Tooltip>
+      <CollapsibleContent className="ps-4">
+        <WorktreeRows rows={group.rows} dimmed={dimmed} />
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function WorktreeGroup({
+  title,
+  note,
+  entries,
+  dimmed = false,
+}: {
+  title: React.ReactNode;
+  note?: React.ReactNode;
+  entries: GitWorktreeEntry[];
+  dimmed?: boolean;
+}) {
+  if (entries.length === 0) return null;
+  const fileCount = entries.length;
+  const { prefix, groups, loose } = groupWorktreeEntries(entries);
+  return (
+    <Collapsible className="flex flex-col gap-1">
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          size="xs"
+          className="group h-auto min-h-6 w-full justify-start gap-1 px-0 font-normal data-[state=open]:bg-transparent"
+        >
+          <ChevronRight
+            className="size-3 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none group-data-[state=open]:rotate-90"
+            aria-hidden
+          />
+          <span className="text-2xs font-medium text-muted-foreground">{title}</span>
+          <span className="ms-auto shrink-0 ps-1 text-2xs text-muted-foreground tabular-nums">
+            <Plural value={fileCount} one="# file" other="# files" />
+          </span>
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="flex flex-col gap-1 ps-3">
+        {note && <span className="text-2xs text-muted-foreground/80">{note}</span>}
+        {prefix !== '' && (
+          <span dir="auto" className="break-all font-mono text-2xs text-muted-foreground">
+            {prefix}/
+          </span>
+        )}
+        {groups.map((group) => (
+          <WorktreeFolder
+            key={prefix === '' ? group.dir : `${prefix}/${group.dir}`}
+            group={group}
+            prefix={prefix}
+            dimmed={dimmed}
+          />
+        ))}
+        {loose.length > 0 && <WorktreeRows rows={loose} dimmed={dimmed} />}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function DivergenceChip({ direction, count }: { direction: 'ahead' | 'behind'; count: number }) {
+  const { t } = useLingui();
+  if (count <= 0) return null;
+  return (
+    <span className="flex flex-1 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-xs text-foreground">
+      {direction === 'behind' ? (
+        <ArrowDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+      ) : (
+        <ArrowUp className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+      )}
+      {direction === 'behind' ? t`${count} behind` : t`${count} ahead`}
+    </span>
+  );
+}
+
+function partitionByPushScope(worktree: GitWorktreeStatus): {
+  willPush: GitWorktreeEntry[];
+  wontPush: GitWorktreeEntry[];
+} {
+  const seen = new Set<string>();
+  const willPush: GitWorktreeEntry[] = [];
+  const wontPush: GitWorktreeEntry[] = [];
+  for (const entry of [...worktree.staged, ...worktree.notStaged, ...worktree.untracked]) {
+    if (seen.has(entry.path)) continue;
+    seen.add(entry.path);
+    (entry.syncScoped ? willPush : wontPush).push(entry);
+  }
+  return { willPush, wontPush };
+}
+
+function WorktreeStaleLine({ lastReadAt }: { lastReadAt: number }) {
+  const { t } = useLingui();
+  const now = useNowTick();
+  const staleRelative = formatRelativeSince(t, lastReadAt, now);
+  return (
+    <p className="text-2xs text-muted-foreground" data-testid="worktree-stale">
+      <Trans>This list may be out of date — last read {staleRelative}.</Trans>
+    </p>
+  );
+}
+
+function WorktreeStatusSection({
+  status,
+  worktree,
+  loading,
+  unreadable,
+  stale,
+  lastReadAt,
+}: {
+  status: GitSyncStatus;
+  worktree: GitWorktreeStatus | null;
+  loading: boolean;
+  unreadable: boolean;
+  stale: boolean;
+  lastReadAt: number | null;
+}) {
+  const { willPush, wontPush } = worktree
+    ? partitionByPushScope(worktree)
+    : { willPush: [], wontPush: [] };
+  const incoming = worktree?.incoming ?? [];
+  const { t } = useLingui();
+  const showStale = stale && !unreadable && worktree !== null && lastReadAt !== null;
+  const clean =
+    worktree !== null && willPush.length === 0 && wontPush.length === 0 && incoming.length === 0;
+  const announcement = unreadable
+    ? t`Couldn't read the working tree. Check the server logs.`
+    : showStale
+      ? t`This list may be out of date.`
+      : '';
+
+  return (
+    <div className="flex flex-col gap-2.5 border-t pt-3">
+      <div className="sr-only" role="status" aria-live="polite" data-testid="worktree-announcer">
+        {announcement}
+      </div>
+      <div className="flex items-baseline justify-between gap-2">
+        <SectionLabel id="worktree-status-label">
+          <Trans>Status</Trans>
+        </SectionLabel>
+        {!unreadable && worktree && (worktree.branch || worktree.detached) && (
+          <span
+            className="min-w-0 truncate font-mono text-2xs text-muted-foreground"
+            data-testid="worktree-branch"
+          >
+            {worktree.detached ? (
+              <Trans>detached HEAD</Trans>
+            ) : worktree.upstream ? (
+              `${worktree.branch} → ${worktree.upstream}`
+            ) : (
+              worktree.branch
+            )}
+          </span>
+        )}
+      </div>
+
+      {(status.behind > 0 || status.ahead > 0) && (
+        <div className="flex items-stretch gap-2">
+          <DivergenceChip direction="behind" count={status.behind} />
+          <DivergenceChip direction="ahead" count={status.ahead} />
+        </div>
+      )}
+
+      {unreadable ? (
+        <p className="text-xs text-muted-foreground" data-testid="worktree-unreadable">
+          <Trans>Couldn't read the working tree. Check the server logs.</Trans>
+        </p>
+      ) : loading ? (
+        <p className="text-xs text-muted-foreground">
+          <Trans>Reading working tree</Trans>
+        </p>
+      ) : clean ? (
+        <p className="text-xs text-muted-foreground">
+          <Trans>Nothing to commit — working tree clean.</Trans>
+        </p>
+      ) : (
+        worktree && (
+          <section
+            className="flex max-h-56 flex-col gap-2.5 overflow-y-auto overscroll-contain focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- keyboard-focusable scroll container — Chromium doesn't make overflow:auto divs focusable without tabIndex.
+            tabIndex={0}
+            aria-labelledby="worktree-status-label"
+            data-testid="worktree-listing"
+          >
+            <WorktreeGroup title={<Trans>Pull brings in</Trans>} entries={incoming} />
+            <WorktreeGroup title={<Trans>Push includes</Trans>} entries={willPush} />
+            <WorktreeGroup
+              title={<Trans>Push skips</Trans>}
+              note={<Trans>Outside what Open Knowledge commits.</Trans>}
+              entries={wontPush}
+              dimmed
+            />
+            {worktree.truncated && (
+              <p className="text-2xs text-muted-foreground">
+                <Trans>Some files are not listed — the working tree has too many changes.</Trans>
+              </p>
+            )}
+          </section>
+        )
+      )}
+
+      {showStale && lastReadAt !== null && <WorktreeStaleLine lastReadAt={lastReadAt} />}
+    </div>
+  );
+}
+
+function UpdatedLine({
+  pulledAt,
+  pushedAt,
+  combinedAt,
+}: {
+  pulledAt: string | null;
+  pushedAt: string | null;
+  combinedAt: string | null;
+}) {
+  const { t } = useLingui();
+  const pulled = pulledAt === null ? null : formatRelativeCompact(t, pulledAt);
+  const pushed = pushedAt === null ? null : formatRelativeCompact(t, pushedAt);
+  const updatedRelative = combinedAt === null ? null : formatRelativeCompact(t, combinedAt);
+  const label =
+    pulled !== null && pushed !== null
+      ? t`Pulled ${pulled} · pushed ${pushed}`
+      : pulled !== null
+        ? t`Pulled ${pulled}`
+        : pushed !== null
+          ? t`Pushed ${pushed}`
+          : updatedRelative === null
+            ? null
+            : t`Updated ${updatedRelative}`;
+  const showArrows = pulled !== null || pushed !== null;
+  if (label === null) return <span />;
+  return (
+    <span className="text-xs text-muted-foreground" data-testid="sync-popover-last-sync">
+      {showArrows && (
+        <span className="sr-only" data-testid="sync-popover-last-sync-label">
+          {label}
+        </span>
+      )}
+      {showArrows ? (
+        <span aria-hidden="true" className="inline-flex items-center gap-1">
+          {pulled !== null && (
+            <span className="inline-flex items-center gap-0.5">
+              <ArrowDown className="size-3" />
+              {pulled}
+            </span>
+          )}
+          {pulled !== null && pushed !== null && <span>·</span>}
+          {pushed !== null && (
+            <span className="inline-flex items-center gap-0.5">
+              <ArrowUp className="size-3" />
+              {pushed}
+            </span>
+          )}
+        </span>
+      ) : (
+        <span aria-hidden="true">{label}</span>
+      )}
+    </span>
+  );
+}
+
+function AddHostTokenButton() {
+  return (
+    <PopoverClose asChild>
+      <Button
+        variant="outline"
+        size="xs"
+        className="self-start"
+        onClick={() => openAccountSettings()}
+        data-testid="sync-popover-add-host-token"
+      >
+        <Trans>Add token</Trans>
+      </Button>
+    </PopoverClose>
+  );
+}
+
+function PopoverBody({ status, onSignIn, onSetIdentity }: PopoverBodyProps) {
+  const { t } = useLingui();
+  const { conflictCount } = status;
+  const { projectLocalConfig, projectLocalSynced } = useConfigContext();
+  const autoSync = projectLocalConfig?.autoSync;
+  const {
+    mode,
+    confirmOpen,
+    setConfirmOpen,
+    pendingMode,
+    strandedCommitCount,
+    onModeSelect,
+    onConfirm,
+  } = useBadgeSyncControls(autoSync, engineSyncMode(status), status.ahead);
+  const {
+    status: worktree,
+    loading: worktreeLoading,
+    unreadable: worktreeUnreadable,
+    stale: worktreeStale,
+    lastReadAt: worktreeLastReadAt,
+  } = useGitWorktreeStatus(true);
+
+  const following = mode === 'follow';
+  const state = displayState(status);
+  const notFoundAsIdentity = hasNotFoundAsIdentityError(status);
+  const pulledAt = status.lastPullOkUtc ?? null;
+  const pushedAt = status.lastPushOkUtc ?? null;
+  const combinedAt = status.lastRunUtc ?? status.lastSyncUtc ?? null;
+  const genuineReadOnly =
+    status.pushPermission?.checkStatus === 'denied' &&
+    status.pushPermission.deniedReason !== 'not-authenticated' &&
+    !notFoundAsIdentity;
+  const isGitHub = isGitHubRemote(status.remote);
+
+  const canPush = !genuineReadOnly;
+  const busy = state === 'fetching' || state === 'pulling' || state === 'pushing';
+  const [pendingAction, setPendingAction] = useState<ManualSyncOp | null>(null);
+  useEffect(() => {
+    if (!busy) setPendingAction(null);
+  }, [busy]);
+  const clearFailedAction = (op: ManualSyncOp) => {
+    setPendingAction((current) => (current === op ? null : current));
+  };
+  const spinning: ManualSyncOp | null = !busy
+    ? null
+    : (pendingAction ?? (state === 'pushing' ? 'push' : 'pull'));
+  const runManualSync = (op: ManualSyncOp): void => {
+    setPendingAction(op);
+    triggerSyncFromBadge(op, () => clearFailedAction(op));
+  };
+  const pullBlocked = state === 'dormant' || state === 'auth-error' || status.state === 'conflict';
+  const pushBlocked = pullBlocked || status.conflictCount > 0;
+
+  const blockingPaths = status.blockingPaths ?? [];
+
+  const { conflicts } = useConflicts();
+  const firstConflictDocName = conflicts.find((entry) => entry.docName !== null)?.docName ?? null;
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <BadgeIcon status={status} />
+          <span className="text-1sm font-medium">
+            <Trans>Git sync</Trans>
+          </span>
+        </div>
+        {status.remote &&
+          (status.remote.webUrl ? (
+            <a
+              href={status.remote.webUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-w-0 items-center gap-0.5 text-xs text-foreground hover:text-primary hover:underline"
+              aria-label={t`Open ${status.remote.label} on GitHub (opens in a new tab)`}
+            >
+              <span className="truncate">{status.remote.label}</span>
+              <ArrowUpRight className="size-3.5 shrink-0" aria-hidden />
+            </a>
+          ) : (
+            <span className="min-w-0 truncate text-xs text-foreground">{status.remote.label}</span>
+          ))}
+      </div>
+
+      <EnableSyncConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={onConfirm}
+        variant={pendingMode ?? 'full'}
+        strandedCommitCount={strandedCommitCount}
+      />
+
+      <div className="flex flex-col gap-1.5">
+        <SectionLabel>
+          <Trans>Sync mode</Trans>
+        </SectionLabel>
+        <Select
+          value={mode}
+          onValueChange={(v) => {
+            if (isSyncMode(v)) onModeSelect(v);
+          }}
+          disabled={!projectLocalSynced}
+        >
+          <SelectTrigger
+            size="sm"
+            className="w-full text-xs"
+            aria-label={t`Sync mode`}
+            data-testid="sync-mode-select"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="off" className="text-xs">{t`Manual`}</SelectItem>
+            <SelectItem value="follow" className="text-xs">{t`Auto (Pull only)`}</SelectItem>
+            <SelectItem value="full" className="text-xs" disabled={genuineReadOnly}>
+              {t`Auto (Pull and Push)`}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground" data-testid="sync-popover-mode-line">
+          {mode === 'off' ? (
+            <Trans>Nothing moves until you ask.</Trans>
+          ) : mode === 'follow' ? (
+            <Trans>Updates flow in from your remote; your edits stay on this computer.</Trans>
+          ) : (
+            <Trans>Your edits are committed and pushed to your remote automatically.</Trans>
+          )}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 border-t pt-3">
+        <SectionLabel>
+          <Trans>Manual</Trans>
+        </SectionLabel>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="xs"
+            className="flex-1"
+            disabled={busy || pullBlocked}
+            onClick={() => runManualSync('pull')}
+            data-testid="sync-popover-pull"
+          >
+            {spinning === 'pull' ? (
+              <Spinner aria-hidden="true" data-icon="inline-start" />
+            ) : (
+              <ArrowDown data-icon="inline-start" />
+            )}
+            <Trans>Pull</Trans>
+          </Button>
+          {canPush && (
+            <Button
+              variant="outline"
+              size="xs"
+              className="flex-1"
+              disabled={busy || pushBlocked}
+              onClick={() => runManualSync('push')}
+              data-testid="sync-popover-push"
+            >
+              {spinning === 'push' ? (
+                <Spinner aria-hidden="true" data-icon="inline-start" />
+              ) : (
+                <ArrowUp data-icon="inline-start" />
+              )}
+              <Trans>Push</Trans>
+            </Button>
+          )}
+        </div>
+        {canPush && (
+          <Button
+            size="xs"
+            className="w-full"
+            disabled={busy || pushBlocked}
+            onClick={() => runManualSync('sync')}
+            data-testid="sync-popover-sync"
+          >
+            {spinning === 'sync' ? (
+              <Spinner aria-hidden="true" icon={RefreshCw} data-icon="inline-start" />
+            ) : (
+              <RefreshCw data-icon="inline-start" />
+            )}
+            <Trans>Pull and Push</Trans>
+          </Button>
+        )}
+      </div>
+
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex flex-col gap-3.5 empty:sr-only"
+        data-testid="sync-popover-status"
+      >
+        {computeSyncErrorLines(status).map((line) => (
+          <p key={line.key} className="text-xs text-destructive">
+            {line.direction === 'push' ? (
+              <>
+                <span className="font-medium">{t`Push`}: </span>
+                {line.message}
+              </>
+            ) : line.direction === 'pull' ? (
+              <>
+                <span className="font-medium">{t`Pull`}: </span>
+                {line.message}
+              </>
+            ) : (
+              line.message
+            )}
+          </p>
+        ))}
+
+        {isParkedOnNotFoundAsIdentity(status) && status.pushPermission?.checkStatus === 'denied'
+          ? formatDeniedIdentitySentences(status.pushPermission).map((sentence) => (
+              <p key={sentence} className="text-xs text-muted-foreground">
+                {sentence}
+              </p>
+            ))
+          : null}
+        {status.pausedReason === 'no-push-permission' &&
+        status.pushPermission?.checkStatus === 'denied'
+          ? formatDeniedIdentitySentences(status.pushPermission).map((sentence) => (
+              <p key={sentence} className="text-xs text-muted-foreground">
+                {sentence}
+              </p>
+            ))
+          : null}
+      </div>
+
+      {!following && shouldOfferReconnect(status.pushPermission) ? (
+        <div className="flex items-start gap-2">
+          <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+            <Trans>You're signed out — sign in to resume syncing.</Trans>
+          </p>
+          {onSignIn && (
+            <Button variant="outline" size="xs" className="self-start" onClick={onSignIn}>
+              <Trans>Sign in</Trans>
+            </Button>
+          )}
+        </div>
+      ) : blockingPaths.length > 0 ? (
+        <SyncBlockingChanges paths={blockingPaths} />
+      ) : isParkedOnNotFoundAsIdentity(status) ? null : status.pausedReason ? (
+        <>
+          <p className="text-xs text-muted-foreground">
+            <PausedReasonNotice reason={status.pausedReason} />
+          </p>
+          <SyncRefusedSymlinks paths={status.refusedSymlinkPaths} />
+        </>
+      ) : !following && genuineReadOnly && status.pushPermission?.checkStatus === 'denied' ? (
+        formatPushPermissionDenied(status.pushPermission.deniedReason, status.pushPermission).map(
+          (sentence) => (
+            <p key={sentence} className="text-xs text-muted-foreground">
+              {sentence}
+            </p>
+          ),
+        )
+      ) : shouldOfferSignInAgain(status.pushPermission) ? (
+        <div className="flex items-start gap-2">
+          <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+            <Trans>Your GitHub session expired — sign in again to verify push access.</Trans>
+          </p>
+          {onSignIn && (
+            <Button variant="outline" size="xs" className="self-start" onClick={onSignIn}>
+              <Trans>Sign in</Trans>
+            </Button>
+          )}
+        </div>
+      ) : null}
+
+      {state === 'conflict' && (
+        <div className="flex items-start gap-2">
+          <p className="min-w-0 flex-1 text-xs text-warning">
+            <Trans>A document has a conflict — resolve it to keep it up to date.</Trans>
+          </p>
+          {firstConflictDocName !== null && (
+            <Button
+              variant="outline"
+              size="xs"
+              className="self-start"
+              onClick={() => navigateToHash(hashFromDocName(firstConflictDocName))}
+            >
+              <Trans>Review</Trans>
+            </Button>
+          )}
+        </div>
+      )}
+
+      {state === 'auth-error' &&
+        !isParkedOnNotFoundAsIdentity(status) &&
+        (isGitHub ? (
+          onSignIn && (
+            <div className="flex items-start gap-2">
+              <p className="min-w-0 flex-1 text-xs text-destructive">
+                <Trans>Reconnect required to keep syncing.</Trans>
+              </p>
+              <Button variant="outline" size="xs" className="self-start" onClick={onSignIn}>
+                <Trans>Sign in</Trans>
+              </Button>
+            </div>
+          )
+        ) : remoteTakesStoredToken(status.remote) ? (
+          <div className="flex items-start gap-2">
+            <p
+              className="min-w-0 flex-1 text-xs text-destructive"
+              data-testid="sync-popover-auth-error-unverified"
+            >
+              <Trans>
+                Reconnect required to keep syncing. Add a token for this host in Settings, or
+                replace the one stored.
+              </Trans>
+            </p>
+            <AddHostTokenButton />
+          </div>
+        ) : (
+          <p className="text-xs text-destructive" data-testid="sync-popover-auth-error-no-token">
+            <Trans>
+              Reconnect required to keep syncing. Check the SSH key or saved credentials git uses
+              for this host.
+            </Trans>
+          </p>
+        ))}
+
+      {conflictCount > 0 && (
+        <p className="text-xs text-muted-foreground">
+          <Plural value={conflictCount} one="# file conflicted" other="# files conflicted" />
+        </p>
+      )}
+
+      <WorktreeStatusSection
+        status={status}
+        worktree={worktree}
+        loading={worktreeLoading}
+        unreadable={worktreeUnreadable}
+        stale={worktreeStale}
+        lastReadAt={worktreeLastReadAt}
+      />
+
+      <div className="flex items-center justify-between gap-2">
+        <UpdatedLine pulledAt={pulledAt} pushedAt={pushedAt} combinedAt={combinedAt} />
+        <PopoverClose asChild>
+          <Button
+            variant="link"
+            size="xs"
+            className="h-auto p-0 text-xs text-muted-foreground hover:font-medium hover:text-foreground hover:no-underline"
+            onClick={() => openSyncSettings({ advanced: true })}
+            data-testid="sync-popover-settings"
+          >
+            <Settings2 data-icon="inline-start" />
+            <Trans>Advanced settings</Trans>
+          </Button>
+        </PopoverClose>
+      </div>
+
+      {status.identityUnresolved && onSetIdentity && (
+        <div className="flex items-start gap-2 rounded-md border border-dashed p-2">
+          <UserCog className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <p className="text-xs leading-snug text-muted-foreground">
+              <Trans>
+                Git identity isn't set — commits use a default author. Set yours so teammates see
+                your name.
+              </Trans>
+            </p>
+            <Button variant="outline" size="xs" className="self-start" onClick={onSetIdentity}>
+              <Trans>Set identity</Trans>
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface SyncStatusBadgeProps {
+  onSignIn?: () => void;
+  onSetIdentity?: () => void;
+}
+
+export function SyncStatusBadge({ onSignIn, onSetIdentity }: SyncStatusBadgeProps = {}) {
+  const { t } = useLingui();
+  const { status, fetchError } = useGitSyncStatusDetailed();
+
+  if (!status) {
+    if (fetchError) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground"
+              aria-label={t`Sync status unavailable`}
+              disabled
+            >
+              <CloudOff className="size-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {fetchError === 'network' ? (
+              <Trans>Sync status unavailable — server unreachable.</Trans>
+            ) : (
+              <Trans>Sync status unavailable — server error.</Trans>
+            )}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+    return null;
+  }
+
+  if (!status.hasRemote) return null;
+
+  const label = badgeLabel(status);
+  const syncStateLabel = syncStateLabelFor(status);
+  const showIdentityDot = Boolean(status.identityUnresolved);
+
+  return (
+    <Popover>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground relative"
+              aria-label={
+                showIdentityDot
+                  ? t`Sync status: ${syncStateLabel} — git identity unset`
+                  : t`Sync status: ${syncStateLabel}`
+              }
+            >
+              <BadgeIcon status={status} size="size-4" />
+              {label && (
+                <span className="absolute -top-0.5 -right-0.5 text-[9px] leading-none font-medium bg-background border rounded-full px-0.5">
+                  {label}
+                </span>
+              )}
+              {!label && showIdentityDot && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-warning ring-2 ring-background"
+                  aria-hidden
+                />
+              )}
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{tooltipLabel(status)}</TooltipContent>
+      </Tooltip>
+      <PopoverContent
+        align="end"
+        className="flex max-h-(--radix-popover-content-available-height) w-80 flex-col overflow-y-auto p-3"
+      >
+        <PopoverBody status={status} onSignIn={onSignIn} onSetIdentity={onSetIdentity} />
+      </PopoverContent>
+    </Popover>
+  );
+}

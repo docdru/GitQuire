@@ -1,0 +1,276 @@
+import type { IncomingMessage } from 'node:http';
+import { Readable } from 'node:stream';
+import { Hocuspocus } from '@hocuspocus/server';
+import { describe, expect, test, vi } from 'vitest';
+import { sessionWriterId } from '../agent-id.ts';
+import { AgentSessionManager } from '../agent-sessions.ts';
+import { makeCaptureRes } from '../composition-rig.test-helper.ts';
+import type { DocumentDurabilityState } from '../document-durability-state.ts';
+import { loggerFactory } from '../logger.ts';
+import { createAgentWriteRoutes } from './agent-write-routes.ts';
+
+type Deps = Parameters<typeof createAgentWriteRoutes>[0];
+
+function notDispatched(): never {
+  throw new Error('Dependency is not used by this test');
+}
+
+function buildGroup(overrides: Partial<Deps> = {}) {
+  const deps = {
+    getLinkAdvisoryPolicy: () => ({ links: 'warning', suppressLogLinkAdvisories: false }),
+    respondStaleExternalWrite: notDispatched,
+    requireNonEmptyDocName: (docName) => docName ?? null,
+    resolveAlias: (docName) => docName,
+    extractAgentIdentity: () => ({
+      rawAgentId: 'writer',
+      suppliedWriterId: sessionWriterId({ agentId: 'agent-writer' }),
+      agentId: 'agent-writer',
+      agentName: 'Writer',
+      colorSeed: 'writer',
+      clientName: undefined,
+      clientVersion: undefined,
+      label: undefined,
+    }),
+    docNameExistsWithAnySupportedExtension: notDispatched,
+    findMissingDocCandidates: notDispatched,
+    contentDir: '/nonexistent-content',
+    summaryResponseFields: () => ({ stored: undefined }),
+    sessionManager: {} as AgentSessionManager,
+    durabilityState: {} as DocumentDurabilityState,
+    hocuspocus: {} as Hocuspocus,
+    options: {},
+    getBridgeLossReporter: undefined,
+    agentPresenceBroadcaster: undefined,
+    recordContentDivergenceGate: notDispatched,
+    buildAgentActor: notDispatched,
+    countNormalizedSummary: notDispatched,
+    flushDiskAndDetectOutcome: notDispatched,
+    respondPersistenceFailure: notDispatched,
+    flushDocToDisk: notDispatched,
+    agentFocusBroadcaster: undefined,
+    onAgentWrite: undefined,
+    computeOrphanHints: notDispatched,
+    registerWrittenDocInFileIndex: notDispatched,
+    prepareWriteLinkAdvisory: notDispatched,
+    buildReconcileWarning: notDispatched,
+    computeLintViolations: notDispatched,
+    log: loggerFactory.getLogger('test'),
+    flushDocToGit: notDispatched,
+    flushGitCommit: undefined,
+    commitOkArtifactWrite: notDispatched,
+    isSafeDocName: notDispatched,
+    shadowRef: undefined,
+    getPrincipal: undefined,
+    contentRoot: undefined,
+    safeDocPath: notDispatched,
+    getCurrentBranch: undefined,
+    docTreePathCandidates: notDispatched,
+    stripDefaultPathTruncation: notDispatched,
+    renameAttributionCounter: notDispatched,
+    ...overrides,
+  } satisfies Deps;
+  return createAgentWriteRoutes(deps);
+}
+
+const WRITES = [
+  '/api/agent-write-md',
+  '/api/frontmatter-patch',
+  '/api/agent-patch',
+  '/api/agent-undo',
+  '/api/save-version',
+  '/api/rollback',
+];
+const READS = ['/api/agent-activity', '/api/agent-burst-diff'];
+
+describe('createAgentWriteRoutes table', () => {
+  test('registers exactly the eight agent-write paths', () => {
+    expect([...buildGroup().paths].sort()).toEqual([...WRITES, ...READS].sort());
+  });
+
+  test('classifies the six writes as mutating and the two reads as non-mutating', () => {
+    const { table } = buildGroup();
+    for (const path of WRITES) expect(table.isMutating(path), path).toBe(true);
+    for (const path of READS) expect(table.isMutating(path), path).toBe(false);
+  });
+});
+
+function makeReq(url: string, body: unknown): IncomingMessage {
+  const req = Readable.from(Buffer.from(JSON.stringify(body))) as unknown as IncomingMessage;
+  req.method = 'POST';
+  req.url = url;
+  req.headers = { host: 'localhost', 'content-type': 'application/json' };
+  return req;
+}
+
+describe('agent-write session capacity responses', () => {
+  test.each([
+    ['/api/agent-write-md', { docName: 'note', markdown: '# Note', position: 'replace' }],
+    ['/api/frontmatter-patch', { docName: 'note', patch: { title: 'Note' } }],
+    ['/api/agent-patch', { docName: 'note', find: 'old', replace: 'new' }],
+  ])(
+    '%s refuses before writing and says nothing was committed when the session limit is full',
+    async (path, body) => {
+      const hocuspocus = new Hocuspocus({ quiet: true });
+      const sessionManager = new AgentSessionManager(hocuspocus, {
+        maxSessions: 1,
+        minEvictableIdleMs: Number.POSITIVE_INFINITY,
+      });
+      try {
+        await sessionManager.getSession('occupied', 'agent-occupant');
+        const group = buildGroup({
+          hocuspocus,
+          sessionManager,
+          docNameExistsWithAnySupportedExtension: () => true,
+        });
+        const route = group.table.resolve(path);
+        if (!route?.dispatch) throw new Error(`${path} did not resolve to a dispatch handler`);
+        const { res, captured } = makeCaptureRes();
+        await route.dispatch(makeReq(path, body), res);
+        expect(captured.status).toBe(503);
+        expect(captured.headers['content-type']).toContain('application/problem+json');
+        expect(captured.headers['retry-after']).toBe('10');
+        expect(JSON.parse(captured.body)).toMatchObject({
+          status: 503,
+          type: 'urn:ok:error:too-many-agent-sessions',
+          committed: false,
+          retryAfterSeconds: 10,
+        });
+        expect(hocuspocus.documents.has('note')).toBe(false);
+      } finally {
+        await sessionManager.closeAll();
+      }
+    },
+  );
+});
+
+describe('edit routes refuse a document path that has nothing behind it', () => {
+  test.each([
+    ['/api/agent-patch', { docName: 'system/ops', find: 'present elsewhere', replace: 'x' }],
+    ['/api/frontmatter-patch', { docName: 'system/ops', patch: { title: 'probe' } }],
+  ])('%s answers doc-not-found with near matches and creates nothing', async (path, body) => {
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const sessionManager = new AgentSessionManager(hocuspocus);
+    try {
+      const group = buildGroup({
+        hocuspocus,
+        sessionManager,
+        docNameExistsWithAnySupportedExtension: () => false,
+        findMissingDocCandidates: (docName) => (docName === 'system/ops' ? ['kb/system/ops'] : []),
+      });
+      const route = group.table.resolve(path);
+      if (!route?.dispatch) throw new Error(`${path} did not resolve to a dispatch handler`);
+      const { res, captured } = makeCaptureRes();
+      await route.dispatch(makeReq(path, body), res);
+      expect(captured.status).toBe(404);
+      const problem = JSON.parse(captured.body);
+      expect(problem).toMatchObject({
+        type: 'urn:ok:error:doc-not-found',
+        candidates: ['kb/system/ops'],
+        committed: false,
+      });
+      expect(problem.title).toContain('No document at "system/ops"');
+      expect(problem.title).toContain('Did you mean "kb/system/ops"?');
+      expect(problem.title).not.toContain('Text not found');
+      expect(problem.title).not.toContain('to create one');
+      expect(hocuspocus.documents.has('system/ops')).toBe(false);
+    } finally {
+      await sessionManager.closeAll();
+    }
+  });
+
+  test('a path with no near match points to write instead of a suggestion', async () => {
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const sessionManager = new AgentSessionManager(hocuspocus);
+    try {
+      const group = buildGroup({
+        hocuspocus,
+        sessionManager,
+        docNameExistsWithAnySupportedExtension: () => false,
+        findMissingDocCandidates: () => [],
+      });
+      const route = group.table.resolve('/api/agent-patch');
+      if (!route?.dispatch)
+        throw new Error('/api/agent-patch did not resolve to a dispatch handler');
+      const { res, captured } = makeCaptureRes();
+      await route.dispatch(
+        makeReq('/api/agent-patch', { docName: 'wiki/new', find: 'x', replace: 'y' }),
+        res,
+      );
+      expect(captured.status).toBe(404);
+      const problem = JSON.parse(captured.body);
+      expect(problem).toMatchObject({
+        type: 'urn:ok:error:doc-not-found',
+        candidates: [],
+        committed: false,
+      });
+      expect(problem.title).toContain('No document at "wiki/new"');
+      expect(problem.title).toContain('use write(');
+      expect(problem.title).not.toContain('Did you mean');
+    } finally {
+      await sessionManager.closeAll();
+    }
+  });
+});
+
+describe('the in-app agent write runs under its own route name', () => {
+  function acpWriteGroup(overrides: Partial<Deps>) {
+    const hocuspocus = new Hocuspocus({ quiet: true });
+    const sessionManager = new AgentSessionManager(hocuspocus);
+    const gateHandlers: string[] = [];
+    const summaryCounts: unknown[] = [];
+    const group = buildGroup({
+      hocuspocus,
+      sessionManager,
+      durabilityState: { markAgentWriteStore: () => {} } as unknown as DocumentDurabilityState,
+      recordContentDivergenceGate: (handler) => {
+        gateHandlers.push(handler);
+      },
+      countNormalizedSummary: (normalized) => {
+        summaryCounts.push(normalized);
+      },
+      buildAgentActor: () => ({}),
+      flushDiskAndDetectOutcome: () => Promise.resolve(null),
+      flushDocToDisk: () => {},
+      registerWrittenDocInFileIndex: () => {},
+      ...overrides,
+    });
+    return { group, sessionManager, gateHandlers, summaryCounts };
+  }
+
+  const acpBody = { docName: 'note', file: 'note.md', markdown: '# Note\n', agentId: 'acp-agent' };
+
+  test('labels the divergence gate with the ACP route, counts no summary, and skips the MCP report', async () => {
+    const { group, sessionManager, gateHandlers, summaryCounts } = acpWriteGroup({});
+    try {
+      const { res, captured } = makeCaptureRes();
+      await group.acpDocumentWrite(makeReq('/internal/acp/document-write', acpBody), res);
+      expect(captured.status).toBe(200);
+      expect(JSON.parse(captured.body)).toMatchObject({
+        outcome: 'applied',
+        saved: true,
+        nextStep: 'none',
+      });
+      expect(gateHandlers).toEqual(['acp-document-write']);
+      expect(summaryCounts).toEqual([]);
+    } finally {
+      await sessionManager.closeAll();
+    }
+  });
+
+  test('logs a failure under the ACP route name', async () => {
+    const log = loggerFactory.getLogger('acp-document-write-test');
+    const logged = vi.spyOn(log, 'error').mockImplementation(() => {});
+    const { group, sessionManager } = acpWriteGroup({
+      log,
+      flushDiskAndDetectOutcome: () => Promise.reject(new Error('flush failed')),
+    });
+    try {
+      const { res, captured } = makeCaptureRes();
+      await group.acpDocumentWrite(makeReq('/internal/acp/document-write', acpBody), res);
+      expect(captured.status).toBe(500);
+      expect(logged).toHaveBeenCalledWith(expect.anything(), '[acp-document-write] handler failed');
+    } finally {
+      await sessionManager.closeAll();
+    }
+  });
+});

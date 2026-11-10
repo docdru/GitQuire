@@ -1,0 +1,310 @@
+packages:
+  - 'packages/*'
+  - 'docs'
+
+packageExtensions:
+  '@hookform/resolvers@5':
+    peerDependencies:
+      zod: '^3.25.0 || ^4.0.0'
+
+engineStrict: true
+
+# Corepack selects packageManager. Avoid a second pnpm bootstrap and its env
+# lockfile document, which single-document dependency scanners cannot read.
+pmOnFail: ignore
+
+# Surgical flat-root hoist for the desktop native packaging deps only.
+# electron-builder.yml copies these packages from the workspace-root
+# node_modules, and the packaging guards assert that source layout. pnpm's
+# default isolated layout remains in place for everything else.
+publicHoistPattern:
+  - '@napi-rs/keyring*'
+  - '@parcel/watcher'
+
+# Supply-chain cooldown (admission-time): refuse npm versions published less
+# than 3 days ago, to dodge freshly-published malware. Unit = MINUTES
+# (4320 = 3 days). Own-org packages (@inkeep/*) are exempt. This replaces the
+# retired bunfig.toml posture (which expressed the same window in seconds:
+# minimumReleaseAge = 259200). Emergency reproduction escape hatch (bypass the
+# cooldown for a single install): `pnpm install --config.minimum-release-age=0`.
+# Corepack's exact packageManager pin is a separately reviewed toolchain
+# upgrade; pnpm's dependency cooldown does not gate that download.
+minimumReleaseAge: 4320
+minimumReleaseAgeStrict: true
+minimumReleaseAgeExclude:
+  - '@inkeep/*'
+  - '@visimer/*'
+
+# Bootstrap is explicit; running a script must not trigger an implicit install.
+verifyDepsBeforeRun: false
+
+# Dependency build scripts are blocked by default. Every detected
+# script is explicitly allowed or denied. Electron ships no install script of
+# its own as of 43, but the entry stays so a future release that reintroduces one
+# is not silently blocked. The napi native addon
+# (@inkeep/open-knowledge-native-config) builds via its own turbo `napi build`
+# task, not a dependency install script, so it needs no entry here. node-pty
+# publishes N-API prebuilds for the supported desktop platforms; its install
+# script remains allowlisted as a source-build fallback when no matching
+# prebuild is present.
+allowBuilds:
+  '@memlab/cli': false
+  '@mongodb-js/zstd': false
+  '@parcel/watcher': false
+  core-js: false
+  electron: true
+  electron-winstaller: false
+  esbuild: false
+  memlab: false
+  node-liblzma: false
+  node-pty: true
+  protobufjs: false
+  puppeteer: false
+  sharp: false
+  sleep: false
+
+overrides:
+  # --- Security advisories (Dependabot). Each floor is a `~` range, so a later
+  # patch advisory on the same line self-heals without another override edit,
+  # and nothing floats to a new minor as a side effect of a security fix.
+  #
+  # A `~` is a CEILING as well as a floor, and these are NOT covered by
+  # `scripts/check-override-floors.mjs`, which reasons only about exact pins.
+  # `@opentelemetry/core@2` sits under packages/app's `^2.9.0` today for that
+  # reason. Check by hand when adding one.
+  #
+  # THREE entries deliberately cross a breaking boundary, because the vulnerable
+  # version is the last release on its line and there is no in-line fix at all:
+  #   nanoid@4  -> 5.x   (4.0.2 is the final 4.x; consumer
+  #                       @excalidraw/mermaid-to-excalidraw pins it exactly at
+  #                       4.0.2, and calls `nanoid()` with no arguments, so the
+  #                       bad-`size` advisories were never reachable there)
+  #   sharp@0.34 -> 0.35 (0.34.5 is the final 0.34.x. next has declared ^0.35
+  #                       itself since 16.3.0, so nothing resolves 0.34 today;
+  #                       the entry keeps a future 0.34 consumer off 0.34.5.
+  #                       0.35.0 is breaking: retuned lossy AVIF defaults, new
+  #                       limitInputChannels default, removed install script)
+  #   esbuild@0.27 -> 0.28 (0.27.7 is the final 0.27.x; consumer fumadocs-mdx
+  #                       declares ^0.27.0. Gates the docs build, so a real
+  #                       incompatibility fails loudly)
+  # On 0.x packages the minor is the breaking axis, so those two are majors in
+  # effect. pnpm applies an out-of-range override silently; these are the ones
+  # that would not surface on their own.
+  # ---
+  '@babel/core@7': ~7.29.6
+  '@hono/node-server@1': ~1.19.15
+  '@opentelemetry/core@2': ~2.8.0
+  'brace-expansion@1': ~1.1.18
+  'brace-expansion@2': ~2.1.4
+  'builder-util-runtime@9': ~9.7.0
+  'dompurify@3': ~3.4.13
+  'esbuild@0.27': ~0.28.1
+  'fast-uri@3': ~3.1.5
+  'fast-xml-parser@5': ~5.10.1
+  'hono@4': ~4.12.34
+  'ip-address@10': ~10.3.1
+  'js-yaml@3': ~3.15.1
+  'js-yaml@4': ~4.3.1
+  'lodash-es@4': ~4.18.0
+  'mermaid@11': ~11.16.1
+  'nanoid@3': ~3.3.18
+  'nanoid@4': ~5.1.16
+  'nanoid@5': ~5.1.16
+  # `next` must stay on 16.3 or later, the first line on which Next type-checks
+  # through the project-local `tsc` CLI instead of the JavaScript compiler API
+  # that TypeScript 7 no longer ships. A 16.2.x build under TypeScript 7 does not
+  # merely fail: it shells out an unsolicited `pnpm add -D typescript` inside the
+  # repo (firing the husky prepare + postinstall hooks) before dying with an
+  # opaque worker error, and `ignoreBuildErrors` does not suppress it. So this
+  # floor moves in lockstep with the compiler, never after it. From here the line
+  # is security-only again -- a bare `^16` caret would float to the next minor.
+  'next@16': ~16.4.3 # GHSA-2464-fhr4-w9xw + GHSA-673q-mjm6-r5xr (unauthenticated RCE, fixed in 16.4.1)
+  'postcss@8': ~8.5.23
+  'sharp@0.34': ~0.35.0
+  'tar@7': ~7.5.21
+  'undici@6': ~6.28.0
+  'undici@7': ~7.29.0
+  # `vite` is deliberately absent. 8.0.16 pulls rolldown 1.0.0-rc.15 -> 1.0.3,
+  # which re-partitions chunks and moves ~253 kB gzipped into the app's main
+  # entry (423.8 kB -> 676.8 kB, over the 487 kB size-limit). Its two advisories
+  # are dev-server-only on Windows and never reach a shipped artifact. Tracked
+  # for unpinning in PRD-8169.
+  #
+  # CodeMirror is the source-mode editor core. Freezing `view` is the point of
+  # this pair, for the same reason the `@tiptap/*` + `prosemirror-*` pins below
+  # exist: an unpinned editor core floats on every install. `state` is pinned
+  # alongside it only to keep the pair explicit, so it carries whatever version
+  # the frozen `view` requires rather than a stale one of its own.
+  #
+  # That version has a hard floor of 6.7.0. Both `@codemirror/view@6.43.3` and
+  # `@codemirror/commands@6.10.4` declare `"@codemirror/state": "^6.7.0"`, and
+  # view calls `EditorSelection.undirectionalRange`, which 6.6.0 does not define.
+  # pnpm applies an out-of-range override silently, so pinning under that floor
+  # throws `TypeError: undirectionalRange is not a function` at runtime on every
+  # mouse-selection path (double-click word select, triple-click line select,
+  # atomic-range selection filter, widget dragstart) in every CodeMirror-backed
+  # surface in the app. `scripts/check-override-floors.mjs` now fails the build
+  # rather than letting that recur. When `view` is bumped, re-read its declared
+  # `@codemirror/state` range and raise this to match.
+  '@codemirror/state': 6.7.1
+  '@codemirror/view': 6.43.3
+  # UPSTREAM(@base-ui/react@1.8.0): Direct/transitive Floating UI floors supersede the historical freeze; changes need regression coverage of Settings, ShareBranchSwitchDialog and CreateProjectDialog, not just the spelling-language picker.
+  '@floating-ui/core': 1.8.0
+  '@floating-ui/dom': 1.8.0
+  '@floating-ui/react-dom': 2.1.9
+  '@floating-ui/utils': 0.2.12
+  # Radix UI graph pinned to the versions the bun lockfile resolved. A fresh
+  # pnpm resolution floats the whole @radix-ui/* graph past the
+  # bun baseline (e.g. react-dialog 1.1.15 -> 1.1.19, react-presence 1.1.6 ->
+  # 1.1.7, react-primitive 2.1.6 -> 2.1.7); the newer dialog/presence/
+  # dismissable-layer stack shifts effect + timer flush ordering enough to break
+  # timing-sensitive DOM tests (ShareBranchSwitchDialog toast, CreateProjectDialog
+  # polling). This toolchain cutover must be behavior-preserving, so the runtime
+  # Radix graph is held at the bun baseline. Revisit as a deliberate, separately
+  # tested upgrade -- not as a side effect of the package-manager swap.
+  '@radix-ui/number': 1.1.1
+  '@radix-ui/primitive': 1.1.4
+  '@radix-ui/react-accessible-icon': 1.1.7
+  '@radix-ui/react-accordion': 1.2.12
+  '@radix-ui/react-alert-dialog': 1.1.15
+  '@radix-ui/react-arrow': 1.1.10
+  '@radix-ui/react-aspect-ratio': 1.1.7
+  '@radix-ui/react-avatar': 1.1.10
+  '@radix-ui/react-checkbox': 1.3.3
+  '@radix-ui/react-collapsible': 1.1.12
+  '@radix-ui/react-collection': 1.1.7
+  '@radix-ui/react-compose-refs': 1.1.3
+  '@radix-ui/react-context': 1.1.4
+  '@radix-ui/react-context-menu': 2.2.16
+  '@radix-ui/react-dialog': 1.1.15
+  '@radix-ui/react-direction': 1.1.1
+  '@radix-ui/react-dismissable-layer': 1.1.13
+  '@radix-ui/react-dropdown-menu': 2.1.16
+  '@radix-ui/react-focus-guards': 1.1.4
+  '@radix-ui/react-focus-scope': 1.1.10
+  '@radix-ui/react-form': 0.1.8
+  '@radix-ui/react-hover-card': 1.1.15
+  '@radix-ui/react-id': 1.1.2
+  '@radix-ui/react-label': 2.1.7
+  '@radix-ui/react-menu': 2.1.16
+  '@radix-ui/react-menubar': 1.1.16
+  '@radix-ui/react-navigation-menu': 1.2.14
+  '@radix-ui/react-one-time-password-field': 0.1.8
+  '@radix-ui/react-password-toggle-field': 0.1.3
+  '@radix-ui/react-popover': 1.1.17
+  '@radix-ui/react-popper': 1.3.1
+  '@radix-ui/react-portal': 1.1.12
+  '@radix-ui/react-presence': 1.1.6
+  '@radix-ui/react-primitive': 2.1.6
+  '@radix-ui/react-progress': 1.1.7
+  '@radix-ui/react-radio-group': 1.3.8
+  '@radix-ui/react-roving-focus': 1.1.11
+  '@radix-ui/react-scroll-area': 1.2.10
+  '@radix-ui/react-select': 2.2.6
+  '@radix-ui/react-separator': 1.1.7
+  '@radix-ui/react-slider': 1.3.6
+  '@radix-ui/react-slot': 1.3.0
+  '@radix-ui/react-switch': 1.2.6
+  '@radix-ui/react-tabs': 1.1.13
+  '@radix-ui/react-toast': 1.2.15
+  '@radix-ui/react-toggle': 1.1.10
+  '@radix-ui/react-toggle-group': 1.1.11
+  '@radix-ui/react-toolbar': 1.1.11
+  '@radix-ui/react-tooltip': 1.2.8
+  '@radix-ui/react-use-callback-ref': 1.1.2
+  '@radix-ui/react-use-controllable-state': 1.2.3
+  '@radix-ui/react-use-effect-event': 0.0.3
+  '@radix-ui/react-use-escape-keydown': 1.1.2
+  '@radix-ui/react-use-is-hydrated': 0.1.0
+  '@radix-ui/react-use-layout-effect': 1.1.2
+  '@radix-ui/react-use-previous': 1.1.1
+  '@radix-ui/react-use-rect': 1.1.2
+  '@radix-ui/react-use-size': 1.1.2
+  '@radix-ui/react-visually-hidden': 1.2.3
+  '@radix-ui/rect': 1.1.2
+  # Editor stack pinned to the versions the bun lockfile resolved. The app
+  # declares the TipTap suite at `^3.22.3`; a fresh pnpm resolution floats the
+  # whole suite to 3.27.3 (and its bundled ProseMirror to model 1.25.11 / view
+  # 1.42.1), and the newer `@tiptap/extension-list-keymap` join logic changes
+  # editor merge behavior (regresses list-boundary-merge and sibling suites).
+  # This toolchain cutover must be behavior-preserving, so the runtime editor
+  # graph is held at the bun baseline. Revisit as a deliberate, separately-tested
+  # upgrade — not as a side effect of the package-manager swap. The
+  # `prosemirror-*` pins below are the same decision; the keys are apart only
+  # because this block is sorted alphabetically.
+  '@tiptap/core': 3.22.3
+  '@tiptap/extension-blockquote': 3.22.3
+  '@tiptap/extension-bold': 3.22.3
+  '@tiptap/extension-bubble-menu': 3.22.3
+  '@tiptap/extension-bullet-list': 3.22.3
+  '@tiptap/extension-code': 3.22.3
+  '@tiptap/extension-code-block': 3.22.3
+  '@tiptap/extension-collaboration': 3.22.3
+  '@tiptap/extension-document': 3.22.3
+  '@tiptap/extension-drag-handle': 3.22.3
+  '@tiptap/extension-dropcursor': 3.22.3
+  '@tiptap/extension-file-handler': 3.22.3
+  '@tiptap/extension-floating-menu': 3.22.3
+  '@tiptap/extension-gapcursor': 3.22.3
+  '@tiptap/extension-hard-break': 3.22.3
+  '@tiptap/extension-heading': 3.22.3
+  '@tiptap/extension-highlight': 3.22.3
+  '@tiptap/extension-horizontal-rule': 3.22.3
+  '@tiptap/extension-image': 3.22.3
+  '@tiptap/extension-italic': 3.22.3
+  '@tiptap/extension-link': 3.22.3
+  '@tiptap/extension-list': 3.22.3
+  '@tiptap/extension-list-item': 3.22.3
+  '@tiptap/extension-list-keymap': 3.22.3
+  '@tiptap/extension-node-range': 3.22.3
+  '@tiptap/extension-ordered-list': 3.22.3
+  '@tiptap/extension-paragraph': 3.22.3
+  '@tiptap/extension-placeholder': 3.22.3
+  '@tiptap/extension-strike': 3.22.3
+  '@tiptap/extension-table': 3.22.3
+  '@tiptap/extension-text': 3.22.3
+  '@tiptap/extension-text-style': 3.22.3
+  '@tiptap/extension-underline': 3.22.3
+  '@tiptap/extensions': 3.22.3
+  '@tiptap/pm': 3.22.4
+  '@tiptap/react': 3.22.3
+  '@tiptap/starter-kit': 3.22.3
+  '@tiptap/suggestion': 3.22.3
+  # Dedup @types/node to a single major so a frozen install resolves node's
+  # ambient types consistently. Workspace packages declare @types/node at both
+  # ^24.7.0 and ^25.6.0; a fresh frozen resolution otherwise lands a skew where
+  # ChildProcess and its EventEmitter base come from different @types/node
+  # versions and don't merge, so `child.on(...)` fails to typecheck in the
+  # server src the app checks via the `development` condition (green under bun's
+  # flat dedup, red under pnpm's strict tree). Pin to the 24.x line the CLI ships.
+  "@types/node": ^24.7.0
+  mdast-util-mdx-jsx: 3.2.0
+  # The ProseMirror runtime the pinned TipTap suite above binds to — same
+  # decision, same bun baseline. Floating these independently reintroduces the
+  # merge-behavior regression the `@tiptap/*` pins exist to avoid.
+  prosemirror-model: 1.25.4
+  prosemirror-view: 1.41.8
+  'radix-ui': 1.4.3
+  # React + the lite-YouTube facade also floated past the bun baseline; the
+  # newer React patch shifts effect/polling scheduling (breaking timing-sensitive
+  # DOM tests) and lite-youtube 3.6 changed its eager-iframe fallback heuristic.
+  react: 19.2.5
+  react-dom: 19.2.5
+  react-lite-youtube-embed: 3.5.1
+patchedDependencies:
+  '@handlewithcare/remark-prosemirror@0.1.5': patches/@handlewithcare%2Fremark-prosemirror@0.1.5.patch
+  '@hocuspocus/provider@4.0.0-rc.1': patches/@hocuspocus%2Fprovider@4.0.0-rc.1.patch
+  '@lingui/core@6.5.0': patches/@lingui%2Fcore@6.5.0.patch
+  '@pierre/diffs@1.3.6': patches/@pierre%2Fdiffs@1.3.6.patch
+  '@pierre/trees@1.0.0-beta.4': patches/@pierre%2Ftrees@1.0.0-beta.4.patch
+  '@radix-ui/react-tooltip@1.2.8': patches/@radix-ui__react-tooltip@1.2.8.patch
+  '@tiptap/extension-drag-handle@3.22.3': patches/@tiptap%2Fextension-drag-handle@3.22.3.patch
+  '@tiptap/y-tiptap@3.0.3': patches/@tiptap%2Fy-tiptap@3.0.3.patch
+  '@xterm/xterm@6.0.0': patches/@xterm%2Fxterm@6.0.0.patch
+  'cmdk@1.1.1': patches/cmdk@1.1.1.patch
+  just-bash@2.14.5: patches/just-bash@2.14.5.patch
+  'react-medium-image-zoom@5.4.3': patches/react-medium-image-zoom@5.4.3.patch
+  'react-resizable-panels@4.12.1': patches/react-resizable-panels@4.12.1.patch
+  sirv@3.0.2: patches/sirv@3.0.2.patch
+  'y-indexeddb@9.0.12': patches/y-indexeddb@9.0.12.patch
+  'y-prosemirror@1.3.7': patches/y-prosemirror@1.3.7.patch

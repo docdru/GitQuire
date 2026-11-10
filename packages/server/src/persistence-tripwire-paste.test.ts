@@ -1,0 +1,872 @@
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { realpath } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
+import simpleGit from 'simple-git';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import * as Y from 'yjs';
+import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
+import { composeAndWriteRawBody } from './bridge-intake.ts';
+import {
+  DocumentDurabilityState,
+  OK_PATH_UNRESOLVABLE,
+  OK_STORE_REFUSED,
+} from './document-durability-state.ts';
+import { expectStable } from './expect-stable.test-helper.ts';
+import { getLogger } from './logger.ts';
+import { lossCaptureCurrentPath, parseLossCaptureLines } from './loss-capture.ts';
+import { mdManager, schema } from './md-manager.ts';
+import { getMetrics, resetMetrics } from './metrics.ts';
+import { createPersistenceExtension } from './persistence.ts';
+import { classifyDuplication } from './persistence-tripwire.ts';
+import { createServer } from './server-factory.ts';
+import { initShadowRepo, type ShadowHandle, shadowGit } from './shadow-repo.ts';
+import { getDocumentHistory } from './timeline-query.ts';
+import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
+
+const FIXTURE_DIR = resolve(import.meta.dirname, 'persistence-tripwire.fixtures');
+
+const USER_DOC = 'hello\n\n\nkjnekandkjawnkjd\n\n\nwkajnd\n\n\nwk\n\n\nwwjwj\n';
+const USER_DOC_LINE = 'kjnekandkjawnkjd';
+
+const BROWSER_ORIGIN = {
+  source: 'connection',
+  connection: { context: { principalId: 'principal-test-paste' } },
+} as const;
+
+const P = (t: string) => ({ type: 'paragraph', content: [{ type: 'text', text: t }] });
+const EMPTY = { type: 'paragraph' };
+
+const TYPED_CHILDREN = [
+  P('hello'),
+  EMPTY,
+  P(USER_DOC_LINE),
+  EMPTY,
+  P('wkajnd'),
+  EMPTY,
+  P('wk'),
+  EMPTY,
+  P('wwjwj'),
+];
+
+function loadFixture(name: string): string {
+  return readFileSync(join(FIXTURE_DIR, name), 'utf-8');
+}
+
+function occurrences(haystack: string, needle: string): number {
+  let n = 0;
+  let i = haystack.indexOf(needle);
+  while (i !== -1) {
+    n++;
+    i = haystack.indexOf(needle, i + needle.length);
+  }
+  return n;
+}
+
+interface Rig {
+  tmpDir: string;
+  shadow: ShadowHandle;
+  cleanup: () => void;
+}
+
+async function setupRig(prefix: string): Promise<Rig> {
+  const tmpDir = await realpath(mkdtempSync(join(tmpdir(), prefix)));
+  const git = simpleGit({ baseDir: tmpDir });
+  await git.init();
+  configureTestGitRepository(tmpDir);
+  await git.raw('symbolic-ref', 'HEAD', 'refs/heads/main');
+  await git.addConfig('user.name', 'Test User');
+  await git.addConfig('user.email', 'test@example.com');
+  const shadow = await initShadowRepo(tmpDir);
+  return {
+    tmpDir,
+    shadow,
+    cleanup: () => rmSync(tmpDir, { recursive: true, force: true }),
+  };
+}
+
+function replaceFragment(doc: Y.Doc, content: unknown[]): void {
+  const xmlFragment = doc.getXmlFragment('default');
+  doc.transact(() => {
+    updateYFragment(doc, xmlFragment, schema.nodeFromJSON({ type: 'doc', content }), {
+      mapping: new Map(),
+      isOMark: new Map(),
+    });
+  }, BROWSER_ORIGIN);
+}
+
+function liveChildren(frag: Y.XmlFragment): unknown[] {
+  const json = yXmlFragmentToProseMirrorRootNode(frag, schema).toJSON() as {
+    content?: unknown[];
+  };
+  return json.content ?? [];
+}
+
+function blockedEvents(warnSpy: { mock: { calls: unknown[][] } }): string[] {
+  return warnSpy.mock.calls
+    .map((call) => String(call[0] ?? ''))
+    .filter((s) => s.includes('"event":"ok-persistence-duplication-blocked"'));
+}
+
+describe('persistence tripwire vs a whole-document paste', () => {
+  let rig: Rig;
+
+  beforeEach(() => {
+    resetMetrics();
+  });
+
+  afterEach(() => {
+    rig?.cleanup();
+  });
+
+  test('the classifier still reads a whole-document double as a block verdict', () => {
+    expect(USER_DOC.length).toBe(47);
+    expect(classifyDuplication(`${USER_DOC}\n${USER_DOC}`, USER_DOC)).toEqual({
+      kind: 'block',
+      reason: 'structural-duplication',
+      copies: 2,
+    });
+  });
+
+  test('select-all copy paste after a settled write survives and reaches disk', async () => {
+    rig = await setupRig('ok-tripwire-paste-');
+    const docName = 'Untitled';
+    const docPath = join(rig.tmpDir, `${docName}.md`);
+    writeFileSync(docPath, '', 'utf-8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const server = createServer({
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      quiet: true,
+      debounce: 100,
+      maxDebounce: 500,
+      gitEnabled: false,
+      shadowRepo: rig.shadow,
+    });
+
+    try {
+      await server.ready;
+      const conn = await server.hocuspocus.openDirectConnection(docName);
+      const serverDoc = server.hocuspocus.documents.get(docName);
+      expect(serverDoc).toBeDefined();
+      if (!serverDoc) return;
+      const frag = serverDoc.getXmlFragment('default');
+
+      replaceFragment(serverDoc, TYPED_CHILDREN);
+      await waitWithinTestBudget(
+        `the ${docName}.md to be written to disk`,
+        () => readFileSync(docPath, 'utf-8').length > 0,
+        { timeoutMs: 8_000 },
+      );
+      const baseline = readFileSync(docPath, 'utf-8');
+      expect(baseline).toBe(USER_DOC);
+
+      const kids = liveChildren(frag);
+      replaceFragment(serverDoc, [...kids, ...kids]);
+      expect(occurrences(serverDoc.getText('source').toString(), USER_DOC_LINE)).toBe(2);
+
+      await waitWithinTestBudget(
+        `${docName}.md on disk to change from its settled baseline`,
+        () => readFileSync(docPath, 'utf-8') !== baseline,
+        { timeoutMs: 8_000 },
+      );
+      const persisted = await expectStable(
+        `${docName}.md on disk`,
+        () => readFileSync(docPath, 'utf-8'),
+        {
+          durationMs: 700,
+        },
+      );
+      expect(occurrences(persisted, USER_DOC_LINE)).toBe(2);
+      expect(persisted.length).toBeGreaterThan(baseline.length);
+
+      expect(occurrences(serverDoc.getText('source').toString(), USER_DOC_LINE)).toBe(2);
+      expect(frag.length).toBeGreaterThan(TYPED_CHILDREN.length);
+
+      expect(blockedEvents(warnSpy)).toHaveLength(0);
+      expect(getMetrics().persistenceDuplicationReset).toBe(0);
+      expect(getMetrics().persistenceDuplicationSpared).toBe(1);
+
+      const spared = warnSpy.mock.calls
+        .map((call) => String(call[0] ?? ''))
+        .filter((s) => s.includes('"event":"ok-persistence-duplication-spared"'));
+      expect(spared).toHaveLength(1);
+      const sparedPayload = JSON.parse(spared[0] ?? '{}') as Record<string, unknown>;
+      expect(new Set(Object.keys(sparedPayload))).toEqual(
+        new Set([
+          'event',
+          'doc.name',
+          'candidateBytes',
+          'baseBytes',
+          'fragmentChildren',
+          'copies',
+          'reason',
+        ]),
+      );
+      expect(sparedPayload['doc.name']).toBe(docName);
+      expect(sparedPayload.copies).toBe(2);
+
+      conn.disconnect();
+    } finally {
+      warnSpy.mockRestore();
+      await server.destroy();
+    }
+  }, 30_000);
+
+  test('a doubling with no settled write behind it still blocks, resets, and checkpoints', async () => {
+    rig = await setupRig('ok-tripwire-incident-');
+    const docName = 'incident-changeset-readme';
+    const docPath = join(rig.tmpDir, `${docName}.md`);
+    const baseMarkdown = loadFixture('incident-changeset-readme-doubled.base.md');
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+    writeFileSync(docPath, baseMarkdown, 'utf-8');
+    const baselineBytes = readFileSync(docPath, 'utf-8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const server = createServer({
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      quiet: true,
+      debounce: 100,
+      maxDebounce: 500,
+      gitEnabled: false,
+      shadowRepo: rig.shadow,
+    });
+
+    try {
+      await server.ready;
+      const conn = await server.hocuspocus.openDirectConnection(docName);
+      const serverDoc = server.hocuspocus.documents.get(docName);
+      expect(serverDoc).toBeDefined();
+      if (!serverDoc) return;
+
+      const baseChildren = serverDoc.getXmlFragment('default').length;
+      expect(baseChildren).toBeGreaterThan(0);
+
+      const doubledJson = mdManager.parseWithFallback(doubledMarkdown) as { content?: unknown[] };
+      replaceFragment(serverDoc, doubledJson.content ?? []);
+      expect(serverDoc.getXmlFragment('default').length).toBe(baseChildren * 2);
+
+      await waitWithinTestBudget(
+        'an ok-persistence-duplication-blocked warning to be logged',
+        () => blockedEvents(warnSpy).length > 0,
+        { timeoutMs: 8_000 },
+      );
+
+      await expectStable(`${docName}.md on disk`, () => readFileSync(docPath, 'utf-8'), {
+        durationMs: 700,
+      });
+      expect(readFileSync(docPath, 'utf-8')).toBe(baselineBytes);
+      await waitWithinTestBudget(
+        `the ${docName} fragment to be rolled back to its baseline child count`,
+        () => serverDoc.getXmlFragment('default').length === baseChildren,
+        { timeoutMs: 8_000 },
+      );
+      await waitWithinTestBudget(
+        `the ${docName} source text to be rolled back to the baseline bytes`,
+        () => serverDoc.getText('source').toString() === baselineBytes,
+        { timeoutMs: 8_000 },
+      );
+      expect(getMetrics().persistenceDuplicationReset).toBe(1);
+
+      await waitWithinTestBudget(
+        'a persistence-duplication-reset checkpoint to be created',
+        () => getMetrics().persistenceDuplicationResetCheckpointCreated >= 1,
+        { timeoutMs: 10_000 },
+      );
+      const shas = (
+        await shadowGit(rig.shadow).raw(
+          'for-each-ref',
+          '--format=%(objectname)',
+          'refs/checkpoints',
+        )
+      )
+        .toString()
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      expect(shas).toHaveLength(1);
+      const sha = shas[0] ?? '';
+
+      const blob = (await shadowGit(rig.shadow).raw('show', `${sha}:${docName}`)).toString();
+      expect(occurrences(blob, 'changeset')).toBeGreaterThan(
+        occurrences(baselineBytes, 'changeset'),
+      );
+      const hist = await getDocumentHistory(rig.shadow, { docName }, '');
+      const row = hist.entries.find((e) => e.sha === sha);
+      expect(row?.checkpoint?.kind).toBe('persistence-duplication-reset');
+      expect(row?.checkpoint?.metadata).toEqual({ copies: 2, fragmentChildren: baseChildren * 2 });
+
+      const ring = parseLossCaptureLines(
+        readFileSync(lossCaptureCurrentPath(rig.tmpDir), 'utf-8'),
+      ).filter((e) => e.site === 'persistence-duplication-reset');
+      const trips = ring.filter((e) => e.event === 'detector-trip');
+      expect(trips).toHaveLength(1);
+      expect(trips[0]?.docName).toBe(docName);
+      expect(trips[0]?.lostLen ?? 0).toBeGreaterThan(0);
+      expect(ring.some((e) => e.event === 'checkpoint-write' && e.checkpointSha === sha)).toBe(
+        true,
+      );
+
+      conn.disconnect();
+    } finally {
+      warnSpy.mockRestore();
+      await server.destroy();
+    }
+  }, 30_000);
+});
+
+describe('persistence tripwire with an absent reconciled base', () => {
+  let rig: Rig;
+
+  beforeEach(() => {
+    resetMetrics();
+  });
+
+  afterEach(() => {
+    rig?.cleanup();
+  });
+
+  test('a doubling with no settled write still blocks, resets from disk, and checkpoints when the base is absent', async () => {
+    rig = await setupRig('ok-tripwire-absent-base-');
+    const docName = 'absent-base-tripwire';
+    const docPath = join(rig.tmpDir, `${docName}.md`);
+    const baseMarkdown = loadFixture('incident-changeset-readme-doubled.base.md');
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+    writeFileSync(docPath, baseMarkdown, 'utf-8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const server = createServer({
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      quiet: true,
+      debounce: 100,
+      maxDebounce: 500,
+      gitEnabled: false,
+      shadowRepo: rig.shadow,
+    });
+
+    try {
+      await server.ready;
+      const conn = await server.hocuspocus.openDirectConnection(docName);
+      const serverDoc = server.hocuspocus.documents.get(docName);
+      expect(serverDoc).toBeDefined();
+      if (!serverDoc) return;
+      const baseChildren = serverDoc.getXmlFragment('default').length;
+      expect(baseChildren).toBeGreaterThan(0);
+      await waitWithinTestBudget(
+        `the reconciled base for ${docName} to be adopted from disk`,
+        () => server.durabilityState.getReconciledBase(docName) === baseMarkdown,
+        { timeoutMs: 8_000 },
+      );
+
+      server.durabilityState.deleteReconciledBase(docName);
+      expect(server.durabilityState.getReconciledBase(docName)).toBeUndefined();
+
+      const doubledJson = mdManager.parseWithFallback(doubledMarkdown) as { content?: unknown[] };
+      replaceFragment(serverDoc, doubledJson.content ?? []);
+      expect(serverDoc.getXmlFragment('default').length).toBe(baseChildren * 2);
+
+      await vi.waitFor(
+        () => expect(getMetrics().persistenceDuplicationReset).toBeGreaterThanOrEqual(1),
+        { timeout: 10_000, interval: 25 },
+      );
+
+      await expectStable(`${docName}.md on disk`, () => readFileSync(docPath, 'utf-8'), {
+        durationMs: 700,
+      });
+      expect(readFileSync(docPath, 'utf-8')).toBe(baseMarkdown);
+      await waitWithinTestBudget(
+        `the ${docName} source text to be reset to the base markdown`,
+        () => serverDoc.getText('source').toString() === baseMarkdown,
+        { timeoutMs: 8_000 },
+      );
+      expect(getMetrics().persistenceDuplicationSpared).toBe(0);
+
+      await waitWithinTestBudget(
+        'a persistence-duplication-reset checkpoint to be created',
+        () => getMetrics().persistenceDuplicationResetCheckpointCreated >= 1,
+        { timeoutMs: 10_000 },
+      );
+      const hist = await getDocumentHistory(rig.shadow, { docName }, '');
+      expect(hist.entries.some((e) => e.checkpoint?.kind === 'persistence-duplication-reset')).toBe(
+        true,
+      );
+
+      conn.disconnect();
+    } finally {
+      warnSpy.mockRestore();
+      await server.destroy();
+    }
+  }, 40_000);
+
+  test('a doubling with a settled write behind it is spared by the tripwire but never written over a file with no base', async () => {
+    rig = await setupRig('ok-tripwire-absent-spare-');
+    const docName = 'absent-base-spare';
+    const docPath = join(rig.tmpDir, `${docName}.md`);
+    const baseMarkdown = loadFixture('incident-changeset-readme-doubled.base.md');
+    const settledMarker = 'A settled paragraph recorded before the base went missing.';
+    const settledMarkdown = `${baseMarkdown}\n\n${settledMarker}\n`;
+    writeFileSync(docPath, baseMarkdown, 'utf-8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const server = createServer({
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      quiet: true,
+      debounce: 100,
+      maxDebounce: 500,
+      gitEnabled: false,
+      shadowRepo: rig.shadow,
+    });
+
+    try {
+      await server.ready;
+      const conn = await server.hocuspocus.openDirectConnection(docName);
+      const serverDoc = server.hocuspocus.documents.get(docName);
+      expect(serverDoc).toBeDefined();
+      if (!serverDoc) return;
+
+      const settledJson = mdManager.parseWithFallback(settledMarkdown) as { content?: unknown[] };
+      replaceFragment(serverDoc, settledJson.content ?? []);
+      await waitWithinTestBudget(
+        `the settled write to reach ${docName}.md on disk`,
+        () => readFileSync(docPath, 'utf-8').length > baseMarkdown.length,
+        { timeoutMs: 8_000 },
+      );
+      const settledStored = readFileSync(docPath, 'utf-8');
+      await waitWithinTestBudget(
+        `the reconciled base for ${docName} to catch up to the settled bytes on disk`,
+        () => server.durabilityState.getReconciledBase(docName) === settledStored,
+        { timeoutMs: 8_000 },
+      );
+
+      server.durabilityState.deleteReconciledBase(docName);
+      expect(server.durabilityState.getReconciledBase(docName)).toBeUndefined();
+
+      const kids = liveChildren(serverDoc.getXmlFragment('default'));
+      replaceFragment(serverDoc, [...kids, ...kids]);
+      await waitWithinTestBudget(
+        'the doubled paste to appear twice in the source text',
+        () => occurrences(serverDoc.getText('source').toString(), settledMarker) === 2,
+        { timeoutMs: 8_000 },
+      );
+
+      await vi.waitFor(
+        () => expect(getMetrics().persistenceDuplicationSpared).toBeGreaterThanOrEqual(1),
+        { timeout: 10_000, interval: 25 },
+      );
+      expect(getMetrics().persistenceDuplicationSpared).toBe(1);
+      const spared = warnSpy.mock.calls
+        .map((call) => String(call[0] ?? ''))
+        .filter((s) => s.includes('"event":"ok-persistence-duplication-spared"'));
+      expect(spared).toHaveLength(1);
+
+      await vi.waitFor(
+        () => expect(getMetrics().storeDiskCompare.changed ?? 0).toBeGreaterThanOrEqual(1),
+        { timeout: 10_000, interval: 25 },
+      );
+      await expectStable(`${docName}.md on disk`, () => readFileSync(docPath, 'utf-8'), {
+        durationMs: 700,
+      });
+      expect(readFileSync(docPath, 'utf-8')).toBe(settledStored);
+      expect(server.durabilityState.getReconciledBase(docName)).toBe(settledStored);
+      expect(getMetrics().persistenceDuplicationReset).toBe(0);
+      await vi.waitFor(
+        async () => {
+          const hist = await getDocumentHistory(rig.shadow, { docName }, '');
+          expect(
+            hist.entries.some((e) => e.checkpoint?.kind === 'external-change-rescue-disk-update'),
+          ).toBe(true);
+        },
+        { timeout: 10_000, interval: 50 },
+      );
+
+      conn.disconnect();
+    } finally {
+      warnSpy.mockRestore();
+      await server.destroy();
+    }
+  }, 40_000);
+
+  test('a symlink-escaping disk baseline skips the store fail-closed instead of allowing a doubled write', async () => {
+    rig = await setupRig('ok-tripwire-baseline-unavailable-');
+    const outsideDir = await realpath(mkdtempSync(join(tmpdir(), 'ok-tripwire-outside-')));
+    const secretPath = join(outsideDir, 'secret.md');
+    const secretContent = '# SECRET\n\nThis content lives outside the content root.\n';
+    writeFileSync(secretPath, secretContent, 'utf-8');
+    const docName = 'baseline-unavailable';
+    symlinkSync(secretPath, join(rig.tmpDir, `${docName}.md`));
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+
+    const warnSpy = vi.spyOn(getLogger('persistence'), 'warn');
+    try {
+      await expect(
+        persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never),
+      ).rejects.toThrow('fail-closed');
+
+      expect(readFileSync(secretPath, 'utf-8')).toBe(secretContent);
+      expect(
+        occurrences(document.getText('source').toString(), 'thanks for opening this PR'),
+      ).toBeGreaterThanOrEqual(2);
+      const warnTexts = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(
+        warnTexts.some((s) => s.includes('baseline unavailable') && s.includes('fail-closed')),
+      ).toBe(true);
+      expect(getMetrics().persistenceDuplicationReset).toBe(0);
+    } finally {
+      warnSpy.mockRestore();
+      rmSync(outsideDir, { recursive: true, force: true });
+    }
+  });
+
+  test('an agent-triggered store refused for an escaping baseline reports the escape as an unresolvable path', async () => {
+    rig = await setupRig('ok-tripwire-refusal-channel-');
+    const outsideDir = await realpath(mkdtempSync(join(tmpdir(), 'ok-tripwire-outside-')));
+    const secretPath = join(outsideDir, 'secret.md');
+    const secretContent = '# SECRET\n\nThis content lives outside the content root.\n';
+    writeFileSync(secretPath, secretContent, 'utf-8');
+    const docName = 'refusal-channel';
+    symlinkSync(secretPath, join(rig.tmpDir, `${docName}.md`));
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+    durabilityState.markAgentWriteStore(docName);
+
+    try {
+      await expect(
+        persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never),
+      ).rejects.toThrow('fail-closed');
+
+      const failure = durabilityState.takeStoreFailure(docName);
+      expect(failure).not.toBeNull();
+      expect(failure?.code).toBe(OK_PATH_UNRESOLVABLE);
+      expect(durabilityState.isStoreRefused(docName)).toBe(true);
+      expect(readFileSync(secretPath, 'utf-8')).toBe(secretContent);
+    } finally {
+      rmSync(outsideDir, { recursive: true, force: true });
+    }
+  });
+
+  test('an agent-triggered store refused for an unreadable baseline stays a retryable store refusal', async () => {
+    rig = await setupRig('ok-tripwire-refusal-unreadable-');
+    const docName = 'refusal-unreadable';
+    const docPath = join(rig.tmpDir, `${docName}.md`);
+    mkdirSync(docPath);
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+    durabilityState.markAgentWriteStore(docName);
+
+    await expect(
+      persistence.extension.onStoreDocument?.({
+        document,
+        documentName: docName,
+        lastTransactionOrigin: BROWSER_ORIGIN,
+        lastContext: {},
+      } as never),
+    ).rejects.toThrow('fail-closed');
+
+    const failure = durabilityState.takeStoreFailure(docName);
+    expect(failure).not.toBeNull();
+    expect(failure?.code).toBe(OK_STORE_REFUSED);
+    expect(durabilityState.isStoreRefused(docName)).toBe(true);
+    expect(statSync(docPath).isDirectory()).toBe(true);
+  });
+
+  test('a background store refused fail-closed records no store failure for a later caller to misattribute', async () => {
+    rig = await setupRig('ok-tripwire-refusal-background-');
+    const outsideDir = await realpath(mkdtempSync(join(tmpdir(), 'ok-tripwire-outside-')));
+    const secretPath = join(outsideDir, 'secret.md');
+    const secretContent = '# SECRET\n\nThis content lives outside the content root.\n';
+    writeFileSync(secretPath, secretContent, 'utf-8');
+    const docName = 'refusal-background';
+    symlinkSync(secretPath, join(rig.tmpDir, `${docName}.md`));
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+
+    try {
+      await expect(
+        persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never),
+      ).rejects.toThrow('fail-closed');
+
+      expect(durabilityState.takeStoreFailure(docName)).toBeNull();
+    } finally {
+      rmSync(outsideDir, { recursive: true, force: true });
+    }
+  });
+
+  test('a refused doc that stores successfully after the baseline is repaired clears the refused mark', async () => {
+    rig = await setupRig('ok-tripwire-refusal-recovery-');
+    const outsideDir = await realpath(mkdtempSync(join(tmpdir(), 'ok-tripwire-outside-')));
+    const secretPath = join(outsideDir, 'secret.md');
+    const secretContent = '# SECRET\n\nThis content lives outside the content root.\n';
+    writeFileSync(secretPath, secretContent, 'utf-8');
+    const docName = 'refusal-recovery';
+    symlinkSync(secretPath, join(rig.tmpDir, `${docName}.md`));
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+
+    try {
+      await expect(
+        persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never),
+      ).rejects.toThrow('fail-closed');
+      expect(durabilityState.isStoreRefused(docName)).toBe(true);
+
+      const heldContent = document.getText('source').toString();
+      rmSync(join(rig.tmpDir, `${docName}.md`));
+      writeFileSync(join(rig.tmpDir, `${docName}.md`), heldContent, 'utf-8');
+
+      await expect(
+        persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never),
+      ).resolves.toBeUndefined();
+      expect(durabilityState.isStoreRefused(docName)).toBe(false);
+
+      await expect(
+        persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never),
+      ).resolves.toBeUndefined();
+      expect(durabilityState.isStoreRefused(docName)).toBe(false);
+      expect(readFileSync(join(rig.tmpDir, `${docName}.md`), 'utf-8')).toBe(heldContent);
+    } finally {
+      rmSync(outsideDir, { recursive: true, force: true });
+    }
+  });
+
+  test('a store whose markdown matches an adopted reconciled base clears the refused mark through the early-return path', async () => {
+    rig = await setupRig('ok-tripwire-refusal-earlyclear-');
+    const outsideDir = await realpath(mkdtempSync(join(tmpdir(), 'ok-tripwire-outside-')));
+    const secretPath = join(outsideDir, 'secret.md');
+    const secretContent = '# SECRET\n\nThis content lives outside the content root.\n';
+    writeFileSync(secretPath, secretContent, 'utf-8');
+    const docName = 'refusal-early-clear';
+    symlinkSync(secretPath, join(rig.tmpDir, `${docName}.md`));
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+
+    try {
+      await expect(
+        persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never),
+      ).rejects.toThrow('fail-closed');
+      expect(durabilityState.isStoreRefused(docName)).toBe(true);
+
+      const heldContent = document.getText('source').toString();
+      rmSync(join(rig.tmpDir, `${docName}.md`));
+      writeFileSync(join(rig.tmpDir, `${docName}.md`), heldContent, 'utf-8');
+      durabilityState.setReconciledBase(docName, heldContent);
+
+      const infoSpy = vi.spyOn(getLogger('persistence'), 'info');
+      try {
+        await persistence.extension.onStoreDocument?.({
+          document,
+          documentName: docName,
+          lastTransactionOrigin: BROWSER_ORIGIN,
+          lastContext: {},
+        } as never);
+
+        expect(durabilityState.isStoreRefused(docName)).toBe(false);
+        const infoTexts = infoSpy.mock.calls.map((call) => String(call[1] ?? ''));
+        expect(infoTexts.some((s) => s.includes('[persistence] Wrote'))).toBe(false);
+        expect(readFileSync(join(rig.tmpDir, `${docName}.md`), 'utf-8')).toBe(heldContent);
+      } finally {
+        infoSpy.mockRestore();
+      }
+    } finally {
+      rmSync(outsideDir, { recursive: true, force: true });
+    }
+  });
+
+  test('a first store of a never-observed doc skips the missing-baseline counter and recreates the file', async () => {
+    rig = await setupRig('ok-tripwire-baseline-missing-');
+    const docName = 'baseline-missing';
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+
+    const warnSpy = vi.spyOn(getLogger('persistence'), 'warn');
+    try {
+      await persistence.extension.onStoreDocument?.({
+        document,
+        documentName: docName,
+        lastTransactionOrigin: BROWSER_ORIGIN,
+        lastContext: {},
+      } as never);
+
+      expect(getMetrics().persistenceDuplicationBaselineMissing).toBe(0);
+      const warnTexts = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(warnTexts.some((s) => s.includes('no baseline'))).toBe(false);
+      expect(
+        occurrences(
+          readFileSync(join(rig.tmpDir, `${docName}.md`), 'utf-8'),
+          'thanks for opening this PR',
+        ),
+      ).toBeGreaterThanOrEqual(2);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('a lost baseline on a doc the server observed on disk is counted, and the deleted file is not recreated', async () => {
+    rig = await setupRig('ok-tripwire-baseline-lost-');
+    const docName = 'baseline-lost';
+    const seeded = '# Baseline lost\n\nOriginal on-disk body.\n';
+    writeFileSync(join(rig.tmpDir, `${docName}.md`), seeded, 'utf-8');
+    const doubledMarkdown = loadFixture('incident-changeset-readme-doubled.candidate.md');
+
+    const durabilityState = new DocumentDurabilityState();
+    const persistence = createPersistenceExtension({
+      mergeHistory: null,
+      ingestDiskAtStore: null,
+      contentDir: rig.tmpDir,
+      projectDir: rig.tmpDir,
+      gitEnabled: false,
+      durabilityState,
+    });
+    const document = new Y.Doc();
+    composeAndWriteRawBody(document, doubledMarkdown, 'agent');
+
+    await persistence.extension.onLoadDocument?.({
+      document,
+      documentName: docName,
+    } as never);
+    durabilityState.deleteReconciledBase(docName);
+    rmSync(join(rig.tmpDir, `${docName}.md`));
+
+    const warnSpy = vi.spyOn(getLogger('persistence'), 'warn');
+    try {
+      await persistence.extension.onStoreDocument?.({
+        document,
+        documentName: docName,
+        lastTransactionOrigin: BROWSER_ORIGIN,
+        lastContext: {},
+      } as never);
+
+      expect(getMetrics().persistenceDuplicationBaselineMissing).toBe(1);
+      const warnTexts = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
+      expect(warnTexts.some((s) => s.includes('no baseline'))).toBe(true);
+      expect(existsSync(join(rig.tmpDir, `${docName}.md`))).toBe(false);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+});

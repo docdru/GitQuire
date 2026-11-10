@@ -1,0 +1,186 @@
+import { Agent } from 'undici';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import {
+  type DispatcherRequestInit,
+  expectBlockedNetworkRequest,
+  NetConnectBlockedError,
+} from '../../no-net-connect';
+
+const dispatcher = new Agent({
+  connect: {
+    lookup(_hostname, _options, callback) {
+      callback(null, [{ address: '127.0.0.1', family: 4 }]);
+    },
+  },
+});
+
+async function captureBlockedRequest(hostname: string): Promise<unknown> {
+  return fetch(`http://${hostname}:4/resource`, {
+    dispatcher,
+  } as DispatcherRequestInit).catch((error: unknown) => error);
+}
+
+afterAll(() => dispatcher.close());
+
+if (process.env.OK_FIXTURE_COLLECTION_BLOCK === '1') {
+  try {
+    await fetch('https://collection-time.invalid/resource');
+  } catch {}
+}
+
+test('swallowed undeclared forbidden fetch fails', async () => {
+  const error = await captureBlockedRequest('undeclared.invalid');
+  expect(error).toBeInstanceOf(NetConnectBlockedError);
+});
+
+test('declared exact hostname block passes', async () => {
+  expectBlockedNetworkRequest('expected.invalid');
+  const error = await captureBlockedRequest('expected.invalid');
+  expect(error).toBeInstanceOf(NetConnectBlockedError);
+});
+
+test('unused hostname expectation fails', () => {
+  expect(() => expectBlockedNetworkRequest('unused.invalid')).not.toThrow();
+});
+
+test('mismatched hostname expectation fails', async () => {
+  expectBlockedNetworkRequest('expected.invalid');
+  const error = await captureBlockedRequest('actual.invalid');
+  expect(error).toBeInstanceOf(NetConnectBlockedError);
+});
+
+test('ordinary assertion and swallowed forbidden fetch both surface', async () => {
+  await captureBlockedRequest('combined-failure.invalid');
+  expect('ordinary-actual').toBe('ordinary-expected');
+});
+
+describe('suite setup swallowed block fails', () => {
+  beforeAll(async () => {
+    await captureBlockedRequest('suite-setup.invalid');
+  });
+
+  test('suite body completes', () => {
+    expect(true).toBe(true);
+  });
+});
+
+describe('suite teardown swallowed block fails', () => {
+  afterAll(async () => {
+    await captureBlockedRequest('suite-teardown.invalid');
+  });
+
+  test('suite body completes', () => {
+    expect(true).toBe(true);
+  });
+});
+
+describe('suite hook declarations cannot authorize sibling suite blocks', () => {
+  describe('declaration sibling', () => {
+    let rejection: unknown;
+
+    beforeAll(() => {
+      try {
+        expectBlockedNetworkRequest('cross-suite.invalid');
+      } catch (error) {
+        rejection = error;
+      }
+    });
+
+    test('declaration rejection body passes', () => {
+      expect(rejection).toEqual(
+        new Error('Expected network blocks must be declared inside a test, not suite hooks'),
+      );
+    });
+  });
+
+  describe('blocking sibling', () => {
+    beforeAll(async () => {
+      await captureBlockedRequest('cross-suite.invalid');
+    });
+
+    test('swallowed block body passes', () => {
+      expect(true).toBe(true);
+    });
+  });
+});
+
+describe('a block that lands after its scope drained is reported, not enforced', () => {
+  const { promise: orphanOutcome, resolve: resolveOrphan } = Promise.withResolvers<unknown>();
+  const { promise: lateDeclarationOutcome, resolve: resolveLateDeclaration } =
+    Promise.withResolvers<unknown>();
+
+  test('schedules a forbidden fetch that lands after it returns', () => {
+    expect(() => {
+      setTimeout(() => {
+        void fetch('https://orphan.invalid/resource').then(resolveOrphan, resolveOrphan);
+      }, 10);
+    }).not.toThrow();
+  });
+
+  test('schedules a late declaration that cannot re-open its scope', () => {
+    expect(() => {
+      setTimeout(() => {
+        expectBlockedNetworkRequest('late-declaration.invalid');
+        void fetch('https://late-declaration.invalid/resource').then(
+          resolveLateDeclaration,
+          resolveLateDeclaration,
+        );
+      }, 10);
+    }).not.toThrow();
+  });
+
+  test('a later test gives the orphan time to land', async () => {
+    await expect(orphanOutcome).resolves.toBeInstanceOf(NetConnectBlockedError);
+    await expect(lateDeclarationOutcome).resolves.toBeInstanceOf(NetConnectBlockedError);
+  });
+});
+
+test('unrelated console error passes', () => {
+  expect(() => console.error('fixture diagnostic unrelated to network blocking')).not.toThrow();
+});
+
+describe('concurrent siblings isolate exact hostname expectations', () => {
+  const { promise: alphaDeclared, resolve: releaseAlpha } = Promise.withResolvers<void>();
+  const { promise: betaDeclared, resolve: releaseBeta } = Promise.withResolvers<void>();
+
+  test.concurrent('alpha request', async ({ expect }) => {
+    expectBlockedNetworkRequest('alpha.invalid');
+    releaseAlpha();
+    await betaDeclared;
+    const error = await captureBlockedRequest('alpha.invalid');
+    expect(error).toBeInstanceOf(NetConnectBlockedError);
+  });
+
+  test.concurrent('beta request', async ({ expect }) => {
+    await alphaDeclared;
+    expectBlockedNetworkRequest('beta.invalid');
+    releaseBeta();
+    const error = await captureBlockedRequest('beta.invalid');
+    expect(error).toBeInstanceOf(NetConnectBlockedError);
+  });
+});
+
+describe('concurrent unexpected block stays with its owning test', () => {
+  const { promise: offenderStarted, resolve: releaseOffenderStarted } =
+    Promise.withResolvers<void>();
+  const { promise: innocentReady, resolve: releaseInnocentReady } = Promise.withResolvers<void>();
+  const { promise: offenderBlocked, resolve: releaseOffenderBlocked } =
+    Promise.withResolvers<void>();
+  const { promise: innocentDone, resolve: releaseInnocentDone } = Promise.withResolvers<void>();
+
+  test.concurrent('offender swallows its unexpected block', async ({ expect }) => {
+    releaseOffenderStarted();
+    await innocentReady;
+    const error = await captureBlockedRequest('concurrent-offender.invalid');
+    releaseOffenderBlocked();
+    await innocentDone;
+    expect(error).toBeInstanceOf(NetConnectBlockedError);
+  });
+
+  test.concurrent('innocent sibling passes', async ({ expect }) => {
+    await offenderStarted;
+    releaseInnocentReady();
+    await expect(offenderBlocked).resolves.toBeUndefined();
+    releaseInnocentDone();
+  });
+});

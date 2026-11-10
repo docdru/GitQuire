@@ -1,0 +1,94 @@
+---
+title: Ignore patterns
+icon: LuEyeOff
+description: Hide files and folders from search and your AI agents.
+---
+
+OpenKnowledge indexes the markdown in your project so it can power search and the tools your AI agents call. When you don't want a file in that picture (drafts, scratch notes, vendor-pasted material), hide it with an ignore pattern. Hidden items don't show up in search and don't reach AI agents through MCP; they stay visible in the sidebar, which lists what's on disk, not what's indexed. Nothing on disk is deleted.
+
+## Hide a file
+
+Right-click any file in the sidebar and pick **Hide this file**. OpenKnowledge appends a matching pattern to `.okignore` and confirms with a toast pointing at Settings; the row stays in the sidebar.
+
+Right-click a folder and pick **Hide folder** to hide every file inside it.
+
+The hidden item is now ignored in search, agent context, and the document list returned by MCP tools. To bring it back, remove the matching row from Settings.
+
+## Manage patterns from Settings
+
+Open Settings (`Cmd/Ctrl-,` or App menu → Settings…) and stay on the **This project** tab. The **Ignore patterns** section lists every pattern in your project, one per row.
+
+You can:
+
+- **Add a pattern.** Type a folder name (`drafts/`) or a file shape (`*.draft.md`) and press Enter.
+- **Edit a row.** Click into it and type. Changes save when you blur or press Enter.
+- **Reorder rows.** Drag the handle on the left.
+- **Remove a row.** Click the × on the right.
+
+There is no Save button; every edit auto-saves to `.okignore` on disk.
+
+### Pattern preview
+
+Each row shows a **matches N files** preview as you type. Files already hidden by another row, or excluded by `.gitignore`, don't count toward it. A pattern that reports `matches 0` is usually a typo, but can also mean the file is already hidden by another rule.
+
+### Heuristic warnings
+
+A small amber warning icon appears next to a row when the pattern has a syntax oddity (a stray `[`, a trailing backslash, leading whitespace, a lone `!`, or an embedded line break). These warnings are non-blocking nudges, not errors. The pattern still saves; the icon is a hint that you may have meant something different.
+
+## Edits take effect immediately
+
+Adding, editing, or removing a pattern updates the running editor in under a second. Search re-indexes and the next MCP tool call sees the new scope. No restart, no manual refresh.
+
+External edits work the same way: open `.okignore` in another editor, save, and the running editor picks up the change.
+
+## Advanced patterns
+
+`.okignore` uses [gitignore syntax](https://git-scm.com/docs/gitignore) parsed by the [`ignore`](https://www.npmjs.com/package/ignore) npm library, a JavaScript implementation of the gitignore pattern spec. The list editor handles common cases (folder-prefixed paths, glob patterns, plain filenames). For full syntax (negation with `!`, anchoring with `/`, the `**` recursive glob), click **Show advanced** under the list to edit `.okignore` as raw text.
+
+```text title=".okignore"
+# Exclude a directory
+drafts/
+
+# Exclude any file matching a pattern
+*.draft.md
+
+# Re-include a file .gitignore excluded
+!keep.md
+```
+
+## Where the patterns live
+
+Patterns are stored in a `.okignore` file at your project root, alongside `.gitignore`. If `content.dir` points somewhere other than the project root, Settings manages the `.okignore` at the content directory root instead. The file is checked into version control and shared with anyone who clones the repo. Hand-edit it directly in any editor; OpenKnowledge picks up changes the same way it picks up Settings edits. To check the resulting scope from the terminal, run `ok preview`; it shows what content OpenKnowledge will track, no server required.
+
+OpenKnowledge scaffolds a starter `.okignore` with a commented header the first time it sets up a project, so the file is there from day one.
+
+## Nested files
+
+Drop additional `.okignore` files at any folder depth. Each file scopes to its directory, the same way nested `.gitignore` files do. Nested files are honored at runtime but aren't currently editable from Settings; open them in your IDE.
+
+If OpenKnowledge can't reload your ignore files (rare; usually a filesystem error), it surfaces a toast with the path that triggered the reload. The workspace keeps using the previous patterns until the next change.
+
+## Working with `.gitignore`
+
+`.gitignore` exclusions are honored automatically; no need to re-list them in `.okignore`. To re-include a file that `.gitignore` excluded, add a negation pattern:
+
+```text title=".okignore"
+!secret.md
+```
+
+`.gitignore` itself is git's contract; OpenKnowledge never edits it. If you want a file out of git but visible in OpenKnowledge, that's where the negation goes.
+
+The negation is an OpenKnowledge behavior; `git` itself only reads `.gitignore`, so an `!` line in `.okignore` does not change what git tracks.
+
+## Temporarily surfacing hidden files
+
+The sidebar always lists every file on disk under the content directory, including files excluded by `.gitignore` / `.okignore` (listings truncate at 50,000 entries, deepest paths first). Dot-prefixed entries are the exception, so the sidebar's right-click menu and the **View** menu carry a project-local **Show Hidden Files** toggle for when you need to see them without permanently editing `.okignore`:
+
+- **Show Hidden Files** stops the client from hiding paths that start with `.` (recovers allowed dotfiles like `brain/.archived/note.md`). Tooling internals (`.git/`, `.ok/`, `node_modules/`), secret-bearing paths (`.env` files, private keys, credential files, `.ssh/`), and OS junk (`.DS_Store`) stay hidden in every mode.
+
+The setting persists per-project per-machine. See [Editor → Show Hidden Files](/docs/features/editor#show-hidden-files) for the full UX.
+
+## See also
+
+- [Configuration reference](/docs/reference/configuration): the project config schema and `content.dir`.
+- [Editor → Hiding files and folders](/docs/features/editor#hiding-files-and-folders): the right-click flow.

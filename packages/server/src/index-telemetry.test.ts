@@ -1,0 +1,147 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { context, metrics, trace } from '@opentelemetry/api';
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
+import {
+  BasicTracerProvider,
+  InMemorySpanExporter,
+  type ReadableSpan,
+  SimpleSpanProcessor,
+} from '@opentelemetry/sdk-trace-base';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { BacklinkIndex } from './backlink-index.ts';
+import {
+  __resetIndexTelemetryForTests,
+  instrumentIndexRebuild,
+  instrumentIndexUpdate,
+  recordIndexGenerationLag,
+} from './index-telemetry.ts';
+
+let exporter: InMemorySpanExporter;
+let provider: BasicTracerProvider;
+
+beforeEach(() => {
+  exporter = new InMemorySpanExporter();
+  provider = new BasicTracerProvider({
+    spanProcessors: [new SimpleSpanProcessor(exporter)],
+  });
+  trace.setGlobalTracerProvider(provider);
+  context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable());
+  __resetIndexTelemetryForTests();
+});
+
+afterEach(async () => {
+  await provider.shutdown();
+  trace.disable();
+  metrics.disable();
+  context.disable();
+  __resetIndexTelemetryForTests();
+});
+
+function requireSpan(name: string): ReadableSpan {
+  const spans = exporter.getFinishedSpans().filter((s) => s.name === name);
+  const head = spans[0];
+  if (!head) throw new Error(`requireSpan: no span named '${name}'`);
+  return head;
+}
+
+describe('instrumentIndexRebuild', () => {
+  test('emits ok.index.rebuild with bounded name/mode attributes', async () => {
+    const result = await instrumentIndexRebuild('tag', 'full', async () => 'done');
+    expect(result).toBe('done');
+    const span = requireSpan('ok.index.rebuild');
+    expect(span.attributes['index.name']).toBe('tag');
+    expect(span.attributes['index.mode']).toBe('full');
+  });
+
+  test('maps the result onto span attributes via resultAttrs', async () => {
+    await instrumentIndexRebuild(
+      'backlink',
+      'reconcile',
+      async () => ({ added: 3, updated: 1, deleted: 2 }),
+      (diff) => ({
+        'index.added': diff.added,
+        'index.updated': diff.updated,
+        'index.deleted': diff.deleted,
+      }),
+    );
+    const span = requireSpan('ok.index.rebuild');
+    expect(span.attributes['index.name']).toBe('backlink');
+    expect(span.attributes['index.mode']).toBe('reconcile');
+    expect(span.attributes['index.added']).toBe(3);
+    expect(span.attributes['index.updated']).toBe(1);
+    expect(span.attributes['index.deleted']).toBe(2);
+  });
+
+  test('warm backlink reconciliation reports source-link reuse', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ok-backlink-rehydrate-span-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir);
+    try {
+      writeFileSync(join(contentDir, 'source.md'), '[[target]]');
+      writeFileSync(join(contentDir, 'target.md'), '# Target');
+      const index = new BacklinkIndex({ projectDir, contentDir });
+      await index.rebuildFromDisk();
+      await index.saveToDisk();
+      const reloaded = new BacklinkIndex({ projectDir, contentDir });
+      expect(await reloaded.loadFromDisk()).toBe(true);
+      expect(await reloaded.reconcileWithDisk()).toMatchObject({ updated: 0, changedDocs: [] });
+      const span = exporter
+        .getFinishedSpans()
+        .find(
+          (entry) =>
+            entry.name === 'ok.index.rebuild' && entry.attributes['index.mode'] === 'reconcile',
+        );
+      expect(span?.attributes).toMatchObject({
+        'index.name': 'backlink',
+        'index.mode': 'reconcile',
+        'index.updated': 0,
+      });
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('propagates the rebuild error and still ends the span', async () => {
+    await expect(
+      instrumentIndexRebuild('tag', 'full', async () => {
+        throw new Error('walk failed');
+      }),
+    ).rejects.toThrow('walk failed');
+    const span = requireSpan('ok.index.rebuild');
+    expect(span.status.code).not.toBe(0);
+  });
+
+  test('metric record path is no-throw under the default (disabled) meter', async () => {
+    await expect(instrumentIndexRebuild('tag', 'reconcile', async () => 1)).resolves.toBe(1);
+  });
+});
+
+describe('instrumentIndexUpdate', () => {
+  test('emits only bounded operation and numeric measurement attributes', () => {
+    const result = instrumentIndexUpdate(
+      'local-target',
+      'source',
+      () => ({ changed: true, occurrences: 4, affectedSources: 2 }),
+      (update) => ({
+        'index.occurrences': update.occurrences,
+        'index.affected_sources': update.affectedSources,
+      }),
+    );
+
+    expect(result.changed).toBe(true);
+    const span = requireSpan('ok.index.update');
+    expect(span.attributes).toEqual({
+      'index.name': 'local-target',
+      'index.mode': 'source',
+      'index.occurrences': 4,
+      'index.affected_sources': 2,
+    });
+    expect(Object.keys(span.attributes).some((key) => /path|href|content/.test(key))).toBe(false);
+  });
+
+  test('records generation lag only at a real publication boundary', () => {
+    expect(() => recordIndexGenerationLag('local-target', 'signal', 3)).not.toThrow();
+  });
+});

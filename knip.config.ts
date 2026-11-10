@@ -1,0 +1,190 @@
+import { existsSync, readdirSync } from 'node:fs';
+import type { KnipConfig } from 'knip';
+
+const fidelityOnlyAppDeps = existsSync('packages/app/tests/fidelity')
+  ? []
+  : ['fast-check', 'commonmark.json', 'remark-mdx', 'remark-parse'];
+
+const PREDICATE_DIR = 'lint-plugins/no-comments';
+
+const differentialOnlyRootDeps =
+  existsSync(PREDICATE_DIR) &&
+  readdirSync(PREDICATE_DIR).some((entry) => entry.includes('.private.'))
+    ? []
+    : ['yaml'];
+
+export default {
+  tags: ['-lintignore'],
+  ignore: ['plugins/*/skills/*/scripts/**'],
+  ignoreDependencies: [
+    ...differentialOnlyRootDeps,
+    'lint-staged', // not sure if it's false positive
+    'husky',
+    '@lingui/babel-plugin-lingui-macro',
+    '@lingui/format-po',
+    'micromark',
+    '@typescript/native',
+    'zod',
+  ],
+  ignoreBinaries: [
+    'uv',
+    'printf',
+    'ps', // process listing — diagnose.ts, process-scan.ts
+    'lsof', // open-file listing — diagnose.ts, process-scan.ts
+    'pgrep', // process lookup — process-scan.ts
+    'taskkill', // Windows process-tree termination — acp/launch.ts
+    'sw_vers', // macOS version query — bug-report.ts
+    'mktemp', // where macOS puts -t files — b4-acceptance-gate.test.ts observes the gate's scratch
+    'mkfifo', // named-pipe creation — keepalive-orphan-reaping.test.ts
+    'xcrun', // macOS notarization tool — desktop afterSign.mjs
+    'xdg-mime', // Linux default-app query — desktop ipc-handlers.ts
+    'ssh-keygen', // ephemeral VM keypair — lume-qa lume-orchestrator.ts
+    'zsh', // the executor's `.private.` test also runs the printed Biome fix under zsh -c
+    'rustup',
+  ],
+  ignoreIssues: {
+    'test-support/vitest.base.ts': ['exports'],
+    'packages/app/src/locales/**': ['files'],
+    'packages/app/src/components/ui/*': ['exports'],
+    'docs/src/components/ui/*': ['exports'],
+    'docs/source.config.ts': ['exports'],
+    'packages/app/src/editor/extensions/internal-link.ts': ['exports', 'types'],
+    'packages/app/src/editor/clipboard/serialize.ts': ['types'],
+    '{tech-probes,reports,specs}/**': ['files', 'exports', 'types'],
+    'tests/integration/**': ['files'],
+    'packages/core/src/desktop-bridge.ts': ['files', 'types'],
+    'packages/desktop/src/shared/ipc-events.ts': ['files'],
+    'packages/app/src/components/CloneDialog.tsx': ['files'],
+    'docs/content/**/*.mdx': ['files'],
+    'docs/_snippets/**/*.mdx': ['files'],
+    'packages/app/src/components/McpConsentDialogBody.tsx': ['duplicates'],
+    'packages/core/src/extensions/list.ts': ['duplicates'],
+    'packages/desktop/src/main/auto-updater.ts': ['types'],
+    'packages/app/src/lib/perf/index.ts': ['exports', 'types'],
+    'packages/app/src/lib/perf/env-override.ts': ['types'],
+    'packages/app/src/lib/perf/mark.ts': ['types'],
+    'packages/app/src/editor/typing-burst-detector.ts': ['exports', 'types'],
+    'packages/server/src/bridge-intake.ts': ['types'],
+    '**/*.type-tests.ts': ['files'],
+    'packages/server/src/http/request-validation.ts': ['exports', 'types'],
+    'packages/server/src/http/error-response.ts': ['exports'],
+    'packages/app/src/editor/http-client.ts': ['types'],
+    '.{agents,codex}/skills/**': ['files'],
+    'lint-plugins/no-comments/__fixtures__/**': ['files'],
+    'lint-plugins/ok-rules/__fixtures__/**': ['files', 'exports'],
+    '**/*.reads.{ts,mjs}': ['files', 'exports'],
+    'scripts/compute-next-beta.mjs': ['files'],
+    'scripts/build-slack-release-payload.mjs': ['files'],
+    'scripts/assert-smoke-not-vacuous.mjs': ['files'],
+    'scripts/assert-app-built.mjs': ['files'],
+    'scripts/acp-mcp-rig/*.mjs': ['files'],
+    'docs/src/lib/share-splash.ts': ['exports', 'types'],
+    'packages/app/src/components/PublishToGitHubDialog.tsx': ['types'],
+    'packages/app/src/components/ShareButton.tsx': ['types'],
+    'packages/app/src/components/ShareReceiveDialog.tsx': ['types'],
+    'packages/app/src/lib/share/clone-controller.ts': ['types'],
+    'packages/app/src/lib/share/publish-wizard.ts': ['exports', 'types'],
+    'packages/app/src/lib/share/receive-flow.ts': ['types'],
+    'packages/app/src/lib/share/run-share-action.ts': ['types'],
+    'packages/cli/src/commands/share/owners.ts': ['types'],
+    'packages/cli/src/commands/share/publish.ts': ['types'],
+    'packages/cli/src/commands/init.ts': ['types'],
+    'packages/desktop/src/main/create-new-project.ts': ['types'],
+    'packages/desktop/src/main/url-scheme.ts': ['types'],
+    'packages/desktop/src/shared/bridge-contract.ts': ['types'],
+    'packages/desktop/src/shared/ipc-channels.ts': ['types'],
+    'packages/app/src/lib/desktop-bridge-types.ts': ['types'],
+    'packages/server/src/share/git-context.ts': ['types'],
+    'packages/server/src/git-preflight.ts': ['exports'],
+    'packages/cli/src/commands/diagnose-health.ts': ['exports'],
+    'packages/cli/src/commands/diagnose-health-checks/git.ts': ['exports'],
+    'packages/cli/src/commands/diagnose-health-checks/index.ts': ['exports', 'types'],
+    'packages/cli/src/commands/diagnose-health-checks/types.ts': ['types'],
+    'packages/desktop/src/main/git-preflight-handler.ts': ['types'],
+    'packages/native-config/index.js': ['unlisted', 'unresolved'],
+  },
+  workspaces: {
+    '.': {
+      entry: [
+        'test-support/fixtures/no-net-connect/no-net-connect.fixture.ts',
+        'test-support/fixtures/read-declarations/vitest.read-declarations-fixture.config.ts',
+        'test-support/fixtures/read-declarations/*.cjs',
+        'scripts/check-no-major-changeset.mjs',
+      ],
+      vitest: { entry: ['**/*.uncached.test.{ts,tsx,mjs}', '!.{agents,codex}/skills/**'] },
+    },
+    'packages/app': {
+      entry: [
+        'src/**/*.test.{ts,tsx}',
+        'tests/**/*.{test,e2e}.ts',
+        'tests/perf/lib/*.ts',
+        'tests/dom/**/*.ts',
+        'vite.prebuilt-dev.ts',
+        'tests/stress/_helpers/reuse/server-supervisor.ts',
+      ],
+      project: 'src/**',
+      ignoreDependencies: [
+        'fuzzysort', // installed for workspace omnibar search ahead of the consumer wire-up
+        '@testing-library/jest-dom', // side-effect import (`import '@testing-library/jest-dom'`) registers matchers
+        'highlight.js', // lowlight's peer dependency — never imported here directly, but lowlight's grammar registrations resolve through it
+        ...fidelityOnlyAppDeps,
+      ],
+      ignoreFiles: ['src/server/agent-sim.ts'],
+    },
+    'packages/core': {
+      entry: [
+        'src/**/*.test.ts',
+        'tests/**/*.ts',
+        'src/markdown/fixtures/perf/generate.ts',
+        'scripts/*.ts',
+        'src/**/*.typelock.ts',
+      ],
+      project: 'src/**',
+      ignoreDependencies: [
+        '@tiptap/y-tiptap',
+        'y-prosemirror',
+        'mdast-util-mdx-expression',
+        'mdast-util-mdx-jsx',
+      ],
+    },
+    docs: {
+      entry: ['src/**/*.test.{ts,tsx}'],
+    },
+    'packages/server': {
+      entry: [
+        'src/**/*.test.ts',
+        'src/parse-worker.ts',
+        'src/shadow-fixture-launch.test-helper.mjs',
+      ],
+      project: 'src/**',
+      ignoreDependencies: ['@types/shell-quote'],
+    },
+    'packages/cli': {
+      entry: [
+        'src/**/*.test.ts',
+        'scripts/*.ts',
+        'tests/**/*.ts',
+        'src/parse-worker.ts',
+        'src/bin.ts',
+      ],
+      ignoreDependencies: ['yjs'],
+    },
+    'packages/desktop': {
+      entry: [
+        'src/main/entry.ts',
+        'src/utility/server-entry.ts',
+        'src/utility/pty-host-entry.ts',
+        'src/**/*.test.ts',
+        'src/**/*.typelock.ts',
+        'src/utility/server-entry-load-probe.fixture.test-helper.ts',
+        'scripts/*.mjs',
+        'tests/**/*.test.ts',
+        'tests/**/*.test.mjs',
+        'tests/support/fixtures/final-failure-annotations/*.ts',
+        'tests/support/final-failure-annotations.type-tests.ts',
+      ],
+      ignoreDependencies: ['@inkeep/open-knowledge-native-config', 'culori'],
+      project: 'src/**',
+    },
+  },
+} satisfies KnipConfig;

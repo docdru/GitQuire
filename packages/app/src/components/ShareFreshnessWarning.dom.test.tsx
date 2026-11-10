@@ -1,0 +1,417 @@
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import type { GitSyncStatus } from '@/hooks/use-git-sync-status';
+
+let triggerSyncImpl: () => Promise<void> = () => Promise.resolve();
+vi.doMock('@/lib/trigger-sync', () => ({ triggerSync: () => triggerSyncImpl() }));
+
+let autoSyncWrites: boolean[] = [];
+vi.doMock('@/lib/config-provider', () => ({
+  useConfigContext: () => ({
+    projectLocalBinding: {
+      patch: (value: { autoSync?: { enabled?: boolean } }) => {
+        if (value.autoSync?.enabled !== undefined) autoSyncWrites.push(value.autoSync.enabled);
+        return { ok: true };
+      },
+    },
+    projectLocalSynced: true,
+  }),
+}));
+
+const { ShareFreshnessWarning, shareFreshnessRowVisible } = await import('./ShareFreshnessWarning');
+
+function makeStatus(overrides: Partial<GitSyncStatus> = {}): GitSyncStatus {
+  return {
+    state: 'idle',
+    lastSyncUtc: null,
+    lastFetchUtc: null,
+    ahead: 0,
+    behind: 0,
+    conflictCount: 0,
+    hasRemote: true,
+    syncEnabled: false,
+    ...overrides,
+  };
+}
+
+afterEach(() => {
+  cleanup();
+  window.location.hash = '';
+  triggerSyncImpl = () => Promise.resolve();
+  autoSyncWrites = [];
+});
+
+describe('ShareFreshnessWarning', () => {
+  test('renders no row when freshness is current', () => {
+    render(<ShareFreshnessWarning freshness="current" status={makeStatus()} kind="doc" />);
+    expect(screen.queryByTestId('share-freshness-row')).toBeNull();
+  });
+
+  test('renders no row when freshness is omitted (fail-open)', () => {
+    render(<ShareFreshnessWarning freshness={undefined} status={makeStatus()} kind="doc" />);
+    expect(screen.queryByTestId('share-freshness-row')).toBeNull();
+  });
+
+  test('absent + sync off: strong dead-link warning, icon + text (not color-only)', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: false })}
+        kind="doc"
+      />,
+    );
+    const row = screen.getByTestId('share-freshness-row');
+    expect(row.textContent).toContain("This doc isn't on GitHub yet");
+    expect(row.textContent).toContain("won't work until it's pushed");
+    expect(row.querySelector('svg')).not.toBeNull();
+  });
+
+  test('stale + sync off: soft unpushed-changes note', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="stale"
+        status={makeStatus({ syncEnabled: false })}
+        kind="doc"
+      />,
+    );
+    expect(screen.getByTestId('share-freshness-row').textContent).toContain(
+      'This doc has unpushed changes',
+    );
+  });
+
+  test('stale + sync on: ratified silent cell renders no row', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="stale"
+        status={makeStatus({ syncEnabled: true })}
+        kind="doc"
+      />,
+    );
+    expect(screen.queryByTestId('share-freshness-row')).toBeNull();
+  });
+
+  test('absent + sync on: soft not-synced-yet note', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: true })}
+        kind="doc"
+      />,
+    );
+    expect(screen.getByTestId('share-freshness-row').textContent).toContain(
+      "This doc hasn't synced to GitHub yet",
+    );
+  });
+
+  test('pushPermission denied: keeps the fact line and adds the no-write-access line', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({
+          syncEnabled: false,
+          pushPermission: { checkStatus: 'denied', deniedReason: 'no-collaborator' },
+        })}
+        kind="doc"
+      />,
+    );
+    const text = screen.getByTestId('share-freshness-row').textContent ?? '';
+    expect(text).toContain("This doc isn't on GitHub yet");
+    expect(text).toContain("don't have write access to this repo");
+  });
+
+  test('active push error: keeps the fact line and defers to the sync status', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: false, pushError: 'push rejected (non-fast-forward)' })}
+        kind="doc"
+      />,
+    );
+    const text = screen.getByTestId('share-freshness-row').textContent ?? '';
+    expect(text).toContain("This doc isn't on GitHub yet");
+    expect(text).toContain('Sync is failing');
+  });
+
+  test('folder kind substitutes "folder" in the fact line', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: false })}
+        kind="folder"
+      />,
+    );
+    expect(screen.getByTestId('share-freshness-row').textContent).toContain(
+      "This folder isn't on GitHub yet",
+    );
+  });
+});
+
+describe('ShareFreshnessWarning — recovery CTAs (FR4/FR5)', () => {
+  test('absent + sync off offers Enable auto-sync and How to push manually (git-scm)', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: false })}
+        kind="doc"
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Enable Auto (Pull and Push)' })).not.toBeNull();
+    const link = screen.getByRole('link', { name: /How to push manually/ }) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('https://git-scm.com/docs/git-push');
+  });
+
+  test('Enable auto-sync opens the guarded confirm and enables in place (no navigation)', () => {
+    window.location.hash = '';
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: false })}
+        kind="doc"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Enable Auto (Pull and Push)' }));
+    const dialog = screen.getByRole('dialog');
+    expect(window.location.hash).toBe('');
+    expect(autoSyncWrites).toEqual([]);
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Enable Auto (Pull and Push)' }));
+    expect(autoSyncWrites).toEqual([true]);
+  });
+
+  test('absent + sync on offers Sync now (not the push-manually CTAs)', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: true, state: 'idle' })}
+        kind="doc"
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Sync now' })).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Enable Auto (Pull and Push)' })).toBeNull();
+    expect(screen.queryByRole('link', { name: /How to push manually/ })).toBeNull();
+  });
+
+  test('does not offer Sync now while sync is paused on unsafe incoming symlinks', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({
+          syncEnabled: true,
+          state: 'idle',
+          pausedReason: 'unsafe-incoming-symlinks',
+          refusedSymlinkPaths: ['notes/leak.md'],
+        })}
+        kind="doc"
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
+    const notice = screen.getByTestId('sync-now-paused-notice');
+    expect(notice.textContent).toContain('Sync is paused because incoming changes leave a symlink');
+    expect(within(notice).getByTestId('sync-refused-symlinks').textContent).toBe('notes/leak.md');
+  });
+
+  test('explains a paused Git operation where Sync now would be', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({
+          syncEnabled: true,
+          state: 'idle',
+          pausedReason: 'git-operation-in-progress',
+          refusedSymlinkPaths: ['notes/stale.md'],
+        })}
+        kind="doc"
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
+    const notice = screen.getByTestId('sync-now-paused-notice');
+    expect(notice.textContent).toContain('Git syncing is paused');
+    expect(within(notice).queryByTestId('sync-refused-symlinks')).toBeNull();
+  });
+
+  test('Sync now goes in-flight, then self-clears to Synced on a completed sync', () => {
+    const { rerender } = render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: true, state: 'idle', lastSyncUtc: null })}
+        kind="doc"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Sync now' }));
+    expect(screen.getByRole('button', { name: /Syncing/ })).not.toBeNull();
+
+    rerender(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({
+          syncEnabled: true,
+          state: 'idle',
+          lastSyncUtc: '2026-07-02T12:00:00Z',
+        })}
+        kind="doc"
+      />,
+    );
+    expect(screen.getByTestId('share-freshness-row').textContent).toContain(
+      'Synced. The link is up to date.',
+    );
+    expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
+  });
+
+  test('Sync now reverts from in-flight when the push errors, surfacing the failure line', () => {
+    const { rerender } = render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: true, state: 'idle', lastSyncUtc: null })}
+        kind="doc"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Sync now' }));
+    rerender(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: true, state: 'idle', pushError: 'push rejected' })}
+        kind="doc"
+      />,
+    );
+    const text = screen.getByTestId('share-freshness-row').textContent ?? '';
+    expect(text).toContain('Sync is failing');
+    expect(screen.queryByRole('button', { name: /Syncing/ })).toBeNull();
+  });
+
+  test('Sync now reverts to actionable when the trigger itself fails, never a stuck spinner', async () => {
+    triggerSyncImpl = () => Promise.reject(new Error('offline'));
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: true, state: 'idle', lastSyncUtc: null })}
+        kind="doc"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Sync now' }));
+    expect(screen.getByRole('button', { name: /Syncing/ })).not.toBeNull();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Sync now' })).not.toBeNull();
+    });
+    expect(screen.queryByRole('button', { name: /Syncing/ })).toBeNull();
+  });
+
+  test('Sync now is hidden when the engine is blocked (conflict), leaving the fact line', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({ syncEnabled: true, state: 'conflict', conflictCount: 1 })}
+        kind="doc"
+      />,
+    );
+    expect(screen.getByTestId('share-freshness-row').textContent).toContain(
+      "This doc hasn't synced to GitHub yet",
+    );
+    expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
+  });
+
+  test('a denied push probe shows no recovery CTAs', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="absent"
+        status={makeStatus({
+          syncEnabled: false,
+          pushPermission: { checkStatus: 'denied', deniedReason: 'no-collaborator' },
+        })}
+        kind="doc"
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Enable Auto (Pull and Push)' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
+    expect(screen.queryByRole('link', { name: /How to push manually/ })).toBeNull();
+  });
+});
+
+describe('ShareFreshnessWarning — empty folder', () => {
+  const FACT = "The link won't work until you add a tracked document.";
+
+  test('sync off: states the folder is empty and offers no remedy', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="empty"
+        status={makeStatus({ syncEnabled: false })}
+        kind="folder"
+      />,
+    );
+    const row = screen.getByTestId('share-freshness-row');
+    const text = row.textContent ?? '';
+    expect(text).toContain("Git can't track this folder");
+    expect(text).toContain(FACT);
+    expect(text).not.toContain("isn't on GitHub yet");
+    expect(text).not.toContain("hasn't synced to GitHub yet");
+    expect(screen.queryByRole('button', { name: 'Enable Auto (Pull and Push)' })).toBeNull();
+    expect(screen.queryByRole('link', { name: /How to push manually/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
+  });
+
+  test('sync on: renders the same row — auto-sync cannot resolve this state', () => {
+    render(
+      <ShareFreshnessWarning
+        freshness="empty"
+        status={makeStatus({ syncEnabled: true, state: 'idle' })}
+        kind="folder"
+      />,
+    );
+    const text = screen.getByTestId('share-freshness-row').textContent ?? '';
+    expect(text).toContain("Git can't track this folder");
+    expect(text).toContain(FACT);
+    expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
+  });
+
+  test('carries the strong icon whether or not auto-sync is on', () => {
+    const { rerender } = render(
+      <ShareFreshnessWarning
+        freshness="empty"
+        status={makeStatus({ syncEnabled: false })}
+        kind="folder"
+      />,
+    );
+    expect(
+      screen.getByTestId('share-freshness-row').querySelector('svg.lucide-triangle-alert'),
+    ).not.toBeNull();
+    rerender(
+      <ShareFreshnessWarning
+        freshness="empty"
+        status={makeStatus({ syncEnabled: true, state: 'idle' })}
+        kind="folder"
+      />,
+    );
+    expect(
+      screen.getByTestId('share-freshness-row').querySelector('svg.lucide-triangle-alert'),
+    ).not.toBeNull();
+  });
+
+  test('a completed sync never turns the row into an all-clear', () => {
+    const { rerender } = render(
+      <ShareFreshnessWarning
+        freshness="empty"
+        status={makeStatus({ syncEnabled: true, state: 'idle', lastSyncUtc: null })}
+        kind="folder"
+      />,
+    );
+    rerender(
+      <ShareFreshnessWarning
+        freshness="empty"
+        status={makeStatus({
+          syncEnabled: true,
+          state: 'idle',
+          lastSyncUtc: '2026-07-02T12:00:00Z',
+        })}
+        kind="folder"
+      />,
+    );
+    const text = screen.getByTestId('share-freshness-row').textContent ?? '';
+    expect(text).not.toContain('Synced. The link is up to date.');
+    expect(text).toContain("Git can't track this folder");
+  });
+
+  test('the popover sizes for the row in both sync states', () => {
+    expect(shareFreshnessRowVisible('empty', makeStatus({ syncEnabled: false }))).toBe(true);
+    expect(shareFreshnessRowVisible('empty', makeStatus({ syncEnabled: true }))).toBe(true);
+  });
+});

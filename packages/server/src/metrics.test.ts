@@ -1,0 +1,261 @@
+import { describe, expect, test } from 'vitest';
+import {
+  getMetrics,
+  handleCollabSocketError,
+  incrementBatch,
+  incrementBranchSwitch,
+  incrementBridgeMergeCheckpointCreated,
+  incrementBridgeMergeContentLoss,
+  incrementCollabSocketFilteredError,
+  incrementConcurrentOverwriteRefused,
+  incrementConflict,
+  incrementMapDrivenSpliceApplied,
+  incrementMapDrivenSpliceFallback,
+  incrementMapDrivenSpliceMemoHit,
+  incrementMapDrivenSpliceMemoSkip,
+  incrementPark,
+  incrementReconcile,
+  incrementRescueBuffer,
+  incrementStaleExternalWriteRefused,
+  incrementUpstreamImport,
+  resetMetrics,
+} from './metrics';
+
+describe('reconciliation metrics', () => {
+  test('starts with zero counters', () => {
+    resetMetrics();
+    const m = getMetrics();
+    expect(m.reconcileCount).toBe(0);
+    expect(m.conflictCount).toBe(0);
+    expect(m.batchCount).toBe(0);
+    expect(m.upstreamImportCount).toBe(0);
+    expect(m.rescueBufferCount).toBe(0);
+    expect(m.branchSwitchCount).toBe(0);
+    expect(m.parkCount).toBe(0);
+    expect(m.bridgeMergeContentLoss).toBe(0);
+    expect(m.bridgeMergeCheckpointCreated).toBe(0);
+  });
+
+  test('bridge-correctness counters increment independently (SPEC §6 R9)', () => {
+    resetMetrics();
+    incrementBridgeMergeContentLoss();
+    incrementBridgeMergeContentLoss();
+    incrementBridgeMergeContentLoss();
+    incrementBridgeMergeCheckpointCreated();
+    incrementBridgeMergeCheckpointCreated();
+    const m = getMetrics();
+    expect(m.bridgeMergeContentLoss).toBe(3);
+    expect(m.bridgeMergeCheckpointCreated).toBe(2);
+  });
+
+  test('increments each counter independently', () => {
+    resetMetrics();
+    incrementReconcile();
+    incrementReconcile();
+    incrementConflict();
+    incrementBatch();
+    incrementBatch();
+    incrementBatch();
+    incrementUpstreamImport();
+    incrementRescueBuffer();
+    incrementBranchSwitch();
+    incrementPark();
+    incrementPark();
+
+    const m = getMetrics();
+    expect(m.reconcileCount).toBe(2);
+    expect(m.conflictCount).toBe(1);
+    expect(m.batchCount).toBe(3);
+    expect(m.upstreamImportCount).toBe(1);
+    expect(m.rescueBufferCount).toBe(1);
+    expect(m.branchSwitchCount).toBe(1);
+    expect(m.parkCount).toBe(2);
+  });
+
+  test('stale-write refusal does not count as a merge conflict or content loss', () => {
+    resetMetrics();
+    incrementStaleExternalWriteRefused();
+    const metrics = getMetrics();
+    expect(metrics.staleExternalWriteRefused).toBe(1);
+    expect(metrics.conflictCount).toBe(0);
+    resetMetrics();
+    expect(getMetrics().staleExternalWriteRefused).toBe(0);
+  });
+
+  test('concurrent-overwrite refusal counts on its own axis and resets', () => {
+    resetMetrics();
+    incrementConcurrentOverwriteRefused();
+    incrementConcurrentOverwriteRefused();
+    const metrics = getMetrics();
+    expect(metrics.concurrentOverwriteRefused).toBe(2);
+    expect(metrics.staleExternalWriteRefused).toBe(0);
+    expect(metrics.conflictCount).toBe(0);
+    resetMetrics();
+    expect(getMetrics().concurrentOverwriteRefused).toBe(0);
+  });
+
+  test('map-driven splice counters: applied increments and fallback is keyed by reason', () => {
+    resetMetrics();
+    incrementMapDrivenSpliceApplied();
+    incrementMapDrivenSpliceApplied();
+    incrementMapDrivenSpliceFallback('parse-error');
+    incrementMapDrivenSpliceFallback('parse-error');
+    incrementMapDrivenSpliceFallback('text-mismatch');
+    incrementMapDrivenSpliceFallback('synthetic-doc');
+    incrementMapDrivenSpliceFallback('missing-position');
+    const m = getMetrics();
+    expect(m.mapDrivenSpliceApplied).toBe(2);
+    expect(m.mapDrivenSpliceFallback).toEqual({
+      'parse-error': 2,
+      'text-mismatch': 1,
+      'synthetic-doc': 1,
+      'missing-position': 1,
+    });
+  });
+
+  test('getMetrics returns a snapshot (not a reference)', () => {
+    resetMetrics();
+    incrementReconcile();
+    const snapshot = getMetrics();
+    incrementReconcile();
+    expect(snapshot.reconcileCount).toBe(1);
+    expect(getMetrics().reconcileCount).toBe(2);
+  });
+
+  test('the map-driven splice memo counters accumulate and snapshot independently', () => {
+    resetMetrics();
+    incrementMapDrivenSpliceMemoHit();
+    incrementMapDrivenSpliceMemoSkip('narrowed');
+    incrementMapDrivenSpliceMemoSkip('narrowed');
+    incrementMapDrivenSpliceMemoSkip('entry-already-current');
+    const first = getMetrics();
+    expect(first.mapDrivenSpliceMemoHits).toBe(1);
+    expect(first.mapDrivenSpliceMemoSkips).toEqual({ narrowed: 2, 'entry-already-current': 1 });
+
+    incrementMapDrivenSpliceMemoHit();
+    incrementMapDrivenSpliceMemoSkip('position-not-numeric');
+    const second = getMetrics();
+    expect(second.mapDrivenSpliceMemoHits).toBe(2);
+    expect(second.mapDrivenSpliceMemoSkips).toEqual({
+      narrowed: 2,
+      'entry-already-current': 1,
+      'position-not-numeric': 1,
+    });
+    expect(first.mapDrivenSpliceMemoHits).toBe(1);
+    expect(first.mapDrivenSpliceMemoSkips).toEqual({ narrowed: 2, 'entry-already-current': 1 });
+  });
+
+  test('resetMetrics clears all counters', () => {
+    incrementReconcile();
+    incrementConflict();
+    incrementBatch();
+    incrementBranchSwitch();
+    incrementPark();
+    resetMetrics();
+    const m = getMetrics();
+    for (const [key, value] of Object.entries(m)) {
+      if (
+        key === 'cc1LastSeq' ||
+        key === 'bridgeToleranceApplied' ||
+        key === 'mapDrivenSpliceFallback' ||
+        key === 'mapDrivenSpliceMemoSkips' ||
+        key === 'observerAResidualMergeSpliceUnavailable' ||
+        key === 'storeDiskCompare' ||
+        key === 'receiptIntakeSkip' ||
+        key === 'receiptAtLoad' ||
+        key === 'managedArtifactMerge' ||
+        key === 'enginelessStore' ||
+        key === 'enginelessIntake' ||
+        key === 'configOutsideChange'
+      ) {
+        expect(value).toEqual({});
+      } else {
+        expect(value).toBe(0);
+      }
+    }
+  });
+});
+
+describe('collab-socket error filter (precedent §23)', () => {
+  test('handleCollabSocketError filters EPIPE and increments epipe counter', () => {
+    resetMetrics();
+    const err = Object.assign(new Error('write EPIPE'), { code: 'EPIPE' }) as NodeJS.ErrnoException;
+    const filtered = handleCollabSocketError(err);
+    expect(filtered).toBe(true);
+    const m = getMetrics();
+    expect(m.collabSocketEpipeCount).toBe(1);
+    expect(m.collabSocketEconnresetCount).toBe(0);
+  });
+
+  test('handleCollabSocketError filters ECONNRESET and increments econnreset counter', () => {
+    resetMetrics();
+    const err = Object.assign(new Error('read ECONNRESET'), {
+      code: 'ECONNRESET',
+    }) as NodeJS.ErrnoException;
+    const filtered = handleCollabSocketError(err);
+    expect(filtered).toBe(true);
+    const m = getMetrics();
+    expect(m.collabSocketEpipeCount).toBe(0);
+    expect(m.collabSocketEconnresetCount).toBe(1);
+  });
+
+  test('handleCollabSocketError does NOT filter other error codes', () => {
+    resetMetrics();
+    const codes = [
+      'ETIMEDOUT',
+      'ECONNABORTED',
+      'ENOTCONN',
+      'ECONNREFUSED',
+      'EHOSTUNREACH',
+      'ENETUNREACH',
+      'EPROTO',
+      undefined,
+    ];
+    for (const code of codes) {
+      const err = Object.assign(new Error(`simulated ${code ?? 'no-code'}`), {
+        code,
+      }) as NodeJS.ErrnoException;
+      const filtered = handleCollabSocketError(err);
+      expect(filtered).toBe(false);
+    }
+    const m = getMetrics();
+    expect(m.collabSocketEpipeCount).toBe(0);
+    expect(m.collabSocketEconnresetCount).toBe(0);
+  });
+
+  test('handleCollabSocketError counters accumulate across multiple calls', () => {
+    resetMetrics();
+    for (let i = 0; i < 5; i++) {
+      const err = Object.assign(new Error('EPIPE'), { code: 'EPIPE' }) as NodeJS.ErrnoException;
+      handleCollabSocketError(err);
+    }
+    for (let i = 0; i < 3; i++) {
+      const err = Object.assign(new Error('ECONNRESET'), {
+        code: 'ECONNRESET',
+      }) as NodeJS.ErrnoException;
+      handleCollabSocketError(err);
+    }
+    const m = getMetrics();
+    expect(m.collabSocketEpipeCount).toBe(5);
+    expect(m.collabSocketEconnresetCount).toBe(3);
+  });
+
+  test('incrementCollabSocketFilteredError low-level API still works (for test harnesses)', () => {
+    resetMetrics();
+    incrementCollabSocketFilteredError('EPIPE');
+    incrementCollabSocketFilteredError('EPIPE');
+    incrementCollabSocketFilteredError('ECONNRESET');
+    const m = getMetrics();
+    expect(m.collabSocketEpipeCount).toBe(2);
+    expect(m.collabSocketEconnresetCount).toBe(1);
+  });
+
+  test('getMetrics snapshot includes collab-socket fields (wire contract for /api/metrics/reconciliation)', () => {
+    resetMetrics();
+    const m = getMetrics();
+    expect(m).toHaveProperty('collabSocketEpipeCount');
+    expect(m).toHaveProperty('collabSocketEconnresetCount');
+    expect(typeof m.collabSocketEpipeCount).toBe('number');
+    expect(typeof m.collabSocketEconnresetCount).toBe('number');
+  });
+});

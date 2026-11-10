@@ -1,0 +1,524 @@
+import { describe, expect, onTestFinished, test, vi } from 'vitest';
+import {
+  BASE16_SLOT_ROLES,
+  BASE16_SLOTS,
+  type Base16Scheme,
+  base16ToTokens,
+  base16ToYaml,
+  isBase16Hex,
+  mixHex,
+  parseBase16Scheme,
+  relativeLuminance,
+} from './base16.ts';
+
+const HEX = /^#[0-9a-f]{6}$/;
+
+const CURRENT_LAYOUT = `system: "base16"
+name: "Ayu Dark"
+author: "Khue Nguyen <Z5483Y@gmail.com>"
+variant: "dark"
+palette:
+  base00: "#0f1419"
+  base01: "#131721"
+  base02: "#272d38"
+  base03: "#3e4b59"
+  base04: "#bfbdb6"
+  base05: "#e6e1cf"
+  base06: "#e6e1cf"
+  base07: "#f3f4f5"
+  base08: "#f07178"
+  base09: "#ff8f40"
+  base0A: "#ffb454"
+  base0B: "#b8cc52"
+  base0C: "#95e6cb"
+  base0D: "#59c2ff"
+  base0E: "#d2a6ff"
+  base0F: "#e6b673"
+`;
+
+const LEGACY_LAYOUT = `scheme: "Tomorrow Night"
+author: "Chris Kempson"
+base00: "1d1f21"
+base01: "282a2e"
+base02: "373b41"
+base03: "969896"
+base04: "b4b7b4"
+base05: "c5c8c6"
+base06: "e0e0e0"
+base07: "ffffff"
+base08: "cc6666"
+base09: "de935f"
+base0A: "f0c674"
+base0B: "b5bd68"
+base0C: "8abeb7"
+base0D: "81a2be"
+base0E: "b294bb"
+base0F: "a3685a"
+`;
+
+async function freshBase16() {
+  vi.resetModules();
+  return import('./base16.ts');
+}
+
+function mutedPalette(text: string): Base16Scheme['palette'] {
+  return { ...paletteOf(), base00: '#1e1e2e', base01: '#181825', base05: text };
+}
+
+function paletteOf(entries: Partial<Record<string, string>> = {}): Base16Scheme['palette'] {
+  const palette = {} as Base16Scheme['palette'];
+  for (const [i, slot] of BASE16_SLOTS.entries()) {
+    palette[slot] = entries[slot] ?? `#${i.toString(16).repeat(6)}`;
+  }
+  return palette;
+}
+
+describe('slot list', () => {
+  test('is the sixteen spec slots in order', () => {
+    expect(BASE16_SLOTS).toHaveLength(16);
+    expect(BASE16_SLOTS[0]).toBe('base00');
+    expect(BASE16_SLOTS[15]).toBe('base0F');
+  });
+
+  test('every slot carries a role description', () => {
+    for (const slot of BASE16_SLOTS) {
+      expect(BASE16_SLOT_ROLES[slot], slot).toBeTruthy();
+    }
+  });
+});
+
+describe('parseBase16Scheme', () => {
+  test('reads the current Tinted Theming layout', () => {
+    const result = parseBase16Scheme(CURRENT_LAYOUT);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.scheme.name).toBe('Ayu Dark');
+    expect(result.scheme.author).toContain('Khue Nguyen');
+    expect(result.scheme.variant).toBe('dark');
+    expect(result.scheme.palette.base00).toBe('#0f1419');
+    expect(result.scheme.palette.base0F).toBe('#e6b673');
+  });
+
+  test('reads the legacy layout: top-level slots, bare hex, inferred variant', () => {
+    const result = parseBase16Scheme(LEGACY_LAYOUT);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.scheme.palette.base00).toBe('#1d1f21');
+    expect(result.scheme.palette.base0A).toBe('#f0c674');
+    expect(result.scheme.variant).toBe('dark');
+  });
+
+  test('infers a light variant when the background is lighter than the foreground', () => {
+    const result = parseBase16Scheme(
+      JSON.stringify({ name: 'L', palette: paletteOf({ base00: '#fafafa', base05: '#111111' }) }),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.scheme.variant).toBe('light');
+  });
+
+  test('accepts JSON, since YAML is a superset', () => {
+    const result = parseBase16Scheme(
+      JSON.stringify({ name: 'JSON scheme', variant: 'dark', palette: paletteOf() }),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.scheme.name).toBe('JSON scheme');
+  });
+
+  test('reads unquoted scalars as written, including exponent-shaped hex', () => {
+    const result = parseBase16Scheme(
+      [
+        'base00: 112233',
+        'base01: "#abc"',
+        'base02: 001122',
+        'base03: 1e5',
+        'base04: 0e0',
+        ...BASE16_SLOTS.slice(5).map((s) => `${s}: "#010101"`),
+      ].join('\n'),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.scheme.palette.base00).toBe('#112233');
+    expect(result.scheme.palette.base01).toBe('#aabbcc');
+    expect(result.scheme.palette.base02).toBe('#001122');
+    expect(result.scheme.palette.base03).toBe('#11ee55');
+    expect(result.scheme.palette.base04).toBe('#00ee00');
+  });
+
+  test('names the missing slots rather than failing opaquely', () => {
+    const result = parseBase16Scheme('base00: "#111111"\nbase01: "#222222"');
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.kind).toBe('missing-slots');
+    if (result.error.kind !== 'missing-slots') return;
+    expect(result.error.slots).toContain('base02');
+    expect(result.error.slots).not.toContain('base00');
+  });
+
+  test('names the slots whose value is not a color', () => {
+    const palette = paletteOf();
+    const result = parseBase16Scheme(
+      JSON.stringify({ palette: { ...palette, base08: 'rebeccapurple' } }),
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.kind).toBe('bad-hex');
+    if (result.error.kind !== 'bad-hex') return;
+    expect(result.error.slots).toEqual(['base08']);
+  });
+
+  test('rejects input that is not a mapping', () => {
+    expect(parseBase16Scheme('- a\n- b')).toMatchObject({ error: { kind: 'not-a-scheme' } });
+    expect(parseBase16Scheme('')).toMatchObject({ error: { kind: 'not-a-scheme' } });
+  });
+
+  test.each([
+    ['name', { name: '\u0085', author: 'Ada' }],
+    ['author', { name: 'Valid', author: '\u0085' }],
+  ])('rejects U+0085 NEXT LINE-only %s metadata', (_field, metadata) => {
+    expect(
+      parseBase16Scheme(JSON.stringify({ ...metadata, variant: 'dark', palette: paletteOf() })),
+    ).toMatchObject({ error: { kind: 'not-a-scheme' } });
+  });
+
+  test('rejects unparseable input and names the offending line', () => {
+    const result = parseBase16Scheme('{[unclosed');
+    expect(result).toMatchObject({ error: { kind: 'unparseable' } });
+    if (result.ok || result.error.kind !== 'unparseable') return;
+    expect(result.error.line).toBe(1);
+  });
+
+  test('an unparseable input with no reported position still classifies', () => {
+    const result = parseBase16Scheme('a: b: c: d');
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.kind).toBe('unparseable');
+  });
+
+  test('falls back to a usable name when the scheme carries none', () => {
+    const result = parseBase16Scheme(JSON.stringify({ palette: paletteOf() }));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.scheme.name).toBeTruthy();
+  });
+});
+
+describe('base16ToTokens', () => {
+  const scheme: Base16Scheme = { name: 'T', variant: 'dark', palette: paletteOf() };
+
+  test('maps the slots onto their documented roles', () => {
+    const t = base16ToTokens(scheme);
+    const p = scheme.palette;
+    expect(t.background).toBe(p.base00);
+    expect(t.foreground).toBe(p.base05);
+    expect(t.card).toBe(p.base01);
+    expect(t.sidebar).toBe(p.base01);
+    expect(t.border).toBe(p.base02);
+    expect(t['selection-soft']).toBe(p.base02);
+    expect(t.primary).toBe(p.base0D);
+    expect(t['syntax-string']).toBe(p.base0B);
+    expect(t['syntax-keyword']).toBe(p.base0E);
+    expect(t['syntax-comment']).toBe(p.base03);
+    expect(t['ok-editor-text']).toBe(p.base05);
+    expect(t['ok-table-resize-handle']).toBe(p.base0D);
+    expect(t['ok-diff-ins']).toBe(p.base0B);
+    expect(t['ok-diff-del']).toBe(p.base08);
+    expect(t['ok-agent-thread-text']).toBe(p.base05);
+  });
+
+  test('muted text is the palette slot meant for it while that slot reads on pages and cards', () => {
+    const palette = paletteOf({ base00: '#ffffff', base01: '#f5f5f5', base04: '#595959' });
+    const t = base16ToTokens({ name: 'T', variant: 'light', palette });
+    expect(t['muted-foreground']).toBe('#595959');
+  });
+
+  test('the file tree muted color is the comment slot while it reads on the sidebar', () => {
+    const palette = paletteOf({ base01: '#ffffff', base03: '#8a8a8a' });
+    const t = base16ToTokens({ name: 'T', variant: 'light', palette });
+    expect(t['ok-tree-muted']).toBe('#8a8a8a');
+  });
+
+  test('find highlights and unresolved links keep the palette color when text already reads', () => {
+    const palette = {
+      ...paletteOf(),
+      base00: '#000000',
+      base05: '#e0e0e0',
+      base08: '#ff9090',
+      base0A: '#806020',
+    };
+    const t = base16ToTokens({ name: 'Readable', variant: 'dark', palette });
+    expect(t['ok-find-match']).toBe(palette.base0A);
+    expect(t['ok-viewer-find-match']).toBe(palette.base0A);
+    expect(t['ok-unresolved-link']).toBe(palette.base08);
+    expect(t['broken-link-color']).toBe(palette.base08);
+  });
+
+  test('a find highlight no fill can make readable is reported once per palette', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    onTestFinished(() => warn.mockRestore());
+    const { base16ToTokens: tokensOf } = await freshBase16();
+    const scheme: Base16Scheme = {
+      name: 'Muted',
+      variant: 'dark',
+      palette: mutedPalette('#787878'),
+    };
+    const findReports = () =>
+      warn.mock.calls.filter(([message]) => String(message).includes(scheme.palette.base05));
+    tokensOf(scheme);
+    expect(findReports()).toHaveLength(3);
+    tokensOf(scheme);
+    expect(findReports()).toHaveLength(3);
+  });
+
+  test('reports stop growing however many unreachable colors one slot is dragged through', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    onTestFinished(() => warn.mockRestore());
+    const reportsAfterDragging = async (steps: number) => {
+      warn.mockClear();
+      const { base16ToTokens: tokensOf } = await freshBase16();
+      for (let step = 0; step < steps; step += 1) {
+        const text = `#${(0x40 + step).toString(16).repeat(3)}`;
+        tokensOf({ name: 'Muted', variant: 'dark', palette: mutedPalette(text) });
+      }
+      return warn.mock.calls.length;
+    };
+    const shortDrag = await reportsAfterDragging(16);
+    expect(shortDrag).toBeGreaterThan(0);
+    expect(await reportsAfterDragging(48)).toBe(shortDrag);
+  });
+
+  test("status tokens use the palette's own colors, nudged only as far as their own tint needs", () => {
+    const t = base16ToTokens({
+      name: 'Harvest Ember Light',
+      variant: 'light',
+      palette: {
+        base00: '#fbf4e8',
+        base01: '#f1e8d6',
+        base02: '#e3d5bd',
+        base03: '#a08868',
+        base04: '#7a624a',
+        base05: '#3a2c20',
+        base06: '#2a2018',
+        base07: '#1a1410',
+        base08: '#a8432c',
+        base09: '#a85a26',
+        base0A: '#7a5a10',
+        base0B: '#566c2c',
+        base0C: '#4a7a6c',
+        base0D: '#43659a',
+        base0E: '#8a4058',
+        base0F: '#7a4a2c',
+      },
+    });
+    expect(t.success).toBe('#455623');
+    expect(t.warning).toBe('#674c0e');
+    expect(t.info).toBe('#35507b');
+    expect(t.destructive).toBe('#873623');
+    expect(t['identity-1']).toBe('#8a4058');
+    expect(t['identity-2']).toBe('#4a7a6c');
+    expect(t['identity-3']).toBe('#a85a26');
+    expect(t['identity-4']).toBe('#7a4a2c');
+  });
+
+  test('status tokens that already read on the page, cards and their own tint keep the palette color', () => {
+    const palette = {
+      ...paletteOf(),
+      base00: '#000000',
+      base01: '#101010',
+      base08: '#ff9090',
+      base0A: '#ffd060',
+      base0B: '#80e080',
+      base0D: '#80b0ff',
+    };
+    const t = base16ToTokens({ name: 'Bright', variant: 'dark', palette });
+    expect(t.destructive).toBe(palette.base08);
+    expect(t.warning).toBe(palette.base0A);
+    expect(t.success).toBe(palette.base0B);
+    expect(t.info).toBe(palette.base0D);
+  });
+
+  test('on a mid-gray page no tint can hold, so status tokens still read on the page and keep distinct hues', () => {
+    const palette = {
+      ...paletteOf(),
+      base00: '#808080',
+      base01: '#7a7a7a',
+      base08: '#d04040',
+      base0A: '#d0a020',
+      base0B: '#40a040',
+      base0D: '#4060d0',
+    };
+    const t = base16ToTokens({ name: 'Mid gray', variant: 'light', palette });
+    const status = [t.destructive, t.warning, t.success, t.info];
+    for (const color of status) {
+      for (const surface of [palette.base00, palette.base01]) {
+        const a = relativeLuminance(surface);
+        const b = relativeLuminance(color ?? '');
+        expect((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05), color).toBeGreaterThanOrEqual(
+          4.5,
+        );
+      }
+    }
+    expect(new Set(status).size).toBe(4);
+  });
+
+  test('covers the surfaces that a palette without slot roles could not reach', () => {
+    const t = base16ToTokens(scheme);
+    for (const name of [
+      'callout-note-color',
+      'callout-warning-color',
+      'callout-quote-color',
+      'lint-warning-color',
+      'lint-error-color',
+      'broken-link-color',
+      'link-color',
+      'diff-added',
+      'diff-removed',
+      'diff-modified',
+      'syntax-bg',
+    ]) {
+      expect(t[name], name).toBeTruthy();
+    }
+    for (const token of [
+      'ansi-black',
+      'ansi-red',
+      'ansi-green',
+      'ansi-yellow',
+      'ansi-blue',
+      'ansi-magenta',
+      'ansi-cyan',
+      'ansi-white',
+      'ansi-bright-black',
+      'ansi-bright-red',
+      'ansi-bright-green',
+      'ansi-bright-yellow',
+      'ansi-bright-blue',
+      'ansi-bright-magenta',
+      'ansi-bright-cyan',
+      'ansi-bright-white',
+    ]) {
+      expect(t[token], token).toBeTruthy();
+    }
+  });
+
+  test('spreads the callout accents across distinct slots', () => {
+    const t = base16ToTokens(scheme);
+    const accents = new Set([
+      t['callout-note-color'],
+      t['callout-abstract-color'],
+      t['callout-tip-color'],
+      t['callout-important-color'],
+      t['callout-warning-color'],
+      t['callout-caution-color'],
+      t['callout-failure-color'],
+      t['callout-quote-color'],
+    ]);
+    expect(accents.size).toBe(8);
+  });
+
+  test('emits only literals — a generated theme block cannot carry indirection', () => {
+    for (const [name, value] of Object.entries(base16ToTokens(scheme))) {
+      expect(value, name).not.toContain('var(');
+    }
+  });
+});
+
+describe('base16ToYaml', () => {
+  test('round-trips through the parser', () => {
+    const original = parseBase16Scheme(CURRENT_LAYOUT);
+    expect(original.ok).toBe(true);
+    if (!original.ok) return;
+    const reparsed = parseBase16Scheme(base16ToYaml(original.scheme));
+    expect(reparsed.ok).toBe(true);
+    if (!reparsed.ok) return;
+    expect(reparsed.scheme).toEqual(original.scheme);
+  });
+
+  test('emits the current Tinted Theming layout', () => {
+    const yaml = base16ToYaml({ name: 'T', variant: 'light', palette: paletteOf() });
+    expect(yaml).toContain('system: "base16"');
+    expect(yaml).toContain('name: "T"');
+    expect(yaml).toContain('variant: "light"');
+    expect(yaml).toContain('palette:');
+    for (const slot of BASE16_SLOTS) expect(yaml).toContain(`  ${slot}: "`);
+  });
+
+  test('omits author when the scheme has none, and emits it when it does', () => {
+    expect(base16ToYaml({ name: 'T', variant: 'dark', palette: paletteOf() })).not.toContain(
+      'author:',
+    );
+    expect(
+      base16ToYaml({ name: 'T', author: 'Ada', variant: 'dark', palette: paletteOf() }),
+    ).toContain('author: "Ada"');
+  });
+
+  test('escapes quotes and backslashes so a hostile name cannot break the document', () => {
+    const yaml = base16ToYaml({
+      name: 'He said "hi" \\ bye',
+      variant: 'dark',
+      palette: paletteOf(),
+    });
+    expect(yaml).toContain('name: "He said \\"hi\\" \\\\ bye"');
+    const reparsed = parseBase16Scheme(yaml);
+    expect(reparsed.ok).toBe(true);
+    if (!reparsed.ok) return;
+    expect(reparsed.scheme.name).toBe('He said "hi" \\ bye');
+  });
+
+  test('round-trips line breaks, tabs, and control characters in metadata', () => {
+    const name = 'Line one\nLine two\twith controls \u0001 and \u007f';
+    const author = 'Ada\r\nLovelace\twith controls \u0085 and \u009f plus \u2028 a line separator';
+    const yaml = base16ToYaml({
+      name,
+      author,
+      variant: 'dark',
+      palette: paletteOf(),
+    });
+
+    expect(yaml).toContain('name: "Line one\\nLine two\\twith controls \\u0001 and \\u007f"');
+    expect(yaml).toContain(
+      'author: "Ada\\r\\nLovelace\\twith controls \\u0085 and \\u009f plus \\u2028',
+    );
+    const reparsed = parseBase16Scheme(yaml);
+    expect(reparsed.ok).toBe(true);
+    if (!reparsed.ok) return;
+    expect(reparsed.scheme.name).toBe(name);
+    expect(reparsed.scheme.author).toBe(author);
+  });
+
+  test('preserves intentional leading and trailing whitespace in nonblank metadata', () => {
+    const name = '  Padded theme\t';
+    const author = '\t Ada Lovelace \n';
+    const reparsed = parseBase16Scheme(
+      base16ToYaml({ name, author, variant: 'light', palette: paletteOf() }),
+    );
+
+    expect(reparsed.ok).toBe(true);
+    if (!reparsed.ok) return;
+    expect(reparsed.scheme.name).toBe(name);
+    expect(reparsed.scheme.author).toBe(author);
+  });
+});
+
+describe('color helpers', () => {
+  test('isBase16Hex accepts #rrggbb only', () => {
+    expect(isBase16Hex('#0f172a')).toBe(true);
+    expect(isBase16Hex('#FFF')).toBe(false);
+    expect(isBase16Hex('0f172a')).toBe(false);
+    expect(isBase16Hex(42)).toBe(false);
+  });
+
+  test('relativeLuminance orders black < mid < white', () => {
+    expect(relativeLuminance('#000000')).toBeCloseTo(0, 5);
+    expect(relativeLuminance('#ffffff')).toBeCloseTo(1, 5);
+    expect(relativeLuminance('#0f172a')).toBeLessThan(relativeLuminance('#f1f5f9'));
+  });
+
+  test('mixHex interpolates and always yields a literal hex', () => {
+    expect(mixHex('#000000', '#ffffff', 0)).toBe('#000000');
+    expect(mixHex('#000000', '#ffffff', 1)).toBe('#ffffff');
+    expect(mixHex('#000000', '#ffffff', 0.5)).toMatch(HEX);
+    expect(mixHex('#000000', '#ffffff', 5)).toBe('#ffffff');
+    expect(mixHex('#000000', '#ffffff', -5)).toBe('#000000');
+  });
+});

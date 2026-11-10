@@ -1,0 +1,115 @@
+---
+title: From Notion
+description: How to export a Notion workspace to Markdown and open it in OpenKnowledge, what carries over, and where the two differ.
+icon: LuFileInput
+---
+
+This guide will cover exporting your Notion workspace to markdown files so that you can access them from OpenKnowledge. OpenKnowledge and Notion differ in a few key ways, so a Notion export needs some cleanup — this guide covers what carries over and what to fix.
+
+## Install OpenKnowledge
+
+### Desktop app (macOS 13+, Windows, Linux)
+
+Download the latest version of the OpenKnowledge desktop app. The button picks your platform automatically; its dropdown carries every other build, and the [downloads page](https://openknowledge.ai/download) lists them all.
+
+<DownloadButton />
+
+### Web app (any platform, including Intel Macs)
+
+Install the [ok CLI](/docs/reference/cli) with npm:
+
+```bash
+npm install -g @inkeep/open-knowledge
+```
+
+## Export your workspace from Notion
+
+1. In Notion, click on your workspace in the top left and go to **Settings**.
+2. Under **General**, scroll down to **Export**.
+3. Set **Export format** to **Markdown & CSV** and leave all the default settings.
+4. Download and **unzip** the export folder and move it to your desired location.
+
+## Clean up the export with `ok migrate notion`
+
+The [ok CLI](/docs/reference/cli) ships a cleanup command that resolves format issues with the exported content. By default, the command prints what it would change and writes nothing until you pass `--apply`.
+
+```bash
+# Preview what would change (writes nothing)
+ok migrate notion /path/to/unzipped-export
+
+# Apply the changes
+ok migrate notion /path/to/unzipped-export --apply
+```
+
+<Callout type="info">
+  The desktop app ships the `ok` CLI. The Windows installer puts it on your
+  `PATH` on its own. On macOS and Linux it installs to `$HOME/.ok/bin`, and a
+  toggle in the first-launch dialog puts it on your `PATH` when you tick it (on
+  Linux the package's install script also links `/usr/bin/ok` either way). If
+  `ok` isn't found, add it from **File → Set up OpenKnowledge
+  integrations…**, then open a new terminal window. If it's still missing,
+  add `$HOME/.ok/bin` to your `PATH` manually.
+</Callout>
+
+Every transform is **idempotent**, so re-running is safe. See the tables below for a full list of differences between the Notion export and what OpenKnowledge supports.
+
+**Options:**
+
+| Flag | Effect |
+| --- | --- |
+| `--apply` | Write the changes (default is a dry-run preview). |
+| `--strip-base64` | Delete inline base64 images instead of extracting them to files. |
+| `--remove-csv` | Delete each `_all.csv` once its table page exists (destructive). |
+| `--only <list>` / `--skip <list>` | Run or skip specific transforms: `links`, `frontmatter`, `callouts`, `images`, `tables`. |
+| `--force` | Run even if the folder isn't detected as a Notion export. |
+| `--json` | Print a machine-readable report. |
+
+<Callout type="info">
+  The command refuses to touch a folder that doesn't look like a Notion export unless you pass `--force`.
+</Callout>
+
+## Open the export in OpenKnowledge
+
+### Desktop app
+
+Open OpenKnowledge, choose **Open folder on disk**, select the unzipped export folder, and proceed through the **Setup** screen with defaults selected.
+
+### Web app
+
+`cd` into the unzipped folder and run `ok init && ok start`.
+
+## What exports cleanly
+
+| Notion content | In OpenKnowledge |
+| --- | --- |
+| Headings, paragraphs, bold / italic, quotes, and dividers | Render natively and are preserved in the exported markdown. |
+| Bulleted, numbered, and to-do lists | Render natively, including nesting and `- [ ]` checkboxes. |
+| Code blocks | Render with syntax highlighting. |
+| Simple (inline) tables | Convert to Markdown pipe tables and render as tables. |
+| Images and file attachments | Downloaded into the export folder next to each page and referenced with relative `![alt](path)` links; images render inline. See [Assets and embeds](/docs/features/assets-and-embeds). |
+
+## Where the two differ
+
+A number of Notion features don't survive the Markdown & CSV export, or land as plain text. Many can be fixed by the [`ok migrate notion <folder-path>`](#clean-up-the-export-with-ok-migrate-notion) command.
+
+| Notion feature | Exported result | Fixed by CLI migration command |
+| --- | --- | --- |
+| **Databases** (tables, boards, calendars, galleries, timelines) | Each database exports as a `<name>_all.csv` file and a folder holding one markdown file per row. Full-page databases also get a stub page. | ✅ Creates a Markdown table page for every CSV. The `.csv` files are not deleted unless you pass `--remove-csv`. |
+| **Database row properties** | Exported as plain `Key: Value` lines under the page title, not YAML frontmatter. | ✅ Lifted into YAML frontmatter so they show in the [Properties panel](/docs/features/editor#properties). |
+| **Callouts** | Exported as raw `<aside>` HTML, so they don't pick up OpenKnowledge's callout styling. | ✅ Converted to native `> [!note]` callouts. |
+| **Links between pages** | Link targets are percent-encoded, and once decoded contain spaces. | ✅ Decoded and angle-wrapped so they render and resolve. |
+| **Pasted or inline images** | Some images export inline as un-rendered base64 `data:` URIs instead of files. | ✅ Extracted to image files (or dropped with `--strip-base64`). |
+| **Relations, rollups, formulas** | Not represented in the Markdown & CSV export. | — |
+| **Toggles and toggle headings** | Nested content is preserved, but the collapsible toggle wrapper is lost. | — |
+| **Synced blocks** | Written out as ordinary content wherever they appear; the link between copies is gone. | — |
+| **Web bookmarks and embeds** (Figma, video, PDF, etc.) | Converted to plain links. The rich preview card or inline embed is gone. Uploaded files download alongside the page. | — |
+| **Page icons and cover images** | Not exported. | — |
+| **Comments, page history, and backlinks** | Not included in the export. | — |
+
+## See also
+
+- [Git sync](/docs/features/git/sync): keep your project synced with your team through Git
+- [Quickstart](/docs/get-started/quickstart): the five-minute setup
+- [Core concepts](/docs/reference/core-concepts): links, backlinks, and the file-system-as-database model
+- [Assets and embeds](/docs/features/assets-and-embeds): how images and file references behave
+

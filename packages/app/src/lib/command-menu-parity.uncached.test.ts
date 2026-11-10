@@ -1,0 +1,685 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import {
+  COMMAND_IDENTITIES,
+  DOCK_MOVE_COMMANDS,
+  type MenuPlatform,
+} from '@inkeep/open-knowledge-core';
+import { describe, expect, test } from 'vitest';
+import { PALETTE_COMMANDS } from '@/components/command-palette-commands';
+import { APP_RESERVED_IDS, PALETTE_COMMAND_IDS } from '@/lib/command-menu-parity.test-helper';
+import {
+  formatShortcut,
+  KEYBOARD_SHORTCUTS,
+  type KeyboardShortcutId,
+  type ShortcutPlatform,
+} from '@/lib/keyboard-shortcuts';
+import { OK_MENU_ACTIONS } from '@/lib/ok-menu-actions';
+import {
+  buildMenuTemplate,
+  MENU_BINDING_IDS,
+  type MenuDeps,
+} from '../../../desktop/src/main/menu.ts';
+
+type MenuTemplateItem = ReturnType<typeof buildMenuTemplate>[number];
+
+const OS_ROLE_EXEMPT = new Set<string>([
+  'about',
+  'services',
+  'hide',
+  'hideOthers',
+  'unhide',
+  'quit',
+  'undo',
+  'redo',
+  'cut',
+  'copy',
+  'paste',
+  'selectAll',
+  'reload',
+  'forceReload',
+  'toggleDevTools',
+  'resetZoom',
+  'zoomIn',
+  'zoomOut',
+  'togglefullscreen',
+  'minimize',
+  'zoom',
+  'front',
+  'close',
+]);
+
+const PALETTE_COMMAND_LABELS = new Set<string>([
+  'Back',
+  'Forward',
+  'New file',
+  'New folder',
+  'New from template',
+  'New project',
+  'Switch project',
+  'Open folder',
+  'Open file',
+  'New worktree',
+  'Switch worktree',
+  'Duplicate',
+  'Rename',
+  'Move to Trash',
+  'Reveal in Finder',
+  'Move to Recycle Bin',
+  'Reveal in File Explorer',
+  'Open containing folder',
+  'Open with AI',
+  'Full path',
+  'Relative path',
+  'Set up OpenKnowledge integrations',
+  'Close tab',
+  'Check for updates',
+  'Settings',
+  'Check spelling while typing',
+  'Show sidebar',
+  'Hide sidebar',
+  'Show document panel',
+  'Hide document panel',
+  'Show Terminal',
+  'Hide Terminal',
+  'Move Terminal to right',
+  'Move Terminal to bottom',
+  'Show Agents',
+  'Hide Agents',
+  'Show Editor',
+  'Hide Editor',
+  'Show hidden files',
+  'Show .ok folders',
+  'Show only markdown files',
+  'Skills section',
+  'Expand all',
+  'Collapse all',
+  'New Terminal',
+  'Kill Terminal',
+  'OpenKnowledge on GitHub',
+  'Documentation',
+  'Join us on Discord',
+  'Report a bug',
+  'Send feedback',
+  'Install for Claude Chat & Cowork (desktop app)',
+]);
+
+const APP_RESERVED_LABELS = new Map<string, string>([
+  ['Uninstall OpenKnowledge', 'rare + destructive; deliberately not a quick-launch row'],
+  ['New Terminal Window', 'opens directly in main with no renderer handler; window management'],
+]);
+
+function makeFullDeps(): MenuDeps {
+  const noop = () => {};
+  return {
+    appName: 'OpenKnowledge',
+    showDevToolsMenu: true,
+    dialog: {} as MenuDeps['dialog'],
+    errorDialogParent: () => null,
+    openNavigator: noop,
+    openProject: () => Promise.resolve(),
+    openEphemeralFile: () => Promise.resolve(),
+    getRecentProjects: () => [],
+    clearRecentProjects: noop,
+    openExternalUrl: noop,
+    reconfigureMcpWiring: noop,
+    openInstallSkillDialog: noop,
+    openSettings: noop,
+    onReportBug: noop,
+    onSendFeedback: noop,
+    onCheckForUpdates: noop,
+    onUninstall: noop,
+    onNavigateBack: noop,
+    onNavigateForward: noop,
+    activeTarget: { kind: 'doc', target: 'doc.md' } as MenuDeps['activeTarget'],
+    onNewFile: noop,
+    onNewFolder: noop,
+    onNewFromTemplate: noop,
+    onNewProject: noop,
+    onNewWorktree: noop,
+    onSwitchWorktree: noop,
+    onRename: noop,
+    onDuplicate: noop,
+    onMoveToTrash: noop,
+    onCloseActiveTabOrWindow: noop,
+    onRevealInFinder: noop,
+    onSendToAi: noop,
+    onCopyFullPath: noop,
+    onCopyRelativePath: noop,
+    showHiddenFilesChecked: false,
+    onToggleShowHiddenFiles: noop,
+    showOkFoldersChecked: false,
+    onToggleShowOkFolders: noop,
+    showOnlyMarkdownFilesChecked: false,
+    onToggleShowOnlyMarkdownFiles: noop,
+    showSkillsSectionChecked: false,
+    onToggleShowSkillsSection: noop,
+    sidebarVisible: true,
+    onToggleSidebar: noop,
+    docPanelVisible: true,
+    onToggleDocPanel: noop,
+    terminalVisible: true,
+    terminalPlacement: 'bottom',
+    onToggleTerminal: noop,
+    onMoveTerminal: noop,
+    onNewTerminal: noop,
+    onKillTerminal: noop,
+    onNewTerminalWindow: noop,
+    terminalCapable: true,
+    terminalLive: true,
+    agentPanelVisible: true,
+    onToggleAgentPanel: noop,
+    editorVisible: true,
+    onToggleEditor: noop,
+    canExpandAll: true,
+    canCollapseAll: true,
+    onExpandAll: noop,
+    onCollapseAll: noop,
+    spellCheckEnabled: true,
+    onToggleSpellCheck: noop,
+  };
+}
+
+interface Leaf {
+  label: string;
+  role?: string;
+  accelerator?: string;
+  visible?: boolean;
+  itemType?: string;
+  checked?: boolean;
+}
+
+function collectLeaves(items: readonly MenuTemplateItem[], out: Leaf[]): void {
+  for (const item of items) {
+    if (item.type === 'separator') continue;
+    const sub = item.submenu;
+    if (Array.isArray(sub)) {
+      collectLeaves(sub, out);
+      continue;
+    }
+    if (item.enabled === false) continue;
+    const accelerator = typeof item.accelerator === 'string' ? item.accelerator : undefined;
+    const visible = typeof item.visible === 'boolean' ? item.visible : undefined;
+    const checked = typeof item.checked === 'boolean' ? item.checked : undefined;
+    if (item.role) {
+      out.push({
+        label: typeof item.label === 'string' ? item.label : '',
+        role: item.role,
+        accelerator,
+        visible,
+      });
+      continue;
+    }
+    if (typeof item.label === 'string') {
+      out.push({ label: item.label, accelerator, visible, itemType: item.type, checked });
+    }
+  }
+}
+
+function normalizeLabel(label: string): string {
+  return label.replace(/…$/, '').trim();
+}
+
+function collectLeavesForPlatform(
+  platform: NodeJS.Platform,
+  deps: MenuDeps = makeFullDeps(),
+): Leaf[] {
+  const original = process.platform;
+  Object.defineProperty(process, 'platform', { value: platform, configurable: true });
+  try {
+    const leaves: Leaf[] = [];
+    collectLeaves(buildMenuTemplate(deps), leaves);
+    return leaves;
+  } finally {
+    Object.defineProperty(process, 'platform', { value: original, configurable: true });
+  }
+}
+
+describe('command-menu parity ratchet', () => {
+  test('Ratchet A: every OkMenuAction id is classified palette-command or app-reserved', () => {
+    const untracked = OK_MENU_ACTIONS.filter(
+      (id) => !PALETTE_COMMAND_IDS.has(id) && !APP_RESERVED_IDS.has(id),
+    );
+    expect(untracked).toEqual([]);
+  });
+
+  test('Ratchet A: every classified id is a real OkMenuAction (no stale entries)', () => {
+    const known = new Set<string>(OK_MENU_ACTIONS);
+    const stale = [...PALETTE_COMMAND_IDS, ...APP_RESERVED_IDS.keys()].filter(
+      (id) => !known.has(id),
+    );
+    expect(stale).toEqual([]);
+  });
+
+  test('registry invariants: command ids and menu-action ids are unique', () => {
+    const ids = PALETTE_COMMANDS.map((cmd) => cmd.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const menuActionIds = PALETTE_COMMANDS.flatMap((cmd) =>
+      cmd.menuActionId ? [cmd.menuActionId] : [],
+    );
+    expect(new Set(menuActionIds).size).toBe(menuActionIds.length);
+  });
+
+  test('Ratchet B: every actionable menu leaf is classified across both platforms', () => {
+    const leaves = [
+      ...collectLeavesForPlatform('darwin'),
+      ...collectLeavesForPlatform('win32'),
+      ...collectLeavesForPlatform('linux'),
+    ];
+    const untracked = leaves.filter((leaf) => {
+      if (leaf.role) return !OS_ROLE_EXEMPT.has(leaf.role);
+      const label = normalizeLabel(leaf.label);
+      return !PALETTE_COMMAND_LABELS.has(label) && !APP_RESERVED_LABELS.has(label);
+    });
+    expect(untracked.map((l) => l.role ?? normalizeLabel(l.label))).toEqual([]);
+  });
+
+  const DECLARED_MULTI_PLACEMENT = new Set<string>([]);
+
+  test('Ratchet B: no menu leaf label appears twice in the same platform menu', () => {
+    for (const platform of ['darwin', 'win32'] as const) {
+      const counts = new Map<string, number>();
+      for (const leaf of collectLeavesForPlatform(platform)) {
+        if (leaf.role) continue;
+        const label = normalizeLabel(leaf.label);
+        counts.set(label, (counts.get(label) ?? 0) + 1);
+      }
+      const dupes = [...counts]
+        .filter(([label, count]) => count > 1 && !DECLARED_MULTI_PLACEMENT.has(label))
+        .map(([label]) => label);
+      expect({ platform, dupes }).toEqual({ platform, dupes: [] });
+    }
+  });
+
+  test('Ratchet B sanity: the sweep actually found the backfilled leaves', () => {
+    const labels = new Set(collectLeavesForPlatform('darwin').map((l) => normalizeLabel(l.label)));
+    expect(labels.has('Check for updates')).toBe(true);
+    expect(labels.has('Back')).toBe(true);
+    expect(labels.has('Forward')).toBe(true);
+    expect(labels.has('Move to Trash')).toBe(true);
+    expect(labels.has('Hide sidebar')).toBe(true);
+    expect(labels.has('New Terminal')).toBe(true);
+  });
+
+  interface MenuShortcutPair {
+    menuLabel: string;
+    shortcutId: KeyboardShortcutId;
+  }
+
+  const NAVIGATION_HISTORY_SHORTCUT_PAIRS: readonly MenuShortcutPair[] = [
+    { menuLabel: 'Back', shortcutId: 'navigate-back' },
+    { menuLabel: 'Forward', shortcutId: 'navigate-forward' },
+  ];
+
+  const CROSS_PLATFORM_SHORTCUT_PAIRS: readonly MenuShortcutPair[] = [
+    { menuLabel: 'Report a bug', shortcutId: 'report-bug' },
+  ];
+
+  const MENU_SHORTCUT_PAIRS: readonly MenuShortcutPair[] = [
+    ...NAVIGATION_HISTORY_SHORTCUT_PAIRS,
+    ...CROSS_PLATFORM_SHORTCUT_PAIRS,
+    { menuLabel: 'New file', shortcutId: 'new-item' },
+    { menuLabel: 'New folder', shortcutId: 'new-folder' },
+    { menuLabel: 'Switch project', shortcutId: 'switch-project' },
+    { menuLabel: 'Open folder', shortcutId: 'open-folder' },
+    { menuLabel: 'Open file', shortcutId: 'open-file' },
+    { menuLabel: 'Duplicate', shortcutId: 'file-tree-duplicate' },
+    { menuLabel: 'Move to Trash', shortcutId: 'file-tree-delete' },
+    { menuLabel: 'Settings', shortcutId: 'settings' },
+    { menuLabel: 'Hide sidebar', shortcutId: 'toggle-files-sidebar' },
+    { menuLabel: 'Hide document panel', shortcutId: 'toggle-document-panel' },
+    { menuLabel: 'Hide Terminal', shortcutId: 'toggle-terminal-panel' },
+    { menuLabel: 'Hide Agents', shortcutId: 'toggle-agent-panel' },
+  ];
+
+  function chordTokens(s: string): string {
+    const tokens = new Set<string>();
+    if (/CmdOrCtrl|Cmd|Ctrl|⌘|⌃/.test(s)) tokens.add('MOD');
+    if (/Shift|⇧/.test(s)) tokens.add('SHIFT');
+    if (/Alt|Option|⌥/.test(s)) tokens.add('ALT');
+    let base = s
+      .replaceAll('←', 'Left')
+      .replaceAll('→', 'Right')
+      .replaceAll('↑', 'Up')
+      .replaceAll('↓', 'Down')
+      .replace(/CmdOrCtrl|Cmd|Ctrl|Shift|Alt|Option/g, '')
+      .replace(/[⌘⌃⇧⌥+\s]/g, '');
+    if (/^(Delete|Backspace|⌫)$/i.test(base)) base = 'DEL';
+    tokens.add(`KEY:${base.toUpperCase()}`);
+    return [...tokens].sort().join(',');
+  }
+
+  function expectMenuShortcutParity(
+    pairs: readonly MenuShortcutPair[],
+    menuPlatform: NodeJS.Platform,
+    shortcutPlatform: ShortcutPlatform,
+  ): void {
+    const mismatches: Array<{
+      menuLabel: string;
+      accelerator?: string;
+      shortcut: string;
+    }> = [];
+    const leaves = collectLeavesForPlatform(menuPlatform);
+    for (const pair of pairs) {
+      const accelerator = leaves.find(
+        (leaf) => normalizeLabel(leaf.label) === pair.menuLabel,
+      )?.accelerator;
+      const shortcut = formatShortcut(pair.shortcutId, shortcutPlatform);
+      if (accelerator === undefined || chordTokens(accelerator) !== chordTokens(shortcut)) {
+        mismatches.push({ menuLabel: pair.menuLabel, accelerator, shortcut });
+      }
+    }
+    expect(mismatches).toEqual([]);
+  }
+
+  test('Ratchet D: menu accelerators agree with the keyboard-shortcut registry', () => {
+    expectMenuShortcutParity(MENU_SHORTCUT_PAIRS, 'darwin', 'mac');
+  });
+
+  test('Ratchet D: Windows/Linux navigation accelerators agree with the shortcut registry', () => {
+    expectMenuShortcutParity(NAVIGATION_HISTORY_SHORTCUT_PAIRS, 'win32', 'windowsLinux');
+  });
+
+  test('Ratchet D: cross-platform accelerators agree on Windows/Linux as well', () => {
+    expectMenuShortcutParity(CROSS_PLATFORM_SHORTCUT_PAIRS, 'win32', 'windowsLinux');
+  });
+
+  test('Ratchet D: cross-platform accelerators declare a platform-neutral modifier', () => {
+    for (const platform of ['darwin', 'win32'] as const) {
+      const leaves = collectLeavesForPlatform(platform);
+      const accelerators = CROSS_PLATFORM_SHORTCUT_PAIRS.map((pair) => ({
+        menuLabel: pair.menuLabel,
+        accelerator: leaves.find((leaf) => normalizeLabel(leaf.label) === pair.menuLabel)
+          ?.accelerator,
+      }));
+      expect({ platform, accelerators }).toEqual({
+        platform,
+        accelerators: [{ menuLabel: 'Report a bug', accelerator: 'CmdOrCtrl+Shift+D' }],
+      });
+    }
+  });
+
+  test('FR3: the bus forwarder is the only bridge.onMenuAction listener', () => {
+    const appSrc = join(import.meta.dir, '..', '..', 'src');
+    const migrated = [
+      'components/FileSidebar.tsx',
+      'components/EditorArea.tsx',
+      'components/EditorPane.tsx',
+      'components/SessionsHost.tsx',
+      'components/ProjectSwitcher.tsx',
+      'components/CreateProjectMenuTrigger.tsx',
+      'components/ReportBugMenuTrigger.tsx',
+      'components/FeedbackMenuTrigger.tsx',
+      'components/NavigatorApp.tsx',
+      'editor/DocumentContext.tsx',
+    ];
+    for (const rel of migrated) {
+      const source = readFileSync(join(appSrc, rel), 'utf8');
+      expect({ file: rel, listensOnBridge: source.includes('.onMenuAction(') }).toEqual({
+        file: rel,
+        listensOnBridge: false,
+      });
+      expect(source.includes('subscribeLocalMenuAction')).toBe(true);
+    }
+    const busSource = readFileSync(join(appSrc, 'lib/local-menu-action-bus.ts'), 'utf8');
+    expect(busSource.split('.onMenuAction(').length - 1).toBe(1);
+  });
+
+  test('FR3: exactly one production bridge.onMenuAction call site (the bus forwarder)', () => {
+    const appSrc = join(import.meta.dir, '..', '..', 'src');
+    const isTestLike = (name: string) => /\.(test|test-helper)\.[cm]?tsx?$/.test(name);
+    const callSites: string[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(full);
+          continue;
+        }
+        if (!/\.[cm]?tsx?$/.test(entry.name) || isTestLike(entry.name)) continue;
+        if (readFileSync(full, 'utf8').includes('.onMenuAction(')) {
+          callSites.push(relative(appSrc, full));
+        }
+      }
+    };
+    walk(appSrc);
+    expect(callSites.sort()).toEqual(['lib/local-menu-action-bus.ts']);
+  });
+});
+
+describe('command identity registry (Phase 2b)', () => {
+  const OK_MENU_ACTION_SET = new Set<string>(OK_MENU_ACTIONS);
+
+  test('navigation-history commands pair actions with ordered platform placements', () => {
+    const historyCommands = COMMAND_IDENTITIES.filter((command) =>
+      ['navigate-back', 'navigate-forward'].includes(command.id),
+    );
+
+    expect(
+      historyCommands.map(({ id, menuActionId, shortcutId, shortcutDesktopOnly, menu }) => ({
+        id,
+        menuActionId,
+        shortcutId,
+        shortcutDesktopOnly,
+        menu,
+      })),
+    ).toEqual([
+      {
+        id: 'navigate-back',
+        menuActionId: 'navigate-back',
+        shortcutId: 'navigate-back',
+        shortcutDesktopOnly: true,
+        menu: [
+          { section: 'view-history', order: 0, platform: 'mac', accelerator: 'Cmd+[' },
+          { section: 'view-history', order: 0, platform: 'other', accelerator: 'Alt+Left' },
+        ],
+      },
+      {
+        id: 'navigate-forward',
+        menuActionId: 'navigate-forward',
+        shortcutId: 'navigate-forward',
+        shortcutDesktopOnly: true,
+        menu: [
+          { section: 'view-history', order: 1, platform: 'mac', accelerator: 'Cmd+]' },
+          { section: 'view-history', order: 1, platform: 'other', accelerator: 'Alt+Right' },
+        ],
+      },
+    ]);
+  });
+
+  test('a shortcut hidden from the web hotkeys list is chordless in the web palette too', () => {
+    const desktopOnlyShortcutIds = KEYBOARD_SHORTCUTS.filter(
+      (shortcut) => shortcut.desktopOnly === true,
+    ).map((shortcut) => shortcut.id);
+
+    expect(desktopOnlyShortcutIds.sort()).toEqual(['report-bug']);
+
+    const chordShownOnWeb = COMMAND_IDENTITIES.filter(
+      (command) =>
+        command.shortcutId !== undefined &&
+        desktopOnlyShortcutIds.includes(command.shortcutId) &&
+        command.shortcutDesktopOnly !== true,
+    ).map((command) => command.id);
+    expect(chordShownOnWeb).toEqual([]);
+  });
+
+  test('every registry menuActionId is a real OkMenuAction', () => {
+    const bad = COMMAND_IDENTITIES.flatMap((cmd) =>
+      cmd.menuActionId && !OK_MENU_ACTION_SET.has(cmd.menuActionId) ? [cmd.id] : [],
+    );
+    expect(bad).toEqual([]);
+  });
+
+  test('every palette command without an override dispatch has a menuActionId to emit', () => {
+    const OVERRIDES = new Set<string>([
+      'open-blob-run',
+      'new-file',
+      'new-folder',
+      'open-graph',
+      'open-in-new-window',
+      'initialize-starter-pack',
+      'new-project',
+      'open-folder',
+      'open-file',
+      'switch-project',
+      'open-skills',
+      'new-skill',
+      'settings',
+      'install-claude-desktop',
+      'report-bug',
+      'bug-report-history',
+      'send-feedback',
+      'check-for-updates',
+      'set-up-integrations',
+      'toggle-spell-check',
+      'open-github',
+      'open-docs',
+      'open-discord',
+      'swap-editor-sidebars',
+      'move-chat-history-left',
+      'move-chat-history-right',
+      ...DOCK_MOVE_COMMANDS.map((command) => command.id),
+    ]);
+    const missing = COMMAND_IDENTITIES.flatMap((cmd) =>
+      cmd.palette && !OVERRIDES.has(cmd.id) && cmd.menuActionId === undefined ? [cmd.id] : [],
+    );
+    expect(missing).toEqual([]);
+  });
+
+  test('every registry shortcutId resolves in the keyboard-shortcut registry', () => {
+    const bad = COMMAND_IDENTITIES.flatMap((cmd) => {
+      if (cmd.shortcutId === undefined) return [];
+      try {
+        formatShortcut(cmd.shortcutId as KeyboardShortcutId, 'mac');
+        return [];
+      } catch {
+        return [cmd.id];
+      }
+    });
+    expect(bad).toEqual([]);
+  });
+
+  const DECLARED_MULTI_PLACEMENT = new Set<string>([]);
+
+  test('Ratchet B (declared): no command has two same-platform menu placements', () => {
+    const resolvesTo = (platform: 'mac' | 'other', p: MenuPlatform): boolean =>
+      p === 'all' || p === platform;
+    const offenders = COMMAND_IDENTITIES.flatMap((cmd) => {
+      if (DECLARED_MULTI_PLACEMENT.has(cmd.id)) return [];
+      const placements = cmd.menu ?? [];
+      const macCount = placements.filter((p) => resolvesTo('mac', p.platform ?? 'all')).length;
+      const otherCount = placements.filter((p) => resolvesTo('other', p.platform ?? 'all')).length;
+      return macCount > 1 || otherCount > 1 ? [cmd.id] : [];
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  test('every menu-placed command has a MENU_BINDINGS entry', () => {
+    const missing = COMMAND_IDENTITIES.flatMap((cmd) =>
+      cmd.menu && cmd.menu.length > 0 && !MENU_BINDING_IDS.has(cmd.id) ? [cmd.id] : [],
+    );
+    expect(missing).toEqual([]);
+  });
+
+  test('every MENU_BINDINGS entry maps to a menu-placed command (no stale bindings)', () => {
+    const menuPlaced = new Set(
+      COMMAND_IDENTITIES.flatMap((cmd) => (cmd.menu && cmd.menu.length > 0 ? [cmd.id] : [])),
+    );
+    const stale = [...MENU_BINDING_IDS].filter((id) => !menuPlaced.has(id));
+    expect(stale).toEqual([]);
+  });
+});
+
+describe('menu state-dependent rendering', () => {
+  const findLeaf = (leaves: Leaf[], label: string): Leaf | undefined =>
+    leaves.find((leaf) => normalizeLabel(leaf.label) === label);
+
+  test('Show/Hide toggles render the Show variant when the panel is hidden', () => {
+    const leaves = collectLeavesForPlatform('darwin', {
+      ...makeFullDeps(),
+      sidebarVisible: false,
+      docPanelVisible: false,
+      terminalVisible: false,
+    });
+    const labels = new Set(leaves.map((leaf) => normalizeLabel(leaf.label)));
+    expect(labels.has('Show sidebar')).toBe(true);
+    expect(labels.has('Show document panel')).toBe(true);
+    expect(labels.has('Show Terminal')).toBe(true);
+    expect(labels.has('Hide sidebar')).toBe(false);
+    expect(labels.has('Hide document panel')).toBe(false);
+    expect(labels.has('Hide Terminal')).toBe(false);
+  });
+
+  test('Show/Hide toggles render the Hide variant when the panel is visible', () => {
+    const leaves = collectLeavesForPlatform('darwin', {
+      ...makeFullDeps(),
+      sidebarVisible: true,
+      docPanelVisible: true,
+      terminalVisible: true,
+    });
+    const labels = new Set(leaves.map((leaf) => normalizeLabel(leaf.label)));
+    expect(labels.has('Hide sidebar')).toBe(true);
+    expect(labels.has('Show sidebar')).toBe(false);
+  });
+
+  test('smart-hide maps availability to `visible` (not `enabled`) for Expand/Collapse all', () => {
+    const collapsedTree = collectLeavesForPlatform('darwin', {
+      ...makeFullDeps(),
+      canExpandAll: false,
+      canCollapseAll: true,
+    });
+    const expandAll = findLeaf(collapsedTree, 'Expand all');
+    expect(expandAll).toBeDefined();
+    expect(expandAll?.visible).toBe(false);
+    expect(findLeaf(collapsedTree, 'Collapse all')?.visible).toBe(true);
+
+    const expandedTree = collectLeavesForPlatform('darwin', {
+      ...makeFullDeps(),
+      canExpandAll: true,
+      canCollapseAll: false,
+    });
+    expect(findLeaf(expandedTree, 'Expand all')?.visible).toBe(true);
+    expect(findLeaf(expandedTree, 'Collapse all')?.visible).toBe(false);
+  });
+
+  test('checkbox items carry `type: checkbox` and track the checked state', () => {
+    const checkedLeaf = findLeaf(
+      collectLeavesForPlatform('darwin', { ...makeFullDeps(), showHiddenFilesChecked: true }),
+      'Show hidden files',
+    );
+    expect(checkedLeaf?.itemType).toBe('checkbox');
+    expect(checkedLeaf?.checked).toBe(true);
+
+    const uncheckedLeaf = findLeaf(
+      collectLeavesForPlatform('darwin', { ...makeFullDeps(), showHiddenFilesChecked: false }),
+      'Show hidden files',
+    );
+    expect(uncheckedLeaf?.itemType).toBe('checkbox');
+    expect(uncheckedLeaf?.checked).toBe(false);
+  });
+
+  test('presence-gated leaves disappear when their dep is unwired', () => {
+    for (const platform of ['darwin', 'win32'] as const) {
+      expect(
+        findLeaf(collectLeavesForPlatform(platform, makeFullDeps()), 'Check for updates'),
+      ).toBeDefined();
+      const withoutDep = collectLeavesForPlatform(platform, {
+        ...makeFullDeps(),
+        onCheckForUpdates: undefined,
+      });
+      expect(findLeaf(withoutDep, 'Check for updates')).toBeUndefined();
+    }
+    expect(
+      findLeaf(
+        collectLeavesForPlatform('darwin', makeFullDeps()),
+        'Set up OpenKnowledge integrations',
+      ),
+    ).toBeDefined();
+    expect(
+      findLeaf(
+        collectLeavesForPlatform('darwin', { ...makeFullDeps(), reconfigureMcpWiring: undefined }),
+        'Set up OpenKnowledge integrations',
+      ),
+    ).toBeUndefined();
+  });
+});

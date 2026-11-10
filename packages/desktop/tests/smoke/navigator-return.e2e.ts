@@ -1,0 +1,251 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import type { ElectronApplication, Page } from '@playwright/test';
+import { _electron as electron } from '@playwright/test';
+import { configureDesktopGitRepositories } from '../support/git-fixture.test-helper.ts';
+import { desktopLaunchOptions, resolveDesktopTarget } from './_helpers/launch-desktop';
+import {
+  homeEnv,
+  PLATFORM_SKIP_REASON,
+  PLATFORM_SUPPORTED,
+  SMOKE_ENABLED,
+} from './_helpers/platform-gate';
+import { expect, test } from './_helpers/smoke-test';
+
+const TARGET = resolveDesktopTarget();
+const DARWIN = process.platform === 'darwin';
+
+interface SeededHome {
+  tmpHome: string;
+  userDataDir: string;
+  projectDir: string;
+}
+
+function userDataDirFor(tmpHome: string): string {
+  return join(tmpHome, 'electron-userdata');
+}
+
+function seedHomeWithLastOpenedProject(prefix: string): SeededHome {
+  const tmpHome = mkdtempSync(join(tmpdir(), `ok-navigator-return-${prefix}-`));
+  const projectDir = mkdtempSync(join(tmpdir(), `ok-navigator-return-${prefix}-project-`));
+  mkdirSync(join(projectDir, '.ok'), { recursive: true });
+  writeFileSync(
+    join(projectDir, '.ok', 'config.yml'),
+    "content:\n  dir: '.'\n  include: ['**/*.md']\n  exclude: []\n",
+  );
+  const userDataDir = userDataDirFor(tmpHome);
+  mkdirSync(userDataDir, { recursive: true });
+  writeFileSync(
+    join(userDataDir, 'state.json'),
+    JSON.stringify({
+      recentProjects: [
+        {
+          path: projectDir,
+          name: 'Navigator Return Smoke',
+          lastOpenedAt: new Date().toISOString(),
+        },
+      ],
+      lastOpenedProject: projectDir,
+      versionPendingInstall: null,
+      lastSeenVersion: null,
+      lastSuccessfulCheckAt: null,
+      stuckHintShown: false,
+    }),
+  );
+  return { tmpHome, userDataDir, projectDir };
+}
+
+async function launchApp(tmpHome: string): Promise<ElectronApplication> {
+  return electron.launch(
+    desktopLaunchOptions({
+      target: TARGET,
+      args: [`--user-data-dir=${userDataDirFor(tmpHome)}`],
+      timeout: 30_000,
+      env: {
+        ...process.env,
+        ...homeEnv(tmpHome),
+        OK_DESKTOP_E2E_SMOKE: '1',
+      },
+    }),
+  );
+}
+
+async function findEditorWindow(app: ElectronApplication, timeoutMs = 20_000): Promise<Page> {
+  return await expect
+    .poll(
+      async () => {
+        for (const page of app.windows()) {
+          const mode = await page
+            .evaluate(() => window.okDesktop?.config?.mode)
+            .catch(() => undefined);
+          if (mode === 'editor') return page;
+        }
+        return null;
+      },
+      {
+        timeout: timeoutMs,
+        message: 'editor window did not appear within timeout',
+      },
+    )
+    .not.toBeNull()
+    .then(async () => {
+      for (const page of app.windows()) {
+        const mode = await page
+          .evaluate(() => window.okDesktop?.config?.mode)
+          .catch(() => undefined);
+        if (mode === 'editor') return page;
+      }
+      throw new Error('editor window vanished between poll resolution and read');
+    });
+}
+
+async function countNavigatorWindows(app: ElectronApplication): Promise<number> {
+  let count = 0;
+  for (const page of app.windows()) {
+    const mode = await page.evaluate(() => window.okDesktop?.config?.mode).catch(() => undefined);
+    if (mode === 'navigator') count++;
+  }
+  return count;
+}
+
+async function countEditorWindows(app: ElectronApplication): Promise<number> {
+  let count = 0;
+  for (const page of app.windows()) {
+    const mode = await page.evaluate(() => window.okDesktop?.config?.mode).catch(() => undefined);
+    if (mode === 'editor') count++;
+  }
+  return count;
+}
+
+async function findNavigatorWindow(app: ElectronApplication, timeoutMs = 15_000): Promise<Page> {
+  await expect
+    .poll(() => countNavigatorWindows(app), {
+      timeout: timeoutMs,
+      message: 'navigator window did not appear within timeout',
+    })
+    .toBe(1);
+  for (const page of app.windows()) {
+    const mode = await page.evaluate(() => window.okDesktop?.config?.mode).catch(() => undefined);
+    if (mode === 'navigator') return page;
+  }
+  throw new Error('navigator window vanished between poll resolution and read');
+}
+
+test.describe('Project Navigator return-affordance smoke', () => {
+  test.skip(!SMOKE_ENABLED, 'Set OK_DESKTOP_E2E_SMOKE=1 to run Electron smoke tests.');
+  test.skip(!PLATFORM_SUPPORTED, PLATFORM_SKIP_REASON);
+  test.skip(!TARGET.exists, TARGET.missingReason);
+
+  test('bridge.navigator.open() opens navigator from editor; re-invokes never spawn a duplicate', async ({
+    captureStderrFor,
+  }) => {
+    const { tmpHome, projectDir } = seedHomeWithLastOpenedProject('happy');
+    const app = await launchApp(tmpHome);
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: [tmpHome, projectDir] });
+
+    const editor = await findEditorWindow(app);
+    await expect.poll(() => countNavigatorWindows(app)).toBe(0);
+    await configureDesktopGitRepositories(editor, projectDir);
+
+    await editor.evaluate(async () => {
+      await window.okDesktop?.navigator.open();
+    });
+
+    await expect
+      .poll(() => countNavigatorWindows(app), {
+        timeout: 15_000,
+        message: 'navigator window did not appear after bridge.navigator.open()',
+      })
+      .toBe(1);
+
+    await editor.evaluate(async () => {
+      await window.okDesktop?.navigator.open();
+    });
+    await editor.evaluate(async () => {
+      await window.okDesktop?.navigator.open();
+    });
+    await expect
+      .poll(() => countNavigatorWindows(app), {
+        timeout: 2_000,
+        intervals: [50, 100, 200, 400],
+        message: 'navigator window count exceeded 1 across re-invokes',
+      })
+      .toBe(1);
+  });
+
+  test('FR5(d) — closing the navigator window leaves the editor window alive', async ({
+    captureStderrFor,
+  }) => {
+    const { tmpHome, projectDir } = seedHomeWithLastOpenedProject('close');
+    const app = await launchApp(tmpHome);
+    captureStderrFor(app, { home: tmpHome, cleanupDirs: [tmpHome, projectDir] });
+
+    const editor = await findEditorWindow(app);
+    await expect.poll(() => countEditorWindows(app)).toBe(1);
+    await configureDesktopGitRepositories(editor, projectDir);
+
+    await editor.evaluate(async () => {
+      await window.okDesktop?.navigator.open();
+    });
+    const navigatorPage = await findNavigatorWindow(app);
+
+    await navigatorPage.close();
+
+    await expect
+      .poll(() => countNavigatorWindows(app), {
+        timeout: 5_000,
+        message: 'navigator window did not close',
+      })
+      .toBe(0);
+
+    await expect
+      .poll(() => countEditorWindows(app), {
+        timeout: 2_000,
+        message: 'editor window disappeared when navigator closed',
+      })
+      .toBe(1);
+    const stillEditorMode = await editor
+      .evaluate(() => window.okDesktop?.config?.mode)
+      .catch(() => null);
+    expect(stillEditorMode).toBe('editor');
+  });
+
+  test.describe('on Windows and Linux', () => {
+    test.skip(DARWIN, 'macOS keeps running with no windows; the Dock reopens the Navigator.');
+
+    test('closing the last project window opens the Navigator, and closing the Navigator then quits', async ({
+      captureStderrFor,
+    }) => {
+      const { tmpHome, projectDir } = seedHomeWithLastOpenedProject('last-window');
+      const app = await launchApp(tmpHome);
+      captureStderrFor(app, { home: tmpHome, cleanupDirs: [tmpHome, projectDir] });
+      const appProcess = app.process();
+      const appExited = () => appProcess.exitCode !== null || appProcess.signalCode !== null;
+
+      const editor = await findEditorWindow(app);
+      await expect.poll(() => countEditorWindows(app)).toBe(1);
+      await expect.poll(() => countNavigatorWindows(app)).toBe(0);
+
+      await editor.close();
+
+      const navigatorPage = await findNavigatorWindow(app);
+      await expect
+        .poll(() => countEditorWindows(app), {
+          timeout: 5_000,
+          message: 'editor window did not close',
+        })
+        .toBe(0);
+      expect(appExited()).toBe(false);
+
+      await navigatorPage.close();
+
+      await expect
+        .poll(appExited, {
+          timeout: 30_000,
+          message: 'app kept running after its last window, the Navigator, closed',
+        })
+        .toBe(true);
+    });
+  });
+});

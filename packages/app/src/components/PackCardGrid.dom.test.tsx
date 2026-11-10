@@ -1,0 +1,211 @@
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { ComponentProps, ReactNode } from 'react';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import type { OkPackId, OkSeedListPacksResult, OkSeedPackInfo } from '@/lib/desktop-bridge-types';
+
+let listPacksImpl: () => Promise<OkSeedListPacksResult> = async () => ({
+  ok: true,
+  packs: [],
+});
+const listPacksCalls: string[] = [];
+
+import * as actualLinguiMacro from '@lingui/react/macro';
+
+vi.doMock('@lingui/core/macro', () => ({
+  ...actualLinguiMacro,
+  plural: (count: number, forms: { one: string; other: string }) =>
+    (count === 1 ? forms.one : forms.other).replace('#', String(count)),
+  t: (strings: TemplateStringsArray, ...values: unknown[]) =>
+    strings.reduce((out, part, index) => `${out}${part}${values[index] ?? ''}`, ''),
+}));
+
+vi.doMock('@lingui/react/macro', () => ({
+  ...actualLinguiMacro,
+  Trans: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useLingui: () => ({
+    t: (strings: TemplateStringsArray, ...values: unknown[]) =>
+      strings.reduce((out, part, index) => `${out}${part}${values[index] ?? ''}`, ''),
+  }),
+}));
+
+vi.doMock('@/lib/seed-client', () => ({
+  seedClient: () => ({
+    listPacks: () => {
+      listPacksCalls.push('listPacks');
+      return listPacksImpl();
+    },
+  }),
+}));
+
+const packIds: OkPackId[] = [
+  'knowledge-base',
+  'software-lifecycle',
+  'plain-notes',
+  'worldbuilding',
+  'writing-pipeline',
+  'gbrain',
+];
+
+function makePack(id: OkPackId, index: number): OkSeedPackInfo {
+  return {
+    id,
+    name: `Pack ${index + 1}`,
+    description: `Starter pack ${index + 1}`,
+    folders: [{ path: `folder-${index + 1}`, summary: 'Folder' }],
+    entryCounts: { files: index, folders: index + 1 },
+  };
+}
+
+const allPacks = packIds.map(makePack);
+
+async function renderPackCardGrid(
+  props: Partial<ComponentProps<typeof import('./PackCardGrid')['PackCardGrid']>> = {},
+) {
+  const { PackCardGrid } = await import('./PackCardGrid');
+  const selected: OkPackId[] = [];
+  render(
+    <TooltipProvider>
+      <PackCardGrid onPackSelect={(packId) => selected.push(packId)} {...props} />
+    </TooltipProvider>,
+  );
+  return { selected };
+}
+
+describe('PackCardGrid runtime behavior', () => {
+  afterEach(() => {
+    cleanup();
+    listPacksCalls.length = 0;
+    listPacksImpl = async () => ({ ok: true, packs: [] });
+  });
+
+  test('exports the component', async () => {
+    const mod = await import('./PackCardGrid');
+    expect(typeof mod.PackCardGrid).toBe('function');
+  });
+
+  test('renders caller-provided packs as keyboard-accessible cards and skips internal fetch', async () => {
+    const { selected } = await renderPackCardGrid({ packs: allPacks });
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons).toHaveLength(allPacks.length);
+    expect(listPacksCalls).toEqual([]);
+    for (const [index, button] of buttons.entries()) {
+      expect(button.textContent).toContain(allPacks[index].name);
+      expect(button.textContent).toContain(allPacks[index].description);
+      expect(button.querySelector('svg')).not.toBeNull();
+    }
+
+    await userEvent.click(buttons[0]);
+    expect(selected).toEqual(['knowledge-base']);
+  });
+
+  test('each card shows a preview verb and folder detail on hover', async () => {
+    await renderPackCardGrid({ packs: [makePack('knowledge-base', 1)] });
+
+    const card = screen.getByRole('button');
+    expect(card.textContent).toContain("See what's added");
+
+    await userEvent.hover(card);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toContain('folder-2');
+  });
+
+  test('a pack with no folders renders a bare card with no tooltip', async () => {
+    await renderPackCardGrid({ packs: [{ ...makePack('knowledge-base', 1), folders: [] }] });
+
+    await userEvent.hover(screen.getByRole('button'));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
+  test('omits the blank-file card when onCreateBlankFile is not provided', async () => {
+    await renderPackCardGrid({ packs: allPacks });
+
+    expect(screen.getAllByRole('button')).toHaveLength(allPacks.length);
+    expect(screen.queryByText(/create a new file/)).toBeNull();
+  });
+
+  test('renders a create-a-new-file footer button and fires the callback on click', async () => {
+    const onCreateBlankFile = vi.fn(() => {});
+    await renderPackCardGrid({ packs: allPacks, onCreateBlankFile });
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons).toHaveLength(allPacks.length + 1);
+    const footerButton = buttons.at(-1);
+    expect(footerButton?.textContent).toContain('create a new file');
+
+    await userEvent.click(footerButton as HTMLElement);
+    expect(onCreateBlankFile).toHaveBeenCalledTimes(1);
+  });
+
+  test('parks collapsedPackIds behind a Show more toggle and appends them when expanded', async () => {
+    await renderPackCardGrid({ packs: allPacks, collapsedPackIds: ['plain-notes', 'gbrain'] });
+
+    expect(screen.queryByText('Pack 3')).toBeNull();
+    expect(screen.queryByText('Pack 6')).toBeNull();
+    const toggle = screen.getByRole('button', { name: /Show 2 more/ });
+
+    await userEvent.click(toggle);
+
+    expect(screen.getAllByRole('heading').map((h) => h.textContent)).toEqual([
+      'Pack 1',
+      'Pack 2',
+      'Pack 4',
+      'Pack 5',
+      'Pack 3',
+      'Pack 6',
+    ]);
+    const collapseToggle = screen.getByRole('button', { name: /Show less/ });
+
+    await userEvent.click(collapseToggle);
+    expect(screen.queryByText('Pack 3')).toBeNull();
+    expect(screen.getByRole('button', { name: /Show 2 more/ })).not.toBeNull();
+  });
+
+  test('renders the loading skeleton when caller-owned packs are still null', async () => {
+    await renderPackCardGrid({ packs: null });
+
+    const status = screen.getByRole('status');
+    expect(status.getAttribute('aria-busy')).toBe('true');
+    expect(status.getAttribute('aria-label')).toBe('Loading starter packs');
+    expect(status.querySelectorAll('[class*="animate-pulse"]').length).toBeGreaterThanOrEqual(6);
+    expect(listPacksCalls).toEqual([]);
+  });
+
+  test('renders an empty state for an empty pack list', async () => {
+    await renderPackCardGrid({ packs: [] });
+
+    expect(screen.getByRole('status').textContent).toContain('No starter packs available.');
+  });
+
+  test('self-fetches packs when caller omits the packs prop', async () => {
+    listPacksImpl = async () => ({ ok: true, packs: [allPacks[0]] });
+
+    await act(async () => {
+      await renderPackCardGrid();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button').textContent).toContain('Pack 1');
+    });
+    expect(listPacksCalls).toEqual(['listPacks']);
+  });
+
+  test('surfaces self-fetch failures as an alert', async () => {
+    listPacksImpl = async () => ({
+      ok: false,
+      error: { kind: 'internal', message: 'registry unavailable' },
+    });
+
+    await act(async () => {
+      await renderPackCardGrid();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain('registry unavailable');
+    });
+  });
+});

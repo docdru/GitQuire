@@ -1,0 +1,109 @@
+name: Bug report
+description: Report something that isn't working in OpenKnowledge
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The reports we can fix fastest say what happens and when, and give the fewest steps that show it. One problem per issue, please. For a security problem, please [report it privately](https://github.com/inkeep/open-knowledge/security/advisories/new) instead of opening a public issue.
+
+        For setup help or "how do I…" questions, please use [Discord](https://discord.gg/VRKk2EaGHN) or the [docs](https://openknowledge.ai) instead — those get faster answers than an issue.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and this isn't a duplicate
+          required: true
+        - label: I'm on the latest version (or I've noted my version below)
+          required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead. A screenshot helps for visual problems.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The fewest steps that still show the bug, ideally starting from a new project.
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: How often does it happen?
+      options:
+        - Every time
+        - Sometimes
+        - Only once so far
+    validations:
+      required: false
+  - type: input
+    id: last-working-version
+    attributes:
+      label: Did it work in an earlier version?
+      description: If it used to work, the last version where it did.
+    validations:
+      required: false
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you already tried?
+      description: Workarounds or checks you have already done, and what they showed.
+    validations:
+      required: false
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows
+        - Linux
+        - Web app
+        - CLI only
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install OpenKnowledge?
+      options:
+        - Desktop app (DMG)
+        - CLI (npm / npx)
+        - Web app
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "Desktop: Help → About. CLI: run with --version."
+      placeholder: "e.g. 0.16.1"
+    validations:
+      required: true
+  - type: textarea
+    id: code-pointers
+    attributes:
+      label: Anything else?
+      description: Anything else that might help, such as code you suspect, related issues, or your own ideas. Optional.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error text and logs
+      description: The full error message and any log output, pasted as text.
+      render: shell
+    validations:
+      required: false

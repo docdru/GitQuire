@@ -1,0 +1,179 @@
+import { createEnsureSingleFileSession } from '../../ensure-single-file-session.ts';
+import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
+import type { AgentIdentity } from '../agent-identity.ts';
+import { getCurrentMcpLogger, type McpLogger } from '../logger.ts';
+import { createLoggedServer } from '../tool-logging.ts';
+import { register as registerAudit } from './audit.ts';
+import { register as registerCheckpoint } from './checkpoint.ts';
+import { register as registerConfig } from './config.ts';
+import { register as registerDelete } from './delete.ts';
+import { register as registerEdit } from './edit.ts';
+import { register as registerExec } from './exec.ts';
+import { register as registerPreviewUrl } from './get-preview-url.ts';
+import { register as registerHistory } from './history.ts';
+import { register as registerImport } from './import.ts';
+import { register as registerInstall } from './install.ts';
+import { register as registerLinks } from './links.ts';
+import { register as registerLint } from './lint.ts';
+import { register as registerMove } from './move.ts';
+import { register as registerPalette } from './palette.ts';
+import { register as registerRestoreVersion } from './restore-version.ts';
+import { register as registerSearch } from './search.ts';
+import { register as registerShareLink } from './share-link.ts';
+import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';
+import { register as registerSkills } from './skills.ts';
+import { register as registerWrite } from './write.ts';
+
+type ResolveCwd = (explicit?: string) => Promise<string>;
+
+interface RegisterAllToolsOptions {
+  serverUrl?: ServerUrlOrResolver;
+  resolveCwd: ResolveCwd;
+  localApi?: LocalApiDispatch;
+  config: ConfigOrResolver;
+  identityRef?: { current: AgentIdentity };
+  logger?: McpLogger;
+  isHostedAgent?: boolean;
+}
+
+export function registerAllTools(server: ServerInstance, opts: RegisterAllToolsOptions): void {
+  const log = opts.logger;
+  const registrationServer = createLoggedServer(server, {
+    logger: opts.logger,
+    identityRef: opts.identityRef,
+  });
+  const named =
+    (tool: string): ResolveCwd =>
+    async (explicit?: string) => {
+      try {
+        const cwd = await opts.resolveCwd(explicit);
+        const activeLog = getCurrentMcpLogger() ?? log;
+        activeLog?.debug('tool cwd resolved', { tool, cwd, ...(explicit ? { explicit } : {}) });
+        return cwd;
+      } catch (err) {
+        const activeLog = getCurrentMcpLogger() ?? log;
+        activeLog?.warn('tool call failed', {
+          tool,
+          err,
+          ...(explicit ? { explicit } : {}),
+        });
+        throw err;
+      }
+    };
+
+  registerExec(registrationServer, {
+    resolveCwd: named('exec'),
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+  });
+
+  registerSearch(registrationServer, {
+    resolveCwd: named('search'),
+    config: opts.config,
+    serverUrl: opts.serverUrl,
+    localApi: opts.localApi,
+  });
+  registerLinks(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('links'),
+    localApi: opts.localApi,
+  });
+  registerLint(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('lint'),
+    identityRef: opts.identityRef,
+  });
+  registerAudit(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('audit'),
+  });
+
+  registerWrite(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('write'),
+    identityRef: opts.identityRef,
+    localApi: opts.localApi,
+  });
+  registerEdit(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('edit'),
+    identityRef: opts.identityRef,
+  });
+  registerDelete(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('delete'),
+    identityRef: opts.identityRef,
+    localApi: opts.localApi,
+  });
+  registerMove(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('move'),
+    identityRef: opts.identityRef,
+  });
+  registerInstall(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('install'),
+    identityRef: opts.identityRef,
+    localApi: opts.localApi,
+  });
+  registerImport(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('import'),
+    identityRef: opts.identityRef,
+    localApi: opts.localApi,
+  });
+  registerHistory(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('history'),
+  });
+  registerSkills(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('skills'),
+  });
+  registerCheckpoint(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('checkpoint'),
+    identityRef: opts.identityRef,
+    localApi: opts.localApi,
+  });
+  registerRestoreVersion(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('restore_version'),
+    identityRef: opts.identityRef,
+  });
+  registerPalette(registrationServer, {
+    resolveCwd: named('palette'),
+    config: opts.config,
+  });
+
+  registerConfig(registrationServer, {
+    config: opts.config,
+    resolveCwd: named('config'),
+  });
+  registerPreviewUrl(registrationServer, {
+    config: opts.config,
+    resolveCwd: named('preview_url'),
+    serverUrl: opts.serverUrl,
+    isHostedAgent: opts.isHostedAgent,
+    ...(opts.serverUrl ? { ensureSingleFileSession: createEnsureSingleFileSession() } : {}),
+  });
+
+  registerShareLink(registrationServer, {
+    serverUrl: opts.serverUrl,
+    config: opts.config,
+    resolveCwd: named('share_link'),
+  });
+}

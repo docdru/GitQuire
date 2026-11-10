@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & community help
+    url: https://discord.gg/VRKk2EaGHN
+    about: Setup help, "how do I…" questions, and general discussion. Please ask here rather than opening an issue.
+  - name: Documentation
+    url: https://openknowledge.ai
+    about: Guides, CLI reference, MCP, and editor integrations.
+  - name: Report a security vulnerability
+    url: https://github.com/inkeep/open-knowledge/security/advisories/new
+    about: Report security issues privately via GitHub's security advisories, never as a public issue.

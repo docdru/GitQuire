@@ -1,0 +1,242 @@
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+
+interface PageListCachePayload {
+  pages: Set<string>;
+  folderPaths: Set<string>;
+  pagesBySlug: ReadonlyMap<string, string>;
+  pagesByBasename: ReadonlyMap<string, string>;
+  assetPaths: Set<string>;
+  pageIcons: ReadonlyMap<string, string>;
+}
+
+const setPageListCacheMock = vi.fn((_payload: PageListCachePayload) => {});
+
+vi.doMock('@/lib/documents-events', () => ({
+  subscribeToDocumentsChanged: () => () => {},
+}));
+
+vi.doMock('@/editor/page-list-cache', () => ({
+  buildPageIconsIndex: (pageMeta: ReadonlyMap<string, { icon?: string }>) => {
+    const icons = new Map<string, string>();
+    for (const [docName, meta] of pageMeta) {
+      if (meta.icon) icons.set(docName, meta.icon);
+    }
+    return icons;
+  },
+  buildPagesBySlugIndex: (pages: ReadonlySet<string>, toSlug: (docName: string) => string) => {
+    const index = new Map<string, string>();
+    for (const docName of pages) {
+      const slug = toSlug(docName);
+      if (!index.has(slug)) index.set(slug, docName);
+    }
+    return index;
+  },
+  buildPagesByBasenameIndex: (pages: ReadonlySet<string>, toSlug: (docName: string) => string) => {
+    const index = new Map<string, string>();
+    for (const docName of [...pages].sort()) {
+      const basename = docName.split('/').pop() ?? docName;
+      const slug = toSlug(basename);
+      if (!index.has(slug)) index.set(slug, docName);
+    }
+    return index;
+  },
+  setPageListCache: setPageListCacheMock,
+}));
+
+interface PagesResponseBody {
+  pages: {
+    docName: string;
+    title: string;
+    size: number;
+    modified: string;
+    docExt?: string;
+    icon?: string;
+  }[];
+}
+interface DocumentListEntry {
+  kind: 'document' | 'asset' | 'folder';
+  path?: string;
+}
+type ResponseResolver = (res: Response) => void;
+
+let pageResolvers: ResponseResolver[] = [];
+let docResolvers: ResponseResolver[] = [];
+let originalFetch: typeof globalThis.fetch;
+
+function jsonRes(body: unknown) {
+  return { ok: true, json: async () => body } as Response;
+}
+
+function pagesBody(
+  entries: Array<
+    | string
+    | {
+        docName: string;
+        title?: string;
+        docExt?: string;
+        icon?: string;
+      }
+  >,
+): PagesResponseBody {
+  return {
+    pages: entries.map((entry) => {
+      const docName = typeof entry === 'string' ? entry : entry.docName;
+      return {
+        docName,
+        title: typeof entry === 'string' ? entry : (entry.title ?? entry.docName),
+        size: 1,
+        modified: '2026-01-01T00:00:00.000Z',
+        docExt: typeof entry === 'string' ? undefined : entry.docExt,
+        icon: typeof entry === 'string' ? undefined : entry.icon,
+      };
+    }),
+  };
+}
+
+async function settleRound(
+  docNames: Parameters<typeof pagesBody>[0],
+  documents: DocumentListEntry[] = [],
+) {
+  const pr = pageResolvers.shift();
+  const dr = docResolvers.shift();
+  if (!pr || !dr) throw new Error('settleRound: no in-flight fetch pair to resolve');
+  await act(async () => {
+    pr(jsonRes(pagesBody(docNames)));
+    dr(jsonRes({ documents }));
+    await Promise.resolve();
+  });
+}
+
+function latestCachePayload() {
+  return setPageListCacheMock.mock.calls.at(-1)?.[0] as PageListCachePayload | undefined;
+}
+
+beforeEach(() => {
+  pageResolvers = [];
+  docResolvers = [];
+  setPageListCacheMock.mockClear();
+  originalFetch = globalThis.fetch;
+  globalThis.fetch = ((input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.includes('/api/pages')) {
+      return new Promise<Response>((resolve) => {
+        pageResolvers.push(resolve);
+      });
+    }
+    if (url.includes('/api/documents')) {
+      return new Promise<Response>((resolve) => {
+        docResolvers.push(resolve);
+      });
+    }
+    return Promise.reject(new Error(`unexpected fetch: ${url}`));
+  }) as typeof globalThis.fetch;
+});
+
+afterEach(() => {
+  cleanup();
+  globalThis.fetch = originalFetch;
+});
+
+function Probe() {
+  const { loading, pages } = usePageList();
+  if (loading) return <div data-testid="page-list-skeleton" />;
+  return <div data-testid="page-list-content">{[...pages].sort().join(',')}</div>;
+}
+
+function AddPageProbe() {
+  const { addPage, pages } = usePageList();
+  return (
+    <div>
+      <button type="button" onClick={() => addPage('Draft')}>
+        Add draft
+      </button>
+      <span data-testid="page-list-content">{[...pages].sort().join(',')}</span>
+    </div>
+  );
+}
+
+const { PageListProvider, usePageList } = await import('./PageListContext');
+
+describe('PageListContext loading stability', () => {
+  test('PRD-6649: a background refetch (window focus) never re-shows the cold-load skeleton or remounts the view', async () => {
+    render(
+      <PageListProvider>
+        <Probe />
+      </PageListProvider>,
+    );
+
+    expect(screen.getByTestId('page-list-skeleton')).not.toBeNull();
+    expect(screen.queryByTestId('page-list-content')).toBeNull();
+
+    await settleRound(['A']);
+    await waitFor(() => {
+      expect(screen.getByTestId('page-list-content')).not.toBeNull();
+    });
+    expect(screen.queryByTestId('page-list-skeleton')).toBeNull();
+
+    const coldNode = screen.getByTestId('page-list-content');
+    coldNode.setAttribute('data-marker', 'cold');
+    const pageFetchesAfterCold = pageResolvers.length;
+
+    await act(async () => {
+      window.dispatchEvent(new Event('focus'));
+      await Promise.resolve();
+    });
+
+    expect(pageResolvers.length).toBe(pageFetchesAfterCold + 1);
+
+    expect(screen.queryByTestId('page-list-skeleton')).toBeNull();
+    const inFlightNode = screen.getByTestId('page-list-content');
+    expect(inFlightNode).toBe(coldNode);
+    expect(inFlightNode.getAttribute('data-marker')).toBe('cold');
+
+    await settleRound(['A', 'B']);
+    await waitFor(() => {
+      expect(screen.getByTestId('page-list-content').textContent).toBe('A,B');
+    });
+    const afterNode = screen.getByTestId('page-list-content');
+    expect(afterNode).toBe(coldNode);
+    expect(afterNode.getAttribute('data-marker')).toBe('cold');
+    expect(screen.queryByTestId('page-list-skeleton')).toBeNull();
+  });
+
+  test('publishes runtime-derived pages, folders, slugs, assets, icons, and optimistic pages to the cache', async () => {
+    render(
+      <PageListProvider>
+        <AddPageProbe />
+      </PageListProvider>,
+    );
+
+    await settleRound(
+      [{ docName: 'Notes/Alpha', icon: '📘', docExt: '.mdx' }],
+      [
+        { kind: 'folder', path: 'Notes' },
+        { kind: 'asset', path: 'images/diagram.png' },
+      ],
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('page-list-content').textContent).toBe('Notes/Alpha');
+    });
+
+    let payload = latestCachePayload();
+    expect([...(payload?.pages ?? [])]).toEqual(['Notes/Alpha']);
+    expect(payload?.pagesBySlug.get('notes-alpha')).toBe('Notes/Alpha');
+    expect(payload?.pagesByBasename.get('alpha')).toBe('Notes/Alpha');
+    expect([...(payload?.assetPaths ?? [])]).toEqual(['images/diagram.png']);
+    expect(payload?.folderPaths.has('Notes')).toBe(true);
+    expect(payload?.pageIcons.get('Notes/Alpha')).toBe('📘');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add draft' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('page-list-content').textContent).toBe('Draft,Notes/Alpha');
+    });
+
+    payload = latestCachePayload();
+    expect(payload?.pages.has('Draft')).toBe(true);
+    expect(payload?.pagesBySlug.get('draft')).toBe('Draft');
+    expect(payload?.pagesByBasename.get('draft')).toBe('Draft');
+  });
+});

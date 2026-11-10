@@ -1,0 +1,544 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+@plugin "tailwind-scrollbar";
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-slide-bg: var(--slide-bg);
+  --color-slide-bg-elevated: var(--slide-bg-elevated);
+  --color-slide-text: var(--slide-text);
+  --color-slide-muted: var(--slide-muted);
+  --color-slide-accent: var(--slide-accent);
+  --color-slide-accent-strong: var(--slide-accent-strong);
+  --color-slide-border: var(--slide-border);
+  --color-border: var(--border);
+}
+
+@theme {
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --text-2xs: 0.688rem; /* 11px */
+  --text-1sm: 0.813rem; /* 13px */
+  --color-gray-50: oklch(0.985 0.001 106.423);
+  --color-gray-100: oklch(0.97 0.001 106.424);
+  --color-gray-200: oklch(0.923 0.003 48.717);
+  --color-gray-300: oklch(0.869 0.005 56.366);
+  --color-gray-400: oklch(0.709 0.01 56.259);
+  --color-gray-500: oklch(0.553 0.013 58.071);
+  --color-gray-600: oklch(0.444 0.011 73.639);
+  --color-gray-700: oklch(0.374 0.01 67.558);
+  --color-gray-800: oklch(0.268 0.007 34.298);
+  --color-gray-900: oklch(0.216 0.006 56.043);
+  --color-gray-950: oklch(0.147 0.004 49.25);
+
+  /* brand colors */
+  --color-azure-blue: #3784ff;
+  --color-sky-blue: #69a3ff;
+  --color-crystal-blue: #d5e5ff;
+  --color-morning-mist: #fbf9f4;
+  --color-morning-mist-700: #b2b1ad;
+  --color-night-sky: #231f20;
+  --color-night-sky-800: #131112;
+  --color-blue-dark: #29325c;
+  --color-cream: #f7f4ed;
+  --color-white-cream: #fff5e1;
+  --color-orange-light: #fbe1bc;
+  --color-gray-light: #5f5c62;
+  --color-golden-sun-100: #ffefd9;
+  --color-golden-sun-200: #fcdfb6;
+  --color-golden-sun-300: #f8d393;
+  --color-purple-light: #e1dbff;
+
+  /* based on azure blue (#3784ff) */
+  --color-azure-50: oklch(0.9697 0.0148 251.16);
+  --color-azure-100: oklch(0.9308 0.0339 253.71);
+  --color-azure-200: oklch(0.8807 0.0599 252.33);
+  --color-azure-300: oklch(0.8092 0.0999 249.58);
+  --color-azure-400: oklch(0.7135 0.1524 254.03);
+  --color-azure-500: oklch(0.6321 0.1983 259.59);
+  --color-azure-600: oklch(0.5468 0.2329 262.71);
+  --color-azure-700: oklch(0.4895 0.233 263.93);
+  --color-azure-800: oklch(0.4234 0.195 264.97);
+  --color-azure-900: oklch(0.3773 0.1488 264.94);
+  --color-azure-950: oklch(0.2785 0.0961 267.56);
+}
+
+/* Light docs grays: slightly lighter than Fumadocs default + a very faint
+   warm cast (oklch chroma 0.003 at hue ~80). Cards/secondary get the most
+   visible warmth so the sidebar reads softer. */
+@layer base {
+  :root {
+    --color-fd-background: oklch(0.99 0.002 80);
+    --color-fd-muted: oklch(0.99 0.002 80);
+    --color-fd-popover: oklch(0.995 0.002 80);
+    --color-fd-card: oklch(0.98 0.003 80);
+    --color-fd-secondary: oklch(0.975 0.003 80);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Map Fumadocs' neutral primary/ring onto brand azure so docs links, active
+   nav, the primary button, and focus rings read on-brand rather than the
+   preset near-black. Deliberately UNLAYERED: neutral.css defines its dark
+   values in a plain (unlayered) `.dark {}` rule, and unlayered rules always
+   win over `@layer` ones — so a `@layer base` override would lose in dark mode
+   (falls through to the preset's #fafafa). Light hex matches --slide-accent /
+   azure-blue; dark is the lighter --slide-accent for legibility on the dark bg. */
+:root {
+  --color-fd-primary: #3784ff;
+  --color-fd-ring: #3784ff;
+  /* Wide layout that fills the screen, but the reading column is capped and
+     centered inside the content area (see #nd-page article below) so the text
+     keeps even breathing room on both sides instead of stretching edge-to-edge.
+     --fd-page-width fills the space after the sidebar (layout − 286px sidebar)
+     so the band doesn't float; the fixed TOC pins to its right edge. */
+  --fd-layout-width: 2000px;
+  --fd-page-width: 1714px;
+  /* Responsive reading measure: 85% of the content region (so it stays
+     proportional to the space left after the sidebar/TOC and never butts the
+     edges) capped at 980px on large screens (past which the side air grows,
+     not the text). Lower the % for more air on small screens; lower the px cap
+     to stop expanding sooner on large screens. */
+  --ok-content-width: min(85%, 980px);
+}
+.dark {
+  --color-fd-primary: #69a3ff;
+  --color-fd-ring: #69a3ff;
+}
+
+/* Cap the docs reading column so text doesn't span the full-width content area.
+   Fumadocs' <article> is w-full with md:mx-auto but no max-width; adding one
+   lets the existing auto margins center it, leaving even side air (the
+   "breathing room inside the content"). Tune via --ok-content-width above.
+
+   Only above 2xl (~1536px): below that, the article fills the content area
+   edge-to-edge (matching prod) rather than getting narrowed on smaller screens. */
+@media (min-width: 1536px) {
+  #nd-page article {
+    max-width: var(--ok-content-width);
+  }
+}
+
+.subtle-scrollbar {
+  @apply scrollbar-thin scrollbar-track-transparent scrollbar-thumb-fd-muted-foreground/30 dark:scrollbar-thumb-fd-muted-foreground/50;
+}
+
+/* Home-route nav polish: match the page background, give the bar
+   more vertical room than Fumadocs' default h-14, and render the
+   theme-toggle icons as stroke-only Lucide (Fumadocs hardcodes
+   fill="currentColor" so the bundled Sun/Moon read as solid shapes).
+   Scoped to #nd-home-layout so the docs layout keeps Fumadocs defaults. */
+#nd-home-layout {
+  /* Match the taller nav so fixed-position header doesn't overlap content. */
+  padding-top: 5rem;
+}
+#nd-home-layout #nd-nav {
+  background-color: var(--slide-bg);
+  border-bottom-color: transparent;
+}
+/* Soft fade just below the fixed nav so scrolled content doesn't hit a
+   hard edge. Lives outside the nav box so it never sits behind nav text. */
+#nd-home-layout #nd-nav::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  background: linear-gradient(to bottom, var(--slide-bg), transparent);
+  pointer-events: none;
+}
+#nd-home-layout #nd-nav > div > nav {
+  height: 5rem;
+}
+#nd-home-layout #nd-nav [data-theme-toggle] {
+  border-color: var(--slide-border);
+}
+/* Stroke-only Lucide for the theme toggle in both home nav AND docs sidebar.
+   Fumadocs hardcodes fill="currentColor" so the bundled Sun/Moon read solid;
+   resetting fill: none restores the standard Lucide outline look. */
+[data-theme-toggle] svg {
+  fill: none;
+}
+
+@layer base {
+  :root {
+    --slide-bg: #fbf9f4;
+    --slide-bg-elevated: #ffffff;
+    --slide-text: #1a1a1a;
+    --slide-muted: #71717a;
+    --slide-accent: #3784ff;
+    /* AA-compliant variant for text on --slide-bg and bg for white text.
+       --slide-accent fails WCAG 4.5:1 in both contexts (3.35:1 / 3.52:1).
+       --slide-accent-strong (#1d4ed8) achieves ~6.6:1 on cream and ~6.5:1 on white. */
+    --slide-accent-strong: #1d4ed8;
+    --slide-border: #d4d4d0;
+    /* Opaque equivalent of --color-fd-border (hsla(0,0%,80%,50%)) composited
+       over --slide-bg (#fbf9f4). Solid color so dashed borders + small
+       squares render cleanly without alpha self-overlap. */
+    --border: #e4e3e0;
+    /* Tracks the app's light-theme primary. At the previous lightness this
+       failed WCAG 2 AA both as a fill under white label text and as link text
+       on the page background, the same way --slide-accent above does. */
+    --primary: oklch(0.5621 0.1983 259.59);
+  }
+
+  .dark {
+    --slide-bg: #0c0c0c;
+    --slide-bg-elevated: #171717;
+    --slide-text: #f0f0ee;
+    --slide-muted: #a1a1aa;
+    --slide-accent: #69a3ff;
+    --slide-accent-strong: #93c5fd;
+    --slide-border: #27272a;
+    /* Opaque equivalent of --color-fd-border (hsla(0,0%,40%,20%)) composited
+       over --slide-bg (#0c0c0c). */
+    --border: #1e1e1e;
+    --primary: var(--color-sky-blue);
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Overview page: "Refined Classic" three-layer design.
+ * Periwinkle accent tokens (scoped so the docs neutral theme is untouched
+ * elsewhere) + the connecting spine behind the layer stack + inline code
+ * chips for blocks rendered inside not-prose. Surfaces/borders/text are
+ * driven by Fumadocs `fd-*` tokens in the components themselves.
+ * ------------------------------------------------------------------ */
+.ok-overview {
+  /* Canonical azure — same hex used in packages/app/src/globals.css. */
+  --ok-accent: #3784ff;
+  --ok-accent-ink: #00245d;
+  --ok-accent-soft: #e6efff;
+}
+.dark .ok-overview {
+  --ok-accent: #69a3ff;
+  --ok-accent-ink: lab(75.6609% 6.56351 -50.5176);
+  --ok-accent-soft: lab(18.1437% 4.66092 -25.0407);
+}
+
+/* Vertical spine joining the three layers; the icon chips carry a 5px
+   card-colored ring that masks it where they sit, so it reads as a stack. */
+.ok-overview.ok-stack::before {
+  content: "";
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  bottom: 34px;
+  width: 2px;
+  background: var(--color-fd-border);
+  z-index: 0;
+}
+
+/* Inline code chips inside the not-prose overview blocks (prose styling
+   doesn't reach them). Mirrors the design's `.ok-code`. */
+.ok-overview code {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 0.82em;
+  color: var(--color-fd-foreground);
+  background: var(--color-fd-muted);
+  border: 1px solid var(--color-fd-border);
+  border-radius: 6px;
+  padding: 0.12em 0.4em;
+}
+
+/* ------------------------------------------------------------------
+ * .ok-flush-tabs — strip Fumadocs' tab "card" (outer border + secondary
+ * bg, and the inner panel's bg + padding) so the tab content flows like
+ * normal page content (no double left-rail against <Steps>). Keeps a
+ * hairline under the trigger row so it still reads as tabs. Unlayered so
+ * it wins over Tailwind utilities; targets ARIA roles so Radix a11y + the
+ * shared-groupId sync are preserved. Purely visual.
+ * ------------------------------------------------------------------ */
+.ok-flush-tabs {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.ok-flush-tabs > [role="tablist"] {
+  gap: 1.5rem;
+  padding-inline: 0;
+  border-bottom: 1px solid var(--color-fd-border);
+  margin-bottom: 1.5rem;
+}
+.ok-flush-tabs [role="tab"] {
+  font-size: 1rem;
+  line-height: 1.25;
+  font-weight: 600;
+  padding-block: 0.15rem 0.6rem;
+  color: var(--color-fd-muted-foreground);
+}
+.ok-flush-tabs [role="tab"]:hover {
+  color: var(--color-fd-foreground);
+}
+.ok-flush-tabs [role="tab"][data-state="active"] {
+  color: var(--color-fd-foreground);
+  font-weight: 700;
+}
+.ok-flush-tabs [role="tabpanel"] {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+/* ------------------------------------------------------------------
+ * .ok-tabs-h2 — opt-in modifier (layered on .ok-flush-tabs) that gives a
+ * page's install-path tabs the visual weight of an <h2> section heading:
+ * extra space above so they stand out from the preceding paragraph, and
+ * trigger labels sized to match a Fumadocs prose `##`. Scoped to the page
+ * that opts in — the shared .ok-flush-tabs (e.g. Quickstart) is unchanged.
+ * ------------------------------------------------------------------ */
+.ok-tabs-h2 {
+  margin-top: 2.5rem;
+}
+.ok-tabs-h2 [role="tab"] {
+  font-size: 1.5rem;
+}
+
+.slide-btn-accent {
+  background-color: var(--slide-accent);
+  color: #fff;
+}
+
+.slide-btn-accent:hover {
+  opacity: 0.9;
+}
+
+/* AA-compliant primary button: darker accent bg, white text, ~6.5:1 contrast.
+   Used on the splash route where the Download CTA must meet WCAG AA. */
+.slide-btn-primary {
+  background-color: var(--slide-accent-strong);
+  color: #fff;
+}
+
+.slide-btn-primary:hover {
+  opacity: 0.92;
+}
+
+.slide-btn-primary:active {
+  transform: scale(0.97);
+}
+
+.dark .slide-btn-primary {
+  /* Dark mode: --slide-accent-strong is LIGHT (#93c5fd) — pair with dark
+     text (--slide-bg = #0c0c0c) for ~10.9:1 contrast. Using --slide-text
+     (#f0f0ee, near-white) on this background fails AA at ~1.6:1. */
+  color: var(--slide-bg);
+}
+
+.slide-btn-outline {
+  border: 1px solid var(--slide-border);
+  color: var(--slide-text);
+  background: transparent;
+}
+
+.slide-btn-outline:hover {
+  background-color: color-mix(in srgb, var(--slide-text) 5%, transparent);
+}
+
+/* ------------------------------------------------------------------
+ * .ok-prosemirror — Landing-page editor demo content styles.
+ * Mirrors the real .ProseMirror styles from packages/app/src/globals.css
+ * so the demo looks identical to the shipped product.
+ * ------------------------------------------------------------------ */
+
+.ok-prosemirror > *:first-child {
+  margin-top: 0;
+}
+
+.ok-prosemirror h1,
+.ok-prosemirror h2,
+.ok-prosemirror h3 {
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.4em;
+}
+.ok-prosemirror h1 {
+  font-size: 1.5em;
+  letter-spacing: -0.04em;
+}
+.ok-prosemirror h2 {
+  font-size: 1.25em;
+  letter-spacing: -0.03em;
+}
+.ok-prosemirror h3 {
+  font-size: 1.1em;
+  letter-spacing: -0.02em;
+}
+.ok-prosemirror p {
+  margin-bottom: 0.5em;
+}
+.ok-prosemirror ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+.ok-prosemirror li {
+  margin-bottom: 0.15em;
+}
+.ok-prosemirror blockquote {
+  border-left: 3px solid var(--slide-border);
+  padding-left: 1em;
+  margin-left: 0;
+  margin-bottom: 0.5em;
+  color: var(--slide-muted);
+}
+.ok-prosemirror pre {
+  background: color-mix(in srgb, var(--slide-text) 4%, transparent);
+  border-radius: 0.5em;
+  padding: 0.75em 1em;
+  margin-bottom: 0.5em;
+  overflow-x: auto;
+}
+.ok-prosemirror code {
+  background: color-mix(in srgb, var(--slide-text) 6%, transparent);
+  border-radius: 0.25em;
+  padding: 0.15em 0.35em;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875em;
+}
+.ok-prosemirror pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+.ok-prosemirror a {
+  color: var(--slide-accent);
+  font-weight: 500;
+}
+.ok-prosemirror hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+.ok-prosemirror .ok-wikilink {
+  color: var(--slide-accent);
+  font-weight: 500;
+  background: color-mix(in srgb, var(--slide-accent) 8%, transparent);
+  border-radius: 0.25em;
+  padding: 0.1em 0.35em;
+}
+.dark .ok-prosemirror blockquote {
+  border-color: color-mix(in srgb, var(--slide-muted) 40%, transparent);
+}
+.dark .ok-prosemirror pre {
+  background: color-mix(in srgb, var(--slide-text) 6%, transparent);
+}
+.dark .ok-prosemirror code {
+  background: color-mix(in srgb, var(--slide-text) 10%, transparent);
+}
+
+/* Placeholder */
+.ok-prosemirror p.is-empty::before {
+  content: attr(data-placeholder);
+  pointer-events: none;
+  float: left;
+  height: 0;
+  color: var(--slide-muted);
+  opacity: 0.5;
+}
+
+/* Ordered lists */
+.ok-prosemirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Task lists */
+.ok-prosemirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+.ok-prosemirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+.ok-prosemirror ul[data-type="taskList"] li > label {
+  margin-top: 0.25em;
+}
+
+/* Tables */
+.ok-prosemirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 0.5em;
+}
+.ok-prosemirror th,
+.ok-prosemirror td {
+  border: 1px solid var(--border);
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+.ok-prosemirror th {
+  font-weight: 600;
+  background: color-mix(in srgb, var(--slide-text) 4%, transparent);
+}
+
+/* Block controls — + button and drag grip (mirrors packages/app/src/globals.css) */
+.ok-block-controls {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 1;
+  transition: opacity 100ms ease-out;
+  user-select: none;
+}
+
+.ok-add-block-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  color: var(--slide-muted);
+  border-radius: 3px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  transition: background-color 100ms ease-out;
+}
+.ok-add-block-btn:hover {
+  background-color: color-mix(in srgb, var(--slide-text) 6%, transparent);
+}
+
+.ok-drag-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  color: var(--slide-muted);
+  opacity: 0.45;
+  border-radius: 3px;
+  transition:
+    background-color 100ms ease-out,
+    opacity 100ms ease-out;
+}
+.ok-drag-grip:hover {
+  opacity: 0.75;
+  background-color: color-mix(in srgb, var(--slide-text) 6%, transparent);
+}
+.ok-drag-grip:active {
+  cursor: grabbing;
+}
+
+.ok-block-controls[style*="visibility: hidden"],
+.ok-block-controls[style*="visibility:hidden"] {
+  opacity: 0;
+}

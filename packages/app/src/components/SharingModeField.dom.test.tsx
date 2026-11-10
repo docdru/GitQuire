@@ -1,0 +1,102 @@
+import * as actualLinguiMacro from '@lingui/react/macro';
+import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { type ReactNode, useState } from 'react';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
+import type { SharingMode } from './SharingModeField';
+
+vi.doMock('@lingui/core/macro', () => ({ ...actualLinguiMacro, msg: renderLinguiTemplate }));
+
+vi.doMock('@lingui/react/macro', () => ({
+  ...actualLinguiMacro,
+  Trans: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useLingui: () => ({ t: renderLinguiTemplate }),
+}));
+
+const { SharingModeField } = await import('./SharingModeField');
+
+function Harness({
+  initial = 'shared',
+  disabled = false,
+}: {
+  initial?: SharingMode;
+  disabled?: boolean;
+}) {
+  const [value, setValue] = useState<SharingMode>(initial);
+  return (
+    <SharingModeField
+      idPrefix="t"
+      testIdPrefix="t-sharing"
+      value={value}
+      onValueChange={setValue}
+      disabled={disabled}
+    />
+  );
+}
+
+describe('SharingModeField', () => {
+  afterEach(cleanup);
+
+  test('renders both cards as a radiogroup with Shared selected by default', () => {
+    render(<Harness />);
+
+    expect(screen.getByRole('radiogroup')).not.toBeNull();
+    const shared = screen.getByTestId('t-sharing-shared');
+    const local = screen.getByTestId('t-sharing-local-only');
+    expect(shared.getAttribute('role')).toBe('radio');
+    expect(local.getAttribute('role')).toBe('radio');
+    expect(shared.getAttribute('aria-checked')).toBe('true');
+    expect(local.getAttribute('aria-checked')).toBe('false');
+  });
+
+  test('"Only me" leads the pair in DOM order', async () => {
+    render(<Harness />);
+
+    const radios = screen.getAllByRole('radio');
+    expect(radios[0]).toBe(screen.getByTestId('t-sharing-local-only'));
+    expect(radios[1]).toBe(screen.getByTestId('t-sharing-shared'));
+  });
+
+  test('clicking Local only moves the selection', async () => {
+    render(<Harness />);
+
+    await userEvent.click(screen.getByTestId('t-sharing-local-only'));
+
+    expect(screen.getByTestId('t-sharing-local-only').getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByTestId('t-sharing-shared').getAttribute('aria-checked')).toBe('false');
+  });
+
+  test('disabled disables both options (whole-group busy state)', () => {
+    render(<Harness disabled />);
+
+    expect(screen.getByTestId('t-sharing-shared').hasAttribute('disabled')).toBe(true);
+    expect(screen.getByTestId('t-sharing-local-only').hasAttribute('disabled')).toBe(true);
+  });
+
+  test('exposes the config-sharing info tooltip trigger next to the legend', () => {
+    render(<Harness />);
+
+    expect(screen.getByTestId('config-sharing-info')).not.toBeNull();
+  });
+
+  test('renders the sharing docs link outside the radiogroup accessible name', () => {
+    render(<Harness />);
+
+    const link = screen.getByTestId('t-sharing-docs-link');
+    expect(link.getAttribute('href')).toBe(
+      'https://openknowledge.ai/docs/reference/what-open-knowledge-writes',
+    );
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+    const accessibleName = link.getAttribute('aria-label') ?? '';
+    expect(accessibleName).toBe('Learn more about config sharing');
+    expect(accessibleName).toContain(link.textContent ?? '');
+    const group = screen.getByRole('radiogroup');
+    const labelId = group.getAttribute('aria-labelledby') ?? '';
+    const label = document.getElementById(labelId);
+    expect(label?.textContent).toBe('Share this setup with your team?');
+    expect(label?.contains(link)).toBe(false);
+    expect(group.contains(link)).toBe(false);
+  });
+});

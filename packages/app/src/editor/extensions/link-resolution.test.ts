@@ -1,0 +1,354 @@
+import { createTargetNamespace, toWikiLinkSlug } from '@inkeep/open-knowledge-core';
+import { beforeEach, describe, expect, test } from 'vitest';
+import {
+  resetLinkValidationPolicyForTest,
+  setLinkValidationVisible,
+} from '../link-validation-policy';
+import { buildPagesBySlugIndex, type PageListCacheSnapshot } from '../page-list-cache';
+import {
+  computeLinkResolutionAttrs,
+  computeLinkResolutionState,
+  makeLinkResolutionAttrsComputer,
+} from './link-resolution';
+import type { MarkInfo } from './mark-identity';
+
+beforeEach(() => resetLinkValidationPolicyForTest());
+
+function makeCache(opts: {
+  pages?: Iterable<string>;
+  folderPaths?: Iterable<string>;
+  assetPaths?: Iterable<string>;
+  filePaths?: Iterable<string>;
+}): PageListCacheSnapshot {
+  const pages = createTargetNamespace('document', opts.pages ?? []);
+  return {
+    pages,
+    folderPaths: createTargetNamespace('folder', opts.folderPaths ?? []),
+    assetPaths:
+      opts.assetPaths === undefined ? undefined : createTargetNamespace('file', opts.assetPaths),
+    filePaths:
+      opts.filePaths === undefined ? undefined : createTargetNamespace('file', opts.filePaths),
+    pagesBySlug: buildPagesBySlugIndex(pages, toWikiLinkSlug),
+  };
+}
+
+function makeMarkInfo(attrs: Record<string, unknown>, overrides?: Partial<MarkInfo>): MarkInfo {
+  return {
+    id: 'm1',
+    markType: 'link',
+    attrs,
+    from: 0,
+    to: 5,
+    ...overrides,
+  };
+}
+
+describe('computeLinkResolutionState', () => {
+  test('empty href → unresolved', () => {
+    expect(computeLinkResolutionState('', 'README', null)).toBe('unresolved');
+    expect(computeLinkResolutionState('   ', 'README', null)).toBe('unresolved');
+  });
+
+  test('external https URL → external regardless of cache', () => {
+    expect(computeLinkResolutionState('https://example.com', 'README', null)).toBe('external');
+    expect(
+      computeLinkResolutionState('https://example.com', 'README', makeCache({ pages: [] })),
+    ).toBe('external');
+  });
+
+  test('external mailto URL → external', () => {
+    expect(computeLinkResolutionState('mailto:a@b.com', 'README', null)).toBe('external');
+  });
+
+  test('cache-cold root-absolute path → loading', () => {
+    expect(computeLinkResolutionState('/abs/path', 'README', null)).toBe('loading');
+  });
+
+  test('root-absolute doc href with cache, target missing → unresolved', () => {
+    expect(computeLinkResolutionState('/not-existing', 'README', makeCache({ pages: [] }))).toBe(
+      'unresolved',
+    );
+  });
+
+  test('root-absolute doc href with cache, target exists → resolved', () => {
+    expect(
+      computeLinkResolutionState('/docs/page.md', 'README', makeCache({ pages: ['docs/page'] })),
+    ).toBe('resolved');
+  });
+
+  test('anchor-only href → anchor regardless of cache', () => {
+    expect(computeLinkResolutionState('#some-section', 'README', null)).toBe('anchor');
+    expect(computeLinkResolutionState('#other', 'README', makeCache({ pages: ['README'] }))).toBe(
+      'anchor',
+    );
+  });
+
+  test('doc href with null cache → loading', () => {
+    expect(computeLinkResolutionState('./OTHER.md', 'README', null)).toBe('loading');
+    expect(computeLinkResolutionState('../parent.md', 'sub/README', null)).toBe('loading');
+  });
+
+  test('doc href with cache, target exists → resolved', () => {
+    const cache = makeCache({ pages: ['OTHER'] });
+    expect(computeLinkResolutionState('./OTHER.md', 'README', cache)).toBe('resolved');
+  });
+
+  test('doc href with cache, target missing → unresolved', () => {
+    const cache = makeCache({ pages: ['OTHER'] });
+    expect(computeLinkResolutionState('./NONEXISTENT.md', 'README', cache)).toBe('unresolved');
+    expect(computeLinkResolutionState('./bug-reports/dima/test/foo', 'README', cache)).toBe(
+      'unresolved',
+    );
+  });
+
+  test('relative asset href with cache, asset exists → asset', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['test/he.png'] });
+    expect(computeLinkResolutionState('./test/he.png', 'README', cache)).toBe('asset');
+  });
+
+  test('relative asset href with cache but no asset index → asset', () => {
+    const cache = makeCache({ pages: [] });
+    expect(computeLinkResolutionState('./test/he.png', 'README', cache)).toBe('asset');
+  });
+
+  test('relative asset href matches the asset file name case-insensitively', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['docs/Screenshot.PNG'] });
+    expect(computeLinkResolutionState('./docs/screenshot.png', 'README', cache)).toBe('asset');
+  });
+
+  test('relative asset href does not match when a parent folder differs in case', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['docs/Screenshot.PNG'] });
+    expect(computeLinkResolutionState('./Docs/screenshot.png', 'README', cache)).toBe('unresolved');
+  });
+
+  test('asset and file hrefs resolve across canonically equivalent spellings', () => {
+    const cache = makeCache({
+      pages: [],
+      assetPaths: ['images/Rene\u0301.png'],
+      filePaths: ['data/Zoe\u0308.csv'],
+    });
+    expect(computeLinkResolutionState('./images/Ren\u00e9.png', 'README', cache)).toBe('asset');
+    expect(computeLinkResolutionState('/data/Zo\u00eb.csv', 'README', cache)).toBe('asset');
+  });
+
+  test('a document href spelled in NFC resolves to the NFD page', () => {
+    const cache = makeCache({ pages: ['people/Rene\u0301'], folderPaths: ['people'] });
+    expect(computeLinkResolutionState('./people/Ren\u00e9.md', 'README', cache)).toBe('resolved');
+    expect(computeLinkResolutionState('./people/Ren\u00e9', 'README', cache)).toBe('resolved');
+  });
+
+  test('a folder href spelled in NFC resolves to the NFD folder', () => {
+    const cache = makeCache({ pages: ['Rene\u0301/notes'], folderPaths: ['Rene\u0301'] });
+    expect(computeLinkResolutionState('./Ren\u00e9', 'README', cache)).toBe('folder');
+  });
+
+  test('relative asset href with cache, asset missing → unresolved', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['test/he.png'] });
+    expect(computeLinkResolutionState('./test/hegggg.png', 'README', cache)).toBe('unresolved');
+  });
+
+  test('root-absolute asset href with cache, asset exists → asset', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['test/he.png'] });
+    expect(computeLinkResolutionState('/test/he.png', 'README', cache)).toBe('asset');
+  });
+
+  test('root-absolute asset href with cache, asset missing → unresolved', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['test/he.png'] });
+    expect(computeLinkResolutionState('/test/nonexistent.png', 'README', cache)).toBe('unresolved');
+  });
+
+  test('.canvas href resolves to asset when index contains it', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['vault/Board.canvas'] });
+    expect(computeLinkResolutionState('./Board.canvas', 'vault/note', cache)).toBe('asset');
+  });
+
+  test('.canvas href is unresolved when asset index lacks it', () => {
+    const cache = makeCache({ pages: [], assetPaths: [] });
+    expect(computeLinkResolutionState('./Board.canvas', 'vault/note', cache)).toBe('unresolved');
+  });
+
+  test('.base href resolves to asset when index contains it', () => {
+    const cache = makeCache({ pages: [], assetPaths: ['vault/Characters.base'] });
+    expect(computeLinkResolutionState('./Characters.base', 'vault/note', cache)).toBe('asset');
+  });
+
+  test('.base href is unresolved when asset index lacks it', () => {
+    const cache = makeCache({ pages: [], assetPaths: [] });
+    expect(computeLinkResolutionState('./Characters.base', 'vault/note', cache)).toBe('unresolved');
+  });
+
+  test('relative non-asset file href resolves against filePaths', () => {
+    const cache = makeCache({ pages: [], assetPaths: [], filePaths: ['data/example.csv'] });
+    expect(computeLinkResolutionState('./data/example.csv', 'README', cache)).toBe('asset');
+  });
+
+  test('relative non-asset file href that is missing renders unresolved', () => {
+    const cache = makeCache({ pages: [], assetPaths: [], filePaths: ['data/example.csv'] });
+    expect(computeLinkResolutionState('./data/missing.csv', 'README', cache)).toBe('unresolved');
+  });
+
+  test('non-asset file href stays optimistic when BOTH partitions absent (cold cache)', () => {
+    const cache = makeCache({ pages: [] });
+    expect(computeLinkResolutionState('./data/example.csv', 'README', cache)).toBe('asset');
+  });
+
+  test('non-asset file href is unresolved when only assetPaths is set (no filePaths) and target missing', () => {
+    const cache = makeCache({ pages: [], assetPaths: [] });
+    expect(computeLinkResolutionState('./data/example.csv', 'README', cache)).toBe('unresolved');
+  });
+
+  test('doc href with cache, target is folder → folder', () => {
+    const cache = makeCache({ pages: [], folderPaths: ['subfolder'] });
+    expect(computeLinkResolutionState('./subfolder', 'README', cache)).toBe('folder');
+  });
+
+  test('relative href normalization matches classifyMarkdownHref', () => {
+    const cache = makeCache({ pages: ['topic/page'] });
+    expect(computeLinkResolutionState('./page.md', 'topic/other', cache)).toBe('resolved');
+  });
+
+  test('deterministic — repeated calls with same inputs produce same output', () => {
+    const cache = makeCache({ pages: ['A'] });
+    const first = computeLinkResolutionState('./A.md', 'README', cache);
+    const second = computeLinkResolutionState('./A.md', 'README', cache);
+    const third = computeLinkResolutionState('./A.md', 'README', cache);
+    expect(first).toBe('resolved');
+    expect(second).toBe(first);
+    expect(third).toBe(first);
+  });
+});
+
+describe('computeLinkResolutionAttrs', () => {
+  test('returns data-resolution-state attr for valid href', () => {
+    const cache = makeCache({ pages: ['OTHER'] });
+    const mark = makeMarkInfo({ href: './OTHER.md' });
+    const result = computeLinkResolutionAttrs(mark, cache, 'README');
+    expect(result).toEqual({ 'data-resolution-state': 'resolved' });
+  });
+
+  test('validation.links off omits the unresolved decoration attribute', () => {
+    setLinkValidationVisible(false);
+    const mark = makeMarkInfo({ href: './MISSING.md' });
+    expect(computeLinkResolutionAttrs(mark, makeCache({ pages: [] }), 'README')).toBeNull();
+  });
+
+  test('returns null when href attr missing', () => {
+    const mark = makeMarkInfo({});
+    expect(computeLinkResolutionAttrs(mark, null, 'README')).toBeNull();
+  });
+
+  test('returns null when href attr is null', () => {
+    const mark = makeMarkInfo({ href: null });
+    expect(computeLinkResolutionAttrs(mark, null, 'README')).toBeNull();
+  });
+
+  test('returns null when href attr is empty string', () => {
+    const mark = makeMarkInfo({ href: '' });
+    expect(computeLinkResolutionAttrs(mark, null, 'README')).toBeNull();
+  });
+
+  test('returns null when href attr is non-string', () => {
+    const mark = makeMarkInfo({ href: 42 });
+    expect(computeLinkResolutionAttrs(mark, null, 'README')).toBeNull();
+  });
+
+  test('external href → attr state=external', () => {
+    const mark = makeMarkInfo({ href: 'https://example.com' });
+    expect(computeLinkResolutionAttrs(mark, null, 'README')).toEqual({
+      'data-resolution-state': 'external',
+    });
+  });
+
+  test('anchor href → attr state=anchor', () => {
+    const mark = makeMarkInfo({ href: '#top' });
+    expect(computeLinkResolutionAttrs(mark, null, 'README')).toEqual({
+      'data-resolution-state': 'anchor',
+    });
+  });
+
+  test('doc href + null cache → attr state=loading', () => {
+    const mark = makeMarkInfo({ href: './X.md' });
+    expect(computeLinkResolutionAttrs(mark, null, 'README')).toEqual({
+      'data-resolution-state': 'loading',
+    });
+  });
+
+  test('wikiembed-sourced media link → asset, not broken-link styling', () => {
+    const cache = makeCache({ pages: ['README'] });
+    const mark = makeMarkInfo({ href: 'docs/foo.pdf', sourceForm: 'wikiembed' });
+    expect(computeLinkResolutionAttrs(mark, cache, 'README')).toEqual({
+      'data-resolution-state': 'asset',
+    });
+  });
+
+  test('plain link mark (sourceForm=null) still gets decoration', () => {
+    const cache = makeCache({ pages: ['OTHER'] });
+    const mark = makeMarkInfo({ href: './OTHER.md', sourceForm: null });
+    expect(computeLinkResolutionAttrs(mark, cache, 'README')).toEqual({
+      'data-resolution-state': 'resolved',
+    });
+  });
+});
+
+describe('makeLinkResolutionAttrsComputer', () => {
+  test('returns a function that captures sourceDocName', () => {
+    const computer = makeLinkResolutionAttrsComputer('my-doc');
+    expect(typeof computer).toBe('function');
+  });
+
+  test('bound computer delegates to computeLinkResolutionAttrs with captured docName', () => {
+    const cache = makeCache({ pages: ['my-doc/child'] });
+    const computer = makeLinkResolutionAttrsComputer('my-doc/parent');
+    const mark = makeMarkInfo({ href: './child.md' });
+    expect(computer(mark, cache)).toEqual({ 'data-resolution-state': 'resolved' });
+  });
+
+  test('bound computer handles all state branches', () => {
+    const computer = makeLinkResolutionAttrsComputer('README');
+    expect(computer(makeMarkInfo({ href: 'https://a.com' }), null)).toEqual({
+      'data-resolution-state': 'external',
+    });
+    expect(computer(makeMarkInfo({ href: '#a' }), null)).toEqual({
+      'data-resolution-state': 'anchor',
+    });
+    expect(computer(makeMarkInfo({ href: './X.md' }), null)).toEqual({
+      'data-resolution-state': 'loading',
+    });
+    expect(computer(makeMarkInfo({ href: './X.md' }), makeCache({ pages: ['X'] }))).toEqual({
+      'data-resolution-state': 'resolved',
+    });
+    expect(computer(makeMarkInfo({ href: './MISSING.md' }), makeCache({ pages: ['X'] }))).toEqual({
+      'data-resolution-state': 'unresolved',
+    });
+  });
+
+  test('different docNames produce different closures', () => {
+    const computer1 = makeLinkResolutionAttrsComputer('doc-a');
+    const computer2 = makeLinkResolutionAttrsComputer('doc-b');
+    expect(computer1).not.toBe(computer2);
+  });
+
+  test('bound computer returns null on malformed mark (propagates computeLinkResolutionAttrs behavior)', () => {
+    const computer = makeLinkResolutionAttrsComputer('README');
+    expect(computer(makeMarkInfo({}), null)).toBeNull();
+    expect(computer(makeMarkInfo({ href: null }), null)).toBeNull();
+  });
+});
+
+describe('skill-internal relative links', () => {
+  const SKILL_DOC = '.agents/skills/bake-lume-golden/SKILL';
+  const REF = '.agents/skills/bake-lume-golden/references/per-layer-diagnosis';
+
+  test("a skill's own references/ link resolves against the page cache", () => {
+    const cache = makeCache({
+      pages: [SKILL_DOC, REF],
+      folderPaths: [
+        '.agents/skills/bake-lume-golden',
+        '.agents/skills/bake-lume-golden/references',
+      ],
+    });
+    expect(computeLinkResolutionState('references/per-layer-diagnosis.md', SKILL_DOC, cache)).toBe(
+      'resolved',
+    );
+  });
+});

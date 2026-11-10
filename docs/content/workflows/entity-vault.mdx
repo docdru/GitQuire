@@ -1,0 +1,221 @@
+---
+title: Entity vault (GBrain-compatible) workflow
+sidebarTitle: Entity vault (GBrain)
+icon: LuBoxes
+description: "A personal memory for the people, companies, and meetings in your world. Each one gets its own page that an AI keeps up to date as you learn more, and you can correct anything by hand. Works with Garry Tan's gbrain if you use it, but doesn't need it."
+---
+
+An **Entity vault (GBrain-compatible Markdown)** is a Markdown brain organized around typed dossiers: people, companies, meetings, concepts, originals, and media. Each person, company, and concept dossier has two zones:
+
+1. **Compiled truth** — the current synthesis, rewritten as evidence changes.
+2. **Timeline** — append-only evidence bullets, dated and attributable.
+
+Meetings, originals, and media stay raw records.
+
+OpenKnowledge scaffolds and edits that Markdown. Garry Tan's [`gbrain`](https://github.com/garrytan/gbrain), if you install it, can import/sync the same vault and add its DB-backed retrieval, graph extraction, embedding, and automation. OK does **not** replace `gbrain`; it gives GBrain-style Markdown brains a human cockpit for review, correction, attribution, and Git-visible edits.
+
+```html preview
+<div style="padding:18px">
+  <div id="dv" style="max-width:430px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)">
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px">Jane Founder <span style="color:var(--muted-foreground);font-weight:400">· person</span></div>
+    <div style="padding:11px 14px">
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-foreground)">Compiled truth</div>
+      <div id="dv-truth" style="font-size:12.5px;margin-top:4px;line-height:1.45"></div>
+    </div>
+    <div style="padding:11px 14px;border-top:1px dashed var(--border)">
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-foreground)">Timeline (append-only)</div>
+      <div id="dv-tl" style="margin-top:6px;display:flex;flex-direction:column;gap:5px"></div>
+    </div>
+  </div>
+  <div class="cap">Two zones per person, company, or concept dossier: a compiled truth the agent rewrites as evidence changes, and a timeline it only ever appends to.</div>
+</div>
+<style>
+.cap{margin-top:12px;color:var(--muted-foreground);font-size:12.5px;text-align:center}
+.cap::before{content:"\1F9E0  ";font-weight:700}
+#dv-tl .b{font-size:11.5px;color:var(--muted-foreground);border-left:2px solid var(--accent-soft);padding-left:8px;animation:dvin .4s ease}
+@keyframes dvin{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+</style>
+<script>
+var truths=["Co-founder and CEO of Jane Co.","Co-founder and CEO of Jane Co. Ex-profiler; sharp on cost-per-token economics.","Co-founder and CEO of Jane Co. Ex-profiler; sharp on cost-per-token economics. Go-to-market still forming."];
+var bullets=["2026-05-12 · coffee — described the observability wedge","2026-05-13 · agent enrichment — prior OSS profiler work","2026-05-20 · intro from Alex — GTM still developing"];
+var truth=document.getElementById("dv-truth"),tl=document.getElementById("dv-tl");
+function render(i){truth.textContent=truths[i];tl.innerHTML="";for(var j=0;j<=i;j++){var b=document.createElement("div");b.className="b";b.textContent=bullets[j];tl.appendChild(b);}}
+var cur=0;render(0);
+if(!matchMedia("(prefers-reduced-motion:reduce)").matches){setInterval(function(){cur=(cur+1)%3;render(cur);},1800);}
+</script>
+```
+
+Founders and investors get a second brain over **people, companies, meetings, and concepts** — a network that's queryable, not just a pile of source documents. Agents maintain the dossiers while you keep final editorial control, so wrong claims get corrected by hand rather than trusted blindly. If you already run `gbrain`, this is a visual editor layer over the Markdown it indexes; if you don't yet, the GBrain-compatible Markdown shape is portable, so adopting that engine later is never a migration.
+
+## The division of labor
+
+| Layer | OpenKnowledge | Garry Tan's `gbrain` |
+| --- | --- | --- |
+| Markdown files | Creates, edits, reviews, templates, folder guidance | Imports/syncs as source material |
+| Human correction | WYSIWYG/source editor, activity attribution, version checkpoints | Sees corrections after import/sync |
+| Agent writes | OK MCP tools (`write`, `edit`, `links`, `checkpoint`, `search`, `exec`) | GBrain MCP/skills if you choose to run them separately |
+| Search/retrieval | OK project search and graph tooling | PGLite/Postgres, embeddings, hybrid retrieval, graph/index automation |
+| Interop contract | Plain Markdown + Git | `gbrain import` / `gbrain sync --repo` |
+
+## What the pack creates
+
+Seeding needs an initialized project — run [`ok init`](../get-started/quickstart.mdx) first. Pick **Personal CRM** in the starter-pack picker, or run:
+
+```bash
+ok seed --pack entity-vault
+```
+
+By default the pack suggests a `vault/` subfolder and creates:
+
+```txt
+your-project/
+└── vault/
+    ├── USER.md
+    ├── SOUL.md
+    ├── ACCESS_POLICY.md
+    ├── HEARTBEAT.md
+    ├── log.md
+    ├── people/
+    ├── companies/
+    ├── meetings/
+    ├── concepts/
+    ├── originals/
+    └── media/
+```
+
+Each folder includes an `.ok/frontmatter.yml` description that agents see during file listings/searches, plus templates under `.ok/templates/`.
+
+<Callout type="info" title="Seeding also installs a skill">
+  `ok seed --pack entity-vault` installs the **Entity vault** project skill into your agent editors (Claude Code, Cursor, Codex, OpenCode). It's the "how to work here" guidance behind the dossier conventions — compiled-truth vs. append-only timeline, path-qualified links, the correction loop — read automatically, and editable like any other doc. It lands as a single `SKILL.md` in your repo, in your project's skills directory (`.agents/skills/` when you have one, otherwise your editor's), copied into the skills directory of each editor already set up for the project. The copies refresh from the source until you hand-edit one. See [Skills Studio](../features/skills/index.mdx) and [what OpenKnowledge writes to disk](../reference/what-open-knowledge-writes.mdx).
+</Callout>
+
+## Markdown shape
+
+A person dossier generated from the pack starts in a GBrain-compatible shape:
+
+```markdown
+---
+type: person
+title: Jane Founder
+created: 2026-05-12
+author: mike
+tags: [person, founder]
+---
+
+## Compiled truth
+
+Co-founder and CEO of [[companies/jane-co|Jane Co]]. Met through
+[[people/alex-seed-investor|Alex Seed Investor]]. Strong on cost-per-token
+economics; go-to-market is still developing.
+
+--- timeline ---
+
+## Timeline
+
+- **2026-05-12** | [[meetings/2026-05-12-jane-founder-coffee|coffee meeting]] | @mike — Jane described Jane Co's agent-runtime observability wedge. Confidence: direct note.
+- **2026-05-13** | agent enrichment | @agent — Public GitHub profile confirms prior OSS profiler work. Confidence: external profile.
+```
+
+Compatibility details:
+
+- Use document frontmatter `title:` and `type:`.
+- Prefer path-qualified wikilinks where identity matters: `[[people/jane-founder|Jane Founder]]`, `[[companies/jane-co|Jane Co]]`.
+- Keep the compiled-truth section rewritable.
+- Separate compiled truth from the timeline with a `--- timeline ---` sentinel line.
+- Keep timeline entries append-only and dated: `- **YYYY-MM-DD** | source | @author — event. Confidence: ...`.
+
+## Get meetings in from a recorder
+
+OpenKnowledge does not record meetings. Bring any recorder that speaks MCP, and each meeting lands in `meetings/` as markdown, ready for the loop below. Ask for them on demand, or have them sync automatically.
+
+See [Ingest meetings](./meeting-ingestion.mdx) for the recorder list, the `source` and `source_meeting_id` addressing rule, and the scheduled and event-driven options.
+
+## Worked loop: meeting → dossiers → human correction
+
+1. Create `meetings/2026-05-12-jane-founder-coffee.md` from the meeting template.
+2. Write raw notes with path-qualified links:
+
+```markdown
+---
+type: meeting
+title: Jane Founder coffee
+date: 2026-05-12
+attendees: [Jane Founder]
+tags: [meeting, ai-infra]
+---
+
+## Notes
+
+Jane runs [[companies/jane-co|Jane Co]], a stealth AI infra company focused on
+[[concepts/agent-runtime-observability|agent-runtime observability]].
+Introduced by [[people/alex-seed-investor|Alex Seed Investor]].
+
+Quote: "the agent runtime is the new kernel."
+```
+
+3. Ask your MCP-capable agent:
+
+```txt
+From meetings/2026-05-12-jane-founder-coffee.md, create or update the
+referenced person, company, and concept dossiers using the Entity vault (GBrain-compatible Markdown) templates. Append dated timeline bullets. Do not rewrite existing timeline entries.
+```
+
+4. Review the agent edits in OK. If the agent inferred something wrong, correct it in the editor.
+5. Commit the Markdown changes.
+
+The core value is the correction loop: the durable memory is not hidden in a model context window or database row. It is a file you can inspect, edit, diff, and roll back.
+
+## Interop with Garry Tan's `gbrain`
+
+If you also run `gbrain`, point it at the same Markdown vault after OK has written the files:
+
+```bash
+gbrain import ~/your-ok-vault --no-embed
+gbrain embed --stale
+gbrain sync --repo ~/your-ok-vault
+```
+
+Recommended operating model:
+
+- Use `gbrain import ... --no-embed` for the first bulk load when you want to avoid embedding during the scan.
+- Run `gbrain embed --stale` after import or after any no-embed sync.
+- Commit OK changes, then run `gbrain sync --repo ~/your-ok-vault` for incremental refresh.
+- Keep OK as the place where humans inspect/correct the Markdown.
+- Keep `gbrain` as the engine that indexes, searches, extracts graph/timeline data, and runs its own automation.
+
+No file collision is required: OK writes Markdown; `gbrain` reads/imports/syncs that Markdown into its own configured storage. If you wire separate GBrain skills or cron jobs, treat that as a separate integration choice rather than something the Entity vault (GBrain-compatible Markdown) pack does by itself.
+
+## Power-user demo path
+
+For a GBrain-literate reviewer, the demo target is not "OK replaces GBrain." It is:
+
+1. Open a GBrain-style Markdown vault in OK.
+2. Let an agent write/update a dossier through OK MCP.
+3. Watch the edit land live with attribution.
+4. Correct a wrong claim by hand in OK.
+5. Commit the changes.
+6. Run `gbrain sync --repo <vault>`.
+7. Query/search in `gbrain` and see the corrected fact.
+
+Aha moment: **GBrain makes agent memory useful; OK makes the Markdown memory inspectable, correctable, and collaborative.**
+
+## Cadence
+
+| Cadence | What |
+| --- | --- |
+| After each meeting | Drop raw notes into `meetings/<date>-<slug>.md`; link mentioned people/companies/concepts. |
+| End of day | Ask an agent to create/update dossiers and append timeline bullets from new meetings. |
+| Weekly | Audit stale dossiers, empty timelines, and compiled truth that conflicts with recent evidence. |
+| Monthly | Run OK's dead-link audit; triage new entities vs typos vs intentional placeholders. |
+| When using `gbrain` | Commit OK edits, then run `gbrain sync --repo <vault>` and `gbrain embed --stale` as needed. |
+
+## Naming note
+
+The starter-pack picker presents the pack as **Personal CRM**; its CLI pack id is `entity-vault`. "Entity vault" names the portable Markdown workflow OK scaffolds. "GBrain-compatible" describes the interop contract with Garry Tan's `gbrain` without claiming ownership of his project or implying OK is a replacement engine.
+
+## Further reading
+
+- **[Garry Tan's gbrain](https://github.com/garrytan/gbrain).** Optional engine/index/automation layer for the same Markdown vault.
+- **[Karpathy LLM wiki workflow](./karpathy-llm-wiki.mdx).** Source-grounded counterpart to the entity-vault posture.
+- **[Agent activity](../features/agent-activity.mdx).** How OK attributes human and agent edits.
+- **[Claude Code](../integrations/claude-code.mdx)**, **[Cursor](../integrations/cursor.mdx)**, **[Codex](../integrations/codex.mdx).** MCP-capable agent hosts.

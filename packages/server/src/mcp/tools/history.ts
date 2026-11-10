@@ -1,0 +1,221 @@
+import { z } from 'zod';
+import { resolvePreviewUrlForTool } from './preview-url.ts';
+import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';
+import {
+  hocuspocusNotRunningError,
+  httpGet,
+  httpGetRows,
+  looseObjectArray,
+  normalizeDocName,
+  outputSchemaWithText,
+  previewUrlOutputField,
+  previewUrlSourceField,
+  ROUTED_CWD_DESCRIPTION,
+  resolveProjectServerContext,
+  textPlusStructured,
+  textResult,
+} from './shared.ts';
+
+const HISTORY_KINDS = ['checkpoint', 'wip', 'upstream'] as const;
+
+const HistoryEntryOutputSchema = z.object({
+  version: z
+    .string()
+    .describe(
+      '40-char commit SHA for this entry — pass to `restore_version({ document, version })`.',
+    ),
+  timestamp: z.string().describe('ISO timestamp of the entry.'),
+  author: z.string().describe('Author display name.'),
+  authorEmail: z.string().describe('Author email.'),
+  kind: z.enum(HISTORY_KINDS).describe('Entry kind: checkpoint / wip / upstream.'),
+  message: z.string().describe('Commit subject (the checkpoint summary, when one was set).'),
+  contributors: looseObjectArray.describe(
+    'Per-contributor records parsed from the commit (writer id, name, docs, summaries).',
+  ),
+  checkpoint: z
+    .unknown()
+    .nullable()
+    .describe('Checkpoint metadata when this entry is a checkpoint, else null.'),
+});
+
+const DESCRIPTION = [
+  'Read version history: pass exactly one document, folder or skill. Requires the Hocuspocus server. Returns shadow-repo entries newest first; version is a 40-char SHA for restore_version({document,version}) or restore_version({skill,version}).',
+  'document accepts optional .md/.mdx. folder lists attributed template/frontmatter activity; empty string is project root. skill is a project-scope name; global skills are unversioned. Optional branch (current default), limit (50 default, 200 max), offset (0), kind (checkpoint/upstream/wip), author and excludeAuthor (name/email).',
+].join('\n');
+
+export interface GetHistoryDeps {
+  serverUrl: ServerUrlOrResolver;
+  config: ConfigOrResolver;
+  resolveCwd: (explicit?: string) => Promise<string>;
+}
+
+export function register(server: ServerInstance, deps: GetHistoryDeps): void {
+  server.registerTool(
+    'history',
+    {
+      description: DESCRIPTION,
+      inputSchema: {
+        document: z
+          .string()
+          .optional()
+          .describe('Document name to query history for. Mutually exclusive with `folder`.'),
+        folder: z
+          .string()
+          .optional()
+          .describe(
+            'Folder path to query the FOLDER timeline for — attributed activity over the folder\'s `.ok/` artifacts (templates + frontmatter): created / edited / renamed / moved / deleted, by whom, when. Mutually exclusive with `document`. Use `""` for the project root.',
+          ),
+        skill: z
+          .string()
+          .optional()
+          .describe(
+            'Skill name to query version history for. Mutually exclusive with `document` / `folder`.',
+          ),
+        branch: z.string().optional().describe('Branch name (default: current branch)'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(200)
+          .optional()
+          .describe('Maximum entries to return (default 50, max 200)'),
+        offset: z
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe('Number of entries to skip for pagination (default 0)'),
+        kind: z
+          .enum(['checkpoint', 'upstream', 'wip'])
+          .optional()
+          .describe('Filter by entry type (`checkpoint` / `upstream` / `wip`).'),
+        author: z.string().optional().describe('Filter to entries by this author name or email'),
+        excludeAuthor: z
+          .string()
+          .optional()
+          .describe('Exclude entries by this author name or email'),
+        cwd: z.string().optional().describe(ROUTED_CWD_DESCRIPTION),
+      },
+      outputSchema: outputSchemaWithText({
+        entries: z
+          .array(HistoryEntryOutputSchema)
+          .describe(
+            'Timeline entries, newest first. Each carries a `version` for `restore_version`.',
+          ),
+        total: z.number().int().optional().describe('Total entries available (pre-pagination).'),
+        truncated: z
+          .boolean()
+          .optional()
+          .describe(
+            'Whether more entries exist beyond this returned page (the result was limit-capped).',
+          ),
+        previewUrl: previewUrlOutputField,
+        previewUrlSource: previewUrlSourceField,
+      }),
+    },
+    async (args: {
+      document?: string;
+      folder?: string;
+      skill?: string;
+      branch?: string;
+      limit?: number;
+      offset?: number;
+      kind?: string;
+      author?: string;
+      excludeAuthor?: string;
+      cwd?: string;
+    }) => {
+      const context = await resolveProjectServerContext(
+        deps.resolveCwd,
+        deps.config,
+        deps.serverUrl,
+        args.cwd,
+      );
+      if (!context.ok) return textResult(`Error: ${context.error}`, true);
+      const { cwd, url } = context;
+      if (!url) return textResult(hocuspocusNotRunningError(), true);
+
+      const targetCount =
+        (args.document !== undefined ? 1 : 0) +
+        (args.folder !== undefined ? 1 : 0) +
+        (args.skill !== undefined ? 1 : 0);
+      if (targetCount !== 1) {
+        return textResult('Error: pass EXACTLY ONE of `document`, `folder`, or `skill`.', true);
+      }
+
+      const isFolder = args.folder !== undefined;
+      const params = new URLSearchParams();
+      let previewDocName: string | null = null;
+      if (isFolder) {
+        params.set('folder', args.folder ?? '');
+      } else if (args.skill !== undefined) {
+        const listed = await httpGetRows(url, '/api/skills', 'skills');
+        if ('error' in listed) return textResult(`Error: ${listed.error}`, true);
+        const entry = listed.rows.find(
+          (r) => r.name === args.skill && r.scope === 'project' && typeof r.path === 'string',
+        );
+        if (!entry) {
+          return textResult(
+            `Error: No project skill named "${args.skill}". Global skills are unversioned.`,
+            true,
+          );
+        }
+        const docName = String(entry.path).replace(/\/SKILL\.mdx?$/i, '/SKILL');
+        params.set('docName', docName);
+        previewDocName = docName;
+      } else {
+        const normalized = normalizeDocName(args.document as string);
+        if (!normalized.ok) return textResult(normalized.error, true);
+        params.set('docName', normalized.docName);
+        previewDocName = normalized.docName;
+      }
+      if (args.branch) params.set('branch', args.branch);
+      if (args.limit != null) params.set('limit', String(args.limit));
+      if (args.offset != null) params.set('offset', String(args.offset));
+      if (args.kind) params.set('type', args.kind);
+      if (args.author) params.set('author', args.author);
+      if (args.excludeAuthor) params.set('excludeAuthor', args.excludeAuthor);
+
+      const result = await httpGet(url, `/api/history?${params.toString()}`);
+      if (!result.ok) return textResult(`Error: ${result.error}`, true);
+
+      const { ok: _ok, ...data } = result;
+      const rawEntries = Array.isArray((data as { entries?: unknown }).entries)
+        ? (data as { entries: unknown[] }).entries
+        : [];
+      const entries = rawEntries.map((raw) => {
+        const e = raw as Record<string, unknown>;
+        return {
+          version: e.sha,
+          timestamp: e.timestamp,
+          author: e.author,
+          authorEmail: e.authorEmail,
+          kind: e.type,
+          message: e.message,
+          contributors: e.contributors,
+          checkpoint: e.checkpoint ?? null,
+        };
+      });
+      const total = (data as { total?: unknown }).total;
+      const hasMore = (data as { hasMore?: unknown }).hasMore;
+
+      const preview = previewDocName
+        ? await resolvePreviewUrlForTool(
+            previewDocName,
+            { config: deps.config, resolveCwd: deps.resolveCwd },
+            cwd,
+          )
+        : null;
+      const projected = {
+        entries,
+        ...(typeof total === 'number' ? { total } : {}),
+        ...(typeof hasMore === 'boolean' ? { truncated: hasMore } : {}),
+      };
+      return textPlusStructured(JSON.stringify(projected, null, 2), {
+        ...projected,
+        previewUrl: preview?.url ?? null,
+        ...(preview ? { previewUrlSource: preview.source } : {}),
+      });
+    },
+  );
+}

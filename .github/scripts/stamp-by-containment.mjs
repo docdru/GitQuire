@@ -1,0 +1,293 @@
+#!/usr/bin/env node
+/* biome-ignore-all lint/suspicious/noUndeclaredEnvVars: GitHub Actions invokes this entrypoint outside Turbo. */
+import { execFileSync } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import { realPublishedReleaseTags } from './published-release-tags.mjs';
+import { realFindMirroredCommits, resolveShippedVersion } from './resolve-shipped-version.mjs';
+import { createTagContainment } from './tag-containment.mjs';
+
+const BETA_VERSION_RE = /-beta\.\d+$/;
+const PRIVATE_PR_RE = /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/;
+const PRIVATE_REPO = 'inkeep/agents-private';
+export const KEY_REJECTED_OUTPUT = 'linear_key_rejected';
+
+function log(...args) {
+  process.stderr.write(`${args.join(' ')}\n`);
+}
+
+export function isBetaRelease(release) {
+  return BETA_VERSION_RE.test(String(release?.version ?? ''));
+}
+
+export function planTicketReconciliation({
+  attachedReleases,
+  shippedTag,
+  evidence,
+  releaseByVersion,
+}) {
+  if (evidence === 'unresolvable') {
+    return { action: 'skip', add: [], remove: [], reason: 'unresolvable-fix-commit' };
+  }
+
+  const stables = (attachedReleases ?? []).filter((r) => !isBetaRelease(r));
+
+  if (!shippedTag) {
+    return stables.length === 0
+      ? { action: 'noop', add: [], remove: [], reason: 'not-in-any-stable' }
+      : {
+          action: 'reattach',
+          add: [],
+          remove: stables.map((r) => r.id),
+          reason: 'not-in-any-stable',
+        };
+  }
+
+  const wantVersion = shippedTag.replace(/^v/, '');
+  const want = releaseByVersion.get(wantVersion);
+  if (!want) {
+    return { action: 'skip', add: [], remove: [], reason: `no-release-object:${wantVersion}` };
+  }
+
+  const already = stables.some((r) => r.id === want.id);
+  const wrong = stables.filter((r) => r.id !== want.id);
+  if (already && wrong.length === 0) {
+    return { action: 'noop', add: [], remove: [], reason: 'already-correct' };
+  }
+  return {
+    action: already ? 'reattach' : 'attach',
+    add: already ? [] : [want.id],
+    remove: wrong.map((r) => r.id),
+    reason: `earliest-containing:${wantVersion}`,
+  };
+}
+
+export function summarize(plans) {
+  const counts = { noop: 0, attach: 0, reattach: 0, skip: 0 };
+  for (const p of plans) counts[p.plan.action] = (counts[p.plan.action] ?? 0) + 1;
+  return counts;
+}
+
+export class LinearKeyRejectedError extends Error {
+  constructor(body) {
+    super(
+      `Linear rejected LINEAR_API_KEY with HTTP 401, so the key has expired or been revoked; rotate the LINEAR_API_KEY secret: ${body.slice(0, 300)}`,
+    );
+    this.name = 'LinearKeyRejectedError';
+  }
+}
+
+export function recordFailureOutputs(err, outputPath) {
+  if (err instanceof LinearKeyRejectedError && outputPath) {
+    appendFileSync(outputPath, `${KEY_REJECTED_OUTPUT}=true\n`);
+  }
+}
+
+export async function linear(
+  query,
+  variables,
+  { apiKey = process.env.LINEAR_API_KEY, fetchImpl = fetch } = {},
+) {
+  const res = await fetchImpl('https://api.linear.app/graphql', {
+    method: 'POST',
+    headers: {
+      authorization: apiKey,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  const text = await res.text();
+  if (res.status === 401) throw new LinearKeyRejectedError(text);
+  if (!res.ok) throw new Error(`linear HTTP ${res.status}: ${text.slice(0, 300)}`);
+  const body = JSON.parse(text);
+  if (body.errors) throw new Error(`linear graphql: ${JSON.stringify(body.errors).slice(0, 400)}`);
+  return body.data;
+}
+
+function prMergeSha({ owner, repo, number }) {
+  const env = { ...process.env };
+  if (process.env.CROSS_REPO_TOKEN) env.GH_TOKEN = process.env.CROSS_REPO_TOKEN;
+  let out;
+  try {
+    out = execFileSync(
+      'gh',
+      ['api', `repos/${owner}/${repo}/pulls/${number}`, '--jq', '.merged_at,.merge_commit_sha'],
+      {
+        encoding: 'utf8',
+        env,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    );
+  } catch (err) {
+    const stderr = String(err?.stderr || '');
+    if (/HTTP 404/i.test(stderr)) return null;
+    throw new Error(
+      `gh api repos/${owner}/${repo}/pulls/${number} failed: ${stderr.trim().slice(0, 200)}`,
+    );
+  }
+  const [mergedAt, sha] = out.split('\n').map((s) => s.trim());
+  if (!mergedAt || mergedAt === 'null') return null;
+  return /^[0-9a-f]{40}$/i.test(sha || '') ? sha.toLowerCase() : null;
+}
+
+const RELEASES_QUERY = `query($after:String){
+  releases(first:25, after:$after){
+    pageInfo{ hasNextPage endCursor }
+    nodes{ id name version
+      issues(first:50){ pageInfo{ hasNextPage } nodes{ id identifier } } } } }`;
+
+const ATTACHMENTS_QUERY = `query($ids:[ID!], $after:String){
+  issues(filter:{ id:{ in:$ids } }, first:25, after:$after){
+    pageInfo{ hasNextPage endCursor }
+    nodes{ id attachments(first:50){ pageInfo{ hasNextPage } nodes{ url } } } } }`;
+
+async function fetchAttachments(issueIds) {
+  const byIssue = new Map();
+  for (let i = 0; i < issueIds.length; i += 25) {
+    const ids = issueIds.slice(i, i + 25);
+    let after = null;
+    for (;;) {
+      const page = (await linear(ATTACHMENTS_QUERY, { ids, after })).issues;
+      for (const n of page.nodes) {
+        if (n.attachments.pageInfo.hasNextPage) {
+          throw new Error(
+            `issue ${n.id} has more attachments than one page; paginate before trusting this run`,
+          );
+        }
+        byIssue.set(
+          n.id,
+          n.attachments.nodes.map((a) => a.url),
+        );
+      }
+      if (!page.pageInfo.hasNextPage) break;
+      after = page.pageInfo.endCursor;
+    }
+  }
+  return byIssue;
+}
+
+async function fetchPipeline() {
+  const releases = [];
+  let after = null;
+  for (;;) {
+    const page = (await linear(RELEASES_QUERY, { after })).releases;
+    releases.push(...page.nodes);
+    if (!page.pageInfo.hasNextPage) break;
+    after = page.pageInfo.endCursor;
+  }
+
+  for (const r of releases) {
+    if (r.issues.pageInfo.hasNextPage) {
+      throw new Error(
+        `release ${r.name} has more issues than one page; paginate before trusting this run`,
+      );
+    }
+  }
+
+  const issueIds = [...new Set(releases.flatMap((r) => r.issues.nodes.map((i) => i.id)))];
+  const attachmentsByIssue = await fetchAttachments(issueIds);
+  const releaseByVersion = new Map(releases.map((r) => [String(r.version), r]));
+  const tickets = new Map();
+  for (const r of releases) {
+    for (const i of r.issues.nodes) {
+      const t = tickets.get(i.identifier) ?? {
+        id: i.id,
+        identifier: i.identifier,
+        prs: [
+          ...new Set(
+            (attachmentsByIssue.get(i.id) ?? []).filter((u) => PRIVATE_PR_RE.test(u ?? '')),
+          ),
+        ],
+        attachedReleases: [],
+      };
+      t.attachedReleases.push(r);
+      tickets.set(i.identifier, t);
+    }
+  }
+  return { releaseByVersion, tickets: [...tickets.values()] };
+}
+
+function resolveTicket(ticket, releaseTags, rank, contains) {
+  let best = null;
+  let provenNotShipped = false;
+  for (const url of ticket.prs) {
+    const m = PRIVATE_PR_RE.exec(url);
+    if (!m) continue;
+    const [owner, repo] = [m[1], m[2]];
+    if (`${owner}/${repo}` !== PRIVATE_REPO) continue;
+    const sha = prMergeSha({ owner, repo, number: Number(m[3]) });
+    if (!sha) continue;
+    const r = resolveShippedVersion({
+      privateSha: sha,
+      stableTags: releaseTags,
+      findMirroredCommits: realFindMirroredCommits,
+      contains,
+    });
+    if (r.shipped) {
+      if (best === null || rank.get(r.tag) < rank.get(best)) best = r.tag;
+    } else if (r.reason === 'not-in-any-stable') {
+      provenNotShipped = true;
+    }
+  }
+  if (best) return { evidence: 'shipped', shippedTag: best };
+  if (provenNotShipped) return { evidence: 'proven-not-shipped', shippedTag: null };
+  return { evidence: 'unresolvable', shippedTag: null };
+}
+
+async function main() {
+  const live = process.env.STAMP_MODE === 'live';
+  if (!process.env.LINEAR_API_KEY) {
+    log('::notice::LINEAR_API_KEY is not set - nothing to reconcile.');
+    return;
+  }
+
+  const releaseTags = realPublishedReleaseTags();
+  const sorted = releaseTags.filter((t) => /^v\d+\.\d+\.\d+$/.test(t.trim())).map((t) => t.trim());
+  const rank = new Map(sorted.map((t, i) => [t, i]));
+
+  const { releaseByVersion, tickets } = await fetchPipeline();
+  log(`Considering ${tickets.length} ticket(s) across ${releaseByVersion.size} release(s).`);
+
+  const plans = [];
+  const contains = createTagContainment();
+  for (const ticket of tickets) {
+    const { evidence, shippedTag } = resolveTicket(ticket, releaseTags, rank, contains);
+    const plan = planTicketReconciliation({
+      attachedReleases: ticket.attachedReleases,
+      shippedTag,
+      evidence,
+      releaseByVersion,
+    });
+    plans.push({ ticket, plan });
+  }
+
+  for (const { ticket, plan } of plans) {
+    if (plan.action === 'noop') continue;
+    const attached = ticket.attachedReleases.map((r) => r.name).join(', ');
+    log(
+      `${live ? 'APPLY' : 'DRY '} ${ticket.identifier}: ${plan.action} (${plan.reason}) [was: ${attached}]`,
+    );
+    if (!live || (plan.add.length === 0 && plan.remove.length === 0)) continue;
+    await linear(
+      `mutation($id:String!,$in:IssueUpdateInput!){ issueUpdate(id:$id,input:$in){ success } }`,
+      { id: ticket.id, in: { addedReleaseIds: plan.add, removedReleaseIds: plan.remove } },
+    );
+  }
+
+  const counts = summarize(plans);
+  log(
+    `${live ? 'Applied' : 'Dry run'}: ${counts.attach} attach, ${counts.reattach} reattach, ` +
+      `${counts.skip} skipped, ${counts.noop} already correct.`,
+  );
+  if (!live) log('Set STAMP_MODE=live to apply.');
+  console.log(JSON.stringify({ live, counts }));
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error(`::error::stamp-by-containment: ${err.message}`);
+    recordFailureOutputs(err, process.env.GITHUB_OUTPUT);
+    process.exit(1);
+  });
+}

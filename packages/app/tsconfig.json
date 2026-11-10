@@ -1,0 +1,108 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // The app is a private, non-published frontend (consumed by the CLI as built
+    // assets, never as .d.ts). It emits no declarations, so the base config's
+    // declaration/declarationMap only trigger .d.ts portability checks (TS4058/
+    // TS2742) with no output benefit — and pnpm's isolated node_modules encodes
+    // peer-resolved dependency realpaths under .pnpm/ that those checks reject as
+    // "not portable". Turning declarations off scopes those checks to the packages
+    // that actually publish types; full --noEmit type checking still runs.
+    "declaration": false,
+    "declarationMap": false,
+    "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  // `tests/half-open-forced-close.test-helper.ts` is in the program on purpose:
+  // it reads `@hocuspocus/provider` internals that four suites arrange through,
+  // so a bump that renames one of them has to fail here as one compile error
+  // rather than at runtime inside four unrelated-looking test files.
+  //
+  // What that include actually pulls in is the helper PLUS its import closure,
+  // notably `tests/integration/test-harness.ts`, because TypeScript follows
+  // imports and `exclude` only filters the `*.test.ts`/`*.test.tsx` entry
+  // points. That is the deliberate cost of typechecking the helper, not an
+  // oversight. Naming further files here is a separate change.
+  //
+  // `tests/stress/_helpers/image.ts` is named for the same reason: its
+  // `instanceof HTMLImageElement` narrowing is what gives the polled element
+  // `.complete`/`.naturalWidth`, since Playwright types `evaluate`'s argument
+  // as `SVGElement | HTMLElement`. Nothing else typechecks the E2E helpers, so
+  // without this, deleting that narrowing compiles silently; with it, deleting
+  // it fails as TS2339 on both properties. That is the whole guarantee: a cast
+  // to `HTMLImageElement` still compiles (a downcast within the union is
+  // permitted), and the `.complete` conjunct is not pinned. It imports only
+  // `@playwright/test`, so its closure adds no other file to the program.
+  //
+  // `tests/stress/_helpers/theme-fade.ts` is named for the same reason, and its
+  // guarantee is narrower. It pins the transition probe's own types: the
+  // `Capture` discriminated union that makes a matched capture missing its
+  // `transition`, `durationMs` or `delayMs` unrepresentable, the
+  // `transitionFor` type predicate that keeps `getAnimations().find(...)`
+  // returning `CSSTransition | undefined` with no cast at the use site, and the
+  // `typeof duration !== 'number'` and `typeof delay !== 'number'` rejections
+  // that narrow what `getComputedTiming()` gives those two: respectively a
+  // `string | number | CSSNumericValue | undefined` union and an optional
+  // `number`. Delete any of them and this compile fails inside `armThemeFade`.
+  // As with `image.ts` above, replacing one with a cast still compiles: the pin
+  // is against silent removal, not against a deliberate assertion. The
+  // guarantee also stops at the module boundary: the three `*.e2e.ts` call
+  // sites stay outside the program, so their
+  // `window as typeof window & ThemeFadeProbeWindow` casts and their reads off
+  // the returned report are unchecked — which is why the color-theme switch
+  // helper rejects an inapplicable theme id by throwing rather than by typing
+  // its parameter. It imports `@playwright/test` and
+  // `@inkeep/open-knowledge-core`, whose declarations `src` already pulls into
+  // the program, so its closure adds no other file to it.
+  //
+  // `tests/stress/_helpers/editor-state.ts` is named for the same reason. It
+  // pins the `CaretPlacement` shape `placeCaretAtEndOfText` returns: four
+  // required fields, so the barrier predicate that constructs it fails to
+  // compile if a field is dropped or carries the wrong type (TS2322) or is
+  // misnamed (TS2561), rather than surfacing as a wrong number at an
+  // assertion. The pin stops
+  // there: a construction that supplies all four with the right types is
+  // accepted whatever the values mean. Playwright's runner transforms
+  // `.ts` without typechecking it, so without this entry nothing checks the
+  // type the barrier's callers narrow against. It imports only
+  // `@playwright/test`, so its closure adds no other file to the program. The
+  // `.e2e.ts` and `.dom.test.ts` consumers stay outside: the former would pull
+  // the whole `_helpers` barrel in, and the latter is excluded as `*.test.ts`.
+  //
+  // `tests/integration/audit-barrier.test-helper.ts` is named for the same
+  // reason. `docName` is optional upstream, so pushing it unnarrowed into the
+  // barrier's `string[]` observation list fails as TS2345 rather than
+  // surfacing as an `undefined` at an assertion. The pin stops at the helper:
+  // all three files that import it are `*.test.ts` and stay excluded. It
+  // imports `@inkeep/open-knowledge-core`, `vitest` and
+  // `tests/integration/test-harness.ts`, all of which the entries above
+  // already pull in, so its closure adds no other file to the program.
+  "include": [
+    "src",
+    "*.ts",
+    "scripts/compile-i18n-catalogs.ts",
+    "tests/foundation",
+    "tests/stress/fixtures",
+    "tests/half-open-forced-close.test-helper.ts",
+    "tests/integration/audit-barrier.test-helper.ts",
+    "tests/stress/_helpers/acp-catalog.ts",
+    "tests/stress/_helpers/assertion-timeout",
+    "tests/stress/_helpers/boot-verdict",
+    "tests/stress/_helpers/card-surface.ts",
+    "tests/stress/_helpers/corner-stack.ts",
+    "tests/stress/_helpers/e2e-coverage",
+    "tests/stress/_helpers/editor-state.ts",
+    "tests/stress/_helpers/feedback-nudge.ts",
+    "tests/stress/_helpers/image.ts",
+    "tests/stress/_helpers/loop-markers.ts",
+    "tests/stress/_helpers/prebuilt",
+    "tests/stress/_helpers/reuse",
+    "tests/stress/_helpers/subscribe-card.ts",
+    "tests/stress/_helpers/theme-fade.ts"
+  ],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
+}

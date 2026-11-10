@@ -1,0 +1,32 @@
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
+import { okVitestBase } from '../../test-support/vitest.base';
+
+const serverAuthorityRegistrySetup = fileURLToPath(
+  new URL('../../test-support/server-authority-registry.setup.ts', import.meta.url),
+);
+
+/**
+ * Vitest config for packages/cli (unit + integration tier).
+ *
+ * Spreads the shared workspace base (`development` export-condition pin,
+ * `bun:test` alias shim, `Bun` global facade, `import.meta.dir` transform, 30s
+ * timeout). The base `include` matches every `*.test.ts` under the package. The
+ * black-box `tests/e2e/cli-linux-e2e.ts` deliberately omits the `.test` infix so
+ * it stays out of this tier; it runs under `vitest.e2e.config.ts`.
+ */
+export default defineConfig({
+  ...okVitestBase,
+  test: {
+    ...okVitestBase.test,
+    setupFiles: [
+      ...okVitestBase.test.setupFiles,
+      fileURLToPath(new URL('./tests/support/zod-compile.test-helper.ts', import.meta.url)),
+      serverAuthorityRegistrySetup,
+      fileURLToPath(
+        new URL('./tests/support/windows-process-start-reader.test-helper.ts', import.meta.url),
+      ),
+    ],
+    exclude: [...okVitestBase.test.exclude, '.ok-skill-publish-*'],
+  },
+});

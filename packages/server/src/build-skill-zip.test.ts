@@ -1,0 +1,166 @@
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, posix, win32 } from 'node:path';
+import { describe, expect, test } from 'vitest';
+import { __testing, resolveBundledSkillDir } from './build-skill-zip.ts';
+
+const { computeWrapperFolderName, toPosixZipPath } = __testing;
+
+function desktopSkillDir(appsRoot: string, which: 'discovery' | 'project'): string {
+  return join(
+    appsRoot,
+    'OpenKnowledge.app',
+    'Contents',
+    'Resources',
+    'cli',
+    'dist',
+    'assets',
+    'skills',
+    which,
+  );
+}
+
+describe('computeWrapperFolderName', () => {
+  test('POSIX: returns last segment', () => {
+    expect(computeWrapperFolderName('/usr/local/lib/skills/open-knowledge', posix.basename)).toBe(
+      'open-knowledge',
+    );
+  });
+
+  test('POSIX: handles trailing slash', () => {
+    expect(computeWrapperFolderName('/usr/local/lib/skills/open-knowledge/', posix.basename)).toBe(
+      'open-knowledge',
+    );
+  });
+
+  test('Windows: backslash-separated absolute path returns last segment', () => {
+    expect(
+      computeWrapperFolderName(
+        'C:\\Users\\dev\\AppData\\Roaming\\npm\\node_modules\\@inkeep\\open-knowledge\\dist\\assets\\skills\\open-knowledge',
+        win32.basename,
+      ),
+    ).toBe('open-knowledge');
+  });
+
+  test('Windows: forward-slash absolute path returns last segment (UNC, mixed)', () => {
+    expect(computeWrapperFolderName('C:/foo/bar/open-knowledge', win32.basename)).toBe(
+      'open-knowledge',
+    );
+  });
+
+  test('falls back to "open-knowledge" when basename is empty', () => {
+    expect(computeWrapperFolderName('', posix.basename)).toBe('open-knowledge');
+  });
+});
+
+describe('toPosixZipPath', () => {
+  test('POSIX: passes through unchanged', () => {
+    expect(toPosixZipPath('SKILL.md', '/')).toBe('SKILL.md');
+    expect(toPosixZipPath('subdir/file.txt', '/')).toBe('subdir/file.txt');
+  });
+
+  test('Windows: rewrites backslashes to forward slashes', () => {
+    expect(toPosixZipPath('subdir\\file.txt', '\\')).toBe('subdir/file.txt');
+    expect(toPosixZipPath('a\\b\\c\\d.md', '\\')).toBe('a/b/c/d.md');
+  });
+
+  test('flat file name has no separators to rewrite', () => {
+    expect(toPosixZipPath('SKILL.md', '\\')).toBe('SKILL.md');
+  });
+});
+
+describe('resolveBundledSkillDir', () => {
+  test('resolves the discovery bundle to an existing dir containing SKILL.md', () => {
+    const dir = resolveBundledSkillDir('discovery', { checkDesktop: false });
+    expect(dir.endsWith('discovery')).toBe(true);
+    expect(existsSync(join(dir, 'SKILL.md'))).toBe(true);
+  });
+
+  test('resolves the project bundle to an existing dir containing SKILL.md', () => {
+    const dir = resolveBundledSkillDir('project', { checkDesktop: false });
+    expect(dir.endsWith('project')).toBe(true);
+    expect(existsSync(join(dir, 'SKILL.md'))).toBe(true);
+  });
+
+  test('discovery and project resolve to siblings under one skills/ root (AC4)', () => {
+    const d = resolveBundledSkillDir('discovery', { checkDesktop: false });
+    const p = resolveBundledSkillDir('project', { checkDesktop: false });
+    expect(dirname(d)).toBe(dirname(p));
+  });
+
+  test('a co-installed OK Desktop wins on macOS when checkDesktop is on (AC4)', () => {
+    const home = mkdtempSync(join(tmpdir(), 'ok-resolver-'));
+    try {
+      const simulated = desktopSkillDir(join(home, 'Applications'), 'discovery');
+      mkdirSync(simulated, { recursive: true });
+      const dir = resolveBundledSkillDir('discovery', {
+        home,
+        platform: 'darwin',
+        checkDesktop: true,
+      });
+      expect(dir).toContain('OpenKnowledge.app');
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('the Desktop probe resolves the project bundle too', () => {
+    const home = mkdtempSync(join(tmpdir(), 'ok-resolver-'));
+    try {
+      mkdirSync(desktopSkillDir(join(home, 'Applications'), 'project'), { recursive: true });
+      const dir = resolveBundledSkillDir('project', {
+        home,
+        platform: 'darwin',
+        checkDesktop: true,
+      });
+      expect(dir).toContain('OpenKnowledge.app');
+      expect(dir.endsWith('project')).toBe(true);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('checkDesktop:false skips the Desktop probe', () => {
+    const home = mkdtempSync(join(tmpdir(), 'ok-resolver-'));
+    try {
+      mkdirSync(desktopSkillDir(join(home, 'Applications'), 'project'), { recursive: true });
+      const dir = resolveBundledSkillDir('project', {
+        home,
+        platform: 'darwin',
+        checkDesktop: false,
+      });
+      expect(dir).not.toContain('OpenKnowledge.app');
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('non-darwin platforms skip the Desktop probe even with checkDesktop on', () => {
+    const home = mkdtempSync(join(tmpdir(), 'ok-resolver-'));
+    try {
+      mkdirSync(desktopSkillDir(join(home, 'Applications'), 'project'), { recursive: true });
+      const dir = resolveBundledSkillDir('project', {
+        home,
+        platform: 'linux',
+        checkDesktop: true,
+      });
+      expect(dir).not.toContain('OpenKnowledge.app');
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('default (checkDesktop omitted) skips the Desktop probe on darwin', () => {
+    const home = mkdtempSync(join(tmpdir(), 'ok-resolver-'));
+    try {
+      mkdirSync(desktopSkillDir(join(home, 'Applications'), 'project'), { recursive: true });
+      const dir = resolveBundledSkillDir('project', {
+        home,
+        platform: 'darwin',
+      });
+      expect(dir).not.toContain('OpenKnowledge.app');
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+});

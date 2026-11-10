@@ -1,0 +1,252 @@
+// oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
+// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+
+import {
+  PageHeadingsSuccessSchema,
+  ProblemDetailsSchema,
+} from '@inkeep/open-knowledge-core/schemas/api';
+import type { HeadingEntry } from '@inkeep/open-knowledge-core/utils/slug';
+import { t } from '@lingui/core/macro';
+import { Trans, useLingui } from '@lingui/react/macro';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useSyncExternalStore } from 'react';
+import { usePageList } from '@/components/PageListContext';
+import { isKnownPageDocName } from '@/components/page-membership';
+import {
+  Panel,
+  PanelBody,
+  PanelCount,
+  PanelEmpty,
+  PanelError,
+  PanelHeader,
+  PanelTitle,
+} from '@/components/ui/panel';
+import { useDocumentContext } from '@/editor/DocumentContext';
+import { HttpResponseParseError } from '@/editor/http-client';
+import { rememberPendingSourceNavigation } from '@/editor/source-editor-navigation';
+import { useActiveHeading } from '@/hooks/useActiveHeading';
+import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
+import { ProfilerBoundary } from '@/lib/perf';
+import { cn } from '@/lib/utils';
+
+/**
+ * Matches the `TYPING_DEFER_MS` convention from precedent #11 — a 300 ms trailing-edge window
+ * coalesces bursts of keystrokes into a single fetch while still updating the outline fast enough
+ * to feel live.
+ */
+const OUTLINE_INVALIDATE_DEBOUNCE_MS = 300;
+
+async function fetchHeadings(docName: string): Promise<HeadingEntry[]> {
+  const res = await fetch(`/api/page-headings?docName=${encodeURIComponent(docName)}`);
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch (cause) {
+    throw new HttpResponseParseError(t`Page headings response was not JSON`, {
+      cause,
+      status: res.status,
+    });
+  }
+  if (!res.ok) {
+    const problem = ProblemDetailsSchema.safeParse(body);
+    if (!problem.success) {
+      throw new HttpResponseParseError(t`Page headings error response did not match RFC 9457`, {
+        status: res.status,
+      });
+    }
+    throw new Error(problem.data.title);
+  }
+  const success = PageHeadingsSuccessSchema.safeParse(body);
+  if (!success.success) {
+    throw new HttpResponseParseError(t`Page headings response did not match success schema`, {
+      status: res.status,
+    });
+  }
+  return success.data.headings ?? [];
+}
+
+const ITEM_H = 32;
+const LEVEL_W = 12;
+const MARKER_SIZE = 6;
+
+export interface OutlineNavDetail {
+  docName: string;
+  index: number;
+  slug: string;
+  mode: 'wysiwyg' | 'source';
+  onNavigated?: (target: HTMLElement) => void;
+}
+
+export const OUTLINE_NAV_EVENT = 'open-knowledge:outline-nav';
+
+export const OUTLINE_NAV_BREADCRUMB = 'ok-outline-nav';
+
+export const OUTLINE_NAV_DISPATCH_BREADCRUMB = 'ok-outline-nav-dispatch';
+
+export const OUTLINE_NAV_SETTLED_BREADCRUMB = 'ok-outline-nav-settled';
+
+export function OutlinePanel(props: {
+  docName: string;
+  isSourceMode: boolean;
+  className?: string;
+  onNavigated?: (target: HTMLElement) => void;
+}) {
+  return (
+    <ProfilerBoundary name="outline-panel">
+      <OutlinePanelInner {...props} />
+    </ProfilerBoundary>
+  );
+}
+
+function OutlinePanelInner({
+  docName,
+  isSourceMode,
+  className = '',
+  onNavigated,
+}: {
+  docName: string;
+  isSourceMode: boolean;
+  className?: string;
+  onNavigated?: (target: HTMLElement) => void;
+}) {
+  const { t } = useLingui();
+  const { pages, loading, error: pageListError } = usePageList();
+  const queryClient = useQueryClient();
+  const { activeProvider, activeDocName } = useDocumentContext();
+  const isKnownPage = isKnownPageDocName(pages, docName);
+  const queryCache = queryClient.getQueryCache();
+  const hasHeadingsQuery = useSyncExternalStore(
+    queryCache.subscribe,
+    () => queryClient.getQueryState(['page-headings', docName]) !== undefined,
+  );
+  const isUnresolvable = !loading && pageListError === null && !isKnownPage && hasHeadingsQuery;
+  const {
+    data: headings = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['page-headings', docName],
+    queryFn: () => fetchHeadings(docName),
+    enabled: !loading && isKnownPage,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
+  useEffect(() => {
+    if (!isUnresolvable) return;
+    void queryClient.resetQueries({ queryKey: ['page-headings', docName] });
+  }, [isUnresolvable, docName, queryClient]);
+
+  useEffect(() => {
+    if (!activeProvider || activeDocName !== docName) return;
+    const doc = activeProvider.document;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const onUpdate = () => {
+      if (debounceTimer !== null) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        void queryClient.invalidateQueries({ queryKey: ['page-headings', docName] });
+      }, OUTLINE_INVALIDATE_DEBOUNCE_MS);
+    };
+    doc.on('update', onUpdate);
+    void queryClient.invalidateQueries({ queryKey: ['page-headings', docName] });
+    return () => {
+      doc.off('update', onUpdate);
+      if (debounceTimer !== null) clearTimeout(debounceTimer);
+    };
+  }, [activeProvider, activeDocName, docName, queryClient]);
+
+  const isResolving = loading || isLoading;
+  const slugs = headings.map((h) => h.slug);
+  const activeSlug = useActiveHeading(slugs, { isSourceMode, docName });
+  const activeIndex = activeSlug ? headings.findIndex((h) => h.slug === activeSlug) : -1;
+
+  function handleNav(index: number, slug: string) {
+    const detail: OutlineNavDetail = {
+      docName,
+      index,
+      slug,
+      mode: isSourceMode ? 'source' : 'wysiwyg',
+      onNavigated,
+    };
+    if (detail.mode === 'source') {
+      rememberPendingSourceNavigation(docName, { kind: 'outline', detail });
+    }
+    emitDiagnosticBreadcrumb(OUTLINE_NAV_DISPATCH_BREADCRUMB, {
+      docName,
+      index,
+      mode: detail.mode,
+      outlineCount: headings.length,
+      headingLevel: headings[index]?.level,
+      activeIndex,
+    });
+    window.dispatchEvent(new CustomEvent(OUTLINE_NAV_EVENT, { detail }));
+  }
+
+  const activeLevel = activeIndex >= 0 ? headings[activeIndex].level : 1;
+  const markerX = (activeLevel - 1) * LEVEL_W + (LEVEL_W - MARKER_SIZE) / 2;
+  const markerY = activeIndex * ITEM_H + (ITEM_H - MARKER_SIZE) / 2;
+
+  return (
+    <Panel className={className}>
+      <PanelHeader>
+        <div className="flex min-w-0 items-center gap-2">
+          <PanelTitle>
+            <Trans>Outline</Trans>
+          </PanelTitle>
+          {!isResolving && !error && !isUnresolvable && <PanelCount>{headings.length}</PanelCount>}
+        </div>
+      </PanelHeader>
+      <PanelBody className="px-3 py-2" aria-busy={isResolving}>
+        {isUnresolvable ? (
+          <PanelEmpty className="px-2" role="status">
+            <Trans>This page is no longer at this path.</Trans>
+          </PanelEmpty>
+        ) : error ? (
+          <PanelError className="px-2">
+            {error instanceof Error ? error.message : t`Failed to load headings`}
+          </PanelError>
+        ) : headings.length === 0 && !isResolving ? (
+          <PanelEmpty className="px-2">
+            <Trans>No headings yet.</Trans>
+          </PanelEmpty>
+        ) : (
+          <nav aria-label={t`Document outline`} className="relative">
+            {activeIndex >= 0 && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 rounded-full bg-primary motion-safe:[transition:transform_0.25s_var(--ease-out-strong)]"
+                style={{
+                  width: MARKER_SIZE,
+                  height: MARKER_SIZE,
+                  transform: `translate(${markerX}px, ${markerY}px)`,
+                }}
+              />
+            )}
+            {headings.map((heading, index) => {
+              const isActive = heading.slug === activeSlug;
+              return (
+                <button
+                  // biome-ignore lint/suspicious/noArrayIndexKey: headings are positionally stable per load
+                  key={index}
+                  type="button"
+                  aria-current={isActive ? 'location' : undefined}
+                  onClick={() => handleNav(index, heading.slug)}
+                  className={cn(
+                    'w-full cursor-pointer truncate py-1.5 pe-2 text-left text-sm transition-colors',
+                    isActive
+                      ? 'font-medium text-[var(--secondary-panel-accent,var(--primary))]'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                  style={{ paddingLeft: `${(heading.level - 1) * LEVEL_W + 20}px` }}
+                  title={heading.text}
+                >
+                  {heading.text}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+      </PanelBody>
+    </Panel>
+  );
+}

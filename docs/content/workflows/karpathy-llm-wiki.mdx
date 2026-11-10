@@ -1,0 +1,274 @@
+---
+title: LLM wiki
+icon: LuBrain
+description: "Point an AI at a folder of your own notes and let it keep them organized, linked, and easy to search. The more you add, the tidier it gets instead of messier. Built on the Knowledge base starter pack."
+---
+
+An LLM wiki is a knowledge base of your own markdown files that an agent reads, writes, and keeps organized. You supply the raw material. The agent files it, links it, and cites it. It gets more organized the more you use it.
+
+```html preview
+<div style="padding:18px">
+  <div id="row" style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch"></div>
+  <div class="cap">Each file is a live CRDT (Yjs) document, so you and the agent can edit the same one and it converges.</div>
+</div>
+<style>
+#row .node{flex:1;min-width:120px;border:1px solid var(--border);border-radius:12px;padding:11px 13px;background:var(--card);transition:box-shadow .3s,border-color .3s;cursor:pointer}
+#row .node .t{font-weight:600;font-size:13px}
+#row .node .s{color:var(--muted-foreground);font-size:11.5px;margin-top:2px}
+#row .node.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--accent-soft)}
+#row .node.on .t{color:var(--accent-ink)}
+#row .arrow{align-self:center;color:var(--muted-foreground)}
+.cap{margin-top:12px;color:var(--muted-foreground);font-size:12.5px}
+.cap::before{content:"\21BB  ";color:var(--primary);font-weight:700}
+@media (prefers-reduced-motion:reduce){#row .node{transition:none}}
+</style>
+<script>
+var steps=[["You","drop a source"],["Agent","files &middot; links &middot; cites"],["Your wiki","markdown + backlinks"],["You ask","agent reads it back"]];
+var row=document.getElementById("row"),nodes=[];
+steps.forEach(function(s,i){
+  if(i){var a=document.createElement("div");a.className="arrow";a.textContent="→";row.appendChild(a);}
+  var d=document.createElement("div");d.className="node";
+  var t=document.createElement("div");t.className="t";t.textContent=s[0];
+  var sub=document.createElement("div");sub.className="s";sub.innerHTML=s[1];
+  d.appendChild(t);d.appendChild(sub);
+  d.onclick=function(){pinned=true;set(i);};
+  row.appendChild(d);nodes.push(d);
+});
+var cur=0,pinned=false;
+function set(i){cur=i;nodes.forEach(function(n,j){n.classList.toggle("on",j===i);});}
+set(0);
+if(!matchMedia("(prefers-reduced-motion:reduce)").matches){setInterval(function(){if(!pinned)set((cur+1)%nodes.length);},1500);}
+</script>
+```
+
+The difference from a folder of notes or a RAG app is who maintains it, and how it is stored:
+
+| | Note pile / RAG app | An LLM wiki |
+| --- | --- | --- |
+| Who organizes | you, eventually, never | the agent, as you go |
+| What's stored | raw clips, or an opaque vector copy | authored markdown with structure |
+| Over time | it decays | it compounds |
+| Can you read it | the notes yes, the index no | all of it, it's just files |
+
+The structure you and the agent author (folders, titles, backlinks, a one-line purpose per folder) *is* the index. No second copy, nothing to keep in sync. The agent retrieves across it with [agentic search](../reference/agentic-search.mdx) — searching, grepping, and following backlinks over your live files, no vector database — and you teach it conventions with [skills](../features/skills/index.mdx) authored in the same editor as your docs.
+
+The rest of this guide builds one end to end. The pattern is Andrej Karpathy's, from [his April 2026 gist on LLM-curated wikis](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). OpenKnowledge ships the **Knowledge base** starter pack as a direct implementation, with one extension Karpathy doesn't formalize: **the wiki layer is split** into `research/` (provisional work stored as `status: draft`) and `articles/` (canonical knowledge stored as `status: stable`), with the `consolidate` procedure as the explicit promotion step, so premature canonicalization becomes a thing you opt into rather than something that drifts in.
+
+The point of this guide is to show how **OpenKnowledge's features compose** to make the pattern feel native: the starter-pack picker scaffolds the layout in one click; per-folder templates + agent-readable folder frontmatter teach the LLM the conventions (Karpathy's centralized `CLAUDE.md` / `AGENTS.md` schema, distributed per-folder); the platform skill's `ingest` procedure plus the pack's `research` and `consolidate` skills cover the sources → provisional → canonical pipeline; the WYSIWYG editor + CRDT keep editing frictionless; the activity panel attributes every write; the `links` tool keeps the source graph clean. Every step uses three or four of these together. That's the product.
+
+If you're new to LLM-curated PKM, the draw is an agent that remembers your context without the vault turning into a junk drawer of unprocessed clips — notes that compound instead of rotting. If you're already practicing Karpathy's pattern in Obsidian, plain folders, or Claude projects, the question is what OpenKnowledge does differently and what carries over.
+
+Either way, by the end of this guide you'll have a working source-grounded knowledge base, a routine for adding sources, and a daily-driver agent setup that interrogates the vault on your behalf.
+
+## Before you begin
+
+You need:
+
+- **The OpenKnowledge desktop app.** The desktop app (macOS 13+, Windows, Linux) is the canonical surface: WYSIWYG editor, file sidebar, agent activity panel, version timeline, and the starter-pack picker all live there. Install it from the [Quickstart](../get-started/quickstart.mdx).
+- **An MCP-capable agent assistant.** [Claude Code](../integrations/claude-code.mdx), [Cursor](../integrations/cursor.mdx), [Codex](../integrations/codex.mdx), [OpenCode](../integrations/opencode.mdx), or [OpenClaw](../integrations/openclaw.mdx). The OK desktop app's first-launch flow detects them and offers to wire them up.
+- **A read of the source pattern.** Andrej Karpathy's [LLM wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) is the canonical description of what we're implementing here. It's a 10-minute read and worth doing first; this guide builds on it directly.
+
+If you're brand new to OK, run the [Quickstart](../get-started/quickstart.mdx) (≤5 minutes to first agent-driven edit) and come back here.
+
+## The scenario
+
+You're evaluating a new agent framework for an upcoming architecture decision. You've collected five sources:
+
+- The framework's GitHub README
+- A 12-page architecture overview from the docs site
+- A skeptical Hacker News thread
+- A paper on the underlying coordination model
+- A Twitter thread from a maintainer responding to the HN thread
+
+By the end of the afternoon you can ask your agent "what does the framework do when two sub-agents race on the same write?" and get an answer that cites the specific paragraph in the architecture doc, contextualized with the maintainer's clarification on Twitter, without re-reading any of the five sources yourself.
+
+That's the payoff. Below is how you get there in OpenKnowledge.
+
+## What's in your vault after one afternoon
+
+```
+your-project/
+├── external-sources/
+│   ├── framework-readme.md
+│   ├── framework-architecture-overview.md
+│   ├── hn-skeptical-thread.md
+│   ├── coordination-model-paper.md
+│   └── maintainer-twitter-thread.md
+├── research/
+│   └── agent-framework-evaluation.md
+├── articles/                  (empty; nothing canonical yet)
+└── log.md                     (append-only audit trail)
+```
+
+- **`external-sources/`.** Five `.md` files, each carrying the verbatim source text plus YAML frontmatter with `type: source`, the original URL, fetch date, and author metadata. *Immutable* after capture. The agent reads these but never edits them. (This is Karpathy's raw-sources layer; his gist leaves the folder name open.)
+- **`research/`.** One provisional article synthesizing the five sources into an evaluation. Every claim cites a specific path in `external-sources/`. Status: `draft` (you can change it).
+- **`articles/`.** Still empty. You consolidate to here only when you've actually decided (e.g., "yes we're adopting this framework"). Premature consolidation is how wikis go stale. (Karpathy's gist puts both provisional and canonical pages in a single wiki layer; OK splits them so the promotion step is explicit.)
+- **`log.md`.** One append-only file at project root recording each ingest, research pass, and consolidation. The audit trail. (Direct from Karpathy's pattern.)
+
+## The workflow behind it
+
+Karpathy's pattern, summarized from the [gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f):
+
+| Element | What it is | Karpathy's filenames |
+|---|---|---|
+| **Raw sources** | Immutable collection of the actual documents (articles, papers, repo READMEs, transcripts). The LLM reads but does not modify. | left open (`raw/assets/` appears only as an example attachment path) |
+| **The wiki** | LLM-generated markdown files: summaries, entity pages, concept pages, cross-references. Single layer; the LLM owns it entirely. | left open |
+| **The log** | Append-only record of ingests, queries, lint passes: *"what happened and when."* | `log.md` |
+| **The index** | Content-oriented catalog listing every page with link, summary, optional metadata. | `index.md` |
+| **The schema** | Config document telling the LLM how the wiki is structured. | `CLAUDE.md` (Claude Code) or `AGENTS.md` (other hosts) |
+
+Two operations turn the layers into a living artifact:
+
+- **Ingest.** When a new source arrives, the LLM reads it, extracts the key information, integrates findings into existing wiki pages, updates the index, and appends to the log. *"A single source might touch 10-15 wiki pages."*
+- **Query.** When you ask a question, the LLM searches relevant pages and synthesizes an answer. *"Good answers can be filed back into the wiki as new pages. A comparison you asked for, an analysis, a connection you discovered: these are valuable and shouldn't disappear into chat history."* This is the part most people miss.
+
+Plus periodic **lint** for contradictions, stale claims, orphan pages, missing concepts, dangling cross-references, and data gaps.
+
+Karpathy's framing of why this matters:
+
+> the wiki is a persistent, compounding artifact. The cross-references are already there.
+
+## How OpenKnowledge implements (and extends) this
+
+The **Knowledge base** pack scaffolds Karpathy's pattern with one significant addition: **the wiki layer is split** into `research/` (provisional) and `articles/` (canonical), with `consolidate` as the explicit promotion ritual.
+
+| Karpathy | OpenKnowledge |
+|---|---|
+| Raw sources (verbatim, immutable) | `external-sources/` + `clip` template + the `ingest` procedure |
+| The wiki (single LLM-owned layer) | **Split**: `research/` (provisional, `status: draft`, sources cited) + `articles/` (canonical, `status: stable`, supersedes chain); `consolidate` promotes |
+| `log.md` (append-only record) | `log.md` at project root, written by the pack |
+| `index.md` (static content catalog) | Provided dynamically via `exec` (`ls`) + the file sidebar. The agent reads folder frontmatter + per-doc metadata on every list call, so a static index isn't required. You can still hand-write `index.md` if you prefer. |
+| `CLAUDE.md` / `AGENTS.md` (centralized schema) | `<folder>/.ok/frontmatter.yml` + per-folder templates; schema lives next to the action |
+| LLM agent | [Claude Code](../integrations/claude-code.mdx), [Cursor](../integrations/cursor.mdx), [Codex](../integrations/codex.mdx), [OpenCode](../integrations/opencode.mdx), [OpenClaw](../integrations/openclaw.mdx) |
+
+When your agent lists `external-sources/`, it reads the folder description telling it to ingest verbatim and *not* analyze in those files. That's the schema layer doing its job, without you hand-writing a `CLAUDE.md` from scratch.
+
+The templates use [OKF-compatible metadata](../plugins/okf.mdx): `draft` and `stable` are the stored statuses, while provisional and canonical remain the workflow concepts.
+
+## Step-by-step: getting to the scenario above
+
+### 1. Open the desktop app and pick a project folder
+
+Launch the **OpenKnowledge** desktop app. Either drag-and-drop a folder, click **Open folder on disk**, or click **Create new project** to start a new vault. The first-launch consent dialog scaffolds `.ok/` and offers to wire up any MCP-capable editors it detects (Claude Code, Cursor, Codex, OpenCode, OpenClaw).
+
+Don't have the desktop app yet? See the [Quickstart](../get-started/quickstart.mdx).
+
+### 2. Initialize the Knowledge base starter pack
+
+In the editor, on a fresh project, click the **Knowledge base** card in the empty state, leave **Project root** selected (or choose **In a subfolder** to nest the layers under something like `brain/`), and click **Initialize**. On a project with existing documents, the same flow starts from the **Add a starter pack** button.
+
+You'll get `external-sources/`, `research/`, `articles/`, the three matching templates, and `log.md` at the chosen root. The folders carry descriptions written *for the agent*; see them on the folder's overview page (click the folder in the sidebar), and in any `exec` directory listing from an agent.
+
+The starter-pack picker is idempotent (safe to re-run on the same project).
+
+<Callout type="info" title="Seeding also installs skills">
+  `ok seed --pack knowledge-base` (or the desktop starter-pack picker) installs three project skills: `knowledge-base`, `research-with-sources`, and `consolidate-notes`. They carry the layer discipline and provisional-to-canonical promotion described below; the platform skill carries the `ingest` procedure. Each lands as a real `SKILL.md` in your agent editors' skills dirs (`.claude/skills`, `.cursor/skills`, …), versioned with your repo — one canonical copy mirrored into each editor already set up for the project. See [Skills Studio](../features/skills/index.mdx) and [what OpenKnowledge writes to disk](../reference/what-open-knowledge-writes.mdx).
+</Callout>
+
+### 3. Confirm your agent host is wired
+
+If you accepted the desktop app's first-launch offer to wire up your agent assistant, you're done. If not, in your agent assistant, ask:
+
+<CopyPrompt>list the OpenKnowledge tools available</CopyPrompt>
+
+You should see the standard reads/writes (`exec`, `search`, `write`, `edit`, `links`, etc.). The `ingest` / `research` / `consolidate` procedures aren't tools: `ingest` ships in the platform skill, while `research` and `consolidate` ship in the pack's member skills.
+
+### 4. Ingest the five sources
+
+For each source, paste the URL into your agent and say:
+
+<CopyPrompt>ingest this: https://github.com/example/framework</CopyPrompt>
+
+The agent fetches the URL, follows the platform skill's `ingest` procedure, and writes the verbatim content to `external-sources/framework-readme.md` with `type: source` frontmatter capturing the URL, fetch date, and any author metadata it can extract. **Never copy-paste raw URLs into chat as "sources" without ingesting.** The knowledge base is closed-loop. Every claim must cite a local doc.
+
+Five ingests, five files. After the fifth, ask:
+
+<CopyPrompt>what's in external-sources/, summary of each</CopyPrompt>
+
+Your agent uses `exec("ls external-sources/")` to read frontmatter and per-file summaries.
+
+### 5. Synthesize into a research log
+
+<CopyPrompt>research the agent-framework question; synthesize the five sources in external-sources/</CopyPrompt>
+
+That kicks off the pack skill's step-by-step research procedure: it confirms scoping, lists what's covered by the existing sources, identifies gaps (maybe one source you haven't ingested yet), and produces a `research/agent-framework-evaluation.md` with `type: research-note`, `status: draft`, and `sources:` entries shaped as `- resource: ../external-sources/<file>.md`.
+
+Every claim in the log cites a specific source path. You can now ask:
+
+<CopyPrompt>what does the framework do when two sub-agents race on the same write?</CopyPrompt>
+
+The agent reads `research/agent-framework-evaluation.md` first, follows the citation chain into `external-sources/`, and returns a synthesized answer with traceable evidence.
+
+## What's inside `.ok/` after seeding
+
+The pack doesn't just create three folders. It scaffolds the **agent-readable schema layer** that makes the LLM behave per Karpathy's conventions without you hand-writing a `CLAUDE.md`.
+
+Each folder gets a `.ok/frontmatter.yml` (the agent reads it on every `exec` directory listing) plus a `.ok/templates/<name>.md` (the agent picks it on every `write({ document: { template } })` call). `external-sources/.ok/frontmatter.yml`, for example, carries this description:
+
+> Raw sources saved verbatim — the fetched text of URLs, extracted PDFs, and copied files, each with the original URL and access date in frontmatter. Produced by `ingest`. Immutable after capture; no analysis here (that goes in `research/`).
+
+Result: the agent learns each layer's discipline without a separate prompt or skills file. `research/` and `articles/` carry analogous descriptions. This is Karpathy's centralized `CLAUDE.md` schema, distributed per-folder, so schema lives closest to the agent action. Customize via `mcp__open-knowledge__edit` (with a `folder` target).
+
+## The consolidate step, deferred
+
+You don't consolidate yet in our scenario; the team hasn't decided. Maybe in two weeks you adopt the framework. Then:
+
+<CopyPrompt>consolidate the agent-framework research into a canonical article</CopyPrompt>
+
+The `consolidate` procedure starts with a STOP gate asking whether the decision is actually made. If yes, it writes `articles/agent-framework-evaluation.md` with `type: article`, `status: stable`, and a `supersedes:` chain pointing back to the research log. That `research/` doc isn't deleted; it becomes `status: deprecated` and points forward with `superseded_by`, so the evidence chain stays intact.
+
+**What just composed.** Five sources became one canonical article via: the **Knowledge base starter pack** (three folders, three templates, agent-readable folder frontmatter, one click), the platform skill's **`ingest`** procedure and the pack's **`research` / `consolidate`** skills (mapping 1:1 to Karpathy's layers), the **agent activity panel** (every fetch + write attributed), the **wikilink graph + frontmatter `sources:` arrays** (citation chain audit-able doc by doc), and the **WYSIWYG editor** (review and refine without leaving the same surface). The same vault, the same product, the whole stack working as one thing.
+
+## The promotion rhythm
+
+When to use each tool, and when *not* to:
+
+| Trigger | Tool | Why |
+|---|---|---|
+| Source arrives (URL, PDF, transcript) | `ingest` | Preserve verbatim before analyzing |
+| You searched the web yourself to ground a claim | `ingest` | Closed-loop: the KB doesn't cite the live web, only local docs |
+| You're synthesizing 2+ sources into an answer | `research` | Provisional article, citations required, `status: draft` |
+| Team decided; this is the canonical position | `consolidate` | Writes `status: stable` with supersedes chain |
+| You just want to write a note | `write` | Not every doc needs the pipeline (scratch notes, project pages, runbooks) |
+| You ran a one-off query and the answer's useful | Save the chat to a new doc in `research/` | Per Karpathy, good answers get filed back into the wiki as new pages; don't let them die in chat history |
+
+**Anti-pattern: consolidating too early.** If you `consolidate` before the team has actually decided, you'll be rewriting canonical articles every week. `status: draft` exists for a reason. Keep things in `research/` until decisions are real.
+
+**Anti-pattern: ingesting your own thoughts.** `ingest` is for external sources, preserved verbatim. Your reflections, hypotheses, and reactions go in `research/` (provisional analysis) or a separate `notes/` folder. Don't pollute the immutable layer.
+
+## Cadence
+
+| When | Do | Composes |
+|---|---|---|
+| **As sources arrive** | `ingest` (30 sec per source) | pack-skill procedure + `external-sources/.ok/` frontmatter + `clip` template + agent activity panel |
+| **Weekly** | A `research` pass to synthesize recent ingests; ask the agent to flag contradictions | `research` procedure + folder frontmatter discipline + wikilink graph |
+| **Per-decision** | `consolidate` to canonical | `consolidate` procedure + supersedes chain + `articles/` template |
+| **Monthly** | *"find stale claims in `articles/`, orphans, missing cross-refs"* | `links` (orphans, dead links, backlinks) |
+
+The compounding move: end each ingest session with one synthesis query. The answer becomes a `research/` doc. The wiki grows.
+
+## Tips
+
+- **Folder descriptions are agent-readable.** The pack writes `<folder>/.ok/frontmatter.yml` so the agent learns layer discipline on every `exec` directory listing, with no separate `CLAUDE.md`.
+- **`log.md` doubles as a journal.** Every `ingest` / `research` / `consolidate` lands there with timestamps. Underrated.
+- **`New from template`** in the sidebar gives you the right frontmatter shape instantly. Don't hand-author.
+
+## Looking for entity tracking instead?
+
+This guide is the **source-grounded** posture: bring sources, the LLM curates the wiki. If what you actually want is to track *people, companies, and meetings* (who's in your network, what was said, what changes over time), the [Entity vault (GBrain-compatible) workflow guide](./entity-vault.mdx) is the better starting point. Different pattern, same OpenKnowledge editor.
+
+## Further reading
+
+### Source pattern
+
+- **[Karpathy's LLM wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).** The original three-layer pattern, in his words. Read this before or alongside this guide.
+
+### OpenKnowledge internals that support this workflow
+
+- **[Agent activity](../features/agent-activity.mdx).** How every agent edit lands in the shadow repo with attribution.
+- **[Claude Code](../integrations/claude-code.mdx)**, **[Cursor](../integrations/cursor.mdx)**, **[Codex](../integrations/codex.mdx)**, **[OpenCode](../integrations/opencode.mdx)**, **[OpenClaw](../integrations/openclaw.mdx).** Agent-assistant integrations.
+- **[`STARTER_PACKS` registry](https://github.com/inkeep/open-knowledge/blob/main/packages/server/src/seed/starter.ts).** Canonical source for the Knowledge base pack content.
+
+### Adjacent OK workflow
+
+- **[Entity vault (GBrain-compatible) workflow in OpenKnowledge](./entity-vault.mdx).** Entity-vault counterpart, if the source-grounded posture isn't your fit.

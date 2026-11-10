@@ -1,0 +1,40 @@
+[package]
+name = "open-knowledge-native-config"
+version = "0.0.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+publish = false
+description = "Native (toml_edit) parse/classify and format-preserving edit engine for OpenKnowledge harness MCP-config writes."
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+napi = { version = "3", default-features = false, features = ["napi6"] }
+napi-derive = "3"
+toml_edit = "0.24.0"
+# toml_edit's string encoder (re-exported here) so OK's own multi-line chain
+# serializes as a single-line escaped basic string rather than toml_edit's
+# default `"""` multi-line form; keeps every newline in the document structural
+# for the JS EOL wrapper. Already in the tree as a toml_edit dependency.
+toml_writer = "1"
+# preserve_order keeps a fresh entry's keys in their JS-supplied order
+# (command, args) instead of alphabetizing them; the backing indexmap is
+# already in the tree via toml_edit, so this pulls in no new crate.
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[build-dependencies]
+napi-build = "2"
+
+[dev-dependencies]
+# Symlink-resolution conformance tests build real symlink chains under a
+# throwaway directory; dev-only, never linked into the shipped addon.
+tempfile = "3"
+
+[profile.release]
+lto = true
+strip = "symbols"
+
+# Standalone Cargo workspace so the crate never gets adopted by a parent
+# workspace that happens to sit above the Bun monorepo.
+[workspace]

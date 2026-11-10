@@ -1,0 +1,1115 @@
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, relative, resolve } from 'node:path';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import {
+  branchExistsOnOrigin,
+  createSyncCredentialConfigResolver,
+  parseGitHubOriginUrl,
+  readDeclaredGitHubHosts,
+  readGitHeadBranch,
+  readOriginCredentialHost,
+  readOriginGitHubRepo,
+  readSyncRemoteInfo,
+  resolveAmbientCredentialReset,
+  resolveGitHubAuthHost,
+  sameGitHubLogin,
+  shouldResetAmbientCredentials,
+} from './git-context.ts';
+import {
+  declareGitHubHosts,
+  gitHostsYaml,
+  useIsolatedHome,
+  writeUserConfig,
+} from './git-host-declarations.test-helper.ts';
+
+function seedRepo(
+  root: string,
+  spec: {
+    head?: string;
+    config?: string;
+    branchRefs?: Record<string, string>;
+    packedRefs?: string;
+    gitDirAsFile?: { contents: string };
+  } = {},
+): void {
+  if (spec.gitDirAsFile) {
+    writeFileSync(join(root, '.git'), spec.gitDirAsFile.contents, 'utf-8');
+    return;
+  }
+  const gitDir = join(root, '.git');
+  mkdirSync(gitDir, { recursive: true });
+  if (spec.head !== undefined) {
+    writeFileSync(join(gitDir, 'HEAD'), spec.head, 'utf-8');
+  }
+  if (spec.config !== undefined) {
+    writeFileSync(join(gitDir, 'config'), spec.config, 'utf-8');
+  }
+  if (spec.branchRefs) {
+    const refDir = join(gitDir, 'refs', 'remotes', 'origin');
+    mkdirSync(refDir, { recursive: true });
+    for (const [branch, sha] of Object.entries(spec.branchRefs)) {
+      const refPath = join(refDir, branch);
+      mkdirSync(resolve(refPath, '..'), { recursive: true });
+      writeFileSync(refPath, sha, 'utf-8');
+    }
+  }
+  if (spec.packedRefs !== undefined) {
+    writeFileSync(join(gitDir, 'packed-refs'), spec.packedRefs, 'utf-8');
+  }
+}
+
+const home = useIsolatedHome();
+
+const CANONICAL_HEAD = 'ref: refs/heads/main\n';
+const OID_A = 'a'.repeat(40);
+const OID_B = 'b'.repeat(40);
+const CANONICAL_CONFIG_HTTPS =
+  '[remote "origin"]\n\turl = https://github.com/inkeep/open-knowledge.git\n\tfetch = +refs/heads/*:refs/remotes/origin/*\n';
+
+describe('readGitHeadBranch', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-head-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('returns branch name for a normal symbolic-ref HEAD', () => {
+    seedRepo(dir, { head: CANONICAL_HEAD });
+    expect(readGitHeadBranch(dir)).toBe('main');
+  });
+
+  test('returns branch name with a slash for nested branches', () => {
+    seedRepo(dir, { head: 'ref: refs/heads/feat/sharing-virality-flow\n' });
+    expect(readGitHeadBranch(dir)).toBe('feat/sharing-virality-flow');
+  });
+
+  test('returns null for a detached HEAD (raw SHA)', () => {
+    seedRepo(dir, { head: '0123456789abcdef0123456789abcdef01234567\n' });
+    expect(readGitHeadBranch(dir)).toBeNull();
+  });
+
+  test('returns null when the project has no .git directory', () => {
+    expect(readGitHeadBranch(dir)).toBeNull();
+  });
+
+  test('returns null when .git/HEAD is missing', () => {
+    mkdirSync(join(dir, '.git'), { recursive: true });
+    expect(readGitHeadBranch(dir)).toBeNull();
+  });
+
+  test('reads through a worktree pointer file', () => {
+    const realGitDir = mkdtempSync(join(tmpdir(), 'share-git-real-'));
+    writeFileSync(join(realGitDir, 'HEAD'), 'ref: refs/heads/feature-x\n', 'utf-8');
+    seedRepo(dir, { gitDirAsFile: { contents: `gitdir: ${realGitDir}\n` } });
+    expect(readGitHeadBranch(dir)).toBe('feature-x');
+    rmSync(realGitDir, { recursive: true, force: true });
+  });
+
+  test('returns null when .git is an unreadable file (malformed worktree pointer)', () => {
+    seedRepo(dir, { gitDirAsFile: { contents: 'not a worktree pointer\n' } });
+    expect(readGitHeadBranch(dir)).toBeNull();
+  });
+});
+
+describe('readOriginGitHubRepo', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-origin-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('parses HTTPS github.com origin URL', () => {
+    seedRepo(dir, { config: CANONICAL_CONFIG_HTTPS });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('the parser surfaces an https userinfo account; the origin read stays login-free', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://alice@github.com/inkeep/open-knowledge.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+    expect(parseGitHubOriginUrl('https://alice@github.com/inkeep/open-knowledge.git')).toEqual({
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+      login: 'alice',
+    });
+  });
+
+  test('parses SSH SCP-style github.com origin URL', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@github.com:inkeep/open-knowledge.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'ssh',
+    });
+  });
+
+  test('parses ssh:// github.com origin URL', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = ssh://git@github.com/inkeep/open-knowledge.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'ssh',
+    });
+  });
+
+  test('surfaces the account declared in an ssh:// origin userinfo', () => {
+    expect(parseGitHubOriginUrl('ssh://alice@github.com/inkeep/open-knowledge.git')).toEqual({
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'ssh',
+      login: 'alice',
+    });
+  });
+
+  test('surfaces the account declared in an scp-style origin userinfo', () => {
+    expect(parseGitHubOriginUrl('alice@github.com:inkeep/open-knowledge.git')).toEqual({
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'ssh',
+      login: 'alice',
+    });
+  });
+
+  test('treats the literal git userinfo as absent on every transport', () => {
+    for (const url of [
+      'git@github.com:inkeep/open-knowledge.git',
+      'ssh://git@github.com/inkeep/open-knowledge.git',
+      'https://git@github.com/inkeep/open-knowledge.git',
+    ]) {
+      const parsed = parseGitHubOriginUrl(url);
+      expect(parsed).toMatchObject({ host: 'github.com' });
+      expect(parsed).not.toHaveProperty('login');
+    }
+  });
+
+  test('percent-decodes an encoded login before validating it', () => {
+    expect(
+      parseGitHubOriginUrl('https://alice%2Dcontoso@github.com/inkeep/open-knowledge.git'),
+    ).toMatchObject({ login: 'alice-contoso' });
+  });
+
+  test('an email-shaped decoded userinfo is not a GitHub login', () => {
+    const parsed = parseGitHubOriginUrl(
+      'https://alice%40contoso.com@github.com/inkeep/open-knowledge.git',
+    );
+    expect(parsed).toMatchObject({ host: 'github.com' });
+    expect(parsed).not.toHaveProperty('login');
+  });
+
+  test('a malformed percent escape fails the login grammar and reads as absent', () => {
+    const parsed = parseGitHubOriginUrl('https://ali%zz@github.com/inkeep/open-knowledge.git');
+    expect(parsed).toMatchObject({ host: 'github.com' });
+    expect(parsed).not.toHaveProperty('login');
+  });
+
+  test('a token-shaped username is never an account', () => {
+    const cases = [
+      `https://ghp_${'a'.repeat(36)}@github.com/inkeep/open-knowledge.git`,
+      `https://gho_${'b'.repeat(36)}@github.com/inkeep/open-knowledge.git`,
+      `https://ghs_${'c'.repeat(36)}@github.com/inkeep/open-knowledge.git`,
+      `https://github_pat_${'d'.repeat(70)}@github.com/inkeep/open-knowledge.git`,
+    ];
+    for (const url of cases) {
+      const parsed = parseGitHubOriginUrl(url);
+      expect(parsed).toMatchObject({ host: 'github.com' });
+      expect(parsed).not.toHaveProperty('login');
+    }
+  });
+
+  test('token-auth placeholder usernames are never accounts', () => {
+    for (const user of ['x-access-token', 'x-oauth-basic', 'oauth2', 'token']) {
+      const parsed = parseGitHubOriginUrl(
+        `https://${user}:tok123@github.com/inkeep/open-knowledge.git`,
+      );
+      expect(parsed).toMatchObject({ host: 'github.com' });
+      expect(parsed).not.toHaveProperty('login');
+    }
+  });
+
+  test('an EMU-style login with an underscore is a valid account', () => {
+    expect(
+      parseGitHubOriginUrl('https://mona_acme@github.com/inkeep/open-knowledge.git'),
+    ).toMatchObject({ login: 'mona_acme' });
+  });
+
+  test('a 40-char opaque string is rejected by the login length cap', () => {
+    const parsed = parseGitHubOriginUrl(
+      `https://${'s'.repeat(40)}@github.com/inkeep/open-knowledge.git`,
+    );
+    expect(parsed).toMatchObject({ host: 'github.com' });
+    expect(parsed).not.toHaveProperty('login');
+  });
+
+  test('returns ok when repo URL omits the .git suffix', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://github.com/inkeep/open-knowledge\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('returns non-github for gitlab origin URL', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@gitlab.com:inkeep/open-knowledge.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'gitlab.com' });
+  });
+
+  test('classifies a declared GitHub Enterprise host as a GitHub origin', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://ghes.acme.test/inkeep/open-knowledge.git\n',
+    });
+    declareGitHubHosts(home(), 'ghes.acme.test');
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'ghes.acme.test',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('parses scp-style GHES origin and carries the host', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@github.corp.example.com:team/kb.git\n',
+    });
+    declareGitHubHosts(home(), 'github.corp.example.com');
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.corp.example.com',
+      owner: 'team',
+      repo: 'kb',
+      transport: 'ssh',
+    });
+  });
+
+  test('strips a non-standard port from a GHES host', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://ghes.acme.test:8443/acme/kb.git\n',
+    });
+    declareGitHubHosts(home(), 'ghes.acme.test');
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'ghes.acme.test',
+      owner: 'acme',
+      repo: 'kb',
+      transport: 'https',
+    });
+  });
+
+  test('parses the git:// protocol form', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git://github.com/inkeep/open-knowledge.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'git',
+    });
+  });
+
+  test('normalizes host casing, port, and www-folding', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://WWW.GitHub.com:443/inkeep/open-knowledge.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('ssh:// origin with a port carries transport ssh and a port-stripped host', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = ssh://git@git.acme.test:2222/acme/kb.git\n',
+    });
+    declareGitHubHosts(home(), 'git.acme.test');
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'git.acme.test',
+      owner: 'acme',
+      repo: 'kb',
+      transport: 'ssh',
+    });
+  });
+
+  test('returns no-remote when [remote "origin"] section is absent', () => {
+    seedRepo(dir, { config: '[core]\n\trepositoryformatversion = 0\n' });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'no-remote' });
+  });
+
+  test('returns no-remote when origin section exists but has no url', () => {
+    seedRepo(dir, { config: '[remote "origin"]\n\tfetch = +refs/heads/*:refs/remotes/origin/*\n' });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'no-remote' });
+  });
+
+  test('returns no-remote when .git/config is missing', () => {
+    mkdirSync(join(dir, '.git'), { recursive: true });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'no-remote' });
+  });
+
+  test('returns no-remote when the project has no .git at all', () => {
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'no-remote' });
+  });
+
+  test('treats unparseable origin url as non-github (defensive — origin field present but malformed)', () => {
+    seedRepo(dir, { config: '[remote "origin"]\n\turl = totally-bogus\n' });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: null });
+  });
+
+  test('credential-embedded https URL keeps the username as the login and drops the password', () => {
+    const url = 'https://user:pass@ghes.corp.example/org/repo.git';
+    const parsed = parseGitHubOriginUrl(url, new Set(['ghes.corp.example']));
+    expect(parsed).toEqual({
+      host: 'ghes.corp.example',
+      owner: 'org',
+      repo: 'repo',
+      transport: 'https',
+      login: 'user',
+    });
+    expect(JSON.stringify(parsed)).not.toContain('pass');
+    seedRepo(dir, { config: `[remote "origin"]\n\turl = ${url}\n` });
+    declareGitHubHosts(home(), 'ghes.corp.example');
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'ghes.corp.example',
+      owner: 'org',
+      repo: 'repo',
+      transport: 'https',
+    });
+  });
+
+  test('uses the first url= line and ignores subsequent ones', () => {
+    seedRepo(dir, {
+      config:
+        '[remote "origin"]\n\turl = https://github.com/inkeep/open-knowledge.git\n\turl = https://gitlab.com/x/y.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('ignores url lines from other remote sections', () => {
+    seedRepo(dir, {
+      config:
+        '[remote "upstream"]\n\turl = https://github.com/upstream/foo.git\n[remote "origin"]\n\turl = https://github.com/inkeep/open-knowledge.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+  });
+});
+
+describe('resolveGitHubAuthHost', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-host-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('returns github.com for a github.com origin', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://github.com/inkeep/open-knowledge.git\n',
+    });
+    expect(resolveGitHubAuthHost(dir)).toEqual({ kind: 'ok', host: 'github.com' });
+  });
+
+  test('returns the enterprise host for a declared GHES origin', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://ghes.acme.test/acme/kb.git\n',
+    });
+    declareGitHubHosts(home(), 'ghes.acme.test');
+    expect(resolveGitHubAuthHost(dir)).toEqual({ kind: 'ok', host: 'ghes.acme.test' });
+  });
+
+  test('rejects a known non-GitHub forge, so GitHub flows have no host', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@gitlab.com:team/notes.git\n',
+    });
+    expect(resolveGitHubAuthHost(dir)).toEqual({ kind: 'rejected-origin', host: 'gitlab.com' });
+  });
+
+  test('normalizes rejected explicit hosts and preserves accepted host ports', () => {
+    expect(resolveGitHubAuthHost(dir, 'GHES.Example.test:8443')).toEqual({
+      kind: 'rejected-explicit',
+      host: 'ghes.example.test',
+    });
+    expect(
+      resolveGitHubAuthHost(dir, 'GHES.Example.test:8443', new Set(['ghes.example.test'])),
+    ).toEqual({
+      kind: 'ok',
+      host: 'GHES.Example.test:8443',
+    });
+  });
+
+  test('uses a captured declaration set until the caller supplies a fresh one', () => {
+    const captured = readDeclaredGitHubHosts();
+    declareGitHubHosts(home(), 'ghes.example.test');
+    expect(resolveGitHubAuthHost(dir, 'ghes.example.test', captured)).toEqual({
+      kind: 'rejected-explicit',
+      host: 'ghes.example.test',
+    });
+    expect(resolveGitHubAuthHost(dir, 'ghes.example.test')).toEqual({
+      kind: 'ok',
+      host: 'ghes.example.test',
+    });
+  });
+
+  test('an explicit GitHub host overrides an unparseable origin', () => {
+    seedRepo(dir, { config: '[remote "origin"]\n\turl = ../repository\n' });
+    expect(resolveGitHubAuthHost(dir, 'github.com')).toEqual({ kind: 'ok', host: 'github.com' });
+    expect(resolveGitHubAuthHost(dir)).toEqual({ kind: 'rejected-origin', host: null });
+  });
+
+  test('falls back to github.com when there is no .git at all', () => {
+    expect(resolveGitHubAuthHost(dir)).toEqual({ kind: 'ok', host: 'github.com' });
+  });
+});
+
+describe('shouldResetAmbientCredentials', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-reset-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('github.com origin resets — OK can supply a credential there', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://github.com/inkeep/open-knowledge.git\n',
+    });
+    expect(shouldResetAmbientCredentials(dir)).toBe(true);
+  });
+
+  test('declared GHES origin resets — the declaration opts the host into GitHub handling', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://ghes.acme.test/acme/kb.git\n',
+    });
+    declareGitHubHosts(home(), 'ghes.acme.test');
+    expect(shouldResetAmbientCredentials(dir)).toBe(true);
+  });
+
+  test('github.com SSH origin resets — the decision is host-scoped', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@github.com:inkeep/open-knowledge.git\n',
+    });
+    expect(shouldResetAmbientCredentials(dir)).toBe(true);
+  });
+
+  test('gitlab origin does NOT reset — its ambient credential is the only one', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://gitlab.com/team/notes.git\n',
+    });
+    expect(shouldResetAmbientCredentials(dir)).toBe(false);
+  });
+
+  test('bitbucket origin does NOT reset', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@bitbucket.org:team/notes.git\n',
+    });
+    expect(shouldResetAmbientCredentials(dir)).toBe(false);
+  });
+
+  test('https origin with userinfo resets — the host is what decides', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://alice@github.com/inkeep/open-knowledge.git\n',
+    });
+    expect(shouldResetAmbientCredentials(dir)).toBe(true);
+  });
+
+  test('no remote resets — nothing ambient to preserve, sync is dormant anyway', () => {
+    expect(shouldResetAmbientCredentials(dir)).toBe(true);
+  });
+});
+
+describe('resolveAmbientCredentialReset', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-reset-token-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  function storeWith(...hosts: string[]) {
+    const asked: string[] = [];
+    return {
+      asked,
+      store: {
+        async get(host: string) {
+          asked.push(host);
+          return hosts.includes(host) ? { login: 'alice', token: 'tok' } : null;
+        },
+      },
+    };
+  }
+
+  test('a non-GitHub origin with a stored token resets, so a stale ambient credential cannot win', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://Git.Corp.example:8443/team/kb.git\n',
+    });
+    const { store, asked } = storeWith('git.corp.example:8443');
+    expect(await resolveAmbientCredentialReset(dir, store)).toBe(true);
+    expect(asked).toEqual(['git.corp.example:8443']);
+  });
+
+  test('a plain http origin with a stored token keeps the ambient chain the helper cannot replace', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = http://git.corp.example/team/kb.git\n',
+    });
+    expect(await resolveAmbientCredentialReset(dir, storeWith('git.corp.example').store)).toBe(
+      false,
+    );
+  });
+
+  test('a non-GitHub origin with nothing stored keeps the ambient chain', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://gitlab.com/team/notes.git\n',
+    });
+    expect(await resolveAmbientCredentialReset(dir, storeWith().store)).toBe(false);
+  });
+
+  test('a non-GitHub origin with no token store keeps the ambient chain', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://gitlab.com/team/notes.git\n',
+    });
+    expect(await resolveAmbientCredentialReset(dir, null)).toBe(false);
+  });
+
+  test('a token store that throws surfaces the failure instead of choosing a chain', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://gitlab.com/team/notes.git\n',
+    });
+    const store = {
+      async get(): Promise<never> {
+        throw new Error('keychain locked');
+      },
+    };
+    await expect(resolveAmbientCredentialReset(dir, store)).rejects.toThrow('keychain locked');
+  });
+
+  test('a declared GitHub Enterprise origin over plain http keeps the ambient chain', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = http://ghes.corp.example/team/kb.git\n',
+    });
+    const declared = new Set(['ghes.corp.example']);
+    expect(await resolveAmbientCredentialReset(dir, storeWith().store, declared)).toBe(false);
+    const resolve = createSyncCredentialConfigResolver({
+      projectDir: dir,
+      tokenStore: storeWith().store,
+      localOpCliArgs: ['ok'],
+      declaredGitHubHosts: declared,
+    });
+    expect(await resolve()).not.toContain('credential.helper=');
+  });
+
+  test('a declared GitHub Enterprise origin over https still resets the ambient chain', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://ghes.corp.example/team/kb.git\n',
+    });
+    const declared = new Set(['ghes.corp.example']);
+    expect(await resolveAmbientCredentialReset(dir, storeWith().store, declared)).toBe(true);
+  });
+
+  test('a failed lookup keeps the chain the resolver already chose', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://gitlab.com/team/notes.git\n',
+    });
+    let fail = false;
+    const store = {
+      async get(host: string) {
+        if (fail) throw new Error('keychain locked');
+        return host === 'gitlab.com' ? { login: 'oauth2', token: 'tok' } : null;
+      },
+    };
+    const resolve = createSyncCredentialConfigResolver({
+      projectDir: dir,
+      tokenStore: store,
+      localOpCliArgs: ['ok'],
+      declaredGitHubHosts: new Set(),
+    });
+    const first = await resolve();
+    expect(first).toContain('credential.helper=');
+    fail = true;
+    expect(await resolve()).toEqual(first);
+    expect(await resolve()).toEqual(first);
+  });
+
+  test('a lookup that fails before any chain was chosen falls back to the ambient chain', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://gitlab.com/team/notes.git\n',
+    });
+    const resolve = createSyncCredentialConfigResolver({
+      projectDir: dir,
+      tokenStore: {
+        async get(): Promise<never> {
+          throw new Error('keychain locked');
+        },
+      },
+      localOpCliArgs: ['ok'],
+      declaredGitHubHosts: new Set(),
+    });
+    expect(await resolve()).not.toContain('credential.helper=');
+  });
+
+  test('a GitHub origin resets without reading the token store', async () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://github.com/inkeep/open-knowledge.git\n',
+    });
+    const { store, asked } = storeWith();
+    expect(await resolveAmbientCredentialReset(dir, store)).toBe(true);
+    expect(asked).toEqual([]);
+  });
+
+  test('readOriginCredentialHost keeps a non-default port and drops the case', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://Git.Corp.example:8443/group/sub/kb.git\n',
+    });
+    expect(readOriginCredentialHost(dir)).toBe('git.corp.example:8443');
+  });
+});
+
+describe('branchExistsOnOrigin', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-branch-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('returns true when a loose ref exists', () => {
+    seedRepo(dir, { branchRefs: { main: `${OID_A}\n` } });
+    expect(branchExistsOnOrigin(dir, 'main')).toBe(true);
+  });
+
+  test('returns false when no ref file exists', () => {
+    seedRepo(dir, { branchRefs: { main: `${OID_A}\n` } });
+    expect(branchExistsOnOrigin(dir, 'feature-x')).toBe(false);
+  });
+
+  test('returns true for a packed-refs entry', () => {
+    seedRepo(dir, {
+      packedRefs: `# pack-refs with: peeled fully-peeled sorted\n${OID_A} refs/remotes/origin/main\n${OID_B} refs/remotes/origin/develop\n`,
+    });
+    expect(branchExistsOnOrigin(dir, 'develop')).toBe(true);
+  });
+
+  test('returns false for an absent packed-refs entry', () => {
+    seedRepo(dir, {
+      packedRefs: `# pack-refs with: peeled fully-peeled sorted\n${OID_A} refs/remotes/origin/main\n`,
+    });
+    expect(branchExistsOnOrigin(dir, 'feature-x')).toBe(false);
+  });
+
+  test('returns true when the branch is loose AND packed (loose wins)', () => {
+    seedRepo(dir, {
+      branchRefs: { main: `${OID_A}\n` },
+      packedRefs: `# pack-refs with: peeled fully-peeled sorted\n${OID_B} refs/remotes/origin/main\n`,
+    });
+    expect(branchExistsOnOrigin(dir, 'main')).toBe(true);
+  });
+
+  test('returns false when no .git at all', () => {
+    expect(branchExistsOnOrigin(dir, 'main')).toBe(false);
+  });
+
+  test('handles branches with slashes in loose-ref form', () => {
+    seedRepo(dir, { branchRefs: { 'feat/sharing': `${OID_A}\n` } });
+    expect(branchExistsOnOrigin(dir, 'feat/sharing')).toBe(true);
+  });
+
+  test('handles branches with slashes via packed-refs', () => {
+    seedRepo(dir, {
+      packedRefs: `${OID_A} refs/remotes/origin/feat/sharing-virality-flow\n`,
+    });
+    expect(branchExistsOnOrigin(dir, 'feat/sharing-virality-flow')).toBe(true);
+  });
+});
+
+describe('readSyncRemoteInfo', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-remote-info-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('GitHub https origin yields owner/repo label + browsable webUrl', () => {
+    seedRepo(dir, { config: CANONICAL_CONFIG_HTTPS });
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'inkeep/open-knowledge',
+      webUrl: 'https://github.com/inkeep/open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('GitHub scp-style ssh origin yields the same github webUrl', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@github.com:inkeep/open-knowledge.git\n',
+    });
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'inkeep/open-knowledge',
+      webUrl: 'https://github.com/inkeep/open-knowledge',
+      transport: 'ssh',
+    });
+  });
+
+  test('declared GHES origin yields a host-qualified label and a browsable webUrl', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://ghes.acme.test/team/notes.git\n',
+    });
+    declareGitHubHosts(home(), 'ghes.acme.test');
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'ghes.acme.test/team/notes',
+      webUrl: 'https://ghes.acme.test/team/notes',
+      transport: 'https',
+    });
+  });
+
+  test('GitHub-host origin with embedded credentials builds a webUrl carrying neither', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://user:pass@ghes.corp.example/org/repo.git\n',
+    });
+    declareGitHubHosts(home(), 'ghes.corp.example');
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'ghes.corp.example/org/repo',
+      webUrl: 'https://ghes.corp.example/org/repo',
+      transport: 'https',
+    });
+  });
+
+  test('known non-github forge yields a readable label and a null webUrl (no link)', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://gitlab.com/team/notes.git\n',
+    });
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'gitlab.com/team/notes',
+      webUrl: null,
+      transport: 'https',
+    });
+  });
+
+  test('a plain http origin reports the http transport, distinct from https', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = http://git.corp.example/team/notes.git\n',
+    });
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'git.corp.example/team/notes',
+      webUrl: null,
+      transport: 'http',
+    });
+  });
+
+  test('non-github scp-style ssh origin strips credentials into host/path label', () => {
+    seedRepo(dir, { config: '[remote "origin"]\n\turl = git@gitlab.com:team/notes.git\n' });
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'gitlab.com/team/notes',
+      webUrl: null,
+      transport: 'ssh',
+    });
+  });
+
+  test('non-github https origin with embedded credentials (incl. @ in password) leaks none', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://user:p@ss@gitlab.com/org/repo.git\n',
+    });
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'gitlab.com/org/repo',
+      webUrl: null,
+      transport: 'https',
+    });
+  });
+
+  test('returns null when no origin url is configured', () => {
+    seedRepo(dir, { config: '[core]\n\tbare = false\n' });
+    expect(readSyncRemoteInfo(dir)).toBeNull();
+  });
+
+  test('returns null when the project has no .git at all', () => {
+    expect(readSyncRemoteInfo(dir)).toBeNull();
+  });
+});
+
+describe('linked-worktree common-dir resolution', () => {
+  let root: string;
+  let project: string;
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'share-git-worktree-'));
+    const commonDir = join(root, 'main-git');
+    mkdirSync(commonDir, { recursive: true });
+    writeFileSync(join(commonDir, 'config'), CANONICAL_CONFIG_HTTPS, 'utf-8');
+    const refDir = join(commonDir, 'refs', 'remotes', 'origin');
+    mkdirSync(refDir, { recursive: true });
+    writeFileSync(join(refDir, 'feat-bar'), `${OID_A}\n`, 'utf-8');
+    const worktreeGitDir = join(commonDir, 'worktrees', 'wt');
+    mkdirSync(worktreeGitDir, { recursive: true });
+    writeFileSync(join(worktreeGitDir, 'HEAD'), 'ref: refs/heads/feat-bar\n', 'utf-8');
+    writeFileSync(
+      join(worktreeGitDir, 'commondir'),
+      `${relative(worktreeGitDir, commonDir)}\n`,
+      'utf-8',
+    );
+    project = join(root, 'wt-checkout');
+    mkdirSync(project, { recursive: true });
+    writeFileSync(join(project, '.git'), `gitdir: ${worktreeGitDir}\n`, 'utf-8');
+  });
+
+  afterEach(() => {
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test('reads origin config via commondir (regression: worktree reported no-remote)', () => {
+    expect(readOriginGitHubRepo(project)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'inkeep',
+      repo: 'open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('readSyncRemoteInfo resolves the common-dir origin for a worktree', () => {
+    expect(readSyncRemoteInfo(project)).toEqual({
+      label: 'inkeep/open-knowledge',
+      webUrl: 'https://github.com/inkeep/open-knowledge',
+      transport: 'https',
+    });
+  });
+
+  test('branchExistsOnOrigin reads remote-tracking refs from the common dir', () => {
+    expect(branchExistsOnOrigin(project, 'feat-bar')).toBe(true);
+    expect(branchExistsOnOrigin(project, 'nope')).toBe(false);
+  });
+
+  test('HEAD still resolves from the per-worktree git dir, not the common dir', () => {
+    expect(readGitHeadBranch(project)).toBe('feat-bar');
+  });
+});
+
+describe('sameGitHubLogin', () => {
+  test('a casing difference is the same account', () => {
+    expect(sameGitHubLogin('Alice', 'alice')).toBe(true);
+    expect(sameGitHubLogin('alice', 'ALICE')).toBe(true);
+    expect(sameGitHubLogin('alice', 'alice')).toBe(true);
+  });
+
+  test('different accounts are not the same', () => {
+    expect(sameGitHubLogin('alice', 'bob')).toBe(false);
+  });
+
+  test('an absent side is never a match', () => {
+    expect(sameGitHubLogin('alice', undefined)).toBe(false);
+    expect(sameGitHubLogin(undefined, 'alice')).toBe(false);
+    expect(sameGitHubLogin(undefined, undefined)).toBe(false);
+  });
+});
+
+describe('git host declaration gates GitHub treatment', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'share-git-declared-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  const SELF_HOSTED_CONFIG =
+    '[remote "origin"]\n\turl = https://git.example.internal/team/kb.git\n';
+
+  test('github.com stays a GitHub origin with no declaration', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://github.com/o/r.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'github.com',
+      owner: 'o',
+      repo: 'r',
+      transport: 'https',
+    });
+  });
+
+  test('an undeclared origin whose host merely contains github stays generic', () => {
+    seedRepo(dir, { config: '[remote "origin"]\n\turl = https://github.acme.test/team/kb.git\n' });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'github.acme.test' });
+    expect(shouldResetAmbientCredentials(dir)).toBe(false);
+    expect(resolveGitHubAuthHost(dir)).toEqual({
+      kind: 'rejected-origin',
+      host: 'github.acme.test',
+    });
+  });
+
+  test('an undeclared self-hosted https origin is a generic git remote', () => {
+    seedRepo(dir, { config: SELF_HOSTED_CONFIG });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'git.example.internal' });
+    expect(shouldResetAmbientCredentials(dir)).toBe(false);
+    expect(resolveGitHubAuthHost(dir)).toEqual({
+      kind: 'rejected-origin',
+      host: 'git.example.internal',
+    });
+    expect(readSyncRemoteInfo(dir)?.webUrl).toBeNull();
+  });
+
+  test('declaring the host opts it into GitHub treatment on every surface', () => {
+    seedRepo(dir, { config: SELF_HOSTED_CONFIG });
+    declareGitHubHosts(home(), 'git.example.internal');
+    expect(readOriginGitHubRepo(dir)).toEqual({
+      kind: 'ok',
+      host: 'git.example.internal',
+      owner: 'team',
+      repo: 'kb',
+      transport: 'https',
+    });
+    expect(shouldResetAmbientCredentials(dir)).toBe(true);
+    expect(resolveGitHubAuthHost(dir)).toEqual({ kind: 'ok', host: 'git.example.internal' });
+    expect(readSyncRemoteInfo(dir)).toEqual({
+      label: 'git.example.internal/team/kb',
+      webUrl: 'https://git.example.internal/team/kb',
+      transport: 'https',
+    });
+  });
+
+  test('an undeclared self-hosted scp-style ssh origin is a generic git remote', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = git@git.example.internal:team/kb.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'git.example.internal' });
+  });
+
+  test('an undeclared self-hosted ssh:// origin is a generic git remote', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = ssh://git@git.example.internal/team/kb.git\n',
+    });
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'git.example.internal' });
+    expect(readSyncRemoteInfo(dir)?.transport).toBe('ssh');
+  });
+
+  test('an origin the parser cannot read still reports its transport', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://git.example.com/scm/team/sub/wiki.git\n',
+    });
+    expect(readSyncRemoteInfo(dir)).toMatchObject({ webUrl: null, transport: 'https' });
+  });
+
+  test.each(['gitlab.com', 'bitbucket.org', 'codeberg.org', 'gitea.com', 'sr.ht', 'sourcehut.org'])(
+    '%s still classifies as a generic git remote',
+    (host) => {
+      seedRepo(dir, { config: `[remote "origin"]\n\turl = https://${host}/team/kb.git\n` });
+      expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: host });
+    },
+  );
+
+  test('a declaration written without a port matches a ported remote URL', () => {
+    seedRepo(dir, {
+      config: '[remote "origin"]\n\turl = https://git.example.internal:8443/team/kb.git\n',
+    });
+    declareGitHubHosts(home(), 'git.example.internal');
+    expect(readOriginGitHubRepo(dir)).toMatchObject({
+      kind: 'ok',
+      host: 'git.example.internal',
+    });
+  });
+
+  test('a malformed ~/.ok/global.yml yields no declarations and is left on disk unchanged', () => {
+    const malformed = 'git:\n  hosts:\n   - [unclosed\n';
+    writeUserConfig(home(), malformed);
+    seedRepo(dir, { config: SELF_HOSTED_CONFIG });
+
+    expect(readDeclaredGitHubHosts().size).toBe(0);
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'git.example.internal' });
+
+    const configPath = join(home(), '.ok', 'global.yml');
+    expect(existsSync(configPath)).toBe(true);
+    expect(readFileSync(configPath, 'utf-8')).toBe(malformed);
+  });
+
+  test("a declaration in the project's .ok/config.yml is ignored", () => {
+    mkdirSync(join(dir, '.ok'), { recursive: true });
+    writeFileSync(join(dir, '.ok', 'config.yml'), gitHostsYaml('git.example.internal'), 'utf-8');
+    seedRepo(dir, { config: SELF_HOSTED_CONFIG });
+
+    expect(readDeclaredGitHubHosts().size).toBe(0);
+    expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'git.example.internal' });
+    expect(shouldResetAmbientCredentials(dir)).toBe(false);
+  });
+
+  test('reads declarations from an explicit home directory override', () => {
+    const otherHome = mkdtempSync(join(tmpdir(), 'share-git-other-home-'));
+    try {
+      declareGitHubHosts(otherHome, 'git.example.internal');
+      expect([...readDeclaredGitHubHosts(otherHome)]).toEqual(['git.example.internal']);
+      expect(readDeclaredGitHubHosts().size).toBe(0);
+    } finally {
+      rmSync(otherHome, { recursive: true, force: true });
+    }
+  });
+});

@@ -1,0 +1,276 @@
+import { describe, expect, test, vi } from 'vitest';
+import * as NavigatorAppModule from './NavigatorApp';
+
+const { displayNameForPath, removeRecentFromList, resolveErrorMessage, runWithErrorStatePure } =
+  NavigatorAppModule;
+
+interface MockBridge {
+  config: {
+    collabUrl: string;
+    apiOrigin: string;
+    projectPath: string;
+    projectName: string;
+    mode: 'navigator' | 'editor';
+  };
+  project: {
+    listRecent: ReturnType<typeof vi.fn>;
+    removeRecent: ReturnType<typeof vi.fn>;
+    getSessionState: ReturnType<typeof vi.fn>;
+    setSessionState: ReturnType<typeof vi.fn>;
+    open: ReturnType<typeof vi.fn>;
+    createNew: ReturnType<typeof vi.fn>;
+    recordCreateNewBannerShown: ReturnType<typeof vi.fn>;
+    readHeadBranch: ReturnType<typeof vi.fn>;
+    close: ReturnType<typeof vi.fn>;
+  };
+  dialog: {
+    openFolder: ReturnType<typeof vi.fn>;
+  };
+}
+
+function makeBridge(overrides: Partial<MockBridge> = {}): MockBridge {
+  return {
+    config: {
+      collabUrl: '',
+      apiOrigin: '',
+      projectPath: '',
+      projectName: 'Project Navigator',
+      mode: 'navigator',
+    },
+    project: {
+      listRecent: vi.fn(() => Promise.resolve([])),
+      removeRecent: vi.fn(() => Promise.resolve()),
+      getSessionState: vi.fn(() =>
+        Promise.resolve({
+          updatedAt: null,
+          panes: [
+            {
+              id: 'pane-main',
+              openTabs: [],
+              pinnedTabIds: [],
+              activeTabId: null,
+              size: 100,
+            },
+          ],
+          focusedPaneId: 'pane-main',
+        }),
+      ),
+      setSessionState: vi.fn(() => Promise.resolve()),
+      open: vi.fn(() => Promise.resolve()),
+      createNew: vi.fn(() => Promise.resolve()),
+      recordCreateNewBannerShown: vi.fn(() => Promise.resolve()),
+      readHeadBranch: vi.fn(() =>
+        Promise.resolve({ currentBranch: null, headSha: null, detached: false }),
+      ),
+      close: vi.fn(() => Promise.resolve()),
+    },
+    dialog: {
+      openFolder: vi.fn(() => Promise.resolve(null)),
+    },
+    ...overrides,
+  };
+}
+
+describe('NavigatorApp bridge contract', () => {
+  test('Component module imports cleanly', () => {
+    expect(typeof NavigatorAppModule.NavigatorApp).toBe('function');
+    expect(typeof NavigatorAppModule.resolveErrorMessage).toBe('function');
+    expect(typeof NavigatorAppModule.runWithErrorStatePure).toBe('function');
+  });
+
+  test('bridge.project.listRecent returns RecentProjectEntry[] shape', async () => {
+    const bridge = makeBridge({
+      project: {
+        listRecent: vi.fn(() =>
+          Promise.resolve([
+            { path: '/tmp/a', name: 'a', lastOpenedAt: '2026-04-20T00:00:00Z' },
+            { path: '/tmp/b', name: 'b', lastOpenedAt: '2026-04-19T00:00:00Z', missing: true },
+          ]),
+        ),
+        removeRecent: vi.fn(() => Promise.resolve()),
+        getSessionState: vi.fn(() =>
+          Promise.resolve({
+            updatedAt: null,
+            panes: [
+              {
+                id: 'pane-main',
+                openTabs: [],
+                pinnedTabIds: [],
+                activeTabId: null,
+                size: 100,
+              },
+            ],
+            focusedPaneId: 'pane-main',
+          }),
+        ),
+        setSessionState: vi.fn(() => Promise.resolve()),
+        open: vi.fn(() => Promise.resolve()),
+        createNew: vi.fn(() => Promise.resolve()),
+        recordCreateNewBannerShown: vi.fn(() => Promise.resolve()),
+        close: vi.fn(() => Promise.resolve()),
+      },
+    });
+    const list = await bridge.project.listRecent();
+    expect(list.length).toBe(2);
+    expect(list[0]?.path).toBe('/tmp/a');
+    expect(list[1]?.missing).toBe(true);
+  });
+
+  test('bridge.project.removeRecent accepts a project path', async () => {
+    const bridge = makeBridge();
+    await bridge.project.removeRecent('/tmp/stale');
+    expect(bridge.project.removeRecent).toHaveBeenCalledWith('/tmp/stale');
+  });
+
+  test('bridge.project.open accepts the new-window request shape', async () => {
+    const bridge = makeBridge();
+    await bridge.project.open({
+      path: '/tmp/x',
+      target: 'new-window',
+      entryPoint: 'pick-existing',
+    });
+    expect(bridge.project.open).toHaveBeenCalledWith({
+      path: '/tmp/x',
+      target: 'new-window',
+      entryPoint: 'pick-existing',
+    });
+  });
+
+  test('bridge.dialog.openFolder returns string | null', async () => {
+    const bridge = makeBridge({
+      dialog: {
+        openFolder: vi.fn(() => Promise.resolve('/tmp/picked')),
+      },
+    });
+    const result = await bridge.dialog.openFolder();
+    expect(result).toBe('/tmp/picked');
+  });
+
+  test('bridge.project.readHeadBranch resolves to a HeadBranchInfo shape', async () => {
+    const bridge = makeBridge({
+      project: {
+        listRecent: vi.fn(() => Promise.resolve([])),
+        removeRecent: vi.fn(() => Promise.resolve()),
+        getSessionState: vi.fn(() =>
+          Promise.resolve({
+            updatedAt: null,
+            panes: [
+              {
+                id: 'pane-main',
+                openTabs: [],
+                pinnedTabIds: [],
+                activeTabId: null,
+                size: 100,
+              },
+            ],
+            focusedPaneId: 'pane-main',
+          }),
+        ),
+        setSessionState: vi.fn(() => Promise.resolve()),
+        open: vi.fn(() => Promise.resolve()),
+        createNew: vi.fn(() => Promise.resolve()),
+        recordCreateNewBannerShown: vi.fn(() => Promise.resolve()),
+        readHeadBranch: vi.fn(() =>
+          Promise.resolve({ currentBranch: 'feat/test', headSha: null, detached: false }),
+        ),
+        close: vi.fn(() => Promise.resolve()),
+      },
+    });
+    const info = await bridge.project.readHeadBranch('/tmp/proj');
+    expect(bridge.project.readHeadBranch).toHaveBeenCalledWith('/tmp/proj');
+    expect(info).toEqual({ currentBranch: 'feat/test', headSha: null, detached: false });
+  });
+
+  test('readHeadBranch sentinel collapses non-git / unreadable projects to all-null', async () => {
+    const bridge = makeBridge();
+    const info = await bridge.project.readHeadBranch('/tmp/no-git');
+    expect(info).toEqual({ currentBranch: null, headSha: null, detached: false });
+  });
+});
+
+describe('NavigatorApp recent-project removal helpers', () => {
+  test('removeRecentFromList drops only the matching path and preserves order', async () => {
+    const next = removeRecentFromList(
+      [
+        { path: '/tmp/a', name: 'a', lastOpenedAt: '2026-04-20T00:00:00Z' },
+        { path: '/tmp/b', name: 'b', lastOpenedAt: '2026-04-19T00:00:00Z', missing: true },
+        { path: '/tmp/c', name: 'c', lastOpenedAt: '2026-04-18T00:00:00Z' },
+      ],
+      '/tmp/b',
+    );
+    expect(next.map((row) => row.path)).toEqual(['/tmp/a', '/tmp/c']);
+  });
+
+  test('removeRecentFromList is a no-op for unknown paths', async () => {
+    const recents = [{ path: '/tmp/a', name: 'a', lastOpenedAt: '2026-04-20T00:00:00Z' }];
+    expect(removeRecentFromList(recents, '/tmp/missing')).toEqual(recents);
+  });
+});
+
+describe('NavigatorApp error-state helpers', () => {
+  test('resolveErrorMessage prefers Error.message', async () => {
+    expect(resolveErrorMessage(new Error('boom'), 'fallback')).toBe('boom');
+  });
+
+  test('resolveErrorMessage falls back when message is empty', async () => {
+    expect(resolveErrorMessage(new Error(''), 'fallback')).toBe('fallback');
+  });
+
+  test('resolveErrorMessage falls back for non-Error throws (string, undefined, object)', async () => {
+    expect(resolveErrorMessage('plain-string', 'fallback')).toBe('fallback');
+    expect(resolveErrorMessage(undefined, 'fallback')).toBe('fallback');
+    expect(resolveErrorMessage({ weird: 'object' }, 'fallback')).toBe('fallback');
+    expect(resolveErrorMessage(null, 'fallback')).toBe('fallback');
+  });
+
+  test('runWithErrorStatePure clears error state then awaits the wrapped fn', async () => {
+    const setError = vi.fn(() => {});
+    const fn = vi.fn(() => Promise.resolve());
+    await runWithErrorStatePure(fn, 'fallback', setError);
+    expect(setError).toHaveBeenCalledWith(null);
+    expect(fn).toHaveBeenCalled();
+  });
+
+  test('runWithErrorStatePure surfaces rejections via setError with Error.message', async () => {
+    const setErrorCalls: Array<string | null> = [];
+    await runWithErrorStatePure(
+      () => Promise.reject(new Error('boot failed')),
+      'Failed to open project.',
+      (msg) => {
+        setErrorCalls.push(msg);
+      },
+    );
+    expect(setErrorCalls).toEqual([null, 'boot failed']);
+  });
+
+  test('runWithErrorStatePure falls back when rejection has no usable message', async () => {
+    const setErrorCalls: Array<string | null> = [];
+    await runWithErrorStatePure(
+      () => Promise.reject('network dropped'),
+      'Failed to open project.',
+      (msg) => {
+        setErrorCalls.push(msg);
+      },
+    );
+    expect(setErrorCalls).toEqual([null, 'Failed to open project.']);
+  });
+
+  test('runWithErrorStatePure does NOT re-throw on rejection (caller continues)', async () => {
+    let afterAwait = false;
+    await runWithErrorStatePure(
+      () => Promise.reject(new Error('x')),
+      'fallback',
+      () => {},
+    );
+    afterAwait = true;
+    expect(afterAwait).toBe(true);
+  });
+
+  test('displayNameForPath returns the last path segment for the Opening… overlay', async () => {
+    expect(displayNameForPath('/Users/me/Documents/oktest')).toBe('oktest');
+    expect(displayNameForPath('/Users/me/Documents/oktest/')).toBe('oktest');
+    expect(displayNameForPath('C:\\Users\\me\\oktest')).toBe('oktest');
+    expect(displayNameForPath('oktest')).toBe('oktest');
+    expect(displayNameForPath('/')).toBe('/');
+  });
+});

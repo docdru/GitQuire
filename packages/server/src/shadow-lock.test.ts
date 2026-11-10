@@ -1,0 +1,297 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { hostname, tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import {
+  processStartTokenFromOs,
+  processStartTokenOffsetFromOs,
+} from '../../../test-support/os-process-start.test-helper.ts';
+import {
+  lockWrittenBeforeProcessStarted,
+  lockWrittenByRunningProcess,
+  type OwnedProcess,
+  ownedProcessHasExited,
+  startOwnedProcess,
+  stopOwnedProcess,
+} from '../../../test-support/owned-process.test-helper.ts';
+import { getLogger } from './logger.ts';
+import { acquireLock, type LockMetadata, releaseLock } from './shadow-lock';
+
+let tmpDir: string;
+
+beforeEach(async () => {
+  tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-lock-test-'));
+});
+
+afterEach(async () => {
+  await rm(tmpDir, { recursive: true, force: true });
+});
+
+describe('acquireLock', () => {
+  test('creates lock file with correct metadata', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    const lockPath = acquireLock(shadowDir, '/some/worktree');
+
+    expect(lockPath).toBe(resolve(shadowDir, 'lock'));
+    expect(existsSync(lockPath)).toBe(true);
+
+    const metadata: LockMetadata = JSON.parse(readFileSync(lockPath, 'utf-8'));
+    expect(metadata.pid).toBe(process.pid);
+    expect(metadata.hostname).toBe(hostname());
+    expect(metadata.worktreeRoot).toBe('/some/worktree');
+    expect(typeof metadata.startedAt).toBe('string');
+    expect(Number.isNaN(Date.parse(metadata.startedAt))).toBe(false);
+  });
+
+  test('replaces stale lock from dead process', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    const staleLock: LockMetadata = {
+      pid: 99999999,
+      hostname: hostname(),
+      startedAt: new Date().toISOString(),
+      worktreeRoot: '/old/worktree',
+    };
+    writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(staleLock), 'utf-8');
+
+    const lockPath = acquireLock(shadowDir, '/new/worktree');
+
+    const metadata: LockMetadata = JSON.parse(readFileSync(lockPath, 'utf-8'));
+    expect(metadata.pid).toBe(process.pid);
+    expect(metadata.worktreeRoot).toBe('/new/worktree');
+  });
+
+  test('records the replaced holder as lockPid, apart from the logger pid binding', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+    const staleLock: LockMetadata = {
+      pid: 99999999,
+      hostname: hostname(),
+      startedAt: new Date().toISOString(),
+      worktreeRoot: '/old/worktree',
+    };
+    writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(staleLock), 'utf-8');
+    const warn = vi.spyOn(getLogger('shadow-lock'), 'warn');
+    try {
+      acquireLock(shadowDir, '/new/worktree');
+      expect(warn).toHaveBeenCalledWith(
+        { lockPid: 99999999, host: hostname(), holder: 'gone' },
+        expect.stringContaining('Stale lock detected (pid=99999999'),
+      );
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  test('records an invalid lock pid as lockPid, apart from the logger pid binding', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+    const lockPath = resolve(shadowDir, 'lock');
+    writeFileSync(
+      lockPath,
+      JSON.stringify({ pid: 0, hostname: hostname(), startedAt: new Date().toISOString() }),
+      'utf-8',
+    );
+    const warn = vi.spyOn(getLogger('shadow-lock'), 'warn');
+    try {
+      acquireLock(shadowDir, '/new/worktree');
+      expect(warn).toHaveBeenCalledWith(
+        { lockPath, lockPid: '0' },
+        expect.stringContaining('Invalid lock pid (0)'),
+      );
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  test('rejects when lock owner is alive (different process)', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    const liveLock: LockMetadata = {
+      pid: process.ppid > 1 ? process.ppid : process.pid + 1,
+      hostname: hostname(),
+      startedAt: new Date().toISOString(),
+      worktreeRoot: '/other/worktree',
+    };
+    writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(liveLock), 'utf-8');
+
+    expect(() => acquireLock(shadowDir, '/my/worktree')).toThrow(/locked by another writer/);
+  });
+
+  test('replaces corrupt lock file', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    writeFileSync(resolve(shadowDir, 'lock'), 'not valid json', 'utf-8');
+
+    const lockPath = acquireLock(shadowDir, '/my/worktree');
+    const metadata: LockMetadata = JSON.parse(readFileSync(lockPath, 'utf-8'));
+    expect(metadata.pid).toBe(process.pid);
+  });
+
+  test('is idempotent for same process', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    acquireLock(shadowDir, '/first/worktree');
+    acquireLock(shadowDir, '/second/worktree');
+
+    const metadata: LockMetadata = JSON.parse(readFileSync(resolve(shadowDir, 'lock'), 'utf-8'));
+    expect(metadata.pid).toBe(process.pid);
+    expect(metadata.worktreeRoot).toBe('/second/worktree');
+  });
+
+  test('replaces lock from different hostname', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    const remoteLock: LockMetadata = {
+      pid: 12345,
+      hostname: 'some-other-host-that-does-not-exist',
+      startedAt: new Date().toISOString(),
+      worktreeRoot: '/remote/worktree',
+    };
+    writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(remoteLock), 'utf-8');
+
+    const lockPath = acquireLock(shadowDir, '/my/worktree');
+    const metadata: LockMetadata = JSON.parse(readFileSync(lockPath, 'utf-8'));
+    expect(metadata.pid).toBe(process.pid);
+  });
+});
+
+describe('releaseLock', () => {
+  test('removes lock file', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    acquireLock(shadowDir, '/some/worktree');
+    expect(existsSync(resolve(shadowDir, 'lock'))).toBe(true);
+
+    releaseLock(shadowDir);
+    expect(existsSync(resolve(shadowDir, 'lock'))).toBe(false);
+  });
+
+  test('no-ops if lock does not exist', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    expect(() => releaseLock(shadowDir)).not.toThrow();
+    expect(existsSync(resolve(shadowDir, 'lock'))).toBe(false);
+  });
+});
+
+describe('acquireLock when the recorded pid is still running', () => {
+  const owned: OwnedProcess[] = [];
+
+  afterEach(async () => {
+    for (const holder of owned.splice(0)) await stopOwnedProcess(holder);
+  });
+
+  async function seedLockHeldBy(startedAt: (holder: OwnedProcess) => string): Promise<{
+    shadowDir: string;
+    holder: OwnedProcess;
+  }> {
+    const holder = await startOwnedProcess();
+    owned.push(holder);
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+    const lock: LockMetadata = {
+      pid: holder.pid,
+      hostname: hostname(),
+      startedAt: startedAt(holder),
+      worktreeRoot: '/previous/boot',
+    };
+    writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(lock), 'utf-8');
+    return { shadowDir, holder };
+  }
+
+  test('replaces a lock whose pid now belongs to a process started after it was written', async () => {
+    const { shadowDir, holder } = await seedLockHeldBy(lockWrittenBeforeProcessStarted);
+    const warn = vi.spyOn(getLogger('shadow-lock'), 'warn');
+
+    try {
+      expect(() => acquireLock(shadowDir, '/new/boot')).not.toThrow();
+      expect(warn).toHaveBeenCalledWith(
+        expect.objectContaining({ lockPid: holder.pid, holder: 'replaced' }),
+        expect.stringContaining('Stale lock detected'),
+      );
+    } finally {
+      warn.mockRestore();
+    }
+    const metadata: LockMetadata = JSON.parse(readFileSync(resolve(shadowDir, 'lock'), 'utf-8'));
+    expect(metadata.pid).toBe(process.pid);
+    expect(metadata.worktreeRoot).toBe('/new/boot');
+    expect(ownedProcessHasExited(holder)).toBe(false);
+  });
+
+  test('still rejects a lock held by the live process that wrote it, as its confirmed writer', async () => {
+    const { shadowDir, holder } = await seedLockHeldBy(lockWrittenByRunningProcess);
+    const warn = vi.spyOn(getLogger('shadow-lock'), 'warn');
+
+    try {
+      expect(() => acquireLock(shadowDir, '/new/boot')).toThrow(/locked by another writer/);
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+    const metadata: LockMetadata = JSON.parse(readFileSync(resolve(shadowDir, 'lock'), 'utf-8'));
+    expect(metadata.pid).toBe(holder.pid);
+  });
+});
+
+describe('the process start a shadow lock records for its writer', () => {
+  test('acquireLock records the start the operating system holds for the writer', () => {
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+
+    const lockPath = acquireLock(shadowDir, '/some/worktree');
+
+    const metadata: LockMetadata = JSON.parse(readFileSync(lockPath, 'utf-8'));
+    expect(metadata.processStart).toEqual(processStartTokenFromOs(process.pid));
+  });
+});
+
+describe.skipIf(process.platform === 'win32')(
+  'acquireLock when the recorded pid is held by a process it cannot verify',
+  () => {
+    const owned: OwnedProcess[] = [];
+
+    afterEach(async () => {
+      for (const holder of owned.splice(0)) await stopOwnedProcess(holder);
+    });
+
+    test('rejects a lock whose recorded process start is later than its holder started', async () => {
+      const holder = await startOwnedProcess();
+      owned.push(holder);
+      const shadowDir = resolve(tmpDir, 'shadow');
+      mkdirSync(shadowDir, { recursive: true });
+      const lock: LockMetadata = {
+        pid: holder.pid,
+        hostname: hostname(),
+        startedAt: lockWrittenByRunningProcess(holder),
+        worktreeRoot: '/previous/boot',
+        processStart: processStartTokenOffsetFromOs(holder.pid, 5),
+      };
+      writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(lock), 'utf-8');
+      const warn = vi.spyOn(getLogger('shadow-lock'), 'warn');
+
+      try {
+        expect(() => acquireLock(shadowDir, '/new/boot')).toThrow(/locked by another writer/);
+        expect(warn).toHaveBeenCalledWith(
+          { lockPid: holder.pid, holder: 'unverified', cause: 'process-start-mismatch' },
+          expect.stringContaining(`Could not confirm that pid=${holder.pid}`),
+        );
+      } finally {
+        warn.mockRestore();
+      }
+      const metadata: LockMetadata = JSON.parse(readFileSync(resolve(shadowDir, 'lock'), 'utf-8'));
+      expect(metadata.pid).toBe(holder.pid);
+      expect(ownedProcessHasExited(holder)).toBe(false);
+    });
+  },
+);

@@ -1,0 +1,520 @@
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { context, trace } from '@opentelemetry/api';
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
+import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  createTestLogger,
+  getLogger,
+  installTestLoggers,
+  loggerFactory,
+  PinoLogger,
+} from './logger';
+import { logsCurrentPath, logsPreviousPath } from './telemetry-file-sink';
+
+describe('Logger', () => {
+  beforeEach(() => {
+    loggerFactory.reset();
+  });
+
+  describe('LoggerFactory', () => {
+    it('should return PinoLogger by default', () => {
+      const logger = loggerFactory.getLogger('test');
+      expect(logger).toBeInstanceOf(PinoLogger);
+    });
+
+    it('should cache logger instances', () => {
+      const logger1 = loggerFactory.getLogger('test');
+      const logger2 = loggerFactory.getLogger('test');
+      expect(logger1).toBe(logger2);
+    });
+
+    it('should use custom logger factory', () => {
+      const customLogger = new PinoLogger('custom');
+      const customFactory = vi.fn(() => customLogger);
+
+      loggerFactory.configure({ loggerFactory: customFactory });
+
+      const logger = loggerFactory.getLogger('test');
+      expect(customFactory).toHaveBeenCalledWith('test');
+      expect(logger).toBe(customLogger);
+    });
+
+    it('should use default logger when configured', () => {
+      const defaultLogger = new PinoLogger('default');
+      loggerFactory.configure({ defaultLogger });
+
+      const logger = loggerFactory.getLogger('test');
+      expect(logger).toBe(defaultLogger);
+    });
+
+    it('should clear cache when reconfigured', () => {
+      const logger1 = loggerFactory.getLogger('test');
+      loggerFactory.configure({ defaultLogger: new PinoLogger('reconfigured') });
+      const logger2 = loggerFactory.getLogger('test');
+      expect(logger1).not.toBe(logger2);
+    });
+
+    it('should reset to default state', () => {
+      loggerFactory.configure({ defaultLogger: new PinoLogger('configured') });
+      loggerFactory.reset();
+
+      const logger = loggerFactory.getLogger('test');
+      expect(logger).toBeInstanceOf(PinoLogger);
+    });
+  });
+
+  describe('getLogger', () => {
+    it('should return logger from factory', () => {
+      const logger = getLogger('test');
+      expect(logger).toBeInstanceOf(PinoLogger);
+    });
+  });
+
+  describe('PinoLogger', () => {
+    it('should expose transport management', () => {
+      const logger = new PinoLogger('test');
+      expect(logger.getTransports()).toEqual([]);
+    });
+
+    it('should expose the underlying pino instance', () => {
+      const logger = new PinoLogger('test');
+      const instance = logger.getPinoInstance();
+      expect(instance).toBeDefined();
+      expect(typeof instance.info).toBe('function');
+    });
+  });
+
+  describe('Test helpers', () => {
+    it('createTestLogger returns a silent PinoLogger', () => {
+      const logger = createTestLogger();
+      expect(logger).toBeInstanceOf(PinoLogger);
+      expect(logger.getPinoInstance().level).toBe('silent');
+    });
+
+    it('createTestLogger accepts a custom name', () => {
+      const logger = createTestLogger('my-test');
+      expect(logger.getPinoInstance().bindings().name).toBe('my-test');
+    });
+
+    it('installTestLoggers makes getLogger() return silent loggers', () => {
+      installTestLoggers();
+      const logger = getLogger('anything');
+      expect(logger.getPinoInstance().level).toBe('silent');
+    });
+  });
+
+  describe('PinoFileSink wiring', () => {
+    let fixtureDir: string;
+    let tmp: string;
+    beforeEach(() => {
+      fixtureDir = mkdtempSync(join(tmpdir(), 'ok-logger-test-'));
+      tmp = join(fixtureDir, 'project');
+      mkdirSync(tmp);
+      vi.stubEnv('HOME', join(fixtureDir, 'home'));
+      vi.stubEnv('USERPROFILE', join(fixtureDir, 'home'));
+    });
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      if (fixtureDir) rmSync(fixtureDir, { recursive: true, force: true });
+    });
+
+    interface ParsedLogRecord {
+      level: number;
+      msg: string;
+      trace_id?: string;
+      span_id?: string;
+      trace_flags?: number;
+      [key: string]: unknown;
+    }
+
+    function readLogLines(filePath: string): ParsedLogRecord[] {
+      const body = readFileSync(filePath, 'utf-8');
+      if (body.length === 0) return [];
+      const segments = body.split('\n');
+      if (segments.at(-1) === '') segments.pop();
+      return segments.map((line) => JSON.parse(line) as ParsedLogRecord);
+    }
+
+    async function readLogLinesWhen(
+      filePath: string,
+      expectedCount: number,
+      timeoutMs = 1_000,
+    ): Promise<ParsedLogRecord[]> {
+      const start = Date.now();
+      let records = readLogLines(filePath);
+      while (records.length < expectedCount && Date.now() - start < timeoutMs) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        records = readLogLines(filePath);
+      }
+      return records;
+    }
+
+    it('writes Pino JSON records to the file destination', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+      });
+      const filePath = logsCurrentPath(tmp);
+      expect(existsSync(filePath)).toBe(false);
+
+      logger.info({ ctx: 'a' }, 'hello-from-file-sink');
+      await logger.flushFileSink();
+
+      expect(existsSync(filePath)).toBe(true);
+      const records = readLogLines(filePath);
+      expect(records).toHaveLength(1);
+      const [record] = records;
+      if (!record) throw new Error('expected one record');
+      expect(record.msg).toBe('hello-from-file-sink');
+      expect(record.ctx).toBe('a');
+      expect(record.level).toBe(30);
+    });
+
+    it('creates parent directory lazily on first record', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+      });
+      const logsDir = dirname(logsCurrentPath(tmp));
+      expect(existsSync(logsDir)).toBe(false);
+
+      logger.info({}, 'first-record');
+      await logger.flushFileSink();
+
+      expect(existsSync(logsDir)).toBe(true);
+      if (process.platform !== 'win32') expect(statSync(logsDir).mode & 0o777).toBe(0o700);
+      expect(existsSync(logsCurrentPath(tmp))).toBe(true);
+    });
+
+    it('rotates current → prev once file size exceeds maxBytes', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 80 },
+      });
+      const currentPath = logsCurrentPath(tmp);
+      const previousPath = logsPreviousPath(tmp);
+
+      logger.info({}, 'first-large-record');
+      await logger.flushFileSink();
+
+      expect(existsSync(currentPath)).toBe(false);
+      expect(existsSync(previousPath)).toBe(true);
+      const prevRecords = readLogLines(previousPath);
+      expect(prevRecords).toHaveLength(1);
+      const [firstPrev] = prevRecords;
+      if (!firstPrev) throw new Error('expected first record in prev');
+      expect(firstPrev.msg).toBe('first-large-record');
+
+      logger.info({}, 'second-large-record');
+      await logger.flushFileSink();
+
+      expect(existsSync(currentPath)).toBe(false);
+      expect(existsSync(previousPath)).toBe(true);
+      const secondPrevRecords = readLogLines(previousPath);
+      expect(secondPrevRecords).toHaveLength(1);
+      const [secondPrev] = secondPrevRecords;
+      if (!secondPrev) throw new Error('expected second record in prev');
+      expect(secondPrev.msg).toBe('second-large-record');
+    });
+
+    it('configure(pinoConfig) reconfigures already-cached loggers in place (captured refs gain the sink)', async () => {
+      const captured = loggerFactory.getLogger('captured-early');
+      captured.info({}, 'before-configure');
+      await captured.flushFileSink();
+      expect(existsSync(logsCurrentPath(tmp))).toBe(false);
+
+      loggerFactory.configure({
+        pinoConfig: {
+          options: { level: 'info' },
+          fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+        },
+      });
+
+      expect(loggerFactory.getLogger('captured-early')).toBe(captured);
+      captured.info({}, 'after-configure');
+      await captured.flushFileSink();
+
+      const records = await readLogLinesWhen(logsCurrentPath(tmp), 1);
+      expect(records.map((r) => r.msg)).toEqual(['after-configure']);
+    });
+
+    it('OK_CONSOLE_LEVEL raises the stdout stream without flooring the file sink', async () => {
+      const prev = process.env.OK_CONSOLE_LEVEL;
+      process.env.OK_CONSOLE_LEVEL = 'warn';
+      try {
+        const logger = new PinoLogger('test', {
+          options: { level: 'info' },
+          fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+        });
+        expect(logger.getPinoInstance().level).toBe('debug');
+
+        logger.info({}, 'info-to-disk');
+        logger.warn({}, 'warn-to-disk');
+        await logger.flushFileSink();
+
+        const records = await readLogLinesWhen(logsCurrentPath(tmp), 2);
+        expect(records.map((r) => r.msg)).toEqual(['info-to-disk', 'warn-to-disk']);
+        expect(records[0]?.level).toBe(30);
+      } finally {
+        if (prev === undefined) delete process.env.OK_CONSOLE_LEVEL;
+        else process.env.OK_CONSOLE_LEVEL = prev;
+      }
+    });
+
+    it('DEBUG records reach the file sink by default without landing on stdout at the base level', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+      });
+
+      logger.debug({ docName: 'x' }, 'debug-breadcrumb');
+      logger.info({}, 'info-line');
+      await logger.flushFileSink();
+
+      const records = await readLogLinesWhen(logsCurrentPath(tmp), 2);
+      expect(records.map((r) => r.msg)).toEqual(['debug-breadcrumb', 'info-line']);
+      expect(records[0]?.level).toBe(20);
+    });
+
+    it('OK_FILE_LEVEL overrides the file-sink level (opt-down from the debug default)', async () => {
+      const prev = process.env.OK_FILE_LEVEL;
+      process.env.OK_FILE_LEVEL = 'warn';
+      try {
+        const logger = new PinoLogger('test', {
+          options: { level: 'info' },
+          fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+        });
+        logger.debug({}, 'debug-filtered');
+        logger.info({}, 'info-filtered');
+        logger.warn({}, 'warn-to-disk');
+        await logger.flushFileSink();
+
+        const records = await readLogLinesWhen(logsCurrentPath(tmp), 1);
+        expect(records.map((r) => r.msg)).toEqual(['warn-to-disk']);
+      } finally {
+        if (prev === undefined) delete process.env.OK_FILE_LEVEL;
+        else process.env.OK_FILE_LEVEL = prev;
+      }
+    });
+
+    it('a silent base level keeps the file sink silent (test-logger contract)', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'silent' },
+        fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+      });
+      logger.debug({}, 'nope');
+      logger.error({}, 'also-nope');
+      await logger.flushFileSink();
+      expect(existsSync(logsCurrentPath(tmp))).toBe(false);
+    });
+
+    it('omits file destination when fileSink config is absent', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+      });
+      const logsDir = dirname(logsCurrentPath(tmp));
+
+      logger.info({}, 'no-file-sink-here');
+      await logger.flushFileSink();
+
+      expect(existsSync(logsDir)).toBe(false);
+      expect(existsSync(logsCurrentPath(tmp))).toBe(false);
+    });
+
+    it('preserves trace context in file records when an active span exists', async () => {
+      const contextManager = new AsyncLocalStorageContextManager().enable();
+      context.setGlobalContextManager(contextManager);
+      const provider = new BasicTracerProvider();
+      try {
+        const tracer = provider.getTracer('logger-trace-test');
+        const logger = new PinoLogger('test', {
+          options: { level: 'info' },
+          fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+        });
+
+        const span = tracer.startSpan('parent-span');
+        const ctx = trace.setSpan(context.active(), span);
+        const expected = span.spanContext();
+        context.with(ctx, () => {
+          logger.info({}, 'inside-span');
+        });
+        span.end();
+
+        await logger.flushFileSink();
+
+        const records = readLogLines(logsCurrentPath(tmp));
+        expect(records).toHaveLength(1);
+        const [record] = records;
+        if (!record) throw new Error('expected one record');
+        expect(record.msg).toBe('inside-span');
+        expect(record.trace_id).toBe(expected.traceId);
+        expect(record.span_id).toBe(expected.spanId);
+        expect(record.trace_flags).toBe(expected.traceFlags);
+      } finally {
+        await provider.shutdown();
+        contextManager.disable();
+        context.disable();
+      }
+    });
+
+    it('flushFileSink is a no-op when no fileSink is wired', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+      });
+      await expect(logger.flushFileSink()).resolves.toBeUndefined();
+    });
+
+    it('the file sink rebuilds cleanly across updateOptions / addTransport churn', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+      });
+      logger.info({}, 'first');
+      await logger.flushFileSink();
+      logger.updateOptions({ level: 'debug' });
+      logger.info({}, 'second');
+      await logger.flushFileSink();
+
+      const records = readLogLines(logsCurrentPath(tmp));
+      expect(records.map((r) => r.msg)).toEqual(['first', 'second']);
+    });
+
+    it('size cap reads the appender threshold; one above-cap write rotates', async () => {
+      const logger = new PinoLogger('test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 50 },
+      });
+      const currentPath = logsCurrentPath(tmp);
+      const previousPath = logsPreviousPath(tmp);
+
+      logger.info({}, 'lots-of-content-to-trigger-rotation');
+      await logger.flushFileSink();
+
+      if (existsSync(currentPath)) {
+        expect(statSync(currentPath).size).toBeLessThanOrEqual(50);
+      }
+      expect(existsSync(previousPath)).toBe(true);
+    });
+
+    it('flushAllFileSinks drains records from every cached PinoLogger before exit', async () => {
+      loggerFactory.configure({
+        pinoConfig: {
+          options: { level: 'info' },
+          fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+        },
+      });
+      const a = loggerFactory.getLogger('a');
+      const b = loggerFactory.getLogger('b');
+      expect(a).not.toBe(b);
+
+      a.info({}, 'from-a');
+      b.info({}, 'from-b');
+
+      await loggerFactory.flushAllFileSinks();
+
+      const filePath = logsCurrentPath(tmp);
+      expect(existsSync(filePath)).toBe(true);
+      const records = readLogLines(filePath);
+      const messages = records.map((r) => r.msg).sort();
+      expect(messages).toEqual(['from-a', 'from-b']);
+    });
+
+    it('flushAllFileSinks resolves when no loggers are cached or none have file sinks', async () => {
+      await expect(loggerFactory.flushAllFileSinks()).resolves.toBeUndefined();
+
+      loggerFactory.configure({
+        pinoConfig: { options: { level: 'info' } },
+      });
+      loggerFactory.getLogger('no-sink');
+      await expect(loggerFactory.flushAllFileSinks()).resolves.toBeUndefined();
+    });
+
+    it('credential-shaped log fields are masked before reaching the file sink', async () => {
+      const logger = new PinoLogger('cred-test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+        redactPaths: [
+          'authorization',
+          '*.authorization',
+          'cookie',
+          '*.cookie',
+          'password',
+          '*.password',
+        ],
+      });
+      logger.info({ authorization: 'Bearer SUPER-SECRET-XYZ', method: 'GET' }, 'flat-credentials');
+      logger.info(
+        { req: { authorization: 'Bearer NESTED-CRED', method: 'POST' } },
+        'nested-credentials',
+      );
+      await logger.flushFileSink();
+
+      const records = await readLogLinesWhen(logsCurrentPath(tmp), 2);
+      expect(records).toHaveLength(2);
+      const flat = records[0];
+      const nested = records[1];
+      if (!flat || !nested) throw new Error('expected two records');
+      expect(flat.authorization).toBe('[REDACTED]');
+      expect(flat.method).toBe('GET');
+      const req = nested.req as Record<string, unknown> | undefined;
+      expect(req).toBeDefined();
+      expect(req?.authorization).toBe('[REDACTED]');
+      expect(req?.method).toBe('POST');
+      const raw = JSON.stringify(records);
+      expect(raw).not.toContain('SUPER-SECRET-XYZ');
+      expect(raw).not.toContain('NESTED-CRED');
+    });
+
+    it('deep-nested credentials (depth 2+) are masked when the per-depth wildcard set is wired', async () => {
+      const denylist = ['authorization', 'cookie'];
+      const maxDepth = 5;
+      const redactPaths: string[] = [];
+      for (const key of denylist) {
+        redactPaths.push(key);
+        for (let depth = 1; depth <= maxDepth; depth++) {
+          redactPaths.push(`${'*.'.repeat(depth)}${key}`);
+        }
+      }
+      const logger = new PinoLogger('deep-cred-test', {
+        options: { level: 'info' },
+        fileSink: { projectDir: tmp, maxBytes: 1_000_000 },
+        redactPaths,
+      });
+      logger.info({ authorization: 'TOP-LEVEL-AUTH' }, 'top');
+      logger.info({ req: { authorization: 'DEPTH-1-AUTH' } }, 'depth-1');
+      logger.info(
+        { req: { headers: { authorization: 'DEPTH-2-AUTH', cookie: 'DEPTH-2-COOKIE' } } },
+        'depth-2',
+      );
+      logger.info({ outer: { req: { headers: { authorization: 'DEPTH-3-AUTH' } } } }, 'depth-3');
+      await logger.flushFileSink();
+
+      const records = await readLogLinesWhen(logsCurrentPath(tmp), 4);
+      expect(records).toHaveLength(4);
+      const [top, d1, d2, d3] = records;
+      if (!top || !d1 || !d2 || !d3) throw new Error('expected four records');
+
+      expect(top.authorization).toBe('[REDACTED]');
+
+      const d1Req = d1.req as Record<string, unknown> | undefined;
+      expect(d1Req?.authorization).toBe('[REDACTED]');
+
+      const d2Req = d2.req as { headers?: Record<string, unknown> } | undefined;
+      expect(d2Req?.headers?.authorization).toBe('[REDACTED]');
+      expect(d2Req?.headers?.cookie).toBe('[REDACTED]');
+
+      const d3Outer = d3.outer as { req?: { headers?: Record<string, unknown> } } | undefined;
+      expect(d3Outer?.req?.headers?.authorization).toBe('[REDACTED]');
+
+      const raw = JSON.stringify(records);
+      expect(raw).not.toContain('TOP-LEVEL-AUTH');
+      expect(raw).not.toContain('DEPTH-1-AUTH');
+      expect(raw).not.toContain('DEPTH-2-AUTH');
+      expect(raw).not.toContain('DEPTH-2-COOKIE');
+      expect(raw).not.toContain('DEPTH-3-AUTH');
+    });
+  });
+});

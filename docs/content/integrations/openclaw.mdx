@@ -1,0 +1,152 @@
+---
+title: OpenClaw
+description: Use OpenKnowledge with OpenClaw.
+icon: custom/OpenClaw
+---
+
+[OpenClaw](https://openclaw.ai) is an open-source personal AI assistant framework.
+
+**Auto-sync your meetings.** The gateway has a built-in scheduler and a webhook listener, so once OpenKnowledge is registered it can run tasks against your knowledge base unattended. The headline example is keeping meeting notes flowing in on their own. See [Ingest meetings](../workflows/meeting-ingestion.mdx) for the cron recipe and the recorder list. The webhook mechanics, for running an agent the moment a meeting event fires, are documented below.
+
+## Install
+
+<McpInstall editor="OpenClaw">
+  After `ok init` writes the config, restart the OpenClaw gateway so running agents pick up the
+  entry — `openclaw mcp reload` refreshes the current CLI process only. `ok start` isn't needed
+  here, since OpenClaw manages its own server lifecycle.
+</McpInstall>
+
+`ok init` writes the OpenKnowledge server into `~/.openclaw/openclaw.json` under `mcp.servers`, using the same resilient launcher every other editor gets — it finds `ok` whether you installed the desktop app or the npm CLI, so there's no PATH to configure.
+
+<Callout type="info">
+  The managed entry doesn't pin a project. Each OK tool call takes a `cwd` argument to target a specific knowledge base — pass it once and it sticks for that session — so one registration serves every project (and git worktree) an agent visits. If you previously hand-wrote an entry with a `cwd` pinned, `ok init` replaces it with the managed launcher; pass `cwd` per tool call instead.
+</Callout>
+
+## Verify
+
+Two complementary checks — the probe confirms the gateway can reach the server; the prompt confirms an agent can actually call its tools.
+
+**Server-side** — confirm OpenClaw launched the server and its tools enumerate:
+
+```bash
+openclaw mcp doctor --probe         # -> open-knowledge: ok
+openclaw mcp probe open-knowledge   # -> open-knowledge: 19 tools
+```
+
+Unrelated config-health or plugin-version warnings for *other* servers don't block OpenKnowledge from probing.
+
+**Agent-side** — open the project with an OpenClaw agent and ask:
+
+<VerifyExec subject="OpenClaw" />
+
+If the agent doesn't see the tool, run tool discovery — some runtimes lazy-load MCP tools and only surface them after a search, so absence from the initial list means "not discovered yet," not "not registered" — then restart the gateway.
+
+## Initialize a knowledge base
+
+`ok init` turns a folder into a knowledge base (and, on the same run, registers the MCP server above):
+
+```bash
+cd /path/to/your/knowledge-base && ok init
+```
+
+<Callout type="warn">
+  **`ok init` resolves upward into an existing project.** Run inside a subdirectory of an existing OK project, `ok init` finds the *parent* project and refreshes that one — it does not create a nested project, and it writes no markdown in the subdirectory. To create a genuinely separate knowledge base, run `ok init` in a folder that sits **outside any existing `.ok` project tree**.
+</Callout>
+
+## Smoke test
+
+Point an OpenClaw agent at a fresh knowledge base and have it do the following steps:
+
+```text
+Smoke-test the current OpenKnowledge project, one step at a time:
+
+1. Discover your tools — if the open-knowledge tools aren't listed yet, run tool discovery.
+2. Read the resolved config and list the project root, to confirm you're pointed at the right project.
+3. Write a notes folder, a README, and a note linking to a second doc you'll create next (its broken-link warning is expected).
+4. Create that second doc, so the link resolves.
+5. Read both docs back — you should get content plus frontmatter, backlinks, and history.
+6. Audit dead links (it should be empty now), then search for the two new docs.
+7. Return the preview URL for one of the docs.
+```
+
+That sequence exercises every layer — discovery, config, read, write, link graph, search, and preview — in one pass.
+
+## Trigger runs from external events
+
+Besides the cron poll (see [Ingest meetings](../workflows/meeting-ingestion.mdx)), the gateway can run an agent the moment something happens elsewhere. Enable the hooks listener in the gateway config:
+
+```json5
+{
+  hooks: {
+    enabled: true,
+    token: "shared-secret",
+    path: "/hooks",
+  },
+}
+```
+
+The `token` is a dedicated secret, separate from your gateway auth token. Every request must carry it as `Authorization: Bearer <token>` (recommended) or `x-openclaw-token: <token>`. Query-string tokens are rejected.
+
+| Endpoint | What it does |
+| --- | --- |
+| `POST /hooks/agent` | runs an isolated agent turn |
+| `POST /hooks/wake` | enqueues a system event into the main session |
+| `POST /hooks/<name>` | resolves through `hooks.mappings`, to reshape a vendor payload into a prompt |
+
+Ingest a meeting the moment its transcript is ready:
+
+```bash
+curl -X POST http://127.0.0.1:18789/hooks/agent \
+  -H 'Authorization: Bearer SECRET' \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"A meeting transcript is ready. Pull it from the recorder MCP and write it into the meetings/ folder of this project as meetings/<source>-<source_meeting_id>.","name":"OK meeting ingest"}'
+```
+
+Prep a doc the moment a meeting starts:
+
+```bash
+curl -X POST http://127.0.0.1:18789/hooks/agent \
+  -H 'Authorization: Bearer SECRET' \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"A meeting just started. Create its doc in the meetings/ folder from the prep template and link each attendee to their people/ dossier.","name":"OK meeting prep"}'
+```
+
+Which event you send matters more than the plumbing. [Ingest meetings](../workflows/meeting-ingestion.mdx) covers which recorder emits what, and why a transcript-ready event drives ingestion while `meeting.started` drives prep.
+
+One practical constraint: a vendor cannot POST to `127.0.0.1`. Keep hook endpoints behind loopback, a private network, or a trusted reverse proxy, which means a locally-run gateway needs a tunnel or a relay to receive vendor webhooks. That is why the cron poll is the default and webhooks are the upgrade. Restrict `hooks.allowedAgentIds` to limit which agents an external caller can target, and treat every inbound payload as untrusted.
+
+## Preview
+
+Write and edit responses include a route-only preview path like `/#/notes/mcp-round-trip` — a route id, **not** a full URL. Call `preview_url` for the openable browser address, and don't screenshot the preview to confirm an edit (the tool response is the confirmation). See [MCP reference → Preview links](/docs/reference/mcp#preview-links) for the full semantics.
+
+## Skill folder
+
+OpenClaw loads skills from `~/.agents/skills`, the shared folder several tools read rather than a `.openclaw/` directory of its own. OpenKnowledge now offers that folder as a skill destination whenever it can see OpenClaw installed, so it appears when you install a skill instead of having to type the path into **Add custom path**. It is also listed in **Settings → Skills → Folders**, though that row stays inert until the folder exists — folder linking merges one folder into another, which is not how it should first be created.
+
+It is offered as a destination only, not as a merge target, until the folder actually exists. Linking another tool's folder into a folder you do not have yet would create it and move your existing skills into it; OpenKnowledge does not do that on your behalf.
+
+## Agent contract
+
+The **OpenKnowledge skill** — the authoritative agent contract for tool use, grounding, and linking — is project-scoped, written for Claude, Cursor, Codex, and OpenCode; OpenClaw has no project skill directory to receive it. The bundles OpenKnowledge installs to `~/.agents/skills/` (which OpenClaw loads) cover discovery and skill authoring, not tool use — so for OpenClaw agents, the contract is these two reminders:
+
+- **Markdown is MCP-owned.** Inside an OK project, read and write `.md` / `.mdx` through OK's tools (`exec`, `search`, `write`, `edit`, `links`), not native shell or file tools — native access loses attribution and skips the frontmatter, backlinks, and history OK returns.
+- **Discover before concluding the MCP is missing.** Not seeing `exec` in the initial tool list isn't the escape hatch; run tool discovery first.
+
+For the complete tool surface, see the [MCP reference](/docs/reference/mcp).
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `ok init` showed OpenClaw as `config root missing; skipped` | `~/.openclaw/` doesn't exist yet, so OpenClaw wasn't detected | Launch OpenClaw once (it creates its home directory), then re-run `ok init` |
+| `ok init` reported the config was `left unchanged` | OpenKnowledge declined to edit `~/.openclaw/openclaw.json` for the reason shown in parentheses | Fix what the reason names (invalid JSON, a duplicated server block, an oversize config), then re-run `ok init` |
+| `openclaw mcp probe` shows 0 tools | server couldn't launch, or the folder isn't a KB yet | Confirm `ok` is installed (desktop app or `npm i -g @inkeep/open-knowledge`), and `ok init` the folder |
+| Agent doesn't see the `open-knowledge` tools | MCP tools lazy-loaded, or the agent's process predates the entry | Run tool discovery, then restart the gateway |
+| `ok init` "refreshed" a parent project, no new KB | upward project resolution | Run `ok init` outside any existing `.ok` tree |
+| Broken-link warning on a just-written doc | forward link to a not-yet-created target | Create the target, then re-check `links({ kind: "dead" })` |
+| `write` / `edit` -> "Hocuspocus server is not running" | OK server not started | Run `ok start` (or leave the desktop app running) and retry |
+| Preview "doesn't open" | used the route-only `/#/…` path in a browser | Call `preview_url` for the full URL |
+
+OpenKnowledge Beta registers as `open-knowledge-beta` instead; see [Beta uses its own entry](/docs/reference/what-open-knowledge-writes#beta-uses-its-own-entry).
+
+New to OpenKnowledge itself? Start with the [quickstart](/docs/get-started/quickstart) for `ok init` and `ok start`.

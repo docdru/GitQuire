@@ -1,0 +1,98 @@
+{
+  "name": "@inkeep/open-knowledge",
+  "version": "0.0.0-unknown",
+  "description": "Local-first, agent-friendly Markdown knowledge base with a cross-platform CLI and web editor",
+  "keywords": [
+    "knowledge-base",
+    "markdown",
+    "local-first",
+    "mcp",
+    "ai",
+    "cli"
+  ],
+  "homepage": "https://openknowledge.ai",
+  "license": "GPL-3.0-or-later",
+  "private": false,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inkeep/open-knowledge.git",
+    "directory": "packages/cli"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "bin": {
+    "open-knowledge": "dist/cli.mjs",
+    "ok": "dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build:cli": "rm -rf dist && tsdown",
+    "build:app": "cp -r ../app/dist dist/public",
+    "build:skill-asset": "node --import tsx scripts/build-skill-assets.ts",
+    "build:notices": "mkdir -p dist && cp ../../THIRD_PARTY_NOTICES.md dist/THIRD_PARTY_NOTICES.md",
+    "build:license": "mkdir -p dist && cp ../../LICENSE dist/LICENSE",
+    "build:native": "mkdir -p dist/native && cp ../native-config/index.js ../native-config/index.d.ts ../native-config/package.json ../native-config/*.node dist/native/",
+    "build:schema": "node --import tsx --conditions=development scripts/build-config-schema.mjs",
+    "build:assets": "pnpm run build:app && pnpm run build:skill-asset && pnpm run build:notices && pnpm run build:license && pnpm run build:native && pnpm run build:schema",
+    "build": "pnpm run build:cli && pnpm run build:assets",
+    "test": "vitest run",
+    "test:e2e:cli": "vitest run --config vitest.e2e.config.ts",
+    "typecheck": "tsrs --noEmit",
+    "check:dts": "node scripts/check-published-dts.mjs",
+    "verify:package": "node scripts/verify-package-surface.mjs",
+    "prepublishOnly": "bash ../../scripts/check-notices-clean.sh && pnpm run build && pnpm run check:dts && pnpm run verify:package"
+  },
+  "dependencies": {
+    "@inquirer/checkbox": "^5.0.11",
+    "@inquirer/password": "^5.0.11",
+    "@inquirer/select": "^5.2.0",
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "@napi-rs/keyring": "2.1.2",
+    "@octokit/auth-oauth-device": "^8.0.3",
+    "@octokit/request": "^10.0.8",
+    "@octokit/rest": "^22.0.1",
+    "cli-boxes": "^4.0.1",
+    "commander": "^14.0.0",
+    "jsonc-parser": "^3.3.1",
+    "picocolors": "^1.1.1",
+    "pino": "^10.3.1",
+    "proper-lockfile": "^4.1.2",
+    "simple-git": "^3.36.0",
+    "smol-toml": "^1.6.1",
+    "yaml": "^2.7.1",
+    "yazl": "^3.3.1",
+    "yjs": "^13.6.30",
+    "zod": "^4.6.7"
+  },
+  "optionalDependencies": {
+    "@parcel/watcher": "^2.5.6"
+  },
+  "devDependencies": {
+    "@inkeep/open-knowledge-app": "workspace:*",
+    "@inkeep/open-knowledge-core": "workspace:*",
+    "@inkeep/open-knowledge-native-config": "workspace:*",
+    "@inkeep/open-knowledge-server": "workspace:*",
+    "@types/node": "^24.7.0",
+    "@types/proper-lockfile": "^4.1.4",
+    "@types/yazl": "^3.3.1",
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
+    "tsdown": "^0.22.14",
+    "tsrs": "0.20.0-ts7.1.0-beta",
+    "typescript": "~7.0.2"
+  }
+}

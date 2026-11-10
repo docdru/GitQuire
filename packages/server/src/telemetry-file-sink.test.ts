@@ -1,0 +1,828 @@
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join } from 'node:path';
+import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+import { context, trace } from '@opentelemetry/api';
+import { BasicTracerProvider, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import pino from 'pino';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import {
+  DEFAULT_MAX_VALUE_BYTES,
+  FileSpanExporter,
+  logsCurrentPath,
+  logsPreviousPath,
+  PinoFileSink,
+  REDACTED_SENTINEL,
+  RotatingAppender,
+  ScrubbingSpanProcessor,
+  spansCurrentPath,
+  spansPreviousPath,
+} from './telemetry-file-sink.ts';
+
+let tmp: string;
+let fixtureRoot: string;
+beforeEach(() => {
+  fixtureRoot = mkdtempSync(join(tmpdir(), 'ok-file-span-test-'));
+  tmp = join(fixtureRoot, 'project');
+  mkdirSync(tmp);
+  vi.stubEnv('HOME', join(fixtureRoot, 'home'));
+  vi.stubEnv('USERPROFILE', join(fixtureRoot, 'home'));
+});
+afterEach(() => {
+  vi.unstubAllEnvs();
+  if (fixtureRoot) rmSync(fixtureRoot, { recursive: true, force: true });
+});
+
+function makeProvider(exporter: FileSpanExporter): BasicTracerProvider {
+  return new BasicTracerProvider({
+    spanProcessors: [new SimpleSpanProcessor(exporter)],
+  });
+}
+
+function readLines(filePath: string): string[] {
+  const body = readFileSync(filePath, 'utf-8');
+  if (body.length === 0) return [];
+  const segments = body.split('\n');
+  if (segments.at(-1) === '') segments.pop();
+  return segments;
+}
+
+interface ResourceSpansEnvelope {
+  resourceSpans: Array<{
+    scopeSpans: Array<{ spans: Array<{ name: string }> }>;
+  }>;
+}
+
+function parseEnvelope(line: string): ResourceSpansEnvelope {
+  const parsed = JSON.parse(line) as ResourceSpansEnvelope;
+  if (!Array.isArray(parsed.resourceSpans)) {
+    throw new Error('line did not parse as a ResourceSpans envelope');
+  }
+  return parsed;
+}
+
+function firstSpanName(envelope: ResourceSpansEnvelope): string {
+  const [rs] = envelope.resourceSpans;
+  if (!rs) throw new Error('empty resourceSpans[]');
+  const [ss] = rs.scopeSpans;
+  if (!ss) throw new Error('empty scopeSpans[]');
+  const [span] = ss.spans;
+  if (!span) throw new Error('empty spans[]');
+  return span.name;
+}
+
+describe('FileSpanExporter', () => {
+  test('first export creates spans-current.jsonl lazily with one ResourceSpans JSON line per batch', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const currentPath = spansCurrentPath(tmp);
+    expect(existsSync(currentPath)).toBe(false);
+
+    const provider = makeProvider(exporter);
+    const tracer = provider.getTracer('test');
+    tracer.startSpan('hello').end();
+    await provider.forceFlush();
+
+    expect(existsSync(currentPath)).toBe(true);
+    const lines = readLines(currentPath);
+    expect(lines).toHaveLength(1);
+    const [line] = lines;
+    if (line === undefined) throw new Error('expected one line');
+    const parsed = parseEnvelope(line);
+    expect(parsed.resourceSpans.length).toBeGreaterThan(0);
+
+    await provider.shutdown();
+  });
+
+  test('multiple batches each land as their own JSON line', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const provider = makeProvider(exporter);
+    const tracer = provider.getTracer('test');
+
+    for (let i = 0; i < 3; i++) {
+      tracer.startSpan(`span-${i}`).end();
+      await provider.forceFlush();
+    }
+
+    const lines = readLines(spansCurrentPath(tmp));
+    expect(lines).toHaveLength(3);
+    for (const line of lines) {
+      parseEnvelope(line);
+    }
+
+    await provider.shutdown();
+  });
+
+  test('parent directory is created lazily on first export', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const telemetryDir = dirname(spansCurrentPath(tmp));
+    expect(existsSync(telemetryDir)).toBe(false);
+
+    const provider = makeProvider(exporter);
+    provider.getTracer('test').startSpan('boot').end();
+    await provider.forceFlush();
+
+    expect(existsSync(telemetryDir)).toBe(true);
+    if (process.platform !== 'win32') expect(statSync(telemetryDir).mode & 0o777).toBe(0o700);
+    expect(existsSync(spansCurrentPath(tmp))).toBe(true);
+
+    await provider.shutdown();
+  });
+
+  test('rotates current → prev once size exceeds maxBytes', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 50 });
+    const provider = makeProvider(exporter);
+    const tracer = provider.getTracer('test');
+    const currentPath = spansCurrentPath(tmp);
+    const previousPath = spansPreviousPath(tmp);
+
+    tracer.startSpan('first').end();
+    await provider.forceFlush();
+
+    expect(existsSync(currentPath)).toBe(false);
+    expect(existsSync(previousPath)).toBe(true);
+    const firstPrev = readLines(previousPath);
+    expect(firstPrev).toHaveLength(1);
+    const [firstLine] = firstPrev;
+    if (firstLine === undefined) throw new Error('expected first line');
+    expect(firstSpanName(parseEnvelope(firstLine))).toBe('first');
+
+    tracer.startSpan('second').end();
+    await provider.forceFlush();
+
+    expect(existsSync(currentPath)).toBe(false);
+    expect(existsSync(previousPath)).toBe(true);
+    const secondPrev = readLines(previousPath);
+    expect(secondPrev).toHaveLength(1);
+    const [secondLine] = secondPrev;
+    if (secondLine === undefined) throw new Error('expected second line');
+    expect(firstSpanName(parseEnvelope(secondLine))).toBe('second');
+
+    await provider.shutdown();
+  });
+
+  test('keeps current under threshold across multiple appends before rotating', async () => {
+    const cap = 2_000;
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: cap });
+    const provider = makeProvider(exporter);
+    const tracer = provider.getTracer('test');
+    const currentPath = spansCurrentPath(tmp);
+    const previousPath = spansPreviousPath(tmp);
+
+    for (let i = 0; i < 50; i++) {
+      tracer.startSpan(`span-${i}`).end();
+      await provider.forceFlush();
+    }
+
+    expect(existsSync(previousPath)).toBe(true);
+    if (existsSync(currentPath)) {
+      expect(statSync(currentPath).size).toBeLessThanOrEqual(cap);
+    }
+    expect(statSync(previousPath).size).toBeGreaterThan(0);
+    if (existsSync(currentPath)) {
+      for (const line of readLines(currentPath)) {
+        expect(() => JSON.parse(line)).not.toThrow();
+      }
+    }
+    for (const line of readLines(previousPath)) {
+      expect(() => JSON.parse(line)).not.toThrow();
+    }
+
+    await provider.shutdown();
+  });
+
+  test('appends cleanly even when the existing file has a partial trailing line', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const currentPath = spansCurrentPath(tmp);
+    await new Promise<void>((resolve, reject) => {
+      const provider = makeProvider(exporter);
+      provider.getTracer('seed').startSpan('seed').end();
+      provider.forceFlush().then(async () => {
+        await provider.shutdown();
+        resolve();
+      }, reject);
+    });
+    writeFileSync(currentPath, 'NOT-JSON-AT-ALL', { flag: 'a' });
+
+    const exporter2 = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const provider2 = makeProvider(exporter2);
+    provider2.getTracer('test').startSpan('after-partial').end();
+    await provider2.forceFlush();
+
+    const lines = readLines(currentPath);
+    const parsed = lines
+      .map((line) => {
+        try {
+          return JSON.parse(line) as { resourceSpans?: unknown[] };
+        } catch {
+          return null;
+        }
+      })
+      .filter(
+        (v): v is { resourceSpans: unknown[] } => v !== null && Array.isArray(v.resourceSpans),
+      );
+    expect(parsed.length).toBeGreaterThanOrEqual(1);
+
+    await provider2.shutdown();
+  });
+
+  test('shutdown drains in-flight writes; further export() is rejected', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const provider = makeProvider(exporter);
+    provider.getTracer('test').startSpan('pre-shutdown').end();
+    await provider.forceFlush();
+
+    await exporter.shutdown();
+
+    await new Promise<void>((resolve) => {
+      exporter.export(
+        [
+          {
+            name: 'after-shutdown',
+          } as unknown as Parameters<typeof exporter.export>[0][number],
+        ],
+        (result) => {
+          expect(result.code).toBe(1);
+          expect(result.error).toBeInstanceOf(Error);
+          resolve();
+        },
+      );
+    });
+  });
+
+  test('forceFlush waits for in-flight writes to settle', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const provider = makeProvider(exporter);
+    const tracer = provider.getTracer('test');
+    tracer.startSpan('to-flush').end();
+    await Promise.all([exporter.forceFlush(), provider.forceFlush()]);
+
+    const lines = readLines(spansCurrentPath(tmp));
+    expect(lines).toHaveLength(1);
+    const [line] = lines;
+    if (line === undefined) throw new Error('expected one line');
+    expect(() => parseEnvelope(line)).not.toThrow();
+
+    await provider.shutdown();
+  });
+});
+
+describe('project diagnostics location', () => {
+  test('real Pino and span writes stay outside the project in the same user namespace', async () => {
+    const sink = new PinoFileSink({ projectDir: tmp, maxBytes: 1_000_000 });
+    const provider = makeProvider(new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 }));
+    try {
+      pino({}, sink).info('project log canary');
+      provider.getTracer('test').startSpan('project span canary').end();
+      await Promise.all([sink.drain(), provider.forceFlush()]);
+
+      const logsPath = logsCurrentPath(tmp);
+      const spansPath = spansCurrentPath(tmp);
+      expect(readFileSync(logsPath, 'utf8')).toContain('project log canary');
+      expect(firstSpanName(parseEnvelope(readLines(spansPath)[0] ?? ''))).toBe(
+        'project span canary',
+      );
+      const namespace = dirname(logsPath);
+      expect(dirname(namespace)).toBe(join(okUserHomeDir(), 'logs', 'projects'));
+      expect(basename(namespace)).toMatch(/^[a-f0-9]{64}$/);
+      expect(dirname(spansPath)).toBe(namespace);
+      expect(existsSync(join(tmp, '.ok', 'local', 'logs'))).toBe(false);
+      expect(existsSync(join(tmp, '.ok', 'local', 'telemetry'))).toBe(false);
+    } finally {
+      await provider.shutdown();
+      sink.destroy();
+    }
+  });
+
+  test('two projects with the same name do not mix log records', async () => {
+    const otherProject = join(fixtureRoot, 'other', 'project');
+    mkdirSync(otherProject, { recursive: true });
+    const first = new PinoFileSink({ projectDir: tmp, maxBytes: 1_000_000 });
+    const second = new PinoFileSink({ projectDir: otherProject, maxBytes: 1_000_000 });
+    try {
+      pino({}, first).info('first project canary');
+      pino({}, second).info('second project canary');
+      await Promise.all([first.drain(), second.drain()]);
+
+      const firstLog = readFileSync(logsCurrentPath(tmp), 'utf8');
+      const secondLog = readFileSync(logsCurrentPath(otherProject), 'utf8');
+      expect(firstLog).toContain('first project canary');
+      expect(firstLog).not.toContain('second project canary');
+      expect(secondLog).toContain('second project canary');
+      expect(secondLog).not.toContain('first project canary');
+    } finally {
+      first.destroy();
+      second.destroy();
+    }
+  });
+});
+
+describe('RotatingAppender (shared rotation primitive)', () => {
+  test('recreates a namespace removed while a retained appender was inactive', async () => {
+    const currentPath = logsCurrentPath(tmp);
+    const namespace = dirname(currentPath);
+    const appender = new RotatingAppender({
+      currentPath,
+      previousPath: logsPreviousPath(tmp),
+      maxBytes: 1024,
+    });
+    await appender.append('first\n');
+    await appender.drain();
+    rmSync(namespace, { recursive: true });
+    await expect(appender.append('after reactivation\n')).resolves.toBeUndefined();
+    await appender.drain();
+    expect(readFileSync(currentPath, 'utf8')).toBe('after reactivation\n');
+    if (process.platform !== 'win32') expect(statSync(namespace).mode & 0o777).toBe(0o700);
+  });
+
+  test('appends bytes, creates parent dir lazily, and rotates over cap', async () => {
+    const currentPath = join(tmp, 'logs', 'a-current.jsonl');
+    const previousPath = join(tmp, 'logs', 'a-prev.jsonl');
+    const appender = new RotatingAppender({ currentPath, previousPath, maxBytes: 20 });
+    expect(existsSync(join(tmp, 'logs'))).toBe(false);
+
+    await appender.append('hello\n');
+    expect(existsSync(currentPath)).toBe(true);
+    expect(existsSync(previousPath)).toBe(false);
+
+    await appender.append('worldworldworld\n');
+    expect(existsSync(currentPath)).toBe(false);
+    expect(existsSync(previousPath)).toBe(true);
+    expect(readFileSync(previousPath, 'utf-8')).toBe('hello\nworldworldworld\n');
+
+    await appender.append('next\n');
+    expect(existsSync(currentPath)).toBe(true);
+    expect(readFileSync(currentPath, 'utf-8')).toBe('next\n');
+    expect(readFileSync(previousPath, 'utf-8')).toBe('hello\nworldworldworld\n');
+  });
+
+  test('serializes concurrent appends; final file content reflects ordered writes', async () => {
+    const currentPath = join(tmp, 'concurrent', 'c-current.jsonl');
+    const previousPath = join(tmp, 'concurrent', 'c-prev.jsonl');
+    const appender = new RotatingAppender({
+      currentPath,
+      previousPath,
+      maxBytes: 10_000,
+    });
+
+    await Promise.all([
+      appender.append('A\n'),
+      appender.append('B\n'),
+      appender.append('C\n'),
+      appender.append('D\n'),
+    ]);
+
+    expect(readFileSync(currentPath, 'utf-8')).toBe('A\nB\nC\nD\n');
+  });
+
+  test('drain awaits the most-recently enqueued append', async () => {
+    const currentPath = join(tmp, 'drain', 'd-current.jsonl');
+    const previousPath = join(tmp, 'drain', 'd-prev.jsonl');
+    const appender = new RotatingAppender({
+      currentPath,
+      previousPath,
+      maxBytes: 10_000,
+    });
+    void appender.append('1\n');
+    void appender.append('2\n');
+    void appender.append('3\n');
+    await appender.drain();
+    expect(readFileSync(currentPath, 'utf-8')).toBe('1\n2\n3\n');
+  });
+
+  test('serializes rotation across independent appenders sharing one path (no ENOENT race)', async () => {
+    const currentPath = join(tmp, 'shared', 'shared-current.jsonl');
+    const previousPath = join(tmp, 'shared', 'shared-prev.jsonl');
+    const maxBytes = 512;
+    const appenders = Array.from(
+      { length: 6 },
+      () => new RotatingAppender({ currentPath, previousPath, maxBytes }),
+    );
+
+    const line = `${JSON.stringify({ level: 30, msg: 'x'.repeat(180) })}\n`;
+    const results = await Promise.allSettled(
+      appenders.flatMap((appender) => Array.from({ length: 40 }, () => appender.append(line))),
+    );
+
+    const rejected = results.filter((r) => r.status === 'rejected');
+    const reasons = rejected.map((r) => String((r as PromiseRejectedResult).reason));
+    expect({ rejectedCount: rejected.length, reasons }).toEqual({
+      rejectedCount: 0,
+      reasons: [],
+    });
+  });
+
+  test('contains sink write failures instead of crashing the process (no unhandled error)', async () => {
+    const projectDir = join(tmp, 'sink-fail');
+    const currentPath = logsCurrentPath(projectDir);
+    const previousPath = logsPreviousPath(projectDir);
+
+    mkdirSync(dirname(previousPath), { recursive: true });
+    mkdirSync(previousPath);
+    writeFileSync(join(previousPath, 'occupied'), 'x');
+
+    const sink = new PinoFileSink({ projectDir, maxBytes: 64 });
+
+    let emittedError: unknown;
+    sink.on('error', (err) => {
+      emittedError = err;
+    });
+
+    const line = `${JSON.stringify({ level: 30, msg: 'y'.repeat(200) })}\n`;
+    const writeCallbackError = await new Promise<unknown>((resolve) => {
+      sink.write(line, (err) => resolve(err ?? null));
+    });
+    await sink.drain();
+
+    expect({
+      writeCallbackError: writeCallbackError ? String(writeCallbackError) : null,
+      emittedError: emittedError ? String(emittedError) : null,
+    }).toEqual({ writeCallbackError: null, emittedError: null });
+    expect(existsSync(currentPath)).toBe(true);
+  });
+
+  test('drain flushes the suppressed-failure count at shutdown', async () => {
+    const projectDir = join(tmp, 'sink-drain-flush');
+
+    mkdirSync(dirname(logsPreviousPath(projectDir)), { recursive: true });
+    mkdirSync(logsPreviousPath(projectDir));
+    writeFileSync(join(logsPreviousPath(projectDir), 'occupied'), 'x');
+
+    const emissions: Array<{ event: string; suppressed: number }> = [];
+    const originalError = console.error;
+    console.error = (arg: unknown) => {
+      try {
+        emissions.push(JSON.parse(String(arg)));
+      } catch {}
+    };
+    try {
+      const sink = new PinoFileSink({ projectDir, maxBytes: 64 });
+      const line = `${JSON.stringify({ level: 30, msg: 'z'.repeat(200) })}\n`;
+      await new Promise<void>((resolve) => sink.write(line, () => resolve()));
+      await new Promise<void>((resolve) => sink.write(line, () => resolve()));
+      await sink.drain();
+
+      const dropped = emissions.filter((e) => e.event === 'pino-file-sink-write-dropped');
+      expect(dropped.length).toBe(2);
+      expect(dropped[0]?.suppressed).toBe(0);
+      expect(dropped[1]?.suppressed).toBe(1);
+    } finally {
+      console.error = originalError;
+    }
+  });
+});
+
+describe('ScrubbingSpanProcessor', () => {
+  function makeSpan(attrs: Record<string, unknown>): ReadableSpan {
+    return {
+      attributes: { ...attrs },
+      events: [],
+      links: [],
+    } as unknown as ReadableSpan;
+  }
+
+  function makeSpanWithEvent(eventName: string, eventAttrs: Record<string, unknown>): ReadableSpan {
+    return {
+      attributes: {},
+      events: [{ name: eventName, time: [0, 0], attributes: { ...eventAttrs } }],
+      links: [],
+    } as unknown as ReadableSpan;
+  }
+
+  function makeSpanWithLink(linkAttrs: Record<string, unknown>): ReadableSpan {
+    return {
+      attributes: {},
+      events: [],
+      links: [
+        {
+          context: {
+            traceId: '0123456789abcdef0123456789abcdef',
+            spanId: '0123456789abcdef',
+            traceFlags: 1,
+          },
+          attributes: { ...linkAttrs },
+        },
+      ],
+    } as unknown as ReadableSpan;
+  }
+
+  test('masks denylisted attribute keys (case-insensitive)', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['authorization', 'cookie', 'x-api-key'],
+    });
+    const span = makeSpan({
+      'http.request.headers.authorization': 'Bearer secret-token-xyz',
+      'http.request.headers.Authorization': 'duplicate-key-different-casing',
+      'http.request.headers.cookie': 'session=abc',
+      'http.request.headers.X-API-Key': 'hot-secret',
+      'http.method': 'POST',
+      'http.url': 'https://example.com/api',
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs['http.request.headers.authorization']).toBe(REDACTED_SENTINEL);
+    expect(attrs['http.request.headers.Authorization']).toBe(REDACTED_SENTINEL);
+    expect(attrs['http.request.headers.cookie']).toBe(REDACTED_SENTINEL);
+    expect(attrs['http.request.headers.X-API-Key']).toBe(REDACTED_SENTINEL);
+    expect(attrs['http.method']).toBe('POST');
+    expect(attrs['http.url']).toBe('https://example.com/api');
+  });
+
+  test('denylist matches by exact key OR boundary-anchored suffix', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['authorization', 'cookie', 'set-cookie', 'password'],
+    });
+    const span = makeSpan({
+      authorization: 'bare-key-secret',
+      'http.request.headers.authorization': 'Bearer xyz',
+      'headers/authorization': 'header-style',
+      db_password: 'db-creds',
+      'set-cookie': 'sid=123',
+      'http.response.headers.set-cookie': 'sid=456',
+      'unset-cookie': 'still safe',
+      mypassword: 'unrelated',
+      'password-related': 'irrelevant',
+      'http.method': 'POST',
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs.authorization).toBe(REDACTED_SENTINEL);
+    expect(attrs['http.request.headers.authorization']).toBe(REDACTED_SENTINEL);
+    expect(attrs['headers/authorization']).toBe(REDACTED_SENTINEL);
+    expect(attrs.db_password).toBe(REDACTED_SENTINEL);
+    expect(attrs['set-cookie']).toBe(REDACTED_SENTINEL);
+    expect(attrs['http.response.headers.set-cookie']).toBe(REDACTED_SENTINEL);
+    expect(attrs['unset-cookie']).toBe('still safe');
+    expect(attrs.mypassword).toBe('unrelated');
+    expect(attrs['password-related']).toBe('irrelevant');
+    expect(attrs['http.method']).toBe('POST');
+  });
+
+  test('truncates string values that exceed maxValueBytes', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: [],
+      maxValueBytes: 8,
+    });
+    const span = makeSpan({
+      'short.value': 'fits',
+      'long.value': 'this string is way longer than the cap',
+      'multibyte.value': '日本語'.repeat(10),
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs['short.value']).toBe('fits');
+    expect(attrs['long.value']).toBe(
+      `[TRUNCATED:${Buffer.byteLength('this string is way longer than the cap', 'utf-8')}]`,
+    );
+    expect(attrs['multibyte.value']).toBe(
+      `[TRUNCATED:${Buffer.byteLength('日本語'.repeat(10), 'utf-8')}]`,
+    );
+  });
+
+  test('default maxValueBytes is 4096 (SPEC body-content invariant)', () => {
+    expect(DEFAULT_MAX_VALUE_BYTES).toBe(4096);
+    const proc = new ScrubbingSpanProcessor({ attributeDenylist: [] });
+    const justUnderCap = 'a'.repeat(4096);
+    const overCap = 'a'.repeat(4097);
+    const span = makeSpan({
+      'at.cap': justUnderCap,
+      'over.cap': overCap,
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs['at.cap']).toBe(justUnderCap);
+    expect(attrs['over.cap']).toBe('[TRUNCATED:4097]');
+  });
+
+  test('denylist key match takes precedence over truncation', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['secret'],
+      maxValueBytes: 4,
+    });
+    const span = makeSpan({
+      secret: 'this-would-also-overflow',
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs.secret).toBe(REDACTED_SENTINEL);
+  });
+
+  test('non-string attribute values are not size-checked', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: [],
+      maxValueBytes: 4,
+    });
+    const span = makeSpan({
+      number: 42_000_000_000,
+      boolean: true,
+      stringArray: ['a', 'b', 'c'],
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs.number).toBe(42_000_000_000);
+    expect(attrs.boolean).toBe(true);
+    expect(attrs.stringArray).toEqual(['a', 'b', 'c']);
+  });
+
+  test('denylist still masks non-string values', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['password'],
+    });
+    const span = makeSpan({
+      password: 12345,
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs.password).toBe(REDACTED_SENTINEL);
+  });
+
+  test('no mutation when nothing matches', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['authorization'],
+      maxValueBytes: 4096,
+    });
+    const span = makeSpan({
+      'http.method': 'GET',
+      'http.status_code': 200,
+      'doc.name': 'safe-doc-name',
+    });
+    proc.onEnd(span);
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs).toEqual({
+      'http.method': 'GET',
+      'http.status_code': 200,
+      'doc.name': 'safe-doc-name',
+    });
+  });
+
+  test('integrated with FileSpanExporter: denylisted values never reach the JSONL', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['authorization'],
+      maxValueBytes: 16,
+    });
+    const provider = new BasicTracerProvider({
+      spanProcessors: [proc, new SimpleSpanProcessor(exporter)],
+    });
+    const tracer = provider.getTracer('test');
+    const span = tracer.startSpan('http.request');
+    span.setAttribute('http.request.headers.authorization', 'Bearer s3cr3t-token-x');
+    span.setAttribute('http.user_agent', 'a long string longer than sixteen bytes');
+    span.setAttribute('http.method', 'GET');
+    span.end();
+    await provider.forceFlush();
+
+    const fileBody = readFileSync(spansCurrentPath(tmp), 'utf-8');
+    expect(fileBody).not.toContain('s3cr3t-token-x');
+    expect(fileBody).toContain('[REDACTED]');
+    expect(fileBody).toContain(
+      `[TRUNCATED:${Buffer.byteLength('a long string longer than sixteen bytes', 'utf-8')}]`,
+    );
+    expect(fileBody).toContain('"GET"');
+
+    await provider.shutdown();
+  });
+
+  test('shutdown + forceFlush are no-ops (no state held)', async () => {
+    const proc = new ScrubbingSpanProcessor({ attributeDenylist: ['authorization'] });
+    await expect(proc.forceFlush()).resolves.toBeUndefined();
+    await expect(proc.shutdown()).resolves.toBeUndefined();
+  });
+
+  test('masks denylisted attribute values on span events', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['authorization', 'cookie'],
+    });
+    const span = makeSpanWithEvent('auth-check', {
+      authorization: 'Bearer event-secret-xyz',
+      cookie: 'session=event-cookie',
+      'http.method': 'POST',
+    });
+    proc.onEnd(span);
+    const eventAttrs = (
+      span as unknown as {
+        events: Array<{ attributes: Record<string, unknown> }>;
+      }
+    ).events[0]?.attributes;
+    if (eventAttrs === undefined) throw new Error('expected event attributes');
+    expect(eventAttrs.authorization).toBe(REDACTED_SENTINEL);
+    expect(eventAttrs.cookie).toBe(REDACTED_SENTINEL);
+    expect(eventAttrs['http.method']).toBe('POST');
+  });
+
+  test('truncates oversized string attribute values on span events', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: [],
+      maxValueBytes: 8,
+    });
+    const overflowing = 'a'.repeat(64);
+    const span = makeSpanWithEvent('verbose-event', {
+      'event.detail': overflowing,
+      'event.fits': 'short',
+    });
+    proc.onEnd(span);
+    const eventAttrs = (
+      span as unknown as {
+        events: Array<{ attributes: Record<string, unknown> }>;
+      }
+    ).events[0]?.attributes;
+    if (eventAttrs === undefined) throw new Error('expected event attributes');
+    expect(eventAttrs['event.detail']).toBe(
+      `[TRUNCATED:${Buffer.byteLength(overflowing, 'utf-8')}]`,
+    );
+    expect(eventAttrs['event.fits']).toBe('short');
+  });
+
+  test('masks denylisted attribute values on span links', () => {
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['authorization'],
+    });
+    const span = makeSpanWithLink({
+      authorization: 'Bearer link-secret-zzz',
+      'link.kind': 'parent',
+    });
+    proc.onEnd(span);
+    const linkAttrs = (
+      span as unknown as {
+        links: Array<{ attributes: Record<string, unknown> }>;
+      }
+    ).links[0]?.attributes;
+    if (linkAttrs === undefined) throw new Error('expected link attributes');
+    expect(linkAttrs.authorization).toBe(REDACTED_SENTINEL);
+    expect(linkAttrs['link.kind']).toBe('parent');
+  });
+
+  test('tolerates events and links that carry no attribute bag', () => {
+    const proc = new ScrubbingSpanProcessor({ attributeDenylist: ['authorization'] });
+    const span = {
+      attributes: { authorization: 'top-secret' },
+      events: [{ name: 'no-attrs', time: [0, 0] }],
+      links: [
+        {
+          context: {
+            traceId: '0123456789abcdef0123456789abcdef',
+            spanId: '0123456789abcdef',
+            traceFlags: 1,
+          },
+        },
+      ],
+    } as unknown as ReadableSpan;
+    expect(() => proc.onEnd(span)).not.toThrow();
+    const attrs = span.attributes as Record<string, unknown>;
+    expect(attrs.authorization).toBe(REDACTED_SENTINEL);
+  });
+
+  test('integrated with FileSpanExporter: event + link credentials never reach the JSONL', async () => {
+    const exporter = new FileSpanExporter({ projectDir: tmp, maxBytes: 1_000_000 });
+    const proc = new ScrubbingSpanProcessor({
+      attributeDenylist: ['authorization'],
+      maxValueBytes: 16,
+    });
+    const provider = new BasicTracerProvider({
+      spanProcessors: [proc, new SimpleSpanProcessor(exporter)],
+    });
+    const tracer = provider.getTracer('test');
+
+    const linkSourceSpan = tracer.startSpan('link-source');
+    const linkedContext = linkSourceSpan.spanContext();
+    linkSourceSpan.end();
+
+    const span = tracer.startSpan('http.request', {
+      links: [
+        {
+          context: linkedContext,
+          attributes: {
+            authorization: 'Bearer link-secret-aaa',
+            'link.kind': 'parent',
+          },
+        },
+      ],
+    });
+    span.addEvent('auth-check', {
+      authorization: 'Bearer event-secret-bbb',
+      'event.detail': 'a really long event description that exceeds the cap',
+    });
+    span.end();
+    await provider.forceFlush();
+
+    const fileBody = readFileSync(spansCurrentPath(tmp), 'utf-8');
+    expect(fileBody).not.toContain('event-secret-bbb');
+    expect(fileBody).not.toContain('link-secret-aaa');
+    expect(fileBody).toContain('[REDACTED]');
+    expect(fileBody).toContain(
+      `[TRUNCATED:${Buffer.byteLength('a really long event description that exceeds the cap', 'utf-8')}]`,
+    );
+
+    await provider.shutdown();
+  });
+});
+
+void trace.getTracer;
+void context.active;

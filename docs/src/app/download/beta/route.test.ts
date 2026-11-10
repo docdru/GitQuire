@@ -1,0 +1,96 @@
+import { describe, expect, test, vi } from 'vitest';
+import {
+  BETA_DMG_ASSET_NAME,
+  FALLBACK_CACHE_CONTROL,
+  type PrereleaseRedirect,
+  RELEASES_PAGE_URL,
+  SUCCESS_CACHE_CONTROL,
+} from '../../../lib/download-links.ts';
+
+const TEST_DMG_URL = `https://github.com/inkeep/open-knowledge/releases/download/v0.1.0-beta.1/${BETA_DMG_ASSET_NAME}`;
+
+let _redirect: PrereleaseRedirect = { kind: 'fresh', url: TEST_DMG_URL };
+
+vi.doMock('../../../lib/download-links.ts', () => ({
+  createBetaResolver: () => () => Promise.resolve(_redirect),
+  toRedirectResponse: (r: PrereleaseRedirect): Response =>
+    new Response(null, {
+      status: 302,
+      headers: {
+        location: r.url,
+        'cache-control': r.kind === 'fallback' ? FALLBACK_CACHE_CONTROL : SUCCESS_CACHE_CONTROL,
+      },
+    }),
+}));
+
+type CaptureOpts = {
+  event: string;
+  distinctId: string;
+  properties?: Record<string, string | undefined>;
+};
+let _lastCapture: CaptureOpts | null = null;
+vi.doMock('../../../lib/track.ts', () => ({
+  captureServerEvent: (opts: CaptureOpts) => {
+    _lastCapture = opts;
+  },
+  resolveDistinctId: () => 'visitor-9',
+  attribution: () => ({ sec_fetch_site: 'none' }),
+  isPrefetchRequest: (request: Request) => request.headers.get('sec-purpose') === 'prefetch',
+}));
+
+const { GET } = await import('./route.ts');
+
+function call(): Promise<Response> {
+  return GET(new Request('https://openknowledge.ai/download/beta'));
+}
+
+describe('GET /download/beta', () => {
+  test('serves the Apple Silicon macOS beta and reports that fixed target', async () => {
+    _redirect = { kind: 'fresh', url: TEST_DMG_URL };
+    _lastCapture = null;
+    const res = await call();
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(TEST_DMG_URL);
+    expect(res.headers.get('cache-control')).toBe(SUCCESS_CACHE_CONTROL);
+    expect(_lastCapture?.event).toBe('dmg_downloaded');
+    expect(_lastCapture?.distinctId).toBe('visitor-9');
+    expect(_lastCapture?.properties?.channel).toBe('beta');
+    expect(_lastCapture?.properties?.os).toBe('macos');
+    expect(_lastCapture?.properties?.arch).toBe('arm64');
+    expect(_lastCapture?.properties?.format).toBe('dmg');
+    expect(TEST_DMG_URL.endsWith('.dmg')).toBe(true);
+  });
+
+  test('302 to the stale LKG URL and still counts', async () => {
+    _redirect = { kind: 'stale-lkg', url: TEST_DMG_URL, refreshError: 'network down' };
+    _lastCapture = null;
+    const res = await call();
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(TEST_DMG_URL);
+    expect(res.headers.get('cache-control')).toBe(SUCCESS_CACHE_CONTROL);
+    expect(_lastCapture?.properties?.channel).toBe('beta');
+  });
+
+  test('302 to the releases page on fallback is NOT counted as a download', async () => {
+    _redirect = { kind: 'fallback', url: RELEASES_PAGE_URL, cause: 'API error' };
+    _lastCapture = null;
+    const res = await call();
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(RELEASES_PAGE_URL);
+    expect(res.headers.get('cache-control')).toBe(FALLBACK_CACHE_CONTROL);
+    expect(_lastCapture).toBeNull();
+  });
+
+  test('a prefetch still redirects but is NOT counted', async () => {
+    _redirect = { kind: 'fresh', url: TEST_DMG_URL };
+    _lastCapture = null;
+    const res = await GET(
+      new Request('https://openknowledge.ai/download/beta', {
+        headers: { 'sec-purpose': 'prefetch' },
+      }),
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(TEST_DMG_URL);
+    expect(_lastCapture).toBeNull();
+  });
+});

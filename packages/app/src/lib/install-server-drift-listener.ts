@@ -1,0 +1,100 @@
+// oxlint-disable ok/no-custom-toast -- pre-rule backlog: this toast.custom awaits a typed toast; delete this line once it is replaced. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-custom-toast
+import { t } from '@lingui/core/macro';
+import { createElement } from 'react';
+import { toast } from 'sonner';
+import { ServerDriftToast } from '@/components/ServerDriftToast';
+import { okCliCommandName } from '@/lib/channel-cli-copy';
+import type {
+  OkDesktopBridge,
+  OkServerRestartFailure,
+  OkServerRestartOutcome,
+  OkServerVersionDriftInfo,
+} from '@/lib/desktop-bridge-types';
+import {
+  otherChannelRestartMessage,
+  unverifiedHolderRestartMessage,
+} from '@/lib/restart-collab-server';
+
+export function restartDisruptionWarning(): string {
+  return t`Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their OpenKnowledge MCP connection close unexpectedly — you may need to restart the agent, or toggle its OpenKnowledge MCP server off and on, to reconnect.`;
+}
+
+export function driftToastBody(info: OkServerVersionDriftInfo): string {
+  if (info.serverRuntime === info.appRuntime) {
+    return t`This project is running a different, incompatible build of OpenKnowledge than this app (v${info.appRuntime}).`;
+  }
+  return info.relation === 'older'
+    ? t`This project is running an older version of OpenKnowledge (v${info.serverRuntime}) than this app (v${info.appRuntime}).`
+    : t`This project's server (v${info.serverRuntime}) is newer than this app (v${info.appRuntime}).`;
+}
+
+export function restartSuccessMessage(appRuntime: string): string {
+  return t`Restarted — now running v${appRuntime}.`;
+}
+
+export function restartFailureMessage(failure: OkServerRestartFailure): string {
+  switch (failure.reason) {
+    case 'other-channel':
+      return otherChannelRestartMessage(failure.holderChannel);
+    case 'eperm':
+      return t`Couldn't restart the server — it's running under a different account. Restart your computer to clear it, then reopen this project.`;
+    case 'other': {
+      const cliCommand = okCliCommandName();
+      return t`Couldn't restart the server automatically. Try running \`${cliCommand} stop all\` in a terminal, then reopen this project — or restart your computer if it persists.`;
+    }
+    case 'unverified':
+      return unverifiedHolderRestartMessage(failure.sigtermSent);
+  }
+}
+
+async function runRestart(bridge: OkDesktopBridge): Promise<void> {
+  const loadingId = toast.loading(t`Restarting the server…`, {
+    duration: Number.POSITIVE_INFINITY,
+  });
+  let outcome: OkServerRestartOutcome;
+  try {
+    outcome = await bridge.restartServer(bridge.config.projectPath);
+  } catch {
+    return;
+  }
+  toast.dismiss(loadingId);
+  if (outcome.ok === false) {
+    toast.error(restartFailureMessage(outcome), {
+      duration: Number.POSITIVE_INFINITY,
+    });
+  }
+}
+
+export function installServerDriftListener(opts: {
+  bridge: OkDesktopBridge | undefined;
+}): (() => void) | undefined {
+  const bridge = opts.bridge;
+  if (!bridge) return undefined;
+
+  const unsubscribeDrift = bridge.onServerVersionDrift((info) => {
+    toast.custom(
+      (id) =>
+        createElement(ServerDriftToast, {
+          body: driftToastBody(info),
+          detail: restartDisruptionWarning(),
+          actionLabel: t`Restart with this app's version`,
+          dismissLabel: t`Not now`,
+          onAction: () => {
+            toast.dismiss(id);
+            void runRestart(bridge);
+          },
+          onDismiss: () => toast.dismiss(id),
+        }),
+      { duration: Number.POSITIVE_INFINITY },
+    );
+  });
+
+  const unsubscribeRestarted = bridge.onServerRestarted((info) => {
+    toast.success(restartSuccessMessage(info.appRuntime));
+  });
+
+  return () => {
+    unsubscribeDrift();
+    unsubscribeRestarted();
+  };
+}

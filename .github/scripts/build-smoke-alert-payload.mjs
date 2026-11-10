@@ -1,0 +1,152 @@
+#!/usr/bin/env node
+
+import { pathToFileURL } from 'node:url';
+
+const ALERT_HEADLINE = 'RELEASE BLOCKED';
+const DEFAULT_REPO = 'inkeep/open-knowledge';
+
+export function describeVerdict(verdict) {
+  if (verdict === 'fail') {
+    return {
+      short: 'FAILED',
+      detail: 'the packaged app failed the smoke subset — treat this as a real product regression',
+    };
+  }
+  return {
+    short: 'ERRORED',
+    detail:
+      'the gate hit an infrastructure error and never reached a verdict — the app may be fine; re-run before assuming a regression',
+  };
+}
+
+export function describeBlock({ verdict, blockedBy = '' } = {}) {
+  const other = String(blockedBy ?? '').trim();
+
+  if (verdict === 'fail') {
+    const { short, detail } = describeVerdict('fail');
+    return { subject: `DMG smoke ${short}`, detail, smokePassed: false };
+  }
+
+  const smokePassed = verdict === 'pass';
+
+  if (other) {
+    return {
+      subject: `blocked by ${other}`,
+      detail: smokePassed
+        ? `the DMG smoke PASSED — this is NOT an app regression. ${other} failed; check that job before re-running.`
+        : `${other} failed; the DMG smoke never reached a verdict. Check that job before re-running.`,
+      smokePassed,
+    };
+  }
+
+  if (smokePassed) {
+    return {
+      subject: 'blocked after the smoke passed',
+      detail:
+        'the DMG smoke PASSED — this is NOT an app regression; a later stage of the release pipeline failed. See the run.',
+      smokePassed: true,
+    };
+  }
+
+  const { short, detail } = describeVerdict(verdict);
+  return { subject: `DMG smoke ${short}`, detail, smokePassed: false };
+}
+
+export function recoveryCommand(tag, repo = DEFAULT_REPO) {
+  return [
+    `gh api -X POST repos/${repo}/dispatches -f event_type=desktop-release`,
+    `-F 'client_payload[release_tag]=${tag}' -F 'client_payload[ref]=${tag}'`,
+  ].join(' ');
+}
+
+function summaryLine(tag, verdict, blockedBy) {
+  const { subject } = describeBlock({ verdict, blockedBy });
+  return `🚨 ${ALERT_HEADLINE}: ${tag} ${subject}`;
+}
+
+function recoveryGuidance(tag) {
+  return [
+    '*Recovery guidance:* If the Release is published, inspect the failed downstream npm or release-consumer operation before choosing recovery.',
+    "If it is unpublished, follow RELEASES.md, Resuming a blocked cut, using a guarded workflow revision. Inspect the failed packaging job's final `outcome=` when packaging failed.",
+    'With no newer stable release, `transient-exhausted`, `deadline`, or `signal` can re-fire the same tag; investigate a recurring deadline.',
+    '`unknown-exhausted` requires manual log review. `terminal` requires fixing the cause in `reason=`.',
+    '`reason=rule:download-integrity` is the terminal exception: re-fire once on a fresh runner, then stop and investigate upstream if the same artifact fails again.',
+    '`cleanup-failure` reports its runner/tooling cause in `cleanup=`; `spawn-failure` and `child-signal` are also runner/tooling failures. Confirm the runner/tooling failure is absent before re-firing.',
+    "`attempt-timeout` and a mid-attempt `deadline` list the processes still running under the stop line: a long `notarytool` wait is Apple's queue and can re-fire; a long `codesign`, or a `took no process snapshot` line, needs that failure confirmed absent first.",
+    'Never re-fire a tag once a newer stable release has shipped; cut a new release from `main` instead.',
+    `Before any re-fire, run the shipped-fix check on the tag from a full clone: \`node .github/scripts/shipped-fix-containment.mjs --candidate ${tag}\`. Never re-fire a tag it refuses; the re-fired run refuses it too.`,
+  ].join('\n');
+}
+
+function bodyLines({ tag, verdict, reason, runUrl, repo, blockedBy }) {
+  const { detail, smokePassed } = describeBlock({ verdict, blockedBy });
+  const other = String(blockedBy ?? '').trim();
+  return [
+    `*Tag:* \`${tag}\``,
+    `*Smoke verdict:* \`${verdict}\` — ${detail}`,
+    other
+      ? smokePassed
+        ? `*Why:* ${other} failed. The DMG smoke itself passed (${reason}).`
+        : `*Why:* ${other} failed (${reason}).`
+      : `*Why:* ${reason}`,
+    '*State:* Publication may have completed. Inspect the GitHub Release, npm and run before recovery.',
+    recoveryGuidance(tag),
+    `*Recovery command (only after confirming an eligible unpublished tag):*\n\`${recoveryCommand(tag, repo)}\``,
+    `*Run:* ${runUrl}`,
+  ];
+}
+
+export function buildSlackPayload({
+  tag,
+  verdict,
+  reason,
+  runUrl,
+  repo = DEFAULT_REPO,
+  blockedBy = '',
+}) {
+  return {
+    text: summaryLine(tag, verdict, blockedBy),
+    blocks: [
+      {
+        type: 'header',
+        text: { type: 'plain_text', text: summaryLine(tag, verdict, blockedBy), emoji: true },
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: bodyLines({ tag, verdict, reason, runUrl, repo, blockedBy }).join('\n'),
+        },
+      },
+    ],
+  };
+}
+
+export function parseArgs(argv) {
+  const args = {};
+  const rest = argv.slice(2);
+  for (let i = 0; i < rest.length; i += 1) {
+    const key = rest[i];
+    if (!key.startsWith('--')) continue;
+    args[key.slice(2)] = rest[i + 1] ?? '';
+    i += 1;
+  }
+  if (!args.tag) throw new Error('--tag is required');
+  return {
+    tag: args.tag,
+    verdict: args.verdict || 'error',
+    reason: args.reason || '(no reason recorded)',
+    runUrl: args['run-url'] || '',
+    repo: args.repo || DEFAULT_REPO,
+    blockedBy: args['blocked-by'] || '',
+  };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try {
+    process.stdout.write(JSON.stringify(buildSlackPayload(parseArgs(process.argv))));
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    process.exit(1);
+  }
+}

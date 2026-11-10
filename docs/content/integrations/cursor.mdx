@@ -1,0 +1,37 @@
+---
+title: Cursor
+description: Use OpenKnowledge with Cursor.
+icon: custom/Cursor
+---
+
+OpenKnowledge works with Cursor through MCP plus an installed skill.
+
+## Install
+
+<McpInstall editor="Cursor" />
+
+## Enable the project server
+
+Cursor lists a project-level `.cursor/mcp.json` server as **Disabled** until you turn it on, and it never prompts. A user-level registration (`~/.cursor/mcp.json`, which `ok init` writes by default) starts on its own, so with the default setup the agent already sees the tools and the disabled project entry changes nothing.
+
+If you registered OpenKnowledge project-level only, or want the project entry active: open **Customize → MCPs**, pick `open-knowledge`, and switch on its `.cursor/mcp.json` source.
+
+OpenKnowledge Beta registers as `open-knowledge-beta` instead; see [Beta uses its own entry](/docs/reference/what-open-knowledge-writes#beta-uses-its-own-entry).
+
+Described as of September 2026 (Cursor 3.19); Cursor renames this settings area often.
+
+## Open with AI
+
+From the editor, **Open with AI ▸ Cursor Desktop** dispatches the current file, folder, or project to Cursor. Entry points: the sidebar's right-click menu (file / folder / empty space), the command palette, and the **File → Open with AI** menu. You can also hand the current doc to Cursor from the bottom **Ask AI** composer.
+
+Cursor uses a two-step handoff: OpenKnowledge spawns `cursor <projectDir>` to open the workspace first, then fires the `cursor://` URL with a short prompt asking Cursor to open the target in OpenKnowledge's web preview. The agent then grounds the rest of the conversation through MCP. See [Editor → Open with AI](/docs/features/editor#open-with-ai) for the full UX.
+
+Both steps run through the local server's `POST /api/handoff`, the same path in the web app and the desktop app — so the **Open with AI ▸ Cursor Desktop** row works in both.
+
+## Verify
+
+Ask the agent:
+
+<VerifyExec />
+
+If it still doesn't see the tool, after enabling the project entry or while relying on the user-level entry, restart Cursor so it picks up the new MCP entry. If it's still missing and `ok init` reported your config was `left unchanged`, OpenKnowledge couldn't safely edit `~/.cursor/mcp.json` for the reason shown in parentheses (unreadable, too large, or a duplicate server block) — fix the config and re-run `ok init`.

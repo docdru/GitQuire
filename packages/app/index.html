@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta name="color-scheme" content="light dark" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>OpenKnowledge</title>
+  <!--
+    Editor-mode FOUC prevention. Reads the persisted mode synchronously
+    before React mounts so the first painted frame shows the user's
+    preferred editor (avoids flashing WYSIWYG before switching to Source).
+    Paired consumer: `src/editor/use-editor-mode.ts` (hook reads
+    `window.__OK_EDITOR_MODE__` once in its useState initializer).
+    Spec: specs/2026-04-21-editor-mode-persistence/SPEC.md §7.2.
+    Script body is on a single line with no inner newlines — biome's HTML
+    formatter reindents inline-script content on every pass (+4 spaces/run),
+    producing an infinite deny-loop at pre-commit. No-inner-newline form has
+    nothing for the formatter to reindent.
+  -->
+  <script>(() => { let mode = 'wysiwyg'; try { const raw = localStorage.getItem('ok-editor-mode-v1'); if (raw === 'wysiwyg' || raw === 'source') mode = raw; } catch {} window.__OK_EDITOR_MODE__ = mode; })();</script>
+  <!--
+    Theme FOUC prevention. Reads the persisted theme synchronously before
+    React mounts so the first painted frame is in the user's chosen theme
+    (avoids the native-pref → user-pref flip when the OS preference
+    disagrees with the user's choice). Paired consumer: next-themes
+    <ThemeProvider storageKey='ok-theme-v1'> in `src/main.tsx` — keep keys
+    in sync. next-themes stores the value as a plain string, not JSON.
+
+    The `electron-mode` class is added when `window.okDesktop` is
+    present (preload bridge runs before any inline page script). Paired
+    consumer: globals.css `html.electron-mode` rules — render the outer
+    canvas (html / body / sidebar wrapper / sidebar inner) alpha-aware
+    so the BrowserWindow's vibrancy material shows through. Web mode
+    (no `window.okDesktop`) skips the class so chrome stays solid.
+
+    The IDE color palette comes from `ok-color-theme-pair-v1`, which holds one
+    palette per mode plus the mode preference that chooses between them:
+    `{ pref, light: { id, dark, css? }, dark: { id, dark, css? } }`. The script resolves
+    `pref` (asking the OS for `system`), reads that slot, applies its `id` as
+    the `data-color-theme` attribute consumed by `color-themes.generated.css`,
+    and takes the `dark` class straight from the slot's own flag — a palette
+    forces its own variant, so the flag is precomputed rather than re-derived
+    here. That is what keeps this script free of any theme-id knowledge.
+
+    A build that predates the pair wrote a single id to `ok-color-theme-v1`,
+    read only as a fallback: it applied to whatever mode was active, and
+    `ok-theme-v1` already carried the mode that palette forced. The app deletes
+    that key as soon as it writes the pair, so this branch runs at most once
+    per install.
+
+    Runtime palettes (`custom` and `saved-*`) carry their prebuilt stylesheet
+    on each pair-cache slot as `css`. The active slot's stylesheet is injected
+    before paint; a missing stylesheet drops that runtime palette instead of
+    borrowing the other slot's CSS. For one upgrade, a `custom` slot written by
+    the preceding cache format may recover its stylesheet and mode from
+    `ok-custom-theme-v1`; the current writer deletes that legacy key. Paired consumer:
+    `src/lib/use-apply-config-color-theme.ts` — it writes the
+    `ok-color-theme-pair-v1` cache and clears the legacy `ok-color-theme-v1` and
+    `ok-custom-theme-v1` caches; `ok-theme-v1` is next-themes' (see above).
+
+    Single-line script body — same biome HTML-formatter constraint as
+    the editor-mode FOUC above.
+  -->
+  <script>(() => { const isMode = (v) => v === 'light' || v === 'dark' || v === 'system'; const isThemeId = (v) => typeof v === 'string' && /^[a-z0-9-]{1,32}$/.test(v); let pref = 'system'; try { const r = localStorage.getItem('ok-theme-v1'); if (isMode(r)) pref = r; } catch {} let slots = null; try { const raw = localStorage.getItem('ok-color-theme-pair-v1'); if (raw) { const o = JSON.parse(raw); if (o?.light && o?.dark) { slots = o; if (isMode(o.pref)) pref = o.pref; } } } catch {} let dark = pref === 'dark'; if (pref === 'system') { try { dark = window.matchMedia('(prefers-color-scheme: dark)').matches; } catch {} } let ct = null; let slot = null; if (slots) { slot = dark ? slots.dark : slots.light; if (isThemeId(slot?.id)) { dark = !!slot.dark; if (slot.id !== 'default') ct = slot.id; } } else { try { const c = localStorage.getItem('ok-color-theme-v1'); if (isThemeId(c) && c !== 'default') ct = c; } catch {} } let runtimeCss = null; if (ct === 'custom' || ct?.startsWith('saved-')) { if (typeof slot?.css === 'string' && slot.css) runtimeCss = slot.css; if (!runtimeCss && slots && ct === 'custom') { try { const raw = localStorage.getItem('ok-custom-theme-v1'); if (raw) { const o = JSON.parse(raw); if (typeof o?.css === 'string' && o.css) { runtimeCss = o.css; dark = !!o.dark; } } } catch {} } if (!runtimeCss) ct = null; } if (dark) document.documentElement.classList.add('dark'); if (ct) document.documentElement.setAttribute('data-color-theme', ct); if (runtimeCss) { const s = document.createElement('style'); s.id = ct === 'custom' ? 'ok-custom-theme' : 'ok-saved-theme'; s.textContent = runtimeCss; document.head.appendChild(s); } if (window.okDesktop) { document.documentElement.classList.add('electron-mode'); document.documentElement.classList.add(`electron-platform-${window.okDesktop.platform}`); } })();</script>
+  <!--
+    Language FOUC prevention. Reads the persisted interface language
+    synchronously before React mounts so the first painted frame carries the
+    right `lang` (which picks the font stack and shaper) and the right base
+    `dir` — a late direction flip moves the whole layout, not just a word.
+    Paired consumer/writer: `src/lib/use-apply-config-language.ts`
+    (`ok-language-v1`) — keep the key and the `locale` / `dir` field names in
+    sync; `src/lib/language-fouc-prepaint.dom.test.ts` runs this script over
+    that writer's real output to hold the two together.
+
+    The cached locale is painted as-is and never re-resolved here: turning an
+    OS language list back into a catalog needs the maximizing matcher, which is
+    bundle code. The `pref` field is written for the app, not read here.
+
+    `<html lang>` above is the no-cache default, so a first-ever launch paints
+    the bootstrap catalog's language rather than an empty attribute.
+
+    Single-line script body — same biome HTML-formatter constraint as the two
+    FOUC scripts above.
+  -->
+  <script>(() => { try { const raw = localStorage.getItem('ok-language-v1'); if (!raw) return; const o = JSON.parse(raw); if (typeof o?.locale !== 'string' || !/^[a-zA-Z]{2,8}(-[a-zA-Z0-9]{2,8})*$/.test(o.locale)) return; document.documentElement.lang = o.locale; document.documentElement.dir = o.dir === 'rtl' ? 'rtl' : 'ltr'; } catch {} })();</script>
+  <style>html { background-color: __OK_SIDEBAR_BG_LIGHT__ } html.dark { background-color: __OK_CHROME_BG_DARK__ }</style>
+</head>
+
+<body class="antialiased">
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

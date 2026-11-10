@@ -1,0 +1,285 @@
+{
+  "note": "Labeled query→doc retrieval-quality set for FR2 (spec Q13). Split into 'tune' (calibrate RRF k + bge query prefix) and 'held' (the pre-registered acceptance gate — measured once). Categories: 'zero-overlap' (target shares ~no tokens with the query while a distractor does — only vector can retrieve it; tests D20/C2b), 'paraphrase' (low lexical overlap), 'long-doc' (target is long, matching passage buried — tests C3 length bias), 'lexical-strong' (lexical already wins — the regression budget guards these). Authored solo, so blinding is partial (see eval-methodology.md); the mechanically-enforceable parts (zero-overlap pairs, long-doc pairs, tune/held split, pre-registered bar) are done rigorously.",
+  "corpus": [
+    {
+      "path": "auth/session-token-refresh",
+      "title": "Session Token Refresh",
+      "content": "When an access token expires, the client silently obtains a new one by presenting its long-lived refresh token to the refresh endpoint, which mints a fresh short-lived token. The old token is revoked. This keeps a signed-in user from being interrupted while bounding the blast radius of a leaked token."
+    },
+    {
+      "path": "auth/oauth-device-flow",
+      "title": "OAuth Device Flow",
+      "content": "The device authorization grant lets input-constrained devices like TVs obtain user consent. The device shows a short code; the user visits a verification page on a second device and approves. The device then polls the token endpoint until consent is granted."
+    },
+    {
+      "path": "auth/login-rate-limiting",
+      "title": "Login Rate Limiting",
+      "content": "Repeated failed sign-in attempts from one source are throttled with exponential backoff and temporary lockout to slow credential-stuffing and brute-force password guessing without locking out legitimate users for long."
+    },
+    {
+      "path": "auth/password-reset",
+      "title": "Password Reset",
+      "content": "A user who forgot their password requests a reset link sent to their verified email. The link carries a single-use, time-limited token; following it lets them choose a new password and invalidates old sessions."
+    },
+    {
+      "path": "search/bm25-ranking",
+      "title": "BM25 Ranking",
+      "content": "BM25 scores how well a document matches query keywords using term frequency with saturation and inverse document frequency, normalized by document length. It is the workhorse of keyword search but matches words, not meaning."
+    },
+    {
+      "path": "search/vector-embeddings",
+      "title": "Vector Embeddings",
+      "content": "A sentence-transformer maps text to a dense vector so that passages with similar meaning land near each other in space. Retrieval by cosine distance then surfaces conceptually related content even when it shares no words with the query."
+    },
+    {
+      "path": "search/reciprocal-rank-fusion",
+      "title": "Reciprocal Rank Fusion",
+      "content": "To merge two ranked lists whose scores live on incompatible scales, sum one over a constant plus rank across the lists. Because only rank position matters, there is no need to normalize an unbounded keyword score against a bounded similarity."
+    },
+    {
+      "path": "search/query-autocomplete",
+      "title": "Query Autocomplete",
+      "content": "As the user types in the search box, a prefix index suggests likely completions ordered by popularity and recency so they can jump to a known destination without finishing the word."
+    },
+    {
+      "path": "ops/blue-green-deploys",
+      "title": "Blue-Green Deploys",
+      "content": "Two identical production environments run side by side. New code goes live in the idle one; once it passes smoke checks the router cuts all traffic over instantly. If something breaks, flip the router back to roll the release back in seconds."
+    },
+    {
+      "path": "ops/database-migrations",
+      "title": "Database Migrations",
+      "content": "Schema changes ship as ordered, versioned scripts applied forward at deploy time. Expand-then-contract steps keep each change backward compatible so the application and the schema can roll out independently with no downtime."
+    },
+    {
+      "path": "ops/incident-runbook",
+      "title": "Incident Runbook",
+      "content": "When an alert fires, page the on-call engineer, open a dedicated channel, declare a severity, and work the triage checklist: confirm impact, mitigate first, find the cause second, and write a blameless postmortem after the service recovers."
+    },
+    {
+      "path": "ops/observability",
+      "title": "Observability",
+      "content": "Traces, metrics, and structured logs together let an operator ask new questions of a running system without shipping new code. Spans stitch a request across services; histograms surface tail latency; logs carry the detail."
+    },
+    {
+      "path": "editor/conflict-resolution",
+      "title": "Conflict Resolution",
+      "content": "Two people editing the same paragraph at once never clobber each other because every keystroke is a commutative operation that merges deterministically. The data structure converges to the same state on every replica regardless of order."
+    },
+    {
+      "path": "editor/markdown-pipeline",
+      "title": "Markdown Pipeline",
+      "content": "A document is parsed into an abstract syntax tree, transformed through a chain of handlers that normalize and enrich nodes, and serialized back to canonical markdown so the round trip is stable and lossless."
+    },
+    {
+      "path": "editor/backlinks",
+      "title": "Backlinks",
+      "content": "Every wiki-style link from one note to another is indexed in both directions, so opening a page shows which other pages point at it. Dense backlinking is how the knowledge base stays navigable as it grows."
+    },
+    {
+      "path": "algorithms/token-bucket",
+      "title": "Token Bucket Algorithm",
+      "content": "A token bucket refills at a fixed rate up to a cap. Each request removes a token; an empty bucket means the caller is rate limited. It smooths bursts while bounding the long-run rate."
+    },
+    {
+      "path": "ui/refresh-button",
+      "title": "Refresh Button",
+      "content": "Pressing refresh re-fetches the current view from the server and repaints it, discarding any stale cached copy the browser was showing."
+    },
+    {
+      "path": "design/vector-graphics",
+      "title": "Vector Graphics",
+      "content": "Vector graphics describe images as scalable shapes — paths, curves, and fills — instead of a grid of pixels, so they stay crisp at any size and export to SVG."
+    },
+    {
+      "path": "data/cold-storage",
+      "title": "Cold Storage",
+      "content": "Infrequently accessed data is moved to cheap, slow archival storage with long retrieval times, trading latency for cost on records that are kept for compliance but rarely read."
+    },
+    {
+      "path": "guides/onboarding",
+      "title": "Team Onboarding",
+      "content": "A new engineer's first week: get accounts provisioned, clone the repo, run the app locally, ship a tiny change behind a flag, and pair with a buddy who answers questions and reviews the first pull request."
+    },
+    {
+      "path": "overview/platform-architecture",
+      "title": "Platform Architecture Overview",
+      "content": "This document surveys the whole platform end to end. The edge layer terminates TLS and routes requests to stateless application servers, which talk to a primary datastore and a read-replica fleet. Background workers drain a durable queue for asynchronous jobs like sending email and rebuilding derived indexes. The collaboration core keeps every document as a conflict-free replicated data type so concurrent editors converge without a central lock; a file watcher mirrors changes to disk and a shadow repository tracks per-writer work in progress. Search is served by an in-memory keyword index, and — when enabled — an on-device embedding model adds a meaning-based signal so a query about a concept can find a passage that never uses the query's exact words. Observability spans, metrics, and logs flow to a local sink for diagnosis. Releases roll out blue-green: a fresh environment goes live behind the router and the previous one stays warm for instant rollback. Secrets live in the OS keychain, never on disk. The whole system is designed local-first: a single user's machine runs the full stack with no cloud dependency, and nothing about a private note ever leaves the device."
+    },
+    {
+      "path": "overview/engineering-handbook",
+      "title": "Engineering Handbook",
+      "content": "Our engineering culture in one page. We write small, reversible changes and ship them behind flags so a risky idea can be turned off without a deploy. Code review is mandatory and kind: reviewers explain the why, authors assume good faith. Tests describe behavior, not implementation, so a refactor that preserves behavior keeps them green. We measure before optimizing and keep a calibrated performance budget. On call rotates weekly; when an incident happens we mitigate before we investigate and we never blame a person for a system that let a mistake through. To undo a bad release we flip production traffic back to the previous environment, which restores service in seconds while we diagnose. Documentation lives next to the code and is treated as part of the change, not an afterthought. Above all we optimize for the long-run health of the codebase over the short-run convenience of any single change."
+    }
+  ],
+  "pairs": [
+    {
+      "query": "avoid re-typing my login every hour as my pass quietly renews",
+      "target": "auth/session-token-refresh",
+      "category": "zero-overlap",
+      "split": "tune"
+    },
+    {
+      "query": "approve an app on my smart TV by typing a code on my phone",
+      "target": "auth/oauth-device-flow",
+      "category": "zero-overlap",
+      "split": "held"
+    },
+    {
+      "query": "slow down an attacker guessing passwords over and over",
+      "target": "auth/login-rate-limiting",
+      "category": "paraphrase",
+      "split": "tune"
+    },
+    {
+      "query": "I forgot how to get into my account and need a new secret",
+      "target": "auth/password-reset",
+      "category": "paraphrase",
+      "split": "held"
+    },
+    {
+      "query": "find notes that mean the same thing but use different words",
+      "target": "search/vector-embeddings",
+      "category": "paraphrase",
+      "split": "tune"
+    },
+    {
+      "query": "combine two result lists whose scores are on different scales",
+      "target": "search/reciprocal-rank-fusion",
+      "category": "paraphrase",
+      "split": "held"
+    },
+    {
+      "query": "score how well keywords match a document",
+      "target": "search/bm25-ranking",
+      "category": "lexical-strong",
+      "split": "tune"
+    },
+    {
+      "query": "ship code live and switch traffic over instantly with fast rollback",
+      "target": "ops/blue-green-deploys",
+      "category": "lexical-strong",
+      "split": "held"
+    },
+    {
+      "query": "change the database shape without taking the site down",
+      "target": "ops/database-migrations",
+      "category": "paraphrase",
+      "split": "tune"
+    },
+    {
+      "query": "what to do the moment a production alert pages me",
+      "target": "ops/incident-runbook",
+      "category": "paraphrase",
+      "split": "held"
+    },
+    {
+      "query": "simultaneous writers without overwriting one another's work",
+      "target": "editor/conflict-resolution",
+      "category": "zero-overlap",
+      "split": "tune"
+    },
+    {
+      "query": "see which other pages link to the one I'm reading",
+      "target": "editor/backlinks",
+      "category": "paraphrase",
+      "split": "held"
+    },
+    {
+      "query": "limit how many requests a caller can make per second",
+      "target": "algorithms/token-bucket",
+      "category": "paraphrase",
+      "split": "tune"
+    },
+    {
+      "query": "move rarely-read records to cheap slow archival storage",
+      "target": "data/cold-storage",
+      "category": "lexical-strong",
+      "split": "held"
+    },
+    {
+      "query": "first week plan for a brand new engineer joining the team",
+      "target": "guides/onboarding",
+      "category": "paraphrase",
+      "split": "tune"
+    },
+    {
+      "query": "how meaning-based search finds a passage with none of my words",
+      "target": "overview/platform-architecture",
+      "category": "long-doc",
+      "split": "tune"
+    },
+    {
+      "query": "undo a bad release by sending users back to the old environment",
+      "target": "overview/engineering-handbook",
+      "category": "long-doc",
+      "split": "held"
+    },
+    {
+      "query": "token bucket rate limiter",
+      "target": "algorithms/token-bucket",
+      "category": "lexical-strong",
+      "split": "tune"
+    },
+    {
+      "query": "oauth device flow",
+      "target": "auth/oauth-device-flow",
+      "category": "lexical-strong",
+      "split": "held"
+    },
+    {
+      "query": "reissue a short-lived token from a refresh token",
+      "target": "auth/session-token-refresh",
+      "category": "lexical-strong",
+      "split": "tune"
+    },
+    {
+      "query": "keep concurrent editors from overwriting each other's work",
+      "target": "editor/conflict-resolution",
+      "category": "paraphrase",
+      "split": "held"
+    },
+    {
+      "query": "let a TV get user consent through a second screen",
+      "target": "auth/oauth-device-flow",
+      "category": "paraphrase",
+      "split": "tune"
+    },
+    {
+      "query": "throttle repeated failed logins",
+      "target": "auth/login-rate-limiting",
+      "category": "lexical-strong",
+      "split": "held"
+    },
+    {
+      "query": "turn text into a dense representation for semantic retrieval",
+      "target": "search/vector-embeddings",
+      "category": "lexical-strong",
+      "split": "tune"
+    },
+    {
+      "query": "send users back to the previous deploy to recover quickly",
+      "target": "ops/blue-green-deploys",
+      "category": "paraphrase",
+      "split": "held"
+    },
+    {
+      "query": "email someone a single-use link to choose a new password",
+      "target": "auth/password-reset",
+      "category": "lexical-strong",
+      "split": "tune"
+    },
+    {
+      "query": "make schema changes that roll out with zero downtime",
+      "target": "ops/database-migrations",
+      "category": "lexical-strong",
+      "split": "held"
+    },
+    {
+      "query": "regain entry to my locked-out account by proving my email",
+      "target": "auth/password-reset",
+      "category": "zero-overlap",
+      "split": "tune"
+    }
+  ]
+}

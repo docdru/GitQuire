@@ -1,0 +1,5 @@
+{
+  "title": "Remote Control",
+  "icon": "LuServer",
+  "pages": ["overview", "methods", "authentication", "connecting-agents"]
+}

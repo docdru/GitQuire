@@ -1,0 +1,100 @@
+import { existsSync } from 'node:fs';
+import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { LOCK_FILE_ACCESS_REMEDY, resolveLockDir } from '@inkeep/open-knowledge-server';
+import {
+  describeForeignHostRemedy,
+  describeForeignOwner,
+  describeLockOwnershipRefusal,
+  inspectLock,
+  type LockState,
+} from '../lock-state.ts';
+import type { CheckContext, CheckDefinition, CheckResult } from './types.ts';
+
+interface ServerLockCheckDeps {
+  inspect?: (lockDir: string) => LockState;
+}
+
+export function makeServerLockCheck(deps: ServerLockCheckDeps = {}): CheckDefinition {
+  const inspect = deps.inspect ?? ((dir) => inspectLock(dir, 'server'));
+  return {
+    name: 'server-lock',
+    run: async (ctx: CheckContext): Promise<CheckResult> => {
+      const lockDir = resolveLockDir(ctx.cwd);
+      if (!existsSync(lockDir)) {
+        return {
+          name: 'server-lock',
+          status: 'pass',
+          summary: 'no server lock (no `.ok/local/` yet)',
+        };
+      }
+      const state = inspect(lockDir);
+      switch (state.status) {
+        case 'missing':
+          return {
+            name: 'server-lock',
+            status: 'pass',
+            summary: 'no server holding the lock',
+          };
+        case 'alive':
+          return {
+            name: 'server-lock',
+            status: 'fail',
+            summary: `server lock held by pid ${state.lock.pid} on this host`,
+            remediation: `Stop the other OpenKnowledge process or run \`${currentCliCommandName()} stop\`.`,
+            detail: `lockPath: ${state.lockPath}; port: ${state.lock.port}; started: ${state.lock.startedAt}`,
+          };
+        case 'unverified-owner':
+          return {
+            name: 'server-lock',
+            status: 'warn',
+            summary: `unverified owner; recorded pid ${state.pid} is alive locally`,
+            remediation: describeLockOwnershipRefusal(state),
+            detail: `lockPath: ${state.lockPath}; pid: ${state.pid}`,
+          };
+        case 'foreign-host':
+          return {
+            name: 'server-lock',
+            status: 'warn',
+            summary: `server lock ${describeForeignOwner(state.lock)}`,
+            remediation: describeForeignHostRemedy(state),
+            detail: `lockPath: ${state.lockPath}; pid: ${state.lock.pid}`,
+          };
+        case 'dead-pid':
+          return {
+            name: 'server-lock',
+            status: 'warn',
+            summary: `stale lock for non-existent pid ${state.lock.pid}`,
+            remediation: `Run \`${currentCliCommandName()} clean\` to prune.`,
+            detail: `lockPath: ${state.lockPath}`,
+          };
+        case 'reused-pid':
+          return {
+            name: 'server-lock',
+            status: 'warn',
+            summary: `stale lock; recorded pid ${state.lock.pid} now belongs to another process`,
+            remediation: `Run \`${currentCliCommandName()} clean\` to prune.`,
+            detail: `lockPath: ${state.lockPath}`,
+          };
+        case 'read-error':
+          return {
+            name: 'server-lock',
+            status: 'fail',
+            summary: 'server.lock could not be read',
+            remediation: LOCK_FILE_ACCESS_REMEDY,
+            detail: `${state.lockPath}: ${state.error}`,
+          };
+        case 'corrupt':
+          return {
+            name: 'server-lock',
+            status: 'warn',
+            summary: 'server.lock is corrupt (unparseable or invalid pid)',
+            remediation: `Delete ${state.lockPath} and rerun.`,
+          };
+        default: {
+          const _exhaustive: never = state;
+          return _exhaustive;
+        }
+      }
+    },
+  };
+}

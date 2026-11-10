@@ -1,0 +1,1743 @@
+import { menuLabelForPlatform } from '@inkeep/open-knowledge-core';
+import type { MenuItemConstructorOptions } from 'electron';
+import { describe, expect, test, vi } from 'vitest';
+import { buildMenuTemplate, type MenuDeps } from '../../src/main/menu.ts';
+
+const REVEAL_LABEL = menuLabelForPlatform('revealInFinder', process.platform);
+
+type RecentRow = { path: string; name: string };
+
+function makeDeps(overrides: Partial<MenuDeps> = {}): MenuDeps {
+  return {
+    appName: 'OpenKnowledge',
+    showDevToolsMenu: true,
+    terminalCapable: true,
+    dialog: {} as MenuDeps['dialog'],
+    errorDialogParent: () => null,
+    openNavigator: vi.fn(() => {}),
+    openProject: vi.fn(() => Promise.resolve()),
+    getRecentProjects: vi.fn(() => []),
+    clearRecentProjects: vi.fn(() => {}),
+    openExternalUrl: vi.fn(() => {}),
+    ...overrides,
+  };
+}
+
+function findByLabel(
+  items: readonly MenuItemConstructorOptions[],
+  searchLabel: string,
+): MenuItemConstructorOptions | undefined {
+  for (const item of items) {
+    if (item.label === searchLabel) return item;
+    const sub = item.submenu;
+    if (Array.isArray(sub)) {
+      const found = findByLabel(sub, searchLabel);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+function buildMenuTemplateForPlatform(
+  platform: NodeJS.Platform,
+  deps: MenuDeps,
+): MenuItemConstructorOptions[] {
+  const original = process.platform;
+  Object.defineProperty(process, 'platform', { configurable: true, value: platform });
+  try {
+    return buildMenuTemplate(deps);
+  } finally {
+    Object.defineProperty(process, 'platform', { configurable: true, value: original });
+  }
+}
+
+describe('buildMenuTemplate', () => {
+  test('empty recents → "No recent projects" disabled placeholder', () => {
+    const deps = makeDeps();
+    const template = buildMenuTemplate(deps);
+    const openRecent = findByLabel(template, 'Recent project');
+    expect(openRecent).toBeDefined();
+    const sub = openRecent?.submenu as MenuItemConstructorOptions[] | undefined;
+    expect(Array.isArray(sub)).toBe(true);
+    expect(sub?.length).toBe(1);
+    expect(sub?.[0]?.label).toBe('No recent projects');
+    expect(sub?.[0]?.enabled).toBe(false);
+  });
+
+  test('populated recents → N entries + separator + Clear menu', () => {
+    const recents: RecentRow[] = [
+      { path: '/tmp/a', name: 'alpha' },
+      { path: '/tmp/b', name: 'beta' },
+    ];
+    const deps = makeDeps({ getRecentProjects: () => recents });
+    const template = buildMenuTemplate(deps);
+    const openRecent = findByLabel(template, 'Recent project');
+    const sub = openRecent?.submenu as MenuItemConstructorOptions[] | undefined;
+    expect(sub?.length).toBe(4);
+    expect(sub?.[0]?.label).toBe('alpha');
+    expect(sub?.[0]?.sublabel).toBe('/tmp/a');
+    expect(sub?.[1]?.label).toBe('beta');
+    expect(sub?.[2]?.type).toBe('separator');
+    expect(sub?.[3]?.label).toBe('Clear menu');
+  });
+
+  test('clamps at 10 entries even when more are present', () => {
+    const recents: RecentRow[] = Array.from({ length: 15 }, (_, i) => ({
+      path: `/tmp/p${i}`,
+      name: `project-${i}`,
+    }));
+    const deps = makeDeps({ getRecentProjects: () => recents });
+    const template = buildMenuTemplate(deps);
+    const openRecent = findByLabel(template, 'Recent project');
+    const sub = openRecent?.submenu as MenuItemConstructorOptions[] | undefined;
+    expect(sub?.length).toBe(12);
+    expect(sub?.[0]?.label).toBe('project-0');
+    expect(sub?.[9]?.label).toBe('project-9');
+    expect(sub?.[10]?.type).toBe('separator');
+    expect(sub?.[11]?.label).toBe('Clear menu');
+  });
+
+  test('recent-row click dispatches deps.openProject(path, "recents")', () => {
+    const openProject = vi.fn(() => Promise.resolve());
+    const deps = makeDeps({
+      getRecentProjects: () => [{ path: '/tmp/foo', name: 'foo' }],
+      openProject,
+    });
+    const template = buildMenuTemplate(deps);
+    const openRecent = findByLabel(template, 'Recent project');
+    const sub = openRecent?.submenu as MenuItemConstructorOptions[] | undefined;
+    const row = sub?.[0];
+    (row?.click as (() => void) | undefined)?.();
+    expect(openProject).toHaveBeenCalledWith('/tmp/foo', 'recents');
+  });
+
+  test('File → Open folder click dispatches deps.openProject(path, "pick-existing")', async () => {
+    const openProject = vi.fn(() => Promise.resolve());
+    const showOpenDialog = vi.fn(() =>
+      Promise.resolve({ canceled: false, filePaths: ['/tmp/picked'] }),
+    );
+    const deps = makeDeps({
+      openProject,
+      dialog: { showOpenDialog } as unknown as MenuDeps['dialog'],
+    });
+    const template = buildMenuTemplate(deps);
+    const openFolder = findByLabel(template, 'Open folder…');
+    expect(openFolder).toBeDefined();
+    await (openFolder?.click as (() => Promise<void>) | undefined)?.();
+    expect(openProject).toHaveBeenCalledWith('/tmp/picked', 'pick-existing');
+  });
+
+  test('File → Open folder reports a picker that closes without a folder', async () => {
+    const openProject = vi.fn(() => Promise.resolve());
+    const showOpenDialog = vi.fn(() => Promise.resolve({ canceled: false, filePaths: [] }));
+    const showMessageBox = vi.fn(() => Promise.resolve({ response: 0, checkboxChecked: false }));
+    const deps = makeDeps({
+      openProject,
+      dialog: { showOpenDialog, showMessageBox } as unknown as MenuDeps['dialog'],
+    });
+    const template = buildMenuTemplate(deps);
+    const openFolder = findByLabel(template, 'Open folder…');
+    await (openFolder?.click as (() => Promise<void>) | undefined)?.();
+    expect(showMessageBox).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+    expect(openProject).not.toHaveBeenCalled();
+  });
+
+  test('Clear menu click dispatches deps.clearRecentProjects()', () => {
+    const clearRecentProjects = vi.fn(() => {});
+    const deps = makeDeps({
+      getRecentProjects: () => [{ path: '/tmp/foo', name: 'foo' }],
+      clearRecentProjects,
+    });
+    const template = buildMenuTemplate(deps);
+    const clearMenu = findByLabel(template, 'Clear menu');
+    expect(clearMenu).toBeDefined();
+    (clearMenu?.click as (() => void) | undefined)?.();
+    expect(clearRecentProjects).toHaveBeenCalledTimes(1);
+  });
+
+  test('Switch project click dispatches deps.openNavigator()', () => {
+    const openNavigator = vi.fn(() => {});
+    const deps = makeDeps({ openNavigator });
+    const template = buildMenuTemplate(deps);
+    const switchProject = findByLabel(template, 'Switch project…');
+    expect(switchProject).toBeDefined();
+    (switchProject?.click as (() => void) | undefined)?.();
+    expect(openNavigator).toHaveBeenCalledTimes(1);
+  });
+
+  test('Switch project rebound to Cmd+Shift+P (FR19 / D39 — Cmd+Shift+N now owns New folder)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    const switchProject = findByLabel(template, 'Switch project…');
+    expect(switchProject?.accelerator).toBe('CmdOrCtrl+Shift+P');
+  });
+
+  test('"New Project…" label no longer appears in any submenu', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'New Project…')).toBeUndefined();
+  });
+
+  describe('Worktree items (SPEC: worktree = window)', () => {
+    test('New worktree… / Switch worktree… are disabled when their deps are unwired', () => {
+      const template = buildMenuTemplate(makeDeps());
+      expect(findByLabel(template, 'New worktree…')?.enabled).toBe(false);
+      expect(findByLabel(template, 'Switch worktree…')?.enabled).toBe(false);
+    });
+
+    test('New worktree… click dispatches deps.onNewWorktree()', () => {
+      const onNewWorktree = vi.fn(() => {});
+      const template = buildMenuTemplate(makeDeps({ onNewWorktree }));
+      const item = findByLabel(template, 'New worktree…');
+      expect(item?.enabled).toBe(true);
+      (item?.click as () => void)?.();
+      expect(onNewWorktree).toHaveBeenCalledTimes(1);
+    });
+
+    test('Switch worktree… click dispatches deps.onSwitchWorktree()', () => {
+      const onSwitchWorktree = vi.fn(() => {});
+      const template = buildMenuTemplate(makeDeps({ onSwitchWorktree }));
+      const item = findByLabel(template, 'Switch worktree…');
+      expect(item?.enabled).toBe(true);
+      (item?.click as () => void)?.();
+      expect(onSwitchWorktree).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  test('top-level menus include File / Edit / View / Terminal / Window / Help', () => {
+    const template = buildMenuTemplate(makeDeps());
+    const topLabels = template.map((t) => t.label);
+    expect(topLabels).toContain('File');
+    expect(topLabels).toContain('Edit');
+    expect(topLabels).toContain('View');
+    expect(topLabels).toContain('Terminal');
+    expect(topLabels).toContain('Window');
+    expect(topLabels).toContain('Help');
+  });
+
+  describe('View → Reload / Force Reload always; Toggle Developer Tools gated', () => {
+    function viewRoles(deps: MenuDeps): Array<string | undefined> {
+      const template = buildMenuTemplate(deps);
+      const view = template.find((t) => t.label === 'View');
+      const sub = view?.submenu as MenuItemConstructorOptions[] | undefined;
+      return sub?.map((item) => item.role) ?? [];
+    }
+
+    test('showDevToolsMenu: true exposes Reload / Force Reload / DevTools (dev + beta channel)', () => {
+      const roles = viewRoles(makeDeps({ showDevToolsMenu: true }));
+      expect(roles).toContain('reload');
+      expect(roles).toContain('forceReload');
+      expect(roles).toContain('toggleDevTools');
+      expect(roles).toContain('resetZoom');
+      expect(roles).toContain('zoomIn');
+      expect(roles).toContain('zoomOut');
+      expect(roles).toContain('togglefullscreen');
+    });
+
+    test('showDevToolsMenu: false keeps Reload / Force Reload, hides only DevTools (stable channel)', () => {
+      const roles = viewRoles(makeDeps({ showDevToolsMenu: false }));
+      expect(roles).toContain('reload');
+      expect(roles).toContain('forceReload');
+      expect(roles).not.toContain('toggleDevTools');
+      expect(roles).toContain('resetZoom');
+      expect(roles).toContain('zoomIn');
+      expect(roles).toContain('zoomOut');
+      expect(roles).toContain('togglefullscreen');
+    });
+  });
+
+  test('does not render Desktop command-line tools install/uninstall menu items', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Install Command-Line Tools…')).toBeUndefined();
+    expect(findByLabel(template, 'Uninstall Command-Line Tools')).toBeUndefined();
+  });
+
+  describe('Settings… menu item (US-010 / FR-1 / D54)', () => {
+    const isMac = process.platform === 'darwin';
+
+    test('Settings… is rendered with the CmdOrCtrl+, accelerator', () => {
+      const deps = makeDeps({ openSettings: vi.fn(() => {}) });
+      const template = buildMenuTemplate(deps);
+      const settings = findByLabel(template, 'Settings…');
+      expect(settings).toBeDefined();
+      expect(settings?.accelerator).toBe('CmdOrCtrl+,');
+    });
+
+    test('Settings… click dispatches deps.openSettings()', () => {
+      const openSettings = vi.fn(() => {});
+      const deps = makeDeps({ openSettings });
+      const template = buildMenuTemplate(deps);
+      const settings = findByLabel(template, 'Settings…');
+      (settings?.click as (() => void) | undefined)?.();
+      expect(openSettings).toHaveBeenCalledTimes(1);
+    });
+
+    test('Settings… click is a safe no-op when openSettings dep is omitted', () => {
+      const deps = makeDeps();
+      const template = buildMenuTemplate(deps);
+      const settings = findByLabel(template, 'Settings…');
+      expect(() => (settings?.click as (() => void) | undefined)?.()).not.toThrow();
+    });
+
+    if (isMac) {
+      test('macOS: Settings… lives in the App menu, between About and the services separator', () => {
+        const deps = makeDeps({ openSettings: vi.fn(() => {}) });
+        const template = buildMenuTemplate(deps);
+        const appMenu = template.find((t) => t.label === deps.appName);
+        expect(appMenu).toBeDefined();
+        const sub = appMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+        if (!sub) throw new Error('App submenu missing on macOS');
+        const aboutIdx = sub.findIndex((i) => i.role === 'about');
+        const settingsIdx = sub.findIndex((i) => i.label === 'Settings…');
+        const servicesIdx = sub.findIndex((i) => i.role === 'services');
+        expect(aboutIdx).toBeGreaterThanOrEqual(0);
+        expect(settingsIdx).toBeGreaterThan(aboutIdx);
+        expect(settingsIdx).toBeLessThan(servicesIdx);
+      });
+
+      test('macOS: Settings… does NOT appear in the File submenu', () => {
+        const deps = makeDeps({ openSettings: vi.fn(() => {}) });
+        const template = buildMenuTemplate(deps);
+        const fileMenu = template.find((t) => t.label === 'File');
+        const sub = fileMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+        if (!sub) throw new Error('File submenu missing');
+        const settingsInFile = sub.find((i) => i.label === 'Settings…');
+        expect(settingsInFile).toBeUndefined();
+      });
+    } else {
+      test('Windows/Linux: Settings… lives in the File submenu, above the trailing close/quit row', () => {
+        const deps = makeDeps({ openSettings: vi.fn(() => {}) });
+        const template = buildMenuTemplate(deps);
+        const fileMenu = template.find((t) => t.label === 'File');
+        const sub = fileMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+        if (!sub) throw new Error('File submenu missing');
+        const settingsIdx = sub.findIndex((i) => i.label === 'Settings…');
+        const trailingRoleIdx = sub.findIndex((i) => i.role === 'close' || i.role === 'quit');
+        expect(settingsIdx).toBeGreaterThanOrEqual(0);
+        expect(settingsIdx).toBeLessThan(trailingRoleIdx);
+      });
+    }
+  });
+
+  describe('Check for updates… menu item', () => {
+    const isMac = process.platform === 'darwin';
+
+    test('omitted entirely when onCheckForUpdates dep is undefined (dev mode / boot failure)', () => {
+      const deps = makeDeps();
+      const template = buildMenuTemplate(deps);
+      expect(findByLabel(template, 'Check for updates…')).toBeUndefined();
+    });
+
+    if (isMac) {
+      test('macOS: appears in App menu between About and Settings…', () => {
+        const onCheckForUpdates = vi.fn(() => {});
+        const deps = makeDeps({ onCheckForUpdates, openSettings: vi.fn(() => {}) });
+        const template = buildMenuTemplate(deps);
+        const appMenu = template.find((t) => t.label === deps.appName);
+        const sub = appMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+        if (!sub) throw new Error('App submenu missing');
+        const aboutIdx = sub.findIndex((i) => i.role === 'about');
+        const checkIdx = sub.findIndex((i) => i.label === 'Check for updates…');
+        const settingsIdx = sub.findIndex((i) => i.label === 'Settings…');
+        expect(aboutIdx).toBeGreaterThanOrEqual(0);
+        expect(checkIdx).toBeGreaterThan(aboutIdx);
+        expect(settingsIdx).toBeGreaterThan(checkIdx);
+      });
+
+      test('macOS: NOT in the Help menu — exactly one entry, in the App menu', () => {
+        const onCheckForUpdates = vi.fn(() => {});
+        const deps = makeDeps({ onCheckForUpdates });
+        const template = buildMenuTemplate(deps);
+        const helpMenu = template.find((t) => t.label === 'Help');
+        const sub = helpMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+        if (!sub) throw new Error('Help submenu missing');
+        expect(sub.find((i) => i.label === 'Check for updates…')).toBeUndefined();
+      });
+    } else {
+      test('non-mac: appears in Help menu only (no App menu on these platforms)', () => {
+        const onCheckForUpdates = vi.fn(() => {});
+        const deps = makeDeps({ onCheckForUpdates });
+        const template = buildMenuTemplate(deps);
+        const helpMenu = template.find((t) => t.label === 'Help');
+        const sub = helpMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+        if (!sub) throw new Error('Help submenu missing');
+        expect(sub.find((i) => i.label === 'Check for updates…')).toBeDefined();
+      });
+    }
+
+    test('click dispatches deps.onCheckForUpdates()', () => {
+      const onCheckForUpdates = vi.fn(() => {});
+      const deps = makeDeps({ onCheckForUpdates });
+      const template = buildMenuTemplate(deps);
+      const item = findByLabel(template, 'Check for updates…');
+      if (!item || typeof item.click !== 'function')
+        throw new Error('Check for updates… click missing');
+      (item.click as () => void)();
+      expect(onCheckForUpdates).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Report a bug… menu item', () => {
+    test('always renders in the Help menu, even without the dep wired', () => {
+      const template = buildMenuTemplate(makeDeps());
+      const helpMenu = template.find((t) => t.label === 'Help');
+      const sub = helpMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+      if (!sub) throw new Error('Help submenu missing');
+      expect(sub.find((i) => i.label === 'Report a bug…')).toBeDefined();
+    });
+
+    test('click dispatches deps.onReportBug()', () => {
+      const onReportBug = vi.fn(() => {});
+      const deps = makeDeps({ onReportBug });
+      const template = buildMenuTemplate(deps);
+      const item = findByLabel(template, 'Report a bug…');
+      if (!item || typeof item.click !== 'function') throw new Error('Report a bug… click missing');
+      (item.click as () => void)();
+      expect(onReportBug).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Send feedback… menu item', () => {
+    test('always renders in the Help menu, even without the dep wired', () => {
+      const template = buildMenuTemplate(makeDeps());
+      const helpMenu = template.find((t) => t.label === 'Help');
+      const sub = helpMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+      if (!sub) throw new Error('Help submenu missing');
+      expect(sub.find((i) => i.label === 'Send feedback…')).toBeDefined();
+    });
+
+    test('click dispatches deps.onSendFeedback()', () => {
+      const onSendFeedback = vi.fn(() => {});
+      const onReportBug = vi.fn(() => {});
+      const deps = makeDeps({ onSendFeedback, onReportBug });
+      const template = buildMenuTemplate(deps);
+      const item = findByLabel(template, 'Send feedback…');
+      if (!item || typeof item.click !== 'function') {
+        throw new Error('Send feedback… click missing');
+      }
+      (item.click as () => void)();
+      expect(onSendFeedback).toHaveBeenCalledTimes(1);
+      expect(onReportBug).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Help resource links', () => {
+    function helpSubmenu(platform: NodeJS.Platform, deps: MenuDeps): MenuItemConstructorOptions[] {
+      const template = buildMenuTemplateForPlatform(platform, deps);
+      const sub = template.find((t) => t.label === 'Help')?.submenu;
+      if (!Array.isArray(sub)) throw new Error('Help submenu missing');
+      return sub;
+    }
+
+    test('Documentation and Discord follow GitHub, ahead of the bug and feedback rows', () => {
+      const labels = helpSubmenu('darwin', makeDeps())
+        .map((item) => item.label)
+        .filter((label) => label !== undefined);
+      expect(labels.slice(0, 5)).toEqual([
+        'OpenKnowledge on GitHub',
+        'Documentation',
+        'Join us on Discord',
+        'Report a bug…',
+        'Send feedback…',
+      ]);
+    });
+
+    test.each([
+      ['Documentation', 'https://openknowledge.ai/docs'],
+      ['Join us on Discord', 'https://discord.gg/VRKk2EaGHN'],
+    ])('%s opens %s externally', (label, url) => {
+      const openExternalUrl = vi.fn(() => {});
+      const item = helpSubmenu('darwin', makeDeps({ openExternalUrl })).find(
+        (i) => i.label === label,
+      );
+      if (!item || typeof item.click !== 'function') throw new Error(`${label} click missing`);
+      (item.click as () => void)();
+      expect(openExternalUrl).toHaveBeenCalledWith(url);
+    });
+
+    test.each([
+      ['win32', 'About OpenKnowledge'],
+      ['linux', 'About'],
+    ] as const)('%s ends the Help menu with a separated About entry', (platform, label) => {
+      const sub = helpSubmenu(platform, makeDeps({ onCheckForUpdates: vi.fn(() => {}) }));
+      expect(sub.at(-1)).toMatchObject({ role: 'about', label });
+      expect(sub.at(-2)?.type).toBe('separator');
+    });
+
+    test('macOS keeps About in the App menu only', () => {
+      const deps = makeDeps();
+      const template = buildMenuTemplateForPlatform('darwin', deps);
+      const help = template.find((t) => t.label === 'Help')?.submenu;
+      const appMenu = template.find((t) => t.label === deps.appName)?.submenu;
+      if (!Array.isArray(help) || !Array.isArray(appMenu)) throw new Error('menus missing');
+      expect(help.some((i) => i.role === 'about')).toBe(false);
+      expect(appMenu.some((i) => i.role === 'about')).toBe(true);
+    });
+  });
+
+  describe('Uninstall OpenKnowledge… menu item', () => {
+    test('omitted entirely when onUninstall dep is undefined', () => {
+      const template = buildMenuTemplate(makeDeps());
+      expect(findByLabel(template, 'Uninstall OpenKnowledge…')).toBeUndefined();
+    });
+
+    if (process.platform === 'darwin') {
+      test('macOS: appears in the App menu before Quit when wired', () => {
+        const onUninstall = vi.fn(() => {});
+        const deps = makeDeps({ onUninstall });
+        const template = buildMenuTemplate(deps);
+        const appMenu = template.find((t) => t.label === deps.appName);
+        const sub = appMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+        if (!sub) throw new Error('App submenu missing');
+        const uninstallIdx = sub.findIndex((i) => i.label === 'Uninstall OpenKnowledge…');
+        const quitIdx = sub.findIndex((i) => i.role === 'quit');
+        expect(uninstallIdx).toBeGreaterThanOrEqual(0);
+        expect(uninstallIdx).toBeLessThan(quitIdx);
+      });
+    }
+
+    test('click dispatches deps.onUninstall()', () => {
+      const onUninstall = vi.fn(() => {});
+      const item = findByLabel(
+        buildMenuTemplate(makeDeps({ onUninstall })),
+        'Uninstall OpenKnowledge…',
+      );
+      if (process.platform !== 'darwin') {
+        expect(item).toBeUndefined();
+        return;
+      }
+      if (!item || typeof item.click !== 'function') throw new Error('uninstall click missing');
+      (item.click as () => void)();
+      expect(onUninstall).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  test('File close item follows the current test host branch', () => {
+    const template = buildMenuTemplate(makeDeps());
+    const file = findByLabel(template, 'File');
+    const fileSub = file?.submenu as MenuItemConstructorOptions[] | undefined;
+    const last = fileSub?.[fileSub.length - 1];
+    expect(last).toBeDefined();
+    if (process.platform === 'darwin') {
+      expect(last?.label).toBe('Close tab');
+      expect(last?.accelerator).toBe('CmdOrCtrl+W');
+      expect(last?.role).toBeUndefined();
+    } else {
+      expect(last?.role).toBe('quit');
+    }
+
+    const windowMenu = findByLabel(template, 'Window');
+    const windowSub = windowMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+    const roles = windowSub?.map((i) => i.role).filter(Boolean) ?? [];
+    const hasZoom = roles.includes('zoom');
+    const hasClose = roles.includes('close');
+    const hasFront = roles.includes('front');
+    const isMacBranch = hasZoom && hasFront;
+    const isOtherBranch = hasClose && !hasZoom;
+    expect(isMacBranch || isOtherBranch).toBe(true);
+    expect(roles).toContain('minimize');
+  });
+
+  test('Close tab click dispatches deps.onCloseActiveTabOrWindow on macOS', (ctx) => {
+    ctx.skip(process.platform !== 'darwin', 'macOS-only menu behaviour');
+    const onCloseActiveTabOrWindow = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onCloseActiveTabOrWindow }));
+    const closeTab = findByLabel(template, 'Close tab');
+    expect(closeTab?.enabled).toBe(true);
+    (closeTab?.click as (() => void) | undefined)?.();
+    expect(onCloseActiveTabOrWindow).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('buildMenuTemplate — File menu state-aware items (US-020 / FR16 + FR19)', () => {
+  test('New file renders with Cmd+N accelerator (FR19 — was unbound today)', () => {
+    const template = buildMenuTemplate(makeDeps({ onNewFile: vi.fn(() => {}) }));
+    const newFile = findByLabel(template, 'New file');
+    expect(newFile).toBeDefined();
+    expect(newFile?.accelerator).toBe('CmdOrCtrl+N');
+  });
+
+  test('New folder renders with Cmd+Shift+N accelerator (FR19 — rebound from Switch project)', () => {
+    const template = buildMenuTemplate(makeDeps({ onNewFolder: vi.fn(() => {}) }));
+    const newFolder = findByLabel(template, 'New folder');
+    expect(newFolder).toBeDefined();
+    expect(newFolder?.accelerator).toBe('CmdOrCtrl+Shift+N');
+  });
+
+  test('Move to Trash renders with Cmd+Delete accelerator (FR19 — matches Finder + VSCode)', () => {
+    const template = buildMenuTemplate(makeDeps({ onMoveToTrash: vi.fn(() => {}) }));
+    const moveToTrash = findByLabel(template, 'Move to Trash');
+    expect(moveToTrash).toBeDefined();
+    expect(moveToTrash?.accelerator).toBe('CmdOrCtrl+Delete');
+  });
+
+  test('Duplicate renders with Cmd+D accelerator', () => {
+    const template = buildMenuTemplate(makeDeps({ onDuplicate: vi.fn(() => {}) }));
+    const duplicate = findByLabel(template, 'Duplicate');
+    expect(duplicate).toBeDefined();
+    expect(duplicate?.accelerator).toBe('CmdOrCtrl+D');
+  });
+
+  test('Rename + Duplicate + Move to Trash DISABLED in project scope (activeTarget.kind = null)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: null },
+        onRename: vi.fn(() => {}),
+        onDuplicate: vi.fn(() => {}),
+        onMoveToTrash: vi.fn(() => {}),
+      }),
+    );
+    expect(findByLabel(template, 'Rename')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Duplicate')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Move to Trash')?.enabled).toBe(false);
+  });
+
+  test('Rename + Duplicate + Move to Trash ENABLED in doc scope (activeTarget.kind = "doc")', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: 'doc', identifier: 'notes/today' },
+        onRename: vi.fn(() => {}),
+        onDuplicate: vi.fn(() => {}),
+        onMoveToTrash: vi.fn(() => {}),
+      }),
+    );
+    expect(findByLabel(template, 'Rename')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Duplicate')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Move to Trash')?.enabled).toBe(true);
+  });
+
+  test('Rename + Duplicate + Move to Trash ENABLED in folder scope (activeTarget.kind = "folder")', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: 'folder', identifier: 'specs/2026' },
+        onRename: vi.fn(() => {}),
+        onDuplicate: vi.fn(() => {}),
+        onMoveToTrash: vi.fn(() => {}),
+      }),
+    );
+    expect(findByLabel(template, 'Rename')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Duplicate')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Move to Trash')?.enabled).toBe(true);
+  });
+
+  test('asset scope enables Rename + Move to Trash but disables Duplicate and Open with AI', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: 'asset', identifier: 'media/diagram.png' },
+        onRename: vi.fn(() => {}),
+        onDuplicate: vi.fn(() => {}),
+        onMoveToTrash: vi.fn(() => {}),
+        onSendToAi: vi.fn(() => {}),
+      }),
+    );
+    expect(findByLabel(template, 'Rename')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Duplicate')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Move to Trash')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Open with AI')?.enabled).toBe(false);
+  });
+
+  test('Rename DISABLED when activeTarget is undefined (deps missing — unit-test default)', () => {
+    const template = buildMenuTemplate(makeDeps({ onRename: vi.fn(() => {}) }));
+    expect(findByLabel(template, 'Rename')?.enabled).toBe(false);
+  });
+
+  test('Creation cluster + Reveal/Send-to-AI/CopyPath always ENABLED when deps provided', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: null },
+        onNewFile: vi.fn(() => {}),
+        onNewFolder: vi.fn(() => {}),
+        onNewFromTemplate: vi.fn(() => {}),
+        onRevealInFinder: vi.fn(() => {}),
+        onSendToAi: vi.fn(() => {}),
+        onCopyFullPath: vi.fn(() => {}),
+        onCopyRelativePath: vi.fn(() => {}),
+      }),
+    );
+    expect(findByLabel(template, 'New file')?.enabled).toBe(true);
+    expect(findByLabel(template, 'New folder')?.enabled).toBe(true);
+    expect(findByLabel(template, 'New from template…')?.enabled).toBe(true);
+    expect(findByLabel(template, REVEAL_LABEL)?.enabled).toBe(true);
+    expect(findByLabel(template, 'Open with AI')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Copy path')?.enabled).toBe(true);
+  });
+
+  test('Items DISABLED when their handler dep is undefined (unit-test default = unwired)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'New file')?.enabled).toBe(false);
+    expect(findByLabel(template, 'New folder')?.enabled).toBe(false);
+    expect(findByLabel(template, 'New from template…')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Duplicate')?.enabled).toBe(false);
+    expect(findByLabel(template, REVEAL_LABEL)?.enabled).toBe(false);
+    expect(findByLabel(template, 'Open with AI')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Copy path')?.enabled).toBe(false);
+    if (process.platform === 'darwin') {
+      expect(findByLabel(template, 'Close tab')?.enabled).toBe(false);
+    }
+  });
+
+  test('Copy path submenu renders Full path + Relative path (FR9 parity with sidebar)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onCopyFullPath: vi.fn(() => {}),
+        onCopyRelativePath: vi.fn(() => {}),
+      }),
+    );
+    const copyPath = findByLabel(template, 'Copy path');
+    expect(copyPath).toBeDefined();
+    const sub = copyPath?.submenu as MenuItemConstructorOptions[] | undefined;
+    expect(sub?.[0]?.label).toBe('Full path');
+    expect(sub?.[1]?.label).toBe('Relative path');
+  });
+
+  test('click handlers dispatch to deps (e.g. New file → onNewFile)', () => {
+    const onNewFile = vi.fn(() => {});
+    const onDuplicate = vi.fn(() => {});
+    const onMoveToTrash = vi.fn(() => {});
+    const onCopyFullPath = vi.fn(() => {});
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: 'doc', identifier: 'a' },
+        onNewFile,
+        onDuplicate,
+        onMoveToTrash,
+        onCopyFullPath,
+      }),
+    );
+    (findByLabel(template, 'New file')?.click as (() => void) | undefined)?.();
+    expect(onNewFile).toHaveBeenCalledTimes(1);
+    (findByLabel(template, 'Duplicate')?.click as (() => void) | undefined)?.();
+    expect(onDuplicate).toHaveBeenCalledTimes(1);
+    (findByLabel(template, 'Move to Trash')?.click as (() => void) | undefined)?.();
+    expect(onMoveToTrash).toHaveBeenCalledTimes(1);
+    (findByLabel(template, 'Full path')?.click as (() => void) | undefined)?.();
+    expect(onCopyFullPath).toHaveBeenCalledTimes(1);
+  });
+
+  test('Hide this file / Hide folder do NOT appear in File menu (D37 trim — stays sidebar-only)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: 'doc', identifier: 'a' },
+      }),
+    );
+    expect(findByLabel(template, 'Hide this file')).toBeUndefined();
+    expect(findByLabel(template, 'Hide folder')).toBeUndefined();
+  });
+});
+
+describe('buildMenuTemplate — New project… menu item', () => {
+  test('renders enabled when onNewProject dep is provided', () => {
+    const template = buildMenuTemplate(makeDeps({ onNewProject: vi.fn(() => {}) }));
+    const item = findByLabel(template, 'New project…');
+    expect(item).toBeDefined();
+    expect(item?.enabled).toBe(true);
+  });
+
+  test('DISABLED when onNewProject dep is omitted (unit-test default = unwired)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'New project…')?.enabled).toBe(false);
+  });
+
+  test('enabled regardless of activeTarget scope (project-scope-independent)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ activeTarget: { kind: null }, onNewProject: vi.fn(() => {}) }),
+    );
+    expect(findByLabel(template, 'New project…')?.enabled).toBe(true);
+  });
+
+  test('click dispatches deps.onNewProject()', () => {
+    const onNewProject = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onNewProject }));
+    const item = findByLabel(template, 'New project…');
+    (item?.click as (() => void) | undefined)?.();
+    expect(onNewProject).toHaveBeenCalledTimes(1);
+  });
+
+  test('click is a safe no-op when onNewProject dep is omitted', () => {
+    const template = buildMenuTemplate(makeDeps());
+    const item = findByLabel(template, 'New project…');
+    expect(() => (item?.click as (() => void) | undefined)?.()).not.toThrow();
+  });
+
+  test('project section mirrors the ProjectSwitcher order and sits right after New from template…', () => {
+    const template = buildMenuTemplate(makeDeps({ onNewProject: vi.fn(() => {}) }));
+    const fileMenu = template.find((t) => t.label === 'File');
+    const sub = fileMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+    if (!sub) throw new Error('File submenu missing');
+    const idx = (label: string) => sub.findIndex((i) => i.label === label);
+    const newFromTemplateIdx = idx('New from template…');
+    const recentIdx = idx('Recent project');
+    const newProjectIdx = idx('New project…');
+    const switchIdx = idx('Switch project…');
+    const openFolderIdx = idx('Open folder…');
+    const duplicateIdx = idx('Duplicate');
+    expect(newFromTemplateIdx).toBeGreaterThanOrEqual(0);
+    expect(recentIdx).toBeGreaterThan(newFromTemplateIdx);
+    expect(newProjectIdx).toBeGreaterThan(recentIdx);
+    expect(switchIdx).toBeGreaterThan(newProjectIdx);
+    expect(openFolderIdx).toBeGreaterThan(switchIdx);
+    expect(duplicateIdx).toBeGreaterThan(openFolderIdx);
+    expect(newProjectIdx - recentIdx).toBe(1);
+    expect(switchIdx - newProjectIdx).toBe(1);
+    expect(openFolderIdx - switchIdx).toBe(1);
+  });
+
+  test('does NOT reintroduce the ambiguous "New Project…" label (regression guard)', () => {
+    const template = buildMenuTemplate(makeDeps({ onNewProject: vi.fn(() => {}) }));
+    expect(findByLabel(template, 'New Project…')).toBeUndefined();
+    expect(findByLabel(template, 'New project…')).toBeDefined();
+  });
+});
+
+describe('buildMenuTemplate — View menu visibility toggles + tree-scoped expand/collapse', () => {
+  test('Show hidden files renders as a checkbox-type item', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleShowHiddenFiles: vi.fn(() => {}), showHiddenFilesChecked: false }),
+    );
+    const item = findByLabel(template, 'Show hidden files');
+    expect(item).toBeDefined();
+    expect(item?.type).toBe('checkbox');
+    expect(item?.checked).toBe(false);
+    expect(item?.enabled).toBe(true);
+  });
+
+  test('Show hidden files binds Cmd+Shift+. accelerator (Finder convention)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleShowHiddenFiles: vi.fn(() => {}), showHiddenFilesChecked: false }),
+    );
+    expect(findByLabel(template, 'Show hidden files')?.accelerator).toBe('CmdOrCtrl+Shift+.');
+  });
+
+  test('Show hidden files DISABLED when toggle handler missing (unit-test default)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Show hidden files')?.enabled).toBe(false);
+  });
+
+  test('Expand all / Collapse all render with visible=true by default', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onExpandAll: vi.fn(() => {}), onCollapseAll: vi.fn(() => {}) }),
+    );
+    expect(findByLabel(template, 'Expand all')?.visible).toBe(true);
+    expect(findByLabel(template, 'Collapse all')?.visible).toBe(true);
+  });
+
+  test('Expand all HIDDEN when canExpandAll === false (smart-hide per D15)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onExpandAll: vi.fn(() => {}), canExpandAll: false }),
+    );
+    expect(findByLabel(template, 'Expand all')?.visible).toBe(false);
+  });
+
+  test('Collapse all HIDDEN when canCollapseAll === false', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onCollapseAll: vi.fn(() => {}), canCollapseAll: false }),
+    );
+    expect(findByLabel(template, 'Collapse all')?.visible).toBe(false);
+  });
+
+  test('View menu click handlers dispatch to deps', () => {
+    const onToggleShowHiddenFiles = vi.fn(() => {});
+    const onExpandAll = vi.fn(() => {});
+    const onCollapseAll = vi.fn(() => {});
+    const template = buildMenuTemplate(
+      makeDeps({
+        onToggleShowHiddenFiles,
+        onExpandAll,
+        onCollapseAll,
+      }),
+    );
+    (findByLabel(template, 'Show hidden files')?.click as (() => void) | undefined)?.();
+    expect(onToggleShowHiddenFiles).toHaveBeenCalledTimes(1);
+    (findByLabel(template, 'Expand all')?.click as (() => void) | undefined)?.();
+    expect(onExpandAll).toHaveBeenCalledTimes(1);
+    (findByLabel(template, 'Collapse all')?.click as (() => void) | undefined)?.();
+    expect(onCollapseAll).toHaveBeenCalledTimes(1);
+  });
+
+  test("View menu retains today's Zoom + Fullscreen items (regression guard)", () => {
+    const template = buildMenuTemplate(makeDeps());
+    const view = findByLabel(template, 'View');
+    expect(view).toBeDefined();
+    const sub = view?.submenu as MenuItemConstructorOptions[] | undefined;
+    const roles = sub?.map((i) => i.role).filter(Boolean) ?? [];
+    expect(roles).toContain('resetZoom');
+    expect(roles).toContain('zoomIn');
+    expect(roles).toContain('zoomOut');
+    expect(roles).toContain('togglefullscreen');
+  });
+
+  test('New View menu items appear BEFORE Zoom items (FR17 / D38 placement)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onToggleShowHiddenFiles: vi.fn(() => {}),
+        onExpandAll: vi.fn(() => {}),
+      }),
+    );
+    const view = findByLabel(template, 'View');
+    const sub = view?.submenu as MenuItemConstructorOptions[] | undefined;
+    expect(sub).toBeDefined();
+    const labels = sub?.map((i) => (i.role ? `[role:${i.role}]` : (i.label ?? '[sep]'))) ?? [];
+    const showHiddenFilesIdx = labels.indexOf('Show hidden files');
+    const expandAllIdx = labels.indexOf('Expand all');
+    const resetZoomIdx = labels.indexOf('[role:resetZoom]');
+    expect(showHiddenFilesIdx).toBeGreaterThan(-1);
+    expect(resetZoomIdx).toBeGreaterThan(showHiddenFilesIdx);
+    expect(resetZoomIdx).toBeGreaterThan(expandAllIdx);
+  });
+});
+
+describe('buildMenuTemplate — View → Show .ok folders', () => {
+  test('renders as a checkbox, unchecked by default', () => {
+    const template = buildMenuTemplate(makeDeps({ onToggleShowOkFolders: vi.fn(() => {}) }));
+    const item = findByLabel(template, 'Show .ok folders');
+    expect(item).toBeDefined();
+    expect(item?.type).toBe('checkbox');
+    expect(item?.checked).toBe(false);
+    expect(item?.enabled).toBe(true);
+  });
+
+  test('reflects showOkFoldersChecked', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleShowOkFolders: vi.fn(() => {}), showOkFoldersChecked: true }),
+    );
+    expect(findByLabel(template, 'Show .ok folders')?.checked).toBe(true);
+  });
+
+  test('DISABLED when the toggle handler is missing (unit-test default)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Show .ok folders')?.enabled).toBe(false);
+  });
+
+  test('sits directly after Show hidden files (menu order across every surface)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    const view = findByLabel(template, 'View');
+    const sub = view?.submenu as MenuItemConstructorOptions[] | undefined;
+    const labels = sub?.map((i) => i.label).filter(Boolean) ?? [];
+    const hiddenIdx = labels.indexOf('Show hidden files');
+    const okIdx = labels.indexOf('Show .ok folders');
+    const onlyMdIdx = labels.indexOf('Show only markdown files');
+    expect(hiddenIdx).toBeGreaterThan(-1);
+    expect(okIdx).toBe(hiddenIdx + 1);
+    expect(onlyMdIdx).toBe(okIdx + 1);
+  });
+
+  test('binds no keyboard accelerator and click dispatches the toggle dep', () => {
+    const onToggleShowOkFolders = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onToggleShowOkFolders }));
+    const item = findByLabel(template, 'Show .ok folders');
+    expect(item?.accelerator).toBeUndefined();
+    (item?.click as (() => void) | undefined)?.();
+    expect(onToggleShowOkFolders).toHaveBeenCalledTimes(1);
+  });
+
+  test('click is a safe no-op when the dep is omitted', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(() =>
+      (findByLabel(template, 'Show .ok folders')?.click as (() => void) | undefined)?.(),
+    ).not.toThrow();
+  });
+});
+
+describe('buildMenuTemplate — View → Show only markdown files / Skills section', () => {
+  test('Show only markdown files renders as a checkbox, unchecked by default', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleShowOnlyMarkdownFiles: vi.fn(() => {}) }),
+    );
+    const item = findByLabel(template, 'Show only markdown files');
+    expect(item).toBeDefined();
+    expect(item?.type).toBe('checkbox');
+    expect(item?.checked).toBe(false);
+    expect(item?.enabled).toBe(true);
+  });
+
+  test('Show only markdown files reflects showOnlyMarkdownFilesChecked', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onToggleShowOnlyMarkdownFiles: vi.fn(() => {}),
+        showOnlyMarkdownFilesChecked: true,
+      }),
+    );
+    expect(findByLabel(template, 'Show only markdown files')?.checked).toBe(true);
+  });
+
+  test('Skills section renders as a checkbox, CHECKED by default (section is default-on)', () => {
+    const template = buildMenuTemplate(makeDeps({ onToggleShowSkillsSection: vi.fn(() => {}) }));
+    const item = findByLabel(template, 'Skills section');
+    expect(item).toBeDefined();
+    expect(item?.type).toBe('checkbox');
+    expect(item?.checked).toBe(true);
+    expect(item?.enabled).toBe(true);
+  });
+
+  test('Skills section reflects showSkillsSectionChecked', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleShowSkillsSection: vi.fn(() => {}), showSkillsSectionChecked: false }),
+    );
+    expect(findByLabel(template, 'Skills section')?.checked).toBe(false);
+  });
+
+  test('both DISABLED when their toggle handler is missing (unit-test default)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Show only markdown files')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Skills section')?.enabled).toBe(false);
+  });
+
+  test('neither binds a keyboard accelerator (only Show hidden files carries Cmd+Shift+.)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onToggleShowOnlyMarkdownFiles: vi.fn(() => {}),
+        onToggleShowSkillsSection: vi.fn(() => {}),
+      }),
+    );
+    expect(findByLabel(template, 'Show only markdown files')?.accelerator).toBeUndefined();
+    expect(findByLabel(template, 'Skills section')?.accelerator).toBeUndefined();
+  });
+
+  test('clicks dispatch their toggle deps', () => {
+    const onToggleShowOnlyMarkdownFiles = vi.fn(() => {});
+    const onToggleShowSkillsSection = vi.fn(() => {});
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleShowOnlyMarkdownFiles, onToggleShowSkillsSection }),
+    );
+    (findByLabel(template, 'Show only markdown files')?.click as (() => void) | undefined)?.();
+    expect(onToggleShowOnlyMarkdownFiles).toHaveBeenCalledTimes(1);
+    (findByLabel(template, 'Skills section')?.click as (() => void) | undefined)?.();
+    expect(onToggleShowSkillsSection).toHaveBeenCalledTimes(1);
+  });
+
+  test('clicks are safe no-ops when the deps are omitted', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(() =>
+      (findByLabel(template, 'Show only markdown files')?.click as (() => void) | undefined)?.(),
+    ).not.toThrow();
+    expect(() =>
+      (findByLabel(template, 'Skills section')?.click as (() => void) | undefined)?.(),
+    ).not.toThrow();
+  });
+
+  test('order: Show hidden files → Show .ok folders → Show only markdown files → Skills section → expand/collapse', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onToggleShowHiddenFiles: vi.fn(() => {}),
+        onToggleShowOkFolders: vi.fn(() => {}),
+        onToggleShowOnlyMarkdownFiles: vi.fn(() => {}),
+        onToggleShowSkillsSection: vi.fn(() => {}),
+        onExpandAll: vi.fn(() => {}),
+      }),
+    );
+    const view = findByLabel(template, 'View');
+    const sub = view?.submenu as MenuItemConstructorOptions[] | undefined;
+    const labels = sub?.map((i) => (i.role ? `[role:${i.role}]` : (i.label ?? '[sep]'))) ?? [];
+    const hiddenIdx = labels.indexOf('Show hidden files');
+    const okIdx = labels.indexOf('Show .ok folders');
+    const onlyMdIdx = labels.indexOf('Show only markdown files');
+    const skillsIdx = labels.indexOf('Skills section');
+    const expandIdx = labels.indexOf('Expand all');
+    expect(hiddenIdx).toBeGreaterThan(-1);
+    expect(okIdx).toBe(hiddenIdx + 1);
+    expect(onlyMdIdx).toBe(okIdx + 1);
+    expect(skillsIdx).toBe(onlyMdIdx + 1);
+    expect(expandIdx).toBeGreaterThan(skillsIdx);
+  });
+});
+
+describe('buildMenuTemplate — View → Show/Hide sidebar', () => {
+  test('renders "Hide sidebar" when sidebarVisible is true (or undefined default)', () => {
+    const expanded = buildMenuTemplate(
+      makeDeps({ onToggleSidebar: vi.fn(() => {}), sidebarVisible: true }),
+    );
+    expect(findByLabel(expanded, 'Hide sidebar')).toBeDefined();
+    expect(findByLabel(expanded, 'Show sidebar')).toBeUndefined();
+
+    const defaultDeps = buildMenuTemplate(makeDeps({ onToggleSidebar: vi.fn(() => {}) }));
+    expect(findByLabel(defaultDeps, 'Hide sidebar')).toBeDefined();
+    expect(findByLabel(defaultDeps, 'Show sidebar')).toBeUndefined();
+  });
+
+  test('renders "Show sidebar" when sidebarVisible is false', () => {
+    const collapsed = buildMenuTemplate(
+      makeDeps({ onToggleSidebar: vi.fn(() => {}), sidebarVisible: false }),
+    );
+    expect(findByLabel(collapsed, 'Show sidebar')).toBeDefined();
+    expect(findByLabel(collapsed, 'Hide sidebar')).toBeUndefined();
+  });
+
+  test('binds CmdOrCtrl+Alt+S accelerator (⌥⌘S on macOS, Apple HIG sidebar convention)', () => {
+    const template = buildMenuTemplate(makeDeps({ onToggleSidebar: vi.fn(() => {}) }));
+    expect(findByLabel(template, 'Hide sidebar')?.accelerator).toBe('CmdOrCtrl+Alt+S');
+
+    const collapsed = buildMenuTemplate(
+      makeDeps({ onToggleSidebar: vi.fn(() => {}), sidebarVisible: false }),
+    );
+    expect(findByLabel(collapsed, 'Show sidebar')?.accelerator).toBe('CmdOrCtrl+Alt+S');
+  });
+
+  test('DISABLED when toggle handler missing (unit-test default)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Hide sidebar')?.enabled).toBe(false);
+  });
+
+  test('click dispatches deps.onToggleSidebar', () => {
+    const onToggleSidebar = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onToggleSidebar, sidebarVisible: true }));
+    (findByLabel(template, 'Hide sidebar')?.click as (() => void) | undefined)?.();
+    expect(onToggleSidebar).toHaveBeenCalledTimes(1);
+
+    const onToggleSidebar2 = vi.fn(() => {});
+    const collapsed = buildMenuTemplate(
+      makeDeps({ onToggleSidebar: onToggleSidebar2, sidebarVisible: false }),
+    );
+    (findByLabel(collapsed, 'Show sidebar')?.click as (() => void) | undefined)?.();
+    expect(onToggleSidebar2).toHaveBeenCalledTimes(1);
+  });
+
+  test('Show/Hide sidebar precedes Show hidden files in the View submenu', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onToggleSidebar: vi.fn(() => {}),
+        onToggleShowHiddenFiles: vi.fn(() => {}),
+      }),
+    );
+    const view = findByLabel(template, 'View');
+    const sub = view?.submenu as MenuItemConstructorOptions[] | undefined;
+    const labels = sub?.map((i) => (i.role ? `[role:${i.role}]` : (i.label ?? '[sep]'))) ?? [];
+    const sidebarIdx = labels.indexOf('Hide sidebar');
+    const showHiddenFilesIdx = labels.indexOf('Show hidden files');
+    expect(sidebarIdx).toBeGreaterThan(-1);
+    expect(showHiddenFilesIdx).toBeGreaterThan(sidebarIdx);
+  });
+
+  test('renders "Hide document panel" when docPanelVisible is unset or true', () => {
+    const unsetDeps = buildMenuTemplate(makeDeps({ onToggleDocPanel: vi.fn(() => {}) }));
+    expect(findByLabel(unsetDeps, 'Hide document panel')).toBeDefined();
+    expect(findByLabel(unsetDeps, 'Show document panel')).toBeUndefined();
+
+    const visible = buildMenuTemplate(
+      makeDeps({ onToggleDocPanel: vi.fn(() => {}), docPanelVisible: true }),
+    );
+    expect(findByLabel(visible, 'Hide document panel')).toBeDefined();
+    expect(findByLabel(visible, 'Show document panel')).toBeUndefined();
+  });
+
+  test('renders "Show document panel" when docPanelVisible is false', () => {
+    const collapsed = buildMenuTemplate(
+      makeDeps({ onToggleDocPanel: vi.fn(() => {}), docPanelVisible: false }),
+    );
+    expect(findByLabel(collapsed, 'Show document panel')).toBeDefined();
+    expect(findByLabel(collapsed, 'Hide document panel')).toBeUndefined();
+  });
+
+  test('Document panel binds CmdOrCtrl+Alt+B accelerator (⌥⌘B on macOS, VS Code Secondary Side Bar convention)', () => {
+    const visible = buildMenuTemplate(makeDeps({ onToggleDocPanel: vi.fn(() => {}) }));
+    expect(findByLabel(visible, 'Hide document panel')?.accelerator).toBe('CmdOrCtrl+Alt+B');
+
+    const collapsed = buildMenuTemplate(
+      makeDeps({ onToggleDocPanel: vi.fn(() => {}), docPanelVisible: false }),
+    );
+    expect(findByLabel(collapsed, 'Show document panel')?.accelerator).toBe('CmdOrCtrl+Alt+B');
+  });
+
+  test('Document panel DISABLED when toggle handler missing (unit-test default)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Hide document panel')?.enabled).toBe(false);
+  });
+
+  test('Document panel click dispatches deps.onToggleDocPanel', () => {
+    const onToggleDocPanel = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onToggleDocPanel, docPanelVisible: true }));
+    (findByLabel(template, 'Hide document panel')?.click as (() => void) | undefined)?.();
+    expect(onToggleDocPanel).toHaveBeenCalledTimes(1);
+
+    const onToggleDocPanel2 = vi.fn(() => {});
+    const collapsed = buildMenuTemplate(
+      makeDeps({ onToggleDocPanel: onToggleDocPanel2, docPanelVisible: false }),
+    );
+    (findByLabel(collapsed, 'Show document panel')?.click as (() => void) | undefined)?.();
+    expect(onToggleDocPanel2).toHaveBeenCalledTimes(1);
+  });
+
+  test('note windows omit editor-only panel, sidebar, and terminal commands', () => {
+    const template = buildMenuTemplateForPlatform(
+      'darwin',
+      makeDeps({
+        noteWindow: true,
+        onToggleSidebar: vi.fn(() => {}),
+        onToggleDocPanel: vi.fn(() => {}),
+        onToggleTerminal: vi.fn(() => {}),
+        onMoveTerminal: vi.fn(() => {}),
+        onNewTerminal: vi.fn(() => {}),
+        onNewTerminalWindow: vi.fn(() => {}),
+        onKillTerminal: vi.fn(() => {}),
+        terminalLive: true,
+        onToggleAgentPanel: vi.fn(() => {}),
+      }),
+    );
+
+    expect(findByLabel(template, 'Hide sidebar')).toBeUndefined();
+    expect(findByLabel(template, 'Show sidebar')).toBeUndefined();
+    expect(findByLabel(template, 'Hide document panel')).toBeUndefined();
+    expect(findByLabel(template, 'Show document panel')).toBeUndefined();
+    expect(findByLabel(template, 'Show Terminal')).toBeUndefined();
+    expect(findByLabel(template, 'Hide Terminal')).toBeUndefined();
+    expect(findByLabel(template, 'Move Terminal to right')).toBeUndefined();
+    expect(findByLabel(template, 'Move Terminal to bottom')).toBeUndefined();
+    expect(findByLabel(template, 'New Terminal')).toBeUndefined();
+    expect(findByLabel(template, 'Kill Terminal')).toBeUndefined();
+    expect(findByLabel(template, 'New Terminal Window')).toBeDefined();
+    expect(findByLabel(template, 'Show Agents')).toBeUndefined();
+    expect(findByLabel(template, 'Hide Agents')).toBeUndefined();
+  });
+});
+
+describe('buildMenuTemplate — View → Show/Hide Terminal', () => {
+  test('renders "Show Terminal" when terminalVisible is unset or false', () => {
+    const unsetDeps = buildMenuTemplate(makeDeps({ onToggleTerminal: vi.fn(() => {}) }));
+    expect(findByLabel(unsetDeps, 'Show Terminal')).toBeDefined();
+    expect(findByLabel(unsetDeps, 'Hide Terminal')).toBeUndefined();
+
+    const hidden = buildMenuTemplate(
+      makeDeps({ onToggleTerminal: vi.fn(() => {}), terminalVisible: false }),
+    );
+    expect(findByLabel(hidden, 'Show Terminal')).toBeDefined();
+    expect(findByLabel(hidden, 'Hide Terminal')).toBeUndefined();
+  });
+
+  test('renders "Hide Terminal" when terminalVisible is true', () => {
+    const visible = buildMenuTemplate(
+      makeDeps({ onToggleTerminal: vi.fn(() => {}), terminalVisible: true }),
+    );
+    expect(findByLabel(visible, 'Hide Terminal')).toBeDefined();
+    expect(findByLabel(visible, 'Show Terminal')).toBeUndefined();
+  });
+
+  test('Terminal binds CmdOrCtrl+J accelerator (⌘J on macOS, VS Code panel convention)', () => {
+    const hidden = buildMenuTemplate(makeDeps({ onToggleTerminal: vi.fn(() => {}) }));
+    expect(findByLabel(hidden, 'Show Terminal')?.accelerator).toBe('CmdOrCtrl+J');
+
+    const visible = buildMenuTemplate(
+      makeDeps({ onToggleTerminal: vi.fn(() => {}), terminalVisible: true }),
+    );
+    expect(findByLabel(visible, 'Hide Terminal')?.accelerator).toBe('CmdOrCtrl+J');
+  });
+
+  test('Terminal DISABLED when toggle handler missing (unit-test default)', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Show Terminal')?.enabled).toBe(false);
+  });
+
+  test('Terminal click dispatches deps.onToggleTerminal', () => {
+    const onToggleTerminal = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onToggleTerminal }));
+    (findByLabel(template, 'Show Terminal')?.click as (() => void) | undefined)?.();
+    expect(onToggleTerminal).toHaveBeenCalledTimes(1);
+
+    const onToggleTerminal2 = vi.fn(() => {});
+    const visible = buildMenuTemplate(
+      makeDeps({ onToggleTerminal: onToggleTerminal2, terminalVisible: true }),
+    );
+    (findByLabel(visible, 'Hide Terminal')?.click as (() => void) | undefined)?.();
+    expect(onToggleTerminal2).toHaveBeenCalledTimes(1);
+  });
+
+  test('Terminal follows the Document Panel toggle and precedes the Zoom cluster', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleDocPanel: vi.fn(() => {}), onToggleTerminal: vi.fn(() => {}) }),
+    );
+    const view = findByLabel(template, 'View');
+    const sub = view?.submenu as MenuItemConstructorOptions[] | undefined;
+    const labels = sub?.map((i) => (i.role ? `[role:${i.role}]` : (i.label ?? '[sep]'))) ?? [];
+    const docPanelIdx = labels.indexOf('Hide document panel');
+    const terminalIdx = labels.indexOf('Show Terminal');
+    const resetZoomIdx = labels.indexOf('[role:resetZoom]');
+    expect(terminalIdx).toBeGreaterThan(docPanelIdx);
+    expect(resetZoomIdx).toBeGreaterThan(terminalIdx);
+  });
+});
+
+describe('buildMenuTemplate — View → Show/Hide Agents', () => {
+  test('renders "Show Agents" when agentPanelVisible is unset or false', () => {
+    const unset = buildMenuTemplate(makeDeps({ onToggleAgentPanel: vi.fn(() => {}) }));
+    expect(findByLabel(unset, 'Show Agents')).toBeDefined();
+    expect(findByLabel(unset, 'Hide Agents')).toBeUndefined();
+
+    const hidden = buildMenuTemplate(
+      makeDeps({ onToggleAgentPanel: vi.fn(() => {}), agentPanelVisible: false }),
+    );
+    expect(findByLabel(hidden, 'Show Agents')).toBeDefined();
+  });
+
+  test('renders "Hide Agents" when agentPanelVisible is true', () => {
+    const visible = buildMenuTemplate(
+      makeDeps({ onToggleAgentPanel: vi.fn(() => {}), agentPanelVisible: true }),
+    );
+    expect(findByLabel(visible, 'Hide Agents')).toBeDefined();
+    expect(findByLabel(visible, 'Show Agents')).toBeUndefined();
+  });
+
+  test('Agents binds CmdOrCtrl+L (the terminal keeps ⌘J)', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleAgentPanel: vi.fn(() => {}), onToggleTerminal: vi.fn(() => {}) }),
+    );
+    expect(findByLabel(template, 'Show Agents')?.accelerator).toBe('CmdOrCtrl+L');
+    expect(findByLabel(template, 'Show Terminal')?.accelerator).toBe('CmdOrCtrl+J');
+  });
+
+  test('Agents click dispatches deps.onToggleAgentPanel', () => {
+    const onToggleAgentPanel = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onToggleAgentPanel }));
+    (findByLabel(template, 'Show Agents')?.click as (() => void) | undefined)?.();
+    expect(onToggleAgentPanel).toHaveBeenCalledTimes(1);
+  });
+
+  test('Agents DISABLED when the toggle handler is missing', () => {
+    expect(findByLabel(buildMenuTemplate(makeDeps()), 'Show Agents')?.enabled).toBe(false);
+  });
+
+  test('Agents stays wired when every terminal handler is stripped', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onToggleAgentPanel: vi.fn(() => {}),
+        onToggleTerminal: undefined,
+        onMoveTerminal: undefined,
+        onNewTerminal: undefined,
+        onKillTerminal: undefined,
+      }),
+    );
+    expect(findByLabel(template, 'Show Agents')?.enabled).toBe(true);
+    expect(findByLabel(template, 'Show Terminal')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Move Terminal to right')?.enabled).toBe(false);
+  });
+
+  test('Agents follows the Terminal toggle in the View panel cluster', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ onToggleTerminal: vi.fn(() => {}), onToggleAgentPanel: vi.fn(() => {}) }),
+    );
+    const sub = findByLabel(template, 'View')?.submenu as MenuItemConstructorOptions[] | undefined;
+    const labels = sub?.map((i) => (i.role ? `[role:${i.role}]` : (i.label ?? '[sep]'))) ?? [];
+    expect(labels.indexOf('Show Agents')).toBeGreaterThan(labels.indexOf('Show Terminal'));
+  });
+});
+
+describe('buildMenuTemplate — top-level Terminal menu', () => {
+  test('inserts a Terminal menu between View and Window', () => {
+    const labels = buildMenuTemplate(makeDeps()).map((t) => t.label);
+    const viewIdx = labels.indexOf('View');
+    const terminalIdx = labels.indexOf('Terminal');
+    const windowIdx = labels.indexOf('Window');
+    expect(terminalIdx).toBeGreaterThan(viewIdx);
+    expect(windowIdx).toBeGreaterThan(terminalIdx);
+  });
+
+  test('contains new, window, placement, and kill actions in order', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        onNewTerminal: vi.fn(() => {}),
+        onNewTerminalWindow: vi.fn(() => {}),
+        onMoveTerminal: vi.fn(() => {}),
+        onKillTerminal: vi.fn(() => {}),
+      }),
+    );
+    const sub = findByLabel(template, 'Terminal')?.submenu as
+      | MenuItemConstructorOptions[]
+      | undefined;
+    expect(sub?.map((i) => i.label)).toEqual([
+      'New Terminal',
+      'New Terminal Window',
+      'Move Terminal to right',
+      'Kill Terminal',
+    ]);
+    expect(findByLabel(template, 'New Terminal')?.accelerator).toBeUndefined();
+  });
+
+  test('placement label inverts with current home and dispatches the shared action', () => {
+    const onMoveTerminal = vi.fn(() => {});
+    const bottom = buildMenuTemplateForPlatform(
+      'darwin',
+      makeDeps({ terminalPlacement: 'bottom', onMoveTerminal }),
+    );
+    const moveRight = findByLabel(bottom, 'Move Terminal to right');
+    expect(moveRight?.enabled).toBe(true);
+    (moveRight?.click as (() => void) | undefined)?.();
+    expect(onMoveTerminal).toHaveBeenCalledTimes(1);
+
+    const right = buildMenuTemplateForPlatform(
+      'darwin',
+      makeDeps({ terminalPlacement: 'right', onMoveTerminal }),
+    );
+    expect(findByLabel(right, 'Move Terminal to bottom')).toBeDefined();
+    expect(findByLabel(right, 'Move Terminal to right')).toBeUndefined();
+  });
+
+  test('New Terminal dispatches onNewTerminal; disabled when the handler is unwired', () => {
+    const onNewTerminal = vi.fn(() => {});
+    const item = findByLabel(
+      buildMenuTemplateForPlatform('darwin', makeDeps({ onNewTerminal })),
+      'New Terminal',
+    );
+    expect(item?.enabled).toBe(true);
+    (item?.click as (() => void) | undefined)?.();
+    expect(onNewTerminal).toHaveBeenCalledTimes(1);
+
+    expect(
+      findByLabel(buildMenuTemplateForPlatform('darwin', makeDeps()), 'New Terminal')?.enabled,
+    ).toBe(false);
+  });
+
+  test('Kill Terminal is disabled with no live session, enabled + kills when one is live', () => {
+    const offline = buildMenuTemplateForPlatform(
+      'darwin',
+      makeDeps({ onKillTerminal: vi.fn(() => {}) }),
+    );
+    expect(findByLabel(offline, 'Kill Terminal')?.enabled).toBe(false);
+
+    const unwired = buildMenuTemplateForPlatform('darwin', makeDeps({ terminalLive: true }));
+    expect(findByLabel(unwired, 'Kill Terminal')?.enabled).toBe(false);
+
+    const onKillTerminal = vi.fn(() => {});
+    const live = buildMenuTemplateForPlatform(
+      'darwin',
+      makeDeps({ onKillTerminal, terminalLive: true }),
+    );
+    const killItem = findByLabel(live, 'Kill Terminal');
+    expect(killItem?.enabled).toBe(true);
+    (killItem?.click as (() => void) | undefined)?.();
+    expect(onKillTerminal).toHaveBeenCalledTimes(1);
+  });
+
+  test('PTY-backed commands are enabled on Linux when handlers are wired', () => {
+    const linux = buildMenuTemplateForPlatform(
+      'linux',
+      makeDeps({
+        onToggleTerminal: vi.fn(() => {}),
+        onMoveTerminal: vi.fn(() => {}),
+        onNewTerminal: vi.fn(() => {}),
+        onNewTerminalWindow: vi.fn(() => {}),
+        onKillTerminal: vi.fn(() => {}),
+        terminalLive: true,
+      }),
+    );
+
+    expect(findByLabel(linux, 'Show Terminal')?.enabled).toBe(true);
+    expect(findByLabel(linux, 'Move Terminal to right')?.enabled).toBe(true);
+    expect(findByLabel(linux, 'New Terminal')?.enabled).toBe(true);
+    expect(findByLabel(linux, 'New Terminal Window')?.enabled).toBe(true);
+    expect(findByLabel(linux, 'Kill Terminal')?.enabled).toBe(true);
+  });
+
+  test('PTY-backed commands are enabled on supported Windows builds', () => {
+    const windows = buildMenuTemplateForPlatform(
+      'win32',
+      makeDeps({
+        onToggleTerminal: vi.fn(() => {}),
+        onMoveTerminal: vi.fn(() => {}),
+        onNewTerminal: vi.fn(() => {}),
+        onNewTerminalWindow: vi.fn(() => {}),
+        onKillTerminal: vi.fn(() => {}),
+        terminalLive: true,
+      }),
+    );
+
+    expect(findByLabel(windows, 'Show Terminal')?.enabled).toBe(true);
+    expect(findByLabel(windows, 'Move Terminal to right')?.enabled).toBe(true);
+    expect(findByLabel(windows, 'New Terminal')?.enabled).toBe(true);
+    expect(findByLabel(windows, 'New Terminal Window')?.enabled).toBe(true);
+    expect(findByLabel(windows, 'Kill Terminal')?.enabled).toBe(true);
+  });
+
+  test('pre-floor Windows disables every PTY-backed menu affordance', () => {
+    const windows = buildMenuTemplateForPlatform(
+      'win32',
+      makeDeps({
+        terminalCapable: false,
+        onToggleTerminal: vi.fn(() => {}),
+        onMoveTerminal: vi.fn(() => {}),
+        onNewTerminal: vi.fn(() => {}),
+        onNewTerminalWindow: vi.fn(() => {}),
+        onKillTerminal: vi.fn(() => {}),
+        terminalLive: true,
+      }),
+    );
+
+    expect(findByLabel(windows, 'Show Terminal')?.enabled).toBe(false);
+    expect(findByLabel(windows, 'Move Terminal to right')?.enabled).toBe(false);
+    expect(findByLabel(windows, 'New Terminal')?.enabled).toBe(false);
+    expect(findByLabel(windows, 'New Terminal Window')?.enabled).toBe(false);
+    expect(findByLabel(windows, 'Kill Terminal')?.enabled).toBe(false);
+  });
+
+  test('the View → Show/Hide Terminal toggle is preserved alongside the Terminal menu', () => {
+    const template = buildMenuTemplate(makeDeps({ onToggleTerminal: vi.fn(() => {}) }));
+    expect(findByLabel(template, 'Show Terminal')).toBeDefined();
+    expect(findByLabel(template, 'Terminal')).toBeDefined();
+  });
+});
+
+describe('buildMenuTemplate — Edit → Check spelling while typing', () => {
+  function editSubmenu(deps: MenuDeps): MenuItemConstructorOptions[] {
+    const edit = findByLabel(buildMenuTemplate(deps), 'Edit');
+    const sub = edit?.submenu as MenuItemConstructorOptions[] | undefined;
+    if (!sub) throw new Error('Edit submenu missing');
+    return sub;
+  }
+
+  test('renders as a checkbox-type item, checked when spellCheckEnabled is true', () => {
+    const item = findByLabel(
+      buildMenuTemplate(makeDeps({ spellCheckEnabled: true, onToggleSpellCheck: vi.fn(() => {}) })),
+      'Check spelling while typing',
+    );
+    expect(item).toBeDefined();
+    expect(item?.type).toBe('checkbox');
+    expect(item?.checked).toBe(true);
+  });
+
+  test('renders unchecked when spellCheckEnabled is false', () => {
+    const item = findByLabel(
+      buildMenuTemplate(
+        makeDeps({ spellCheckEnabled: false, onToggleSpellCheck: vi.fn(() => {}) }),
+      ),
+      'Check spelling while typing',
+    );
+    expect(item?.checked).toBe(false);
+  });
+
+  test('defaults to checked when spellCheckEnabled dep is omitted (matches the on-by-default persistence default)', () => {
+    const item = findByLabel(
+      buildMenuTemplate(makeDeps({ onToggleSpellCheck: vi.fn(() => {}) })),
+      'Check spelling while typing',
+    );
+    expect(item?.checked).toBe(true);
+  });
+
+  test('ENABLED when onToggleSpellCheck handler is provided', () => {
+    const item = findByLabel(
+      buildMenuTemplate(makeDeps({ onToggleSpellCheck: vi.fn(() => {}) })),
+      'Check spelling while typing',
+    );
+    expect(item?.enabled).toBe(true);
+  });
+
+  test('DISABLED when onToggleSpellCheck handler is missing (unit-test default = unwired)', () => {
+    const item = findByLabel(buildMenuTemplate(makeDeps()), 'Check spelling while typing');
+    expect(item?.enabled).toBe(false);
+  });
+
+  test('click dispatches deps.onToggleSpellCheck', () => {
+    const onToggleSpellCheck = vi.fn(() => {});
+    const item = findByLabel(
+      buildMenuTemplate(makeDeps({ onToggleSpellCheck })),
+      'Check spelling while typing',
+    );
+    (item?.click as (() => void) | undefined)?.();
+    expect(onToggleSpellCheck).toHaveBeenCalledTimes(1);
+  });
+
+  test('click is a safe no-op when onToggleSpellCheck dep is omitted', () => {
+    const item = findByLabel(buildMenuTemplate(makeDeps()), 'Check spelling while typing');
+    expect(() => (item?.click as (() => void) | undefined)?.()).not.toThrow();
+  });
+
+  test('lives in the Edit submenu after the Select All role', () => {
+    const sub = editSubmenu(makeDeps({ onToggleSpellCheck: vi.fn(() => {}) }));
+    const selectAllIdx = sub.findIndex((i) => i.role === 'selectAll');
+    const spellIdx = sub.findIndex((i) => i.label === 'Check spelling while typing');
+    expect(selectAllIdx).toBeGreaterThanOrEqual(0);
+    expect(spellIdx).toBeGreaterThan(selectAllIdx);
+  });
+});
+
+describe('Terminal menu — New Terminal Window', () => {
+  test('appears in the Terminal submenu beside New Terminal', () => {
+    const template = buildMenuTemplateForPlatform(
+      'darwin',
+      makeDeps({ onNewTerminalWindow: vi.fn(() => {}) }),
+    );
+    const terminalMenu = template.find((i) => i.label === 'Terminal');
+    const sub = terminalMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+    if (!sub) throw new Error('Terminal submenu missing');
+    const labels = sub.map((i) => i.label);
+    expect(labels).toContain('New Terminal');
+    expect(labels).toContain('New Terminal Window');
+  });
+
+  test('renders with no keyboard accelerator', () => {
+    const item = findByLabel(
+      buildMenuTemplateForPlatform('darwin', makeDeps({ onNewTerminalWindow: vi.fn(() => {}) })),
+      'New Terminal Window',
+    );
+    expect(item).toBeDefined();
+    expect(item?.accelerator).toBeUndefined();
+  });
+
+  test('click invokes onNewTerminalWindow', () => {
+    const onNewTerminalWindow = vi.fn(() => {});
+    const item = findByLabel(
+      buildMenuTemplateForPlatform('darwin', makeDeps({ onNewTerminalWindow })),
+      'New Terminal Window',
+    );
+    (item?.click as (() => void) | undefined)?.();
+    expect(onNewTerminalWindow).toHaveBeenCalledTimes(1);
+  });
+
+  test('disabled when the dep is omitted, enabled when wired', () => {
+    expect(
+      findByLabel(buildMenuTemplateForPlatform('darwin', makeDeps()), 'New Terminal Window')
+        ?.enabled,
+    ).toBe(false);
+    const wired = findByLabel(
+      buildMenuTemplateForPlatform('darwin', makeDeps({ onNewTerminalWindow: vi.fn(() => {}) })),
+      'New Terminal Window',
+    );
+    expect(wired?.enabled).toBe(true);
+  });
+});
+
+describe('buildMenuTemplate — View navigation history', () => {
+  test('does not add a standalone Go menu', () => {
+    const labels = buildMenuTemplate(makeDeps()).map((item) => item.label);
+    expect(labels).not.toContain('Go');
+  });
+
+  test('starts View with Back before Forward and platform-specific accelerators', () => {
+    const callbacks = {
+      onNavigateBack: vi.fn(() => {}),
+      onNavigateForward: vi.fn(() => {}),
+    };
+
+    const mac = buildMenuTemplateForPlatform('darwin', makeDeps(callbacks));
+    const macRows = findByLabel(mac, 'View')?.submenu as MenuItemConstructorOptions[] | undefined;
+    expect(macRows?.slice(0, 2).map((item) => item.label)).toEqual(['Back', 'Forward']);
+    expect(findByLabel(mac, 'Back')?.accelerator).toBe('Cmd+[');
+    expect(findByLabel(mac, 'Forward')?.accelerator).toBe('Cmd+]');
+
+    const windows = buildMenuTemplateForPlatform('win32', makeDeps(callbacks));
+    const windowsRows = findByLabel(windows, 'View')?.submenu as
+      | MenuItemConstructorOptions[]
+      | undefined;
+    expect(windowsRows?.slice(0, 2).map((item) => item.label)).toEqual(['Back', 'Forward']);
+    expect(findByLabel(windows, 'Back')?.accelerator).toBe('Alt+Left');
+    expect(findByLabel(windows, 'Forward')?.accelerator).toBe('Alt+Right');
+  });
+
+  test('invokes each callback exactly once', () => {
+    const onNavigateBack = vi.fn(() => {});
+    const onNavigateForward = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onNavigateBack, onNavigateForward }));
+
+    (findByLabel(template, 'Back')?.click as (() => void) | undefined)?.();
+    expect(onNavigateBack).toHaveBeenCalledOnce();
+    expect(onNavigateForward).not.toHaveBeenCalled();
+
+    (findByLabel(template, 'Forward')?.click as (() => void) | undefined)?.();
+    expect(onNavigateBack).toHaveBeenCalledOnce();
+    expect(onNavigateForward).toHaveBeenCalledOnce();
+  });
+
+  test('disables both rows when their callbacks are unwired', () => {
+    const template = buildMenuTemplate(makeDeps());
+    expect(findByLabel(template, 'Back')?.enabled).toBe(false);
+    expect(findByLabel(template, 'Forward')?.enabled).toBe(false);
+  });
+});
+
+describe('Window → Open in New Window', () => {
+  const LABEL = 'Open in New Window';
+
+  test('is enabled when the focused window has a document active', () => {
+    const template = buildMenuTemplate(
+      makeDeps({
+        activeTarget: { kind: 'doc', identifier: 'notes/alpha' },
+        onOpenInNewWindow: vi.fn(() => {}),
+      }),
+    );
+    expect(findByLabel(template, LABEL)?.enabled).toBe(true);
+  });
+
+  test('is disabled when the focused window has no document active', () => {
+    for (const activeTarget of [
+      { kind: 'folder' as const, identifier: 'notes' },
+      { kind: 'asset' as const, identifier: 'images/cat.png' },
+      { kind: null as const },
+    ]) {
+      const template = buildMenuTemplate(
+        makeDeps({ activeTarget, onOpenInNewWindow: vi.fn(() => {}) }),
+      );
+      expect(findByLabel(template, LABEL)?.enabled).toBe(false);
+    }
+  });
+
+  test('is disabled when the handler is unwired', () => {
+    const template = buildMenuTemplate(
+      makeDeps({ activeTarget: { kind: 'doc', identifier: 'notes/alpha' } }),
+    );
+    expect(findByLabel(template, LABEL)?.enabled).toBe(false);
+  });
+
+  test('invokes its handler once', () => {
+    const onOpenInNewWindow = vi.fn(() => {});
+    const template = buildMenuTemplate(
+      makeDeps({ activeTarget: { kind: 'doc', identifier: 'notes/alpha' }, onOpenInNewWindow }),
+    );
+
+    (findByLabel(template, LABEL)?.click as (() => void) | undefined)?.();
+    expect(onOpenInNewWindow).toHaveBeenCalledOnce();
+  });
+
+  test('sits in the Window menu on both platform branches', () => {
+    for (const platform of ['darwin', 'win32'] as const) {
+      const template = buildMenuTemplateForPlatform(
+        platform,
+        makeDeps({
+          activeTarget: { kind: 'doc', identifier: 'notes/alpha' },
+          onOpenInNewWindow: vi.fn(() => {}),
+        }),
+      );
+      const windowMenu = template.find((item) => item.label === 'Window');
+      const sub = windowMenu?.submenu as MenuItemConstructorOptions[] | undefined;
+      expect(findByLabel(sub ?? [], LABEL)).toBeDefined();
+    }
+  });
+});
+
+describe('buildMenuTemplate — View → Show/Hide Editor', () => {
+  const viewLabels = (deps: Partial<MenuDeps>) => {
+    const sub = findByLabel(buildMenuTemplate(makeDeps(deps)), 'View')?.submenu as
+      | MenuItemConstructorOptions[]
+      | undefined;
+    return sub?.map((i) => (i.role ? `[role:${i.role}]` : (i.label ?? '[sep]'))) ?? [];
+  };
+
+  test('a project window offers Hide Editor while the editor shows and Show Editor once hidden, with no shortcut', () => {
+    const shown = buildMenuTemplate(makeDeps({ onToggleEditor: vi.fn(() => {}) }));
+    expect(findByLabel(shown, 'Hide Editor')).toBeDefined();
+    expect(findByLabel(shown, 'Hide Editor')?.accelerator).toBeUndefined();
+    const hidden = buildMenuTemplate(
+      makeDeps({ onToggleEditor: vi.fn(() => {}), editorVisible: false }),
+    );
+    expect(findByLabel(hidden, 'Show Editor')).toBeDefined();
+    expect(findByLabel(hidden, 'Hide Editor')).toBeUndefined();
+  });
+
+  test('clicking it sends the toggle to the renderer', () => {
+    const onToggleEditor = vi.fn(() => {});
+    const template = buildMenuTemplate(makeDeps({ onToggleEditor }));
+    (findByLabel(template, 'Hide Editor')?.click as (() => void) | undefined)?.();
+    expect(onToggleEditor).toHaveBeenCalledOnce();
+  });
+
+  test('sits before Terminal and Agents in the View panel cluster', () => {
+    const labels = viewLabels({
+      onToggleEditor: vi.fn(() => {}),
+      onToggleTerminal: vi.fn(() => {}),
+      onToggleAgentPanel: vi.fn(() => {}),
+    });
+    expect(labels.indexOf('Hide Editor')).toBeGreaterThanOrEqual(0);
+    expect(labels.indexOf('Hide Editor')).toBeLessThan(labels.indexOf('Show Terminal'));
+    expect(labels.indexOf('Show Terminal')).toBeLessThan(labels.indexOf('Show Agents'));
+  });
+
+  test('single-file and note windows do not offer it', () => {
+    for (const deps of [{ singleFileWindow: true }, { noteWindow: true }]) {
+      const labels = viewLabels({ ...deps, onToggleEditor: vi.fn(() => {}) });
+      expect(labels).not.toContain('Hide Editor');
+      expect(labels).not.toContain('Show Editor');
+    }
+  });
+});

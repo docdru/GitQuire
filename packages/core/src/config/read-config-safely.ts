@@ -1,0 +1,337 @@
+import { existsSync, readFileSync, renameSync } from 'node:fs';
+import { type Document, parseDocument } from 'yaml';
+import { AutolinksSchema } from './autolinks-config.ts';
+import {
+  type ConfigDiagnostic,
+  type ConfigIssue,
+  type ConfigValidationError,
+  isKnownConfigError,
+  type RecoveredConfigDiagnostic,
+  type ValueFallbackDiagnostic,
+} from './errors.ts';
+import { GitHostsSchema } from './git-host-config.ts';
+import { detectRemovedKeys, stripRemovedKeys } from './removed-keys.ts';
+import {
+  type Config,
+  ConfigSchema,
+  MAX_EMBEDDINGS_DOC_TIMEOUT_MS,
+  MAX_EMBEDDINGS_MAX_BATCH_CHARS,
+  MAX_EMBEDDINGS_MAX_BATCH_SIZE,
+  MIN_EMBEDDINGS_DOC_TIMEOUT_MS,
+  MIN_EMBEDDINGS_MAX_BATCH_CHARS,
+  MIN_EMBEDDINGS_MAX_BATCH_SIZE,
+} from './schema.ts';
+import { TrustedPrivateOriginsSchema } from './skill-source-config.ts';
+import { locateIssue } from './source-locator.ts';
+
+export interface ReadConfigSafelyOptions {
+  absPath: string;
+  sideline?: boolean;
+  timestamp?: string;
+  warn?: (message: string) => void;
+}
+
+export type ReadConfigSafelyResult =
+  | {
+      valid: true;
+      value: Config;
+      source?: string;
+      diagnostics: RecoveredConfigDiagnostic[];
+    }
+  | {
+      valid: false;
+      value: Config;
+      error: ConfigValidationError;
+      sidelinedTo?: string;
+      diagnostics: ConfigDiagnostic[];
+    };
+
+function buildSchemaInvalidError(
+  parsed: ReturnType<typeof ConfigSchema.safeParse>,
+  doc: Document,
+  source: string,
+  absPath: string,
+): ConfigValidationError {
+  if (parsed.success) {
+    return { code: 'UNKNOWN', message: 'unexpected success in error path' };
+  }
+  const issues: ConfigIssue[] = parsed.error.issues.map((issue) => {
+    const path = issue.path.map((seg) =>
+      typeof seg === 'symbol' ? String(seg) : (seg as string | number),
+    );
+    const located = locateIssue({ file: absPath, source, doc, path });
+    return {
+      path,
+      message: issue.message,
+      issueCode: issue.code,
+      ...(located !== undefined ? { source: located } : {}),
+    };
+  });
+  return { code: 'SCHEMA_INVALID', issues };
+}
+
+function attemptSideline(
+  absPath: string,
+  timestamp: string,
+  warn: (message: string) => void,
+): string | undefined {
+  const sidelineTarget = `${absPath}.invalid-${timestamp.replace(/[:.]/g, '-')}`;
+  try {
+    renameSync(absPath, sidelineTarget);
+    return sidelineTarget;
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    warn(
+      `[config] Could not sideline invalid config file ${absPath} → ${sidelineTarget}: ${detail}. ` +
+        'File left in place; using schema defaults.',
+    );
+    return undefined;
+  }
+}
+
+function rawValueAtPath(value: unknown, path: readonly string[]): unknown {
+  let current = value;
+  for (const segment of path) {
+    if (current === null || typeof current !== 'object' || Array.isArray(current)) return undefined;
+    current = Reflect.get(current, segment);
+  }
+  return current;
+}
+
+function detectEmbeddingsTransportFallbacks(input: {
+  rawConfig: unknown;
+  config: Config;
+  doc: Document;
+  source: string;
+  absPath: string;
+}): ValueFallbackDiagnostic[] {
+  const issues: ValueFallbackDiagnostic['issues'] = [];
+  const transportFields = [
+    ['maxBatchSize', MIN_EMBEDDINGS_MAX_BATCH_SIZE, MAX_EMBEDDINGS_MAX_BATCH_SIZE],
+    ['maxBatchChars', MIN_EMBEDDINGS_MAX_BATCH_CHARS, MAX_EMBEDDINGS_MAX_BATCH_CHARS],
+    ['docTimeoutMs', MIN_EMBEDDINGS_DOC_TIMEOUT_MS, MAX_EMBEDDINGS_DOC_TIMEOUT_MS],
+  ] as const;
+  for (const [field, minimum, maximum] of transportFields) {
+    const path = ['search', 'semantic', field];
+    const raw = rawValueAtPath(input.rawConfig, path);
+    const effective = input.config.search.semantic[field];
+    if (raw === undefined || raw === effective) continue;
+    const message = `Expected an integer between ${minimum} and ${maximum}; using default ${effective}.`;
+    const located = locateIssue({
+      file: input.absPath,
+      source: input.source,
+      doc: input.doc,
+      path,
+    });
+    issues.push({
+      path,
+      message,
+      ...(located !== undefined
+        ? { source: { file: located.file, line: located.line, column: located.column } }
+        : {}),
+    });
+  }
+  return issues.length > 0 ? [{ code: 'VALUE_FALLBACK', issues }] : [];
+}
+
+function detectGitHostFallbacks(input: {
+  rawConfig: unknown;
+  doc: Document;
+  source: string;
+  absPath: string;
+}): ValueFallbackDiagnostic[] {
+  const hosts = rawValueAtPath(input.rawConfig, ['git', 'hosts']);
+  if (hosts === undefined) return [];
+  const parsed = GitHostsSchema.safeParse(hosts);
+  if (parsed.success) return [];
+  const issues = parsed.error.issues.map((issue) => {
+    const path = ['git', 'hosts', ...issue.path.map(String)];
+    const located = locateIssue({
+      file: input.absPath,
+      source: input.source,
+      doc: input.doc,
+      path,
+    });
+    return {
+      path,
+      message: `${issue.message}; ignoring this git-host declaration.`,
+      ...(located !== undefined
+        ? { source: { file: located.file, line: located.line, column: located.column } }
+        : {}),
+    };
+  });
+  return [{ code: 'VALUE_FALLBACK', issues }];
+}
+
+function detectAutolinkFallbacks(input: {
+  rawConfig: unknown;
+  doc: Document;
+  source: string;
+  absPath: string;
+}): ValueFallbackDiagnostic[] {
+  const autolinks = rawValueAtPath(input.rawConfig, ['autolinks']);
+  if (autolinks === undefined) return [];
+  const parsed = AutolinksSchema.safeParse(autolinks);
+  if (parsed.success) return [];
+  const issues = parsed.error.issues.map((issue) => {
+    const path = ['autolinks', ...issue.path.map(String)];
+    const located = locateIssue({
+      file: input.absPath,
+      source: input.source,
+      doc: input.doc,
+      path,
+    });
+    return {
+      path,
+      message:
+        issue.path.length === 0
+          ? `${issue.message}; ignoring autolinks.`
+          : `${issue.message}; ignoring this autolink entry.`,
+      ...(located !== undefined
+        ? { source: { file: located.file, line: located.line, column: located.column } }
+        : {}),
+    };
+  });
+  return [{ code: 'VALUE_FALLBACK', issues }];
+}
+
+function detectSkillSourceFallbacks(input: {
+  rawConfig: unknown;
+  doc: Document;
+  source: string;
+  absPath: string;
+}): ValueFallbackDiagnostic[] {
+  const origins = rawValueAtPath(input.rawConfig, ['skills', 'trustedPrivateOrigins']);
+  if (origins === undefined) return [];
+  const parsed = TrustedPrivateOriginsSchema.safeParse(origins);
+  if (parsed.success) return [];
+  const issues = parsed.error.issues.map((issue) => {
+    const path = ['skills', 'trustedPrivateOrigins', ...issue.path.map(String)];
+    const located = locateIssue({
+      file: input.absPath,
+      source: input.source,
+      doc: input.doc,
+      path,
+    });
+    return {
+      path,
+      message:
+        issue.path.length === 0
+          ? `${issue.message}; ignoring the trusted website origins list.`
+          : `${issue.message}; ignoring this trusted website origin.`,
+      ...(located !== undefined
+        ? { source: { file: located.file, line: located.line, column: located.column } }
+        : {}),
+    };
+  });
+  return [{ code: 'VALUE_FALLBACK', issues }];
+}
+
+export function readConfigSafely(options: ReadConfigSafelyOptions): ReadConfigSafelyResult {
+  const { absPath, sideline = true, timestamp = new Date().toISOString() } = options;
+  const warn = options.warn ?? ((msg: string) => console.warn(msg));
+  const defaults = ConfigSchema.parse({});
+
+  if (!existsSync(absPath)) {
+    return { valid: true, value: defaults, source: undefined, diagnostics: [] };
+  }
+
+  let source: string;
+  try {
+    source = readFileSync(absPath, 'utf-8');
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    warn(`[config] Could not read ${absPath}: ${detail}. Using schema defaults.`);
+    const diagnostic: ConfigDiagnostic = { code: 'UNREADABLE', detail };
+    return {
+      valid: false,
+      value: defaults,
+      error: diagnostic,
+      diagnostics: [{ ...diagnostic }],
+    };
+  }
+
+  const doc = parseDocument(source);
+  if (doc.errors.length > 0) {
+    const detail = doc.errors.map((e) => e.message).join('; ');
+    warn(
+      `[config] ${absPath} contains invalid YAML (${detail}). Using schema defaults.` +
+        (sideline ? '' : ' Pass-through mode: file left in place.'),
+    );
+    const sidelinedTo = sideline ? attemptSideline(absPath, timestamp, warn) : undefined;
+    const diagnostic: ConfigDiagnostic = { code: 'YAML_PARSE', detail };
+    return {
+      valid: false,
+      value: defaults,
+      error: diagnostic,
+      diagnostics: [{ ...diagnostic }],
+      ...(sidelinedTo !== undefined ? { sidelinedTo } : {}),
+    };
+  }
+
+  const merged = doc.toJSON() ?? {};
+
+  const removedKeyDiagnostics = detectRemovedKeys({ value: merged, file: absPath, source, doc });
+  const cleaned = removedKeyDiagnostics.length > 0 ? stripRemovedKeys(merged) : merged;
+  const valueFallbackDiagnostics = [
+    ...detectGitHostFallbacks({ rawConfig: cleaned, doc, source, absPath }),
+    ...detectAutolinkFallbacks({ rawConfig: cleaned, doc, source, absPath }),
+    ...detectSkillSourceFallbacks({ rawConfig: cleaned, doc, source, absPath }),
+  ];
+  for (const diagnostic of valueFallbackDiagnostics) {
+    for (const issue of diagnostic.issues) {
+      warn(`[config] ${absPath} ${issue.path.join('.')}: ${issue.message}`);
+    }
+  }
+
+  const parsed = ConfigSchema.safeParse(cleaned);
+  if (!parsed.success) {
+    const error = buildSchemaInvalidError(parsed, doc, source, absPath);
+    const git =
+      ConfigSchema.shape.git.safeParse(rawValueAtPath(cleaned, ['git'])).data ?? defaults.git;
+    const skills =
+      ConfigSchema.shape.skills.safeParse(rawValueAtPath(cleaned, ['skills'])).data ??
+      defaults.skills;
+    let fallback =
+      Object.keys(git.hosts).length > 0
+        ? 'Using schema defaults while preserving valid git-host declarations.'
+        : 'Using schema defaults.';
+    if (skills.trustedPrivateOrigins.some((origin) => origin !== null)) {
+      fallback += ' Valid website-origin approvals were preserved.';
+    }
+    warn(
+      `[config] ${absPath} fails schema validation (${parsed.error.issues.length} issue(s)). ${fallback}` +
+        (sideline ? '' : ' Pass-through mode: file left in place.'),
+    );
+    const sidelinedTo = sideline ? attemptSideline(absPath, timestamp, warn) : undefined;
+    const diagnostics: ConfigDiagnostic[] = [
+      ...removedKeyDiagnostics,
+      ...valueFallbackDiagnostics,
+      ...(isKnownConfigError(error) && error.code === 'SCHEMA_INVALID' ? [{ ...error }] : []),
+    ];
+    return {
+      valid: false,
+      value: {
+        ...defaults,
+        git,
+        skills,
+      },
+      error,
+      diagnostics,
+      ...(sidelinedTo !== undefined ? { sidelinedTo } : {}),
+    };
+  }
+
+  const diagnostics: RecoveredConfigDiagnostic[] = [
+    ...removedKeyDiagnostics,
+    ...valueFallbackDiagnostics,
+    ...detectEmbeddingsTransportFallbacks({
+      rawConfig: cleaned,
+      config: parsed.data,
+      doc,
+      source,
+      absPath,
+    }),
+  ];
+  return { valid: true, value: parsed.data, source: absPath, diagnostics };
+}

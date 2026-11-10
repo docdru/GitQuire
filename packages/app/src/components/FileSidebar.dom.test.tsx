@@ -1,0 +1,996 @@
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {
+  cloneElement,
+  isValidElement,
+  type MouseEventHandler,
+  type ReactElement,
+  type ReactNode,
+  useEffect,
+} from 'react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { __resetSkillsSectionVisibleCacheForTests } from '@/components/skills-section-visible-cache';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { formatShortcut, formatShortcutLabel } from '@/lib/keyboard-shortcuts';
+import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
+import { expectVisualClassTokens } from '@/test-utils/visual-contract';
+
+function PassThrough({ children }: { children?: ReactNode }) {
+  return <>{children}</>;
+}
+
+function TriggerPassThrough({
+  children,
+  asChild: _asChild,
+  ...props
+}: {
+  children?: ReactNode;
+  asChild?: boolean;
+  [key: string]: unknown;
+}) {
+  if (!isValidElement(children)) return children;
+  return cloneElement(children as ReactElement<Record<string, unknown>>, props);
+}
+
+function ElementPassThrough({
+  children,
+  asChild: _asChild,
+  ...props
+}: {
+  children?: ReactNode;
+  asChild?: boolean;
+  [key: string]: unknown;
+}) {
+  return <div {...props}>{children}</div>;
+}
+
+function Button({
+  children,
+  asChild: _asChild,
+  onCheckedChange: _onCheckedChange,
+  onClick,
+  onSelect,
+  size: _size,
+  variant: _variant,
+  ...props
+}: {
+  children?: ReactNode;
+  asChild?: boolean;
+  onCheckedChange?: unknown;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  onSelect?: () => void;
+  size?: unknown;
+  variant?: unknown;
+  [key: string]: unknown;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(event) => {
+        onClick?.(event);
+        onSelect?.();
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+type FolderState = { folderCount: number; expandedCount: number };
+
+let sidebarState: 'expanded' | 'collapsed' = 'expanded';
+let workspace: { contentDir: string; pathSeparator: string } | null = {
+  contentDir: '/tmp/open-knowledge',
+  pathSeparator: '/',
+};
+let activeDocName: string | null = 'docs/current';
+let activeTarget: { kind: 'folder'; folderPath: string } | null = {
+  kind: 'folder',
+  folderPath: 'docs',
+};
+let folderState: FolderState = { folderCount: 2, expandedCount: 1 };
+let hasTemplates = true;
+let mergedConfig: {
+  appearance?: {
+    sidebar?: {
+      showHiddenFiles?: boolean;
+      showOnlyMarkdownFiles?: boolean;
+      showSkillsSection?: boolean;
+    };
+  };
+} | null = {
+  appearance: { sidebar: { showHiddenFiles: false } },
+};
+let projectLocalBindingNull = false;
+let projectLocalSynced = true;
+let projectPatchResult: { ok: true } | { ok: false; error: unknown } = { ok: true };
+let openInAgentSubmenuProps: Array<{
+  input: unknown;
+}> = [];
+let toastSuccesses: unknown[][] = [];
+let toastErrors: unknown[][] = [];
+let toastInfos: unknown[][] = [];
+const treeListeners = new Set<() => void>();
+
+const treeCalls = {
+  collapseAll: vi.fn(() => {}),
+  createFromTemplate: vi.fn((_parentDir: string, _templateName: string) => {}),
+  expandAll: vi.fn(() => {}),
+  startCreating: vi.fn((_kind: 'file' | 'folder', _parentDir: string) => {}),
+  startCreatingFromTemplate: vi.fn((_parentDir: string) => {}),
+};
+const projectLocalPatch = vi.fn((_patch: unknown) => projectPatchResult);
+const showItemInFolderMock = vi.fn((_path: string) => Promise.resolve());
+const notifyViewMenuStateChangedMock = vi.fn((_snapshot: unknown) => {});
+
+function setFolderState(next: FolderState) {
+  folderState = next;
+  for (const listener of treeListeners) listener();
+}
+
+function installBridge() {
+  Object.defineProperty(window, 'okDesktop', {
+    configurable: true,
+    value: {
+      platform: 'darwin',
+      editor: {
+        notifyViewMenuStateChanged: notifyViewMenuStateChangedMock,
+      },
+      shell: {
+        showItemInFolder: showItemInFolderMock,
+      },
+      onMenuAction: () => () => {},
+    },
+  });
+}
+
+import * as actualLinguiMacro from '@lingui/react/macro';
+
+vi.doMock('@lingui/react/macro', () => ({
+  ...actualLinguiMacro,
+  Trans: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  useLingui: () => ({ t: renderLinguiTemplate }),
+}));
+
+vi.doMock('@/lib/perf', () => ({
+  ProfilerBoundary: PassThrough,
+}));
+
+vi.doMock('@/components/FileTree', () => ({
+  FileTree: ({ ref }: { ref?: (handle: unknown) => void }) => {
+    useEffect(() => {
+      const handle = {
+        collapseAll: treeCalls.collapseAll,
+        createFromTemplate: treeCalls.createFromTemplate,
+        expandAll: treeCalls.expandAll,
+        getFolderState: () => folderState,
+        isCreationTargetCleared: () => false,
+        startCreating: treeCalls.startCreating,
+        startCreatingFromTemplate: treeCalls.startCreatingFromTemplate,
+        subscribe: (listener: () => void) => {
+          treeListeners.add(listener);
+          return () => treeListeners.delete(listener);
+        },
+      };
+      ref?.(handle);
+      return () => ref?.(null);
+    }, [ref]);
+    return <div data-testid="file-tree-stub" />;
+  },
+}));
+
+vi.doMock('@/components/ConflictsSection', () => ({
+  ConflictsSection: () => <div data-testid="conflicts-section" />,
+}));
+
+vi.doMock('@/components/SkillsSidebarSection', () => ({
+  SkillsSidebarSection: () => <div data-testid="skills-sidebar-section" />,
+}));
+
+vi.doMock('@/components/ProjectSwitcher', () => ({
+  ProjectSwitcher: () => <button type="button">Project switcher</button>,
+}));
+
+vi.doMock('@/components/UpdateNotices', () => ({
+  UpdateNotices: () => <div data-testid="update-notices" />,
+}));
+
+vi.doMock('@/components/OnboardingCard', async () => ({
+  ...(await vi.importActual<typeof import('@/components/OnboardingCard')>(
+    '@/components/OnboardingCard',
+  )),
+  OnboardingCardMount: () => <div data-testid="onboarding-card-mount" />,
+}));
+
+vi.doMock('@/components/FeedbackCard', async () => ({
+  ...(await vi.importActual<typeof import('@/components/FeedbackCard')>(
+    '@/components/FeedbackCard',
+  )),
+  FeedbackCardMount: () => <div data-testid="feedback-card-mount" />,
+}));
+
+vi.doMock('@/components/handoff/OpenInAgentEmptySpaceSubmenu', () => ({
+  OpenInAgentEmptySpaceSubmenu: (props: { input: unknown }) => {
+    openInAgentSubmenuProps.push(props);
+    return <div data-testid="open-in-agent-empty-space-submenu" />;
+  },
+}));
+
+vi.doMock('@/components/handoff/useHandoffDispatch', () => ({
+  buildFolderHandoffInput: () => ({ docContext: null, docPath: '', folderRelativePath: 'docs' }),
+  buildHandoffInput: () => ({
+    docContext: { docName: 'docs/current' },
+    docPath: 'docs/current.md',
+  }),
+  buildProjectScopedHandoffInput: ({ workspace: inputWorkspace }: { workspace: unknown }) =>
+    inputWorkspace ? { docContext: null, docPath: '', projectDir: '/tmp/open-knowledge' } : null,
+  useHandoffDispatch: () => ({ dispatch: vi.fn(() => Promise.resolve({ ok: true })) }),
+}));
+
+vi.doMock('@/components/handoff/useInstalledAgents', () => ({
+  useInstalledAgents: () => ({ states: { codex: { installed: true } } }),
+}));
+
+vi.doMock('@/components/ui/button', () => ({
+  Button,
+}));
+
+vi.doMock('@/components/ui/context-menu', () => ({
+  ContextMenu: PassThrough,
+  ContextMenuContent: ({ children }: { children?: ReactNode }) => <div role="menu">{children}</div>,
+  ContextMenuGroup: ElementPassThrough,
+  ContextMenuItem: ({
+    children,
+    disabled,
+    onSelect,
+    ...props
+  }: {
+    children?: ReactNode;
+    disabled?: boolean;
+    onSelect?: () => void;
+    [key: string]: unknown;
+  }) => (
+    <button
+      type="button"
+      role="menuitem"
+      disabled={disabled}
+      onClick={() => {
+        if (!disabled) onSelect?.();
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  ),
+  ContextMenuCheckboxItem: ({
+    checked,
+    children,
+    disabled,
+    onCheckedChange,
+    onSelect,
+    ...props
+  }: {
+    checked?: boolean;
+    children?: ReactNode;
+    disabled?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
+    onSelect?: (event: Event) => void;
+    [key: string]: unknown;
+  }) => (
+    <button
+      type="button"
+      role="menuitemcheckbox"
+      aria-checked={checked ? 'true' : 'false'}
+      disabled={disabled}
+      onClick={() => {
+        if (disabled) return;
+        onSelect?.(new Event('menu.itemSelect', { cancelable: true }));
+        onCheckedChange?.(!checked);
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  ),
+  ContextMenuSeparator: () => <hr data-testid="context-menu-separator" />,
+  ContextMenuSub: PassThrough,
+  ContextMenuSubContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  ContextMenuSubTrigger: Button,
+  ContextMenuTrigger: PassThrough,
+}));
+
+vi.doMock('@/components/ui/dropdown-menu', () => ({
+  DropdownMenu: PassThrough,
+  DropdownMenuCheckboxItem: ({
+    checked,
+    children,
+    disabled,
+    onCheckedChange,
+    onSelect,
+    ...props
+  }: {
+    checked?: boolean;
+    children?: ReactNode;
+    disabled?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
+    onSelect?: (event: Event) => void;
+    [key: string]: unknown;
+  }) => (
+    <button
+      type="button"
+      role="menuitemcheckbox"
+      aria-checked={checked ? 'true' : 'false'}
+      disabled={disabled}
+      onClick={() => {
+        if (disabled) return;
+        onSelect?.(new Event('menu.itemSelect', { cancelable: true }));
+        onCheckedChange?.(!checked);
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  ),
+  DropdownMenuContent: ({
+    children,
+    ...props
+  }: {
+    children?: ReactNode;
+    [key: string]: unknown;
+  }) => <div {...props}>{children}</div>,
+  DropdownMenuGroup: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <fieldset {...props}>{children}</fieldset>
+  ),
+  DropdownMenuItem: Button,
+  DropdownMenuLabel: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  DropdownMenuSeparator: () => <hr data-testid="dropdown-menu-separator" />,
+  DropdownMenuTrigger: TriggerPassThrough,
+}));
+
+vi.doMock('@/components/ui/sidebar', () => ({
+  Sidebar: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <aside data-testid="sidebar" {...props}>
+      {children}
+    </aside>
+  ),
+  SidebarContent: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <main data-testid="sidebar-content" {...props}>
+      {children}
+    </main>
+  ),
+  SidebarFooter: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <footer data-testid="sidebar-footer" {...props}>
+      {children}
+    </footer>
+  ),
+  SidebarHeader: ({ children, ...props }: { children?: ReactNode; [key: string]: unknown }) => (
+    <header data-testid="sidebar-header" {...props}>
+      {children}
+    </header>
+  ),
+  SidebarMenu: ElementPassThrough,
+  SidebarMenuItem: ElementPassThrough,
+  SidebarGroup: ElementPassThrough,
+  SidebarGroupContent: ElementPassThrough,
+  SidebarGroupLabel: ElementPassThrough,
+  SidebarRail: ({ enableToggle }: { enableToggle?: boolean }) => (
+    <button data-enable-toggle={String(enableToggle)} data-testid="sidebar-rail" type="button" />
+  ),
+  useSidebar: () => ({ state: sidebarState }),
+}));
+
+vi.doMock('@/editor/DocumentContext', () => ({
+  useDocumentContext: () => ({
+    activeDocName,
+    activeTarget,
+  }),
+  isBlobRunnerNewTabId: () => false,
+}));
+
+function templateEntries(folderPath: string | null) {
+  if (!hasTemplates) return [];
+  if (folderPath === '') {
+    return [
+      {
+        name: 'root-daily',
+        path: '.ok/templates/root-daily.md',
+        scope: 'local',
+        source_folder: '',
+        title: 'Root daily',
+      },
+    ];
+  }
+  return [
+    {
+      name: 'daily',
+      path: `${folderPath ?? ''}/.ok/templates/daily.md`,
+      scope: 'local',
+      source_folder: folderPath ?? '',
+      title: 'Daily',
+    },
+  ];
+}
+
+vi.doMock('@/hooks/use-folder-config', () => ({
+  useFolderConfig: (folderPath: string | null) => ({
+    state: {
+      status: 'ready',
+      data: { folder: { templates_available: templateEntries(folderPath) } },
+    },
+  }),
+}));
+
+vi.doMock('@/lib/config-provider', () => ({
+  useConfigContext: () => ({
+    merged: mergedConfig,
+    projectLocalSynced,
+    projectLocalBinding: projectLocalBindingNull
+      ? null
+      : {
+          patch: projectLocalPatch,
+        },
+  }),
+}));
+
+vi.doMock('@/lib/use-workspace', () => ({
+  useWorkspace: () => workspace,
+}));
+
+vi.doMock('sonner', () => ({
+  toast: {
+    error: (...args: unknown[]) => toastErrors.push(args),
+    info: (...args: unknown[]) => toastInfos.push(args),
+    success: (...args: unknown[]) => toastSuccesses.push(args),
+  },
+}));
+
+async function renderSidebar() {
+  const { FileSidebar } = await import('./FileSidebar');
+  return render(<FileSidebar />, {
+    wrapper: ({ children }) => <TooltipProvider delayDuration={0}>{children}</TooltipProvider>,
+  });
+}
+
+describe('FileSidebar runtime behavior', () => {
+  beforeEach(() => {
+    cleanup();
+    try {
+      window.localStorage.clear();
+    } catch {}
+    __resetSkillsSectionVisibleCacheForTests();
+    sidebarState = 'expanded';
+    workspace = { contentDir: '/tmp/open-knowledge', pathSeparator: '/' };
+    activeDocName = 'docs/current';
+    activeTarget = { kind: 'folder', folderPath: 'docs' };
+    folderState = { folderCount: 2, expandedCount: 1 };
+    hasTemplates = true;
+    mergedConfig = { appearance: { sidebar: { showHiddenFiles: false } } };
+    projectLocalBindingNull = false;
+    projectLocalSynced = true;
+    projectPatchResult = { ok: true };
+    openInAgentSubmenuProps = [];
+    toastSuccesses = [];
+    toastErrors = [];
+    toastInfos = [];
+    treeListeners.clear();
+    for (const fn of [
+      treeCalls.collapseAll,
+      treeCalls.createFromTemplate,
+      treeCalls.expandAll,
+      treeCalls.startCreating,
+      treeCalls.startCreatingFromTemplate,
+      projectLocalPatch,
+      showItemInFolderMock,
+      notifyViewMenuStateChangedMock,
+    ]) {
+      fn.mockClear();
+    }
+    Object.defineProperty(window, 'okDesktop', {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: vi.fn(() => Promise.resolve()),
+      },
+    });
+  });
+
+  afterEach(() => {
+    cleanup();
+    Object.defineProperty(window, 'okDesktop', {
+      configurable: true,
+      value: undefined,
+    });
+  });
+
+  for (const host of [
+    { label: 'on the web', electron: false, state: 'expanded' },
+    { label: 'in an expanded Electron window', electron: true, state: 'expanded' },
+    { label: 'in a collapsed Electron window', electron: true, state: 'collapsed' },
+  ] as const) {
+    test(`${host.label} the file list has no top bar, and the project row is its first row`, async () => {
+      if (host.electron) installBridge();
+      sidebarState = host.state;
+      const { container } = await renderSidebar();
+
+      expect(screen.queryByTestId('sidebar-header')).toBeNull();
+      const content = screen.getByTestId('sidebar-content');
+      const projectRow = container.querySelector('[data-sidebar-project-row]') as HTMLElement;
+      const conflicts = screen.getByTestId('conflicts-section');
+      const rowsAbove = Array.from(content.querySelectorAll('*')).filter(
+        (element) =>
+          element !== conflicts &&
+          !conflicts.contains(element) &&
+          !element.contains(projectRow) &&
+          (element.compareDocumentPosition(projectRow) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+      );
+      expect(rowsAbove, 'only the sync-conflicts slot may sit above the project row').toEqual([]);
+      expect(projectRow.textContent).toContain('open-knowledge');
+      expect(projectRow.contains(screen.getByTestId('sidebar-toolbar'))).toBe(true);
+      expectVisualClassTokens(projectRow.className, ['h-11']);
+      expect(screen.queryByRole('button', { name: /^Search/ })).toBeNull();
+      expect(screen.queryByTestId('navigation-history-controls')).toBeNull();
+      expect(screen.queryByTestId('sidebar-traffic-light-reserve')).toBeNull();
+      expect(screen.queryByText('Project switcher')).toBeNull();
+    });
+  }
+
+  test('in an expanded Electron window the file list toolbar opts out of window dragging', async () => {
+    const user = userEvent.setup();
+    installBridge();
+    await renderSidebar();
+
+    const toolbar = screen.getByTestId('sidebar-toolbar');
+    expectVisualClassTokens(toolbar.className, ['[&>*]:[-webkit-app-region:no-drag]']);
+    expect(screen.getByTestId('sidebar-rail').getAttribute('data-enable-toggle')).toBe('false');
+    expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Forward' })).toBeNull();
+
+    await user.hover(screen.getByRole('button', { name: 'New folder' }));
+    const newFolderTooltip = await screen.findByRole('tooltip', {
+      name: `New folder ${formatShortcutLabel('new-folder')}`,
+    });
+    expect(newFolderTooltip.querySelector('[data-slot="kbd"]')?.textContent).toBe(
+      formatShortcut('new-folder'),
+    );
+  });
+
+  test('Electron footer keeps only the onboarding checklist, leaving update notices and feedback to the corner stack and the project switcher to the app header', async () => {
+    installBridge();
+    await renderSidebar();
+
+    const footer = screen.getByTestId('sidebar-footer');
+    expect(Array.from(footer.children).map((child) => child.getAttribute('data-testid'))).toEqual([
+      'onboarding-card-mount',
+    ]);
+    expect(screen.queryByTestId('update-notices')).toBeNull();
+    expect(screen.queryByTestId('feedback-card-mount')).toBeNull();
+    expect(screen.queryByText('Project switcher')).toBeNull();
+  });
+
+  test('toolbar buttons name their shortcut as a keycap in the tooltip', async () => {
+    const user = userEvent.setup();
+    await renderSidebar();
+    const toolbar = screen.getByTestId('sidebar-toolbar');
+
+    await user.hover(within(toolbar).getByRole('button', { name: 'New file' }));
+    const newFileTooltip = await screen.findByRole('tooltip', {
+      name: `New file ${formatShortcutLabel('new-item')}`,
+    });
+    expect(newFileTooltip.querySelector('[data-slot="kbd"]')?.textContent).toBe(
+      formatShortcut('new-item'),
+    );
+
+    cleanup();
+    await renderSidebar();
+    await user.hover(screen.getByRole('button', { name: 'Tree view options' }));
+    expect(
+      (await screen.findByRole('tooltip', { name: 'Tree view options' })).querySelector(
+        '[data-slot="kbd"]',
+      ),
+    ).toBeNull();
+  });
+
+  test('toolbar actions use the active folder while tree-state actions smart-hide no-op menu items', async () => {
+    await renderSidebar();
+    await waitFor(() => expect(treeListeners.size).toBe(1));
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'New file' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'New from template' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Daily' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'New folder' })[0]);
+    expect(treeCalls.startCreating).toHaveBeenCalledWith('file', 'docs');
+    expect(treeCalls.createFromTemplate).toHaveBeenCalledWith('docs', 'daily');
+    expect(treeCalls.startCreating).toHaveBeenCalledWith('folder', 'docs');
+
+    expect(screen.getByRole('button', { name: 'Expand all' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Collapse all' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Expand all' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse all' }));
+    expect(treeCalls.expandAll).toHaveBeenCalledTimes(1);
+    expect(treeCalls.collapseAll).toHaveBeenCalledTimes(1);
+
+    act(() => setFolderState({ folderCount: 2, expandedCount: 2 }));
+    expect(screen.queryByRole('button', { name: 'Expand all' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Collapse all' })).toBeTruthy();
+
+    act(() => setFolderState({ folderCount: 2, expandedCount: 0 }));
+    expect(screen.getByRole('button', { name: 'Expand all' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Collapse all' })).toBeNull();
+  });
+
+  test('toolbar create actions fall back to the workspace root for a revealed .ok folder', async () => {
+    activeTarget = { kind: 'folder', folderPath: 'notes/.ok/templates' };
+    await renderSidebar();
+    await waitFor(() => expect(treeListeners.size).toBe(1));
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'New file' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'New from template' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Root daily' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'New folder' })[0]);
+
+    expect(treeCalls.startCreating).toHaveBeenCalledWith('file', '');
+    expect(treeCalls.createFromTemplate).toHaveBeenCalledWith('', 'root-daily');
+    expect(treeCalls.startCreating).toHaveBeenCalledWith('folder', '');
+  });
+
+  test('toolbar create actions keep a nested non-.ok dotfolder as the create dir', async () => {
+    activeTarget = { kind: 'folder', folderPath: 'notes/.obsidian' };
+    await renderSidebar();
+    await waitFor(() => expect(treeListeners.size).toBe(1));
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'New file' })[0]);
+
+    expect(treeCalls.startCreating).toHaveBeenCalledWith('file', 'notes/.obsidian');
+  });
+
+  test('tree-options popover renders the command pair, then a separator, then the labeled Show group of visibility checkboxes', async () => {
+    await renderSidebar();
+    await waitFor(() => expect(treeListeners.size).toBe(1));
+
+    const menu = screen.getByTestId('tree-options-menu');
+    expect(within(menu).getByRole('button', { name: 'Expand all' })).toBeTruthy();
+    const collapseAll = within(menu).getByRole('button', { name: 'Collapse all' });
+    expect(within(menu).getAllByTestId('dropdown-menu-separator')).toHaveLength(3);
+
+    const group = within(menu).getByRole('group', { name: 'Show' });
+    const checkboxes = within(group).getAllByRole('menuitemcheckbox');
+    expect(checkboxes.map((el) => el.textContent)).toEqual([
+      'Hidden files',
+      '.ok folders',
+      'Only markdown files',
+      'Skills Studio',
+    ]);
+    expect(
+      collapseAll.compareDocumentPosition(group) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    const grouping = within(menu).getByTestId('tree-options-group-skills');
+    expect(within(group).queryByTestId('tree-options-group-skills')).toBeNull();
+    expect(group.compareDocumentPosition(grouping) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const hide = within(menu).getByRole('button', { name: 'Hide Files' });
+    expect(grouping.compareDocumentPosition(hide) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('tree-options trigger stays visible with zero folders and the popover keeps its state-independent items', async () => {
+    folderState = { folderCount: 0, expandedCount: 0 };
+    await renderSidebar();
+    await waitFor(() => expect(treeListeners.size).toBe(1));
+
+    expect(screen.getByRole('button', { name: 'Tree view options' })).toBeTruthy();
+    const menu = screen.getByTestId('tree-options-menu');
+    expect(within(menu).queryByRole('button', { name: 'Expand all' })).toBeNull();
+    expect(within(menu).queryByRole('button', { name: 'Collapse all' })).toBeNull();
+    expect(within(menu).getAllByTestId('dropdown-menu-separator')).toHaveLength(2);
+    expect(within(menu).getAllByRole('menuitemcheckbox')).toHaveLength(5);
+    expect(within(menu).getByRole('button', { name: 'Hide Files' })).toBeTruthy();
+  });
+
+  test('each Show checkbox reflects its config leaf and writes it through the project-local binding', async () => {
+    mergedConfig = {
+      appearance: { sidebar: { showHiddenFiles: true, showOnlyMarkdownFiles: false } },
+    };
+    await renderSidebar();
+    const menu = screen.getByTestId('tree-options-menu');
+
+    expect(
+      within(menu).getByTestId('tree-options-show-hidden-files').getAttribute('aria-checked'),
+    ).toBe('true');
+    expect(
+      within(menu).getByTestId('tree-options-show-ok-folders').getAttribute('aria-checked'),
+    ).toBe('false');
+    expect(
+      within(menu)
+        .getByTestId('tree-options-show-only-markdown-files')
+        .getAttribute('aria-checked'),
+    ).toBe('false');
+    expect(within(menu).getByTestId('tree-options-show-skills').getAttribute('aria-checked')).toBe(
+      'true',
+    );
+
+    fireEvent.click(within(menu).getByTestId('tree-options-show-hidden-files'));
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showHiddenFiles: false } },
+    });
+    fireEvent.click(within(menu).getByTestId('tree-options-show-ok-folders'));
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showOkFolders: true } },
+    });
+    fireEvent.click(within(menu).getByTestId('tree-options-show-only-markdown-files'));
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showOnlyMarkdownFiles: true } },
+    });
+    fireEvent.click(within(menu).getByTestId('tree-options-show-skills'));
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showSkillsSection: false } },
+    });
+  });
+
+  test('Show checkboxes explain why they are disabled while project settings load', async () => {
+    const user = userEvent.setup();
+    projectLocalBindingNull = true;
+    await renderSidebar();
+    const menu = screen.getByTestId('tree-options-menu');
+
+    const treeCheckboxes = [
+      'tree-options-show-hidden-files',
+      'tree-options-show-ok-folders',
+      'tree-options-show-only-markdown-files',
+      'tree-options-show-skills',
+      'tree-options-group-skills',
+    ].map((id) => within(menu).getByTestId(id) as HTMLButtonElement);
+    const contextCheckboxes = [
+      'empty-space-menu-show-hidden-files',
+      'empty-space-menu-show-ok-folders',
+      'empty-space-menu-show-only-markdown-files',
+      'empty-space-menu-show-skills-section',
+    ].map((id) => screen.getByTestId(id) as HTMLButtonElement);
+
+    for (const checkbox of [...treeCheckboxes, ...contextCheckboxes]) {
+      expect(checkbox.disabled).toBe(false);
+      expect(checkbox.getAttribute('aria-disabled')).toBe('true');
+      const descriptionId = checkbox.getAttribute('aria-describedby');
+      expect(descriptionId).toBeTruthy();
+      expect(document.getElementById(descriptionId ?? '')?.textContent).toBe(
+        'Settings are still loading. Try again in a moment.',
+      );
+      fireEvent.click(checkbox);
+    }
+    expect(toastInfos).toHaveLength(9);
+    for (const args of toastInfos) {
+      expect(args).toEqual([
+        'Settings are still loading. Try again in a moment.',
+        { id: 'sidebar-settings-not-ready' },
+      ]);
+    }
+    await user.hover(treeCheckboxes[0]?.parentElement as HTMLElement);
+    expect(
+      await screen.findByRole('tooltip', {
+        name: 'Settings are still loading. Try again in a moment.',
+      }),
+    ).toBeTruthy();
+    expect(projectLocalPatch).not.toHaveBeenCalled();
+  });
+
+  test('Show checkboxes reject input until the project-local binding first syncs', async () => {
+    projectLocalSynced = false;
+    const rendered = await renderSidebar();
+    const checkbox = within(screen.getByTestId('tree-options-menu')).getByTestId(
+      'tree-options-show-hidden-files',
+    ) as HTMLButtonElement;
+
+    expect(checkbox.disabled).toBe(false);
+    expect(checkbox.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(checkbox);
+    expect(projectLocalPatch).not.toHaveBeenCalled();
+
+    projectLocalSynced = true;
+    const { FileSidebar } = await import('./FileSidebar');
+    rendered.rerender(<FileSidebar />);
+
+    const readyCheckbox = within(screen.getByTestId('tree-options-menu')).getByTestId(
+      'tree-options-show-hidden-files',
+    ) as HTMLButtonElement;
+    expect(readyCheckbox.disabled).toBe(false);
+    expect(readyCheckbox.getAttribute('aria-disabled')).toBeNull();
+    fireEvent.click(readyCheckbox);
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showHiddenFiles: true } },
+    });
+  });
+
+  test('a rejected visibility patch surfaces the settings toast', async () => {
+    projectPatchResult = {
+      ok: false,
+      error: { code: 'TEST_REJECTED', message: 'scope violation' },
+    };
+    await renderSidebar();
+
+    fireEvent.click(
+      within(screen.getByTestId('tree-options-menu')).getByTestId(
+        'tree-options-show-only-markdown-files',
+      ),
+    );
+    expect(toastErrors[0]?.[0]).toBe('Could not update sidebar settings');
+    expect(toastErrors[0]?.[1]).toEqual({ description: 'scope violation' });
+  });
+
+  test('empty-space menu renders ordered project-root actions and routes each runtime effect', async () => {
+    installBridge();
+    await renderSidebar();
+    await waitFor(() => expect(treeListeners.size).toBe(1));
+
+    const itemIds = [
+      'empty-space-menu-new-file',
+      'empty-space-menu-new-from-template',
+      'empty-space-menu-new-folder',
+      'empty-space-menu-reveal-in-finder',
+      'open-in-agent-empty-space-submenu',
+      'empty-space-menu-copy-full-path',
+      'empty-space-menu-show-hidden-files',
+      'empty-space-menu-show-ok-folders',
+      'empty-space-menu-show-only-markdown-files',
+      'empty-space-menu-show-skills-section',
+      'empty-space-menu-expand-all',
+      'empty-space-menu-collapse-all',
+    ];
+    const items = itemIds.map((id) => screen.getByTestId(id));
+    for (const [index, item] of items.entries()) {
+      const next = items[index + 1];
+      if (next) {
+        expect(item.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      }
+    }
+
+    fireEvent.click(screen.getByTestId('empty-space-menu-new-file'));
+    fireEvent.click(screen.getByTestId('empty-space-menu-new-from-template'));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Root daily' }));
+    fireEvent.click(screen.getByTestId('empty-space-menu-new-folder'));
+    expect(treeCalls.startCreating).toHaveBeenCalledWith('file', '');
+    expect(treeCalls.createFromTemplate).toHaveBeenCalledWith('', 'root-daily');
+    expect(treeCalls.startCreating).toHaveBeenCalledWith('folder', '');
+
+    fireEvent.click(screen.getByTestId('empty-space-menu-reveal-in-finder'));
+    expect(showItemInFolderMock).toHaveBeenCalledWith('/tmp/open-knowledge');
+
+    fireEvent.click(screen.getByTestId('empty-space-menu-copy-full-path'));
+    await waitFor(() =>
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('/tmp/open-knowledge'),
+    );
+    expect(toastSuccesses[0]?.[0]).toBe('Copied full path');
+
+    fireEvent.click(screen.getByTestId('empty-space-menu-show-hidden-files'));
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showHiddenFiles: true } },
+    });
+
+    expect(openInAgentSubmenuProps.at(-1)?.input).toEqual({
+      docContext: null,
+      docPath: '',
+      projectDir: '/tmp/open-knowledge',
+    });
+  });
+
+  test('empty-space visibility toggles carry full-form labels and patch their own leaves', async () => {
+    mergedConfig = { appearance: { sidebar: { showOnlyMarkdownFiles: true } } };
+    await renderSidebar();
+
+    const hidden = screen.getByTestId('empty-space-menu-show-hidden-files');
+    const okFolders = screen.getByTestId('empty-space-menu-show-ok-folders');
+    const onlyMarkdown = screen.getByTestId('empty-space-menu-show-only-markdown-files');
+    const skills = screen.getByTestId('empty-space-menu-show-skills-section');
+    expect(hidden.textContent).toBe('Show hidden files');
+    expect(okFolders.textContent).toBe('Show .ok folders');
+    expect(onlyMarkdown.textContent).toBe('Show only markdown files');
+    expect(skills.textContent).toBe('Skills section');
+
+    expect(hidden.getAttribute('aria-checked')).toBe('false');
+    expect(okFolders.getAttribute('aria-checked')).toBe('false');
+    expect(onlyMarkdown.getAttribute('aria-checked')).toBe('true');
+    expect(skills.getAttribute('aria-checked')).toBe('true');
+
+    fireEvent.click(hidden);
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showHiddenFiles: true } },
+    });
+    fireEvent.click(okFolders);
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showOkFolders: true } },
+    });
+    fireEvent.click(onlyMarkdown);
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showOnlyMarkdownFiles: false } },
+    });
+    fireEvent.click(skills);
+    expect(projectLocalPatch).toHaveBeenCalledWith({
+      appearance: { sidebar: { showSkillsSection: false } },
+    });
+  });
+
+  test('toolbar and empty-space menu hide "New from template" when no templates exist', async () => {
+    hasTemplates = false;
+    installBridge();
+    await renderSidebar();
+    await waitFor(() => expect(treeListeners.size).toBe(1));
+
+    expect(screen.queryByRole('button', { name: 'New from template' })).toBeNull();
+    expect(screen.queryByTestId('empty-space-menu-new-from-template')).toBeNull();
+    expect(screen.getByTestId('empty-space-menu-new-file')).toBeTruthy();
+    expect(screen.getByTestId('empty-space-menu-new-folder')).toBeTruthy();
+  });
+
+  test('View menu state pushes merged visibility and tree smart-hide state to the desktop bridge', async () => {
+    installBridge();
+    await renderSidebar();
+
+    await waitFor(() =>
+      expect(notifyViewMenuStateChangedMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sidebarVisible: true,
+          canCollapseAll: true,
+          canExpandAll: true,
+          showHiddenFiles: false,
+          showOkFolders: false,
+        }),
+      ),
+    );
+
+    notifyViewMenuStateChangedMock.mockClear();
+    act(() => setFolderState({ folderCount: 2, expandedCount: 2 }));
+    await waitFor(() =>
+      expect(notifyViewMenuStateChangedMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sidebarVisible: true,
+          canCollapseAll: true,
+          canExpandAll: false,
+          showHiddenFiles: false,
+          showOkFolders: false,
+        }),
+      ),
+    );
+  });
+
+  test('showSkillsSection false removes the Skills section from the sidebar', async () => {
+    mergedConfig = { appearance: { sidebar: { showSkillsSection: false } } };
+    await renderSidebar();
+
+    expect(screen.queryByTestId('skills-dock')).toBeNull();
+    expect(screen.getByTestId('file-tree-stub')).toBeTruthy();
+  });
+
+  test('Skills dock renders when showSkillsSection is unset and when config is absent', async () => {
+    const rendered = await renderSidebar();
+    expect(screen.getByTestId('skills-dock')).toBeTruthy();
+    expect(screen.queryByTestId('skills-sidebar-section')).toBeNull();
+
+    mergedConfig = null;
+    const { FileSidebar } = await import('./FileSidebar');
+    rendered.rerender(<FileSidebar />);
+    expect(screen.getByTestId('skills-dock')).toBeTruthy();
+  });
+
+  test('a prior showSkillsSection:false keeps the section hidden on reload before config syncs (no flash, PRD-7605)', async () => {
+    mergedConfig = { appearance: { sidebar: { showSkillsSection: false } } };
+    const rendered = await renderSidebar();
+    expect(screen.queryByTestId('skills-dock')).toBeNull();
+
+    mergedConfig = null;
+    const { FileSidebar } = await import('./FileSidebar');
+    rendered.rerender(<FileSidebar />);
+    expect(screen.queryByTestId('skills-dock')).toBeNull();
+  });
+
+  test('hiding the Skills dock leaves the file tree untouched, even on a skill doc', async () => {
+    mergedConfig = { appearance: { sidebar: { showSkillsSection: false } } };
+    activeDocName = '.ok/skills/test-skill/SKILL';
+    activeTarget = null;
+    await renderSidebar();
+
+    expect(screen.queryByTestId('skills-dock')).toBeNull();
+    expect(screen.getByTestId('file-tree-stub')).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'New file' }).length).toBeGreaterThan(0);
+  });
+});

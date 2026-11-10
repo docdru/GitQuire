@@ -1,0 +1,95 @@
+---
+title: Connect remote agents
+icon: LuPlug
+description: Connect agents running on another machine or in the cloud to your OpenKnowledge project.
+---
+Connect agents on another computer or in a cloud service to the OpenKnowledge project on your server. They connect through the project's remote MCP endpoint and do not need a local copy of the knowledge base.
+
+<Callout type="info">
+If the agent runs on the same machine as your OpenKnowledge project, follow the [Quickstart](/docs/get-started/quickstart). `ok init` registers supported local agents for you. This page is for agents connecting over the network.
+</Callout>
+
+## Before you start
+
+Set up a running server with [remote control](/docs/remote-control/overview). Every remote agent connects to the same address, `https://<your-external-url>/mcp`, whether the server runs on your laptop, a VPS, or in a container.
+
+OpenKnowledge does not authenticate callers. The tunnel, private network, or proxy in front of the server controls access. Configure it first. Then give the agent any required network access or credentials. See [Authentication](/docs/remote-control/authentication).
+
+## Connect agents on another machine
+
+Run this on the machine where the agents are installed. [`add-mcp`](https://github.com/neon-solutions/add-mcp), a community tool, detects supported agents and writes each one's MCP config for you (Claude Code, Cursor, Codex, VS Code, Windsurf, Goose, Zed, and more):
+
+```bash
+npx add-mcp https://<your-external-url>/mcp --name ok-remote
+```
+
+If your `/mcp` endpoint is behind a token at the edge (a **bearer token** or **Basic Auth** from your [Authentication](/docs/remote-control/authentication) setup), pass it as a header so the agent connects with no browser step:
+
+```bash
+npx add-mcp https://<your-external-url>/mcp --name ok-remote \
+  --header "Authorization: Bearer <your-token>"
+```
+
+For Basic Auth, the header is `Authorization: Basic $(printf 'user:pass' | base64)` instead.
+
+A headless agent cannot complete a standard browser login. Protect `/mcp` with a token, a [path-specific access policy](/docs/remote-control/authentication#tunnels-and-private-networks), or Tailscale.
+
+The exception is an [MCP-native edge](/docs/remote-control/authentication#mcp-native-edges), such as Pomerium. It lets the agent sign in through its own browser popup with no token to set. Pomerium serves CIMD by default for Claude. Enable `mcp_dynamic_client_registration` to add DCR support for Cursor and `mcp-remote`. The [Pomerium recipe](/docs/remote-control/authentication#example-pomerium) turns both on.
+
+The per-client setups below use a plain `/mcp` URL. If yours is behind a token, add the same `Authorization` header shown above (details in [Authentication](/docs/remote-control/authentication)).
+
+## Claude Code
+
+```bash
+claude mcp add --transport http ok-remote https://<your-external-url>/mcp
+```
+
+## Cursor
+
+```json title="~/.cursor/mcp.json"
+{
+  "mcpServers": {
+    "ok-remote": { "url": "https://<your-external-url>/mcp" }
+  }
+}
+```
+
+## Codex
+
+Recent Codex versions take the URL directly:
+
+```toml title="~/.codex/config.toml"
+[mcp_servers.ok-remote]
+url = "https://<your-external-url>/mcp"
+```
+
+## Claude Desktop
+
+Claude Desktop only takes command-type servers, so it reaches the server through the [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge, a local process that forwards to your `/mcp` URL.
+
+Its config file is `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS and `%APPDATA%\Claude\claude_desktop_config.json` on Windows. In Claude Desktop open **Settings → Developer → Edit Config**, which creates the file and reveals it. Then add:
+
+```json title="claude_desktop_config.json"
+{
+  "mcpServers": {
+    "ok-remote": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://<your-external-url>/mcp"]
+    }
+  }
+}
+```
+
+If your `/mcp` is behind a token, add it to the `args` array: `"--header", "Authorization: Bearer <your-token>"`.
+
+## Agent harnesses (OpenClaw, Hermes, etc.)
+
+Add the `/mcp` URL to your harness's MCP server config, the same way as above. Its agents can then read and write your knowledge base.
+
+## Cloud-hosted agents and connectors (Claude.ai, ChatGPT, etc.)
+
+Cloud-hosted agents and connectors reach the MCP endpoint from the provider's cloud. The URL must be publicly reachable over HTTPS. The Claude and ChatGPT connectors require an MCP-aware OAuth service in front of `/mcp`. The [Pomerium recipe](/docs/remote-control/authentication#example-pomerium) has been verified with the Claude connector on iOS and Desktop and with Cursor's cloud agents. Support varies by provider.
+
+Connectors that accept a bearer token or API key can use a token enforced at the edge. This includes Microsoft Copilot Studio and Perplexity. Protect `/mcp` with a static bearer token, then add that token to the connector's settings.
+
+Claude Desktop is not a cloud connector. It uses the `mcp-remote` bridge covered above.

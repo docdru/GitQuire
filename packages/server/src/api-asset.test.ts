@@ -1,0 +1,310 @@
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { createServer, type Server } from 'node:http';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { createApiExtension } from './api-extension.test-helper.ts';
+import type { ContentFilter } from './content-filter.ts';
+import { closeTestHttpServer } from './http-server.test-helper.ts';
+import { listenOnLoopback } from './loopback-rig-test-helpers.ts';
+
+interface Harness {
+  baseURL: string;
+  close: () => Promise<void>;
+}
+
+async function startHarness(
+  contentDir: string,
+  contentFilter?: ContentFilter,
+  resolveTrackedFile?: (relativePath: string) => string | undefined,
+): Promise<Harness> {
+  const ext = createApiExtension({
+    hocuspocus: {} as Parameters<typeof createApiExtension>[0]['hocuspocus'],
+    sessionManager: {} as Parameters<typeof createApiExtension>[0]['sessionManager'],
+    contentDir,
+    serverInstanceId: 'test-server',
+    getFileIndex: () => new Map(),
+    contentFilter,
+    resolveTrackedFile,
+  });
+
+  const server: Server = createServer((req, res) => {
+    void (
+      ext as {
+        onRequest: (ctx: { request: IncomingMessage; response: ServerResponse }) => Promise<void>;
+      }
+    ).onRequest({ request: req, response: res });
+  });
+
+  const { baseUrl } = await listenOnLoopback(server);
+
+  return {
+    baseURL: baseUrl,
+    close: () => closeTestHttpServer(server),
+  };
+}
+
+function assetUrl(baseURL: string, path: string): string {
+  return `${baseURL}/api/asset?path=${encodeURIComponent(path)}`;
+}
+
+describe('GET /api/asset', () => {
+  let tmpDir: string;
+  let contentDir: string;
+  let harness: Harness;
+
+  beforeEach(async () => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'ok-api-asset-'));
+    contentDir = join(tmpDir, 'content');
+    mkdirSync(join(contentDir, 'docs'), { recursive: true });
+    writeFileSync(join(contentDir, 'docs', 'photo.png'), 'fake-png-bytes');
+    writeFileSync(join(contentDir, 'docs', 'clip.mp4'), 'fake-mp4-bytes');
+    writeFileSync(join(contentDir, 'docs', 'paper.pdf'), 'fake-pdf-bytes');
+    writeFileSync(
+      join(contentDir, 'docs', 'scripted.svg'),
+      '<svg><script>alert("xss")</script></svg>',
+    );
+    writeFileSync(join(contentDir, 'docs', 'data.csv'), 'a,b\n1,2\n');
+    writeFileSync(join(contentDir, 'docs', 'notes.txt'), 'not renderable');
+    writeFileSync(
+      join(contentDir, 'docs', 'page.html'),
+      '<h1>trip viewer</h1><script>alert("x")</script>',
+    );
+    writeFileSync(join(contentDir, 'docs', 'legacy.htm'), '<h1>legacy</h1>');
+    writeFileSync(join(contentDir, 'docs', 'script.js'), 'alert(1)');
+    mkdirSync(join(contentDir, 'docs', 'directory.png'));
+    writeFileSync(join(tmpDir, 'outside.png'), 'outside');
+    symlinkSync(join(tmpDir, 'outside.png'), join(contentDir, 'docs', 'escape.png'));
+    harness = await startHarness(contentDir);
+  });
+
+  afterEach(async () => {
+    await harness.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('serves supported assets inline with nosniff', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/photo.png'));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/png');
+    expect(res.headers.get('content-disposition')).toBe('inline');
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(await res.text()).toBe('fake-png-bytes');
+  });
+
+  test('serves non-image inline assets when they are renderable', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/paper.pdf'));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('application/pdf');
+    expect(res.headers.get('content-disposition')).toBe('inline');
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(await res.text()).toBe('fake-pdf-bytes');
+  });
+
+  test('serves SVG with a CSP sandbox for direct navigation', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/scripted.svg'));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/svg+xml');
+    expect(res.headers.get('content-disposition')).toBe('inline');
+    expect(res.headers.get('content-security-policy')).toBe(
+      "sandbox; default-src 'none'; style-src 'unsafe-inline'",
+    );
+    expect(await res.text()).toBe('<svg><script>alert("xss")</script></svg>');
+  });
+
+  test('serves admitted non-renderable assets as attachments', async () => {
+    const csvRes = await fetch(assetUrl(harness.baseURL, 'docs/data.csv'));
+    const txtRes = await fetch(assetUrl(harness.baseURL, 'docs/notes.txt'));
+
+    expect(csvRes.status).toBe(200);
+    expect(csvRes.headers.get('content-type')).toBe('text/csv');
+    expect(csvRes.headers.get('content-disposition')).toBe('attachment');
+    expect(await csvRes.text()).toBe('a,b\n1,2\n');
+    expect(txtRes.status).toBe(200);
+    expect(txtRes.headers.get('content-type')).toBe('text/plain');
+    expect(txtRes.headers.get('content-disposition')).toBe('attachment');
+    expect(await txtRes.text()).toBe('not renderable');
+  });
+
+  test('rejects missing and null-byte paths', async () => {
+    expect((await fetch(`${harness.baseURL}/api/asset`)).status).toBe(400);
+    expect((await fetch(`${harness.baseURL}/api/asset?path=docs/photo.png%00`)).status).toBe(400);
+  });
+
+  test('rejects unsupported extensions even when they have a known content type', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/script.js'));
+
+    expect(res.status).toBe(415);
+  });
+
+  test.each(['docs/page.html', 'docs/legacy.htm'])(
+    'serves %s inside a sandboxed opaque origin (scripts run, network blocked, isolated from OK)',
+    async (assetPath) => {
+      const res = await fetch(assetUrl(harness.baseURL, assetPath));
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toMatch(/^text\/html/);
+      expect(res.headers.get('content-disposition')).toBe('inline');
+      expect(res.headers.get('content-security-policy')).toBe(
+        "sandbox allow-scripts; connect-src 'none'",
+      );
+      expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    },
+  );
+
+  test('rejects traversal and symlink escapes', async () => {
+    expect((await fetch(assetUrl(harness.baseURL, '../outside.png'))).status).toBe(400);
+    expect((await fetch(assetUrl(harness.baseURL, 'docs/escape.png'))).status).toBe(400);
+  });
+
+  test('rejects missing assets and non-file targets', async () => {
+    expect((await fetch(assetUrl(harness.baseURL, 'docs/missing.png'))).status).toBe(404);
+    expect((await fetch(assetUrl(harness.baseURL, 'docs/directory.png'))).status).toBe(404);
+  });
+
+  test('rejects unsupported methods', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/photo.png'), { method: 'POST' });
+
+    expect(res.status).toBe(405);
+  });
+});
+
+describe('GET /api/asset content-filter exclusions', () => {
+  let tmpDir: string;
+  let contentDir: string;
+  let harness: Harness;
+
+  beforeEach(async () => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'ok-api-asset-cf-'));
+    contentDir = join(tmpDir, 'content');
+    mkdirSync(join(contentDir, 'docs'), { recursive: true });
+    mkdirSync(join(contentDir, 'private'), { recursive: true });
+    writeFileSync(join(contentDir, 'docs', 'allowed.png'), 'allowed-bytes');
+    writeFileSync(join(contentDir, 'private', 'secret.png'), 'secret-bytes');
+
+    const excludedDirSegment = 'private';
+    const filter: ContentFilter = {
+      isExcluded(rel: string): boolean {
+        return rel === excludedDirSegment || rel.startsWith(`${excludedDirSegment}/`);
+      },
+      isDirExcluded(rel: string): boolean {
+        return rel === excludedDirSegment || rel.startsWith(`${excludedDirSegment}/`);
+      },
+      isPathIgnored(rel: string): boolean {
+        return rel === excludedDirSegment || rel.startsWith(`${excludedDirSegment}/`);
+      },
+      getWatcherIgnoreGlobs(): string[] {
+        return [excludedDirSegment];
+      },
+      incrementMdDir(): void {},
+      decrementMdDir(): void {},
+      rebuildDirCount(): void {},
+    };
+
+    harness = await startHarness(contentDir, filter);
+  });
+
+  afterEach(async () => {
+    await harness.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('serves assets that the filter admits', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/allowed.png'));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('allowed-bytes');
+  });
+
+  test('refuses assets excluded by .gitignore / .okignore as 404', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'private/secret.png'));
+    expect(res.status).toBe(404);
+    expect(await res.text()).toContain('Asset not found');
+  });
+});
+
+describe('GET /api/asset tracked-file fallback on an exact miss', () => {
+  let tmpDir: string;
+  let contentDir: string;
+  let harness: Harness;
+  const tracked = new Map([
+    ['docs/Alias/Photo.png', 'docs/photo.png'],
+    ['docs/alias.png', 'docs/scripted.svg'],
+    ['docs/link-alias.png', 'docs/escape.png'],
+    ['docs/Ignored.png', 'private/secret.png'],
+    ['docs/missing.png', 'docs/also-missing.png'],
+    ['docs/Chart?.png', 'docs/chart?.png'],
+    ['docs/c#.png', 'docs/C#.png'],
+  ]);
+
+  beforeEach(async () => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'ok-api-asset-tracked-'));
+    contentDir = join(tmpDir, 'content');
+    mkdirSync(join(contentDir, 'docs'), { recursive: true });
+    mkdirSync(join(contentDir, 'private'), { recursive: true });
+    writeFileSync(join(contentDir, 'docs', 'photo.png'), 'fake-png-bytes');
+    writeFileSync(join(contentDir, 'docs', 'scripted.svg'), '<svg><script>alert(1)</script></svg>');
+    writeFileSync(join(contentDir, 'docs', 'chart'), 'chart-prefix-bytes');
+    writeFileSync(join(contentDir, 'docs', 'C'), 'c-prefix-bytes');
+    writeFileSync(join(contentDir, 'private', 'secret.png'), 'secret-bytes');
+    writeFileSync(join(tmpDir, 'outside.png'), 'outside');
+    symlinkSync(join(tmpDir, 'outside.png'), join(contentDir, 'docs', 'escape.png'));
+    const filter: ContentFilter = {
+      isExcluded: (rel) => rel.startsWith('private/'),
+      isDirExcluded: (rel) => rel === 'private',
+      isPathIgnored: (rel) => rel === 'private' || rel.startsWith('private/'),
+      getWatcherIgnoreGlobs: () => ['private'],
+      incrementMdDir() {},
+      decrementMdDir() {},
+      rebuildDirCount() {},
+    };
+    harness = await startHarness(contentDir, filter, (relativePath) => tracked.get(relativePath));
+  });
+
+  afterEach(async () => {
+    await harness.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('serves the tracked file the resolver names when the requested spelling misses', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/Alias/Photo.png'));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/png');
+    expect(res.headers.get('content-disposition')).toBe('inline');
+    expect(await res.text()).toBe('fake-png-bytes');
+  });
+
+  test('types the response by the resolved file, so an SVG keeps its CSP sandbox', async () => {
+    const res = await fetch(assetUrl(harness.baseURL, 'docs/alias.png'));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/svg+xml');
+    expect(res.headers.get('content-security-policy')).toBe(
+      "sandbox; default-src 'none'; style-src 'unsafe-inline'",
+    );
+  });
+
+  test('never serves a resolved file that escapes the content directory or is ignored', async () => {
+    expect((await fetch(assetUrl(harness.baseURL, 'docs/link-alias.png'))).status).toBe(404);
+    expect((await fetch(assetUrl(harness.baseURL, 'docs/Ignored.png'))).status).toBe(404);
+    expect((await fetch(assetUrl(harness.baseURL, 'docs/missing.png'))).status).toBe(404);
+  });
+
+  test('a tracked name holding ? or # is never answered with the bytes of its prefix', async () => {
+    for (const path of ['docs/Chart?.png', 'docs/c#.png']) {
+      const res = await fetch(assetUrl(harness.baseURL, path));
+      expect(res.status).toBe(404);
+      expect(await res.text()).not.toMatch(/prefix-bytes/);
+    }
+  });
+
+  test('the text view follows the same fallback', async () => {
+    const res = await fetch(
+      `${harness.baseURL}/api/asset-text?path=${encodeURIComponent('docs/Alias/Photo.png')}`,
+    );
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('fake-png-bytes');
+  });
+});

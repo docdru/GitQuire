@@ -1,0 +1,214 @@
+import { mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import pino from 'pino';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { createFileLogger, flushFileLogger, MAX_FILE_SIZE } from './file-logger.ts';
+
+const TEST_DIR = join(tmpdir(), `ok-file-logger-test-${process.pid}`);
+
+afterEach(() => {
+  try {
+    rmSync(TEST_DIR, { recursive: true, force: true });
+  } catch {}
+});
+
+describe('file logger', () => {
+  test('pino.destination writes NDJSON to file', async () => {
+    mkdirSync(TEST_DIR, { recursive: true });
+    const filePath = join(TEST_DIR, 'test.log');
+    const dest = pino.destination({ dest: filePath, sync: true });
+    const logger = pino(
+      { base: { project: 'my-project' }, timestamp: pino.stdTimeFunctions.isoTime },
+      dest,
+    );
+    logger.info({ foo: 'bar' }, 'hello');
+    dest.flushSync();
+    const content = Bun.file(filePath).text();
+    await expect(content).resolves.toContain('"msg":"hello"');
+  });
+
+  test('project field is included in records', async () => {
+    mkdirSync(TEST_DIR, { recursive: true });
+    const filePath = join(TEST_DIR, 'test-project.log');
+    const dest = pino.destination({ dest: filePath, sync: true });
+    const logger = pino(
+      { base: { project: 'test-slug' }, timestamp: pino.stdTimeFunctions.isoTime },
+      dest,
+    );
+    logger.info({}, 'check');
+    dest.flushSync();
+    const content = Bun.file(filePath).text();
+    await expect(content).resolves.toContain('"project":"test-slug"');
+  });
+
+  test('redact config censors sensitive top-level fields', async () => {
+    mkdirSync(TEST_DIR, { recursive: true });
+    const filePath = join(TEST_DIR, 'test-redact.log');
+    const dest = pino.destination({ dest: filePath, sync: true });
+    const logger = pino(
+      {
+        redact: { paths: ['authorization', '*.authorization'], censor: '[REDACTED]' },
+        timestamp: pino.stdTimeFunctions.isoTime,
+      },
+      dest,
+    );
+    logger.info({ authorization: 'Bearer sk-secret123' }, 'auth check');
+    dest.flushSync();
+    const content = Bun.file(filePath).text();
+    await expect(content).resolves.toContain('[REDACTED]');
+  });
+
+  test('rotation renames when file exceeds 5MB', () => {
+    mkdirSync(TEST_DIR, { recursive: true });
+    const filePath = join(TEST_DIR, 'big.log');
+    const padding = `${'x'.repeat(1024)}\n`;
+    let content = '';
+    for (let i = 0; i < 5200; i++) content += padding;
+    writeFileSync(filePath, content);
+    expect(statSync(filePath).size).toBeGreaterThan(MAX_FILE_SIZE);
+
+    createFileLogger({ name: 'big', filePath });
+
+    const files = readdirSync(TEST_DIR).filter((f: string) => f.startsWith('big.log'));
+    expect(files.length).toBeGreaterThanOrEqual(2);
+    expect(files).toContain('big.log.1');
+  });
+
+  test('opens the destination synchronously so same-tick process.exit cannot race the open', () => {
+    mkdirSync(TEST_DIR, { recursive: true });
+    const filePath = join(TEST_DIR, 'sync-open.log');
+    const logger = createFileLogger({ name: 'sync-open', filePath });
+    const stream = (logger as unknown as Record<symbol, { fd: number; flushSync: () => void }>)[
+      pino.symbols.streamSym
+    ];
+    expect(stream.fd).toBeGreaterThanOrEqual(0);
+    expect(() => stream.flushSync()).not.toThrow();
+  });
+
+  test('createFileLogger unrefs the deferred prune timer so it never blocks process exit', () => {
+    mkdirSync(TEST_DIR, { recursive: true });
+    let unrefCalls = 0;
+    let scheduledMs: number | undefined;
+    const fakeSetTimeout = ((_cb: () => void, ms?: number) => {
+      scheduledMs = ms;
+      return {
+        unref() {
+          unrefCalls += 1;
+          return this;
+        },
+      };
+    }) as unknown as typeof setTimeout;
+
+    createFileLogger({
+      name: 'unref-contract',
+      filePath: join(TEST_DIR, 'unref.log'),
+      _setTimeout: fakeSetTimeout,
+    });
+
+    expect(unrefCalls).toBe(1);
+    expect(scheduledMs).toBe(5000);
+  });
+
+  test('flushFileLogger persists a record logged immediately before exit', async () => {
+    mkdirSync(TEST_DIR, { recursive: true });
+    const filePath = join(TEST_DIR, 'flush.log');
+    const prev = process.env.OK_LOG_LEVEL;
+    process.env.OK_LOG_LEVEL = 'info';
+    try {
+      const logger = createFileLogger({ name: 'flush', filePath });
+      logger.warn({ outcome: 'absent', host: 'github.com' }, '[auth] git-credential get');
+      await flushFileLogger(logger);
+      const content = readFileSync(filePath, 'utf8');
+      expect(content).toContain('git-credential get');
+      expect(content).toContain('"outcome":"absent"');
+    } finally {
+      if (prev === undefined) delete process.env.OK_LOG_LEVEL;
+      else process.env.OK_LOG_LEVEL = prev;
+    }
+  });
+
+  test('flushFileLogger(undefined) resolves without throwing', async () => {
+    await expect(flushFileLogger(undefined)).resolves.toBeUndefined();
+  });
+
+  function makeFakeLogger(stream: unknown): PinoLoggerInstance {
+    return { [pino.symbols.streamSym]: stream } as unknown as PinoLoggerInstance;
+  }
+
+  test("flushFileLogger waits for 'ready' when the fd is not open yet, then flushes", async () => {
+    let flushed = false;
+    let readyCb: (() => void) | undefined;
+    const stream = {
+      fd: -1,
+      flushSync: () => {
+        flushed = true;
+      },
+      once: (event: string, cb: () => void) => {
+        if (event === 'ready') readyCb = cb;
+      },
+    };
+
+    const p = flushFileLogger(makeFakeLogger(stream), 5000);
+    expect(flushed).toBe(false);
+    expect(typeof readyCb).toBe('function');
+
+    readyCb?.();
+    await p;
+    expect(flushed).toBe(true);
+  });
+
+  test('flushFileLogger resolves within the bound when the stream never becomes ready', async () => {
+    let flushed = false;
+    const stream = {
+      fd: -1,
+      flushSync: () => {
+        flushed = true;
+      },
+      once: (_event: string, _cb: () => void) => {},
+    };
+
+    const start = Date.now();
+    await flushFileLogger(makeFakeLogger(stream), 30);
+    const elapsed = Date.now() - start;
+    expect(flushed).toBe(false);
+    expect(elapsed).toBeLessThan(1000);
+  });
+
+  test('flushFileLogger flushes immediately when the fd is already open', async () => {
+    let flushed = false;
+    const stream = {
+      fd: 7,
+      flushSync: () => {
+        flushed = true;
+      },
+      once: () => {
+        throw new Error('should not wait for ready when fd is already open');
+      },
+    };
+    await flushFileLogger(makeFakeLogger(stream), 5000);
+    expect(flushed).toBe(true);
+  });
+});
+
+describe('logs dir per channel', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  test('importing under an unsupported OK_CHANNEL does not throw', async () => {
+    vi.stubEnv('OK_CHANNEL', 'bogus');
+    vi.resetModules();
+    const mod = await import('./file-logger.ts');
+    expect(() => mod.getLogsDir()).toThrow(/OK_CHANNEL/);
+  });
+
+  test('Beta resolves logs under ~/.ok-beta/logs', async () => {
+    vi.stubEnv('HOME', '/tmp/ok-logs-home');
+    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.resetModules();
+    const { getLogsDir } = await import('./file-logger.ts');
+    expect(getLogsDir()).toBe(join('/tmp/ok-logs-home', '.ok-beta', 'logs'));
+  });
+});

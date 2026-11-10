@@ -1,0 +1,103 @@
+name: Draft release janitor
+
+# The age gate reads the release OBJECT's timestamp, never `createdAt`: on a
+# GitHub Release `createdAt` is the TARGET COMMIT's date, so a draft created
+# from an older commit reads as already-aged the moment it exists and the gate
+# that is meant to spare an in-flight build would never fire. `publishedAt` is
+# no use either: it is null until the release leaves draft, which is every
+# release this job looks at. That leaves `updated_at`, which `gh release list`
+# cannot return, so the list comes from the REST endpoint instead.
+#
+# The gate must exceed desktop-release.yml's SEQUENTIAL CRITICAL PATH, not any
+# single job's timeout. build-macos deliberately does NOT need prepare (it is
+# self-contained, per its own comment), so those overlap and only the longer leg
+# counts: build-macos (75) -> publish-assets (20) -> finalize (15) = 110 minutes
+# worst case. publish-assets needs every build and finalize needs publish-assets;
+# build-windows and build-linux each finish at 30+45=75, inside the mac leg.
+# STUCK_DRAFT_MAX_AGE_SECONDS is 10800 (180 min), clearing 110 with margin for
+# cold caches and build-macos's one retry. An earlier 5400 was derived from
+# build-macos's 75-minute timeout alone and did not cover the path.
+
+on:
+  schedule:
+    # Every 6 hours, off the hour to avoid the top-of-hour scheduler surge.
+    - cron: "37 */6 * * *"
+  # Manual sweep, e.g. right after a known stuck-draft incident.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print the sweep set without deleting anything."
+        type: boolean
+        default: false
+
+permissions:
+  # contents: write is required to delete Release objects via the API.
+  contents: write
+
+concurrency:
+  group: desktop-release-draft-janitor
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-26.04
+    cache-mode: none
+    timeout-minutes: 10
+    env:
+      MAX_SWEEP_PER_RUN: "5"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .node-version
+
+      - name: Delete superseded stuck draft releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+
+          releases_file=$(mktemp)
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
+            --jq '.[] | {tagName: .tag_name, isDraft: .draft, isPrerelease: .prerelease, updatedAt: .updated_at}' \
+            | jq -sc '.' > "${releases_file}"
+
+          sweep=$(node .github/scripts/select-stuck-drafts.mjs < "${releases_file}")
+
+          if [ -z "${sweep}" ]; then
+            echo "Nothing to sweep."
+            exit 0
+          fi
+
+          count=$(printf '%s\n' "${sweep}" | grep -c . || true)
+
+          # The dry run is checked BEFORE the cap so it can always preview,
+          # including an over-cap set; it deletes nothing, so the cap is
+          # information for it rather than a gate on it.
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            echo "Dry run: would sweep ${count} release(s), deleting nothing."
+            if [ "${count}" -gt "${MAX_SWEEP_PER_RUN}" ]; then
+              echo "Dry run: this set exceeds the per-run cap (${count} > ${MAX_SWEEP_PER_RUN}), so a real run would refuse it."
+            fi
+            printf '%s\n' "${sweep}"
+            exit 0
+          fi
+
+          if [ "${count}" -gt "${MAX_SWEEP_PER_RUN}" ]; then
+            echo "::error::Refusing to sweep ${count} releases in one run (cap ${MAX_SWEEP_PER_RUN}). A healthy repo strands one or two at a time, so this is more likely a bad snapshot or a selector bug than a real backlog. Re-dispatch with dry_run to see the whole set; raising the cap itself is a code change to this workflow."
+            printf '%s\n' "${sweep}"
+            exit 1
+          fi
+
+          printf '%s\n' "${sweep}" | while IFS= read -r tag; do
+            [ -z "${tag}" ] && continue
+            gh release delete "${tag}" --repo "$GITHUB_REPOSITORY" --yes
+            echo "::notice::Swept stuck draft ${tag}: a newer published release supersedes it. Git tag kept."
+          done
+          echo "Draft-release janitor sweep complete."

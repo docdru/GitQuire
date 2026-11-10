@@ -1,0 +1,88 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, test } from 'vitest';
+
+interface ExportEntry {
+  '@inkeep/source'?: string;
+  development?: string;
+  types?: string;
+  node?: string;
+  default?: string;
+}
+
+function readPkg(pkgRelative: string): {
+  scripts: Record<string, string>;
+  exports: Record<string, ExportEntry>;
+} {
+  const pkgPath = resolve(import.meta.dirname ?? '.', '../..', pkgRelative, 'package.json');
+  return JSON.parse(readFileSync(pkgPath, 'utf-8')) as {
+    scripts: Record<string, string>;
+    exports: Record<string, ExportEntry>;
+  };
+}
+
+describe('dev-boot mechanism — predev hook + dist exports', () => {
+  test('packages/app has predev hook that builds core + server workspace deps', () => {
+    const { scripts } = readPkg('app');
+    expect(scripts.predev, 'packages/app/package.json missing `predev` script').toBeDefined();
+    expect(scripts.predev).toContain('@inkeep/open-knowledge-core');
+    expect(scripts.predev).toContain('@inkeep/open-knowledge-server');
+  });
+
+  for (const pkgName of ['core', 'server']) {
+    describe(`@inkeep/open-knowledge-${pkgName}`, () => {
+      test('"." exports has default → ./dist/*.mjs', () => {
+        const pkgExports = readPkg(pkgName).exports;
+        const dot = pkgExports['.'];
+        expect(dot?.default).toMatch(/^\.\/dist\/.+\.mjs$/);
+      });
+
+      test('"." exports must NOT carry the `node` condition (would break packaged Electron main)', () => {
+        const pkgExports = readPkg(pkgName).exports;
+        const dot = pkgExports['.'];
+        expect(
+          dot?.node,
+          `${pkgName} exports["."]: node condition resolves to TS source at packaged Electron main runtime`,
+        ).toBeUndefined();
+      });
+
+      test('every subpath that has `development` must also have `default` (no half-built exports)', () => {
+        const pkgExports = readPkg(pkgName).exports;
+        for (const subpath of Object.keys(pkgExports)) {
+          const entry = pkgExports[subpath];
+          if (!entry?.development) continue;
+          expect(
+            entry.default,
+            `${pkgName} exports["${subpath}"] missing default → dist mapping`,
+          ).toMatch(/^\.\/dist\/.+\.mjs$/);
+          expect(
+            entry.node,
+            `${pkgName} exports["${subpath}"] must NOT have the node condition`,
+          ).toBeUndefined();
+        }
+      });
+    });
+  }
+});
+
+describe('app test-support exports', () => {
+  test('keep source-only conditions aligned', () => {
+    const testSupportExports = Object.entries(readPkg('app').exports).filter(([subpath]) =>
+      subpath.startsWith('./test-support/'),
+    );
+    expect(testSupportExports.length).toBeGreaterThan(0);
+    for (const [subpath, entry] of testSupportExports) {
+      expect(Object.keys(entry), `app exports["${subpath}"] condition order`).toEqual([
+        '@inkeep/source',
+        'development',
+        'types',
+        'default',
+      ]);
+      for (const condition of ['development', 'types', 'default'] as const) {
+        expect(entry[condition], `app exports["${subpath}"] source vs ${condition}`).toBe(
+          entry['@inkeep/source'],
+        );
+      }
+    }
+  });
+});

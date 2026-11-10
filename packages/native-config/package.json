@@ -1,0 +1,35 @@
+{
+  "name": "@inkeep/open-knowledge-native-config",
+  "version": "0.0.0",
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "description": "Native toml_edit parse/classify + format-preserving edit engine for OpenKnowledge harness MCP-config writes.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "napi": {
+    "binaryName": "native-config",
+    "targets": [
+      "aarch64-apple-darwin",
+      "x86_64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl",
+      "aarch64-unknown-linux-musl",
+      "x86_64-pc-windows-msvc",
+      "aarch64-pc-windows-msvc"
+    ]
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs --release",
+    "build:debug": "node scripts/build.mjs",
+    "test": "cargo test && node scripts/make-test-results-dir.mjs && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results/node-test-build.xml scripts/build.test.mjs && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results/node-test-toolchain-guard.xml scripts/toolchain-guard.test.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.7.2"
+  }
+}

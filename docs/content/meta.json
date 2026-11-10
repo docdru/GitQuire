@@ -1,0 +1,26 @@
+{
+  "title": "OpenKnowledge",
+  "icon": "LuBookOpen",
+  "pages": [
+    "---GET STARTED---",
+    "...get-started",
+    "---USE CASES---",
+    "...workflows",
+    "---INTEGRATIONS---",
+    "...integrations",
+    "---FEATURES---",
+    "...features",
+    "---PLUGINS---",
+    "...plugins",
+    "---REMOTE CONTROL---",
+    "...remote-control",
+    "---ADVANCED---",
+    "...advanced",
+    "---IMPORT & TRY---",
+    "...migrate",
+    "---CONTRIBUTE---",
+    "...contribute",
+    "---REFERENCE---",
+    "...reference"
+  ]
+}

@@ -1,0 +1,88 @@
+---
+title: "Video"
+description: "HTML5 video player with native controls"
+keywords: "video, media, player, mp4, webm, movie"
+---
+
+## Example
+
+<ComponentPreview>
+  <VideoPreview
+    src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+    controls
+  />
+</ComponentPreview>
+
+```md
+![[demo-clip.mp4]]
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "src": {
+    description: "Video source URL",
+    type: "string",
+    required: true,
+    default: "",
+  },
+  "controls": {
+    description: "Show native HTML5 video controls (defaults to true)",
+    type: "boolean",
+    required: false,
+    default: "true",
+  },
+  "autoplay": {
+    description: "Begin playback as soon as possible (usually requires muted)",
+    type: "boolean",
+    required: false,
+  },
+  "poster": {
+    description: "Poster image URL shown before playback",
+    type: "string",
+    required: false,
+  },
+  "width": {
+    description: "Video width",
+    type: "number",
+    required: false,
+  },
+  "height": {
+    description: "Video height",
+    type: "number",
+    required: false,
+  },
+  "title": {
+    description: "Native HTML title attribute (tooltip)",
+    type: "string",
+    required: false,
+  },
+  "muted": {
+    description: "Mute audio on load",
+    type: "boolean",
+    required: false,
+  },
+  "loop": {
+    description: "Restart from the beginning when playback ends",
+    type: "boolean",
+    required: false,
+  },
+  "playsinline": {
+    description: "Play inline on iOS rather than entering fullscreen",
+    type: "boolean",
+    required: false,
+  },
+  "preload": {
+    description: "Hint for how much of the video to preload",
+    type: "'none' | 'metadata' | 'auto'",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `video`, `media`, `player`, `mp4`, `webm`, `movie`
+
+## Author it
+
+Type `/video` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

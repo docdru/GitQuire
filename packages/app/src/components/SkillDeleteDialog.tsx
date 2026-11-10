@@ -1,0 +1,67 @@
+// oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
+import type { SkillsListEntry } from '@inkeep/open-knowledge-core/schemas/api';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
+import { AlertDialog } from '@/components/ui/alert-dialog';
+import { useDocumentContext } from '@/editor/DocumentContext';
+import { tabIdsForSkill } from '@/hooks/use-reconcile-skill-tabs';
+import { deleteSkill } from '@/lib/skills-api';
+
+interface Props {
+  skill: SkillsListEntry | null;
+  onOpenChange: (open: boolean) => void;
+  onDeleted: () => void;
+}
+
+export function SkillDeleteDialog({ skill, onOpenChange, onDeleted }: Props) {
+  const { t } = useLingui();
+  const { closeTabs, openTabs } = useDocumentContext();
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete(target: SkillsListEntry) {
+    setDeleting(true);
+    const result = await deleteSkill(target.scope, target.name, target.hostQualifier);
+    setDeleting(false);
+    if (!result.ok) {
+      const { error } = result;
+      toast.error(t`Couldn't delete skill: ${error}`);
+      return;
+    }
+    const title = t`Skill "${target.name}" deleted`;
+    if (result.warnings.length > 0) {
+      toast.warning(title, {
+        description: result.warnings.join(' '),
+        duration: 30_000,
+      });
+    } else {
+      toast.success(title);
+    }
+    closeTabs(tabIdsForSkill(openTabs, target.scope, target.name), { force: true });
+    onDeleted();
+    onOpenChange(false);
+  }
+
+  return (
+    <AlertDialog
+      open={skill !== null}
+      onOpenChange={(open) => {
+        if (!open && !deleting) onOpenChange(false);
+      }}
+    >
+      {skill ? (
+        <DeleteConfirmationDialog
+          itemName={t`skill "${skill.name}"`}
+          isSubmitting={deleting}
+          onDelete={() => handleDelete(skill)}
+          customDescription={
+            skill.origin?.source && /\/plugins\/(?:cache|marketplaces)\//.test(skill.origin.source)
+              ? t`This permanently removes ${skill.path}. The plugin it was copied from is untouched — its read-only version will show up as detected again.`
+              : t`This permanently removes ${skill.path}. Agents that invoke this skill by name will fail until it's recreated.`
+          }
+        />
+      ) : null}
+    </AlertDialog>
+  );
+}

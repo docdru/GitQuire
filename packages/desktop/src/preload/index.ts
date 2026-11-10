@@ -1,0 +1,995 @@
+import type {
+  ConfigPatch,
+  HandoffHostPlatform,
+  LanguagePreference,
+  OkBugReportCrashAckResult,
+  OkBugReportCrashDetectedEvent,
+  OkBugReportCrashDumpAvailability,
+  OkBugReportCreateResult,
+  OkBugReportDeleteResult,
+  OkBugReportListResult,
+  OkBugReportScreenshot,
+  OkBugReportSendResult,
+  WorktreeCreateRequest,
+  WorktreeCreateResult,
+  WorktreeListResult,
+} from '@inkeep/open-knowledge-core';
+import {
+  contextBridge,
+  crashReporter,
+  type IpcRendererEvent,
+  ipcRenderer,
+  webUtils,
+} from 'electron';
+import type {
+  OkAssetUploadRequest,
+  OkAssetUploadResult,
+  OkChromeColors,
+  OkDeepLinkPayload,
+  OkDesktopBridge,
+  OkDesktopConfig,
+  OkEditorActiveTargetSnapshot,
+  OkEditorViewMenuStateChange,
+  OkLocalOpAuthEvent,
+  OkLocalOpCloneEvent,
+  OkLocalOpStream,
+  OkMcpWiringShowPayload,
+  OkMenuAction,
+  OkMenuActionDispatch,
+  OkMenuActionOrigin,
+  OkMenuUiDispatchRequest,
+  OkNoteWindowMainAction,
+  OkNoteWindowMainActionResult,
+  OkOnboardingShowPayload,
+  OkOnboardingToastPayload,
+  OkPtyData,
+  OkPtyExit,
+  OkPtyNotice,
+  OkRecentRemovedMissingInfo,
+  OkServerRestartedInfo,
+  OkServerVersionDriftInfo,
+  OkShareReceivedPayload,
+  OkThemeSource,
+  OkUpdateDownloadedInfo,
+  OkUpdateFetchingLatestInfo,
+  OkUpdateManualCheckInfo,
+  OkUpdateRelaunchFailedInfo,
+  OkUpdateRelaunchingInfo,
+  OkUpdateStuckHintInfo,
+  OkUserConfigPatchResult,
+  OkUserConfigSnapshot,
+  OkWhatsNewInfo,
+} from '../shared/bridge-contract.ts';
+import {
+  DISPLAY_LOCK_CRASH_KEY,
+  DISPLAY_LOCK_CRASH_KEY_MAX_BYTES,
+} from '../shared/display-lock-crash-key.ts';
+import type {
+  AgentIntegrationsApplyResult,
+  IntegrationsSetResult,
+  IntegrationsStatus,
+  OkUpdateDispatchRequest,
+  OkUpdateDispatchResult,
+  ProjectIntegrationsSetResult,
+  ProjectIntegrationsStatus,
+} from '../shared/ipc-channels.ts';
+import { createInvoker } from '../shared/ipc-invoke.ts';
+import {
+  asMenuRendererSnapshot,
+  asSpellcheckEnabledSetResult,
+  asSpellingLanguagesQueryResult,
+  asSpellingLanguagesSetResult,
+} from '../shared/menu-dispatch-results.ts';
+import {
+  CLI_COMMAND_NAME_ARG_NAME,
+  LANGUAGE_PREFERENCE_ARG_NAME,
+  MCP_SERVER_NAME_ARG_NAME,
+  resolveOkDesktopMode,
+  resolveOkThemePreference,
+  THEME_PREFERENCE_ARG_NAME,
+} from '../shared/ok-desktop-argv.ts';
+import { isUninstallPreload } from '../shared/uninstall-preload-arg.ts';
+import { createSlidesBridge } from './slides-bridge.ts';
+import { createUninstallBridge } from './uninstall.ts';
+
+const invoke = createInvoker(ipcRenderer);
+
+async function dispatchUpdate(request: OkUpdateDispatchRequest): Promise<OkUpdateDispatchResult> {
+  const result = await invoke('ok:update:dispatch', request);
+  if (result.kind !== request.kind) {
+    throw new Error(`ok:update:dispatch: expected ${request.kind}, got ${result.kind}`);
+  }
+  return result;
+}
+
+function isDockStateIpcTeardown(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return /destroyed|disposed|closed|no handler registered/i.test(error.message);
+}
+
+function createIpcEventStream<E extends { type: string }>(
+  startResultPromise: Promise<{ ok: true; streamId: string } | { ok: false; error: string }>,
+  eventChannel: 'ok:local-op:auth:event' | 'ok:local-op:clone:event',
+  cancelChannel: 'ok:local-op:auth:cancel' | 'ok:local-op:clone:cancel',
+): OkLocalOpStream<E> {
+  const buffer: E[] = [];
+  const waiters: ((event: E | null) => void)[] = [];
+  let terminated = false;
+  let myStreamId: string | null = null;
+  let listenerAttached = false;
+
+  const push = (event: E): void => {
+    if (terminated) return;
+    if (waiters.length > 0) {
+      const next = waiters.shift();
+      next?.(event);
+    } else {
+      buffer.push(event);
+    }
+    if (event.type === 'complete' || event.type === 'error') {
+      terminated = true;
+      detach();
+      for (const w of waiters.splice(0)) w(null);
+    }
+  };
+
+  const listener = (_event: IpcRendererEvent, payload: { streamId: string; event: E }): void => {
+    if (myStreamId === null || payload.streamId !== myStreamId) return;
+    push(payload.event);
+  };
+
+  const detach = (): void => {
+    if (listenerAttached) {
+      ipcRenderer.removeListener(eventChannel, listener);
+      listenerAttached = false;
+    }
+  };
+
+  // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+  ipcRenderer.on(eventChannel, listener);
+  listenerAttached = true;
+
+  startResultPromise
+    .then((result) => {
+      if (!result.ok) {
+        push({ type: 'error', message: result.error } as unknown as E);
+        return;
+      }
+      myStreamId = result.streamId;
+    })
+    .catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      push({ type: 'error', message: `IPC error: ${message}` } as unknown as E);
+    });
+
+  const events: AsyncIterable<E> = {
+    [Symbol.asyncIterator]() {
+      return {
+        async next(): Promise<IteratorResult<E>> {
+          if (buffer.length > 0) {
+            const value = buffer.shift();
+            if (value === undefined) return { value: undefined, done: true };
+            return { value, done: false };
+          }
+          if (terminated) return { value: undefined, done: true };
+          return new Promise<IteratorResult<E>>((resolve) => {
+            waiters.push((event) => {
+              if (event === null) resolve({ value: undefined, done: true });
+              else resolve({ value: event, done: false });
+            });
+          });
+        },
+      };
+    },
+  };
+
+  return {
+    events,
+    cancel: () => {
+      if (terminated) return;
+      terminated = true;
+      detach();
+      for (const w of waiters.splice(0)) w(null);
+      if (myStreamId !== null) {
+        invoke(cancelChannel, myStreamId).catch(() => {});
+        return;
+      }
+      void startResultPromise.then((result) => {
+        if (result.ok) invoke(cancelChannel, result.streamId).catch(() => {});
+      });
+    },
+  };
+}
+
+function createLocalOpAuthStream(): OkLocalOpStream<OkLocalOpAuthEvent> {
+  return createIpcEventStream<OkLocalOpAuthEvent>(
+    invoke('ok:local-op:auth:start'),
+    'ok:local-op:auth:event',
+    'ok:local-op:auth:cancel',
+  );
+}
+
+function createLocalOpCloneStream(request: {
+  url: string;
+  dir: string;
+  branch?: string | null;
+}): OkLocalOpStream<OkLocalOpCloneEvent> {
+  return createIpcEventStream<OkLocalOpCloneEvent>(
+    invoke('ok:local-op:clone:start', request),
+    'ok:local-op:clone:event',
+    'ok:local-op:clone:cancel',
+  );
+}
+
+function parseArg(name: string): string | undefined {
+  const prefix = `--ok-${name}=`;
+  const arg = process.argv.find((a) => a.startsWith(prefix));
+  return arg?.slice(prefix.length);
+}
+
+function readConfigFromArgv(): OkDesktopConfig {
+  const collabUrl = parseArg('collab-url') ?? '';
+  const apiOrigin = parseArg('api-origin') ?? '';
+  const projectPath = parseArg('project-path') ?? '';
+  const projectName = parseArg('project-name') ?? '';
+  const mode = resolveOkDesktopMode(parseArg('mode'));
+  const singleFile = parseArg('single-file') === '1';
+  const languagePreference = parseArg(LANGUAGE_PREFERENCE_ARG_NAME) as
+    | LanguagePreference
+    | undefined;
+  const themePreference = resolveOkThemePreference(parseArg(THEME_PREFERENCE_ARG_NAME));
+  const initialDoc = parseArg('initial-doc') ?? null;
+  const freshlyCreated = parseArg('fresh-create') === '1';
+  const e2eSmoke = parseArg('e2e-smoke') === '1';
+  const startupTraceparent = parseArg('startup-traceparent');
+  const ptyAvailable = parseArg('pty-available') === '1';
+  return Object.freeze({
+    collabUrl,
+    apiOrigin,
+    projectPath,
+    projectName,
+    mode,
+    e2eSmoke,
+    singleFile,
+    initialDoc,
+    freshlyCreated,
+    ptyAvailable,
+    ...(startupTraceparent !== undefined ? { startupTraceparent } : {}),
+    ...(languagePreference !== undefined ? { languagePreference } : {}),
+    ...(themePreference === undefined ? {} : { themePreference }),
+  });
+}
+
+/*
+ * UPSTREAM(electron/electron#25516): `contextBridge` captures plain values at
+ * exposure time, so this has to reach the renderer as a method whose closure
+ * reads the live binding rather than as a field on the frozen config.
+ */
+let screenReaderActive = parseArg('screen-reader-active') === '1';
+// oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+ipcRenderer.on('ok:accessibility:changed', (_event, info: { screenReaderActive: boolean }) => {
+  screenReaderActive = info.screenReaderActive === true;
+});
+
+const MAX_BUFFERED_MENU_ACTIONS = 32;
+
+type MenuActionBufferPolicy = 'never-buffer' | 'parity' | 'additive';
+
+const MENU_ACTION_BUFFER_POLICY: Record<OkMenuAction, MenuActionBufferPolicy> = {
+  delete: 'never-buffer',
+  'move-to-trash': 'never-buffer',
+  'close-active-tab-or-window': 'never-buffer',
+  'kill-terminal': 'never-buffer',
+
+  'toggle-sidebar': 'parity',
+  'toggle-source': 'parity',
+  'toggle-doc-panel': 'parity',
+  'toggle-terminal': 'parity',
+  'toggle-agent-panel': 'parity',
+  'toggle-editor': 'parity',
+  'toggle-show-hidden-files': 'parity',
+  'toggle-show-ok-folders': 'parity',
+  'toggle-show-only-markdown-files': 'parity',
+  'toggle-show-skills-section': 'parity',
+  'move-terminal': 'parity',
+
+  'new-doc': 'additive',
+  'new-folder': 'additive',
+  'new-project': 'additive',
+  rename: 'additive',
+  'save-version': 'additive',
+  'version-history': 'additive',
+  'focus-search': 'additive',
+  'focus-command-palette': 'additive',
+  'navigate-back': 'additive',
+  'navigate-forward': 'additive',
+  'new-from-template': 'additive',
+  duplicate: 'additive',
+  'reveal-in-finder': 'additive',
+  'send-to-ai': 'additive',
+  'copy-full-path': 'additive',
+  'copy-relative-path': 'additive',
+  'expand-all-tree': 'additive',
+  'collapse-all-tree': 'additive',
+  'new-terminal': 'additive',
+  'new-worktree': 'additive',
+  'switch-worktree': 'additive',
+  'report-bug': 'additive',
+  'send-feedback': 'additive',
+};
+
+const menuActionListeners = new Set<(action: OkMenuAction, origin: OkMenuActionOrigin) => void>();
+function deliverMenuAction(dispatch: OkMenuActionDispatch): void {
+  for (const listener of menuActionListeners) {
+    try {
+      listener(dispatch.action, dispatch.origin);
+    } catch (err) {
+      console.error('[preload:menu-action] listener threw during dispatch:', err);
+    }
+  }
+}
+
+const bufferedMenuActions: OkMenuActionDispatch[] = [];
+
+// oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+ipcRenderer.on('ok:menu-action', (_event, dispatch: OkMenuActionDispatch) => {
+  if (menuActionListeners.size > 0) {
+    deliverMenuAction(dispatch);
+    return;
+  }
+  const policy = MENU_ACTION_BUFFER_POLICY[dispatch.action];
+  if (policy === 'never-buffer') {
+    console.debug(
+      '[preload:menu-action] destructive action dropped, nothing listening:',
+      dispatch.action,
+    );
+    return;
+  }
+  if (policy === 'parity' && bufferedMenuActions.at(-1)?.action === dispatch.action) return;
+  if (bufferedMenuActions.length >= MAX_BUFFERED_MENU_ACTIONS) bufferedMenuActions.shift();
+  bufferedMenuActions.push(dispatch);
+});
+
+const bridge: OkDesktopBridge = {
+  config: readConfigFromArgv(),
+
+  onProjectSwitched(cb: (next: OkDesktopConfig) => void) {
+    /*
+     * UPSTREAM(electron/electron#33328): `removeListener` matches on the exact
+     * function registered, so the wrapper — not `cb` — is what both calls use.
+     */
+    const listener = (_event: IpcRendererEvent, next: OkDesktopConfig) => cb(next);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:project:switched', listener);
+    return () => ipcRenderer.removeListener('ok:project:switched', listener);
+  },
+
+  onMenuAction(cb: (action: OkMenuAction, origin: OkMenuActionOrigin) => void) {
+    const wasUnlistened = menuActionListeners.size === 0;
+    menuActionListeners.add(cb);
+    if (wasUnlistened && bufferedMenuActions.length > 0) {
+      const replay = bufferedMenuActions.splice(0, bufferedMenuActions.length);
+      queueMicrotask(() => {
+        if (menuActionListeners.size === 0) {
+          bufferedMenuActions.unshift(...replay);
+          return;
+        }
+        for (const dispatch of replay) deliverMenuAction(dispatch);
+      });
+    }
+    return () => {
+      menuActionListeners.delete(cb);
+    };
+  },
+
+  onUpdateDownloaded(cb: (info: OkUpdateDownloadedInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkUpdateDownloadedInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:downloaded', listener);
+    return () => ipcRenderer.removeListener('ok:update:downloaded', listener);
+  },
+
+  onUpdateRelaunching(cb: (info: OkUpdateRelaunchingInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkUpdateRelaunchingInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:relaunching', listener);
+    return () => ipcRenderer.removeListener('ok:update:relaunching', listener);
+  },
+
+  onUpdateFetchingLatest(cb: (info: OkUpdateFetchingLatestInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkUpdateFetchingLatestInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:fetching-latest', listener);
+    return () => ipcRenderer.removeListener('ok:update:fetching-latest', listener);
+  },
+
+  onUpdateRelaunchFailed(cb: (info: OkUpdateRelaunchFailedInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkUpdateRelaunchFailedInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:relaunch-failed', listener);
+    return () => ipcRenderer.removeListener('ok:update:relaunch-failed', listener);
+  },
+
+  onWhatsNew(cb: (info: OkWhatsNewInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkWhatsNewInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:whats-new', listener);
+    return () => ipcRenderer.removeListener('ok:update:whats-new', listener);
+  },
+
+  onWhatsNewDismissed(cb: (info: { version: string }) => void) {
+    const listener = (_event: IpcRendererEvent, info: { version: string }) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:whats-new-dismissed', listener);
+    return () => ipcRenderer.removeListener('ok:update:whats-new-dismissed', listener);
+  },
+
+  onUpdateStuckHint(cb: (info: OkUpdateStuckHintInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkUpdateStuckHintInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:stuck-hint', listener);
+    return () => ipcRenderer.removeListener('ok:update:stuck-hint', listener);
+  },
+
+  onUpdateManualCheck(cb: (info: OkUpdateManualCheckInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkUpdateManualCheckInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:update:manual-check', listener);
+    return () => ipcRenderer.removeListener('ok:update:manual-check', listener);
+  },
+
+  onDeepLink(cb: (evt: OkDeepLinkPayload) => void) {
+    const listener = (_event: IpcRendererEvent, evt: OkDeepLinkPayload) => cb(evt);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:deep-link', listener);
+    return () => ipcRenderer.removeListener('ok:deep-link', listener);
+  },
+
+  onShareReceived(cb: (payload: OkShareReceivedPayload) => void) {
+    const listener = (_event: IpcRendererEvent, payload: OkShareReceivedPayload) => cb(payload);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:share:received', listener);
+    return () => ipcRenderer.removeListener('ok:share:received', listener);
+  },
+
+  onServerVersionDrift(cb: (info: OkServerVersionDriftInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkServerVersionDriftInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:server-version-drift', listener);
+    return () => ipcRenderer.removeListener('ok:server-version-drift', listener);
+  },
+
+  onServerRestarted(cb: (info: OkServerRestartedInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkServerRestartedInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:server-restarted', listener);
+    return () => ipcRenderer.removeListener('ok:server-restarted', listener);
+  },
+
+  onRecentRemovedMissing(cb: (info: OkRecentRemovedMissingInfo) => void) {
+    const listener = (_event: IpcRendererEvent, info: OkRecentRemovedMissingInfo) => cb(info);
+    // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+    ipcRenderer.on('ok:project:recent-removed-missing', listener);
+    return () => ipcRenderer.removeListener('ok:project:recent-removed-missing', listener);
+  },
+
+  restartServer: (projectPath: string) => invoke('ok:project:restart-server', projectPath),
+
+  setThemeSource: (source: OkThemeSource) => invoke('ok:theme:set-source', { source }),
+
+  setLanguagePreference: (preference: LanguagePreference) =>
+    invoke('ok:user-config:dispatch', { kind: 'set-language-preference', preference }) as Promise<{
+      ok: true;
+    }>,
+
+  userConfig: {
+    read: () =>
+      invoke('ok:user-config:dispatch', { kind: 'read' }) as Promise<OkUserConfigSnapshot>,
+    patch: (patch: ConfigPatch) =>
+      invoke('ok:user-config:dispatch', {
+        kind: 'patch',
+        patch,
+      }) as Promise<OkUserConfigPatchResult>,
+    onChanged(cb: (snapshot: OkUserConfigSnapshot) => void) {
+      const listener = (_event: IpcRendererEvent, snapshot: OkUserConfigSnapshot) => cb(snapshot);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:user-config:changed', listener);
+      invoke('ok:user-config:dispatch', { kind: 'subscribe' }).catch((err: unknown) => {
+        console.warn(
+          JSON.stringify({
+            event: 'user-config-subscribe-failed',
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+      });
+      return () => {
+        ipcRenderer.removeListener('ok:user-config:changed', listener);
+        invoke('ok:user-config:dispatch', { kind: 'unsubscribe' }).catch((err: unknown) => {
+          console.warn(
+            JSON.stringify({
+              event: 'user-config-unsubscribe-failed',
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+        });
+      };
+    },
+  },
+
+  signalThemeApplied: (opts?: { reducedTransparency?: boolean; chrome?: OkChromeColors }) => {
+    invoke('ok:theme:applied', opts).catch((err: unknown) => {
+      console.warn(
+        JSON.stringify({
+          event: 'signal-theme-applied-failed',
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    });
+  },
+
+  dialog: {
+    openFolder: (opts) => invoke('ok:dialog:open-folder', opts),
+  },
+
+  shell: {
+    openExternal: (url: string) => invoke('ok:shell:open-external', url),
+    detectProtocol: (scheme: string) => invoke('ok:shell:detect-protocol', scheme),
+    spawnCursor: (path: string) => invoke('ok:shell:spawn-cursor', path),
+    recordHandoff: (line) => invoke('ok:shell:record-handoff', line),
+    openAsset: (relPath: string) => invoke('ok:shell:open-asset', relPath),
+    revealAsset: (relPath: string) => invoke('ok:shell:reveal-asset', relPath),
+    revealExternal: (absPath: string) => invoke('ok:shell:reveal-external', absPath),
+    showAssetMenu: (params) => invoke('ok:shell:show-asset-menu', params),
+    showItemInFolder: (path: string) => invoke('ok:shell:show-item-in-folder', path),
+    trashItem: (absPath: string) => invoke('ok:shell:trash-item', absPath),
+  },
+
+  clipboard: {
+    writeText: (text: string) => invoke('ok:clipboard:write-text', text),
+    copyImage: (params) => invoke('ok:clipboard:copy-image', params),
+  },
+
+  project: {
+    listRecent: () => invoke('ok:project:list-recent'),
+    removeRecent: (path: string) => invoke('ok:project:remove-recent', path),
+    getSessionState: () => invoke('ok:project:get-session-state'),
+    setSessionState: (state) => invoke('ok:project:set-session-state', state),
+    open: (request) => invoke('ok:project:open', request),
+    openFile: () => invoke('ok:project:open-file-picker'),
+    createNew: (args) => invoke('ok:project:create-new', args),
+    recordCreateNewBannerShown: (banner) =>
+      invoke('ok:project:record-create-new-banner-shown', banner),
+    checkTargetExists: (request) => invoke('ok:project:check-target-exists', request),
+    readHeadBranch: (projectPath: string) => invoke('ok:project:read-head-branch', projectPath),
+    fetchBranchInfo: (request) => invoke('ok:project:fetch-branch-info', request),
+    runCheckout: (request) => invoke('ok:project:run-checkout', request),
+    fetchTargetStatus: (request) => invoke('ok:project:fetch-target-status', request),
+    awaitBranchSwitched: (request) => invoke('ok:project:await-branch-switched', request),
+    okInit: (request) => invoke('ok:project:ok-init', request),
+    close: () => invoke('ok:project:close'),
+  },
+
+  worktree: {
+    list: () => invoke('ok:worktree:dispatch', { kind: 'list' }) as Promise<WorktreeListResult>,
+    inventory: (request) =>
+      invoke('ok:worktree:dispatch', {
+        kind: 'inventory',
+        ...request,
+      }) as ReturnType<OkDesktopBridge['worktree']['inventory']>,
+    openInventory: (request) =>
+      invoke('ok:worktree:dispatch', {
+        kind: 'open-inventory',
+        ...request,
+      }) as ReturnType<OkDesktopBridge['worktree']['openInventory']>,
+    create: (request: WorktreeCreateRequest) =>
+      invoke('ok:worktree:dispatch', {
+        kind: 'create',
+        ...request,
+      }) as Promise<WorktreeCreateResult>,
+    checkout: (request: { branch: string }) =>
+      invoke('ok:worktree:dispatch', {
+        kind: 'checkout',
+        branch: request.branch,
+      }) as Promise<WorktreeCreateResult>,
+  },
+
+  sharing: {
+    status: async () => {
+      const result = await invoke('ok:sharing:dispatch', { kind: 'status' });
+      if (result.kind !== 'status') {
+        throw new Error(`ok:sharing:dispatch: expected status, got ${result.kind}`);
+      }
+      return result;
+    },
+    setMode: async (mode: 'shared' | 'local-only') => {
+      const result = await invoke('ok:sharing:dispatch', { kind: 'set-mode', mode });
+      if (result.kind === 'status') {
+        throw new Error('ok:sharing:dispatch: expected set-mode result, got status');
+      }
+      return result;
+    },
+  },
+
+  slides: createSlidesBridge(invoke),
+
+  bugReport: {
+    create: (request: Parameters<OkDesktopBridge['bugReport']['create']>[0]) =>
+      invoke('ok:bug-report:dispatch', {
+        kind: 'create',
+        level: request.level,
+        note: request.note,
+        includeCrashDump: request.includeCrashDump,
+        includeScreenshot: request.includeScreenshot,
+        attachments: request.attachments,
+        agentChatThreadId: request.agentChatThreadId,
+        crashEventId: request.crashEventId,
+      }) as Promise<OkBugReportCreateResult>,
+    captureScreenshot: () =>
+      invoke('ok:bug-report:dispatch', {
+        kind: 'capture-screenshot',
+      }) as Promise<OkBugReportScreenshot | null>,
+    crashDumpAvailability: () =>
+      invoke('ok:bug-report:dispatch', {
+        kind: 'crash-dump-availability',
+      }) as Promise<OkBugReportCrashDumpAvailability>,
+    send: (request: Parameters<OkDesktopBridge['bugReport']['send']>[0]) =>
+      invoke('ok:bug-report:dispatch', {
+        ...request,
+        kind: 'send',
+      }) as Promise<OkBugReportSendResult>,
+    crashAck: (request: { eventId: string }) =>
+      invoke('ok:bug-report:dispatch', {
+        kind: 'crash-ack',
+        eventId: request.eventId,
+      }) as Promise<OkBugReportCrashAckResult>,
+    list: () =>
+      invoke('ok:bug-report:dispatch', { kind: 'list' }) as Promise<OkBugReportListResult>,
+    delete: (id: string) =>
+      invoke('ok:bug-report:dispatch', { kind: 'delete', id }) as Promise<OkBugReportDeleteResult>,
+    onCrashDetected(cb: (event: OkBugReportCrashDetectedEvent) => void) {
+      const listener = (_event: IpcRendererEvent, event: OkBugReportCrashDetectedEvent) =>
+        cb(event);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:bug-report:crash-detected', listener);
+      return () => ipcRenderer.removeListener('ok:bug-report:crash-detected', listener);
+    },
+  },
+
+  assetUpload: {
+    uploadImage: (request: OkAssetUploadRequest) =>
+      invoke('ok:bug-report:dispatch', {
+        kind: 'upload-image',
+        contentType: request.contentType,
+        bytes: request.bytes,
+        filename: request.filename,
+      }) as Promise<OkAssetUploadResult>,
+  },
+
+  fs: {
+    defaultProjectsRoot: () => invoke('ok:fs:default-projects-root'),
+    folderState: (path: string) => invoke('ok:fs:folder-state', path),
+    findEnclosingProjectRoot: (path: string) => invoke('ok:fs:find-enclosing-project-root', path),
+    findEnclosingGitRoot: (path: string) => invoke('ok:fs:find-enclosing-git-root', path),
+    removeGitFolder: (gitRoot: string) => invoke('ok:fs:remove-git-folder', gitRoot),
+  },
+
+  navigator: {
+    open: () => invoke('ok:navigator:open'),
+  },
+
+  noteWindow: {
+    open: async (docName: string, entryPoint: 'tab-menu' | 'palette') => {
+      const result = await invoke('ok:window:open-note', { kind: 'open', docName, entryPoint });
+      if (result.ok && !('outcome' in result)) {
+        throw new Error('ok:window:open-note returned a non-open result for an open request');
+      }
+      return result as Awaited<ReturnType<OkDesktopBridge['noteWindow']['open']>>;
+    },
+    dispatchToMain: (action: OkNoteWindowMainAction) =>
+      invoke('ok:window:open-note', {
+        kind: 'dispatch-to-main',
+        action,
+      }) as Promise<OkNoteWindowMainActionResult>,
+    onMainAction(cb: (action: OkNoteWindowMainAction) => void) {
+      const listener = (_event: IpcRendererEvent, action: OkNoteWindowMainAction) => cb(action);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:note-window:main-action', listener);
+      return () => ipcRenderer.removeListener('ok:note-window:main-action', listener);
+    },
+  },
+
+  seed: {
+    plan: (options) => invoke('ok:seed:plan', options),
+    apply: (plan, options) => invoke('ok:seed:apply', plan, options),
+    listPacks: () => invoke('ok:seed:list-packs'),
+  },
+
+  skill: {
+    detectClaudeDesktop: () => invoke('ok:skill:detect-claude-desktop'),
+    buildAndOpen: (opts) => invoke('ok:skill:build-and-open', opts),
+  },
+
+  update: {
+    relaunchNow: async () => {
+      await dispatchUpdate({ kind: 'relaunch-now' });
+    },
+    checkNow: async () => {
+      await dispatchUpdate({ kind: 'check-now' });
+    },
+    dismissWhatsNew: async (version: string) => {
+      await dispatchUpdate({ kind: 'whats-new-dismiss', version });
+    },
+    dismissDownloaded: async (version: string) => {
+      await dispatchUpdate({ kind: 'downloaded-dismiss', version });
+    },
+    setMode: async (mode) => {
+      const result = await dispatchUpdate({ kind: 'set-mode', mode });
+      if (result.kind === 'set-mode' && !result.ok) {
+        throw new Error(`ok:update:dispatch: set-mode refused (${result.reason})`);
+      }
+    },
+  },
+
+  state: {
+    query: () => invoke('ok:state:query'),
+    resetIncompatible: () => invoke('ok:state:reset-incompatible'),
+  },
+
+  mcpWiring: {
+    onShow(cb: (payload: OkMcpWiringShowPayload) => void) {
+      const listener = (_event: IpcRendererEvent, payload: OkMcpWiringShowPayload) => cb(payload);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:mcp-wiring:show', listener);
+      return () => ipcRenderer.removeListener('ok:mcp-wiring:show', listener);
+    },
+    signalReady: () => {
+      invoke('ok:mcp-wiring:renderer-ready').catch(() => {});
+    },
+    confirm: (request) =>
+      invoke('ok:mcp-wiring:confirm', {
+        editorIds: request.editorIds,
+        pathInstall: request.pathInstall,
+        skills: request.skills,
+      }),
+    skip: () => invoke('ok:mcp-wiring:skip'),
+    reconfigure: () => invoke('ok:mcp-wiring:reconfigure'),
+  },
+
+  spellcheck: {
+    toggle: () => invoke('ok:spellcheck:toggle'),
+    languages: async () =>
+      asSpellingLanguagesQueryResult(
+        await invoke('ok:menu:dispatch', { kind: 'spelling-languages-query' }),
+      ),
+    setLanguages: async (languages: readonly string[]) =>
+      asSpellingLanguagesSetResult(
+        await invoke('ok:menu:dispatch', {
+          kind: 'spelling-languages-set',
+          languages: [...languages],
+        }),
+      ),
+    setEnabled: async (enabled: boolean) =>
+      asSpellcheckEnabledSetResult(
+        await invoke('ok:menu:dispatch', { kind: 'spellcheck-enabled-set', enabled }),
+      ),
+  },
+
+  integrations: {
+    status: () =>
+      invoke('ok:integrations:dispatch', { kind: 'status' }) as Promise<IntegrationsStatus>,
+    setComponent: (request) =>
+      invoke('ok:integrations:dispatch', {
+        kind: 'set',
+        component: request.component,
+        enabled: request.enabled,
+      }) as Promise<IntegrationsSetResult>,
+  },
+
+  projectIntegrations: {
+    status: () =>
+      invoke('ok:project-integrations:dispatch', {
+        kind: 'status',
+      }) as Promise<ProjectIntegrationsStatus>,
+    setComponent: (request) =>
+      invoke('ok:project-integrations:dispatch', {
+        kind: 'set',
+        component: request.component,
+        enabled: request.enabled,
+      }) as Promise<ProjectIntegrationsSetResult>,
+  },
+
+  agentIntegrations: {
+    apply: (request) =>
+      invoke('ok:integrations:dispatch', {
+        kind: 'apply-batch',
+        intents: request.intents,
+      }) as Promise<AgentIntegrationsApplyResult>,
+  },
+
+  remoteAccess: {
+    probePort: (port) =>
+      invoke('ok:remote-access:dispatch', { kind: 'probe-port', port }) as Promise<boolean>,
+  },
+
+  onboarding: {
+    onShow(cb: (payload: OkOnboardingShowPayload) => void) {
+      const listener = (_event: IpcRendererEvent, payload: OkOnboardingShowPayload) => cb(payload);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:onboarding:show', listener);
+      return () => ipcRenderer.removeListener('ok:onboarding:show', listener);
+    },
+    signalReady: () => {
+      invoke('ok:onboarding:renderer-ready').catch(() => {});
+    },
+    confirm: (request) => invoke('ok:onboarding:confirm', request),
+    cancel: () => invoke('ok:onboarding:cancel'),
+    probeContent: (request) => invoke('ok:onboarding:probe-content', request),
+    onToast(cb: (payload: OkOnboardingToastPayload) => void) {
+      const listener = (_event: IpcRendererEvent, payload: OkOnboardingToastPayload) => cb(payload);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:onboarding:toast', listener);
+      return () => ipcRenderer.removeListener('ok:onboarding:toast', listener);
+    },
+  },
+
+  localOp: {
+    auth: {
+      start: () => createLocalOpAuthStream(),
+    },
+    clone: {
+      start: (request) => createLocalOpCloneStream(request),
+    },
+    authStatus: (request) => invoke('ok:local-op:auth:status', request),
+    authRepos: (request) => invoke('ok:local-op:auth:repos', request),
+  },
+
+  share: {
+    validateLocalFolder: (args) => invoke('ok:share:validate-folder', args),
+  },
+
+  editor: {
+    notifyActiveTargetChanged: (target: OkEditorActiveTargetSnapshot) => {
+      invoke('ok:editor:active-target-changed', target).catch(() => {});
+    },
+    notifyViewMenuStateChanged: (state: OkEditorViewMenuStateChange) => {
+      invoke('ok:editor:view-menu-state-changed', state).catch(() => {});
+    },
+    notifyBackgroundThrottle: (signal: { hasPendingWork: boolean; enabled: boolean }) => {
+      invoke('ok:editor:background-throttle', signal).catch(() => {});
+    },
+  },
+
+  menu: {
+    dispatch: async (request: OkMenuUiDispatchRequest) =>
+      asMenuRendererSnapshot(await invoke('ok:menu:dispatch', request)),
+  },
+
+  startup: {
+    reportMarks: (marks: { pageListReadyMs: number; firstContentMs: number }) => {
+      invoke('ok:startup:renderer-marks', marks).catch(() => {});
+    },
+  },
+
+  sidebar: {
+    expandAll(cb: () => void) {
+      const listener = (_event: IpcRendererEvent) => cb();
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:sidebar:expand-all', listener);
+      return () => ipcRenderer.removeListener('ok:sidebar:expand-all', listener);
+    },
+    collapseAll(cb: () => void) {
+      const listener = (_event: IpcRendererEvent) => cb();
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:sidebar:collapse-all', listener);
+      return () => ipcRenderer.removeListener('ok:sidebar:collapse-all', listener);
+    },
+  },
+
+  terminal: {
+    create: (opts) => invoke('ok:pty:create', opts),
+    input: (ptyId, data) => {
+      invoke('ok:pty:input', { ptyId, data }).catch(() => {});
+    },
+    resize: (ptyId, cols, rows) => {
+      invoke('ok:pty:resize', { ptyId, cols, rows }).catch(() => {});
+    },
+    kill: (ptyId) => invoke('ok:pty:kill', { ptyId }),
+    drain: (ptyId, bytes) => {
+      invoke('ok:pty:drain', { ptyId, bytes }).catch(() => {});
+    },
+    list: () => invoke('ok:pty:list'),
+    adopt: (ptyId, opts) => invoke('ok:pty:adopt', { ptyId, ...opts }),
+    start: (ptyId) => invoke('ok:pty:adopt', { ptyId, start: true }),
+    setMeta: (ptyId, meta) => {
+      invoke('ok:pty:set-meta', { ptyId, ...meta }).catch(() => {});
+    },
+    setOrder: (orderedPtyIds) => {
+      invoke('ok:pty:set-order', { orderedPtyIds: [...orderedPtyIds] }).catch(() => {});
+    },
+    getDockState: () => invoke('ok:terminal:dock-state'),
+    setDockState: async (state) => {
+      const request =
+        state.surface === 'terminal'
+          ? {
+              surface: state.surface,
+              order: [...state.order],
+              activeKey: state.activeKey,
+              terminalSnapshot: {
+                tabs: state.terminalSnapshot.tabs.map((tab) => ({ ...tab })),
+                activeOrdinal: state.terminalSnapshot.activeOrdinal,
+              },
+            }
+          : {
+              surface: state.surface,
+              order: [...state.order],
+              activeKey: state.activeKey,
+            };
+      try {
+        return await invoke('ok:terminal:set-dock-state', request);
+      } catch (error) {
+        if (isDockStateIpcTeardown(error)) return { ok: false, reason: 'ipc-unavailable' };
+        throw error;
+      }
+    },
+    onData(cb) {
+      const listener = (_event: IpcRendererEvent, msg: OkPtyData) => cb(msg);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:pty:data', listener);
+      return () => ipcRenderer.removeListener('ok:pty:data', listener);
+    },
+    onExit(cb) {
+      const listener = (_event: IpcRendererEvent, msg: OkPtyExit) => cb(msg);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:pty:exit', listener);
+      return () => ipcRenderer.removeListener('ok:pty:exit', listener);
+    },
+    onNotice(cb) {
+      const listener = (_event: IpcRendererEvent, msg: OkPtyNotice) => cb(msg);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:pty:notice', listener);
+      return () => ipcRenderer.removeListener('ok:pty:notice', listener);
+    },
+    claudePreflight: () => invoke('ok:terminal:claude-assist', { action: 'preflight' }),
+    cliPreflight: (cli) => invoke('ok:terminal:cli-preflight', { cli }),
+    cliInstalledMap: () => invoke('ok:terminal:cli-installed-map'),
+  },
+
+  accessibility: {
+    isScreenReaderActive: () => screenReaderActive,
+    onScreenReaderChanged(cb) {
+      const listener = (_event: IpcRendererEvent, info: { screenReaderActive: boolean }) =>
+        cb(info.screenReaderActive === true);
+      // oxlint-disable-next-line ok/no-loosely-typed-webcontents-ipc -- preload-side subscription wrapper (precedent #14)
+      ipcRenderer.on('ok:accessibility:changed', listener);
+      return () => ipcRenderer.removeListener('ok:accessibility:changed', listener);
+    },
+  },
+
+  platform: process.platform as HandoffHostPlatform,
+  appVersion: parseArg('app-version') ?? '0.0.0',
+  instanceLabel: parseArg('instance-label') ?? null,
+  mcpServerName: parseArg(MCP_SERVER_NAME_ARG_NAME) ?? null,
+  cliCommandName: parseArg(CLI_COMMAND_NAME_ARG_NAME) ?? null,
+
+  getPathForFile: (file) => {
+    const path = webUtils.getPathForFile(file);
+    return path === '' ? null : path;
+  },
+
+  setDisplayLockCrashKey: (state) => {
+    if (new TextEncoder().encode(state).length > DISPLAY_LOCK_CRASH_KEY_MAX_BYTES) return;
+    crashReporter.addExtraParameter(DISPLAY_LOCK_CRASH_KEY, state);
+  },
+};
+
+if (parseArg('debug-keyring-smoke') === '1') {
+  bridge.debug = {
+    keyringSmoke: () => invoke('ok:debug:keyring-smoke'),
+  };
+}
+
+if (isUninstallPreload(process.argv)) {
+  contextBridge.exposeInMainWorld('okUninstall', createUninstallBridge(invoke));
+} else {
+  contextBridge.exposeInMainWorld('okDesktop', bridge);
+}

@@ -1,0 +1,201 @@
+import type { Config } from '@inkeep/open-knowledge-core';
+import { act, cleanup, render, waitFor, within } from '@testing-library/react';
+import type { NodeViewProps } from '@tiptap/core';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { ConfigContext, type ConfigContextValue } from '@/lib/config-context';
+import { RawMdxFallbackView } from './RawMdxFallbackCMView';
+
+const appLanguage = vi.hoisted(() => {
+  const english = (text: string) => text;
+  let translate = english;
+  const listeners = new Set<() => void>();
+  return {
+    current: () => translate,
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    switchTo(next: (text: string) => string) {
+      translate = next;
+      for (const listener of listeners) listener();
+    },
+    reset() {
+      translate = english;
+    },
+  };
+});
+
+vi.mock('@lingui/react/macro', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@lingui/react/macro')>();
+  const { useSyncExternalStore } = await import('react');
+  const { renderLinguiTemplate } = await import('@/test-utils/lingui-mock');
+  return {
+    ...actual,
+    useLingui: () => {
+      const translate = useSyncExternalStore(appLanguage.subscribe, appLanguage.current);
+      return {
+        ...actual.useLingui(),
+        t: (...args: Parameters<typeof renderLinguiTemplate>) =>
+          translate(renderLinguiTemplate(...args)),
+      };
+    },
+  };
+});
+
+const originalFetch = globalThis.fetch;
+
+(globalThis as { Window?: typeof window.Window }).Window = window.Window;
+
+function makeConfigValue(wordWrap: boolean): ConfigContextValue {
+  return {
+    userBinding: null,
+    userSynced: false,
+    projectBinding: null,
+    projectLocalBinding: null,
+    okignoreBinding: null,
+    okignoreSynced: false,
+    userConfig: null,
+    projectConfig: null,
+    projectLocalConfig: null,
+    projectSynced: false,
+    projectLocalSynced: false,
+    merged: { editor: { wordWrap } } as Config,
+  };
+}
+
+function makeEditor(): NodeViewProps['editor'] {
+  const handlers = new Map<string, Set<(...args: unknown[]) => void>>();
+  return {
+    isDestroyed: false,
+    extensionManager: { extensions: [] },
+    commands: {
+      undo: () => true,
+      redo: () => true,
+    },
+    chain: () => ({
+      focus: () => ({
+        setNodeSelection: () => ({
+          deleteSelection: () => ({
+            run: () => true,
+          }),
+        }),
+      }),
+    }),
+    on: (event: string, handler: (...args: unknown[]) => void) => {
+      const set = handlers.get(event) ?? new Set();
+      set.add(handler);
+      handlers.set(event, set);
+    },
+    off: (event: string, handler: (...args: unknown[]) => void) => {
+      handlers.get(event)?.delete(handler);
+    },
+  } as unknown as NodeViewProps['editor'];
+}
+
+function makeProps(editor = makeEditor()): NodeViewProps {
+  return {
+    editor,
+    node: {
+      attrs: { reason: 'Parse failed' },
+      textContent: '# heading\n\nbody',
+    },
+    getPos: () => 0,
+  } as unknown as NodeViewProps;
+}
+
+function Harness({ props, wordWrap }: { props: NodeViewProps; wordWrap: boolean }) {
+  return (
+    <ConfigContext value={makeConfigValue(wordWrap)}>
+      <RawMdxFallbackView {...props} />
+    </ConfigContext>
+  );
+}
+
+async function findCmContent(container: HTMLElement): Promise<HTMLElement> {
+  await waitFor(() => {
+    expect(container.querySelector('.cm-content')).toBeTruthy();
+  });
+  return container.querySelector<HTMLElement>('.cm-content');
+}
+
+describe('RawMdxFallbackView word-wrap preference wiring', () => {
+  beforeEach(() => {
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === '/api/pages') {
+        return Response.json({ pages: [] });
+      }
+      if (url === '/api/documents') {
+        return Response.json({ documents: [] });
+      }
+      if (url === '/api/tags') {
+        return Response.json({ tags: [] });
+      }
+      return Response.json({}, { status: 404 });
+    }) as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    cleanup();
+    appLanguage.reset();
+  });
+
+  test('RawMdxFallbackView names the nested CodeMirror textbox', async () => {
+    const props = makeProps();
+    const { container } = render(<Harness props={props} wordWrap={true} />);
+
+    const content = await findCmContent(container);
+    expect(within(container).getByRole('textbox', { name: /\S/ })).toBe(content);
+  });
+
+  test('renames the mounted nested CodeMirror textbox when the app language changes', async () => {
+    const props = makeProps();
+    const { container } = render(<Harness props={props} wordWrap={true} />);
+    const content = await findCmContent(container);
+    expect(
+      within(container).getByRole('textbox', { name: 'Editing broken MDX source: Parse failed' }),
+    ).toBe(content);
+
+    const french: Record<string, string> = {
+      'Editing broken MDX source: Parse failed':
+        'Modification de la source MDX invalide : Parse failed',
+    };
+    act(() => {
+      appLanguage.switchTo((text) => french[text] ?? text);
+    });
+
+    expect(
+      within(container).getByRole('textbox', {
+        name: 'Modification de la source MDX invalide : Parse failed',
+      }),
+    ).toBe(content);
+  });
+
+  test('applies editor.wordWrap to the nested CodeMirror instance', async () => {
+    const props = makeProps();
+    const { container } = render(<Harness props={props} wordWrap={false} />);
+
+    const content = await findCmContent(container);
+
+    expect(content.classList.contains('cm-lineWrapping')).toBe(false);
+  });
+
+  test('hot-swaps nested CodeMirror line wrapping without remounting', async () => {
+    const props = makeProps();
+    const { container, rerender } = render(<Harness props={props} wordWrap={true} />);
+
+    const content = await findCmContent(container);
+    const cmEditor = container.querySelector('.cm-editor');
+    expect(content.classList.contains('cm-lineWrapping')).toBe(true);
+
+    rerender(<Harness props={props} wordWrap={false} />);
+
+    await waitFor(() => {
+      expect(content.classList.contains('cm-lineWrapping')).toBe(false);
+    });
+    expect(container.querySelector('.cm-editor')).toBe(cmEditor);
+  });
+});

@@ -1,0 +1,249 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { getLogger } from '../logger.ts';
+import {
+  ACP_AGENT_EDITOR_IDS,
+  AcpRegistry,
+  FEATURED_AGENT_IDS,
+  loadCustomAgents,
+  normalizeAgentDisplayName,
+  registryPlatformKey,
+} from './registry.ts';
+
+const log = getLogger('acp-registry-test');
+
+describe('per-agent tables', () => {
+  test('features the same six agents in the same display order', () => {
+    expect(FEATURED_AGENT_IDS).toEqual([
+      'claude-acp',
+      'codex-acp',
+      'gemini',
+      'cursor',
+      'github-copilot-cli',
+      'opencode',
+    ]);
+  });
+
+  test('maps the same four agents to the editor wiring their harness loads', () => {
+    expect(ACP_AGENT_EDITOR_IDS).toEqual({
+      'claude-acp': 'claude',
+      'codex-acp': 'codex',
+      opencode: 'opencode',
+      'pi-acp': 'pi',
+    });
+  });
+
+  test('leaves cursor unmapped, so session setup keeps injecting for it', () => {
+    expect(ACP_AGENT_EDITOR_IDS.cursor).toBeUndefined();
+  });
+});
+
+const CATALOG = JSON.stringify({
+  version: 1,
+  agents: [
+    {
+      id: 'gemini',
+      name: 'Gemini CLI',
+      version: '1.0.0',
+      license: 'Apache-2.0',
+      distribution: { npx: { package: '@google/gemini-cli@1.0.0', args: ['--acp'] } },
+    },
+    { id: 'broken' },
+  ],
+});
+
+let dirs: string[] = [];
+function tmp(): string {
+  const d = mkdtempSync(join(tmpdir(), 'acp-registry-test-'));
+  dirs.push(d);
+  return d;
+}
+afterEach(() => {
+  for (const d of dirs) rmSync(d, { recursive: true, force: true });
+  dirs = [];
+});
+
+describe('AcpRegistry', () => {
+  test('parses the catalog, drops malformed entries, writes the disk cache', async () => {
+    const localDir = tmp();
+    const registry = new AcpRegistry({
+      localDir,
+      log,
+      fetchImpl: (async () => new Response(CATALOG, { status: 200 })) as typeof fetch,
+    });
+    const result = await registry.getCatalog();
+    expect(result.stale).toBe(false);
+    expect(result.agents.map((a) => a.id)).toEqual(['gemini']);
+    const cached = await Bun.file(join(localDir, 'acp-registry-cache.json')).text();
+    expect(cached).toBe(CATALOG);
+  });
+
+  test('serves the disk cache when the CDN is unreachable', async () => {
+    const localDir = tmp();
+    writeFileSync(join(localDir, 'acp-registry-cache.json'), CATALOG);
+    const registry = new AcpRegistry({
+      localDir,
+      log,
+      fetchImpl: (async () => {
+        throw new Error('offline');
+      }) as typeof fetch,
+    });
+    const result = await registry.getCatalog();
+    expect(result.stale).toBe(true);
+    expect(result.agents[0]?.id).toBe('gemini');
+  });
+
+  test('throws when offline with no cache', async () => {
+    const registry = new AcpRegistry({
+      localDir: tmp(),
+      log,
+      fetchImpl: (async () => {
+        throw new Error('offline');
+      }) as typeof fetch,
+    });
+    await expect(registry.getCatalog()).rejects.toThrow('offline');
+  });
+});
+
+describe('normalizeAgentDisplayName', () => {
+  test('title-cases a fully lowercase name', () => {
+    expect(normalizeAgentDisplayName('cursor', 'cursor')).toBe('Cursor');
+    expect(normalizeAgentDisplayName('qwen-code', 'qwen code')).toBe('Qwen Code');
+  });
+
+  test('keeps branded capitalization verbatim', () => {
+    expect(normalizeAgentDisplayName('github-copilot-cli', 'GitHub Copilot')).toBe(
+      'GitHub Copilot',
+    );
+    expect(normalizeAgentDisplayName('vtcode', 'VT Code')).toBe('VT Code');
+    expect(normalizeAgentDisplayName('sigit', 'siGit Code')).toBe('siGit Code');
+    expect(normalizeAgentDisplayName('pi-acp', 'pi ACP')).toBe('pi ACP');
+  });
+
+  test('leaves intentionally-lowercase brands alone', () => {
+    expect(normalizeAgentDisplayName('goose', 'goose')).toBe('goose');
+    expect(normalizeAgentDisplayName('fast-agent', 'fast-agent')).toBe('fast-agent');
+    expect(normalizeAgentDisplayName('crow-cli', 'crow-cli')).toBe('crow-cli');
+  });
+
+  test('falls back to the id for an empty name', () => {
+    expect(normalizeAgentDisplayName('cursor', '   ')).toBe('cursor');
+  });
+
+  test('applies at catalog ingest so every consumer sees one spelling', async () => {
+    const payload = JSON.stringify({
+      agents: [
+        { id: 'cursor', name: 'cursor', version: '1.0.0', distribution: {} },
+        { id: 'github-copilot-cli', name: 'GitHub Copilot', version: '1.0.0', distribution: {} },
+        { id: 'goose', name: 'goose', version: '1.0.0', distribution: {} },
+      ],
+    });
+    const registry = new AcpRegistry({
+      localDir: tmp(),
+      log,
+      fetchImpl: (async () => new Response(payload, { status: 200 })) as typeof fetch,
+    });
+    const { agents } = await registry.getCatalog();
+    expect(agents.map((a) => a.name)).toEqual(['Cursor', 'GitHub Copilot', 'goose']);
+  });
+});
+
+describe('loadCustomAgents', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  test('returns valid entries, drops malformed ones, tolerates a missing file', async () => {
+    const localDir = tmp();
+    expect(await loadCustomAgents(localDir, log)).toEqual([]);
+    writeFileSync(
+      join(localDir, 'acp-agents.json'),
+      JSON.stringify([
+        { id: 'my-agent', name: 'Mine', command: 'node', args: ['agent.js'] },
+        { id: 'bad id!', name: 'Nope', command: 'x' },
+        { id: 'no-command', name: 'Nope' },
+      ]),
+    );
+    const agents = await loadCustomAgents(localDir, log);
+    expect(agents).toHaveLength(1);
+    expect(agents[0]?.id).toBe('my-agent');
+  });
+
+  test('a rejected entry is logged by index, id and reason, never with its env values', async () => {
+    const localDir = tmp();
+    const warn = vi.spyOn(log, 'warn');
+    writeFileSync(
+      join(localDir, 'acp-agents.json'),
+      JSON.stringify([
+        { id: 'bad id!', name: 'Nope', command: 'x', env: { OPENAI_API_KEY: 'sk-live-secret' } },
+      ]),
+    );
+    expect(await loadCustomAgents(localDir, log)).toEqual([]);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]?.[0]).toEqual({
+      index: 0,
+      id: 'bad id!',
+      problem: expect.stringContaining('id'),
+    });
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('sk-live-secret');
+  });
+
+  test('each field rule rejects on its own and names itself as the reason', async () => {
+    const localDir = tmp();
+    const warn = vi.spyOn(log, 'warn');
+    writeFileSync(
+      join(localDir, 'acp-agents.json'),
+      JSON.stringify([
+        { id: 'bad-name', name: 5, command: 'x' },
+        { id: 'bad-command', name: 'n', command: '' },
+        { id: 'bad-args', name: 'n', command: 'x', args: ['a', 1] },
+        { id: 'bad-env', name: 'n', command: 'x', env: { KEY: 1 } },
+        { id: 'fine', name: 'n', command: 'x', args: ['a'], env: { KEY: 'v' } },
+      ]),
+    );
+    const agents = await loadCustomAgents(localDir, log);
+    expect(agents.map((a) => a.id)).toEqual(['fine']);
+    expect(warn.mock.calls.map((call) => call[0])).toEqual([
+      { index: 0, id: 'bad-name', problem: expect.stringContaining('name') },
+      { index: 1, id: 'bad-command', problem: expect.stringContaining('command') },
+      { index: 2, id: 'bad-args', problem: expect.stringContaining('args') },
+      { index: 3, id: 'bad-env', problem: expect.stringContaining('env') },
+    ]);
+  });
+
+  test('a parse failure is logged without any text from the file', async () => {
+    const localDir = tmp();
+    const warn = vi.spyOn(log, 'warn');
+    writeFileSync(
+      join(localDir, 'acp-agents.json'),
+      '[{"id":"x","name":"x","command":"x","env":{"OPENAI_API_KEY":"sk-live-secret"} oops}]',
+    );
+    expect(await loadCustomAgents(localDir, log)).toEqual([]);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]?.[0]).toEqual({ error: 'SyntaxError', position: expect.any(Number) });
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('sk-live-secret');
+  });
+
+  test('a file whose top level is not an array is ignored with a warning, like invalid JSON', async () => {
+    const localDir = tmp();
+    const warn = vi.spyOn(log, 'warn');
+    writeFileSync(
+      join(localDir, 'acp-agents.json'),
+      JSON.stringify({ id: 'solo', name: 'Solo', command: 'solo' }),
+    );
+    expect(await loadCustomAgents(localDir, log)).toEqual([]);
+    expect(warn).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('JSON array'));
+    warn.mockClear();
+    writeFileSync(join(localDir, 'acp-agents.json'), '{not json');
+    expect(await loadCustomAgents(localDir, log)).toEqual([]);
+    expect(warn).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('not valid JSON'));
+  });
+});
+
+describe('registryPlatformKey', () => {
+  test('returns a supported key on this host', () => {
+    expect(registryPlatformKey()).toMatch(/^(darwin|linux|windows)-(aarch64|x86_64)$/);
+  });
+});

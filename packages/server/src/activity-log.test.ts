@@ -1,0 +1,189 @@
+import { beforeEach, describe, expect, test } from 'vitest';
+import * as Y from 'yjs';
+import { captureEffect, type EffectValue } from './activity-log.ts';
+import { getMetrics, resetMetrics } from './metrics.ts';
+
+const WRITE_ORIGIN = Object.freeze({ source: 'local', context: { origin: 'test-write' } });
+
+function makeDoc() {
+  const doc = new Y.Doc();
+  const ytext = doc.getText('source');
+  return { doc, ytext };
+}
+
+beforeEach(() => {
+  resetMetrics();
+});
+
+describe('captureEffect — happy path', () => {
+  test('registers an effect entry in Y.Map("agent-effects") after a Y.Text change', () => {
+    const { doc, ytext } = makeDoc();
+    captureEffect(ytext, 'agent-test', WRITE_ORIGIN, 'claude-code');
+    doc.transact(() => {
+      ytext.insert(0, 'Hello world');
+    }, WRITE_ORIGIN);
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    expect(effectsMap.size).toBe(1);
+
+    const [key, value] = [...effectsMap.entries()][0] as [string, EffectValue];
+    expect(key).toMatch(/^agent-test:\d+$/);
+    expect(value.sessionId).toBe('agent-test');
+    expect(value.color_seed).toBe('claude-code');
+    expect(Array.isArray(value.delta)).toBe(true);
+    expect(typeof value.timestamp).toBe('number');
+  });
+
+  test('stores agent_type from parameter', () => {
+    const { doc, ytext } = makeDoc();
+    captureEffect(ytext, 'agent-abc', WRITE_ORIGIN, undefined, 'cursor');
+    doc.transact(() => {
+      ytext.insert(0, 'data');
+    }, WRITE_ORIGIN);
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    const value = [...effectsMap.values()][0] as EffectValue;
+    expect(value.agent_type).toBe('cursor');
+  });
+
+  test('defaults agent_type to "agent" when not provided', () => {
+    const { doc, ytext } = makeDoc();
+    captureEffect(ytext, 'agent-xyz', WRITE_ORIGIN);
+    doc.transact(() => {
+      ytext.insert(0, 'test');
+    }, WRITE_ORIGIN);
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    const value = [...effectsMap.values()][0] as EffectValue;
+    expect(value.agent_type).toBe('agent');
+  });
+
+  test('delta captures Quill Delta ops (YTextEvent.delta)', () => {
+    const { doc, ytext } = makeDoc();
+    captureEffect(ytext, 'agent-delta-test', WRITE_ORIGIN, 'blue');
+    doc.transact(() => {
+      ytext.insert(0, 'abc');
+    }, WRITE_ORIGIN);
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    const value = [...effectsMap.values()][0] as EffectValue;
+    expect(value.delta).toEqual([{ insert: 'abc' }]);
+  });
+
+  test('is a one-shot observer — second write does not create new entry', () => {
+    const { doc, ytext } = makeDoc();
+    captureEffect(ytext, 'agent-oneshot', WRITE_ORIGIN, 'seed');
+    doc.transact(() => {
+      ytext.insert(0, 'first');
+    }, WRITE_ORIGIN);
+    doc.transact(() => {
+      ytext.insert(0, 'second');
+    }, WRITE_ORIGIN);
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    expect(effectsMap.size).toBe(1);
+  });
+
+  test('does nothing when ytext has no doc (early return)', () => {
+    const orphanText = new Y.Text();
+    expect(() => captureEffect(orphanText, 'agent-orphan', WRITE_ORIGIN)).not.toThrow();
+  });
+});
+
+describe('captureEffect — ring-buffer eviction', () => {
+  test('caps Y.Map("agent-effects") at 50 entries when 60 writes are made', () => {
+    const { doc, ytext } = makeDoc();
+
+    for (let i = 0; i < 60; i++) {
+      captureEffect(ytext, `agent-${i}`, WRITE_ORIGIN, 'seed');
+      doc.transact(() => {
+        ytext.insert(0, `write-${i}`);
+      }, WRITE_ORIGIN);
+    }
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    expect(effectsMap.size).toBe(50);
+  });
+
+  test('evicts OLDEST entries by timestamp when over 50', () => {
+    const { doc, ytext } = makeDoc();
+
+    for (let i = 0; i < 60; i++) {
+      captureEffect(ytext, `agent-${i}`, WRITE_ORIGIN, 'seed');
+      doc.transact(() => {
+        ytext.insert(0, `write-${i}`);
+      }, WRITE_ORIGIN);
+    }
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    const timestamps = [...effectsMap.values()].map((v) => (v as EffectValue).timestamp);
+    const min = Math.min(...timestamps);
+    const max = Math.max(...timestamps);
+    expect(max - min).toBeLessThan(10_000);
+    expect(effectsMap.size).toBe(50);
+  });
+
+  test('two sessions produce distinct entries keyed by session ID', () => {
+    const { doc, ytext } = makeDoc();
+
+    captureEffect(ytext, 'session-A', WRITE_ORIGIN, 'blue');
+    doc.transact(() => {
+      ytext.insert(0, 'from-A');
+    }, WRITE_ORIGIN);
+
+    captureEffect(ytext, 'session-B', WRITE_ORIGIN, 'red');
+    doc.transact(() => {
+      ytext.insert(0, 'from-B');
+    }, WRITE_ORIGIN);
+
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+    expect(effectsMap.size).toBe(2);
+
+    const entries = [...effectsMap.entries()] as [string, EffectValue][];
+    const sessionIds = entries.map(([, v]) => v.sessionId);
+    expect(sessionIds).toContain('session-A');
+    expect(sessionIds).toContain('session-B');
+
+    const keys = entries.map(([k]) => k);
+    expect(keys.some((k) => k.startsWith('session-A:'))).toBe(true);
+    expect(keys.some((k) => k.startsWith('session-B:'))).toBe(true);
+  });
+});
+
+describe('captureEffect — error handling (D37)', () => {
+  test('increments effectDiffCaptureFailures metric when inner transact throws', () => {
+    const { doc, ytext } = makeDoc();
+    const effectsMap = doc.getMap<EffectValue>('agent-effects');
+
+    captureEffect(ytext, 'agent-fail', WRITE_ORIGIN, 'seed');
+
+    const originalSet = effectsMap.set.bind(effectsMap);
+    (effectsMap as unknown as { set: typeof originalSet }).set = () => {
+      throw new Error('synthetic effectsMap.set failure');
+    };
+
+    const prevEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      doc.transact(() => {
+        ytext.insert(0, 'trigger');
+      }, WRITE_ORIGIN);
+    } finally {
+      process.env.NODE_ENV = prevEnv;
+      (effectsMap as unknown as { set: typeof originalSet }).set = originalSet;
+    }
+
+    const metrics = getMetrics();
+    expect(metrics.effectDiffCaptureFailures).toBe(1);
+  });
+
+  test('unobserves on doc destroy to prevent observer leak', () => {
+    const { doc, ytext } = makeDoc();
+    captureEffect(ytext, 'agent-leak', WRITE_ORIGIN, 'seed');
+
+    doc.destroy();
+
+    const eH = (ytext as unknown as { _eH?: { l: unknown[] } })._eH;
+    expect(eH?.l.length ?? 0).toBe(0);
+  });
+});

@@ -1,0 +1,65 @@
+---
+title: "Accordion"
+description: "Standalone expand/collapse via native HTML5 <details>/<summary>. Group siblings with the `name` prop for exclusive-accordion UX"
+keywords: "accordion, expandable, details, disclosure, collapse, fold"
+---
+
+## Example
+
+<ComponentPreview>
+  <AccordionPreview title="Show me the details" description="Click to expand" icon="lucide:BookOpen">
+    Native `<details>` under the hood — same substrate as the app render.
+    Pass a shared `name` to sibling accordions and the browser will keep
+    only one open at a time.
+  </AccordionPreview>
+</ComponentPreview>
+
+```mdx
+<Accordion title="Title">
+  Body content revealed when the accordion is expanded.
+</Accordion>
+```
+
+## Props
+
+<TypeTable
+  type={{
+  "title": {
+    description: "Heading shown inside the <summary>",
+    type: "string",
+    required: true,
+  },
+  "defaultOpen": {
+    description: "When true, the block renders expanded on initial load",
+    type: "boolean",
+    required: false,
+    default: "false",
+  },
+  "icon": {
+    description: "Custom lucide icon override (e.g. \\`lucide:Rocket\\`)",
+    type: "string",
+    required: false,
+  },
+  "description": {
+    description: "Optional subtitle rendered below the title inside <summary>",
+    type: "string",
+    required: false,
+  },
+  "id": {
+    description: "HTML id attribute for deep-linking (e.g. \\`#advanced-options\\`)",
+    type: "string",
+    required: false,
+  },
+  "name": {
+    description: "HTML5 <details name=> group — siblings with the same name are mutually exclusive",
+    type: "string",
+    required: false,
+  },
+}}
+/>
+
+_Also matches:_ `accordion`, `expandable`, `details`, `disclosure`, `collapse`, `fold`
+
+## Author it
+
+Type `/accordion` in the editor to insert it from the slash menu, or write the tag directly in source mode. The Properties panel on the right of the editor exposes every prop above as a form field once the block is selected.

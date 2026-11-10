@@ -1,0 +1,113 @@
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, test } from 'vitest';
+
+const PACKAGES_DIR = fileURLToPath(new URL('../../../', import.meta.url));
+
+const CAPTURE_PRIMITIVE_CALL = /\b(?:mapConsoleLevel|parseStructuredConsoleMessage)\s*\(/;
+
+const SCRUB_CALL = /\b(?:prepareCapturedConsoleMessage|scrubSecrets)\s*\(/;
+
+const DEFINITION_DIR = join('core', 'src', 'logging');
+
+const SKIP_DIR_NAMES = new Set(['node_modules', 'dist', 'out', 'build', '.turbo']);
+
+const KNOWN_CAPTURE_SITES = [
+  'app/src/lib/install-client-log-forwarder.ts',
+  'desktop/src/main/renderer-console-capture.ts',
+];
+
+function listSourceFiles(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.') || SKIP_DIR_NAMES.has(entry.name)) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      listSourceFiles(full, out);
+      continue;
+    }
+    if (!/\.tsx?$/.test(entry.name)) continue;
+    if (/\.(?:test|test-helper|e2e|private\.test)\.tsx?$/.test(entry.name)) continue;
+    out.push(full);
+  }
+  return out;
+}
+
+function findCaptureSites(): string[] {
+  const sites: string[] = [];
+  for (const pkg of readdirSync(PACKAGES_DIR, { withFileTypes: true })) {
+    if (!pkg.isDirectory() || SKIP_DIR_NAMES.has(pkg.name)) continue;
+    const srcDir = join(PACKAGES_DIR, pkg.name, 'src');
+    if (!isDirectory(srcDir)) continue;
+    for (const file of listSourceFiles(srcDir)) {
+      const rel = relative(PACKAGES_DIR, file);
+      if (rel.startsWith(DEFINITION_DIR) || rel.includes(join('/', DEFINITION_DIR))) continue;
+      if (CAPTURE_PRIMITIVE_CALL.test(readFileSync(file, 'utf8'))) {
+        sites.push(rel.split(/[\\/]/).join('/'));
+      }
+    }
+  }
+  return sites.sort();
+}
+
+const PACKAGES_WITHOUT_SOURCE = new Set(['plugin']);
+
+function isDirectory(path: string): boolean {
+  return statSync(path, { throwIfNoEntry: false })?.isDirectory() ?? false;
+}
+
+function packagesWithoutSource(packagesDir: string): string[] {
+  return readdirSync(packagesDir)
+    .filter((name) => existsSync(join(packagesDir, name, 'package.json')))
+    .filter(
+      (name) => !isDirectory(join(packagesDir, name, 'src')) && !PACKAGES_WITHOUT_SOURCE.has(name),
+    )
+    .sort();
+}
+
+describe('renderer-console capture sites', () => {
+  test('every package with a manifest has a src directory, or is a manifest-only package', () => {
+    expect(
+      packagesWithoutSource(PACKAGES_DIR),
+      'packages with a package.json but no src directory: this sweep would skip their source, so ' +
+        'give the package a src directory, or add it to PACKAGES_WITHOUT_SOURCE if it carries no source',
+    ).toEqual([]);
+  });
+
+  test('names a package with a manifest and no src, and not a manifest-only package or a leftover directory (planted positive)', () => {
+    const packagesDir = mkdtempSync(join(tmpdir(), 'ok-renderer-capture-packages-'));
+    try {
+      mkdirSync(join(packagesDir, 'with-src', 'src'), { recursive: true });
+      writeFileSync(join(packagesDir, 'with-src', 'package.json'), '{}\n');
+      mkdirSync(join(packagesDir, 'without-src'));
+      writeFileSync(join(packagesDir, 'without-src', 'package.json'), '{}\n');
+      mkdirSync(join(packagesDir, 'plugin'));
+      writeFileSync(join(packagesDir, 'plugin', 'package.json'), '{}\n');
+      mkdirSync(join(packagesDir, 'leftover', 'node_modules'), { recursive: true });
+      expect(packagesWithoutSource(packagesDir)).toEqual(['without-src']);
+    } finally {
+      rmSync(packagesDir, { recursive: true, force: true });
+    }
+  });
+
+  test('the sweep finds the capture sites that exist today', () => {
+    expect(findCaptureSites()).toEqual(expect.arrayContaining(KNOWN_CAPTURE_SITES));
+  });
+
+  test('every capture site scrubs the console text before it reaches a sink', () => {
+    const unscrubbed = findCaptureSites().filter(
+      (rel) => !SCRUB_CALL.test(readFileSync(join(PACKAGES_DIR, rel), 'utf8')),
+    );
+    expect(unscrubbed).toEqual([]);
+  });
+});

@@ -1,0 +1,468 @@
+import type { LinkPreviewMetadata } from '@inkeep/open-knowledge-core';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { Editor } from '@tiptap/core';
+import type { ReactNode } from 'react';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { TooltipProvider } from '@/components/ui/tooltip';
+
+if (typeof globalThis.DOMRect === 'undefined') {
+  Object.defineProperty(globalThis, 'DOMRect', {
+    configurable: true,
+    value: class DOMRect {
+      x = 0;
+      y = 0;
+      width = 0;
+      height = 0;
+      top = 0;
+      right = 0;
+      bottom = 0;
+      left = 0;
+    },
+  });
+}
+
+type CurrentMarkInfo = {
+  id: string;
+  markType: string;
+  attrs: { href: string; linkStyle?: string };
+  from: number;
+  to: number;
+};
+
+let currentMarkInfo: CurrentMarkInfo | null = {
+  id: 'm1',
+  markType: 'link',
+  attrs: { href: '' },
+  from: 0,
+  to: 4,
+};
+
+const pageListHarness = {
+  pages: new Set<string>(),
+  pagesBySlug: new Map<string, string>(),
+  pagesByBasename: new Map<string, string>(),
+};
+
+vi.doMock('../../components/PageListContext', () => ({
+  usePageList: () => ({
+    addPage: () => {},
+    assetPaths: new Set<string>(),
+    filePaths: new Set<string>(),
+    folderPaths: new Set<string>(),
+    loading: false,
+    pageMeta: new Map(),
+    pageTitles: new Map(),
+    ...pageListHarness,
+  }),
+}));
+
+vi.doMock('./mark-interaction-bridge', () => ({
+  getCurrentMarkInfo: () => currentMarkInfo,
+}));
+
+vi.doMock('./use-headings', () => ({
+  useHeadings: () => [],
+}));
+
+const loadHarness: { calls: number; result: LinkPreviewMetadata | null } = {
+  calls: 0,
+  result: null,
+};
+const configHarness = { enabled: false };
+
+vi.doMock('../link-preview/external-link-preview.ts', () => ({
+  loadLinkPreview: (_url: string, _signal?: AbortSignal) => {
+    loadHarness.calls += 1;
+    return Promise.resolve(loadHarness.result);
+  },
+}));
+
+vi.doMock('../../lib/config-provider', () => ({
+  useConfigContext: () => ({
+    projectLocalConfig: { linkPreviews: { enabled: configHarness.enabled } },
+  }),
+}));
+
+let createdDocName = 'created/doc';
+vi.doMock('../../lib/create-page', () => ({
+  createPageFromSeedAndUpdate: async (
+    _seed: unknown,
+    options: { addPage: (d: string) => void; onCreated: (d: string) => void },
+  ) => {
+    options.addPage(createdDocName);
+    options.onCreated(createdDocName);
+    return { docName: createdDocName };
+  },
+}));
+
+vi.doMock('../../components/InteractionPropPanel', () => ({
+  InteractionPropPanel: ({ children }: { children: ReactNode }) => (
+    <div data-testid="prop-panel">{children}</div>
+  ),
+}));
+
+const { InternalLinkPropPanel } = await import('./InternalLinkPropPanel');
+const { _resetPendingLinkEditForTest, setPendingLinkEdit } = await import('./link-edit-autoopen');
+const { docNameFromHash } = await import('@/lib/doc-hash');
+
+function makeEditor(
+  options: {
+    onDeleteRange?: (range: { from: number; to: number }) => void;
+    onUpdateAttributes?: (markType: string, attrs: Record<string, unknown>) => void;
+  } = {},
+): Editor {
+  const chain = {
+    focus: () => chain,
+    setTextSelection: () => chain,
+    extendMarkRange: () => chain,
+    deleteRange: (range: { from: number; to: number }) => {
+      options.onDeleteRange?.(range);
+      return chain;
+    },
+    updateAttributes: (markType: string, attrs: Record<string, unknown>) => {
+      options.onUpdateAttributes?.(markType, attrs);
+      return chain;
+    },
+    run: () => true,
+  };
+
+  return {
+    state: {
+      doc: {
+        textBetween: () => 'link',
+      },
+    },
+    chain: () => chain,
+    view: {
+      dom: document.createElement('div'),
+    },
+  } as unknown as Editor;
+}
+
+afterEach(() => {
+  cleanup();
+  _resetPendingLinkEditForTest();
+  currentMarkInfo = {
+    id: 'm1',
+    markType: 'link',
+    attrs: { href: '' },
+    from: 0,
+    to: 4,
+  };
+  loadHarness.calls = 0;
+  loadHarness.result = null;
+  configHarness.enabled = false;
+  pageListHarness.pages = new Set<string>();
+  pageListHarness.pagesBySlug = new Map<string, string>();
+  pageListHarness.pagesByBasename = new Map<string, string>();
+});
+
+describe('InternalLinkPropPanel', () => {
+  test('renders nothing for empty-href link with no pending edit', () => {
+    const { container } = render(
+      <InternalLinkPropPanel
+        editor={makeEditor()}
+        nodeId="m1"
+        sourceDocName="notes/source"
+        onClose={() => {}}
+        onNavigate={() => false}
+      />,
+    );
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(container.innerHTML).toBe('');
+  });
+
+  test('auto-opens edit dialog when panel mounts for a pending empty-href link', async () => {
+    setPendingLinkEdit('m1');
+
+    render(
+      <InternalLinkPropPanel
+        editor={makeEditor()}
+        nodeId="m1"
+        sourceDocName="notes/source"
+        onClose={() => {}}
+        onNavigate={() => false}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+    });
+    expect(screen.getByText('Edit markdown link')).toBeDefined();
+  });
+
+  test('deletes the pending empty-href placeholder when the edit dialog is canceled', async () => {
+    const deleteRange = vi.fn((_range: { from: number; to: number }) => {});
+    const onClose = vi.fn(() => {});
+    setPendingLinkEdit('m1');
+
+    render(
+      <InternalLinkPropPanel
+        editor={makeEditor({ onDeleteRange: deleteRange })}
+        nodeId="m1"
+        sourceDocName="notes/source"
+        onClose={onClose}
+        onNavigate={() => false}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => {
+      expect(deleteRange).toHaveBeenCalledWith({ from: 0, to: 4 });
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  test('does not delete the pending mark when the edit dialog saves a URL', async () => {
+    const deleteRange = vi.fn((_range: { from: number; to: number }) => {});
+    const onClose = vi.fn(() => {});
+    const updateAttributes = vi.fn((_markType: string, attrs: Record<string, unknown>) => {
+      if (!currentMarkInfo) return;
+      currentMarkInfo = {
+        ...currentMarkInfo,
+        attrs: { href: typeof attrs.href === 'string' ? attrs.href : '' },
+      };
+    });
+    setPendingLinkEdit('m1');
+
+    render(
+      <TooltipProvider>
+        <InternalLinkPropPanel
+          editor={makeEditor({ onDeleteRange: deleteRange, onUpdateAttributes: updateAttributes })}
+          nodeId="m1"
+          sourceDocName="notes/source"
+          onClose={onClose}
+          onNavigate={() => false}
+        />
+      </TooltipProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+    });
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Link target' }), {
+      target: { value: 'https://example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(updateAttributes).toHaveBeenCalledWith('link', { href: 'https://example.com' });
+    });
+    expect(deleteRange).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  test('closes without deleting when the pending mark was already removed remotely', async () => {
+    const deleteRange = vi.fn((_range: { from: number; to: number }) => {});
+    const onClose = vi.fn(() => {});
+    setPendingLinkEdit('m1');
+
+    render(
+      <InternalLinkPropPanel
+        editor={makeEditor({ onDeleteRange: deleteRange })}
+        nodeId="m1"
+        sourceDocName="notes/source"
+        onClose={onClose}
+        onNavigate={() => false}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+    });
+
+    currentMarkInfo = null;
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalled();
+    });
+    expect(deleteRange).not.toHaveBeenCalled();
+  });
+
+  test('navigates a tolerant-case fallback without offering Create page', () => {
+    currentMarkInfo = {
+      id: 'm1',
+      markType: 'link',
+      attrs: { href: 'targets/case-sensitive' },
+      from: 0,
+      to: 4,
+    };
+    pageListHarness.pages = new Set(['targets/Case Sensitive']);
+    pageListHarness.pagesBySlug = new Map([['targets-case-sensitive', 'targets/Case Sensitive']]);
+
+    const { container } = render(
+      <TooltipProvider>
+        <InternalLinkPropPanel
+          editor={makeEditor()}
+          nodeId="m1"
+          sourceDocName="all-link-types"
+          onClose={() => {}}
+          onNavigate={() => true}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(container.querySelector('[data-slot="internal-link-prop-panel-create"]')).toBeNull();
+    expect(
+      container.querySelector('[data-slot="internal-link-prop-panel-text"]')?.getAttribute('href'),
+    ).toBe('#/targets/Case%20Sensitive');
+  });
+
+  test('creating a missing page navigates to the created doc, not past its `#`', () => {
+    createdDocName = 'targets/# 2 - Tokens';
+    currentMarkInfo = {
+      id: 'm1',
+      markType: 'link',
+      attrs: { href: 'targets/# 2 - Tokens' },
+      from: 0,
+      to: 4,
+    };
+    pageListHarness.pages = new Set();
+    pageListHarness.pagesBySlug = new Map();
+    window.location.hash = '#/somewhere-else';
+
+    const { container } = render(
+      <TooltipProvider>
+        <InternalLinkPropPanel
+          editor={makeEditor()}
+          nodeId="m1"
+          sourceDocName="all-link-types"
+          onClose={() => {}}
+          onNavigate={() => true}
+        />
+      </TooltipProvider>,
+    );
+
+    const create = container.querySelector('[data-slot="internal-link-prop-panel-create"]');
+    expect(create).not.toBeNull();
+    fireEvent.click(create as Element);
+
+    return waitFor(() => {
+      expect(docNameFromHash(window.location.hash)).toBe('targets/# 2 - Tokens');
+    });
+  });
+
+  test('reference-style links preserve navigation without offering a lossy destination edit', () => {
+    currentMarkInfo = {
+      id: 'm1',
+      markType: 'link',
+      attrs: { href: '/targets/reference', linkStyle: 'full' },
+      from: 0,
+      to: 4,
+    };
+    pageListHarness.pages = new Set(['targets/reference']);
+    const onNavigate = vi.fn(() => true);
+    const onClose = vi.fn(() => {});
+
+    const { container } = render(
+      <TooltipProvider>
+        <InternalLinkPropPanel
+          editor={makeEditor()}
+          nodeId="m1"
+          sourceDocName="notes/source"
+          onClose={onClose}
+          onNavigate={onNavigate}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(container.querySelector('[data-slot="internal-link-prop-panel-edit"]')).toBeNull();
+    const destination = screen.getByRole('link', { name: 'targets/reference' });
+    expect(destination.getAttribute('href')).toBe('#/targets/reference');
+
+    fireEvent.click(destination);
+    expect(onNavigate).toHaveBeenCalledWith(false);
+    expect(onClose).toHaveBeenCalled();
+  });
+});
+
+const EXTERNAL_URL = 'https://example.com/some/page';
+
+const EXTERNAL_PREVIEW: LinkPreviewMetadata = {
+  domain: 'example.com',
+  title: 'Example Domain',
+  description: 'An illustrative example page.',
+};
+
+function externalMarkInfo(): CurrentMarkInfo {
+  return { id: 'm1', markType: 'link', attrs: { href: EXTERNAL_URL }, from: 0, to: 4 };
+}
+
+function renderExternalPanel() {
+  return render(
+    <TooltipProvider>
+      <InternalLinkPropPanel
+        editor={makeEditor()}
+        nodeId="m1"
+        sourceDocName="notes/source"
+        onClose={() => {}}
+        onNavigate={() => true}
+      />
+    </TooltipProvider>,
+  );
+}
+
+function externalCard(container: HTMLElement): HTMLElement | null {
+  return container.querySelector('[data-slot="external-link-preview-card"]');
+}
+
+function pillText(container: HTMLElement): string {
+  return container.querySelector('[data-slot="internal-link-prop-panel-text"]')?.textContent ?? '';
+}
+
+const nextTick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+describe('InternalLinkPropPanel — external link preview', () => {
+  test('enabled: enhances the pill to the Option B card when the preview lands', async () => {
+    currentMarkInfo = externalMarkInfo();
+    configHarness.enabled = true;
+    loadHarness.result = EXTERNAL_PREVIEW;
+
+    const { container } = renderExternalPanel();
+
+    expect(pillText(container)).toContain(EXTERNAL_URL);
+    expect(container.querySelector('[data-slot="internal-link-prop-panel-edit"]')).toBeTruthy();
+    expect(container.querySelector('[data-slot="internal-link-prop-panel-remove"]')).toBeTruthy();
+
+    expect(await screen.findByText('Example Domain')).toBeDefined();
+    expect(externalCard(container)).toBeTruthy();
+    expect(loadHarness.calls).toBe(1);
+  });
+
+  test('enabled: a failed preview leaves exactly the URL pill and no card', async () => {
+    currentMarkInfo = externalMarkInfo();
+    configHarness.enabled = true;
+    loadHarness.result = null;
+
+    const { container } = renderExternalPanel();
+
+    await waitFor(() => expect(loadHarness.calls).toBe(1));
+    await nextTick();
+
+    expect(externalCard(container)).toBeNull();
+    expect(pillText(container)).toContain(EXTERNAL_URL);
+    expect(container.querySelector('[data-slot="internal-link-prop-panel-edit"]')).toBeTruthy();
+  });
+
+  test('disabled: sends no request and shows only the pill', async () => {
+    currentMarkInfo = externalMarkInfo();
+    configHarness.enabled = false;
+    loadHarness.result = EXTERNAL_PREVIEW;
+
+    const { container } = renderExternalPanel();
+
+    await nextTick();
+
+    expect(loadHarness.calls).toBe(0);
+    expect(externalCard(container)).toBeNull();
+    expect(pillText(container)).toContain(EXTERNAL_URL);
+  });
+});

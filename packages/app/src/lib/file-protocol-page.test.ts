@@ -1,0 +1,20 @@
+import { describe, expect, test } from 'vitest';
+import { isFileProtocolPage } from './file-protocol-page';
+
+describe('isFileProtocolPage', () => {
+  test('true for a file: page (packaged Electron renderer)', () => {
+    expect(isFileProtocolPage({ protocol: 'file:' })).toBe(true);
+  });
+
+  test('false for http: (web, ok ui, dev desktop renderer on localhost)', () => {
+    expect(isFileProtocolPage({ protocol: 'http:' })).toBe(false);
+  });
+
+  test('false for https:', () => {
+    expect(isFileProtocolPage({ protocol: 'https:' })).toBe(false);
+  });
+
+  test('false when no window/location exists (unit tier has no DOM)', () => {
+    expect(isFileProtocolPage()).toBe(false);
+  });
+});

@@ -1,0 +1,32 @@
+---
+title: Agent activity
+icon: LuActivity
+description: See every file an agent edits in a session, with per-edit diffs and selective rollback.
+---
+
+Agent activity shows all edits made by an agent during its current editing session. It is built for quick review: see which files changed, inspect each edit, and undo any agent work you do not want to keep.
+
+## Open agent activity
+
+Avatar icons will appear on the right of the header at the top of the window (in its [**More actions**](/docs/features/editor#when-the-header-runs-out-of-room) menu when the header is full) whenever an agent or a human has the document open. Agents working in other documents appear in an adjacent group. You can click on any agent's avatar icon to open the activity panel for that agent.
+
+The activity panel displays the list of files that the agent has edited in the current session.
+
+## What you can see
+
+The activity panel groups edits by file. Each file row shows the total additions and deletions made by the agent.
+
+Expand a file to see individual edits. Each edit has its own additions, deletions, timestamp, and diff.
+
+## Undo agent edits
+
+While an agent's session is still active, you can undo:
+
+- The agent's latest edit in a file
+- All edits made by an agent in a file at once
+
+Activity history lives only as long as the agent's session: shortly after the agent disconnects, the panel and the agent's avatar clear. Use the [timeline](/docs/features/timeline-and-recovery) to review and roll back changes from a closed session.
+
+## How attribution works
+
+Every edit is attributed to its author — a specific agent, you, an upstream Git sync, or the file system — and recorded in a local edit history. The activity panel is a live view of a single agent session; the timeline is the durable record of who changed what.
