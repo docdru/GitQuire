@@ -1,95 +1,62 @@
-<p>
-  <a  href="https://openknowledge.ai"><picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/ok-wordmark-dark.svg">
-    <img src="assets/ok-wordmark.svg" alt="OpenKnowledge" width="260">
-  </picture></a>
-</p>
+# GitQuire
 
-<p>
-<b>OpenKnowledge</b> is a beautiful markdown editor with integrations with Claude, Codex, and other harnesses. For knowledge bases, LLM wikis, specs, and notes. Private, local, and free.
+A collaborative, WYSIWYG Markdown wiki for small teams, with GitHub as the backend.
 
-</p>
+- **Write together.** A Notion-like editor with live cursors, for meetings and for async work.
+- **Plain Markdown in Git.** Every page is a `.md` file in a GitHub repository. Edits are committed to `main` automatically after a short pause.
+- **Branches and pull requests when you need them.** Propose a new report on a branch and open a PR from the editor.
+- **Links that stay correct.** `[[wiki links]]`, backlinks, and links rewritten when a page is renamed.
+- **Comments in the file.** Threads live in a hidden block at the end of each Markdown file, so everything stays in Git.
+- **Self-hosted.** One Docker container with a `/data` volume.
 
-<div >
-  <a href="https://openknowledge.ai">website</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://openknowledge.ai/download">desktop app</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://openknowledge.ai/docs/get-started/quickstart#ok-install-web-app">web UI + cli</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://x.com/OpenKnowledge">𝕏</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://discord.gg/VRKk2EaGHN">discord</a>
-</div>
+> **Status:** early. GitQuire is being built in phases. Phase 1 (this repository today) packages the
+> OpenKnowledge server as a Docker image with CI. GitHub sign-in, branches and PRs, shared comments,
+> mobile polish and naming rules follow. See the [roadmap](#roadmap).
 
-<br/>
-
-<img
-  src="assets/hero.webp"
-  alt="OpenKnowledge editor with an AI agent drafting a launch recap"
-  width="100%"
-  style="border-radius: 10px"
-/>
-
-# Features
-
-Highlights:
-- Full true **WYSIWYG** so that editing markdown files feels like editing a Google Doc or Notion page. 
-- **Desktop app** (macOS, Windows, Linux) and **web UI** with file navigator, search, tabs, graph wiki link viewer, and more. 
-- Integrated **side-by-side AI-editing** with **Claude, Codex, OpenCode, Pi and others**. Can be used with any harness/agent via MCP/CLI.
-- Out-of-the-box **MCP**, **skills**, and **agentic search** for LLM Wikis, second brains, and knowledge graphs.
-- No-code **Team sharing** and **Auto-sync** powered by git/GitHub under the hood.
-- **Embeddable HTML** and rich components for writing engineering specs and visualized reports.
-
-## Install
-
-**Desktop app** — download it from [openknowledge.ai/download](https://openknowledge.ai/download) (or grab an installer from the [latest release](https://github.com/inkeep/open-knowledge/releases/latest)):
-
-- **macOS** (Apple Silicon): open the DMG and drag **OpenKnowledge** to **Applications**.
-- **Windows 10+** (x64 / Arm64): run the Setup installer — per-user, no admin prompt.
-- **Linux** (x64 / arm64): install the deb (Debian/Ubuntu) or rpm (Fedora/RHEL) package.
-
-**Web app** — on any platform (including Intel Macs and servers), run the same editor as a local web app via the CLI ([Node.js 24+](https://nodejs.org) and git required):
+## Run it
 
 ```bash
-npm install -g @inkeep/open-knowledge
-cd your-project
-ok init          # scaffold the project + wire up your AI editors (Claude Code, Claude Desktop, Cursor, Codex, OpenCode, OpenClaw)
-ok start --open  # serve the web editor and open it in your browser
+docker run --rm -p 8080:8080 \
+  -e OK_ALLOW_EXTERNAL=1 \
+  -v gitquire-data:/data \
+  ghcr.io/docdru/gitquire:latest
+# then open http://localhost:8080
 ```
 
-## Usage
+Behind a real domain, also set `OK_EXTERNAL_URL=https://your.domain`. Run exactly one container per
+volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
 
-Use OpenKnowledge by opening any existing folder on your computer that contains markdown or mdx files. The app can be used with existing codebases, wikis, Obsidian vaults, etc. 
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `PORT` | `8080` | Listen port |
+| `OK_BIND` | `0.0.0.0` | Bind address |
+| `OK_ALLOW_EXTERNAL` | unset | Must be `1` to accept non-local connections |
+| `OK_EXTERNAL_URL` | unset | Public origin, required behind a domain or proxy |
+| `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits until per-user sign-in lands |
 
-Think of it as Notion meets VS Code. 
+Build the image yourself:
 
-You can use it simply as a rich, WYSIWYG markdown editor to start. For existing files or plain notes/docs.
+```bash
+docker build -t gitquire:local .
+```
 
-To get more complex, you can use the starter packs to create LLM Wikis, second brains, or more structured knowledge bases.
+## Roadmap
 
-Either way, the app will walk you through installing the MCP and skills for agent harnesses detected on your computer. These are designed to help agents with enriched search + authoring of documents.
+1. **Shared server in Docker** with CI and a published image.
+2. **GitHub sign-in**, live editing on `main`, per-user commit authorship.
+3. **Branches and pull requests** from the editor.
+4. **Comments stored in the Markdown files**, with threads, mentions and PR comment sync.
+5. **Mobile**: toolbar above the keyboard, touch link picker, installable as a home-screen app.
+6. **Linking**: naming rules on top of the existing rename rewrite and backlinks.
 
-Git/GitHub based sync and sharing can optionally be enabled. 
+Later: pages as objects, with frontmatter-driven table, timeline and kanban views.
 
-Docs for general usage: <https://openknowledge.ai/docs>.
+## Credits and license
 
-## Contributions
+GitQuire is a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by Inkeep, Inc., and
+keeps its history. The original README is in [UPSTREAM-README.md](./UPSTREAM-README.md). Parts of the
+GitHub, branch, PR and comment features will be adapted from
+[GitMarkdown](https://github.com/pooriaarab/gitmarkdown) by Pooria Arab (MIT).
 
-The best way to contribute is a detailed [issue](https://github.com/inkeep/open-knowledge/issues/new/choose): the problem you hit and how to reproduce it, or what you are trying to do. [CONTRIBUTING.md](CONTRIBUTING.md) has tips on writing one we can act on quickly.
-
-## License
-
-OpenKnowledge is licensed under [GNU General Public License v3.0 or later](./LICENSE), an OSI-Approved open source license.
-
-## Community & Support
-
-Feel free to <a href="https://github.com/inkeep/open-knowledge/issues/new/choose">file an issue</a> or ask questions on the <a href="https://discord.gg/VRKk2EaGHN">Discord</a> community. We're always looking for ideas and requests.
-
-<p>
-  ⭐️ If you'd like to support this project, consider <a href="https://github.com/inkeep/open-knowledge">starring the repo</a> ⭐️
-</p>
-
-<p>
-  🔔 Follow us on <a href="https://x.com/OpenKnowledge">𝕏</a> for product updates. 🔔
-</p>
+GitQuire is licensed under the [GNU General Public License v3.0 or later](./LICENSE), like
+OpenKnowledge. GitQuire is not affiliated with or endorsed by Inkeep.

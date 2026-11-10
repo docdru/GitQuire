@@ -1,6 +1,15 @@
-# OpenKnowledge Agent Guide
+# GitQuire Agent Guide
 
-This is the public OpenKnowledge repository. Keep changes compatible with the published package and standalone clone experience.
+GitQuire is a fork of OpenKnowledge. The rules below are inherited from upstream, with these GitQuire overrides:
+
+- Pull requests are welcome in this repository. The "Public Mirror Rules" and the release automation described under "Changesets" apply to upstream OpenKnowledge, not to GitQuire.
+- Changesets are not required in GitQuire.
+- `upstream` is `https://github.com/inkeep/open-knowledge`. Keep GitQuire-specific code in separate modules where possible so upstream merges stay cheap.
+- CI lives in `.github/workflows/docker.yml`: it builds the Docker image, smoke-tests it, and publishes it to `ghcr.io` from `main`.
+
+## Inherited from OpenKnowledge
+
+Keep changes compatible with the standalone clone experience.
 
 ## Start Here
 
