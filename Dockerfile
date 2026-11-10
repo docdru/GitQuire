@@ -28,9 +28,7 @@ WORKDIR /src
 COPY . .
 RUN rustup toolchain install --no-self-update && rustc -vV
 
-# Install only the cli package and its workspace dependencies (skips the
-# Electron desktop app and the docs site).
-RUN pnpm install --frozen-lockfile --filter "@inkeep/open-knowledge..."
+RUN pnpm install --frozen-lockfile
 
 RUN cd packages/app && pnpm run i18n:compile
 RUN pnpm exec turbo run build --filter=@inkeep/open-knowledge
