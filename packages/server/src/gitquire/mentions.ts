@@ -1,41 +1,17 @@
-import {
-  type Dirent,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  renameSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
   type CommentAuthor,
   readCommentThreads,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { createPageScan, docNameForPath, type PageScan } from './page-scan.ts';
 
-const MAX_FILES = 5000;
-const MAX_DEPTH = 12;
-const MAX_FILE_BYTES = 2 * 1024 * 1024;
+export { docNameForPath } from './page-scan.ts';
+
 const MAX_BODY_CHARS = 280;
 const MAX_QUOTE_CHARS = 140;
-const MAX_DIRECTORIES = 5000;
 const MAX_READ_IDS = 5000;
-const SCAN_REUSE_MS = 5000;
 const SEEN_WRITE_GAP_MS = 24 * 60 * 60 * 1000;
-const DOC_EXTENSIONS = ['.mdx', '.md'] as const;
-const SKIPPED_DIRECTORIES = new Set([
-  'node_modules',
-  'venv',
-  'env',
-  '__pycache__',
-  'vendor',
-  'dist',
-  'build',
-  'out',
-  'output',
-  'coverage',
-]);
 
 export interface Mention {
   id: string;
@@ -58,12 +34,6 @@ export interface InboxMention extends Omit<Mention, 'logins'> {
 export interface MentionReader {
   id: number;
   login: string;
-}
-
-export function docNameForPath(path: string): string | undefined {
-  const lower = path.toLowerCase();
-  const extension = DOC_EXTENSIONS.find((candidate) => lower.endsWith(candidate));
-  return extension === undefined ? undefined : path.slice(0, -extension.length);
 }
 
 function clip(text: string, max: number): string {
@@ -96,92 +66,19 @@ export function mentionsInMarkdown(path: string, markdown: string): Mention[] {
   return found;
 }
 
-interface CachedFile {
-  mtimeMs: number;
-  size: number;
-  mentions: Mention[];
-}
-
 export interface MentionIndex {
   all: () => Mention[];
 }
 
-function markdownFiles(root: string): string[] {
-  const files: string[] = [];
-  const queue: { dir: string; depth: number }[] = [{ dir: '', depth: 0 }];
-  let visited = 0;
-  while (queue.length > 0 && files.length < MAX_FILES && visited < MAX_DIRECTORIES) {
-    const next = queue.shift();
-    if (next === undefined) break;
-    visited += 1;
-    let entries: Dirent[];
-    try {
-      entries = readdirSync(join(root, next.dir), { withFileTypes: true });
-    } catch {
-      continue;
-    }
-    entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-    for (const entry of entries) {
-      if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue;
-      const relative = next.dir === '' ? entry.name : `${next.dir}/${entry.name}`;
-      if (entry.isDirectory()) {
-        if (next.depth < MAX_DEPTH && !SKIPPED_DIRECTORIES.has(entry.name)) {
-          queue.push({ dir: relative, depth: next.depth + 1 });
-        }
-      } else if (entry.isFile() && docNameForPath(entry.name) !== undefined) {
-        files.push(relative);
-        if (files.length >= MAX_FILES) break;
-      }
-    }
-  }
-  return files;
+export function mentionIndexFrom<T>(
+  scan: PageScan<T>,
+  mentionsOf: (value: T) => Mention[],
+): MentionIndex {
+  return { all: () => scan.all().flatMap((page) => mentionsOf(page.value)) };
 }
 
 export function createMentionIndex(projectDir: string, now: () => number = Date.now): MentionIndex {
-  const cache = new Map<string, CachedFile>();
-  let lastScan: { at: number; mentions: Mention[] } | undefined;
-
-  function read(path: string): Mention[] {
-    const full = join(projectDir, path);
-    let stat: { mtimeMs: number; size: number };
-    try {
-      stat = statSync(full);
-    } catch {
-      cache.delete(path);
-      return [];
-    }
-    const cached = cache.get(path);
-    if (cached !== undefined && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
-      return cached.mentions;
-    }
-    let mentions: Mention[] = [];
-    if (stat.size <= MAX_FILE_BYTES) {
-      try {
-        mentions = mentionsInMarkdown(path, readFileSync(full, 'utf8'));
-      } catch {
-        mentions = [];
-      }
-    }
-    cache.set(path, { mtimeMs: stat.mtimeMs, size: stat.size, mentions });
-    return mentions;
-  }
-
-  function all(): Mention[] {
-    const at = now();
-    if (lastScan !== undefined && at - lastScan.at < SCAN_REUSE_MS && at >= lastScan.at) {
-      return lastScan.mentions;
-    }
-    const paths = markdownFiles(projectDir);
-    const live = new Set(paths);
-    for (const path of cache.keys()) {
-      if (!live.has(path)) cache.delete(path);
-    }
-    const mentions = paths.flatMap(read);
-    lastScan = { at, mentions };
-    return mentions;
-  }
-
-  return { all };
+  return mentionIndexFrom(createPageScan(projectDir, mentionsInMarkdown, now), (found) => found);
 }
 
 interface UserState {

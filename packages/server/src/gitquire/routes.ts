@@ -13,11 +13,14 @@ import {
 import { createMentionMailer } from './mention-mailer.ts';
 import {
   buildInbox,
-  createMentionIndex,
   createMentionReadStore,
+  mentionIndexFrom,
   mentionStatePath,
   mentionsFor,
+  mentionsInMarkdown,
 } from './mentions.ts';
+import { listObjects, pageFacts } from './page-objects.ts';
+import { createPageScan } from './page-scan.ts';
 import { namingRuleFromEnv } from './naming.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
@@ -247,7 +250,16 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 201, { pull });
   }
 
-  const mentionIndex = createMentionIndex(deps.contentDir ?? deps.projectDir);
+  const pageScan = createPageScan(deps.contentDir ?? deps.projectDir, (path, markdown) => ({
+    mentions: mentionsInMarkdown(path, markdown),
+    facts: pageFacts(path, markdown),
+  }));
+  const mentionIndex = mentionIndexFrom(pageScan, (page) => page.mentions);
+
+  function listPageObjects(res: ServerResponse): void {
+    const pages = pageScan.all().map((page) => ({ ...page, value: page.value.facts }));
+    sendJson(res, 200, listObjects(pages));
+  }
   const mentionReads = createMentionReadStore(
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
   );
@@ -359,6 +371,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/branches' && method === 'POST') return createBranch(req, res);
     if (path === '/api/gitquire/pulls' && method === 'GET') return listPulls(res);
     if (path === '/api/gitquire/pulls' && method === 'POST') return createPull(req, res);
+    if (path === '/api/gitquire/objects' && method === 'GET') return listPageObjects(res);
     if (path === '/api/gitquire/mentions' && method === 'GET') return listMentions(req, res);
     if (path === '/api/gitquire/mentions/read' && method === 'POST') {
       return markMentionsRead(req, res);
