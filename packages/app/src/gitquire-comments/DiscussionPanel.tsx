@@ -300,9 +300,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       >
         <MessagesSquare aria-hidden="true" />
         {t`Discussions`}
-        <span className="rounded-full bg-warning/20 px-1.5 text-xs tabular-nums">
-          {openCount}
-        </span>
+        <span className="rounded-full bg-warning/20 px-1.5 text-xs tabular-nums">{openCount}</span>
       </Button>
     );
   }
