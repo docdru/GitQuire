@@ -70,7 +70,8 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_REPO` | `owner/name`. Anyone with write access to it may sign in. |
 | `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition (or instead). |
 | `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
-| `GITQUIRE_MCP_TOKEN` | Optional bearer token for AI agents on `/mcp`; without it `/mcp` is closed. |
+| `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
+| `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
 | `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
 | `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
 
@@ -142,6 +143,28 @@ names exactly as typed.
 
 Links don't break: `[[Meeting Notes 2026]]` finds `meeting-notes-2026.md`, renames and moves
 rewrite the links that point at the page, and the backlinks panel shows who links where.
+
+## AI agents
+
+Each person connects their own AI agent, with their own Claude (or other) account. Nothing runs
+on the server on their behalf.
+
+1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
+2. Create a token. The page shows it once, with the command for Claude Code and the config for the
+   Claude desktop app:
+
+   ```bash
+   claude mcp add --transport http gitquire https://wiki.example.com/mcp \
+     --header "Authorization: Bearer gqa_…"
+   ```
+
+3. Ask the agent to work on the wiki. Its edits show up live and are committed with you as the
+   author.
+
+Tokens are stored hashed in `.ok/local/gitquire/agent-tokens.json` on the data volume, never in
+the repository. Revoke one from the same page; admins (`GITQUIRE_ADMINS`) can revoke anyone's.
+Every ten minutes the server checks that token owners can still write to `GITQUIRE_REPO` (using
+the GitHub App when it is configured) and revokes the tokens of people who lost access.
 
 ## Discussions
 

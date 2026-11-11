@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import type { DetectGhFn } from '../github-permissions.ts';
 import type { AccessGate, GateLogger } from './access-gate.ts';
 import { createAccessGate, principalFromUser } from './access-gate.ts';
+import { createRepoAccessCheck, startAccessSweep } from './agent-access.ts';
+import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
 import {
   createGitHubAppClient,
   type InstallationTokenManager,
@@ -23,13 +25,32 @@ export { GitHubAuthConfigError } from './github-auth-config.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
+export function agentTokensFile(env: Env, projectDir: string): string {
+  const override = env.GITQUIRE_AGENT_TOKENS_FILE?.trim();
+  if (override !== undefined && override !== '') return override;
+  return join(projectDir, '.ok', 'local', 'gitquire', 'agent-tokens.json');
+}
+
 export function createAccessGateFromEnv(
   env: Env,
   runtime: { externalUrl: string | undefined },
   log: GateLogger,
+  options: {
+    projectDir?: string;
+    tokens?: InstallationTokenManager;
+  } = {},
 ): AccessGate | undefined {
   const config = resolveGitHubAuthConfig(env, runtime);
   if (config === undefined) return undefined;
+  let agentTokens: AgentTokenStore | undefined;
+  if (options.projectDir !== undefined) {
+    agentTokens = createAgentTokenStore({ file: agentTokensFile(env, options.projectDir), log });
+    const check = createRepoAccessCheck(config, { installationToken: options.tokens?.current });
+    const sweep = startAccessSweep(agentTokens, check, { log });
+    sweep.runOnce().catch((err: unknown) => {
+      log.warn({ err }, '[gitquire-agents] initial access check failed');
+    });
+  }
   const access =
     config.repo === undefined
       ? `allowed users: ${[...config.allowedUsers].join(', ')}`
@@ -38,7 +59,7 @@ export function createAccessGateFromEnv(
     { externalUrl: config.externalUrl.toString(), mcpToken: config.mcpToken !== undefined },
     `[gitquire-auth] GitHub sign-in enabled (${access})`,
   );
-  const gate = createAccessGate(config, { log });
+  const gate = createAccessGate(config, { log, agentTokens });
   setSessionPrincipalResolver((req) => {
     const user = gate.sessionUser(req);
     return user === undefined ? undefined : principalFromUser(user);

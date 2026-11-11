@@ -12,6 +12,7 @@ export interface GitHubAuthConfig {
   allowedUsers: ReadonlySet<string>;
   admins: ReadonlySet<string>;
   mcpToken: string | undefined;
+  agentTokenDays: number;
   sessionMaxAgeSeconds: number;
   githubWebUrl: string;
   githubApiUrl: string;
@@ -26,6 +27,7 @@ export class GitHubAuthConfigError extends Error {
 
 const MIN_SESSION_SECRET_LENGTH = 32;
 const DEFAULT_SESSION_DAYS = 7;
+const DEFAULT_AGENT_TOKEN_DAYS = 90;
 const REPO_RE = /^([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)$/;
 
 function nonEmpty(value: string | undefined): string | undefined {
@@ -122,6 +124,15 @@ export function resolveGitHubAuthConfig(
     );
   }
 
+  const agentDaysRaw = nonEmpty(env.GITQUIRE_AGENT_TOKEN_DAYS);
+  const agentTokenDays =
+    agentDaysRaw === undefined ? DEFAULT_AGENT_TOKEN_DAYS : Number(agentDaysRaw);
+  if (!Number.isFinite(agentTokenDays) || agentTokenDays <= 0 || agentTokenDays > 3650) {
+    throw new GitHubAuthConfigError(
+      `GITQUIRE_AGENT_TOKEN_DAYS must be a number of days between 1 and 3650, got "${agentDaysRaw}".`,
+    );
+  }
+
   return {
     clientId,
     clientSecret,
@@ -131,6 +142,7 @@ export function resolveGitHubAuthConfig(
     allowedUsers,
     admins: loginSet(env.GITQUIRE_ADMINS),
     mcpToken: nonEmpty(env.GITQUIRE_MCP_TOKEN),
+    agentTokenDays,
     sessionMaxAgeSeconds: Math.round(sessionDays * 24 * 60 * 60),
     githubWebUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),
     githubApiUrl: stripTrailingSlash(
