@@ -2,8 +2,8 @@ import { randomBytes } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import type { PinoLogger } from '../logger.ts';
-import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
 import type { AccessVerdict } from './agent-access.ts';
+import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
 import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
 import {
