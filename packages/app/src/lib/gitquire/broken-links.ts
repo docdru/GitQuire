@@ -1,4 +1,9 @@
+import { isManagedArtifactDocName } from '@inkeep/open-knowledge-core/constants/cc1';
 import type { ApiDeps } from './branch-api';
+
+const AGENT_FOLDERS = new Set(['.agents', '.claude', '.cursor']);
+const NOT_CONFIGURED = 'backlink-index-not-configured';
+const MAX_BADGE = 99;
 
 export interface BrokenLinkSource {
   docName: string;
@@ -44,12 +49,65 @@ export function parseBrokenLinks(body: unknown): BrokenLink[] {
   );
 }
 
+async function isNotConfigured(res: Response): Promise<boolean> {
+  if (res.status === 404) return true;
+  if (res.status !== 503) return false;
+  const problem: unknown = await res.json().catch(() => undefined);
+  if (!isRecord(problem) || typeof problem.type !== 'string') return false;
+  return problem.type.includes(NOT_CONFIGURED);
+}
+
 export async function fetchBrokenLinks(deps: ApiDeps = {}): Promise<BrokenLinkReport> {
   const doFetch = deps.fetch ?? fetch;
   const res = await doFetch('/api/dead-links', { credentials: 'same-origin' });
-  if (res.status === 503 || res.status === 404) return { available: false, links: [] };
-  if (!res.ok) throw new Error(`The broken-link report failed (HTTP ${res.status}).`);
-  return { available: true, links: parseBrokenLinks(await res.json()) };
+  if (res.ok) return { available: true, links: parseBrokenLinks(await res.json()) };
+  if (await isNotConfigured(res)) return { available: false, links: [] };
+  throw new Error(`The broken-link report failed (HTTP ${res.status}).`);
+}
+
+export interface TeamPageRules {
+  skipLogPages: boolean;
+}
+
+export function isTeamPage(docName: string, rules: TeamPageRules): boolean {
+  if (isManagedArtifactDocName(docName)) return false;
+  const segments = docName.split('/');
+  if (segments.some((segment) => AGENT_FOLDERS.has(segment))) return false;
+  const last = segments.at(-1)?.toLowerCase();
+  return !(rules.skipLogPages && last === 'log');
+}
+
+export function teamBrokenLinks(links: readonly BrokenLink[], rules: TeamPageRules): BrokenLink[] {
+  const kept: BrokenLink[] = [];
+  for (const link of links) {
+    const sources = link.sources.filter((source) => isTeamPage(source.docName, rules));
+    if (sources.length > 0) kept.push({ target: link.target, sources });
+  }
+  return kept;
+}
+
+export function badgeCount(count: number): string {
+  return count > MAX_BADGE ? `${MAX_BADGE}+` : String(count);
+}
+
+export function limitBrokenLinks(
+  links: readonly BrokenLink[],
+  maxSources: number,
+): { links: BrokenLink[]; hidden: number } {
+  const shown: BrokenLink[] = [];
+  let room = maxSources;
+  let hidden = 0;
+  for (const link of links) {
+    if (room <= 0) {
+      hidden += link.sources.length;
+      continue;
+    }
+    const sources = link.sources.slice(0, room);
+    hidden += link.sources.length - sources.length;
+    room -= sources.length;
+    shown.push({ target: link.target, sources });
+  }
+  return { links: shown, hidden };
 }
 
 export function countBrokenLinks(links: readonly BrokenLink[]): number {
