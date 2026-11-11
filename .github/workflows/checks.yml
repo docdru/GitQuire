@@ -50,3 +50,9 @@ jobs:
 
       - name: GitQuire tests
         run: pnpm --dir packages/server exec vitest run src/gitquire
+
+      - name: Upstream tests for modules GitQuire hooks into
+        run: >-
+          pnpm --dir packages/server exec vitest run
+          src/persistence src/sync-engine src/principal src/server-factory.test.ts
+          src/mcp-mount src/boot

@@ -107,6 +107,7 @@ import {
   tracedUnlinkSync,
   tracedWriteFile,
 } from './fs-traced.ts';
+import { attributeEdit } from './gitquire/principal-directory.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
 import {
@@ -426,6 +427,8 @@ export function resolveWriterFromOrigin(
     const ctx = conn?.context as Record<string, unknown> | undefined;
     if (typeof ctx?.principalId === 'string') {
       const principalId = ctx.principalId as string;
+      const gitquireWriter = attributeEdit(principalId);
+      if (gitquireWriter !== undefined) return gitquireWriter;
       const loaded = getPrincipal?.();
       if (loaded && loaded.id === principalId && loaded.display_name && loaded.display_email) {
         return {

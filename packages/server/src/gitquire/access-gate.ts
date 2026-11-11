@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import type { PinoLogger } from '../logger.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
+import { type GitQuirePrincipal, principalIdForGitHubUser } from './principal-directory.ts';
 import {
   decodeSigned,
   encodeSigned,
@@ -143,6 +144,15 @@ function bearerToken(req: IncomingMessage): string | undefined {
 
 export function noreplyEmail(user: Pick<SessionUser, 'id' | 'login'>): string {
   return `${user.id}+${user.login}@users.noreply.github.com`;
+}
+
+export function principalFromUser(user: SessionUser): GitQuirePrincipal {
+  return {
+    id: principalIdForGitHubUser(user.id),
+    login: user.login,
+    name: user.name,
+    email: noreplyEmail(user),
+  };
 }
 
 export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps): AccessGate {
@@ -439,6 +449,17 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       } else {
         sendJson(res, 401, { error: 'not-signed-in', signIn: '/auth/github/login' });
       }
+      return true;
+    }
+    if (path === '/api/principal' && req.method === 'GET') {
+      const principal = principalFromUser(user);
+      sendJson(res, 200, {
+        id: principal.id,
+        display_name: principal.name,
+        display_email: principal.email,
+        source: 'git-config',
+        created_at: new Date(now()).toISOString(),
+      });
       return true;
     }
     if (path.startsWith('/api/local-op/')) {

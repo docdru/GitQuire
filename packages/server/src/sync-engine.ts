@@ -64,6 +64,12 @@ import {
   type PushPermission,
 } from './github-permissions.ts';
 import {
+  commitAuthorEnv,
+  restoreCommitAuthors,
+  takeCommitAuthors,
+  withCoAuthorTrailers,
+} from './gitquire/principal-directory.ts';
+import {
   assertIncomingSymlinksSafe,
   assertMergeNameResolvesTo,
   IncomingRefMovedError,
@@ -1213,7 +1219,10 @@ export class SyncEngine {
     }
   }
 
-  private async applyCommitIdentity(handle: GitHandle): Promise<void> {
+  private async applyCommitIdentity(
+    handle: GitHandle,
+    authorOverride?: Record<string, string>,
+  ): Promise<void> {
     const identity = await resolveGitIdentity(this.projectDir);
     const nextUnresolved = identity === null;
     if (this.identityUnresolved !== nextUnresolved) {
@@ -1227,6 +1236,7 @@ export class SyncEngine {
       GIT_AUTHOR_EMAIL: email,
       GIT_COMMITTER_NAME: name,
       GIT_COMMITTER_EMAIL: email,
+      ...authorOverride,
     });
   }
 
@@ -2221,15 +2231,20 @@ export class SyncEngine {
             changedProjectRelPaths = contentFiles.map((f) => f.projectRelPath).concat(deleted);
             changedContentRelPaths = contentFiles.map((f) => f.contentRelPath);
           }
-          const message = this.buildCommitMessage(changedContentRelPaths);
+          const commitAuthors = takeCommitAuthors();
+          const message = withCoAuthorTrailers(
+            this.buildCommitMessage(changedContentRelPaths),
+            commitAuthors,
+          );
 
-          await this.applyCommitIdentity(handle);
+          await this.applyCommitIdentity(handle, commitAuthorEnv(commitAuthors));
 
           const newCommitSha = (
             await handle.git.raw(['commit-tree', newTreeSha, '-p', headSha, '-m', message])
           ).trim();
 
           if (!newCommitSha || !SHA_HEX_40.test(newCommitSha)) {
+            restoreCommitAuthors(commitAuthors);
             log.warn(
               { raw: newCommitSha },
               '[sync] commit-tree returned invalid SHA — aborting push',
