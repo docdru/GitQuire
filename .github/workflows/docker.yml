@@ -111,6 +111,9 @@ jobs:
           api=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/api/config)
           echo "GET /api/config -> $api"
           test "$api" = 401
+          manifest=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/manifest.webmanifest)
+          echo "GET /manifest.webmanifest -> $manifest"
+          test "$manifest" = 200
           login=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://127.0.0.1:8081/auth/github/login)
           echo "GET /auth/github/login -> $login"
           case "$login" in "302 https://github.com/login/oauth/authorize?client_id=Iv1.smoke"*) ;; *) exit 1 ;; esac

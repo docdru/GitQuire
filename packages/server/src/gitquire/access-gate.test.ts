@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type AccessGate,
   createAccessGate,
+  isPublicAsset,
   noreplyEmail,
   SESSION_COOKIE,
   STATE_COOKIE,
@@ -227,6 +228,17 @@ describe('resolveGitHubAuthConfig', () => {
       { externalUrl: undefined },
     );
     expect(config?.externalUrl.toString()).toBe('https://wiki.example.org/');
+  });
+});
+
+describe('isPublicAsset', () => {
+  it('lets browsers fetch the app manifest and icons without a session', () => {
+    expect(isPublicAsset('/manifest.webmanifest', 'GET')).toBe(true);
+    expect(isPublicAsset('/icons/gitquire-192.png', 'GET')).toBe(true);
+    expect(isPublicAsset('/favicon.svg', 'HEAD')).toBe(true);
+    expect(isPublicAsset('/icons/../api/config', 'GET')).toBe(false);
+    expect(isPublicAsset('/manifest.webmanifest', 'POST')).toBe(false);
+    expect(isPublicAsset('/api/documents', 'GET')).toBe(false);
   });
 });
 

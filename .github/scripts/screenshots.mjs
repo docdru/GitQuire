@@ -54,13 +54,23 @@ for (const profile of profiles) {
       await page.waitForTimeout(500);
       await shoot(page, `${profile.name}-03-editing`);
 
-      const firstParagraph = page.locator('.ProseMirror p').first();
-      await firstParagraph.dblclick().catch(() => undefined);
-      await page.waitForTimeout(700);
+      await page.evaluate(() => {
+        const paragraph = document.querySelector('.ProseMirror p');
+        const text = paragraph?.firstChild;
+        if (!text) return;
+        const range = document.createRange();
+        range.setStart(text, 0);
+        range.setEnd(text, Math.min(14, text.textContent?.length ?? 0));
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      });
+      await page.mouse.up().catch(() => undefined);
+      await page.waitForTimeout(900);
       await shoot(page, `${profile.name}-04-selection`);
     }
 
-    const sidebarToggle = page.locator('[data-sidebar="trigger"], [aria-label*="sidebar" i]').first();
+    const sidebarToggle = page.locator('[data-sidebar="trigger"]:visible').first();
     if (await sidebarToggle.isVisible().catch(() => false)) {
       await sidebarToggle.click().catch(() => undefined);
       await page.waitForTimeout(700);

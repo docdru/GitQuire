@@ -1,0 +1,21 @@
+{
+  "name": "GitQuire",
+  "short_name": "GitQuire",
+  "description": "Collaborative Markdown pages, stored in Git.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f766e",
+  "icons": [
+    { "src": "/icons/gitquire.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icons/gitquire-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/gitquire-512.png", "sizes": "512x512", "type": "image/png" },
+    {
+      "src": "/icons/gitquire-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
