@@ -230,7 +230,7 @@ function NewBranchDialog({ open, onOpenChange, from, existing, onCreated }: NewB
   const trimmed = name.trim();
   const valid = isPlausibleBranchName(trimmed) && !existing.includes(trimmed);
 
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
+  async function submit(e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) {
     e.preventDefault();
     if (!valid || busy) return;
     setBusy(true);
@@ -306,7 +306,7 @@ function OpenPullRequestDialog({ open, onOpenChange, head, base }: OpenPullReque
   const headName = head ?? '';
   const baseName = base ?? '';
 
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
+  async function submit(e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) {
     e.preventDefault();
     if (!canSubmit) return;
     setBusy(true);
