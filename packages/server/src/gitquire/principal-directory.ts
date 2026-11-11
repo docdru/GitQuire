@@ -20,8 +20,11 @@ const known = new Map<string, GitQuirePrincipal>();
 const pendingEdits = new Map<string, number>();
 
 export function sanitizeDisplayName(raw: string, fallback: string): string {
-  const cleaned = raw
-    .replace(/[\u0000-\u001f\u007f<>]/g, ' ')
+  const cleaned = Array.from(raw, (char) => {
+    const code = char.codePointAt(0) ?? 0;
+    return code < 32 || code === 127 || char === '<' || char === '>' ? ' ' : char;
+  })
+    .join('')
     .replace(/\s+/g, ' ')
     .trim();
   return cleaned === '' ? fallback : cleaned;
