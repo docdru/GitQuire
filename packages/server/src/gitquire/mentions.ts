@@ -136,10 +136,7 @@ function markdownFiles(root: string): string[] {
   return files;
 }
 
-export function createMentionIndex(
-  projectDir: string,
-  now: () => number = Date.now,
-): MentionIndex {
+export function createMentionIndex(projectDir: string, now: () => number = Date.now): MentionIndex {
   const cache = new Map<string, CachedFile>();
   let lastScan: { at: number; mentions: Mention[] } | undefined;
 
