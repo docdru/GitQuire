@@ -14,7 +14,11 @@ import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
 import { type Processor, unified } from 'unified';
 import { VFile } from 'vfile';
-import { COMMENT_TRAILER_OPEN, splitCommentTrailer } from '../gitquire/comment-threads.ts';
+import {
+  COMMENT_TRAILER_OPEN,
+  joinCommentTrailer,
+  splitCommentTrailer,
+} from '../gitquire/comment-threads.ts';
 
 import './mdast-augmentation.ts';
 import { restoreFromMdx } from './autolink-void-html-guard.ts';
@@ -302,6 +306,8 @@ export function serializeMd(doc: PmNode, processor: Processor, opts: SerializeMd
   if (boundary?.trailing) {
     out = out.replace(/\n+$/, '') + boundary.trailing;
   }
+  const split = splitCommentTrailer(out);
+  if (split.trailer !== undefined) out = joinCommentTrailer(split.body, split.trailer);
   if (boundary?.bom) out = `\uFEFF${out}`;
   return out;
 }
