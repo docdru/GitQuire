@@ -52,6 +52,12 @@ for (const profile of profiles) {
     if (await editor.isVisible().catch(() => false)) {
       await editor.click({ position: { x: 40, y: 20 } }).catch(() => undefined);
       await page.waitForTimeout(500);
+      const probe = await page.evaluate(() => ({
+        coarse: window.matchMedia('(pointer: coarse)').matches,
+        focusedEditor: document.activeElement?.closest('.ProseMirror') !== null,
+        touchToolbar: document.querySelector('[data-testid="touch-edit-toolbar"]') !== null,
+      }));
+      console.log(`${profile.name} editing probe: ${JSON.stringify(probe)}`);
       await shoot(page, `${profile.name}-03-editing`);
 
       await page.evaluate(() => {
