@@ -94,7 +94,7 @@ it.each(['kept-shared', 'kept-unowned'] as const)(
           editor: 'pi',
           trust,
           trustDetail: expect.stringContaining(
-            trust === 'kept-shared' ? prompts : 'no OpenKnowledge ownership record',
+            trust === 'kept-shared' ? prompts : 'no GitQuire ownership record',
           ),
         }),
       );

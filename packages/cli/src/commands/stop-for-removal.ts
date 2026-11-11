@@ -42,7 +42,7 @@ export async function stopServerForRemoval(
     (options.readProcessStart ?? readHolderProcessStart)(pid, { platform, onNativeFailure });
   const state = inspectLock(lockDir, 'server', { isAlive, readProcessStart: readHolderStart });
   const lockRecovery =
-    'Quit OpenKnowledge and stop any OpenKnowledge server processes. ' +
+    'Quit GitQuire and stop any GitQuire server processes. ' +
     `Once you have confirmed they have exited, remove the stale lock file at ${state.lockPath} and retry cleanup.`;
   const recordedPid = (): number | undefined => {
     switch (state.status) {
@@ -176,7 +176,7 @@ export async function stopServerForRemoval(
           describeUnconfirmedHolderStart(
             unverified,
             'it was not signalled.',
-            `Once you have confirmed no OpenKnowledge server is running for this project, remove ${unverified.lockPath} and retry cleanup.`,
+            `Once you have confirmed no GitQuire server is running for this project, remove ${unverified.lockPath} and retry cleanup.`,
             getCliLogger() !== undefined,
           ),
         );

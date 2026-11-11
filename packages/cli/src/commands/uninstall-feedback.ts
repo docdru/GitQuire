@@ -45,7 +45,7 @@ export async function collectUninstallFeedbackAnswers(
   io: UninstallFeedbackIO = {},
 ): Promise<UninstallFeedbackAnswers> {
   const streams = { input: io.input ?? process.stdin, output: io.output ?? process.stderr };
-  streams.output.write(dim('\nWhat you share is sent to the OpenKnowledge team.\n'));
+  streams.output.write(dim('\nWhat you share is sent to the GitQuire team.\n'));
   const reason = await select<ReasonChoice>(
     {
       message: 'Before you go, mind sharing why? (optional)',

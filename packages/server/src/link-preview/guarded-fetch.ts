@@ -10,7 +10,7 @@ import { classifyHost, isPublicUnicastIp } from './ip-classifier.ts';
 
 const logger = getLogger('link-preview.guarded-fetch');
 
-const USER_AGENT = 'OpenKnowledge-LinkPreview/1.x';
+const USER_AGENT = 'GitQuire-LinkPreview/1.x';
 
 export const DEFAULT_MAX_BYTES = 512 * 1024;
 export const DEFAULT_TIMEOUT_MS = 5000;

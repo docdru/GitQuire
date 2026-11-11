@@ -201,7 +201,7 @@ describe('rename log emission inside withManagedRenameRecovery (US-006)', () => 
     const entries = loadEntries();
     expect(entries).toHaveLength(1);
     expect(entries[0].actor.writerId).toBe('openknowledge-service');
-    expect(entries[0].actor.displayName).toBe('OpenKnowledge (service)');
+    expect(entries[0].actor.displayName).toBe('GitQuire (service)');
   });
 
   test('folder rename of 3 docs produces 3 entries with shared groupId (FR5)', async () => {

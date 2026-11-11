@@ -209,7 +209,7 @@ export class ThreadPersistenceStore {
       if (!isMintedThreadId(parsed.info.threadId) || name !== `${parsed.info.threadId}.meta.json`) {
         this.log.warn(
           { path },
-          '[acp-persist] skipping a thread meta whose id OpenKnowledge did not mint',
+          '[acp-persist] skipping a thread meta whose id GitQuire did not mint',
         );
         continue;
       }

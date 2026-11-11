@@ -44,7 +44,7 @@ const LegacyAuditErrorSchema = z.object({
 function serverNotRunningMessage(): string {
   const command = currentCliCommandName();
   return (
-    'OpenKnowledge server is not running — the links validator needs the live backlink index. ' +
+    'GitQuire server is not running — the links validator needs the live backlink index. ' +
     `Start it with \`${command} start\` (or open OK Desktop) and re-run. For headless lint-only checks, use \`${command} lint\`.`
   );
 }
@@ -103,7 +103,7 @@ export async function runAudit(
       headers: clientVersionHeaders({ kind: 'cli', runtimeVersion: RUNTIME_VERSION }),
     });
   } catch (e) {
-    io.err(`Could not reach the OpenKnowledge server on port ${lock.port}: ${String(e)}`);
+    io.err(`Could not reach the GitQuire server on port ${lock.port}: ${String(e)}`);
     return 1;
   }
 

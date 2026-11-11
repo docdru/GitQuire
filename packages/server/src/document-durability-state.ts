@@ -274,7 +274,7 @@ export class DocumentDurabilityStateError extends Error {
     const recovery =
       kind === 'unreadable'
         ? code === 'EACCES' || code === 'EPERM'
-          ? 'Check the snapshot and parent-directory permissions for the account running OpenKnowledge, then retry.'
+          ? 'Check the snapshot and parent-directory permissions for the account running GitQuire, then retry.'
           : code === 'EISDIR'
             ? 'The snapshot path must be a regular file, not a directory. Preserve that directory and restore the snapshot file to this path.'
             : 'Check the filesystem or mount and restore read access to this path, then retry.'

@@ -50,7 +50,7 @@ export function sharingStatusCommand(): Command {
       }
 
       const lines: string[] = [];
-      lines.push(`OpenKnowledge sharing mode: ${formatMode(mode)}`);
+      lines.push(`GitQuire sharing mode: ${formatMode(mode)}`);
       lines.push('');
       lines.push(`Excluded from git via ${accent('.git/info/exclude')}:`);
       if (excluded.length === 0) {

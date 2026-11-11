@@ -262,7 +262,7 @@ export async function installUserSkill(
     if (await installedUserSkillExists(home, bundleName)) {
       logger.info?.(
         { event: 'skill-install.skip-current', version: currentVersion },
-        'OpenKnowledge skill already installed at current version; skipping.',
+        'GitQuire skill already installed at current version; skipping.',
       );
       await report('skip-current', currentVersion);
       return 'skip-current';
@@ -341,7 +341,7 @@ export async function installUserSkill(
       hosts: hosts.map((h) => h.editorId),
       paths: written.map((e) => e.path),
     },
-    `OpenKnowledge skill installed to ${written.length} location(s): ${written
+    `GitQuire skill installed to ${written.length} location(s): ${written
       .map((e) => e.path)
       .join(', ')}`,
   );
@@ -507,7 +507,7 @@ export async function buildAndOpenSkill(
             target: 'claude-cowork',
             version: currentVersion,
           },
-          'OpenKnowledge skill already delivered at current version; skipping rebuild.',
+          'GitQuire skill already delivered at current version; skipping rebuild.',
         );
         await report('skip-current', currentVersion);
         return {

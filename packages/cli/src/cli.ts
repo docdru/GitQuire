@@ -116,7 +116,7 @@ program
       recordInvocationCwd(process.cwd());
       process.chdir(anchorRoot);
       if (subcommandName !== 'deinit' || actionCommand.args.length === 0) {
-        console.error(`[ok] Using OpenKnowledge project at ${anchorRoot}`);
+        console.error(`[ok] Using GitQuire project at ${anchorRoot}`);
       }
     }
 

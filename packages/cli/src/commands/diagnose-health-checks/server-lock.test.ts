@@ -187,7 +187,7 @@ describe('server-lock remediation names the running channel CLI', () => {
         .remediation;
     expect(
       await remediationFor({ status: 'alive', lockPath: '/x/server.lock', lock: makeLockMeta() }),
-    ).toBe(`Stop the other OpenKnowledge process or run \`${command} stop\`.`);
+    ).toBe(`Stop the other GitQuire process or run \`${command} stop\`.`);
     expect(
       await remediationFor({
         status: 'dead-pid',

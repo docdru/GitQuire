@@ -381,7 +381,7 @@ describe('opaque origins and request body media types', () => {
   const OPAQUE_ORIGINS = ['null', 'file://', 'file://127.0.0.1'];
   const FILE_ORIGINS = ['file://', 'file://127.0.0.1'];
   const OPAQUE_DETAIL =
-    'Requests from a null origin, and writes from a file: origin, are refused. Send the request from a loopback page, the OpenKnowledge app, or a client that sends no Origin header.';
+    'Requests from a null origin, and writes from a file: origin, are refused. Send the request from a loopback page, the GitQuire app, or a client that sends no Origin header.';
 
   function expectNoCorsGrant(headers: Record<string, string | string[] | undefined>): void {
     expect(headers['access-control-allow-origin']).toBeUndefined();

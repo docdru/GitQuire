@@ -43,7 +43,7 @@ type ServerAuthorityVerification =
   | { kind: 'failed'; error: ServerAuthorityLeaseVerificationError };
 
 function ownershipRegistryRecovery(registryPath: string | undefined): string {
-  return `Run ${currentCliCommandName()} stop all and confirm every OpenKnowledge server under this OS account has exited. Then back up and remove ${registryPath ?? 'the named ownership registry'} together with its -journal file if present, keeping them together as one backup. Never remove either while a server is running.`;
+  return `Run ${currentCliCommandName()} stop all and confirm every GitQuire server under this OS account has exited. Then back up and remove ${registryPath ?? 'the named ownership registry'} together with its -journal file if present, keeping them together as one backup. Never remove either while a server is running.`;
 }
 
 function unverifiedOwnershipMessage(
@@ -53,7 +53,7 @@ function unverifiedOwnershipMessage(
 ): string {
   const prefix = `Existing content ownership for ${existing.scope.path} in ${existing.projectDir} could not be verified. `;
   if (verification.kind === 'protocol-mismatch')
-    return `${prefix}The ownership protocol ${verification.protocol} is not supported by this runtime. Update every OpenKnowledge runtime to a compatible version; no ownership record was cleared.`;
+    return `${prefix}The ownership protocol ${verification.protocol} is not supported by this runtime. Update every GitQuire runtime to a compatible version; no ownership record was cleared.`;
   const error = verification.error;
   const detail = `Lease ${error.leasePath}: ${error.cause instanceof Error ? error.cause.message : String(error.cause)}. `;
   const recovery = ownershipRegistryRecovery(registryPath);
@@ -78,7 +78,7 @@ export class ServerAuthorityCollisionError extends Error {
   ) {
     super(
       verification.kind === 'held'
-        ? `OpenKnowledge content ownership is already held by ${existing.scope.kind === 'file' ? `a single-file preview of ${existing.scope.path}` : `the project server for ${existing.projectDir}`} (pid ${existing.pid}, content ${existing.scope.path}). Close that session before opening an overlapping content scope.`
+        ? `GitQuire content ownership is already held by ${existing.scope.kind === 'file' ? `a single-file preview of ${existing.scope.path}` : `the project server for ${existing.projectDir}`} (pid ${existing.pid}, content ${existing.scope.path}). Close that session before opening an overlapping content scope.`
         : unverifiedOwnershipMessage(existing, registryPath, verification),
       verification.kind === 'failed' ? { cause: verification.error } : undefined,
     );
@@ -116,7 +116,7 @@ export class ServerAuthorityRegistryError extends Error {
       unknown: 'The content ownership registry could not be read or updated',
     };
     const remedies: Record<ServerAuthorityRegistryError['kind'], string> = {
-      'unsupported-version': 'Update every OpenKnowledge runtime to a compatible version.',
+      'unsupported-version': 'Update every GitQuire runtime to a compatible version.',
       'retired-version': ownershipRegistryRecovery(registryPath),
       contention: 'Another runtime is updating the registry; try starting again.',
       unavailable:

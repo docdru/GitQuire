@@ -1229,8 +1229,8 @@ export class SyncEngine {
       this.identityUnresolved = nextUnresolved;
       this.cc1Broadcaster?.signal('sync-status');
     }
-    const name = identity?.name ?? 'OpenKnowledge';
-    const email = identity?.email ?? 'sync@open-knowledge.local';
+    const name = identity?.name ?? 'GitQuire';
+    const email = identity?.email ?? 'sync@gitquire.local';
     applyGitEnv(handle, {
       GIT_AUTHOR_NAME: name,
       GIT_AUTHOR_EMAIL: email,
@@ -1942,7 +1942,7 @@ export class SyncEngine {
           }
           log.info(
             { event: 'mcp-config-reconcile', target: p, outcome: 'auto-resolved' },
-            '[sync] pull-only: auto-resolved OpenKnowledge MCP entry overlap',
+            '[sync] pull-only: auto-resolved GitQuire MCP entry overlap',
           );
           continue;
         }
@@ -1954,7 +1954,7 @@ export class SyncEngine {
               outcome: 'declined',
               reason: mcpPlan.reason,
             },
-            '[sync] pull-only: declined OpenKnowledge MCP entry reconciliation',
+            '[sync] pull-only: declined GitQuire MCP entry reconciliation',
           );
         }
       }
@@ -2563,7 +2563,7 @@ export class SyncEngine {
           reconciled.push({ path, raw: plan.raw, winnerEntry: plan.winnerEntry });
           log.info(
             { event: 'mcp-config-reconcile', target: path, outcome: 'auto-resolved' },
-            '[sync] auto-resolved OpenKnowledge MCP entry overlap',
+            '[sync] auto-resolved GitQuire MCP entry overlap',
           );
         }
         blocking = blocking.filter((path) => !trackedTargets.has(path));
@@ -2575,7 +2575,7 @@ export class SyncEngine {
             outcome: 'declined',
             reason: declined.plan.kind === 'declined' ? declined.plan.reason : undefined,
           },
-          '[sync] declined OpenKnowledge MCP entry reconciliation',
+          '[sync] declined GitQuire MCP entry reconciliation',
         );
       } else if (hasOtherBlockingPath) {
         log.info(
@@ -2616,7 +2616,7 @@ export class SyncEngine {
       } catch (err) {
         log.warn({ err }, '[sync] could not isolate reconciled MCP paths from pre-merge stash');
         this.pullError =
-          'Sync paused — OpenKnowledge could not safely isolate local MCP launcher changes before merging.';
+          'Sync paused — GitQuire could not safely isolate local MCP launcher changes before merging.';
         this.pausedReason = 'external-changes-pending';
         this.blockingPaths = [];
         this.transitionTo('idle');
@@ -2888,7 +2888,7 @@ export class SyncEngine {
             '-p',
             headSha,
             '-m',
-            'Update OpenKnowledge MCP launcher',
+            'Update GitQuire MCP launcher',
           ])
         ).trim();
         if (!SHA_HEX_40.test(commitSha)) throw new Error('commit-tree returned an invalid SHA');
@@ -2929,7 +2929,7 @@ export class SyncEngine {
         }
         log.info(
           { event: 'mcp-config-reconcile', outcome: 'persisted-entry-commit' },
-          '[sync] persisted OpenKnowledge MCP launcher entry commit',
+          '[sync] persisted GitQuire MCP launcher entry commit',
         );
       } finally {
         for (const path of tempBlobs) {

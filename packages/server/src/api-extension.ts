@@ -1494,8 +1494,8 @@ function stoppedServerProblem(failure: StoreFailure) {
     title: 'Edit not saved to disk: the server stopped before the edit reached disk.',
     detail:
       renamedTo === undefined
-        ? `${failure.message}. After OpenKnowledge restarts, the edit is in the document's history (the timeline); tell the user.`
-        : `${failure.message}. After OpenKnowledge restarts, re-read the document at ${renamedTo} to see whether it holds the edit, and re-apply the edit there if it is missing. Do not re-create the document under its old name.`,
+        ? `${failure.message}. After GitQuire restarts, the edit is in the document's history (the timeline); tell the user.`
+        : `${failure.message}. After GitQuire restarts, re-read the document at ${renamedTo} to see whether it holds the edit, and re-apply the edit there if it is missing. Do not re-create the document under its old name.`,
   } satisfies BatchEntryError;
 }
 
@@ -1514,7 +1514,7 @@ const DROPPED_WRITE_ADVICE: Readonly<Record<WriteDropCause, string>> = {
   unresolvable:
     'Retrying will not help until the path resolves again. Tell the user which document it is.',
   'container-gone':
-    'OpenKnowledge does not re-create a skill folder that was deleted or moved. Tell the user which skill it is.',
+    'GitQuire does not re-create a skill folder that was deleted or moved. Tell the user which skill it is.',
   'intake-landed':
     'Re-read the document, which now holds the outside change, and re-apply the edit if it is still missing.',
 };
@@ -1526,7 +1526,7 @@ function droppedWriteProblem(failure: StoreFailure) {
       : DROPPED_WRITE_ADVICE[failure.dropped];
   return {
     type: 'urn:ok:error:write-dropped' as const,
-    title: "Edit not saved: OpenKnowledge did not write this document's file.",
+    title: "Edit not saved: GitQuire did not write this document's file.",
     detail: `${failure.message}. The edit is only in the open document. ${advice}`,
   } satisfies BatchEntryError;
 }
@@ -1536,7 +1536,7 @@ function replacedWriteProblem(failure: StoreFailure) {
     type: 'urn:ok:error:write-replaced' as const,
     title:
       'Edit not saved: the file on disk replaced the document, and the edit went to its history.',
-    detail: `${failure.message}. OpenKnowledge had no agreed version of the file to merge the edit with, so it took the file in as it is and saved the document as it was, this edit included, to the document's history (the timeline). Re-read the document, and re-apply the edit if it is still needed.`,
+    detail: `${failure.message}. GitQuire had no agreed version of the file to merge the edit with, so it took the file in as it is and saved the document as it was, this edit included, to the document's history (the timeline). Re-read the document, and re-apply the edit if it is still needed.`,
   } satisfies BatchEntryError;
 }
 
@@ -1623,7 +1623,7 @@ const HELD_SAVE_RULES: Readonly<
   'pending-conflict': {
     retryWhen: 'conflict-resolved',
     sentence:
-      'It is saved once the user has dealt with the file in the OpenKnowledge app; tell the user which file it is.',
+      'It is saved once the user has dealt with the file in the GitQuire app; tell the user which file it is.',
   },
   'pending-no-history-or-backup': {
     retryWhen: 'next-save',
@@ -1633,7 +1633,7 @@ const HELD_SAVE_RULES: Readonly<
   'pending-not-utf8': {
     retryWhen: undefined,
     sentence:
-      'OpenKnowledge does not write over it, and no save runs until someone saves the file as text again. Tell the user which file it is.',
+      'GitQuire does not write over it, and no save runs until someone saves the file as text again. Tell the user which file it is.',
   },
   'pending-unsettled': {
     retryWhen: 'next-save',
@@ -1648,7 +1648,7 @@ const HELD_SAVE_RULES: Readonly<
 };
 
 const NO_BASE_HOLD_SENTENCE =
-  'This edit is in the document but is not saved to the file, and no save runs on its own: OpenKnowledge has no agreed version of the file to merge it with. Any further write to this document, yours included, replaces the document with the file on disk and moves this edit, that write and any typing since to the document history (timeline). Do not write to this document again; tell the user that its file changed outside OpenKnowledge.';
+  'This edit is in the document but is not saved to the file, and no save runs on its own: GitQuire has no agreed version of the file to merge it with. Any further write to this document, yours included, replaces the document with the file on disk and moves this edit, that write and any typing since to the document history (timeline). Do not write to this document again; tell the user that its file changed outside GitQuire.';
 
 function heldSaveDetail(failure: StoreFailure, reason: HeldSaveReason, noBase: boolean): string {
   if (noBase) return `${failure.message}. ${NO_BASE_HOLD_SENTENCE}`;
@@ -2317,7 +2317,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       type: 'urn:ok:error:stale-external-write' as const,
       title: 'Edit retained; disk write blocked by a stale external-write conflict.',
       detail:
-        'An older version was restored on disk. Your edit was applied and is retained in memory and in the recovery snapshot, but its Markdown disk write was skipped. Do not repeat this edit: ask the user to resolve the conflict in the OpenKnowledge app, then re-read the document before making further changes.',
+        'An older version was restored on disk. Your edit was applied and is retained in memory and in the recovery snapshot, but its Markdown disk write was skipped. Do not repeat this edit: ask the user to resolve the conflict in the GitQuire app, then re-read the document before making further changes.',
       file:
         durabilityState.getStaleExternalWrite(docName)?.file ??
         relative(projectDir ?? contentDir, safeContentPath(docName, contentDir)).replaceAll(
@@ -4928,7 +4928,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       res,
       400,
       'urn:ok:error:reserved-doc-name',
-      `"${name}" is one of OpenKnowledge's runtime skills — its content is read-only in-app (updates arrive via reimport). Duplicate it under a new name to make your own version.`,
+      `"${name}" is one of GitQuire's runtime skills — its content is read-only in-app (updates arrive via reimport). Duplicate it under a new name to make your own version.`,
       { handler },
     );
     return true;

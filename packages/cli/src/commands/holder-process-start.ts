@@ -132,7 +132,7 @@ export function describeHolderStartReadFailure(args: {
     nativeFailures.length === 0
       ? ''
       : componentUnavailable
-        ? 'Reinstall OpenKnowledge to restore the Windows component that verifies process identity. '
+        ? 'Reinstall GitQuire to restore the Windows component that verifies process identity. '
         : 'The Windows component loaded but the operating system refused the query, so reinstalling will not help; retry from an account that can inspect that process. ';
   const probeRecovery =
     platform === 'linux'

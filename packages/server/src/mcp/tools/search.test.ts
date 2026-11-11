@@ -604,7 +604,7 @@ describe('search MCP tool — happy path', () => {
     });
 
     const text = result.content?.find((c) => c.type === 'text')?.text ?? '';
-    expect(text).toContain('restart OpenKnowledge before retrying');
+    expect(text).toContain('restart GitQuire before retrying');
   });
 
   test("kind:'file' rows survive into structured results (PRD-7117 all-files MCP)", async () => {

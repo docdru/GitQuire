@@ -401,7 +401,7 @@ export function applicationDataOps(
     ops.push({
       kind: 'remove-path',
       group: 'Application data',
-      label: `Remove ${tildify(legacy, home)} (only if it is OpenKnowledge's)`,
+      label: `Remove ${tildify(legacy, home)} (only if it is GitQuire's)`,
       path: legacy,
       requireOurState: true,
     });
@@ -662,13 +662,13 @@ async function executeOp(op: RemovalOp, deps: ResolvedDeps): Promise<RemovalOpRe
               return {
                 op,
                 status: 'failed',
-                detail: `Pi bridge configuration left untouched (missing symlink target); Pi's separate folder trust grant has not been checked or removed. Restore the missing target of the OpenKnowledge bridge symlink at ${configPath}, or repoint that symlink to the intended bridge file, then retry cleanup`,
+                detail: `Pi bridge configuration left untouched (missing symlink target); Pi's separate folder trust grant has not been checked or removed. Restore the missing target of the GitQuire bridge symlink at ${configPath}, or repoint that symlink to the intended bridge file, then retry cleanup`,
               };
             }
             return {
               op,
               status: 'skipped',
-              detail: `left the dangling configuration symlink untouched; no target file contains an OpenKnowledge entry to remove: ${configPath}`,
+              detail: `left the dangling configuration symlink untouched; no target file contains a GitQuire entry to remove: ${configPath}`,
             };
           }
           return {
@@ -696,7 +696,7 @@ async function executeOp(op: RemovalOp, deps: ResolvedDeps): Promise<RemovalOpRe
             return {
               op,
               status: 'skipped',
-              detail: `left the dangling configuration symlink untouched; no target file contains an OpenKnowledge entry to remove: ${join(op.projectRoot, '.claude', 'launch.json')}`,
+              detail: `left the dangling configuration symlink untouched; no target file contains a GitQuire entry to remove: ${join(op.projectRoot, '.claude', 'launch.json')}`,
             };
           }
           return {
@@ -757,7 +757,7 @@ function configurationDeclineDetail(reason: McpConfigDeclineReason): string {
     case 'duplicate-container':
       return 'configuration left untouched (duplicate server configuration blocks); combine the duplicate blocks while preserving their settings, then retry cleanup';
     case 'no-native-writer':
-      return 'configuration left untouched (this install has no format-preserving TOML writer); remove the OpenKnowledge entry manually or reinstall OpenKnowledge, then retry cleanup';
+      return 'configuration left untouched (this install has no format-preserving TOML writer); remove the GitQuire entry manually or reinstall GitQuire, then retry cleanup';
     case 'unparseable':
       return 'configuration left untouched (unparseable); repair it and retry cleanup';
     default: {
@@ -769,7 +769,7 @@ function configurationDeclineDetail(reason: McpConfigDeclineReason): string {
 
 function executeRemovePath(op: Extract<RemovalOp, { kind: 'remove-path' }>): RemovalOpResult {
   if (op.requireOurState && !stateDirIsOurs(op.path)) {
-    return { op, status: 'skipped', detail: 'not verified as OpenKnowledge — left untouched' };
+    return { op, status: 'skipped', detail: 'not verified as GitQuire — left untouched' };
   }
   if (op.containWithin) {
     assertProjectRemovalSafe(op.path, op.containWithin);
