@@ -183,36 +183,71 @@ export function createMentionIndex(projectDir: string, now: () => number = Date.
   return { all };
 }
 
+interface UserState {
+  read: string[];
+  login?: string;
+  email?: string;
+  mailed?: string[];
+}
+
 interface ReadState {
   version: 1;
-  users: Record<string, { read: string[] }>;
+  users: Record<string, UserState>;
+}
+
+export interface MailSubscriber {
+  id: number;
+  login: string;
+  email: string;
 }
 
 export interface MentionReadStore {
   readIds: (userId: number) => Set<string>;
   markRead: (userId: number, ids: readonly string[], known: ReadonlySet<string>) => void;
+  emailOf: (userId: number) => string | undefined;
+  setEmail: (
+    reader: MentionReader,
+    email: string | undefined,
+    alreadyThere: readonly string[],
+  ) => void;
+  subscribers: () => MailSubscriber[];
+  mailedIds: (userId: number) => Set<string>;
+  markMailed: (userId: number, ids: readonly string[]) => void;
 }
 
 export function mentionStatePath(projectDir: string): string {
   return join(projectDir, '.ok', 'local', 'gitquire', 'mentions.json');
 }
 
+function stringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
+}
+
+function readUser(entry: unknown): UserState | undefined {
+  if (typeof entry !== 'object' || entry === null) return undefined;
+  const raw = entry as Record<string, unknown>;
+  const user: UserState = { read: stringList(raw.read) };
+  if (typeof raw.login === 'string') user.login = raw.login;
+  if (typeof raw.email === 'string') user.email = raw.email;
+  if (Array.isArray(raw.mailed)) user.mailed = stringList(raw.mailed);
+  return user;
+}
+
 function loadState(file: string): ReadState {
-  const empty: ReadState = { version: 1, users: {} };
-  if (!existsSync(file)) return empty;
+  const state: ReadState = { version: 1, users: {} };
+  if (!existsSync(file)) return state;
   try {
     const parsed: unknown = JSON.parse(readFileSync(file, 'utf8'));
-    if (typeof parsed !== 'object' || parsed === null) return empty;
+    if (typeof parsed !== 'object' || parsed === null) return state;
     const users = (parsed as { users?: unknown }).users;
-    if (typeof users !== 'object' || users === null) return empty;
+    if (typeof users !== 'object' || users === null) return state;
     for (const [userId, entry] of Object.entries(users as Record<string, unknown>)) {
-      const read = (entry as { read?: unknown } | null)?.read;
-      if (!Array.isArray(read)) continue;
-      empty.users[userId] = { read: read.filter((id): id is string => typeof id === 'string') };
+      const user = readUser(entry);
+      if (user !== undefined) state.users[userId] = user;
     }
-    return empty;
+    return state;
   } catch {
-    return empty;
+    return state;
   }
 }
 
@@ -224,29 +259,60 @@ export function createMentionReadStore(file: string): MentionReadStore {
     return state;
   }
 
-  function save(next: ReadState): void {
+  function userState(userId: number): UserState {
+    return current().users[String(userId)] ?? { read: [] };
+  }
+
+  function update(userId: number, next: UserState): void {
+    const nextState: ReadState = {
+      version: 1,
+      users: { ...current().users, [String(userId)]: next },
+    };
     mkdirSync(dirname(file), { recursive: true });
     const temporary = `${file}.${process.pid}.tmp`;
-    writeFileSync(temporary, `${JSON.stringify(next)}\n`, { mode: 0o600 });
+    writeFileSync(temporary, `${JSON.stringify(nextState)}\n`, { mode: 0o600 });
     renameSync(temporary, file);
+    state = nextState;
+  }
+
+  function appended(existing: readonly string[], ids: readonly string[]): string[] {
+    const merged = new Set(existing);
+    for (const id of ids) {
+      merged.delete(id);
+      merged.add(id);
+    }
+    return [...merged].slice(-MAX_READ_IDS);
   }
 
   return {
-    readIds: (userId) => new Set(current().users[String(userId)]?.read ?? []),
+    readIds: (userId) => new Set(userState(userId).read),
     markRead: (userId, ids, known) => {
-      const snapshot = current();
-      const merged = new Set(snapshot.users[String(userId)]?.read ?? []);
-      for (const id of ids) {
-        if (!known.has(id)) continue;
-        merged.delete(id);
-        merged.add(id);
+      const user = userState(userId);
+      const read = appended(user.read, ids.filter((id) => known.has(id)));
+      update(userId, { ...user, read });
+    },
+    emailOf: (userId) => userState(userId).email,
+    setEmail: (reader, email, alreadyThere) => {
+      const user = userState(reader.id);
+      const next: UserState = { read: user.read, login: reader.login };
+      if (email !== undefined) {
+        next.email = email;
+        next.mailed = appended(user.mailed ?? [], alreadyThere);
       }
-      const next: ReadState = {
-        version: 1,
-        users: { ...snapshot.users, [String(userId)]: { read: [...merged].slice(-MAX_READ_IDS) } },
-      };
-      save(next);
-      state = next;
+      update(reader.id, next);
+    },
+    subscribers: () => {
+      const found: MailSubscriber[] = [];
+      for (const [userId, user] of Object.entries(current().users)) {
+        if (user.email === undefined || user.login === undefined) continue;
+        found.push({ id: Number(userId), login: user.login, email: user.email });
+      }
+      return found;
+    },
+    mailedIds: (userId) => new Set(userState(userId).mailed ?? []),
+    markMailed: (userId, ids) => {
+      const user = userState(userId);
+      update(userId, { ...user, mailed: appended(user.mailed ?? [], ids) });
     },
   };
 }

@@ -3,6 +3,14 @@ import type { GateLogger, SessionUser } from './access-gate.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
 import {
+  isEmailAddress,
+  type MailConfig,
+  type MailMessage,
+  resolveMailConfig,
+  sendMail,
+} from './mail.ts';
+import { createMentionMailer } from './mention-mailer.ts';
+import {
   buildInbox,
   createMentionIndex,
   createMentionReadStore,
@@ -27,11 +35,17 @@ export interface GitQuireRoutesDeps {
   env?: Readonly<Record<string, string | undefined>>;
   mentionStateFile?: string;
   contentDir?: string;
+  sendMail?: (config: MailConfig, message: MailMessage) => Promise<void>;
+  mailRoundMs?: number;
 }
 
 export interface GitQuireRoutes {
   handle: (req: IncomingMessage, res: ServerResponse) => boolean;
+  mailRound: () => Promise<number>;
+  stop: () => void;
 }
+
+const DEFAULT_MAIL_ROUND_MS = 60_000;
 
 class HttpError extends Error {
   readonly status: number;
@@ -237,14 +251,71 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
   );
 
+  const mail = resolveMailConfig(deps.env ?? process.env);
+  if (mail.kind === 'invalid') {
+    deps.log.warn({ reason: mail.reason }, '[gitquire-mail] email for mentions is off');
+  }
+  const mailer =
+    mail.kind === 'on'
+      ? createMentionMailer({
+          index: mentionIndex,
+          store: mentionReads,
+          config: mail.config,
+          send: deps.sendMail ?? sendMail,
+          log: deps.log,
+        })
+      : undefined;
+  function startMailRounds(): NodeJS.Timeout | undefined {
+    if (mailer === undefined) return undefined;
+    const timer = setInterval(() => {
+      mailer.round().catch(() => undefined);
+    }, deps.mailRoundMs ?? DEFAULT_MAIL_ROUND_MS);
+    timer.unref();
+    return timer;
+  }
+  const mailTimer = startMailRounds();
+
+  function emailState(userId: number): { available: boolean; address: string | null } {
+    return { available: mailer !== undefined, address: mentionReads.emailOf(userId) ?? null };
+  }
+
   function listMentions(req: IncomingMessage, res: ServerResponse): void {
     const user = deps.sessionUser?.(req);
     if (user === undefined) {
-      sendJson(res, 200, { enabled: false, login: null, unread: 0, mentions: [] });
+      sendJson(res, 200, {
+        enabled: false,
+        login: null,
+        unread: 0,
+        mentions: [],
+        email: { available: false, address: null },
+      });
       return;
     }
     const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
-    sendJson(res, 200, { enabled: true, ...inbox });
+    sendJson(res, 200, { enabled: true, ...inbox, email: emailState(user.id) });
+  }
+
+  async function setMentionEmail(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      throw new HttpError(401, 'sign-in-required', 'Sign in to use the mention inbox.');
+    }
+    const body = await readJson(req);
+    if (body.address === null) {
+      mentionReads.setEmail(user, undefined, []);
+      sendJson(res, 200, emailState(user.id));
+      return;
+    }
+    if (mailer === undefined) {
+      throw new HttpError(409, 'mail-not-configured', 'This server cannot send email.');
+    }
+    const address = typeof body.address === 'string' ? body.address.trim() : '';
+    if (!isEmailAddress(address)) {
+      throw new HttpError(400, 'invalid-address', 'Enter a valid email address.');
+    }
+    const alreadyThere = mentionsFor(user, mentionIndex.all()).map((mention) => mention.id);
+    mentionReads.setEmail(user, address, alreadyThere);
+    sendJson(res, 200, emailState(user.id));
   }
 
   async function markMentionsRead(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -285,6 +356,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/mentions/read' && method === 'POST') {
       return markMentionsRead(req, res);
     }
+    if (path === '/api/gitquire/mentions/email' && method === 'PUT') {
+      return setMentionEmail(req, res);
+    }
     throw new HttpError(404, 'not-found', 'Unknown GitQuire endpoint.');
   }
 
@@ -313,5 +387,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     return true;
   }
 
-  return { handle };
+  return {
+    handle,
+    mailRound: () => mailer?.round() ?? Promise.resolve(0),
+    stop: () => clearInterval(mailTimer),
+  };
 }

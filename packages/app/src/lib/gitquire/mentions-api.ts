@@ -20,11 +20,17 @@ export interface InboxMention {
   read: boolean;
 }
 
+export interface MentionEmail {
+  available: boolean;
+  address: string | null;
+}
+
 export interface MentionInboxData {
   enabled: boolean;
   login: string | null;
   unread: number;
   mentions: InboxMention[];
+  email?: MentionEmail;
 }
 
 export type ReadTarget = { ids: string[] } | { all: true };
@@ -38,6 +44,17 @@ export function markMentionsRead(
   deps: ApiDeps = {},
 ): Promise<{ unread: number }> {
   return gitquireRequest('/api/gitquire/mentions/read', { method: 'POST', body: target }, deps);
+}
+
+export function setMentionEmail(
+  address: string | null,
+  deps: ApiDeps = {},
+): Promise<MentionEmail> {
+  return gitquireRequest(
+    '/api/gitquire/mentions/email',
+    { method: 'PUT', body: { address } },
+    deps,
+  );
 }
 
 export function withMentionsRead(inbox: MentionInboxData, target: ReadTarget): MentionInboxData {

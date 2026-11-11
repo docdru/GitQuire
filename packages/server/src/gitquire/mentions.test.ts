@@ -7,6 +7,8 @@ import {
   writeCommentThreads,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { describe, expect, it } from 'vitest';
+import type { MailConfig, MailMessage } from './mail.ts';
+import { createMentionMailer, mentionMail, pageLink } from './mention-mailer.ts';
 import {
   buildInbox,
   createMentionIndex,
@@ -250,14 +252,159 @@ describe('mention routes', () => {
     }
   });
 
+  it('stores and clears a notification address without mailing old mentions', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    const routes = createGitQuireRoutes({
+      projectDir: dir,
+      log: silentLog,
+      sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
+      env: {
+        GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
+        GITQUIRE_MAIL_FROM: 'wiki@example.com',
+        OK_EXTERNAL_URL: 'https://brain.example.com/',
+      },
+      sendMail: async (_config, message) => {
+        sent.push(message);
+      },
+      mailRoundMs: 3_600_000,
+    });
+    try {
+      const before = await call(routes, '/api/gitquire/mentions');
+      expect(before.body.email).toEqual({ available: true, address: null });
+      const bad = await call(routes, '/api/gitquire/mentions/email', {
+        method: 'PUT',
+        body: { address: 'not an address' },
+      });
+      expect(bad.status).toBe(400);
+      const saved = await call(routes, '/api/gitquire/mentions/email', {
+        method: 'PUT',
+        body: { address: ' alice@example.com ' },
+      });
+      expect(saved.body).toEqual({ available: true, address: 'alice@example.com' });
+      expect(await routes.mailRound()).toBe(0);
+      const off = await call(routes, '/api/gitquire/mentions/email', {
+        method: 'PUT',
+        body: { address: null },
+      });
+      expect(off.body).toEqual({ available: true, address: null });
+    } finally {
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
+    expect(sent).toEqual([]);
+  });
+
+  it('answers that mail is not set up when someone tries to subscribe', async () => {
+    const routes = createGitQuireRoutes({
+      projectDir: '/nonexistent',
+      log: silentLog,
+      sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
+      env: {},
+    });
+    const result = await call(routes, '/api/gitquire/mentions/email', {
+      method: 'PUT',
+      body: { address: 'alice@example.com' },
+    });
+    expect(result.status).toBe(409);
+    expect(result.body.error).toBe('mail-not-configured');
+  });
+
   it('reports the inbox as off without sign-in', async () => {
     const routes = createGitQuireRoutes({ projectDir: '/nonexistent', log: silentLog });
     const list = await call(routes, '/api/gitquire/mentions');
-    expect(list.body).toEqual({ enabled: false, login: null, unread: 0, mentions: [] });
+    expect(list.body).toEqual({
+      enabled: false,
+      login: null,
+      unread: 0,
+      mentions: [],
+      email: { available: false, address: null },
+    });
     const read = await call(routes, '/api/gitquire/mentions/read', {
       method: 'POST',
       body: { all: true },
     });
     expect(read.status).toBe(401);
+  });
+});
+
+describe('mention mailer', () => {
+  const config: MailConfig = {
+    host: 'mail.example.com',
+    port: 465,
+    implicitTls: true,
+    startTls: false,
+    user: undefined,
+    password: undefined,
+    from: 'wiki@example.com',
+    externalUrl: 'https://brain.example.com',
+  };
+
+  it('links to the page with each part of its name encoded', () => {
+    expect(pageLink('https://brain.example.com', 'notes/New page')).toBe(
+      'https://brain.example.com/#/notes/New%20page',
+    );
+    expect(pageLink(undefined, 'notes/report')).toBeUndefined();
+  });
+
+  it('writes a mail that names the author, the page and the text', () => {
+    const ask = comment('c1', bob, 'Can you check, @alice?', '2026-11-10T09:00:00Z', ['alice']);
+    const [mention] = mentionsInMarkdown('notes/report.md', page([thread('t1', [ask])]));
+    if (mention === undefined) throw new Error('expected a mention');
+    const mail = mentionMail(config, 'alice@example.com', mention);
+    expect(mail.to).toBe('alice@example.com');
+    expect(mail.subject).toBe('bob mentioned you in report');
+    expect(mail.text).toContain('On the text: "quarterly numbers"');
+    expect(mail.text).toContain('Can you check, @alice?');
+    expect(mail.text).toContain('Open the page: https://brain.example.com/#/notes/report');
+  });
+
+  it('mails each new unread mention once and retries after a failure', async () => {
+    const dir = project();
+    try {
+      const store = createMentionReadStore(mentionStatePath(dir));
+      let clock = 0;
+      const index = createMentionIndex(dir, () => clock);
+      const sent: MailMessage[] = [];
+      let failing = false;
+      const warnings: unknown[] = [];
+      const mailer = createMentionMailer({
+        index,
+        store,
+        config,
+        send: async (_config, message) => {
+          if (failing) throw new Error('mail server down');
+          sent.push(message);
+        },
+        log: {
+          warn: (details: unknown) => {
+            warnings.push(details);
+          },
+        },
+      });
+      expect(await mailer.round()).toBe(0);
+      store.setEmail(alice, 'alice@example.com', ['t1:c1']);
+      expect(await mailer.round()).toBe(1);
+      expect(sent.map((mail) => mail.subject)).toEqual(['bob mentioned you in plan']);
+      expect(await mailer.round()).toBe(0);
+
+      const fresh = comment('c7', bob, 'One more, @alice', '2026-11-12T08:00:00Z', ['alice']);
+      writeFileSync(join(dir, 'new.md'), page([thread('t7', [fresh])]));
+      clock += 60_000;
+      failing = true;
+      expect(await mailer.round()).toBe(0);
+      expect(warnings).toEqual([{ reason: 'mail server down' }]);
+      failing = false;
+      expect(await mailer.round()).toBe(1);
+      expect(sent.map((mail) => mail.to)).toEqual(['alice@example.com', 'alice@example.com']);
+
+      const read = comment('c8', bob, 'Seen, @alice', '2026-11-12T09:00:00Z', ['alice']);
+      writeFileSync(join(dir, 'seen.md'), page([thread('t8', [read])]));
+      clock += 60_000;
+      store.markRead(alice.id, ['t8:c8'], new Set(['t8:c8']));
+      expect(await mailer.round()).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

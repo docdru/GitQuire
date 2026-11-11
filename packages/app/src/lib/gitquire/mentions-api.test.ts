@@ -5,6 +5,7 @@ import {
   type MentionInboxData,
   markMentionsRead,
   pageTitle,
+  setMentionEmail,
   unreadBadge,
   withMentionsRead,
 } from './mentions-api';
@@ -52,6 +53,18 @@ describe('mention inbox client', () => {
     expect(seen.map((call) => [call.url, call.init?.method, call.init?.body])).toEqual([
       ['/api/gitquire/mentions', 'GET', undefined],
       ['/api/gitquire/mentions/read', 'POST', '{"ids":["a"]}'],
+    ]);
+  });
+
+  test('saves and clears the notification address', async () => {
+    const seen: { url: string; init: RequestInit | undefined }[] = [];
+    const saved = { available: true, address: 'alice@example.com' };
+    const first = await setMentionEmail('alice@example.com', { fetch: fakeFetch(saved, seen) });
+    expect(first).toEqual(saved);
+    await setMentionEmail(null, { fetch: fakeFetch({ available: true, address: null }, seen) });
+    expect(seen.map((call) => [call.init?.method, call.init?.body])).toEqual([
+      ['PUT', '{"address":"alice@example.com"}'],
+      ['PUT', '{"address":null}'],
     ]);
   });
 

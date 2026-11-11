@@ -1,8 +1,11 @@
 import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import { AtSign } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { hashFromDocName } from '@/lib/doc-hash';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
@@ -10,9 +13,11 @@ import {
   fetchMentions,
   type InboxMention,
   type MentionInboxData,
+  type MentionEmail,
   markMentionsRead,
   pageTitle,
   type ReadTarget,
+  setMentionEmail,
   unreadBadge,
   withMentionsRead,
 } from '@/lib/gitquire/mentions-api';
@@ -54,6 +59,82 @@ function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => 
         </span>
       </Button>
     </li>
+  );
+}
+
+function EmailSetting({
+  email,
+  onChange,
+}: {
+  email: MentionEmail;
+  onChange: (next: MentionEmail) => void;
+}) {
+  const { t } = useLingui();
+  const fieldId = useId();
+  const [draft, setDraft] = useState(email.address ?? '');
+  const [busy, setBusy] = useState(false);
+
+  function save(address: string | null) {
+    if (busy) return;
+    setBusy(true);
+    setMentionEmail(address)
+      .then(
+        (next) => {
+          onChange(next);
+          if (next.address === null) setDraft('');
+        },
+        (err: unknown) => {
+          toast.error(
+            err instanceof GitQuireApiError ? err.message : t`Couldn't save the email address.`,
+          );
+        },
+      )
+      .finally(() => setBusy(false));
+  }
+
+  return (
+    <form
+      className="flex flex-col gap-1.5 border-t px-2 pt-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const address = draft.trim();
+        if (address !== '') save(address);
+      }}
+    >
+      <Label htmlFor={fieldId} className="text-xs">
+        {t`Email me new mentions`}
+      </Label>
+      <div className="flex gap-2">
+        <Input
+          id={fieldId}
+          type="email"
+          autoComplete="email"
+          value={draft}
+          placeholder={t`name@example.com`}
+          disabled={busy}
+          onChange={(event) => setDraft(event.target.value)}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          disabled={busy || draft.trim() === '' || draft.trim() === email.address}
+        >
+          {t`Save`}
+        </Button>
+      </div>
+      {email.address !== null && (
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="self-start px-0"
+          disabled={busy}
+          onClick={() => save(null)}
+        >
+          {t`Stop emailing me`}
+        </Button>
+      )}
+    </form>
   );
 }
 
@@ -167,6 +248,14 @@ export function MentionInbox() {
               <MentionRow key={mention.id} mention={mention} onOpen={() => openMention(mention)} />
             ))}
           </ul>
+        )}
+        {current.email?.available === true && (
+          <EmailSetting
+            email={current.email}
+            onChange={(email) =>
+              setInbox((latest) => (latest === null ? latest : { ...latest, email }))
+            }
+          />
         )}
       </PopoverContent>
     </Popover>
