@@ -12,11 +12,15 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { fetchPages, filterPages, type PageItem } from '@/editor/extensions/wiki-link-suggestion';
-import { type LinkPickerItem, linkAttrsFor, linkPickerItems } from './link-picker';
+import {
+  type LinkPickerItem,
+  linkAttrsFor,
+  linkPickerItems,
+  linkPlacement,
+} from './link-picker';
+import { useKeyboardInset } from './viewport';
 
 export interface LinkPickerTarget {
-  from: number;
-  to: number;
   text: string;
 }
 
@@ -35,6 +39,9 @@ export function TouchLinkPicker({
   const [query, setQuery] = useState('');
   const [pages, setPages] = useState<PageItem[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [open, setOpen] = useState(true);
+  const [chosen, setChosen] = useState<LinkPickerItem | null>(null);
+  const inset = useKeyboardInset();
 
   useEffect(() => {
     let live = true;
@@ -43,7 +50,9 @@ export function TouchLinkPicker({
         if (live) setPages(found.filter((page) => (page.kind ?? 'page') === 'page'));
       },
       () => {
-        if (live) setFailed(true);
+        if (!live) return;
+        setFailed(true);
+        setPages([]);
       },
     );
     return () => {
@@ -53,36 +62,48 @@ export function TouchLinkPicker({
 
   const items = pages === null ? [] : linkPickerItems(filterPages(pages, query), query);
 
-  function backToEditor() {
+  function finish() {
     onClose();
     if (editor.isDestroyed) return;
-    const size = editor.state.doc.content.size;
-    const from = Math.min(target.from, size);
-    const to = Math.min(target.to, size);
-    editor.chain().focus().setTextSelection({ from, to }).run();
+    if (chosen === null) {
+      editor.commands.focus();
+      return;
+    }
+    const { $from, $to, from, to } = editor.state.selection;
+    const place = linkPlacement(target.text, {
+      from,
+      to,
+      text: editor.state.doc.textBetween(from, to, ' '),
+      withinOneBlock: $from.sameParent($to),
+    });
+    const attrs = linkAttrsFor(chosen, place.text);
+    if (attrs === null) {
+      editor.commands.focus();
+      return;
+    }
+    editor
+      .chain()
+      .focus()
+      .insertContentAt({ from: place.from, to: place.to }, { type: 'wikiLink', attrs })
+      .run();
   }
 
   function choose(item: LinkPickerItem) {
-    const attrs = linkAttrsFor(item, target.text);
-    onClose();
-    if (attrs === null || editor.isDestroyed) return;
-    const size = editor.state.doc.content.size;
-    const range = { from: Math.min(target.from, size), to: Math.min(target.to, size) };
-    editor.chain().focus().insertContentAt(range, { type: 'wikiLink', attrs }).run();
+    setChosen(item);
+    setOpen(false);
   }
 
   return (
-    <Sheet
-      open
-      onOpenChange={(open) => {
-        if (!open) backToEditor();
-      }}
-    >
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent
         side="top"
-        className="max-h-[70dvh] gap-3 p-4"
+        className="gap-3 p-4"
+        style={{ maxHeight: `calc(100dvh - ${inset}px - 1rem)` }}
         data-testid="touch-link-picker"
-        onCloseAutoFocus={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          finish();
+        }}
       >
         <SheetHeader className="p-0">
           <SheetTitle>{t`Link to a page`}</SheetTitle>
@@ -100,7 +121,7 @@ export function TouchLinkPicker({
           onChange={(event) => setQuery(event.target.value)}
         />
         {failed && <p className="text-destructive text-sm">{t`Couldn't load the pages.`}</p>}
-        {pages !== null && items.length === 0 && (
+        {pages !== null && !failed && items.length === 0 && (
           <p className="text-muted-foreground text-sm">{t`No page matches.`}</p>
         )}
         <ul className="flex flex-col gap-1 overflow-y-auto">

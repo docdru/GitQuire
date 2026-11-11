@@ -19,6 +19,7 @@ import {
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { isInLiteralTextContext } from '@/editor/literal-text-context';
 import { anchorFromSelection } from '@/gitquire-comments/editor-threads';
 import { startDraft } from '@/gitquire-comments/ui-store';
 import { type LinkPickerTarget, TouchLinkPicker } from './TouchLinkPicker';
@@ -66,6 +67,11 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
       heading: ctx.editor.isActive('heading'),
       inList: ctx.editor.isActive('listItem'),
       hasSelection: !ctx.editor.state.selection.empty,
+      literal: isInLiteralTextContext(
+        ctx.editor.state,
+        ctx.editor.state.selection.from,
+        ctx.editor.state.selection.to,
+      ),
     }),
   });
 
@@ -76,7 +82,8 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
       <TouchLinkPicker editor={editor} target={linkTarget} onClose={() => setLinkTarget(null)} />
     );
 
-  if (!coarse || !focused || editor.isDestroyed) return picker;
+  if (!coarse || editor.isDestroyed) return null;
+  const showToolbar = focused && linkTarget === null;
 
   const chain = () => editor.chain().focus();
   const history = editor.commands as unknown as HistoryCommands;
@@ -135,9 +142,10 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
       key: 'link',
       label: t`Link to a page`,
       icon: Link2,
+      disabled: state.literal,
       run: () => {
         const { from, to } = editor.state.selection;
-        setLinkTarget({ from, to, text: editor.state.doc.textBetween(from, to, ' ') });
+        setLinkTarget({ text: editor.state.doc.textBetween(from, to, ' ') });
       },
     },
     {
@@ -193,7 +201,7 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
 
   return (
     <>
-      {toolbar}
+      {showToolbar ? toolbar : null}
       {picker}
     </>
   );

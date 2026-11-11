@@ -1,4 +1,7 @@
-import { buildUnresolvedWikiLinkAttrs } from '@/editor/extensions/wiki-link-helpers';
+import {
+  buildUnresolvedWikiLinkAttrs,
+  toWikiLinkSlug,
+} from '@/editor/extensions/wiki-link-helpers';
 
 const MAX_ALIAS_LENGTH = 200;
 
@@ -11,7 +14,7 @@ export type LinkPickerItem =
   | { kind: 'page'; docName: string; title: string; folder: string }
   | { kind: 'create'; title: string };
 
-export interface WikiLinkAttrs {
+export interface PickedLinkAttrs {
   target: string;
   alias: string | null;
   anchor: null;
@@ -36,10 +39,15 @@ export function linkPickerItems(pages: readonly LinkPickerPage[], query: string)
   const wanted = query.trim();
   if (wanted === '' || buildUnresolvedWikiLinkAttrs(wanted) === null) return items;
   const lower = wanted.toLowerCase();
-  const exists = pages.some(
-    (page) =>
-      page.title.toLowerCase() === lower || lastSegment(page.docName).toLowerCase() === lower,
-  );
+  const slug = toWikiLinkSlug(wanted);
+  const exists = pages.some((page) => {
+    const name = lastSegment(page.docName);
+    return (
+      page.title.toLowerCase() === lower ||
+      name.toLowerCase() === lower ||
+      toWikiLinkSlug(name) === slug
+    );
+  });
   if (!exists) items.push({ kind: 'create', title: wanted });
   return items;
 }
@@ -50,13 +58,32 @@ export function aliasFromSelection(selectedText: string): string | null {
   return flat;
 }
 
-export function linkAttrsFor(item: LinkPickerItem, selectedText: string): WikiLinkAttrs | null {
+export function linkAttrsFor(item: LinkPickerItem, selectedText: string): PickedLinkAttrs | null {
   const alias = aliasFromSelection(selectedText);
   if (item.kind === 'page') {
-    const redundant = alias === item.title || alias === lastSegment(item.docName);
-    return { target: item.docName, alias: redundant ? null : alias, anchor: null };
+    return { target: item.docName, alias: alias === item.docName ? null : alias, anchor: null };
   }
   const attrs = buildUnresolvedWikiLinkAttrs(item.title);
   if (attrs === null) return null;
   return { target: attrs.target, alias: alias ?? attrs.alias, anchor: null };
+}
+
+export interface LinkSelection {
+  from: number;
+  to: number;
+  text: string;
+  withinOneBlock: boolean;
+}
+
+export interface LinkPlacement {
+  from: number;
+  to: number;
+  text: string;
+}
+
+export function linkPlacement(captured: string, current: LinkSelection): LinkPlacement {
+  const unchanged =
+    current.withinOneBlock && current.text === captured && current.from < current.to;
+  if (unchanged) return { from: current.from, to: current.to, text: current.text };
+  return { from: current.to, to: current.to, text: '' };
 }
