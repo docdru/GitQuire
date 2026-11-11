@@ -2,6 +2,13 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
+import {
+  buildInbox,
+  createMentionIndex,
+  createMentionReadStore,
+  mentionStatePath,
+  mentionsFor,
+} from './mentions.ts';
 import { namingRuleFromEnv } from './naming.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
@@ -18,6 +25,7 @@ export interface GitQuireRoutesDeps {
   sessionUser?: (req: IncomingMessage) => SessionUser | undefined;
   runGit?: RunGit;
   env?: Readonly<Record<string, string | undefined>>;
+  mentionStateFile?: string;
 }
 
 export interface GitQuireRoutes {
@@ -223,6 +231,42 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 201, { pull });
   }
 
+  const mentionIndex = createMentionIndex(deps.projectDir);
+  const mentionReads = createMentionReadStore(
+    deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
+  );
+
+  function listMentions(req: IncomingMessage, res: ServerResponse): void {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      sendJson(res, 200, { enabled: false, login: null, unread: 0, mentions: [] });
+      return;
+    }
+    const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
+    sendJson(res, 200, { enabled: true, ...inbox });
+  }
+
+  async function markMentionsRead(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      throw new HttpError(401, 'sign-in-required', 'Sign in to use the mention inbox.');
+    }
+    const body = await readJson(req);
+    const all = mentionIndex.all();
+    const mine = new Set(mentionsFor(user, all).map((mention) => mention.id));
+    let ids: string[];
+    if (body.all === true) {
+      ids = [...mine];
+    } else if (Array.isArray(body.ids) && body.ids.every((id) => typeof id === 'string')) {
+      ids = body.ids as string[];
+    } else {
+      throw new HttpError(400, 'invalid-ids', 'Send "ids" as a list of mention ids, or "all".');
+    }
+    mentionReads.markRead(user.id, ids, mine);
+    const inbox = buildInbox(user, all, mentionReads.readIds(user.id));
+    sendJson(res, 200, { unread: inbox.unread });
+  }
+
   async function route(req: IncomingMessage, res: ServerResponse, path: string): Promise<void> {
     const method = req.method ?? 'GET';
     if (method !== 'GET' && method !== 'HEAD' && !isSameOrigin(req)) {
@@ -236,6 +280,10 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/branches' && method === 'POST') return createBranch(req, res);
     if (path === '/api/gitquire/pulls' && method === 'GET') return listPulls(res);
     if (path === '/api/gitquire/pulls' && method === 'POST') return createPull(req, res);
+    if (path === '/api/gitquire/mentions' && method === 'GET') return listMentions(req, res);
+    if (path === '/api/gitquire/mentions/read' && method === 'POST') {
+      return markMentionsRead(req, res);
+    }
     throw new HttpError(404, 'not-found', 'Unknown GitQuire endpoint.');
   }
 

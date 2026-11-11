@@ -22,6 +22,7 @@ import { ShareButton, type ShareButtonProps } from '@/components/ShareButton';
 import { displayState, SyncStatusBadge } from '@/components/SyncStatusBadge';
 import { WebProjectName } from '@/components/WebProjectName';
 import { useDocumentContext } from '@/editor/DocumentContext';
+import { MentionInbox } from '@/gitquire-comments/MentionInbox';
 import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
 import { useTrailingOverflow } from '@/hooks/use-trailing-overflow';
 import { authPromptStore } from '@/lib/auth-prompt-store';
@@ -285,6 +286,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
           <>
             <WebProjectName />
             <GitQuireBranchMenu />
+            <MentionInbox />
           </>
         )}
       </div>
