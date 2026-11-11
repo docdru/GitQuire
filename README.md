@@ -108,6 +108,24 @@ If GitHub is unreachable at start, GitQuire retries for about five minutes befor
 and pushes the first commit. Until per-user authorship lands, commits are authored as
 `GITQUIRE_GIT_NAME` / `GITQUIRE_GIT_EMAIL`.
 
+### Branches and pull requests
+
+Everyone edits one working copy, so the branch is shared: switching it moves every open editor to
+that branch. Work on `main` by default; to propose something bigger, create a branch, switch to it,
+edit, and open a pull request once the branch has synced to GitHub. Pull requests are opened by the
+GitHub App, with the proposer's GitHub login in the description, so the app also needs **Pull
+requests: read and write**.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/gitquire/branches` | Current, base, local and remote-only branches. |
+| `POST /api/gitquire/branches` | Create a branch: `{"name": "report/q4", "from": "main"}` (`from` defaults to the current state). |
+| `GET /api/gitquire/pulls` | Open pull requests on the repository. |
+| `POST /api/gitquire/pulls` | Open a pull request from the current branch: `{"title": "…", "body": "…", "draft": false}`. |
+
+Switching uses the existing `POST /api/git/checkout`. Any signed-in member may switch or create
+branches.
+
 Build the image yourself:
 
 ```bash

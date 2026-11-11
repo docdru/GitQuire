@@ -47,6 +47,7 @@ import {
 } from './git-preflight-telemetry.ts';
 import {
   createAccessGateFromEnv,
+  createGitQuireHttp,
   startGitHubAppTokensFromEnv,
   withGitHubAppToken,
 } from './gitquire/index.ts';
@@ -314,6 +315,12 @@ async function bootServerInner(
   const ingressPolicy = buildIngressPolicy({ serverRuntime });
   const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log);
   const gitHubAppTokens = await startGitHubAppTokensFromEnv(process.env, log);
+  const gitquireHttp = createGitQuireHttp(process.env, {
+    projectDir: opts.projectDir ?? opts.contentDir,
+    gate: accessGate,
+    tokens: gitHubAppTokens,
+    log,
+  });
   if (
     serverRuntime.allowExternal &&
     !serverRuntime.loopbackOnly &&
@@ -560,7 +567,7 @@ async function bootServerInner(
     nativeApi: serverInstance.nativeApi,
     mcpHttpHandler,
     ingressPolicy,
-    accessGate,
+    accessGate: gitquireHttp,
     health: {
       readiness: () => readinessState,
       degraded: () => degraded,
