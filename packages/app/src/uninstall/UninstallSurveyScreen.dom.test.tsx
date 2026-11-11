@@ -24,9 +24,9 @@ describe('uninstall churn survey', () => {
     renderSurvey();
 
     expect(
-      screen.getByRole('heading', { name: 'Thanks for giving OpenKnowledge a try.' }),
+      screen.getByRole('heading', { name: 'Thanks for giving GitQuire a try.' }),
     ).toBeDefined();
-    expect(screen.getByText('What you share is sent to the OpenKnowledge team.')).toBeDefined();
+    expect(screen.getByText('What you share is sent to the GitQuire team.')).toBeDefined();
 
     expect(screen.getAllByRole('radio').map((radio) => radio.getAttribute('value'))).toEqual(
       UNINSTALL_FEEDBACK_REASONS.map((option) => option.value),

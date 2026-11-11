@@ -78,7 +78,7 @@ export function SkillDirectoryResult({
           <span className="truncate">{result.publisher ?? result.source}</span>
           {result.publisher === 'openknowledge' || result.publisher === 'inkeep' ? (
             <Badge variant="secondary" className="h-4 px-1 text-[10px] uppercase tracking-wide">
-              <Trans>By OpenKnowledge</Trans>
+              <Trans>By GitQuire</Trans>
             </Badge>
           ) : null}
           {result.installs != null ? (

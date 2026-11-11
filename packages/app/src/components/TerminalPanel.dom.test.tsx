@@ -2066,8 +2066,8 @@ describe('TerminalPanel', () => {
   });
 
   test.each([
-    ['containment-refused', /not safely contained.*not a link.*approve OpenKnowledge/i],
-    ['write-failed', /\.ok\/local\/terminal.*folder is writable.*approve OpenKnowledge/i],
+    ['containment-refused', /not safely contained.*not a link.*approve GitQuire/i],
+    ['write-failed', /\.ok\/local\/terminal.*folder is writable.*approve GitQuire/i],
   ] as const)('shows the support-file degradation notice for %s', async (reason, copy) => {
     const { bridge, terminal, pushNotice } = makeBridge(
       { ok: true, ptyId: 'pty-1' },
@@ -2307,7 +2307,7 @@ describe('TerminalPanel', () => {
       expect(await screen.findByText(/aren't connected to it yet/)).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Connect tools' }));
       expect(screen.getByRole('dialog').textContent).toContain(
-        'Choose what OpenKnowledge sets up for',
+        'Choose what GitQuire sets up for',
       );
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
       expect(screen.getByRole('button', { name: 'Connect tools' })).toBeTruthy();

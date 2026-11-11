@@ -403,7 +403,7 @@ describe('ExternalHandoffGate', () => {
     await act(async () => retry?.());
 
     expect((await screen.findByRole('dialog')).textContent).toContain(
-      'Choose what OpenKnowledge sets up for Claude.',
+      'Choose what GitQuire sets up for Claude.',
     );
     expect(applyConnections).toHaveBeenCalledTimes(2);
     expect(moduleDispatch).toHaveBeenCalledTimes(1);
@@ -418,7 +418,7 @@ describe('ExternalHandoffGate', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Open claude-code' }));
 
     expect((await screen.findByRole('dialog')).textContent).toContain(
-      'Choose what OpenKnowledge sets up for Claude.',
+      'Choose what GitQuire sets up for Claude.',
     );
     expect(rawDispatch).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -701,10 +701,10 @@ describe('ExternalHandoffGate', () => {
 
     await waitFor(() => expect(applyConnections).toHaveBeenCalledTimes(2));
     expect(screen.getByRole('dialog')).toBeTruthy();
-    const savedNotice = screen.getByText(/Changes were saved, but OpenKnowledge could not confirm/);
+    const savedNotice = screen.getByText(/Changes were saved, but GitQuire could not confirm/);
     expect(savedNotice.closest('[role="status"]')).toBeTruthy();
     expect(savedNotice.textContent).toContain(
-      'Changes were saved, but OpenKnowledge could not confirm a connection to Claude.',
+      'Changes were saved, but GitQuire could not confirm a connection to Claude.',
     );
     expect(savedNotice.textContent).toContain(
       'Check the MCP server settings for this app, then select Save changes to check again.',
@@ -731,7 +731,7 @@ describe('ExternalHandoffGate', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
     const savedNotice = await screen.findByText(
-      /Changes were saved, but OpenKnowledge could not confirm/,
+      /Changes were saved, but GitQuire could not confirm/,
     );
     expect(savedNotice.closest('[role="status"]')).toBeTruthy();
     expect(screen.queryByText('Something went wrong. Please try again.')).toBeNull();

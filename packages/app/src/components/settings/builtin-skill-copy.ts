@@ -6,13 +6,13 @@ export function useBuiltinSkillBlurb(): (idOrName: string) => string | null {
     switch (idOrName) {
       case 'discovery':
       case 'open-knowledge-discovery':
-        return t`How to set up new projects with OpenKnowledge.`;
+        return t`How to set up new projects with GitQuire.`;
       case 'write-skill':
       case 'open-knowledge-write-skill':
         return t`How to write a new skill and install it.`;
       case 'project':
       case 'open-knowledge':
-        return t`How to use OpenKnowledge and its MCP tools.`;
+        return t`How to use GitQuire and its MCP tools.`;
       default:
         return null;
     }

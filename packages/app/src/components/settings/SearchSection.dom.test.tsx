@@ -461,7 +461,7 @@ describe('SearchSection', () => {
     render(<SearchSection />);
 
     const alert = await screen.findByTestId('settings-search-restart-required');
-    expect(alert.textContent).toContain('OpenKnowledge restarts');
+    expect(alert.textContent).toContain('GitQuire restarts');
     expect(screen.queryByTestId('settings-search-provider-error')).toBeNull();
   });
 
@@ -659,7 +659,7 @@ describe('SearchSection', () => {
     expect(screen.getByLabelText('Indexing request timeout (seconds)')).toBeDefined();
     expect(
       screen.getByText(
-        'How long OpenKnowledge waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting.',
+        'How long GitQuire waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting.',
       ),
     ).toBeDefined();
   });
@@ -850,7 +850,7 @@ describe('SearchSection', () => {
   test.each([
     ['settings-search-max-batch-size', 'Lower this'],
     ['settings-search-max-batch-chars', 'Limits the combined text'],
-    ['settings-search-doc-timeout-seconds', 'How long OpenKnowledge waits'],
+    ['settings-search-doc-timeout-seconds', 'How long GitQuire waits'],
   ])('associates %s with stable help, status, and reset instructions', async (id, help) => {
     const user = userEvent.setup();
     const { binding } = makeBinding();
@@ -870,7 +870,7 @@ describe('SearchSection', () => {
     expect(status.textContent).toBe('');
   });
 
-  test('clearing tuning fields resets them to the OpenKnowledge defaults', async () => {
+  test('clearing tuning fields resets them to the GitQuire defaults', async () => {
     const user = userEvent.setup();
     const { binding, calls } = makeBinding();
     mockProjectLocalBinding = binding;

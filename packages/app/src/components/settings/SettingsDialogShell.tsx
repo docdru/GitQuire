@@ -264,7 +264,7 @@ function SettingsDialogFrame({
       enabled: true,
       ...(integrationsMenuAvailable
         ? {
-            disabledHint: t`To connect AI tools without a project, use File > Set up OpenKnowledge integrations…`,
+            disabledHint: t`To connect AI tools without a project, use File > Set up GitQuire integrations…`,
           }
         : {}),
       items: [

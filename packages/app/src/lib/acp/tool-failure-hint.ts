@@ -50,11 +50,11 @@ export function toolFailureHint(
     case 'permission-denied':
       return t`You denied this. To let it run, ask the agent to try again and approve it.`;
     case 'server-unreachable':
-      return t`The agent's OpenKnowledge tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat.`;
+      return t`The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat.`;
     case 'server-timeout':
-      return t`The OpenKnowledge server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again.`;
+      return t`The GitQuire server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again.`;
     case 'server-timeout-read':
-      return t`The OpenKnowledge server took too long to answer. Ask the agent to try again.`;
+      return t`The GitQuire server took too long to answer. Ask the agent to try again.`;
     default:
       return failure satisfies never;
   }

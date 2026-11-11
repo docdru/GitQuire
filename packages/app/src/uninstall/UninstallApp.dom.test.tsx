@@ -26,7 +26,7 @@ describe('UninstallApp routing', () => {
   test('mounts the picker for a picker screen', async () => {
     stubBridge(sendsScreen({ kind: 'picker', projects: [] }));
     render(<UninstallApp />);
-    expect(await screen.findByRole('heading', { name: 'Uninstall OpenKnowledge?' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Uninstall GitQuire?' })).toBeDefined();
   });
 
   test('mounts the survey for a survey screen', async () => {
@@ -39,7 +39,7 @@ describe('UninstallApp routing', () => {
     stubBridge(sendsScreen({ kind: 'progress' }));
     render(<UninstallApp />);
     expect(
-      await screen.findByRole('heading', { name: 'Removing OpenKnowledge files…' }),
+      await screen.findByRole('heading', { name: 'Removing GitQuire files…' }),
     ).toBeDefined();
   });
 
@@ -168,7 +168,7 @@ test('a transient progress timeout retries and still displays the completed resu
     await act(async () => {
       await vi.advanceTimersByTimeAsync(6000);
     });
-    expect(screen.getByRole('heading', { name: 'OpenKnowledge files were removed' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'GitQuire files were removed' })).toBeDefined();
     expect(screen.queryByText('Unable to show the cleanup result')).toBeNull();
   } finally {
     cleanup();
@@ -212,7 +212,7 @@ test('successful progress responses reset the transient failure budget', async (
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2000);
     });
-    expect(screen.getByRole('heading', { name: 'OpenKnowledge files were removed' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'GitQuire files were removed' })).toBeDefined();
   } finally {
     cleanup();
     window.okUninstall = undefined;

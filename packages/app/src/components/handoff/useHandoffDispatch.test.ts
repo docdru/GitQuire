@@ -193,7 +193,7 @@ describe('runHandoffDispatch — success path', () => {
     );
     expect(payload.prompt).toBe(
       withSkillPointer(
-        "Let's work on `specs/2026-04-21-open-in-agent-desktop/SPEC.md` using OpenKnowledge. Open the OK editor in web view.",
+        "Let's work on `specs/2026-04-21-open-in-agent-desktop/SPEC.md` using GitQuire. Open the OK editor in web view.",
       ),
     );
   });
@@ -235,7 +235,7 @@ describe('runHandoffDispatch — success path', () => {
     expect(payload.prompt).toBe(withSkillPointer(composeEmptySpacePrompt(true)));
     expect(payload.prompt).toBe(
       withSkillPointer(
-        "Let's work on this project using OpenKnowledge. Open the OK editor in web view.",
+        "Let's work on this project using GitQuire. Open the OK editor in web view.",
       ),
     );
   });
@@ -264,7 +264,7 @@ describe('runHandoffDispatch — success path', () => {
     );
     expect(payload.prompt).toBe(
       withSkillPointer(
-        "Let's work on the `specs/2026-05-16-sidebar-context-menus` folder using OpenKnowledge. Open the OK editor in web view.",
+        "Let's work on the `specs/2026-05-16-sidebar-context-menus` folder using GitQuire. Open the OK editor in web view.",
       ),
     );
   });
@@ -279,7 +279,7 @@ describe('runHandoffDispatch — autoOpen=false honors the user preference', () 
       HandoffPayload,
     ];
     expect(payload.prompt).toBe(
-      withSkillPointer("Let's work on `specs/foo/SPEC.md` using OpenKnowledge."),
+      withSkillPointer("Let's work on `specs/foo/SPEC.md` using GitQuire."),
     );
     expect(payload.prompt).not.toContain('Open the OK editor');
   });
@@ -298,7 +298,7 @@ describe('runHandoffDispatch — autoOpen=false honors the user preference', () 
       HandoffPayload,
     ];
     expect(payload.prompt).toBe(
-      withSkillPointer("Let's work on the `specs/notes` folder using OpenKnowledge."),
+      withSkillPointer("Let's work on the `specs/notes` folder using GitQuire."),
     );
     expect(payload.prompt).not.toContain('Open the OK editor');
   });
@@ -316,7 +316,7 @@ describe('runHandoffDispatch — autoOpen=false honors the user preference', () 
       HandoffPayload,
     ];
     expect(payload.prompt).toBe(
-      withSkillPointer("Let's work on this project using OpenKnowledge."),
+      withSkillPointer("Let's work on this project using GitQuire."),
     );
     expect(payload.prompt).not.toContain('Open the OK editor');
   });
@@ -505,7 +505,7 @@ describe('runHandoffDispatch — Cowork install gate', () => {
     expect(deps.dispatchHandoff).not.toHaveBeenCalled();
     expect(deps.recordHandoff).not.toHaveBeenCalled();
     expect(deps.toast.successCalls).toEqual([
-      'OpenKnowledge skill saved. Upload it in Claude Desktop, then click Cowork again.',
+      'GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again.',
     ]);
   });
 
@@ -531,7 +531,7 @@ describe('runHandoffDispatch — Cowork install gate', () => {
     }
     expect(deps.dispatchHandoff).not.toHaveBeenCalled();
     expect(deps.toast.errorCalls[0]?.message).toBe(
-      "Couldn't install OpenKnowledge skill — Claude Desktop not found",
+      "Couldn't install GitQuire skill — Claude Desktop not found",
     );
   });
 
@@ -599,7 +599,7 @@ describe('runHandoffDispatch — Cowork install gate', () => {
     }
     expect(deps.dispatchHandoff).not.toHaveBeenCalled();
     expect(deps.toast.errorCalls[0]?.message).toBe(
-      "Couldn't install OpenKnowledge skill — IPC channel closed",
+      "Couldn't install GitQuire skill — IPC channel closed",
     );
   });
 });
@@ -707,7 +707,7 @@ describe('buildSkillHandoffInput + selectScopedPrompt — skill scope (author-wi
     });
     if (!input) throw new Error('expected a non-null skill input');
     expect(selectScopedPrompt(input, 'claude-code', true, 'url')).toBe(
-      'Use your open-knowledge-write-skill skill to author the project Open Knowledge skill `commit-helper`. Edit it with the Open Knowledge tools. Open the OK editor in web view.',
+      'Use your open-knowledge-write-skill skill to author the project GitQuire skill `commit-helper`. Edit it with the GitQuire tools. Open the OK editor in web view.',
     );
   });
 });
@@ -891,7 +891,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
     expect(out).toBe(withSkillPointer(composeFilePrompt('notes/today.md', true)));
     expect(out).toBe(
       withSkillPointer(
-        "Let's work on `notes/today.md` using OpenKnowledge. Open the OK editor in web view.",
+        "Let's work on `notes/today.md` using GitQuire. Open the OK editor in web view.",
       ),
     );
   });
@@ -908,7 +908,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
       false,
       'url',
     );
-    expect(out).toBe(withSkillPointer("Let's work on `notes/today.md` using OpenKnowledge."));
+    expect(out).toBe(withSkillPointer("Let's work on `notes/today.md` using GitQuire."));
   });
 
   test('folder scope (docContext null + folderRelativePath set) returns composeFolderPrompt with autoOpen=true trailer', async () => {
@@ -928,7 +928,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
     expect(out).toBe(withSkillPointer(composeFolderPrompt('notes', true)));
     expect(out).toBe(
       withSkillPointer(
-        "Let's work on the `notes` folder using OpenKnowledge. Open the OK editor in web view.",
+        "Let's work on the `notes` folder using GitQuire. Open the OK editor in web view.",
       ),
     );
   });
@@ -946,7 +946,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
       false,
       'url',
     );
-    expect(out).toBe(withSkillPointer("Let's work on the `notes` folder using OpenKnowledge."));
+    expect(out).toBe(withSkillPointer("Let's work on the `notes` folder using GitQuire."));
   });
 
   test('empty-space scope (both null/absent) returns composeEmptySpacePrompt(autoOpen=true)', async () => {
@@ -965,7 +965,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
     expect(out).toBe(withSkillPointer(composeEmptySpacePrompt(true)));
     expect(out).toBe(
       withSkillPointer(
-        "Let's work on this project using OpenKnowledge. Open the OK editor in web view.",
+        "Let's work on this project using GitQuire. Open the OK editor in web view.",
       ),
     );
   });
@@ -982,7 +982,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
       false,
       'url',
     );
-    expect(out).toBe(withSkillPointer("Let's work on this project using OpenKnowledge."));
+    expect(out).toBe(withSkillPointer("Let's work on this project using GitQuire."));
   });
 
   test('file scope threads the toolbar instruction into the directive prompt', async () => {
@@ -1019,7 +1019,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
       true,
       'url',
     );
-    expect(out).toContain("Let's work on the `notes` folder using OpenKnowledge.");
+    expect(out).toContain("Let's work on the `notes` folder using GitQuire.");
     expect(out).toContain('> Review the structure');
   });
 
@@ -1036,7 +1036,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
       true,
       'url',
     );
-    expect(out).toContain("Let's work on this project using OpenKnowledge.");
+    expect(out).toContain("Let's work on this project using GitQuire.");
     expect(out).toContain('> Scaffold the wiki');
   });
 
@@ -1161,7 +1161,7 @@ describe('selectScopedPrompt — template selection across autoOpen modes', () =
       true,
       'url',
     );
-    expect(out).not.toContain('new OpenKnowledge project');
+    expect(out).not.toContain('new GitQuire project');
     expect(out).toContain('> draft a spec for this codebase');
   });
 
@@ -1515,7 +1515,7 @@ describe('composeTerminalLaunchPrompt — docked-terminal bare launch is load + 
     );
     expect(out).toBe(composeTerminalBareLaunchPrompt('notes/today.md'));
     expect(out).toContain(OK_TERMINAL_SURFACE_PREAMBLE);
-    expect(out).toContain('Read `notes/today.md` via the OpenKnowledge MCP server, then stop.');
+    expect(out).toContain('Read `notes/today.md` via the GitQuire MCP server, then stop.');
     expect(out).not.toContain("Let's work on");
     expect(out).not.toContain('Open the OK editor');
   });

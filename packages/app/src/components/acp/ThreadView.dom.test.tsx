@@ -271,7 +271,7 @@ describe('ThreadView failed tool rows', () => {
     expect(screen.queryByRole('button', { name: 'Copy error' })).toBeNull();
   });
 
-  test('another tool with a lookalike error gets no OpenKnowledge advice', () => {
+  test('another tool with a lookalike error gets no GitQuire advice', () => {
     model = makeModel({
       turnActive: false,
       items: [toolCall({ status: 'failed', content: ['TypeError: fetch failed'] })],
@@ -1716,7 +1716,7 @@ describe('ThreadView tool-call status', () => {
       turnActive: false,
     });
     render(<ThreadView info={makeInfo({ status: 'ready' })} />);
-    await user.hover(screen.getByRole('button', { name: /OpenKnowledge ran ls/ }));
+    await user.hover(screen.getByRole('button', { name: /GitQuire ran ls/ }));
     const tooltip = await screen.findByRole('tooltip');
     expect(tooltip.textContent).toContain('read-only shell commands');
     expect(tooltip.textContent).toContain('mcp__open-knowledge__exec');
@@ -1813,7 +1813,7 @@ describe('ThreadView tool-call status', () => {
     expect(screen.getByTestId('agent-thread-tool-call').textContent).toContain('Run tests');
   });
 
-  test('an Open Knowledge call says what it did, not the name the adapter sent', () => {
+  test('a GitQuire call says what it did, not the name the adapter sent', () => {
     model = makeModel({
       items: [
         toolCall({
@@ -1827,7 +1827,7 @@ describe('ThreadView tool-call status', () => {
     });
     render(<ThreadView info={makeInfo({ status: 'ready' })} />);
     const row = screen.getByTestId('agent-thread-tool-call').textContent ?? '';
-    expect(row).toContain('OpenKnowledge wrote to meetings/standup');
+    expect(row).toContain('GitQuire wrote to meetings/standup');
     expect(row).not.toContain('mcp__open-knowledge__write');
   });
 

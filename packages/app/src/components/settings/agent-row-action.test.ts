@@ -70,7 +70,7 @@ describe('rowActionFor', () => {
     ).toEqual({ kind: 'none' });
   });
 
-  test('a row with nothing OpenKnowledge can configure points at its setup docs', () => {
+  test('a row with nothing GitQuire can configure points at its setup docs', () => {
     expect(
       rowActionFor({
         enabled: true,
@@ -82,7 +82,7 @@ describe('rowActionFor', () => {
     ).toEqual({ kind: 'setup-doc', slug: 'lm-studio' });
   });
 
-  test('a connected row OpenKnowledge cannot configure still offers remove', () => {
+  test('a connected row GitQuire cannot configure still offers remove', () => {
     expect(
       rowActionFor({
         enabled: false,

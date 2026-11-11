@@ -1111,7 +1111,7 @@ describe('CommandPalette DOM behavior', () => {
     fireEvent.click(screen.getByTestId('command-palette-worktree-feature-x'));
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        'This branch redirects an OpenKnowledge setup path outside the worktree. The worktree was created but not opened.',
+        'This branch redirects a GitQuire setup path outside the worktree. The worktree was created but not opened.',
       ),
     );
     expect(refreshWorktreesMock).toHaveBeenCalledTimes(1);
@@ -1464,7 +1464,7 @@ describe('Cmd+K menu-parity backfill', () => {
     await waitFor(() => expect(bridge?.mcpWiring.reconfigure).toHaveBeenCalledTimes(1));
   });
 
-  test('AC1: OpenKnowledge on GitHub opens the repository URL', async () => {
+  test('AC1: GitQuire on GitHub opens the repository URL', async () => {
     const { bridge } = await renderPalette({ bridge: createBridge() });
     await setQuery('github');
     fireEvent.click(screen.getByTestId('command-palette-open-github'));
@@ -1473,7 +1473,7 @@ describe('Cmd+K menu-parity backfill', () => {
     );
   });
 
-  test('AC1: OpenKnowledge on GitHub falls back to window.open on the web host', async () => {
+  test('AC1: GitQuire on GitHub falls back to window.open on the web host', async () => {
     const openSpy = vi.fn(() => null);
     const originalOpen = window.open;
     window.open = openSpy as unknown as typeof window.open;

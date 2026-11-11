@@ -112,7 +112,7 @@ describe('TerminalSection (Settings opt-out toggle)', () => {
   });
 });
 
-describe('TerminalSection (auto-approve OpenKnowledge tools toggle)', () => {
+describe('TerminalSection (auto-approve GitQuire tools toggle)', () => {
   beforeEach(() => {
     consentState = { enabled: true, synced: true };
     writerImpl = () => ({ ok: true });

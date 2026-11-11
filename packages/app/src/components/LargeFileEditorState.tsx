@@ -57,7 +57,7 @@ export function LargeFileEditorState({ docName, size, limit, backNav }: LargeFil
         </EmptyTitle>
         <EmptyDescription>
           <Trans>
-            {docName} is {formatFileSize(size)}. OpenKnowledge currently opens files up to{' '}
+            {docName} is {formatFileSize(size)}. GitQuire currently opens files up to{' '}
             {formatFileSize(limit)}.
           </Trans>
         </EmptyDescription>

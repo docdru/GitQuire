@@ -183,7 +183,7 @@ test('the identical-versions banner maps each button to its protection outcome',
   });
 
   const banner = screen.getByText(/Both versions are identical/).textContent ?? '';
-  expect(banner).toContain("Accept current leaves OpenKnowledge's protection on");
+  expect(banner).toContain("Accept current leaves GitQuire's protection on");
   expect(banner).toContain('Accept incoming turns that protection off');
 });
 

@@ -241,7 +241,7 @@ describe('NavigatorApp new-project menu-action subscription', () => {
     await waitFor(
       () => {
         expect(
-          screen.queryByRole('dialog', { name: 'How do you like OpenKnowledge?' }),
+          screen.queryByRole('dialog', { name: 'How do you like GitQuire?' }),
         ).not.toBeNull();
       },
       { timeout: ASYNC_TIMEOUT_MS },

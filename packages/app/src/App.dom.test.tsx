@@ -1251,7 +1251,7 @@ describe('App runtime wiring', () => {
     function expectNoCornerStack() {
       expect(screen.getByTestId('editor-pane')).not.toBeNull();
       expect(screen.queryByTestId('corner-card-stack')).toBeNull();
-      expect(screen.queryByRole('region', { name: 'Updates and feedback' })).toBeNull();
+      expect(screen.queryByRole('region', { name: 'Updates' })).toBeNull();
       expect(screen.queryByTestId('update-notices')).toBeNull();
       expect(screen.queryByTestId('feedback-card-mount')).toBeNull();
     }
@@ -1260,7 +1260,7 @@ describe('App runtime wiring', () => {
       renderApp({ bridge: createBridge() });
 
       expect(screen.getAllByTestId('corner-card-stack')).toHaveLength(1);
-      const stack = screen.getByRole('region', { name: 'Updates and feedback' });
+      const stack = screen.getByRole('region', { name: 'Updates' });
       expect(stack).toBe(screen.getByTestId('corner-card-stack'));
       const column = within(stack).getByTestId('corner-card-stack-column');
       expect(Array.from(column.children).map((child) => child.getAttribute('data-testid'))).toEqual(
@@ -1282,7 +1282,7 @@ describe('App runtime wiring', () => {
     test('a web project window has the same stack', () => {
       renderApp();
 
-      const stack = screen.getByRole('region', { name: 'Updates and feedback' });
+      const stack = screen.getByRole('region', { name: 'Updates' });
       expect(screen.getAllByTestId('corner-card-stack')).toHaveLength(1);
       expect(within(stack).getByTestId('feedback-card-mount')).not.toBeNull();
     });

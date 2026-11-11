@@ -169,11 +169,11 @@ export function AboutSection() {
               >
                 {updateMode === 'off' ? (
                   <Trans>
-                    OpenKnowledge doesn't check for or download updates on its own. Check for
+                    GitQuire doesn't check for or download updates on its own. Check for
                     updates still works when you want a newer version.
                   </Trans>
                 ) : (
-                  <Trans>OpenKnowledge checks for and downloads updates in the background.</Trans>
+                  <Trans>GitQuire checks for and downloads updates in the background.</Trans>
                 )}
               </p>
               {modeError ? (

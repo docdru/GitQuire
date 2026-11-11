@@ -18,7 +18,7 @@ export function IntegrationsSection() {
         title={<Trans>Integrations</Trans>}
         scope="user"
       >
-        <Trans>Connect OpenKnowledge to other tools you use.</Trans>
+        <Trans>Connect GitQuire to other tools you use.</Trans>
       </SettingsSectionHeader>
       <div className="rounded-md border p-3">
         <div className="flex items-center justify-between gap-3">

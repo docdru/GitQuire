@@ -7,13 +7,13 @@ describe('restartServerFailureMessage', () => {
     expect(
       restartServerFailureMessage({ ok: false, reason: 'other-channel', holderChannel: 'stable' }),
     ).toBe(
-      "OpenKnowledge (Stable) is serving this project, so this app won't stop it. Close this window and open the project again to stop OpenKnowledge (Stable)'s server and open the project here.",
+      "GitQuire (Stable) is serving this project, so this app won't stop it. Close this window and open the project again to stop GitQuire (Stable)'s server and open the project here.",
     );
   });
 
   test('eperm names the ownership conflict', () => {
     expect(restartServerFailureMessage({ ok: false, reason: 'eperm' })).toBe(
-      "Couldn't restart the server — another process owns it. Quit other OpenKnowledge windows for this project, then try again.",
+      "Couldn't restart the server — another process owns it. Quit other GitQuire windows for this project, then try again.",
     );
   });
 
@@ -26,11 +26,11 @@ describe('restartServerFailureMessage', () => {
   test.each([
     [
       false,
-      "Couldn't restart the server: OpenKnowledge could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project.",
+      "Couldn't restart the server: GitQuire could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project.",
     ],
     [
       true,
-      "Couldn't restart the server: OpenKnowledge asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project.",
+      "Couldn't restart the server: GitQuire asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project.",
     ],
   ])('an unverified holder (sigtermSent %s) names no CLI command', (sigtermSent, expected) => {
     expect(restartServerFailureMessage({ ok: false, reason: 'unverified', sigtermSent })).toBe(

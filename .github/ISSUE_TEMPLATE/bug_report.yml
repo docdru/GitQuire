@@ -1,14 +1,14 @@
 name: Bug report
-description: Report something that isn't working in OpenKnowledge
+description: Report something that isn't working in GitQuire
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to file a bug. The reports we can fix fastest say what happens and when, and give the fewest steps that show it. One problem per issue, please. For a security problem, please [report it privately](https://github.com/inkeep/open-knowledge/security/advisories/new) instead of opening a public issue.
+        Thanks for taking the time to file a bug. The reports we can fix fastest say what happens and when, and give the fewest steps that show it. One problem per issue, please. For a security problem, please [report it privately](https://github.com/docdru/GitQuire/security/advisories/new) instead of opening a public issue.
 
-        For setup help or "how do I…" questions, please use [Discord](https://discord.gg/VRKk2EaGHN) or the [docs](https://openknowledge.ai) instead — those get faster answers than an issue.
+        For setup help, check the [README](https://github.com/docdru/GitQuire#readme) first.
   - type: checkboxes
     id: preflight
     attributes:
@@ -61,37 +61,30 @@ body:
     validations:
       required: false
   - type: dropdown
-    id: platform
+    id: browser
     attributes:
-      label: Platform
+      label: Browser and device
       options:
-        - macOS (Apple Silicon)
-        - macOS (Intel)
-        - Windows
-        - Linux
-        - Web app
-        - CLI only
-    validations:
-      required: true
-  - type: dropdown
-    id: install-method
-    attributes:
-      label: How did you install OpenKnowledge?
-      options:
-        - Desktop app (DMG)
-        - CLI (npm / npx)
-        - Web app
-        - Built from source
+        - Desktop browser
+        - Phone or tablet browser
+        - Home-screen app (installed)
     validations:
       required: true
   - type: input
     id: version
     attributes:
       label: Version
-      description: "Desktop: Help → About. CLI: run with --version."
-      placeholder: "e.g. 0.16.1"
+      description: The image tag or commit you run, e.g. `ghcr.io/docdru/gitquire:sha-…`.
+      placeholder: "e.g. sha-f1031213"
     validations:
       required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Setup
+      description: Sign-in on or off, repository sync on or off, anything unusual about your deployment.
+    validations:
+      required: false
   - type: textarea
     id: code-pointers
     attributes:

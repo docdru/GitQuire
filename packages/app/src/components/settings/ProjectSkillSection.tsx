@@ -22,12 +22,12 @@ export function ProjectSkillSection() {
     <div>
       <h4 className="text-sm font-medium">
         <Trans comment="Heading above the project's own skill row, in Settings → This project → Skills Studio">
-          Skills from OpenKnowledge
+          Skills from GitQuire
         </Trans>
       </h4>
       <p className="text-1sm text-muted-foreground">
         <Trans comment="Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo">
-          This one teaches your AI tools how to work with OpenKnowledge. It lives in the project
+          This one teaches your AI tools how to work with GitQuire. It lives in the project
           folder, so it installs for everyone who opens the project.
         </Trans>
       </p>

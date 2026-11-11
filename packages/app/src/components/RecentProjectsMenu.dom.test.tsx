@@ -1206,7 +1206,7 @@ describe('RecentProjectsMenu — search (cross-project)', () => {
     fireEvent.click(screen.getByTestId('project-switcher-branch-feature-x'));
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        'The OpenKnowledge project path on this branch leaves the worktree. The worktree was created but not opened.',
+        'The GitQuire project path on this branch leaves the worktree. The worktree was created but not opened.',
       ),
     );
     expect(refreshWorktrees).toHaveBeenCalledTimes(1);

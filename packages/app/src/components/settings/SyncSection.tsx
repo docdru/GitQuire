@@ -132,7 +132,7 @@ function SyncSectionContent({
             <p className="text-sm text-muted-foreground">
               {fetchError === 'network' ? (
                 <Trans>
-                  Couldn't reach the OpenKnowledge server, so sync options are hidden. They appear
+                  Couldn't reach the GitQuire server, so sync options are hidden. They appear
                   here as soon as the sync status loads; closing and reopening Settings also
                   retries.
                 </Trans>
@@ -657,7 +657,7 @@ function SyncSectionContent({
           <p className="text-muted-foreground text-1sm">
             <Trans>
               The sync mode teammates start with the first time they open this project. It's saved
-              in the project's OpenKnowledge settings, so it only reaches them when Config sharing
+              in the project's GitQuire settings, so it only reaches them when Config sharing
               below is set to Shared.
             </Trans>
           </p>

@@ -79,8 +79,8 @@ describe('contributorIconKind', () => {
   const SYSTEM_WRITER_NAMES = [
     'File System',
     'Git (upstream)',
-    'OpenKnowledge (service)',
-    'OpenKnowledge (generated)',
+    'GitQuire (service)',
+    'GitQuire (generated)',
   ];
 
   test('no system writer renders as a person', () => {
@@ -90,8 +90,8 @@ describe('contributorIconKind', () => {
   });
 
   test('the generated writer gets its own icon family, distinct from the service writer', () => {
-    expect(contributorIconKind('OpenKnowledge (generated)')).toBe('generated');
-    expect(contributorIconKind('OpenKnowledge (service)')).toBe('upstream');
+    expect(contributorIconKind('GitQuire (generated)')).toBe('generated');
+    expect(contributorIconKind('GitQuire (service)')).toBe('upstream');
   });
 
   test('a human or unknown contributor still falls back to a person', () => {

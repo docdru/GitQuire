@@ -16,15 +16,15 @@ import {
 } from '@/lib/restart-collab-server';
 
 export function restartDisruptionWarning(): string {
-  return t`Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their OpenKnowledge MCP connection close unexpectedly — you may need to restart the agent, or toggle its OpenKnowledge MCP server off and on, to reconnect.`;
+  return t`Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their GitQuire MCP connection close unexpectedly — you may need to restart the agent, or toggle its GitQuire MCP server off and on, to reconnect.`;
 }
 
 export function driftToastBody(info: OkServerVersionDriftInfo): string {
   if (info.serverRuntime === info.appRuntime) {
-    return t`This project is running a different, incompatible build of OpenKnowledge than this app (v${info.appRuntime}).`;
+    return t`This project is running a different, incompatible build of GitQuire than this app (v${info.appRuntime}).`;
   }
   return info.relation === 'older'
-    ? t`This project is running an older version of OpenKnowledge (v${info.serverRuntime}) than this app (v${info.appRuntime}).`
+    ? t`This project is running an older version of GitQuire (v${info.serverRuntime}) than this app (v${info.appRuntime}).`
     : t`This project's server (v${info.serverRuntime}) is newer than this app (v${info.appRuntime}).`;
 }
 

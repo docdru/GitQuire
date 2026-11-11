@@ -20,7 +20,7 @@ describe('FeedbackFormDialog', () => {
     renderDialog();
     expect(await findFormBody()).toBeTruthy();
 
-    expect(screen.getByText('How do you like OpenKnowledge?')).toBeTruthy();
+    expect(screen.getByText('How do you like GitQuire?')).toBeTruthy();
     expect(screen.queryByText("Tell us how it's going")).toBeNull();
   });
 

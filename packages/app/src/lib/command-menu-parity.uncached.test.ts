@@ -71,7 +71,7 @@ const PALETTE_COMMAND_LABELS = new Set<string>([
   'Open with AI',
   'Full path',
   'Relative path',
-  'Set up OpenKnowledge integrations',
+  'Set up GitQuire integrations',
   'Close tab',
   'Check for updates',
   'Settings',
@@ -96,7 +96,7 @@ const PALETTE_COMMAND_LABELS = new Set<string>([
   'Collapse all',
   'New Terminal',
   'Kill Terminal',
-  'OpenKnowledge on GitHub',
+  'GitQuire on GitHub',
   'Documentation',
   'Join us on Discord',
   'Report a bug',
@@ -105,14 +105,14 @@ const PALETTE_COMMAND_LABELS = new Set<string>([
 ]);
 
 const APP_RESERVED_LABELS = new Map<string, string>([
-  ['Uninstall OpenKnowledge', 'rare + destructive; deliberately not a quick-launch row'],
+  ['Uninstall GitQuire', 'rare + destructive; deliberately not a quick-launch row'],
   ['New Terminal Window', 'opens directly in main with no renderer handler; window management'],
 ]);
 
 function makeFullDeps(): MenuDeps {
   const noop = () => {};
   return {
-    appName: 'OpenKnowledge',
+    appName: 'GitQuire',
     showDevToolsMenu: true,
     dialog: {} as MenuDeps['dialog'],
     errorDialogParent: () => null,
@@ -672,13 +672,13 @@ describe('menu state-dependent rendering', () => {
     expect(
       findLeaf(
         collectLeavesForPlatform('darwin', makeFullDeps()),
-        'Set up OpenKnowledge integrations',
+        'Set up GitQuire integrations',
       ),
     ).toBeDefined();
     expect(
       findLeaf(
         collectLeavesForPlatform('darwin', { ...makeFullDeps(), reconfigureMcpWiring: undefined }),
-        'Set up OpenKnowledge integrations',
+        'Set up GitQuire integrations',
       ),
     ).toBeUndefined();
   });

@@ -31,7 +31,7 @@ function renderSection() {
 const projectSkill: SkillsListEntry = {
   name: 'open-knowledge',
   description:
-    'Authoritative agent-runtime contract for working inside an OpenKnowledge project — a markdown-CRDT knowledge base exposed over MCP.',
+    'Authoritative agent-runtime contract for working inside a GitQuire project — a markdown-CRDT knowledge base exposed over MCP.',
   scope: 'project',
   path: '.claude/skills/open-knowledge/SKILL.md',
   absolutePath: '/proj/.claude/skills/open-knowledge/SKILL.md',
@@ -65,7 +65,7 @@ describe('ProjectSkillSection', () => {
     await waitFor(() => {
       expect(screen.getByTestId('settings-project-skill')).toBeTruthy();
     });
-    expect(screen.getByText('How to use OpenKnowledge and its MCP tools.')).toBeTruthy();
+    expect(screen.getByText('How to use GitQuire and its MCP tools.')).toBeTruthy();
     expect(screen.queryByText(/markdown-CRDT knowledge base/)).toBeNull();
     expect(screen.getAllByTestId('skill-consent-row-preview').length).toBe(1);
     expect(screen.queryByText('grill-me')).toBeNull();
@@ -103,8 +103,8 @@ describe('ProjectSkillSection', () => {
       expect(screen.getByTestId('settings-project-skill')).toBeTruthy();
     });
     const block = screen.getByTestId('settings-project-skill').textContent ?? '';
-    expect(block).toContain('Skills from OpenKnowledge');
-    expect(block).toContain('how to work with OpenKnowledge');
+    expect(block).toContain('Skills from GitQuire');
+    expect(block).toContain('how to work with GitQuire');
     expect(block).toContain('everyone who opens the project');
   });
 
@@ -145,7 +145,7 @@ describe('ProjectSkillSection', () => {
       expect(screen.getByTestId('project-skill-unavailable')).toBeTruthy();
     });
     expect(screen.getByTestId('settings-project-skill').textContent).toContain(
-      'Skills from OpenKnowledge',
+      'Skills from GitQuire',
     );
   });
 

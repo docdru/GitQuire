@@ -102,7 +102,7 @@ export function uploadFailureMessage(kind: UploadFailureKind, fileName: string):
   if (kind === 'single-file-mode') return singleFileUploadMessage();
   return kind === 'file-unreadable'
     ? t`Couldn't read ${fileName}. It may have been moved, deleted, or not finished downloading. Try adding it again.`
-    : t`Couldn't reach the Open Knowledge server to upload ${fileName}.`;
+    : t`Couldn't reach the GitQuire server to upload ${fileName}.`;
 }
 
 export interface UploadFailureReport {

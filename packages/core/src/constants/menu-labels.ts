@@ -22,16 +22,16 @@ export const MENU_LABELS = {
   copyFullPath: 'Copy full path',
   copyRelativePath: 'Copy relative path',
   checkForUpdates: 'Check for updates',
-  setUpIntegrations: 'Set up OpenKnowledge integrations',
+  setUpIntegrations: 'Set up GitQuire integrations',
   closeTab: 'Close tab',
   newWorktree: 'New worktree',
   switchWorktree: 'Switch worktree',
   newTerminal: 'New Terminal',
   killTerminal: 'Kill Terminal',
   checkSpelling: 'Check spelling while typing',
-  openOnGithub: 'OpenKnowledge on GitHub',
+  openOnGithub: 'GitQuire on GitHub',
   openDocs: 'Documentation',
-  joinDiscord: 'Join us on Discord',
+  joinDiscord: 'Report an issue on GitHub',
   reportBug: 'Report a bug',
   bugReportHistory: 'Bug report history',
   sendFeedback: 'Send feedback',
@@ -96,6 +96,7 @@ export function menuLabelForPlatform(key: MenuLabelKey, platform: string): strin
   return MENU_LABELS[key];
 }
 
-export const OPEN_KNOWLEDGE_GITHUB_URL = 'https://github.com/inkeep/open-knowledge';
-export const OPEN_KNOWLEDGE_DOCS_URL = 'https://openknowledge.ai/docs';
-export const OPEN_KNOWLEDGE_DISCORD_URL = 'https://discord.gg/VRKk2EaGHN';
+export const OPEN_KNOWLEDGE_GITHUB_URL = 'https://github.com/docdru/GitQuire';
+export const OPEN_KNOWLEDGE_DOCS_URL = 'https://github.com/docdru/GitQuire#readme';
+export const OPEN_KNOWLEDGE_DISCORD_URL = 'https://github.com/docdru/GitQuire/issues/new/choose';
+export const OPEN_KNOWLEDGE_ISSUES_URL = OPEN_KNOWLEDGE_DISCORD_URL;

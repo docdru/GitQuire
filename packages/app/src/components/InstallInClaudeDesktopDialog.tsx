@@ -188,18 +188,18 @@ export function InstallInClaudeDesktopDialog({
           <DialogTitle className="flex items-center gap-2">
             <Download aria-hidden="true" className="h-4 w-4" />
             {reinstall ? (
-              <Trans comment="Dialog title — installing the OpenKnowledge skill into the Claude Desktop App">
+              <Trans comment="Dialog title — installing the GitQuire skill into the Claude Desktop App">
                 Reinstall for Claude Chat & Cowork
               </Trans>
             ) : (
-              <Trans comment="Dialog title — installing the OpenKnowledge skill into the Claude Desktop App">
+              <Trans comment="Dialog title — installing the GitQuire skill into the Claude Desktop App">
                 Install for Claude Chat & Cowork
               </Trans>
             )}
           </DialogTitle>
           <DialogDescription>
             <Trans>
-              Adds the OpenKnowledge skill to the{' '}
+              Adds the GitQuire skill to the{' '}
               <strong className="font-medium text-foreground">Claude Desktop App</strong> so it's
               available in Chat and Cowork sessions.
             </Trans>

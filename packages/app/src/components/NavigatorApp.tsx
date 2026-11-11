@@ -284,7 +284,7 @@ export function NavigatorApp({ bridge }: { bridge: OkDesktopBridge }) {
             <OkIcon className="size-12 shrink-0" />
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <h1 className="font-medium text-xl tracking-tight">OpenKnowledge</h1>
+                <h1 className="font-medium text-xl tracking-tight">GitQuire</h1>
                 <BetaBadge />
               </div>
               <p className="text-muted-foreground text-xs font-mono">v{bridge.appVersion}</p>
@@ -295,7 +295,7 @@ export function NavigatorApp({ bridge }: { bridge: OkDesktopBridge }) {
             <section className="grid sm:grid-cols-2 gap-3">
               <NavigatorCard
                 title={t`Create new project`}
-                description={t`Start a new OpenKnowledge project.`}
+                description={t`Start a new GitQuire project.`}
                 onClick={onCreate}
                 dataTestId="nav-create-new"
                 Icon={PlusIcon}

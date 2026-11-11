@@ -504,7 +504,7 @@ export function SearchSection({ transport }: { transport?: EmbeddingsKeyTranspor
             label={<Trans>Indexing request timeout (seconds)</Trans>}
             help={
               <Trans>
-                How long OpenKnowledge waits for each embedding request while indexing. Search
+                How long GitQuire waits for each embedding request while indexing. Search
                 requests use a fixed 8-second timeout per attempt, unchanged by this setting.
               </Trans>
             }
@@ -784,7 +784,7 @@ function EmbeddingsKeyField({
             <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
               OK_EMBEDDINGS_API_KEY
             </code>{' '}
-            environment variable (managed outside OpenKnowledge).
+            environment variable (managed outside GitQuire).
           </Trans>
         </p>
       ) : (
@@ -941,7 +941,7 @@ function SemanticStatusPanel({ status }: SemanticStatusPanelProps) {
       >
         <Trans>
           The embeddings provider's vector size kept changing. Semantic search is off until
-          OpenKnowledge restarts.
+          GitQuire restarts.
         </Trans>
       </div>
     );
@@ -1028,7 +1028,7 @@ function TestConnectionResult({
   if (response === null) {
     return (
       <TestConnectionMessage tone="error" testId="settings-search-test-unreachable">
-        <Trans>Couldn't run the test. Check that OpenKnowledge is still running.</Trans>
+        <Trans>Couldn't run the test. Check that GitQuire is still running.</Trans>
       </TestConnectionMessage>
     );
   }

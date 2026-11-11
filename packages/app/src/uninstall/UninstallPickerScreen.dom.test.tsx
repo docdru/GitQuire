@@ -18,7 +18,7 @@ function renderPicker(projects: readonly UninstallProjectRow[] = PROJECTS) {
 }
 
 function checkboxFor(path: string) {
-  return screen.getByRole('checkbox', { name: `Remove OpenKnowledge from ${path}` });
+  return screen.getByRole('checkbox', { name: `Remove GitQuire from ${path}` });
 }
 
 describe('uninstall project picker', () => {
@@ -27,7 +27,7 @@ describe('uninstall project picker', () => {
   test('lists every detected project with a single status badge', () => {
     renderPicker();
 
-    expect(screen.getByRole('heading', { name: 'Uninstall OpenKnowledge?' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Uninstall GitQuire?' })).toBeDefined();
     expect(screen.getByRole('checkbox', { name: 'Select all' })).toBeDefined();
     expect(screen.getByRole('status').textContent).toBe('0 / 3');
     for (const project of PROJECTS) {
@@ -100,7 +100,7 @@ describe('uninstall project picker', () => {
 
     await user.click(checkboxFor('/Users/dev/Personal/Journal'));
     await user.click(checkboxFor('/Users/dev/Notes'));
-    await user.click(screen.getByRole('button', { name: 'Uninstall OpenKnowledge' }));
+    await user.click(screen.getByRole('button', { name: 'Uninstall GitQuire' }));
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onConfirm).toHaveBeenCalledWith([0, 2]);
@@ -110,7 +110,7 @@ describe('uninstall project picker', () => {
   test('confirming with nothing ticked reports an empty selection, not a cancel', async () => {
     const { user, onConfirm, onCancel } = renderPicker();
 
-    await user.click(screen.getByRole('button', { name: 'Uninstall OpenKnowledge' }));
+    await user.click(screen.getByRole('button', { name: 'Uninstall GitQuire' }));
 
     expect(onConfirm).toHaveBeenCalledWith([]);
     expect(onCancel).not.toHaveBeenCalled();
@@ -138,11 +138,11 @@ describe('uninstall project picker', () => {
     const { user, onConfirm } = renderPicker([]);
 
     expect(
-      screen.getByText('No active or recent OpenKnowledge projects were found.'),
+      screen.getByText('No active or recent GitQuire projects were found.'),
     ).toBeDefined();
     expect(screen.queryByRole('checkbox')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Uninstall OpenKnowledge' }));
+    await user.click(screen.getByRole('button', { name: 'Uninstall GitQuire' }));
     expect(onConfirm).toHaveBeenCalledWith([]);
   });
 });

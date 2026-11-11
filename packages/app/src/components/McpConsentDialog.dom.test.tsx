@@ -256,7 +256,7 @@ describe('McpConsentDialog AI-tools decision', () => {
     const subtextOf = (el: Element | null | undefined) =>
       [...(el?.querySelectorAll('span') ?? [])]
         .map((n) => n.textContent ?? '')
-        .find((text) => text.startsWith('Adds an OpenKnowledge MCP entry to'));
+        .find((text) => text.startsWith('Adds a GitQuire MCP entry to'));
 
     const before = subtextOf(row());
     expect(before).toBeTruthy();
@@ -433,7 +433,7 @@ describe('McpConsentDialog AI-tools decision', () => {
     await renderDialog(makeHarness({ snapshot: noneDetectedPayload }));
 
     const body = document.body.textContent ?? '';
-    expect(body).not.toContain('Globally install the OpenKnowledge skills and MCP');
+    expect(body).not.toContain('Globally install the GitQuire skills and MCP');
   });
 
   test('a destination but no detected tool: the skill row and the note both show', async () => {
@@ -897,9 +897,9 @@ describe('McpConsentDialog surface by origin', () => {
     await renderDialog(reconfigureHarness());
 
     expect(
-      screen.getByRole('dialog', { name: /Customize your OpenKnowledge experience/ }),
+      screen.getByRole('dialog', { name: /Customize your GitQuire experience/ }),
     ).toBeTruthy();
-    expect(screen.queryByText(/Welcome to OpenKnowledge/)).toBeNull();
+    expect(screen.queryByText(/Welcome to GitQuire/)).toBeNull();
     expect(screen.queryByText(/Let's get set up/)).toBeNull();
     expect(screen.getByRole('dialog').getAttribute('aria-describedby')).toBeNull();
   });
@@ -908,10 +908,10 @@ describe('McpConsentDialog surface by origin', () => {
     await renderDialog();
 
     expect(screen.getByRole('alertdialog', { name: /Let's get set up/ })).toBeTruthy();
-    expect(screen.getByText(/Welcome to OpenKnowledge/)).toBeTruthy();
+    expect(screen.getByText(/Welcome to GitQuire/)).toBeTruthy();
     const descriptionId = screen.getByRole('alertdialog').getAttribute('aria-describedby');
     expect(document.getElementById(descriptionId ?? '')?.textContent).toBe(
-      'Customize your OpenKnowledge experience.',
+      'Customize your GitQuire experience.',
     );
   });
 

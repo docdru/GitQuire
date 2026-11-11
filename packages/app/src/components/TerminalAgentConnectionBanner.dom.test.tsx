@@ -74,14 +74,14 @@ describe('TerminalAgentConnectionBanner', () => {
 
       expect(
         await screen.findByText(
-          `${TERMINAL_CLIS[cli].displayName} is installed, but OpenKnowledge tools aren't connected to it yet.`,
+          `${TERMINAL_CLIS[cli].displayName} is installed, but GitQuire tools aren't connected to it yet.`,
         ),
       ).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Connect tools' }));
       const dialog = screen.getByRole('dialog');
-      expect(dialog.textContent).toContain('Choose what OpenKnowledge sets up for');
+      expect(dialog.textContent).toContain('Choose what GitQuire sets up for');
       expect(dialog.textContent).toContain(TERMINAL_CLIS[cli].displayName);
-      expect(screen.queryByText('Welcome to OpenKnowledge')).toBeNull();
+      expect(screen.queryByText('Welcome to GitQuire')).toBeNull();
       expect(applyConnections).toHaveBeenCalledTimes(1);
       expect(applyConnections).toHaveBeenCalledWith([]);
 
@@ -121,7 +121,7 @@ describe('TerminalAgentConnectionBanner', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(screen.queryByTestId('terminal-readiness-banner')).toBeNull();
     expect(screen.getByTestId('terminal-restart-banner').textContent).toContain(
-      'Restart this terminal session to use the newly installed OpenKnowledge tools.',
+      'Restart this terminal session to use the newly installed GitQuire tools.',
     );
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
     expect(screen.queryByTestId('terminal-restart-banner')).toBeNull();
@@ -187,7 +187,7 @@ describe('TerminalAgentConnectionBanner', () => {
     fireEvent.click(connect);
     fireEvent.click(screen.getByRole('checkbox', { name: 'Project MCP server' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Global MCP server' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'OpenKnowledge discovery skill' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'GitQuire discovery skill' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(screen.queryByTestId('terminal-readiness-banner')).toBeNull();

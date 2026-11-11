@@ -70,7 +70,7 @@ function renderSection() {
 const discovery: SkillsListEntry = {
   name: 'open-knowledge-discovery',
   description:
-    'Read when the user asks what OpenKnowledge is, wants to install it on a repository. Do NOT load to perform OpenKnowledge reads/writes.',
+    'Read when the user asks what GitQuire is, wants to install it on a repository. Do NOT load to perform GitQuire reads/writes.',
   scope: 'global',
   path: '.claude/skills/open-knowledge-discovery/SKILL.md',
   absolutePath: '/home/.claude/skills/open-knowledge-discovery/SKILL.md',
@@ -212,7 +212,7 @@ describe('BuiltInSkillsSection', () => {
     renderSection();
 
     await waitFor(() => {
-      expect(screen.getByText('How to set up new projects with OpenKnowledge.')).toBeTruthy();
+      expect(screen.getByText('How to set up new projects with GitQuire.')).toBeTruthy();
     });
     expect(screen.getByText('How to write a new skill and install it.')).toBeTruthy();
     expect(screen.queryByText(/Do NOT load/)).toBeNull();
@@ -307,7 +307,7 @@ describe('BuiltInSkillsSection', () => {
       expect(screen.getByTestId('builtin-skills-unavailable')).toBeTruthy();
     });
     expect(screen.getByTestId('settings-builtin-skills').textContent).toContain(
-      'Skills from OpenKnowledge',
+      'Skills from GitQuire',
     );
   });
 

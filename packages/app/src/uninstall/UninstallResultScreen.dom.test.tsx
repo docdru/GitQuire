@@ -23,7 +23,7 @@ test('renders the verified checklist with the app removal step still pending', (
       onRevealLog={vi.fn()}
     />,
   );
-  expect(screen.getByRole('heading', { name: 'OpenKnowledge files were removed' })).toBeDefined();
+  expect(screen.getByRole('heading', { name: 'GitQuire files were removed' })).toBeDefined();
   const items = screen.getAllByRole('listitem');
   expect(items.map((item) => item.textContent?.includes('Done.'))).toEqual([true, true, false]);
   expect(items[2]?.textContent).toContain('To do.');

@@ -759,7 +759,7 @@ describe('Settings Sync section: unknown or missing remote never offers auto syn
     expectNoModeControls();
     const unavailable = screen.getByTestId('settings-sync-unavailable');
     expect(within(unavailable).getByRole('status').textContent ?? '').toContain(
-      "Couldn't reach the OpenKnowledge server",
+      "Couldn't reach the GitQuire server",
     );
   });
 

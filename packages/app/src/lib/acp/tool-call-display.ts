@@ -128,32 +128,32 @@ function openKnowledgeDisplay(tool: string, args: Record<string, unknown>): Tool
         glyph: 'edit',
         text:
           subject === null
-            ? t`OpenKnowledge wrote a document`
-            : t`OpenKnowledge wrote to ${subject}`,
+            ? t`GitQuire wrote a document`
+            : t`GitQuire wrote to ${subject}`,
       };
     case 'edit':
       return {
         glyph: 'edit',
         text:
           subject === null
-            ? t`OpenKnowledge edited a document`
-            : t`OpenKnowledge edited ${subject}`,
+            ? t`GitQuire edited a document`
+            : t`GitQuire edited ${subject}`,
       };
     case 'delete':
       return {
         glyph: 'delete',
         text:
           subject === null
-            ? t`OpenKnowledge deleted a document`
-            : t`OpenKnowledge deleted ${subject}`,
+            ? t`GitQuire deleted a document`
+            : t`GitQuire deleted ${subject}`,
       };
     case 'move': {
       const to = pathsOf(args.to)[0];
       if (subject === null || to === undefined) {
-        return { glyph: 'move', text: t`OpenKnowledge moved a document` };
+        return { glyph: 'move', text: t`GitQuire moved a document` };
       }
       const destination = docLabel(to);
-      return { glyph: 'move', text: t`OpenKnowledge moved ${subject} to ${destination}` };
+      return { glyph: 'move', text: t`GitQuire moved ${subject} to ${destination}` };
     }
     case 'search': {
       const query = inlineText(args.query);
@@ -161,15 +161,15 @@ function openKnowledgeDisplay(tool: string, args: Record<string, unknown>): Tool
         glyph: 'search',
         text:
           query === null
-            ? t`OpenKnowledge searched the knowledge base`
-            : t`OpenKnowledge searched for ${query}`,
+            ? t`GitQuire searched the knowledge base`
+            : t`GitQuire searched for ${query}`,
       };
     }
     case 'exec': {
       const command = inlineText(args.command);
       return {
         glyph: 'execute',
-        text: command === null ? t`OpenKnowledge ran a command` : t`OpenKnowledge ran ${command}`,
+        text: command === null ? t`GitQuire ran a command` : t`GitQuire ran ${command}`,
       };
     }
     case 'lint':
@@ -178,24 +178,24 @@ function openKnowledgeDisplay(tool: string, args: Record<string, unknown>): Tool
         glyph: 'check',
         text:
           subject === null
-            ? t`OpenKnowledge checked the project`
-            : t`OpenKnowledge checked ${subject}`,
+            ? t`GitQuire checked the project`
+            : t`GitQuire checked ${subject}`,
       };
     case 'links':
       return {
         glyph: 'link',
         text:
           subject === null
-            ? t`OpenKnowledge looked at the link graph`
-            : t`OpenKnowledge looked up links for ${subject}`,
+            ? t`GitQuire looked at the link graph`
+            : t`GitQuire looked up links for ${subject}`,
       };
     case 'history':
       return {
         glyph: 'history',
         text:
           subject === null
-            ? t`OpenKnowledge read the edit history`
-            : t`OpenKnowledge read the history of ${subject}`,
+            ? t`GitQuire read the edit history`
+            : t`GitQuire read the history of ${subject}`,
       };
     case 'config': {
       const key = inlineText(args.key);
@@ -203,52 +203,52 @@ function openKnowledgeDisplay(tool: string, args: Record<string, unknown>): Tool
         glyph: 'settings',
         text:
           key === null
-            ? t`OpenKnowledge read the project settings`
-            : t`OpenKnowledge read the setting ${key}`,
+            ? t`GitQuire read the project settings`
+            : t`GitQuire read the setting ${key}`,
       };
     }
     case 'skills':
-      return { glyph: 'read', text: t`OpenKnowledge listed the installed skills` };
+      return { glyph: 'read', text: t`GitQuire listed the installed skills` };
     case 'install':
       return {
         glyph: 'install',
         text:
           subject === null
-            ? t`OpenKnowledge installed a skill`
-            : t`OpenKnowledge installed ${subject}`,
+            ? t`GitQuire installed a skill`
+            : t`GitQuire installed ${subject}`,
       };
     case 'import': {
       const source = inlineText(args.skill) ?? inlineText(args.source);
       return {
         glyph: 'install',
         text:
-          source === null ? t`OpenKnowledge imported a skill` : t`OpenKnowledge imported ${source}`,
+          source === null ? t`GitQuire imported a skill` : t`GitQuire imported ${source}`,
       };
     }
     case 'palette':
-      return { glyph: 'read', text: t`OpenKnowledge looked up the authoring palette` };
+      return { glyph: 'read', text: t`GitQuire looked up the authoring palette` };
     case 'preview_url':
-      return { glyph: 'fetch', text: t`OpenKnowledge opened the live preview` };
+      return { glyph: 'fetch', text: t`GitQuire opened the live preview` };
     case 'share_link':
       return {
         glyph: 'share',
         text:
           subject === null
-            ? t`OpenKnowledge created a share link`
-            : t`OpenKnowledge created a share link for ${subject}`,
+            ? t`GitQuire created a share link`
+            : t`GitQuire created a share link for ${subject}`,
       };
     case 'checkpoint':
-      return { glyph: 'history', text: t`OpenKnowledge saved a checkpoint` };
+      return { glyph: 'history', text: t`GitQuire saved a checkpoint` };
     case 'restore_version':
       return {
         glyph: 'restore',
         text:
           subject === null
-            ? t`OpenKnowledge restored an earlier version`
-            : t`OpenKnowledge restored an earlier version of ${subject}`,
+            ? t`GitQuire restored an earlier version`
+            : t`GitQuire restored an earlier version of ${subject}`,
       };
     default:
-      return { glyph: 'other', text: t`OpenKnowledge ran ${tool}` };
+      return { glyph: 'other', text: t`GitQuire ran ${tool}` };
   }
 }
 
@@ -300,7 +300,7 @@ function openKnowledgePurpose(tool: string): string | null {
     case 'skills':
       return t`Finds skills and reads what's installed`;
     case 'config':
-      return t`Reads this project's OpenKnowledge settings`;
+      return t`Reads this project's GitQuire settings`;
     case 'palette':
       return t`Reads the authoring palette so new documents match the project's style`;
     case 'preview_url':
@@ -375,7 +375,7 @@ export function describeToolPurpose(call: {
 
 export function toolRunLabel(call: { title: string; toolKind: string; rawInput: unknown }): string {
   const tool = openKnowledgeToolName(call);
-  if (tool !== null) return `OpenKnowledge ${tool.replace(/_/g, ' ')}`;
+  if (tool !== null) return `GitQuire ${tool.replace(/_/g, ' ')}`;
   return mcpServerAndTool(call.title) ?? kindLabel(call.toolKind) ?? call.title;
 }
 

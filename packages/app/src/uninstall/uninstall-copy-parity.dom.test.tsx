@@ -18,18 +18,18 @@ function readableCopy(container: HTMLElement): string {
 }
 
 const PICKER_COPY = [
-  'Uninstall OpenKnowledge?',
-  'This removes OpenKnowledge’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills.',
+  'Uninstall GitQuire?',
+  'This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills.',
   'Select all',
   'Cancel',
-  'Uninstall OpenKnowledge',
-  'Detected OpenKnowledge projects',
-  'Remove OpenKnowledge from ',
+  'Uninstall GitQuire',
+  'Detected GitQuire projects',
+  'Remove GitQuire from ',
 ];
 
 const SURVEY_COPY = [
-  'Thanks for giving OpenKnowledge a try.',
-  'What you share is sent to the OpenKnowledge team.',
+  'Thanks for giving GitQuire a try.',
+  'What you share is sent to the GitQuire team.',
   'Before you go, mind sharing why?',
   "It didn't fit into my workflow",
   'It was missing a feature I needed',
@@ -47,7 +47,7 @@ const SURVEY_COPY = [
 ];
 
 const PROGRESS_COPY = [
-  'Removing OpenKnowledge files…',
+  'Removing GitQuire files…',
   'This may take a moment. Your markdown content is kept.',
 ];
 
@@ -92,7 +92,7 @@ describe('uninstall copy parity', () => {
       <UninstallPickerScreen projects={[]} onConfirm={() => {}} onCancel={() => {}} />,
     );
     expect(readableCopy(container)).toContain(
-      'No active or recent OpenKnowledge projects were found.',
+      'No active or recent GitQuire projects were found.',
     );
   });
 

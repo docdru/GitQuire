@@ -33,7 +33,7 @@ async function requestStatus(init?: RequestInit): Promise<{
     const response = await fetch('/api/generated-index/settings', init);
     const parsed = await parseServerResponse(
       response,
-      'Open Knowledge could not update index generation.',
+      'GitQuire could not update index generation.',
     );
     if (!parsed.ok) return { status: null, issue: 'connection' };
     const status = parseSuccessOrWarn(

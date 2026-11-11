@@ -238,7 +238,7 @@ function ReportBugDialog({
       setPhase({
         step: 'compose',
         creating: false,
-        createError: t`Bug reporting needs the OpenKnowledge desktop app.`,
+        createError: t`Bug reporting needs the GitQuire desktop app.`,
       });
       return;
     }
@@ -338,7 +338,7 @@ function ReportBugDialog({
                   />
                   <div>
                     <p className="font-medium">
-                      <Trans>OpenKnowledge quit unexpectedly last time.</Trans>
+                      <Trans>GitQuire quit unexpectedly last time.</Trans>
                     </p>
                     <DialogDescription className="mt-0.5 text-xs">
                       <Trans>
@@ -495,11 +495,11 @@ function ReportBugDialog({
                     <p id={logsHintId} className="text-1sm text-muted-foreground">
                       {systemWide ? (
                         <Trans>
-                          OpenKnowledge logs across projects. No project is open, so project server
+                          GitQuire logs across projects. No project is open, so project server
                           logs are not included.
                         </Trans>
                       ) : (
-                        <Trans>OpenKnowledge logs, including activity across projects.</Trans>
+                        <Trans>GitQuire logs, including activity across projects.</Trans>
                       )}
                     </p>
                   </div>
@@ -552,34 +552,34 @@ function ReportBugDialog({
                           {isMacOS && (
                             <Trans>
                               It also adds the low-memory reports macOS wrote in the past week that
-                              list OpenKnowledge's processes, with each one's memory use and whether
+                              list GitQuire's processes, with each one's memory use and whether
                               macOS ended it.
                             </Trans>
                           )}
                           {desktopPlatform === 'linux' && (
                             <Trans>
-                              It also adds the out-of-memory kills of OpenKnowledge that the system
+                              It also adds the out-of-memory kills of GitQuire that the system
                               journal recorded in the past week, without the machine name, account
                               id, or folder paths.
                             </Trans>
                           )}{' '}
                           {desktopPlatform === 'linux' && (
                             <Trans>
-                              It also adds any display-connection errors OpenKnowledge wrote to your
+                              It also adds any display-connection errors GitQuire wrote to your
                               user journal in the past week, each message cut to 200 characters.
                             </Trans>
                           )}
                           {desktopPlatform === 'win32' && (
                             <Trans>
                               It also adds the crash and hang records Windows logged for
-                              OpenKnowledge in the past week, without file paths, and the times of
+                              GitQuire in the past week, without file paths, and the times of
                               every shutdown, restart, power loss, and low-memory warning on this
                               computer in that week, whatever caused them.
                             </Trans>
                           )}{' '}
                           {isMacOS && (
                             <Trans>
-                              It also adds the crash reports macOS recorded for OpenKnowledge and
+                              It also adds the crash reports macOS recorded for GitQuire and
                               its helper processes, never another app's report, though ours do name
                               the processes they were running alongside. Each one carries machine
                               details macOS puts in every report: your account uid, the Mac model,
@@ -742,7 +742,7 @@ function ReportBugDialog({
                 />
                 <span>
                   <Trans>
-                    Sent privately to the OpenKnowledge team, along with your note and app version.
+                    Sent privately to the GitQuire team, along with your note and app version.
                     Never posted publicly.
                   </Trans>
                 </span>
