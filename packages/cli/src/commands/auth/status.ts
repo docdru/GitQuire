@@ -71,7 +71,7 @@ export function formatStoredEntryStatus(outcome: StoredEntryOutcome, host: strin
   }
   return (
     `Token stored for ${outcome.login} on ${host}. ${host} is not a GitHub host, so ` +
-    `OpenKnowledge does not verify it; git uses this credential to push and pull.`
+    `GitQuire does not verify it; git uses this credential to push and pull.`
   );
 }
 

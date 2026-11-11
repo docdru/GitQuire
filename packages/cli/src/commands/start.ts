@@ -590,7 +590,7 @@ export function resolveStartConsoleLevel(env: {
 
 export function formatShutdownNotice(signal: NodeJS.Signals): string[] {
   const lines = [
-    'Stopping OpenKnowledge…',
+    'Stopping GitQuire…',
     'Saving pending changes and releasing the server lock — this can take a few seconds.',
   ];
   if (signal === 'SIGINT') {
@@ -928,8 +928,8 @@ export async function resolveServerReuse(
 export function formatServerReuseNotice(info: ServerReuseInfo): string[] {
   const holder =
     info.kind === 'mcp-spawned'
-      ? 'An MCP-spawned OpenKnowledge server is already running on this project'
-      : 'OpenKnowledge is already running on this project';
+      ? 'An MCP-spawned GitQuire server is already running on this project'
+      : 'GitQuire is already running on this project';
   return [
     `${holder} (pid ${info.pid}).`,
     `  ${info.url}`,
@@ -975,7 +975,7 @@ export function tryDescribeLockCollision(
     if (meta?.kind === 'mcp-spawned') {
       return `An MCP-spawned server holds this lock; it should release on idle-shutdown (~30 min). Or run \`${command} stop\`.`;
     }
-    return `OpenKnowledge server is already running on this project — check \`${command} status\` or \`${command} stop\`.`;
+    return `GitQuire server is already running on this project — check \`${command} status\` or \`${command} stop\`.`;
   } catch {
     return null;
   }
@@ -983,7 +983,7 @@ export function tryDescribeLockCollision(
 
 export function startCommand(getConfig: () => Config): Command {
   const cmd = new Command('start')
-    .description('Start the OpenKnowledge server (UI + API + MCP + collab on one port)')
+    .description('Start the GitQuire server (UI + API + MCP + collab on one port)')
     .option('-p, --port <port>', 'Server port', undefined)
     .option(
       '--bind <address>',

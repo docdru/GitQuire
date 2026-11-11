@@ -67,9 +67,7 @@ describe('ok init refuses the top of a drive', () => {
 
       expect(process.exitCode).toBe(64);
       const printed = stderrSpy.mock.calls.map((call) => String(call[0])).join('');
-      expect(printed).toContain(
-        'Refusing to set up an OpenKnowledge project at the top of a drive',
-      );
+      expect(printed).toContain('Refusing to set up an GitQuire project at the top of a drive');
       expect(existsSync(join(driveRoot, OK_DIR))).toBe(false);
     } finally {
       process.chdir(savedCwd);

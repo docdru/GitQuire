@@ -36,7 +36,7 @@ export class SingleFileProjectOverrideError extends Error {
 export class SingleFileNotMarkdownError extends Error {
   readonly filePath: string;
   constructor(filePath: string) {
-    super(`OpenKnowledge edits markdown files (.md / .mdx): ${filePath}`);
+    super(`GitQuire edits markdown files (.md / .mdx): ${filePath}`);
     this.filePath = filePath;
     this.name = 'SingleFileNotMarkdownError';
   }
@@ -90,7 +90,7 @@ export function prepareSingleFileOpen(
     if (!isProjectRoot(projectRoot)) {
       throw new SingleFileProjectOverrideError(
         projectRoot,
-        'no .ok/config.yml there, so it is not an OpenKnowledge project root',
+        'no .ok/config.yml there, so it is not a GitQuire project root',
       );
     }
     const projectContentDir = resolveProjectContentDir(projectRoot);

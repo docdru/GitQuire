@@ -1988,6 +1988,9 @@ msgstr "Lista con viñetas"
 msgid "Bullet List"
 msgstr "Lista con viñetas"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "Por significado"
 
@@ -4874,6 +4877,9 @@ msgstr "Recargar a la fuerza"
 msgid "Force stop"
 msgstr "Detener a la fuerza"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "El formato se veía mal"
 
@@ -5100,6 +5106,9 @@ msgstr "Tiene conflictos de fusión"
 msgid "Having a look around…"
 msgstr "Echando un vistazo…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "Encabezado 1"
 
@@ -5172,6 +5181,9 @@ msgstr "Carpeta “{basename}” oculta"
 
 msgid "Hide"
 msgstr "Ocultar"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "Ocultar editor de {0}"
@@ -5475,6 +5487,9 @@ msgstr "En este repositorio: los colaboradores reciben copias mediante git."
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "En tu carpeta de inicio: todos los proyectos de esta máquina, solo para ti."
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "Aumentar o reducir la sangría del elemento de lista"
@@ -5983,6 +5998,9 @@ msgstr "Enlaza el texto seleccionado o edita el enlace bajo el cursor."
 
 msgid "Link these skill folders?"
 msgstr "¿Enlazar estas carpetas de habilidades?"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "Enlaza a una página o a una URL externa."
@@ -7797,6 +7815,9 @@ msgstr "Otras formas de instalarlo"
 
 msgid "Other ways to install Slidev"
 msgstr "Otras formas de instalar Slidev"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "Salientes"

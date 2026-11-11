@@ -967,7 +967,7 @@ describe('SyncEngine tracked MCP overlap preparation', () => {
     ]);
 
     expect((await project.log({ maxCount: 1 })).latest?.message).toBe(
-      'Update OpenKnowledge MCP launcher',
+      'Update GitQuire MCP launcher',
     );
     expect(await project.show(['--format=', '--name-only', 'HEAD'])).toBe('.mcp.json\n');
     expect(JSON.parse(readFileSync(join(projectDir, '.mcp.json'), 'utf8'))).toEqual(
@@ -1059,7 +1059,7 @@ describe('SyncEngine tracked MCP overlap preparation', () => {
       );
       expect(await bare.show(['main:local.md'])).toBe('local content\n');
       expect((await project.log({ maxCount: 1 })).latest?.message).toBe(
-        'Update OpenKnowledge MCP launcher',
+        'Update GitQuire MCP launcher',
       );
     } finally {
       await engine.destroy();

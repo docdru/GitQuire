@@ -26,9 +26,9 @@ export const AGENT_WRITE_OUTCOME_MEANINGS: Readonly<Record<AgentWriteOutcome, st
   'both-kept':
     'the write landed and is saved, and for a block changed both here and outside both versions are in the document, this side first; never retry it; re-read and tidy the duplicate with an ordinary edit if the task calls for it',
   refused:
-    'not saved; OpenKnowledge saves it only after someone acts: the agent, as nextStep says, or the user; follow nextStep',
+    'not saved; GitQuire saves it only after someone acts: the agent, as nextStep says, or the user; follow nextStep',
   'projection-held':
-    'the write is in the document but not yet in its file, and OpenKnowledge saves it on its own (on either runtime: a held local save or a held cloud projection); never retry it; re-read before the next edit',
+    'the write is in the document but not yet in its file, and GitQuire saves it on its own (on either runtime: a held local save or a held cloud projection); never retry it; re-read before the next edit',
 };
 
 export const AGENT_WRITE_NEXT_STEP_MEANINGS: Readonly<Record<AgentWriteNextStep, string>> = {

@@ -484,7 +484,7 @@ describe('ok clone checks symlinks before checking anything out', () => {
       printStderr: (text) => printed.push(text),
     });
     expect(printed.join('')).toContain(
-      '"notes/leak.md" (points into private .git or OpenKnowledge state)',
+      '"notes/leak.md" (points into private .git or GitQuire state)',
     );
     expect(printed.join('')).toContain('"notes/q\\"uote.md"');
   });

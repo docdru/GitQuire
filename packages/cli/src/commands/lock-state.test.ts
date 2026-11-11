@@ -354,7 +354,7 @@ describe('describeLockOwnershipRefusal', () => {
     worktreeRoot: '/tmp/x',
   };
   const keepTheLockUntilConfirmed =
-    'Confirm that no OpenKnowledge server is using this directory on the owning machine or any other machine sharing it. ' +
+    'Confirm that no GitQuire server is using this directory on the owning machine or any other machine sharing it. ' +
     `Only then remove the stale lock file at ${lockPath} and retry cleanup.`;
 
   test('a lock with another machine ID names the account and home folder remedies before removing the lock', () => {
@@ -436,7 +436,7 @@ describe('describeLockOwnershipRefusal', () => {
       }),
     ).toBe(
       `Cannot verify shutdown: the server lock at ${lockPath} records only the host other-host, not this machine's ${hostname()}. ` +
-        'If other-host is another machine, stop OpenKnowledge there; if it is an earlier name of this machine, stop OpenKnowledge here if it is still running. ' +
+        'If other-host is another machine, stop GitQuire there; if it is an earlier name of this machine, stop GitQuire here if it is still running. ' +
         keepTheLockUntilConfirmed,
     );
   });
@@ -446,7 +446,7 @@ describe('describeLockOwnershipRefusal', () => {
       describeLockOwnershipRefusal({ status: 'corrupt', lockPath, text: '{', foreignHost: true }),
     ).toBe(
       `Cannot verify shutdown: the server lock at ${lockPath} records a machine ID or host name that is not this machine's, so its server may run on another machine, or on this one from another account, with a different home folder, or under an earlier host name. ` +
-        'Stop OpenKnowledge wherever it was started. ' +
+        'Stop GitQuire wherever it was started. ' +
         keepTheLockUntilConfirmed,
     );
   });

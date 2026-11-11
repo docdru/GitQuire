@@ -258,7 +258,7 @@ describe('addOkPathsToGitExclude', () => {
     expect(result.kind).toBe('refused-tracked');
     if (result.kind !== 'refused-tracked') throw new Error('unreachable');
     expect(result.tracked).toEqual(['.mcp.json']);
-    expect(result.remediation).toContain('Cannot switch OpenKnowledge to local-only');
+    expect(result.remediation).toContain('Cannot switch GitQuire to local-only');
     expect(result.remediation).toContain('git rm --cached -- .mcp.json');
     expect(readExclude(dir)).toBe('');
   });

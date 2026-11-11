@@ -1178,7 +1178,7 @@ describe("ok sync without a running server authenticates through OpenKnowledge's
       okStoreToken: REVOKED_OK_TOKEN,
       detectGh: ghUnavailable,
       rejected: REVOKED_OK_TOKEN,
-      named: `OpenKnowledge's GitHub sign-in for ${GITHUB_HOST}`,
+      named: `GitQuire's GitHub sign-in for ${GITHUB_HOST}`,
       remedy: `ok auth login --host ${GITHUB_HOST}`,
     },
     {
@@ -1187,7 +1187,7 @@ describe("ok sync without a running server authenticates through OpenKnowledge's
       okStoreToken: REVOKED_OK_TOKEN,
       detectGh: ghUnavailable,
       rejected: REVOKED_OK_TOKEN,
-      named: `OpenKnowledge's GitHub sign-in for ${GITHUB_HOST}`,
+      named: `GitQuire's GitHub sign-in for ${GITHUB_HOST}`,
       remedy: `ok-beta auth login --host ${GITHUB_HOST}`,
     },
     {
@@ -1248,7 +1248,7 @@ describe("ok sync without a running server authenticates through OpenKnowledge's
     expect.soft(message, 'the reason git gave, as ok sync reports it').toContain('403');
     expect
       .soft(message, 'the credential ok sync reports it used')
-      .toContain(`OpenKnowledge's GitHub sign-in for ${GITHUB_HOST}`);
+      .toContain(`GitQuire's GitHub sign-in for ${GITHUB_HOST}`);
     expect
       .soft(message, 'the guidance ok sync gives for a denied account')
       .toContain('check that it has access to the repository');
@@ -1394,7 +1394,7 @@ describe("ok sync without a running server authenticates through OpenKnowledge's
     const message = outcome.error instanceof Error ? outcome.error.message : String(outcome.error);
     expect
       .soft(message, 'the failure ok push reports for the plain-http push URL')
-      .not.toContain("OpenKnowledge's GitHub sign-in");
+      .not.toContain("GitQuire's GitHub sign-in");
     expect.soft(message, 'a renewal command in the message').not.toContain('auth login');
     expect
       .soft(

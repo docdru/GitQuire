@@ -149,7 +149,7 @@ function describeOtherHomeFolderCleanupRemedy(
 
 function keepTheLockUntilConfirmed(lockPath: string): string {
   return (
-    'Confirm that no OpenKnowledge server is using this directory on the owning machine or any other machine sharing it. ' +
+    'Confirm that no GitQuire server is using this directory on the owning machine or any other machine sharing it. ' +
     `Only then remove the stale lock file at ${lockPath} and retry cleanup.`
   );
 }
@@ -162,7 +162,7 @@ export function describeForeignHostRemedy(
   const remedy =
     typeof lock.machineId === 'string'
       ? describeOtherHomeFolderCleanupRemedy(lock, platform)
-      : `If ${escapeDisplayPath(lock.hostname)} is another machine, stop OpenKnowledge there; if it is an earlier name of this machine, stop OpenKnowledge here if it is still running.`;
+      : `If ${escapeDisplayPath(lock.hostname)} is another machine, stop GitQuire there; if it is an earlier name of this machine, stop GitQuire here if it is still running.`;
   return `${remedy} ${keepTheLockUntilConfirmed(lockPath)}`;
 }
 
@@ -174,14 +174,14 @@ export function describeLockOwnershipRefusal(
   if (state.status === 'unverified-owner') {
     return (
       `Cannot verify shutdown: the server lock at ${lockPath} ${describeUnrecordedOwner(state.pid)}. ` +
-      `Check whether process ${state.pid} is an OpenKnowledge server. If it is, stop it and retry. ` +
+      `Check whether process ${state.pid} is a GitQuire server. If it is, stop it and retry. ` +
       'Do not remove the lock file while that process is running.'
     );
   }
   if (state.status === 'corrupt') {
     return (
       `Cannot verify shutdown: the server lock at ${lockPath} records a machine ID or host name that is not this machine's, so its server may run on another machine, or on this one from another account, with a different home folder, or under an earlier host name. ` +
-      `Stop OpenKnowledge wherever it was started. ${keepTheLockUntilConfirmed(lockPath)}`
+      `Stop GitQuire wherever it was started. ${keepTheLockUntilConfirmed(lockPath)}`
     );
   }
   return `Cannot verify shutdown: the server lock at ${lockPath} ${describeForeignOwner(state.lock)}. ${describeForeignHostRemedy(state, platform)}`;

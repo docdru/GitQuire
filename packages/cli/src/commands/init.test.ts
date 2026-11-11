@@ -2315,9 +2315,7 @@ describe('runInit — refuses the home directory as a project root', () => {
 
       expect(process.exitCode).toBe(64);
       const printed = stderrSpy.mock.calls.map((call) => String(call[0])).join('');
-      expect(printed).toContain(
-        'Refusing to set up an OpenKnowledge project in your home directory',
-      );
+      expect(printed).toContain('Refusing to set up an GitQuire project in your home directory');
       expect(printed).not.toContain('at runInit');
     } finally {
       process.chdir(savedCwd);

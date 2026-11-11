@@ -208,7 +208,7 @@ export function textPlusStructured<T>(text: string, structured: T, isError?: boo
 }
 
 export function hocuspocusNotRunningError(): string {
-  return `Error: Hocuspocus server is not running. Start it with \`${currentCliCommandName()} start\`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through OpenKnowledge so attribution and live sync stay intact.`;
+  return `Error: Hocuspocus server is not running. Start it with \`${currentCliCommandName()} start\`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through GitQuire so attribution and live sync stay intact.`;
 }
 
 export type ServerUrlOrResolver =

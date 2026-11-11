@@ -1988,6 +1988,9 @@ msgstr "无序列表"
 msgid "Bullet List"
 msgstr "无序列表"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "按语义"
 
@@ -4874,6 +4877,9 @@ msgstr "强制重新加载"
 msgid "Force stop"
 msgstr "强制停止"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "排版看起来不对"
 
@@ -5100,6 +5106,9 @@ msgstr "存在合并冲突"
 msgid "Having a look around…"
 msgstr "正在四处看看…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "一级标题"
 
@@ -5172,6 +5181,9 @@ msgstr "已隐藏文件夹“{basename}”"
 
 msgid "Hide"
 msgstr "隐藏"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "隐藏 {0} 编辑器"
@@ -5475,6 +5487,9 @@ msgstr "位于此仓库中——协作者会通过 git 获得副本。"
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "位于你的主目录中——此电脑上的每个项目，仅限你自己。"
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "增加或减少列表项缩进"
@@ -5983,6 +5998,9 @@ msgstr "为选中的文本加链接，或编辑光标处的链接。"
 
 msgid "Link these skill folders?"
 msgstr "要链接这两个技能文件夹吗？"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "链接到某个页面或外部 URL。"
@@ -7797,6 +7815,9 @@ msgstr "其他安装方式"
 
 msgid "Other ways to install Slidev"
 msgstr "安装 Slidev 的其他方式"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "出链"

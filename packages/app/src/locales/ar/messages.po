@@ -1988,6 +1988,9 @@ msgstr "قائمة نقطية"
 msgid "Bullet List"
 msgstr "قائمة نقطية"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "حسب المعنى"
 
@@ -4874,6 +4877,9 @@ msgstr "إعادة تحميل قسرية"
 msgid "Force stop"
 msgstr "إيقاف قسري"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "بدا التنسيق خاطئًا"
 
@@ -5100,6 +5106,9 @@ msgstr "توجد تعارضات دمج"
 msgid "Having a look around…"
 msgstr "يجري إلقاء نظرة…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "عنوان 1"
 
@@ -5172,6 +5181,9 @@ msgstr "أُخفي المجلد “{basename}”"
 
 msgid "Hide"
 msgstr "إخفاء"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "إخفاء محرر {0}"
@@ -5475,6 +5487,9 @@ msgstr "في هذا المستودع — يحصل المتعاونون على ن
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "في مجلدك الرئيسي — كل مشروع على هذا الجهاز، لك وحدك."
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "زيادة أو تقليل إزاحة عنصر القائمة"
@@ -5983,6 +5998,9 @@ msgstr "اربط النص المحدد، أو حرّر الرابط الواقع
 
 msgid "Link these skill folders?"
 msgstr "هل تربط مجلدي المهارات هذين؟"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "اربط بصفحة أو رابط خارجي."
@@ -7797,6 +7815,9 @@ msgstr "طرق أخرى للتثبيت"
 
 msgid "Other ways to install Slidev"
 msgstr "طرق أخرى لتثبيت Slidev"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "صادر"

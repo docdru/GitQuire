@@ -1984,6 +1984,9 @@ msgstr "বুলেট তালিকা"
 msgid "Bullet List"
 msgstr "বুলেট তালিকা"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "অর্থ অনুসারে"
 
@@ -4870,6 +4873,9 @@ msgstr "জোর করে আবার লোড করুন"
 msgid "Force stop"
 msgstr "জোর করে থামান"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "বিন্যাস ভুল মনে হয়েছে"
 
@@ -5096,6 +5102,9 @@ msgstr "মার্জ কনফ্লিক্ট আছে"
 msgid "Having a look around…"
 msgstr "চারপাশে দেখা হচ্ছে…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "শিরোনাম ১"
 
@@ -5168,6 +5177,9 @@ msgstr "লুকানো ফোল্ডার “{basename}”"
 
 msgid "Hide"
 msgstr "লুকান"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "{0} সম্পাদক লুকান"
@@ -5471,6 +5483,9 @@ msgstr "এই রিপোজিটরিতে — সহযোগীরা gi
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "আপনার হোম ফোল্ডারে — এই মেশিনের প্রতিটি প্রজেক্টে, শুধু আপনার জন্য।"
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "তালিকা আইটেম ভেতরে বা বাইরে নিন"
@@ -5979,6 +5994,9 @@ msgstr "নির্বাচিত লেখাটি লিংক করুন
 
 msgid "Link these skill folders?"
 msgstr "এই স্কিল ফোল্ডারগুলো লিংক করবেন?"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "একটি পাতা বা বাইরের URL-এ লিংক করুন।"
@@ -7793,6 +7811,9 @@ msgstr "ইনস্টল করার অন্যান্য উপায়
 
 msgid "Other ways to install Slidev"
 msgstr "Slidev ইনস্টল করার অন্যান্য উপায়"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "বহির্গামী"

@@ -8,7 +8,7 @@ export class HomeProjectRootError extends Error {
 
   constructor(projectRoot: string) {
     super(
-      `Refusing to set up an OpenKnowledge project in your home directory (${projectRoot}).\n` +
+      `Refusing to set up a GitQuire project in your home directory (${projectRoot}).\n` +
         `  A project here would run 'git init' in your home directory and write project config\n` +
         `  and skills into your editors' user-global directories (~/.cursor, ~/.codex, ~/.claude).\n` +
         `  Make a folder for this project, then run '${currentCliCommandName()} init' inside it.`,
@@ -23,7 +23,7 @@ export class FilesystemRootProjectError extends Error {
 
   constructor(projectRoot: string) {
     super(
-      `Refusing to set up an OpenKnowledge project at the top of a drive (${projectRoot}).\n` +
+      `Refusing to set up a GitQuire project at the top of a drive (${projectRoot}).\n` +
         `  A project here would scan every file on the drive and run 'git init' at its root.\n` +
         `  Make a folder for this project, then run '${currentCliCommandName()} init' inside it.`,
     );

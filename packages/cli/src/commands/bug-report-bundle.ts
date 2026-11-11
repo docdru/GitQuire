@@ -642,7 +642,7 @@ export async function collectStandardBundle(
     ...(installerLogEntries.length > 0
       ? [
           'Installer logs: written by the macOS update helper rather than by',
-          'OpenKnowledge itself, and machine-wide rather than scoped to any one',
+          'GitQuire itself, and machine-wide rather than scoped to any one',
           'project. They record the install and update history of this app on',
           'this machine. Only this app is collected, never other applications',
           'that use the same update mechanism:',
@@ -652,7 +652,7 @@ export async function collectStandardBundle(
       : []),
     ...(diagnosticReportEntries.length > 0
       ? [
-          'Crash reports: written by macOS itself rather than by OpenKnowledge,',
+          'Crash reports: written by macOS itself rather than by GitQuire,',
           'and machine-wide rather than scoped to any one project. They record',
           'why the operating system ended a process of this app — the signal or',
           'exception, the code-signing verdict, and whatever text the process',

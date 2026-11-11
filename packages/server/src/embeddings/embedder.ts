@@ -408,7 +408,7 @@ export async function loadOpenAiEmbedder(input: LoadOpenAiEmbedderInput): Promis
   return null;
 }
 
-const EMBEDDINGS_PROBE_INPUT = 'OpenKnowledge embeddings connection test';
+const EMBEDDINGS_PROBE_INPUT = 'GitQuire embeddings connection test';
 
 const PROBE_TIMEOUT_MS = 10_000;
 

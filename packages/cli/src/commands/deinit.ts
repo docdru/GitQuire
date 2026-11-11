@@ -47,9 +47,9 @@ export async function runDeinit(opts: DeinitOptions = {}): Promise<DeinitResult>
       status: 'failed',
       message:
         `${errorColor('Refusing to deinit your home directory.')}\n` +
-        `  ${projectRoot}/.ok is OpenKnowledge's user-global directory (global.yml, skills/,\n` +
+        `  ${projectRoot}/.ok is GitQuire's user-global directory (global.yml, skills/,\n` +
         `  ${OK_USER_HOME_AUTH_FILE}), not a project. Removing it would delete your global settings and skills.\n` +
-        `  To remove OpenKnowledge everywhere, use '${currentCliCommandName()} uninstall'.`,
+        `  To remove GitQuire everywhere, use '${currentCliCommandName()} uninstall'.`,
       exitCode: 64,
     };
   }
@@ -57,7 +57,7 @@ export async function runDeinit(opts: DeinitOptions = {}): Promise<DeinitResult>
   if (!existsSync(join(projectRoot, '.ok'))) {
     return {
       status: 'no-op',
-      message: dim(`No OpenKnowledge project found at ${projectRoot}. Nothing to remove.`),
+      message: dim(`No GitQuire project found at ${projectRoot}. Nothing to remove.`),
       exitCode: 0,
     };
   }
@@ -87,7 +87,7 @@ export async function runDeinit(opts: DeinitOptions = {}): Promise<DeinitResult>
 
   if (!opts.yes) {
     process.stderr.write(
-      `${accent(`Remove OpenKnowledge from ${projectRoot}:`)}\n\n${formatRemovalPlan(plan)}${attachedBlock}\n\n`,
+      `${accent(`Remove GitQuire from ${projectRoot}:`)}\n\n${formatRemovalPlan(plan)}${attachedBlock}\n\n`,
     );
     const confirmed = await confirmDestructive(
       `${accent('Remove these?')} ${dim('[y/N] ')}`,
@@ -114,7 +114,7 @@ export async function runDeinit(opts: DeinitOptions = {}): Promise<DeinitResult>
 export function deinitCommand(): Command {
   return new Command('deinit')
     .description(
-      `Remove OpenKnowledge from this project (its .ok/, editor MCP entries, git-exclude lines, shadow repo) while leaving your markdown content untouched. Re-run \`${currentCliCommandName()} start\` to re-scaffold.`,
+      `Remove GitQuire from this project (its .ok/, editor MCP entries, git-exclude lines, shadow repo) while leaving your markdown content untouched. Re-run \`${currentCliCommandName()} start\` to re-scaffold.`,
     )
     .argument(
       '[path]',

@@ -177,7 +177,7 @@ describe('ThreadPersistenceStore', () => {
     expect(metas.map((m) => m.info.threadId)).toEqual([T1]);
   });
 
-  test('a meta whose id OpenKnowledge did not mint is skipped, so the id never becomes a path', async () => {
+  test('a meta whose id GitQuire did not mint is skipped, so the id never becomes a path', async () => {
     const store = await makeStore();
     store.queueMetaWrite(T1, meta(T1));
     await store.whenIdle(T1);

@@ -92,7 +92,7 @@ export function writeOutcomeLine(outcome: WriteOutcome | undefined): string | nu
 export function landedLead(outcome: WriteOutcome, done: string): string {
   return outcome.outcome === 'both-kept'
     ? `${done}: both versions of a block changed here and outside were kept. The write landed and is saved; do not retry it. Re-read the document and remove the duplicate with an ordinary edit if your task calls for it.`
-    : `${done}: the edit is in the document, but its save to the file is not confirmed yet; OpenKnowledge saves it on its own. Do not retry it. Re-read the document before the next edit.`;
+    : `${done}: the edit is in the document, but its save to the file is not confirmed yet; GitQuire saves it on its own. Do not retry it. Re-read the document before the next edit.`;
 }
 
 export function leadFor(outcome: WriteOutcome | undefined, done: string, lead: string): string {

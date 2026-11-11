@@ -89,14 +89,14 @@ export async function runSingleFileOpen(
     const outcome = await deps.openTarget(deepLink, { desktopBundlePath: desktopApp.bundlePath });
     if (!outcome.ok) {
       deps.error(
-        `Could not open the OpenKnowledge desktop app: ${openTargetFailureMessage(
+        `Could not open the GitQuire desktop app: ${openTargetFailureMessage(
           outcome.reason,
           deepLink,
         )}.`,
       );
       return 1;
     }
-    deps.log(`Opening ${plan.singleDocRelPath} in the OpenKnowledge desktop app.`);
+    deps.log(`Opening ${plan.singleDocRelPath} in the GitQuire desktop app.`);
     return 0;
   }
 
@@ -115,7 +115,7 @@ async function runSingleFileBrowserOpen(
   const reactShellDistDir = resolveBundledReactShellDir();
   if (!reactShellDistDir) {
     process.stderr.write(
-      'OpenKnowledge UI assets were not found. Reinstall @inkeep/open-knowledge, or build the app (`bun run build`) in a monorepo checkout.\n',
+      'GitQuire UI assets were not found. Reinstall @inkeep/open-knowledge, or build the app (`bun run build`) in a monorepo checkout.\n',
     );
     process.exit(1);
   }

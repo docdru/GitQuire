@@ -223,7 +223,7 @@ function formatSemanticNote(semantic: SearchSemanticStatus | undefined): string 
   const { embedded, total } = semantic.coverage;
   switch (semantic.outcome) {
     case 'restart_required':
-      return '> Semantic: the provider changed vector dimensions repeatedly — restart OpenKnowledge before retrying.';
+      return '> Semantic: the provider changed vector dimensions repeatedly — restart GitQuire before retrying.';
     case 'provider_error':
       return '> Semantic: provider unavailable — lexical ranking only.';
     case 'incapable':

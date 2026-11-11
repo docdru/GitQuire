@@ -374,7 +374,7 @@ function describeUnverifiedHolderForStop(holder: UnverifiedHolder, causeRecorded
         return (
           `The server lock at ${lockPath} ${describeForeignOwner(lock)}, and the start of process ${pid}, which is running on this machine, does not confirm it as the server that wrote the lock; ` +
           `${STOP_NOT_SIGNALLED} If ${escapeDisplayPath(lock.hostname)} is another machine, stop the server there. ` +
-          `If it is an earlier name of this machine, confirm that process ${pid} is an OpenKnowledge server before ending it yourself, and once no OpenKnowledge server is running for this project, remove ${lockPath}.`
+          `If it is an earlier name of this machine, confirm that process ${pid} is a GitQuire server before ending it yourself, and once no GitQuire server is running for this project, remove ${lockPath}.`
         );
       }
       return (
@@ -385,14 +385,14 @@ function describeUnverifiedHolderForStop(holder: UnverifiedHolder, causeRecorded
     case 'unverified-owner':
       return (
         `The server lock at ${lockPath} ${describeUnrecordedOwner(pid)}, so it cannot be confirmed as the server that wrote the lock; ` +
-        `${STOP_NOT_SIGNALLED} Check whether process ${pid} is an OpenKnowledge server, and if it is, stop it yourself. ` +
+        `${STOP_NOT_SIGNALLED} Check whether process ${pid} is a GitQuire server, and if it is, stop it yourself. ` +
         'Do not remove the lock file while that process is running.'
       );
     default: {
       const refusal = describeUnconfirmedHolderStart(
         holder,
         STOP_NOT_SIGNALLED,
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`,
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
         causeRecorded,
       );
       if (holder.cause !== 'writer-identity-unrecorded') return refusal;
@@ -408,7 +408,7 @@ export function describeUnconfirmedHolderStart(
   causeRecorded: boolean,
 ): string {
   const { pid, lockPath, platform, nativeFailures } = holder;
-  const confirmFirst = `Before ending process ${pid} yourself, confirm that it is an OpenKnowledge server.`;
+  const confirmFirst = `Before ending process ${pid} yourself, confirm that it is a GitQuire server.`;
   switch (holder.cause) {
     case 'process-start-unreadable':
       return (
@@ -523,7 +523,7 @@ export function stopCommand(getConfig: () => Config): Command {
     .argument('[target...]', 'port number, directory path (spaces OK), or "all"')
     .option(
       '--force',
-      'Stop even when the server belongs to another OpenKnowledge app (Stable, Beta or a dev build run from source) or editor windows or agents are still connected to it',
+      'Stop even when the server belongs to another GitQuire app (Stable, Beta or a dev build run from source) or editor windows or agents are still connected to it',
     )
     .action(async (parts: string[], options: { force?: boolean }) => {
       const force = options.force === true;

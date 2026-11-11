@@ -381,7 +381,7 @@ export class DocumentOpenSizeLimitError extends Error {
 
   constructor(docName: string, size: number, limit = DOCUMENT_OPEN_BYTE_LIMIT) {
     super(
-      `Document "${docName}" is ${formatFileSize(size)}; OpenKnowledge opens documents up to ${formatFileSize(limit)}.`,
+      `Document "${docName}" is ${formatFileSize(size)}; GitQuire opens documents up to ${formatFileSize(limit)}.`,
     );
     this.name = 'DocumentOpenSizeLimitError';
     this.docName = docName;

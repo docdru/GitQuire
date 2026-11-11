@@ -45,6 +45,7 @@ import {
 } from '@/components/OutlinePanel';
 import { DiscussionLayer } from '@/gitquire-comments/DiscussionLayer';
 import { DiscussionPanel } from '@/gitquire-comments/DiscussionPanel';
+import { TouchEditToolbar } from '@/gitquire-mobile/TouchEditToolbar';
 import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
 import { anchorFromHash } from '@/lib/doc-hash';
 import { claimNoteWindowInitialFocus } from '@/lib/note-window-focus';
@@ -1285,6 +1286,9 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
         </CommentsBoundary>
       )}
       {!isSourceMode && <DiscussionLayer editor={editor} docName={docName} />}
+      {!isSourceMode && docName === activeDocName && (
+        <TouchEditToolbar editor={editor} docName={docName} />
+      )}
       {!isSourceMode && docName === activeDocName && (
         <DiscussionPanel editor={editor} docName={docName} />
       )}

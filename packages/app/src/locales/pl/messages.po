@@ -1988,6 +1988,9 @@ msgstr "Lista punktowana"
 msgid "Bullet List"
 msgstr "Lista punktowana"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "Według znaczenia"
 
@@ -4874,6 +4877,9 @@ msgstr "Wymuś przeładowanie"
 msgid "Force stop"
 msgstr "Wymuś zatrzymanie"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "Formatowanie wyglądało źle"
 
@@ -5100,6 +5106,9 @@ msgstr "Ma konflikty scalania"
 msgid "Having a look around…"
 msgstr "Rozgląda się…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "Nagłówek 1"
 
@@ -5172,6 +5181,9 @@ msgstr "Ukryty folder „{basename}”"
 
 msgid "Hide"
 msgstr "Ukryj"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "Ukryj edytor {0}"
@@ -5475,6 +5487,9 @@ msgstr "W tym repozytorium — współpracownicy otrzymują kopie przez gita."
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "W folderze domowym — każdy projekt na tym komputerze, tylko Ty."
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "Zwiększ lub zmniejsz wcięcie elementu listy"
@@ -5983,6 +5998,9 @@ msgstr "Utwórz link z zaznaczonego tekstu lub edytuj link pod kursorem."
 
 msgid "Link these skill folders?"
 msgstr "Połączyć te foldery umiejętności?"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "Link do strony lub zewnętrznego adresu URL."
@@ -7797,6 +7815,9 @@ msgstr "Inne sposoby instalacji"
 
 msgid "Other ways to install Slidev"
 msgstr "Inne sposoby instalacji Slidev"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "Wychodzące"

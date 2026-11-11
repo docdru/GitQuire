@@ -135,7 +135,7 @@ describe('ok pull without a running server', () => {
     expect(error).toBeInstanceOf(UnsafeIncomingSymlinkError);
     expect((error as Error).message).not.toContain('leak');
     expect(syncFailureMessage(error)).toBe(
-      'incoming symlinks are unsafe to check out: "notes/leak.md" (points into private .git or OpenKnowledge state). Remove or fix these links on the remote, or fix your own local change to them, then pull again.',
+      'incoming symlinks are unsafe to check out: "notes/leak.md" (points into private .git or GitQuire state). Remove or fix these links on the remote, or fix your own local change to them, then pull again.',
     );
     expect(existsAsEntry('notes/leak.md')).toBe(false);
   });

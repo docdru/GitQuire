@@ -943,7 +943,7 @@ describe('browser folders', () => {
     await removeAgentBrowserFolders(root, '0b1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f');
   });
 
-  test('refuse chat ids OpenKnowledge did not mint, so nothing outside a chat folder is touched', async () => {
+  test('refuse chat ids GitQuire did not mint, so nothing outside a chat folder is touched', async () => {
     const parent = tmp();
     const root = join(parent, 'global');
     const other = join(root, 'agent-browser', THREAD, 'files');

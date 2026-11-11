@@ -4,8 +4,8 @@ import { randomUUID } from './random-uuid.ts';
 export const SYSTEM_WRITER_DISPLAY_NAMES = {
   fileSystem: 'File System',
   gitUpstream: 'Git (upstream)',
-  service: 'OpenKnowledge (service)',
-  generator: 'OpenKnowledge (generated)',
+  service: 'GitQuire (service)',
+  generator: 'GitQuire (generated)',
 } as const;
 
 export const AGENT_COLORS = [

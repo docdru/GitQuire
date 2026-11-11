@@ -158,8 +158,8 @@ function describeSignInUsed(
   const { host } = signIn;
   const viaGh = signIn.tier === 'A';
   const used = viaGh
-    ? `The ${command} offered the GitHub CLI's sign-in for ${host}, which OpenKnowledge relays in place of your git credential helpers for that host; a ~/.netrc entry or a password in the remote URL is used before it.`
-    : `The ${command} offered OpenKnowledge's GitHub sign-in for ${host} in place of your git credential helpers for that host; a ~/.netrc entry or a password in the remote URL is used before it.`;
+    ? `The ${command} offered the GitHub CLI's sign-in for ${host}, which GitQuire relays in place of your git credential helpers for that host; a ~/.netrc entry or a password in the remote URL is used before it.`
+    : `The ${command} offered GitQuire's GitHub sign-in for ${host} in place of your git credential helpers for that host; a ~/.netrc entry or a password in the remote URL is used before it.`;
   switch (failure.subclass) {
     case 'no-credential':
     case '401':

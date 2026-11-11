@@ -676,7 +676,7 @@ export function createAgentWriteRoutes(
           res,
           400,
           'urn:ok:error:invalid-request',
-          `'${body.file}' is not a document OpenKnowledge keeps for the in-app agent.`,
+          `'${body.file}' is not a document GitQuire keeps for the in-app agent.`,
           {
             handler: ACP_MARKDOWN_WRITE.handler,
             detail:

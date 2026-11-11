@@ -548,7 +548,7 @@ export function createLocalOpRoutes(
     const detail =
       rejectedHost === null
         ? "The project's origin URL could not be parsed to determine its host. Set a supported origin URL or explicitly select a GitHub host."
-        : `${rejectedHost} is not a declared GitHub host. If it runs GitHub Enterprise Server, declare git.hosts.${rejectedHost}.provider as github in ${okUserHomeDisplayPath('global.yml')} and restart OpenKnowledge.`;
+        : `${rejectedHost} is not a declared GitHub host. If it runs GitHub Enterprise Server, declare git.hosts.${rejectedHost}.provider as github in ${okUserHomeDisplayPath('global.yml')} and restart GitQuire.`;
     errorResponse(
       res,
       409,

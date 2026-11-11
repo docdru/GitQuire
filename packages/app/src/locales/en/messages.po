@@ -1988,6 +1988,9 @@ msgstr "Bullet list"
 msgid "Bullet List"
 msgstr "Bullet List"
 
+msgid "Bulleted list"
+msgstr "Bulleted list"
+
 msgid "By meaning"
 msgstr "By meaning"
 
@@ -4874,6 +4877,9 @@ msgstr "Force Reload"
 msgid "Force stop"
 msgstr "Force stop"
 
+msgid "Formatting"
+msgstr "Formatting"
+
 msgid "Formatting looked wrong"
 msgstr "Formatting looked wrong"
 
@@ -5100,6 +5106,9 @@ msgstr "Has merge conflicts"
 msgid "Having a look around…"
 msgstr "Having a look around…"
 
+msgid "Heading"
+msgstr "Heading"
+
 msgid "Heading 1"
 msgstr "Heading 1"
 
@@ -5172,6 +5181,9 @@ msgstr "Hidden folder “{basename}”"
 
 msgid "Hide"
 msgstr "Hide"
+
+msgid "Hide keyboard"
+msgstr "Hide keyboard"
 
 msgid "Hide {0} editor"
 msgstr "Hide {0} editor"
@@ -5475,6 +5487,9 @@ msgstr "In this repo — collaborators get copies via git."
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "In your home folder — every project on this machine, just you."
+
+msgid "Indent"
+msgstr "Indent"
 
 msgid "Indent or outdent list item"
 msgstr "Indent or outdent list item"
@@ -5983,6 +5998,9 @@ msgstr "Link the selected text, or edit the link under the caret."
 
 msgid "Link these skill folders?"
 msgstr "Link these skill folders?"
+
+msgid "Link to a page"
+msgstr "Link to a page"
 
 msgid "Link to a page or external URL."
 msgstr "Link to a page or external URL."
@@ -7797,6 +7815,9 @@ msgstr "Other ways to install"
 
 msgid "Other ways to install Slidev"
 msgstr "Other ways to install Slidev"
+
+msgid "Outdent"
+msgstr "Outdent"
 
 msgid "Outgoing"
 msgstr "Outgoing"

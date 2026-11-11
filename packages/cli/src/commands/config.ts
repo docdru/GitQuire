@@ -258,7 +258,7 @@ export function shouldAnnounceRemovedKeys(subcommandName: string | undefined): b
 
 export function configCommand(): Command {
   const cmd = new Command('config').description(
-    'Inspect and maintain OpenKnowledge configuration files',
+    'Inspect and maintain GitQuire configuration files',
   );
 
   cmd

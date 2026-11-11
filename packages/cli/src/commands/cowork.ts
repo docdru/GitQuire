@@ -49,7 +49,7 @@ function formatSkipCurrentMessage(result: BuildAndOpenSkillResult): string {
   const version = result.skillVersion ?? 'unknown';
   const recordedAt = result.recordedAt ?? 'unknown';
   return [
-    info(`OpenKnowledge skill ${accent(`v${version}`)} already delivered to Claude Desktop.`),
+    info(`GitQuire skill ${accent(`v${version}`)} already delivered to Claude Desktop.`),
     dim(`  Recorded at ${recordedAt} in ${okUserHomeDisplayPath('skill-state.yml')}`),
     dim(`  Use ${accent('--force')} to rebuild and re-open the install dialog.`),
   ].join('\n');

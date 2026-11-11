@@ -40,7 +40,7 @@ export function makeServerLockCheck(deps: ServerLockCheckDeps = {}): CheckDefini
             name: 'server-lock',
             status: 'fail',
             summary: `server lock held by pid ${state.lock.pid} on this host`,
-            remediation: `Stop the other OpenKnowledge process or run \`${currentCliCommandName()} stop\`.`,
+            remediation: `Stop the other GitQuire process or run \`${currentCliCommandName()} stop\`.`,
             detail: `lockPath: ${state.lockPath}; port: ${state.lock.port}; started: ${state.lock.startedAt}`,
           };
         case 'unverified-owner':

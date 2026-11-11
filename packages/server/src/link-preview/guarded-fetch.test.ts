@@ -374,7 +374,7 @@ describe('guardedFetch against a loopback rig (real socket)', () => {
     const result = await guardedFetch(`http://rig.example:${port}/ok`, withRig);
     expect(result.ok).toBe(true);
     expect(lastRequest?.host).toBe(`rig.example:${port}`);
-    expect(lastRequest?.ua).toBe('OpenKnowledge-LinkPreview/1.x');
+    expect(lastRequest?.ua).toBe('GitQuire-LinkPreview/1.x');
     expect(lastRequest?.cookie).toBeUndefined();
     expect(lastRequest?.authorization).toBeUndefined();
     expect(lastRequest?.referer).toBeUndefined();
