@@ -61,6 +61,7 @@ export const PROMOTED_MDAST_TYPES = [
   'commentBlock',
   'footnoteReference',
   'footnoteDefinition',
+  'gitquireComments',
 ] as const;
 
 export type PromotedMdastType = (typeof PROMOTED_MDAST_TYPES)[number];
@@ -116,6 +117,12 @@ export interface CommentMdast {
     sourceForm?: 'percent' | 'html';
     [key: string]: unknown;
   };
+  position?: Position;
+}
+
+export interface GitQuireCommentsMdast {
+  type: 'gitquireComments';
+  value: string;
   position?: Position;
 }
 
@@ -264,6 +271,7 @@ declare module 'mdast' {
     tag: TagMdast;
     comment: CommentMdast;
     commentBlock: CommentBlockMdast;
+    gitquireComments: GitQuireCommentsMdast;
   }
 }
 

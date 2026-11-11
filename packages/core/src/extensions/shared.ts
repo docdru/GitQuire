@@ -11,6 +11,7 @@ import { EmphasisFidelity, StrongFidelity } from './emphasis-fidelity.ts';
 import { EscapeMark } from './escape-mark.ts';
 import { FootnoteDefinition } from './footnote-definition.ts';
 import { FootnoteReference } from './footnote-reference.ts';
+import { GitQuireComments } from './gitquire-comments.ts';
 import { HardBreakFidelity } from './hard-break-fidelity.ts';
 import { HeadingFidelity } from './heading-fidelity.ts';
 import { HtmlBlockFidelity } from './html-block-fidelity.ts';
@@ -100,4 +101,5 @@ export const sharedExtensions = [
   CommentBlock,
   FootnoteReference,
   FootnoteDefinition,
+  GitQuireComments,
 ];

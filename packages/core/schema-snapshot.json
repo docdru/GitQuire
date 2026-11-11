@@ -140,6 +140,21 @@
       "defining": false,
       "isolating": false
     },
+    "gitquireComments": {
+      "attrs": {
+        "raw": {
+          "hasDefault": true,
+          "default": ""
+        }
+      },
+      "content": "",
+      "marks": "",
+      "group": "block",
+      "inline": false,
+      "atom": true,
+      "defining": false,
+      "isolating": false
+    },
     "hardBreak": {
       "attrs": {
         "hardBreakStyle": {

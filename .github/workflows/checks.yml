@@ -42,11 +42,17 @@ jobs:
       - name: Typecheck server and CLI
         run: >-
           pnpm exec turbo run typecheck
+          --filter=@inkeep/open-knowledge-core
           --filter=@inkeep/open-knowledge-server
           --filter=@inkeep/open-knowledge
 
       - name: Build server dependencies
         run: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...
+
+      - name: Core markdown and GitQuire tests
+        run: >-
+          pnpm --dir packages/core exec vitest run
+          src/gitquire src/markdown src/extensions src/schema-invariant.test.ts
 
       - name: GitQuire tests
         run: pnpm --dir packages/server exec vitest run src/gitquire

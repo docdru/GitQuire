@@ -520,6 +520,17 @@
       "group": "block",
       "inline": false,
       "atom": false
+    },
+    "gitquireComments": {
+      "attrs": {
+        "raw": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "block",
+      "inline": false,
+      "atom": true
     }
   },
   "marks": {
@@ -713,6 +724,7 @@
     "comment",
     "commentBlock",
     "footnoteReference",
-    "footnoteDefinition"
+    "footnoteDefinition",
+    "gitquireComments"
   ]
 }
