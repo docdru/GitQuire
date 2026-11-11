@@ -1,7 +1,7 @@
 import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
-import { Check, MessagesSquare, RotateCcw, Trash2, X } from 'lucide-react';
+import { Check, MessagesSquare, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
   compareThreads,
   createThread,
   deleteComment,
+  editComment,
   type OpContext,
   segmentMentions,
   setResolved,
@@ -89,31 +90,92 @@ function CommentRow({
   comment,
   me,
   onDelete,
+  onEdit,
 }: {
   comment: ThreadComment;
   me: Author | null;
   onDelete: () => void;
+  onEdit: (body: string) => Promise<void>;
 }) {
   const { t } = useLingui();
+  const [draft, setDraft] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const who = comment.author.name ?? comment.author.login ?? comment.author.id;
   const age = formatRelativeAge(comment.createdAt);
+  const mine = me !== null && canModify(comment, me);
+
+  async function save() {
+    const body = (draft ?? '').trim();
+    if (body === '' || busy) return;
+    if (body === comment.body) {
+      setDraft(null);
+      return;
+    }
+    setBusy(true);
+    await onEdit(body).then(
+      () => setDraft(null),
+      () => undefined,
+    );
+    setBusy(false);
+  }
+
+  if (mine && draft !== null) {
+    return (
+      <div className="flex flex-col gap-2" data-testid="discussion-comment-edit">
+        <Textarea
+          rows={2}
+          value={draft}
+          aria-label={t`Edit comment`}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void save();
+            if (e.key === 'Escape') setDraft(null);
+          }}
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" size="sm" variant="ghost" onClick={() => setDraft(null)}>
+            {t`Cancel`}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={draft.trim() === '' || busy}
+            onClick={() => void save()}
+          >
+            {t`Save`}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="group flex flex-col gap-1">
       <div className="flex items-center gap-2 text-muted-foreground text-xs">
         <span className="font-medium text-foreground">{who}</span>
         <span>{age}</span>
         {comment.editedAt !== undefined && <span>{t`edited`}</span>}
-        {me !== null && canModify(comment, me) && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            className="ms-auto opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-            onClick={onDelete}
-            aria-label={t`Delete comment`}
-          >
-            <Trash2 aria-hidden="true" />
-          </Button>
+        {mine && (
+          <span className="ms-auto flex gap-1 opacity-0 focus-within:opacity-100 group-hover:opacity-100 [@media(pointer:coarse)]:opacity-100">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => setDraft(comment.body)}
+              aria-label={t`Edit comment`}
+            >
+              <Pencil aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onDelete}
+              aria-label={t`Delete comment`}
+            >
+              <Trash2 aria-hidden="true" />
+            </Button>
+          </span>
         )}
       </div>
       <MentionText body={comment.body} />
@@ -129,6 +191,7 @@ function ThreadCard({
   onReply,
   onResolve,
   onDelete,
+  onEdit,
 }: {
   placed: PlacedThread;
   active: boolean;
@@ -137,6 +200,7 @@ function ThreadCard({
   onReply: (body: string) => Promise<void>;
   onResolve: (resolved: boolean) => void;
   onDelete: (commentId: string) => void;
+  onEdit: (commentId: string, body: string) => Promise<void>;
 }) {
   const { t } = useLingui();
   const { thread, range } = placed;
@@ -182,6 +246,7 @@ function ThreadCard({
             comment={comment}
             me={me}
             onDelete={() => onDelete(comment.id)}
+            onEdit={(body) => onEdit(comment.id, body)}
           />
         ))}
       </div>
@@ -281,6 +346,10 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     run((current, ctx) => deleteComment(current, threadId, commentId, ctx.author)).catch(ignore);
   }
 
+  function edit(threadId: string, commentId: string, body: string): Promise<void> {
+    return run((current, ctx) => editComment(current, threadId, commentId, body, ctx));
+  }
+
   function select(placed: PlacedThread) {
     setActiveThread(placed.thread.id);
     if (placed.range === null || editor.isDestroyed) return;
@@ -370,6 +439,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
               onReply={(body) => replyTo(p.thread.id, body)}
               onResolve={(resolved) => resolve(p.thread.id, resolved)}
               onDelete={(commentId) => remove(p.thread.id, commentId)}
+              onEdit={(commentId, body) => edit(p.thread.id, commentId, body)}
             />
           ))}
         </ul>
