@@ -14,6 +14,7 @@ import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
 import { type Processor, unified } from 'unified';
 import { VFile } from 'vfile';
+import { joinCommentTrailer, splitCommentTrailer } from '../gitquire/comment-threads.ts';
 
 import './mdast-augmentation.ts';
 import { restoreFromMdx } from './autolink-void-html-guard.ts';
@@ -216,8 +217,25 @@ function readDocBoundary(value: unknown): SourceDocBoundary | undefined {
   return out.bom || out.leading || out.trailing ? out : undefined;
 }
 
+function appendCommentTrailer(root: MdastRoot, trailer: string | undefined): void {
+  if (trailer === undefined) return;
+  root.children.push({ type: 'gitquireComments', value: trailer });
+}
+
+function moveCommentTrailerLast(root: MdastRoot): boolean {
+  const index = root.children.findIndex(
+    (child) => child.type === 'html' && child.data?.gitquireComments === true,
+  );
+  if (index === -1) return false;
+  if (index === root.children.length - 1) return true;
+  const [trailer] = root.children.splice(index, 1);
+  if (trailer !== undefined) root.children.push(trailer);
+  return true;
+}
+
 export function parseMd(rawSource: string, processor: Processor): PmNode {
-  const { source: rawAfterBom, hadBom } = splitDocumentHeadBom(rawSource);
+  const { body: withoutTrailer, trailer } = splitCommentTrailer(rawSource);
+  const { source: rawAfterBom, hadBom } = splitDocumentHeadBom(withoutTrailer);
   const source = dedentBlockJsxClose(rawAfterBom);
   const protected_ = protectParserSource(source);
 
@@ -228,6 +246,7 @@ export function parseMd(rawSource: string, processor: Processor): PmNode {
   insertInteriorBlankRunParagraphs(transformed, source);
   const captured = captureDocBoundary(transformed, source, hadBom);
   const boundary = captured ? materializeDocEdgeBlankRuns(transformed, captured) : undefined;
+  appendCommentTrailer(transformed, trailer);
   const doc = (processor as unknown as { stringify(tree: unknown): PmNode }).stringify(transformed);
   if (!boundary) return doc;
   return doc.type.create({ ...doc.attrs, sourceDocBoundary: boundary }, doc.content, doc.marks);
@@ -246,7 +265,8 @@ function parseToMdast(
   processor: Processor,
   materializeBlankRuns: boolean,
 ): MdastRoot {
-  const { source: rawAfterBom, hadBom } = splitDocumentHeadBom(rawSource);
+  const { body: withoutTrailer, trailer } = splitCommentTrailer(rawSource);
+  const { source: rawAfterBom, hadBom } = splitDocumentHeadBom(withoutTrailer);
   const source = dedentBlockJsxClose(rawAfterBom);
   const protected_ = protectParserSource(source);
   const file = new VFile(protected_);
@@ -256,6 +276,7 @@ function parseToMdast(
   if (materializeBlankRuns) insertInteriorBlankRunParagraphs(transformed, source);
   const captured = captureDocBoundary(transformed, source, hadBom);
   if (materializeBlankRuns && captured) materializeDocEdgeBlankRuns(transformed, captured);
+  appendCommentTrailer(transformed, trailer);
   return transformed;
 }
 
@@ -274,12 +295,18 @@ export function serializeMd(doc: PmNode, processor: Processor, opts: SerializeMd
 
   pruneZeroEmissionBlocks(mdast);
 
+  const hasTrailer = moveCommentTrailerLast(mdast);
+
   const boundary = readDocBoundary(doc.attrs?.sourceDocBoundary);
 
   let out = String(processor.stringify(mdast));
   if (boundary?.leading) out = boundary.leading + out;
   if (boundary?.trailing) {
     out = out.replace(/\n+$/, '') + boundary.trailing;
+  }
+  if (hasTrailer) {
+    const split = splitCommentTrailer(out);
+    if (split.trailer !== undefined) out = joinCommentTrailer(split.body, split.trailer);
   }
   if (boundary?.bom) out = `\uFEFF${out}`;
   return out;

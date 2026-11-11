@@ -65,6 +65,7 @@ import {
 import type {
   CommentBlockMdast,
   CommentMdast,
+  GitQuireCommentsMdast,
   UnderlineMdast,
   WikiLinkEmbedMdast,
   WikiLinkMdast,
@@ -705,6 +706,11 @@ function buildMdastToPmHandlers(
 
   if (n.htmlBlock) {
     handlers.html = (node: Html) => n.htmlBlock.createAndFill({ content: node.value ?? '' });
+  }
+
+  if (n.gitquireComments) {
+    handlers.gitquireComments = (node: GitQuireCommentsMdast) =>
+      n.gitquireComments.create({ raw: node.value });
   }
 
   const linkDefNode = n.linkDefinition ?? n.linkRefDef;
@@ -1354,6 +1360,14 @@ function buildPmToMdastHandlers(
     nodeHandlers.htmlBlock = (pmNode: PmNode) => ({
       type: 'html' as const,
       value: pmNode.attrs.content,
+    });
+  }
+
+  if (n.gitquireComments) {
+    nodeHandlers.gitquireComments = (pmNode: PmNode) => ({
+      type: 'html' as const,
+      value: String(pmNode.attrs.raw ?? ''),
+      data: { gitquireComments: true as const },
     });
   }
 

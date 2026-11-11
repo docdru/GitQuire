@@ -42,6 +42,7 @@ export const KNOWN_MDAST_TYPES: ReadonlySet<string> = new Set([
   'underline',
   'comment',
   'commentBlock',
+  'gitquireComments',
   'rawMdxFallbackMdast',
 ]);
 

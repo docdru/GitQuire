@@ -61,6 +61,7 @@ export const PROMOTED_MDAST_TYPES = [
   'commentBlock',
   'footnoteReference',
   'footnoteDefinition',
+  'gitquireComments',
 ] as const;
 
 export type PromotedMdastType = (typeof PROMOTED_MDAST_TYPES)[number];
@@ -119,6 +120,13 @@ export interface CommentMdast {
   position?: Position;
 }
 
+export interface GitQuireCommentsMdast {
+  type: 'gitquireComments';
+  value: string;
+  data?: Record<string, unknown>;
+  position?: Position;
+}
+
 export interface CommentBlockMdast {
   type: 'commentBlock';
   // biome-ignore lint/suspicious/noExplicitAny: see RootContentMap note above
@@ -167,6 +175,9 @@ export interface SourceDocBoundary {
 declare module 'mdast' {
   interface RootData {
     sourceDocBoundary?: SourceDocBoundary;
+  }
+  interface HtmlData {
+    gitquireComments?: true;
   }
   interface TextData {
     escapedChars?: EscapeProvenanceEntry[];
@@ -264,6 +275,7 @@ declare module 'mdast' {
     tag: TagMdast;
     comment: CommentMdast;
     commentBlock: CommentBlockMdast;
+    gitquireComments: GitQuireCommentsMdast;
   }
 }
 

@@ -336,6 +336,7 @@ const promotedHandlers: Record<PromotedMdastType, Handler> = {
   commentBlock: commentBlockHandler,
   footnoteReference: footnoteReferenceHandler,
   footnoteDefinition: footnoteDefinitionHandler,
+  gitquireComments: () => undefined,
 };
 
 export const customNodeHandlers: Handlers = promotedHandlers;
