@@ -132,9 +132,7 @@ export function resolveGitHubAuthConfig(
     admins: loginSet(env.GITQUIRE_ADMINS),
     mcpToken: nonEmpty(env.GITQUIRE_MCP_TOKEN),
     sessionMaxAgeSeconds: Math.round(sessionDays * 24 * 60 * 60),
-    githubWebUrl: stripTrailingSlash(
-      nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com',
-    ),
+    githubWebUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),
     githubApiUrl: stripTrailingSlash(
       nonEmpty(env.GITQUIRE_GITHUB_API_URL) ?? 'https://api.github.com',
     ),
