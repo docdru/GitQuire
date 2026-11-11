@@ -4,13 +4,13 @@ import { join } from 'node:path';
 import type { DetectGhFn } from '../github-permissions.ts';
 import type { AccessGate, GateLogger } from './access-gate.ts';
 import { createAccessGate } from './access-gate.ts';
-import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import {
   createGitHubAppClient,
   type InstallationTokenManager,
   resolveGitHubAppConfig,
   startInstallationTokenManager,
 } from './github-app.ts';
+import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { bootstrapRepository, ensureAutoSyncMode, parseAutoSyncMode } from './repo-bootstrap.ts';
 
 export type { AccessGate, SessionUser } from './access-gate.ts';

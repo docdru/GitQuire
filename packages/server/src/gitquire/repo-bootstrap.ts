@@ -41,7 +41,9 @@ export async function bootstrapRepository(
   const withAuth = ['-c', `http.https://${config.gitHost}/.extraheader=${basicAuthHeader(token)}`];
 
   if (exists(join(dir, '.git'))) {
-    const remotes = runGit(['remote'], dir).split('\n').map((line) => line.trim());
+    const remotes = runGit(['remote'], dir)
+      .split('\n')
+      .map((line) => line.trim());
     if (remotes.includes('origin')) {
       runGit(['remote', 'set-url', 'origin', info.cloneUrl], dir);
     } else {

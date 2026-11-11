@@ -222,9 +222,12 @@ export async function startInstallationTokenManager(
 
   function schedule(delayMs: number): void {
     if (stopped) return;
-    const handle = setTimer(() => {
-      void refresh();
-    }, Math.max(1000, delayMs));
+    const handle = setTimer(
+      () => {
+        void refresh();
+      },
+      Math.max(1000, delayMs),
+    );
     handle.unref?.();
     timer = handle;
   }
