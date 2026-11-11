@@ -28,6 +28,7 @@ import {
 import { writeAndTrack } from './thread-sync';
 import {
   clearDraft,
+  clearReveal,
   closeDiscussions,
   currentAuthor,
   openDiscussions,
@@ -338,6 +339,18 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     });
   }
 
+  const revealThreadId = isOpen ? ui.revealThreadId : null;
+  const revealReady =
+    revealThreadId !== null && threads.some((thread) => thread.id === revealThreadId);
+
+  useEffect(() => {
+    if (!revealReady || revealThreadId === null || editor.isDestroyed) return;
+    const target = threads.filter((thread) => thread.id === revealThreadId);
+    const range = placeThreads(editor.state.doc, target)[0]?.range ?? null;
+    if (range !== null) editor.chain().setTextSelection(range).scrollIntoView().run();
+    clearReveal();
+  }, [editor, revealReady, revealThreadId, threads]);
+
   async function createFromDraft() {
     const draft = ui.draft;
     const body = draftBody.trim();
@@ -403,7 +416,9 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   }
 
   const placed = placeThreads(editor.state.doc, [...threads].sort(compareThreads));
-  const visible = placed.filter((p) => showResolved || !p.thread.resolved);
+  const visible = placed.filter(
+    (p) => showResolved || !p.thread.resolved || p.thread.id === ui.activeThreadId,
+  );
   const resolvedCount = threads.length - openCount;
 
   return (

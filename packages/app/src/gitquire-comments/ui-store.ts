@@ -5,10 +5,17 @@ export interface DiscussionUiState {
   docName: string | null;
   open: boolean;
   activeThreadId: string | null;
+  revealThreadId: string | null;
   draft: { anchor: Anchor; from: number; to: number } | null;
 }
 
-let state: DiscussionUiState = { docName: null, open: false, activeThreadId: null, draft: null };
+let state: DiscussionUiState = {
+  docName: null,
+  open: false,
+  activeThreadId: null,
+  revealThreadId: null,
+  draft: null,
+};
 const listeners = new Set<() => void>();
 
 function emit(next: DiscussionUiState): void {
@@ -31,15 +38,30 @@ export function useDiscussionUi(): DiscussionUiState {
 
 export function openDiscussions(docName: string, activeThreadId: string | null = null): void {
   const draft = state.docName === docName ? state.draft : null;
-  emit({ docName, open: true, activeThreadId, draft });
+  emit({ docName, open: true, activeThreadId, revealThreadId: null, draft });
+}
+
+export function revealDiscussion(docName: string, threadId: string): void {
+  const draft = state.docName === docName ? state.draft : null;
+  emit({ docName, open: true, activeThreadId: threadId, revealThreadId: threadId, draft });
+}
+
+export function clearReveal(): void {
+  if (state.revealThreadId !== null) emit({ ...state, revealThreadId: null });
 }
 
 export function closeDiscussions(): void {
-  emit({ docName: state.docName, open: false, activeThreadId: null, draft: null });
+  emit({
+    docName: state.docName,
+    open: false,
+    activeThreadId: null,
+    revealThreadId: null,
+    draft: null,
+  });
 }
 
 export function startDraft(docName: string, draft: NonNullable<DiscussionUiState['draft']>): void {
-  emit({ docName, open: true, activeThreadId: null, draft });
+  emit({ docName, open: true, activeThreadId: null, revealThreadId: null, draft });
 }
 
 export function clearDraft(): void {

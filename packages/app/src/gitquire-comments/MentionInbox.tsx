@@ -5,29 +5,30 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { hashFromDocName } from '@/lib/doc-hash';
+import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
-  docNameFromPath,
   fetchMentions,
   type InboxMention,
   type MentionInboxData,
   markMentionsRead,
-  pageTitleFromPath,
+  pageTitle,
   type ReadTarget,
   unreadBadge,
   withMentionsRead,
 } from '@/lib/gitquire/mentions-api';
 import { revealEditor } from '@/lib/reveal-editor';
 import { cn } from '@/lib/utils';
-import { openDiscussions } from './ui-store';
+import { revealDiscussion } from './ui-store';
 
 const POLL_MS = 60_000;
+const FOCUS_RELOAD_MIN_MS = 10_000;
 
 const ignore = (): undefined => undefined;
 
 function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => void }) {
   const { t } = useLingui();
   const who = mention.author.name ?? mention.author.login ?? mention.author.id;
-  const page = pageTitleFromPath(mention.path);
+  const page = pageTitle(mention.docName);
   const age = formatRelativeAge(mention.at);
   return (
     <li>
@@ -63,22 +64,33 @@ export function MentionInbox() {
 
   useEffect(() => {
     let live = true;
-    let timer: number | undefined;
+    let lastLoad = 0;
     function load() {
-      fetchMentions().then((next) => {
-        if (!live) return;
-        setInbox(next);
-        if (!next.enabled && timer !== undefined) window.clearInterval(timer);
-      }, ignore);
+      if (!live || document.hidden) return;
+      lastLoad = Date.now();
+      fetchMentions().then(
+        (next) => {
+          if (!live) return;
+          setInbox(next);
+          if (!next.enabled) stop();
+        },
+        (err: unknown) => {
+          if (err instanceof GitQuireApiError && err.status === 404) stop();
+        },
+      );
     }
-    load();
-    timer = window.setInterval(load, POLL_MS);
-    window.addEventListener('focus', load);
-    return () => {
+    function onFocus() {
+      if (Date.now() - lastLoad >= FOCUS_RELOAD_MIN_MS) load();
+    }
+    const timer = window.setInterval(load, POLL_MS);
+    window.addEventListener('focus', onFocus);
+    function stop() {
       live = false;
       window.clearInterval(timer);
-      window.removeEventListener('focus', load);
-    };
+      window.removeEventListener('focus', onFocus);
+    }
+    load();
+    return stop;
   }, []);
 
   if (inbox === null || !inbox.enabled) return null;
@@ -91,16 +103,18 @@ export function MentionInbox() {
 
   function markRead(target: ReadTarget) {
     setInbox(withMentionsRead(current, target));
-    markMentionsRead(target).catch(ignore);
+    markMentionsRead(target).then(
+      ({ unread }) => setInbox((latest) => (latest === null ? latest : { ...latest, unread })),
+      ignore,
+    );
   }
 
   function openMention(mention: InboxMention) {
     setOpen(false);
     if (!mention.read) markRead({ ids: [mention.id] });
-    const docName = docNameFromPath(mention.path);
     revealEditor();
-    window.location.assign(hashFromDocName(docName));
-    openDiscussions(docName, mention.threadId);
+    window.location.assign(hashFromDocName(mention.docName));
+    revealDiscussion(mention.docName, mention.threadId);
   }
 
   const label =

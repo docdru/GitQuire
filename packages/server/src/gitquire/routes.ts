@@ -26,6 +26,7 @@ export interface GitQuireRoutesDeps {
   runGit?: RunGit;
   env?: Readonly<Record<string, string | undefined>>;
   mentionStateFile?: string;
+  contentDir?: string;
 }
 
 export interface GitQuireRoutes {
@@ -231,7 +232,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 201, { pull });
   }
 
-  const mentionIndex = createMentionIndex(deps.projectDir);
+  const mentionIndex = createMentionIndex(deps.contentDir ?? deps.projectDir);
   const mentionReads = createMentionReadStore(
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
   );

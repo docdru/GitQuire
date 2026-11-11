@@ -19,12 +19,27 @@ const MAX_DEPTH = 12;
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_BODY_CHARS = 280;
 const MAX_QUOTE_CHARS = 140;
-const MAX_READ_IDS = 2000;
-const SKIPPED_DIRECTORIES = new Set(['node_modules']);
+const MAX_DIRECTORIES = 5000;
+const MAX_READ_IDS = 5000;
+const SCAN_REUSE_MS = 5000;
+const DOC_EXTENSIONS = ['.mdx', '.md'] as const;
+const SKIPPED_DIRECTORIES = new Set([
+  'node_modules',
+  'venv',
+  'env',
+  '__pycache__',
+  'vendor',
+  'dist',
+  'build',
+  'out',
+  'output',
+  'coverage',
+]);
 
 export interface Mention {
   id: string;
   path: string;
+  docName: string;
   threadId: string;
   commentId: string;
   author: CommentAuthor;
@@ -44,6 +59,12 @@ export interface MentionReader {
   login: string;
 }
 
+export function docNameForPath(path: string): string | undefined {
+  const lower = path.toLowerCase();
+  const extension = DOC_EXTENSIONS.find((candidate) => lower.endsWith(candidate));
+  return extension === undefined ? undefined : path.slice(0, -extension.length);
+}
+
 function clip(text: string, max: number): string {
   const flat = text.replace(/\s+/g, ' ').trim();
   return flat.length <= max ? flat : `${flat.slice(0, max - 1)}…`;
@@ -51,6 +72,7 @@ function clip(text: string, max: number): string {
 
 export function mentionsInMarkdown(path: string, markdown: string): Mention[] {
   const found: Mention[] = [];
+  const docName = docNameForPath(path) ?? path;
   for (const thread of readCommentThreads(markdown)) {
     for (const comment of thread.comments) {
       const logins = (comment.mentions ?? []).map((login) => login.toLowerCase());
@@ -58,6 +80,7 @@ export function mentionsInMarkdown(path: string, markdown: string): Mention[] {
       found.push({
         id: `${thread.id}:${comment.id}`,
         path,
+        docName,
         threadId: thread.id,
         commentId: comment.id,
         author: comment.author,
@@ -85,9 +108,11 @@ export interface MentionIndex {
 function markdownFiles(root: string): string[] {
   const files: string[] = [];
   const queue: { dir: string; depth: number }[] = [{ dir: '', depth: 0 }];
-  while (queue.length > 0 && files.length < MAX_FILES) {
+  let visited = 0;
+  while (queue.length > 0 && files.length < MAX_FILES && visited < MAX_DIRECTORIES) {
     const next = queue.shift();
     if (next === undefined) break;
+    visited += 1;
     let entries: Dirent[];
     try {
       entries = readdirSync(join(root, next.dir), { withFileTypes: true });
@@ -102,7 +127,7 @@ function markdownFiles(root: string): string[] {
         if (next.depth < MAX_DEPTH && !SKIPPED_DIRECTORIES.has(entry.name)) {
           queue.push({ dir: relative, depth: next.depth + 1 });
         }
-      } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.md')) {
+      } else if (entry.isFile() && docNameForPath(entry.name) !== undefined) {
         files.push(relative);
         if (files.length >= MAX_FILES) break;
       }
@@ -111,8 +136,12 @@ function markdownFiles(root: string): string[] {
   return files;
 }
 
-export function createMentionIndex(projectDir: string): MentionIndex {
+export function createMentionIndex(
+  projectDir: string,
+  now: () => number = Date.now,
+): MentionIndex {
   const cache = new Map<string, CachedFile>();
+  let lastScan: { at: number; mentions: Mention[] } | undefined;
 
   function read(path: string): Mention[] {
     const full = join(projectDir, path);
@@ -140,12 +169,18 @@ export function createMentionIndex(projectDir: string): MentionIndex {
   }
 
   function all(): Mention[] {
+    const at = now();
+    if (lastScan !== undefined && at - lastScan.at < SCAN_REUSE_MS && at >= lastScan.at) {
+      return lastScan.mentions;
+    }
     const paths = markdownFiles(projectDir);
     const live = new Set(paths);
     for (const path of cache.keys()) {
       if (!live.has(path)) cache.delete(path);
     }
-    return paths.flatMap(read);
+    const mentions = paths.flatMap(read);
+    lastScan = { at, mentions };
+    return mentions;
   }
 
   return { all };
@@ -205,11 +240,16 @@ export function createMentionReadStore(file: string): MentionReadStore {
       const snapshot = current();
       const merged = new Set(snapshot.users[String(userId)]?.read ?? []);
       for (const id of ids) {
-        if (known.has(id)) merged.add(id);
+        if (!known.has(id)) continue;
+        merged.delete(id);
+        merged.add(id);
       }
-      const kept = [...merged].filter((id) => known.has(id)).slice(-MAX_READ_IDS);
-      snapshot.users[String(userId)] = { read: kept };
-      save(snapshot);
+      const next: ReadState = {
+        version: 1,
+        users: { ...snapshot.users, [String(userId)]: { read: [...merged].slice(-MAX_READ_IDS) } },
+      };
+      save(next);
+      state = next;
     },
   };
 }
@@ -221,9 +261,15 @@ export function authorIdForReader(reader: MentionReader): string {
 export function mentionsFor(reader: MentionReader, all: readonly Mention[]): Mention[] {
   const login = reader.login.toLowerCase();
   const self = authorIdForReader(reader);
-  return all
-    .filter((mention) => mention.logins.includes(login) && mention.author.id !== self)
-    .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+  const seen = new Set<string>();
+  const mine: Mention[] = [];
+  for (const mention of all) {
+    if (!mention.logins.includes(login) || mention.author.id === self) continue;
+    if (seen.has(mention.id)) continue;
+    seen.add(mention.id);
+    mine.push(mention);
+  }
+  return mine.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
 }
 
 export interface Inbox {
@@ -243,6 +289,7 @@ export function buildInbox(
   const items: InboxMention[] = mine.map((mention) => ({
     id: mention.id,
     path: mention.path,
+    docName: mention.docName,
     threadId: mention.threadId,
     commentId: mention.commentId,
     author: mention.author,

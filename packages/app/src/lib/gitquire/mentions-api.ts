@@ -9,6 +9,7 @@ export interface MentionAuthor {
 export interface InboxMention {
   id: string;
   path: string;
+  docName: string;
   threadId: string;
   commentId: string;
   author: MentionAuthor;
@@ -46,16 +47,12 @@ export function withMentionsRead(inbox: MentionInboxData, target: ReadTarget): M
       ? mention
       : { ...mention, read: true },
   );
+  if (ids === undefined) return { ...inbox, mentions, unread: 0 };
   const newlyRead = mentions.filter((mention, index) => mention !== inbox.mentions[index]).length;
   return { ...inbox, mentions, unread: Math.max(0, inbox.unread - newlyRead) };
 }
 
-export function docNameFromPath(path: string): string {
-  return path.replace(/\.md$/i, '');
-}
-
-export function pageTitleFromPath(path: string): string {
-  const docName = docNameFromPath(path);
+export function pageTitle(docName: string): string {
   return docName.slice(docName.lastIndexOf('/') + 1);
 }
 

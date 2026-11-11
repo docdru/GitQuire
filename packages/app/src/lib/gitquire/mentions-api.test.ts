@@ -1,11 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import {
-  docNameFromPath,
   fetchMentions,
   type InboxMention,
   type MentionInboxData,
   markMentionsRead,
-  pageTitleFromPath,
+  pageTitle,
   unreadBadge,
   withMentionsRead,
 } from './mentions-api';
@@ -14,6 +13,7 @@ function mention(id: string, read: boolean): InboxMention {
   return {
     id,
     path: 'notes/report.md',
+    docName: 'notes/report',
     threadId: 't1',
     commentId: id,
     author: { id: 'github-2', login: 'bob' },
@@ -64,11 +64,14 @@ describe('mention inbox client', () => {
     expect(all.mentions.every((item) => item.read)).toBe(true);
   });
 
-  test('turns a file path into a page name and title', () => {
-    expect(docNameFromPath('notes/report.md')).toBe('notes/report');
-    expect(docNameFromPath('README.MD')).toBe('README');
-    expect(pageTitleFromPath('notes/2026/report.md')).toBe('report');
-    expect(pageTitleFromPath('plan.md')).toBe('plan');
+  test('shows the last part of a page name as its title', () => {
+    expect(pageTitle('notes/2026/report')).toBe('report');
+    expect(pageTitle('plan')).toBe('plan');
+  });
+
+  test('clears the count on mark all, also beyond the listed mentions', () => {
+    const many = { ...inbox(), unread: 250 };
+    expect(withMentionsRead(many, { all: true }).unread).toBe(0);
   });
 
   test('caps the badge', () => {

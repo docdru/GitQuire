@@ -11,6 +11,7 @@ import {
   buildInbox,
   createMentionIndex,
   createMentionReadStore,
+  docNameForPath,
   mentionStatePath,
   mentionsFor,
   mentionsInMarkdown,
@@ -75,6 +76,7 @@ describe('mention index', () => {
     expect(found).toMatchObject({
       id: 't1:c1',
       path: 'a.md',
+      docName: 'a',
       quote: 'quarterly numbers',
       body: 'Hi @alice',
       logins: ['alice'],
@@ -92,16 +94,35 @@ describe('mention index', () => {
     }
   });
 
-  it('picks up a page that changed', () => {
+  it('picks up a page that changed, after reusing a scan for a few seconds', () => {
     const dir = project();
     try {
-      const index = createMentionIndex(dir);
+      let clock = 1000;
+      const index = createMentionIndex(dir, () => clock);
       expect(index.all()).toHaveLength(4);
       writeFileSync(join(dir, 'plan.md'), 'Rewritten without any comments at all.\n');
+      clock += 1000;
+      expect(index.all()).toHaveLength(4);
+      clock += 5000;
       expect(ids(index.all())).toEqual(['t1:c1', 't1:c2']);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('page names', () => {
+  it('strips the document extension and rejects other files', () => {
+    expect(docNameForPath('notes/report.md')).toBe('notes/report');
+    expect(docNameForPath('Guide.MDX')).toBe('Guide');
+    expect(docNameForPath('image.png')).toBeUndefined();
+  });
+
+  it('lists a copied page once', () => {
+    const copy = comment('c1', bob, 'Hi @alice', '2026-11-10T09:00:00Z', ['alice']);
+    const text = page([thread('t1', [copy])]);
+    const all = [...mentionsInMarkdown('a.md', text), ...mentionsInMarkdown('copy/a.md', text)];
+    expect(mentionsFor(alice, all).map((mention) => mention.path)).toEqual(['a.md']);
   });
 });
 
@@ -125,7 +146,7 @@ describe('inbox', () => {
     }
   });
 
-  it('remembers what was read, per person, and forgets mentions that are gone', () => {
+  it('remembers what was read, per person, also while a page is away', () => {
     const dir = project();
     try {
       const file = mentionStatePath(dir);
@@ -135,10 +156,10 @@ describe('inbox', () => {
       expect([...store.readIds(2)]).toEqual([]);
       expect([...createMentionReadStore(file).readIds(1)]).toEqual(['t1:c1']);
       store.markRead(1, ['t2:c3'], new Set(['t2:c3']));
-      expect([...store.readIds(1)]).toEqual(['t2:c3']);
+      expect([...store.readIds(1)]).toEqual(['t1:c1', 't2:c3']);
       expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual({
         version: 1,
-        users: { '1': { read: ['t2:c3'] } },
+        users: { '1': { read: ['t1:c1', 't2:c3'] } },
       });
     } finally {
       rmSync(dir, { recursive: true, force: true });
