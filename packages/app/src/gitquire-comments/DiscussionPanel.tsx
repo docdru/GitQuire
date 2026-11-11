@@ -2,7 +2,7 @@ import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-ti
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
 import { Check, MessagesSquare, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,8 @@ import {
   createThread,
   deleteComment,
   editComment,
+  editOutcome,
+  hasCommentBody,
   type OpContext,
   segmentMentions,
   setResolved,
@@ -100,46 +102,67 @@ function CommentRow({
   const { t } = useLingui();
   const [draft, setDraft] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const editButton = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef(false);
   const who = comment.author.name ?? comment.author.login ?? comment.author.id;
   const age = formatRelativeAge(comment.createdAt);
   const mine = me !== null && canModify(comment, me);
+  const editing = mine && draft !== null;
+
+  useEffect(() => {
+    if (editing || !returnFocus.current) return;
+    returnFocus.current = false;
+    editButton.current?.focus();
+  }, [editing]);
+
+  function close() {
+    returnFocus.current = true;
+    setDraft(null);
+  }
 
   async function save() {
-    const body = (draft ?? '').trim();
-    if (body === '' || busy) return;
-    if (body === comment.body) {
-      setDraft(null);
+    if (busy) return;
+    const outcome = editOutcome(draft ?? '', comment.body);
+    if (outcome.kind === 'empty') return;
+    if (outcome.kind === 'unchanged') {
+      close();
       return;
     }
     setBusy(true);
-    await onEdit(body).then(
-      () => setDraft(null),
-      () => undefined,
-    );
+    await onEdit(outcome.body).then(close, ignore);
     setBusy(false);
   }
 
-  if (mine && draft !== null) {
+  if (editing) {
     return (
       <div className="flex flex-col gap-2" data-testid="discussion-comment-edit">
         <Textarea
           rows={2}
-          value={draft}
-          aria-label={t`Edit comment`}
+          value={draft ?? ''}
+          autoFocus
+          disabled={busy}
+          aria-label={t`Comment`}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void save();
-            if (e.key === 'Escape') setDraft(null);
+            if (e.nativeEvent.isComposing || busy) return;
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              void save();
+            }
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              close();
+            }
           }}
         />
         <div className="flex justify-end gap-2">
-          <Button type="button" size="sm" variant="ghost" onClick={() => setDraft(null)}>
+          <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={close}>
             {t`Cancel`}
           </Button>
           <Button
             type="button"
             size="sm"
-            disabled={draft.trim() === '' || busy}
+            disabled={(draft ?? '').trim() === '' || busy}
             onClick={() => void save()}
           >
             {t`Save`}
@@ -156,13 +179,14 @@ function CommentRow({
         <span>{age}</span>
         {comment.editedAt !== undefined && <span>{t`edited`}</span>}
         {mine && (
-          <span className="ms-auto flex gap-1 opacity-0 focus-within:opacity-100 group-hover:opacity-100 [@media(pointer:coarse)]:opacity-100">
+          <span className="ms-auto flex gap-1 opacity-0 focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
             <Button
               type="button"
               variant="ghost"
               size="icon-xs"
+              ref={editButton}
               onClick={() => setDraft(comment.body)}
-              aria-label={t`Edit comment`}
+              aria-label={t`Edit this comment`}
             >
               <Pencil aria-hidden="true" />
             </Button>
@@ -309,6 +333,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   async function run(change: (threads: Thread[], ctx: OpContext) => Thread[]): Promise<void> {
     try {
       const ctx = await opContext();
+      if (editor.isDestroyed) throw new Error('The editor closed before the comment was saved.');
       commit(editor, change(readThreads(editor.state.doc), ctx));
     } catch (err) {
       toast.error(t`Couldn't save the comment.`);
@@ -347,7 +372,13 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   }
 
   function edit(threadId: string, commentId: string, body: string): Promise<void> {
-    return run((current, ctx) => editComment(current, threadId, commentId, body, ctx));
+    return run((current, ctx) => {
+      const next = editComment(current, threadId, commentId, body, ctx);
+      if (!hasCommentBody(next, threadId, commentId, body)) {
+        throw new Error('The comment is no longer there to edit.');
+      }
+      return next;
+    });
   }
 
   function select(placed: PlacedThread) {

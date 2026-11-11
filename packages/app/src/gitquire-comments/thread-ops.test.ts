@@ -9,7 +9,9 @@ import {
   createThread,
   deleteComment,
   editComment,
+  editOutcome,
   extractMentions,
+  hasCommentBody,
   type OpContext,
   segmentMentions,
   setResolved,
@@ -68,6 +70,26 @@ describe('thread operations', () => {
     expect(edited[0]?.comments[0]).toMatchObject({ body: 'Final', editedAt: expect.any(String) });
     expect(deleteComment(edited, thread.id, commentId, bob.author)).toHaveLength(1);
     expect(deleteComment(edited, thread.id, commentId, alice.author)).toHaveLength(0);
+  });
+});
+
+describe('editing a comment', () => {
+  test('decides between saving, leaving unchanged and refusing an empty body', () => {
+    expect(editOutcome('  Draft  ', 'Draft')).toEqual({ kind: 'unchanged' });
+    expect(editOutcome('   ', 'Draft')).toEqual({ kind: 'empty' });
+    expect(editOutcome(' Final ', 'Draft')).toEqual({ kind: 'save', body: 'Final' });
+  });
+
+  test('reports whether an edit landed', () => {
+    const { threads, thread } = createThread([], anchor, 'Draft', alice);
+    const commentId = thread.comments[0]?.id as string;
+    const refused = editComment(threads, thread.id, commentId, 'Hacked', bob);
+    expect(hasCommentBody(refused, thread.id, commentId, 'Hacked')).toBe(false);
+    const edited = editComment(threads, thread.id, commentId, 'Final', alice);
+    expect(hasCommentBody(edited, thread.id, commentId, 'Final')).toBe(true);
+    const gone = deleteComment(threads, thread.id, commentId, alice.author);
+    const afterDelete = editComment(gone, thread.id, commentId, 'Final', alice);
+    expect(hasCommentBody(afterDelete, thread.id, commentId, 'Final')).toBe(false);
   });
 });
 
