@@ -35,10 +35,7 @@ interface FakeResponse {
 }
 
 function fakeResponse(): FakeResponse {
-  let resolveDone: () => void = () => {};
-  const done = new Promise<void>((resolve) => {
-    resolveDone = resolve;
-  });
+  const { promise: done, resolve: resolveDone } = Promise.withResolvers<void>();
   const state: FakeResponse = {
     status: undefined,
     headers: {},
