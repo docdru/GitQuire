@@ -7,6 +7,7 @@ import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
 import { BetaBadge } from '@/components/BetaBadge';
 import { GitQuireBranchMenu } from '@/components/GitQuireBranchMenu';
 import { GitQuireBrokenLinks } from '@/components/GitQuireBrokenLinks';
+import { GitQuireViews } from '@/components/GitQuireViews';
 import {
   HEADER_OVERFLOW_SLACK_PX,
   HeaderOverflowActions,
@@ -289,6 +290,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
             <GitQuireBranchMenu />
             <MentionInbox />
             <GitQuireBrokenLinks />
+            <GitQuireViews />
           </>
         )}
       </div>
