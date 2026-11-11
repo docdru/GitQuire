@@ -44,6 +44,25 @@ export function sessionPrincipal(req: IncomingMessage | undefined): GitQuirePrin
   return principal;
 }
 
+function cookieFromBag(bag: unknown): string | undefined {
+  if (typeof bag !== 'object' || bag === null) return undefined;
+  const maybeHeaders = bag as { get?: unknown };
+  if (typeof maybeHeaders.get === 'function') {
+    const value = (bag as Headers).get('cookie');
+    return value === null ? undefined : value;
+  }
+  const value = (bag as Record<string, unknown>).cookie;
+  return typeof value === 'string' ? value : undefined;
+}
+
+export function sessionPrincipalForAuthPayload(payload: unknown): GitQuirePrincipal | undefined {
+  if (typeof payload !== 'object' || payload === null) return undefined;
+  const p = payload as { requestHeaders?: unknown; request?: { headers?: unknown } };
+  const cookie = cookieFromBag(p.requestHeaders) ?? cookieFromBag(p.request?.headers);
+  if (cookie === undefined) return undefined;
+  return sessionPrincipal({ headers: { cookie } } as IncomingMessage);
+}
+
 export function attributeEdit(principalId: string): WriterIdentityLike | undefined {
   const principal = known.get(principalId);
   if (principal === undefined) return undefined;

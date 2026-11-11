@@ -10,6 +10,7 @@ import {
   resetPrincipalDirectory,
   restoreCommitAuthors,
   sessionPrincipal,
+  sessionPrincipalForAuthPayload,
   setSessionPrincipalResolver,
   takeCommitAuthors,
   withCoAuthorTrailers,
@@ -42,6 +43,18 @@ describe('session principals', () => {
       name: 'Alice A',
       email: '42+alice@users.noreply.github.com',
     });
+  });
+
+  it('reads the session cookie from a live-editing auth payload', () => {
+    setSessionPrincipalResolver((req) => (req.headers.cookie === 'gq_session=a' ? alice : undefined));
+    const fetchStyle = { request: { headers: new Headers({ cookie: 'gq_session=a' }) } };
+    const nodeStyle = { request: { headers: { cookie: 'gq_session=a' } } };
+    const headersBag = { requestHeaders: new Headers({ cookie: 'gq_session=a' }) };
+    expect(sessionPrincipalForAuthPayload(fetchStyle)).toEqual(alice);
+    expect(sessionPrincipalForAuthPayload(nodeStyle)).toEqual(alice);
+    expect(sessionPrincipalForAuthPayload(headersBag)).toEqual(alice);
+    expect(sessionPrincipalForAuthPayload({ request: { headers: new Headers() } })).toBeUndefined();
+    expect(sessionPrincipalForAuthPayload(undefined)).toBeUndefined();
   });
 
   it('stays inert without a resolver', () => {

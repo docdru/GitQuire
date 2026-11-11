@@ -217,7 +217,7 @@ import type {
   PushPermission,
 } from './github-permissions.ts';
 import { createGitHubTokenResolver } from './github-reference/token-resolver.ts';
-import { sessionPrincipal } from './gitquire/principal-directory.ts';
+import { sessionPrincipalForAuthPayload } from './gitquire/principal-directory.ts';
 import { type HeadWatcherHandle, readProjectHeadState, startHeadWatcher } from './head-watcher.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import type { NativeApiHandle } from './http/http-app.ts';
@@ -2558,7 +2558,7 @@ export function createServer(options: ServerOptions): ServerInstance {
           }
         }
 
-        const gitquirePrincipal = sessionPrincipal(payload.request);
+        const gitquirePrincipal = sessionPrincipalForAuthPayload(payload);
         if (gitquirePrincipal !== undefined) {
           const sessionCtx = payload.context as Record<string, unknown>;
           sessionCtx.principalId = gitquirePrincipal.id;
