@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import type { PinoLogger } from '../logger.ts';
 import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
+import type { AccessVerdict } from './agent-access.ts';
 import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
 import {
@@ -14,6 +15,7 @@ import {
   sendJson,
   wantsHtml,
 } from './http-util.ts';
+import { createOAuthServer } from './oauth-server.ts';
 import {
   bindRequestPrincipal,
   type GitQuirePrincipal,
@@ -59,6 +61,7 @@ export interface AccessGateDeps {
   now?: () => number;
   randomState?: () => string;
   agentTokens?: AgentTokenStore;
+  checkAccess?: (login: string) => Promise<AccessVerdict>;
 }
 
 export interface AccessGate {
@@ -167,7 +170,21 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
           store: deps.agentTokens,
           log: deps.log,
           sessionUser,
-          connectorsEnabled: false,
+          connectorsEnabled: config.mcpConnectors,
+          now,
+        });
+
+  const oauth =
+    deps.agentTokens === undefined || !config.mcpConnectors
+      ? undefined
+      : createOAuthServer({
+          externalUrl: config.externalUrl,
+          secret: config.sessionSecret,
+          store: deps.agentTokens,
+          log: deps.log,
+          sessionUser,
+          checkAccess: deps.checkAccess,
+          fetch: deps.fetch,
           now,
         });
 
@@ -420,6 +437,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const { path, search } = pathOf(req);
     if (path === '/healthz' || path === '/readyz') return false;
     if (isPublicAsset(path, req.method)) return false;
+    if (oauth?.handle(req, res, path, search) === true) return true;
     if (path.startsWith('/auth/')) {
       handleAuthRoute(req, res, path, search);
       return true;
@@ -430,7 +448,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         res,
         401,
         { error: 'mcp-token-required', tokens: AGENTS_PAGE_PATH },
-        { 'WWW-Authenticate': 'Bearer' },
+        { 'WWW-Authenticate': oauth?.wwwAuthenticate() ?? 'Bearer' },
       );
       return true;
     }

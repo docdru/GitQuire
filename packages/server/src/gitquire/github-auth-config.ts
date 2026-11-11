@@ -13,6 +13,7 @@ export interface GitHubAuthConfig {
   admins: ReadonlySet<string>;
   mcpToken: string | undefined;
   agentTokenDays: number;
+  mcpConnectors: boolean;
   sessionMaxAgeSeconds: number;
   githubWebUrl: string;
   githubApiUrl: string;
@@ -143,6 +144,9 @@ export function resolveGitHubAuthConfig(
     admins: loginSet(env.GITQUIRE_ADMINS),
     mcpToken: nonEmpty(env.GITQUIRE_MCP_TOKEN),
     agentTokenDays,
+    mcpConnectors: ['1', 'on', 'true', 'yes'].includes(
+      nonEmpty(env.GITQUIRE_MCP_CONNECTORS)?.toLowerCase() ?? '',
+    ),
     sessionMaxAgeSeconds: Math.round(sessionDays * 24 * 60 * 60),
     githubWebUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),
     githubApiUrl: stripTrailingSlash(

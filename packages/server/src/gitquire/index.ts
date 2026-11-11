@@ -43,9 +43,9 @@ export function createAccessGateFromEnv(
   const config = resolveGitHubAuthConfig(env, runtime);
   if (config === undefined) return undefined;
   let agentTokens: AgentTokenStore | undefined;
+  const check = createRepoAccessCheck(config, { installationToken: options.tokens?.current });
   if (options.projectDir !== undefined) {
     agentTokens = createAgentTokenStore({ file: agentTokensFile(env, options.projectDir), log });
-    const check = createRepoAccessCheck(config, { installationToken: options.tokens?.current });
     const sweep = startAccessSweep(agentTokens, check, { log });
     sweep.runOnce().catch((err: unknown) => {
       log.warn({ err }, '[gitquire-agents] initial access check failed');
@@ -56,10 +56,20 @@ export function createAccessGateFromEnv(
       ? `allowed users: ${[...config.allowedUsers].join(', ')}`
       : `write access to ${config.repo.owner}/${config.repo.name}`;
   log.info(
-    { externalUrl: config.externalUrl.toString(), mcpToken: config.mcpToken !== undefined },
+    {
+      externalUrl: config.externalUrl.toString(),
+      mcpToken: config.mcpToken !== undefined,
+      mcpConnectors: config.mcpConnectors,
+    },
     `[gitquire-auth] GitHub sign-in enabled (${access})`,
   );
-  const gate = createAccessGate(config, { log, agentTokens });
+  if (config.mcpConnectors && config.externalUrl.protocol !== 'https:') {
+    log.warn(
+      { externalUrl: config.externalUrl.toString() },
+      '[gitquire-auth] GITQUIRE_MCP_CONNECTORS is on, but Claude and other cloud connectors need an https:// OK_EXTERNAL_URL',
+    );
+  }
+  const gate = createAccessGate(config, { log, agentTokens, checkAccess: check });
   setSessionPrincipalResolver((req) => {
     const user = gate.sessionUser(req);
     return user === undefined ? undefined : principalFromUser(user);
