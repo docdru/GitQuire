@@ -19,9 +19,9 @@ import {
   mentionsFor,
   mentionsInMarkdown,
 } from './mentions.ts';
+import { namingRuleFromEnv } from './naming.ts';
 import { listObjects, pageFacts } from './page-objects.ts';
 import { createPageScan } from './page-scan.ts';
-import { namingRuleFromEnv } from './naming.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
