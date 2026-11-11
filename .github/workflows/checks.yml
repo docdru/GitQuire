@@ -39,8 +39,11 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
-      - name: Typecheck server
-        run: pnpm exec turbo run typecheck --filter=@inkeep/open-knowledge-server
+      - name: Typecheck server and CLI
+        run: >-
+          pnpm exec turbo run typecheck
+          --filter=@inkeep/open-knowledge-server
+          --filter=@inkeep/open-knowledge
 
       - name: Build server dependencies
         run: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...

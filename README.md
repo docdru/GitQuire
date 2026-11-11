@@ -10,7 +10,7 @@ A collaborative, WYSIWYG Markdown wiki for small teams, with GitHub as the backe
 - **Self-hosted.** One Docker container with a `/data` volume.
 
 > **Status:** early. GitQuire is being built in phases: the Docker image and GitHub sign-in work
-> today. Syncing a GitHub content repo, per-user commit authorship, branches and PRs, shared
+> today, and syncing a GitHub content repo is being added. Per-user commit authorship, branches and PRs, shared
 > comments, mobile polish and naming rules follow. See the [roadmap](#roadmap).
 
 ## Run it
@@ -75,6 +75,38 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
 
 Sign out at `/auth/logout` (a page with a sign-out button; the session is cleared by its POST). `/auth/me` returns the signed-in user as JSON.
+
+### Sync a GitHub repository
+
+With a GitHub App configured, the container clones `GITQUIRE_REPO` into `/data` on first start and
+pushes edits back automatically (pull every 30 s, push every 60 s). Git authenticates with a
+short-lived installation token (scoped to that one repository) that GitQuire mints and refreshes
+itself. No personal token is used, and the token is never persisted: it is passed to each `git`
+call through its environment, so don't share the container's process namespace with untrusted
+containers. GitHub.com is the supported host.
+
+Use the same GitHub App as for sign-in: note its **App ID**, generate a **private key** (`.pem`),
+and make sure it is installed on the repository with **Contents: read and write**. Then add:
+
+```bash
+  -e GITHUB_APP_ID=123456 \
+  -e GITHUB_APP_PRIVATE_KEY_FILE=/run/secrets/gitquire-app.pem \
+  -v /path/on/host/gitquire-app.pem:/run/secrets/gitquire-app.pem:ro \
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `GITHUB_APP_ID` | Turns repository sync on. |
+| `GITHUB_APP_PRIVATE_KEY_FILE` | Path to the app's private key inside the container (or put the PEM in `GITHUB_APP_PRIVATE_KEY`). |
+| `GITQUIRE_REPO` | The repository to sync, `owner/name`. |
+| `GITQUIRE_BRANCH` | Branch to edit; defaults to the repository's default branch. |
+| `GITQUIRE_SYNC_MODE` | `full` (pull and push, default), `follow` (pull only) or `off`. Applied on first start; later changes are made in the app. |
+
+If GitHub is unreachable at start, GitQuire retries for about five minutes before giving up
+(exit code 75, so a restart policy can try again); configuration problems stop it immediately
+(exit code 78). The volume keeps the checkout between restarts. On an empty repository, GitQuire starts the branch
+and pushes the first commit. Until per-user authorship lands, commits are authored as
+`GITQUIRE_GIT_NAME` / `GITQUIRE_GIT_EMAIL`.
 
 Build the image yourself:
 

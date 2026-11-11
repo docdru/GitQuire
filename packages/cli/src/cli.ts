@@ -39,6 +39,7 @@ import { deinitCommand } from './commands/deinit.ts';
 import { createRealDetectDeps, detectDesktop, launchDesktop } from './commands/desktop-dispatch.ts';
 import { diagnoseCommand } from './commands/diagnose.ts';
 import { embeddingsCommand } from './commands/embeddings/index.ts';
+import { gitquireBootstrapCommand } from './commands/gitquire-bootstrap.ts';
 import { registerWindowsProcessStartReader } from './commands/holder-process-start.ts';
 import { initCommand } from './commands/init.ts';
 import { lintCommand } from './commands/lint.ts';
@@ -209,6 +210,7 @@ program.addCommand(statusCommand(() => resolvedConfig));
 
 program.addCommand(deinitCommand());
 program.addCommand(uninstallCommand());
+program.addCommand(gitquireBootstrapCommand(), { hidden: true });
 
 program.addCommand(psCommand());
 
