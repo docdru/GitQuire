@@ -99,7 +99,7 @@ describe('markdown pipeline carries the trailer', () => {
 
   test('handles a document that only holds comments', () => {
     const json = md.parse(`${trailer}\n`);
-    expect(json.content).toHaveLength(1);
+    expect(json.content?.at(-1)?.type).toBe('gitquireComments');
     expect(md.serialize(json)).toBe(`${trailer}\n`);
   });
 
