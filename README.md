@@ -71,7 +71,7 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition (or instead). |
 | `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
 | `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
-| `GITQUIRE_ASK_AI` | `on` shows the editor's **Ask AI** box and the empty screen's prompt box. Off by default, because they hand work to an agent running on the server, which a shared team server doesn't have. |
+| `GITQUIRE_ASK_AI` | `on` shows the editor's **Ask AI** box and the empty screen's prompt box. Off by default, because they hand work to an agent running on the server, which a shared team server doesn't have. While it is off, people with agent access get the **Ask Claude** box instead. |
 | `GITQUIRE_MCP_CONNECTORS` | `on` lets Claude on the web, desktop chat and phones connect through GitHub sign-in. Needs a public `https://` URL. |
 | `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
 | `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
@@ -162,6 +162,14 @@ on the server on their behalf.
 
 3. Ask the agent to work on the wiki. Its edits show up live and are committed with you as the
    author.
+
+### Ask Claude from the editor
+
+Once you have an agent token or a connected app, an **Ask Claude** box appears at the bottom of
+pages and folders (on wider screens). Type a request and press Enter: Claude opens with the
+request, the wiki and the current page already filled in, ready for you to check and send. Pick
+where it opens: Claude on the web or phone, the Claude desktop app, or Claude Code in the desktop
+app. The box only fills in the request; Claude reaches the wiki through your own connection.
 
 ### Claude on the web and on phones
 

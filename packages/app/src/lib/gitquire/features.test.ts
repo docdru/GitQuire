@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fetchFeatures, parseFeatures, STANDALONE_FEATURES } from './features';
+import { fetchFeatures, hasClaudeAccess, parseFeatures, STANDALONE_FEATURES } from './features';
 
 function respond(status: number, body: string, type = 'application/json'): typeof fetch {
   return (async () =>
@@ -12,6 +12,19 @@ describe('GitQuire features', () => {
       respond(200, JSON.stringify({ login: 'alice', features: { askAi: false } })),
     );
     expect(features.askAi).toBe(false);
+    expect(features.agentToken).toBe(false);
+  });
+
+  it('reads which kinds of agent access the person has', async () => {
+    const features = await fetchFeatures(
+      respond(
+        200,
+        JSON.stringify({ features: { askAi: false, agentToken: true, connector: false } }),
+      ),
+    );
+    expect(features).toEqual({ askAi: false, agentToken: true, connector: false });
+    expect(hasClaudeAccess(features)).toBe(true);
+    expect(hasClaudeAccess(STANDALONE_FEATURES)).toBe(false);
   });
 
   it('keeps Ask AI when the server turns it on', async () => {

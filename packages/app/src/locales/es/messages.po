@@ -1628,6 +1628,15 @@ msgstr "¿Seguro que quieres eliminar los elementos seleccionados?"
 msgid "Ask"
 msgstr "Preguntar"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "Preguntar a la CLI de {0}"
 
@@ -2239,8 +2248,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) no está instalado ni en tu PATH."
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "La limpieza no terminó"
@@ -7401,6 +7422,9 @@ msgstr "Abrir carpeta…"
 msgid "Open graph"
 msgstr "Abrir el grafo"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "Abrir en la rama actual"
 
@@ -12102,6 +12126,9 @@ msgstr "Dónde"
 
 msgid "Where should it live?"
 msgstr "¿Dónde debería vivir?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "Qué habilidad"

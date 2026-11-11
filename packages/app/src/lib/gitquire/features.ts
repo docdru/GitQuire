@@ -2,16 +2,29 @@ import { useSyncExternalStore } from 'react';
 
 export interface GitQuireFeatures {
   askAi: boolean;
+  agentToken: boolean;
+  connector: boolean;
 }
 
-export const STANDALONE_FEATURES: GitQuireFeatures = { askAi: true };
+export const STANDALONE_FEATURES: GitQuireFeatures = {
+  askAi: true,
+  agentToken: false,
+  connector: false,
+};
+
+const UNKNOWN_FEATURES: GitQuireFeatures = { askAi: false, agentToken: false, connector: false };
+const REFRESH_AFTER_MS = 30_000;
 
 export function parseFeatures(body: unknown): GitQuireFeatures {
   if (typeof body !== 'object' || body === null) return STANDALONE_FEATURES;
   const features = (body as { features?: unknown }).features;
   if (typeof features !== 'object' || features === null) return STANDALONE_FEATURES;
-  const askAi = (features as { askAi?: unknown }).askAi;
-  return { askAi: askAi !== false };
+  const f = features as Record<string, unknown>;
+  return {
+    askAi: f.askAi !== false,
+    agentToken: f.agentToken === true,
+    connector: f.connector === true,
+  };
 }
 
 export async function fetchFeatures(fetchFn: typeof fetch = fetch): Promise<GitQuireFeatures> {
@@ -27,28 +40,58 @@ export async function fetchFeatures(fetchFn: typeof fetch = fetch): Promise<GitQ
   }
 }
 
+export function hasClaudeAccess(features: GitQuireFeatures): boolean {
+  return features.agentToken || features.connector;
+}
+
 let current: GitQuireFeatures | undefined;
 let pending: Promise<void> | undefined;
+let loadedAt = 0;
+let focusHooked = false;
 const listeners = new Set<() => void>();
 
+function sameFeatures(a: GitQuireFeatures | undefined, b: GitQuireFeatures): boolean {
+  return (
+    a !== undefined &&
+    a.askAi === b.askAi &&
+    a.agentToken === b.agentToken &&
+    a.connector === b.connector
+  );
+}
+
 function load(): void {
-  if (current !== undefined || pending !== undefined) return;
+  if (pending !== undefined) return;
   pending = fetchFeatures().then((features) => {
+    pending = undefined;
+    loadedAt = Date.now();
+    if (sameFeatures(current, features)) return;
     current = features;
     for (const listener of listeners) listener();
   });
 }
 
+function refreshOnFocus(): void {
+  if (Date.now() - loadedAt > REFRESH_AFTER_MS) load();
+}
+
 function subscribe(onChange: () => void): () => void {
   listeners.add(onChange);
-  load();
+  if (current === undefined) load();
+  if (!focusHooked && typeof window !== 'undefined') {
+    focusHooked = true;
+    window.addEventListener('focus', refreshOnFocus);
+  }
   return () => listeners.delete(onChange);
 }
 
-function askAiSnapshot(): boolean {
-  return current?.askAi ?? false;
+function snapshot(): GitQuireFeatures {
+  return current ?? UNKNOWN_FEATURES;
+}
+
+export function useGitQuireFeatures(): GitQuireFeatures {
+  return useSyncExternalStore(subscribe, snapshot, () => UNKNOWN_FEATURES);
 }
 
 export function useAskAiAvailable(): boolean {
-  return useSyncExternalStore(subscribe, askAiSnapshot, () => false);
+  return useGitQuireFeatures().askAi;
 }

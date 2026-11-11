@@ -1624,6 +1624,15 @@ msgstr "क्या आप वाकई चयनित आइटम हटा�
 msgid "Ask"
 msgstr "पूछें"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "{0} CLI से पूछें"
 
@@ -2235,8 +2244,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) इंस्टॉल नहीं है या आपके PATH में नहीं है।"
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "सफ़ाई पूरी नहीं हुई"
@@ -7397,6 +7418,9 @@ msgstr "फ़ोल्डर खोलें…"
 msgid "Open graph"
 msgstr "ग्राफ़ खोलें"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "मौजूदा ब्रांच में खोलें"
 
@@ -12098,6 +12122,9 @@ msgstr "कहाँ"
 
 msgid "Where should it live?"
 msgstr "यह कहाँ रहना चाहिए?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "कौन सी स्किल"

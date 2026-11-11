@@ -1628,6 +1628,15 @@ msgstr "선택한 항목을 삭제하시겠습니까?"
 msgid "Ask"
 msgstr "질문"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "{0} CLI 질문"
 
@@ -2239,8 +2248,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) 미설치 또는 PATH 미등록"
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "정리가 완료되지 않았습니다"
@@ -7401,6 +7422,9 @@ msgstr "폴더 열기…"
 msgid "Open graph"
 msgstr "그래프 열기"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "현재 브랜치에서 열기"
 
@@ -12102,6 +12126,9 @@ msgstr "위치"
 
 msgid "Where should it live?"
 msgstr "어디에 둘까요?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "어떤 스킬"

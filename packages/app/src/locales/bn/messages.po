@@ -1624,6 +1624,15 @@ msgstr "আপনি কি নিশ্চিতভাবে নির্বা
 msgid "Ask"
 msgstr "জিজ্ঞেস করুন"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "{0} CLI-কে জিজ্ঞেস করুন"
 
@@ -2235,8 +2244,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) ইনস্টল করা নেই বা আপনার PATH-এ নেই।"
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "পরিষ্কার করা শেষ হয়নি"
@@ -7397,6 +7418,9 @@ msgstr "ফোল্ডার খুলুন…"
 msgid "Open graph"
 msgstr "গ্রাফ খুলুন"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "বর্তমান ব্রাঞ্চে খুলুন"
 
@@ -12098,6 +12122,9 @@ msgstr "কোথায়"
 
 msgid "Where should it live?"
 msgstr "এটি কোথায় থাকবে?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "কোন স্কিল"

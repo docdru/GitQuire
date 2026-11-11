@@ -1628,6 +1628,15 @@ msgstr "هل تريد بالتأكيد حذف العناصر المحددة؟"
 msgid "Ask"
 msgstr "اسأل"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "اسأل واجهة {0} السطرية"
 
@@ -2239,8 +2248,20 @@ msgstr "واجهة Claude السطرية"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) غير مثبَّت أو غير موجود في PATH."
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "لم يكتمل التنظيف"
@@ -7401,6 +7422,9 @@ msgstr "فتح مجلد…"
 msgid "Open graph"
 msgstr "فتح الرسم البياني"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "الفتح في الفرع الحالي"
 
@@ -12102,6 +12126,9 @@ msgstr "أين"
 
 msgid "Where should it live?"
 msgstr "أين ينبغي أن يعيش؟"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "أي مهارة"

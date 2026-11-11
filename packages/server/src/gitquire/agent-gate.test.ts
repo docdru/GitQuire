@@ -239,6 +239,23 @@ describe('the agent access page', () => {
     expect(store.verify(bobs.token)).toBeUndefined();
   });
 
+  it('tells the app which kinds of agent access the person has', () => {
+    const { store, gate } = setup();
+    const me = () => {
+      const res = fakeResponse();
+      gate.handleRequest(
+        fakeRequest('/auth/me', { headers: { cookie: sessionCookie(ALICE) } }),
+        res.res,
+      );
+      return JSON.parse(res.body).features;
+    };
+    expect(me()).toEqual({ askAi: false, agentToken: false, connector: false });
+    store.createPersonal(ALICE, 'laptop', 30);
+    expect(me()).toMatchObject({ agentToken: true, connector: false });
+    store.createConnector(ALICE, 'Claude', 'https://claude.ai/client.json');
+    expect(me()).toMatchObject({ agentToken: true, connector: true });
+  });
+
   it('builds the Claude Code command from the external URL', () => {
     expect(claudeCodeCommand(new URL(EXTERNAL), 'gqa_t')).toBe(
       'claude mcp add --transport http gitquire https://wiki.example.com/mcp --header "Authorization: Bearer gqa_t"',

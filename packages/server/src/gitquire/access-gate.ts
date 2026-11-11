@@ -162,6 +162,14 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     return sharedMcpTokenAccepted(token);
   }
 
+  function agentAccess(user: SessionUser): { agentToken: boolean; connector: boolean } {
+    const records = deps.agentTokens?.list(user.id) ?? [];
+    return {
+      agentToken: records.some((record) => record.kind === 'personal'),
+      connector: records.some((record) => record.kind === 'connector'),
+    };
+  }
+
   const agentPages =
     deps.agentTokens === undefined
       ? undefined
@@ -430,7 +438,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         ...user,
         email: noreplyEmail(user),
         admin: isAdmin(user),
-        features: { askAi: config.askAi },
+        features: { askAi: config.askAi, ...agentAccess(user) },
       });
       return;
     }
