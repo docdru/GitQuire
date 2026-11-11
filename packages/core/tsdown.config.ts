@@ -3,6 +3,7 @@ import { defineConfig } from 'tsdown';
 const entry = {
   index: 'src/index.ts',
   'git-repository': 'src/git-repository.ts',
+  'gitquire-comment-threads': 'src/gitquire/comment-threads.ts',
   'shadow-repo-layout': 'src/shadow-repo-layout.ts',
   'skill-folder-state': 'src/skill-folder-state.ts',
   server: 'src/server.ts',
@@ -59,6 +60,7 @@ const entry = {
   'extensions-code-block-fidelity': 'src/extensions/code-block-fidelity.ts',
   'extensions-footnote-reference': 'src/extensions/footnote-reference.ts',
   'extensions-frontmatter': 'src/extensions/frontmatter.ts',
+  'extensions-gitquire-comments': 'src/extensions/gitquire-comments.ts',
   'extensions-image-reference-fidelity': 'src/extensions/image-reference-fidelity.ts',
   'extensions-image-src-fidelity': 'src/extensions/image-src-fidelity.ts',
   'extensions-jsx-component': 'src/extensions/jsx-component.ts',

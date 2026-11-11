@@ -44,6 +44,7 @@ import * as constantsUploadSubpath from '@inkeep/open-knowledge-core/constants/u
 import * as extensionsCodeBlockFidelitySubpath from '@inkeep/open-knowledge-core/extensions/code-block-fidelity';
 import * as extensionsFootnoteReferenceSubpath from '@inkeep/open-knowledge-core/extensions/footnote-reference';
 import * as extensionsFrontmatterSubpath from '@inkeep/open-knowledge-core/extensions/frontmatter';
+import * as extensionsGitquireCommentsSubpath from '@inkeep/open-knowledge-core/extensions/gitquire-comments';
 import * as extensionsImageReferenceFidelitySubpath from '@inkeep/open-knowledge-core/extensions/image-reference-fidelity';
 import * as extensionsImageSrcFidelitySubpath from '@inkeep/open-knowledge-core/extensions/image-src-fidelity';
 import * as extensionsJsxComponentSubpath from '@inkeep/open-knowledge-core/extensions/jsx-component';
@@ -61,6 +62,7 @@ import * as frontmatterTagsSubpath from '@inkeep/open-knowledge-core/frontmatter
 import * as frontmatterDiffSubpath from '@inkeep/open-knowledge-core/frontmatter-diff';
 import * as gitWorktreeInventoryModelSubpath from '@inkeep/open-knowledge-core/git/worktree-inventory-model';
 import * as gitWorktreeSelectorModelSubpath from '@inkeep/open-knowledge-core/git/worktree-selector-model';
+import * as gitquireCommentThreadsSubpath from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import * as handoffSubpath from '@inkeep/open-knowledge-core/handoff';
 import * as i18nBrowserLocaleProviderSubpath from '@inkeep/open-knowledge-core/i18n/browser-locale-provider';
 import * as i18nDirectionSubpath from '@inkeep/open-knowledge-core/i18n/direction';
@@ -191,6 +193,7 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './extensions/code-block-fidelity': extensionsCodeBlockFidelitySubpath,
   './extensions/footnote-reference': extensionsFootnoteReferenceSubpath,
   './extensions/frontmatter': extensionsFrontmatterSubpath,
+  './extensions/gitquire-comments': extensionsGitquireCommentsSubpath,
   './extensions/image-reference-fidelity': extensionsImageReferenceFidelitySubpath,
   './extensions/image-src-fidelity': extensionsImageSrcFidelitySubpath,
   './extensions/jsx-component': extensionsJsxComponentSubpath,
@@ -208,6 +211,7 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './frontmatter/tags': frontmatterTagsSubpath,
   './git/worktree-inventory-model': gitWorktreeInventoryModelSubpath,
   './git/worktree-selector-model': gitWorktreeSelectorModelSubpath,
+  './gitquire/comment-threads': gitquireCommentThreadsSubpath,
   './handoff': handoffSubpath,
   './i18n/browser-locale-provider': i18nBrowserLocaleProviderSubpath,
   './i18n/direction': i18nDirectionSubpath,

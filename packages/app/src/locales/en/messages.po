@@ -1175,6 +1175,9 @@ msgstr "Add"
 msgid "Add a comment"
 msgstr "Add a comment"
 
+msgid "Add a comment. Use @name to mention someone."
+msgstr "Add a comment. Use @name to mention someone."
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "Add a file name (e.g. notes.md)"
 
@@ -2344,6 +2347,9 @@ msgstr "Cloning..."
 msgid "Close"
 msgstr "Close"
 
+msgid "Close discussions"
+msgstr "Close discussions"
+
 msgid "Close {0}"
 msgstr "Close {0}"
 
@@ -2977,6 +2983,9 @@ msgstr "Couldn't create the report"
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "Couldn't create the worktree. Try a different name."
 
+msgid "Couldn't save the comment."
+msgstr "Couldn't save the comment."
+
 msgid "Couldn’t create this theme. Try again."
 msgstr "Couldn’t create this theme. Try again."
 
@@ -3517,6 +3526,9 @@ msgstr "Default: <0>{0}</0>"
 msgid "Delete"
 msgstr "Delete"
 
+msgid "Delete comment"
+msgstr "Delete comment"
+
 msgid "Delete {0}"
 msgstr "Delete {0}"
 
@@ -3752,6 +3764,12 @@ msgstr "Disconnecting"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
+
+msgid "Discuss"
+msgstr "Discuss"
+
+msgid "Discussions"
+msgstr "Discussions"
 
 msgid "Dismiss"
 msgstr "Dismiss"
@@ -3994,6 +4012,9 @@ msgstr "Edit wiki link"
 
 msgid "Edited"
 msgstr "Edited"
+
+msgid "edited"
+msgstr "edited"
 
 msgid "Edited {editedAgo}"
 msgstr "Edited {editedAgo}"
@@ -8781,6 +8802,9 @@ msgstr "Replaces the existing OpenKnowledge entry in {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Replaces the OpenKnowledge entry each of them already has."
 
+msgid "Reply"
+msgstr "Reply"
+
 msgid "Report a bug"
 msgstr "Report a bug"
 
@@ -8872,6 +8896,9 @@ msgstr "Resize document panel"
 msgid "Resize skills panel"
 msgstr "Resize skills panel"
 
+msgid "Resolve"
+msgstr "Resolve"
+
 msgid "Resolve conflict in your terminal"
 msgstr "Resolve conflict in your terminal"
 
@@ -8886,6 +8913,9 @@ msgstr "Resolve the conflict on {files}, +{overflow} more before deleting."
 
 msgid "Resolved"
 msgstr "Resolved"
+
+msgid "Resolved by {resolvedBy}"
+msgstr "Resolved by {resolvedBy}"
 
 msgid "Resolving default location"
 msgstr "Resolving default location"
@@ -9283,6 +9313,9 @@ msgstr "See the full install guide"
 msgid "See what's added"
 msgstr "See what's added"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr "Select text and choose Discuss to start a thread. Comments are saved in the page."
+
 msgid "Select {name}"
 msgstr "Select {name}"
 
@@ -9605,6 +9638,9 @@ msgstr "Show"
 
 msgid "Show .ok folders"
 msgstr "Show .ok folders"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr "Show resolved ({resolvedCount})"
 
 msgid "Show {0} more"
 msgstr "Show {0} more"
@@ -10030,6 +10066,9 @@ msgstr "Start a bug report with a screenshot of the screen as it looks right now
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "Start a chat with the ＋ button, or launch an agent from a page."
+
+msgid "Start a discussion with your team on this selection"
+msgstr "Start a discussion with your team on this selection"
 
 msgid "Start a new chat"
 msgstr "Start a new chat"
@@ -10490,6 +10529,9 @@ msgstr "That message already went out — your edit wasn't applied."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "That parsed, but it isn’t a base16 theme."
+
+msgid "The quoted text is no longer in the page."
+msgstr "The quoted text is no longer in the page."
 
 msgid "The {0} download request timed out."
 msgstr "The {0} download request timed out."
@@ -12099,6 +12141,9 @@ msgstr "Worktrees"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Wrap long lines in the markdown source editor."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr "Write a reply. Use @name to mention someone."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

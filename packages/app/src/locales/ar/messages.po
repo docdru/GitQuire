@@ -1175,6 +1175,9 @@ msgstr "إضافة"
 msgid "Add a comment"
 msgstr "إضافة تعليق"
 
+msgid "Add a comment. Use @name to mention someone."
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "أضف اسم ملف (مثل notes.md)"
 
@@ -2344,6 +2347,9 @@ msgstr "يجري الاستنساخ..."
 msgid "Close"
 msgstr "إغلاق"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "إغلاق {0}"
 
@@ -2977,6 +2983,9 @@ msgstr "تعذّر إنشاء التقرير"
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "تعذّر إنشاء شجرة العمل. جرّب اسمًا مختلفًا."
 
+msgid "Couldn't save the comment."
+msgstr ""
+
 msgid "Couldn’t create this theme. Try again."
 msgstr "تعذّر إنشاء هذه السمة. حاول مرة أخرى."
 
@@ -3517,6 +3526,9 @@ msgstr "الافتراضي: <0>{0}</0>"
 msgid "Delete"
 msgstr "حذف"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "حذف {0}"
 
@@ -3752,6 +3764,12 @@ msgstr "يجري قطع الاتصال"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "تُدار مهارات الاكتشاف لجميع أدوات الذكاء الاصطناعي معًا. ثبّت هذه المهارة من استوديو المهارات ضمن الإعدادات."
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "تجاهل"
@@ -3994,6 +4012,9 @@ msgstr "تحرير رابط الويكي"
 
 msgid "Edited"
 msgstr "مُحرَّر"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "حُرِّر {editedAgo}"
@@ -8781,6 +8802,9 @@ msgstr "سيستبدل إدخال OpenKnowledge الحالي في {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "يستبدل إدخال OpenKnowledge الموجود لدى كل منها."
 
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "الإبلاغ عن علة"
 
@@ -8872,6 +8896,9 @@ msgstr "تغيير حجم لوحة المستند"
 msgid "Resize skills panel"
 msgstr "تغيير حجم لوحة المهارات"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "حل التعارض في طرفيتك"
 
@@ -8886,6 +8913,9 @@ msgstr "احسم التعارض في {files} و{overflow} ملفات أخرى ق
 
 msgid "Resolved"
 msgstr "محلول"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "يجري تحديد الموقع الافتراضي"
@@ -9283,6 +9313,9 @@ msgstr "اطّلع على دليل التثبيت الكامل"
 msgid "See what's added"
 msgstr "اطلع على ما سيُضاف"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "تحديد {name}"
 
@@ -9605,6 +9638,9 @@ msgstr "إظهار"
 
 msgid "Show .ok folders"
 msgstr "إظهار مجلدات .ok"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "إظهار {0} إضافية"
@@ -10030,6 +10066,9 @@ msgstr "ابدأ تقرير علة مع لقطة شاشة كما تبدو في �
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "ابدأ محادثة بزر ＋، أو شغّل وكيلاً من صفحة."
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "بدء محادثة جديدة"
@@ -10490,6 +10529,9 @@ msgstr "تلك الرسالة أُرسلت بالفعل — لم يُطبَّق 
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "تم التحليل، لكن هذه ليست سمة base16."
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "انتهت مهلة طلب تنزيل {0}."
@@ -12099,6 +12141,9 @@ msgstr "أشجار العمل"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "لُف الأسطر الطويلة في محرر مصدر Markdown."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

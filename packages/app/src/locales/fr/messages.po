@@ -1175,6 +1175,9 @@ msgstr "Ajouter"
 msgid "Add a comment"
 msgstr "Ajouter un commentaire"
 
+msgid "Add a comment. Use @name to mention someone."
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "Ajoutez un nom de fichier (p. ex. notes.md)"
 
@@ -2344,6 +2347,9 @@ msgstr "Clonage…"
 msgid "Close"
 msgstr "Fermer"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "Fermer {0}"
 
@@ -2977,6 +2983,9 @@ msgstr "Impossible de créer le rapport"
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "Impossible de créer le worktree. Essayez un autre nom."
 
+msgid "Couldn't save the comment."
+msgstr ""
+
 msgid "Couldn’t create this theme. Try again."
 msgstr "Impossible de créer ce thème. Réessayez."
 
@@ -3517,6 +3526,9 @@ msgstr "Par défaut : <0>{0}</0>"
 msgid "Delete"
 msgstr "Supprimer"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "Supprimer {0}"
 
@@ -3752,6 +3764,12 @@ msgstr "Déconnexion"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "Les compétences de découverte sont gérées ensemble pour tous les outils d’IA. Installez celle-ci depuis Paramètres → Studio de compétences."
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "Ignorer"
@@ -3994,6 +4012,9 @@ msgstr "Modifier le lien wiki"
 
 msgid "Edited"
 msgstr "Modifié"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "Modifié {editedAgo}"
@@ -8781,6 +8802,9 @@ msgstr "Remplace l'entrée OpenKnowledge existante dans {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Remplace l'entrée OpenKnowledge que chacun possède déjà."
 
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "Signaler un bug"
 
@@ -8872,6 +8896,9 @@ msgstr "Redimensionner le panneau du document"
 msgid "Resize skills panel"
 msgstr "Redimensionner le panneau Compétences"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "Résoudre le conflit dans votre terminal"
 
@@ -8886,6 +8913,9 @@ msgstr "Résolvez le conflit sur {files} et {overflow} autres fichiers avant de 
 
 msgid "Resolved"
 msgstr "Résolu"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "Détermination de l'emplacement par défaut"
@@ -9283,6 +9313,9 @@ msgstr "Voir le guide d'installation complet"
 msgid "See what's added"
 msgstr "Voir ce qui est ajouté"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "Sélectionner {name}"
 
@@ -9605,6 +9638,9 @@ msgstr "Afficher"
 
 msgid "Show .ok folders"
 msgstr "Afficher les dossiers .ok"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "Afficher {0} de plus"
@@ -10030,6 +10066,9 @@ msgstr "Démarre un rapport de bug avec une capture d'écran de ce qui est affic
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "Démarrez un chat avec le bouton ＋ ou lancez un agent depuis une page."
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "Démarrer une nouvelle discussion"
@@ -10490,6 +10529,9 @@ msgstr "Ce message est déjà parti : votre modification n’a pas été appliqu
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "Ce contenu a été analysé, mais ce n’est pas un thème base16."
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "La demande de téléchargement de {0} a expiré."
@@ -12099,6 +12141,9 @@ msgstr "Worktrees"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Renvoie les lignes longues à la ligne dans l'éditeur de source markdown."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

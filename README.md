@@ -132,6 +132,22 @@ Build the image yourself:
 docker build -t gitquire:local .
 ```
 
+## Discussions
+
+Select text and choose **Discuss** to start a thread. Teammates reply, mention each other with
+`@login`, and resolve threads when they are done. Threads are saved in the page itself, in a block
+at the end of the Markdown file that GitHub doesn't render:
+
+```markdown
+<!-- gitquire-comments v1
+{"id":"…","anchor":{"exact":"quarterly numbers","prefix":"…","suffix":"…"},"resolved":false,"comments":[…]}
+-->
+```
+
+Each thread is one JSON line, so diffs and merges stay readable and comments travel with the page
+through branches and pull requests. A thread finds its passage again by the quoted text and its
+surroundings; if the text is gone, the thread says so.
+
 ## Roadmap
 
 1. **Shared server in Docker** with CI and a published image.

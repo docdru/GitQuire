@@ -6,6 +6,7 @@ import { BubbleMenu } from '@tiptap/react/menus';
 import { useRef, useState } from 'react';
 import { CommentBubbleButton } from '@/comments/CommentBubbleButton';
 import { Separator } from '@/components/ui/separator';
+import { DiscussionBubbleButton } from '@/gitquire-comments/DiscussionBubbleButton';
 import {
   deriveEditorClipOptions,
   deriveEditorShiftOptions,
@@ -24,9 +25,11 @@ import { ViewInSourceBubbleButton } from './ViewInSourceBubbleButton';
 
 export function BubbleMenuBar({
   editor,
+  docName,
   shortcutEnabled = true,
 }: {
   editor: Editor;
+  docName?: string;
   shortcutEnabled?: boolean;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -137,6 +140,13 @@ export function BubbleMenuBar({
           />
           <FootnoteBubbleButton key={`${tooltipKey}-footnote`} editor={editor} />
           <ViewInSourceBubbleButton key={`${tooltipKey}-view-source`} editor={editor} />
+          {docName !== undefined && (
+            <DiscussionBubbleButton
+              key={`${tooltipKey}-discuss`}
+              editor={editor}
+              docName={docName}
+            />
+          )}
           <CommentBubbleButton key={`${tooltipKey}-comment`} />
         </>
       )}
