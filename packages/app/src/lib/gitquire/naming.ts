@@ -4,12 +4,16 @@ import {
   slugifySegment,
 } from '@inkeep/open-knowledge-core/gitquire/naming';
 
+interface NamingResponse {
+  rule?: unknown;
+}
+
 let rule: NamingRule = 'slug';
 let loading: Promise<void> | undefined;
 
 export function loadNamingRule(): Promise<void> {
   loading ??= fetch('/api/gitquire/naming', { credentials: 'same-origin' })
-    .then((res) => (res.ok ? (res.json() as Promise<{ rule?: unknown }>) : {}))
+    .then((res): Promise<NamingResponse> => (res.ok ? res.json() : Promise.resolve({})))
     .then((body) => {
       rule = parseNamingRule(typeof body.rule === 'string' ? body.rule : undefined);
     })

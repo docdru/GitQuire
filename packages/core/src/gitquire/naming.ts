@@ -53,7 +53,8 @@ export function applyNamingRule(path: string, options: NamingOptions): string {
 }
 
 export function readableTitle(path: string): string {
-  const leaf = path.split('/').filter((segment) => segment !== '').at(-1) ?? '';
+  const segments = path.split('/').filter((segment) => segment !== '');
+  const leaf = segments.at(-1) ?? '';
   const dot = leaf.lastIndexOf('.');
   const hasExtension = dot > 0 && EXTENSION_RE.test(leaf.slice(dot).toLowerCase());
   return (hasExtension ? leaf.slice(0, dot) : leaf).trim();
