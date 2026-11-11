@@ -1,6 +1,6 @@
 import { useLingui } from '@lingui/react/macro';
 import { ChevronDown, ExternalLink, GitBranch, GitPullRequest, Plus } from 'lucide-react';
-import { useCallback, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -77,7 +77,7 @@ export function GitQuireBranchMenu() {
 
   const current = liveBranch ?? branches?.current ?? null;
 
-  const refresh = useCallback(async () => {
+  async function refresh() {
     try {
       const next = await fetchBranches();
       setBranches(next);
@@ -85,29 +85,26 @@ export function GitQuireBranchMenu() {
     } catch (err) {
       toast.error(t`Could not load branches`, { description: errorMessage(err) });
     }
-  }, [t]);
+  }
 
-  const switchTo = useCallback(
-    async (branch: string) => {
-      try {
-        const outcome = classifyCheckoutOutcome(await checkoutBranch(branch));
-        if (outcome.action === 'await-cc1') {
-          toast.success(t`Switched to ${branch}`);
-          return;
-        }
-        if (outcome.action === 'rerender-conflict') {
-          toast.error(t`Unsaved changes block the switch`, {
-            description: outcome.files.join(', '),
-          });
-          return;
-        }
-        toast.error(t`Could not switch to ${branch}`, { description: outcome.action });
-      } catch (err) {
-        toast.error(t`Could not switch to ${branch}`, { description: errorMessage(err) });
+  async function switchTo(branch: string) {
+    try {
+      const outcome = classifyCheckoutOutcome(await checkoutBranch(branch));
+      if (outcome.action === 'await-cc1') {
+        toast.success(t`Switched to ${branch}`);
+        return;
       }
-    },
-    [t],
-  );
+      if (outcome.action === 'rerender-conflict') {
+        toast.error(t`Unsaved changes block the switch`, {
+          description: outcome.files.join(', '),
+        });
+        return;
+      }
+      toast.error(t`Could not switch to ${branch}`, { description: outcome.action });
+    } catch (err) {
+      toast.error(t`Could not switch to ${branch}`, { description: errorMessage(err) });
+    }
+  }
 
   if (liveBranch === null) return null;
 
@@ -240,13 +237,13 @@ function NewBranchDialog({ open, onOpenChange, from, existing, onCreated }: NewB
     setError(null);
     try {
       await createBranch(trimmed, from ?? undefined);
+      setBusy(false);
       onOpenChange(false);
       setName('');
       onCreated(trimmed);
     } catch (err) {
-      setError(errorMessage(err));
-    } finally {
       setBusy(false);
+      setError(errorMessage(err));
     }
   }
 
@@ -324,13 +321,13 @@ function OpenPullRequestDialog({ open, onOpenChange, head, base }: OpenPullReque
       setBody('');
       setDraft(false);
       const number = pull.number;
+      setBusy(false);
       toast.success(t`Opened pull request #${number}`, {
         action: { label: t`View`, onClick: () => window.open(pull.url, '_blank', 'noopener') },
       });
     } catch (err) {
-      setError(errorMessage(err));
-    } finally {
       setBusy(false);
+      setError(errorMessage(err));
     }
   }
 
