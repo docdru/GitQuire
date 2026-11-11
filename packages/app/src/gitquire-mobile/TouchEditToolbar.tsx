@@ -17,6 +17,7 @@ import {
   Undo2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { anchorFromSelection } from '@/gitquire-comments/editor-threads';
 import { startDraft } from '@/gitquire-comments/ui-store';
@@ -141,7 +142,7 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
     },
   ];
 
-  return (
+  return createPortal(
     <div
       role="toolbar"
       aria-label={t`Formatting`}
@@ -175,6 +176,7 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
       >
         <ChevronDown aria-hidden="true" />
       </Button>
-    </div>
+    </div>,
+    document.body,
   );
 }
