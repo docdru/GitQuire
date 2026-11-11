@@ -1,5 +1,5 @@
-import type { GitHubRepoRef } from './github-auth-config.ts';
 import { GitHubUnavailableError, type RetryOptions, retryWhileUnavailable } from './github-app.ts';
+import type { GitHubRepoRef } from './github-auth-config.ts';
 
 const GITHUB_API_VERSION = '2022-11-28';
 
