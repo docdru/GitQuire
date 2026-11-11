@@ -288,7 +288,10 @@ export function createMentionReadStore(file: string): MentionReadStore {
     readIds: (userId) => new Set(userState(userId).read),
     markRead: (userId, ids, known) => {
       const user = userState(userId);
-      const read = appended(user.read, ids.filter((id) => known.has(id)));
+      const read = appended(
+        user.read,
+        ids.filter((id) => known.has(id)),
+      );
       update(userId, { ...user, read });
     },
     emailOf: (userId) => userState(userId).email,

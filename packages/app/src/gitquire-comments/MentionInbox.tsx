@@ -12,8 +12,8 @@ import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
   fetchMentions,
   type InboxMention,
-  type MentionInboxData,
   type MentionEmail,
+  type MentionInboxData,
   markMentionsRead,
   pageTitle,
   type ReadTarget,

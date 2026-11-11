@@ -46,10 +46,7 @@ export function markMentionsRead(
   return gitquireRequest('/api/gitquire/mentions/read', { method: 'POST', body: target }, deps);
 }
 
-export function setMentionEmail(
-  address: string | null,
-  deps: ApiDeps = {},
-): Promise<MentionEmail> {
+export function setMentionEmail(address: string | null, deps: ApiDeps = {}): Promise<MentionEmail> {
   return gitquireRequest(
     '/api/gitquire/mentions/email',
     { method: 'PUT', body: { address } },
