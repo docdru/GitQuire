@@ -7,6 +7,7 @@ import type { AgentFocusBroadcaster } from './agent-focus.ts';
 import type { AgentPresenceBroadcaster } from './agent-presence.ts';
 import type { AgentSessionManager } from './agent-sessions.ts';
 import { createCollaborationHost } from './collaboration-host.ts';
+import type { AccessGate } from './gitquire/index.ts';
 import { createContentDispatch } from './http/content-dispatch.ts';
 import { errorResponse } from './http/error-response.ts';
 import {
@@ -45,6 +46,7 @@ export interface MountMcpAndApiOptions {
   health?: HealthProvider;
   nativeApi: NativeApiHandle | undefined;
   ingressPolicy?: IngressPolicy;
+  accessGate?: AccessGate;
 }
 
 export interface MountMcpAndApiHandle {
@@ -136,13 +138,28 @@ export function mountMcpAndApi(opts: MountMcpAndApiOptions): MountMcpAndApiHandl
     }),
     log,
   });
-  httpServer.on('request', requestListener);
-  httpServer.on('upgrade', onUpgrade);
+  const accessGate = opts.accessGate;
+  const gatedRequestListener =
+    accessGate === undefined
+      ? requestListener
+      : (req: IncomingMessage, res: ServerResponse): void => {
+          if (accessGate.handleRequest(req, res)) return;
+          requestListener(req, res);
+        };
+  const gatedUpgrade =
+    accessGate === undefined
+      ? onUpgrade
+      : (req: IncomingMessage, socket: Duplex, head: Buffer): void => {
+          if (!accessGate.admitUpgrade(req, socket)) return;
+          onUpgrade(req, socket, head);
+        };
+  httpServer.on('request', gatedRequestListener);
+  httpServer.on('upgrade', gatedUpgrade);
 
   let shutdownPromise: Promise<void> | undefined;
   const shutdown = (): Promise<void> => {
     shutdownPromise ??= (async () => {
-      httpServer.off('upgrade', onUpgrade);
+      httpServer.off('upgrade', gatedUpgrade);
       await collaborationHost.shutdown();
     })();
     return shutdownPromise;
