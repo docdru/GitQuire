@@ -8035,6 +8035,9 @@ msgstr "कोई नाम चुनें"
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "हल्के मोड के लिए एक पट्टिका चुनें और गहरे मोड के लिए एक। Preferences की थीम सेटिंग इनमें से चुनती है — “System” पर आपका OS भी।"
 
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
+
 msgid "Pick a theme or create your own."
 msgstr "कोई थीम चुनें या अपनी थीम बनाएँ।"
 
@@ -10083,6 +10086,9 @@ msgstr "पुरानी Git एंट्री"
 
 msgid "Star us on GitHub"
 msgstr "GitHub पर हमें स्टार दें"
+
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
 
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "स्क्रीन अभी जैसी दिख रही है उसका स्क्रीनशॉट लेकर बग रिपोर्ट शुरू करें।"

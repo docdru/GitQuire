@@ -4,10 +4,23 @@ import { msg } from '@lingui/core/macro';
 export function getEmptyStateCopy({
   isOnboarding,
   isEmbedded,
+  askAi = true,
 }: {
   isOnboarding: boolean;
   isEmbedded: boolean;
+  askAi?: boolean;
 }): { title: MessageDescriptor; subtitle: MessageDescriptor } {
+  if (!askAi && !isEmbedded) {
+    return isOnboarding
+      ? {
+          title: msg`What would you like to create?`,
+          subtitle: msg`Pick a starter pack, or start with a blank page.`,
+        }
+      : {
+          title: msg`Create something great.`,
+          subtitle: msg`Start a blank page, or scaffold one from a template.`,
+        };
+  }
   if (isOnboarding) {
     return {
       title: msg`What would you like to create?`,

@@ -389,7 +389,15 @@ describe('createAccessGate requests', () => {
       login: 'alice',
       email: noreplyEmail({ id: 42, login: 'alice' }),
       admin: false,
+      features: { askAi: false },
     });
+  });
+
+  it('turns Ask AI on with GITQUIRE_ASK_AI', () => {
+    const gate = makeGate({ ...BASE_ENV, GITQUIRE_ASK_AI: 'on' });
+    const out = fakeResponse();
+    gate.handleRequest(fakeRequest('/auth/me', { headers: { cookie: sessionCookie() } }), out.res);
+    expect(JSON.parse(out.body).features).toEqual({ askAi: true });
   });
 
   it('only clears the session on a POST to logout', () => {

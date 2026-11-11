@@ -8035,6 +8035,9 @@ msgstr "একটি নাম বাছুন"
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "হালকা মোডের জন্য একটি প্যালেট আর গাঢ় মোডের জন্য একটি বাছুন। Preferences-এর থিম সেটিং এদের মধ্যে বেছে নেয় — “System”-এ থাকলে আপনার OS-ও তাই করে।"
 
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
+
 msgid "Pick a theme or create your own."
 msgstr "একটি থিম বেছে নিন বা নিজের থিম তৈরি করুন।"
 
@@ -10083,6 +10086,9 @@ msgstr "অচল Git এন্ট্রি"
 
 msgid "Star us on GitHub"
 msgstr "GitHub-এ আমাদের স্টার দিন"
+
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
 
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "স্ক্রিন এখন যেমন দেখাচ্ছে তার স্ক্রিনশট নিয়ে একটি বাগ রিপোর্ট শুরু করুন।"

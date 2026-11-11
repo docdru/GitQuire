@@ -14,6 +14,7 @@ export interface GitHubAuthConfig {
   mcpToken: string | undefined;
   agentTokenDays: number;
   mcpConnectors: boolean;
+  askAi: boolean;
   sessionMaxAgeSeconds: number;
   githubWebUrl: string;
   githubApiUrl: string;
@@ -34,6 +35,10 @@ const REPO_RE = /^([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)$/;
 function nonEmpty(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed === undefined || trimmed === '' ? undefined : trimmed;
+}
+
+function isOn(value: string | undefined): boolean {
+  return ['1', 'on', 'true', 'yes'].includes(nonEmpty(value)?.toLowerCase() ?? '');
 }
 
 function loginSet(value: string | undefined): ReadonlySet<string> {
@@ -144,9 +149,8 @@ export function resolveGitHubAuthConfig(
     admins: loginSet(env.GITQUIRE_ADMINS),
     mcpToken: nonEmpty(env.GITQUIRE_MCP_TOKEN),
     agentTokenDays,
-    mcpConnectors: ['1', 'on', 'true', 'yes'].includes(
-      nonEmpty(env.GITQUIRE_MCP_CONNECTORS)?.toLowerCase() ?? '',
-    ),
+    mcpConnectors: isOn(env.GITQUIRE_MCP_CONNECTORS),
+    askAi: isOn(env.GITQUIRE_ASK_AI),
     sessionMaxAgeSeconds: Math.round(sessionDays * 24 * 60 * 60),
     githubWebUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),
     githubApiUrl: stripTrailingSlash(

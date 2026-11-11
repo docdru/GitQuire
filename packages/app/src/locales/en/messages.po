@@ -8039,6 +8039,9 @@ msgstr "Pick a name"
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 
+msgid "Pick a starter pack, or start with a blank page."
+msgstr "Pick a starter pack, or start with a blank page."
+
 msgid "Pick a theme or create your own."
 msgstr "Pick a theme or create your own."
 
@@ -10087,6 +10090,9 @@ msgstr "stale Git entry"
 
 msgid "Star us on GitHub"
 msgstr "Star us on GitHub"
+
+msgid "Start a blank page, or scaffold one from a template."
+msgstr "Start a blank page, or scaffold one from a template."
 
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "Start a bug report with a screenshot of the screen as it looks right now."

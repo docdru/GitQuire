@@ -20,6 +20,7 @@ import { emitCreateTopLevelFile } from '@/lib/create-file-events';
 import type { OkPackId } from '@/lib/desktop-bridge-types';
 import { subscribeToDocumentsChanged } from '@/lib/documents-events';
 import { fetchDocumentListShared } from '@/lib/documents-fetch';
+import { useAskAiAvailable } from '@/lib/gitquire/features';
 import { cn } from '@/lib/utils';
 
 export function EmptyEditorState({
@@ -184,7 +185,8 @@ function PanelEmptyState({
 }) {
   const { t } = useLingui();
   const isEmbedded = useIsEmbedded();
-  const { title, subtitle } = getEmptyStateCopy({ isOnboarding, isEmbedded });
+  const askAi = useAskAiAvailable();
+  const { title, subtitle } = getEmptyStateCopy({ isOnboarding, isEmbedded, askAi });
   return (
     <div className="flex w-full max-w-5xl flex-col gap-8">
       <EmptyStateHeader
@@ -209,7 +211,8 @@ function OnboardingView({
 }) {
   const { t } = useLingui();
   const isEmbedded = useIsEmbedded();
-  const { title, subtitle } = getEmptyStateCopy({ isOnboarding: true, isEmbedded });
+  const askAi = useAskAiAvailable();
+  const { title, subtitle } = getEmptyStateCopy({ isOnboarding: true, isEmbedded, askAi });
   return (
     <div className="flex w-full flex-col gap-10 py-12 max-w-5xl my-auto">
       <EmptyStateHeader
@@ -220,11 +223,13 @@ function OnboardingView({
       />
       {isEmbedded ? (
         <CopyablePromptList scenario="new-project" />
-      ) : (
+      ) : askAi ? (
         <CreatePromptComposer scenario="new-project" />
-      )}
+      ) : null}
       <div className="flex w-full flex-col gap-3">
-        <TemplateDivider label={isEmbedded ? t`Use a starter pack` : t`Or use a starter pack`} />
+        <TemplateDivider
+          label={isEmbedded || !askAi ? t`Use a starter pack` : t`Or use a starter pack`}
+        />
         <PackCardGrid
           onPackSelect={onPackSelect}
           onCreateBlankFile={() => emitCreateTopLevelFile()}

@@ -8035,6 +8035,9 @@ msgstr "Pilih sebuah nama"
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "Pilih satu palet untuk mode terang dan satu untuk mode gelap. Pengaturan tema di Preferensi memilih di antara keduanya — pada “Sistem”, sistem operasi Anda yang memilih."
 
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
+
 msgid "Pick a theme or create your own."
 msgstr "Pilih tema atau buat tema Anda sendiri."
 
@@ -10083,6 +10086,9 @@ msgstr "entri Git usang"
 
 msgid "Star us on GitHub"
 msgstr "Beri kami bintang di GitHub"
+
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
 
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "Memulai laporan bug dengan tangkapan layar persis seperti tampilannya saat ini."

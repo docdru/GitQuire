@@ -8039,6 +8039,9 @@ msgstr "اختر اسمًا"
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "اختر لوحة للوضع الفاتح وأخرى للوضع الداكن. يختار إعداد السمة في «التفضيلات» بينهما — وعلى “النظام”، يختار نظام تشغيلك."
 
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
+
 msgid "Pick a theme or create your own."
 msgstr "اختر سمة أو أنشئ سمتك الخاصة."
 
@@ -10087,6 +10090,9 @@ msgstr "إدخال Git قديم"
 
 msgid "Star us on GitHub"
 msgstr "امنحنا نجمة على GitHub"
+
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
 
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "ابدأ تقرير علة مع لقطة شاشة كما تبدو في هذه اللحظة."

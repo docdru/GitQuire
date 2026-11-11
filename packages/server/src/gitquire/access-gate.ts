@@ -426,7 +426,12 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         sendJson(res, 401, { error: 'not-signed-in' });
         return;
       }
-      sendJson(res, 200, { ...user, email: noreplyEmail(user), admin: isAdmin(user) });
+      sendJson(res, 200, {
+        ...user,
+        email: noreplyEmail(user),
+        admin: isAdmin(user),
+        features: { askAi: config.askAi },
+      });
       return;
     }
     if (agentPages?.handle(req, res, path) === true) return;

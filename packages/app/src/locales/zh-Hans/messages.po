@@ -8039,6 +8039,9 @@ msgstr "取个名字"
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "为浅色模式和深色模式各选一个配色方案。「偏好设置」中的主题设置决定用哪一个；选择「系统」时，则由你的操作系统决定。"
 
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
+
 msgid "Pick a theme or create your own."
 msgstr "选择一个主题或创建自己的主题。"
 
@@ -10087,6 +10090,9 @@ msgstr "过期的 Git 条目"
 
 msgid "Star us on GitHub"
 msgstr "在 GitHub 上给我们点个星"
+
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
 
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "发起一份错误报告，并附上此刻画面的截图。"
