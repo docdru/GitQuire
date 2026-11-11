@@ -84,9 +84,14 @@ function EmailSetting({
           if (next.address === null) setDraft('');
         },
         (err: unknown) => {
-          toast.error(
-            err instanceof GitQuireApiError ? err.message : t`Couldn't save the email address.`,
-          );
+          const code = err instanceof GitQuireApiError ? err.code : '';
+          if (code === 'invalid-address') {
+            toast.error(t`Enter a valid email address.`);
+          } else if (code === 'address-not-allowed') {
+            toast.error(t`This server does not send mail to that domain.`);
+          } else {
+            toast.error(t`Couldn't save the email address.`);
+          }
         },
       )
       .finally(() => setBusy(false));
@@ -111,7 +116,7 @@ function EmailSetting({
           autoComplete="email"
           value={draft}
           placeholder={t`name@example.com`}
-          disabled={busy}
+          disabled={busy || !email.available}
           onChange={(event) => setDraft(event.target.value)}
         />
         <Button
@@ -198,6 +203,7 @@ export function MentionInbox() {
     revealDiscussion(mention.docName, mention.threadId);
   }
 
+  const email = current.email;
   const label =
     current.unread === 0 ? t`Mentions` : t`Mentions, ${unreadBadge(current.unread)} unread`;
 
@@ -249,11 +255,11 @@ export function MentionInbox() {
             ))}
           </ul>
         )}
-        {current.email?.available === true && (
+        {email !== undefined && (email.available || email.address !== null) && (
           <EmailSetting
-            email={current.email}
-            onChange={(email) =>
-              setInbox((latest) => (latest === null ? latest : { ...latest, email }))
+            email={email}
+            onChange={(next) =>
+              setInbox((latest) => (latest === null ? latest : { ...latest, email: next }))
             }
           />
         )}

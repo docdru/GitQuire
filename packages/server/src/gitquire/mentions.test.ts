@@ -7,7 +7,7 @@ import {
   writeCommentThreads,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { describe, expect, it } from 'vitest';
-import type { MailConfig, MailMessage } from './mail.ts';
+import { type MailConfig, type MailMessage, SmtpError } from './mail.ts';
 import { createMentionMailer, mentionMail, pageLink } from './mention-mailer.ts';
 import {
   buildInbox,
@@ -338,6 +338,7 @@ describe('mention mailer', () => {
     password: undefined,
     from: 'wiki@example.com',
     externalUrl: 'https://brain.example.com',
+    allowedDomains: undefined,
   };
 
   it('links to the page with each part of its name encoded', () => {
@@ -359,49 +360,119 @@ describe('mention mailer', () => {
     expect(mail.text).toContain('Open the page: https://brain.example.com/#/notes/report');
   });
 
-  it('mails each new unread mention once and retries after a failure', async () => {
+  function mailerFor(dir: string) {
+    const store = createMentionReadStore(mentionStatePath(dir));
+    const state: { scanClock: number; now: number; failWith: Error | null } = {
+      scanClock: 0,
+      now: Date.parse('2026-11-12T12:00:00Z'),
+      failWith: null,
+    };
+    const sent: MailMessage[] = [];
+    const warnings: unknown[] = [];
+    const mailer = createMentionMailer({
+      index: createMentionIndex(dir, () => state.scanClock),
+      store,
+      config,
+      send: async (_config, message) => {
+        if (state.failWith !== null) throw state.failWith;
+        sent.push(message);
+      },
+      log: {
+        warn: (details: unknown) => {
+          warnings.push(details);
+        },
+      },
+      now: () => state.now,
+      limits: { perPersonPerDay: 3 },
+    });
+    return { store, state, sent, warnings, mailer };
+  }
+
+  const subscribedAt = new Date('2026-11-10T12:00:00Z');
+
+  function addPage(dir: string, name: string, id: string): void {
+    const fresh = comment(`c${id}`, bob, `Number ${id}, @alice`, '2026-11-12T08:00:00Z', ['alice']);
+    writeFileSync(join(dir, name), page([thread(`t${id}`, [fresh])]));
+  }
+
+  it('mails each new unread mention once and retries a failure later', async () => {
     const dir = project();
     try {
-      const store = createMentionReadStore(mentionStatePath(dir));
-      let clock = 0;
-      const index = createMentionIndex(dir, () => clock);
-      const sent: MailMessage[] = [];
-      let failing = false;
-      const warnings: unknown[] = [];
-      const mailer = createMentionMailer({
-        index,
-        store,
-        config,
-        send: async (_config, message) => {
-          if (failing) throw new Error('mail server down');
-          sent.push(message);
-        },
-        log: {
-          warn: (details: unknown) => {
-            warnings.push(details);
-          },
-        },
-      });
+      const { store, state, sent, warnings, mailer } = mailerFor(dir);
       expect(await mailer.round()).toBe(0);
-      store.setEmail(alice, 'alice@example.com', ['t1:c1']);
+      store.setEmail(alice, 'alice@example.com', ['t1:c1'], subscribedAt);
       expect(await mailer.round()).toBe(1);
       expect(sent.map((mail) => mail.subject)).toEqual(['bob mentioned you in plan']);
       expect(await mailer.round()).toBe(0);
 
-      const fresh = comment('c7', bob, 'One more, @alice', '2026-11-12T08:00:00Z', ['alice']);
-      writeFileSync(join(dir, 'new.md'), page([thread('t7', [fresh])]));
-      clock += 60_000;
-      failing = true;
+      addPage(dir, 'new.md', '7');
+      state.scanClock += 60_000;
+      state.failWith = new Error('mail server down');
       expect(await mailer.round()).toBe(0);
-      expect(warnings).toEqual([{ reason: 'mail server down' }]);
-      failing = false;
+      expect(warnings).toEqual([{ reason: 'mail server down', login: 'Alice' }]);
+      state.failWith = null;
+      expect(await mailer.round()).toBe(0);
+      state.now += 3 * 60_000;
       expect(await mailer.round()).toBe(1);
       expect(sent.map((mail) => mail.to)).toEqual(['alice@example.com', 'alice@example.com']);
 
-      const read = comment('c8', bob, 'Seen, @alice', '2026-11-12T09:00:00Z', ['alice']);
-      writeFileSync(join(dir, 'seen.md'), page([thread('t8', [read])]));
-      clock += 60_000;
+      addPage(dir, 'seen.md', '8');
+      state.scanClock += 60_000;
       store.markRead(alice.id, ['t8:c8'], new Set(['t8:c8']));
+      expect(await mailer.round()).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('does not retry a mail the server refused for good', async () => {
+    const dir = project();
+    try {
+      const { store, state, sent, mailer } = mailerFor(dir);
+      store.setEmail(alice, 'alice@example.com', [], subscribedAt);
+      state.failWith = new SmtpError('The mail server refused the recipient: 550', 550);
+      expect(await mailer.round()).toBe(0);
+      state.failWith = null;
+      expect(await mailer.round()).toBe(0);
+      expect(sent).toEqual([]);
+      expect([...store.mailedIds(alice.id)]).toEqual(['t2:c3']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('stops at the daily limit and skips people who have not been seen for a month', async () => {
+    const dir = project();
+    try {
+      const { store, state, sent, mailer } = mailerFor(dir);
+      store.setEmail(alice, 'alice@example.com', [], subscribedAt);
+      for (const id of ['20', '21', '22', '23']) addPage(dir, `page-${id}.md`, id);
+      state.scanClock += 60_000;
+      expect(await mailer.round()).toBe(3);
+      expect(await mailer.round()).toBe(0);
+      state.now += 25 * 60 * 60_000;
+      expect(await mailer.round()).toBe(2);
+      expect(sent).toHaveLength(5);
+
+      addPage(dir, 'late.md', '30');
+      state.scanClock += 60_000;
+      state.now += 40 * 24 * 60 * 60_000;
+      expect(await mailer.round()).toBe(0);
+      store.seen(alice, new Date(state.now));
+      expect(await mailer.round()).toBe(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('ignores mentions older than the subscription that show up later', async () => {
+    const dir = project();
+    try {
+      const { store, state, mailer } = mailerFor(dir);
+      store.setEmail(alice, 'alice@example.com', ['t1:c1', 't2:c3'], subscribedAt);
+      const old = comment('c40', bob, 'Old, @alice', '2026-10-01T08:00:00Z', ['alice']);
+      writeFileSync(join(dir, 'restored.md'), page([thread('t40', [old])]));
+      state.scanClock += 60_000;
       expect(await mailer.round()).toBe(0);
     } finally {
       rmSync(dir, { recursive: true, force: true });

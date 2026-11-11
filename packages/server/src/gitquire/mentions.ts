@@ -22,6 +22,7 @@ const MAX_QUOTE_CHARS = 140;
 const MAX_DIRECTORIES = 5000;
 const MAX_READ_IDS = 5000;
 const SCAN_REUSE_MS = 5000;
+const SEEN_WRITE_GAP_MS = 24 * 60 * 60 * 1000;
 const DOC_EXTENSIONS = ['.mdx', '.md'] as const;
 const SKIPPED_DIRECTORIES = new Set([
   'node_modules',
@@ -187,6 +188,8 @@ interface UserState {
   read: string[];
   login?: string;
   email?: string;
+  since?: string;
+  lastSeen?: string;
   mailed?: string[];
 }
 
@@ -199,6 +202,8 @@ export interface MailSubscriber {
   id: number;
   login: string;
   email: string;
+  since: string;
+  lastSeen: string;
 }
 
 export interface MentionReadStore {
@@ -209,7 +214,9 @@ export interface MentionReadStore {
     reader: MentionReader,
     email: string | undefined,
     alreadyThere: readonly string[],
+    now: Date,
   ) => void;
+  seen: (reader: MentionReader, now: Date) => void;
   subscribers: () => MailSubscriber[];
   mailedIds: (userId: number) => Set<string>;
   markMailed: (userId: number, ids: readonly string[]) => void;
@@ -229,6 +236,8 @@ function readUser(entry: unknown): UserState | undefined {
   const user: UserState = { read: stringList(raw.read) };
   if (typeof raw.login === 'string') user.login = raw.login;
   if (typeof raw.email === 'string') user.email = raw.email;
+  if (typeof raw.since === 'string') user.since = raw.since;
+  if (typeof raw.lastSeen === 'string') user.lastSeen = raw.lastSeen;
   if (Array.isArray(raw.mailed)) user.mailed = stringList(raw.mailed);
   return user;
 }
@@ -295,20 +304,36 @@ export function createMentionReadStore(file: string): MentionReadStore {
       update(userId, { ...user, read });
     },
     emailOf: (userId) => userState(userId).email,
-    setEmail: (reader, email, alreadyThere) => {
+    setEmail: (reader, email, alreadyThere, now) => {
       const user = userState(reader.id);
-      const next: UserState = { read: user.read, login: reader.login };
+      const stamp = now.toISOString();
+      const next: UserState = { read: user.read, login: reader.login, lastSeen: stamp };
       if (email !== undefined) {
         next.email = email;
-        next.mailed = appended(user.mailed ?? [], alreadyThere);
+        next.since = stamp;
+        next.mailed = appended([], alreadyThere);
       }
       update(reader.id, next);
+    },
+    seen: (reader, now) => {
+      const user = userState(reader.id);
+      if (user.email === undefined) return;
+      const last = user.lastSeen === undefined ? 0 : Date.parse(user.lastSeen);
+      if (now.getTime() - last < SEEN_WRITE_GAP_MS && user.login === reader.login) return;
+      update(reader.id, { ...user, login: reader.login, lastSeen: now.toISOString() });
     },
     subscribers: () => {
       const found: MailSubscriber[] = [];
       for (const [userId, user] of Object.entries(current().users)) {
         if (user.email === undefined || user.login === undefined) continue;
-        found.push({ id: Number(userId), login: user.login, email: user.email });
+        if (user.since === undefined) continue;
+        found.push({
+          id: Number(userId),
+          login: user.login,
+          email: user.email,
+          since: user.since,
+          lastSeen: user.lastSeen ?? user.since,
+        });
       }
       return found;
     },

@@ -3,6 +3,7 @@ import type { GateLogger, SessionUser } from './access-gate.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
 import {
+  isAllowedRecipient,
   isEmailAddress,
   type MailConfig,
   type MailMessage,
@@ -291,6 +292,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       });
       return;
     }
+    mentionReads.seen(user, new Date());
     const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
     sendJson(res, 200, { enabled: true, ...inbox, email: emailState(user.id) });
   }
@@ -302,19 +304,24 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
     const body = await readJson(req);
     if (body.address === null) {
-      mentionReads.setEmail(user, undefined, []);
+      mentionReads.setEmail(user, undefined, [], new Date());
+      deps.log.info({ login: user.login }, '[gitquire-mail] mention email turned off');
       sendJson(res, 200, emailState(user.id));
       return;
     }
-    if (mailer === undefined) {
+    if (mailer === undefined || mail.kind !== 'on') {
       throw new HttpError(409, 'mail-not-configured', 'This server cannot send email.');
     }
     const address = typeof body.address === 'string' ? body.address.trim() : '';
     if (!isEmailAddress(address)) {
       throw new HttpError(400, 'invalid-address', 'Enter a valid email address.');
     }
+    if (!isAllowedRecipient(mail.config, address)) {
+      throw new HttpError(400, 'address-not-allowed', 'This server does not mail that domain.');
+    }
     const alreadyThere = mentionsFor(user, mentionIndex.all()).map((mention) => mention.id);
-    mentionReads.setEmail(user, address, alreadyThere);
+    mentionReads.setEmail(user, address, alreadyThere, new Date());
+    deps.log.info({ login: user.login, address }, '[gitquire-mail] mention email turned on');
     sendJson(res, 200, emailState(user.id));
   }
 

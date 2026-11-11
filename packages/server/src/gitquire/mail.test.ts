@@ -3,9 +3,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildMimeMessage,
   encodeHeaderText,
+  isAllowedRecipient,
   isEmailAddress,
+  isPermanentMailFailure,
   type MailConfig,
   resolveMailConfig,
+  SmtpError,
   sendMail,
 } from './mail.ts';
 
@@ -97,6 +100,9 @@ describe('mail settings', () => {
     expect(kindOf('smtp://mail.example.com', undefined)).toBe('invalid');
     expect(kindOf('smtp://user:secret@mail.example.com?starttls=off', from)).toBe('invalid');
     expect(kindOf('smtp://user:secret@mail.example.com', from)).toBe('on');
+    expect(kindOf('smtp://:secret@mail.example.com', from)).toBe('invalid');
+    expect(kindOf('smtp://mail.example.com:0', from)).toBe('invalid');
+    expect(kindOf('smtp://user:50%off@mail.example.com', from)).toBe('on');
   });
 
   it('reads host, port, encryption, sign-in and the public address', () => {
@@ -116,9 +122,28 @@ describe('mail settings', () => {
         password: 'p@ss',
         from: 'wiki@example.com',
         externalUrl: 'https://brain.example.com',
+        allowedDomains: undefined,
       },
     });
     expect(configFor('smtps://mail.example.com')).toMatchObject({ port: 465, implicitTls: true });
+    expect(configFor('smtp://[::1]:2525?STARTTLS=OFF')).toMatchObject({
+      host: '::1',
+      port: 2525,
+      startTls: false,
+    });
+  });
+
+  it('limits recipients to the listed domains when a list is set', () => {
+    const result = resolveMailConfig({
+      GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
+      GITQUIRE_MAIL_FROM: 'wiki@example.com',
+      GITQUIRE_MAIL_DOMAINS: ' Example.com, example.org ',
+    });
+    if (result.kind !== 'on') throw new Error('expected mail to be on');
+    expect(result.config.allowedDomains).toEqual(['example.com', 'example.org']);
+    expect(isAllowedRecipient(result.config, 'alice@EXAMPLE.org')).toBe(true);
+    expect(isAllowedRecipient(result.config, 'alice@elsewhere.net')).toBe(false);
+    expect(isAllowedRecipient({ allowedDomains: undefined }, 'alice@elsewhere.net')).toBe(true);
   });
 
   it('accepts ordinary addresses only', () => {
@@ -134,11 +159,20 @@ describe('mail message', () => {
   it('keeps plain subjects and encodes others without line breaks from the input', () => {
     expect(encodeHeaderText('bob mentioned you in report')).toBe('bob mentioned you in report');
     expect(encodeHeaderText('a\r\nBcc: eve@example.com')).toBe('a  Bcc: eve@example.com');
-    const subject = 'Zoë mentioned you in Übersicht';
-    const encoded = encodeHeaderText(subject);
-    expect(encoded).toMatch(/^=\?UTF-8\?B\?[A-Za-z0-9+/=]+\?=$/);
-    const payload = encoded.slice('=?UTF-8?B?'.length, -2);
-    expect(Buffer.from(payload, 'base64').toString('utf8')).toBe(subject);
+    const subject = 'Zoë mentioned you in Übersicht der Quartalszahlen';
+    const words = encodeHeaderText(subject).split('\r\n ');
+    expect(words.length).toBeGreaterThan(1);
+    for (const word of words) {
+      expect(word).toMatch(/^=\?UTF-8\?B\?[A-Za-z0-9+/=]+\?=$/);
+      expect(`Subject: ${word}`.length).toBeLessThanOrEqual(76);
+    }
+    const text = words
+      .map((word) => Buffer.from(word.slice('=?UTF-8?B?'.length, -2), 'base64').toString('utf8'))
+      .join('');
+    expect(text).toBe(subject);
+    const long = encodeHeaderText(`${'a'.repeat(400)} report`);
+    expect(long.split('\r\n ').every((line) => line.length <= 76)).toBe(true);
+    expect(long.length).toBeLessThan(400);
   });
 
   it('builds headers and a base64 body', () => {
@@ -189,8 +223,47 @@ describe('sending mail', () => {
     const smtp = await fakeSmtp({ rejectRecipient: true });
     const config = configFor(`smtp://127.0.0.1:${smtp.port}?starttls=off`);
     const message = { to: 'nobody@example.com', subject: 'Hello', text: 'Hi\n' };
+    const failure = await sendMail(config, message, { timeoutMs: 5000 }).catch((err) => err);
+    expect(failure).toBeInstanceOf(SmtpError);
+    expect(String(failure)).toMatch(/refused the recipient/);
+    expect(isPermanentMailFailure(failure)).toBe(true);
+  });
+
+  it('gives up when the server accepts the connection and then says nothing', async () => {
+    const silent = createServer((socket) => {
+      socket.on('error', () => {});
+    });
+    servers.push(silent);
+    await new Promise<void>((resolve) => {
+      silent.listen(0, '127.0.0.1', () => resolve());
+    });
+    const address = silent.address();
+    if (address === null || typeof address === 'string') throw new Error('expected a TCP port');
+    const config = configFor(`smtp://127.0.0.1:${address.port}?starttls=off`);
+    const message = { to: 'alice@example.com', subject: 'Hello', text: 'Hi\n' };
+    const started = Date.now();
+    const options = { timeoutMs: 60_000, deadlineMs: 200 };
+    const failure = await sendMail(config, message, options).catch((err) => err);
+    expect(String(failure)).toMatch(/took too long/);
+    expect(isPermanentMailFailure(failure)).toBe(false);
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
+
+  it('stops when the server sends a reply nobody asked for', async () => {
+    const chatty = createServer((socket) => {
+      socket.on('error', () => {});
+      socket.write('220 test.local ESMTP\r\n250 surprise\r\n');
+    });
+    servers.push(chatty);
+    await new Promise<void>((resolve) => {
+      chatty.listen(0, '127.0.0.1', () => resolve());
+    });
+    const address = chatty.address();
+    if (address === null || typeof address === 'string') throw new Error('expected a TCP port');
+    const config = configFor(`smtp://127.0.0.1:${address.port}?starttls=off`);
+    const message = { to: 'alice@example.com', subject: 'Hello', text: 'Hi\n' };
     await expect(sendMail(config, message, { timeoutMs: 5000 })).rejects.toThrow(
-      /refused the recipient/,
+      /nobody asked for/,
     );
   });
 
