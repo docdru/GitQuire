@@ -1,0 +1,12 @@
+.git
+**/node_modules
+**/dist
+**/.turbo
+**/.next
+**/target
+packages/desktop/out
+packages/desktop/dist-desktop
+**/test-results
+**/playwright-report
+.env
+packages/native-config/*.node
