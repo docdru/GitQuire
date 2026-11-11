@@ -74,7 +74,7 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
 | `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
 
-Sign out at `/auth/logout`. `/auth/me` returns the signed-in user as JSON.
+Sign out at `/auth/logout` (a page with a sign-out button; the session is cleared by its POST). `/auth/me` returns the signed-in user as JSON.
 
 Build the image yourself:
 

@@ -388,12 +388,23 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       return;
     }
     if (path === '/auth/logout') {
+      if (req.method === 'POST') {
+        sendHtml(
+          res,
+          200,
+          'Signed out',
+          '<p>You are signed out of GitQuire.</p><p><a href="/auth/github/login">Sign in with GitHub</a></p>',
+          { 'Set-Cookie': clearCookie(SESSION_COOKIE) },
+        );
+        return;
+      }
+      const user = sessionUser(req);
+      const who = user === undefined ? '' : ` as <strong>@${escapeHtml(user.login)}</strong>`;
       sendHtml(
         res,
         200,
-        'Signed out',
-        '<p>You are signed out of GitQuire.</p><p><a href="/auth/github/login">Sign in with GitHub</a></p>',
-        { 'Set-Cookie': clearCookie(SESSION_COOKIE) },
+        'Sign out',
+        `<p>You are signed in${who}.</p><form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>`,
       );
       return;
     }

@@ -365,11 +365,22 @@ describe('createAccessGate requests', () => {
     });
   });
 
-  it('clears the session on logout', () => {
+  it('only clears the session on a POST to logout', () => {
     const gate = makeGate();
+    const page = fakeResponse();
+    const get = fakeRequest('/auth/logout', { headers: { cookie: sessionCookie() } });
+    gate.handleRequest(get, page.res);
+    expect(page.status).toBe(200);
+    expect(page.headers['Set-Cookie']).toBeUndefined();
+    expect(page.body).toContain('method="post"');
+    expect(page.body).toContain('@alice');
+
     const out = fakeResponse();
-    const req = fakeRequest('/auth/logout', { headers: { cookie: sessionCookie() } });
-    gate.handleRequest(req, out.res);
+    const post = fakeRequest('/auth/logout', {
+      method: 'POST',
+      headers: { cookie: sessionCookie() },
+    });
+    gate.handleRequest(post, out.res);
     expect(String(out.headers['Set-Cookie'])).toContain(`${SESSION_COOKIE}=; `);
     expect(String(out.headers['Set-Cookie'])).toContain('Max-Age=0');
   });
