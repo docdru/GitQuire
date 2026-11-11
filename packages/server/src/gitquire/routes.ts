@@ -146,6 +146,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     try {
       git(['branch', '--no-track', name, startPoint]);
     } catch (err) {
+      if (refList('refs/heads', 'refs/heads/').includes(name)) {
+        throw new HttpError(409, 'branch-exists', `A branch named ${name} already exists.`);
+      }
       const reason = err instanceof Error ? err.message.split('\n')[0] : String(err);
       throw new HttpError(400, 'branch-create-failed', `Could not create ${name}: ${reason}`);
     }

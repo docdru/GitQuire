@@ -226,6 +226,28 @@ describe('GitQuire routes', () => {
     expect(cross.status).toBe(403);
   });
 
+  it('reports a branch created concurrently as already existing', async () => {
+    const repo = baseRepo();
+    const git = fakeGit(repo);
+    const routes = createGitQuireRoutes({
+      projectDir: '/data',
+      log: silentLog,
+      runGit: (args) => {
+        if (args[0] === 'branch') {
+          repo.local.push('report/race');
+          throw new Error('fatal: a branch named report/race already exists');
+        }
+        return git(args);
+      },
+    });
+    const out = await call(
+      routes,
+      request('/api/gitquire/branches', { method: 'POST', body: { name: 'report/race' } }),
+    );
+    expect(out.status).toBe(409);
+    expect(out.body.error).toBe('branch-exists');
+  });
+
   it('reports pull requests as not configured without the GitHub App', async () => {
     const routes = routesFor(baseRepo());
     const list = await call(routes, request('/api/gitquire/pulls'));
