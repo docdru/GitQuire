@@ -47,13 +47,46 @@ jobs:
           curl -fsS http://127.0.0.1:8080/ | grep -qi "<html"
           echo "web app served"
 
+      - name: Smoke test with GitHub sign-in enabled
+        run: |
+          set -eu
+          docker run -d --name gq-auth -p 8081:8080 \
+            -e OK_ALLOW_EXTERNAL=1 \
+            -e OK_EXTERNAL_URL=http://127.0.0.1:8081 \
+            -e GITHUB_APP_CLIENT_ID=Iv1.smoke \
+            -e GITHUB_APP_CLIENT_SECRET=smoke-secret \
+            -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            -e GITQUIRE_REPO=docdru/GitQuire \
+            gitquire:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8081/readyz >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8081/readyz
+          page=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' -H 'Accept: text/html' http://127.0.0.1:8081/)
+          echo "GET / -> $page"
+          case "$page" in "302 http://127.0.0.1:8081/auth/github/login?next=%2F") ;; *) exit 1 ;; esac
+          api=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/api/config)
+          echo "GET /api/config -> $api"
+          test "$api" = 401
+          login=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://127.0.0.1:8081/auth/github/login)
+          echo "GET /auth/github/login -> $login"
+          case "$login" in "302 https://github.com/login/oauth/authorize?client_id=Iv1.smoke"*) ;; *) exit 1 ;; esac
+          ws=$(curl -s -o /dev/null -w '%{http_code}' -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
+            -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
+            http://127.0.0.1:8081/collab)
+          echo "WS /collab -> $ws"
+          test "$ws" = 401
+
       - name: Container logs
         if: always()
-        run: docker logs gq || true
+        run: |
+          docker logs gq || true
+          docker logs gq-auth || true
 
-      - name: Remove container
+      - name: Remove containers
         if: always()
-        run: docker rm -f gq || true
+        run: docker rm -f gq gq-auth || true
 
   publish:
     needs: build

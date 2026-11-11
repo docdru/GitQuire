@@ -4,7 +4,8 @@ GitQuire is a fork of OpenKnowledge. The rules below are inherited from upstream
 
 - Pull requests are welcome in this repository. Upstream's mirror rules and changeset-driven releases do not apply to GitQuire, and changesets are not required.
 - `upstream` is `https://github.com/inkeep/open-knowledge`. Keep GitQuire-specific code in separate modules where possible so upstream merges stay cheap.
-- CI lives in `.github/workflows/docker.yml`: it builds the Docker image, smoke-tests it, and publishes it to `ghcr.io` from `main`.
+- CI: `.github/workflows/checks.yml` runs lint, the server typecheck and the GitQuire tests; `.github/workflows/docker.yml` builds the Docker image, smoke-tests it, and publishes it to `ghcr.io` from `main`.
+- GitQuire server code lives in `packages/server/src/gitquire/`. Hooks into upstream files stay small (`boot.ts`, `mcp-mount.ts`).
 
 ## Inherited from OpenKnowledge
 

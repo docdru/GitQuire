@@ -9,9 +9,9 @@ A collaborative, WYSIWYG Markdown wiki for small teams, with GitHub as the backe
 - **Comments in the file.** Threads live in a hidden block at the end of each Markdown file, so everything stays in Git.
 - **Self-hosted.** One Docker container with a `/data` volume.
 
-> **Status:** early. GitQuire is being built in phases. Phase 1 (this repository today) packages the
-> OpenKnowledge server as a Docker image with CI. GitHub sign-in, branches and PRs, shared comments,
-> mobile polish and naming rules follow. See the [roadmap](#roadmap).
+> **Status:** early. GitQuire is being built in phases: the Docker image and GitHub sign-in work
+> today. Syncing a GitHub content repo, per-user commit authorship, branches and PRs, shared
+> comments, mobile polish and naming rules follow. See the [roadmap](#roadmap).
 
 ## Run it
 
@@ -23,9 +23,8 @@ docker run --rm -p 8080:8080 \
 # then open http://localhost:8080
 ```
 
-> **Warning:** phase 1 has no sign-in. With `OK_ALLOW_EXTERNAL=1`, anyone who can reach the port can
-> read and edit everything. Until GitHub sign-in lands, keep it on localhost or put it behind an
-> authenticating proxy or VPN.
+> **Warning:** without GitHub sign-in (below), anyone who can reach the port can read and edit
+> everything. Turn sign-in on before exposing GitQuire beyond localhost.
 
 Behind a real domain, also set `OK_EXTERNAL_URL=https://your.domain`. Run exactly one container per
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
@@ -37,6 +36,45 @@ volume: the collaboration server is single-writer. Health checks: `GET /healthz`
 | `OK_ALLOW_EXTERNAL` | unset | Must be `1` to accept non-local connections |
 | `OK_EXTERNAL_URL` | unset | Public origin, required behind a domain or proxy |
 | `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits until per-user sign-in lands |
+
+### GitHub sign-in
+
+With sign-in on, every page, API call and live-editing connection needs a GitHub session.
+People with write access to `GITQUIRE_REPO` (or listed in `GITQUIRE_ALLOWED_USERS`) can sign in.
+
+1. Create a GitHub App (GitHub → Settings → Developer settings → GitHub Apps → New):
+   - **Callback URL:** `https://brain.example.com/auth/github/callback` (your `OK_EXTERNAL_URL`
+     plus `/auth/github/callback`). Add `http://localhost:8080/auth/github/callback` too for local use.
+   - **Repository permissions:** Contents read and write, Pull requests read and write,
+     Metadata read.
+   - Uncheck **Webhook → Active**.
+2. Install the app on the content repository.
+3. Generate a client secret, then run:
+
+```bash
+docker run -d --name gitquire -p 8080:8080 \
+  -e OK_ALLOW_EXTERNAL=1 \
+  -e OK_EXTERNAL_URL=https://brain.example.com \
+  -e GITHUB_APP_CLIENT_ID=Iv1.xxxxxxxx \
+  -e GITHUB_APP_CLIENT_SECRET=xxxxxxxx \
+  -e GITQUIRE_SESSION_SECRET="$(openssl rand -hex 32)" \
+  -e GITQUIRE_REPO=acme/team-notes \
+  -v gitquire-data:/data \
+  ghcr.io/docdru/gitquire:latest
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET` | From the GitHub App. Setting the client ID turns sign-in on. |
+| `GITQUIRE_SESSION_SECRET` | At least 32 random characters; signs the session cookie. |
+| `GITQUIRE_REPO` | `owner/name`. Anyone with write access to it may sign in. |
+| `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition (or instead). |
+| `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
+| `GITQUIRE_MCP_TOKEN` | Optional bearer token for AI agents on `/mcp`; without it `/mcp` is closed. |
+| `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
+| `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
+
+Sign out at `/auth/logout` (a page with a sign-out button; the session is cleared by its POST). `/auth/me` returns the signed-in user as JSON.
 
 Build the image yourself:
 

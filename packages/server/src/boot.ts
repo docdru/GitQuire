@@ -45,6 +45,7 @@ import {
   describeGitPreflightFailure,
   emitPreflightFailureSpan,
 } from './git-preflight-telemetry.ts';
+import { createAccessGateFromEnv } from './gitquire/index.ts';
 import { createShellHeaderSetter } from './http/shell-csp.ts';
 import {
   attachCollabClientCounter,
@@ -307,6 +308,7 @@ async function bootServerInner(
   }
 
   const ingressPolicy = buildIngressPolicy({ serverRuntime });
+  const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log);
   if (
     serverRuntime.allowExternal &&
     !serverRuntime.loopbackOnly &&
@@ -553,6 +555,7 @@ async function bootServerInner(
     nativeApi: serverInstance.nativeApi,
     mcpHttpHandler,
     ingressPolicy,
+    accessGate,
     health: {
       readiness: () => readinessState,
       degraded: () => degraded,

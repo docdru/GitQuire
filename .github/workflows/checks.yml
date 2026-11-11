@@ -1,0 +1,49 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install the declared Rust toolchain
+        run: rustup toolchain install --no-self-update
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Typecheck server
+        run: pnpm exec turbo run typecheck --filter=@inkeep/open-knowledge-server
+
+      - name: Build server dependencies
+        run: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...
+
+      - name: GitQuire tests
+        run: pnpm --dir packages/server exec vitest run src/gitquire
