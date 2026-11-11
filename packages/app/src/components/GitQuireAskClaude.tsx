@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { publishAskComposerHeight } from '@/editor/ask-composer-inset';
 import {
   buildClaudePrompt,
@@ -104,7 +105,7 @@ export function GitQuireAskClaude({
       className="pointer-events-auto flex flex-col gap-1.5 rounded-2xl border border-border/60 bg-card px-3 py-2 shadow-sm focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50"
     >
       <div className="flex items-start gap-2">
-        <textarea
+        <Textarea
           ref={inputRef}
           value={text}
           rows={1}
@@ -121,7 +122,7 @@ export function GitQuireAskClaude({
               submit();
             }
           }}
-          className="min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm"
+          className="max-h-[200px] min-h-8 flex-1 resize-none rounded-none border-0 bg-transparent px-0 py-1.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
         />
         {onDismiss ? (
           <Button
