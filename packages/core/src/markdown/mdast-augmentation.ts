@@ -123,6 +123,7 @@ export interface CommentMdast {
 export interface GitQuireCommentsMdast {
   type: 'gitquireComments';
   value: string;
+  data?: Record<string, unknown>;
   position?: Position;
 }
 

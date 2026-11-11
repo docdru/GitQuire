@@ -98,13 +98,15 @@ describe('markdown pipeline carries the trailer', () => {
   });
 
   test('handles a document that only holds comments', () => {
-    const only = `${trailer}\n`;
-    expect(md.serialize(md.parse(only))).toBe(only);
+    const json = md.parse(`${trailer}\n`);
+    expect(json.content).toHaveLength(1);
+    expect(md.serialize(json)).toBe(`${trailer}\n`);
   });
 
   test('leaves ordinary HTML comments alone', () => {
-    const plain = 'Text\n\n<!-- a note -->\n';
-    expect(md.serialize(md.parse(plain))).toBe(plain);
+    const json = md.parse('Text\n\n<!-- a note -->\n');
+    expect(json.content?.some((node) => node.type === 'gitquireComments')).toBe(false);
+    expect(md.serialize(json)).toBe('Text\n\n<!-- a note -->\n');
   });
 });
 
