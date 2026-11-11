@@ -1175,7 +1175,7 @@ msgstr "إضافة"
 msgid "Add a comment"
 msgstr "إضافة تعليق"
 
-msgid "Add a comment… use @name to mention"
+msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -2911,9 +2911,6 @@ msgstr "تعذّرت قراءة حالة الفرع لهذا المشروع. أ�
 msgid "Could not save sync preference: {detail}"
 msgstr "تعذّر حفظ تفضيل المزامنة: {detail}"
 
-msgid "Could not save the comment"
-msgstr ""
-
 msgid "Could not start creating a new item"
 msgstr "تعذّر بدء إنشاء عنصر جديد"
 
@@ -2985,6 +2982,9 @@ msgstr "تعذّر إنشاء التقرير"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "تعذّر إنشاء شجرة العمل. جرّب اسمًا مختلفًا."
+
+msgid "Couldn't save the comment."
+msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "تعذّر إنشاء هذه السمة. حاول مرة أخرى."
@@ -8802,9 +8802,6 @@ msgstr "سيستبدل إدخال OpenKnowledge الحالي في {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "يستبدل إدخال OpenKnowledge الموجود لدى كل منها."
 
-msgid "Reply… use @name to mention"
-msgstr ""
-
 msgid "Reply"
 msgstr ""
 
@@ -12144,6 +12141,9 @@ msgstr "أشجار العمل"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "لُف الأسطر الطويلة في محرر مصدر Markdown."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

@@ -1175,8 +1175,8 @@ msgstr "Add"
 msgid "Add a comment"
 msgstr "Add a comment"
 
-msgid "Add a comment… use @name to mention"
-msgstr "Add a comment… use @name to mention"
+msgid "Add a comment. Use @name to mention someone."
+msgstr "Add a comment. Use @name to mention someone."
 
 msgid "Add a file name (e.g. notes.md)"
 msgstr "Add a file name (e.g. notes.md)"
@@ -2911,9 +2911,6 @@ msgstr "Could not read branch state for this project. Close this dialog and open
 msgid "Could not save sync preference: {detail}"
 msgstr "Could not save sync preference: {detail}"
 
-msgid "Could not save the comment"
-msgstr "Could not save the comment"
-
 msgid "Could not start creating a new item"
 msgstr "Could not start creating a new item"
 
@@ -2985,6 +2982,9 @@ msgstr "Couldn't create the report"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "Couldn't create the worktree. Try a different name."
+
+msgid "Couldn't save the comment."
+msgstr "Couldn't save the comment."
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "Couldn’t create this theme. Try again."
@@ -8802,9 +8802,6 @@ msgstr "Replaces the existing OpenKnowledge entry in {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Replaces the OpenKnowledge entry each of them already has."
 
-msgid "Reply… use @name to mention"
-msgstr "Reply… use @name to mention"
-
 msgid "Reply"
 msgstr "Reply"
 
@@ -12144,6 +12141,9 @@ msgstr "Worktrees"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Wrap long lines in the markdown source editor."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr "Write a reply. Use @name to mention someone."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

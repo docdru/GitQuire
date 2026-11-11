@@ -9,9 +9,9 @@ import { getDiscussionUi, openDiscussions, subscribeDiscussionUi } from './ui-st
 const discussionKey = new PluginKey<DecorationSet>('gitquireDiscussions');
 
 const ANCHOR_CLASS =
-  'gq-discussion-anchor cursor-pointer rounded-sm bg-amber-200/40 underline decoration-amber-500/70 decoration-2 underline-offset-4 dark:bg-amber-400/15';
-const ACTIVE_CLASS = 'gq-discussion-anchor-active bg-amber-300/60 dark:bg-amber-400/30';
-const DRAFT_CLASS = 'gq-discussion-draft rounded-sm bg-sky-200/50 dark:bg-sky-400/20';
+  'gq-discussion-anchor cursor-pointer rounded-sm bg-warning/15 underline decoration-2 decoration-warning/70 underline-offset-4';
+const ACTIVE_CLASS = 'gq-discussion-anchor-active bg-warning/30';
+const DRAFT_CLASS = 'gq-discussion-draft rounded-sm bg-info/20';
 
 function buildDecorations(docName: string, doc: PMNode): DecorationSet {
   const ui = getDiscussionUi();

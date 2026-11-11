@@ -1175,7 +1175,7 @@ msgstr "추가"
 msgid "Add a comment"
 msgstr "댓글 추가"
 
-msgid "Add a comment… use @name to mention"
+msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -2911,9 +2911,6 @@ msgstr "이 프로젝트의 브랜치 상태를 읽을 수 없습니다. 이 대
 msgid "Could not save sync preference: {detail}"
 msgstr "동기화 환경설정을 저장할 수 없습니다: {detail}"
 
-msgid "Could not save the comment"
-msgstr ""
-
 msgid "Could not start creating a new item"
 msgstr "새 항목 만들기를 시작하지 못했습니다"
 
@@ -2985,6 +2982,9 @@ msgstr "보고서를 만들지 못했습니다"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "워크트리를 만들 수 없습니다. 다른 이름을 사용해 보세요."
+
+msgid "Couldn't save the comment."
+msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "이 테마를 만들지 못했습니다. 다시 시도합니다."
@@ -8802,9 +8802,6 @@ msgstr "{0}의 기존 OpenKnowledge 항목을 대체합니다"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "각각에 이미 있는 OpenKnowledge 항목을 교체합니다."
 
-msgid "Reply… use @name to mention"
-msgstr ""
-
 msgid "Reply"
 msgstr ""
 
@@ -12144,6 +12141,9 @@ msgstr "워크트리"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Markdown 소스 편집기에서 긴 줄을 자동으로 줄바꿈합니다."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

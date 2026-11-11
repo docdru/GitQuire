@@ -159,14 +159,19 @@ function ThreadCard({
     <li
       className={cn(
         'flex flex-col gap-3 rounded-lg border p-3',
-        active && 'border-amber-400 shadow-sm',
+        active && 'border-warning shadow-sm',
         thread.resolved && 'opacity-70',
       )}
       data-discussion-thread={thread.id}
     >
-      <button type="button" className={cn(QUOTE_CLASS, 'border-amber-400')} onClick={onSelect}>
+      <Button
+        type="button"
+        variant="ghost"
+        className={cn(QUOTE_CLASS, 'h-auto justify-start whitespace-normal border-warning')}
+        onClick={onSelect}
+      >
         {thread.anchor.exact}
-      </button>
+      </Button>
       {range === null && (
         <p className="text-destructive text-xs">{t`The quoted text is no longer in the page.`}</p>
       )}
@@ -188,7 +193,7 @@ function ThreadCard({
           <Textarea
             rows={2}
             value={reply}
-            placeholder={t`Reply… use @name to mention`}
+            placeholder={t`Write a reply. Use @name to mention someone.`}
             onChange={(e) => setReply(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void send();
@@ -241,9 +246,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       const ctx = await opContext();
       commit(editor, change(readThreads(editor.state.doc), ctx));
     } catch (err) {
-      toast.error(t`Could not save the comment`, {
-        description: err instanceof Error ? err.message : String(err),
-      });
+      toast.error(t`Couldn't save the comment.`);
       throw err;
     }
   }
@@ -255,10 +258,8 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     let ctx: OpContext;
     try {
       ctx = await opContext();
-    } catch (err) {
-      toast.error(t`Could not save the comment`, {
-        description: err instanceof Error ? err.message : String(err),
-      });
+    } catch {
+      toast.error(t`Couldn't save the comment.`);
       return;
     }
     const created = createThread(readThreads(editor.state.doc), draft.anchor, body, ctx);
@@ -299,7 +300,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       >
         <MessagesSquare aria-hidden="true" />
         {t`Discussions`}
-        <span className="rounded-full bg-amber-400/30 px-1.5 text-xs tabular-nums">
+        <span className="rounded-full bg-warning/20 px-1.5 text-xs tabular-nums">
           {openCount}
         </span>
       </Button>
@@ -329,12 +330,12 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       </header>
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
         {ui.draft !== null && (
-          <div className="flex flex-col gap-2 rounded-lg border border-sky-400 p-3">
-            <p className={cn(QUOTE_CLASS, 'border-sky-400')}>{ui.draft.anchor.exact}</p>
+          <div className="flex flex-col gap-2 rounded-lg border border-info/40 p-3">
+            <p className={cn(QUOTE_CLASS, 'border-info')}>{ui.draft.anchor.exact}</p>
             <Textarea
               rows={3}
               value={draftBody}
-              placeholder={t`Add a comment… use @name to mention`}
+              placeholder={t`Add a comment. Use @name to mention someone.`}
               onChange={(e) => setDraftBody(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void createFromDraft();

@@ -1171,7 +1171,7 @@ msgstr "Tambah"
 msgid "Add a comment"
 msgstr "Tambahkan komentar"
 
-msgid "Add a comment… use @name to mention"
+msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -2907,9 +2907,6 @@ msgstr "Keadaan cabang untuk proyek ini tidak dapat dibaca. Tutup dialog ini dan
 msgid "Could not save sync preference: {detail}"
 msgstr "Preferensi sinkronisasi tidak dapat disimpan: {detail}"
 
-msgid "Could not save the comment"
-msgstr ""
-
 msgid "Could not start creating a new item"
 msgstr "Pembuatan item baru tidak dapat dimulai"
 
@@ -2981,6 +2978,9 @@ msgstr "Laporannya tidak bisa dibuat"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "Worktree-nya tidak bisa dibuat. Coba nama lain."
+
+msgid "Couldn't save the comment."
+msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "Tema ini tidak dapat dibuat. Coba lagi."
@@ -8798,9 +8798,6 @@ msgstr "Mengganti entri OpenKnowledge yang ada di {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Mengganti entri OpenKnowledge yang sudah dimiliki masing-masing."
 
-msgid "Reply… use @name to mention"
-msgstr ""
-
 msgid "Reply"
 msgstr ""
 
@@ -12140,6 +12137,9 @@ msgstr "Worktree"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Membungkus baris panjang di penyunting sumber markdown."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

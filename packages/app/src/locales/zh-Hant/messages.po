@@ -1175,7 +1175,7 @@ msgstr "新增"
 msgid "Add a comment"
 msgstr "新增註解"
 
-msgid "Add a comment… use @name to mention"
+msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -2911,9 +2911,6 @@ msgstr "無法讀取這個專案的分支狀態。請關閉這個對話方塊，
 msgid "Could not save sync preference: {detail}"
 msgstr "無法儲存同步偏好設定：{detail}"
 
-msgid "Could not save the comment"
-msgstr ""
-
 msgid "Could not start creating a new item"
 msgstr "無法開始建立新項目"
 
@@ -2985,6 +2982,9 @@ msgstr "無法建立回報"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "無法建立 worktree。請換一個名稱。"
+
+msgid "Couldn't save the comment."
+msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "無法建立這個主題。請再試一次。"
@@ -8802,9 +8802,6 @@ msgstr "將取代 {0} 中既有的 OpenKnowledge 項目"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "取代它們各自已有的 OpenKnowledge 項目。"
 
-msgid "Reply… use @name to mention"
-msgstr ""
-
 msgid "Reply"
 msgstr ""
 
@@ -12144,6 +12141,9 @@ msgstr "Worktree"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "在 markdown 原始碼編輯器中把過長的行自動換行。"
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

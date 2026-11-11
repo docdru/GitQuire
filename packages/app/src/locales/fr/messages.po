@@ -1175,7 +1175,7 @@ msgstr "Ajouter"
 msgid "Add a comment"
 msgstr "Ajouter un commentaire"
 
-msgid "Add a comment… use @name to mention"
+msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -2911,9 +2911,6 @@ msgstr "Impossible de lire l'état des branches de ce projet. Fermez cette boît
 msgid "Could not save sync preference: {detail}"
 msgstr "Impossible d'enregistrer la préférence de synchronisation : {detail}"
 
-msgid "Could not save the comment"
-msgstr ""
-
 msgid "Could not start creating a new item"
 msgstr "Impossible de commencer la création d'un nouvel élément"
 
@@ -2985,6 +2982,9 @@ msgstr "Impossible de créer le rapport"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "Impossible de créer le worktree. Essayez un autre nom."
+
+msgid "Couldn't save the comment."
+msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "Impossible de créer ce thème. Réessayez."
@@ -8802,9 +8802,6 @@ msgstr "Remplace l'entrée OpenKnowledge existante dans {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Remplace l'entrée OpenKnowledge que chacun possède déjà."
 
-msgid "Reply… use @name to mention"
-msgstr ""
-
 msgid "Reply"
 msgstr ""
 
@@ -12144,6 +12141,9 @@ msgstr "Worktrees"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Renvoie les lignes longues à la ligne dans l'éditeur de source markdown."
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

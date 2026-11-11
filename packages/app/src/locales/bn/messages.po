@@ -1171,7 +1171,7 @@ msgstr "যোগ করুন"
 msgid "Add a comment"
 msgstr "একটি মন্তব্য যোগ করুন"
 
-msgid "Add a comment… use @name to mention"
+msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -2907,9 +2907,6 @@ msgstr "এই প্রকল্পের ব্রাঞ্চের অবস
 msgid "Could not save sync preference: {detail}"
 msgstr "সিঙ্ক পছন্দ সংরক্ষণ করা যায়নি: {detail}"
 
-msgid "Could not save the comment"
-msgstr ""
-
 msgid "Could not start creating a new item"
 msgstr "নতুন আইটেম তৈরি শুরু করা যায়নি"
 
@@ -2981,6 +2978,9 @@ msgstr "রিপোর্ট তৈরি করা যায়নি"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "ওয়ার্কট্রি তৈরি করা যায়নি। অন্য নাম চেষ্টা করুন।"
+
+msgid "Couldn't save the comment."
+msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "এই থিম তৈরি করা যায়নি। আবার চেষ্টা করুন।"
@@ -8798,9 +8798,6 @@ msgstr "{0}-এ থাকা বিদ্যমান OpenKnowledge এন্ট
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "প্রত্যেকটিতে আগে থেকে থাকা OpenKnowledge এন্ট্রি প্রতিস্থাপন করে।"
 
-msgid "Reply… use @name to mention"
-msgstr ""
-
 msgid "Reply"
 msgstr ""
 
@@ -12140,6 +12137,9 @@ msgstr "ওয়ার্কট্রি"
 
 msgid "Wrap long lines in the markdown source editor."
 msgstr "markdown সোর্স সম্পাদকে লম্বা লাইন মুড়ে দিন।"
+
+msgid "Write a reply. Use @name to mention someone."
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"

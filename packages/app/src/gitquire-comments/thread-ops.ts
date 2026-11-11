@@ -1,14 +1,14 @@
 import type {
-  GitQuireCommentAnchor,
-  GitQuireCommentAuthor,
-  GitQuireCommentThread,
-  GitQuireThreadComment,
-} from '@inkeep/open-knowledge-core';
+  CommentAnchor,
+  CommentAuthor,
+  CommentThread,
+  ThreadComment as StoredComment,
+} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 
-export type Thread = GitQuireCommentThread;
-export type ThreadComment = GitQuireThreadComment;
-export type Author = GitQuireCommentAuthor;
-export type Anchor = GitQuireCommentAnchor;
+export type Thread = CommentThread;
+export type ThreadComment = StoredComment;
+export type Author = CommentAuthor;
+export type Anchor = CommentAnchor;
 
 export interface OpContext {
   author: Author;

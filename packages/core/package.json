@@ -29,6 +29,12 @@
       "types": "./dist/git-repository.d.mts",
       "default": "./dist/git-repository.mjs"
     },
+    "./gitquire/comment-threads": {
+      "@inkeep/source": "./src/gitquire/comment-threads.ts",
+      "development": "./src/gitquire/comment-threads.ts",
+      "types": "./dist/gitquire-comment-threads.d.mts",
+      "default": "./dist/gitquire-comment-threads.mjs"
+    },
     "./server": {
       "@inkeep/source": "./src/server.ts",
       "development": "./src/server.ts",
@@ -352,6 +358,12 @@
       "development": "./src/extensions/frontmatter.ts",
       "types": "./dist/extensions-frontmatter.d.mts",
       "default": "./dist/extensions-frontmatter.mjs"
+    },
+    "./extensions/gitquire-comments": {
+      "@inkeep/source": "./src/extensions/gitquire-comments.ts",
+      "development": "./src/extensions/gitquire-comments.ts",
+      "types": "./dist/extensions-gitquire-comments.d.mts",
+      "default": "./dist/extensions-gitquire-comments.mjs"
     },
     "./extensions/image-reference-fidelity": {
       "@inkeep/source": "./src/extensions/image-reference-fidelity.ts",
