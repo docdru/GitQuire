@@ -73,7 +73,7 @@ export function findProjectDir(startCwd: string): string {
     const parent = dirname(dir);
     if (parent === dir) {
       throw new Error(
-        `No OpenKnowledge project found at or above ${startCwd}. Pass an explicit \`cwd\` argument that points inside an OK project (a directory with a \`${OK_PROJECT_MARKER}\`).`,
+        `No GitQuire project found at or above ${startCwd}. Pass an explicit \`cwd\` argument that points inside an OK project (a directory with a \`${OK_PROJECT_MARKER}\`).`,
       );
     }
     dir = parent;
@@ -141,7 +141,7 @@ export async function resolveStickyProjectDir(
 }
 
 const CWD_REQUIRED_MESSAGE =
-  '`cwd` is required for tool calls against the global MCP server. Pass an absolute path inside an OpenKnowledge project, or have the MCP client advertise a single root.';
+  '`cwd` is required for tool calls against the global MCP server. Pass an absolute path inside a GitQuire project, or have the MCP client advertise a single root.';
 
 export async function startGlobalMcpServer(
   opts: StartGlobalMcpServerOptions,

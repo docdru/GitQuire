@@ -28,7 +28,7 @@ const rejectionReasons = {
     'Configuration updates must be fully synchronized; reconnect before retrying.',
   'invalid-update': 'Configuration updates must contain a valid serialized document update.',
   'new-private-origin': () =>
-    `Edit ${okUserHomeDisplayPath('global.yml')} on the computer running OpenKnowledge to approve private website skill origins.`,
+    `Edit ${okUserHomeDisplayPath('global.yml')} on the computer running GitQuire to approve private website skill origins.`,
 };
 
 interface ConfigMessageLease {

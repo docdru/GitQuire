@@ -555,8 +555,8 @@ describe('runStop identity check at the signal', () => {
       `Could not read when process 100 started, so it cannot be confirmed as the server that wrote ${lockPath}; ` +
       'it was not signalled, and --force does not override this check. ' +
       'macOS reads the process start with ps, and that read failed, as it does inside some sandboxes; retry from a shell where ps can run. ' +
-      'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-      `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`;
+      'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+      `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`;
 
     expect(await outcome).toEqual({
       stopped: [],
@@ -600,8 +600,8 @@ describe('runStop identity check at the signal', () => {
       `Could not read when process 100 started, so it cannot be confirmed as the server that wrote ${lockPath}; ` +
         'it was not signalled, and --force does not override this check. ' +
         'Linux reads the process start from /proc/100/stat and /proc/stat; restore read access to /proc and retry. ' +
-        'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`,
+        'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
     ]);
   });
 
@@ -609,7 +609,7 @@ describe('runStop identity check at the signal', () => {
     [
       'unavailable',
       'the Windows native addon (native-config.win32-x64-msvc.node) did not load or does not export readProcessStart: the addon was not found',
-      'Reinstall OpenKnowledge to restore the Windows component that verifies process identity. ',
+      'Reinstall GitQuire to restore the Windows component that verifies process identity. ',
     ],
     [
       'query-failed',
@@ -633,8 +633,8 @@ describe('runStop identity check at the signal', () => {
           'it was not signalled, and --force does not override this check. ' +
           recovery +
           `The failure detail is recorded in the CLI log under ${okUserHomeDisplayPath('logs')}. ` +
-          'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-          `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`,
+          'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+          `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
       ]);
       expect(warnings).toContainEqual({
         obj: {
@@ -668,8 +668,8 @@ describe('runStop identity check at the signal', () => {
       `Could not read when process 100 started, so it cannot be confirmed as the server that wrote ${lockPath}; ` +
         'it was not signalled, and --force does not override this check. ' +
         'The Windows component loaded but the operating system refused the query, so reinstalling will not help; retry from an account that can inspect that process. ' +
-        'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`,
+        'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
     ]);
   });
 
@@ -708,8 +708,8 @@ describe('runStop identity check at the signal', () => {
     expect((await outcome).failed.map((failure) => failure.error)).toEqual([
       `The start of process 100 cannot be compared with the start recorded in ${lockPath}, so it cannot be confirmed as the server that wrote the lock; ` +
         'it was not signalled, and --force does not override this check. ' +
-        'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`,
+        'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
     ]);
     expect(killed).toEqual([]);
     expect(warnings.map((w) => w.obj.cause)).toEqual(['process-start-incomparable']);
@@ -727,8 +727,8 @@ describe('runStop identity check at the signal', () => {
     expect((await outcome).failed.map((failure) => failure.error)).toEqual([
       `The server lock at ${lockPath} records neither a machine ID nor a process start, as locks written by version 0.25.0 and earlier do, so process 100 cannot be confirmed as the server that wrote it; ` +
         'it was not signalled, and --force does not override this check. ' +
-        'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}. ` +
+        'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}. ` +
         'A server you start again with this release records its machine ID, so `ok stop` can confirm it.',
     ]);
     expect(killed).toEqual([]);
@@ -751,8 +751,8 @@ describe('runStop identity check at the signal', () => {
     expect((await outcome).failed.map((failure) => failure.error)).toEqual([
       `The server lock at ${lockPath} records a start later than the current time on this machine, so process 100 cannot be confirmed as the server that wrote it; ` +
         'it was not signalled, and --force does not override this check. ' +
-        'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`,
+        'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
     ]);
     expect(killed).toEqual([]);
     expect(warnings.map((w) => w.obj.cause)).toEqual(['recorded-start-in-future']);
@@ -772,8 +772,8 @@ describe('runStop identity check at the signal', () => {
     const refusal =
       `Process 100 started before the start recorded in ${lockPath}, so it cannot be confirmed as the server that wrote the lock; ` +
       'it was not signalled, and --force does not override this check. ' +
-      'Before ending process 100 yourself, confirm that it is an OpenKnowledge server. ' +
-      `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath}.`;
+      'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
+      `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`;
 
     expect(await outcome).toEqual({
       stopped: [],
@@ -878,7 +878,7 @@ describe('runStop identity check at the signal', () => {
       `The server lock at ${lockPath} records only the host another-machine.example, not this machine's ${hostname()}, and the start of process 100, which is running on this machine, does not confirm it as the server that wrote the lock; ` +
         'it was not signalled, and --force does not override this check. ' +
         'If another-machine.example is another machine, stop the server there. ' +
-        `If it is an earlier name of this machine, confirm that process 100 is an OpenKnowledge server before ending it yourself, and once no OpenKnowledge server is running for this project, remove ${lockPath}.`,
+        `If it is an earlier name of this machine, confirm that process 100 is a GitQuire server before ending it yourself, and once no GitQuire server is running for this project, remove ${lockPath}.`,
     ]);
     expect(killed).toEqual([]);
     expect(warnings.map((w) => w.obj.cause)).toEqual(['foreign-host']);
@@ -1064,7 +1064,7 @@ describe('runStop on a live lock that records no owning machine', () => {
     const refusal =
       `The server lock at ${lockPath} does not record its owning machine, and its recorded process ${process.pid} is still running on this machine, so it cannot be confirmed as the server that wrote the lock; ` +
       'it was not signalled, and --force does not override this check. ' +
-      `Check whether process ${process.pid} is an OpenKnowledge server, and if it is, stop it yourself. ` +
+      `Check whether process ${process.pid} is a GitQuire server, and if it is, stop it yourself. ` +
       'Do not remove the lock file while that process is running.';
 
     expect(outcome).toEqual({

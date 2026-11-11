@@ -16,14 +16,14 @@ describe('MissingOkConfigError', () => {
   test('tells a Stable user to run ok init', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     expect(new MissingOkConfigError('okdir', '/tmp/proj').message).toBe(
-      'OpenKnowledge config not found at .ok/config.yml. Run ok init to scaffold OK in this directory.',
+      'GitQuire config not found at .ok/config.yml. Run ok init to scaffold OK in this directory.',
     );
   });
 
   test('tells a Beta user to run ok-beta init', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     expect(new MissingOkConfigError('okdir', '/tmp/proj').message).toBe(
-      'OpenKnowledge config not found at .ok/config.yml. Run ok-beta init to scaffold OK in this directory.',
+      'GitQuire config not found at .ok/config.yml. Run ok-beta init to scaffold OK in this directory.',
     );
   });
 

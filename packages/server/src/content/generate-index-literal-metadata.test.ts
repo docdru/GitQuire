@@ -117,7 +117,7 @@ const GENERATED_ARTIFACT_ORIGIN = Object.freeze({
 
 const GENERATED_ARTIFACT_WRITER: GeneratedArtifactEnv['writer'] = {
   id: 'ok-generator',
-  name: 'OpenKnowledge (generated)',
+  name: 'GitQuire (generated)',
   email: 'ok-generator@openknowledge.local',
 };
 

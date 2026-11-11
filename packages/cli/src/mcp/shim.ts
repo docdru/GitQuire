@@ -30,7 +30,7 @@ const DEFAULT_SPAWN_TIMEOUT_MS = 5000;
 const DEFAULT_POLL_INTERVAL_MS = 100;
 const DEFAULT_REQUEST_TIMEOUT_MS = 120_000;
 function serverStartRecovery(): string {
-  return `Run \`${currentCliCommandName()} start\` in the target project, then retry this tool. Do not fall back to native file edits for OpenKnowledge content.`;
+  return `Run \`${currentCliCommandName()} start\` in the target project, then retry this tool. Do not fall back to native file edits for GitQuire content.`;
 }
 
 interface ShimTransport {
@@ -223,7 +223,7 @@ export async function resolveMcpHttpUrl(opts: ResolveMcpHttpUrlOptions): Promise
 
   if (opts.envAutoStart === '0') {
     throw new AutoStartDisabledError(
-      `OpenKnowledge server is not running and OK_MCP_AUTOSTART=0 disables auto-start. ${serverStartRecovery()}`,
+      `GitQuire server is not running and OK_MCP_AUTOSTART=0 disables auto-start. ${serverStartRecovery()}`,
     );
   }
 

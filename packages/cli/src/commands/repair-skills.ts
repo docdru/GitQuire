@@ -835,7 +835,7 @@ async function confirmLegacyCleanup(
   const lines: string[] = [
     '',
     accent(
-      'A previous version of OpenKnowledge installed its skill into agent tools you may never have used.',
+      'A previous version of GitQuire installed its skill into agent tools you may never have used.',
     ),
     dim(
       '(Versions before 0.42 wrote to every host a third-party installer knew about — see issue #820.)',
@@ -844,7 +844,7 @@ async function confirmLegacyCleanup(
   if (plan.skillDirs.length > 0) {
     lines.push(
       '',
-      `${accent('Remove OpenKnowledge skills:')} ${plan.skillDirs.length}`,
+      `${accent('Remove GitQuire skills:')} ${plan.skillDirs.length}`,
       ...plan.skillDirs.map((p) => `  ${show(p)}`),
     );
   }

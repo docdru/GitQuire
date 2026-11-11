@@ -403,7 +403,7 @@ function hasChoco(): boolean {
 function buildMissingMessage(g: InstallGuidance): string {
   const lines: string[] = [];
   lines.push(
-    `OpenKnowledge needs ${g.product} to track changes to your knowledge base, but it isn't installed (or isn't on PATH).`,
+    `GitQuire needs ${g.product} to track changes to your knowledge base, but it isn't installed (or isn't on PATH).`,
   );
   lines.push('');
   if (g.options.length > 0) {
@@ -417,7 +417,7 @@ function buildMissingMessage(g: InstallGuidance): string {
   }
   lines.push(`Or download from: ${g.url}`);
   lines.push('');
-  lines.push('After installing, re-run OpenKnowledge.');
+  lines.push('After installing, re-run GitQuire.');
   lines.push(
     `Run \`${currentCliCommandName()} diagnose health --check git\` to verify your installation.`,
   );
@@ -426,10 +426,10 @@ function buildMissingMessage(g: InstallGuidance): string {
 
 function buildProbeTimeoutMessage(g: InstallGuidance, probe: GitProbeFailures): string {
   return [
-    `OpenKnowledge could not verify ${g.product} because the Git probe timed out. Git may be installed but unavailable while the machine is busy.`,
+    `GitQuire could not verify ${g.product} because the Git probe timed out. Git may be installed but unavailable while the machine is busy.`,
     '',
     `Probe results: PATH=${probe.path}, fallback=${probe.fallback ?? 'not attempted'}.`,
-    'Check that Git is installed and retry OpenKnowledge.',
+    'Check that Git is installed and retry GitQuire.',
     `Run \`${currentCliCommandName()} diagnose health --check git\` to verify your installation.`,
   ].join('\n');
 }
@@ -442,7 +442,7 @@ function buildTooOldMessage(
 ): string {
   const lines: string[] = [];
   lines.push(
-    `OpenKnowledge requires ${g.product} ${required} or newer (detected ${detected} at ${resolvedPath}).`,
+    `GitQuire requires ${g.product} ${required} or newer (detected ${detected} at ${resolvedPath}).`,
   );
   lines.push('');
   if (g.options.length > 0) {
@@ -456,7 +456,7 @@ function buildTooOldMessage(
   }
   lines.push(`Or download from: ${g.url}`);
   lines.push('');
-  lines.push('After updating, re-run OpenKnowledge.');
+  lines.push('After updating, re-run GitQuire.');
   lines.push(
     `Run \`${currentCliCommandName()} diagnose health --check git\` to verify your installation.`,
   );

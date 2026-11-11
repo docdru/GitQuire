@@ -305,7 +305,7 @@ export async function prepareAgentBrowserFolders(
   threadId: string,
 ): Promise<AgentBrowserFolders> {
   const chat = agentBrowserPath(root, threadId);
-  if (chat === null) throw new Error('browser folders need a chat id OpenKnowledge minted');
+  if (chat === null) throw new Error('browser folders need a chat id GitQuire minted');
   const folders = { npm: join(chat, 'npm'), files: join(chat, 'files') };
   await tracedMkdir(dirname(chat), { recursive: true, mode: 0o700 });
   await tracedMkdir(chat, { recursive: true, mode: 0o700 });

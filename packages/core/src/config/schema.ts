@@ -348,7 +348,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'boot',
           defaultScope: 'project',
           description:
-            'Folder OpenKnowledge reads and writes documents under, relative to the project root (the folder that contains .ok/). Defaults to the project root. Exclude paths with .okignore. Read at server start; changing it requires a restart.',
+            'Folder GitQuire reads and writes documents under, relative to the project root (the folder that contains .ok/). Defaults to the project root. Exclude paths with .okignore. Read at server start; changing it requires a restart.',
         })
         .default('.'),
       attachmentFolderPath: z
@@ -543,7 +543,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                'Show .ok folders (skills, templates, and other OpenKnowledge-managed state) in the file tree as read-only entries. .ok/worktrees and .ok/local never appear. Per-machine (project-local) — not shared with collaborators.',
+                'Show .ok folders (skills, templates, and other GitQuire-managed state) in the file tree as read-only entries. .ok/worktrees and .ok/local never appear. Per-machine (project-local) — not shared with collaborators.',
             })
             .default(false),
           showSkillGroups: z
@@ -619,7 +619,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'live',
           defaultScope: 'user',
           description:
-            "Auto-approve OpenKnowledge's own tools for agents launched from the built-in terminal (plus `ok open` on Claude) and for in-app Agents-panel chats with any ACP agent. Destructive tools (delete/move/share/install/import) still prompt. Per-machine personal preference (user scope).",
+            "Auto-approve GitQuire's own tools for agents launched from the built-in terminal (plus `ok open` on Claude) and for in-app Agents-panel chats with any ACP agent. Destructive tools (delete/move/share/install/import) still prompt. Per-machine personal preference (user scope).",
         })
         .default(true),
       browserTools: z
@@ -630,7 +630,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'live',
           defaultScope: 'user',
           description:
-            "Give in-app Claude Code and Codex chats a browser they can drive (Playwright MCP, started through npx from OpenKnowledge's own folder with a fresh in-memory profile), so an agent can open pages, click, and take screenshots. Every browser action asks for approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals. Needs Google Chrome and Node.js. Off by default; takes effect for chats started after the change. Per-machine personal preference (user scope).",
+            "Give in-app Claude Code and Codex chats a browser they can drive (Playwright MCP, started through npx from GitQuire's own folder with a fresh in-memory profile), so an agent can open pages, click, and take screenshots. Every browser action asks for approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals. Needs Google Chrome and Node.js. Off by default; takes effect for chats started after the change. Per-machine personal preference (user scope).",
         })
         .default(false),
     })
@@ -742,7 +742,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'boot',
           defaultScope: 'user',
           description:
-            "Per-git-host declarations, keyed by hostname (for example ghes.example.com). Each entry says how OpenKnowledge should treat remotes on that host; today the only key an entry carries is `provider`. Hosts absent from this map are treated as generic git remotes. Per-machine (user scope, global.yml in the OpenKnowledge home folder); a value in a project's `.ok/config.yml` is ignored. Declarations take effect when OpenKnowledge next starts.",
+            "Per-git-host declarations, keyed by hostname (for example ghes.example.com). Each entry says how GitQuire should treat remotes on that host; today the only key an entry carries is `provider`. Hosts absent from this map are treated as generic git remotes. Per-machine (user scope, global.yml in the GitQuire home folder); a value in a project's `.ok/config.yml` is ignored. Declarations take effect when GitQuire next starts.",
         })
         .default({})
         .catch({}),
@@ -770,7 +770,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'live',
           defaultScope: 'project-local',
           description:
-            'Absolute Windows shell executable override for the in-app terminal. PowerShell, cmd.exe, and Git Bash support OpenKnowledge-managed launches (agent chat tabs and fixed commands such as Resolve in terminal or Install Slidev) and dropped-file path insertion. A different existing executable remains usable for plain terminal tabs and shows a capability notice; requested agent and command launches open only the plain shell without running the agent or command, and dropped-file paths are refused. Empty values use automatic shell discovery. Per-machine (project-local), human-managed, and never shared via git, clone, or sync.',
+            'Absolute Windows shell executable override for the in-app terminal. PowerShell, cmd.exe, and Git Bash support GitQuire-managed launches (agent chat tabs and fixed commands such as Resolve in terminal or Install Slidev) and dropped-file path insertion. A different existing executable remains usable for plain terminal tabs and shows a capability notice; requested agent and command launches open only the plain shell without running the agent or command, and dropped-file paths are refused. Empty values use automatic shell discovery. Per-machine (project-local), human-managed, and never shared via git, clone, or sync.',
         })
         .optional(),
     })
@@ -802,7 +802,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project',
               description:
-                'Write per-project diagnostic spans + logs under the user-level OpenKnowledge logs directory for `ok diagnose bundle`. Files stay local unless shared, including in a support bundle. Set false for sensitive workspaces. Shared across collaborators.',
+                'Write per-project diagnostic spans + logs under the user-level GitQuire logs directory for `ok diagnose bundle`. Files stay local unless shared, including in a support bundle. Set false for sensitive workspaces. Shared across collaborators.',
             })
             .default(true),
           spans: z

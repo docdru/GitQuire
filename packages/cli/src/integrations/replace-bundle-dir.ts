@@ -6,7 +6,7 @@ export function replaceBundleDir(sourceDir: string, skillPath: string): 'written
   const action = existsSync(skillPath) ? 'overwritten' : 'written';
   if (action === 'written' && existsSync(targetDir)) {
     throw new Error(
-      `Refusing to replace ${targetDir}: it exists but holds no SKILL.md, so it is not a bundle OpenKnowledge wrote. Move it aside and try again.`,
+      `Refusing to replace ${targetDir}: it exists but holds no SKILL.md, so it is not a bundle GitQuire wrote. Move it aside and try again.`,
     );
   }
   rmSync(targetDir, { recursive: true, force: true });

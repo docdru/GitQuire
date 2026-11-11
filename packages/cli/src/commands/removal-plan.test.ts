@@ -847,7 +847,7 @@ describe('pi trust revocation surfaces through the removal plan', () => {
         const detail = outcome.results[0]?.detail;
         expect(outcome.results[0]?.status).toBe('removed');
         expect(detail).toContain(
-          ownership === 'pending' ? 'record is pending' : 'no OpenKnowledge ownership record',
+          ownership === 'pending' ? 'record is pending' : 'no GitQuire ownership record',
         );
         if (ownership === 'pending') expect(detail).toContain('does not reconcile this record');
         expect(detail).toContain(trustPath);
@@ -903,7 +903,7 @@ describe('pi trust revocation surfaces through the removal plan', () => {
           "Pi's separate folder trust grant has not been checked or removed",
         );
         expect(outcome.failed[0]?.detail).toContain(
-          `Restore the missing target of the OpenKnowledge bridge symlink at ${op.configPath}`,
+          `Restore the missing target of the GitQuire bridge symlink at ${op.configPath}`,
         );
         expect(lstatSync(op.configPath).isSymbolicLink()).toBe(true);
         expect(readFileSync(trustPath, 'utf8')).toBe(trust);
@@ -1099,7 +1099,7 @@ describe('configuration repair guidance', () => {
       const outcome = await runRemoval(plan, stubDeps());
       expect(outcome.failed[0]?.detail).toContain('no format-preserving TOML writer');
       expect(outcome.failed[0]?.detail).toContain(
-        'remove the OpenKnowledge entry manually or reinstall',
+        'remove the GitQuire entry manually or reinstall',
       );
       expect(readFileSync(configPath, 'utf8')).toBe(raw);
       const repaired = '# keep my other server\n[mcp_servers.other]\ncommand = "node"\n';

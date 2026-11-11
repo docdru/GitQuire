@@ -803,7 +803,7 @@ describe('owned Pi trust grants', () => {
     expect(result.error).toContain('ENOTEMPTY');
     expect(result.error).toContain(dirname(promptPath));
     expect(result.error).toContain('To remove this grant manually');
-    expect(result.error).toContain('OpenKnowledge has relinquished this grant');
+    expect(result.error).toContain('GitQuire has relinquished this grant');
     expect(readFileSync(trustPath, 'utf8')).toBe(before);
     expect(listPiTrustGrants(home, cwd)).toEqual([]);
     expect(existsSync(bridgePathIn(cwd))).toBe(true);
@@ -1638,8 +1638,8 @@ describe('canonical Pi project identity', () => {
         expect(result.action).toBe('failed');
         expect(result.error).toContain(
           shared
-            ? 'OpenKnowledge kept the existing ownership record; cleanup of its recorded location remains incomplete.'
-            : `OpenKnowledge must reconcile its recorded location at ${configured} before removing it.`,
+            ? 'GitQuire kept the existing ownership record; cleanup of its recorded location remains incomplete.'
+            : `GitQuire must reconcile its recorded location at ${configured} before removing it.`,
         );
         expect(result.error).toContain(`remove only the ${JSON.stringify(cwd)} entry`);
         expect(result.error).not.toContain('has relinquished');

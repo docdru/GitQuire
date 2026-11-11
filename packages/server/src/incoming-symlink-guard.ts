@@ -688,11 +688,11 @@ function describeSymlinkReason(reason: UnsafeSymlinkReason): string {
     case 'repository-root':
       return 'points at the repository root';
     case 'private-state':
-      return 'points into private .git or OpenKnowledge state';
+      return 'points into private .git or GitQuire state';
     case 'secret-file':
       return 'points at a file that may hold secrets, such as .env or a key';
     case 'inside-private-state':
-      return 'is placed inside private .git or OpenKnowledge state';
+      return 'is placed inside private .git or GitQuire state';
     case 'requires-newer-git':
       return `needs Git ${SYMLINK_MERGE_MIN_GIT_LABEL} or newer to check during a merge`;
     case 'unverifiable-target':

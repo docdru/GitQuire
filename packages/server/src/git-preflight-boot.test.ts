@@ -116,7 +116,7 @@ describe('bootServer git-preflight', () => {
     expect(caught).toBe(thrown);
     expect(caught).toBeInstanceOf(GitNotAvailableError);
 
-    expect(capturedStderr).toContain('OpenKnowledge needs Git');
+    expect(capturedStderr).toContain('GitQuire needs Git');
     expect(capturedStderr).toContain('sudo apt install git');
 
     expect(entries).toHaveLength(1);
@@ -166,7 +166,7 @@ describe('bootServer git-preflight', () => {
     expect(caught).toBe(thrown);
     expect(caught).toBeInstanceOf(GitTooOldError);
 
-    expect(capturedStderr).toContain('OpenKnowledge requires Git 2.31.0 or newer');
+    expect(capturedStderr).toContain('GitQuire requires Git 2.31.0 or newer');
     expect(capturedStderr).toContain('detected 2.20.0');
     expect(capturedStderr).toContain('/usr/bin/git');
 
