@@ -54,6 +54,9 @@ jobs:
           pnpm --dir packages/core exec vitest run
           src/gitquire src/markdown src/extensions src/schema-invariant.test.ts
 
+      - name: GitQuire discussion app tests
+        run: pnpm --dir packages/app exec vitest run --config vitest.config.ts src/gitquire-comments
+
       - name: GitQuire tests
         run: pnpm --dir packages/server exec vitest run src/gitquire
 

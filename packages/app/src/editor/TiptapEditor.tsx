@@ -43,6 +43,8 @@ import {
   OUTLINE_NAV_SETTLED_BREADCRUMB,
   type OutlineNavDetail,
 } from '@/components/OutlinePanel';
+import { DiscussionLayer } from '@/gitquire-comments/DiscussionLayer';
+import { DiscussionPanel } from '@/gitquire-comments/DiscussionPanel';
 import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
 import { anchorFromHash } from '@/lib/doc-hash';
 import { claimNoteWindowInitialFocus } from '@/lib/note-window-focus';
@@ -1265,7 +1267,11 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
       data-agent-flash-agent-id=""
     >
       {!isSourceMode && editorPaneOnScreen && (
-        <BubbleMenuBar editor={editor} shortcutEnabled={docName === activeDocName} />
+        <BubbleMenuBar
+          editor={editor}
+          docName={docName}
+          shortcutEnabled={docName === activeDocName}
+        />
       )}
       {!isSourceMode && (
         <CommentsBoundary>
@@ -1277,6 +1283,10 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
           <CommentAnchorLayer editor={editor} docName={docName} />
           {docName === activeDocName && <CommentMarginRail editor={editor} docName={docName} />}
         </CommentsBoundary>
+      )}
+      {!isSourceMode && <DiscussionLayer editor={editor} docName={docName} />}
+      {!isSourceMode && docName === activeDocName && (
+        <DiscussionPanel editor={editor} docName={docName} />
       )}
       {!isSourceMode && <TableCellHandles editor={editor} />}
       <div ref={portalSlotRef} style={{ display: 'contents' }} />

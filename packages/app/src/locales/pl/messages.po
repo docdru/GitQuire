@@ -1175,6 +1175,9 @@ msgstr "Dodaj"
 msgid "Add a comment"
 msgstr "Dodaj komentarz"
 
+msgid "Add a comment… use @name to mention"
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "Podaj nazwę pliku (np. notes.md)"
 
@@ -2344,6 +2347,9 @@ msgstr "Klonowanie..."
 msgid "Close"
 msgstr "Zamknij"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "Zamknij {0}"
 
@@ -2904,6 +2910,9 @@ msgstr "Nie udało się odczytać stanu gałęzi tego projektu. Zamknij to okno 
 
 msgid "Could not save sync preference: {detail}"
 msgstr "Nie udało się zapisać ustawienia synchronizacji: {detail}"
+
+msgid "Could not save the comment"
+msgstr ""
 
 msgid "Could not start creating a new item"
 msgstr "Nie udało się rozpocząć tworzenia nowego elementu"
@@ -3517,6 +3526,9 @@ msgstr "Domyślnie: <0>{0}</0>"
 msgid "Delete"
 msgstr "Usuń"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "Usuń {0}"
 
@@ -3752,6 +3764,12 @@ msgstr "Rozłączanie"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "Umiejętności discovery są zarządzane wspólnie dla wszystkich narzędzi AI. Zainstaluj tę z Ustawienia → Studio umiejętności."
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "Odrzuć"
@@ -3994,6 +4012,9 @@ msgstr "Edytuj link wiki"
 
 msgid "Edited"
 msgstr "Edytowano"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "Edytowano {editedAgo}"
@@ -8781,6 +8802,12 @@ msgstr "Zastępuje istniejący wpis OpenKnowledge w {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Zastępuje wpis OpenKnowledge, który każdy z nich już posiada."
 
+msgid "Reply… use @name to mention"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "Zgłoś błąd"
 
@@ -8872,6 +8899,9 @@ msgstr "Zmień rozmiar panelu dokumentu"
 msgid "Resize skills panel"
 msgstr "Zmień rozmiar panelu umiejętności"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "Rozwiąż konflikt w terminalu"
 
@@ -8886,6 +8916,9 @@ msgstr "Rozwiąż konflikt dotyczący {files} i jeszcze {overflow} przed usunię
 
 msgid "Resolved"
 msgstr "Rozwiązano"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "Ustalanie domyślnej lokalizacji"
@@ -9283,6 +9316,9 @@ msgstr "Zobacz pełny przewodnik instalacji"
 msgid "See what's added"
 msgstr "Zobacz, co zostało dodane"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "Zaznacz {name}"
 
@@ -9605,6 +9641,9 @@ msgstr "Pokaż"
 
 msgid "Show .ok folders"
 msgstr "Pokazuj foldery .ok"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "Pokaż jeszcze {0}"
@@ -10030,6 +10069,9 @@ msgstr "Rozpocznij zgłoszenie błędu ze zrzutem ekranu w jego aktualnym stanie
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "Rozpocznij czat przyciskiem ＋ albo uruchom agenta ze strony."
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "Rozpocznij nowy czat"
@@ -10490,6 +10532,9 @@ msgstr "Ta wiadomość została już wysłana — Twoja edycja nie została zast
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "Udało się odczytać dane, ale to nie jest motyw base16."
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "Żądanie pobrania {0} przekroczyło czas."

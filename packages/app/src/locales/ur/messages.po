@@ -1175,6 +1175,9 @@ msgstr "شامل کریں"
 msgid "Add a comment"
 msgstr "تبصرہ شامل کریں"
 
+msgid "Add a comment… use @name to mention"
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "فائل کا نام شامل کریں (مثلاً notes.md)"
 
@@ -2344,6 +2347,9 @@ msgstr "کلون کیا جا رہا ہے..."
 msgid "Close"
 msgstr "بند کریں"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "{0} بند کریں"
 
@@ -2904,6 +2910,9 @@ msgstr "اس پروجیکٹ کی برانچ کی حالت پڑھی نہیں جا
 
 msgid "Could not save sync preference: {detail}"
 msgstr "مطابقت پذیری کی ترجیح محفوظ نہیں ہو سکی: {detail}"
+
+msgid "Could not save the comment"
+msgstr ""
 
 msgid "Could not start creating a new item"
 msgstr "نیا آئٹم بنانا شروع نہیں ہو سکا"
@@ -3517,6 +3526,9 @@ msgstr "طے شدہ: <0>{0}</0>"
 msgid "Delete"
 msgstr "حذف کریں"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "{0} حذف کریں"
 
@@ -3752,6 +3764,12 @@ msgstr "منقطع کیا جا رہا ہے"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "دریافتی اسکلز کا انتظام تمام AI ٹولز کے لیے ایک ساتھ کیا جاتا ہے۔ اسے ترتیبات میں مہارت اسٹوڈیو سے انسٹال کریں۔"
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "برخاست کریں"
@@ -3994,6 +4012,9 @@ msgstr "وکی لنک میں ترمیم کریں"
 
 msgid "Edited"
 msgstr "ترمیم شدہ"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo} ترمیم ہوئی"
@@ -8781,6 +8802,12 @@ msgstr "{0} میں موجودہ OpenKnowledge اندراج کو بدل دے گا
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "ہر ایک میں پہلے سے موجود OpenKnowledge اندراج کو بدل دیتا ہے۔"
 
+msgid "Reply… use @name to mention"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "بگ رپورٹ کریں"
 
@@ -8872,6 +8899,9 @@ msgstr "دستاویز کے پینل کا سائز تبدیل کریں"
 msgid "Resize skills panel"
 msgstr "مہارتوں کے پینل کا سائز تبدیل کریں"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "اپنے ٹرمینل میں تصادم حل کریں"
 
@@ -8886,6 +8916,9 @@ msgstr "حذف کرنے سے پہلے {files} اور مزید {overflow} فائ�
 
 msgid "Resolved"
 msgstr "حل شدہ"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "طے شدہ مقام معلوم کیا جا رہا ہے"
@@ -9283,6 +9316,9 @@ msgstr "مکمل تنصیبی رہنما دیکھیں"
 msgid "See what's added"
 msgstr "دیکھیں کیا شامل ہوگا"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "{name} منتخب کریں"
 
@@ -9605,6 +9641,9 @@ msgstr "دکھائیں"
 
 msgid "Show .ok folders"
 msgstr ".ok فولڈرز دکھائیں"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "{0} مزید دکھائیں"
@@ -10030,6 +10069,9 @@ msgstr "اسکرین اس وقت جیسی دکھ رہی ہے اس کا اسکر�
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "＋ بٹن سے چیٹ شروع کریں، یا کسی صفحے سے ایجنٹ شروع کریں۔"
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "نئی گفتگو شروع کریں"
@@ -10490,6 +10532,9 @@ msgstr "وہ پیغام پہلے ہی بھیجا جا چکا ہے — آپ کی 
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "یہ پارس ہو گیا، لیکن یہ base16 تھیم نہیں ہے۔"
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0} کی ڈاؤن لوڈ درخواست کا وقت ختم ہو گیا۔"

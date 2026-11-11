@@ -1171,6 +1171,9 @@ msgstr "Adicionar"
 msgid "Add a comment"
 msgstr "Adicionar um comentário"
 
+msgid "Add a comment… use @name to mention"
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "Adicione um nome de arquivo (ex.: notes.md)"
 
@@ -2340,6 +2343,9 @@ msgstr "Clonando..."
 msgid "Close"
 msgstr "Fechar"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "Fechar {0}"
 
@@ -2900,6 +2906,9 @@ msgstr "Não foi possível ler o estado dos ramos deste projeto. Feche este diá
 
 msgid "Could not save sync preference: {detail}"
 msgstr "Não foi possível salvar a preferência de sincronização: {detail}"
+
+msgid "Could not save the comment"
+msgstr ""
 
 msgid "Could not start creating a new item"
 msgstr "Não foi possível começar a criar um novo item"
@@ -3513,6 +3522,9 @@ msgstr "Padrão: <0>{0}</0>"
 msgid "Delete"
 msgstr "Excluir"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "Excluir {0}"
 
@@ -3748,6 +3760,12 @@ msgstr "Desconectando"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "As habilidades de descoberta são gerenciadas em conjunto para todas as ferramentas de IA. Instale esta em Configurações → Estúdio de habilidades."
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "Dispensar"
@@ -3990,6 +4008,9 @@ msgstr "Editar o link wiki"
 
 msgid "Edited"
 msgstr "Editado"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "Editado {editedAgo}"
@@ -8777,6 +8798,12 @@ msgstr "Substitui a entrada existente do OpenKnowledge em {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Substitui a entrada do OpenKnowledge que cada um já tem."
 
+msgid "Reply… use @name to mention"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "Relatar um erro"
 
@@ -8868,6 +8895,9 @@ msgstr "Redimensionar o painel do documento"
 msgid "Resize skills panel"
 msgstr "Redimensionar o painel de Habilidades"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "Resolva o conflito no seu terminal"
 
@@ -8882,6 +8912,9 @@ msgstr "Resolva o conflito em {files} e em mais {overflow} antes de excluir."
 
 msgid "Resolved"
 msgstr "Resolvido"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "Resolvendo o local padrão"
@@ -9279,6 +9312,9 @@ msgstr "Ver o guia de instalação completo"
 msgid "See what's added"
 msgstr "Ver o que será adicionado"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "Selecionar {name}"
 
@@ -9601,6 +9637,9 @@ msgstr "Mostrar"
 
 msgid "Show .ok folders"
 msgstr "Mostrar as pastas .ok"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "Mostrar mais {0}"
@@ -10026,6 +10065,9 @@ msgstr "Inicia um relatório de erro com uma captura de tela exatamente como ela
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "Inicie um chat com o botão ＋ ou inicie um agente a partir de uma página."
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "Começar um novo chat"
@@ -10486,6 +10528,9 @@ msgstr "Essa mensagem já foi enviada — sua edição não foi aplicada."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "O conteúdo foi interpretado, mas não é um tema base16."
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "A requisição de download de {0} expirou."

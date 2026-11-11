@@ -1175,6 +1175,9 @@ msgstr "添加"
 msgid "Add a comment"
 msgstr "添加评论"
 
+msgid "Add a comment… use @name to mention"
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "添加文件名（例如 notes.md）"
 
@@ -2344,6 +2347,9 @@ msgstr "正在克隆…"
 msgid "Close"
 msgstr "关闭"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "关闭 {0}"
 
@@ -2904,6 +2910,9 @@ msgstr "无法读取这个项目的分支状态。请关闭此对话框并重新
 
 msgid "Could not save sync preference: {detail}"
 msgstr "无法保存同步偏好：{detail}"
+
+msgid "Could not save the comment"
+msgstr ""
 
 msgid "Could not start creating a new item"
 msgstr "无法开始创建新项目"
@@ -3517,6 +3526,9 @@ msgstr "默认：<0>{0}</0>"
 msgid "Delete"
 msgstr "删除"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "删除 {0}"
 
@@ -3752,6 +3764,12 @@ msgstr "正在断开连接"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "发现技能由所有 AI 工具统一管理。请从“设置”→“技能工作室”安装此技能。"
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "忽略"
@@ -3994,6 +4012,9 @@ msgstr "编辑维基链接"
 
 msgid "Edited"
 msgstr "已编辑"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo}编辑"
@@ -8781,6 +8802,12 @@ msgstr "将替换 {0} 中已有的 OpenKnowledge 条目"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "替换它们各自已有的 OpenKnowledge 条目。"
 
+msgid "Reply… use @name to mention"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "报告问题"
 
@@ -8872,6 +8899,9 @@ msgstr "调整文档面板大小"
 msgid "Resize skills panel"
 msgstr "调整「技能」面板大小"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "在你的终端中解决冲突"
 
@@ -8886,6 +8916,9 @@ msgstr "删除前请先解决 {files} 以及另外 {overflow} 个文件上的冲
 
 msgid "Resolved"
 msgstr "已解决"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "正在确定默认位置"
@@ -9283,6 +9316,9 @@ msgstr "查看完整的安装指南"
 msgid "See what's added"
 msgstr "查看将添加的内容"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "选择 {name}"
 
@@ -9605,6 +9641,9 @@ msgstr "显示"
 
 msgid "Show .ok folders"
 msgstr "显示 .ok 文件夹"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "再显示 {0} 个"
@@ -10030,6 +10069,9 @@ msgstr "发起一份错误报告，并附上此刻画面的截图。"
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "使用 ＋ 按钮开始对话，或从页面启动智能体。"
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "开始新对话"
@@ -10490,6 +10532,9 @@ msgstr "该消息已发出——你的编辑未生效。"
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "解析成功，但这不是 base16 主题。"
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0} 的下载请求超时。"

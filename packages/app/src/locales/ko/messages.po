@@ -1175,6 +1175,9 @@ msgstr "추가"
 msgid "Add a comment"
 msgstr "댓글 추가"
 
+msgid "Add a comment… use @name to mention"
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "파일 이름을 추가하세요 (예: notes.md)"
 
@@ -2344,6 +2347,9 @@ msgstr "클론 중…"
 msgid "Close"
 msgstr "닫기"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "{0} 닫기"
 
@@ -2904,6 +2910,9 @@ msgstr "이 프로젝트의 브랜치 상태를 읽을 수 없습니다. 이 대
 
 msgid "Could not save sync preference: {detail}"
 msgstr "동기화 환경설정을 저장할 수 없습니다: {detail}"
+
+msgid "Could not save the comment"
+msgstr ""
 
 msgid "Could not start creating a new item"
 msgstr "새 항목 만들기를 시작하지 못했습니다"
@@ -3517,6 +3526,9 @@ msgstr "기본값: <0>{0}</0>"
 msgid "Delete"
 msgstr "삭제"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "{0} 삭제"
 
@@ -3752,6 +3764,12 @@ msgstr "연결 해제 중"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "검색 스킬은 모든 AI 도구에서 함께 관리됩니다. 설정 → 스킬 스튜디오에서 이 스킬을 설치하세요."
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "닫기"
@@ -3994,6 +4012,9 @@ msgstr "위키 링크 편집"
 
 msgid "Edited"
 msgstr "편집됨"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo}에 편집됨"
@@ -8781,6 +8802,12 @@ msgstr "{0}의 기존 OpenKnowledge 항목을 대체합니다"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "각각에 이미 있는 OpenKnowledge 항목을 교체합니다."
 
+msgid "Reply… use @name to mention"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "버그 신고"
 
@@ -8872,6 +8899,9 @@ msgstr "문서 패널 크기 조절"
 msgid "Resize skills panel"
 msgstr "스킬 패널 크기 조절"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "터미널에서 충돌 해결"
 
@@ -8886,6 +8916,9 @@ msgstr "삭제하기 전에 {files}의 충돌을 해결하고, +{overflow}개 �
 
 msgid "Resolved"
 msgstr "해결됨"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "기본 위치 확인 중"
@@ -9283,6 +9316,9 @@ msgstr "전체 설치 안내 보기"
 msgid "See what's added"
 msgstr "추가되는 항목 보기"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "{name} 선택"
 
@@ -9605,6 +9641,9 @@ msgstr "표시"
 
 msgid "Show .ok folders"
 msgstr ".ok 폴더 표시"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "{0}개 더 보기"
@@ -10030,6 +10069,9 @@ msgstr "지금 화면에 보이는 그대로의 스크린샷과 함께 버그 �
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "＋ 버튼으로 채팅 시작하거나 페이지에서 에이전트 실행하세요."
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "새 채팅 시작"
@@ -10490,6 +10532,9 @@ msgstr "메시지 전송 완료. 편집 내용 미적용."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "해석했지만 base16 테마가 아닙니다."
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0} 다운로드 요청 시간 초과."

@@ -695,6 +695,11 @@ export {
   stripFrontmatter,
   unwrapFrontmatterFences,
 } from './extensions/frontmatter.ts';
+export {
+  ALLOW_COMMENT_TRAILER_REMOVAL,
+  GITQUIRE_COMMENTS_NODE,
+  GitQuireComments,
+} from './extensions/gitquire-comments.ts';
 export { HardBreakFidelity } from './extensions/hard-break-fidelity.ts';
 export { HeadingFidelity } from './extensions/heading-fidelity.ts';
 export { HtmlBlockFidelity } from './extensions/html-block-fidelity.ts';
@@ -812,6 +817,18 @@ export {
   stripPathspecMagic,
   toPathspec,
 } from './git-pathspec.ts';
+export {
+  type CommentAnchor as GitQuireCommentAnchor,
+  type CommentAuthor as GitQuireCommentAuthor,
+  type CommentThread as GitQuireCommentThread,
+  joinCommentTrailer,
+  parseCommentTrailer,
+  readCommentThreads,
+  serializeCommentTrailer,
+  splitCommentTrailer,
+  type ThreadComment as GitQuireThreadComment,
+  writeCommentThreads,
+} from './gitquire/comment-threads.ts';
 export {
   type AssembleHandoffPromptInput,
   assembleHandoffPrompt,

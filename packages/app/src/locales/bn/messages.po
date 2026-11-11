@@ -1171,6 +1171,9 @@ msgstr "যোগ করুন"
 msgid "Add a comment"
 msgstr "একটি মন্তব্য যোগ করুন"
 
+msgid "Add a comment… use @name to mention"
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "একটি ফাইলের নাম যোগ করুন (যেমন notes.md)"
 
@@ -2340,6 +2343,9 @@ msgstr "ক্লোন করা হচ্ছে…"
 msgid "Close"
 msgstr "বন্ধ করুন"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "{0} বন্ধ করুন"
 
@@ -2900,6 +2906,9 @@ msgstr "এই প্রকল্পের ব্রাঞ্চের অবস
 
 msgid "Could not save sync preference: {detail}"
 msgstr "সিঙ্ক পছন্দ সংরক্ষণ করা যায়নি: {detail}"
+
+msgid "Could not save the comment"
+msgstr ""
 
 msgid "Could not start creating a new item"
 msgstr "নতুন আইটেম তৈরি শুরু করা যায়নি"
@@ -3513,6 +3522,9 @@ msgstr "ডিফল্ট: <0>{0}</0>"
 msgid "Delete"
 msgstr "মুছুন"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "{0} মুছুন"
 
@@ -3748,6 +3760,12 @@ msgstr "সংযোগ বিচ্ছিন্ন করা হচ্ছে"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "ডিসকভারি স্কিলগুলো সব AI টুলের জন্য একসঙ্গে পরিচালিত হয়। সেটিং → স্কিল স্টুডিও থেকে এটি ইনস্টল করুন।"
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "সরিয়ে দিন"
@@ -3990,6 +4008,9 @@ msgstr "উইকি লিংক সম্পাদনা করুন"
 
 msgid "Edited"
 msgstr "সম্পাদিত"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo} সম্পাদিত"
@@ -8777,6 +8798,12 @@ msgstr "{0}-এ থাকা বিদ্যমান OpenKnowledge এন্ট
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "প্রত্যেকটিতে আগে থেকে থাকা OpenKnowledge এন্ট্রি প্রতিস্থাপন করে।"
 
+msgid "Reply… use @name to mention"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "একটি বাগ জানান"
 
@@ -8868,6 +8895,9 @@ msgstr "নথি প্যানেলের আকার পরিবর্ত
 msgid "Resize skills panel"
 msgstr "স্কিল প্যানেলের আকার পরিবর্তন করুন"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "আপনার টার্মিনালে দ্বন্দ্ব মীমাংসা করুন"
 
@@ -8882,6 +8912,9 @@ msgstr "মোছার আগে {files} এবং আরও {overflow}টি �
 
 msgid "Resolved"
 msgstr "মীমাংসিত"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "ডিফল্ট জায়গা নির্ধারণ করা হচ্ছে"
@@ -9279,6 +9312,9 @@ msgstr "পূর্ণ ইনস্টল নির্দেশিকা দে
 msgid "See what's added"
 msgstr "কী যুক্ত হবে দেখুন"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "{name} নির্বাচন করুন"
 
@@ -9601,6 +9637,9 @@ msgstr "দেখান"
 
 msgid "Show .ok folders"
 msgstr ".ok ফোল্ডার দেখান"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "আরও {0}টি দেখান"
@@ -10026,6 +10065,9 @@ msgstr "স্ক্রিন এখন যেমন দেখাচ্ছে �
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "＋ বোতাম দিয়ে চ্যাট শুরু করুন, বা কোনো পৃষ্ঠা থেকে এজেন্ট চালু করুন।"
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "একটি নতুন আলাপ শুরু করুন"
@@ -10486,6 +10528,9 @@ msgstr "সেই বার্তাটি ইতিমধ্যে চলে �
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "এটি পার্স করা গেছে, তবে এটি base16 থিম নয়।"
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0}-এর ডাউনলোড অনুরোধের সময় শেষ হয়ে গেছে।"

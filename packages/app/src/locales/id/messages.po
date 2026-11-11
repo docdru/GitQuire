@@ -1171,6 +1171,9 @@ msgstr "Tambah"
 msgid "Add a comment"
 msgstr "Tambahkan komentar"
 
+msgid "Add a comment… use @name to mention"
+msgstr ""
+
 msgid "Add a file name (e.g. notes.md)"
 msgstr "Tambahkan nama file (mis. notes.md)"
 
@@ -2340,6 +2343,9 @@ msgstr "Mengkloning..."
 msgid "Close"
 msgstr "Tutup"
 
+msgid "Close discussions"
+msgstr ""
+
 msgid "Close {0}"
 msgstr "Tutup {0}"
 
@@ -2900,6 +2906,9 @@ msgstr "Keadaan cabang untuk proyek ini tidak dapat dibaca. Tutup dialog ini dan
 
 msgid "Could not save sync preference: {detail}"
 msgstr "Preferensi sinkronisasi tidak dapat disimpan: {detail}"
+
+msgid "Could not save the comment"
+msgstr ""
 
 msgid "Could not start creating a new item"
 msgstr "Pembuatan item baru tidak dapat dimulai"
@@ -3513,6 +3522,9 @@ msgstr "Bawaan: <0>{0}</0>"
 msgid "Delete"
 msgstr "Hapus"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete {0}"
 msgstr "Hapus {0}"
 
@@ -3748,6 +3760,12 @@ msgstr "Memutus koneksi"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "Skill penemuan dikelola bersama untuk semua alat AI. Instal skill ini dari Pengaturan → Studio Keterampilan."
+
+msgid "Discuss"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
 
 msgid "Dismiss"
 msgstr "Tutup"
@@ -3990,6 +4008,9 @@ msgstr "Sunting tautan wiki"
 
 msgid "Edited"
 msgstr "Disunting"
+
+msgid "edited"
+msgstr ""
 
 msgid "Edited {editedAgo}"
 msgstr "Disunting {editedAgo}"
@@ -8777,6 +8798,12 @@ msgstr "Mengganti entri OpenKnowledge yang ada di {0}"
 msgid "Replaces the OpenKnowledge entry each of them already has."
 msgstr "Mengganti entri OpenKnowledge yang sudah dimiliki masing-masing."
 
+msgid "Reply… use @name to mention"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
 msgid "Report a bug"
 msgstr "Laporkan bug"
 
@@ -8868,6 +8895,9 @@ msgstr "Ubah ukuran panel dokumen"
 msgid "Resize skills panel"
 msgstr "Ubah ukuran panel Keterampilan"
 
+msgid "Resolve"
+msgstr ""
+
 msgid "Resolve conflict in your terminal"
 msgstr "Selesaikan konfliknya di terminal Anda"
 
@@ -8882,6 +8912,9 @@ msgstr "Selesaikan konflik pada {files} dan {overflow} berkas lainnya sebelum me
 
 msgid "Resolved"
 msgstr "Selesai"
+
+msgid "Resolved by {resolvedBy}"
+msgstr ""
 
 msgid "Resolving default location"
 msgstr "Menentukan lokasi bawaan"
@@ -9279,6 +9312,9 @@ msgstr "Lihat panduan pemasangan lengkap"
 msgid "See what's added"
 msgstr "Lihat yang ditambahkan"
 
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
+
 msgid "Select {name}"
 msgstr "Pilih {name}"
 
@@ -9601,6 +9637,9 @@ msgstr "Tampilkan"
 
 msgid "Show .ok folders"
 msgstr "Tampilkan folder .ok"
+
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show {0} more"
 msgstr "Tampilkan {0} lagi"
@@ -10026,6 +10065,9 @@ msgstr "Memulai laporan bug dengan tangkapan layar persis seperti tampilannya sa
 
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "Mulai obrolan dengan tombol ＋, atau luncurkan agen dari halaman."
+
+msgid "Start a discussion with your team on this selection"
+msgstr ""
 
 msgid "Start a new chat"
 msgstr "Mulai obrolan baru"
@@ -10486,6 +10528,9 @@ msgstr "Pesan itu sudah terkirim — hasil suntinganmu tidak diterapkan."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "Berhasil diurai, tetapi ini bukan tema base16."
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "Permintaan unduhan {0} kehabisan waktu."
