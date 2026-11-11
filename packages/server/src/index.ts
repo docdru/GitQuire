@@ -259,6 +259,7 @@ export {
 export {
   GitHubAppConfigError,
   GitHubAuthConfigError,
+  GitHubUnavailableError,
   initProjectWithCli,
   runGitQuireBootstrap,
 } from './gitquire/index.ts';

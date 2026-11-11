@@ -80,8 +80,10 @@ Sign out at `/auth/logout` (a page with a sign-out button; the session is cleare
 
 With a GitHub App configured, the container clones `GITQUIRE_REPO` into `/data` on first start and
 pushes edits back automatically (pull every 30 s, push every 60 s). Git authenticates with a
-short-lived installation token that GitQuire mints and refreshes itself; no personal token is
-stored, and the token is never written to `/data`.
+short-lived installation token (scoped to that one repository) that GitQuire mints and refreshes
+itself. No personal token is used, and the token is never persisted: it is passed to each `git`
+call through its environment, so don't share the container's process namespace with untrusted
+containers. GitHub.com is the supported host.
 
 Use the same GitHub App as for sign-in: note its **App ID**, generate a **private key** (`.pem`),
 and make sure it is installed on the repository with **Contents: read and write**. Then add:
@@ -100,7 +102,9 @@ and make sure it is installed on the repository with **Contents: read and write*
 | `GITQUIRE_BRANCH` | Branch to edit; defaults to the repository's default branch. |
 | `GITQUIRE_SYNC_MODE` | `full` (pull and push, default), `follow` (pull only) or `off`. Applied on first start; later changes are made in the app. |
 
-The volume keeps the checkout between restarts. On an empty repository, GitQuire starts the branch
+If GitHub is unreachable at start, GitQuire retries for about five minutes before giving up
+(exit code 75, so a restart policy can try again); configuration problems stop it immediately
+(exit code 78). The volume keeps the checkout between restarts. On an empty repository, GitQuire starts the branch
 and pushes the first commit. Until per-user authorship lands, commits are authored as
 `GITQUIRE_GIT_NAME` / `GITQUIRE_GIT_EMAIL`.
 

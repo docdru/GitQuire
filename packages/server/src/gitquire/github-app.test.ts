@@ -8,10 +8,13 @@ import {
   createGitHubAppClient,
   type GitHubAppClient,
   type GitHubAppConfig,
+  GitHubUnavailableError,
   resolveGitHubAppConfig,
+  retryWhileUnavailable,
   startInstallationTokenManager,
 } from './github-app.ts';
 import {
+  authHeaderEnv,
   basicAuthHeader,
   bootstrapRepository,
   ensureAutoSyncMode,
@@ -242,26 +245,41 @@ describe('startInstallationTokenManager', () => {
 
 describe('bootstrapRepository', () => {
   const client = fakeClient([{ token: 'ghs_boot', expiresAt: NOW + 3_600_000 }]);
-  const header = `http.https://github.com/.extraheader=${basicAuthHeader('ghs_boot')}`;
+  const authEnv = {
+    GIT_CONFIG_COUNT: '1',
+    GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader',
+    GIT_CONFIG_VALUE_0: basicAuthHeader('ghs_boot'),
+  };
 
-  it('clones the default branch without storing the token', async () => {
-    const calls: string[][] = [];
+  it('builds the auth header for git from the token', () => {
+    expect(authHeaderEnv('github.com', 'ghs_boot')).toEqual(authEnv);
+    expect(basicAuthHeader('ghs_boot')).toBe(
+      `AUTHORIZATION: basic ${Buffer.from('x-access-token:ghs_boot').toString('base64')}`,
+    );
+  });
+
+  it('clones the default branch with the token only in the git environment', async () => {
+    const calls: Array<{ args: string[]; env: unknown }> = [];
     const outcome = await bootstrapRepository('/data', CONFIG, client, {
       exists: () => false,
-      runGit: (args) => {
-        calls.push([...args]);
+      runGit: (args, _cwd, env) => {
+        calls.push({ args: [...args], env });
         return args.includes('ls-remote') ? 'abc123\trefs/heads/main\n' : '';
       },
     });
     expect(outcome).toEqual({ action: 'cloned', branch: 'main' });
     expect(calls).toEqual([
-      ['init', '--initial-branch', 'main'],
-      ['remote', 'add', 'origin', 'https://github.com/acme/notes.git'],
-      ['-c', header, 'ls-remote', '--heads', 'origin', 'main'],
-      ['-c', header, 'fetch', '--no-tags', 'origin', '+refs/heads/main:refs/remotes/origin/main'],
-      ['checkout', '-B', 'main', '--track', 'origin/main'],
+      { args: ['init', '--initial-branch', 'main'], env: undefined },
+      { args: ['remote', 'add', 'origin', 'https://github.com/acme/notes.git'], env: undefined },
+      { args: ['ls-remote', '--heads', 'origin', 'main'], env: authEnv },
+      {
+        args: ['fetch', '--no-tags', 'origin', '+refs/heads/main:refs/remotes/origin/main'],
+        env: authEnv,
+      },
+      { args: ['checkout', '-B', 'main', '--track', 'origin/main'], env: undefined },
     ]);
-    expect(calls.some((args) => args[0] === 'config')).toBe(false);
+    expect(JSON.stringify(calls.map((call) => call.args))).not.toContain('ghs_boot');
+    expect(calls.some((call) => call.args[0] === 'config')).toBe(false);
   });
 
   it('uses GITQUIRE_BRANCH when set', async () => {
@@ -302,6 +320,67 @@ describe('bootstrapRepository', () => {
       'origin',
       'https://github.com/acme/notes.git',
     ]);
+  });
+});
+
+describe('retrying while GitHub is unavailable', () => {
+  const noSleep = { sleep: async () => {} };
+
+  it('retries outages and 5xx answers, then succeeds', async () => {
+    let attempts = 0;
+    const retries: number[] = [];
+    const flaky = (async (input: string | URL | Request, init?: RequestInit) => {
+      attempts += 1;
+      if (attempts === 1) throw new TypeError('fetch failed');
+      if (attempts === 2) return new Response('{}', { status: 502 });
+      return appFetch([])(input, init);
+    }) as typeof fetch;
+    const client = createGitHubAppClient(CONFIG, {
+      fetch: flaky,
+      now: () => NOW,
+      retry: { ...noSleep, onRetry: (_err, attempt) => retries.push(attempt) },
+    });
+    expect((await client.mintInstallationToken()).token).toBe('ghs_install');
+    expect(retries).toEqual([1, 2]);
+  });
+
+  it('does not retry configuration errors', async () => {
+    let attempts = 0;
+    const counting = (async (input: string | URL | Request, init?: RequestInit) => {
+      attempts += 1;
+      return appFetch([], false)(input, init);
+    }) as typeof fetch;
+    const client = createGitHubAppClient(CONFIG, {
+      fetch: counting,
+      now: () => NOW,
+      retry: noSleep,
+    });
+    await expect(client.mintInstallationToken()).rejects.toThrow('is not installed');
+    expect(attempts).toBe(1);
+  });
+
+  it('gives up after the last delay', async () => {
+    let attempts = 0;
+    await expect(
+      retryWhileUnavailable(
+        async () => {
+          attempts += 1;
+          throw new GitHubUnavailableError('down');
+        },
+        { delaysMs: [1, 1], ...noSleep },
+      ),
+    ).rejects.toThrow('down');
+    expect(attempts).toBe(3);
+  });
+
+  it('derives the git host from GITQUIRE_GITHUB_WEB_URL', () => {
+    const config = resolveGitHubAppConfig({
+      GITHUB_APP_ID: '1',
+      GITHUB_APP_PRIVATE_KEY: privateKey,
+      GITQUIRE_REPO: 'acme/notes',
+      GITQUIRE_GITHUB_WEB_URL: 'https://github.example.com/',
+    });
+    expect(config?.gitHost).toBe('github.example.com');
   });
 });
 

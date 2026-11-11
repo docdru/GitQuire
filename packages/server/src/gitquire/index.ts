@@ -15,7 +15,7 @@ import { bootstrapRepository, ensureAutoSyncMode, parseAutoSyncMode } from './re
 
 export type { AccessGate, SessionUser } from './access-gate.ts';
 export { noreplyEmail } from './access-gate.ts';
-export { GitHubAppConfigError } from './github-app.ts';
+export { GitHubAppConfigError, GitHubUnavailableError } from './github-app.ts';
 export { GitHubAuthConfigError } from './github-auth-config.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -44,7 +44,13 @@ export async function startGitHubAppTokensFromEnv(
 ): Promise<InstallationTokenManager | undefined> {
   const config = resolveGitHubAppConfig(env);
   if (config === undefined) return undefined;
-  return startInstallationTokenManager(config, createGitHubAppClient(config), { log });
+  const client = createGitHubAppClient(config, {
+    retry: {
+      onRetry: (err, attempt, delayMs) =>
+        log.warn({ attempt, delayMs, reason: err.message }, '[gitquire-app] GitHub unavailable'),
+    },
+  });
+  return startInstallationTokenManager(config, client, { log });
 }
 
 export function withGitHubAppToken(
@@ -63,13 +69,20 @@ export async function runGitQuireBootstrap(
   dir: string,
   env: Env,
   initProject: (dir: string) => void,
+  warn: (message: string) => void = () => {},
 ): Promise<GitQuireBootstrapResult> {
   const config = resolveGitHubAppConfig(env);
   if (config === undefined) {
     return { configured: false, message: 'GitHub repository sync is not configured.' };
   }
   const syncMode = parseAutoSyncMode(env.GITQUIRE_SYNC_MODE);
-  const outcome = await bootstrapRepository(dir, config, createGitHubAppClient(config));
+  const client = createGitHubAppClient(config, {
+    retry: {
+      onRetry: (err, attempt, delayMs) =>
+        warn(`${err.message} Retrying in ${Math.round(delayMs / 1000)} s (attempt ${attempt}).`),
+    },
+  });
+  const outcome = await bootstrapRepository(dir, config, client);
   if (!existsSync(join(dir, '.ok'))) initProject(dir);
   const sync = ensureAutoSyncMode(dir, syncMode);
   const repo = `${config.repo.owner}/${config.repo.name}`;

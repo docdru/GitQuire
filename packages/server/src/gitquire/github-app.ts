@@ -17,6 +17,13 @@ export interface GitHubAppConfig {
   gitHost: string;
 }
 
+export class GitHubUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GitHubUnavailableError';
+  }
+}
+
 export class GitHubAppConfigError extends Error {
   constructor(message: string) {
     super(message);
@@ -82,8 +89,47 @@ export function resolveGitHubAppConfig(
       /\/+$/,
       '',
     ),
-    gitHost: 'github.com',
+    gitHost: gitHostFrom(env.GITQUIRE_GITHUB_WEB_URL),
   };
+}
+
+function gitHostFrom(webUrl: string | undefined): string {
+  const raw = nonEmpty(webUrl);
+  if (raw === undefined) return 'github.com';
+  try {
+    return new URL(raw).host;
+  } catch {
+    throw new GitHubAppConfigError(`GITQUIRE_GITHUB_WEB_URL is not a valid URL: "${raw}".`);
+  }
+}
+
+export const DEFAULT_RETRY_DELAYS_MS: readonly number[] = [
+  2_000, 5_000, 10_000, 20_000, 30_000, 60_000, 60_000, 60_000, 60_000,
+];
+
+export interface RetryOptions {
+  delaysMs?: readonly number[];
+  sleep?: (ms: number) => Promise<void>;
+  onRetry?: (err: GitHubUnavailableError, attempt: number, delayMs: number) => void;
+}
+
+export async function retryWhileUnavailable<T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {},
+): Promise<T> {
+  const delays = options.delaysMs ?? DEFAULT_RETRY_DELAYS_MS;
+  const sleep =
+    options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      const delay = delays.at(attempt);
+      if (!(err instanceof GitHubUnavailableError) || delay === undefined) throw err;
+      options.onRetry?.(err, attempt + 1, delay);
+      await sleep(delay);
+    }
+  }
 }
 
 export function createAppJwt(appId: string, privateKeyPem: string, nowMs: number): string {
@@ -110,6 +156,7 @@ export interface RepoInfo {
 export interface GitHubAppClientDeps {
   fetch?: typeof fetch;
   now?: () => number;
+  retry?: RetryOptions;
 }
 
 export interface GitHubAppClient {
@@ -130,17 +177,27 @@ export function createGitHubAppClient(
     bearer: string,
     init: { method?: string; body?: string } = {},
   ): Promise<{ status: number; body: Record<string, unknown> }> {
-    const response = await doFetch(`${config.githubApiUrl}${path}`, {
-      method: init.method ?? 'GET',
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${bearer}`,
-        'User-Agent': 'GitQuire',
-        'X-GitHub-Api-Version': GITHUB_API_VERSION,
-        ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
-      },
-      ...(init.body === undefined ? {} : { body: init.body }),
-    });
+    let response: Response;
+    try {
+      response = await doFetch(`${config.githubApiUrl}${path}`, {
+        method: init.method ?? 'GET',
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${bearer}`,
+          'User-Agent': 'GitQuire',
+          'X-GitHub-Api-Version': GITHUB_API_VERSION,
+          ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        },
+        ...(init.body === undefined ? {} : { body: init.body }),
+      });
+    } catch (err) {
+      throw new GitHubUnavailableError(
+        `Could not reach GitHub: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+    if (response.status >= 500 || response.status === 429) {
+      throw new GitHubUnavailableError(`GitHub answered HTTP ${response.status}.`);
+    }
     const text = await response.text();
     let body: Record<string, unknown> = {};
     try {
@@ -192,7 +249,10 @@ export function createGitHubAppClient(
     };
   }
 
-  return { mintInstallationToken, repoInfo };
+  return {
+    mintInstallationToken: () => retryWhileUnavailable(mintInstallationToken, deps.retry),
+    repoInfo: (token) => retryWhileUnavailable(() => repoInfo(token), deps.retry),
+  };
 }
 
 export interface InstallationTokenManager {

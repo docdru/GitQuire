@@ -3,20 +3,32 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { dirname, join } from 'node:path';
 import type { GitHubAppClient, GitHubAppConfig } from './github-app.ts';
 
-export type RunGit = (args: readonly string[], cwd: string) => string;
+export type RunGit = (
+  args: readonly string[],
+  cwd: string,
+  extraEnv?: Readonly<Record<string, string>>,
+) => string;
 
-export const runGitSync: RunGit = (args, cwd) =>
+export const runGitSync: RunGit = (args, cwd, extraEnv = {}) =>
   execFileSync('git', [...args], {
     cwd,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+    env: { ...process.env, GIT_TERMINAL_PROMPT: '0', ...extraEnv },
     windowsHide: true,
   });
 
 export function basicAuthHeader(token: string): string {
   const credentials = Buffer.from(`x-access-token:${token}`, 'utf8').toString('base64');
   return `AUTHORIZATION: basic ${credentials}`;
+}
+
+export function authHeaderEnv(gitHost: string, token: string): Record<string, string> {
+  return {
+    GIT_CONFIG_COUNT: '1',
+    GIT_CONFIG_KEY_0: `http.https://${gitHost}/.extraheader`,
+    GIT_CONFIG_VALUE_0: basicAuthHeader(token),
+  };
 }
 
 export type BootstrapOutcome =
@@ -39,7 +51,7 @@ export async function bootstrapRepository(
   const exists = deps.exists ?? existsSync;
   const { token } = await client.mintInstallationToken();
   const info = await client.repoInfo(token);
-  const withAuth = ['-c', `http.https://${config.gitHost}/.extraheader=${basicAuthHeader(token)}`];
+  const authEnv = authHeaderEnv(config.gitHost, token);
 
   if (exists(join(dir, '.git'))) {
     const remotes = runGit(['remote'], dir)
@@ -62,12 +74,12 @@ export async function bootstrapRepository(
   const branch = config.branch ?? info.defaultBranch;
   runGit(['init', '--initial-branch', branch], dir);
   runGit(['remote', 'add', 'origin', info.cloneUrl], dir);
-  const remoteHead = runGit([...withAuth, 'ls-remote', '--heads', 'origin', branch], dir).trim();
+  const remoteHead = runGit(['ls-remote', '--heads', 'origin', branch], dir, authEnv).trim();
   if (remoteHead === '') {
     return { action: 'initialized-empty', branch };
   }
   const refspec = `+refs/heads/${branch}:refs/remotes/origin/${branch}`;
-  runGit([...withAuth, 'fetch', '--no-tags', 'origin', refspec], dir);
+  runGit(['fetch', '--no-tags', 'origin', refspec], dir, authEnv);
   runGit(['checkout', '-B', branch, '--track', `origin/${branch}`], dir);
   return { action: 'cloned', branch };
 }
