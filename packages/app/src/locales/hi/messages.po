@@ -1984,6 +1984,9 @@ msgstr "बुलेट सूची"
 msgid "Bullet List"
 msgstr "बुलेट सूची"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "अर्थ के अनुसार"
 
@@ -4870,6 +4873,9 @@ msgstr "बलपूर्वक फिर से लोड करें"
 msgid "Force stop"
 msgstr "बलपूर्वक रोकें"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "फ़ॉर्मैटिंग ग़लत लगी"
 
@@ -5096,6 +5102,9 @@ msgstr "मर्ज टकराव हैं"
 msgid "Having a look around…"
 msgstr "चारों ओर देखा जा रहा है…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "शीर्षक 1"
 
@@ -5168,6 +5177,9 @@ msgstr "छिपा हुआ फ़ोल्डर “{basename}”"
 
 msgid "Hide"
 msgstr "छिपाएँ"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "{0} संपादक छिपाएँ"
@@ -5471,6 +5483,9 @@ msgstr "इस रिपॉज़िटरी में — सहयोगि�
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "आपके होम फ़ोल्डर में — इस मशीन के हर प्रोजेक्ट में, सिर्फ़ आपके लिए।"
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "सूची आइटम को अंदर या बाहर करें"
@@ -5979,6 +5994,9 @@ msgstr "चयनित पाठ को लिंक करें, या क�
 
 msgid "Link these skill folders?"
 msgstr "इन स्किल फ़ोल्डरों को लिंक करें?"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "किसी पेज या बाहरी URL से लिंक करें।"
@@ -7793,6 +7811,9 @@ msgstr "इंस्टॉल करने के अन्य तरीके"
 
 msgid "Other ways to install Slidev"
 msgstr "Slidev इंस्टॉल करने के अन्य तरीके"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "बाहर जाने वाले"
