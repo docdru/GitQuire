@@ -1367,6 +1367,7 @@ function buildPmToMdastHandlers(
     nodeHandlers.gitquireComments = (pmNode: PmNode) => ({
       type: 'html' as const,
       value: String(pmNode.attrs.raw ?? ''),
+      data: { gitquireComments: true as const },
     });
   }
 

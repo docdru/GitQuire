@@ -14,11 +14,7 @@ import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
 import { type Processor, unified } from 'unified';
 import { VFile } from 'vfile';
-import {
-  COMMENT_TRAILER_OPEN,
-  joinCommentTrailer,
-  splitCommentTrailer,
-} from '../gitquire/comment-threads.ts';
+import { joinCommentTrailer, splitCommentTrailer } from '../gitquire/comment-threads.ts';
 
 import './mdast-augmentation.ts';
 import { restoreFromMdx } from './autolink-void-html-guard.ts';
@@ -226,13 +222,15 @@ function appendCommentTrailer(root: MdastRoot, trailer: string | undefined): voi
   root.children.push({ type: 'gitquireComments', value: trailer });
 }
 
-function moveCommentTrailerLast(root: MdastRoot): void {
+function moveCommentTrailerLast(root: MdastRoot): boolean {
   const index = root.children.findIndex(
-    (child) => child.type === 'html' && child.value.startsWith(COMMENT_TRAILER_OPEN),
+    (child) => child.type === 'html' && child.data?.gitquireComments === true,
   );
-  if (index === -1 || index === root.children.length - 1) return;
+  if (index === -1) return false;
+  if (index === root.children.length - 1) return true;
   const [trailer] = root.children.splice(index, 1);
   if (trailer !== undefined) root.children.push(trailer);
+  return true;
 }
 
 export function parseMd(rawSource: string, processor: Processor): PmNode {
@@ -297,7 +295,7 @@ export function serializeMd(doc: PmNode, processor: Processor, opts: SerializeMd
 
   pruneZeroEmissionBlocks(mdast);
 
-  moveCommentTrailerLast(mdast);
+  const hasTrailer = moveCommentTrailerLast(mdast);
 
   const boundary = readDocBoundary(doc.attrs?.sourceDocBoundary);
 
@@ -306,8 +304,10 @@ export function serializeMd(doc: PmNode, processor: Processor, opts: SerializeMd
   if (boundary?.trailing) {
     out = out.replace(/\n+$/, '') + boundary.trailing;
   }
-  const split = splitCommentTrailer(out);
-  if (split.trailer !== undefined) out = joinCommentTrailer(split.body, split.trailer);
+  if (hasTrailer) {
+    const split = splitCommentTrailer(out);
+    if (split.trailer !== undefined) out = joinCommentTrailer(split.body, split.trailer);
+  }
   if (boundary?.bom) out = `\uFEFF${out}`;
   return out;
 }

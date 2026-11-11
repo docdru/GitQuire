@@ -176,6 +176,9 @@ declare module 'mdast' {
   interface RootData {
     sourceDocBoundary?: SourceDocBoundary;
   }
+  interface HtmlData {
+    gitquireComments?: true;
+  }
   interface TextData {
     escapedChars?: EscapeProvenanceEntry[];
     sourceRaw?: string;

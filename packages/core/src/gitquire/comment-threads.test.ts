@@ -103,6 +103,13 @@ describe('markdown pipeline carries the trailer', () => {
     expect(md.serialize(json)).toBe(`${trailer}\n`);
   });
 
+  test('does not move a hand-written marker from the middle of a page', () => {
+    const body = `Intro\n\n${trailer}\n\nOutro\n`;
+    const json = md.parse(body);
+    expect(json.content?.some((node) => node.type === 'gitquireComments')).toBe(false);
+    expect(md.serialize(json).trimEnd().endsWith('Outro')).toBe(true);
+  });
+
   test('leaves ordinary HTML comments alone', () => {
     const json = md.parse('Text\n\n<!-- a note -->\n');
     expect(json.content?.some((node) => node.type === 'gitquireComments')).toBe(false);
