@@ -126,26 +126,17 @@ function openKnowledgeDisplay(tool: string, args: Record<string, unknown>): Tool
     case 'write':
       return {
         glyph: 'edit',
-        text:
-          subject === null
-            ? t`GitQuire wrote a document`
-            : t`GitQuire wrote to ${subject}`,
+        text: subject === null ? t`GitQuire wrote a document` : t`GitQuire wrote to ${subject}`,
       };
     case 'edit':
       return {
         glyph: 'edit',
-        text:
-          subject === null
-            ? t`GitQuire edited a document`
-            : t`GitQuire edited ${subject}`,
+        text: subject === null ? t`GitQuire edited a document` : t`GitQuire edited ${subject}`,
       };
     case 'delete':
       return {
         glyph: 'delete',
-        text:
-          subject === null
-            ? t`GitQuire deleted a document`
-            : t`GitQuire deleted ${subject}`,
+        text: subject === null ? t`GitQuire deleted a document` : t`GitQuire deleted ${subject}`,
       };
     case 'move': {
       const to = pathsOf(args.to)[0];
@@ -176,10 +167,7 @@ function openKnowledgeDisplay(tool: string, args: Record<string, unknown>): Tool
     case 'audit':
       return {
         glyph: 'check',
-        text:
-          subject === null
-            ? t`GitQuire checked the project`
-            : t`GitQuire checked ${subject}`,
+        text: subject === null ? t`GitQuire checked the project` : t`GitQuire checked ${subject}`,
       };
     case 'links':
       return {
@@ -212,17 +200,13 @@ function openKnowledgeDisplay(tool: string, args: Record<string, unknown>): Tool
     case 'install':
       return {
         glyph: 'install',
-        text:
-          subject === null
-            ? t`GitQuire installed a skill`
-            : t`GitQuire installed ${subject}`,
+        text: subject === null ? t`GitQuire installed a skill` : t`GitQuire installed ${subject}`,
       };
     case 'import': {
       const source = inlineText(args.skill) ?? inlineText(args.source);
       return {
         glyph: 'install',
-        text:
-          source === null ? t`GitQuire imported a skill` : t`GitQuire imported ${source}`,
+        text: source === null ? t`GitQuire imported a skill` : t`GitQuire imported ${source}`,
       };
     }
     case 'palette':

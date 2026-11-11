@@ -147,9 +147,9 @@ function SharingSectionBody() {
         adornment={<ConfigSharingInfoTooltip />}
       >
         <Trans>
-          Choose whether this project's GitQuire setup, including its AI-tool connections and
-          the Shared default sync mode, is saved with the project so teammates get it too, or kept
-          only on your computer.
+          Choose whether this project's GitQuire setup, including its AI-tool connections and the
+          Shared default sync mode, is saved with the project so teammates get it too, or kept only
+          on your computer.
         </Trans>
       </SettingsSectionHeader>
 

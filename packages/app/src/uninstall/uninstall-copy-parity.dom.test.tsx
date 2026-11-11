@@ -91,9 +91,7 @@ describe('uninstall copy parity', () => {
     const { container } = render(
       <UninstallPickerScreen projects={[]} onConfirm={() => {}} onCancel={() => {}} />,
     );
-    expect(readableCopy(container)).toContain(
-      'No active or recent GitQuire projects were found.',
-    );
+    expect(readableCopy(container)).toContain('No active or recent GitQuire projects were found.');
   });
 
   test('survey renders the original copy', () => {

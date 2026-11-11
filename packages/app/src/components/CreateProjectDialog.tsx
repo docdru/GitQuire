@@ -966,8 +966,8 @@ function CascadeBanner({
       >
         <p>
           <Trans>
-            GitQuire will be initialized at <code>{gitRoot}</code> — the parent of your new
-            folder, because it contains a <code>.git</code> folder (one project per git repo).
+            GitQuire will be initialized at <code>{gitRoot}</code> — the parent of your new folder,
+            because it contains a <code>.git</code> folder (one project per git repo).
           </Trans>
         </p>
         {removeGitState.kind === 'idle' || removeGitState.kind === 'error' ? (

@@ -77,8 +77,8 @@ export function BuiltInSkillsSection() {
       </h4>
       <p className="text-1sm text-muted-foreground">
         <Trans comment="Says what the GitQuire-authored skills are for, and where installing one puts it">
-          These teach your AI tools how to work with GitQuire. Installing one adds it to every
-          AI tool on this machine.
+          These teach your AI tools how to work with GitQuire. Installing one adds it to every AI
+          tool on this machine.
         </Trans>
       </p>
     </div>

@@ -268,9 +268,9 @@ export function UserPluginsManageSection({ userBinding }: { userBinding: ConfigB
               className="text-1sm text-muted-foreground"
             >
               <Trans>
-                Present a document as a slide deck in its own window. Works in the GitQuire
-                desktop app only, and needs the Slidev CLI, which you install separately. When on,
-                it appears under Plugins in the sidebar.
+                Present a document as a slide deck in its own window. Works in the GitQuire desktop
+                app only, and needs the Slidev CLI, which you install separately. When on, it
+                appears under Plugins in the sidebar.
               </Trans>
             </p>
           </div>
@@ -627,16 +627,16 @@ export function OkfPluginSection() {
             </Label>
             <p className="text-sm text-muted-foreground">
               <Trans>
-                GitQuire maintains a navigation file named index.md in every folder that
-                contains Markdown, each listing that folder's documents by type and linking to its
+                GitQuire maintains a navigation file named index.md in every folder that contains
+                Markdown, each listing that folder's documents by type and linking to its
                 subfolders. It rewrites these files as your documents change, and anything you edit
                 into them yourself is replaced.
               </Trans>
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               <Trans>
-                In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent
-                index changes combine before the next rebuild.
+                In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index
+                changes combine before the next rebuild.
               </Trans>
             </p>
           </div>
@@ -677,8 +677,8 @@ export function OkfPluginSection() {
               </DialogTitle>
               <DialogDescription className="text-inherit">
                 <Trans>
-                  GitQuire creates and maintains a navigation file named index.md in every
-                  folder that contains Markdown.
+                  GitQuire creates and maintains a navigation file named index.md in every folder
+                  that contains Markdown.
                 </Trans>
               </DialogDescription>
             </DialogHeader>
@@ -694,8 +694,8 @@ export function OkfPluginSection() {
                   title={<Trans>Generated files</Trans>}
                   body={
                     <Trans>
-                      GitQuire rewrites these index.md files as documents change, so manual
-                      edits to them are replaced.
+                      GitQuire rewrites these index.md files as documents change, so manual edits to
+                      them are replaced.
                     </Trans>
                   }
                 />
@@ -724,8 +724,7 @@ export function OkfPluginSection() {
                   title={<Trans>Turning it off</Trans>}
                   body={
                     <Trans>
-                      The index files stay in place. GitQuire removes only the Git rule it
-                      added.
+                      The index files stay in place. GitQuire removes only the Git rule it added.
                     </Trans>
                   }
                 />
@@ -844,8 +843,8 @@ function GeneratedIndexSettingsNotice({
         {issue !== null && requestedEnabled === false ? (
           issue === 'git-conflict' ? (
             <Trans>
-              Turning off index maintenance failed because the GitQuire section of
-              .gitattributes was edited or is incomplete. Remove that section, then try again.
+              Turning off index maintenance failed because the GitQuire section of .gitattributes
+              was edited or is incomplete. Remove that section, then try again.
             </Trans>
           ) : issue === 'config-write' ? (
             <Trans>
@@ -854,13 +853,13 @@ function GeneratedIndexSettingsNotice({
             </Trans>
           ) : issue === 'connection' ? (
             <Trans>
-              Turning off index maintenance failed because GitQuire could not reach the
-              project server. Try again when the project reconnects.
+              Turning off index maintenance failed because GitQuire could not reach the project
+              server. Try again when the project reconnects.
             </Trans>
           ) : (
             <Trans>
-              Turning off index maintenance failed because GitQuire could not update the Git
-              merge rule. Check Git and .gitattributes, then try again.
+              Turning off index maintenance failed because GitQuire could not update the Git merge
+              rule. Check Git and .gitattributes, then try again.
             </Trans>
           )
         ) : issue === 'connection' && requestedEnabled === null ? (
@@ -880,13 +879,13 @@ function GeneratedIndexSettingsNotice({
           </Trans>
         ) : effectiveIssue === 'connection' ? (
           <Trans>
-            Index maintenance stayed off because GitQuire could not reach the project server.
-            Try again when the project reconnects.
+            Index maintenance stayed off because GitQuire could not reach the project server. Try
+            again when the project reconnects.
           </Trans>
         ) : (
           <Trans>
-            Index maintenance is paused because GitQuire could not confirm the required Git
-            merge rule. Check Git and .gitattributes, then try again.
+            Index maintenance is paused because GitQuire could not confirm the required Git merge
+            rule. Check Git and .gitattributes, then try again.
           </Trans>
         )}
       </p>

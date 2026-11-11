@@ -486,9 +486,7 @@ describe('AgentConnectionDialogs', () => {
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('checkbox', { name: 'Project MCP server' }));
     await user.click(within(dialog).getByRole('checkbox', { name: 'Project skill' }));
-    await user.click(
-      within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }),
-    );
+    await user.click(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }));
 
     await within(dialog).findByText(/shared with/);
@@ -540,9 +538,7 @@ describe('AgentConnectionDialogs', () => {
     await renderConfigureDialog(async () => result(snapshot), 'cursor');
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('checkbox', { name: 'Project skill' }));
-    await user.click(
-      within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }),
-    );
+    await user.click(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }));
 
     expect(tallyText(dialog)).toBe('1 added · 1 removed');
     expect(
@@ -566,11 +562,7 @@ describe('AgentConnectionDialogs', () => {
     expect(tallyText(dialog)).toBe('1 removed');
     expect(dialog.textContent).not.toContain('disconnects');
 
-    for (const name of [
-      'Project MCP server',
-      'Global MCP server',
-      'GitQuire discovery skill',
-    ]) {
+    for (const name of ['Project MCP server', 'Global MCP server', 'GitQuire discovery skill']) {
       await user.click(within(dialog).getByRole('checkbox', { name }));
     }
     expect(dialog.textContent).toContain(note);
@@ -773,9 +765,7 @@ describe('AgentConnectionDialogs', () => {
 
     await renderConfigureDialog(apply, 'cursor');
     const dialog = screen.getByRole('dialog', { name: 'Cursor' });
-    await user.click(
-      within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }),
-    );
+    await user.click(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }));
 
     const alert = await within(dialog).findByRole('alert');
@@ -995,9 +985,7 @@ describe('AgentConnectionDialogs', () => {
 
     expect(within(dialog).queryByRole('checkbox', { name: 'Global MCP server' })).toBeNull();
     expect(within(dialog).getByText('This machine')).toBeTruthy();
-    expect(
-      within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }),
-    ).toBeTruthy();
+    expect(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' })).toBeTruthy();
     expect(within(dialog).getByRole('checkbox', { name: 'Project MCP server' })).toBeTruthy();
   });
 
@@ -1137,9 +1125,7 @@ describe('a failed save names its reason', () => {
     });
     const text = await saveAndReadAlert('claude', apply);
     expect(text).toContain('Project MCP server');
-    expect(text).toContain(
-      'GitQuire left this file alone because it could not parse it safely.',
-    );
+    expect(text).toContain('GitQuire left this file alone because it could not parse it safely.');
   });
 
   test('a config file the agent has not created yet says to open the agent first', async () => {

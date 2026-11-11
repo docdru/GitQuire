@@ -495,8 +495,8 @@ function ReportBugDialog({
                     <p id={logsHintId} className="text-1sm text-muted-foreground">
                       {systemWide ? (
                         <Trans>
-                          GitQuire logs across projects. No project is open, so project server
-                          logs are not included.
+                          GitQuire logs across projects. No project is open, so project server logs
+                          are not included.
                         </Trans>
                       ) : (
                         <Trans>GitQuire logs, including activity across projects.</Trans>
@@ -565,23 +565,23 @@ function ReportBugDialog({
                           )}{' '}
                           {desktopPlatform === 'linux' && (
                             <Trans>
-                              It also adds any display-connection errors GitQuire wrote to your
-                              user journal in the past week, each message cut to 200 characters.
+                              It also adds any display-connection errors GitQuire wrote to your user
+                              journal in the past week, each message cut to 200 characters.
                             </Trans>
                           )}
                           {desktopPlatform === 'win32' && (
                             <Trans>
-                              It also adds the crash and hang records Windows logged for
-                              GitQuire in the past week, without file paths, and the times of
-                              every shutdown, restart, power loss, and low-memory warning on this
-                              computer in that week, whatever caused them.
+                              It also adds the crash and hang records Windows logged for GitQuire in
+                              the past week, without file paths, and the times of every shutdown,
+                              restart, power loss, and low-memory warning on this computer in that
+                              week, whatever caused them.
                             </Trans>
                           )}{' '}
                           {isMacOS && (
                             <Trans>
-                              It also adds the crash reports macOS recorded for GitQuire and
-                              its helper processes, never another app's report, though ours do name
-                              the processes they were running alongside. Each one carries machine
+                              It also adds the crash reports macOS recorded for GitQuire and its
+                              helper processes, never another app's report, though ours do name the
+                              processes they were running alongside. Each one carries machine
                               details macOS puts in every report: your account uid, the Mac model,
                               and the name of the process that launched the app. On a managed
                               machine, that launching process can be internal tooling. The
@@ -742,8 +742,8 @@ function ReportBugDialog({
                 />
                 <span>
                   <Trans>
-                    Sent privately to the GitQuire team, along with your note and app version.
-                    Never posted publicly.
+                    Sent privately to the GitQuire team, along with your note and app version. Never
+                    posted publicly.
                   </Trans>
                 </span>
               </div>

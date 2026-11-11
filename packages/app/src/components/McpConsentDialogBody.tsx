@@ -327,8 +327,8 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                       {ptyAvailable ? (
                         <Trans comment="Warning shown when the user unchecks the PATH toggle on a desktop build with the built-in terminal">
                           <code className="inline-code text-xs!">{cliCommand}</code> won't run in
-                          external terminals until you add it later from the File menu.
-                          GitQuire's built-in terminal and AI tools keep working.
+                          external terminals until you add it later from the File menu. GitQuire's
+                          built-in terminal and AI tools keep working.
                         </Trans>
                       ) : (
                         <Trans comment="Warning shown when the user unchecks the PATH toggle on a desktop build without the built-in terminal">
@@ -366,8 +366,8 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                 {hasEditors ? (
                   <p className={cn(SECTION_SUBTEXT, 'mb-1')}>
                     <Trans comment="Description under the AI-tools section label in the first-launch dialog">
-                      Globally install the GitQuire skills and MCP to let the agents you
-                      already use read and update your projects.
+                      Globally install the GitQuire skills and MCP to let the agents you already use
+                      read and update your projects.
                     </Trans>
                   </p>
                 ) : null}

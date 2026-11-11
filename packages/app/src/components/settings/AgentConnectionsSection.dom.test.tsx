@@ -1017,9 +1017,7 @@ describe('AgentConnectionsSection — Terminal group (docked terminal present)',
       expect(row.textContent ?? '').toContain('Not installed · GitQuire files present'),
     );
     expect(within(row).getByRole('link', { name: /^Install\b/ })).toBeTruthy();
-    expect(
-      within(row).getByRole('button', { name: 'Remove GitQuire from Pi CLI' }),
-    ).toBeTruthy();
+    expect(within(row).getByRole('button', { name: 'Remove GitQuire from Pi CLI' })).toBeTruthy();
   });
 
   test('an absent CLI with nothing on disk offers no cleanup and no residual hint', async () => {
@@ -1047,9 +1045,7 @@ describe('AgentConnectionsSection — Terminal group (docked terminal present)',
     await waitFor(() => terminalRow('pi'));
     const toggle = screen.getByTestId('configure-agents-terminal-pi');
 
-    await waitFor(() =>
-      expect(accessibleDescription(toggle)).toContain('GitQuire files present'),
-    );
+    await waitFor(() => expect(accessibleDescription(toggle)).toContain('GitQuire files present'));
     expect(accessibleDescription(toggle)).not.toContain('Remove');
   });
 

@@ -169,8 +169,8 @@ export function AboutSection() {
               >
                 {updateMode === 'off' ? (
                   <Trans>
-                    GitQuire doesn't check for or download updates on its own. Check for
-                    updates still works when you want a newer version.
+                    GitQuire doesn't check for or download updates on its own. Check for updates
+                    still works when you want a newer version.
                   </Trans>
                 ) : (
                   <Trans>GitQuire checks for and downloads updates in the background.</Trans>

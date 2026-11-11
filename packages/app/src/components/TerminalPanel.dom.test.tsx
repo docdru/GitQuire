@@ -2306,9 +2306,7 @@ describe('TerminalPanel', () => {
 
       expect(await screen.findByText(/aren't connected to it yet/)).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Connect tools' }));
-      expect(screen.getByRole('dialog').textContent).toContain(
-        'Choose what GitQuire sets up for',
-      );
+      expect(screen.getByRole('dialog').textContent).toContain('Choose what GitQuire sets up for');
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
       expect(screen.getByRole('button', { name: 'Connect tools' })).toBeTruthy();
     },

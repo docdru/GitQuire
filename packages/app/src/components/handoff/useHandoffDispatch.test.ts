@@ -315,9 +315,7 @@ describe('runHandoffDispatch — autoOpen=false honors the user preference', () 
     const [payload] = (deps.dispatchHandoff as ReturnType<typeof vi.fn>).mock.calls[0] as [
       HandoffPayload,
     ];
-    expect(payload.prompt).toBe(
-      withSkillPointer("Let's work on this project using GitQuire."),
-    );
+    expect(payload.prompt).toBe(withSkillPointer("Let's work on this project using GitQuire."));
     expect(payload.prompt).not.toContain('Open the OK editor');
   });
 });

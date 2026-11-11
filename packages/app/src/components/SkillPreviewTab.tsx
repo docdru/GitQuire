@@ -203,8 +203,7 @@ export function SkillPreviewTab({ flavor, source, name, subtitle, level, path }:
     </Trans>
   ) : builtin ? (
     <Trans>
-      This is a preview of {boldName} — a built-in skill shipped with GitQuire. It's
-      read-only.
+      This is a preview of {boldName} — a built-in skill shipped with GitQuire. It's read-only.
     </Trans>
   ) : pluginInfo ? (
     <Trans>

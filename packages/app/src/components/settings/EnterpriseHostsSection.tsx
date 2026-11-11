@@ -97,8 +97,8 @@ export function EnterpriseHostsSection({ binding }: { binding: ConfigBinding }) 
         </h4>
         <p id={hintId} className="text-1sm text-muted-foreground">
           <Trans>
-            If you use a GitHub Enterprise Server, add its host here so GitQuire can sign in,
-            check push permission, and create share links for repositories hosted there.
+            If you use a GitHub Enterprise Server, add its host here so GitQuire can sign in, check
+            push permission, and create share links for repositories hosted there.
           </Trans>
         </p>
       </div>

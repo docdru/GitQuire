@@ -47,8 +47,8 @@ export function SkillsStudioIntroDialog({
           </DialogTitle>
           <DialogDescription>
             <Trans comment="First-visit explanation of what the Skills Studio settings page is for">
-              Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or
-              write your own in the editor's Skills sidebar.
+              Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write
+              your own in the editor's Skills sidebar.
             </Trans>
           </DialogDescription>
         </DialogHeader>

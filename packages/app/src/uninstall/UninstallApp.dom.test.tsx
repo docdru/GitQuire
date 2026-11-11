@@ -38,9 +38,7 @@ describe('UninstallApp routing', () => {
   test('mounts the progress screen for a progress screen', async () => {
     stubBridge(sendsScreen({ kind: 'progress' }));
     render(<UninstallApp />);
-    expect(
-      await screen.findByRole('heading', { name: 'Removing GitQuire files…' }),
-    ).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Removing GitQuire files…' })).toBeDefined();
   });
 
   test('keeps progress mounted until cleanup supplies a result, then replaces it', async () => {

@@ -137,9 +137,7 @@ describe('uninstall project picker', () => {
   test('the empty state explains that nothing was detected and can still be confirmed', async () => {
     const { user, onConfirm } = renderPicker([]);
 
-    expect(
-      screen.getByText('No active or recent GitQuire projects were found.'),
-    ).toBeDefined();
+    expect(screen.getByText('No active or recent GitQuire projects were found.')).toBeDefined();
     expect(screen.queryByRole('checkbox')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Uninstall GitQuire' }));

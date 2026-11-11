@@ -670,10 +670,7 @@ describe('menu state-dependent rendering', () => {
       expect(findLeaf(withoutDep, 'Check for updates')).toBeUndefined();
     }
     expect(
-      findLeaf(
-        collectLeavesForPlatform('darwin', makeFullDeps()),
-        'Set up GitQuire integrations',
-      ),
+      findLeaf(collectLeavesForPlatform('darwin', makeFullDeps()), 'Set up GitQuire integrations'),
     ).toBeDefined();
     expect(
       findLeaf(

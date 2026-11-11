@@ -244,9 +244,7 @@ describe('ReportBugDialog', () => {
     const logsCheckbox = screen.getByRole('checkbox', { name: /Logs & system info/ });
     expect(logsCheckbox.getAttribute('aria-checked')).toBe('true');
     expect(logsCheckbox.hasAttribute('disabled')).toBe(true);
-    expect(
-      screen.getByText('GitQuire logs, including activity across projects.'),
-    ).not.toBeNull();
+    expect(screen.getByText('GitQuire logs, including activity across projects.')).not.toBeNull();
 
     const checkbox = screen.getByRole('checkbox', { name: 'Detailed diagnostics' });
     expect(checkbox.getAttribute('aria-checked')).toBe('false');

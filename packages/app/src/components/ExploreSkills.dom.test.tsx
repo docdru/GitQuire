@@ -87,9 +87,7 @@ describe('ExploreSkills — GitQuire toggle', () => {
     discoverSkillsInSource.mockResolvedValueOnce({ ok: false, error: 'clone failed' } as never);
     renderExplore();
     await userEvent.click(screen.getByRole('button', { name: 'GitQuire' }));
-    await waitFor(() =>
-      expect(screen.getByText(/Couldn't load the GitQuire skills/)).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByText(/Couldn't load the GitQuire skills/)).toBeTruthy());
     expect(screen.queryByRole('listitem')).toBeNull();
   });
 

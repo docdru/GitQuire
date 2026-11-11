@@ -504,8 +504,8 @@ export function SearchSection({ transport }: { transport?: EmbeddingsKeyTranspor
             label={<Trans>Indexing request timeout (seconds)</Trans>}
             help={
               <Trans>
-                How long GitQuire waits for each embedding request while indexing. Search
-                requests use a fixed 8-second timeout per attempt, unchanged by this setting.
+                How long GitQuire waits for each embedding request while indexing. Search requests
+                use a fixed 8-second timeout per attempt, unchanged by this setting.
               </Trans>
             }
             configKey="docTimeoutMs"
@@ -940,8 +940,8 @@ function SemanticStatusPanel({ status }: SemanticStatusPanelProps) {
         data-testid="settings-search-restart-required"
       >
         <Trans>
-          The embeddings provider's vector size kept changing. Semantic search is off until
-          GitQuire restarts.
+          The embeddings provider's vector size kept changing. Semantic search is off until GitQuire
+          restarts.
         </Trans>
       </div>
     );

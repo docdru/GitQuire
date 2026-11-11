@@ -126,8 +126,8 @@ export function UninstallPickerScreen({
         </h1>
         <p id={descriptionId} className="text-sm text-muted-foreground">
           <Trans>
-            This removes GitQuire’s settings and integrations from your Mac and any projects
-            you select below, but keeps your markdown content and authored skills.
+            This removes GitQuire’s settings and integrations from your Mac and any projects you
+            select below, but keeps your markdown content and authored skills.
           </Trans>
         </p>
       </header>

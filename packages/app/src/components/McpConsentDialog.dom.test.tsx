@@ -896,9 +896,7 @@ describe('McpConsentDialog surface by origin', () => {
   test('a user-opened one is titled as customization, not as a welcome', async () => {
     await renderDialog(reconfigureHarness());
 
-    expect(
-      screen.getByRole('dialog', { name: /Customize your GitQuire experience/ }),
-    ).toBeTruthy();
+    expect(screen.getByRole('dialog', { name: /Customize your GitQuire experience/ })).toBeTruthy();
     expect(screen.queryByText(/Welcome to GitQuire/)).toBeNull();
     expect(screen.queryByText(/Let's get set up/)).toBeNull();
     expect(screen.getByRole('dialog').getAttribute('aria-describedby')).toBeNull();
