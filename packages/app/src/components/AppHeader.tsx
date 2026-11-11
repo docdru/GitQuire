@@ -5,6 +5,7 @@ import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
 import { BetaBadge } from '@/components/BetaBadge';
+import { GitQuireBranchMenu } from '@/components/GitQuireBranchMenu';
 import {
   HEADER_OVERFLOW_SLACK_PX,
   HeaderOverflowActions,
@@ -281,7 +282,10 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         {singleFile ? null : desktopBridge ? (
           <ProjectSwitcher bridge={desktopBridge} />
         ) : (
-          <WebProjectName />
+          <>
+            <WebProjectName />
+            <GitQuireBranchMenu />
+          </>
         )}
       </div>
       <div

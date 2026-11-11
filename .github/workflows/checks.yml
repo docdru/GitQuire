@@ -56,3 +56,6 @@ jobs:
           pnpm --dir packages/server exec vitest run
           src/persistence src/sync-engine src/principal src/server-factory.test.ts
           src/mcp-mount src/boot
+
+      - name: GitQuire app tests
+        run: pnpm --dir packages/app exec vitest run --config vitest.config.ts src/lib/gitquire

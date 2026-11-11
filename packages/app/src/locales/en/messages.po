@@ -12293,3 +12293,60 @@ msgstr "Zoom out"
 
 msgid "Zoom Out"
 msgstr "Zoom Out"
+
+msgid "Could not load branches"
+msgstr "Could not load branches"
+
+msgid "Switched to {branch}"
+msgstr "Switched to {branch}"
+
+msgid "Unsaved changes block the switch"
+msgstr "Unsaved changes block the switch"
+
+msgid "Could not switch to {branch}"
+msgstr "Could not switch to {branch}"
+
+msgid "Switch everyone to"
+msgstr "Switch everyone to"
+
+msgid "New branch…"
+msgstr "New branch…"
+
+msgid "Open pull request…"
+msgstr "Open pull request…"
+
+msgid "Open pull requests"
+msgstr "Open pull requests"
+
+msgid "Switch to {target}?"
+msgstr "Switch to {target}?"
+
+msgid "Everyone editing this space moves to that branch."
+msgstr "Everyone editing this space moves to that branch."
+
+msgid "Switch"
+msgstr "Switch"
+
+msgid "New branch"
+msgstr "New branch"
+
+msgid "Everyone moves to the new branch once it is created."
+msgstr "Everyone moves to the new branch once it is created."
+
+msgid "Starts from {from}. Everyone moves to the new branch once it is created."
+msgstr "Starts from {from}. Everyone moves to the new branch once it is created."
+
+msgid "Create and switch"
+msgstr "Create and switch"
+
+msgid "Opened pull request #{number}"
+msgstr "Opened pull request #{number}"
+
+msgid "Open pull request"
+msgstr "Open pull request"
+
+msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgstr "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+
+msgid "Opening…"
+msgstr "Opening…"
