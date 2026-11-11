@@ -67,8 +67,10 @@ export interface PageScan<T> {
   all: () => ScannedPage<T>[];
 }
 
-interface CachedPage<T> extends ScannedPage<T> {
+interface CachedPage<T> {
+  modifiedMs: number;
   size: number;
+  page: ScannedPage<T> | undefined;
 }
 
 export function createPageScan<T>(
@@ -90,17 +92,18 @@ export function createPageScan<T>(
     }
     const cached = cache.get(path);
     if (cached !== undefined && cached.modifiedMs === stat.mtimeMs && cached.size === stat.size) {
-      return cached;
+      return cached.page;
     }
-    if (stat.size > MAX_FILE_BYTES) return undefined;
-    let value: T;
-    try {
-      value = extract(path, readFileSync(full, 'utf8'));
-    } catch {
-      return undefined;
+    let page: ScannedPage<T> | undefined;
+    if (stat.size <= MAX_FILE_BYTES) {
+      try {
+        const value = extract(path, readFileSync(full, 'utf8'));
+        page = { path, modifiedMs: stat.mtimeMs, value };
+      } catch {
+        page = undefined;
+      }
     }
-    const page = { path, modifiedMs: stat.mtimeMs, size: stat.size, value };
-    cache.set(path, page);
+    cache.set(path, { modifiedMs: stat.mtimeMs, size: stat.size, page });
     return page;
   }
 

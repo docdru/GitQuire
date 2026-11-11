@@ -20,8 +20,8 @@ import {
   mentionsInMarkdown,
 } from './mentions.ts';
 import { namingRuleFromEnv } from './naming.ts';
-import { listObjects, pageFacts } from './page-objects.ts';
-import { createPageScan } from './page-scan.ts';
+import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
+import { createPageScan, docNameForPath, type ScannedPage } from './page-scan.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -250,15 +250,32 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 201, { pull });
   }
 
+  function factsOrNone(path: string, markdown: string): PageFacts {
+    try {
+      return pageFacts(path, markdown);
+    } catch (err) {
+      deps.log.warn({ err, path }, '[gitquire] could not read the properties of a page');
+      const docName = docNameForPath(path) ?? path;
+      return { docName, title: docName, fields: {}, tasks: [], clipped: false };
+    }
+  }
+
   const pageScan = createPageScan(deps.contentDir ?? deps.projectDir, (path, markdown) => ({
     mentions: mentionsInMarkdown(path, markdown),
-    facts: pageFacts(path, markdown),
+    facts: factsOrNone(path, markdown),
   }));
   const mentionIndex = mentionIndexFrom(pageScan, (page) => page.mentions);
+  const objectList = createObjectListCache();
+  let factPages: { source: unknown; pages: ScannedPage<PageFacts>[] } | undefined;
 
   function listPageObjects(res: ServerResponse): void {
-    const pages = pageScan.all().map((page) => ({ ...page, value: page.value.facts }));
-    sendJson(res, 200, listObjects(pages));
+    const scanned = pageScan.all();
+    if (factPages === undefined || factPages.source !== scanned) {
+      const pages = scanned.map((page) => ({ ...page, value: page.value.facts }));
+      factPages = { source: scanned, pages };
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(objectList.body(factPages.pages));
   }
   const mentionReads = createMentionReadStore(
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),

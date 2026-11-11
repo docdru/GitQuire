@@ -1,12 +1,17 @@
 import { parseFrontmatterRecord, stripFrontmatter } from '@inkeep/open-knowledge-core';
-import { COMMENT_TRAILER_OPEN } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { splitCommentTrailer } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { docNameForPath, type ScannedPage } from './page-scan.ts';
 
 const MAX_KEYS = 50;
 const MAX_LIST_ITEMS = 50;
-const MAX_TEXT_CHARS = 500;
+const MAX_TEXT_CHARS = 300;
 const MAX_DEPTH = 3;
-const MAX_TASKS_PER_PAGE = 200;
+const MAX_TASKS_PER_PAGE = 100;
+const MAX_LINE_CHARS = 1000;
+const MAX_FIELD_BYTES = 16 * 1024;
+const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
+const CIRCULAR = '[circular]';
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 export type FieldValue =
   | string
@@ -17,6 +22,7 @@ export type FieldValue =
   | { [key: string]: FieldValue };
 
 export interface PageTask {
+  id: string;
   text: string;
   done: boolean;
   line: number;
@@ -28,6 +34,7 @@ export interface PageFacts {
   title: string;
   fields: Record<string, FieldValue>;
   tasks: PageTask[];
+  clipped: boolean;
 }
 
 export interface PageObject extends PageFacts {
@@ -35,13 +42,22 @@ export interface PageObject extends PageFacts {
   modified: string;
 }
 
-const FENCE_RE = /^ {0,3}(`{3,}|~{3,})/;
-const TASK_RE = /^\s*(?:[-*+]|\d{1,9}[.)])\s+\[([ xX])\]\s+(\S.*)$/;
-const HEADING_RE = /^#\s+(\S.*?)\s*#*\s*$/;
+const FENCE_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
+const TASK_RE = /^[ \t>]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[([ xX])\][ \t]+(\S.*)$/;
 const MENTION_RE = /(?<![\w@])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)(?![\w-])/g;
 
 function clipText(text: string): string {
-  return text.length <= MAX_TEXT_CHARS ? text : `${text.slice(0, MAX_TEXT_CHARS - 1)}…`;
+  if (text.length <= MAX_TEXT_CHARS) return text;
+  const kept = Array.from(text.slice(0, MAX_TEXT_CHARS * 2)).slice(0, MAX_TEXT_CHARS - 1);
+  return `${kept.join('')}…`;
+}
+
+function compactJson(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? '';
+  } catch {
+    return CIRCULAR;
+  }
 }
 
 function dateText(date: Date): string {
@@ -50,34 +66,53 @@ function dateText(date: Date): string {
   return iso.endsWith('T00:00:00.000Z') ? iso.slice(0, 10) : iso;
 }
 
-export function fieldValue(value: unknown, depth = 0): FieldValue {
+function fieldValueWithin(value: unknown, depth: number, parents: readonly object[]): FieldValue {
   if (value === null || value === undefined) return null;
   if (typeof value === 'string') return clipText(value);
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   if (typeof value === 'boolean') return value;
+  if (typeof value === 'bigint') return value.toString();
   if (value instanceof Date) return dateText(value);
-  if (depth >= MAX_DEPTH) return clipText(JSON.stringify(value) ?? '');
+  if (typeof value !== 'object') return clipText(String(value));
+  if (parents.includes(value)) return CIRCULAR;
+  if (depth >= MAX_DEPTH) return clipText(compactJson(value));
+  const inside = [...parents, value];
   if (Array.isArray(value)) {
-    return value.slice(0, MAX_LIST_ITEMS).map((item) => fieldValue(item, depth + 1));
+    return value.slice(0, MAX_LIST_ITEMS).map((item) => fieldValueWithin(item, depth + 1, inside));
   }
-  if (typeof value === 'object') {
-    const record: { [key: string]: FieldValue } = {};
-    for (const [key, item] of Object.entries(value).slice(0, MAX_KEYS)) {
-      record[key] = fieldValue(item, depth + 1);
-    }
-    return record;
+  const record: { [key: string]: FieldValue } = {};
+  for (const [key, item] of Object.entries(value).slice(0, MAX_KEYS)) {
+    if (!UNSAFE_KEYS.has(key)) record[key] = fieldValueWithin(item, depth + 1, inside);
   }
-  return clipText(String(value));
+  return record;
 }
 
-function fieldsOf(markdown: string): Record<string, FieldValue> {
+export function fieldValue(value: unknown): FieldValue {
+  return fieldValueWithin(value, 0, []);
+}
+
+interface ReadFields {
+  fields: Record<string, FieldValue>;
+  clipped: boolean;
+}
+
+function fieldsOf(markdown: string): ReadFields {
   const record = parseFrontmatterRecord(markdown);
   const fields: Record<string, FieldValue> = {};
-  if (record === null) return fields;
+  if (record === null) return { fields, clipped: false };
+  let clipped = Object.keys(record).length > MAX_KEYS;
+  let bytes = 0;
   for (const [key, value] of Object.entries(record).slice(0, MAX_KEYS)) {
-    fields[key] = fieldValue(value);
+    if (UNSAFE_KEYS.has(key)) continue;
+    const field = fieldValue(value);
+    bytes += key.length + compactJson(field).length;
+    if (bytes > MAX_FIELD_BYTES) {
+      clipped = true;
+      break;
+    }
+    fields[key] = field;
   }
-  return fields;
+  return { fields, clipped };
 }
 
 function mentionsIn(text: string): string[] {
@@ -88,53 +123,109 @@ function mentionsIn(text: string): string[] {
   return [...seen];
 }
 
+function taskId(text: string, ordinal: number): string {
+  let hash = 5381;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = (Math.imul(hash, 33) + text.charCodeAt(index)) >>> 0;
+  }
+  return `${hash.toString(36)}-${ordinal}`;
+}
+
+export function headingText(line: string): string | undefined {
+  if (!line.startsWith('# ') && !line.startsWith('#\t')) return undefined;
+  let text = line.slice(1).trim();
+  let end = text.length;
+  while (end > 0 && text[end - 1] === '#') end -= 1;
+  if (end === 0) return undefined;
+  const before = text[end - 1];
+  if (end < text.length && (before === ' ' || before === '\t')) text = text.slice(0, end).trimEnd();
+  return text === '' ? undefined : text;
+}
+
 interface BodyFacts {
   heading: string | undefined;
   tasks: PageTask[];
+  clipped: boolean;
+}
+
+function isClosingFence(marker: string, rest: string, open: string): boolean {
+  return marker[0] === open[0] && marker.length >= open.length && rest.trim() === '';
 }
 
 function readBody(body: string, firstLine: number): BodyFacts {
   const tasks: PageTask[] = [];
+  const seen = new Map<string, number>();
   let heading: string | undefined;
   let fence: string | undefined;
+  let inComment = false;
+  let clipped = false;
   const lines = body.split('\n');
   for (let index = 0; index < lines.length; index += 1) {
     const line = (lines[index] as string).replace(/\r$/, '');
-    if (line.startsWith(COMMENT_TRAILER_OPEN)) break;
-    const marker = FENCE_RE.exec(line)?.[1];
-    if (marker !== undefined) {
+    if (line.length > MAX_LINE_CHARS) continue;
+    if (inComment) {
+      inComment = !line.includes('-->');
+      continue;
+    }
+    const fenceMatch = FENCE_RE.exec(line);
+    if (fenceMatch !== null) {
+      const marker = fenceMatch[1] as string;
       if (fence === undefined) {
         fence = marker;
-      } else if (marker[0] === fence[0] && marker.length >= fence.length) {
+      } else if (isClosingFence(marker, fenceMatch[2] ?? '', fence)) {
         fence = undefined;
       }
       continue;
     }
     if (fence !== undefined) continue;
-    heading ??= HEADING_RE.exec(line)?.[1];
+    if (line.trimStart().startsWith('<!--')) {
+      inComment = !line.includes('-->');
+      continue;
+    }
+    heading ??= headingText(line);
     const task = TASK_RE.exec(line);
-    if (task === null || tasks.length >= MAX_TASKS_PER_PAGE) continue;
+    if (task === null) continue;
+    if (tasks.length >= MAX_TASKS_PER_PAGE) {
+      clipped = true;
+      continue;
+    }
     const text = clipText((task[2] as string).trim());
+    const ordinal = seen.get(text) ?? 0;
+    seen.set(text, ordinal + 1);
     tasks.push({
+      id: taskId(text, ordinal),
       text,
       done: task[1] !== ' ',
       line: firstLine + index,
       mentions: mentionsIn(text),
     });
   }
-  return { heading, tasks };
+  return { heading, tasks, clipped };
 }
 
-export function pageFacts(path: string, markdown: string): PageFacts {
+function titleOf(fields: Record<string, FieldValue>, heading: string | undefined): string {
+  const given = Object.hasOwn(fields, 'title') ? fields.title : undefined;
+  if (typeof given === 'number') return String(given);
+  if (typeof given === 'string' && given.trim() !== '') return given.trim();
+  return heading ?? '';
+}
+
+export function pageFacts(path: string, source: string): PageFacts {
+  const markdown = source.startsWith('\uFEFF') ? source.slice(1) : source;
   const docName = docNameForPath(path) ?? path;
-  const { body } = stripFrontmatter(markdown);
-  const prefix = markdown.slice(0, markdown.length - body.length);
+  const stripped = stripFrontmatter(markdown);
+  const prefix = markdown.slice(0, markdown.length - stripped.body.length);
   const firstLine = prefix.split('\n').length;
-  const fields = fieldsOf(markdown);
-  const { heading, tasks } = readBody(body, firstLine);
-  const given = typeof fields.title === 'string' ? fields.title.trim() : '';
-  const title = given !== '' ? given : (heading ?? docName.slice(docName.lastIndexOf('/') + 1));
-  return { docName, title: clipText(title), fields, tasks };
+  const read = fieldsOf(markdown);
+  const body = readBody(splitCommentTrailer(stripped.body).body, firstLine);
+  const title = titleOf(read.fields, body.heading) || docName.slice(docName.lastIndexOf('/') + 1);
+  return {
+    docName,
+    title: clipText(title),
+    fields: read.fields,
+    tasks: body.tasks,
+    clipped: read.clipped || body.clipped,
+  };
 }
 
 export function pageObject(page: ScannedPage<PageFacts>): PageObject {
@@ -152,12 +243,38 @@ export interface ObjectList {
   truncated: boolean;
 }
 
-export function listObjects(pages: readonly ScannedPage<PageFacts>[]): ObjectList {
-  const interesting = pages.filter(
-    (page) => Object.keys(page.value.fields).length > 0 || page.value.tasks.length > 0,
-  );
+export function listObjects(
+  pages: readonly ScannedPage<PageFacts>[],
+  maxBytes: number = MAX_RESPONSE_BYTES,
+): ObjectList {
+  const listed: PageObject[] = [];
+  let bytes = 0;
+  let truncated = false;
+  for (const page of pages) {
+    if (Object.keys(page.value.fields).length === 0 && page.value.tasks.length === 0) continue;
+    const next = pageObject(page);
+    bytes += compactJson(next).length;
+    if (listed.length >= MAX_LISTED_OBJECTS || bytes > maxBytes) {
+      truncated = true;
+      break;
+    }
+    listed.push(next);
+  }
+  return { pages: listed, truncated };
+}
+
+export interface ObjectListCache {
+  body: (pages: readonly ScannedPage<PageFacts>[]) => string;
+}
+
+export function createObjectListCache(): ObjectListCache {
+  let last: { pages: readonly ScannedPage<PageFacts>[]; body: string } | undefined;
   return {
-    pages: interesting.slice(0, MAX_LISTED_OBJECTS).map(pageObject),
-    truncated: interesting.length > MAX_LISTED_OBJECTS,
+    body: (pages) => {
+      if (last === undefined || last.pages !== pages) {
+        last = { pages, body: JSON.stringify(listObjects(pages)) };
+      }
+      return last.body;
+    },
   };
 }
