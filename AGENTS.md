@@ -2,8 +2,7 @@
 
 GitQuire is a fork of OpenKnowledge. The rules below are inherited from upstream, with these GitQuire overrides:
 
-- Pull requests are welcome in this repository. The "Public Mirror Rules" and the release automation described under "Changesets" apply to upstream OpenKnowledge, not to GitQuire.
-- Changesets are not required in GitQuire.
+- Pull requests are welcome in this repository. Upstream's mirror rules and changeset-driven releases do not apply to GitQuire, and changesets are not required.
 - `upstream` is `https://github.com/inkeep/open-knowledge`. Keep GitQuire-specific code in separate modules where possible so upstream merges stay cheap.
 - CI lives in `.github/workflows/docker.yml`: it builds the Docker image, smoke-tests it, and publishes it to `ghcr.io` from `main`.
 
@@ -85,28 +84,10 @@ If `pnpm run lint` fails on a comment, the diagnostic names the class, the fix, 
 
 Shell scripts are declared in scope by `no-comments.config.jsonc`, but the sweep that reads the hash grammars is not part of this mirror, so `pnpm run lint` here checks the JavaScript and TypeScript families only. A `.sh` file is gated upstream; the same policy applies to it, and a reviewer will hold it to that.
 
-## Public Mirror Rules
+## Dependencies
 
-- This repo is generated from an allowlist. Do not rely on hidden source-only folders being present.
-- Do not open pull requests here. Report bugs and feature requests as detailed issues using `CONTRIBUTING.md`. Maintainers publish changes through the mirror; its sync pull requests are automation.
-- Top-level public docs such as `README.md`, `CONTRIBUTING.md`, and `AGENTS.md` are overlay files. Keep them public-safe and standalone.
-- Do not add secrets, private customer context, internal-only specs, local paths, or generated debug artifacts.
 - Keep dependency updates paired with `pnpm-lock.yaml`. Run `pnpm run notices` when third-party notices may change.
-
-## Changesets
-
-Every behavior-changing PR ships a `.changeset/<kebab-name>.md` file. The body becomes the user-facing entry on the next beta's GitHub Release and on the stable Release notes — that's how npm consumers and desktop auto-update users learn what changed. Write release-note copy, not a commit-message reprise.
-
-- Create one with `pnpm run changeset`, or hand-write a file named `.changeset/<descriptive-kebab-slug>.md`.
-- Use a name no shipped changeset has used. A stable that carried the name counts it as released, so the new notes would never appear; the PR check refuses the file and asks for a rename.
-- Front-matter: at minimum `'@inkeep/open-knowledge': patch`. OpenKnowledge follows semver with a **pre-1.0 shift-down**: while we're below `1.0.0`, what semver would call a major (breaking API change) is encoded as `minor`, and what semver would call a minor (new feature) is encoded as `patch`. Most changesets are `patch`. `minor` is rare — reserve it for large API contract changes or large feature additions. **Never declare `major` pre-1.0** (see the `"//"` line in `.changeset/config.json`).
-
-**Changelog authoring and review.** Use one short sentence for the user-visible outcome; a second only for a necessary qualification or upgrade action. Maximum 50 words per changeset body, across paragraphs and bullets. Omit implementation details, internal identifiers and exhaustive edge cases; link migration instructions. Reviewers check accuracy, required actions and brevity; request technical detail in docs. Never split one explanation across changesets to evade the budget.
-
-- Don't write inline references to sibling-package versions (e.g. `@inkeep/open-knowledge-core@0.5.0-beta.6`) — the fixed-group lock-step bumps are computed at release time and any number you'd write would be wrong.
-- Skip changesets for docs-only edits, test-only edits, or CI-only edits that don't change runtime behavior.
-
-Cadence: merging a PR with a changeset triggers a beta publish within minutes via the event-driven `release.yml` on the public mirror.
+- Do not add secrets, private customer context, local paths, or generated debug artifacts.
 
 ## Before Finishing
 

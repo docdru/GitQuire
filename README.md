@@ -23,6 +23,10 @@ docker run --rm -p 8080:8080 \
 # then open http://localhost:8080
 ```
 
+> **Warning:** phase 1 has no sign-in. With `OK_ALLOW_EXTERNAL=1`, anyone who can reach the port can
+> read and edit everything. Until GitHub sign-in lands, keep it on localhost or put it behind an
+> authenticating proxy or VPN.
+
 Behind a real domain, also set `OK_EXTERNAL_URL=https://your.domain`. Run exactly one container per
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
 
