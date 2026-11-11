@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils';
 
 import { type PlacedThread, placeThreads, readThreads, writeThreads } from './editor-threads';
 import {
-  addReply,
   type Author,
+  addReply,
   canModify,
   compareThreads,
   createThread,
