@@ -12293,3 +12293,60 @@ msgstr "Alejar"
 
 msgid "Zoom Out"
 msgstr "Alejar"
+
+msgid "Could not load branches"
+msgstr ""
+
+msgid "Switched to {branch}"
+msgstr ""
+
+msgid "Unsaved changes block the switch"
+msgstr ""
+
+msgid "Could not switch to {branch}"
+msgstr ""
+
+msgid "Switch everyone to"
+msgstr ""
+
+msgid "New branch…"
+msgstr ""
+
+msgid "Open pull request…"
+msgstr ""
+
+msgid "Open pull requests"
+msgstr ""
+
+msgid "Switch to {target}?"
+msgstr ""
+
+msgid "Everyone editing this space moves to that branch."
+msgstr ""
+
+msgid "Switch"
+msgstr ""
+
+msgid "New branch"
+msgstr ""
+
+msgid "Everyone moves to the new branch once it is created."
+msgstr ""
+
+msgid "Starts from {from}. Everyone moves to the new branch once it is created."
+msgstr ""
+
+msgid "Create and switch"
+msgstr ""
+
+msgid "Opened pull request #{number}"
+msgstr ""
+
+msgid "Open pull request"
+msgstr ""
+
+msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgstr ""
+
+msgid "Opening…"
+msgstr ""
