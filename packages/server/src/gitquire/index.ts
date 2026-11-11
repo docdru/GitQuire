@@ -11,8 +11,10 @@ import {
   startInstallationTokenManager,
 } from './github-app.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
+import { createGitHubPullsClient } from './github-pulls.ts';
 import { setSessionPrincipalResolver } from './principal-directory.ts';
 import { bootstrapRepository, ensureAutoSyncMode, parseAutoSyncMode } from './repo-bootstrap.ts';
+import { createGitQuireRoutes } from './routes.ts';
 
 export type { AccessGate, SessionUser } from './access-gate.ts';
 export { noreplyEmail } from './access-gate.ts';
@@ -110,5 +112,41 @@ export function initProjectWithCli(cliArgs: readonly string[]): (dir: string) =>
       [...cliArgs.slice(1), 'init', '--no-mcp', '--no-skills', '--local-only'],
       { cwd: dir, stdio: 'inherit', windowsHide: true },
     );
+  };
+}
+
+const INTERACTIVE_RETRY_DELAYS_MS = [500, 2000] as const;
+
+export function createGitQuireHttp(
+  env: Env,
+  options: {
+    projectDir: string;
+    gate: AccessGate | undefined;
+    tokens: InstallationTokenManager | undefined;
+    log: GateLogger;
+  },
+): AccessGate {
+  const appConfig = options.tokens === undefined ? undefined : resolveGitHubAppConfig(env);
+  const pulls =
+    appConfig === undefined || options.tokens === undefined
+      ? undefined
+      : createGitHubPullsClient(appConfig.repo, {
+          token: options.tokens.current,
+          apiUrl: appConfig.githubApiUrl,
+          retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
+        });
+  const routes = createGitQuireRoutes({
+    projectDir: options.projectDir,
+    log: options.log,
+    pulls,
+    baseBranch: appConfig?.branch,
+    sessionUser: options.gate?.sessionUser,
+  });
+  const gate = options.gate;
+  return {
+    handleRequest: (req, res) =>
+      (gate?.handleRequest(req, res) ?? false) || routes.handle(req, res),
+    admitUpgrade: (req, socket) => gate?.admitUpgrade(req, socket) ?? true,
+    sessionUser: (req) => gate?.sessionUser(req),
   };
 }

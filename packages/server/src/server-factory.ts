@@ -5965,6 +5965,7 @@ export function createServer(options: ServerOptions): ServerInstance {
                 try {
                   switchReconciledBaseScope(newBranch);
                   conflicts.setBranch(newBranch);
+                  syncEngine?.updateCurrentBranch(newBranch);
                   hydrateStaleExternalWrites();
                   branchTransition = await derivedDocumentIndex.beginBranchSwitch(newBranch);
 
