@@ -6,6 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
 import { BetaBadge } from '@/components/BetaBadge';
 import { GitQuireBranchMenu } from '@/components/GitQuireBranchMenu';
+import { GitQuireBrokenLinks } from '@/components/GitQuireBrokenLinks';
 import {
   HEADER_OVERFLOW_SLACK_PX,
   HeaderOverflowActions,
@@ -287,6 +288,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
             <WebProjectName />
             <GitQuireBranchMenu />
             <MentionInbox />
+            <GitQuireBrokenLinks />
           </>
         )}
       </div>
