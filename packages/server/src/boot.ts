@@ -45,7 +45,11 @@ import {
   describeGitPreflightFailure,
   emitPreflightFailureSpan,
 } from './git-preflight-telemetry.ts';
-import { createAccessGateFromEnv } from './gitquire/index.ts';
+import {
+  createAccessGateFromEnv,
+  startGitHubAppTokensFromEnv,
+  withGitHubAppToken,
+} from './gitquire/index.ts';
 import { createShellHeaderSetter } from './http/shell-csp.ts';
 import {
   attachCollabClientCounter,
@@ -309,6 +313,7 @@ async function bootServerInner(
 
   const ingressPolicy = buildIngressPolicy({ serverRuntime });
   const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log);
+  const gitHubAppTokens = await startGitHubAppTokensFromEnv(process.env, log);
   if (
     serverRuntime.allowExternal &&
     !serverRuntime.loopbackOnly &&
@@ -429,7 +434,7 @@ async function bootServerInner(
     lockKind,
     capabilities: opts.reactShellDistDir ? ['http', 'ws', 'ui'] : ['http', 'ws'],
     skipStateManifestCheck: opts.skipStateManifestCheck,
-    detectGh: opts.detectGh,
+    detectGh: withGitHubAppToken(gitHubAppTokens, opts.detectGh),
     detectGhAccounts: opts.detectGhAccounts,
     tokenStore: opts.tokenStore,
     agentIntegrations: opts.agentIntegrations,

@@ -256,7 +256,12 @@ export {
   emitPreflightFailureSpan,
   GIT_PREFLIGHT_FAIL_SPAN_NAME,
 } from './git-preflight-telemetry.ts';
-export { GitHubAuthConfigError } from './gitquire/index.ts';
+export {
+  GitHubAppConfigError,
+  GitHubAuthConfigError,
+  initProjectWithCli,
+  runGitQuireBootstrap,
+} from './gitquire/index.ts';
 export {
   createOsProbe,
   type ExecFileLike,
