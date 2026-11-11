@@ -14,8 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { AsyncState } from '@/hooks/use-folder-config';
 import { useIsEmbedded } from '@/hooks/use-is-embedded';
-import { useAskAiAvailable } from '@/lib/gitquire/features';
 import { emitCreateTopLevelFile } from '@/lib/create-file-events';
+import { useAskAiAvailable } from '@/lib/gitquire/features';
 import { cn } from '@/lib/utils';
 
 interface CreateViewProps {
