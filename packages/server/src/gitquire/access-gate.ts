@@ -3,7 +3,11 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import type { PinoLogger } from '../logger.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
-import { type GitQuirePrincipal, principalIdForGitHubUser } from './principal-directory.ts';
+import {
+  type GitQuirePrincipal,
+  principalIdForGitHubUser,
+  sanitizeDisplayName,
+} from './principal-directory.ts';
 import {
   decodeSigned,
   encodeSigned,
@@ -150,7 +154,7 @@ export function principalFromUser(user: SessionUser): GitQuirePrincipal {
   return {
     id: principalIdForGitHubUser(user.id),
     login: user.login,
-    name: user.name,
+    name: sanitizeDisplayName(user.name, user.login),
     email: noreplyEmail(user),
   };
 }

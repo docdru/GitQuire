@@ -19,6 +19,14 @@ let resolver: SessionResolver | undefined;
 const known = new Map<string, GitQuirePrincipal>();
 const pendingEdits = new Map<string, number>();
 
+export function sanitizeDisplayName(raw: string, fallback: string): string {
+  const cleaned = raw
+    .replace(/[\u0000-\u001f\u007f<>]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned === '' ? fallback : cleaned;
+}
+
 export function principalIdForGitHubUser(githubUserId: number): string {
   return `github-${githubUserId}`;
 }
@@ -96,7 +104,10 @@ export function withCoAuthorTrailers(
 ): string {
   const coAuthors = authors.slice(1);
   if (coAuthors.length === 0) return message;
-  const trailers = coAuthors.map((author) => `Co-authored-by: ${author.name} <${author.email}>`);
+  const trailers = coAuthors.map(
+    (author) =>
+      `Co-authored-by: ${sanitizeDisplayName(author.name, author.login)} <${author.email}>`,
+  );
   return `${message}\n\n${trailers.join('\n')}`;
 }
 
@@ -105,5 +116,8 @@ export function commitAuthorEnv(
 ): Record<string, string> | undefined {
   const primary = authors.at(0);
   if (primary === undefined) return undefined;
-  return { GIT_AUTHOR_NAME: primary.name, GIT_AUTHOR_EMAIL: primary.email };
+  return {
+    GIT_AUTHOR_NAME: sanitizeDisplayName(primary.name, primary.login),
+    GIT_AUTHOR_EMAIL: primary.email,
+  };
 }

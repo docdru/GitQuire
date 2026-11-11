@@ -7,6 +7,7 @@ import {
   type GitQuirePrincipal,
   principalIdForGitHubUser,
   rememberPrincipal,
+  sanitizeDisplayName,
   resetPrincipalDirectory,
   restoreCommitAuthors,
   sessionPrincipal,
@@ -99,6 +100,34 @@ describe('commit authors', () => {
     );
     expect(withCoAuthorTrailers('Auto-save: Updated plan.md', [bob, alice])).toBe(
       'Auto-save: Updated plan.md\n\nCo-authored-by: Alice A <42+alice@users.noreply.github.com>',
+    );
+  });
+});
+
+describe('display name hardening', () => {
+  it('strips line breaks, control characters and angle brackets', () => {
+    expect(sanitizeDisplayName('Eve\nCo-authored-by: Mallory <m@x>', 'eve')).toBe(
+      'Eve Co-authored-by: Mallory m@x',
+    );
+    expect(sanitizeDisplayName('  Ada\t Lovelace\r ', 'ada')).toBe('Ada Lovelace');
+    expect(sanitizeDisplayName('\n\u0007', 'ada')).toBe('ada');
+  });
+
+  it('keeps injected names out of commit trailers and author env', () => {
+    const eve: GitQuirePrincipal = {
+      id: principalIdForGitHubUser(9),
+      login: 'eve',
+      name: 'Eve\nSigned-off-by: Admin <admin@example.com>',
+      email: '9+eve@users.noreply.github.com',
+    };
+    const message = withCoAuthorTrailers('Auto-save: x', [alice, eve]);
+    expect(message.split('\n')).toEqual([
+      'Auto-save: x',
+      '',
+      'Co-authored-by: Eve Signed-off-by: Admin admin@example.com <9+eve@users.noreply.github.com>',
+    ]);
+    expect(commitAuthorEnv([eve])?.GIT_AUTHOR_NAME).toBe(
+      'Eve Signed-off-by: Admin admin@example.com',
     );
   });
 });
