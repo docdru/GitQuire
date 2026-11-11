@@ -132,6 +132,17 @@ Build the image yourself:
 docker build -t gitquire:local .
 ```
 
+## Page names and links
+
+GitQuire keeps file names link-friendly: when you create or rename a page or folder, the new name
+is turned into lowercase words joined by hyphens, so *Meeting Notes 2026* is saved as
+`meeting-notes-2026.md`. A new page keeps what you typed as its `# Title`. Existing folders keep
+their names, and names starting with `.` or `_` are left alone. Set `GITQUIRE_NAMING=off` to keep
+names exactly as typed.
+
+Links don't break: `[[Meeting Notes 2026]]` finds `meeting-notes-2026.md`, renames and moves
+rewrite the links that point at the page, and the backlinks panel shows who links where.
+
 ## Discussions
 
 Select text and choose **Discuss** to start a thread. Teammates reply, mention each other with

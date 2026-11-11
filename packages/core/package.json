@@ -35,6 +35,12 @@
       "types": "./dist/gitquire-comment-threads.d.mts",
       "default": "./dist/gitquire-comment-threads.mjs"
     },
+    "./gitquire/naming": {
+      "@inkeep/source": "./src/gitquire/naming.ts",
+      "development": "./src/gitquire/naming.ts",
+      "types": "./dist/gitquire-naming.d.mts",
+      "default": "./dist/gitquire-naming.mjs"
+    },
     "./server": {
       "@inkeep/source": "./src/server.ts",
       "development": "./src/server.ts",

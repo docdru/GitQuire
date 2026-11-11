@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
+import { namingRuleFromEnv } from './naming.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -16,6 +17,7 @@ export interface GitQuireRoutesDeps {
   baseBranch?: string;
   sessionUser?: (req: IncomingMessage) => SessionUser | undefined;
   runGit?: RunGit;
+  env?: Readonly<Record<string, string | undefined>>;
 }
 
 export interface GitQuireRoutes {
@@ -225,6 +227,10 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     const method = req.method ?? 'GET';
     if (method !== 'GET' && method !== 'HEAD' && !isSameOrigin(req)) {
       throw new HttpError(403, 'cross-origin', 'Cross-origin requests are not allowed.');
+    }
+    if (path === '/api/gitquire/naming' && method === 'GET') {
+      sendJson(res, 200, { rule: namingRuleFromEnv(deps.env) });
+      return;
     }
     if (path === '/api/gitquire/branches' && method === 'GET') return listBranches(res);
     if (path === '/api/gitquire/branches' && method === 'POST') return createBranch(req, res);

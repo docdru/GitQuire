@@ -4,6 +4,7 @@ const entry = {
   index: 'src/index.ts',
   'git-repository': 'src/git-repository.ts',
   'gitquire-comment-threads': 'src/gitquire/comment-threads.ts',
+  'gitquire-naming': 'src/gitquire/naming.ts',
   'shadow-repo-layout': 'src/shadow-repo-layout.ts',
   'skill-folder-state': 'src/skill-folder-state.ts',
   server: 'src/server.ts',

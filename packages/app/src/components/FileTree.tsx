@@ -209,6 +209,7 @@ import {
   subscribeToFileTreeMenuActionRename,
 } from '@/lib/file-tree-menu-action-events';
 import { importTemplate } from '@/lib/folder-config-api';
+import { loadNamingRule, nameLastSegment } from '@/lib/gitquire/naming';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { parseServerResponse, parseSuccessOrWarn } from '@/lib/parse-server-response';
 import { revealInFileManagerLabel, trashNounLabel } from '@/lib/platform-labels';
@@ -795,6 +796,9 @@ export interface FileTreeHandle {
 }
 
 export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
+  useEffect(() => {
+    void loadNamingRule();
+  }, []);
   const { t, i18n } = useLingui();
   const {
     activeDocName,
@@ -1704,11 +1708,15 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
     setError(null);
 
     try {
-      const validation = validateAndCoerceRenameDestination(
+      const coerced = validateAndCoerceRenameDestination(
         event.sourcePath,
         event.destinationPath,
         event.isFolder,
       );
+      const validation = {
+        ...coerced,
+        destinationPath: nameLastSegment(coerced.destinationPath, !event.isFolder),
+      };
       const documentBecomesFile =
         !event.isFolder &&
         !sourceIsAsset &&
