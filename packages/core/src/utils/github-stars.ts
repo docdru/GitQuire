@@ -1,4 +1,4 @@
-const REPO_API_URL = 'https://api.github.com/repos/inkeep/open-knowledge';
+const REPO_API_URL = 'https://api.github.com/repos/docdru/GitQuire';
 
 export async function getGitHubStars(init?: RequestInit): Promise<number | null> {
   const { signal: callerSignal, ...restInit } = init ?? {};
@@ -9,7 +9,7 @@ export async function getGitHubStars(init?: RequestInit): Promise<number | null>
     const res = await fetch(REPO_API_URL, {
       headers: {
         accept: 'application/vnd.github+json',
-        'user-agent': 'openknowledge.ai',
+        'user-agent': 'GitQuire',
       },
       ...restInit,
       signal,
