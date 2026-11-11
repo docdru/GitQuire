@@ -46,7 +46,9 @@ describe('session principals', () => {
   });
 
   it('reads the session cookie from a live-editing auth payload', () => {
-    setSessionPrincipalResolver((req) => (req.headers.cookie === 'gq_session=a' ? alice : undefined));
+    setSessionPrincipalResolver((req) =>
+      req.headers.cookie === 'gq_session=a' ? alice : undefined,
+    );
     const fetchStyle = { request: { headers: new Headers({ cookie: 'gq_session=a' }) } };
     const nodeStyle = { request: { headers: { cookie: 'gq_session=a' } } };
     const headersBag = { requestHeaders: new Headers({ cookie: 'gq_session=a' }) };
