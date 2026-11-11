@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { chmodSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { GateLogger } from './access-gate.ts';
 import { safeEqual } from './signed-cookie.ts';
@@ -164,9 +164,6 @@ export function createAgentTokenStore(deps: AgentTokenStoreDeps): AgentTokenStor
     const tmp = `${deps.file}.tmp`;
     writeFileSync(tmp, `${JSON.stringify(body, null, 2)}\n`, { mode: 0o600 });
     renameSync(tmp, deps.file);
-    try {
-      chmodSync(deps.file, 0o600);
-    } catch {}
   }
 
   function persistSoon(): void {
