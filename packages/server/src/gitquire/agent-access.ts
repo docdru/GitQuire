@@ -79,11 +79,14 @@ export function startAccessSweep(
     }
     return revoked;
   }
-  const timer = setInterval(() => {
-    runOnce().catch((err: unknown) => {
-      deps.log.warn({ err }, '[gitquire-agents] access check failed');
-    });
-  }, deps.intervalMs ?? 10 * 60 * 1000);
+  const timer = setInterval(
+    () => {
+      runOnce().catch((err: unknown) => {
+        deps.log.warn({ err }, '[gitquire-agents] access check failed');
+      });
+    },
+    deps.intervalMs ?? 10 * 60 * 1000,
+  );
   timer.unref?.();
   return { runOnce, stop: () => clearInterval(timer) };
 }

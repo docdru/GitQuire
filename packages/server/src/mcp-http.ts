@@ -4,9 +4,9 @@ import { displayNameFromClientName } from '@inkeep/open-knowledge-core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { validateAgentId } from './agent-id.ts';
-import { bindAgentConnection, requestPrincipal } from './gitquire/principal-directory.ts';
 import type { Config } from './config/schema.ts';
 import { MCP_SERVER_NAME } from './constants.ts';
+import { bindAgentConnection, requestPrincipal } from './gitquire/principal-directory.ts';
 import type { LocalApiDispatch } from './http/local-api-dispatch.ts';
 import {
   type AgentIdentity,
