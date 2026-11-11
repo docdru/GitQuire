@@ -1988,6 +1988,9 @@ msgstr "項目符號清單"
 msgid "Bullet List"
 msgstr "項目符號清單"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "依語意"
 
@@ -4874,6 +4877,9 @@ msgstr "強制重新載入"
 msgid "Force stop"
 msgstr "強制停止"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "排版看起來不對"
 
@@ -5100,6 +5106,9 @@ msgstr "有合併衝突"
 msgid "Having a look around…"
 msgstr "四處看看…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "標題 1"
 
@@ -5172,6 +5181,9 @@ msgstr "已隱藏資料夾「{basename}」"
 
 msgid "Hide"
 msgstr "隱藏"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "隱藏 {0} 編輯器"
@@ -5475,6 +5487,9 @@ msgstr "位於此儲存庫中——協作者會透過 git 取得副本。"
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "位於你的主目錄中——此電腦上的每個專案，僅限你自己。"
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "增加或減少清單項目縮排"
@@ -5983,6 +5998,9 @@ msgstr "為選取的文字加上連結，或編輯游標處的連結。"
 
 msgid "Link these skill folders?"
 msgstr "要連結這兩個技能資料夾嗎？"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "連到某個頁面或外部 URL。"
@@ -7797,6 +7815,9 @@ msgstr "其他安裝方式"
 
 msgid "Other ways to install Slidev"
 msgstr "安裝 Slidev 的其他方式"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "連出"

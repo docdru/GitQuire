@@ -159,6 +159,14 @@ export function principalFromUser(user: SessionUser): GitQuirePrincipal {
   };
 }
 
+const PUBLIC_ASSET_PATHS = new Set(['/manifest.webmanifest', '/favicon.svg']);
+const PUBLIC_ICON_RE = /^\/icons\/[a-z0-9-]+\.(?:png|svg)$/;
+
+export function isPublicAsset(path: string, method: string | undefined): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false;
+  return PUBLIC_ASSET_PATHS.has(path) || PUBLIC_ICON_RE.test(path);
+}
+
 export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps): AccessGate {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
@@ -437,6 +445,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   function handleRequest(req: IncomingMessage, res: ServerResponse): boolean {
     const { path, search } = pathOf(req);
     if (path === '/healthz' || path === '/readyz') return false;
+    if (isPublicAsset(path, req.method)) return false;
     if (path.startsWith('/auth/')) {
       handleAuthRoute(req, res, path, search);
       return true;

@@ -83,6 +83,7 @@ import { type DockLayout, dockPaneMinExtent, EMPTY_DOCK_LAYOUT } from '@/lib/doc
 import type { DockNode } from '@/lib/dock-tree';
 import { focusAwayFromHiddenEditor, focusWaitsForEditor } from '@/lib/editor-hidden-focus';
 import { type EditorSidebar, resolveEditorSidebarFit } from '@/lib/editor-sidebar-fit';
+import { useCompactViewport } from '@/lib/gitquire/use-compact-viewport';
 import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isNoteWindow } from '@/lib/note-window-mode';
@@ -667,6 +668,7 @@ function EditorAreaInner({
 
   const [embeddedHost] = useState(() => detectEmbeddedHostFromBrowser());
   const isEmbedded = embeddedHost !== null;
+  const compactViewport = useCompactViewport();
   const [initialRightPartition] = useState(() =>
     resolvePartition(embeddedHost, window.innerWidth, 'right'),
   );
@@ -1432,11 +1434,13 @@ function EditorAreaInner({
       />
     );
   } else if (activeTarget?.kind === 'folder') {
-    const showFolderComposer = shouldShowFolderComposer({
-      terminalVisible,
-      agentsVisible,
-      isEmbedded,
-    });
+    const showFolderComposer =
+      !compactViewport &&
+      shouldShowFolderComposer({
+        terminalVisible,
+        agentsVisible,
+        isEmbedded,
+      });
     viewContent = (
       <div className="relative flex h-full min-h-0 flex-col">
         <div className="relative flex min-h-0 flex-1 flex-col">
@@ -1549,6 +1553,7 @@ function EditorAreaInner({
     }
   } else {
     const showBottomComposer =
+      !compactViewport &&
       shouldShowBottomComposer({
         ...(editorVisible ? { terminalVisible, agentsVisible } : paneVisibilityWhileEditorShown),
         isEmbedded,

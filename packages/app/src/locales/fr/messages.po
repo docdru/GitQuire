@@ -1988,6 +1988,9 @@ msgstr "Liste à puces"
 msgid "Bullet List"
 msgstr "Liste à puces"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "Par le sens"
 
@@ -4874,6 +4877,9 @@ msgstr "Forcer le rechargement"
 msgid "Force stop"
 msgstr "Forcer l'arrêt"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "La mise en forme semblait incorrecte"
 
@@ -5100,6 +5106,9 @@ msgstr "A des conflits de fusion"
 msgid "Having a look around…"
 msgstr "Petit tour d'horizon…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "Titre 1"
 
@@ -5172,6 +5181,9 @@ msgstr "Dossier « {basename} » masqué"
 
 msgid "Hide"
 msgstr "Masquer"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "Masquer l’éditeur de {0}"
@@ -5475,6 +5487,9 @@ msgstr "Dans ce dépôt — les collaborateurs reçoivent les copies via git."
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "Dans votre dossier personnel — tous les projets de cette machine, vous seul."
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "Augmenter ou réduire le retrait d'un élément de liste"
@@ -5983,6 +5998,9 @@ msgstr "Ajoute un lien au texte sélectionné, ou modifie le lien situé sous le
 
 msgid "Link these skill folders?"
 msgstr "Lier ces dossiers de compétences ?"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "Lien vers une page ou une URL externe."
@@ -7797,6 +7815,9 @@ msgstr "Autres méthodes d'installation"
 
 msgid "Other ways to install Slidev"
 msgstr "Autres méthodes d'installation de Slidev"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "Sortants"

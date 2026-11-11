@@ -47,6 +47,48 @@ jobs:
           curl -fsS http://127.0.0.1:8080/ | grep -qi "<html"
           echo "web app served"
 
+      - name: Seed a sample page
+        run: |
+          set -eu
+          docker exec -i gq sh -c 'cat > /data/welcome.md' <<'MD'
+          # Welcome to GitQuire
+
+          This page is a **sample** used for layout screenshots. It links to [[Meeting notes]] and has a list:
+
+          - Quarterly numbers look good
+          - Next review on Friday
+          - [ ] Prepare the agenda
+
+          > Quotes, `code` and tables should all stay readable on a phone.
+
+          | Owner | Task | Due |
+          | --- | --- | --- |
+          | Alice | Draft report | Mon |
+          | Bob | Review | Wed |
+          MD
+          sleep 3
+
+      - name: Capture layout screenshots
+        continue-on-error: true
+        run: |
+          set -eu
+          mkdir -p /tmp/shots && cd /tmp/shots
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@1.63.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          cp "$GITHUB_WORKSPACE/.github/scripts/screenshots.mjs" .
+          SCREENSHOT_DIR=/tmp/shots/out SCREENSHOT_LOG=1 node screenshots.mjs
+
+      - name: Upload layout screenshots
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: layout-screenshots
+          path: /tmp/shots/out
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Smoke test with GitHub sign-in enabled
         run: |
           set -eu
@@ -69,6 +111,9 @@ jobs:
           api=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/api/config)
           echo "GET /api/config -> $api"
           test "$api" = 401
+          manifest=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/manifest.webmanifest)
+          echo "GET /manifest.webmanifest -> $manifest"
+          test "$manifest" = 200
           login=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://127.0.0.1:8081/auth/github/login)
           echo "GET /auth/github/login -> $login"
           case "$login" in "302 https://github.com/login/oauth/authorize?client_id=Iv1.smoke"*) ;; *) exit 1 ;; esac
