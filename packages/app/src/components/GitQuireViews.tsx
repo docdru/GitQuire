@@ -3,6 +3,7 @@ import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { ArrowDown, ArrowUp, Columns3, LayoutList } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,9 +32,12 @@ import { hashFromDocName } from '@/lib/doc-hash';
 import {
   EMPTY_TABLE_VIEW,
   fetchObjects,
+  fieldOf,
   fieldText,
   filterPages,
   MODIFIED_COLUMN,
+  NO_VALUE,
+  normalizeTableView,
   type ObjectList,
   type PageObject,
   readTableView,
@@ -43,12 +47,11 @@ import {
   type TableView,
   TITLE_COLUMN,
   tableColumns,
+  writeTableView,
 } from '@/lib/gitquire/objects';
 import { revealEditor } from '@/lib/reveal-editor';
 
 const TABLE_VIEW_STORAGE_KEY = 'gitquire.views.table';
-const SELECT_CLASS =
-  'h-8 max-w-48 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
 const MAX_ROWS = 500;
 
 function loadTableView(): TableView {
@@ -61,9 +64,12 @@ function loadTableView(): TableView {
 
 function storeTableView(view: TableView): void {
   try {
-    window.localStorage.setItem(TABLE_VIEW_STORAGE_KEY, JSON.stringify(view));
+    window.localStorage.setItem(TABLE_VIEW_STORAGE_KEY, writeTableView(view));
   } catch {}
 }
+
+const HEAD_CLASS = 'sticky top-0 z-10 bg-popover normal-case';
+const MENU_CLASS = 'max-h-80 w-auto min-w-48 max-w-72 overflow-y-auto';
 
 function SortButton({
   label,
@@ -99,21 +105,44 @@ function sortState(view: TableView, column: string): 'ascending' | 'descending' 
 
 function ObjectTable({
   pages,
-  view,
+  saved,
   onChange,
   onOpen,
 }: {
   pages: PageObject[];
-  view: TableView;
+  saved: TableView;
   onChange: (next: TableView) => void;
   onOpen: (docName: string) => void;
 }) {
   const { t } = useLingui();
+  const view = normalizeTableView(pages, saved);
   const fields = summarizeFields(pages);
   const columns = tableColumns(pages, view);
-  const choices = view.filterKey === '' ? [] : summarizeChoices(pages, view.filterKey);
   const rows = sortPages(filterPages(pages, view), view);
   const shown = rows.slice(0, MAX_ROWS);
+  const shownCount = shown.length;
+  const rowCount = rows.length;
+
+  if (fields.length === 0) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        {t`No page has properties yet. Open a page, choose "Add properties" and give it for example a type and a status. It then shows up here.`}
+      </p>
+    );
+  }
+
+  const propertyChoices: Choice[] = [
+    { value: '', label: t`All pages with properties` },
+    ...fields.map((field) => ({ value: field.key, label: field.key })),
+  ];
+  const valueChoices: Choice[] = [
+    { value: '', label: t`Any value` },
+    { value: NO_VALUE, label: t`No value` },
+    ...summarizeChoices(pages, view.filterKey).map((choice) => ({
+      value: choice.value,
+      label: choice.value,
+    })),
+  ];
 
   function sortBy(column: string) {
     const descending = view.sortKey === column ? !view.descending : false;
@@ -128,35 +157,19 @@ function ObjectTable({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <select
-          className={SELECT_CLASS}
-          aria-label={t`Filter by field`}
+        <ChoiceSelect
+          label={t`Filter by property`}
           value={view.filterKey}
-          onChange={(event) =>
-            onChange({ ...view, filterKey: event.target.value, filterValue: '' })
-          }
-        >
-          <option value="">{t`All pages with fields`}</option>
-          {fields.map((field) => (
-            <option key={field.key} value={field.key}>
-              {field.key}
-            </option>
-          ))}
-        </select>
+          choices={propertyChoices}
+          onChange={(filterKey) => onChange({ ...view, filterKey, filterValue: '' })}
+        />
         {view.filterKey !== '' && (
-          <select
-            className={SELECT_CLASS}
-            aria-label={t`Field value`}
+          <ChoiceSelect
+            label={t`Property value`}
             value={view.filterValue}
-            onChange={(event) => onChange({ ...view, filterValue: event.target.value })}
-          >
-            <option value="">{t`No value`}</option>
-            {choices.map((choice) => (
-              <option key={choice.value} value={choice.value}>
-                {choice.value} ({choice.pages})
-              </option>
-            ))}
-          </select>
+            choices={valueChoices}
+            onChange={(filterValue) => onChange({ ...view, filterValue })}
+          />
         )}
         <Input
           type="search"
@@ -173,7 +186,7 @@ function ObjectTable({
               {t`Columns`}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
+          <DropdownMenuContent align="end" className={MENU_CLASS}>
             {fields.map((field) => (
               <DropdownMenuCheckboxItem
                 key={field.key}
@@ -181,64 +194,75 @@ function ObjectTable({
                 onCheckedChange={(checked) => toggleColumn(field.key, checked === true)}
                 onSelect={(event) => event.preventDefault()}
               >
-                {field.key}
+                <span className="truncate">{field.key}</span>
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead aria-sort={sortState(view, TITLE_COLUMN)}>
-                <SortButton label={t`Page`} column={TITLE_COLUMN} view={view} onSort={sortBy} />
-              </TableHead>
-              {columns.map((column) => (
-                <TableHead key={column} aria-sort={sortState(view, column)}>
-                  <SortButton label={column} column={column} view={view} onSort={sortBy} />
+      {rowCount === 0 ? (
+        <p className="text-muted-foreground text-sm">{t`Nothing matches the filter.`}</p>
+      ) : (
+        <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
+          <Table containerClassName="overflow-visible">
+            <TableHeader>
+              <TableRow>
+                <TableHead className={HEAD_CLASS} aria-sort={sortState(view, TITLE_COLUMN)}>
+                  <SortButton label={t`Page`} column={TITLE_COLUMN} view={view} onSort={sortBy} />
                 </TableHead>
-              ))}
-              <TableHead aria-sort={sortState(view, MODIFIED_COLUMN)}>
-                <SortButton
-                  label={t`Changed`}
-                  column={MODIFIED_COLUMN}
-                  view={view}
-                  onSort={sortBy}
-                />
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {shown.map((page) => (
-              <TableRow key={page.docName}>
-                <TableCell>
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="h-auto max-w-72 justify-start whitespace-normal p-0 text-start"
-                    onClick={() => onOpen(page.docName)}
-                  >
-                    {page.title}
-                  </Button>
-                </TableCell>
                 {columns.map((column) => (
-                  <TableCell key={column} className="max-w-64 truncate">
-                    {fieldText(page.fields[column])}
-                  </TableCell>
+                  <TableHead
+                    key={column}
+                    className={HEAD_CLASS}
+                    aria-sort={sortState(view, column)}
+                  >
+                    <SortButton label={column} column={column} view={view} onSort={sortBy} />
+                  </TableHead>
                 ))}
-                <TableCell className="whitespace-nowrap text-muted-foreground">
-                  {formatRelativeAge(page.modified)}
-                </TableCell>
+                <TableHead className={HEAD_CLASS} aria-sort={sortState(view, MODIFIED_COLUMN)}>
+                  <SortButton
+                    label={t`Changed`}
+                    column={MODIFIED_COLUMN}
+                    view={view}
+                    onSort={sortBy}
+                  />
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {shown.map((page) => (
+                <TableRow key={page.docName}>
+                  <TableCell>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto max-w-72 justify-start whitespace-normal p-0 text-start"
+                      onClick={() => onOpen(page.docName)}
+                    >
+                      {page.title}
+                    </Button>
+                  </TableCell>
+                  {columns.map((column) => {
+                    const text = fieldText(fieldOf(page, column));
+                    return (
+                      <TableCell key={column} className="max-w-64 truncate" title={text}>
+                        {text}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
+                    {formatRelativeAge(page.modified)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
       <p className="text-muted-foreground text-xs">
-        {rows.length > shown.length
-          ? t`Showing the first ${shown.length} of ${rows.length} pages. Filter to narrow the list.`
-          : plural(rows.length, { one: '# page', other: '# pages' })}
+        {rowCount > shownCount
+          ? t`Showing the first ${shownCount} of ${rowCount} pages. Filter to narrow the list.`
+          : plural(rowCount, { one: '# page', other: '# pages' })}
       </p>
     </div>
   );
@@ -249,6 +273,7 @@ export function GitQuireViews() {
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<ObjectList | null>(null);
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [view, setView] = useState<TableView>(loadTableView);
 
   useEffect(() => {
@@ -267,9 +292,14 @@ export function GitQuireViews() {
     return () => {
       live = false;
     };
-  }, [open]);
+  }, [open, attempt]);
 
   const loading = list === null && !failed;
+
+  function changeOpen(next: boolean) {
+    if (next) setFailed(false);
+    setOpen(next);
+  }
 
   function changeView(next: TableView) {
     setView(next);
@@ -288,13 +318,14 @@ export function GitQuireViews() {
         type="button"
         variant="ghost"
         size="icon-sm"
+        className="hidden sm:inline-flex"
         aria-label={t`Views`}
-        onClick={() => setOpen(true)}
+        onClick={() => changeOpen(true)}
         data-testid="views-toggle"
       >
         <LayoutList aria-hidden="true" />
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={changeOpen}>
         <DialogContent className="h-[calc(100dvh-2rem)] sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>{t`Views`}</DialogTitle>
@@ -303,7 +334,22 @@ export function GitQuireViews() {
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="flex min-h-0 flex-1 flex-col gap-3">
-            {failed && <p className="text-destructive text-sm">{t`Couldn't load the pages.`}</p>}
+            {failed && (
+              <p className="flex items-center gap-2 text-destructive text-sm">
+                {t`Couldn't load the pages.`}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFailed(false);
+                    setAttempt(attempt + 1);
+                  }}
+                >
+                  {t`Try again`}
+                </Button>
+              </p>
+            )}
             {loading && <p className="text-muted-foreground text-sm">{t`Loading…`}</p>}
             {list?.truncated === true && (
               <p className="text-muted-foreground text-xs">
@@ -311,7 +357,12 @@ export function GitQuireViews() {
               </p>
             )}
             {list !== null && (
-              <ObjectTable pages={list.pages} view={view} onChange={changeView} onOpen={openPage} />
+              <ObjectTable
+                pages={list.pages}
+                saved={view}
+                onChange={changeView}
+                onOpen={openPage}
+              />
             )}
           </DialogBody>
         </DialogContent>

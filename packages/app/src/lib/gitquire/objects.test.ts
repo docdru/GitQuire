@@ -8,13 +8,17 @@ import {
   fieldText,
   filterPages,
   MODIFIED_COLUMN,
+  NO_VALUE,
+  normalizeTableView,
   type PageObject,
   readTableView,
   sortPages,
   summarizeChoices,
   summarizeFields,
   type TableView,
+  TITLE_COLUMN,
   tableColumns,
+  writeTableView,
 } from './objects';
 
 function page(docName: string, fields: PageObject['fields'], modified = '2026-11-10'): PageObject {
@@ -89,7 +93,9 @@ describe('table', () => {
     expect(tasks).toHaveLength(3);
     const web = filterPages(pages, view({ filterKey: 'tags', filterValue: 'web' }));
     expect(names(web)).toEqual(['tasks/pricing']);
-    const noStatus = filterPages(pages, view({ filterKey: 'status', filterValue: '' }));
+    const anyStatus = filterPages(pages, view({ filterKey: 'status', filterValue: '' }));
+    expect(anyStatus).toHaveLength(3);
+    const noStatus = filterPages(pages, view({ filterKey: 'status', filterValue: NO_VALUE }));
     expect(names(noStatus)).toEqual(['tasks/unsorted']);
     expect(names(filterPages(pages, view({ search: ' ALICE ' })))).toEqual(['tasks/landing']);
     expect(names(filterPages(pages, view({ search: 'hosting' })))).toEqual(['decisions/hosting']);
@@ -108,9 +114,41 @@ describe('table', () => {
     expect(compareCells('item 2', 'item 10')).toBeLessThan(0);
   });
 
-  test('uses the chosen columns that still exist, else the most common fields', () => {
+  test('sorts negative and decimal numbers by value', () => {
+    const numbers = [
+      page('a', { n: -5 }),
+      page('b', { n: -10 }),
+      page('c', { n: 1.5 }),
+      page('d', { n: 1.25 }),
+    ];
+    expect(names(sortPages(numbers, view({ sortKey: 'n' })))).toEqual(['b', 'a', 'd', 'c']);
+  });
+
+  test('treats property names that objects inherit like any other name', () => {
+    const odd = [page('a', { type: 'task' }), page('b', { type: 'task', toString: 'yes' })];
+    expect(summarizeChoices(odd, 'toString')).toEqual([{ value: 'yes', pages: 1 }]);
+    expect(names(sortPages(odd, view({ sortKey: 'toString' })))).toEqual(['b', 'a']);
+    const missing = filterPages(odd, view({ filterKey: 'toString', filterValue: NO_VALUE }));
+    expect(names(missing)).toEqual(['a']);
+    expect(fieldText(Object.prototype.toString as unknown as string)).toBe('');
+  });
+
+  test('drops a saved filter, value or sort column that the pages no longer have', () => {
+    const gone = { filterKey: 'gone', filterValue: 'x', sortKey: 'gone' };
+    const stale = view({ ...gone, columns: ['owner'] });
+    expect(normalizeTableView(pages, stale)).toEqual(view({ columns: ['owner'] }));
+    const staleValue = view({ filterKey: 'status', filterValue: 'Archived', sortKey: 'tags' });
+    expect(normalizeTableView(pages, staleValue)).toEqual(
+      view({ filterKey: 'status', filterValue: '', sortKey: TITLE_COLUMN }),
+    );
+    const fine = view({ filterKey: 'status', filterValue: NO_VALUE, sortKey: 'status' });
+    expect(normalizeTableView(pages, fine)).toEqual(fine);
+  });
+
+  test('uses the chosen columns that still exist, and the most common ones by default', () => {
     expect(tableColumns(pages, view({ columns: ['owner', 'gone'] }))).toEqual(['owner']);
-    expect(tableColumns(pages, view({ columns: ['gone'] }))).toEqual(defaultColumns(pages));
+    expect(tableColumns(pages, view({ columns: [] }))).toEqual([]);
+    expect(tableColumns(pages, EMPTY_TABLE_VIEW)).toEqual(defaultColumns(pages));
   });
 
   test('restores a saved view and survives bad data', () => {
@@ -119,6 +157,8 @@ describe('table', () => {
       view({ filterKey: 'type', filterValue: 'task', columns: ['owner'] }),
     );
     expect(readTableView('{broken')).toEqual(EMPTY_TABLE_VIEW);
+    const typed = view({ search: 'typing', columns: ['owner'] });
+    expect(readTableView(writeTableView(typed))).toEqual(view({ columns: ['owner'] }));
     expect(readTableView(null)).toEqual(EMPTY_TABLE_VIEW);
   });
 });

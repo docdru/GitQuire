@@ -9,6 +9,7 @@ export type FieldValue =
   | { [key: string]: FieldValue };
 
 export interface PageTask {
+  id: string;
   text: string;
   done: boolean;
   line: number;
@@ -22,6 +23,7 @@ export interface PageObject {
   modified: string;
   fields: Record<string, FieldValue>;
   tasks: PageTask[];
+  clipped?: boolean;
 }
 
 export interface ObjectList {
@@ -38,13 +40,17 @@ export function fieldText(value: FieldValue | undefined): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'number') return String(value);
   if (typeof value === 'boolean') return value ? 'true' : 'false';
-  if (Array.isArray(value)) return value.map(fieldText).join(', ');
-  return JSON.stringify(value);
+  if (Array.isArray(value)) return value.map((item) => fieldText(item)).join(', ');
+  return JSON.stringify(value) ?? '';
+}
+
+export function fieldOf(page: PageObject, key: string): FieldValue | undefined {
+  return Object.hasOwn(page.fields, key) ? page.fields[key] : undefined;
 }
 
 export function fieldChoices(value: FieldValue | undefined): string[] {
   if (Array.isArray(value)) {
-    return value.map(fieldText).filter((text) => text !== '');
+    return value.map((item) => fieldText(item)).filter((text) => text !== '');
   }
   const text = fieldText(value);
   return text === '' ? [] : [text];
@@ -59,6 +65,7 @@ export function summarizeFields(pages: readonly PageObject[]): FieldSummary[] {
   const counts = new Map<string, number>();
   for (const page of pages) {
     for (const key of Object.keys(page.fields)) {
+      if (fieldChoices(fieldOf(page, key)).length === 0) continue;
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
   }
@@ -75,7 +82,7 @@ export interface ChoiceSummary {
 export function summarizeChoices(pages: readonly PageObject[], key: string): ChoiceSummary[] {
   const counts = new Map<string, number>();
   for (const page of pages) {
-    for (const choice of new Set(fieldChoices(page.fields[key]))) {
+    for (const choice of new Set(fieldChoices(fieldOf(page, key)))) {
       counts.set(choice, (counts.get(choice) ?? 0) + 1);
     }
   }
@@ -86,6 +93,7 @@ export function summarizeChoices(pages: readonly PageObject[], key: string): Cho
 
 export const TITLE_COLUMN = '@title';
 export const MODIFIED_COLUMN = '@modified';
+export const NO_VALUE = '@none';
 
 export interface TableView {
   filterKey: string;
@@ -93,7 +101,7 @@ export interface TableView {
   search: string;
   sortKey: string;
   descending: boolean;
-  columns: string[];
+  columns: string[] | null;
 }
 
 export const EMPTY_TABLE_VIEW: TableView = {
@@ -102,13 +110,19 @@ export const EMPTY_TABLE_VIEW: TableView = {
   search: '',
   sortKey: TITLE_COLUMN,
   descending: false,
-  columns: [],
+  columns: null,
 };
 
-function cellText(page: PageObject, column: string): string {
-  if (column === TITLE_COLUMN) return page.title;
-  if (column === MODIFIED_COLUMN) return page.modified;
-  return fieldText(page.fields[column]);
+export function hasFields(page: PageObject): boolean {
+  return Object.keys(page.fields).some((key) => fieldChoices(fieldOf(page, key)).length > 0);
+}
+
+export function matchesFilter(page: PageObject, filterKey: string, filterValue: string): boolean {
+  if (filterKey === '') return true;
+  const choices = fieldChoices(fieldOf(page, filterKey));
+  if (filterValue === '') return choices.length > 0;
+  if (filterValue === NO_VALUE) return choices.length === 0;
+  return choices.includes(filterValue);
 }
 
 function matchesSearch(page: PageObject, wanted: string): boolean {
@@ -124,16 +138,12 @@ function matchesSearch(page: PageObject, wanted: string): boolean {
 
 export function filterPages(pages: readonly PageObject[], view: TableView): PageObject[] {
   const wanted = view.search.trim().toLowerCase();
-  return pages.filter((page) => {
-    if (Object.keys(page.fields).length === 0) return false;
-    if (view.filterKey !== '') {
-      const choices = fieldChoices(page.fields[view.filterKey]);
-      if (view.filterValue === '' ? choices.length === 0 : !choices.includes(view.filterValue)) {
-        return false;
-      }
-    }
-    return matchesSearch(page, wanted);
-  });
+  return pages.filter(
+    (page) =>
+      hasFields(page) &&
+      matchesFilter(page, view.filterKey, view.filterValue) &&
+      matchesSearch(page, wanted),
+  );
 }
 
 export function compareCells(a: string, b: string): number {
@@ -143,14 +153,28 @@ export function compareCells(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 }
 
+function sortValue(page: PageObject, column: string): FieldValue | undefined {
+  if (column === TITLE_COLUMN) return page.title;
+  if (column === MODIFIED_COLUMN) return page.modified;
+  return fieldOf(page, column);
+}
+
 export function sortPages(pages: readonly PageObject[], view: TableView): PageObject[] {
   const direction = view.descending ? -1 : 1;
   return [...pages].sort((a, b) => {
-    const left = cellText(a, view.sortKey);
-    const right = cellText(b, view.sortKey);
-    const order = compareCells(left, right);
-    const directed = left === '' || right === '' ? order : direction * order;
-    return directed || a.docName.localeCompare(b.docName);
+    const left = sortValue(a, view.sortKey);
+    const right = sortValue(b, view.sortKey);
+    const leftText = fieldText(left);
+    const rightText = fieldText(right);
+    let order: number;
+    if (leftText === '' || rightText === '') {
+      order = compareCells(leftText, rightText);
+    } else if (typeof left === 'number' && typeof right === 'number') {
+      order = direction * (left - right);
+    } else {
+      order = direction * compareCells(leftText, rightText);
+    }
+    return order || a.docName.localeCompare(b.docName);
   });
 }
 
@@ -162,9 +186,25 @@ export function defaultColumns(pages: readonly PageObject[], limit = 5): string[
 }
 
 export function tableColumns(pages: readonly PageObject[], view: TableView): string[] {
+  if (view.columns === null) return defaultColumns(pages);
   const known = new Set(summarizeFields(pages).map((field) => field.key));
-  const chosen = view.columns.filter((column) => known.has(column));
-  return chosen.length > 0 ? chosen : defaultColumns(pages);
+  return view.columns.filter((column) => known.has(column));
+}
+
+export function normalizeTableView(pages: readonly PageObject[], view: TableView): TableView {
+  const known = new Set(summarizeFields(pages).map((field) => field.key));
+  const filterKey = known.has(view.filterKey) ? view.filterKey : '';
+  const values = new Set(summarizeChoices(pages, filterKey).map((choice) => choice.value));
+  const knownValue = view.filterValue === NO_VALUE || values.has(view.filterValue);
+  const keepValue = filterKey !== '' && knownValue;
+  const columns = tableColumns(pages, view);
+  const sortable = view.sortKey === TITLE_COLUMN || view.sortKey === MODIFIED_COLUMN;
+  return {
+    ...view,
+    filterKey,
+    filterValue: keepValue ? view.filterValue : '',
+    sortKey: sortable || columns.includes(view.sortKey) ? view.sortKey : TITLE_COLUMN,
+  };
 }
 
 export function readTableView(raw: string | null): TableView {
@@ -183,9 +223,13 @@ export function readTableView(raw: string | null): TableView {
       descending: saved.descending === true,
       columns: Array.isArray(saved.columns)
         ? saved.columns.filter((column): column is string => typeof column === 'string')
-        : [],
+        : null,
     };
   } catch {
     return EMPTY_TABLE_VIEW;
   }
+}
+
+export function writeTableView(view: TableView): string {
+  return JSON.stringify({ ...view, search: '' });
 }
