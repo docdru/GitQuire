@@ -28,6 +28,13 @@ import { cn } from '@/lib/utils';
 import { docNameToRelativePath } from '@/lib/workspace-paths';
 
 const HEIGHT_RESERVE_PX = 56;
+const MAX_INPUT_HEIGHT_PX = 200;
+
+function fitHeight(input: HTMLTextAreaElement | null): void {
+  if (input === null) return;
+  input.style.height = 'auto';
+  input.style.height = `${Math.min(input.scrollHeight, MAX_INPUT_HEIGHT_PX)}px`;
+}
 
 export function GitQuireAskClaude({
   docName,
@@ -64,13 +71,6 @@ export function GitQuireAskClaude({
     };
   }, [dismissed, folderMode]);
 
-  useEffect(() => {
-    const input = inputRef.current;
-    if (input === null) return;
-    input.style.height = 'auto';
-    input.style.height = `${Math.min(input.scrollHeight, 200)}px`;
-  }, [text]);
-
   const labels: Record<ClaudeDestination, string> = {
     'claude-web': t`Claude on the web or phone`,
     'claude-app': t`Claude desktop app`,
@@ -93,6 +93,7 @@ export function GitQuireAskClaude({
     const prompt = buildClaudePrompt({ wikiUrl: window.location.origin, target, request: text });
     openClaudeLink(claudeLink(destination, prompt));
     setText('');
+    if (inputRef.current !== null) inputRef.current.style.height = 'auto';
     toast.success(t`Claude opened with your request. Check it there and press send.`);
   };
 
@@ -110,7 +111,10 @@ export function GitQuireAskClaude({
           maxLength={MAX_REQUEST_CHARS}
           aria-label={t`Ask Claude`}
           placeholder={placeholder}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => {
+            setText(event.target.value);
+            fitHeight(event.target);
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
