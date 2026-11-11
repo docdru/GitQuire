@@ -3,6 +3,8 @@ import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { ArrowDown, ArrowUp, Columns3, LayoutList } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { ActionItemList, ObjectBoard } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +30,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { currentAuthor } from '@/gitquire-comments/ui-store';
 import { hashFromDocName } from '@/lib/doc-hash';
+import {
+  type BoardView,
+  EMPTY_BOARD_VIEW,
+  movePage,
+  readBoardView,
+  setPageField,
+} from '@/lib/gitquire/board';
 import {
   EMPTY_TABLE_VIEW,
   fetchObjects,
@@ -52,6 +63,8 @@ import {
 import { revealEditor } from '@/lib/reveal-editor';
 
 const TABLE_VIEW_STORAGE_KEY = 'gitquire.views.table';
+const BOARD_VIEW_STORAGE_KEY = 'gitquire.views.board';
+const TAB_CLASS = 'flex min-h-0 flex-1 flex-col';
 const MAX_ROWS = 500;
 
 function loadTableView(): TableView {
@@ -68,27 +81,22 @@ function storeTableView(view: TableView): void {
   } catch {}
 }
 
+function loadBoardView(): BoardView {
+  try {
+    return readBoardView(window.localStorage.getItem(BOARD_VIEW_STORAGE_KEY));
+  } catch {
+    return EMPTY_BOARD_VIEW;
+  }
+}
+
+function storeBoardView(view: BoardView): void {
+  try {
+    window.localStorage.setItem(BOARD_VIEW_STORAGE_KEY, JSON.stringify(view));
+  } catch {}
+}
+
 const HEAD_CLASS = 'sticky top-0 z-10 bg-popover normal-case';
 const MENU_CLASS = 'max-h-80 w-auto min-w-48 max-w-72 overflow-y-auto';
-
-function loadObjects(
-  onList: (list: ObjectList) => void,
-  onFailed: (failed: boolean) => void,
-): () => void {
-  let live = true;
-  onFailed(false);
-  fetchObjects().then(
-    (next) => {
-      if (live) onList(next);
-    },
-    () => {
-      if (live) onFailed(true);
-    },
-  );
-  return () => {
-    live = false;
-  };
-}
 
 function SortButton({
   label,
@@ -292,12 +300,30 @@ export function GitQuireViews() {
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<ObjectList | null>(null);
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [view, setView] = useState<TableView>(loadTableView);
+  const [boardView, setBoardView] = useState<BoardView>(loadBoardView);
+  const [tab, setTab] = useState('table');
+  const [moving, setMoving] = useState<ReadonlySet<string>>(() => new Set<string>());
+  const [me, setMe] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    return loadObjects(setList, setFailed);
-  }, [open]);
+    let live = true;
+    fetchObjects().then(
+      (next) => {
+        if (!live) return;
+        setList(next);
+        setFailed(false);
+      },
+      () => {
+        if (live) setFailed(true);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [open, attempt]);
 
   const loading = list === null && !failed;
 
@@ -306,9 +332,57 @@ export function GitQuireViews() {
     setOpen(next);
   }
 
+  useEffect(() => {
+    if (!open || me !== null) return;
+    let live = true;
+    currentAuthor().then(
+      (author) => {
+        if (live && author.login !== undefined) setMe(author.login);
+      },
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, [open, me]);
+
   function changeView(next: TableView) {
     setView(next);
     storeTableView(next);
+  }
+
+  function changeBoardView(next: BoardView) {
+    setBoardView(next);
+    storeBoardView(next);
+  }
+
+  function setMovingPage(docName: string, on: boolean) {
+    setMoving((current) => {
+      const next = new Set(current);
+      if (on) {
+        next.add(docName);
+      } else {
+        next.delete(docName);
+      }
+      return next;
+    });
+  }
+
+  function move(docName: string, key: string, value: string) {
+    setList((current) => {
+      if (current === null) return current;
+      return { ...current, pages: movePage(current.pages, docName, key, value) };
+    });
+    setMovingPage(docName, true);
+    setPageField(docName, key, value)
+      .then(
+        () => undefined,
+        () => {
+          toast.error(t`Couldn't move the page. The board was reloaded.`);
+          setAttempt((count) => count + 1);
+        },
+      )
+      .finally(() => setMovingPage(docName, false));
   }
 
   function openPage(docName: string) {
@@ -335,7 +409,7 @@ export function GitQuireViews() {
           <DialogHeader>
             <DialogTitle>{t`Views`}</DialogTitle>
             <DialogDescription>
-              {t`Pages with properties, as a table. Add properties to a page to list it here.`}
+              {t`Pages with properties as a table or a board, and the action items of all pages.`}
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="flex min-h-0 flex-1 flex-col gap-3">
@@ -347,7 +421,8 @@ export function GitQuireViews() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    loadObjects(setList, setFailed);
+                    setFailed(false);
+                    setAttempt((count) => count + 1);
                   }}
                 >
                   {t`Try again`}
@@ -361,12 +436,34 @@ export function GitQuireViews() {
               </p>
             )}
             {list !== null && (
-              <ObjectTable
-                pages={list.pages}
-                saved={view}
-                onChange={changeView}
-                onOpen={openPage}
-              />
+              <Tabs value={tab} onValueChange={setTab} className="min-h-0 flex-1">
+                <TabsList>
+                  <TabsTrigger value="table">{t`Table`}</TabsTrigger>
+                  <TabsTrigger value="board">{t`Board`}</TabsTrigger>
+                  <TabsTrigger value="actions">{t`Action items`}</TabsTrigger>
+                </TabsList>
+                <TabsContent value="table" className={TAB_CLASS}>
+                  <ObjectTable
+                    pages={list.pages}
+                    saved={view}
+                    onChange={changeView}
+                    onOpen={openPage}
+                  />
+                </TabsContent>
+                <TabsContent value="board" className={TAB_CLASS}>
+                  <ObjectBoard
+                    pages={list.pages}
+                    view={boardView}
+                    moving={moving}
+                    onChange={changeBoardView}
+                    onOpen={openPage}
+                    onMove={move}
+                  />
+                </TabsContent>
+                <TabsContent value="actions" className={TAB_CLASS}>
+                  <ActionItemList pages={list.pages} me={me} onOpen={openPage} />
+                </TabsContent>
+              </Tabs>
             )}
           </DialogBody>
         </DialogContent>
