@@ -12,12 +12,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { fetchPages, filterPages, type PageItem } from '@/editor/extensions/wiki-link-suggestion';
-import {
-  type LinkPickerItem,
-  linkAttrsFor,
-  linkPickerItems,
-  linkPlacement,
-} from './link-picker';
+import { type LinkPickerItem, linkAttrsFor, linkPickerItems, linkPlacement } from './link-picker';
 import { useKeyboardInset } from './viewport';
 
 export interface LinkPickerTarget {
