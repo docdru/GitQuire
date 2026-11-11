@@ -77,7 +77,7 @@ jobs:
           npm install --no-audit --no-fund playwright@1.63.0 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
           cp "$GITHUB_WORKSPACE/.github/scripts/screenshots.mjs" .
-          SCREENSHOT_DIR=/tmp/shots/out node screenshots.mjs
+          SCREENSHOT_DIR=/tmp/shots/out SCREENSHOT_LOG=1 node screenshots.mjs
 
       - name: Upload layout screenshots
         if: always()

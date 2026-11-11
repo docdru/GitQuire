@@ -17,8 +17,18 @@ async function settle(page) {
   await page.waitForTimeout(1500);
 }
 
+const printToLog = process.env.SCREENSHOT_LOG === '1';
+
 async function shoot(page, name) {
   await page.screenshot({ path: `${out}/${name}.png`, fullPage: false });
+  if (printToLog) {
+    const small = await page.screenshot({ type: 'jpeg', quality: 45, scale: 'css' });
+    console.log(`::group::screenshot ${name}`);
+    console.log(`SCREENSHOT-BEGIN ${name}`);
+    console.log(small.toString('base64'));
+    console.log(`SCREENSHOT-END ${name}`);
+    console.log('::endgroup::');
+  }
   console.log(`captured ${name}`);
 }
 
