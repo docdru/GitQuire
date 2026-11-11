@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-import { type PlacedThread, placeThreads, readThreads, writeThreads } from './editor-threads';
+import { type PlacedThread, placeThreads, readThreads } from './editor-threads';
 import {
   type Author,
   addReply,
@@ -25,6 +25,7 @@ import {
   type Thread,
   type ThreadComment,
 } from './thread-ops';
+import { writeAndTrack } from './thread-sync';
 import {
   clearDraft,
   closeDiscussions,
@@ -64,20 +65,12 @@ async function opContext(): Promise<OpContext> {
   return { author, now: () => new Date(), newId };
 }
 
-function commit(editor: Editor, threads: readonly Thread[]): boolean {
-  if (editor.isDestroyed) return false;
-  const tr = writeThreads(editor.state, threads);
-  if (tr === undefined) return false;
-  editor.view.dispatch(tr);
-  return true;
-}
-
 type ThreadChange = (threads: Thread[], ctx: OpContext) => Thread[];
 
 async function applyChange(editor: Editor, change: ThreadChange): Promise<void> {
   const ctx = await opContext();
   if (editor.isDestroyed) throw new Error('The editor closed before the comment was saved.');
-  commit(editor, change(readThreads(editor.state.doc), ctx));
+  writeAndTrack(editor, change(readThreads(editor.state.doc), ctx));
 }
 
 function MentionText({ body }: { body: string }) {
@@ -357,7 +350,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       return;
     }
     const created = createThread(readThreads(editor.state.doc), draft.anchor, body, ctx);
-    if (!commit(editor, created.threads)) return;
+    if (!writeAndTrack(editor, created.threads)) return;
     setDraftBody('');
     clearDraft();
     setActiveThread(created.thread.id);

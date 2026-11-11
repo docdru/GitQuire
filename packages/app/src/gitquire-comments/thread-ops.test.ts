@@ -1,9 +1,17 @@
 import { MarkdownManager } from '@inkeep/open-knowledge-core';
+import { GITQUIRE_COMMENTS_NODE } from '@inkeep/open-knowledge-core/extensions/gitquire-comments';
 import { sharedExtensions } from '@inkeep/open-knowledge-core/extensions/shared';
+import { serializeCommentTrailer } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { getSchema } from '@tiptap/core';
 import { EditorState } from '@tiptap/pm/state';
 import { describe, expect, test } from 'vitest';
-import { anchorFromSelection, placeThreads, readThreads, writeThreads } from './editor-threads';
+import {
+  anchorFromSelection,
+  countTrailers,
+  placeThreads,
+  readThreads,
+  writeThreads,
+} from './editor-threads';
 import {
   addReply,
   createThread,
@@ -125,6 +133,23 @@ describe('editor storage', () => {
     const remaining = deleteComment(threads, thread.id, commentId, alice.author);
     const cleared = withThreads(withThread, remaining);
     expect(md.serialize(cleared.doc.toJSON())).toBe('The quarterly numbers look good.\n');
+  });
+
+  test('reads two comment blocks as one and writes them back as one', () => {
+    const state = stateFor('The quarterly numbers look good.\n');
+    const first = createThread([], anchor, 'From Alice', alice).threads;
+    const second = createThread([], { exact: 'look good' }, 'From Bob', bob).threads;
+    const one = withThreads(state, first);
+    const type = one.schema.nodes[GITQUIRE_COMMENTS_NODE];
+    if (type === undefined) throw new Error('expected the comments node type');
+    const block = type.create({ raw: serializeCommentTrailer(second) });
+    const two = one.apply(one.tr.insert(one.doc.content.size, block));
+    expect(countTrailers(two.doc)).toBe(2);
+    const all = readThreads(two.doc);
+    expect(all.map((thread) => thread.comments[0]?.body)).toEqual(['From Alice', 'From Bob']);
+    const merged = withThreads(two, all);
+    expect(countTrailers(merged.doc)).toBe(1);
+    expect(readThreads(merged.doc)).toEqual(all);
   });
 
   test('anchors a selection and finds it again after edits', () => {

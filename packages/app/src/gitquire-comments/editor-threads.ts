@@ -10,6 +10,7 @@ import {
 import type { Node as PMNode } from '@tiptap/pm/model';
 import type { EditorState, Transaction } from '@tiptap/pm/state';
 import { captureSelectionContext, createAnchorResolver } from '@/comments/anchor-search';
+import { mergeThreads } from './thread-merge';
 import type { Anchor, Thread } from './thread-ops';
 
 interface TrailerLocation {
@@ -17,27 +18,41 @@ interface TrailerLocation {
   node: PMNode;
 }
 
-function findTrailer(doc: PMNode): TrailerLocation | undefined {
-  let found: TrailerLocation | undefined;
+function findTrailers(doc: PMNode): TrailerLocation[] {
+  const found: TrailerLocation[] = [];
   doc.forEach((node, offset) => {
-    if (found === undefined && node.type.name === GITQUIRE_COMMENTS_NODE) {
-      found = { pos: offset, node };
-    }
+    if (node.type.name === GITQUIRE_COMMENTS_NODE) found.push({ pos: offset, node });
   });
   return found;
+}
+
+export function countTrailers(doc: PMNode): number {
+  return findTrailers(doc).length;
 }
 
 const parsedCache = new WeakMap<PMNode, Thread[]>();
 
 const NO_THREADS: Thread[] = [];
 
-export function readThreads(doc: PMNode): Thread[] {
-  const trailer = findTrailer(doc);
-  if (trailer === undefined) return NO_THREADS;
-  const cached = parsedCache.get(trailer.node);
+function parseTrailer(node: PMNode): Thread[] {
+  const cached = parsedCache.get(node);
   if (cached !== undefined) return cached;
-  const threads = parseCommentTrailer(String(trailer.node.attrs.raw ?? '')).threads;
-  parsedCache.set(trailer.node, threads);
+  const threads = parseCommentTrailer(String(node.attrs.raw ?? '')).threads;
+  parsedCache.set(node, threads);
+  return threads;
+}
+
+export function readThreads(doc: PMNode): Thread[] {
+  const [first, ...duplicates] = findTrailers(doc);
+  if (first === undefined) return NO_THREADS;
+  if (duplicates.length === 0) return parseTrailer(first.node);
+  const cached = parsedCache.get(doc);
+  if (cached !== undefined) return cached;
+  let threads = parseTrailer(first.node);
+  for (const duplicate of duplicates) {
+    threads = mergeThreads([], parseTrailer(duplicate.node), threads);
+  }
+  parsedCache.set(doc, threads);
   return threads;
 }
 
@@ -48,21 +63,25 @@ export function writeThreads(
   const type = state.schema.nodes[GITQUIRE_COMMENTS_NODE];
   if (type === undefined) return undefined;
   const raw = serializeCommentTrailer(threads);
-  const trailer = findTrailer(state.doc);
+  const [first, ...duplicates] = findTrailers(state.doc);
   const tr = state.tr;
+  for (const duplicate of duplicates.reverse()) {
+    tr.delete(duplicate.pos, duplicate.pos + duplicate.node.nodeSize);
+  }
   if (raw === undefined) {
-    if (trailer === undefined) return undefined;
-    tr.delete(trailer.pos, trailer.pos + trailer.node.nodeSize);
+    if (first === undefined) return undefined;
+    tr.delete(first.pos, first.pos + first.node.nodeSize);
     tr.setMeta(ALLOW_COMMENT_TRAILER_REMOVAL, true);
     return tr;
   }
-  if (trailer === undefined) {
+  if (first === undefined) {
     tr.insert(state.doc.content.size, type.create({ raw }));
     return tr;
   }
-  if (trailer.node.attrs.raw === raw) return undefined;
-  tr.setNodeMarkup(trailer.pos, undefined, { ...trailer.node.attrs, raw });
-  return tr;
+  if (first.node.attrs.raw !== raw) {
+    tr.setNodeMarkup(first.pos, undefined, { ...first.node.attrs, raw });
+  }
+  return tr.docChanged ? tr : undefined;
 }
 
 export function anchorFromSelection(doc: PMNode, from: number, to: number): Anchor | undefined {
