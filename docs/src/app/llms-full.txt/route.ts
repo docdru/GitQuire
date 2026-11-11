@@ -2,7 +2,7 @@ import { getLLMText } from '@/lib/get-llm-text';
 import { markdownResponse } from '@/lib/markdown-response';
 import { source } from '@/lib/source';
 
-export const revalidate = false;
+export const dynamic = 'force-static';
 
 export async function GET() {
   const pages = source.getPages();

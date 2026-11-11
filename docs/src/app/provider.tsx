@@ -1,15 +1,17 @@
 'use client';
 import { RootProvider } from 'fumadocs-ui/provider/next';
-import dynamic from 'next/dynamic';
 import type { ReactNode } from 'react';
 
-const SearchDialog = dynamic(() => import('@/components/inkeep-search-and-chat'), { ssr: false });
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export function Provider({ children }: { children: ReactNode }) {
   return (
     <RootProvider
       search={{
-        SearchDialog,
+        options: {
+          type: 'static',
+          api: `${basePath}/api/search`,
+        },
       }}
     >
       {children}

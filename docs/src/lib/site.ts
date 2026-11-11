@@ -1,14 +1,15 @@
 import { STABLE_DMG_URL } from './download-links';
 
-export const SITE_URL = 'https://openknowledge.ai';
+export const SITE_URL = 'https://docdru.github.io/GitQuire';
 
 export function absoluteSiteUrl(path: string): string {
-  return new URL(path, SITE_URL).href;
+  return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 }
-export const SITE_NAME = 'OpenKnowledge';
+export const SITE_NAME = 'GitQuire';
 export const TWITTER_HANDLE = '@OpenKnowledge';
 
-export const GITHUB_URL = 'https://github.com/inkeep/open-knowledge';
+export const GITHUB_URL = 'https://github.com/docdru/GitQuire';
+export const UPSTREAM_URL = 'https://github.com/inkeep/open-knowledge';
 export const DISCORD_URL = 'https://discord.gg/VRKk2EaGHN';
 export const CHANGELOG_ROUTE = '/docs/changelog';
 export const LEGAL_ROUTE = '/legal';
@@ -17,9 +18,9 @@ export const PRIVACY_POLICY_ROUTE = `${LEGAL_ROUTE}/privacy-policy`;
 export const CHANGELOG_TIMELINE_LIMIT = 30;
 export const X_URL = `https://x.com/${TWITTER_HANDLE.slice(1)}`;
 export const SITE_DESCRIPTION =
-  'Beautiful, AI-native markdown editor for humans and agents. Build knowledge bases, LLM wikis, and agent 2nd brains.';
+  'A self-hosted, collaborative WYSIWYG Markdown editor for small teams, with every page, link and comment stored in Git.';
 
-export const SITE_HEADLINE = 'Beautiful, AI-native markdown IDE and LLM wiki.';
+export const SITE_HEADLINE = 'Collaborative Markdown pages, stored in Git.';
 
 const DESCRIPTION_MAX = 160;
 

@@ -1,0 +1,37 @@
+---
+title: Repository sync
+icon: LuRefreshCw
+description: Clone the content repository into the container and keep it in sync with GitHub.
+---
+
+With a GitHub App configured, GitQuire clones `GITQUIRE_REPO` into `/data` on first start and keeps
+it in sync: it pulls about every 30 seconds and pushes edits about a minute after people stop
+typing. Each commit is authored by the people who made the edits, using their GitHub name and
+no-reply address, with co-authors listed when several people edited together.
+
+Git authenticates with a **short-lived installation token** for that one repository, which GitQuire
+mints and refreshes itself. No personal token is used and the token is never written to disk.
+
+## Set it up
+
+Use the same GitHub App as for [sign-in](./github-sign-in.mdx). Note its **App ID**, generate a
+**private key** (`.pem`), and make sure the app is installed on the repository with **Contents: read
+and write**. Then add:
+
+```bash
+  -e GITHUB_APP_ID=123456 \
+  -e GITHUB_APP_PRIVATE_KEY_FILE=/run/secrets/gitquire-app.pem \
+  -v /path/on/host/gitquire-app.pem:/run/secrets/gitquire-app.pem:ro \
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `GITHUB_APP_ID` | Turns repository sync on. |
+| `GITHUB_APP_PRIVATE_KEY_FILE` | Path to the private key inside the container (or put the PEM in `GITHUB_APP_PRIVATE_KEY`). |
+| `GITQUIRE_REPO` | The repository to sync, `owner/name`. |
+| `GITQUIRE_BRANCH` | Branch to start on; defaults to the repository's default branch. |
+| `GITQUIRE_SYNC_MODE` | `full` (pull and push, default), `follow` (pull only) or `off`. Applied on first start. |
+
+If GitHub can't be reached at start, GitQuire retries for about five minutes and then exits with
+code 75, so a restart policy can try again. Configuration problems stop it immediately with code 78.
+On an empty repository, GitQuire creates the branch and pushes the first commit.

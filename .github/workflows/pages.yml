@@ -1,0 +1,71 @@
+name: Docs site
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'packages/core/**'
+      - '.github/workflows/pages.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'packages/core/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install the declared Rust toolchain
+        run: rustup toolchain install --no-self-update
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the static site
+        env:
+          DOCS_BASE_PATH: /GitQuire
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: pnpm --dir docs run build
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/out
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
