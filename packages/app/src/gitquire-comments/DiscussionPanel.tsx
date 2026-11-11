@@ -8,9 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-const QUOTE_CLASS = 'line-clamp-2 border-s-2 ps-2 text-start text-muted-foreground text-xs';
-const PANEL_CLASS =
-  'fixed end-0 top-12 bottom-0 z-40 flex w-full flex-col border-s bg-background shadow-lg sm:w-96';
 import { type PlacedThread, placeThreads, readThreads, writeThreads } from './editor-threads';
 import {
   addReply,
@@ -34,6 +31,10 @@ import {
   useDiscussionUi,
 } from './ui-store';
 
+const QUOTE_CLASS = 'line-clamp-2 border-s-2 ps-2 text-start text-muted-foreground text-xs';
+const PANEL_CLASS =
+  'fixed end-0 top-12 bottom-0 z-40 flex w-full flex-col border-s bg-background shadow-lg sm:w-96';
+
 const EMPTY: Thread[] = [];
 
 const ignore = (): undefined => undefined;
@@ -50,7 +51,6 @@ function useThreads(editor: Editor): Thread[] {
     () => EMPTY,
   );
 }
-
 
 function newId(): string {
   return crypto.randomUUID().replace(/-/g, '').slice(0, 12);
@@ -164,11 +164,7 @@ function ThreadCard({
       )}
       data-discussion-thread={thread.id}
     >
-      <button
-        type="button"
-        className={cn(QUOTE_CLASS, 'border-amber-400')}
-        onClick={onSelect}
-      >
+      <button type="button" className={cn(QUOTE_CLASS, 'border-amber-400')} onClick={onSelect}>
         {thread.anchor.exact}
       </button>
       {range === null && (
@@ -232,12 +228,9 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   useEffect(() => {
     if (!isOpen || me !== null) return;
     let live = true;
-    currentAuthor().then(
-      (author) => {
-        if (live) setMe(author);
-      },
-      ignore,
-    );
+    currentAuthor().then((author) => {
+      if (live) setMe(author);
+    }, ignore);
     return () => {
       live = false;
     };
@@ -318,11 +311,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   const resolvedCount = threads.length - openCount;
 
   return (
-    <aside
-      className={PANEL_CLASS}
-      aria-label={t`Discussions`}
-      data-testid="discussion-panel"
-    >
+    <aside className={PANEL_CLASS} aria-label={t`Discussions`} data-testid="discussion-panel">
       <header className="flex items-center gap-2 border-b px-4 py-2">
         <MessagesSquare aria-hidden="true" className="size-4" />
         <h2 className="font-medium text-sm">{t`Discussions`}</h2>
@@ -341,9 +330,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
         {ui.draft !== null && (
           <div className="flex flex-col gap-2 rounded-lg border border-sky-400 p-3">
-            <p className={cn(QUOTE_CLASS, 'border-sky-400')}>
-              {ui.draft.anchor.exact}
-            </p>
+            <p className={cn(QUOTE_CLASS, 'border-sky-400')}>{ui.draft.anchor.exact}</p>
             <Textarea
               rows={3}
               value={draftBody}
