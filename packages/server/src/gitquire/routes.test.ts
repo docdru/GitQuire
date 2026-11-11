@@ -52,7 +52,7 @@ function request(
   return {
     url,
     method: init.method ?? 'GET',
-    headers: { host: 'brain.example.com', ...(init.headers ?? {}) },
+    headers: { host: 'brain.example.com', ...init.headers },
     async *[Symbol.asyncIterator]() {
       yield* chunks;
     },
