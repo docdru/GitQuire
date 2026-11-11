@@ -65,7 +65,7 @@ test.each(['disabled', 'failed-start'])(
       expect(result.content).toEqual([
         expect.objectContaining({
           text: expect.stringContaining(
-            'Do not fall back to native file edits for OpenKnowledge content',
+            'Do not fall back to native file edits for GitQuire content',
           ),
         }),
       ]);

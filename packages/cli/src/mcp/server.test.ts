@@ -41,33 +41,33 @@ describe('findProjectDir', () => {
   });
 
   test('throws with a clear message when no `.ok/config.yml` ancestor exists', () => {
-    expect(() => findProjectDir(tmpDir)).toThrow(/No OpenKnowledge project found/);
+    expect(() => findProjectDir(tmpDir)).toThrow(/No GitQuire project found/);
   });
 
   test('rejects a regular file named `.ok` and keeps walking up', () => {
     writeFileSync(resolve(tmpDir, '.ok'), 'oops');
-    expect(() => findProjectDir(tmpDir)).toThrow(/No OpenKnowledge project found/);
+    expect(() => findProjectDir(tmpDir)).toThrow(/No GitQuire project found/);
   });
 
   test('rejects a dangling symlink at `.ok` and keeps walking up', () => {
     symlinkSync(resolve(tmpDir, 'does-not-exist'), resolve(tmpDir, '.ok'));
-    expect(() => findProjectDir(tmpDir)).toThrow(/No OpenKnowledge project found/);
+    expect(() => findProjectDir(tmpDir)).toThrow(/No GitQuire project found/);
   });
 
   test('rejects an empty `.ok/` directory with no config.yml and keeps walking up', () => {
     mkdirSync(resolve(tmpDir, '.ok'), { recursive: true });
-    expect(() => findProjectDir(tmpDir)).toThrow(/No OpenKnowledge project found/);
+    expect(() => findProjectDir(tmpDir)).toThrow(/No GitQuire project found/);
   });
 
   test('rejects a folder-rule-style `.ok/frontmatter.yml` without config.yml', () => {
     mkdirSync(resolve(tmpDir, '.ok'), { recursive: true });
     writeFileSync(resolve(tmpDir, '.ok', 'frontmatter.yml'), 'title: oops\n', 'utf-8');
-    expect(() => findProjectDir(tmpDir)).toThrow(/No OpenKnowledge project found/);
+    expect(() => findProjectDir(tmpDir)).toThrow(/No GitQuire project found/);
   });
 
   test('rejects a directory at `.ok/config.yml` (not a file) and keeps walking up', () => {
     mkdirSync(resolve(tmpDir, '.ok', 'config.yml'), { recursive: true });
-    expect(() => findProjectDir(tmpDir)).toThrow(/No OpenKnowledge project found/);
+    expect(() => findProjectDir(tmpDir)).toThrow(/No GitQuire project found/);
   });
 
   test('walks past a folder-rule `.ok/` sidecar to the real project root above', () => {
@@ -300,7 +300,7 @@ describe('resolveStickyProjectDir', () => {
     try {
       await expect(
         resolveStickyProjectDir(noOkDir, undefined, async () => undefined),
-      ).rejects.toThrow(/No OpenKnowledge project found/);
+      ).rejects.toThrow(/No GitQuire project found/);
     } finally {
       await rm(noOkDir, { recursive: true, force: true });
     }
@@ -311,7 +311,7 @@ describe('resolveStickyProjectDir', () => {
     try {
       await expect(
         resolveStickyProjectDir(undefined, undefined, async () => noOkDir),
-      ).rejects.toThrow(/No OpenKnowledge project found/);
+      ).rejects.toThrow(/No GitQuire project found/);
     } finally {
       await rm(noOkDir, { recursive: true, force: true });
     }
@@ -322,7 +322,7 @@ describe('resolveStickyProjectDir', () => {
     await rm(goneDir, { recursive: true, force: true });
     await expect(
       resolveStickyProjectDir(undefined, goneDir, async () => undefined),
-    ).rejects.toThrow(/No OpenKnowledge project found/);
+    ).rejects.toThrow(/No GitQuire project found/);
   });
 });
 

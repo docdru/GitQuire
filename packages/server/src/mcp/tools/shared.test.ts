@@ -294,7 +294,7 @@ describe('hocuspocusNotRunningError', () => {
     try {
       vi.stubEnv('OK_CHANNEL', 'stable');
       expect(hocuspocusNotRunningError()).toBe(
-        'Error: Hocuspocus server is not running. Start it with `ok start`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through OpenKnowledge so attribution and live sync stay intact.',
+        'Error: Hocuspocus server is not running. Start it with `ok start`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through GitQuire so attribution and live sync stay intact.',
       );
       vi.stubEnv('OK_CHANNEL', 'beta');
       expect(hocuspocusNotRunningError()).toContain('Start it with `ok-beta start`, then retry.');
@@ -305,7 +305,7 @@ describe('hocuspocusNotRunningError', () => {
 
   test('does not offer a native-edit escape hatch', () => {
     expect(hocuspocusNotRunningError()).toContain('Do not fall back to native file edits');
-    expect(hocuspocusNotRunningError()).toContain('route writes through OpenKnowledge');
+    expect(hocuspocusNotRunningError()).toContain('route writes through GitQuire');
   });
 });
 

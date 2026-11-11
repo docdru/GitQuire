@@ -529,7 +529,7 @@ async function promptSharingMode(
   defaultMode: 'shared' | 'local-only',
 ): Promise<'shared' | 'local-only'> {
   return select<'shared' | 'local-only'>({
-    message: 'How do you want to handle OpenKnowledge config files (.ok/, .mcp.json)?',
+    message: 'How do you want to handle GitQuire config files (.ok/, .mcp.json)?',
     default: defaultMode,
     choices: [
       {
@@ -613,7 +613,7 @@ export class DevMcpScopeError extends Error {
   }
 }
 
-const DEV_CHANNEL_USER_MCP_REFUSAL = `A dev build registers OpenKnowledge MCP in project config only, never in user-level editor config. Run \`${CHECKOUT_CLI_COMMAND} init --dev-mcp\` in the project, or set OK_CHANNEL=stable.`;
+const DEV_CHANNEL_USER_MCP_REFUSAL = `A dev build registers GitQuire MCP in project config only, never in user-level editor config. Run \`${CHECKOUT_CLI_COMMAND} init --dev-mcp\` in the project, or set OK_CHANNEL=stable.`;
 
 export { FilesystemRootProjectError, HomeProjectRootError };
 
@@ -1256,7 +1256,7 @@ export async function runInit(options: InitCommandOptions = {}): Promise<InitCom
   try {
     if (removeProjectSkillGitignoreBlock(projectRoot) === 'removed') {
       console.warn(
-        '[ok] Removed the OpenKnowledge project-skill lines from .gitignore. The skill is ordinary project content now — commit it if your team wants it on clone.',
+        '[ok] Removed the GitQuire project-skill lines from .gitignore. The skill is ordinary project content now — commit it if your team wants it on clone.',
       );
     }
   } catch (err) {
@@ -1727,7 +1727,7 @@ export function formatInitResult(result: InitCommandResult, cwd: string): string
           lines.push(`  ${label}${pad}no known project skill surface; skipped`);
           break;
         case 'skipped-prerequisite':
-          lines.push(`  ${label}${pad}OpenKnowledge MCP is not configured; skipped`);
+          lines.push(`  ${label}${pad}GitQuire MCP is not configured; skipped`);
           break;
         case 'failed':
           lines.push(`  ${label}${pad}${displayPath}  ${error('FAILED')}: ${skill.error}`);

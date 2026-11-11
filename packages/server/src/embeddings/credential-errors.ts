@@ -79,7 +79,7 @@ export class EmbeddingsSecretStoreError extends Error {
     };
     super(
       code === 'native_access' && phase === 'load'
-        ? 'The OS credential-store backend could not load. Reinstall OpenKnowledge and try again.'
+        ? 'The OS credential-store backend could not load. Reinstall GitQuire and try again.'
         : messages[code],
       phase === undefined ? undefined : { cause: diagnostic(phase, error) },
     );

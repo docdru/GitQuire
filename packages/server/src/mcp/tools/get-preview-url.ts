@@ -33,9 +33,9 @@ import {
 } from './shared.ts';
 
 const DESCRIPTION = [
-  "Get the full browser URL for this project or a document/folder/skill, or an absolute markdown file outside the project. Opening is demand: auto-starts OK under the normal OK_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the OpenKnowledge CLI's ps/status.",
+  "Get the full browser URL for this project or a document/folder/skill, or an absolute markdown file outside the project. Opening is demand: auto-starts OK under the normal OK_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the GitQuire CLI's ps/status.",
   'Choose one: document (extension-less), folder (trailing-slash route), skill:{name,scope?} (project default), or file (absolute .md/.mdx in a loose-file/worktree session). file ignores cwd; other targets use current project. Omit targets for UI root.',
-  "When YOUR host opens URLs, navigate its embedded browser to url; Claude Code Desktop uses preview_start({url}) then navigate({url}). Only a stdio host without a browser tool should open the URL in the system browser. A CLI without a browser can use the OpenKnowledge CLI's open <doc> for OK Desktop. This tool forces browser access even when Desktop is installed.",
+  "When YOUR host opens URLs, navigate its embedded browser to url; Claude Code Desktop uses preview_start({url}) then navigate({url}). Only a stdio host without a browser tool should open the URL in the system browser. A CLI without a browser can use the GitQuire CLI's open <doc> for OK Desktop. This tool forces browser access even when Desktop is installed.",
   "INSIDE OK's terminal/agent panel, use returned okOpenCommand instead; never paste url in the answer. If no UI is reachable, returns url:null, baseUrl:null, running:false, autoOpen plus state-specific recovery text (autostart disabled, no spawn authority or UI timeout). Follow it.",
 ].join('\n');
 
@@ -116,7 +116,7 @@ const OutputSchema = outputSchemaWithText({
     .nullable()
     .optional()
     .describe(
-      'Machine-readable form of the hosted-agent steer: when the calling agent runs inside an OpenKnowledge surface (the desktop app’s built-in terminal, or its in-app agent panel) AND a doc/folder/skill target was given, the exact OpenKnowledge CLI `open` command to run to bring it up for the user. Run it INSTEAD of navigating `url`, and do not paste `url` into your reply — the user is already in the app it points at. `null`/absent in every other context (navigate `url` per your host instead).',
+      'Machine-readable form of the hosted-agent steer: when the calling agent runs inside a GitQuire surface (the desktop app’s built-in terminal, or its in-app agent panel) AND a doc/folder/skill target was given, the exact GitQuire CLI `open` command to run to bring it up for the user. Run it INSTEAD of navigating `url`, and do not paste `url` into your reply — the user is already in the app it points at. `null`/absent in every other context (navigate `url` per your host instead).',
     ),
 });
 
@@ -126,7 +126,7 @@ function noUiNoneMountedMessage(): string {
   return `The OK server is running but no preview UI is mounted (e.g. it was started with \`--only server\`). Restart it with plain \`${currentCliCommandName()} start\` to serve the editor, or open the project in OK Electron.`;
 }
 function noServerMessage(): string {
-  return `No OpenKnowledge server is running for this project. Start it with \`${currentCliCommandName()} start\` (also starts the preview UI), or open the project in OK Electron.`;
+  return `No GitQuire server is running for this project. Start it with \`${currentCliCommandName()} start\` (also starts the preview UI), or open the project in OK Electron.`;
 }
 const AUTOSTART_DISABLED_NOTE = ' Auto-start is disabled (OK_MCP_AUTOSTART=0).';
 function readUserAutoOpen(): boolean {
@@ -280,7 +280,7 @@ export function register(server: ServerInstance, deps: GetPreviewUrlDeps): void 
             : null;
       const hostedAgentSteer =
         deps.isHostedAgent && okOpenCommand
-          ? `You're running inside OpenKnowledge — run \`${okOpenCommand}\` to bring this up for the user. Don't navigate the URL below, open a browser, or paste the URL into your reply; it's for reference only.\n\n`
+          ? `You're running inside GitQuire — run \`${okOpenCommand}\` to bring this up for the user. Don't navigate the URL below, open a browser, or paste the URL into your reply; it's for reference only.\n\n`
           : '';
 
       const serverWasLive = isServerLive(lockDir);

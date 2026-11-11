@@ -181,8 +181,8 @@ test('served descriptions name no single channel CLI command', () => {
     .filter((tool) => channelCommand.test(tool.description ?? ''))
     .map((tool) => tool.name);
   expect(offenders).toEqual([]);
-  expect(description('preview_url')).toContain("the OpenKnowledge CLI's open <doc>");
-  expect(description('lint')).toContain("the OpenKnowledge CLI's lint --fix");
+  expect(description('preview_url')).toContain("the GitQuire CLI's open <doc>");
+  expect(description('lint')).toContain("the GitQuire CLI's lint --fix");
 });
 
 test('retired conflict tools are neither registered nor suggested as callable tools', () => {

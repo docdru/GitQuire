@@ -55,7 +55,7 @@ describe('git check', () => {
     expect(result.status).toBe('fail');
     expect(result.summary).toBe('git not found');
     expect(result.remediation).toContain('sudo apt install git');
-    expect(result.detail).toContain('OpenKnowledge needs Git');
+    expect(result.detail).toContain('GitQuire needs Git');
   });
 
   test('fails distinctly when the Git probe times out', async () => {

@@ -820,7 +820,7 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
         order: 0,
         platform: 'mac',
         ellipsis: true,
-        menuLabelText: 'Uninstall OpenKnowledge',
+        menuLabelText: 'Uninstall GitQuire',
       },
     ],
   },

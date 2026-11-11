@@ -283,7 +283,7 @@ describe('per-channel MCP registration', () => {
       [
         'open-knowledge-dev',
         'failed',
-        'A dev build registers OpenKnowledge MCP in project config only, never in user-level editor config. Run `node <checkout>/packages/cli/dist/cli.mjs init --dev-mcp` in the project, or set OK_CHANNEL=stable.',
+        'A dev build registers GitQuire MCP in project config only, never in user-level editor config. Run `node <checkout>/packages/cli/dist/cli.mjs init --dev-mcp` in the project, or set OK_CHANNEL=stable.',
       ],
     ]);
     expect(() => readFileSync(join(home, '.claude.json'), 'utf-8')).toThrow();

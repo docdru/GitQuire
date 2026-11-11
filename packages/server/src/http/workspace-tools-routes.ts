@@ -495,7 +495,7 @@ export function createWorkspaceToolsRoutes(deps: WorkspaceToolsRouteDeps): ApiRo
               res,
               400,
               'urn:ok:error:invalid-request',
-              `That link would create a folder OpenKnowledge may not create on this machine: ${roots.join(', ')}.`,
+              `That link would create a folder GitQuire may not create on this machine: ${roots.join(', ')}.`,
               { handler: 'skill-targets-put', detail: roots.join(', ') },
             );
           };

@@ -61,6 +61,7 @@ import {
   PrivateStateSymlinkError,
 } from '../fs-safety.ts';
 import { classifyFsPath, normalizeFsPath } from '../fs-traced.ts';
+import { nameRequestedPath, titleSeedFor } from '../gitquire/naming.ts';
 import type { PinoLogger } from '../logger.ts';
 import { createMultipartParser, type MultipartParser } from '../multipart.ts';
 import { type AssetService, AttachmentFolderPathConfigError } from '../services/assets.ts';
@@ -438,7 +439,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           return;
         }
 
-        const filePath = body.path;
+        const filePath = nameRequestedPath(contentDir, body.path, true);
         if (!isSupportedDocFile(filePath)) {
           errorResponse(
             res,
@@ -568,6 +569,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           templateScopeForLog = matched.scope;
         }
 
+        if (initialContent === '') initialContent = titleSeedFor(body.path, filePath);
         const docName = stripDocExtension(filePath);
         const createOutcome = fileOpsService.createPage({
           fullPath,
@@ -637,7 +639,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           });
           return;
         }
-        const folderPath = body.path;
+        const folderPath = nameRequestedPath(contentDir, body.path, false);
         if (!isValidRelativeContentPath(folderPath)) {
           errorResponse(
             res,
@@ -889,7 +891,8 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           });
           return;
         }
-        const { kind, fromPath, toPath } = body;
+        const { kind, fromPath } = body;
+        const toPath = nameRequestedPath(contentDir, body.toPath, kind !== 'folder');
         if (!isValidRelativeContentPath(fromPath) || !isValidRelativeContentPath(toPath)) {
           errorResponse(
             res,

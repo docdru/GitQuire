@@ -66,7 +66,7 @@ export class ProcessLockCollisionError extends Error {
   readonly lockName: LockName;
   constructor(existing: ProcessLockMetadata, lockPath: string, lockName: LockName) {
     super(
-      `OpenKnowledge ${lockName} already running at ${existing.url ?? `port ${existing.port}`} ` +
+      `GitQuire ${lockName} already running at ${existing.url ?? `port ${existing.port}`} ` +
         `(pid ${existing.pid}, started ${existing.startedAt}). ` +
         `Stop it first or use a different directory. Lock: ${lockPath}`,
     );

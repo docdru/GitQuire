@@ -132,7 +132,7 @@ export function isOriginAdmitted(origin: string, policy: IngressPolicy): boolean
 }
 
 export const OPAQUE_ORIGIN_REFUSAL_DETAIL =
-  'Requests from a null origin, and writes from a file: origin, are refused. Send the request from a loopback page, the OpenKnowledge app, or a client that sends no Origin header.';
+  'Requests from a null origin, and writes from a file: origin, are refused. Send the request from a loopback page, the GitQuire app, or a client that sends no Origin header.';
 
 export type OriginAdmission =
   | { readonly admitted: true; readonly corsGrant: boolean }

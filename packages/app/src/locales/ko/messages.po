@@ -1988,6 +1988,9 @@ msgstr "글머리 기호 목록"
 msgid "Bullet List"
 msgstr "글머리 기호 목록"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "의미순"
 
@@ -4874,6 +4877,9 @@ msgstr "강제 새로 고침"
 msgid "Force stop"
 msgstr "강제 중지"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "서식이 잘못 표시됨"
 
@@ -5100,6 +5106,9 @@ msgstr "병합 충돌 있음"
 msgid "Having a look around…"
 msgstr "둘러보는 중…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "제목 1"
 
@@ -5172,6 +5181,9 @@ msgstr "숨김 폴더 “{basename}”"
 
 msgid "Hide"
 msgstr "숨기기"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "{0} 편집기 숨기기"
@@ -5475,6 +5487,9 @@ msgstr "이 저장소에 저장 — 협업자는 git을 통해 사본을 받습�
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "홈 폴더에 저장 — 이 컴퓨터의 모든 프로젝트에서, 나만 사용합니다."
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "목록 항목을 들여쓰거나 내어씁니다."
@@ -5983,6 +5998,9 @@ msgstr "선택한 텍스트에 링크를 추가하거나 커서 아래의 링크
 
 msgid "Link these skill folders?"
 msgstr "이 스킬 폴더를 연결할까요?"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "페이지 또는 외부 URL로 연결합니다."
@@ -7797,6 +7815,9 @@ msgstr "다른 설치 방법"
 
 msgid "Other ways to install Slidev"
 msgstr "Slidev를 설치하는 다른 방법"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "나가는 링크"

@@ -567,7 +567,7 @@ export function removePiTrustEntry(
       return { action: 'not-present' };
     return {
       action: 'kept-unverified',
-      error: `${project.error}. OpenKnowledge could not verify whether this path refers to a project with recorded Pi trust; cleanup was left pending. Retry once the project path can be resolved to check again.`,
+      error: `${project.error}. GitQuire could not verify whether this path refers to a project with recorded Pi trust; cleanup was left pending. Retry once the project path can be resolved to check again.`,
     };
   }
   if (project.kind === 'refused') {
@@ -579,7 +579,7 @@ export function removePiTrustEntry(
     return {
       action: 'kept-unverified',
       error: [
-        `${project.error}. OpenKnowledge kept these Pi trust ownership records; current trust decisions were not checked:`,
+        `${project.error}. GitQuire kept these Pi trust ownership records; current trust decisions were not checked:`,
         ...records,
         'To review manually, close Pi, verify the intended store against its recorded destination, and inspect only the exact key. A pending record does not prove setup completed or ownership of a current grant. If you choose to undo a current true decision, restore the recorded previous value, or remove that key only when no previous entry was recorded. Preserve other current decisions; parent-folder and global trust settings still apply.',
       ].join('\n'),
@@ -644,7 +644,7 @@ function accessPiTrustReceipts<T>(home: string, operation: () => T): T {
   } catch (error) {
     if (error instanceof PiTrustReceiptError) throw error;
     throw new Error(
-      `Could not access OpenKnowledge's Pi trust ownership records at ${escapeDisplayPath(join(okUserHomeDir(home), 'pi-trust'))}: ${escapeDisplayPath(error instanceof Error ? error.message : String(error))}. Check the records and their permissions, then retry.`,
+      `Could not access GitQuire's Pi trust ownership records at ${escapeDisplayPath(join(okUserHomeDir(home), 'pi-trust'))}: ${escapeDisplayPath(error instanceof Error ? error.message : String(error))}. Check the records and their permissions, then retry.`,
       { cause: error },
     );
   }
@@ -778,19 +778,19 @@ function removePiTrustKey(
     if (receipt && key.mode === 'recorded')
       accessPiTrustReceipts(home, () => forgetPiTrustGrant(home, receipt));
     const ownership = !receipt
-      ? 'OpenKnowledge has no ownership record for this grant and will not revoke it on later cleanup runs.'
+      ? 'GitQuire has no ownership record for this grant and will not revoke it on later cleanup runs.'
       : key.mode === 'recorded'
-        ? 'OpenKnowledge has relinquished this grant and will not revoke it on later cleanup runs.'
-        : 'OpenKnowledge kept the existing ownership record; cleanup of its recorded location remains incomplete.';
+        ? 'GitQuire has relinquished this grant and will not revoke it on later cleanup runs.'
+        : 'GitQuire kept the existing ownership record; cleanup of its recorded location remains incomplete.';
     captured.result = { action: 'kept-shared', detail: `${detail} ${ownership}` };
     return;
   }
   if (key.mode === 'inspect' || !receipt || receipt.record.state === 'pending') {
     const reason = !receipt
-      ? 'no OpenKnowledge ownership record exists; this includes every grant made before ownership recording was introduced.'
+      ? 'no GitQuire ownership record exists; this includes every grant made before ownership recording was introduced.'
       : receipt.record.state === 'pending'
         ? 'its ownership record is pending after an interrupted setup; completion cannot be verified. Re-running setup or cleanup does not reconcile this record while the folder remains trusted.'
-        : `OpenKnowledge must reconcile its recorded location at ${escapeDisplayPath(receipt.record.configuredTrustPath)} before removing it.`;
+        : `GitQuire must reconcile its recorded location at ${escapeDisplayPath(receipt.record.configuredTrustPath)} before removing it.`;
     const subject =
       cwd === project.canonical
         ? `kept Pi's folder trust because ${reason}`

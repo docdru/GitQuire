@@ -471,7 +471,7 @@ describe('applyProjectIntegrations', () => {
   });
 });
 
-describe('a skill folder OpenKnowledge did not write', () => {
+describe('a skill folder GitQuire did not write', () => {
   test('is not replaced: a folder with no SKILL.md fails the write instead of being deleted', () => {
     const stray = join(projectDir, '.claude', 'skills', 'open-knowledge');
     mkdirSync(stray, { recursive: true });

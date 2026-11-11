@@ -388,7 +388,7 @@ describe('MCP stdio shim server resolution', () => {
     expect((err as Error).message).toContain('OK_MCP_AUTOSTART=0');
     expect((err as Error).message).toContain('Run `ok start` in the target project');
     expect((err as Error).message).toContain('then retry this tool');
-    expect((err as Error).message).toContain('native file edits for OpenKnowledge content');
+    expect((err as Error).message).toContain('native file edits for GitQuire content');
   });
 
   test('auto-start opt-out on Beta names ok-beta start', async () => {
@@ -424,7 +424,7 @@ describe('MCP stdio shim server resolution', () => {
       expect((err as Error).message).toMatch(/ENOENT|ENAMETOOLONG/);
       expect((err as Error).message).toContain('Run `ok start` in the target project');
       expect((err as Error).message).toContain('then retry this tool');
-      expect((err as Error).message).toContain('native file edits for OpenKnowledge content');
+      expect((err as Error).message).toContain('native file edits for GitQuire content');
     },
   );
 

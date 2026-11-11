@@ -408,8 +408,8 @@ describe('stopServerForRemoval', () => {
     expect(error?.message).toBe(
       `The start of process ${pid} cannot be compared with the start recorded in ${lockPath}, so it cannot be confirmed as the server that wrote the lock; ` +
         'it was not signalled. ' +
-        `Before ending process ${pid} yourself, confirm that it is an OpenKnowledge server. ` +
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath} and retry cleanup.`,
+        `Before ending process ${pid} yourself, confirm that it is a GitQuire server. ` +
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath} and retry cleanup.`,
     );
     expect(isProcessAlive(pid)).toBe(true);
     expect(warnings).toContainEqual(
@@ -537,7 +537,7 @@ describe('stopServerForRemoval', () => {
   test.each([
     [
       'unavailable',
-      'Reinstall OpenKnowledge to restore the Windows component that verifies process identity',
+      'Reinstall GitQuire to restore the Windows component that verifies process identity',
       'the operating system refused the query',
     ],
     [
@@ -581,7 +581,7 @@ describe('stopServerForRemoval', () => {
       (err: unknown) => err as Error,
     );
     expect(error?.message).toContain(
-      `it was not signalled. Before ending process ${pid} yourself, confirm that it is an OpenKnowledge server.`,
+      `it was not signalled. Before ending process ${pid} yourself, confirm that it is a GitQuire server.`,
     );
     expect(isProcessAlive(pid)).toBe(true);
     expect(error?.message).not.toContain('Reinstall OpenKnowledge');
@@ -929,8 +929,8 @@ describe('stopServerForRemoval', () => {
     expect(error?.message).toBe(
       `The server lock at ${lockPath} records neither a machine ID nor a process start, as locks written by version 0.25.0 and earlier do, so process ${pid} cannot be confirmed as the server that wrote it; ` +
         'it was not signalled. ' +
-        `Before ending process ${pid} yourself, confirm that it is an OpenKnowledge server. ` +
-        `Once you have confirmed no OpenKnowledge server is running for this project, remove ${lockPath} and retry cleanup.`,
+        `Before ending process ${pid} yourself, confirm that it is a GitQuire server. ` +
+        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath} and retry cleanup.`,
     );
     expect(isProcessAlive(pid)).toBe(true);
   });
@@ -945,7 +945,7 @@ describe('stopServerForRemoval', () => {
       JSON.stringify({ pid, hostname: `${hostname()}-other-machine`, port: 0 }),
     );
     await expect(stopServerForRemoval(dir)).rejects.toThrow(
-      'Confirm that no OpenKnowledge server is using this directory on the owning machine or any other machine sharing it',
+      'Confirm that no GitQuire server is using this directory on the owning machine or any other machine sharing it',
     );
     expect(isProcessAlive(pid)).toBe(true);
     expectRefusalLogged('foreign-host', 'another machine');

@@ -1324,7 +1324,7 @@ Use this knowledge base for durable concepts that people and agents can link, ex
 
 Each concept needs parseable YAML frontmatter with a non-empty \`type\`. Use standard Markdown links so relationships remain portable to other OKF tools.
 
-The OpenKnowledge OKF plugin warns when content may not survive a handoff to another OKF consumer. Its companion skill provides the complete authoring guidance.
+The GitQuire OKF plugin warns when content may not survive a handoff to another OKF consumer. Its companion skill provides the complete authoring guidance.
 `;
 
 const OKF_INDEX_MD = `---

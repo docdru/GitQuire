@@ -441,8 +441,7 @@ export function buildAgentPluginArtifact(paths: SkillBundlePaths = defaultPaths(
     const manifest = {
       $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
       name: 'open-knowledge',
-      description:
-        'OpenKnowledge built-in skills: project workflow, discovery, and skill authoring',
+      description: 'GitQuire built-in skills: project workflow, discovery, and skill authoring',
       author: { name: 'Inkeep' },
       repository: 'https://github.com/inkeep/open-knowledge',
       keywords: ['openknowledge', 'knowledge-base'],

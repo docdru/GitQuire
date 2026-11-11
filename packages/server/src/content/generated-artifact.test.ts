@@ -6,7 +6,7 @@ import { type GeneratedArtifactEnv, writeGeneratedArtifact } from './generated-a
 
 const WRITER: WriterIdentity = {
   id: 'ok-generator',
-  name: 'OpenKnowledge (generated)',
+  name: 'GitQuire (generated)',
   email: 'ok-generator@openknowledge.local',
 };
 

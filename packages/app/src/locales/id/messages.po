@@ -1984,6 +1984,9 @@ msgstr "Daftar berpoin"
 msgid "Bullet List"
 msgstr "Daftar Berpoin"
 
+msgid "Bulleted list"
+msgstr ""
+
 msgid "By meaning"
 msgstr "Berdasarkan makna"
 
@@ -4870,6 +4873,9 @@ msgstr "Muat Ulang Paksa"
 msgid "Force stop"
 msgstr "Hentikan paksa"
 
+msgid "Formatting"
+msgstr ""
+
 msgid "Formatting looked wrong"
 msgstr "Format terlihat salah"
 
@@ -5096,6 +5102,9 @@ msgstr "Ada konflik merge"
 msgid "Having a look around…"
 msgstr "Melihat-lihat sekitar…"
 
+msgid "Heading"
+msgstr ""
+
 msgid "Heading 1"
 msgstr "Judul 1"
 
@@ -5168,6 +5177,9 @@ msgstr "Folder “{basename}” disembunyikan"
 
 msgid "Hide"
 msgstr "Sembunyikan"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide {0} editor"
 msgstr "Sembunyikan penyunting {0}"
@@ -5471,6 +5483,9 @@ msgstr "Di repositori ini — kolaborator mendapat salinan lewat git."
 
 msgid "In your home folder — every project on this machine, just you."
 msgstr "Di folder home Anda — semua proyek di mesin ini, hanya untuk Anda."
+
+msgid "Indent"
+msgstr ""
 
 msgid "Indent or outdent list item"
 msgstr "Tambah atau kurangi indentasi item daftar"
@@ -5979,6 +5994,9 @@ msgstr "Menautkan teks yang dipilih, atau menyunting tautan di bawah kursor."
 
 msgid "Link these skill folders?"
 msgstr "Tautkan folder keterampilan ini?"
+
+msgid "Link to a page"
+msgstr ""
 
 msgid "Link to a page or external URL."
 msgstr "Menaut ke sebuah halaman atau URL eksternal."
@@ -7793,6 +7811,9 @@ msgstr "Cara lain untuk memasang"
 
 msgid "Other ways to install Slidev"
 msgstr "Cara lain untuk memasang Slidev"
+
+msgid "Outdent"
+msgstr ""
 
 msgid "Outgoing"
 msgstr "Keluar"

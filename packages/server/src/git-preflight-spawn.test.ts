@@ -84,7 +84,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
       const stdout = result.stdout.toString();
 
       expect(result.exitCode).toBe(78);
-      expect(stderr).toContain('OpenKnowledge needs Git');
+      expect(stderr).toContain('GitQuire needs Git');
       expect(stderr).toContain('sudo apt install git');
       expect(stderr).not.toContain('UNEXPECTED-CATCH');
       expect(stderr).not.toContain('PREFLIGHT-DID-NOT-FIRE');
@@ -157,7 +157,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
       const stderr = result.stderr.toString();
 
       expect(result.exitCode).toBe(78);
-      expect(stderr).toContain('OpenKnowledge requires Git 2.31.0 or newer');
+      expect(stderr).toContain('GitQuire requires Git 2.31.0 or newer');
       expect(stderr).toContain('detected 2.20.0 at /usr/bin/git');
       expect(stderr).not.toContain('UNEXPECTED-CATCH');
       expect(stderr).not.toContain('PREFLIGHT-DID-NOT-FIRE');

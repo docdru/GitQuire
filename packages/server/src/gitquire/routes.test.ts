@@ -166,6 +166,17 @@ describe('isSameOrigin', () => {
 });
 
 describe('GitQuire routes', () => {
+  it('reports the naming rule', async () => {
+    const routes = createGitQuireRoutes({
+      projectDir: '/data',
+      log: silentLog,
+      runGit: fakeGit(baseRepo()),
+      env: { GITQUIRE_NAMING: 'off' },
+    });
+    const out = await call(routes, request('/api/gitquire/naming'));
+    expect(out.body).toEqual({ rule: 'off' });
+  });
+
   it('ignores other paths', () => {
     expect(routesFor(baseRepo()).handle(request('/api/config'), capture().res)).toBe(false);
   });

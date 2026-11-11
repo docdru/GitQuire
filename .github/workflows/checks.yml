@@ -39,6 +39,15 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Show the formatting patch
+        if: failure()
+        run: |
+          pnpm exec biome format --write packages docs *.json *.jsonc *.ts >/dev/null 2>&1 || true
+          echo "Apply with: git apply <<'PATCH' … PATCH"
+          echo "FORMAT-PATCH-BEGIN"
+          git --no-pager diff
+          echo "FORMAT-PATCH-END"
+
       - name: Typecheck server and CLI
         run: >-
           pnpm exec turbo run typecheck
@@ -55,7 +64,7 @@ jobs:
           src/gitquire src/markdown src/extensions src/schema-invariant.test.ts
 
       - name: GitQuire discussion app tests
-        run: pnpm --dir packages/app exec vitest run --config vitest.config.ts src/gitquire-comments
+        run: pnpm --dir packages/app exec vitest run --config vitest.config.ts src/gitquire-comments src/gitquire-mobile
 
       - name: GitQuire tests
         run: pnpm --dir packages/server exec vitest run src/gitquire

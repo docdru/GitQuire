@@ -26,7 +26,7 @@ import {
 type ShareKind = 'doc' | 'folder';
 
 const DESCRIPTION = [
-  'Build a shareable GitHub-substrate URL for a teammate to receive a doc/folder subtree in OpenKnowledge, pinned to current branch. Requires the Hocuspocus server. Read-only, no commits/pushes/fetch. Publishing is a user act: agents do NOT publish; a missing remote returns Share-wizard guidance.',
+  'Build a shareable GitHub-substrate URL for a teammate to receive a doc/folder subtree in GitQuire, pinned to current branch. Requires the Hocuspocus server. Read-only, no commits/pushes/fetch. Publishing is a user act: agents do NOT publish; a missing remote returns Share-wizard guidance.',
   '`path` is content-relative, docs accept .md/.mdx, empty string means root folder. `kind` doc/folder is optional for auto-probe (.mdx → .md → directory); REQUIRED when `path` is empty (use folder). Optional `cwd` selects project. Requires a named branch, GitHub/GH Enterprise origin, and branch already pushed.',
 ].join('\n');
 

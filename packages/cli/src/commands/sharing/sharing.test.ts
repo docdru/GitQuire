@@ -189,7 +189,7 @@ describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
       await sharingUnshareCommand().parseAsync(['node', 'unshare', '--project', dir]);
     });
     expect(process.exitCode).toBe(1);
-    expect(stderr).toContain('Cannot switch OpenKnowledge to local-only');
+    expect(stderr).toContain('Cannot switch GitQuire to local-only');
     expect(stderr).toContain('git rm --cached -- .mcp.json');
     expect(stderr).toContain('your teammates will see a deletion on their next pull');
 
