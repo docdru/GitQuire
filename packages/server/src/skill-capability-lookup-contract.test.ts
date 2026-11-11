@@ -5,7 +5,7 @@ import { describe, expect, test } from 'vitest';
 const PROJECT_SKILL_PATH = join(import.meta.dir, '../assets/skills/project/SKILL.md');
 const DISCOVERY_SKILL_PATH = join(import.meta.dir, '../assets/skills/discovery/SKILL.md');
 
-const DOCS_URL = 'https://openknowledge.ai/docs';
+const DOCS_URL = 'https://docdru.github.io/GitQuire/docs';
 const SOURCE_URL = 'https://github.com/inkeep/open-knowledge';
 
 describe('bundled skills — capability lookup contract', () => {

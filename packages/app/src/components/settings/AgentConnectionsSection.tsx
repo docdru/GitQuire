@@ -318,7 +318,7 @@ function RowActionButton({
       return (
         <Button variant="link" size="sm" className="shrink-0" asChild>
           <a
-            href={`https://openknowledge.ai/docs/integrations/${action.slug}`}
+            href={`https://docdru.github.io/GitQuire/docs/integrations/${action.slug}`}
             target="_blank"
             rel="noreferrer"
             aria-label={t`How to set up ${rowLabel}`}

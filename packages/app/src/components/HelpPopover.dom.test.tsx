@@ -108,7 +108,7 @@ describe('HelpPopover runtime behavior', () => {
     expect(links.map(linkShape)).toEqual([
       {
         label: 'Docs',
-        href: 'https://openknowledge.ai/docs',
+        href: 'https://docdru.github.io/GitQuire/docs',
         target: '_blank',
         rel: 'noopener noreferrer',
         hasIcon: true,

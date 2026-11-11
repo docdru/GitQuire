@@ -18,7 +18,7 @@ import { runShareAction, type ShareTargetInput } from '@/lib/share/run-share-act
 import { cn } from '@/lib/utils';
 import { ShareFreshnessWarning, shareFreshnessRowVisible } from './ShareFreshnessWarning';
 
-const SHARE_DOCS_URL = 'https://openknowledge.ai/docs/features/share';
+const SHARE_DOCS_URL = 'https://docdru.github.io/GitQuire/docs/features/share';
 const COPY_SHORTCUT = { mac: '⌘ C', windowsLinux: 'Ctrl C' };
 
 export interface ShareButtonProps {

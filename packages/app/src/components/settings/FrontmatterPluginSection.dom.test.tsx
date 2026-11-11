@@ -127,7 +127,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
       'settings-plugin-frontmatter-title-docs-link',
     ) as HTMLAnchorElement;
     expect(docs.getAttribute('href')).toBe(
-      'https://openknowledge.ai/docs/advanced/content-rules/frontmatter',
+      'https://docdru.github.io/GitQuire/docs/advanced/content-rules/frontmatter',
     );
     expect(docs.getAttribute('aria-label')).toBe('Learn more about Frontmatter schemas');
   });

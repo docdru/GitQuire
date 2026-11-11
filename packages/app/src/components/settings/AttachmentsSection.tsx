@@ -28,7 +28,7 @@ const EXAMPLE_DOC_PATH = 'notes/meeting.md';
 const EXAMPLE_FILE_NAME = 'image.png';
 
 const ATTACHMENTS_DOCS_URL =
-  'https://openknowledge.ai/docs/features/assets-and-embeds#attachment-folder';
+  'https://docdru.github.io/GitQuire/docs/features/assets-and-embeds#attachment-folder';
 
 function exampleDestination(path: string): string {
   const folder = attachmentFolderForDocument(path, EXAMPLE_DOC_PATH);

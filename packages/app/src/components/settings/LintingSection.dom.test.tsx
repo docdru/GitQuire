@@ -487,7 +487,7 @@ describe('MarkdownlintPluginSection', () => {
       'settings-plugin-markdownlint-title-docs-link',
     ) as HTMLAnchorElement;
     expect(docs.getAttribute('href')).toBe(
-      'https://openknowledge.ai/docs/advanced/content-rules/markdownlint',
+      'https://docdru.github.io/GitQuire/docs/advanced/content-rules/markdownlint',
     );
     expect(docs.getAttribute('aria-label')).toBe('Learn more about markdownlint');
   });
