@@ -1,6 +1,6 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { GitHubIcon } from '@/components/icons/github';
 import { GitQuireWordmark } from '@/components/gitquire-wordmark';
+import { GitHubIcon } from '@/components/icons/github';
 import { GITHUB_URL } from '@/lib/site';
 
 export function baseOptions({

@@ -17,10 +17,6 @@ function bullet({ url, name, description }: LlmsTxtLink): string {
 }
 
 export function buildLlmsTxt({ docs }: { docs: readonly LlmsTxtLink[] }): string {
-  return [
-    `# ${SITE_NAME}`,
-    `> ${SITE_DESCRIPTION}`,
-    '## Docs',
-    docs.map(bullet).join('\n'),
-  ].join('\n\n');
+  const parts = [`# ${SITE_NAME}`, `> ${SITE_DESCRIPTION}`, '## Docs', docs.map(bullet).join('\n')];
+  return parts.join('\n\n');
 }

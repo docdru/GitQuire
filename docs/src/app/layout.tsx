@@ -2,13 +2,7 @@ import type { Metadata } from 'next';
 import { DM_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import type { WebSite, WithContext } from 'schema-dts';
 import { JsonLd } from '@/components/seo/json-ld';
-import {
-  metaDescription,
-  SITE_DESCRIPTION,
-  SITE_HEADLINE,
-  SITE_NAME,
-  SITE_URL,
-} from '@/lib/site';
+import { metaDescription, SITE_DESCRIPTION, SITE_HEADLINE, SITE_NAME, SITE_URL } from '@/lib/site';
 import './global.css';
 import { Provider } from './provider';
 
