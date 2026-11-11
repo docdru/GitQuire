@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { DetectGhFn } from '../github-permissions.ts';
 import type { AccessGate, GateLogger } from './access-gate.ts';
-import { createAccessGate } from './access-gate.ts';
+import { createAccessGate, principalFromUser } from './access-gate.ts';
 import {
   createGitHubAppClient,
   type InstallationTokenManager,
@@ -11,6 +11,7 @@ import {
   startInstallationTokenManager,
 } from './github-app.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
+import { setSessionPrincipalResolver } from './principal-directory.ts';
 import { bootstrapRepository, ensureAutoSyncMode, parseAutoSyncMode } from './repo-bootstrap.ts';
 
 export type { AccessGate, SessionUser } from './access-gate.ts';
@@ -35,7 +36,12 @@ export function createAccessGateFromEnv(
     { externalUrl: config.externalUrl.toString(), mcpToken: config.mcpToken !== undefined },
     `[gitquire-auth] GitHub sign-in enabled (${access})`,
   );
-  return createAccessGate(config, { log });
+  const gate = createAccessGate(config, { log });
+  setSessionPrincipalResolver((req) => {
+    const user = gate.sessionUser(req);
+    return user === undefined ? undefined : principalFromUser(user);
+  });
+  return gate;
 }
 
 export async function startGitHubAppTokensFromEnv(

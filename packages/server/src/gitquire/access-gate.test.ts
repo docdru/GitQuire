@@ -353,6 +353,21 @@ describe('createAccessGate requests', () => {
     expect(gate.sessionUser(fakeRequest('/', { headers: { cookie: forged } }))).toBeUndefined();
   });
 
+  it('answers /api/principal with the signed-in GitHub user', () => {
+    const gate = makeGate();
+    const out = fakeResponse();
+    const req = fakeRequest('/api/principal', { headers: { cookie: sessionCookie() } });
+    expect(gate.handleRequest(req, out.res)).toBe(true);
+    expect(out.status).toBe(200);
+    expect(JSON.parse(out.body)).toEqual({
+      id: 'github-42',
+      display_name: 'Alice A',
+      display_email: '42+alice@users.noreply.github.com',
+      source: 'git-config',
+      created_at: new Date(NOW).toISOString(),
+    });
+  });
+
   it('reports the signed-in user on /auth/me', () => {
     const gate = makeGate();
     const out = fakeResponse();
