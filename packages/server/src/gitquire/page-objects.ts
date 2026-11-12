@@ -7,6 +7,7 @@ const MAX_LIST_ITEMS = 50;
 const MAX_TEXT_CHARS = 300;
 const MAX_DEPTH = 3;
 const MAX_TASKS_PER_PAGE = 100;
+const MAX_DECISIONS = 10;
 const MAX_LINE_CHARS = 1000;
 const MAX_FIELD_BYTES = 16 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -37,6 +38,7 @@ export interface PageFacts {
   title: string;
   fields: Record<string, FieldValue>;
   tasks: PageTask[];
+  decisions: string[];
   clipped: boolean;
 }
 
@@ -45,6 +47,10 @@ export interface PageObject extends PageFacts {
   modified: string;
 }
 
+const ANY_HEADING_RE = /^ {0,3}#{1,6}[ \t]+(.*?)[ \t#]*$/;
+const DECISIONS_HEADING_RE = /^decisions?$/i;
+const LIST_ITEM_RE = /^[ \t>]*(?:[-*+]|\d{1,9}[.)])[ \t]+(?:\[[ xX]\][ \t]+)?(\S.*)$/;
+const DECISION_LINE_RE = /^[ \t>]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)?\**decision\**:\**[ \t]*(\S.*)$/i;
 const FENCE_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
 const TASK_RE = /^[ \t>]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[([ xX])\][ \t]+(\S.*)$/;
 const DUE_RE = /(?:\u{1F4C5}\uFE0F?|(?<![\w-])due:?)[ \t]*(\d{4}-\d{2}-\d{2})(?!\d)/iu;
@@ -177,7 +183,16 @@ export function headingText(line: string): string | undefined {
 interface BodyFacts {
   heading: string | undefined;
   tasks: PageTask[];
+  decisions: string[];
   clipped: boolean;
+}
+
+function decisionIn(line: string, inDecisions: boolean): string | undefined {
+  const labelled = DECISION_LINE_RE.exec(line);
+  if (labelled !== null) return clipText((labelled[1] as string).trim());
+  if (!inDecisions) return undefined;
+  const item = LIST_ITEM_RE.exec(line);
+  return item === null ? undefined : clipText((item[1] as string).trim());
 }
 
 function isClosingFence(marker: string, rest: string, open: string): boolean {
@@ -186,6 +201,8 @@ function isClosingFence(marker: string, rest: string, open: string): boolean {
 
 function readBody(body: string, firstLine: number, bodyStart: number): BodyFacts {
   const tasks: PageTask[] = [];
+  const decisions: string[] = [];
+  let inDecisions = false;
   const seen = new Map<string, number>();
   let heading: string | undefined;
   let fence: string | undefined;
@@ -219,6 +236,13 @@ function readBody(body: string, firstLine: number, bodyStart: number): BodyFacts
       continue;
     }
     heading ??= headingText(line);
+    const section = ANY_HEADING_RE.exec(line);
+    if (section !== null) {
+      inDecisions = DECISIONS_HEADING_RE.test((section[1] as string).trim());
+      continue;
+    }
+    const decision = decisionIn(line, inDecisions);
+    if (decision !== undefined && decisions.length < MAX_DECISIONS) decisions.push(decision);
     const task = TASK_RE.exec(line);
     if (task === null) continue;
     if (tasks.length >= MAX_TASKS_PER_PAGE) {
@@ -240,7 +264,7 @@ function readBody(body: string, firstLine: number, bodyStart: number): BodyFacts
       ...(due === undefined ? {} : { due }),
     });
   }
-  return { heading, tasks, clipped };
+  return { heading, tasks, decisions, clipped };
 }
 
 function titleOf(fields: Record<string, FieldValue>, heading: string | undefined): string {
@@ -270,6 +294,7 @@ export function pageFacts(path: string, source: string): PageFacts {
     title: clipText(title),
     fields: read.fields,
     tasks,
+    decisions: body.decisions,
     clipped: read.clipped || body.clipped,
   };
 }

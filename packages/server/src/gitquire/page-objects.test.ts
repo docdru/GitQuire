@@ -84,6 +84,7 @@ describe('page facts', () => {
       title: 'plain',
       fields: {},
       tasks: [],
+      decisions: [],
       clipped: false,
     });
     expect(pageFacts('a.md', '---\ntitle: 2026\n---\n').title).toBe('2026');
@@ -183,6 +184,34 @@ describe('hostile and unusual pages', () => {
     expect(flipped.map((item) => item.offset)).toEqual([0, 11]);
     const bom = pageFacts('e.md', '\uFEFF- [ ] A\n- [ ] A\n').tasks;
     expect(bom.map((item) => item.offset)).toEqual([1, 9]);
+  });
+
+  it('collects decisions from a Decisions section and labelled lines', () => {
+    const source = [
+      '# Weekly sync',
+      '',
+      'Decision: ship on Friday',
+      '- **Decision:** keep comments in the file',
+      '',
+      '## Decisions',
+      '',
+      '- Use GitHub sign-in',
+      '1. Move tasks to the roadmap',
+      '',
+      '## Notes',
+      '',
+      '- Not a decision',
+      '```',
+      'Decision: inside a fence',
+      '```',
+      '',
+    ].join('\n');
+    expect(pageFacts('a.md', source).decisions).toEqual([
+      'ship on Friday',
+      'keep comments in the file',
+      'Use GitHub sign-in',
+      'Move tasks to the roadmap',
+    ]);
   });
 
   it('marks pages whose properties or action items were cut', () => {

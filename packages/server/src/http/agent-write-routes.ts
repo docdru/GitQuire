@@ -410,7 +410,7 @@ export function createAgentWriteRoutes(
   }
 
   async function writeAgentMarkdownDocument(
-    _req: IncomingMessage,
+    req: IncomingMessage,
     res: ServerResponse,
     body: AgentWriteMdRequest,
     mode: MarkdownWriteMode,
@@ -421,8 +421,11 @@ export function createAgentWriteRoutes(
       const effectiveDocName = requireNonEmptyDocName(body.docName, res, mode.handler);
       if (effectiveDocName === null) return;
       const resolvedDocName = canonicalDocName(resolveAlias(effectiveDocName));
-      const { agentId, suppliedWriterId, agentName, colorSeed, clientName, clientVersion, label } =
-        extractAgentIdentity(body);
+      const boardPerson = boardWriterIdentity(req, body.clientName);
+      const identity = extractAgentIdentity(body);
+      const { agentId, agentName, colorSeed, clientName, clientVersion, label } =
+        boardPerson ?? identity;
+      const suppliedWriterId = boardPerson === undefined ? identity.suppliedWriterId : undefined;
       if (isSystemDoc(resolvedDocName) || isConfigDoc(resolvedDocName)) {
         errorResponse(
           res,
@@ -450,6 +453,7 @@ export function createAgentWriteRoutes(
           displayName: agentName,
           colorSeed,
           clientName,
+          ...(boardPerson === undefined ? {} : { principalId: boardPerson.principalId }),
         });
         const writeMdReconcile = mode.preWriteMerge
           ? await reconcileDiskBeforeAgentWrite(

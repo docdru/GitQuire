@@ -6,6 +6,7 @@ import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 
 import { toast } from 'sonner';
 import { ActionItemList, EMPTY_ACTION_FILTER, ObjectBoard } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
+import { TimelineList } from '@/components/GitQuireTimeline';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -70,10 +71,12 @@ import {
   tableColumns,
   writeTableView,
 } from '@/lib/gitquire/objects';
+import { readTimelineView, type TimelineView } from '@/lib/gitquire/timeline';
 import { revealEditor } from '@/lib/reveal-editor';
 
 const TABLE_VIEW_STORAGE_KEY = 'gitquire.views.table';
 const BOARD_VIEW_STORAGE_KEY = 'gitquire.views.board';
+const TIMELINE_VIEW_STORAGE_KEY = 'gitquire.views.timeline';
 const TAB_CLASS = 'flex min-h-0 flex-1 flex-col';
 const MAX_ROWS = 500;
 const UNDO_MS = 10_000;
@@ -103,6 +106,20 @@ function loadBoardView(): BoardView {
 function storeBoardView(view: BoardView): void {
   try {
     window.localStorage.setItem(BOARD_VIEW_STORAGE_KEY, JSON.stringify(view));
+  } catch {}
+}
+
+function loadTimelineView(): TimelineView {
+  try {
+    return readTimelineView(window.localStorage.getItem(TIMELINE_VIEW_STORAGE_KEY));
+  } catch {
+    return readTimelineView(null);
+  }
+}
+
+function storeTimelineView(view: TimelineView): void {
+  try {
+    window.localStorage.setItem(TIMELINE_VIEW_STORAGE_KEY, JSON.stringify(view));
   } catch {}
 }
 
@@ -381,6 +398,7 @@ export function GitQuireViews() {
   const [failed, setFailed] = useState(false);
   const [view, setView] = useState<TableView>(loadTableView);
   const [boardView, setBoardView] = useState<BoardView>(loadBoardView);
+  const [timelineView, setTimelineView] = useState<TimelineView>(loadTimelineView);
   const [tab, setTab] = useState('table');
   const [pending, setPending] = useState<ReadonlyMap<string, PendingMove>>(() => new Map());
   const [actionFilter, setActionFilter] = useState<ActionFilter>(EMPTY_ACTION_FILTER);
@@ -420,6 +438,11 @@ export function GitQuireViews() {
   function changeView(next: TableView) {
     setView(next);
     storeTableView(next);
+  }
+
+  function changeTimelineView(next: TimelineView) {
+    setTimelineView(next);
+    storeTimelineView(next);
   }
 
   function changeBoardView(next: BoardView) {
@@ -498,7 +521,7 @@ export function GitQuireViews() {
           <DialogHeader>
             <DialogTitle>{t`Views`}</DialogTitle>
             <DialogDescription>
-              {t`Pages with properties as a table or a board, and the action items of all pages.`}
+              {t`Pages with properties as a table, a board or a timeline, and the action items of all pages.`}
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="flex min-h-0 flex-1 flex-col gap-3">
@@ -532,6 +555,7 @@ export function GitQuireViews() {
                 <TabsList>
                   <TabsTrigger value="table">{t`Table`}</TabsTrigger>
                   <TabsTrigger value="board">{t`Board`}</TabsTrigger>
+                  <TabsTrigger value="timeline">{t`Timeline`}</TabsTrigger>
                   <TabsTrigger value="actions">{t`Action items`}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="table" className={TAB_CLASS}>
@@ -551,6 +575,14 @@ export function GitQuireViews() {
                     onChange={changeBoardView}
                     onOpen={openPage}
                     onMove={move}
+                  />
+                </TabsContent>
+                <TabsContent value="timeline" className={TAB_CLASS}>
+                  <TimelineList
+                    pages={shownPages}
+                    view={timelineView}
+                    onChange={changeTimelineView}
+                    onOpen={openPage}
                   />
                 </TabsContent>
                 <TabsContent value="actions" className={TAB_CLASS}>

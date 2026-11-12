@@ -99,6 +99,10 @@ every checkbox across the wiki, grouped by page, due date or person. Ticking an 
 `[x]` into the page, committed in your name, with undo. A due date goes in the item:
 `- [ ] Send the notes @bob due: 2026-12-01`.
 
+A **timeline** lists pages with a date property, such as meeting notes, newest first by month, with
+attendees, decisions (a list under a "Decisions" heading, or lines starting with `Decision:`) and
+open action items. **New meeting note** creates `meeting-notes/<today>.md`.
+
 ### 📱 Phones and tablets
 
 A formatting toolbar above the on-screen keyboard, and installable as a home-screen app.
@@ -146,7 +150,7 @@ Next, depending on feedback:
 
 - **Pull request review**: GitHub review comments shown as page threads, or reviewing fully inside
   GitQuire.
-- **More views**: a meeting-notes timeline and saved views as pages are in progress.
+- **More views**: saved views as pages are in progress.
 
 Ideas and bug reports are welcome in [Issues](https://github.com/docdru/GitQuire/issues).
 

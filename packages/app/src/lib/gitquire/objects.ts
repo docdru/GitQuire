@@ -26,6 +26,7 @@ export interface PageObject {
   modified: string;
   fields: Record<string, FieldValue>;
   tasks: PageTask[];
+  decisions?: string[];
   clipped?: boolean;
 }
 

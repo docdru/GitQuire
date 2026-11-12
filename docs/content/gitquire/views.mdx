@@ -1,7 +1,7 @@
 ---
 title: Views
 icon: LuLayoutList
-description: Treat pages with properties as objects, and see them as a table, a board or a list of action items.
+description: Treat pages with properties as objects, and see them as a table, a board, a timeline or a list of action items.
 ---
 
 Give a page properties and it becomes an object you can list, sort and group. There is no schema:
@@ -21,7 +21,7 @@ due: 2026-12-01
 - [x] Collect screenshots
 ```
 
-The **Views** button in the header opens three tabs. It is hidden on phone-width screens.
+The **Views** button in the header opens four tabs. It is hidden on phone-width screens.
 
 ## Table
 
@@ -44,6 +44,38 @@ keyboard and on touch screens).
 The property is changed in the page and committed in your name, and anyone with the page open sees
 the change at once. With a filter, for example `type` = `task`, pages without a value get their own
 **No value** column.
+
+## Timeline
+
+Every page with a date property, newest first and grouped by month: meeting notes, decisions,
+releases. Each entry shows the attendees (an `attendees` or `people` property), up to three
+decisions and how many of the page's action items are still open. If pages have more than one date
+property, **Date from** picks which one; filter and search work as in the table.
+
+Decisions are read from the page: the items of a list under a **Decisions** heading, and any line
+that starts with `Decision:`.
+
+```markdown
+---
+type: meeting
+date: 2026-11-11
+attendees: [Dana, Alex]
+---
+
+# Weekly sync
+
+## Decisions
+
+- Store comments at the end of each Markdown file
+
+## Action items
+
+- [ ] Send the notes to the board @alex due: 2026-11-16
+```
+
+**New meeting note** creates `meeting-notes/<today>.md` with `type: meeting`, today's date and
+headings for the agenda, decisions and action items, and opens it. If today's note exists, it opens
+that one.
 
 ## Action items
 
