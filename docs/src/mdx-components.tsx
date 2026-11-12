@@ -6,6 +6,7 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { icons } from 'lucide-react';
 import type { MDXComponents } from 'mdx/types';
+import type { ComponentProps } from 'react';
 import { AgentIcons } from '@/components/agent-icons';
 import { ComponentPreview } from '@/components/component-preview';
 import { CopyPrompt } from '@/components/copy-prompt';
@@ -30,6 +31,7 @@ import { MirrorPreview, MirrorSourcePreview } from '@/components/previews/mirror
 import { TabPreview, TabsPreview } from '@/components/previews/tabs-preview';
 import { Tab, Tabs } from '@/components/tabs';
 import { VerifyExec } from '@/components/verify-exec';
+import { withBasePath } from '@/lib/base-path';
 
 function InlineIcon({ name, label }: { name: keyof typeof icons; label?: string }) {
   const Icon = icons[name];
@@ -40,6 +42,10 @@ function InlineIcon({ name, label }: { name: keyof typeof icons; label?: string 
       className="-mt-0.5 inline size-4 align-middle text-amber-500"
     />
   );
+}
+
+function BasePathImage({ src, ...props }: ComponentProps<typeof ImageZoom>) {
+  return <ImageZoom {...props} src={typeof src === 'string' ? withBasePath(src) : src} />;
 }
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
@@ -60,7 +66,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     EmbedPreview,
     FilePreview,
     HtmlPreview,
-    Image: ImageZoom,
+    Image: BasePathImage,
     ImgPreview,
     InlineIcon,
     LayerStack,

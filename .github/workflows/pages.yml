@@ -6,12 +6,14 @@ on:
       - 'docs/**'
       - 'packages/core/**'
       - '.github/workflows/pages.yml'
+      - '.github/scripts/check-docs-links*'
   push:
     branches: [main]
     paths:
       - 'docs/**'
       - 'packages/core/**'
       - '.github/workflows/pages.yml'
+      - '.github/scripts/check-docs-links*'
   workflow_dispatch:
 
 concurrency:
@@ -49,6 +51,14 @@ jobs:
           DOCS_BASE_PATH: /GitQuire
           NEXT_TELEMETRY_DISABLED: '1'
         run: pnpm --dir docs run build
+
+      - name: Docs link tests
+        run: |
+          node --test .github/scripts/check-docs-links.test.mjs
+          pnpm --dir docs exec vitest run src/lib/base-path.test.ts
+
+      - name: Check internal links
+        run: node .github/scripts/check-docs-links.mjs docs/out /GitQuire
 
       - name: Upload the site
         uses: actions/upload-pages-artifact@v3

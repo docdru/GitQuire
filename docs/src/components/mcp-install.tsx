@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { SerializerApi } from '@/lib/mdx-serializer';
 
@@ -30,7 +31,7 @@ export function McpInstall({ editor, children }: { editor: string; children?: Re
         </li>
         <li>
           <strong>Web app / terminal</strong> (any platform, including Intel Macs — see the{' '}
-          <a href={WEB_APP_GUIDE_HREF}>web app guide</a>
+          <Link href={WEB_APP_GUIDE_HREF}>web app guide</Link>
           ). Run <code>ok init</code> in your project: it registers the OpenKnowledge MCP server
           with {editor} and the other editors it detects. Every <code>ok start</code> repairs the
           entry if it has drifted (it never adds one you removed).
