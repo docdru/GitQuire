@@ -139,6 +139,12 @@ msgstr "{0, plural, other {# 個項目}}"
 msgid "{0, plural, one {# key} other {# keys}}"
 msgstr "{0, plural, other {# 個索引鍵}}"
 
+msgid "{0, plural, one {# more} other {# more}}"
+msgstr ""
+
+msgid "{0, plural, one {# open item} other {# open items}}"
+msgstr ""
+
 msgid "{0, plural, one {# option set} other {# options set}}"
 msgstr "{0, plural, other {已設定 # 個選項}}"
 
@@ -461,6 +467,9 @@ msgstr "{count, plural, other {# 則註解}}"
 msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
 msgstr "{count, plural, other {# 則註解}}，分布在 {0, plural, other {# 個檔案}}"
 
+msgid "{count, plural, one {# dated page} other {# dated pages}}"
+msgstr ""
+
 msgid "{count, plural, one {# doc} other {# docs}}"
 msgstr "{count, plural, other {# 個文件}}"
 
@@ -493,6 +502,9 @@ msgstr "{count, plural, other {把這 # 個問題交給你的 AI 代理，包括
 
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {立即修正有已知自動修正方式的 # 個問題。}}"
+
+msgid "{count, plural, one {linked from # page} other {linked from # pages}}"
+msgstr ""
 
 msgid "{count, plural, one {matches # file} other {matches # files}}"
 msgstr "{count, plural, other {符合 # 個檔案}}"
@@ -612,6 +624,9 @@ msgstr "{folderCount, plural, other {資料夾}}"
 msgid "{formatted} GitHub stars"
 msgstr "{formatted} 個 GitHub star"
 
+msgid "{hidden} more are not listed. Use the filter to narrow the list."
+msgstr ""
+
 msgid "{hiddenCount, plural, one {# more link} other {# more links}}"
 msgstr "{hiddenCount, plural, other {另外 # 個連結}}"
 
@@ -681,6 +696,9 @@ msgstr "{mins, plural, other {# 分鐘前}}"
 msgid "{minutes}m ago"
 msgstr "{minutes} 分鐘前"
 
+msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
+msgstr ""
+
 msgid "{name} CLI"
 msgstr "{name} CLI"
 
@@ -693,11 +711,17 @@ msgstr "{nodeCount, plural, other {# 個節點}}"
 msgid "{omitted, plural, one {# more property change not shown} other {# more property changes not shown}}"
 msgstr "{omitted, plural, other {另有 # 處屬性變更未顯示}}"
 
+msgid "{open, plural, one {# open action item} other {# open action items}}"
+msgstr ""
+
 msgid "{openedWorktreeCount, plural, one {worktree} other {worktrees}}"
 msgstr "{openedWorktreeCount, plural, one {worktree} other {worktree}}"
 
 msgid "{others, plural, one {# other} other {# others}}"
 msgstr "{others, plural, other {其他 # 個檔案}}"
+
+msgid "{overdue, plural, one {# overdue} other {# overdue}}"
+msgstr ""
 
 msgid "{owner}/{name} already exists"
 msgstr "{owner}/{name} 已存在"
@@ -750,6 +774,9 @@ msgstr "{propPanelDescriptorLabel} 屬性"
 msgid "{removingCount, plural, one {# removed} other {# removed}}"
 msgstr "{removingCount, plural, other {已移除 #}}"
 
+msgid "{rowCount, plural, one {# page} other {# pages}}"
+msgstr ""
+
 msgid "{seconds} seconds"
 msgstr "{seconds} 秒"
 
@@ -761,6 +788,9 @@ msgstr "{settingsDescriptorLabel} 屬性"
 
 msgid "{shareBranch} isn't a valid branch name."
 msgstr "{shareBranch} 不是有效的分支名稱。"
+
+msgid "{shown, plural, one {# item} other {# items}}"
+msgstr ""
 
 msgid "{shown} and {more} more"
 msgstr "{shown} 另外還有 {more} 個"
@@ -839,6 +869,9 @@ msgstr "{warningCount, plural, other {# 個警告}}"
 
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, other {字詞}}"
+
+msgid "@{login} ({open} open)"
+msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
 msgstr "/{0} 不是此智慧代理提供的指令 — 將以純文字傳送"
@@ -940,6 +973,9 @@ msgstr "一個 .zip 或 .skill 封存檔。"
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "<0>已修改</0>標記代表你的設定明確設過的規則——直接設定，或透過 <1>extends</1> 繼承而來。未標記的規則維持預設狀態。"
 
+msgid "A board needs a property that several pages share, with a few different values, such as \"status: To do\" and \"status: Done\"."
+msgstr ""
+
 msgid "A branch named {shareBranch} already exists. Open its worktree from the switcher instead."
 msgstr "名為 {shareBranch} 的分支已存在。請改從切換器開啟它的 worktree。"
 
@@ -1018,6 +1054,9 @@ msgstr "自這個分頁開啟以來，可能已經部署了更新的版本。"
 msgid "A non-empty folder already exists at this path. Pick a different folder."
 msgstr "這個路徑下已經有一個非空的資料夾。請換一個資料夾。"
 
+msgid "A page with that name exists. Choose another name."
+msgstr ""
+
 msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
 msgstr "作為符號連結的是上層目錄——請對那個資料夾取消連結，才能把這一個收回來。"
 
@@ -1093,6 +1132,9 @@ msgstr "{shareBranch} 的 worktree 資料夾已存在。"
 msgid "A worktree folder for that branch already exists."
 msgstr "該分支的 worktree 資料夾已存在。"
 
+msgid "ABCD-2345"
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "about"
 msgstr "關於"
@@ -1135,6 +1177,9 @@ msgstr "存取已儲存的 API 金鑰逾時。請等待憑證儲存區操作完�
 
 msgid "Access token"
 msgstr "存取權杖"
+
+msgid "Action items"
+msgstr ""
 
 msgid "Actions for {label}"
 msgstr "{label} 的動作"
@@ -1302,12 +1347,6 @@ msgstr "已新增"
 msgid "Adding"
 msgstr "正在新增"
 
-msgid "Adds a global GitQuire MCP entry for this agent."
-msgstr "為此智慧代理新增全域 GitQuire MCP 項目。"
-
-msgid "Adds a managed block to"
-msgstr "加入一個受管理的區塊到"
-
 #. Subtext under the project AI-tools checkbox
 msgid "Adds a GitQuire MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
 msgstr "向 <0>{toolList}</0> 新增 GitQuire 的 MCP 項目與專案技能，讓你的智慧代理可以讀取並編輯你的檔案。"
@@ -1318,6 +1357,12 @@ msgstr "向 <0>{connectToolList}</0> 新增 GitQuire 的 MCP 項目，讓你的�
 
 msgid "Adds a GitQuire MCP entry to this project's agent config."
 msgstr "將 GitQuire MCP 項目新增至此專案的智慧代理設定。"
+
+msgid "Adds a global GitQuire MCP entry for this agent."
+msgstr "為此智慧代理新增全域 GitQuire MCP 項目。"
+
+msgid "Adds a managed block to"
+msgstr "加入一個受管理的區塊到"
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.user-config"
@@ -1408,14 +1453,23 @@ msgstr "已把 {editor} 對齊到原始碼（它的位元組已備份）"
 msgid "All"
 msgstr "全部"
 
+msgid "All action items done"
+msgstr ""
+
 msgid "All conflicts resolved. Apply changes to save."
 msgstr "所有衝突已解決。套用變更以儲存。"
+
+msgid "All dated pages"
+msgstr ""
 
 msgid "All files"
 msgstr "所有檔案"
 
 msgid "All files are hidden by view filters."
 msgstr "所有檔案都被檢視篩選條件隱藏了。"
+
+msgid "All pages with properties"
+msgstr ""
 
 msgid "All tags"
 msgstr "所有標籤"
@@ -1499,6 +1553,9 @@ msgstr "發生了非預期的錯誤。"
 msgid "Anchor in this page"
 msgstr "這個頁面中的錨點"
 
+msgid "and {moreAttendees} more"
+msgstr ""
+
 msgid "and {remaining} more"
 msgstr "另外還有 {remaining} 個"
 
@@ -1525,6 +1582,9 @@ msgstr "任何名為 {0} 的文件"
 
 msgid "Any scripts are shown for review, never run."
 msgstr "任何指令碼都只會顯示出來供你檢查，絕不會執行。"
+
+msgid "Any value"
+msgstr ""
 
 msgid "Anyone can see"
 msgstr "任何人都看得到"
@@ -1628,15 +1688,6 @@ msgstr "確定要刪除所選的項目嗎？"
 msgid "Ask"
 msgstr "詢問"
 
-msgid "Ask Claude"
-msgstr ""
-
-msgid "Ask Claude to work on this folder…"
-msgstr ""
-
-msgid "Ask Claude to work on this page…"
-msgstr ""
-
 msgid "Ask {0} CLI"
 msgstr "詢問 {0} CLI"
 
@@ -1666,6 +1717,15 @@ msgstr "詢問智慧代理"
 
 msgid "Ask changes…"
 msgstr "要求變更…"
+
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
 
 msgid "Asset"
 msgstr "資產"
@@ -1889,6 +1949,9 @@ msgstr "部落格文章"
 msgid "blog-post"
 msgstr "blog-post"
 
+msgid "Board"
+msgstr ""
+
 msgid "Board controls"
 msgstr "畫板控制項"
 
@@ -1949,6 +2012,12 @@ msgstr "失效的內部連結"
 msgid "Broken link"
 msgstr "失效的連結"
 
+msgid "Broken links"
+msgstr ""
+
+msgid "Broken links: {total}"
+msgstr ""
+
 msgid "Browse"
 msgstr "瀏覽"
 
@@ -2000,11 +2069,11 @@ msgstr "項目符號清單"
 msgid "Bulleted list"
 msgstr ""
 
-msgid "By meaning"
-msgstr "依語意"
-
 msgid "By GitQuire"
 msgstr "由 GitQuire 提供"
+
+msgid "By meaning"
+msgstr "依語意"
 
 msgid "By tag"
 msgstr "依標籤"
@@ -2371,9 +2440,6 @@ msgstr "正在複製…"
 msgid "Close"
 msgstr "關閉"
 
-msgid "Close discussions"
-msgstr ""
-
 msgid "Close {0}"
 msgstr "關閉 {0}"
 
@@ -2391,6 +2457,9 @@ msgstr "關閉註解"
 
 msgid "Close diff"
 msgstr "關閉差異檢視"
+
+msgid "Close discussions"
+msgstr ""
 
 msgid "Close find"
 msgstr "關閉尋找"
@@ -2491,6 +2560,12 @@ msgstr "配色主題"
 
 msgid "Column options"
 msgstr "欄選項"
+
+msgid "Columns"
+msgstr ""
+
+msgid "Columns from"
+msgstr ""
 
 msgid "Command failed."
 msgstr "指令執行失敗。"
@@ -2593,6 +2668,9 @@ msgstr "設定代理"
 
 msgid "Configure user, project, and integration settings."
 msgstr "設定使用者、專案和整合相關的選項。"
+
+msgid "Confirm"
+msgstr ""
 
 msgid "conflict"
 msgstr "衝突"
@@ -2902,6 +2980,9 @@ msgstr "無法修復 {total} 個檔案中的 {0} 個。"
 msgid "Could not initialize {0}."
 msgstr "無法初始化 {0}。"
 
+msgid "Could not load branches"
+msgstr ""
+
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "無法載入範本：{templatesError}。你仍然可以建立空白筆記。"
 
@@ -2938,6 +3019,9 @@ msgstr "無法儲存同步偏好設定：{detail}"
 msgid "Could not start creating a new item"
 msgstr "無法開始建立新項目"
 
+msgid "Could not switch to {branch}"
+msgstr ""
+
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "無法切換到 {shareBranch}。請試著手動切換。"
 
@@ -2962,6 +3046,9 @@ msgstr "無法加上那則註解。"
 msgid "Couldn't apply the change: {0}"
 msgstr "無法套用這項變更：{0}"
 
+msgid "Couldn't cancel."
+msgstr ""
+
 msgid "Couldn't change spell checking. Try again."
 msgstr "無法變更拼字檢查。請重試。"
 
@@ -2976,6 +3063,9 @@ msgstr "無法清除金鑰——請再試一次。"
 
 msgid "Couldn't complete semantic search — retry"
 msgstr "無法完成語意搜尋 — 重試"
+
+msgid "Couldn't confirm the address."
+msgstr ""
 
 msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
 msgstr "無法連接到代理服務。請確認 GitQuire 伺服器正在執行而且是最新版本（如果它已經在執行，請重新啟動），然後再試一次。"
@@ -3001,14 +3091,14 @@ msgstr "無法建立技能：{0}"
 msgid "Couldn't create template: {error}"
 msgstr "無法建立範本：{error}"
 
+msgid "Couldn't create the meeting note."
+msgstr ""
+
 msgid "Couldn't create the report"
 msgstr "無法建立回報"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "無法建立 worktree。請換一個名稱。"
-
-msgid "Couldn't save the comment."
-msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "無法建立這個主題。請再試一次。"
@@ -3091,6 +3181,12 @@ msgstr "無法載入範本"
 msgid "Couldn't load the GitQuire skills. Try again."
 msgstr "無法載入 GitQuire 技能。請再試一次。"
 
+msgid "Couldn't load the pages for this view."
+msgstr ""
+
+msgid "Couldn't load the pages."
+msgstr ""
+
 msgid "Couldn't load the version preview. You can still choose how to resolve it below."
 msgstr "無法載入這個版本的預覽。你仍然可以在下方選擇要怎麼解決。"
 
@@ -3111,6 +3207,9 @@ msgstr "無法移動 {0}：{1}"
 
 msgid "Couldn't move skill: {0}"
 msgstr "無法移動技能：{0}"
+
+msgid "Couldn't move the page. The board was reloaded."
+msgstr ""
 
 msgid "Couldn't move to {trashNoun}"
 msgstr "無法移到{trashNoun}"
@@ -3286,14 +3385,29 @@ msgstr "無法儲存範本：{error}"
 msgid "Couldn't save that edit."
 msgstr "無法儲存那次編輯。"
 
+msgid "Couldn't save the action item."
+msgstr ""
+
+msgid "Couldn't save the action item. The list was reloaded."
+msgstr ""
+
 msgid "Couldn't save the auto-update setting: {0}"
 msgstr "無法儲存自動更新設定：{0}"
+
+msgid "Couldn't save the comment."
+msgstr ""
+
+msgid "Couldn't save the email address."
+msgstr ""
 
 msgid "Couldn't save the key — please try again."
 msgstr "無法儲存金鑰——請再試一次。"
 
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "無法儲存 {filePath} 的解決結果。"
+
+msgid "Couldn't save the view."
+msgstr ""
 
 msgid "Couldn't save this setting. Try again."
 msgstr "無法儲存此設定。請再試一次。"
@@ -3397,11 +3511,11 @@ msgstr "依目前的文件或資料夾情境建立一個資料夾。"
 msgid "Create a new branch, or check out an existing one, in its own window."
 msgstr "建立新分支，或簽出既有分支，各自在獨立視窗中開啟。"
 
-msgid "Create a new list item from the current list item."
-msgstr "從目前的清單項目建立一個新的清單項目。"
-
 msgid "Create a new GitQuire project in the folder of your choice."
 msgstr "在你選的資料夾中建立一個新的 GitQuire 專案。"
+
+msgid "Create a new list item from the current list item."
+msgstr "從目前的清單項目建立一個新的清單項目。"
 
 msgid "Create a new spec file for my user story"
 msgstr "為我的使用者故事建立一個新的規格檔案"
@@ -3417,6 +3531,9 @@ msgstr "在 {host} 上建立一個權杖"
 
 msgid "Create a worktree from this branch"
 msgstr "從這個分支建立 worktree"
+
+msgid "Create and switch"
+msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
 msgstr "在 <0>{dirDisplay}</0> 中建立"
@@ -3538,6 +3655,9 @@ msgstr "資料"
 msgid "Date"
 msgstr "日期"
 
+msgid "Date from"
+msgstr ""
+
 msgid "Default"
 msgstr "預設"
 
@@ -3549,9 +3669,6 @@ msgstr "預設：<0>{0}</0>"
 
 msgid "Delete"
 msgstr "刪除"
-
-msgid "Delete comment"
-msgstr ""
 
 msgid "Delete {0}"
 msgstr "刪除 {0}"
@@ -3591,6 +3708,9 @@ msgstr "刪除程式碼區塊"
 
 msgid "Delete column"
 msgstr "刪除欄"
+
+msgid "Delete comment"
+msgstr ""
 
 msgid "Delete Permanently"
 msgstr "永久刪除"
@@ -3714,11 +3834,11 @@ msgstr "詳細診斷資訊"
 msgid "Details"
 msgstr "詳細資料"
 
-msgid "Detected in {0}"
-msgstr "在 {0} 中偵測到"
-
 msgid "Detected GitQuire projects"
 msgstr "偵測到的 GitQuire 專案"
+
+msgid "Detected in {0}"
+msgstr "在 {0} 中偵測到"
 
 msgid "Detecting"
 msgstr "正在偵測"
@@ -3879,6 +3999,9 @@ msgstr "完成"
 msgid "Done"
 msgstr "完成"
 
+msgid "Done, due earlier"
+msgstr ""
+
 msgid "Done."
 msgstr "完成。"
 
@@ -3891,9 +4014,6 @@ msgstr "下載 {0}"
 msgid "Download and install updates automatically"
 msgstr "自動下載並安裝更新"
 
-msgid "Download app"
-msgstr "下載應用程式"
-
 msgid "Download file"
 msgstr "下載檔案"
 
@@ -3905,6 +4025,9 @@ msgstr "正在下載 {0} {1}…"
 
 msgid "Downloads a fresh copy from GitHub."
 msgstr "從 GitHub 下載一份全新的副本。"
+
+msgid "Draft"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Draft"
@@ -3933,6 +4056,12 @@ msgstr "拖放檔案以附加"
 
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "拖放、貼上或附加最多 {MAX_ATTACHMENTS} 張圖片。"
+
+msgid "Due {label}"
+msgstr ""
+
+msgid "Due {label}, overdue"
+msgstr ""
 
 msgid "Duplicate"
 msgstr "建立副本"
@@ -4031,14 +4160,17 @@ msgstr "編輯這則註解"
 msgid "Edit this HTML — the preview updates live."
 msgstr "編輯這段 HTML——預覽會即時更新。"
 
+msgid "Edit view"
+msgstr ""
+
 msgid "Edit wiki link"
 msgstr "編輯維基連結"
 
-msgid "Edited"
-msgstr "已編輯"
-
 msgid "edited"
 msgstr ""
+
+msgid "Edited"
+msgstr "已編輯"
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo}編輯"
@@ -4114,6 +4246,9 @@ msgstr "電子郵件地址"
 
 msgid "Email for followups"
 msgstr "供後續聯絡的電子郵件"
+
+msgid "Email me new mentions"
+msgstr ""
 
 msgid "Email support about this report"
 msgstr "就此回報寄郵件給支援團隊"
@@ -4200,11 +4335,11 @@ msgstr "啟用自動（僅拉取）"
 msgid "Enable Auto (Pull only)?"
 msgstr "啟用自動（僅拉取）？"
 
-msgid "Enable indexes"
-msgstr "啟用索引"
-
 msgid "Enable GitQuire tools for {0}?"
 msgstr "要為 {0} 啟用 GitQuire 工具嗎？"
+
+msgid "Enable indexes"
+msgstr "啟用索引"
 
 msgid "Enable plugins"
 msgstr "啟用外掛"
@@ -4227,11 +4362,11 @@ msgstr "為這個專案啟用終端機"
 msgid "Enable Themes"
 msgstr "啟用主題"
 
-msgid "Enabling index generation"
-msgstr "啟用索引生成"
-
 msgid "Enabling GitQuire tools"
 msgstr "正在啟用 GitQuire 工具"
+
+msgid "Enabling index generation"
+msgstr "啟用索引生成"
 
 msgid "Ended"
 msgstr "已結束"
@@ -4260,6 +4395,9 @@ msgstr "請輸入主機名稱，例如 github.example.com。"
 msgid "Enter a name for this theme."
 msgstr "輸入這個主題的名稱。"
 
+msgid "Enter a name."
+msgstr ""
+
 msgid "Enter a number of seconds between {minimum} and {maximum}."
 msgstr "請輸入介於 {minimum} 和 {maximum} 之間的秒數。"
 
@@ -4277,6 +4415,9 @@ msgstr "請為這個範本輸入標題。"
 
 msgid "Enter a valid branch name (no spaces, no leading dot, no \"..\")."
 msgstr "請輸入有效的分支名稱（不能有空格、不能以點開頭、不能包含「..」）。"
+
+msgid "Enter a valid email address."
+msgstr ""
 
 msgid "Enter a valid theme name."
 msgstr "輸入有效的主題名稱。"
@@ -4320,6 +4461,15 @@ msgstr "每個概念文檔都帶有一個非空類型。這是 OKF 的一致性�
 
 msgid "every doc"
 msgstr "所有文件"
+
+msgid "Everyone"
+msgstr ""
+
+msgid "Everyone editing this space moves to that branch."
+msgstr ""
+
+msgid "Everyone moves to the new branch once it is created."
+msgstr ""
 
 msgid "Everything from {source} is already up to date"
 msgstr "來自 {source} 的內容均已是最新"
@@ -4759,6 +4909,12 @@ msgstr "「檔案」側邊欄"
 msgid "Files toolbar"
 msgstr "「檔案」工具列"
 
+msgid "Filter by page"
+msgstr ""
+
+msgid "Filter by property"
+msgstr ""
+
 msgid "Filter languages"
 msgstr "篩選語言"
 
@@ -4876,15 +5032,6 @@ msgstr "無法附加資料夾和空檔案，請直接拖放檔案本身。"
 
 msgid "Follow the agent's edits"
 msgstr "跟著代理的編輯走"
-
-msgid "Follow us on"
-msgstr "追蹤我們："
-
-msgid "Follow us on social media"
-msgstr "在社群媒體上追蹤我們"
-
-msgid "Follow us on X"
-msgstr "在 X 上追蹤我們"
 
 msgid "Following the agent's edits"
 msgstr "正在跟著代理的編輯走"
@@ -5053,6 +5200,222 @@ msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
 
+msgid "GitQuire"
+msgstr "GitQuire"
+
+msgid "GitQuire can't sign in to GitHub for this project."
+msgstr "GitQuire 無法為此專案登入 GitHub。"
+
+msgid "GitQuire checked {subject}"
+msgstr "GitQuire 檢查了 {subject}"
+
+msgid "GitQuire checked the project"
+msgstr "GitQuire 檢查了專案"
+
+msgid "GitQuire checks for and downloads updates in the background."
+msgstr "GitQuire 會在背景檢查並下載更新。"
+
+msgid "GitQuire could not find this agent on this machine."
+msgstr "GitQuire 未在此裝置上找到該代理程式。"
+
+msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
+msgstr "GitQuire 無法連線到專案伺服器以檢查索引維護。專案重新連線後，狀態就會更新。"
+
+msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
+msgstr "GitQuire 無法完成此專案的設定。工作樹已建立，但未開啟。"
+
+msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
+msgstr "GitQuire 無法讀取 .ok/local/config.yml 中的 terminal.shell，將改用可用的 Windows shell。"
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
+msgstr "GitQuire 無法在 .ok/local/terminal 下寫入啟動設定，因為該資料夾未安全地包含在此專案中。請確認它是專案內的真實資料夾，而不是連結。Claude 將要求你核准 GitQuire。"
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
+msgstr "GitQuire 此次無法在 .ok/local/terminal 下寫入啟動設定。請確認該資料夾可寫入。Claude 將要求你核准 GitQuire。"
+
+msgid "GitQuire created a share link"
+msgstr "GitQuire 建立了分享連結"
+
+msgid "GitQuire created a share link for {subject}"
+msgstr "GitQuire 為 {subject} 建立了分享連結"
+
+msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
+msgstr "GitQuire 在包含 Markdown 的每個資料夾中建立並維護名為 index.md 的導覽檔案。"
+
+msgid "GitQuire deleted {subject}"
+msgstr "GitQuire 刪除了 {subject}"
+
+msgid "GitQuire deleted a document"
+msgstr "GitQuire 刪除了一個文件"
+
+msgid "GitQuire discovery skill"
+msgstr "GitQuire 探索技能"
+
+msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
+msgstr "GitQuire 無法辨識此項目，且無法在此檔案格式中安全取代。"
+
+msgid "GitQuire does not recognize this entry. Turning it on replaces it."
+msgstr "GitQuire 無法辨識此項目。啟用後將取代它。"
+
+msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
+msgstr "GitQuire 不會自行檢查或下載更新。需要新版本時，仍可使用「檢查更新」。"
+
+msgid "GitQuire edited {subject}"
+msgstr "GitQuire 編輯了 {subject}"
+
+msgid "GitQuire edited a document"
+msgstr "GitQuire 編輯了一個文件"
+
+msgid "GitQuire files were removed"
+msgstr "已移除 GitQuire 檔案"
+
+msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
+msgstr "GitQuire 沒有為這個主機儲存任何憑證。請在「設定」中新增一個權杖，或者讓 git 使用它已有的憑證。"
+
+msgid "GitQuire imported {source}"
+msgstr "GitQuire 匯入了 {source}"
+
+msgid "GitQuire imported a skill"
+msgstr "GitQuire 匯入了一個技能"
+
+msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
+msgstr "GitQuire 會在 <0>{projectDir}</0> 初始化——它是 <1>{pickedRelative}</1> 的上層目錄，因為裡面有 <2>.git</2> 資料夾（每個 git 儲存庫一個 .ok/）。<3>內容目錄</3>預設是 <4>.</4>（整個儲存庫）；輸入子資料夾可以縮小範圍。"
+
+msgid "GitQuire installed {subject}"
+msgstr "GitQuire 安裝了 {subject}"
+
+msgid "GitQuire installed a skill"
+msgstr "GitQuire 安裝了一個技能"
+
+msgid "GitQuire integrations checked."
+msgstr "已檢查 GitQuire 整合。"
+
+msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
+msgstr "這裡的 GitQuire 設定在存放庫根目錄，因此入門套件會放進 <0>{sanitized}</0>，而不是存放庫頂層。"
+
+msgid "GitQuire is using this GitHub account."
+msgstr "GitQuire 正在使用這個 GitHub 帳戶。"
+
+msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
+msgstr "GitQuire 會持續重試，並在檔案可以讀取後立即顯示這些設定。"
+
+msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
+msgstr "GitQuire 未修改此檔案，因為無法安全地解析它。請手動修正該檔案，然後再試一次。"
+
+msgid "GitQuire listed the installed skills"
+msgstr "GitQuire 列出了已安裝的技能"
+
+msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
+msgstr "跨專案的 GitQuire 紀錄。目前未開啟任何專案，因此不包含專案伺服器紀錄。"
+
+msgid "GitQuire logs, including activity across projects."
+msgstr "GitQuire 紀錄，包括跨專案的活動。"
+
+msgid "GitQuire looked at the link graph"
+msgstr "GitQuire 查看了連結圖譜"
+
+msgid "GitQuire looked up links for {subject}"
+msgstr "GitQuire 查詢了 {subject} 的連結"
+
+msgid "GitQuire looked up the authoring palette"
+msgstr "GitQuire 查看了創作面板"
+
+msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
+msgstr "GitQuire 在包含 Markdown 的每個資料夾中維護一個名為 index.md 的導航文件，每個資料夾按類型列出該資料夾的文件並連結到其子資料夾。當您的文件發生更改時，它會重寫這些文件，並且您自己編輯到其中的任何內容都會被替換。"
+
+msgid "GitQuire moved {subject} to {destination}"
+msgstr "GitQuire 將 {subject} 移動到 {destination}"
+
+msgid "GitQuire moved a document"
+msgstr "GitQuire 移動了一個文件"
+
+msgid "GitQuire on GitHub"
+msgstr "GitHub 上的 GitQuire"
+
+msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
+msgstr "這台電腦上的 GitQuire 已換成另一個組建，但這個分頁仍在執行舊的組建。"
+
+msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+msgstr "這台電腦上的 GitQuire 現在是 v{serverVersion}，但這個分頁仍在執行 v{tabVersion}。"
+
+msgid "GitQuire opened the live preview"
+msgstr "GitQuire 開啟了即時預覽"
+
+msgid "GitQuire quit unexpectedly last time."
+msgstr "GitQuire 上次非預期地結束了。"
+
+msgid "GitQuire ran {command}"
+msgstr "GitQuire 執行了 {command}"
+
+msgid "GitQuire ran {tool}"
+msgstr "GitQuire 執行了 {tool}"
+
+msgid "GitQuire ran a command"
+msgstr "GitQuire 執行了一個指令"
+
+msgid "GitQuire read the edit history"
+msgstr "GitQuire 查看了編輯歷史"
+
+msgid "GitQuire read the history of {subject}"
+msgstr "GitQuire 查看了 {subject} 的歷史"
+
+msgid "GitQuire read the project settings"
+msgstr "GitQuire 讀取了專案設定"
+
+msgid "GitQuire read the setting {key}"
+msgstr "GitQuire 讀取了設定 {key}"
+
+msgid "GitQuire restored an earlier version"
+msgstr "GitQuire 還原了較早的版本"
+
+msgid "GitQuire restored an earlier version of {subject}"
+msgstr "GitQuire 還原了 {subject} 的較早版本"
+
+msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
+msgstr "當文件變更時，GitQuire 會重寫這些 index.md 文件，因此對它們的手動編輯將會被取代。"
+
+msgid "GitQuire saved a checkpoint"
+msgstr "GitQuire 儲存了一個檢查點"
+
+msgid "GitQuire searched for {query}"
+msgstr "GitQuire 搜尋了 {query}"
+
+msgid "GitQuire searched the knowledge base"
+msgstr "GitQuire 搜尋了知識庫"
+
+msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
+msgstr "已儲存 GitQuire 技能。請在 Claude Desktop 中上傳，然後再次點選 Cowork。"
+
+msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
+msgstr "GitQuire 會把設定和內部檔案放在你專案根資料夾中新建的 <0>.ok</0> 目錄裡。"
+
+msgid "GitQuire tools are available in this thread."
+msgstr "此執行緒中已可使用 GitQuire 工具。"
+
+msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
+msgstr "GitQuire 工具無法使用，因為專案資料夾遺失、無法存取或已變更。請檢查其位置和權限，然後重試。"
+
+msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
+msgstr "GitQuire 工具無法使用：{bridgePath} 已存在一個並非 GitQuire 寫入的檔案。"
+
+msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
+msgstr "GitQuire 工具無法使用：{bridgePath} 已有內容，但無法讀取，因此 GitQuire 未做更動。"
+
+msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
+msgstr "GitQuire 會在 <0>{gitRoot}</0> 初始化——它是你新資料夾的上層目錄，因為裡面有 <1>.git</1> 資料夾（每個 git 儲存庫一個專案）。"
+
+msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
+msgstr "GitQuire 會自動建立提交並推送到你的遠端。如果你不希望 git 記錄中出現自動提交，就不該啟用自動同步。"
+
+msgid "GitQuire wrote a document"
+msgstr "GitQuire 寫入了一個文件"
+
+msgid "GitQuire wrote to {subject}"
+msgstr "GitQuire 寫入了 {subject}"
+
+msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
+msgstr "GitQuire 自己的 {0} 副本已損壞，無法執行。它可以下載一份新的 {1} {2}（約 {3} MB，來自 {4}）來替換它。"
+
 msgid "Give it a name before editing its colors."
 msgstr "請先為主題命名，再編輯色彩。"
 
@@ -5102,6 +5465,18 @@ msgstr "文件連結的圖形檢視。"
 
 msgid "Grid of rows and columns with a header row."
 msgstr "由列和欄組成的表格，含一列標頭。"
+
+msgid "Group action items"
+msgstr ""
+
+msgid "Group by due date"
+msgstr ""
+
+msgid "Group by page"
+msgstr ""
+
+msgid "Group by person"
+msgstr ""
 
 msgid "Group skills by source"
 msgstr "依來源分組技能"
@@ -5203,9 +5578,6 @@ msgstr "已隱藏資料夾「{basename}」"
 msgid "Hide"
 msgstr "隱藏"
 
-msgid "Hide keyboard"
-msgstr ""
-
 msgid "Hide {0} editor"
 msgstr "隱藏 {0} 編輯器"
 
@@ -5244,6 +5616,9 @@ msgstr "隱藏資料夾"
 
 msgid "Hide HTML preview"
 msgstr "隱藏 HTML 預覽"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide original"
 msgstr "隱藏原始版本"
@@ -5669,6 +6044,10 @@ msgstr "從 {plugin} 安裝"
 msgid "Install from {source}"
 msgstr "從 {source} 安裝"
 
+#. Checkbox that wires the GitQuire MCP into every detected AI tool
+msgid "Install GitQuire in your AI tools"
+msgstr "在你的 AI 工具中安裝 GitQuire"
+
 msgid "Install handoff failed: {msg}"
 msgstr "安裝交接失敗：{msg}"
 
@@ -5689,10 +6068,6 @@ msgstr "安裝到"
 
 msgid "Install on all agents"
 msgstr "安裝到所有代理"
-
-#. Checkbox that wires the GitQuire MCP into every detected AI tool
-msgid "Install GitQuire in your AI tools"
-msgstr "在你的 AI 工具中安裝 GitQuire"
 
 msgid "Install skill"
 msgstr "安裝技巧"
@@ -5920,6 +6295,9 @@ msgstr "語言"
 msgid "Last activity {lastActivity}"
 msgstr "最近活動：{lastActivity}"
 
+msgid "Later"
+msgstr ""
+
 msgid "Latest edit"
 msgstr "最近一次編輯"
 
@@ -6026,6 +6404,9 @@ msgstr ""
 msgid "Link to a page or external URL."
 msgstr "連到某個頁面或外部 URL。"
 
+msgid "Link to new page \"{0}\""
+msgstr ""
+
 msgid "Link URL"
 msgstr "連結 URL"
 
@@ -6049,6 +6430,9 @@ msgstr "連結"
 
 msgid "Links & images"
 msgstr "連結與圖片"
+
+msgid "Links to pages that do not exist. Choose a page to open it and fix the link there."
+msgstr ""
 
 msgid "Lint plugins — which rule families run and their per-rule settings — are configured on their own tab under This project → Plugins."
 msgstr "檢查外掛——要執行哪些規則家族，以及各條規則的設定——在「這個專案 → 外掛」底下的獨立分頁中設定。"
@@ -6110,6 +6494,9 @@ msgstr "正在載入檔案"
 msgid "Loading folder contents"
 msgstr "正在載入資料夾內容"
 
+msgid "Loading GitQuire skills"
+msgstr "正在載入 GitQuire 技能"
+
 msgid "Loading graph"
 msgstr "正在載入關係圖"
 
@@ -6118,9 +6505,6 @@ msgstr "正在載入 {pageTarget} 的標題"
 
 msgid "Loading image"
 msgstr "正在載入圖片"
-
-msgid "Loading GitQuire skills"
-msgstr "正在載入 GitQuire 技能"
 
 msgid "Loading pages"
 msgstr "正在載入頁面"
@@ -6172,6 +6556,9 @@ msgstr "正在載入你的回報"
 
 msgid "Loading..."
 msgstr "正在載入…"
+
+msgid "Loading…"
+msgstr ""
 
 msgid "Local changes blocked the merge"
 msgstr "本機變更擋住了合併"
@@ -6278,6 +6665,12 @@ msgstr "梳理架構"
 msgid "Mark a block as the source of truth. Mirrors elsewhere update live as you edit it."
 msgstr "把某個區塊標記為事實來源。你編輯它的時候，別處的鏡像會即時更新。"
 
+msgid "Mark all as read"
+msgstr ""
+
+msgid "Mark done: {text}"
+msgstr ""
+
 msgid "Mark every comment in {0} to send"
 msgstr "勾選 {0} 中的所有註解以傳送"
 
@@ -6298,6 +6691,9 @@ msgstr "Markdown 原始碼"
 
 msgid "markdownlint rules"
 msgstr "markdownlint 規則"
+
+msgid "Marked done: {text}"
+msgstr ""
 
 msgid "Match case"
 msgstr "區分大小寫"
@@ -6328,6 +6724,15 @@ msgstr "中型章節標題。"
 
 msgid "Mention a page"
 msgstr "提及頁面"
+
+msgid "Mentioning me"
+msgstr ""
+
+msgid "Mentions"
+msgstr ""
+
+msgid "Mentions, {0} unread"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Merged"
@@ -6440,6 +6845,9 @@ msgstr "安裝次數最多"
 
 msgid "Move"
 msgstr "移動"
+
+msgid "Move \"{title}\" to"
+msgstr ""
 
 msgid "Move {0} to Global"
 msgstr "將 {0} 個技能移至全域"
@@ -6642,6 +7050,9 @@ msgstr "名稱為必填"
 msgid "Name your theme"
 msgstr "為主題命名"
 
+msgid "name@example.com"
+msgstr ""
+
 msgid "Navigate CodeMirror source search results or dismiss the search panel."
 msgstr "在 CodeMirror 原始碼搜尋結果之間移動，或關閉搜尋面板。"
 
@@ -6690,11 +7101,17 @@ msgstr "有新動態"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "新紀錄 · 按<0>空白鍵</0>再玩一次"
 
+msgid "New branch"
+msgstr ""
+
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "新分支 <0>{trimmed}</0> 會從 <1>{currentBaseLabel}</1> 建立，放在 <2>.ok/worktrees/</2> 底下自己的 worktree 中。"
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "新分支 <0>{trimmed}</0> 會從目前的提交建立，放在 <1>.ok/worktrees/</1> 底下自己的 worktree 中。"
+
+msgid "New branch…"
+msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "來自遠端的新變更會自動出現在你的副本裡。"
@@ -6734,6 +7151,12 @@ msgstr "新的忽略模式"
 
 msgid "New languages may need an internet connection and time to become available."
 msgstr "新語言可能需要連線網路並等待一段時間才能使用。"
+
+msgid "New meeting note"
+msgstr ""
+
+msgid "New mentions are emailed to {0}"
+msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "{editor} 版本的新名稱"
@@ -6780,6 +7203,9 @@ msgstr "新增 worktree"
 msgid "New worktree…"
 msgstr "新增 worktree…"
 
+msgid "Next 7 days"
+msgstr ""
+
 msgid "Next change"
 msgstr "下一處變更"
 
@@ -6794,6 +7220,9 @@ msgstr "下一個分頁"
 
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "還沒有 <0>.markdownlint.*</0> 檔案——所有規則都按照和 VS Code markdownlint 擴充功能相同的預設值執行：除了行長度以外全部開啟。"
+
+msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
+msgstr ""
 
 msgid "No active or recent GitQuire projects were found."
 msgstr "找不到使用中或最近的 GitQuire 專案。"
@@ -6852,6 +7281,9 @@ msgstr "這個版本沒有內文變更。"
 msgid "No body changes in this version"
 msgstr "這個版本沒有內文變更"
 
+msgid "No broken links."
+msgstr ""
+
 msgid "No bug reports yet."
 msgstr "還沒有錯誤回報。"
 
@@ -6893,6 +7325,9 @@ msgstr "沒有孤立的頁面。只有既沒有連入也沒有連出關係圖邊
 
 msgid "No docs registered under #{tagDocsName}."
 msgstr "#{tagDocsName} 底下沒有登記任何文件。"
+
+msgid "No due date"
+msgstr ""
 
 msgid "No edit session yet"
 msgstr "還沒有編輯工作階段"
@@ -7005,6 +7440,15 @@ msgstr "{docName} 中沒有鏡像來源區塊"
 msgid "No Outgoing"
 msgstr "沒有連出"
 
+msgid "No page has a date yet. Give a page a date property (\"date: 2026-11-12\"), or choose \"New meeting note\"."
+msgstr ""
+
+msgid "No page has properties yet. Open a page, choose \"Add properties\" and give it for example a type and a status. It then shows up here."
+msgstr ""
+
+msgid "No page matches."
+msgstr ""
+
 msgid "No pages are missing incoming graph links."
 msgstr "沒有頁面缺少連入的關係圖連結。"
 
@@ -7020,6 +7464,9 @@ msgstr "找不到與「{trimmedQuery}」相符的頁面"
 msgid "No pages link here yet."
 msgstr "還沒有頁面連到這裡。"
 
+msgid "No pages match this view."
+msgstr ""
+
 msgid "No pages matched \"{semanticQueryText}\" by meaning."
 msgstr "按語意沒有頁面與「{semanticQueryText}」相符。"
 
@@ -7034,6 +7481,9 @@ msgstr "沒有發現問題。"
 
 msgid "No project templates yet. Create one to make it available everywhere in this project. Folder-scoped templates live on each folder's overview page."
 msgstr "還沒有專案範本。建立一個，就能在這個專案的任何地方使用它。資料夾範圍的範本放在各個資料夾的總覽頁上。"
+
+msgid "No property with a few values to group by. Set \"group:\" in the view block."
+msgstr ""
 
 msgid "No recent files"
 msgstr "沒有最近的檔案"
@@ -7101,11 +7551,20 @@ msgstr "找不到範本。"
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "還沒有範本。加一個，讓這個資料夾裡的新文件有個現成的起點。"
 
+msgid "No value"
+msgstr ""
+
 msgid "No workspace"
 msgstr "沒有工作區"
 
 msgid "No worktrees found."
 msgstr "找不到工作樹。"
+
+msgid "Nobody has mentioned you yet. Mentions in discussions show up here."
+msgstr ""
+
+msgid "Nobody mentioned"
+msgstr ""
 
 msgid "None"
 msgstr "無"
@@ -7195,6 +7654,12 @@ msgstr "{agentName} 已有 {stalledMinutes, plural, other {# 分鐘}}沒有任�
 
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "在您檢查並傳送報告之前，任何資訊都不會離開您的電腦。"
+
+msgid "Nothing matches the filter."
+msgstr ""
+
+msgid "Nothing matches."
+msgstr ""
 
 msgid "Nothing moves until you ask — pull and push from the sync menu."
 msgstr "在你發起操作之前不會有任何變動——請在同步選單中拉取與推送。"
@@ -7446,35 +7911,8 @@ msgstr "在 worktree 中開啟"
 msgid "Open it there"
 msgstr "在那裡開啟"
 
-msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
-msgstr "GitQuire 無法連線到專案伺服器以檢查索引維護。專案重新連線後，狀態就會更新。"
-
-msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
-msgstr "GitQuire 在包含 Markdown 的每個資料夾中建立並維護名為 index.md 的導覽檔案。"
-
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 指導"
-
-msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
-msgstr "GitQuire 在包含 Markdown 的每個資料夾中維護一個名為 index.md 的導航文件，每個資料夾按類型列出該資料夾的文件並連結到其子資料夾。當您的文件發生更改時，它會重寫這些文件，並且您自己編輯到其中的任何內容都會被替換。"
-
-msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
-msgstr "當文件變更時，GitQuire 會重寫這些 index.md 文件，因此對它們的手動編輯將會被取代。"
-
-msgid "GitQuire tools are available in this thread."
-msgstr "此執行緒中已可使用 GitQuire 工具。"
-
-msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "GitQuire 工具無法使用，因為專案資料夾遺失、無法存取或已變更。請檢查其位置和權限，然後重試。"
-
-msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
-msgstr "GitQuire 工具無法使用：{bridgePath} 已存在一個並非 GitQuire 寫入的檔案。"
-
-msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
-msgstr "GitQuire 工具無法使用：{bridgePath} 已有內容，但無法讀取，因此 GitQuire 未做更動。"
-
-msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "GitQuire 自己的 {0} 副本已損壞，無法執行。它可以下載一份新的 {1} {2}（約 {3} MB，來自 {4}）來替換它。"
 
 msgid "Open link"
 msgstr "開啟連結"
@@ -7493,6 +7931,15 @@ msgstr "代理編輯時開啟預覽"
 
 msgid "Open project menu"
 msgstr "開啟專案選單"
+
+msgid "Open pull request"
+msgstr ""
+
+msgid "Open pull request…"
+msgstr ""
+
+msgid "Open pull requests"
+msgstr ""
 
 msgid "Open recent project"
 msgstr "開啟最近的專案"
@@ -7514,6 +7961,9 @@ msgstr "開啟原始碼檢查面板"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "來源：{mirrorSrc}"
+
+msgid "Open tasks"
+msgstr ""
 
 msgid "Open terminal"
 msgstr "開啟終端機"
@@ -7578,6 +8028,9 @@ msgstr "已開啟位於 {ancestorPath} 的現有 GitQuire 專案"
 msgid "Opened on branch {branch}"
 msgstr "已在分支 {branch} 上開啟"
 
+msgid "Opened pull request #{number}"
+msgstr ""
+
 msgid "Opening {openingLabel}…"
 msgstr "正在開啟 {openingLabel}…"
 
@@ -7587,194 +8040,8 @@ msgstr "正在開啟 worktree"
 msgid "Opening..."
 msgstr "正在開啟…"
 
-msgid "GitQuire"
-msgstr "GitQuire"
-
-msgid "GitQuire can't sign in to GitHub for this project."
-msgstr "GitQuire 無法為此專案登入 GitHub。"
-
-msgid "GitQuire checked {subject}"
-msgstr "GitQuire 檢查了 {subject}"
-
-msgid "GitQuire checked the project"
-msgstr "GitQuire 檢查了專案"
-
-msgid "GitQuire checks for and downloads updates in the background."
-msgstr "GitQuire 會在背景檢查並下載更新。"
-
-msgid "GitQuire could not find this agent on this machine."
-msgstr "GitQuire 未在此裝置上找到該代理程式。"
-
-msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
-msgstr "GitQuire 無法完成此專案的設定。工作樹已建立，但未開啟。"
-
-msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "GitQuire 無法讀取 .ok/local/config.yml 中的 terminal.shell，將改用可用的 Windows shell。"
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
-msgstr "GitQuire 無法在 .ok/local/terminal 下寫入啟動設定，因為該資料夾未安全地包含在此專案中。請確認它是專案內的真實資料夾，而不是連結。Claude 將要求你核准 GitQuire。"
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
-msgstr "GitQuire 此次無法在 .ok/local/terminal 下寫入啟動設定。請確認該資料夾可寫入。Claude 將要求你核准 GitQuire。"
-
-msgid "GitQuire created a share link"
-msgstr "GitQuire 建立了分享連結"
-
-msgid "GitQuire created a share link for {subject}"
-msgstr "GitQuire 為 {subject} 建立了分享連結"
-
-msgid "GitQuire deleted {subject}"
-msgstr "GitQuire 刪除了 {subject}"
-
-msgid "GitQuire deleted a document"
-msgstr "GitQuire 刪除了一個文件"
-
-msgid "GitQuire discovery skill"
-msgstr "GitQuire 探索技能"
-
-msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "GitQuire 無法辨識此項目，且無法在此檔案格式中安全取代。"
-
-msgid "GitQuire does not recognize this entry. Turning it on replaces it."
-msgstr "GitQuire 無法辨識此項目。啟用後將取代它。"
-
-msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
-msgstr "GitQuire 不會自行檢查或下載更新。需要新版本時，仍可使用「檢查更新」。"
-
-msgid "GitQuire edited {subject}"
-msgstr "GitQuire 編輯了 {subject}"
-
-msgid "GitQuire edited a document"
-msgstr "GitQuire 編輯了一個文件"
-
-msgid "GitQuire files were removed"
-msgstr "已移除 GitQuire 檔案"
-
-msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
-msgstr "GitQuire 沒有為這個主機儲存任何憑證。請在「設定」中新增一個權杖，或者讓 git 使用它已有的憑證。"
-
-msgid "GitQuire imported {source}"
-msgstr "GitQuire 匯入了 {source}"
-
-msgid "GitQuire imported a skill"
-msgstr "GitQuire 匯入了一個技能"
-
-msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
-msgstr "GitQuire 會在 <0>{projectDir}</0> 初始化——它是 <1>{pickedRelative}</1> 的上層目錄，因為裡面有 <2>.git</2> 資料夾（每個 git 儲存庫一個 .ok/）。<3>內容目錄</3>預設是 <4>.</4>（整個儲存庫）；輸入子資料夾可以縮小範圍。"
-
-msgid "GitQuire installed {subject}"
-msgstr "GitQuire 安裝了 {subject}"
-
-msgid "GitQuire installed a skill"
-msgstr "GitQuire 安裝了一個技能"
-
-msgid "GitQuire integrations checked."
-msgstr "已檢查 GitQuire 整合。"
-
-msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
-msgstr "這裡的 GitQuire 設定在存放庫根目錄，因此入門套件會放進 <0>{sanitized}</0>，而不是存放庫頂層。"
-
-msgid "GitQuire is using this GitHub account."
-msgstr "GitQuire 正在使用這個 GitHub 帳戶。"
-
-msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
-msgstr "GitQuire 會持續重試，並在檔案可以讀取後立即顯示這些設定。"
-
-msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "GitQuire 未修改此檔案，因為無法安全地解析它。請手動修正該檔案，然後再試一次。"
-
-msgid "GitQuire listed the installed skills"
-msgstr "GitQuire 列出了已安裝的技能"
-
-msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
-msgstr "跨專案的 GitQuire 紀錄。目前未開啟任何專案，因此不包含專案伺服器紀錄。"
-
-msgid "GitQuire logs, including activity across projects."
-msgstr "GitQuire 紀錄，包括跨專案的活動。"
-
-msgid "GitQuire looked at the link graph"
-msgstr "GitQuire 查看了連結圖譜"
-
-msgid "GitQuire looked up links for {subject}"
-msgstr "GitQuire 查詢了 {subject} 的連結"
-
-msgid "GitQuire looked up the authoring palette"
-msgstr "GitQuire 查看了創作面板"
-
-msgid "GitQuire moved {subject} to {destination}"
-msgstr "GitQuire 將 {subject} 移動到 {destination}"
-
-msgid "GitQuire moved a document"
-msgstr "GitQuire 移動了一個文件"
-
-msgid "GitQuire on GitHub"
-msgstr "GitHub 上的 GitQuire"
-
-msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
-msgstr "這台電腦上的 GitQuire 已換成另一個組建，但這個分頁仍在執行舊的組建。"
-
-msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
-msgstr "這台電腦上的 GitQuire 現在是 v{serverVersion}，但這個分頁仍在執行 v{tabVersion}。"
-
-msgid "GitQuire opened the live preview"
-msgstr "GitQuire 開啟了即時預覽"
-
-msgid "GitQuire quit unexpectedly last time."
-msgstr "GitQuire 上次非預期地結束了。"
-
-msgid "GitQuire ran {command}"
-msgstr "GitQuire 執行了 {command}"
-
-msgid "GitQuire ran {tool}"
-msgstr "GitQuire 執行了 {tool}"
-
-msgid "GitQuire ran a command"
-msgstr "GitQuire 執行了一個指令"
-
-msgid "GitQuire read the edit history"
-msgstr "GitQuire 查看了編輯歷史"
-
-msgid "GitQuire read the history of {subject}"
-msgstr "GitQuire 查看了 {subject} 的歷史"
-
-msgid "GitQuire read the project settings"
-msgstr "GitQuire 讀取了專案設定"
-
-msgid "GitQuire read the setting {key}"
-msgstr "GitQuire 讀取了設定 {key}"
-
-msgid "GitQuire restored an earlier version"
-msgstr "GitQuire 還原了較早的版本"
-
-msgid "GitQuire restored an earlier version of {subject}"
-msgstr "GitQuire 還原了 {subject} 的較早版本"
-
-msgid "GitQuire saved a checkpoint"
-msgstr "GitQuire 儲存了一個檢查點"
-
-msgid "GitQuire searched for {query}"
-msgstr "GitQuire 搜尋了 {query}"
-
-msgid "GitQuire searched the knowledge base"
-msgstr "GitQuire 搜尋了知識庫"
-
-msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "已儲存 GitQuire 技能。請在 Claude Desktop 中上傳，然後再次點選 Cowork。"
-
-msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
-msgstr "GitQuire 會把設定和內部檔案放在你專案根資料夾中新建的 <0>.ok</0> 目錄裡。"
-
-msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
-msgstr "GitQuire 會在 <0>{gitRoot}</0> 初始化——它是你新資料夾的上層目錄，因為裡面有 <1>.git</1> 資料夾（每個 git 儲存庫一個專案）。"
-
-msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
-msgstr "GitQuire 會自動建立提交並推送到你的遠端。如果你不希望 git 記錄中出現自動提交，就不該啟用自動同步。"
-
-msgid "GitQuire wrote a document"
-msgstr "GitQuire 寫入了一個文件"
-
-msgid "GitQuire wrote to {subject}"
-msgstr "GitQuire 寫入了 {subject}"
+msgid "Opening…"
+msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "開啟資料夾選擇器，挑一個地方把儲存庫複製過去。"
@@ -7867,6 +8134,9 @@ msgstr "超出 {budgetLabel} token 預算"
 msgid "Over the {budgetLabel} token guidance. Everything here loads into the agent's context when the skill is used — keep it lean, or move detail into references/ files that load only on demand."
 msgstr "超出 {budgetLabel} 個 token 的建議上限。技能被使用時這些內容會全部載入智能體上下文——請保持精簡，或將細節移入僅按需載入的 references/ 檔案。"
 
+msgid "Overdue"
+msgstr ""
+
 msgid "Overlapping edits"
 msgstr "重疊的編輯"
 
@@ -7900,6 +8170,9 @@ msgstr "頁面標題回應不是 JSON"
 msgid "Page link"
 msgstr "頁面連結"
 
+msgid "Page name"
+msgstr ""
+
 msgid "Page not found"
 msgstr "找不到頁面"
 
@@ -7917,6 +8190,9 @@ msgstr "頁面會在搜尋第一次需要它們的時候產生嵌入向量。"
 
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "已建立索引的頁面：{semanticIndexedCount} / {semanticTotalCount}。"
+
+msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgstr ""
 
 msgid "Pan down"
 msgstr "向下平移"
@@ -8044,6 +8320,9 @@ msgstr "權限不足"
 
 msgid "Permission required"
 msgstr "需要授權"
+
+msgid "Person"
+msgstr ""
 
 msgid "Personal access token"
 msgstr "個人存取權杖"
@@ -8228,9 +8507,6 @@ msgstr "{0} 中的問題"
 msgid "Product updates"
 msgstr "產品動態"
 
-msgid "Product updates in your inbox."
-msgstr "把產品動態寄到你的信箱。"
-
 msgid "project"
 msgstr "專案"
 
@@ -8293,6 +8569,9 @@ msgstr "屬性名稱"
 
 msgid "Property value"
 msgstr "屬性值"
+
+msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgstr ""
 
 msgid "Protected branch — cannot push"
 msgstr "受保護的分支——無法推送"
@@ -8664,12 +8943,6 @@ msgstr "移除兩者"
 msgid "Remove from recent projects"
 msgstr "從最近的專案中移除"
 
-msgid "Remove item {0}"
-msgstr "移除項目 {0}"
-
-msgid "Remove link"
-msgstr "移除連結"
-
 msgid "Remove GitQuire from {0}"
 msgstr "把 GitQuire 從 {0} 中移除"
 
@@ -8681,6 +8954,12 @@ msgstr "從 {rowLabel} 移除 GitQuire"
 
 msgid "Remove GitQuire?"
 msgstr "移除 GitQuire？"
+
+msgid "Remove item {0}"
+msgstr "移除項目 {0}"
+
+msgid "Remove link"
+msgstr "移除連結"
 
 msgid "Remove property"
 msgstr "移除屬性"
@@ -8787,6 +9066,12 @@ msgstr "重新開啟最近關閉的那個編輯器分頁。"
 msgid "Reopen this window to sign in with your browser"
 msgstr "重新開啟這個視窗，就能用瀏覽器登入"
 
+msgid "Reopen: {text}"
+msgstr ""
+
+msgid "Reopened: {text}"
+msgstr ""
+
 msgid "Reopening \"{docName}\" with a fresh local collaboration cache."
 msgstr "正在用全新的本機協作快取重新開啟「{docName}」。"
 
@@ -8862,10 +9147,10 @@ msgstr "回報問題…"
 msgid "Report a problem with this chat…"
 msgstr "回報此對話的問題…"
 
-msgid "Report an issue on GitHub"
+msgid "Report an issue"
 msgstr ""
 
-msgid "Report an issue"
+msgid "Report an issue on GitHub"
 msgstr ""
 
 msgid "Report from {0}"
@@ -9154,11 +9439,17 @@ msgstr "沙箱化的 HTML 嵌入——寫下 HTML，即時看到顯示結果。"
 msgid "Save"
 msgstr "儲存"
 
+msgid "Save as page"
+msgstr ""
+
 msgid "Save changes"
 msgstr "儲存變更"
 
 msgid "Save failed: {error}"
 msgstr "儲存失敗：{error}"
+
+msgid "Save page"
+msgstr ""
 
 msgid "Save queued message"
 msgstr "儲存排隊中的訊息"
@@ -9166,8 +9457,14 @@ msgstr "儲存排隊中的訊息"
 msgid "Save this comment (Enter)"
 msgstr "儲存這則註解（Enter）"
 
+msgid "Save view as page"
+msgstr ""
+
 msgid "Saved"
 msgstr "已儲存"
+
+msgid "Saved as {docName}.md"
+msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "已儲存為 <0>{slug}.md</0>"
@@ -9186,6 +9483,9 @@ msgstr "無法載入已儲存的主題。仍顯示上次可用的主題清單。
 
 msgid "Saved to"
 msgstr "儲存到"
+
+msgid "Saved view: {0}"
+msgstr ""
 
 msgid "Saved with the project for your team."
 msgstr "和專案一起保存，供你的團隊使用。"
@@ -9277,6 +9577,9 @@ msgstr "搜尋檔案、資料夾或指令"
 msgid "Search folders"
 msgstr "搜尋資料夾"
 
+msgid "Search for a page and choose it to insert a link."
+msgstr ""
+
 msgid "Search icons..."
 msgstr "搜尋圖示..."
 
@@ -9285,6 +9588,9 @@ msgstr "搜尋語言"
 
 msgid "Search matches file names, paths, and folders. Open a file to search its body <0>{0}</0>."
 msgstr "搜尋會比對檔案名稱、路徑和資料夾。開啟一個檔案就能搜尋它的內文 <0>{0}</0>。"
+
+msgid "Search pages"
+msgstr ""
 
 msgid "Search projects"
 msgstr "搜尋專案"
@@ -9367,9 +9673,6 @@ msgstr "查看完整的安裝指南"
 msgid "See what's added"
 msgstr "查看將新增的內容"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
-msgstr ""
-
 msgid "Select {name}"
 msgstr "選取 {name}"
 
@@ -9405,6 +9708,9 @@ msgstr "選取下一個出現的位置"
 
 msgid "Select spelling languages"
 msgstr "選擇拼字檢查語言"
+
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
 
 msgid "Select the full source document."
 msgstr "選取整份原始碼文件。"
@@ -9457,8 +9763,14 @@ msgstr "傳送"
 msgid "Send & continue"
 msgstr "傳送並繼續"
 
+msgid "Send a new code"
+msgstr ""
+
 msgid "Send checked comments to chat"
 msgstr "將勾選的註解傳送到對話"
+
+msgid "Send code"
+msgstr ""
 
 msgid "Send comments to"
 msgstr "把註解傳送到"
@@ -9693,9 +10005,6 @@ msgstr "顯示"
 msgid "Show .ok folders"
 msgstr "顯示 .ok 資料夾"
 
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
-
 msgid "Show {0} more"
 msgstr "再顯示 {0} 個"
 
@@ -9728,6 +10037,9 @@ msgstr "顯示圖表"
 
 msgid "Show document panel"
 msgstr "顯示文件面板"
+
+msgid "Show done"
+msgstr ""
 
 msgid "Show Editor"
 msgstr "顯示編輯器"
@@ -9792,6 +10104,9 @@ msgstr "顯示取代"
 msgid "Show resolved"
 msgstr "顯示已解決"
 
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
+
 msgid "Show resolved comments ({0})"
 msgstr "顯示已解決的註解（{0}）"
 
@@ -9818,6 +10133,15 @@ msgstr "顯示縮圖"
 
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "正在顯示「{semanticResultsLabel}」的結果"
+
+msgid "Showing the first {MAX_ROWS} items."
+msgstr ""
+
+msgid "Showing the first {MAX_ROWS} pages."
+msgstr ""
+
+msgid "Showing the first {shownCount} of {rowCount} pages. Filter to narrow the list."
+msgstr ""
 
 msgid "Showing top {0} headings — keep typing to narrow"
 msgstr "正在顯示最相關的 {0} 個標題——繼續輸入可以縮小範圍"
@@ -10112,9 +10436,6 @@ msgstr "把選取的內容放入代理面板，隨時可以補充並傳送。"
 msgid "stale Git entry"
 msgstr "過期的 Git 項目"
 
-msgid "Star us on GitHub"
-msgstr "在 GitHub 上給我們一顆星"
-
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -10181,6 +10502,9 @@ msgstr "正在啟動終端機…"
 msgid "Starting the agent…"
 msgstr "正在啟動代理…"
 
+msgid "Starts from {from}. Everyone moves to the new branch once it is created."
+msgstr ""
+
 msgid "status"
 msgstr "狀態"
 
@@ -10216,6 +10540,9 @@ msgstr "要讓 {0} 不再讀取「{1}」嗎？{subRoot} 會保留它的其他技
 
 msgid "Stop {0} reading this skill"
 msgstr "讓 {0} 不再讀取這個技能"
+
+msgid "Stop emailing me"
+msgstr ""
 
 msgid "Stop fixing files"
 msgstr "停止修正檔案"
@@ -10277,6 +10604,9 @@ msgstr "總結我這週改了哪些東西"
 msgid "Swap file sidebar and document panel"
 msgstr "交換檔案側邊欄與文件面板的位置"
 
+msgid "Switch"
+msgstr ""
+
 msgid "Switch and update branch"
 msgstr "切換並更新分支"
 
@@ -10286,11 +10616,17 @@ msgstr "在視覺化編輯器和原始碼編輯器之間切換，並保持目前
 msgid "Switch branch"
 msgstr "切換分支"
 
+msgid "Switch everyone to"
+msgstr ""
+
 msgid "Switch project"
 msgstr "切換專案"
 
 msgid "Switch project…"
 msgstr "切換專案…"
+
+msgid "Switch to {target}?"
+msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "請切換到某個分支後再分享。"
@@ -10303,6 +10639,9 @@ msgstr "切換 worktree"
 
 msgid "Switch worktree…"
 msgstr "切換 worktree…"
+
+msgid "Switched to {branch}"
+msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "切換智慧代理模式"
@@ -10545,8 +10884,17 @@ msgstr "謝謝你的意見回饋！"
 msgid "Thanks for the report!"
 msgstr "謝謝你的回報！"
 
+msgid "That action item changed on its page. Reload to see it."
+msgstr ""
+
+msgid "That action item changed on its page. The list was reloaded."
+msgstr ""
+
 msgid "That branch is already open in another worktree."
 msgstr "那個分支已經在另一個 worktree 中開啟了。"
+
+msgid "That code is not right."
+msgstr ""
 
 msgid "That conflict is no longer available."
 msgstr "該衝突已不再可用。"
@@ -10586,9 +10934,6 @@ msgstr "該訊息已送出——你的編輯未生效。"
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "解析成功，但這不是 base16 主題。"
-
-msgid "The quoted text is no longer in the page."
-msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0} 的下載要求逾時。"
@@ -10639,11 +10984,11 @@ msgstr "此對話之外的某個來源要求智慧代理程序停止（{signal}�
 msgid "The agent ran out of memory."
 msgstr "智慧代理記憶體不足。"
 
-msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
-msgstr "智慧代理的安裝缺少檔案（找不到某個模組）。重新安裝智慧代理通常可以解決。"
-
 msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
 msgstr "智慧代理的 GitQuire 工具無法連接到伺服器。請讓智慧代理再試一次；如果一直失敗，請開始新的對話。"
+
+msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
+msgstr "智慧代理的安裝缺少檔案（找不到某個模組）。重新安裝智慧代理通常可以解決。"
 
 msgid "The agent's persona, values, and voice."
 msgstr "代理的人設、價值觀和語氣。"
@@ -10677,6 +11022,12 @@ msgstr "對話中的訊息、工具呼叫及其輸出，方便我們了解智慧
 
 msgid "The Claude Desktop App didn't open the file. Is it installed? ({msg})"
 msgstr "Claude Desktop App 沒有開啟這個檔案。它有安裝嗎？（{msg}）"
+
+msgid "The code has expired. Ask for a new one."
+msgstr ""
+
+msgid "The confirmation mail could not be sent. Check the address and try again."
+msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "無法將對話加入這份回報。"
@@ -10729,24 +11080,6 @@ msgstr "資料夾和範本都已經在這裡了，沒有東西要加。"
 msgid "The formula <0>c = √(a² + b²)</0> renders inline."
 msgstr "公式 <0>c = √(a² + b²)</0> 會以行內形式顯示。"
 
-msgid "The index files stay in place. GitQuire removes only the Git rule it added."
-msgstr "索引檔案保留在原處。 GitQuire 僅刪除它所新增的 Git 規則。"
-
-msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
-msgstr "介面仍是你先前閱讀的語言。請檢查網路連線，然後重新載入再試一次。"
-
-msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
-msgstr "GitQuire 使用的語言；「跟隨系統」會跟隨你的作業系統。你自己的筆記會保持你書寫時的語言。"
-
-msgid "The menu label agents pick this template by (required)."
-msgstr "代理挑選這個範本時看到的選單標籤（必填）。"
-
-msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
-msgstr "你的端點提供的模型 id。它的向量維度會自動偵測——把欄位清空就會恢復成 {DEFAULT_EMBEDDINGS_MODEL}。"
-
-msgid "the open agent"
-msgstr "已開啟的代理"
-
 msgid "The GitQuire project is missing at this checkout path."
 msgstr "此簽出路徑缺少 GitQuire 專案。"
 
@@ -10762,8 +11095,35 @@ msgstr "GitQuire 伺服器回應逾時，變更可能已經生效。請讓代理
 msgid "The GitQuire server took too long to answer. Ask the agent to try again."
 msgstr "GitQuire 伺服器回應逾時。請讓代理重試。"
 
+msgid "The index files stay in place. GitQuire removes only the Git rule it added."
+msgstr "索引檔案保留在原處。 GitQuire 僅刪除它所新增的 Git 規則。"
+
+msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
+msgstr "介面仍是你先前閱讀的語言。請檢查網路連線，然後重新載入再試一次。"
+
+msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
+msgstr "GitQuire 使用的語言；「跟隨系統」會跟隨你的作業系統。你自己的筆記會保持你書寫時的語言。"
+
+msgid "The meeting note was created, but its date and headings couldn't be added."
+msgstr ""
+
+msgid "The menu label agents pick this template by (required)."
+msgstr "代理挑選這個範本時看到的選單標籤（必填）。"
+
+msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
+msgstr "你的端點提供的模型 id。它的向量維度會自動偵測——把欄位清空就會恢復成 {DEFAULT_EMBEDDINGS_MODEL}。"
+
+msgid "the open agent"
+msgstr "已開啟的代理"
+
 msgid "The original text was deleted."
 msgstr "原始文字已被刪除。"
+
+msgid "The page shows this view live, for everyone, and is committed like any page."
+msgstr ""
+
+msgid "The page was created, but the view couldn't be written into it."
+msgstr ""
 
 msgid "The path can't leave the skill (no . or ..)"
 msgstr "路徑不能離開技能（不允許 . 或 ..）"
@@ -10803,6 +11163,9 @@ msgstr "提供商的向量大小不斷變動。請重新啟動 GitQuire，再依
 
 msgid "The public URL your tunnel serves (for example your Tailscale https://…ts.net address). The server admits requests for this host and advertises it in the URLs it issues."
 msgstr "您的通道所提供的公開 URL（例如您的 Tailscale https://…ts.net 位址）。伺服器接受針對此主機的請求，並在其發出的 URL 中公布該位址。"
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The repository is private and your GitHub account doesn't have access to it."
 msgstr "這個儲存庫是私人的，你的 GitHub 帳戶沒有存取權。"
@@ -10938,6 +11301,9 @@ msgstr "帶主題的預覽"
 
 msgid "Themes"
 msgstr "主題"
+
+msgid "There is no address waiting for a code."
+msgstr ""
 
 msgid "There's no project folder for this window, so a terminal can't start here."
 msgstr "這個視窗沒有對應的專案資料夾，所以無法在這裡啟動終端機。"
@@ -11302,6 +11668,9 @@ msgstr "這會把內容送出你的電腦"
 msgid "This sends the link's address off your machine"
 msgstr "這會把連結的網址送出你的電腦"
 
+msgid "This server does not send mail to that domain."
+msgstr ""
+
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "此伺服器沒有內建驗證。任何能夠存取該通道的人都將取得對此知識庫的完全控制權。請在其前面設置一道驗證關卡，例如私人的 Tailscale 網路或附驗證的反向代理。"
 
@@ -11353,6 +11722,9 @@ msgstr "此更新已不再可供安裝。"
 msgid "This usually means one of:"
 msgstr "這通常代表下列其中之一："
 
+msgid "This wiki has more pages than a view can show; the list is cut off."
+msgstr ""
+
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "這個視窗無法儲存權杖——請從應用程式主視窗開啟「設定」。"
 
@@ -11392,6 +11764,9 @@ msgstr "若要儲存此設定，請開啟專案 MCP 伺服器或全域 MCP 伺�
 
 msgid "Today"
 msgstr "今天"
+
+msgid "Today's meeting note already exists. It was opened."
+msgstr ""
 
 msgid "Toggle a bullet list."
 msgstr "切換項目符號清單。"
@@ -11478,8 +11853,14 @@ msgstr "已為 {host} 上的 {login} 儲存權杖。要移除它，請執行 <0>
 msgid "tokens"
 msgstr "token"
 
+msgid "Too many confirmation mails for now. Try again later."
+msgstr ""
+
 msgid "Too many live references on this page. This board was not loaded."
 msgstr "此頁面的即時引用過多。此畫板未載入。"
+
+msgid "Too many wrong codes. Ask for a new one."
+msgstr ""
 
 msgid "Too slow"
 msgstr "太慢了"
@@ -11704,6 +12085,9 @@ msgstr "取消釘選 {accessibleLabel}"
 msgid "Unpin tab"
 msgstr "取消釘選分頁"
 
+msgid "Unread"
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "無法辨識的連結"
 
@@ -11719,8 +12103,14 @@ msgstr "無法解析檔案 {identity}。前往引用位置。"
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "無法解析圖片 {identity}。前往引用位置。"
 
+msgid "Unsaved changes block the switch"
+msgstr ""
+
 msgid "Unsupported file type: {fileType}."
 msgstr "不支援的檔案類型：{fileType}。"
+
+msgid "Until then, mentions still go to {0}."
+msgstr ""
 
 msgid "Untitled report"
 msgstr "未命名回報"
@@ -11768,14 +12158,8 @@ msgstr "更新於 {updatedRelative}"
 msgid "updated folder properties"
 msgstr "已更新資料夾屬性"
 
-msgid "Updated to Version {version}"
-msgstr "已更新到版本 {version}"
-
 msgid "Updates"
 msgstr ""
-
-msgid "Updates and feedback"
-msgstr "更新與意見回饋"
 
 msgid "Updates flow in"
 msgstr "更新會自動流入"
@@ -11985,6 +12369,9 @@ msgstr "檢視來源"
 msgid "View the {plugin} plugin repo"
 msgstr "檢視 {plugin} 外掛的程式碼儲存庫"
 
+msgid "Views"
+msgstr ""
+
 msgid "Visibility"
 msgstr "可見度"
 
@@ -12015,6 +12402,9 @@ msgstr "視覺化編輯器表格"
 msgid "Visual editor table selection"
 msgstr "視覺化編輯器表格選取範圍"
 
+msgid "Wait a minute before asking for another code."
+msgstr ""
+
 msgid "Waiting for authorization"
 msgstr "正在等待授權"
 
@@ -12035,6 +12425,9 @@ msgstr "我們無法檢查你的 GitHub 連線。"
 
 msgid "We couldn't clone this repository."
 msgstr "我們無法複製這個儲存庫。"
+
+msgid "We sent a code to {pending}. Enter it to turn on email."
+msgstr ""
 
 msgid "We'll build <0>openknowledge.skill</0>, save it to <1>~/Downloads</1>, and open the Claude Desktop App for you."
 msgstr "我們會建置 <0>openknowledge.skill</0>，存到 <1>~/Downloads</1>，並幫你開啟 Claude Desktop App。"
@@ -12401,60 +12794,3 @@ msgstr "縮小"
 
 msgid "Zoom Out"
 msgstr "縮小"
-
-msgid "Could not load branches"
-msgstr ""
-
-msgid "Switched to {branch}"
-msgstr ""
-
-msgid "Unsaved changes block the switch"
-msgstr ""
-
-msgid "Could not switch to {branch}"
-msgstr ""
-
-msgid "Switch everyone to"
-msgstr ""
-
-msgid "New branch…"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
-msgid "Switch to {target}?"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Switch"
-msgstr ""
-
-msgid "New branch"
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Create and switch"
-msgstr ""
-
-msgid "Opened pull request #{number}"
-msgstr ""
-
-msgid "Open pull request"
-msgstr ""
-
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
-msgstr ""
-
-msgid "Opening…"
-msgstr ""
