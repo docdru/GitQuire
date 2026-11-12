@@ -127,6 +127,26 @@ function mentionsIn(text: string): string[] {
   return [...seen];
 }
 
+const CHECKBOX_RE = /^([ \t>]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[)([ xX])(\])/;
+
+function occurrences(text: string, part: string): number {
+  let count = 0;
+  for (let at = text.indexOf(part); at !== -1; at = text.indexOf(part, at + 1)) count += 1;
+  return count;
+}
+
+function lineIsAmbiguous(markdown: string, source: string): boolean {
+  const flipped = source.replace(
+    CHECKBOX_RE,
+    (_match: string, open: string, mark: string, close: string) =>
+      `${open}${mark === ' ' ? 'x' : ' '}${close}`,
+  );
+  const forms = new Set([source, flipped, source.replace(CHECKBOX_RE, '$1X$3')]);
+  let count = 0;
+  for (const form of forms) count += occurrences(markdown, form);
+  return count > 1;
+}
+
 function dueDate(text: string): string | undefined {
   const match = DUE_RE.exec(text);
   if (match === null) return undefined;
@@ -231,17 +251,19 @@ function titleOf(fields: Record<string, FieldValue>, heading: string | undefined
 }
 
 export function pageFacts(path: string, source: string): PageFacts {
-  const markdown = source.startsWith('\uFEFF') ? source.slice(1) : source;
+  const bom = source.startsWith('\uFEFF') ? 1 : 0;
+  const markdown = source.slice(bom);
   const docName = docNameForPath(path) ?? path;
   const stripped = stripFrontmatter(markdown);
   const prefix = markdown.slice(0, markdown.length - stripped.body.length);
   const firstLine = prefix.split('\n').length;
   const read = fieldsOf(markdown);
   const body = readBody(splitCommentTrailer(stripped.body).body, firstLine, prefix.length);
-  const tasks = body.tasks.map(({ offset, ...task }) => {
-    const repeats = markdown.indexOf(task.source) !== markdown.lastIndexOf(task.source);
-    return repeats ? { ...task, offset } : task;
-  });
+  const tasks = body.tasks.map(({ offset, ...task }) =>
+    lineIsAmbiguous(markdown, task.source) && offset !== undefined
+      ? { ...task, offset: offset + bom }
+      : task,
+  );
   const title = titleOf(read.fields, body.heading) || docName.slice(docName.lastIndexOf('/') + 1);
   return {
     docName,

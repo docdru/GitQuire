@@ -56,14 +56,15 @@ page open sees it at once, and the change is committed in your name. **Undo** in
 appears takes it back for 10 seconds. If the line was changed on the page in the meantime, nothing
 is written and the list reloads.
 
-Give an item a due date by writing it in the item, as `due: 2026-12-01` or with a calendar emoji
-followed by the date:
+Give an item a due date by writing it in the item, as `due: 2026-12-01`, `due 2026-12-01` or
+📅 followed by the date. A `due` property in the page's frontmatter does not count for its items.
 
 ```markdown
 - [ ] Send the notes to the board @bob due: 2026-12-01
 ```
 
 Grouped by due date, open items past their date come first as **Overdue**, then **Today**, **Next 7
-days**, **Later** and **No due date**.
+days** and **Later**. Finished items whose date has passed are under **Done, due earlier**; items
+without a date under **No due date**.
 
 Table and board settings are saved per browser.

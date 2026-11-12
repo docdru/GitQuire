@@ -177,6 +177,12 @@ describe('hostile and unusual pages', () => {
     ]);
     const crlf = pageFacts('b.md', '# T\r\n- [ ] A\r\n- [ ] A\r\n').tasks;
     expect(crlf.map((item) => item.offset)).toEqual([5, 14]);
+    const prefix = pageFacts('c.md', '- [x] Call Bob\n- [ ] Call\n').tasks;
+    expect(prefix.map((item) => item.offset)).toEqual([undefined, 15]);
+    const flipped = pageFacts('d.md', '- [x] Call\n- [ ] Call\n').tasks;
+    expect(flipped.map((item) => item.offset)).toEqual([0, 11]);
+    const bom = pageFacts('e.md', '\uFEFF- [ ] A\n- [ ] A\n').tasks;
+    expect(bom.map((item) => item.offset)).toEqual([1, 9]);
   });
 
   it('marks pages whose properties or action items were cut', () => {

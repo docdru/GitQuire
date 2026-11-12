@@ -2,7 +2,7 @@ import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-ti
 import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { ArrowDown, ArrowUp, Columns3, LayoutList } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionItemList, EMPTY_ACTION_FILTER, ObjectBoard } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
@@ -126,6 +126,55 @@ function loadObjects(
   return () => {
     live = false;
   };
+}
+
+interface ToggleContext {
+  saving: { current: Set<string> };
+  setSaving: Dispatch<SetStateAction<ReadonlySet<string>>>;
+  setList: Dispatch<SetStateAction<ObjectList | null>>;
+  reload: () => void;
+  labels: {
+    done: (text: string) => string;
+    reopened: (text: string) => string;
+    undo: string;
+    stale: string;
+    failed: string;
+  };
+}
+
+function setItemSaving(context: ToggleContext, id: string, on: boolean): void {
+  if (on) context.saving.current.add(id);
+  else context.saving.current.delete(id);
+  context.setSaving(new Set(context.saving.current));
+}
+
+function startToggle(item: ActionItem, done: boolean, undo: boolean, context: ToggleContext): void {
+  if (context.saving.current.has(item.id)) return;
+  setItemSaving(context, item.id, true);
+  const mark = (source: string) =>
+    context.setList((current) => {
+      if (current === null) return current;
+      return { ...current, pages: markTask(current.pages, item, done, source) };
+    });
+  mark(item.source ?? '');
+  setTaskDone(item, done).then(
+    (source) => {
+      setItemSaving(context, item.id, false);
+      mark(source);
+      if (undo) return;
+      const changed = { ...item, done, source };
+      const { labels } = context;
+      toast(done ? labels.done(item.text) : labels.reopened(item.text), {
+        duration: UNDO_MS,
+        action: { label: labels.undo, onClick: () => startToggle(changed, !done, true, context) },
+      });
+    },
+    (err: unknown) => {
+      setItemSaving(context, item.id, false);
+      toast.error(err instanceof StaleTaskError ? context.labels.stale : context.labels.failed);
+      context.reload();
+    },
+  );
 }
 
 function SortButton({
@@ -337,6 +386,7 @@ export function GitQuireViews() {
   const [actionFilter, setActionFilter] = useState<ActionFilter>(EMPTY_ACTION_FILTER);
   const [me, setMe] = useState<string | null>(null);
   const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set());
+  const savingRef = useRef(new Set<string>());
   const today = localDay(new Date());
 
   useEffect(() => {
@@ -406,46 +456,22 @@ export function GitQuireViews() {
     });
   }
 
-  function setItemSaving(id: string, on: boolean): void {
-    setSaving((current) => {
-      const next = new Set(current);
-      if (on) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  }
+  const toggleContext: ToggleContext = {
+    saving: savingRef,
+    setSaving,
+    setList,
+    reload: () => loadObjects(setList, setFailed),
+    labels: {
+      done: (text) => t`Marked done: ${text}`,
+      reopened: (text) => t`Reopened: ${text}`,
+      undo: t`Undo`,
+      stale: t`That action item changed on its page. The list was reloaded.`,
+      failed: t`Couldn't save the action item. The list was reloaded.`,
+    },
+  };
 
-  function toggleTask(item: ActionItem, done: boolean, undo = false): void {
-    if (saving.has(item.id)) return;
-    setItemSaving(item.id, true);
-    const mark = (source: string) =>
-      setList((current) => {
-        if (current === null) return current;
-        return { ...current, pages: markTask(current.pages, item, done, source) };
-      });
-    mark(item.source ?? '');
-    setTaskDone(item, done).then(
-      (source) => {
-        setItemSaving(item.id, false);
-        mark(source);
-        if (undo) return;
-        const text = item.text;
-        const changed = { ...item, done, source };
-        toast(done ? t`Marked done: ${text}` : t`Reopened: ${text}`, {
-          duration: UNDO_MS,
-          action: { label: t`Undo`, onClick: () => toggleTask(changed, !done, true) },
-        });
-      },
-      (err: unknown) => {
-        setItemSaving(item.id, false);
-        toast.error(
-          err instanceof StaleTaskError
-            ? t`That action item changed on its page. The list was reloaded.`
-            : t`Couldn't save the action item. The list was reloaded.`,
-        );
-        loadObjects(setList, setFailed);
-      },
-    );
+  function toggleTask(item: ActionItem, done: boolean): void {
+    startToggle(item, done, false, toggleContext);
   }
 
   function openPage(docName: string) {

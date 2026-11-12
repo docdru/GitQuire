@@ -274,12 +274,15 @@ function ActionRow({
         onCheckedChange={(checked) => onToggle(item, checked === true)}
         className="mt-0.5"
       />
-      <label
+      <Label
         htmlFor={checkboxId}
-        className={cn('min-w-0 flex-1', item.done && 'text-muted-foreground line-through')}
+        className={cn(
+          'min-w-0 flex-1 font-normal leading-normal',
+          item.done && 'text-muted-foreground line-through',
+        )}
       >
         {text}
-      </label>
+      </Label>
       <DueLabel item={item} today={today} />
       {showPage && (
         <Button
@@ -363,9 +366,10 @@ export function ActionItemList({
   const grouping = filter.grouping ?? 'page';
   const items = actionItems(pages);
   const people = actionPeople(items);
-  const groups = groupActionItems(filterActionItems(items, filter), grouping, today);
-  const shown = groups.reduce((total, group) => total + group.items.length, 0);
-  const overdue = items.filter((item) => dueBucket(item, today) === 'overdue').length;
+  const matching = filterActionItems(items, filter);
+  const groups = groupActionItems(matching, grouping, today);
+  const shown = matching.length;
+  const overdue = matching.filter((item) => dueBucket(item, today) === 'overdue').length;
   const mine = me?.toLowerCase() ?? '';
   const personChoices: Choice[] = [
     { value: '', label: t`Everyone` },
