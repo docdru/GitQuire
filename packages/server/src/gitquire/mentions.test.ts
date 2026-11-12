@@ -439,7 +439,9 @@ describe('confirmation store', () => {
       expect(store.confirmationsSince(undefined, late)).toBe(0);
       expect(store.confirm(alice, 'hash-2', [], late)).toBe('none');
       const reloaded = createMentionReadStore(mentionStatePath(dir));
-      expect(reloaded.emailOf(alice.id)).toBe('old@example.com');
+      expect(reloaded.emailOf(alice.id)).toBeUndefined();
+      expect(reloaded.lastConfirmationAt(alice.id)).toBe(start.toISOString());
+      expect(reloaded.recipientConfirmationsSince('to-new', start)).toBe(1);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
