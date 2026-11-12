@@ -49,6 +49,7 @@ import {
   createAccessGateFromEnv,
   createGitQuireHttp,
   startGitHubAppTokensFromEnv,
+  withGitHubAppPushCheck,
   withGitHubAppToken,
 } from './gitquire/index.ts';
 import { createShellHeaderSetter } from './http/shell-csp.ts';
@@ -446,6 +447,7 @@ async function bootServerInner(
     capabilities: opts.reactShellDistDir ? ['http', 'ws', 'ui'] : ['http', 'ws'],
     skipStateManifestCheck: opts.skipStateManifestCheck,
     detectGh: withGitHubAppToken(gitHubAppTokens, opts.detectGh),
+    checkPushPermissionFn: withGitHubAppPushCheck(gitHubAppTokens),
     detectGhAccounts: opts.detectGhAccounts,
     tokenStore: opts.tokenStore,
     agentIntegrations: opts.agentIntegrations,

@@ -1,6 +1,10 @@
 import { createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import type { DetectGhFn } from '../github-permissions.ts';
+import type {
+  CheckPushPermissionOptions,
+  DetectGhFn,
+  PushPermission,
+} from '../github-permissions.ts';
 import type { GateLogger } from './access-gate.ts';
 import { type GitHubRepoRef, parseGitHubRepo } from './github-auth-config.ts';
 
@@ -146,7 +150,10 @@ export function createAppJwt(appId: string, privateKeyPem: string, nowMs: number
 export interface InstallationToken {
   token: string;
   expiresAt: number;
+  contents?: string;
 }
+
+export type CheckPushPermissionFn = (opts: CheckPushPermissionOptions) => Promise<PushPermission>;
 
 export interface RepoInfo {
   defaultBranch: string;
@@ -233,7 +240,16 @@ export function createGitHubAppClient(
         `Could not create an installation token (${describe(minted.status, minted.body)}).`,
       );
     }
-    return { token, expiresAt: Date.parse(expiresAt) };
+    const permissions = minted.body.permissions;
+    const contents =
+      typeof permissions === 'object' && permissions !== null
+        ? (permissions as Record<string, unknown>).contents
+        : undefined;
+    return {
+      token,
+      expiresAt: Date.parse(expiresAt),
+      ...(typeof contents === 'string' ? { contents } : {}),
+    };
   }
 
   async function repoInfo(token: string): Promise<RepoInfo> {
@@ -258,6 +274,7 @@ export function createGitHubAppClient(
 export interface InstallationTokenManager {
   current: () => string | undefined;
   wrapDetectGh: (fallback: DetectGhFn | undefined) => DetectGhFn;
+  wrapCheckPushPermission: (fallback: CheckPushPermissionFn) => CheckPushPermissionFn;
   stop: () => void;
 }
 
@@ -316,8 +333,25 @@ export async function startInstallationTokenManager(
     return current.expiresAt > now() ? current.token : undefined;
   }
 
+  function isAppRepo(opts: CheckPushPermissionOptions): boolean {
+    return (
+      (opts.host ?? 'github.com').toLowerCase() === config.gitHost.toLowerCase() &&
+      opts.owner.toLowerCase() === config.repo.owner.toLowerCase() &&
+      opts.repo.replace(/\.git$/i, '').toLowerCase() === config.repo.name.toLowerCase()
+    );
+  }
+
   return {
     current: valid,
+    wrapCheckPushPermission(fallback) {
+      return async (opts) => {
+        if (!isAppRepo(opts) || current.contents === undefined) return fallback(opts);
+        if (valid() === undefined) return { kind: 'unknown', error: 'token-invalid' };
+        return current.contents === 'write'
+          ? { kind: 'allowed' }
+          : { kind: 'denied', reason: 'no-collaborator' };
+      };
+    },
     wrapDetectGh(fallback) {
       return (host, options) => {
         const token = host === undefined || host === config.gitHost ? valid() : undefined;

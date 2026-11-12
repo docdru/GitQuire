@@ -149,6 +149,25 @@ describe('createGitHubAppClient', () => {
     expect(JSON.parse(calls[1].body ?? '{}')).toEqual({ repositories: ['notes'] });
   });
 
+  it('keeps the contents permission GitHub granted the token', async () => {
+    const fetchWithPermissions = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith('/access_tokens')) {
+        return new Response(
+          JSON.stringify({
+            token: 'ghs_install',
+            expires_at: '2026-11-11T13:00:00Z',
+            permissions: { contents: 'write', metadata: 'read' },
+          }),
+          { status: 201 },
+        );
+      }
+      return appFetch([])(input, init);
+    }) as typeof fetch;
+    const client = createGitHubAppClient(CONFIG, { fetch: fetchWithPermissions, now: () => NOW });
+    expect((await client.mintInstallationToken()).contents).toBe('write');
+  });
+
   it('explains when the app is not installed on the repo', async () => {
     const client = createGitHubAppClient(CONFIG, { fetch: appFetch([], false), now: () => NOW });
     await expect(client.mintInstallationToken()).rejects.toThrow(
@@ -167,7 +186,9 @@ describe('createGitHubAppClient', () => {
   });
 });
 
-function fakeClient(tokens: Array<{ token: string; expiresAt: number } | Error>): GitHubAppClient {
+function fakeClient(
+  tokens: Array<{ token: string; expiresAt: number; contents?: string } | Error>,
+): GitHubAppClient {
   let index = 0;
   return {
     async mintInstallationToken() {
@@ -228,6 +249,42 @@ describe('startInstallationTokenManager', () => {
     timers[1].fn();
     await new Promise((resolve) => setImmediate(resolve));
     expect(manager.current()).toBe('ghs_two');
+  });
+
+  it('answers the push check for its own repo from the token permissions', async () => {
+    const fallback = async () => ({ kind: 'unknown' as const, error: 'network' as const });
+    const writer = await startInstallationTokenManager(
+      CONFIG,
+      fakeClient([{ token: 'ghs_one', expiresAt: NOW + 3_600_000, contents: 'write' }]),
+      { log: silentLog, now: () => NOW, setTimer: () => ({}) },
+    );
+    const check = writer.wrapCheckPushPermission(fallback);
+    expect(await check({ owner: 'acme', repo: 'notes', host: 'github.com' })).toEqual({
+      kind: 'allowed',
+    });
+    expect(await check({ owner: 'ACME', repo: 'Notes.git' })).toEqual({ kind: 'allowed' });
+    expect(await check({ owner: 'acme', repo: 'other' })).toEqual({
+      kind: 'unknown',
+      error: 'network',
+    });
+
+    const reader = await startInstallationTokenManager(
+      CONFIG,
+      fakeClient([{ token: 'ghs_one', expiresAt: NOW + 3_600_000, contents: 'read' }]),
+      { log: silentLog, now: () => NOW, setTimer: () => ({}) },
+    );
+    expect(
+      await reader.wrapCheckPushPermission(fallback)({ owner: 'acme', repo: 'notes' }),
+    ).toEqual({ kind: 'denied', reason: 'no-collaborator' });
+
+    const unknown = await startInstallationTokenManager(
+      CONFIG,
+      fakeClient([{ token: 'ghs_one', expiresAt: NOW + 3_600_000 }]),
+      { log: silentLog, now: () => NOW, setTimer: () => ({}) },
+    );
+    expect(
+      await unknown.wrapCheckPushPermission(fallback)({ owner: 'acme', repo: 'notes' }),
+    ).toEqual({ kind: 'unknown', error: 'network' });
   });
 
   it('stops serving an expired token', async () => {
