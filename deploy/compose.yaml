@@ -1,0 +1,23 @@
+services:
+  gitquire:
+    image: ghcr.io/docdru/gitquire:latest
+    container_name: gitquire
+    restart: unless-stopped
+    stop_grace_period: 30s
+    env_file: gitquire.env
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - gitquire-data:/data
+      - ./app.pem:/run/secrets/app.pem:ro
+
+  mailpit:
+    image: axllent/mailpit
+    profiles: ["mail-test"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  gitquire-data:
+    name: gitquire-data

@@ -31,6 +31,28 @@ docker run --rm -p 8080:8080 \
 Behind a real domain, also set `OK_EXTERNAL_URL=https://your.domain`. Run exactly one container per
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
 
+For nginx, start from [`deploy/nginx/sites-available/gitquire.conf`](./deploy/nginx/sites-available/gitquire.conf).
+It forwards WebSocket upgrades (live editing needs them) and allows uploads up to 50 MB. Publish the
+container port on loopback only (`-p 127.0.0.1:8080:8080`) so nginx is the only way in, and set
+`OK_EXTERNAL_URL` to the address people open: `http://` until certbot has added HTTPS, then
+`https://` (restart the container after changing it).
+
+To keep these options in a file, use [`deploy/compose.yaml`](./deploy/compose.yaml). Put it in a
+folder with `gitquire.env` (the variables from this page, one `NAME=value` per line) and, for
+repository sync, the GitHub App key as `app.pem` with
+`GITHUB_APP_PRIVATE_KEY_FILE=/run/secrets/app.pem`. Then:
+
+| Task | Command |
+| --- | --- |
+| Start, or apply a changed `gitquire.env` | `docker compose up -d` |
+| Update to the latest image | `docker compose pull && docker compose up -d` |
+| Follow the log | `docker compose logs -f gitquire` |
+| Start the Mailpit test inbox on port 8025 | `docker compose --profile mail-test up -d` |
+
+If something else already uses port 8080 on the host, change only the left side of the mapping
+(`127.0.0.1:8082:8080`) and point nginx's `proxy_pass` at that port. Mailpit is reachable from
+GitQuire as `smtp://mailpit:1025?starttls=off`.
+
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `PORT` | `8080` | Listen port |
