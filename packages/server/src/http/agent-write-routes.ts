@@ -665,7 +665,7 @@ export function createAgentWriteRoutes(
         respondAgentSessionCapacity(res, e, mode.handler);
         return;
       }
-      log.error({ err: e, requestId: getRequestId(_req) }, `[${mode.handler}] handler failed`);
+      log.error({ err: e, requestId: getRequestId(req) }, `[${mode.handler}] handler failed`);
       errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
         handler: mode.handler,
         cause: e,
