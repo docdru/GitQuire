@@ -71,6 +71,25 @@ function storeTableView(view: TableView): void {
 const HEAD_CLASS = 'sticky top-0 z-10 bg-popover normal-case';
 const MENU_CLASS = 'max-h-80 w-auto min-w-48 max-w-72 overflow-y-auto';
 
+function loadObjects(
+  onList: (list: ObjectList) => void,
+  onFailed: (failed: boolean) => void,
+): () => void {
+  let live = true;
+  onFailed(false);
+  fetchObjects().then(
+    (next) => {
+      if (live) onList(next);
+    },
+    () => {
+      if (live) onFailed(true);
+    },
+  );
+  return () => {
+    live = false;
+  };
+}
+
 function SortButton({
   label,
   column,
@@ -273,26 +292,12 @@ export function GitQuireViews() {
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<ObjectList | null>(null);
   const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const [view, setView] = useState<TableView>(loadTableView);
 
   useEffect(() => {
     if (!open) return;
-    let live = true;
-    fetchObjects().then(
-      (next) => {
-        if (!live) return;
-        setList(next);
-        setFailed(false);
-      },
-      () => {
-        if (live) setFailed(true);
-      },
-    );
-    return () => {
-      live = false;
-    };
-  }, [open, attempt]);
+    return loadObjects(setList, setFailed);
+  }, [open]);
 
   const loading = list === null && !failed;
 
@@ -342,8 +347,7 @@ export function GitQuireViews() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setFailed(false);
-                    setAttempt(attempt + 1);
+                    loadObjects(setList, setFailed);
                   }}
                 >
                   {t`Try again`}
