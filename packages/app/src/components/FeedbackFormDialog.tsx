@@ -22,7 +22,7 @@ export const FeedbackFormDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            <Trans>How do you like OpenKnowledge?</Trans>
+            <Trans>How do you like GitQuire?</Trans>
           </DialogTitle>
         </DialogHeader>
         <Suspense fallback={null}>

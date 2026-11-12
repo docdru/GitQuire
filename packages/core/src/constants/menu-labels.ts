@@ -31,7 +31,7 @@ export const MENU_LABELS = {
   checkSpelling: 'Check spelling while typing',
   openOnGithub: 'GitQuire on GitHub',
   openDocs: 'Documentation',
-  joinDiscord: 'Join us on Discord',
+  joinDiscord: 'Report an issue on GitHub',
   reportBug: 'Report a bug',
   bugReportHistory: 'Bug report history',
   sendFeedback: 'Send feedback',
@@ -96,6 +96,7 @@ export function menuLabelForPlatform(key: MenuLabelKey, platform: string): strin
   return MENU_LABELS[key];
 }
 
-export const OPEN_KNOWLEDGE_GITHUB_URL = 'https://github.com/inkeep/open-knowledge';
-export const OPEN_KNOWLEDGE_DOCS_URL = 'https://openknowledge.ai/docs';
-export const OPEN_KNOWLEDGE_DISCORD_URL = 'https://discord.gg/VRKk2EaGHN';
+export const OPEN_KNOWLEDGE_GITHUB_URL = 'https://github.com/docdru/GitQuire';
+export const OPEN_KNOWLEDGE_DOCS_URL = 'https://github.com/docdru/GitQuire#readme';
+export const OPEN_KNOWLEDGE_DISCORD_URL = 'https://github.com/docdru/GitQuire/issues/new/choose';
+export const OPEN_KNOWLEDGE_ISSUES_URL = OPEN_KNOWLEDGE_DISCORD_URL;

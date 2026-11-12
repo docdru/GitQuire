@@ -106,7 +106,7 @@ describe('AppMenubar Help menu', () => {
 
     expect(screen.getByRole('menuitem', { name: /^Report a bug…/ })).not.toBeNull();
     expect(screen.getByRole('menuitem', { name: 'Send feedback…' })).not.toBeNull();
-    expect(screen.getByRole('menuitem', { name: 'OpenKnowledge on GitHub' })).not.toBeNull();
+    expect(screen.getByRole('menuitem', { name: 'GitQuire on GitHub' })).not.toBeNull();
   });
 
   test('lists the resource links after GitHub and ends with About', async () => {
@@ -117,18 +117,18 @@ describe('AppMenubar Help menu', () => {
       .getAllByRole('menuitem')
       .map((item) => item.textContent);
     expect(labels).toEqual([
-      'OpenKnowledge on GitHub',
+      'GitQuire on GitHub',
       'Documentation',
       'Join us on Discord',
       'Report a bug…Ctrl+Shift+D',
       'Send feedback…',
-      'About OpenKnowledge',
+      'About GitQuire',
     ]);
   });
 
   test.each([
     ['Documentation', 'open-docs'],
-    ['Join us on Discord', 'open-discord'],
+    ['Report an issue on GitHub', 'open-discord'],
   ] as const)('%s dispatches the %s command', async (name, command) => {
     const dispatch = installBridge('win32');
     await openHelpMenu();
@@ -139,7 +139,7 @@ describe('AppMenubar Help menu', () => {
   });
 
   test.each([
-    ['win32', 'About OpenKnowledge'],
+    ['win32', 'About GitQuire'],
     ['linux', 'About'],
   ] as const)('About on %s reads "%s" and dispatches the about role', async (platform, name) => {
     const dispatch = installBridge(platform);

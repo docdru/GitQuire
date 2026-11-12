@@ -244,9 +244,7 @@ describe('ReportBugDialog', () => {
     const logsCheckbox = screen.getByRole('checkbox', { name: /Logs & system info/ });
     expect(logsCheckbox.getAttribute('aria-checked')).toBe('true');
     expect(logsCheckbox.hasAttribute('disabled')).toBe(true);
-    expect(
-      screen.getByText('OpenKnowledge logs, including activity across projects.'),
-    ).not.toBeNull();
+    expect(screen.getByText('GitQuire logs, including activity across projects.')).not.toBeNull();
 
     const checkbox = screen.getByRole('checkbox', { name: 'Detailed diagnostics' });
     expect(checkbox.getAttribute('aria-checked')).toBe('false');
@@ -263,7 +261,7 @@ describe('ReportBugDialog', () => {
     ).not.toBeNull();
     expect(
       screen.getByText(
-        "It also adds the crash reports macOS recorded for OpenKnowledge and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote.",
+        "It also adds the crash reports macOS recorded for GitQuire and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote.",
         { exact: false },
       ),
     ).not.toBeNull();
@@ -293,7 +291,7 @@ describe('ReportBugDialog', () => {
 
   test.each([
     ['darwin', /low-memory reports macOS wrote/],
-    ['linux', /out-of-memory kills of OpenKnowledge that the system journal recorded/],
+    ['linux', /out-of-memory kills of GitQuire that the system journal recorded/],
     ['win32', /crash and hang records Windows logged/],
   ])('shows only the %s operating-system records sentence', async (platform, own) => {
     installBridge({ platform });
@@ -302,7 +300,7 @@ describe('ReportBugDialog', () => {
 
     const sentences = [
       /low-memory reports macOS wrote/,
-      /out-of-memory kills of OpenKnowledge that the system journal recorded/,
+      /out-of-memory kills of GitQuire that the system journal recorded/,
       /crash and hang records Windows logged/,
     ];
     for (const sentence of sentences) {
@@ -317,7 +315,7 @@ describe('ReportBugDialog', () => {
 
     expect(
       screen.getByText(
-        'OpenKnowledge logs across projects. No project is open, so project server logs are not included.',
+        'GitQuire logs across projects. No project is open, so project server logs are not included.',
       ),
     ).not.toBeNull();
   });
@@ -336,7 +334,7 @@ describe('ReportBugDialog', () => {
     expect(screen.getByText(/6\.8 MB · secrets redacted · 2 files/)).not.toBeNull();
     expect(
       screen.getByText(
-        'Sent privately to the OpenKnowledge team, along with your note and app version. Never posted publicly.',
+        'Sent privately to the GitQuire team, along with your note and app version. Never posted publicly.',
       ),
     ).not.toBeNull();
 
@@ -411,7 +409,7 @@ describe('ReportBugDialog', () => {
       {
         ok: false as const,
         reason: 'send-failed' as const,
-        fallback: { mailtoUrl: 'mailto:support@inkeep.com?subject=OpenKnowledge%20bug' },
+        fallback: { mailtoUrl: 'mailto:support@inkeep.com?subject=GitQuire%20bug' },
       },
     ],
     [
@@ -419,7 +417,7 @@ describe('ReportBugDialog', () => {
       {
         ok: false as const,
         reason: 'email-draft' as const,
-        fallback: { mailtoUrl: 'mailto:support@inkeep.com?subject=OpenKnowledge%20bug' },
+        fallback: { mailtoUrl: 'mailto:support@inkeep.com?subject=GitQuire%20bug' },
       },
     ],
   ])(
@@ -540,7 +538,7 @@ describe('ReportBugDialog', () => {
     const log = installBridge();
     const frames = Array.from(
       { length: 27 },
-      (_, i) => `    at Component${i} (/Users/someone/OpenKnowledge.app/bundle.js:1:${i})`,
+      (_, i) => `    at Component${i} (/Users/someone/GitQuire.app/bundle.js:1:${i})`,
     );
     await renderDialog({
       crashContext: {
@@ -615,7 +613,7 @@ describe('ReportBugDialog', () => {
     installBridge();
     await renderDialog({ crashInvite: BOOT_INVITE });
 
-    expect(screen.getByText('OpenKnowledge quit unexpectedly last time.')).not.toBeNull();
+    expect(screen.getByText('GitQuire quit unexpectedly last time.')).not.toBeNull();
     expect(
       screen.getByText('A report helps us find the cause. Nothing is sent until you review it.'),
     ).not.toBeNull();
@@ -824,7 +822,7 @@ describe('ReportBugDialog', () => {
     });
 
     expect(screen.queryByRole('checkbox', { name: 'Crash dump' })).toBeNull();
-    expect(screen.getByText('OpenKnowledge quit unexpectedly last time.')).not.toBeNull();
+    expect(screen.getByText('GitQuire quit unexpectedly last time.')).not.toBeNull();
 
     await userEvent.click(screen.getByRole('button', { name: 'Create report' }));
     await screen.findByRole('heading', { name: 'Review your report' });
@@ -1138,7 +1136,7 @@ describe('ReportBugDialog', () => {
     await renderDialog({ crashInvite: BOOT_INVITE });
 
     expect(screen.queryByRole('checkbox', { name: 'Screenshot' })).toBeNull();
-    expect(screen.getByText('OpenKnowledge quit unexpectedly last time.')).not.toBeNull();
+    expect(screen.getByText('GitQuire quit unexpectedly last time.')).not.toBeNull();
   });
 });
 

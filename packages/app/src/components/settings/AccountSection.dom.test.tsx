@@ -325,7 +325,7 @@ describe('AccountSection', () => {
     expect(ghRow.textContent).toContain(
       'Provided by the GitHub CLI (gh) on this computer. To switch accounts or sign out, run gh auth in a terminal.',
     );
-    expect(ghRow.textContent).not.toContain('OpenKnowledge credential');
+    expect(ghRow.textContent).not.toContain('GitQuire credential');
     expect(screen.queryByTestId('settings-account-disconnect')).toBeNull();
   });
 

@@ -35,11 +35,11 @@ function show(items: SlashCommandItem[]) {
 
 describe('SlashCommandMenu second line', () => {
   test('a skill shows what it does under its name', () => {
-    show([item({ name: 'bug-triage', description: 'Triage an Open Knowledge ticket.' })]);
+    show([item({ name: 'bug-triage', description: 'Triage a GitQuire ticket.' })]);
 
     const row = screen.getByRole('option');
     expect(within(row).getByText('bug-triage')).toBeTruthy();
-    expect(within(row).getByText('Triage an Open Knowledge ticket.')).toBeTruthy();
+    expect(within(row).getByText('Triage a GitQuire ticket.')).toBeTruthy();
   });
 
   test('a non-skill row keeps its registry description out of the menu', () => {
@@ -74,10 +74,10 @@ describe('SlashCommandMenu second line', () => {
   });
 
   test('the blurb on screen is the blurb announced', () => {
-    show([item({ name: 'bug-triage', description: 'Triage an Open Knowledge ticket.' })]);
+    show([item({ name: 'bug-triage', description: 'Triage a GitQuire ticket.' })]);
 
     const live = document.querySelector('[aria-live="polite"]');
-    expect(live?.textContent).toBe('bug-triage. Triage an Open Knowledge ticket.');
+    expect(live?.textContent).toBe('bug-triage. Triage a GitQuire ticket.');
   });
 
   test('an item with no description of its own stays a single line', () => {

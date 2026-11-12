@@ -322,10 +322,10 @@ function PartCheckbox({
   const warning = !isWarning
     ? null
     : state === 'foreign'
-      ? t`OpenKnowledge does not recognize this entry, and cannot safely replace it in this file's format.`
+      ? t`GitQuire does not recognize this entry, and cannot safely replace it in this file's format.`
       : state === 'foreign-replaceable'
-        ? t`OpenKnowledge does not recognize this entry. Turning it on replaces it.`
-        : t`This entry changed after OpenKnowledge wrote it. Turning it on replaces it.`;
+        ? t`GitQuire does not recognize this entry. Turning it on replaces it.`
+        : t`This entry changed after GitQuire wrote it. Turning it on replaces it.`;
   const warningId = warning === null ? undefined : `${id}-warning`;
   const sharedId = alsoAffects === null ? undefined : `${id}-shared`;
   const describedBy = [warningId, sharedId].filter(Boolean).join(' ') || undefined;
@@ -417,14 +417,14 @@ function PartControl({
     projectMcp: t`Project MCP server`,
     projectSkill: t`Project skill`,
     globalMcp: t`Global MCP server`,
-    discoverySkill: t`OpenKnowledge discovery skill`,
+    discoverySkill: t`GitQuire discovery skill`,
   };
 
   const blockedReasons: Record<BlockedReason, string> = {
-    foreign: t`OpenKnowledge does not recognize this entry, and cannot safely replace it in this file's format.`,
+    foreign: t`GitQuire does not recognize this entry, and cannot safely replace it in this file's format.`,
     'structural-na': t`This agent has no file of this kind on this machine yet. Open the agent once, then check again.`,
-    'not-installable': t`This agent gives OpenKnowledge no way to set this up for you. Its setup guide has the manual steps.`,
-    'agent-undetected': t`OpenKnowledge could not find this agent on this machine.`,
+    'not-installable': t`This agent gives GitQuire no way to set this up for you. Its setup guide has the manual steps.`,
+    'agent-undetected': t`GitQuire could not find this agent on this machine.`,
   };
   function blockedReason(): string {
     const reason = cell.disabledReason;
@@ -477,7 +477,7 @@ function PartControl({
             disabled
               ? blockedReason()
               : (foreignInfo ?? (
-                  <Trans>Adds an OpenKnowledge MCP entry to this project's agent config.</Trans>
+                  <Trans>Adds a GitQuire MCP entry to this project's agent config.</Trans>
                 ))
           }
         />
@@ -499,7 +499,7 @@ function PartControl({
             disabled ? (
               blockedReason()
             ) : (
-              <Trans>Installs the OpenKnowledge project skill for this agent.</Trans>
+              <Trans>Installs the GitQuire project skill for this agent.</Trans>
             )
           }
         />
@@ -511,15 +511,13 @@ function PartControl({
           title={titles[part]}
           description={
             guidance ?? (
-              <Trans>Connects the agent to OpenKnowledge in every project on this machine.</Trans>
+              <Trans>Connects the agent to GitQuire in every project on this machine.</Trans>
             )
           }
           info={
             disabled
               ? blockedReason()
-              : (foreignInfo ?? (
-                  <Trans>Adds a global OpenKnowledge MCP entry for this agent.</Trans>
-                ))
+              : (foreignInfo ?? <Trans>Adds a global GitQuire MCP entry for this agent.</Trans>)
           }
         />
       );
@@ -529,15 +527,13 @@ function PartControl({
           {...common}
           title={titles[part]}
           description={
-            guidance ?? (
-              <Trans>Help your agents discover and use OpenKnowledge in any project.</Trans>
-            )
+            guidance ?? <Trans>Help your agents discover and use GitQuire in any project.</Trans>
           }
           info={
             disabled ? (
               blockedReason()
             ) : (
-              <Trans>Installs the OpenKnowledge discovery skill for this agent.</Trans>
+              <Trans>Installs the GitQuire discovery skill for this agent.</Trans>
             )
           }
         />
@@ -558,7 +554,7 @@ function failedPartTitle(failed: ReportedAction): ReactNode | null {
     return <Trans>Global MCP server</Trans>;
   }
   if (failed.piece === 'skill' && failed.scope === 'user') {
-    return <Trans>OpenKnowledge discovery skill</Trans>;
+    return <Trans>GitQuire discovery skill</Trans>;
   }
   return null;
 }
@@ -600,7 +596,7 @@ function ApplyFailureAlert({
     projectMcp: t`Project MCP server`,
     projectSkill: t`Project skill`,
     globalMcp: t`Global MCP server`,
-    discoverySkill: t`OpenKnowledge discovery skill`,
+    discoverySkill: t`GitQuire discovery skill`,
   };
   const remedy = prerequisitePair(result, connection, titles, 'prerequisite-unavailable');
   if (remedy !== null) {
@@ -608,15 +604,15 @@ function ApplyFailureAlert({
     const remedyText = (): string => {
       switch (remedy.blockedReason) {
         case 'foreign':
-          return t`${dependent} needs ${prerequisite}, and OpenKnowledge cannot safely replace that entry in this file's format.`;
+          return t`${dependent} needs ${prerequisite}, and GitQuire cannot safely replace that entry in this file's format.`;
         case 'structural-na':
           return t`${dependent} needs ${prerequisite}, and this agent has no file of that kind on this machine yet. Open the agent once, then try again.`;
         case 'not-installable':
-          return t`${dependent} needs ${prerequisite}, which OpenKnowledge cannot set up for you. Its setup guide has the manual steps.`;
+          return t`${dependent} needs ${prerequisite}, which GitQuire cannot set up for you. Its setup guide has the manual steps.`;
         case 'agent-undetected':
-          return t`${dependent} needs ${prerequisite}, and OpenKnowledge could not find this agent on this machine.`;
+          return t`${dependent} needs ${prerequisite}, and GitQuire could not find this agent on this machine.`;
         default:
-          return t`${dependent} needs ${prerequisite}, and OpenKnowledge does not recognize that entry. Tick ${prerequisite} to replace it, then save again.`;
+          return t`${dependent} needs ${prerequisite}, and GitQuire does not recognize that entry. Tick ${prerequisite} to replace it, then save again.`;
       }
     };
     return (
@@ -637,7 +633,7 @@ function ApplyFailureAlert({
     return (
       <p role="alert" className="text-sm text-destructive">
         {result.devBuild === true
-          ? t`This development build can't connect agents, so it won't change the agent setup of your installed OpenKnowledge app.`
+          ? t`This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app.`
           : t`Managing agent connections is unavailable in this build.`}
       </p>
     );
@@ -648,18 +644,18 @@ function ApplyFailureAlert({
       case 'surface-missing':
         return t`This agent has no file of this kind on this machine yet. Open the agent once, then check again.`;
       case 'foreign-artifact':
-        return t`OpenKnowledge does not recognize this entry, and cannot safely replace it in this file's format.`;
+        return t`GitQuire does not recognize this entry, and cannot safely replace it in this file's format.`;
       case 'no-writer':
       case 'not-installable':
-        return t`This agent gives OpenKnowledge no way to set this up for you. Its setup guide has the manual steps.`;
+        return t`This agent gives GitQuire no way to set this up for you. Its setup guide has the manual steps.`;
       case 'dependency-failed':
         return t`This could not be set up because the MCP server entry it needs was not written.`;
       case 'write-declined':
-        return t`OpenKnowledge left this file alone because it could not parse it safely. Fix the file by hand, then try again.`;
+        return t`GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again.`;
       case 'write-failed':
       case 'executor-threw':
       case 'unrecognized-outcome':
-        return t`Writing this file failed. Check the OpenKnowledge log for the reason.`;
+        return t`Writing this file failed. Check the GitQuire log for the reason.`;
       default:
         return null;
     }
@@ -827,7 +823,7 @@ export function ConfigureConnectionDialog({
             : t`Removes it for ${connection.label} and ${sharedChoice.peers}. ${plural(removingCount, { one: '# removed', other: '# removed' })}`
           : tally
         : disconnecting
-          ? t`This disconnects ${connection.label} from OpenKnowledge.`
+          ? t`This disconnects ${connection.label} from GitQuire.`
           : tally;
 
   return (
@@ -850,9 +846,9 @@ export function ConfigureConnectionDialog({
           <DialogDescription>
             {connection
               ? isGlobalOnly
-                ? t`Choose what OpenKnowledge sets up for ${agentLabel}. ${agentLabel} only supports global configuration.`
-                : t`Choose what OpenKnowledge sets up for ${connection.label}.`
-              : t`Choose what OpenKnowledge sets up.`}
+                ? t`Choose what GitQuire sets up for ${agentLabel}. ${agentLabel} only supports global configuration.`
+                : t`Choose what GitQuire sets up for ${connection.label}.`
+              : t`Choose what GitQuire sets up.`}
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="flex flex-col gap-6">
@@ -1036,7 +1032,7 @@ function labelForPart(part: ConnectionPart): ReactNode {
     case 'globalMcp':
       return <Trans>Global MCP server</Trans>;
     case 'discoverySkill':
-      return <Trans>OpenKnowledge discovery skill</Trans>;
+      return <Trans>GitQuire discovery skill</Trans>;
   }
 }
 
@@ -1143,8 +1139,8 @@ function SharedRemovalNote({ choice }: { choice: SharedRemovalChoice }) {
     return (
       <div role="status" className="rounded-md border bg-muted/50 p-3 text-sm">
         <Trans>
-          This setup is shared with {peers}, and OpenKnowledge cannot change it from here. Unlink
-          the folder in Skills Studio first.
+          This setup is shared with {peers}, and GitQuire cannot change it from here. Unlink the
+          folder in Skills Studio first.
         </Trans>
       </div>
     );
@@ -1237,9 +1233,7 @@ export function RemoveConnectionDialog({
                 className="size-5 text-muted-foreground"
               />
             ) : null}
-            {connection
-              ? t`Remove OpenKnowledge from ${connection.label}?`
-              : t`Remove OpenKnowledge?`}
+            {connection ? t`Remove GitQuire from ${connection.label}?` : t`Remove GitQuire?`}
           </AlertDialogTitle>
           <AlertDialogDescription>
             <Trans>

@@ -208,8 +208,8 @@ msgstr "{0} 等 {rest} 項"
 msgid "{0} × {label}"
 msgstr "{0} × {label}"
 
-msgid "{0} acts without asking — OpenKnowledge can't add permission prompts for it"
-msgstr "{0} 不經詢問即執行操作 — OpenKnowledge 無法為其加入權限確認"
+msgid "{0} acts without asking — GitQuire can't add permission prompts for it"
+msgstr "{0} 不經詢問即執行操作 — GitQuire 無法為其加入權限確認"
 
 msgid "{0} added, {1} removed"
 msgstr "新增 {0} 項，移除 {1} 項"
@@ -226,8 +226,8 @@ msgstr "{0} 未確認脈絡視窗的變更。請先查看該對話，再重新�
 msgid "{0} doesn't offer any settings to adjust"
 msgstr "{0} 沒有可調整的設定"
 
-msgid "{0} has no way to read or edit your documents on its own. Approving writes the Open Knowledge extension to {1} and leaves it there, so this session and later ones in this project have the Open Knowledge tools."
-msgstr "{0} 無法自行讀取或編輯你的文件。核准後會將 Open Knowledge 擴充功能寫入 {1} 並保留在該處，使本次工作階段以及此專案中後續的工作階段都能使用 Open Knowledge 工具。"
+msgid "{0} has no way to read or edit your documents on its own. Approving writes the GitQuire extension to {1} and leaves it there, so this session and later ones in this project have the GitQuire tools."
+msgstr "{0} 無法自行讀取或編輯你的文件。核准後會將 GitQuire 擴充功能寫入 {1} 並保留在該處，使本次工作階段以及此專案中後續的工作階段都能使用 GitQuire 工具。"
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0} 尚未回報其設定"
@@ -336,15 +336,15 @@ msgstr "{addingCount, plural, other {已新增 #}} · {removingCount, plural, ot
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.claude-desktop.per-tool-approval"
-msgstr "{agent} 會在每個 OpenKnowledge 工具第一次使用時請你核准。"
+msgstr "{agent} 會在每個 GitQuire 工具第一次使用時請你核准。"
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.session-injection"
-msgstr "每次 OpenKnowledge 啟動 {agent} 時都會把 OpenKnowledge 的工具交給它；不會寫入任何內容到它的設定。"
+msgstr "每次 GitQuire 啟動 {agent} 時都會把 GitQuire 的工具交給它；不會寫入任何內容到它的設定。"
 
 #. js-lingui-explicit-id
 msgid "followup.enable-manually"
-msgstr "{agent} 會保持專案 MCP 伺服器關閉，直到你在 Customize → MCPs 中開啟它們。OpenKnowledge 無法看到這項設定。"
+msgstr "{agent} 會保持專案 MCP 伺服器關閉，直到你在 Customize → MCPs 中開啟它們。GitQuire 無法看到這項設定。"
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.codex.folder-trust"
@@ -356,7 +356,7 @@ msgstr "{agent} 只會在你信任過的資料夾中載入專案擴充功能；�
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.copilot.shared-workspace-config"
-msgstr "{agent} 讀取 OpenKnowledge 為 {sourceAgent} 寫入的工作區 MCP 設定；為其中一方移除就等於為雙方移除。{agent} 只有在你首次啟動時確認資料夾信任之後才會載入它；在你未信任的資料夾中它會靜默略過，包括在 copilot -p 下，因為那裡無法顯示信任提示。"
+msgstr "{agent} 讀取 GitQuire 為 {sourceAgent} 寫入的工作區 MCP 設定；為其中一方移除就等於為雙方移除。{agent} 只有在你首次啟動時確認資料夾信任之後才會載入它；在你未信任的資料夾中它會靜默略過，包括在 copilot -p 下，因為那裡無法顯示信任提示。"
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.openclaw.central-store-missing"
@@ -512,20 +512,20 @@ msgstr "{days, plural, other {# 天前}}"
 msgid "{days}d ago"
 msgstr "{days} 天前"
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge cannot safely replace that entry in this file's format."
-msgstr "{dependent} 需要 {prerequisite}，而 OpenKnowledge 無法在此檔案格式中安全地取代該項目。"
+msgid "{dependent} needs {prerequisite}, and GitQuire cannot safely replace that entry in this file's format."
+msgstr "{dependent} 需要 {prerequisite}，而 GitQuire 無法在此檔案格式中安全地取代該項目。"
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge could not find this agent on this machine."
-msgstr "{dependent} 需要 {prerequisite}，但 OpenKnowledge 在此裝置上找不到此智慧代理。"
+msgid "{dependent} needs {prerequisite}, and GitQuire could not find this agent on this machine."
+msgstr "{dependent} 需要 {prerequisite}，但 GitQuire 在此裝置上找不到此智慧代理。"
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge does not recognize that entry. Tick {prerequisite} to replace it, then save again."
-msgstr "{dependent} 需要 {prerequisite}，而 OpenKnowledge 無法辨識該項目。勾選 {prerequisite} 以取代它，然後重新儲存。"
+msgid "{dependent} needs {prerequisite}, and GitQuire does not recognize that entry. Tick {prerequisite} to replace it, then save again."
+msgstr "{dependent} 需要 {prerequisite}，而 GitQuire 無法辨識該項目。勾選 {prerequisite} 以取代它，然後重新儲存。"
 
 msgid "{dependent} needs {prerequisite}, and this agent has no file of that kind on this machine yet. Open the agent once, then try again."
 msgstr "{dependent} 需要 {prerequisite}，而此智慧代理在此裝置上尚無這類檔案。請先開啟該智慧代理，然後再試一次。"
 
-msgid "{dependent} needs {prerequisite}, which OpenKnowledge cannot set up for you. Its setup guide has the manual steps."
-msgstr "{dependent} 需要 {prerequisite}，而 OpenKnowledge 無法為您設定它。其設定指南中有手動步驟。"
+msgid "{dependent} needs {prerequisite}, which GitQuire cannot set up for you. Its setup guide has the manual steps."
+msgstr "{dependent} 需要 {prerequisite}，而 GitQuire 無法為您設定它。其設定指南中有手動步驟。"
 
 msgid "{descriptorLabel} — render error, source editable below"
 msgstr "{descriptorLabel} — 顯示出錯，可在下方編輯原始碼"
@@ -563,11 +563,11 @@ msgstr "{displayName} CLI，{hint}"
 msgid "{displayName} Desktop"
 msgstr "{displayName} Desktop"
 
-msgid "{displayName} is installed, but OpenKnowledge tools aren't connected to it yet."
-msgstr "{displayName} 已安裝，但 OpenKnowledge 工具還沒有連到它。"
+msgid "{displayName} is installed, but GitQuire tools aren't connected to it yet."
+msgstr "{displayName} 已安裝，但 GitQuire 工具還沒有連到它。"
 
-msgid "{docName} is {0}. OpenKnowledge currently opens files up to {1}."
-msgstr "{docName} 有 {0}。OpenKnowledge 目前最多可開啟 {1} 的檔案。"
+msgid "{docName} is {0}. GitQuire currently opens files up to {1}."
+msgstr "{docName} 有 {0}。GitQuire 目前最多可開啟 {1} 的檔案。"
 
 msgid "{enabledCount}/{0} on"
 msgstr "已開啟 {enabledCount}/{0}"
@@ -585,17 +585,17 @@ msgstr "{0} 則註解中有 {failed} 則無法更新。"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount} 個檔案上傳失敗}}"
 
-msgid "{file} was not saved because it changed outside OpenKnowledge to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} 未儲存，因為它在 OpenKnowledge 之外被改成了非 UTF-8 文字的內容，所以沒有覆寫該檔案。你的編輯仍保留在這裡，檔案再次變更時會重新嘗試儲存。"
+msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} 未儲存，因為它在 GitQuire 之外被改成了非 UTF-8 文字的內容，所以沒有覆寫該檔案。你的編輯仍保留在這裡，檔案再次變更時會重新嘗試儲存。"
 
 msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
 msgstr "{file} 未儲存，因為無法讀取它來與外部變更進行比較，所以沒有覆寫該檔案。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
 
-msgid "{file} was not saved because it kept changing outside OpenKnowledge. Your edits stay here, and saving is tried again."
-msgstr "{file} 未儲存，因為它在 OpenKnowledge 之外持續變更。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
+msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
+msgstr "{file} 未儲存，因為它在 GitQuire 之外持續變更。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
 
-msgid "{file} was not saved. It changed outside OpenKnowledge, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} 未儲存。它在 OpenKnowledge 之外被變更，而該版本無法儲存到記錄或備份資料夾中，所以沒有覆寫該檔案。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
+msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} 未儲存。它在 GitQuire 之外被變更，而該版本無法儲存到記錄或備份資料夾中，所以沒有覆寫該檔案。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, other {# 個檔案}}"
@@ -645,11 +645,11 @@ msgstr "{label}（{0}）"
 msgid "{label} already loads \"{0}\" from the {1} plugin. Installing here puts a copy at {2} that {label} uses instead of the plugin's — it stops tracking plugin updates."
 msgstr "{label} 已經透過 {1} 外掛載入 \"{0}\"。在此安裝會在 {2} 建立一個副本，{label} 將使用該副本而非外掛的版本——副本不再跟隨外掛更新。"
 
-msgid "{label} build, v{version}. Its settings and data are kept separate from other OpenKnowledge apps."
-msgstr "{label} 版本，v{version}。其設定和資料與其他 OpenKnowledge 應用程式分開儲存。"
+msgid "{label} build, v{version}. Its settings and data are kept separate from other GitQuire apps."
+msgstr "{label} 版本，v{version}。其設定和資料與其他 GitQuire 應用程式分開儲存。"
 
-msgid "{label} build. Its settings and data are kept separate from other OpenKnowledge apps."
-msgstr "{label} 版本。其設定和資料與其他 OpenKnowledge 應用程式分開儲存。"
+msgid "{label} build. Its settings and data are kept separate from other GitQuire apps."
+msgstr "{label} 版本。其設定和資料與其他 GitQuire 應用程式分開儲存。"
 
 msgid "{label} enabled"
 msgstr "已啟用 {label}"
@@ -882,8 +882,8 @@ msgid "<{descriptorLabel}> failed to render (likely a bad prop). Copy the source
 msgstr "<{descriptorLabel}> 顯示失敗（很可能是屬性有誤）。複製原始碼看看哪裡出了問題，或刪除這個區塊。"
 
 #. Warning shown when the user unchecks the PATH toggle on a desktop build with the built-in terminal
-msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. OpenKnowledge's built-in terminal and AI tools keep working."
-msgstr "在你之後從「檔案」選單裡加上之前，<0>{cliCommand}</0> 不會在外部終端機中執行。OpenKnowledge 的內建終端機和 AI 工具照常可用。"
+msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. GitQuire's built-in terminal and AI tools keep working."
+msgstr "在你之後從「檔案」選單裡加上之前，<0>{cliCommand}</0> 不會在外部終端機中執行。GitQuire 的內建終端機和 AI 工具照常可用。"
 
 #. Warning shown when the user unchecks the PATH toggle on a desktop build without the built-in terminal
 msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. Your AI tools keep working."
@@ -1193,8 +1193,8 @@ msgstr "新增屬性"
 msgid "Add a starter pack"
 msgstr "加入入門套件"
 
-msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, OpenKnowledge uses the token instead."
-msgstr "為 GitLab、Gitea、Bitbucket、Azure DevOps 或自架 git 伺服器新增存取權杖。沒有權杖時，git 會使用它已為該主機儲存的憑證；新增權杖後，OpenKnowledge 改用該權杖。"
+msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
+msgstr "為 GitLab、Gitea、Bitbucket、Azure DevOps 或自架 git 伺服器新增存取權杖。沒有權杖時，git 會使用它已為該主機儲存的憑證；新增權杖後，GitQuire 改用該權杖。"
 
 msgid "Add another pattern"
 msgstr "再新增一個模式"
@@ -1302,36 +1302,36 @@ msgstr "已新增"
 msgid "Adding"
 msgstr "正在新增"
 
-msgid "Adds a global OpenKnowledge MCP entry for this agent."
-msgstr "為此智慧代理新增全域 OpenKnowledge MCP 項目。"
+msgid "Adds a global GitQuire MCP entry for this agent."
+msgstr "為此智慧代理新增全域 GitQuire MCP 項目。"
 
 msgid "Adds a managed block to"
 msgstr "加入一個受管理的區塊到"
 
 #. Subtext under the project AI-tools checkbox
-msgid "Adds an OpenKnowledge MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
-msgstr "向 <0>{toolList}</0> 新增 OpenKnowledge 的 MCP 項目與專案技能，讓你的智慧代理可以讀取並編輯你的檔案。"
+msgid "Adds a GitQuire MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
+msgstr "向 <0>{toolList}</0> 新增 GitQuire 的 MCP 項目與專案技能，讓你的智慧代理可以讀取並編輯你的檔案。"
 
 #. Subtext under the AI-tools MCP checkbox
-msgid "Adds an OpenKnowledge MCP entry to <0>{connectToolList}</0>, so your agents can read and edit your files."
-msgstr "向 <0>{connectToolList}</0> 新增 OpenKnowledge 的 MCP 項目，讓你的智慧代理可以讀取並編輯你的檔案。"
+msgid "Adds a GitQuire MCP entry to <0>{connectToolList}</0>, so your agents can read and edit your files."
+msgstr "向 <0>{connectToolList}</0> 新增 GitQuire 的 MCP 項目，讓你的智慧代理可以讀取並編輯你的檔案。"
 
-msgid "Adds an OpenKnowledge MCP entry to this project's agent config."
-msgstr "將 OpenKnowledge MCP 項目新增至此專案的智慧代理設定。"
+msgid "Adds a GitQuire MCP entry to this project's agent config."
+msgstr "將 GitQuire MCP 項目新增至此專案的智慧代理設定。"
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.user-config"
-msgstr "將 OpenKnowledge 加入 {agent} 自己的 MCP 設定，這台機器上的每個專案都能存取。"
+msgstr "將 GitQuire 加入 {agent} 自己的 MCP 設定，這台機器上的每個專案都能存取。"
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.project-config"
-msgstr "將 OpenKnowledge 加入 {agent} 在這個專案中讀取的 MCP 設定，讓它可以讀取、搜尋和編輯這些文件。"
+msgstr "將 GitQuire 加入 {agent} 在這個專案中讀取的 MCP 設定，讓它可以讀取、搜尋和編輯這些文件。"
 
 msgid "Adds telemetry, server state, and runtime info when available. Credentials are always removed; document names, if included, appear in cleartext (not redacted)."
 msgstr "在可取得時附上遙測資料、伺服器狀態和執行階段資訊。憑證一律會移除；如果包含文件名稱，它們會以明文出現（不做遮蔽）。"
 
-msgid "Adds the OpenKnowledge skill to the <0>Claude Desktop App</0> so it's available in Chat and Cowork sessions."
-msgstr "把 OpenKnowledge 技能加到 <0>Claude Desktop App</0>，這樣在 Chat 和 Cowork 工作階段中就能使用。"
+msgid "Adds the GitQuire skill to the <0>Claude Desktop App</0> so it's available in Chat and Cowork sessions."
+msgstr "把 GitQuire 技能加到 <0>Claude Desktop App</0>，這樣在 Chat 和 Cowork 工作階段中就能使用。"
 
 msgid "Adds the skill to {rootRel} — also read by {0}"
 msgstr "把技能加到 {rootRel}——{0} 也會讀取該處"
@@ -1444,7 +1444,7 @@ msgstr "即將完成。以下是已完成和尚待完成的事項。"
 msgid "Already at {assetContentPath} — reusing."
 msgstr "已經在 {assetContentPath} 了——直接重複使用。"
 
-#. Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have an OpenKnowledge MCP entry, which stay as they are while the box is unticked
+#. Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have a GitQuire MCP entry, which stay as they are while the box is unticked
 msgid "Already connected to {replacingToolList}"
 msgstr "已連接到：{replacingToolList}"
 
@@ -1559,8 +1559,8 @@ msgstr "適用於（glob 模式；開頭的 ! 表示排除；留空表示所有�
 msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
 msgstr "適用於本機上的所有專案，作用於開啟後新建的代理面板中的 Claude Code 和 Codex 對話。代理可以在它自己的 Google Chrome 視窗中（使用全新的設定檔）開啟頁面、點按、輸入和擷取螢幕畫面。需要已安裝 Google Chrome 和 Node.js。除非代理本身的模式或權限設定略過了核准，否則每個瀏覽器操作都會請求你的核准，且沒有「一律允許」的選項。"
 
-msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve OpenKnowledge's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-OpenKnowledge file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
-msgstr "適用於本機上的所有專案。從內建終端機啟動的 Claude 和 Codex，以及應用程式內代理面板對話中的任何代理，都會自動核准 OpenKnowledge 的讀寫工具（Claude 也會自動執行 \"{cliCommand} open\"）。刪除、移動、分享、匯入或安裝技能、其他命令以及非 OpenKnowledge 檔案的編輯仍會詢問。在終端機中，Cursor、OpenCode 和 Pi 不受影響。依各代理盡力而為。"
+msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
+msgstr "適用於本機上的所有專案。從內建終端機啟動的 Claude 和 Codex，以及應用程式內代理面板對話中的任何代理，都會自動核准 GitQuire 的讀寫工具（Claude 也會自動執行 \"{cliCommand} open\"）。刪除、移動、分享、匯入或安裝技能、其他命令以及非 GitQuire 檔案的編輯仍會詢問。在終端機中，Cursor、OpenCode 和 Pi 不受影響。依各代理盡力而為。"
 
 msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
 msgstr "只在這台電腦上對這個專案生效。存在 .ok/local 中，不會透過 git 分享。"
@@ -1794,8 +1794,8 @@ msgstr "可用範圍"
 msgid "Available in every project on this machine. Not shared through git."
 msgstr "在這台電腦的每個專案中都可以使用。不會透過 git 分享。"
 
-msgid "Available in the OpenKnowledge desktop app. From a terminal, use<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
-msgstr "在 OpenKnowledge 桌面應用程式中提供。在終端機裡可以使用<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>。"
+msgid "Available in the GitQuire desktop app. From a terminal, use<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
+msgstr "在 GitQuire 桌面應用程式中提供。在終端機裡可以使用<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>。"
 
 msgid "Back"
 msgstr "返回"
@@ -1892,11 +1892,11 @@ msgstr "兩者"
 msgid "Both agents end up reading everything in {keep}."
 msgstr "兩個代理最後都會讀到 {keep} 裡的全部內容。"
 
-msgid "Both versions are identical. Choosing Accept current leaves OpenKnowledge's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
-msgstr "兩個版本完全相同。選擇「採用目前」會讓 OpenKnowledge 的保護保持開啟，因此再次儲存較舊的版本仍會被拒絕。選擇「採用傳入」會關閉該保護。"
+msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
+msgstr "兩個版本完全相同。選擇「採用目前」會讓 GitQuire 的保護保持開啟，因此再次儲存較舊的版本仍會被拒絕。選擇「採用傳入」會關閉該保護。"
 
-msgid "Both versions were kept in {fileName}. It changed outside OpenKnowledge in the same place as here, so the outside version is directly under this one."
-msgstr "{fileName} 的兩個版本都已保留。它在 OpenKnowledge 之外被修改的位置與這裡相同，因此外部版本緊接在此版本下方。"
+msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
+msgstr "{fileName} 的兩個版本都已保留。它在 GitQuire 之外被修改的位置與這裡相同，因此外部版本緊接在此版本下方。"
 
 msgid "Branch"
 msgstr "分支"
@@ -1961,8 +1961,8 @@ msgstr "錯誤回報 {0}"
 msgid "Bug report history"
 msgstr "錯誤回報記錄"
 
-msgid "Bug reporting needs the OpenKnowledge desktop app."
-msgstr "回報錯誤需要 OpenKnowledge 桌面應用程式。"
+msgid "Bug reporting needs the GitQuire desktop app."
+msgstr "回報錯誤需要 GitQuire 桌面應用程式。"
 
 msgid "Bugs, crashes, or it felt unreliable"
 msgstr "有錯誤、當機，或者覺得不太可靠"
@@ -1994,8 +1994,8 @@ msgstr ""
 msgid "By meaning"
 msgstr "依語意"
 
-msgid "By OpenKnowledge"
-msgstr "由 OpenKnowledge 提供"
+msgid "By GitQuire"
+msgstr "由 GitQuire 提供"
 
 msgid "By tag"
 msgstr "依標籤"
@@ -2006,8 +2006,8 @@ msgstr "快取的嵌入向量屬於產生它們的端點和模型，所以這會
 msgid "Callouts draw attention to key information."
 msgstr "標註框用於突顯關鍵資訊。"
 
-msgid "Can't nest projects. An OpenKnowledge project already exists at <0>{rootPath}</0>. Choose a location outside it, or open that project instead."
-msgstr "專案不能巢狀。<0>{rootPath}</0> 已經有一個 OpenKnowledge 專案了。請選它以外的位置，或者直接開啟那個專案。"
+msgid "Can't nest projects. A GitQuire project already exists at <0>{rootPath}</0>. Choose a location outside it, or open that project instead."
+msgstr "專案不能巢狀。<0>{rootPath}</0> 已經有一個 GitQuire 專案了。請選它以外的位置，或者直接開啟那個專案。"
 
 msgid "Can't share this path."
 msgstr "無法分享這個路徑。"
@@ -2072,8 +2072,8 @@ msgstr "變更會自動儲存。"
 msgid "Changes saved automatically."
 msgstr "變更已自動儲存。"
 
-msgid "Changes were saved, but OpenKnowledge could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
-msgstr "變更已儲存，但 OpenKnowledge 無法確認與 {handoffLabel} 的連線。請檢查此應用程式的 MCP 伺服器設定，然後選擇「儲存變更」再次檢查。"
+msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
+msgstr "變更已儲存，但 GitQuire 無法確認與 {handoffLabel} 的連線。請檢查此應用程式的 MCP 伺服器設定，然後選擇「儲存變更」再次檢查。"
 
 msgid "Character budget per indexing request"
 msgstr "每次索引請求的字元預算"
@@ -2205,14 +2205,14 @@ msgstr "選擇新的對話啟動的內容"
 msgid "Choose what a new tab starts"
 msgstr "選擇新分頁啟動的內容"
 
-msgid "Choose what OpenKnowledge sets up for {0}."
-msgstr "選擇 OpenKnowledge 為 {0} 設定的內容。"
+msgid "Choose what GitQuire sets up for {0}."
+msgstr "選擇 GitQuire 為 {0} 設定的內容。"
 
-msgid "Choose what OpenKnowledge sets up for {agentLabel}. {agentLabel} only supports global configuration."
-msgstr "選擇 OpenKnowledge 為 {agentLabel} 設定的內容。{agentLabel} 僅支援全域設定。"
+msgid "Choose what GitQuire sets up for {agentLabel}. {agentLabel} only supports global configuration."
+msgstr "選擇 GitQuire 為 {agentLabel} 設定的內容。{agentLabel} 僅支援全域設定。"
 
-msgid "Choose what OpenKnowledge sets up."
-msgstr "選擇 OpenKnowledge 設定的內容。"
+msgid "Choose what GitQuire sets up."
+msgstr "選擇 GitQuire 設定的內容。"
 
 msgid "Choose where to send these comments"
 msgstr "選擇要把這些註解送到哪裡"
@@ -2220,8 +2220,8 @@ msgstr "選擇要把這些註解送到哪裡"
 msgid "Choose where to send this message"
 msgstr "選擇要將這則訊息傳送到哪裡"
 
-msgid "Choose whether this project's OpenKnowledge setup, including its AI-tool connections and the Shared default sync mode, is saved with the project so teammates get it too, or kept only on your computer."
-msgstr "選擇這個專案的 OpenKnowledge 設定（包括它和 AI 工具的連接以及分享的預設值同步模式）要隨專案一起保存、讓隊友也能拿到，還是只留在你的電腦上。"
+msgid "Choose whether this project's GitQuire setup, including its AI-tool connections and the Shared default sync mode, is saved with the project so teammates get it too, or kept only on your computer."
+msgstr "選擇這個專案的 GitQuire 設定（包括它和 AI 工具的連接以及分享的預設值同步模式）要隨專案一起保存、讓隊友也能拿到，還是只留在你的電腦上。"
 
 msgid "Choose which agents appear in agent menus across the app, and set them up to read and update your documents."
 msgstr "選擇哪些智慧代理顯示在應用程式的代理選單中，並進行設定，讓它們能夠讀取和更新你的文件。"
@@ -2609,8 +2609,8 @@ msgstr "連接 GitHub"
 msgid "Connect GitHub to continue."
 msgstr "請先連接 GitHub 再繼續。"
 
-msgid "Connect OpenKnowledge to other tools you use."
-msgstr "把 OpenKnowledge 和你用的其他工具連接起來。"
+msgid "Connect GitQuire to other tools you use."
+msgstr "把 GitQuire 和你用的其他工具連接起來。"
 
 msgid "Connect this project to GitHub to share."
 msgstr "把這個專案連接到 GitHub 才能分享。"
@@ -2628,7 +2628,7 @@ msgstr "連接工具"
 msgid "Connect your AI tools"
 msgstr "連接你的 AI 工具"
 
-#. Checkbox that wires the OpenKnowledge MCP into every detected AI tool for the project
+#. Checkbox that wires the GitQuire MCP into every detected AI tool for the project
 msgid "Connect your AI tools to this project"
 msgstr "將你的 AI 工具連接到這個專案"
 
@@ -2671,8 +2671,8 @@ msgstr "連線出錯——請再試一次"
 msgid "Connection lost — keep this tab open, your edits will sync when reconnected"
 msgstr "連線中斷——請讓這個分頁保持開啟，重新連上後你的編輯就會同步"
 
-msgid "Connects the agent to OpenKnowledge in every project on this machine."
-msgstr "將智慧代理連線至這台機器上所有專案中的 OpenKnowledge。"
+msgid "Connects the agent to GitQuire in every project on this machine."
+msgstr "將智慧代理連線至這台機器上所有專案中的 GitQuire。"
 
 msgid "Connects the agent to this project so it can read, search, and edit your documents."
 msgstr "將智慧代理連線至此專案，使其可以讀取、搜尋和編輯你的文件。"
@@ -2956,8 +2956,8 @@ msgstr "無法清除金鑰——請再試一次。"
 msgid "Couldn't complete semantic search — retry"
 msgstr "無法完成語意搜尋 — 重試"
 
-msgid "Couldn't connect to the agent service. Make sure the OpenKnowledge server is running and up to date (restart it if it was already running), then try again."
-msgstr "無法連接到代理服務。請確認 OpenKnowledge 伺服器正在執行而且是最新版本（如果它已經在執行，請重新啟動），然後再試一次。"
+msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
+msgstr "無法連接到代理服務。請確認 GitQuire 伺服器正在執行而且是最新版本（如果它已經在執行，請重新啟動），然後再試一次。"
 
 msgid "Couldn't construct the share URL. Try Done and re-share."
 msgstr "無法組出分享 URL。請按「完成」後重新分享。"
@@ -3034,8 +3034,8 @@ msgstr "無法安裝 {skillName}：{0}"
 msgid "Couldn't install from {0}: {1}"
 msgstr "無法從 {0} 安裝：{1}"
 
-msgid "Couldn't install OpenKnowledge skill — {message}"
-msgstr "無法安裝 OpenKnowledge 技能：{message}"
+msgid "Couldn't install GitQuire skill — {message}"
+msgstr "無法安裝 GitQuire 技能：{message}"
 
 msgid "Couldn't install skill: {0}"
 msgstr "無法安裝技能：{0}"
@@ -3067,8 +3067,8 @@ msgstr "無法載入入門套件：{error}"
 msgid "Couldn't load templates"
 msgstr "無法載入範本"
 
-msgid "Couldn't load the OpenKnowledge skills. Try again."
-msgstr "無法載入 OpenKnowledge 技能。請再試一次。"
+msgid "Couldn't load the GitQuire skills. Try again."
+msgstr "無法載入 GitQuire 技能。請再試一次。"
 
 msgid "Couldn't load the version preview. You can still choose how to resolve it below."
 msgstr "無法載入這個版本的預覽。你仍然可以在下方選擇要怎麼解決。"
@@ -3157,11 +3157,11 @@ msgstr "無法連上嵌入服務供應商——請再試一次"
 msgid "Couldn't reach the endpoint. Check the URL and that the server is up."
 msgstr "無法連上這個端點。請檢查 URL，並確認伺服器已啟動。"
 
-msgid "Couldn't reach the Open Knowledge server to upload {fileName}."
-msgstr "無法連上 Open Knowledge 伺服器來上傳 {fileName}。"
+msgid "Couldn't reach the GitQuire server to upload {fileName}."
+msgstr "無法連上 GitQuire 伺服器來上傳 {fileName}。"
 
-msgid "Couldn't reach the OpenKnowledge server, so sync options are hidden. They appear here as soon as the sync status loads; closing and reopening Settings also retries."
-msgstr "無法連線到 OpenKnowledge 伺服器，因此已隱藏同步選項。同步狀態一載入完成，選項就會顯示在這裡；關閉並重新開啟設定也會重試。"
+msgid "Couldn't reach the GitQuire server, so sync options are hidden. They appear here as soon as the sync status loads; closing and reopening Settings also retries."
+msgstr "無法連線到 GitQuire 伺服器，因此已隱藏同步選項。同步狀態一載入完成，選項就會顯示在這裡；關閉並重新開啟設定也會重試。"
 
 msgid "Couldn't read {fileName}."
 msgstr "無法讀取 {fileName}。"
@@ -3220,8 +3220,8 @@ msgstr "無法解決這個分岔：{0}"
 msgid "Couldn't restart {agentName}."
 msgstr "無法重新啟動 {agentName}。"
 
-msgid "Couldn't restart the server — another process owns it. Quit other OpenKnowledge windows for this project, then try again."
-msgstr "無法重新啟動伺服器——它被另一個處理程序佔用。請關閉這個專案的其他 OpenKnowledge 視窗，然後再試一次。"
+msgid "Couldn't restart the server — another process owns it. Quit other GitQuire windows for this project, then try again."
+msgstr "無法重新啟動伺服器——它被另一個處理程序佔用。請關閉這個專案的其他 GitQuire 視窗，然後再試一次。"
 
 msgid "Couldn't restart the server — it's running under a different account. Restart your computer to clear it, then reopen this project."
 msgstr "無法重新啟動伺服器——它正以另一個帳戶執行。請重新啟動電腦來清除，再重新開啟這個專案。"
@@ -3229,11 +3229,11 @@ msgstr "無法重新啟動伺服器——它正以另一個帳戶執行。請重
 msgid "Couldn't restart the server automatically. Try running `{cliCommand} stop all` in a terminal, then reopen this project — or restart your computer if it persists."
 msgstr "無法自動重新啟動伺服器。請在終端機中執行 `{cliCommand} stop all`，然後重新開啟這個專案——如果狀況持續，請重新啟動電腦。"
 
-msgid "Couldn't restart the server: OpenKnowledge asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project."
-msgstr "無法重新啟動伺服器：OpenKnowledge 已要求持有這個專案伺服器鎖定的處理程序停止，但無法確認它是這個專案的伺服器，因此沒有強制它結束。如果專案仍被鎖定，請在啟動該伺服器的地方將它停止，或重新啟動電腦，再重新開啟這個專案。"
+msgid "Couldn't restart the server: GitQuire asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project."
+msgstr "無法重新啟動伺服器：GitQuire 已要求持有這個專案伺服器鎖定的處理程序停止，但無法確認它是這個專案的伺服器，因此沒有強制它結束。如果專案仍被鎖定，請在啟動該伺服器的地方將它停止，或重新啟動電腦，再重新開啟這個專案。"
 
-msgid "Couldn't restart the server: OpenKnowledge could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project."
-msgstr "無法重新啟動伺服器：OpenKnowledge 無法確認持有這個專案伺服器鎖定的處理程序仍是它的伺服器，因此沒有將它停止。請在啟動該伺服器的地方將它停止，或重新啟動電腦，再重新開啟這個專案。"
+msgid "Couldn't restart the server: GitQuire could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project."
+msgstr "無法重新啟動伺服器：GitQuire 無法確認持有這個專案伺服器鎖定的處理程序仍是它的伺服器，因此沒有將它停止。請在啟動該伺服器的地方將它停止，或重新啟動電腦，再重新開啟這個專案。"
 
 msgid "Couldn't restart the server. Run {cliCommand} start in this folder to retry."
 msgstr "無法重新啟動伺服器。請在此資料夾中執行 {cliCommand} start 以重試。"
@@ -3250,8 +3250,8 @@ msgstr "無法還原 {0}。請再試一次。"
 msgid "Couldn't resume this chat: {0}"
 msgstr "無法恢復此對話：{0}"
 
-msgid "Couldn't run the test. Check that OpenKnowledge is still running."
-msgstr "無法執行測試。請確認 OpenKnowledge 仍在執行。"
+msgid "Couldn't run the test. Check that GitQuire is still running."
+msgstr "無法執行測試。請確認 GitQuire 仍在執行。"
 
 msgid "Couldn’t save changes. Try editing a color again."
 msgstr "無法儲存變更。請再編輯一次色彩。"
@@ -3343,8 +3343,8 @@ msgstr "無法上傳檔案。附件資料夾使用了未知變數 {variables}。
 msgid "Couldn't verify that {displayName} ({bin}) is available, so this is a plain shell. You can still run {bin} yourself."
 msgstr "無法確認 {displayName}（{bin}）是否可用，因此這是一個一般 shell。你仍然可以自行執行 {bin}。"
 
-msgid "Couldn't write the Open Knowledge extension. This thread has no Open Knowledge tools."
-msgstr "無法寫入 Open Knowledge 擴充功能。此執行緒沒有 Open Knowledge 工具。"
+msgid "Couldn't write the GitQuire extension. This thread has no GitQuire tools."
+msgstr "無法寫入 GitQuire 擴充功能。此執行緒沒有 GitQuire 工具。"
 
 msgid "Count skill installs publicly"
 msgstr "公開統計技能安裝次數"
@@ -3379,8 +3379,8 @@ msgstr "建立新分支，或簽出既有分支，各自在獨立視窗中開啟
 msgid "Create a new list item from the current list item."
 msgstr "從目前的清單項目建立一個新的清單項目。"
 
-msgid "Create a new OpenKnowledge project in the folder of your choice."
-msgstr "在你選的資料夾中建立一個新的 OpenKnowledge 專案。"
+msgid "Create a new GitQuire project in the folder of your choice."
+msgstr "在你選的資料夾中建立一個新的 GitQuire 專案。"
 
 msgid "Create a new spec file for my user story"
 msgstr "為我的使用者故事建立一個新的規格檔案"
@@ -3502,8 +3502,8 @@ msgstr "自訂主題"
 msgid "Customize how the editor looks and behaves."
 msgstr "自訂編輯器的外觀和行為。"
 
-msgid "Customize your OpenKnowledge experience."
-msgstr "自訂你的 OpenKnowledge 使用體驗。"
+msgid "Customize your GitQuire experience."
+msgstr "自訂你的 GitQuire 使用體驗。"
 
 msgid "Cut"
 msgstr "剪下"
@@ -3696,8 +3696,8 @@ msgstr "詳細資料"
 msgid "Detected in {0}"
 msgstr "在 {0} 中偵測到"
 
-msgid "Detected OpenKnowledge projects"
-msgstr "偵測到的 OpenKnowledge 專案"
+msgid "Detected GitQuire projects"
+msgstr "偵測到的 GitQuire 專案"
 
 msgid "Detecting"
 msgstr "正在偵測"
@@ -4182,8 +4182,8 @@ msgstr "啟用自動（僅拉取）？"
 msgid "Enable indexes"
 msgstr "啟用索引"
 
-msgid "Enable Open Knowledge tools for {0}?"
-msgstr "要為 {0} 啟用 Open Knowledge 工具嗎？"
+msgid "Enable GitQuire tools for {0}?"
+msgstr "要為 {0} 啟用 GitQuire 工具嗎？"
 
 msgid "Enable plugins"
 msgstr "啟用外掛"
@@ -4209,8 +4209,8 @@ msgstr "啟用主題"
 msgid "Enabling index generation"
 msgstr "啟用索引生成"
 
-msgid "Enabling Open Knowledge tools"
-msgstr "正在啟用 Open Knowledge 工具"
+msgid "Enabling GitQuire tools"
+msgstr "正在啟用 GitQuire 工具"
 
 msgid "Ended"
 msgstr "已結束"
@@ -5013,8 +5013,8 @@ msgstr "GitHub CLI"
 msgid "GitHub connection expired. Connect again to continue."
 msgstr "GitHub 連線已過期。請重新連線以繼續。"
 
-msgid "GitHub denied the request. You may need to authorize OpenKnowledge for {owner} in your browser."
-msgstr "GitHub 拒絕了這個要求。你可能需要在瀏覽器中為 {owner} 授權 OpenKnowledge。"
+msgid "GitHub denied the request. You may need to authorize GitQuire for {owner} in your browser."
+msgstr "GitHub 拒絕了這個要求。你可能需要在瀏覽器中為 {owner} 授權 GitQuire。"
 
 msgid "GitHub Enterprise Server hosts"
 msgstr "GitHub Enterprise Server 主機"
@@ -5051,8 +5051,8 @@ msgid "Global outside text fields"
 msgstr "文字欄位之外的全域範圍"
 
 #. Description under the AI-tools section label in the first-launch dialog
-msgid "Globally install the OpenKnowledge skills and MCP to let the agents you already use read and update your projects."
-msgstr "全域安裝 OpenKnowledge 技能與 MCP，讓你已在使用的智慧代理可以讀取並更新你的專案。"
+msgid "Globally install the GitQuire skills and MCP to let the agents you already use read and update your projects."
+msgstr "全域安裝 GitQuire 技能與 MCP，讓你已在使用的智慧代理可以讀取並更新你的專案。"
 
 msgid "Go back"
 msgstr "返回"
@@ -5148,12 +5148,12 @@ msgstr "你好，世界！"
 msgid "Help"
 msgstr "說明"
 
-msgid "Help me understand the conflict in {filePath}. Explain what I should compare in the OpenKnowledge Conflict view; I will choose and apply the resolution there."
-msgstr "幫我理解 {filePath} 中的衝突。說明我應該在 OpenKnowledge 的衝突檢視中比較哪些內容；我會在那裡選擇並套用解決方案。"
+msgid "Help me understand the conflict in {filePath}. Explain what I should compare in the GitQuire Conflict view; I will choose and apply the resolution there."
+msgstr "幫我理解 {filePath} 中的衝突。說明我應該在 GitQuire 的衝突檢視中比較哪些內容；我會在那裡選擇並套用解決方案。"
 
 #. Subtext under the discovery-skill checkbox
-msgid "Help your agents discover and use OpenKnowledge in any project."
-msgstr "協助你的智慧代理在任何專案中探索並使用 OpenKnowledge。"
+msgid "Help your agents discover and use GitQuire in any project."
+msgstr "協助你的智慧代理在任何專案中探索並使用 GitQuire。"
 
 msgid "Helps coding agents choose OKF document types, preserve provenance, and avoid inventing unsupported metadata."
 msgstr "幫助編碼代理選擇 OKF 文件類型、保留來源並避免發明不支援的元資料。"
@@ -5296,14 +5296,14 @@ msgstr "託管已開啟。伺服器正在連接埠 {boundPort} 上執行。透�
 msgid "Hotkeys"
 msgstr "快速鍵"
 
-msgid "How do you like OpenKnowledge?"
-msgstr "你覺得 OpenKnowledge 如何？"
+msgid "How do you like GitQuire?"
+msgstr "你覺得 GitQuire 如何？"
 
 msgid "How does sharing work?"
 msgstr "分享是怎麼運作的？"
 
-msgid "How long OpenKnowledge waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting."
-msgstr "OpenKnowledge 建立索引時等待每個嵌入請求的時間。搜尋請求每次嘗試的逾時時間固定為 8 秒，不受此設定影響。"
+msgid "How long GitQuire waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting."
+msgstr "GitQuire 建立索引時等待每個嵌入請求的時間。搜尋請求每次嘗試的逾時時間固定為 8 秒，不受此設定影響。"
 
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "如何在「問題」、編輯器診斷、稽核和代理工具中報告缺少的專案本機文件、檔案和影像。"
@@ -5320,11 +5320,11 @@ msgstr "如何設定"
 msgid "How to set up {rowLabel}"
 msgstr "如何設定 {rowLabel}"
 
-msgid "How to set up new projects with OpenKnowledge."
-msgstr "如何用 OpenKnowledge 設定新專案。"
+msgid "How to set up new projects with GitQuire."
+msgstr "如何用 GitQuire 設定新專案。"
 
-msgid "How to use OpenKnowledge and its MCP tools."
-msgstr "如何使用 OpenKnowledge 及其 MCP 工具。"
+msgid "How to use GitQuire and its MCP tools."
+msgstr "如何使用 GitQuire 及其 MCP 工具。"
 
 msgid "How to write a new skill and install it."
 msgstr "如何撰寫並安裝新技能。"
@@ -5364,21 +5364,21 @@ msgstr "兩邊完全相同，{pick} 仍會讀到它們。"
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.lm-studio.config-path-mismatch"
-msgstr "如果 {agent} 沒有顯示 OpenKnowledge 工具，請檢查它設定中的 MCP 設定路徑是否與 OpenKnowledge 寫入的檔案一致。"
+msgstr "如果 {agent} 沒有顯示 GitQuire 工具，請檢查它設定中的 MCP 設定路徑是否與 GitQuire 寫入的檔案一致。"
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.cursor.project-entry-not-loaded"
-msgstr "如果 {agent} 沒有顯示 OpenKnowledge 工具，請開啟 Customize → MCPs，選擇 {server} 並開啟它的 .cursor/mcp.json 來源；在你開啟之前，{agent} 會讓專案伺服器保持關閉。"
+msgstr "如果 {agent} 沒有顯示 GitQuire 工具，請開啟 Customize → MCPs，選擇 {server} 並開啟它的 .cursor/mcp.json 來源；在你開啟之前，{agent} 會讓專案伺服器保持關閉。"
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.claude.project-entry-not-approved"
-msgstr "如果 {agent} 沒有顯示 OpenKnowledge 工具，請在這個專案中執行它，並核准 OpenKnowledge 伺服器一次。"
+msgstr "如果 {agent} 沒有顯示 GitQuire 工具，請在這個專案中執行它，並核准 GitQuire 伺服器一次。"
 
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "如果你正在編輯的東西收到更新，你可以像處理合併衝突那樣選擇要保留哪個版本。"
 
-msgid "If you use a GitHub Enterprise Server, add its host here so OpenKnowledge can sign in, check push permission, and create share links for repositories hosted there."
-msgstr "如果你使用 GitHub Enterprise Server，請在此新增其主機，讓 OpenKnowledge 能夠登入、檢查推送權限，並為託管在其中的存放庫建立分享連結。"
+msgid "If you use a GitHub Enterprise Server, add its host here so GitQuire can sign in, check push permission, and create share links for repositories hosted there."
+msgstr "如果你使用 GitHub Enterprise Server，請在此新增其主機，讓 GitQuire 能夠登入、檢查推送權限，並為託管在其中的存放庫建立分享連結。"
 
 msgid "Ignore broken links in log.md"
 msgstr "忽略 log.md 中失效的連結"
@@ -5455,8 +5455,8 @@ msgstr "在日誌文件中：條目標題以 ISO YYYY-MM-DD 日期開頭，最�
 msgid "In a subfolder"
 msgstr "在子資料夾中"
 
-msgid "In an agent chat, hovering a link to a GitHub pull request or issue asks GitHub for its status, signed in as you when OpenKnowledge can use your GitHub sign-in."
-msgstr "在智慧代理對話中，把游標停在指向 GitHub 提取要求或議題的連結上時，會向 GitHub 查詢其狀態；OpenKnowledge 能使用你的 GitHub 登入時會以你的身分查詢。"
+msgid "In an agent chat, hovering a link to a GitHub pull request or issue asks GitHub for its status, signed in as you when GitQuire can use your GitHub sign-in."
+msgstr "在智慧代理對話中，把游標停在指向 GitHub 提取要求或議題的連結上時，會向 GitHub 查詢其狀態；GitQuire 能使用你的 GitHub 登入時會以你的身分查詢。"
 
 msgid "In an index document: entries sit under a section heading and each one carries a link. Prose around the lists is fine."
 msgstr "在索引文件中：條目位於節標題下，每個條目都帶有連結。圍繞列表的散文很好。"
@@ -5464,11 +5464,11 @@ msgstr "在索引文件中：條目位於節標題下，每個條目都帶有連
 msgid "In app"
 msgstr "在應用程式內"
 
-msgid "In Git projects, Open Knowledge adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
-msgstr "在 Git 專案中，Open Knowledge 會在儲存庫根目錄的 .gitattributes 檔案中新增一條限定範圍的規則，以便合併並行的索引變更。"
+msgid "In Git projects, GitQuire adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
+msgstr "在 Git 專案中，GitQuire 會在儲存庫根目錄的 .gitattributes 檔案中新增一條限定範圍的規則，以便合併並行的索引變更。"
 
-msgid "In Git projects, Open Knowledge also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
-msgstr "在 Git 專案中，Open Knowledge 也新增了一個作用域 .gitattributes 規則，以便在下一次重建之前合併並發索引變更。"
+msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
+msgstr "在 Git 專案中，GitQuire 也新增了一個作用域 .gitattributes 規則，以便在下一次重建之前合併並發索引變更。"
 
 msgid "In the Claude Desktop App"
 msgstr "在 Claude Desktop App 中"
@@ -5512,11 +5512,11 @@ msgstr "索引文件不包含 frontmatter，除了知識庫根目錄中的 front
 msgid "Index maintenance is paused because another Git attribute controls index.md. Update .gitattributes so the scoped index.md paths use merge=union, then try again."
 msgstr "索引維護已暫停，因為另一個 Git 屬性控制 index.md。更新 .gitattributes 以便作用域 index.md 路徑使用 merge=union，然後重試。"
 
-msgid "Index maintenance is paused because Open Knowledge could not confirm the required Git merge rule. Check Git and .gitattributes, then try again."
-msgstr "索引維護已暫停，因為 Open Knowledge 無法確認所需的 Git 合併規則。檢查 Git 和 .gitattributes，然後再試一次。"
+msgid "Index maintenance is paused because GitQuire could not confirm the required Git merge rule. Check Git and .gitattributes, then try again."
+msgstr "索引維護已暫停，因為 GitQuire 無法確認所需的 Git 合併規則。檢查 Git 和 .gitattributes，然後再試一次。"
 
-msgid "Index maintenance stayed off because Open Knowledge could not reach the project server. Try again when the project reconnects."
-msgstr "索引維護停止，因為 Open Knowledge 無法到達專案伺服器。當項目重新連接時重試。"
+msgid "Index maintenance stayed off because GitQuire could not reach the project server. Try again when the project reconnects."
+msgstr "索引維護停止，因為 GitQuire 無法到達專案伺服器。當項目重新連接時重試。"
 
 msgid "Index maintenance stayed off because the project setting could not be saved. Check the project file permissions, then try again."
 msgstr "由於無法保存項目設置，索引維護已停止。檢查專案檔案權限，然後重試。"
@@ -5560,8 +5560,8 @@ msgstr "初始化入門套件"
 msgid "Initialized {0} but could not open it."
 msgstr "已初始化 {0}，但無法開啟它。"
 
-msgid "Initialized OpenKnowledge at {gitRoot} — opened parent of {subPath} because it contains a .git folder"
-msgstr "已在 {gitRoot} 初始化 OpenKnowledge：開啟了 {subPath} 的上層資料夾，因為其中含有 .git 資料夾"
+msgid "Initialized GitQuire at {gitRoot} — opened parent of {subPath} because it contains a .git folder"
+msgstr "已在 {gitRoot} 初始化 GitQuire：開啟了 {subPath} 的上層資料夾，因為其中含有 .git 資料夾"
 
 msgid "Initializing project"
 msgstr "正在初始化專案"
@@ -5611,8 +5611,8 @@ msgstr "在下方插入列"
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "透過 CodeMirror 的預設按鍵對應，在原始碼編輯器中插入、刪除、移動、複製和縮排行。"
 
-msgid "Inside this repository's OpenKnowledge worktrees folder"
-msgstr "位於此儲存庫的 OpenKnowledge 工作樹資料夾內"
+msgid "Inside this repository's GitQuire worktrees folder"
+msgstr "位於此儲存庫的 GitQuire 工作樹資料夾內"
 
 msgid "Install"
 msgstr "安裝"
@@ -5632,7 +5632,7 @@ msgstr "請先在此處安裝一個技能"
 msgid "Install failed: {0}"
 msgstr "安裝失敗：{0}"
 
-#. Dialog title — installing the OpenKnowledge skill into the Claude Desktop App
+#. Dialog title — installing the GitQuire skill into the Claude Desktop App
 msgid "Install for Claude Chat & Cowork"
 msgstr "為 Claude Chat 和 Cowork 安裝"
 
@@ -5669,9 +5669,9 @@ msgstr "安裝到"
 msgid "Install on all agents"
 msgstr "安裝到所有代理"
 
-#. Checkbox that wires the OpenKnowledge MCP into every detected AI tool
-msgid "Install OpenKnowledge in your AI tools"
-msgstr "在你的 AI 工具中安裝 OpenKnowledge"
+#. Checkbox that wires the GitQuire MCP into every detected AI tool
+msgid "Install GitQuire in your AI tools"
+msgstr "在你的 AI 工具中安裝 GitQuire"
 
 msgid "Install skill"
 msgstr "安裝技巧"
@@ -5725,11 +5725,11 @@ msgstr "安裝後可用於你的所有專案"
 msgid "Installs into this project"
 msgstr "安裝到此專案"
 
-msgid "Installs the OpenKnowledge discovery skill for this agent."
-msgstr "為此智慧代理安裝 OpenKnowledge 探索技能。"
+msgid "Installs the GitQuire discovery skill for this agent."
+msgstr "為此智慧代理安裝 GitQuire 探索技能。"
 
-msgid "Installs the OpenKnowledge project skill for this agent."
-msgstr "為此智慧代理安裝 OpenKnowledge 專案技能。"
+msgid "Installs the GitQuire project skill for this agent."
+msgstr "為此智慧代理安裝 GitQuire 專案技能。"
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "將技能安裝到 {path} — 第一個位置保存技能自身的副本"
@@ -5767,23 +5767,23 @@ msgstr "分享網址無效。"
 msgid "Invalid YAML"
 msgstr "無效的 YAML"
 
-msgid "It also adds any display-connection errors OpenKnowledge wrote to your user journal in the past week, each message cut to 200 characters."
-msgstr "它還會加入 OpenKnowledge 在過去一週內寫入你的使用者日誌的顯示連線錯誤，每則訊息截斷為 200 個字元。"
+msgid "It also adds any display-connection errors GitQuire wrote to your user journal in the past week, each message cut to 200 characters."
+msgstr "它還會加入 GitQuire 在過去一週內寫入你的使用者日誌的顯示連線錯誤，每則訊息截斷為 200 個字元。"
 
-msgid "It also adds the crash and hang records Windows logged for OpenKnowledge in the past week, without file paths, and the times of every shutdown, restart, power loss, and low-memory warning on this computer in that week, whatever caused them."
-msgstr "它還會加入 Windows 在過去一週內為 OpenKnowledge 記錄的當機與沒有回應記錄（不含檔案路徑），以及這台電腦在那一週內每次關機、重新啟動、斷電和記憶體不足警告的時間，無論原因為何。"
+msgid "It also adds the crash and hang records Windows logged for GitQuire in the past week, without file paths, and the times of every shutdown, restart, power loss, and low-memory warning on this computer in that week, whatever caused them."
+msgstr "它還會加入 Windows 在過去一週內為 GitQuire 記錄的當機與沒有回應記錄（不含檔案路徑），以及這台電腦在那一週內每次關機、重新啟動、斷電和記憶體不足警告的時間，無論原因為何。"
 
-msgid "It also adds the crash reports macOS recorded for OpenKnowledge and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote."
-msgstr "還會加入 macOS 為 OpenKnowledge 及其輔助處理程序記錄的當機報告，絕不包含其他應用程式的報告，不過我們自己的報告會列出與之同時執行的處理程序。每份報告都含有 macOS 寫入所有報告的機器資訊：你的帳戶 uid、Mac 機型，以及啟動該應用程式的處理程序名稱。在受管理的裝置上，該啟動處理程序可能是內部工具。會先替換掉可能將你提交的多份問題報告相互關聯的識別碼，因此收集到的報告與 macOS 寫入的原文並非逐位元組相同。"
+msgid "It also adds the crash reports macOS recorded for GitQuire and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote."
+msgstr "還會加入 macOS 為 GitQuire 及其輔助處理程序記錄的當機報告，絕不包含其他應用程式的報告，不過我們自己的報告會列出與之同時執行的處理程序。每份報告都含有 macOS 寫入所有報告的機器資訊：你的帳戶 uid、Mac 機型，以及啟動該應用程式的處理程序名稱。在受管理的裝置上，該啟動處理程序可能是內部工具。會先替換掉可能將你提交的多份問題報告相互關聯的識別碼，因此收集到的報告與 macOS 寫入的原文並非逐位元組相同。"
 
-msgid "It also adds the low-memory reports macOS wrote in the past week that list OpenKnowledge's processes, with each one's memory use and whether macOS ended it."
-msgstr "它還會加入 macOS 在過去一週內寫下、列出 OpenKnowledge 處理程序的記憶體不足報告，包括每個處理程序的記憶體用量以及 macOS 是否結束了它。"
+msgid "It also adds the low-memory reports macOS wrote in the past week that list GitQuire's processes, with each one's memory use and whether macOS ended it."
+msgstr "它還會加入 macOS 在過去一週內寫下、列出 GitQuire 處理程序的記憶體不足報告，包括每個處理程序的記憶體用量以及 macOS 是否結束了它。"
 
-msgid "It also adds the out-of-memory kills of OpenKnowledge that the system journal recorded in the past week, without the machine name, account id, or folder paths."
-msgstr "它還會加入系統日誌在過去一週內記錄的 OpenKnowledge 因記憶體耗盡被終止的事件，不含電腦名稱、帳戶 ID 或資料夾路徑。"
+msgid "It also adds the out-of-memory kills of GitQuire that the system journal recorded in the past week, without the machine name, account id, or folder paths."
+msgstr "它還會加入系統日誌在過去一週內記錄的 GitQuire 因記憶體耗盡被終止的事件，不含電腦名稱、帳戶 ID 或資料夾路徑。"
 
-msgid "It also marks {0} as trusted, which is what makes the extension load. That trust covers the whole folder — {1} will load every extension in it, not only Open Knowledge's — and both stay until you remove Open Knowledge from this project."
-msgstr "這同時會將 {0} 標記為受信任，擴充功能正是因此才會載入。該信任涵蓋整個資料夾：{1} 會載入其中的每一個擴充功能，而不僅是 Open Knowledge 的；在你將 Open Knowledge 從此專案移除之前，兩者都會一直保留。"
+msgid "It also marks {0} as trusted, which is what makes the extension load. That trust covers the whole folder — {1} will load every extension in it, not only GitQuire's — and both stay until you remove GitQuire from this project."
+msgstr "這同時會將 {0} 標記為受信任，擴充功能正是因此才會載入。該信任涵蓋整個資料夾：{1} 會載入其中的每一個擴充功能，而不僅是 GitQuire 的；在你將 GitQuire 從此專案移除之前，兩者都會一直保留。"
 
 msgid "It didn't fit into my workflow"
 msgstr "它不符合我的工作流程"
@@ -5903,8 +5903,8 @@ msgid "Latest edit"
 msgstr "最近一次編輯"
 
 #. Subtext under the terminal toggle explaining what the ok command gives you
-msgid "Launch OpenKnowledge from any terminal — <0>{cliCommand}</0> opens a project, <1>{cliCommand} init</1> connects your agents."
-msgstr "在任何終端機中啟動 OpenKnowledge——<0>{cliCommand}</0> 開啟專案，<1>{cliCommand} init</1> 連接你的智慧代理。"
+msgid "Launch GitQuire from any terminal — <0>{cliCommand}</0> opens a project, <1>{cliCommand} init</1> connects your agents."
+msgstr "在任何終端機中啟動 GitQuire——<0>{cliCommand}</0> 開啟專案，<1>{cliCommand} init</1> 連接你的智慧代理。"
 
 msgid "Layout"
 msgstr "版面配置"
@@ -5930,8 +5930,8 @@ msgstr "不要把這些註解放進這則訊息"
 msgid "Let agent chats use a browser"
 msgstr "允許代理對話使用瀏覽器"
 
-msgid "Let agents use OpenKnowledge without asking"
-msgstr "讓代理不必先詢問就能使用 OpenKnowledge"
+msgid "Let agents use GitQuire without asking"
+msgstr "讓代理不必先詢問就能使用 GitQuire"
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "讓 Tab 鍵離開原始碼編輯器，而不是縮排。"
@@ -6098,8 +6098,8 @@ msgstr "正在載入 {pageTarget} 的標題"
 msgid "Loading image"
 msgstr "正在載入圖片"
 
-msgid "Loading OpenKnowledge skills"
-msgstr "正在載入 OpenKnowledge 技能"
+msgid "Loading GitQuire skills"
+msgstr "正在載入 GitQuire 技能"
 
 msgid "Loading pages"
 msgstr "正在載入頁面"
@@ -6242,8 +6242,8 @@ msgstr "在「設定 → 忽略模式」中管理隱藏的檔案。"
 msgid "Manage skill folders"
 msgstr "管理技能資料夾"
 
-msgid "Manage the accounts and access tokens OpenKnowledge uses to connect to your git hosts."
-msgstr "管理 OpenKnowledge 用來連線到你的 git 主機的帳戶和存取權杖。"
+msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
+msgstr "管理 GitQuire 用來連線到你的 git 主機的帳戶和存取權杖。"
 
 msgid "Managing agent connections is unavailable in this build."
 msgstr "此版本無法管理智慧代理連線。"
@@ -6468,8 +6468,8 @@ msgstr "將編輯器移到視窗右邊緣"
 msgid "Move Editor to the top edge of the window"
 msgstr "將編輯器移到視窗頂部邊緣"
 
-msgid "Move OpenKnowledge.app to the Trash"
-msgstr "將 OpenKnowledge.app 移到垃圾桶"
+msgid "Move GitQuire.app to the Trash"
+msgstr "將 GitQuire.app 移到垃圾桶"
 
 msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
 msgstr "在技能內部移動或重新命名這個檔案——路徑仍會留在 references/ 或 scripts/ 底下。"
@@ -6774,8 +6774,8 @@ msgstr "下一個分頁"
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "還沒有 <0>.markdownlint.*</0> 檔案——所有規則都按照和 VS Code markdownlint 擴充功能相同的預設值執行：除了行長度以外全部開啟。"
 
-msgid "No active or recent OpenKnowledge projects were found."
-msgstr "找不到使用中或最近的 OpenKnowledge 專案。"
+msgid "No active or recent GitQuire projects were found."
+msgstr "找不到使用中或最近的 GitQuire 專案。"
 
 msgid "No agent folders yet"
 msgstr "尚無智慧代理資料夾"
@@ -7122,8 +7122,8 @@ msgstr "尚未連接到 GitHub。"
 msgid "Not detected on this machine"
 msgstr "未在此電腦上偵測到"
 
-msgid "Not detected on this machine · OpenKnowledge files present"
-msgstr "未在此電腦上偵測到 · 存在 OpenKnowledge 檔案"
+msgid "Not detected on this machine · GitQuire files present"
+msgstr "未在此電腦上偵測到 · 存在 GitQuire 檔案"
 
 msgid "Not great"
 msgstr "不太好"
@@ -7134,8 +7134,8 @@ msgstr "不在側邊欄中"
 msgid "Not installed"
 msgstr "未安裝"
 
-msgid "Not installed · OpenKnowledge files present"
-msgstr "未安裝 · 存在 OpenKnowledge 檔案"
+msgid "Not installed · GitQuire files present"
+msgstr "未安裝 · 存在 GitQuire 檔案"
 
 msgid "Not installed in this project yet."
 msgstr "尚未安裝到此專案。"
@@ -7422,35 +7422,35 @@ msgstr "在 worktree 中開啟"
 msgid "Open it there"
 msgstr "在那裡開啟"
 
-msgid "Open Knowledge could not reach the project server to check index maintenance. The status updates when the project reconnects."
-msgstr "Open Knowledge 無法連線到專案伺服器以檢查索引維護。專案重新連線後，狀態就會更新。"
+msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
+msgstr "GitQuire 無法連線到專案伺服器以檢查索引維護。專案重新連線後，狀態就會更新。"
 
-msgid "Open Knowledge creates and maintains a navigation file named index.md in every folder that contains Markdown."
-msgstr "Open Knowledge 在包含 Markdown 的每個資料夾中建立並維護名為 index.md 的導覽檔案。"
+msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
+msgstr "GitQuire 在包含 Markdown 的每個資料夾中建立並維護名為 index.md 的導覽檔案。"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 指導"
 
-msgid "Open Knowledge maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
-msgstr "Open Knowledge 在包含 Markdown 的每個資料夾中維護一個名為 index.md 的導航文件，每個資料夾按類型列出該資料夾的文件並連結到其子資料夾。當您的文件發生更改時，它會重寫這些文件，並且您自己編輯到其中的任何內容都會被替換。"
+msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
+msgstr "GitQuire 在包含 Markdown 的每個資料夾中維護一個名為 index.md 的導航文件，每個資料夾按類型列出該資料夾的文件並連結到其子資料夾。當您的文件發生更改時，它會重寫這些文件，並且您自己編輯到其中的任何內容都會被替換。"
 
-msgid "Open Knowledge rewrites these index.md files as documents change, so manual edits to them are replaced."
-msgstr "當文件變更時，Open Knowledge 會重寫這些 index.md 文件，因此對它們的手動編輯將會被取代。"
+msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
+msgstr "當文件變更時，GitQuire 會重寫這些 index.md 文件，因此對它們的手動編輯將會被取代。"
 
-msgid "Open Knowledge tools are available in this thread."
-msgstr "此執行緒中已可使用 Open Knowledge 工具。"
+msgid "GitQuire tools are available in this thread."
+msgstr "此執行緒中已可使用 GitQuire 工具。"
 
-msgid "Open Knowledge tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "Open Knowledge 工具無法使用，因為專案資料夾遺失、無法存取或已變更。請檢查其位置和權限，然後重試。"
+msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
+msgstr "GitQuire 工具無法使用，因為專案資料夾遺失、無法存取或已變更。請檢查其位置和權限，然後重試。"
 
-msgid "Open Knowledge tools are unavailable: a file Open Knowledge didn't write is already at {bridgePath}."
-msgstr "Open Knowledge 工具無法使用：{bridgePath} 已存在一個並非 Open Knowledge 寫入的檔案。"
+msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
+msgstr "GitQuire 工具無法使用：{bridgePath} 已存在一個並非 GitQuire 寫入的檔案。"
 
-msgid "Open Knowledge tools are unavailable: something is already at {bridgePath} but couldn't be read, so Open Knowledge left it alone."
-msgstr "Open Knowledge 工具無法使用：{bridgePath} 已有內容，但無法讀取，因此 Open Knowledge 未做更動。"
+msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
+msgstr "GitQuire 工具無法使用：{bridgePath} 已有內容，但無法讀取，因此 GitQuire 未做更動。"
 
-msgid "Open Knowledge's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "Open Knowledge 自己的 {0} 副本已損壞，無法執行。它可以下載一份新的 {1} {2}（約 {3} MB，來自 {4}）來替換它。"
+msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
+msgstr "GitQuire 自己的 {0} 副本已損壞，無法執行。它可以下載一份新的 {1} {2}（約 {3} MB，來自 {4}）來替換它。"
 
 msgid "Open link"
 msgstr "開啟連結"
@@ -7548,8 +7548,8 @@ msgstr "開啟、瀏覽、接受或關閉 CodeMirror 的自動完成建議。"
 msgid "Opened by {author}"
 msgstr "由 {author} 建立"
 
-msgid "Opened existing OpenKnowledge project at {ancestorPath}"
-msgstr "已開啟位於 {ancestorPath} 的現有 OpenKnowledge 專案"
+msgid "Opened existing GitQuire project at {ancestorPath}"
+msgstr "已開啟位於 {ancestorPath} 的現有 GitQuire 專案"
 
 msgid "Opened on branch {branch}"
 msgstr "已在分支 {branch} 上開啟"
@@ -7563,194 +7563,194 @@ msgstr "正在開啟 worktree"
 msgid "Opening..."
 msgstr "正在開啟…"
 
-msgid "OpenKnowledge"
-msgstr "OpenKnowledge"
+msgid "GitQuire"
+msgstr "GitQuire"
 
-msgid "OpenKnowledge can't sign in to GitHub for this project."
-msgstr "OpenKnowledge 無法為此專案登入 GitHub。"
+msgid "GitQuire can't sign in to GitHub for this project."
+msgstr "GitQuire 無法為此專案登入 GitHub。"
 
-msgid "OpenKnowledge checked {subject}"
-msgstr "OpenKnowledge 檢查了 {subject}"
+msgid "GitQuire checked {subject}"
+msgstr "GitQuire 檢查了 {subject}"
 
-msgid "OpenKnowledge checked the project"
-msgstr "OpenKnowledge 檢查了專案"
+msgid "GitQuire checked the project"
+msgstr "GitQuire 檢查了專案"
 
-msgid "OpenKnowledge checks for and downloads updates in the background."
-msgstr "OpenKnowledge 會在背景檢查並下載更新。"
+msgid "GitQuire checks for and downloads updates in the background."
+msgstr "GitQuire 會在背景檢查並下載更新。"
 
-msgid "OpenKnowledge could not find this agent on this machine."
-msgstr "OpenKnowledge 未在此裝置上找到該代理程式。"
+msgid "GitQuire could not find this agent on this machine."
+msgstr "GitQuire 未在此裝置上找到該代理程式。"
 
-msgid "OpenKnowledge couldn't finish setting up this project. The worktree was created but not opened."
-msgstr "OpenKnowledge 無法完成此專案的設定。工作樹已建立，但未開啟。"
+msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
+msgstr "GitQuire 無法完成此專案的設定。工作樹已建立，但未開啟。"
 
-msgid "OpenKnowledge couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "OpenKnowledge 無法讀取 .ok/local/config.yml 中的 terminal.shell，將改用可用的 Windows shell。"
+msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
+msgstr "GitQuire 無法讀取 .ok/local/config.yml 中的 terminal.shell，將改用可用的 Windows shell。"
 
-msgid "OpenKnowledge couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve OpenKnowledge."
-msgstr "OpenKnowledge 無法在 .ok/local/terminal 下寫入啟動設定，因為該資料夾未安全地包含在此專案中。請確認它是專案內的真實資料夾，而不是連結。Claude 將要求你核准 OpenKnowledge。"
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
+msgstr "GitQuire 無法在 .ok/local/terminal 下寫入啟動設定，因為該資料夾未安全地包含在此專案中。請確認它是專案內的真實資料夾，而不是連結。Claude 將要求你核准 GitQuire。"
 
-msgid "OpenKnowledge couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve OpenKnowledge."
-msgstr "OpenKnowledge 此次無法在 .ok/local/terminal 下寫入啟動設定。請確認該資料夾可寫入。Claude 將要求你核准 OpenKnowledge。"
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
+msgstr "GitQuire 此次無法在 .ok/local/terminal 下寫入啟動設定。請確認該資料夾可寫入。Claude 將要求你核准 GitQuire。"
 
-msgid "OpenKnowledge created a share link"
-msgstr "OpenKnowledge 建立了分享連結"
+msgid "GitQuire created a share link"
+msgstr "GitQuire 建立了分享連結"
 
-msgid "OpenKnowledge created a share link for {subject}"
-msgstr "OpenKnowledge 為 {subject} 建立了分享連結"
+msgid "GitQuire created a share link for {subject}"
+msgstr "GitQuire 為 {subject} 建立了分享連結"
 
-msgid "OpenKnowledge deleted {subject}"
-msgstr "OpenKnowledge 刪除了 {subject}"
+msgid "GitQuire deleted {subject}"
+msgstr "GitQuire 刪除了 {subject}"
 
-msgid "OpenKnowledge deleted a document"
-msgstr "OpenKnowledge 刪除了一個文件"
+msgid "GitQuire deleted a document"
+msgstr "GitQuire 刪除了一個文件"
 
-msgid "OpenKnowledge discovery skill"
-msgstr "OpenKnowledge 探索技能"
+msgid "GitQuire discovery skill"
+msgstr "GitQuire 探索技能"
 
-msgid "OpenKnowledge does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "OpenKnowledge 無法辨識此項目，且無法在此檔案格式中安全取代。"
+msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
+msgstr "GitQuire 無法辨識此項目，且無法在此檔案格式中安全取代。"
 
-msgid "OpenKnowledge does not recognize this entry. Turning it on replaces it."
-msgstr "OpenKnowledge 無法辨識此項目。啟用後將取代它。"
+msgid "GitQuire does not recognize this entry. Turning it on replaces it."
+msgstr "GitQuire 無法辨識此項目。啟用後將取代它。"
 
-msgid "OpenKnowledge doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
-msgstr "OpenKnowledge 不會自行檢查或下載更新。需要新版本時，仍可使用「檢查更新」。"
+msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
+msgstr "GitQuire 不會自行檢查或下載更新。需要新版本時，仍可使用「檢查更新」。"
 
-msgid "OpenKnowledge edited {subject}"
-msgstr "OpenKnowledge 編輯了 {subject}"
+msgid "GitQuire edited {subject}"
+msgstr "GitQuire 編輯了 {subject}"
 
-msgid "OpenKnowledge edited a document"
-msgstr "OpenKnowledge 編輯了一個文件"
+msgid "GitQuire edited a document"
+msgstr "GitQuire 編輯了一個文件"
 
-msgid "OpenKnowledge files were removed"
-msgstr "已移除 OpenKnowledge 檔案"
+msgid "GitQuire files were removed"
+msgstr "已移除 GitQuire 檔案"
 
-msgid "OpenKnowledge has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
-msgstr "OpenKnowledge 沒有為這個主機儲存任何憑證。請在「設定」中新增一個權杖，或者讓 git 使用它已有的憑證。"
+msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
+msgstr "GitQuire 沒有為這個主機儲存任何憑證。請在「設定」中新增一個權杖，或者讓 git 使用它已有的憑證。"
 
-msgid "OpenKnowledge imported {source}"
-msgstr "OpenKnowledge 匯入了 {source}"
+msgid "GitQuire imported {source}"
+msgstr "GitQuire 匯入了 {source}"
 
-msgid "OpenKnowledge imported a skill"
-msgstr "OpenKnowledge 匯入了一個技能"
+msgid "GitQuire imported a skill"
+msgstr "GitQuire 匯入了一個技能"
 
-msgid "OpenKnowledge initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
-msgstr "OpenKnowledge 會在 <0>{projectDir}</0> 初始化——它是 <1>{pickedRelative}</1> 的上層目錄，因為裡面有 <2>.git</2> 資料夾（每個 git 儲存庫一個 .ok/）。<3>內容目錄</3>預設是 <4>.</4>（整個儲存庫）；輸入子資料夾可以縮小範圍。"
+msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
+msgstr "GitQuire 會在 <0>{projectDir}</0> 初始化——它是 <1>{pickedRelative}</1> 的上層目錄，因為裡面有 <2>.git</2> 資料夾（每個 git 儲存庫一個 .ok/）。<3>內容目錄</3>預設是 <4>.</4>（整個儲存庫）；輸入子資料夾可以縮小範圍。"
 
-msgid "OpenKnowledge installed {subject}"
-msgstr "OpenKnowledge 安裝了 {subject}"
+msgid "GitQuire installed {subject}"
+msgstr "GitQuire 安裝了 {subject}"
 
-msgid "OpenKnowledge installed a skill"
-msgstr "OpenKnowledge 安裝了一個技能"
+msgid "GitQuire installed a skill"
+msgstr "GitQuire 安裝了一個技能"
 
-msgid "OpenKnowledge integrations checked."
-msgstr "已檢查 OpenKnowledge 整合。"
+msgid "GitQuire integrations checked."
+msgstr "已檢查 GitQuire 整合。"
 
-msgid "OpenKnowledge is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
-msgstr "這裡的 OpenKnowledge 設定在存放庫根目錄，因此入門套件會放進 <0>{sanitized}</0>，而不是存放庫頂層。"
+msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
+msgstr "這裡的 GitQuire 設定在存放庫根目錄，因此入門套件會放進 <0>{sanitized}</0>，而不是存放庫頂層。"
 
-msgid "OpenKnowledge is using this GitHub account."
-msgstr "OpenKnowledge 正在使用這個 GitHub 帳戶。"
+msgid "GitQuire is using this GitHub account."
+msgstr "GitQuire 正在使用這個 GitHub 帳戶。"
 
-msgid "OpenKnowledge keeps retrying and shows them as soon as the file can be read."
-msgstr "OpenKnowledge 會持續重試，並在檔案可以讀取後立即顯示這些設定。"
+msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
+msgstr "GitQuire 會持續重試，並在檔案可以讀取後立即顯示這些設定。"
 
-msgid "OpenKnowledge left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "OpenKnowledge 未修改此檔案，因為無法安全地解析它。請手動修正該檔案，然後再試一次。"
+msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
+msgstr "GitQuire 未修改此檔案，因為無法安全地解析它。請手動修正該檔案，然後再試一次。"
 
-msgid "OpenKnowledge listed the installed skills"
-msgstr "OpenKnowledge 列出了已安裝的技能"
+msgid "GitQuire listed the installed skills"
+msgstr "GitQuire 列出了已安裝的技能"
 
-msgid "OpenKnowledge logs across projects. No project is open, so project server logs are not included."
-msgstr "跨專案的 OpenKnowledge 紀錄。目前未開啟任何專案，因此不包含專案伺服器紀錄。"
+msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
+msgstr "跨專案的 GitQuire 紀錄。目前未開啟任何專案，因此不包含專案伺服器紀錄。"
 
-msgid "OpenKnowledge logs, including activity across projects."
-msgstr "OpenKnowledge 紀錄，包括跨專案的活動。"
+msgid "GitQuire logs, including activity across projects."
+msgstr "GitQuire 紀錄，包括跨專案的活動。"
 
-msgid "OpenKnowledge looked at the link graph"
-msgstr "OpenKnowledge 查看了連結圖譜"
+msgid "GitQuire looked at the link graph"
+msgstr "GitQuire 查看了連結圖譜"
 
-msgid "OpenKnowledge looked up links for {subject}"
-msgstr "OpenKnowledge 查詢了 {subject} 的連結"
+msgid "GitQuire looked up links for {subject}"
+msgstr "GitQuire 查詢了 {subject} 的連結"
 
-msgid "OpenKnowledge looked up the authoring palette"
-msgstr "OpenKnowledge 查看了創作面板"
+msgid "GitQuire looked up the authoring palette"
+msgstr "GitQuire 查看了創作面板"
 
-msgid "OpenKnowledge moved {subject} to {destination}"
-msgstr "OpenKnowledge 將 {subject} 移動到 {destination}"
+msgid "GitQuire moved {subject} to {destination}"
+msgstr "GitQuire 將 {subject} 移動到 {destination}"
 
-msgid "OpenKnowledge moved a document"
-msgstr "OpenKnowledge 移動了一個文件"
+msgid "GitQuire moved a document"
+msgstr "GitQuire 移動了一個文件"
 
-msgid "OpenKnowledge on GitHub"
-msgstr "GitHub 上的 OpenKnowledge"
+msgid "GitQuire on GitHub"
+msgstr "GitHub 上的 GitQuire"
 
-msgid "OpenKnowledge on this computer changed to a different build, but this tab is still running the old one."
-msgstr "這台電腦上的 OpenKnowledge 已換成另一個組建，但這個分頁仍在執行舊的組建。"
+msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
+msgstr "這台電腦上的 GitQuire 已換成另一個組建，但這個分頁仍在執行舊的組建。"
 
-msgid "OpenKnowledge on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
-msgstr "這台電腦上的 OpenKnowledge 現在是 v{serverVersion}，但這個分頁仍在執行 v{tabVersion}。"
+msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+msgstr "這台電腦上的 GitQuire 現在是 v{serverVersion}，但這個分頁仍在執行 v{tabVersion}。"
 
-msgid "OpenKnowledge opened the live preview"
-msgstr "OpenKnowledge 開啟了即時預覽"
+msgid "GitQuire opened the live preview"
+msgstr "GitQuire 開啟了即時預覽"
 
-msgid "OpenKnowledge quit unexpectedly last time."
-msgstr "OpenKnowledge 上次非預期地結束了。"
+msgid "GitQuire quit unexpectedly last time."
+msgstr "GitQuire 上次非預期地結束了。"
 
-msgid "OpenKnowledge ran {command}"
-msgstr "OpenKnowledge 執行了 {command}"
+msgid "GitQuire ran {command}"
+msgstr "GitQuire 執行了 {command}"
 
-msgid "OpenKnowledge ran {tool}"
-msgstr "OpenKnowledge 執行了 {tool}"
+msgid "GitQuire ran {tool}"
+msgstr "GitQuire 執行了 {tool}"
 
-msgid "OpenKnowledge ran a command"
-msgstr "OpenKnowledge 執行了一個指令"
+msgid "GitQuire ran a command"
+msgstr "GitQuire 執行了一個指令"
 
-msgid "OpenKnowledge read the edit history"
-msgstr "OpenKnowledge 查看了編輯歷史"
+msgid "GitQuire read the edit history"
+msgstr "GitQuire 查看了編輯歷史"
 
-msgid "OpenKnowledge read the history of {subject}"
-msgstr "OpenKnowledge 查看了 {subject} 的歷史"
+msgid "GitQuire read the history of {subject}"
+msgstr "GitQuire 查看了 {subject} 的歷史"
 
-msgid "OpenKnowledge read the project settings"
-msgstr "OpenKnowledge 讀取了專案設定"
+msgid "GitQuire read the project settings"
+msgstr "GitQuire 讀取了專案設定"
 
-msgid "OpenKnowledge read the setting {key}"
-msgstr "OpenKnowledge 讀取了設定 {key}"
+msgid "GitQuire read the setting {key}"
+msgstr "GitQuire 讀取了設定 {key}"
 
-msgid "OpenKnowledge restored an earlier version"
-msgstr "OpenKnowledge 還原了較早的版本"
+msgid "GitQuire restored an earlier version"
+msgstr "GitQuire 還原了較早的版本"
 
-msgid "OpenKnowledge restored an earlier version of {subject}"
-msgstr "OpenKnowledge 還原了 {subject} 的較早版本"
+msgid "GitQuire restored an earlier version of {subject}"
+msgstr "GitQuire 還原了 {subject} 的較早版本"
 
-msgid "OpenKnowledge saved a checkpoint"
-msgstr "OpenKnowledge 儲存了一個檢查點"
+msgid "GitQuire saved a checkpoint"
+msgstr "GitQuire 儲存了一個檢查點"
 
-msgid "OpenKnowledge searched for {query}"
-msgstr "OpenKnowledge 搜尋了 {query}"
+msgid "GitQuire searched for {query}"
+msgstr "GitQuire 搜尋了 {query}"
 
-msgid "OpenKnowledge searched the knowledge base"
-msgstr "OpenKnowledge 搜尋了知識庫"
+msgid "GitQuire searched the knowledge base"
+msgstr "GitQuire 搜尋了知識庫"
 
-msgid "OpenKnowledge skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "已儲存 OpenKnowledge 技能。請在 Claude Desktop 中上傳，然後再次點選 Cowork。"
+msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
+msgstr "已儲存 GitQuire 技能。請在 Claude Desktop 中上傳，然後再次點選 Cowork。"
 
-msgid "OpenKnowledge stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
-msgstr "OpenKnowledge 會把設定和內部檔案放在你專案根資料夾中新建的 <0>.ok</0> 目錄裡。"
+msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
+msgstr "GitQuire 會把設定和內部檔案放在你專案根資料夾中新建的 <0>.ok</0> 目錄裡。"
 
-msgid "OpenKnowledge will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
-msgstr "OpenKnowledge 會在 <0>{gitRoot}</0> 初始化——它是你新資料夾的上層目錄，因為裡面有 <1>.git</1> 資料夾（每個 git 儲存庫一個專案）。"
+msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
+msgstr "GitQuire 會在 <0>{gitRoot}</0> 初始化——它是你新資料夾的上層目錄，因為裡面有 <1>.git</1> 資料夾（每個 git 儲存庫一個專案）。"
 
-msgid "OpenKnowledge will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
-msgstr "OpenKnowledge 會自動建立提交並推送到你的遠端。如果你不希望 git 記錄中出現自動提交，就不該啟用自動同步。"
+msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
+msgstr "GitQuire 會自動建立提交並推送到你的遠端。如果你不希望 git 記錄中出現自動提交，就不該啟用自動同步。"
 
-msgid "OpenKnowledge wrote a document"
-msgstr "OpenKnowledge 寫入了一個文件"
+msgid "GitQuire wrote a document"
+msgstr "GitQuire 寫入了一個文件"
 
-msgid "OpenKnowledge wrote to {subject}"
-msgstr "OpenKnowledge 寫入了 {subject}"
+msgid "GitQuire wrote to {subject}"
+msgstr "GitQuire 寫入了 {subject}"
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "開啟資料夾選擇器，挑一個地方把儲存庫複製過去。"
@@ -7828,14 +7828,14 @@ msgstr "大綱"
 msgid "Outside any block"
 msgstr "不在任何區塊內"
 
-msgid "Outside this repository's OpenKnowledge worktrees folder"
-msgstr "位於此儲存庫的 OpenKnowledge 工作樹資料夾外"
+msgid "Outside this repository's GitQuire worktrees folder"
+msgstr "位於此儲存庫的 GitQuire 工作樹資料夾外"
 
 msgid "Outside version"
 msgstr "外部版本"
 
-msgid "Outside what Open Knowledge commits."
-msgstr "不在 Open Knowledge 的提交範圍內。"
+msgid "Outside what GitQuire commits."
+msgstr "不在 GitQuire 的提交範圍內。"
 
 msgid "over the {budgetLabel} token budget"
 msgstr "超出 {budgetLabel} token 預算"
@@ -8129,14 +8129,14 @@ msgstr "正在準備搜尋"
 msgid "Preparing share URL..."
 msgstr "正在準備分享 URL…"
 
-msgid "Preparing to uninstall OpenKnowledge"
-msgstr "正在準備解除安裝 OpenKnowledge"
+msgid "Preparing to uninstall GitQuire"
+msgstr "正在準備解除安裝 GitQuire"
 
-msgid "Present a document as a slide deck in its own window. Add <0>slides: true</0> to a document's frontmatter, then open it with the Slidev action. Rendering is handled by the Slidev CLI, which OpenKnowledge does not bundle."
-msgstr "在獨立視窗中將文件展示為簡報。在文件的 frontmatter 中加入 <0>slides: true</0>，再透過 Slidev 動作開啟。算繪由 Slidev CLI 處理，OpenKnowledge 並未內建。"
+msgid "Present a document as a slide deck in its own window. Add <0>slides: true</0> to a document's frontmatter, then open it with the Slidev action. Rendering is handled by the Slidev CLI, which GitQuire does not bundle."
+msgstr "在獨立視窗中將文件展示為簡報。在文件的 frontmatter 中加入 <0>slides: true</0>，再透過 Slidev 動作開啟。算繪由 Slidev CLI 處理，GitQuire 並未內建。"
 
-msgid "Present a document as a slide deck in its own window. Works in the OpenKnowledge desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
-msgstr "在獨立視窗中將文件展示為簡報。僅能在 OpenKnowledge 桌面應用程式中使用，並需要另外安裝 Slidev CLI。啟用後會顯示在側邊欄的 Plugins 下。"
+msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
+msgstr "在獨立視窗中將文件展示為簡報。僅能在 GitQuire 桌面應用程式中使用，並需要另外安裝 Slidev CLI。啟用後會顯示在側邊欄的 Plugins 下。"
 
 msgid "Press <0>Space</0> or tap the blob to start"
 msgstr "按<0>空白鍵</0>或點擊 blob 開始"
@@ -8353,15 +8353,15 @@ msgstr "正在推送"
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.user"
-msgstr "將 OpenKnowledge 探索技能放進 {agent} 的全域技能資料夾，讓它在任何專案中都能找到 OpenKnowledge。"
+msgstr "將 GitQuire 探索技能放進 {agent} 的全域技能資料夾，讓它在任何專案中都能找到 GitQuire。"
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.project"
-msgstr "將 OpenKnowledge 技能放進 {agent} 在這個專案中的技能資料夾，讓它的編輯保持署名。"
+msgstr "將 GitQuire 技能放進 {agent} 在這個專案中的技能資料夾，讓它的編輯保持署名。"
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.central-store"
-msgstr "將 OpenKnowledge 技能放進 {agent} 讀取的中央技能庫。"
+msgstr "將 GitQuire 技能放進 {agent} 讀取的中央技能庫。"
 
 msgid "Puzzling…"
 msgstr "解謎中…"
@@ -8447,8 +8447,8 @@ msgstr "讀取連結圖：什麼連到什麼"
 msgid "Reads the version history of a document or skill, or a folder's activity"
 msgstr "讀取文件或技能的版本記錄，或資料夾的活動"
 
-msgid "Reads this project's OpenKnowledge settings"
-msgstr "讀取此專案的 OpenKnowledge 設定"
+msgid "Reads this project's GitQuire settings"
+msgstr "讀取此專案的 GitQuire 設定"
 
 msgid "Ready"
 msgstr "就緒"
@@ -8543,7 +8543,7 @@ msgstr "回味中…"
 msgid "Reinstall"
 msgstr "重新安裝"
 
-#. Dialog title — installing the OpenKnowledge skill into the Claude Desktop App
+#. Dialog title — installing the GitQuire skill into the Claude Desktop App
 msgid "Reinstall for Claude Chat & Cowork"
 msgstr "為 Claude Chat 和 Cowork 重新安裝"
 
@@ -8643,17 +8643,17 @@ msgstr "移除項目 {0}"
 msgid "Remove link"
 msgstr "移除連結"
 
-msgid "Remove OpenKnowledge from {0}"
-msgstr "把 OpenKnowledge 從 {0} 中移除"
+msgid "Remove GitQuire from {0}"
+msgstr "把 GitQuire 從 {0} 中移除"
 
-msgid "Remove OpenKnowledge from {0}?"
-msgstr "從 {0} 移除 OpenKnowledge？"
+msgid "Remove GitQuire from {0}?"
+msgstr "從 {0} 移除 GitQuire？"
 
-msgid "Remove OpenKnowledge from {rowLabel}"
-msgstr "從 {rowLabel} 移除 OpenKnowledge"
+msgid "Remove GitQuire from {rowLabel}"
+msgstr "從 {rowLabel} 移除 GitQuire"
 
-msgid "Remove OpenKnowledge?"
-msgstr "移除 OpenKnowledge？"
+msgid "Remove GitQuire?"
+msgstr "移除 GitQuire？"
 
 msgid "Remove property"
 msgstr "移除屬性"
@@ -8682,8 +8682,8 @@ msgstr "已把「{0}」從其他所有位置移除——它的來源資料夾仍
 msgid "Removed \"{projectName}\" from recent projects. Its folder no longer exists."
 msgstr "已把「{projectName}」從最近的專案中移除。它的資料夾已經不存在了。"
 
-msgid "Removed OpenKnowledge files"
-msgstr "已移除 OpenKnowledge 檔案"
+msgid "Removed GitQuire files"
+msgstr "已移除 GitQuire 檔案"
 
 msgid "Removes it for {0} and {1}. {addingCount, plural, one {# added} other {# added}} · {removingCount, plural, one {# removed} other {# removed}}"
 msgstr "將為 {0} 和 {1} 移除。 {addingCount, plural, other {已新增 #}} · {removingCount, plural, other {已移除 #}}"
@@ -8694,8 +8694,8 @@ msgstr "將為 {0} 和 {1} 移除。 {removingCount, plural, other {已移除 #}
 msgid "Removing"
 msgstr "正在移除"
 
-msgid "Removing OpenKnowledge files…"
-msgstr "正在移除 OpenKnowledge 的檔案…"
+msgid "Removing GitQuire files…"
+msgstr "正在移除 GitQuire 的檔案…"
 
 msgid "Rename"
 msgstr "重新命名"
@@ -8817,11 +8817,11 @@ msgstr "換成符號連結"
 msgid "Replaces the existing {server} entry in this file. Other servers in the file are left alone."
 msgstr "取代此檔案中現有的 {server} 項目。檔案中的其他伺服器維持不變。"
 
-msgid "Replaces the existing OpenKnowledge entry in {0}"
-msgstr "將取代 {0} 中既有的 OpenKnowledge 項目"
+msgid "Replaces the existing GitQuire entry in {0}"
+msgstr "將取代 {0} 中既有的 GitQuire 項目"
 
-msgid "Replaces the OpenKnowledge entry each of them already has."
-msgstr "取代它們各自已有的 OpenKnowledge 項目。"
+msgid "Replaces the GitQuire entry each of them already has."
+msgstr "取代它們各自已有的 GitQuire 項目。"
 
 msgid "Reply"
 msgstr ""
@@ -8834,6 +8834,12 @@ msgstr "回報問題…"
 
 msgid "Report a problem with this chat…"
 msgstr "回報此對話的問題…"
+
+msgid "Report an issue on GitHub"
+msgstr ""
+
+msgid "Report an issue"
+msgstr ""
 
 msgid "Report from {0}"
 msgstr "來自 {0} 的回報"
@@ -8953,8 +8959,8 @@ msgstr "重新啟動伺服器"
 msgid "Restart terminal"
 msgstr "重新啟動終端機"
 
-msgid "Restart this terminal session to use the newly installed OpenKnowledge tools."
-msgstr "請重新啟動此終端工作階段，以使用新安裝的 OpenKnowledge 工具。"
+msgid "Restart this terminal session to use the newly installed GitQuire tools."
+msgstr "請重新啟動此終端工作階段，以使用新安裝的 GitQuire 工具。"
 
 msgid "Restart with this app's version"
 msgstr "用這個應用程式的版本重新啟動"
@@ -8965,8 +8971,8 @@ msgstr "已重新啟動——現在執行的是 v{appRuntime}。"
 msgid "Restarting"
 msgstr "正在重新啟動"
 
-msgid "Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their OpenKnowledge MCP connection close unexpectedly — you may need to restart the agent, or toggle its OpenKnowledge MCP server off and on, to reconnect."
-msgstr "重新啟動會關掉這個專案的伺服器。已連線的代理（Claude Code、Codex、Cursor）會看到它們的 OpenKnowledge MCP 連線非預期地中斷——你可能得重新啟動該代理，或者把它的 OpenKnowledge MCP 伺服器關掉再打開，才能重新連上。"
+msgid "Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their GitQuire MCP connection close unexpectedly — you may need to restart the agent, or toggle its GitQuire MCP server off and on, to reconnect."
+msgstr "重新啟動會關掉這個專案的伺服器。已連線的代理（Claude Code、Codex、Cursor）會看到它們的 GitQuire MCP 連線非預期地中斷——你可能得重新啟動該代理，或者把它的 GitQuire MCP 伺服器關掉再打開，才能重新連上。"
 
 msgid "Restarting the server is only available in the desktop app."
 msgstr "重新啟動伺服器僅在桌面應用程式中可用。"
@@ -9094,8 +9100,8 @@ msgstr "執行"
 msgid "Run a project audit from the Problems panel."
 msgstr "在「問題」面板中執行一次專案稽核。"
 
-msgid "Run a real terminal docked inside OpenKnowledge, starting in this project's folder."
-msgstr "在 OpenKnowledge 內部停靠執行一個真正的終端機，起始位置是這個專案的資料夾。"
+msgid "Run a real terminal docked inside GitQuire, starting in this project's folder."
+msgstr "在 GitQuire 內部停靠執行一個真正的終端機，起始位置是這個專案的資料夾。"
 
 msgid "Run in terminal"
 msgstr "在終端機中執行"
@@ -9157,8 +9163,8 @@ msgstr "儲存到"
 msgid "Saved with the project for your team."
 msgstr "和專案一起保存，供你的團隊使用。"
 
-msgid "Saved. Restart OpenKnowledge to apply the change."
-msgstr "已儲存。請重新啟動 OpenKnowledge 以套用變更。"
+msgid "Saved. Restart GitQuire to apply the change."
+msgstr "已儲存。請重新啟動 GitQuire 以套用變更。"
 
 msgid "Saves a restore point for every document in the project"
 msgstr "為專案中的每份文件儲存還原點"
@@ -9475,8 +9481,8 @@ msgstr "正在傳送…"
 msgid "Sent"
 msgstr "已傳送"
 
-msgid "Sent privately to the OpenKnowledge team, along with your note and app version. Never posted publicly."
-msgstr "會連同你的備註和應用程式版本一起私下寄給 OpenKnowledge 團隊。絕不會公開發布。"
+msgid "Sent privately to the GitQuire team, along with your note and app version. Never posted publicly."
+msgstr "會連同你的備註和應用程式版本一起私下寄給 GitQuire 團隊。絕不會公開發布。"
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "會送到 <0>{endpointHost}</0> 來產生你內容的嵌入向量。儲存在專案之外。"
@@ -9550,11 +9556,11 @@ msgstr "設定身分"
 msgid "Set it up on its own page under Plugins."
 msgstr "在「外掛」底下它自己的頁面中設定。"
 
-msgid "Set up OpenKnowledge integrations"
-msgstr "設定 OpenKnowledge 整合"
+msgid "Set up GitQuire integrations"
+msgstr "設定 GitQuire 整合"
 
-msgid "Set up OpenKnowledge integrations…"
-msgstr "設定 OpenKnowledge 整合…"
+msgid "Set up GitQuire integrations…"
+msgstr "設定 GitQuire 整合…"
 
 msgid "Set up syncing"
 msgstr "設定同步"
@@ -9583,11 +9589,11 @@ msgstr "設定載入失敗"
 msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
 msgstr "這個專案的設定。部分設定會透過 git 與每位協作者分享；其餘只在這台電腦上生效。"
 
-msgid "Settings in {fileName} changed outside OpenKnowledge and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "{fileName} 中的設定已在 OpenKnowledge 之外變更，現已生效。你正在進行的變更已儲存一份副本到這個專案的記錄中，應用程式暫時無法顯示這些記錄。"
+msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "{fileName} 中的設定已在 GitQuire 之外變更，現已生效。你正在進行的變更已儲存一份副本到這個專案的記錄中，應用程式暫時無法顯示這些記錄。"
 
-msgid "Settings in {fileName} changed outside OpenKnowledge and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "{fileName} 中的設定已在 OpenKnowledge 之外變更，現已生效。你正在進行的變更已儲存一份副本到 {backupPath}。"
+msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "{fileName} 中的設定已在 GitQuire 之外變更，現已生效。你正在進行的變更已儲存一份副本到 {backupPath}。"
 
 msgid "Settings sections"
 msgstr "設定分區"
@@ -9602,8 +9608,8 @@ msgstr "設定"
 msgid "Setup files include: <0>.ok/</0>, AI-tool MCP configs (<1>.mcp.json</1> and per-tool files). Your skills are not covered — they follow git like any other file in the project.<2/><3>Shared</3> commits them to git, so anyone who clones the repo gets the same setup. <4/><5>Only me</5> keeps them out of git (via <6>.git/info/exclude</6>)."
 msgstr "設定檔案包括：<0>.ok/</0>、AI 工具的 MCP 設定（<1>.mcp.json</1> 以及各工具自己的檔案）。你的技能不在其中：它們和專案裡的其他檔案一樣受 git 管理。<2/><3>已分享</3>會把它們提交到 git，所以複製這個儲存庫的人都會得到相同的設定。<4/><5>僅自己</5>會把它們排除在 git 之外（透過 <6>.git/info/exclude</6>）。"
 
-msgid "Setup OpenKnowledge in this folder?"
-msgstr "要在這個資料夾中設定 OpenKnowledge 嗎？"
+msgid "Setup GitQuire in this folder?"
+msgstr "要在這個資料夾中設定 GitQuire 嗎？"
 
 msgid "Share"
 msgstr "分享"
@@ -9868,9 +9874,9 @@ msgid "Skills from {0}/{1}."
 msgstr "來自 {0}/{1} 的技能。"
 
 #. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills OpenKnowledge ships, in Settings → Skills Studio
-msgid "Skills from OpenKnowledge"
-msgstr "來自 OpenKnowledge 的技能"
+#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
+msgid "Skills from GitQuire"
+msgstr "來自 GitQuire 的技能"
 
 msgid "Skills reassigned"
 msgstr "技能已重新指派"
@@ -9882,8 +9888,8 @@ msgid "Skills Studio"
 msgstr "技能工作室"
 
 #. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones OpenKnowledge ships, or write your own in the editor's Skills sidebar."
-msgstr "技能讓你的 AI 工具學會可重複的工作。安裝 OpenKnowledge 提供的技能，或在編輯器的「技能」側邊欄中撰寫你自己的技能。"
+msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
+msgstr "技能讓你的 AI 工具學會可重複的工作。安裝 GitQuire 提供的技能，或在編輯器的「技能」側邊欄中撰寫你自己的技能。"
 
 msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
 msgstr "技能讓你的 AI 工具學會可重複的工作。在編輯器的「技能」側邊欄中撰寫你自己的技能；本頁用於啟用與共用它們。"
@@ -9910,8 +9916,8 @@ msgstr "暫時略過"
 msgid "Skipped downloading {0}."
 msgstr "已略過下載 {0}。"
 
-msgid "Skipped enabling Open Knowledge tools. This thread runs without them."
-msgstr "已略過啟用 Open Knowledge 工具。此執行緒將在沒有這些工具的情況下運作。"
+msgid "Skipped enabling GitQuire tools. This thread runs without them."
+msgstr "已略過啟用 GitQuire 工具。此執行緒將在沒有這些工具的情況下運作。"
 
 msgid "Slash command menu"
 msgstr "斜線指令選單"
@@ -9928,8 +9934,8 @@ msgstr "Slidev"
 msgid "Slidev couldn't render this document."
 msgstr "Slidev 無法算繪此文件。"
 
-msgid "Slidev decks open in the OpenKnowledge desktop app only."
-msgstr "Slidev 簡報僅能在 OpenKnowledge 桌面應用程式中開啟。"
+msgid "Slidev decks open in the GitQuire desktop app only."
+msgstr "Slidev 簡報僅能在 GitQuire 桌面應用程式中開啟。"
 
 msgid "Slidev found in this project. Decks will use the project's version."
 msgstr "在此專案中找到 Slidev。簡報將使用專案的版本。"
@@ -9964,8 +9970,8 @@ msgstr "部分編輯尚未送達伺服器，因此沒有重新載入分頁。你
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "部分檔案未列出：工作區的變更過多。"
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen OpenKnowledge to try again."
-msgstr "部分檔案可能尚未移除。開啟清理記錄以查看詳細資訊。你可以重新開啟 OpenKnowledge 後再試一次。"
+msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
+msgstr "部分檔案可能尚未移除。開啟清理記錄以查看詳細資訊。你可以重新開啟 GitQuire 後再試一次。"
 
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "因為主題資料夾超出掃描限制，部分已儲存的主題未顯示。"
@@ -10097,8 +10103,8 @@ msgstr "開始新的對話"
 msgid "Start a new chat ({0})"
 msgstr "開始新的對話（{0}）"
 
-msgid "Start a new OpenKnowledge project."
-msgstr "開始一個新的 OpenKnowledge 專案。"
+msgid "Start a new GitQuire project."
+msgstr "開始一個新的 GitQuire 專案。"
 
 msgid "Start an agent"
 msgstr "啟動一個代理"
@@ -10485,8 +10491,8 @@ msgstr ".ok/local/config.yml 中的 terminal.shell 必須是字串，將改用�
 msgid "terminal.shell in .ok/local/config.yml must be an absolute Windows path. Using an available Windows shell instead."
 msgstr ".ok/local/config.yml 中的 terminal.shell 必須是 Windows 絕對路徑，將改用可用的 Windows shell。"
 
-msgid "terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for OpenKnowledge-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it."
-msgstr ".ok/local/config.yml 中的 terminal.shell 支援使用 PowerShell、cmd.exe 或 Git Bash 執行 OpenKnowledge 管理的啟動以及插入拖放檔案的路徑。此 shell 僅開啟一般終端；代理程式和命令啟動無法在其中執行。"
+msgid "terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for GitQuire-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it."
+msgstr ".ok/local/config.yml 中的 terminal.shell 支援使用 PowerShell、cmd.exe 或 Git Bash 執行 GitQuire 管理的啟動以及插入拖放檔案的路徑。此 shell 僅開啟一般終端；代理程式和命令啟動無法在其中執行。"
 
 msgid "Test connection"
 msgstr "測試連線"
@@ -10497,8 +10503,8 @@ msgstr "正在測試"
 msgid "Text"
 msgstr "文字"
 
-msgid "Thanks for giving OpenKnowledge a try."
-msgstr "謝謝你試用 OpenKnowledge。"
+msgid "Thanks for giving GitQuire a try."
+msgstr "謝謝你試用 GitQuire。"
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "謝謝訂閱。請留意你的信箱，我們會寄出產品動態。"
@@ -10530,11 +10536,11 @@ msgstr "無法將這段內容解析為 YAML 或 JSON。"
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "無法使用那個端點。請輸入 https:// 的 URL——http:// 只允許用在回環端點。"
 
-msgid "That folder already holds code Open Knowledge didn't write, which the same trust would let {0} run: {otherExtensions}."
-msgstr "該資料夾中已有並非 Open Knowledge 寫入的程式碼，同一份信任會允許 {0} 執行它們：{otherExtensions}。"
+msgid "That folder already holds code GitQuire didn't write, which the same trust would let {0} run: {otherExtensions}."
+msgstr "該資料夾中已有並非 GitQuire 寫入的程式碼，同一份信任會允許 {0} 執行它們：{otherExtensions}。"
 
-msgid "That folder isn't an OpenKnowledge project yet. Initialize it and open?"
-msgstr "那個資料夾還不是 OpenKnowledge 專案。要初始化並開啟它嗎？"
+msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
+msgstr "那個資料夾還不是 GitQuire 專案。要初始化並開啟它嗎？"
 
 msgid "That host is already in the list."
 msgstr "這個主機已在清單中。"
@@ -10606,8 +10612,8 @@ msgstr "智慧代理記憶體不足。"
 msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
 msgstr "智慧代理的安裝缺少檔案（找不到某個模組）。重新安裝智慧代理通常可以解決。"
 
-msgid "The agent's OpenKnowledge tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
-msgstr "智慧代理的 OpenKnowledge 工具無法連接到伺服器。請讓智慧代理再試一次；如果一直失敗，請開始新的對話。"
+msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
+msgstr "智慧代理的 GitQuire 工具無法連接到伺服器。請讓智慧代理再試一次；如果一直失敗，請開始新的對話。"
 
 msgid "The agent's persona, values, and voice."
 msgstr "代理的人設、價值觀和語氣。"
@@ -10630,8 +10636,8 @@ msgstr "畫板檢視器載入失敗。請檢查網路連線後再試一次。"
 msgid "The board's content is not a valid Excalidraw scene."
 msgstr "畫板內容不是有效的 Excalidraw 場景。"
 
-msgid "The browser isn't available in this chat because it couldn't be set up. OpenKnowledge's log has the details."
-msgstr "此對話中無法使用瀏覽器，因為未能完成設定。詳細資訊請查看 OpenKnowledge 的記錄。"
+msgid "The browser isn't available in this chat because it couldn't be set up. GitQuire's log has the details."
+msgstr "此對話中無法使用瀏覽器，因為未能完成設定。詳細資訊請查看 GitQuire 的記錄。"
 
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "此對話中無法使用瀏覽器，因為找不到能啟動它的 Node.js 安裝。請安裝 Node.js，然後開始新的對話。"
@@ -10663,8 +10669,8 @@ msgstr "桌面應用程式沒有回應。請重新整理後再試一次。"
 msgid "the doc {0}"
 msgstr "文件 {0}"
 
-msgid "The embeddings provider's vector size kept changing. Semantic search is off until OpenKnowledge restarts."
-msgstr "嵌入提供商的向量大小不斷變動。在 OpenKnowledge 重新啟動前，語意搜尋將保持關閉。"
+msgid "The embeddings provider's vector size kept changing. Semantic search is off until GitQuire restarts."
+msgstr "嵌入提供商的向量大小不斷變動。在 GitQuire 重新啟動前，語意搜尋將保持關閉。"
 
 msgid "The endpoint answered, but not with an OpenAI-compatible embeddings response. Check the base URL."
 msgstr "端點有回應，但傳回的不是相容 OpenAI 的嵌入回應。請檢查基底 URL。"
@@ -10678,8 +10684,8 @@ msgstr "檔案已在你的{trashNoun}中；檔案監看程式會進行同步。"
 msgid "The file on disk, and the id agents use."
 msgstr "磁碟上的檔案，以及代理使用的 id。"
 
-msgid "The file was restored to an older version. Current is the version OpenKnowledge protected. Incoming is the restored version. Choose which version to keep, then apply your changes."
-msgstr "檔案已還原為較舊的版本。目前版本是 OpenKnowledge 保護的版本。傳入版本是還原的版本。請選擇要保留的版本，然後套用變更。"
+msgid "The file was restored to an older version. Current is the version GitQuire protected. Incoming is the restored version. Choose which version to keep, then apply your changes."
+msgstr "檔案已還原為較舊的版本。目前版本是 GitQuire 保護的版本。傳入版本是還原的版本。請選擇要保留的版本，然後套用變更。"
 
 msgid "The file was restored to an older version. Open it to choose which version to keep."
 msgstr "檔案已還原為較舊的版本。開啟它以選擇要保留的版本。"
@@ -10693,14 +10699,14 @@ msgstr "資料夾和範本都已經在這裡了，沒有東西要加。"
 msgid "The formula <0>c = √(a² + b²)</0> renders inline."
 msgstr "公式 <0>c = √(a² + b²)</0> 會以行內形式顯示。"
 
-msgid "The index files stay in place. Open Knowledge removes only the Git rule it added."
-msgstr "索引檔案保留在原處。 Open Knowledge 僅刪除它所新增的 Git 規則。"
+msgid "The index files stay in place. GitQuire removes only the Git rule it added."
+msgstr "索引檔案保留在原處。 GitQuire 僅刪除它所新增的 Git 規則。"
 
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "介面仍是你先前閱讀的語言。請檢查網路連線，然後重新載入再試一次。"
 
-msgid "The language OpenKnowledge speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
-msgstr "OpenKnowledge 使用的語言；「跟隨系統」會跟隨你的作業系統。你自己的筆記會保持你書寫時的語言。"
+msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
+msgstr "GitQuire 使用的語言；「跟隨系統」會跟隨你的作業系統。你自己的筆記會保持你書寫時的語言。"
 
 msgid "The menu label agents pick this template by (required)."
 msgstr "代理挑選這個範本時看到的選單標籤（必填）。"
@@ -10711,20 +10717,20 @@ msgstr "你的端點提供的模型 id。它的向量維度會自動偵測——
 msgid "the open agent"
 msgstr "已開啟的代理"
 
-msgid "The OpenKnowledge project is missing at this checkout path."
-msgstr "此簽出路徑缺少 OpenKnowledge 專案。"
+msgid "The GitQuire project is missing at this checkout path."
+msgstr "此簽出路徑缺少 GitQuire 專案。"
 
-msgid "The OpenKnowledge project path on this branch cannot be read. The worktree was created but not opened."
-msgstr "無法讀取此分支中的 OpenKnowledge 專案路徑。工作樹已建立，但未開啟。"
+msgid "The GitQuire project path on this branch cannot be read. The worktree was created but not opened."
+msgstr "無法讀取此分支中的 GitQuire 專案路徑。工作樹已建立，但未開啟。"
 
-msgid "The OpenKnowledge project path on this branch leaves the worktree. The worktree was created but not opened."
-msgstr "此分支中的 OpenKnowledge 專案路徑位於工作樹之外。工作樹已建立，但未開啟。"
+msgid "The GitQuire project path on this branch leaves the worktree. The worktree was created but not opened."
+msgstr "此分支中的 GitQuire 專案路徑位於工作樹之外。工作樹已建立，但未開啟。"
 
-msgid "The OpenKnowledge server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again."
-msgstr "OpenKnowledge 伺服器回應逾時，變更可能已經生效。請讓代理先確認，然後再重試。"
+msgid "The GitQuire server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again."
+msgstr "GitQuire 伺服器回應逾時，變更可能已經生效。請讓代理先確認，然後再重試。"
 
-msgid "The OpenKnowledge server took too long to answer. Ask the agent to try again."
-msgstr "OpenKnowledge 伺服器回應逾時。請讓代理重試。"
+msgid "The GitQuire server took too long to answer. Ask the agent to try again."
+msgstr "GitQuire 伺服器回應逾時。請讓代理重試。"
 
 msgid "The original text was deleted."
 msgstr "原始文字已被刪除。"
@@ -10762,8 +10768,8 @@ msgstr "供應商拒絕了這個要求（HTTP {0}）。請檢查 API 金鑰和�
 msgid "The provider rejected the request. Check the API key and the model id."
 msgstr "供應商拒絕了這個要求。請檢查 API 金鑰和模型 id。"
 
-msgid "The provider's vector size kept changing. Restart OpenKnowledge before searching by meaning again."
-msgstr "提供商的向量大小不斷變動。請重新啟動 OpenKnowledge，再依含義搜尋。"
+msgid "The provider's vector size kept changing. Restart GitQuire before searching by meaning again."
+msgstr "提供商的向量大小不斷變動。請重新啟動 GitQuire，再依含義搜尋。"
 
 msgid "The public URL your tunnel serves (for example your Tailscale https://…ts.net address). The server admits requests for this host and advertises it in the URLs it issues."
 msgstr "您的通道所提供的公開 URL（例如您的 Tailscale https://…ts.net 位址）。伺服器接受針對此主機的請求，並在其發出的 URL 中公布該位址。"
@@ -10777,8 +10783,8 @@ msgstr "這個儲存庫被移動、重新命名或刪除了。"
 msgid "The repository's original clone directory"
 msgstr "儲存庫的原始複製目錄"
 
-msgid "The request to enable Open Knowledge tools timed out. This thread runs without them."
-msgstr "啟用 Open Knowledge 工具的請求已逾時。此執行緒將在沒有這些工具的情況下運作。"
+msgid "The request to enable GitQuire tools timed out. This thread runs without them."
+msgstr "啟用 GitQuire 工具的請求已逾時。此執行緒將在沒有這些工具的情況下運作。"
 
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "結構描述檔案不存在或載入失敗——新增欄位就會建立它。"
@@ -10819,8 +10825,8 @@ msgstr "來源資料夾本身不會移動。"
 msgid "The stored token is missing the permissions this host needs to push."
 msgstr "儲存的權杖缺少這個主機推送所需的權限。"
 
-msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's OpenKnowledge settings, so it only reaches them when Config sharing below is set to Shared."
-msgstr "隊友第一次開啟此專案時採用的同步模式。它保存在專案的 OpenKnowledge 設定中，因此只有當下方的設定分享設為已分享時才會傳給他們。"
+msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
+msgstr "隊友第一次開啟此專案時採用的同步模式。它保存在專案的 GitQuire 設定中，因此只有當下方的設定分享設為已分享時才會傳給他們。"
 
 msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
 msgstr "系統憑證儲存區無法使用。此金鑰儲存在專案之外的檔案中，檔案權限受到限制。"
@@ -10915,9 +10921,9 @@ msgstr "這些連結仍會顯示在「連結」中，但不屬於修復佇列。
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "這些規則來自你專案的 <0>{configFile}</0> 檔案，那個檔案完全決定了這個專案的檢查行為。可以在這裡開關規則並編輯它們的選項；變更會寫回那個檔案。"
 
-#. Says what the OpenKnowledge-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with OpenKnowledge. Installing one adds it to every AI tool on this machine."
-msgstr "它們教你的 AI 工具如何使用 OpenKnowledge。安裝其中一個，會把它加入本機的每個 AI 工具。"
+#. Says what the GitQuire-authored skills are for, and where installing one puts it
+msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
+msgstr "它們教你的 AI 工具如何使用 GitQuire。安裝其中一個，會把它加入本機的每個 AI 工具。"
 
 msgid "They run without asking while this chat is open"
 msgstr "在此對話開啟期間它們無需詢問即可執行"
@@ -10973,8 +10979,8 @@ msgstr "此智慧代理不提供斜線指令"
 msgid "This agent doesn't offer slash commands — your message will be sent as plain text"
 msgstr "此智慧代理不提供斜線指令 — 你的訊息將以純文字傳送"
 
-msgid "This agent gives OpenKnowledge no way to set this up for you. Its setup guide has the manual steps."
-msgstr "此代理程式未提供讓 OpenKnowledge 代為設定的方式。請參閱其設定指南中的手動步驟。"
+msgid "This agent gives GitQuire no way to set this up for you. Its setup guide has the manual steps."
+msgstr "此代理程式未提供讓 GitQuire 代為設定的方式。請參閱其設定指南中的手動步驟。"
 
 msgid "This agent has no file of this kind on this machine yet. Open the agent once, then check again."
 msgstr "此代理程式在此裝置上尚無這類檔案。請先開啟該代理程式，然後重新檢查。"
@@ -10982,23 +10988,23 @@ msgstr "此代理程式在此裝置上尚無這類檔案。請先開啟該代理
 msgid "This agent hasn't announced its commands yet"
 msgstr "此智慧代理尚未公布其指令"
 
-msgid "This agent runs through {0}, which is installed but won't run — its {1} looks broken. Open Knowledge can download a private copy of {2} {3} (about {4} MB from {5}) that won't touch the rest of your system."
-msgstr "這個代理是透過 {0} 執行的，但它雖然已安裝卻無法執行——它的 {1} 似乎已損壞。Open Knowledge 可以下載一份 {2} {3} 的私人副本（約 {4} MB，來自 {5}），不會動到你系統的其他部分。"
+msgid "This agent runs through {0}, which is installed but won't run — its {1} looks broken. GitQuire can download a private copy of {2} {3} (about {4} MB from {5}) that won't touch the rest of your system."
+msgstr "這個代理是透過 {0} 執行的，但它雖然已安裝卻無法執行——它的 {1} 似乎已損壞。GitQuire 可以下載一份 {2} {3} 的私人副本（約 {4} MB，來自 {5}），不會動到你系統的其他部分。"
 
-msgid "This agent runs through {0}, which isn't installed. Open Knowledge can download a private copy of {1} {2} (about {3} MB from {4}) that won't touch the rest of your system."
-msgstr "這個代理是透過 {0} 執行的，但它沒有安裝。Open Knowledge 可以下載一份 {1} {2} 的私人副本（約 {3} MB，來自 {4}），不會動到你系統的其他部分。"
+msgid "This agent runs through {0}, which isn't installed. GitQuire can download a private copy of {1} {2} (about {3} MB from {4}) that won't touch the rest of your system."
+msgstr "這個代理是透過 {0} 執行的，但它沒有安裝。GitQuire 可以下載一份 {1} {2} 的私人副本（約 {3} MB，來自 {4}），不會動到你系統的其他部分。"
 
 msgid "This also installs the pack's {packSkillCount, plural, one {# skill} other {# skills}}."
 msgstr "這也會安裝此入門套件的 {packSkillCount, plural, one {# 項技能} other {# 項技能}}。"
 
-msgid "This branch does not contain this OpenKnowledge project. The worktree was created but not opened."
-msgstr "此分支不包含這個 OpenKnowledge 專案。工作樹已建立，但未開啟。"
+msgid "This branch does not contain this GitQuire project. The worktree was created but not opened."
+msgstr "此分支不包含這個 GitQuire 專案。工作樹已建立，但未開啟。"
 
 msgid "This branch is checked out in:"
 msgstr "這個分支已在以下位置簽出："
 
-msgid "This branch redirects an OpenKnowledge setup path outside the worktree. The worktree was created but not opened."
-msgstr "此分支將 OpenKnowledge 設定路徑重新導向到工作樹之外。工作樹已建立，但未開啟。"
+msgid "This branch redirects a GitQuire setup path outside the worktree. The worktree was created but not opened."
+msgstr "此分支將 GitQuire 設定路徑重新導向到工作樹之外。工作樹已建立，但未開啟。"
 
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
@@ -11037,11 +11043,11 @@ msgstr "無法完成設定，因為它所需的 MCP 伺服器項目未寫入。"
 msgid "This deletes the MCP server entries and skill files listed below. The agent will lose access to your documents until you add it again."
 msgstr "這會刪除下方列出的 MCP 伺服器項目和技能檔案。在重新新增之前，智慧代理將無法存取你的文件。"
 
-msgid "This development build can't connect agents, so it won't change the agent setup of your installed OpenKnowledge app."
-msgstr "此開發版本無法連接智慧代理，因此不會變更你已安裝的 OpenKnowledge 應用程式的智慧代理設定。"
+msgid "This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app."
+msgstr "此開發版本無法連接智慧代理，因此不會變更你已安裝的 GitQuire 應用程式的智慧代理設定。"
 
-msgid "This disconnects {0} from OpenKnowledge."
-msgstr "這會中斷 {0} 與 OpenKnowledge 的連接。"
+msgid "This disconnects {0} from GitQuire."
+msgstr "這會中斷 {0} 與 GitQuire 的連接。"
 
 msgid "This doc"
 msgstr "這份文件"
@@ -11067,8 +11073,8 @@ msgstr "此文件已被刪除"
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "這個端點忽略了你設定的向量維度。移除 <0>search.semantic.dimensions</0> 就會改用模型自己的維度。"
 
-msgid "This entry changed after OpenKnowledge wrote it. Turning it on replaces it."
-msgstr "OpenKnowledge 寫入後此項目已變更。啟用會將其取代。"
+msgid "This entry changed after GitQuire wrote it. Turning it on replaces it."
+msgstr "GitQuire 寫入後此項目已變更。啟用會將其取代。"
 
 msgid "This field carries additional schema keywords the editor does not show — they are preserved on save."
 msgstr "這個欄位帶有編輯器沒有顯示的額外結構描述關鍵字——儲存時會保留下來。"
@@ -11124,8 +11130,8 @@ msgstr "這個資料夾還不在 GitHub 上。在推送之前連結不會生效�
 msgid "This GitHub URL can't be shared."
 msgstr "無法分享此 GitHub URL。"
 
-msgid "This is a preview of {boldName} — a built-in skill shipped with Open Knowledge. It's read-only."
-msgstr "這是 {boldName} 的預覽——一個隨 Open Knowledge 一起提供的內建技能。它是唯讀的。"
+msgid "This is a preview of {boldName} — a built-in skill shipped with GitQuire. It's read-only."
+msgstr "這是 {boldName} 的預覽——一個隨 GitQuire 一起提供的內建技能。它是唯讀的。"
 
 msgid "This is a preview of {boldName} — one of {0} skills at this source. Install it into your agents."
 msgstr "這是 {boldName} 的預覽 — 此來源共有 {0} 個技能，這是其中之一。把它安裝到你的代理中。"
@@ -11173,8 +11179,8 @@ msgid "This one needs to see your files, not just the open document, so it appea
 msgstr "這個需要查看您的文件，而不僅僅是打開的文檔，因此它會在您執行專案審核時出現，而不是在您鍵入時出現。"
 
 #. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with OpenKnowledge. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "這一個教你的 AI 工具如何使用 OpenKnowledge。它位於專案資料夾中，因此會為每個開啟這個專案的人安裝。"
+msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
+msgstr "這一個教你的 AI 工具如何使用 GitQuire。它位於專案資料夾中，因此會為每個開啟這個專案的人安裝。"
 
 msgid "This option cannot be changed automatically."
 msgstr "無法自動變更此選項。"
@@ -11194,8 +11200,8 @@ msgstr "此頁面已不在該路徑下。"
 msgid "This page references no local files or images."
 msgstr "此頁面未引用任何本機檔案或圖片。"
 
-msgid "This path is on an external volume (/Volumes/...). OpenKnowledge will lose track of files when the drive ejects."
-msgstr "這個路徑在外接磁碟區（/Volumes/...）上。磁碟退出後，OpenKnowledge 會找不到這些檔案。"
+msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
+msgstr "這個路徑在外接磁碟區（/Volumes/...）上。磁碟退出後，GitQuire 會找不到這些檔案。"
 
 msgid "This permanently deletes {deleteTarget} from the project and removes its mapping from config.yml."
 msgstr "這會把 {deleteTarget} 從專案中永久刪除，並從 config.yml 中移除它的對應。"
@@ -11227,11 +11233,11 @@ msgstr "這個專案沒有 git 儲存庫，所以分享模式不適用。初始�
 msgid "This project has no GitHub remote."
 msgstr "這個專案沒有 GitHub 遠端儲存庫。"
 
-msgid "This project is running a different, incompatible build of OpenKnowledge than this app (v{0})."
-msgstr "這個專案執行的 OpenKnowledge 版本和這個應用程式（v{0}）不同，而且不相容。"
+msgid "This project is running a different, incompatible build of GitQuire than this app (v{0})."
+msgstr "這個專案執行的 GitQuire 版本和這個應用程式（v{0}）不同，而且不相容。"
 
-msgid "This project is running an older version of OpenKnowledge (v{0}) than this app (v{1})."
-msgstr "這個專案執行的 OpenKnowledge 版本（v{0}）比這個應用程式（v{1}）舊。"
+msgid "This project is running an older version of GitQuire (v{0}) than this app (v{1})."
+msgstr "這個專案執行的 GitQuire 版本（v{0}）比這個應用程式（v{1}）舊。"
 
 msgid "This project isn't a git repository, so worktrees aren't available."
 msgstr "這個專案不是 git 儲存庫，所以無法使用 worktree。"
@@ -11239,14 +11245,14 @@ msgstr "這個專案不是 git 儲存庫，所以無法使用 worktree。"
 msgid "This project lives only on this computer. Connect it to GitHub to back it up and share it with other people."
 msgstr "這個專案只存在於這台電腦上。把它連接到 GitHub 就能備份，也能和別人分享。"
 
-msgid "This project's running server doesn't support live editing. Restart OpenKnowledge to fix."
-msgstr "這個專案正在執行的伺服器不支援即時編輯。重新啟動 OpenKnowledge 即可修正。"
+msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
+msgstr "這個專案正在執行的伺服器不支援即時編輯。重新啟動 GitQuire 即可修正。"
 
 msgid "This project's server (v{0}) is newer than this app (v{1})."
 msgstr "這個專案的伺服器（v{0}）比這個應用程式（v{1}）新。"
 
-msgid "This removes OpenKnowledge’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "這會從你的 Mac 以及你在下面選的專案中移除 OpenKnowledge 的設定和整合，但會保留你的 markdown 內容和你自己寫的技能。"
+msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
+msgstr "這會從你的 Mac 以及你在下面選的專案中移除 GitQuire 的設定和整合，但會保留你的 markdown 內容和你自己寫的技能。"
 
 msgid "This report is already on its way. Its result will appear in your bug report history."
 msgstr "這份回報已經在傳送途中，結果會顯示在錯誤回報記錄裡。"
@@ -11278,8 +11284,8 @@ msgstr "這項設定按每台電腦生效，不會分享給協作者。除非你
 msgid "This setup is shared with {peers} through <0>{path}</0>. Removing it here removes it for {peers} too."
 msgstr "此設定透過 <0>{path}</0> 與 {peers} 共用。在此移除也會同時為 {peers} 移除。"
 
-msgid "This setup is shared with {peers}, and OpenKnowledge cannot change it from here. Unlink the folder in Skills Studio first."
-msgstr "此設定與 {peers} 共用，OpenKnowledge 無法在此處變更它。請先在 Skills Studio 中取消該資料夾的連結。"
+msgid "This setup is shared with {peers}, and GitQuire cannot change it from here. Unlink the folder in Skills Studio first."
+msgstr "此設定與 {peers} 共用，GitQuire 無法在此處變更它。請先在 Skills Studio 中取消該資料夾的連結。"
 
 msgid "This setup is shared with {peers}. Removing it here removes it for {peers} too."
 msgstr "此設定與 {peers} 共用。在此移除也會同時為 {peers} 移除。"
@@ -11293,8 +11299,8 @@ msgstr "這個來源包含好幾個技能——請選要匯入的那一個。"
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "此分頁無法確認你的編輯已儲存，因此沒有重新載入。你的編輯仍然保留在這裡。"
 
-msgid "This tab is still reconnecting to OpenKnowledge, so it didn't reload. Try again in a moment."
-msgstr "此分頁仍在重新連線至 OpenKnowledge，因此沒有重新載入。請稍後再試。"
+msgid "This tab is still reconnecting to GitQuire, so it didn't reload. Try again in a moment."
+msgstr "此分頁仍在重新連線至 GitQuire，因此沒有重新載入。請稍後再試。"
 
 msgid "This template lives in a parent folder — deleting it affects every folder beneath it that doesn't define its own version."
 msgstr "這個範本放在上層資料夾中——刪掉它會影響底下所有沒有定義自己版本的資料夾。"
@@ -11342,8 +11348,8 @@ msgstr "標題"
 msgid "Title"
 msgstr "標題"
 
-msgid "To connect AI tools without a project, use File > Set up OpenKnowledge integrations…"
-msgstr "若要在沒有專案的情況下連接 AI 工具，請使用「檔案 > 設定 OpenKnowledge 整合…」。"
+msgid "To connect AI tools without a project, use File > Set up GitQuire integrations…"
+msgstr "若要在沒有專案的情況下連接 AI 工具，請使用「檔案 > 設定 GitQuire 整合…」。"
 
 msgid "To do"
 msgstr "待辦"
@@ -11464,11 +11470,11 @@ msgstr "由 git 追蹤——更新是透過你的儲存庫（pull 或 CI）流�
 msgid "Trash"
 msgstr "垃圾桶"
 
-msgid "Traverse OpenKnowledge navigation history backward."
-msgstr "在 OpenKnowledge 的導覽記錄中往回走。"
+msgid "Traverse GitQuire navigation history backward."
+msgstr "在 GitQuire 的導覽記錄中往回走。"
 
-msgid "Traverse OpenKnowledge navigation history forward."
-msgstr "在 OpenKnowledge 的導覽記錄中往前走。"
+msgid "Traverse GitQuire navigation history forward."
+msgstr "在 GitQuire 的導覽記錄中往前走。"
 
 msgid "Tree view options"
 msgstr "樹狀檢視選項"
@@ -11521,14 +11527,14 @@ msgstr "將其關閉"
 msgid "Turning it over…"
 msgstr "反覆推敲中…"
 
-msgid "Turning off index maintenance failed because Open Knowledge could not reach the project server. Try again when the project reconnects."
-msgstr "關閉索引維護失敗，因為 Open Knowledge 無法連線到專案伺服器。專案重新連線後再試一次。"
+msgid "Turning off index maintenance failed because GitQuire could not reach the project server. Try again when the project reconnects."
+msgstr "關閉索引維護失敗，因為 GitQuire 無法連線到專案伺服器。專案重新連線後再試一次。"
 
-msgid "Turning off index maintenance failed because Open Knowledge could not update the Git merge rule. Check Git and .gitattributes, then try again."
-msgstr "關閉索引維護失敗，因為 Open Knowledge 無法更新 Git 合併規則。檢查 Git 和 .gitattributes，然後再試一次。"
+msgid "Turning off index maintenance failed because GitQuire could not update the Git merge rule. Check Git and .gitattributes, then try again."
+msgstr "關閉索引維護失敗，因為 GitQuire 無法更新 Git 合併規則。檢查 Git 和 .gitattributes，然後再試一次。"
 
-msgid "Turning off index maintenance failed because the Open Knowledge section of .gitattributes was edited or is incomplete. Remove that section, then try again."
-msgstr "關閉索引維護失敗，因為 .gitattributes 中的 Open Knowledge 區段已被編輯或不完整。移除該區段，然後再試一次。"
+msgid "Turning off index maintenance failed because the GitQuire section of .gitattributes was edited or is incomplete. Remove that section, then try again."
+msgstr "關閉索引維護失敗，因為 .gitattributes 中的 GitQuire 區段已被編輯或不完整。移除該區段，然後再試一次。"
 
 msgid "Turning off index maintenance failed because the project setting could not be saved. Check the project file permissions, then try again."
 msgstr "關閉索引維護失敗，因為無法儲存專案設定。檢查專案檔案權限，然後再試一次。"
@@ -11611,11 +11617,11 @@ msgstr "復原已做的解決操作後才能變更。"
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "在「編輯原始碼」窗格或程式碼類屬性欄位中復原、重做，或逐步回溯選取範圍的變化。"
 
-msgid "Uninstall OpenKnowledge"
-msgstr "解除安裝 OpenKnowledge"
+msgid "Uninstall GitQuire"
+msgstr "解除安裝 GitQuire"
 
-msgid "Uninstall OpenKnowledge?"
-msgstr "要解除安裝 OpenKnowledge 嗎？"
+msgid "Uninstall GitQuire?"
+msgstr "要解除安裝 GitQuire 嗎？"
 
 msgid "Uninstalled \"{0}\" from {1}"
 msgstr "已從 {1} 解除安裝「{0}」"
@@ -11714,8 +11720,8 @@ msgstr "更新失敗：{0}"
 msgid "Update from source"
 msgstr "從來源更新"
 
-msgid "Update OpenKnowledge to open this share."
-msgstr "請更新 OpenKnowledge 以開啟這個分享內容。"
+msgid "Update GitQuire to open this share."
+msgstr "請更新 GitQuire 以開啟這個分享內容。"
 
 msgid "Update the destination and optional section anchor."
 msgstr "更新目標位置和選填的章節錨點。"
@@ -11734,6 +11740,9 @@ msgstr "已更新資料夾屬性"
 
 msgid "Updated to Version {version}"
 msgstr "已更新到版本 {version}"
+
+msgid "Updates"
+msgstr ""
 
 msgid "Updates and feedback"
 msgstr "更新與意見回饋"
@@ -11873,8 +11882,8 @@ msgstr "使用者外掛只屬於這台裝置——在這裡開啟或關閉它們
 msgid "Username"
 msgstr "使用者名稱"
 
-msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside OpenKnowledge)."
-msgstr "正在使用 <0>OK_EMBEDDINGS_API_KEY</0> 環境變數（在 OpenKnowledge 之外管理）。"
+msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
+msgstr "正在使用 <0>OK_EMBEDDINGS_API_KEY</0> 環境變數（在 GitQuire 之外管理）。"
 
 msgid "Validate document frontmatter against JSON Schema files, scoped to doc sets by glob."
 msgstr "依 JSON Schema 檔案驗證文件的 frontmatter，並用 glob 限定適用的文件集。"
@@ -11895,8 +11904,8 @@ msgctxt "settings search keyword"
 msgid "version"
 msgstr "版本"
 
-msgid "Version in OpenKnowledge"
-msgstr "OpenKnowledge 中的版本"
+msgid "Version in GitQuire"
+msgstr "GitQuire 中的版本"
 
 msgid "via {viaTags}"
 msgstr "透過 {viaTags}"
@@ -12009,8 +12018,8 @@ msgstr "我們會根據這個名稱建立安全的主題 ID。"
 msgid "We've filed it with the team and attached your logs."
 msgstr "我們已經把它交給團隊，並附上了你的記錄。"
 
-msgid "Welcome to OpenKnowledge"
-msgstr "歡迎使用 OpenKnowledge"
+msgid "Welcome to GitQuire"
+msgstr "歡迎使用 GitQuire"
 
 #. Button on each setup row that opens the list of files that row writes to
 msgid "What changes?"
@@ -12058,8 +12067,8 @@ msgstr "你當時在做什麼？"
 msgid "What would you like to create?"
 msgstr "你想建立什麼？"
 
-msgid "What you share is sent to the OpenKnowledge team."
-msgstr "你分享的內容會寄給 OpenKnowledge 團隊。"
+msgid "What you share is sent to the GitQuire team."
+msgstr "你分享的內容會寄給 GitQuire 團隊。"
 
 msgid "What's included"
 msgstr "包含哪些內容"
@@ -12168,7 +12177,7 @@ msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"
-msgstr "寫入一個小型橋接檔案，{agent} 會從這個專案載入它來連接 OpenKnowledge。"
+msgstr "寫入一個小型橋接檔案，{agent} 會從這個專案載入它來連接 GitQuire。"
 
 msgid "Writes an entry to"
 msgstr "寫入項目到"
@@ -12176,11 +12185,11 @@ msgstr "寫入項目到"
 msgid "writing"
 msgstr "寫作"
 
-msgid "Writing this file failed. Check the OpenKnowledge log for the reason."
-msgstr "寫入此檔案失敗。請查看 OpenKnowledge 記錄檔以了解原因。"
+msgid "Writing this file failed. Check the GitQuire log for the reason."
+msgstr "寫入此檔案失敗。請查看 GitQuire 記錄檔以了解原因。"
 
-msgid "Wrote the Open Knowledge extension, but couldn't mark the folder trusted, so it won't load. This thread has no Open Knowledge tools."
-msgstr "已寫入 Open Knowledge 擴充功能，但無法將該資料夾標記為受信任，因此不會載入。此執行緒沒有 Open Knowledge 工具。"
+msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
+msgstr "已寫入 GitQuire 擴充功能，但無法將該資料夾標記為受信任，因此不會載入。此執行緒沒有 GitQuire 工具。"
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML 或 JSON，兩種 base16 排版都可以。"
@@ -12243,11 +12252,11 @@ msgstr "你在本機編輯過這個技能，而來源又有了新的變更。採
 msgid "You modified <0>{filePath}</0> locally, but it was deleted upstream."
 msgstr "你在本機修改了 <0>{filePath}</0>，但它在上游被刪除了。"
 
-msgid "You picked ~/Desktop. OpenKnowledge will index everything on your desktop."
-msgstr "你選了 ~/Desktop。OpenKnowledge 會把你桌面上的所有東西都建立索引。"
+msgid "You picked ~/Desktop. GitQuire will index everything on your desktop."
+msgstr "你選了 ~/Desktop。GitQuire 會把你桌面上的所有東西都建立索引。"
 
-msgid "You picked ~/Documents. OpenKnowledge will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope."
-msgstr "你選了 ~/Documents。OpenKnowledge 會把它底下的每個 markdown 檔案都建立索引。如果你只想管理某個子資料夾，請選一個更小的範圍。"
+msgid "You picked ~/Documents. GitQuire will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope."
+msgstr "你選了 ~/Documents。GitQuire 會把它底下的每個 markdown 檔案都建立索引。如果你只想管理某個子資料夾，請選一個更小的範圍。"
 
 msgid "You picked ~/Downloads. Files there are usually transient — consider a stable folder instead."
 msgstr "你選了 ~/Downloads。那裡的檔案通常是暫時的——建議改用一個穩定的資料夾。"
@@ -12267,8 +12276,8 @@ msgstr "訂閱成功！"
 msgid "you@company.com"
 msgstr "you@company.com"
 
-msgid "Your agents still load this skill, but OpenKnowledge can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
-msgstr "你的智慧代理仍會載入該技能，但 OpenKnowledge 無法開啟或編輯它：它不會索引 git 設定為忽略的檔案，因為同步會失敗。在 {gitignorePath} 中新增一行即可在這裡編輯它。"
+msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
+msgstr "你的智慧代理仍會載入該技能，但 GitQuire 無法開啟或編輯它：它不會索引 git 設定為忽略的檔案，因為同步會失敗。在 {gitignorePath} 中新增一行即可在這裡編輯它。"
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "你的變更還在儲存中——請等一下再執行一次測試。"

@@ -429,13 +429,13 @@ export function ExternalHandoffGateProvider({
               warnReadinessBypass(setupState.pending.target, 'derivation-threw', error);
               return {
                 kind: 'saved-not-ready',
-                message: t`Changes were saved, but OpenKnowledge could not confirm a connection to ${handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again.`,
+                message: t`Changes were saved, but GitQuire could not confirm a connection to ${handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again.`,
               };
             }
             if (readiness.kind !== 'ready') {
               return {
                 kind: 'saved-not-ready',
-                message: t`Changes were saved, but OpenKnowledge could not confirm a connection to ${handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again.`,
+                message: t`Changes were saved, but GitQuire could not confirm a connection to ${handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again.`,
               };
             }
             runReady(setupState.pending);

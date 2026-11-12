@@ -996,8 +996,8 @@ function TerminalSession({
             onDismiss={() => setSupportFileNotice(null)}
           >
             {supportFileNotice.reason === 'containment-refused'
-              ? t`OpenKnowledge couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve OpenKnowledge.`
-              : t`OpenKnowledge couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve OpenKnowledge.`}
+              ? t`GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire.`
+              : t`GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire.`}
           </TerminalNoticeBanner>
         ) : shellNotice ? (
           <TerminalNoticeBanner
@@ -1005,13 +1005,13 @@ function TerminalSession({
             onDismiss={() => setShellNotice(null)}
           >
             {shellNotice.reason === 'config-unreadable'
-              ? t`OpenKnowledge couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead.`
+              ? t`GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead.`
               : shellNotice.reason === 'invalid-value'
                 ? t`terminal.shell in .ok/local/config.yml must be a string. Using an available Windows shell instead.`
                 : shellNotice.reason === 'not-absolute'
                   ? t`terminal.shell in .ok/local/config.yml must be an absolute Windows path. Using an available Windows shell instead.`
                   : shellNotice.reason === 'unsupported-family'
-                    ? t`terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for OpenKnowledge-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it.`
+                    ? t`terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for GitQuire-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it.`
                     : t`The terminal.shell executable in .ok/local/config.yml was not found. Using an available Windows shell instead.`}
           </TerminalNoticeBanner>
         ) : manualSubmitNotice ? (

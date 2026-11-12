@@ -89,7 +89,7 @@ function StatusRow({ availability }: { availability: Availability }) {
   if (availability.kind === 'unsupported') {
     return (
       <p className="text-sm text-muted-foreground" data-testid="slides-status-unsupported">
-        <Trans>Slidev decks open in the OpenKnowledge desktop app only.</Trans>
+        <Trans>Slidev decks open in the GitQuire desktop app only.</Trans>
       </p>
     );
   }
@@ -183,7 +183,7 @@ export function SlidesPluginSection() {
           Present a document as a slide deck in its own window. Add{' '}
           <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">slides: true</code> to a
           document's frontmatter, then open it with the Slidev action. Rendering is handled by the
-          Slidev CLI, which OpenKnowledge does not bundle.
+          Slidev CLI, which GitQuire does not bundle.
         </Trans>
       </SettingsSectionHeader>
       <div aria-live="polite">

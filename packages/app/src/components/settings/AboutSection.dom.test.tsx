@@ -15,7 +15,7 @@ vi.doMock('@lingui/react/macro', () => ({
 const { AboutSection } = await import('./AboutSection');
 
 const CLOUD_ABOUT: OkAboutInfo = {
-  productName: 'OpenKnowledge Cloud',
+  productName: 'GitQuire Cloud',
   version: '0.81.5-cloud.1343',
   releasesUrl: 'https://github.com/inkeep/agents-private/releases',
   releaseNotesUrl: 'https://github.com/inkeep/agents-private/releases/tag/v0.81.5-cloud.1343',
@@ -63,7 +63,7 @@ describe('AboutSection', () => {
     installBridge(CLOUD_ABOUT);
     render(<AboutSection />);
 
-    expect(await screen.findByText('OpenKnowledge Cloud')).not.toBeNull();
+    expect(await screen.findByText('GitQuire Cloud')).not.toBeNull();
     expect(screen.getByTestId('settings-about-version').textContent).toBe('v0.81.5-cloud.1343');
   });
 
@@ -466,7 +466,7 @@ describe('AboutSection automatic updates switch', () => {
     installModeBridge('auto', async () => {}, { ...CLOUD_ABOUT, updateChecks: 'unavailable' });
     render(<AboutSection />);
 
-    expect(await screen.findByText('OpenKnowledge Cloud')).not.toBeNull();
+    expect(await screen.findByText('GitQuire Cloud')).not.toBeNull();
     expect(screen.queryByRole('switch')).toBeNull();
   });
 });

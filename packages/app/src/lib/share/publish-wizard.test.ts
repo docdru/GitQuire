@@ -114,7 +114,7 @@ describe('presentPublishError', () => {
       kind: 'authorize-org',
       authorizeUrl: 'https://github.com/orgs/inkeep/policies/applications',
     });
-    expect(r.banner).toContain('authorize OpenKnowledge for inkeep');
+    expect(r.banner).toContain('authorize GitQuire for inkeep');
   });
 
   test('push-failed routes to retry-push + interpolates owner/name', () => {

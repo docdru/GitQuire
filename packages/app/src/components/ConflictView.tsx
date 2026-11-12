@@ -356,9 +356,9 @@ export function ConflictView({
         <div className="shrink-0 px-3 py-2">
           <Alert role="status">
             <AlertDescription>
-              {t`The file was restored to an older version. Current is the version OpenKnowledge protected. Incoming is the restored version. Choose which version to keep, then apply your changes.`}
+              {t`The file was restored to an older version. Current is the version GitQuire protected. Incoming is the restored version. Choose which version to keep, then apply your changes.`}
               {identicalStaleVersions
-                ? ` ${t`Both versions are identical. Choosing Accept current leaves OpenKnowledge's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off.`}`
+                ? ` ${t`Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off.`}`
                 : null}
             </AlertDescription>
           </Alert>

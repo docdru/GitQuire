@@ -53,7 +53,7 @@ describe('FeedbackMenuTrigger', () => {
       },
       { timeout: ASYNC_TIMEOUT_MS },
     );
-    expect(screen.getByRole('dialog', { name: 'How do you like OpenKnowledge?' })).not.toBeNull();
+    expect(screen.getByRole('dialog', { name: 'How do you like GitQuire?' })).not.toBeNull();
   });
 
   test('unrelated menu actions do not open the dialog', async () => {

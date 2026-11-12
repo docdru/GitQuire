@@ -10,6 +10,6 @@ export function followupHintText(ref: GuidanceRef | undefined): string | null {
   if (ref.id !== 'followup.enable-manually') return null;
   return t({
     id: 'followup.enable-manually',
-    message: `${agent} keeps project MCP servers off until you turn them on under Customize → MCPs. OpenKnowledge can't see that setting.`,
+    message: `${agent} keeps project MCP servers off until you turn them on under Customize → MCPs. GitQuire can't see that setting.`,
   });
 }

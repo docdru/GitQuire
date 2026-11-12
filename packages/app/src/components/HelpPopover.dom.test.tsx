@@ -138,7 +138,7 @@ describe('HelpPopover runtime behavior', () => {
       },
       {
         label: 'X (Twitter)',
-        href: 'https://x.com/OpenKnowledge',
+        href: 'https://x.com/GitQuire',
         target: '_blank',
         rel: 'noopener noreferrer',
         hasIcon: true,
@@ -256,7 +256,7 @@ describe('HelpPopover with the desktop bridge present', () => {
 describe('HelpPopover version and updates on the desktop app', () => {
   function aboutInfo(updateChecks: 'available' | 'unavailable') {
     return {
-      productName: 'OpenKnowledge Beta',
+      productName: 'GitQuire Beta',
       version: '0.83.0-beta.8',
       releasesUrl: 'https://example.test/releases',
       releaseNotesUrl: 'https://example.test/releases/tag/v0.83.0-beta.8',

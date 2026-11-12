@@ -138,7 +138,7 @@ const PROMPT_DETAIL =
 const UNSAVED_REFUSAL =
   "Some edits haven't reached the server yet, so the tab didn't reload. Your edits are still here.";
 const RECONNECTING_REFUSAL =
-  "This tab is still reconnecting to OpenKnowledge, so it didn't reload. Try again in a moment.";
+  "This tab is still reconnecting to GitQuire, so it didn't reload. Try again in a moment.";
 const UNCONFIRMED_REFUSAL =
   "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here.";
 
@@ -209,7 +209,7 @@ describe('stale tab reload prompt', () => {
     });
     const node = renderLastPrompt();
     expect(node.props.body).toBe(
-      'OpenKnowledge on this computer is now v0.83.2, but this tab is still running v0.83.1.',
+      'GitQuire on this computer is now v0.83.2, but this tab is still running v0.83.1.',
     );
     expect(node.props.detail).toBe(PROMPT_DETAIL);
     expect(node.props.actionLabel).toBe('Reload');
@@ -257,7 +257,7 @@ describe('stale tab reload prompt', () => {
     expect(toastCustom.mock.calls[1]?.[1]).toMatchObject({ id: STALE_TAB_RELOAD_TOAST_ID });
     const node = renderLastPrompt();
     expect(node.props.body).toBe(
-      'OpenKnowledge on this computer is now v0.83.2, but this tab is still running v0.83.1.',
+      'GitQuire on this computer is now v0.83.2, but this tab is still running v0.83.1.',
     );
     expect(node.props.detail).toBe(UNSAVED_REFUSAL);
     expect(watch.started()).toBe(true);
@@ -448,7 +448,7 @@ describe('stale tab reload copy', () => {
       current: { runtimeVersion: null, protocolVersion: null },
     });
     expect(body).toBe(
-      'OpenKnowledge on this computer changed to a different build, but this tab is still running the old one.',
+      'GitQuire on this computer changed to a different build, but this tab is still running the old one.',
     );
   });
 

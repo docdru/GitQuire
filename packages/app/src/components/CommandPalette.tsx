@@ -1245,8 +1245,8 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
                 {semanticView.notice === 'restart-required' ? (
                   <CommandEmpty data-testid="command-palette-semantic-restart-required">
                     <Trans>
-                      The provider's vector size kept changing. Restart OpenKnowledge before
-                      searching by meaning again.
+                      The provider's vector size kept changing. Restart GitQuire before searching by
+                      meaning again.
                     </Trans>
                   </CommandEmpty>
                 ) : null}

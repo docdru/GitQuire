@@ -137,7 +137,7 @@ export function TerminalAgentConnectionBanner({
             </Button>
           }
         >
-          {t`${displayName} is installed, but OpenKnowledge tools aren't connected to it yet.`}
+          {t`${displayName} is installed, but GitQuire tools aren't connected to it yet.`}
         </TerminalNoticeBanner>
       ) : null}
       {restartRequired ? (
@@ -151,7 +151,7 @@ export function TerminalAgentConnectionBanner({
             </Button>
           }
         >
-          {t`Restart this terminal session to use the newly installed OpenKnowledge tools.`}
+          {t`Restart this terminal session to use the newly installed GitQuire tools.`}
         </TerminalNoticeBanner>
       ) : null}
       {open && connection !== undefined ? (

@@ -684,7 +684,7 @@ function MissingCheckoutStatus({ className }: { className?: string }) {
   return (
     <span
       className={cn('shrink-0 text-destructive text-xs', className)}
-      title={t`The OpenKnowledge project is missing at this checkout path.`}
+      title={t`The GitQuire project is missing at this checkout path.`}
     >
       {t`project missing`}
     </span>
@@ -700,11 +700,11 @@ function RowLocationBadge({ entry }: { entry: WorktreeFlyoutEntry }) {
     },
     internal: {
       label: t`internal`,
-      description: t`Inside this repository's OpenKnowledge worktrees folder`,
+      description: t`Inside this repository's GitQuire worktrees folder`,
     },
     external: {
       label: t`external`,
-      description: t`Outside this repository's OpenKnowledge worktrees folder`,
+      description: t`Outside this repository's GitQuire worktrees folder`,
     },
     unknown: {
       label: t`worktree`,

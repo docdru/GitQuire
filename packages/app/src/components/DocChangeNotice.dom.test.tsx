@@ -133,7 +133,7 @@ describe('DocChangeNotice', () => {
           file: '.ok/config.yml',
           reason: 'outside-settings-applied',
         },
-        says: "Settings in config.yml changed outside OpenKnowledge and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet.",
+        says: "Settings in config.yml changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet.",
       },
       {
         notice: {
@@ -176,15 +176,15 @@ describe('DocChangeNotice', () => {
       },
       {
         notice: { ...common, id: 'n-held-none', kind: 'save-held', cause: 'no-history-or-backup' },
-        says: 'flow.mmd was not saved. It changed outside OpenKnowledge, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again.',
+        says: 'flow.mmd was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again.',
       },
       {
         notice: { ...common, id: 'n-held-busy', kind: 'save-held', cause: 'keeps-changing' },
-        says: 'flow.mmd was not saved because it kept changing outside OpenKnowledge. Your edits stay here, and saving is tried again.',
+        says: 'flow.mmd was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again.',
       },
       {
         notice: { ...common, id: 'n-held-bytes', kind: 'save-held', cause: 'not-utf8' },
-        says: 'flow.mmd was not saved because it changed outside OpenKnowledge to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
+        says: 'flow.mmd was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
       },
     ];
     for (const { notice, says } of cases) {

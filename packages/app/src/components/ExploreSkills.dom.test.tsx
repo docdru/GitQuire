@@ -64,10 +64,10 @@ function renderExplore() {
   );
 }
 
-describe('ExploreSkills — Open Knowledge toggle', () => {
+describe('ExploreSkills — GitQuire toggle', () => {
   test('fills the grid from our repo, ranked by installs, in place', async () => {
     renderExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'OpenKnowledge' }));
+    await userEvent.click(screen.getByRole('button', { name: 'GitQuire' }));
     await waitFor(() => expect(screen.getByText('open-knowledge')).toBeTruthy());
     expect(discoverSkillsInSource).toHaveBeenCalledWith('inkeep/open-knowledge-skills');
     const order = screen.getAllByRole('listitem').map((li) => li.textContent ?? '');
@@ -78,7 +78,7 @@ describe('ExploreSkills — Open Knowledge toggle', () => {
   test('an unrankable list still renders, in repository order', async () => {
     fetchPublisherSkills.mockResolvedValueOnce({ ok: false, error: 'upstream down' } as never);
     renderExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'OpenKnowledge' }));
+    await userEvent.click(screen.getByRole('button', { name: 'GitQuire' }));
     await waitFor(() => expect(screen.getByText('knowledge-base')).toBeTruthy());
     expect(screen.getByText('open-knowledge')).toBeTruthy();
   });
@@ -86,10 +86,8 @@ describe('ExploreSkills — Open Knowledge toggle', () => {
   test('a list that will not load says so, rather than rendering an empty grid', async () => {
     discoverSkillsInSource.mockResolvedValueOnce({ ok: false, error: 'clone failed' } as never);
     renderExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'OpenKnowledge' }));
-    await waitFor(() =>
-      expect(screen.getByText(/Couldn't load the OpenKnowledge skills/)).toBeTruthy(),
-    );
+    await userEvent.click(screen.getByRole('button', { name: 'GitQuire' }));
+    await waitFor(() => expect(screen.getByText(/Couldn't load the GitQuire skills/)).toBeTruthy());
     expect(screen.queryByRole('listitem')).toBeNull();
   });
 
@@ -127,7 +125,7 @@ describe('ExploreSkills — Open Knowledge toggle', () => {
 
   test('a topic chip turns it back off instead of stacking into the query', async () => {
     renderExplore();
-    const ok = screen.getByRole('button', { name: 'OpenKnowledge' });
+    const ok = screen.getByRole('button', { name: 'GitQuire' });
     await userEvent.click(ok);
     await waitFor(() => expect(ok.getAttribute('aria-pressed')).toBe('true'));
     await userEvent.click(screen.getByRole('button', { name: 'Design' }));

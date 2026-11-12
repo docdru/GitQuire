@@ -250,19 +250,19 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
             {firstRun ? (
               <span className="flex flex-col gap-1.5">
                 <span className="uppercase font-mono font-normal text-2xs text-muted-foreground tracking-widest">
-                  <Trans>Welcome to OpenKnowledge</Trans>
+                  <Trans>Welcome to GitQuire</Trans>
                 </span>
                 <Trans>Let's get set up.</Trans>
               </span>
             ) : (
               <span>
-                <Trans>Customize your OpenKnowledge experience.</Trans>
+                <Trans>Customize your GitQuire experience.</Trans>
               </span>
             )}
           </Surface.Title>
           {firstRun && (
             <Surface.Description className="sr-only">
-              <Trans>Customize your OpenKnowledge experience.</Trans>
+              <Trans>Customize your GitQuire experience.</Trans>
             </Surface.Description>
           )}
         </Surface.Header>
@@ -310,7 +310,7 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                   {pathActionable && (
                     <span className={ROW_SUBTEXT}>
                       <Trans comment="Subtext under the terminal toggle explaining what the ok command gives you">
-                        Launch OpenKnowledge from any terminal —{' '}
+                        Launch GitQuire from any terminal —{' '}
                         <code className="inline-code text-xs!">{cliCommand}</code> opens a project,{' '}
                         <code className="inline-code text-xs!">{cliCommand} init</code> connects
                         your agents.
@@ -327,8 +327,8 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                       {ptyAvailable ? (
                         <Trans comment="Warning shown when the user unchecks the PATH toggle on a desktop build with the built-in terminal">
                           <code className="inline-code text-xs!">{cliCommand}</code> won't run in
-                          external terminals until you add it later from the File menu.
-                          OpenKnowledge's built-in terminal and AI tools keep working.
+                          external terminals until you add it later from the File menu. GitQuire's
+                          built-in terminal and AI tools keep working.
                         </Trans>
                       ) : (
                         <Trans comment="Warning shown when the user unchecks the PATH toggle on a desktop build without the built-in terminal">
@@ -366,8 +366,8 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                 {hasEditors ? (
                   <p className={cn(SECTION_SUBTEXT, 'mb-1')}>
                     <Trans comment="Description under the AI-tools section label in the first-launch dialog">
-                      Globally install the OpenKnowledge skills and MCP to let the agents you
-                      already use read and update your projects.
+                      Globally install the GitQuire skills and MCP to let the agents you already use
+                      read and update your projects.
                     </Trans>
                   </p>
                 ) : null}
@@ -390,14 +390,14 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                             className="flex min-w-0 flex-1 items-center gap-1.5 pe-28 text-sm font-medium text-foreground"
                             data-testid="mcp-consent-connect-summary"
                           >
-                            <Trans comment="Checkbox that wires the OpenKnowledge MCP into every detected AI tool">
-                              Install OpenKnowledge in your AI tools
+                            <Trans comment="Checkbox that wires the GitQuire MCP into every detected AI tool">
+                              Install GitQuire in your AI tools
                             </Trans>
                           </span>
                         </span>
                         <span className={ROW_SUBTEXT}>
                           <Trans comment="Subtext under the AI-tools MCP checkbox">
-                            Adds an OpenKnowledge MCP entry to{' '}
+                            Adds a GitQuire MCP entry to{' '}
                             <span className="font-medium text-foreground">{connectToolList}</span>,
                             so your agents can read and edit your files.
                           </Trans>
@@ -407,7 +407,7 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                             {t({
                               message: `Already connected to ${replacingToolList}`,
                               comment:
-                                'Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have an OpenKnowledge MCP entry, which stay as they are while the box is unticked',
+                                'Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have a GitQuire MCP entry, which stay as they are while the box is unticked',
                             })}
                           </span>
                         )}
@@ -417,8 +417,8 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                             data-testid="mcp-consent-connect-replace-warning"
                           >
                             {replacingAll
-                              ? t`Replaces the OpenKnowledge entry each of them already has.`
-                              : t`Replaces the existing OpenKnowledge entry in ${formatToolList(
+                              ? t`Replaces the GitQuire entry each of them already has.`
+                              : t`Replaces the existing GitQuire entry in ${formatToolList(
                                   replacing.map((e) => e.label),
                                   i18n.locale,
                                 )}`}
@@ -474,7 +474,7 @@ function McpConsentDialogForm({ payload, store, toast }: McpConsentDialogFormPro
                         </span>
                         <span className={ROW_SUBTEXT}>
                           <Trans comment="Subtext under the discovery-skill checkbox">
-                            Help your agents discover and use OpenKnowledge in any project.
+                            Help your agents discover and use GitQuire in any project.
                           </Trans>
                         </span>
                       </Label>

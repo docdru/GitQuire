@@ -18,7 +18,7 @@ export const FIELDS_USER_PREFERENCES: FieldDef[] = [
   {
     path: ['appearance', 'language'],
     label: msg`Language`,
-    description: msg`The language OpenKnowledge speaks; System follows your operating system. Your own notes stay in the language you wrote them in.`,
+    description: msg`The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in.`,
     control: 'language-select',
   },
   {

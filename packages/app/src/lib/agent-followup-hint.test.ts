@@ -9,9 +9,9 @@ function projectMcpFollowup(agent: keyof typeof AGENT_REGISTRY): GuidanceRef | u
 }
 
 describe('followupHintText', () => {
-  test("Cursor's enable-manually hint names the agent and the setting OpenKnowledge cannot see", () => {
+  test("Cursor's enable-manually hint names the agent and the setting GitQuire cannot see", () => {
     expect(followupHintText(projectMcpFollowup('cursor'))).toBe(
-      "Cursor keeps project MCP servers off until you turn them on under Customize → MCPs. OpenKnowledge can't see that setting.",
+      "Cursor keeps project MCP servers off until you turn them on under Customize → MCPs. GitQuire can't see that setting.",
     );
   });
 

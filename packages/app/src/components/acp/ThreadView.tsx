@@ -1585,7 +1585,7 @@ export function ThreadView({
 function PermissionPostureBadge({ info }: { info: ThreadInfo }): ReactNode {
   const { t } = useLingui();
   if (deriveAgentPosture(info.agent.id, info.modes) !== 'autonomous') return null;
-  const label = t`${info.agent.name} acts without asking — OpenKnowledge can't add permission prompts for it`;
+  const label = t`${info.agent.name} acts without asking — GitQuire can't add permission prompts for it`;
   const focusRing =
     'inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50';
   return (
@@ -2516,7 +2516,7 @@ function BrowserUnavailableNotice({
     >
       {item.reason === 'no-node'
         ? t`The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat.`
-        : t`The browser isn't available in this chat because it couldn't be set up. OpenKnowledge's log has the details.`}
+        : t`The browser isn't available in this chat because it couldn't be set up. GitQuire's log has the details.`}
     </div>
   );
 }
@@ -4145,10 +4145,10 @@ function RuntimeConsentPrompt({
       </div>
       <p className="mb-2 text-muted-foreground text-xs">
         {item.reason === 'damaged'
-          ? t`Open Knowledge's own copy of ${item.displayName} is damaged and won't run. It can download a fresh copy of ${item.displayName} ${item.version} (about ${item.approxSizeMB} MB from ${item.sourceHost}) to replace it.`
+          ? t`GitQuire's own copy of ${item.displayName} is damaged and won't run. It can download a fresh copy of ${item.displayName} ${item.version} (about ${item.approxSizeMB} MB from ${item.sourceHost}) to replace it.`
           : item.reason === 'broken'
-            ? t`This agent runs through ${item.provides}, which is installed but won't run — its ${item.displayName} looks broken. Open Knowledge can download a private copy of ${item.displayName} ${item.version} (about ${item.approxSizeMB} MB from ${item.sourceHost}) that won't touch the rest of your system.`
-            : t`This agent runs through ${item.provides}, which isn't installed. Open Knowledge can download a private copy of ${item.displayName} ${item.version} (about ${item.approxSizeMB} MB from ${item.sourceHost}) that won't touch the rest of your system.`}
+            ? t`This agent runs through ${item.provides}, which is installed but won't run — its ${item.displayName} looks broken. GitQuire can download a private copy of ${item.displayName} ${item.version} (about ${item.approxSizeMB} MB from ${item.sourceHost}) that won't touch the rest of your system.`
+            : t`This agent runs through ${item.provides}, which isn't installed. GitQuire can download a private copy of ${item.displayName} ${item.version} (about ${item.approxSizeMB} MB from ${item.sourceHost}) that won't touch the rest of your system.`}
       </p>
       <div className="flex flex-wrap gap-1.5">
         <Button
@@ -4199,16 +4199,16 @@ function PiBridgeOutcomeRow({
         ) : null}
         <span>
           {outcome.state === 'ready'
-            ? t`Open Knowledge tools are available in this thread.`
+            ? t`GitQuire tools are available in this thread.`
             : outcome.state === 'foreign-file'
-              ? t`Open Knowledge tools are unavailable: a file Open Knowledge didn't write is already at ${bridgePath}.`
+              ? t`GitQuire tools are unavailable: a file GitQuire didn't write is already at ${bridgePath}.`
               : outcome.state === 'unreadable-file'
-                ? t`Open Knowledge tools are unavailable: something is already at ${bridgePath} but couldn't be read, so Open Knowledge left it alone.`
+                ? t`GitQuire tools are unavailable: something is already at ${bridgePath} but couldn't be read, so GitQuire left it alone.`
                 : outcome.state === 'project-path-unavailable'
-                  ? t`Open Knowledge tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry.`
+                  ? t`GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry.`
                   : outcome.state === 'trust-failed'
-                    ? t`Wrote the Open Knowledge extension, but couldn't mark the folder trusted, so it won't load. This thread has no Open Knowledge tools.`
-                    : t`Couldn't write the Open Knowledge extension. This thread has no Open Knowledge tools.`}
+                    ? t`Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools.`
+                    : t`Couldn't write the GitQuire extension. This thread has no GitQuire tools.`}
         </span>
       </div>
       {outcome.detail !== null ? (
@@ -4242,8 +4242,8 @@ function PiBridgeConsentPrompt({
         data-testid="agent-thread-pi-bridge"
       >
         {item.decision === 'declined'
-          ? t`Skipped enabling Open Knowledge tools. This thread runs without them.`
-          : t`The request to enable Open Knowledge tools timed out. This thread runs without them.`}
+          ? t`Skipped enabling GitQuire tools. This thread runs without them.`
+          : t`The request to enable GitQuire tools timed out. This thread runs without them.`}
       </div>
     );
   }
@@ -4255,7 +4255,7 @@ function PiBridgeConsentPrompt({
         data-testid="agent-thread-pi-bridge"
       >
         <Spinner className="size-3.5 shrink-0" aria-hidden="true" />
-        <span>{t`Enabling Open Knowledge tools`}</span>
+        <span>{t`Enabling GitQuire tools`}</span>
       </div>
     );
   }
@@ -4269,17 +4269,17 @@ function PiBridgeConsentPrompt({
     >
       <div className="mb-1 flex items-center gap-1.5 font-medium">
         <Wrench className="size-4 shrink-0" aria-hidden="true" />
-        <span>{t`Enable Open Knowledge tools for ${prompt.agentName}?`}</span>
+        <span>{t`Enable GitQuire tools for ${prompt.agentName}?`}</span>
       </div>
       <p className="mb-1.5 text-muted-foreground text-xs">
-        {t`${prompt.agentName} has no way to read or edit your documents on its own. Approving writes the Open Knowledge extension to ${item.bridgePath} and leaves it there, so this session and later ones in this project have the Open Knowledge tools.`}
+        {t`${prompt.agentName} has no way to read or edit your documents on its own. Approving writes the GitQuire extension to ${item.bridgePath} and leaves it there, so this session and later ones in this project have the GitQuire tools.`}
       </p>
       <p className="mb-2 text-muted-foreground text-xs">
-        {t`It also marks ${prompt.cwd} as trusted, which is what makes the extension load. That trust covers the whole folder — ${prompt.agentName} will load every extension in it, not only Open Knowledge's — and both stay until you remove Open Knowledge from this project.`}
+        {t`It also marks ${prompt.cwd} as trusted, which is what makes the extension load. That trust covers the whole folder — ${prompt.agentName} will load every extension in it, not only GitQuire's — and both stay until you remove GitQuire from this project.`}
       </p>
       {otherExtensions !== '' ? (
         <p className="mb-2 text-muted-foreground text-xs">
-          {t`That folder already holds code Open Knowledge didn't write, which the same trust would let ${prompt.agentName} run: ${otherExtensions}.`}
+          {t`That folder already holds code GitQuire didn't write, which the same trust would let ${prompt.agentName} run: ${otherExtensions}.`}
         </p>
       ) : null}
       <div className="flex flex-wrap gap-1.5">

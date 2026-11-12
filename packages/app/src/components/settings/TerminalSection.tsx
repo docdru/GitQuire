@@ -78,7 +78,7 @@ export function TerminalSection() {
         scope="project-local"
         level="block"
       >
-        {t`Run a real terminal docked inside OpenKnowledge, starting in this project's folder.`}
+        {t`Run a real terminal docked inside GitQuire, starting in this project's folder.`}
       </SettingsSectionHeader>
 
       <div className="flex items-center justify-between gap-3 rounded-md border p-3">
@@ -106,7 +106,7 @@ export function TerminalSection() {
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <label htmlFor="settings-terminal-autoapprove-toggle" className="text-sm font-medium">
-              {t`Let agents use OpenKnowledge without asking`}
+              {t`Let agents use GitQuire without asking`}
             </label>
             <ScopeBadge scope="user" />
           </div>
@@ -114,7 +114,7 @@ export function TerminalSection() {
             className="text-1sm text-muted-foreground"
             data-testid="settings-terminal-autoapprove-body"
           >
-            {t`Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve OpenKnowledge's read and write tools (Claude also auto-runs "${cliCommand} open"). Deleting, moving, sharing, importing or installing skills, other commands, and non-OpenKnowledge file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent.`}
+            {t`Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs "${cliCommand} open"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent.`}
           </p>
           {autoApproveOn && codexNeedsInit ? (
             <p
@@ -130,7 +130,7 @@ export function TerminalSection() {
           checked={autoApproveOn}
           onCheckedChange={applyAutoApprove}
           disabled={!userSynced || userBinding === null}
-          aria-label={t`Let agents use OpenKnowledge without asking`}
+          aria-label={t`Let agents use GitQuire without asking`}
           data-testid="settings-terminal-autoapprove-toggle"
         />
       </div>

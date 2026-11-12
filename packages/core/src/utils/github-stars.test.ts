@@ -51,9 +51,9 @@ describe('getGitHubStars', () => {
 
     const request = requested[0];
     if (request === undefined) throw new Error('no request was made');
-    expect(new URL(request.url).pathname).toBe('/repos/inkeep/open-knowledge');
+    expect(new URL(request.url).pathname).toBe('/repos/docdru/GitQuire');
     expect(request.headers.get('accept')).toBe('application/vnd.github+json');
-    expect(request.headers.get('user-agent')).toBe('openknowledge.ai');
+    expect(request.headers.get('user-agent')).toBe('GitQuire');
   });
 
   test('forwards caller init keys other than signal, which is how the docs layout gets ISR', async () => {
@@ -73,7 +73,7 @@ describe('getGitHubStars', () => {
   });
 
   test('returns null when the payload omits stargazers_count', async () => {
-    answer = () => json({ full_name: 'inkeep/open-knowledge' });
+    answer = () => json({ full_name: 'docdru/GitQuire' });
 
     expect(await getGitHubStars()).toBeNull();
     expect(requested).toHaveLength(1);

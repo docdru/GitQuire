@@ -5,12 +5,12 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { UninstallNoticeScreen } from './UninstallNoticeScreen';
 
 const CONFIRM_NOTICE: UninstallNoticeSpec = {
-  title: 'Uninstall OpenKnowledge?',
+  title: 'Uninstall GitQuire?',
   paragraphs: [
-    'This removes OpenKnowledge’s settings and integrations from your Mac, but keeps your markdown content and authored skills.',
-    'OpenKnowledge will quit before cleanup starts. A dialog will show the result and help you remove the app itself.',
+    'This removes GitQuire’s settings and integrations from your Mac, but keeps your markdown content and authored skills.',
+    'GitQuire will quit before cleanup starts. A dialog will show the result and help you remove the app itself.',
   ],
-  confirmLabel: 'Uninstall OpenKnowledge',
+  confirmLabel: 'Uninstall GitQuire',
   cancelLabel: 'Cancel',
   danger: true,
 };
@@ -19,7 +19,7 @@ const FAILURE_NOTICE: UninstallNoticeSpec = {
   title: 'Cleanup didn’t finish',
   paragraphs: ['Some files may not have been removed — details below.'],
   log: 'Deinitializing project: /Users/dev/Notes\ndeinit=1 global=0',
-  footnote: 'Also saved to /Users/dev/Library/Logs/OpenKnowledge/uninstall.log',
+  footnote: 'Also saved to /Users/dev/Library/Logs/GitQuire/uninstall.log',
   confirmLabel: 'Continue',
 };
 
@@ -44,12 +44,12 @@ describe('uninstall notice screen', () => {
   test('shows the confirm question with both answers', async () => {
     const { user, onConfirm, onCancel } = renderNotice(CONFIRM_NOTICE);
 
-    expect(screen.getByRole('alertdialog', { name: 'Uninstall OpenKnowledge?' })).toBeDefined();
+    expect(screen.getByRole('alertdialog', { name: 'Uninstall GitQuire?' })).toBeDefined();
     for (const paragraph of CONFIRM_NOTICE.paragraphs) {
       expect(screen.getByText(paragraph)).toBeDefined();
     }
 
-    await user.click(screen.getByRole('button', { name: 'Uninstall OpenKnowledge' }));
+    await user.click(screen.getByRole('button', { name: 'Uninstall GitQuire' }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onCancel).not.toHaveBeenCalled();
   });
@@ -89,7 +89,7 @@ describe('uninstall notice screen', () => {
 
     expect(screen.getByText('Some files may not have been removed — details below.')).toBeDefined();
     expect(
-      screen.getByText('Also saved to /Users/dev/Library/Logs/OpenKnowledge/uninstall.log'),
+      screen.getByText('Also saved to /Users/dev/Library/Logs/GitQuire/uninstall.log'),
     ).toBeDefined();
 
     const log = screen.getByRole('region', { name: 'Cleanup log' });
@@ -99,7 +99,7 @@ describe('uninstall notice screen', () => {
 });
 
 const SUCCESS_NOTICE = {
-  title: 'OpenKnowledge files were removed',
+  title: 'GitQuire files were removed',
   subtitle: "Almost done. Here's what happened and what's left.",
   paragraphs: [],
   checklist: [
@@ -109,12 +109,12 @@ const SUCCESS_NOTICE = {
       done: true,
     },
     {
-      label: 'Removed OpenKnowledge files',
+      label: 'Removed GitQuire files',
       detail: 'Settings and integrations were cleaned up.',
       done: true,
     },
     {
-      label: 'Move OpenKnowledge.app to the Trash',
+      label: 'Move GitQuire.app to the Trash',
       detail: 'Reveal in Finder shows the app so you can drag it to the Trash.',
       done: false,
     },

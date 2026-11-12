@@ -263,7 +263,7 @@ function PatBody({
   onGhSignIn,
 }: PatBodyProps) {
   const { t } = useLingui();
-  const createUrl = `https://${host}/settings/tokens/new?scopes=repo,read:user&description=OpenKnowledge`;
+  const createUrl = `https://${host}/settings/tokens/new?scopes=repo,read:user&description=GitQuire`;
   return (
     <div className="flex flex-col gap-3">
       {showGhOption ? (
@@ -436,7 +436,7 @@ export function AuthModal({
       .then((status) => {
         if (settled) return;
         if (!status.authenticated && status.unsupportedOrigin !== undefined) {
-          refuse(status.error ?? t`OpenKnowledge can't sign in to GitHub for this project.`);
+          refuse(status.error ?? t`GitQuire can't sign in to GitHub for this project.`);
           return;
         }
         const enterprise = !!status.host && status.host !== 'github.com';

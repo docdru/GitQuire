@@ -1003,7 +1003,7 @@ describe('AgentConnectionsSection — Terminal group (docked terminal present)',
     expect(codexRow?.parentElement?.textContent ?? '').toContain('Not installed');
   });
 
-  test('an absent CLI with OpenKnowledge files says so, and keeps Install as its main action', async () => {
+  test('an absent CLI with GitQuire files says so, and keeps Install as its main action', async () => {
     terminalLaunchValue = { installedClis: { claude: true, pi: false } };
     reloadEnabledAgentsFromStorage();
     const snapshot = snapshotWith([satisfierId('pi', 'skill', 'user')]);
@@ -1014,12 +1014,10 @@ describe('AgentConnectionsSection — Terminal group (docked terminal present)',
     const row = await waitFor(() => terminalRow('pi'));
 
     await waitFor(() =>
-      expect(row.textContent ?? '').toContain('Not installed · OpenKnowledge files present'),
+      expect(row.textContent ?? '').toContain('Not installed · GitQuire files present'),
     );
     expect(within(row).getByRole('link', { name: /^Install\b/ })).toBeTruthy();
-    expect(
-      within(row).getByRole('button', { name: 'Remove OpenKnowledge from Pi CLI' }),
-    ).toBeTruthy();
+    expect(within(row).getByRole('button', { name: 'Remove GitQuire from Pi CLI' })).toBeTruthy();
   });
 
   test('an absent CLI with nothing on disk offers no cleanup and no residual hint', async () => {
@@ -1032,7 +1030,7 @@ describe('AgentConnectionsSection — Terminal group (docked terminal present)',
     const row = await waitFor(() => terminalRow('pi'));
 
     await waitFor(() => expect(row.textContent ?? '').toContain('Not installed'));
-    expect(row.textContent ?? '').not.toContain('OpenKnowledge files present');
+    expect(row.textContent ?? '').not.toContain('GitQuire files present');
     expect(within(row).queryByRole('button', { name: /^Remove\b/ })).toBeNull();
   });
 
@@ -1047,9 +1045,7 @@ describe('AgentConnectionsSection — Terminal group (docked terminal present)',
     await waitFor(() => terminalRow('pi'));
     const toggle = screen.getByTestId('configure-agents-terminal-pi');
 
-    await waitFor(() =>
-      expect(accessibleDescription(toggle)).toContain('OpenKnowledge files present'),
-    );
+    await waitFor(() => expect(accessibleDescription(toggle)).toContain('GitQuire files present'));
     expect(accessibleDescription(toggle)).not.toContain('Remove');
   });
 
@@ -1063,11 +1059,11 @@ describe('AgentConnectionsSection — Terminal group (docked terminal present)',
     await expandTerminal();
     const row = await waitFor(() => terminalRow('pi'));
     const remove = await waitFor(() =>
-      within(row).getByRole('button', { name: 'Remove OpenKnowledge from Pi CLI' }),
+      within(row).getByRole('button', { name: 'Remove GitQuire from Pi CLI' }),
     );
 
     fireEvent.click(remove);
-    expect(await screen.findByText('Remove OpenKnowledge from Pi?')).toBeTruthy();
+    expect(await screen.findByText('Remove GitQuire from Pi?')).toBeTruthy();
   });
 
   test('toggling a CLI writes the terminal: override key, not the desktop one', async () => {
@@ -1164,7 +1160,7 @@ describe('AgentConnectionsSection — connection status and action', () => {
     const desktopHint = await screen.findByTestId('configure-agents-desktop-row-cursor-followup');
     expect(desktopHint.getAttribute('role')).toBeNull();
     expect(desktopHint.textContent).toBe(
-      "Cursor keeps project MCP servers off until you turn them on under Customize → MCPs. OpenKnowledge can't see that setting.",
+      "Cursor keeps project MCP servers off until you turn them on under Customize → MCPs. GitQuire can't see that setting.",
     );
     expect(screen.queryByTestId('configure-agents-terminal-row-cursor-followup')).toBeNull();
   });
@@ -1303,7 +1299,7 @@ describe('AgentConnectionsSection — connection status and action', () => {
     await user.click(within(terminalRow('claude')).getByRole('button', { name: /^Remove\b/ }));
 
     const dialog = await screen.findByRole('alertdialog', {
-      name: 'Remove OpenKnowledge from Claude?',
+      name: 'Remove GitQuire from Claude?',
     });
     expect(within(dialog).getByText('Project MCP server')).toBeTruthy();
   });
@@ -1343,7 +1339,7 @@ describe('AgentConnectionsSection — connection status and action', () => {
     fireEvent.click(await screen.findByTestId('configure-agents-terminal-show-more'));
     const row = await waitFor(() => terminalRow('pi'));
     const remove = await waitFor(() =>
-      within(row).getByRole('button', { name: 'Remove OpenKnowledge from Pi CLI' }),
+      within(row).getByRole('button', { name: 'Remove GitQuire from Pi CLI' }),
     );
     const heading = row.closest('section')?.querySelector('h4') as HTMLElement;
     expect(heading).toBeTruthy();
@@ -1372,8 +1368,8 @@ describe('AgentConnectionsSection — connection status and action', () => {
     const row = await waitFor(() => terminalRow('claude'));
 
     await waitFor(() => expect(row.textContent ?? '').toContain('Not installed'));
-    expect(row.textContent ?? '').not.toContain('OpenKnowledge files present');
-    expect(within(row).queryByRole('button', { name: /^Remove OpenKnowledge from/ })).toBeNull();
+    expect(row.textContent ?? '').not.toContain('GitQuire files present');
+    expect(within(row).queryByRole('button', { name: /^Remove GitQuire from/ })).toBeNull();
   });
 
   test('a paired row whose sibling presence is unknown makes no residue claim', async () => {
@@ -1390,8 +1386,8 @@ describe('AgentConnectionsSection — connection status and action', () => {
     const row = await waitFor(() => desktopRow('codex'));
 
     await waitFor(() => expect(row.textContent ?? '').toContain('Not installed'));
-    expect(row.textContent ?? '').not.toContain('OpenKnowledge files present');
-    expect(within(row).queryByRole('button', { name: /^Remove OpenKnowledge from/ })).toBeNull();
+    expect(row.textContent ?? '').not.toContain('GitQuire files present');
+    expect(within(row).queryByRole('button', { name: /^Remove GitQuire from/ })).toBeNull();
   });
 
   test('a desktop row carries the same residual hint and cleanup link', async () => {
@@ -1408,9 +1404,9 @@ describe('AgentConnectionsSection — connection status and action', () => {
     const row = await waitFor(() => desktopRow('codex'));
 
     await waitFor(() =>
-      expect(row.textContent ?? '').toContain('Not installed · OpenKnowledge files present'),
+      expect(row.textContent ?? '').toContain('Not installed · GitQuire files present'),
     );
-    expect(within(row).getByRole('button', { name: /^Remove OpenKnowledge from/ })).toBeTruthy();
+    expect(within(row).getByRole('button', { name: /^Remove GitQuire from/ })).toBeTruthy();
   });
 
   test('an unlaunchable row carries the residual hint and cleanup link too', async () => {
@@ -1422,8 +1418,8 @@ describe('AgentConnectionsSection — connection status and action', () => {
 
     fireEvent.click(await screen.findByTestId('configure-agents-desktop-show-more'));
     const row = await waitFor(() => screen.getByTestId('agent-connection-lm-studio'));
-    await waitFor(() => expect(row.textContent ?? '').toContain('OpenKnowledge files present'));
-    expect(within(row).getByRole('button', { name: /^Remove OpenKnowledge from/ })).toBeTruthy();
+    await waitFor(() => expect(row.textContent ?? '').toContain('GitQuire files present'));
+    expect(within(row).getByRole('button', { name: /^Remove GitQuire from/ })).toBeTruthy();
   });
 
   test('an External-app row shows its connection status too', async () => {
@@ -2072,7 +2068,7 @@ describe('a host that cannot manage connections', () => {
 
     const notice = await screen.findByTestId('configure-agents-read-only');
     expect(notice.textContent).toContain(
-      "This development build can't connect agents, so it won't change the agent setup of your installed OpenKnowledge app.",
+      "This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app.",
     );
     expect(notice.textContent).not.toContain('unavailable in this build');
   });
@@ -2092,8 +2088,8 @@ describe('a host that cannot manage connections', () => {
     fireEvent.click(await screen.findByTestId('configure-agents-terminal-show-more'));
     const row = await waitFor(() => terminalRow('pi'));
 
-    await waitFor(() => expect(row.textContent ?? '').toContain('OpenKnowledge files present'));
-    expect(within(row).queryByRole('button', { name: /^Remove OpenKnowledge from/ })).toBeNull();
+    await waitFor(() => expect(row.textContent ?? '').toContain('GitQuire files present'));
+    expect(within(row).queryByRole('button', { name: /^Remove GitQuire from/ })).toBeNull();
   });
 
   test('a host that can manage connections shows no such notice', async () => {

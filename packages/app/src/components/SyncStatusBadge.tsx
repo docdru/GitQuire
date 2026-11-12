@@ -957,7 +957,7 @@ function WorktreeStatusSection({
             <WorktreeGroup title={<Trans>Push includes</Trans>} entries={willPush} />
             <WorktreeGroup
               title={<Trans>Push skips</Trans>}
-              note={<Trans>Outside what Open Knowledge commits.</Trans>}
+              note={<Trans>Outside what GitQuire commits.</Trans>}
               entries={wontPush}
               dimmed
             />

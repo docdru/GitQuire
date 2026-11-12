@@ -373,7 +373,7 @@ function EntryDetail({
   if (descriptor.kind === 'merge-version') {
     return (
       <p className="truncate text-xs text-muted-foreground">
-        {descriptor.side === 'ours' ? t`Version in OpenKnowledge` : t`Outside version`}
+        {descriptor.side === 'ours' ? t`Version in GitQuire` : t`Outside version`}
       </p>
     );
   }

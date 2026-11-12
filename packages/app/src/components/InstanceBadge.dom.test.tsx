@@ -77,7 +77,7 @@ describe('InstanceBadge runtime behavior', () => {
     await userEvent.hover(screen.getByTestId('instance-badge'));
     const tooltip = await screen.findByRole('tooltip');
     expect(tooltip.textContent).toContain('Cloud build, v0.81.5.');
-    expect(tooltip.textContent).toContain('kept separate from other OpenKnowledge apps');
+    expect(tooltip.textContent).toContain('kept separate from other GitQuire apps');
   });
 
   test('announces the build and its version to assistive tech', async () => {

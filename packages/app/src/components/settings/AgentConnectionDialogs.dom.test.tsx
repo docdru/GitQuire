@@ -289,10 +289,10 @@ describe('AgentConnectionDialogs', () => {
     await renderRemoveDialog(apply, 'cursor');
 
     const dialog = screen.getByRole('alertdialog', {
-      name: 'Remove OpenKnowledge from Cursor?',
+      name: 'Remove GitQuire from Cursor?',
     });
     expect(within(dialog).getByText('Project MCP server')).toBeTruthy();
-    expect(within(dialog).getByText('OpenKnowledge discovery skill')).toBeTruthy();
+    expect(within(dialog).getByText('GitQuire discovery skill')).toBeTruthy();
 
     await user.click(within(dialog).getByRole('button', { name: 'Remove' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
@@ -443,7 +443,7 @@ describe('AgentConnectionDialogs', () => {
       'Project MCP server',
       'Project skill',
       'Global MCP server',
-      'OpenKnowledge discovery skill',
+      'GitQuire discovery skill',
     ]) {
       await user.click(within(dialog).getByRole('checkbox', { name }));
     }
@@ -486,9 +486,7 @@ describe('AgentConnectionDialogs', () => {
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('checkbox', { name: 'Project MCP server' }));
     await user.click(within(dialog).getByRole('checkbox', { name: 'Project skill' }));
-    await user.click(
-      within(dialog).getByRole('checkbox', { name: 'OpenKnowledge discovery skill' }),
-    );
+    await user.click(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }));
 
     await within(dialog).findByText(/shared with/);
@@ -519,12 +517,12 @@ describe('AgentConnectionDialogs', () => {
       'Project MCP server',
       'Project skill',
       'Global MCP server',
-      'OpenKnowledge discovery skill',
+      'GitQuire discovery skill',
     ]) {
       await user.click(within(dialog).getByRole('checkbox', { name }));
     }
 
-    expect(tallyText(dialog)).toBe('This disconnects Cursor from OpenKnowledge.');
+    expect(tallyText(dialog)).toBe('This disconnects Cursor from GitQuire.');
     expect(
       within(dialog).getByRole('button', { name: 'Remove' }).getAttribute('data-variant'),
     ).toBe('destructive');
@@ -540,9 +538,7 @@ describe('AgentConnectionDialogs', () => {
     await renderConfigureDialog(async () => result(snapshot), 'cursor');
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('checkbox', { name: 'Project skill' }));
-    await user.click(
-      within(dialog).getByRole('checkbox', { name: 'OpenKnowledge discovery skill' }),
-    );
+    await user.click(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }));
 
     expect(tallyText(dialog)).toBe('1 added · 1 removed');
     expect(
@@ -566,15 +562,11 @@ describe('AgentConnectionDialogs', () => {
     expect(tallyText(dialog)).toBe('1 removed');
     expect(dialog.textContent).not.toContain('disconnects');
 
-    for (const name of [
-      'Project MCP server',
-      'Global MCP server',
-      'OpenKnowledge discovery skill',
-    ]) {
+    for (const name of ['Project MCP server', 'Global MCP server', 'GitQuire discovery skill']) {
       await user.click(within(dialog).getByRole('checkbox', { name }));
     }
     expect(dialog.textContent).toContain(note);
-    expect(tallyText(dialog)).toBe('This disconnects Claude from OpenKnowledge.');
+    expect(tallyText(dialog)).toBe('This disconnects Claude from GitQuire.');
   });
 
   test('a draft that has fully landed disables the button rather than leaving it enabled beside an empty tally', async () => {
@@ -773,13 +765,11 @@ describe('AgentConnectionDialogs', () => {
 
     await renderConfigureDialog(apply, 'cursor');
     const dialog = screen.getByRole('dialog', { name: 'Cursor' });
-    await user.click(
-      within(dialog).getByRole('checkbox', { name: 'OpenKnowledge discovery skill' }),
-    );
+    await user.click(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }));
 
     const alert = await within(dialog).findByRole('alert');
-    expect(alert.textContent).toContain('OpenKnowledge discovery skill');
+    expect(alert.textContent).toContain('GitQuire discovery skill');
     expect(alert.textContent).toContain(
       'Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio.',
     );
@@ -835,8 +825,8 @@ describe('AgentConnectionDialogs', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Cursor' });
     await user.hover(within(dialog).getByRole('button', { name: 'Why this needs attention' }));
     const tooltip = await screen.findAllByRole('tooltip');
-    expect(within(tooltip[0]).getByText(/changed after OpenKnowledge wrote it/i)).toBeDefined();
-    expect(within(tooltip[0]).getByText(/Adds a global OpenKnowledge MCP entry/i)).toBeDefined();
+    expect(within(tooltip[0]).getByText(/changed after GitQuire wrote it/i)).toBeDefined();
+    expect(within(tooltip[0]).getByText(/Adds a global GitQuire MCP entry/i)).toBeDefined();
   });
 
   test('a blocked warning states its own reason once, not the generic line', async () => {
@@ -898,7 +888,7 @@ describe('AgentConnectionDialogs', () => {
     await renderRemoveDialog(apply, 'copilot');
 
     const dialog = screen.getByRole('alertdialog', {
-      name: 'Remove OpenKnowledge from GitHub Copilot?',
+      name: 'Remove GitQuire from GitHub Copilot?',
     });
     await user.click(within(dialog).getByRole('button', { name: 'Remove' }));
 
@@ -957,7 +947,7 @@ describe('AgentConnectionDialogs', () => {
     const user = userEvent.setup();
 
     await renderRemoveDialog(apply, 'cursor');
-    const dialog = screen.getByRole('alertdialog', { name: 'Remove OpenKnowledge from Cursor?' });
+    const dialog = screen.getByRole('alertdialog', { name: 'Remove GitQuire from Cursor?' });
     await user.click(within(dialog).getByRole('button', { name: 'Remove' }));
 
     expect((await within(dialog).findByRole('alert')).textContent).toContain(
@@ -995,9 +985,7 @@ describe('AgentConnectionDialogs', () => {
 
     expect(within(dialog).queryByRole('checkbox', { name: 'Global MCP server' })).toBeNull();
     expect(within(dialog).getByText('This machine')).toBeTruthy();
-    expect(
-      within(dialog).getByRole('checkbox', { name: 'OpenKnowledge discovery skill' }),
-    ).toBeTruthy();
+    expect(within(dialog).getByRole('checkbox', { name: 'GitQuire discovery skill' })).toBeTruthy();
     expect(within(dialog).getByRole('checkbox', { name: 'Project MCP server' })).toBeTruthy();
   });
 
@@ -1036,7 +1024,7 @@ describe('AgentConnectionDialogs', () => {
     expect(within(dialog).getByRole('checkbox', { name: 'Global MCP server' })).toBeTruthy();
     expect(
       within(dialog).getByText(
-        'Choose what OpenKnowledge sets up for Hermes. Hermes only supports global configuration.',
+        'Choose what GitQuire sets up for Hermes. Hermes only supports global configuration.',
       ),
     ).toBeTruthy();
   });
@@ -1049,7 +1037,7 @@ describe('AgentConnectionDialogs', () => {
 
     expect(
       within(dialog).getByText(
-        'Choose what OpenKnowledge sets up for Antigravity. Antigravity only supports global configuration.',
+        'Choose what GitQuire sets up for Antigravity. Antigravity only supports global configuration.',
       ),
     ).toBeTruthy();
     expect(within(dialog).queryByText('This project')).toBeNull();
@@ -1061,7 +1049,7 @@ describe('AgentConnectionDialogs', () => {
     await renderConfigureDialog(apply, 'cursor');
     const dialog = await screen.findByRole('dialog', { name: 'Cursor' });
 
-    expect(within(dialog).getByText('Choose what OpenKnowledge sets up for Cursor.')).toBeTruthy();
+    expect(within(dialog).getByText('Choose what GitQuire sets up for Cursor.')).toBeTruthy();
   });
 });
 
@@ -1137,9 +1125,7 @@ describe('a failed save names its reason', () => {
     });
     const text = await saveAndReadAlert('claude', apply);
     expect(text).toContain('Project MCP server');
-    expect(text).toContain(
-      'OpenKnowledge left this file alone because it could not parse it safely.',
-    );
+    expect(text).toContain('GitQuire left this file alone because it could not parse it safely.');
   });
 
   test('a config file the agent has not created yet says to open the agent first', async () => {
@@ -1186,7 +1172,7 @@ describe('a failed save names its reason', () => {
     });
     const text = await saveAndReadAlert('claude', apply);
     expect(text).toContain(
-      "This development build can't connect agents, so it won't change the agent setup of your installed OpenKnowledge app.",
+      "This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app.",
     );
     expect(text).not.toContain('unavailable in this build');
   });
@@ -1272,7 +1258,7 @@ describe('a failed save names its reason', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Remove' }));
     const text = (await within(dialog).findByRole('alert')).textContent ?? '';
     expect(text).toContain('Global MCP server');
-    expect(text).toContain('Writing this file failed. Check the OpenKnowledge log for the reason.');
+    expect(text).toContain('Writing this file failed. Check the GitQuire log for the reason.');
   });
 });
 

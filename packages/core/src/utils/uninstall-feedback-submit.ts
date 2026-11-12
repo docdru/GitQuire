@@ -22,7 +22,7 @@ export type UninstallFeedbackResult =
   | { ok: true; reference: string }
   | { ok: false; reason: 'invalid' | 'unavailable' | 'timeout' | 'error' };
 
-const DEFAULT_INTAKE_ORIGIN = 'https://openknowledge.ai';
+const DEFAULT_INTAKE_ORIGIN = 'http://feedback.invalid';
 
 const DEFAULT_TIMEOUT_MS = 4_000;
 

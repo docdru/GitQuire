@@ -2,7 +2,7 @@ import type { Editor } from '@tiptap/core';
 import { describe, expect, test, vi } from 'vitest';
 
 const LONG =
-  'Use when triaging an Open Knowledge ticket in Linear, whatever its shape or origin. ' +
+  'Use when triaging a GitQuire ticket in Linear, whatever its shape or origin. ' +
   'Owns every kind of ticket: defect, feature request, question, sentiment.';
 
 const SHORT_FIRST =
@@ -26,7 +26,7 @@ const SINGLE_LETTER =
   'First do A. Then do the rest of the work described further down in this paragraph.';
 
 const UNBROKEN =
-  'Read when the user asks what OpenKnowledge is and wants to install it on a repository ' +
+  'Read when the user asks what GitQuire is and wants to install it on a repository ' +
   'they already have checked out somewhere on disk';
 
 const skills = new Map<string, { scope: 'project'; path: string; description?: string }>([
@@ -120,7 +120,7 @@ describe('getSkillReferenceItems', () => {
 
     expect(wordy?.description?.length).toBeLessThanOrEqual(105);
     expect(wordy?.description).not.toContain('Owns every kind of ticket');
-    expect(wordy?.description?.startsWith('Use when triaging an Open Knowledge ticket')).toBe(true);
+    expect(wordy?.description?.startsWith('Use when triaging a GitQuire ticket')).toBe(true);
   });
 
   test('a doc that is not a skill bundle offers no skill references', () => {

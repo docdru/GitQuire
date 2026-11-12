@@ -60,5 +60,5 @@ export const NATIVE_MENU_MESSAGES = {
 export const MENU_LABEL_TEXT_MESSAGES: readonly MessageDescriptor[] = [
   msg`Install for Claude Chat & Cowork (desktop app)`,
   msg`New Terminal Window`,
-  msg`Uninstall OpenKnowledge`,
+  msg`Uninstall GitQuire`,
 ];

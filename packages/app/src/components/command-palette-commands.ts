@@ -55,7 +55,6 @@ import {
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { requestDocPanelTab } from '@/components/doc-panel-events';
-import { DiscordIcon } from '@/components/icons/discord';
 import { GithubIcon } from '@/components/icons/github';
 import type { ResolvedNavigationTarget } from '@/components/navigation-targets';
 import { PANE_ICON } from '@/components/pane-icons';
@@ -197,11 +196,11 @@ const PALETTE_COMMAND_LABELS = {
   newTerminal: msg`New Terminal`,
   killTerminal: msg`Kill Terminal`,
   checkForUpdates: msg`Check for updates`,
-  setUpIntegrations: msg`Set up OpenKnowledge integrations`,
+  setUpIntegrations: msg`Set up GitQuire integrations`,
   checkSpelling: msg`Check spelling while typing`,
-  openOnGithub: msg`OpenKnowledge on GitHub`,
+  openOnGithub: msg`GitQuire on GitHub`,
   openDocs: msg`Documentation`,
-  joinDiscord: msg`Join us on Discord`,
+  joinDiscord: msg`Report an issue on GitHub`,
 } as const satisfies Record<string, MessageDescriptor>;
 
 export type PaletteLabelKey = keyof typeof PALETTE_COMMAND_LABELS;
@@ -296,7 +295,7 @@ const COMMAND_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   'toggle-spell-check': SpellCheck,
   'open-github': GithubIcon,
   'open-docs': BookOpen,
-  'open-discord': DiscordIcon,
+  'open-discord': GithubIcon,
 };
 
 const COMMAND_DISPATCH: Record<string, (ctx: PaletteCommandContext) => void> = {
@@ -388,10 +387,7 @@ const COMMAND_DISPATCH: Record<string, (ctx: PaletteCommandContext) => void> = {
     ctx.closePalette();
     ctx.openBugReportHistory();
   },
-  'send-feedback': (ctx) => {
-    ctx.closePalette();
-    ctx.openFeedbackDialog();
-  },
+  'send-feedback': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_DISCORD_URL),
   'check-for-updates': (ctx) =>
     ctx.runAction(async () => {
       await ctx.bridge?.update.checkNow();

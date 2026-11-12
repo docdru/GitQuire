@@ -73,9 +73,9 @@ export function SkillTrackInGitDialog() {
           </DialogTitle>
           <DialogDescription>
             <Trans>
-              Your agents still load this skill, but OpenKnowledge can't open or edit it: it won't
-              index a file that git is set to ignore, because syncing it would fail. Adding one line
-              to {gitignorePath} makes it editable here.
+              Your agents still load this skill, but GitQuire can't open or edit it: it won't index
+              a file that git is set to ignore, because syncing it would fail. Adding one line to{' '}
+              {gitignorePath} makes it editable here.
             </Trans>
           </DialogDescription>
         </DialogHeader>

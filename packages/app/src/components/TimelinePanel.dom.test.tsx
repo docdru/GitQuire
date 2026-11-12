@@ -160,7 +160,7 @@ const MERGE_VERSION_ROWS: Array<{ checkpoint: ParsedCheckpoint; title: string; s
       metadata: { side: 'ours', keptBlocks: 1 },
     },
     title: 'Before an outside change was merged',
-    side: 'Version in OpenKnowledge',
+    side: 'Version in GitQuire',
   },
   {
     checkpoint: {
@@ -190,7 +190,7 @@ const MERGE_VERSION_ROWS: Array<{ checkpoint: ParsedCheckpoint; title: string; s
       metadata: { side: 'ours', reason: 'too-large' },
     },
     title: 'Not merged',
-    side: 'Version in OpenKnowledge',
+    side: 'Version in GitQuire',
   },
   {
     checkpoint: {

@@ -208,8 +208,8 @@ msgstr "{0} +{rest} lainnya"
 msgid "{0} × {label}"
 msgstr "{0} × {label}"
 
-msgid "{0} acts without asking — OpenKnowledge can't add permission prompts for it"
-msgstr "{0} bertindak tanpa bertanya — OpenKnowledge tidak dapat menambahkan permintaan izin untuknya"
+msgid "{0} acts without asking — GitQuire can't add permission prompts for it"
+msgstr "{0} bertindak tanpa bertanya — GitQuire tidak dapat menambahkan permintaan izin untuknya"
 
 msgid "{0} added, {1} removed"
 msgstr "{0} ditambahkan, {1} dihapus"
@@ -226,8 +226,8 @@ msgstr "{0} tidak mengonfirmasi perubahan jendela konteks. Periksa percakapan se
 msgid "{0} doesn't offer any settings to adjust"
 msgstr "{0} tidak menawarkan pengaturan untuk disesuaikan"
 
-msgid "{0} has no way to read or edit your documents on its own. Approving writes the Open Knowledge extension to {1} and leaves it there, so this session and later ones in this project have the Open Knowledge tools."
-msgstr "{0} tidak dapat membaca atau menyunting dokumen Anda sendiri. Menyetujui akan menulis ekstensi Open Knowledge ke {1} dan membiarkannya di sana, sehingga sesi ini dan sesi berikutnya dalam proyek ini memiliki alat Open Knowledge."
+msgid "{0} has no way to read or edit your documents on its own. Approving writes the GitQuire extension to {1} and leaves it there, so this session and later ones in this project have the GitQuire tools."
+msgstr "{0} tidak dapat membaca atau menyunting dokumen Anda sendiri. Menyetujui akan menulis ekstensi GitQuire ke {1} dan membiarkannya di sana, sehingga sesi ini dan sesi berikutnya dalam proyek ini memiliki alat GitQuire."
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0} belum melaporkan pengaturannya"
@@ -336,15 +336,15 @@ msgstr "{addingCount, plural, other {# ditambahkan}} · {removingCount, plural, 
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.claude-desktop.per-tool-approval"
-msgstr "{agent} meminta Anda menyetujui setiap alat OpenKnowledge saat pertama kali digunakan."
+msgstr "{agent} meminta Anda menyetujui setiap alat GitQuire saat pertama kali digunakan."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.session-injection"
-msgstr "{agent} menerima alat OpenKnowledge setiap kali OpenKnowledge menjalankannya; tidak ada yang ditulis ke konfigurasinya."
+msgstr "{agent} menerima alat GitQuire setiap kali GitQuire menjalankannya; tidak ada yang ditulis ke konfigurasinya."
 
 #. js-lingui-explicit-id
 msgid "followup.enable-manually"
-msgstr "{agent} membiarkan server MCP proyek mati sampai Anda menyalakannya di Customize → MCPs. OpenKnowledge tidak bisa melihat pengaturan itu."
+msgstr "{agent} membiarkan server MCP proyek mati sampai Anda menyalakannya di Customize → MCPs. GitQuire tidak bisa melihat pengaturan itu."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.codex.folder-trust"
@@ -356,7 +356,7 @@ msgstr "{agent} hanya memuat ekstensi proyek di folder yang Anda percayai; perca
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.copilot.shared-workspace-config"
-msgstr "{agent} membaca konfigurasi MCP ruang kerja yang ditulis OpenKnowledge untuk {sourceAgent}; menghapusnya untuk satu berarti menghapusnya untuk keduanya. {agent} memuatnya hanya setelah Anda mengonfirmasi kepercayaan folder saat peluncuran pertama, dan melewatinya diam-diam di folder yang belum Anda percayai, termasuk di bawah copilot -p, yang tidak bisa menampilkan permintaan kepercayaan."
+msgstr "{agent} membaca konfigurasi MCP ruang kerja yang ditulis GitQuire untuk {sourceAgent}; menghapusnya untuk satu berarti menghapusnya untuk keduanya. {agent} memuatnya hanya setelah Anda mengonfirmasi kepercayaan folder saat peluncuran pertama, dan melewatinya diam-diam di folder yang belum Anda percayai, termasuk di bawah copilot -p, yang tidak bisa menampilkan permintaan kepercayaan."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.openclaw.central-store-missing"
@@ -512,20 +512,20 @@ msgstr "{days, plural, other {# hari lalu}}"
 msgid "{days}d ago"
 msgstr "{days} hr lalu"
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge cannot safely replace that entry in this file's format."
-msgstr "{dependent} memerlukan {prerequisite}, dan OpenKnowledge tidak dapat mengganti entri tersebut dengan aman dalam format file ini."
+msgid "{dependent} needs {prerequisite}, and GitQuire cannot safely replace that entry in this file's format."
+msgstr "{dependent} memerlukan {prerequisite}, dan GitQuire tidak dapat mengganti entri tersebut dengan aman dalam format file ini."
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge could not find this agent on this machine."
-msgstr "{dependent} memerlukan {prerequisite}, dan OpenKnowledge tidak menemukan agen ini di mesin ini."
+msgid "{dependent} needs {prerequisite}, and GitQuire could not find this agent on this machine."
+msgstr "{dependent} memerlukan {prerequisite}, dan GitQuire tidak menemukan agen ini di mesin ini."
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge does not recognize that entry. Tick {prerequisite} to replace it, then save again."
-msgstr "{dependent} memerlukan {prerequisite}, dan OpenKnowledge tidak mengenali entri tersebut. Centang {prerequisite} untuk menggantinya, lalu simpan lagi."
+msgid "{dependent} needs {prerequisite}, and GitQuire does not recognize that entry. Tick {prerequisite} to replace it, then save again."
+msgstr "{dependent} memerlukan {prerequisite}, dan GitQuire tidak mengenali entri tersebut. Centang {prerequisite} untuk menggantinya, lalu simpan lagi."
 
 msgid "{dependent} needs {prerequisite}, and this agent has no file of that kind on this machine yet. Open the agent once, then try again."
 msgstr "{dependent} memerlukan {prerequisite}, dan agen ini belum memiliki file jenis itu di mesin ini. Buka agen sekali, lalu coba lagi."
 
-msgid "{dependent} needs {prerequisite}, which OpenKnowledge cannot set up for you. Its setup guide has the manual steps."
-msgstr "{dependent} memerlukan {prerequisite}, yang tidak dapat disiapkan OpenKnowledge untuk Anda. Panduan penyiapannya berisi langkah-langkah manual."
+msgid "{dependent} needs {prerequisite}, which GitQuire cannot set up for you. Its setup guide has the manual steps."
+msgstr "{dependent} memerlukan {prerequisite}, yang tidak dapat disiapkan GitQuire untuk Anda. Panduan penyiapannya berisi langkah-langkah manual."
 
 msgid "{descriptorLabel} — render error, source editable below"
 msgstr "{descriptorLabel} — galat render, sumber bisa disunting di bawah"
@@ -563,11 +563,11 @@ msgstr "CLI {displayName}, {hint}"
 msgid "{displayName} Desktop"
 msgstr "{displayName} Desktop"
 
-msgid "{displayName} is installed, but OpenKnowledge tools aren't connected to it yet."
-msgstr "{displayName} sudah terpasang, tetapi alat OpenKnowledge belum terhubung dengannya."
+msgid "{displayName} is installed, but GitQuire tools aren't connected to it yet."
+msgstr "{displayName} sudah terpasang, tetapi alat GitQuire belum terhubung dengannya."
 
-msgid "{docName} is {0}. OpenKnowledge currently opens files up to {1}."
-msgstr "{docName} berukuran {0}. Saat ini OpenKnowledge membuka berkas hingga {1}."
+msgid "{docName} is {0}. GitQuire currently opens files up to {1}."
+msgstr "{docName} berukuran {0}. Saat ini GitQuire membuka berkas hingga {1}."
 
 msgid "{enabledCount}/{0} on"
 msgstr "{enabledCount}/{0} aktif"
@@ -585,17 +585,17 @@ msgstr "{failed} dari {0} komentar tidak dapat diperbarui."
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount} berkas gagal diunggah}}"
 
-msgid "{file} was not saved because it changed outside OpenKnowledge to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} tidak disimpan karena diubah dari luar OpenKnowledge menjadi konten yang bukan teks UTF-8, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi saat file berubah."
+msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} tidak disimpan karena diubah dari luar GitQuire menjadi konten yang bukan teks UTF-8, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi saat file berubah."
 
 msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
 msgstr "{file} tidak disimpan karena tidak bisa dibaca untuk dibandingkan dengan perubahan dari luar, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
 
-msgid "{file} was not saved because it kept changing outside OpenKnowledge. Your edits stay here, and saving is tried again."
-msgstr "{file} tidak disimpan karena terus berubah dari luar OpenKnowledge. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
+msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
+msgstr "{file} tidak disimpan karena terus berubah dari luar GitQuire. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
 
-msgid "{file} was not saved. It changed outside OpenKnowledge, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} tidak disimpan. File ini diubah dari luar OpenKnowledge, dan versi tersebut tidak bisa disimpan di riwayat maupun di folder cadangan, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
+msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} tidak disimpan. File ini diubah dari luar GitQuire, dan versi tersebut tidak bisa disimpan di riwayat maupun di folder cadangan, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, other {# berkas}}"
@@ -645,11 +645,11 @@ msgstr "{label} ({0})"
 msgid "{label} already loads \"{0}\" from the {1} plugin. Installing here puts a copy at {2} that {label} uses instead of the plugin's — it stops tracking plugin updates."
 msgstr "{label} sudah memuat \"{0}\" dari plugin {1}. Memasang di sini membuat salinan di {2} yang dipakai {label} alih-alih milik plugin — salinan itu berhenti mengikuti pembaruan plugin."
 
-msgid "{label} build, v{version}. Its settings and data are kept separate from other OpenKnowledge apps."
-msgstr "Versi {label}, v{version}. Pengaturan dan datanya disimpan terpisah dari aplikasi OpenKnowledge lainnya."
+msgid "{label} build, v{version}. Its settings and data are kept separate from other GitQuire apps."
+msgstr "Versi {label}, v{version}. Pengaturan dan datanya disimpan terpisah dari aplikasi GitQuire lainnya."
 
-msgid "{label} build. Its settings and data are kept separate from other OpenKnowledge apps."
-msgstr "Versi {label}. Pengaturan dan datanya disimpan terpisah dari aplikasi OpenKnowledge lainnya."
+msgid "{label} build. Its settings and data are kept separate from other GitQuire apps."
+msgstr "Versi {label}. Pengaturan dan datanya disimpan terpisah dari aplikasi GitQuire lainnya."
 
 msgid "{label} enabled"
 msgstr "{label} diaktifkan"
@@ -878,8 +878,8 @@ msgid "<{descriptorLabel}> failed to render (likely a bad prop). Copy the source
 msgstr "<{descriptorLabel}> gagal dirender (kemungkinan prop yang salah). Salin sumbernya untuk melihat apa yang salah, atau hapus bloknya."
 
 #. Warning shown when the user unchecks the PATH toggle on a desktop build with the built-in terminal
-msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. OpenKnowledge's built-in terminal and AI tools keep working."
-msgstr "<0>{cliCommand}</0> tidak akan berjalan di terminal eksternal sampai Anda menambahkannya nanti dari menu Berkas. Terminal bawaan dan alat AI OpenKnowledge tetap berfungsi."
+msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. GitQuire's built-in terminal and AI tools keep working."
+msgstr "<0>{cliCommand}</0> tidak akan berjalan di terminal eksternal sampai Anda menambahkannya nanti dari menu Berkas. Terminal bawaan dan alat AI GitQuire tetap berfungsi."
 
 #. Warning shown when the user unchecks the PATH toggle on a desktop build without the built-in terminal
 msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. Your AI tools keep working."
@@ -1189,8 +1189,8 @@ msgstr "Tambahkan properti"
 msgid "Add a starter pack"
 msgstr "Tambahkan paket awal"
 
-msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, OpenKnowledge uses the token instead."
-msgstr "Tambahkan token akses untuk server GitLab, Gitea, Bitbucket, Azure DevOps, atau git yang di-host sendiri. Tanpa token, git memakai kredensial yang sudah tersimpan untuk host tersebut; dengan token, OpenKnowledge memakai token itu sebagai gantinya."
+msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
+msgstr "Tambahkan token akses untuk server GitLab, Gitea, Bitbucket, Azure DevOps, atau git yang di-host sendiri. Tanpa token, git memakai kredensial yang sudah tersimpan untuk host tersebut; dengan token, GitQuire memakai token itu sebagai gantinya."
 
 msgid "Add another pattern"
 msgstr "Tambahkan pola lain"
@@ -1298,36 +1298,36 @@ msgstr "Ditambahkan"
 msgid "Adding"
 msgstr "Menambahkan"
 
-msgid "Adds a global OpenKnowledge MCP entry for this agent."
-msgstr "Menambahkan entri MCP OpenKnowledge global untuk agen ini."
+msgid "Adds a global GitQuire MCP entry for this agent."
+msgstr "Menambahkan entri MCP GitQuire global untuk agen ini."
 
 msgid "Adds a managed block to"
 msgstr "Menambahkan blok terkelola ke"
 
 #. Subtext under the project AI-tools checkbox
-msgid "Adds an OpenKnowledge MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
-msgstr "Menambahkan entri MCP OpenKnowledge dan keterampilan proyek ke <0>{toolList}</0> agar agen Anda dapat membaca dan mengedit berkas Anda."
+msgid "Adds a GitQuire MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
+msgstr "Menambahkan entri MCP GitQuire dan keterampilan proyek ke <0>{toolList}</0> agar agen Anda dapat membaca dan mengedit berkas Anda."
 
 #. Subtext under the AI-tools MCP checkbox
-msgid "Adds an OpenKnowledge MCP entry to <0>{connectToolList}</0>, so your agents can read and edit your files."
-msgstr "Menambahkan entri MCP OpenKnowledge ke <0>{connectToolList}</0> agar agen Anda dapat membaca dan mengedit berkas Anda."
+msgid "Adds a GitQuire MCP entry to <0>{connectToolList}</0>, so your agents can read and edit your files."
+msgstr "Menambahkan entri MCP GitQuire ke <0>{connectToolList}</0> agar agen Anda dapat membaca dan mengedit berkas Anda."
 
-msgid "Adds an OpenKnowledge MCP entry to this project's agent config."
-msgstr "Menambahkan entri MCP OpenKnowledge ke konfigurasi agen proyek ini."
+msgid "Adds a GitQuire MCP entry to this project's agent config."
+msgstr "Menambahkan entri MCP GitQuire ke konfigurasi agen proyek ini."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.user-config"
-msgstr "Menambahkan OpenKnowledge ke konfigurasi MCP milik {agent}, sehingga semua proyek di mesin ini dapat dijangkau."
+msgstr "Menambahkan GitQuire ke konfigurasi MCP milik {agent}, sehingga semua proyek di mesin ini dapat dijangkau."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.project-config"
-msgstr "Menambahkan OpenKnowledge ke konfigurasi MCP yang dibaca {agent} di proyek ini, sehingga ia dapat membaca, mencari, dan mengedit dokumen-dokumen ini."
+msgstr "Menambahkan GitQuire ke konfigurasi MCP yang dibaca {agent} di proyek ini, sehingga ia dapat membaca, mencari, dan mengedit dokumen-dokumen ini."
 
 msgid "Adds telemetry, server state, and runtime info when available. Credentials are always removed; document names, if included, appear in cleartext (not redacted)."
 msgstr "Menambahkan telemetri, keadaan server, dan info runtime bila tersedia. Kredensial selalu dihapus; nama dokumen, jika disertakan, muncul sebagai teks biasa (tidak disunting)."
 
-msgid "Adds the OpenKnowledge skill to the <0>Claude Desktop App</0> so it's available in Chat and Cowork sessions."
-msgstr "Menambahkan keterampilan OpenKnowledge ke <0>aplikasi Claude Desktop</0> agar tersedia di sesi Chat dan Cowork."
+msgid "Adds the GitQuire skill to the <0>Claude Desktop App</0> so it's available in Chat and Cowork sessions."
+msgstr "Menambahkan keterampilan GitQuire ke <0>aplikasi Claude Desktop</0> agar tersedia di sesi Chat dan Cowork."
 
 msgid "Adds the skill to {rootRel} — also read by {0}"
 msgstr "Menambahkan keterampilan ke {rootRel} — juga dibaca oleh {0}"
@@ -1440,7 +1440,7 @@ msgstr "Hampir selesai. Berikut yang sudah dilakukan dan yang masih perlu dilaku
 msgid "Already at {assetContentPath} — reusing."
 msgstr "Sudah ada di {assetContentPath} — memakai ulang."
 
-#. Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have an OpenKnowledge MCP entry, which stay as they are while the box is unticked
+#. Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have a GitQuire MCP entry, which stay as they are while the box is unticked
 msgid "Already connected to {replacingToolList}"
 msgstr "Sudah terhubung ke: {replacingToolList}"
 
@@ -1555,8 +1555,8 @@ msgstr "Berlaku untuk (glob — awalan ! mengecualikan; kosong berarti semua dok
 msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
 msgstr "Berlaku untuk semua proyek di mesin ini, pada obrolan Claude Code dan Codex di panel Agen yang dimulai setelah Anda mengaktifkannya. Agen dapat membuka halaman, mengeklik, mengetik, dan mengambil tangkapan layar di jendela Google Chrome miliknya dengan profil baru. Memerlukan Google Chrome dan Node.js yang terpasang. Setiap tindakan browser meminta persetujuan Anda, tanpa opsi untuk selalu mengizinkannya, kecuali mode agen itu sendiri atau pengaturan izinnya melewati persetujuan."
 
-msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve OpenKnowledge's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-OpenKnowledge file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
-msgstr "Berlaku untuk semua proyek di mesin ini. Claude dan Codex yang dimulai dari terminal bawaan, serta agen apa pun dalam obrolan panel Agen di aplikasi, otomatis menyetujui alat baca dan tulis OpenKnowledge (Claude juga otomatis menjalankan \"{cliCommand} open\"). Menghapus, memindahkan, membagikan, mengimpor atau memasang skill, perintah lain, dan pengeditan berkas non-OpenKnowledge tetap bertanya. Di terminal, Cursor, OpenCode, dan Pi tidak terpengaruh. Upaya terbaik per agen."
+msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
+msgstr "Berlaku untuk semua proyek di mesin ini. Claude dan Codex yang dimulai dari terminal bawaan, serta agen apa pun dalam obrolan panel Agen di aplikasi, otomatis menyetujui alat baca dan tulis GitQuire (Claude juga otomatis menjalankan \"{cliCommand} open\"). Menghapus, memindahkan, membagikan, mengimpor atau memasang skill, perintah lain, dan pengeditan berkas non-GitQuire tetap bertanya. Di terminal, Cursor, OpenCode, dan Pi tidak terpengaruh. Upaya terbaik per agen."
 
 msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
 msgstr "Berlaku untuk proyek ini hanya di komputer ini. Disimpan di .ok/local, tidak dibagikan lewat git."
@@ -1790,8 +1790,8 @@ msgstr "Tersedia di"
 msgid "Available in every project on this machine. Not shared through git."
 msgstr "Tersedia di setiap proyek pada komputer ini. Tidak dibagikan lewat git."
 
-msgid "Available in the OpenKnowledge desktop app. From a terminal, use<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
-msgstr "Tersedia di aplikasi desktop OpenKnowledge. Dari terminal, gunakan<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
+msgid "Available in the GitQuire desktop app. From a terminal, use<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
+msgstr "Tersedia di aplikasi desktop GitQuire. Dari terminal, gunakan<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
 
 msgid "Back"
 msgstr "Kembali"
@@ -1888,11 +1888,11 @@ msgstr "Keduanya"
 msgid "Both agents end up reading everything in {keep}."
 msgstr "Kedua agen akhirnya membaca semua yang ada di {keep}."
 
-msgid "Both versions are identical. Choosing Accept current leaves OpenKnowledge's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
-msgstr "Kedua versi identik. Memilih Terima yang sekarang membuat perlindungan OpenKnowledge tetap aktif, sehingga penyimpanan versi lama berikutnya akan ditolak lagi. Memilih Terima yang masuk menonaktifkan perlindungan tersebut."
+msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
+msgstr "Kedua versi identik. Memilih Terima yang sekarang membuat perlindungan GitQuire tetap aktif, sehingga penyimpanan versi lama berikutnya akan ditolak lagi. Memilih Terima yang masuk menonaktifkan perlindungan tersebut."
 
-msgid "Both versions were kept in {fileName}. It changed outside OpenKnowledge in the same place as here, so the outside version is directly under this one."
-msgstr "Kedua versi disimpan di {fileName}. File ini diubah di luar OpenKnowledge di tempat yang sama dengan di sini, jadi versi dari luar ada tepat di bawah versi ini."
+msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
+msgstr "Kedua versi disimpan di {fileName}. File ini diubah di luar GitQuire di tempat yang sama dengan di sini, jadi versi dari luar ada tepat di bawah versi ini."
 
 msgid "Branch"
 msgstr "Cabang"
@@ -1957,8 +1957,8 @@ msgstr "Laporan bug {0}"
 msgid "Bug report history"
 msgstr "Riwayat laporan bug"
 
-msgid "Bug reporting needs the OpenKnowledge desktop app."
-msgstr "Pelaporan bug memerlukan aplikasi desktop OpenKnowledge."
+msgid "Bug reporting needs the GitQuire desktop app."
+msgstr "Pelaporan bug memerlukan aplikasi desktop GitQuire."
 
 msgid "Bugs, crashes, or it felt unreliable"
 msgstr "Bug, kegagalan, atau terasa tidak andal"
@@ -1990,8 +1990,8 @@ msgstr ""
 msgid "By meaning"
 msgstr "Berdasarkan makna"
 
-msgid "By OpenKnowledge"
-msgstr "Oleh OpenKnowledge"
+msgid "By GitQuire"
+msgstr "Oleh GitQuire"
 
 msgid "By tag"
 msgstr "Berdasarkan tag"
@@ -2002,8 +2002,8 @@ msgstr "Embedding dalam cache milik endpoint dan model yang menghasilkannya, jad
 msgid "Callouts draw attention to key information."
 msgstr "Kotak sorot menarik perhatian ke informasi penting."
 
-msgid "Can't nest projects. An OpenKnowledge project already exists at <0>{rootPath}</0>. Choose a location outside it, or open that project instead."
-msgstr "Proyek tidak bisa disarangkan. Sudah ada proyek OpenKnowledge di <0>{rootPath}</0>. Pilih lokasi di luarnya, atau buka proyek itu saja."
+msgid "Can't nest projects. A GitQuire project already exists at <0>{rootPath}</0>. Choose a location outside it, or open that project instead."
+msgstr "Proyek tidak bisa disarangkan. Sudah ada proyek GitQuire di <0>{rootPath}</0>. Pilih lokasi di luarnya, atau buka proyek itu saja."
 
 msgid "Can't share this path."
 msgstr "Tidak dapat membagikan jalur ini."
@@ -2068,8 +2068,8 @@ msgstr "Perubahan disimpan otomatis."
 msgid "Changes saved automatically."
 msgstr "Perubahan disimpan otomatis."
 
-msgid "Changes were saved, but OpenKnowledge could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
-msgstr "Perubahan telah disimpan, tetapi OpenKnowledge tidak dapat memastikan koneksi ke {handoffLabel}. Periksa pengaturan server MCP aplikasi ini, lalu pilih Simpan perubahan untuk memeriksa lagi."
+msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
+msgstr "Perubahan telah disimpan, tetapi GitQuire tidak dapat memastikan koneksi ke {handoffLabel}. Periksa pengaturan server MCP aplikasi ini, lalu pilih Simpan perubahan untuk memeriksa lagi."
 
 msgid "Character budget per indexing request"
 msgstr "Anggaran karakter per permintaan pengindeksan"
@@ -2201,14 +2201,14 @@ msgstr "Pilih apa yang dimulai obrolan baru"
 msgid "Choose what a new tab starts"
 msgstr "Pilih apa yang dimulai tab baru"
 
-msgid "Choose what OpenKnowledge sets up for {0}."
-msgstr "Pilih apa yang disiapkan OpenKnowledge untuk {0}."
+msgid "Choose what GitQuire sets up for {0}."
+msgstr "Pilih apa yang disiapkan GitQuire untuk {0}."
 
-msgid "Choose what OpenKnowledge sets up for {agentLabel}. {agentLabel} only supports global configuration."
-msgstr "Pilih apa yang disiapkan OpenKnowledge untuk {agentLabel}. {agentLabel} hanya mendukung konfigurasi global."
+msgid "Choose what GitQuire sets up for {agentLabel}. {agentLabel} only supports global configuration."
+msgstr "Pilih apa yang disiapkan GitQuire untuk {agentLabel}. {agentLabel} hanya mendukung konfigurasi global."
 
-msgid "Choose what OpenKnowledge sets up."
-msgstr "Pilih apa yang disiapkan OpenKnowledge."
+msgid "Choose what GitQuire sets up."
+msgstr "Pilih apa yang disiapkan GitQuire."
 
 msgid "Choose where to send these comments"
 msgstr "Pilih ke mana komentar ini dikirim"
@@ -2216,8 +2216,8 @@ msgstr "Pilih ke mana komentar ini dikirim"
 msgid "Choose where to send this message"
 msgstr "Pilih ke mana pesan ini dikirim"
 
-msgid "Choose whether this project's OpenKnowledge setup, including its AI-tool connections and the Shared default sync mode, is saved with the project so teammates get it too, or kept only on your computer."
-msgstr "Pilih apakah penyiapan OpenKnowledge proyek ini, termasuk koneksi alat AI-nya dan mode sinkronisasi Bawaan bersama, disimpan bersama proyek agar rekan tim juga mendapatkannya, atau disimpan hanya di komputer Anda."
+msgid "Choose whether this project's GitQuire setup, including its AI-tool connections and the Shared default sync mode, is saved with the project so teammates get it too, or kept only on your computer."
+msgstr "Pilih apakah penyiapan GitQuire proyek ini, termasuk koneksi alat AI-nya dan mode sinkronisasi Bawaan bersama, disimpan bersama proyek agar rekan tim juga mendapatkannya, atau disimpan hanya di komputer Anda."
 
 msgid "Choose which agents appear in agent menus across the app, and set them up to read and update your documents."
 msgstr "Pilih agen mana yang muncul di menu agen di seluruh aplikasi, lalu siapkan agar mereka dapat membaca dan memperbarui dokumen Anda."
@@ -2605,8 +2605,8 @@ msgstr "Hubungkan GitHub"
 msgid "Connect GitHub to continue."
 msgstr "Hubungkan GitHub untuk melanjutkan."
 
-msgid "Connect OpenKnowledge to other tools you use."
-msgstr "Hubungkan OpenKnowledge dengan alat lain yang Anda pakai."
+msgid "Connect GitQuire to other tools you use."
+msgstr "Hubungkan GitQuire dengan alat lain yang Anda pakai."
 
 msgid "Connect this project to GitHub to share."
 msgstr "Hubungkan proyek ini ke GitHub untuk membagikannya."
@@ -2624,7 +2624,7 @@ msgstr "Hubungkan alat"
 msgid "Connect your AI tools"
 msgstr "Hubungkan alat AI Anda"
 
-#. Checkbox that wires the OpenKnowledge MCP into every detected AI tool for the project
+#. Checkbox that wires the GitQuire MCP into every detected AI tool for the project
 msgid "Connect your AI tools to this project"
 msgstr "Hubungkan alat AI Anda ke proyek ini"
 
@@ -2667,8 +2667,8 @@ msgstr "Galat koneksi — coba lagi"
 msgid "Connection lost — keep this tab open, your edits will sync when reconnected"
 msgstr "Koneksi hilang — biarkan tab ini terbuka, suntingan Anda akan tersinkron saat tersambung kembali"
 
-msgid "Connects the agent to OpenKnowledge in every project on this machine."
-msgstr "Menghubungkan agen ke OpenKnowledge di setiap proyek pada mesin ini."
+msgid "Connects the agent to GitQuire in every project on this machine."
+msgstr "Menghubungkan agen ke GitQuire di setiap proyek pada mesin ini."
 
 msgid "Connects the agent to this project so it can read, search, and edit your documents."
 msgstr "Menghubungkan agen ke proyek ini agar dapat membaca, mencari, dan mengedit dokumen Anda."
@@ -2952,8 +2952,8 @@ msgstr "Kuncinya tidak bisa dibersihkan — silakan coba lagi."
 msgid "Couldn't complete semantic search — retry"
 msgstr "Pencarian semantik tidak dapat diselesaikan — coba lagi"
 
-msgid "Couldn't connect to the agent service. Make sure the OpenKnowledge server is running and up to date (restart it if it was already running), then try again."
-msgstr "Tidak bisa terhubung ke layanan agen. Pastikan server OpenKnowledge berjalan dan mutakhir (mulai ulang jika sudah berjalan), lalu coba lagi."
+msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
+msgstr "Tidak bisa terhubung ke layanan agen. Pastikan server GitQuire berjalan dan mutakhir (mulai ulang jika sudah berjalan), lalu coba lagi."
 
 msgid "Couldn't construct the share URL. Try Done and re-share."
 msgstr "URL berbagi tidak bisa disusun. Tekan Selesai lalu bagikan ulang."
@@ -3030,8 +3030,8 @@ msgstr "{skillName} tidak bisa dipasang: {0}"
 msgid "Couldn't install from {0}: {1}"
 msgstr "Tidak bisa memasang dari {0}: {1}"
 
-msgid "Couldn't install OpenKnowledge skill — {message}"
-msgstr "Tidak dapat memasang keterampilan OpenKnowledge: {message}"
+msgid "Couldn't install GitQuire skill — {message}"
+msgstr "Tidak dapat memasang keterampilan GitQuire: {message}"
 
 msgid "Couldn't install skill: {0}"
 msgstr "Keterampilan tidak bisa dipasang: {0}"
@@ -3063,8 +3063,8 @@ msgstr "Paket awal tidak bisa dimuat: {error}"
 msgid "Couldn't load templates"
 msgstr "Templat tidak bisa dimuat"
 
-msgid "Couldn't load the OpenKnowledge skills. Try again."
-msgstr "Keterampilan OpenKnowledge tidak dapat dimuat. Coba lagi."
+msgid "Couldn't load the GitQuire skills. Try again."
+msgstr "Keterampilan GitQuire tidak dapat dimuat. Coba lagi."
 
 msgid "Couldn't load the version preview. You can still choose how to resolve it below."
 msgstr "Pratinjau versinya tidak bisa dimuat. Anda tetap bisa memilih cara menyelesaikannya di bawah."
@@ -3153,11 +3153,11 @@ msgstr "Penyedia embedding tidak bisa dihubungi — coba lagi"
 msgid "Couldn't reach the endpoint. Check the URL and that the server is up."
 msgstr "Endpoint tidak bisa dihubungi. Periksa URL-nya dan pastikan servernya menyala."
 
-msgid "Couldn't reach the Open Knowledge server to upload {fileName}."
-msgstr "Server Open Knowledge tidak bisa dihubungi untuk mengunggah {fileName}."
+msgid "Couldn't reach the GitQuire server to upload {fileName}."
+msgstr "Server GitQuire tidak bisa dihubungi untuk mengunggah {fileName}."
 
-msgid "Couldn't reach the OpenKnowledge server, so sync options are hidden. They appear here as soon as the sync status loads; closing and reopening Settings also retries."
-msgstr "Tidak dapat menghubungi server OpenKnowledge, jadi opsi sinkronisasi disembunyikan. Opsi akan muncul di sini begitu status sinkronisasi dimuat; menutup lalu membuka kembali Pengaturan juga akan mencoba lagi."
+msgid "Couldn't reach the GitQuire server, so sync options are hidden. They appear here as soon as the sync status loads; closing and reopening Settings also retries."
+msgstr "Tidak dapat menghubungi server GitQuire, jadi opsi sinkronisasi disembunyikan. Opsi akan muncul di sini begitu status sinkronisasi dimuat; menutup lalu membuka kembali Pengaturan juga akan mencoba lagi."
 
 msgid "Couldn't read {fileName}."
 msgstr "Tidak dapat membaca {fileName}."
@@ -3216,8 +3216,8 @@ msgstr "Percabangannya tidak bisa diselesaikan: {0}"
 msgid "Couldn't restart {agentName}."
 msgstr "{agentName} tidak bisa dimulai ulang."
 
-msgid "Couldn't restart the server — another process owns it. Quit other OpenKnowledge windows for this project, then try again."
-msgstr "Server tidak bisa dimulai ulang — proses lain menguasainya. Tutup jendela OpenKnowledge lain untuk proyek ini, lalu coba lagi."
+msgid "Couldn't restart the server — another process owns it. Quit other GitQuire windows for this project, then try again."
+msgstr "Server tidak bisa dimulai ulang — proses lain menguasainya. Tutup jendela GitQuire lain untuk proyek ini, lalu coba lagi."
 
 msgid "Couldn't restart the server — it's running under a different account. Restart your computer to clear it, then reopen this project."
 msgstr "Server tidak bisa dimulai ulang — ia berjalan di bawah akun lain. Mulai ulang komputer Anda untuk membersihkannya, lalu buka lagi proyek ini."
@@ -3225,11 +3225,11 @@ msgstr "Server tidak bisa dimulai ulang — ia berjalan di bawah akun lain. Mula
 msgid "Couldn't restart the server automatically. Try running `{cliCommand} stop all` in a terminal, then reopen this project — or restart your computer if it persists."
 msgstr "Server tidak bisa dimulai ulang secara otomatis. Coba jalankan `{cliCommand} stop all` di terminal, lalu buka lagi proyek ini — atau mulai ulang komputer Anda jika masih berlanjut."
 
-msgid "Couldn't restart the server: OpenKnowledge asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project."
-msgstr "Server tidak bisa dimulai ulang: OpenKnowledge meminta proses yang memegang kunci server proyek ini untuk berhenti, tetapi tidak dapat memastikan bahwa itu adalah server proyek ini, jadi proses itu tidak dipaksa keluar. Jika proyek masih terkunci, hentikan server di tempat server itu dijalankan, atau mulai ulang komputer Anda, lalu buka lagi proyek ini."
+msgid "Couldn't restart the server: GitQuire asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project."
+msgstr "Server tidak bisa dimulai ulang: GitQuire meminta proses yang memegang kunci server proyek ini untuk berhenti, tetapi tidak dapat memastikan bahwa itu adalah server proyek ini, jadi proses itu tidak dipaksa keluar. Jika proyek masih terkunci, hentikan server di tempat server itu dijalankan, atau mulai ulang komputer Anda, lalu buka lagi proyek ini."
 
-msgid "Couldn't restart the server: OpenKnowledge could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project."
-msgstr "Server tidak bisa dimulai ulang: OpenKnowledge tidak dapat memastikan bahwa proses yang memegang kunci server proyek ini masih servernya, jadi proses itu tidak dihentikan. Hentikan server di tempat server itu dijalankan, atau mulai ulang komputer Anda, lalu buka lagi proyek ini."
+msgid "Couldn't restart the server: GitQuire could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project."
+msgstr "Server tidak bisa dimulai ulang: GitQuire tidak dapat memastikan bahwa proses yang memegang kunci server proyek ini masih servernya, jadi proses itu tidak dihentikan. Hentikan server di tempat server itu dijalankan, atau mulai ulang komputer Anda, lalu buka lagi proyek ini."
 
 msgid "Couldn't restart the server. Run {cliCommand} start in this folder to retry."
 msgstr "Tidak dapat memulai ulang server. Jalankan {cliCommand} start di folder ini untuk mencoba lagi."
@@ -3246,8 +3246,8 @@ msgstr "{0} tidak dapat dipulihkan. Coba lagi."
 msgid "Couldn't resume this chat: {0}"
 msgstr "Tidak dapat melanjutkan obrolan ini: {0}"
 
-msgid "Couldn't run the test. Check that OpenKnowledge is still running."
-msgstr "Pengujiannya tidak bisa dijalankan. Pastikan OpenKnowledge masih berjalan."
+msgid "Couldn't run the test. Check that GitQuire is still running."
+msgstr "Pengujiannya tidak bisa dijalankan. Pastikan GitQuire masih berjalan."
 
 msgid "Couldn’t save changes. Try editing a color again."
 msgstr "Perubahan tidak dapat disimpan. Coba sunting warna lagi."
@@ -3339,8 +3339,8 @@ msgstr "Tidak dapat mengunggah berkas. Folder lampiran memakai variabel tak dike
 msgid "Couldn't verify that {displayName} ({bin}) is available, so this is a plain shell. You can still run {bin} yourself."
 msgstr "Tidak dapat memverifikasi bahwa {displayName} ({bin}) tersedia, jadi ini adalah shell biasa. Anda tetap dapat menjalankan {bin} sendiri."
 
-msgid "Couldn't write the Open Knowledge extension. This thread has no Open Knowledge tools."
-msgstr "Ekstensi Open Knowledge tidak bisa ditulis. Utas ini tidak memiliki alat Open Knowledge."
+msgid "Couldn't write the GitQuire extension. This thread has no GitQuire tools."
+msgstr "Ekstensi GitQuire tidak bisa ditulis. Utas ini tidak memiliki alat GitQuire."
 
 msgid "Count skill installs publicly"
 msgstr "Hitung pemasangan keterampilan secara publik"
@@ -3375,8 +3375,8 @@ msgstr "Buat cabang baru, atau ambil cabang yang sudah ada, di jendelanya sendir
 msgid "Create a new list item from the current list item."
 msgstr "Membuat item daftar baru dari item daftar saat ini."
 
-msgid "Create a new OpenKnowledge project in the folder of your choice."
-msgstr "Membuat proyek OpenKnowledge baru di folder pilihan Anda."
+msgid "Create a new GitQuire project in the folder of your choice."
+msgstr "Membuat proyek GitQuire baru di folder pilihan Anda."
 
 msgid "Create a new spec file for my user story"
 msgstr "Buat berkas spesifikasi baru untuk cerita pengguna saya"
@@ -3498,8 +3498,8 @@ msgstr "Tema khusus"
 msgid "Customize how the editor looks and behaves."
 msgstr "Sesuaikan tampilan dan perilaku penyunting."
 
-msgid "Customize your OpenKnowledge experience."
-msgstr "Sesuaikan pengalaman OpenKnowledge Anda."
+msgid "Customize your GitQuire experience."
+msgstr "Sesuaikan pengalaman GitQuire Anda."
 
 msgid "Cut"
 msgstr "Potong"
@@ -3692,8 +3692,8 @@ msgstr "Detail"
 msgid "Detected in {0}"
 msgstr "Terdeteksi di {0}"
 
-msgid "Detected OpenKnowledge projects"
-msgstr "Proyek OpenKnowledge yang terdeteksi"
+msgid "Detected GitQuire projects"
+msgstr "Proyek GitQuire yang terdeteksi"
 
 msgid "Detecting"
 msgstr "Mendeteksi"
@@ -4178,8 +4178,8 @@ msgstr "Aktifkan Otomatis (hanya Pull)?"
 msgid "Enable indexes"
 msgstr "Aktifkan indeks"
 
-msgid "Enable Open Knowledge tools for {0}?"
-msgstr "Aktifkan alat Open Knowledge untuk {0}?"
+msgid "Enable GitQuire tools for {0}?"
+msgstr "Aktifkan alat GitQuire untuk {0}?"
 
 msgid "Enable plugins"
 msgstr "Aktifkan plugin"
@@ -4205,8 +4205,8 @@ msgstr "Aktifkan Tema"
 msgid "Enabling index generation"
 msgstr "Mengaktifkan pembuatan indeks"
 
-msgid "Enabling Open Knowledge tools"
-msgstr "Mengaktifkan alat Open Knowledge"
+msgid "Enabling GitQuire tools"
+msgstr "Mengaktifkan alat GitQuire"
 
 msgid "Ended"
 msgstr "Berakhir"
@@ -5009,8 +5009,8 @@ msgstr "GitHub CLI"
 msgid "GitHub connection expired. Connect again to continue."
 msgstr "Koneksi GitHub kedaluwarsa. Hubungkan lagi untuk melanjutkan."
 
-msgid "GitHub denied the request. You may need to authorize OpenKnowledge for {owner} in your browser."
-msgstr "GitHub menolak permintaan ini. Anda mungkin perlu mengizinkan OpenKnowledge untuk {owner} di peramban Anda."
+msgid "GitHub denied the request. You may need to authorize GitQuire for {owner} in your browser."
+msgstr "GitHub menolak permintaan ini. Anda mungkin perlu mengizinkan GitQuire untuk {owner} di peramban Anda."
 
 msgid "GitHub Enterprise Server hosts"
 msgstr "Host GitHub Enterprise Server"
@@ -5047,8 +5047,8 @@ msgid "Global outside text fields"
 msgstr "Global di luar bidang teks"
 
 #. Description under the AI-tools section label in the first-launch dialog
-msgid "Globally install the OpenKnowledge skills and MCP to let the agents you already use read and update your projects."
-msgstr "Pasang skill dan MCP OpenKnowledge secara global agar agen yang sudah Anda pakai dapat membaca dan memperbarui proyek Anda."
+msgid "Globally install the GitQuire skills and MCP to let the agents you already use read and update your projects."
+msgstr "Pasang skill dan MCP GitQuire secara global agar agen yang sudah Anda pakai dapat membaca dan memperbarui proyek Anda."
 
 msgid "Go back"
 msgstr "Kembali"
@@ -5144,12 +5144,12 @@ msgstr "Halo, dunia!"
 msgid "Help"
 msgstr "Bantuan"
 
-msgid "Help me understand the conflict in {filePath}. Explain what I should compare in the OpenKnowledge Conflict view; I will choose and apply the resolution there."
-msgstr "Bantu saya memahami konflik dalam {filePath}. Jelaskan apa yang perlu saya bandingkan di tampilan konflik OpenKnowledge; saya akan memilih dan menerapkan penyelesaiannya di sana."
+msgid "Help me understand the conflict in {filePath}. Explain what I should compare in the GitQuire Conflict view; I will choose and apply the resolution there."
+msgstr "Bantu saya memahami konflik dalam {filePath}. Jelaskan apa yang perlu saya bandingkan di tampilan konflik GitQuire; saya akan memilih dan menerapkan penyelesaiannya di sana."
 
 #. Subtext under the discovery-skill checkbox
-msgid "Help your agents discover and use OpenKnowledge in any project."
-msgstr "Bantu agen Anda menemukan dan menggunakan OpenKnowledge di proyek mana pun."
+msgid "Help your agents discover and use GitQuire in any project."
+msgstr "Bantu agen Anda menemukan dan menggunakan GitQuire di proyek mana pun."
 
 msgid "Helps coding agents choose OKF document types, preserve provenance, and avoid inventing unsupported metadata."
 msgstr "Membantu agen pengkodean memilih jenis dokumen OKF, mempertahankan asal, dan menghindari penemuan metadata yang tidak didukung."
@@ -5292,14 +5292,14 @@ msgstr "Hosting aktif. Server berjalan di port {boundPort}. Akses melalui tunnel
 msgid "Hotkeys"
 msgstr "Tombol pintas"
 
-msgid "How do you like OpenKnowledge?"
-msgstr "Bagaimana pendapat Anda tentang OpenKnowledge?"
+msgid "How do you like GitQuire?"
+msgstr "Bagaimana pendapat Anda tentang GitQuire?"
 
 msgid "How does sharing work?"
 msgstr "Bagaimana cara kerja berbagi?"
 
-msgid "How long OpenKnowledge waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting."
-msgstr "Berapa lama OpenKnowledge menunggu setiap permintaan embedding saat pengindeksan. Permintaan pencarian memiliki batas waktu tetap 8 detik per percobaan, yang tidak berubah oleh pengaturan ini."
+msgid "How long GitQuire waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting."
+msgstr "Berapa lama GitQuire menunggu setiap permintaan embedding saat pengindeksan. Permintaan pencarian memiliki batas waktu tetap 8 detik per percobaan, yang tidak berubah oleh pengaturan ini."
 
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "Cara dokumen, file, dan gambar lokal proyek yang hilang dilaporkan di Masalah, diagnostik editor, audit, dan alat agen."
@@ -5316,11 +5316,11 @@ msgstr "Cara menyiapkan"
 msgid "How to set up {rowLabel}"
 msgstr "Cara menyiapkan {rowLabel}"
 
-msgid "How to set up new projects with OpenKnowledge."
-msgstr "Cara menyiapkan proyek baru dengan OpenKnowledge."
+msgid "How to set up new projects with GitQuire."
+msgstr "Cara menyiapkan proyek baru dengan GitQuire."
 
-msgid "How to use OpenKnowledge and its MCP tools."
-msgstr "Cara menggunakan OpenKnowledge dan alat MCP-nya."
+msgid "How to use GitQuire and its MCP tools."
+msgstr "Cara menggunakan GitQuire dan alat MCP-nya."
 
 msgid "How to write a new skill and install it."
 msgstr "Cara menulis keterampilan baru dan memasangnya."
@@ -5360,21 +5360,21 @@ msgstr "Identik di keduanya — {pick} tetap membacanya."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.lm-studio.config-path-mismatch"
-msgstr "Jika {agent} tidak menampilkan alat OpenKnowledge, periksa apakah jalur konfigurasi MCP di pengaturannya cocok dengan berkas yang ditulis OpenKnowledge."
+msgstr "Jika {agent} tidak menampilkan alat GitQuire, periksa apakah jalur konfigurasi MCP di pengaturannya cocok dengan berkas yang ditulis GitQuire."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.cursor.project-entry-not-loaded"
-msgstr "Jika {agent} tidak menampilkan alat OpenKnowledge, buka Customize → MCPs, pilih {server} dan nyalakan sumber .cursor/mcp.json miliknya; {agent} membiarkan server proyek mati sampai Anda melakukannya."
+msgstr "Jika {agent} tidak menampilkan alat GitQuire, buka Customize → MCPs, pilih {server} dan nyalakan sumber .cursor/mcp.json miliknya; {agent} membiarkan server proyek mati sampai Anda melakukannya."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.claude.project-entry-not-approved"
-msgstr "Jika {agent} tidak menampilkan alat OpenKnowledge, jalankan di proyek ini dan setujui server OpenKnowledge sekali."
+msgstr "Jika {agent} tidak menampilkan alat GitQuire, jalankan di proyek ini dan setujui server GitQuire sekali."
 
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "Jika sebuah pembaruan datang untuk hal yang sedang Anda sunting, Anda memilih versi mana yang disimpan, seperti konflik penggabungan."
 
-msgid "If you use a GitHub Enterprise Server, add its host here so OpenKnowledge can sign in, check push permission, and create share links for repositories hosted there."
-msgstr "Jika Anda menggunakan GitHub Enterprise Server, tambahkan host-nya di sini agar OpenKnowledge dapat masuk, memeriksa izin push, dan membuat tautan berbagi untuk repositori yang dihosting di sana."
+msgid "If you use a GitHub Enterprise Server, add its host here so GitQuire can sign in, check push permission, and create share links for repositories hosted there."
+msgstr "Jika Anda menggunakan GitHub Enterprise Server, tambahkan host-nya di sini agar GitQuire dapat masuk, memeriksa izin push, dan membuat tautan berbagi untuk repositori yang dihosting di sana."
 
 msgid "Ignore broken links in log.md"
 msgstr "Abaikan tautan rusak di log.md"
@@ -5451,8 +5451,8 @@ msgstr "Dalam dokumen log: judul entri diawali dengan tanggal ISO YYYY-MM-DD, te
 msgid "In a subfolder"
 msgstr "Di subfolder"
 
-msgid "In an agent chat, hovering a link to a GitHub pull request or issue asks GitHub for its status, signed in as you when OpenKnowledge can use your GitHub sign-in."
-msgstr "Di chat agen, mengarahkan kursor ke tautan pull request atau issue GitHub meminta statusnya dari GitHub, dengan login GitHub Anda jika OpenKnowledge dapat menggunakannya."
+msgid "In an agent chat, hovering a link to a GitHub pull request or issue asks GitHub for its status, signed in as you when GitQuire can use your GitHub sign-in."
+msgstr "Di chat agen, mengarahkan kursor ke tautan pull request atau issue GitHub meminta statusnya dari GitHub, dengan login GitHub Anda jika GitQuire dapat menggunakannya."
 
 msgid "In an index document: entries sit under a section heading and each one carries a link. Prose around the lists is fine."
 msgstr "Dalam dokumen indeks: entri berada di bawah judul bagian dan masing-masing membawa tautan. Prosa seputar daftar itu baik-baik saja."
@@ -5460,11 +5460,11 @@ msgstr "Dalam dokumen indeks: entri berada di bawah judul bagian dan masing-masi
 msgid "In app"
 msgstr "Di aplikasi"
 
-msgid "In Git projects, Open Knowledge adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
-msgstr "Dalam proyek Git, Open Knowledge menambahkan aturan tercakup ke file .gitattributes di root repositori agar perubahan indeks yang bersamaan dapat digabungkan."
+msgid "In Git projects, GitQuire adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
+msgstr "Dalam proyek Git, GitQuire menambahkan aturan tercakup ke file .gitattributes di root repositori agar perubahan indeks yang bersamaan dapat digabungkan."
 
-msgid "In Git projects, Open Knowledge also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
-msgstr "Dalam proyek Git, Open Knowledge juga menambahkan aturan cakupan .gitattributes sehingga perubahan indeks secara bersamaan digabungkan sebelum pembangunan kembali berikutnya."
+msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
+msgstr "Dalam proyek Git, GitQuire juga menambahkan aturan cakupan .gitattributes sehingga perubahan indeks secara bersamaan digabungkan sebelum pembangunan kembali berikutnya."
 
 msgid "In the Claude Desktop App"
 msgstr "Di aplikasi Claude Desktop"
@@ -5508,11 +5508,11 @@ msgstr "Dokumen indeks tidak membawa frontmatter, kecuali dokumen yang ada di ak
 msgid "Index maintenance is paused because another Git attribute controls index.md. Update .gitattributes so the scoped index.md paths use merge=union, then try again."
 msgstr "Pemeliharaan indeks dihentikan sementara karena atribut Git lainnya mengontrol index.md. Perbarui .gitattributes sehingga jalur index.md yang dicakup menggunakan merge=union, lalu coba lagi."
 
-msgid "Index maintenance is paused because Open Knowledge could not confirm the required Git merge rule. Check Git and .gitattributes, then try again."
-msgstr "Pemeliharaan indeks dihentikan sementara karena Open Knowledge tidak dapat mengonfirmasi aturan penggabungan Git yang diperlukan. Centang Git dan .gitattributes, lalu coba lagi."
+msgid "Index maintenance is paused because GitQuire could not confirm the required Git merge rule. Check Git and .gitattributes, then try again."
+msgstr "Pemeliharaan indeks dihentikan sementara karena GitQuire tidak dapat mengonfirmasi aturan penggabungan Git yang diperlukan. Centang Git dan .gitattributes, lalu coba lagi."
 
-msgid "Index maintenance stayed off because Open Knowledge could not reach the project server. Try again when the project reconnects."
-msgstr "Pemeliharaan indeks terhenti karena Open Knowledge tidak dapat menjangkau server proyek. Coba lagi saat proyek tersambung kembali."
+msgid "Index maintenance stayed off because GitQuire could not reach the project server. Try again when the project reconnects."
+msgstr "Pemeliharaan indeks terhenti karena GitQuire tidak dapat menjangkau server proyek. Coba lagi saat proyek tersambung kembali."
 
 msgid "Index maintenance stayed off because the project setting could not be saved. Check the project file permissions, then try again."
 msgstr "Pemeliharaan indeks tidak dilakukan karena pengaturan proyek tidak dapat disimpan. Periksa izin file proyek, lalu coba lagi."
@@ -5556,8 +5556,8 @@ msgstr "Inisialisasi paket awal"
 msgid "Initialized {0} but could not open it."
 msgstr "{0} diinisialisasi tetapi tidak dapat dibuka."
 
-msgid "Initialized OpenKnowledge at {gitRoot} — opened parent of {subPath} because it contains a .git folder"
-msgstr "OpenKnowledge diinisialisasi di {gitRoot}: folder induk dari {subPath} dibuka karena berisi folder .git"
+msgid "Initialized GitQuire at {gitRoot} — opened parent of {subPath} because it contains a .git folder"
+msgstr "GitQuire diinisialisasi di {gitRoot}: folder induk dari {subPath} dibuka karena berisi folder .git"
 
 msgid "Initializing project"
 msgstr "Menginisialisasi proyek"
@@ -5607,8 +5607,8 @@ msgstr "Sisipkan baris di bawah"
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "Menyisipkan, menghapus, memindahkan, menyalin, dan mengindentasi baris penyunting sumber lewat peta tombol bawaan CodeMirror."
 
-msgid "Inside this repository's OpenKnowledge worktrees folder"
-msgstr "Di dalam folder worktree OpenKnowledge repositori ini"
+msgid "Inside this repository's GitQuire worktrees folder"
+msgstr "Di dalam folder worktree GitQuire repositori ini"
 
 msgid "Install"
 msgstr "Pasang"
@@ -5628,7 +5628,7 @@ msgstr "instal dulu sebuah skill di sini"
 msgid "Install failed: {0}"
 msgstr "Pemasangan gagal: {0}"
 
-#. Dialog title — installing the OpenKnowledge skill into the Claude Desktop App
+#. Dialog title — installing the GitQuire skill into the Claude Desktop App
 msgid "Install for Claude Chat & Cowork"
 msgstr "Pasang untuk Claude Chat & Cowork"
 
@@ -5665,9 +5665,9 @@ msgstr "Pasang di"
 msgid "Install on all agents"
 msgstr "Pasang di semua agen"
 
-#. Checkbox that wires the OpenKnowledge MCP into every detected AI tool
-msgid "Install OpenKnowledge in your AI tools"
-msgstr "Pasang OpenKnowledge di alat AI Anda"
+#. Checkbox that wires the GitQuire MCP into every detected AI tool
+msgid "Install GitQuire in your AI tools"
+msgstr "Pasang GitQuire di alat AI Anda"
 
 msgid "Install skill"
 msgstr "Instal keterampilan"
@@ -5721,11 +5721,11 @@ msgstr "Terpasang untuk semua proyek Anda"
 msgid "Installs into this project"
 msgstr "Terpasang ke proyek ini"
 
-msgid "Installs the OpenKnowledge discovery skill for this agent."
-msgstr "Menginstal keterampilan penemuan OpenKnowledge untuk agen ini."
+msgid "Installs the GitQuire discovery skill for this agent."
+msgstr "Menginstal keterampilan penemuan GitQuire untuk agen ini."
 
-msgid "Installs the OpenKnowledge project skill for this agent."
-msgstr "Menginstal keterampilan proyek OpenKnowledge untuk agen ini."
+msgid "Installs the GitQuire project skill for this agent."
+msgstr "Menginstal keterampilan proyek GitQuire untuk agen ini."
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "Memasang skill ke {path} — lokasi pertama menyimpan salinan aslinya"
@@ -5763,23 +5763,23 @@ msgstr "URL berbagi tidak valid."
 msgid "Invalid YAML"
 msgstr "YAML tidak valid"
 
-msgid "It also adds any display-connection errors OpenKnowledge wrote to your user journal in the past week, each message cut to 200 characters."
-msgstr "Ini juga menambahkan galat koneksi layar yang ditulis OpenKnowledge ke jurnal pengguna Anda dalam seminggu terakhir, dengan setiap pesan dipotong menjadi 200 karakter."
+msgid "It also adds any display-connection errors GitQuire wrote to your user journal in the past week, each message cut to 200 characters."
+msgstr "Ini juga menambahkan galat koneksi layar yang ditulis GitQuire ke jurnal pengguna Anda dalam seminggu terakhir, dengan setiap pesan dipotong menjadi 200 karakter."
 
-msgid "It also adds the crash and hang records Windows logged for OpenKnowledge in the past week, without file paths, and the times of every shutdown, restart, power loss, and low-memory warning on this computer in that week, whatever caused them."
-msgstr "Ini juga menambahkan catatan crash dan macet yang dicatat Windows untuk OpenKnowledge dalam seminggu terakhir, tanpa jalur file, serta waktu setiap pematian, mulai ulang, listrik padam, dan peringatan memori rendah di komputer ini selama minggu itu, apa pun penyebabnya."
+msgid "It also adds the crash and hang records Windows logged for GitQuire in the past week, without file paths, and the times of every shutdown, restart, power loss, and low-memory warning on this computer in that week, whatever caused them."
+msgstr "Ini juga menambahkan catatan crash dan macet yang dicatat Windows untuk GitQuire dalam seminggu terakhir, tanpa jalur file, serta waktu setiap pematian, mulai ulang, listrik padam, dan peringatan memori rendah di komputer ini selama minggu itu, apa pun penyebabnya."
 
-msgid "It also adds the crash reports macOS recorded for OpenKnowledge and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote."
-msgstr "Juga menambahkan laporan kerusakan yang dicatat macOS untuk OpenKnowledge dan proses pembantunya, tidak pernah laporan aplikasi lain, meskipun laporan kami menyebutkan proses-proses yang berjalan berdampingan dengannya. Masing-masing memuat detail mesin yang dicantumkan macOS di setiap laporan: uid akun Anda, model Mac, dan nama proses yang meluncurkan aplikasi. Pada mesin terkelola, proses peluncur itu bisa berupa perkakas internal. Pengidentifikasi yang akan menghubungkan laporan bug yang Anda kirim satu sama lain diganti terlebih dahulu, sehingga laporan yang dikumpulkan tidak identik byte per byte dengan yang ditulis macOS."
+msgid "It also adds the crash reports macOS recorded for GitQuire and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote."
+msgstr "Juga menambahkan laporan kerusakan yang dicatat macOS untuk GitQuire dan proses pembantunya, tidak pernah laporan aplikasi lain, meskipun laporan kami menyebutkan proses-proses yang berjalan berdampingan dengannya. Masing-masing memuat detail mesin yang dicantumkan macOS di setiap laporan: uid akun Anda, model Mac, dan nama proses yang meluncurkan aplikasi. Pada mesin terkelola, proses peluncur itu bisa berupa perkakas internal. Pengidentifikasi yang akan menghubungkan laporan bug yang Anda kirim satu sama lain diganti terlebih dahulu, sehingga laporan yang dikumpulkan tidak identik byte per byte dengan yang ditulis macOS."
 
-msgid "It also adds the low-memory reports macOS wrote in the past week that list OpenKnowledge's processes, with each one's memory use and whether macOS ended it."
-msgstr "Ini juga menambahkan laporan memori rendah yang ditulis macOS dalam seminggu terakhir yang mencantumkan proses OpenKnowledge, beserta penggunaan memori masing-masing dan apakah macOS menghentikannya."
+msgid "It also adds the low-memory reports macOS wrote in the past week that list GitQuire's processes, with each one's memory use and whether macOS ended it."
+msgstr "Ini juga menambahkan laporan memori rendah yang ditulis macOS dalam seminggu terakhir yang mencantumkan proses GitQuire, beserta penggunaan memori masing-masing dan apakah macOS menghentikannya."
 
-msgid "It also adds the out-of-memory kills of OpenKnowledge that the system journal recorded in the past week, without the machine name, account id, or folder paths."
-msgstr "Ini juga menambahkan penghentian OpenKnowledge karena kehabisan memori yang dicatat jurnal sistem dalam seminggu terakhir, tanpa nama mesin, ID akun, atau jalur folder."
+msgid "It also adds the out-of-memory kills of GitQuire that the system journal recorded in the past week, without the machine name, account id, or folder paths."
+msgstr "Ini juga menambahkan penghentian GitQuire karena kehabisan memori yang dicatat jurnal sistem dalam seminggu terakhir, tanpa nama mesin, ID akun, atau jalur folder."
 
-msgid "It also marks {0} as trusted, which is what makes the extension load. That trust covers the whole folder — {1} will load every extension in it, not only Open Knowledge's — and both stay until you remove Open Knowledge from this project."
-msgstr "Ini juga menandai {0} sebagai tepercaya, yang membuat ekstensi itu dimuat. Kepercayaan itu mencakup seluruh folder: {1} akan memuat setiap ekstensi di dalamnya, bukan hanya milik Open Knowledge, dan keduanya tetap ada sampai Anda menghapus Open Knowledge dari proyek ini."
+msgid "It also marks {0} as trusted, which is what makes the extension load. That trust covers the whole folder — {1} will load every extension in it, not only GitQuire's — and both stay until you remove GitQuire from this project."
+msgstr "Ini juga menandai {0} sebagai tepercaya, yang membuat ekstensi itu dimuat. Kepercayaan itu mencakup seluruh folder: {1} akan memuat setiap ekstensi di dalamnya, bukan hanya milik GitQuire, dan keduanya tetap ada sampai Anda menghapus GitQuire dari proyek ini."
 
 msgid "It didn't fit into my workflow"
 msgstr "Tidak cocok dengan alur kerja saya"
@@ -5899,8 +5899,8 @@ msgid "Latest edit"
 msgstr "Suntingan terakhir"
 
 #. Subtext under the terminal toggle explaining what the ok command gives you
-msgid "Launch OpenKnowledge from any terminal — <0>{cliCommand}</0> opens a project, <1>{cliCommand} init</1> connects your agents."
-msgstr "Jalankan OpenKnowledge dari terminal mana pun — <0>{cliCommand}</0> membuka proyek, <1>{cliCommand} init</1> menghubungkan agen Anda."
+msgid "Launch GitQuire from any terminal — <0>{cliCommand}</0> opens a project, <1>{cliCommand} init</1> connects your agents."
+msgstr "Jalankan GitQuire dari terminal mana pun — <0>{cliCommand}</0> membuka proyek, <1>{cliCommand} init</1> menghubungkan agen Anda."
 
 msgid "Layout"
 msgstr "Tata letak"
@@ -5926,8 +5926,8 @@ msgstr "Jangan sertakan komentar ini dalam pesan ini"
 msgid "Let agent chats use a browser"
 msgstr "Izinkan obrolan agen memakai browser"
 
-msgid "Let agents use OpenKnowledge without asking"
-msgstr "Biarkan agen memakai OpenKnowledge tanpa bertanya"
+msgid "Let agents use GitQuire without asking"
+msgstr "Biarkan agen memakai GitQuire tanpa bertanya"
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Biarkan Tab keluar dari penyunting sumber alih-alih menambah indentasi."
@@ -6094,8 +6094,8 @@ msgstr "Memuat judul untuk {pageTarget}"
 msgid "Loading image"
 msgstr "Memuat gambar"
 
-msgid "Loading OpenKnowledge skills"
-msgstr "Memuat keterampilan OpenKnowledge"
+msgid "Loading GitQuire skills"
+msgstr "Memuat keterampilan GitQuire"
 
 msgid "Loading pages"
 msgstr "Memuat halaman"
@@ -6238,8 +6238,8 @@ msgstr "Kelola berkas tersembunyi di Pengaturan → Pola abaikan."
 msgid "Manage skill folders"
 msgstr "Kelola folder keterampilan"
 
-msgid "Manage the accounts and access tokens OpenKnowledge uses to connect to your git hosts."
-msgstr "Kelola akun dan token akses yang dipakai OpenKnowledge untuk terhubung ke host git Anda."
+msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
+msgstr "Kelola akun dan token akses yang dipakai GitQuire untuk terhubung ke host git Anda."
 
 msgid "Managing agent connections is unavailable in this build."
 msgstr "Pengelolaan koneksi agen tidak tersedia di build ini."
@@ -6464,8 +6464,8 @@ msgstr "Pindahkan Penyunting ke tepi kanan jendela"
 msgid "Move Editor to the top edge of the window"
 msgstr "Pindahkan Penyunting ke tepi atas jendela"
 
-msgid "Move OpenKnowledge.app to the Trash"
-msgstr "Pindahkan OpenKnowledge.app ke Tong Sampah"
+msgid "Move GitQuire.app to the Trash"
+msgstr "Pindahkan GitQuire.app ke Tong Sampah"
 
 msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
 msgstr "Pindahkan atau ganti nama berkas ini di dalam keterampilan — jalurnya tetap di bawah references/ atau scripts/."
@@ -6770,8 +6770,8 @@ msgstr "Tab berikutnya"
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "Belum ada berkas <0>.markdownlint.*</0> — setiap aturan berjalan dengan bawaan yang sama seperti ekstensi markdownlint VS Code: semuanya aktif, kecuali panjang baris."
 
-msgid "No active or recent OpenKnowledge projects were found."
-msgstr "Tidak ditemukan proyek OpenKnowledge yang aktif maupun yang terbaru."
+msgid "No active or recent GitQuire projects were found."
+msgstr "Tidak ditemukan proyek GitQuire yang aktif maupun yang terbaru."
 
 msgid "No agent folders yet"
 msgstr "Belum ada folder agen"
@@ -7118,8 +7118,8 @@ msgstr "Tidak terhubung ke GitHub."
 msgid "Not detected on this machine"
 msgstr "Tidak terdeteksi di mesin ini"
 
-msgid "Not detected on this machine · OpenKnowledge files present"
-msgstr "Tidak terdeteksi di mesin ini · File OpenKnowledge ada"
+msgid "Not detected on this machine · GitQuire files present"
+msgstr "Tidak terdeteksi di mesin ini · File GitQuire ada"
 
 msgid "Not great"
 msgstr "Kurang bagus"
@@ -7130,8 +7130,8 @@ msgstr "Tidak ada di bilah sisi"
 msgid "Not installed"
 msgstr "Belum terpasang"
 
-msgid "Not installed · OpenKnowledge files present"
-msgstr "Belum terpasang · File OpenKnowledge ada"
+msgid "Not installed · GitQuire files present"
+msgstr "Belum terpasang · File GitQuire ada"
 
 msgid "Not installed in this project yet."
 msgstr "Belum terpasang di proyek ini."
@@ -7418,35 +7418,35 @@ msgstr "Buka di worktree"
 msgid "Open it there"
 msgstr "Buka di sana"
 
-msgid "Open Knowledge could not reach the project server to check index maintenance. The status updates when the project reconnects."
-msgstr "Open Knowledge tidak dapat menjangkau server proyek untuk memeriksa pemeliharaan indeks. Status akan diperbarui saat proyek tersambung kembali."
+msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
+msgstr "GitQuire tidak dapat menjangkau server proyek untuk memeriksa pemeliharaan indeks. Status akan diperbarui saat proyek tersambung kembali."
 
-msgid "Open Knowledge creates and maintains a navigation file named index.md in every folder that contains Markdown."
-msgstr "Open Knowledge membuat dan memelihara file navigasi bernama index.md di setiap folder yang berisi Markdown."
+msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
+msgstr "GitQuire membuat dan memelihara file navigasi bernama index.md di setiap folder yang berisi Markdown."
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format bimbingan"
 
-msgid "Open Knowledge maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
-msgstr "Open Knowledge menyimpan file navigasi bernama index.md di setiap folder yang berisi Markdown, masing-masing mencantumkan dokumen folder tersebut berdasarkan jenis dan tautan ke subfoldernya. Itu menulis ulang file-file ini saat dokumen Anda berubah, dan apa pun yang Anda edit sendiri ke dalamnya akan diganti."
+msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
+msgstr "GitQuire menyimpan file navigasi bernama index.md di setiap folder yang berisi Markdown, masing-masing mencantumkan dokumen folder tersebut berdasarkan jenis dan tautan ke subfoldernya. Itu menulis ulang file-file ini saat dokumen Anda berubah, dan apa pun yang Anda edit sendiri ke dalamnya akan diganti."
 
-msgid "Open Knowledge rewrites these index.md files as documents change, so manual edits to them are replaced."
-msgstr "Open Knowledge menulis ulang file index.md ini seiring perubahan dokumen, sehingga pengeditan manual pada file tersebut diganti."
+msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
+msgstr "GitQuire menulis ulang file index.md ini seiring perubahan dokumen, sehingga pengeditan manual pada file tersebut diganti."
 
-msgid "Open Knowledge tools are available in this thread."
-msgstr "Alat Open Knowledge tersedia di utas ini."
+msgid "GitQuire tools are available in this thread."
+msgstr "Alat GitQuire tersedia di utas ini."
 
-msgid "Open Knowledge tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "Alat Open Knowledge tidak tersedia karena folder proyek tidak ada, tidak dapat diakses, atau telah berubah. Periksa lokasi dan izinnya, lalu coba lagi."
+msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
+msgstr "Alat GitQuire tidak tersedia karena folder proyek tidak ada, tidak dapat diakses, atau telah berubah. Periksa lokasi dan izinnya, lalu coba lagi."
 
-msgid "Open Knowledge tools are unavailable: a file Open Knowledge didn't write is already at {bridgePath}."
-msgstr "Alat Open Knowledge tidak tersedia: sudah ada berkas di {bridgePath} yang tidak ditulis Open Knowledge."
+msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
+msgstr "Alat GitQuire tidak tersedia: sudah ada berkas di {bridgePath} yang tidak ditulis GitQuire."
 
-msgid "Open Knowledge tools are unavailable: something is already at {bridgePath} but couldn't be read, so Open Knowledge left it alone."
-msgstr "Alat Open Knowledge tidak tersedia: sudah ada sesuatu di {bridgePath}, tetapi tidak dapat dibaca, jadi Open Knowledge membiarkannya."
+msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
+msgstr "Alat GitQuire tidak tersedia: sudah ada sesuatu di {bridgePath}, tetapi tidak dapat dibaca, jadi GitQuire membiarkannya."
 
-msgid "Open Knowledge's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "Salinan {0} milik Open Knowledge sendiri rusak dan tidak bisa berjalan. Open Knowledge dapat mengunduh salinan baru {1} {2} (sekitar {3} MB dari {4}) untuk menggantinya."
+msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
+msgstr "Salinan {0} milik GitQuire sendiri rusak dan tidak bisa berjalan. GitQuire dapat mengunduh salinan baru {1} {2} (sekitar {3} MB dari {4}) untuk menggantinya."
 
 msgid "Open link"
 msgstr "Buka tautan"
@@ -7544,8 +7544,8 @@ msgstr "Membuka, menelusuri, menerima, atau menutup saran pelengkapan CodeMirror
 msgid "Opened by {author}"
 msgstr "Dibuka oleh {author}"
 
-msgid "Opened existing OpenKnowledge project at {ancestorPath}"
-msgstr "Proyek OpenKnowledge yang sudah ada dibuka di {ancestorPath}"
+msgid "Opened existing GitQuire project at {ancestorPath}"
+msgstr "Proyek GitQuire yang sudah ada dibuka di {ancestorPath}"
 
 msgid "Opened on branch {branch}"
 msgstr "Dibuka di cabang {branch}"
@@ -7559,194 +7559,194 @@ msgstr "Membuka worktree"
 msgid "Opening..."
 msgstr "Membuka..."
 
-msgid "OpenKnowledge"
-msgstr "OpenKnowledge"
+msgid "GitQuire"
+msgstr "GitQuire"
 
-msgid "OpenKnowledge can't sign in to GitHub for this project."
-msgstr "OpenKnowledge tidak dapat masuk ke GitHub untuk proyek ini."
+msgid "GitQuire can't sign in to GitHub for this project."
+msgstr "GitQuire tidak dapat masuk ke GitHub untuk proyek ini."
 
-msgid "OpenKnowledge checked {subject}"
-msgstr "OpenKnowledge memeriksa {subject}"
+msgid "GitQuire checked {subject}"
+msgstr "GitQuire memeriksa {subject}"
 
-msgid "OpenKnowledge checked the project"
-msgstr "OpenKnowledge memeriksa proyek"
+msgid "GitQuire checked the project"
+msgstr "GitQuire memeriksa proyek"
 
-msgid "OpenKnowledge checks for and downloads updates in the background."
-msgstr "OpenKnowledge memeriksa dan mengunduh pembaruan di latar belakang."
+msgid "GitQuire checks for and downloads updates in the background."
+msgstr "GitQuire memeriksa dan mengunduh pembaruan di latar belakang."
 
-msgid "OpenKnowledge could not find this agent on this machine."
-msgstr "OpenKnowledge tidak menemukan agen ini di mesin ini."
+msgid "GitQuire could not find this agent on this machine."
+msgstr "GitQuire tidak menemukan agen ini di mesin ini."
 
-msgid "OpenKnowledge couldn't finish setting up this project. The worktree was created but not opened."
-msgstr "OpenKnowledge tidak dapat menyelesaikan penyiapan proyek ini. Worktree dibuat, tetapi tidak dibuka."
+msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
+msgstr "GitQuire tidak dapat menyelesaikan penyiapan proyek ini. Worktree dibuat, tetapi tidak dibuka."
 
-msgid "OpenKnowledge couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "OpenKnowledge tidak dapat membaca terminal.shell di .ok/local/config.yml. Shell Windows yang tersedia akan digunakan sebagai gantinya."
+msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
+msgstr "GitQuire tidak dapat membaca terminal.shell di .ok/local/config.yml. Shell Windows yang tersedia akan digunakan sebagai gantinya."
 
-msgid "OpenKnowledge couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve OpenKnowledge."
-msgstr "OpenKnowledge tidak dapat menulis pengaturan peluncuran di .ok/local/terminal karena folder tersebut tidak berada dengan aman di dalam proyek ini. Pastikan folder tersebut adalah folder nyata di dalam proyek, bukan tautan. Claude akan meminta Anda menyetujui OpenKnowledge."
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
+msgstr "GitQuire tidak dapat menulis pengaturan peluncuran di .ok/local/terminal karena folder tersebut tidak berada dengan aman di dalam proyek ini. Pastikan folder tersebut adalah folder nyata di dalam proyek, bukan tautan. Claude akan meminta Anda menyetujui GitQuire."
 
-msgid "OpenKnowledge couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve OpenKnowledge."
-msgstr "OpenKnowledge tidak dapat menulis pengaturan peluncuran di .ok/local/terminal kali ini. Pastikan folder tersebut dapat ditulisi. Claude akan meminta Anda menyetujui OpenKnowledge."
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
+msgstr "GitQuire tidak dapat menulis pengaturan peluncuran di .ok/local/terminal kali ini. Pastikan folder tersebut dapat ditulisi. Claude akan meminta Anda menyetujui GitQuire."
 
-msgid "OpenKnowledge created a share link"
-msgstr "OpenKnowledge membuat tautan berbagi"
+msgid "GitQuire created a share link"
+msgstr "GitQuire membuat tautan berbagi"
 
-msgid "OpenKnowledge created a share link for {subject}"
-msgstr "OpenKnowledge membuat tautan berbagi untuk {subject}"
+msgid "GitQuire created a share link for {subject}"
+msgstr "GitQuire membuat tautan berbagi untuk {subject}"
 
-msgid "OpenKnowledge deleted {subject}"
-msgstr "OpenKnowledge menghapus {subject}"
+msgid "GitQuire deleted {subject}"
+msgstr "GitQuire menghapus {subject}"
 
-msgid "OpenKnowledge deleted a document"
-msgstr "OpenKnowledge menghapus sebuah dokumen"
+msgid "GitQuire deleted a document"
+msgstr "GitQuire menghapus sebuah dokumen"
 
-msgid "OpenKnowledge discovery skill"
-msgstr "Keterampilan penemuan OpenKnowledge"
+msgid "GitQuire discovery skill"
+msgstr "Keterampilan penemuan GitQuire"
 
-msgid "OpenKnowledge does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "OpenKnowledge tidak mengenali entri ini, dan tidak dapat menggantinya dengan aman dalam format file ini."
+msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
+msgstr "GitQuire tidak mengenali entri ini, dan tidak dapat menggantinya dengan aman dalam format file ini."
 
-msgid "OpenKnowledge does not recognize this entry. Turning it on replaces it."
-msgstr "OpenKnowledge tidak mengenali entri ini. Mengaktifkannya akan menggantinya."
+msgid "GitQuire does not recognize this entry. Turning it on replaces it."
+msgstr "GitQuire tidak mengenali entri ini. Mengaktifkannya akan menggantinya."
 
-msgid "OpenKnowledge doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
-msgstr "OpenKnowledge tidak memeriksa atau mengunduh pembaruan dengan sendirinya. Periksa pembaruan tetap berfungsi saat Anda menginginkan versi yang lebih baru."
+msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
+msgstr "GitQuire tidak memeriksa atau mengunduh pembaruan dengan sendirinya. Periksa pembaruan tetap berfungsi saat Anda menginginkan versi yang lebih baru."
 
-msgid "OpenKnowledge edited {subject}"
-msgstr "OpenKnowledge menyunting {subject}"
+msgid "GitQuire edited {subject}"
+msgstr "GitQuire menyunting {subject}"
 
-msgid "OpenKnowledge edited a document"
-msgstr "OpenKnowledge menyunting sebuah dokumen"
+msgid "GitQuire edited a document"
+msgstr "GitQuire menyunting sebuah dokumen"
 
-msgid "OpenKnowledge files were removed"
-msgstr "File OpenKnowledge telah dihapus"
+msgid "GitQuire files were removed"
+msgstr "File GitQuire telah dihapus"
 
-msgid "OpenKnowledge has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
-msgstr "OpenKnowledge tidak menyimpan kredensial apa pun untuk host ini. Tambahkan token di Pengaturan, atau biarkan git memakai kredensial yang sudah dimilikinya."
+msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
+msgstr "GitQuire tidak menyimpan kredensial apa pun untuk host ini. Tambahkan token di Pengaturan, atau biarkan git memakai kredensial yang sudah dimilikinya."
 
-msgid "OpenKnowledge imported {source}"
-msgstr "OpenKnowledge mengimpor {source}"
+msgid "GitQuire imported {source}"
+msgstr "GitQuire mengimpor {source}"
 
-msgid "OpenKnowledge imported a skill"
-msgstr "OpenKnowledge mengimpor sebuah keterampilan"
+msgid "GitQuire imported a skill"
+msgstr "GitQuire mengimpor sebuah keterampilan"
 
-msgid "OpenKnowledge initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
-msgstr "OpenKnowledge diinisialisasi di <0>{projectDir}</0> — folder induk dari <1>{pickedRelative}</1>, karena folder itu memuat folder <2>.git</2> (satu .ok/ per repo git). <3>Direktori konten</3> secara bawaan adalah <4>.</4> (seluruh repo); ketik sebuah subfolder untuk mempersempitnya."
+msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
+msgstr "GitQuire diinisialisasi di <0>{projectDir}</0> — folder induk dari <1>{pickedRelative}</1>, karena folder itu memuat folder <2>.git</2> (satu .ok/ per repo git). <3>Direktori konten</3> secara bawaan adalah <4>.</4> (seluruh repo); ketik sebuah subfolder untuk mempersempitnya."
 
-msgid "OpenKnowledge installed {subject}"
-msgstr "OpenKnowledge memasang {subject}"
+msgid "GitQuire installed {subject}"
+msgstr "GitQuire memasang {subject}"
 
-msgid "OpenKnowledge installed a skill"
-msgstr "OpenKnowledge memasang sebuah keterampilan"
+msgid "GitQuire installed a skill"
+msgstr "GitQuire memasang sebuah keterampilan"
 
-msgid "OpenKnowledge integrations checked."
-msgstr "Integrasi OpenKnowledge telah diperiksa."
+msgid "GitQuire integrations checked."
+msgstr "Integrasi GitQuire telah diperiksa."
 
-msgid "OpenKnowledge is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
-msgstr "Di sini OpenKnowledge disiapkan di root repositori, jadi paket ditempatkan di dalam <0>{sanitized}</0> alih-alih di puncak repositori."
+msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
+msgstr "Di sini GitQuire disiapkan di root repositori, jadi paket ditempatkan di dalam <0>{sanitized}</0> alih-alih di puncak repositori."
 
-msgid "OpenKnowledge is using this GitHub account."
-msgstr "OpenKnowledge memakai akun GitHub ini."
+msgid "GitQuire is using this GitHub account."
+msgstr "GitQuire memakai akun GitHub ini."
 
-msgid "OpenKnowledge keeps retrying and shows them as soon as the file can be read."
-msgstr "OpenKnowledge terus mencoba lagi dan akan menampilkannya segera setelah berkas dapat dibaca."
+msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
+msgstr "GitQuire terus mencoba lagi dan akan menampilkannya segera setelah berkas dapat dibaca."
 
-msgid "OpenKnowledge left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "OpenKnowledge tidak mengubah file ini karena tidak dapat mengurainya dengan aman. Perbaiki file secara manual, lalu coba lagi."
+msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
+msgstr "GitQuire tidak mengubah file ini karena tidak dapat mengurainya dengan aman. Perbaiki file secara manual, lalu coba lagi."
 
-msgid "OpenKnowledge listed the installed skills"
-msgstr "OpenKnowledge menampilkan daftar keterampilan yang terpasang"
+msgid "GitQuire listed the installed skills"
+msgstr "GitQuire menampilkan daftar keterampilan yang terpasang"
 
-msgid "OpenKnowledge logs across projects. No project is open, so project server logs are not included."
-msgstr "Log OpenKnowledge lintas proyek. Tidak ada proyek yang terbuka, jadi log server proyek tidak disertakan."
+msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
+msgstr "Log GitQuire lintas proyek. Tidak ada proyek yang terbuka, jadi log server proyek tidak disertakan."
 
-msgid "OpenKnowledge logs, including activity across projects."
-msgstr "Log OpenKnowledge, termasuk aktivitas lintas proyek."
+msgid "GitQuire logs, including activity across projects."
+msgstr "Log GitQuire, termasuk aktivitas lintas proyek."
 
-msgid "OpenKnowledge looked at the link graph"
-msgstr "OpenKnowledge melihat grafik tautan"
+msgid "GitQuire looked at the link graph"
+msgstr "GitQuire melihat grafik tautan"
 
-msgid "OpenKnowledge looked up links for {subject}"
-msgstr "OpenKnowledge mencari tautan untuk {subject}"
+msgid "GitQuire looked up links for {subject}"
+msgstr "GitQuire mencari tautan untuk {subject}"
 
-msgid "OpenKnowledge looked up the authoring palette"
-msgstr "OpenKnowledge membuka palet penulisan"
+msgid "GitQuire looked up the authoring palette"
+msgstr "GitQuire membuka palet penulisan"
 
-msgid "OpenKnowledge moved {subject} to {destination}"
-msgstr "OpenKnowledge memindahkan {subject} ke {destination}"
+msgid "GitQuire moved {subject} to {destination}"
+msgstr "GitQuire memindahkan {subject} ke {destination}"
 
-msgid "OpenKnowledge moved a document"
-msgstr "OpenKnowledge memindahkan sebuah dokumen"
+msgid "GitQuire moved a document"
+msgstr "GitQuire memindahkan sebuah dokumen"
 
-msgid "OpenKnowledge on GitHub"
-msgstr "OpenKnowledge di GitHub"
+msgid "GitQuire on GitHub"
+msgstr "GitQuire di GitHub"
 
-msgid "OpenKnowledge on this computer changed to a different build, but this tab is still running the old one."
-msgstr "OpenKnowledge di komputer ini berganti ke build lain, tetapi tab ini masih menjalankan yang lama."
+msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
+msgstr "GitQuire di komputer ini berganti ke build lain, tetapi tab ini masih menjalankan yang lama."
 
-msgid "OpenKnowledge on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
-msgstr "OpenKnowledge di komputer ini sekarang v{serverVersion}, tetapi tab ini masih menjalankan v{tabVersion}."
+msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+msgstr "GitQuire di komputer ini sekarang v{serverVersion}, tetapi tab ini masih menjalankan v{tabVersion}."
 
-msgid "OpenKnowledge opened the live preview"
-msgstr "OpenKnowledge membuka pratinjau langsung"
+msgid "GitQuire opened the live preview"
+msgstr "GitQuire membuka pratinjau langsung"
 
-msgid "OpenKnowledge quit unexpectedly last time."
-msgstr "OpenKnowledge berhenti tak terduga terakhir kali."
+msgid "GitQuire quit unexpectedly last time."
+msgstr "GitQuire berhenti tak terduga terakhir kali."
 
-msgid "OpenKnowledge ran {command}"
-msgstr "OpenKnowledge menjalankan {command}"
+msgid "GitQuire ran {command}"
+msgstr "GitQuire menjalankan {command}"
 
-msgid "OpenKnowledge ran {tool}"
-msgstr "OpenKnowledge menjalankan {tool}"
+msgid "GitQuire ran {tool}"
+msgstr "GitQuire menjalankan {tool}"
 
-msgid "OpenKnowledge ran a command"
-msgstr "OpenKnowledge menjalankan sebuah perintah"
+msgid "GitQuire ran a command"
+msgstr "GitQuire menjalankan sebuah perintah"
 
-msgid "OpenKnowledge read the edit history"
-msgstr "OpenKnowledge membaca riwayat penyuntingan"
+msgid "GitQuire read the edit history"
+msgstr "GitQuire membaca riwayat penyuntingan"
 
-msgid "OpenKnowledge read the history of {subject}"
-msgstr "OpenKnowledge membaca riwayat {subject}"
+msgid "GitQuire read the history of {subject}"
+msgstr "GitQuire membaca riwayat {subject}"
 
-msgid "OpenKnowledge read the project settings"
-msgstr "OpenKnowledge membaca pengaturan proyek"
+msgid "GitQuire read the project settings"
+msgstr "GitQuire membaca pengaturan proyek"
 
-msgid "OpenKnowledge read the setting {key}"
-msgstr "OpenKnowledge membaca pengaturan {key}"
+msgid "GitQuire read the setting {key}"
+msgstr "GitQuire membaca pengaturan {key}"
 
-msgid "OpenKnowledge restored an earlier version"
-msgstr "OpenKnowledge memulihkan versi sebelumnya"
+msgid "GitQuire restored an earlier version"
+msgstr "GitQuire memulihkan versi sebelumnya"
 
-msgid "OpenKnowledge restored an earlier version of {subject}"
-msgstr "OpenKnowledge memulihkan versi sebelumnya dari {subject}"
+msgid "GitQuire restored an earlier version of {subject}"
+msgstr "GitQuire memulihkan versi sebelumnya dari {subject}"
 
-msgid "OpenKnowledge saved a checkpoint"
-msgstr "OpenKnowledge menyimpan titik pemeriksaan"
+msgid "GitQuire saved a checkpoint"
+msgstr "GitQuire menyimpan titik pemeriksaan"
 
-msgid "OpenKnowledge searched for {query}"
-msgstr "OpenKnowledge mencari {query}"
+msgid "GitQuire searched for {query}"
+msgstr "GitQuire mencari {query}"
 
-msgid "OpenKnowledge searched the knowledge base"
-msgstr "OpenKnowledge mencari di basis pengetahuan"
+msgid "GitQuire searched the knowledge base"
+msgstr "GitQuire mencari di basis pengetahuan"
 
-msgid "OpenKnowledge skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "Keterampilan OpenKnowledge disimpan. Unggah di Claude Desktop, lalu klik Cowork lagi."
+msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
+msgstr "Keterampilan GitQuire disimpan. Unggah di Claude Desktop, lalu klik Cowork lagi."
 
-msgid "OpenKnowledge stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
-msgstr "OpenKnowledge menyimpan konfigurasi dan berkas internalnya di dalam direktori <0>.ok</0> yang baru dibuat di folder akar proyek Anda."
+msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
+msgstr "GitQuire menyimpan konfigurasi dan berkas internalnya di dalam direktori <0>.ok</0> yang baru dibuat di folder akar proyek Anda."
 
-msgid "OpenKnowledge will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
-msgstr "OpenKnowledge akan diinisialisasi di <0>{gitRoot}</0> — folder induk dari folder baru Anda, karena folder itu memuat folder <1>.git</1> (satu proyek per repo git)."
+msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
+msgstr "GitQuire akan diinisialisasi di <0>{gitRoot}</0> — folder induk dari folder baru Anda, karena folder itu memuat folder <1>.git</1> (satu proyek per repo git)."
 
-msgid "OpenKnowledge will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
-msgstr "OpenKnowledge akan membuat commit dan mengirimkannya ke remote Anda secara otomatis. Jika Anda tidak ingin commit otomatis di riwayat git Anda, sebaiknya jangan aktifkan sinkronisasi otomatis."
+msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
+msgstr "GitQuire akan membuat commit dan mengirimkannya ke remote Anda secara otomatis. Jika Anda tidak ingin commit otomatis di riwayat git Anda, sebaiknya jangan aktifkan sinkronisasi otomatis."
 
-msgid "OpenKnowledge wrote a document"
-msgstr "OpenKnowledge menulis sebuah dokumen"
+msgid "GitQuire wrote a document"
+msgstr "GitQuire menulis sebuah dokumen"
 
-msgid "OpenKnowledge wrote to {subject}"
-msgstr "OpenKnowledge menulis ke {subject}"
+msgid "GitQuire wrote to {subject}"
+msgstr "GitQuire menulis ke {subject}"
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Membuka pemilih folder untuk memilih tempat mengkloning repositorinya."
@@ -7824,14 +7824,14 @@ msgstr "Kerangka"
 msgid "Outside any block"
 msgstr "Di luar blok mana pun"
 
-msgid "Outside this repository's OpenKnowledge worktrees folder"
-msgstr "Di luar folder worktree OpenKnowledge repositori ini"
+msgid "Outside this repository's GitQuire worktrees folder"
+msgstr "Di luar folder worktree GitQuire repositori ini"
 
 msgid "Outside version"
 msgstr "Versi dari luar"
 
-msgid "Outside what Open Knowledge commits."
-msgstr "Di luar cakupan commit Open Knowledge."
+msgid "Outside what GitQuire commits."
+msgstr "Di luar cakupan commit GitQuire."
 
 msgid "over the {budgetLabel} token budget"
 msgstr "melebihi anggaran token {budgetLabel}"
@@ -8125,14 +8125,14 @@ msgstr "Menyiapkan pencarian"
 msgid "Preparing share URL..."
 msgstr "Menyiapkan URL berbagi..."
 
-msgid "Preparing to uninstall OpenKnowledge"
-msgstr "Bersiap mencopot OpenKnowledge"
+msgid "Preparing to uninstall GitQuire"
+msgstr "Bersiap mencopot GitQuire"
 
-msgid "Present a document as a slide deck in its own window. Add <0>slides: true</0> to a document's frontmatter, then open it with the Slidev action. Rendering is handled by the Slidev CLI, which OpenKnowledge does not bundle."
-msgstr "Tampilkan dokumen sebagai dek slide di jendela tersendiri. Tambahkan <0>slides: true</0> ke frontmatter dokumen, lalu buka dengan aksi Slidev. Perenderan ditangani oleh CLI Slidev, yang tidak disertakan OpenKnowledge."
+msgid "Present a document as a slide deck in its own window. Add <0>slides: true</0> to a document's frontmatter, then open it with the Slidev action. Rendering is handled by the Slidev CLI, which GitQuire does not bundle."
+msgstr "Tampilkan dokumen sebagai dek slide di jendela tersendiri. Tambahkan <0>slides: true</0> ke frontmatter dokumen, lalu buka dengan aksi Slidev. Perenderan ditangani oleh CLI Slidev, yang tidak disertakan GitQuire."
 
-msgid "Present a document as a slide deck in its own window. Works in the OpenKnowledge desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
-msgstr "Tampilkan dokumen sebagai dek slide di jendela tersendiri. Hanya berfungsi di aplikasi desktop OpenKnowledge dan memerlukan CLI Slidev yang dipasang terpisah. Saat aktif, muncul di Plugins pada bilah sisi."
+msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
+msgstr "Tampilkan dokumen sebagai dek slide di jendela tersendiri. Hanya berfungsi di aplikasi desktop GitQuire dan memerlukan CLI Slidev yang dipasang terpisah. Saat aktif, muncul di Plugins pada bilah sisi."
 
 msgid "Press <0>Space</0> or tap the blob to start"
 msgstr "Tekan <0>Spasi</0> atau ketuk blob untuk mulai"
@@ -8349,15 +8349,15 @@ msgstr "Melakukan push"
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.user"
-msgstr "Menempatkan keterampilan penemuan OpenKnowledge di folder keterampilan global {agent}, sehingga ia dapat menemukan OpenKnowledge di proyek mana pun."
+msgstr "Menempatkan keterampilan penemuan GitQuire di folder keterampilan global {agent}, sehingga ia dapat menemukan GitQuire di proyek mana pun."
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.project"
-msgstr "Menempatkan keterampilan OpenKnowledge di folder keterampilan {agent} untuk proyek ini, sehingga suntingannya tetap teratribusi."
+msgstr "Menempatkan keterampilan GitQuire di folder keterampilan {agent} untuk proyek ini, sehingga suntingannya tetap teratribusi."
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.central-store"
-msgstr "Menempatkan keterampilan OpenKnowledge di penyimpanan keterampilan pusat yang dibaca {agent}."
+msgstr "Menempatkan keterampilan GitQuire di penyimpanan keterampilan pusat yang dibaca {agent}."
 
 msgid "Puzzling…"
 msgstr "Memecahkan teka-teki…"
@@ -8443,8 +8443,8 @@ msgstr "Membaca graf tautan: apa menaut ke apa"
 msgid "Reads the version history of a document or skill, or a folder's activity"
 msgstr "Membaca riwayat versi dokumen atau keterampilan, atau aktivitas folder"
 
-msgid "Reads this project's OpenKnowledge settings"
-msgstr "Membaca pengaturan OpenKnowledge proyek ini"
+msgid "Reads this project's GitQuire settings"
+msgstr "Membaca pengaturan GitQuire proyek ini"
 
 msgid "Ready"
 msgstr "Siap"
@@ -8539,7 +8539,7 @@ msgstr "Merenungkan…"
 msgid "Reinstall"
 msgstr "Pasang ulang"
 
-#. Dialog title — installing the OpenKnowledge skill into the Claude Desktop App
+#. Dialog title — installing the GitQuire skill into the Claude Desktop App
 msgid "Reinstall for Claude Chat & Cowork"
 msgstr "Pasang ulang untuk Claude Chat & Cowork"
 
@@ -8639,17 +8639,17 @@ msgstr "Hapus item {0}"
 msgid "Remove link"
 msgstr "Hapus tautan"
 
-msgid "Remove OpenKnowledge from {0}"
-msgstr "Hapus OpenKnowledge dari {0}"
+msgid "Remove GitQuire from {0}"
+msgstr "Hapus GitQuire dari {0}"
 
-msgid "Remove OpenKnowledge from {0}?"
-msgstr "Hapus OpenKnowledge dari {0}?"
+msgid "Remove GitQuire from {0}?"
+msgstr "Hapus GitQuire dari {0}?"
 
-msgid "Remove OpenKnowledge from {rowLabel}"
-msgstr "Hapus OpenKnowledge dari {rowLabel}"
+msgid "Remove GitQuire from {rowLabel}"
+msgstr "Hapus GitQuire dari {rowLabel}"
 
-msgid "Remove OpenKnowledge?"
-msgstr "Hapus OpenKnowledge?"
+msgid "Remove GitQuire?"
+msgstr "Hapus GitQuire?"
 
 msgid "Remove property"
 msgstr "Hapus properti"
@@ -8678,8 +8678,8 @@ msgstr "\"{0}\" dihapus dari semua lokasi lain — folder sumbernya tetap dimuat
 msgid "Removed \"{projectName}\" from recent projects. Its folder no longer exists."
 msgstr "\"{projectName}\" dihapus dari proyek terbaru. Foldernya sudah tidak ada."
 
-msgid "Removed OpenKnowledge files"
-msgstr "File OpenKnowledge dihapus"
+msgid "Removed GitQuire files"
+msgstr "File GitQuire dihapus"
 
 msgid "Removes it for {0} and {1}. {addingCount, plural, one {# added} other {# added}} · {removingCount, plural, one {# removed} other {# removed}}"
 msgstr "Menghapusnya untuk {0} dan {1}. {addingCount, plural, other {# ditambahkan}} · {removingCount, plural, other {# dihapus}}"
@@ -8690,8 +8690,8 @@ msgstr "Menghapusnya untuk {0} dan {1}. {removingCount, plural, other {# dihapus
 msgid "Removing"
 msgstr "Menghapus"
 
-msgid "Removing OpenKnowledge files…"
-msgstr "Menghapus berkas OpenKnowledge…"
+msgid "Removing GitQuire files…"
+msgstr "Menghapus berkas GitQuire…"
 
 msgid "Rename"
 msgstr "Ganti nama"
@@ -8813,11 +8813,11 @@ msgstr "Ganti dengan symlink"
 msgid "Replaces the existing {server} entry in this file. Other servers in the file are left alone."
 msgstr "Mengganti entri {server} yang ada di file ini. Server lain dalam file ini tidak diubah."
 
-msgid "Replaces the existing OpenKnowledge entry in {0}"
-msgstr "Mengganti entri OpenKnowledge yang ada di {0}"
+msgid "Replaces the existing GitQuire entry in {0}"
+msgstr "Mengganti entri GitQuire yang ada di {0}"
 
-msgid "Replaces the OpenKnowledge entry each of them already has."
-msgstr "Mengganti entri OpenKnowledge yang sudah dimiliki masing-masing."
+msgid "Replaces the GitQuire entry each of them already has."
+msgstr "Mengganti entri GitQuire yang sudah dimiliki masing-masing."
 
 msgid "Reply"
 msgstr ""
@@ -8830,6 +8830,12 @@ msgstr "Laporkan bug…"
 
 msgid "Report a problem with this chat…"
 msgstr "Laporkan masalah dengan chat ini…"
+
+msgid "Report an issue on GitHub"
+msgstr ""
+
+msgid "Report an issue"
+msgstr ""
 
 msgid "Report from {0}"
 msgstr "Laporan dari {0}"
@@ -8949,8 +8955,8 @@ msgstr "Mulai ulang server"
 msgid "Restart terminal"
 msgstr "Mulai ulang terminal"
 
-msgid "Restart this terminal session to use the newly installed OpenKnowledge tools."
-msgstr "Mulai ulang sesi terminal ini untuk menggunakan alat OpenKnowledge yang baru diinstal."
+msgid "Restart this terminal session to use the newly installed GitQuire tools."
+msgstr "Mulai ulang sesi terminal ini untuk menggunakan alat GitQuire yang baru diinstal."
 
 msgid "Restart with this app's version"
 msgstr "Mulai ulang dengan versi aplikasi ini"
@@ -8961,8 +8967,8 @@ msgstr "Dimulai ulang — kini menjalankan v{appRuntime}."
 msgid "Restarting"
 msgstr "Memulai ulang"
 
-msgid "Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their OpenKnowledge MCP connection close unexpectedly — you may need to restart the agent, or toggle its OpenKnowledge MCP server off and on, to reconnect."
-msgstr "Memulai ulang akan menutup server proyek ini. Agen yang terhubung (Claude Code, Codex, Cursor) akan melihat koneksi MCP OpenKnowledge mereka tertutup tak terduga — Anda mungkin perlu memulai ulang agennya, atau mematikan lalu menyalakan server MCP OpenKnowledge padanya, untuk tersambung kembali."
+msgid "Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their GitQuire MCP connection close unexpectedly — you may need to restart the agent, or toggle its GitQuire MCP server off and on, to reconnect."
+msgstr "Memulai ulang akan menutup server proyek ini. Agen yang terhubung (Claude Code, Codex, Cursor) akan melihat koneksi MCP GitQuire mereka tertutup tak terduga — Anda mungkin perlu memulai ulang agennya, atau mematikan lalu menyalakan server MCP GitQuire padanya, untuk tersambung kembali."
 
 msgid "Restarting the server is only available in the desktop app."
 msgstr "Memulai ulang server hanya tersedia di aplikasi desktop."
@@ -9090,8 +9096,8 @@ msgstr "Jalankan"
 msgid "Run a project audit from the Problems panel."
 msgstr "Jalankan audit proyek dari panel Masalah."
 
-msgid "Run a real terminal docked inside OpenKnowledge, starting in this project's folder."
-msgstr "Jalankan terminal sungguhan yang tertambat di dalam OpenKnowledge, dimulai di folder proyek ini."
+msgid "Run a real terminal docked inside GitQuire, starting in this project's folder."
+msgstr "Jalankan terminal sungguhan yang tertambat di dalam GitQuire, dimulai di folder proyek ini."
 
 msgid "Run in terminal"
 msgstr "Jalankan di terminal"
@@ -9153,8 +9159,8 @@ msgstr "Disimpan ke"
 msgid "Saved with the project for your team."
 msgstr "Disimpan bersama proyek untuk tim Anda."
 
-msgid "Saved. Restart OpenKnowledge to apply the change."
-msgstr "Tersimpan. Mulai ulang OpenKnowledge untuk menerapkan perubahan."
+msgid "Saved. Restart GitQuire to apply the change."
+msgstr "Tersimpan. Mulai ulang GitQuire untuk menerapkan perubahan."
 
 msgid "Saves a restore point for every document in the project"
 msgstr "Menyimpan titik pemulihan untuk setiap dokumen di proyek"
@@ -9471,8 +9477,8 @@ msgstr "Mengirim…"
 msgid "Sent"
 msgstr "Terkirim"
 
-msgid "Sent privately to the OpenKnowledge team, along with your note and app version. Never posted publicly."
-msgstr "Dikirim secara pribadi ke tim OpenKnowledge, beserta catatan Anda dan versi aplikasinya. Tidak pernah dipublikasikan."
+msgid "Sent privately to the GitQuire team, along with your note and app version. Never posted publicly."
+msgstr "Dikirim secara pribadi ke tim GitQuire, beserta catatan Anda dan versi aplikasinya. Tidak pernah dipublikasikan."
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "Dikirim ke <0>{endpointHost}</0> untuk meng-embed konten Anda. Disimpan di luar proyek."
@@ -9546,11 +9552,11 @@ msgstr "Setel identitas"
 msgid "Set it up on its own page under Plugins."
 msgstr "Siapkan di halamannya sendiri di bawah Plugin."
 
-msgid "Set up OpenKnowledge integrations"
-msgstr "Siapkan integrasi OpenKnowledge"
+msgid "Set up GitQuire integrations"
+msgstr "Siapkan integrasi GitQuire"
 
-msgid "Set up OpenKnowledge integrations…"
-msgstr "Siapkan integrasi OpenKnowledge…"
+msgid "Set up GitQuire integrations…"
+msgstr "Siapkan integrasi GitQuire…"
 
 msgid "Set up syncing"
 msgstr "Siapkan sinkronisasi"
@@ -9579,11 +9585,11 @@ msgstr "Gagal memuat pengaturan"
 msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
 msgstr "Pengaturan untuk proyek ini. Sebagian dibagikan ke setiap kolaborator lewat git; sisanya hanya berlaku di komputer ini."
 
-msgid "Settings in {fileName} changed outside OpenKnowledge and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "Pengaturan di {fileName} diubah dari luar OpenKnowledge dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di riwayat proyek ini, yang belum bisa ditampilkan aplikasi."
+msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "Pengaturan di {fileName} diubah dari luar GitQuire dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di riwayat proyek ini, yang belum bisa ditampilkan aplikasi."
 
-msgid "Settings in {fileName} changed outside OpenKnowledge and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "Pengaturan di {fileName} diubah dari luar OpenKnowledge dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di {backupPath}."
+msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "Pengaturan di {fileName} diubah dari luar GitQuire dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di {backupPath}."
 
 msgid "Settings sections"
 msgstr "Bagian pengaturan"
@@ -9598,8 +9604,8 @@ msgstr "Penyiapan"
 msgid "Setup files include: <0>.ok/</0>, AI-tool MCP configs (<1>.mcp.json</1> and per-tool files). Your skills are not covered — they follow git like any other file in the project.<2/><3>Shared</3> commits them to git, so anyone who clones the repo gets the same setup. <4/><5>Only me</5> keeps them out of git (via <6>.git/info/exclude</6>)."
 msgstr "Berkas penyiapan mencakup: <0>.ok/</0>, konfigurasi MCP alat AI (<1>.mcp.json</1> dan berkas tiap alat). Keterampilan Anda tidak termasuk: semuanya mengikuti git seperti berkas lain di proyek ini.<2/><3>Dibagikan</3> melakukan commit ke git, jadi siapa pun yang mengkloning repo mendapat penyiapan yang sama. <4/><5>Hanya saya</5> menahannya keluar dari git (lewat <6>.git/info/exclude</6>)."
 
-msgid "Setup OpenKnowledge in this folder?"
-msgstr "Siapkan OpenKnowledge di folder ini?"
+msgid "Setup GitQuire in this folder?"
+msgstr "Siapkan GitQuire di folder ini?"
 
 msgid "Share"
 msgstr "Bagikan"
@@ -9864,9 +9870,9 @@ msgid "Skills from {0}/{1}."
 msgstr "Keterampilan dari {0}/{1}."
 
 #. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills OpenKnowledge ships, in Settings → Skills Studio
-msgid "Skills from OpenKnowledge"
-msgstr "Keterampilan dari OpenKnowledge"
+#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
+msgid "Skills from GitQuire"
+msgstr "Keterampilan dari GitQuire"
 
 msgid "Skills reassigned"
 msgstr "Keterampilan dialihkan"
@@ -9878,8 +9884,8 @@ msgid "Skills Studio"
 msgstr "Studio Keterampilan"
 
 #. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones OpenKnowledge ships, or write your own in the editor's Skills sidebar."
-msgstr "Keterampilan mengajarkan tugas berulang kepada alat AI Anda. Pasang keterampilan bawaan OpenKnowledge, atau tulis milik Anda di bilah sisi Keterampilan pada editor."
+msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
+msgstr "Keterampilan mengajarkan tugas berulang kepada alat AI Anda. Pasang keterampilan bawaan GitQuire, atau tulis milik Anda di bilah sisi Keterampilan pada editor."
 
 msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
 msgstr "Keterampilan mengajarkan tugas berulang kepada alat AI Anda. Tulis milik Anda di bilah sisi Keterampilan pada editor; halaman ini tempat keterampilan diaktifkan dan dibagikan."
@@ -9906,8 +9912,8 @@ msgstr "Lewati dulu"
 msgid "Skipped downloading {0}."
 msgstr "Unduhan {0} dilewati."
 
-msgid "Skipped enabling Open Knowledge tools. This thread runs without them."
-msgstr "Pengaktifan alat Open Knowledge dilewati. Utas ini berjalan tanpa alat itu."
+msgid "Skipped enabling GitQuire tools. This thread runs without them."
+msgstr "Pengaktifan alat GitQuire dilewati. Utas ini berjalan tanpa alat itu."
 
 msgid "Slash command menu"
 msgstr "Menu perintah garis miring"
@@ -9924,8 +9930,8 @@ msgstr "Slidev"
 msgid "Slidev couldn't render this document."
 msgstr "Slidev tidak dapat merender dokumen ini."
 
-msgid "Slidev decks open in the OpenKnowledge desktop app only."
-msgstr "Dek Slidev hanya terbuka di aplikasi desktop OpenKnowledge."
+msgid "Slidev decks open in the GitQuire desktop app only."
+msgstr "Dek Slidev hanya terbuka di aplikasi desktop GitQuire."
 
 msgid "Slidev found in this project. Decks will use the project's version."
 msgstr "Slidev ditemukan di proyek ini. Dek akan memakai versi proyek."
@@ -9960,8 +9966,8 @@ msgstr "Beberapa suntingan belum sampai ke server, jadi tab tidak dimuat ulang. 
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "Sebagian file tidak ditampilkan: working tree memiliki terlalu banyak perubahan."
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen OpenKnowledge to try again."
-msgstr "Beberapa file mungkin belum dihapus. Buka log pembersihan untuk melihat detailnya. Anda dapat membuka kembali OpenKnowledge untuk mencoba lagi."
+msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
+msgstr "Beberapa file mungkin belum dihapus. Buka log pembersihan untuk melihat detailnya. Anda dapat membuka kembali GitQuire untuk mencoba lagi."
 
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Beberapa tema tersimpan tidak ditampilkan karena folder tema melewati batas pemindaian."
@@ -10093,8 +10099,8 @@ msgstr "Mulai obrolan baru"
 msgid "Start a new chat ({0})"
 msgstr "Mulai obrolan baru ({0})"
 
-msgid "Start a new OpenKnowledge project."
-msgstr "Mulai proyek OpenKnowledge baru."
+msgid "Start a new GitQuire project."
+msgstr "Mulai proyek GitQuire baru."
 
 msgid "Start an agent"
 msgstr "Mulai sebuah agen"
@@ -10481,8 +10487,8 @@ msgstr "terminal.shell di .ok/local/config.yml harus berupa string. Shell Window
 msgid "terminal.shell in .ok/local/config.yml must be an absolute Windows path. Using an available Windows shell instead."
 msgstr "terminal.shell di .ok/local/config.yml harus berupa jalur Windows absolut. Shell Windows yang tersedia akan digunakan sebagai gantinya."
 
-msgid "terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for OpenKnowledge-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it."
-msgstr "terminal.shell di .ok/local/config.yml mendukung PowerShell, cmd.exe, atau Git Bash untuk peluncuran yang dikelola OpenKnowledge dan jalur file yang diletakkan. Shell ini hanya membuka terminal biasa; peluncuran agen dan perintah tidak berjalan di dalamnya."
+msgid "terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for GitQuire-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it."
+msgstr "terminal.shell di .ok/local/config.yml mendukung PowerShell, cmd.exe, atau Git Bash untuk peluncuran yang dikelola GitQuire dan jalur file yang diletakkan. Shell ini hanya membuka terminal biasa; peluncuran agen dan perintah tidak berjalan di dalamnya."
 
 msgid "Test connection"
 msgstr "Uji koneksi"
@@ -10493,8 +10499,8 @@ msgstr "Menguji"
 msgid "Text"
 msgstr "Teks"
 
-msgid "Thanks for giving OpenKnowledge a try."
-msgstr "Terima kasih sudah mencoba OpenKnowledge."
+msgid "Thanks for giving GitQuire a try."
+msgstr "Terima kasih sudah mencoba GitQuire."
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "Terima kasih sudah berlangganan. Pantau kotak masuk Anda untuk kabar terbaru produk."
@@ -10526,11 +10532,11 @@ msgstr "Ini tidak dapat diurai sebagai YAML atau JSON."
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "Endpoint itu tidak bisa dipakai. Masukkan URL https:// — http:// hanya diizinkan untuk endpoint loopback."
 
-msgid "That folder already holds code Open Knowledge didn't write, which the same trust would let {0} run: {otherExtensions}."
-msgstr "Folder itu sudah berisi kode yang tidak ditulis Open Knowledge, dan kepercayaan yang sama akan mengizinkan {0} menjalankannya: {otherExtensions}."
+msgid "That folder already holds code GitQuire didn't write, which the same trust would let {0} run: {otherExtensions}."
+msgstr "Folder itu sudah berisi kode yang tidak ditulis GitQuire, dan kepercayaan yang sama akan mengizinkan {0} menjalankannya: {otherExtensions}."
 
-msgid "That folder isn't an OpenKnowledge project yet. Initialize it and open?"
-msgstr "Folder itu belum menjadi proyek OpenKnowledge. Inisialisasi lalu buka?"
+msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
+msgstr "Folder itu belum menjadi proyek GitQuire. Inisialisasi lalu buka?"
 
 msgid "That host is already in the list."
 msgstr "Host tersebut sudah ada di daftar."
@@ -10602,8 +10608,8 @@ msgstr "Agen kehabisan memori."
 msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
 msgstr "Instalasi agen kehilangan beberapa berkas (sebuah modul tidak ditemukan). Memasang ulang agen biasanya memperbaikinya."
 
-msgid "The agent's OpenKnowledge tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
-msgstr "Alat OpenKnowledge milik agen tidak bisa menjangkau server. Minta agen untuk mencoba lagi, dan jika terus gagal, mulai obrolan baru."
+msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
+msgstr "Alat GitQuire milik agen tidak bisa menjangkau server. Minta agen untuk mencoba lagi, dan jika terus gagal, mulai obrolan baru."
 
 msgid "The agent's persona, values, and voice."
 msgstr "Kepribadian, nilai, dan gaya bicara agen."
@@ -10626,8 +10632,8 @@ msgstr "Penampil papan gagal dimuat. Periksa koneksi Anda dan coba lagi."
 msgid "The board's content is not a valid Excalidraw scene."
 msgstr "Konten papan bukan scene Excalidraw yang valid."
 
-msgid "The browser isn't available in this chat because it couldn't be set up. OpenKnowledge's log has the details."
-msgstr "Browser tidak tersedia di obrolan ini karena tidak dapat disiapkan. Log OpenKnowledge berisi detailnya."
+msgid "The browser isn't available in this chat because it couldn't be set up. GitQuire's log has the details."
+msgstr "Browser tidak tersedia di obrolan ini karena tidak dapat disiapkan. Log GitQuire berisi detailnya."
 
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "Browser tidak tersedia di obrolan ini karena tidak ditemukan instalasi Node.js yang dapat menjalankannya. Pasang Node.js, lalu mulai obrolan baru."
@@ -10659,8 +10665,8 @@ msgstr "Aplikasi desktopnya tidak merespons. Segarkan lalu coba lagi."
 msgid "the doc {0}"
 msgstr "dokumen {0}"
 
-msgid "The embeddings provider's vector size kept changing. Semantic search is off until OpenKnowledge restarts."
-msgstr "Ukuran vektor penyedia embedding terus berubah. Pencarian semantik dinonaktifkan hingga OpenKnowledge dimulai ulang."
+msgid "The embeddings provider's vector size kept changing. Semantic search is off until GitQuire restarts."
+msgstr "Ukuran vektor penyedia embedding terus berubah. Pencarian semantik dinonaktifkan hingga GitQuire dimulai ulang."
 
 msgid "The endpoint answered, but not with an OpenAI-compatible embeddings response. Check the base URL."
 msgstr "Endpoint-nya menjawab, tetapi bukan dengan respons embedding yang kompatibel dengan OpenAI. Periksa URL dasarnya."
@@ -10674,8 +10680,8 @@ msgstr "Berkas ada di {trashNoun} Anda; pengawas berkas akan menyelaraskannya."
 msgid "The file on disk, and the id agents use."
 msgstr "Berkas di disk, dan id yang dipakai agen."
 
-msgid "The file was restored to an older version. Current is the version OpenKnowledge protected. Incoming is the restored version. Choose which version to keep, then apply your changes."
-msgstr "Berkas dipulihkan ke versi yang lebih lama. Yang sekarang adalah versi yang dilindungi OpenKnowledge. Yang masuk adalah versi yang dipulihkan. Pilih versi yang ingin dipertahankan, lalu terapkan perubahan Anda."
+msgid "The file was restored to an older version. Current is the version GitQuire protected. Incoming is the restored version. Choose which version to keep, then apply your changes."
+msgstr "Berkas dipulihkan ke versi yang lebih lama. Yang sekarang adalah versi yang dilindungi GitQuire. Yang masuk adalah versi yang dipulihkan. Pilih versi yang ingin dipertahankan, lalu terapkan perubahan Anda."
 
 msgid "The file was restored to an older version. Open it to choose which version to keep."
 msgstr "Berkas dipulihkan ke versi yang lebih lama. Buka berkas untuk memilih versi yang ingin dipertahankan."
@@ -10689,14 +10695,14 @@ msgstr "Folder dan templatnya sudah ada di sini, jadi tidak ada yang perlu ditam
 msgid "The formula <0>c = √(a² + b²)</0> renders inline."
 msgstr "Rumus <0>c = √(a² + b²)</0> dirender sebaris."
 
-msgid "The index files stay in place. Open Knowledge removes only the Git rule it added."
-msgstr "File indeks tetap di tempatnya. Open Knowledge hanya menghapus aturan Git yang ditambahkannya."
+msgid "The index files stay in place. GitQuire removes only the Git rule it added."
+msgstr "File indeks tetap di tempatnya. GitQuire hanya menghapus aturan Git yang ditambahkannya."
 
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "Antarmuka masih dalam bahasa yang tadi Anda baca. Periksa koneksi Anda, lalu muat ulang untuk mencoba lagi."
 
-msgid "The language OpenKnowledge speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
-msgstr "Bahasa yang digunakan OpenKnowledge; Sistem mengikuti sistem operasi Anda. Catatan Anda sendiri tetap dalam bahasa saat Anda menulisnya."
+msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
+msgstr "Bahasa yang digunakan GitQuire; Sistem mengikuti sistem operasi Anda. Catatan Anda sendiri tetap dalam bahasa saat Anda menulisnya."
 
 msgid "The menu label agents pick this template by (required)."
 msgstr "Label menu yang dipakai agen untuk memilih templat ini (wajib)."
@@ -10707,20 +10713,20 @@ msgstr "Id model yang dilayani endpoint Anda. Ukuran vektornya terdeteksi otomat
 msgid "the open agent"
 msgstr "agen yang terbuka"
 
-msgid "The OpenKnowledge project is missing at this checkout path."
-msgstr "Proyek OpenKnowledge tidak ada di jalur checkout ini."
+msgid "The GitQuire project is missing at this checkout path."
+msgstr "Proyek GitQuire tidak ada di jalur checkout ini."
 
-msgid "The OpenKnowledge project path on this branch cannot be read. The worktree was created but not opened."
-msgstr "Jalur proyek OpenKnowledge pada branch ini tidak dapat dibaca. Worktree dibuat, tetapi tidak dibuka."
+msgid "The GitQuire project path on this branch cannot be read. The worktree was created but not opened."
+msgstr "Jalur proyek GitQuire pada branch ini tidak dapat dibaca. Worktree dibuat, tetapi tidak dibuka."
 
-msgid "The OpenKnowledge project path on this branch leaves the worktree. The worktree was created but not opened."
-msgstr "Jalur proyek OpenKnowledge pada branch ini keluar dari worktree. Worktree dibuat, tetapi tidak dibuka."
+msgid "The GitQuire project path on this branch leaves the worktree. The worktree was created but not opened."
+msgstr "Jalur proyek GitQuire pada branch ini keluar dari worktree. Worktree dibuat, tetapi tidak dibuka."
 
-msgid "The OpenKnowledge server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again."
-msgstr "Server OpenKnowledge terlalu lama merespons, dan perubahan mungkin tetap diterapkan. Minta agen memeriksanya sebelum mencoba lagi."
+msgid "The GitQuire server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again."
+msgstr "Server GitQuire terlalu lama merespons, dan perubahan mungkin tetap diterapkan. Minta agen memeriksanya sebelum mencoba lagi."
 
-msgid "The OpenKnowledge server took too long to answer. Ask the agent to try again."
-msgstr "Server OpenKnowledge terlalu lama merespons. Minta agen mencoba lagi."
+msgid "The GitQuire server took too long to answer. Ask the agent to try again."
+msgstr "Server GitQuire terlalu lama merespons. Minta agen mencoba lagi."
 
 msgid "The original text was deleted."
 msgstr "Teks aslinya telah dihapus."
@@ -10758,8 +10764,8 @@ msgstr "Penyedianya menolak permintaannya (HTTP {0}). Periksa kunci API dan id m
 msgid "The provider rejected the request. Check the API key and the model id."
 msgstr "Penyedianya menolak permintaannya. Periksa kunci API dan id modelnya."
 
-msgid "The provider's vector size kept changing. Restart OpenKnowledge before searching by meaning again."
-msgstr "Ukuran vektor penyedia terus berubah. Mulai ulang OpenKnowledge sebelum mencari berdasarkan makna lagi."
+msgid "The provider's vector size kept changing. Restart GitQuire before searching by meaning again."
+msgstr "Ukuran vektor penyedia terus berubah. Mulai ulang GitQuire sebelum mencari berdasarkan makna lagi."
 
 msgid "The public URL your tunnel serves (for example your Tailscale https://…ts.net address). The server admits requests for this host and advertises it in the URLs it issues."
 msgstr "URL publik yang dilayani tunnel Anda (misalnya alamat Tailscale https://…ts.net Anda). Server menerima permintaan untuk host ini dan mengiklankannya di URL yang diterbitkannya."
@@ -10773,8 +10779,8 @@ msgstr "Repositorinya dipindahkan, diganti nama, atau dihapus."
 msgid "The repository's original clone directory"
 msgstr "Direktori klon asli repositori"
 
-msgid "The request to enable Open Knowledge tools timed out. This thread runs without them."
-msgstr "Permintaan untuk mengaktifkan alat Open Knowledge kedaluwarsa. Utas ini berjalan tanpa alat itu."
+msgid "The request to enable GitQuire tools timed out. This thread runs without them."
+msgstr "Permintaan untuk mengaktifkan alat GitQuire kedaluwarsa. Utas ini berjalan tanpa alat itu."
 
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "Berkas skemanya tidak ada atau gagal dimuat — menambahkan sebuah bidang akan membuatnya."
@@ -10815,8 +10821,8 @@ msgstr "Folder sumbernya sendiri tidak berpindah."
 msgid "The stored token is missing the permissions this host needs to push."
 msgstr "Token yang tersimpan tidak memiliki izin yang dibutuhkan host ini untuk melakukan push."
 
-msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's OpenKnowledge settings, so it only reaches them when Config sharing below is set to Shared."
-msgstr "Mode sinkronisasi yang digunakan rekan tim saat pertama kali membuka proyek ini. Mode ini disimpan di pengaturan OpenKnowledge proyek, jadi hanya sampai ke mereka jika Berbagi konfigurasi di bawah diatur ke Dibagikan."
+msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
+msgstr "Mode sinkronisasi yang digunakan rekan tim saat pertama kali membuka proyek ini. Mode ini disimpan di pengaturan GitQuire proyek, jadi hanya sampai ke mereka jika Berbagi konfigurasi di bawah diatur ke Dibagikan."
 
 msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
 msgstr "Penyimpanan kredensial sistem tidak tersedia. Kunci ini disimpan dalam file dengan izin terbatas di luar proyek."
@@ -10911,9 +10917,9 @@ msgstr "Tautan ini tetap terlihat di Tautan dan bukan bagian dari antrean perbai
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "Aturan-aturan ini berasal dari berkas <0>{configFile}</0> proyek Anda, yang sepenuhnya mengatur lint untuk proyek ini. Nyalakan atau matikan aturan dan sunting opsinya di sini; perubahannya ditulis kembali ke berkas itu."
 
-#. Says what the OpenKnowledge-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with OpenKnowledge. Installing one adds it to every AI tool on this machine."
-msgstr "Keterampilan ini mengajarkan alat AI Anda cara bekerja dengan OpenKnowledge. Memasang satu akan menambahkannya ke setiap alat AI di mesin ini."
+#. Says what the GitQuire-authored skills are for, and where installing one puts it
+msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
+msgstr "Keterampilan ini mengajarkan alat AI Anda cara bekerja dengan GitQuire. Memasang satu akan menambahkannya ke setiap alat AI di mesin ini."
 
 msgid "They run without asking while this chat is open"
 msgstr "Perintah tersebut berjalan tanpa bertanya selama obrolan ini terbuka"
@@ -10969,8 +10975,8 @@ msgstr "Agen ini tidak menawarkan perintah garis miring"
 msgid "This agent doesn't offer slash commands — your message will be sent as plain text"
 msgstr "Agen ini tidak menawarkan perintah garis miring — pesan Anda akan dikirim sebagai teks biasa"
 
-msgid "This agent gives OpenKnowledge no way to set this up for you. Its setup guide has the manual steps."
-msgstr "Agen ini tidak memberi OpenKnowledge cara untuk menyiapkannya untuk Anda. Panduan penyiapannya memuat langkah-langkah manual."
+msgid "This agent gives GitQuire no way to set this up for you. Its setup guide has the manual steps."
+msgstr "Agen ini tidak memberi GitQuire cara untuk menyiapkannya untuk Anda. Panduan penyiapannya memuat langkah-langkah manual."
 
 msgid "This agent has no file of this kind on this machine yet. Open the agent once, then check again."
 msgstr "Agen ini belum memiliki file jenis ini di mesin ini. Buka agen sekali, lalu periksa lagi."
@@ -10978,23 +10984,23 @@ msgstr "Agen ini belum memiliki file jenis ini di mesin ini. Buka agen sekali, l
 msgid "This agent hasn't announced its commands yet"
 msgstr "Agen ini belum mengumumkan perintahnya"
 
-msgid "This agent runs through {0}, which is installed but won't run — its {1} looks broken. Open Knowledge can download a private copy of {2} {3} (about {4} MB from {5}) that won't touch the rest of your system."
-msgstr "Agen ini berjalan lewat {0}, yang sudah terpasang tetapi tidak bisa jalan — {1}-nya tampak rusak. Open Knowledge bisa mengunduh salinan pribadi {2} {3} (sekitar {4} MB dari {5}) yang tidak akan menyentuh bagian lain sistem Anda."
+msgid "This agent runs through {0}, which is installed but won't run — its {1} looks broken. GitQuire can download a private copy of {2} {3} (about {4} MB from {5}) that won't touch the rest of your system."
+msgstr "Agen ini berjalan lewat {0}, yang sudah terpasang tetapi tidak bisa jalan — {1}-nya tampak rusak. GitQuire bisa mengunduh salinan pribadi {2} {3} (sekitar {4} MB dari {5}) yang tidak akan menyentuh bagian lain sistem Anda."
 
-msgid "This agent runs through {0}, which isn't installed. Open Knowledge can download a private copy of {1} {2} (about {3} MB from {4}) that won't touch the rest of your system."
-msgstr "Agen ini berjalan lewat {0}, yang belum terpasang. Open Knowledge bisa mengunduh salinan pribadi {1} {2} (sekitar {3} MB dari {4}) yang tidak akan menyentuh bagian lain sistem Anda."
+msgid "This agent runs through {0}, which isn't installed. GitQuire can download a private copy of {1} {2} (about {3} MB from {4}) that won't touch the rest of your system."
+msgstr "Agen ini berjalan lewat {0}, yang belum terpasang. GitQuire bisa mengunduh salinan pribadi {1} {2} (sekitar {3} MB dari {4}) yang tidak akan menyentuh bagian lain sistem Anda."
 
 msgid "This also installs the pack's {packSkillCount, plural, one {# skill} other {# skills}}."
 msgstr "Ini juga memasang {packSkillCount, plural, one {# skill} other {# skill}} dari paket."
 
-msgid "This branch does not contain this OpenKnowledge project. The worktree was created but not opened."
-msgstr "Branch ini tidak berisi proyek OpenKnowledge ini. Worktree dibuat, tetapi tidak dibuka."
+msgid "This branch does not contain this GitQuire project. The worktree was created but not opened."
+msgstr "Branch ini tidak berisi proyek GitQuire ini. Worktree dibuat, tetapi tidak dibuka."
 
 msgid "This branch is checked out in:"
 msgstr "Cabang ini sedang dipakai di:"
 
-msgid "This branch redirects an OpenKnowledge setup path outside the worktree. The worktree was created but not opened."
-msgstr "Branch ini mengarahkan jalur penyiapan OpenKnowledge ke luar worktree. Worktree dibuat, tetapi tidak dibuka."
+msgid "This branch redirects a GitQuire setup path outside the worktree. The worktree was created but not opened."
+msgstr "Branch ini mengarahkan jalur penyiapan GitQuire ke luar worktree. Worktree dibuat, tetapi tidak dibuka."
 
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
@@ -11033,11 +11039,11 @@ msgstr "Ini tidak dapat disiapkan karena entri server MCP yang diperlukan tidak 
 msgid "This deletes the MCP server entries and skill files listed below. The agent will lose access to your documents until you add it again."
 msgstr "Tindakan ini menghapus entri server MCP dan file keterampilan yang tercantum di bawah. Agen akan kehilangan akses ke dokumen Anda sampai Anda menambahkannya lagi."
 
-msgid "This development build can't connect agents, so it won't change the agent setup of your installed OpenKnowledge app."
-msgstr "Build pengembangan ini tidak dapat menghubungkan agen, jadi tidak akan mengubah pengaturan agen di aplikasi OpenKnowledge yang terpasang."
+msgid "This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app."
+msgstr "Build pengembangan ini tidak dapat menghubungkan agen, jadi tidak akan mengubah pengaturan agen di aplikasi GitQuire yang terpasang."
 
-msgid "This disconnects {0} from OpenKnowledge."
-msgstr "Ini memutuskan koneksi {0} dari OpenKnowledge."
+msgid "This disconnects {0} from GitQuire."
+msgstr "Ini memutuskan koneksi {0} dari GitQuire."
 
 msgid "This doc"
 msgstr "Dokumen ini"
@@ -11063,8 +11069,8 @@ msgstr "Dokumen ini telah dihapus"
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "Endpoint ini mengabaikan ukuran vektor yang Anda atur. Hapus <0>search.semantic.dimensions</0> untuk memakai ukuran milik modelnya sendiri."
 
-msgid "This entry changed after OpenKnowledge wrote it. Turning it on replaces it."
-msgstr "Entri ini berubah setelah ditulis OpenKnowledge. Mengaktifkannya akan menggantinya."
+msgid "This entry changed after GitQuire wrote it. Turning it on replaces it."
+msgstr "Entri ini berubah setelah ditulis GitQuire. Mengaktifkannya akan menggantinya."
 
 msgid "This field carries additional schema keywords the editor does not show — they are preserved on save."
 msgstr "Bidang ini membawa kata kunci skema tambahan yang tidak ditampilkan penyunting — semuanya dipertahankan saat disimpan."
@@ -11120,8 +11126,8 @@ msgstr "Folder ini belum ada di GitHub. Tautannya tidak akan berfungsi sampai ia
 msgid "This GitHub URL can't be shared."
 msgstr "URL GitHub ini tidak dapat dibagikan."
 
-msgid "This is a preview of {boldName} — a built-in skill shipped with Open Knowledge. It's read-only."
-msgstr "Ini pratinjau {boldName} — keterampilan bawaan yang disertakan bersama Open Knowledge. Ia hanya-baca."
+msgid "This is a preview of {boldName} — a built-in skill shipped with GitQuire. It's read-only."
+msgstr "Ini pratinjau {boldName} — keterampilan bawaan yang disertakan bersama GitQuire. Ia hanya-baca."
 
 msgid "This is a preview of {boldName} — one of {0} skills at this source. Install it into your agents."
 msgstr "Ini pratinjau {boldName} — satu dari {0} keterampilan di sumber ini. Pasang ke agen Anda."
@@ -11169,8 +11175,8 @@ msgid "This one needs to see your files, not just the open document, so it appea
 msgstr "Yang ini perlu melihat file Anda, bukan hanya dokumen yang terbuka, sehingga muncul saat Anda menjalankan audit proyek, bukan saat Anda mengetik."
 
 #. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with OpenKnowledge. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "Yang ini mengajarkan alat AI Anda cara bekerja dengan OpenKnowledge. Keterampilan ini berada di folder proyek, jadi terpasang untuk semua orang yang membuka proyek."
+msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
+msgstr "Yang ini mengajarkan alat AI Anda cara bekerja dengan GitQuire. Keterampilan ini berada di folder proyek, jadi terpasang untuk semua orang yang membuka proyek."
 
 msgid "This option cannot be changed automatically."
 msgstr "Opsi ini tidak dapat diubah secara otomatis."
@@ -11190,8 +11196,8 @@ msgstr "Halaman ini tidak lagi berada di jalur ini."
 msgid "This page references no local files or images."
 msgstr "Halaman ini tidak merujuk ke berkas atau gambar lokal apa pun."
 
-msgid "This path is on an external volume (/Volumes/...). OpenKnowledge will lose track of files when the drive ejects."
-msgstr "Jalur ini berada di volume eksternal (/Volumes/...). OpenKnowledge akan kehilangan jejak berkasnya ketika drive itu dicabut."
+msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
+msgstr "Jalur ini berada di volume eksternal (/Volumes/...). GitQuire akan kehilangan jejak berkasnya ketika drive itu dicabut."
 
 msgid "This permanently deletes {deleteTarget} from the project and removes its mapping from config.yml."
 msgstr "Ini menghapus {deleteTarget} secara permanen dari proyek dan menghapus pemetaannya dari config.yml."
@@ -11223,11 +11229,11 @@ msgstr "Proyek ini tidak punya repositori git — mode berbagi tidak berlaku. In
 msgid "This project has no GitHub remote."
 msgstr "Proyek ini tidak memiliki remote GitHub."
 
-msgid "This project is running a different, incompatible build of OpenKnowledge than this app (v{0})."
-msgstr "Proyek ini menjalankan build OpenKnowledge yang berbeda dan tidak kompatibel dengan aplikasi ini (v{0})."
+msgid "This project is running a different, incompatible build of GitQuire than this app (v{0})."
+msgstr "Proyek ini menjalankan build GitQuire yang berbeda dan tidak kompatibel dengan aplikasi ini (v{0})."
 
-msgid "This project is running an older version of OpenKnowledge (v{0}) than this app (v{1})."
-msgstr "Proyek ini menjalankan versi OpenKnowledge (v{0}) yang lebih lama daripada aplikasi ini (v{1})."
+msgid "This project is running an older version of GitQuire (v{0}) than this app (v{1})."
+msgstr "Proyek ini menjalankan versi GitQuire (v{0}) yang lebih lama daripada aplikasi ini (v{1})."
 
 msgid "This project isn't a git repository, so worktrees aren't available."
 msgstr "Proyek ini bukan repositori git, jadi worktree tidak tersedia."
@@ -11235,14 +11241,14 @@ msgstr "Proyek ini bukan repositori git, jadi worktree tidak tersedia."
 msgid "This project lives only on this computer. Connect it to GitHub to back it up and share it with other people."
 msgstr "Proyek ini hanya ada di komputer ini. Hubungkan ke GitHub untuk mencadangkannya dan membagikannya dengan orang lain."
 
-msgid "This project's running server doesn't support live editing. Restart OpenKnowledge to fix."
-msgstr "Server proyek ini yang sedang berjalan tidak mendukung penyuntingan langsung. Mulai ulang OpenKnowledge untuk memperbaikinya."
+msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
+msgstr "Server proyek ini yang sedang berjalan tidak mendukung penyuntingan langsung. Mulai ulang GitQuire untuk memperbaikinya."
 
 msgid "This project's server (v{0}) is newer than this app (v{1})."
 msgstr "Server proyek ini (v{0}) lebih baru daripada aplikasi ini (v{1})."
 
-msgid "This removes OpenKnowledge’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "Ini menghapus pengaturan dan integrasi OpenKnowledge dari Mac Anda serta dari proyek mana pun yang Anda pilih di bawah, tetapi mempertahankan konten markdown dan keterampilan yang Anda tulis."
+msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
+msgstr "Ini menghapus pengaturan dan integrasi GitQuire dari Mac Anda serta dari proyek mana pun yang Anda pilih di bawah, tetapi mempertahankan konten markdown dan keterampilan yang Anda tulis."
 
 msgid "This report is already on its way. Its result will appear in your bug report history."
 msgstr "Laporan ini sudah dalam perjalanan. Hasilnya akan muncul di riwayat laporan bug."
@@ -11274,8 +11280,8 @@ msgstr "Pengaturan ini berlaku per komputer dan tidak dibagikan dengan kolaborat
 msgid "This setup is shared with {peers} through <0>{path}</0>. Removing it here removes it for {peers} too."
 msgstr "Konfigurasi ini dibagikan dengan {peers} melalui <0>{path}</0>. Menghapusnya di sini juga menghapusnya untuk {peers}."
 
-msgid "This setup is shared with {peers}, and OpenKnowledge cannot change it from here. Unlink the folder in Skills Studio first."
-msgstr "Penyiapan ini dibagikan dengan {peers}, dan OpenKnowledge tidak dapat mengubahnya dari sini. Lepaskan tautan folder di Skills Studio terlebih dahulu."
+msgid "This setup is shared with {peers}, and GitQuire cannot change it from here. Unlink the folder in Skills Studio first."
+msgstr "Penyiapan ini dibagikan dengan {peers}, dan GitQuire tidak dapat mengubahnya dari sini. Lepaskan tautan folder di Skills Studio terlebih dahulu."
 
 msgid "This setup is shared with {peers}. Removing it here removes it for {peers} too."
 msgstr "Konfigurasi ini dibagikan dengan {peers}. Menghapusnya di sini juga menghapusnya untuk {peers}."
@@ -11289,8 +11295,8 @@ msgstr "Sumber ini memuat beberapa keterampilan — pilih yang akan diimpor."
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "Tab ini tidak dapat memastikan suntingan Anda sudah tersimpan, jadi tidak dimuat ulang. Suntingan Anda masih ada di sini."
 
-msgid "This tab is still reconnecting to OpenKnowledge, so it didn't reload. Try again in a moment."
-msgstr "Tab ini masih menyambung ulang ke OpenKnowledge, jadi tidak dimuat ulang. Coba lagi sebentar lagi."
+msgid "This tab is still reconnecting to GitQuire, so it didn't reload. Try again in a moment."
+msgstr "Tab ini masih menyambung ulang ke GitQuire, jadi tidak dimuat ulang. Coba lagi sebentar lagi."
 
 msgid "This template lives in a parent folder — deleting it affects every folder beneath it that doesn't define its own version."
 msgstr "Templat ini berada di folder induk — menghapusnya memengaruhi setiap folder di bawahnya yang tidak menentukan versinya sendiri."
@@ -11338,8 +11344,8 @@ msgstr "judul"
 msgid "Title"
 msgstr "Judul"
 
-msgid "To connect AI tools without a project, use File > Set up OpenKnowledge integrations…"
-msgstr "Untuk menghubungkan alat AI tanpa proyek, gunakan Berkas > Siapkan integrasi OpenKnowledge…"
+msgid "To connect AI tools without a project, use File > Set up GitQuire integrations…"
+msgstr "Untuk menghubungkan alat AI tanpa proyek, gunakan Berkas > Siapkan integrasi GitQuire…"
 
 msgid "To do"
 msgstr "Akan dikerjakan"
@@ -11460,11 +11466,11 @@ msgstr "Dilacak di git — pembaruan mengalir lewat repo Anda (pull atau CI), bu
 msgid "Trash"
 msgstr "Tempat Sampah"
 
-msgid "Traverse OpenKnowledge navigation history backward."
-msgstr "Menyusuri riwayat navigasi OpenKnowledge ke belakang."
+msgid "Traverse GitQuire navigation history backward."
+msgstr "Menyusuri riwayat navigasi GitQuire ke belakang."
 
-msgid "Traverse OpenKnowledge navigation history forward."
-msgstr "Menyusuri riwayat navigasi OpenKnowledge ke depan."
+msgid "Traverse GitQuire navigation history forward."
+msgstr "Menyusuri riwayat navigasi GitQuire ke depan."
 
 msgid "Tree view options"
 msgstr "Opsi tampilan pohon"
@@ -11517,14 +11523,14 @@ msgstr "Mematikannya"
 msgid "Turning it over…"
 msgstr "Membolak-balikkannya…"
 
-msgid "Turning off index maintenance failed because Open Knowledge could not reach the project server. Try again when the project reconnects."
-msgstr "Gagal menonaktifkan pemeliharaan indeks karena Open Knowledge tidak dapat menjangkau server proyek. Coba lagi saat proyek tersambung kembali."
+msgid "Turning off index maintenance failed because GitQuire could not reach the project server. Try again when the project reconnects."
+msgstr "Gagal menonaktifkan pemeliharaan indeks karena GitQuire tidak dapat menjangkau server proyek. Coba lagi saat proyek tersambung kembali."
 
-msgid "Turning off index maintenance failed because Open Knowledge could not update the Git merge rule. Check Git and .gitattributes, then try again."
-msgstr "Gagal menonaktifkan pemeliharaan indeks karena Open Knowledge tidak dapat memperbarui aturan penggabungan Git. Periksa Git dan .gitattributes, lalu coba lagi."
+msgid "Turning off index maintenance failed because GitQuire could not update the Git merge rule. Check Git and .gitattributes, then try again."
+msgstr "Gagal menonaktifkan pemeliharaan indeks karena GitQuire tidak dapat memperbarui aturan penggabungan Git. Periksa Git dan .gitattributes, lalu coba lagi."
 
-msgid "Turning off index maintenance failed because the Open Knowledge section of .gitattributes was edited or is incomplete. Remove that section, then try again."
-msgstr "Gagal menonaktifkan pemeliharaan indeks karena bagian Open Knowledge di .gitattributes telah diedit atau tidak lengkap. Hapus bagian tersebut, lalu coba lagi."
+msgid "Turning off index maintenance failed because the GitQuire section of .gitattributes was edited or is incomplete. Remove that section, then try again."
+msgstr "Gagal menonaktifkan pemeliharaan indeks karena bagian GitQuire di .gitattributes telah diedit atau tidak lengkap. Hapus bagian tersebut, lalu coba lagi."
 
 msgid "Turning off index maintenance failed because the project setting could not be saved. Check the project file permissions, then try again."
 msgstr "Gagal menonaktifkan pemeliharaan indeks karena pengaturan proyek tidak dapat disimpan. Periksa izin file proyek, lalu coba lagi."
@@ -11607,11 +11613,11 @@ msgstr "Batalkan resolusi Anda untuk mengubah ini."
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "Membatalkan, mengulangi, atau menelusuri perubahan pilihan di panel Sunting sumber atau bidang properti berbentuk kode."
 
-msgid "Uninstall OpenKnowledge"
-msgstr "Copot OpenKnowledge"
+msgid "Uninstall GitQuire"
+msgstr "Copot GitQuire"
 
-msgid "Uninstall OpenKnowledge?"
-msgstr "Copot OpenKnowledge?"
+msgid "Uninstall GitQuire?"
+msgstr "Copot GitQuire?"
 
 msgid "Uninstalled \"{0}\" from {1}"
 msgstr "\"{0}\" dicopot dari {1}"
@@ -11710,8 +11716,8 @@ msgstr "Pembaruan gagal: {0}"
 msgid "Update from source"
 msgstr "Perbarui dari sumber"
 
-msgid "Update OpenKnowledge to open this share."
-msgstr "Perbarui OpenKnowledge untuk membuka konten berbagi ini."
+msgid "Update GitQuire to open this share."
+msgstr "Perbarui GitQuire untuk membuka konten berbagi ini."
 
 msgid "Update the destination and optional section anchor."
 msgstr "Perbarui tujuan dan jangkar bagian opsionalnya."
@@ -11730,6 +11736,9 @@ msgstr "properti folder diperbarui"
 
 msgid "Updated to Version {version}"
 msgstr "Diperbarui ke Versi {version}"
+
+msgid "Updates"
+msgstr ""
 
 msgid "Updates and feedback"
 msgstr "Pembaruan dan masukan"
@@ -11869,8 +11878,8 @@ msgstr "Plugin pengguna bersifat pribadi untuk perangkat ini — nyalakan atau m
 msgid "Username"
 msgstr "Nama pengguna"
 
-msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside OpenKnowledge)."
-msgstr "Memakai variabel lingkungan <0>OK_EMBEDDINGS_API_KEY</0> (dikelola di luar OpenKnowledge)."
+msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
+msgstr "Memakai variabel lingkungan <0>OK_EMBEDDINGS_API_KEY</0> (dikelola di luar GitQuire)."
 
 msgid "Validate document frontmatter against JSON Schema files, scoped to doc sets by glob."
 msgstr "Memvalidasi frontmatter dokumen terhadap berkas JSON Schema, dibatasi ke kumpulan dokumen lewat glob."
@@ -11891,8 +11900,8 @@ msgctxt "settings search keyword"
 msgid "version"
 msgstr "versi"
 
-msgid "Version in OpenKnowledge"
-msgstr "Versi di OpenKnowledge"
+msgid "Version in GitQuire"
+msgstr "Versi di GitQuire"
 
 msgid "via {viaTags}"
 msgstr "via {viaTags}"
@@ -12005,8 +12014,8 @@ msgstr "Kami akan membuat ID tema yang aman dari nama ini."
 msgid "We've filed it with the team and attached your logs."
 msgstr "Kami sudah meneruskannya ke tim dan melampirkan log Anda."
 
-msgid "Welcome to OpenKnowledge"
-msgstr "Selamat datang di OpenKnowledge"
+msgid "Welcome to GitQuire"
+msgstr "Selamat datang di GitQuire"
 
 #. Button on each setup row that opens the list of files that row writes to
 msgid "What changes?"
@@ -12054,8 +12063,8 @@ msgstr "Apa yang sedang Anda lakukan?"
 msgid "What would you like to create?"
 msgstr "Apa yang ingin Anda buat?"
 
-msgid "What you share is sent to the OpenKnowledge team."
-msgstr "Apa yang Anda bagikan dikirim ke tim OpenKnowledge."
+msgid "What you share is sent to the GitQuire team."
+msgstr "Apa yang Anda bagikan dikirim ke tim GitQuire."
 
 msgid "What's included"
 msgstr "Yang disertakan"
@@ -12164,7 +12173,7 @@ msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"
-msgstr "Menulis berkas jembatan kecil yang dimuat {agent} dari proyek ini untuk menjangkau OpenKnowledge."
+msgstr "Menulis berkas jembatan kecil yang dimuat {agent} dari proyek ini untuk menjangkau GitQuire."
 
 msgid "Writes an entry to"
 msgstr "Menulis entri ke"
@@ -12172,11 +12181,11 @@ msgstr "Menulis entri ke"
 msgid "writing"
 msgstr "menulis"
 
-msgid "Writing this file failed. Check the OpenKnowledge log for the reason."
-msgstr "Gagal menulis file ini. Periksa log OpenKnowledge untuk mengetahui alasannya."
+msgid "Writing this file failed. Check the GitQuire log for the reason."
+msgstr "Gagal menulis file ini. Periksa log GitQuire untuk mengetahui alasannya."
 
-msgid "Wrote the Open Knowledge extension, but couldn't mark the folder trusted, so it won't load. This thread has no Open Knowledge tools."
-msgstr "Ekstensi Open Knowledge sudah ditulis, tetapi folder tidak bisa ditandai tepercaya, jadi ekstensi itu tidak akan dimuat. Utas ini tidak memiliki alat Open Knowledge."
+msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
+msgstr "Ekstensi GitQuire sudah ditulis, tetapi folder tidak bisa ditandai tepercaya, jadi ekstensi itu tidak akan dimuat. Utas ini tidak memiliki alat GitQuire."
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML atau JSON, dalam salah satu tata letak base16."
@@ -12239,11 +12248,11 @@ msgstr "Anda menyunting keterampilan ini secara lokal dan sumbernya punya peruba
 msgid "You modified <0>{filePath}</0> locally, but it was deleted upstream."
 msgstr "Anda mengubah <0>{filePath}</0> secara lokal, tetapi ia dihapus di remote."
 
-msgid "You picked ~/Desktop. OpenKnowledge will index everything on your desktop."
-msgstr "Anda memilih ~/Desktop. OpenKnowledge akan mengindeks semua yang ada di desktop Anda."
+msgid "You picked ~/Desktop. GitQuire will index everything on your desktop."
+msgstr "Anda memilih ~/Desktop. GitQuire akan mengindeks semua yang ada di desktop Anda."
 
-msgid "You picked ~/Documents. OpenKnowledge will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope."
-msgstr "Anda memilih ~/Documents. OpenKnowledge akan mengindeks setiap berkas markdown di bawahnya. Jika Anda hanya ingin mengelola sebuah subfolder, pilih cakupan yang lebih kecil."
+msgid "You picked ~/Documents. GitQuire will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope."
+msgstr "Anda memilih ~/Documents. GitQuire akan mengindeks setiap berkas markdown di bawahnya. Jika Anda hanya ingin mengelola sebuah subfolder, pilih cakupan yang lebih kecil."
 
 msgid "You picked ~/Downloads. Files there are usually transient — consider a stable folder instead."
 msgstr "Anda memilih ~/Downloads. Berkas di sana biasanya sementara — pertimbangkan folder yang lebih tetap."
@@ -12263,8 +12272,8 @@ msgstr "Anda sudah berlangganan!"
 msgid "you@company.com"
 msgstr "anda@perusahaan.com"
 
-msgid "Your agents still load this skill, but OpenKnowledge can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
-msgstr "Agen Anda tetap memuat keterampilan ini, tetapi OpenKnowledge tidak dapat membuka atau mengeditnya: OpenKnowledge tidak mengindeks berkas yang diatur untuk diabaikan oleh git, karena sinkronisasi akan gagal. Menambahkan satu baris ke {gitignorePath} membuatnya dapat diedit di sini."
+msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
+msgstr "Agen Anda tetap memuat keterampilan ini, tetapi GitQuire tidak dapat membuka atau mengeditnya: GitQuire tidak mengindeks berkas yang diatur untuk diabaikan oleh git, karena sinkronisasi akan gagal. Menambahkan satu baris ke {gitignorePath} membuatnya dapat diedit di sini."
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "Perubahan Anda masih disimpan — jalankan pengujiannya lagi sebentar."
