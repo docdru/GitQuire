@@ -241,38 +241,38 @@ function ActionsEmbed({
   return (
     <ul className="flex flex-col gap-1.5 text-sm">
       {shown.map(({ key, item }) => {
-          const text = item.text;
-          const overdue = dueBucket(item, today) === 'overdue';
-          return (
-            <li key={`${key}:${item.id}`} className="flex flex-wrap items-start gap-x-2">
-              <Checkbox
-                checked={item.done}
-                disabled={!editable || saving.has(item.id) || item.source === undefined}
-                aria-label={item.done ? t`Reopen: ${text}` : t`Mark done: ${text}`}
-                onCheckedChange={(checked) => toggle(item, checked === true)}
-                className="mt-0.5"
-              />
+        const text = item.text;
+        const overdue = dueBucket(item, today) === 'overdue';
+        return (
+          <li key={`${key}:${item.id}`} className="flex flex-wrap items-start gap-x-2">
+            <Checkbox
+              checked={item.done}
+              disabled={!editable || saving.has(item.id) || item.source === undefined}
+              aria-label={item.done ? t`Reopen: ${text}` : t`Mark done: ${text}`}
+              onCheckedChange={(checked) => toggle(item, checked === true)}
+              className="mt-0.5"
+            />
+            <span
+              className={cn('min-w-0 flex-1', item.done && 'text-muted-foreground line-through')}
+            >
+              {text}
+            </span>
+            {item.due !== undefined && (
               <span
-                className={cn('min-w-0 flex-1', item.done && 'text-muted-foreground line-through')}
+                className={cn('text-xs', overdue ? 'text-destructive' : 'text-muted-foreground')}
               >
-                {text}
+                {item.due}
               </span>
-              {item.due !== undefined && (
-                <span
-                  className={cn('text-xs', overdue ? 'text-destructive' : 'text-muted-foreground')}
-                >
-                  {item.due}
-                </span>
-              )}
-              <a
-                href={hashFromDocName(item.docName)}
-                className="text-muted-foreground text-xs underline-offset-2 hover:underline"
-              >
-                {item.pageTitle}
-              </a>
-            </li>
-          );
-        })}
+            )}
+            <a
+              href={hashFromDocName(item.docName)}
+              className="text-muted-foreground text-xs underline-offset-2 hover:underline"
+            >
+              {item.pageTitle}
+            </a>
+          </li>
+        );
+      })}
       {rows.length > shown.length && (
         <li className="text-muted-foreground text-xs">{t`Showing the first ${MAX_ROWS} items.`}</li>
       )}
