@@ -9,10 +9,10 @@ import {
   EMPTY_BOARD_VIEW,
   filterActionItems,
   groupActionItems,
-  movePage,
-  readBoardView,
   localDay,
   markTask,
+  movePage,
+  readBoardView,
   StaleTaskError,
   setPageField,
   setTaskDone,
@@ -315,4 +315,3 @@ describe('due dates and ticking off', () => {
     expect(localDay(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05');
   });
 });
-

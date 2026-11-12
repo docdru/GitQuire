@@ -1296,7 +1296,7 @@ export function createAgentWriteRoutes(
           respondAgentSessionCapacity(res, e, 'agent-patch');
           return;
         }
-        log.error({ err: e, requestId: getRequestId(_req) }, '[agent-patch] handler failed');
+        log.error({ err: e, requestId: getRequestId(req) }, '[agent-patch] handler failed');
         errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
           handler: 'agent-patch',
           cause: e,
