@@ -1,9 +1,9 @@
 import type { IncomingMessage } from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
+import { resolveWriterFromOrigin } from '../persistence.ts';
 import {
   BOARD_CLIENT_NAME,
   boardAgentId,
-  boardEditWriter,
   boardWriterIdentity,
 } from './board-identity.ts';
 import {
@@ -53,16 +53,17 @@ describe('board writer identity', () => {
 
   it('makes the person the commit author of a board edit', () => {
     rememberPrincipal(alice);
-    const board = { agent_type: BOARD_CLIENT_NAME, principal: 'github-1', session_id: 'x' };
-    expect(boardEditWriter(board)).toEqual({
+    const origin = (context: Record<string, unknown>) => ({ source: 'local', context });
+    const board = { session_id: 'board-github-1', principal: 'github-1', agent_type: 'b' };
+    expect(resolveWriterFromOrigin(origin(board))).toEqual({
       id: 'github-1',
       name: 'Alice\nAdmin',
       email: 'alice@example.com',
     });
     expect(takeCommitAuthors()).toEqual([alice]);
-    expect(boardEditWriter({ ...board, agent_type: 'claude-code' })).toBeUndefined();
-    const stranger = { agent_type: BOARD_CLIENT_NAME, principal: 'github-9' };
-    expect(boardEditWriter(stranger)).toBeUndefined();
-    expect(boardEditWriter({ agent_type: BOARD_CLIENT_NAME })).toBeUndefined();
+    const stranger = resolveWriterFromOrigin(origin({ ...board, principal: 'github-9' }));
+    expect(stranger?.id).toBe('agent-board-github-1');
+    const agent = resolveWriterFromOrigin(origin({ session_id: 'claude-1' }));
+    expect(agent?.id).toBe('agent-claude-1');
   });
 });

@@ -107,7 +107,6 @@ import {
   tracedUnlinkSync,
   tracedWriteFile,
 } from './fs-traced.ts';
-import { boardEditWriter } from './gitquire/board-identity.ts';
 import { attributeEdit } from './gitquire/principal-directory.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
@@ -407,8 +406,9 @@ export function resolveWriterFromOrigin(
     const ctx = o.context as Record<string, unknown> | undefined;
     if (!ctx) return null;
 
-    const boardWriter = boardEditWriter(ctx);
-    if (boardWriter !== undefined) return boardWriter;
+    const personWriter =
+      typeof ctx.principal === 'string' ? attributeEdit(ctx.principal) : undefined;
+    if (personWriter !== undefined) return personWriter;
 
     if (typeof ctx.session_id === 'string') {
       const sessionId = ctx.session_id;

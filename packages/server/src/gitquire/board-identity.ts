@@ -1,10 +1,5 @@
 import type { IncomingMessage } from 'node:http';
-import {
-  attributeEdit,
-  sanitizeDisplayName,
-  sessionPrincipal,
-  type WriterIdentityLike,
-} from './principal-directory.ts';
+import { sanitizeDisplayName, sessionPrincipal } from './principal-directory.ts';
 
 export const BOARD_CLIENT_NAME = 'gitquire-board';
 
@@ -38,10 +33,4 @@ export function boardWriterIdentity(
     label: undefined,
     principalId: person.id,
   };
-}
-
-export function boardEditWriter(context: Record<string, unknown>): WriterIdentityLike | undefined {
-  if (context.agent_type !== BOARD_CLIENT_NAME) return undefined;
-  const principalId = context.principal;
-  return typeof principalId === 'string' ? attributeEdit(principalId) : undefined;
 }
