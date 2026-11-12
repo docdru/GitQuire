@@ -35,7 +35,7 @@ import {
 } from './mentions.ts';
 import { namingRuleFromEnv } from './naming.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
-import { createPageScan, docNameForPath, type ScannedPage } from './page-scan.ts';
+import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -53,6 +53,7 @@ export interface GitQuireRoutesDeps {
   env?: Readonly<Record<string, string | undefined>>;
   mentionStateFile?: string;
   contentDir?: string;
+  contentFilter?: () => ScanFilter | undefined;
   sendMail?: (config: MailConfig, message: MailMessage) => Promise<void>;
   mailRoundMs?: number;
 }
@@ -280,10 +281,15 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
   }
 
-  const pageScan = createPageScan(deps.contentDir ?? deps.projectDir, (path, markdown) => ({
-    mentions: mentionsInMarkdown(path, markdown),
-    facts: factsOrNone(path, markdown),
-  }));
+  const pageScan = createPageScan(
+    deps.contentDir ?? deps.projectDir,
+    (path, markdown) => ({
+      mentions: mentionsInMarkdown(path, markdown),
+      facts: factsOrNone(path, markdown),
+    }),
+    Date.now,
+    deps.contentFilter,
+  );
   const mentionIndex = mentionIndexFrom(pageScan, (page) => page.mentions);
   const objectList = createObjectListCache();
   let factPages: { source: unknown; pages: ScannedPage<PageFacts>[] } | undefined;

@@ -320,6 +320,7 @@ async function bootServerInner(
   });
   const gitquireHttp = createGitQuireHttp(process.env, {
     projectDir: opts.projectDir ?? opts.contentDir,
+    contentDir: opts.contentDir,
     gate: accessGate,
     tokens: gitHubAppTokens,
     log,
@@ -455,6 +456,10 @@ async function bootServerInner(
     watcherBackend: opts.watcherBackend,
     watcherClock: opts.watcherClock,
     freshnessIntervalMs: opts.freshnessIntervalMs,
+  });
+  gitquireHttp.useContentFilter({
+    isExcluded: (rel) => serverInstance.contentFilter.isExcluded(rel),
+    isDirExcluded: (rel) => serverInstance.contentFilter.isDirExcluded(rel),
   });
 
   const {

@@ -26,7 +26,12 @@ export function docNameForPath(path: string): string | undefined {
   return extension === undefined ? undefined : path.slice(0, -extension.length);
 }
 
-function markdownFiles(root: string): string[] {
+export interface ScanFilter {
+  isExcluded(relativePath: string): boolean;
+  isDirExcluded(relativePath: string): boolean;
+}
+
+function markdownFiles(root: string, filter: ScanFilter | undefined): string[] {
   const files: string[] = [];
   const queue: { dir: string; depth: number }[] = [{ dir: '', depth: 0 }];
   let visited = 0;
@@ -45,10 +50,11 @@ function markdownFiles(root: string): string[] {
       if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue;
       const relative = next.dir === '' ? entry.name : `${next.dir}/${entry.name}`;
       if (entry.isDirectory()) {
-        if (next.depth < MAX_DEPTH && !SKIPPED_DIRECTORIES.has(entry.name)) {
-          queue.push({ dir: relative, depth: next.depth + 1 });
-        }
+        if (next.depth >= MAX_DEPTH || SKIPPED_DIRECTORIES.has(entry.name)) continue;
+        if (filter?.isDirExcluded(relative) === true) continue;
+        queue.push({ dir: relative, depth: next.depth + 1 });
       } else if (entry.isFile() && docNameForPath(entry.name) !== undefined) {
+        if (filter?.isExcluded(relative) === true) continue;
         files.push(relative);
         if (files.length >= MAX_FILES) break;
       }
@@ -77,6 +83,7 @@ export function createPageScan<T>(
   root: string,
   extract: (path: string, markdown: string) => T,
   now: () => number = Date.now,
+  filter: () => ScanFilter | undefined = () => undefined,
 ): PageScan<T> {
   const cache = new Map<string, CachedPage<T>>();
   let lastScan: { at: number; pages: ScannedPage<T>[] } | undefined;
@@ -112,7 +119,7 @@ export function createPageScan<T>(
     if (lastScan !== undefined && at - lastScan.at < SCAN_REUSE_MS && at >= lastScan.at) {
       return lastScan.pages;
     }
-    const paths = markdownFiles(root);
+    const paths = markdownFiles(root, filter());
     const live = new Set(paths);
     for (const path of cache.keys()) {
       if (!live.has(path)) cache.delete(path);
