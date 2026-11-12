@@ -480,19 +480,15 @@ export function PropertyPanel({ provider, reservedKeys, identitySlot }: Property
             <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
             <div>
               <Trans>
-                The properties block at the top of this doc has a formatting error. Switch to
-                source mode to fix it.
+                The properties block at the top of this doc has a formatting error. Switch to source
+                mode to fix it.
               </Trans>
               <span className="block text-[10px] opacity-80">{parseError}</span>
             </div>
           </div>
         ) : null}
         {identitySlot}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext
             items={renderKeys.map((k, i) => rowId(k, i))}
             strategy={verticalListSortingStrategy}

@@ -154,7 +154,7 @@ export function DocPanel({
     return () => {
       setDocPanelOnScreen(false);
     };
-  }, [isCollapsed, mode, effectiveTab]);
+  }, [isCollapsed]);
   return (
     <>
       {showTabStrip ? (

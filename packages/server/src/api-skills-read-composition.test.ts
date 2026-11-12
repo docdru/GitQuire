@@ -45,11 +45,7 @@ async function dispatch(
 
 const READ_200 = ['/api/skills/installed', '/api/templates'];
 
-const ALL_ROUTES = [
-  '/api/skills/installed',
-  '/api/templates',
-  '/api/skill/install-state',
-];
+const ALL_ROUTES = ['/api/skills/installed', '/api/templates', '/api/skill/install-state'];
 
 let tmpRoot: string;
 let server: BootedServer;

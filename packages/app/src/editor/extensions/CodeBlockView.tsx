@@ -6,16 +6,7 @@
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { NodeViewProps } from '@tiptap/core';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
-import {
-  Check,
-  ChevronDown,
-  Copy,
-  Eye,
-  EyeOff,
-  Pencil,
-  Settings2,
-  Trash2,
-} from 'lucide-react';
+import { Check, ChevronDown, Copy, Eye, EyeOff, Pencil, Settings2, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useId, useRef, useState } from 'react';
 import { GitQuireViewBlock, SAVED_VIEW_ATTR } from '@/components/GitQuireViewBlock';

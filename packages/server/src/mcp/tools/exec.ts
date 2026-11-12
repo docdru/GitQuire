@@ -551,7 +551,10 @@ export async function buildExecResult(
       resolvedServerUrl
         ? fetchBacklinkCountsBatch(resolvedServerUrl, docNames).catch(() => null)
         : Promise.resolve(null),
-      countOpenCommentThreads(cwd, fileEnriched.map((f) => f.path)).catch(() => null),
+      countOpenCommentThreads(
+        cwd,
+        fileEnriched.map((f) => f.path),
+      ).catch(() => null),
     ]);
     for (const f of fileEnriched) {
       const c = counts?.get(pathToDocName(f.path));

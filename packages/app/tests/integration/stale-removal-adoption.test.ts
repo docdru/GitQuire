@@ -2,11 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, expect, test, vi } from 'vitest';
 import { runTeardownPhases } from '../stress/_helpers/teardown-fs.ts';
-import {
-  ORIGINAL,
-  RECREATED,
-  startDeletionScenario,
-} from './stale-delete-recreation.test-helper.ts';
+import { ORIGINAL, startDeletionScenario } from './stale-delete-recreation.test-helper.ts';
 
 const nativeWriteObservation = vi.hoisted(
   (): {

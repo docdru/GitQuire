@@ -181,11 +181,9 @@ export async function startDeletionScenario(
     const linksResponse = await fetch(
       `${running.baseUrl}/api/forward-links?docName=${encodeURIComponent(docName)}`,
     );
-    expect([
-      pagesResponse.status,
-      metricsResponse.status,
-      linksResponse.status,
-    ]).toEqual([200, 200, 200]);
+    expect([pagesResponse.status, metricsResponse.status, linksResponse.status]).toEqual([
+      200, 200, 200,
+    ]);
     const pages = PagesSuccessSchema.parse(await pagesResponse.json());
     const metrics = MetricsReconciliationSuccessSchema.parse(await metricsResponse.json());
     const links = ForwardLinksSuccessSchema.parse(await linksResponse.json());

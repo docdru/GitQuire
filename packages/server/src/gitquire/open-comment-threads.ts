@@ -58,7 +58,9 @@ async function readMarkdown(absPath: string): Promise<string | null> {
   }
 }
 
-export async function readOpenCommentThreads(absPath: string): Promise<OpenCommentSummary[] | null> {
+export async function readOpenCommentThreads(
+  absPath: string,
+): Promise<OpenCommentSummary[] | null> {
   const markdown = await readMarkdown(absPath);
   return markdown === null ? null : openCommentThreads(markdown);
 }
