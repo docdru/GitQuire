@@ -6,6 +6,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
 import { BetaBadge } from '@/components/BetaBadge';
 import { GitQuireBranchMenu } from '@/components/GitQuireBranchMenu';
+import { GitQuireBrokenLinks } from '@/components/GitQuireBrokenLinks';
+import { GitQuireViews } from '@/components/GitQuireViews';
 import {
   HEADER_OVERFLOW_SLACK_PX,
   HeaderOverflowActions,
@@ -22,6 +24,7 @@ import { ShareButton, type ShareButtonProps } from '@/components/ShareButton';
 import { displayState, SyncStatusBadge } from '@/components/SyncStatusBadge';
 import { WebProjectName } from '@/components/WebProjectName';
 import { useDocumentContext } from '@/editor/DocumentContext';
+import { MentionInbox } from '@/gitquire-comments/MentionInbox';
 import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
 import { useTrailingOverflow } from '@/hooks/use-trailing-overflow';
 import { authPromptStore } from '@/lib/auth-prompt-store';
@@ -285,6 +288,9 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
           <>
             <WebProjectName />
             <GitQuireBranchMenu />
+            <MentionInbox />
+            <GitQuireBrokenLinks />
+            <GitQuireViews />
           </>
         )}
       </div>

@@ -177,3 +177,26 @@ export function compareThreads(a: Thread, b: Thread): number {
   const bt = b.comments[0]?.createdAt ?? '';
   return at.localeCompare(bt);
 }
+
+export type EditOutcome =
+  | { kind: 'unchanged' }
+  | { kind: 'empty' }
+  | { kind: 'save'; body: string };
+
+export function editOutcome(draft: string, original: string): EditOutcome {
+  const body = draft.trim();
+  if (body === '') return { kind: 'empty' };
+  if (body === original) return { kind: 'unchanged' };
+  return { kind: 'save', body };
+}
+
+export function hasCommentBody(
+  threads: readonly Thread[],
+  threadId: string,
+  commentId: string,
+  body: string,
+): boolean {
+  const thread = threads.find((candidate) => candidate.id === threadId);
+  if (thread === undefined) return false;
+  return thread.comments.some((comment) => comment.id === commentId && comment.body === body);
+}

@@ -38,6 +38,14 @@ export interface TrailerSplit {
 
 const FENCE_LINE_RE = /^ {0,3}(`{3,}|~{3,})/;
 
+const TRAILING_SPACE = new Set([' ', '\t', '\r', '\n']);
+
+function trimTrailingSpace(text: string): string {
+  let end = text.length;
+  while (end > 0 && TRAILING_SPACE.has(text[end - 1] as string)) end -= 1;
+  return end === text.length ? text : text.slice(0, end);
+}
+
 function endsInsideFence(text: string): boolean {
   let open: string | undefined;
   for (const line of text.split('\n')) {
@@ -54,7 +62,7 @@ function endsInsideFence(text: string): boolean {
 }
 
 export function splitCommentTrailer(source: string): TrailerSplit {
-  const normalizedEnd = source.replace(/[ \t\r\n]+$/, '');
+  const normalizedEnd = trimTrailingSpace(source);
   if (!normalizedEnd.endsWith(COMMENT_TRAILER_CLOSE)) return { body: source, trailer: undefined };
   const marker = `\n${COMMENT_TRAILER_OPEN}\n`;
   const atStart = normalizedEnd.startsWith(`${COMMENT_TRAILER_OPEN}\n`);
@@ -67,13 +75,13 @@ export function splitCommentTrailer(source: string): TrailerSplit {
   }
   const before = normalizedEnd.slice(0, index);
   if (endsInsideFence(before)) return { body: source, trailer: undefined };
-  const trimmed = before.replace(/[ \t\r\n]+$/, '');
+  const trimmed = trimTrailingSpace(before);
   return { body: trimmed === '' ? '' : `${trimmed}\n`, trailer };
 }
 
 export function joinCommentTrailer(body: string, trailer: string | undefined): string {
   if (trailer === undefined) return body;
-  const trimmed = body.replace(/[ \t\r\n]+$/, '');
+  const trimmed = trimTrailingSpace(body);
   return trimmed === '' ? `${trailer}\n` : `${trimmed}\n\n${trailer}\n`;
 }
 

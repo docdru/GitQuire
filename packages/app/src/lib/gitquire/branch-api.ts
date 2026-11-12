@@ -129,3 +129,5 @@ export async function openPullRequest(
     }
   }
 }
+
+export const gitquireRequest = request;

@@ -406,6 +406,10 @@ export function resolveWriterFromOrigin(
     const ctx = o.context as Record<string, unknown> | undefined;
     if (!ctx) return null;
 
+    const personWriter =
+      typeof ctx.principal === 'string' ? attributeEdit(ctx.principal) : undefined;
+    if (personWriter !== undefined) return personWriter;
+
     if (typeof ctx.session_id === 'string') {
       const sessionId = ctx.session_id;
       const gitquireAgentOwner = attributeAgentEdit(sessionId);

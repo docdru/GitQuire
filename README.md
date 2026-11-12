@@ -9,9 +9,8 @@ A collaborative, WYSIWYG Markdown wiki for small teams, with GitHub as the backe
 - **Comments in the file.** Threads live in a hidden block at the end of each Markdown file, so everything stays in Git.
 - **Self-hosted.** One Docker container with a `/data` volume.
 
-> **Status:** early. GitQuire is being built in phases: the Docker image and GitHub sign-in work
-> today, and syncing a GitHub content repo is being added. Per-user commit authorship, branches and PRs, shared
-> comments, mobile polish and naming rules follow. See the [roadmap](#roadmap).
+> **Status:** early, but usable. The phases of the [roadmap](#roadmap) are in; what comes next
+> depends on feedback.
 
 ## Run it
 
@@ -35,7 +34,7 @@ volume: the collaboration server is single-writer. Health checks: `GET /healthz`
 | `OK_BIND` | `0.0.0.0` | Bind address |
 | `OK_ALLOW_EXTERNAL` | unset | Must be `1` to accept non-local connections |
 | `OK_EXTERNAL_URL` | unset | Public origin, required behind a domain or proxy |
-| `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits until per-user sign-in lands |
+| `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits not made by a signed-in person |
 
 ### GitHub sign-in
 
@@ -108,8 +107,8 @@ and make sure it is installed on the repository with **Contents: read and write*
 If GitHub is unreachable at start, GitQuire retries for about five minutes before giving up
 (exit code 75, so a restart policy can try again); configuration problems stop it immediately
 (exit code 78). The volume keeps the checkout between restarts. On an empty repository, GitQuire starts the branch
-and pushes the first commit. Until per-user authorship lands, commits are authored as
-`GITQUIRE_GIT_NAME` / `GITQUIRE_GIT_EMAIL`.
+and pushes the first commit. Commits are authored by the people who made the edits; changes
+without a signed-in person are authored as `GITQUIRE_GIT_NAME` / `GITQUIRE_GIT_EMAIL`.
 
 ### Branches and pull requests
 
@@ -204,16 +203,90 @@ Each thread is one JSON line, so diffs and merges stay readable and comments tra
 through branches and pull requests. A thread finds its passage again by the quoted text and its
 surroundings; if the text is gone, the thread says so.
 
+You can edit and delete your own comments; edited ones are marked, and earlier versions stay in the
+Git history. When two people comment on the same page at the same moment, both comments are kept.
+
+### Mentions
+
+The **@** button in the header lists the discussions where someone mentioned you, newest first,
+with a count of unread ones. Choosing a mention opens the page at that thread. The inbox needs
+GitHub sign-in. The mentions stay in the pages; who has read what, and the email settings below,
+are kept on the server in `/data/.ok/local/gitquire/mentions.json`, outside Git.
+
+Mentions can also go out by email. People enter their address under the mention list. Once a
+minute, new mentions they have not read yet are mailed; mentions that already existed when the
+address was saved are not. The server needs an SMTP server for this:
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_SMTP_URL` | `smtps://user:password@host:465` or `smtp://user:password@host:587`. Without it, email is off. |
+| `GITQUIRE_MAIL_FROM` | Sender address. Required; without a valid one, email stays off and a warning is logged. |
+| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. Without it, any address is accepted. |
+
+With `smtp://`, STARTTLS is required; add `?starttls=off` only for a local relay, and a password is
+then only sent to `localhost`. Mail is limited to 20 per person per day and 100 per hour in total;
+the counts start over when the server restarts. People who have not opened GitQuire for 30 days get
+no mail. The link in the mail is built from `OK_EXTERNAL_URL`; without it, the mail has no link.
+
+## Broken links
+
+The broken-links button in the header shows how many links point to pages that do not exist. It
+lists each missing page with the pages that link to it, so you can open them and fix the link. Set
+`validation.links: off` to hide it. Links from `log` pages and from agent folders (`.agents`,
+`.claude`, `.cursor`) are not listed.
+
+## Views: pages as objects
+
+Give a page properties (frontmatter) and it becomes an object you can list. There is no schema: a
+page has whatever properties you give it.
+
+```markdown
+---
+type: task
+status: Doing
+owner: alice
+due: 2026-12-01
+---
+
+# Rework the landing page
+
+- [ ] Draft the copy @bob
+- [x] Collect screenshots
+```
+
+The **Views** button in the header opens three tabs. It is hidden on phone-width screens.
+
+- **Table**: every page with properties. Choose columns, filter by a property and value, search and
+  sort.
+- **Board**: columns from a property with a few values, such as `status`. Move a card by dragging
+  it or with its "Move to" list; the property is changed in the page and committed in your name.
+- **Action items**: every open task list item of every page, grouped by page. Filter to items that
+  @mention you, a teammate or nobody; tick "Show done" to see finished ones.
+
+Table and board settings are saved per browser.
+
+The data comes from `GET /api/gitquire/objects`.
+
 ## Roadmap
+
+Done:
 
 1. **Shared server in Docker** with CI and a published image.
 2. **GitHub sign-in**, live editing on `main`, per-user commit authorship.
 3. **Branches and pull requests** from the editor.
-4. **Comments stored in the Markdown files**, with threads, mentions and PR comment sync.
-5. **Mobile**: toolbar above the keyboard, touch link picker, installable as a home-screen app.
-6. **Linking**: naming rules on top of the existing rename rewrite and backlinks.
+4. **Comments stored in the Markdown files**: threads, editing, simultaneous comments, a mention
+   inbox and email.
+5. **Mobile**: toolbar above the keyboard, installable as a home-screen app. The touch link
+   picker is in review (#26).
+6. **Linking**: naming rules, rename rewrite, backlinks and a broken-link list.
+7. **Pages as objects**: table, board and action items from frontmatter and task lists.
 
-Later: pages as objects, with frontmatter-driven table, timeline and kanban views.
+Next, depending on feedback:
+
+- **Pull request review**: GitHub review comments shown as page threads, or reviewing fully inside
+  GitQuire.
+- **More views**: a meeting-notes timeline; ticking off action items from the list.
+- **Chat notifications** for mentions (Slack, Teams, Matrix).
 
 ## Credits and license
 
