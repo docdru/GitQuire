@@ -1,0 +1,50 @@
+---
+title: GitHub sign-in
+icon: LuLogIn
+description: Create a GitHub App and let only the people who can write to your repository in.
+---
+
+With sign-in on, every page, API call and live-editing connection needs a GitHub session. People
+with write access to `GITQUIRE_REPO`, or listed in `GITQUIRE_ALLOWED_USERS`, can sign in.
+
+## Create the GitHub App
+
+1. Go to **GitHub → Settings → Developer settings → GitHub Apps → New GitHub App**.
+2. **Callback URL:** your `OK_EXTERNAL_URL` plus `/auth/github/callback`, for example
+   `https://brain.example.com/auth/github/callback`. Add
+   `http://localhost:8080/auth/github/callback` too if you also run it locally.
+3. **Repository permissions:** Contents *read and write*, Pull requests *read and write*, Metadata
+   *read*.
+4. Untick **Webhook → Active**.
+5. Create the app, **install** it on the content repository, and generate a **client secret**.
+
+## Start GitQuire with sign-in
+
+```bash
+docker run -d --name gitquire -p 8080:8080 \
+  -e OK_ALLOW_EXTERNAL=1 \
+  -e OK_EXTERNAL_URL=https://brain.example.com \
+  -e GITHUB_APP_CLIENT_ID=Iv1.xxxxxxxx \
+  -e GITHUB_APP_CLIENT_SECRET=xxxxxxxx \
+  -e GITQUIRE_SESSION_SECRET="$(openssl rand -hex 32)" \
+  -e GITQUIRE_REPO=acme/team-notes \
+  -v gitquire-data:/data \
+  ghcr.io/docdru/gitquire:latest
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET` | From the GitHub App. Setting the client ID turns sign-in on. |
+| `GITQUIRE_SESSION_SECRET` | At least 32 random characters; signs the session cookie. |
+| `GITQUIRE_REPO` | `owner/name`. Anyone with write access to it may sign in. |
+| `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition. |
+| `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
+| `GITQUIRE_MCP_TOKEN` | Optional bearer token for AI agents on `/mcp`; without it `/mcp` is closed. |
+| `GITQUIRE_SESSION_DAYS` | Session length in days, default 7. |
+| `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
+
+If a required setting is missing, the container stops right away with exit code 78 and names the
+missing variables.
+
+Sign out at `/auth/logout`. `/auth/me` returns the signed-in user as JSON. The web app manifest and
+icons are the only files served without a session, so the app can be installed to a home screen.

@@ -238,7 +238,7 @@ test.describe('Attachment folder path variables', () => {
     const docsLink = page.getByTestId('settings-attachments-title-docs-link');
     await expect(docsLink).toHaveAttribute(
       'href',
-      'https://openknowledge.ai/docs/features/assets-and-embeds#attachment-folder',
+      'https://docdru.github.io/GitQuire/docs/features/assets-and-embeds#attachment-folder',
     );
     const description = await page
       .getByText('Set where pasted and dropped files are stored.')

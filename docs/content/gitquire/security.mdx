@@ -1,0 +1,20 @@
+---
+title: Security
+icon: LuShield
+description: What GitQuire protects, what it trusts, and how to report a vulnerability.
+---
+
+- **Sign-in:** GitHub OAuth through your GitHub App. Sessions are signed cookies; only people with
+  write access to the content repository (or listed explicitly) get in.
+- **Repository access:** installation tokens scoped to one repository, minted and refreshed by the
+  server, never written to disk.
+- **Requests:** state-changing GitQuire API calls must come from the same origin; request bodies are
+  size-limited.
+- **Trust boundary:** anyone with write access to the repository can change any file, including the
+  discussion block. GitQuire's in-app rules are conveniences on top of that.
+- **Exposure:** run with sign-in on whenever the server is reachable by others. `GITQUIRE_AUTH=off`
+  is for local use.
+
+Please report vulnerabilities privately through
+[GitHub's private vulnerability reporting](https://github.com/docdru/GitQuire/security/advisories/new),
+not as a public issue.

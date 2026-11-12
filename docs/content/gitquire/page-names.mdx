@@ -1,0 +1,20 @@
+---
+title: Page names and links
+icon: LuLink
+description: Link-friendly file names, wiki links that always resolve, and links rewritten on rename.
+---
+
+When you create or rename a page or folder, GitQuire turns the new name into lowercase words joined
+by hyphens: *Meeting Notes 2026* is saved as `meeting-notes-2026.md`. A new page keeps what you
+typed as its `# Title`, so the readable name isn't lost.
+
+- Folders that already exist keep their names; only new names are changed.
+- Names starting with `.` or `_` are left alone.
+- The rule applies to pages created in the editor, by agents and through the API alike.
+- Set `GITQUIRE_NAMING=off` to keep names exactly as typed.
+
+## Links keep working
+
+`[[Meeting Notes 2026]]` finds `meeting-notes-2026.md`, because wiki links are matched the same way.
+Renaming or moving a page rewrites the links that point at it, and the backlinks panel shows which
+pages link where. See also [links and backlinks](../reference/core-concepts.md#links-and-backlinks).

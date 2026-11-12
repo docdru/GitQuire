@@ -1,7 +1,9 @@
 {
-  "title": "OpenKnowledge",
+  "title": "GitQuire",
   "icon": "LuBookOpen",
   "pages": [
+    "---GITQUIRE---",
+    "...gitquire",
     "---GET STARTED---",
     "...get-started",
     "---USE CASES---",

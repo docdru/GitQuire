@@ -1,0 +1,27 @@
+---
+title: Discussions
+icon: LuMessagesSquare
+description: Comment on a passage, reply, mention teammates and resolve threads, with everything stored in the page.
+---
+
+Select text and choose **Discuss** in the toolbar to start a thread. The panel on the right lists
+the page's threads: reply, mention teammates with `@login`, and resolve a thread when it's done.
+Highlighted passages open their thread when you tap them. Authors can delete their own comments.
+
+## Stored in the file
+
+Threads are saved in a block at the end of the Markdown file that GitHub doesn't render:
+
+```markdown
+<!-- gitquire-comments v1
+{"id":"…","anchor":{"exact":"quarterly numbers","prefix":"…","suffix":"…"},"resolved":false,"comments":[…]}
+-->
+```
+
+Each thread is one JSON line, so diffs and merges stay readable, and comments travel with the page
+through branches and pull requests. A thread finds its passage again by the quoted text and the
+words around it; if that text is gone, the thread says so.
+
+Edits to discussions sync live like any other edit and are committed with the page. Anyone with
+write access to the repository can change the file, so "only the author can delete" is a courtesy
+in the app, not a permission.

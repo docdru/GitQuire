@@ -16,7 +16,7 @@ const INSTALL_COMMAND = terminalCommandFor('install-slidev') ?? '';
 
 const SLIDEV_INSTALL_DOCS = 'https://sli.dev/guide/install';
 
-const SLIDEV_DOCS = 'https://openknowledge.ai/docs/plugins/slidev';
+const SLIDEV_DOCS = 'https://docdru.github.io/GitQuire/docs/plugins/slidev';
 
 type Availability =
   | { kind: 'checking' }

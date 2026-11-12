@@ -6,7 +6,7 @@ import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { cn } from '@/lib/utils';
 
 const CONFIG_SHARING_DOCS_URL =
-  'https://openknowledge.ai/docs/reference/what-open-knowledge-writes';
+  'https://docdru.github.io/GitQuire/docs/reference/what-open-knowledge-writes';
 
 export type SharingMode = 'shared' | 'local-only';
 

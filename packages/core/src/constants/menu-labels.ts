@@ -97,6 +97,6 @@ export function menuLabelForPlatform(key: MenuLabelKey, platform: string): strin
 }
 
 export const OPEN_KNOWLEDGE_GITHUB_URL = 'https://github.com/docdru/GitQuire';
-export const OPEN_KNOWLEDGE_DOCS_URL = 'https://github.com/docdru/GitQuire#readme';
+export const OPEN_KNOWLEDGE_DOCS_URL = 'https://docdru.github.io/GitQuire/docs';
 export const OPEN_KNOWLEDGE_DISCORD_URL = 'https://github.com/docdru/GitQuire/issues/new/choose';
 export const OPEN_KNOWLEDGE_ISSUES_URL = OPEN_KNOWLEDGE_DISCORD_URL;

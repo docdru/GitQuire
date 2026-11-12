@@ -13,7 +13,7 @@ have not had is a reader — someone who reads the language telling us the words
 backwards: the people who could tell us a translation was wrong were the same people who could
 never encounter it, because it was not offered to them. So the eleven ship, they ship labelled as
 machine-translated where that is what they are, and corrections come back through
-[the translation page](https://openknowledge.ai/docs/contribute/translations) as detailed issues.
+[the translation page](https://docdru.github.io/GitQuire/docs/contribute/translations) as detailed issues.
 
 What that does not do is let us claim they are reviewed. The table below is the whole of that
 claim, and most rows say `unreviewed` for as long as that is true.

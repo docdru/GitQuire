@@ -68,7 +68,7 @@ test.describe('plugin enable → settings notice', () => {
     await expect(docs).toBeVisible({ timeout: 5_000 });
     await expect(docs).toHaveAttribute(
       'href',
-      'https://openknowledge.ai/docs/advanced/content-rules/markdownlint',
+      'https://docdru.github.io/GitQuire/docs/advanced/content-rules/markdownlint',
     );
   });
 });

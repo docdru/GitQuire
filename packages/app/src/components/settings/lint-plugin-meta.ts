@@ -8,7 +8,7 @@ export interface LintPluginMeta {
   recommendedSkills?: readonly { packId: string; name: string }[];
 }
 
-const DOCS_BASE = 'https://openknowledge.ai/docs/advanced/content-rules';
+const DOCS_BASE = 'https://docdru.github.io/GitQuire/docs/advanced/content-rules';
 
 export const LINT_PLUGIN_META: LintPluginMeta[] = [
   { id: 'markdownlint', label: 'markdownlint', docUrl: `${DOCS_BASE}/markdownlint` },
@@ -21,7 +21,7 @@ export const LINT_PLUGIN_META: LintPluginMeta[] = [
   {
     id: 'okf',
     label: 'OKF',
-    docUrl: 'https://openknowledge.ai/docs/plugins/okf',
+    docUrl: 'https://docdru.github.io/GitQuire/docs/plugins/okf',
     beta: true,
     recommendedSkills: [{ packId: 'okf', name: 'okf-knowledge-base' }],
   },

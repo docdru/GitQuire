@@ -1,17 +1,16 @@
 import { buildLlmsTxt, type LlmsTxtLink } from '@/lib/llms-txt';
 import { markdownResponse } from '@/lib/markdown-response';
-import { blogPostLinks } from '@/lib/marketing-blog-index';
 import { absoluteSiteUrl } from '@/lib/site';
 import { source } from '@/lib/source';
 
-export const revalidate = 3600;
+export const dynamic = 'force-static';
 
-export async function GET() {
+export function GET() {
   const docs: LlmsTxtLink[] = source.getPages().map((page) => ({
-    url: absoluteSiteUrl(`${page.url}.md`),
+    url: absoluteSiteUrl(`${page.url}/`),
     name: page.data.title,
     description: page.data.description || undefined,
   }));
 
-  return markdownResponse(buildLlmsTxt({ docs, blogPosts: await blogPostLinks(revalidate) }));
+  return markdownResponse(buildLlmsTxt({ docs }));
 }
