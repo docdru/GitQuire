@@ -76,7 +76,6 @@ test('a new page can be named right away', async ({ page }) => {
   const body = await response.text();
   console.log(`rename page: ${response.request().postData()} -> ${response.status()} ${body}`);
   expect(response.status(), body).toBe(200);
-  await page.waitForTimeout(3000);
   await describeState(page, 'after page rename');
 
   await expect(treeItem(page, 'meeting-notes.md')).toBeVisible();
@@ -92,7 +91,6 @@ test('a new folder can be named right away', async ({ page }) => {
   const body = await response.text();
   console.log(`rename folder: ${response.request().postData()} -> ${response.status()} ${body}`);
   expect(response.status(), body).toBe(200);
-  await page.waitForTimeout(3000);
   await describeState(page, 'after folder rename');
 
   await expect(treeItem(page, 'project-plans')).toBeVisible();

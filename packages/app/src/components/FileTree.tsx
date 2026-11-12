@@ -981,6 +981,7 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
   const activeAncestorTreePathsRef = useRef<string[]>([]);
   const pendingCreateRef = useRef<PendingCreate | null>(null);
   const createdSourcesRef = useRef(new Map<string, PendingCreateSource>());
+  const namedRenameBaseRef = useRef<readonly FileEntry[] | null>(null);
   const cleanupPendingCreateRef = useRef<
     (pending: PendingCreate, options: PendingCreateCleanupOptions) => Promise<void>
   >(async () => {});
@@ -1278,6 +1279,13 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
       initialExpandedPaths: expandedPathsForReset(nextDocuments),
     });
   };
+
+  useLayoutEffect(() => {
+    const base = namedRenameBaseRef.current;
+    if (base === null || documents === base) return;
+    namedRenameBaseRef.current = null;
+    resetModelToDocuments(documents);
+  });
 
   const reconcileModelAfterExtensionlessRename = (
     current: readonly FileEntry[],
@@ -1795,6 +1803,9 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
         renamed: [],
         renamedAssets: [],
       });
+      if (validation.destinationPath !== coerced.destinationPath) {
+        namedRenameBaseRef.current = documentsRef.current;
+      }
       try {
         await applyRenamedDocuments(
           success.renamed,
