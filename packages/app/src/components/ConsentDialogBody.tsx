@@ -54,10 +54,10 @@ const PROBE_THROTTLE_MS = 750;
 const DETECTION_GRACE_MS = 8_000;
 
 const WARNING_COPY: Record<OkOnboardingWarningKind, MessageDescriptor> = {
-  'home-documents': msg`You picked ~/Documents. OpenKnowledge will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope.`,
-  'home-desktop': msg`You picked ~/Desktop. OpenKnowledge will index everything on your desktop.`,
+  'home-documents': msg`You picked ~/Documents. GitQuire will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope.`,
+  'home-desktop': msg`You picked ~/Desktop. GitQuire will index everything on your desktop.`,
   'home-downloads': msg`You picked ~/Downloads. Files there are usually transient — consider a stable folder instead.`,
-  'volumes-mount': msg`This path is on an external volume (/Volumes/...). OpenKnowledge will lose track of files when the drive ejects.`,
+  'volumes-mount': msg`This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects.`,
 };
 
 interface ConsentDialogBodyProps {
@@ -288,11 +288,11 @@ function ConsentDialogForm({ payload, store, toast, detectionGraceMs }: ConsentD
       >
         <DialogHeader>
           <DialogTitle>
-            <Trans>Setup OpenKnowledge in this folder?</Trans>
+            <Trans>Setup GitQuire in this folder?</Trans>
           </DialogTitle>
           <DialogDescription>
             <Trans>
-              OpenKnowledge stores its configuration and internal files inside a newly created{' '}
+              GitQuire stores its configuration and internal files inside a newly created{' '}
               <code>.ok</code> directory in your project root folder.
             </Trans>
           </DialogDescription>
@@ -302,7 +302,7 @@ function ConsentDialogForm({ payload, store, toast, detectionGraceMs }: ConsentD
           {payload.gitRootPromoted ? (
             <p className="text-1sm text-muted-foreground">
               <Trans>
-                OpenKnowledge initializes at <code dir="ltr">{projectDir}</code> — the parent of{' '}
+                GitQuire initializes at <code dir="ltr">{projectDir}</code> — the parent of{' '}
                 <code dir="ltr">{pickedRelative}</code> because it contains a <code>.git</code>{' '}
                 folder (one .ok/ per git repo). <code>Content directory</code> defaults to{' '}
                 <code>.</code> (the whole repo); type a sub-folder to narrow it.

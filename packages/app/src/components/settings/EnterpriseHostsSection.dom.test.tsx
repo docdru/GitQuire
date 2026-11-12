@@ -72,7 +72,7 @@ describe('EnterpriseHostsSection', () => {
     const list = screen.getByTestId('settings-enterprise-hosts-list');
     expect(within(list).getByText('ghes.example.com')).toBeTruthy();
     expect((screen.getByLabelText('Add a host') as HTMLInputElement).value).toBe('');
-    expect(screen.getByRole('status').textContent).toContain('Restart OpenKnowledge');
+    expect(screen.getByRole('status').textContent).toContain('Restart GitQuire');
   });
 
   test('removing a host deletes only that declaration', async () => {

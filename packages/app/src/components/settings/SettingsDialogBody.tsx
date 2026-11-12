@@ -121,7 +121,7 @@ function UserConfigPending({ loadFailed }: { loadFailed: boolean }) {
         <Trans>Your user settings could not be read</Trans>
       </AlertTitle>
       <AlertDescription>
-        <Trans>OpenKnowledge keeps retrying and shows them as soon as the file can be read.</Trans>
+        <Trans>GitQuire keeps retrying and shows them as soon as the file can be read.</Trans>
       </AlertDescription>
     </Alert>
   );

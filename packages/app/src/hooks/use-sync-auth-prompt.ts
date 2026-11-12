@@ -32,7 +32,7 @@ export function useSyncAuthPrompt(
       return;
     }
     toast.info(
-      t`OpenKnowledge has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has.`,
+      t`GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has.`,
       { action: { label: t`Add token`, onClick: () => openAccountSettings() } },
     );
   }, [pending, nonGitHub, takesToken, onPrompt, t]);

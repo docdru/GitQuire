@@ -1307,7 +1307,7 @@ describe('ShareBranchSwitchDialog — worktree leg', () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        'This branch redirects an OpenKnowledge setup path outside the worktree. The worktree was created but not opened.',
+        'This branch redirects a GitQuire setup path outside the worktree. The worktree was created but not opened.',
       ),
     );
     expect(refreshWorktrees).toHaveBeenCalledTimes(1);

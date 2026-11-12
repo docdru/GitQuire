@@ -1,6 +1,6 @@
 # Locale review and promotion
 
-OpenKnowledge enumerates thirteen interface locales and offers eleven of them in the language
+GitQuire enumerates thirteen interface locales and offers eleven of them in the language
 picker. The two it withholds are withheld for a layout reason, not a translation one. This file
 records which of the eleven a reader of the language has actually read, which is a different
 question from which ones are offered, and it is the file to update when that changes.
@@ -96,7 +96,7 @@ rule is a ratchet on new code, not a statement about the code already there.
 
 None of that is a reason not to review the words. It is a reason not to offer the language while
 the layout renders them wrongly, and it is why the packet below is a file rather than an
-instruction to run the app: a contributor who opened OpenKnowledge in Arabic today would spend
+instruction to run the app: a contributor who opened GitQuire in Arabic today would spend
 the hour on defects that are not theirs.
 
 This table is parsed, not just read: `scripts/generate-locale-review-packet.mjs` refuses to build

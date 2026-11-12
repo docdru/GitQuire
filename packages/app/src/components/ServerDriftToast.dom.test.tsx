@@ -5,9 +5,9 @@ import { ServerDriftToast } from '@/components/ServerDriftToast';
 afterEach(cleanup);
 
 const baseProps = {
-  body: 'This project is running an older version of OpenKnowledge (v0.8.0) than this app (v0.8.2).',
+  body: 'This project is running an older version of GitQuire (v0.8.0) than this app (v0.8.2).',
   detail:
-    'Restarting closes this project server. Connected agents will see their OpenKnowledge MCP connection close unexpectedly.',
+    'Restarting closes this project server. Connected agents will see their GitQuire MCP connection close unexpectedly.',
   actionLabel: "Restart with this app's version",
   dismissLabel: 'Not now',
 };

@@ -600,7 +600,7 @@ export function CreateProjectDialog({
       : t`Create new project`;
   const description =
     selectedPack === undefined
-      ? t`Create a new OpenKnowledge project in the folder of your choice.`
+      ? t`Create a new GitQuire project in the folder of your choice.`
       : selectedPackBlurb
         ? t(selectedPackBlurb)
         : selectedPack.description;
@@ -789,7 +789,7 @@ export function CreateProjectDialog({
                       data-testid="create-pack-promoted-note"
                     >
                       <Trans>
-                        OpenKnowledge is set up at the repository root here, so the pack goes inside{' '}
+                        GitQuire is set up at the repository root here, so the pack goes inside{' '}
                         <code className="font-mono break-all">{sanitized}</code> rather than at the
                         top of the repository.
                       </Trans>
@@ -936,7 +936,7 @@ function CascadeBanner({
       >
         <p className="mb-2">
           <Trans>
-            Can't nest projects. An OpenKnowledge project already exists at{' '}
+            Can't nest projects. A GitQuire project already exists at{' '}
             <code className="font-mono break-all">{rootPath}</code>. Choose a location outside it,
             or open that project instead.
           </Trans>
@@ -966,8 +966,8 @@ function CascadeBanner({
       >
         <p>
           <Trans>
-            OpenKnowledge will be initialized at <code>{gitRoot}</code> — the parent of your new
-            folder, because it contains a <code>.git</code> folder (one project per git repo).
+            GitQuire will be initialized at <code>{gitRoot}</code> — the parent of your new folder,
+            because it contains a <code>.git</code> folder (one project per git repo).
           </Trans>
         </p>
         {removeGitState.kind === 'idle' || removeGitState.kind === 'error' ? (

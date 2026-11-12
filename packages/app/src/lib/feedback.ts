@@ -9,7 +9,7 @@ const importMetaEnv = (import.meta as unknown as { env?: Record<string, string |
 
 const FEEDBACK_ENDPOINT = new URL(
   '/api/feedback',
-  importMetaEnv?.VITE_OK_FEEDBACK_INTAKE_ORIGIN || 'https://openknowledge.ai',
+  importMetaEnv?.VITE_OK_FEEDBACK_INTAKE_ORIGIN || 'http://feedback.invalid',
 ).href;
 
 type FeedbackKind = 'general' | 'uninstall';

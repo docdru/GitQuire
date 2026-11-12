@@ -8,7 +8,7 @@ describe('uninstall progress screen', () => {
   test('says what is happening and what is being kept', () => {
     render(<UninstallProgressScreen />);
 
-    expect(screen.getByRole('heading', { name: 'Removing OpenKnowledge files…' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Removing GitQuire files…' })).toBeDefined();
     expect(
       screen.getByText('This may take a moment. Your markdown content is kept.'),
     ).toBeDefined();

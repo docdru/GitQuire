@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { postUninstallFeedback as barrelPostUninstallFeedback } from '../index.ts';
 import { hasUninstallFeedbackContent, postUninstallFeedback } from './uninstall-feedback-submit.ts';
 
-const SHIPPED_INTAKE_ORIGIN = 'https://openknowledge.ai';
+const SHIPPED_INTAKE_ORIGIN = 'http://feedback.invalid';
 
 const HOST_FACTS = { source: 'cli_uninstall', appVersion: '1.2.3', platform: 'darwin' } as const;
 

@@ -107,7 +107,7 @@ import {
   tracedUnlinkSync,
   tracedWriteFile,
 } from './fs-traced.ts';
-import { attributeEdit } from './gitquire/principal-directory.ts';
+import { attributeAgentEdit, attributeEdit } from './gitquire/principal-directory.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
 import {
@@ -406,8 +406,14 @@ export function resolveWriterFromOrigin(
     const ctx = o.context as Record<string, unknown> | undefined;
     if (!ctx) return null;
 
+    const personWriter =
+      typeof ctx.principal === 'string' ? attributeEdit(ctx.principal) : undefined;
+    if (personWriter !== undefined) return personWriter;
+
     if (typeof ctx.session_id === 'string') {
       const sessionId = ctx.session_id;
+      const gitquireAgentOwner = attributeAgentEdit(sessionId);
+      if (gitquireAgentOwner !== undefined) return gitquireAgentOwner;
       return {
         id: `agent-${sessionId}`,
         name: `Agent (${sessionId.slice(0, 8)})`,

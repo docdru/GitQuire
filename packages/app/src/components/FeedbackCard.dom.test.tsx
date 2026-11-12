@@ -20,7 +20,7 @@ describe('FeedbackCard', () => {
     renderCard();
 
     expect(screen.getByText("Tell us how it's going")).toBeTruthy();
-    expect(screen.queryByText('How do you like OpenKnowledge?')).toBeNull();
+    expect(screen.queryByText('How do you like GitQuire?')).toBeNull();
     expect(screen.getByRole('radio', { name: 'Good' })).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'Not great' })).toBeTruthy();
     expect(screen.queryByRole('dialog')).toBeNull();

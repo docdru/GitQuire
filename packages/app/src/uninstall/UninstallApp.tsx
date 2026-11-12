@@ -169,7 +169,7 @@ export function UninstallApp() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background p-8 text-foreground">
       <p className="text-center text-muted-foreground text-sm">
-        <Trans>Preparing to uninstall OpenKnowledge</Trans>
+        <Trans>Preparing to uninstall GitQuire</Trans>
       </p>
     </main>
   );

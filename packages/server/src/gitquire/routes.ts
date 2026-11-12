@@ -2,7 +2,26 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
+import {
+  isAllowedRecipient,
+  isEmailAddress,
+  type MailConfig,
+  type MailMessage,
+  resolveMailConfig,
+  sendMail,
+} from './mail.ts';
+import { createMentionMailer } from './mention-mailer.ts';
+import {
+  buildInbox,
+  createMentionReadStore,
+  mentionIndexFrom,
+  mentionStatePath,
+  mentionsFor,
+  mentionsInMarkdown,
+} from './mentions.ts';
 import { namingRuleFromEnv } from './naming.ts';
+import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
+import { createPageScan, docNameForPath, type ScannedPage } from './page-scan.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -18,11 +37,19 @@ export interface GitQuireRoutesDeps {
   sessionUser?: (req: IncomingMessage) => SessionUser | undefined;
   runGit?: RunGit;
   env?: Readonly<Record<string, string | undefined>>;
+  mentionStateFile?: string;
+  contentDir?: string;
+  sendMail?: (config: MailConfig, message: MailMessage) => Promise<void>;
+  mailRoundMs?: number;
 }
 
 export interface GitQuireRoutes {
   handle: (req: IncomingMessage, res: ServerResponse) => boolean;
+  mailRound: () => Promise<number>;
+  stop: () => void;
 }
+
+const DEFAULT_MAIL_ROUND_MS = 60_000;
 
 class HttpError extends Error {
   readonly status: number;
@@ -223,6 +250,131 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 201, { pull });
   }
 
+  function factsOrNone(path: string, markdown: string): PageFacts {
+    try {
+      return pageFacts(path, markdown);
+    } catch (err) {
+      deps.log.warn({ err, path }, '[gitquire] could not read the properties of a page');
+      const docName = docNameForPath(path) ?? path;
+      return { docName, title: docName, fields: {}, tasks: [], clipped: false };
+    }
+  }
+
+  const pageScan = createPageScan(deps.contentDir ?? deps.projectDir, (path, markdown) => ({
+    mentions: mentionsInMarkdown(path, markdown),
+    facts: factsOrNone(path, markdown),
+  }));
+  const mentionIndex = mentionIndexFrom(pageScan, (page) => page.mentions);
+  const objectList = createObjectListCache();
+  let factPages: { source: unknown; pages: ScannedPage<PageFacts>[] } | undefined;
+
+  function listPageObjects(res: ServerResponse): void {
+    const scanned = pageScan.all();
+    if (factPages === undefined || factPages.source !== scanned) {
+      const pages = scanned.map((page) => ({ ...page, value: page.value.facts }));
+      factPages = { source: scanned, pages };
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(objectList.body(factPages.pages));
+  }
+  const mentionReads = createMentionReadStore(
+    deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
+  );
+
+  const mail = resolveMailConfig(deps.env ?? process.env);
+  if (mail.kind === 'invalid') {
+    deps.log.warn({ reason: mail.reason }, '[gitquire-mail] email for mentions is off');
+  }
+  const mailer =
+    mail.kind === 'on'
+      ? createMentionMailer({
+          index: mentionIndex,
+          store: mentionReads,
+          config: mail.config,
+          send: deps.sendMail ?? sendMail,
+          log: deps.log,
+        })
+      : undefined;
+  function startMailRounds(): NodeJS.Timeout | undefined {
+    if (mailer === undefined) return undefined;
+    const timer = setInterval(() => {
+      mailer.round().catch(() => undefined);
+    }, deps.mailRoundMs ?? DEFAULT_MAIL_ROUND_MS);
+    timer.unref();
+    return timer;
+  }
+  const mailTimer = startMailRounds();
+
+  function emailState(userId: number): { available: boolean; address: string | null } {
+    return { available: mailer !== undefined, address: mentionReads.emailOf(userId) ?? null };
+  }
+
+  function listMentions(req: IncomingMessage, res: ServerResponse): void {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      sendJson(res, 200, {
+        enabled: false,
+        login: null,
+        unread: 0,
+        mentions: [],
+        email: { available: false, address: null },
+      });
+      return;
+    }
+    mentionReads.seen(user, new Date());
+    const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
+    sendJson(res, 200, { enabled: true, ...inbox, email: emailState(user.id) });
+  }
+
+  async function setMentionEmail(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      throw new HttpError(401, 'sign-in-required', 'Sign in to use the mention inbox.');
+    }
+    const body = await readJson(req);
+    if (body.address === null) {
+      mentionReads.setEmail(user, undefined, [], new Date());
+      deps.log.info({ login: user.login }, '[gitquire-mail] mention email turned off');
+      sendJson(res, 200, emailState(user.id));
+      return;
+    }
+    if (mailer === undefined || mail.kind !== 'on') {
+      throw new HttpError(409, 'mail-not-configured', 'This server cannot send email.');
+    }
+    const address = typeof body.address === 'string' ? body.address.trim() : '';
+    if (!isEmailAddress(address)) {
+      throw new HttpError(400, 'invalid-address', 'Enter a valid email address.');
+    }
+    if (!isAllowedRecipient(mail.config, address)) {
+      throw new HttpError(400, 'address-not-allowed', 'This server does not mail that domain.');
+    }
+    const alreadyThere = mentionsFor(user, mentionIndex.all()).map((mention) => mention.id);
+    mentionReads.setEmail(user, address, alreadyThere, new Date());
+    deps.log.info({ login: user.login, address }, '[gitquire-mail] mention email turned on');
+    sendJson(res, 200, emailState(user.id));
+  }
+
+  async function markMentionsRead(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      throw new HttpError(401, 'sign-in-required', 'Sign in to use the mention inbox.');
+    }
+    const body = await readJson(req);
+    const all = mentionIndex.all();
+    const mine = new Set(mentionsFor(user, all).map((mention) => mention.id));
+    let ids: string[];
+    if (body.all === true) {
+      ids = [...mine];
+    } else if (Array.isArray(body.ids) && body.ids.every((id) => typeof id === 'string')) {
+      ids = body.ids as string[];
+    } else {
+      throw new HttpError(400, 'invalid-ids', 'Send "ids" as a list of mention ids, or "all".');
+    }
+    mentionReads.markRead(user.id, ids, mine);
+    const inbox = buildInbox(user, all, mentionReads.readIds(user.id));
+    sendJson(res, 200, { unread: inbox.unread });
+  }
+
   async function route(req: IncomingMessage, res: ServerResponse, path: string): Promise<void> {
     const method = req.method ?? 'GET';
     if (method !== 'GET' && method !== 'HEAD' && !isSameOrigin(req)) {
@@ -236,6 +388,14 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/branches' && method === 'POST') return createBranch(req, res);
     if (path === '/api/gitquire/pulls' && method === 'GET') return listPulls(res);
     if (path === '/api/gitquire/pulls' && method === 'POST') return createPull(req, res);
+    if (path === '/api/gitquire/objects' && method === 'GET') return listPageObjects(res);
+    if (path === '/api/gitquire/mentions' && method === 'GET') return listMentions(req, res);
+    if (path === '/api/gitquire/mentions/read' && method === 'POST') {
+      return markMentionsRead(req, res);
+    }
+    if (path === '/api/gitquire/mentions/email' && method === 'PUT') {
+      return setMentionEmail(req, res);
+    }
     throw new HttpError(404, 'not-found', 'Unknown GitQuire endpoint.');
   }
 
@@ -264,5 +424,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     return true;
   }
 
-  return { handle };
+  return {
+    handle,
+    mailRound: () => mailer?.round() ?? Promise.resolve(0),
+    stop: () => clearInterval(mailTimer),
+  };
 }

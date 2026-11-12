@@ -58,7 +58,7 @@ describe('classifyToolFailure', () => {
     ).toBe(null);
   });
 
-  test('gives another tool no OpenKnowledge advice, even for a lookalike error', () => {
+  test('gives another tool no GitQuire advice, even for a lookalike error', () => {
     for (const text of [
       'Error: Server unreachable: fetch failed',
       'TypeError: fetch failed',
@@ -71,7 +71,7 @@ describe('classifyToolFailure', () => {
     }
   });
 
-  test('says nothing rather than guessing at an OpenKnowledge error it does not know', () => {
+  test('says nothing rather than guessing at a GitQuire error it does not know', () => {
     for (const text of ['', 'Error: Document not found', 'exit code 2']) {
       expect({ text, got: classifyToolFailure(okTool(text)) }).toEqual({ text, got: null });
     }

@@ -206,7 +206,7 @@ describe('composed Pi bridge status and consent', () => {
       const cards = screen.getAllByTestId('agent-thread-pi-bridge');
       expect(cards).toHaveLength(1);
       expect(cards[0].textContent).toContain(
-        'Open Knowledge tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry.',
+        'GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry.',
       );
       expect(cards[0].textContent).toContain(detail);
       expect(cards[0].textContent).not.toContain('something is already at');

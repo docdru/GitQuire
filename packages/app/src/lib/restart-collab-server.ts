@@ -8,7 +8,7 @@ export function restartServerFailureMessage(failure: OkServerRestartFailure): st
     case 'other-channel':
       return otherChannelRestartMessage(failure.holderChannel);
     case 'eperm':
-      return t`Couldn't restart the server — another process owns it. Quit other OpenKnowledge windows for this project, then try again.`;
+      return t`Couldn't restart the server — another process owns it. Quit other GitQuire windows for this project, then try again.`;
     case 'other': {
       const cliCommand = okCliCommandName();
       return t`Couldn't restart the server. Try \`${cliCommand} start\` in this folder.`;
@@ -20,8 +20,8 @@ export function restartServerFailureMessage(failure: OkServerRestartFailure): st
 
 export function unverifiedHolderRestartMessage(sigtermSent: boolean): string {
   return sigtermSent
-    ? t`Couldn't restart the server: OpenKnowledge asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project.`
-    : t`Couldn't restart the server: OpenKnowledge could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project.`;
+    ? t`Couldn't restart the server: GitQuire asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project.`
+    : t`Couldn't restart the server: GitQuire could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project.`;
 }
 
 export function otherChannelRestartMessage(holderChannel: string): string {

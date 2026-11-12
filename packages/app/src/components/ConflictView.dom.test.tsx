@@ -474,7 +474,7 @@ describe('ConflictView absent-stage banners — one fixture per kind', () => {
 
       const alert = screen.getByRole('status');
       expect(alert.textContent).toContain('The file was restored to an older version.');
-      expect(alert.textContent).toContain('Current is the version OpenKnowledge protected.');
+      expect(alert.textContent).toContain('Current is the version GitQuire protected.');
       expect(alert.textContent).toContain('Incoming is the restored version.');
       expect(alert.textContent).toContain('Choose which version to keep, then apply your changes.');
       expect(screen.queryByText(/This file was deleted/)).toBeNull();

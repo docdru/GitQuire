@@ -96,7 +96,7 @@ export function AccountSection({
         scope="user"
       >
         <Trans>
-          Manage the accounts and access tokens OpenKnowledge uses to connect to your git hosts.
+          Manage the accounts and access tokens GitQuire uses to connect to your git hosts.
         </Trans>
       </SettingsSectionHeader>
 
@@ -318,7 +318,7 @@ function HostTokenForm({
           <Trans>
             Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git
             server. Without one, git uses the credentials it already has saved for that host; with
-            one, OpenKnowledge uses the token instead.
+            one, GitQuire uses the token instead.
           </Trans>
         </p>
       </div>
@@ -459,7 +459,7 @@ function ConnectedRow({
             </Trans>
           </div>
           <p className="text-muted-foreground text-1sm">
-            <Trans>OpenKnowledge is using this GitHub account.</Trans>
+            <Trans>GitQuire is using this GitHub account.</Trans>
           </p>
         </div>
         <Button

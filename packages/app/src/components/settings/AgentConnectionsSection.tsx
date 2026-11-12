@@ -361,7 +361,7 @@ function RowActionButton({
           size="sm"
           className="shrink-0 font-mono uppercase"
           onClick={onRemove}
-          aria-label={t`Remove OpenKnowledge from ${rowLabel}`}
+          aria-label={t`Remove GitQuire from ${rowLabel}`}
           aria-describedby={describedById}
         >
           {t`Remove`}
@@ -384,7 +384,7 @@ function InlineRemoveButton({
       variant="link-muted"
       className="h-auto p-0 text-1sm underline underline-offset-4 hover:text-destructive"
       onClick={onRemove}
-      aria-label={t`Remove OpenKnowledge from ${rowLabel}`}
+      aria-label={t`Remove GitQuire from ${rowLabel}`}
     >
       {t`Remove`}
     </Button>
@@ -707,10 +707,10 @@ export function AgentConnectionsSection({
 
   function presenceHint(kind: 'not-installed' | 'not-detected', residualFiles: boolean): string {
     if (kind === 'not-installed') {
-      return residualFiles ? t`Not installed · OpenKnowledge files present` : t`Not installed`;
+      return residualFiles ? t`Not installed · GitQuire files present` : t`Not installed`;
     }
     return residualFiles
-      ? t`Not detected on this machine · OpenKnowledge files present`
+      ? t`Not detected on this machine · GitQuire files present`
       : t`Not detected on this machine`;
   }
 
@@ -1134,7 +1134,7 @@ export function AgentConnectionsSection({
           <TriangleAlert aria-hidden className="size-4 shrink-0" />
           <span>
             {devBuild
-              ? t`This development build can't connect agents, so it won't change the agent setup of your installed OpenKnowledge app.`
+              ? t`This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app.`
               : t`Managing agent connections is unavailable in this build.`}
           </span>
         </div>

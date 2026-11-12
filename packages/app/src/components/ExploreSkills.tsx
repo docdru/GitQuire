@@ -145,7 +145,7 @@ export function ExploreSkills({
             setQuery('');
           }}
         >
-          <Trans>OpenKnowledge</Trans>
+          <Trans>GitQuire</Trans>
         </Button>
         {TOPICS.map((topic) => {
           const tokens = query.trim().split(/\s+/).filter(Boolean);
@@ -182,14 +182,14 @@ export function ExploreSkills({
         {showOurs ? (
           oursFailed ? (
             <p className="text-sm text-muted-foreground">
-              <Trans>Couldn't load the OpenKnowledge skills. Try again.</Trans>
+              <Trans>Couldn't load the GitQuire skills. Try again.</Trans>
             </p>
           ) : (
             grid({
               results: ours,
               pending: oursPending,
-              label: <Trans>OpenKnowledge</Trans>,
-              loadingLabel: t`Loading OpenKnowledge skills`,
+              label: <Trans>GitQuire</Trans>,
+              loadingLabel: t`Loading GitQuire skills`,
               testId: 'skills-openknowledge',
             })
           )

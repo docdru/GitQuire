@@ -498,18 +498,18 @@ export async function runHandoffDispatch(
       installOutcome = await deps.ensureCoworkSkillInstalled();
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      deps.toast.error(t`Couldn't install OpenKnowledge skill — ${message}`);
+      deps.toast.error(t`Couldn't install GitQuire skill — ${message}`);
       return { ok: false, reason: 'dispatch-error', detail: `install-error: ${message}` };
     }
     if (installOutcome.kind === 'installed-now') {
       deps.toast.success(
-        t`OpenKnowledge skill saved. Upload it in Claude Desktop, then click Cowork again.`,
+        t`GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again.`,
       );
       return { ok: true };
     }
     if (installOutcome.kind === 'install-failed') {
       const message = installOutcome.message ?? installOutcome.reason;
-      deps.toast.error(t`Couldn't install OpenKnowledge skill — ${message}`);
+      deps.toast.error(t`Couldn't install GitQuire skill — ${message}`);
       return { ok: false, reason: 'dispatch-error', detail: `install-failed: ${message}` };
     }
   }

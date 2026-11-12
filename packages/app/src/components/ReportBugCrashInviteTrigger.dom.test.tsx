@@ -143,7 +143,7 @@ describe('ReportBugCrashInviteTrigger', () => {
       },
       { timeout: ASYNC_TIMEOUT_MS },
     );
-    expect(screen.getByText('OpenKnowledge quit unexpectedly last time.')).not.toBeNull();
+    expect(screen.getByText('GitQuire quit unexpectedly last time.')).not.toBeNull();
   });
 
   test('an invitation delivered before the component mounts is buffered, not dropped', async () => {

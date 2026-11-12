@@ -100,6 +100,7 @@ import {
   respondFrontmatterMalformed,
 } from '../frontmatter-malformed-error.ts';
 import { recordFrontmatterEditSurface } from '../frontmatter-telemetry.ts';
+import { boardWriterIdentity } from '../gitquire/board-identity.ts';
 import type { LinkAdvisoryPolicy, PrepareWriteLinkAdvisory } from '../link-advisory-policy.ts';
 import { getLogger } from '../logger.ts';
 import type { MergeHistoryRecorder } from '../merge-history.ts';
@@ -699,14 +700,15 @@ export function createAgentWriteRoutes(
 
   const handleFrontmatterPatch = withValidation(
     FrontmatterPatchRequestSchema,
-    async (_req, res, body) => {
+    async (req, res, body) => {
       try {
         const linkPolicy = getLinkAdvisoryPolicy();
         const effectiveDocName = requireNonEmptyDocName(body.docName, res, 'frontmatter-patch');
         if (effectiveDocName === null) return;
         const resolvedDocName = resolveAlias(effectiveDocName);
+        const boardPerson = boardWriterIdentity(req, body.clientName);
         const { agentId, agentName, colorSeed, clientName, clientVersion, label } =
-          extractAgentIdentity(body);
+          boardPerson ?? extractAgentIdentity(body);
         if (isSystemDoc(resolvedDocName) || isConfigDoc(resolvedDocName)) {
           errorResponse(
             res,
@@ -731,6 +733,7 @@ export function createAgentWriteRoutes(
             displayName: agentName,
             colorSeed,
             clientName,
+            ...(boardPerson === undefined ? {} : { principalId: boardPerson.principalId }),
           });
           const fmReconcile = await reconcileDiskBeforeAgentWrite(
             durabilityState,
@@ -945,7 +948,7 @@ export function createAgentWriteRoutes(
           respondAgentSessionCapacity(res, e, 'frontmatter-patch');
           return;
         }
-        log.error({ err: e, requestId: getRequestId(_req) }, '[frontmatter-patch] handler failed');
+        log.error({ err: e, requestId: getRequestId(req) }, '[frontmatter-patch] handler failed');
         errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
           handler: 'frontmatter-patch',
           cause: e,

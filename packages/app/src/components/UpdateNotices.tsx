@@ -6,7 +6,6 @@ import type { ReactNode } from 'react';
 import { useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { dismissNotice, getNoticesSnapshot, subscribeToNotices } from '@/lib/update-notices-store';
-import { SubscribeCard } from './SubscribeCard';
 import type { UpdateNotice } from './UpdateNotices.shared';
 
 export {
@@ -147,17 +146,6 @@ export function UpdateNotices(): ReactNode {
   const notices = useSyncExternalStore(subscribeToNotices, getNoticesSnapshot, getNoticesSnapshot);
   const active = pickActiveNotice(notices);
   if (!active) return null;
-  if (active.combinedSubscribe && active.whatsNew) {
-    return (
-      <div data-testid="update-notices-list" className="shrink-0">
-        <SubscribeCard
-          version={active.whatsNew.version}
-          onOpenReleaseNotes={() => active.action?.onClick()}
-          onClose={() => dismissNotice(active.id)}
-        />
-      </div>
-    );
-  }
   return (
     <div data-testid="update-notices-list" className="shrink-0">
       <NoticeCard

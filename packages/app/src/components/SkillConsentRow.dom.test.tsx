@@ -12,7 +12,7 @@ function renderRow(props: Partial<Parameters<typeof SkillConsentRow>[0]> = {}) {
     <TooltipProvider>
       <SkillConsentRow
         name="open-knowledge-discovery"
-        description="Helps your agent recognize OpenKnowledge projects."
+        description="Helps your agent recognize GitQuire projects."
         hosts={['claude', 'cursor']}
         emptyHosts="not-added"
         {...props}
@@ -29,7 +29,7 @@ describe('SkillConsentRow', () => {
   test('shows the skill name and its own frontmatter description', () => {
     renderRow();
     expect(screen.getByText('open-knowledge-discovery')).toBeTruthy();
-    expect(screen.getByText('Helps your agent recognize OpenKnowledge projects.')).toBeTruthy();
+    expect(screen.getByText('Helps your agent recognize GitQuire projects.')).toBeTruthy();
   });
 
   test('renders reach through the agent-icon cluster with each host labeled', () => {

@@ -71,14 +71,14 @@ export function BuiltInSkillsSection() {
   const heading = (
     <div>
       <h4 className="text-sm font-medium">
-        <Trans comment="Heading above the rows for the skills OpenKnowledge ships, in Settings → Skills Studio">
-          Skills from OpenKnowledge
+        <Trans comment="Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio">
+          Skills from GitQuire
         </Trans>
       </h4>
       <p className="text-1sm text-muted-foreground">
-        <Trans comment="Says what the OpenKnowledge-authored skills are for, and where installing one puts it">
-          These teach your AI tools how to work with OpenKnowledge. Installing one adds it to every
-          AI tool on this machine.
+        <Trans comment="Says what the GitQuire-authored skills are for, and where installing one puts it">
+          These teach your AI tools how to work with GitQuire. Installing one adds it to every AI
+          tool on this machine.
         </Trans>
       </p>
     </div>

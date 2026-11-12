@@ -1,6 +1,6 @@
 # Translation glossary
 
-The locked vocabulary for OpenKnowledge's interface copy. Every catalog under
+The locked vocabulary for GitQuire's interface copy. Every catalog under
 `src/locales/` uses these forms for these nouns, in every message that mentions them.
 
 Terminology drift is the failure mode that structural checks cannot see: a catalog that
@@ -20,7 +20,7 @@ That review, and which locales have actually had one, is [`REVIEW.md`](./REVIEW.
 
 These carry through every locale byte-for-byte:
 
-- **OpenKnowledge** — the product name.
+- **GitQuire** — the product name.
 - **Markdown**, **Git**, **GitHub**, **MCP**, **YAML**, **JSON**, **PATH** — proper nouns and
   format names.
 - **frontmatter** — names a Markdown construct, the way `<head>` names an HTML one. There is no
@@ -100,7 +100,7 @@ rendering than the English carries. Settle them here rather than per-PR.
   `zh-Hant` takes 文件 (the Taiwanese reading of *document*) where `zh-Hans` takes 文档 — the
   two scripts genuinely diverge here, which is the whole reason they are separate catalogs.
 - **branch** takes the form each language's own Git translation uses (`rama`, `branche`, `ramo`,
-  `cabang`, `gałąź`, 分支), so a user reading OpenKnowledge and reading `git status` sees one
+  `cabang`, `gałąź`, 分支), so a user reading GitQuire and reading `git status` sees one
   word.
 - **agent** means an AI agent, not a network proxy. `zh-Hans` 智能体 and `zh-Hant` 智慧代理 are
   the current AI-context readings; 代理 alone would read as *proxy*.
@@ -110,9 +110,9 @@ rendering than the English carries. Settle them here rather than per-PR.
   reads naturally it wins over a transliteration; `ur` keeps the transliteration because the
   native compound is not in common software use.
 - **background service** is the pty-host utility process that backs a terminal. The
-  OpenKnowledge server is a different process on a different path and is never what this
+  GitQuire server is a different process on a different path and is never what this
   wording refers to. The product already says *the agent service* and *the
-  OpenKnowledge server* for adjacent concepts, so this one is pinned to keep a fourth name
+  GitQuire server* for adjacent concepts, so this one is pinned to keep a fourth name
   from appearing: user-facing terminal copy says *background service*, never *server*,
   *helper process*, or *host*.
 - **Follow** is the pull-only sync mode. Korean uses 팔로우 consistently rather than mixing the

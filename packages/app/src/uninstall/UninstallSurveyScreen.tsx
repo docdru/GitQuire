@@ -65,10 +65,10 @@ export function UninstallSurveyScreen({ onSend, onSkip }: UninstallSurveyScreenP
     >
       <header className="px-6 pt-5 pb-3.5 space-y-4">
         <h1 id={titleId} className="font-medium leading-none text-base">
-          <Trans>Thanks for giving OpenKnowledge a try.</Trans>
+          <Trans>Thanks for giving GitQuire a try.</Trans>
         </h1>
         <p id={egressId} className="text-muted-foreground text-sm">
-          <Trans>What you share is sent to the OpenKnowledge team.</Trans>
+          <Trans>What you share is sent to the GitQuire team.</Trans>
         </p>
       </header>
 

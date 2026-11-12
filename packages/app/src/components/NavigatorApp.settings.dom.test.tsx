@@ -46,7 +46,7 @@ if (globalWithDomShims.ResizeObserver === undefined) {
 const ASYNC_TIMEOUT_MS = 4000;
 
 const NAVIGATOR_ABOUT: OkAboutInfo = {
-  productName: 'OpenKnowledge',
+  productName: 'GitQuire',
   version: '1.2.3',
   releasesUrl: 'https://github.com/inkeep/open-knowledge/releases',
   releaseNotesUrl: 'https://github.com/inkeep/open-knowledge/releases/tag/v1.2.3',
@@ -217,7 +217,7 @@ describe('NavigatorApp settings', () => {
     renderNavigator(stub.bridge, { asWindowBridge: true });
 
     const dialog = await screen.findByTestId('settings-dialog', {}, { timeout: ASYNC_TIMEOUT_MS });
-    expect(within(dialog).queryByText('Customize your OpenKnowledge experience.')).toBeNull();
+    expect(within(dialog).queryByText('Customize your GitQuire experience.')).toBeNull();
 
     for (const id of ['preferences', 'hotkeys', 'about']) {
       expect(sidebarItem(id).disabled).toBe(false);
@@ -225,7 +225,7 @@ describe('NavigatorApp settings', () => {
     await waitFor(
       () =>
         expect(describedBy(sidebarItem('agent-connections'))).toBe(
-          'Open a project to edit. To connect AI tools without a project, use File > Set up OpenKnowledge integrations…',
+          'Open a project to edit. To connect AI tools without a project, use File > Set up GitQuire integrations…',
         ),
       { timeout: ASYNC_TIMEOUT_MS },
     );
@@ -259,7 +259,7 @@ describe('NavigatorApp settings', () => {
 
     expect(sidebarItem('agent-connections').disabled).toBe(true);
     expect(describedBy(sidebarItem('agent-connections'))).toBe('Open a project to edit.');
-    expect(screen.queryByText(/Set up OpenKnowledge integrations/)).toBeNull();
+    expect(screen.queryByText(/Set up GitQuire integrations/)).toBeNull();
   });
 
   test('an unreadable user config shows a notice instead of loading forever, then recovers', async () => {

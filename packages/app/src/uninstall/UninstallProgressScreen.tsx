@@ -10,7 +10,7 @@ export function UninstallProgressScreen() {
           {/* oxlint-disable-next-line ok/microcopy-ellipsis -- the uninstall migration to React is a
               pure render-swap — this heading is carried over verbatim from the screen it replaces,
               and a copy-parity gate compares the two. Reword both surfaces together or neither. */}
-          <Trans>Removing OpenKnowledge files…</Trans>
+          <Trans>Removing GitQuire files…</Trans>
         </h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           <Trans>This may take a moment. Your markdown content is kept.</Trans>

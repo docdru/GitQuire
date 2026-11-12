@@ -20,8 +20,8 @@ export function InstanceBadge({ className, compact = false }: InstanceBadgeProps
   const version =
     reportedVersion && reportedVersion !== UNKNOWN_APP_VERSION ? reportedVersion : null;
   const description = version
-    ? t`${label} build, v${version}. Its settings and data are kept separate from other OpenKnowledge apps.`
-    : t`${label} build. Its settings and data are kept separate from other OpenKnowledge apps.`;
+    ? t`${label} build, v${version}. Its settings and data are kept separate from other GitQuire apps.`
+    : t`${label} build. Its settings and data are kept separate from other GitQuire apps.`;
   const accessibleName = version
     ? t`App instance: ${label}, v${version}`
     : t`App instance: ${label}`;

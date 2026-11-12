@@ -180,7 +180,7 @@ export function AppMenubar({ className }: AppMenubarProps) {
               <MenubarItem
                 onSelect={() => dispatch({ kind: 'command', command: 'reconfigure-mcp-wiring' })}
               >
-                {t`Set up OpenKnowledge integrations…`}
+                {t`Set up GitQuire integrations…`}
               </MenubarItem>
               <MenubarSeparator />
             </>
@@ -362,7 +362,7 @@ export function AppMenubar({ className }: AppMenubarProps) {
         <MenubarTrigger className="px-2 py-1 text-xs font-normal">{t`Help`}</MenubarTrigger>
         <MenubarContent data-bug-report-launcher="">
           <MenubarItem onSelect={() => dispatch({ kind: 'command', command: 'open-github' })}>
-            {t`OpenKnowledge on GitHub`}
+            {t`GitQuire on GitHub`}
           </MenubarItem>
           <MenubarItem onSelect={() => dispatch({ kind: 'command', command: 'open-docs' })}>
             {t`Documentation`}

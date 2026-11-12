@@ -1,30 +1,21 @@
-# Contributing to OpenKnowledge
+# Contributing to GitQuire
 
-Thanks for helping make OpenKnowledge better! The best way to contribute is a [detailed issue](https://github.com/inkeep/open-knowledge/issues/new/choose): tell us what you ran into or what you would like to do, and we will take it from there.
+Thanks for helping make GitQuire better! GitQuire is a community project: bug reports, ideas and
+pull requests are all welcome.
 
-- **Found a bug or have an idea?** [Open an issue](https://github.com/inkeep/open-knowledge/issues/new/choose), and see [Write an issue we can build from](#write-an-issue-we-can-build-from) for what helps.
-- **Question or setup help?** Ask in [Discord](https://discord.gg/VRKk2EaGHN).
-- **Want a translation updated or changed?** [Translate the interface](https://openknowledge.ai/docs/contribute/translations) says what to put in the issue.
+- **Found a bug or have an idea?** [Open an issue](https://github.com/docdru/GitQuire/issues/new/choose).
+  Say what you were doing, what happened and what you expected; for a bug, add the fewest steps
+  that show it and your GitQuire version or image tag.
+- **Want to change something?** Open a pull request. For anything larger than a small fix, open
+  an issue first so we can agree on the approach before you spend time on it.
+- **Security problem?** Please don't open a public issue; see [SECURITY.md](./.github/SECURITY.md).
 
-## Why issues come first
+## How GitQuire relates to OpenKnowledge
 
-Reviewing an outside pull request takes us longer than building the same change from a clear issue. We have to read code written without our context, check it for security problems, and usually rework it to fit the codebase. A good issue skips that: it costs you less time, and we build, test and review the change in our normal process.
-
-## Write an issue we can build from
-
-Use the bug report or feature request form. The issues we can act on fastest:
-
-- **Start with the problem, not the solution.** Say what you were doing, what happened, and why it matters to you.
-- **For a bug,** tell us what you did, what you expected and what you saw instead. Then add the fewest steps that show it, ideally in a new project; how often it happens; whether it worked in an earlier version; your version, platform and install method; and the full error text or logs, pasted as text.
-- **For a feature,** describe the situation you are in and what you are trying to get done, how you handle it today, and what you would see if it worked.
-- **One problem per issue.** Separate problems are easier to track and fix.
-- **Anything else that helps is welcome,** such as code you suspect or your own ideas. None of it is required.
-
-We read every issue, and a clear one gives your request the best chance. When a fix ships, we close your issue, and our release automation usually comments on it with the version it shipped in.
-
-## How credit works
-
-Issue authors are credited on the issue itself, which stays linked to the problem they found. Filing an issue does not require a Contributor License Agreement. Earlier code contributions keep their existing attribution.
+GitQuire is a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by Inkeep, Inc.
+GitQuire-specific code lives in separate modules (`packages/*/src/gitquire/`, `gitquire-comments/`)
+so upstream changes can be merged without much friction. If you find a bug that also exists
+upstream, consider reporting it there as well.
 
 ## Development setup
 
@@ -36,16 +27,10 @@ pnpm install
 pnpm run check        # lint, typecheck, and tests
 ```
 
-Run the editor app (http://localhost:5173):
+Run the editor app against a local server (http://localhost:5173):
 
 ```bash
 cd packages/app && pnpm run dev
-```
-
-Run the docs site:
-
-```bash
-cd docs && pnpm run dev
 ```
 
 See `.env.example` for optional settings (OpenTelemetry, a custom dev port).
@@ -98,10 +83,38 @@ A short allowlist survives: directives a tool parses (`biome-ignore lint/style/n
 
 If lint stops you, the diagnostic names the class of comment, the fix, and links to [`lint-plugins/no-comments/README.md`](./lint-plugins/no-comments/README.md) — the full policy, including how to convert a comment worth keeping into one of the allowed forms. Deleting it is usually the right answer.
 
+## Common commands
+
+```bash
+pnpm run format       # format (Biome)
+pnpm run lint         # lint (Biome)
+pnpm run typecheck    # TypeScript
+pnpm run test         # tests
+pnpm run build        # build all packages
+pnpm run check        # lint + typecheck + test
+pnpm run check:drift:guards  # unused deps/exports, generated-artifact freshness, toolchain pins (not part of `check`)
+```
+
+Run a single package's scripts from its directory, e.g. `cd packages/app && pnpm run test`.
+
+## Code comments
+
+This repo does not use code comments, and `pnpm run lint` enforces that. It inverts the usual open-source norm, so it catches most first-time contributors by surprise — it is deliberate, not an oversight. Put the explanation in a name, a type, a test, your commit message, or the PR body instead.
+
+A short allowlist survives: directives a tool parses (`biome-ignore lint/style/noVar: reason`, `@ts-expect-error the fixture is deliberately malformed`, `@vitest-environment jsdom`, `/// <reference types="vite/client" />`, `SPDX-License-Identifier: GPL-3.0-or-later`), JSDoc carrying `@deprecated` (the audit-tag class is empty in this repo and admits nothing), and comments that BEGIN with a contract marker — `STOP: a cross-file contract a reader must not break`, `WARN: a sibling that silently drifts if this changes`, or `UPSTREAM(electron/electron#19920): a code shape forced on us from outside this repo`.
+
+If lint stops you, the diagnostic names the class of comment, the fix, and links to [`lint-plugins/no-comments/README.md`](./lint-plugins/no-comments/README.md) — the full policy, including how to convert a comment worth keeping into one of the allowed forms. Deleting it is usually the right answer.
+
 ## Pull requests
 
-We build every change ourselves, from issues. If you have spotted something, the most helpful thing you can do is [open an issue](https://github.com/inkeep/open-knowledge/issues/new/choose) describing it.
+- Keep each pull request focused on one change and describe what it does and why.
+- CI (`.github/workflows/checks.yml` and `docker.yml`) must be green: lint, typecheck, tests and
+  the Docker build with its smoke tests.
+- Add or update tests for behavior you change. Changesets are not used in GitQuire.
+- New user-facing text goes through Lingui (`t`, `<Trans>`) so it can be translated.
 
 ## License
 
-By contributing, you agree that your work is licensed under the [GNU General Public License v3.0 or later](./LICENSE) (`GPL-3.0-or-later`), the same license as OpenKnowledge.
+By contributing, you agree that your work is licensed under the
+[GNU General Public License v3.0 or later](./LICENSE) (`GPL-3.0-or-later`), the license GitQuire
+inherits from OpenKnowledge. No contributor license agreement is needed.

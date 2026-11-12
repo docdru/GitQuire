@@ -220,7 +220,7 @@ describe('NewWorktreeDialog', () => {
     });
     fireEvent.click(screen.getByTestId('new-worktree-create'));
     const error = await screen.findByTestId('new-worktree-error');
-    expect(error.textContent).toContain('does not contain this OpenKnowledge project');
+    expect(error.textContent).toContain('does not contain this GitQuire project');
     expect(error.textContent).toContain('created but not opened');
     expect(refreshWorktrees).toHaveBeenCalledTimes(1);
     expect(bridge.project.open).not.toHaveBeenCalled();

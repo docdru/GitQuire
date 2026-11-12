@@ -4,36 +4,20 @@ import { getGitHubStars } from '@inkeep/open-knowledge-core/utils/github-stars';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
-import {
-  BookOpen,
-  Bug,
-  CircleHelp,
-  Download,
-  Mail,
-  Megaphone,
-  MessageSquare,
-  RefreshCw,
-  Star,
-} from 'lucide-react';
+import { BookOpen, Bug, CircleHelp, Megaphone, MessageSquare, RefreshCw, Star } from 'lucide-react';
 import type { ComponentProps, FC, ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { ReportBugDialog } from '@/components/ReportBugDialog';
-import { SubscribeForm } from '@/components/SubscribeForm';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useBugReport } from '@/lib/bug-report-capture';
 import type { OkAboutInfo } from '@/lib/desktop-bridge-types';
 import { dispatchExternalLinkClick } from '@/lib/external-link';
-import { feedbackNudgeStore } from '@/lib/feedback-nudge-store';
-import { DISCORD_INVITE_URL, DOCS_URL, GITHUB_REPO_URL, X_PROFILE_URL } from '@/lib/social-links';
-import { subscribeCardStore } from '@/lib/subscribe-card-store';
+import { DOCS_URL, GITHUB_REPO_URL, ISSUES_URL } from '@/lib/social-links';
 import { openAboutSettings } from '@/lib/use-settings-route';
 import { cn } from '@/lib/utils';
-import { FeedbackFormDialog } from './FeedbackFormDialog';
-import { DiscordIcon } from './icons/discord';
 import { GithubIcon } from './icons/github';
-import { XTwitterIcon } from './icons/x-twitter';
 
 interface ResourceLink {
   label: string | MessageDescriptor;
@@ -53,17 +37,13 @@ const sections: ResourceSection[] = [
     heading: msg`Resources`,
     links: [
       { label: msg`Docs`, href: DOCS_URL, icon: BookOpen },
-      { label: msg`Download app`, href: 'https://openknowledge.ai/download', icon: Download },
+      { label: msg`Report an issue`, href: ISSUES_URL, icon: MessageSquare },
     ],
   },
   {
     key: 'community',
     heading: msg`Community`,
-    links: [
-      { label: 'GitHub', href: GITHUB_REPO_URL, icon: GithubIcon },
-      { label: 'X (Twitter)', href: X_PROFILE_URL, icon: XTwitterIcon },
-      { label: 'Discord', href: DISCORD_INVITE_URL, icon: DiscordIcon },
-    ],
+    links: [{ label: 'GitHub', href: GITHUB_REPO_URL, icon: GithubIcon }],
   },
 ];
 
@@ -138,9 +118,7 @@ const SectionHeading: FC<{ children: ReactNode }> = ({ children }) => (
 export const HelpPopover: FC = () => {
   const { t } = useLingui();
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [subscribeOpen, setSubscribeOpen] = useState(false);
   const bugReport = useBugReport();
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [starCount, setStarCount] = useState<number | null>(null);
   const [about, setAbout] = useState<OkAboutInfo | null>(null);
 
@@ -180,7 +158,6 @@ export const HelpPopover: FC = () => {
         open={popoverOpen}
         onOpenChange={(open) => {
           setPopoverOpen(open);
-          if (!open) setSubscribeOpen(false);
         }}
       >
         <Tooltip>
@@ -236,15 +213,6 @@ export const HelpPopover: FC = () => {
                           <Trans>Report a bug</Trans>
                         </ActionRow>
                       )}
-                      <ActionRow
-                        icon={MessageSquare}
-                        onSelect={() => {
-                          setPopoverOpen(false);
-                          setFeedbackOpen(true);
-                        }}
-                      >
-                        <Trans>Send feedback</Trans>
-                      </ActionRow>
                     </>
                   )}
                 </ul>
@@ -274,27 +242,6 @@ export const HelpPopover: FC = () => {
                     <Trans>Check for updates</Trans>
                   </ActionRow>
                 ) : null}
-                <li>
-                  <Popover open={subscribeOpen} onOpenChange={setSubscribeOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className={cn(rowClassName, 'h-auto w-full justify-start font-normal')}
-                      >
-                        <Mail aria-hidden="true" className="size-4 shrink-0" />
-                        <Trans>Subscribe</Trans>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent side="left" align="center" sideOffset={20} className="w-80">
-                      <SubscribeForm
-                        source="resources_menu"
-                        autoFocus
-                        onDismiss={() => setSubscribeOpen(false)}
-                        onSuccess={() => subscribeCardStore.markSubscribed()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </li>
               </ul>
             </nav>
           </div>
@@ -325,11 +272,6 @@ export const HelpPopover: FC = () => {
       {hasDesktopBridge && (
         <ReportBugDialog capture={bugReport.capture} onClose={bugReport.close} />
       )}
-      <FeedbackFormDialog
-        open={feedbackOpen}
-        onOpenChange={setFeedbackOpen}
-        onSuccess={() => feedbackNudgeStore.dismiss()}
-      />
     </>
   );
 };

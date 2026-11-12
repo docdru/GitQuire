@@ -83,6 +83,7 @@ import { type DockLayout, dockPaneMinExtent, EMPTY_DOCK_LAYOUT } from '@/lib/doc
 import type { DockNode } from '@/lib/dock-tree';
 import { focusAwayFromHiddenEditor, focusWaitsForEditor } from '@/lib/editor-hidden-focus';
 import { type EditorSidebar, resolveEditorSidebarFit } from '@/lib/editor-sidebar-fit';
+import { hasClaudeAccess, useGitQuireFeatures } from '@/lib/gitquire/features';
 import { useCompactViewport } from '@/lib/gitquire/use-compact-viewport';
 import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
@@ -131,6 +132,7 @@ import {
 } from './editor-area-panel-space';
 import { DOC_PANEL_ID, findResidualPanelId } from './editor-area-rail-registry';
 import { computeStickyRepinLayout } from './editor-area-sticky-repin';
+import { GitQuireAskClaude } from './GitQuireAskClaude';
 import { isSlidesHost } from './slides-host-gate';
 import { useLiveXtermTheme } from './use-live-xterm-theme';
 
@@ -669,6 +671,9 @@ function EditorAreaInner({
   const [embeddedHost] = useState(() => detectEmbeddedHostFromBrowser());
   const isEmbedded = embeddedHost !== null;
   const compactViewport = useCompactViewport();
+  const gitquireFeatures = useGitQuireFeatures();
+  const askAiAvailable = gitquireFeatures.askAi;
+  const askClaudeAvailable = !askAiAvailable && hasClaudeAccess(gitquireFeatures);
   const [initialRightPartition] = useState(() =>
     resolvePartition(embeddedHost, window.innerWidth, 'right'),
   );
@@ -1434,13 +1439,15 @@ function EditorAreaInner({
       />
     );
   } else if (activeTarget?.kind === 'folder') {
-    const showFolderComposer =
+    const folderComposerFits =
       !compactViewport &&
       shouldShowFolderComposer({
         terminalVisible,
         agentsVisible,
         isEmbedded,
       });
+    const showFolderComposer = askAiAvailable && folderComposerFits;
+    const showFolderAskClaude = askClaudeAvailable && folderComposerFits;
     viewContent = (
       <div className="relative flex h-full min-h-0 flex-col">
         <div className="relative flex min-h-0 flex-1 flex-col">
@@ -1455,6 +1462,7 @@ function EditorAreaInner({
         {showFolderComposer ? (
           <BottomComposer folderPath={activeTarget.folderPath} editorVisible={editorVisible} />
         ) : null}
+        {showFolderAskClaude ? <GitQuireAskClaude folderPath={activeTarget.folderPath} /> : null}
       </div>
     );
     const showAgentActivity = docPanelMode === 'agent' && docPanelAgentId !== null;
@@ -1552,7 +1560,7 @@ function EditorAreaInner({
         );
     }
   } else {
-    const showBottomComposer =
+    const bottomComposerFits =
       !compactViewport &&
       shouldShowBottomComposer({
         ...(editorVisible ? { terminalVisible, agentsVisible } : paneVisibilityWhileEditorShown),
@@ -1561,6 +1569,8 @@ function EditorAreaInner({
       }) &&
       !(timelineDiff && timelineDiff.docName === activeDocName) &&
       !(agentDiff && agentDiffDoc === activeDocName);
+    const showBottomComposer = askAiAvailable && bottomComposerFits;
+    const showAskClaude = askClaudeAvailable && bottomComposerFits;
     const externalSkillEdit = activeDocName ? parseExternalSkillDocName(activeDocName) : null;
     const renderEditorContent = (activityMount: ReactNode) => (
       <div className="relative flex h-full flex-col">
@@ -1608,6 +1618,13 @@ function EditorAreaInner({
               </Suspense>
             ) : null}
           </div>
+          {showAskClaude ? (
+            <GitQuireAskClaude
+              docName={activeDocName}
+              dismissed={composerDismissed}
+              onDismiss={() => setComposerDismissed(true)}
+            />
+          ) : null}
           {showBottomComposer ? (
             <BottomComposer
               docName={activeDocName}
@@ -1624,7 +1641,7 @@ function EditorAreaInner({
           selectionStats={selectionStats}
           showStats={showStats}
           composerBadge={
-            showBottomComposer && composerDismissed
+            (showBottomComposer || showAskClaude) && composerDismissed
               ? { onReopen: () => setComposerDismissed(false) }
               : null
           }

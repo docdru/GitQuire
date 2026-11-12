@@ -332,7 +332,7 @@ describe('OkignoreSection runtime behavior', () => {
     });
     await waitFor(() =>
       expect(screen.getByTestId('settings-okignore-rejection-banner').textContent).toContain(
-        'was not saved because it kept changing outside OpenKnowledge. Your edits stay here, and saving is tried again.',
+        'was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again.',
       ),
     );
 

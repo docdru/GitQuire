@@ -4,6 +4,7 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/react';
 import { useEffect } from 'react';
 import { placeThreads, readThreads } from './editor-threads';
+import { useThreadSync } from './thread-sync';
 import { getDiscussionUi, openDiscussions, subscribeDiscussionUi } from './ui-store';
 
 const discussionKey = new PluginKey<DecorationSet>('gitquireDiscussions');
@@ -64,6 +65,7 @@ function createDiscussionPlugin(docName: string): Plugin<DecorationSet> {
 }
 
 export function DiscussionLayer({ editor, docName }: { editor: Editor; docName: string }) {
+  useThreadSync(editor);
   useEffect(() => {
     let disposed = false;
     queueMicrotask(() => {

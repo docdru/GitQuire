@@ -16,7 +16,7 @@ export function installOnboardingToastListener(opts: {
   return bridge.onboarding.onToast((payload) => {
     if (payload.kind === 'ancestor-promote') {
       const ancestorPath = payload.ancestorPath;
-      sonnerToast.success(t`Opened existing OpenKnowledge project at ${ancestorPath}`, {
+      sonnerToast.success(t`Opened existing GitQuire project at ${ancestorPath}`, {
         duration: TOAST_DURATION_MS,
       });
       return;
@@ -47,7 +47,7 @@ export function installOnboardingToastListener(opts: {
         const summary = payload.path.summary;
         parts.push(t`PATH install failed: ${summary}`);
       }
-      const message = parts.length > 0 ? parts.join('; ') : t`OpenKnowledge integrations checked.`;
+      const message = parts.length > 0 ? parts.join('; ') : t`GitQuire integrations checked.`;
       const hasFailure = payload.mcp.status === 'failed' || payload.path.status === 'failed';
       const pathTouched = payload.path.status !== 'none';
       sonnerToast[hasFailure ? 'error' : 'success'](message, {
@@ -81,7 +81,7 @@ export function installOnboardingToastListener(opts: {
     const subPath = relativeToProject(payload.gitRoot, payload.pickedPath) ?? payload.pickedPath;
     const gitRoot = payload.gitRoot;
     sonnerToast.success(
-      t`Initialized OpenKnowledge at ${gitRoot} — opened parent of ${subPath} because it contains a .git folder`,
+      t`Initialized GitQuire at ${gitRoot} — opened parent of ${subPath} because it contains a .git folder`,
       { duration: TOAST_DURATION_MS },
     );
   });

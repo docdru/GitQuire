@@ -424,7 +424,7 @@ describe('SettingsDialogBody preferences runtime', () => {
 
     await waitFor(() =>
       expect(shown).toHaveBeenCalledWith(
-        '~/.ok/global.yml was not saved because it changed outside OpenKnowledge to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
+        '~/.ok/global.yml was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
         { duration: 8000 },
       ),
     );
@@ -441,7 +441,7 @@ describe('SettingsDialogBody preferences runtime', () => {
 
     await waitFor(() =>
       expect(shown).toHaveBeenLastCalledWith(
-        '~/.ok/global.yml was not saved because it kept changing outside OpenKnowledge. Your edits stay here, and saving is tried again.',
+        '~/.ok/global.yml was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again.',
         { duration: 8000 },
       ),
     );

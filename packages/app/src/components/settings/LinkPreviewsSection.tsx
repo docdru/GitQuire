@@ -179,7 +179,7 @@ function EnableLinkPreviewsConfirmDialog({
               <li>
                 <Trans>
                   In an agent chat, hovering a link to a GitHub pull request or issue asks GitHub
-                  for its status, signed in as you when OpenKnowledge can use your GitHub sign-in.
+                  for its status, signed in as you when GitQuire can use your GitHub sign-in.
                 </Trans>
               </li>
               <li>

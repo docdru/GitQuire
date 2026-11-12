@@ -1,14 +1,14 @@
 import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
-import { Check, MessagesSquare, RotateCcw, Trash2, X } from 'lucide-react';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { Check, MessagesSquare, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-import { type PlacedThread, placeThreads, readThreads, writeThreads } from './editor-threads';
+import { type PlacedThread, placeThreads, readThreads } from './editor-threads';
 import {
   type Author,
   addReply,
@@ -16,14 +16,19 @@ import {
   compareThreads,
   createThread,
   deleteComment,
+  editComment,
+  editOutcome,
+  hasCommentBody,
   type OpContext,
   segmentMentions,
   setResolved,
   type Thread,
   type ThreadComment,
 } from './thread-ops';
+import { writeAndTrack } from './thread-sync';
 import {
   clearDraft,
+  clearReveal,
   closeDiscussions,
   currentAuthor,
   openDiscussions,
@@ -61,12 +66,12 @@ async function opContext(): Promise<OpContext> {
   return { author, now: () => new Date(), newId };
 }
 
-function commit(editor: Editor, threads: readonly Thread[]): boolean {
-  if (editor.isDestroyed) return false;
-  const tr = writeThreads(editor.state, threads);
-  if (tr === undefined) return false;
-  editor.view.dispatch(tr);
-  return true;
+type ThreadChange = (threads: Thread[], ctx: OpContext) => Thread[];
+
+async function applyChange(editor: Editor, change: ThreadChange): Promise<void> {
+  const ctx = await opContext();
+  if (editor.isDestroyed) throw new Error('The editor closed before the comment was saved.');
+  writeAndTrack(editor, change(readThreads(editor.state.doc), ctx));
 }
 
 function MentionText({ body }: { body: string }) {
@@ -89,31 +94,114 @@ function CommentRow({
   comment,
   me,
   onDelete,
+  onEdit,
 }: {
   comment: ThreadComment;
   me: Author | null;
   onDelete: () => void;
+  onEdit: (body: string) => Promise<void>;
 }) {
   const { t } = useLingui();
+  const [draft, setDraft] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const editButton = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef(false);
   const who = comment.author.name ?? comment.author.login ?? comment.author.id;
   const age = formatRelativeAge(comment.createdAt);
+  const mine = me !== null && canModify(comment, me);
+  const editing = mine && draft !== null;
+
+  useEffect(() => {
+    if (editing || !returnFocus.current) return;
+    returnFocus.current = false;
+    editButton.current?.focus();
+  }, [editing]);
+
+  function close() {
+    returnFocus.current = true;
+    setDraft(null);
+  }
+
+  async function save() {
+    if (busy) return;
+    const outcome = editOutcome(draft ?? '', comment.body);
+    if (outcome.kind === 'empty') return;
+    if (outcome.kind === 'unchanged') {
+      close();
+      return;
+    }
+    setBusy(true);
+    await onEdit(outcome.body).then(close, ignore);
+    setBusy(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="flex flex-col gap-2" data-testid="discussion-comment-edit">
+        <Textarea
+          rows={2}
+          value={draft ?? ''}
+          autoFocus
+          disabled={busy}
+          aria-label={t`Comment`}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.nativeEvent.isComposing || busy) return;
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              void save();
+            }
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              close();
+            }
+          }}
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={close}>
+            {t`Cancel`}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={(draft ?? '').trim() === '' || busy}
+            onClick={() => void save()}
+          >
+            {t`Save`}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="group flex flex-col gap-1">
       <div className="flex items-center gap-2 text-muted-foreground text-xs">
         <span className="font-medium text-foreground">{who}</span>
         <span>{age}</span>
         {comment.editedAt !== undefined && <span>{t`edited`}</span>}
-        {me !== null && canModify(comment, me) && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            className="ms-auto opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-            onClick={onDelete}
-            aria-label={t`Delete comment`}
-          >
-            <Trash2 aria-hidden="true" />
-          </Button>
+        {mine && (
+          <span className="ms-auto flex gap-1 opacity-0 focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              ref={editButton}
+              onClick={() => setDraft(comment.body)}
+              aria-label={t`Edit this comment`}
+            >
+              <Pencil aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onDelete}
+              aria-label={t`Delete comment`}
+            >
+              <Trash2 aria-hidden="true" />
+            </Button>
+          </span>
         )}
       </div>
       <MentionText body={comment.body} />
@@ -129,6 +217,7 @@ function ThreadCard({
   onReply,
   onResolve,
   onDelete,
+  onEdit,
 }: {
   placed: PlacedThread;
   active: boolean;
@@ -137,6 +226,7 @@ function ThreadCard({
   onReply: (body: string) => Promise<void>;
   onResolve: (resolved: boolean) => void;
   onDelete: (commentId: string) => void;
+  onEdit: (commentId: string, body: string) => Promise<void>;
 }) {
   const { t } = useLingui();
   const { thread, range } = placed;
@@ -182,6 +272,7 @@ function ThreadCard({
             comment={comment}
             me={me}
             onDelete={() => onDelete(comment.id)}
+            onEdit={(body) => onEdit(comment.id, body)}
           />
         ))}
       </div>
@@ -241,15 +332,24 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     };
   }, [isOpen, me]);
 
-  async function run(change: (threads: Thread[], ctx: OpContext) => Thread[]): Promise<void> {
-    try {
-      const ctx = await opContext();
-      commit(editor, change(readThreads(editor.state.doc), ctx));
-    } catch (err) {
+  function run(change: ThreadChange): Promise<void> {
+    return applyChange(editor, change).catch((err: unknown) => {
       toast.error(t`Couldn't save the comment.`);
       throw err;
-    }
+    });
   }
+
+  const revealThreadId = isOpen ? ui.revealThreadId : null;
+  const revealReady =
+    revealThreadId !== null && threads.some((thread) => thread.id === revealThreadId);
+
+  useEffect(() => {
+    if (!revealReady || revealThreadId === null || editor.isDestroyed) return;
+    const target = threads.filter((thread) => thread.id === revealThreadId);
+    const range = placeThreads(editor.state.doc, target)[0]?.range ?? null;
+    if (range !== null) editor.chain().setTextSelection(range).scrollIntoView().run();
+    clearReveal();
+  }, [editor, revealReady, revealThreadId, threads]);
 
   async function createFromDraft() {
     const draft = ui.draft;
@@ -263,7 +363,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       return;
     }
     const created = createThread(readThreads(editor.state.doc), draft.anchor, body, ctx);
-    if (!commit(editor, created.threads)) return;
+    if (!writeAndTrack(editor, created.threads)) return;
     setDraftBody('');
     clearDraft();
     setActiveThread(created.thread.id);
@@ -279,6 +379,16 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
 
   function remove(threadId: string, commentId: string) {
     run((current, ctx) => deleteComment(current, threadId, commentId, ctx.author)).catch(ignore);
+  }
+
+  function edit(threadId: string, commentId: string, body: string): Promise<void> {
+    return run((current, ctx) => {
+      const next = editComment(current, threadId, commentId, body, ctx);
+      if (!hasCommentBody(next, threadId, commentId, body)) {
+        throw new Error('The comment is no longer there to edit.');
+      }
+      return next;
+    });
   }
 
   function select(placed: PlacedThread) {
@@ -306,7 +416,9 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   }
 
   const placed = placeThreads(editor.state.doc, [...threads].sort(compareThreads));
-  const visible = placed.filter((p) => showResolved || !p.thread.resolved);
+  const visible = placed.filter(
+    (p) => showResolved || !p.thread.resolved || p.thread.id === ui.activeThreadId,
+  );
   const resolvedCount = threads.length - openCount;
 
   return (
@@ -370,6 +482,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
               onReply={(body) => replyTo(p.thread.id, body)}
               onResolve={(resolved) => resolve(p.thread.id, resolved)}
               onDelete={(commentId) => remove(p.thread.id, commentId)}
+              onEdit={(commentId, body) => edit(p.thread.id, commentId, body)}
             />
           ))}
         </ul>

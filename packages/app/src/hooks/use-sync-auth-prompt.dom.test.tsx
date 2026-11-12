@@ -29,7 +29,7 @@ const { authPromptStore } = await import('@/lib/auth-prompt-store');
 const { useSyncAuthPrompt } = await import('./use-sync-auth-prompt');
 
 const NO_CREDENTIAL_COPY =
-  'OpenKnowledge has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has.';
+  'GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has.';
 
 type Remote = Parameters<typeof useSyncAuthPrompt>[0];
 

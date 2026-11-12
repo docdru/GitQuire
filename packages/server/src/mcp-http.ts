@@ -6,6 +6,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { validateAgentId } from './agent-id.ts';
 import type { Config } from './config/schema.ts';
 import { MCP_SERVER_NAME } from './constants.ts';
+import { bindAgentConnection, requestPrincipal } from './gitquire/principal-directory.ts';
 import type { LocalApiDispatch } from './http/local-api-dispatch.ts';
 import {
   type AgentIdentity,
@@ -23,6 +24,7 @@ interface McpHttpSession {
   transport: StreamableHTTPServerTransport;
   server: McpServer;
   ttlTimer?: ReturnType<typeof setTimeout>;
+  ownerId?: string;
 }
 
 export interface McpHttpHandlerOptions {
@@ -154,6 +156,10 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
           writePlain(res, 404, 'MCP session not found');
           return;
         }
+        if (session.ownerId !== undefined && requestPrincipal(req)?.id !== session.ownerId) {
+          writePlain(res, 403, 'This MCP session belongs to another user');
+          return;
+        }
         touchSession(sessionId, session);
         await session.transport.handleRequest(req, res);
         return;
@@ -172,8 +178,10 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
         return;
       }
 
+      const owner = requestPrincipal(req);
       const rawConnectionIdHeader = firstHeader(req.headers[MCP_CONNECTION_ID_HEADER]);
-      const forwardedConnectionId = validateAgentId(rawConnectionIdHeader) ?? undefined;
+      const forwardedConnectionId =
+        owner === undefined ? (validateAgentId(rawConnectionIdHeader) ?? undefined) : randomUUID();
       if (rawConnectionIdHeader !== undefined && forwardedConnectionId === undefined) {
         opts.log?.warn?.(
           { headerLength: rawConnectionIdHeader.length },
@@ -194,6 +202,10 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
               forwardedConnectionId,
               isHostedAgent,
             );
+            if (owner !== undefined && forwardedConnectionId !== undefined) {
+              bindAgentConnection(forwardedConnectionId, owner);
+              session.ownerId = owner.id;
+            }
             await session.server.connect(transport);
             sessions.set(newSessionId, session);
             touchSession(newSessionId, session);

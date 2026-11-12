@@ -255,7 +255,7 @@ describe('TerminalPanel "Open in terminal" launch (baked into the PTY spawn)', (
 
   test("bakes `claude --settings '<json>' '<escaped prompt>'` into create — no `\\r`, never via input", async () => {
     const { bridge, terminal } = makeBridge(WIRED);
-    const prompt = "Let's work on `foo.md` using OpenKnowledge.";
+    const prompt = "Let's work on `foo.md` using GitQuire.";
     render(<TerminalPanel bridge={bridge} launch={{ prompt, cli: 'claude', nonce: 1 }} />);
 
     await waitFor(() => expect(terminal.create).toHaveBeenCalledTimes(1));

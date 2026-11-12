@@ -76,7 +76,7 @@ export function errorCopy(error: unknown): ErrorCopy {
   if (error instanceof ServerCapabilityMismatchError) {
     return {
       title: t`Server can't open documents`,
-      summary: t`This project's running server doesn't support live editing. Restart OpenKnowledge to fix.`,
+      summary: t`This project's running server doesn't support live editing. Restart GitQuire to fix.`,
     };
   }
   if (error instanceof MountAbortError) {

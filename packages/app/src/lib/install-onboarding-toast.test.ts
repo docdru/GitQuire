@@ -142,7 +142,7 @@ describe('the other onboarding toasts', () => {
     installOnboardingToastListener({ bridge });
     fire({ kind: 'ancestor-promote', ancestorPath: '/srv/notes' });
     expect(toastSuccess.mock.calls.at(-1)?.[0]).toBe(
-      'Opened existing OpenKnowledge project at /srv/notes',
+      'Opened existing GitQuire project at /srv/notes',
     );
   });
 
@@ -150,7 +150,7 @@ describe('the other onboarding toasts', () => {
     const { bridge, fire } = makeBridge();
     installOnboardingToastListener({ bridge });
     fire({ kind: 'git-root-promote', gitRoot: '/srv/repo', pickedPath: '/srv/repo/docs' });
-    expect(toastSuccess.mock.calls.at(-1)?.[0]).toContain('Initialized OpenKnowledge at /srv/repo');
+    expect(toastSuccess.mock.calls.at(-1)?.[0]).toContain('Initialized GitQuire at /srv/repo');
     expect(toastSuccess.mock.calls.at(-1)?.[0]).toContain('opened parent of docs');
   });
 

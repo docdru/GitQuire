@@ -57,7 +57,7 @@ export function presentReceiveError(payload: OkShareReceivedPayload): ReceiveErr
   if (payload.kind === 'unsupported-version') {
     return {
       kind: 'unsupported-version',
-      message: t`Update OpenKnowledge to open this share.`,
+      message: t`Update GitQuire to open this share.`,
     };
   }
   if (payload.kind === 'invalid') {

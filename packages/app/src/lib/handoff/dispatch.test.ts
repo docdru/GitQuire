@@ -5,7 +5,7 @@ import { dispatchHandoff } from './dispatch.ts';
 const BASE_PAYLOAD = {
   projectDir: '/Users/andrew/Documents/code/open-knowledge',
   docPath: '/Users/andrew/Documents/code/open-knowledge/specs/foo/SPEC.md',
-  prompt: 'OpenKnowledge doc: specs/foo/SPEC.md.',
+  prompt: 'GitQuire doc: specs/foo/SPEC.md.',
 } as const;
 
 function makeFetch(status: number, bodyJson?: unknown) {

@@ -208,8 +208,8 @@ msgstr "{0} +{rest} de plus"
 msgid "{0} × {label}"
 msgstr "{0} × {label}"
 
-msgid "{0} acts without asking — OpenKnowledge can't add permission prompts for it"
-msgstr "{0} agit sans demander — OpenKnowledge ne peut pas lui ajouter de demandes de permission"
+msgid "{0} acts without asking — GitQuire can't add permission prompts for it"
+msgstr "{0} agit sans demander — GitQuire ne peut pas lui ajouter de demandes de permission"
 
 msgid "{0} added, {1} removed"
 msgstr "{0} ajouté(s), {1} retiré(s)"
@@ -226,8 +226,8 @@ msgstr "{0} n'a pas confirmé le changement de fenêtre de contexte. Vérifiez l
 msgid "{0} doesn't offer any settings to adjust"
 msgstr "{0} ne propose aucun paramètre à ajuster"
 
-msgid "{0} has no way to read or edit your documents on its own. Approving writes the Open Knowledge extension to {1} and leaves it there, so this session and later ones in this project have the Open Knowledge tools."
-msgstr "{0} n'a aucun moyen de lire ou de modifier vos documents par lui-même. Approuver écrit l'extension Open Knowledge dans {1} et l'y laisse, afin que cette session et les suivantes dans ce projet disposent des outils Open Knowledge."
+msgid "{0} has no way to read or edit your documents on its own. Approving writes the GitQuire extension to {1} and leaves it there, so this session and later ones in this project have the GitQuire tools."
+msgstr "{0} n'a aucun moyen de lire ou de modifier vos documents par lui-même. Approuver écrit l'extension GitQuire dans {1} et l'y laisse, afin que cette session et les suivantes dans ce projet disposent des outils GitQuire."
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0} n'a pas encore communiqué ses paramètres"
@@ -336,15 +336,15 @@ msgstr "{addingCount, plural, one {# ajouté} many {# ajoutés} other {# ajouté
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.claude-desktop.per-tool-approval"
-msgstr "{agent} vous demande d'approuver chaque outil OpenKnowledge à sa première utilisation."
+msgstr "{agent} vous demande d'approuver chaque outil GitQuire à sa première utilisation."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.session-injection"
-msgstr "{agent} reçoit les outils d'OpenKnowledge à chaque fois qu'OpenKnowledge le lance ; rien n'est écrit dans sa configuration."
+msgstr "{agent} reçoit les outils de GitQuire à chaque fois qu'GitQuire le lance ; rien n'est écrit dans sa configuration."
 
 #. js-lingui-explicit-id
 msgid "followup.enable-manually"
-msgstr "{agent} laisse les serveurs MCP de projet désactivés tant que vous ne les activez pas dans Customize → MCPs. OpenKnowledge ne peut pas voir ce réglage."
+msgstr "{agent} laisse les serveurs MCP de projet désactivés tant que vous ne les activez pas dans Customize → MCPs. GitQuire ne peut pas voir ce réglage."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.codex.folder-trust"
@@ -356,7 +356,7 @@ msgstr "{agent} ne charge les extensions de projet que dans les dossiers que vou
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.copilot.shared-workspace-config"
-msgstr "{agent} lit la configuration MCP de l'espace de travail qu'OpenKnowledge écrit pour {sourceAgent} ; la retirer pour l'un la retire pour les deux. {agent} ne la charge qu'après que vous avez confirmé la confiance du dossier au premier lancement, et l'ignore silencieusement dans un dossier auquel vous n'avez pas fait confiance, y compris sous copilot -p, qui ne peut pas afficher la demande de confiance."
+msgstr "{agent} lit la configuration MCP de l'espace de travail qu'GitQuire écrit pour {sourceAgent} ; la retirer pour l'un la retire pour les deux. {agent} ne la charge qu'après que vous avez confirmé la confiance du dossier au premier lancement, et l'ignore silencieusement dans un dossier auquel vous n'avez pas fait confiance, y compris sous copilot -p, qui ne peut pas afficher la demande de confiance."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.openclaw.central-store-missing"
@@ -512,20 +512,20 @@ msgstr "{days, plural, one {il y a # jour} many {il y a # jours} other {il y a #
 msgid "{days}d ago"
 msgstr "il y a {days} j"
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge cannot safely replace that entry in this file's format."
-msgstr "{dependent} a besoin de {prerequisite}, et OpenKnowledge ne peut pas remplacer cette entrée en toute sécurité dans le format de ce fichier."
+msgid "{dependent} needs {prerequisite}, and GitQuire cannot safely replace that entry in this file's format."
+msgstr "{dependent} a besoin de {prerequisite}, et GitQuire ne peut pas remplacer cette entrée en toute sécurité dans le format de ce fichier."
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge could not find this agent on this machine."
-msgstr "{dependent} a besoin de {prerequisite}, et OpenKnowledge n'a pas trouvé cet agent sur cette machine."
+msgid "{dependent} needs {prerequisite}, and GitQuire could not find this agent on this machine."
+msgstr "{dependent} a besoin de {prerequisite}, et GitQuire n'a pas trouvé cet agent sur cette machine."
 
-msgid "{dependent} needs {prerequisite}, and OpenKnowledge does not recognize that entry. Tick {prerequisite} to replace it, then save again."
-msgstr "{dependent} a besoin de {prerequisite}, et OpenKnowledge ne reconnaît pas cette entrée. Cochez {prerequisite} pour la remplacer, puis enregistrez à nouveau."
+msgid "{dependent} needs {prerequisite}, and GitQuire does not recognize that entry. Tick {prerequisite} to replace it, then save again."
+msgstr "{dependent} a besoin de {prerequisite}, et GitQuire ne reconnaît pas cette entrée. Cochez {prerequisite} pour la remplacer, puis enregistrez à nouveau."
 
 msgid "{dependent} needs {prerequisite}, and this agent has no file of that kind on this machine yet. Open the agent once, then try again."
 msgstr "{dependent} a besoin de {prerequisite}, et cet agent n'a pas encore de fichier de ce type sur cette machine. Ouvrez-le une fois, puis réessayez."
 
-msgid "{dependent} needs {prerequisite}, which OpenKnowledge cannot set up for you. Its setup guide has the manual steps."
-msgstr "{dependent} a besoin de {prerequisite}, qu'OpenKnowledge ne peut pas configurer à votre place. Son guide de configuration décrit les étapes manuelles."
+msgid "{dependent} needs {prerequisite}, which GitQuire cannot set up for you. Its setup guide has the manual steps."
+msgstr "{dependent} a besoin de {prerequisite}, qu'GitQuire ne peut pas configurer à votre place. Son guide de configuration décrit les étapes manuelles."
 
 msgid "{descriptorLabel} — render error, source editable below"
 msgstr "{descriptorLabel} — erreur de rendu, source modifiable ci-dessous"
@@ -563,11 +563,11 @@ msgstr "CLI {displayName}, {hint}"
 msgid "{displayName} Desktop"
 msgstr "{displayName} Desktop"
 
-msgid "{displayName} is installed, but OpenKnowledge tools aren't connected to it yet."
-msgstr "{displayName} est installé, mais les outils OpenKnowledge n'y sont pas encore connectés."
+msgid "{displayName} is installed, but GitQuire tools aren't connected to it yet."
+msgstr "{displayName} est installé, mais les outils GitQuire n'y sont pas encore connectés."
 
-msgid "{docName} is {0}. OpenKnowledge currently opens files up to {1}."
-msgstr "{docName} fait {0}. OpenKnowledge ouvre actuellement les fichiers jusqu'à {1}."
+msgid "{docName} is {0}. GitQuire currently opens files up to {1}."
+msgstr "{docName} fait {0}. GitQuire ouvre actuellement les fichiers jusqu'à {1}."
 
 msgid "{enabledCount}/{0} on"
 msgstr "{enabledCount}/{0} activés"
@@ -585,17 +585,17 @@ msgstr "{failed} commentaires sur {0} n'ont pas pu être mis à jour."
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, one {L'envoi d'un fichier a échoué} many {L'envoi de {failedCount} fichiers a échoué} other {L'envoi de {failedCount} fichiers a échoué}}"
 
-msgid "{file} was not saved because it changed outside OpenKnowledge to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} n'a pas été enregistré, car il a été modifié en dehors d'OpenKnowledge avec un contenu qui n'est pas du texte UTF-8, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté quand le fichier changera."
+msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} n'a pas été enregistré, car il a été modifié en dehors de GitQuire avec un contenu qui n'est pas du texte UTF-8, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté quand le fichier changera."
 
 msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
 msgstr "{file} n'a pas été enregistré, car il n'a pas pu être lu pour le comparer aux modifications externes, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté."
 
-msgid "{file} was not saved because it kept changing outside OpenKnowledge. Your edits stay here, and saving is tried again."
-msgstr "{file} n'a pas été enregistré, car il continuait de changer en dehors d'OpenKnowledge. Vos modifications restent ici, et l'enregistrement sera retenté."
+msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
+msgstr "{file} n'a pas été enregistré, car il continuait de changer en dehors de GitQuire. Vos modifications restent ici, et l'enregistrement sera retenté."
 
-msgid "{file} was not saved. It changed outside OpenKnowledge, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} n'a pas été enregistré. Il a été modifié en dehors d'OpenKnowledge, et cette version n'a pu être conservée ni dans l'historique ni dans le dossier de sauvegarde, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté."
+msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} n'a pas été enregistré. Il a été modifié en dehors de GitQuire, et cette version n'a pu être conservée ni dans l'historique ni dans le dossier de sauvegarde, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté."
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, one {# fichier} many {# fichiers} other {# fichiers}}"
@@ -645,11 +645,11 @@ msgstr "{label} ({0})"
 msgid "{label} already loads \"{0}\" from the {1} plugin. Installing here puts a copy at {2} that {label} uses instead of the plugin's — it stops tracking plugin updates."
 msgstr "{label} charge déjà \"{0}\" depuis le plugin {1}. Installer ici crée une copie dans {2} que {label} utilise à la place de celle du plugin — elle ne suit plus les mises à jour du plugin."
 
-msgid "{label} build, v{version}. Its settings and data are kept separate from other OpenKnowledge apps."
-msgstr "Version {label}, v{version}. Ses paramètres et ses données sont conservés à part des autres applications OpenKnowledge."
+msgid "{label} build, v{version}. Its settings and data are kept separate from other GitQuire apps."
+msgstr "Version {label}, v{version}. Ses paramètres et ses données sont conservés à part des autres applications GitQuire."
 
-msgid "{label} build. Its settings and data are kept separate from other OpenKnowledge apps."
-msgstr "Version {label}. Ses paramètres et ses données sont conservés à part des autres applications OpenKnowledge."
+msgid "{label} build. Its settings and data are kept separate from other GitQuire apps."
+msgstr "Version {label}. Ses paramètres et ses données sont conservés à part des autres applications GitQuire."
 
 msgid "{label} enabled"
 msgstr "{label} activé"
@@ -882,8 +882,8 @@ msgid "<{descriptorLabel}> failed to render (likely a bad prop). Copy the source
 msgstr "Le rendu de <{descriptorLabel}> a échoué (probablement une propriété incorrecte). Copiez la source pour voir ce qui ne va pas, ou supprimez le bloc."
 
 #. Warning shown when the user unchecks the PATH toggle on a desktop build with the built-in terminal
-msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. OpenKnowledge's built-in terminal and AI tools keep working."
-msgstr "<0>{cliCommand}</0> ne fonctionnera pas dans les terminaux externes tant que vous ne l'aurez pas ajouté depuis le menu Fichier. Le terminal intégré et les outils IA d'OpenKnowledge continuent de fonctionner."
+msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. GitQuire's built-in terminal and AI tools keep working."
+msgstr "<0>{cliCommand}</0> ne fonctionnera pas dans les terminaux externes tant que vous ne l'aurez pas ajouté depuis le menu Fichier. Le terminal intégré et les outils IA de GitQuire continuent de fonctionner."
 
 #. Warning shown when the user unchecks the PATH toggle on a desktop build without the built-in terminal
 msgid "<0>{cliCommand}</0> won't run in external terminals until you add it later from the File menu. Your AI tools keep working."
@@ -1193,8 +1193,8 @@ msgstr "Ajouter une propriété"
 msgid "Add a starter pack"
 msgstr "Ajouter un pack de démarrage"
 
-msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, OpenKnowledge uses the token instead."
-msgstr "Ajoutez un jeton d'accès pour un serveur GitLab, Gitea, Bitbucket, Azure DevOps ou git auto-hébergé. Sans jeton, git utilise les identifiants qu'il a déjà enregistrés pour cet hôte ; avec un jeton, OpenKnowledge utilise le jeton à la place."
+msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
+msgstr "Ajoutez un jeton d'accès pour un serveur GitLab, Gitea, Bitbucket, Azure DevOps ou git auto-hébergé. Sans jeton, git utilise les identifiants qu'il a déjà enregistrés pour cet hôte ; avec un jeton, GitQuire utilise le jeton à la place."
 
 msgid "Add another pattern"
 msgstr "Ajouter un autre motif"
@@ -1302,36 +1302,36 @@ msgstr "Ajouté"
 msgid "Adding"
 msgstr "Ajout"
 
-msgid "Adds a global OpenKnowledge MCP entry for this agent."
-msgstr "Ajoute une entrée MCP OpenKnowledge globale pour cet agent."
+msgid "Adds a global GitQuire MCP entry for this agent."
+msgstr "Ajoute une entrée MCP GitQuire globale pour cet agent."
 
 msgid "Adds a managed block to"
 msgstr "Ajoute un bloc géré à"
 
 #. Subtext under the project AI-tools checkbox
-msgid "Adds an OpenKnowledge MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
-msgstr "Ajoute une entrée MCP OpenKnowledge et la compétence du projet à <0>{toolList}</0> pour que vos agents puissent lire et modifier vos fichiers."
+msgid "Adds a GitQuire MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
+msgstr "Ajoute une entrée MCP GitQuire et la compétence du projet à <0>{toolList}</0> pour que vos agents puissent lire et modifier vos fichiers."
 
 #. Subtext under the AI-tools MCP checkbox
-msgid "Adds an OpenKnowledge MCP entry to <0>{connectToolList}</0>, so your agents can read and edit your files."
-msgstr "Ajoute une entrée MCP OpenKnowledge à <0>{connectToolList}</0> pour que vos agents puissent lire et modifier vos fichiers."
+msgid "Adds a GitQuire MCP entry to <0>{connectToolList}</0>, so your agents can read and edit your files."
+msgstr "Ajoute une entrée MCP GitQuire à <0>{connectToolList}</0> pour que vos agents puissent lire et modifier vos fichiers."
 
-msgid "Adds an OpenKnowledge MCP entry to this project's agent config."
-msgstr "Ajoute une entrée MCP OpenKnowledge à la configuration d'agent de ce projet."
+msgid "Adds a GitQuire MCP entry to this project's agent config."
+msgstr "Ajoute une entrée MCP GitQuire à la configuration d'agent de ce projet."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.user-config"
-msgstr "Ajoute OpenKnowledge à la configuration MCP propre à {agent}, pour que tous les projets de cette machine soient accessibles."
+msgstr "Ajoute GitQuire à la configuration MCP propre à {agent}, pour que tous les projets de cette machine soient accessibles."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.project-config"
-msgstr "Ajoute OpenKnowledge à la configuration MCP que {agent} lit dans ce projet, pour qu'il puisse lire, rechercher et modifier ces documents."
+msgstr "Ajoute GitQuire à la configuration MCP que {agent} lit dans ce projet, pour qu'il puisse lire, rechercher et modifier ces documents."
 
 msgid "Adds telemetry, server state, and runtime info when available. Credentials are always removed; document names, if included, appear in cleartext (not redacted)."
 msgstr "Ajoute la télémétrie, l'état du serveur et les informations d'exécution lorsqu'elles sont disponibles. Les identifiants sont toujours supprimés ; les noms de documents, s'ils sont inclus, apparaissent en clair (non masqués)."
 
-msgid "Adds the OpenKnowledge skill to the <0>Claude Desktop App</0> so it's available in Chat and Cowork sessions."
-msgstr "Ajoute la compétence OpenKnowledge à l'<0>application Claude Desktop</0> pour qu'elle soit disponible dans les sessions Chat et Cowork."
+msgid "Adds the GitQuire skill to the <0>Claude Desktop App</0> so it's available in Chat and Cowork sessions."
+msgstr "Ajoute la compétence GitQuire à l'<0>application Claude Desktop</0> pour qu'elle soit disponible dans les sessions Chat et Cowork."
 
 msgid "Adds the skill to {rootRel} — also read by {0}"
 msgstr "Ajoute la compétence à {rootRel} — également lu par {0}"
@@ -1444,7 +1444,7 @@ msgstr "Presque terminé. Voici ce qui a été fait et ce qu’il reste à faire
 msgid "Already at {assetContentPath} — reusing."
 msgstr "Déjà dans {assetContentPath} — réutilisation."
 
-#. Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have an OpenKnowledge MCP entry, which stay as they are while the box is unticked
+#. Status under the unticked AI-tools checkbox; replacingToolList names the tools that already have a GitQuire MCP entry, which stay as they are while the box is unticked
 msgid "Already connected to {replacingToolList}"
 msgstr "Déjà connecté à : {replacingToolList}"
 
@@ -1559,8 +1559,8 @@ msgstr "S'applique à (globs — un ! initial exclut ; vide signifie tous les do
 msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
 msgstr "S'applique à tous les projets de cette machine, dans les chats Claude Code et Codex du panneau Agents démarrés après l'activation. L'agent peut ouvrir des pages, cliquer, saisir du texte et prendre des captures d'écran dans sa propre fenêtre Google Chrome avec un profil vierge. Nécessite que Google Chrome et Node.js soient installés. Chaque action du navigateur demande votre approbation, sans option pour toujours l'autoriser, sauf si le mode de l'agent lui-même ou ses paramètres d'autorisation ignorent les approbations."
 
-msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve OpenKnowledge's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-OpenKnowledge file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
-msgstr "S'applique à tous les projets de cette machine. Claude et Codex lancés depuis le terminal intégré, ainsi que tout agent dans un chat du panneau Agents de l'app, approuvent automatiquement les outils de lecture et d'écriture d'OpenKnowledge (Claude exécute aussi \"{cliCommand} open\" automatiquement). Supprimer, déplacer, partager, importer ou installer des skills, les autres commandes et les modifications de fichiers hors OpenKnowledge demandent toujours confirmation. Dans le terminal, Cursor, OpenCode et Pi ne sont pas concernés. Au mieux, selon l'agent."
+msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
+msgstr "S'applique à tous les projets de cette machine. Claude et Codex lancés depuis le terminal intégré, ainsi que tout agent dans un chat du panneau Agents de l'app, approuvent automatiquement les outils de lecture et d'écriture de GitQuire (Claude exécute aussi \"{cliCommand} open\" automatiquement). Supprimer, déplacer, partager, importer ou installer des skills, les autres commandes et les modifications de fichiers hors GitQuire demandent toujours confirmation. Dans le terminal, Cursor, OpenCode et Pi ne sont pas concernés. Au mieux, selon l'agent."
 
 msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
 msgstr "S'applique à ce projet sur cet ordinateur uniquement. Stocké dans .ok/local, non partagé via git."
@@ -1627,6 +1627,15 @@ msgstr "Voulez-vous vraiment supprimer les éléments sélectionnés ?"
 
 msgid "Ask"
 msgstr "Demander"
+
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
 
 msgid "Ask {0} CLI"
 msgstr "Demander à la CLI {0}"
@@ -1794,8 +1803,8 @@ msgstr "Disponible dans"
 msgid "Available in every project on this machine. Not shared through git."
 msgstr "Disponible dans tous les projets de cette machine. Non partagé via git."
 
-msgid "Available in the OpenKnowledge desktop app. From a terminal, use<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
-msgstr "Disponible dans l'application de bureau OpenKnowledge. Depuis un terminal, utilisez<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
+msgid "Available in the GitQuire desktop app. From a terminal, use<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
+msgstr "Disponible dans l'application de bureau GitQuire. Depuis un terminal, utilisez<0> {cliCommand} config-sharing status</0> / <1>share</1> / <2>unshare</2>."
 
 msgid "Back"
 msgstr "Retour"
@@ -1892,11 +1901,11 @@ msgstr "Les deux"
 msgid "Both agents end up reading everything in {keep}."
 msgstr "Les deux agents liront tout ce qui se trouve dans {keep}."
 
-msgid "Both versions are identical. Choosing Accept current leaves OpenKnowledge's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
-msgstr "Les deux versions sont identiques. Choisir Accepter l’actuel laisse la protection d’OpenKnowledge activée : un nouvel enregistrement de la version antérieure sera de nouveau refusé. Choisir Accepter l’entrant désactive cette protection."
+msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
+msgstr "Les deux versions sont identiques. Choisir Accepter l’actuel laisse la protection de GitQuire activée : un nouvel enregistrement de la version antérieure sera de nouveau refusé. Choisir Accepter l’entrant désactive cette protection."
 
-msgid "Both versions were kept in {fileName}. It changed outside OpenKnowledge in the same place as here, so the outside version is directly under this one."
-msgstr "Les deux versions ont été conservées dans {fileName}. Le fichier a été modifié en dehors d'OpenKnowledge au même endroit qu'ici, donc la version externe se trouve juste en dessous de celle-ci."
+msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
+msgstr "Les deux versions ont été conservées dans {fileName}. Le fichier a été modifié en dehors de GitQuire au même endroit qu'ici, donc la version externe se trouve juste en dessous de celle-ci."
 
 msgid "Branch"
 msgstr "Branche"
@@ -1961,8 +1970,8 @@ msgstr "Rapport de bug {0}"
 msgid "Bug report history"
 msgstr "Historique des rapports de bug"
 
-msgid "Bug reporting needs the OpenKnowledge desktop app."
-msgstr "Le signalement de bugs nécessite l'application de bureau OpenKnowledge."
+msgid "Bug reporting needs the GitQuire desktop app."
+msgstr "Le signalement de bugs nécessite l'application de bureau GitQuire."
 
 msgid "Bugs, crashes, or it felt unreliable"
 msgstr "Bugs, plantages, ou manque de fiabilité"
@@ -1994,8 +2003,8 @@ msgstr ""
 msgid "By meaning"
 msgstr "Par le sens"
 
-msgid "By OpenKnowledge"
-msgstr "Par OpenKnowledge"
+msgid "By GitQuire"
+msgstr "Par GitQuire"
 
 msgid "By tag"
 msgstr "Par étiquette"
@@ -2006,8 +2015,8 @@ msgstr "Les embeddings en cache appartiennent au point de terminaison et au mod�
 msgid "Callouts draw attention to key information."
 msgstr "Les encadrés attirent l'attention sur les informations essentielles."
 
-msgid "Can't nest projects. An OpenKnowledge project already exists at <0>{rootPath}</0>. Choose a location outside it, or open that project instead."
-msgstr "Impossible d'imbriquer les projets. Un projet OpenKnowledge existe déjà dans <0>{rootPath}</0>. Choisissez un emplacement en dehors, ou ouvrez plutôt ce projet."
+msgid "Can't nest projects. A GitQuire project already exists at <0>{rootPath}</0>. Choose a location outside it, or open that project instead."
+msgstr "Impossible d'imbriquer les projets. Un projet GitQuire existe déjà dans <0>{rootPath}</0>. Choisissez un emplacement en dehors, ou ouvrez plutôt ce projet."
 
 msgid "Can't share this path."
 msgstr "Impossible de partager ce chemin."
@@ -2072,8 +2081,8 @@ msgstr "Les modifications sont enregistrées automatiquement."
 msgid "Changes saved automatically."
 msgstr "Modifications enregistrées automatiquement."
 
-msgid "Changes were saved, but OpenKnowledge could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
-msgstr "Les modifications ont été enregistrées, mais OpenKnowledge n’a pas pu confirmer la connexion à {handoffLabel}. Vérifiez les paramètres du serveur MCP de cette application, puis sélectionnez Enregistrer les modifications pour vérifier à nouveau."
+msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
+msgstr "Les modifications ont été enregistrées, mais GitQuire n’a pas pu confirmer la connexion à {handoffLabel}. Vérifiez les paramètres du serveur MCP de cette application, puis sélectionnez Enregistrer les modifications pour vérifier à nouveau."
 
 msgid "Character budget per indexing request"
 msgstr "Budget de caractères par requête d'indexation"
@@ -2205,14 +2214,14 @@ msgstr "Choisissez ce qu'ouvre une nouvelle discussion"
 msgid "Choose what a new tab starts"
 msgstr "Choisissez ce qu'ouvre un nouvel onglet"
 
-msgid "Choose what OpenKnowledge sets up for {0}."
-msgstr "Choisissez ce qu’OpenKnowledge configure pour {0}."
+msgid "Choose what GitQuire sets up for {0}."
+msgstr "Choisissez ce qu’GitQuire configure pour {0}."
 
-msgid "Choose what OpenKnowledge sets up for {agentLabel}. {agentLabel} only supports global configuration."
-msgstr "Choisissez ce qu’OpenKnowledge configure pour {agentLabel}. {agentLabel} prend uniquement en charge la configuration globale."
+msgid "Choose what GitQuire sets up for {agentLabel}. {agentLabel} only supports global configuration."
+msgstr "Choisissez ce qu’GitQuire configure pour {agentLabel}. {agentLabel} prend uniquement en charge la configuration globale."
 
-msgid "Choose what OpenKnowledge sets up."
-msgstr "Choisissez ce qu’OpenKnowledge configure."
+msgid "Choose what GitQuire sets up."
+msgstr "Choisissez ce qu’GitQuire configure."
 
 msgid "Choose where to send these comments"
 msgstr "Choisissez où envoyer ces commentaires"
@@ -2220,8 +2229,8 @@ msgstr "Choisissez où envoyer ces commentaires"
 msgid "Choose where to send this message"
 msgstr "Choisir où envoyer ce message"
 
-msgid "Choose whether this project's OpenKnowledge setup, including its AI-tool connections and the Shared default sync mode, is saved with the project so teammates get it too, or kept only on your computer."
-msgstr "Choisissez si la configuration OpenKnowledge de ce projet, y compris ses connexions aux outils IA et le mode de synchronisation de la Valeur par défaut partagée, est enregistrée avec le projet pour que vos coéquipiers l'obtiennent aussi, ou conservée uniquement sur votre ordinateur."
+msgid "Choose whether this project's GitQuire setup, including its AI-tool connections and the Shared default sync mode, is saved with the project so teammates get it too, or kept only on your computer."
+msgstr "Choisissez si la configuration GitQuire de ce projet, y compris ses connexions aux outils IA et le mode de synchronisation de la Valeur par défaut partagée, est enregistrée avec le projet pour que vos coéquipiers l'obtiennent aussi, ou conservée uniquement sur votre ordinateur."
 
 msgid "Choose which agents appear in agent menus across the app, and set them up to read and update your documents."
 msgstr "Choisissez quels agents apparaissent dans les menus d'agents de l'application et configurez-les pour qu'ils puissent lire et mettre à jour vos documents."
@@ -2239,8 +2248,20 @@ msgstr "CLI Claude"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) n'est pas installé ni présent dans votre PATH."
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "Le nettoyage n’a pas abouti"
@@ -2609,8 +2630,8 @@ msgstr "Connecter GitHub"
 msgid "Connect GitHub to continue."
 msgstr "Connectez GitHub pour continuer."
 
-msgid "Connect OpenKnowledge to other tools you use."
-msgstr "Connectez OpenKnowledge aux autres outils que vous utilisez."
+msgid "Connect GitQuire to other tools you use."
+msgstr "Connectez GitQuire aux autres outils que vous utilisez."
 
 msgid "Connect this project to GitHub to share."
 msgstr "Connectez ce projet à GitHub pour le partager."
@@ -2628,7 +2649,7 @@ msgstr "Connecter les outils"
 msgid "Connect your AI tools"
 msgstr "Connectez vos outils d'IA"
 
-#. Checkbox that wires the OpenKnowledge MCP into every detected AI tool for the project
+#. Checkbox that wires the GitQuire MCP into every detected AI tool for the project
 msgid "Connect your AI tools to this project"
 msgstr "Connecter vos outils d'IA à ce projet"
 
@@ -2671,8 +2692,8 @@ msgstr "Erreur de connexion — réessayez"
 msgid "Connection lost — keep this tab open, your edits will sync when reconnected"
 msgstr "Connexion perdue — gardez cet onglet ouvert, vos modifications se synchroniseront une fois reconnecté"
 
-msgid "Connects the agent to OpenKnowledge in every project on this machine."
-msgstr "Connecte l'agent à OpenKnowledge dans tous les projets de cette machine."
+msgid "Connects the agent to GitQuire in every project on this machine."
+msgstr "Connecte l'agent à GitQuire dans tous les projets de cette machine."
 
 msgid "Connects the agent to this project so it can read, search, and edit your documents."
 msgstr "Connecte l'agent à ce projet pour qu'il puisse lire, rechercher et modifier vos documents."
@@ -2956,8 +2977,8 @@ msgstr "Impossible d'effacer la clé — veuillez réessayer."
 msgid "Couldn't complete semantic search — retry"
 msgstr "Impossible de terminer la recherche sémantique — réessayer"
 
-msgid "Couldn't connect to the agent service. Make sure the OpenKnowledge server is running and up to date (restart it if it was already running), then try again."
-msgstr "Impossible de joindre le service d'agents. Vérifiez que le serveur OpenKnowledge est en cours d'exécution et à jour (redémarrez-le s'il tournait déjà), puis réessayez."
+msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
+msgstr "Impossible de joindre le service d'agents. Vérifiez que le serveur GitQuire est en cours d'exécution et à jour (redémarrez-le s'il tournait déjà), puis réessayez."
 
 msgid "Couldn't construct the share URL. Try Done and re-share."
 msgstr "Impossible de construire l'URL de partage. Essayez Terminé puis repartagez."
@@ -3034,8 +3055,8 @@ msgstr "Impossible d'installer {skillName} : {0}"
 msgid "Couldn't install from {0}: {1}"
 msgstr "Impossible d'installer depuis {0} : {1}"
 
-msgid "Couldn't install OpenKnowledge skill — {message}"
-msgstr "Impossible d'installer la compétence OpenKnowledge : {message}"
+msgid "Couldn't install GitQuire skill — {message}"
+msgstr "Impossible d'installer la compétence GitQuire : {message}"
 
 msgid "Couldn't install skill: {0}"
 msgstr "Impossible d'installer la compétence : {0}"
@@ -3067,8 +3088,8 @@ msgstr "Impossible de charger les packs de démarrage : {error}"
 msgid "Couldn't load templates"
 msgstr "Impossible de charger les modèles"
 
-msgid "Couldn't load the OpenKnowledge skills. Try again."
-msgstr "Impossible de charger les compétences OpenKnowledge. Réessayez."
+msgid "Couldn't load the GitQuire skills. Try again."
+msgstr "Impossible de charger les compétences GitQuire. Réessayez."
 
 msgid "Couldn't load the version preview. You can still choose how to resolve it below."
 msgstr "Impossible de charger l'aperçu de la version. Vous pouvez tout de même choisir ci-dessous comment résoudre le conflit."
@@ -3157,11 +3178,11 @@ msgstr "Impossible de joindre le fournisseur d'embeddings — réessayez"
 msgid "Couldn't reach the endpoint. Check the URL and that the server is up."
 msgstr "Impossible de joindre le point de terminaison. Vérifiez l'URL et que le serveur est démarré."
 
-msgid "Couldn't reach the Open Knowledge server to upload {fileName}."
-msgstr "Impossible de joindre le serveur Open Knowledge pour envoyer {fileName}."
+msgid "Couldn't reach the GitQuire server to upload {fileName}."
+msgstr "Impossible de joindre le serveur GitQuire pour envoyer {fileName}."
 
-msgid "Couldn't reach the OpenKnowledge server, so sync options are hidden. They appear here as soon as the sync status loads; closing and reopening Settings also retries."
-msgstr "Impossible de joindre le serveur OpenKnowledge, les options de synchronisation sont donc masquées. Elles apparaîtront ici dès que l'état de synchronisation sera chargé ; fermer puis rouvrir les Paramètres relance aussi la tentative."
+msgid "Couldn't reach the GitQuire server, so sync options are hidden. They appear here as soon as the sync status loads; closing and reopening Settings also retries."
+msgstr "Impossible de joindre le serveur GitQuire, les options de synchronisation sont donc masquées. Elles apparaîtront ici dès que l'état de synchronisation sera chargé ; fermer puis rouvrir les Paramètres relance aussi la tentative."
 
 msgid "Couldn't read {fileName}."
 msgstr "Impossible de lire {fileName}."
@@ -3220,8 +3241,8 @@ msgstr "Impossible de résoudre la divergence : {0}"
 msgid "Couldn't restart {agentName}."
 msgstr "Impossible de redémarrer {agentName}."
 
-msgid "Couldn't restart the server — another process owns it. Quit other OpenKnowledge windows for this project, then try again."
-msgstr "Impossible de redémarrer le serveur — un autre processus le détient. Quittez les autres fenêtres OpenKnowledge de ce projet, puis réessayez."
+msgid "Couldn't restart the server — another process owns it. Quit other GitQuire windows for this project, then try again."
+msgstr "Impossible de redémarrer le serveur — un autre processus le détient. Quittez les autres fenêtres GitQuire de ce projet, puis réessayez."
 
 msgid "Couldn't restart the server — it's running under a different account. Restart your computer to clear it, then reopen this project."
 msgstr "Impossible de redémarrer le serveur — il s'exécute sous un autre compte. Redémarrez votre ordinateur pour le libérer, puis rouvrez ce projet."
@@ -3229,11 +3250,11 @@ msgstr "Impossible de redémarrer le serveur — il s'exécute sous un autre com
 msgid "Couldn't restart the server automatically. Try running `{cliCommand} stop all` in a terminal, then reopen this project — or restart your computer if it persists."
 msgstr "Impossible de redémarrer automatiquement le serveur. Essayez d'exécuter `{cliCommand} stop all` dans un terminal, puis rouvrez ce projet — ou redémarrez votre ordinateur si le problème persiste."
 
-msgid "Couldn't restart the server: OpenKnowledge asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project."
-msgstr "Impossible de redémarrer le serveur : OpenKnowledge a demandé au processus qui détient le verrou du serveur de ce projet de s'arrêter, mais n'a pas pu confirmer qu'il s'agit du serveur de ce projet ; il ne l'a donc pas forcé à quitter. Si le projet est toujours verrouillé, arrêtez le serveur là où il a été démarré, ou redémarrez votre ordinateur, puis rouvrez ce projet."
+msgid "Couldn't restart the server: GitQuire asked the process holding this project's server lock to stop, but could not confirm that it is this project's server, so it did not force it to quit. If the project is still locked, stop the server where it was started, or restart your computer, then reopen this project."
+msgstr "Impossible de redémarrer le serveur : GitQuire a demandé au processus qui détient le verrou du serveur de ce projet de s'arrêter, mais n'a pas pu confirmer qu'il s'agit du serveur de ce projet ; il ne l'a donc pas forcé à quitter. Si le projet est toujours verrouillé, arrêtez le serveur là où il a été démarré, ou redémarrez votre ordinateur, puis rouvrez ce projet."
 
-msgid "Couldn't restart the server: OpenKnowledge could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project."
-msgstr "Impossible de redémarrer le serveur : OpenKnowledge n'a pas pu confirmer que le processus qui détient le verrou du serveur de ce projet est toujours son serveur ; il ne l'a donc pas arrêté. Arrêtez le serveur là où il a été démarré, ou redémarrez votre ordinateur, puis rouvrez ce projet."
+msgid "Couldn't restart the server: GitQuire could not confirm that the process holding this project's server lock is still its server, so it was not stopped. Stop the server where it was started, or restart your computer, then reopen this project."
+msgstr "Impossible de redémarrer le serveur : GitQuire n'a pas pu confirmer que le processus qui détient le verrou du serveur de ce projet est toujours son serveur ; il ne l'a donc pas arrêté. Arrêtez le serveur là où il a été démarré, ou redémarrez votre ordinateur, puis rouvrez ce projet."
 
 msgid "Couldn't restart the server. Run {cliCommand} start in this folder to retry."
 msgstr "Impossible de redémarrer le serveur. Exécutez {cliCommand} start dans ce dossier pour réessayer."
@@ -3250,8 +3271,8 @@ msgstr "Impossible de restaurer {0}. Réessayez."
 msgid "Couldn't resume this chat: {0}"
 msgstr "Impossible de reprendre ce chat : {0}"
 
-msgid "Couldn't run the test. Check that OpenKnowledge is still running."
-msgstr "Impossible d'exécuter le test. Vérifiez qu'OpenKnowledge fonctionne toujours."
+msgid "Couldn't run the test. Check that GitQuire is still running."
+msgstr "Impossible d'exécuter le test. Vérifiez qu'GitQuire fonctionne toujours."
 
 msgid "Couldn’t save changes. Try editing a color again."
 msgstr "Impossible d’enregistrer les modifications. Essayez à nouveau de modifier une couleur."
@@ -3343,8 +3364,8 @@ msgstr "Impossible d'envoyer le fichier. Le dossier des pièces jointes utilise 
 msgid "Couldn't verify that {displayName} ({bin}) is available, so this is a plain shell. You can still run {bin} yourself."
 msgstr "Impossible de vérifier que {displayName} ({bin}) est disponible, ceci est donc un shell ordinaire. Vous pouvez toujours lancer {bin} vous-même."
 
-msgid "Couldn't write the Open Knowledge extension. This thread has no Open Knowledge tools."
-msgstr "Impossible d'écrire l'extension Open Knowledge. Ce fil n'a pas les outils Open Knowledge."
+msgid "Couldn't write the GitQuire extension. This thread has no GitQuire tools."
+msgstr "Impossible d'écrire l'extension GitQuire. Ce fil n'a pas les outils GitQuire."
 
 msgid "Count skill installs publicly"
 msgstr "Compter publiquement les installations de compétences"
@@ -3379,8 +3400,8 @@ msgstr "Créez une nouvelle branche, ou extrayez-en une existante, dans sa propr
 msgid "Create a new list item from the current list item."
 msgstr "Crée un nouvel élément de liste à partir de l'élément courant."
 
-msgid "Create a new OpenKnowledge project in the folder of your choice."
-msgstr "Créez un nouveau projet OpenKnowledge dans le dossier de votre choix."
+msgid "Create a new GitQuire project in the folder of your choice."
+msgstr "Créez un nouveau projet GitQuire dans le dossier de votre choix."
 
 msgid "Create a new spec file for my user story"
 msgstr "Crée un nouveau fichier de spécification pour ma user story"
@@ -3502,8 +3523,8 @@ msgstr "Thème personnalisé"
 msgid "Customize how the editor looks and behaves."
 msgstr "Personnalisez l'apparence et le comportement de l'éditeur."
 
-msgid "Customize your OpenKnowledge experience."
-msgstr "Personnalisez votre expérience OpenKnowledge."
+msgid "Customize your GitQuire experience."
+msgstr "Personnalisez votre expérience GitQuire."
 
 msgid "Cut"
 msgstr "Couper"
@@ -3696,8 +3717,8 @@ msgstr "Détails"
 msgid "Detected in {0}"
 msgstr "Détecté dans {0}"
 
-msgid "Detected OpenKnowledge projects"
-msgstr "Projets OpenKnowledge détectés"
+msgid "Detected GitQuire projects"
+msgstr "Projets GitQuire détectés"
 
 msgid "Detecting"
 msgstr "Détection"
@@ -4182,8 +4203,8 @@ msgstr "Activer Auto (Tirer seulement) ?"
 msgid "Enable indexes"
 msgstr "Activer les index"
 
-msgid "Enable Open Knowledge tools for {0}?"
-msgstr "Activer les outils Open Knowledge pour {0} ?"
+msgid "Enable GitQuire tools for {0}?"
+msgstr "Activer les outils GitQuire pour {0} ?"
 
 msgid "Enable plugins"
 msgstr "Activer les plugins"
@@ -4209,8 +4230,8 @@ msgstr "Activer les thèmes"
 msgid "Enabling index generation"
 msgstr "Activation de la génération d'index"
 
-msgid "Enabling Open Knowledge tools"
-msgstr "Activation des outils Open Knowledge"
+msgid "Enabling GitQuire tools"
+msgstr "Activation des outils GitQuire"
 
 msgid "Ended"
 msgstr "Terminé"
@@ -5013,8 +5034,8 @@ msgstr "GitHub CLI"
 msgid "GitHub connection expired. Connect again to continue."
 msgstr "La connexion à GitHub a expiré. Reconnectez-vous pour continuer."
 
-msgid "GitHub denied the request. You may need to authorize OpenKnowledge for {owner} in your browser."
-msgstr "GitHub a refusé la demande. Vous devrez peut-être autoriser OpenKnowledge pour {owner} dans votre navigateur."
+msgid "GitHub denied the request. You may need to authorize GitQuire for {owner} in your browser."
+msgstr "GitHub a refusé la demande. Vous devrez peut-être autoriser GitQuire pour {owner} dans votre navigateur."
 
 msgid "GitHub Enterprise Server hosts"
 msgstr "Hôtes GitHub Enterprise Server"
@@ -5051,8 +5072,8 @@ msgid "Global outside text fields"
 msgstr "Global, hors champs de texte"
 
 #. Description under the AI-tools section label in the first-launch dialog
-msgid "Globally install the OpenKnowledge skills and MCP to let the agents you already use read and update your projects."
-msgstr "Installez globalement les compétences et le MCP d'OpenKnowledge pour que les agents que vous utilisez déjà puissent lire et mettre à jour vos projets."
+msgid "Globally install the GitQuire skills and MCP to let the agents you already use read and update your projects."
+msgstr "Installez globalement les compétences et le MCP de GitQuire pour que les agents que vous utilisez déjà puissent lire et mettre à jour vos projets."
 
 msgid "Go back"
 msgstr "Retour"
@@ -5148,12 +5169,12 @@ msgstr "Bonjour, tout le monde !"
 msgid "Help"
 msgstr "Aide"
 
-msgid "Help me understand the conflict in {filePath}. Explain what I should compare in the OpenKnowledge Conflict view; I will choose and apply the resolution there."
-msgstr "Aide-moi à comprendre le conflit dans {filePath}. Explique ce que je dois comparer dans la vue des conflits d’OpenKnowledge ; je choisirai et appliquerai la résolution là-bas."
+msgid "Help me understand the conflict in {filePath}. Explain what I should compare in the GitQuire Conflict view; I will choose and apply the resolution there."
+msgstr "Aide-moi à comprendre le conflit dans {filePath}. Explique ce que je dois comparer dans la vue des conflits de GitQuire ; je choisirai et appliquerai la résolution là-bas."
 
 #. Subtext under the discovery-skill checkbox
-msgid "Help your agents discover and use OpenKnowledge in any project."
-msgstr "Aidez vos agents à découvrir et utiliser OpenKnowledge dans n'importe quel projet."
+msgid "Help your agents discover and use GitQuire in any project."
+msgstr "Aidez vos agents à découvrir et utiliser GitQuire dans n'importe quel projet."
 
 msgid "Helps coding agents choose OKF document types, preserve provenance, and avoid inventing unsupported metadata."
 msgstr "Aide les agents de codage à choisir les types de documents OKF, à préserver la provenance et à éviter d'inventer des métadonnées non prises en charge."
@@ -5296,14 +5317,14 @@ msgstr "L’hébergement est activé. Le serveur fonctionne sur le port {boundPo
 msgid "Hotkeys"
 msgstr "Raccourcis clavier"
 
-msgid "How do you like OpenKnowledge?"
-msgstr "Que pensez-vous d'OpenKnowledge ?"
+msgid "How do you like GitQuire?"
+msgstr "Que pensez-vous de GitQuire ?"
 
 msgid "How does sharing work?"
 msgstr "Comment fonctionne le partage ?"
 
-msgid "How long OpenKnowledge waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting."
-msgstr "Durée pendant laquelle OpenKnowledge attend chaque requête d’embedding lors de l’indexation. Les requêtes de recherche ont un délai fixe de 8 secondes par tentative, que ce réglage ne modifie pas."
+msgid "How long GitQuire waits for each embedding request while indexing. Search requests use a fixed 8-second timeout per attempt, unchanged by this setting."
+msgstr "Durée pendant laquelle GitQuire attend chaque requête d’embedding lors de l’indexation. Les requêtes de recherche ont un délai fixe de 8 secondes par tentative, que ce réglage ne modifie pas."
 
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "Comment les documents, fichiers et images locaux au projet manquants sont signalés dans Problèmes, les diagnostics de l’éditeur, les audits et les outils d’agent."
@@ -5320,11 +5341,11 @@ msgstr "Comment configurer"
 msgid "How to set up {rowLabel}"
 msgstr "Comment configurer {rowLabel}"
 
-msgid "How to set up new projects with OpenKnowledge."
-msgstr "Comment configurer de nouveaux projets avec OpenKnowledge."
+msgid "How to set up new projects with GitQuire."
+msgstr "Comment configurer de nouveaux projets avec GitQuire."
 
-msgid "How to use OpenKnowledge and its MCP tools."
-msgstr "Comment utiliser OpenKnowledge et ses outils MCP."
+msgid "How to use GitQuire and its MCP tools."
+msgstr "Comment utiliser GitQuire et ses outils MCP."
 
 msgid "How to write a new skill and install it."
 msgstr "Comment écrire une nouvelle compétence et l'installer."
@@ -5364,21 +5385,21 @@ msgstr "Identiques dans les deux : {pick} continue de les lire."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.lm-studio.config-path-mismatch"
-msgstr "Si {agent} n'affiche aucun outil OpenKnowledge, vérifiez que le chemin de sa configuration MCP dans ses réglages correspond au fichier écrit par OpenKnowledge."
+msgstr "Si {agent} n'affiche aucun outil GitQuire, vérifiez que le chemin de sa configuration MCP dans ses réglages correspond au fichier écrit par GitQuire."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.cursor.project-entry-not-loaded"
-msgstr "Si {agent} n'affiche aucun outil OpenKnowledge, ouvrez Customize → MCPs, sélectionnez {server} et activez sa source .cursor/mcp.json ; {agent} laisse les serveurs de projet désactivés tant que vous ne le faites pas."
+msgstr "Si {agent} n'affiche aucun outil GitQuire, ouvrez Customize → MCPs, sélectionnez {server} et activez sa source .cursor/mcp.json ; {agent} laisse les serveurs de projet désactivés tant que vous ne le faites pas."
 
 #. js-lingui-explicit-id
 msgid "troubleshooting.claude.project-entry-not-approved"
-msgstr "Si {agent} n'affiche aucun outil OpenKnowledge, exécutez-le dans ce projet et approuvez le serveur OpenKnowledge une fois."
+msgstr "Si {agent} n'affiche aucun outil GitQuire, exécutez-le dans ce projet et approuvez le serveur GitQuire une fois."
 
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "Si une mise à jour arrive pour ce que vous êtes en train de modifier, vous choisissez quelle version conserver, comme pour un conflit de fusion."
 
-msgid "If you use a GitHub Enterprise Server, add its host here so OpenKnowledge can sign in, check push permission, and create share links for repositories hosted there."
-msgstr "Si vous utilisez un GitHub Enterprise Server, ajoutez son hôte ici pour qu’OpenKnowledge puisse s’y connecter, vérifier l’autorisation de push et créer des liens de partage pour les dépôts qui y sont hébergés."
+msgid "If you use a GitHub Enterprise Server, add its host here so GitQuire can sign in, check push permission, and create share links for repositories hosted there."
+msgstr "Si vous utilisez un GitHub Enterprise Server, ajoutez son hôte ici pour qu’GitQuire puisse s’y connecter, vérifier l’autorisation de push et créer des liens de partage pour les dépôts qui y sont hébergés."
 
 msgid "Ignore broken links in log.md"
 msgstr "Ignorer les liens cassés dans log.md"
@@ -5455,8 +5476,8 @@ msgstr "Dans un document de journal : les en-têtes d'entrée commencent par un
 msgid "In a subfolder"
 msgstr "Dans un sous-dossier"
 
-msgid "In an agent chat, hovering a link to a GitHub pull request or issue asks GitHub for its status, signed in as you when OpenKnowledge can use your GitHub sign-in."
-msgstr "Dans une conversation avec un agent, survoler un lien vers une pull request ou un ticket GitHub demande son statut à GitHub, avec votre connexion GitHub quand OpenKnowledge peut l'utiliser."
+msgid "In an agent chat, hovering a link to a GitHub pull request or issue asks GitHub for its status, signed in as you when GitQuire can use your GitHub sign-in."
+msgstr "Dans une conversation avec un agent, survoler un lien vers une pull request ou un ticket GitHub demande son statut à GitHub, avec votre connexion GitHub quand GitQuire peut l'utiliser."
 
 msgid "In an index document: entries sit under a section heading and each one carries a link. Prose around the lists is fine."
 msgstr "Dans un document d'index : les entrées se trouvent sous un en-tête de section et chacune comporte un lien. La prose autour des listes est très bien."
@@ -5464,11 +5485,11 @@ msgstr "Dans un document d'index : les entrées se trouvent sous un en-tête de
 msgid "In app"
 msgstr "Dans l'application"
 
-msgid "In Git projects, Open Knowledge adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
-msgstr "Dans les projets Git, Open Knowledge ajoute une règle ciblée au fichier .gitattributes à la racine du dépôt afin de combiner les modifications simultanées des index."
+msgid "In Git projects, GitQuire adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
+msgstr "Dans les projets Git, GitQuire ajoute une règle ciblée au fichier .gitattributes à la racine du dépôt afin de combiner les modifications simultanées des index."
 
-msgid "In Git projects, Open Knowledge also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
-msgstr "Dans les projets Git, Open Knowledge ajoute également une règle .gitattributes étendue afin que les modifications d'index simultanées se combinent avant la prochaine reconstruction."
+msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
+msgstr "Dans les projets Git, GitQuire ajoute également une règle .gitattributes étendue afin que les modifications d'index simultanées se combinent avant la prochaine reconstruction."
 
 msgid "In the Claude Desktop App"
 msgstr "Dans l'application Claude Desktop"
@@ -5512,11 +5533,11 @@ msgstr "Les documents d'index ne portent pas de frontmatter, à l'exception de c
 msgid "Index maintenance is paused because another Git attribute controls index.md. Update .gitattributes so the scoped index.md paths use merge=union, then try again."
 msgstr "La maintenance de l'index est suspendue car un autre attribut Git contrôle index.md. Mettez à jour .gitattributes pour que les chemins index.md définis utilisent merge=union, puis réessayez."
 
-msgid "Index maintenance is paused because Open Knowledge could not confirm the required Git merge rule. Check Git and .gitattributes, then try again."
-msgstr "La maintenance de l'index est suspendue car Open Knowledge n'a pas pu confirmer la règle de fusion Git requise. Vérifiez Git et .gitattributes, puis réessayez."
+msgid "Index maintenance is paused because GitQuire could not confirm the required Git merge rule. Check Git and .gitattributes, then try again."
+msgstr "La maintenance de l'index est suspendue car GitQuire n'a pas pu confirmer la règle de fusion Git requise. Vérifiez Git et .gitattributes, puis réessayez."
 
-msgid "Index maintenance stayed off because Open Knowledge could not reach the project server. Try again when the project reconnects."
-msgstr "La maintenance de l'index est restée désactivée car Open Knowledge n'a pas pu atteindre le serveur du projet. Réessayez lorsque le projet se reconnectera."
+msgid "Index maintenance stayed off because GitQuire could not reach the project server. Try again when the project reconnects."
+msgstr "La maintenance de l'index est restée désactivée car GitQuire n'a pas pu atteindre le serveur du projet. Réessayez lorsque le projet se reconnectera."
 
 msgid "Index maintenance stayed off because the project setting could not be saved. Check the project file permissions, then try again."
 msgstr "La maintenance de l'index est restée désactivée car les paramètres du projet n'ont pas pu être enregistrés. Vérifiez les autorisations du fichier de projet, puis réessayez."
@@ -5560,8 +5581,8 @@ msgstr "Initialiser le pack de démarrage"
 msgid "Initialized {0} but could not open it."
 msgstr "{0} initialisé mais impossible à ouvrir."
 
-msgid "Initialized OpenKnowledge at {gitRoot} — opened parent of {subPath} because it contains a .git folder"
-msgstr "OpenKnowledge initialisé dans {gitRoot} : le dossier parent de {subPath} a été ouvert, car il contient un dossier .git"
+msgid "Initialized GitQuire at {gitRoot} — opened parent of {subPath} because it contains a .git folder"
+msgstr "GitQuire initialisé dans {gitRoot} : le dossier parent de {subPath} a été ouvert, car il contient un dossier .git"
 
 msgid "Initializing project"
 msgstr "Initialisation du projet"
@@ -5611,8 +5632,8 @@ msgstr "Insérer une ligne en dessous"
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "Insérez, supprimez, déplacez, copiez et mettez en retrait les lignes de l'éditeur de source via le mappage clavier par défaut de CodeMirror."
 
-msgid "Inside this repository's OpenKnowledge worktrees folder"
-msgstr "Dans le dossier des arbres de travail OpenKnowledge de ce dépôt"
+msgid "Inside this repository's GitQuire worktrees folder"
+msgstr "Dans le dossier des arbres de travail GitQuire de ce dépôt"
 
 msgid "Install"
 msgstr "Installer"
@@ -5632,7 +5653,7 @@ msgstr "installez d'abord une compétence ici"
 msgid "Install failed: {0}"
 msgstr "Échec de l'installation : {0}"
 
-#. Dialog title — installing the OpenKnowledge skill into the Claude Desktop App
+#. Dialog title — installing the GitQuire skill into the Claude Desktop App
 msgid "Install for Claude Chat & Cowork"
 msgstr "Installer pour Claude Chat et Cowork"
 
@@ -5669,9 +5690,9 @@ msgstr "Installer sur"
 msgid "Install on all agents"
 msgstr "Installer sur tous les agents"
 
-#. Checkbox that wires the OpenKnowledge MCP into every detected AI tool
-msgid "Install OpenKnowledge in your AI tools"
-msgstr "Installer OpenKnowledge dans vos outils d'IA"
+#. Checkbox that wires the GitQuire MCP into every detected AI tool
+msgid "Install GitQuire in your AI tools"
+msgstr "Installer GitQuire dans vos outils d'IA"
 
 msgid "Install skill"
 msgstr "Installer la compétence"
@@ -5725,11 +5746,11 @@ msgstr "S'installe pour tous vos projets"
 msgid "Installs into this project"
 msgstr "S'installe dans ce projet"
 
-msgid "Installs the OpenKnowledge discovery skill for this agent."
-msgstr "Installe la compétence de découverte OpenKnowledge pour cet agent."
+msgid "Installs the GitQuire discovery skill for this agent."
+msgstr "Installe la compétence de découverte GitQuire pour cet agent."
 
-msgid "Installs the OpenKnowledge project skill for this agent."
-msgstr "Installe la compétence de projet OpenKnowledge pour cet agent."
+msgid "Installs the GitQuire project skill for this agent."
+msgstr "Installe la compétence de projet GitQuire pour cet agent."
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "Installe la skill dans {path} — le premier emplacement conserve sa propre copie"
@@ -5767,23 +5788,23 @@ msgstr "URL de partage non valide."
 msgid "Invalid YAML"
 msgstr "YAML non valide"
 
-msgid "It also adds any display-connection errors OpenKnowledge wrote to your user journal in the past week, each message cut to 200 characters."
-msgstr "Il ajoute aussi les erreurs de connexion à l'affichage qu'OpenKnowledge a écrites dans votre journal utilisateur la semaine dernière, chaque message étant tronqué à 200 caractères."
+msgid "It also adds any display-connection errors GitQuire wrote to your user journal in the past week, each message cut to 200 characters."
+msgstr "Il ajoute aussi les erreurs de connexion à l'affichage qu'GitQuire a écrites dans votre journal utilisateur la semaine dernière, chaque message étant tronqué à 200 caractères."
 
-msgid "It also adds the crash and hang records Windows logged for OpenKnowledge in the past week, without file paths, and the times of every shutdown, restart, power loss, and low-memory warning on this computer in that week, whatever caused them."
-msgstr "Il ajoute aussi les plantages et blocages qu'a consignés Windows pour OpenKnowledge la semaine dernière, sans chemins de fichiers, ainsi que les heures de chaque arrêt, redémarrage, coupure de courant et alerte de mémoire insuffisante de cet ordinateur pendant cette semaine, quelle qu'en soit la cause."
+msgid "It also adds the crash and hang records Windows logged for GitQuire in the past week, without file paths, and the times of every shutdown, restart, power loss, and low-memory warning on this computer in that week, whatever caused them."
+msgstr "Il ajoute aussi les plantages et blocages qu'a consignés Windows pour GitQuire la semaine dernière, sans chemins de fichiers, ainsi que les heures de chaque arrêt, redémarrage, coupure de courant et alerte de mémoire insuffisante de cet ordinateur pendant cette semaine, quelle qu'en soit la cause."
 
-msgid "It also adds the crash reports macOS recorded for OpenKnowledge and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote."
-msgstr "Ajoute également les rapports de plantage que macOS a enregistrés pour OpenKnowledge et ses processus auxiliaires, jamais le rapport d'une autre application, même si les nôtres nomment les processus qui s'exécutaient à leurs côtés. Chacun contient des informations sur la machine que macOS inscrit dans tous les rapports : l'uid de votre compte, le modèle de Mac et le nom du processus qui a lancé l'application. Sur une machine gérée, ce processus de lancement peut être un outil interne. Les identifiants qui relieraient entre eux les rapports de bug que vous envoyez sont d'abord remplacés, de sorte qu'un rapport collecté n'est pas identique octet pour octet à celui écrit par macOS."
+msgid "It also adds the crash reports macOS recorded for GitQuire and its helper processes, never another app's report, though ours do name the processes they were running alongside. Each one carries machine details macOS puts in every report: your account uid, the Mac model, and the name of the process that launched the app. On a managed machine, that launching process can be internal tooling. The identifiers that would link the bug reports you file to each other are replaced first, so a collected report is not byte-identical to the one macOS wrote."
+msgstr "Ajoute également les rapports de plantage que macOS a enregistrés pour GitQuire et ses processus auxiliaires, jamais le rapport d'une autre application, même si les nôtres nomment les processus qui s'exécutaient à leurs côtés. Chacun contient des informations sur la machine que macOS inscrit dans tous les rapports : l'uid de votre compte, le modèle de Mac et le nom du processus qui a lancé l'application. Sur une machine gérée, ce processus de lancement peut être un outil interne. Les identifiants qui relieraient entre eux les rapports de bug que vous envoyez sont d'abord remplacés, de sorte qu'un rapport collecté n'est pas identique octet pour octet à celui écrit par macOS."
 
-msgid "It also adds the low-memory reports macOS wrote in the past week that list OpenKnowledge's processes, with each one's memory use and whether macOS ended it."
-msgstr "Il ajoute aussi les rapports de mémoire insuffisante écrits par macOS la semaine dernière qui citent des processus d'OpenKnowledge, avec la mémoire utilisée par chacun et l'indication que macOS l'a arrêté ou non."
+msgid "It also adds the low-memory reports macOS wrote in the past week that list GitQuire's processes, with each one's memory use and whether macOS ended it."
+msgstr "Il ajoute aussi les rapports de mémoire insuffisante écrits par macOS la semaine dernière qui citent des processus de GitQuire, avec la mémoire utilisée par chacun et l'indication que macOS l'a arrêté ou non."
 
-msgid "It also adds the out-of-memory kills of OpenKnowledge that the system journal recorded in the past week, without the machine name, account id, or folder paths."
-msgstr "Il ajoute aussi les arrêts d'OpenKnowledge pour manque de mémoire consignés dans le journal système la semaine dernière, sans le nom de la machine, l'identifiant du compte ni les chemins de dossiers."
+msgid "It also adds the out-of-memory kills of GitQuire that the system journal recorded in the past week, without the machine name, account id, or folder paths."
+msgstr "Il ajoute aussi les arrêts de GitQuire pour manque de mémoire consignés dans le journal système la semaine dernière, sans le nom de la machine, l'identifiant du compte ni les chemins de dossiers."
 
-msgid "It also marks {0} as trusted, which is what makes the extension load. That trust covers the whole folder — {1} will load every extension in it, not only Open Knowledge's — and both stay until you remove Open Knowledge from this project."
-msgstr "Cela marque aussi {0} comme approuvé, ce qui permet à l'extension de se charger. Cette confiance couvre tout le dossier : {1} chargera chaque extension qui s'y trouve, pas seulement celle d'Open Knowledge, et les deux subsistent jusqu'à ce que vous retiriez Open Knowledge de ce projet."
+msgid "It also marks {0} as trusted, which is what makes the extension load. That trust covers the whole folder — {1} will load every extension in it, not only GitQuire's — and both stay until you remove GitQuire from this project."
+msgstr "Cela marque aussi {0} comme approuvé, ce qui permet à l'extension de se charger. Cette confiance couvre tout le dossier : {1} chargera chaque extension qui s'y trouve, pas seulement celle d'GitQuire, et les deux subsistent jusqu'à ce que vous retiriez GitQuire de ce projet."
 
 msgid "It didn't fit into my workflow"
 msgstr "Cela ne correspondait pas à mon flux de travail"
@@ -5903,8 +5924,8 @@ msgid "Latest edit"
 msgstr "Dernière modification"
 
 #. Subtext under the terminal toggle explaining what the ok command gives you
-msgid "Launch OpenKnowledge from any terminal — <0>{cliCommand}</0> opens a project, <1>{cliCommand} init</1> connects your agents."
-msgstr "Lancez OpenKnowledge depuis n'importe quel terminal : <0>{cliCommand}</0> ouvre un projet, <1>{cliCommand} init</1> connecte vos agents."
+msgid "Launch GitQuire from any terminal — <0>{cliCommand}</0> opens a project, <1>{cliCommand} init</1> connects your agents."
+msgstr "Lancez GitQuire depuis n'importe quel terminal : <0>{cliCommand}</0> ouvre un projet, <1>{cliCommand} init</1> connecte vos agents."
 
 msgid "Layout"
 msgstr "Mise en page"
@@ -5930,8 +5951,8 @@ msgstr "Ne pas inclure ces commentaires dans ce message"
 msgid "Let agent chats use a browser"
 msgstr "Laisser les chats d'agents utiliser un navigateur"
 
-msgid "Let agents use OpenKnowledge without asking"
-msgstr "Laisser les agents utiliser OpenKnowledge sans demander"
+msgid "Let agents use GitQuire without asking"
+msgstr "Laisser les agents utiliser GitQuire sans demander"
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Laisser la touche Tab quitter l'éditeur de source au lieu d'ajouter un retrait."
@@ -6098,8 +6119,8 @@ msgstr "Chargement des titres de {pageTarget}"
 msgid "Loading image"
 msgstr "Chargement de l'image"
 
-msgid "Loading OpenKnowledge skills"
-msgstr "Chargement des compétences OpenKnowledge"
+msgid "Loading GitQuire skills"
+msgstr "Chargement des compétences GitQuire"
 
 msgid "Loading pages"
 msgstr "Chargement des pages"
@@ -6242,8 +6263,8 @@ msgstr "Gérez les fichiers masqués dans Paramètres → Motifs d'exclusion."
 msgid "Manage skill folders"
 msgstr "Gérer les dossiers de compétences"
 
-msgid "Manage the accounts and access tokens OpenKnowledge uses to connect to your git hosts."
-msgstr "Gérez les comptes et les jetons d'accès qu'OpenKnowledge utilise pour se connecter à vos hôtes git."
+msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
+msgstr "Gérez les comptes et les jetons d'accès qu'GitQuire utilise pour se connecter à vos hôtes git."
 
 msgid "Managing agent connections is unavailable in this build."
 msgstr "La gestion des connexions des agents n'est pas disponible dans cette version."
@@ -6468,8 +6489,8 @@ msgstr "Déplacer l’éditeur vers le bord droit de la fenêtre"
 msgid "Move Editor to the top edge of the window"
 msgstr "Déplacer l’éditeur vers le bord supérieur de la fenêtre"
 
-msgid "Move OpenKnowledge.app to the Trash"
-msgstr "Placez OpenKnowledge.app dans la Corbeille"
+msgid "Move GitQuire.app to the Trash"
+msgstr "Placez GitQuire.app dans la Corbeille"
 
 msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
 msgstr "Déplacez ou renommez ce fichier à l'intérieur de la compétence — le chemin reste sous references/ ou scripts/."
@@ -6774,8 +6795,8 @@ msgstr "Onglet suivant"
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "Pas encore de fichier <0>.markdownlint.*</0> — chaque règle s'exécute avec les mêmes valeurs par défaut que l'extension markdownlint de VS Code : toutes activées, sauf la longueur de ligne."
 
-msgid "No active or recent OpenKnowledge projects were found."
-msgstr "Aucun projet OpenKnowledge actif ou récent n'a été trouvé."
+msgid "No active or recent GitQuire projects were found."
+msgstr "Aucun projet GitQuire actif ou récent n'a été trouvé."
 
 msgid "No agent folders yet"
 msgstr "Aucun dossier d'agent pour l'instant"
@@ -7122,8 +7143,8 @@ msgstr "Non connecté à GitHub."
 msgid "Not detected on this machine"
 msgstr "Non détecté sur cette machine"
 
-msgid "Not detected on this machine · OpenKnowledge files present"
-msgstr "Non détecté sur cette machine · Fichiers OpenKnowledge présents"
+msgid "Not detected on this machine · GitQuire files present"
+msgstr "Non détecté sur cette machine · Fichiers GitQuire présents"
 
 msgid "Not great"
 msgstr "Pas terrible"
@@ -7134,8 +7155,8 @@ msgstr "Pas dans la barre latérale"
 msgid "Not installed"
 msgstr "Non installé"
 
-msgid "Not installed · OpenKnowledge files present"
-msgstr "Non installé · Fichiers OpenKnowledge présents"
+msgid "Not installed · GitQuire files present"
+msgstr "Non installé · Fichiers GitQuire présents"
 
 msgid "Not installed in this project yet."
 msgstr "Pas encore installée dans ce projet."
@@ -7401,6 +7422,9 @@ msgstr "Ouvrir un dossier…"
 msgid "Open graph"
 msgstr "Ouvrir le graphe"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "Ouvrir dans la branche actuelle"
 
@@ -7422,35 +7446,35 @@ msgstr "Ouvrir dans un worktree"
 msgid "Open it there"
 msgstr "L'ouvrir là-bas"
 
-msgid "Open Knowledge could not reach the project server to check index maintenance. The status updates when the project reconnects."
-msgstr "Open Knowledge n'a pas pu atteindre le serveur du projet pour vérifier la maintenance de l'index. L'état sera mis à jour lorsque le projet se reconnectera."
+msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
+msgstr "GitQuire n'a pas pu atteindre le serveur du projet pour vérifier la maintenance de l'index. L'état sera mis à jour lorsque le projet se reconnectera."
 
-msgid "Open Knowledge creates and maintains a navigation file named index.md in every folder that contains Markdown."
-msgstr "Open Knowledge crée et gère un fichier de navigation nommé index.md dans chaque dossier contenant Markdown."
+msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
+msgstr "GitQuire crée et gère un fichier de navigation nommé index.md dans chaque dossier contenant Markdown."
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format conseils"
 
-msgid "Open Knowledge maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
-msgstr "Open Knowledge conserve un fichier de navigation nommé index.md dans chaque dossier contenant Markdown, chacun répertoriant les documents de ce dossier par type et établissant un lien vers ses sous-dossiers. Il réécrit ces fichiers à mesure que vos documents changent, et tout ce que vous y modifiez vous-même est remplacé."
+msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
+msgstr "GitQuire conserve un fichier de navigation nommé index.md dans chaque dossier contenant Markdown, chacun répertoriant les documents de ce dossier par type et établissant un lien vers ses sous-dossiers. Il réécrit ces fichiers à mesure que vos documents changent, et tout ce que vous y modifiez vous-même est remplacé."
 
-msgid "Open Knowledge rewrites these index.md files as documents change, so manual edits to them are replaced."
-msgstr "Open Knowledge réécrit ces fichiers index.md à mesure que les documents changent, de sorte que les modifications manuelles apportées à ceux-ci sont remplacées."
+msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
+msgstr "GitQuire réécrit ces fichiers index.md à mesure que les documents changent, de sorte que les modifications manuelles apportées à ceux-ci sont remplacées."
 
-msgid "Open Knowledge tools are available in this thread."
-msgstr "Les outils Open Knowledge sont disponibles dans ce fil."
+msgid "GitQuire tools are available in this thread."
+msgstr "Les outils GitQuire sont disponibles dans ce fil."
 
-msgid "Open Knowledge tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "Les outils Open Knowledge ne sont pas disponibles, car le dossier du projet est introuvable, inaccessible ou a changé. Vérifiez son emplacement et ses autorisations, puis réessayez."
+msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
+msgstr "Les outils GitQuire ne sont pas disponibles, car le dossier du projet est introuvable, inaccessible ou a changé. Vérifiez son emplacement et ses autorisations, puis réessayez."
 
-msgid "Open Knowledge tools are unavailable: a file Open Knowledge didn't write is already at {bridgePath}."
-msgstr "Les outils Open Knowledge ne sont pas disponibles : un fichier qu'Open Knowledge n'a pas écrit se trouve déjà à {bridgePath}."
+msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
+msgstr "Les outils GitQuire ne sont pas disponibles : un fichier qu'GitQuire n'a pas écrit se trouve déjà à {bridgePath}."
 
-msgid "Open Knowledge tools are unavailable: something is already at {bridgePath} but couldn't be read, so Open Knowledge left it alone."
-msgstr "Les outils Open Knowledge ne sont pas disponibles : quelque chose se trouve déjà à {bridgePath} mais n'a pas pu être lu, donc Open Knowledge l'a laissé intact."
+msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
+msgstr "Les outils GitQuire ne sont pas disponibles : quelque chose se trouve déjà à {bridgePath} mais n'a pas pu être lu, donc GitQuire l'a laissé intact."
 
-msgid "Open Knowledge's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "La copie de {0} propre à Open Knowledge est endommagée et ne démarre pas. Open Knowledge peut télécharger une nouvelle copie de {1} {2} (environ {3} Mo depuis {4}) pour la remplacer."
+msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
+msgstr "La copie de {0} propre à GitQuire est endommagée et ne démarre pas. GitQuire peut télécharger une nouvelle copie de {1} {2} (environ {3} Mo depuis {4}) pour la remplacer."
 
 msgid "Open link"
 msgstr "Ouvrir le lien"
@@ -7548,8 +7572,8 @@ msgstr "Ouvre, parcourt, accepte ou ferme les suggestions de complétion de Code
 msgid "Opened by {author}"
 msgstr "Ouvert par {author}"
 
-msgid "Opened existing OpenKnowledge project at {ancestorPath}"
-msgstr "Projet OpenKnowledge existant ouvert dans {ancestorPath}"
+msgid "Opened existing GitQuire project at {ancestorPath}"
+msgstr "Projet GitQuire existant ouvert dans {ancestorPath}"
 
 msgid "Opened on branch {branch}"
 msgstr "Ouvert sur la branche {branch}"
@@ -7563,194 +7587,194 @@ msgstr "Ouverture du worktree"
 msgid "Opening..."
 msgstr "Ouverture…"
 
-msgid "OpenKnowledge"
-msgstr "OpenKnowledge"
+msgid "GitQuire"
+msgstr "GitQuire"
 
-msgid "OpenKnowledge can't sign in to GitHub for this project."
-msgstr "OpenKnowledge ne peut pas se connecter à GitHub pour ce projet."
+msgid "GitQuire can't sign in to GitHub for this project."
+msgstr "GitQuire ne peut pas se connecter à GitHub pour ce projet."
 
-msgid "OpenKnowledge checked {subject}"
-msgstr "OpenKnowledge a vérifié {subject}"
+msgid "GitQuire checked {subject}"
+msgstr "GitQuire a vérifié {subject}"
 
-msgid "OpenKnowledge checked the project"
-msgstr "OpenKnowledge a vérifié le projet"
+msgid "GitQuire checked the project"
+msgstr "GitQuire a vérifié le projet"
 
-msgid "OpenKnowledge checks for and downloads updates in the background."
-msgstr "OpenKnowledge recherche et télécharge les mises à jour en arrière-plan."
+msgid "GitQuire checks for and downloads updates in the background."
+msgstr "GitQuire recherche et télécharge les mises à jour en arrière-plan."
 
-msgid "OpenKnowledge could not find this agent on this machine."
-msgstr "OpenKnowledge n'a pas trouvé cet agent sur cette machine."
+msgid "GitQuire could not find this agent on this machine."
+msgstr "GitQuire n'a pas trouvé cet agent sur cette machine."
 
-msgid "OpenKnowledge couldn't finish setting up this project. The worktree was created but not opened."
-msgstr "OpenKnowledge n’a pas pu terminer la configuration de ce projet. Le worktree a été créé, mais pas ouvert."
+msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
+msgstr "GitQuire n’a pas pu terminer la configuration de ce projet. Le worktree a été créé, mais pas ouvert."
 
-msgid "OpenKnowledge couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "OpenKnowledge n’a pas pu lire terminal.shell dans .ok/local/config.yml. Un shell Windows disponible sera utilisé à la place."
+msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
+msgstr "GitQuire n’a pas pu lire terminal.shell dans .ok/local/config.yml. Un shell Windows disponible sera utilisé à la place."
 
-msgid "OpenKnowledge couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve OpenKnowledge."
-msgstr "OpenKnowledge n’a pas pu écrire les paramètres de lancement dans .ok/local/terminal, car le dossier n’est pas contenu de manière sûre dans ce projet. Vérifiez qu’il s’agit d’un vrai dossier du projet, et non d’un lien. Claude vous demandera d’approuver OpenKnowledge."
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
+msgstr "GitQuire n’a pas pu écrire les paramètres de lancement dans .ok/local/terminal, car le dossier n’est pas contenu de manière sûre dans ce projet. Vérifiez qu’il s’agit d’un vrai dossier du projet, et non d’un lien. Claude vous demandera d’approuver GitQuire."
 
-msgid "OpenKnowledge couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve OpenKnowledge."
-msgstr "OpenKnowledge n’a pas pu écrire les paramètres de lancement dans .ok/local/terminal cette fois-ci. Vérifiez que le dossier est accessible en écriture. Claude vous demandera d’approuver OpenKnowledge."
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
+msgstr "GitQuire n’a pas pu écrire les paramètres de lancement dans .ok/local/terminal cette fois-ci. Vérifiez que le dossier est accessible en écriture. Claude vous demandera d’approuver GitQuire."
 
-msgid "OpenKnowledge created a share link"
-msgstr "OpenKnowledge a créé un lien de partage"
+msgid "GitQuire created a share link"
+msgstr "GitQuire a créé un lien de partage"
 
-msgid "OpenKnowledge created a share link for {subject}"
-msgstr "OpenKnowledge a créé un lien de partage pour {subject}"
+msgid "GitQuire created a share link for {subject}"
+msgstr "GitQuire a créé un lien de partage pour {subject}"
 
-msgid "OpenKnowledge deleted {subject}"
-msgstr "OpenKnowledge a supprimé {subject}"
+msgid "GitQuire deleted {subject}"
+msgstr "GitQuire a supprimé {subject}"
 
-msgid "OpenKnowledge deleted a document"
-msgstr "OpenKnowledge a supprimé un document"
+msgid "GitQuire deleted a document"
+msgstr "GitQuire a supprimé un document"
 
-msgid "OpenKnowledge discovery skill"
-msgstr "Compétence de découverte OpenKnowledge"
+msgid "GitQuire discovery skill"
+msgstr "Compétence de découverte GitQuire"
 
-msgid "OpenKnowledge does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "OpenKnowledge ne reconnaît pas cette entrée et ne peut pas la remplacer en toute sécurité dans le format de ce fichier."
+msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
+msgstr "GitQuire ne reconnaît pas cette entrée et ne peut pas la remplacer en toute sécurité dans le format de ce fichier."
 
-msgid "OpenKnowledge does not recognize this entry. Turning it on replaces it."
-msgstr "OpenKnowledge ne reconnaît pas cette entrée. L'activer la remplacera."
+msgid "GitQuire does not recognize this entry. Turning it on replaces it."
+msgstr "GitQuire ne reconnaît pas cette entrée. L'activer la remplacera."
 
-msgid "OpenKnowledge doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
-msgstr "OpenKnowledge ne recherche ni ne télécharge les mises à jour de lui-même. Rechercher les mises à jour reste disponible lorsque vous voulez une version plus récente."
+msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
+msgstr "GitQuire ne recherche ni ne télécharge les mises à jour de lui-même. Rechercher les mises à jour reste disponible lorsque vous voulez une version plus récente."
 
-msgid "OpenKnowledge edited {subject}"
-msgstr "OpenKnowledge a modifié {subject}"
+msgid "GitQuire edited {subject}"
+msgstr "GitQuire a modifié {subject}"
 
-msgid "OpenKnowledge edited a document"
-msgstr "OpenKnowledge a modifié un document"
+msgid "GitQuire edited a document"
+msgstr "GitQuire a modifié un document"
 
-msgid "OpenKnowledge files were removed"
-msgstr "Les fichiers OpenKnowledge ont été supprimés"
+msgid "GitQuire files were removed"
+msgstr "Les fichiers GitQuire ont été supprimés"
 
-msgid "OpenKnowledge has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
-msgstr "OpenKnowledge n'a aucun identifiant enregistré pour cet hôte. Ajoutez un jeton dans les Paramètres, ou laissez git utiliser les identifiants dont il dispose déjà."
+msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
+msgstr "GitQuire n'a aucun identifiant enregistré pour cet hôte. Ajoutez un jeton dans les Paramètres, ou laissez git utiliser les identifiants dont il dispose déjà."
 
-msgid "OpenKnowledge imported {source}"
-msgstr "OpenKnowledge a importé {source}"
+msgid "GitQuire imported {source}"
+msgstr "GitQuire a importé {source}"
 
-msgid "OpenKnowledge imported a skill"
-msgstr "OpenKnowledge a importé une compétence"
+msgid "GitQuire imported a skill"
+msgstr "GitQuire a importé une compétence"
 
-msgid "OpenKnowledge initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
-msgstr "OpenKnowledge s'initialise dans <0>{projectDir}</0> — le parent de <1>{pickedRelative}</1>, parce qu'il contient un dossier <2>.git</2> (un .ok/ par dépôt git). Le <3>répertoire de contenu</3> vaut <4>.</4> par défaut (tout le dépôt) ; saisissez un sous-dossier pour le restreindre."
+msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
+msgstr "GitQuire s'initialise dans <0>{projectDir}</0> — le parent de <1>{pickedRelative}</1>, parce qu'il contient un dossier <2>.git</2> (un .ok/ par dépôt git). Le <3>répertoire de contenu</3> vaut <4>.</4> par défaut (tout le dépôt) ; saisissez un sous-dossier pour le restreindre."
 
-msgid "OpenKnowledge installed {subject}"
-msgstr "OpenKnowledge a installé {subject}"
+msgid "GitQuire installed {subject}"
+msgstr "GitQuire a installé {subject}"
 
-msgid "OpenKnowledge installed a skill"
-msgstr "OpenKnowledge a installé une compétence"
+msgid "GitQuire installed a skill"
+msgstr "GitQuire a installé une compétence"
 
-msgid "OpenKnowledge integrations checked."
-msgstr "Intégrations OpenKnowledge vérifiées."
+msgid "GitQuire integrations checked."
+msgstr "Intégrations GitQuire vérifiées."
 
-msgid "OpenKnowledge is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
-msgstr "Ici, OpenKnowledge est configuré à la racine du dépôt, donc le pack est placé dans <0>{sanitized}</0> plutôt qu’à la racine du dépôt."
+msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
+msgstr "Ici, GitQuire est configuré à la racine du dépôt, donc le pack est placé dans <0>{sanitized}</0> plutôt qu’à la racine du dépôt."
 
-msgid "OpenKnowledge is using this GitHub account."
-msgstr "OpenKnowledge utilise ce compte GitHub."
+msgid "GitQuire is using this GitHub account."
+msgstr "GitQuire utilise ce compte GitHub."
 
-msgid "OpenKnowledge keeps retrying and shows them as soon as the file can be read."
-msgstr "OpenKnowledge continue de réessayer et les affichera dès que le fichier pourra être lu."
+msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
+msgstr "GitQuire continue de réessayer et les affichera dès que le fichier pourra être lu."
 
-msgid "OpenKnowledge left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "OpenKnowledge n'a pas touché à ce fichier, car il n'a pas pu l'analyser en toute sécurité. Corrigez le fichier à la main, puis réessayez."
+msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
+msgstr "GitQuire n'a pas touché à ce fichier, car il n'a pas pu l'analyser en toute sécurité. Corrigez le fichier à la main, puis réessayez."
 
-msgid "OpenKnowledge listed the installed skills"
-msgstr "OpenKnowledge a listé les compétences installées"
+msgid "GitQuire listed the installed skills"
+msgstr "GitQuire a listé les compétences installées"
 
-msgid "OpenKnowledge logs across projects. No project is open, so project server logs are not included."
-msgstr "Journaux OpenKnowledge de plusieurs projets. Aucun projet n’est ouvert ; les journaux du serveur de projet ne sont donc pas inclus."
+msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
+msgstr "Journaux GitQuire de plusieurs projets. Aucun projet n’est ouvert ; les journaux du serveur de projet ne sont donc pas inclus."
 
-msgid "OpenKnowledge logs, including activity across projects."
-msgstr "Journaux OpenKnowledge, y compris l’activité de plusieurs projets."
+msgid "GitQuire logs, including activity across projects."
+msgstr "Journaux GitQuire, y compris l’activité de plusieurs projets."
 
-msgid "OpenKnowledge looked at the link graph"
-msgstr "OpenKnowledge a consulté le graphe de liens"
+msgid "GitQuire looked at the link graph"
+msgstr "GitQuire a consulté le graphe de liens"
 
-msgid "OpenKnowledge looked up links for {subject}"
-msgstr "OpenKnowledge a consulté les liens de {subject}"
+msgid "GitQuire looked up links for {subject}"
+msgstr "GitQuire a consulté les liens de {subject}"
 
-msgid "OpenKnowledge looked up the authoring palette"
-msgstr "OpenKnowledge a consulté la palette de rédaction"
+msgid "GitQuire looked up the authoring palette"
+msgstr "GitQuire a consulté la palette de rédaction"
 
-msgid "OpenKnowledge moved {subject} to {destination}"
-msgstr "OpenKnowledge a déplacé {subject} vers {destination}"
+msgid "GitQuire moved {subject} to {destination}"
+msgstr "GitQuire a déplacé {subject} vers {destination}"
 
-msgid "OpenKnowledge moved a document"
-msgstr "OpenKnowledge a déplacé un document"
+msgid "GitQuire moved a document"
+msgstr "GitQuire a déplacé un document"
 
-msgid "OpenKnowledge on GitHub"
-msgstr "OpenKnowledge sur GitHub"
+msgid "GitQuire on GitHub"
+msgstr "GitQuire sur GitHub"
 
-msgid "OpenKnowledge on this computer changed to a different build, but this tab is still running the old one."
-msgstr "OpenKnowledge sur cet ordinateur est passé à une autre version, mais cet onglet exécute toujours l'ancienne."
+msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
+msgstr "GitQuire sur cet ordinateur est passé à une autre version, mais cet onglet exécute toujours l'ancienne."
 
-msgid "OpenKnowledge on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
-msgstr "OpenKnowledge sur cet ordinateur est désormais en v{serverVersion}, mais cet onglet exécute toujours la v{tabVersion}."
+msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+msgstr "GitQuire sur cet ordinateur est désormais en v{serverVersion}, mais cet onglet exécute toujours la v{tabVersion}."
 
-msgid "OpenKnowledge opened the live preview"
-msgstr "OpenKnowledge a ouvert l'aperçu en direct"
+msgid "GitQuire opened the live preview"
+msgstr "GitQuire a ouvert l'aperçu en direct"
 
-msgid "OpenKnowledge quit unexpectedly last time."
-msgstr "OpenKnowledge s'est arrêté de façon inattendue la dernière fois."
+msgid "GitQuire quit unexpectedly last time."
+msgstr "GitQuire s'est arrêté de façon inattendue la dernière fois."
 
-msgid "OpenKnowledge ran {command}"
-msgstr "OpenKnowledge a exécuté {command}"
+msgid "GitQuire ran {command}"
+msgstr "GitQuire a exécuté {command}"
 
-msgid "OpenKnowledge ran {tool}"
-msgstr "OpenKnowledge a exécuté {tool}"
+msgid "GitQuire ran {tool}"
+msgstr "GitQuire a exécuté {tool}"
 
-msgid "OpenKnowledge ran a command"
-msgstr "OpenKnowledge a exécuté une commande"
+msgid "GitQuire ran a command"
+msgstr "GitQuire a exécuté une commande"
 
-msgid "OpenKnowledge read the edit history"
-msgstr "OpenKnowledge a lu l'historique des modifications"
+msgid "GitQuire read the edit history"
+msgstr "GitQuire a lu l'historique des modifications"
 
-msgid "OpenKnowledge read the history of {subject}"
-msgstr "OpenKnowledge a lu l'historique de {subject}"
+msgid "GitQuire read the history of {subject}"
+msgstr "GitQuire a lu l'historique de {subject}"
 
-msgid "OpenKnowledge read the project settings"
-msgstr "OpenKnowledge a lu les paramètres du projet"
+msgid "GitQuire read the project settings"
+msgstr "GitQuire a lu les paramètres du projet"
 
-msgid "OpenKnowledge read the setting {key}"
-msgstr "OpenKnowledge a lu le paramètre {key}"
+msgid "GitQuire read the setting {key}"
+msgstr "GitQuire a lu le paramètre {key}"
 
-msgid "OpenKnowledge restored an earlier version"
-msgstr "OpenKnowledge a restauré une version antérieure"
+msgid "GitQuire restored an earlier version"
+msgstr "GitQuire a restauré une version antérieure"
 
-msgid "OpenKnowledge restored an earlier version of {subject}"
-msgstr "OpenKnowledge a restauré une version antérieure de {subject}"
+msgid "GitQuire restored an earlier version of {subject}"
+msgstr "GitQuire a restauré une version antérieure de {subject}"
 
-msgid "OpenKnowledge saved a checkpoint"
-msgstr "OpenKnowledge a enregistré un point de contrôle"
+msgid "GitQuire saved a checkpoint"
+msgstr "GitQuire a enregistré un point de contrôle"
 
-msgid "OpenKnowledge searched for {query}"
-msgstr "OpenKnowledge a recherché {query}"
+msgid "GitQuire searched for {query}"
+msgstr "GitQuire a recherché {query}"
 
-msgid "OpenKnowledge searched the knowledge base"
-msgstr "OpenKnowledge a effectué une recherche dans la base de connaissances"
+msgid "GitQuire searched the knowledge base"
+msgstr "GitQuire a effectué une recherche dans la base de connaissances"
 
-msgid "OpenKnowledge skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "Compétence OpenKnowledge enregistrée. Importez-la dans Claude Desktop, puis cliquez à nouveau sur Cowork."
+msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
+msgstr "Compétence GitQuire enregistrée. Importez-la dans Claude Desktop, puis cliquez à nouveau sur Cowork."
 
-msgid "OpenKnowledge stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
-msgstr "OpenKnowledge stocke sa configuration et ses fichiers internes dans un répertoire <0>.ok</0> nouvellement créé à la racine de votre projet."
+msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
+msgstr "GitQuire stocke sa configuration et ses fichiers internes dans un répertoire <0>.ok</0> nouvellement créé à la racine de votre projet."
 
-msgid "OpenKnowledge will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
-msgstr "OpenKnowledge sera initialisé dans <0>{gitRoot}</0> — le parent de votre nouveau dossier, parce qu'il contient un dossier <1>.git</1> (un projet par dépôt git)."
+msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
+msgstr "GitQuire sera initialisé dans <0>{gitRoot}</0> — le parent de votre nouveau dossier, parce qu'il contient un dossier <1>.git</1> (un projet par dépôt git)."
 
-msgid "OpenKnowledge will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
-msgstr "OpenKnowledge créera des commits et les poussera automatiquement vers votre dépôt distant. Si vous ne voulez pas de commits automatiques dans votre historique git, n'activez pas la synchronisation automatique."
+msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
+msgstr "GitQuire créera des commits et les poussera automatiquement vers votre dépôt distant. Si vous ne voulez pas de commits automatiques dans votre historique git, n'activez pas la synchronisation automatique."
 
-msgid "OpenKnowledge wrote a document"
-msgstr "OpenKnowledge a écrit un document"
+msgid "GitQuire wrote a document"
+msgstr "GitQuire a écrit un document"
 
-msgid "OpenKnowledge wrote to {subject}"
-msgstr "OpenKnowledge a écrit dans {subject}"
+msgid "GitQuire wrote to {subject}"
+msgstr "GitQuire a écrit dans {subject}"
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Ouvre un sélecteur de dossier pour choisir où cloner le dépôt."
@@ -7828,14 +7852,14 @@ msgstr "Plan"
 msgid "Outside any block"
 msgstr "En dehors de tout bloc"
 
-msgid "Outside this repository's OpenKnowledge worktrees folder"
-msgstr "Hors du dossier des arbres de travail OpenKnowledge de ce dépôt"
+msgid "Outside this repository's GitQuire worktrees folder"
+msgstr "Hors du dossier des arbres de travail GitQuire de ce dépôt"
 
 msgid "Outside version"
 msgstr "Version externe"
 
-msgid "Outside what Open Knowledge commits."
-msgstr "En dehors de ce que valide Open Knowledge."
+msgid "Outside what GitQuire commits."
+msgstr "En dehors de ce que valide GitQuire."
 
 msgid "over the {budgetLabel} token budget"
 msgstr "dépasse le budget de tokens {budgetLabel}"
@@ -8039,6 +8063,9 @@ msgstr "Choisissez un nom"
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "Choisissez une palette pour le mode clair et une pour le mode sombre. Le réglage de thème dans les Préférences choisit entre les deux — sur « Système », c'est votre système d'exploitation qui décide."
 
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
+
 msgid "Pick a theme or create your own."
 msgstr "Choisissez un thème ou créez le vôtre."
 
@@ -8129,14 +8156,14 @@ msgstr "Préparation de la recherche"
 msgid "Preparing share URL..."
 msgstr "Préparation de l'URL de partage…"
 
-msgid "Preparing to uninstall OpenKnowledge"
-msgstr "Préparation de la désinstallation d'OpenKnowledge"
+msgid "Preparing to uninstall GitQuire"
+msgstr "Préparation de la désinstallation de GitQuire"
 
-msgid "Present a document as a slide deck in its own window. Add <0>slides: true</0> to a document's frontmatter, then open it with the Slidev action. Rendering is handled by the Slidev CLI, which OpenKnowledge does not bundle."
-msgstr "Présentez un document sous forme de diaporama dans sa propre fenêtre. Ajoutez <0>slides: true</0> au frontmatter d'un document, puis ouvrez-le avec l'action Slidev. Le rendu est assuré par la CLI Slidev, qu'OpenKnowledge ne fournit pas."
+msgid "Present a document as a slide deck in its own window. Add <0>slides: true</0> to a document's frontmatter, then open it with the Slidev action. Rendering is handled by the Slidev CLI, which GitQuire does not bundle."
+msgstr "Présentez un document sous forme de diaporama dans sa propre fenêtre. Ajoutez <0>slides: true</0> au frontmatter d'un document, puis ouvrez-le avec l'action Slidev. Le rendu est assuré par la CLI Slidev, qu'GitQuire ne fournit pas."
 
-msgid "Present a document as a slide deck in its own window. Works in the OpenKnowledge desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
-msgstr "Présentez un document sous forme de diaporama dans sa propre fenêtre. Fonctionne uniquement dans l'application de bureau OpenKnowledge et nécessite la CLI Slidev, à installer séparément. Une fois activé, il apparaît sous Plugins dans la barre latérale."
+msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
+msgstr "Présentez un document sous forme de diaporama dans sa propre fenêtre. Fonctionne uniquement dans l'application de bureau GitQuire et nécessite la CLI Slidev, à installer séparément. Une fois activé, il apparaît sous Plugins dans la barre latérale."
 
 msgid "Press <0>Space</0> or tap the blob to start"
 msgstr "Appuyez sur <0>Espace</0> ou touchez le blob pour commencer"
@@ -8353,15 +8380,15 @@ msgstr "Push en cours"
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.user"
-msgstr "Place la compétence de découverte OpenKnowledge dans le dossier de compétences global de {agent}, pour qu'il puisse trouver OpenKnowledge dans n'importe quel projet."
+msgstr "Place la compétence de découverte GitQuire dans le dossier de compétences global de {agent}, pour qu'il puisse trouver GitQuire dans n'importe quel projet."
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.project"
-msgstr "Place la compétence OpenKnowledge dans le dossier de compétences de {agent} pour ce projet, pour que ses modifications restent attribuées."
+msgstr "Place la compétence GitQuire dans le dossier de compétences de {agent} pour ce projet, pour que ses modifications restent attribuées."
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.central-store"
-msgstr "Place la compétence OpenKnowledge dans le magasin central de compétences que {agent} lit."
+msgstr "Place la compétence GitQuire dans le magasin central de compétences que {agent} lit."
 
 msgid "Puzzling…"
 msgstr "Casse-tête…"
@@ -8447,8 +8474,8 @@ msgstr "Lit le graphe des liens : qui pointe vers quoi"
 msgid "Reads the version history of a document or skill, or a folder's activity"
 msgstr "Lit l'historique des versions d'un document ou d'une compétence, ou l'activité d'un dossier"
 
-msgid "Reads this project's OpenKnowledge settings"
-msgstr "Lit les paramètres OpenKnowledge de ce projet"
+msgid "Reads this project's GitQuire settings"
+msgstr "Lit les paramètres GitQuire de ce projet"
 
 msgid "Ready"
 msgstr "Prêt"
@@ -8543,7 +8570,7 @@ msgstr "Réflexion…"
 msgid "Reinstall"
 msgstr "Réinstaller"
 
-#. Dialog title — installing the OpenKnowledge skill into the Claude Desktop App
+#. Dialog title — installing the GitQuire skill into the Claude Desktop App
 msgid "Reinstall for Claude Chat & Cowork"
 msgstr "Réinstaller pour Claude Chat et Cowork"
 
@@ -8643,17 +8670,17 @@ msgstr "Retirer l'élément {0}"
 msgid "Remove link"
 msgstr "Retirer le lien"
 
-msgid "Remove OpenKnowledge from {0}"
-msgstr "Retirer OpenKnowledge de {0}"
+msgid "Remove GitQuire from {0}"
+msgstr "Retirer GitQuire de {0}"
 
-msgid "Remove OpenKnowledge from {0}?"
-msgstr "Supprimer OpenKnowledge de {0} ?"
+msgid "Remove GitQuire from {0}?"
+msgstr "Supprimer GitQuire de {0} ?"
 
-msgid "Remove OpenKnowledge from {rowLabel}"
-msgstr "Supprimer OpenKnowledge de {rowLabel}"
+msgid "Remove GitQuire from {rowLabel}"
+msgstr "Supprimer GitQuire de {rowLabel}"
 
-msgid "Remove OpenKnowledge?"
-msgstr "Supprimer OpenKnowledge ?"
+msgid "Remove GitQuire?"
+msgstr "Supprimer GitQuire ?"
 
 msgid "Remove property"
 msgstr "Retirer la propriété"
@@ -8682,8 +8709,8 @@ msgstr "« {0} » retiré de tous les autres emplacements — son dossier source
 msgid "Removed \"{projectName}\" from recent projects. Its folder no longer exists."
 msgstr "« {projectName} » retiré des projets récents. Son dossier n'existe plus."
 
-msgid "Removed OpenKnowledge files"
-msgstr "Fichiers OpenKnowledge supprimés"
+msgid "Removed GitQuire files"
+msgstr "Fichiers GitQuire supprimés"
 
 msgid "Removes it for {0} and {1}. {addingCount, plural, one {# added} other {# added}} · {removingCount, plural, one {# removed} other {# removed}}"
 msgstr "Le retire pour {0} et {1}. {addingCount, plural, one {# ajouté} many {# ajoutés} other {# ajoutés}} · {removingCount, plural, one {# supprimé} many {# supprimés} other {# supprimés}}"
@@ -8694,8 +8721,8 @@ msgstr "Le retire pour {0} et {1}. {removingCount, plural, one {# supprimé} man
 msgid "Removing"
 msgstr "Retrait en cours"
 
-msgid "Removing OpenKnowledge files…"
-msgstr "Suppression des fichiers OpenKnowledge…"
+msgid "Removing GitQuire files…"
+msgstr "Suppression des fichiers GitQuire…"
 
 msgid "Rename"
 msgstr "Renommer"
@@ -8817,11 +8844,11 @@ msgstr "Remplacer par un lien symbolique"
 msgid "Replaces the existing {server} entry in this file. Other servers in the file are left alone."
 msgstr "Remplace l'entrée {server} existante dans ce fichier. Les autres serveurs du fichier ne sont pas modifiés."
 
-msgid "Replaces the existing OpenKnowledge entry in {0}"
-msgstr "Remplace l'entrée OpenKnowledge existante dans {0}"
+msgid "Replaces the existing GitQuire entry in {0}"
+msgstr "Remplace l'entrée GitQuire existante dans {0}"
 
-msgid "Replaces the OpenKnowledge entry each of them already has."
-msgstr "Remplace l'entrée OpenKnowledge que chacun possède déjà."
+msgid "Replaces the GitQuire entry each of them already has."
+msgstr "Remplace l'entrée GitQuire que chacun possède déjà."
 
 msgid "Reply"
 msgstr ""
@@ -8834,6 +8861,12 @@ msgstr "Signaler un bug…"
 
 msgid "Report a problem with this chat…"
 msgstr "Signaler un problème avec cette conversation…"
+
+msgid "Report an issue on GitHub"
+msgstr ""
+
+msgid "Report an issue"
+msgstr ""
 
 msgid "Report from {0}"
 msgstr "Rapport de {0}"
@@ -8953,8 +8986,8 @@ msgstr "Redémarrer le serveur"
 msgid "Restart terminal"
 msgstr "Redémarrer le terminal"
 
-msgid "Restart this terminal session to use the newly installed OpenKnowledge tools."
-msgstr "Redémarrez cette session de terminal pour utiliser les outils OpenKnowledge nouvellement installés."
+msgid "Restart this terminal session to use the newly installed GitQuire tools."
+msgstr "Redémarrez cette session de terminal pour utiliser les outils GitQuire nouvellement installés."
 
 msgid "Restart with this app's version"
 msgstr "Redémarrer avec la version de cette application"
@@ -8965,8 +8998,8 @@ msgstr "Redémarré — exécute maintenant la v{appRuntime}."
 msgid "Restarting"
 msgstr "Redémarrage"
 
-msgid "Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their OpenKnowledge MCP connection close unexpectedly — you may need to restart the agent, or toggle its OpenKnowledge MCP server off and on, to reconnect."
-msgstr "Redémarrer ferme le serveur de ce projet. Les agents connectés (Claude Code, Codex, Cursor) verront leur connexion MCP OpenKnowledge se fermer de façon inattendue — vous devrez peut-être redémarrer l'agent, ou désactiver puis réactiver son serveur MCP OpenKnowledge, pour vous reconnecter."
+msgid "Restarting closes this project's server. Connected agents (Claude Code, Codex, Cursor) will see their GitQuire MCP connection close unexpectedly — you may need to restart the agent, or toggle its GitQuire MCP server off and on, to reconnect."
+msgstr "Redémarrer ferme le serveur de ce projet. Les agents connectés (Claude Code, Codex, Cursor) verront leur connexion MCP GitQuire se fermer de façon inattendue — vous devrez peut-être redémarrer l'agent, ou désactiver puis réactiver son serveur MCP GitQuire, pour vous reconnecter."
 
 msgid "Restarting the server is only available in the desktop app."
 msgstr "Le redémarrage du serveur n'est disponible que dans l'application de bureau."
@@ -9094,8 +9127,8 @@ msgstr "Exécuter"
 msgid "Run a project audit from the Problems panel."
 msgstr "Lancez un audit du projet depuis le panneau Problèmes."
 
-msgid "Run a real terminal docked inside OpenKnowledge, starting in this project's folder."
-msgstr "Exécutez un vrai terminal ancré dans OpenKnowledge, démarrant dans le dossier de ce projet."
+msgid "Run a real terminal docked inside GitQuire, starting in this project's folder."
+msgstr "Exécutez un vrai terminal ancré dans GitQuire, démarrant dans le dossier de ce projet."
 
 msgid "Run in terminal"
 msgstr "Exécuter dans le terminal"
@@ -9157,8 +9190,8 @@ msgstr "Enregistré dans"
 msgid "Saved with the project for your team."
 msgstr "Enregistré avec le projet pour votre équipe."
 
-msgid "Saved. Restart OpenKnowledge to apply the change."
-msgstr "Enregistré. Redémarrez OpenKnowledge pour appliquer la modification."
+msgid "Saved. Restart GitQuire to apply the change."
+msgstr "Enregistré. Redémarrez GitQuire pour appliquer la modification."
 
 msgid "Saves a restore point for every document in the project"
 msgstr "Enregistre un point de restauration pour chaque document du projet"
@@ -9475,8 +9508,8 @@ msgstr "Envoi…"
 msgid "Sent"
 msgstr "Envoyé"
 
-msgid "Sent privately to the OpenKnowledge team, along with your note and app version. Never posted publicly."
-msgstr "Envoyé en privé à l'équipe OpenKnowledge, avec votre note et la version de l'application. Jamais publié publiquement."
+msgid "Sent privately to the GitQuire team, along with your note and app version. Never posted publicly."
+msgstr "Envoyé en privé à l'équipe GitQuire, avec votre note et la version de l'application. Jamais publié publiquement."
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "Envoyée à <0>{endpointHost}</0> pour calculer les embeddings de votre contenu. Stockée en dehors du projet."
@@ -9550,11 +9583,11 @@ msgstr "Définir l'identité"
 msgid "Set it up on its own page under Plugins."
 msgstr "Configurez-le sur sa propre page sous Plugins."
 
-msgid "Set up OpenKnowledge integrations"
-msgstr "Configurer les intégrations OpenKnowledge"
+msgid "Set up GitQuire integrations"
+msgstr "Configurer les intégrations GitQuire"
 
-msgid "Set up OpenKnowledge integrations…"
-msgstr "Configurer les intégrations OpenKnowledge…"
+msgid "Set up GitQuire integrations…"
+msgstr "Configurer les intégrations GitQuire…"
 
 msgid "Set up syncing"
 msgstr "Configurer la synchronisation"
@@ -9583,11 +9616,11 @@ msgstr "Échec du chargement des paramètres"
 msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
 msgstr "Paramètres de ce projet. Certains sont partagés avec chaque collaborateur via git ; d'autres ne s'appliquent que sur cet ordinateur."
 
-msgid "Settings in {fileName} changed outside OpenKnowledge and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "Les paramètres de {fileName} ont été modifiés en dehors d'OpenKnowledge et s'appliquent désormais. Une copie de la modification que vous étiez en train de faire a été conservée dans l'historique de ce projet, que l'application ne peut pas encore afficher."
+msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "Les paramètres de {fileName} ont été modifiés en dehors de GitQuire et s'appliquent désormais. Une copie de la modification que vous étiez en train de faire a été conservée dans l'historique de ce projet, que l'application ne peut pas encore afficher."
 
-msgid "Settings in {fileName} changed outside OpenKnowledge and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "Les paramètres de {fileName} ont été modifiés en dehors d'OpenKnowledge et s'appliquent désormais. Une copie de la modification que vous étiez en train de faire a été enregistrée dans {backupPath}."
+msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "Les paramètres de {fileName} ont été modifiés en dehors de GitQuire et s'appliquent désormais. Une copie de la modification que vous étiez en train de faire a été enregistrée dans {backupPath}."
 
 msgid "Settings sections"
 msgstr "Sections des paramètres"
@@ -9602,8 +9635,8 @@ msgstr "Configuration"
 msgid "Setup files include: <0>.ok/</0>, AI-tool MCP configs (<1>.mcp.json</1> and per-tool files). Your skills are not covered — they follow git like any other file in the project.<2/><3>Shared</3> commits them to git, so anyone who clones the repo gets the same setup. <4/><5>Only me</5> keeps them out of git (via <6>.git/info/exclude</6>)."
 msgstr "Les fichiers de configuration comprennent : <0>.ok/</0>, les configurations MCP des outils IA (<1>.mcp.json</1> et les fichiers propres à chaque outil). Vos compétences ne sont pas concernées : elles suivent git comme n'importe quel autre fichier du projet.<2/><3>Partagé</3> les valide dans git, donc toute personne qui clone le dépôt obtient la même configuration. <4/><5>Moi uniquement</5> les tient à l'écart de git (via <6>.git/info/exclude</6>)."
 
-msgid "Setup OpenKnowledge in this folder?"
-msgstr "Configurer OpenKnowledge dans ce dossier ?"
+msgid "Setup GitQuire in this folder?"
+msgstr "Configurer GitQuire dans ce dossier ?"
 
 msgid "Share"
 msgstr "Partager"
@@ -9868,9 +9901,9 @@ msgid "Skills from {0}/{1}."
 msgstr "Compétences de {0}/{1}."
 
 #. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills OpenKnowledge ships, in Settings → Skills Studio
-msgid "Skills from OpenKnowledge"
-msgstr "Compétences d'OpenKnowledge"
+#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
+msgid "Skills from GitQuire"
+msgstr "Compétences de GitQuire"
 
 msgid "Skills reassigned"
 msgstr "Compétences réaffectées"
@@ -9882,8 +9915,8 @@ msgid "Skills Studio"
 msgstr "Studio de compétences"
 
 #. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones OpenKnowledge ships, or write your own in the editor's Skills sidebar."
-msgstr "Les compétences apprennent des tâches répétables à vos outils IA. Installez celles fournies par OpenKnowledge ou écrivez les vôtres dans la barre latérale Compétences de l'éditeur."
+msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
+msgstr "Les compétences apprennent des tâches répétables à vos outils IA. Installez celles fournies par GitQuire ou écrivez les vôtres dans la barre latérale Compétences de l'éditeur."
 
 msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
 msgstr "Les compétences apprennent des tâches répétables à vos outils IA. Écrivez les vôtres dans la barre latérale Compétences de l'éditeur ; cette page sert à les activer et à les partager."
@@ -9910,8 +9943,8 @@ msgstr "Ignorer pour l'instant"
 msgid "Skipped downloading {0}."
 msgstr "Téléchargement de {0} ignoré."
 
-msgid "Skipped enabling Open Knowledge tools. This thread runs without them."
-msgstr "Activation des outils Open Knowledge ignorée. Ce fil fonctionne sans eux."
+msgid "Skipped enabling GitQuire tools. This thread runs without them."
+msgstr "Activation des outils GitQuire ignorée. Ce fil fonctionne sans eux."
 
 msgid "Slash command menu"
 msgstr "Menu des commandes slash"
@@ -9928,8 +9961,8 @@ msgstr "Slidev"
 msgid "Slidev couldn't render this document."
 msgstr "Slidev n'a pas pu afficher ce document."
 
-msgid "Slidev decks open in the OpenKnowledge desktop app only."
-msgstr "Les diaporamas Slidev s'ouvrent uniquement dans l'application de bureau OpenKnowledge."
+msgid "Slidev decks open in the GitQuire desktop app only."
+msgstr "Les diaporamas Slidev s'ouvrent uniquement dans l'application de bureau GitQuire."
 
 msgid "Slidev found in this project. Decks will use the project's version."
 msgstr "Slidev trouvé dans ce projet. Les diaporamas utiliseront la version du projet."
@@ -9964,8 +9997,8 @@ msgstr "Certaines modifications ne sont pas encore parvenues au serveur, l'ongle
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "Certains fichiers ne sont pas listés : l'arbre de travail contient trop de modifications."
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen OpenKnowledge to try again."
-msgstr "Certains fichiers n’ont peut-être pas été supprimés. Ouvrez le journal de nettoyage pour en savoir plus. Vous pouvez rouvrir OpenKnowledge pour réessayer."
+msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
+msgstr "Certains fichiers n’ont peut-être pas été supprimés. Ouvrez le journal de nettoyage pour en savoir plus. Vous pouvez rouvrir GitQuire pour réessayer."
 
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Certains thèmes enregistrés ne sont pas affichés car le dossier des thèmes dépasse la limite d’analyse."
@@ -10082,6 +10115,9 @@ msgstr "entrée Git obsolète"
 msgid "Star us on GitHub"
 msgstr "Mettez-nous une étoile sur GitHub"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "Démarre un rapport de bug avec une capture d'écran de ce qui est affiché à cet instant."
 
@@ -10097,8 +10133,8 @@ msgstr "Démarrer une nouvelle discussion"
 msgid "Start a new chat ({0})"
 msgstr "Démarrer une nouvelle discussion ({0})"
 
-msgid "Start a new OpenKnowledge project."
-msgstr "Démarrez un nouveau projet OpenKnowledge."
+msgid "Start a new GitQuire project."
+msgstr "Démarrez un nouveau projet GitQuire."
 
 msgid "Start an agent"
 msgstr "Démarrer un agent"
@@ -10485,8 +10521,8 @@ msgstr "terminal.shell dans .ok/local/config.yml doit être une chaîne. Un shel
 msgid "terminal.shell in .ok/local/config.yml must be an absolute Windows path. Using an available Windows shell instead."
 msgstr "terminal.shell dans .ok/local/config.yml doit être un chemin Windows absolu. Un shell Windows disponible sera utilisé à la place."
 
-msgid "terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for OpenKnowledge-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it."
-msgstr "terminal.shell dans .ok/local/config.yml prend en charge PowerShell, cmd.exe ou Git Bash pour les lancements gérés par OpenKnowledge et les chemins des fichiers déposés. Ce shell ouvre uniquement un terminal simple ; les lancements d’agents et de commandes ne s’y exécutent pas."
+msgid "terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for GitQuire-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it."
+msgstr "terminal.shell dans .ok/local/config.yml prend en charge PowerShell, cmd.exe ou Git Bash pour les lancements gérés par GitQuire et les chemins des fichiers déposés. Ce shell ouvre uniquement un terminal simple ; les lancements d’agents et de commandes ne s’y exécutent pas."
 
 msgid "Test connection"
 msgstr "Tester la connexion"
@@ -10497,8 +10533,8 @@ msgstr "Test en cours"
 msgid "Text"
 msgstr "Texte"
 
-msgid "Thanks for giving OpenKnowledge a try."
-msgstr "Merci d'avoir essayé OpenKnowledge."
+msgid "Thanks for giving GitQuire a try."
+msgstr "Merci d'avoir essayé GitQuire."
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "Merci pour votre abonnement. Surveillez votre boîte mail pour les nouveautés du produit."
@@ -10530,11 +10566,11 @@ msgstr "Ce contenu ne peut pas être analysé comme du YAML ou du JSON."
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "Ce point de terminaison ne peut pas être utilisé. Saisissez une URL https:// — http:// n'est autorisé que pour les points de terminaison de bouclage."
 
-msgid "That folder already holds code Open Knowledge didn't write, which the same trust would let {0} run: {otherExtensions}."
-msgstr "Ce dossier contient déjà du code qu'Open Knowledge n'a pas écrit et que cette même confiance permettrait à {0} d'exécuter : {otherExtensions}."
+msgid "That folder already holds code GitQuire didn't write, which the same trust would let {0} run: {otherExtensions}."
+msgstr "Ce dossier contient déjà du code qu'GitQuire n'a pas écrit et que cette même confiance permettrait à {0} d'exécuter : {otherExtensions}."
 
-msgid "That folder isn't an OpenKnowledge project yet. Initialize it and open?"
-msgstr "Ce dossier n'est pas encore un projet OpenKnowledge. L'initialiser et l'ouvrir ?"
+msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
+msgstr "Ce dossier n'est pas encore un projet GitQuire. L'initialiser et l'ouvrir ?"
 
 msgid "That host is already in the list."
 msgstr "Cet hôte figure déjà dans la liste."
@@ -10606,8 +10642,8 @@ msgstr "L'agent a manqué de mémoire."
 msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
 msgstr "Il manque des fichiers à l'installation de l'agent (un module est introuvable). Réinstaller l'agent règle généralement le problème."
 
-msgid "The agent's OpenKnowledge tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
-msgstr "Les outils OpenKnowledge de l'agent n'ont pas pu joindre le serveur. Demandez à l'agent de réessayer et, si l'échec persiste, démarrez un nouveau chat."
+msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
+msgstr "Les outils GitQuire de l'agent n'ont pas pu joindre le serveur. Demandez à l'agent de réessayer et, si l'échec persiste, démarrez un nouveau chat."
 
 msgid "The agent's persona, values, and voice."
 msgstr "La personnalité, les valeurs et le ton de l'agent."
@@ -10630,8 +10666,8 @@ msgstr "Le lecteur de tableau n'a pas pu se charger. Vérifiez votre connexion e
 msgid "The board's content is not a valid Excalidraw scene."
 msgstr "Le contenu du tableau n'est pas une scène Excalidraw valide."
 
-msgid "The browser isn't available in this chat because it couldn't be set up. OpenKnowledge's log has the details."
-msgstr "Le navigateur n'est pas disponible dans ce chat, car il n'a pas pu être configuré. Le journal d'OpenKnowledge contient les détails."
+msgid "The browser isn't available in this chat because it couldn't be set up. GitQuire's log has the details."
+msgstr "Le navigateur n'est pas disponible dans ce chat, car il n'a pas pu être configuré. Le journal de GitQuire contient les détails."
 
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "Le navigateur n'est pas disponible dans ce chat, car aucune installation de Node.js capable de le lancer n'a été trouvée. Installez Node.js, puis démarrez un nouveau chat."
@@ -10663,8 +10699,8 @@ msgstr "L'application de bureau ne répond pas. Actualisez et réessayez."
 msgid "the doc {0}"
 msgstr "le document {0}"
 
-msgid "The embeddings provider's vector size kept changing. Semantic search is off until OpenKnowledge restarts."
-msgstr "La taille des vecteurs du fournisseur d’embeddings changeait continuellement. La recherche sémantique est désactivée jusqu’au redémarrage d’OpenKnowledge."
+msgid "The embeddings provider's vector size kept changing. Semantic search is off until GitQuire restarts."
+msgstr "La taille des vecteurs du fournisseur d’embeddings changeait continuellement. La recherche sémantique est désactivée jusqu’au redémarrage de GitQuire."
 
 msgid "The endpoint answered, but not with an OpenAI-compatible embeddings response. Check the base URL."
 msgstr "Le point de terminaison a répondu, mais pas avec une réponse d'embeddings compatible OpenAI. Vérifiez l'URL de base."
@@ -10678,8 +10714,8 @@ msgstr "Le fichier est dans votre {trashNoun} ; l'observateur de fichiers fera l
 msgid "The file on disk, and the id agents use."
 msgstr "Le fichier sur le disque, et l'id qu'utilisent les agents."
 
-msgid "The file was restored to an older version. Current is the version OpenKnowledge protected. Incoming is the restored version. Choose which version to keep, then apply your changes."
-msgstr "Le fichier a été restauré dans une version antérieure. L’actuel est la version protégée par OpenKnowledge. L’entrant est la version restaurée. Choisissez la version à conserver, puis appliquez vos modifications."
+msgid "The file was restored to an older version. Current is the version GitQuire protected. Incoming is the restored version. Choose which version to keep, then apply your changes."
+msgstr "Le fichier a été restauré dans une version antérieure. L’actuel est la version protégée par GitQuire. L’entrant est la version restaurée. Choisissez la version à conserver, puis appliquez vos modifications."
 
 msgid "The file was restored to an older version. Open it to choose which version to keep."
 msgstr "Le fichier a été restauré dans une version antérieure. Ouvrez-le pour choisir la version à conserver."
@@ -10693,14 +10729,14 @@ msgstr "Les dossiers et les modèles sont déjà là, il n'y a donc rien à ajou
 msgid "The formula <0>c = √(a² + b²)</0> renders inline."
 msgstr "La formule <0>c = √(a² + b²)</0> se rend en ligne."
 
-msgid "The index files stay in place. Open Knowledge removes only the Git rule it added."
-msgstr "Les fichiers d'index restent en place. Open Knowledge supprime uniquement la règle Git qu'il a ajoutée."
+msgid "The index files stay in place. GitQuire removes only the Git rule it added."
+msgstr "Les fichiers d'index restent en place. GitQuire supprime uniquement la règle Git qu'il a ajoutée."
 
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "L'interface est restée dans la langue que vous lisiez. Vérifiez votre connexion, puis rechargez pour réessayer."
 
-msgid "The language OpenKnowledge speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
-msgstr "La langue que parle OpenKnowledge ; Système suit celle de votre système d’exploitation. Vos notes restent dans la langue dans laquelle vous les avez écrites."
+msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
+msgstr "La langue que parle GitQuire ; Système suit celle de votre système d’exploitation. Vos notes restent dans la langue dans laquelle vous les avez écrites."
 
 msgid "The menu label agents pick this template by (required)."
 msgstr "Le libellé de menu par lequel les agents choisissent ce modèle (obligatoire)."
@@ -10711,20 +10747,20 @@ msgstr "L'id du modèle servi par votre point de terminaison. La taille de ses v
 msgid "the open agent"
 msgstr "l'agent ouvert"
 
-msgid "The OpenKnowledge project is missing at this checkout path."
-msgstr "Le projet OpenKnowledge est absent à cet emplacement de checkout."
+msgid "The GitQuire project is missing at this checkout path."
+msgstr "Le projet GitQuire est absent à cet emplacement de checkout."
 
-msgid "The OpenKnowledge project path on this branch cannot be read. The worktree was created but not opened."
-msgstr "Le chemin du projet OpenKnowledge est illisible sur cette branche. Le worktree a été créé, mais pas ouvert."
+msgid "The GitQuire project path on this branch cannot be read. The worktree was created but not opened."
+msgstr "Le chemin du projet GitQuire est illisible sur cette branche. Le worktree a été créé, mais pas ouvert."
 
-msgid "The OpenKnowledge project path on this branch leaves the worktree. The worktree was created but not opened."
-msgstr "Le chemin du projet OpenKnowledge de cette branche sort du worktree. Le worktree a été créé, mais pas ouvert."
+msgid "The GitQuire project path on this branch leaves the worktree. The worktree was created but not opened."
+msgstr "Le chemin du projet GitQuire de cette branche sort du worktree. Le worktree a été créé, mais pas ouvert."
 
-msgid "The OpenKnowledge server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again."
-msgstr "Le serveur OpenKnowledge a mis trop de temps a repondre et la modification a peut-etre quand meme ete appliquee. Demandez a l'agent de verifier avant de reessayer."
+msgid "The GitQuire server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again."
+msgstr "Le serveur GitQuire a mis trop de temps a repondre et la modification a peut-etre quand meme ete appliquee. Demandez a l'agent de verifier avant de reessayer."
 
-msgid "The OpenKnowledge server took too long to answer. Ask the agent to try again."
-msgstr "Le serveur OpenKnowledge a mis trop de temps a repondre. Demandez a l'agent de reessayer."
+msgid "The GitQuire server took too long to answer. Ask the agent to try again."
+msgstr "Le serveur GitQuire a mis trop de temps a repondre. Demandez a l'agent de reessayer."
 
 msgid "The original text was deleted."
 msgstr "Le texte d'origine a été supprimé."
@@ -10762,8 +10798,8 @@ msgstr "Le fournisseur a rejeté la requête (HTTP {0}). Vérifiez la clé API e
 msgid "The provider rejected the request. Check the API key and the model id."
 msgstr "Le fournisseur a rejeté la requête. Vérifiez la clé API et l'id du modèle."
 
-msgid "The provider's vector size kept changing. Restart OpenKnowledge before searching by meaning again."
-msgstr "La taille des vecteurs du fournisseur changeait continuellement. Redémarrez OpenKnowledge avant d’effectuer une nouvelle recherche par sens."
+msgid "The provider's vector size kept changing. Restart GitQuire before searching by meaning again."
+msgstr "La taille des vecteurs du fournisseur changeait continuellement. Redémarrez GitQuire avant d’effectuer une nouvelle recherche par sens."
 
 msgid "The public URL your tunnel serves (for example your Tailscale https://…ts.net address). The server admits requests for this host and advertises it in the URLs it issues."
 msgstr "L’URL publique servie par votre tunnel (par exemple votre adresse Tailscale https://…ts.net). Le serveur admet les requêtes pour cet hôte et l’annonce dans les URL qu’il émet."
@@ -10777,8 +10813,8 @@ msgstr "Le dépôt a été déplacé, renommé ou supprimé."
 msgid "The repository's original clone directory"
 msgstr "Le répertoire du clone d'origine du dépôt"
 
-msgid "The request to enable Open Knowledge tools timed out. This thread runs without them."
-msgstr "La demande d'activation des outils Open Knowledge a expiré. Ce fil fonctionne sans eux."
+msgid "The request to enable GitQuire tools timed out. This thread runs without them."
+msgstr "La demande d'activation des outils GitQuire a expiré. Ce fil fonctionne sans eux."
 
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "Le fichier de schéma n'existe pas ou n'a pas pu être chargé — ajouter un champ le crée."
@@ -10819,8 +10855,8 @@ msgstr "Le dossier source lui-même ne bouge pas."
 msgid "The stored token is missing the permissions this host needs to push."
 msgstr "Il manque au jeton enregistré les permissions dont cet hôte a besoin pour pousser."
 
-msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's OpenKnowledge settings, so it only reaches them when Config sharing below is set to Shared."
-msgstr "Le mode de synchronisation avec lequel vos coéquipiers démarrent la première fois qu'ils ouvrent ce projet. Il est enregistré dans les paramètres OpenKnowledge du projet ; il ne leur parvient donc que si le Partage de la configuration ci-dessous est réglé sur Partagé."
+msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
+msgstr "Le mode de synchronisation avec lequel vos coéquipiers démarrent la première fois qu'ils ouvrent ce projet. Il est enregistré dans les paramètres GitQuire du projet ; il ne leur parvient donc que si le Partage de la configuration ci-dessous est réglé sur Partagé."
 
 msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
 msgstr "Le stockage des identifiants système est indisponible. Cette clé est stockée dans un fichier aux permissions restreintes, en dehors du projet."
@@ -10915,9 +10951,9 @@ msgstr "Ces liens restent visibles dans Liens et ne font pas partie de la file d
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "Ces règles proviennent du fichier <0>{configFile}</0> de votre projet, qui régit entièrement la vérification pour ce projet. Activez ou désactivez des règles et modifiez leurs options ici ; les changements sont réécrits dans le fichier."
 
-#. Says what the OpenKnowledge-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with OpenKnowledge. Installing one adds it to every AI tool on this machine."
-msgstr "Elles apprennent à vos outils IA à travailler avec OpenKnowledge. En installer une l'ajoute à tous les outils IA de cette machine."
+#. Says what the GitQuire-authored skills are for, and where installing one puts it
+msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
+msgstr "Elles apprennent à vos outils IA à travailler avec GitQuire. En installer une l'ajoute à tous les outils IA de cette machine."
 
 msgid "They run without asking while this chat is open"
 msgstr "Elles s'exécutent sans demander tant que ce chat est ouvert"
@@ -10973,8 +11009,8 @@ msgstr "Cet agent ne propose pas de commandes slash"
 msgid "This agent doesn't offer slash commands — your message will be sent as plain text"
 msgstr "Cet agent ne propose pas de commandes slash — votre message sera envoyé comme texte brut"
 
-msgid "This agent gives OpenKnowledge no way to set this up for you. Its setup guide has the manual steps."
-msgstr "Cet agent ne permet pas à OpenKnowledge de le configurer à votre place. Son guide de configuration indique les étapes manuelles."
+msgid "This agent gives GitQuire no way to set this up for you. Its setup guide has the manual steps."
+msgstr "Cet agent ne permet pas à GitQuire de le configurer à votre place. Son guide de configuration indique les étapes manuelles."
 
 msgid "This agent has no file of this kind on this machine yet. Open the agent once, then check again."
 msgstr "Cet agent n'a pas encore de fichier de ce type sur cette machine. Ouvrez-le une fois, puis vérifiez à nouveau."
@@ -10982,23 +11018,23 @@ msgstr "Cet agent n'a pas encore de fichier de ce type sur cette machine. Ouvrez
 msgid "This agent hasn't announced its commands yet"
 msgstr "Cet agent n'a pas encore annoncé ses commandes"
 
-msgid "This agent runs through {0}, which is installed but won't run — its {1} looks broken. Open Knowledge can download a private copy of {2} {3} (about {4} MB from {5}) that won't touch the rest of your system."
-msgstr "Cet agent fonctionne via {0}, qui est installé mais ne démarre pas : son {1} semble cassé. Open Knowledge peut télécharger une copie privée de {2} {3} (environ {4} Mo depuis {5}) qui ne touchera pas au reste de votre système."
+msgid "This agent runs through {0}, which is installed but won't run — its {1} looks broken. GitQuire can download a private copy of {2} {3} (about {4} MB from {5}) that won't touch the rest of your system."
+msgstr "Cet agent fonctionne via {0}, qui est installé mais ne démarre pas : son {1} semble cassé. GitQuire peut télécharger une copie privée de {2} {3} (environ {4} Mo depuis {5}) qui ne touchera pas au reste de votre système."
 
-msgid "This agent runs through {0}, which isn't installed. Open Knowledge can download a private copy of {1} {2} (about {3} MB from {4}) that won't touch the rest of your system."
-msgstr "Cet agent fonctionne via {0}, qui n'est pas installé. Open Knowledge peut télécharger une copie privée de {1} {2} (environ {3} Mo depuis {4}) qui ne touchera pas au reste de votre système."
+msgid "This agent runs through {0}, which isn't installed. GitQuire can download a private copy of {1} {2} (about {3} MB from {4}) that won't touch the rest of your system."
+msgstr "Cet agent fonctionne via {0}, qui n'est pas installé. GitQuire peut télécharger une copie privée de {1} {2} (environ {3} Mo depuis {4}) qui ne touchera pas au reste de votre système."
 
 msgid "This also installs the pack's {packSkillCount, plural, one {# skill} other {# skills}}."
 msgstr "Cela installe également {packSkillCount, plural, one {# compétence} many {# compétences} other {# compétences}} du pack."
 
-msgid "This branch does not contain this OpenKnowledge project. The worktree was created but not opened."
-msgstr "Cette branche ne contient pas ce projet OpenKnowledge. Le worktree a été créé, mais pas ouvert."
+msgid "This branch does not contain this GitQuire project. The worktree was created but not opened."
+msgstr "Cette branche ne contient pas ce projet GitQuire. Le worktree a été créé, mais pas ouvert."
 
 msgid "This branch is checked out in:"
 msgstr "Cette branche est extraite dans :"
 
-msgid "This branch redirects an OpenKnowledge setup path outside the worktree. The worktree was created but not opened."
-msgstr "Cette branche redirige un chemin de configuration OpenKnowledge hors du worktree. Le worktree a été créé, mais pas ouvert."
+msgid "This branch redirects a GitQuire setup path outside the worktree. The worktree was created but not opened."
+msgstr "Cette branche redirige un chemin de configuration GitQuire hors du worktree. Le worktree a été créé, mais pas ouvert."
 
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
@@ -11037,11 +11073,11 @@ msgstr "La configuration a échoué, car l'entrée de serveur MCP nécessaire n'
 msgid "This deletes the MCP server entries and skill files listed below. The agent will lose access to your documents until you add it again."
 msgstr "Cela supprime les entrées du serveur MCP et les fichiers de compétences ci-dessous. L'agent perdra l'accès à vos documents jusqu'à ce que vous l'ajoutiez à nouveau."
 
-msgid "This development build can't connect agents, so it won't change the agent setup of your installed OpenKnowledge app."
-msgstr "Cette version de développement ne peut pas connecter d'agents, elle ne modifiera donc pas la configuration des agents de votre application OpenKnowledge installée."
+msgid "This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app."
+msgstr "Cette version de développement ne peut pas connecter d'agents, elle ne modifiera donc pas la configuration des agents de votre application GitQuire installée."
 
-msgid "This disconnects {0} from OpenKnowledge."
-msgstr "Cela déconnecte {0} d'OpenKnowledge."
+msgid "This disconnects {0} from GitQuire."
+msgstr "Cela déconnecte {0} de GitQuire."
 
 msgid "This doc"
 msgstr "Ce document"
@@ -11067,8 +11103,8 @@ msgstr "Ce document a été supprimé"
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "Ce point de terminaison a ignoré la taille de vecteur que vous avez configurée. Supprimez <0>search.semantic.dimensions</0> pour utiliser la taille propre au modèle."
 
-msgid "This entry changed after OpenKnowledge wrote it. Turning it on replaces it."
-msgstr "Cette entrée a changé après son écriture par OpenKnowledge. L'activer la remplace."
+msgid "This entry changed after GitQuire wrote it. Turning it on replaces it."
+msgstr "Cette entrée a changé après son écriture par GitQuire. L'activer la remplace."
 
 msgid "This field carries additional schema keywords the editor does not show — they are preserved on save."
 msgstr "Ce champ porte des mots-clés de schéma supplémentaires que l'éditeur n'affiche pas — ils sont préservés à l'enregistrement."
@@ -11124,8 +11160,8 @@ msgstr "Ce dossier n'est pas encore sur GitHub. Le lien ne fonctionnera pas tant
 msgid "This GitHub URL can't be shared."
 msgstr "Cette URL GitHub ne peut pas être partagée."
 
-msgid "This is a preview of {boldName} — a built-in skill shipped with Open Knowledge. It's read-only."
-msgstr "Ceci est un aperçu de {boldName} — une compétence intégrée livrée avec Open Knowledge. Elle est en lecture seule."
+msgid "This is a preview of {boldName} — a built-in skill shipped with GitQuire. It's read-only."
+msgstr "Ceci est un aperçu de {boldName} — une compétence intégrée livrée avec GitQuire. Elle est en lecture seule."
 
 msgid "This is a preview of {boldName} — one of {0} skills at this source. Install it into your agents."
 msgstr "Ceci est un aperçu de {boldName} — l'une des {0} compétences de cette source. Installez-la dans vos agents."
@@ -11173,8 +11209,8 @@ msgid "This one needs to see your files, not just the open document, so it appea
 msgstr "Celui-ci doit voir vos fichiers, pas seulement le document ouvert, afin qu'il apparaisse lorsque vous exécutez un audit de projet plutôt que pendant que vous tapez."
 
 #. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with OpenKnowledge. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "Celle-ci apprend à vos outils IA à travailler avec OpenKnowledge. Elle vit dans le dossier du projet, elle s'installe donc pour toute personne qui ouvre le projet."
+msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
+msgstr "Celle-ci apprend à vos outils IA à travailler avec GitQuire. Elle vit dans le dossier du projet, elle s'installe donc pour toute personne qui ouvre le projet."
 
 msgid "This option cannot be changed automatically."
 msgstr "Cette option ne peut pas être modifiée automatiquement."
@@ -11194,8 +11230,8 @@ msgstr "Cette page ne se trouve plus à ce chemin."
 msgid "This page references no local files or images."
 msgstr "Cette page ne référence aucun fichier ou image local."
 
-msgid "This path is on an external volume (/Volumes/...). OpenKnowledge will lose track of files when the drive ejects."
-msgstr "Ce chemin se trouve sur un volume externe (/Volumes/...). OpenKnowledge perdra la trace des fichiers lorsque le disque sera éjecté."
+msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
+msgstr "Ce chemin se trouve sur un volume externe (/Volumes/...). GitQuire perdra la trace des fichiers lorsque le disque sera éjecté."
 
 msgid "This permanently deletes {deleteTarget} from the project and removes its mapping from config.yml."
 msgstr "Ceci supprime définitivement {deleteTarget} du projet et retire son association de config.yml."
@@ -11227,11 +11263,11 @@ msgstr "Ce projet n'a pas de dépôt git — le mode de partage ne s'applique pa
 msgid "This project has no GitHub remote."
 msgstr "Ce projet n'a aucun dépôt distant GitHub."
 
-msgid "This project is running a different, incompatible build of OpenKnowledge than this app (v{0})."
-msgstr "Ce projet utilise une version d'OpenKnowledge différente et incompatible avec cette application (v{0})."
+msgid "This project is running a different, incompatible build of GitQuire than this app (v{0})."
+msgstr "Ce projet utilise une version de GitQuire différente et incompatible avec cette application (v{0})."
 
-msgid "This project is running an older version of OpenKnowledge (v{0}) than this app (v{1})."
-msgstr "Ce projet utilise une version d'OpenKnowledge (v{0}) plus ancienne que cette application (v{1})."
+msgid "This project is running an older version of GitQuire (v{0}) than this app (v{1})."
+msgstr "Ce projet utilise une version de GitQuire (v{0}) plus ancienne que cette application (v{1})."
 
 msgid "This project isn't a git repository, so worktrees aren't available."
 msgstr "Ce projet n'est pas un dépôt git, les worktrees ne sont donc pas disponibles."
@@ -11239,14 +11275,14 @@ msgstr "Ce projet n'est pas un dépôt git, les worktrees ne sont donc pas dispo
 msgid "This project lives only on this computer. Connect it to GitHub to back it up and share it with other people."
 msgstr "Ce projet n'existe que sur cet ordinateur. Connectez-le à GitHub pour le sauvegarder et le partager avec d'autres personnes."
 
-msgid "This project's running server doesn't support live editing. Restart OpenKnowledge to fix."
-msgstr "Le serveur en cours d'exécution de ce projet ne prend pas en charge l'édition en direct. Redémarrez OpenKnowledge pour corriger cela."
+msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
+msgstr "Le serveur en cours d'exécution de ce projet ne prend pas en charge l'édition en direct. Redémarrez GitQuire pour corriger cela."
 
 msgid "This project's server (v{0}) is newer than this app (v{1})."
 msgstr "Le serveur de ce projet (v{0}) est plus récent que cette application (v{1})."
 
-msgid "This removes OpenKnowledge’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "Ceci retire les paramètres et les intégrations d'OpenKnowledge de votre Mac et des projets que vous sélectionnez ci-dessous, mais conserve votre contenu markdown et les compétences que vous avez écrites."
+msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
+msgstr "Ceci retire les paramètres et les intégrations de GitQuire de votre Mac et des projets que vous sélectionnez ci-dessous, mais conserve votre contenu markdown et les compétences que vous avez écrites."
 
 msgid "This report is already on its way. Its result will appear in your bug report history."
 msgstr "Ce rapport est déjà en route. Son résultat apparaîtra dans l'historique des rapports de bug."
@@ -11278,8 +11314,8 @@ msgstr "Ce réglage est propre à chaque machine et n'est pas partagé avec les 
 msgid "This setup is shared with {peers} through <0>{path}</0>. Removing it here removes it for {peers} too."
 msgstr "Cette configuration est partagée avec {peers} via <0>{path}</0>. La retirer ici la retire aussi pour {peers}."
 
-msgid "This setup is shared with {peers}, and OpenKnowledge cannot change it from here. Unlink the folder in Skills Studio first."
-msgstr "Cette configuration est partagée avec {peers}, et OpenKnowledge ne peut pas la modifier d'ici. Dissociez d'abord le dossier dans Skills Studio."
+msgid "This setup is shared with {peers}, and GitQuire cannot change it from here. Unlink the folder in Skills Studio first."
+msgstr "Cette configuration est partagée avec {peers}, et GitQuire ne peut pas la modifier d'ici. Dissociez d'abord le dossier dans Skills Studio."
 
 msgid "This setup is shared with {peers}. Removing it here removes it for {peers} too."
 msgstr "Cette configuration est partagée avec {peers}. La retirer ici la retire aussi pour {peers}."
@@ -11293,8 +11329,8 @@ msgstr "Cette source regroupe plusieurs compétences — choisissez celle à imp
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "Cet onglet n'a pas pu confirmer que vos modifications sont enregistrées, il n'a donc pas été rechargé. Vos modifications sont toujours là."
 
-msgid "This tab is still reconnecting to OpenKnowledge, so it didn't reload. Try again in a moment."
-msgstr "Cet onglet est encore en train de se reconnecter à OpenKnowledge, il n'a donc pas été rechargé. Réessayez dans un instant."
+msgid "This tab is still reconnecting to GitQuire, so it didn't reload. Try again in a moment."
+msgstr "Cet onglet est encore en train de se reconnecter à GitQuire, il n'a donc pas été rechargé. Réessayez dans un instant."
 
 msgid "This template lives in a parent folder — deleting it affects every folder beneath it that doesn't define its own version."
 msgstr "Ce modèle réside dans un dossier parent — le supprimer affecte tous les dossiers situés en dessous qui ne définissent pas leur propre version."
@@ -11342,8 +11378,8 @@ msgstr "titre"
 msgid "Title"
 msgstr "Titre"
 
-msgid "To connect AI tools without a project, use File > Set up OpenKnowledge integrations…"
-msgstr "Pour connecter des outils IA sans projet, utilisez Fichier > Configurer les intégrations OpenKnowledge…"
+msgid "To connect AI tools without a project, use File > Set up GitQuire integrations…"
+msgstr "Pour connecter des outils IA sans projet, utilisez Fichier > Configurer les intégrations GitQuire…"
 
 msgid "To do"
 msgstr "À faire"
@@ -11464,11 +11500,11 @@ msgstr "Suivi dans git — les mises à jour arrivent via votre dépôt (pull ou
 msgid "Trash"
 msgstr "corbeille"
 
-msgid "Traverse OpenKnowledge navigation history backward."
-msgstr "Recule dans l'historique de navigation d'OpenKnowledge."
+msgid "Traverse GitQuire navigation history backward."
+msgstr "Recule dans l'historique de navigation de GitQuire."
 
-msgid "Traverse OpenKnowledge navigation history forward."
-msgstr "Avance dans l'historique de navigation d'OpenKnowledge."
+msgid "Traverse GitQuire navigation history forward."
+msgstr "Avance dans l'historique de navigation de GitQuire."
 
 msgid "Tree view options"
 msgstr "Options de la vue arborescente"
@@ -11521,14 +11557,14 @@ msgstr "L'éteindre"
 msgid "Turning it over…"
 msgstr "Rumination…"
 
-msgid "Turning off index maintenance failed because Open Knowledge could not reach the project server. Try again when the project reconnects."
-msgstr "Impossible de désactiver la maintenance de l'index, car Open Knowledge n'a pas pu atteindre le serveur du projet. Réessayez lorsque le projet se reconnectera."
+msgid "Turning off index maintenance failed because GitQuire could not reach the project server. Try again when the project reconnects."
+msgstr "Impossible de désactiver la maintenance de l'index, car GitQuire n'a pas pu atteindre le serveur du projet. Réessayez lorsque le projet se reconnectera."
 
-msgid "Turning off index maintenance failed because Open Knowledge could not update the Git merge rule. Check Git and .gitattributes, then try again."
-msgstr "Impossible de désactiver la maintenance de l'index, car Open Knowledge n'a pas pu mettre à jour la règle de fusion Git. Vérifiez Git et .gitattributes, puis réessayez."
+msgid "Turning off index maintenance failed because GitQuire could not update the Git merge rule. Check Git and .gitattributes, then try again."
+msgstr "Impossible de désactiver la maintenance de l'index, car GitQuire n'a pas pu mettre à jour la règle de fusion Git. Vérifiez Git et .gitattributes, puis réessayez."
 
-msgid "Turning off index maintenance failed because the Open Knowledge section of .gitattributes was edited or is incomplete. Remove that section, then try again."
-msgstr "Impossible de désactiver la maintenance de l'index, car la section Open Knowledge de .gitattributes a été modifiée ou est incomplète. Supprimez cette section, puis réessayez."
+msgid "Turning off index maintenance failed because the GitQuire section of .gitattributes was edited or is incomplete. Remove that section, then try again."
+msgstr "Impossible de désactiver la maintenance de l'index, car la section GitQuire de .gitattributes a été modifiée ou est incomplète. Supprimez cette section, puis réessayez."
 
 msgid "Turning off index maintenance failed because the project setting could not be saved. Check the project file permissions, then try again."
 msgstr "Impossible de désactiver la maintenance de l'index, car les paramètres du projet n'ont pas pu être enregistrés. Vérifiez les autorisations du fichier de projet, puis réessayez."
@@ -11611,11 +11647,11 @@ msgstr "Annulez vos résolutions pour modifier ceci."
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "Annulez, rétablissez, ou parcourez les changements de sélection dans le volet Modifier la source ou dans un champ de propriété de type code."
 
-msgid "Uninstall OpenKnowledge"
-msgstr "Désinstaller OpenKnowledge"
+msgid "Uninstall GitQuire"
+msgstr "Désinstaller GitQuire"
 
-msgid "Uninstall OpenKnowledge?"
-msgstr "Désinstaller OpenKnowledge ?"
+msgid "Uninstall GitQuire?"
+msgstr "Désinstaller GitQuire ?"
 
 msgid "Uninstalled \"{0}\" from {1}"
 msgstr "« {0} » désinstallé de {1}"
@@ -11714,8 +11750,8 @@ msgstr "Échec de la mise à jour : {0}"
 msgid "Update from source"
 msgstr "Mettre à jour depuis la source"
 
-msgid "Update OpenKnowledge to open this share."
-msgstr "Mettez OpenKnowledge à jour pour ouvrir ce partage."
+msgid "Update GitQuire to open this share."
+msgstr "Mettez GitQuire à jour pour ouvrir ce partage."
 
 msgid "Update the destination and optional section anchor."
 msgstr "Mettez à jour la destination et l'ancre de section facultative."
@@ -11734,6 +11770,9 @@ msgstr "propriétés du dossier mises à jour"
 
 msgid "Updated to Version {version}"
 msgstr "Mis à jour vers la version {version}"
+
+msgid "Updates"
+msgstr ""
 
 msgid "Updates and feedback"
 msgstr "Mises à jour et avis"
@@ -11873,8 +11912,8 @@ msgstr "Les plugins utilisateur sont propres à cet appareil — activez-les ou 
 msgid "Username"
 msgstr "Nom d'utilisateur"
 
-msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside OpenKnowledge)."
-msgstr "Utilise la variable d'environnement <0>OK_EMBEDDINGS_API_KEY</0> (gérée en dehors d'OpenKnowledge)."
+msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
+msgstr "Utilise la variable d'environnement <0>OK_EMBEDDINGS_API_KEY</0> (gérée en dehors de GitQuire)."
 
 msgid "Validate document frontmatter against JSON Schema files, scoped to doc sets by glob."
 msgstr "Valide le frontmatter des documents à l'aide de fichiers JSON Schema, appliqués à des ensembles de documents par glob."
@@ -11895,8 +11934,8 @@ msgctxt "settings search keyword"
 msgid "version"
 msgstr "version"
 
-msgid "Version in OpenKnowledge"
-msgstr "Version dans OpenKnowledge"
+msgid "Version in GitQuire"
+msgstr "Version dans GitQuire"
 
 msgid "via {viaTags}"
 msgstr "via {viaTags}"
@@ -12009,8 +12048,8 @@ msgstr "Nous créerons un ID de thème sûr à partir de ce nom."
 msgid "We've filed it with the team and attached your logs."
 msgstr "Nous l'avons transmis à l'équipe avec vos journaux."
 
-msgid "Welcome to OpenKnowledge"
-msgstr "Bienvenue dans OpenKnowledge"
+msgid "Welcome to GitQuire"
+msgstr "Bienvenue dans GitQuire"
 
 #. Button on each setup row that opens the list of files that row writes to
 msgid "What changes?"
@@ -12058,8 +12097,8 @@ msgstr "Que faisiez-vous ?"
 msgid "What would you like to create?"
 msgstr "Que souhaitez-vous créer ?"
 
-msgid "What you share is sent to the OpenKnowledge team."
-msgstr "Ce que vous partagez est envoyé à l'équipe OpenKnowledge."
+msgid "What you share is sent to the GitQuire team."
+msgstr "Ce que vous partagez est envoyé à l'équipe GitQuire."
 
 msgid "What's included"
 msgstr "Éléments inclus"
@@ -12087,6 +12126,9 @@ msgstr "Où"
 
 msgid "Where should it live?"
 msgstr "Où doit-elle résider ?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "Quelle compétence"
@@ -12168,7 +12210,7 @@ msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"
-msgstr "Écrit un petit fichier passerelle que {agent} charge depuis ce projet pour atteindre OpenKnowledge."
+msgstr "Écrit un petit fichier passerelle que {agent} charge depuis ce projet pour atteindre GitQuire."
 
 msgid "Writes an entry to"
 msgstr "Écrit une entrée dans"
@@ -12176,11 +12218,11 @@ msgstr "Écrit une entrée dans"
 msgid "writing"
 msgstr "rédaction"
 
-msgid "Writing this file failed. Check the OpenKnowledge log for the reason."
-msgstr "L'écriture de ce fichier a échoué. Consultez le journal d'OpenKnowledge pour en connaître la raison."
+msgid "Writing this file failed. Check the GitQuire log for the reason."
+msgstr "L'écriture de ce fichier a échoué. Consultez le journal de GitQuire pour en connaître la raison."
 
-msgid "Wrote the Open Knowledge extension, but couldn't mark the folder trusted, so it won't load. This thread has no Open Knowledge tools."
-msgstr "L'extension Open Knowledge a été écrite, mais le dossier n'a pas pu être marqué comme approuvé, donc elle ne se chargera pas. Ce fil n'a pas les outils Open Knowledge."
+msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
+msgstr "L'extension GitQuire a été écrite, mais le dossier n'a pas pu être marqué comme approuvé, donc elle ne se chargera pas. Ce fil n'a pas les outils GitQuire."
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML ou JSON, dans l'une ou l'autre disposition base16."
@@ -12243,11 +12285,11 @@ msgstr "Vous avez modifié cette compétence en local et la source a de nouveaux
 msgid "You modified <0>{filePath}</0> locally, but it was deleted upstream."
 msgstr "Vous avez modifié <0>{filePath}</0> en local, mais il a été supprimé en amont."
 
-msgid "You picked ~/Desktop. OpenKnowledge will index everything on your desktop."
-msgstr "Vous avez choisi ~/Desktop. OpenKnowledge indexera tout ce qui se trouve sur votre bureau."
+msgid "You picked ~/Desktop. GitQuire will index everything on your desktop."
+msgstr "Vous avez choisi ~/Desktop. GitQuire indexera tout ce qui se trouve sur votre bureau."
 
-msgid "You picked ~/Documents. OpenKnowledge will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope."
-msgstr "Vous avez choisi ~/Documents. OpenKnowledge indexera chaque fichier markdown qui s'y trouve. Si vous ne voulez gérer qu'un sous-dossier, choisissez une portée plus restreinte."
+msgid "You picked ~/Documents. GitQuire will index every markdown file under it. If you only want to manage a sub-folder, choose a smaller scope."
+msgstr "Vous avez choisi ~/Documents. GitQuire indexera chaque fichier markdown qui s'y trouve. Si vous ne voulez gérer qu'un sous-dossier, choisissez une portée plus restreinte."
 
 msgid "You picked ~/Downloads. Files there are usually transient — consider a stable folder instead."
 msgstr "Vous avez choisi ~/Downloads. Les fichiers y sont généralement temporaires — envisagez plutôt un dossier stable."
@@ -12267,8 +12309,8 @@ msgstr "Vous êtes abonné !"
 msgid "you@company.com"
 msgstr "you@company.com"
 
-msgid "Your agents still load this skill, but OpenKnowledge can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
-msgstr "Vos agents chargent toujours cette compétence, mais OpenKnowledge ne peut ni l'ouvrir ni la modifier : il n'indexe pas un fichier que git est configuré pour ignorer, car la synchronisation échouerait. Ajouter une ligne à {gitignorePath} la rend modifiable ici."
+msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
+msgstr "Vos agents chargent toujours cette compétence, mais GitQuire ne peut ni l'ouvrir ni la modifier : il n'indexe pas un fichier que git est configuré pour ignorer, car la synchronisation échouerait. Ajouter une ligne à {gitignorePath} la rend modifiable ici."
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "Votre modification est encore en cours d'enregistrement — relancez le test dans un instant."

@@ -9,9 +9,8 @@ A collaborative, WYSIWYG Markdown wiki for small teams, with GitHub as the backe
 - **Comments in the file.** Threads live in a hidden block at the end of each Markdown file, so everything stays in Git.
 - **Self-hosted.** One Docker container with a `/data` volume.
 
-> **Status:** early. GitQuire is being built in phases: the Docker image and GitHub sign-in work
-> today, and syncing a GitHub content repo is being added. Per-user commit authorship, branches and PRs, shared
-> comments, mobile polish and naming rules follow. See the [roadmap](#roadmap).
+> **Status:** early, but usable. The phases of the [roadmap](#roadmap) are in; what comes next
+> depends on feedback.
 
 ## Run it
 
@@ -35,7 +34,7 @@ volume: the collaboration server is single-writer. Health checks: `GET /healthz`
 | `OK_BIND` | `0.0.0.0` | Bind address |
 | `OK_ALLOW_EXTERNAL` | unset | Must be `1` to accept non-local connections |
 | `OK_EXTERNAL_URL` | unset | Public origin, required behind a domain or proxy |
-| `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits until per-user sign-in lands |
+| `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits not made by a signed-in person |
 
 ### GitHub sign-in
 
@@ -70,7 +69,10 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_REPO` | `owner/name`. Anyone with write access to it may sign in. |
 | `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition (or instead). |
 | `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
-| `GITQUIRE_MCP_TOKEN` | Optional bearer token for AI agents on `/mcp`; without it `/mcp` is closed. |
+| `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
+| `GITQUIRE_ASK_AI` | `on` shows the editor's **Ask AI** box and the empty screen's prompt box. Off by default, because they hand work to an agent running on the server, which a shared team server doesn't have. While it is off, people with agent access get the **Ask Claude** box instead. |
+| `GITQUIRE_MCP_CONNECTORS` | `on` lets Claude on the web, desktop chat and phones connect through GitHub sign-in. Needs a public `https://` URL. |
+| `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
 | `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
 | `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
 
@@ -105,8 +107,8 @@ and make sure it is installed on the repository with **Contents: read and write*
 If GitHub is unreachable at start, GitQuire retries for about five minutes before giving up
 (exit code 75, so a restart policy can try again); configuration problems stop it immediately
 (exit code 78). The volume keeps the checkout between restarts. On an empty repository, GitQuire starts the branch
-and pushes the first commit. Until per-user authorship lands, commits are authored as
-`GITQUIRE_GIT_NAME` / `GITQUIRE_GIT_EMAIL`.
+and pushes the first commit. Commits are authored by the people who made the edits; changes
+without a signed-in person are authored as `GITQUIRE_GIT_NAME` / `GITQUIRE_GIT_EMAIL`.
 
 ### Branches and pull requests
 
@@ -143,6 +145,48 @@ names exactly as typed.
 Links don't break: `[[Meeting Notes 2026]]` finds `meeting-notes-2026.md`, renames and moves
 rewrite the links that point at the page, and the backlinks panel shows who links where.
 
+## AI agents
+
+Each person connects their own AI agent, with their own Claude (or other) account. Nothing runs
+on the server on their behalf.
+
+1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
+2. Create a token. The page shows it once, with the command for Claude Code and the config for the
+   Claude desktop app:
+
+   ```bash
+   claude mcp add --transport http gitquire https://wiki.example.com/mcp \
+     --header "Authorization: Bearer gqa_…"
+   ```
+
+3. Ask the agent to work on the wiki. Its edits show up live and are committed with you as the
+   author.
+
+### Ask Claude from the editor
+
+Once you have an agent token or a connected app, an **Ask Claude** box appears at the bottom of
+pages and folders (on wider screens). Type a request and press Enter: Claude opens with the
+request, the wiki and the current page already filled in, ready for you to check and send. Pick
+where it opens: Claude on the web or phone, the Claude desktop app, or Claude Code in the desktop
+app. The box only fills in the request; Claude reaches the wiki through your own connection.
+
+### Claude on the web and on phones
+
+With `GITQUIRE_MCP_CONNECTORS=on`, `/mcp` also speaks the sign-in protocol that cloud connectors
+use (OAuth 2.1 with PKCE, client metadata documents and dynamic registration). In Claude's
+settings, add a custom connector with the address `https://wiki.example.com/mcp`. A popup opens,
+you sign in with GitHub and approve, and Claude can then work on the wiki from any device, as you.
+
+The connection comes from Anthropic's servers, so the wiki must be reachable on the public
+internet over HTTPS. GitHub sign-in and the repository's write access still decide who gets in.
+Each connected app shows up on `/auth/agents`, where it can be revoked. Its access token lasts an
+hour and is renewed with a refresh token for up to 90 days of inactivity.
+
+Tokens are stored hashed in `.ok/local/gitquire/agent-tokens.json` on the data volume, never in
+the repository. Revoke one from the same page; admins (`GITQUIRE_ADMINS`) can revoke anyone's.
+Every ten minutes the server checks that token owners can still write to `GITQUIRE_REPO` (using
+the GitHub App when it is configured) and revokes the tokens of people who lost access.
+
 ## Discussions
 
 Select text and choose **Discuss** to start a thread. Teammates reply, mention each other with
@@ -159,16 +203,90 @@ Each thread is one JSON line, so diffs and merges stay readable and comments tra
 through branches and pull requests. A thread finds its passage again by the quoted text and its
 surroundings; if the text is gone, the thread says so.
 
+You can edit and delete your own comments; edited ones are marked, and earlier versions stay in the
+Git history. When two people comment on the same page at the same moment, both comments are kept.
+
+### Mentions
+
+The **@** button in the header lists the discussions where someone mentioned you, newest first,
+with a count of unread ones. Choosing a mention opens the page at that thread. The inbox needs
+GitHub sign-in. The mentions stay in the pages; who has read what, and the email settings below,
+are kept on the server in `/data/.ok/local/gitquire/mentions.json`, outside Git.
+
+Mentions can also go out by email. People enter their address under the mention list. Once a
+minute, new mentions they have not read yet are mailed; mentions that already existed when the
+address was saved are not. The server needs an SMTP server for this:
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_SMTP_URL` | `smtps://user:password@host:465` or `smtp://user:password@host:587`. Without it, email is off. |
+| `GITQUIRE_MAIL_FROM` | Sender address. Required; without a valid one, email stays off and a warning is logged. |
+| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. Without it, any address is accepted. |
+
+With `smtp://`, STARTTLS is required; add `?starttls=off` only for a local relay, and a password is
+then only sent to `localhost`. Mail is limited to 20 per person per day and 100 per hour in total;
+the counts start over when the server restarts. People who have not opened GitQuire for 30 days get
+no mail. The link in the mail is built from `OK_EXTERNAL_URL`; without it, the mail has no link.
+
+## Broken links
+
+The broken-links button in the header shows how many links point to pages that do not exist. It
+lists each missing page with the pages that link to it, so you can open them and fix the link. Set
+`validation.links: off` to hide it. Links from `log` pages and from agent folders (`.agents`,
+`.claude`, `.cursor`) are not listed.
+
+## Views: pages as objects
+
+Give a page properties (frontmatter) and it becomes an object you can list. There is no schema: a
+page has whatever properties you give it.
+
+```markdown
+---
+type: task
+status: Doing
+owner: alice
+due: 2026-12-01
+---
+
+# Rework the landing page
+
+- [ ] Draft the copy @bob
+- [x] Collect screenshots
+```
+
+The **Views** button in the header opens three tabs. It is hidden on phone-width screens.
+
+- **Table**: every page with properties. Choose columns, filter by a property and value, search and
+  sort.
+- **Board**: columns from a property with a few values, such as `status`. Move a card by dragging
+  it or with its "Move to" list; the property is changed in the page and committed in your name.
+- **Action items**: every open task list item of every page, grouped by page. Filter to items that
+  @mention you, a teammate or nobody; tick "Show done" to see finished ones.
+
+Table and board settings are saved per browser.
+
+The data comes from `GET /api/gitquire/objects`.
+
 ## Roadmap
+
+Done:
 
 1. **Shared server in Docker** with CI and a published image.
 2. **GitHub sign-in**, live editing on `main`, per-user commit authorship.
 3. **Branches and pull requests** from the editor.
-4. **Comments stored in the Markdown files**, with threads, mentions and PR comment sync.
-5. **Mobile**: toolbar above the keyboard, touch link picker, installable as a home-screen app.
-6. **Linking**: naming rules on top of the existing rename rewrite and backlinks.
+4. **Comments stored in the Markdown files**: threads, editing, simultaneous comments, a mention
+   inbox and email.
+5. **Mobile**: toolbar above the keyboard, installable as a home-screen app. The touch link
+   picker is in review (#26).
+6. **Linking**: naming rules, rename rewrite, backlinks and a broken-link list.
+7. **Pages as objects**: table, board and action items from frontmatter and task lists.
 
-Later: pages as objects, with frontmatter-driven table, timeline and kanban views.
+Next, depending on feedback:
+
+- **Pull request review**: GitHub review comments shown as page threads, or reviewing fully inside
+  GitQuire.
+- **More views**: a meeting-notes timeline; ticking off action items from the list.
+- **Chat notifications** for mentions (Slack, Teams, Matrix).
 
 ## Credits and license
 

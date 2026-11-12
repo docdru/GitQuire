@@ -15,15 +15,8 @@ describe('terminal-launch-events', () => {
       if (request.kind === 'cli') received.push({ prompt: request.prompt, cli: request.cli });
     }, target);
 
-    requestTerminalLaunch(
-      "Let's work on `foo.md` using OpenKnowledge.",
-      'codex',
-      undefined,
-      target,
-    );
-    expect(received).toEqual([
-      { prompt: "Let's work on `foo.md` using OpenKnowledge.", cli: 'codex' },
-    ]);
+    requestTerminalLaunch("Let's work on `foo.md` using GitQuire.", 'codex', undefined, target);
+    expect(received).toEqual([{ prompt: "Let's work on `foo.md` using GitQuire.", cli: 'codex' }]);
 
     unsub();
     requestTerminalLaunch('after unsubscribe', 'cursor', undefined, target);
