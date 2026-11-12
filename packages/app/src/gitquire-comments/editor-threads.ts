@@ -9,7 +9,7 @@ import {
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import type { Node as PMNode } from '@tiptap/pm/model';
 import type { EditorState, Transaction } from '@tiptap/pm/state';
-import { captureSelectionContext, createAnchorResolver } from '@/comments/anchor-search';
+import { captureSelectionContext, createAnchorResolver } from './anchor-search';
 import { mergeThreads } from './thread-merge';
 import type { Anchor, Thread } from './thread-ops';
 

@@ -11,7 +11,6 @@ import {
   useState,
 } from 'react';
 import { toast } from 'sonner';
-import { CommentQueueShortcut } from '@/comments/CommentQueueShortcut';
 import { APP_HEADER_HEIGHT, AppHeader } from '@/components/AppHeader';
 import { BranchRecycleBanner } from '@/components/BranchRecycleBanner';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -661,7 +660,6 @@ function AppBody() {
           />
         )}
         <TerminalLaunchProvider value={terminalLaunch}>
-          <CommentQueueShortcut />
           {showAppHeader && <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />}
           <SidebarProvider className="h-[calc(100vh-var(--ok-app-header-height,0px))] min-h-[calc(100svh-var(--ok-app-header-height,0px))]">
             <FileListHostProvider enabled={showAppHeader && !singleFile} fileList={<FileSidebar />}>

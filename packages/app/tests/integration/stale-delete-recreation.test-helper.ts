@@ -12,15 +12,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Document } from '@hocuspocus/server';
 import {
-  CommentThreadMetaSchema,
   DocumentReadSuccessSchema,
   ForwardLinksSuccessSchema,
   MetricsReconciliationSuccessSchema,
   PagesSuccessSchema,
-  ThreadListSuccessSchema,
 } from '@inkeep/open-knowledge-core';
 import { expect, vi } from 'vitest';
-import { CommentService } from '../../../server/src/comments/comment-service.ts';
 import { DerivedDocumentIndex } from '../../../server/src/derived-document-index.ts';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';
 import { resetMetrics } from '../../../server/src/metrics.ts';
@@ -52,7 +49,6 @@ export async function startDeletionScenario(
   const clients = new Set<TestClient>();
   const admittedDocuments = new WeakMap<TestClient, Document | undefined>();
   const closedClients = new WeakSet<TestClient>();
-  const commentDeletes = new Set<Promise<number>>();
   let server: TestServer | undefined;
   let rawTail = Promise.resolve();
   let sawDelete = false;
@@ -116,20 +112,6 @@ export async function startDeletionScenario(
       if (hold === 'index' && name === docName) await pause();
     });
 
-  const deleteComments = CommentService.prototype.deleteDoc;
-  const commentsSpy = vi.spyOn(CommentService.prototype, 'deleteDoc').mockImplementation(function (
-    this: CommentService,
-    name,
-  ) {
-    const work = deleteComments.call(this, name);
-    commentDeletes.add(work);
-    void work.then(
-      () => commentDeletes.delete(work),
-      () => commentDeletes.delete(work),
-    );
-    return work;
-  });
-
   registerCleanup(async () => {
     release.resolve();
     followers.resolve();
@@ -140,7 +122,6 @@ export async function startDeletionScenario(
         await server?.cleanup();
       },
       () => {
-        commentsSpy.mockRestore();
         indexSpy.mockRestore();
         watcherSpy.mockRestore();
         subscriptionSpy.mockRestore();
@@ -174,12 +155,6 @@ export async function startDeletionScenario(
     clients.delete(client);
   };
 
-  const comment = async (quote: string) => {
-    const response = await post('/api/comments', { docName, quote, body: quote });
-    expect(response.status).toBe(201);
-    return CommentThreadMetaSchema.parse(await response.json());
-  };
-
   const create = async () => {
     expect((await post('/api/create-page', { path: `${docName}.md` })).status).toBe(200);
     const client = await open();
@@ -197,28 +172,22 @@ export async function startDeletionScenario(
   const finishDeletion = async () => {
     release.resolve();
     await completed.promise;
-    await Promise.all(commentDeletes);
   };
 
   const snapshot = async (client?: TestClient) => {
     const resident = running.instance.hocuspocus.documents.get(docName);
     const pagesResponse = await fetch(`${running.baseUrl}/api/pages`);
     const metricsResponse = await fetch(`${running.baseUrl}/api/metrics/reconciliation`);
-    const commentsResponse = await fetch(
-      `${running.baseUrl}/api/comments?doc=${encodeURIComponent(docName)}`,
-    );
     const linksResponse = await fetch(
       `${running.baseUrl}/api/forward-links?docName=${encodeURIComponent(docName)}`,
     );
     expect([
       pagesResponse.status,
       metricsResponse.status,
-      commentsResponse.status,
       linksResponse.status,
-    ]).toEqual([200, 200, 200, 200]);
+    ]).toEqual([200, 200, 200]);
     const pages = PagesSuccessSchema.parse(await pagesResponse.json());
     const metrics = MetricsReconciliationSuccessSchema.parse(await metricsResponse.json());
-    const comments = ThreadListSuccessSchema.parse(await commentsResponse.json());
     const links = ForwardLinksSuccessSchema.parse(await linksResponse.json());
     return {
       disk: existsSync(filePath) ? readFileSync(filePath, 'utf-8') : null,
@@ -232,7 +201,6 @@ export async function startDeletionScenario(
       clientClosed: client !== undefined && closedClients.has(client),
       removedCount: metrics.recentlyRemovedDocsSize,
       listed: pages.pages.some((page) => page.docName === docName),
-      threads: comments.threads.map((thread) => thread.threadId),
       forwardLinks: links.forwardLinks.flatMap((link) =>
         link.kind === 'doc' ? [link.docName] : [],
       ),
@@ -244,7 +212,6 @@ export async function startDeletionScenario(
     docName,
     open,
     close,
-    comment,
     create,
     snapshot,
     waitUntilHeld: () => reached.promise,

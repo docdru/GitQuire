@@ -3,7 +3,6 @@ import { act, cleanup, render, screen, waitFor, within } from '@testing-library/
 import userEvent from '@testing-library/user-event';
 import { StrictMode, useEffect, useState, useSyncExternalStore } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { requestSendToOpenChat, subscribeSendInThread } from '@/comments/open-chat-send';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { collectImageParts } from '@/editor/composer-drop.test-helper';
 import {
@@ -1643,7 +1642,7 @@ describe('SessionsHost — agents panel (web / no bridge)', () => {
     expect(lastThreadViewActive('b')).toBe(false);
   });
 
-  test('Ask AI and queued comments target the conversation selected from history', async () => {
+  test('Ask AI targets the conversation selected from history', async () => {
     const user = userEvent.setup();
     setOpenThreads([
       makeThread({ threadId: 'a', title: 'Alpha' }),
@@ -1655,14 +1654,10 @@ describe('SessionsHost — agents panel (web / no bridge)', () => {
     await user.click(screen.getByTestId('agent-thread-history-open-b'));
 
     const staged: string[] = [];
-    const queued: Array<{ threadId: string; threadIds: readonly string[] | undefined }> = [];
     const stopStaging = subscribeStagedThreadDraft('b', (text) => {
       staged.push(text);
       return true;
     });
-    const stopQueued = subscribeSendInThread((threadId, threadIds) =>
-      queued.push({ threadId, threadIds }),
-    );
     await user.click(screen.getByRole('button', { name: 'Chat history' }));
     await act(async () => {
       requestActiveTerminalInput('Use this selection', { submit: false });
@@ -1673,17 +1668,9 @@ describe('SessionsHost — agents panel (web / no bridge)', () => {
         .querySelector('[data-thread-id="b"]')
         ?.querySelector('[data-testid="agent-thread-composer"]'),
     );
-
-    await user.click(screen.getByRole('button', { name: 'Chat history' }));
-    await act(async () => {
-      requestSendToOpenChat(['comment-1']);
-    });
-    expect(screen.queryByTestId('agent-thread-history-panel')).toBeNull();
     stopStaging();
-    stopQueued();
 
     expect(staged).toEqual(['Use this selection']);
-    expect(queued).toEqual([{ threadId: 'b', threadIds: ['comment-1'] }]);
   });
 
   test('without an explicit default the primary reads "Start an agent" and opens Settings', async () => {

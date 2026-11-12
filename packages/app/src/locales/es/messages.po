@@ -2371,7 +2371,7 @@ msgstr "Clonando..."
 msgid "Close"
 msgstr "Cerrar"
 
-msgid "Close discussions"
+msgid "Close comments"
 msgstr ""
 
 msgid "Close {0}"
@@ -9367,7 +9367,7 @@ msgstr "Ver la guía de instalación completa"
 msgid "See what's added"
 msgstr "Ver qué se añade"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
 msgstr ""
 
 msgid "Select {name}"

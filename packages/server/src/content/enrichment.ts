@@ -8,6 +8,11 @@ import {
   parseFrontmatterRecord,
   stripFrontmatter,
 } from '@inkeep/open-knowledge-core';
+import {
+  countOpenCommentThreadsUnder,
+  type OpenCommentSummary,
+  readOpenCommentThreads,
+} from '../gitquire/open-comment-threads.ts';
 import { getLogger } from '../logger.ts';
 import { resolveWithinRoot } from '../mcp/tools/path-safety.ts';
 import { httpGet } from '../mcp/tools/shared.ts';
@@ -42,13 +47,7 @@ interface BacklinkEntry {
   snippet?: string | null;
 }
 
-interface CommentSummary {
-  threadId: string;
-  body: string;
-  quote: string;
-  state: 'anchored' | 'orphaned';
-  queued: boolean;
-}
+type CommentSummary = OpenCommentSummary;
 
 interface DocumentForwardLinkEntry {
   kind: 'doc';
@@ -228,38 +227,6 @@ async function fetchBacklinks(
   return entries;
 }
 
-async function fetchComments(
-  serverUrl: string | undefined,
-  docName: string,
-): Promise<CommentSummary[] | null> {
-  if (!serverUrl) return null;
-  const result = await httpGet(serverUrl, `/api/comments?doc=${encodeURIComponent(docName)}`);
-  if (!result.ok) return null;
-  return parseCommentThreads(result.threads);
-}
-
-export function parseCommentThreads(raw: unknown): CommentSummary[] {
-  if (!Array.isArray(raw)) return [];
-  const entries: CommentSummary[] = [];
-  for (const item of raw) {
-    if (typeof item !== 'object' || item === null) continue;
-    const rec = item as Record<string, unknown>;
-    const state = rec.state;
-    if (state !== 'anchored' && state !== 'orphaned') continue;
-    if (typeof rec.threadId !== 'string' || rec.threadId === '') continue;
-    const anchor = typeof rec.anchor === 'object' && rec.anchor !== null ? rec.anchor : {};
-    const quote = (anchor as Record<string, unknown>).exact;
-    entries.push({
-      threadId: rec.threadId,
-      body: typeof rec.latestComment === 'string' ? rec.latestComment : '',
-      quote: typeof quote === 'string' ? quote : '',
-      state,
-      queued: rec.queued === true,
-    });
-  }
-  return entries;
-}
-
 const BACKLINK_COUNT_CHUNK = 100;
 
 export async function fetchBacklinkCountsBatch(
@@ -286,53 +253,6 @@ export async function fetchBacklinkCountsBatch(
     if (!chunkResult) continue;
     anySuccess = true;
     for (const [name, val] of Object.entries(chunkResult)) {
-      if (typeof val === 'number' && Number.isFinite(val)) out.set(name, val);
-    }
-  }
-  return anySuccess ? out : null;
-}
-
-export async function fetchCommentCountsBatch(
-  serverUrl: string | undefined,
-  docNames: string[],
-): Promise<Map<string, number> | null> {
-  if (!serverUrl || docNames.length === 0) return null;
-  const unique = [...new Set(docNames)];
-  const chunks: string[][] = [];
-  for (let i = 0; i < unique.length; i += BACKLINK_COUNT_CHUNK) {
-    chunks.push(unique.slice(i, i + BACKLINK_COUNT_CHUNK));
-  }
-  const results = await Promise.all(
-    chunks.map(async (chunk) => {
-      const param = encodeURIComponent(chunk.join(','));
-      const result = await httpGet(serverUrl, `/api/comment-counts?docNames=${param}`);
-      if (!result.ok) return null;
-      return (result.counts ?? {}) as Record<string, unknown>;
-    }),
-  );
-  return mergeCountChunks(results);
-}
-
-async function fetchCommentCountsUnderPrefix(
-  serverUrl: string | undefined,
-  prefix: string,
-): Promise<Map<string, number> | null> {
-  if (!serverUrl) return null;
-  const result = await httpGet(
-    serverUrl,
-    `/api/comment-counts?prefix=${encodeURIComponent(prefix)}`,
-  );
-  if (!result.ok) return null;
-  return mergeCountChunks([(result.counts ?? {}) as Record<string, unknown>]);
-}
-
-function mergeCountChunks(chunks: (Record<string, unknown> | null)[]): Map<string, number> | null {
-  const out = new Map<string, number>();
-  let anySuccess = false;
-  for (const chunk of chunks) {
-    if (!chunk) continue;
-    anySuccess = true;
-    for (const [name, val] of Object.entries(chunk)) {
       if (typeof val === 'number' && Number.isFinite(val)) out.set(name, val);
     }
   }
@@ -459,7 +379,7 @@ export async function enrichPath(
       commits: [] as GitCommit[],
       source: 'git' as ProjectHistorySource,
     })),
-    fetchComments(deps.serverUrl, pathToDocName(relPath)).catch(() => null),
+    readOpenCommentThreads(absPath).catch(() => null),
   ]);
 
   const lifted = liftOwnFrontmatter(head?.frontmatter ?? null, head?.firstHeading);
@@ -597,7 +517,7 @@ export async function enrichDirectory(
   const folderSchemas = schemasApplicableToFolder(deps, relPath);
   if (folderSchemas.length > 0) result.schemas_applicable = folderSchemas;
 
-  const commentCounts = await fetchCommentCountsUnderPrefix(deps.serverUrl, relPath).catch(
+  const commentCounts = await countOpenCommentThreadsUnder(deps.projectDir, relPath).catch(
     () => null,
   );
   if (commentCounts && commentCounts.size > 0) {

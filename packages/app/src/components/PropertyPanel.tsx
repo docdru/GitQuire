@@ -32,9 +32,6 @@ import {
 import { Trans, useLingui } from '@lingui/react/macro';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { CommentedDocProvider } from '@/comments/CommentedDocContext';
-import { PropertyCommentButton } from '@/comments/PropertyCommentButton';
-import { usePropertyAnchorClick } from '@/comments/property-anchor-click';
 import type { AddPropertyFieldSuggestion } from '@/components/AddPropertyNameField';
 import { FrontmatterBindingProvider } from '@/components/FrontmatterBindingContext';
 import {
@@ -128,7 +125,6 @@ export function PropertyPanel({ provider, reservedKeys, identitySlot }: Property
 
   const panelRef = useRef<HTMLDivElement>(null);
   usePublishFrontmatterSelection(panelRef, docName);
-  usePropertyAnchorClick(panelRef, docName);
 
   function commitPatch(patch: FrontmatterPatch): PatchResult {
     if (!binding) {
@@ -463,133 +459,130 @@ export function PropertyPanel({ provider, reservedKeys, identitySlot }: Property
 
   return (
     <FrontmatterBindingProvider binding={binding}>
-      <CommentedDocProvider docName={docName === '' ? null : docName}>
-        <PropertyDisclosure
-          ref={panelRef}
-          title={<Trans>Properties</Trans>}
-          count={renderKeys.length}
-          problemCount={invalidProperties.length}
-          problemMessages={invalidProperties.map((d) => d.message)}
-          testId="property-panel"
-          className="pt-4"
-          contentClassName={PROP_CONTENT_SHIFT}
-          open={!collapsed}
-          onOpenChange={(open) => setCollapsed(!open)}
-        >
-          {parseError ? (
-            <div
-              role="alert"
-              data-testid="property-panel-yaml-error"
-              className={`mb-1 ${PROP_GUTTER_COMPENSATE} flex items-start gap-1.5 rounded border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-[11px] text-destructive`}
-            >
-              <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
-              <div>
-                <Trans>
-                  The properties block at the top of this doc has a formatting error. Switch to
-                  source mode to fix it.
-                </Trans>
-                <span className="block text-[10px] opacity-80">{parseError}</span>
-              </div>
-            </div>
-          ) : null}
-          {identitySlot}
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+      <PropertyDisclosure
+        ref={panelRef}
+        title={<Trans>Properties</Trans>}
+        count={renderKeys.length}
+        problemCount={invalidProperties.length}
+        problemMessages={invalidProperties.map((d) => d.message)}
+        testId="property-panel"
+        className="pt-4"
+        contentClassName={PROP_CONTENT_SHIFT}
+        open={!collapsed}
+        onOpenChange={(open) => setCollapsed(!open)}
+      >
+        {parseError ? (
+          <div
+            role="alert"
+            data-testid="property-panel-yaml-error"
+            className={`mb-1 ${PROP_GUTTER_COMPENSATE} flex items-start gap-1.5 rounded border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-[11px] text-destructive`}
           >
-            <SortableContext
-              items={renderKeys.map((k, i) => rowId(k, i))}
-              strategy={verticalListSortingStrategy}
-            >
-              {renderKeys.map((key, idx) => {
-                const value = map[key];
-                if (value === undefined) return null;
-                const declared = overrides[key] ?? inferType(value);
-                const renameState = renaming?.key === key ? renaming : null;
-                const isDuplicate = (dupCount.get(key) ?? 0) > 1;
-                return (
-                  <FrontmatterRow
-                    // biome-ignore lint/suspicious/noArrayIndexKey: position-aware key for dup-name rows.
-                    key={`${key}-${idx}`}
-                    sortableId={rowId(key, idx)}
-                    keyName={key}
-                    value={value}
-                    declared={declared}
-                    enumConstraint={enumConstraints.get(key)}
-                    error={errors[key] ?? null}
-                    resetCounter={resetCounters[key] ?? 0}
-                    isDuplicate={isDuplicate}
-                    rename={{
-                      state: renameState,
-                      onBegin: () => beginRename(key),
-                      onChangeDraft: changeRenameDraft,
-                      onCommit: commitRename,
-                      onCancel: cancelRename,
-                    }}
-                    onCommit={(v) => commitProperty(key, v)}
-                    onChangeType={(t) => setType(key, t)}
-                    onRemove={() => removeProperty(key)}
-                    actionSlot={<PropertyCommentButton propertyKey={key} />}
-                  />
-                );
-              })}
-            </SortableContext>
-          </DndContext>
-          {!reserved.has('tags') && !Object.hasOwn(map, 'tags') ? (
-            <FrontmatterRow
-              key="virtual-tags"
-              keyName="tags"
-              value={[]}
-              declared="list"
-              enumConstraint={enumConstraints.get('tags')}
-              error={errors.tags ?? null}
-              resetCounter={resetCounters.tags ?? 0}
-              isPlaceholder
-              onCommit={(v) => commitProperty('tags', v)}
-              onChangeType={() => {}}
-            />
-          ) : null}
-          {adding.length > 0 ? (
-            <div className={PROP_GUTTER_COMPENSATE}>
-              {adding.map((draft) => (
-                <AddPropertyRow
-                  key={draft.id}
-                  rowId={draft.id}
-                  draft={draft}
-                  autoFocus={draft.id === focusRowId ? draft.focusField : 'none'}
-                  enumConstraint={enumConstraints.get(draft.name.trim())}
-                  fieldSuggestions={suggestionsFor(draft.id)}
-                  onChangeName={(name) => changeAddName(draft.id, name)}
-                  onChangeType={(type) => changeAddType(draft.id, type)}
-                  onChangeValue={(value) => changeAddValue(draft.id, value)}
-                  onPickField={(suggestion) => pickAddField(draft.id, suggestion)}
-                  onCommit={(valueOverride) => commitAdd(draft.id, valueOverride)}
-                  onCancel={() => cancelAdd(draft.id)}
+            <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
+            <div>
+              <Trans>
+                The properties block at the top of this doc has a formatting error. Switch to
+                source mode to fix it.
+              </Trans>
+              <span className="block text-[10px] opacity-80">{parseError}</span>
+            </div>
+          </div>
+        ) : null}
+        {identitySlot}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={renderKeys.map((k, i) => rowId(k, i))}
+            strategy={verticalListSortingStrategy}
+          >
+            {renderKeys.map((key, idx) => {
+              const value = map[key];
+              if (value === undefined) return null;
+              const declared = overrides[key] ?? inferType(value);
+              const renameState = renaming?.key === key ? renaming : null;
+              const isDuplicate = (dupCount.get(key) ?? 0) > 1;
+              return (
+                <FrontmatterRow
+                  // biome-ignore lint/suspicious/noArrayIndexKey: position-aware key for dup-name rows.
+                  key={`${key}-${idx}`}
+                  sortableId={rowId(key, idx)}
+                  keyName={key}
+                  value={value}
+                  declared={declared}
+                  enumConstraint={enumConstraints.get(key)}
+                  error={errors[key] ?? null}
+                  resetCounter={resetCounters[key] ?? 0}
+                  isDuplicate={isDuplicate}
+                  rename={{
+                    state: renameState,
+                    onBegin: () => beginRename(key),
+                    onChangeDraft: changeRenameDraft,
+                    onCommit: commitRename,
+                    onCancel: cancelRename,
+                  }}
+                  onCommit={(v) => commitProperty(key, v)}
+                  onChangeType={(t) => setType(key, t)}
+                  onRemove={() => removeProperty(key)}
                 />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-1 flex items-center gap-1">
-              <span aria-hidden className="h-7 w-4 shrink-0" />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                data-testid="add-property-trigger"
-                onClick={beginAddBlank}
-                aria-label={t`Add property`}
-                className="flex items-center gap-1.5 rounded px-2 py-1 font-medium text-sm hover:bg-muted/50 hover:text-foreground"
-              >
-                <Plus className="size-3.5" />
-                <span>
-                  <Trans>Add</Trans>
-                </span>
-              </Button>
-            </div>
-          )}
-        </PropertyDisclosure>
-      </CommentedDocProvider>
+              );
+            })}
+          </SortableContext>
+        </DndContext>
+        {!reserved.has('tags') && !Object.hasOwn(map, 'tags') ? (
+          <FrontmatterRow
+            key="virtual-tags"
+            keyName="tags"
+            value={[]}
+            declared="list"
+            enumConstraint={enumConstraints.get('tags')}
+            error={errors.tags ?? null}
+            resetCounter={resetCounters.tags ?? 0}
+            isPlaceholder
+            onCommit={(v) => commitProperty('tags', v)}
+            onChangeType={() => {}}
+          />
+        ) : null}
+        {adding.length > 0 ? (
+          <div className={PROP_GUTTER_COMPENSATE}>
+            {adding.map((draft) => (
+              <AddPropertyRow
+                key={draft.id}
+                rowId={draft.id}
+                draft={draft}
+                autoFocus={draft.id === focusRowId ? draft.focusField : 'none'}
+                enumConstraint={enumConstraints.get(draft.name.trim())}
+                fieldSuggestions={suggestionsFor(draft.id)}
+                onChangeName={(name) => changeAddName(draft.id, name)}
+                onChangeType={(type) => changeAddType(draft.id, type)}
+                onChangeValue={(value) => changeAddValue(draft.id, value)}
+                onPickField={(suggestion) => pickAddField(draft.id, suggestion)}
+                onCommit={(valueOverride) => commitAdd(draft.id, valueOverride)}
+                onCancel={() => cancelAdd(draft.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-1 flex items-center gap-1">
+            <span aria-hidden className="h-7 w-4 shrink-0" />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              data-testid="add-property-trigger"
+              onClick={beginAddBlank}
+              aria-label={t`Add property`}
+              className="flex items-center gap-1.5 rounded px-2 py-1 font-medium text-sm hover:bg-muted/50 hover:text-foreground"
+            >
+              <Plus className="size-3.5" />
+              <span>
+                <Trans>Add</Trans>
+              </span>
+            </Button>
+          </div>
+        )}
+      </PropertyDisclosure>
     </FrontmatterBindingProvider>
   );
 }

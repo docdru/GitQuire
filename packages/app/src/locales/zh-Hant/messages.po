@@ -2371,7 +2371,7 @@ msgstr "正在複製…"
 msgid "Close"
 msgstr "關閉"
 
-msgid "Close discussions"
+msgid "Close comments"
 msgstr ""
 
 msgid "Close {0}"
@@ -9367,7 +9367,7 @@ msgstr "查看完整的安裝指南"
 msgid "See what's added"
 msgstr "查看將新增的內容"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
 msgstr ""
 
 msgid "Select {name}"

@@ -45,7 +45,6 @@ import {
   LEGACY_SKILL_STORE_ROOT,
   type LinterConfig,
   type LintViolationWarning,
-  LOCAL_DIR,
   lintDocument,
   MANAGED_ARTIFACT_PREFIX_SKILL,
   mediaKindForSidebarAssetExtension,
@@ -97,9 +96,6 @@ import {
   type SummaryResponse,
 } from './agent-write-summary.ts';
 import { resolveBundledSkillDir } from './build-skill-zip.ts';
-import { CommentIndex } from './comments/comment-index.ts';
-import { CommentService } from './comments/comment-service.ts';
-import { CommentThreadStore } from './comments/thread-store.ts';
 import {
   CONCURRENT_OVERWRITE_REFUSED_DETAIL_WITH_POSITIONS,
   CONCURRENT_OVERWRITE_REFUSED_TITLE,
@@ -290,7 +286,6 @@ import {
 import { respondBothKept } from './http/agent-write-response.ts';
 import { type ApiRouteTable, createApiRequestPipeline } from './http/api-pipeline.ts';
 import { createAssetRoutes } from './http/asset-routes.ts';
-import { createCommentRoutes } from './http/comment-routes.ts';
 import { createConfigSystemRoutes } from './http/config-system-routes.ts';
 import { createDocNoticeRoutes } from './http/doc-notice-routes.ts';
 import { createDocumentRefreshRoutes } from './http/document-refresh-routes.ts';
@@ -1348,7 +1343,6 @@ interface ApiExtensionBaseOptions {
   contentRoot?: string;
   derivedDocumentIndex?: DerivedDocumentIndexApiPort;
   signalChannel?: (channel: 'files' | 'lint-config' | 'comments') => void;
-  commentDocHooksRef?: { current: CommentDocHooks | null };
   agentFocusBroadcaster?: AgentFocusBroadcaster;
   agentPresenceBroadcaster?: AgentPresenceBroadcaster;
   onAgentWrite?: () => void;
@@ -1439,11 +1433,6 @@ function applyDiskEventToLiveAllFilesIndex(
 ): void {
   const live = getAllFilesIndex();
   if (live instanceof Map) updateFileIndex(event, live);
-}
-
-export interface CommentDocHooks {
-  changed: (docName: string) => void;
-  deleted: (docName: string) => void;
 }
 
 function removedDocProblem(failure: StoreFailure) {
@@ -1989,62 +1978,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       return null;
     }
     return filePath;
-  }
-
-  const commentService = new CommentService({
-    store: new CommentThreadStore(resolve(contentDir, OK_DIR, LOCAL_DIR), log),
-    index: new CommentIndex(),
-    getDocBody: (docName) => {
-      try {
-        const doc = hocuspocus.documents.get(docName);
-        if (doc) return stripFrontmatter(doc.getText('source').toString()).body;
-      } catch {}
-      try {
-        const filePath = resolveDocPath(docName);
-        if (filePath && existsSync(filePath)) {
-          return stripFrontmatter(readFileSync(filePath, 'utf-8')).body;
-        }
-      } catch {}
-      return null;
-    },
-    getDocFrontmatter: (docName: string): Record<string, unknown> | null => {
-      try {
-        const doc = hocuspocus.documents.get(docName);
-        if (doc) return parseFrontmatterRecord(doc.getText('source').toString()) ?? {};
-      } catch {}
-      try {
-        const filePath = resolveDocPath(docName);
-        if (filePath && existsSync(filePath)) {
-          return parseFrontmatterRecord(readFileSync(filePath, 'utf-8')) ?? {};
-        }
-      } catch {}
-      return null;
-    },
-  });
-
-  if (options.commentDocHooksRef) {
-    options.commentDocHooksRef.current = {
-      changed: (docName: string) => {
-        void commentService
-          .refindDoc(docName)
-          .then((changed) => {
-            if (changed) signalChannel?.('comments');
-          })
-          .catch((err) => {
-            log.warn({ err, docName }, '[comments] re-anchor after document change failed');
-          });
-      },
-      deleted: (docName: string) => {
-        void commentService
-          .deleteDoc(docName)
-          .then((count) => {
-            if (count > 0) signalChannel?.('comments');
-          })
-          .catch((err) => {
-            log.warn({ err, docName }, '[comments] cleanup after document delete failed');
-          });
-      },
-    };
   }
 
   function readPageTitleForDocName(docName: string): string {
@@ -3626,14 +3559,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
                 newDocumentName: toDocName,
                 markdown: renamedSource.markdown,
               });
-              try {
-                await commentService.renameDoc(fromDocName, toDocName);
-              } catch (err) {
-                log.warn(
-                  { err, fromDocName, toDocName },
-                  '[comments] cover-sheet rename failed; index updated, disk self-corrects at boot',
-                );
-              }
               if (renamedSource.rewrites > 0) {
                 rewrittenDocs.push({ docName: toDocName, rewrites: renamedSource.rewrites });
               }
@@ -5579,8 +5504,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     projectDir,
     homeDirOverride,
     skillsHome,
-    isSafeDocName,
-    commentService,
     enumerateInstalledSkillsCached,
     checkLocalOpSecurity,
   });
@@ -5608,11 +5531,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     githubReferenceFetch,
     getGeneratedIndexSettingsStatus,
     setGeneratedIndexEnabled,
-  });
-  const commentRoutes = createCommentRoutes({
-    commentService,
-    getPrincipal,
-    signalChannel,
   });
   const docNoticeRoutes = createDocNoticeRoutes({
     docNotices: options.docNotices ?? null,
@@ -5896,7 +5814,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     skillsReadRoutes,
     skillsShRoutes,
     workspaceToolsRoutes,
-    commentRoutes,
     syncRoutes,
     docNoticeRoutes,
     shareRoutes,

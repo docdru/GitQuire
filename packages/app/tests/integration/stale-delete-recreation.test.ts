@@ -81,15 +81,12 @@ test.each([
     const oldClient = initiallyOpen ? await scenario.open() : undefined;
     if (oldClient) expect(oldClient.ytext.toString()).toBe(ORIGINAL);
     expect(scenario.server.instance.hocuspocus.documents.has(scenario.docName)).toBe(initiallyOpen);
-    const oldThread = await scenario.comment('Original page');
     if (deletion === 'api') await scenario.deleteThroughApi();
     else scenario.deleteExternally();
     await scenario.waitUntilHeld();
     if (oldClient && deletion === 'api') await scenario.close(oldClient);
 
     const fresh = await scenario.create();
-    const newThread = await scenario.comment('Recreated page');
-    expect(newThread.threadId).not.toBe(oldThread.threadId);
     const before = await scenario.snapshot(fresh);
     expect(before).toMatchObject({
       disk: RECREATED,
@@ -103,7 +100,6 @@ test.each([
       removedCount: 0,
       forwardLinks: ['target'],
     });
-    expect(before.threads).toContain(newThread.threadId);
 
     await scenario.finishDeletion();
     expect(await scenario.snapshot(fresh)).toEqual({
@@ -116,18 +112,15 @@ test.each([
       clientClosed: false,
       listed: true,
       removedCount: 0,
-      threads: [newThread.threadId],
       forwardLinks: ['target'],
     });
   },
 );
 
-test('a delivered deletion removes the existing page and its comments', async () => {
+test('a delivered deletion removes the existing page', async () => {
   const scenario = await startDeletionScenario('none', registerCleanup);
   const original = await scenario.open();
   expect(original.ytext.toString()).toBe(ORIGINAL);
-  const thread = await scenario.comment('Original page');
-  expect((await scenario.snapshot(original)).threads).toEqual([thread.threadId]);
 
   await scenario.deleteThroughApi();
   await scenario.finishDeletion();
@@ -138,7 +131,6 @@ test('a delivered deletion removes the existing page and its comments', async ()
     residentContent: null,
     listed: false,
     removedCount: 1,
-    threads: [],
     forwardLinks: [],
   });
 });
@@ -146,16 +138,12 @@ test('a delivered deletion removes the existing page and its comments', async ()
 test('a recreation after deletion completes admits and saves new content', async () => {
   const scenario = await startDeletionScenario('none', registerCleanup);
   const original = await scenario.open();
-  const oldThread = await scenario.comment('Original page');
-  expect((await scenario.snapshot(original)).threads).toEqual([oldThread.threadId]);
   await scenario.deleteThroughApi();
   await scenario.finishDeletion();
   await scenario.close(original);
-  expect((await scenario.snapshot()).threads).toEqual([]);
   scenario.releaseFollowers();
 
   const recreated = await scenario.create();
-  const thread = await scenario.comment('Recreated page');
   expect(await scenario.snapshot(recreated)).toEqual({
     disk: RECREATED,
     residentPresent: true,
@@ -166,7 +154,6 @@ test('a recreation after deletion completes admits and saves new content', async
     clientClosed: false,
     listed: true,
     removedCount: 0,
-    threads: [thread.threadId],
     forwardLinks: ['target'],
   });
   expect((await scenario.readDocument()).content).toBe(RECREATED);

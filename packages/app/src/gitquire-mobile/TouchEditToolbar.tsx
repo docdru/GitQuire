@@ -150,7 +150,7 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
     },
     {
       key: 'discuss',
-      label: t`Discuss`,
+      label: t`Comment`,
       icon: MessageSquarePlus,
       disabled: !state.hasSelection,
       run: () => {

@@ -18,8 +18,6 @@ function buildSkillsReadRoutes(overrides: Partial<SkillsReadRouteDeps> = {}) {
     projectDir: undefined,
     homeDirOverride: '/tmp/ok-skills-read-unit-home',
     skillsHome: '/tmp/ok-skills-read-unit-home',
-    isSafeDocName: () => true,
-    commentService: { countThreads: async () => new Map<string, number>() },
     enumerateInstalledSkillsCached: (() => ({
       skills: [],
       packs: [],
@@ -45,10 +43,9 @@ async function dispatch(
   };
 }
 
-const READ_200 = ['/api/comment-counts?docNames=alpha', '/api/skills/installed', '/api/templates'];
+const READ_200 = ['/api/skills/installed', '/api/templates'];
 
 const ALL_ROUTES = [
-  '/api/comment-counts',
   '/api/skills/installed',
   '/api/templates',
   '/api/skill/install-state',

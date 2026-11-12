@@ -1,5 +1,5 @@
 import * as actualLinguiMacro from '@lingui/react/macro';
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createRef, type ReactNode } from 'react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -23,20 +23,15 @@ afterEach(() => {
 describe('ComposerAddMenu', () => {
   test('composes the shared prompt additions without forcing every surface to expose commands', async () => {
     const user = userEvent.setup();
-    const onComments = vi.fn(() => {});
     const onMention = vi.fn(() => {});
-    const {
-      ComposerAddMenu,
-      ComposerCommentsMenuItem,
-      ComposerFilesMenuItem,
-      ComposerMentionMenuItem,
-    } = await import('./ComposerAddMenu');
+    const { ComposerAddMenu, ComposerFilesMenuItem, ComposerMentionMenuItem } = await import(
+      './ComposerAddMenu'
+    );
 
     render(
       <TooltipProvider>
         <ComposerAddMenu composerRef={createRef()} testId="composer-add">
           <ComposerFilesMenuItem onFiles={() => {}} />
-          <ComposerCommentsMenuItem count={3} onSelect={onComments} />
           <ComposerMentionMenuItem onSelect={onMention} />
         </ComposerAddMenu>
       </TooltipProvider>,
@@ -45,18 +40,11 @@ describe('ComposerAddMenu', () => {
     await user.click(screen.getByRole('button', { name: 'Add to prompt' }));
 
     expect(screen.getByRole('menuitem', { name: 'Attach files' })).toBeDefined();
-    const commentsItem = screen.getByRole('menuitem', { name: 'Attach comments: 3' });
-    expect(commentsItem).toBeDefined();
-    expect(within(commentsItem).getByText('3')).toBeDefined();
     expect(screen.getByRole('menuitem', { name: 'Mention a page' })).toBeDefined();
     expect(screen.queryByRole('menuitem', { name: 'Commands' })).toBeNull();
 
     await user.click(screen.getByRole('menuitem', { name: 'Mention a page' }));
     expect(onMention).toHaveBeenCalledTimes(1);
-
-    await user.click(screen.getByRole('button', { name: 'Add to prompt' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Attach comments: 3' }));
-    expect(onComments).toHaveBeenCalledTimes(1);
   });
 
   test('the ACP variant can add a commands entry without changing the shared trigger', async () => {
@@ -130,15 +118,13 @@ describe('ComposerAddMenu', () => {
     clickSpy.mockRestore();
   });
 
-  test.each(['Attach files', 'Attach comments: 1'])(
+  test.each(['Attach files'])(
     'choosing %s puts focus back in the composer, not on the Add to prompt button',
     async (item) => {
       const user = userEvent.setup();
       const composerRef = createRef<ComposerMentionInputHandle>();
       const clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
-      const { ComposerAddMenu, ComposerCommentsMenuItem, ComposerFilesMenuItem } = await import(
-        './ComposerAddMenu'
-      );
+      const { ComposerAddMenu, ComposerFilesMenuItem } = await import('./ComposerAddMenu');
       const { ComposerMentionInput } = await import('@/editor/ComposerMentionInput');
 
       render(
@@ -152,7 +138,6 @@ describe('ComposerAddMenu', () => {
           />
           <ComposerAddMenu composerRef={composerRef} testId="composer-add">
             <ComposerFilesMenuItem onFiles={() => {}} />
-            <ComposerCommentsMenuItem count={1} onSelect={() => {}} />
           </ComposerAddMenu>
         </TooltipProvider>,
       );

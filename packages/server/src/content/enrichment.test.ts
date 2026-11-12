@@ -11,7 +11,6 @@ import {
   computeGraphRole,
   enrichDirectory,
   enrichPath,
-  parseCommentThreads,
 } from './enrichment.ts';
 
 let tmpDir: string;
@@ -426,63 +425,6 @@ describe('schemas_applicable — read-time schema advertisement', () => {
       frontmatterSchemas: MAPPINGS,
     });
     expect(meta.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
-  });
-});
-
-describe('parseCommentThreads', () => {
-  const wireThread = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
-    threadId: 't1',
-    docName: 'notes/rollout',
-    anchor: { exact: 'minimal downtime', prefix: 'with ', suffix: '.', start: 10, end: 26 },
-    state: 'anchored',
-    queued: false,
-    latestComment: 'still accurate?',
-    createdBy: 'principal-x',
-    createdAt: 1,
-    ...overrides,
-  });
-
-  test('lifts the ask and the anchored passage', () => {
-    expect(parseCommentThreads([wireThread()])).toEqual([
-      {
-        threadId: 't1',
-        body: 'still accurate?',
-        quote: 'minimal downtime',
-        state: 'anchored',
-        queued: false,
-      },
-    ]);
-  });
-
-  test('keeps orphaned threads, drops resolved ones', () => {
-    expect(parseCommentThreads([wireThread({ state: 'orphaned' })])[0]?.state).toBe('orphaned');
-    expect(parseCommentThreads([wireThread({ state: 'resolved' })])).toEqual([]);
-  });
-
-  test('carries the queued flag — staged to send, still outstanding', () => {
-    expect(parseCommentThreads([wireThread({ queued: true })])[0]?.queued).toBe(true);
-  });
-
-  test('skips malformed rows without blanking the rest', () => {
-    const parsed = parseCommentThreads([
-      null,
-      'nonsense',
-      wireThread({ threadId: '' }),
-      wireThread({ state: 'unheard-of' }),
-      wireThread({ threadId: 'good' }),
-    ]);
-    expect(parsed.map((c) => c.threadId)).toEqual(['good']);
-  });
-
-  test('tolerates a missing anchor or non-string body', () => {
-    expect(parseCommentThreads([wireThread({ anchor: undefined, latestComment: 7 })])).toEqual([
-      { threadId: 't1', body: '', quote: '', state: 'anchored', queued: false },
-    ]);
-  });
-
-  test('a non-array payload is no comments, not a crash', () => {
-    expect(parseCommentThreads(undefined)).toEqual([]);
-    expect(parseCommentThreads({ threads: [] })).toEqual([]);
   });
 });
 

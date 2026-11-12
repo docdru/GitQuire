@@ -2,10 +2,8 @@
 
 import { t } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { AlertTriangle, Clock, Link2, ListTree, MessageSquare, Network } from 'lucide-react';
+import { AlertTriangle, Clock, Link2, ListTree, Network } from 'lucide-react';
 import { lazy, Suspense, useEffect } from 'react';
-import { CommentsTab } from '@/comments/CommentsTab';
-import { setCommentsPanelOnScreen } from '@/comments/comments-panel-visibility';
 import { setDocPanelOnScreen } from '@/components/doc-panel-visibility';
 import {
   composeFixAllProblemsTerminalPaste,
@@ -31,7 +29,7 @@ import { useSingleFileMode } from '@/lib/single-file-mode';
 import { cn } from '@/lib/utils';
 import { type DocProblemCounts, patchDocValidationSource } from '@/lib/validation-store';
 
-export type PanelTab = 'outline' | 'links' | 'graph' | 'timeline' | 'problems' | 'comments';
+export type PanelTab = 'outline' | 'links' | 'graph' | 'timeline' | 'problems';
 
 export const TABS: { id: PanelTab; icon: typeof ListTree }[] = [
   { id: 'outline', icon: ListTree },
@@ -39,10 +37,9 @@ export const TABS: { id: PanelTab; icon: typeof ListTree }[] = [
   { id: 'graph', icon: Network },
   { id: 'timeline', icon: Clock },
   { id: 'problems', icon: AlertTriangle },
-  { id: 'comments', icon: MessageSquare },
 ];
 
-const SINGLE_FILE_TABS: readonly PanelTab[] = ['outline', 'problems', 'comments'];
+const SINGLE_FILE_TABS: readonly PanelTab[] = ['outline', 'problems'];
 
 function countsOf(diagnostics: readonly { severity: string }[]): DocProblemCounts {
   let errorCount = 0;
@@ -59,7 +56,6 @@ function tabLabel(id: PanelTab): string {
   if (id === 'links') return t`Links`;
   if (id === 'graph') return t`Graph`;
   if (id === 'problems') return t`Problems`;
-  if (id === 'comments') return t`Comments`;
   return t`Timeline`;
 }
 
@@ -154,10 +150,8 @@ export function DocPanel({
   const effectiveTab: PanelTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'outline';
   const showTabStrip = mode === 'doc' && tabs.length > 1;
   useEffect(() => {
-    setCommentsPanelOnScreen(!isCollapsed && mode === 'doc' && effectiveTab === 'comments');
     setDocPanelOnScreen(!isCollapsed);
     return () => {
-      setCommentsPanelOnScreen(false);
       setDocPanelOnScreen(false);
     };
   }, [isCollapsed, mode, effectiveTab]);
@@ -257,9 +251,6 @@ export function DocPanel({
             </Suspense>
           )}
           {effectiveTab === 'timeline' && <TimelineContent docName={docName} />}
-          {effectiveTab === 'comments' && (
-            <CommentsTab docName={docName} onDestinationComplete={onDestinationComplete} />
-          )}
           {effectiveTab === 'problems' && (
             <ProblemsPanel
               docName={docName}

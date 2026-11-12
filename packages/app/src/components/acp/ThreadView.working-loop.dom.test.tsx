@@ -49,7 +49,6 @@ vi.doMock('@/components/acp/AgentMarkdown', () => ({
 vi.doMock('@/editor/ComposerMentionInput', () => ({
   ComposerMentionInput: MockComposerMentionInput,
 }));
-vi.doMock('@/comments/queue-attachment', () => ({ prepareQueuedComments: async () => [] }));
 
 const { ThreadView } = await import('./ThreadView');
 

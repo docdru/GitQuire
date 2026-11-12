@@ -173,8 +173,6 @@ describe('writes on the real server take JSON from a site origin only', () => {
       '/api/create-page',
       '/api/agent-write',
       '/api/skill/install',
-      '/api/comment',
-      '/api/comments',
       '/api/handoff',
       '/api/spawn-cursor',
       '/api/link-preview',

@@ -1,11 +1,8 @@
 import type { OkNoteWindowMainAction } from '@inkeep/open-knowledge-core/desktop-bridge';
 import { useEffect } from 'react';
-import { revealQueue } from '@/comments/reveal-queue';
-import { requestDocPanelTab } from '@/components/doc-panel-events';
 import { requestActiveTerminalInput } from '@/components/handoff/terminal-input-events';
 import { requestTerminalLaunch } from '@/components/handoff/terminal-launch-events';
 import { requestAgentThreadLaunch } from '@/components/handoff/thread-launch-events';
-import { hashFromDocName, isSameHash } from '@/lib/doc-hash';
 import { isNoteWindow } from '@/lib/note-window-mode';
 
 export function dispatchNoteWindowMainAction(
@@ -40,17 +37,6 @@ export function dispatchNoteWindowMainAction(
     case 'terminal-launch':
       requestTerminalLaunch(action.prompt, action.cli, { stage: action.stage }, target);
       return;
-    case 'reveal-comments': {
-      if (action.scope === 'queue') {
-        revealQueue();
-        return;
-      }
-      requestDocPanelTab('comments', {}, target);
-      if (typeof window === 'undefined' || target !== window) return;
-      const nextHash = hashFromDocName(action.docName);
-      if (!isSameHash(window.location.hash, nextHash)) window.location.hash = nextHash;
-      return;
-    }
   }
 }
 

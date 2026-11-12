@@ -108,7 +108,6 @@ const ThreadView = lazy(() =>
   import('@/components/acp/ThreadView').then((mod) => ({ default: mod.ThreadView })),
 );
 
-import { sendQueuedCommentsInThread, subscribeSendToOpenChat } from '@/comments/open-chat-send';
 import { subscribeToPreferredSessionRequests } from './handoff/preferred-session-events';
 import { notifySignInTerminalExited } from './handoff/sign-in-terminal-events';
 import type { TerminalCommandId } from './handoff/terminal-command-events';
@@ -1200,7 +1199,6 @@ export function SessionsHost({
   const seedOnRevealRef = useRef(seedOnReveal);
   const launchAgentForPaneRef = useRef(launchAgentForPane);
   const dispatchAskAiRef = useRef(dispatchAskAi);
-  const revealForReuseRef = useRef(revealForReuse);
   const launchPreferredSessionRef = useRef(launchPreferredSession);
   const preferredSessionKindRef = useRef(preferredSessionSelection.kind);
 
@@ -1246,7 +1244,6 @@ export function SessionsHost({
     seedOnRevealRef.current = seedOnReveal;
     launchAgentForPaneRef.current = launchAgentForPane;
     dispatchAskAiRef.current = dispatchAskAi;
-    revealForReuseRef.current = revealForReuse;
     launchPreferredSessionRef.current = launchPreferredSession;
     preferredSessionKindRef.current = preferredSessionSelection.kind;
     noteUserArrangementRef.current = noteUserArrangement;
@@ -1758,18 +1755,6 @@ export function SessionsHost({
     if (!terminalAvailable && !hostThreads) return;
     return subscribeToActiveTerminalInput((detail) => dispatchAskAiRef.current(detail));
   }, [terminalAvailable, hostThreads]);
-
-  useEffect(() => {
-    if (!hostThreads) return;
-    return subscribeSendToOpenChat(({ threadIds }) => {
-      const activeId = activeSessionIdRef.current;
-      const active = sessionsRef.current.find((session) => session.id === activeId);
-      if (active?.kind !== 'thread') return;
-      sendQueuedCommentsInThread(active.threadId, threadIds);
-      revealForReuseRef.current();
-      queueMicrotask(() => focusSession(active));
-    });
-  }, [hostThreads]);
 
   useEffect(() => {
     const unsubscribe = subscribeToPreferredSessionRequests(
