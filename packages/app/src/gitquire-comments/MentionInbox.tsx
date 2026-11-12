@@ -10,6 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { hashFromDocName } from '@/lib/doc-hash';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
+  cancelMentionEmail,
+  confirmMentionEmail,
   fetchMentions,
   type InboxMention,
   type MentionEmail,
@@ -62,6 +64,11 @@ function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => 
   );
 }
 
+function emailError(err: unknown, fallback: string, messages: Record<string, string>): string {
+  const code = err instanceof GitQuireApiError ? err.code : '';
+  return messages[code] ?? fallback;
+}
+
 function EmailSetting({
   email,
   onChange,
@@ -71,30 +78,102 @@ function EmailSetting({
 }) {
   const { t } = useLingui();
   const fieldId = useId();
+  const codeId = useId();
   const [draft, setDraft] = useState(email.address ?? '');
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
+  const pending = email.pending ?? null;
+  const messages: Record<string, string> = {
+    'invalid-address': t`Enter a valid email address.`,
+    'address-not-allowed': t`This server does not send mail to that domain.`,
+    'mail-failed': t`The confirmation mail could not be sent. Check the address and try again.`,
+    'resend-too-soon': t`Wait a minute before asking for another code.`,
+    'too-many-codes': t`Too many confirmation mails for now. Try again later.`,
+    'wrong-code': t`That code is not right.`,
+    'code-expired': t`The code has expired. Ask for a new one.`,
+    'too-many-tries': t`Too many wrong codes. Ask for a new one.`,
+    'nothing-to-confirm': t`There is no address waiting for a code.`,
+  };
 
-  function save(address: string | null) {
+  function run(request: Promise<MentionEmail>, fallback: string, done?: () => void) {
     if (busy) return;
     setBusy(true);
-    setMentionEmail(address)
+    request
       .then(
         (next) => {
           onChange(next);
-          if (next.address === null) setDraft('');
+          done?.();
         },
         (err: unknown) => {
-          const code = err instanceof GitQuireApiError ? err.code : '';
-          if (code === 'invalid-address') {
-            toast.error(t`Enter a valid email address.`);
-          } else if (code === 'address-not-allowed') {
-            toast.error(t`This server does not send mail to that domain.`);
-          } else {
-            toast.error(t`Couldn't save the email address.`);
+          toast.error(emailError(err, fallback, messages));
+          if (err instanceof GitQuireApiError && err.code === 'nothing-to-confirm') {
+            onChange({ ...email, pending: null });
           }
         },
       )
       .finally(() => setBusy(false));
+  }
+
+  function save(address: string | null) {
+    run(setMentionEmail(address), t`Couldn't save the email address.`, () => {
+      setCode('');
+      if (address === null) setDraft('');
+    });
+  }
+
+  if (pending !== null) {
+    return (
+      <form
+        className="flex flex-col gap-1.5 border-t px-2 pt-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (code.trim() !== '') {
+            run(confirmMentionEmail(code), t`Couldn't confirm the address.`, () => setCode(''));
+          }
+        }}
+      >
+        <Label htmlFor={codeId} className="text-xs">
+          {t`We sent a code to ${pending}. Enter it to turn on email.`}
+        </Label>
+        <div className="flex gap-2">
+          <Input
+            id={codeId}
+            autoComplete="one-time-code"
+            autoCapitalize="characters"
+            spellCheck={false}
+            value={code}
+            placeholder={t`ABCD-2345`}
+            disabled={busy}
+            onChange={(event) => setCode(event.target.value)}
+          />
+          <Button type="submit" size="sm" disabled={busy || code.trim() === ''}>
+            {t`Confirm`}
+          </Button>
+        </div>
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="px-0"
+            disabled={busy}
+            onClick={() => save(pending)}
+          >
+            {t`Send a new code`}
+          </Button>
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="px-0"
+            disabled={busy}
+            onClick={() => run(cancelMentionEmail(), t`Couldn't cancel.`)}
+          >
+            {t`Cancel`}
+          </Button>
+        </div>
+      </form>
+    );
   }
 
   return (
@@ -107,7 +186,9 @@ function EmailSetting({
       }}
     >
       <Label htmlFor={fieldId} className="text-xs">
-        {t`Email me new mentions`}
+        {email.address === null
+          ? t`Email me new mentions`
+          : t`New mentions are emailed to ${email.address}`}
       </Label>
       <div className="flex gap-2">
         <Input
@@ -124,7 +205,7 @@ function EmailSetting({
           size="sm"
           disabled={busy || draft.trim() === '' || draft.trim() === email.address}
         >
-          {t`Save`}
+          {email.address === null ? t`Send code` : t`Change`}
         </Button>
       </div>
       {email.address !== null && (

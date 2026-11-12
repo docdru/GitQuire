@@ -1,9 +1,11 @@
+import { timingSafeEqual } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
   type CommentAuthor,
   readCommentThreads,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { CONFIRMATION_VALID_MS, MAX_CONFIRMATION_ATTEMPTS } from './email-confirmation.ts';
 import { createPageScan, docNameForPath, type PageScan } from './page-scan.ts';
 
 export { docNameForPath } from './page-scan.ts';
@@ -81,6 +83,13 @@ export function createMentionIndex(projectDir: string, now: () => number = Date.
   return mentionIndexFrom(createPageScan(projectDir, mentionsInMarkdown, now), (found) => found);
 }
 
+interface PendingAddress {
+  email: string;
+  codeHash: string;
+  sentAt: string;
+  attempts: number;
+}
+
 interface UserState {
   read: string[];
   login?: string;
@@ -88,6 +97,15 @@ interface UserState {
   since?: string;
   lastSeen?: string;
   mailed?: string[];
+  pending?: PendingAddress;
+  confirmationsSent?: string[];
+}
+
+export type ConfirmResult = 'confirmed' | 'none' | 'expired' | 'wrong' | 'locked';
+
+export interface PendingInfo {
+  email: string;
+  sentAt: string;
 }
 
 interface ReadState {
@@ -117,6 +135,21 @@ export interface MentionReadStore {
   subscribers: () => MailSubscriber[];
   mailedIds: (userId: number) => Set<string>;
   markMailed: (userId: number, ids: readonly string[]) => void;
+  pendingOf: (userId: number) => PendingInfo | undefined;
+  confirmationsSince: (userId: number | undefined, since: Date) => number;
+  startConfirmation: (reader: MentionReader, email: string, codeHash: string, now: Date) => void;
+  cancelConfirmation: (userId: number) => void;
+  confirm: (
+    reader: MentionReader,
+    codeHash: string,
+    alreadyThere: readonly string[],
+    now: Date,
+  ) => ConfirmResult;
+}
+
+export interface ConfirmationRules {
+  validMs: number;
+  maxAttempts: number;
 }
 
 export function mentionStatePath(projectDir: string): string {
@@ -136,6 +169,25 @@ function readUser(entry: unknown): UserState | undefined {
   if (typeof raw.since === 'string') user.since = raw.since;
   if (typeof raw.lastSeen === 'string') user.lastSeen = raw.lastSeen;
   if (Array.isArray(raw.mailed)) user.mailed = stringList(raw.mailed);
+  if (Array.isArray(raw.confirmationsSent)) {
+    user.confirmationsSent = stringList(raw.confirmationsSent);
+  }
+  const pending = raw.pending as Record<string, unknown> | null | undefined;
+  if (
+    typeof pending === 'object' &&
+    pending !== null &&
+    typeof pending.email === 'string' &&
+    typeof pending.codeHash === 'string' &&
+    typeof pending.sentAt === 'string'
+  ) {
+    const attempts = typeof pending.attempts === 'number' ? pending.attempts : 0;
+    user.pending = {
+      email: pending.email,
+      codeHash: pending.codeHash,
+      sentAt: pending.sentAt,
+      attempts,
+    };
+  }
   return user;
 }
 
@@ -157,7 +209,21 @@ function loadState(file: string): ReadState {
   }
 }
 
-export function createMentionReadStore(file: string): MentionReadStore {
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_CONFIRMATION_RULES: ConfirmationRules = {
+  validMs: CONFIRMATION_VALID_MS,
+  maxAttempts: MAX_CONFIRMATION_ATTEMPTS,
+};
+
+function sameHash(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+export function createMentionReadStore(
+  file: string,
+  rules: ConfirmationRules = DEFAULT_CONFIRMATION_RULES,
+): MentionReadStore {
   let state: ReadState | undefined;
 
   function current(): ReadState {
@@ -238,6 +304,65 @@ export function createMentionReadStore(file: string): MentionReadStore {
     markMailed: (userId, ids) => {
       const user = userState(userId);
       update(userId, { ...user, mailed: appended(user.mailed ?? [], ids) });
+    },
+    pendingOf: (userId) => {
+      const pending = userState(userId).pending;
+      return pending === undefined ? undefined : { email: pending.email, sentAt: pending.sentAt };
+    },
+    confirmationsSince: (userId, since) => {
+      const users = userId === undefined ? Object.values(current().users) : [userState(userId)];
+      const cutoff = since.toISOString();
+      let count = 0;
+      for (const user of users) {
+        count += (user.confirmationsSent ?? []).filter((stamp) => stamp >= cutoff).length;
+      }
+      return count;
+    },
+    startConfirmation: (reader, email, codeHash, now) => {
+      const user = userState(reader.id);
+      const stamp = now.toISOString();
+      const dayAgo = new Date(now.getTime() - DAY_MS).toISOString();
+      const sent = [...(user.confirmationsSent ?? []).filter((at) => at >= dayAgo), stamp];
+      update(reader.id, {
+        ...user,
+        login: reader.login,
+        lastSeen: stamp,
+        pending: { email, codeHash, sentAt: stamp, attempts: 0 },
+        confirmationsSent: sent,
+      });
+    },
+    cancelConfirmation: (userId) => {
+      const { pending, ...user } = userState(userId);
+      if (pending !== undefined) update(userId, user);
+    },
+    confirm: (reader, codeHash, alreadyThere, now) => {
+      const user = userState(reader.id);
+      const pending = user.pending;
+      if (pending === undefined) return 'none';
+      const { pending: _dropped, ...rest } = user;
+      if (now.getTime() - Date.parse(pending.sentAt) > rules.validMs) {
+        update(reader.id, rest);
+        return 'expired';
+      }
+      if (!sameHash(pending.codeHash, codeHash)) {
+        const attempts = pending.attempts + 1;
+        if (attempts >= rules.maxAttempts) {
+          update(reader.id, rest);
+          return 'locked';
+        }
+        update(reader.id, { ...user, pending: { ...pending, attempts } });
+        return 'wrong';
+      }
+      const stamp = now.toISOString();
+      update(reader.id, {
+        ...rest,
+        login: reader.login,
+        lastSeen: stamp,
+        email: pending.email,
+        since: stamp,
+        mailed: appended([], alreadyThere),
+      });
+      return 'confirmed';
     },
   };
 }

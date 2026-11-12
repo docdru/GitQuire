@@ -213,9 +213,11 @@ with a count of unread ones. Choosing a mention opens the page at that thread. T
 GitHub sign-in. The mentions stay in the pages; who has read what, and the email settings below,
 are kept on the server in `/data/.ok/local/gitquire/mentions.json`, outside Git.
 
-Mentions can also go out by email. People enter their address under the mention list. Once a
-minute, new mentions they have not read yet are mailed; mentions that already existed when the
-address was saved are not. The server needs an SMTP server for this:
+Mentions can also go out by email. People enter their address under the mention list and get a
+confirmation mail with a code; email starts once they enter the code in GitQuire. Codes are valid
+for 24 hours and allow five tries; a new code can be requested after a minute, at most five per
+person per day. Once a minute, new mentions they have not read yet are mailed; mentions that
+already existed when the address was confirmed are not. The server needs an SMTP server for this:
 
 | Variable | Meaning |
 | --- | --- |
