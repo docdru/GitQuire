@@ -3,10 +3,10 @@ import { useLingui } from '@lingui/react/macro';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { formatDay } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatDay } from '@/components/GitQuireBoard';
 import { localDay } from '@/lib/gitquire/board';
 import {
   NO_VALUE,
