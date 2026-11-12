@@ -233,3 +233,28 @@ describe('object list', () => {
     }
   });
 });
+
+describe('content filter', () => {
+  it('leaves out pages and folders the server hides', () => {
+    const dir = project();
+    try {
+      mkdirSync(join(dir, 'private'), { recursive: true });
+      writeFileSync(join(dir, 'private', 'secret.md'), '---\ntype: task\n---\n');
+      const filter = {
+        isExcluded: (path: string) => path === 'notes.md',
+        isDirExcluded: (path: string) => path === 'private',
+      };
+      const scan = createPageScan(dir, pageFacts, Date.now, () => filter);
+      expect(scan.all().map((page) => page.path)).toEqual(['tasks/landing-page.md']);
+      const open = createPageScan(dir, pageFacts, Date.now, () => undefined);
+      expect(open.all().map((page) => page.path).sort()).toEqual([
+        'notes.md',
+        'plain.md',
+        'private/secret.md',
+        'tasks/landing-page.md',
+      ]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

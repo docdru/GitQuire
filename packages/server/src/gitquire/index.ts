@@ -14,6 +14,7 @@ import {
 } from './github-app.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient } from './github-pulls.ts';
+import type { ScanFilter } from './page-scan.ts';
 import { setSessionPrincipalResolver } from './principal-directory.ts';
 import { bootstrapRepository, ensureAutoSyncMode, parseAutoSyncMode } from './repo-bootstrap.ts';
 import { createGitQuireRoutes } from './routes.ts';
@@ -152,11 +153,12 @@ export function createGitQuireHttp(
   env: Env,
   options: {
     projectDir: string;
+    contentDir?: string;
     gate: AccessGate | undefined;
     tokens: InstallationTokenManager | undefined;
     log: GateLogger;
   },
-): AccessGate {
+): GitQuireHttp {
   const appConfig = options.tokens === undefined ? undefined : resolveGitHubAppConfig(env);
   const pulls =
     appConfig === undefined || options.tokens === undefined
@@ -166,8 +168,11 @@ export function createGitQuireHttp(
           apiUrl: appConfig.githubApiUrl,
           retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
         });
+  let contentFilter: ScanFilter | undefined;
   const routes = createGitQuireRoutes({
     projectDir: options.projectDir,
+    contentDir: options.contentDir,
+    contentFilter: () => contentFilter,
     log: options.log,
     pulls,
     baseBranch: appConfig?.branch,
@@ -179,5 +184,12 @@ export function createGitQuireHttp(
       (gate?.handleRequest(req, res) ?? false) || routes.handle(req, res),
     admitUpgrade: (req, socket) => gate?.admitUpgrade(req, socket) ?? true,
     sessionUser: (req) => gate?.sessionUser(req),
+    useContentFilter: (filter) => {
+      contentFilter = filter;
+    },
   };
+}
+
+export interface GitQuireHttp extends AccessGate {
+  useContentFilter: (filter: ScanFilter) => void;
 }
