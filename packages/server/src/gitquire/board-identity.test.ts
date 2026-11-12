@@ -1,11 +1,7 @@
 import type { IncomingMessage } from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
 import { resolveWriterFromOrigin } from '../persistence.ts';
-import {
-  BOARD_CLIENT_NAME,
-  boardAgentId,
-  boardWriterIdentity,
-} from './board-identity.ts';
+import { BOARD_CLIENT_NAME, boardAgentId, boardWriterIdentity } from './board-identity.ts';
 import {
   rememberPrincipal,
   resetPrincipalDirectory,
