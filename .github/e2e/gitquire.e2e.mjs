@@ -63,8 +63,6 @@ async function renameNewItem(page, placeholder, name) {
   return response;
 }
 
-test.describe.configure({ mode: 'serial' });
-
 test('a new page can be named right away', async ({ page }) => {
   await openApp(page);
   await page.getByRole('button', { name: 'New file', exact: true }).click();
@@ -89,11 +87,16 @@ test('a new folder can be named right away', async ({ page }) => {
 });
 
 test('typed text reaches the file and survives a reload', async ({ page }) => {
+  const created = await page.request.post('/api/create-page', {
+    data: { path: 'saved-text.md' },
+  });
+  expect(created.status(), await created.text()).toBe(200);
+
   const sentinel = `Saved text ${Date.now()}`;
-  await openApp(page, '#/meeting-notes');
+  await openApp(page, '#/saved-text');
   await typeAtEnd(page, sentinel);
 
-  await expect.poll(() => readOnDisk('meeting-notes.md'), { timeout: 30_000 }).toContain(sentinel);
+  await expect.poll(() => readOnDisk('saved-text.md'), { timeout: 30_000 }).toContain(sentinel);
 
   await page.reload();
   await expect(editor(page)).toContainText(sentinel);
