@@ -35,14 +35,19 @@ import { currentAuthor } from '@/gitquire-comments/ui-store';
 import { hashFromDocName } from '@/lib/doc-hash';
 import {
   type ActionFilter,
+  type ActionItem,
   applyPendingMoves,
   type BoardView,
   type ColumnValue,
   EMPTY_BOARD_VIEW,
+  localDay,
+  markTask,
   movePage,
   type PendingMove,
   readBoardView,
+  StaleTaskError,
   setPageField,
+  setTaskDone,
 } from '@/lib/gitquire/board';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
@@ -71,6 +76,7 @@ const TABLE_VIEW_STORAGE_KEY = 'gitquire.views.table';
 const BOARD_VIEW_STORAGE_KEY = 'gitquire.views.board';
 const TAB_CLASS = 'flex min-h-0 flex-1 flex-col';
 const MAX_ROWS = 500;
+const UNDO_MS = 10_000;
 
 function loadTableView(): TableView {
   try {
@@ -330,6 +336,8 @@ export function GitQuireViews() {
   const [pending, setPending] = useState<ReadonlyMap<string, PendingMove>>(() => new Map());
   const [actionFilter, setActionFilter] = useState<ActionFilter>(EMPTY_ACTION_FILTER);
   const [me, setMe] = useState<string | null>(null);
+  const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set());
+  const today = localDay(new Date());
 
   useEffect(() => {
     if (!open) return;
@@ -396,6 +404,48 @@ export function GitQuireViews() {
       toast.error(t`Couldn't move the page. The board was reloaded.`);
       loadObjects(setList, setFailed);
     });
+  }
+
+  function setItemSaving(id: string, on: boolean): void {
+    setSaving((current) => {
+      const next = new Set(current);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function toggleTask(item: ActionItem, done: boolean, undo = false): void {
+    if (saving.has(item.id)) return;
+    setItemSaving(item.id, true);
+    const mark = (source: string) =>
+      setList((current) => {
+        if (current === null) return current;
+        return { ...current, pages: markTask(current.pages, item, done, source) };
+      });
+    mark(item.source ?? '');
+    setTaskDone(item, done).then(
+      (source) => {
+        setItemSaving(item.id, false);
+        mark(source);
+        if (undo) return;
+        const text = item.text;
+        const changed = { ...item, done, source };
+        toast(done ? t`Marked done: ${text}` : t`Reopened: ${text}`, {
+          duration: UNDO_MS,
+          action: { label: t`Undo`, onClick: () => toggleTask(changed, !done, true) },
+        });
+      },
+      (err: unknown) => {
+        setItemSaving(item.id, false);
+        toast.error(
+          err instanceof StaleTaskError
+            ? t`That action item changed on its page. The list was reloaded.`
+            : t`Couldn't save the action item. The list was reloaded.`,
+        );
+        loadObjects(setList, setFailed);
+      },
+    );
   }
 
   function openPage(docName: string) {
@@ -482,7 +532,10 @@ export function GitQuireViews() {
                     pages={shownPages}
                     me={me}
                     filter={actionFilter}
+                    today={today}
+                    saving={saving}
                     onFilter={setActionFilter}
+                    onToggle={toggleTask}
                     onOpen={openPage}
                   />
                 </TabsContent>

@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   type ActionFilter,
+  type ActionGroup,
+  type ActionGrouping,
+  type ActionItem,
   actionItems,
   actionPeople,
   type BoardColumn,
@@ -15,6 +18,7 @@ import {
   boardGroupKeys,
   buildBoard,
   type ColumnValue,
+  dueBucket,
   filterActionItems,
   groupActionItems,
   UNASSIGNED,
@@ -211,28 +215,157 @@ export function ObjectBoard({
   );
 }
 
-export const EMPTY_ACTION_FILTER: ActionFilter = { person: '', showDone: false, search: '' };
+export const EMPTY_ACTION_FILTER: ActionFilter = {
+  person: '',
+  showDone: false,
+  search: '',
+  grouping: 'page',
+};
+
+function DueLabel({ item, today }: { item: ActionItem; today: string }) {
+  const { t } = useLingui();
+  if (item.due === undefined) return null;
+  const overdue = !item.done && item.due < today;
+  const label = formatDay(item.due);
+  return (
+    <span
+      className={cn(
+        'shrink-0 whitespace-nowrap text-xs',
+        overdue ? 'font-medium text-destructive' : 'text-muted-foreground',
+      )}
+    >
+      {overdue ? t`Due ${label}, overdue` : t`Due ${label}`}
+    </span>
+  );
+}
+
+function formatDay(day: string): string {
+  const date = new Date(`${day}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return day;
+  return date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function ActionRow({
+  item,
+  today,
+  showPage,
+  saving,
+  onToggle,
+  onOpen,
+}: {
+  item: ActionItem;
+  today: string;
+  showPage: boolean;
+  saving: boolean;
+  onToggle: (item: ActionItem, done: boolean) => void;
+  onOpen: (docName: string) => void;
+}) {
+  const { t } = useLingui();
+  const checkboxId = useId();
+  const text = item.text;
+  const canToggle = item.source !== undefined;
+  return (
+    <li className="flex flex-wrap items-start gap-x-2 gap-y-1 text-sm">
+      <Checkbox
+        id={checkboxId}
+        checked={item.done}
+        disabled={saving || !canToggle}
+        aria-label={item.done ? t`Reopen: ${text}` : t`Mark done: ${text}`}
+        onCheckedChange={(checked) => onToggle(item, checked === true)}
+        className="mt-0.5"
+      />
+      <label
+        htmlFor={checkboxId}
+        className={cn('min-w-0 flex-1', item.done && 'text-muted-foreground line-through')}
+      >
+        {text}
+      </label>
+      <DueLabel item={item} today={today} />
+      {showPage && (
+        <Button
+          type="button"
+          variant="link"
+          className="h-auto max-w-56 shrink-0 justify-start truncate p-0 text-xs"
+          onClick={() => onOpen(item.docName)}
+        >
+          {item.pageTitle}
+        </Button>
+      )}
+    </li>
+  );
+}
+
+function GroupHeading({
+  group,
+  onOpen,
+}: {
+  group: ActionGroup;
+  onOpen: (docName: string) => void;
+}) {
+  const { t } = useLingui();
+  const docName = group.docName;
+  if (docName !== undefined) {
+    return (
+      <Button
+        type="button"
+        variant="link"
+        className="h-auto justify-start whitespace-normal p-0 text-start font-medium"
+        onClick={() => onOpen(docName)}
+      >
+        {group.pageTitle}
+      </Button>
+    );
+  }
+  const titles: Record<string, string> = {
+    overdue: t`Overdue`,
+    today: t`Today`,
+    week: t`Next 7 days`,
+    later: t`Later`,
+    earlier: t`Done, due earlier`,
+    none: t`No due date`,
+  };
+  const login = group.login;
+  const title =
+    group.due !== undefined
+      ? titles[group.due]
+      : login === undefined
+        ? t`Nobody mentioned`
+        : `@${login}`;
+  return (
+    <h3 className={cn('font-medium text-sm', group.due === 'overdue' && 'text-destructive')}>
+      {title}
+    </h3>
+  );
+}
 
 export function ActionItemList({
   pages,
   me,
   filter,
+  today,
+  saving,
   onFilter,
+  onToggle,
   onOpen,
 }: {
   pages: PageObject[];
   me: string | null;
   filter: ActionFilter;
+  today: string;
+  saving: ReadonlySet<string>;
   onFilter: (next: ActionFilter) => void;
+  onToggle: (item: ActionItem, done: boolean) => void;
   onOpen: (docName: string) => void;
 }) {
   const { t } = useLingui();
   const showDoneId = useId();
   const setFilter = onFilter;
+  const grouping = filter.grouping ?? 'page';
   const items = actionItems(pages);
   const people = actionPeople(items);
-  const groups = groupActionItems(filterActionItems(items, filter));
+  const groups = groupActionItems(filterActionItems(items, filter), grouping, today);
   const shown = groups.reduce((total, group) => total + group.items.length, 0);
+  const overdue = items.filter((item) => dueBucket(item, today) === 'overdue').length;
   const mine = me?.toLowerCase() ?? '';
   const personChoices: Choice[] = [
     { value: '', label: t`Everyone` },
@@ -246,10 +379,21 @@ export function ActionItemList({
         return { value: login, label: t`@${login} (${open} open)` };
       }),
   ];
+  const groupingChoices: Choice[] = [
+    { value: 'page', label: t`Group by page` },
+    { value: 'due', label: t`Group by due date` },
+    { value: 'person', label: t`Group by person` },
+  ];
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
+        <ChoiceSelect
+          label={t`Group action items`}
+          value={grouping}
+          choices={groupingChoices}
+          onChange={(value) => setFilter({ ...filter, grouping: value as ActionGrouping })}
+        />
         <ChoiceSelect
           label={t`Person`}
           value={filter.person}
@@ -276,39 +420,31 @@ export function ActionItemList({
         </span>
         <span className="ms-auto text-muted-foreground text-xs">
           {plural(shown, { one: '# item', other: '# items' })}
+          {overdue > 0 && ` · ${plural(overdue, { one: '# overdue', other: '# overdue' })}`}
         </span>
       </div>
       {groups.length === 0 ? (
         <p className="text-muted-foreground text-sm">
           {items.length === 0
-            ? t`No action items yet. Add a task list to any page ("- [ ] Call the printer") and it shows up here.`
+            ? t`No action items yet. Add a task list to any page ("- [ ] Call the printer due: 2026-12-01") and it shows up here.`
             : t`Nothing matches.`}
         </p>
       ) : (
         <ul className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
           {groups.map((group) => (
-            <li key={group.docName} className="flex flex-col gap-1 rounded-lg border p-3">
-              <Button
-                type="button"
-                variant="link"
-                className="h-auto justify-start whitespace-normal p-0 text-start font-medium"
-                onClick={() => onOpen(group.docName)}
-              >
-                {group.pageTitle}
-              </Button>
-              <ul className="flex flex-col gap-1">
+            <li key={group.key} className="flex flex-col gap-1 rounded-lg border p-3">
+              <GroupHeading group={group} onOpen={onOpen} />
+              <ul className="flex flex-col gap-1.5">
                 {group.items.map((item) => (
-                  <li key={item.id} className="flex items-start gap-2 text-sm">
-                    <Checkbox
-                      checked={item.done}
-                      disabled
-                      aria-label={item.done ? t`Done` : t`Open`}
-                      className="mt-0.5"
-                    />
-                    <span className={cn(item.done && 'text-muted-foreground line-through')}>
-                      {item.text}
-                    </span>
-                  </li>
+                  <ActionRow
+                    key={`${group.key}:${item.id}`}
+                    item={item}
+                    today={today}
+                    showPage={group.docName === undefined}
+                    saving={saving.has(item.id)}
+                    onToggle={onToggle}
+                    onOpen={onOpen}
+                  />
                 ))}
               </ul>
             </li>

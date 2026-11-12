@@ -14,6 +14,9 @@ export interface PageTask {
   done: boolean;
   line: number;
   mentions: string[];
+  source?: string;
+  offset?: number;
+  due?: string;
 }
 
 export interface PageObject {

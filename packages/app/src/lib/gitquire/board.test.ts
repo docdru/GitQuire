@@ -11,8 +11,13 @@ import {
   groupActionItems,
   movePage,
   readBoardView,
+  localDay,
+  markTask,
+  StaleTaskError,
   setPageField,
+  setTaskDone,
   stageRank,
+  toggledSource,
   UNASSIGNED,
 } from './board';
 import type { PageObject, PageTask } from './objects';
@@ -225,3 +230,89 @@ describe('action items', () => {
     ]);
   });
 });
+
+describe('due dates and ticking off', () => {
+  const dated = [
+    page('notes/sync', {}, [
+      { ...task('Send notes @bob due: 2026-11-10', 3, false, ['bob']), due: '2026-11-10' },
+      { ...task('Book room', 4), due: '2026-11-12' },
+      { ...task('Write recap @alice', 5, false, ['alice']), due: '2026-11-15' },
+      { ...task('Plan Q1', 6), due: '2027-01-10' },
+      { ...task('Old thing', 7, true), due: '2026-10-01' },
+      task('Someday', 8),
+    ]),
+  ];
+  const items = actionItems(dated);
+  const all = { person: '', showDone: true, search: '' };
+
+  test('are grouped by due date with overdue first', () => {
+    const groups = groupActionItems(filterActionItems(items, all), 'due', '2026-11-12');
+    expect(groups.map((group) => [group.due, group.items.map((item) => item.line)])).toEqual([
+      ['overdue', [3]],
+      ['today', [4]],
+      ['week', [5]],
+      ['later', [6]],
+      ['earlier', [7]],
+      ['none', [8]],
+    ]);
+  });
+
+  test('are grouped by person', () => {
+    const groups = groupActionItems(filterActionItems(items, all), 'person', '2026-11-12');
+    expect(groups.map((group) => [group.login, group.items.length])).toEqual([
+      ['alice', 1],
+      ['bob', 1],
+      [undefined, 4],
+    ]);
+  });
+
+  test('flip only the checkbox of the line', () => {
+    expect(toggledSource('  - [ ] Call [x] printer', true)).toBe('  - [x] Call [x] printer');
+    expect(toggledSource('1. [X] Done', false)).toBe('1. [ ] Done');
+    expect(toggledSource('> * [ ] Quoted', true)).toBe('> * [x] Quoted');
+    expect(toggledSource('Not a task', true)).toBeUndefined();
+  });
+
+  test('write the change through the live document', async () => {
+    const bodies: unknown[] = [];
+    const fake = (async (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(JSON.parse(String(init?.body)));
+      return new Response('{}', { status: 200 });
+    }) as typeof fetch;
+    const item = { ...actionItems([page('a', {}, [task('Call', 2)])])[0], source: '- [ ] Call' };
+    expect(await setTaskDone(item as never, true, { fetch: fake })).toBe('- [x] Call');
+    expect(bodies).toEqual([
+      {
+        docName: 'a',
+        find: '- [ ] Call',
+        replace: '- [x] Call',
+        summary: 'Done: Call',
+        clientName: BOARD_CLIENT_NAME,
+      },
+    ]);
+  });
+
+  test('report a line that changed in the meantime', async () => {
+    const gone = (async () =>
+      new Response('{"title":"Text not found in document."}', { status: 404 })) as typeof fetch;
+    const item = { ...actionItems([page('a', {}, [task('Call', 2)])])[0], source: '- [ ] Call' };
+    await expect(setTaskDone(item as never, true, { fetch: gone })).rejects.toBeInstanceOf(
+      StaleTaskError,
+    );
+    const noSource = actionItems([page('a', {}, [task('Call', 2)])])[0];
+    await expect(setTaskDone(noSource as never, true)).rejects.toBeInstanceOf(StaleTaskError);
+  });
+
+  test('update the page that holds the item', () => {
+    const before = [page('a', {}, [task('Call', 2)]), page('b', {}, [task('Call', 2)])];
+    const item = actionItems(before)[0] as never;
+    const after = markTask(before, item, true, '- [x] Call');
+    expect(after[0]?.tasks[0]).toMatchObject({ done: true, source: '- [x] Call' });
+    expect(after[1]).toBe(before[1]);
+  });
+
+  test('use the local calendar day', () => {
+    expect(localDay(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05');
+  });
+});
+

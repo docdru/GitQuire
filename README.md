@@ -95,7 +95,9 @@ due: 2026-12-01
 
 The **Views** button shows them as a filterable **table**, a drag-and-drop **board** grouped by
 any property (moving a card commits the change in your name), and an **action items** list of
-every open checkbox across the wiki, filterable by who is mentioned.
+every checkbox across the wiki, grouped by page, due date or person. Ticking an item there writes
+`[x]` into the page, committed in your name, with undo. A due date goes in the item:
+`- [ ] Send the notes @bob due: 2026-12-01`.
 
 ### 📱 Phones and tablets
 
@@ -144,7 +146,7 @@ Next, depending on feedback:
 
 - **Pull request review**: GitHub review comments shown as page threads, or reviewing fully inside
   GitQuire.
-- **More views**: a meeting-notes timeline; ticking off action items from the list.
+- **More views**: a meeting-notes timeline and saved views as pages are in progress.
 
 Ideas and bug reports are welcome in [Issues](https://github.com/docdru/GitQuire/issues).
 

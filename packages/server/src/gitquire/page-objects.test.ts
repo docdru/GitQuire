@@ -154,6 +154,31 @@ describe('hostile and unusual pages', () => {
     expect(after.map((item) => item.line)).toEqual([3, 4, 5]);
   });
 
+  it('keeps the source line, its place when it repeats, and the due date', () => {
+    const source = [
+      '---',
+      'type: meeting',
+      '---',
+      '',
+      '- [ ] Send notes @bob due: 2026-12-01',
+      '  * [x] Same',
+      '  * [x] Same',
+      '- [ ] Call \u{1F4C5} 2026-02-30',
+      '- [ ] Ship \u{1F4C5} 2026-11-20',
+      '',
+    ].join('\n');
+    const tasks = pageFacts('a.md', source).tasks;
+    expect(tasks.map((item) => [item.source, item.offset, item.due])).toEqual([
+      ['- [ ] Send notes @bob due: 2026-12-01', undefined, '2026-12-01'],
+      ['  * [x] Same', source.indexOf('  * [x] Same'), undefined],
+      ['  * [x] Same', source.lastIndexOf('  * [x] Same'), undefined],
+      ['- [ ] Call \u{1F4C5} 2026-02-30', undefined, undefined],
+      ['- [ ] Ship \u{1F4C5} 2026-11-20', undefined, '2026-11-20'],
+    ]);
+    const crlf = pageFacts('b.md', '# T\r\n- [ ] A\r\n- [ ] A\r\n').tasks;
+    expect(crlf.map((item) => item.offset)).toEqual([5, 14]);
+  });
+
   it('marks pages whose properties or action items were cut', () => {
     const many = Array.from({ length: 120 }, (_, index) => `- [ ] Item ${index}`).join('\n');
     const facts = pageFacts('many.md', `${many}\n`);

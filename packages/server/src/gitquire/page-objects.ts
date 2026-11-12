@@ -27,6 +27,9 @@ export interface PageTask {
   done: boolean;
   line: number;
   mentions: string[];
+  source: string;
+  offset?: number;
+  due?: string;
 }
 
 export interface PageFacts {
@@ -44,6 +47,7 @@ export interface PageObject extends PageFacts {
 
 const FENCE_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
 const TASK_RE = /^[ \t>]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[([ xX])\][ \t]+(\S.*)$/;
+const DUE_RE = /(?:\u{1F4C5}\uFE0F?|(?<![\w-])due:?)[ \t]*(\d{4}-\d{2}-\d{2})(?!\d)/iu;
 const MENTION_RE = /(?<![\w@])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)(?![\w-])/g;
 
 function clipText(text: string): string {
@@ -123,6 +127,14 @@ function mentionsIn(text: string): string[] {
   return [...seen];
 }
 
+function dueDate(text: string): string | undefined {
+  const match = DUE_RE.exec(text);
+  if (match === null) return undefined;
+  const day = match[1] as string;
+  const date = new Date(`${day}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(day) ? day : undefined;
+}
+
 function taskId(text: string, ordinal: number): string {
   let hash = 5381;
   for (let index = 0; index < text.length; index += 1) {
@@ -152,7 +164,7 @@ function isClosingFence(marker: string, rest: string, open: string): boolean {
   return marker[0] === open[0] && marker.length >= open.length && rest.trim() === '';
 }
 
-function readBody(body: string, firstLine: number): BodyFacts {
+function readBody(body: string, firstLine: number, bodyStart: number): BodyFacts {
   const tasks: PageTask[] = [];
   const seen = new Map<string, number>();
   let heading: string | undefined;
@@ -160,8 +172,12 @@ function readBody(body: string, firstLine: number): BodyFacts {
   let inComment = false;
   let clipped = false;
   const lines = body.split('\n');
+  let next = bodyStart;
   for (let index = 0; index < lines.length; index += 1) {
-    const line = (lines[index] as string).replace(/\r$/, '');
+    const raw = lines[index] as string;
+    const start = next;
+    next += raw.length + 1;
+    const line = raw.replace(/\r$/, '');
     if (line.length > MAX_LINE_CHARS) continue;
     if (inComment) {
       inComment = !line.includes('-->');
@@ -192,12 +208,16 @@ function readBody(body: string, firstLine: number): BodyFacts {
     const text = clipText((task[2] as string).trim());
     const ordinal = seen.get(text) ?? 0;
     seen.set(text, ordinal + 1);
+    const due = dueDate(text);
     tasks.push({
       id: taskId(text, ordinal),
       text,
       done: task[1] !== ' ',
       line: firstLine + index,
       mentions: mentionsIn(text),
+      source: line,
+      offset: start,
+      ...(due === undefined ? {} : { due }),
     });
   }
   return { heading, tasks, clipped };
@@ -217,13 +237,17 @@ export function pageFacts(path: string, source: string): PageFacts {
   const prefix = markdown.slice(0, markdown.length - stripped.body.length);
   const firstLine = prefix.split('\n').length;
   const read = fieldsOf(markdown);
-  const body = readBody(splitCommentTrailer(stripped.body).body, firstLine);
+  const body = readBody(splitCommentTrailer(stripped.body).body, firstLine, prefix.length);
+  const tasks = body.tasks.map(({ offset, ...task }) => {
+    const repeats = markdown.indexOf(task.source) !== markdown.lastIndexOf(task.source);
+    return repeats ? { ...task, offset } : task;
+  });
   const title = titleOf(read.fields, body.heading) || docName.slice(docName.lastIndexOf('/') + 1);
   return {
     docName,
     title: clipText(title),
     fields: read.fields,
-    tasks: body.tasks,
+    tasks,
     clipped: read.clipped || body.clipped,
   };
 }

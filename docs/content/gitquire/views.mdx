@@ -47,8 +47,23 @@ the change at once. With a filter, for example `type` = `task`, pages without a 
 
 ## Action items
 
-Every task list item (`- [ ]`) of every page, grouped by page. Filter to items that `@mention` you,
-a teammate or nobody, search them, and tick **Show done** to see finished ones. Choose a page title
-to open it.
+Every task list item (`- [ ]`) of every page. Group them by page, by due date or by person. Filter
+to items that `@mention` you, a teammate or nobody, search them, and tick **Show done** to see
+finished ones. Choose a page title to open it.
+
+Tick an item's checkbox to mark it done: GitQuire writes `[x]` into the page, so everyone with the
+page open sees it at once, and the change is committed in your name. **Undo** in the message that
+appears takes it back for 10 seconds. If the line was changed on the page in the meantime, nothing
+is written and the list reloads.
+
+Give an item a due date by writing it in the item, as `due: 2026-12-01` or with a calendar emoji
+followed by the date:
+
+```markdown
+- [ ] Send the notes to the board @bob due: 2026-12-01
+```
+
+Grouped by due date, open items past their date come first as **Overdue**, then **Today**, **Next 7
+days**, **Later** and **No due date**.
 
 Table and board settings are saved per browser.
