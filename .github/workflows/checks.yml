@@ -52,7 +52,8 @@ jobs:
         id: catalogs
         run: |
           pnpm --filter @inkeep/open-knowledge-app run i18n:extract
-          if ! git diff --quiet -I '^"POT-Creation-Date' -- packages/app/src/locales; then
+          untracked=$(git ls-files --others --exclude-standard -- packages/app/src/locales)
+          if [ -n "$untracked" ] || ! git diff --quiet -I '^"POT-Creation-Date' -- packages/app/src/locales; then
             git --no-pager diff --stat -- packages/app/src/locales
             echo "::error::UI strings changed. Run: pnpm --filter @inkeep/open-knowledge-app run i18n:extract"
             exit 1
