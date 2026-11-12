@@ -9,6 +9,7 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
     <DocsLayout
       tree={source.pageTree}
       sidebar={{
+        prefetch: false,
         components: { Item: DocsSidebarItem, Separator: DocsSidebarSeparator },
       }}
       {...baseOptions({ wordmarkClassName: 'h-7 w-auto text-(--slide-text)' })}
