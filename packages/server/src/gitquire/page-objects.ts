@@ -47,8 +47,8 @@ export interface PageObject extends PageFacts {
   modified: string;
 }
 
-const ANY_HEADING_RE = /^ {0,3}#{1,6}[ \t]+(.*?)[ \t#]*$/;
-const DECISIONS_HEADING_RE = /^decisions?$/i;
+const ANY_HEADING_RE = /^ {0,3}(#{1,6})[ \t]+(.*)$/;
+const DECISIONS_HEADING_RE = /^decisions?:?$/i;
 const LIST_ITEM_RE = /^[ \t>]*(?:[-*+]|\d{1,9}[.)])[ \t]+(?:\[[ xX]\][ \t]+)?(\S.*)$/;
 const DECISION_LINE_RE = /^[ \t>]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)?\**decision\**:\**[ \t]*(\S.*)$/i;
 const FENCE_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
@@ -187,12 +187,26 @@ interface BodyFacts {
   clipped: boolean;
 }
 
+function sectionTitle(text: string): string {
+  let end = text.length;
+  while (end > 0 && (text[end - 1] === '#' || text[end - 1] === ' ' || text[end - 1] === '\t')) {
+    end -= 1;
+  }
+  return text.slice(0, end);
+}
+
+function decisionText(text: string): string {
+  const trimmed = text.trim();
+  const unbolded = trimmed.endsWith('**') ? trimmed.slice(0, -2).trimEnd() : trimmed;
+  return clipText(unbolded);
+}
+
 function decisionIn(line: string, inDecisions: boolean): string | undefined {
   const labelled = DECISION_LINE_RE.exec(line);
-  if (labelled !== null) return clipText((labelled[1] as string).trim());
+  if (labelled !== null) return decisionText(labelled[1] as string);
   if (!inDecisions) return undefined;
   const item = LIST_ITEM_RE.exec(line);
-  return item === null ? undefined : clipText((item[1] as string).trim());
+  return item === null ? undefined : decisionText(item[1] as string);
 }
 
 function isClosingFence(marker: string, rest: string, open: string): boolean {
@@ -202,7 +216,7 @@ function isClosingFence(marker: string, rest: string, open: string): boolean {
 function readBody(body: string, firstLine: number, bodyStart: number): BodyFacts {
   const tasks: PageTask[] = [];
   const decisions: string[] = [];
-  let inDecisions = false;
+  let decisionsLevel = 0;
   const seen = new Map<string, number>();
   let heading: string | undefined;
   let fence: string | undefined;
@@ -238,10 +252,12 @@ function readBody(body: string, firstLine: number, bodyStart: number): BodyFacts
     heading ??= headingText(line);
     const section = ANY_HEADING_RE.exec(line);
     if (section !== null) {
-      inDecisions = DECISIONS_HEADING_RE.test((section[1] as string).trim());
+      const level = (section[1] as string).length;
+      if (DECISIONS_HEADING_RE.test(sectionTitle(section[2] as string))) decisionsLevel = level;
+      else if (level <= decisionsLevel) decisionsLevel = 0;
       continue;
     }
-    const decision = decisionIn(line, inDecisions);
+    const decision = decisionIn(line, decisionsLevel > 0);
     if (decision !== undefined && decisions.length < MAX_DECISIONS) decisions.push(decision);
     const task = TASK_RE.exec(line);
     if (task === null) continue;

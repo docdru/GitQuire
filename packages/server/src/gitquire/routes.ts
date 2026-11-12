@@ -286,7 +286,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     } catch (err) {
       deps.log.warn({ err, path }, '[gitquire] could not read the properties of a page');
       const docName = docNameForPath(path) ?? path;
-      return { docName, title: docName, fields: {}, tasks: [], clipped: false };
+      return { docName, title: docName, fields: {}, tasks: [], decisions: [], clipped: false };
     }
   }
 

@@ -12,7 +12,7 @@ import {
 const DAY_RE = /^(\d{4}-\d{2}-\d{2})(?:$|[T ])/;
 const PREFERRED_DATE_KEYS = ['date', 'day', 'meeting_date', 'when', 'held'];
 const ATTENDEE_KEYS = ['attendees', 'participants', 'people', 'who'];
-export const MEETING_FOLDER = 'meeting-notes';
+const MEETING_FOLDER = 'meeting-notes';
 
 export interface TimelineView {
   dateKey: string;
@@ -98,7 +98,7 @@ export interface TimelineEntry {
   done: number;
 }
 
-export interface TimelineMonth {
+interface TimelineMonth {
   month: string;
   entries: TimelineEntry[];
 }
@@ -135,53 +135,32 @@ export function buildTimeline(pages: readonly PageObject[], view: TimelineView):
   return months;
 }
 
-export function meetingNoteDocName(day: string): string {
+function meetingNoteDocName(day: string): string {
   return `${MEETING_FOLDER}/${day}`;
 }
 
-export function meetingNoteBody(day: string): string {
-  return [
-    `# Meeting ${day}`,
-    '',
-    '## Agenda',
-    '',
-    '## Decisions',
-    '',
-    '## Action items',
-    '',
-  ].join('\n');
+function meetingNoteBody(day: string): string {
+  return [`# Meeting ${day}`, '', '## Agenda', '', '## Decisions', '', '## Action items', ''].join(
+    '\n',
+  );
 }
 
-export interface CreatedNote {
+interface CreatedNote {
   docName: string;
   created: boolean;
 }
 
-export async function createMeetingNote(day: string, deps: ApiDeps = {}): Promise<CreatedNote> {
-  const docName = meetingNoteDocName(day);
-  try {
-    const body = { path: `${docName}.md` };
-    await gitquireRequest('/api/create-page', { method: 'POST', body }, deps);
-  } catch (err) {
-    if (err instanceof GitQuireApiError && err.status === 409) return { docName, created: false };
-    throw err;
+export class IncompleteNoteError extends Error {
+  readonly docName: string;
+  constructor(docName: string) {
+    super('The meeting note was created but could not be filled in.');
+    this.name = 'IncompleteNoteError';
+    this.docName = docName;
   }
-  const identity = { clientName: BOARD_CLIENT_NAME };
-  await gitquireRequest(
-    '/api/agent-write-md',
-    {
-      method: 'POST',
-      body: {
-        docName,
-        markdown: meetingNoteBody(day),
-        position: 'replace',
-        summary: `New meeting note ${day}`,
-        ...identity,
-      },
-    },
-    deps,
-  );
-  await gitquireRequest(
+}
+
+function markAsMeeting(docName: string, day: string, deps: ApiDeps): Promise<unknown> {
+  return gitquireRequest(
     '/api/frontmatter-patch',
     {
       method: 'POST',
@@ -189,10 +168,47 @@ export async function createMeetingNote(day: string, deps: ApiDeps = {}): Promis
         docName,
         patch: { type: 'meeting', date: day },
         summary: `New meeting note ${day}`,
-        ...identity,
+        clientName: BOARD_CLIENT_NAME,
       },
     },
     deps,
   );
+}
+
+export async function createMeetingNote(day: string, deps: ApiDeps = {}): Promise<CreatedNote> {
+  const wanted = meetingNoteDocName(day);
+  let docName = wanted;
+  try {
+    const body = { path: `${wanted}.md` };
+    const created = await gitquireRequest<{ docName?: unknown } | undefined>(
+      '/api/create-page',
+      { method: 'POST', body },
+      deps,
+    );
+    if (typeof created?.docName === 'string' && created.docName !== '') docName = created.docName;
+  } catch (err) {
+    if (!(err instanceof GitQuireApiError) || err.status !== 409) throw err;
+    await markAsMeeting(wanted, day, deps).catch(() => undefined);
+    return { docName: wanted, created: false };
+  }
+  try {
+    await gitquireRequest(
+      '/api/agent-write-md',
+      {
+        method: 'POST',
+        body: {
+          docName,
+          markdown: meetingNoteBody(day),
+          position: 'replace',
+          summary: `New meeting note ${day}`,
+          clientName: BOARD_CLIENT_NAME,
+        },
+      },
+      deps,
+    );
+    await markAsMeeting(docName, day, deps);
+  } catch {
+    throw new IncompleteNoteError(docName);
+  }
   return { docName, created: true };
 }

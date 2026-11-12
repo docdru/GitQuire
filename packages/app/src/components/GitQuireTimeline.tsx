@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatDay } from '@/components/GitQuireBoard';
 import { localDay } from '@/lib/gitquire/board';
 import {
   NO_VALUE,
@@ -18,6 +19,7 @@ import {
   buildTimeline,
   createMeetingNote,
   dateKeys,
+  IncompleteNoteError,
   type TimelineEntry,
   type TimelineView,
   timelineDateKey,
@@ -31,12 +33,6 @@ function monthLabel(month: string): string {
   const date = new Date(`${month}-01T00:00:00`);
   if (Number.isNaN(date.getTime())) return month;
   return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-}
-
-function dayLabel(day: string): string {
-  const date = new Date(`${day}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return day;
-  return date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 function TimelineCard({
@@ -54,7 +50,12 @@ function TimelineCard({
   const shownAttendees = attendees.slice(0, MAX_ATTENDEES_SHOWN);
   const moreAttendees = attendees.length - shownAttendees.length;
   const decisions = page.decisions ?? [];
-  const shownDecisions = decisions.slice(0, MAX_DECISIONS_SHOWN);
+  const seen = new Map<string, number>();
+  const shownDecisions = decisions.slice(0, MAX_DECISIONS_SHOWN).map((text) => {
+    const count = seen.get(text) ?? 0;
+    seen.set(text, count + 1);
+    return { key: `${count}:${text}`, text };
+  });
   const moreDecisions = decisions.length - shownDecisions.length;
   const upcoming = day >= today;
   return (
@@ -62,14 +63,14 @@ function TimelineCard({
       <span
         aria-hidden="true"
         className={cn(
-          '-start-[1.4rem] absolute top-4 size-3 rounded-full border-2 border-background',
+          '-start-[1.6875rem] absolute top-4 size-3 rounded-full border-2 border-background',
           upcoming ? 'bg-primary' : 'bg-muted-foreground/50',
         )}
       />
       <article className="flex flex-col gap-2 rounded-lg border p-3">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <time dateTime={day} className="font-medium text-muted-foreground text-xs">
-            {dayLabel(day)}
+            {formatDay(day)}
           </time>
           <Button
             type="button"
@@ -88,8 +89,8 @@ function TimelineCard({
         </div>
         {shownDecisions.length > 0 && (
           <ul className="flex list-disc flex-col gap-0.5 ps-5 text-sm">
-            {shownDecisions.map((decision, index) => (
-              <li key={`${index}:${decision}`}>{decision}</li>
+            {shownDecisions.map((decision) => (
+              <li key={decision.key}>{decision.text}</li>
             ))}
             {moreDecisions > 0 && (
               <li className="list-none text-muted-foreground text-xs">
@@ -158,8 +159,15 @@ export function TimelineList({
         if (!note.created) toast(t`Today's meeting note already exists. It was opened.`);
         onOpen(note.docName);
       },
-      () => {
+      (err: unknown) => {
         setCreating(false);
+        if (err instanceof IncompleteNoteError) {
+          toast.error(
+            t`The meeting note was created, but its date and headings couldn't be added.`,
+          );
+          onOpen(err.docName);
+          return;
+        }
         toast.error(t`Couldn't create the meeting note.`);
       },
     );

@@ -119,7 +119,8 @@ function loadTimelineView(): TimelineView {
 
 function storeTimelineView(view: TimelineView): void {
   try {
-    window.localStorage.setItem(TIMELINE_VIEW_STORAGE_KEY, JSON.stringify(view));
+    const kept = { ...view, search: '' };
+    window.localStorage.setItem(TIMELINE_VIEW_STORAGE_KEY, JSON.stringify(kept));
   } catch {}
 }
 

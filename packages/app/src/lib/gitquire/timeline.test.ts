@@ -8,6 +8,7 @@ import {
   dateKeys,
   dayOf,
   EMPTY_TIMELINE_VIEW,
+  IncompleteNoteError,
   readTimelineView,
 } from './timeline';
 
@@ -119,5 +120,12 @@ describe('timeline', () => {
       docName: 'meeting-notes/2026-11-12',
       created: false,
     });
+    const half = (async (url: string | URL | Request) =>
+      String(url) === '/api/create-page'
+        ? new Response('{"docName":"meeting-notes/2026-11-12"}', { status: 201 })
+        : new Response('{}', { status: 500 })) as typeof fetch;
+    await expect(createMeetingNote('2026-11-12', { fetch: half })).rejects.toBeInstanceOf(
+      IncompleteNoteError,
+    );
   });
 });

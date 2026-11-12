@@ -239,7 +239,7 @@ function DueLabel({ item, today }: { item: ActionItem; today: string }) {
   );
 }
 
-function formatDay(day: string): string {
+export function formatDay(day: string): string {
   const date = new Date(`${day}T00:00:00`);
   if (Number.isNaN(date.getTime())) return day;
   return date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });

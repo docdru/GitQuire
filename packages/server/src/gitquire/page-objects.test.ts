@@ -212,6 +212,16 @@ describe('hostile and unusual pages', () => {
       'Use GitHub sign-in',
       'Move tasks to the roadmap',
     ]);
+    const nested = '## Decisions:\n\n### Infra\n\n- Use Docker\n\n## Notes\n\n- Not one\n';
+    expect(pageFacts('b.md', nested).decisions).toEqual(['Use Docker']);
+    expect(pageFacts('c.md', '**Decision: keep it**\n').decisions).toEqual(['keep it']);
+  });
+
+  it('reads headings in linear time', () => {
+    const hostile = Array.from({ length: 2000 }, () => `## ${' \t'.repeat(450)}x#`).join('\n');
+    const started = Date.now();
+    expect(pageFacts('slow.md', hostile).decisions).toEqual([]);
+    expect(Date.now() - started).toBeLessThan(1000);
   });
 
   it('marks pages whose properties or action items were cut', () => {
