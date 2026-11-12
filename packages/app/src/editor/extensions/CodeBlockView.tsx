@@ -20,7 +20,7 @@ import {
 import { useTheme } from 'next-themes';
 import { useEffect, useId, useRef, useState } from 'react';
 import { emitStartComment } from '@/comments/store';
-import { GitQuireViewBlock } from '@/components/GitQuireViewBlock';
+import { GitQuireViewBlock, SAVED_VIEW_ATTR } from '@/components/GitQuireViewBlock';
 import {
   Command,
   CommandEmpty,
@@ -63,6 +63,13 @@ import {
 } from './preview-iframe-header';
 
 const PLAIN_TEXT = 'plaintext';
+const COLLAPSED_CODE_STYLE = {
+  maxHeight: 0,
+  paddingTop: 0,
+  paddingBottom: 0,
+  overflow: 'hidden',
+  opacity: 0,
+} as const;
 
 function readAppTheme(): PreviewTheme {
   return typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
@@ -157,10 +164,15 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
   const editable = editor.isEditable;
   const cursorInside = useCursorInside(editor, getPos);
   const savedView = rawLanguage === VIEW_BLOCK_LANGUAGE;
-  const savedViewCodeHidden = savedView && !cursorInside;
+  const savedViewCodeHidden = savedView && editor.isEditable && !cursorInside;
   const editSavedView = () => {
     const pos = typeof getPos === 'function' ? getPos() : undefined;
-    if (typeof pos === 'number') editor.chain().focus().setTextSelection(pos + 1).run();
+    if (typeof pos !== 'number') return;
+    editor
+      .chain()
+      .focus()
+      .setTextSelection(pos + 1)
+      .run();
   };
 
   useEffect(() => {
@@ -331,11 +343,12 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
         <div // oxlint-disable-line jsx-a11y/no-static-element-interactions -- stopPropagation required inside PM NodeView
           contentEditable={false}
           onMouseDown={(e) => e.stopPropagation()}
-          {...{ [OPT_OUT_ATTR]: 'true' }}
+          {...{ [OPT_OUT_ATTR]: 'true', [SAVED_VIEW_ATTR]: 'true' }}
         >
           <GitQuireViewBlock
             source={node.textContent}
             codeShown={!savedViewCodeHidden}
+            editable={editable}
             onEdit={editable ? editSavedView : undefined}
           />
         </div>
@@ -347,8 +360,8 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
           previewActive && codeVisible ? 'rounded-b-lg' : null,
           !previewActive && !savedView ? 'rounded-lg' : null,
           savedView ? 'rounded-b-lg' : null,
-          savedViewCodeHidden ? 'hidden' : null,
         )}
+        style={savedViewCodeHidden ? COLLAPSED_CODE_STYLE : undefined}
         aria-hidden={!codeVisible || savedViewCodeHidden || undefined}
       >
         <NodeViewContent<'code'>

@@ -2,7 +2,7 @@ import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-ti
 import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { ArrowDown, ArrowUp, Columns3, LayoutList, Save } from 'lucide-react';
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react';
+import { type Dispatch, type SetStateAction, useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionItemList, EMPTY_ACTION_FILTER, ObjectBoard } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
@@ -74,6 +74,7 @@ import {
 } from '@/lib/gitquire/objects';
 import { readTimelineView, type TimelineView } from '@/lib/gitquire/timeline';
 import {
+  IncompleteViewPageError,
   PageExistsError,
   savedViewDocName,
   saveViewAsPage,
@@ -419,6 +420,7 @@ function SaveViewDialog({
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const helpId = useId();
   const docName = savedViewDocName(name);
 
   function save() {
@@ -433,6 +435,12 @@ function SaveViewDialog({
       },
       (err: unknown) => {
         setSaving(false);
+        if (err instanceof IncompleteViewPageError) {
+          toast.error(t`The page was created, but the view couldn't be written into it.`);
+          setName('');
+          onSaved(err.docName);
+          return;
+        }
         setError(
           err instanceof PageExistsError
             ? t`A page with that name exists. Choose another name.`
@@ -457,17 +465,22 @@ function SaveViewDialog({
             placeholder={t`Open tasks`}
             aria-label={t`Page name`}
             onChange={(event) => setName(event.target.value)}
+            aria-describedby={helpId}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') save();
+              if (event.key === 'Enter' && !event.nativeEvent.isComposing) save();
             }}
           />
-          <p className="text-muted-foreground text-xs">
+          <p id={helpId} className="text-muted-foreground text-xs">
             {docName === undefined ? t`Enter a name.` : t`Saved as ${docName}.md`}
           </p>
           <pre className="overflow-x-auto rounded-md bg-muted p-2 text-xs">
             {writeViewBlock(spec)}
           </pre>
-          {error !== null && <p className="text-destructive text-sm">{error}</p>}
+          {error !== null && (
+            <p role="alert" className="text-destructive text-sm">
+              {error}
+            </p>
+          )}
         </DialogBody>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

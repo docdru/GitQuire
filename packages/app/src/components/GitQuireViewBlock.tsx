@@ -2,7 +2,7 @@ import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-ti
 import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { LayoutList, Pencil } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -42,6 +42,11 @@ import {
 import { cn } from '@/lib/utils';
 
 const REUSE_MS = 5000;
+export const SAVED_VIEW_ATTR = 'data-gitquire-view';
+
+export function isInsideSavedView(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest(`[${SAVED_VIEW_ATTR}]`) !== null;
+}
 const MAX_ROWS = 50;
 const MAX_CARDS = 20;
 
@@ -125,8 +130,9 @@ function TableEmbed({ pages, spec }: { pages: PageObject[]; spec: ViewSpec }) {
 function BoardEmbed({ pages, spec }: { pages: PageObject[]; spec: ViewSpec }) {
   const { t } = useLingui();
   const view = boardViewOf(spec);
-  const shown = pages.filter((page) => matchesFilter(page, view.filterKey, view.filterValue));
-  const board = buildBoard(shown, view);
+  const matching = pages.filter((page) => matchesFilter(page, view.filterKey, view.filterValue));
+  if (matching.length === 0) return <EmptyEmbed />;
+  const board = buildBoard(pages, view);
   if (board === null) {
     return (
       <p className="text-muted-foreground text-sm">
@@ -187,30 +193,34 @@ function TimelineEmbed({ pages, spec }: { pages: PageObject[]; spec: ViewSpec })
 function ActionsEmbed({
   pages,
   spec,
+  editable,
   onChange,
 }: {
   pages: PageObject[];
   spec: ViewSpec;
+  editable: boolean;
   onChange: (pages: PageObject[]) => void;
 }) {
   const { t } = useLingui();
   const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set());
+  const savingRef = useRef(new Set<string>());
   const today = localDay(new Date());
   const filter = actionFilterOf(spec);
   const scoped = pages.filter((page) => matchesFilter(page, spec.filterKey, spec.filterValue));
-  const items = filterActionItems(actionItems(scoped), filter).slice(0, MAX_ROWS);
-  const groups = groupActionItems(items, filter.grouping, today);
-  if (groups.length === 0) return <EmptyEmbed />;
+  const matching = filterActionItems(actionItems(scoped), filter);
+  const groups = groupActionItems(matching, filter.grouping, today);
+  const rows = groups.flatMap((group) => group.items.map((item) => ({ key: group.key, item })));
+  const shown = rows.slice(0, MAX_ROWS);
+  if (shown.length === 0) return <EmptyEmbed />;
 
   function toggle(item: ActionItem, done: boolean) {
-    if (saving.has(item.id)) return;
-    setSaving((current) => new Set(current).add(item.id));
-    const settle = () =>
-      setSaving((current) => {
-        const next = new Set(current);
-        next.delete(item.id);
-        return next;
-      });
+    if (savingRef.current.has(item.id)) return;
+    savingRef.current.add(item.id);
+    setSaving(new Set(savingRef.current));
+    const settle = () => {
+      savingRef.current.delete(item.id);
+      setSaving(new Set(savingRef.current));
+    };
     setTaskDone(item, done).then(
       (source) => {
         settle();
@@ -230,15 +240,14 @@ function ActionsEmbed({
 
   return (
     <ul className="flex flex-col gap-1.5 text-sm">
-      {groups.flatMap((group) =>
-        group.items.map((item) => {
+      {shown.map(({ key, item }) => {
           const text = item.text;
           const overdue = dueBucket(item, today) === 'overdue';
           return (
-            <li key={`${group.key}:${item.id}`} className="flex flex-wrap items-start gap-x-2">
+            <li key={`${key}:${item.id}`} className="flex flex-wrap items-start gap-x-2">
               <Checkbox
                 checked={item.done}
-                disabled={saving.has(item.id) || item.source === undefined}
+                disabled={!editable || saving.has(item.id) || item.source === undefined}
                 aria-label={item.done ? t`Reopen: ${text}` : t`Mark done: ${text}`}
                 onCheckedChange={(checked) => toggle(item, checked === true)}
                 className="mt-0.5"
@@ -263,7 +272,9 @@ function ActionsEmbed({
               </a>
             </li>
           );
-        }),
+        })}
+      {rows.length > shown.length && (
+        <li className="text-muted-foreground text-xs">{t`Showing the first ${MAX_ROWS} items.`}</li>
       )}
     </ul>
   );
@@ -277,22 +288,24 @@ function EmptyEmbed() {
 export function GitQuireViewBlock({
   source,
   codeShown,
+  editable,
   onEdit,
 }: {
   source: string;
   codeShown: boolean;
+  editable: boolean;
   onEdit?: () => void;
 }) {
   const { t } = useLingui();
   const spec = parseViewBlock(source);
-  const [pages, setPages] = useState<PageObject[] | null>(null);
+  const [list, setList] = useState<ObjectList | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let live = true;
     sharedObjects().then(
-      (list) => {
-        if (live) setPages(list.pages);
+      (next) => {
+        if (live) setList(next);
       },
       () => {
         if (live) setFailed(true);
@@ -336,16 +349,26 @@ export function GitQuireViewBlock({
       </div>
       {failed ? (
         <p className="text-destructive text-sm">{t`Couldn't load the pages for this view.`}</p>
-      ) : pages === null ? (
+      ) : list === null ? (
         <p className="text-muted-foreground text-sm">{t`Loading…`}</p>
       ) : spec.view === 'table' ? (
-        <TableEmbed pages={pages} spec={spec} />
+        <TableEmbed pages={list.pages} spec={spec} />
       ) : spec.view === 'board' ? (
-        <BoardEmbed pages={pages} spec={spec} />
+        <BoardEmbed pages={list.pages} spec={spec} />
       ) : spec.view === 'timeline' ? (
-        <TimelineEmbed pages={pages} spec={spec} />
+        <TimelineEmbed pages={list.pages} spec={spec} />
       ) : (
-        <ActionsEmbed pages={pages} spec={spec} onChange={setPages} />
+        <ActionsEmbed
+          pages={list.pages}
+          spec={spec}
+          editable={editable}
+          onChange={(pages) => setList({ ...list, pages })}
+        />
+      )}
+      {list?.truncated === true && (
+        <p className="text-muted-foreground text-xs">
+          {t`This wiki has more pages than a view can show; the list is cut off.`}
+        </p>
       )}
     </section>
   );

@@ -5,6 +5,7 @@ import {
   actionFilterOf,
   boardViewOf,
   DEFAULT_VIEW_SPEC,
+  IncompleteViewPageError,
   PageExistsError,
   parseViewBlock,
   savedViewDocName,
@@ -87,6 +88,13 @@ describe('saved view blocks', () => {
     expect(parseViewBlock(writeViewBlock(actions))).toEqual(actions);
   });
 
+  test('stay fast on a hostile line', () => {
+    const started = Date.now();
+    const spec = parseViewBlock(`search: x${' '.repeat(100_000)}y\nview: board`);
+    expect(spec.view).toBe('board');
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
   test('keep a value on one line', () => {
     const spec = { ...DEFAULT_VIEW_SPEC, search: 'a\n```\nb' };
     expect(writeViewBlock(spec)).toBe('view: table\nsearch: a ``` b');
@@ -95,6 +103,8 @@ describe('saved view blocks', () => {
   test('name the page in the views folder', () => {
     expect(savedViewDocName('Open tasks!')).toBe('views/open-tasks');
     expect(savedViewDocName('  ')).toBeUndefined();
+    expect(savedViewDocName('Überfällige Aufgaben')).toBe('views/uberfallige-aufgaben');
+    expect(savedViewDocName(`${'a'.repeat(79)} b`)).toBe(`views/${'a'.repeat(79)}`);
     const board = specFromBoard({ groupKey: 'status', filterKey: '', filterValue: '' });
     expect(savedViewMarkdown('Open tasks', board)).toBe(
       '# Open tasks\n\n```gitquire-view\nview: board\ngroup: status\n```\n',
@@ -115,5 +125,25 @@ describe('saved view blocks', () => {
     const taken = (async () => new Response('{}', { status: 409 })) as typeof fetch;
     const again = saveViewAsPage('Open tasks', DEFAULT_VIEW_SPEC, { fetch: taken });
     await expect(again).rejects.toBeInstanceOf(PageExistsError);
+    expect(calls[1]?.[1]).toMatchObject({
+      docName: 'views/open-tasks',
+      markdown: '# Open tasks\n\n```gitquire-view\nview: table\n```\n',
+    });
+  });
+
+  test('use the name the server gave and report a page left empty', async () => {
+    const renamed = (async (url: string | URL | Request) =>
+      String(url) === '/api/create-page'
+        ? new Response('{"docName":"views/open-tasks-2"}', { status: 201 })
+        : new Response('{}', { status: 200 })) as typeof fetch;
+    expect(await saveViewAsPage('Open tasks', DEFAULT_VIEW_SPEC, { fetch: renamed })).toBe(
+      'views/open-tasks-2',
+    );
+    const half = (async (url: string | URL | Request) =>
+      String(url) === '/api/create-page'
+        ? new Response('{"docName":"views/open-tasks"}', { status: 201 })
+        : new Response('{}', { status: 500 })) as typeof fetch;
+    const failed = saveViewAsPage('Open tasks', DEFAULT_VIEW_SPEC, { fetch: half });
+    await expect(failed).rejects.toBeInstanceOf(IncompleteViewPageError);
   });
 });

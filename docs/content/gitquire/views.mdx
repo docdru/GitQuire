@@ -118,15 +118,16 @@ group: status
 ```
 ````
 
-Put such a block in any page to show a view there, with text around it. Click **Edit view** above
-it to change the block; when the cursor leaves it, the view shows again. Action items can be ticked
-off right in the page; to move board cards, use the board in **Views**.
+Put such a block in any page to show a view there, with text around it. The block's text is
+hidden while you are not editing it: choose **Edit view** (or move the cursor into it with the arrow
+keys) to change it. Action items can be ticked off right in the page; to move board cards, use the
+board in **Views**. In history and diff views the text is always shown, and nothing can be ticked.
 
 | Line | Meaning |
 | --- | --- |
 | `view:` | `table`, `board`, `timeline` or `actions` |
 | `filter:` | `property = value`; `property = (none)` for pages without it; only `property` for pages that have it |
-| `search:` | Text the title or values must contain |
+| `search:` | Text the title or values must contain (not used by boards) |
 | `columns:` | Table columns, separated by commas |
 | `sort:` | Table column to sort by, `title` or `changed`, optionally followed by `desc` |
 | `group:` | Board: the property for the columns. Action items: `page`, `due` or `person` |

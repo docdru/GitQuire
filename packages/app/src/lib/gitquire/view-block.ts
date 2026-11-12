@@ -1,3 +1,4 @@
+import { toWikiLinkSlug } from '@inkeep/open-knowledge-core/utils/slug';
 import {
   type ActionFilter,
   type ActionGrouping,
@@ -25,6 +26,7 @@ const GROUPINGS: readonly ActionGrouping[] = ['page', 'due', 'person'];
 const NONE_WORD = '(none)';
 const MAX_LINES = 50;
 const MAX_VALUE_CHARS = 200;
+const MAX_LINE_CHARS = 256;
 const LINE_RE = /^\s*([A-Za-z]+)\s*:\s*(.*?)\s*$/;
 const FILTER_RE = /^(.+?)\s*=\s*(.*)$/;
 const SORT_RE = /^(.*?)(?:\s+(asc|desc))?$/i;
@@ -79,7 +81,7 @@ function personFrom(word: string): string {
 export function parseViewBlock(source: string): ViewSpec {
   const spec: ViewSpec = { ...DEFAULT_VIEW_SPEC };
   for (const line of source.split('\n').slice(0, MAX_LINES)) {
-    const match = LINE_RE.exec(line);
+    const match = LINE_RE.exec(line.slice(0, MAX_LINE_CHARS));
     if (match === null) continue;
     const key = (match[1] as string).toLowerCase();
     const value = (match[2] as string).slice(0, MAX_VALUE_CHARS);
@@ -108,7 +110,7 @@ export function parseViewBlock(source: string): ViewSpec {
       spec.sortKey = sortKeyFrom((sort?.[1] ?? '').trim());
       spec.descending = sort?.[2]?.toLowerCase() === 'desc';
     } else if (key === 'group') {
-      spec.group = value;
+      spec.group = spec.view === 'actions' ? value.toLowerCase() : value;
     } else if (key === 'date') {
       spec.dateKey = value;
     } else if (key === 'person') {
@@ -229,12 +231,7 @@ export function savedViewMarkdown(title: string, spec: ViewSpec): string {
 }
 
 export function savedViewDocName(name: string): string | undefined {
-  const slug = name
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80);
+  const slug = toWikiLinkSlug(name).slice(0, 80).replace(/-+$/, '');
   return slug === '' ? undefined : `${SAVED_VIEW_FOLDER}/${slug}`;
 }
 
@@ -245,33 +242,52 @@ export class PageExistsError extends Error {
   }
 }
 
+export class IncompleteViewPageError extends Error {
+  readonly docName: string;
+  constructor(docName: string) {
+    super('The page was created but the view could not be written into it.');
+    this.name = 'IncompleteViewPageError';
+    this.docName = docName;
+  }
+}
+
 export async function saveViewAsPage(
   title: string,
   spec: ViewSpec,
   deps: ApiDeps = {},
 ): Promise<string> {
-  const docName = savedViewDocName(title);
-  if (docName === undefined) throw new PageExistsError();
+  const wanted = savedViewDocName(title);
+  if (wanted === undefined) throw new RangeError('A saved view needs a name.');
+  let docName = wanted;
   try {
-    const body = { path: `${docName}.md` };
-    await gitquireRequest('/api/create-page', { method: 'POST', body }, deps);
+    const body = { path: `${wanted}.md` };
+    const created = await gitquireRequest<{ docName?: unknown } | undefined>(
+      '/api/create-page',
+      { method: 'POST', body },
+      deps,
+    );
+    if (typeof created?.docName === 'string' && created.docName !== '') docName = created.docName;
   } catch (err) {
     if (err instanceof GitQuireApiError && err.status === 409) throw new PageExistsError();
     throw err;
   }
-  await gitquireRequest(
-    '/api/agent-write-md',
-    {
-      method: 'POST',
-      body: {
-        docName,
-        markdown: savedViewMarkdown(title, spec),
-        position: 'replace',
-        summary: `Save view ${oneLine(title)}`.slice(0, 200),
-        clientName: BOARD_CLIENT_NAME,
+  try {
+    await gitquireRequest(
+      '/api/agent-write-md',
+      {
+        method: 'POST',
+        body: {
+          docName,
+          markdown: savedViewMarkdown(title, spec),
+          position: 'replace',
+          summary: `Save view ${oneLine(title)}`.slice(0, 200),
+          clientName: BOARD_CLIENT_NAME,
+        },
       },
-    },
-    deps,
-  );
+      deps,
+    );
+  } catch {
+    throw new IncompleteViewPageError(docName);
+  }
   return docName;
 }
