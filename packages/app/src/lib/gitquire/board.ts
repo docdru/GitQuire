@@ -1,4 +1,4 @@
-import { type ApiDeps, gitquireRequest } from './branch-api';
+import { type ApiDeps, GitQuireApiError, gitquireRequest } from './branch-api';
 import {
   type FieldValue,
   fieldOf,
@@ -232,6 +232,10 @@ export interface ActionItem {
   done: boolean;
   line: number;
   mentions: string[];
+  taskId: string;
+  source?: string;
+  offset?: number;
+  due?: string;
 }
 
 function actionItem(page: PageObject, task: PageTask): ActionItem {
@@ -243,6 +247,10 @@ function actionItem(page: PageObject, task: PageTask): ActionItem {
     done: task.done,
     line: task.line,
     mentions: task.mentions,
+    taskId: task.id,
+    ...(task.source === undefined ? {} : { source: task.source }),
+    ...(task.offset === undefined ? {} : { offset: task.offset }),
+    ...(task.due === undefined ? {} : { due: task.due }),
   };
 }
 
@@ -254,6 +262,7 @@ export interface ActionFilter {
   person: string;
   showDone: boolean;
   search: string;
+  grouping?: ActionGrouping;
 }
 
 export const UNASSIGNED = '@none';
@@ -290,16 +299,62 @@ export function actionPeople(items: readonly ActionItem[]): PersonSummary[] {
     .sort((a, b) => b.open - a.open || a.login.localeCompare(b.login));
 }
 
+export type ActionGrouping = 'page' | 'due' | 'person';
+
+export type DueBucket = 'overdue' | 'today' | 'week' | 'later' | 'earlier' | 'none';
+
+export const DUE_BUCKETS: readonly DueBucket[] = [
+  'overdue',
+  'today',
+  'week',
+  'later',
+  'earlier',
+  'none',
+];
+
 export interface ActionGroup {
-  docName: string;
-  pageTitle: string;
+  key: string;
+  docName?: string;
+  pageTitle?: string;
+  due?: DueBucket;
+  login?: string;
   items: ActionItem[];
 }
 
-export function groupActionItems(items: readonly ActionItem[]): ActionGroup[] {
+export function localDay(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function addDays(day: string, days: number): string {
+  const date = new Date(`${day}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+export function dueBucket(item: ActionItem, today: string): DueBucket {
+  if (item.due === undefined) return 'none';
+  if (item.due < today) return item.done ? 'earlier' : 'overdue';
+  if (item.due === today) return 'today';
+  return item.due <= addDays(today, 7) ? 'week' : 'later';
+}
+
+function byPageTitle(a: ActionItem, b: ActionItem): number {
+  return a.pageTitle.localeCompare(b.pageTitle, undefined, { numeric: true }) || a.line - b.line;
+}
+
+function byDue(a: ActionItem, b: ActionItem): number {
+  const dueA = a.due ?? '9999-99-99';
+  const dueB = b.due ?? '9999-99-99';
+  return dueA < dueB ? -1 : dueA > dueB ? 1 : byPageTitle(a, b);
+}
+
+function groupByPage(items: readonly ActionItem[]): ActionGroup[] {
   const groups = new Map<string, ActionGroup>();
   for (const item of items) {
     const group = groups.get(item.docName) ?? {
+      key: item.docName,
       docName: item.docName,
       pageTitle: item.pageTitle,
       items: [],
@@ -308,6 +363,91 @@ export function groupActionItems(items: readonly ActionItem[]): ActionGroup[] {
     groups.set(item.docName, group);
   }
   return [...groups.values()].sort((a, b) =>
-    a.pageTitle.localeCompare(b.pageTitle, undefined, { numeric: true }),
+    (a.pageTitle ?? '').localeCompare(b.pageTitle ?? '', undefined, { numeric: true }),
   );
+}
+
+function groupByDue(items: readonly ActionItem[], today: string): ActionGroup[] {
+  return DUE_BUCKETS.map((due) => ({
+    key: `due:${due}`,
+    due,
+    items: items.filter((item) => dueBucket(item, today) === due).sort(byDue),
+  })).filter((group) => group.items.length > 0);
+}
+
+function groupByPerson(items: readonly ActionItem[]): ActionGroup[] {
+  const order = actionPeople(items.map((item) => ({ ...item, done: false })));
+  const groups: ActionGroup[] = order.map((person) => ({
+    key: `person:${person.login}`,
+    login: person.login,
+    items: items.filter((item) => item.mentions.includes(person.login)).sort(byDue),
+  }));
+  const nobody = items.filter((item) => item.mentions.length === 0).sort(byDue);
+  if (nobody.length > 0) groups.push({ key: `person:${UNASSIGNED}`, items: nobody });
+  return groups;
+}
+
+export function groupActionItems(
+  items: readonly ActionItem[],
+  grouping: ActionGrouping = 'page',
+  today: string = localDay(new Date()),
+): ActionGroup[] {
+  if (grouping === 'due') return groupByDue(items, today);
+  if (grouping === 'person') return groupByPerson(items);
+  return groupByPage(items);
+}
+
+const CHECKBOX_RE = /^([ \t>]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[)[ xX](\])/;
+
+export function toggledSource(source: string, done: boolean): string | undefined {
+  if (!CHECKBOX_RE.test(source)) return undefined;
+  return source.replace(CHECKBOX_RE, `$1${done ? 'x' : ' '}$2`);
+}
+
+export class StaleTaskError extends Error {
+  constructor() {
+    super('The action item changed on the page.');
+    this.name = 'StaleTaskError';
+  }
+}
+
+export async function setTaskDone(
+  item: ActionItem,
+  done: boolean,
+  deps: ApiDeps = {},
+): Promise<string> {
+  const replace = item.source === undefined ? undefined : toggledSource(item.source, done);
+  if (item.source === undefined || replace === undefined) throw new StaleTaskError();
+  const body = {
+    docName: item.docName,
+    find: item.source,
+    replace,
+    ...(item.offset === undefined ? {} : { offset: item.offset }),
+    summary: `${done ? 'Done' : 'Reopen'}: ${item.text}`.slice(0, 200),
+    clientName: BOARD_CLIENT_NAME,
+  };
+  try {
+    await gitquireRequest('/api/agent-patch', { method: 'POST', body }, deps);
+  } catch (err) {
+    if (err instanceof GitQuireApiError && (err.status === 404 || err.status === 409)) {
+      throw new StaleTaskError();
+    }
+    throw err;
+  }
+  return replace;
+}
+
+export function markTask(
+  pages: readonly PageObject[],
+  item: ActionItem,
+  done: boolean,
+  source: string,
+): PageObject[] {
+  return pages.map((page) => {
+    if (page.docName !== item.docName) return page;
+    const tasks = page.tasks.map((task) =>
+      task.id === item.taskId ? { ...task, done, source } : task,
+    );
+    return { ...page, tasks };
+  });
 }

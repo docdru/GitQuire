@@ -14,6 +14,9 @@ export interface PageTask {
   done: boolean;
   line: number;
   mentions: string[];
+  source?: string;
+  offset?: number;
+  due?: string;
 }
 
 export interface PageObject {
@@ -23,6 +26,7 @@ export interface PageObject {
   modified: string;
   fields: Record<string, FieldValue>;
   tasks: PageTask[];
+  decisions?: string[];
   clipped?: boolean;
 }
 

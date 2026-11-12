@@ -84,6 +84,7 @@ describe('page facts', () => {
       title: 'plain',
       fields: {},
       tasks: [],
+      decisions: [],
       clipped: false,
     });
     expect(pageFacts('a.md', '---\ntitle: 2026\n---\n').title).toBe('2026');
@@ -152,6 +153,75 @@ describe('hostile and unusual pages', () => {
     expect(new Set(before.map((item) => item.id)).size).toBe(3);
     expect(after.map((item) => item.id)).toEqual(before.map((item) => item.id));
     expect(after.map((item) => item.line)).toEqual([3, 4, 5]);
+  });
+
+  it('keeps the source line, its place when it repeats, and the due date', () => {
+    const source = [
+      '---',
+      'type: meeting',
+      '---',
+      '',
+      '- [ ] Send notes @bob due: 2026-12-01',
+      '  * [x] Same',
+      '  * [x] Same',
+      '- [ ] Call \u{1F4C5} 2026-02-30',
+      '- [ ] Ship \u{1F4C5} 2026-11-20',
+      '',
+    ].join('\n');
+    const tasks = pageFacts('a.md', source).tasks;
+    expect(tasks.map((item) => [item.source, item.offset, item.due])).toEqual([
+      ['- [ ] Send notes @bob due: 2026-12-01', undefined, '2026-12-01'],
+      ['  * [x] Same', source.indexOf('  * [x] Same'), undefined],
+      ['  * [x] Same', source.lastIndexOf('  * [x] Same'), undefined],
+      ['- [ ] Call \u{1F4C5} 2026-02-30', undefined, undefined],
+      ['- [ ] Ship \u{1F4C5} 2026-11-20', undefined, '2026-11-20'],
+    ]);
+    const crlf = pageFacts('b.md', '# T\r\n- [ ] A\r\n- [ ] A\r\n').tasks;
+    expect(crlf.map((item) => item.offset)).toEqual([5, 14]);
+    const prefix = pageFacts('c.md', '- [x] Call Bob\n- [ ] Call\n').tasks;
+    expect(prefix.map((item) => item.offset)).toEqual([undefined, 15]);
+    const flipped = pageFacts('d.md', '- [x] Call\n- [ ] Call\n').tasks;
+    expect(flipped.map((item) => item.offset)).toEqual([0, 11]);
+    const bom = pageFacts('e.md', '\uFEFF- [ ] A\n- [ ] A\n').tasks;
+    expect(bom.map((item) => item.offset)).toEqual([1, 9]);
+  });
+
+  it('collects decisions from a Decisions section and labelled lines', () => {
+    const source = [
+      '# Weekly sync',
+      '',
+      'Decision: ship on Friday',
+      '- **Decision:** keep comments in the file',
+      '',
+      '## Decisions',
+      '',
+      '- Use GitHub sign-in',
+      '1. Move tasks to the roadmap',
+      '',
+      '## Notes',
+      '',
+      '- Not a decision',
+      '```',
+      'Decision: inside a fence',
+      '```',
+      '',
+    ].join('\n');
+    expect(pageFacts('a.md', source).decisions).toEqual([
+      'ship on Friday',
+      'keep comments in the file',
+      'Use GitHub sign-in',
+      'Move tasks to the roadmap',
+    ]);
+    const nested = '## Decisions:\n\n### Infra\n\n- Use Docker\n\n## Notes\n\n- Not one\n';
+    expect(pageFacts('b.md', nested).decisions).toEqual(['Use Docker']);
+    expect(pageFacts('c.md', '**Decision: keep it**\n').decisions).toEqual(['keep it']);
+  });
+
+  it('reads headings in linear time', () => {
+    const hostile = Array.from({ length: 2000 }, () => `## ${' \t'.repeat(450)}x#`).join('\n');
+    const started = Date.now();
+    expect(pageFacts('slow.md', hostile).decisions).toEqual([]);
+    expect(Date.now() - started).toBeLessThan(1000);
   });
 
   it('marks pages whose properties or action items were cut', () => {

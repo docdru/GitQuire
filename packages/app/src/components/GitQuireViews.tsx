@@ -1,17 +1,19 @@
 import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
 import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
-import { ArrowDown, ArrowUp, Columns3, LayoutList } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowDown, ArrowUp, Columns3, LayoutList, Save } from 'lucide-react';
+import { type Dispatch, type SetStateAction, useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionItemList, EMPTY_ACTION_FILTER, ObjectBoard } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
+import { TimelineList } from '@/components/GitQuireTimeline';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -35,14 +37,19 @@ import { currentAuthor } from '@/gitquire-comments/ui-store';
 import { hashFromDocName } from '@/lib/doc-hash';
 import {
   type ActionFilter,
+  type ActionItem,
   applyPendingMoves,
   type BoardView,
   type ColumnValue,
   EMPTY_BOARD_VIEW,
+  localDay,
+  markTask,
   movePage,
   type PendingMove,
   readBoardView,
+  StaleTaskError,
   setPageField,
+  setTaskDone,
 } from '@/lib/gitquire/board';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
@@ -65,12 +72,27 @@ import {
   tableColumns,
   writeTableView,
 } from '@/lib/gitquire/objects';
+import { readTimelineView, type TimelineView } from '@/lib/gitquire/timeline';
+import {
+  IncompleteViewPageError,
+  PageExistsError,
+  savedViewDocName,
+  saveViewAsPage,
+  specFromActions,
+  specFromBoard,
+  specFromTable,
+  specFromTimeline,
+  type ViewSpec,
+  writeViewBlock,
+} from '@/lib/gitquire/view-block';
 import { revealEditor } from '@/lib/reveal-editor';
 
 const TABLE_VIEW_STORAGE_KEY = 'gitquire.views.table';
 const BOARD_VIEW_STORAGE_KEY = 'gitquire.views.board';
+const TIMELINE_VIEW_STORAGE_KEY = 'gitquire.views.timeline';
 const TAB_CLASS = 'flex min-h-0 flex-1 flex-col';
 const MAX_ROWS = 500;
+const UNDO_MS = 10_000;
 
 function loadTableView(): TableView {
   try {
@@ -100,6 +122,21 @@ function storeBoardView(view: BoardView): void {
   } catch {}
 }
 
+function loadTimelineView(): TimelineView {
+  try {
+    return readTimelineView(window.localStorage.getItem(TIMELINE_VIEW_STORAGE_KEY));
+  } catch {
+    return readTimelineView(null);
+  }
+}
+
+function storeTimelineView(view: TimelineView): void {
+  try {
+    const kept = { ...view, search: '' };
+    window.localStorage.setItem(TIMELINE_VIEW_STORAGE_KEY, JSON.stringify(kept));
+  } catch {}
+}
+
 const HEAD_CLASS = 'sticky top-0 z-10 bg-popover normal-case';
 const MENU_CLASS = 'max-h-80 w-auto min-w-48 max-w-72 overflow-y-auto';
 
@@ -120,6 +157,55 @@ function loadObjects(
   return () => {
     live = false;
   };
+}
+
+interface ToggleContext {
+  saving: { current: Set<string> };
+  setSaving: Dispatch<SetStateAction<ReadonlySet<string>>>;
+  setList: Dispatch<SetStateAction<ObjectList | null>>;
+  reload: () => void;
+  labels: {
+    done: (text: string) => string;
+    reopened: (text: string) => string;
+    undo: string;
+    stale: string;
+    failed: string;
+  };
+}
+
+function setItemSaving(context: ToggleContext, id: string, on: boolean): void {
+  if (on) context.saving.current.add(id);
+  else context.saving.current.delete(id);
+  context.setSaving(new Set(context.saving.current));
+}
+
+function startToggle(item: ActionItem, done: boolean, undo: boolean, context: ToggleContext): void {
+  if (context.saving.current.has(item.id)) return;
+  setItemSaving(context, item.id, true);
+  const mark = (source: string) =>
+    context.setList((current) => {
+      if (current === null) return current;
+      return { ...current, pages: markTask(current.pages, item, done, source) };
+    });
+  mark(item.source ?? '');
+  setTaskDone(item, done).then(
+    (source) => {
+      setItemSaving(context, item.id, false);
+      mark(source);
+      if (undo) return;
+      const changed = { ...item, done, source };
+      const { labels } = context;
+      toast(done ? labels.done(item.text) : labels.reopened(item.text), {
+        duration: UNDO_MS,
+        action: { label: labels.undo, onClick: () => startToggle(changed, !done, true, context) },
+      });
+    },
+    (err: unknown) => {
+      setItemSaving(context, item.id, false);
+      toast.error(err instanceof StaleTaskError ? context.labels.stale : context.labels.failed);
+      context.reload();
+    },
+  );
 }
 
 function SortButton({
@@ -319,6 +405,96 @@ function ObjectTable({
   );
 }
 
+function SaveViewDialog({
+  spec,
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  spec: ViewSpec;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: (docName: string) => void;
+}) {
+  const { t } = useLingui();
+  const [name, setName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const helpId = useId();
+  const docName = savedViewDocName(name);
+
+  function save() {
+    if (docName === undefined || saving) return;
+    setSaving(true);
+    setError(null);
+    saveViewAsPage(name, spec).then(
+      (created) => {
+        setSaving(false);
+        setName('');
+        onSaved(created);
+      },
+      (err: unknown) => {
+        setSaving(false);
+        if (err instanceof IncompleteViewPageError) {
+          toast.error(t`The page was created, but the view couldn't be written into it.`);
+          setName('');
+          onSaved(err.docName);
+          return;
+        }
+        setError(
+          err instanceof PageExistsError
+            ? t`A page with that name exists. Choose another name.`
+            : t`Couldn't save the view.`,
+        );
+      },
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t`Save view as page`}</DialogTitle>
+          <DialogDescription>
+            {t`The page shows this view live, for everyone, and is committed like any page.`}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody className="flex flex-col gap-3">
+          <Input
+            value={name}
+            placeholder={t`Open tasks`}
+            aria-label={t`Page name`}
+            onChange={(event) => setName(event.target.value)}
+            aria-describedby={helpId}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.nativeEvent.isComposing) save();
+            }}
+          />
+          <p id={helpId} className="text-muted-foreground text-xs">
+            {docName === undefined ? t`Enter a name.` : t`Saved as ${docName}.md`}
+          </p>
+          <pre className="overflow-x-auto rounded-md bg-muted p-2 text-xs">
+            {writeViewBlock(spec)}
+          </pre>
+          {error !== null && (
+            <p role="alert" className="text-destructive text-sm">
+              {error}
+            </p>
+          )}
+        </DialogBody>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {t`Cancel`}
+          </Button>
+          <Button type="button" disabled={docName === undefined || saving} onClick={save}>
+            {t`Save page`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function GitQuireViews() {
   const { t } = useLingui();
   const [open, setOpen] = useState(false);
@@ -326,10 +502,15 @@ export function GitQuireViews() {
   const [failed, setFailed] = useState(false);
   const [view, setView] = useState<TableView>(loadTableView);
   const [boardView, setBoardView] = useState<BoardView>(loadBoardView);
+  const [timelineView, setTimelineView] = useState<TimelineView>(loadTimelineView);
   const [tab, setTab] = useState('table');
   const [pending, setPending] = useState<ReadonlyMap<string, PendingMove>>(() => new Map());
   const [actionFilter, setActionFilter] = useState<ActionFilter>(EMPTY_ACTION_FILTER);
   const [me, setMe] = useState<string | null>(null);
+  const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set());
+  const savingRef = useRef(new Set<string>());
+  const [savingView, setSavingView] = useState(false);
+  const today = localDay(new Date());
 
   useEffect(() => {
     if (!open) return;
@@ -362,6 +543,11 @@ export function GitQuireViews() {
   function changeView(next: TableView) {
     setView(next);
     storeTableView(next);
+  }
+
+  function changeTimelineView(next: TimelineView) {
+    setTimelineView(next);
+    storeTimelineView(next);
   }
 
   function changeBoardView(next: BoardView) {
@@ -398,6 +584,31 @@ export function GitQuireViews() {
     });
   }
 
+  const toggleContext: ToggleContext = {
+    saving: savingRef,
+    setSaving,
+    setList,
+    reload: () => loadObjects(setList, setFailed),
+    labels: {
+      done: (text) => t`Marked done: ${text}`,
+      reopened: (text) => t`Reopened: ${text}`,
+      undo: t`Undo`,
+      stale: t`That action item changed on its page. The list was reloaded.`,
+      failed: t`Couldn't save the action item. The list was reloaded.`,
+    },
+  };
+
+  function toggleTask(item: ActionItem, done: boolean): void {
+    startToggle(item, done, false, toggleContext);
+  }
+
+  function currentSpec(): ViewSpec {
+    if (tab === 'board') return specFromBoard(boardView);
+    if (tab === 'timeline') return specFromTimeline(timelineView);
+    if (tab === 'actions') return specFromActions(actionFilter);
+    return specFromTable(view);
+  }
+
   function openPage(docName: string) {
     setOpen(false);
     revealEditor();
@@ -422,7 +633,7 @@ export function GitQuireViews() {
           <DialogHeader>
             <DialogTitle>{t`Views`}</DialogTitle>
             <DialogDescription>
-              {t`Pages with properties as a table or a board, and the action items of all pages.`}
+              {t`Pages with properties as a table, a board or a timeline, and the action items of all pages.`}
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="flex min-h-0 flex-1 flex-col gap-3">
@@ -453,11 +664,24 @@ export function GitQuireViews() {
                 onValueChange={setTab}
                 className="flex min-h-0 flex-1 flex-col gap-3"
               >
-                <TabsList>
-                  <TabsTrigger value="table">{t`Table`}</TabsTrigger>
-                  <TabsTrigger value="board">{t`Board`}</TabsTrigger>
-                  <TabsTrigger value="actions">{t`Action items`}</TabsTrigger>
-                </TabsList>
+                <div className="flex flex-wrap items-center gap-2">
+                  <TabsList>
+                    <TabsTrigger value="table">{t`Table`}</TabsTrigger>
+                    <TabsTrigger value="board">{t`Board`}</TabsTrigger>
+                    <TabsTrigger value="timeline">{t`Timeline`}</TabsTrigger>
+                    <TabsTrigger value="actions">{t`Action items`}</TabsTrigger>
+                  </TabsList>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="ms-auto gap-1.5"
+                    onClick={() => setSavingView(true)}
+                  >
+                    <Save aria-hidden="true" />
+                    {t`Save as page`}
+                  </Button>
+                </div>
                 <TabsContent value="table" className={TAB_CLASS}>
                   <ObjectTable
                     pages={shownPages}
@@ -477,12 +701,23 @@ export function GitQuireViews() {
                     onMove={move}
                   />
                 </TabsContent>
+                <TabsContent value="timeline" className={TAB_CLASS}>
+                  <TimelineList
+                    pages={shownPages}
+                    view={timelineView}
+                    onChange={changeTimelineView}
+                    onOpen={openPage}
+                  />
+                </TabsContent>
                 <TabsContent value="actions" className={TAB_CLASS}>
                   <ActionItemList
                     pages={shownPages}
                     me={me}
                     filter={actionFilter}
+                    today={today}
+                    saving={saving}
                     onFilter={setActionFilter}
+                    onToggle={toggleTask}
                     onOpen={openPage}
                   />
                 </TabsContent>
@@ -491,6 +726,15 @@ export function GitQuireViews() {
           </DialogBody>
         </DialogContent>
       </Dialog>
+      <SaveViewDialog
+        spec={currentSpec()}
+        open={savingView}
+        onOpenChange={setSavingView}
+        onSaved={(docName) => {
+          setSavingView(false);
+          openPage(docName);
+        }}
+      />
     </>
   );
 }

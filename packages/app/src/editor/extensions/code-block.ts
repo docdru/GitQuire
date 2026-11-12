@@ -3,6 +3,7 @@ import { textblockTypeInputRule } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import gherkinGrammar from 'highlight.js/lib/languages/gherkin';
 import { common, createLowlight } from 'lowlight';
+import { isInsideSavedView } from '@/components/GitQuireViewBlock';
 import { CodeBlockView } from './CodeBlockView';
 import { type LowlightLike, LowlightPlugin } from './code-block-lowlight-plugin';
 
@@ -24,7 +25,9 @@ export const CodeBlockFidelity = BaseCodeBlockFidelity.extend({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(CodeBlockView);
+    return ReactNodeViewRenderer(CodeBlockView, {
+      stopEvent: ({ event }) => isInsideSavedView(event.target),
+    });
   },
 
   addProseMirrorPlugins() {

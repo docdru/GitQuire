@@ -20,6 +20,7 @@ import {
 import { useTheme } from 'next-themes';
 import { useEffect, useId, useRef, useState } from 'react';
 import { emitStartComment } from '@/comments/store';
+import { GitQuireViewBlock, SAVED_VIEW_ATTR } from '@/components/GitQuireViewBlock';
 import {
   Command,
   CommandEmpty,
@@ -32,6 +33,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { subscribeColorThemeEpoch } from '@/lib/color-theme-epoch';
+import { VIEW_BLOCK_LANGUAGE } from '@/lib/gitquire/view-block';
 import { cn } from '@/lib/utils';
 import { OPT_OUT_ATTR } from '../clipboard/index.ts';
 import { CodePreviewEditModal } from '../components/CodePreviewEditModal';
@@ -61,6 +63,13 @@ import {
 } from './preview-iframe-header';
 
 const PLAIN_TEXT = 'plaintext';
+const COLLAPSED_CODE_STYLE = {
+  maxHeight: 0,
+  paddingTop: 0,
+  paddingBottom: 0,
+  overflow: 'hidden',
+  opacity: 0,
+} as const;
 
 function readAppTheme(): PreviewTheme {
   return typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
@@ -154,6 +163,17 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
 
   const editable = editor.isEditable;
   const cursorInside = useCursorInside(editor, getPos);
+  const savedView = rawLanguage === VIEW_BLOCK_LANGUAGE;
+  const savedViewCodeHidden = savedView && editor.isEditable && !cursorInside;
+  const editSavedView = () => {
+    const pos = typeof getPos === 'function' ? getPos() : undefined;
+    if (typeof pos !== 'number') return;
+    editor
+      .chain()
+      .focus()
+      .setTextSelection(pos + 1)
+      .run();
+  };
 
   useEffect(() => {
     if (!previewActive) return;
@@ -319,13 +339,30 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
         </div>
       ) : null}
 
+      {savedView ? (
+        <div // oxlint-disable-line jsx-a11y/no-static-element-interactions -- stopPropagation required inside PM NodeView
+          contentEditable={false}
+          onMouseDown={(e) => e.stopPropagation()}
+          {...{ [OPT_OUT_ATTR]: 'true', [SAVED_VIEW_ATTR]: 'true' }}
+        >
+          <GitQuireViewBlock
+            source={node.textContent}
+            codeShown={!savedViewCodeHidden}
+            editable={editable}
+            onEdit={editable ? editSavedView : undefined}
+          />
+        </div>
+      ) : null}
+
       <pre
         className={cn(
           'ok-codeblock-pre m-0 overflow-x-auto px-5 py-4 font-mono text-sm leading-relaxed',
           previewActive && codeVisible ? 'rounded-b-lg' : null,
-          !previewActive ? 'rounded-lg' : null,
+          !previewActive && !savedView ? 'rounded-lg' : null,
+          savedView ? 'rounded-b-lg' : null,
         )}
-        aria-hidden={!codeVisible || undefined}
+        style={savedViewCodeHidden ? COLLAPSED_CODE_STYLE : undefined}
+        aria-hidden={!codeVisible || savedViewCodeHidden || undefined}
       >
         <NodeViewContent<'code'>
           as="code"

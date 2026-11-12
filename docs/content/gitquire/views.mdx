@@ -1,7 +1,7 @@
 ---
 title: Views
 icon: LuLayoutList
-description: Treat pages with properties as objects, and see them as a table, a board or a list of action items.
+description: Treat pages with properties as objects, and see them as a table, a board, a timeline or a list of action items.
 ---
 
 Give a page properties and it becomes an object you can list, sort and group. There is no schema:
@@ -21,7 +21,7 @@ due: 2026-12-01
 - [x] Collect screenshots
 ```
 
-The **Views** button in the header opens three tabs. It is hidden on phone-width screens.
+The **Views** button in the header opens four tabs. It is hidden on phone-width screens.
 
 ## Table
 
@@ -45,10 +45,94 @@ The property is changed in the page and committed in your name, and anyone with 
 the change at once. With a filter, for example `type` = `task`, pages without a value get their own
 **No value** column.
 
+## Timeline
+
+Every page with a date property, newest first and grouped by month: meeting notes, decisions,
+releases. Each entry shows the attendees (an `attendees`, `participants`, `people` or `who`
+property), up to three decisions and how many of the page's action items are still open. If pages
+have more than one date property, **Date from** picks which one. Filter by a property as in the
+table; search looks at titles, page names, attendees and decisions.
+
+Decisions are read from the page: the list items under a **Decisions** heading (including its
+sub-headings), and any line that starts with `Decision:`.
+
+```markdown
+---
+type: meeting
+date: 2026-11-11
+attendees: [Dana, Alex]
+---
+
+# Weekly sync
+
+## Decisions
+
+- Store comments at the end of each Markdown file
+
 ## Action items
 
-Every task list item (`- [ ]`) of every page, grouped by page. Filter to items that `@mention` you,
-a teammate or nobody, search them, and tick **Show done** to see finished ones. Choose a page title
-to open it.
+- [ ] Send the notes to the board @alex due: 2026-11-16
+```
 
-Table and board settings are saved per browser.
+**New meeting note** creates `meeting-notes/<today>.md` with `type: meeting`, today's date and
+headings for the agenda, decisions and action items, and opens it. If today's note exists, it opens
+that one.
+
+## Action items
+
+Every task list item (`- [ ]`) of every page. Group them by page, by due date or by person. Filter
+to items that `@mention` you, a teammate or nobody, search them, and tick **Show done** to see
+finished ones. Choose a page title to open it.
+
+Tick an item's checkbox to mark it done: GitQuire writes `[x]` into the page, so everyone with the
+page open sees it at once, and the change is committed in your name. **Undo** in the message that
+appears takes it back for 10 seconds. If the line was changed on the page in the meantime, nothing
+is written and the list reloads.
+
+Give an item a due date by writing it in the item, as `due: 2026-12-01`, `due 2026-12-01` or
+📅 followed by the date. A `due` property in the page's frontmatter does not count for its items.
+
+```markdown
+- [ ] Send the notes to the board @bob due: 2026-12-01
+```
+
+Grouped by due date, open items past their date come first as **Overdue**, then **Today**, **Next 7
+days** and **Later**. Finished items whose date has passed are under **Done, due earlier**; items
+without a date under **No due date**.
+
+Table, board and timeline settings are saved per browser.
+
+## Saved views
+
+**Save as page** keeps the view you have open, with its filter, grouping and columns, as a page in
+the `views` folder, for example `views/open-tasks.md`. Everyone sees it, and it is committed like any
+page. The page holds a `gitquire-view` block, which GitQuire shows as the live view:
+
+````markdown
+# Open tasks
+
+```gitquire-view
+view: board
+filter: type = task
+group: status
+```
+````
+
+Put such a block in any page to show a view there, with text around it. The block's text is
+hidden while you are not editing it: choose **Edit view** (or move the cursor into it with the arrow
+keys) to change it. Action items can be ticked off right in the page; to move board cards, use the
+board in **Views**. In history and diff views the text is always shown, and nothing can be ticked.
+
+| Line | Meaning |
+| --- | --- |
+| `view:` | `table`, `board`, `timeline` or `actions` |
+| `filter:` | `property = value`; `property = (none)` for pages without it; only `property` for pages that have it |
+| `search:` | Text the title or values must contain (not used by boards) |
+| `columns:` | Table columns, separated by commas |
+| `sort:` | Table column to sort by, `title` or `changed`, optionally followed by `desc` |
+| `group:` | Board: the property for the columns. Action items: `page`, `due` or `person` |
+| `date:` | Timeline: the date property to use |
+| `person:` | Action items: `@login` or `nobody` |
+| `done: show` | Action items: also show finished ones |
+
+Other GitHub tools show the block as plain code, so the page still reads well there.

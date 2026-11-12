@@ -95,7 +95,24 @@ due: 2026-12-01
 
 The **Views** button shows them as a filterable **table**, a drag-and-drop **board** grouped by
 any property (moving a card commits the change in your name), and an **action items** list of
-every open checkbox across the wiki, filterable by who is mentioned.
+every checkbox across the wiki, grouped by page, due date or person. Ticking an item there writes
+`[x]` into the page, committed in your name, with undo. A due date goes in the item:
+`- [ ] Send the notes @bob due: 2026-12-01`.
+
+A **timeline** lists pages with a date property, such as meeting notes, newest first by month, with
+attendees, decisions (a list under a "Decisions" heading, or lines starting with `Decision:`) and
+open action items. **New meeting note** creates `meeting-notes/<today>.md`.
+
+**Save as page** stores the open view as a page in `views/` with a `gitquire-view` block, which
+shows the view live; the block works in any page:
+
+````markdown
+```gitquire-view
+view: board
+filter: type = task
+group: status
+```
+````
 
 ### 📱 Phones and tablets
 
@@ -139,12 +156,13 @@ Done:
    picker is in review (#26).
 6. **Linking**: naming rules, rename rewrite, backlinks and a broken-link list.
 7. **Pages as objects**: table, board and action items from frontmatter and task lists.
+8. **More views**: a timeline of dated pages, ticking off action items with due dates, and saved
+   views as pages.
 
 Next, depending on feedback:
 
 - **Pull request review**: GitHub review comments shown as page threads, or reviewing fully inside
   GitQuire.
-- **More views**: a meeting-notes timeline; ticking off action items from the list.
 
 Ideas and bug reports are welcome in [Issues](https://github.com/docdru/GitQuire/issues).
 

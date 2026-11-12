@@ -410,7 +410,7 @@ export function createAgentWriteRoutes(
   }
 
   async function writeAgentMarkdownDocument(
-    _req: IncomingMessage,
+    req: IncomingMessage,
     res: ServerResponse,
     body: AgentWriteMdRequest,
     mode: MarkdownWriteMode,
@@ -421,8 +421,11 @@ export function createAgentWriteRoutes(
       const effectiveDocName = requireNonEmptyDocName(body.docName, res, mode.handler);
       if (effectiveDocName === null) return;
       const resolvedDocName = canonicalDocName(resolveAlias(effectiveDocName));
-      const { agentId, suppliedWriterId, agentName, colorSeed, clientName, clientVersion, label } =
-        extractAgentIdentity(body);
+      const boardPerson = boardWriterIdentity(req, body.clientName);
+      const identity = extractAgentIdentity(body);
+      const { agentId, agentName, colorSeed, clientName, clientVersion, label } =
+        boardPerson ?? identity;
+      const suppliedWriterId = boardPerson === undefined ? identity.suppliedWriterId : undefined;
       if (isSystemDoc(resolvedDocName) || isConfigDoc(resolvedDocName)) {
         errorResponse(
           res,
@@ -450,6 +453,7 @@ export function createAgentWriteRoutes(
           displayName: agentName,
           colorSeed,
           clientName,
+          ...(boardPerson === undefined ? {} : { principalId: boardPerson.principalId }),
         });
         const writeMdReconcile = mode.preWriteMerge
           ? await reconcileDiskBeforeAgentWrite(
@@ -661,7 +665,7 @@ export function createAgentWriteRoutes(
         respondAgentSessionCapacity(res, e, mode.handler);
         return;
       }
-      log.error({ err: e, requestId: getRequestId(_req) }, `[${mode.handler}] handler failed`);
+      log.error({ err: e, requestId: getRequestId(req) }, `[${mode.handler}] handler failed`);
       errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
         handler: mode.handler,
         cause: e,
@@ -960,22 +964,18 @@ export function createAgentWriteRoutes(
 
   const handleAgentPatch = withValidation(
     AgentPatchRequestSchema,
-    async (_req, res, body) => {
+    async (req, res, body) => {
       try {
         const linkPolicy = getLinkAdvisoryPolicy();
         const { find, replace, offset } = body;
         const effectivePatchDocName = requireNonEmptyDocName(body.docName, res, 'agent-patch');
         if (effectivePatchDocName === null) return;
         const docName = resolveAlias(effectivePatchDocName);
-        const {
-          agentId,
-          suppliedWriterId,
-          agentName,
-          colorSeed,
-          clientName,
-          clientVersion,
-          label,
-        } = extractAgentIdentity(body);
+        const boardPerson = boardWriterIdentity(req, body.clientName);
+        const identity = extractAgentIdentity(body);
+        const { agentId, agentName, colorSeed, clientName, clientVersion, label } =
+          boardPerson ?? identity;
+        const suppliedWriterId = boardPerson === undefined ? identity.suppliedWriterId : undefined;
         if (isSystemDoc(docName) || isConfigDoc(docName)) {
           errorResponse(
             res,
@@ -996,6 +996,7 @@ export function createAgentWriteRoutes(
             displayName: agentName,
             colorSeed,
             clientName,
+            ...(boardPerson === undefined ? {} : { principalId: boardPerson.principalId }),
           });
           const patchReconcile = await reconcileDiskBeforeAgentWrite(
             durabilityState,
@@ -1299,7 +1300,7 @@ export function createAgentWriteRoutes(
           respondAgentSessionCapacity(res, e, 'agent-patch');
           return;
         }
-        log.error({ err: e, requestId: getRequestId(_req) }, '[agent-patch] handler failed');
+        log.error({ err: e, requestId: getRequestId(req) }, '[agent-patch] handler failed');
         errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
           handler: 'agent-patch',
           cause: e,
