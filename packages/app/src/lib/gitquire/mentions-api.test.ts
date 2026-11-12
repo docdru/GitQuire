@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
+  cancelMentionEmail,
+  confirmMentionEmail,
   fetchMentions,
   type InboxMention,
   type MentionInboxData,
@@ -56,15 +58,20 @@ describe('mention inbox client', () => {
     ]);
   });
 
-  test('saves and clears the notification address', async () => {
+  test('saves, confirms, cancels and clears the notification address', async () => {
     const seen: { url: string; init: RequestInit | undefined }[] = [];
     const saved = { available: true, address: 'alice@example.com' };
     const first = await setMentionEmail('alice@example.com', { fetch: fakeFetch(saved, seen) });
     expect(first).toEqual(saved);
     await setMentionEmail(null, { fetch: fakeFetch({ available: true, address: null }, seen) });
-    expect(seen.map((call) => [call.init?.method, call.init?.body])).toEqual([
-      ['PUT', '{"address":"alice@example.com"}'],
-      ['PUT', '{"address":null}'],
+    const empty = { available: true, address: null, pending: null };
+    await confirmMentionEmail('ABCD-2345', { fetch: fakeFetch(empty, seen) });
+    await cancelMentionEmail({ fetch: fakeFetch(empty, seen) });
+    expect(seen.map((call) => [call.url, call.init?.method, call.init?.body])).toEqual([
+      ['/api/gitquire/mentions/email', 'PUT', '{"address":"alice@example.com"}'],
+      ['/api/gitquire/mentions/email', 'PUT', '{"address":null}'],
+      ['/api/gitquire/mentions/email/confirm', 'POST', '{"code":"ABCD-2345"}'],
+      ['/api/gitquire/mentions/email', 'PUT', '{"cancel":true}'],
     ]);
   });
 

@@ -7,6 +7,14 @@ import {
   writeCommentThreads,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { describe, expect, it } from 'vitest';
+import {
+  confirmationMail,
+  displayConfirmationCode,
+  hashConfirmationCode,
+  newConfirmationCode,
+  normalizeConfirmationCode,
+  recipientKey,
+} from './email-confirmation.ts';
 import { type MailConfig, type MailMessage, SmtpError } from './mail.ts';
 import { createMentionMailer, mentionMail, pageLink } from './mention-mailer.ts';
 import {
@@ -252,10 +260,10 @@ describe('mention routes', () => {
     }
   });
 
-  it('stores and clears a notification address without mailing old mentions', async () => {
-    const dir = project();
-    const sent: MailMessage[] = [];
-    const routes = createGitQuireRoutes({
+  const EMAIL_URL = '/api/gitquire/mentions/email';
+
+  function mailRoutes(dir: string, sent: MailMessage[], failing: { on: boolean }) {
+    return createGitQuireRoutes({
       projectDir: dir,
       log: silentLog,
       sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
@@ -265,34 +273,108 @@ describe('mention routes', () => {
         OK_EXTERNAL_URL: 'https://brain.example.com/',
       },
       sendMail: async (_config, message) => {
+        if (failing.on) throw new Error('mail server down');
         sent.push(message);
       },
       mailRoundMs: 3_600_000,
     });
+  }
+
+  function codeIn(message: MailMessage | undefined): string {
+    const match = /Confirmation code: ([A-Z0-9]{4}-[A-Z0-9]{4})/.exec(message?.text ?? '');
+    if (match === null) throw new Error('expected a confirmation code in the mail');
+    return match[1] as string;
+  }
+
+  function putEmail(routes: ReturnType<typeof createGitQuireRoutes>, body: unknown) {
+    return call(routes, EMAIL_URL, { method: 'PUT', body });
+  }
+
+  function confirmCode(routes: ReturnType<typeof createGitQuireRoutes>, code: unknown) {
+    return call(routes, `${EMAIL_URL}/confirm`, { method: 'POST', body: { code } });
+  }
+
+  it('turns email on only after the code from the confirmation mail is entered', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    const routes = mailRoutes(dir, sent, { on: false });
     try {
       const before = await call(routes, '/api/gitquire/mentions');
-      expect(before.body.email).toEqual({ available: true, address: null });
-      const bad = await call(routes, '/api/gitquire/mentions/email', {
-        method: 'PUT',
-        body: { address: 'not an address' },
-      });
-      expect(bad.status).toBe(400);
-      const saved = await call(routes, '/api/gitquire/mentions/email', {
-        method: 'PUT',
-        body: { address: ' alice@example.com ' },
-      });
-      expect(saved.body).toEqual({ available: true, address: 'alice@example.com' });
+      expect(before.body.email).toEqual({ available: true, address: null, pending: null });
+      expect((await putEmail(routes, { address: 'not an address' })).status).toBe(400);
+      const asked = await putEmail(routes, { address: ' alice@example.com ' });
+      const waiting = { available: true, address: null, pending: 'alice@example.com' };
+      expect(asked.body).toEqual(waiting);
+      expect(sent).toHaveLength(1);
+      expect(sent[0]?.to).toBe('alice@example.com');
+      expect(sent[0]?.subject).toBe('Confirm your address for GitQuire mentions');
+      expect(sent[0]?.text).toContain('The GitHub user "Alice" asked GitQuire at');
       expect(await routes.mailRound()).toBe(0);
-      const off = await call(routes, '/api/gitquire/mentions/email', {
-        method: 'PUT',
-        body: { address: null },
-      });
-      expect(off.body).toEqual({ available: true, address: null });
+
+      const wrong = await confirmCode(routes, 'AAAA-AAAA');
+      expect([wrong.status, wrong.body.error]).toEqual([400, 'wrong-code']);
+      const right = await confirmCode(routes, codeIn(sent[0]).toLowerCase().replace('-', ' '));
+      expect(right.body).toEqual({ available: true, address: 'alice@example.com', pending: null });
+      expect(await routes.mailRound()).toBe(0);
+      expect(sent).toHaveLength(1);
+      expect((await confirmCode(routes, codeIn(sent[0]))).status).toBe(409);
+
+      const off = await putEmail(routes, { address: null });
+      expect(off.body).toEqual({ available: true, address: null, pending: null });
     } finally {
       routes.stop();
       rmSync(dir, { recursive: true, force: true });
     }
-    expect(sent).toEqual([]);
+  });
+
+  it('keeps nothing when the confirmation mail fails, but still counts it', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    const routes = mailRoutes(dir, sent, { on: true });
+    try {
+      const failed = await putEmail(routes, { address: 'alice@example.com' });
+      expect([failed.status, failed.body.error]).toEqual([502, 'mail-failed']);
+      expect((await call(routes, '/api/gitquire/mentions')).body.email).toMatchObject({
+        pending: null,
+      });
+      const tooSoon = await putEmail(routes, { address: 'alice@example.com' });
+      expect([tooSoon.status, tooSoon.body.error]).toEqual([429, 'resend-too-soon']);
+      expect(sent).toHaveLength(0);
+    } finally {
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('allows five tries, and turning email off does not reset the wait', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    const routes = mailRoutes(dir, sent, { on: false });
+    try {
+      const both = await Promise.all([
+        putEmail(routes, { address: 'alice@example.com' }),
+        putEmail(routes, { address: 'alice@example.com' }),
+      ]);
+      expect(both.map((result) => result.status).sort()).toEqual([200, 429]);
+      expect(sent).toHaveLength(1);
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        expect((await confirmCode(routes, 'AAAA-AAAA')).body.error).toBe('wrong-code');
+      }
+      const locked = await confirmCode(routes, 'AAAA-AAAA');
+      expect([locked.status, locked.body.error]).toEqual([429, 'too-many-tries']);
+      expect((await confirmCode(routes, codeIn(sent[0]))).status).toBe(409);
+      expect((await putEmail(routes, { address: null })).status).toBe(200);
+      const afterOff = await putEmail(routes, { address: 'alice@example.com' });
+      expect([afterOff.status, afterOff.body.error]).toEqual([429, 'resend-too-soon']);
+      expect((await putEmail(routes, { cancel: true })).body).toEqual({
+        available: true,
+        address: null,
+        pending: null,
+      });
+    } finally {
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('answers that mail is not set up when someone tries to subscribe', async () => {
@@ -318,13 +400,69 @@ describe('mention routes', () => {
       login: null,
       unread: 0,
       mentions: [],
-      email: { available: false, address: null },
+      email: { available: false, address: null, pending: null },
     });
     const read = await call(routes, '/api/gitquire/mentions/read', {
       method: 'POST',
       body: { all: true },
     });
     expect(read.status).toBe(401);
+  });
+});
+
+describe('confirmation store', () => {
+  it('keeps a confirmed address while a new one waits, and expires old codes', () => {
+    const dir = project();
+    try {
+      const rules = { validMs: 1000, maxAttempts: 2 };
+      const store = createMentionReadStore(mentionStatePath(dir), rules);
+      const start = new Date('2026-11-12T10:00:00Z');
+      store.reserveConfirmation(alice, 'to-old', start);
+      store.startConfirmation(alice, 'old@example.com', 'hash-1', start);
+      expect(store.confirm(alice, 'hash-1', ['t1:c1'], start)).toBe('confirmed');
+      expect(store.emailOf(alice.id)).toBe('old@example.com');
+      expect([...store.mailedIds(alice.id)]).toEqual(['t1:c1']);
+      store.reserveConfirmation(alice, 'to-new', start);
+      store.startConfirmation(alice, 'new@example.com', 'hash-2', start);
+      expect(store.emailOf(alice.id)).toBe('old@example.com');
+      expect(store.pendingOf(alice.id, start)?.email).toBe('new@example.com');
+      const late = new Date(start.getTime() + 2000);
+      expect(store.pendingOf(alice.id, late)).toBeUndefined();
+      expect(store.recipientConfirmationsSince('to-new', start)).toBe(1);
+      expect(store.confirm(alice, 'hash-2', [], late)).toBe('expired');
+      expect(store.pendingOf(alice.id, start)).toBeUndefined();
+      expect(store.emailOf(alice.id)).toBe('old@example.com');
+      expect(store.confirmationsSince(alice.id, new Date(start.getTime() - 1))).toBe(2);
+      store.setEmail(alice, undefined, [], late);
+      expect(store.emailOf(alice.id)).toBeUndefined();
+      expect(store.lastConfirmationAt(alice.id)).toBe(start.toISOString());
+      expect(store.confirmationsSince(undefined, late)).toBe(0);
+      expect(store.confirm(alice, 'hash-2', [], late)).toBe('none');
+      const reloaded = createMentionReadStore(mentionStatePath(dir));
+      expect(reloaded.emailOf(alice.id)).toBeUndefined();
+      expect(reloaded.lastConfirmationAt(alice.id)).toBe(start.toISOString());
+      expect(reloaded.recipientConfirmationsSince('to-new', start)).toBe(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('confirmation mail', () => {
+  it('has a readable code that survives spaces, dashes and lower case', () => {
+    const code = newConfirmationCode();
+    expect(code).toMatch(/^[A-HJKMNP-Z2-9]{8}$/);
+    const shown = displayConfirmationCode(code);
+    expect(shown).toMatch(/^.{4}-.{4}$/);
+    expect(normalizeConfirmationCode(` ${shown.toLowerCase()} `)).toBe(code);
+    expect(hashConfirmationCode('k', 1, shown)).toBe(hashConfirmationCode('k', 1, code));
+    expect(hashConfirmationCode('k', 2, code)).not.toBe(hashConfirmationCode('k', 1, code));
+    expect(hashConfirmationCode('j', 1, code)).not.toBe(hashConfirmationCode('k', 1, code));
+    expect(recipientKey('k', ' Alice@Example.com')).toBe(recipientKey('k', 'alice@example.com'));
+    const mail = confirmationMail({ externalUrl: undefined }, 'a@example.com', 'alice', code);
+    expect(mail.text).toContain(`Confirmation code: ${shown}`);
+    expect(mail.text).toContain('asked GitQuire to send');
+    expect(mail.text).toContain('No mention emails will be sent to this address unless');
   });
 });
 

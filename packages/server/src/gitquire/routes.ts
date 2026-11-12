@@ -1,5 +1,18 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
+import {
+  CONFIRMATION_RESEND_MS,
+  confirmationKey,
+  confirmationMail,
+  hashConfirmationCode,
+  MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY,
+  MAX_CONFIRMATIONS_PER_DAY,
+  MAX_CONFIRMATIONS_PER_HOUR,
+  MAX_CONFIRMATIONS_PER_PERSON_PER_DAY,
+  newConfirmationCode,
+  normalizeConfirmationCode,
+  recipientKey,
+} from './email-confirmation.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
 import {
@@ -14,6 +27,7 @@ import { createMentionMailer } from './mention-mailer.ts';
 import {
   buildInbox,
   createMentionReadStore,
+  type MentionReader,
   mentionIndexFrom,
   mentionStatePath,
   mentionsFor,
@@ -50,6 +64,12 @@ export interface GitQuireRoutes {
 }
 
 const DEFAULT_MAIL_ROUND_MS = 60_000;
+
+interface EmailState {
+  available: boolean;
+  address: string | null;
+  pending: string | null;
+}
 
 class HttpError extends Error {
   readonly status: number;
@@ -305,8 +325,12 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
   }
   const mailTimer = startMailRounds();
 
-  function emailState(userId: number): { available: boolean; address: string | null } {
-    return { available: mailer !== undefined, address: mentionReads.emailOf(userId) ?? null };
+  function emailState(userId: number): EmailState {
+    return {
+      available: mailer !== undefined,
+      address: mentionReads.emailOf(userId) ?? null,
+      pending: mentionReads.pendingOf(userId, new Date())?.email ?? null,
+    };
   }
 
   function listMentions(req: IncomingMessage, res: ServerResponse): void {
@@ -317,7 +341,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
         login: null,
         unread: 0,
         mentions: [],
-        email: { available: false, address: null },
+        email: { available: false, address: null, pending: null },
       });
       return;
     }
@@ -326,16 +350,48 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 200, { enabled: true, ...inbox, email: emailState(user.id) });
   }
 
-  async function setMentionEmail(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  function sessionReader(req: IncomingMessage): MentionReader {
     const user = deps.sessionUser?.(req);
     if (user === undefined) {
       throw new HttpError(401, 'sign-in-required', 'Sign in to use the mention inbox.');
     }
+    return user;
+  }
+
+  const codeKey = confirmationKey((deps.env ?? process.env).GITQUIRE_SESSION_SECRET);
+
+  function checkConfirmationBudget(reader: MentionReader, toKey: string, now: Date): void {
+    const last = mentionReads.lastConfirmationAt(reader.id);
+    const sinceLast = last === undefined ? Infinity : now.getTime() - Date.parse(last);
+    if (sinceLast < CONFIRMATION_RESEND_MS) {
+      throw new HttpError(429, 'resend-too-soon', 'Wait a minute before asking for another code.');
+    }
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const toAddress = mentionReads.recipientConfirmationsSince(toKey, dayAgo);
+    const limits: [number, number][] = [
+      [mentionReads.confirmationsSince(reader.id, dayAgo), MAX_CONFIRMATIONS_PER_PERSON_PER_DAY],
+      [toAddress, MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY],
+      [mentionReads.confirmationsSince(undefined, hourAgo), MAX_CONFIRMATIONS_PER_HOUR],
+      [mentionReads.confirmationsSince(undefined, dayAgo), MAX_CONFIRMATIONS_PER_DAY],
+    ];
+    if (limits.some(([used, limit]) => used >= limit)) {
+      throw new HttpError(429, 'too-many-codes', 'Too many confirmation mails. Try again later.');
+    }
+  }
+
+  async function setMentionEmail(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const reader = sessionReader(req);
     const body = await readJson(req);
+    if (body.cancel === true) {
+      mentionReads.cancelConfirmation(reader.id);
+      sendJson(res, 200, emailState(reader.id));
+      return;
+    }
     if (body.address === null) {
-      mentionReads.setEmail(user, undefined, [], new Date());
-      deps.log.info({ login: user.login }, '[gitquire-mail] mention email turned off');
-      sendJson(res, 200, emailState(user.id));
+      mentionReads.setEmail(reader, undefined, [], new Date());
+      deps.log.info({ login: reader.login }, '[gitquire-mail] mention email turned off');
+      sendJson(res, 200, emailState(reader.id));
       return;
     }
     if (mailer === undefined || mail.kind !== 'on') {
@@ -348,10 +404,54 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (!isAllowedRecipient(mail.config, address)) {
       throw new HttpError(400, 'address-not-allowed', 'This server does not mail that domain.');
     }
-    const alreadyThere = mentionsFor(user, mentionIndex.all()).map((mention) => mention.id);
-    mentionReads.setEmail(user, address, alreadyThere, new Date());
-    deps.log.info({ login: user.login, address }, '[gitquire-mail] mention email turned on');
-    sendJson(res, 200, emailState(user.id));
+    if (address === mentionReads.emailOf(reader.id)) {
+      mentionReads.cancelConfirmation(reader.id);
+      sendJson(res, 200, emailState(reader.id));
+      return;
+    }
+    const now = new Date();
+    const toKey = recipientKey(codeKey, address);
+    checkConfirmationBudget(reader, toKey, now);
+    mentionReads.reserveConfirmation(reader, toKey, now);
+    const code = newConfirmationCode();
+    const message = confirmationMail(mail.config, address, reader.login, code);
+    try {
+      await (deps.sendMail ?? sendMail)(mail.config, message);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      const safeReason = reason.split(address).join('<address>');
+      deps.log.warn(
+        { reason: safeReason, login: reader.login },
+        '[gitquire-mail] confirmation mail failed',
+      );
+      throw new HttpError(502, 'mail-failed', 'The confirmation mail could not be sent.');
+    }
+    const codeHash = hashConfirmationCode(codeKey, reader.id, code);
+    mentionReads.startConfirmation(reader, address, codeHash, now);
+    deps.log.info({ login: reader.login }, '[gitquire-mail] confirmation mail sent');
+    sendJson(res, 200, emailState(reader.id));
+  }
+
+  async function confirmMentionEmail(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const reader = sessionReader(req);
+    const body = await readJson(req);
+    const code = typeof body.code === 'string' ? normalizeConfirmationCode(body.code) : '';
+    if (code === '') throw new HttpError(400, 'invalid-code', 'Enter the code from the mail.');
+    const alreadyThere = mentionsFor(reader, mentionIndex.all()).map((mention) => mention.id);
+    const hash = hashConfirmationCode(codeKey, reader.id, code);
+    const result = mentionReads.confirm(reader, hash, alreadyThere, new Date());
+    if (result === 'none') {
+      throw new HttpError(409, 'nothing-to-confirm', 'There is no address waiting for a code.');
+    }
+    if (result === 'expired') {
+      throw new HttpError(410, 'code-expired', 'The code has expired. Ask for a new one.');
+    }
+    if (result === 'wrong') throw new HttpError(400, 'wrong-code', 'That code is not right.');
+    if (result === 'locked') {
+      throw new HttpError(429, 'too-many-tries', 'Too many wrong codes. Ask for a new one.');
+    }
+    deps.log.info({ login: reader.login }, '[gitquire-mail] mention email confirmed');
+    sendJson(res, 200, emailState(reader.id));
   }
 
   async function markMentionsRead(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -395,6 +495,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
     if (path === '/api/gitquire/mentions/email' && method === 'PUT') {
       return setMentionEmail(req, res);
+    }
+    if (path === '/api/gitquire/mentions/email/confirm' && method === 'POST') {
+      return confirmMentionEmail(req, res);
     }
     throw new HttpError(404, 'not-found', 'Unknown GitQuire endpoint.');
   }

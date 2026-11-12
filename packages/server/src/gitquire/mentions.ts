@@ -1,9 +1,11 @@
+import { timingSafeEqual } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
   type CommentAuthor,
   readCommentThreads,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { CONFIRMATION_VALID_MS, MAX_CONFIRMATION_ATTEMPTS } from './email-confirmation.ts';
 import { createPageScan, docNameForPath, type PageScan } from './page-scan.ts';
 
 export { docNameForPath } from './page-scan.ts';
@@ -81,6 +83,13 @@ export function createMentionIndex(projectDir: string, now: () => number = Date.
   return mentionIndexFrom(createPageScan(projectDir, mentionsInMarkdown, now), (found) => found);
 }
 
+interface PendingAddress {
+  email: string;
+  codeHash: string;
+  sentAt: string;
+  attempts: number;
+}
+
 interface UserState {
   read: string[];
   login?: string;
@@ -88,11 +97,21 @@ interface UserState {
   since?: string;
   lastSeen?: string;
   mailed?: string[];
+  pending?: PendingAddress;
+  confirmationsSent?: string[];
+}
+
+export type ConfirmResult = 'confirmed' | 'none' | 'expired' | 'wrong' | 'locked';
+
+export interface PendingInfo {
+  email: string;
+  sentAt: string;
 }
 
 interface ReadState {
   version: 1;
   users: Record<string, UserState>;
+  recipients?: Record<string, string[]>;
 }
 
 export interface MailSubscriber {
@@ -117,6 +136,24 @@ export interface MentionReadStore {
   subscribers: () => MailSubscriber[];
   mailedIds: (userId: number) => Set<string>;
   markMailed: (userId: number, ids: readonly string[]) => void;
+  pendingOf: (userId: number, now: Date) => PendingInfo | undefined;
+  lastConfirmationAt: (userId: number) => string | undefined;
+  confirmationsSince: (userId: number | undefined, since: Date) => number;
+  recipientConfirmationsSince: (recipientKey: string, since: Date) => number;
+  reserveConfirmation: (reader: MentionReader, recipientKey: string, now: Date) => void;
+  startConfirmation: (reader: MentionReader, email: string, codeHash: string, now: Date) => void;
+  cancelConfirmation: (userId: number) => void;
+  confirm: (
+    reader: MentionReader,
+    codeHash: string,
+    alreadyThere: readonly string[],
+    now: Date,
+  ) => ConfirmResult;
+}
+
+export interface ConfirmationRules {
+  validMs: number;
+  maxAttempts: number;
 }
 
 export function mentionStatePath(projectDir: string): string {
@@ -136,6 +173,25 @@ function readUser(entry: unknown): UserState | undefined {
   if (typeof raw.since === 'string') user.since = raw.since;
   if (typeof raw.lastSeen === 'string') user.lastSeen = raw.lastSeen;
   if (Array.isArray(raw.mailed)) user.mailed = stringList(raw.mailed);
+  if (Array.isArray(raw.confirmationsSent)) {
+    user.confirmationsSent = stringList(raw.confirmationsSent);
+  }
+  const pending = raw.pending as Record<string, unknown> | null | undefined;
+  if (
+    typeof pending === 'object' &&
+    pending !== null &&
+    typeof pending.email === 'string' &&
+    typeof pending.codeHash === 'string' &&
+    typeof pending.sentAt === 'string'
+  ) {
+    const attempts = typeof pending.attempts === 'number' ? pending.attempts : 0;
+    user.pending = {
+      email: pending.email,
+      codeHash: pending.codeHash,
+      sentAt: pending.sentAt,
+      attempts,
+    };
+  }
   return user;
 }
 
@@ -151,13 +207,34 @@ function loadState(file: string): ReadState {
       const user = readUser(entry);
       if (user !== undefined) state.users[userId] = user;
     }
+    const recipients = (parsed as { recipients?: unknown }).recipients;
+    if (typeof recipients === 'object' && recipients !== null) {
+      state.recipients = {};
+      for (const [key, stamps] of Object.entries(recipients as Record<string, unknown>)) {
+        state.recipients[key] = stringList(stamps);
+      }
+    }
     return state;
   } catch {
     return state;
   }
 }
 
-export function createMentionReadStore(file: string): MentionReadStore {
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_CONFIRMATION_RULES: ConfirmationRules = {
+  validMs: CONFIRMATION_VALID_MS,
+  maxAttempts: MAX_CONFIRMATION_ATTEMPTS,
+};
+
+function sameHash(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+export function createMentionReadStore(
+  file: string,
+  rules: ConfirmationRules = DEFAULT_CONFIRMATION_RULES,
+): MentionReadStore {
   let state: ReadState | undefined;
 
   function current(): ReadState {
@@ -170,10 +247,10 @@ export function createMentionReadStore(file: string): MentionReadStore {
   }
 
   function update(userId: number, next: UserState): void {
-    const nextState: ReadState = {
-      version: 1,
-      users: { ...current().users, [String(userId)]: next },
-    };
+    save({ ...current(), users: { ...current().users, [String(userId)]: next } });
+  }
+
+  function save(nextState: ReadState): void {
     mkdirSync(dirname(file), { recursive: true });
     const temporary = `${file}.${process.pid}.tmp`;
     writeFileSync(temporary, `${JSON.stringify(nextState)}\n`, { mode: 0o600 });
@@ -202,9 +279,15 @@ export function createMentionReadStore(file: string): MentionReadStore {
     },
     emailOf: (userId) => userState(userId).email,
     setEmail: (reader, email, alreadyThere, now) => {
-      const user = userState(reader.id);
+      const {
+        email: _email,
+        since: _since,
+        mailed: _mailed,
+        pending: _pending,
+        ...user
+      } = userState(reader.id);
       const stamp = now.toISOString();
-      const next: UserState = { read: user.read, login: reader.login, lastSeen: stamp };
+      const next: UserState = { ...user, login: reader.login, lastSeen: stamp };
       if (email !== undefined) {
         next.email = email;
         next.since = stamp;
@@ -238,6 +321,90 @@ export function createMentionReadStore(file: string): MentionReadStore {
     markMailed: (userId, ids) => {
       const user = userState(userId);
       update(userId, { ...user, mailed: appended(user.mailed ?? [], ids) });
+    },
+    pendingOf: (userId, now) => {
+      const pending = userState(userId).pending;
+      if (pending === undefined) return undefined;
+      if (now.getTime() - Date.parse(pending.sentAt) > rules.validMs) return undefined;
+      return { email: pending.email, sentAt: pending.sentAt };
+    },
+    lastConfirmationAt: (userId) => userState(userId).confirmationsSent?.at(-1),
+    recipientConfirmationsSince: (recipientKey, since) => {
+      const cutoff = since.toISOString();
+      const stamps = current().recipients?.[recipientKey] ?? [];
+      return stamps.filter((stamp) => stamp >= cutoff).length;
+    },
+    reserveConfirmation: (reader, recipientKey, now) => {
+      const snapshot = current();
+      const user = userState(reader.id);
+      const stamp = now.toISOString();
+      const dayAgo = new Date(now.getTime() - DAY_MS).toISOString();
+      const recent = (stamps: readonly string[] | undefined) =>
+        (stamps ?? []).filter((at) => at >= dayAgo);
+      const recipients: Record<string, string[]> = {};
+      for (const [key, stamps] of Object.entries(snapshot.recipients ?? {})) {
+        const kept = recent(stamps);
+        if (kept.length > 0) recipients[key] = kept;
+      }
+      recipients[recipientKey] = [...(recipients[recipientKey] ?? []), stamp];
+      const sent = [...recent(user.confirmationsSent), stamp];
+      save({
+        ...snapshot,
+        recipients,
+        users: { ...snapshot.users, [String(reader.id)]: { ...user, confirmationsSent: sent } },
+      });
+    },
+    confirmationsSince: (userId, since) => {
+      const users = userId === undefined ? Object.values(current().users) : [userState(userId)];
+      const cutoff = since.toISOString();
+      let count = 0;
+      for (const user of users) {
+        count += (user.confirmationsSent ?? []).filter((stamp) => stamp >= cutoff).length;
+      }
+      return count;
+    },
+    startConfirmation: (reader, email, codeHash, now) => {
+      const user = userState(reader.id);
+      const stamp = now.toISOString();
+      update(reader.id, {
+        ...user,
+        login: reader.login,
+        lastSeen: stamp,
+        pending: { email, codeHash, sentAt: stamp, attempts: 0 },
+      });
+    },
+    cancelConfirmation: (userId) => {
+      const { pending, ...user } = userState(userId);
+      if (pending !== undefined) update(userId, user);
+    },
+    confirm: (reader, codeHash, alreadyThere, now) => {
+      const user = userState(reader.id);
+      const pending = user.pending;
+      if (pending === undefined) return 'none';
+      const { pending: _dropped, ...rest } = user;
+      if (now.getTime() - Date.parse(pending.sentAt) > rules.validMs) {
+        update(reader.id, rest);
+        return 'expired';
+      }
+      if (!sameHash(pending.codeHash, codeHash)) {
+        const attempts = pending.attempts + 1;
+        if (attempts >= rules.maxAttempts) {
+          update(reader.id, rest);
+          return 'locked';
+        }
+        update(reader.id, { ...user, pending: { ...pending, attempts } });
+        return 'wrong';
+      }
+      const stamp = now.toISOString();
+      update(reader.id, {
+        ...rest,
+        login: reader.login,
+        lastSeen: stamp,
+        email: pending.email,
+        since: stamp,
+        mailed: appended([], alreadyThere),
+      });
+      return 'confirmed';
     },
   };
 }
