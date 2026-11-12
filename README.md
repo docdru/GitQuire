@@ -53,7 +53,8 @@ the editor, write on it, and open a pull request without leaving GitQuire.
 
 `[[Meeting Notes 2026]]` wiki links, a backlinks panel, and links rewritten automatically when a
 page is renamed or moved. A broken-links list shows every link to a page that doesn't exist and
-where it comes from.
+where it comes from. Typed links (`supersedes:: [[Decision 9]]`, or a property such as
+`blocks: "[[Task B]]"`) say how pages relate and show up in links, backlinks and the graph.
 
 ### 💬 Discussions inside the file
 
@@ -154,7 +155,8 @@ Done:
    inbox, email and chat notifications.
 5. **Mobile**: toolbar above the keyboard, installable as a home-screen app. The touch link
    picker is in review (#26).
-6. **Linking**: naming rules, rename rewrite, backlinks and a broken-link list.
+6. **Linking**: naming rules, rename rewrite, backlinks, a broken-link list, and optional typed
+   links (`supersedes:: [[Decision 9]]` or a property) shown in links, backlinks and the graph.
 7. **Pages as objects**: table, board and action items from frontmatter and task lists.
 8. **More views**: a timeline of dated pages, ticking off action items with due dates, and saved
    views as pages.

@@ -161,10 +161,11 @@ export function applyRenameMap(
   wikiContext: WikiRenameContext,
 ): ManagedRenameRewriteSummary {
   const { frontmatter, body } = stripFrontmatter(content);
+  const frontmatterRewrite = rewriteWikiLinksForRenameMap(frontmatter, currentDocName, wikiContext);
   const wikiRewrite = rewriteWikiLinksForRenameMap(body, currentDocName, wikiContext);
   const canonical = canonicalDocNameBeforeRename(wikiContext);
-  let markdown = prependFrontmatter(frontmatter, wikiRewrite.markdown);
-  let rewrites = wikiRewrite.rewrites;
+  let markdown = prependFrontmatter(frontmatterRewrite.markdown, wikiRewrite.markdown);
+  let rewrites = frontmatterRewrite.rewrites + wikiRewrite.rewrites;
 
   let selfRenamedTo: string | undefined;
   const otherRenames: Array<readonly [string, string]> = [];

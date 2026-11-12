@@ -1,5 +1,6 @@
 import { Trans, useLingui } from '@lingui/react/macro';
-import { type KeyboardEvent, type RefObject, useId, useState } from 'react';
+import { Link2 } from 'lucide-react';
+import { Fragment, type KeyboardEvent, type RefObject, useId, useState } from 'react';
 import { TYPE_ICON } from '@/components/PropertyWidgets';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,8 @@ import type { SchemaField } from '@/lib/frontmatter-schema-fields';
 
 export interface AddPropertyFieldSuggestion extends SchemaField {
   name: string;
+  group?: 'schema' | 'relation';
+  count?: number;
 }
 
 function matches(suggestion: AddPropertyFieldSuggestion, query: string): boolean {
@@ -57,6 +60,9 @@ export function AddPropertyNameField({
     setQueryAtLastReset(value);
     setHighlight(NO_HIGHLIGHT);
   }
+
+  const firstRelation = filtered.findIndex((suggestion) => suggestion.group === 'relation');
+  const onlyRelations = firstRelation === 0;
 
   const active =
     isOpen && highlight !== NO_HIGHLIGHT
@@ -156,45 +162,63 @@ export function AddPropertyNameField({
           aria-hidden
           className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wide"
         >
-          <Trans>Schema fields</Trans>
+          {onlyRelations ? <Trans>Relations</Trans> : <Trans>Schema fields</Trans>}
         </div>
-        <div id={listboxId} role="listbox" aria-label={t`Schema fields`}>
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label={onlyRelations ? t`Relations` : t`Schema fields`}
+        >
           {filtered.map((suggestion, index) => {
-            const Icon = TYPE_ICON[suggestion.type];
+            const isRelation = suggestion.group === 'relation';
+            const Icon = isRelation ? Link2 : TYPE_ICON[suggestion.type];
             const isActive = suggestion.name === active?.name;
+            const usedCount = suggestion.count ?? 0;
+            const description = isRelation
+              ? t`Link relation, used ${usedCount} times`
+              : suggestion.description;
             return (
-              // biome-ignore lint/a11y/useFocusableInteractive: options in this pattern are deliberately not focusable — focus stays in the input and `aria-activedescendant` conveys the selection. Keyboard access runs through the input's own handler.
-              <div
-                key={suggestion.name}
-                id={`${listboxId}-${suggestion.name}`}
-                role="option"
-                aria-selected={isActive}
-                data-testid="add-property-field-suggestion"
-                data-key={suggestion.name}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  pick(suggestion);
-                }}
-                onMouseEnter={() => setHighlight(index)}
-                className={`flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm ${
-                  isActive ? 'bg-accent text-accent-foreground' : ''
-                }`}
-              >
-                <Icon aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="flex min-w-0 flex-col">
-                  <span className="truncate">{suggestion.name}</span>
-                  {suggestion.description ? (
-                    <span className="truncate text-[11px] text-muted-foreground">
-                      {suggestion.description}
-                    </span>
-                  ) : null}
-                </span>
-                {suggestion.required ? (
-                  <Badge variant="gray" className="ms-auto shrink-0 text-2xs">
-                    <Trans>required</Trans>
-                  </Badge>
+              <Fragment key={suggestion.name}>
+                {index === firstRelation && index > 0 ? (
+                  <div
+                    role="presentation"
+                    className="px-2 pt-2 pb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wide"
+                  >
+                    <Trans>Relations</Trans>
+                  </div>
                 ) : null}
-              </div>
+                {/* biome-ignore lint/a11y/useFocusableInteractive: options in this pattern are deliberately not focusable — focus stays in the input and `aria-activedescendant` conveys the selection. Keyboard access runs through the input's own handler. */}
+                <div
+                  id={`${listboxId}-${suggestion.name}`}
+                  role="option"
+                  aria-selected={isActive}
+                  data-testid="add-property-field-suggestion"
+                  data-key={suggestion.name}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    pick(suggestion);
+                  }}
+                  onMouseEnter={() => setHighlight(index)}
+                  className={`flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm ${
+                    isActive ? 'bg-accent text-accent-foreground' : ''
+                  }`}
+                >
+                  <Icon aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate">{suggestion.name}</span>
+                    {description ? (
+                      <span className="truncate text-[11px] text-muted-foreground">
+                        {description}
+                      </span>
+                    ) : null}
+                  </span>
+                  {suggestion.required ? (
+                    <Badge variant="gray" className="ms-auto shrink-0 text-2xs">
+                      <Trans>required</Trans>
+                    </Badge>
+                  ) : null}
+                </div>
+              </Fragment>
             );
           })}
         </div>

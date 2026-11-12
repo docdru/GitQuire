@@ -64,6 +64,7 @@ import * as gitWorktreeInventoryModelSubpath from '@inkeep/open-knowledge-core/g
 import * as gitWorktreeSelectorModelSubpath from '@inkeep/open-knowledge-core/git/worktree-selector-model';
 import * as gitquireCommentThreadsSubpath from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import * as gitquireNamingSubpath from '@inkeep/open-knowledge-core/gitquire/naming';
+import * as gitquireTypedLinksSubpath from '@inkeep/open-knowledge-core/gitquire/typed-links';
 import * as handoffSubpath from '@inkeep/open-knowledge-core/handoff';
 import * as i18nBrowserLocaleProviderSubpath from '@inkeep/open-knowledge-core/i18n/browser-locale-provider';
 import * as i18nDirectionSubpath from '@inkeep/open-knowledge-core/i18n/direction';
@@ -214,6 +215,7 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './git/worktree-selector-model': gitWorktreeSelectorModelSubpath,
   './gitquire/comment-threads': gitquireCommentThreadsSubpath,
   './gitquire/naming': gitquireNamingSubpath,
+  './gitquire/typed-links': gitquireTypedLinksSubpath,
   './handoff': handoffSubpath,
   './i18n/browser-locale-provider': i18nBrowserLocaleProviderSubpath,
   './i18n/direction': i18nDirectionSubpath,

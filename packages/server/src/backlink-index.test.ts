@@ -800,7 +800,7 @@ describe('BacklinkIndex', () => {
       writeFileSync(
         join(cacheDir, 'backlinks.json'),
         JSON.stringify({
-          version: 4,
+          version: 5,
           backward: {
             ghost: [{ source: 'alpha', anchor: null, snippet: 'See ghost.' }],
             wraith: [
@@ -908,7 +908,7 @@ describe('BacklinkIndex', () => {
   test.each([
     { version: 3, sourceLinks: undefined, expectedWarnings: [], kept: true },
     {
-      version: 4,
+      version: 5,
       sourceLinks: {},
       expectedWarnings: [
         [{ branch: 'main' }, 'Incomplete backlink cache snapshot for main; rebuilding from disk'],
@@ -916,7 +916,7 @@ describe('BacklinkIndex', () => {
       kept: false,
     },
     {
-      version: 4,
+      version: 5,
       sourceLinks: { alpha: [], beta: [] },
       expectedWarnings: [
         [{ branch: 'main' }, 'Incomplete backlink cache snapshot for main; rebuilding from disk'],

@@ -348,7 +348,7 @@ describe('resolved document relationships', () => {
     writeFileSync(
       cache,
       JSON.stringify({
-        version: 4,
+        version: 5,
         backward: {
           beta: [{ source: 'source', anchor: 'intro', snippet: 'See Beta', sourceForm: 'wiki' }],
         },
