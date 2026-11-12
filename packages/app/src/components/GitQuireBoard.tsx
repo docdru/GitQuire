@@ -14,6 +14,7 @@ import {
   type BoardView,
   boardGroupKeys,
   buildBoard,
+  type ColumnValue,
   filterActionItems,
   groupActionItems,
   UNASSIGNED,
@@ -77,6 +78,7 @@ function BoardCard({
 }
 
 export function ObjectBoard({
+  basis,
   pages,
   view,
   moving,
@@ -84,16 +86,17 @@ export function ObjectBoard({
   onOpen,
   onMove,
 }: {
+  basis: PageObject[];
   pages: PageObject[];
   view: BoardView;
   moving: ReadonlySet<string>;
   onChange: (next: BoardView) => void;
   onOpen: (docName: string) => void;
-  onMove: (docName: string, key: string, value: string) => void;
+  onMove: (docName: string, key: string, value: ColumnValue | null) => void;
 }) {
   const { t } = useLingui();
   const [dropTarget, setDropTarget] = useState<string | null>(null);
-  const board = buildBoard(pages, view);
+  const board = buildBoard(basis, view, pages);
   const noValueLabel = t`No value`;
 
   if (board === null) {
@@ -108,7 +111,9 @@ export function ObjectBoard({
   const known = new Set(summarizeFields(pages).map((field) => field.key));
   const filterKey = known.has(view.filterKey) ? view.filterKey : '';
 
-  const groupChoices: Choice[] = boardGroupKeys(pages).map((key) => ({ value: key, label: key }));
+  const groupKeys = boardGroupKeys(basis);
+  const groupList = groupKeys.includes(groupKey) ? groupKeys : [groupKey, ...groupKeys];
+  const groupChoices: Choice[] = groupList.map((key) => ({ value: key, label: key }));
   const propertyChoices: Choice[] = [
     { value: '', label: t`All pages with properties` },
     ...summarizeFields(pages).map((field) => ({ value: field.key, label: field.key })),
@@ -121,19 +126,21 @@ export function ObjectBoard({
       label: choice.value,
     })),
   ];
-  const targets: Choice[] = [
-    ...columns
-      .filter((column) => column.value !== '')
-      .map((column) => ({ value: column.value, label: column.value })),
-    { value: '', label: noValueLabel },
-  ];
+  const targets: Choice[] = columns.map((column) => ({
+    value: column.value,
+    label: column.value === '' ? noValueLabel : column.value,
+  }));
+
+  function moveTo(docName: string, value: string) {
+    const from = columns.find((column) => column.pages.some((page) => page.docName === docName));
+    const to = columns.find((column) => column.value === value);
+    if (docName === '' || from === undefined || to === undefined || from === to) return;
+    onMove(docName, groupKey, to.raw);
+  }
 
   function drop(value: string, docName: string) {
     setDropTarget(null);
-    const from = columns.find((column) => column.pages.some((page) => page.docName === docName));
-    if (docName !== '' && from !== undefined && from.value !== value) {
-      onMove(docName, groupKey, value);
-    }
+    moveTo(docName, value);
   }
 
   return (
@@ -180,7 +187,9 @@ export function ObjectBoard({
           >
             <h3 className="flex items-center gap-2 px-1 font-medium text-sm">
               <span className="truncate">{column.value === '' ? noValueLabel : column.value}</span>
-              <span className="text-muted-foreground text-xs">{column.pages.length}</span>
+              <span aria-hidden="true" className="text-muted-foreground text-xs">
+                {column.pages.length}
+              </span>
             </h3>
             <ul className="flex flex-col gap-2">
               {column.pages.map((page) => (
@@ -191,7 +200,7 @@ export function ObjectBoard({
                   targets={targets}
                   busy={moving.has(page.docName)}
                   onOpen={onOpen}
-                  onMove={(docName, value) => onMove(docName, groupKey, value)}
+                  onMove={moveTo}
                 />
               ))}
             </ul>
@@ -202,18 +211,24 @@ export function ObjectBoard({
   );
 }
 
+export const EMPTY_ACTION_FILTER: ActionFilter = { person: '', showDone: false, search: '' };
+
 export function ActionItemList({
   pages,
   me,
+  filter,
+  onFilter,
   onOpen,
 }: {
   pages: PageObject[];
   me: string | null;
+  filter: ActionFilter;
+  onFilter: (next: ActionFilter) => void;
   onOpen: (docName: string) => void;
 }) {
   const { t } = useLingui();
   const showDoneId = useId();
-  const [filter, setFilter] = useState<ActionFilter>({ person: '', showDone: false, search: '' });
+  const setFilter = onFilter;
   const items = actionItems(pages);
   const people = actionPeople(items);
   const groups = groupActionItems(filterActionItems(items, filter));
@@ -225,7 +240,11 @@ export function ActionItemList({
     { value: UNASSIGNED, label: t`Nobody mentioned` },
     ...people
       .filter((person) => person.login !== mine)
-      .map((person) => ({ value: person.login, label: `@${person.login} (${person.open})` })),
+      .map((person) => {
+        const login = person.login;
+        const open = person.open;
+        return { value: login, label: t`@${login} (${open} open)` };
+      }),
   ];
 
   return (

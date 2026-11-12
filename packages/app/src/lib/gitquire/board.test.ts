@@ -2,6 +2,8 @@ import { describe, expect, test } from 'vitest';
 import {
   actionItems,
   actionPeople,
+  applyPendingMoves,
+  BOARD_CLIENT_NAME,
   boardGroupKeys,
   buildBoard,
   EMPTY_BOARD_VIEW,
@@ -88,7 +90,7 @@ describe('board', () => {
     const moved = movePage(pages, 'tasks/c', 'status', 'Done');
     expect(moved.find((item) => item.docName === 'tasks/c')?.fields.status).toBe('Done');
     expect(pages.find((item) => item.docName === 'tasks/c')?.fields.status).toBe('To do');
-    const cleared = movePage(pages, 'tasks/c', 'status', '');
+    const cleared = movePage(pages, 'tasks/c', 'status', null);
     expect(cleared.find((item) => item.docName === 'tasks/c')?.fields).toEqual({
       type: 'task',
       owner: 'bob',
@@ -102,19 +104,75 @@ describe('board', () => {
       return new Response('{}', { status: 200 });
     }) as typeof fetch;
     await setPageField('tasks/c', 'status', 'Done', { fetch: fake });
-    await setPageField('tasks/c', 'status', '', { fetch: fake });
+    await setPageField('tasks/c', 'status', null, { fetch: fake });
+    await setPageField('tasks/c', 'prio', 2, { fetch: fake });
+    const board = { clientName: BOARD_CLIENT_NAME };
     expect(bodies).toEqual([
       [
         '/api/frontmatter-patch',
         'POST',
-        { docName: 'tasks/c', patch: { status: 'Done' }, summary: 'Set status to Done' },
+        { docName: 'tasks/c', patch: { status: 'Done' }, summary: 'Set status to Done', ...board },
       ],
       [
         '/api/frontmatter-patch',
         'POST',
-        { docName: 'tasks/c', patch: { status: null }, summary: 'Clear status' },
+        { docName: 'tasks/c', patch: { status: null }, summary: 'Clear status', ...board },
+      ],
+      [
+        '/api/frontmatter-patch',
+        'POST',
+        { docName: 'tasks/c', patch: { prio: 2 }, summary: 'Set prio to 2', ...board },
       ],
     ]);
+  });
+
+  test('keeps its columns and grouping while moves are pending', () => {
+    const two = [page('a', { status: 'To do' }), page('b', { status: 'Done' })];
+    const afterMove = movePage(two, 'a', 'status', 'Done');
+    const view = { ...EMPTY_BOARD_VIEW, groupKey: 'status' };
+    expect(buildBoard(afterMove, EMPTY_BOARD_VIEW)).toBeNull();
+    expect(shape(buildBoard(two, view, afterMove))).toEqual([
+      ['To do', []],
+      ['Done', ['a', 'b']],
+    ]);
+    expect(shape(buildBoard(afterMove, view))).toEqual([['Done', ['a', 'b']]]);
+  });
+
+  test('keeps numbers and true or false as they are', () => {
+    const typed = [page('a', { prio: 1 }), page('b', { prio: 2 }), page('c', { prio: 2 })];
+    const board = buildBoard(typed, EMPTY_BOARD_VIEW);
+    expect(board?.columns.map((column) => column.raw)).toEqual([1, 2]);
+    const flags = [page('a', { urgent: true }), page('b', { urgent: false })];
+    expect(buildBoard(flags, EMPTY_BOARD_VIEW)?.columns.map((column) => column.raw)).toEqual([
+      false,
+      true,
+    ]);
+  });
+
+  test('treats an empty value as no value and never offers the title', () => {
+    const mixed = [
+      page('a', { type: 'task', status: '', title: 'A' }),
+      page('b', { type: 'task', status: 'Done', title: 'B' }),
+      page('c', { type: 'task', status: 'To do', title: 'C' }),
+    ];
+    expect(boardGroupKeys(mixed)).toEqual(['status']);
+    const tasks = { groupKey: 'status', filterKey: 'type', filterValue: 'task' };
+    expect(shape(buildBoard(mixed, tasks))).toEqual([
+      ['', ['a']],
+      ['To do', ['c']],
+      ['Done', ['b']],
+    ]);
+    expect(shape(buildBoard(mixed, EMPTY_BOARD_VIEW)).map(([value]) => value)).toEqual([
+      'To do',
+      'Done',
+    ]);
+  });
+
+  test('applies moves that are still on their way to the server', () => {
+    const pending = new Map([['tasks/c', { key: 'status', value: 'Done' }]]);
+    const shown = applyPendingMoves(pages, pending);
+    expect(shown.find((item) => item.docName === 'tasks/c')?.fields.status).toBe('Done');
+    expect(applyPendingMoves(pages, new Map())).toEqual(pages);
   });
 
   test('restores a saved board and survives bad data', () => {

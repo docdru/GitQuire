@@ -4,7 +4,7 @@ import { useLingui } from '@lingui/react/macro';
 import { ArrowDown, ArrowUp, Columns3, LayoutList } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ActionItemList, ObjectBoard } from '@/components/GitQuireBoard';
+import { ActionItemList, EMPTY_ACTION_FILTER, ObjectBoard } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,12 +34,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { currentAuthor } from '@/gitquire-comments/ui-store';
 import { hashFromDocName } from '@/lib/doc-hash';
 import {
+  type ActionFilter,
+  applyPendingMoves,
   type BoardView,
+  type ColumnValue,
   EMPTY_BOARD_VIEW,
   movePage,
+  type PendingMove,
   readBoardView,
   setPageField,
 } from '@/lib/gitquire/board';
+import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
   EMPTY_TABLE_VIEW,
   fetchObjects,
@@ -97,6 +102,25 @@ function storeBoardView(view: BoardView): void {
 
 const HEAD_CLASS = 'sticky top-0 z-10 bg-popover normal-case';
 const MENU_CLASS = 'max-h-80 w-auto min-w-48 max-w-72 overflow-y-auto';
+
+function loadObjects(
+  onList: (list: ObjectList) => void,
+  onFailed: (failed: boolean) => void,
+): () => void {
+  let live = true;
+  onFailed(false);
+  fetchObjects().then(
+    (next) => {
+      if (live) onList(next);
+    },
+    () => {
+      if (live) onFailed(true);
+    },
+  );
+  return () => {
+    live = false;
+  };
+}
 
 function SortButton({
   label,
@@ -300,32 +324,21 @@ export function GitQuireViews() {
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<ObjectList | null>(null);
   const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const [view, setView] = useState<TableView>(loadTableView);
   const [boardView, setBoardView] = useState<BoardView>(loadBoardView);
   const [tab, setTab] = useState('table');
-  const [moving, setMoving] = useState<ReadonlySet<string>>(() => new Set<string>());
+  const [pending, setPending] = useState<ReadonlyMap<string, PendingMove>>(() => new Map());
+  const [actionFilter, setActionFilter] = useState<ActionFilter>(EMPTY_ACTION_FILTER);
   const [me, setMe] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    let live = true;
-    fetchObjects().then(
-      (next) => {
-        if (!live) return;
-        setList(next);
-        setFailed(false);
-      },
-      () => {
-        if (live) setFailed(true);
-      },
-    );
-    return () => {
-      live = false;
-    };
-  }, [open, attempt]);
+    return loadObjects(setList, setFailed);
+  }, [open]);
 
   const loading = list === null && !failed;
+  const shownPages = list === null ? [] : applyPendingMoves(list.pages, pending);
+  const movingPages = new Set(pending.keys());
 
   function changeOpen(next: boolean) {
     if (next) setFailed(false);
@@ -356,33 +369,33 @@ export function GitQuireViews() {
     storeBoardView(next);
   }
 
-  function setMovingPage(docName: string, on: boolean) {
-    setMoving((current) => {
-      const next = new Set(current);
-      if (on) {
-        next.add(docName);
-      } else {
-        next.delete(docName);
-      }
+  function settle(docName: string): void {
+    setPending((current) => {
+      const next = new Map(current);
+      next.delete(docName);
       return next;
     });
   }
 
-  function move(docName: string, key: string, value: string) {
-    setList((current) => {
-      if (current === null) return current;
-      return { ...current, pages: movePage(current.pages, docName, key, value) };
+  function move(docName: string, key: string, value: ColumnValue | null) {
+    if (pending.has(docName)) return;
+    setPending((current) => new Map(current).set(docName, { key, value }));
+    const saved = () => {
+      setList((current) => {
+        if (current === null) return current;
+        return { ...current, pages: movePage(current.pages, docName, key, value) };
+      });
+      settle(docName);
+    };
+    setPageField(docName, key, value).then(saved, (err: unknown) => {
+      if (err instanceof GitQuireApiError && err.status === 409) {
+        saved();
+        return;
+      }
+      settle(docName);
+      toast.error(t`Couldn't move the page. The board was reloaded.`);
+      loadObjects(setList, setFailed);
     });
-    setMovingPage(docName, true);
-    setPageField(docName, key, value)
-      .then(
-        () => undefined,
-        () => {
-          toast.error(t`Couldn't move the page. The board was reloaded.`);
-          setAttempt((count) => count + 1);
-        },
-      )
-      .finally(() => setMovingPage(docName, false));
   }
 
   function openPage(docName: string) {
@@ -421,8 +434,7 @@ export function GitQuireViews() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setFailed(false);
-                    setAttempt((count) => count + 1);
+                    loadObjects(setList, setFailed);
                   }}
                 >
                   {t`Try again`}
@@ -436,7 +448,11 @@ export function GitQuireViews() {
               </p>
             )}
             {list !== null && (
-              <Tabs value={tab} onValueChange={setTab} className="min-h-0 flex-1">
+              <Tabs
+                value={tab}
+                onValueChange={setTab}
+                className="flex min-h-0 flex-1 flex-col gap-3"
+              >
                 <TabsList>
                   <TabsTrigger value="table">{t`Table`}</TabsTrigger>
                   <TabsTrigger value="board">{t`Board`}</TabsTrigger>
@@ -444,7 +460,7 @@ export function GitQuireViews() {
                 </TabsList>
                 <TabsContent value="table" className={TAB_CLASS}>
                   <ObjectTable
-                    pages={list.pages}
+                    pages={shownPages}
                     saved={view}
                     onChange={changeView}
                     onOpen={openPage}
@@ -452,16 +468,23 @@ export function GitQuireViews() {
                 </TabsContent>
                 <TabsContent value="board" className={TAB_CLASS}>
                   <ObjectBoard
-                    pages={list.pages}
+                    basis={list.pages}
+                    pages={shownPages}
                     view={boardView}
-                    moving={moving}
+                    moving={movingPages}
                     onChange={changeBoardView}
                     onOpen={openPage}
                     onMove={move}
                   />
                 </TabsContent>
                 <TabsContent value="actions" className={TAB_CLASS}>
-                  <ActionItemList pages={list.pages} me={me} onOpen={openPage} />
+                  <ActionItemList
+                    pages={shownPages}
+                    me={me}
+                    filter={actionFilter}
+                    onFilter={setActionFilter}
+                    onOpen={openPage}
+                  />
                 </TabsContent>
               </Tabs>
             )}

@@ -27,33 +27,62 @@ export function stageRank(value: string): number {
   return index === -1 ? UNKNOWN_STAGE : index;
 }
 
-function isSimple(value: FieldValue | undefined): boolean {
+export type ColumnValue = string | number | boolean;
+
+function isSimple(value: FieldValue | undefined): value is ColumnValue {
   return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 }
 
-export function boardGroupKeys(pages: readonly PageObject[]): string[] {
-  const values = new Map<string, Set<string>>();
-  const unusable = new Set<string>();
+function columnName(value: FieldValue | undefined): string | undefined {
+  if (!isSimple(value)) return undefined;
+  const name = fieldText(value).trim();
+  return name === '' ? undefined : name;
+}
+
+interface KeyValues {
+  values: Set<string>;
+  unusable: boolean;
+}
+
+function keyValues(pages: readonly PageObject[]): Map<string, KeyValues> {
+  const found = new Map<string, KeyValues>();
   for (const page of pages) {
-    for (const [key, value] of Object.entries(page.fields)) {
-      if (value === null) continue;
-      if (!isSimple(value)) {
-        unusable.add(key);
-        continue;
-      }
-      const seen = values.get(key) ?? new Set<string>();
-      seen.add(fieldText(value));
-      values.set(key, seen);
+    for (const key of Object.keys(page.fields)) {
+      if (key === 'title') continue;
+      const value = fieldOf(page, key);
+      if (value === null || value === undefined) continue;
+      const entry = found.get(key) ?? { values: new Set<string>(), unusable: false };
+      const name = columnName(value);
+      if (!isSimple(value)) entry.unusable = true;
+      if (name !== undefined) entry.values.add(name);
+      found.set(key, entry);
     }
   }
-  const usable = [...values]
-    .filter(([key, seen]) => !unusable.has(key) && seen.size >= 2 && seen.size <= MAX_BOARD_COLUMNS)
+  return found;
+}
+
+export function boardGroupKeys(pages: readonly PageObject[]): string[] {
+  const usable = [...keyValues(pages)]
+    .filter(
+      ([, entry]) =>
+        !entry.unusable && entry.values.size >= 2 && entry.values.size <= MAX_BOARD_COLUMNS,
+    )
     .map(([key]) => key);
   const rank = (key: string): number => {
     const preferred = PREFERRED_GROUP_KEYS.indexOf(key.toLowerCase());
     return preferred === -1 ? PREFERRED_GROUP_KEYS.length : preferred;
   };
   return usable.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
+function canKeepGrouping(pages: readonly PageObject[], key: string): boolean {
+  const entry = keyValues(pages).get(key);
+  return (
+    entry !== undefined &&
+    !entry.unusable &&
+    entry.values.size >= 1 &&
+    entry.values.size <= MAX_BOARD_COLUMNS
+  );
 }
 
 export interface BoardView {
@@ -83,6 +112,7 @@ export function readBoardView(raw: string | null): BoardView {
 
 export interface BoardColumn {
   value: string;
+  raw: ColumnValue | null;
   pages: PageObject[];
 }
 
@@ -95,37 +125,61 @@ function onBoard(page: PageObject, view: BoardView): boolean {
   return hasFields(page) && matchesFilter(page, view.filterKey, view.filterValue);
 }
 
-export function buildBoard(pages: readonly PageObject[], view: BoardView): Board | null {
-  const keys = boardGroupKeys(pages);
-  const groupKey = keys.includes(view.groupKey) ? view.groupKey : keys[0];
+export function chooseGroupKey(pages: readonly PageObject[], wanted: string): string | undefined {
+  if (wanted !== '' && canKeepGrouping(pages, wanted)) return wanted;
+  return boardGroupKeys(pages)[0];
+}
+
+export function buildBoard(
+  basis: readonly PageObject[],
+  view: BoardView,
+  shown: readonly PageObject[] = basis,
+): Board | null {
+  const groupKey = chooseGroupKey(basis, view.groupKey);
   if (groupKey === undefined) return null;
-  const lists = new Map<string, PageObject[]>();
-  const unplaced: PageObject[] = [];
-  for (const page of pages) {
+  const lists = new Map<string, BoardColumn>();
+  for (const page of [...basis, ...shown]) {
     const value = fieldOf(page, groupKey);
-    const name = isSimple(value) ? fieldText(value) : undefined;
-    const list = name === undefined ? unplaced : (lists.get(name) ?? []);
-    if (name !== undefined) lists.set(name, list);
-    if (onBoard(page, view)) list.push(page);
+    const name = columnName(value);
+    if (name !== undefined && isSimple(value) && !lists.has(name)) {
+      lists.set(name, { value: name, raw: value, pages: [] });
+    }
   }
-  const ordered = [...lists]
-    .map(([value, list]) => ({ value, pages: list }))
-    .sort(
-      (a, b) =>
-        stageRank(a.value) - stageRank(b.value) ||
-        a.value.localeCompare(b.value, undefined, { numeric: true }),
-    );
+  const unplaced: PageObject[] = [];
+  for (const page of shown) {
+    if (!onBoard(page, view)) continue;
+    const name = columnName(fieldOf(page, groupKey));
+    const column = name === undefined ? undefined : lists.get(name);
+    if (column === undefined) {
+      unplaced.push(page);
+    } else {
+      column.pages.push(page);
+    }
+  }
+  const ordered = [...lists.values()].sort(
+    (a, b) =>
+      stageRank(a.value) - stageRank(b.value) ||
+      a.value.localeCompare(b.value, undefined, { numeric: true }),
+  );
   for (const column of ordered) {
     column.pages.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
   }
-  const withoutValue = view.filterKey === '' ? [] : unplaced;
-  if (withoutValue.length > 0) ordered.unshift({ value: '', pages: withoutValue });
+  if (view.filterKey !== '') ordered.unshift({ value: '', raw: null, pages: unplaced });
   return { groupKey, columns: ordered };
 }
 
-export function withFieldValue(page: PageObject, key: string, value: string): PageObject {
+export interface PendingMove {
+  key: string;
+  value: ColumnValue | null;
+}
+
+export function withFieldValue(
+  page: PageObject,
+  key: string,
+  value: ColumnValue | null,
+): PageObject {
   const fields = { ...page.fields };
-  if (value === '') {
+  if (value === null) {
     delete fields[key];
   } else {
     fields[key] = value;
@@ -137,21 +191,35 @@ export function movePage(
   pages: readonly PageObject[],
   docName: string,
   key: string,
-  value: string,
+  value: ColumnValue | null,
 ): PageObject[] {
   return pages.map((page) => (page.docName === docName ? withFieldValue(page, key, value) : page));
 }
 
+export function applyPendingMoves(
+  pages: readonly PageObject[],
+  pending: ReadonlyMap<string, PendingMove>,
+): PageObject[] {
+  if (pending.size === 0) return [...pages];
+  return pages.map((page) => {
+    const move = pending.get(page.docName);
+    return move === undefined ? page : withFieldValue(page, move.key, move.value);
+  });
+}
+
+export const BOARD_CLIENT_NAME = 'gitquire-board';
+
 export function setPageField(
   docName: string,
   key: string,
-  value: string,
+  value: ColumnValue | null,
   deps: ApiDeps = {},
 ): Promise<unknown> {
   const body = {
     docName,
-    patch: { [key]: value === '' ? null : value },
-    summary: value === '' ? `Clear ${key}` : `Set ${key} to ${value}`,
+    patch: { [key]: value },
+    summary: value === null ? `Clear ${key}` : `Set ${key} to ${String(value)}`,
+    clientName: BOARD_CLIENT_NAME,
   };
   return gitquireRequest('/api/frontmatter-patch', { method: 'POST', body }, deps);
 }
