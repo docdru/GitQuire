@@ -38,7 +38,7 @@ working copy. Health checks are `GET /healthz` (process up) and `GET /readyz` (r
 | `GITQUIRE_NAMING` | `slug` | `off` keeps new page names exactly as typed ([page names](./page-names.mdx)) |
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM` | unset | Mail server and sender for mention email ([mentions](./mentions.mdx#set-up-email)) |
 | `GITQUIRE_MAIL_DOMAINS` | unset | Optional domains people may enter for mention email |
-| `GITQUIRE_CHAT_WEBHOOK_URL` | unset | Post new mentions to a team chat ([mentions](./mentions.mdx#team-chat)) |
+| `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | unset | Post new mentions to a team chat ([mentions](./mentions.mdx#team-chat)) |
 
 The image is published from `main` as `ghcr.io/docdru/gitquire:latest` and
 `ghcr.io/docdru/gitquire:sha-<commit>`. Pin a `sha-` tag in production.

@@ -23,5 +23,6 @@ pages link where. See also [links and backlinks](../reference/core-concepts.md#l
 
 The broken-links button in the header shows how many links point to pages that do not exist. It
 lists each missing page with the pages that link to it, so you can open them and fix the link.
-Set `validation.links: off` to hide it. Links from `log` pages and from agent folders (`.agents`,
-`.claude`, `.cursor`) are not listed.
+Set `validation.links: off` in `.ok/config.yml` ([configuration](../reference/configuration.mdx))
+to hide it. Links from agent folders (`.agents`, `.claude`, `.cursor`) are not listed, and neither
+are links from `log.md` pages while **Ignore broken links in log.md** is on (the default).

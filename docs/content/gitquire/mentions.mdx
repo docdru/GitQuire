@@ -9,13 +9,15 @@ app, by email if they want it, and in a team chat if the server is set up for it
 
 ## Mention inbox
 
-The **@** button in the header lists the discussions where someone mentioned you, newest first,
-with a count of unread ones. Choose a mention to open the page at that thread; it is marked read.
+When you are signed in, the **@** button in the header lists the discussions where someone
+mentioned you, newest first, with a count of unread ones (at most 100; mentioning yourself does
+not count). Choose a mention to open the page at that thread; it is marked read.
 **Mark all as read** clears the count.
 
 The inbox needs [GitHub sign-in](./github-sign-in.mdx), because it has to know who is asking. The
 mentions themselves stay in the pages, in Git. Only who has read what, and the email settings
-below, are kept on the server in `/data/.ok/local/gitquire/mentions.json`, outside Git.
+below, are kept on the server in `/data/.ok/local/gitquire/mentions.json`, outside Git. The team
+chat keeps what it has posted next to it, in `chat.json`.
 
 ## Email
 
@@ -24,12 +26,14 @@ mail with a code like `ABCD-2345`; type it in and choose **Confirm**. From then 
 you have not read yet are mailed once a minute. Mentions that already existed when you confirmed
 are not mailed.
 
-- **Change address:** enter the new one and confirm it; the old one keeps getting mail until then.
+- **Change address:** enter the new one, choose **Change** and enter the new code. Until then,
+  mail still goes to the old address.
 - **Stop:** choose **Stop emailing me**.
 - **Codes:** valid for 24 hours, five tries. A new code can be requested after a minute.
 
 Limits keep the feature from being used to flood someone: at most 5 confirmation mails per person
-and 3 per address a day, 30 an hour for the whole server, and 20 mention mails per person a day.
+and 3 per address a day, and 30 an hour (100 a day) for the whole server. At most 20 mention mails
+go to one person a day and 100 an hour in total; these counts start over when the server restarts.
 People who have not opened GitQuire for 30 days get no mail.
 
 ### Set up email
@@ -44,12 +48,15 @@ service, or a relay on your network.
 | `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. |
 | `OK_EXTERNAL_URL` | The link in the mails is built from it. Without it, mails have no link. |
 
-With `smtp://`, STARTTLS is required; add `?starttls=off` only for a relay on the same machine.
+With `smtp://`, STARTTLS is required. Add `?starttls=off` only for a relay without encryption; a
+password is then only sent to `localhost`.
 Special characters in the user name or password must be URL-encoded (`@` becomes `%40`). Use a
 sender address on your own domain with SPF and DKIM set up, or mails may land in spam.
 
 To test, enter your own address: the confirmation mail is the first real mail. If it does not
-arrive, the server log shows `[gitquire-mail] confirmation mail failed` with the reason.
+arrive, the server log shows `[gitquire-mail] confirmation mail failed` with the reason. If the
+settings are not valid, email stays off and the log shows `[gitquire-mail] email for mentions is
+off`.
 
 ## Team chat
 
@@ -61,12 +68,19 @@ channel: who mentioned whom, on which page, the comment and a link.
 | Slack | An app with **Incoming Webhooks** (`https://hooks.slack.com/services/…`) |
 | Microsoft Teams | A Workflows flow **Post to a channel when a webhook request is received** |
 | Discord | Channel settings → Integrations → **Webhooks** |
-| Mattermost, Rocket.Chat | An incoming webhook (`…/hooks/…`) |
-| Anything else | Receives JSON with `text`, `author`, `mentioned`, `page`, `url` and `comment` |
+| Mattermost, Rocket.Chat | An incoming webhook (`…/hooks/…`), sent in the `slack` format |
+| Anything else | Receives JSON with `event`, `text`, `author`, `mentioned`, `page`, `docName`, `url`, `quote` and `comment` |
 
 The format is guessed from the URL; set `GITQUIRE_CHAT_FORMAT` to `slack`, `teams`, `discord` or
-`generic` to choose it yourself. Mentions that exist when the webhook is first set up are not
-posted. At most 60 posts go out an hour; failed posts are retried with a growing pause.
+`generic` to choose it yourself. The URL must use `https://` (`http://localhost` is allowed for
+tests); otherwise chat stays off and the log shows `[gitquire-chat] chat notifications are off`
+with the reason.
+
+Mentions that exist when the webhook is first set up are not posted. At most 60 posts go out an
+hour. After a network or server error, or when the webhook is missing (for example a deleted Slack
+app), GitQuire tries again with a growing pause, up to an hour. A post the service refuses is
+skipped and logged. Run one GitQuire server per content folder, or each would post every
+mention.
 
 Comment text and page names are sent to the chat service, so only use a channel the whole team
 may read.
