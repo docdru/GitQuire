@@ -1,10 +1,11 @@
 import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   type ActionFilter,
   actionItems,
@@ -211,6 +212,7 @@ export function ActionItemList({
   onOpen: (docName: string) => void;
 }) {
   const { t } = useLingui();
+  const showDoneId = useId();
   const [filter, setFilter] = useState<ActionFilter>({ person: '', showDone: false, search: '' });
   const items = actionItems(pages);
   const people = actionPeople(items);
@@ -243,13 +245,16 @@ export function ActionItemList({
           aria-label={t`Search`}
           onChange={(event) => setFilter({ ...filter, search: event.target.value })}
         />
-        <label className="flex items-center gap-2 text-sm">
+        <span className="flex items-center gap-2">
           <Checkbox
+            id={showDoneId}
             checked={filter.showDone}
             onCheckedChange={(checked) => setFilter({ ...filter, showDone: checked === true })}
           />
-          {t`Show done`}
-        </label>
+          <Label htmlFor={showDoneId} className="font-normal text-sm">
+            {t`Show done`}
+          </Label>
+        </span>
         <span className="ms-auto text-muted-foreground text-xs">
           {plural(shown, { one: '# item', other: '# items' })}
         </span>
