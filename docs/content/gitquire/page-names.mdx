@@ -18,3 +18,10 @@ typed as its `# Title`, so the readable name isn't lost.
 `[[Meeting Notes 2026]]` finds `meeting-notes-2026.md`, because wiki links are matched the same way.
 Renaming or moving a page rewrites the links that point at it, and the backlinks panel shows which
 pages link where. See also [links and backlinks](../reference/core-concepts.md#links-and-backlinks).
+
+## Broken links
+
+The broken-links button in the header shows how many links point to pages that do not exist. It
+lists each missing page with the pages that link to it, so you can open them and fix the link.
+Set `validation.links: off` to hide it. Links from `log` pages and from agent folders (`.agents`,
+`.claude`, `.cursor`) are not listed.

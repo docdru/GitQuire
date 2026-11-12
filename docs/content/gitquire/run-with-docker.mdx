@@ -36,6 +36,9 @@ working copy. Health checks are `GET /healthz` (process up) and `GET /readyz` (r
 | `OK_EXTERNAL_URL` | unset | Public origin; required behind a domain or proxy |
 | `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Fallback Git identity for commits nobody signed in made |
 | `GITQUIRE_NAMING` | `slug` | `off` keeps new page names exactly as typed ([page names](./page-names.mdx)) |
+| `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM` | unset | Mail server and sender for mention email ([mentions](./mentions.mdx#set-up-email)) |
+| `GITQUIRE_MAIL_DOMAINS` | unset | Optional domains people may enter for mention email |
+| `GITQUIRE_CHAT_WEBHOOK_URL` | unset | Post new mentions to a team chat ([mentions](./mentions.mdx#team-chat)) |
 
 The image is published from `main` as `ghcr.io/docdru/gitquire:latest` and
 `ghcr.io/docdru/gitquire:sha-<commit>`. Pin a `sha-` tag in production.

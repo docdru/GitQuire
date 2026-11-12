@@ -231,6 +231,12 @@ then only sent to `localhost`. Mail is limited to 20 per person per day and 100 
 the counts start over when the server restarts. People who have not opened GitQuire for 30 days get
 no mail. The link in the mail is built from `OK_EXTERNAL_URL`; without it, the mail has no link.
 
+Mentions can also be posted to a team chat. Set `GITQUIRE_CHAT_WEBHOOK_URL` to an incoming
+webhook of Slack, Microsoft Teams (Workflows), Discord, Mattermost or Rocket.Chat; other services
+get plain JSON. The format is guessed from the URL, or set `GITQUIRE_CHAT_FORMAT` to `slack`,
+`teams`, `discord` or `generic`. Mentions that exist when the webhook is first set up are not
+posted.
+
 ## Broken links
 
 The broken-links button in the header shows how many links point to pages that do not exist. It

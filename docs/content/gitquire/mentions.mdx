@@ -1,0 +1,72 @@
+---
+title: Mentions and notifications
+icon: LuAtSign
+description: See where teammates mentioned you, and get mentions by email or in your team chat.
+---
+
+Write `@login` in a discussion to mention a teammate. GitQuire tells them in three ways: in the
+app, by email if they want it, and in a team chat if the server is set up for it.
+
+## Mention inbox
+
+The **@** button in the header lists the discussions where someone mentioned you, newest first,
+with a count of unread ones. Choose a mention to open the page at that thread; it is marked read.
+**Mark all as read** clears the count.
+
+The inbox needs [GitHub sign-in](./github-sign-in.mdx), because it has to know who is asking. The
+mentions themselves stay in the pages, in Git. Only who has read what, and the email settings
+below, are kept on the server in `/data/.ok/local/gitquire/mentions.json`, outside Git.
+
+## Email
+
+Under the mention list, enter your address and choose **Send code**. GitQuire sends a confirmation
+mail with a code like `ABCD-2345`; type it in and choose **Confirm**. From then on, new mentions
+you have not read yet are mailed once a minute. Mentions that already existed when you confirmed
+are not mailed.
+
+- **Change address:** enter the new one and confirm it; the old one keeps getting mail until then.
+- **Stop:** choose **Stop emailing me**.
+- **Codes:** valid for 24 hours, five tries. A new code can be requested after a minute.
+
+Limits keep the feature from being used to flood someone: at most 5 confirmation mails per person
+and 3 per address a day, 30 an hour for the whole server, and 20 mention mails per person a day.
+People who have not opened GitQuire for 30 days get no mail.
+
+### Set up email
+
+GitQuire hands mails to an SMTP server you already have: your company mail, a transactional mail
+service, or a relay on your network.
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_SMTP_URL` | `smtps://user:password@host:465` or `smtp://user:password@host:587`. Without it, email is off and the address field is hidden. |
+| `GITQUIRE_MAIL_FROM` | Sender address, for example `wiki@acme.com`. Required. |
+| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. |
+| `OK_EXTERNAL_URL` | The link in the mails is built from it. Without it, mails have no link. |
+
+With `smtp://`, STARTTLS is required; add `?starttls=off` only for a relay on the same machine.
+Special characters in the user name or password must be URL-encoded (`@` becomes `%40`). Use a
+sender address on your own domain with SPF and DKIM set up, or mails may land in spam.
+
+To test, enter your own address: the confirmation mail is the first real mail. If it does not
+arrive, the server log shows `[gitquire-mail] confirmation mail failed` with the reason.
+
+## Team chat
+
+Set `GITQUIRE_CHAT_WEBHOOK_URL` to an incoming webhook, and GitQuire posts each new mention to that
+channel: who mentioned whom, on which page, the comment and a link.
+
+| Service | Webhook to create |
+| --- | --- |
+| Slack | An app with **Incoming Webhooks** (`https://hooks.slack.com/services/…`) |
+| Microsoft Teams | A Workflows flow **Post to a channel when a webhook request is received** |
+| Discord | Channel settings → Integrations → **Webhooks** |
+| Mattermost, Rocket.Chat | An incoming webhook (`…/hooks/…`) |
+| Anything else | Receives JSON with `text`, `author`, `mentioned`, `page`, `url` and `comment` |
+
+The format is guessed from the URL; set `GITQUIRE_CHAT_FORMAT` to `slack`, `teams`, `discord` or
+`generic` to choose it yourself. Mentions that exist when the webhook is first set up are not
+posted. At most 60 posts go out an hour; failed posts are retried with a growing pause.
+
+Comment text and page names are sent to the chat service, so only use a channel the whole team
+may read.
