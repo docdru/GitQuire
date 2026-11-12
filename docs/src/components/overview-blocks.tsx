@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { ArrowRight, Bot, FileText, type LucideIcon, NotebookPen } from 'lucide-react';
+import Link from 'next/link';
 
 interface Layer {
   k: string;
