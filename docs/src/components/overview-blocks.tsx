@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ArrowRight, Bot, FileText, type LucideIcon, NotebookPen } from 'lucide-react';
 
 interface Layer {
@@ -94,7 +95,7 @@ export function WhereToStart() {
   return (
     <div className="ok-overview not-prose flex flex-col gap-2.5">
       {PATHS.map((path, i) => (
-        <a
+        <Link
           key={path.href}
           href={path.href}
           className="group flex items-center gap-4 rounded-xl border border-fd-border bg-fd-card px-[18px] py-4 no-underline shadow-sm transition hover:-translate-y-px hover:border-[var(--ok-accent)]"
@@ -114,7 +115,7 @@ export function WhereToStart() {
             </span>
           </span>
           <ArrowRight className="size-4 shrink-0 text-fd-muted-foreground transition-colors group-hover:text-[var(--ok-accent)]" />
-        </a>
+        </Link>
       ))}
     </div>
   );
