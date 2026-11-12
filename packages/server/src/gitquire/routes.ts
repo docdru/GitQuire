@@ -1,6 +1,12 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import {
+  type ChatPost,
+  chatStatePath,
+  createChatNotifier,
+  resolveChatConfig,
+} from './chat-notifier.ts';
+import {
   CONFIRMATION_RESEND_MS,
   confirmationKey,
   confirmationMail,
@@ -56,11 +62,14 @@ export interface GitQuireRoutesDeps {
   contentFilter?: () => ScanFilter | undefined;
   sendMail?: (config: MailConfig, message: MailMessage) => Promise<void>;
   mailRoundMs?: number;
+  chatStateFile?: string;
+  postToChat?: ChatPost;
 }
 
 export interface GitQuireRoutes {
   handle: (req: IncomingMessage, res: ServerResponse) => boolean;
   mailRound: () => Promise<number>;
+  chatRound: () => Promise<number>;
   stop: () => void;
 }
 
@@ -321,10 +330,26 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
           log: deps.log,
         })
       : undefined;
+  const chat = resolveChatConfig(deps.env ?? process.env);
+  if (chat.kind === 'invalid') {
+    deps.log.warn({ reason: chat.reason }, '[gitquire-chat] chat notifications are off');
+  }
+  const chatNotifier =
+    chat.kind === 'on'
+      ? createChatNotifier({
+          index: mentionIndex,
+          config: chat.config,
+          stateFile: deps.chatStateFile ?? chatStatePath(deps.projectDir),
+          post: deps.postToChat,
+          log: deps.log,
+        })
+      : undefined;
+  const rounds = [mailer, chatNotifier].filter((job) => job !== undefined);
+
   function startMailRounds(): NodeJS.Timeout | undefined {
-    if (mailer === undefined) return undefined;
+    if (rounds.length === 0) return undefined;
     const timer = setInterval(() => {
-      mailer.round().catch(() => undefined);
+      for (const job of rounds) job.round().catch(() => undefined);
     }, deps.mailRoundMs ?? DEFAULT_MAIL_ROUND_MS);
     timer.unref();
     return timer;
@@ -536,6 +561,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
   return {
     handle,
     mailRound: () => mailer?.round() ?? Promise.resolve(0),
+    chatRound: () => chatNotifier?.round() ?? Promise.resolve(0),
     stop: () => clearInterval(mailTimer),
   };
 }

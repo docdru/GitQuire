@@ -1,0 +1,54 @@
+---
+title: Views
+icon: LuLayoutList
+description: Treat pages with properties as objects, and see them as a table, a board or a list of action items.
+---
+
+Give a page properties and it becomes an object you can list, sort and group. There is no schema:
+a page has whatever properties you give it.
+
+```markdown
+---
+type: task
+status: Doing
+owner: alice
+due: 2026-12-01
+---
+
+# Rework the landing page
+
+- [ ] Draft the copy @bob
+- [x] Collect screenshots
+```
+
+The **Views** button in the header opens three tabs. It is hidden on phone-width screens.
+
+## Table
+
+Every page that has properties. The most common properties are columns; **Columns** adds or
+removes others.
+
+- Filter by a property and one of its values, for example `type` = `decision`. **No value**
+  lists pages that lack the property. List values such as `tags: [web, q4]` match on each item.
+- Search titles, page names and values.
+- Choose a column header to sort; numbers sort by value and empty cells go last.
+
+## Board
+
+Columns come from a property with a few values, such as `status`. **Columns from** picks another
+property, for example `owner`. Known stages are ordered the way work flows: backlog, to do, doing,
+review, done.
+
+Drag a card to another column, or pick a column in the list on the card (this also works by
+keyboard and on touch screens).
+The property is changed in the page and committed in your name, and anyone with the page open sees
+the change at once. With a filter, for example `type` = `task`, pages without a value get their own
+**No value** column.
+
+## Action items
+
+Every task list item (`- [ ]`) of every page, grouped by page. Filter to items that `@mention` you,
+a teammate or nobody, search them, and tick **Show done** to see finished ones. Choose a page title
+to open it.
+
+Table and board settings are saved per browser.
