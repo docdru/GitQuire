@@ -30,6 +30,10 @@ export function countTrailers(doc: PMNode): number {
   return findTrailers(doc).length;
 }
 
+export function commentBlockKey(doc: PMNode): string {
+  return findTrailers(doc).map((trailer) => String(trailer.node.attrs.raw ?? '')).join('\n');
+}
+
 const parsedCache = new WeakMap<PMNode, Thread[]>();
 
 const NO_THREADS: Thread[] = [];

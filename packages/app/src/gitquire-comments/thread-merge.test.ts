@@ -54,15 +54,19 @@ describe('mergeThreads', () => {
     const { base } = seed();
     const mine = createThread(base, { exact: 'look good' }, 'Mine', alice).threads;
     const theirs = createThread(base, { exact: 'numbers' }, 'Theirs', bob).threads;
-    expect(bodies(mergeThreads(base, mine, theirs))).toEqual([['Source?'], ['Theirs'], ['Mine']]);
+    expect(bodies(mergeThreads(base, mine, theirs))).toEqual([['Source?'], ['Mine'], ['Theirs']]);
   });
 
   test('gives both sides the same result', () => {
     const { base, threadId } = seed();
-    const fromAlice = addReply(base, threadId, 'From Alice', alice);
-    const fromBob = setResolved(addReply(base, threadId, 'From Bob', bob), threadId, true, bob);
+    const withAliceThread = createThread(base, { exact: 'look good' }, 'Mine', alice).threads;
+    const fromAlice = addReply(withAliceThread, threadId, 'From Alice', alice);
+    const withBobThread = createThread(base, { exact: 'numbers' }, 'Theirs', bob).threads;
+    const bobReplied = addReply(withBobThread, threadId, 'From Bob', bob);
+    const fromBob = setResolved(bobReplied, threadId, true, bob);
     const seenByAlice = mergeThreads(base, fromAlice, fromBob);
     const seenByBob = mergeThreads(base, fromBob, fromAlice);
+    expect(seenByAlice).toEqual(seenByBob);
     expect(sameThreads(mergeThreads(base, fromBob, seenByAlice), seenByAlice)).toBe(true);
     expect(sameThreads(mergeThreads(base, fromAlice, seenByBob), seenByBob)).toBe(true);
   });
@@ -98,36 +102,50 @@ describe('reconcileThreads', () => {
     const { base, threadId } = seed();
     const mine = addReply(base, threadId, 'From Alice', alice);
     const theirs = addReply(base, threadId, 'From Bob', bob);
-    const pending = notePendingWrite(undefined, base, mine, 1000);
+    const pending = notePendingWrite([], base, mine, 1000);
     const result = reconcileThreads(pending, theirs, 1500);
     expect(bodies(result.write ?? [])).toEqual([['Source?', 'From Alice', 'From Bob']]);
-    expect(reconcileThreads(pending, result.write ?? [], 1600).write).toBeUndefined();
+    expect(reconcileThreads(result.pending, result.write ?? [], 1600).write).toBeUndefined();
   });
 
   test('does nothing when the remote state already has my change', () => {
     const { base, threadId } = seed();
     const mine = addReply(base, threadId, 'From Alice', alice);
-    const pending = notePendingWrite(undefined, base, mine, 1000);
+    const pending = notePendingWrite([], base, mine, 1000);
     expect(reconcileThreads(pending, mine, 1500).write).toBeUndefined();
   });
 
   test('forgets a write once the window has passed', () => {
     const { base, threadId } = seed();
     const mine = addReply(base, threadId, 'From Alice', alice);
-    const pending = notePendingWrite(undefined, base, mine, 1000);
+    const pending = notePendingWrite([], base, mine, 1000);
     const late = reconcileThreads(pending, base, 1001 + PENDING_WRITE_WINDOW_MS);
-    expect(late).toEqual({ pending: undefined, write: undefined });
+    expect(late).toEqual({ pending: [], write: undefined });
   });
 
-  test('keeps the first base across quick successive writes', () => {
+  test('replays quick successive writes in order', () => {
     const { base, threadId } = seed();
     const first = addReply(base, threadId, 'One', alice);
     const second = addReply(first, threadId, 'Two', alice);
-    const earlier = notePendingWrite(undefined, base, first, 1000);
-    const pending = notePendingWrite(earlier, first, second, 2000);
-    expect(pending.base).toBe(base);
-    expect(bodies(reconcileThreads(pending, base, 2500).write ?? [])).toEqual([
-      ['Source?', 'One', 'Two'],
+    const pending = notePendingWrite(notePendingWrite([], base, first, 1000), first, second, 2000);
+    const stale = addReply(base, threadId, 'From Bob', bob);
+    expect(bodies(reconcileThreads(pending, stale, 2500).write ?? [])).toEqual([
+      ['Source?', 'One', 'Two', 'From Bob'],
     ]);
+  });
+
+  test('does not bring back a reply its author deleted after I wrote again', () => {
+    const { base, threadId } = seed();
+    const first = addReply(base, threadId, 'One', alice);
+    let pending = notePendingWrite([], base, first, 0);
+    const withBob = addReply(first, threadId, 'From Bob', bob);
+    const bobReplyId = withBob[0]?.comments.at(-1)?.id as string;
+    expect(reconcileThreads(pending, withBob, 5000).write).toBeUndefined();
+    const second = addReply(withBob, threadId, 'Two', alice);
+    pending = notePendingWrite(pending, withBob, second, 9000);
+    const afterDelete = deleteComment(second, threadId, bobReplyId, bob.author);
+    const result = reconcileThreads(pending, afterDelete, 14_000);
+    expect(result.write).toBeUndefined();
+    expect(result.pending).toHaveLength(1);
   });
 });

@@ -4,7 +4,7 @@ import {
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import type { Thread, ThreadComment } from './thread-ops';
 
-export function normalizeThreads(threads: readonly Thread[]): Thread[] {
+function normalizeThreads(threads: readonly Thread[]): Thread[] {
   const raw = serializeCommentTrailer(threads);
   return raw === undefined ? [] : parseCommentTrailer(raw).threads;
 }
@@ -38,6 +38,19 @@ function stateKey(thread: Thread | undefined): string {
   return JSON.stringify([thread.resolved, thread.resolvedBy ?? null, thread.resolvedAt ?? null]);
 }
 
+function later<T>(
+  a: T,
+  b: T,
+  aTime: string | undefined,
+  bTime: string | undefined,
+  key: (value: T) => string,
+): T {
+  const aStamp = aTime ?? '';
+  const bStamp = bTime ?? '';
+  if (aStamp !== bStamp) return aStamp > bStamp ? a : b;
+  return key(a) >= key(b) ? a : b;
+}
+
 function mergeComment(
   base: ThreadComment | undefined,
   mine: ThreadComment | undefined,
@@ -48,7 +61,7 @@ function mergeComment(
   if (commentKey(theirs) === baseKey) return mine;
   if (mine === undefined) return theirs;
   if (theirs === undefined) return mine;
-  return (mine.editedAt ?? '') >= (theirs.editedAt ?? '') ? mine : theirs;
+  return later(mine, theirs, mine.editedAt, theirs.editedAt, commentKey);
 }
 
 function mergeState(
@@ -63,7 +76,7 @@ function mergeState(
   if (stateKey(theirs) === baseKey) return mine;
   if (!mine.resolved) return mine;
   if (!theirs.resolved) return theirs;
-  return (mine.resolvedAt ?? '') >= (theirs.resolvedAt ?? '') ? mine : theirs;
+  return later(mine, theirs, mine.resolvedAt, theirs.resolvedAt, stateKey);
 }
 
 function byId<T extends { id: string }>(items: readonly T[] | undefined): Map<string, T> {
@@ -84,6 +97,14 @@ function unionIds(
 
 function compareComments(a: ThreadComment, b: ThreadComment): number {
   if (a.createdAt !== b.createdAt) return a.createdAt < b.createdAt ? -1 : 1;
+  if (a.id === b.id) return 0;
+  return a.id < b.id ? -1 : 1;
+}
+
+function compareThreadOrder(a: Thread, b: Thread): number {
+  const aStart = a.comments[0]?.createdAt ?? '';
+  const bStart = b.comments[0]?.createdAt ?? '';
+  if (aStart !== bStart) return aStart < bStart ? -1 : 1;
   if (a.id === b.id) return 0;
   return a.id < b.id ? -1 : 1;
 }
@@ -130,10 +151,10 @@ export function mergeThreads(
     const thread = mergeThread(baseThreads.get(id), mineThreads.get(id), theirThreads.get(id));
     if (thread !== undefined) merged.push(thread);
   }
-  return normalizeThreads(merged);
+  return normalizeThreads(merged.sort(compareThreadOrder));
 }
 
-export const PENDING_WRITE_WINDOW_MS = 20_000;
+export const PENDING_WRITE_WINDOW_MS = 10_000;
 
 export interface PendingWrite {
   base: readonly Thread[];
@@ -141,31 +162,31 @@ export interface PendingWrite {
   at: number;
 }
 
+function stillPending(pending: readonly PendingWrite[], now: number): PendingWrite[] {
+  return pending.filter((write) => now - write.at <= PENDING_WRITE_WINDOW_MS);
+}
+
 export function notePendingWrite(
-  previous: PendingWrite | undefined,
+  pending: readonly PendingWrite[],
   base: readonly Thread[],
   mine: readonly Thread[],
   now: number,
-): PendingWrite {
-  if (previous !== undefined && now - previous.at <= PENDING_WRITE_WINDOW_MS) {
-    return { base: previous.base, mine, at: now };
-  }
-  return { base, mine, at: now };
+): PendingWrite[] {
+  return [...stillPending(pending, now), { base, mine, at: now }];
 }
 
-export interface Reconciliation {
-  pending: PendingWrite | undefined;
+interface Reconciliation {
+  pending: PendingWrite[];
   write: Thread[] | undefined;
 }
 
 export function reconcileThreads(
-  pending: PendingWrite | undefined,
+  pending: readonly PendingWrite[],
   theirs: readonly Thread[],
   now: number,
 ): Reconciliation {
-  if (pending === undefined || now - pending.at > PENDING_WRITE_WINDOW_MS) {
-    return { pending: undefined, write: undefined };
-  }
-  const merged = mergeThreads(pending.base, pending.mine, theirs);
-  return { pending, write: sameThreads(merged, theirs) ? undefined : merged };
+  const live = stillPending(pending, now);
+  let merged: readonly Thread[] = theirs;
+  for (const write of live) merged = mergeThreads(write.base, write.mine, merged);
+  return { pending: live, write: sameThreads(merged, theirs) ? undefined : [...merged] };
 }
