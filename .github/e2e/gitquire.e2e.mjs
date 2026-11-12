@@ -52,6 +52,12 @@ async function typeAtEnd(page, text) {
   await expect(area).toContainText(text);
 }
 
+async function describeState(page, label) {
+  const items = await sidebar(page).getByRole('treeitem').allInnerTexts();
+  const files = inContainer('ls', '-A', dataDir).split('\n').filter(Boolean);
+  console.log(`${label}: tree=${JSON.stringify(items)} disk=${JSON.stringify(files)}`);
+}
+
 async function renameNewItem(page, placeholder, name) {
   const input = page.getByRole('textbox', { name: new RegExp(`rename ${placeholder}`, 'i') });
   await expect(input).toBeVisible();
@@ -67,7 +73,11 @@ test('a new page can be named right away', async ({ page }) => {
   await openApp(page);
   await page.getByRole('button', { name: 'New file', exact: true }).click();
   const response = await renameNewItem(page, 'Untitled', 'Meeting Notes');
-  expect(response.status(), await response.text()).toBe(200);
+  const body = await response.text();
+  console.log(`rename page: ${response.request().postData()} -> ${response.status()} ${body}`);
+  expect(response.status(), body).toBe(200);
+  await page.waitForTimeout(3000);
+  await describeState(page, 'after page rename');
 
   await expect(treeItem(page, 'meeting-notes.md')).toBeVisible();
   await expect.poll(() => existsOnDisk('meeting-notes.md')).toBe(true);
@@ -79,7 +89,11 @@ test('a new folder can be named right away', async ({ page }) => {
   await openApp(page);
   await page.getByRole('button', { name: 'New folder', exact: true }).click();
   const response = await renameNewItem(page, 'New Folder', 'Project Plans');
-  expect(response.status(), await response.text()).toBe(200);
+  const body = await response.text();
+  console.log(`rename folder: ${response.request().postData()} -> ${response.status()} ${body}`);
+  expect(response.status(), body).toBe(200);
+  await page.waitForTimeout(3000);
+  await describeState(page, 'after folder rename');
 
   await expect(treeItem(page, 'project-plans')).toBeVisible();
   await expect.poll(() => existsOnDisk('project-plans')).toBe(true);
