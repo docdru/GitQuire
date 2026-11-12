@@ -19,8 +19,10 @@ import {
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { isInLiteralTextContext } from '@/editor/literal-text-context';
 import { anchorFromSelection } from '@/gitquire-comments/editor-threads';
 import { startDraft } from '@/gitquire-comments/ui-store';
+import { type LinkPickerTarget, TouchLinkPicker } from './TouchLinkPicker';
 import { useCoarsePointer, useKeyboardInset } from './viewport';
 
 interface ToolbarAction {
@@ -65,10 +67,23 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
       heading: ctx.editor.isActive('heading'),
       inList: ctx.editor.isActive('listItem'),
       hasSelection: !ctx.editor.state.selection.empty,
+      literal: isInLiteralTextContext(
+        ctx.editor.state,
+        ctx.editor.state.selection.from,
+        ctx.editor.state.selection.to,
+      ),
     }),
   });
 
-  if (!coarse || !focused || editor.isDestroyed) return null;
+  const [linkTarget, setLinkTarget] = useState<LinkPickerTarget | null>(null);
+
+  const picker =
+    linkTarget === null ? null : (
+      <TouchLinkPicker editor={editor} target={linkTarget} onClose={() => setLinkTarget(null)} />
+    );
+
+  if (!coarse || editor.isDestroyed) return null;
+  const showToolbar = focused && linkTarget === null;
 
   const chain = () => editor.chain().focus();
   const history = editor.commands as unknown as HistoryCommands;
@@ -127,7 +142,11 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
       key: 'link',
       label: t`Link to a page`,
       icon: Link2,
-      run: () => chain().insertContent('[[').run(),
+      disabled: state.literal,
+      run: () => {
+        const { from, to } = editor.state.selection;
+        setLinkTarget({ text: editor.state.doc.textBetween(from, to, ' ') });
+      },
     },
     {
       key: 'discuss',
@@ -142,7 +161,7 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
     },
   ];
 
-  return createPortal(
+  const toolbar = createPortal(
     <div
       role="toolbar"
       aria-label={t`Formatting`}
@@ -178,5 +197,12 @@ export function TouchEditToolbar({ editor, docName }: { editor: Editor; docName:
       </Button>
     </div>,
     document.body,
+  );
+
+  return (
+    <>
+      {showToolbar ? toolbar : null}
+      {picker}
+    </>
   );
 }
