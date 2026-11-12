@@ -111,6 +111,7 @@ export interface PendingInfo {
 interface ReadState {
   version: 1;
   users: Record<string, UserState>;
+  recipients?: Record<string, string[]>;
 }
 
 export interface MailSubscriber {
@@ -135,8 +136,11 @@ export interface MentionReadStore {
   subscribers: () => MailSubscriber[];
   mailedIds: (userId: number) => Set<string>;
   markMailed: (userId: number, ids: readonly string[]) => void;
-  pendingOf: (userId: number) => PendingInfo | undefined;
+  pendingOf: (userId: number, now: Date) => PendingInfo | undefined;
+  lastConfirmationAt: (userId: number) => string | undefined;
   confirmationsSince: (userId: number | undefined, since: Date) => number;
+  recipientConfirmationsSince: (recipientKey: string, since: Date) => number;
+  reserveConfirmation: (reader: MentionReader, recipientKey: string, now: Date) => void;
   startConfirmation: (reader: MentionReader, email: string, codeHash: string, now: Date) => void;
   cancelConfirmation: (userId: number) => void;
   confirm: (
@@ -203,6 +207,13 @@ function loadState(file: string): ReadState {
       const user = readUser(entry);
       if (user !== undefined) state.users[userId] = user;
     }
+    const recipients = (parsed as { recipients?: unknown }).recipients;
+    if (typeof recipients === 'object' && recipients !== null) {
+      state.recipients = {};
+      for (const [key, stamps] of Object.entries(recipients as Record<string, unknown>)) {
+        state.recipients[key] = stringList(stamps);
+      }
+    }
     return state;
   } catch {
     return state;
@@ -236,10 +247,10 @@ export function createMentionReadStore(
   }
 
   function update(userId: number, next: UserState): void {
-    const nextState: ReadState = {
-      version: 1,
-      users: { ...current().users, [String(userId)]: next },
-    };
+    save({ ...current(), users: { ...current().users, [String(userId)]: next } });
+  }
+
+  function save(nextState: ReadState): void {
     mkdirSync(dirname(file), { recursive: true });
     const temporary = `${file}.${process.pid}.tmp`;
     writeFileSync(temporary, `${JSON.stringify(nextState)}\n`, { mode: 0o600 });
@@ -268,9 +279,10 @@ export function createMentionReadStore(
     },
     emailOf: (userId) => userState(userId).email,
     setEmail: (reader, email, alreadyThere, now) => {
-      const user = userState(reader.id);
+      const { email: _email, since: _since, mailed: _mailed, pending: _pending, ...user } =
+        userState(reader.id);
       const stamp = now.toISOString();
-      const next: UserState = { read: user.read, login: reader.login, lastSeen: stamp };
+      const next: UserState = { ...user, login: reader.login, lastSeen: stamp };
       if (email !== undefined) {
         next.email = email;
         next.since = stamp;
@@ -305,9 +317,37 @@ export function createMentionReadStore(
       const user = userState(userId);
       update(userId, { ...user, mailed: appended(user.mailed ?? [], ids) });
     },
-    pendingOf: (userId) => {
+    pendingOf: (userId, now) => {
       const pending = userState(userId).pending;
-      return pending === undefined ? undefined : { email: pending.email, sentAt: pending.sentAt };
+      if (pending === undefined) return undefined;
+      if (now.getTime() - Date.parse(pending.sentAt) > rules.validMs) return undefined;
+      return { email: pending.email, sentAt: pending.sentAt };
+    },
+    lastConfirmationAt: (userId) => userState(userId).confirmationsSent?.at(-1),
+    recipientConfirmationsSince: (recipientKey, since) => {
+      const cutoff = since.toISOString();
+      const stamps = current().recipients?.[recipientKey] ?? [];
+      return stamps.filter((stamp) => stamp >= cutoff).length;
+    },
+    reserveConfirmation: (reader, recipientKey, now) => {
+      const snapshot = current();
+      const user = userState(reader.id);
+      const stamp = now.toISOString();
+      const dayAgo = new Date(now.getTime() - DAY_MS).toISOString();
+      const recent = (stamps: readonly string[] | undefined) =>
+        (stamps ?? []).filter((at) => at >= dayAgo);
+      const recipients: Record<string, string[]> = {};
+      for (const [key, stamps] of Object.entries(snapshot.recipients ?? {})) {
+        const kept = recent(stamps);
+        if (kept.length > 0) recipients[key] = kept;
+      }
+      recipients[recipientKey] = [...(recipients[recipientKey] ?? []), stamp];
+      const sent = [...recent(user.confirmationsSent), stamp];
+      save({
+        ...snapshot,
+        recipients,
+        users: { ...snapshot.users, [String(reader.id)]: { ...user, confirmationsSent: sent } },
+      });
     },
     confirmationsSince: (userId, since) => {
       const users = userId === undefined ? Object.values(current().users) : [userState(userId)];
@@ -321,14 +361,11 @@ export function createMentionReadStore(
     startConfirmation: (reader, email, codeHash, now) => {
       const user = userState(reader.id);
       const stamp = now.toISOString();
-      const dayAgo = new Date(now.getTime() - DAY_MS).toISOString();
-      const sent = [...(user.confirmationsSent ?? []).filter((at) => at >= dayAgo), stamp];
       update(reader.id, {
         ...user,
         login: reader.login,
         lastSeen: stamp,
         pending: { email, codeHash, sentAt: stamp, attempts: 0 },
-        confirmationsSent: sent,
       });
     },
     cancelConfirmation: (userId) => {

@@ -64,6 +64,8 @@ function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => 
   );
 }
 
+const PENDING_GONE = new Set(['nothing-to-confirm', 'code-expired', 'too-many-tries']);
+
 function emailError(err: unknown, fallback: string, messages: Record<string, string>): string {
   const code = err instanceof GitQuireApiError ? err.code : '';
   return messages[code] ?? fallback;
@@ -106,9 +108,8 @@ function EmailSetting({
         },
         (err: unknown) => {
           toast.error(emailError(err, fallback, messages));
-          if (err instanceof GitQuireApiError && err.code === 'nothing-to-confirm') {
-            onChange({ ...email, pending: null });
-          }
+          const reason = err instanceof GitQuireApiError ? err.code : '';
+          if (PENDING_GONE.has(reason)) onChange({ ...email, pending: null });
         },
       )
       .finally(() => setBusy(false));
@@ -150,6 +151,11 @@ function EmailSetting({
             {t`Confirm`}
           </Button>
         </div>
+        {email.address !== null && (
+          <p className="text-muted-foreground text-xs">
+            {t`Until then, mentions still go to ${email.address}.`}
+          </p>
+        )}
         <div className="flex gap-3">
           <Button
             type="button"

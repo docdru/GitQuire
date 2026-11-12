@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import {
+  cancelMentionEmail,
+  confirmMentionEmail,
   fetchMentions,
   type InboxMention,
   type MentionInboxData,
   markMentionsRead,
-  cancelMentionEmail,
-  confirmMentionEmail,
   pageTitle,
   setMentionEmail,
   unreadBadge,
@@ -58,7 +58,7 @@ describe('mention inbox client', () => {
     ]);
   });
 
-  test('saves and clears the notification address', async () => {
+  test('saves, confirms, cancels and clears the notification address', async () => {
     const seen: { url: string; init: RequestInit | undefined }[] = [];
     const saved = { available: true, address: 'alice@example.com' };
     const first = await setMentionEmail('alice@example.com', { fetch: fakeFetch(saved, seen) });

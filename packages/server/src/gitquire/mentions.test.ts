@@ -13,6 +13,7 @@ import {
   hashConfirmationCode,
   newConfirmationCode,
   normalizeConfirmationCode,
+  recipientKey,
 } from './email-confirmation.ts';
 import { type MailConfig, type MailMessage, SmtpError } from './mail.ts';
 import { createMentionMailer, mentionMail, pageLink } from './mention-mailer.ts';
@@ -326,27 +327,45 @@ describe('mention routes', () => {
     }
   });
 
-  it('limits codes: a wait, five tries, nothing kept if sending fails', async () => {
+  it('keeps nothing when the confirmation mail fails, but still counts it', async () => {
     const dir = project();
     const sent: MailMessage[] = [];
-    const failing = { on: true };
-    const routes = mailRoutes(dir, sent, failing);
+    const routes = mailRoutes(dir, sent, { on: true });
     try {
       const failed = await putEmail(routes, { address: 'alice@example.com' });
       expect([failed.status, failed.body.error]).toEqual([502, 'mail-failed']);
       expect((await call(routes, '/api/gitquire/mentions')).body.email).toMatchObject({
         pending: null,
       });
-      failing.on = false;
-      expect((await putEmail(routes, { address: 'alice@example.com' })).status).toBe(200);
-      const again = await putEmail(routes, { address: 'alice@example.com' });
-      expect([again.status, again.body.error]).toEqual([429, 'resend-too-soon']);
+      const tooSoon = await putEmail(routes, { address: 'alice@example.com' });
+      expect([tooSoon.status, tooSoon.body.error]).toEqual([429, 'resend-too-soon']);
+      expect(sent).toHaveLength(0);
+    } finally {
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('allows five tries, and turning email off does not reset the wait', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    const routes = mailRoutes(dir, sent, { on: false });
+    try {
+      const both = await Promise.all([
+        putEmail(routes, { address: 'alice@example.com' }),
+        putEmail(routes, { address: 'alice@example.com' }),
+      ]);
+      expect(both.map((result) => result.status).sort()).toEqual([200, 429]);
+      expect(sent).toHaveLength(1);
       for (let attempt = 0; attempt < 4; attempt += 1) {
         expect((await confirmCode(routes, 'AAAA-AAAA')).body.error).toBe('wrong-code');
       }
       const locked = await confirmCode(routes, 'AAAA-AAAA');
       expect([locked.status, locked.body.error]).toEqual([429, 'too-many-tries']);
       expect((await confirmCode(routes, codeIn(sent[0]))).status).toBe(409);
+      expect((await putEmail(routes, { address: null })).status).toBe(200);
+      const afterOff = await putEmail(routes, { address: 'alice@example.com' });
+      expect([afterOff.status, afterOff.body.error]).toEqual([429, 'resend-too-soon']);
       expect((await putEmail(routes, { cancel: true })).body).toEqual({
         available: true,
         address: null,
@@ -398,18 +417,25 @@ describe('confirmation store', () => {
       const rules = { validMs: 1000, maxAttempts: 2 };
       const store = createMentionReadStore(mentionStatePath(dir), rules);
       const start = new Date('2026-11-12T10:00:00Z');
+      store.reserveConfirmation(alice, 'to-old', start);
       store.startConfirmation(alice, 'old@example.com', 'hash-1', start);
       expect(store.confirm(alice, 'hash-1', ['t1:c1'], start)).toBe('confirmed');
       expect(store.emailOf(alice.id)).toBe('old@example.com');
       expect([...store.mailedIds(alice.id)]).toEqual(['t1:c1']);
+      store.reserveConfirmation(alice, 'to-new', start);
       store.startConfirmation(alice, 'new@example.com', 'hash-2', start);
       expect(store.emailOf(alice.id)).toBe('old@example.com');
-      expect(store.pendingOf(alice.id)?.email).toBe('new@example.com');
+      expect(store.pendingOf(alice.id, start)?.email).toBe('new@example.com');
       const late = new Date(start.getTime() + 2000);
+      expect(store.pendingOf(alice.id, late)).toBeUndefined();
+      expect(store.recipientConfirmationsSince('to-new', start)).toBe(1);
       expect(store.confirm(alice, 'hash-2', [], late)).toBe('expired');
-      expect(store.pendingOf(alice.id)).toBeUndefined();
+      expect(store.pendingOf(alice.id, start)).toBeUndefined();
       expect(store.emailOf(alice.id)).toBe('old@example.com');
       expect(store.confirmationsSince(alice.id, new Date(start.getTime() - 1))).toBe(2);
+      store.setEmail(alice, undefined, [], late);
+      expect(store.emailOf(alice.id)).toBeUndefined();
+      expect(store.lastConfirmationAt(alice.id)).toBe(start.toISOString());
       expect(store.confirmationsSince(undefined, late)).toBe(0);
       expect(store.confirm(alice, 'hash-2', [], late)).toBe('none');
       const reloaded = createMentionReadStore(mentionStatePath(dir));
@@ -427,11 +453,14 @@ describe('confirmation mail', () => {
     const shown = displayConfirmationCode(code);
     expect(shown).toMatch(/^.{4}-.{4}$/);
     expect(normalizeConfirmationCode(` ${shown.toLowerCase()} `)).toBe(code);
-    expect(hashConfirmationCode(1, shown)).toBe(hashConfirmationCode(1, code));
-    expect(hashConfirmationCode(2, code)).not.toBe(hashConfirmationCode(1, code));
+    expect(hashConfirmationCode('k', 1, shown)).toBe(hashConfirmationCode('k', 1, code));
+    expect(hashConfirmationCode('k', 2, code)).not.toBe(hashConfirmationCode('k', 1, code));
+    expect(hashConfirmationCode('j', 1, code)).not.toBe(hashConfirmationCode('k', 1, code));
+    expect(recipientKey('k', ' Alice@Example.com')).toBe(recipientKey('k', 'alice@example.com'));
     const mail = confirmationMail({ externalUrl: undefined }, 'a@example.com', 'alice', code);
     expect(mail.text).toContain(`Confirmation code: ${shown}`);
     expect(mail.text).toContain('asked GitQuire to send');
+    expect(mail.text).toContain('No mention emails will be sent to this address unless');
   });
 });
 

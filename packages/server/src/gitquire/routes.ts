@@ -2,12 +2,16 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import {
   CONFIRMATION_RESEND_MS,
+  confirmationKey,
   confirmationMail,
   hashConfirmationCode,
+  MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY,
+  MAX_CONFIRMATIONS_PER_DAY,
   MAX_CONFIRMATIONS_PER_HOUR,
   MAX_CONFIRMATIONS_PER_PERSON_PER_DAY,
   newConfirmationCode,
   normalizeConfirmationCode,
+  recipientKey,
 } from './email-confirmation.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
@@ -325,7 +329,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     return {
       available: mailer !== undefined,
       address: mentionReads.emailOf(userId) ?? null,
-      pending: mentionReads.pendingOf(userId)?.email ?? null,
+      pending: mentionReads.pendingOf(userId, new Date())?.email ?? null,
     };
   }
 
@@ -354,19 +358,24 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     return user;
   }
 
-  function checkConfirmationBudget(reader: MentionReader, now: Date): void {
-    const pending = mentionReads.pendingOf(reader.id);
-    const sinceLast = pending === undefined ? Infinity : now.getTime() - Date.parse(pending.sentAt);
+  const codeKey = confirmationKey((deps.env ?? process.env).GITQUIRE_SESSION_SECRET);
+
+  function checkConfirmationBudget(reader: MentionReader, toKey: string, now: Date): void {
+    const last = mentionReads.lastConfirmationAt(reader.id);
+    const sinceLast = last === undefined ? Infinity : now.getTime() - Date.parse(last);
     if (sinceLast < CONFIRMATION_RESEND_MS) {
       throw new HttpError(429, 'resend-too-soon', 'Wait a minute before asking for another code.');
     }
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const today = mentionReads.confirmationsSince(reader.id, dayAgo);
-    if (today >= MAX_CONFIRMATIONS_PER_PERSON_PER_DAY) {
-      throw new HttpError(429, 'too-many-codes', 'Too many confirmation mails today.');
-    }
     const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    if (mentionReads.confirmationsSince(undefined, hourAgo) >= MAX_CONFIRMATIONS_PER_HOUR) {
+    const toAddress = mentionReads.recipientConfirmationsSince(toKey, dayAgo);
+    const limits: [number, number][] = [
+      [mentionReads.confirmationsSince(reader.id, dayAgo), MAX_CONFIRMATIONS_PER_PERSON_PER_DAY],
+      [toAddress, MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY],
+      [mentionReads.confirmationsSince(undefined, hourAgo), MAX_CONFIRMATIONS_PER_HOUR],
+      [mentionReads.confirmationsSince(undefined, dayAgo), MAX_CONFIRMATIONS_PER_DAY],
+    ];
+    if (limits.some(([used, limit]) => used >= limit)) {
       throw new HttpError(429, 'too-many-codes', 'Too many confirmation mails. Try again later.');
     }
   }
@@ -401,18 +410,25 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       return;
     }
     const now = new Date();
-    checkConfirmationBudget(reader, now);
+    const toKey = recipientKey(codeKey, address);
+    checkConfirmationBudget(reader, toKey, now);
+    mentionReads.reserveConfirmation(reader, toKey, now);
     const code = newConfirmationCode();
     const message = confirmationMail(mail.config, address, reader.login, code);
     try {
       await (deps.sendMail ?? sendMail)(mail.config, message);
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
-      deps.log.warn({ reason, login: reader.login }, '[gitquire-mail] confirmation mail failed');
+      const safeReason = reason.split(address).join('<address>');
+      deps.log.warn(
+        { reason: safeReason, login: reader.login },
+        '[gitquire-mail] confirmation mail failed',
+      );
       throw new HttpError(502, 'mail-failed', 'The confirmation mail could not be sent.');
     }
-    mentionReads.startConfirmation(reader, address, hashConfirmationCode(reader.id, code), now);
-    deps.log.info({ login: reader.login, address }, '[gitquire-mail] confirmation mail sent');
+    const codeHash = hashConfirmationCode(codeKey, reader.id, code);
+    mentionReads.startConfirmation(reader, address, codeHash, now);
+    deps.log.info({ login: reader.login }, '[gitquire-mail] confirmation mail sent');
     sendJson(res, 200, emailState(reader.id));
   }
 
@@ -422,7 +438,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     const code = typeof body.code === 'string' ? normalizeConfirmationCode(body.code) : '';
     if (code === '') throw new HttpError(400, 'invalid-code', 'Enter the code from the mail.');
     const alreadyThere = mentionsFor(reader, mentionIndex.all()).map((mention) => mention.id);
-    const hash = hashConfirmationCode(reader.id, code);
+    const hash = hashConfirmationCode(codeKey, reader.id, code);
     const result = mentionReads.confirm(reader, hash, alreadyThere, new Date());
     if (result === 'none') {
       throw new HttpError(409, 'nothing-to-confirm', 'There is no address waiting for a code.');
