@@ -31,6 +31,12 @@ docker run --rm -p 8080:8080 \
 Behind a real domain, also set `OK_EXTERNAL_URL=https://your.domain`. Run exactly one container per
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
 
+For nginx, start from [`deploy/nginx/sites-available/gitquire.conf`](./deploy/nginx/sites-available/gitquire.conf).
+It forwards WebSocket upgrades (live editing needs them) and allows uploads up to 50 MB. Publish the
+container port on loopback only (`-p 127.0.0.1:8080:8080`) so nginx is the only way in, and set
+`OK_EXTERNAL_URL` to the address people open: `http://` until certbot has added HTTPS, then
+`https://` (restart the container after changing it).
+
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `PORT` | `8080` | Listen port |
