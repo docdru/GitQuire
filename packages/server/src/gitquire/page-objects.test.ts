@@ -245,7 +245,7 @@ describe('content filter', () => {
         isDirExcluded: (path: string) => path === 'private',
       };
       const scan = createPageScan(dir, pageFacts, Date.now, () => filter);
-      expect(scan.all().map((page) => page.path)).toEqual(['tasks/landing-page.md']);
+      expect(scan.all().map((page) => page.path)).toEqual(['plain.md', 'tasks/landing-page.md']);
       const open = createPageScan(dir, pageFacts, Date.now, () => undefined);
       expect(open.all().map((page) => page.path).sort()).toEqual([
         'notes.md',

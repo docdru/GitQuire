@@ -35,12 +35,7 @@ import {
 } from './mentions.ts';
 import { namingRuleFromEnv } from './naming.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
-import {
-  createPageScan,
-  docNameForPath,
-  type ScanFilter,
-  type ScannedPage,
-} from './page-scan.ts';
+import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
