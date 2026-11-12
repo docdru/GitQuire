@@ -247,12 +247,12 @@ describe('content filter', () => {
       const scan = createPageScan(dir, pageFacts, Date.now, () => filter);
       expect(scan.all().map((page) => page.path)).toEqual(['plain.md', 'tasks/landing-page.md']);
       const open = createPageScan(dir, pageFacts, Date.now, () => undefined);
-      expect(open.all().map((page) => page.path).sort()).toEqual([
-        'notes.md',
-        'plain.md',
-        'private/secret.md',
-        'tasks/landing-page.md',
-      ]);
+      expect(
+        open
+          .all()
+          .map((page) => page.path)
+          .sort(),
+      ).toEqual(['notes.md', 'plain.md', 'private/secret.md', 'tasks/landing-page.md']);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
