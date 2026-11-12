@@ -948,7 +948,7 @@ export function createAgentWriteRoutes(
           respondAgentSessionCapacity(res, e, 'frontmatter-patch');
           return;
         }
-        log.error({ err: e, requestId: getRequestId(_req) }, '[frontmatter-patch] handler failed');
+        log.error({ err: e, requestId: getRequestId(req) }, '[frontmatter-patch] handler failed');
         errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
           handler: 'frontmatter-patch',
           cause: e,
