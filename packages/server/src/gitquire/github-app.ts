@@ -1,6 +1,10 @@
 import { createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import type { CheckPushPermissionOptions, DetectGhFn, PushPermission } from '../github-permissions.ts';
+import type {
+  CheckPushPermissionOptions,
+  DetectGhFn,
+  PushPermission,
+} from '../github-permissions.ts';
 import type { GateLogger } from './access-gate.ts';
 import { type GitHubRepoRef, parseGitHubRepo } from './github-auth-config.ts';
 
