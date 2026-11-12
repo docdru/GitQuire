@@ -1,12 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { DetectGhFn } from '../github-permissions.ts';
+import { checkPushPermission, type DetectGhFn } from '../github-permissions.ts';
 import type { AccessGate, GateLogger } from './access-gate.ts';
 import { createAccessGate, principalFromUser } from './access-gate.ts';
 import { createRepoAccessCheck, startAccessSweep } from './agent-access.ts';
 import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
 import {
+  type CheckPushPermissionFn,
   createGitHubAppClient,
   type InstallationTokenManager,
   resolveGitHubAppConfig,
@@ -91,6 +92,12 @@ export async function startGitHubAppTokensFromEnv(
     },
   });
   return startInstallationTokenManager(config, client, { log });
+}
+
+export function withGitHubAppPushCheck(
+  manager: InstallationTokenManager | undefined,
+): CheckPushPermissionFn | undefined {
+  return manager?.wrapCheckPushPermission(checkPushPermission);
 }
 
 export function withGitHubAppToken(

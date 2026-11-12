@@ -210,6 +210,7 @@ import {
 } from '@/lib/file-tree-menu-action-events';
 import { importTemplate } from '@/lib/folder-config-api';
 import { loadNamingRule, nameLastSegment } from '@/lib/gitquire/naming';
+import { createdRenameSource, withTreeExtension } from '@/lib/gitquire/pending-rename';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { parseServerResponse, parseSuccessOrWarn } from '@/lib/parse-server-response';
 import { revealInFileManagerLabel, trashNounLabel } from '@/lib/platform-labels';
@@ -1726,21 +1727,30 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
           ? validation.destinationPath
           : normalizeTreePathForKind(validation.destinationPath, event.isFolder);
 
+      const createdSource = sourceIsAsset
+        ? undefined
+        : createdRenameSource(pendingCreateRef.current, sourceTreePath, event.isFolder);
+      const sourceFolderPath = createdSource ?? treeDirectoryPathToFolderPath(sourceTreePath);
       const payload = event.isFolder
         ? {
             kind: 'folder' as const,
-            fromPath: treeDirectoryPathToFolderPath(sourceTreePath),
+            fromPath: sourceFolderPath,
             toPath: treeDirectoryPathToFolderPath(destinationTreePath),
           }
         : sourceIsAsset || documentBecomesFile
           ? {
               kind: 'asset' as const,
-              fromPath: sourceTreePath,
+              fromPath:
+                createdSource === undefined
+                  ? sourceTreePath
+                  : withTreeExtension(createdSource, sourceTreePath),
               toPath: destinationTreePath,
             }
           : {
               kind: 'file' as const,
-              fromPath: treeFilePathToDocumentDocName(sourceTreePath, documentsRef.current),
+              fromPath:
+                createdSource ??
+                treeFilePathToDocumentDocName(sourceTreePath, documentsRef.current),
               toPath: destinationTreePath,
             };
       const activeBeforeRename = {
@@ -1781,7 +1791,7 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
           event.isFolder
             ? [
                 {
-                  fromPath: treeDirectoryPathToFolderPath(sourceTreePath),
+                  fromPath: sourceFolderPath,
                   toPath: treeDirectoryPathToFolderPath(destinationTreePath),
                 },
               ]
