@@ -20,6 +20,7 @@ import {
 import { useTheme } from 'next-themes';
 import { useEffect, useId, useRef, useState } from 'react';
 import { emitStartComment } from '@/comments/store';
+import { GitQuireViewBlock } from '@/components/GitQuireViewBlock';
 import {
   Command,
   CommandEmpty,
@@ -32,10 +33,9 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { subscribeColorThemeEpoch } from '@/lib/color-theme-epoch';
+import { VIEW_BLOCK_LANGUAGE } from '@/lib/gitquire/view-block';
 import { cn } from '@/lib/utils';
 import { OPT_OUT_ATTR } from '../clipboard/index.ts';
-import { GitQuireViewBlock } from '@/components/GitQuireViewBlock';
-import { VIEW_BLOCK_LANGUAGE } from '@/lib/gitquire/view-block';
 import { CodePreviewEditModal } from '../components/CodePreviewEditModal';
 import { PreviewBlockedNotice } from '../components/PreviewBlockedNotice';
 import { ResizeHandles } from '../components/ResizeHandles.tsx';

@@ -75,8 +75,8 @@ import {
 import { readTimelineView, type TimelineView } from '@/lib/gitquire/timeline';
 import {
   PageExistsError,
-  saveViewAsPage,
   savedViewDocName,
+  saveViewAsPage,
   specFromActions,
   specFromBoard,
   specFromTable,
