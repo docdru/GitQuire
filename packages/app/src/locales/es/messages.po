@@ -1628,6 +1628,15 @@ msgstr "¿Seguro que quieres eliminar los elementos seleccionados?"
 msgid "Ask"
 msgstr "Preguntar"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "Preguntar a la CLI de {0}"
 
@@ -2239,8 +2248,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) no está instalado ni en tu PATH."
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "La limpieza no terminó"
@@ -7401,6 +7422,9 @@ msgstr "Abrir carpeta…"
 msgid "Open graph"
 msgstr "Abrir el grafo"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "Abrir en la rama actual"
 
@@ -8038,6 +8062,9 @@ msgstr "Elige un nombre"
 
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "Elige una paleta para el modo claro y otra para el oscuro. El ajuste de tema en Preferencias elige entre ambas; en “Sistema”, lo hace tu SO."
+
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
 
 msgid "Pick a theme or create your own."
 msgstr "Elige un tema o crea el tuyo."
@@ -10088,6 +10115,9 @@ msgstr "entrada de Git obsoleta"
 msgid "Star us on GitHub"
 msgstr "Danos una estrella en GitHub"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "Inicia un informe de error con una captura de pantalla tal como se ve ahora mismo."
 
@@ -12096,6 +12126,9 @@ msgstr "Dónde"
 
 msgid "Where should it live?"
 msgstr "¿Dónde debería vivir?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "Qué habilidad"

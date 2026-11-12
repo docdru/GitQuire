@@ -1624,6 +1624,15 @@ msgstr "क्या आप वाकई चयनित आइटम हटा�
 msgid "Ask"
 msgstr "पूछें"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "{0} CLI से पूछें"
 
@@ -2235,8 +2244,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) इंस्टॉल नहीं है या आपके PATH में नहीं है।"
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "सफ़ाई पूरी नहीं हुई"
@@ -7397,6 +7418,9 @@ msgstr "फ़ोल्डर खोलें…"
 msgid "Open graph"
 msgstr "ग्राफ़ खोलें"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "मौजूदा ब्रांच में खोलें"
 
@@ -8034,6 +8058,9 @@ msgstr "कोई नाम चुनें"
 
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "हल्के मोड के लिए एक पट्टिका चुनें और गहरे मोड के लिए एक। Preferences की थीम सेटिंग इनमें से चुनती है — “System” पर आपका OS भी।"
+
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
 
 msgid "Pick a theme or create your own."
 msgstr "कोई थीम चुनें या अपनी थीम बनाएँ।"
@@ -10084,6 +10111,9 @@ msgstr "पुरानी Git एंट्री"
 msgid "Star us on GitHub"
 msgstr "GitHub पर हमें स्टार दें"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "स्क्रीन अभी जैसी दिख रही है उसका स्क्रीनशॉट लेकर बग रिपोर्ट शुरू करें।"
 
@@ -12092,6 +12122,9 @@ msgstr "कहाँ"
 
 msgid "Where should it live?"
 msgstr "यह कहाँ रहना चाहिए?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "कौन सी स्किल"

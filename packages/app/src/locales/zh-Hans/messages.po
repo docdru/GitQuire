@@ -1628,6 +1628,15 @@ msgstr "确定要删除所选项目吗？"
 msgid "Ask"
 msgstr "询问"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "询问 {0} CLI"
 
@@ -2239,8 +2248,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code（claude）未安装，也不在你的 PATH 中。"
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "清理未完成"
@@ -7401,6 +7422,9 @@ msgstr "打开文件夹…"
 msgid "Open graph"
 msgstr "打开关系图"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "在当前分支中打开"
 
@@ -8038,6 +8062,9 @@ msgstr "取个名字"
 
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "为浅色模式和深色模式各选一个配色方案。「偏好设置」中的主题设置决定用哪一个；选择「系统」时，则由你的操作系统决定。"
+
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
 
 msgid "Pick a theme or create your own."
 msgstr "选择一个主题或创建自己的主题。"
@@ -10088,6 +10115,9 @@ msgstr "过期的 Git 条目"
 msgid "Star us on GitHub"
 msgstr "在 GitHub 上给我们点个星"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "发起一份错误报告，并附上此刻画面的截图。"
 
@@ -12096,6 +12126,9 @@ msgstr "位置"
 
 msgid "Where should it live?"
 msgstr "它应该保存在哪里？"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "哪个技能"

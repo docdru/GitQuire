@@ -1624,6 +1624,15 @@ msgstr "Yakin ingin menghapus item yang dipilih?"
 msgid "Ask"
 msgstr "Tanya"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "Tanya CLI {0}"
 
@@ -2235,8 +2244,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) belum terpasang atau tidak ada di PATH Anda."
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "Pembersihan belum selesai"
@@ -7397,6 +7418,9 @@ msgstr "Buka folder…"
 msgid "Open graph"
 msgstr "Buka graf"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "Buka di cabang saat ini"
 
@@ -8034,6 +8058,9 @@ msgstr "Pilih sebuah nama"
 
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "Pilih satu palet untuk mode terang dan satu untuk mode gelap. Pengaturan tema di Preferensi memilih di antara keduanya — pada “Sistem”, sistem operasi Anda yang memilih."
+
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
 
 msgid "Pick a theme or create your own."
 msgstr "Pilih tema atau buat tema Anda sendiri."
@@ -10084,6 +10111,9 @@ msgstr "entri Git usang"
 msgid "Star us on GitHub"
 msgstr "Beri kami bintang di GitHub"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "Memulai laporan bug dengan tangkapan layar persis seperti tampilannya saat ini."
 
@@ -12092,6 +12122,9 @@ msgstr "Di mana"
 
 msgid "Where should it live?"
 msgstr "Di mana ia sebaiknya berada?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "Keterampilan yang mana"

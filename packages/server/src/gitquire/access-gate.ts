@@ -2,8 +2,22 @@ import { randomBytes } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import type { PinoLogger } from '../logger.ts';
+import type { AccessVerdict } from './agent-access.ts';
+import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
+import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
 import {
+  bearerToken,
+  escapeHtml,
+  pathOf,
+  redirect,
+  sendHtml,
+  sendJson,
+  wantsHtml,
+} from './http-util.ts';
+import { createOAuthServer } from './oauth-server.ts';
+import {
+  bindRequestPrincipal,
   type GitQuirePrincipal,
   principalIdForGitHubUser,
   sanitizeDisplayName,
@@ -46,17 +60,14 @@ export interface AccessGateDeps {
   fetch?: typeof fetch;
   now?: () => number;
   randomState?: () => string;
+  agentTokens?: AgentTokenStore;
+  checkAccess?: (login: string) => Promise<AccessVerdict>;
 }
 
 export interface AccessGate {
   handleRequest: (req: IncomingMessage, res: ServerResponse) => boolean;
   admitUpgrade: (req: IncomingMessage, socket: Duplex) => boolean;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
-}
-
-function pathOf(req: IncomingMessage): { path: string; search: string } {
-  const url = new URL(req.url ?? '/', 'http://gitquire.invalid');
-  return { path: url.pathname, search: url.search };
 }
 
 function isSessionPayload(value: unknown): value is SessionPayload {
@@ -81,69 +92,8 @@ function isStatePayload(value: unknown): value is StatePayload {
 export function safeNextPath(raw: string | null | undefined): string {
   if (raw === null || raw === undefined || raw === '') return '/';
   if (!raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return '/';
-  if (raw.startsWith('/auth/')) return '/';
+  if (raw.startsWith('/auth/') && raw !== AGENTS_PAGE_PATH) return '/';
   return raw;
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function sendHtml(
-  res: ServerResponse,
-  status: number,
-  title: string,
-  body: string,
-  headers: Record<string, string | string[]> = {},
-): void {
-  res.writeHead(status, {
-    'Content-Type': 'text/html; charset=utf-8',
-    'Cache-Control': 'no-store',
-    ...headers,
-  });
-  res.end(
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escapeHtml(title)} · GitQuire</title><style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1.5rem;line-height:1.5;color:#1f2328}a{color:#0969da}</style></head><body><h1>${escapeHtml(title)}</h1>${body}</body></html>`,
-  );
-}
-
-function sendJson(
-  res: ServerResponse,
-  status: number,
-  value: unknown,
-  headers: Record<string, string | string[]> = {},
-): void {
-  res.writeHead(status, {
-    'Content-Type': 'application/json',
-    'Cache-Control': 'no-store',
-    ...headers,
-  });
-  res.end(JSON.stringify(value));
-}
-
-function redirect(
-  res: ServerResponse,
-  location: string,
-  headers: Record<string, string | string[]> = {},
-): void {
-  res.writeHead(302, { Location: location, 'Cache-Control': 'no-store', ...headers });
-  res.end();
-}
-
-function wantsHtml(req: IncomingMessage): boolean {
-  if (req.method !== 'GET' && req.method !== 'HEAD') return false;
-  return (req.headers.accept ?? '').includes('text/html');
-}
-
-function bearerToken(req: IncomingMessage): string | undefined {
-  const header = req.headers.authorization;
-  if (header === undefined) return undefined;
-  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-  return match === null ? undefined : match[1].trim();
 }
 
 export function noreplyEmail(user: Pick<SessionUser, 'id' | 'login'>): string {
@@ -192,11 +142,59 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     };
   }
 
-  function mcpTokenAccepted(req: IncomingMessage): boolean {
-    if (config.mcpToken === undefined) return false;
-    const token = bearerToken(req);
-    return token !== undefined && safeEqual(token, config.mcpToken);
+  function sharedMcpTokenAccepted(token: string | undefined): boolean {
+    if (config.mcpToken === undefined || token === undefined) return false;
+    return safeEqual(token, config.mcpToken);
   }
+
+  function agentTokenRecord(token: string | undefined): AgentTokenRecord | undefined {
+    if (token === undefined || deps.agentTokens === undefined) return undefined;
+    return deps.agentTokens.verify(token);
+  }
+
+  function admitAgent(req: IncomingMessage): boolean {
+    const token = bearerToken(req);
+    const record = agentTokenRecord(token);
+    if (record !== undefined) {
+      bindRequestPrincipal(req, principalFromUser(record.owner));
+      return true;
+    }
+    return sharedMcpTokenAccepted(token);
+  }
+
+  function agentAccess(user: SessionUser): { agentToken: boolean; connector: boolean } {
+    const records = deps.agentTokens?.list(user.id) ?? [];
+    return {
+      agentToken: records.some((record) => record.kind === 'personal'),
+      connector: records.some((record) => record.kind === 'connector'),
+    };
+  }
+
+  const agentPages =
+    deps.agentTokens === undefined
+      ? undefined
+      : createAgentPages({
+          config,
+          store: deps.agentTokens,
+          log: deps.log,
+          sessionUser,
+          connectorsEnabled: config.mcpConnectors,
+          now,
+        });
+
+  const oauth =
+    deps.agentTokens === undefined || !config.mcpConnectors
+      ? undefined
+      : createOAuthServer({
+          externalUrl: config.externalUrl,
+          secret: config.sessionSecret,
+          store: deps.agentTokens,
+          log: deps.log,
+          sessionUser,
+          checkAccess: deps.checkAccess,
+          fetch: deps.fetch,
+          now,
+        });
 
   function isAdmin(user: SessionUser): boolean {
     return config.admins.has(user.login.toLowerCase());
@@ -426,7 +424,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         res,
         200,
         'Sign out',
-        `<p>You are signed in${who}.</p><form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>`,
+        `<p>You are signed in${who}.</p>${agentPages === undefined ? '' : `<p><a href="${AGENTS_PAGE_PATH}">AI agent access</a></p>`}<form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>`,
       );
       return;
     }
@@ -436,9 +434,15 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         sendJson(res, 401, { error: 'not-signed-in' });
         return;
       }
-      sendJson(res, 200, { ...user, email: noreplyEmail(user), admin: isAdmin(user) });
+      sendJson(res, 200, {
+        ...user,
+        email: noreplyEmail(user),
+        admin: isAdmin(user),
+        features: { askAi: config.askAi, ...agentAccess(user) },
+      });
       return;
     }
+    if (agentPages?.handle(req, res, path) === true) return;
     sendJson(res, 404, { error: 'not-found' });
   }
 
@@ -446,13 +450,19 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const { path, search } = pathOf(req);
     if (path === '/healthz' || path === '/readyz') return false;
     if (isPublicAsset(path, req.method)) return false;
+    if (oauth?.handle(req, res, path, search) === true) return true;
     if (path.startsWith('/auth/')) {
       handleAuthRoute(req, res, path, search);
       return true;
     }
     if (path === '/mcp' || path.startsWith('/mcp/')) {
-      if (mcpTokenAccepted(req)) return false;
-      sendJson(res, 401, { error: 'mcp-token-required' }, { 'WWW-Authenticate': 'Bearer' });
+      if (admitAgent(req)) return false;
+      sendJson(
+        res,
+        401,
+        { error: 'mcp-token-required', tokens: AGENTS_PAGE_PATH },
+        { 'WWW-Authenticate': oauth?.wwwAuthenticate() ?? 'Bearer' },
+      );
       return true;
     }
     const user = sessionUser(req);
@@ -489,7 +499,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const { path } = pathOf(req);
     if (!path.startsWith('/collab')) return true;
     if (sessionUser(req) !== undefined) return true;
-    if (path === '/collab/keepalive' && mcpTokenAccepted(req)) return true;
+    if (path === '/collab/keepalive' && admitAgent(req)) return true;
     deps.log.warn({ path }, '[gitquire-auth] refused unauthenticated websocket upgrade');
     socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
     socket.destroy();

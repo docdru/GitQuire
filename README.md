@@ -70,7 +70,10 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_REPO` | `owner/name`. Anyone with write access to it may sign in. |
 | `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition (or instead). |
 | `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
-| `GITQUIRE_MCP_TOKEN` | Optional bearer token for AI agents on `/mcp`; without it `/mcp` is closed. |
+| `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
+| `GITQUIRE_ASK_AI` | `on` shows the editor's **Ask AI** box and the empty screen's prompt box. Off by default, because they hand work to an agent running on the server, which a shared team server doesn't have. While it is off, people with agent access get the **Ask Claude** box instead. |
+| `GITQUIRE_MCP_CONNECTORS` | `on` lets Claude on the web, desktop chat and phones connect through GitHub sign-in. Needs a public `https://` URL. |
+| `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
 | `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
 | `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
 
@@ -142,6 +145,48 @@ names exactly as typed.
 
 Links don't break: `[[Meeting Notes 2026]]` finds `meeting-notes-2026.md`, renames and moves
 rewrite the links that point at the page, and the backlinks panel shows who links where.
+
+## AI agents
+
+Each person connects their own AI agent, with their own Claude (or other) account. Nothing runs
+on the server on their behalf.
+
+1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
+2. Create a token. The page shows it once, with the command for Claude Code and the config for the
+   Claude desktop app:
+
+   ```bash
+   claude mcp add --transport http gitquire https://wiki.example.com/mcp \
+     --header "Authorization: Bearer gqa_…"
+   ```
+
+3. Ask the agent to work on the wiki. Its edits show up live and are committed with you as the
+   author.
+
+### Ask Claude from the editor
+
+Once you have an agent token or a connected app, an **Ask Claude** box appears at the bottom of
+pages and folders (on wider screens). Type a request and press Enter: Claude opens with the
+request, the wiki and the current page already filled in, ready for you to check and send. Pick
+where it opens: Claude on the web or phone, the Claude desktop app, or Claude Code in the desktop
+app. The box only fills in the request; Claude reaches the wiki through your own connection.
+
+### Claude on the web and on phones
+
+With `GITQUIRE_MCP_CONNECTORS=on`, `/mcp` also speaks the sign-in protocol that cloud connectors
+use (OAuth 2.1 with PKCE, client metadata documents and dynamic registration). In Claude's
+settings, add a custom connector with the address `https://wiki.example.com/mcp`. A popup opens,
+you sign in with GitHub and approve, and Claude can then work on the wiki from any device, as you.
+
+The connection comes from Anthropic's servers, so the wiki must be reachable on the public
+internet over HTTPS. GitHub sign-in and the repository's write access still decide who gets in.
+Each connected app shows up on `/auth/agents`, where it can be revoked. Its access token lasts an
+hour and is renewed with a refresh token for up to 90 days of inactivity.
+
+Tokens are stored hashed in `.ok/local/gitquire/agent-tokens.json` on the data volume, never in
+the repository. Revoke one from the same page; admins (`GITQUIRE_ADMINS`) can revoke anyone's.
+Every ten minutes the server checks that token owners can still write to `GITQUIRE_REPO` (using
+the GitHub App when it is configured) and revokes the tokens of people who lost access.
 
 ## Discussions
 

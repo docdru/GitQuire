@@ -1628,6 +1628,15 @@ msgstr "Are you sure you want to delete the selected items?"
 msgid "Ask"
 msgstr "Ask"
 
+msgid "Ask Claude"
+msgstr "Ask Claude"
+
+msgid "Ask Claude to work on this folder…"
+msgstr "Ask Claude to work on this folder…"
+
+msgid "Ask Claude to work on this page…"
+msgstr "Ask Claude to work on this page…"
+
 msgid "Ask {0} CLI"
 msgstr "Ask {0} CLI"
 
@@ -2239,8 +2248,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) isn't installed or on your PATH."
 
+msgid "Claude Code in the desktop app"
+msgstr "Claude Code in the desktop app"
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr "Claude desktop app"
+
+msgid "Claude on the web or phone"
+msgstr "Claude on the web or phone"
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr "Claude opened with your request. Check it there and press send."
 
 msgid "Cleanup didn’t finish"
 msgstr "Cleanup didn’t finish"
@@ -7401,6 +7422,9 @@ msgstr "Open folder…"
 msgid "Open graph"
 msgstr "Open graph"
 
+msgid "Open in Claude"
+msgstr "Open in Claude"
+
 msgid "Open in current branch"
 msgstr "Open in current branch"
 
@@ -8038,6 +8062,9 @@ msgstr "Pick a name"
 
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
+
+msgid "Pick a starter pack, or start with a blank page."
+msgstr "Pick a starter pack, or start with a blank page."
 
 msgid "Pick a theme or create your own."
 msgstr "Pick a theme or create your own."
@@ -10088,6 +10115,9 @@ msgstr "stale Git entry"
 msgid "Star us on GitHub"
 msgstr "Star us on GitHub"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr "Start a blank page, or scaffold one from a template."
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "Start a bug report with a screenshot of the screen as it looks right now."
 
@@ -12096,6 +12126,9 @@ msgstr "Where"
 
 msgid "Where should it live?"
 msgstr "Where should it live?"
+
+msgid "Where to open Claude"
+msgstr "Where to open Claude"
 
 msgid "Which skill"
 msgstr "Which skill"

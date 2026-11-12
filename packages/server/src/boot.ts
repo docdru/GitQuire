@@ -313,8 +313,11 @@ async function bootServerInner(
   }
 
   const ingressPolicy = buildIngressPolicy({ serverRuntime });
-  const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log);
   const gitHubAppTokens = await startGitHubAppTokensFromEnv(process.env, log);
+  const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log, {
+    projectDir: opts.projectDir ?? opts.contentDir,
+    tokens: gitHubAppTokens,
+  });
   const gitquireHttp = createGitQuireHttp(process.env, {
     projectDir: opts.projectDir ?? opts.contentDir,
     gate: accessGate,

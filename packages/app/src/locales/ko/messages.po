@@ -1628,6 +1628,15 @@ msgstr "선택한 항목을 삭제하시겠습니까?"
 msgid "Ask"
 msgstr "질문"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "{0} CLI 질문"
 
@@ -2239,8 +2248,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) 미설치 또는 PATH 미등록"
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "정리가 완료되지 않았습니다"
@@ -7401,6 +7422,9 @@ msgstr "폴더 열기…"
 msgid "Open graph"
 msgstr "그래프 열기"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "현재 브랜치에서 열기"
 
@@ -8038,6 +8062,9 @@ msgstr "이름 선택"
 
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "라이트 모드와 다크 모드에 사용할 팔레트를 선택합니다. 환경설정의 테마 설정은 이 팔레트 중 하나를 선택합니다. “시스템”에서는 운영 체제 설정도 따릅니다."
+
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
 
 msgid "Pick a theme or create your own."
 msgstr "테마를 선택하거나 직접 만듭니다."
@@ -10088,6 +10115,9 @@ msgstr "오래된 Git 항목"
 msgid "Star us on GitHub"
 msgstr "GitHub에서 별표를 눌러 주세요"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "지금 화면에 보이는 그대로의 스크린샷과 함께 버그 신고를 시작합니다."
 
@@ -12096,6 +12126,9 @@ msgstr "위치"
 
 msgid "Where should it live?"
 msgstr "어디에 둘까요?"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "어떤 스킬"

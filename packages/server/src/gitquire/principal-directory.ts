@@ -42,6 +42,7 @@ export function resetPrincipalDirectory(): void {
   resolver = undefined;
   known.clear();
   pendingEdits.clear();
+  agentOwners.clear();
 }
 
 export function rememberPrincipal(principal: GitQuirePrincipal): void {
@@ -72,6 +73,40 @@ export function sessionPrincipalForAuthPayload(payload: unknown): GitQuirePrinci
   const cookie = cookieFromBag(p.requestHeaders) ?? cookieFromBag(p.request?.headers);
   if (cookie === undefined) return undefined;
   return sessionPrincipal({ headers: { cookie } } as IncomingMessage);
+}
+
+const requestPrincipals = new WeakMap<object, GitQuirePrincipal>();
+const agentOwners = new Map<string, GitQuirePrincipal>();
+const MAX_AGENT_BINDINGS = 1000;
+
+export function bindRequestPrincipal(req: object, principal: GitQuirePrincipal): void {
+  requestPrincipals.set(req, principal);
+}
+
+export function requestPrincipal(req: object | undefined): GitQuirePrincipal | undefined {
+  return req === undefined ? undefined : requestPrincipals.get(req);
+}
+
+export function bindAgentConnection(connectionId: string, principal: GitQuirePrincipal): void {
+  agentOwners.delete(connectionId);
+  agentOwners.set(connectionId, principal);
+  rememberPrincipal(principal);
+  while (agentOwners.size > MAX_AGENT_BINDINGS) {
+    const oldest = agentOwners.keys().next().value;
+    if (oldest === undefined) break;
+    agentOwners.delete(oldest);
+  }
+}
+
+export function agentConnectionOwner(connectionId: string): GitQuirePrincipal | undefined {
+  return agentOwners.get(connectionId);
+}
+
+export function attributeAgentEdit(sessionId: string): WriterIdentityLike | undefined {
+  const owner = agentOwners.get(sessionId) ?? agentOwners.get(`agent-${sessionId}`);
+  if (owner === undefined) return undefined;
+  rememberPrincipal(owner);
+  return attributeEdit(owner.id);
 }
 
 export function attributeEdit(principalId: string): WriterIdentityLike | undefined {

@@ -1628,6 +1628,15 @@ msgstr "کیا آپ واقعی منتخب آئٹمز حذف کرنا چاہتے 
 msgid "Ask"
 msgstr "پوچھیں"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Ask {0} CLI"
 msgstr "{0} CLI سے پوچھیں"
 
@@ -2239,8 +2248,20 @@ msgstr "Claude CLI"
 msgid "Claude Code (claude) isn't installed or on your PATH."
 msgstr "Claude Code (claude) نصب نہیں ہے یا آپ کے PATH میں نہیں ہے۔"
 
+msgid "Claude Code in the desktop app"
+msgstr ""
+
 msgid "Claude Desktop"
 msgstr "Claude Desktop"
+
+msgid "Claude desktop app"
+msgstr ""
+
+msgid "Claude on the web or phone"
+msgstr ""
+
+msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
 
 msgid "Cleanup didn’t finish"
 msgstr "صفائی مکمل نہیں ہوئی"
@@ -7401,6 +7422,9 @@ msgstr "فولڈر کھولیں…"
 msgid "Open graph"
 msgstr "گراف کھولیں"
 
+msgid "Open in Claude"
+msgstr ""
+
 msgid "Open in current branch"
 msgstr "موجودہ برانچ میں کھولیں"
 
@@ -8038,6 +8062,9 @@ msgstr "کوئی نام منتخب کریں"
 
 msgid "Pick a palette for light mode and one for dark mode. The theme setting in Preferences chooses between them — on “System”, so does your OS."
 msgstr "روشن موڈ کے لیے ایک پیلیٹ اور تاریک موڈ کے لیے دوسرا منتخب کریں۔ ترجیحات میں تھیم کی ترتیب ان میں سے انتخاب کرتی ہے — “سسٹم” پر آپ کا OS بھی۔"
+
+msgid "Pick a starter pack, or start with a blank page."
+msgstr ""
 
 msgid "Pick a theme or create your own."
 msgstr "ایک تھیم منتخب کریں یا اپنی تھیم بنائیں۔"
@@ -10088,6 +10115,9 @@ msgstr "پرانی Git انٹری"
 msgid "Star us on GitHub"
 msgstr "GitHub پر ہمیں ستارہ دیں"
 
+msgid "Start a blank page, or scaffold one from a template."
+msgstr ""
+
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "اسکرین اس وقت جیسی دکھ رہی ہے اس کا اسکرین شاٹ لے کر بگ رپورٹ شروع کریں۔"
 
@@ -12096,6 +12126,9 @@ msgstr "کہاں"
 
 msgid "Where should it live?"
 msgstr "یہ کہاں رہنا چاہیے؟"
+
+msgid "Where to open Claude"
+msgstr ""
 
 msgid "Which skill"
 msgstr "کون سی مہارت"

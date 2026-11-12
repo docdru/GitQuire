@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import type { AsyncState } from '@/hooks/use-folder-config';
 import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { emitCreateTopLevelFile } from '@/lib/create-file-events';
+import { useAskAiAvailable } from '@/lib/gitquire/features';
 import { cn } from '@/lib/utils';
 
 interface CreateViewProps {
@@ -32,7 +33,8 @@ export function CreateView({
 }: CreateViewProps) {
   const { t } = useLingui();
   const isEmbedded = useIsEmbedded();
-  const { title, subtitle } = getEmptyStateCopy({ isOnboarding: false, isEmbedded });
+  const askAi = useAskAiAvailable();
+  const { title, subtitle } = getEmptyStateCopy({ isOnboarding: false, isEmbedded, askAi });
 
   return (
     <div className="flex w-full flex-col gap-8 py-12 max-w-5xl my-auto" data-testid="create-view">
@@ -45,9 +47,9 @@ export function CreateView({
 
       {isEmbedded ? (
         <CopyablePromptList scenario="existing-repo" />
-      ) : (
+      ) : askAi ? (
         <CreatePromptComposer scenario="existing-repo" />
-      )}
+      ) : null}
 
       <FileCreationActions templatesState={templatesState} onAddStarterPack={onAddStarterPack} />
     </div>
