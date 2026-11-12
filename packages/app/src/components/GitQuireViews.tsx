@@ -1,7 +1,7 @@
 import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
 import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
-import { ArrowDown, ArrowUp, Columns3, LayoutList } from 'lucide-react';
+import { ArrowDown, ArrowUp, Columns3, LayoutList, Save } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionItemList, EMPTY_ACTION_FILTER, ObjectBoard } from '@/components/GitQuireBoard';
@@ -13,6 +13,7 @@ import {
   DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -72,6 +73,17 @@ import {
   writeTableView,
 } from '@/lib/gitquire/objects';
 import { readTimelineView, type TimelineView } from '@/lib/gitquire/timeline';
+import {
+  PageExistsError,
+  saveViewAsPage,
+  savedViewDocName,
+  specFromActions,
+  specFromBoard,
+  specFromTable,
+  specFromTimeline,
+  type ViewSpec,
+  writeViewBlock,
+} from '@/lib/gitquire/view-block';
 import { revealEditor } from '@/lib/reveal-editor';
 
 const TABLE_VIEW_STORAGE_KEY = 'gitquire.views.table';
@@ -392,6 +404,84 @@ function ObjectTable({
   );
 }
 
+function SaveViewDialog({
+  spec,
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  spec: ViewSpec;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: (docName: string) => void;
+}) {
+  const { t } = useLingui();
+  const [name, setName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const docName = savedViewDocName(name);
+
+  function save() {
+    if (docName === undefined || saving) return;
+    setSaving(true);
+    setError(null);
+    saveViewAsPage(name, spec).then(
+      (created) => {
+        setSaving(false);
+        setName('');
+        onSaved(created);
+      },
+      (err: unknown) => {
+        setSaving(false);
+        setError(
+          err instanceof PageExistsError
+            ? t`A page with that name exists. Choose another name.`
+            : t`Couldn't save the view.`,
+        );
+      },
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t`Save view as page`}</DialogTitle>
+          <DialogDescription>
+            {t`The page shows this view live, for everyone, and is committed like any page.`}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody className="flex flex-col gap-3">
+          <Input
+            value={name}
+            placeholder={t`Open tasks`}
+            aria-label={t`Page name`}
+            onChange={(event) => setName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') save();
+            }}
+          />
+          <p className="text-muted-foreground text-xs">
+            {docName === undefined ? t`Enter a name.` : t`Saved as ${docName}.md`}
+          </p>
+          <pre className="overflow-x-auto rounded-md bg-muted p-2 text-xs">
+            {writeViewBlock(spec)}
+          </pre>
+          {error !== null && <p className="text-destructive text-sm">{error}</p>}
+        </DialogBody>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {t`Cancel`}
+          </Button>
+          <Button type="button" disabled={docName === undefined || saving} onClick={save}>
+            {t`Save page`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function GitQuireViews() {
   const { t } = useLingui();
   const [open, setOpen] = useState(false);
@@ -406,6 +496,7 @@ export function GitQuireViews() {
   const [me, setMe] = useState<string | null>(null);
   const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set());
   const savingRef = useRef(new Set<string>());
+  const [savingView, setSavingView] = useState(false);
   const today = localDay(new Date());
 
   useEffect(() => {
@@ -498,6 +589,13 @@ export function GitQuireViews() {
     startToggle(item, done, false, toggleContext);
   }
 
+  function currentSpec(): ViewSpec {
+    if (tab === 'board') return specFromBoard(boardView);
+    if (tab === 'timeline') return specFromTimeline(timelineView);
+    if (tab === 'actions') return specFromActions(actionFilter);
+    return specFromTable(view);
+  }
+
   function openPage(docName: string) {
     setOpen(false);
     revealEditor();
@@ -553,12 +651,24 @@ export function GitQuireViews() {
                 onValueChange={setTab}
                 className="flex min-h-0 flex-1 flex-col gap-3"
               >
-                <TabsList>
-                  <TabsTrigger value="table">{t`Table`}</TabsTrigger>
-                  <TabsTrigger value="board">{t`Board`}</TabsTrigger>
-                  <TabsTrigger value="timeline">{t`Timeline`}</TabsTrigger>
-                  <TabsTrigger value="actions">{t`Action items`}</TabsTrigger>
-                </TabsList>
+                <div className="flex flex-wrap items-center gap-2">
+                  <TabsList>
+                    <TabsTrigger value="table">{t`Table`}</TabsTrigger>
+                    <TabsTrigger value="board">{t`Board`}</TabsTrigger>
+                    <TabsTrigger value="timeline">{t`Timeline`}</TabsTrigger>
+                    <TabsTrigger value="actions">{t`Action items`}</TabsTrigger>
+                  </TabsList>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="ms-auto gap-1.5"
+                    onClick={() => setSavingView(true)}
+                  >
+                    <Save aria-hidden="true" />
+                    {t`Save as page`}
+                  </Button>
+                </div>
                 <TabsContent value="table" className={TAB_CLASS}>
                   <ObjectTable
                     pages={shownPages}
@@ -603,6 +713,15 @@ export function GitQuireViews() {
           </DialogBody>
         </DialogContent>
       </Dialog>
+      <SaveViewDialog
+        spec={currentSpec()}
+        open={savingView}
+        onOpenChange={setSavingView}
+        onSaved={(docName) => {
+          setSavingView(false);
+          openPage(docName);
+        }}
+      />
     </>
   );
 }

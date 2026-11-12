@@ -100,4 +100,38 @@ Grouped by due date, open items past their date come first as **Overdue**, then 
 days** and **Later**. Finished items whose date has passed are under **Done, due earlier**; items
 without a date under **No due date**.
 
-Table and board settings are saved per browser.
+Table, board and timeline settings are saved per browser.
+
+## Saved views
+
+**Save as page** keeps the view you have open, with its filter, grouping and columns, as a page in
+the `views` folder, for example `views/open-tasks.md`. Everyone sees it, and it is committed like any
+page. The page holds a `gitquire-view` block, which GitQuire shows as the live view:
+
+````markdown
+# Open tasks
+
+```gitquire-view
+view: board
+filter: type = task
+group: status
+```
+````
+
+Put such a block in any page to show a view there, with text around it. Click **Edit view** above
+it to change the block; when the cursor leaves it, the view shows again. Action items can be ticked
+off right in the page; to move board cards, use the board in **Views**.
+
+| Line | Meaning |
+| --- | --- |
+| `view:` | `table`, `board`, `timeline` or `actions` |
+| `filter:` | `property = value`; `property = (none)` for pages without it; only `property` for pages that have it |
+| `search:` | Text the title or values must contain |
+| `columns:` | Table columns, separated by commas |
+| `sort:` | Table column to sort by, `title` or `changed`, optionally followed by `desc` |
+| `group:` | Board: the property for the columns. Action items: `page`, `due` or `person` |
+| `date:` | Timeline: the date property to use |
+| `person:` | Action items: `@login` or `nobody` |
+| `done: show` | Action items: also show finished ones |
+
+Other GitHub tools show the block as plain code, so the page still reads well there.

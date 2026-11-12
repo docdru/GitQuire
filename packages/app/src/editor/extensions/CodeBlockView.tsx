@@ -34,6 +34,8 @@ import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { subscribeColorThemeEpoch } from '@/lib/color-theme-epoch';
 import { cn } from '@/lib/utils';
 import { OPT_OUT_ATTR } from '../clipboard/index.ts';
+import { GitQuireViewBlock } from '@/components/GitQuireViewBlock';
+import { VIEW_BLOCK_LANGUAGE } from '@/lib/gitquire/view-block';
 import { CodePreviewEditModal } from '../components/CodePreviewEditModal';
 import { PreviewBlockedNotice } from '../components/PreviewBlockedNotice';
 import { ResizeHandles } from '../components/ResizeHandles.tsx';
@@ -154,6 +156,12 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
 
   const editable = editor.isEditable;
   const cursorInside = useCursorInside(editor, getPos);
+  const savedView = rawLanguage === VIEW_BLOCK_LANGUAGE;
+  const savedViewCodeHidden = savedView && !cursorInside;
+  const editSavedView = () => {
+    const pos = typeof getPos === 'function' ? getPos() : undefined;
+    if (typeof pos === 'number') editor.chain().focus().setTextSelection(pos + 1).run();
+  };
 
   useEffect(() => {
     if (!previewActive) return;
@@ -319,13 +327,29 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
         </div>
       ) : null}
 
+      {savedView ? (
+        <div // oxlint-disable-line jsx-a11y/no-static-element-interactions -- stopPropagation required inside PM NodeView
+          contentEditable={false}
+          onMouseDown={(e) => e.stopPropagation()}
+          {...{ [OPT_OUT_ATTR]: 'true' }}
+        >
+          <GitQuireViewBlock
+            source={node.textContent}
+            codeShown={!savedViewCodeHidden}
+            onEdit={editable ? editSavedView : undefined}
+          />
+        </div>
+      ) : null}
+
       <pre
         className={cn(
           'ok-codeblock-pre m-0 overflow-x-auto px-5 py-4 font-mono text-sm leading-relaxed',
           previewActive && codeVisible ? 'rounded-b-lg' : null,
-          !previewActive ? 'rounded-lg' : null,
+          !previewActive && !savedView ? 'rounded-lg' : null,
+          savedView ? 'rounded-b-lg' : null,
+          savedViewCodeHidden ? 'hidden' : null,
         )}
-        aria-hidden={!codeVisible || undefined}
+        aria-hidden={!codeVisible || savedViewCodeHidden || undefined}
       >
         <NodeViewContent<'code'>
           as="code"

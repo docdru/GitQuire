@@ -103,6 +103,17 @@ A **timeline** lists pages with a date property, such as meeting notes, newest f
 attendees, decisions (a list under a "Decisions" heading, or lines starting with `Decision:`) and
 open action items. **New meeting note** creates `meeting-notes/<today>.md`.
 
+**Save as page** stores the open view as a page in `views/` with a `gitquire-view` block, which
+shows the view live; the block works in any page:
+
+````markdown
+```gitquire-view
+view: board
+filter: type = task
+group: status
+```
+````
+
 ### 📱 Phones and tablets
 
 A formatting toolbar above the on-screen keyboard, and installable as a home-screen app.
@@ -145,12 +156,13 @@ Done:
    picker is in review (#26).
 6. **Linking**: naming rules, rename rewrite, backlinks and a broken-link list.
 7. **Pages as objects**: table, board and action items from frontmatter and task lists.
+8. **More views**: a timeline of dated pages, ticking off action items with due dates, and saved
+   views as pages.
 
 Next, depending on feedback:
 
 - **Pull request review**: GitHub review comments shown as page threads, or reviewing fully inside
   GitQuire.
-- **More views**: saved views as pages are in progress.
 
 Ideas and bug reports are welcome in [Issues](https://github.com/docdru/GitQuire/issues).
 
