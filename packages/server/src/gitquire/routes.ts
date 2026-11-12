@@ -27,8 +27,8 @@ import { createMentionMailer } from './mention-mailer.ts';
 import {
   buildInbox,
   createMentionReadStore,
-  mentionIndexFrom,
   type MentionReader,
+  mentionIndexFrom,
   mentionStatePath,
   mentionsFor,
   mentionsInMarkdown,

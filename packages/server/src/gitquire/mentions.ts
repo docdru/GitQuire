@@ -279,8 +279,13 @@ export function createMentionReadStore(
     },
     emailOf: (userId) => userState(userId).email,
     setEmail: (reader, email, alreadyThere, now) => {
-      const { email: _email, since: _since, mailed: _mailed, pending: _pending, ...user } =
-        userState(reader.id);
+      const {
+        email: _email,
+        since: _since,
+        mailed: _mailed,
+        pending: _pending,
+        ...user
+      } = userState(reader.id);
       const stamp = now.toISOString();
       const next: UserState = { ...user, login: reader.login, lastSeen: stamp };
       if (email !== undefined) {
