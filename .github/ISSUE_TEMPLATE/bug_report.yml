@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for taking the time to file a bug. The reports we can fix fastest say what happens and when, and give the fewest steps that show it. One problem per issue, please. For a security problem, please [report it privately](https://github.com/docdru/GitQuire/security/advisories/new) instead of opening a public issue.
 
-        For setup help, check the [README](https://github.com/docdru/GitQuire#readme) first.
+        For setup help, check [DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md) first.
   - type: checkboxes
     id: preflight
     attributes:
