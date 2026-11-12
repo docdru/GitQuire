@@ -10,7 +10,6 @@ export type ChatFormat = 'slack' | 'teams' | 'discord' | 'generic';
 
 const FORMATS: readonly ChatFormat[] = ['slack', 'teams', 'discord', 'generic'];
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
-const MAX_POSTED_IDS = 5000;
 const MAX_POSTS_PER_ROUND = 10;
 const MAX_POSTS_PER_HOUR = 60;
 const POST_TIMEOUT_MS = 10_000;
@@ -32,7 +31,8 @@ export type ChatConfigResult =
 export function guessChatFormat(url: URL): ChatFormat {
   const host = url.hostname.toLowerCase();
   if (host === 'hooks.slack.com') return 'slack';
-  if (host === 'discord.com' || host === 'discordapp.com') return 'discord';
+  const discord = ['discord.com', 'discordapp.com'];
+  if (discord.some((name) => host === name || host.endsWith(`.${name}`))) return 'discord';
   if (
     host.endsWith('.webhook.office.com') ||
     host.endsWith('.logic.azure.com') ||
@@ -99,7 +99,7 @@ export function chatMessage(
   mention: Mention,
 ): ChatMessage {
   return {
-    who: clip(mention.author.name ?? mention.author.login ?? '') || 'Someone',
+    who: clip(mention.author.name?.trim() || mention.author.login || '') || 'Someone',
     page: clip(mention.docName.slice(mention.docName.lastIndexOf('/') + 1)),
     docName: mention.docName,
     link: pageLink(config.externalUrl, mention.docName),
@@ -192,10 +192,24 @@ export const postToChat: ChatPost = async (url, payload) => {
       redirect: 'error',
     });
   } catch (err) {
-    throw new ChatPostError(err instanceof Error ? err.message : String(err));
+    throw new ChatPostError(networkReason(err));
   }
-  if (!res.ok) throw new ChatPostError(`The chat webhook answered ${res.status}.`, res.status);
+  if (res.ok) {
+    await res.body?.cancel();
+    return;
+  }
+  const detail = (await res.text().catch(() => '')).trim().slice(0, 200);
+  const message = `The chat webhook answered ${res.status}${detail === '' ? '' : `: ${detail}`}.`;
+  throw new ChatPostError(message, res.status);
 };
+
+function networkReason(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const code = (err.cause as { code?: unknown } | undefined)?.code;
+  return typeof code === 'string' ? `${err.message} (${code})` : err.message;
+}
+
+const WEBHOOK_GONE = new Set([401, 403, 404, 408, 410, 429]);
 
 function isPermanent(err: unknown): boolean {
   return (
@@ -203,13 +217,13 @@ function isPermanent(err: unknown): boolean {
     err.status !== undefined &&
     err.status >= 400 &&
     err.status < 500 &&
-    err.status !== 408 &&
-    err.status !== 429
+    !WEBHOOK_GONE.has(err.status)
   );
 }
 
 interface ChatState {
   version: 1;
+  since: string;
   posted: string[];
 }
 
@@ -217,16 +231,17 @@ export function chatStatePath(projectDir: string): string {
   return join(projectDir, '.ok', 'local', 'gitquire', 'chat.json');
 }
 
-function loadChatState(file: string): ChatState | undefined {
+function loadChatState(file: string, log: Pick<GateLogger, 'warn'>): ChatState | undefined {
   if (!existsSync(file)) return undefined;
   try {
-    const parsed: unknown = JSON.parse(readFileSync(file, 'utf8'));
-    const posted = (parsed as { posted?: unknown } | null)?.posted;
-    if (!Array.isArray(posted)) return { version: 1, posted: [] };
-    return { version: 1, posted: posted.filter((id): id is string => typeof id === 'string') };
-  } catch {
-    return { version: 1, posted: [] };
-  }
+    const parsed = JSON.parse(readFileSync(file, 'utf8')) as Partial<ChatState> | null;
+    if (typeof parsed?.since === 'string' && Array.isArray(parsed.posted)) {
+      const posted = parsed.posted.filter((id): id is string => typeof id === 'string');
+      return { version: 1, since: parsed.since, posted };
+    }
+  } catch {}
+  log.warn({ file }, '[gitquire-chat] the chat state file is damaged; starting again from now');
+  return undefined;
 }
 
 function saveChatState(file: string, state: ChatState): void {
@@ -252,16 +267,17 @@ export interface ChatNotifier {
 export function createChatNotifier(deps: ChatNotifierDeps): ChatNotifier {
   const post = deps.post ?? postToChat;
   const now = deps.now ?? Date.now;
-  let state = loadChatState(deps.stateFile);
+  let state = loadChatState(deps.stateFile, deps.log);
   let running = false;
   let sentTimes: number[] = [];
   let failures = 0;
   let retryAt = 0;
 
-  function remember(ids: readonly string[]): void {
-    const merged = new Set(state?.posted ?? []);
-    for (const id of ids) merged.add(id);
-    state = { version: 1, posted: [...merged].slice(-MAX_POSTED_IDS) };
+  function remember(ids: readonly string[], live?: ReadonlySet<string>): void {
+    const kept = (state?.posted ?? []).filter((id) => live === undefined || live.has(id));
+    const merged = new Set([...kept, ...ids]);
+    const since = state?.since ?? new Date(now()).toISOString();
+    state = { version: 1, since, posted: [...merged] };
     saveChatState(deps.stateFile, state);
   }
 
@@ -298,9 +314,12 @@ export function createChatNotifier(deps: ChatNotifierDeps): ChatNotifier {
         deps.log.info({ existing: all.length }, '[gitquire-chat] posting new mentions from now on');
         return 0;
       }
+      const live = new Set(all.map((mention) => mention.id));
+      if (state.posted.some((id) => !live.has(id))) remember([], live);
+      const since = Date.parse(state.since);
       const posted = new Set(state.posted);
       const due = all
-        .filter((mention) => !posted.has(mention.id))
+        .filter((mention) => !(Date.parse(mention.at) < since) && !posted.has(mention.id))
         .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0))
         .slice(0, MAX_POSTS_PER_ROUND);
       for (const mention of due) {
@@ -308,7 +327,11 @@ export function createChatNotifier(deps: ChatNotifierDeps): ChatNotifier {
         if (sentTimes.length >= MAX_POSTS_PER_HOUR) break;
         if (await postOne(mention)) sent += 1;
       }
-    } catch {
+    } catch (err) {
+      if (!(err instanceof ChatPostError)) {
+        const reason = err instanceof Error ? err.message : String(err);
+        deps.log.warn({ reason }, '[gitquire-chat] a chat round failed');
+      }
       return sent;
     } finally {
       running = false;

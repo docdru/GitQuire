@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -120,8 +120,9 @@ describe('chat messages', () => {
 });
 
 describe('chat notifier', () => {
-  function setup(mentions: Mention[]) {
+  function setup(mentions: Mention[], savedState?: string) {
     const dir = mkdtempSync(join(tmpdir(), 'gq-chat-'));
+    if (savedState !== undefined) writeFileSync(join(dir, 'chat.json'), savedState);
     const posts: unknown[] = [];
     const state = { mentions, fail: undefined as ChatPostError | undefined, clock: 0 };
     const notifier = createChatNotifier({
@@ -145,11 +146,14 @@ describe('chat notifier', () => {
       expect(posts).toEqual([]);
       state.mentions = [
         ...state.mentions,
-        mention('t2:c2', '2026-11-12T10:00:00Z'),
-        mention('t3:c3', '2026-11-12T09:30:00Z'),
+        mention('t2:c2', '2026-11-12T10:00:00Z', 'second'),
+        mention('t3:c3', '2026-11-12T09:30:00Z', 'third'),
       ];
       expect(await notifier.round()).toBe(2);
-      expect(posts.map((post) => (post as { docName: string }).docName)).toHaveLength(2);
+      expect(posts.map((post) => (post as { comment: string }).comment)).toEqual([
+        'third',
+        'second',
+      ]);
       expect(await notifier.round()).toBe(0);
       const saved = JSON.parse(readFileSync(join(dir, 'chat.json'), 'utf8'));
       expect(saved.posted.sort()).toEqual(['t1:c1', 't2:c2', 't3:c3']);
@@ -170,10 +174,58 @@ describe('chat notifier', () => {
       state.clock += 3 * 60_000;
       expect(await notifier.round()).toBe(1);
       state.mentions = [...state.mentions, mention('t2:c2', '2026-11-12T10:00:00Z')];
-      state.fail = new ChatPostError('gone', 404);
+      state.fail = new ChatPostError('bad payload', 400);
       expect(await notifier.round()).toBe(0);
       state.fail = undefined;
       expect(await notifier.round()).toBe(0);
+      expect(posts).toHaveLength(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps retrying while the webhook is missing', async () => {
+    const { dir, posts, state, notifier } = setup([]);
+    try {
+      await notifier.round();
+      state.mentions = [mention('t1:c1', '2026-11-12T09:00:00Z')];
+      state.fail = new ChatPostError('gone', 404);
+      expect(await notifier.round()).toBe(0);
+      state.fail = undefined;
+      state.clock += 3 * 60_000;
+      expect(await notifier.round()).toBe(1);
+      expect(posts).toHaveLength(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('starts again from now when the state file is damaged', async () => {
+    const { dir, posts, notifier } = setup(
+      [mention('t1:c1', '2026-11-12T09:00:00Z')],
+      '{"posted": [',
+    );
+    try {
+      expect(await notifier.round()).toBe(0);
+      expect(await notifier.round()).toBe(0);
+      expect(posts).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('forgets removed mentions without posting older ones again', async () => {
+    const many = Array.from({ length: 6000 }, (_, n) => mention(`t${n}:c`, '2026-11-01T09:00:00Z'));
+    const { dir, posts, state, notifier } = setup(many);
+    try {
+      state.clock = Date.parse('2026-11-12T00:00:00Z');
+      expect(await notifier.round()).toBe(0);
+      state.mentions = many.slice(1000);
+      expect(await notifier.round()).toBe(0);
+      state.mentions = many;
+      expect(await notifier.round()).toBe(0);
+      state.mentions = [...many, mention('new:c', '2026-11-12T09:00:00Z')];
+      expect(await notifier.round()).toBe(1);
       expect(posts).toHaveLength(1);
     } finally {
       rmSync(dir, { recursive: true, force: true });
