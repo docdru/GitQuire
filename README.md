@@ -204,16 +204,83 @@ Each thread is one JSON line, so diffs and merges stay readable and comments tra
 through branches and pull requests. A thread finds its passage again by the quoted text and its
 surroundings; if the text is gone, the thread says so.
 
+You can edit and delete your own comments. When two people comment on the same page at the same
+moment, both comments are kept.
+
+### Mentions
+
+The **@** button in the header lists the discussions where someone mentioned you, newest first,
+with a count of unread ones. Choosing a mention opens the page at that thread. The mentions stay in
+the pages; only who has read what is kept on the server, in `.ok/local/gitquire/mentions.json`. The
+inbox needs GitHub sign-in.
+
+Mentions can also go out by email. People enter their address under the mention list; mentions that
+already existed at that moment are not mailed. The server needs an SMTP server for this:
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_SMTP_URL` | `smtps://user:password@host:465`, or `smtp://user:password@host:587` (STARTTLS is required; add `?starttls=off` only for a local relay). Without it, email is off. |
+| `GITQUIRE_MAIL_FROM` | Sender address. |
+| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. |
+
+Mail is limited to 20 per person per day and 100 per hour in total. People who have not opened
+GitQuire for 30 days get no mail. The link in the mail is built from `OK_EXTERNAL_URL`.
+
+## Broken links
+
+When links point to pages that do not exist, a button with their number appears in the header. It
+lists each missing page with the pages that link to it, so you can open them and fix the link. The
+list follows the project's link validation settings.
+
+## Views: pages as objects
+
+Give a page properties (frontmatter) and it becomes an object you can list. There is no schema: a
+page has whatever properties you give it.
+
+```markdown
+---
+type: task
+status: Doing
+owner: alice
+due: 2026-12-01
+---
+
+# Rework the landing page
+
+- [ ] Draft the copy @bob
+- [x] Collect screenshots
+```
+
+The **Views** button in the header opens three tabs:
+
+- **Table**: every page with properties. Choose columns, filter by a property and value, search and
+  sort.
+- **Board**: columns from a property such as `status`. Move a card by dragging it or with its
+  "Move to" list; the property is changed in the page and committed like any other edit.
+- **Action items**: every task list item of every page, grouped by page. Filter to items that
+  mention you or a teammate.
+
+The data comes from `GET /api/gitquire/objects`.
+
 ## Roadmap
+
+Done:
 
 1. **Shared server in Docker** with CI and a published image.
 2. **GitHub sign-in**, live editing on `main`, per-user commit authorship.
 3. **Branches and pull requests** from the editor.
-4. **Comments stored in the Markdown files**, with threads, mentions and PR comment sync.
+4. **Comments stored in the Markdown files**: threads, editing, simultaneous comments, a mention
+   inbox and email.
 5. **Mobile**: toolbar above the keyboard, touch link picker, installable as a home-screen app.
-6. **Linking**: naming rules on top of the existing rename rewrite and backlinks.
+6. **Linking**: naming rules, rename rewrite, backlinks and a broken-link list.
+7. **Pages as objects**: table, board and action items from frontmatter and task lists.
 
-Later: pages as objects, with frontmatter-driven table, timeline and kanban views.
+Next, depending on feedback:
+
+- **Pull request review**: GitHub review comments shown as page threads, or reviewing fully inside
+  GitQuire.
+- **More views**: a meeting-notes timeline; ticking off action items from the list.
+- Chat notifications for mentions (Slack, Teams, Matrix).
 
 ## Credits and license
 
