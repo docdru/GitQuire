@@ -69,9 +69,10 @@ describe('indexTypedLinks', () => {
 describe('relationSuggestions', () => {
   test('offers relation names the page does not use yet', () => {
     const index = indexTypedLinks(LIST);
-    expect(relationSuggestions(index, ['Supersedes', 'title']).map((entry) => entry.name)).toEqual(
-      ['blocks', 'relates to'],
-    );
+    expect(relationSuggestions(index, ['Supersedes', 'title']).map((entry) => entry.name)).toEqual([
+      'blocks',
+      'relates to',
+    ]);
     expect(relationFieldSuggestions(index, ['blocks', 'relates to'])).toEqual([
       { name: 'supersedes', type: 'text', required: false, group: 'relation', count: 2 },
     ]);
