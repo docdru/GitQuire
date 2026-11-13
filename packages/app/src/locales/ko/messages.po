@@ -678,6 +678,9 @@ msgstr "{localizedMessage}, 줄 {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{server} MCP 서버의 {mcpTool}"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {0}."
+msgstr ""
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, other {#분 전}}"
 

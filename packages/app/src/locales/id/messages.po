@@ -678,6 +678,9 @@ msgstr "{localizedMessage} pada baris {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{mcpTool} dari server MCP {server}"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {0}."
+msgstr ""
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, other {# mnt lalu}}"
 

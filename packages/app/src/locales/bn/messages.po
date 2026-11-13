@@ -678,6 +678,9 @@ msgstr "{displayLine} নম্বর লাইনে {localizedMessage}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{server} MCP সার্ভারের {mcpTool}"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {0}."
+msgstr ""
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, one {# মিনিট আগে} other {# মিনিট আগে}}"
 

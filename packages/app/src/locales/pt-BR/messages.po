@@ -678,6 +678,9 @@ msgstr "{localizedMessage} na linha {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{mcpTool} do servidor MCP {server}"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {0}."
+msgstr ""
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, one {há # min} many {há # min} other {há # min}}"
 
