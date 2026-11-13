@@ -17,7 +17,7 @@ export function WikiAdminGateView({
 }) {
   const { t, i18n } = useLingui();
   if (admin) return children;
-  const names = new Intl.ListFormat(i18n.locale, { type: 'disjunction' }).format(
+  const names = new Intl.ListFormat(i18n.locale || undefined, { type: 'disjunction' }).format(
     logins.map((login) => `@${login}`),
   );
   const note =
