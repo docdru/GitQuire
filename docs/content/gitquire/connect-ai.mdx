@@ -1,0 +1,43 @@
+---
+title: Connect AI
+icon: LuBot
+description: Let Claude or Mistral's Le Chat read and edit the wiki as you, from the web, desktop and phone.
+---
+
+Claude and Mistral's Le Chat can work in GitQuire as you: their edits appear live for everyone and
+are committed with you as the author. Each person connects their own account; nothing runs on the
+server on their behalf.
+
+This needs [GitHub sign-in](./github-sign-in.mdx), a public HTTPS address and
+`GITQUIRE_MCP_CONNECTORS=on`, because the assistants connect from their providers' servers. In the
+app, **Settings → Connect AI** shows the address to use, with the steps for each assistant in its own expandable section.
+
+Your connector address is your wiki's address with `/mcp` at the end, for example
+`https://wiki.example.com/mcp`.
+
+## Claude
+
+1. In Claude, open **Customize → Connectors**, click **+** and choose **Add custom connector**.
+2. Name it GitQuire, paste the connector address and click **Add**.
+3. Click **Connect**, sign in with GitHub and approve access.
+
+On a Team or Enterprise plan, an owner adds the connector once under **Organization settings →
+Connectors**, then everyone clicks **Connect**. For Claude Code, create a personal token on
+`/auth/agents` instead.
+
+## Mistral Le Chat
+
+1. In [Le Chat](https://chat.mistral.ai/), open **Intelligence → Connectors** and click
+   **+ Add Connector**.
+2. Switch to **Custom MCP Connector**, name it `gitquire` (no spaces) and paste the connector
+   address.
+3. Click **Connect**, sign in with GitHub and approve access.
+
+Only Le Chat administrators can add connectors; on the Free, Pro and Student plans, that is the
+account owner. Turn the connector on in a chat to let Le Chat use the wiki there.
+
+## Managing access
+
+Every connected app appears on `/auth/agents`, where you can revoke it. An access token lasts an
+hour and is renewed for up to 90 days of inactivity. Who gets in is still decided by GitHub sign-in
+and the repository's access rules; see [Security](./security.mdx).

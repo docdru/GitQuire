@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, createHmac, randomBytes } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import type { AccessVerdict } from './agent-access.ts';
@@ -17,11 +17,13 @@ const CLIENT_CACHE_MS = 10 * 60 * 1000;
 const MAX_METADATA_BYTES = 64 * 1024;
 const MAX_REDIRECT_URIS = 10;
 const MAX_BODY_BYTES = 16 * 1024;
+const TOKEN_AUTH_METHODS = ['none', 'client_secret_basic', 'client_secret_post'] as const;
 
 export interface OAuthClient {
   clientId: string;
   name: string;
   redirectUris: string[];
+  confidential?: boolean;
 }
 
 export interface OAuthServerDeps {
@@ -53,6 +55,7 @@ interface CodePayload {
 interface RegisteredClientPayload {
   r: string[];
   n: string;
+  a?: 1;
 }
 
 class OAuthError extends Error {
@@ -163,6 +166,29 @@ function stringParam(body: Record<string, unknown>, name: string): string | unde
   return typeof value === 'string' && value !== '' ? value : undefined;
 }
 
+function decodeFormComponent(value: string): string {
+  try {
+    return decodeURIComponent(value.replaceAll('+', ' '));
+  } catch {
+    throw new OAuthError(401, 'invalid_client', 'The client credentials are malformed.');
+  }
+}
+
+export function basicClientCredentials(
+  header: string | undefined,
+): { id: string; secret: string } | undefined {
+  if (header === undefined || !/^basic /i.test(header)) return undefined;
+  const decoded = Buffer.from(header.slice(6).trim(), 'base64').toString('utf8');
+  const colon = decoded.indexOf(':');
+  if (colon <= 0) {
+    throw new OAuthError(401, 'invalid_client', 'The client credentials are malformed.');
+  }
+  return {
+    id: decodeFormComponent(decoded.slice(0, colon)),
+    secret: decodeFormComponent(decoded.slice(colon + 1)),
+  };
+}
+
 export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
@@ -189,13 +215,18 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
     code_challenge_methods_supported: ['S256'],
-    token_endpoint_auth_methods_supported: ['none'],
+    token_endpoint_auth_methods_supported: [...TOKEN_AUTH_METHODS],
     client_id_metadata_document_supported: true,
     scopes_supported: ['wiki'],
   };
 
   function nowSeconds(): number {
     return Math.floor(now() / 1000);
+  }
+
+  function registeredClientSecret(clientId: string): string {
+    const mac = createHmac('sha256', clientSecret).update(`secret:${clientId}`);
+    return `gqs_${mac.digest('base64url')}`;
   }
 
   async function fetchClientMetadata(clientId: string): Promise<OAuthClient> {
@@ -245,30 +276,53 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     if (decoded === undefined || !Array.isArray(decoded.r) || typeof decoded.n !== 'string') {
       throw new OAuthError(400, 'invalid_client', 'Unknown client.');
     }
-    return { clientId, name: decoded.n, redirectUris: redirectUrisFrom(decoded.r) };
+    return {
+      clientId,
+      name: decoded.n,
+      redirectUris: redirectUrisFrom(decoded.r),
+      confidential: decoded.a === 1,
+    };
+  }
+
+  async function authenticateClient(clientId: string, presentedSecret: string | undefined) {
+    const client = await resolveClient(clientId);
+    if (client.confidential !== true) return client;
+    if (
+      presentedSecret === undefined ||
+      !safeEqual(presentedSecret, registeredClientSecret(clientId))
+    ) {
+      throw new OAuthError(401, 'invalid_client', 'The client secret is missing or wrong.');
+    }
+    return client;
   }
 
   async function register(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readBody(req);
     const redirectUris = redirectUrisFrom(body.redirect_uris);
-    const authMethod = body.token_endpoint_auth_method;
-    if (authMethod !== undefined && authMethod !== 'none') {
+    const authMethod = body.token_endpoint_auth_method ?? 'none';
+    if (!TOKEN_AUTH_METHODS.some((method) => method === authMethod)) {
       throw new OAuthError(
         400,
         'invalid_client_metadata',
-        'Only public clients (token_endpoint_auth_method "none") are supported.',
+        'token_endpoint_auth_method must be none, client_secret_basic or client_secret_post.',
       );
     }
+    const confidential = authMethod !== 'none';
     const name = cleanClientName(body.client_name, new URL(redirectUris[0] ?? issuer).hostname);
-    const payload: RegisteredClientPayload = { r: redirectUris, n: name };
+    const payload: RegisteredClientPayload = confidential
+      ? { r: redirectUris, n: name, a: 1 }
+      : { r: redirectUris, n: name };
     const clientId = `gqc_${encodeSigned(clientSecret, payload)}`;
-    deps.log.info({ client: name }, '[gitquire-oauth] client registered');
+    deps.log.info({ client: name, confidential }, '[gitquire-oauth] client registered');
     sendOAuthJson(res, 201, {
       client_id: clientId,
       client_id_issued_at: nowSeconds(),
+      ...(confidential
+        ? { client_secret: registeredClientSecret(clientId), client_secret_expires_at: 0 }
+        : {}),
       client_name: name,
       redirect_uris: redirectUris,
-      token_endpoint_auth_method: 'none',
+      token_endpoint_auth_method: authMethod,
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
     });
@@ -433,12 +487,19 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
   async function token(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readBody(req);
     const grantType = stringParam(body, 'grant_type');
-    const clientId = stringParam(body, 'client_id');
+    const basic = basicClientCredentials(req.headers.authorization);
+    const bodyClientId = stringParam(body, 'client_id');
+    if (basic !== undefined && bodyClientId !== undefined && bodyClientId !== basic.id) {
+      throw new OAuthError(401, 'invalid_client', 'The client credentials disagree.');
+    }
+    const clientId = basic?.id ?? bodyClientId;
+    const presentedSecret = basic?.secret ?? stringParam(body, 'client_secret');
     if (grantType === 'refresh_token') {
       const refreshToken = stringParam(body, 'refresh_token');
       if (refreshToken === undefined || clientId === undefined) {
         throw new OAuthError(400, 'invalid_request', 'refresh_token and client_id are required.');
       }
+      await authenticateClient(clientId, presentedSecret);
       const issued = deps.store.refreshConnector(refreshToken, clientId);
       if (issued === undefined) {
         throw new OAuthError(400, 'invalid_grant', 'The refresh token is not valid.');
@@ -481,11 +542,11 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     if (verifier === undefined || !safeEqual(pkceChallenge(verifier), code.ch)) {
       throw new OAuthError(400, 'invalid_grant', 'The code verifier does not match.');
     }
+    const client = await authenticateClient(code.c, presentedSecret);
     if (!rememberCode(code.j, code.exp)) {
       throw new OAuthError(400, 'invalid_grant', 'The code was already used.');
     }
     await ensureStillAllowed(code.u.login);
-    const client = await resolveClient(code.c);
     const owner = code.u;
     tokenResponse(
       res,

@@ -179,12 +179,13 @@ when the webhook is first set up are not posted.
 
 ## AI agents
 
-Each person connects their own AI agent, with their own Claude (or other) account. Nothing runs on
-the server on their behalf.
+Each person connects their own AI agent, with their own Claude, Mistral (or other) account.
+Nothing runs on the server on their behalf.
 
-In the app, **Settings → Connect Claude** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
-it shows the connector address to paste into Claude (Customize → Connectors → Add custom
-connector), and it links to the token page below for Claude Code.
+In the app, **Settings → Connect AI** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
+it shows the connector address and expandable steps for Claude (Customize → Connectors → Add
+custom connector) and Mistral's Le Chat (Intelligence → Connectors → Custom MCP Connector), and it
+links to the token page below for Claude Code.
 
 1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
 2. Create a token. The page shows it once, with the command for Claude Code and the config for the
@@ -209,6 +210,16 @@ The connection comes from Anthropic's servers, so the wiki must be reachable on 
 internet over HTTPS. GitHub sign-in and the repository's write access still decide who gets in.
 Each connected app shows up on `/auth/agents`, where it can be revoked. Its access token lasts an
 hour and is renewed with a refresh token for up to 90 days of inactivity.
+
+### Mistral Le Chat
+
+Le Chat connects the same way. An administrator of the Le Chat account (on the Free, Pro and Student
+plans, the account owner) opens **Intelligence → Connectors**, clicks **+ Add Connector**, switches
+to **Custom MCP Connector**, names it `gitquire` and enters `https://wiki.example.com/mcp`. Le Chat
+registers itself with a client secret (`client_secret_basic`), which GitQuire issues at
+registration and checks on every token request; the sign-in is then the same GitHub popup as for
+Claude. Like Claude, Le Chat connects from Mistral's servers, so the wiki must be reachable on the
+public internet over HTTPS.
 
 ### Token storage
 

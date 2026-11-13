@@ -2353,7 +2353,7 @@ msgstr "다시 연결하기 전에 \"{docName}\"의 로컬 협업 데이터를 �
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "<0>+</0> <1/> <2>스킬 만들기</2> <3/> <4>스킬 업로드</4> 클릭하세요."
 
-msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -2666,11 +2666,11 @@ msgstr "연결"
 msgid "Connect a GitHub account to browse and publish GitHub repositories."
 msgstr "GitHub 저장소를 찾아보고 게시하려면 GitHub 계정을 연결하세요."
 
+msgid "Connect AI"
+msgstr ""
+
 msgid "Connect an existing repository"
 msgstr "기존 저장소 연결"
-
-msgid "Connect Claude"
-msgstr ""
 
 msgid "Connect GitHub"
 msgstr "GitHub 연결"
@@ -2728,7 +2728,7 @@ msgstr "연결 중"
 msgid "Connecting — waiting for collab server"
 msgstr "협업 서버 연결 대기 중"
 
-msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgid "Connecting AI assistants needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
 msgstr ""
 
 msgid "Connecting to {agentName}…"
@@ -2896,7 +2896,7 @@ msgstr "코드 {code} 복사"
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "붙여넣기로 복제할 수 있도록 파일 트리에서 포커스된 항목을 복사합니다."
 
-msgid "Copy this address:"
+msgid "Copy this connector address, then follow the steps for your assistant:"
 msgstr ""
 
 msgid "Copying"
@@ -3465,9 +3465,6 @@ msgstr "이 프로젝트용 스킬을 만듭니다."
 
 msgid "Create a token on {host}"
 msgstr "{host}에서 토큰 만들기"
-
-msgid "Create a token, then run the command shown in Claude Code."
-msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "이 브랜치에서 워크트리 만들기"
@@ -4964,6 +4961,9 @@ msgstr "에이전트 변경 내용 따라가는 중"
 msgid "Footnote"
 msgstr "각주"
 
+msgid "For Claude Code and other command-line agents, create a personal token."
+msgstr ""
+
 msgid "Force Reload"
 msgstr "강제 새로 고침"
 
@@ -5791,6 +5791,9 @@ msgstr "Git 프로젝트에서 GitQuire는 저장소 루트의 .gitattributes �
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "Git 프로젝트에서 GitQuire는 다음 재빌드 전에 동시에 변경한 인덱스를 결합할 수 있도록 .gitattributes 규칙도 범위를 지정해 추가합니다."
 
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
+
 msgid "In the Claude Desktop App"
 msgstr "Claude Desktop App에서"
 
@@ -6230,6 +6233,9 @@ msgstr "레이아웃"
 msgid "Layout options"
 msgstr "레이아웃 옵션"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "자세히 알아보기"
 
@@ -6248,7 +6254,7 @@ msgstr "에이전트 채팅에서 브라우저를 사용하도록 허용합니�
 msgid "Let agents use GitQuire without asking"
 msgstr "에이전트가 확인하지 않고 GitQuire를 사용하도록 허용합니다"
 
-msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6716,6 +6722,12 @@ msgstr "팔레트 색상 누락"
 
 msgid "Missing theme name"
 msgstr "테마 이름 누락"
+
+msgid "Mistral"
+msgstr ""
+
+msgid "Mistral Le Chat"
+msgstr ""
 
 msgid "Model"
 msgstr "모델"
@@ -7634,6 +7646,9 @@ msgstr "켜짐, 외부 링크 위에 마우스를 올리면 미리보기를 가�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "켜짐, 검색어와 일치하는 페이지의 텍스트가 임베딩 제공업체(OpenAI가 기본값)로 전송되어 임베딩을 계산합니다."
 
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
+
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "루트 인덱스에서 okf_version은 \"0.2\"와 같은 따옴표 문자열로 작성됩니다. 따옴표가 없으면 YAML이 숫자로 읽어 0.10이 조용히 0.1로 바뀝니다."
 
@@ -7645,6 +7660,9 @@ msgstr "공동 작업자만"
 
 msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 msgstr "외부 링크만 요청을 발생시킵니다. 이 프로젝트의 다른 문서 링크는 로컬 인덱스에서 미리 보며 컴퓨터 밖으로 나가지 않습니다."
+
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
 
 msgid "Only markdown files"
 msgstr "Markdown 파일만"
@@ -7817,6 +7835,9 @@ msgstr "그곳에서 열기"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 안내"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "링크 열기"
@@ -10044,6 +10065,9 @@ msgstr "계속하려면 {agentName} 로그인."
 msgid "Sign in with {0}"
 msgstr "{0}으로 로그인"
 
+msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
 msgid "Sign-in failed: {0}"
 msgstr "로그인 실패: {0}"
 
@@ -11536,7 +11560,7 @@ msgstr "이 서버에는 기본 인증이 없습니다. 터널에 접근할 수 
 msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
 msgstr ""
 
-msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators."
@@ -12160,9 +12184,6 @@ msgstr "사용자 플러그인은 이 기기에만 적용됩니다. 여기에서
 
 msgid "Username"
 msgstr "사용자 이름"
-
-msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
-msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "GitQuire 외부에서 관리되는 <0>OK_EMBEDDINGS_API_KEY</0> 환경 변수를 사용합니다."
