@@ -6696,8 +6696,8 @@ msgstr "الجهد الافتراضي للنموذج"
 msgid "Modified"
 msgstr "معدَّل"
 
-msgid "Modify the link target, anchor, and display label."
-msgstr "عدّل وجهة الرابط والمرساة وتسمية العرض."
+msgid "Modify the link target, relation, anchor, and display label."
+msgstr ""
 
 msgid "More"
 msgstr "المزيد"
@@ -7364,6 +7364,9 @@ msgstr "لا توجد مشاريع حديثة"
 
 msgid "No recent projects."
 msgstr "لا توجد مشاريع حديثة."
+
+msgid "No relation"
+msgstr ""
 
 msgid "No repositories found on your GitHub account."
 msgstr "لم يُعثر على مستودعات في حساب GitHub الخاص بك."
@@ -8714,6 +8717,9 @@ msgstr "يجري إعادة التثبيت"
 
 msgid "Reject"
 msgstr "رفض"
+
+msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr ""
 
 msgid "Relations"
 msgstr ""
@@ -12076,6 +12082,9 @@ msgstr "استخدم الحروف والأرقام و<0>_</0> و<1>-</1> فقط.
 
 msgid "Use letters, digits, <0>-</0> or <1>_</1> only."
 msgstr "استخدم الحروف والأرقام و<0>-</0> أو <1>_</1> فقط."
+
+msgid "Use letters, digits, spaces and - _ . / (up to 60 characters)."
+msgstr ""
 
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "استخدم الحروف الصغيرة والأرقام و<0>-</0> فقط."
