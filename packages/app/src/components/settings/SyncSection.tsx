@@ -45,6 +45,7 @@ import {
 import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
 import { useConfigContext } from '@/lib/config-provider';
 import { engineSyncMode } from '@/lib/engine-sync-mode';
+import { PERSONAL_GIT_CREDENTIALS_ENABLED } from '@/lib/gitquire/personal-git-credentials';
 import { consumeSyncAdvancedIntent } from '@/lib/use-settings-route';
 import { ScopeBadge } from './ScopeBadge';
 import { SettingsSectionHeader } from './SettingsSectionHeader';
@@ -169,24 +170,33 @@ function SyncSectionContent({
           scope="project-local"
           level="block"
         >
-          <Trans>
-            This project lives only on this computer. Connect it to GitHub to back it up and share
-            it with other people.
-          </Trans>
+          {PERSONAL_GIT_CREDENTIALS_ENABLED ? (
+            <Trans>
+              This project lives only on this computer. Connect it to GitHub to back it up and share
+              it with other people.
+            </Trans>
+          ) : (
+            <Trans>
+              This server is not connected to a GitHub repository. Set up the GitHub App to sync
+              (see DEPLOY.md).
+            </Trans>
+          )}
         </SettingsSectionHeader>
-        <div className="flex items-center justify-between gap-3 rounded-md border p-3">
-          <div className="space-y-0.5">
-            <div className="text-sm font-medium">
-              <Trans>Connect to GitHub</Trans>
+        {PERSONAL_GIT_CREDENTIALS_ENABLED && (
+          <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium">
+                <Trans>Connect to GitHub</Trans>
+              </div>
+              <p className="text-muted-foreground text-1sm">
+                <Trans>We'll create a repository and start syncing — no terminal needed.</Trans>
+              </p>
             </div>
-            <p className="text-muted-foreground text-1sm">
-              <Trans>We'll create a repository and start syncing — no terminal needed.</Trans>
-            </p>
+            <Button ref={setUpSyncingRef} onClick={onPublish} data-testid="settings-sync-setup">
+              <Trans>Set up syncing</Trans>
+            </Button>
           </div>
-          <Button ref={setUpSyncingRef} onClick={onPublish} data-testid="settings-sync-setup">
-            <Trans>Set up syncing</Trans>
-          </Button>
-        </div>
+        )}
 
         <Collapsible>
           <CollapsibleTrigger asChild>
@@ -239,7 +249,8 @@ function SyncSectionContent({
     status.pushPermission?.checkStatus === 'denied' || status.pausedReason === 'no-push-permission';
   const offerReconnect = shouldOfferReconnect(status.pushPermission);
   const notFoundAsIdentity = hasNotFoundAsIdentityError(status);
-  const showReconnect = mode === 'full' && isPushDenied && offerReconnect;
+  const showReconnect =
+    PERSONAL_GIT_CREDENTIALS_ENABLED && mode === 'full' && isPushDenied && offerReconnect;
   const showSwitchToPullOnly =
     mode === 'full' && isPushDenied && !offerReconnect && !notFoundAsIdentity;
   const showDeniedHint =
@@ -532,7 +543,7 @@ function SyncSectionContent({
             ))}
           </div>
         ) : null}
-        {shouldOfferSignInAgain(status.pushPermission) && (
+        {PERSONAL_GIT_CREDENTIALS_ENABLED && shouldOfferSignInAgain(status.pushPermission) && (
           <div className="mt-2 flex items-start gap-2" data-testid="settings-sync-signin-again">
             <p className="text-1sm text-muted-foreground flex-1 min-w-0">
               <Trans>Your GitHub session expired — sign in again to verify push access.</Trans>

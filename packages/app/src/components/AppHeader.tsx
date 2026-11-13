@@ -28,6 +28,7 @@ import { MentionInbox } from '@/gitquire-comments/MentionInbox';
 import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
 import { useTrailingOverflow } from '@/hooks/use-trailing-overflow';
 import { authPromptStore } from '@/lib/auth-prompt-store';
+import { PERSONAL_GIT_CREDENTIALS_ENABLED } from '@/lib/gitquire/personal-git-credentials';
 import {
   buildDocShareInput,
   buildFolderShareInput,
@@ -230,8 +231,12 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         />
       )}
       <SyncStatusBadge
-        onSignIn={() => authPromptStore.request('auth')}
-        onSetIdentity={() => authPromptStore.request('identity')}
+        onSignIn={
+          PERSONAL_GIT_CREDENTIALS_ENABLED ? () => authPromptStore.request('auth') : undefined
+        }
+        onSetIdentity={
+          PERSONAL_GIT_CREDENTIALS_ENABLED ? () => authPromptStore.request('identity') : undefined
+        }
       />
       {!singleFile && <SettingsButton />}
       <HelpPopover />

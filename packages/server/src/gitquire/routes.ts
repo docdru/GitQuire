@@ -43,6 +43,7 @@ import {
 import { namingRuleFromEnv } from './naming.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
 import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
+import { checkPersonalSettings, createPersonalSettingsStore } from './personal-settings.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 import { createTypedLinkListCache } from './typed-links.ts';
 
@@ -337,6 +338,34 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(typedLinkList.body(relationPages.pages));
   }
+  const personalSettings = createPersonalSettingsStore(deps.projectDir);
+
+  function readPersonalSettings(req: IncomingMessage, res: ServerResponse): void {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      sendJson(res, 200, { personal: false });
+      return;
+    }
+    sendJson(res, 200, { personal: true, login: user.login, yaml: personalSettings.read(user.id) });
+  }
+
+  async function writePersonalSettings(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      throw new HttpError(401, 'sign-in-required', 'Sign in to save your settings.');
+    }
+    const body = await readJson(req);
+    if (typeof body.yaml !== 'string') {
+      throw new HttpError(400, 'invalid-settings', 'Send "yaml" as a string.');
+    }
+    const problem = checkPersonalSettings(body.yaml);
+    if (problem !== undefined) {
+      throw new HttpError(400, `settings-${problem}`, 'These settings are not valid.');
+    }
+    personalSettings.write(user.id, body.yaml);
+    sendJson(res, 200, { saved: true });
+  }
+
   const mentionReads = createMentionReadStore(
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
   );
@@ -547,6 +576,12 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/objects' && method === 'GET') return listPageObjects(res);
     if (path === '/api/gitquire/typed-links' && method === 'GET') return listTypedLinks(res);
     if (path === '/api/gitquire/mentions' && method === 'GET') return listMentions(req, res);
+    if (path === '/api/gitquire/me/settings' && method === 'GET') {
+      return readPersonalSettings(req, res);
+    }
+    if (path === '/api/gitquire/me/settings' && method === 'PUT') {
+      return writePersonalSettings(req, res);
+    }
     if (path === '/api/gitquire/mentions/read' && method === 'POST') {
       return markMentionsRead(req, res);
     }

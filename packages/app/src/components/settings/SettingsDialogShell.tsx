@@ -27,6 +27,7 @@ import { useDocumentContext } from '@/editor/DocumentContext';
 import type { ConfigContextValue } from '@/lib/config-context';
 import { useConfigContext } from '@/lib/config-provider';
 import { isFileProtocolPage } from '@/lib/file-protocol-page';
+import { withoutHiddenSettings } from '@/lib/gitquire/settings-visibility';
 import { useClaudeDesktopIntegration } from '@/lib/handoff/use-claude-desktop-integration';
 import { getNoticesSnapshot, subscribeToNotices } from '@/lib/update-notices-store';
 import { subscribeToSettingsSection } from '@/lib/use-settings-route';
@@ -43,7 +44,6 @@ import {
   scopeSettingsGroupsForHost,
 } from './settings-host-scope';
 import { buildSettingsSearchIndex, type SettingsSearchEntry } from './settings-search-index';
-import { AGENT_CONNECTIONS_SECTION_LABEL } from './settings-section-labels';
 import type { SidebarGroup, SidebarItem, SidebarSubsection } from './settings-sidebar-types';
 
 const LEGACY_SECTION_ALIASES: Record<string, { sectionId: string; anchor: string }> = {
@@ -270,8 +270,8 @@ function SettingsDialogFrame({
       items: [
         {
           id: 'agent-connections',
-          label: t(AGENT_CONNECTIONS_SECTION_LABEL),
-          keywords: [t`AI tools`, t`Configure agents`],
+          label: t`Connect Claude`,
+          keywords: [t`AI tools`, t`Claude`, t`Connector`, t`MCP`, t`Agent token`],
         },
       ],
     },
@@ -446,7 +446,7 @@ function SettingsDialogFrame({
       : []),
   ];
 
-  const groups = scopeSettingsGroupsForHost(declaredGroups, host);
+  const groups = withoutHiddenSettings(scopeSettingsGroupsForHost(declaredGroups, host));
   const shownId =
     host === 'navigator' &&
     !groups.some((group) =>

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { hasNonGitHubRemote, remoteTakesStoredToken } from '@/components/SyncStatusBadge';
 import type { GitSyncStatus } from '@/hooks/use-git-sync-status';
 import { type AuthPromptStep, authPromptStore } from '@/lib/auth-prompt-store';
+import { PERSONAL_GIT_CREDENTIALS_ENABLED } from '@/lib/gitquire/personal-git-credentials';
 import { openAccountSettings } from '@/lib/use-settings-route';
 
 export function useSyncAuthPrompt(
@@ -21,6 +22,7 @@ export function useSyncAuthPrompt(
   useEffect(() => {
     if (pending === null) return;
     authPromptStore.clear();
+    if (!PERSONAL_GIT_CREDENTIALS_ENABLED) return;
     if (pending === 'identity' || !nonGitHub) {
       onPrompt(pending);
       return;
