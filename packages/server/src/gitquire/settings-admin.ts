@@ -57,13 +57,14 @@ function withoutPersonalViewKeys(source: string): string | null {
     const yaml = parseDocument(source);
     if (yaml.errors.length > 0) return null;
     const value = (yaml.toJS() ?? {}) as Record<string, unknown>;
-    const appearance = value.appearance;
-    if (typeof appearance === 'object' && appearance !== null) {
-      value.appearance = Object.fromEntries(
-        Object.entries(appearance).filter(([key]) => key !== 'sidebar'),
-      );
-    }
-    return JSON.stringify(value);
+    const entries = Object.entries(value).flatMap(([key, entry]): [string, unknown][] => {
+      if (key !== 'appearance' || typeof entry !== 'object' || entry === null) {
+        return [[key, entry]];
+      }
+      const rest = Object.entries(entry).filter(([name]) => name !== 'sidebar');
+      return rest.length === 0 ? [] : [[key, Object.fromEntries(rest)]];
+    });
+    return JSON.stringify(Object.fromEntries(entries));
   } catch {
     return null;
   }
