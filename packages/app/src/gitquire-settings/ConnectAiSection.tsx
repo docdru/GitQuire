@@ -87,7 +87,9 @@ function AssistantSteps({
         />
         {title}
       </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-4 border-t px-3 py-3 text-sm">{children}</CollapsibleContent>
+      <CollapsibleContent className="space-y-4 border-t px-3 py-3 text-sm">
+        {children}
+      </CollapsibleContent>
     </Collapsible>
   );
 }
@@ -154,8 +156,8 @@ function MistralSteps() {
       </ol>
       <p className="text-muted-foreground">
         <Trans>
-          Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is
-          the account owner.
+          Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that
+          is the account owner.
         </Trans>
       </p>
     </AssistantSteps>
