@@ -30,6 +30,10 @@ tomorrow, your wiki is still a folder of `.md` files with full history.
 > **Status:** early, but usable. All phases of the [roadmap](#roadmap) are in; what comes next
 > depends on feedback.
 
+## Video Explainer
+
+https://github.com/user-attachments/assets/3d05b1b7-4bb0-49a9-bdce-a96963d5a31a
+
 ## Features
 
 ### ✍️ Write together
