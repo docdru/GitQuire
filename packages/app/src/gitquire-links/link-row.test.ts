@@ -18,9 +18,7 @@ describe('snippetAddsContext', () => {
   const mentions = ['Kick-off meeting', 'project-atlas/kick-off-meeting', 'supersedes'];
 
   test('hides a snippet that only repeats the link and its relation', () => {
-    expect(snippetAddsContext('supersedes:: project-atlas/kick-off-meeting', mentions)).toBe(
-      false,
-    );
+    expect(snippetAddsContext('supersedes:: project-atlas/kick-off-meeting', mentions)).toBe(false);
     expect(snippetAddsContext('Kick-off meeting', mentions)).toBe(false);
     expect(snippetAddsContext(null, mentions)).toBe(false);
   });

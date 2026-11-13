@@ -56,9 +56,9 @@ describe('relationFieldsInInline', () => {
 
   test('ignores fields without a link and fields in code', () => {
     expect(relationFieldsInInline([text('note:: plain text')], 0)).toEqual([]);
-    expect(
-      relationFieldsInInline([{ kind: 'code', text: 'blocks:: ', size: 9 }, link], 0),
-    ).toEqual([]);
+    expect(relationFieldsInInline([{ kind: 'code', text: 'blocks:: ', size: 9 }, link], 0)).toEqual(
+      [],
+    );
   });
 });
 
