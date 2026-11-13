@@ -193,32 +193,6 @@ vi.doMock('sonner', () => ({
   },
 }));
 
-let selectedCommentCount = 0;
-let selectedCommentDocs: readonly { docName: string; count: number }[] = [];
-const commentPostedListeners = new Set<() => void>();
-function emitCommentPostedForTest() {
-  for (const listener of commentPostedListeners) listener();
-}
-
-vi.doMock('@/comments/store', () => ({
-  dispatchComments: vi.fn(async () => []),
-  subscribeCommentPosted: (listener: () => void) => {
-    commentPostedListeners.add(listener);
-    return () => commentPostedListeners.delete(listener);
-  },
-}));
-
-vi.doMock('@/comments/comment-chips', async () => {
-  const actual = await vi.importActual<typeof import('@/comments/comment-chips')>(
-    '@/comments/comment-chips',
-  );
-  return {
-    ...actual,
-    useSelectedCommentCount: () => selectedCommentCount,
-    useSelectedCommentDocs: () => selectedCommentDocs,
-  };
-});
-
 const FIRST_SUGGESTION = /Research the extinction of flightless birds/i;
 
 function suggestionShown(): boolean {
@@ -383,9 +357,6 @@ beforeEach(() => {
   buildArgs.length = 0;
   terminalLaunchCalls.length = 0;
   toastErrors.length = 0;
-  selectedCommentCount = 0;
-  selectedCommentDocs = [];
-  commentPostedListeners.clear();
   try {
     window.localStorage.clear();
   } catch {}
@@ -1377,51 +1348,6 @@ describe('BottomComposer ⇧⌘L — overlay gate', () => {
 
     expect(event.defaultPrevented).toBe(false);
     expect(document.activeElement).not.toBe(composerInput);
-  });
-});
-
-describe('BottomComposer (queued-comments chip lifecycle)', () => {
-  const DETACH = /leave these comments out of this message/i;
-  const REATTACH = /attach comments: 2/i;
-
-  test('a ticked batch rides the message by default', async () => {
-    selectedCommentCount = 2;
-    await renderComposer();
-    expect(screen.getByRole('button', { name: DETACH })).toBeTruthy();
-  });
-
-  test('the ✕ takes the batch off this message and leaves the way back', async () => {
-    selectedCommentCount = 2;
-    await renderComposer();
-    fireEvent.click(screen.getByRole('button', { name: DETACH }));
-    expect(screen.queryByRole('button', { name: DETACH })).toBeNull();
-    expect(screen.queryByTestId('composer-context-chip-comments')).toBeNull();
-    expect(screen.getByRole('menuitem', { name: REATTACH })).toBeTruthy();
-    expect(screen.queryByRole('menuitem', { name: 'Commands' })).toBeNull();
-
-    fireEvent.click(screen.getByRole('menuitem', { name: REATTACH }));
-    expect(screen.getByRole('button', { name: DETACH })).toBeTruthy();
-  });
-
-  test('posting a new comment re-attaches a dismissed batch', async () => {
-    selectedCommentCount = 2;
-    await renderComposer();
-    fireEvent.click(screen.getByRole('button', { name: DETACH }));
-    expect(screen.queryByRole('button', { name: DETACH })).toBeNull();
-
-    selectedCommentCount = 3;
-    act(() => emitCommentPostedForTest());
-
-    expect(screen.getByRole('button', { name: DETACH })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: REATTACH })).toBeNull();
-  });
-
-  test('a post while the batch is already attached changes nothing', async () => {
-    selectedCommentCount = 1;
-    await renderComposer();
-    selectedCommentCount = 2;
-    act(() => emitCommentPostedForTest());
-    expect(screen.getByRole('button', { name: DETACH })).toBeTruthy();
   });
 });
 

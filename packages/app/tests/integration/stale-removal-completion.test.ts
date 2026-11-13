@@ -49,7 +49,6 @@ test('a completed rename preserves a recreation admitted at its old name', async
   expect(readFileSync(destinationPath, 'utf-8')).toBe(ORIGINAL);
 
   const fresh = await scenario.create();
-  const thread = await scenario.comment('Recreated page');
   expect(await scenario.snapshot(fresh)).toMatchObject({
     disk: RECREATED,
     residentPresent: true,
@@ -67,7 +66,6 @@ test('a completed rename preserves a recreation admitted at its old name', async
   await scenario.finishDeletion();
   const after = await scenario.snapshot(fresh);
   expect(readFileSync(destinationPath, 'utf-8')).toBe(ORIGINAL);
-  expect(after.threads).toContain(thread.threadId);
   expect(after).toMatchObject({
     disk: RECREATED,
     residentPresent: true,

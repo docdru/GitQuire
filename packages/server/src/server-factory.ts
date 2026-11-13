@@ -68,7 +68,7 @@ import { AgentFocusBroadcaster } from './agent-focus.ts';
 import { AgentPresenceBroadcaster } from './agent-presence.ts';
 import type { AgentRegistryHostSeam } from './agent-registry-apply.ts';
 import { AgentSessionManager } from './agent-sessions.ts';
-import { type CommentDocHooks, createApiExtension, isSafeDocName } from './api-extension.ts';
+import { createApiExtension, isSafeDocName } from './api-extension.ts';
 import { assetReferencesChanged } from './asset-references.ts';
 import { seedBasenameIndex, seedSingleDirBasenameIndex } from './asset-walk.ts';
 import {
@@ -724,7 +724,6 @@ export function createServer(options: ServerOptions): ServerInstance {
           throw cause;
         }
         contentFilter.decrementMdDir(dirname(docName));
-        commentDocHooksRef.current?.deleted(docName);
       },
       applyResolvedContent: async (docName, absPath, bytes) => {
         assertContentPath(absPath);
@@ -775,7 +774,6 @@ export function createServer(options: ServerOptions): ServerInstance {
                   )
                 : false;
             if (removal.namespaceCurrent()) {
-              commentDocHooksRef.current?.deleted(docName);
               await derivedDocumentIndex.recordDiskDelete(docName);
             }
             if (!removal.namespaceCurrent() && !removal.residentCurrent()) {
@@ -1956,7 +1954,6 @@ export function createServer(options: ServerOptions): ServerInstance {
     recentlyRemovedDocs.restore(journaledDocName, entry);
   }
   removedDocsJournalWritable = true;
-  const commentDocHooksRef: { current: CommentDocHooks | null } = { current: null };
 
   type ResidentOccurrence = {
     source: string | undefined;
@@ -2032,7 +2029,6 @@ export function createServer(options: ServerOptions): ServerInstance {
     revokeNamespaceRemovals(docName);
     const document = hocuspocus.documents.get(docName);
     if (document) markResidentForRetirement(document);
-    commentDocHooksRef.current?.deleted(docName);
   }
 
   function captureNamespaceMove(docName: string): () => void {
@@ -2508,7 +2504,6 @@ export function createServer(options: ServerOptions): ServerInstance {
     );
     const liveDerivedIndexExtension = createLiveDerivedIndexExtension({
       derivedDocumentIndex,
-      onDocumentSettled: (docName) => commentDocHooksRef.current?.changed(docName),
     });
     hocuspocus.configuration.extensions.push(liveDerivedIndexExtension);
 
@@ -2703,7 +2698,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       durabilityState,
       ingressPolicy,
       sessionManager,
-      commentDocHooksRef,
       onNamespaceCreateAccepted: acceptNamespaceCreate,
       capturePublicationReceipt,
       captureNamespaceMove,
@@ -2737,7 +2731,6 @@ export function createServer(options: ServerOptions): ServerInstance {
             scheduleIndexRegeneration(event.docName);
             break;
           case 'delete':
-            commentDocHooksRef.current?.deleted(event.docName);
             scheduleIndexRegenerationAfterRemoval(event.docName);
             break;
           case 'rename':
@@ -4144,7 +4137,6 @@ export function createServer(options: ServerOptions): ServerInstance {
             }
             if (namespaceCurrent) {
               dissolveNonGitConflicts(docName);
-              commentDocHooksRef.current?.deleted(docName);
             }
             const { document } = removal;
             const isDirty =

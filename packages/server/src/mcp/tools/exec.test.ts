@@ -1073,29 +1073,29 @@ describe('formatFileEntry — unresolved comments', () => {
       comments: [
         {
           threadId: 'c1',
+          author: '@alice',
           body: 'tighten this claim',
           quote: 'always converges',
-          state: 'anchored',
-          queued: false,
+          replies: 0,
         },
       ],
     });
     expect(line).toContain('1 unresolved comment:');
-    expect(line).toContain('"tighten this claim"');
+    expect(line).toContain('@alice: "tighten this claim"');
     expect(line).toContain('always converges');
   });
 
-  test('marks queued and orphaned threads', () => {
+  test('counts replies in a thread', () => {
     const line = formatFileEntry({
       ...base,
       commentCount: 2,
       comments: [
-        { threadId: 'c1', body: 'a', quote: 'x', state: 'anchored', queued: true },
-        { threadId: 'c2', body: 'b', quote: 'y', state: 'orphaned', queued: false },
+        { threadId: 'c1', author: '@alice', body: 'a', quote: 'x', replies: 1 },
+        { threadId: 'c2', author: '@bob', body: 'b', quote: 'y', replies: 3 },
       ],
     });
-    expect(line).toContain('[queued]');
-    expect(line).toContain('[passage gone]');
+    expect(line).toContain('[1 reply]');
+    expect(line).toContain('[3 replies]');
   });
 
   test('caps inlined bodies and elides the rest', () => {
@@ -1104,10 +1104,10 @@ describe('formatFileEntry — unresolved comments', () => {
       commentCount: 5,
       comments: [1, 2, 3, 4, 5].map((n) => ({
         threadId: `c${n}`,
+        author: '@alice',
         body: `note ${n}`,
         quote: `q${n}`,
-        state: 'anchored' as const,
-        queued: false,
+        replies: 0,
       })),
     });
     expect(line).toContain('5 unresolved comments:');

@@ -4,7 +4,6 @@ import type { Editor } from '@tiptap/react';
 import { useEditorState } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import { useRef, useState } from 'react';
-import { CommentBubbleButton } from '@/comments/CommentBubbleButton';
 import { Separator } from '@/components/ui/separator';
 import { DiscussionBubbleButton } from '@/gitquire-comments/DiscussionBubbleButton';
 import {
@@ -147,7 +146,6 @@ export function BubbleMenuBar({
               docName={docName}
             />
           )}
-          <CommentBubbleButton key={`${tooltipKey}-comment`} />
         </>
       )}
     </BubbleMenu>

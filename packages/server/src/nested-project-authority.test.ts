@@ -665,12 +665,6 @@ test('single-file previews own only their file and block project takeover until 
       body: JSON.stringify({ entries: [] }),
     });
     expect(clientLogs.status).toBe(200);
-    const comment = await fetch(`http://127.0.0.1:${preview.port}/api/comments`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: '{}',
-    });
-    expect(comment.status).toBe(400);
     await expect(preview.serverInstance.hocuspocus.openDirectConnection('two')).rejects.toThrow(
       /does not own/i,
     );

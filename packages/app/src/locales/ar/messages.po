@@ -262,9 +262,6 @@ msgstr "تم تحديد {0} من {1} مشروع"
 msgid "{0} of {1} selected"
 msgstr "تم تحديد {0} من {1}"
 
-msgid "{0} of {totalCount}"
-msgstr "{0} من {totalCount}"
-
 msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
 msgstr "{0} يفتح عبر رابط ولا يقبل المرفقات — اختر وكيلًا داخل التطبيق بدلًا من ذلك."
 
@@ -461,12 +458,6 @@ msgstr "{count, plural, zero {{files} ليست ملفات نصية، لذا لا
 msgid "{count, plural, one {{files} isn't a text file, so it can't be sent with the message. Mention it with @ once it's in your project.} other {{files} aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.}}"
 msgstr "{count, plural, zero {{files} ليست ملفات نصية، لذا لا يمكن إرسالها مع الرسالة. اذكرها باستخدام @ عندما تكون في مشروعك.} one {{files} ليس ملفًا نصيًا، لذا لا يمكن إرساله مع الرسالة. اذكره باستخدام @ عندما يكون في مشروعك.} two {{files} ليسا ملفين نصيين، لذا لا يمكن إرسالهما مع الرسالة. اذكرهما باستخدام @ عندما يكونان في مشروعك.} few {{files} ليست ملفات نصية، لذا لا يمكن إرسالها مع الرسالة. اذكرها باستخدام @ عندما تكون في مشروعك.} many {{files} ليست ملفات نصية، لذا لا يمكن إرسالها مع الرسالة. اذكرها باستخدام @ عندما تكون في مشروعك.} other {{files} ليست ملفات نصية، لذا لا يمكن إرسالها مع الرسالة. اذكرها باستخدام @ عندما تكون في مشروعك.}}"
 
-msgid "{count, plural, one {# comment} other {# comments}}"
-msgstr "{count, plural, zero {# تعليق} one {تعليق واحد} two {تعليقان} few {# تعليقات} many {# تعليقًا} other {# تعليق}}"
-
-msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
-msgstr "{count, plural, zero {# تعليق} one {تعليق واحد} two {تعليقان} few {# تعليقات} many {# تعليقًا} other {# تعليق}} عبر {0, plural, zero {# ملف} one {ملف واحد} two {ملفان} few {# ملفات} many {# ملفًا} other {# ملف}}"
-
 msgid "{count, plural, one {# dated page} other {# dated pages}}"
 msgstr ""
 
@@ -590,9 +581,6 @@ msgstr "{errorCount, plural, zero {# خطأ} one {خطأ واحد} two {خطآن
 #. Joins the two counts in a file-tree problem tooltip. Reaches a translator as two placeholders and a conjunction, so: errorText is already pluralized ("2 errors"), warningText likewise ("1 warning"), and the result is the subject of the sentence that follows it.
 msgid "{errorText} and {warningText}"
 msgstr "{errorText} و{warningText}"
-
-msgid "{failed} of {0} comments could not be updated."
-msgstr "تعذّر تحديث {failed} من {0} تعليقات."
 
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, zero {فشل رفع {failedCount} ملف} one {فشل رفع ملف واحد} two {فشل رفع ملفين} few {فشل رفع {failedCount} ملفات} many {فشل رفع {failedCount} ملفًا} other {فشل رفع {failedCount} ملف}}"
@@ -1217,9 +1205,6 @@ msgstr "الحجم الفعلي"
 msgid "Add"
 msgstr "إضافة"
 
-msgid "Add a comment"
-msgstr "إضافة تعليق"
-
 msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
@@ -1249,12 +1234,6 @@ msgstr "أضف حرفًا أو رقمًا واحدًا على الأقل."
 
 msgid "Add block below"
 msgstr "إضافة كتلة أدناه"
-
-msgid "Add Comment"
-msgstr "إضافة تعليق"
-
-msgid "Add Comment (Enter)"
-msgstr "إضافة تعليق (Enter)"
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "أضف مؤشرات أو حدد التكرارات المطابقة عبر CodeMirror."
@@ -1741,12 +1720,6 @@ msgstr "الأصل: {title}"
 
 msgid "Attach a file"
 msgstr "إرفاق ملف"
-
-msgid "Attach comments"
-msgstr "إرفاق التعليقات"
-
-msgid "Attach comments: {count}"
-msgstr "إرفاق التعليقات: {count}"
 
 msgid "Attach files"
 msgstr "إرفاق الملفات"
@@ -2292,9 +2265,6 @@ msgstr "اختر ما يعدّه GitQuire لـ {agentLabel}. {agentLabel} يدع
 msgid "Choose what GitQuire sets up."
 msgstr "اختر ما يعدّه GitQuire."
 
-msgid "Choose where to send these comments"
-msgstr "اختر إلى أين تُرسل هذه التعليقات"
-
 msgid "Choose where to send this message"
 msgstr "اختيار وجهة إرسال هذه الرسالة"
 
@@ -2452,14 +2422,11 @@ msgstr "إغلاق الكل"
 msgid "Close all unpinned"
 msgstr "إغلاق كل غير المثبّت"
 
-msgid "Close comment"
-msgstr "إغلاق التعليق"
+msgid "Close comments"
+msgstr ""
 
 msgid "Close diff"
 msgstr "إغلاق الفروق"
-
-msgid "Close discussions"
-msgstr ""
 
 msgid "Close find"
 msgstr "إغلاق البحث"
@@ -2540,9 +2507,6 @@ msgstr "طيّ الكل"
 msgid "Collapse all file groups"
 msgstr "طيّ كل مجموعات الملفات"
 
-msgid "Collapse all files"
-msgstr "طيّ كل الملفات"
-
 msgid "Collapse Ask AI"
 msgstr "طيّ «اسأل الذكاء الاصطناعي»"
 
@@ -2585,20 +2549,11 @@ msgstr "تُنفَّذ الأوامر بكامل صلاحيات حساب الم�
 msgid "Comment"
 msgstr "تعليق"
 
-msgid "Comment on {address}"
-msgstr "تعليق على {address}"
-
 msgid "Comment on selection"
 msgstr "تعليق على التحديد"
 
 msgid "Comment on this selection"
 msgstr "التعليق على هذا التحديد"
-
-msgid "Comment or ask AI about this {0}"
-msgstr "علّق على {0} هذا أو اسأل الذكاء الاصطناعي عنه"
-
-msgid "Comment or ask AI about this code block"
-msgstr "علّق على كتلة الشيفرة هذه أو اسأل الذكاء الاصطناعي عنها"
 
 msgid "Comments"
 msgstr "التعليقات"
@@ -3037,12 +2992,6 @@ msgstr "تعذّر التحقق من المجلد. يرجى المحاولة م�
 msgid "Could not write project files. Try a different location."
 msgstr "تعذّرت كتابة ملفات المشروع. جرّب موقعًا مختلفًا."
 
-msgid "Couldn't add that comment: {0}"
-msgstr "تعذّرت إضافة ذلك التعليق: {0}"
-
-msgid "Couldn't add that comment."
-msgstr "تعذّرت إضافة ذلك التعليق."
-
 msgid "Couldn't apply the change: {0}"
 msgstr "تعذّر تطبيق التغيير: {0}"
 
@@ -3118,9 +3067,6 @@ msgstr "تعذّر حذف المهارة: {error}"
 msgid "Couldn't delete template: {error}"
 msgstr "تعذّر حذف القالب: {error}"
 
-msgid "Couldn't delete that comment."
-msgstr "تعذّر حذف ذلك التعليق."
-
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "تعذّر حذف هذه السمة. حدّث الصفحة وحاول مرة أخرى."
 
@@ -3129,9 +3075,6 @@ msgstr "تعذّر قطع الاتصال — يرجى المحاولة مرة أ
 
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "تعذّر تكرار «{0}»: {1}"
-
-msgid "Couldn't find that passage — the text it was on may have changed."
-msgstr "تعذر العثور على ذلك المقطع — ربما تغير النص الذي كان عليه."
 
 msgid "Couldn't finish installing {0} — see below."
 msgstr "تعذّر إتمام تثبيت {0} — انظر أدناه."
@@ -3199,9 +3142,6 @@ msgstr "تعذّر تحميل وكلائك."
 msgid "Couldn't load your bug reports."
 msgstr "تعذّر تحميل تقارير العلل الخاصة بك."
 
-msgid "Couldn't mark that comment to send."
-msgstr "تعذّر تحديد ذلك التعليق للإرسال."
-
 msgid "Couldn't move {0}: {1}"
 msgstr "تعذر نقل {0}: {1}"
 
@@ -3247,9 +3187,6 @@ msgstr "تعذّر تجهيز هذا المشروع للنشر."
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "تعذّر السحب من GitHub. تحقق من اتصالك وتسجيل دخولك، ثم أعد المحاولة."
 
-msgid "Couldn't re-place that comment."
-msgstr "تعذّرت إعادة وضع ذلك التعليق."
-
 msgid "Couldn't reach {displayName} — please try again later."
 msgstr "تعذّر الوصول إلى {displayName}. يُرجى المحاولة لاحقًا."
 
@@ -3292,12 +3229,6 @@ msgstr "تعذّرت قراءة {fileName}. ربما نُقل أو حُذف أو
 msgid "Couldn't read the {gitignorePath} rule: {previewError}"
 msgstr "تعذّرت قراءة قاعدة {gitignorePath}: {previewError}"
 
-msgid "Couldn't read the comments waiting to send — nothing was sent."
-msgstr "تعذّرت قراءة التعليقات المنتظرة للإرسال — لم يُرسل شيء."
-
-msgid "Couldn't read the comments waiting to send: {0}"
-msgstr "تعذّرت قراءة التعليقات المنتظرة للإرسال: {0}"
-
 msgid "Couldn't read the spell checking setting."
 msgstr "تعذّرت قراءة إعداد التدقيق الإملائي."
 
@@ -3327,9 +3258,6 @@ msgstr "تعذّرت إعادة تسمية «{0}»: {1}"
 
 msgid "Couldn't rename template: {0}"
 msgstr "تعذّرت إعادة تسمية القالب: {0}"
-
-msgid "Couldn't reopen that comment."
-msgstr "تعذّرت إعادة فتح ذلك التعليق."
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "تعذّر حل التعارض في {filePath}."
@@ -3382,9 +3310,6 @@ msgstr "تعذّر حفظ إعدادات الشبكة. {0}"
 msgid "Couldn't save template: {error}"
 msgstr "تعذّر حفظ القالب: {error}"
 
-msgid "Couldn't save that edit."
-msgstr "تعذّر حفظ ذلك التعديل."
-
 msgid "Couldn't save the action item."
 msgstr ""
 
@@ -3415,17 +3340,8 @@ msgstr "تعذّر حفظ هذا الإعداد. حاول مرة أخرى."
 msgid "Couldn't save your theme preference."
 msgstr "تعذّر حفظ تفضيل السمة لديك."
 
-msgid "Couldn't scroll to that passage. Try again."
-msgstr "تعذر التمرير إلى ذلك المقطع. حاول مرة أخرى."
-
 msgid "Couldn't send the report"
 msgstr "تعذّر إرسال التقرير"
-
-msgid "Couldn't send your comments — please try again."
-msgstr "تعذّر إرسال تعليقاتك — يرجى المحاولة مرة أخرى."
-
-msgid "Couldn't send your comments — the workspace isn't ready."
-msgstr "تعذّر إرسال تعليقاتك — مساحة العمل غير جاهزة."
 
 msgid "Couldn't send your prompt — please try again."
 msgstr "تعذّر إرسال موجّهك — يرجى المحاولة مرة أخرى."
@@ -3447,9 +3363,6 @@ msgstr "تعذّر التبديل إلى {language}."
 
 msgid "Couldn't switch to Only me"
 msgstr "تعذّر التبديل إلى «أنا فقط»"
-
-msgid "Couldn't unmark that comment — it's still waiting to send."
-msgstr "تعذّر إلغاء تحديد ذلك التعليق — لا يزال في انتظار الإرسال."
 
 msgid "Couldn't unpin {name}"
 msgstr "تعذر إلغاء تثبيت {name}"
@@ -3739,9 +3652,6 @@ msgstr "حذف الجدول"
 msgid "Delete the file"
 msgstr "حذف الملف"
 
-msgid "Delete this comment"
-msgstr "حذف هذا التعليق"
-
 msgid "Deleted"
 msgstr "محذوف"
 
@@ -3909,12 +3819,6 @@ msgstr "يجري قطع الاتصال"
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "تُدار مهارات الاكتشاف لجميع أدوات الذكاء الاصطناعي معًا. ثبّت هذه المهارة من استوديو المهارات ضمن الإعدادات."
 
-msgid "Discuss"
-msgstr ""
-
-msgid "Discussions"
-msgstr ""
-
 msgid "Dismiss"
 msgstr "تجاهل"
 
@@ -3986,9 +3890,6 @@ msgstr "لا تسألني مجددًا عند فتح هذا التطبيق دو�
 
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "لا ترى <0>المهارات</0>؟ فعّل <1>الإعدادات <2/> القدرات <3/> تنفيذ الكود وإنشاء الملفات</1> أولًا."
-
-msgid "Don't send this comment"
-msgstr "لا ترسل هذا التعليق"
 
 msgid "Don't show"
 msgstr "لا تُظهر"
@@ -4524,9 +4425,6 @@ msgstr "توسيع الكل"
 
 msgid "Expand all file groups"
 msgstr "توسيع كل مجموعات الملفات"
-
-msgid "Expand all files"
-msgstr "توسيع كل الملفات"
 
 msgid "Expand board"
 msgstr "توسيع اللوحة"
@@ -5487,9 +5385,6 @@ msgstr "يوجّه وكلاء الذكاء الاصطناعي لديك إلى ك
 msgid "guides/install or https://example.com"
 msgstr "guides/install أو https://example.com"
 
-msgid "Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed."
-msgstr "تسليم التعليقات المحددة إلى وكيل في دفعة واحدة. في هذا المستند، تعليقات ذلك المستند فقط؛ وفي هذا المشروع، كل تعليق محدد. لا يفعل شيئًا ما دام تبويب التعليقات مغلقًا."
-
 msgid "Hard break"
 msgstr "فاصل صريح"
 
@@ -5637,9 +5532,6 @@ msgstr "إخفاء الاستبدال"
 
 msgid "Hide resolved"
 msgstr "إخفاء المحلولة"
-
-msgid "Hide resolved comments ({0})"
-msgstr "إخفاء التعليقات المحلولة ({0})"
 
 msgid "Hide selection preview"
 msgstr "إخفاء معاينة التحديد"
@@ -6208,14 +6100,8 @@ msgstr "الانتقال إلى آخر تبويب"
 msgid "Jump to page {pageNumber}"
 msgstr "الانتقال إلى الصفحة {pageNumber}"
 
-msgid "Jump to selected text in property"
-msgstr "الانتقال إلى النص المحدد في الخاصية"
-
 msgid "Jump to tab 1-8"
 msgstr "الانتقال إلى التبويب 1-8"
-
-msgid "Jump to the anchored text"
-msgstr "الانتقال إلى النص المرتبط"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "انتقل إلى مصدر Markdown للكتلة عند المؤشر، موسّطًا ومظللًا."
@@ -6322,9 +6208,6 @@ msgstr "اعرف المزيد عن مشاركة الإعدادات"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "استبعد الروابط المعطلة المكتوبة داخل log.md أو log.mdx على أي عمق للمجلد من «المشكلات» ومؤشرات مستكشف الملفات وتشخيصات المحرر وعمليات التدقيق وتنبيهات كتابة الوكيل. المهم هو الملف الذي كُتب فيه الرابط، وليس الملف الذي يشير إليه، وLOG.md مستند عادي. تظل لوحة «الروابط» والمحرر تعرضانها."
-
-msgid "Leave these comments out of this message"
-msgstr "استبعد هذه التعليقات من هذه الرسالة"
 
 msgid "Let agent chats use a browser"
 msgstr "اسمح لمحادثات الوكلاء باستخدام متصفح"
@@ -6670,12 +6553,6 @@ msgstr ""
 
 msgid "Mark done: {text}"
 msgstr ""
-
-msgid "Mark every comment in {0} to send"
-msgstr "تحديد كل التعليقات في {0} للإرسال"
-
-msgid "Mark every comment to send"
-msgstr "تحديد كل التعليقات للإرسال"
 
 msgid "Markdown"
 msgstr "Markdown"
@@ -7230,9 +7107,6 @@ msgstr "لم يُعثر على مشاريع GitQuire نشطة أو حديثة."
 msgid "No agent folders yet"
 msgstr "لا توجد مجلدات وكلاء بعد"
 
-msgid "No agent is set up yet — opening Configure agents."
-msgstr "لم يُعدّ أي وكيل بعد — يجري فتح «إعداد الوكلاء»."
-
 msgid "No agent is set up yet — pick one from the send menu."
 msgstr "لم يُعدّ أي وكيل بعد — اختر واحدًا من قائمة الإرسال."
 
@@ -7298,12 +7172,6 @@ msgstr "لا توجد دردشات بعد."
 
 msgid "No collab server for this worktree — run <0>{cliCommand} start</0> here, or reopen the project."
 msgstr "لا يوجد خادم تعاون لشجرة العمل هذه — شغّل <0>{cliCommand} start</0> هنا، أو أعد فتح المشروع."
-
-msgid "No comments in this project yet. Comment on a passage to start one."
-msgstr "لا توجد تعليقات في هذا المشروع بعد. علّق على مقطع للبدء."
-
-msgid "No comments yet. Select text in the document to add one."
-msgstr "لا توجد تعليقات بعد. حدد نصًا في المستند لإضافة واحد."
 
 msgid "No common ancestor — both branches added this file (add/add conflict)."
 msgstr "لا يوجد سلف مشترك — أضاف كلا الفرعين هذا الملف (تعارض إضافة/إضافة)."
@@ -7560,7 +7428,7 @@ msgstr "لا مساحة عمل"
 msgid "No worktrees found."
 msgstr "لم يتم العثور على أشجار عمل."
 
-msgid "Nobody has mentioned you yet. Mentions in discussions show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
 msgid "Nobody mentioned"
@@ -7727,12 +7595,6 @@ msgstr "مفعّل — تمرير المؤشر فوق رابط خارجي يرس
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "مفعّل — تُرسل استعلامات بحثك ونص الصفحات المطابقة إلى مزوّد التضمينات لديك (OpenAI افتراضيًا) لحساب التضمينات."
 
-msgid "On <0>{address}</0>"
-msgstr "على <0>{address}</0>"
-
-msgid "On selected text in <0>{address}</0>"
-msgstr "على النص المحدد في <0>{address}</0>"
-
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "في الفهرس الجذري، تتم كتابة okf_version كسلسلة مقتبسة مثل \"0.2\". بدون اقتباس، يقرأه YAML كرقم ويصبح 0.10 بصمت 0.1."
 
@@ -7841,9 +7703,6 @@ msgstr "افتح موجّه الانتقال إلى سطر في CodeMirror."
 
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "افتح لوحة تشخيصات الفحص في CodeMirror."
-
-msgid "Open comment"
-msgstr "فتح التعليق"
 
 msgid "Open containing folder"
 msgstr "فتح المجلد الحاوي"
@@ -7973,9 +7832,6 @@ msgstr "افتح الطرفية لتسجيل الدخول"
 
 msgid "Open that worktree instead"
 msgstr "افتح شجرة العمل تلك بدلًا من ذلك"
-
-msgid "Open the comment composer on the current selection and add it to the dispatch queue."
-msgstr "افتح مؤلف التعليقات على التحديد الحالي وأضفه إلى طابور الإرسال."
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "افتح قائمة الإدراج في موضع نصي فارغ أو نشط."
@@ -8702,9 +8558,6 @@ msgstr "أعد المصادقة مع خادم GitHub Enterprise"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "تحدث إعادة التضمين أثناء تشغيل عمليات البحث، لذا تبدأ التغطية من الصفر وتمتلئ من جديد."
 
-msgid "Re-place on selected text"
-msgstr "إعادة الوضع على النص المحدد"
-
 msgid "Re-run the project audit"
 msgstr "إعادة تشغيل مراجعة المشروع"
 
@@ -9250,9 +9103,6 @@ msgstr "احسم التعارض في {files} قبل الحذف."
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "احسم التعارض في {files} و{overflow} ملفات أخرى قبل الحذف."
 
-msgid "Resolved"
-msgstr "محلول"
-
 msgid "Resolved by {resolvedBy}"
 msgstr ""
 
@@ -9453,9 +9303,6 @@ msgstr ""
 
 msgid "Save queued message"
 msgstr "حفظ الرسالة المنتظرة"
-
-msgid "Save this comment (Enter)"
-msgstr "حفظ هذا التعليق (Enter)"
 
 msgid "Save view as page"
 msgstr ""
@@ -9709,7 +9556,7 @@ msgstr "تحديد التكرار التالي"
 msgid "Select spelling languages"
 msgstr "اختيار لغات التدقيق الإملائي"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
 msgstr ""
 
 msgid "Select the full source document."
@@ -9766,14 +9613,8 @@ msgstr "إرسال ومتابعة"
 msgid "Send a new code"
 msgstr ""
 
-msgid "Send checked comments to chat"
-msgstr "إرسال التعليقات المحددة إلى المحادثة"
-
 msgid "Send code"
 msgstr ""
-
-msgid "Send comments to"
-msgstr "إرسال التعليقات إلى"
 
 msgid "Send feedback"
 msgstr "إرسال ملاحظات"
@@ -9790,17 +9631,8 @@ msgstr "الإرسال الآن"
 msgid "Send report"
 msgstr "إرسال التقرير"
 
-msgid "Send this comment"
-msgstr "إرسال هذا التعليق"
-
 msgid "Send to a new chat"
 msgstr "إرسال إلى محادثة جديدة"
-
-msgid "Send to chat"
-msgstr "الإرسال إلى المحادثة"
-
-msgid "Send to chat ({0})"
-msgstr "الإرسال إلى المحادثة ({0})"
 
 msgid "Send when the agent is free"
 msgstr "الإرسال عندما يكون الوكيل متفرغًا"
@@ -9825,9 +9657,6 @@ msgstr "يُرسل بشكل خاص إلى فريق GitQuire، مع ملاحظت�
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "يُرسل إلى <0>{endpointHost}</0> لتضمين محتواك. يُخزَّن خارج المشروع."
-
-msgid "Sent, but the comments could not be marked done — they're still waiting to send."
-msgstr "أُرسلت، لكن تعذّر وضع علامة «تم» على التعليقات — لا تزال في انتظار الإرسال."
 
 msgid "Separator"
 msgstr "فاصل"
@@ -10101,14 +9930,8 @@ msgstr "إظهار المطالبات مجددًا لـ {displayName} في هذ�
 msgid "Show replace"
 msgstr "إظهار الاستبدال"
 
-msgid "Show resolved"
-msgstr "إظهار المحلولة"
-
 msgid "Show resolved ({resolvedCount})"
 msgstr ""
-
-msgid "Show resolved comments ({0})"
-msgstr "إظهار التعليقات المحلولة ({0})"
 
 msgid "Show selection preview"
 msgstr "إظهار معاينة التحديد"
@@ -10124,9 +9947,6 @@ msgstr "إظهار المصدر"
 
 msgid "Show Terminal"
 msgstr "إظهار Terminal"
-
-msgid "Show these comments in the Comments panel"
-msgstr "عرض هذه التعليقات في لوحة التعليقات"
 
 msgid "Show thumbnails"
 msgstr "إظهار الصور المصغّرة"
@@ -10445,14 +10265,8 @@ msgstr "ابدأ تقرير علة مع لقطة شاشة كما تبدو في �
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "ابدأ محادثة بزر ＋، أو شغّل وكيلاً من صفحة."
 
-msgid "Start a discussion with your team on this selection"
+msgid "Start a comment thread on the selected text."
 msgstr ""
-
-msgid "Start a new chat"
-msgstr "بدء محادثة جديدة"
-
-msgid "Start a new chat ({0})"
-msgstr "بدء محادثة جديدة ({0})"
 
 msgid "Start a new GitQuire project."
 msgstr "ابدأ مشروع GitQuire جديدًا."
@@ -10902,9 +10716,6 @@ msgstr "هذا التعارض لم يعد متاحًا."
 msgid "That did not go through. Check the server logs and try again."
 msgstr "لم تكتمل العملية. راجع سجلات الخادم ثم أعد المحاولة."
 
-msgid "That document didn't open in time. Try again once it has synced."
-msgstr "لم يُفتح ذلك المستند في الوقت المناسب. حاول مرة أخرى بعد اكتمال المزامنة."
-
 msgid "That doesn’t parse as YAML or JSON — check line {0}."
 msgstr "لا يمكن تحليل هذا بتنسيق YAML أو JSON — تحقق من السطر {0}."
 
@@ -11115,9 +10926,6 @@ msgstr "معرّف النموذج الذي تخدمه نقطة نهايتك. ي�
 
 msgid "the open agent"
 msgstr "الوكيل المفتوح"
-
-msgid "The original text was deleted."
-msgstr "تم حذف النص الأصلي."
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11411,9 +11219,6 @@ msgstr "يتعذر قراءة مسار نسخة العمل هذه."
 
 msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
 msgstr "يحتوي هذا الأمر على أحرف مخفية قد تجعله يبدو مختلفًا عمّا يُنفَّذ فعلًا. تظهر هنا بصيغة ⟨U+…⟩."
-
-msgid "This comment is on the whole property"
-msgstr "هذا التعليق على الخاصية بأكملها"
 
 msgid "This component changed. Try again."
 msgstr "لقد تغيّر هذا المكوّن. حاول مرة أخرى."
@@ -12064,12 +11869,6 @@ msgstr "متغير غير معروف {unknownList}. المتغيرات المت�
 msgid "unlink"
 msgstr "فك الارتباط"
 
-msgid "Unmark every comment"
-msgstr "إلغاء تحديد كل التعليقات"
-
-msgid "Unmark every comment in {0}"
-msgstr "إلغاء تحديد كل التعليقات في {0}"
-
 msgid "Unmerged"
 msgstr "غير مدموج"
 
@@ -12342,9 +12141,6 @@ msgstr "عرض {publisher} على skills.sh"
 msgid "View as text"
 msgstr "العرض كنص"
 
-msgid "View comments"
-msgstr "عرض التعليقات"
-
 msgid "View diff for edit {burstNumber} of {docName}"
 msgstr "عرض فروق التعديل {burstNumber} في {docName}"
 
@@ -12505,9 +12301,6 @@ msgstr "عند التفعيل، يفتح الوكيل المعاينة أو يح
 msgid "When the agent runs its scheduled work."
 msgstr "متى ينفّذ الوكيل عمله المجدول."
 
-msgid "When the Comments tab is open"
-msgstr "عندما يكون تبويب التعليقات مفتوحًا"
-
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "عند تمرير المؤشر فوق رابط خارجي، يُرسل رابطه إلى الموقع الوجهة لجلب بيانات معاينة الصفحة — طلب واحد لكل رابط معاين."
 
@@ -12573,9 +12366,6 @@ msgstr "التفاف النص"
 
 msgid "Work directly, no plan step"
 msgstr "العمل مباشرة، دون خطوة تخطيط"
-
-msgid "Work through these comments"
-msgstr "اعمل على هذه التعليقات"
 
 msgid "Working"
 msgstr "يعمل"
@@ -12707,9 +12497,6 @@ msgstr "لا يزال وكلاؤك يحمّلون هذه المهارة، لكن
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "لا يزال تغييرك قيد الحفظ — أعد تشغيل الاختبار بعد قليل."
-
-msgid "Your comments are waiting behind the running turn — they stay queued until the agent picks the message up."
-msgstr "تعليقاتك في الانتظار خلف الدور الجاري — تبقى في الطابور إلى أن يلتقط الوكيل الرسالة."
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "تحتوي نسختك من الفرع <0>{shareBranch}</0> على تغييرات غير موجودة على GitHub. سيظهر {targetNoun} بمجرد مزامنة الفرع."

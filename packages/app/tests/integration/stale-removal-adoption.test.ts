@@ -2,11 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, expect, test, vi } from 'vitest';
 import { runTeardownPhases } from '../stress/_helpers/teardown-fs.ts';
-import {
-  ORIGINAL,
-  RECREATED,
-  startDeletionScenario,
-} from './stale-delete-recreation.test-helper.ts';
+import { ORIGINAL, startDeletionScenario } from './stale-delete-recreation.test-helper.ts';
 
 const nativeWriteObservation = vi.hoisted(
   (): {
@@ -61,51 +57,6 @@ const registerCleanup = (cleanup: () => Promise<void>) => cleanups.push(cleanup)
 afterEach(async () => {
   nativeWriteObservation.current = undefined;
   await runTeardownPhases(...cleanups.splice(0).reverse());
-});
-
-test('external deletion followed by creation keeps only the recreated page comments', async () => {
-  const scenario = await startDeletionScenario('classified', registerCleanup);
-  const original = await scenario.open();
-  expect(original.ytext.toString()).toBe(ORIGINAL);
-  const oldThread = await scenario.comment('Original page');
-  expect((await scenario.snapshot(original)).threads).toEqual([oldThread.threadId]);
-  scenario.deleteExternally();
-  await scenario.waitUntilHeld();
-  const fresh = await scenario.create();
-  const newThread = await scenario.comment('Recreated page');
-  expect((await scenario.snapshot(fresh)).threads).toContain(newThread.threadId);
-  await scenario.finishDeletion();
-  expect(await scenario.snapshot(fresh)).toMatchObject({
-    disk: RECREATED,
-    residentPresent: true,
-    clientClosed: false,
-    removedCount: 0,
-    threads: [newThread.threadId],
-  });
-});
-
-test('a successful write and index registration retain the current page comments', async () => {
-  const scenario = await startDeletionScenario('none', registerCleanup);
-  const client = await scenario.open();
-  const thread = await scenario.comment('Original page');
-  expect((await scenario.snapshot(client)).threads).toEqual([thread.threadId]);
-  const response = await fetch(`${scenario.server.baseUrl}/api/agent-write-md`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      docName: scenario.docName,
-      markdown: RECREATED,
-      position: 'replace',
-      agentId: 'comment-control',
-    }),
-  });
-  expect(response.status).toBe(200);
-  await expect.poll(() => client.ytext.toString()).toBe(RECREATED);
-  expect(await scenario.snapshot(client)).toMatchObject({
-    disk: RECREATED,
-    residentPresent: true,
-    threads: [thread.threadId],
-  });
 });
 
 test('an older write completion cannot adopt the unmodified resident of a recreated page', async () => {

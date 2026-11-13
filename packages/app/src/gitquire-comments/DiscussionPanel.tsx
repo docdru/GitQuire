@@ -409,7 +409,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
         data-testid="discussion-toggle"
       >
         <MessagesSquare aria-hidden="true" />
-        {t`Discussions`}
+        {t`Comments`}
         <span className="rounded-full bg-warning/20 px-1.5 text-xs tabular-nums">{openCount}</span>
       </Button>
     );
@@ -422,10 +422,10 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   const resolvedCount = threads.length - openCount;
 
   return (
-    <aside className={PANEL_CLASS} aria-label={t`Discussions`} data-testid="discussion-panel">
+    <aside className={PANEL_CLASS} aria-label={t`Comments`} data-testid="discussion-panel">
       <header className="flex items-center gap-2 border-b px-4 py-2">
         <MessagesSquare aria-hidden="true" className="size-4" />
-        <h2 className="font-medium text-sm">{t`Discussions`}</h2>
+        <h2 className="font-medium text-sm">{t`Comments`}</h2>
         <span className="text-muted-foreground text-xs">{openCount}</span>
         <Button
           type="button"
@@ -433,7 +433,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
           size="icon-sm"
           className="ms-auto"
           onClick={closeDiscussions}
-          aria-label={t`Close discussions`}
+          aria-label={t`Close comments`}
         >
           <X aria-hidden="true" />
         </Button>
@@ -468,7 +468,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
         )}
         {visible.length === 0 && ui.draft === null && (
           <p className="text-muted-foreground text-sm">
-            {t`Select text and choose Discuss to start a thread. Comments are saved in the page.`}
+            {t`Select text and choose Comment to start a thread. Comments are saved in the page.`}
           </p>
         )}
         <ul className="flex flex-col gap-3">

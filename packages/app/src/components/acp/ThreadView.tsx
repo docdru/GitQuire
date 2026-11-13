@@ -59,24 +59,12 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import {
-  type CommentDocTally,
-  composeCommentBatchInstruction,
-  QueuedCommentsChip,
-  toCommentBatchItem,
-  useSelectedCommentCount,
-  useSelectedCommentDocs,
-} from '@/comments/comment-chips';
-import { subscribeSendInThread } from '@/comments/open-chat-send';
-import { dispatchComments, subscribeCommentPosted } from '@/comments/store';
-import {
   ComposerAddMenu,
   ComposerCommandsMenuItem,
-  ComposerCommentsMenuItem,
   ComposerFilesMenuItem,
   ComposerMentionMenuItem,
   ComposerTooltipProvider,
 } from '@/components/ComposerAddMenu';
-import { ComposerContextChips } from '@/components/ComposerContextChips';
 import { CopyButton } from '@/components/CopyButton';
 import { isExternalFileDrag } from '@/components/file-tree-adapter';
 import { focusComposerInputOnCardPointer } from '@/components/focus-composer-on-card-pointer';
@@ -813,12 +801,6 @@ export function ThreadView({
 
   const [failedPrompt, setFailedPrompt] = useState<string | null>(null);
 
-  const selectedCommentCount = useSelectedCommentCount();
-  const selectedCommentDocs = useSelectedCommentDocs();
-  const [commentsAttached, setCommentsAttached] = useState(true);
-  const hasQueuedComments = selectedCommentCount > 0 && commentsAttached;
-  useEffect(() => subscribeCommentPosted(() => setCommentsAttached(true)), []);
-
   const resumeThreadNow = (
     text?: string,
     failureText: string | null = null,
@@ -884,58 +866,11 @@ export function ThreadView({
     const text = composerText();
     const attachments = composerAttachments();
     if (!(canPrompt || canQueue)) return;
-    if (hasQueuedComments) {
-      submitQueuedComments(text).catch((err) => {
-        console.warn('[acp] queued-comment send rejected unexpectedly', err);
-      });
-      return;
-    }
     if (text === '' && attachments.length === 0) return;
     void sendText(text, text, attachments);
     composerRef.current?.clear();
     clearPendingAttachments();
   };
-
-  const submitQueuedComments = async (
-    instruction: string,
-    threadIds?: readonly string[],
-  ): Promise<void> => {
-    const queuedBehindTurn = canQueue;
-    const shipped = await dispatchComments({
-      threadIds,
-      resolve: !queuedBehindTurn,
-      compose: (items) =>
-        sendText(
-          composeCommentBatchInstruction(
-            items.map((item) => toCommentBatchItem(item.payload)),
-            instruction,
-          ),
-          null,
-        ),
-    });
-    if (shipped.length === 0) return;
-    if (queuedBehindTurn) {
-      toast.info(
-        t`Your comments are waiting behind the running turn — they stay queued until the agent picks the message up.`,
-      );
-    }
-    composerRef.current?.clear();
-    setCommentsAttached(true);
-  };
-
-  const sendCommentsFromPanel = useEffectEvent((threadIds?: readonly string[]) => {
-    if (!(canPrompt || canQueue)) return;
-    submitQueuedComments(composerText(), threadIds).catch((err) => {
-      console.warn('[acp] panel comment send rejected unexpectedly', err);
-    });
-  });
-
-  useEffect(() => {
-    return subscribeSendInThread((sendTo, threadIds) => {
-      if (sendTo !== info.threadId) return;
-      sendCommentsFromPanel(threadIds);
-    });
-  }, [info.threadId]);
 
   const retryThread = (): void => {
     const stranded =
@@ -1561,11 +1496,6 @@ export function ThreadView({
                 archived={archived}
                 resumePending={resumePending}
                 usage={model?.tokenUsage ?? null}
-                selectedCommentCount={selectedCommentCount}
-                selectedCommentDocs={selectedCommentDocs}
-                hasQueuedComments={hasQueuedComments}
-                onAttachComments={() => setCommentsAttached(true)}
-                onDismissComments={() => setCommentsAttached(false)}
                 pendingAttachments={pendingAttachments}
                 pendingUploads={pendingUploads}
                 imagesAccepted={imagesAccepted}
@@ -4407,11 +4337,6 @@ function ThreadComposer({
   archived,
   resumePending,
   usage,
-  selectedCommentCount,
-  selectedCommentDocs,
-  hasQueuedComments,
-  onAttachComments,
-  onDismissComments,
   pendingAttachments,
   pendingUploads,
   imagesAccepted,
@@ -4436,11 +4361,6 @@ function ThreadComposer({
   archived: boolean;
   resumePending: boolean;
   usage: { used?: number; size?: number } | null;
-  selectedCommentCount: number;
-  selectedCommentDocs: readonly CommentDocTally[];
-  hasQueuedComments: boolean;
-  onAttachComments: () => void;
-  onDismissComments: () => void;
   pendingAttachments: readonly AttachmentPart[];
   pendingUploads: readonly {
     readonly id: string;
@@ -4469,7 +4389,7 @@ function ThreadComposer({
 
   const queue = info.queue ?? [];
 
-  const hasSendableContent = !isEmpty || hasQueuedComments || pendingAttachments.length > 0;
+  const hasSendableContent = !isEmpty || pendingAttachments.length > 0;
 
   const agentHasCommands = (info.availableCommands ?? []).length > 0;
   const composerHintId = useId();
@@ -4531,15 +4451,6 @@ function ThreadComposer({
           }}
           className="relative cursor-text rounded-lg border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30"
         >
-          {hasQueuedComments ? (
-            <ComposerContextChips className="px-3 pt-2 pb-1">
-              <QueuedCommentsChip
-                count={selectedCommentCount}
-                docs={selectedCommentDocs}
-                onDismiss={onDismissComments}
-              />
-            </ComposerContextChips>
-          ) : null}
           {pendingAttachments.length > 0 || pendingUploads.length > 0 ? (
             <PendingImageStrip
               testIdPrefix="agent-thread"
@@ -4600,12 +4511,6 @@ function ThreadComposer({
                     : 'embedded'
                 }
               />
-              {selectedCommentCount > 0 && !hasQueuedComments ? (
-                <ComposerCommentsMenuItem
-                  count={selectedCommentCount}
-                  onSelect={onAttachComments}
-                />
-              ) : null}
               <ComposerMentionMenuItem onSelect={() => composerRef.current?.openMentionPicker()} />
               {agentHasCommands && isEmpty ? (
                 <ComposerCommandsMenuItem

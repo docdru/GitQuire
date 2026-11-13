@@ -4,7 +4,6 @@
  * NodeViewContent is always rendered rather than hidden (precedent #30).
  */
 
-import { commentLeafText } from '@inkeep/open-knowledge-core/comments/leaf-text';
 import {
   incrementJsxAutoConvertFailed,
   incrementJsxAutoConvertSucceeded,
@@ -27,15 +26,12 @@ import {
   Maximize2,
   Pencil,
   Settings2,
-  Sparkles,
   Trash2,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { emitStartComment } from '@/comments/store';
 import { Button } from '@/components/ui/button';
-import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { hashFromDocName, hashFromMirrorSource } from '@/lib/doc-hash';
 import {
   Popover,
@@ -189,7 +185,6 @@ export function JsxComponentView({ node, editor, extension, getPos, selected }: 
   const wasSelected = useRef(false);
 
   const pos = typeof getPos === 'function' ? getPos() : undefined;
-  const isEmbedded = useIsEmbedded();
 
   let isChildOfComponent = false;
   let siblingIndex = 0;
@@ -811,48 +806,6 @@ export function JsxComponentView({ node, editor, extension, getPos, selected }: 
               onClick={() => setBoardLightboxOpen(true)}
             >
               <Maximize2 size={12} aria-hidden="true" />
-            </button>
-          ) : null}
-
-          {!isEmbedded && commentLeafText(node).length > 0 && typeof pos === 'number' ? (
-            <button
-              type="button"
-              className="jsx-chrome-btn"
-              aria-label={t`Comment or ask AI about this ${descriptor.displayName ?? descriptor.name}`}
-              data-testid="jsx-component-ask-ai-btn"
-              onClick={() => {
-                try {
-                  const target = resolveActionTarget('comment');
-                  if (!target) return;
-                  editor.commands.setNodeSelection(target.pos);
-                } catch (err) {
-                  console.warn(
-                    JSON.stringify({
-                      event: 'jsx-component-chrome-ask-ai-failed',
-                      component: descriptor.name,
-                      rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
-                      reason: err instanceof Error ? err.message.slice(0, 500) : String(err),
-                    }),
-                  );
-                  return;
-                }
-                requestAnimationFrame(() => {
-                  try {
-                    emitStartComment();
-                  } catch (err) {
-                    console.warn(
-                      JSON.stringify({
-                        event: 'jsx-component-chrome-ask-ai-emit-failed',
-                        component: descriptor.name,
-                        rawComponentName: String(node.attrs.componentName ?? '').slice(0, 200),
-                        reason: err instanceof Error ? err.message.slice(0, 500) : String(err),
-                      }),
-                    );
-                  }
-                });
-              }}
-            >
-              <Sparkles size={12} aria-hidden="true" />
             </button>
           ) : null}
 

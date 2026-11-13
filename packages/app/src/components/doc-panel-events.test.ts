@@ -66,10 +66,10 @@ describe('doc-panel-events', () => {
 
   test('the latched scope is addressed to one tab and no other', () => {
     const target = new EventTarget();
-    requestDocPanelTab('comments', { scope: 'project' }, target);
+    requestDocPanelTab('timeline', { scope: 'project' }, target);
 
     expect(consumePendingDocPanelRequest('problems')).toBeNull();
-    expect(consumePendingDocPanelRequest('comments')).toEqual({ scope: 'project' });
+    expect(consumePendingDocPanelRequest('timeline')).toEqual({ scope: 'project' });
     consumePendingDocPanelTabRequest();
   });
 

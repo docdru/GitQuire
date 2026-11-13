@@ -1718,7 +1718,7 @@ describe('ProblemsPanel — scoped tab requests', () => {
     render(<ProblemsPanel docName="notes" diagnostics={[]} />);
     await showProjectScope();
 
-    act(() => requestDocPanelTab('comments', { scope: 'doc' }));
+    act(() => requestDocPanelTab('timeline', { scope: 'doc' }));
     expect(screen.getByTestId('problems-project-scope')).toBeTruthy();
 
     act(() => requestDocPanelTab('problems'));

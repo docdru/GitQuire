@@ -551,7 +551,7 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     id: 'add-comment',
     category: 'wysiwyg',
     title: msg`Comment on selection`,
-    description: msg`Open the comment composer on the current selection and add it to the dispatch queue.`,
+    description: msg`Start a comment thread on the selected text.`,
     scope: msg`Editor selection`,
     bindings: [
       {
@@ -572,20 +572,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
         mac: '⌥⌘ E',
         windowsLinux: 'Ctrl Alt E',
         match: { code: 'KeyE', anyMod: true, altKey: true, allowExtraModifiers: true },
-      },
-    ],
-  },
-  {
-    id: 'send-comment-queue',
-    category: 'general',
-    title: msg`Send checked comments to chat`,
-    description: msg`Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed.`,
-    scope: msg`When the Comments tab is open`,
-    bindings: [
-      {
-        mac: '⇧⌘ Enter',
-        windowsLinux: 'Ctrl Shift Enter',
-        match: { key: 'Enter', mod: true, shiftKey: true },
       },
     ],
   },

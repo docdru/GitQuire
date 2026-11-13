@@ -114,39 +114,6 @@ vi.doMock('sonner', () => ({
   },
 }));
 
-type ComposeDispatch = (
-  items: readonly { threadId: string; payload: { docName: string } }[],
-) => Promise<boolean>;
-const commentBatches: unknown[] = [];
-let queuedCommentCount = 0;
-vi.doMock('@/comments/store', () => ({
-  dispatchComments: async ({ compose }: { compose: ComposeDispatch }) => {
-    if (queuedCommentCount === 0) return [];
-    const items = [{ threadId: 'c1', payload: { docName: 'notes' } }];
-    const delivered = await compose(items);
-    if (delivered) commentBatches.push(items);
-    return delivered ? ['c1'] : [];
-  },
-  subscribeCommentPosted: () => () => {},
-}));
-
-vi.doMock('@/comments/comment-chips', async () => {
-  const actual = await vi.importActual<typeof import('@/comments/comment-chips')>(
-    '@/comments/comment-chips',
-  );
-  return {
-    ...actual,
-    useSelectedCommentCount: () => queuedCommentCount,
-    useSelectedCommentDocs: () => (queuedCommentCount > 0 ? ['notes'] : []),
-    toCommentBatchItem: () => ({
-      docName: 'notes',
-      body: 'look at this',
-      quote: 'the tofu',
-      anchorLost: false,
-    }),
-  };
-});
-
 const ALL_INSTALLED: Record<string, { installed: boolean | null }> = {
   'claude-cowork': { installed: false },
   'claude-code': { installed: true },
@@ -200,8 +167,6 @@ beforeEach(() => {
   installStates = { ...ALL_INSTALLED };
   dispatchCalls.length = 0;
   toastMessages.length = 0;
-  commentBatches.length = 0;
-  queuedCommentCount = 0;
   launches = [];
   unsubscribeLaunches = subscribeToAgentThreadLaunchRequests((detail) => launches.push(detail));
   try {
@@ -551,33 +516,6 @@ describe('the attachment status live region', () => {
       expect(region.textContent).toContain('ready to send');
     });
     expect(region.textContent).not.toContain('Uploading');
-  });
-});
-
-describe('image drop while comments are queued', () => {
-  test('the comment batch ships with the image instead of blocking the send', async () => {
-    queuedCommentCount = 1;
-    registerAgent({ source: 'registry', id: 'claude-acp', name: 'Claude Agent' });
-    seedInstructionDraft();
-    await renderComposer();
-
-    dropImageOn(getInput());
-    await waitFor(() => {
-      expect(attachmentChipEvidence(DROPPED_FILE_NAME)).not.toBeNull();
-    });
-
-    fireEvent.click(screen.getByTestId('ask-ai-send'));
-
-    await waitFor(() => {
-      expect(launches).toHaveLength(1);
-    });
-    expect(collectImageParts(launches[0])).toContainEqual(
-      expect.objectContaining({ kind: 'image', mimeType: 'image/png', data: DROP_TEST_PNG_BASE64 }),
-    );
-    expect(commentBatches).toHaveLength(1);
-    await waitFor(() => {
-      expect(attachmentChipEvidence(DROPPED_FILE_NAME)).toBeNull();
-    });
   });
 });
 

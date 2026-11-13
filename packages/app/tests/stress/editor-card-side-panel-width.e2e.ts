@@ -861,40 +861,6 @@ test('resized Files and information widths survive reload and shared cover bound
   expect(Math.abs(afterSettling[1] - settledWidths[1])).toBeLessThanOrEqual(1);
 });
 
-test('editor covers suppress body-portaled comment and selection controls', async ({
-  page,
-  api,
-}) => {
-  const docName = `editor-covered-portals-${crypto.randomUUID()}`;
-  await api.seedDocs([{ name: docName, markdown: '# Covered portals\n\nA quoted body passage.' }]);
-  const created = await page.request.post('/api/comments', {
-    data: { docName, quote: 'A quoted body passage.', body: 'A visible comment marker.' },
-  });
-  expect(created.ok()).toBe(true);
-  await page.setViewportSize({ width: 390, height: 800 });
-  await page.goto(`/#/${docName}`);
-  await waitForActiveProviderSynced(page);
-  const marker = page.locator('button[data-comment-thread]');
-  const bubble = page.getByTestId('bubble-menu-bar');
-  const editor = page.locator('.ProseMirror:not(.composer-prosemirror)').first();
-  await expect(marker).toBeVisible();
-  await editor.click();
-  await page.keyboard.press('ControlOrMeta+A');
-  await expect(bubble).toBeVisible();
-  await page.locator('[data-sidebar="trigger"]').click();
-  await expect(page.locator('[data-files-cover]')).toBeVisible();
-  await expect(marker).toHaveCount(0);
-  await expect(bubble).toBeHidden();
-  await page.locator('[data-files-back]').click();
-  await expect(marker).toBeVisible();
-  await page.locator('[data-doc-panel-toggle]').click();
-  await expect(page.locator('[data-doc-panel-cover]')).toBeVisible();
-  await expect(marker).toHaveCount(0);
-  await expect(bubble).toBeHidden();
-  await page.locator('[data-doc-panel-back]').click();
-  await expect(marker).toBeVisible();
-});
-
 test('information yields before Files when only the editor card becomes narrow', async ({
   page,
   api,
@@ -1917,7 +1883,7 @@ test('information cover keeps every document tab usable at narrow browser widths
   await toggle.click();
   const cover = page.locator('[data-doc-panel-cover]');
   await expect(cover).toBeVisible();
-  for (const label of ['Outline', 'Links', 'Graph', 'Timeline', 'Problems', 'Comments']) {
+  for (const label of ['Outline', 'Links', 'Graph', 'Timeline', 'Problems']) {
     const tab = cover.getByRole('tab', { name: label });
     await tab.click();
     await expect(tab).toHaveAttribute('data-state', 'on');
@@ -2166,7 +2132,7 @@ test('each selected information tab survives automatic suppression and temporary
   const toggle = page.locator('[data-doc-panel-toggle]');
   await expect(panel).toBeVisible();
 
-  for (const label of ['Outline', 'Links', 'Graph', 'Timeline', 'Problems', 'Comments']) {
+  for (const label of ['Outline', 'Links', 'Graph', 'Timeline', 'Problems']) {
     const tab = panel.getByRole('tab', { name: label });
     await tab.click();
     await expect(tab).toHaveAttribute('data-state', 'on');
@@ -2720,191 +2686,6 @@ test('Problems location reveals the editor from the information cover', async ({
   ).toBeInViewport();
 });
 
-test('Comments quote reveals its passage while comment editing stays in the cover', async ({
-  page,
-  api,
-}) => {
-  const docName = `editor-card-comment-quote-${test.info().workerIndex}`;
-  const passage = 'the hidden passage near the end';
-  await api.seedDocs([
-    {
-      name: docName,
-      markdown: `# Comment destination\n\n${'Context paragraph. '.repeat(180)}\n\nFind ${passage} here.`,
-    },
-  ]);
-  const created = await page.request.post('/api/comments', {
-    data: { docName, quote: passage, body: 'Keep this comment visible while editing.' },
-  });
-  expect(created.ok()).toBe(true);
-  await page.setViewportSize({ width: 430, height: 700 });
-  await page.goto(`/#/${docName}`);
-  await waitForActiveProviderSynced(page);
-  await page.locator('[data-doc-panel-toggle]').click();
-  const cover = page.locator('[data-doc-panel-cover]');
-  await cover.getByRole('tab', { name: 'Comments' }).click();
-  await expect(cover.getByTestId('thread-comment-body')).toHaveText(
-    'Keep this comment visible while editing.',
-  );
-  await cover.getByTestId('thread-comment-body').hover();
-  const editComment = cover.getByRole('button', { name: 'Edit this comment' });
-  await editComment.click({ timeout: 5000 });
-  const editField = cover.getByRole('textbox', { name: 'Edit this comment' });
-  await expect(editField).toBeVisible();
-  await expect(editField).toBeFocused();
-  await editField.fill('An unsaved change stays with this comment.');
-  await expect(editField).toHaveText('An unsaved change stays with this comment.');
-  await expect(cover).toBeVisible();
-  await expect(page).toHaveURL(new RegExp(`#/${docName}$`));
-  await cover.getByRole('button', { name: 'Cancel' }).click();
-  await expect(cover.getByTestId('thread-comment-body')).toHaveText(
-    'Keep this comment visible while editing.',
-  );
-  await cover.getByRole('button', { name: 'Edit this comment' }).focus();
-  await page.keyboard.press('Enter');
-  await expect(cover.getByRole('textbox', { name: 'Edit this comment' })).toBeVisible();
-  await expect(cover).toBeVisible();
-  await cover.getByRole('textbox', { name: 'Edit this comment' }).fill('Saved from the cover.');
-  await cover.getByRole('button', { name: 'Save' }).click();
-  await expect(cover.getByTestId('thread-comment-body')).toHaveText('Saved from the cover.');
-  await expect(cover).toBeVisible();
-  await expect(page).toHaveURL(new RegExp(`#/${docName}$`));
-  await cover.getByRole('button', { name: `“${passage}”` }).click();
-  await expect(cover).not.toBeVisible();
-  await expect(page.locator('.ProseMirror:not(.composer-prosemirror)').first()).toBeFocused();
-  await expect(page.locator('.ProseMirror p', { hasText: passage })).toBeInViewport();
-  await page.locator('[data-doc-panel-toggle]').click();
-  await expect(cover.getByRole('tab', { name: 'Comments' })).toHaveAttribute('data-state', 'on');
-  await expect(cover.getByTestId('thread-comment-body')).toHaveText('Saved from the cover.');
-});
-
-test.describe('Comments cover on a touch pointer', () => {
-  test.use({ hasTouch: true, viewport: { width: 390, height: 700 } });
-
-  test('comment editing opens by touch and stays in the information cover', async ({
-    page,
-    api,
-  }) => {
-    const docName = `editor-card-comment-touch-${test.info().workerIndex}`;
-    await api.seedDocs([{ name: docName, markdown: '# Touch comment\n\nA passage to annotate.' }]);
-    const created = await page.request.post('/api/comments', {
-      data: { docName, quote: 'A passage to annotate.', body: 'Keep this draft in the cover.' },
-    });
-    expect(created.ok()).toBe(true);
-    await page.goto(`/#/${docName}`);
-    await waitForActiveProviderSynced(page);
-    await page.locator('[data-doc-panel-toggle]').tap();
-    const cover = page.locator('[data-doc-panel-cover]');
-    await cover.getByRole('tab', { name: 'Comments' }).tap();
-    await expect(cover.getByTestId('thread-comment-body')).toHaveText(
-      'Keep this draft in the cover.',
-    );
-    expect(await page.evaluate(() => window.matchMedia('(hover: none)').matches)).toBe(true);
-    const edit = cover.getByRole('button', { name: 'Edit this comment' });
-    const reachable = async () =>
-      edit.evaluate((button) => {
-        const rect = button.getBoundingClientRect();
-        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-        return hit !== null && button.contains(hit);
-      });
-    expect(await reachable()).toBe(true);
-    await edit.tap({ timeout: 5000 });
-    const field = cover.getByRole('textbox', { name: 'Edit this comment' });
-    await expect(field).toBeVisible();
-    await expect(field).toBeFocused();
-    await expect(cover).toBeVisible();
-    await cover.getByRole('button', { name: 'Cancel' }).tap();
-    await expect(cover.getByTestId('thread-comment-body')).toHaveText(
-      'Keep this draft in the cover.',
-    );
-    expect(await reachable()).toBe(true);
-    await edit.tap();
-    await field.fill('Saved by touch.');
-    await cover.getByRole('button', { name: 'Save' }).tap();
-    await expect(cover.getByTestId('thread-comment-body')).toHaveText('Saved by touch.');
-    await expect(cover).toBeVisible();
-    await expect(page).toHaveURL(new RegExp(`#/${docName}$`));
-  });
-});
-
-test('project Comments quote reveals its other document from the information cover', async ({
-  page,
-  api,
-}) => {
-  const source = `editor-card-comment-source-${test.info().workerIndex}`;
-  const target = `editor-card-comment-target-${test.info().workerIndex}`;
-  const passage = 'other document passage';
-  await api.seedDocs([
-    { name: source, markdown: '# Source\n\nOpen the project comments.' },
-    { name: target, markdown: `# Target\n\nFind the ${passage} here.` },
-  ]);
-  const created = await page.request.post('/api/comments', {
-    data: { docName: target, quote: passage, body: 'Navigate to this other document.' },
-  });
-  expect(created.ok()).toBe(true);
-  await page.setViewportSize({ width: 430, height: 700 });
-  await page.goto(`/#/${source}`);
-  await waitForActiveProviderSynced(page);
-  await page.locator('[data-doc-panel-toggle]').click();
-  const cover = page.locator('[data-doc-panel-cover]');
-  await cover.getByRole('tab', { name: 'Comments' }).click();
-  await cover.getByTestId('panel-scope-project').click();
-  await cover.getByRole('button', { name: `“${passage}”` }).click();
-  await expect(page).toHaveURL(new RegExp(`#/${target}$`));
-  await expect(cover).not.toBeVisible();
-  await expect(page.locator('.ProseMirror h1', { hasText: 'Target' })).toBeVisible();
-  await expect(page.locator('.ProseMirror:not(.composer-prosemirror)').first()).toBeFocused();
-});
-
-test('failed Comments passage keeps the information cover and error context', async ({
-  page,
-  context,
-  api,
-}) => {
-  const source = `editor-card-comment-failed-source-${test.info().workerIndex}`;
-  const target = `editor-card-comment-failed-target-${test.info().workerIndex}`;
-  await api.seedDocs([
-    { name: source, markdown: '# Source\n\nOpen the project comments.' },
-    { name: target, markdown: '# Target\n\na passage that is no longer here' },
-  ]);
-  const created = await page.request.post('/api/comments', {
-    data: {
-      docName: target,
-      quote: 'a passage that is no longer here',
-      body: 'Find the old quote.',
-    },
-  });
-  expect(created.ok()).toBe(true);
-  let disconnectDestination = false;
-  await context.routeWebSocket(/collab/, (socket) => {
-    if (disconnectDestination) {
-      socket.close();
-      return;
-    }
-    socket.connectToServer();
-  });
-  await page.setViewportSize({ width: 430, height: 700 });
-  await page.goto(`/#/${source}`);
-  await waitForActiveProviderSynced(page);
-  await page.locator('[data-doc-panel-toggle]').click();
-  const cover = page.locator('[data-doc-panel-cover]');
-  await cover.getByRole('tab', { name: 'Comments' }).click();
-  await cover.getByTestId('panel-scope-project').click();
-  disconnectDestination = true;
-  await cover.getByRole('button', { name: '“a passage that is no longer here”' }).click();
-  await expect(page).toHaveURL(new RegExp(`#/${target}$`));
-  await expect(cover).toBeVisible();
-  await expect(
-    page.locator('[data-sonner-toast]').filter({ hasText: "That document didn't open in time" }),
-  ).toBeVisible({ timeout: 15_000 });
-  await expect(cover.getByText('Find the old quote.')).toBeVisible();
-  expect(
-    await page.evaluate(() => {
-      const active = document.activeElement;
-      return active !== null && active !== document.body && active.closest('[inert]') === null;
-    }),
-  ).toBe(true);
-});
-
 test('Problems Fix keeps information work in the cover', async ({ page, api, workerServer }) => {
   const docName = `editor-card-problem-fix-${test.info().workerIndex}`;
   const configPath = join(workerServer.contentDir, '.ok', 'config.yml');
@@ -2970,62 +2751,6 @@ test('project Problems location reveals another document from the information co
         .evaluate((el) => el.scrollTop),
     )
     .toBeGreaterThan(50);
-});
-
-test('Comments property anchor reveals its value from the information cover', async ({
-  page,
-  api,
-}) => {
-  const docName = `editor-card-comment-property-${test.info().workerIndex}`;
-  const quote = 'Initial';
-  await api.seedDocs([
-    { name: docName, markdown: '---\ntitle: Initial\n---\n\n# Body\n\nProperty comment.' },
-  ]);
-  const created = await page.request.post('/api/comments', {
-    data: { docName, propertyKey: 'title', quote, body: 'Check the title property.' },
-  });
-  expect(created.ok()).toBe(true);
-  await page.setViewportSize({ width: 430, height: 700 });
-  await page.goto(`/#/${docName}`);
-  await waitForActiveProviderSynced(page);
-  await page.locator('[data-doc-panel-toggle]').click();
-  const cover = page.locator('[data-doc-panel-cover]');
-  await cover.getByRole('tab', { name: 'Comments' }).click();
-  const property = page.locator('[data-testid="property-row"][data-key="title"] textarea');
-  await expect(property).toHaveValue(quote);
-  await cover.getByRole('button', { name: `title: “${quote}”` }).click();
-  await expect(property).toHaveAttribute('data-comment-reveal', 'true');
-  await expect(cover).not.toBeVisible();
-  await expect(property).toBeFocused();
-  await expect(property).toHaveJSProperty('selectionStart', 0);
-  await expect(property).toHaveJSProperty('selectionEnd', quote.length);
-});
-
-test('project Comments property anchor reveals its other document', async ({ page, api }) => {
-  const source = `editor-card-property-source-${test.info().workerIndex}`;
-  const target = `editor-card-property-target-${test.info().workerIndex}`;
-  await api.seedDocs([
-    { name: source, markdown: '# Source\n\nOpen project comments.' },
-    { name: target, markdown: '---\ntitle: Initial\n---\n\n# Target\n\nProperty comment.' },
-  ]);
-  const created = await page.request.post('/api/comments', {
-    data: { docName: target, propertyKey: 'title', quote: 'Initial', body: 'Open this property.' },
-  });
-  expect(created.ok()).toBe(true);
-  await page.setViewportSize({ width: 430, height: 700 });
-  await page.goto(`/#/${source}`);
-  await waitForActiveProviderSynced(page);
-  await page.locator('[data-doc-panel-toggle]').click();
-  const cover = page.locator('[data-doc-panel-cover]');
-  await cover.getByRole('tab', { name: 'Comments' }).click();
-  await cover.getByTestId('panel-scope-project').click();
-  await cover.getByRole('button', { name: 'title: “Initial”' }).click();
-  await expect(page).toHaveURL(new RegExp(`#/${target}$`));
-  await waitForActiveProviderSynced(page);
-  const property = page.locator('[data-testid="property-row"][data-key="title"] textarea');
-  await expect(property).toHaveAttribute('data-comment-reveal', 'true');
-  await expect(cover).not.toBeVisible();
-  await expect(property).toBeFocused();
 });
 
 test('agent Activity opens the whole information panel as a cover', async ({ page, api }) => {

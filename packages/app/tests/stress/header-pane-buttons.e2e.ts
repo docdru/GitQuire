@@ -498,36 +498,6 @@ test.describe('the Agents button follows every chat show/hide path on the web', 
     await expectPane(page, 'agents', 'hidden');
   });
 
-  test('sending a comment to the open chat reveals chat', async ({ page, api }) => {
-    const name = await openWeb(page, api, 'comment-send');
-    const created = await page.request.post('/api/comments', {
-      data: { docName: name, quote: 'brown fox', body: 'Is the fox really brown?' },
-    });
-    expect(created.ok()).toBe(true);
-    await openThread(page, 'Comment destination thread');
-    await expectPane(page, 'agents', 'shown');
-    await clickPaneButton(page, 'agents', 'hidden');
-
-    await page.getByRole('tab', { name: 'Comments' }).click();
-    const comments = page.locator('#panel-comments');
-    await expect(comments.getByTestId('thread-comment-body')).toHaveText(
-      'Is the fox really brown?',
-      { timeout: BOOT_TIMEOUT_MS },
-    );
-    const queued = page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname === '/api/comment' &&
-        (response.request().postData() ?? '').includes('"queue"'),
-    );
-    await comments.getByRole('checkbox', { name: 'Send this comment' }).click();
-    expect((await queued).ok()).toBe(true);
-    await expect(comments.getByRole('checkbox', { name: "Don't send this comment" })).toBeVisible({
-      timeout: BOOT_TIMEOUT_MS,
-    });
-    await comments.getByRole('button', { name: 'Send to chat' }).click();
-    await expectPane(page, 'agents', 'shown');
-  });
-
   test('a web reload keeps the button matching chat', async ({ page, api }) => {
     await openWeb(page, api, 'reload');
     await clickPaneButton(page, 'agents', 'shown');

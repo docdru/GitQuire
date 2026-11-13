@@ -262,9 +262,6 @@ msgstr "{0} dari {1} proyek dipilih"
 msgid "{0} of {1} selected"
 msgstr "{0} dari {1} dipilih"
 
-msgid "{0} of {totalCount}"
-msgstr "{0} dari {totalCount}"
-
 msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
 msgstr "{0} terbuka lewat tautan dan tidak menerima lampiran — pilih agen dalam aplikasi."
 
@@ -461,12 +458,6 @@ msgstr "{count, plural, other {{files} bukan file teks, jadi tidak bisa dikirim 
 msgid "{count, plural, one {{files} isn't a text file, so it can't be sent with the message. Mention it with @ once it's in your project.} other {{files} aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.}}"
 msgstr "{count, plural, other {{files} bukan file teks, jadi tidak bisa dikirim bersama pesan. Sebut dengan @ setelah ada di proyek.}}"
 
-msgid "{count, plural, one {# comment} other {# comments}}"
-msgstr "{count, plural, other {# komentar}}"
-
-msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
-msgstr "{count, plural, other {# komentar}} di {0, plural, other {# berkas}}"
-
 msgid "{count, plural, one {# dated page} other {# dated pages}}"
 msgstr ""
 
@@ -590,9 +581,6 @@ msgstr "{errorCount, plural, other {# galat}}"
 #. Joins the two counts in a file-tree problem tooltip. Reaches a translator as two placeholders and a conjunction, so: errorText is already pluralized ("2 errors"), warningText likewise ("1 warning"), and the result is the subject of the sentence that follows it.
 msgid "{errorText} and {warningText}"
 msgstr "{errorText} dan {warningText}"
-
-msgid "{failed} of {0} comments could not be updated."
-msgstr "{failed} dari {0} komentar tidak dapat diperbarui."
 
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount} berkas gagal diunggah}}"
@@ -1213,9 +1201,6 @@ msgstr "Ukuran Sebenarnya"
 msgid "Add"
 msgstr "Tambah"
 
-msgid "Add a comment"
-msgstr "Tambahkan komentar"
-
 msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
@@ -1245,12 +1230,6 @@ msgstr "Tambahkan setidaknya satu huruf atau angka."
 
 msgid "Add block below"
 msgstr "Tambahkan blok di bawah"
-
-msgid "Add Comment"
-msgstr "Tambah Komentar"
-
-msgid "Add Comment (Enter)"
-msgstr "Tambah Komentar (Enter)"
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "Menambahkan kursor atau memilih kemunculan yang cocok lewat CodeMirror."
@@ -1737,12 +1716,6 @@ msgstr "Aset: {title}"
 
 msgid "Attach a file"
 msgstr "Lampirkan berkas"
-
-msgid "Attach comments"
-msgstr "Lampirkan komentar"
-
-msgid "Attach comments: {count}"
-msgstr "Lampirkan komentar: {count}"
 
 msgid "Attach files"
 msgstr "Lampirkan berkas"
@@ -2288,9 +2261,6 @@ msgstr "Pilih apa yang disiapkan GitQuire untuk {agentLabel}. {agentLabel} hanya
 msgid "Choose what GitQuire sets up."
 msgstr "Pilih apa yang disiapkan GitQuire."
 
-msgid "Choose where to send these comments"
-msgstr "Pilih ke mana komentar ini dikirim"
-
 msgid "Choose where to send this message"
 msgstr "Pilih ke mana pesan ini dikirim"
 
@@ -2448,14 +2418,11 @@ msgstr "Tutup semua"
 msgid "Close all unpinned"
 msgstr "Tutup semua yang tidak disematkan"
 
-msgid "Close comment"
-msgstr "Tutup komentar"
+msgid "Close comments"
+msgstr ""
 
 msgid "Close diff"
 msgstr "Tutup perbedaan"
-
-msgid "Close discussions"
-msgstr ""
 
 msgid "Close find"
 msgstr "Tutup pencarian"
@@ -2536,9 +2503,6 @@ msgstr "Ciutkan semua"
 msgid "Collapse all file groups"
 msgstr "Ciutkan semua grup berkas"
 
-msgid "Collapse all files"
-msgstr "Ciutkan semua berkas"
-
 msgid "Collapse Ask AI"
 msgstr "Ciutkan Tanya AI"
 
@@ -2581,20 +2545,11 @@ msgstr "Perintah berjalan dengan akses penuh akun pengguna Anda di mesin ini. Ma
 msgid "Comment"
 msgstr "Komentari"
 
-msgid "Comment on {address}"
-msgstr "Komentari {address}"
-
 msgid "Comment on selection"
 msgstr "Komentari pilihan"
 
 msgid "Comment on this selection"
 msgstr "Komentari pilihan ini"
-
-msgid "Comment or ask AI about this {0}"
-msgstr "Beri komentar atau tanya AI tentang {0} ini"
-
-msgid "Comment or ask AI about this code block"
-msgstr "Beri komentar atau tanya AI tentang blok kode ini"
 
 msgid "Comments"
 msgstr "Komentar"
@@ -3033,12 +2988,6 @@ msgstr "Folder tidak dapat divalidasi. Silakan coba lagi."
 msgid "Could not write project files. Try a different location."
 msgstr "Berkas proyek tidak dapat ditulis. Coba lokasi lain."
 
-msgid "Couldn't add that comment: {0}"
-msgstr "Komentar itu tidak bisa ditambahkan: {0}"
-
-msgid "Couldn't add that comment."
-msgstr "Komentar itu tidak bisa ditambahkan."
-
 msgid "Couldn't apply the change: {0}"
 msgstr "Perubahannya tidak bisa diterapkan: {0}"
 
@@ -3114,9 +3063,6 @@ msgstr "Keterampilan tidak bisa dihapus: {error}"
 msgid "Couldn't delete template: {error}"
 msgstr "Templat tidak bisa dihapus: {error}"
 
-msgid "Couldn't delete that comment."
-msgstr "Komentar itu tidak bisa dihapus."
-
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "Tema ini tidak dapat dihapus. Muat ulang lalu coba lagi."
 
@@ -3125,9 +3071,6 @@ msgstr "Tidak bisa memutus koneksi — silakan coba lagi."
 
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "\"{0}\" tidak bisa digandakan: {1}"
-
-msgid "Couldn't find that passage — the text it was on may have changed."
-msgstr "Tidak dapat menemukan bagian teks itu — teks yang ditandainya mungkin telah berubah."
 
 msgid "Couldn't finish installing {0} — see below."
 msgstr "Pemasangan {0} tidak bisa diselesaikan — lihat di bawah."
@@ -3195,9 +3138,6 @@ msgstr "Agen Anda tidak bisa dimuat."
 msgid "Couldn't load your bug reports."
 msgstr "Laporan bug Anda tidak bisa dimuat."
 
-msgid "Couldn't mark that comment to send."
-msgstr "Komentar itu tidak bisa ditandai untuk dikirim."
-
 msgid "Couldn't move {0}: {1}"
 msgstr "Tidak dapat memindahkan {0}: {1}"
 
@@ -3243,9 +3183,6 @@ msgstr "Tidak dapat menyiapkan proyek ini untuk diterbitkan."
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "Tidak bisa melakukan pull dari GitHub. Periksa koneksi dan status masuk Anda, lalu coba lagi."
 
-msgid "Couldn't re-place that comment."
-msgstr "Komentar itu tidak bisa ditempatkan ulang."
-
 msgid "Couldn't reach {displayName} — please try again later."
 msgstr "Tidak dapat menghubungi {displayName}. Silakan coba lagi nanti."
 
@@ -3288,12 +3225,6 @@ msgstr "{fileName} tidak bisa dibaca. Mungkin ia sudah dipindahkan, dihapus, ata
 msgid "Couldn't read the {gitignorePath} rule: {previewError}"
 msgstr "Tidak dapat membaca aturan {gitignorePath}: {previewError}"
 
-msgid "Couldn't read the comments waiting to send — nothing was sent."
-msgstr "Komentar yang menunggu dikirim tidak bisa dibaca — tidak ada yang dikirim."
-
-msgid "Couldn't read the comments waiting to send: {0}"
-msgstr "Komentar yang menunggu dikirim tidak bisa dibaca: {0}"
-
 msgid "Couldn't read the spell checking setting."
 msgstr "Tidak dapat membaca pengaturan pemeriksaan ejaan."
 
@@ -3323,9 +3254,6 @@ msgstr "\"{0}\" tidak bisa diganti namanya: {1}"
 
 msgid "Couldn't rename template: {0}"
 msgstr "Templat tidak bisa diganti namanya: {0}"
-
-msgid "Couldn't reopen that comment."
-msgstr "Komentar itu tidak bisa dibuka kembali."
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "Konflik untuk {filePath} tidak bisa diselesaikan."
@@ -3378,9 +3306,6 @@ msgstr "Tidak dapat menyimpan pengaturan jaringan. {0}"
 msgid "Couldn't save template: {error}"
 msgstr "Templat tidak bisa disimpan: {error}"
 
-msgid "Couldn't save that edit."
-msgstr "Suntingan itu tidak bisa disimpan."
-
 msgid "Couldn't save the action item."
 msgstr ""
 
@@ -3411,17 +3336,8 @@ msgstr "Pengaturan ini tidak dapat disimpan. Coba lagi."
 msgid "Couldn't save your theme preference."
 msgstr "Tidak dapat menyimpan preferensi tema Anda."
 
-msgid "Couldn't scroll to that passage. Try again."
-msgstr "Tidak dapat menggulir ke bagian teks itu. Coba lagi."
-
 msgid "Couldn't send the report"
 msgstr "Laporannya tidak bisa dikirim"
-
-msgid "Couldn't send your comments — please try again."
-msgstr "Komentar Anda tidak bisa dikirim — silakan coba lagi."
-
-msgid "Couldn't send your comments — the workspace isn't ready."
-msgstr "Komentar Anda tidak bisa dikirim — ruang kerjanya belum siap."
 
 msgid "Couldn't send your prompt — please try again."
 msgstr "Prompt Anda tidak bisa dikirim — silakan coba lagi."
@@ -3443,9 +3359,6 @@ msgstr "Tidak dapat beralih ke {language}."
 
 msgid "Couldn't switch to Only me"
 msgstr "Tidak bisa berpindah ke Hanya saya"
-
-msgid "Couldn't unmark that comment — it's still waiting to send."
-msgstr "Tanda pada komentar itu tidak bisa dilepas — ia masih menunggu dikirim."
 
 msgid "Couldn't unpin {name}"
 msgstr "Tidak dapat melepas sematan {name}"
@@ -3735,9 +3648,6 @@ msgstr "Hapus tabel"
 msgid "Delete the file"
 msgstr "Hapus berkas"
 
-msgid "Delete this comment"
-msgstr "Hapus komentar ini"
-
 msgid "Deleted"
 msgstr "Dihapus"
 
@@ -3905,12 +3815,6 @@ msgstr "Memutus koneksi"
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "Skill penemuan dikelola bersama untuk semua alat AI. Instal skill ini dari Pengaturan → Studio Keterampilan."
 
-msgid "Discuss"
-msgstr ""
-
-msgid "Discussions"
-msgstr ""
-
 msgid "Dismiss"
 msgstr "Tutup"
 
@@ -3982,9 +3886,6 @@ msgstr "Jangan tanya lagi saat membuka aplikasi ini tanpa penyiapan di proyek in
 
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "Tidak melihat <0>Keterampilan</0>? Aktifkan dulu <1>Pengaturan <2/> Kemampuan <3/> Eksekusi kode dan pembuatan berkas</1>."
-
-msgid "Don't send this comment"
-msgstr "Jangan kirim komentar ini"
 
 msgid "Don't show"
 msgstr "Jangan tampilkan"
@@ -4520,9 +4421,6 @@ msgstr "Bentangkan semua"
 
 msgid "Expand all file groups"
 msgstr "Bentangkan semua grup berkas"
-
-msgid "Expand all files"
-msgstr "Bentangkan semua berkas"
 
 msgid "Expand board"
 msgstr "Bentangkan papan"
@@ -5483,9 +5381,6 @@ msgstr "Memandu agen AI Anda tentang cara bekerja di sini."
 msgid "guides/install or https://example.com"
 msgstr "guides/install atau https://contoh.com"
 
-msgid "Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed."
-msgstr "Serahkan komentar yang dicentang ke agen dalam satu giliran. Pada Dokumen ini, hanya komentar dokumen tersebut; pada Proyek ini, setiap komentar yang dicentang. Tidak melakukan apa pun selama tab Komentar tertutup."
-
 msgid "Hard break"
 msgstr "Ganti baris paksa"
 
@@ -5633,9 +5528,6 @@ msgstr "Sembunyikan penggantian"
 
 msgid "Hide resolved"
 msgstr "Sembunyikan yang sudah selesai"
-
-msgid "Hide resolved comments ({0})"
-msgstr "Sembunyikan komentar yang selesai ({0})"
 
 msgid "Hide selection preview"
 msgstr "Sembunyikan pratinjau pilihan"
@@ -6204,14 +6096,8 @@ msgstr "Lompat ke tab terakhir"
 msgid "Jump to page {pageNumber}"
 msgstr "Lompat ke halaman {pageNumber}"
 
-msgid "Jump to selected text in property"
-msgstr "Lompat ke teks terpilih di properti"
-
 msgid "Jump to tab 1-8"
 msgstr "Lompat ke tab 1-8"
-
-msgid "Jump to the anchored text"
-msgstr "Lompat ke teks berjangkar"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "Lompat ke sumber markdown untuk blok di posisi kursor, terpusat dan tersorot."
@@ -6318,9 +6204,6 @@ msgstr "Pelajari lebih lanjut tentang berbagi konfigurasi"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "Kecualikan tautan rusak yang ditulis di dalam log.md atau log.mdx pada kedalaman folder mana pun dari Masalah, indikator penjelajah file, diagnostik editor, audit, dan saran penulisan agen. Yang menentukan adalah file tempat tautan ditulis, bukan file yang dituju, dan LOG.md adalah dokumen biasa. Panel Tautan dan editor tetap menampilkannya."
-
-msgid "Leave these comments out of this message"
-msgstr "Jangan sertakan komentar ini dalam pesan ini"
 
 msgid "Let agent chats use a browser"
 msgstr "Izinkan obrolan agen memakai browser"
@@ -6666,12 +6549,6 @@ msgstr ""
 
 msgid "Mark done: {text}"
 msgstr ""
-
-msgid "Mark every comment in {0} to send"
-msgstr "Tandai semua komentar di {0} untuk dikirim"
-
-msgid "Mark every comment to send"
-msgstr "Tandai semua komentar untuk dikirim"
 
 msgid "Markdown"
 msgstr "Markdown"
@@ -7226,9 +7103,6 @@ msgstr "Tidak ditemukan proyek GitQuire yang aktif maupun yang terbaru."
 msgid "No agent folders yet"
 msgstr "Belum ada folder agen"
 
-msgid "No agent is set up yet — opening Configure agents."
-msgstr "Belum ada agen yang disiapkan — membuka Atur agen."
-
 msgid "No agent is set up yet — pick one from the send menu."
 msgstr "Belum ada agen yang disiapkan — pilih satu dari menu kirim."
 
@@ -7294,12 +7168,6 @@ msgstr "Belum ada chat."
 
 msgid "No collab server for this worktree — run <0>{cliCommand} start</0> here, or reopen the project."
 msgstr "Tidak ada server kolaborasi untuk worktree ini — jalankan <0>{cliCommand} start</0> di sini, atau buka lagi proyeknya."
-
-msgid "No comments in this project yet. Comment on a passage to start one."
-msgstr "Belum ada komentar di proyek ini. Komentari sebuah bagian untuk memulai."
-
-msgid "No comments yet. Select text in the document to add one."
-msgstr "Belum ada komentar. Pilih teks di dokumen untuk menambahkan satu."
 
 msgid "No common ancestor — both branches added this file (add/add conflict)."
 msgstr "Tidak ada leluhur bersama — kedua cabang menambahkan berkas ini (konflik add/add)."
@@ -7556,7 +7424,7 @@ msgstr "Tanpa ruang kerja"
 msgid "No worktrees found."
 msgstr "Tidak ada worktree yang ditemukan."
 
-msgid "Nobody has mentioned you yet. Mentions in discussions show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
 msgid "Nobody mentioned"
@@ -7723,12 +7591,6 @@ msgstr "Aktif — mengarahkan kursor ke tautan eksternal mengirim URL-nya ke sit
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Aktif — kueri pencarian Anda dan teks halaman yang cocok dikirim ke penyedia embedding Anda (OpenAI secara bawaan) untuk menghitung embedding."
 
-msgid "On <0>{address}</0>"
-msgstr "Pada <0>{address}</0>"
-
-msgid "On selected text in <0>{address}</0>"
-msgstr "Pada teks terpilih di <0>{address}</0>"
-
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "Pada indeks root, okf_version ditulis sebagai string yang dikutip seperti \"0.2\". Tanpa tanda kutip, YAML membacanya sebagai angka dan 0.10 diam-diam menjadi 0.1."
 
@@ -7837,9 +7699,6 @@ msgstr "Membuka kotak ke-baris CodeMirror."
 
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Membuka panel diagnostik lint CodeMirror."
-
-msgid "Open comment"
-msgstr "Buka komentar"
 
 msgid "Open containing folder"
 msgstr "Buka folder induknya"
@@ -7969,9 +7828,6 @@ msgstr "Buka terminal untuk masuk"
 
 msgid "Open that worktree instead"
 msgstr "Buka worktree itu saja"
-
-msgid "Open the comment composer on the current selection and add it to the dispatch queue."
-msgstr "Membuka penyusun komentar pada pilihan saat ini dan menambahkannya ke antrean pengiriman."
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Membuka menu sisip pada posisi teks yang kosong atau aktif."
@@ -8698,9 +8554,6 @@ msgstr "Autentikasi ulang dengan GitHub Enterprise Server"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "Embedding dihitung ulang seiring pencarian berjalan, jadi cakupannya dimulai lagi dari nol lalu terisi kembali."
 
-msgid "Re-place on selected text"
-msgstr "Tempatkan ulang pada teks terpilih"
-
 msgid "Re-run the project audit"
 msgstr "Jalankan ulang audit proyek"
 
@@ -9246,9 +9099,6 @@ msgstr "Selesaikan konflik pada {files} sebelum menghapus."
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "Selesaikan konflik pada {files} dan {overflow} berkas lainnya sebelum menghapus."
 
-msgid "Resolved"
-msgstr "Selesai"
-
 msgid "Resolved by {resolvedBy}"
 msgstr ""
 
@@ -9449,9 +9299,6 @@ msgstr ""
 
 msgid "Save queued message"
 msgstr "Simpan pesan dalam antrean"
-
-msgid "Save this comment (Enter)"
-msgstr "Simpan komentar ini (Enter)"
 
 msgid "Save view as page"
 msgstr ""
@@ -9705,7 +9552,7 @@ msgstr "Pilih kemunculan berikutnya"
 msgid "Select spelling languages"
 msgstr "Pilih bahasa pemeriksaan ejaan"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
 msgstr ""
 
 msgid "Select the full source document."
@@ -9762,14 +9609,8 @@ msgstr "Kirim & lanjutkan"
 msgid "Send a new code"
 msgstr ""
 
-msgid "Send checked comments to chat"
-msgstr "Kirim komentar yang dicentang ke obrolan"
-
 msgid "Send code"
 msgstr ""
-
-msgid "Send comments to"
-msgstr "Kirim komentar ke"
 
 msgid "Send feedback"
 msgstr "Kirim masukan"
@@ -9786,17 +9627,8 @@ msgstr "Kirim sekarang"
 msgid "Send report"
 msgstr "Kirim laporan"
 
-msgid "Send this comment"
-msgstr "Kirim komentar ini"
-
 msgid "Send to a new chat"
 msgstr "Kirim ke obrolan baru"
-
-msgid "Send to chat"
-msgstr "Kirim ke obrolan"
-
-msgid "Send to chat ({0})"
-msgstr "Kirim ke obrolan ({0})"
 
 msgid "Send when the agent is free"
 msgstr "Kirim saat agen sedang senggang"
@@ -9821,9 +9653,6 @@ msgstr "Dikirim secara pribadi ke tim GitQuire, beserta catatan Anda dan versi a
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "Dikirim ke <0>{endpointHost}</0> untuk meng-embed konten Anda. Disimpan di luar proyek."
-
-msgid "Sent, but the comments could not be marked done — they're still waiting to send."
-msgstr "Terkirim, tetapi komentarnya tidak bisa ditandai selesai — semuanya masih menunggu dikirim."
 
 msgid "Separator"
 msgstr "Pemisah"
@@ -10097,14 +9926,8 @@ msgstr "Tampilkan petunjuk lagi untuk {displayName} di proyek ini"
 msgid "Show replace"
 msgstr "Tampilkan penggantian"
 
-msgid "Show resolved"
-msgstr "Tampilkan yang selesai"
-
 msgid "Show resolved ({resolvedCount})"
 msgstr ""
-
-msgid "Show resolved comments ({0})"
-msgstr "Tampilkan komentar yang selesai ({0})"
 
 msgid "Show selection preview"
 msgstr "Tampilkan pratinjau pilihan"
@@ -10120,9 +9943,6 @@ msgstr "Tampilkan sumber"
 
 msgid "Show Terminal"
 msgstr "Tampilkan Terminal"
-
-msgid "Show these comments in the Comments panel"
-msgstr "Tampilkan komentar ini di panel komentar"
 
 msgid "Show thumbnails"
 msgstr "Tampilkan gambar mini"
@@ -10441,14 +10261,8 @@ msgstr "Memulai laporan bug dengan tangkapan layar persis seperti tampilannya sa
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "Mulai obrolan dengan tombol ＋, atau luncurkan agen dari halaman."
 
-msgid "Start a discussion with your team on this selection"
+msgid "Start a comment thread on the selected text."
 msgstr ""
-
-msgid "Start a new chat"
-msgstr "Mulai obrolan baru"
-
-msgid "Start a new chat ({0})"
-msgstr "Mulai obrolan baru ({0})"
 
 msgid "Start a new GitQuire project."
 msgstr "Mulai proyek GitQuire baru."
@@ -10898,9 +10712,6 @@ msgstr "Konflik itu sudah tidak tersedia."
 msgid "That did not go through. Check the server logs and try again."
 msgstr "Itu tidak berhasil. Periksa log server lalu coba lagi."
 
-msgid "That document didn't open in time. Try again once it has synced."
-msgstr "Dokumen itu tidak terbuka tepat waktu. Coba lagi setelah tersinkronisasi."
-
 msgid "That doesn’t parse as YAML or JSON — check line {0}."
 msgstr "Ini tidak dapat diurai sebagai YAML atau JSON — periksa baris {0}."
 
@@ -11111,9 +10922,6 @@ msgstr "Id model yang dilayani endpoint Anda. Ukuran vektornya terdeteksi otomat
 
 msgid "the open agent"
 msgstr "agen yang terbuka"
-
-msgid "The original text was deleted."
-msgstr "Teks aslinya telah dihapus."
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11407,9 +11215,6 @@ msgstr "Jalur checkout ini tidak dapat dibaca."
 
 msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
 msgstr "Perintah ini berisi karakter tersembunyi yang dapat membuatnya terlihat berbeda dari yang dijalankan. Karakter tersebut ditampilkan di sini sebagai ⟨U+…⟩."
-
-msgid "This comment is on the whole property"
-msgstr "Komentar ini berlaku untuk seluruh properti"
 
 msgid "This component changed. Try again."
 msgstr "Komponen ini telah berubah. Coba lagi."
@@ -12060,12 +11865,6 @@ msgstr "Variabel tidak dikenal {unknownList}. Variabel yang tersedia: {supported
 msgid "unlink"
 msgstr "lepas tautan"
 
-msgid "Unmark every comment"
-msgstr "Hapus tanda semua komentar"
-
-msgid "Unmark every comment in {0}"
-msgstr "Hapus tanda semua komentar di {0}"
-
 msgid "Unmerged"
 msgstr "Belum digabungkan"
 
@@ -12338,9 +12137,6 @@ msgstr "Lihat {publisher} di skills.sh"
 msgid "View as text"
 msgstr "Lihat sebagai teks"
 
-msgid "View comments"
-msgstr "Lihat komentar"
-
 msgid "View diff for edit {burstNumber} of {docName}"
 msgstr "Lihat perbedaan untuk suntingan {burstNumber} pada {docName}"
 
@@ -12501,9 +12297,6 @@ msgstr "Ketika aktif, agennya membuka atau menyegarkan pratinjau setelah setiap 
 msgid "When the agent runs its scheduled work."
 msgstr "Kapan agennya menjalankan pekerjaan terjadwalnya."
 
-msgid "When the Comments tab is open"
-msgstr "Saat tab Komentar terbuka"
-
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Ketika Anda mengarahkan kursor ke tautan eksternal, URL-nya dikirim ke situs tujuan untuk mengambil metadata pratinjau halaman itu — satu permintaan per tautan yang dipratinjau."
 
@@ -12569,9 +12362,6 @@ msgstr "Bungkus baris"
 
 msgid "Work directly, no plan step"
 msgstr "Bekerja langsung, tanpa tahap perencanaan"
-
-msgid "Work through these comments"
-msgstr "Kerjakan komentar-komentar ini"
 
 msgid "Working"
 msgstr "Bekerja"
@@ -12703,9 +12493,6 @@ msgstr "Agen Anda tetap memuat keterampilan ini, tetapi GitQuire tidak dapat mem
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "Perubahan Anda masih disimpan — jalankan pengujiannya lagi sebentar."
-
-msgid "Your comments are waiting behind the running turn — they stay queued until the agent picks the message up."
-msgstr "Komentarmu menunggu di belakang giliran yang sedang berjalan — komentar tetap mengantre sampai agen mengambil pesannya."
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "Salinan cabang <0>{shareBranch}</0> milik Anda punya perubahan yang belum ada di GitHub. {targetNoun} akan muncul begitu cabangnya tersinkron."

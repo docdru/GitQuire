@@ -6,20 +6,9 @@
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { NodeViewProps } from '@tiptap/core';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
-import {
-  Check,
-  ChevronDown,
-  Copy,
-  Eye,
-  EyeOff,
-  Pencil,
-  Settings2,
-  Sparkles,
-  Trash2,
-} from 'lucide-react';
+import { Check, ChevronDown, Copy, Eye, EyeOff, Pencil, Settings2, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useId, useRef, useState } from 'react';
-import { emitStartComment } from '@/comments/store';
 import { GitQuireViewBlock, SAVED_VIEW_ATTR } from '@/components/GitQuireViewBlock';
 import {
   Command,
@@ -31,7 +20,6 @@ import {
 } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { subscribeColorThemeEpoch } from '@/lib/color-theme-epoch';
 import { VIEW_BLOCK_LANGUAGE } from '@/lib/gitquire/view-block';
 import { cn } from '@/lib/utils';
@@ -121,15 +109,6 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
   const title = getMetaTitle(rawMeta);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const isEmbedded = useIsEmbedded();
-
-  const selectionIsInsideThisBlock = (): boolean => {
-    const pos = typeof getPos === 'function' ? getPos() : undefined;
-    if (typeof pos !== 'number') return false;
-    const { from, to } = editor.state.selection;
-    if (from === to) return false;
-    return from > pos && to <= pos + node.nodeSize - 1;
-  };
   const [hovered, setHovered] = useState(false);
   const baseId = useId();
   const titleInputId = `${baseId}-title-input`;
@@ -499,31 +478,6 @@ export function CodeBlockView({ node, updateAttributes, editor, getPos, selected
             </PopoverContent>
           </Popover>
         ) : null}
-
-        {isEmbedded ? null : (
-          <button
-            type="button"
-            className="ok-codeblock-chrome-btn"
-            aria-label={t`Comment or ask AI about this code block`}
-            data-testid="ok-codeblock-ask-ai-btn"
-            onClick={() => {
-              if (!selectionIsInsideThisBlock()) {
-                const pos = typeof getPos === 'function' ? getPos() : undefined;
-                if (typeof pos !== 'number') return;
-                try {
-                  editor.commands.setNodeSelection(pos);
-                } catch (err) {
-                  if (!(err instanceof RangeError)) throw err;
-                  console.warn('[CodeBlockView] Ask AI failed — position race', err);
-                  return;
-                }
-              }
-              requestAnimationFrame(() => emitStartComment());
-            }}
-          >
-            <Sparkles className="size-3.5" aria-hidden="true" />
-          </button>
-        )}
 
         <button
           type="button"

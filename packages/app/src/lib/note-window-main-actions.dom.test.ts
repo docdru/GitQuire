@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { revealComments, revealQueue } from '@/comments/reveal-queue';
 import { requestActiveTerminalInput } from '@/components/handoff/terminal-input-events';
 import { requestTerminalLaunch } from '@/components/handoff/terminal-launch-events';
 import { requestAgentThreadLaunch } from '@/components/handoff/thread-launch-events';
@@ -64,30 +63,6 @@ describe('note-window main action routing', () => {
         stage: false,
       },
     ]);
-  });
-
-  test('posting a comment opens its document scope in the owning project window', () => {
-    const dispatch = installNoteBridge();
-
-    revealComments('doc', 'notes/alpha');
-
-    expect(dispatch).toHaveBeenCalledWith({
-      kind: 'reveal-comments',
-      docName: 'notes/alpha',
-      scope: 'doc',
-    });
-  });
-
-  test('opening the project queue stays project-scoped in the owning project window', () => {
-    const dispatch = installNoteBridge();
-
-    revealQueue('notes/alpha');
-
-    expect(dispatch).toHaveBeenCalledWith({
-      kind: 'reveal-comments',
-      docName: 'notes/alpha',
-      scope: 'queue',
-    });
   });
 
   test('a main-side refusal that RESOLVES { ok: false } is logged, not silently dropped', async () => {
