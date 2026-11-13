@@ -917,7 +917,14 @@ export function EditorPane() {
           return assertNeverPaneId(pane);
       }
     });
-  }, [noteWindow, agentsAvailable, terminalAvailable, editorToggleable, exclusive, applyPaneRequest]);
+  }, [
+    noteWindow,
+    agentsAvailable,
+    terminalAvailable,
+    editorToggleable,
+    exclusive,
+    applyPaneRequest,
+  ]);
 
   function focusEditorOrFallback() {
     if (effectiveEditorVisible) placements.editorRegion?.focus();

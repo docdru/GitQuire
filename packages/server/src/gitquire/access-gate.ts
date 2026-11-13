@@ -516,7 +516,10 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const { path } = pathOf(req);
     if (!path.startsWith('/collab')) return true;
     if (!config.askAi && isInAppAgentPath(path)) {
-      deps.log.warn({ path }, '[gitquire-auth] refused in-app agent session: GITQUIRE_ASK_AI is off');
+      deps.log.warn(
+        { path },
+        '[gitquire-auth] refused in-app agent session: GITQUIRE_ASK_AI is off',
+      );
       socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
       socket.destroy();
       return false;
