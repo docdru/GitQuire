@@ -332,12 +332,12 @@ describe('GitQuire routes', () => {
 });
 
 describe('personal settings', () => {
-  function settingsRoutes(dir: string, login: string | undefined = 'alice', id = 42) {
+  function settingsRoutes(dir: string, login: string | null = 'alice', id = 42) {
     return createGitQuireRoutes({
       projectDir: dir,
       log: silentLog,
       sessionUser: () =>
-        login === undefined ? undefined : { id, login, name: login, avatarUrl: '' },
+        login === null ? undefined : { id, login, name: login, avatarUrl: '' },
     });
   }
 
@@ -355,7 +355,7 @@ describe('personal settings', () => {
   it(
     'reports shared settings when nobody is signed in',
     withDir(async (dir) => {
-      const out = await call(settingsRoutes(dir, undefined), request('/api/gitquire/me/settings'));
+      const out = await call(settingsRoutes(dir, null), request('/api/gitquire/me/settings'));
       expect(out.body).toEqual({ personal: false });
     }),
   );
@@ -397,7 +397,7 @@ describe('personal settings', () => {
       );
       expect(list.body.error).toBe('settings-not-a-mapping');
       const anonymous = await call(
-        settingsRoutes(dir, undefined),
+        settingsRoutes(dir, null),
         request('/api/gitquire/me/settings', { method: 'PUT', body: { yaml: '' } }),
       );
       expect(anonymous.status).toBe(401);
