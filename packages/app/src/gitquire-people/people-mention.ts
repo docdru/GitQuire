@@ -40,10 +40,7 @@ function isCode(node: PMNode): boolean {
   return node.marks.some((mark) => mark.type.name === 'code');
 }
 
-export function mentionDecorations(
-  doc: PMNode,
-  known: ReadonlySet<string>,
-): DecorationSet {
+export function mentionDecorations(doc: PMNode, known: ReadonlySet<string>): DecorationSet {
   if (known.size === 0) return DecorationSet.empty;
   const decorations: Decoration[] = [];
   doc.descendants((node, pos) => {

@@ -67,7 +67,13 @@ export function mentionMail(
   const task = mention.kind === 'task';
   const lines = task
     ? [`${who} mentioned you in an action item in "${page}":`, '', `- [ ] ${mention.body}`]
-    : [`${who} mentioned you in "${page}".`, '', `On the text: "${mention.quote}"`, '', mention.body];
+    : [
+        `${who} mentioned you in "${page}".`,
+        '',
+        `On the text: "${mention.quote}"`,
+        '',
+        mention.body,
+      ];
   if (link !== undefined) lines.push('', `Open the page: ${link}`);
   lines.push(
     '',

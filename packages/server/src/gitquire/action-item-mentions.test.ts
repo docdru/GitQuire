@@ -98,8 +98,6 @@ describe('createActionItemMentions', () => {
     const inbox = buildInbox(alice, all, new Set());
     expect(inbox.unread).toBe(0);
     expect(inbox.mentions[0]).toMatchObject({ kind: 'task', read: true });
-    expect(mentionsFor({ id: 2, login: 'bob' }, all).map((m) => m.body)).toEqual([
-      'Theirs @bob',
-    ]);
+    expect(mentionsFor({ id: 2, login: 'bob' }, all).map((m) => m.body)).toEqual(['Theirs @bob']);
   });
 });
