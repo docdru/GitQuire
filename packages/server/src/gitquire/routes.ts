@@ -31,7 +31,6 @@ import {
   sendMail,
 } from './mail.ts';
 import { createMentionMailer } from './mention-mailer.ts';
-import { mergedGoneBranches } from './merged-branches.ts';
 import {
   buildInbox,
   createMentionReadStore,
@@ -41,6 +40,7 @@ import {
   mentionsFor,
   mentionsInMarkdown,
 } from './mentions.ts';
+import { mergedGoneBranches } from './merged-branches.ts';
 import { namingRuleFromEnv } from './naming.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
 import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
