@@ -48,6 +48,28 @@ jobs:
           git --no-pager diff
           echo "FORMAT-PATCH-END"
 
+      - name: Translation catalogs are up to date
+        id: catalogs
+        run: |
+          pnpm --filter @inkeep/open-knowledge-app run i18n:extract
+          untracked=$(git ls-files --others --exclude-standard -- packages/app/src/locales)
+          if [ -n "$untracked" ] || ! git diff --quiet -I '^"POT-Creation-Date' -- packages/app/src/locales; then
+            git add -N -- packages/app/src/locales
+            git --no-pager diff --stat -- packages/app/src/locales
+            echo "CATALOG-PATCH-BEGIN"
+            git --no-pager diff -- packages/app/src/locales
+            echo "CATALOG-PATCH-END"
+            echo "::error::UI strings changed. Run: pnpm --filter @inkeep/open-knowledge-app run i18n:extract"
+            exit 1
+          fi
+
+      - name: Upload the extracted catalogs
+        if: failure() && steps.catalogs.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: locales
+          path: packages/app/src/locales
+
       - name: Typecheck server and CLI
         run: >-
           pnpm exec turbo run typecheck

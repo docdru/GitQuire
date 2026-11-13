@@ -139,6 +139,12 @@ msgstr "{0, plural, other {# 个项目}}"
 msgid "{0, plural, one {# key} other {# keys}}"
 msgstr "{0, plural, other {# 个键}}"
 
+msgid "{0, plural, one {# more} other {# more}}"
+msgstr ""
+
+msgid "{0, plural, one {# open item} other {# open items}}"
+msgstr ""
+
 msgid "{0, plural, one {# option set} other {# options set}}"
 msgstr "{0, plural, other {已设置 # 个选项}}"
 
@@ -461,6 +467,9 @@ msgstr "{count, plural, other {# 条评论}}"
 msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
 msgstr "{count, plural, other {# 条评论}}，分布在 {0, plural, other {# 个文件}}"
 
+msgid "{count, plural, one {# dated page} other {# dated pages}}"
+msgstr ""
+
 msgid "{count, plural, one {# doc} other {# docs}}"
 msgstr "{count, plural, other {# 个文档}}"
 
@@ -493,6 +502,9 @@ msgstr "{count, plural, other {把这 # 个问题交给你的 AI 智能体，包
 
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {立即修复有已知自动修复方案的 # 个问题。}}"
+
+msgid "{count, plural, one {linked from # page} other {linked from # pages}}"
+msgstr ""
 
 msgid "{count, plural, one {matches # file} other {matches # files}}"
 msgstr "{count, plural, other {匹配 # 个文件}}"
@@ -612,6 +624,9 @@ msgstr "{folderCount, plural, other {文件夹}}"
 msgid "{formatted} GitHub stars"
 msgstr "{formatted} 个 GitHub star"
 
+msgid "{hidden} more are not listed. Use the filter to narrow the list."
+msgstr ""
+
 msgid "{hiddenCount, plural, one {# more link} other {# more links}}"
 msgstr "{hiddenCount, plural, other {另外 # 个链接}}"
 
@@ -681,6 +696,9 @@ msgstr "{mins, plural, other {# 分钟前}}"
 msgid "{minutes}m ago"
 msgstr "{minutes} 分钟前"
 
+msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
+msgstr ""
+
 msgid "{name} CLI"
 msgstr "{name} CLI"
 
@@ -693,11 +711,17 @@ msgstr "{nodeCount, plural, other {# 个节点}}"
 msgid "{omitted, plural, one {# more property change not shown} other {# more property changes not shown}}"
 msgstr "{omitted, plural, other {另有 # 处属性改动未显示}}"
 
+msgid "{open, plural, one {# open action item} other {# open action items}}"
+msgstr ""
+
 msgid "{openedWorktreeCount, plural, one {worktree} other {worktrees}}"
 msgstr "{openedWorktreeCount, plural, one {worktree} other {worktree}}"
 
 msgid "{others, plural, one {# other} other {# others}}"
 msgstr "{others, plural, other {其他 # 个文件}}"
+
+msgid "{overdue, plural, one {# overdue} other {# overdue}}"
+msgstr ""
 
 msgid "{owner}/{name} already exists"
 msgstr "{owner}/{name} 已存在"
@@ -750,6 +774,9 @@ msgstr "{propPanelDescriptorLabel} 属性"
 msgid "{removingCount, plural, one {# removed} other {# removed}}"
 msgstr "{removingCount, plural, other {已移除 #}}"
 
+msgid "{rowCount, plural, one {# page} other {# pages}}"
+msgstr ""
+
 msgid "{seconds} seconds"
 msgstr "{seconds} 秒"
 
@@ -761,6 +788,9 @@ msgstr "{settingsDescriptorLabel} 属性"
 
 msgid "{shareBranch} isn't a valid branch name."
 msgstr "{shareBranch} 不是有效的分支名。"
+
+msgid "{shown, plural, one {# item} other {# items}}"
+msgstr ""
 
 msgid "{shown} and {more} more"
 msgstr "{shown} 另外还有 {more} 个"
@@ -839,6 +869,9 @@ msgstr "{warningCount, plural, other {# 个警告}}"
 
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, other {词}}"
+
+msgid "@{login} ({open} open)"
+msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
 msgstr "/{0} 不是此智能体提供的命令 — 将作为纯文本发送"
@@ -940,6 +973,9 @@ msgstr "一个 .zip 或 .skill 压缩包。"
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "<0>已修改</0>标记表示你的配置显式设置过的规则——直接设置，或通过 <1>extends</1> 继承而来。未标记的规则保持默认状态。"
 
+msgid "A board needs a property that several pages share, with a few different values, such as \"status: To do\" and \"status: Done\"."
+msgstr ""
+
 msgid "A branch named {shareBranch} already exists. Open its worktree from the switcher instead."
 msgstr "名为 {shareBranch} 的分支已存在。请从切换器中打开它的 worktree。"
 
@@ -1018,6 +1054,9 @@ msgstr "自这个标签页打开以来，可能已经部署了更新的版本。
 msgid "A non-empty folder already exists at this path. Pick a different folder."
 msgstr "该路径下已存在一个非空文件夹。请换一个文件夹。"
 
+msgid "A page with that name exists. Choose another name."
+msgstr ""
+
 msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
 msgstr "作为符号链接的是上层目录——请对那个文件夹取消链接，才能收回这一个。"
 
@@ -1093,6 +1132,9 @@ msgstr "{shareBranch} 的 worktree 文件夹已存在。"
 msgid "A worktree folder for that branch already exists."
 msgstr "该分支的 worktree 文件夹已存在。"
 
+msgid "ABCD-2345"
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "about"
 msgstr "关于"
@@ -1135,6 +1177,9 @@ msgstr "访问已保存的 API 密钥超时。请等待凭据存储操作完成�
 
 msgid "Access token"
 msgstr "访问令牌"
+
+msgid "Action items"
+msgstr ""
 
 msgid "Actions for {label}"
 msgstr "{label} 的操作"
@@ -1302,12 +1347,6 @@ msgstr "已添加"
 msgid "Adding"
 msgstr "正在添加"
 
-msgid "Adds a global GitQuire MCP entry for this agent."
-msgstr "为此智能体添加全局 GitQuire MCP 条目。"
-
-msgid "Adds a managed block to"
-msgstr "添加一个受管理的块到"
-
 #. Subtext under the project AI-tools checkbox
 msgid "Adds a GitQuire MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
 msgstr "向 <0>{toolList}</0> 添加 GitQuire 的 MCP 条目和项目技能，让你的智能体可以读取和编辑你的文件。"
@@ -1318,6 +1357,12 @@ msgstr "向 <0>{connectToolList}</0> 添加 GitQuire 的 MCP 条目，让你的�
 
 msgid "Adds a GitQuire MCP entry to this project's agent config."
 msgstr "向此项目的智能体配置添加 GitQuire MCP 条目。"
+
+msgid "Adds a global GitQuire MCP entry for this agent."
+msgstr "为此智能体添加全局 GitQuire MCP 条目。"
+
+msgid "Adds a managed block to"
+msgstr "添加一个受管理的块到"
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.user-config"
@@ -1408,14 +1453,23 @@ msgstr "已将 {editor} 对齐到源码（其字节已备份）"
 msgid "All"
 msgstr "全部"
 
+msgid "All action items done"
+msgstr ""
+
 msgid "All conflicts resolved. Apply changes to save."
 msgstr "所有冲突已解决。应用更改以保存。"
+
+msgid "All dated pages"
+msgstr ""
 
 msgid "All files"
 msgstr "所有文件"
 
 msgid "All files are hidden by view filters."
 msgstr "所有文件都被视图筛选条件隐藏了。"
+
+msgid "All pages with properties"
+msgstr ""
 
 msgid "All tags"
 msgstr "所有标签"
@@ -1499,6 +1553,9 @@ msgstr "发生了意外错误。"
 msgid "Anchor in this page"
 msgstr "本页中的锚点"
 
+msgid "and {moreAttendees} more"
+msgstr ""
+
 msgid "and {remaining} more"
 msgstr "另外还有 {remaining} 个"
 
@@ -1525,6 +1582,9 @@ msgstr "任何名为 {0} 的文档"
 
 msgid "Any scripts are shown for review, never run."
 msgstr "任何脚本都只会展示以供查看，绝不会运行。"
+
+msgid "Any value"
+msgstr ""
 
 msgid "Anyone can see"
 msgstr "任何人都可以查看"
@@ -1628,15 +1688,6 @@ msgstr "确定要删除所选项目吗？"
 msgid "Ask"
 msgstr "询问"
 
-msgid "Ask Claude"
-msgstr ""
-
-msgid "Ask Claude to work on this folder…"
-msgstr ""
-
-msgid "Ask Claude to work on this page…"
-msgstr ""
-
 msgid "Ask {0} CLI"
 msgstr "询问 {0} CLI"
 
@@ -1666,6 +1717,15 @@ msgstr "询问智能体"
 
 msgid "Ask changes…"
 msgstr "请求修改…"
+
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
 
 msgid "Asset"
 msgstr "资源"
@@ -1889,6 +1949,9 @@ msgstr "博客文章"
 msgid "blog-post"
 msgstr "blog-post"
 
+msgid "Board"
+msgstr ""
+
 msgid "Board controls"
 msgstr "画板控件"
 
@@ -1949,6 +2012,12 @@ msgstr "失效的内部链接"
 msgid "Broken link"
 msgstr "失效链接"
 
+msgid "Broken links"
+msgstr ""
+
+msgid "Broken links: {total}"
+msgstr ""
+
 msgid "Browse"
 msgstr "浏览"
 
@@ -2000,11 +2069,11 @@ msgstr "无序列表"
 msgid "Bulleted list"
 msgstr ""
 
-msgid "By meaning"
-msgstr "按语义"
-
 msgid "By GitQuire"
 msgstr "来自 GitQuire"
+
+msgid "By meaning"
+msgstr "按语义"
 
 msgid "By tag"
 msgstr "按标签"
@@ -2371,9 +2440,6 @@ msgstr "正在克隆…"
 msgid "Close"
 msgstr "关闭"
 
-msgid "Close discussions"
-msgstr ""
-
 msgid "Close {0}"
 msgstr "关闭 {0}"
 
@@ -2391,6 +2457,9 @@ msgstr "关闭评论"
 
 msgid "Close diff"
 msgstr "关闭差异视图"
+
+msgid "Close discussions"
+msgstr ""
 
 msgid "Close find"
 msgstr "关闭查找"
@@ -2491,6 +2560,12 @@ msgstr "配色主题"
 
 msgid "Column options"
 msgstr "列选项"
+
+msgid "Columns"
+msgstr ""
+
+msgid "Columns from"
+msgstr ""
 
 msgid "Command failed."
 msgstr "命令执行失败。"
@@ -2593,6 +2668,9 @@ msgstr "配置智能体"
 
 msgid "Configure user, project, and integration settings."
 msgstr "配置用户、项目和集成相关的设置。"
+
+msgid "Confirm"
+msgstr ""
 
 msgid "conflict"
 msgstr "冲突"
@@ -2902,6 +2980,9 @@ msgstr "无法修复 {total} 个文件中的 {0} 个。"
 msgid "Could not initialize {0}."
 msgstr "无法初始化 {0}。"
 
+msgid "Could not load branches"
+msgstr ""
+
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "无法加载模板：{templatesError}。你仍然可以创建空白笔记。"
 
@@ -2938,6 +3019,9 @@ msgstr "无法保存同步偏好：{detail}"
 msgid "Could not start creating a new item"
 msgstr "无法开始创建新项目"
 
+msgid "Could not switch to {branch}"
+msgstr ""
+
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "无法切换到 {shareBranch}。请尝试手动切换。"
 
@@ -2962,6 +3046,9 @@ msgstr "无法添加那条评论。"
 msgid "Couldn't apply the change: {0}"
 msgstr "无法应用该更改：{0}"
 
+msgid "Couldn't cancel."
+msgstr ""
+
 msgid "Couldn't change spell checking. Try again."
 msgstr "无法更改拼写检查。请重试。"
 
@@ -2976,6 +3063,9 @@ msgstr "无法清除密钥——请重试。"
 
 msgid "Couldn't complete semantic search — retry"
 msgstr "无法完成语义搜索 — 重试"
+
+msgid "Couldn't confirm the address."
+msgstr ""
 
 msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
 msgstr "无法连接到智能体服务。请确认 GitQuire 服务器正在运行且为最新版本（如果它已在运行，请重启），然后重试。"
@@ -3001,14 +3091,14 @@ msgstr "无法创建技能：{0}"
 msgid "Couldn't create template: {error}"
 msgstr "无法创建模板：{error}"
 
+msgid "Couldn't create the meeting note."
+msgstr ""
+
 msgid "Couldn't create the report"
 msgstr "无法生成报告"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "无法创建 worktree。请换一个名字。"
-
-msgid "Couldn't save the comment."
-msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "无法创建此主题。请重试。"
@@ -3091,6 +3181,12 @@ msgstr "无法加载模板"
 msgid "Couldn't load the GitQuire skills. Try again."
 msgstr "无法加载 GitQuire 技能。请重试。"
 
+msgid "Couldn't load the pages for this view."
+msgstr ""
+
+msgid "Couldn't load the pages."
+msgstr ""
+
 msgid "Couldn't load the version preview. You can still choose how to resolve it below."
 msgstr "无法加载该版本的预览。你仍然可以在下方选择如何解决。"
 
@@ -3111,6 +3207,9 @@ msgstr "无法移动 {0}：{1}"
 
 msgid "Couldn't move skill: {0}"
 msgstr "无法移动技能：{0}"
+
+msgid "Couldn't move the page. The board was reloaded."
+msgstr ""
 
 msgid "Couldn't move to {trashNoun}"
 msgstr "无法移到{trashNoun}"
@@ -3286,14 +3385,29 @@ msgstr "无法保存模板：{error}"
 msgid "Couldn't save that edit."
 msgstr "无法保存那次编辑。"
 
+msgid "Couldn't save the action item."
+msgstr ""
+
+msgid "Couldn't save the action item. The list was reloaded."
+msgstr ""
+
 msgid "Couldn't save the auto-update setting: {0}"
 msgstr "无法保存自动更新设置：{0}"
+
+msgid "Couldn't save the comment."
+msgstr ""
+
+msgid "Couldn't save the email address."
+msgstr ""
 
 msgid "Couldn't save the key — please try again."
 msgstr "无法保存密钥——请重试。"
 
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "无法保存 {filePath} 的解决结果。"
+
+msgid "Couldn't save the view."
+msgstr ""
 
 msgid "Couldn't save this setting. Try again."
 msgstr "无法保存此设置。请重试。"
@@ -3397,11 +3511,11 @@ msgstr "基于当前文档或文件夹创建一个文件夹。"
 msgid "Create a new branch, or check out an existing one, in its own window."
 msgstr "新建一个分支，或检出一个已有分支，各自在独立窗口中打开。"
 
-msgid "Create a new list item from the current list item."
-msgstr "基于当前列表项创建一个新的列表项。"
-
 msgid "Create a new GitQuire project in the folder of your choice."
 msgstr "在你选择的文件夹中创建一个新的 GitQuire 项目。"
+
+msgid "Create a new list item from the current list item."
+msgstr "基于当前列表项创建一个新的列表项。"
 
 msgid "Create a new spec file for my user story"
 msgstr "为我的用户故事新建一个规格文件"
@@ -3417,6 +3531,9 @@ msgstr "在 {host} 上创建一个令牌"
 
 msgid "Create a worktree from this branch"
 msgstr "基于这个分支创建 worktree"
+
+msgid "Create and switch"
+msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
 msgstr "在 <0>{dirDisplay}</0> 中创建"
@@ -3538,6 +3655,9 @@ msgstr "数据"
 msgid "Date"
 msgstr "日期"
 
+msgid "Date from"
+msgstr ""
+
 msgid "Default"
 msgstr "默认"
 
@@ -3549,9 +3669,6 @@ msgstr "默认：<0>{0}</0>"
 
 msgid "Delete"
 msgstr "删除"
-
-msgid "Delete comment"
-msgstr ""
 
 msgid "Delete {0}"
 msgstr "删除 {0}"
@@ -3591,6 +3708,9 @@ msgstr "删除代码块"
 
 msgid "Delete column"
 msgstr "删除列"
+
+msgid "Delete comment"
+msgstr ""
 
 msgid "Delete Permanently"
 msgstr "永久删除"
@@ -3714,11 +3834,11 @@ msgstr "详细诊断信息"
 msgid "Details"
 msgstr "详情"
 
-msgid "Detected in {0}"
-msgstr "在 {0} 中检测到"
-
 msgid "Detected GitQuire projects"
 msgstr "检测到的 GitQuire 项目"
+
+msgid "Detected in {0}"
+msgstr "在 {0} 中检测到"
 
 msgid "Detecting"
 msgstr "正在检测"
@@ -3879,6 +3999,9 @@ msgstr "完成"
 msgid "Done"
 msgstr "完成"
 
+msgid "Done, due earlier"
+msgstr ""
+
 msgid "Done."
 msgstr "完成。"
 
@@ -3891,9 +4014,6 @@ msgstr "下载 {0}"
 msgid "Download and install updates automatically"
 msgstr "自动下载并安装更新"
 
-msgid "Download app"
-msgstr "下载应用"
-
 msgid "Download file"
 msgstr "下载文件"
 
@@ -3905,6 +4025,9 @@ msgstr "正在下载 {0} {1}…"
 
 msgid "Downloads a fresh copy from GitHub."
 msgstr "从 GitHub 下载一份全新的副本。"
+
+msgid "Draft"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Draft"
@@ -3933,6 +4056,12 @@ msgstr "拖放文件以附加"
 
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "拖放、粘贴或附加最多 {MAX_ATTACHMENTS} 张图片。"
+
+msgid "Due {label}"
+msgstr ""
+
+msgid "Due {label}, overdue"
+msgstr ""
 
 msgid "Duplicate"
 msgstr "创建副本"
@@ -4031,14 +4160,17 @@ msgstr "编辑这条评论"
 msgid "Edit this HTML — the preview updates live."
 msgstr "编辑这段 HTML——预览会实时更新。"
 
+msgid "Edit view"
+msgstr ""
+
 msgid "Edit wiki link"
 msgstr "编辑维基链接"
 
-msgid "Edited"
-msgstr "已编辑"
-
 msgid "edited"
 msgstr ""
+
+msgid "Edited"
+msgstr "已编辑"
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo}编辑"
@@ -4114,6 +4246,9 @@ msgstr "邮箱地址"
 
 msgid "Email for followups"
 msgstr "用于后续联系的邮箱"
+
+msgid "Email me new mentions"
+msgstr ""
 
 msgid "Email support about this report"
 msgstr "就此报告发送邮件给支持团队"
@@ -4200,11 +4335,11 @@ msgstr "启用自动（仅拉取）"
 msgid "Enable Auto (Pull only)?"
 msgstr "启用自动（仅拉取）？"
 
-msgid "Enable indexes"
-msgstr "启用索引"
-
 msgid "Enable GitQuire tools for {0}?"
 msgstr "为 {0} 启用 GitQuire 工具？"
+
+msgid "Enable indexes"
+msgstr "启用索引"
 
 msgid "Enable plugins"
 msgstr "启用插件"
@@ -4227,11 +4362,11 @@ msgstr "为这个项目启用终端"
 msgid "Enable Themes"
 msgstr "启用主题"
 
-msgid "Enabling index generation"
-msgstr "启用索引生成"
-
 msgid "Enabling GitQuire tools"
 msgstr "正在启用 GitQuire 工具"
+
+msgid "Enabling index generation"
+msgstr "启用索引生成"
 
 msgid "Ended"
 msgstr "已结束"
@@ -4260,6 +4395,9 @@ msgstr "请输入主机名，例如 github.example.com。"
 msgid "Enter a name for this theme."
 msgstr "输入此主题的名称。"
 
+msgid "Enter a name."
+msgstr ""
+
 msgid "Enter a number of seconds between {minimum} and {maximum}."
 msgstr "请输入 {minimum} 到 {maximum} 之间的秒数。"
 
@@ -4277,6 +4415,9 @@ msgstr "请为这个模板输入标题。"
 
 msgid "Enter a valid branch name (no spaces, no leading dot, no \"..\")."
 msgstr "请输入有效的分支名（不能有空格、不能以点开头、不能包含 \"..\"）。"
+
+msgid "Enter a valid email address."
+msgstr ""
 
 msgid "Enter a valid theme name."
 msgstr "输入有效的主题名称。"
@@ -4320,6 +4461,15 @@ msgstr "每个概念文档都带有一个非空类型。这是 OKF 的一致性�
 
 msgid "every doc"
 msgstr "所有文档"
+
+msgid "Everyone"
+msgstr ""
+
+msgid "Everyone editing this space moves to that branch."
+msgstr ""
+
+msgid "Everyone moves to the new branch once it is created."
+msgstr ""
 
 msgid "Everything from {source} is already up to date"
 msgstr "来自 {source} 的内容均已是最新"
@@ -4759,6 +4909,12 @@ msgstr "「文件」侧边栏"
 msgid "Files toolbar"
 msgstr "「文件」工具栏"
 
+msgid "Filter by page"
+msgstr ""
+
+msgid "Filter by property"
+msgstr ""
+
 msgid "Filter languages"
 msgstr "筛选语言"
 
@@ -4876,15 +5032,6 @@ msgstr "无法附加文件夹和空文件，请直接拖放文件本身。"
 
 msgid "Follow the agent's edits"
 msgstr "跟随智能体的编辑"
-
-msgid "Follow us on"
-msgstr "关注我们："
-
-msgid "Follow us on social media"
-msgstr "在社交媒体上关注我们"
-
-msgid "Follow us on X"
-msgstr "在 X 上关注我们"
 
 msgid "Following the agent's edits"
 msgstr "正在跟随智能体的编辑"
@@ -5053,6 +5200,222 @@ msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
 
+msgid "GitQuire"
+msgstr "GitQuire"
+
+msgid "GitQuire can't sign in to GitHub for this project."
+msgstr "GitQuire 无法为此项目登录 GitHub。"
+
+msgid "GitQuire checked {subject}"
+msgstr "GitQuire 检查了 {subject}"
+
+msgid "GitQuire checked the project"
+msgstr "GitQuire 检查了项目"
+
+msgid "GitQuire checks for and downloads updates in the background."
+msgstr "GitQuire 会在后台检查并下载更新。"
+
+msgid "GitQuire could not find this agent on this machine."
+msgstr "GitQuire 未在此设备上找到该智能体。"
+
+msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
+msgstr "GitQuire 无法连接到项目服务器以检查索引维护。项目重新连接后，状态会更新。"
+
+msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
+msgstr "GitQuire 无法完成此项目的设置。工作树已创建，但未打开。"
+
+msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
+msgstr "GitQuire 无法读取 .ok/local/config.yml 中的 terminal.shell，将改用可用的 Windows shell。"
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
+msgstr "GitQuire 无法在 .ok/local/terminal 下写入启动设置，因为该文件夹未安全地包含在此项目中。请确认它是项目内的真实文件夹，而不是链接。Claude 将要求你批准 GitQuire。"
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
+msgstr "GitQuire 此次无法在 .ok/local/terminal 下写入启动设置。请确认该文件夹可写。Claude 将要求你批准 GitQuire。"
+
+msgid "GitQuire created a share link"
+msgstr "GitQuire 创建了分享链接"
+
+msgid "GitQuire created a share link for {subject}"
+msgstr "GitQuire 为 {subject} 创建了分享链接"
+
+msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
+msgstr "GitQuire 在包含 Markdown 的每个文件夹中创建并维护名为 index.md 的导航文件。"
+
+msgid "GitQuire deleted {subject}"
+msgstr "GitQuire 删除了 {subject}"
+
+msgid "GitQuire deleted a document"
+msgstr "GitQuire 删除了一个文档"
+
+msgid "GitQuire discovery skill"
+msgstr "GitQuire 发现技能"
+
+msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
+msgstr "GitQuire 无法识别此条目，且无法在此文件格式中安全替换。"
+
+msgid "GitQuire does not recognize this entry. Turning it on replaces it."
+msgstr "GitQuire 无法识别此条目。启用后将替换它。"
+
+msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
+msgstr "GitQuire 不会自行检查或下载更新。需要新版本时，仍可使用“检查更新”。"
+
+msgid "GitQuire edited {subject}"
+msgstr "GitQuire 编辑了 {subject}"
+
+msgid "GitQuire edited a document"
+msgstr "GitQuire 编辑了一个文档"
+
+msgid "GitQuire files were removed"
+msgstr "已移除 GitQuire 文件"
+
+msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
+msgstr "GitQuire 没有为这个主机保存任何凭据。请在「设置」中添加一个令牌，或者让 git 使用它已有的凭据。"
+
+msgid "GitQuire imported {source}"
+msgstr "GitQuire 导入了 {source}"
+
+msgid "GitQuire imported a skill"
+msgstr "GitQuire 导入了一个技能"
+
+msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
+msgstr "GitQuire 会在 <0>{projectDir}</0> 初始化——它是 <1>{pickedRelative}</1> 的上级目录，因为其中包含 <2>.git</2> 文件夹（每个 git 仓库一个 .ok/）。<3>内容目录</3>默认为 <4>.</4>（整个仓库）；输入子文件夹可缩小范围。"
+
+msgid "GitQuire installed {subject}"
+msgstr "GitQuire 安装了 {subject}"
+
+msgid "GitQuire installed a skill"
+msgstr "GitQuire 安装了一个技能"
+
+msgid "GitQuire integrations checked."
+msgstr "已检查 GitQuire 集成。"
+
+msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
+msgstr "这里的 GitQuire 设置在仓库根目录，因此入门包会放进 <0>{sanitized}</0>，而不是仓库顶层。"
+
+msgid "GitQuire is using this GitHub account."
+msgstr "GitQuire 正在使用这个 GitHub 账户。"
+
+msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
+msgstr "GitQuire 会持续重试，并在文件可以读取后立即显示这些设置。"
+
+msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
+msgstr "GitQuire 未修改此文件，因为无法安全地解析它。请手动修复该文件，然后重试。"
+
+msgid "GitQuire listed the installed skills"
+msgstr "GitQuire 列出了已安装的技能"
+
+msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
+msgstr "跨项目的 GitQuire 日志。当前未打开任何项目，因此不包含项目服务器日志。"
+
+msgid "GitQuire logs, including activity across projects."
+msgstr "GitQuire 日志，包括跨项目的活动。"
+
+msgid "GitQuire looked at the link graph"
+msgstr "GitQuire 查看了链接图谱"
+
+msgid "GitQuire looked up links for {subject}"
+msgstr "GitQuire 查找了 {subject} 的链接"
+
+msgid "GitQuire looked up the authoring palette"
+msgstr "GitQuire 查看了创作面板"
+
+msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
+msgstr "GitQuire 在包含 Markdown 的每个文件夹中维护一个名为 index.md 的导航文件，每个文件夹按类型列出该文件夹的文档并链接到其子文件夹。当您的文档发生更改时，它会重写这些文件，并且您自己编辑到其中的任何内容都会被替换。"
+
+msgid "GitQuire moved {subject} to {destination}"
+msgstr "GitQuire 将 {subject} 移动到 {destination}"
+
+msgid "GitQuire moved a document"
+msgstr "GitQuire 移动了一个文档"
+
+msgid "GitQuire on GitHub"
+msgstr "GitHub 上的 GitQuire"
+
+msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
+msgstr "这台电脑上的 GitQuire 已换成另一个构建，但这个标签页仍在运行旧的构建。"
+
+msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+msgstr "这台电脑上的 GitQuire 现在是 v{serverVersion}，但这个标签页仍在运行 v{tabVersion}。"
+
+msgid "GitQuire opened the live preview"
+msgstr "GitQuire 打开了实时预览"
+
+msgid "GitQuire quit unexpectedly last time."
+msgstr "GitQuire 上次意外退出了。"
+
+msgid "GitQuire ran {command}"
+msgstr "GitQuire 运行了 {command}"
+
+msgid "GitQuire ran {tool}"
+msgstr "GitQuire 运行了 {tool}"
+
+msgid "GitQuire ran a command"
+msgstr "GitQuire 运行了一条命令"
+
+msgid "GitQuire read the edit history"
+msgstr "GitQuire 查看了编辑历史"
+
+msgid "GitQuire read the history of {subject}"
+msgstr "GitQuire 查看了 {subject} 的历史"
+
+msgid "GitQuire read the project settings"
+msgstr "GitQuire 读取了项目设置"
+
+msgid "GitQuire read the setting {key}"
+msgstr "GitQuire 读取了设置 {key}"
+
+msgid "GitQuire restored an earlier version"
+msgstr "GitQuire 恢复了较早的版本"
+
+msgid "GitQuire restored an earlier version of {subject}"
+msgstr "GitQuire 恢复了 {subject} 的较早版本"
+
+msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
+msgstr "当文档更改时，GitQuire 会重写这些 index.md 文件，因此对它们的手动编辑将被替换。"
+
+msgid "GitQuire saved a checkpoint"
+msgstr "GitQuire 保存了一个检查点"
+
+msgid "GitQuire searched for {query}"
+msgstr "GitQuire 搜索了 {query}"
+
+msgid "GitQuire searched the knowledge base"
+msgstr "GitQuire 搜索了知识库"
+
+msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
+msgstr "已保存 GitQuire 技能。请在 Claude Desktop 中上传，然后再次点击 Cowork。"
+
+msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
+msgstr "GitQuire 会把配置和内部文件保存在你项目根目录中新建的 <0>.ok</0> 目录里。"
+
+msgid "GitQuire tools are available in this thread."
+msgstr "此线程中已可使用 GitQuire 工具。"
+
+msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
+msgstr "GitQuire 工具不可用，因为项目文件夹缺失、无法访问或已更改。请检查其位置和权限，然后重试。"
+
+msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
+msgstr "GitQuire 工具不可用：{bridgePath} 处已存在一个并非 GitQuire 写入的文件。"
+
+msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
+msgstr "GitQuire 工具不可用：{bridgePath} 处已有内容，但无法读取，因此 GitQuire 未做改动。"
+
+msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
+msgstr "GitQuire 会在 <0>{gitRoot}</0> 初始化——它是你新文件夹的上级目录，因为其中包含 <1>.git</1> 文件夹（每个 git 仓库一个项目）。"
+
+msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
+msgstr "GitQuire 会自动创建提交并推送到你的远程仓库。如果你不希望 git 历史中出现自动提交，就不应该启用自动同步。"
+
+msgid "GitQuire wrote a document"
+msgstr "GitQuire 写入了一个文档"
+
+msgid "GitQuire wrote to {subject}"
+msgstr "GitQuire 写入了 {subject}"
+
+msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
+msgstr "GitQuire 自己的 {0} 副本已损坏，无法运行。它可以下载一份新的 {1} {2}（约 {3} MB，来自 {4}）来替换它。"
+
 msgid "Give it a name before editing its colors."
 msgstr "请先命名主题，再编辑颜色。"
 
@@ -5102,6 +5465,18 @@ msgstr "文档链接的图形可视化。"
 
 msgid "Grid of rows and columns with a header row."
 msgstr "由行和列组成的表格，带一行表头。"
+
+msgid "Group action items"
+msgstr ""
+
+msgid "Group by due date"
+msgstr ""
+
+msgid "Group by page"
+msgstr ""
+
+msgid "Group by person"
+msgstr ""
 
 msgid "Group skills by source"
 msgstr "按来源分组技能"
@@ -5203,9 +5578,6 @@ msgstr "已隐藏文件夹“{basename}”"
 msgid "Hide"
 msgstr "隐藏"
 
-msgid "Hide keyboard"
-msgstr ""
-
 msgid "Hide {0} editor"
 msgstr "隐藏 {0} 编辑器"
 
@@ -5244,6 +5616,9 @@ msgstr "隐藏文件夹"
 
 msgid "Hide HTML preview"
 msgstr "隐藏 HTML 预览"
+
+msgid "Hide keyboard"
+msgstr ""
 
 msgid "Hide original"
 msgstr "隐藏原始版本"
@@ -5669,6 +6044,10 @@ msgstr "从 {plugin} 安装"
 msgid "Install from {source}"
 msgstr "从 {source} 安装"
 
+#. Checkbox that wires the GitQuire MCP into every detected AI tool
+msgid "Install GitQuire in your AI tools"
+msgstr "在你的 AI 工具中安装 GitQuire"
+
 msgid "Install handoff failed: {msg}"
 msgstr "安装交接失败：{msg}"
 
@@ -5689,10 +6068,6 @@ msgstr "安装到"
 
 msgid "Install on all agents"
 msgstr "安装到所有智能体"
-
-#. Checkbox that wires the GitQuire MCP into every detected AI tool
-msgid "Install GitQuire in your AI tools"
-msgstr "在你的 AI 工具中安装 GitQuire"
 
 msgid "Install skill"
 msgstr "安装技巧"
@@ -5920,6 +6295,9 @@ msgstr "语言"
 msgid "Last activity {lastActivity}"
 msgstr "最近活动：{lastActivity}"
 
+msgid "Later"
+msgstr ""
+
 msgid "Latest edit"
 msgstr "最近一次编辑"
 
@@ -6026,6 +6404,9 @@ msgstr ""
 msgid "Link to a page or external URL."
 msgstr "链接到某个页面或外部 URL。"
 
+msgid "Link to new page \"{0}\""
+msgstr ""
+
 msgid "Link URL"
 msgstr "链接 URL"
 
@@ -6049,6 +6430,9 @@ msgstr "链接"
 
 msgid "Links & images"
 msgstr "链接与图片"
+
+msgid "Links to pages that do not exist. Choose a page to open it and fix the link there."
+msgstr ""
 
 msgid "Lint plugins — which rule families run and their per-rule settings — are configured on their own tab under This project → Plugins."
 msgstr "检查插件——运行哪些规则族及其逐条规则的设置——在「本项目 → 插件」下的独立标签页中配置。"
@@ -6110,6 +6494,9 @@ msgstr "正在加载文件"
 msgid "Loading folder contents"
 msgstr "正在加载文件夹内容"
 
+msgid "Loading GitQuire skills"
+msgstr "正在加载 GitQuire 技能"
+
 msgid "Loading graph"
 msgstr "正在加载关系图"
 
@@ -6118,9 +6505,6 @@ msgstr "正在加载 {pageTarget} 的标题"
 
 msgid "Loading image"
 msgstr "正在加载图片"
-
-msgid "Loading GitQuire skills"
-msgstr "正在加载 GitQuire 技能"
 
 msgid "Loading pages"
 msgstr "正在加载页面"
@@ -6172,6 +6556,9 @@ msgstr "正在加载你的报告"
 
 msgid "Loading..."
 msgstr "正在加载…"
+
+msgid "Loading…"
+msgstr ""
 
 msgid "Local changes blocked the merge"
 msgstr "本地改动阻止了合并"
@@ -6278,6 +6665,12 @@ msgstr "梳理架构"
 msgid "Mark a block as the source of truth. Mirrors elsewhere update live as you edit it."
 msgstr "把某个块标记为事实来源。你编辑它时，别处的镜像会实时更新。"
 
+msgid "Mark all as read"
+msgstr ""
+
+msgid "Mark done: {text}"
+msgstr ""
+
 msgid "Mark every comment in {0} to send"
 msgstr "勾选 {0} 中的所有评论以发送"
 
@@ -6298,6 +6691,9 @@ msgstr "Markdown 源码"
 
 msgid "markdownlint rules"
 msgstr "markdownlint 规则"
+
+msgid "Marked done: {text}"
+msgstr ""
 
 msgid "Match case"
 msgstr "区分大小写"
@@ -6328,6 +6724,15 @@ msgstr "中号章节标题。"
 
 msgid "Mention a page"
 msgstr "提及页面"
+
+msgid "Mentioning me"
+msgstr ""
+
+msgid "Mentions"
+msgstr ""
+
+msgid "Mentions, {0} unread"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Merged"
@@ -6440,6 +6845,9 @@ msgstr "安装量最高"
 
 msgid "Move"
 msgstr "移动"
+
+msgid "Move \"{title}\" to"
+msgstr ""
 
 msgid "Move {0} to Global"
 msgstr "将 {0} 个技能移至全局"
@@ -6642,6 +7050,9 @@ msgstr "名称为必填项"
 msgid "Name your theme"
 msgstr "为主题命名"
 
+msgid "name@example.com"
+msgstr ""
+
 msgid "Navigate CodeMirror source search results or dismiss the search panel."
 msgstr "在 CodeMirror 源码搜索结果之间移动，或关闭搜索面板。"
 
@@ -6690,11 +7101,17 @@ msgstr "有新动态"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "新纪录 · 按<0>空格</0>再玩一次"
 
+msgid "New branch"
+msgstr ""
+
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "新分支 <0>{trimmed}</0> 将基于 <1>{currentBaseLabel}</1> 创建，位于 <2>.ok/worktrees/</2> 下自己的 worktree 中。"
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "新分支 <0>{trimmed}</0> 将基于当前提交创建，位于 <1>.ok/worktrees/</1> 下自己的 worktree 中。"
+
+msgid "New branch…"
+msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "来自远程的新改动会自动出现在你的副本中。"
@@ -6734,6 +7151,12 @@ msgstr "新的忽略模式"
 
 msgid "New languages may need an internet connection and time to become available."
 msgstr "新语言可能需要联网并等待一段时间才能使用。"
+
+msgid "New meeting note"
+msgstr ""
+
+msgid "New mentions are emailed to {0}"
+msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "{editor} 版本的新名称"
@@ -6780,6 +7203,9 @@ msgstr "新建 worktree"
 msgid "New worktree…"
 msgstr "新建 worktree…"
 
+msgid "Next 7 days"
+msgstr ""
+
 msgid "Next change"
 msgstr "下一处改动"
 
@@ -6794,6 +7220,9 @@ msgstr "下一个标签页"
 
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "还没有 <0>.markdownlint.*</0> 文件——所有规则都按与 VS Code markdownlint 扩展相同的默认值运行：除行长度外全部开启。"
+
+msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
+msgstr ""
 
 msgid "No active or recent GitQuire projects were found."
 msgstr "没有找到活跃或最近的 GitQuire 项目。"
@@ -6852,6 +7281,9 @@ msgstr "这个版本没有正文改动。"
 msgid "No body changes in this version"
 msgstr "这个版本没有正文改动"
 
+msgid "No broken links."
+msgstr ""
+
 msgid "No bug reports yet."
 msgstr "还没有错误报告。"
 
@@ -6893,6 +7325,9 @@ msgstr "没有孤立页面。只有既无入链又无出链的页面才会出现
 
 msgid "No docs registered under #{tagDocsName}."
 msgstr "#{tagDocsName} 下没有登记任何文档。"
+
+msgid "No due date"
+msgstr ""
 
 msgid "No edit session yet"
 msgstr "还没有编辑会话"
@@ -7005,6 +7440,15 @@ msgstr "{docName} 中没有镜像来源块"
 msgid "No Outgoing"
 msgstr "无出链"
 
+msgid "No page has a date yet. Give a page a date property (\"date: 2026-11-12\"), or choose \"New meeting note\"."
+msgstr ""
+
+msgid "No page has properties yet. Open a page, choose \"Add properties\" and give it for example a type and a status. It then shows up here."
+msgstr ""
+
+msgid "No page matches."
+msgstr ""
+
 msgid "No pages are missing incoming graph links."
 msgstr "没有页面缺少入链。"
 
@@ -7020,6 +7464,9 @@ msgstr "没有找到与 \"{trimmedQuery}\" 匹配的页面"
 msgid "No pages link here yet."
 msgstr "还没有页面链接到这里。"
 
+msgid "No pages match this view."
+msgstr ""
+
 msgid "No pages matched \"{semanticQueryText}\" by meaning."
 msgstr "按语义没有页面与 \"{semanticQueryText}\" 匹配。"
 
@@ -7034,6 +7481,9 @@ msgstr "没有发现问题。"
 
 msgid "No project templates yet. Create one to make it available everywhere in this project. Folder-scoped templates live on each folder's overview page."
 msgstr "还没有项目模板。创建一个，就能在这个项目的任何地方使用它。文件夹范围的模板保存在各个文件夹的总览页上。"
+
+msgid "No property with a few values to group by. Set \"group:\" in the view block."
+msgstr ""
 
 msgid "No recent files"
 msgstr "没有最近的文件"
@@ -7101,11 +7551,20 @@ msgstr "没有找到模板。"
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "还没有模板。添加一个，让这个文件夹中的新文档有个现成的起点。"
 
+msgid "No value"
+msgstr ""
+
 msgid "No workspace"
 msgstr "无工作区"
 
 msgid "No worktrees found."
 msgstr "未找到工作树。"
+
+msgid "Nobody has mentioned you yet. Mentions in discussions show up here."
+msgstr ""
+
+msgid "Nobody mentioned"
+msgstr ""
 
 msgid "None"
 msgstr "无"
@@ -7195,6 +7654,12 @@ msgstr "{agentName} 已有 {stalledMinutes, plural, other {# 分钟}}没有任�
 
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "在您检查并发送报告之前，任何信息都不会离开您的计算机。"
+
+msgid "Nothing matches the filter."
+msgstr ""
+
+msgid "Nothing matches."
+msgstr ""
 
 msgid "Nothing moves until you ask — pull and push from the sync menu."
 msgstr "在你发起操作之前不会有任何变动——请在同步菜单中拉取和推送。"
@@ -7446,35 +7911,8 @@ msgstr "在 worktree 中打开"
 msgid "Open it there"
 msgstr "在那里打开"
 
-msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
-msgstr "GitQuire 无法连接到项目服务器以检查索引维护。项目重新连接后，状态会更新。"
-
-msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
-msgstr "GitQuire 在包含 Markdown 的每个文件夹中创建并维护名为 index.md 的导航文件。"
-
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 指导"
-
-msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
-msgstr "GitQuire 在包含 Markdown 的每个文件夹中维护一个名为 index.md 的导航文件，每个文件夹按类型列出该文件夹的文档并链接到其子文件夹。当您的文档发生更改时，它会重写这些文件，并且您自己编辑到其中的任何内容都会被替换。"
-
-msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
-msgstr "当文档更改时，GitQuire 会重写这些 index.md 文件，因此对它们的手动编辑将被替换。"
-
-msgid "GitQuire tools are available in this thread."
-msgstr "此线程中已可使用 GitQuire 工具。"
-
-msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "GitQuire 工具不可用，因为项目文件夹缺失、无法访问或已更改。请检查其位置和权限，然后重试。"
-
-msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
-msgstr "GitQuire 工具不可用：{bridgePath} 处已存在一个并非 GitQuire 写入的文件。"
-
-msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
-msgstr "GitQuire 工具不可用：{bridgePath} 处已有内容，但无法读取，因此 GitQuire 未做改动。"
-
-msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "GitQuire 自己的 {0} 副本已损坏，无法运行。它可以下载一份新的 {1} {2}（约 {3} MB，来自 {4}）来替换它。"
 
 msgid "Open link"
 msgstr "打开链接"
@@ -7493,6 +7931,15 @@ msgstr "智能体编辑时打开预览"
 
 msgid "Open project menu"
 msgstr "打开项目菜单"
+
+msgid "Open pull request"
+msgstr ""
+
+msgid "Open pull request…"
+msgstr ""
+
+msgid "Open pull requests"
+msgstr ""
 
 msgid "Open recent project"
 msgstr "打开最近的项目"
@@ -7514,6 +7961,9 @@ msgstr "打开源码检查面板"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "来源：{mirrorSrc}"
+
+msgid "Open tasks"
+msgstr ""
 
 msgid "Open terminal"
 msgstr "打开终端"
@@ -7578,6 +8028,9 @@ msgstr "已打开位于 {ancestorPath} 的现有 GitQuire 项目"
 msgid "Opened on branch {branch}"
 msgstr "已在分支 {branch} 上打开"
 
+msgid "Opened pull request #{number}"
+msgstr ""
+
 msgid "Opening {openingLabel}…"
 msgstr "正在打开 {openingLabel}…"
 
@@ -7587,194 +8040,8 @@ msgstr "正在打开 worktree"
 msgid "Opening..."
 msgstr "正在打开…"
 
-msgid "GitQuire"
-msgstr "GitQuire"
-
-msgid "GitQuire can't sign in to GitHub for this project."
-msgstr "GitQuire 无法为此项目登录 GitHub。"
-
-msgid "GitQuire checked {subject}"
-msgstr "GitQuire 检查了 {subject}"
-
-msgid "GitQuire checked the project"
-msgstr "GitQuire 检查了项目"
-
-msgid "GitQuire checks for and downloads updates in the background."
-msgstr "GitQuire 会在后台检查并下载更新。"
-
-msgid "GitQuire could not find this agent on this machine."
-msgstr "GitQuire 未在此设备上找到该智能体。"
-
-msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
-msgstr "GitQuire 无法完成此项目的设置。工作树已创建，但未打开。"
-
-msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "GitQuire 无法读取 .ok/local/config.yml 中的 terminal.shell，将改用可用的 Windows shell。"
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
-msgstr "GitQuire 无法在 .ok/local/terminal 下写入启动设置，因为该文件夹未安全地包含在此项目中。请确认它是项目内的真实文件夹，而不是链接。Claude 将要求你批准 GitQuire。"
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
-msgstr "GitQuire 此次无法在 .ok/local/terminal 下写入启动设置。请确认该文件夹可写。Claude 将要求你批准 GitQuire。"
-
-msgid "GitQuire created a share link"
-msgstr "GitQuire 创建了分享链接"
-
-msgid "GitQuire created a share link for {subject}"
-msgstr "GitQuire 为 {subject} 创建了分享链接"
-
-msgid "GitQuire deleted {subject}"
-msgstr "GitQuire 删除了 {subject}"
-
-msgid "GitQuire deleted a document"
-msgstr "GitQuire 删除了一个文档"
-
-msgid "GitQuire discovery skill"
-msgstr "GitQuire 发现技能"
-
-msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "GitQuire 无法识别此条目，且无法在此文件格式中安全替换。"
-
-msgid "GitQuire does not recognize this entry. Turning it on replaces it."
-msgstr "GitQuire 无法识别此条目。启用后将替换它。"
-
-msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
-msgstr "GitQuire 不会自行检查或下载更新。需要新版本时，仍可使用“检查更新”。"
-
-msgid "GitQuire edited {subject}"
-msgstr "GitQuire 编辑了 {subject}"
-
-msgid "GitQuire edited a document"
-msgstr "GitQuire 编辑了一个文档"
-
-msgid "GitQuire files were removed"
-msgstr "已移除 GitQuire 文件"
-
-msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
-msgstr "GitQuire 没有为这个主机保存任何凭据。请在「设置」中添加一个令牌，或者让 git 使用它已有的凭据。"
-
-msgid "GitQuire imported {source}"
-msgstr "GitQuire 导入了 {source}"
-
-msgid "GitQuire imported a skill"
-msgstr "GitQuire 导入了一个技能"
-
-msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
-msgstr "GitQuire 会在 <0>{projectDir}</0> 初始化——它是 <1>{pickedRelative}</1> 的上级目录，因为其中包含 <2>.git</2> 文件夹（每个 git 仓库一个 .ok/）。<3>内容目录</3>默认为 <4>.</4>（整个仓库）；输入子文件夹可缩小范围。"
-
-msgid "GitQuire installed {subject}"
-msgstr "GitQuire 安装了 {subject}"
-
-msgid "GitQuire installed a skill"
-msgstr "GitQuire 安装了一个技能"
-
-msgid "GitQuire integrations checked."
-msgstr "已检查 GitQuire 集成。"
-
-msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
-msgstr "这里的 GitQuire 设置在仓库根目录，因此入门包会放进 <0>{sanitized}</0>，而不是仓库顶层。"
-
-msgid "GitQuire is using this GitHub account."
-msgstr "GitQuire 正在使用这个 GitHub 账户。"
-
-msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
-msgstr "GitQuire 会持续重试，并在文件可以读取后立即显示这些设置。"
-
-msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "GitQuire 未修改此文件，因为无法安全地解析它。请手动修复该文件，然后重试。"
-
-msgid "GitQuire listed the installed skills"
-msgstr "GitQuire 列出了已安装的技能"
-
-msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
-msgstr "跨项目的 GitQuire 日志。当前未打开任何项目，因此不包含项目服务器日志。"
-
-msgid "GitQuire logs, including activity across projects."
-msgstr "GitQuire 日志，包括跨项目的活动。"
-
-msgid "GitQuire looked at the link graph"
-msgstr "GitQuire 查看了链接图谱"
-
-msgid "GitQuire looked up links for {subject}"
-msgstr "GitQuire 查找了 {subject} 的链接"
-
-msgid "GitQuire looked up the authoring palette"
-msgstr "GitQuire 查看了创作面板"
-
-msgid "GitQuire moved {subject} to {destination}"
-msgstr "GitQuire 将 {subject} 移动到 {destination}"
-
-msgid "GitQuire moved a document"
-msgstr "GitQuire 移动了一个文档"
-
-msgid "GitQuire on GitHub"
-msgstr "GitHub 上的 GitQuire"
-
-msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
-msgstr "这台电脑上的 GitQuire 已换成另一个构建，但这个标签页仍在运行旧的构建。"
-
-msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
-msgstr "这台电脑上的 GitQuire 现在是 v{serverVersion}，但这个标签页仍在运行 v{tabVersion}。"
-
-msgid "GitQuire opened the live preview"
-msgstr "GitQuire 打开了实时预览"
-
-msgid "GitQuire quit unexpectedly last time."
-msgstr "GitQuire 上次意外退出了。"
-
-msgid "GitQuire ran {command}"
-msgstr "GitQuire 运行了 {command}"
-
-msgid "GitQuire ran {tool}"
-msgstr "GitQuire 运行了 {tool}"
-
-msgid "GitQuire ran a command"
-msgstr "GitQuire 运行了一条命令"
-
-msgid "GitQuire read the edit history"
-msgstr "GitQuire 查看了编辑历史"
-
-msgid "GitQuire read the history of {subject}"
-msgstr "GitQuire 查看了 {subject} 的历史"
-
-msgid "GitQuire read the project settings"
-msgstr "GitQuire 读取了项目设置"
-
-msgid "GitQuire read the setting {key}"
-msgstr "GitQuire 读取了设置 {key}"
-
-msgid "GitQuire restored an earlier version"
-msgstr "GitQuire 恢复了较早的版本"
-
-msgid "GitQuire restored an earlier version of {subject}"
-msgstr "GitQuire 恢复了 {subject} 的较早版本"
-
-msgid "GitQuire saved a checkpoint"
-msgstr "GitQuire 保存了一个检查点"
-
-msgid "GitQuire searched for {query}"
-msgstr "GitQuire 搜索了 {query}"
-
-msgid "GitQuire searched the knowledge base"
-msgstr "GitQuire 搜索了知识库"
-
-msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "已保存 GitQuire 技能。请在 Claude Desktop 中上传，然后再次点击 Cowork。"
-
-msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
-msgstr "GitQuire 会把配置和内部文件保存在你项目根目录中新建的 <0>.ok</0> 目录里。"
-
-msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
-msgstr "GitQuire 会在 <0>{gitRoot}</0> 初始化——它是你新文件夹的上级目录，因为其中包含 <1>.git</1> 文件夹（每个 git 仓库一个项目）。"
-
-msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
-msgstr "GitQuire 会自动创建提交并推送到你的远程仓库。如果你不希望 git 历史中出现自动提交，就不应该启用自动同步。"
-
-msgid "GitQuire wrote a document"
-msgstr "GitQuire 写入了一个文档"
-
-msgid "GitQuire wrote to {subject}"
-msgstr "GitQuire 写入了 {subject}"
+msgid "Opening…"
+msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "打开文件夹选择器，选择把仓库克隆到哪里。"
@@ -7867,6 +8134,9 @@ msgstr "超出 {budgetLabel} token 预算"
 msgid "Over the {budgetLabel} token guidance. Everything here loads into the agent's context when the skill is used — keep it lean, or move detail into references/ files that load only on demand."
 msgstr "超出 {budgetLabel} 个 token 的建议上限。技能被使用时这些内容会全部载入智能体上下文——请保持精简，或将细节移入仅按需加载的 references/ 文件。"
 
+msgid "Overdue"
+msgstr ""
+
 msgid "Overlapping edits"
 msgstr "重叠的编辑"
 
@@ -7900,6 +8170,9 @@ msgstr "页面标题响应不是 JSON"
 msgid "Page link"
 msgstr "页面链接"
 
+msgid "Page name"
+msgstr ""
+
 msgid "Page not found"
 msgstr "找不到页面"
 
@@ -7917,6 +8190,9 @@ msgstr "页面会在搜索第一次需要它们时生成嵌入向量。"
 
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "已建立索引的页面：{semanticIndexedCount} / {semanticTotalCount}。"
+
+msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgstr ""
 
 msgid "Pan down"
 msgstr "向下平移"
@@ -8044,6 +8320,9 @@ msgstr "权限不足"
 
 msgid "Permission required"
 msgstr "需要授权"
+
+msgid "Person"
+msgstr ""
 
 msgid "Personal access token"
 msgstr "个人访问令牌"
@@ -8228,9 +8507,6 @@ msgstr "{0} 中的问题"
 msgid "Product updates"
 msgstr "产品动态"
 
-msgid "Product updates in your inbox."
-msgstr "把产品动态发到你的邮箱。"
-
 msgid "project"
 msgstr "项目"
 
@@ -8293,6 +8569,9 @@ msgstr "属性名"
 
 msgid "Property value"
 msgstr "属性值"
+
+msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgstr ""
 
 msgid "Protected branch — cannot push"
 msgstr "受保护分支——无法推送"
@@ -8664,12 +8943,6 @@ msgstr "移除两者"
 msgid "Remove from recent projects"
 msgstr "从最近的项目中移除"
 
-msgid "Remove item {0}"
-msgstr "移除项目 {0}"
-
-msgid "Remove link"
-msgstr "移除链接"
-
 msgid "Remove GitQuire from {0}"
 msgstr "把 GitQuire 从 {0} 中移除"
 
@@ -8681,6 +8954,12 @@ msgstr "从 {rowLabel} 中移除 GitQuire"
 
 msgid "Remove GitQuire?"
 msgstr "移除 GitQuire？"
+
+msgid "Remove item {0}"
+msgstr "移除项目 {0}"
+
+msgid "Remove link"
+msgstr "移除链接"
 
 msgid "Remove property"
 msgstr "移除属性"
@@ -8787,6 +9066,12 @@ msgstr "重新打开最近关闭的那个编辑器标签页。"
 msgid "Reopen this window to sign in with your browser"
 msgstr "重新打开这个窗口，以便用浏览器登录"
 
+msgid "Reopen: {text}"
+msgstr ""
+
+msgid "Reopened: {text}"
+msgstr ""
+
 msgid "Reopening \"{docName}\" with a fresh local collaboration cache."
 msgstr "正在用全新的本地协作缓存重新打开“{docName}”。"
 
@@ -8862,10 +9147,10 @@ msgstr "报告问题…"
 msgid "Report a problem with this chat…"
 msgstr "报告此对话的问题…"
 
-msgid "Report an issue on GitHub"
+msgid "Report an issue"
 msgstr ""
 
-msgid "Report an issue"
+msgid "Report an issue on GitHub"
 msgstr ""
 
 msgid "Report from {0}"
@@ -9154,11 +9439,17 @@ msgstr "沙箱化的 HTML 嵌入——写下 HTML，实时查看渲染效果。"
 msgid "Save"
 msgstr "保存"
 
+msgid "Save as page"
+msgstr ""
+
 msgid "Save changes"
 msgstr "保存更改"
 
 msgid "Save failed: {error}"
 msgstr "保存失败：{error}"
+
+msgid "Save page"
+msgstr ""
 
 msgid "Save queued message"
 msgstr "保存排队中的消息"
@@ -9166,8 +9457,14 @@ msgstr "保存排队中的消息"
 msgid "Save this comment (Enter)"
 msgstr "保存这条评论（Enter）"
 
+msgid "Save view as page"
+msgstr ""
+
 msgid "Saved"
 msgstr "已保存"
+
+msgid "Saved as {docName}.md"
+msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "已保存为 <0>{slug}.md</0>"
@@ -9186,6 +9483,9 @@ msgstr "无法加载已保存的主题。仍显示上次可用的主题列表。
 
 msgid "Saved to"
 msgstr "保存到"
+
+msgid "Saved view: {0}"
+msgstr ""
 
 msgid "Saved with the project for your team."
 msgstr "与项目一起保存，供你的团队使用。"
@@ -9277,6 +9577,9 @@ msgstr "搜索文件、文件夹或命令"
 msgid "Search folders"
 msgstr "搜索文件夹"
 
+msgid "Search for a page and choose it to insert a link."
+msgstr ""
+
 msgid "Search icons..."
 msgstr "搜索图标..."
 
@@ -9285,6 +9588,9 @@ msgstr "搜索语言"
 
 msgid "Search matches file names, paths, and folders. Open a file to search its body <0>{0}</0>."
 msgstr "搜索会匹配文件名、路径和文件夹。打开一个文件即可搜索它的正文 <0>{0}</0>。"
+
+msgid "Search pages"
+msgstr ""
 
 msgid "Search projects"
 msgstr "搜索项目"
@@ -9367,9 +9673,6 @@ msgstr "查看完整的安装指南"
 msgid "See what's added"
 msgstr "查看将添加的内容"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
-msgstr ""
-
 msgid "Select {name}"
 msgstr "选择 {name}"
 
@@ -9405,6 +9708,9 @@ msgstr "选中下一处出现"
 
 msgid "Select spelling languages"
 msgstr "选择拼写检查语言"
+
+msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgstr ""
 
 msgid "Select the full source document."
 msgstr "选中整个源码文档。"
@@ -9457,8 +9763,14 @@ msgstr "发送"
 msgid "Send & continue"
 msgstr "发送并继续"
 
+msgid "Send a new code"
+msgstr ""
+
 msgid "Send checked comments to chat"
 msgstr "把勾选的评论发送到对话"
+
+msgid "Send code"
+msgstr ""
 
 msgid "Send comments to"
 msgstr "把评论发送到"
@@ -9693,9 +10005,6 @@ msgstr "显示"
 msgid "Show .ok folders"
 msgstr "显示 .ok 文件夹"
 
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
-
 msgid "Show {0} more"
 msgstr "再显示 {0} 个"
 
@@ -9728,6 +10037,9 @@ msgstr "显示图示"
 
 msgid "Show document panel"
 msgstr "显示文档面板"
+
+msgid "Show done"
+msgstr ""
 
 msgid "Show Editor"
 msgstr "显示编辑器"
@@ -9792,6 +10104,9 @@ msgstr "显示替换"
 msgid "Show resolved"
 msgstr "显示已解决"
 
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
+
 msgid "Show resolved comments ({0})"
 msgstr "显示已解决的评论（{0}）"
 
@@ -9818,6 +10133,15 @@ msgstr "显示缩略图"
 
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "正在显示 \"{semanticResultsLabel}\" 的结果"
+
+msgid "Showing the first {MAX_ROWS} items."
+msgstr ""
+
+msgid "Showing the first {MAX_ROWS} pages."
+msgstr ""
+
+msgid "Showing the first {shownCount} of {rowCount} pages. Filter to narrow the list."
+msgstr ""
 
 msgid "Showing top {0} headings — keep typing to narrow"
 msgstr "正在显示最相关的 {0} 个标题——继续输入可缩小范围"
@@ -10112,9 +10436,6 @@ msgstr "把选中的内容放入智能体面板，随时可以补充并发送。
 msgid "stale Git entry"
 msgstr "过期的 Git 条目"
 
-msgid "Star us on GitHub"
-msgstr "在 GitHub 上给我们点个星"
-
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -10181,6 +10502,9 @@ msgstr "正在启动终端…"
 msgid "Starting the agent…"
 msgstr "正在启动智能体…"
 
+msgid "Starts from {from}. Everyone moves to the new branch once it is created."
+msgstr ""
+
 msgid "status"
 msgstr "状态"
 
@@ -10216,6 +10540,9 @@ msgstr "要让 {0} 不再读取“{1}”吗？{subRoot} 会保留它的其他技
 
 msgid "Stop {0} reading this skill"
 msgstr "让 {0} 不再读取这个技能"
+
+msgid "Stop emailing me"
+msgstr ""
 
 msgid "Stop fixing files"
 msgstr "停止修复文件"
@@ -10277,6 +10604,9 @@ msgstr "总结我这周改了些什么"
 msgid "Swap file sidebar and document panel"
 msgstr "交换文件侧边栏与文档面板的位置"
 
+msgid "Switch"
+msgstr ""
+
 msgid "Switch and update branch"
 msgstr "切换并更新分支"
 
@@ -10286,11 +10616,17 @@ msgstr "在可视化编辑器和源码编辑器之间切换，并保持当前位
 msgid "Switch branch"
 msgstr "切换分支"
 
+msgid "Switch everyone to"
+msgstr ""
+
 msgid "Switch project"
 msgstr "切换项目"
 
 msgid "Switch project…"
 msgstr "切换项目…"
+
+msgid "Switch to {target}?"
+msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "请切换到某个分支后再共享。"
@@ -10303,6 +10639,9 @@ msgstr "切换 worktree"
 
 msgid "Switch worktree…"
 msgstr "切换 worktree…"
+
+msgid "Switched to {branch}"
+msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "切换智能体模式"
@@ -10545,8 +10884,17 @@ msgstr "感谢你的反馈！"
 msgid "Thanks for the report!"
 msgstr "感谢你的报告！"
 
+msgid "That action item changed on its page. Reload to see it."
+msgstr ""
+
+msgid "That action item changed on its page. The list was reloaded."
+msgstr ""
+
 msgid "That branch is already open in another worktree."
 msgstr "那个分支已经在另一个 worktree 中打开了。"
+
+msgid "That code is not right."
+msgstr ""
 
 msgid "That conflict is no longer available."
 msgstr "该冲突已不再可用。"
@@ -10586,9 +10934,6 @@ msgstr "该消息已发出——你的编辑未生效。"
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "解析成功，但这不是 base16 主题。"
-
-msgid "The quoted text is no longer in the page."
-msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0} 的下载请求超时。"
@@ -10639,11 +10984,11 @@ msgstr "此对话之外的某个来源要求智能体进程停止（{signal}）�
 msgid "The agent ran out of memory."
 msgstr "智能体内存不足。"
 
-msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
-msgstr "智能体的安装缺少文件（找不到某个模块）。重新安装智能体通常可以解决。"
-
 msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
 msgstr "智能体的 GitQuire 工具无法连接到服务器。请让智能体重试；如果一直失败，请开始新对话。"
+
+msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
+msgstr "智能体的安装缺少文件（找不到某个模块）。重新安装智能体通常可以解决。"
 
 msgid "The agent's persona, values, and voice."
 msgstr "智能体的人设、价值观和语气。"
@@ -10677,6 +11022,12 @@ msgstr "对话中的消息、工具调用及其输出，方便我们了解智能
 
 msgid "The Claude Desktop App didn't open the file. Is it installed? ({msg})"
 msgstr "Claude 桌面应用没有打开这个文件。它安装了吗？（{msg}）"
+
+msgid "The code has expired. Ask for a new one."
+msgstr ""
+
+msgid "The confirmation mail could not be sent. Check the address and try again."
+msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "无法将对话添加到此报告中。"
@@ -10729,24 +11080,6 @@ msgstr "文件夹和模板都已经在这里了，没有需要添加的内容。
 msgid "The formula <0>c = √(a² + b²)</0> renders inline."
 msgstr "公式 <0>c = √(a² + b²)</0> 以行内形式渲染。"
 
-msgid "The index files stay in place. GitQuire removes only the Git rule it added."
-msgstr "索引文件保留在原处。 GitQuire 仅删除它添加的 Git 规则。"
-
-msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
-msgstr "界面仍是你当时阅读的语言。请检查网络连接，然后重新加载再试一次。"
-
-msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
-msgstr "GitQuire 使用的语言；“跟随系统”会跟随你的操作系统。你自己的笔记仍保持你书写时的语言。"
-
-msgid "The menu label agents pick this template by (required)."
-msgstr "智能体选择这个模板时看到的菜单标签（必填）。"
-
-msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
-msgstr "你的端点提供的模型 id。它的向量维度会自动检测——清空该字段即可恢复为 {DEFAULT_EMBEDDINGS_MODEL}。"
-
-msgid "the open agent"
-msgstr "已打开的智能体"
-
 msgid "The GitQuire project is missing at this checkout path."
 msgstr "此检出路径中缺少 GitQuire 项目。"
 
@@ -10762,8 +11095,35 @@ msgstr "GitQuire 服务器响应超时，更改可能已经生效。请让代理
 msgid "The GitQuire server took too long to answer. Ask the agent to try again."
 msgstr "GitQuire 服务器响应超时。请让代理重试。"
 
+msgid "The index files stay in place. GitQuire removes only the Git rule it added."
+msgstr "索引文件保留在原处。 GitQuire 仅删除它添加的 Git 规则。"
+
+msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
+msgstr "界面仍是你当时阅读的语言。请检查网络连接，然后重新加载再试一次。"
+
+msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
+msgstr "GitQuire 使用的语言；“跟随系统”会跟随你的操作系统。你自己的笔记仍保持你书写时的语言。"
+
+msgid "The meeting note was created, but its date and headings couldn't be added."
+msgstr ""
+
+msgid "The menu label agents pick this template by (required)."
+msgstr "智能体选择这个模板时看到的菜单标签（必填）。"
+
+msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
+msgstr "你的端点提供的模型 id。它的向量维度会自动检测——清空该字段即可恢复为 {DEFAULT_EMBEDDINGS_MODEL}。"
+
+msgid "the open agent"
+msgstr "已打开的智能体"
+
 msgid "The original text was deleted."
 msgstr "原始文本已被删除。"
+
+msgid "The page shows this view live, for everyone, and is committed like any page."
+msgstr ""
+
+msgid "The page was created, but the view couldn't be written into it."
+msgstr ""
 
 msgid "The path can't leave the skill (no . or ..)"
 msgstr "路径不能离开技能（不允许 . 或 ..）"
@@ -10803,6 +11163,9 @@ msgstr "提供商的向量大小不断变化。请重启 GitQuire，然后再按
 
 msgid "The public URL your tunnel serves (for example your Tailscale https://…ts.net address). The server admits requests for this host and advertises it in the URLs it issues."
 msgstr "您的隧道所服务的公开 URL（例如您的 Tailscale https://…ts.net 地址）。服务器接受针对此主机的请求，并在其发出的 URL 中公布该地址。"
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The repository is private and your GitHub account doesn't have access to it."
 msgstr "这个仓库是私有的，你的 GitHub 账户没有访问权限。"
@@ -10938,6 +11301,9 @@ msgstr "带主题的预览"
 
 msgid "Themes"
 msgstr "主题"
+
+msgid "There is no address waiting for a code."
+msgstr ""
 
 msgid "There's no project folder for this window, so a terminal can't start here."
 msgstr "这个窗口没有对应的项目文件夹，因此无法在这里启动终端。"
@@ -11302,6 +11668,9 @@ msgstr "这会把内容发送到你的电脑之外"
 msgid "This sends the link's address off your machine"
 msgstr "这会把链接地址发送到你的电脑之外"
 
+msgid "This server does not send mail to that domain."
+msgstr ""
+
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "此服务器没有内置身份验证。任何能够访问该隧道的人都将获得对此知识库的完全控制权。请在其前面设置一道身份验证关卡，例如专用的 Tailscale 网络或带身份验证的反向代理。"
 
@@ -11353,6 +11722,9 @@ msgstr "此更新已不再可供安装。"
 msgid "This usually means one of:"
 msgstr "这通常意味着以下之一："
 
+msgid "This wiki has more pages than a view can show; the list is cut off."
+msgstr ""
+
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "这个窗口无法保存令牌——请从应用主窗口打开「设置」。"
 
@@ -11392,6 +11764,9 @@ msgstr "要保存此设置，请开启项目 MCP 服务器或全局 MCP 服务�
 
 msgid "Today"
 msgstr "今天"
+
+msgid "Today's meeting note already exists. It was opened."
+msgstr ""
 
 msgid "Toggle a bullet list."
 msgstr "切换无序列表。"
@@ -11478,8 +11853,14 @@ msgstr "已为 {host} 上的 {login} 保存令牌。要移除它，请运行 <0>
 msgid "tokens"
 msgstr "token"
 
+msgid "Too many confirmation mails for now. Try again later."
+msgstr ""
+
 msgid "Too many live references on this page. This board was not loaded."
 msgstr "此页面的实时引用过多。此画板未加载。"
+
+msgid "Too many wrong codes. Ask for a new one."
+msgstr ""
 
 msgid "Too slow"
 msgstr "太慢了"
@@ -11704,6 +12085,9 @@ msgstr "取消固定 {accessibleLabel}"
 msgid "Unpin tab"
 msgstr "取消固定标签页"
 
+msgid "Unread"
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "无法识别的链接"
 
@@ -11719,8 +12103,14 @@ msgstr "无法解析文件 {identity}。转到引用位置。"
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "无法解析图片 {identity}。转到引用位置。"
 
+msgid "Unsaved changes block the switch"
+msgstr ""
+
 msgid "Unsupported file type: {fileType}."
 msgstr "不支持的文件类型：{fileType}。"
+
+msgid "Until then, mentions still go to {0}."
+msgstr ""
 
 msgid "Untitled report"
 msgstr "未命名报告"
@@ -11768,14 +12158,8 @@ msgstr "更新于 {updatedRelative}"
 msgid "updated folder properties"
 msgstr "已更新文件夹属性"
 
-msgid "Updated to Version {version}"
-msgstr "已更新到版本 {version}"
-
 msgid "Updates"
 msgstr ""
-
-msgid "Updates and feedback"
-msgstr "更新与反馈"
 
 msgid "Updates flow in"
 msgstr "更新会自动流入"
@@ -11985,6 +12369,9 @@ msgstr "查看来源"
 msgid "View the {plugin} plugin repo"
 msgstr "查看 {plugin} 插件的代码仓库"
 
+msgid "Views"
+msgstr ""
+
 msgid "Visibility"
 msgstr "可见性"
 
@@ -12015,6 +12402,9 @@ msgstr "可视化编辑器表格"
 msgid "Visual editor table selection"
 msgstr "可视化编辑器表格选区"
 
+msgid "Wait a minute before asking for another code."
+msgstr ""
+
 msgid "Waiting for authorization"
 msgstr "正在等待授权"
 
@@ -12035,6 +12425,9 @@ msgstr "我们无法检查你的 GitHub 连接。"
 
 msgid "We couldn't clone this repository."
 msgstr "我们无法克隆这个仓库。"
+
+msgid "We sent a code to {pending}. Enter it to turn on email."
+msgstr ""
 
 msgid "We'll build <0>openknowledge.skill</0>, save it to <1>~/Downloads</1>, and open the Claude Desktop App for you."
 msgstr "我们会构建 <0>openknowledge.skill</0>，保存到 <1>~/Downloads</1>，并为你打开 Claude 桌面应用。"
@@ -12401,60 +12794,3 @@ msgstr "缩小"
 
 msgid "Zoom Out"
 msgstr "缩小"
-
-msgid "Could not load branches"
-msgstr ""
-
-msgid "Switched to {branch}"
-msgstr ""
-
-msgid "Unsaved changes block the switch"
-msgstr ""
-
-msgid "Could not switch to {branch}"
-msgstr ""
-
-msgid "Switch everyone to"
-msgstr ""
-
-msgid "New branch…"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
-msgid "Switch to {target}?"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Switch"
-msgstr ""
-
-msgid "New branch"
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Create and switch"
-msgstr ""
-
-msgid "Opened pull request #{number}"
-msgstr ""
-
-msgid "Open pull request"
-msgstr ""
-
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
-msgstr ""
-
-msgid "Opening…"
-msgstr ""
