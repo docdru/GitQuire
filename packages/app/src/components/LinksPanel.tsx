@@ -27,6 +27,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { GitQuireRelationChips } from '@/components/GitQuireRelationChips';
 import { resolveLinkTargetIntent } from '@/components/link-target-intent';
+import { linkRowLocation, snippetAddsContext } from '@/gitquire-links/link-row';
 import { usePageList } from '@/components/PageListContext';
 import { LINT_NAV_EVENT, type LintNavDetail } from '@/components/ProblemsPanel';
 import { isKnownPageDocName } from '@/components/page-membership';
@@ -189,13 +190,15 @@ function LinkRow({
   relations = [],
   relationDirection = 'outgoing',
 }: LinkRowProps) {
-  const showPath = path !== undefined && path !== title;
+  const location = linkRowLocation(path);
+  const showLocation = location !== undefined && location !== title;
+  const showSnippet = snippetAddsContext(snippet, [title, path, ...relations]);
   const iconNode = (
     <span className={cn('mt-0.5 shrink-0', iconColorClass ?? 'text-muted-foreground')}>{icon}</span>
   );
 
   const overlayClassName =
-    'block w-full truncate text-left font-medium text-foreground no-underline outline-none after:absolute after:inset-0 after:rounded-md focus-visible:after:ring-2 focus-visible:after:ring-ring';
+    'block min-w-0 flex-1 truncate text-left font-medium text-foreground no-underline outline-none after:absolute after:inset-0 after:rounded-md focus-visible:after:ring-2 focus-visible:after:ring-ring';
   const primaryInteractive = href ? (
     <a
       href={href}
@@ -234,15 +237,17 @@ function LinkRow({
     <div className="group relative flex items-start gap-2.5 rounded-md px-3 py-2.5 transition-colors hover:bg-muted/80">
       <div className="mt-px flex items-center">{iconNode}</div>
       <div className="min-w-0 flex-1 space-y-0.5 text-1sm">
-        <GitQuireRelationChips relations={relations} direction={relationDirection} />
-        {primaryInteractive}
-        {showPath ? (
-          <div className="truncate font-mono text-xs text-muted-foreground">
-            {path}
-            {anchor ? <span className="ml-1">· #{anchor}</span> : null}
+        <div className="flex min-w-0 items-center gap-1.5">
+          <GitQuireRelationChips relations={relations} direction={relationDirection} />
+          {primaryInteractive}
+        </div>
+        {showLocation || anchor ? (
+          <div className="truncate text-2xs text-muted-foreground/80">
+            {showLocation ? location : null}
+            {anchor ? <span className={showLocation ? 'ml-1' : undefined}>#{anchor}</span> : null}
           </div>
         ) : null}
-        {snippet ? <p className="line-clamp-2 text-muted-foreground">{snippet}</p> : null}
+        {showSnippet ? <p className="line-clamp-2 text-muted-foreground">{snippet}</p> : null}
       </div>
       {trailing ? <div className="mt-0.5 flex shrink-0 items-center">{trailing}</div> : null}
     </div>

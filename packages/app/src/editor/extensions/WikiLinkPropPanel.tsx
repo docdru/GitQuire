@@ -19,7 +19,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { GitQuireRelationChips } from '@/components/GitQuireRelationChips';
 import { Spinner } from '@/components/ui/spinner';
+import { relationAtLink, setLinkRelation } from '@/gitquire-links/relation-editor';
+import { RelationField } from '@/gitquire-links/RelationField';
+import { isValidRelationInput } from '@/gitquire-links/relation-fields';
 import { InteractionPropPanel } from '../../components/InteractionPropPanel';
 import { resolveLinkTargetIntent } from '../../components/link-target-intent';
 import { usePageList } from '../../components/PageListContext';
@@ -61,12 +65,18 @@ interface EditWikiLinkDialogProps {
   target: string;
   alias: string | null;
   anchor: string | null;
+  relation: string | null;
   pages: ReadonlySet<string>;
   assetPaths: ReadonlySet<string>;
   filePaths: ReadonlySet<string>;
   loading: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (target: string, alias: string | null, anchor: string | null) => void;
+  onSave: (
+    target: string,
+    alias: string | null,
+    anchor: string | null,
+    relation: string | null,
+  ) => void;
 }
 
 function EditWikiLinkDialog({
@@ -74,6 +84,7 @@ function EditWikiLinkDialog({
   target,
   alias,
   anchor,
+  relation,
   pages,
   assetPaths,
   filePaths,
@@ -84,6 +95,7 @@ function EditWikiLinkDialog({
   const [editTarget, setEditTarget] = useState(target);
   const [editAlias, setEditAlias] = useState(alias ?? '');
   const [editAnchor, setEditAnchor] = useState(anchor ?? '');
+  const [editRelation, setEditRelation] = useState(relation ?? '');
   const targetId = useId();
   const anchorId = useId();
   const aliasId = useId();
@@ -105,12 +117,18 @@ function EditWikiLinkDialog({
     setEditTarget(target);
     setEditAlias(alias ?? '');
     setEditAnchor(anchor ?? '');
-  }, [open, target, alias, anchor]);
+    setEditRelation(relation ?? '');
+  }, [open, target, alias, anchor, relation]);
 
   function handleSave() {
     const trimmed = editTarget.trim();
-    if (!trimmed) return;
-    onSave(trimmed, editAlias.trim() || null, editAnchor.trim() || null);
+    if (!trimmed || !isValidRelationInput(editRelation)) return;
+    onSave(
+      trimmed,
+      editAlias.trim() || null,
+      editAnchor.trim() || null,
+      editRelation.trim() || null,
+    );
     onOpenChange(false);
   }
 
@@ -149,7 +167,7 @@ function EditWikiLinkDialog({
             <Trans>Edit wiki link</Trans>
           </DialogTitle>
           <DialogDescription>
-            <Trans>Modify the link target, anchor, and display label.</Trans>
+            <Trans>Modify the link target, relation, anchor, and display label.</Trans>
           </DialogDescription>
         </DialogHeader>
 
@@ -176,6 +194,12 @@ function EditWikiLinkDialog({
                 onKeyDown={handleKeyDown}
               />
             </div>
+
+            <RelationField
+              value={editRelation}
+              onChange={setEditRelation}
+              onKeyDown={handleKeyDown}
+            />
 
             <div>
               <label className="mb-1.5 block text-sm font-medium" htmlFor={aliasId}>
@@ -244,7 +268,10 @@ function EditWikiLinkDialog({
               <Trans>Cancel</Trans>
             </Button>
           </DialogClose>
-          <Button onClick={handleSave} disabled={!editTarget.trim()}>
+          <Button
+            onClick={handleSave}
+            disabled={!editTarget.trim() || !isValidRelationInput(editRelation)}
+          >
             <Trans>Save</Trans>
           </Button>
         </DialogFooter>
@@ -267,6 +294,7 @@ export function WikiLinkPropPanel({ editor, getPos, onClose, onNavigate }: WikiL
   const alias = normalizeNullableString(node?.attrs.alias);
   const anchor = normalizeNullableString(node?.attrs.anchor);
   const label = getWikiLinkText({ target, alias, anchor });
+  const relation = pos != null && node ? relationAtLink(editor.state.doc, pos) : null;
 
   const {
     addPage,
@@ -321,17 +349,21 @@ export function WikiLinkPropPanel({ editor, getPos, onClose, onNavigate }: WikiL
     return null;
   }
 
-  function handleSaveEdit(newTarget: string, newAlias: string | null, newAnchor: string | null) {
+  function handleSaveEdit(
+    newTarget: string,
+    newAlias: string | null,
+    newAnchor: string | null,
+    newRelation: string | null,
+  ) {
     const livePos = getPos();
     if (livePos == null) return;
-    editor.view.dispatch(
-      editor.state.tr.setNodeMarkup(livePos, undefined, {
-        ...editor.state.doc.nodeAt(livePos)?.attrs,
-        target: newTarget,
-        alias: newAlias,
-        anchor: newAnchor,
-      }),
-    );
+    const tr = editor.state.tr.setNodeMarkup(livePos, undefined, {
+      ...editor.state.doc.nodeAt(livePos)?.attrs,
+      target: newTarget,
+      alias: newAlias,
+      anchor: newAnchor,
+    });
+    editor.view.dispatch(setLinkRelation(tr, livePos, newRelation));
   }
 
   function handleRemove() {
@@ -504,6 +536,7 @@ export function WikiLinkPropPanel({ editor, getPos, onClose, onNavigate }: WikiL
       >
         <div className="flex items-center gap-2">
           {iconElement}
+          {relation ? <GitQuireRelationChips relations={[relation]} direction="outgoing" /> : null}
           <div className="min-w-0 flex-1">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -594,6 +627,7 @@ export function WikiLinkPropPanel({ editor, getPos, onClose, onNavigate }: WikiL
         target={target}
         alias={alias}
         anchor={anchor}
+        relation={relation}
         pages={pages}
         assetPaths={assetPaths}
         filePaths={filePaths}
