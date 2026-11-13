@@ -29,6 +29,7 @@ import { mergePatch } from '../../content/frontmatter-merge.ts';
 import { parentFolderOf } from '../../content/nested-folder-rules.ts';
 import { applySubstitution } from '../../content/substitution.ts';
 import { resolveTemplatesAvailable } from '../../content/templates-resolver.ts';
+import { internalRequestHeaders } from '../../gitquire/internal-request.ts';
 import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
 import { splitPayloadFrontmatter } from '../../payload-frontmatter.ts';
 import type { AgentIdentity } from '../agent-identity.ts';
@@ -603,6 +604,7 @@ async function handleAsset(
     } else {
       const res = await fetch(`${url}${uploadPath}`, {
         method: 'POST',
+        headers: internalRequestHeaders(),
         body: form,
         signal: AbortSignal.timeout(30_000),
       });

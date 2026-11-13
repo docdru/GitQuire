@@ -9,6 +9,7 @@ import {
 } from '@inkeep/open-knowledge-core';
 import { z } from 'zod';
 import { SUPPORTED_DOC_EXTENSIONS } from '../../doc-extensions.ts';
+import { internalRequestHeaders } from '../../gitquire/internal-request.ts';
 import { resolveWithinRoot } from './path-safety.ts';
 import { encodeDocName, resolvePreviewUrlForTool } from './preview-url.ts';
 import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';
@@ -252,7 +253,7 @@ export function register(server: ServerInstance, deps: ShareLinkDeps): void {
       try {
         res = await fetch(`${url}/api/share/construct-url`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { ...internalRequestHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
           signal: AbortSignal.timeout(30_000),
         });
