@@ -17,7 +17,12 @@ import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient } from './github-pulls.ts';
 import type { ScanFilter } from './page-scan.ts';
 import { setSessionPrincipalResolver } from './principal-directory.ts';
-import { bootstrapRepository, ensureAutoSyncMode, parseAutoSyncMode } from './repo-bootstrap.ts';
+import {
+  bootstrapRepository,
+  ensureAutoSyncMode,
+  parseAutoSyncMode,
+  runGitSync,
+} from './repo-bootstrap.ts';
 import { createGitQuireRoutes } from './routes.ts';
 
 export type { AccessGate, SessionUser } from './access-gate.ts';
@@ -130,6 +135,7 @@ export async function runGitQuireBootstrap(
     },
   });
   const outcome = await bootstrapRepository(dir, config, client);
+  runGitSync(['config', 'fetch.prune', 'true'], dir);
   if (!existsSync(join(dir, '.ok'))) initProject(dir);
   const sync = ensureAutoSyncMode(dir, syncMode);
   const repo = `${config.repo.owner}/${config.repo.name}`;

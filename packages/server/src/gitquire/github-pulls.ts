@@ -36,6 +36,7 @@ export interface GitHubPullsClient {
   createPullRequest: (input: CreatePullRequestInput) => Promise<PullRequestSummary>;
   branchExists: (branch: string) => Promise<boolean>;
   defaultBranch: () => Promise<string>;
+  mergedPullHeads?: (branch: string) => Promise<string[]>;
 }
 
 export interface GitHubPullsDeps {
@@ -168,6 +169,19 @@ export function createGitHubPullsClient(
     return fail(status, body, 'Checking the branch');
   }
 
+  async function mergedPullHeads(branch: string): Promise<string[]> {
+    const head = encodeURIComponent(`${repo.owner}:${branch}`);
+    const { status, body } = await call(`${repoPath}/pulls?state=closed&head=${head}&per_page=20`);
+    if (status !== 200 || !Array.isArray(body)) fail(status, body, 'Listing merged pull requests');
+    const heads: string[] = [];
+    for (const raw of body as Array<{ merged_at?: unknown; head?: { sha?: unknown } }>) {
+      if (typeof raw.merged_at === 'string' && typeof raw.head?.sha === 'string') {
+        heads.push(raw.head.sha);
+      }
+    }
+    return heads;
+  }
+
   let cachedDefault: string | undefined;
   async function defaultBranch(): Promise<string> {
     if (cachedDefault !== undefined) return cachedDefault;
@@ -183,5 +197,6 @@ export function createGitHubPullsClient(
     listOpenPullRequests: () => retryWhileUnavailable(listOpenPullRequests, deps.retry),
     createPullRequest: (input) => retryWhileUnavailable(() => createPullRequest(input), deps.retry),
     branchExists: (branch) => retryWhileUnavailable(() => branchExists(branch), deps.retry),
+    mergedPullHeads,
   };
 }

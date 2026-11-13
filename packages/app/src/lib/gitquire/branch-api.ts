@@ -6,6 +6,7 @@ export interface GitQuireBranches {
   local: string[];
   remoteOnly: string[];
   github: boolean;
+  currentMerged?: boolean;
 }
 
 export interface GitQuirePull {
