@@ -6373,6 +6373,9 @@ msgstr "লিংক প্রাকদর্শন"
 msgid "Link ready but could not copy to clipboard."
 msgstr "লিংক প্রস্তুত, কিন্তু ক্লিপবোর্ডে কপি করা যায়নি।"
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "লিংকের লক্ষ্য"
 
@@ -8854,6 +8857,9 @@ msgstr "আবার ইনস্টল করা হচ্ছে"
 
 msgid "Reject"
 msgstr "প্রত্যাখ্যান করুন"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "আপেক্ষিক পথ"

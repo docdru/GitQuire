@@ -6373,6 +6373,9 @@ msgstr "Pratinjau tautan"
 msgid "Link ready but could not copy to clipboard."
 msgstr "Tautan siap, tetapi tidak dapat disalin ke papan klip."
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "Tujuan tautan"
 
@@ -8854,6 +8857,9 @@ msgstr "Memasang ulang"
 
 msgid "Reject"
 msgstr "Tolak"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "Jalur relatif"

@@ -6377,6 +6377,9 @@ msgstr "链接预览"
 msgid "Link ready but could not copy to clipboard."
 msgstr "链接已生成，但无法复制到剪贴板。"
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "链接目标"
 
@@ -8858,6 +8861,9 @@ msgstr "正在重新安装"
 
 msgid "Reject"
 msgstr "拒绝"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "相对路径"

@@ -6377,6 +6377,9 @@ msgstr "معاينات الروابط"
 msgid "Link ready but could not copy to clipboard."
 msgstr "الرابط جاهز، لكن تعذّر نسخه إلى الحافظة."
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "وجهة الرابط"
 
@@ -8858,6 +8861,9 @@ msgstr "يجري إعادة التثبيت"
 
 msgid "Reject"
 msgstr "رفض"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "المسار النسبي"

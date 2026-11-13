@@ -6377,6 +6377,9 @@ msgstr "Aperçus de liens"
 msgid "Link ready but could not copy to clipboard."
 msgstr "Le lien est prêt, mais n'a pas pu être copié dans le presse-papiers."
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "Cible du lien"
 
@@ -8858,6 +8861,9 @@ msgstr "Réinstallation"
 
 msgid "Reject"
 msgstr "Rejeter"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "Chemin relatif"
