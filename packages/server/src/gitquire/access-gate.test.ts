@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type AccessGate,
   createAccessGate,
+  isInAppAgentPath,
   isPublicAsset,
   noreplyEmail,
   SESSION_COOKIE,
@@ -489,5 +490,49 @@ describe('createAccessGate upgrades', () => {
   it('leaves other upgrade paths to the server', () => {
     const gate = makeGate();
     expect(gate.admitUpgrade(fakeRequest('/other'), fakeSocket().socket)).toBe(true);
+  });
+
+  it('refuses in-app agent sessions while Ask AI is off, even when signed in', () => {
+    const gate = makeGate();
+    const sock = fakeSocket();
+    const req = fakeRequest('/collab/thread', { headers: { cookie: sessionCookie() } });
+    expect(gate.admitUpgrade(req, sock.socket)).toBe(false);
+    expect(sock.written).toContain('403 Forbidden');
+    expect(sock.destroyed).toBe(true);
+  });
+
+  it('admits in-app agent sessions when Ask AI is on', () => {
+    const gate = makeGate({ ...BASE_ENV, GITQUIRE_ASK_AI: 'on' });
+    const req = fakeRequest('/collab/thread', { headers: { cookie: sessionCookie() } });
+    expect(gate.admitUpgrade(req, fakeSocket().socket)).toBe(true);
+  });
+});
+
+describe('in-app agent routes', () => {
+  it('recognises the agent socket and routes', () => {
+    expect(isInAppAgentPath('/collab/thread')).toBe(true);
+    expect(isInAppAgentPath('/api/acp/catalog')).toBe(true);
+    expect(isInAppAgentPath('/api/agent-integrations/apply')).toBe(true);
+    expect(isInAppAgentPath('/collab')).toBe(false);
+    expect(isInAppAgentPath('/collab/keepalive')).toBe(false);
+    expect(isInAppAgentPath('/api/agent-write-md')).toBe(false);
+    expect(isInAppAgentPath('/mcp')).toBe(false);
+  });
+
+  it('refuses them while Ask AI is off and lets them through when it is on', () => {
+    const off = fakeResponse();
+    const handledOff = makeGate().handleRequest(
+      fakeRequest('/api/acp/catalog', { headers: { cookie: sessionCookie() } }),
+      off.res,
+    );
+    expect(handledOff).toBe(true);
+    expect(off.status).toBe(403);
+    expect(JSON.parse(off.body).error).toBe('in-app-agents-off');
+
+    const handledOn = makeGate({ ...BASE_ENV, GITQUIRE_ASK_AI: 'on' }).handleRequest(
+      fakeRequest('/api/acp/catalog', { headers: { cookie: sessionCookie() } }),
+      fakeResponse().res,
+    );
+    expect(handledOn).toBe(false);
   });
 });

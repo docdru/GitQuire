@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { getAgentThreadClient, threadUrlFromCollabUrl } from '@/lib/acp/thread-client';
+import { useGitQuireFeatures } from '@/lib/gitquire/features';
 import { useCollabUrl } from '@/lib/use-collab-url';
 
 async function loadDevThreadHarnessInstaller(): Promise<
@@ -11,10 +12,11 @@ async function loadDevThreadHarnessInstaller(): Promise<
 
 export function AgentThreadClientBinder(): null {
   const { collabUrl } = useCollabUrl();
+  const { askAi } = useGitQuireFeatures();
 
   useEffect(() => {
-    getAgentThreadClient().setUrl(threadUrlFromCollabUrl(collabUrl));
-  }, [collabUrl]);
+    getAgentThreadClient().setUrl(askAi ? threadUrlFromCollabUrl(collabUrl) : null);
+  }, [collabUrl, askAi]);
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;

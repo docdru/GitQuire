@@ -64,6 +64,7 @@ import { requestDockPaneMove } from '@/lib/dock-move-requests';
 import { i18n } from '@/lib/i18n';
 import type { KeyboardShortcutId } from '@/lib/keyboard-shortcuts';
 import { openDocInNoteWindow } from '@/lib/open-note-window';
+import { paneVisibilityStore } from '@/lib/pane-visibility-store';
 import { moveChatHistory, type PhysicalSide, swapEditorSidebars } from '@/lib/sidebar-side-store';
 import { openSettings } from '@/lib/use-settings-route';
 import type { ViewMenuState } from '@/lib/view-menu-state-store';
@@ -410,6 +411,7 @@ const STATE_AVAILABILITY: Readonly<
 > = {
   'move-chat-history-left': (ctx) => ctx.chatHistorySide === 'right',
   'move-chat-history-right': (ctx) => ctx.chatHistorySide === 'left',
+  'toggle-agent-panel': () => paneVisibilityStore.getSnapshot().agents !== null,
 };
 
 function paletteCoreContext(ctx: PaletteCommandContext): CommandContext {

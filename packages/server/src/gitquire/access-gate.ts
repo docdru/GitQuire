@@ -117,6 +117,14 @@ export function isPublicAsset(path: string, method: string | undefined): boolean
   return PUBLIC_ASSET_PATHS.has(path) || PUBLIC_ICON_RE.test(path);
 }
 
+const IN_APP_AGENT_PREFIXES = ['/api/acp/', '/api/agent-integrations/', '/collab/thread'];
+
+export function isInAppAgentPath(path: string): boolean {
+  return IN_APP_AGENT_PREFIXES.some(
+    (prefix) => path === prefix.replace(/\/$/, '') || path.startsWith(prefix),
+  );
+}
+
 export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps): AccessGate {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
@@ -490,6 +498,10 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       });
       return true;
     }
+    if (!config.askAi && isInAppAgentPath(path)) {
+      sendJson(res, 403, { error: 'in-app-agents-off', enable: 'GITQUIRE_ASK_AI=on' });
+      return true;
+    }
     if (path.startsWith('/api/local-op/')) {
       const readOnlyStatus = path === '/api/local-op/auth/status' && req.method === 'GET';
       if (!readOnlyStatus && !isAdmin(user)) {
@@ -503,6 +515,12 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   function admitUpgrade(req: IncomingMessage, socket: Duplex): boolean {
     const { path } = pathOf(req);
     if (!path.startsWith('/collab')) return true;
+    if (!config.askAi && isInAppAgentPath(path)) {
+      deps.log.warn({ path }, '[gitquire-auth] refused in-app agent session: GITQUIRE_ASK_AI is off');
+      socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return false;
+    }
     if (sessionUser(req) !== undefined) return true;
     if (path === '/collab/keepalive' && admitAgent(req)) return true;
     deps.log.warn({ path }, '[gitquire-auth] refused unauthenticated websocket upgrade');
