@@ -1463,9 +1463,7 @@ test('composeFixAllProblemsPrompt names the doc scope and points at audit', () =
 
 test('composeFixAllProblemsPrompt names the project scope with no doc mention', () => {
   const prompt = composeFixAllProblemsPrompt(null);
-  expect(prompt).toContain(
-    "Fix every problem across this project's documents using GitQuire.",
-  );
+  expect(prompt).toContain("Fix every problem across this project's documents using GitQuire.");
   expect(prompt).toContain('Run the `audit` tool for the current list');
   expect(prompt).toContain('work file by file');
   expect(prompt).toContain("clears one document's mechanically-fixable problems at a time");

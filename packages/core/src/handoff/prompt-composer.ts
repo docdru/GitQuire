@@ -139,11 +139,9 @@ export function composeCreatePrompt(
       const briefPart =
         trimmed === ''
           ? `Let's work on this project using GitQuire.`
-          : [
-              "Here's what I'd like to do in this GitQuire project:",
-              '',
-              blockquote(trimmed),
-            ].join('\n');
+          : ["Here's what I'd like to do in this GitQuire project:", '', blockquote(trimmed)].join(
+              '\n',
+            );
       const base = mentionBlock === '' ? briefPart : [briefPart, '', mentionBlock].join('\n');
       return withTrailer(base);
     }

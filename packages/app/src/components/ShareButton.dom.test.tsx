@@ -38,7 +38,8 @@ function renderShareButton(input: ShareTargetInput | null) {
 }
 
 describe('ShareButton', () => {
-  const pageLink = (route: string) => `${window.location.origin}${window.location.pathname}${route}`;
+  const pageLink = (route: string) =>
+    `${window.location.origin}${window.location.pathname}${route}`;
 
   beforeEach(() => {
     if (typeof window !== 'undefined') window.location.hash = '';

@@ -11,9 +11,9 @@ describe('gitquirePageLink', () => {
   });
 
   test('links a folder overview', () => {
-    expect(gitquirePageLink({ kind: 'folder', folderRelativePath: 'project-atlas' }, location)).toBe(
-      'https://wiki.example.com/#/project-atlas/',
-    );
+    expect(
+      gitquirePageLink({ kind: 'folder', folderRelativePath: 'project-atlas' }, location),
+    ).toBe('https://wiki.example.com/#/project-atlas/');
   });
 
   test('keeps a sub-path the server is mounted under', () => {

@@ -21,9 +21,8 @@ export function McpInstall({ editor, children }: { editor: string; children?: Re
     <>
       <p>
         GitQuire runs on a server, so {editor} connects to it as a remote MCP server: your wiki's
-        address with <code>/mcp</code> at the end, such as{' '}
-        <code>https://wiki.example.com/mcp</code>. See{' '}
-        <Link href={CONNECTING_AGENTS_HREF}>Connecting agents</Link> for the setup.
+        address with <code>/mcp</code> at the end, such as <code>https://wiki.example.com/mcp</code>
+        . See <Link href={CONNECTING_AGENTS_HREF}>Connecting agents</Link> for the setup.
       </p>
       <p>
         If you also run the <code>ok</code> CLI on your own computer, <code>ok init</code> registers
