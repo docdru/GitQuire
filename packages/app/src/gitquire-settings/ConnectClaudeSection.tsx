@@ -70,7 +70,7 @@ function ExternalButton({ href, children }: { href: string; children: ReactNode 
 function ConnectorSteps({ url }: { url: string }) {
   const { t } = useLingui();
   return (
-    <ol className="list-decimal space-y-4 pl-5 text-sm" data-testid="connect-claude-steps">
+    <ol className="list-decimal space-y-4 ps-5 text-sm" data-testid="connect-claude-steps">
       <li className="space-y-2">
         <p>
           <Trans>Copy this address:</Trans>
@@ -102,15 +102,15 @@ function ConnectorSteps({ url }: { url: string }) {
   );
 }
 
-export function ConnectClaudeSection({
-  origin = typeof window === 'undefined' ? '' : window.location.origin,
-}: {
-  origin?: string;
-}) {
+function pageOrigin(): string {
+  return typeof window === 'undefined' ? '' : window.location.origin;
+}
+
+export function ConnectClaudeSection({ origin }: { origin?: string }) {
   const features = useGitQuireFeatures();
   const mode = connectClaudeMode(features);
   const titleId = useId();
-  const url = connectorUrl(origin);
+  const url = connectorUrl(origin ?? pageOrigin());
 
   return (
     <section aria-labelledby={titleId} className="space-y-6" data-testid="connect-claude-section">
