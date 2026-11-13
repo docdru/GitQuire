@@ -105,7 +105,7 @@ export function chatMessage(
     link: pageLink(config.externalUrl, mention.docName),
     mentioned: mention.logins.map((login) => `@${login}`),
     quote: clip(mention.quote),
-    comment: clip(mention.body),
+    comment: mention.kind === 'task' ? `☐ ${clip(mention.body)}` : clip(mention.body),
   };
 }
 

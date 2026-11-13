@@ -5,7 +5,8 @@ import { Check, MessagesSquare, Pencil, RotateCcw, Trash2, X } from 'lucide-reac
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { MentionTextarea } from '@/gitquire-people/MentionTextarea';
+import { knownLogins, usePeople } from '@/lib/gitquire/people';
 import { cn } from '@/lib/utils';
 
 import { type PlacedThread, placeThreads, readThreads } from './editor-threads';
@@ -75,17 +76,33 @@ async function applyChange(editor: Editor, change: ThreadChange): Promise<void> 
 }
 
 function MentionText({ body }: { body: string }) {
+  const { t } = useLingui();
+  const { loaded, people } = usePeople();
+  const known = knownLogins(people);
   return (
     <p className="whitespace-pre-wrap break-words text-sm">
-      {segmentMentions(body).map((segment) =>
-        segment.mention ? (
-          <span key={segment.start} className="font-medium text-primary">
+      {segmentMentions(body).map((segment) => {
+        if (!segment.mention) return <span key={segment.start}>{segment.text}</span>;
+        const recognised = !loaded || known.has(segment.text.slice(1).toLowerCase());
+        return recognised ? (
+          <span
+            key={segment.start}
+            className="rounded bg-primary/10 px-0.5 font-medium text-primary"
+            data-mention="known"
+          >
             {segment.text}
           </span>
         ) : (
-          <span key={segment.start}>{segment.text}</span>
-        ),
-      )}
+          <span
+            key={segment.start}
+            className="text-muted-foreground underline decoration-dotted"
+            title={t`Nobody with this GitHub username uses this wiki.`}
+            data-mention="unknown"
+          >
+            {segment.text}
+          </span>
+        );
+      })}
     </p>
   );
 }
@@ -138,13 +155,13 @@ function CommentRow({
   if (editing) {
     return (
       <div className="flex flex-col gap-2" data-testid="discussion-comment-edit">
-        <Textarea
+        <MentionTextarea
           rows={2}
           value={draft ?? ''}
           autoFocus
           disabled={busy}
           aria-label={t`Comment`}
-          onChange={(e) => setDraft(e.target.value)}
+          onValueChange={setDraft}
           onKeyDown={(e) => {
             if (e.nativeEvent.isComposing || busy) return;
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -281,11 +298,12 @@ function ThreadCard({
       )}
       {active && (
         <div className="flex flex-col gap-2">
-          <Textarea
+          <MentionTextarea
             rows={2}
             value={reply}
-            placeholder={t`Write a reply. Use @name to mention someone.`}
-            onChange={(e) => setReply(e.target.value)}
+            placeholder={t`Write a reply. Type @ to mention someone.`}
+            aria-label={t`Reply`}
+            onValueChange={setReply}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void send();
             }}
@@ -442,11 +460,13 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
         {ui.draft !== null && (
           <div className="flex flex-col gap-2 rounded-lg border border-info/40 p-3">
             <p className={cn(QUOTE_CLASS, 'border-info')}>{ui.draft.anchor.exact}</p>
-            <Textarea
+            <MentionTextarea
               rows={3}
               value={draftBody}
-              placeholder={t`Add a comment. Use @name to mention someone.`}
-              onChange={(e) => setDraftBody(e.target.value)}
+              placeholder={t`Add a comment. Type @ to mention someone.`}
+              aria-label={t`Comment`}
+              autoFocus
+              onValueChange={setDraftBody}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void createFromDraft();
               }}

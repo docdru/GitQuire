@@ -37,6 +37,13 @@ export interface GitHubPullsClient {
   branchExists: (branch: string) => Promise<boolean>;
   defaultBranch: () => Promise<string>;
   mergedPullHeads?: (branch: string) => Promise<string[]>;
+  collaborators?: () => Promise<RepoCollaborator[]>;
+}
+
+export interface RepoCollaborator {
+  id: number;
+  login: string;
+  avatarUrl: string;
 }
 
 export interface GitHubPullsDeps {
@@ -192,8 +199,27 @@ export function createGitHubPullsClient(
     return name;
   }
 
+  async function collaborators(): Promise<RepoCollaborator[]> {
+    const { status, body } = await call(
+      `${repoPath}/collaborators?affiliation=all&permission=push&per_page=100`,
+    );
+    if (status !== 200 || !Array.isArray(body)) fail(status, body, 'Listing collaborators');
+    return body.flatMap((raw): RepoCollaborator[] => {
+      const user = raw as { id?: unknown; login?: unknown; avatar_url?: unknown };
+      if (typeof user.id !== 'number' || typeof user.login !== 'string') return [];
+      return [
+        {
+          id: user.id,
+          login: user.login,
+          avatarUrl: typeof user.avatar_url === 'string' ? user.avatar_url : '',
+        },
+      ];
+    });
+  }
+
   return {
     defaultBranch: () => retryWhileUnavailable(defaultBranch, deps.retry),
+    collaborators,
     listOpenPullRequests: () => retryWhileUnavailable(listOpenPullRequests, deps.retry),
     createPullRequest: (input) => retryWhileUnavailable(() => createPullRequest(input), deps.retry),
     branchExists: (branch) => retryWhileUnavailable(() => branchExists(branch), deps.retry),

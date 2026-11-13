@@ -43,6 +43,7 @@ import { CommentShortcut } from '@/gitquire-comments/DiscussionBubbleButton';
 import { DiscussionLayer } from '@/gitquire-comments/DiscussionLayer';
 import { DiscussionPanel } from '@/gitquire-comments/DiscussionPanel';
 import { GitQuireRelationFields } from '@/gitquire-links/relation-editor';
+import { GitQuirePeopleMentions } from '@/gitquire-people/people-mention';
 import { TouchEditToolbar } from '@/gitquire-mobile/TouchEditToolbar';
 import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
 import { anchorFromHash } from '@/lib/doc-hash';
@@ -264,6 +265,7 @@ export function buildExtensionList(args: BuildEditorOptionsArgs): AnyExtension[]
     }),
     SkillPathLinks.configure({ docName: provider.configuration.name ?? '' }),
     GitQuireRelationFields,
+    GitQuirePeopleMentions,
     collaboration,
     Extension.create({
       name: 'imageUploadDecoration',

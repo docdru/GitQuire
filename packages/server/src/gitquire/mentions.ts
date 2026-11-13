@@ -17,6 +17,8 @@ const SEEN_WRITE_GAP_MS = 24 * 60 * 60 * 1000;
 
 export interface Mention {
   id: string;
+  kind?: 'comment' | 'task';
+  quiet?: boolean;
   path: string;
   docName: string;
   threadId: string;
@@ -29,7 +31,7 @@ export interface Mention {
   logins: string[];
 }
 
-export interface InboxMention extends Omit<Mention, 'logins'> {
+export interface InboxMention extends Omit<Mention, 'logins' | 'quiet'> {
   read: boolean;
 }
 
@@ -443,6 +445,7 @@ export function buildInbox(
   const mine = mentionsFor(reader, all);
   const items: InboxMention[] = mine.map((mention) => ({
     id: mention.id,
+    kind: mention.kind ?? 'comment',
     path: mention.path,
     docName: mention.docName,
     threadId: mention.threadId,
@@ -452,7 +455,7 @@ export function buildInbox(
     body: mention.body,
     quote: mention.quote,
     resolved: mention.resolved,
-    read: read.has(mention.id),
+    read: read.has(mention.id) || mention.quiet === true,
   }));
   return {
     login: reader.login,

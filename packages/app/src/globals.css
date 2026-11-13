@@ -7098,3 +7098,11 @@ html:not([data-color-theme]):not(.dark) [data-slot="kbd"] {
 .ProseMirror .gq-relation-syntax {
   display: none;
 }
+
+.ProseMirror .gq-mention {
+  padding: 0 0.15em;
+  border-radius: var(--radius-sm, 0.25rem);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  color: var(--primary);
+  font-weight: 500;
+}

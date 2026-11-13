@@ -107,7 +107,11 @@ import {
   tracedUnlinkSync,
   tracedWriteFile,
 } from './fs-traced.ts';
-import { attributeAgentEdit, attributeEdit } from './gitquire/principal-directory.ts';
+import {
+  attributeAgentEdit,
+  attributeEdit,
+  noteDocumentWriter,
+} from './gitquire/principal-directory.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
 import {
@@ -1784,6 +1788,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
         }
 
         const writer = resolveWriterFromOrigin(lastTransactionOrigin, getPrincipal);
+        if (writer) noteDocumentWriter(documentName, writer.id);
         if (writer && writer.id !== SERVICE_WRITER.id) {
           if (!hasContributor(writer.id)) {
             recordContributor(documentName, writer.id, writer.name, writer.id);
