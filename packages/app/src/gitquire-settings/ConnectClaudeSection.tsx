@@ -22,7 +22,15 @@ export function connectClaudeMode(features: GitQuireFeatures): ConnectClaudeMode
   return 'unavailable';
 }
 
-function CopyField({ value, label }: { value: string; label: string }) {
+export function CopyField({
+  value,
+  label,
+  testId = 'connect-claude-url',
+}: {
+  value: string;
+  label: string;
+  testId?: string;
+}) {
   const { t } = useLingui();
   const inputId = useId();
   const [copied, setCopied] = useState(false);
@@ -46,7 +54,7 @@ function CopyField({ value, label }: { value: string; label: string }) {
         value={value}
         className="font-mono text-1sm"
         onFocus={(event) => event.currentTarget.select()}
-        data-testid="connect-claude-url"
+        data-testid={testId}
       />
       <Button type="button" variant="outline" size="sm" onClick={copy} className="shrink-0 gap-1">
         {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
@@ -56,7 +64,7 @@ function CopyField({ value, label }: { value: string; label: string }) {
   );
 }
 
-function ExternalButton({ href, children }: { href: string; children: ReactNode }) {
+export function ExternalButton({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Button asChild variant="outline" size="sm" className="gap-1">
       <a href={href} target="_blank" rel="noreferrer">
@@ -102,7 +110,7 @@ function ConnectorSteps({ url }: { url: string }) {
   );
 }
 
-function pageOrigin(): string {
+export function pageOrigin(): string {
   return typeof window === 'undefined' ? '' : window.location.origin;
 }
 
