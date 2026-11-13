@@ -1,6 +1,6 @@
 import { useLingui } from '@lingui/react/macro';
 import { ChevronDown, ExternalLink, GitBranch, GitPullRequest, Plus } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -108,9 +108,13 @@ export function GitQuireBranchMenu() {
     }
   }
 
-  const switchToRef = useRef(switchTo);
-  switchToRef.current = switchTo;
   const followedMerge = useRef<string | null>(null);
+  const followMerge = useEffectEvent(async (merged: string, base: string) => {
+    if (followedMerge.current === merged) return;
+    followedMerge.current = merged;
+    toast.info(t`${merged} was merged on GitHub. Switching everyone to ${base}.`);
+    await switchTo(base);
+  });
 
   useEffect(() => {
     if (liveBranch === null) return;
@@ -119,13 +123,9 @@ export function GitQuireBranchMenu() {
       const next = await fetchBranches().catch(() => null);
       if (next === null || stopped) return;
       setBranches(next);
-      const merged = next.current;
-      if (next.currentMerged !== true || merged === null || followedMerge.current === merged) {
-        return;
+      if (next.currentMerged === true && next.current !== null) {
+        await followMerge(next.current, next.base);
       }
-      followedMerge.current = merged;
-      toast.info(t`${merged} was merged on GitHub. Switching everyone to ${next.base}.`);
-      await switchToRef.current(next.base);
     }
     void followMergedBranch();
     const timer = setInterval(() => void followMergedBranch(), MERGED_CHECK_MS);
@@ -133,7 +133,7 @@ export function GitQuireBranchMenu() {
       stopped = true;
       clearInterval(timer);
     };
-  }, [liveBranch, t]);
+  }, [liveBranch]);
 
   if (liveBranch === null) return null;
 
