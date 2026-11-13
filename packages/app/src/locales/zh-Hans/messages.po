@@ -678,7 +678,7 @@ msgstr "第 {displayLine} 行：{localizedMessage}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "来自 {server} MCP 服务器的 {mcpTool}"
 
-msgid "{merged} was merged on GitHub. Switching everyone to {0}."
+msgid "{merged} was merged on GitHub. Switching everyone to {base}."
 msgstr ""
 
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
