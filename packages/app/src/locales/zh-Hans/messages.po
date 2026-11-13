@@ -12101,8 +12101,8 @@ msgstr "使用 {editor} 的版本"
 msgid "Use {filenameVariable} at most once in each folder name."
 msgstr "每个文件夹名称中最多使用一次 {filenameVariable}。"
 
-msgid "Use <0>{copyShortcut}</0> to copy the link below, or open OK in the desktop app."
-msgstr "用 <0>{copyShortcut}</0> 复制下方的链接，或者在桌面应用中打开 OK。"
+msgid "Use <0>{copyShortcut}</0> to copy the link below."
+msgstr ""
 
 msgid "Use a folder you already have."
 msgstr "使用你已有的文件夹。"

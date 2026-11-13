@@ -12097,8 +12097,8 @@ msgstr "Pakai versi {editor}"
 msgid "Use {filenameVariable} at most once in each folder name."
 msgstr "Gunakan {filenameVariable} paling banyak sekali di setiap nama folder."
 
-msgid "Use <0>{copyShortcut}</0> to copy the link below, or open OK in the desktop app."
-msgstr "Gunakan <0>{copyShortcut}</0> untuk menyalin tautan di bawah, atau buka OK di aplikasi desktop."
+msgid "Use <0>{copyShortcut}</0> to copy the link below."
+msgstr ""
 
 msgid "Use a folder you already have."
 msgstr "Pakai folder yang sudah Anda punya."

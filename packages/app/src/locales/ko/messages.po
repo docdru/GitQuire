@@ -12101,8 +12101,8 @@ msgstr "{editor} 버전 사용"
 msgid "Use {filenameVariable} at most once in each folder name."
 msgstr "각 폴더 이름에는 {filenameVariable}을(를) 한 번만 사용하세요."
 
-msgid "Use <0>{copyShortcut}</0> to copy the link below, or open OK in the desktop app."
-msgstr "아래 링크 복사에는 <0>{copyShortcut}</0> 사용, 또는 데스크톱 앱에서 OK 열기"
+msgid "Use <0>{copyShortcut}</0> to copy the link below."
+msgstr ""
 
 msgid "Use a folder you already have."
 msgstr "이미 있는 폴더를 사용하세요."
