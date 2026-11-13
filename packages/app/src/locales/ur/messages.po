@@ -139,6 +139,12 @@ msgstr "{0, plural, one {# آئٹم} other {# آئٹمز}}"
 msgid "{0, plural, one {# key} other {# keys}}"
 msgstr "{0, plural, one {# کلید} other {# کلیدیں}}"
 
+msgid "{0, plural, one {# more} other {# more}}"
+msgstr ""
+
+msgid "{0, plural, one {# open item} other {# open items}}"
+msgstr ""
+
 msgid "{0, plural, one {# option set} other {# options set}}"
 msgstr "{0, plural, one {# آپشن مقرر} other {# آپشنز مقرر}}"
 
@@ -255,9 +261,6 @@ msgstr "{1} میں سے {0} پروجیکٹ منتخب"
 
 msgid "{0} of {1} selected"
 msgstr "{1} میں سے {0} منتخب"
-
-msgid "{0} of {totalCount}"
-msgstr "{totalCount} میں سے {0}"
 
 msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
 msgstr "{0} ایک لنک کے ذریعے کھلتا ہے اور منسلکات قبول نہیں کرتا — اس کے بجائے ایپ کے اندر کا ایجنٹ منتخب کریں۔"
@@ -455,11 +458,8 @@ msgstr "{count, plural, one {{files} ٹیکسٹ فائل نہیں ہے، اس ل
 msgid "{count, plural, one {{files} isn't a text file, so it can't be sent with the message. Mention it with @ once it's in your project.} other {{files} aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.}}"
 msgstr "{count, plural, one {{files} ٹیکسٹ فائل نہیں ہے، اس لیے اسے پیغام کے ساتھ نہیں بھیجا جا سکتا۔ پروجیکٹ میں ہونے پر @ کے ساتھ اس کا ذکر کریں۔} other {{files} ٹیکسٹ فائلیں نہیں ہیں، اس لیے انہیں پیغام کے ساتھ نہیں بھیجا جا سکتا۔ پروجیکٹ میں ہونے پر @ کے ساتھ ان کا ذکر کریں۔}}"
 
-msgid "{count, plural, one {# comment} other {# comments}}"
-msgstr "{count, plural, one {# تبصرہ} other {# تبصرے}}"
-
-msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
-msgstr "{count, plural, one {# تبصرہ} other {# تبصرے}} {0, plural, one {# فائل} other {# فائلوں}} میں"
+msgid "{count, plural, one {# dated page} other {# dated pages}}"
+msgstr ""
 
 msgid "{count, plural, one {# doc} other {# docs}}"
 msgstr "{count, plural, one {# دستاویز} other {# دستاویزات}}"
@@ -493,6 +493,9 @@ msgstr "{count, plural, one {# مسئلہ آپ کے AI ایجنٹ کے حوال�
 
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {فوری طور پر وہ # مسئلہ حل کرتا ہے جس کا معلوم خودکار حل موجود ہے۔} other {فوری طور پر وہ # مسائل حل کرتا ہے جن کا معلوم خودکار حل موجود ہے۔}}"
+
+msgid "{count, plural, one {linked from # page} other {linked from # pages}}"
+msgstr ""
 
 msgid "{count, plural, one {matches # file} other {matches # files}}"
 msgstr "{count, plural, one {# فائل سے مماثل} other {# فائلوں سے مماثل}}"
@@ -579,9 +582,6 @@ msgstr "{errorCount, plural, one {# خرابی} other {# خرابیاں}}"
 msgid "{errorText} and {warningText}"
 msgstr "{errorText} اور {warningText}"
 
-msgid "{failed} of {0} comments could not be updated."
-msgstr "{0} میں سے {failed} تبصرے اپ ڈیٹ نہیں ہو سکے۔"
-
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, one {1 فائل اپ لوڈ نہیں ہو سکی} other {{failedCount} فائلیں اپ لوڈ نہیں ہو سکیں}}"
 
@@ -611,6 +611,9 @@ msgstr "{folderCount, plural, one {فولڈر} other {فولڈرز}}"
 
 msgid "{formatted} GitHub stars"
 msgstr "{formatted} GitHub ستارے"
+
+msgid "{hidden} more are not listed. Use the filter to narrow the list."
+msgstr ""
 
 msgid "{hiddenCount, plural, one {# more link} other {# more links}}"
 msgstr "{hiddenCount, plural, one {# مزید لنک} other {# مزید لنکس}}"
@@ -681,6 +684,9 @@ msgstr "{mins, plural, one {# منٹ پہلے} other {# منٹ پہلے}}"
 msgid "{minutes}m ago"
 msgstr "{minutes} منٹ پہلے"
 
+msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
+msgstr ""
+
 msgid "{name} CLI"
 msgstr "{name} CLI"
 
@@ -693,11 +699,17 @@ msgstr "{nodeCount, plural, one {# نوڈ} other {# نوڈز}}"
 msgid "{omitted, plural, one {# more property change not shown} other {# more property changes not shown}}"
 msgstr "{omitted, plural, one {# مزید خصوصیت کی تبدیلی نہیں دکھائی گئی} other {# مزید خصوصیات کی تبدیلیاں نہیں دکھائی گئیں}}"
 
+msgid "{open, plural, one {# open action item} other {# open action items}}"
+msgstr ""
+
 msgid "{openedWorktreeCount, plural, one {worktree} other {worktrees}}"
 msgstr "{openedWorktreeCount, plural, one {ورک ٹری} other {ورک ٹری}}"
 
 msgid "{others, plural, one {# other} other {# others}}"
 msgstr "{others, plural, one {# دیگر} other {# دیگر}}"
+
+msgid "{overdue, plural, one {# overdue} other {# overdue}}"
+msgstr ""
 
 msgid "{owner}/{name} already exists"
 msgstr "{owner}/{name} پہلے سے موجود ہے"
@@ -750,6 +762,9 @@ msgstr "{propPanelDescriptorLabel} کی خصوصیات"
 msgid "{removingCount, plural, one {# removed} other {# removed}}"
 msgstr "{removingCount, plural, one {# ہٹا دیا گیا} other {# ہٹا دیے گئے}}"
 
+msgid "{rowCount, plural, one {# page} other {# pages}}"
+msgstr ""
+
 msgid "{seconds} seconds"
 msgstr "{seconds} سیکنڈ"
 
@@ -761,6 +776,9 @@ msgstr "{settingsDescriptorLabel} کی خصوصیات"
 
 msgid "{shareBranch} isn't a valid branch name."
 msgstr "{shareBranch} برانچ کا درست نام نہیں ہے۔"
+
+msgid "{shown, plural, one {# item} other {# items}}"
+msgstr ""
 
 msgid "{shown} and {more} more"
 msgstr "{shown} اور {more} مزید"
@@ -839,6 +857,9 @@ msgstr "{warningCount, plural, one {# انتباہ} other {# انتباہات}}"
 
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {لفظ} other {الفاظ}}"
+
+msgid "@{login} ({open} open)"
+msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
 msgstr "/{0} اس ایجنٹ کی پیش کردہ کمانڈ نہیں ہے — اسے سادہ متن کے طور پر بھیجا جائے گا"
@@ -940,6 +961,9 @@ msgstr "ایک .zip یا .skill آرکائیو۔"
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "<0>ترمیم شدہ</0> کا نشان ان قواعد کو ظاہر کرتا ہے جو آپ کی کنفیگ واضح طور پر مقرر کرتی ہے — براہِ راست، یا <1>extends</1> کے ذریعے وراثت میں۔ بغیر نشان والے قواعد اپنی طے شدہ حالت پر رہتے ہیں۔"
 
+msgid "A board needs a property that several pages share, with a few different values, such as \"status: To do\" and \"status: Done\"."
+msgstr ""
+
 msgid "A branch named {shareBranch} already exists. Open its worktree from the switcher instead."
 msgstr "{shareBranch} نام کی برانچ پہلے سے موجود ہے۔ اس کے بجائے سوئچر سے اس کا ورک ٹری کھولیں۔"
 
@@ -1018,6 +1042,9 @@ msgstr "ہو سکتا ہے اس ٹیب کے کھلنے کے بعد کوئی نی
 msgid "A non-empty folder already exists at this path. Pick a different folder."
 msgstr "اس راستے پر پہلے سے ایک غیر خالی فولڈر موجود ہے۔ کوئی مختلف فولڈر منتخب کریں۔"
 
+msgid "A page with that name exists. Choose another name."
+msgstr ""
+
 msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
 msgstr "والد ڈائریکٹری ہی سِم لنک ہے — اسے واپس لینے کے لیے اسی فولڈر کا لنک ختم کریں۔"
 
@@ -1093,6 +1120,9 @@ msgstr "{shareBranch} کے لیے ورک ٹری فولڈر پہلے سے موج�
 msgid "A worktree folder for that branch already exists."
 msgstr "اس برانچ کے لیے ورک ٹری فولڈر پہلے سے موجود ہے۔"
 
+msgid "ABCD-2345"
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "about"
 msgstr "تعارف"
@@ -1136,6 +1166,9 @@ msgstr "محفوظ API کلید تک رسائی کا وقت ختم ہو گیا۔
 msgid "Access token"
 msgstr "رسائی ٹوکن"
 
+msgid "Action items"
+msgstr ""
+
 msgid "Actions for {label}"
 msgstr "{label} کے لیے اعمال"
 
@@ -1172,9 +1205,6 @@ msgstr "اصل حجم"
 msgid "Add"
 msgstr "شامل کریں"
 
-msgid "Add a comment"
-msgstr "تبصرہ شامل کریں"
-
 msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
@@ -1204,12 +1234,6 @@ msgstr "کم از کم ایک حرف یا عدد شامل کریں۔"
 
 msgid "Add block below"
 msgstr "نیچے بلاک شامل کریں"
-
-msgid "Add Comment"
-msgstr "تبصرہ شامل کریں"
-
-msgid "Add Comment (Enter)"
-msgstr "تبصرہ شامل کریں (Enter)"
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror کے ذریعے کرسر شامل کریں یا مماثل مواقع منتخب کریں۔"
@@ -1302,12 +1326,6 @@ msgstr "شامل کر دیا گیا"
 msgid "Adding"
 msgstr "شامل کیا جا رہا ہے"
 
-msgid "Adds a global GitQuire MCP entry for this agent."
-msgstr "اس ایجنٹ کے لیے ایک عالمی GitQuire MCP اندراج شامل کرتا ہے۔"
-
-msgid "Adds a managed block to"
-msgstr "منظم بلاک شامل کرتا ہے اِس میں"
-
 #. Subtext under the project AI-tools checkbox
 msgid "Adds a GitQuire MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
 msgstr "<0>{toolList}</0> میں GitQuire کا MCP اندراج اور پروجیکٹ Skill شامل کرتا ہے تاکہ آپ کے ایجنٹس آپ کی فائلیں پڑھ اور ترمیم کر سکیں۔"
@@ -1318,6 +1336,12 @@ msgstr "<0>{connectToolList}</0> میں GitQuire کا MCP اندراج شامل 
 
 msgid "Adds a GitQuire MCP entry to this project's agent config."
 msgstr "اس پروجیکٹ کی ایجنٹ کنفیگریشن میں GitQuire MCP کا اندراج شامل کرتا ہے۔"
+
+msgid "Adds a global GitQuire MCP entry for this agent."
+msgstr "اس ایجنٹ کے لیے ایک عالمی GitQuire MCP اندراج شامل کرتا ہے۔"
+
+msgid "Adds a managed block to"
+msgstr "منظم بلاک شامل کرتا ہے اِس میں"
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.user-config"
@@ -1408,14 +1432,23 @@ msgstr "{editor} کو ماخذ سے ہم آہنگ کر دیا گیا (اس کے 
 msgid "All"
 msgstr "سب"
 
+msgid "All action items done"
+msgstr ""
+
 msgid "All conflicts resolved. Apply changes to save."
 msgstr "تمام کنفلکٹس حل ہو گئے۔ محفوظ کرنے کے لیے تبدیلیاں لاگو کریں۔"
+
+msgid "All dated pages"
+msgstr ""
 
 msgid "All files"
 msgstr "تمام فائلیں"
 
 msgid "All files are hidden by view filters."
 msgstr "تمام فائلیں ویو فلٹرز سے چھپی ہوئی ہیں۔"
+
+msgid "All pages with properties"
+msgstr ""
 
 msgid "All tags"
 msgstr "تمام ٹیگز"
@@ -1499,6 +1532,9 @@ msgstr "ایک غیر متوقع خرابی پیش آئی۔"
 msgid "Anchor in this page"
 msgstr "اس صفحے میں اینکر"
 
+msgid "and {moreAttendees} more"
+msgstr ""
+
 msgid "and {remaining} more"
 msgstr "اور {remaining} مزید"
 
@@ -1525,6 +1561,9 @@ msgstr "{0} نام کی کوئی بھی دستاویز"
 
 msgid "Any scripts are shown for review, never run."
 msgstr "کوئی بھی اسکرپٹ جائزے کے لیے دکھائی جاتی ہے، کبھی چلائی نہیں جاتی۔"
+
+msgid "Any value"
+msgstr ""
 
 msgid "Anyone can see"
 msgstr "کوئی بھی دیکھ سکتا ہے"
@@ -1628,15 +1667,6 @@ msgstr "کیا آپ واقعی منتخب آئٹمز حذف کرنا چاہتے 
 msgid "Ask"
 msgstr "پوچھیں"
 
-msgid "Ask Claude"
-msgstr ""
-
-msgid "Ask Claude to work on this folder…"
-msgstr ""
-
-msgid "Ask Claude to work on this page…"
-msgstr ""
-
 msgid "Ask {0} CLI"
 msgstr "{0} CLI سے پوچھیں"
 
@@ -1667,6 +1697,15 @@ msgstr "ایجنٹ سے پوچھیں"
 msgid "Ask changes…"
 msgstr "تبدیلیاں مانگیں…"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Asset"
 msgstr "اثاثہ"
 
@@ -1681,12 +1720,6 @@ msgstr "اثاثہ: {title}"
 
 msgid "Attach a file"
 msgstr "فائل منسلک کریں"
-
-msgid "Attach comments"
-msgstr "تبصرے منسلک کریں"
-
-msgid "Attach comments: {count}"
-msgstr "تبصرے منسلک کریں: {count}"
 
 msgid "Attach files"
 msgstr "فائلیں منسلک کریں"
@@ -1889,6 +1922,9 @@ msgstr "بلاگ پوسٹ"
 msgid "blog-post"
 msgstr "blog-post"
 
+msgid "Board"
+msgstr ""
+
 msgid "Board controls"
 msgstr "بورڈ کے کنٹرولز"
 
@@ -1949,6 +1985,12 @@ msgstr "ٹوٹے ہوئے داخلی لنکس"
 msgid "Broken link"
 msgstr "ٹوٹا ہوا لنک"
 
+msgid "Broken links"
+msgstr ""
+
+msgid "Broken links: {total}"
+msgstr ""
+
 msgid "Browse"
 msgstr "براؤز کریں"
 
@@ -2000,11 +2042,11 @@ msgstr "بلٹ فہرست"
 msgid "Bulleted list"
 msgstr ""
 
-msgid "By meaning"
-msgstr "معنی کے لحاظ سے"
-
 msgid "By GitQuire"
 msgstr "بذریعہ GitQuire"
+
+msgid "By meaning"
+msgstr "معنی کے لحاظ سے"
 
 msgid "By tag"
 msgstr "ٹیگ کے لحاظ سے"
@@ -2223,9 +2265,6 @@ msgstr "منتخب کریں کہ GitQuire {agentLabel} کے لیے کیا سیٹ
 msgid "Choose what GitQuire sets up."
 msgstr "منتخب کریں کہ GitQuire کیا سیٹ اپ کرے۔"
 
-msgid "Choose where to send these comments"
-msgstr "منتخب کریں کہ یہ تبصرے کہاں بھیجے جائیں"
-
 msgid "Choose where to send this message"
 msgstr "منتخب کریں کہ یہ پیغام کہاں بھیجنا ہے"
 
@@ -2371,9 +2410,6 @@ msgstr "کلون کیا جا رہا ہے..."
 msgid "Close"
 msgstr "بند کریں"
 
-msgid "Close comments"
-msgstr ""
-
 msgid "Close {0}"
 msgstr "{0} بند کریں"
 
@@ -2386,8 +2422,8 @@ msgstr "سب بند کریں"
 msgid "Close all unpinned"
 msgstr "تمام غیر پن شدہ بند کریں"
 
-msgid "Close comment"
-msgstr "تبصرہ بند کریں"
+msgid "Close comments"
+msgstr ""
 
 msgid "Close diff"
 msgstr "فرق بند کریں"
@@ -2471,9 +2507,6 @@ msgstr "سب سکیڑیں"
 msgid "Collapse all file groups"
 msgstr "فائلوں کے تمام گروپ سکیڑیں"
 
-msgid "Collapse all files"
-msgstr "سب فائلیں سکیڑیں"
-
 msgid "Collapse Ask AI"
 msgstr "«AI سے پوچھیں» سکیڑیں"
 
@@ -2491,6 +2524,12 @@ msgstr "رنگ تھیم"
 
 msgid "Column options"
 msgstr "کالم کے اختیارات"
+
+msgid "Columns"
+msgstr ""
+
+msgid "Columns from"
+msgstr ""
 
 msgid "Command failed."
 msgstr "کمانڈ ناکام ہو گئی۔"
@@ -2510,20 +2549,11 @@ msgstr "کمانڈز اس مشین پر آپ کے صارف اکاؤنٹ کی م�
 msgid "Comment"
 msgstr "تبصرہ"
 
-msgid "Comment on {address}"
-msgstr "{address} پر تبصرہ"
-
 msgid "Comment on selection"
 msgstr "انتخاب پر تبصرہ"
 
 msgid "Comment on this selection"
 msgstr "اس انتخاب پر تبصرہ کریں"
-
-msgid "Comment or ask AI about this {0}"
-msgstr "اس {0} پر تبصرہ کریں یا AI سے پوچھیں"
-
-msgid "Comment or ask AI about this code block"
-msgstr "اس کوڈ بلاک پر تبصرہ کریں یا AI سے پوچھیں"
 
 msgid "Comments"
 msgstr "تبصرے"
@@ -2593,6 +2623,9 @@ msgstr "ایجنٹس ترتیب دیں"
 
 msgid "Configure user, project, and integration settings."
 msgstr "صارف، پروجیکٹ اور انضمام کی ترتیبات مقرر کریں۔"
+
+msgid "Confirm"
+msgstr ""
 
 msgid "conflict"
 msgstr "تصادم"
@@ -2902,6 +2935,9 @@ msgstr "{total} میں سے {0} فائلیں درست نہیں کی جا سکی�
 msgid "Could not initialize {0}."
 msgstr "{0} کا ابتدائیہ نہیں ہو سکا۔"
 
+msgid "Could not load branches"
+msgstr ""
+
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "ٹیمپلیٹس لوڈ نہیں ہو سکے: {templatesError}۔ آپ اب بھی خالی نوٹ بنا سکتے ہیں۔"
 
@@ -2938,6 +2974,9 @@ msgstr "مطابقت پذیری کی ترجیح محفوظ نہیں ہو سکی:
 msgid "Could not start creating a new item"
 msgstr "نیا آئٹم بنانا شروع نہیں ہو سکا"
 
+msgid "Could not switch to {branch}"
+msgstr ""
+
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "{shareBranch} پر تبدیل نہیں ہو سکا۔ دستی طور پر تبدیل کرنے کی کوشش کریں۔"
 
@@ -2953,14 +2992,11 @@ msgstr "فولڈر کی توثیق نہیں ہو سکی۔ براہِ کرم دو
 msgid "Could not write project files. Try a different location."
 msgstr "پروجیکٹ کی فائلیں لکھی نہیں جا سکیں۔ کوئی مختلف مقام آزمائیں۔"
 
-msgid "Couldn't add that comment: {0}"
-msgstr "وہ تبصرہ شامل نہیں ہو سکا: {0}"
-
-msgid "Couldn't add that comment."
-msgstr "وہ تبصرہ شامل نہیں ہو سکا۔"
-
 msgid "Couldn't apply the change: {0}"
 msgstr "تبدیلی لاگو نہیں ہو سکی: {0}"
+
+msgid "Couldn't cancel."
+msgstr ""
 
 msgid "Couldn't change spell checking. Try again."
 msgstr "املا کی جانچ تبدیل نہیں کی جا سکی۔ دوبارہ کوشش کریں۔"
@@ -2976,6 +3012,9 @@ msgstr "کلید صاف نہیں ہو سکی — براہِ کرم دوبارہ 
 
 msgid "Couldn't complete semantic search — retry"
 msgstr "معنوی تلاش مکمل نہیں ہو سکی — دوبارہ کوشش کریں"
+
+msgid "Couldn't confirm the address."
+msgstr ""
 
 msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
 msgstr "ایجنٹ سروس سے رابطہ نہیں ہو سکا۔ یقینی بنائیں کہ GitQuire سرور چل رہا ہے اور تازہ ترین ہے (اگر پہلے سے چل رہا تھا تو اسے دوبارہ چلائیں)، پھر دوبارہ کوشش کریں۔"
@@ -3001,14 +3040,14 @@ msgstr "مہارت نہیں بن سکی: {0}"
 msgid "Couldn't create template: {error}"
 msgstr "ٹیمپلیٹ نہیں بن سکا: {error}"
 
+msgid "Couldn't create the meeting note."
+msgstr ""
+
 msgid "Couldn't create the report"
 msgstr "رپورٹ نہیں بن سکی"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "ورک ٹری نہیں بن سکا۔ کوئی مختلف نام آزمائیں۔"
-
-msgid "Couldn't save the comment."
-msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "یہ تھیم بنائی نہیں جا سکی۔ دوبارہ کوشش کریں۔"
@@ -3028,9 +3067,6 @@ msgstr "مہارت حذف نہیں ہو سکی: {error}"
 msgid "Couldn't delete template: {error}"
 msgstr "ٹیمپلیٹ حذف نہیں ہو سکا: {error}"
 
-msgid "Couldn't delete that comment."
-msgstr "وہ تبصرہ حذف نہیں ہو سکا۔"
-
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "یہ تھیم حذف نہیں کی جا سکی۔ تازہ کر کے دوبارہ کوشش کریں۔"
 
@@ -3039,9 +3075,6 @@ msgstr "منقطع نہیں ہو سکا — براہِ کرم دوبارہ کو�
 
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "«{0}» کی نقل نہیں بن سکی: {1}"
-
-msgid "Couldn't find that passage — the text it was on may have changed."
-msgstr "وہ اقتباس نہیں مل سکا — جس متن پر یہ تھا وہ شاید تبدیل ہو چکا ہے۔"
 
 msgid "Couldn't finish installing {0} — see below."
 msgstr "{0} کی تنصیب مکمل نہیں ہو سکی — نیچے دیکھیں۔"
@@ -3091,6 +3124,12 @@ msgstr "ٹیمپلیٹس لوڈ نہیں ہو سکے"
 msgid "Couldn't load the GitQuire skills. Try again."
 msgstr "GitQuire مہارتیں لوڈ نہیں ہو سکیں۔ دوبارہ کوشش کریں۔"
 
+msgid "Couldn't load the pages for this view."
+msgstr ""
+
+msgid "Couldn't load the pages."
+msgstr ""
+
 msgid "Couldn't load the version preview. You can still choose how to resolve it below."
 msgstr "ورژن کا پیش منظر لوڈ نہیں ہو سکا۔ آپ اب بھی نیچے سے حل کا طریقہ منتخب کر سکتے ہیں۔"
 
@@ -3103,14 +3142,14 @@ msgstr "آپ کے ایجنٹس لوڈ نہیں ہو سکے۔"
 msgid "Couldn't load your bug reports."
 msgstr "آپ کی بگ رپورٹس لوڈ نہیں ہو سکیں۔"
 
-msgid "Couldn't mark that comment to send."
-msgstr "وہ تبصرہ بھیجنے کے لیے نشان زد نہیں ہو سکا۔"
-
 msgid "Couldn't move {0}: {1}"
 msgstr "{0} منتقل نہیں ہو سکی: {1}"
 
 msgid "Couldn't move skill: {0}"
 msgstr "مہارت منتقل نہیں ہو سکی: {0}"
+
+msgid "Couldn't move the page. The board was reloaded."
+msgstr ""
 
 msgid "Couldn't move to {trashNoun}"
 msgstr "{trashNoun} میں منتقل نہیں ہو سکا"
@@ -3147,9 +3186,6 @@ msgstr "اس پروجیکٹ کو اشاعت کے لیے تیار نہیں کیا
 
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "GitHub سے کھینچا نہیں جا سکا۔ اپنا کنکشن اور سائن اِن دیکھیں، پھر دوبارہ کوشش کریں۔"
-
-msgid "Couldn't re-place that comment."
-msgstr "وہ تبصرہ دوبارہ نہیں رکھا جا سکا۔"
 
 msgid "Couldn't reach {displayName} — please try again later."
 msgstr "{displayName} تک رسائی نہیں ہو سکی۔ براہِ کرم بعد میں دوبارہ کوشش کریں۔"
@@ -3193,12 +3229,6 @@ msgstr "{fileName} پڑھی نہیں جا سکی۔ ہو سکتا ہے یہ من�
 msgid "Couldn't read the {gitignorePath} rule: {previewError}"
 msgstr "{gitignorePath} قاعدہ نہیں پڑھا جا سکا: {previewError}"
 
-msgid "Couldn't read the comments waiting to send — nothing was sent."
-msgstr "بھیجنے کے منتظر تبصرے پڑھے نہیں جا سکے — کچھ نہیں بھیجا گیا۔"
-
-msgid "Couldn't read the comments waiting to send: {0}"
-msgstr "بھیجنے کے منتظر تبصرے پڑھے نہیں جا سکے: {0}"
-
 msgid "Couldn't read the spell checking setting."
 msgstr "املا کی جانچ کی ترتیب پڑھی نہیں جا سکی۔"
 
@@ -3228,9 +3258,6 @@ msgstr "«{0}» کا نام نہیں بدلا جا سکا: {1}"
 
 msgid "Couldn't rename template: {0}"
 msgstr "ٹیمپلیٹ کا نام نہیں بدلا جا سکا: {0}"
-
-msgid "Couldn't reopen that comment."
-msgstr "وہ تبصرہ دوبارہ نہیں کھل سکا۔"
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "{filePath} کا تصادم حل نہیں ہو سکا۔"
@@ -3283,11 +3310,20 @@ msgstr "نیٹ ورک کی ترتیبات محفوظ نہیں ہو سکیں۔ {0
 msgid "Couldn't save template: {error}"
 msgstr "ٹیمپلیٹ محفوظ نہیں ہو سکا: {error}"
 
-msgid "Couldn't save that edit."
-msgstr "وہ ترمیم محفوظ نہیں ہو سکی۔"
+msgid "Couldn't save the action item."
+msgstr ""
+
+msgid "Couldn't save the action item. The list was reloaded."
+msgstr ""
 
 msgid "Couldn't save the auto-update setting: {0}"
 msgstr "خودکار اپ ڈیٹ کی ترتیب محفوظ نہیں ہو سکی: {0}"
+
+msgid "Couldn't save the comment."
+msgstr ""
+
+msgid "Couldn't save the email address."
+msgstr ""
 
 msgid "Couldn't save the key — please try again."
 msgstr "کلید محفوظ نہیں ہو سکی — براہِ کرم دوبارہ کوشش کریں۔"
@@ -3295,23 +3331,17 @@ msgstr "کلید محفوظ نہیں ہو سکی — براہِ کرم دوبا�
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "{filePath} کا حل محفوظ نہیں ہو سکا۔"
 
+msgid "Couldn't save the view."
+msgstr ""
+
 msgid "Couldn't save this setting. Try again."
 msgstr "یہ ترتیب محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔"
 
 msgid "Couldn't save your theme preference."
 msgstr "آپ کی تھیم ترجیح محفوظ نہیں ہو سکی۔"
 
-msgid "Couldn't scroll to that passage. Try again."
-msgstr "اس اقتباس تک اسکرول نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
-
 msgid "Couldn't send the report"
 msgstr "رپورٹ نہیں بھیجی جا سکی"
-
-msgid "Couldn't send your comments — please try again."
-msgstr "آپ کے تبصرے نہیں بھیجے جا سکے — براہِ کرم دوبارہ کوشش کریں۔"
-
-msgid "Couldn't send your comments — the workspace isn't ready."
-msgstr "آپ کے تبصرے نہیں بھیجے جا سکے — ورک اسپیس تیار نہیں ہے۔"
 
 msgid "Couldn't send your prompt — please try again."
 msgstr "آپ کا پرامپٹ نہیں بھیجا جا سکا — براہِ کرم دوبارہ کوشش کریں۔"
@@ -3333,9 +3363,6 @@ msgstr "{language} پر تبدیل نہیں کیا جا سکا۔"
 
 msgid "Couldn't switch to Only me"
 msgstr "«صرف میں» پر تبدیل نہیں ہو سکا"
-
-msgid "Couldn't unmark that comment — it's still waiting to send."
-msgstr "اس تبصرے کا نشان نہیں ہٹایا جا سکا — یہ اب بھی بھیجنے کا منتظر ہے۔"
 
 msgid "Couldn't unpin {name}"
 msgstr "{name} سے پن نہیں ہٹایا جا سکا"
@@ -3397,11 +3424,11 @@ msgstr "موجودہ دستاویز یا فولڈر کے سیاق سے فولڈ�
 msgid "Create a new branch, or check out an existing one, in its own window."
 msgstr "نئی برانچ بنائیں، یا موجودہ کو چیک آؤٹ کریں، اس کی اپنی ونڈو میں۔"
 
-msgid "Create a new list item from the current list item."
-msgstr "موجودہ فہرست آئٹم سے نیا فہرست آئٹم بنائیں۔"
-
 msgid "Create a new GitQuire project in the folder of your choice."
 msgstr "اپنی پسند کے فولڈر میں نیا GitQuire پروجیکٹ بنائیں۔"
+
+msgid "Create a new list item from the current list item."
+msgstr "موجودہ فہرست آئٹم سے نیا فہرست آئٹم بنائیں۔"
 
 msgid "Create a new spec file for my user story"
 msgstr "میری صارف کہانی کے لیے نئی اسپیک فائل بنائیں"
@@ -3417,6 +3444,9 @@ msgstr "{host} پر ٹوکن بنائیں"
 
 msgid "Create a worktree from this branch"
 msgstr "اس برانچ سے ورک ٹری بنائیں"
+
+msgid "Create and switch"
+msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
 msgstr "<0>{dirDisplay}</0> میں بنائیں"
@@ -3538,6 +3568,9 @@ msgstr "ڈیٹا"
 msgid "Date"
 msgstr "تاریخ"
 
+msgid "Date from"
+msgstr ""
+
 msgid "Default"
 msgstr "ڈیفالٹ"
 
@@ -3549,9 +3582,6 @@ msgstr "طے شدہ: <0>{0}</0>"
 
 msgid "Delete"
 msgstr "حذف کریں"
-
-msgid "Delete comment"
-msgstr ""
 
 msgid "Delete {0}"
 msgstr "{0} حذف کریں"
@@ -3592,6 +3622,9 @@ msgstr "کوڈ بلاک حذف کریں"
 msgid "Delete column"
 msgstr "کالم حذف کریں"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete Permanently"
 msgstr "مستقل طور پر حذف کریں"
 
@@ -3618,9 +3651,6 @@ msgstr "ٹیبل حذف کریں"
 
 msgid "Delete the file"
 msgstr "فائل حذف کریں"
-
-msgid "Delete this comment"
-msgstr "یہ تبصرہ حذف کریں"
 
 msgid "Deleted"
 msgstr "حذف شدہ"
@@ -3714,11 +3744,11 @@ msgstr "تفصیلی تشخیص"
 msgid "Details"
 msgstr "تفصیلات"
 
-msgid "Detected in {0}"
-msgstr "{0} میں پایا گیا"
-
 msgid "Detected GitQuire projects"
 msgstr "پائے گئے GitQuire پروجیکٹس"
+
+msgid "Detected in {0}"
+msgstr "{0} میں پایا گیا"
 
 msgid "Detecting"
 msgstr "پتا لگایا جا رہا ہے"
@@ -3788,12 +3818,6 @@ msgstr "منقطع کیا جا رہا ہے"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "دریافتی اسکلز کا انتظام تمام AI ٹولز کے لیے ایک ساتھ کیا جاتا ہے۔ اسے ترتیبات میں مہارت اسٹوڈیو سے انسٹال کریں۔"
-
-msgid "Discuss"
-msgstr ""
-
-msgid "Discussions"
-msgstr ""
 
 msgid "Dismiss"
 msgstr "برخاست کریں"
@@ -3867,9 +3891,6 @@ msgstr "اس پروجیکٹ میں سیٹ اپ کے بغیر یہ ایپ کھو�
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "<0>مہارتیں</0> نظر نہیں آ رہیں؟ پہلے <1>ترتیبات <2/> صلاحیتیں <3/> کوڈ کا اجرا اور فائل سازی</1> فعال کریں۔"
 
-msgid "Don't send this comment"
-msgstr "یہ تبصرہ نہ بھیجیں"
-
 msgid "Don't show"
 msgstr "نہ دکھائیں"
 
@@ -3878,6 +3899,9 @@ msgstr "مکمل"
 
 msgid "Done"
 msgstr "مکمل"
+
+msgid "Done, due earlier"
+msgstr ""
 
 msgid "Done."
 msgstr "مکمل۔"
@@ -3891,9 +3915,6 @@ msgstr "{0} ڈاؤن لوڈ کریں"
 msgid "Download and install updates automatically"
 msgstr "اپ ڈیٹس خودکار طور پر ڈاؤن لوڈ اور انسٹال کریں"
 
-msgid "Download app"
-msgstr "ایپ ڈاؤن لوڈ کریں"
-
 msgid "Download file"
 msgstr "فائل ڈاؤن لوڈ کریں"
 
@@ -3905,6 +3926,9 @@ msgstr "{0} {1} ڈاؤن لوڈ ہو رہا ہے…"
 
 msgid "Downloads a fresh copy from GitHub."
 msgstr "GitHub سے تازہ نقل ڈاؤن لوڈ کرتا ہے۔"
+
+msgid "Draft"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Draft"
@@ -3933,6 +3957,12 @@ msgstr "منسلک کرنے کے لیے فائل چھوڑیں"
 
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "زیادہ سے زیادہ {MAX_ATTACHMENTS} تصاویر چھوڑیں، پیسٹ کریں یا منسلک کریں۔"
+
+msgid "Due {label}"
+msgstr ""
+
+msgid "Due {label}, overdue"
+msgstr ""
 
 msgid "Duplicate"
 msgstr "نقل بنائیں"
@@ -4031,14 +4061,17 @@ msgstr "اس تبصرے میں ترمیم کریں"
 msgid "Edit this HTML — the preview updates live."
 msgstr "اس HTML میں ترمیم کریں — پیش منظر براہِ راست تازہ ہوتا ہے۔"
 
+msgid "Edit view"
+msgstr ""
+
 msgid "Edit wiki link"
 msgstr "وکی لنک میں ترمیم کریں"
 
-msgid "Edited"
-msgstr "ترمیم شدہ"
-
 msgid "edited"
 msgstr ""
+
+msgid "Edited"
+msgstr "ترمیم شدہ"
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo} ترمیم ہوئی"
@@ -4114,6 +4147,9 @@ msgstr "ای میل پتہ"
 
 msgid "Email for followups"
 msgstr "مزید رابطے کے لیے ای میل"
+
+msgid "Email me new mentions"
+msgstr ""
 
 msgid "Email support about this report"
 msgstr "اس رپورٹ کے بارے میں سپورٹ کو ای میل کریں"
@@ -4200,11 +4236,11 @@ msgstr "خودکار (صرف کھینچیں) فعال کریں"
 msgid "Enable Auto (Pull only)?"
 msgstr "خودکار (صرف کھینچیں) فعال کریں؟"
 
-msgid "Enable indexes"
-msgstr "اشاریہ جات کو فعال کریں۔"
-
 msgid "Enable GitQuire tools for {0}?"
 msgstr "کیا {0} کے لیے GitQuire ٹولز فعال کریں؟"
+
+msgid "Enable indexes"
+msgstr "اشاریہ جات کو فعال کریں۔"
 
 msgid "Enable plugins"
 msgstr "پلگ اِنز فعال کریں"
@@ -4227,11 +4263,11 @@ msgstr "اس پروجیکٹ کے لیے ٹرمینل فعال کریں"
 msgid "Enable Themes"
 msgstr "تھیمز فعال کریں"
 
-msgid "Enabling index generation"
-msgstr "انڈیکس جنریشن کو فعال کرنا"
-
 msgid "Enabling GitQuire tools"
 msgstr "GitQuire ٹولز فعال کیے جا رہے ہیں"
+
+msgid "Enabling index generation"
+msgstr "انڈیکس جنریشن کو فعال کرنا"
 
 msgid "Ended"
 msgstr "ختم ہو گیا"
@@ -4260,6 +4296,9 @@ msgstr "ہوسٹ نیم درج کریں، جیسے github.example.com۔"
 msgid "Enter a name for this theme."
 msgstr "اس تھیم کے لیے نام درج کریں۔"
 
+msgid "Enter a name."
+msgstr ""
+
 msgid "Enter a number of seconds between {minimum} and {maximum}."
 msgstr "{minimum} اور {maximum} کے درمیان سیکنڈ کی تعداد درج کریں۔"
 
@@ -4277,6 +4316,9 @@ msgstr "اس ٹیمپلیٹ کے لیے عنوان درج کریں۔"
 
 msgid "Enter a valid branch name (no spaces, no leading dot, no \"..\")."
 msgstr "برانچ کا درست نام درج کریں (کوئی خالی جگہ نہیں، شروع میں نقطہ نہیں، «..» نہیں)۔"
+
+msgid "Enter a valid email address."
+msgstr ""
 
 msgid "Enter a valid theme name."
 msgstr "درست تھیم نام درج کریں۔"
@@ -4320,6 +4362,15 @@ msgstr "ہر تصوراتی دستاویز میں ایک غیر خالی قسم 
 
 msgid "every doc"
 msgstr "ہر دستاویز"
+
+msgid "Everyone"
+msgstr ""
+
+msgid "Everyone editing this space moves to that branch."
+msgstr ""
+
+msgid "Everyone moves to the new branch once it is created."
+msgstr ""
 
 msgid "Everything from {source} is already up to date"
 msgstr "{source} سے سب کچھ پہلے ہی اپ ڈیٹ ہے"
@@ -4374,9 +4425,6 @@ msgstr "سب پھیلائیں"
 
 msgid "Expand all file groups"
 msgstr "فائلوں کے تمام گروپ پھیلائیں"
-
-msgid "Expand all files"
-msgstr "سب فائلیں پھیلائیں"
 
 msgid "Expand board"
 msgstr "بورڈ پھیلائیں"
@@ -4759,6 +4807,12 @@ msgstr "فائلوں کا سائیڈ بار"
 msgid "Files toolbar"
 msgstr "فائلوں کا ٹول بار"
 
+msgid "Filter by page"
+msgstr ""
+
+msgid "Filter by property"
+msgstr ""
+
 msgid "Filter languages"
 msgstr "زبانیں چھانیں"
 
@@ -4876,15 +4930,6 @@ msgstr "فولڈرز اور خالی فائلیں منسلک نہیں کی جا 
 
 msgid "Follow the agent's edits"
 msgstr "ایجنٹ کی ترامیم کی پیروی کریں"
-
-msgid "Follow us on"
-msgstr "ہمیں فالو کریں"
-
-msgid "Follow us on social media"
-msgstr "سوشل میڈیا پر ہمیں فالو کریں"
-
-msgid "Follow us on X"
-msgstr "X پر ہمیں فالو کریں"
 
 msgid "Following the agent's edits"
 msgstr "ایجنٹ کی ترامیم کی پیروی جاری ہے"
@@ -5053,6 +5098,222 @@ msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
 
+msgid "GitQuire"
+msgstr "GitQuire"
+
+msgid "GitQuire can't sign in to GitHub for this project."
+msgstr "GitQuire اس پروجیکٹ کے لیے GitHub میں سائن اِن نہیں کر سکتا۔"
+
+msgid "GitQuire checked {subject}"
+msgstr "GitQuire نے {subject} کی جانچ کی"
+
+msgid "GitQuire checked the project"
+msgstr "GitQuire نے پروجیکٹ کی جانچ کی"
+
+msgid "GitQuire checks for and downloads updates in the background."
+msgstr "GitQuire پس منظر میں اپ ڈیٹس دیکھتا اور ڈاؤن لوڈ کرتا ہے۔"
+
+msgid "GitQuire could not find this agent on this machine."
+msgstr "GitQuire کو اس مشین پر یہ ایجنٹ نہیں ملا۔"
+
+msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
+msgstr "GitQuire انڈیکس کی دیکھ بھال کی جانچ کے لیے پروجیکٹ سرور تک نہیں پہنچ سکا۔ جب پروجیکٹ دوبارہ جڑ جائے گا تو حالت اپ ڈیٹ ہو جائے گی۔"
+
+msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
+msgstr "GitQuire اس پروجیکٹ کا سیٹ اپ مکمل نہیں کر سکا۔ ورک ٹری بن گئی، لیکن کھولی نہیں گئی۔"
+
+msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
+msgstr "GitQuire .ok/local/config.yml میں terminal.shell نہیں پڑھ سکا۔ اس کے بجائے دستیاب Windows شیل استعمال کیا جا رہا ہے۔"
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
+msgstr "GitQuire .ok/local/terminal کے تحت لانچ کی ترتیبات نہیں لکھ سکا کیونکہ فولڈر اس پروجیکٹ کے اندر محفوظ طور پر موجود نہیں ہے۔ تصدیق کریں کہ یہ پروجیکٹ کے اندر ایک حقیقی فولڈر ہے، لنک نہیں۔ Claude آپ سے GitQuire کو منظور کرنے کے لیے کہے گا۔"
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
+msgstr "GitQuire اس بار .ok/local/terminal کے تحت لانچ کی ترتیبات نہیں لکھ سکا۔ تصدیق کریں کہ فولڈر میں لکھا جا سکتا ہے۔ Claude آپ سے GitQuire کو منظور کرنے کے لیے کہے گا۔"
+
+msgid "GitQuire created a share link"
+msgstr "GitQuire نے شیئر لنک بنایا"
+
+msgid "GitQuire created a share link for {subject}"
+msgstr "GitQuire نے {subject} کے لیے شیئر لنک بنایا"
+
+msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
+msgstr "GitQuire ہر فولڈر میں index.md نامی نیویگیشن فائل بناتا اور برقرار رکھتا ہے جس میں Markdown ہوتا ہے۔"
+
+msgid "GitQuire deleted {subject}"
+msgstr "GitQuire نے {subject} حذف کیا"
+
+msgid "GitQuire deleted a document"
+msgstr "GitQuire نے ایک دستاویز حذف کی"
+
+msgid "GitQuire discovery skill"
+msgstr "GitQuire دریافت اسکل"
+
+msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
+msgstr "GitQuire اس اندراج کو نہیں پہچانتا، اور اس فائل کی فارمیٹ میں اسے محفوظ طریقے سے تبدیل نہیں کر سکتا۔"
+
+msgid "GitQuire does not recognize this entry. Turning it on replaces it."
+msgstr "GitQuire اس اندراج کو نہیں پہچانتا۔ اسے آن کرنے پر یہ تبدیل ہو جائے گا۔"
+
+msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
+msgstr "GitQuire خود سے اپ ڈیٹس نہیں دیکھتا یا ڈاؤن لوڈ نہیں کرتا۔ نیا ورژن چاہیں تو \"اپ ڈیٹس دیکھیں\" اب بھی کام کرتا ہے۔"
+
+msgid "GitQuire edited {subject}"
+msgstr "GitQuire نے {subject} میں ترمیم کی"
+
+msgid "GitQuire edited a document"
+msgstr "GitQuire نے ایک دستاویز میں ترمیم کی"
+
+msgid "GitQuire files were removed"
+msgstr "GitQuire کی فائلیں ہٹا دی گئیں"
+
+msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
+msgstr "GitQuire نے اس ہوسٹ کے لیے کوئی کریڈینشل محفوظ نہیں کیا۔ ترتیبات میں ٹوکن شامل کریں، یا git کو وہ کریڈینشلز استعمال کرنے دیں جو اس کے پاس پہلے سے ہیں۔"
+
+msgid "GitQuire imported {source}"
+msgstr "GitQuire نے {source} درآمد کیا"
+
+msgid "GitQuire imported a skill"
+msgstr "GitQuire نے ایک اسکل درآمد کی"
+
+msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
+msgstr "GitQuire کا ابتدائیہ <0>{projectDir}</0> پر ہوتا ہے — جو <1>{pickedRelative}</1> کا والد ہے کیونکہ اس میں <2>.git</2> فولڈر ہے (ہر git ریپو کے لیے ایک .ok/)۔ <3>مواد کی ڈائریکٹری</3> طے شدہ طور پر <4>.</4> ہوتی ہے (پورا ریپو)؛ اسے محدود کرنے کے لیے کوئی ذیلی فولڈر لکھیں۔"
+
+msgid "GitQuire installed {subject}"
+msgstr "GitQuire نے {subject} انسٹال کیا"
+
+msgid "GitQuire installed a skill"
+msgstr "GitQuire نے ایک اسکل انسٹال کی"
+
+msgid "GitQuire integrations checked."
+msgstr "GitQuire انٹیگریشنز جانچ لی گئیں۔"
+
+msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
+msgstr "یہاں GitQuire ریپوزٹری کی جڑ میں سیٹ ہوتا ہے، اس لیے پیک ریپوزٹری کے اوپر کے بجائے <0>{sanitized}</0> کے اندر جاتا ہے۔"
+
+msgid "GitQuire is using this GitHub account."
+msgstr "GitQuire یہی GitHub اکاؤنٹ استعمال کر رہا ہے۔"
+
+msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
+msgstr "GitQuire دوبارہ کوشش کرتا رہتا ہے اور فائل پڑھنے کے قابل ہوتے ہی انہیں دکھا دے گا۔"
+
+msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
+msgstr "GitQuire نے اس فائل کو تبدیل نہیں کیا کیونکہ وہ اسے محفوظ طریقے سے پارس نہیں کر سکا۔ فائل کو خود درست کریں، پھر دوبارہ کوشش کریں۔"
+
+msgid "GitQuire listed the installed skills"
+msgstr "GitQuire نے انسٹال شدہ اسکلز کی فہرست دی"
+
+msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
+msgstr "مختلف پروجیکٹس کے GitQuire لاگز۔ کوئی پروجیکٹ کھلا نہیں، اس لیے پروجیکٹ سرور کے لاگز شامل نہیں ہیں۔"
+
+msgid "GitQuire logs, including activity across projects."
+msgstr "GitQuire لاگز، جن میں مختلف پروجیکٹس کی سرگرمی شامل ہے۔"
+
+msgid "GitQuire looked at the link graph"
+msgstr "GitQuire نے لنک گراف دیکھا"
+
+msgid "GitQuire looked up links for {subject}"
+msgstr "GitQuire نے {subject} کے لنکس تلاش کیے"
+
+msgid "GitQuire looked up the authoring palette"
+msgstr "GitQuire نے تحریری پیلیٹ دیکھا"
+
+msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
+msgstr "GitQuire ہر فولڈر میں index.md نامی ایک نیویگیشن فائل کو برقرار رکھتا ہے جس میں Markdown ہوتا ہے، ہر ایک فولڈر کے دستاویزات کو ٹائپ اور اس کے ذیلی فولڈرز سے لنک کرکے درج کرتا ہے۔ یہ ان فائلوں کو دوبارہ لکھتا ہے جیسے آپ کی دستاویزات تبدیل ہوتی ہیں، اور جو کچھ بھی آپ خود ان میں ترمیم کرتے ہیں اسے تبدیل کر دیا جاتا ہے۔"
+
+msgid "GitQuire moved {subject} to {destination}"
+msgstr "GitQuire نے {subject} کو {destination} میں منتقل کیا"
+
+msgid "GitQuire moved a document"
+msgstr "GitQuire نے ایک دستاویز منتقل کی"
+
+msgid "GitQuire on GitHub"
+msgstr "GitHub پر GitQuire"
+
+msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
+msgstr "اس کمپیوٹر پر GitQuire کسی دوسرے بلڈ میں بدل گیا ہے، لیکن یہ ٹیب ابھی بھی پرانا بلڈ چلا رہا ہے۔"
+
+msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+msgstr "اس کمپیوٹر پر GitQuire اب v{serverVersion} ہے، لیکن یہ ٹیب ابھی بھی v{tabVersion} چلا رہا ہے۔"
+
+msgid "GitQuire opened the live preview"
+msgstr "GitQuire نے لائیو پیش منظر کھولا"
+
+msgid "GitQuire quit unexpectedly last time."
+msgstr "پچھلی بار GitQuire غیر متوقع طور پر بند ہو گیا تھا۔"
+
+msgid "GitQuire ran {command}"
+msgstr "GitQuire نے {command} چلایا"
+
+msgid "GitQuire ran {tool}"
+msgstr "GitQuire نے {tool} چلایا"
+
+msgid "GitQuire ran a command"
+msgstr "GitQuire نے ایک کمانڈ چلائی"
+
+msgid "GitQuire read the edit history"
+msgstr "GitQuire نے ترمیم کی تاریخ پڑھی"
+
+msgid "GitQuire read the history of {subject}"
+msgstr "GitQuire نے {subject} کی تاریخ پڑھی"
+
+msgid "GitQuire read the project settings"
+msgstr "GitQuire نے پروجیکٹ کی ترتیبات پڑھیں"
+
+msgid "GitQuire read the setting {key}"
+msgstr "GitQuire نے ترتیب {key} پڑھی"
+
+msgid "GitQuire restored an earlier version"
+msgstr "GitQuire نے پچھلا ورژن بحال کیا"
+
+msgid "GitQuire restored an earlier version of {subject}"
+msgstr "GitQuire نے {subject} کا پچھلا ورژن بحال کیا"
+
+msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
+msgstr "GitQuire ان index.md فائلوں کو دوبارہ لکھتا ہے جیسے ہی دستاویزات میں تبدیلی آتی ہے، لہذا ان میں دستی ترامیم تبدیل کردی جاتی ہیں۔"
+
+msgid "GitQuire saved a checkpoint"
+msgstr "GitQuire نے ایک چیک پوائنٹ محفوظ کیا"
+
+msgid "GitQuire searched for {query}"
+msgstr "GitQuire نے {query} تلاش کیا"
+
+msgid "GitQuire searched the knowledge base"
+msgstr "GitQuire نے نالج بیس میں تلاش کیا"
+
+msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
+msgstr "GitQuire اسکل محفوظ ہو گئی۔ اسے Claude Desktop میں اپ لوڈ کریں، پھر دوبارہ Cowork پر کلک کریں۔"
+
+msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
+msgstr "GitQuire اپنی کنفیگریشن اور داخلی فائلیں آپ کے پروجیکٹ کے جڑ فولڈر میں نئے بنے <0>.ok</0> ڈائریکٹری کے اندر رکھتا ہے۔"
+
+msgid "GitQuire tools are available in this thread."
+msgstr "اس تھریڈ میں GitQuire ٹولز دستیاب ہیں۔"
+
+msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
+msgstr "GitQuire کے ٹولز دستیاب نہیں ہیں کیونکہ پروجیکٹ فولڈر موجود نہیں، اس تک رسائی ممکن نہیں یا وہ تبدیل ہو گیا ہے۔ اس کا مقام اور اجازتیں چیک کریں، پھر دوبارہ کوشش کریں۔"
+
+msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
+msgstr "GitQuire ٹولز دستیاب نہیں: {bridgePath} پر پہلے سے ایسی فائل موجود ہے جو GitQuire نے نہیں لکھی۔"
+
+msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
+msgstr "GitQuire ٹولز دستیاب نہیں: {bridgePath} پر پہلے سے کچھ موجود ہے مگر اسے پڑھا نہیں جا سکا، اس لیے GitQuire نے اسے ویسا ہی چھوڑ دیا۔"
+
+msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
+msgstr "GitQuire کا ابتدائیہ <0>{gitRoot}</0> پر ہو گا — جو آپ کے نئے فولڈر کا والد ہے، کیونکہ اس میں <1>.git</1> فولڈر ہے (ہر git ریپو کے لیے ایک پروجیکٹ)۔"
+
+msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
+msgstr "GitQuire کمٹس بنا کر خودکار طور پر آپ کے ریموٹ پر پُش کرے گا۔ اگر آپ اپنی git تاریخ میں خودکار کمٹس نہیں چاہتے تو خودکار مطابقت پذیری فعال نہ کریں۔"
+
+msgid "GitQuire wrote a document"
+msgstr "GitQuire نے ایک دستاویز لکھی"
+
+msgid "GitQuire wrote to {subject}"
+msgstr "GitQuire نے {subject} میں لکھا"
+
+msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
+msgstr "GitQuire کی اپنی {0} نقل خراب ہے اور چلتی نہیں۔ یہ اسے تبدیل کرنے کے لیے {1} {2} کی نئی نقل ڈاؤن لوڈ کر سکتا ہے (تقریباً {3} MB، {4} سے)۔"
+
 msgid "Give it a name before editing its colors."
 msgstr "اس کے رنگوں میں ترمیم سے پہلے اسے نام دیں۔"
 
@@ -5103,6 +5364,18 @@ msgstr "دستاویزات کے لنکس کی گرافی نمائش"
 msgid "Grid of rows and columns with a header row."
 msgstr "سرخی کی قطار کے ساتھ قطاروں اور کالموں کی جالی۔"
 
+msgid "Group action items"
+msgstr ""
+
+msgid "Group by due date"
+msgstr ""
+
+msgid "Group by page"
+msgstr ""
+
+msgid "Group by person"
+msgstr ""
+
 msgid "Group skills by source"
 msgstr "مہارتوں کو ماخذ کے مطابق گروپ کریں"
 
@@ -5111,9 +5384,6 @@ msgstr "آپ کے AI ایجنٹس کو رہنمائی دیتا ہے کہ یہا�
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install یا https://example.com"
-
-msgid "Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed."
-msgstr "منتخب تبصرے ایک ہی بار میں ایجنٹ کے حوالے کریں۔ یہ دستاویز پر صرف اسی دستاویز کے تبصرے؛ یہ پروجیکٹ پر تمام منتخب تبصرے۔ تبصرے ٹیب بند ہونے پر کچھ نہیں ہوتا۔"
 
 msgid "Hard break"
 msgstr "سخت وقفہ"
@@ -5203,9 +5473,6 @@ msgstr "چھپا ہوا فولڈر “{basename}”"
 msgid "Hide"
 msgstr "چھپائیں"
 
-msgid "Hide keyboard"
-msgstr ""
-
 msgid "Hide {0} editor"
 msgstr "{0} ایڈیٹر چھپائیں"
 
@@ -5245,6 +5512,9 @@ msgstr "فولڈر چھپائیں"
 msgid "Hide HTML preview"
 msgstr "HTML کا پیش منظر چھپائیں"
 
+msgid "Hide keyboard"
+msgstr ""
+
 msgid "Hide original"
 msgstr "اصل چھپائیں"
 
@@ -5262,9 +5532,6 @@ msgstr "تبدیلی چھپائیں"
 
 msgid "Hide resolved"
 msgstr "حل شدہ چھپائیں"
-
-msgid "Hide resolved comments ({0})"
-msgstr "حل شدہ تبصرے چھپائیں ({0})"
 
 msgid "Hide selection preview"
 msgstr "انتخاب کا پیش منظر چھپائیں"
@@ -5669,6 +5936,10 @@ msgstr "{plugin} سے نصب کریں"
 msgid "Install from {source}"
 msgstr "{source} سے نصب کریں"
 
+#. Checkbox that wires the GitQuire MCP into every detected AI tool
+msgid "Install GitQuire in your AI tools"
+msgstr "اپنے AI ٹولز میں GitQuire انسٹال کریں"
+
 msgid "Install handoff failed: {msg}"
 msgstr "تنصیب کی منتقلی ناکام: {msg}"
 
@@ -5689,10 +5960,6 @@ msgstr "اس پر نصب کریں"
 
 msgid "Install on all agents"
 msgstr "تمام ایجنٹس پر نصب کریں"
-
-#. Checkbox that wires the GitQuire MCP into every detected AI tool
-msgid "Install GitQuire in your AI tools"
-msgstr "اپنے AI ٹولز میں GitQuire انسٹال کریں"
 
 msgid "Install skill"
 msgstr "مہارت کو انسٹال کریں۔"
@@ -5833,14 +6100,8 @@ msgstr "آخری ٹیب پر جائیں"
 msgid "Jump to page {pageNumber}"
 msgstr "صفحہ {pageNumber} پر جائیں"
 
-msgid "Jump to selected text in property"
-msgstr "پراپرٹی میں منتخب متن پر جائیں"
-
 msgid "Jump to tab 1-8"
 msgstr "ٹیب 1-8 پر جائیں"
-
-msgid "Jump to the anchored text"
-msgstr "لنگر انداز متن پر جائیں"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "کرسر والے بلاک کے Markdown سورس پر جائیں، بیچ میں اور نمایاں۔"
@@ -5920,6 +6181,9 @@ msgstr "زبان"
 msgid "Last activity {lastActivity}"
 msgstr "آخری سرگرمی: {lastActivity}"
 
+msgid "Later"
+msgstr ""
+
 msgid "Latest edit"
 msgstr "تازہ ترین ترمیم"
 
@@ -5944,9 +6208,6 @@ msgstr "کنفیگ کے اشتراک کے بارے میں مزید جانیں"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "کسی بھی فولڈر کی گہرائی میں log.md یا log.mdx کے اندر لکھے خراب لنکس کو مسائل، فائل ایکسپلورر کے اشاروں، ایڈیٹر کی تشخیص، آڈٹس اور ایجنٹ تحریری مشوروں سے باہر رکھیں۔ اہم وہ فائل ہے جس میں لنک لکھا گیا ہے، نہ کہ وہ فائل جس کی طرف لنک اشارہ کرتا ہے، اور LOG.md ایک عام دستاویز ہے۔ لنکس پینل اور ایڈیٹر میں یہ لنکس پھر بھی دکھائی دیتے ہیں۔"
-
-msgid "Leave these comments out of this message"
-msgstr "ان تبصروں کو اس پیغام سے باہر رکھیں"
 
 msgid "Let agent chats use a browser"
 msgstr "ایجنٹ چیٹس کو براؤزر استعمال کرنے دیں"
@@ -6026,6 +6287,9 @@ msgstr ""
 msgid "Link to a page or external URL."
 msgstr "کسی صفحے یا بیرونی URL سے لنک کریں۔"
 
+msgid "Link to new page \"{0}\""
+msgstr ""
+
 msgid "Link URL"
 msgstr "لنک کا URL"
 
@@ -6049,6 +6313,9 @@ msgstr "لنکس"
 
 msgid "Links & images"
 msgstr "لنکس اور تصاویر"
+
+msgid "Links to pages that do not exist. Choose a page to open it and fix the link there."
+msgstr ""
 
 msgid "Lint plugins — which rule families run and their per-rule settings — are configured on their own tab under This project → Plugins."
 msgstr "لِنٹ پلگ اِنز — کون سے قاعدے کے خاندان چلتے ہیں اور ہر قاعدے کی ترتیبات — «یہ پروجیکٹ ← پلگ اِنز» کے تحت اپنے الگ ٹیب میں ترتیب دیے جاتے ہیں۔"
@@ -6110,6 +6377,9 @@ msgstr "فائلیں لوڈ ہو رہی ہیں"
 msgid "Loading folder contents"
 msgstr "فولڈر کا مواد لوڈ ہو رہا ہے"
 
+msgid "Loading GitQuire skills"
+msgstr "GitQuire مہارتیں لوڈ ہو رہی ہیں"
+
 msgid "Loading graph"
 msgstr "گراف لوڈ ہو رہا ہے"
 
@@ -6118,9 +6388,6 @@ msgstr "{pageTarget} کے عنوانات لوڈ ہو رہے ہیں"
 
 msgid "Loading image"
 msgstr "تصویر لوڈ ہو رہی ہے"
-
-msgid "Loading GitQuire skills"
-msgstr "GitQuire مہارتیں لوڈ ہو رہی ہیں"
 
 msgid "Loading pages"
 msgstr "صفحات لوڈ ہو رہے ہیں"
@@ -6172,6 +6439,9 @@ msgstr "آپ کی رپورٹس لوڈ ہو رہی ہیں"
 
 msgid "Loading..."
 msgstr "لوڈ ہو رہا ہے..."
+
+msgid "Loading…"
+msgstr ""
 
 msgid "Local changes blocked the merge"
 msgstr "مقامی تبدیلیوں نے ضم ہونے سے روک دیا"
@@ -6278,11 +6548,11 @@ msgstr "ڈھانچے کا نقشہ بنائیں"
 msgid "Mark a block as the source of truth. Mirrors elsewhere update live as you edit it."
 msgstr "کسی بلاک کو سچائی کا ماخذ نشان زد کریں۔ اس میں ترمیم کرتے ہی دوسری جگہوں کے مررز براہِ راست تازہ ہو جاتے ہیں۔"
 
-msgid "Mark every comment in {0} to send"
-msgstr "{0} کے تمام تبصرے بھیجنے کے لیے نشان زد کریں"
+msgid "Mark all as read"
+msgstr ""
 
-msgid "Mark every comment to send"
-msgstr "بھیجنے کے لیے تمام تبصرے منتخب کریں"
+msgid "Mark done: {text}"
+msgstr ""
 
 msgid "Markdown"
 msgstr "Markdown"
@@ -6298,6 +6568,9 @@ msgstr "Markdown سورس"
 
 msgid "markdownlint rules"
 msgstr "markdownlint کے قواعد"
+
+msgid "Marked done: {text}"
+msgstr ""
 
 msgid "Match case"
 msgstr "حروف کی حالت ملائیں"
@@ -6328,6 +6601,15 @@ msgstr "درمیانہ سیکشن عنوان۔"
 
 msgid "Mention a page"
 msgstr "کسی صفحہ کا حوالہ دیں"
+
+msgid "Mentioning me"
+msgstr ""
+
+msgid "Mentions"
+msgstr ""
+
+msgid "Mentions, {0} unread"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Merged"
@@ -6440,6 +6722,9 @@ msgstr "سب سے زیادہ نصب شدہ"
 
 msgid "Move"
 msgstr "منتقل کریں"
+
+msgid "Move \"{title}\" to"
+msgstr ""
 
 msgid "Move {0} to Global"
 msgstr "{0} مہارتیں گلوبل میں منتقل کریں"
@@ -6642,6 +6927,9 @@ msgstr "نام درکار ہے"
 msgid "Name your theme"
 msgstr "اپنی تھیم کا نام رکھیں"
 
+msgid "name@example.com"
+msgstr ""
+
 msgid "Navigate CodeMirror source search results or dismiss the search panel."
 msgstr "CodeMirror کے سورس تلاش نتائج میں گھومیں یا تلاش کا پینل برخاست کریں۔"
 
@@ -6690,11 +6978,17 @@ msgstr "نئی سرگرمی"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "نیا ریکارڈ · دوبارہ کھیلنے کے لیے <0>اسپیس</0> دبائیں"
 
+msgid "New branch"
+msgstr ""
+
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "نئی برانچ <0>{trimmed}</0> <1>{currentBaseLabel}</1> سے بنے گی، <2>.ok/worktrees/</2> کے تحت اپنے الگ ورک ٹری میں۔"
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "نئی برانچ <0>{trimmed}</0> موجودہ کمٹ سے بنے گی، <1>.ok/worktrees/</1> کے تحت اپنے الگ ورک ٹری میں۔"
+
+msgid "New branch…"
+msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "آپ کے ریموٹ کی نئی تبدیلیاں خودکار طور پر آپ کی نقل میں آ جاتی ہیں۔"
@@ -6734,6 +7028,12 @@ msgstr "نظر انداز کرنے کا نیا پیٹرن"
 
 msgid "New languages may need an internet connection and time to become available."
 msgstr "نئی زبانوں کو دستیاب ہونے کے لیے انٹرنیٹ کنکشن اور کچھ وقت درکار ہو سکتا ہے۔"
+
+msgid "New meeting note"
+msgstr ""
+
+msgid "New mentions are emailed to {0}"
+msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "{editor} ورژن کے لیے نیا نام"
@@ -6780,6 +7080,9 @@ msgstr "نیا ورک ٹری"
 msgid "New worktree…"
 msgstr "نیا ورک ٹری…"
 
+msgid "Next 7 days"
+msgstr ""
+
 msgid "Next change"
 msgstr "اگلی تبدیلی"
 
@@ -6795,14 +7098,14 @@ msgstr "اگلا ٹیب"
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "ابھی کوئی <0>.markdownlint.*</0> فائل نہیں — ہر قاعدہ انہی طے شدہ اقدار پر چلتا ہے جو VS Code کے markdownlint ایکسٹینشن کی ہیں: سب فعال، سوائے سطر کی لمبائی کے۔"
 
+msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
+msgstr ""
+
 msgid "No active or recent GitQuire projects were found."
 msgstr "کوئی فعال یا حالیہ GitQuire پروجیکٹ نہیں ملا۔"
 
 msgid "No agent folders yet"
 msgstr "ابھی تک کوئی ایجنٹ فولڈر نہیں"
-
-msgid "No agent is set up yet — opening Configure agents."
-msgstr "ابھی کوئی ایجنٹ ترتیب نہیں دیا گیا — «ایجنٹس ترتیب دیں» کھولا جا رہا ہے۔"
 
 msgid "No agent is set up yet — pick one from the send menu."
 msgstr "ابھی کوئی ایجنٹ ترتیب نہیں دیا گیا — بھیجنے کے مینو سے ایک منتخب کریں۔"
@@ -6852,6 +7155,9 @@ msgstr "اس ورژن میں متن کی کوئی تبدیلی نہیں۔"
 msgid "No body changes in this version"
 msgstr "اس ورژن میں متن کی کوئی تبدیلی نہیں"
 
+msgid "No broken links."
+msgstr ""
+
 msgid "No bug reports yet."
 msgstr "ابھی کوئی بگ رپورٹ نہیں۔"
 
@@ -6866,12 +7172,6 @@ msgstr "ابھی کوئی چیٹ نہیں۔"
 
 msgid "No collab server for this worktree — run <0>{cliCommand} start</0> here, or reopen the project."
 msgstr "اس ورک ٹری کے لیے کوئی اشتراکی سرور نہیں — یہاں <0>{cliCommand} start</0> چلائیں، یا پروجیکٹ دوبارہ کھولیں۔"
-
-msgid "No comments in this project yet. Comment on a passage to start one."
-msgstr "اس پروجیکٹ میں ابھی کوئی تبصرہ نہیں ہے۔ شروع کرنے کے لیے کسی اقتباس پر تبصرہ کریں۔"
-
-msgid "No comments yet. Select text in the document to add one."
-msgstr "ابھی کوئی تبصرہ نہیں۔ ایک شامل کرنے کے لیے دستاویز میں متن منتخب کریں۔"
 
 msgid "No common ancestor — both branches added this file (add/add conflict)."
 msgstr "کوئی مشترکہ سلف نہیں — دونوں برانچوں نے یہ فائل شامل کی (add/add تنازع)۔"
@@ -6893,6 +7193,9 @@ msgstr "کوئی منقطع صفحہ نہیں۔ صفحات یہاں صرف اس�
 
 msgid "No docs registered under #{tagDocsName}."
 msgstr "#{tagDocsName} کے تحت کوئی دستاویز رجسٹرڈ نہیں۔"
+
+msgid "No due date"
+msgstr ""
 
 msgid "No edit session yet"
 msgstr "ابھی کوئی ترمیمی سیشن نہیں"
@@ -7005,6 +7308,15 @@ msgstr "{docName} میں مرر کے ماخذ کا کوئی بلاک نہیں ہ
 msgid "No Outgoing"
 msgstr "کوئی جانے والا نہیں"
 
+msgid "No page has a date yet. Give a page a date property (\"date: 2026-11-12\"), or choose \"New meeting note\"."
+msgstr ""
+
+msgid "No page has properties yet. Open a page, choose \"Add properties\" and give it for example a type and a status. It then shows up here."
+msgstr ""
+
+msgid "No page matches."
+msgstr ""
+
 msgid "No pages are missing incoming graph links."
 msgstr "کسی صفحے میں آنے والے گراف لنکس کی کمی نہیں۔"
 
@@ -7020,6 +7332,9 @@ msgstr "«{trimmedQuery}» کے لیے کوئی صفحہ نہیں ملا"
 msgid "No pages link here yet."
 msgstr "ابھی کوئی صفحہ یہاں لنک نہیں کرتا۔"
 
+msgid "No pages match this view."
+msgstr ""
+
 msgid "No pages matched \"{semanticQueryText}\" by meaning."
 msgstr "«{semanticQueryText}» سے معنی کے لحاظ سے کوئی صفحہ مماثل نہیں ہوا۔"
 
@@ -7034,6 +7349,9 @@ msgstr "کوئی مسئلہ نہیں ملا۔"
 
 msgid "No project templates yet. Create one to make it available everywhere in this project. Folder-scoped templates live on each folder's overview page."
 msgstr "ابھی پروجیکٹ کا کوئی ٹیمپلیٹ نہیں۔ اسے اس پروجیکٹ میں ہر جگہ دستیاب کرنے کے لیے ایک بنائیں۔ فولڈر تک محدود ٹیمپلیٹس ہر فولڈر کے جائزہ صفحے پر رہتے ہیں۔"
+
+msgid "No property with a few values to group by. Set \"group:\" in the view block."
+msgstr ""
 
 msgid "No recent files"
 msgstr "کوئی حالیہ فائل نہیں"
@@ -7101,11 +7419,20 @@ msgstr "کوئی ٹیمپلیٹ نہیں ملا۔"
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "ابھی کوئی ٹیمپلیٹ نہیں۔ اس فولڈر کی نئی دستاویزات کو تیار شدہ نقطۂ آغاز دینے کے لیے ایک شامل کریں۔"
 
+msgid "No value"
+msgstr ""
+
 msgid "No workspace"
 msgstr "کوئی ورک اسپیس نہیں"
 
 msgid "No worktrees found."
 msgstr "کوئی ورک ٹری نہیں ملی۔"
+
+msgid "Nobody has mentioned you yet. Mentions in comments show up here."
+msgstr ""
+
+msgid "Nobody mentioned"
+msgstr ""
 
 msgid "None"
 msgstr "کوئی نہیں"
@@ -7196,6 +7523,12 @@ msgstr "{agentName} کی طرف سے {stalledMinutes, plural, one {# منٹ} oth
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "رپورٹ کا جائزہ لے کر بھیجنے تک کمپیوٹر سے کچھ بھی باہر نہیں جاتا۔"
 
+msgid "Nothing matches the filter."
+msgstr ""
+
+msgid "Nothing matches."
+msgstr ""
+
 msgid "Nothing moves until you ask — pull and push from the sync menu."
 msgstr "جب تک آپ نہ کہیں، کچھ نہیں چلے گا — مطابقت پذیری کے مینو سے کھینچیں اور پُش کریں۔"
 
@@ -7261,12 +7594,6 @@ msgstr "فعال — بیرونی لنک پر ماؤس لے جانے سے اس �
 
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "فعال — آپ کے تلاش استفسارات اور مماثل صفحات کا متن ایمبیڈنگز شمار کرنے کے لیے آپ کے ایمبیڈنگز فراہم کنندہ (طے شدہ طور پر OpenAI) کو بھیجے جاتے ہیں۔"
-
-msgid "On <0>{address}</0>"
-msgstr "<0>{address}</0> پر"
-
-msgid "On selected text in <0>{address}</0>"
-msgstr "<0>{address}</0> میں منتخب متن پر"
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "روٹ انڈیکس پر، okf_version کو \"0.2\" کی طرح کوٹڈ سٹرنگ کے طور پر لکھا جاتا ہے۔ بغیر حوالہ، YAML اسے ایک نمبر کے طور پر پڑھتا ہے اور 0.10 خاموشی سے 0.1 بن جاتا ہے۔"
@@ -7377,9 +7704,6 @@ msgstr "CodeMirror کا «سطر پر جائیں» پرامپٹ کھولیں۔"
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "CodeMirror کا لِنٹ تشخیصی پینل کھولیں۔"
 
-msgid "Open comment"
-msgstr "تبصرہ کھولیں"
-
 msgid "Open containing folder"
 msgstr "پر مشتمل فولڈر کھولیں"
 
@@ -7446,35 +7770,8 @@ msgstr "ورک ٹری میں کھولیں"
 msgid "Open it there"
 msgstr "اسے وہیں کھولیں"
 
-msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
-msgstr "GitQuire انڈیکس کی دیکھ بھال کی جانچ کے لیے پروجیکٹ سرور تک نہیں پہنچ سکا۔ جب پروجیکٹ دوبارہ جڑ جائے گا تو حالت اپ ڈیٹ ہو جائے گی۔"
-
-msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
-msgstr "GitQuire ہر فولڈر میں index.md نامی نیویگیشن فائل بناتا اور برقرار رکھتا ہے جس میں Markdown ہوتا ہے۔"
-
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format رہنمائی"
-
-msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
-msgstr "GitQuire ہر فولڈر میں index.md نامی ایک نیویگیشن فائل کو برقرار رکھتا ہے جس میں Markdown ہوتا ہے، ہر ایک فولڈر کے دستاویزات کو ٹائپ اور اس کے ذیلی فولڈرز سے لنک کرکے درج کرتا ہے۔ یہ ان فائلوں کو دوبارہ لکھتا ہے جیسے آپ کی دستاویزات تبدیل ہوتی ہیں، اور جو کچھ بھی آپ خود ان میں ترمیم کرتے ہیں اسے تبدیل کر دیا جاتا ہے۔"
-
-msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
-msgstr "GitQuire ان index.md فائلوں کو دوبارہ لکھتا ہے جیسے ہی دستاویزات میں تبدیلی آتی ہے، لہذا ان میں دستی ترامیم تبدیل کردی جاتی ہیں۔"
-
-msgid "GitQuire tools are available in this thread."
-msgstr "اس تھریڈ میں GitQuire ٹولز دستیاب ہیں۔"
-
-msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "GitQuire کے ٹولز دستیاب نہیں ہیں کیونکہ پروجیکٹ فولڈر موجود نہیں، اس تک رسائی ممکن نہیں یا وہ تبدیل ہو گیا ہے۔ اس کا مقام اور اجازتیں چیک کریں، پھر دوبارہ کوشش کریں۔"
-
-msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
-msgstr "GitQuire ٹولز دستیاب نہیں: {bridgePath} پر پہلے سے ایسی فائل موجود ہے جو GitQuire نے نہیں لکھی۔"
-
-msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
-msgstr "GitQuire ٹولز دستیاب نہیں: {bridgePath} پر پہلے سے کچھ موجود ہے مگر اسے پڑھا نہیں جا سکا، اس لیے GitQuire نے اسے ویسا ہی چھوڑ دیا۔"
-
-msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "GitQuire کی اپنی {0} نقل خراب ہے اور چلتی نہیں۔ یہ اسے تبدیل کرنے کے لیے {1} {2} کی نئی نقل ڈاؤن لوڈ کر سکتا ہے (تقریباً {3} MB، {4} سے)۔"
 
 msgid "Open link"
 msgstr "لنک کھولیں"
@@ -7493,6 +7790,15 @@ msgstr "ایجنٹ کی ترمیم پر پیش منظر کھولیں"
 
 msgid "Open project menu"
 msgstr "پروجیکٹ کا مینو کھولیں"
+
+msgid "Open pull request"
+msgstr ""
+
+msgid "Open pull request…"
+msgstr ""
+
+msgid "Open pull requests"
+msgstr ""
 
 msgid "Open recent project"
 msgstr "حالیہ پروجیکٹ کھولیں"
@@ -7515,6 +7821,9 @@ msgstr "سورس لِنٹ پینل کھولیں"
 msgid "Open source: {mirrorSrc}"
 msgstr "ماخذ کھولیں: {mirrorSrc}"
 
+msgid "Open tasks"
+msgstr ""
+
 msgid "Open terminal"
 msgstr "ٹرمینل کھولیں"
 
@@ -7523,9 +7832,6 @@ msgstr "سائن اِن کرنے کے لیے ٹرمینل کھولیں"
 
 msgid "Open that worktree instead"
 msgstr "اس کے بجائے وہ ورک ٹری کھولیں"
-
-msgid "Open the comment composer on the current selection and add it to the dispatch queue."
-msgstr "موجودہ انتخاب پر تبصرے کا کمپوزر کھولیں اور اسے بھیجنے کی قطار میں شامل کریں۔"
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "خالی یا فعال متن کی جگہ پر داخل کرنے کا مینو کھولیں۔"
@@ -7578,6 +7884,9 @@ msgstr "{ancestorPath} پر موجود GitQuire پروجیکٹ کھول دیا �
 msgid "Opened on branch {branch}"
 msgstr "برانچ {branch} پر کھولا گیا"
 
+msgid "Opened pull request #{number}"
+msgstr ""
+
 msgid "Opening {openingLabel}…"
 msgstr "{openingLabel} کھولا جا رہا ہے…"
 
@@ -7587,194 +7896,8 @@ msgstr "ورک ٹری کھولا جا رہا ہے"
 msgid "Opening..."
 msgstr "کھولا جا رہا ہے..."
 
-msgid "GitQuire"
-msgstr "GitQuire"
-
-msgid "GitQuire can't sign in to GitHub for this project."
-msgstr "GitQuire اس پروجیکٹ کے لیے GitHub میں سائن اِن نہیں کر سکتا۔"
-
-msgid "GitQuire checked {subject}"
-msgstr "GitQuire نے {subject} کی جانچ کی"
-
-msgid "GitQuire checked the project"
-msgstr "GitQuire نے پروجیکٹ کی جانچ کی"
-
-msgid "GitQuire checks for and downloads updates in the background."
-msgstr "GitQuire پس منظر میں اپ ڈیٹس دیکھتا اور ڈاؤن لوڈ کرتا ہے۔"
-
-msgid "GitQuire could not find this agent on this machine."
-msgstr "GitQuire کو اس مشین پر یہ ایجنٹ نہیں ملا۔"
-
-msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
-msgstr "GitQuire اس پروجیکٹ کا سیٹ اپ مکمل نہیں کر سکا۔ ورک ٹری بن گئی، لیکن کھولی نہیں گئی۔"
-
-msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "GitQuire .ok/local/config.yml میں terminal.shell نہیں پڑھ سکا۔ اس کے بجائے دستیاب Windows شیل استعمال کیا جا رہا ہے۔"
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
-msgstr "GitQuire .ok/local/terminal کے تحت لانچ کی ترتیبات نہیں لکھ سکا کیونکہ فولڈر اس پروجیکٹ کے اندر محفوظ طور پر موجود نہیں ہے۔ تصدیق کریں کہ یہ پروجیکٹ کے اندر ایک حقیقی فولڈر ہے، لنک نہیں۔ Claude آپ سے GitQuire کو منظور کرنے کے لیے کہے گا۔"
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
-msgstr "GitQuire اس بار .ok/local/terminal کے تحت لانچ کی ترتیبات نہیں لکھ سکا۔ تصدیق کریں کہ فولڈر میں لکھا جا سکتا ہے۔ Claude آپ سے GitQuire کو منظور کرنے کے لیے کہے گا۔"
-
-msgid "GitQuire created a share link"
-msgstr "GitQuire نے شیئر لنک بنایا"
-
-msgid "GitQuire created a share link for {subject}"
-msgstr "GitQuire نے {subject} کے لیے شیئر لنک بنایا"
-
-msgid "GitQuire deleted {subject}"
-msgstr "GitQuire نے {subject} حذف کیا"
-
-msgid "GitQuire deleted a document"
-msgstr "GitQuire نے ایک دستاویز حذف کی"
-
-msgid "GitQuire discovery skill"
-msgstr "GitQuire دریافت اسکل"
-
-msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "GitQuire اس اندراج کو نہیں پہچانتا، اور اس فائل کی فارمیٹ میں اسے محفوظ طریقے سے تبدیل نہیں کر سکتا۔"
-
-msgid "GitQuire does not recognize this entry. Turning it on replaces it."
-msgstr "GitQuire اس اندراج کو نہیں پہچانتا۔ اسے آن کرنے پر یہ تبدیل ہو جائے گا۔"
-
-msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
-msgstr "GitQuire خود سے اپ ڈیٹس نہیں دیکھتا یا ڈاؤن لوڈ نہیں کرتا۔ نیا ورژن چاہیں تو \"اپ ڈیٹس دیکھیں\" اب بھی کام کرتا ہے۔"
-
-msgid "GitQuire edited {subject}"
-msgstr "GitQuire نے {subject} میں ترمیم کی"
-
-msgid "GitQuire edited a document"
-msgstr "GitQuire نے ایک دستاویز میں ترمیم کی"
-
-msgid "GitQuire files were removed"
-msgstr "GitQuire کی فائلیں ہٹا دی گئیں"
-
-msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
-msgstr "GitQuire نے اس ہوسٹ کے لیے کوئی کریڈینشل محفوظ نہیں کیا۔ ترتیبات میں ٹوکن شامل کریں، یا git کو وہ کریڈینشلز استعمال کرنے دیں جو اس کے پاس پہلے سے ہیں۔"
-
-msgid "GitQuire imported {source}"
-msgstr "GitQuire نے {source} درآمد کیا"
-
-msgid "GitQuire imported a skill"
-msgstr "GitQuire نے ایک اسکل درآمد کی"
-
-msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
-msgstr "GitQuire کا ابتدائیہ <0>{projectDir}</0> پر ہوتا ہے — جو <1>{pickedRelative}</1> کا والد ہے کیونکہ اس میں <2>.git</2> فولڈر ہے (ہر git ریپو کے لیے ایک .ok/)۔ <3>مواد کی ڈائریکٹری</3> طے شدہ طور پر <4>.</4> ہوتی ہے (پورا ریپو)؛ اسے محدود کرنے کے لیے کوئی ذیلی فولڈر لکھیں۔"
-
-msgid "GitQuire installed {subject}"
-msgstr "GitQuire نے {subject} انسٹال کیا"
-
-msgid "GitQuire installed a skill"
-msgstr "GitQuire نے ایک اسکل انسٹال کی"
-
-msgid "GitQuire integrations checked."
-msgstr "GitQuire انٹیگریشنز جانچ لی گئیں۔"
-
-msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
-msgstr "یہاں GitQuire ریپوزٹری کی جڑ میں سیٹ ہوتا ہے، اس لیے پیک ریپوزٹری کے اوپر کے بجائے <0>{sanitized}</0> کے اندر جاتا ہے۔"
-
-msgid "GitQuire is using this GitHub account."
-msgstr "GitQuire یہی GitHub اکاؤنٹ استعمال کر رہا ہے۔"
-
-msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
-msgstr "GitQuire دوبارہ کوشش کرتا رہتا ہے اور فائل پڑھنے کے قابل ہوتے ہی انہیں دکھا دے گا۔"
-
-msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "GitQuire نے اس فائل کو تبدیل نہیں کیا کیونکہ وہ اسے محفوظ طریقے سے پارس نہیں کر سکا۔ فائل کو خود درست کریں، پھر دوبارہ کوشش کریں۔"
-
-msgid "GitQuire listed the installed skills"
-msgstr "GitQuire نے انسٹال شدہ اسکلز کی فہرست دی"
-
-msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
-msgstr "مختلف پروجیکٹس کے GitQuire لاگز۔ کوئی پروجیکٹ کھلا نہیں، اس لیے پروجیکٹ سرور کے لاگز شامل نہیں ہیں۔"
-
-msgid "GitQuire logs, including activity across projects."
-msgstr "GitQuire لاگز، جن میں مختلف پروجیکٹس کی سرگرمی شامل ہے۔"
-
-msgid "GitQuire looked at the link graph"
-msgstr "GitQuire نے لنک گراف دیکھا"
-
-msgid "GitQuire looked up links for {subject}"
-msgstr "GitQuire نے {subject} کے لنکس تلاش کیے"
-
-msgid "GitQuire looked up the authoring palette"
-msgstr "GitQuire نے تحریری پیلیٹ دیکھا"
-
-msgid "GitQuire moved {subject} to {destination}"
-msgstr "GitQuire نے {subject} کو {destination} میں منتقل کیا"
-
-msgid "GitQuire moved a document"
-msgstr "GitQuire نے ایک دستاویز منتقل کی"
-
-msgid "GitQuire on GitHub"
-msgstr "GitHub پر GitQuire"
-
-msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
-msgstr "اس کمپیوٹر پر GitQuire کسی دوسرے بلڈ میں بدل گیا ہے، لیکن یہ ٹیب ابھی بھی پرانا بلڈ چلا رہا ہے۔"
-
-msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
-msgstr "اس کمپیوٹر پر GitQuire اب v{serverVersion} ہے، لیکن یہ ٹیب ابھی بھی v{tabVersion} چلا رہا ہے۔"
-
-msgid "GitQuire opened the live preview"
-msgstr "GitQuire نے لائیو پیش منظر کھولا"
-
-msgid "GitQuire quit unexpectedly last time."
-msgstr "پچھلی بار GitQuire غیر متوقع طور پر بند ہو گیا تھا۔"
-
-msgid "GitQuire ran {command}"
-msgstr "GitQuire نے {command} چلایا"
-
-msgid "GitQuire ran {tool}"
-msgstr "GitQuire نے {tool} چلایا"
-
-msgid "GitQuire ran a command"
-msgstr "GitQuire نے ایک کمانڈ چلائی"
-
-msgid "GitQuire read the edit history"
-msgstr "GitQuire نے ترمیم کی تاریخ پڑھی"
-
-msgid "GitQuire read the history of {subject}"
-msgstr "GitQuire نے {subject} کی تاریخ پڑھی"
-
-msgid "GitQuire read the project settings"
-msgstr "GitQuire نے پروجیکٹ کی ترتیبات پڑھیں"
-
-msgid "GitQuire read the setting {key}"
-msgstr "GitQuire نے ترتیب {key} پڑھی"
-
-msgid "GitQuire restored an earlier version"
-msgstr "GitQuire نے پچھلا ورژن بحال کیا"
-
-msgid "GitQuire restored an earlier version of {subject}"
-msgstr "GitQuire نے {subject} کا پچھلا ورژن بحال کیا"
-
-msgid "GitQuire saved a checkpoint"
-msgstr "GitQuire نے ایک چیک پوائنٹ محفوظ کیا"
-
-msgid "GitQuire searched for {query}"
-msgstr "GitQuire نے {query} تلاش کیا"
-
-msgid "GitQuire searched the knowledge base"
-msgstr "GitQuire نے نالج بیس میں تلاش کیا"
-
-msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "GitQuire اسکل محفوظ ہو گئی۔ اسے Claude Desktop میں اپ لوڈ کریں، پھر دوبارہ Cowork پر کلک کریں۔"
-
-msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
-msgstr "GitQuire اپنی کنفیگریشن اور داخلی فائلیں آپ کے پروجیکٹ کے جڑ فولڈر میں نئے بنے <0>.ok</0> ڈائریکٹری کے اندر رکھتا ہے۔"
-
-msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
-msgstr "GitQuire کا ابتدائیہ <0>{gitRoot}</0> پر ہو گا — جو آپ کے نئے فولڈر کا والد ہے، کیونکہ اس میں <1>.git</1> فولڈر ہے (ہر git ریپو کے لیے ایک پروجیکٹ)۔"
-
-msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
-msgstr "GitQuire کمٹس بنا کر خودکار طور پر آپ کے ریموٹ پر پُش کرے گا۔ اگر آپ اپنی git تاریخ میں خودکار کمٹس نہیں چاہتے تو خودکار مطابقت پذیری فعال نہ کریں۔"
-
-msgid "GitQuire wrote a document"
-msgstr "GitQuire نے ایک دستاویز لکھی"
-
-msgid "GitQuire wrote to {subject}"
-msgstr "GitQuire نے {subject} میں لکھا"
+msgid "Opening…"
+msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "ریپازٹری کہاں کلون کرنی ہے، یہ منتخب کرنے کے لیے فولڈر منتخب کنندہ کھولتا ہے۔"
@@ -7867,6 +7990,9 @@ msgstr "{budgetLabel} ٹوکن بجٹ سے زیادہ"
 msgid "Over the {budgetLabel} token guidance. Everything here loads into the agent's context when the skill is used — keep it lean, or move detail into references/ files that load only on demand."
 msgstr "{budgetLabel} ٹوکن رہنمائی سے زیادہ۔ مہارت کے استعمال پر یہ سب ایجنٹ کے سیاق میں لوڈ ہوتا ہے — اسے مختصر رکھیں، یا تفصیل references/ فائلوں میں منتقل کریں جو صرف ضرورت پر لوڈ ہوتی ہیں۔"
 
+msgid "Overdue"
+msgstr ""
+
 msgid "Overlapping edits"
 msgstr "ٹکراتی ترامیم"
 
@@ -7900,6 +8026,9 @@ msgstr "صفحے کے عنوانات کا جواب JSON نہیں تھا"
 msgid "Page link"
 msgstr "صفحے کا لنک"
 
+msgid "Page name"
+msgstr ""
+
 msgid "Page not found"
 msgstr "صفحہ نہیں ملا"
 
@@ -7917,6 +8046,9 @@ msgstr "صفحات پہلی بار اسی وقت ایمبیڈ ہوتے ہیں ج
 
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "انڈیکس شدہ صفحات: {semanticTotalCount} میں سے {semanticIndexedCount}۔"
+
+msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgstr ""
 
 msgid "Pan down"
 msgstr "نیچے کھسکائیں"
@@ -8044,6 +8176,9 @@ msgstr "اجازت نہیں"
 
 msgid "Permission required"
 msgstr "اجازت درکار ہے"
+
+msgid "Person"
+msgstr ""
 
 msgid "Personal access token"
 msgstr "ذاتی رسائی ٹوکن"
@@ -8228,9 +8363,6 @@ msgstr "{0} میں مسائل"
 msgid "Product updates"
 msgstr "مصنوعات کی اپ ڈیٹس"
 
-msgid "Product updates in your inbox."
-msgstr "مصنوعات کی اپ ڈیٹس آپ کے اِن باکس میں۔"
-
 msgid "project"
 msgstr "پروجیکٹ"
 
@@ -8293,6 +8425,9 @@ msgstr "خصوصیت کا نام"
 
 msgid "Property value"
 msgstr "خصوصیت کی قدر"
+
+msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgstr ""
 
 msgid "Protected branch — cannot push"
 msgstr "محفوظ برانچ — پُش نہیں ہو سکتا"
@@ -8422,9 +8557,6 @@ msgstr "GitHub Enterprise Server سے دوبارہ توثیق کریں"
 
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "دوبارہ ایمبیڈنگ تلاش چلنے کے دوران ہوتی ہے، اس لیے احاطہ صفر سے شروع ہو کر دوبارہ بھرتا ہے۔"
-
-msgid "Re-place on selected text"
-msgstr "منتخب متن پر دوبارہ رکھیں"
 
 msgid "Re-run the project audit"
 msgstr "پروجیکٹ کا آڈٹ دوبارہ چلائیں"
@@ -8664,12 +8796,6 @@ msgstr "دونوں کے لیے ہٹائیں"
 msgid "Remove from recent projects"
 msgstr "حالیہ پروجیکٹس سے ہٹائیں"
 
-msgid "Remove item {0}"
-msgstr "آئٹم {0} ہٹائیں"
-
-msgid "Remove link"
-msgstr "لنک ہٹائیں"
-
 msgid "Remove GitQuire from {0}"
 msgstr "GitQuire کو {0} سے ہٹائیں"
 
@@ -8681,6 +8807,12 @@ msgstr "{rowLabel} سے GitQuire ہٹائیں"
 
 msgid "Remove GitQuire?"
 msgstr "GitQuire ہٹائیں؟"
+
+msgid "Remove item {0}"
+msgstr "آئٹم {0} ہٹائیں"
+
+msgid "Remove link"
+msgstr "لنک ہٹائیں"
 
 msgid "Remove property"
 msgstr "خصوصیت ہٹائیں"
@@ -8787,6 +8919,12 @@ msgstr "حال ہی میں بند کیا گیا ایڈیٹر ٹیب دوبارہ
 msgid "Reopen this window to sign in with your browser"
 msgstr "اپنے براؤزر سے سائن اِن کرنے کے لیے یہ ونڈو دوبارہ کھولیں"
 
+msgid "Reopen: {text}"
+msgstr ""
+
+msgid "Reopened: {text}"
+msgstr ""
+
 msgid "Reopening \"{docName}\" with a fresh local collaboration cache."
 msgstr "«{docName}» کو نئی مقامی اشتراکی کیشے کے ساتھ دوبارہ کھولا جا رہا ہے۔"
 
@@ -8862,10 +9000,10 @@ msgstr "بگ رپورٹ کریں…"
 msgid "Report a problem with this chat…"
 msgstr "اس چیٹ میں مسئلے کی رپورٹ کریں…"
 
-msgid "Report an issue on GitHub"
+msgid "Report an issue"
 msgstr ""
 
-msgid "Report an issue"
+msgid "Report an issue on GitHub"
 msgstr ""
 
 msgid "Report from {0}"
@@ -8964,9 +9102,6 @@ msgstr "حذف کرنے سے پہلے {files} کا تنازع حل کریں۔"
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "حذف کرنے سے پہلے {files} اور مزید {overflow} فائلوں کا تنازع حل کریں۔"
-
-msgid "Resolved"
-msgstr "حل شدہ"
 
 msgid "Resolved by {resolvedBy}"
 msgstr ""
@@ -9154,20 +9289,29 @@ msgstr "سینڈ باکسڈ HTML ایمبیڈ — HTML لکھیں، رینڈر �
 msgid "Save"
 msgstr "محفوظ کریں"
 
+msgid "Save as page"
+msgstr ""
+
 msgid "Save changes"
 msgstr "تبدیلیاں محفوظ کریں"
 
 msgid "Save failed: {error}"
 msgstr "محفوظ کرنا ناکام: {error}"
 
+msgid "Save page"
+msgstr ""
+
 msgid "Save queued message"
 msgstr "قطار میں موجود پیغام محفوظ کریں"
 
-msgid "Save this comment (Enter)"
-msgstr "یہ تبصرہ محفوظ کریں (Enter)"
+msgid "Save view as page"
+msgstr ""
 
 msgid "Saved"
 msgstr "محفوظ ہو گیا"
+
+msgid "Saved as {docName}.md"
+msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "<0>{slug}.md</0> کے نام سے محفوظ ہوا"
@@ -9186,6 +9330,9 @@ msgstr "محفوظ شدہ تھیمز لوڈ نہیں ہو سکیں۔ آخری د
 
 msgid "Saved to"
 msgstr "یہاں محفوظ ہوا"
+
+msgid "Saved view: {0}"
+msgstr ""
 
 msgid "Saved with the project for your team."
 msgstr "آپ کی ٹیم کے لیے پروجیکٹ کے ساتھ محفوظ۔"
@@ -9277,6 +9424,9 @@ msgstr "فائلیں، فولڈرز یا کمانڈز تلاش کریں"
 msgid "Search folders"
 msgstr "فولڈر تلاش کریں"
 
+msgid "Search for a page and choose it to insert a link."
+msgstr ""
+
 msgid "Search icons..."
 msgstr "آئیکن تلاش کریں..."
 
@@ -9285,6 +9435,9 @@ msgstr "زبانیں تلاش کریں"
 
 msgid "Search matches file names, paths, and folders. Open a file to search its body <0>{0}</0>."
 msgstr "تلاش فائلوں کے نام، راستے اور فولڈرز سے مماثلت رکھتی ہے۔ کسی فائل کا متن تلاش کرنے کے لیے اسے کھولیں <0>{0}</0>۔"
+
+msgid "Search pages"
+msgstr ""
 
 msgid "Search projects"
 msgstr "پروجیکٹس تلاش کریں"
@@ -9367,9 +9520,6 @@ msgstr "مکمل تنصیبی رہنما دیکھیں"
 msgid "See what's added"
 msgstr "دیکھیں کیا شامل ہوگا"
 
-msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
-msgstr ""
-
 msgid "Select {name}"
 msgstr "{name} منتخب کریں"
 
@@ -9405,6 +9555,9 @@ msgstr "اگلا موقع منتخب کریں"
 
 msgid "Select spelling languages"
 msgstr "ہجے کی جانچ کی زبانیں منتخب کریں"
+
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
+msgstr ""
 
 msgid "Select the full source document."
 msgstr "پورا سورس دستاویز منتخب کریں۔"
@@ -9457,11 +9610,11 @@ msgstr "بھیجیں"
 msgid "Send & continue"
 msgstr "بھیجیں اور جاری رکھیں"
 
-msgid "Send checked comments to chat"
-msgstr "منتخب تبصرے چیٹ میں بھیجیں"
+msgid "Send a new code"
+msgstr ""
 
-msgid "Send comments to"
-msgstr "تبصرے یہاں بھیجیں"
+msgid "Send code"
+msgstr ""
 
 msgid "Send feedback"
 msgstr "رائے بھیجیں"
@@ -9478,17 +9631,8 @@ msgstr "ابھی بھیجیں"
 msgid "Send report"
 msgstr "رپورٹ بھیجیں"
 
-msgid "Send this comment"
-msgstr "یہ تبصرہ بھیجیں"
-
 msgid "Send to a new chat"
 msgstr "نئی چیٹ میں بھیجیں"
-
-msgid "Send to chat"
-msgstr "چیٹ میں بھیجیں"
-
-msgid "Send to chat ({0})"
-msgstr "چیٹ میں بھیجیں ({0})"
 
 msgid "Send when the agent is free"
 msgstr "ایجنٹ فارغ ہونے پر بھیجیں"
@@ -9513,9 +9657,6 @@ msgstr "آپ کے نوٹ اور ایپ کے ورژن سمیت نجی طور پر
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "آپ کا مواد ایمبیڈ کرنے کے لیے <0>{endpointHost}</0> کو بھیجا جاتا ہے۔ پروجیکٹ سے باہر محفوظ ہوتا ہے۔"
-
-msgid "Sent, but the comments could not be marked done — they're still waiting to send."
-msgstr "بھیج دیا گیا، مگر تبصروں کو مکمل نشان زد نہیں کیا جا سکا — وہ اب بھی بھیجنے کے منتظر ہیں۔"
 
 msgid "Separator"
 msgstr "علیحدہ کنندہ"
@@ -9693,9 +9834,6 @@ msgstr "دکھائیں"
 msgid "Show .ok folders"
 msgstr ".ok فولڈرز دکھائیں"
 
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
-
 msgid "Show {0} more"
 msgstr "{0} مزید دکھائیں"
 
@@ -9728,6 +9866,9 @@ msgstr "خاکہ دکھائیں"
 
 msgid "Show document panel"
 msgstr "دستاویز کا پینل دکھائیں"
+
+msgid "Show done"
+msgstr ""
 
 msgid "Show Editor"
 msgstr "ایڈیٹر دکھائیں"
@@ -9789,11 +9930,8 @@ msgstr "ہدایات دوبارہ دکھائیں: اس پروجیکٹ میں {di
 msgid "Show replace"
 msgstr "تبدیلی دکھائیں"
 
-msgid "Show resolved"
-msgstr "حل شدہ دکھائیں"
-
-msgid "Show resolved comments ({0})"
-msgstr "حل شدہ تبصرے دکھائیں ({0})"
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show selection preview"
 msgstr "انتخاب کا پیش منظر دکھائیں"
@@ -9810,14 +9948,20 @@ msgstr "سورس دکھائیں"
 msgid "Show Terminal"
 msgstr "Terminal دکھائیں"
 
-msgid "Show these comments in the Comments panel"
-msgstr "ان تبصروں کو تبصرے پینل میں دکھائیں"
-
 msgid "Show thumbnails"
 msgstr "تھمب نیلز دکھائیں"
 
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "«{semanticResultsLabel}» کے نتائج دکھائے جا رہے ہیں"
+
+msgid "Showing the first {MAX_ROWS} items."
+msgstr ""
+
+msgid "Showing the first {MAX_ROWS} pages."
+msgstr ""
+
+msgid "Showing the first {shownCount} of {rowCount} pages. Filter to narrow the list."
+msgstr ""
 
 msgid "Showing top {0} headings — keep typing to narrow"
 msgstr "سرِ فہرست {0} عنوانات دکھائے جا رہے ہیں — محدود کرنے کے لیے لکھتے رہیں"
@@ -10112,9 +10256,6 @@ msgstr "منتخب اقتباس کو ایجنٹ پینل میں تیار رکھ�
 msgid "stale Git entry"
 msgstr "پرانی Git انٹری"
 
-msgid "Star us on GitHub"
-msgstr "GitHub پر ہمیں ستارہ دیں"
-
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -10124,14 +10265,8 @@ msgstr "اسکرین اس وقت جیسی دکھ رہی ہے اس کا اسکر�
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "＋ بٹن سے چیٹ شروع کریں، یا کسی صفحے سے ایجنٹ شروع کریں۔"
 
-msgid "Start a discussion with your team on this selection"
+msgid "Start a comment thread on the selected text."
 msgstr ""
-
-msgid "Start a new chat"
-msgstr "نئی گفتگو شروع کریں"
-
-msgid "Start a new chat ({0})"
-msgstr "نئی گفتگو شروع کریں ({0})"
 
 msgid "Start a new GitQuire project."
 msgstr "نیا GitQuire پروجیکٹ شروع کریں۔"
@@ -10181,6 +10316,9 @@ msgstr "ٹرمینل شروع ہو رہا ہے…"
 msgid "Starting the agent…"
 msgstr "ایجنٹ شروع کیا جا رہا ہے…"
 
+msgid "Starts from {from}. Everyone moves to the new branch once it is created."
+msgstr ""
+
 msgid "status"
 msgstr "حالت"
 
@@ -10216,6 +10354,9 @@ msgstr "کیا {0} کا «{1}» پڑھنا روک دیا جائے؟ {subRoot} ا
 
 msgid "Stop {0} reading this skill"
 msgstr "{0} کا یہ مہارت پڑھنا روکیں"
+
+msgid "Stop emailing me"
+msgstr ""
 
 msgid "Stop fixing files"
 msgstr "فائلیں ٹھیک کرنا روکیں"
@@ -10277,6 +10418,9 @@ msgstr "اس ہفتے میں نے جو کچھ بدلا اس کا خلاصہ کر
 msgid "Swap file sidebar and document panel"
 msgstr "فائل سائیڈ بار اور دستاویز کے پینل کی جگہ بدلیں"
 
+msgid "Switch"
+msgstr ""
+
 msgid "Switch and update branch"
 msgstr "برانچ بدلیں اور تازہ کریں"
 
@@ -10286,11 +10430,17 @@ msgstr "اپنی جگہ برقرار رکھتے ہوئے بصری اور سور�
 msgid "Switch branch"
 msgstr "برانچ بدلیں"
 
+msgid "Switch everyone to"
+msgstr ""
+
 msgid "Switch project"
 msgstr "پروجیکٹ بدلیں"
 
 msgid "Switch project…"
 msgstr "پروجیکٹ بدلیں…"
+
+msgid "Switch to {target}?"
+msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "شیئر کرنے کے لیے کسی برانچ پر جائیں۔"
@@ -10303,6 +10453,9 @@ msgstr "ورک ٹری بدلیں"
 
 msgid "Switch worktree…"
 msgstr "ورک ٹری بدلیں…"
+
+msgid "Switched to {branch}"
+msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "ایجنٹ کا موڈ بدلتا ہے"
@@ -10545,17 +10698,23 @@ msgstr "رائے دینے کا شکریہ!"
 msgid "Thanks for the report!"
 msgstr "رپورٹ کا شکریہ!"
 
+msgid "That action item changed on its page. Reload to see it."
+msgstr ""
+
+msgid "That action item changed on its page. The list was reloaded."
+msgstr ""
+
 msgid "That branch is already open in another worktree."
 msgstr "وہ برانچ پہلے سے کسی اور ورک ٹری میں کھلی ہے۔"
+
+msgid "That code is not right."
+msgstr ""
 
 msgid "That conflict is no longer available."
 msgstr "وہ کنفلکٹ اب دستیاب نہیں ہے۔"
 
 msgid "That did not go through. Check the server logs and try again."
 msgstr "یہ مکمل نہیں ہوا۔ سرور لاگ دیکھیں اور دوبارہ کوشش کریں۔"
-
-msgid "That document didn't open in time. Try again once it has synced."
-msgstr "وہ دستاویز وقت پر نہیں کھلی۔ ہم آہنگ ہونے کے بعد دوبارہ کوشش کریں۔"
 
 msgid "That doesn’t parse as YAML or JSON — check line {0}."
 msgstr "اسے YAML یا JSON کے طور پر پارس نہیں کیا جا سکتا — سطر {0} دیکھیں۔"
@@ -10586,9 +10745,6 @@ msgstr "وہ پیغام پہلے ہی بھیجا جا چکا ہے — آپ کی 
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "یہ پارس ہو گیا، لیکن یہ base16 تھیم نہیں ہے۔"
-
-msgid "The quoted text is no longer in the page."
-msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0} کی ڈاؤن لوڈ درخواست کا وقت ختم ہو گیا۔"
@@ -10639,11 +10795,11 @@ msgstr "اس چیٹ سے باہر کسی چیز نے ایجنٹ پروسیس ک�
 msgid "The agent ran out of memory."
 msgstr "ایجنٹ کی میموری ختم ہو گئی۔"
 
-msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
-msgstr "ایجنٹ کی انسٹالیشن میں فائلیں موجود نہیں (ایک ماڈیول نہیں ملا)۔ ایجنٹ کو دوبارہ انسٹال کرنے سے عموماً یہ ٹھیک ہو جاتا ہے۔"
-
 msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
 msgstr "ایجنٹ کے GitQuire ٹولز سرور تک نہیں پہنچ سکے۔ ایجنٹ سے دوبارہ کوشش کرنے کو کہیں، اور اگر یہ بار بار ناکام ہو تو نئی چیٹ شروع کریں۔"
+
+msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
+msgstr "ایجنٹ کی انسٹالیشن میں فائلیں موجود نہیں (ایک ماڈیول نہیں ملا)۔ ایجنٹ کو دوبارہ انسٹال کرنے سے عموماً یہ ٹھیک ہو جاتا ہے۔"
 
 msgid "The agent's persona, values, and voice."
 msgstr "ایجنٹ کی شخصیت، اقدار اور لہجہ۔"
@@ -10677,6 +10833,12 @@ msgstr "چیٹ کے پیغامات، ٹول کالز اور ان کا آؤٹ پ�
 
 msgid "The Claude Desktop App didn't open the file. Is it installed? ({msg})"
 msgstr "Claude Desktop App نے فائل نہیں کھولی۔ کیا یہ نصب ہے؟ ({msg})"
+
+msgid "The code has expired. Ask for a new one."
+msgstr ""
+
+msgid "The confirmation mail could not be sent. Check the address and try again."
+msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "گفتگو اس رپورٹ میں شامل نہیں کی جا سکی۔"
@@ -10729,24 +10891,6 @@ msgstr "فولڈرز اور ٹیمپلیٹس یہاں پہلے سے موجود �
 msgid "The formula <0>c = √(a² + b²)</0> renders inline."
 msgstr "فارمولا <0>c = √(a² + b²)</0> اِن لائن رینڈر ہوتا ہے۔"
 
-msgid "The index files stay in place. GitQuire removes only the Git rule it added."
-msgstr "انڈیکس فائلیں اپنی جگہ پر رہتی ہیں۔ GitQuire صرف اس Git اصول کو ہٹاتا ہے جو اس نے شامل کیا ہے۔"
-
-msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
-msgstr "انٹرفیس اب بھی اسی زبان میں ہے جو آپ پڑھ رہے تھے۔ اپنا کنکشن دیکھیں، پھر دوبارہ کوشش کے لیے ری لوڈ کریں۔"
-
-msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
-msgstr "وہ زبان جو GitQuire بولتا ہے؛ سسٹم آپ کے آپریٹنگ سسٹم کی پیروی کرتا ہے۔ آپ کے اپنے نوٹس اسی زبان میں رہیں گے جس میں آپ نے لکھے تھے۔"
-
-msgid "The menu label agents pick this template by (required)."
-msgstr "وہ مینو لیبل جس سے ایجنٹس یہ ٹیمپلیٹ منتخب کرتے ہیں (درکار)۔"
-
-msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
-msgstr "وہ ماڈل شناخت جو آپ کا اینڈ پوائنٹ فراہم کرتا ہے۔ اس کا ویکٹر حجم خودکار طور پر معلوم ہو جاتا ہے — {DEFAULT_EMBEDDINGS_MODEL} پر واپس جانے کے لیے فیلڈ صاف کریں۔"
-
-msgid "the open agent"
-msgstr "کھلا ہوا ایجنٹ"
-
 msgid "The GitQuire project is missing at this checkout path."
 msgstr "اس چیک آؤٹ پاتھ پر GitQuire پروجیکٹ موجود نہیں ہے۔"
 
@@ -10762,8 +10906,32 @@ msgstr "GitQuire سرور نے جواب دینے میں بہت وقت لیا، �
 msgid "The GitQuire server took too long to answer. Ask the agent to try again."
 msgstr "GitQuire سرور نے جواب دینے میں بہت وقت لیا۔ ایجنٹ سے دوبارہ کوشش کرنے کو کہیں۔"
 
-msgid "The original text was deleted."
-msgstr "اصل متن حذف کر دیا گیا تھا۔"
+msgid "The index files stay in place. GitQuire removes only the Git rule it added."
+msgstr "انڈیکس فائلیں اپنی جگہ پر رہتی ہیں۔ GitQuire صرف اس Git اصول کو ہٹاتا ہے جو اس نے شامل کیا ہے۔"
+
+msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
+msgstr "انٹرفیس اب بھی اسی زبان میں ہے جو آپ پڑھ رہے تھے۔ اپنا کنکشن دیکھیں، پھر دوبارہ کوشش کے لیے ری لوڈ کریں۔"
+
+msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
+msgstr "وہ زبان جو GitQuire بولتا ہے؛ سسٹم آپ کے آپریٹنگ سسٹم کی پیروی کرتا ہے۔ آپ کے اپنے نوٹس اسی زبان میں رہیں گے جس میں آپ نے لکھے تھے۔"
+
+msgid "The meeting note was created, but its date and headings couldn't be added."
+msgstr ""
+
+msgid "The menu label agents pick this template by (required)."
+msgstr "وہ مینو لیبل جس سے ایجنٹس یہ ٹیمپلیٹ منتخب کرتے ہیں (درکار)۔"
+
+msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
+msgstr "وہ ماڈل شناخت جو آپ کا اینڈ پوائنٹ فراہم کرتا ہے۔ اس کا ویکٹر حجم خودکار طور پر معلوم ہو جاتا ہے — {DEFAULT_EMBEDDINGS_MODEL} پر واپس جانے کے لیے فیلڈ صاف کریں۔"
+
+msgid "the open agent"
+msgstr "کھلا ہوا ایجنٹ"
+
+msgid "The page shows this view live, for everyone, and is committed like any page."
+msgstr ""
+
+msgid "The page was created, but the view couldn't be written into it."
+msgstr ""
 
 msgid "The path can't leave the skill (no . or ..)"
 msgstr "پاتھ اسکل سے باہر نہیں جا سکتا (. یا .. نہیں)"
@@ -10803,6 +10971,9 @@ msgstr "فراہم کنندہ کے ویکٹر کا سائز مسلسل بدلت�
 
 msgid "The public URL your tunnel serves (for example your Tailscale https://…ts.net address). The server admits requests for this host and advertises it in the URLs it issues."
 msgstr "وہ عوامی URL جو آپ کا ٹنل پیش کرتا ہے (مثال کے طور پر آپ کا Tailscale https://…ts.net پتہ)۔ سرور اس ہوسٹ کے لیے درخواستیں قبول کرتا ہے اور جو URLs جاری کرتا ہے ان میں اس کی تشہیر کرتا ہے۔"
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The repository is private and your GitHub account doesn't have access to it."
 msgstr "ریپازٹری نجی ہے اور آپ کے GitHub اکاؤنٹ کو اس تک رسائی نہیں۔"
@@ -10939,6 +11110,9 @@ msgstr "تھیم والا پیش منظر"
 msgid "Themes"
 msgstr "تھیمز"
 
+msgid "There is no address waiting for a code."
+msgstr ""
+
 msgid "There's no project folder for this window, so a terminal can't start here."
 msgstr "اس ونڈو کے لیے کوئی پروجیکٹ فولڈر نہیں، اس لیے یہاں ٹرمینل شروع نہیں ہو سکتا۔"
 
@@ -11045,9 +11219,6 @@ msgstr "اس چیک آؤٹ پاتھ کو پڑھا نہیں جا سکتا۔"
 
 msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
 msgstr "اس کمانڈ میں پوشیدہ حروف ہیں جن کی وجہ سے یہ اصل میں چلنے والی چیز سے مختلف دکھائی دے سکتی ہے۔ انہیں یہاں ⟨U+…⟩ کی صورت میں دکھایا گیا ہے۔"
-
-msgid "This comment is on the whole property"
-msgstr "یہ تبصرہ پوری خصوصیت پر ہے"
 
 msgid "This component changed. Try again."
 msgstr "یہ جزو تبدیل ہو گیا ہے۔ دوبارہ کوشش کریں۔"
@@ -11302,6 +11473,9 @@ msgstr "یہ مواد آپ کی مشین سے باہر بھیجتا ہے"
 msgid "This sends the link's address off your machine"
 msgstr "یہ لنک کا پتہ آپ کی مشین سے باہر بھیجتا ہے"
 
+msgid "This server does not send mail to that domain."
+msgstr ""
+
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "اس سرور میں کوئی بلٹ اِن تصدیق نہیں ہے۔ جو بھی ٹنل تک پہنچ سکتا ہے وہ اس نالج بیس کا مکمل کنٹرول حاصل کر لیتا ہے۔ اس کے سامنے ایک تصدیقی گیٹ لگائیں، جیسے کوئی نجی Tailscale نیٹ ورک یا تصدیق والا ریورس پراکسی۔"
 
@@ -11353,6 +11527,9 @@ msgstr "یہ اپ ڈیٹ اب نصب کرنے کے لیے تیار نہیں ہے
 msgid "This usually means one of:"
 msgstr "اس کا عام طور پر مطلب ان میں سے کوئی ایک ہے:"
 
+msgid "This wiki has more pages than a view can show; the list is cut off."
+msgstr ""
+
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "یہ ونڈو ٹوکن محفوظ نہیں کر سکتی — ایپ کی مرکزی ونڈو سے ترتیبات کھولیں۔"
 
@@ -11392,6 +11569,9 @@ msgstr "اس سیٹ اپ کو محفوظ کرنے کے لیے، پروجیکٹ M
 
 msgid "Today"
 msgstr "آج"
+
+msgid "Today's meeting note already exists. It was opened."
+msgstr ""
 
 msgid "Toggle a bullet list."
 msgstr "بلٹ فہرست بدلیں۔"
@@ -11478,8 +11658,14 @@ msgstr "{host} پر {login} کے لیے ٹوکن محفوظ کر لیا گیا۔
 msgid "tokens"
 msgstr "ٹوکنز"
 
+msgid "Too many confirmation mails for now. Try again later."
+msgstr ""
+
 msgid "Too many live references on this page. This board was not loaded."
 msgstr "اس صفحے پر بہت زیادہ لائیو حوالے ہیں۔ یہ بورڈ لوڈ نہیں کیا گیا۔"
+
+msgid "Too many wrong codes. Ask for a new one."
+msgstr ""
 
 msgid "Too slow"
 msgstr "بہت سست"
@@ -11683,12 +11869,6 @@ msgstr "نامعلوم متغیر {unknownList}۔ دستیاب متغیرات: {
 msgid "unlink"
 msgstr "لنک ختم کریں"
 
-msgid "Unmark every comment"
-msgstr "تمام تبصروں کا انتخاب ہٹائیں"
-
-msgid "Unmark every comment in {0}"
-msgstr "{0} کے تمام تبصروں کا نشان ہٹائیں"
-
 msgid "Unmerged"
 msgstr "ضم نہیں ہوا"
 
@@ -11703,6 +11883,9 @@ msgstr "{accessibleLabel} کی پن ہٹائیں"
 
 msgid "Unpin tab"
 msgstr "ٹیب کی پن ہٹائیں"
+
+msgid "Unread"
+msgstr ""
 
 msgid "Unrecognized link"
 msgstr "ناقابلِ شناخت لنک"
@@ -11719,8 +11902,14 @@ msgstr "ناقابلِ حل فائل {identity}۔ حوالہ پر جائیں۔"
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "ناقابلِ حل تصویر {identity}۔ حوالہ پر جائیں۔"
 
+msgid "Unsaved changes block the switch"
+msgstr ""
+
 msgid "Unsupported file type: {fileType}."
 msgstr "غیر معاون فائل کی قسم: {fileType}۔"
+
+msgid "Until then, mentions still go to {0}."
+msgstr ""
 
 msgid "Untitled report"
 msgstr "بلا عنوان رپورٹ"
@@ -11768,14 +11957,8 @@ msgstr "{updatedRelative} اپ ڈیٹ ہوا"
 msgid "updated folder properties"
 msgstr "فولڈر کی خصوصیات تازہ کیں"
 
-msgid "Updated to Version {version}"
-msgstr "ورژن {version} پر تازہ ہو گیا"
-
 msgid "Updates"
 msgstr ""
-
-msgid "Updates and feedback"
-msgstr "اپ ڈیٹس اور رائے"
 
 msgid "Updates flow in"
 msgstr "اپ ڈیٹس آتی رہتی ہیں"
@@ -11958,9 +12141,6 @@ msgstr "skills.sh پر {publisher} دیکھیں"
 msgid "View as text"
 msgstr "متن کے طور پر دیکھیں"
 
-msgid "View comments"
-msgstr "تبصرے دیکھیں"
-
 msgid "View diff for edit {burstNumber} of {docName}"
 msgstr "{docName} کی ترمیم {burstNumber} کا فرق دیکھیں"
 
@@ -11984,6 +12164,9 @@ msgstr "ماخذ دیکھیں"
 
 msgid "View the {plugin} plugin repo"
 msgstr "{plugin} پلگ ان کا ریپازٹری دیکھیں"
+
+msgid "Views"
+msgstr ""
 
 msgid "Visibility"
 msgstr "ظاہری حیثیت"
@@ -12015,6 +12198,9 @@ msgstr "بصری ایڈیٹر کا ٹیبل"
 msgid "Visual editor table selection"
 msgstr "بصری ایڈیٹر کے ٹیبل کا انتخاب"
 
+msgid "Wait a minute before asking for another code."
+msgstr ""
+
 msgid "Waiting for authorization"
 msgstr "اجازت کا انتظار ہے"
 
@@ -12035,6 +12221,9 @@ msgstr "ہم آپ کا GitHub کنکشن نہیں جانچ سکے۔"
 
 msgid "We couldn't clone this repository."
 msgstr "ہم یہ ریپازٹری کلون نہیں کر سکے۔"
+
+msgid "We sent a code to {pending}. Enter it to turn on email."
+msgstr ""
 
 msgid "We'll build <0>openknowledge.skill</0>, save it to <1>~/Downloads</1>, and open the Claude Desktop App for you."
 msgstr "ہم <0>openknowledge.skill</0> بنائیں گے، اسے <1>~/Downloads</1> میں محفوظ کریں گے، اور آپ کے لیے Claude Desktop App کھول دیں گے۔"
@@ -12112,9 +12301,6 @@ msgstr "فعال ہونے پر، ایجنٹ ہر ترمیم کے بعد پیش �
 msgid "When the agent runs its scheduled work."
 msgstr "ایجنٹ اپنا طے شدہ کام کب چلاتا ہے۔"
 
-msgid "When the Comments tab is open"
-msgstr "جب تبصرے ٹیب کھلا ہو"
-
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "جب آپ کسی بیرونی لنک پر ماؤس لے جاتے ہیں تو صفحے کا پیش منظر ڈیٹا لانے کے لیے اس کا URL منزل کی سائٹ کو بھیجا جاتا ہے — ہر پیش منظر والے لنک کے لیے ایک درخواست۔"
 
@@ -12180,9 +12366,6 @@ msgstr "الفاظ کی لپیٹ"
 
 msgid "Work directly, no plan step"
 msgstr "براہ راست کام کریں، منصوبہ بندی کے مرحلے کے بغیر"
-
-msgid "Work through these comments"
-msgstr "ان تبصروں پر کام کریں"
 
 msgid "Working"
 msgstr "کام جاری ہے"
@@ -12315,9 +12498,6 @@ msgstr "آپ کے ایجنٹ اب بھی یہ مہارت لوڈ کرتے ہیں�
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "آپ کی تبدیلی ابھی محفوظ ہو رہی ہے — تھوڑی دیر بعد ٹیسٹ دوبارہ چلائیں۔"
 
-msgid "Your comments are waiting behind the running turn — they stay queued until the agent picks the message up."
-msgstr "آپ کے تبصرے جاری باری کے پیچھے انتظار کر رہے ہیں — ایجنٹ کے پیغام اٹھانے تک وہ قطار میں رہتے ہیں۔"
-
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "برانچ <0>{shareBranch}</0> کی آپ کی نقل میں ایسی تبدیلیاں ہیں جو GitHub پر نہیں۔ برانچ مطابق ہوتے ہی {targetNoun} ظاہر ہو جائے گا۔"
 
@@ -12401,60 +12581,3 @@ msgstr "چھوٹا کریں"
 
 msgid "Zoom Out"
 msgstr "چھوٹا کریں"
-
-msgid "Could not load branches"
-msgstr ""
-
-msgid "Switched to {branch}"
-msgstr ""
-
-msgid "Unsaved changes block the switch"
-msgstr ""
-
-msgid "Could not switch to {branch}"
-msgstr ""
-
-msgid "Switch everyone to"
-msgstr ""
-
-msgid "New branch…"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
-msgid "Switch to {target}?"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Switch"
-msgstr ""
-
-msgid "New branch"
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Create and switch"
-msgstr ""
-
-msgid "Opened pull request #{number}"
-msgstr ""
-
-msgid "Open pull request"
-msgstr ""
-
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
-msgstr ""
-
-msgid "Opening…"
-msgstr ""

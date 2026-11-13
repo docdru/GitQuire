@@ -139,6 +139,12 @@ msgstr "{0, plural, other {항목 #개}}"
 msgid "{0, plural, one {# key} other {# keys}}"
 msgstr "{0, plural, other {키 #개}}"
 
+msgid "{0, plural, one {# more} other {# more}}"
+msgstr ""
+
+msgid "{0, plural, one {# open item} other {# open items}}"
+msgstr ""
+
 msgid "{0, plural, one {# option set} other {# options set}}"
 msgstr "{0, plural, other {#개 옵션을 설정했습니다}}"
 
@@ -255,9 +261,6 @@ msgstr "{0}개 선택됨 (전체 {1}개 프로젝트 중)"
 
 msgid "{0} of {1} selected"
 msgstr "{0}/{1} 선택됨"
-
-msgid "{0} of {totalCount}"
-msgstr "{0}/{totalCount}"
 
 msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
 msgstr "{0}은(는) 링크로 열리므로 첨부를 받을 수 없습니다. 대신 앱 내 에이전트를 선택하세요."
@@ -455,11 +458,8 @@ msgstr "{count, plural, other {{files}은(는) 텍스트 파일이 아니라서 
 msgid "{count, plural, one {{files} isn't a text file, so it can't be sent with the message. Mention it with @ once it's in your project.} other {{files} aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.}}"
 msgstr "{count, plural, other {{files}은(는) 텍스트 파일이 아니라서 메시지와 함께 보낼 수 없습니다. 프로젝트에 있으면 @로 언급하세요.}}"
 
-msgid "{count, plural, one {# comment} other {# comments}}"
-msgstr "{count, plural, other {댓글 #개}}"
-
-msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
-msgstr "{count, plural, other {댓글 #개, {0, plural, other {파일 #개}}}}"
+msgid "{count, plural, one {# dated page} other {# dated pages}}"
+msgstr ""
 
 msgid "{count, plural, one {# doc} other {# docs}}"
 msgstr "{count, plural, other {#개 문서}}"
@@ -493,6 +493,9 @@ msgstr "{count, plural, other {AI 에이전트에 문제 #개를 전달합니다
 
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {자동 수정이 알려진 문제 #개를 즉시 수정합니다.}}"
+
+msgid "{count, plural, one {linked from # page} other {linked from # pages}}"
+msgstr ""
 
 msgid "{count, plural, one {matches # file} other {matches # files}}"
 msgstr "{count, plural, other {파일 #개와 일치}}"
@@ -579,9 +582,6 @@ msgstr "{errorCount, plural, other {오류 #개}}"
 msgid "{errorText} and {warningText}"
 msgstr "{errorText}, {warningText}"
 
-msgid "{failed} of {0} comments could not be updated."
-msgstr "댓글 {0}개 중 {failed}개 업데이트에 실패했습니다."
-
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount}개 파일을 업로드하지 못했습니다}}"
 
@@ -611,6 +611,9 @@ msgstr "{folderCount, plural, other {폴더}}"
 
 msgid "{formatted} GitHub stars"
 msgstr "{formatted} GitHub 스타"
+
+msgid "{hidden} more are not listed. Use the filter to narrow the list."
+msgstr ""
 
 msgid "{hiddenCount, plural, one {# more link} other {# more links}}"
 msgstr "{hiddenCount, plural, other {링크 #개 더}}"
@@ -681,6 +684,9 @@ msgstr "{mins, plural, other {#분 전}}"
 msgid "{minutes}m ago"
 msgstr "{minutes}분 전"
 
+msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
+msgstr ""
+
 msgid "{name} CLI"
 msgstr "{name} CLI"
 
@@ -693,11 +699,17 @@ msgstr "{nodeCount, plural, other {노드 #개}}"
 msgid "{omitted, plural, one {# more property change not shown} other {# more property changes not shown}}"
 msgstr "{omitted, plural, other {표시되지 않은 속성 변경 #개 더}}"
 
+msgid "{open, plural, one {# open action item} other {# open action items}}"
+msgstr ""
+
 msgid "{openedWorktreeCount, plural, one {worktree} other {worktrees}}"
 msgstr "{openedWorktreeCount, plural, one {워크트리} other {워크트리}}"
 
 msgid "{others, plural, one {# other} other {# others}}"
 msgstr "{others, plural, other {다른 파일 #개}}"
+
+msgid "{overdue, plural, one {# overdue} other {# overdue}}"
+msgstr ""
 
 msgid "{owner}/{name} already exists"
 msgstr "{owner}/{name}이 이미 존재합니다"
@@ -750,6 +762,9 @@ msgstr "{propPanelDescriptorLabel} 속성"
 msgid "{removingCount, plural, one {# removed} other {# removed}}"
 msgstr "{removingCount, plural, other {# 제거됨}}"
 
+msgid "{rowCount, plural, one {# page} other {# pages}}"
+msgstr ""
+
 msgid "{seconds} seconds"
 msgstr "{seconds}초"
 
@@ -761,6 +776,9 @@ msgstr "{settingsDescriptorLabel} 속성"
 
 msgid "{shareBranch} isn't a valid branch name."
 msgstr "유효하지 않은 브랜치 이름입니다: {shareBranch}"
+
+msgid "{shown, plural, one {# item} other {# items}}"
+msgstr ""
 
 msgid "{shown} and {more} more"
 msgstr "{shown} 및 {more}개 더"
@@ -839,6 +857,9 @@ msgstr "{warningCount, plural, other {경고 #개}}"
 
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, other {단어}}"
+
+msgid "@{login} ({open} open)"
+msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
 msgstr "/{0}는 이 에이전트가 제공하는 명령이 아니므로 일반 텍스트로 전송됩니다"
@@ -940,6 +961,9 @@ msgstr ".zip 또는 .skill 아카이브입니다."
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "<0>수정됨</0> 배지는 config가 직접 설정했거나 <1>extends</1>를 통해 상속한 규칙을 나타냅니다. 표시가 없는 규칙은 기본 상태를 유지합니다."
 
+msgid "A board needs a property that several pages share, with a few different values, such as \"status: To do\" and \"status: Done\"."
+msgstr ""
+
 msgid "A branch named {shareBranch} already exists. Open its worktree from the switcher instead."
 msgstr "{shareBranch} 브랜치가 이미 있습니다. 대신 전환기에서 해당 워크트리를 여세요."
 
@@ -1018,6 +1042,9 @@ msgstr "이 탭을 연 후 새 버전이 배포되었을 수 있습니다."
 msgid "A non-empty folder already exists at this path. Pick a different folder."
 msgstr "이 경로에 비어 있지 않은 폴더가 이미 있습니다. 다른 폴더를 선택하세요."
 
+msgid "A page with that name exists. Choose another name."
+msgstr ""
+
 msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
 msgstr "상위 디렉터리가 심볼릭 링크입니다. 이 폴더 자체의 링크를 해제하면 다시 가져올 수 있습니다."
 
@@ -1093,6 +1120,9 @@ msgstr "{shareBranch}용 워크트리 폴더가 이미 있습니다."
 msgid "A worktree folder for that branch already exists."
 msgstr "해당 브랜치용 워크트리 폴더가 이미 있습니다."
 
+msgid "ABCD-2345"
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "about"
 msgstr "정보"
@@ -1136,6 +1166,9 @@ msgstr "저장된 API 키에 접근하는 시간이 초과되었습니다. 자�
 msgid "Access token"
 msgstr "액세스 토큰"
 
+msgid "Action items"
+msgstr ""
+
 msgid "Actions for {label}"
 msgstr "{label} 작업"
 
@@ -1172,9 +1205,6 @@ msgstr "실제 크기"
 msgid "Add"
 msgstr "추가"
 
-msgid "Add a comment"
-msgstr "댓글 추가"
-
 msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
@@ -1204,12 +1234,6 @@ msgstr "문자 또는 숫자를 하나 이상 추가하세요."
 
 msgid "Add block below"
 msgstr "아래에 블록 추가"
-
-msgid "Add Comment"
-msgstr "댓글 추가"
-
-msgid "Add Comment (Enter)"
-msgstr "댓글 추가 (Enter)"
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror에서 커서를 추가하거나 일치하는 항목을 선택합니다."
@@ -1302,12 +1326,6 @@ msgstr "추가됨"
 msgid "Adding"
 msgstr "추가 중"
 
-msgid "Adds a global GitQuire MCP entry for this agent."
-msgstr "이 에이전트에 전역 GitQuire MCP 항목을 추가합니다."
-
-msgid "Adds a managed block to"
-msgstr "관리 블록을 다음 대상에 추가합니다"
-
 #. Subtext under the project AI-tools checkbox
 msgid "Adds a GitQuire MCP entry and the project skill to <0>{toolList}</0>, so your agents can read and edit your files."
 msgstr "<0>{toolList}</0>에 GitQuire MCP 항목과 프로젝트 스킬을 추가해 에이전트가 파일을 읽고 편집할 수 있게 합니다."
@@ -1318,6 +1336,12 @@ msgstr "<0>{connectToolList}</0>에 GitQuire MCP 항목을 추가해 에이전�
 
 msgid "Adds a GitQuire MCP entry to this project's agent config."
 msgstr "이 프로젝트의 에이전트 설정에 GitQuire MCP 항목을 추가합니다."
+
+msgid "Adds a global GitQuire MCP entry for this agent."
+msgstr "이 에이전트에 전역 GitQuire MCP 항목을 추가합니다."
+
+msgid "Adds a managed block to"
+msgstr "관리 블록을 다음 대상에 추가합니다"
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.user-config"
@@ -1408,14 +1432,23 @@ msgstr "{editor} 버전을 소스와 맞췄습니다(바이트를 백업했습�
 msgid "All"
 msgstr "모두"
 
+msgid "All action items done"
+msgstr ""
+
 msgid "All conflicts resolved. Apply changes to save."
 msgstr "모든 충돌이 해결되었습니다. 변경 사항을 적용하여 저장하세요."
+
+msgid "All dated pages"
+msgstr ""
 
 msgid "All files"
 msgstr "모든 파일"
 
 msgid "All files are hidden by view filters."
 msgstr "보기 필터로 모든 파일이 숨겨져 있습니다."
+
+msgid "All pages with properties"
+msgstr ""
 
 msgid "All tags"
 msgstr "모든 태그"
@@ -1499,6 +1532,9 @@ msgstr "예기치 않은 오류가 발생했습니다."
 msgid "Anchor in this page"
 msgstr "이 페이지의 앵커"
 
+msgid "and {moreAttendees} more"
+msgstr ""
+
 msgid "and {remaining} more"
 msgstr "및 {remaining}개 더"
 
@@ -1525,6 +1561,9 @@ msgstr "이름이 {0}인 문서"
 
 msgid "Any scripts are shown for review, never run."
 msgstr "스크립트는 검토용으로만 표시하며 실행하지 않습니다."
+
+msgid "Any value"
+msgstr ""
 
 msgid "Anyone can see"
 msgstr "누구나 볼 수 있음"
@@ -1628,15 +1667,6 @@ msgstr "선택한 항목을 삭제하시겠습니까?"
 msgid "Ask"
 msgstr "질문"
 
-msgid "Ask Claude"
-msgstr ""
-
-msgid "Ask Claude to work on this folder…"
-msgstr ""
-
-msgid "Ask Claude to work on this page…"
-msgstr ""
-
 msgid "Ask {0} CLI"
 msgstr "{0} CLI 질문"
 
@@ -1667,6 +1697,15 @@ msgstr "에이전트에게 질문"
 msgid "Ask changes…"
 msgstr "변경 요청…"
 
+msgid "Ask Claude"
+msgstr ""
+
+msgid "Ask Claude to work on this folder…"
+msgstr ""
+
+msgid "Ask Claude to work on this page…"
+msgstr ""
+
 msgid "Asset"
 msgstr "에셋"
 
@@ -1681,12 +1720,6 @@ msgstr "에셋: {title}"
 
 msgid "Attach a file"
 msgstr "파일 첨부"
-
-msgid "Attach comments"
-msgstr "댓글 첨부"
-
-msgid "Attach comments: {count}"
-msgstr "댓글 첨부: {count}"
 
 msgid "Attach files"
 msgstr "파일 첨부"
@@ -1889,6 +1922,9 @@ msgstr "블로그 게시물"
 msgid "blog-post"
 msgstr "blog-post"
 
+msgid "Board"
+msgstr ""
+
 msgid "Board controls"
 msgstr "보드 컨트롤"
 
@@ -1949,6 +1985,12 @@ msgstr "손상된 내부 링크"
 msgid "Broken link"
 msgstr "끊어진 링크"
 
+msgid "Broken links"
+msgstr ""
+
+msgid "Broken links: {total}"
+msgstr ""
+
 msgid "Browse"
 msgstr "찾아보기"
 
@@ -2000,11 +2042,11 @@ msgstr "글머리 기호 목록"
 msgid "Bulleted list"
 msgstr ""
 
-msgid "By meaning"
-msgstr "의미순"
-
 msgid "By GitQuire"
 msgstr "GitQuire 제공"
+
+msgid "By meaning"
+msgstr "의미순"
 
 msgid "By tag"
 msgstr "태그순"
@@ -2223,9 +2265,6 @@ msgstr "GitQuire가 {agentLabel}에 설정할 항목을 선택하세요. {agentL
 msgid "Choose what GitQuire sets up."
 msgstr "GitQuire가 설정할 항목을 선택하세요."
 
-msgid "Choose where to send these comments"
-msgstr "댓글 보낼 곳을 선택합니다"
-
 msgid "Choose where to send this message"
 msgstr "이 메시지를 보낼 곳 선택"
 
@@ -2371,9 +2410,6 @@ msgstr "클론 중…"
 msgid "Close"
 msgstr "닫기"
 
-msgid "Close comments"
-msgstr ""
-
 msgid "Close {0}"
 msgstr "{0} 닫기"
 
@@ -2386,8 +2422,8 @@ msgstr "모두 닫기"
 msgid "Close all unpinned"
 msgstr "고정하지 않은 항목 모두 닫기"
 
-msgid "Close comment"
-msgstr "댓글 닫기"
+msgid "Close comments"
+msgstr ""
 
 msgid "Close diff"
 msgstr "Diff 닫기"
@@ -2471,9 +2507,6 @@ msgstr "모두 접기"
 msgid "Collapse all file groups"
 msgstr "모든 파일 그룹 접기"
 
-msgid "Collapse all files"
-msgstr "모든 파일 접기"
-
 msgid "Collapse Ask AI"
 msgstr "Ask AI 접기"
 
@@ -2491,6 +2524,12 @@ msgstr "색상 테마"
 
 msgid "Column options"
 msgstr "열 옵션"
+
+msgid "Columns"
+msgstr ""
+
+msgid "Columns from"
+msgstr ""
 
 msgid "Command failed."
 msgstr "명령에 실패했습니다."
@@ -2510,20 +2549,11 @@ msgstr "이 컴퓨터에서 사용자 계정의 전체 권한으로 명령을 �
 msgid "Comment"
 msgstr "댓글"
 
-msgid "Comment on {address}"
-msgstr "{address}에 댓글 남기기"
-
 msgid "Comment on selection"
 msgstr "선택 영역에 댓글 달기"
 
 msgid "Comment on this selection"
 msgstr "선택 영역에 댓글 남기기"
-
-msgid "Comment or ask AI about this {0}"
-msgstr "이 {0}에 댓글을 남기거나 AI에 질문"
-
-msgid "Comment or ask AI about this code block"
-msgstr "이 코드 블록에 댓글을 남기거나 AI에 질문"
 
 msgid "Comments"
 msgstr "댓글"
@@ -2593,6 +2623,9 @@ msgstr "에이전트 구성"
 
 msgid "Configure user, project, and integration settings."
 msgstr "사용자, 프로젝트 및 통합 설정을 구성합니다."
+
+msgid "Confirm"
+msgstr ""
 
 msgid "conflict"
 msgstr "충돌"
@@ -2902,6 +2935,9 @@ msgstr "{0}/{total}개 파일을 수정하지 못했습니다."
 msgid "Could not initialize {0}."
 msgstr "{0} 초기화에 실패했습니다."
 
+msgid "Could not load branches"
+msgstr ""
+
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "템플릿을 불러오지 못했습니다: {templatesError}. 빈 노트는 계속 만들 수 있습니다."
 
@@ -2938,6 +2974,9 @@ msgstr "동기화 환경설정을 저장할 수 없습니다: {detail}"
 msgid "Could not start creating a new item"
 msgstr "새 항목 만들기를 시작하지 못했습니다"
 
+msgid "Could not switch to {branch}"
+msgstr ""
+
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "{shareBranch} 브랜치로 전환할 수 없습니다. 직접 전환해 보세요."
 
@@ -2953,14 +2992,11 @@ msgstr "폴더를 확인할 수 없습니다. 다시 시도하세요."
 msgid "Could not write project files. Try a different location."
 msgstr "프로젝트 파일을 쓸 수 없습니다. 다른 위치를 시도하세요."
 
-msgid "Couldn't add that comment: {0}"
-msgstr "댓글 추가에 실패했습니다: {0}"
-
-msgid "Couldn't add that comment."
-msgstr "댓글 추가에 실패했습니다."
-
 msgid "Couldn't apply the change: {0}"
 msgstr "변경사항을 적용하지 못했습니다: {0}"
+
+msgid "Couldn't cancel."
+msgstr ""
 
 msgid "Couldn't change spell checking. Try again."
 msgstr "맞춤법 검사를 변경할 수 없습니다. 다시 시도하세요."
@@ -2976,6 +3012,9 @@ msgstr "키를 지우지 못했습니다. 다시 시도합니다."
 
 msgid "Couldn't complete semantic search — retry"
 msgstr "시맨틱 검색을 완료할 수 없습니다 — 다시 시도"
+
+msgid "Couldn't confirm the address."
+msgstr ""
 
 msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
 msgstr "에이전트 서비스 연결 실패. GitQuire 서버 실행 및 최신 상태 확인 후 다시 시도하세요. 이미 실행 중이면 재시작하세요."
@@ -3001,14 +3040,14 @@ msgstr "스킬 생성 실패: {0}"
 msgid "Couldn't create template: {error}"
 msgstr "템플릿 생성 실패: {error}"
 
+msgid "Couldn't create the meeting note."
+msgstr ""
+
 msgid "Couldn't create the report"
 msgstr "보고서를 만들지 못했습니다"
 
 msgid "Couldn't create the worktree. Try a different name."
 msgstr "워크트리를 만들 수 없습니다. 다른 이름을 사용해 보세요."
-
-msgid "Couldn't save the comment."
-msgstr ""
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "이 테마를 만들지 못했습니다. 다시 시도합니다."
@@ -3028,9 +3067,6 @@ msgstr "스킬 삭제 실패: {error}"
 msgid "Couldn't delete template: {error}"
 msgstr "템플릿 삭제 실패: {error}"
 
-msgid "Couldn't delete that comment."
-msgstr "댓글 삭제에 실패했습니다."
-
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "이 테마를 삭제하지 못했습니다. 새로 고친 후 다시 시도합니다."
 
@@ -3039,9 +3075,6 @@ msgstr "연결을 해제하지 못했습니다. 다시 시도합니다."
 
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "\"{0}\" 복제 실패: {1}"
-
-msgid "Couldn't find that passage — the text it was on may have changed."
-msgstr "해당 구절을 찾지 못했습니다. 원문 변경 가능성이 있습니다."
 
 msgid "Couldn't finish installing {0} — see below."
 msgstr "{0} 설치 완료 실패. 아래 내용 확인."
@@ -3091,6 +3124,12 @@ msgstr "템플릿을 불러오지 못했습니다"
 msgid "Couldn't load the GitQuire skills. Try again."
 msgstr "GitQuire 스킬을 불러오지 못했습니다. 다시 시도하세요."
 
+msgid "Couldn't load the pages for this view."
+msgstr ""
+
+msgid "Couldn't load the pages."
+msgstr ""
+
 msgid "Couldn't load the version preview. You can still choose how to resolve it below."
 msgstr "버전 미리보기를 불러오지 못했습니다. 아래에서 해결 방법을 선택할 수 있습니다."
 
@@ -3103,14 +3142,14 @@ msgstr "에이전트를 불러오지 못했습니다."
 msgid "Couldn't load your bug reports."
 msgstr "버그 보고서를 불러오지 못했습니다."
 
-msgid "Couldn't mark that comment to send."
-msgstr "댓글 전송 표시 설정에 실패했습니다."
-
 msgid "Couldn't move {0}: {1}"
 msgstr "{0}을(를) 이동할 수 없음: {1}"
 
 msgid "Couldn't move skill: {0}"
 msgstr "스킬 이동 실패: {0}"
+
+msgid "Couldn't move the page. The board was reloaded."
+msgstr ""
 
 msgid "Couldn't move to {trashNoun}"
 msgstr "{trashNoun}으로 이동하지 못했습니다"
@@ -3147,9 +3186,6 @@ msgstr "이 프로젝트를 게시할 준비를 할 수 없습니다."
 
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "GitHub에서 풀할 수 없습니다. 연결과 로그인 상태를 확인한 후 다시 시도하세요."
-
-msgid "Couldn't re-place that comment."
-msgstr "댓글 다시 배치에 실패했습니다."
 
 msgid "Couldn't reach {displayName} — please try again later."
 msgstr "{displayName} 연결 실패. 잠시 후 다시 시도하세요."
@@ -3193,12 +3229,6 @@ msgstr "{fileName} 파일을 읽을 수 없습니다. 이동되었거나 삭제�
 msgid "Couldn't read the {gitignorePath} rule: {previewError}"
 msgstr "{gitignorePath} 규칙을 읽지 못했습니다: {previewError}"
 
-msgid "Couldn't read the comments waiting to send — nothing was sent."
-msgstr "전송 대기 댓글을 읽지 못했습니다. 전송된 댓글 없음."
-
-msgid "Couldn't read the comments waiting to send: {0}"
-msgstr "전송 대기 댓글을 읽지 못했습니다: {0}"
-
 msgid "Couldn't read the spell checking setting."
 msgstr "맞춤법 검사 설정을 읽을 수 없습니다."
 
@@ -3228,9 +3258,6 @@ msgstr "\"{0}\"의 이름을 바꾸지 못했습니다: {1}"
 
 msgid "Couldn't rename template: {0}"
 msgstr "템플릿 이름을 바꾸지 못했습니다: {0}"
-
-msgid "Couldn't reopen that comment."
-msgstr "댓글 다시 열기에 실패했습니다."
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "{filePath}의 충돌을 해결하지 못했습니다."
@@ -3283,11 +3310,20 @@ msgstr "네트워크 설정을 저장할 수 없습니다. {0}"
 msgid "Couldn't save template: {error}"
 msgstr "템플릿 저장 실패: {error}"
 
-msgid "Couldn't save that edit."
-msgstr "편집 내용 저장에 실패했습니다."
+msgid "Couldn't save the action item."
+msgstr ""
+
+msgid "Couldn't save the action item. The list was reloaded."
+msgstr ""
 
 msgid "Couldn't save the auto-update setting: {0}"
 msgstr "자동 업데이트 설정 저장 실패: {0}"
+
+msgid "Couldn't save the comment."
+msgstr ""
+
+msgid "Couldn't save the email address."
+msgstr ""
 
 msgid "Couldn't save the key — please try again."
 msgstr "키를 저장하지 못했습니다. 다시 시도합니다."
@@ -3295,23 +3331,17 @@ msgstr "키를 저장하지 못했습니다. 다시 시도합니다."
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "{filePath}의 해결 결과를 저장하지 못했습니다."
 
+msgid "Couldn't save the view."
+msgstr ""
+
 msgid "Couldn't save this setting. Try again."
 msgstr "이 설정을 저장하지 못했습니다. 다시 시도하세요."
 
 msgid "Couldn't save your theme preference."
 msgstr "테마 설정을 저장하지 못했습니다."
 
-msgid "Couldn't scroll to that passage. Try again."
-msgstr "해당 구절로 스크롤하지 못했습니다. 다시 시도하세요."
-
 msgid "Couldn't send the report"
 msgstr "보고서를 보내지 못했습니다"
-
-msgid "Couldn't send your comments — please try again."
-msgstr "댓글 전송 실패. 다시 시도하세요."
-
-msgid "Couldn't send your comments — the workspace isn't ready."
-msgstr "댓글 전송에 실패했습니다. 워크스페이스 준비 전입니다."
 
 msgid "Couldn't send your prompt — please try again."
 msgstr "프롬프트 전송 실패. 다시 시도하세요."
@@ -3333,9 +3363,6 @@ msgstr "언어를 {language}로 전환하지 못했습니다."
 
 msgid "Couldn't switch to Only me"
 msgstr "나만 보기로 전환하지 못했습니다"
-
-msgid "Couldn't unmark that comment — it's still waiting to send."
-msgstr "댓글 전송 표시 해제에 실패했습니다. 아직 전송 대기 중입니다."
 
 msgid "Couldn't unpin {name}"
 msgstr "{name}의 고정을 해제할 수 없습니다"
@@ -3397,11 +3424,11 @@ msgstr "현재 문서 또는 폴더를 기준으로 폴더를 만듭니다."
 msgid "Create a new branch, or check out an existing one, in its own window."
 msgstr "새 브랜치를 만들거나 기존 브랜치를 별도 창에서 체크아웃하세요."
 
-msgid "Create a new list item from the current list item."
-msgstr "현재 목록 항목에서 새 목록 항목을 만듭니다."
-
 msgid "Create a new GitQuire project in the folder of your choice."
 msgstr "선택한 폴더에 새 GitQuire 프로젝트를 만듭니다."
+
+msgid "Create a new list item from the current list item."
+msgstr "현재 목록 항목에서 새 목록 항목을 만듭니다."
 
 msgid "Create a new spec file for my user story"
 msgstr "사용자 스토리용 새 사양 파일 만들기"
@@ -3417,6 +3444,9 @@ msgstr "{host}에서 토큰 만들기"
 
 msgid "Create a worktree from this branch"
 msgstr "이 브랜치에서 워크트리 만들기"
+
+msgid "Create and switch"
+msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
 msgstr "<0>{dirDisplay}</0>에 만들기"
@@ -3538,6 +3568,9 @@ msgstr "데이터"
 msgid "Date"
 msgstr "날짜"
 
+msgid "Date from"
+msgstr ""
+
 msgid "Default"
 msgstr "기본값"
 
@@ -3549,9 +3582,6 @@ msgstr "기본값: <0>{0}</0>"
 
 msgid "Delete"
 msgstr "삭제"
-
-msgid "Delete comment"
-msgstr ""
 
 msgid "Delete {0}"
 msgstr "{0} 삭제"
@@ -3592,6 +3622,9 @@ msgstr "코드 블록 삭제"
 msgid "Delete column"
 msgstr "열 삭제"
 
+msgid "Delete comment"
+msgstr ""
+
 msgid "Delete Permanently"
 msgstr "영구 삭제"
 
@@ -3618,9 +3651,6 @@ msgstr "표 삭제"
 
 msgid "Delete the file"
 msgstr "파일 삭제"
-
-msgid "Delete this comment"
-msgstr "이 댓글 삭제"
 
 msgid "Deleted"
 msgstr "삭제됨"
@@ -3714,11 +3744,11 @@ msgstr "상세 진단"
 msgid "Details"
 msgstr "세부 정보"
 
-msgid "Detected in {0}"
-msgstr "{0}에서 감지됨"
-
 msgid "Detected GitQuire projects"
 msgstr "감지된 GitQuire 프로젝트"
+
+msgid "Detected in {0}"
+msgstr "{0}에서 감지됨"
 
 msgid "Detecting"
 msgstr "감지 중"
@@ -3788,12 +3818,6 @@ msgstr "연결 해제 중"
 
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "검색 스킬은 모든 AI 도구에서 함께 관리됩니다. 설정 → 스킬 스튜디오에서 이 스킬을 설치하세요."
-
-msgid "Discuss"
-msgstr ""
-
-msgid "Discussions"
-msgstr ""
 
 msgid "Dismiss"
 msgstr "닫기"
@@ -3867,9 +3891,6 @@ msgstr "이 프로젝트에서 설정 없이 이 앱을 열 때 다시 묻지 �
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "<0>Skills</0> 미표시? 먼저 <1>설정 <2/> 기능 <3/> 코드 실행 및 파일 생성</1> 활성화."
 
-msgid "Don't send this comment"
-msgstr "이 댓글 보내지 않기"
-
 msgid "Don't show"
 msgstr "표시하지 않음"
 
@@ -3878,6 +3899,9 @@ msgstr "완료"
 
 msgid "Done"
 msgstr "완료"
+
+msgid "Done, due earlier"
+msgstr ""
 
 msgid "Done."
 msgstr "완료"
@@ -3891,9 +3915,6 @@ msgstr "{0} 다운로드"
 msgid "Download and install updates automatically"
 msgstr "업데이트를 자동으로 다운로드하고 설치"
 
-msgid "Download app"
-msgstr "앱 다운로드"
-
 msgid "Download file"
 msgstr "파일 다운로드"
 
@@ -3905,6 +3926,9 @@ msgstr "{0} {1} 다운로드 중…"
 
 msgid "Downloads a fresh copy from GitHub."
 msgstr "GitHub에서 최신 사본을 다운로드합니다."
+
+msgid "Draft"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Draft"
@@ -3933,6 +3957,12 @@ msgstr "첨부할 파일 드롭"
 
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "이미지를 최대 {MAX_ATTACHMENTS}개까지 놓거나 붙여넣거나 첨부하세요."
+
+msgid "Due {label}"
+msgstr ""
+
+msgid "Due {label}, overdue"
+msgstr ""
 
 msgid "Duplicate"
 msgstr "복제"
@@ -4031,14 +4061,17 @@ msgstr "이 댓글 편집"
 msgid "Edit this HTML — the preview updates live."
 msgstr "이 HTML을 편집하세요. 미리보기가 실시간으로 업데이트됩니다."
 
+msgid "Edit view"
+msgstr ""
+
 msgid "Edit wiki link"
 msgstr "위키 링크 편집"
 
-msgid "Edited"
-msgstr "편집됨"
-
 msgid "edited"
 msgstr ""
+
+msgid "Edited"
+msgstr "편집됨"
 
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo}에 편집됨"
@@ -4114,6 +4147,9 @@ msgstr "이메일 주소"
 
 msgid "Email for followups"
 msgstr "후속 연락용 이메일"
+
+msgid "Email me new mentions"
+msgstr ""
 
 msgid "Email support about this report"
 msgstr "이 보고서에 대해 지원팀에 이메일 보내기"
@@ -4200,11 +4236,11 @@ msgstr "자동(풀만) 활성화"
 msgid "Enable Auto (Pull only)?"
 msgstr "자동(풀만)을 활성화할까요?"
 
-msgid "Enable indexes"
-msgstr "인덱스 사용"
-
 msgid "Enable GitQuire tools for {0}?"
 msgstr "{0}에서 GitQuire 도구를 사용하도록 설정할까요?"
+
+msgid "Enable indexes"
+msgstr "인덱스 사용"
 
 msgid "Enable plugins"
 msgstr "플러그인 활성화"
@@ -4227,11 +4263,11 @@ msgstr "이 프로젝트에서 터미널 사용"
 msgid "Enable Themes"
 msgstr "테마 사용"
 
-msgid "Enabling index generation"
-msgstr "인덱스 생성 활성화 중"
-
 msgid "Enabling GitQuire tools"
 msgstr "GitQuire 도구를 사용 설정하는 중"
+
+msgid "Enabling index generation"
+msgstr "인덱스 생성 활성화 중"
 
 msgid "Ended"
 msgstr "종료됨"
@@ -4260,6 +4296,9 @@ msgstr "github.example.com과 같은 호스트 이름을 입력하세요."
 msgid "Enter a name for this theme."
 msgstr "이 테마의 이름을 입력합니다."
 
+msgid "Enter a name."
+msgstr ""
+
 msgid "Enter a number of seconds between {minimum} and {maximum}."
 msgstr "{minimum}에서 {maximum} 사이의 초 단위 값을 입력하세요."
 
@@ -4277,6 +4316,9 @@ msgstr "이 템플릿의 제목을 입력하세요."
 
 msgid "Enter a valid branch name (no spaces, no leading dot, no \"..\")."
 msgstr "유효한 브랜치 이름을 입력하세요(공백, 앞의 점, \"..\" 제외)."
+
+msgid "Enter a valid email address."
+msgstr ""
 
 msgid "Enter a valid theme name."
 msgstr "유효한 테마 이름을 입력합니다."
@@ -4320,6 +4362,15 @@ msgstr "모든 개념 문서에는 비어 있지 않은 type이 있습니다. �
 
 msgid "every doc"
 msgstr "모든 문서"
+
+msgid "Everyone"
+msgstr ""
+
+msgid "Everyone editing this space moves to that branch."
+msgstr ""
+
+msgid "Everyone moves to the new branch once it is created."
+msgstr ""
 
 msgid "Everything from {source} is already up to date"
 msgstr "{source}의 모든 항목이 이미 최신입니다"
@@ -4374,9 +4425,6 @@ msgstr "모두 펼치기"
 
 msgid "Expand all file groups"
 msgstr "모든 파일 그룹 펼치기"
-
-msgid "Expand all files"
-msgstr "모든 파일 펼치기"
 
 msgid "Expand board"
 msgstr "보드 펼치기"
@@ -4759,6 +4807,12 @@ msgstr "파일 사이드바"
 msgid "Files toolbar"
 msgstr "파일 도구 모음"
 
+msgid "Filter by page"
+msgstr ""
+
+msgid "Filter by property"
+msgstr ""
+
 msgid "Filter languages"
 msgstr "언어 필터"
 
@@ -4876,15 +4930,6 @@ msgstr "폴더와 빈 파일은 첨부할 수 없습니다. 파일 자체를 드
 
 msgid "Follow the agent's edits"
 msgstr "에이전트 변경 내용 따라가기"
-
-msgid "Follow us on"
-msgstr "팔로우:"
-
-msgid "Follow us on social media"
-msgstr "소셜 미디어에서 팔로우하세요"
-
-msgid "Follow us on X"
-msgstr "X에서 팔로우하세요"
 
 msgid "Following the agent's edits"
 msgstr "에이전트 변경 내용 따라가는 중"
@@ -5053,6 +5098,222 @@ msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
 
+msgid "GitQuire"
+msgstr "GitQuire"
+
+msgid "GitQuire can't sign in to GitHub for this project."
+msgstr "GitQuire는 이 프로젝트에서 GitHub에 로그인할 수 없습니다."
+
+msgid "GitQuire checked {subject}"
+msgstr "GitQuire에서 {subject} 확인"
+
+msgid "GitQuire checked the project"
+msgstr "GitQuire에서 프로젝트 확인"
+
+msgid "GitQuire checks for and downloads updates in the background."
+msgstr "GitQuire가 백그라운드에서 업데이트를 확인하고 다운로드합니다."
+
+msgid "GitQuire could not find this agent on this machine."
+msgstr "GitQuire가 이 컴퓨터에서 이 에이전트를 찾지 못했습니다."
+
+msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
+msgstr "GitQuire가 프로젝트 서버에 연결할 수 없어 인덱스 유지 관리 상태를 확인하지 못했습니다. 프로젝트가 다시 연결되면 상태가 업데이트됩니다."
+
+msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
+msgstr "GitQuire가 이 프로젝트 설정을 완료하지 못했습니다. 워크트리는 생성되었지만 열리지 않았습니다."
+
+msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
+msgstr "GitQuire가 .ok/local/config.yml의 terminal.shell을 읽을 수 없습니다. 대신 사용 가능한 Windows 셸을 사용합니다."
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
+msgstr "폴더가 이 프로젝트 안에 안전하게 포함되어 있지 않아 GitQuire가 .ok/local/terminal 아래에 실행 설정을 쓸 수 없습니다. 프로젝트 내부의 실제 폴더이며 링크가 아닌지 확인하세요. Claude가 GitQuire 승인을 요청합니다."
+
+msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
+msgstr "이번에는 GitQuire가 .ok/local/terminal 아래에 실행 설정을 쓸 수 없습니다. 폴더에 쓰기 권한이 있는지 확인하세요. Claude가 GitQuire 승인을 요청합니다."
+
+msgid "GitQuire created a share link"
+msgstr "GitQuire에서 공유 링크 생성"
+
+msgid "GitQuire created a share link for {subject}"
+msgstr "GitQuire에서 {subject} 공유 링크 생성"
+
+msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
+msgstr "GitQuire는 Markdown이 있는 모든 폴더에 index.md라는 탐색 파일을 만들고 유지합니다."
+
+msgid "GitQuire deleted {subject}"
+msgstr "GitQuire에서 {subject} 삭제"
+
+msgid "GitQuire deleted a document"
+msgstr "GitQuire에서 문서 삭제"
+
+msgid "GitQuire discovery skill"
+msgstr "GitQuire 검색 스킬"
+
+msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
+msgstr "GitQuire가 이 항목을 인식하지 못하며, 이 파일 형식에서는 안전하게 대체할 수 없습니다."
+
+msgid "GitQuire does not recognize this entry. Turning it on replaces it."
+msgstr "GitQuire가 이 항목을 인식하지 못합니다. 켜면 이 항목을 대체합니다."
+
+msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
+msgstr "GitQuire가 스스로 업데이트를 확인하거나 다운로드하지 않습니다. 새 버전이 필요하면 업데이트 확인을 계속 사용할 수 있습니다."
+
+msgid "GitQuire edited {subject}"
+msgstr "GitQuire에서 {subject} 편집"
+
+msgid "GitQuire edited a document"
+msgstr "GitQuire에서 문서 편집"
+
+msgid "GitQuire files were removed"
+msgstr "GitQuire 파일을 제거했습니다"
+
+msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
+msgstr "GitQuire에 이 호스트용으로 저장된 자격 증명이 없습니다. 설정에서 토큰을 추가하거나, git이 이미 가지고 있는 자격 증명을 사용하도록 두세요."
+
+msgid "GitQuire imported {source}"
+msgstr "GitQuire에서 {source} 가져오기"
+
+msgid "GitQuire imported a skill"
+msgstr "GitQuire에서 스킬 가져오기"
+
+msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
+msgstr "GitQuire는 <0>{projectDir}</0>에서 초기화됩니다. <2>.git</2> 폴더가 포함되어 있어 <1>{pickedRelative}</1>의 상위 폴더입니다(리포지토리마다 .ok/ 하나). <3>Content directory</3>의 기본값은 <4>.</4>입니다(전체 리포지토리). 범위를 좁히려면 하위 폴더를 입력하세요."
+
+msgid "GitQuire installed {subject}"
+msgstr "GitQuire에서 {subject} 설치"
+
+msgid "GitQuire installed a skill"
+msgstr "GitQuire에서 스킬 설치"
+
+msgid "GitQuire integrations checked."
+msgstr "GitQuire 통합을 확인했습니다."
+
+msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
+msgstr "GitQuire는 여기 리포지토리 루트에 설정되어 있으므로 팩은 리포지토리 최상위가 아니라 <0>{sanitized}</0> 안에 들어갑니다."
+
+msgid "GitQuire is using this GitHub account."
+msgstr "GitQuire가 이 GitHub 계정을 사용 중입니다."
+
+msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
+msgstr "GitQuire가 계속 다시 시도하며, 파일을 읽을 수 있게 되면 바로 표시합니다."
+
+msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
+msgstr "GitQuire가 이 파일을 안전하게 파싱할 수 없어 파일을 변경하지 않았습니다. 파일을 직접 수정한 뒤 다시 시도하세요."
+
+msgid "GitQuire listed the installed skills"
+msgstr "GitQuire에서 설치된 스킬 목록 확인"
+
+msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
+msgstr "여러 프로젝트의 GitQuire 로그입니다. 열린 프로젝트가 없으므로 프로젝트 서버 로그는 포함되지 않습니다."
+
+msgid "GitQuire logs, including activity across projects."
+msgstr "여러 프로젝트의 활동을 포함한 GitQuire 로그입니다."
+
+msgid "GitQuire looked at the link graph"
+msgstr "GitQuire에서 링크 그래프 확인"
+
+msgid "GitQuire looked up links for {subject}"
+msgstr "GitQuire에서 {subject} 링크 조회"
+
+msgid "GitQuire looked up the authoring palette"
+msgstr "GitQuire에서 작성 팔레트 조회"
+
+msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
+msgstr "GitQuire는 Markdown이 있는 모든 폴더에 index.md라는 탐색 파일을 유지합니다. 각 파일에는 해당 폴더의 문서가 유형별로 나열되고 하위 폴더 링크가 포함됩니다. 문서가 변경되면 파일을 다시 작성하며, 직접 편집한 내용은 대체됩니다."
+
+msgid "GitQuire moved {subject} to {destination}"
+msgstr "GitQuire에서 {subject} 이동 위치 {destination}"
+
+msgid "GitQuire moved a document"
+msgstr "GitQuire에서 문서 이동"
+
+msgid "GitQuire on GitHub"
+msgstr "GitHub에서 GitQuire 열기"
+
+msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
+msgstr "이 컴퓨터의 GitQuire가 다른 빌드로 바뀌었지만 이 탭은 아직 이전 빌드를 실행하고 있습니다."
+
+msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+msgstr "이 컴퓨터의 GitQuire는 이제 v{serverVersion}이지만 이 탭은 아직 v{tabVersion}을 실행하고 있습니다."
+
+msgid "GitQuire opened the live preview"
+msgstr "GitQuire에서 실시간 미리보기 열기"
+
+msgid "GitQuire quit unexpectedly last time."
+msgstr "GitQuire가 지난번에 예기치 않게 종료되었습니다."
+
+msgid "GitQuire ran {command}"
+msgstr "GitQuire에서 {command} 실행"
+
+msgid "GitQuire ran {tool}"
+msgstr "GitQuire에서 {tool} 실행"
+
+msgid "GitQuire ran a command"
+msgstr "GitQuire에서 명령 실행"
+
+msgid "GitQuire read the edit history"
+msgstr "GitQuire에서 편집 기록 조회"
+
+msgid "GitQuire read the history of {subject}"
+msgstr "GitQuire에서 {subject} 기록 조회"
+
+msgid "GitQuire read the project settings"
+msgstr "GitQuire에서 프로젝트 설정 조회"
+
+msgid "GitQuire read the setting {key}"
+msgstr "GitQuire에서 설정 조회: {key}"
+
+msgid "GitQuire restored an earlier version"
+msgstr "GitQuire에서 이전 버전 복원"
+
+msgid "GitQuire restored an earlier version of {subject}"
+msgstr "GitQuire에서 {subject} 이전 버전 복원"
+
+msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
+msgstr "문서가 변경되면 GitQuire가 index.md 파일을 다시 작성하므로 직접 편집한 내용은 대체됩니다."
+
+msgid "GitQuire saved a checkpoint"
+msgstr "GitQuire에서 체크포인트 저장"
+
+msgid "GitQuire searched for {query}"
+msgstr "GitQuire에서 {query} 검색"
+
+msgid "GitQuire searched the knowledge base"
+msgstr "GitQuire에서 지식 베이스 검색"
+
+msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
+msgstr "GitQuire 스킬 저장됨. Claude Desktop에 업로드 후 Cowork 다시 클릭하세요."
+
+msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
+msgstr "GitQuire는 프로젝트 루트 폴더에 새로 만든 <0>.ok</0> 디렉터리 안에 구성과 내부 파일을 저장합니다."
+
+msgid "GitQuire tools are available in this thread."
+msgstr "이 스레드에서 GitQuire 도구를 사용할 수 있습니다."
+
+msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
+msgstr "프로젝트 폴더가 없거나, 접근할 수 없거나, 변경되어 GitQuire 도구를 사용할 수 없습니다. 위치와 권한을 확인한 후 다시 시도하세요."
+
+msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
+msgstr "GitQuire 도구를 사용할 수 없습니다. {bridgePath}에 GitQuire가 작성하지 않은 파일이 이미 있습니다."
+
+msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
+msgstr "GitQuire 도구를 사용할 수 없습니다. {bridgePath}에 이미 무언가 있지만 읽을 수 없어 GitQuire가 그대로 두었습니다."
+
+msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
+msgstr "GitQuire는 <0>{gitRoot}</0>에서 초기화됩니다. 새 폴더의 상위 폴더이며 <1>.git</1> 폴더를 포함하기 때문입니다(리포지토리마다 프로젝트 하나)."
+
+msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
+msgstr "GitQuire는 자동으로 커밋을 생성해 원격에 푸시합니다. git 기록에 자동 커밋을 남기고 싶지 않다면 자동 동기화를 사용하지 마세요."
+
+msgid "GitQuire wrote a document"
+msgstr "GitQuire에서 문서 작성"
+
+msgid "GitQuire wrote to {subject}"
+msgstr "GitQuire에서 {subject} 작성"
+
+msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
+msgstr "GitQuire의 {0} 복사본이 손상되어 실행할 수 없습니다. 교체용으로 {1} {2} 새 복사본을 다운로드할 수 있습니다(약 {3}MB, {4}에서)."
+
 msgid "Give it a name before editing its colors."
 msgstr "색상을 편집하기 전에 이름을 지정합니다."
 
@@ -5103,6 +5364,18 @@ msgstr "문서 링크 그래프 시각화"
 msgid "Grid of rows and columns with a header row."
 msgstr "헤더 행이 있는 행과 열 그리드입니다."
 
+msgid "Group action items"
+msgstr ""
+
+msgid "Group by due date"
+msgstr ""
+
+msgid "Group by page"
+msgstr ""
+
+msgid "Group by person"
+msgstr ""
+
 msgid "Group skills by source"
 msgstr "소스별로 스킬 그룹화"
 
@@ -5111,9 +5384,6 @@ msgstr "AI 에이전트가 여기서 작업하는 방법을 안내합니다."
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install 또는 https://example.com"
-
-msgid "Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed."
-msgstr "확인한 댓글을 한 번에 에이전트에게 전달합니다. 이 문서에서는 이 문서의 확인한 댓글만 전달하고, 이 프로젝트에서는 확인한 모든 댓글을 전달합니다. 댓글 탭이 닫혀 있으면 아무 작업도 하지 않습니다."
 
 msgid "Hard break"
 msgstr "하드 줄바꿈"
@@ -5203,9 +5473,6 @@ msgstr "숨김 폴더 “{basename}”"
 msgid "Hide"
 msgstr "숨기기"
 
-msgid "Hide keyboard"
-msgstr ""
-
 msgid "Hide {0} editor"
 msgstr "{0} 편집기 숨기기"
 
@@ -5245,6 +5512,9 @@ msgstr "폴더 가리기"
 msgid "Hide HTML preview"
 msgstr "HTML 미리보기 숨기기"
 
+msgid "Hide keyboard"
+msgstr ""
+
 msgid "Hide original"
 msgstr "원본 숨기기"
 
@@ -5262,9 +5532,6 @@ msgstr "바꾸기 숨기기"
 
 msgid "Hide resolved"
 msgstr "해결됨 숨기기"
-
-msgid "Hide resolved comments ({0})"
-msgstr "해결된 댓글 숨기기 ({0})"
 
 msgid "Hide selection preview"
 msgstr "선택 영역 미리보기 숨기기"
@@ -5669,6 +5936,10 @@ msgstr "{plugin}에서 설치"
 msgid "Install from {source}"
 msgstr "{source}에서 설치"
 
+#. Checkbox that wires the GitQuire MCP into every detected AI tool
+msgid "Install GitQuire in your AI tools"
+msgstr "AI 도구에 GitQuire 설치"
+
 msgid "Install handoff failed: {msg}"
 msgstr "handoff 설치 실패: {msg}"
 
@@ -5689,10 +5960,6 @@ msgstr "설치 대상"
 
 msgid "Install on all agents"
 msgstr "모든 에이전트에 설치"
-
-#. Checkbox that wires the GitQuire MCP into every detected AI tool
-msgid "Install GitQuire in your AI tools"
-msgstr "AI 도구에 GitQuire 설치"
 
 msgid "Install skill"
 msgstr "스킬 설치"
@@ -5833,14 +6100,8 @@ msgstr "마지막 탭으로 이동"
 msgid "Jump to page {pageNumber}"
 msgstr "{pageNumber}페이지로 이동"
 
-msgid "Jump to selected text in property"
-msgstr "속성에서 선택한 텍스트로 이동"
-
 msgid "Jump to tab 1-8"
 msgstr "1~8번 탭으로 이동"
-
-msgid "Jump to the anchored text"
-msgstr "앵커 텍스트로 이동"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "커서가 있는 블록의 Markdown 소스로 이동해 가운데에 표시하고 강조합니다."
@@ -5920,6 +6181,9 @@ msgstr "언어"
 msgid "Last activity {lastActivity}"
 msgstr "마지막 활동: {lastActivity}"
 
+msgid "Later"
+msgstr ""
+
 msgid "Latest edit"
 msgstr "최신 편집"
 
@@ -5944,9 +6208,6 @@ msgstr "설정 공유에 대해 자세히 알아보기"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "어떤 폴더 깊이에 있든 log.md 또는 log.mdx 안에 작성된 깨진 링크를 문제, 파일 탐색기 표시, 편집기 진단, 감사 및 에이전트 쓰기 알림에서 제외합니다. 링크가 가리키는 파일이 아니라 링크가 작성된 파일을 기준으로 하며, LOG.md는 일반 문서입니다. 링크 패널과 편집기에는 계속 표시됩니다."
-
-msgid "Leave these comments out of this message"
-msgstr "이 메시지에서 댓글 제외"
 
 msgid "Let agent chats use a browser"
 msgstr "에이전트 채팅에서 브라우저를 사용하도록 허용합니다"
@@ -6026,6 +6287,9 @@ msgstr ""
 msgid "Link to a page or external URL."
 msgstr "페이지 또는 외부 URL로 연결합니다."
 
+msgid "Link to new page \"{0}\""
+msgstr ""
+
 msgid "Link URL"
 msgstr "링크 URL"
 
@@ -6049,6 +6313,9 @@ msgstr "링크"
 
 msgid "Links & images"
 msgstr "링크 및 이미지"
+
+msgid "Links to pages that do not exist. Choose a page to open it and fix the link there."
+msgstr ""
 
 msgid "Lint plugins — which rule families run and their per-rule settings — are configured on their own tab under This project → Plugins."
 msgstr "Lint 플러그인은 이 프로젝트 → 플러그인 아래의 별도 탭에서 구성합니다. 실행할 규칙 그룹과 규칙별 설정을 지정할 수 있습니다."
@@ -6110,6 +6377,9 @@ msgstr "파일 불러오는 중"
 msgid "Loading folder contents"
 msgstr "폴더 내용 불러오는 중"
 
+msgid "Loading GitQuire skills"
+msgstr "GitQuire 스킬 불러오는 중"
+
 msgid "Loading graph"
 msgstr "그래프 불러오는 중"
 
@@ -6118,9 +6388,6 @@ msgstr "{pageTarget}의 제목을 불러오는 중"
 
 msgid "Loading image"
 msgstr "이미지 불러오는 중"
-
-msgid "Loading GitQuire skills"
-msgstr "GitQuire 스킬 불러오는 중"
 
 msgid "Loading pages"
 msgstr "페이지를 불러오는 중"
@@ -6172,6 +6439,9 @@ msgstr "보고서 불러오는 중"
 
 msgid "Loading..."
 msgstr "불러오는 중…"
+
+msgid "Loading…"
+msgstr ""
 
 msgid "Local changes blocked the merge"
 msgstr "로컬 변경 사항 때문에 병합할 수 없습니다."
@@ -6278,11 +6548,11 @@ msgstr "아키텍처 매핑"
 msgid "Mark a block as the source of truth. Mirrors elsewhere update live as you edit it."
 msgstr "블록을 기준 소스로 지정합니다. 편집하면 다른 곳의 미러가 실시간으로 업데이트됩니다."
 
-msgid "Mark every comment in {0} to send"
-msgstr "{0}의 모든 댓글 전송 표시"
+msgid "Mark all as read"
+msgstr ""
 
-msgid "Mark every comment to send"
-msgstr "모든 댓글 전송 표시"
+msgid "Mark done: {text}"
+msgstr ""
 
 msgid "Markdown"
 msgstr "Markdown"
@@ -6298,6 +6568,9 @@ msgstr "Markdown 소스"
 
 msgid "markdownlint rules"
 msgstr "markdownlint 규칙"
+
+msgid "Marked done: {text}"
+msgstr ""
 
 msgid "Match case"
 msgstr "대소문자 구분"
@@ -6328,6 +6601,15 @@ msgstr "중간 크기 섹션 제목입니다."
 
 msgid "Mention a page"
 msgstr "페이지 언급"
+
+msgid "Mentioning me"
+msgstr ""
+
+msgid "Mentions"
+msgstr ""
+
+msgid "Mentions, {0} unread"
+msgstr ""
 
 msgctxt "GitHub pull request or issue state"
 msgid "Merged"
@@ -6440,6 +6722,9 @@ msgstr "가장 많이 설치됨"
 
 msgid "Move"
 msgstr "이동"
+
+msgid "Move \"{title}\" to"
+msgstr ""
 
 msgid "Move {0} to Global"
 msgstr "스킬 {0}개를 전역으로 이동"
@@ -6642,6 +6927,9 @@ msgstr "이름이 필요합니다"
 msgid "Name your theme"
 msgstr "테마 이름 지정"
 
+msgid "name@example.com"
+msgstr ""
+
 msgid "Navigate CodeMirror source search results or dismiss the search panel."
 msgstr "CodeMirror 소스 검색 결과를 탐색하거나 검색 패널을 닫습니다."
 
@@ -6690,11 +6978,17 @@ msgstr "새 활동"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "새 기록 · <0>스페이스</0>를 눌러 다시 시작"
 
+msgid "New branch"
+msgstr ""
+
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "새 브랜치 <0>{trimmed}</0>는 <1>{currentBaseLabel}</1>에서 생성되며 <2>.ok/worktrees/</2> 아래 자체 워크트리에 배치됩니다."
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "새 브랜치 <0>{trimmed}</0>는 현재 커밋에서 생성되며 <1>.ok/worktrees/</1> 아래 자체 워크트리에 배치됩니다."
+
+msgid "New branch…"
+msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "원격의 새 변경 사항이 사본에 자동으로 표시됩니다."
@@ -6734,6 +7028,12 @@ msgstr "새 무시 패턴"
 
 msgid "New languages may need an internet connection and time to become available."
 msgstr "새 언어는 인터넷 연결과 사용할 수 있게 되기까지 시간이 필요할 수 있습니다."
+
+msgid "New meeting note"
+msgstr ""
+
+msgid "New mentions are emailed to {0}"
+msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "{editor} 버전의 새 이름"
@@ -6780,6 +7080,9 @@ msgstr "새 워크트리"
 msgid "New worktree…"
 msgstr "새 워크트리…"
 
+msgid "Next 7 days"
+msgstr ""
+
 msgid "Next change"
 msgstr "다음 변경"
 
@@ -6795,14 +7098,14 @@ msgstr "다음 탭"
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "아직 <0>.markdownlint.*</0> 파일이 없습니다. 모든 규칙은 VS Code markdownlint 확장과 같은 기본값으로 실행됩니다. 줄 길이를 제외한 모든 규칙이 켜져 있습니다."
 
+msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
+msgstr ""
+
 msgid "No active or recent GitQuire projects were found."
 msgstr "활성 상태이거나 최근에 사용한 GitQuire 프로젝트가 없습니다."
 
 msgid "No agent folders yet"
 msgstr "아직 에이전트 폴더 없음"
-
-msgid "No agent is set up yet — opening Configure agents."
-msgstr "에이전트 미설정. 에이전트 설정을 엽니다."
 
 msgid "No agent is set up yet — pick one from the send menu."
 msgstr "아직 설정된 에이전트 없음. 전송 메뉴에서 선택하세요."
@@ -6852,6 +7155,9 @@ msgstr "이 버전에서 본문 변경 없음."
 msgid "No body changes in this version"
 msgstr "이 버전에는 본문 변경 없음"
 
+msgid "No broken links."
+msgstr ""
+
 msgid "No bug reports yet."
 msgstr "아직 버그 보고서가 없습니다."
 
@@ -6866,12 +7172,6 @@ msgstr "아직 채팅이 없습니다."
 
 msgid "No collab server for this worktree — run <0>{cliCommand} start</0> here, or reopen the project."
 msgstr "이 워크스페이스에 협업 서버 없음. 여기서 <0>{cliCommand} start</0> 실행하거나 프로젝트 다시 열기."
-
-msgid "No comments in this project yet. Comment on a passage to start one."
-msgstr "이 프로젝트에 아직 댓글이 없습니다. 구절에 댓글 남기기로 시작합니다."
-
-msgid "No comments yet. Select text in the document to add one."
-msgstr "아직 댓글 없음. 문서에서 텍스트 선택 후 댓글 추가"
 
 msgid "No common ancestor — both branches added this file (add/add conflict)."
 msgstr "공통 조상이 없습니다 — 두 브랜치가 이 파일을 각각 추가했습니다 (add/add 충돌)."
@@ -6893,6 +7193,9 @@ msgstr "연결이 끊긴 페이지가 없습니다. 들어오는 그래프 연�
 
 msgid "No docs registered under #{tagDocsName}."
 msgstr "#{tagDocsName} 아래에 등록된 문서가 없습니다."
+
+msgid "No due date"
+msgstr ""
 
 msgid "No edit session yet"
 msgstr "아직 편집 세션 없음"
@@ -7005,6 +7308,15 @@ msgstr "{docName}에 미러 소스 블록이 없습니다"
 msgid "No Outgoing"
 msgstr "나가는 링크 없음"
 
+msgid "No page has a date yet. Give a page a date property (\"date: 2026-11-12\"), or choose \"New meeting note\"."
+msgstr ""
+
+msgid "No page has properties yet. Open a page, choose \"Add properties\" and give it for example a type and a status. It then shows up here."
+msgstr ""
+
+msgid "No page matches."
+msgstr ""
+
 msgid "No pages are missing incoming graph links."
 msgstr "들어오는 그래프 링크가 누락된 페이지가 없습니다."
 
@@ -7020,6 +7332,9 @@ msgstr "\"{trimmedQuery}\"에 해당하는 페이지를 찾을 수 없습니다"
 msgid "No pages link here yet."
 msgstr "아직 이곳으로 연결되는 페이지가 없습니다."
 
+msgid "No pages match this view."
+msgstr ""
+
 msgid "No pages matched \"{semanticQueryText}\" by meaning."
 msgstr "의미상 “{semanticQueryText}”와 일치하는 페이지가 없습니다."
 
@@ -7034,6 +7349,9 @@ msgstr "문제를 찾지 못했습니다."
 
 msgid "No project templates yet. Create one to make it available everywhere in this project. Folder-scoped templates live on each folder's overview page."
 msgstr "아직 프로젝트 템플릿이 없습니다. 하나를 만들면 이 프로젝트 어디서나 사용할 수 있습니다. 폴더 범위 템플릿은 각 폴더 개요 페이지에 저장됩니다."
+
+msgid "No property with a few values to group by. Set \"group:\" in the view block."
+msgstr ""
 
 msgid "No recent files"
 msgstr "최근 파일 없음"
@@ -7101,11 +7419,20 @@ msgstr "템플릿을 찾지 못했습니다."
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "아직 템플릿이 없습니다. 이 폴더의 새 문서에 바로 쓸 시작점을 제공하려면 하나 추가하세요."
 
+msgid "No value"
+msgstr ""
+
 msgid "No workspace"
 msgstr "워크스페이스 없음"
 
 msgid "No worktrees found."
 msgstr "워크트리를 찾을 수 없습니다."
+
+msgid "Nobody has mentioned you yet. Mentions in comments show up here."
+msgstr ""
+
+msgid "Nobody mentioned"
+msgstr ""
 
 msgid "None"
 msgstr "없음"
@@ -7196,6 +7523,12 @@ msgstr "{stalledMinutes, plural, other {#분}} 동안 {agentName}에서 아무 �
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "보고서를 검토하고 보내기 전에는 어떤 정보도 컴퓨터 밖으로 전송되지 않습니다."
 
+msgid "Nothing matches the filter."
+msgstr ""
+
+msgid "Nothing matches."
+msgstr ""
+
 msgid "Nothing moves until you ask — pull and push from the sync menu."
 msgstr "요청하기 전까지는 아무것도 움직이지 않습니다. 동기화 메뉴에서 풀과 푸시를 실행하세요."
 
@@ -7261,12 +7594,6 @@ msgstr "켜짐, 외부 링크 위에 마우스를 올리면 미리보기를 가�
 
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "켜짐, 검색어와 일치하는 페이지의 텍스트가 임베딩 제공업체(OpenAI가 기본값)로 전송되어 임베딩을 계산합니다."
-
-msgid "On <0>{address}</0>"
-msgstr "<0>{address}</0>에"
-
-msgid "On selected text in <0>{address}</0>"
-msgstr "선택 텍스트: <0>{address}</0>"
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "루트 인덱스에서 okf_version은 \"0.2\"와 같은 따옴표 문자열로 작성됩니다. 따옴표가 없으면 YAML이 숫자로 읽어 0.10이 조용히 0.1로 바뀝니다."
@@ -7377,9 +7704,6 @@ msgstr "CodeMirror의 줄 이동 프롬프트를 엽니다."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "CodeMirror lint 진단 패널을 엽니다."
 
-msgid "Open comment"
-msgstr "댓글 열기"
-
 msgid "Open containing folder"
 msgstr "포함 폴더 열기"
 
@@ -7446,35 +7770,8 @@ msgstr "워크트리에서 열기"
 msgid "Open it there"
 msgstr "그곳에서 열기"
 
-msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
-msgstr "GitQuire가 프로젝트 서버에 연결할 수 없어 인덱스 유지 관리 상태를 확인하지 못했습니다. 프로젝트가 다시 연결되면 상태가 업데이트됩니다."
-
-msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
-msgstr "GitQuire는 Markdown이 있는 모든 폴더에 index.md라는 탐색 파일을 만들고 유지합니다."
-
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 안내"
-
-msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
-msgstr "GitQuire는 Markdown이 있는 모든 폴더에 index.md라는 탐색 파일을 유지합니다. 각 파일에는 해당 폴더의 문서가 유형별로 나열되고 하위 폴더 링크가 포함됩니다. 문서가 변경되면 파일을 다시 작성하며, 직접 편집한 내용은 대체됩니다."
-
-msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
-msgstr "문서가 변경되면 GitQuire가 index.md 파일을 다시 작성하므로 직접 편집한 내용은 대체됩니다."
-
-msgid "GitQuire tools are available in this thread."
-msgstr "이 스레드에서 GitQuire 도구를 사용할 수 있습니다."
-
-msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "프로젝트 폴더가 없거나, 접근할 수 없거나, 변경되어 GitQuire 도구를 사용할 수 없습니다. 위치와 권한을 확인한 후 다시 시도하세요."
-
-msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
-msgstr "GitQuire 도구를 사용할 수 없습니다. {bridgePath}에 GitQuire가 작성하지 않은 파일이 이미 있습니다."
-
-msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
-msgstr "GitQuire 도구를 사용할 수 없습니다. {bridgePath}에 이미 무언가 있지만 읽을 수 없어 GitQuire가 그대로 두었습니다."
-
-msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "GitQuire의 {0} 복사본이 손상되어 실행할 수 없습니다. 교체용으로 {1} {2} 새 복사본을 다운로드할 수 있습니다(약 {3}MB, {4}에서)."
 
 msgid "Open link"
 msgstr "링크 열기"
@@ -7493,6 +7790,15 @@ msgstr "에이전트가 편집할 때 미리보기를 엽니다."
 
 msgid "Open project menu"
 msgstr "프로젝트 메뉴 열기"
+
+msgid "Open pull request"
+msgstr ""
+
+msgid "Open pull request…"
+msgstr ""
+
+msgid "Open pull requests"
+msgstr ""
 
 msgid "Open recent project"
 msgstr "최근 프로젝트 열기"
@@ -7515,6 +7821,9 @@ msgstr "소스 lint 패널 열기"
 msgid "Open source: {mirrorSrc}"
 msgstr "소스 열기: {mirrorSrc}"
 
+msgid "Open tasks"
+msgstr ""
+
 msgid "Open terminal"
 msgstr "터미널 열기"
 
@@ -7523,9 +7832,6 @@ msgstr "터미널을 열어 로그인"
 
 msgid "Open that worktree instead"
 msgstr "대신 해당 워크트리 열기"
-
-msgid "Open the comment composer on the current selection and add it to the dispatch queue."
-msgstr "현재 선택 영역에 댓글 작성기를 열고 디스패치 대기열에 추가합니다."
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "비어 있거나 활성화된 텍스트 위치에서 삽입 메뉴를 엽니다."
@@ -7578,6 +7884,9 @@ msgstr "{ancestorPath}에 있는 기존 GitQuire 프로젝트를 열었습니다
 msgid "Opened on branch {branch}"
 msgstr "{branch} 브랜치에서 열었습니다"
 
+msgid "Opened pull request #{number}"
+msgstr ""
+
 msgid "Opening {openingLabel}…"
 msgstr "{openingLabel} 여는 중…"
 
@@ -7587,194 +7896,8 @@ msgstr "워크트리 여는 중"
 msgid "Opening..."
 msgstr "여는 중…"
 
-msgid "GitQuire"
-msgstr "GitQuire"
-
-msgid "GitQuire can't sign in to GitHub for this project."
-msgstr "GitQuire는 이 프로젝트에서 GitHub에 로그인할 수 없습니다."
-
-msgid "GitQuire checked {subject}"
-msgstr "GitQuire에서 {subject} 확인"
-
-msgid "GitQuire checked the project"
-msgstr "GitQuire에서 프로젝트 확인"
-
-msgid "GitQuire checks for and downloads updates in the background."
-msgstr "GitQuire가 백그라운드에서 업데이트를 확인하고 다운로드합니다."
-
-msgid "GitQuire could not find this agent on this machine."
-msgstr "GitQuire가 이 컴퓨터에서 이 에이전트를 찾지 못했습니다."
-
-msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
-msgstr "GitQuire가 이 프로젝트 설정을 완료하지 못했습니다. 워크트리는 생성되었지만 열리지 않았습니다."
-
-msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "GitQuire가 .ok/local/config.yml의 terminal.shell을 읽을 수 없습니다. 대신 사용 가능한 Windows 셸을 사용합니다."
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
-msgstr "폴더가 이 프로젝트 안에 안전하게 포함되어 있지 않아 GitQuire가 .ok/local/terminal 아래에 실행 설정을 쓸 수 없습니다. 프로젝트 내부의 실제 폴더이며 링크가 아닌지 확인하세요. Claude가 GitQuire 승인을 요청합니다."
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
-msgstr "이번에는 GitQuire가 .ok/local/terminal 아래에 실행 설정을 쓸 수 없습니다. 폴더에 쓰기 권한이 있는지 확인하세요. Claude가 GitQuire 승인을 요청합니다."
-
-msgid "GitQuire created a share link"
-msgstr "GitQuire에서 공유 링크 생성"
-
-msgid "GitQuire created a share link for {subject}"
-msgstr "GitQuire에서 {subject} 공유 링크 생성"
-
-msgid "GitQuire deleted {subject}"
-msgstr "GitQuire에서 {subject} 삭제"
-
-msgid "GitQuire deleted a document"
-msgstr "GitQuire에서 문서 삭제"
-
-msgid "GitQuire discovery skill"
-msgstr "GitQuire 검색 스킬"
-
-msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "GitQuire가 이 항목을 인식하지 못하며, 이 파일 형식에서는 안전하게 대체할 수 없습니다."
-
-msgid "GitQuire does not recognize this entry. Turning it on replaces it."
-msgstr "GitQuire가 이 항목을 인식하지 못합니다. 켜면 이 항목을 대체합니다."
-
-msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
-msgstr "GitQuire가 스스로 업데이트를 확인하거나 다운로드하지 않습니다. 새 버전이 필요하면 업데이트 확인을 계속 사용할 수 있습니다."
-
-msgid "GitQuire edited {subject}"
-msgstr "GitQuire에서 {subject} 편집"
-
-msgid "GitQuire edited a document"
-msgstr "GitQuire에서 문서 편집"
-
-msgid "GitQuire files were removed"
-msgstr "GitQuire 파일을 제거했습니다"
-
-msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
-msgstr "GitQuire에 이 호스트용으로 저장된 자격 증명이 없습니다. 설정에서 토큰을 추가하거나, git이 이미 가지고 있는 자격 증명을 사용하도록 두세요."
-
-msgid "GitQuire imported {source}"
-msgstr "GitQuire에서 {source} 가져오기"
-
-msgid "GitQuire imported a skill"
-msgstr "GitQuire에서 스킬 가져오기"
-
-msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
-msgstr "GitQuire는 <0>{projectDir}</0>에서 초기화됩니다. <2>.git</2> 폴더가 포함되어 있어 <1>{pickedRelative}</1>의 상위 폴더입니다(리포지토리마다 .ok/ 하나). <3>Content directory</3>의 기본값은 <4>.</4>입니다(전체 리포지토리). 범위를 좁히려면 하위 폴더를 입력하세요."
-
-msgid "GitQuire installed {subject}"
-msgstr "GitQuire에서 {subject} 설치"
-
-msgid "GitQuire installed a skill"
-msgstr "GitQuire에서 스킬 설치"
-
-msgid "GitQuire integrations checked."
-msgstr "GitQuire 통합을 확인했습니다."
-
-msgid "GitQuire is set up at the repository root here, so the pack goes inside <0>{sanitized}</0> rather than at the top of the repository."
-msgstr "GitQuire는 여기 리포지토리 루트에 설정되어 있으므로 팩은 리포지토리 최상위가 아니라 <0>{sanitized}</0> 안에 들어갑니다."
-
-msgid "GitQuire is using this GitHub account."
-msgstr "GitQuire가 이 GitHub 계정을 사용 중입니다."
-
-msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
-msgstr "GitQuire가 계속 다시 시도하며, 파일을 읽을 수 있게 되면 바로 표시합니다."
-
-msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "GitQuire가 이 파일을 안전하게 파싱할 수 없어 파일을 변경하지 않았습니다. 파일을 직접 수정한 뒤 다시 시도하세요."
-
-msgid "GitQuire listed the installed skills"
-msgstr "GitQuire에서 설치된 스킬 목록 확인"
-
-msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
-msgstr "여러 프로젝트의 GitQuire 로그입니다. 열린 프로젝트가 없으므로 프로젝트 서버 로그는 포함되지 않습니다."
-
-msgid "GitQuire logs, including activity across projects."
-msgstr "여러 프로젝트의 활동을 포함한 GitQuire 로그입니다."
-
-msgid "GitQuire looked at the link graph"
-msgstr "GitQuire에서 링크 그래프 확인"
-
-msgid "GitQuire looked up links for {subject}"
-msgstr "GitQuire에서 {subject} 링크 조회"
-
-msgid "GitQuire looked up the authoring palette"
-msgstr "GitQuire에서 작성 팔레트 조회"
-
-msgid "GitQuire moved {subject} to {destination}"
-msgstr "GitQuire에서 {subject} 이동 위치 {destination}"
-
-msgid "GitQuire moved a document"
-msgstr "GitQuire에서 문서 이동"
-
-msgid "GitQuire on GitHub"
-msgstr "GitHub에서 GitQuire 열기"
-
-msgid "GitQuire on this computer changed to a different build, but this tab is still running the old one."
-msgstr "이 컴퓨터의 GitQuire가 다른 빌드로 바뀌었지만 이 탭은 아직 이전 빌드를 실행하고 있습니다."
-
-msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
-msgstr "이 컴퓨터의 GitQuire는 이제 v{serverVersion}이지만 이 탭은 아직 v{tabVersion}을 실행하고 있습니다."
-
-msgid "GitQuire opened the live preview"
-msgstr "GitQuire에서 실시간 미리보기 열기"
-
-msgid "GitQuire quit unexpectedly last time."
-msgstr "GitQuire가 지난번에 예기치 않게 종료되었습니다."
-
-msgid "GitQuire ran {command}"
-msgstr "GitQuire에서 {command} 실행"
-
-msgid "GitQuire ran {tool}"
-msgstr "GitQuire에서 {tool} 실행"
-
-msgid "GitQuire ran a command"
-msgstr "GitQuire에서 명령 실행"
-
-msgid "GitQuire read the edit history"
-msgstr "GitQuire에서 편집 기록 조회"
-
-msgid "GitQuire read the history of {subject}"
-msgstr "GitQuire에서 {subject} 기록 조회"
-
-msgid "GitQuire read the project settings"
-msgstr "GitQuire에서 프로젝트 설정 조회"
-
-msgid "GitQuire read the setting {key}"
-msgstr "GitQuire에서 설정 조회: {key}"
-
-msgid "GitQuire restored an earlier version"
-msgstr "GitQuire에서 이전 버전 복원"
-
-msgid "GitQuire restored an earlier version of {subject}"
-msgstr "GitQuire에서 {subject} 이전 버전 복원"
-
-msgid "GitQuire saved a checkpoint"
-msgstr "GitQuire에서 체크포인트 저장"
-
-msgid "GitQuire searched for {query}"
-msgstr "GitQuire에서 {query} 검색"
-
-msgid "GitQuire searched the knowledge base"
-msgstr "GitQuire에서 지식 베이스 검색"
-
-msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "GitQuire 스킬 저장됨. Claude Desktop에 업로드 후 Cowork 다시 클릭하세요."
-
-msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
-msgstr "GitQuire는 프로젝트 루트 폴더에 새로 만든 <0>.ok</0> 디렉터리 안에 구성과 내부 파일을 저장합니다."
-
-msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
-msgstr "GitQuire는 <0>{gitRoot}</0>에서 초기화됩니다. 새 폴더의 상위 폴더이며 <1>.git</1> 폴더를 포함하기 때문입니다(리포지토리마다 프로젝트 하나)."
-
-msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
-msgstr "GitQuire는 자동으로 커밋을 생성해 원격에 푸시합니다. git 기록에 자동 커밋을 남기고 싶지 않다면 자동 동기화를 사용하지 마세요."
-
-msgid "GitQuire wrote a document"
-msgstr "GitQuire에서 문서 작성"
-
-msgid "GitQuire wrote to {subject}"
-msgstr "GitQuire에서 {subject} 작성"
+msgid "Opening…"
+msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "저장소를 클론할 위치를 선택하는 폴더 선택기를 엽니다."
@@ -7867,6 +7990,9 @@ msgstr "{budgetLabel} 토큰 예산 초과"
 msgid "Over the {budgetLabel} token guidance. Everything here loads into the agent's context when the skill is used — keep it lean, or move detail into references/ files that load only on demand."
 msgstr "{budgetLabel} 토큰 가이드를 초과했습니다. 스킬이 사용될 때 이 내용 전체가 에이전트 컨텍스트에 로드됩니다 — 간결하게 유지하거나, 필요할 때만 로드되는 references/ 파일로 세부 내용을 옮기세요."
 
+msgid "Overdue"
+msgstr ""
+
 msgid "Overlapping edits"
 msgstr "겹치는 편집 내용"
 
@@ -7900,6 +8026,9 @@ msgstr "페이지 제목 응답이 JSON이 아닙니다"
 msgid "Page link"
 msgstr "페이지 링크"
 
+msgid "Page name"
+msgstr ""
+
 msgid "Page not found"
 msgstr "페이지를 찾을 수 없습니다"
 
@@ -7917,6 +8046,9 @@ msgstr "검색에 필요할 때 페이지를 처음 임베딩합니다."
 
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "인덱싱된 페이지: {semanticTotalCount}개 중 {semanticIndexedCount}개."
+
+msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgstr ""
 
 msgid "Pan down"
 msgstr "아래로 이동"
@@ -8044,6 +8176,9 @@ msgstr "권한 거부됨"
 
 msgid "Permission required"
 msgstr "권한 필요"
+
+msgid "Person"
+msgstr ""
 
 msgid "Personal access token"
 msgstr "개인 액세스 토큰"
@@ -8228,9 +8363,6 @@ msgstr "{0}의 문제"
 msgid "Product updates"
 msgstr "제품 업데이트"
 
-msgid "Product updates in your inbox."
-msgstr "받은 편지함의 제품 업데이트입니다."
-
 msgid "project"
 msgstr "프로젝트"
 
@@ -8293,6 +8425,9 @@ msgstr "속성 이름"
 
 msgid "Property value"
 msgstr "속성 값"
+
+msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgstr ""
 
 msgid "Protected branch — cannot push"
 msgstr "보호된 브랜치. 푸시할 수 없음"
@@ -8422,9 +8557,6 @@ msgstr "GitHub Enterprise Server 재인증"
 
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "검색을 실행하면 다시 임베딩되므로, 적용 범위가 0부터 다시 채워집니다."
-
-msgid "Re-place on selected text"
-msgstr "선택 텍스트에 다시 배치"
 
 msgid "Re-run the project audit"
 msgstr "프로젝트 감사 다시 실행"
@@ -8664,12 +8796,6 @@ msgstr "둘 다 제거"
 msgid "Remove from recent projects"
 msgstr "최근 프로젝트에서 제거"
 
-msgid "Remove item {0}"
-msgstr "항목 {0} 제거"
-
-msgid "Remove link"
-msgstr "링크 제거"
-
 msgid "Remove GitQuire from {0}"
 msgstr "{0}에서 GitQuire 제거"
 
@@ -8681,6 +8807,12 @@ msgstr "{rowLabel}에서 GitQuire 제거"
 
 msgid "Remove GitQuire?"
 msgstr "GitQuire를 제거할까요?"
+
+msgid "Remove item {0}"
+msgstr "항목 {0} 제거"
+
+msgid "Remove link"
+msgstr "링크 제거"
 
 msgid "Remove property"
 msgstr "속성 제거"
@@ -8787,6 +8919,12 @@ msgstr "가장 최근에 닫은 편집기 탭을 다시 엽니다."
 msgid "Reopen this window to sign in with your browser"
 msgstr "브라우저로 로그인하려면 이 창을 다시 여세요"
 
+msgid "Reopen: {text}"
+msgstr ""
+
+msgid "Reopened: {text}"
+msgstr ""
+
 msgid "Reopening \"{docName}\" with a fresh local collaboration cache."
 msgstr "새 로컬 협업 캐시로 \"{docName}\"을 다시 여는 중입니다."
 
@@ -8862,10 +9000,10 @@ msgstr "버그 신고…"
 msgid "Report a problem with this chat…"
 msgstr "이 채팅의 문제 신고…"
 
-msgid "Report an issue on GitHub"
+msgid "Report an issue"
 msgstr ""
 
-msgid "Report an issue"
+msgid "Report an issue on GitHub"
 msgstr ""
 
 msgid "Report from {0}"
@@ -8964,9 +9102,6 @@ msgstr "삭제하기 전에 {files}의 충돌을 해결하세요."
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "삭제하기 전에 {files}의 충돌을 해결하고, +{overflow}개 항목을 더 처리하세요."
-
-msgid "Resolved"
-msgstr "해결됨"
 
 msgid "Resolved by {resolvedBy}"
 msgstr ""
@@ -9154,20 +9289,29 @@ msgstr "샌드박스 처리된 HTML 삽입입니다. HTML을 작성하면 렌더
 msgid "Save"
 msgstr "저장"
 
+msgid "Save as page"
+msgstr ""
+
 msgid "Save changes"
 msgstr "변경 사항 저장"
 
 msgid "Save failed: {error}"
 msgstr "저장 실패: {error}"
 
+msgid "Save page"
+msgstr ""
+
 msgid "Save queued message"
 msgstr "대기 중인 메시지 저장"
 
-msgid "Save this comment (Enter)"
-msgstr "이 댓글 저장 (Enter)"
+msgid "Save view as page"
+msgstr ""
 
 msgid "Saved"
 msgstr "저장됨"
+
+msgid "Saved as {docName}.md"
+msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "<0>{slug}.md</0>로 저장됨"
@@ -9186,6 +9330,9 @@ msgstr "저장된 테마를 불러오지 못했습니다. 마지막으로 사용
 
 msgid "Saved to"
 msgstr "저장 위치"
+
+msgid "Saved view: {0}"
+msgstr ""
 
 msgid "Saved with the project for your team."
 msgstr "팀을 위해 프로젝트와 함께 저장됨."
@@ -9277,6 +9424,9 @@ msgstr "파일, 폴더 또는 명령 검색"
 msgid "Search folders"
 msgstr "폴더 검색"
 
+msgid "Search for a page and choose it to insert a link."
+msgstr ""
+
 msgid "Search icons..."
 msgstr "아이콘 검색…"
 
@@ -9285,6 +9435,9 @@ msgstr "언어 검색"
 
 msgid "Search matches file names, paths, and folders. Open a file to search its body <0>{0}</0>."
 msgstr "파일 이름, 경로 및 폴더를 검색합니다. 파일을 열면 본문을 검색할 수 있습니다 <0>{0}</0>."
+
+msgid "Search pages"
+msgstr ""
 
 msgid "Search projects"
 msgstr "프로젝트 검색"
@@ -9367,9 +9520,6 @@ msgstr "전체 설치 안내 보기"
 msgid "See what's added"
 msgstr "추가되는 항목 보기"
 
-msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
-msgstr ""
-
 msgid "Select {name}"
 msgstr "{name} 선택"
 
@@ -9405,6 +9555,9 @@ msgstr "다음 발생 항목 선택"
 
 msgid "Select spelling languages"
 msgstr "맞춤법 검사 언어 선택"
+
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
+msgstr ""
 
 msgid "Select the full source document."
 msgstr "전체 소스 문서 선택"
@@ -9457,11 +9610,11 @@ msgstr "전송"
 msgid "Send & continue"
 msgstr "보내고 계속하기"
 
-msgid "Send checked comments to chat"
-msgstr "확인한 댓글을 채팅으로 보내기"
+msgid "Send a new code"
+msgstr ""
 
-msgid "Send comments to"
-msgstr "댓글 보낼 곳"
+msgid "Send code"
+msgstr ""
 
 msgid "Send feedback"
 msgstr "피드백 보내기"
@@ -9478,17 +9631,8 @@ msgstr "지금 전송"
 msgid "Send report"
 msgstr "보고서 보내기"
 
-msgid "Send this comment"
-msgstr "이 댓글 보내기"
-
 msgid "Send to a new chat"
 msgstr "새 채팅으로 전송"
-
-msgid "Send to chat"
-msgstr "채팅에 보내기"
-
-msgid "Send to chat ({0})"
-msgstr "채팅에 보내기 ({0})"
 
 msgid "Send when the agent is free"
 msgstr "에이전트 유휴 시 전송"
@@ -9513,9 +9657,6 @@ msgstr "사용자 메모 및 앱 버전과 함께 GitQuire 팀에 비공개로 �
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "콘텐츠를 임베딩하기 위해 <0>{endpointHost}</0>로 전송합니다. 프로젝트 외부에 저장합니다."
-
-msgid "Sent, but the comments could not be marked done — they're still waiting to send."
-msgstr "보냈지만 댓글 완료 표시에 실패했습니다. 아직 전송 대기 중입니다."
 
 msgid "Separator"
 msgstr "구분선"
@@ -9693,9 +9834,6 @@ msgstr "표시"
 msgid "Show .ok folders"
 msgstr ".ok 폴더 표시"
 
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
-
 msgid "Show {0} more"
 msgstr "{0}개 더 보기"
 
@@ -9728,6 +9866,9 @@ msgstr "다이어그램 보기"
 
 msgid "Show document panel"
 msgstr "문서 패널 표시"
+
+msgid "Show done"
+msgstr ""
 
 msgid "Show Editor"
 msgstr "편집기 표시"
@@ -9789,11 +9930,8 @@ msgstr "안내 다시 표시: 이 프로젝트의 {displayName}"
 msgid "Show replace"
 msgstr "바꾸기 표시"
 
-msgid "Show resolved"
-msgstr "해결됨 보기"
-
-msgid "Show resolved comments ({0})"
-msgstr "해결된 댓글 보기 ({0})"
+msgid "Show resolved ({resolvedCount})"
+msgstr ""
 
 msgid "Show selection preview"
 msgstr "선택 영역 미리보기 보기"
@@ -9810,14 +9948,20 @@ msgstr "소스 보기"
 msgid "Show Terminal"
 msgstr "터미널 표시"
 
-msgid "Show these comments in the Comments panel"
-msgstr "댓글 패널에서 이 댓글 보기"
-
 msgid "Show thumbnails"
 msgstr "썸네일 표시"
 
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "“{semanticResultsLabel}”에 대한 결과 표시"
+
+msgid "Showing the first {MAX_ROWS} items."
+msgstr ""
+
+msgid "Showing the first {MAX_ROWS} pages."
+msgstr ""
+
+msgid "Showing the first {shownCount} of {rowCount} pages. Filter to narrow the list."
+msgstr ""
 
 msgid "Showing top {0} headings — keep typing to narrow"
 msgstr "상위 {0}개 제목을 표시합니다. 계속 입력하여 범위를 좁히세요"
@@ -10112,9 +10256,6 @@ msgstr "선택한 구절을 에이전트 패널에 올려 이어서 작성하고
 msgid "stale Git entry"
 msgstr "오래된 Git 항목"
 
-msgid "Star us on GitHub"
-msgstr "GitHub에서 별표를 눌러 주세요"
-
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -10124,14 +10265,8 @@ msgstr "지금 화면에 보이는 그대로의 스크린샷과 함께 버그 �
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "＋ 버튼으로 채팅 시작하거나 페이지에서 에이전트 실행하세요."
 
-msgid "Start a discussion with your team on this selection"
+msgid "Start a comment thread on the selected text."
 msgstr ""
-
-msgid "Start a new chat"
-msgstr "새 채팅 시작"
-
-msgid "Start a new chat ({0})"
-msgstr "새 채팅 시작 ({0})"
 
 msgid "Start a new GitQuire project."
 msgstr "새 GitQuire 프로젝트를 시작합니다."
@@ -10181,6 +10316,9 @@ msgstr "터미널 시작 중…"
 msgid "Starting the agent…"
 msgstr "에이전트 시작 중…"
 
+msgid "Starts from {from}. Everyone moves to the new branch once it is created."
+msgstr ""
+
 msgid "status"
 msgstr "상태"
 
@@ -10216,6 +10354,9 @@ msgstr "{0}이 \"{1}\" 읽기를 중단할까요? {subRoot}의 다른 스킬은 
 
 msgid "Stop {0} reading this skill"
 msgstr "이 스킬을 {0}이 더 읽지 않게 할까요?"
+
+msgid "Stop emailing me"
+msgstr ""
 
 msgid "Stop fixing files"
 msgstr "파일 수정 중지"
@@ -10277,6 +10418,9 @@ msgstr "이번 주 변경한 내용 모두 요약"
 msgid "Swap file sidebar and document panel"
 msgstr "파일 사이드바와 문서 패널 위치 바꾸기"
 
+msgid "Switch"
+msgstr ""
+
 msgid "Switch and update branch"
 msgstr "브랜치 전환 및 업데이트"
 
@@ -10286,11 +10430,17 @@ msgstr "현재 위치를 유지하면서 비주얼 편집기와 소스 편집기
 msgid "Switch branch"
 msgstr "브랜치 전환"
 
+msgid "Switch everyone to"
+msgstr ""
+
 msgid "Switch project"
 msgstr "프로젝트 전환"
 
 msgid "Switch project…"
 msgstr "프로젝트 전환…"
+
+msgid "Switch to {target}?"
+msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "공유하려면 브랜치로 전환하세요."
@@ -10303,6 +10453,9 @@ msgstr "워크트리 전환"
 
 msgid "Switch worktree…"
 msgstr "워크트리 전환…"
+
+msgid "Switched to {branch}"
+msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "에이전트 모드를 전환합니다"
@@ -10545,17 +10698,23 @@ msgstr "피드백 감사합니다!"
 msgid "Thanks for the report!"
 msgstr "보고서 감사합니다!"
 
+msgid "That action item changed on its page. Reload to see it."
+msgstr ""
+
+msgid "That action item changed on its page. The list was reloaded."
+msgstr ""
+
 msgid "That branch is already open in another worktree."
 msgstr "해당 브랜치는 다른 워크트리에서 이미 열려 있습니다."
+
+msgid "That code is not right."
+msgstr ""
 
 msgid "That conflict is no longer available."
 msgstr "해당 충돌은 더 이상 사용할 수 없습니다."
 
 msgid "That did not go through. Check the server logs and try again."
 msgstr "처리되지 않았습니다. 서버 로그를 확인한 뒤 다시 시도하세요."
-
-msgid "That document didn't open in time. Try again once it has synced."
-msgstr "문서 열기 시간 초과. 동기화 후 다시 시도합니다."
 
 msgid "That doesn’t parse as YAML or JSON — check line {0}."
 msgstr "YAML 또는 JSON으로 해석할 수 없습니다. {0}번째 줄을 확인하세요."
@@ -10586,9 +10745,6 @@ msgstr "메시지 전송 완료. 편집 내용 미적용."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "해석했지만 base16 테마가 아닙니다."
-
-msgid "The quoted text is no longer in the page."
-msgstr ""
 
 msgid "The {0} download request timed out."
 msgstr "{0} 다운로드 요청 시간 초과."
@@ -10639,11 +10795,11 @@ msgstr "이 채팅 밖의 무언가가 에이전트 프로세스에 중지를 �
 msgid "The agent ran out of memory."
 msgstr "에이전트의 메모리가 부족해졌습니다."
 
-msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
-msgstr "에이전트 설치에 파일이 누락되었습니다(모듈을 찾을 수 없음). 에이전트를 다시 설치하면 보통 해결됩니다."
-
 msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
 msgstr "에이전트의 GitQuire 도구가 서버에 연결하지 못했습니다. 에이전트에게 다시 시도해 달라고 요청하고, 계속 실패하면 새 채팅을 시작하세요."
+
+msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
+msgstr "에이전트 설치에 파일이 누락되었습니다(모듈을 찾을 수 없음). 에이전트를 다시 설치하면 보통 해결됩니다."
 
 msgid "The agent's persona, values, and voice."
 msgstr "에이전트의 페르소나, 가치관, 말투입니다."
@@ -10677,6 +10833,12 @@ msgstr "채팅 메시지, 도구 호출과 그 출력으로, 에이전트가 무
 
 msgid "The Claude Desktop App didn't open the file. Is it installed? ({msg})"
 msgstr "Claude Desktop App 파일 열기 실패. 설치 상태 확인: ({msg})"
+
+msgid "The code has expired. Ask for a new one."
+msgstr ""
+
+msgid "The confirmation mail could not be sent. Check the address and try again."
+msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "대화를 이 보고서에 추가하지 못했습니다."
@@ -10729,24 +10891,6 @@ msgstr "폴더와 템플릿이 이미 있으므로 추가할 항목이 없습니
 msgid "The formula <0>c = √(a² + b²)</0> renders inline."
 msgstr "수식 <0>c = √(a² + b²)</0>이 인라인으로 렌더링됩니다."
 
-msgid "The index files stay in place. GitQuire removes only the Git rule it added."
-msgstr "인덱스 파일은 그대로 유지됩니다. GitQuire가 추가한 Git 규칙만 제거합니다."
-
-msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
-msgstr "인터페이스가 아직 읽고 있던 언어로 표시됩니다. 연결을 확인한 다음 다시 로드하여 시도하세요."
-
-msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
-msgstr "GitQuire가 사용하는 언어입니다. 시스템은 운영 체제를 따릅니다. 작성한 노트는 작성한 언어로 유지됩니다."
-
-msgid "The menu label agents pick this template by (required)."
-msgstr "에이전트가 이 템플릿을 선택할 때 사용하는 메뉴 레이블입니다(필수)."
-
-msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
-msgstr "엔드포인트가 제공하는 모델 ID입니다. 벡터 크기는 자동으로 감지됩니다. 필드를 지우면 {DEFAULT_EMBEDDINGS_MODEL}로 돌아갑니다."
-
-msgid "the open agent"
-msgstr "열린 에이전트"
-
 msgid "The GitQuire project is missing at this checkout path."
 msgstr "이 체크아웃 경로에 GitQuire 프로젝트가 없습니다."
 
@@ -10762,8 +10906,32 @@ msgstr "GitQuire 서버의 응답이 너무 오래 걸렸으며 변경 사항이
 msgid "The GitQuire server took too long to answer. Ask the agent to try again."
 msgstr "GitQuire 서버의 응답이 너무 오래 걸렸습니다. 에이전트에게 다시 시도해 달라고 요청하세요."
 
-msgid "The original text was deleted."
-msgstr "원문이 삭제되었습니다."
+msgid "The index files stay in place. GitQuire removes only the Git rule it added."
+msgstr "인덱스 파일은 그대로 유지됩니다. GitQuire가 추가한 Git 규칙만 제거합니다."
+
+msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
+msgstr "인터페이스가 아직 읽고 있던 언어로 표시됩니다. 연결을 확인한 다음 다시 로드하여 시도하세요."
+
+msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
+msgstr "GitQuire가 사용하는 언어입니다. 시스템은 운영 체제를 따릅니다. 작성한 노트는 작성한 언어로 유지됩니다."
+
+msgid "The meeting note was created, but its date and headings couldn't be added."
+msgstr ""
+
+msgid "The menu label agents pick this template by (required)."
+msgstr "에이전트가 이 템플릿을 선택할 때 사용하는 메뉴 레이블입니다(필수)."
+
+msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
+msgstr "엔드포인트가 제공하는 모델 ID입니다. 벡터 크기는 자동으로 감지됩니다. 필드를 지우면 {DEFAULT_EMBEDDINGS_MODEL}로 돌아갑니다."
+
+msgid "the open agent"
+msgstr "열린 에이전트"
+
+msgid "The page shows this view live, for everyone, and is committed like any page."
+msgstr ""
+
+msgid "The page was created, but the view couldn't be written into it."
+msgstr ""
 
 msgid "The path can't leave the skill (no . or ..)"
 msgstr "경로는 스킬 밖으로 나갈 수 없습니다 (. 또는 .. 불가)"
@@ -10803,6 +10971,9 @@ msgstr "제공업체의 벡터 크기가 계속 변경되었습니다. 의미로
 
 msgid "The public URL your tunnel serves (for example your Tailscale https://…ts.net address). The server admits requests for this host and advertises it in the URLs it issues."
 msgstr "터널이 제공하는 공개 URL입니다(예: Tailscale https://…ts.net 주소). 서버는 이 호스트에 대한 요청을 허용하고 발급하는 URL에 이를 광고합니다."
+
+msgid "The quoted text is no longer in the page."
+msgstr ""
 
 msgid "The repository is private and your GitHub account doesn't have access to it."
 msgstr "비공개 저장소에 접근 권한이 없습니다. 접근 권한이 있는 GitHub 계정으로 로그인하세요."
@@ -10939,6 +11110,9 @@ msgstr "테마 적용 미리보기"
 msgid "Themes"
 msgstr "테마"
 
+msgid "There is no address waiting for a code."
+msgstr ""
+
 msgid "There's no project folder for this window, so a terminal can't start here."
 msgstr "이 창에 프로젝트 폴더 없음. 터미널 시작 불가."
 
@@ -11045,9 +11219,6 @@ msgstr "이 체크아웃 경로를 읽을 수 없습니다."
 
 msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
 msgstr "이 명령에는 실제로 실행되는 내용과 다르게 보이게 할 수 있는 숨겨진 문자가 있습니다. 여기서는 ⟨U+…⟩ 형식으로 표시됩니다."
-
-msgid "This comment is on the whole property"
-msgstr "이 댓글, 속성 전체에 적용됨"
 
 msgid "This component changed. Try again."
 msgstr "이 컴포넌트가 변경되었습니다. 다시 시도하세요."
@@ -11302,6 +11473,9 @@ msgstr "이 컴퓨터 밖으로 콘텐츠를 전송합니다"
 msgid "This sends the link's address off your machine"
 msgstr "이 컴퓨터 밖으로 링크 주소를 전송합니다"
 
+msgid "This server does not send mail to that domain."
+msgstr ""
+
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "이 서버에는 기본 인증이 없습니다. 터널에 접근할 수 있는 사람은 누구나 이 지식 베이스를 완전히 제어할 수 있습니다. 그 앞에 인증 게이트를 두세요. 예를 들어 비공개 Tailscale 네트워크나 인증이 있는 리버스 프록시를 사용하세요."
 
@@ -11353,6 +11527,9 @@ msgstr "이 업데이트는 더 이상 설치할 준비가 되어 있지 않습�
 msgid "This usually means one of:"
 msgstr "일반적으로 다음 중 하나입니다:"
 
+msgid "This wiki has more pages than a view can show; the list is cut off."
+msgstr ""
+
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "이 창에는 토큰을 저장할 수 없습니다. 기본 앱 창에서 설정을 여세요."
 
@@ -11392,6 +11569,9 @@ msgstr "이 설정을 저장하려면 프로젝트 MCP 서버 또는 전역 MCP 
 
 msgid "Today"
 msgstr "오늘"
+
+msgid "Today's meeting note already exists. It was opened."
+msgstr ""
 
 msgid "Toggle a bullet list."
 msgstr "글머리 기호 목록을 전환합니다."
@@ -11478,8 +11658,14 @@ msgstr "{host}의 {login}에 대한 토큰이 저장되었습니다. 제거하�
 msgid "tokens"
 msgstr "토큰"
 
+msgid "Too many confirmation mails for now. Try again later."
+msgstr ""
+
 msgid "Too many live references on this page. This board was not loaded."
 msgstr "이 페이지에 라이브 참조가 너무 많습니다. 이 보드는 불러오지 않았습니다."
+
+msgid "Too many wrong codes. Ask for a new one."
+msgstr ""
 
 msgid "Too slow"
 msgstr "너무 느림"
@@ -11683,12 +11869,6 @@ msgstr "알 수 없는 변수 {unknownList}. 사용할 수 있는 변수: {suppo
 msgid "unlink"
 msgstr "링크 해제"
 
-msgid "Unmark every comment"
-msgstr "모든 댓글 전송 표시 해제"
-
-msgid "Unmark every comment in {0}"
-msgstr "{0}의 모든 댓글 전송 표시 해제"
-
 msgid "Unmerged"
 msgstr "병합 안 됨"
 
@@ -11703,6 +11883,9 @@ msgstr "{accessibleLabel} 고정 해제"
 
 msgid "Unpin tab"
 msgstr "탭 고정 해제"
+
+msgid "Unread"
+msgstr ""
 
 msgid "Unrecognized link"
 msgstr "인식할 수 없는 링크"
@@ -11719,8 +11902,14 @@ msgstr "해결할 수 없는 파일 {identity}. 참조로 이동합니다."
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "해결할 수 없는 이미지 {identity}. 참조로 이동합니다."
 
+msgid "Unsaved changes block the switch"
+msgstr ""
+
 msgid "Unsupported file type: {fileType}."
 msgstr "지원되지 않는 파일 형식: {fileType}."
+
+msgid "Until then, mentions still go to {0}."
+msgstr ""
 
 msgid "Untitled report"
 msgstr "제목 없는 보고서"
@@ -11768,14 +11957,8 @@ msgstr "{updatedRelative} 업데이트됨"
 msgid "updated folder properties"
 msgstr "폴더 속성 업데이트됨"
 
-msgid "Updated to Version {version}"
-msgstr "버전 {version}으로 업데이트됨"
-
 msgid "Updates"
 msgstr ""
-
-msgid "Updates and feedback"
-msgstr "업데이트 및 피드백"
 
 msgid "Updates flow in"
 msgstr "업데이트가 들어옴"
@@ -11958,9 +12141,6 @@ msgstr "skills.sh에서 {publisher} 보기"
 msgid "View as text"
 msgstr "텍스트로 보기"
 
-msgid "View comments"
-msgstr "댓글 보기"
-
 msgid "View diff for edit {burstNumber} of {docName}"
 msgstr "편집 {burstNumber} 시점의 {docName} 변경 사항 보기"
 
@@ -11984,6 +12164,9 @@ msgstr "소스 보기"
 
 msgid "View the {plugin} plugin repo"
 msgstr "{plugin} 플러그인 저장소 보기"
+
+msgid "Views"
+msgstr ""
 
 msgid "Visibility"
 msgstr "공개 범위"
@@ -12015,6 +12198,9 @@ msgstr "비주얼 편집기 표"
 msgid "Visual editor table selection"
 msgstr "비주얼 편집기 표 선택 영역"
 
+msgid "Wait a minute before asking for another code."
+msgstr ""
+
 msgid "Waiting for authorization"
 msgstr "인증 대기 중"
 
@@ -12035,6 +12221,9 @@ msgstr "GitHub 연결을 확인하지 못했습니다."
 
 msgid "We couldn't clone this repository."
 msgstr "이 저장소를 클론할 수 없습니다."
+
+msgid "We sent a code to {pending}. Enter it to turn on email."
+msgstr ""
 
 msgid "We'll build <0>openknowledge.skill</0>, save it to <1>~/Downloads</1>, and open the Claude Desktop App for you."
 msgstr "<0>openknowledge.skill</0> 빌드 후 <1>~/Downloads</1>에 저장하고 Claude Desktop App 열기."
@@ -12112,9 +12301,6 @@ msgstr "사용하도록 설정하면 에이전트가 편집할 때마다 미리�
 msgid "When the agent runs its scheduled work."
 msgstr "에이전트가 예약된 작업을 실행할 때"
 
-msgid "When the Comments tab is open"
-msgstr "댓글 탭이 열려 있을 때"
-
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "외부 링크 위에 마우스를 올리면 미리보기 메타데이터를 가져오기 위해 URL을 대상 사이트로 전송합니다. 미리보기 하나마다 한 번 요청합니다."
 
@@ -12180,9 +12366,6 @@ msgstr "자동 줄바꿈"
 
 msgid "Work directly, no plan step"
 msgstr "계획 단계 없이 바로 작업"
-
-msgid "Work through these comments"
-msgstr "이 댓글 기반 작업"
 
 msgid "Working"
 msgstr "작업 중"
@@ -12315,9 +12498,6 @@ msgstr "에이전트는 여전히 이 스킬을 불러오지만 GitQuire에서 �
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "변경사항을 아직 저장 중입니다. 잠시 후 테스트를 다시 실행합니다."
 
-msgid "Your comments are waiting behind the running turn — they stay queued until the agent picks the message up."
-msgstr "현재 실행 뒤 댓글 대기 중. 에이전트 메시지 수신 전까지 대기열 유지."
-
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "브랜치 <0>{shareBranch}</0> 사본에 GitHub에 없는 변경 사항이 있습니다. 브랜치가 동기화되면 {targetNoun}이 나타납니다."
 
@@ -12401,60 +12581,3 @@ msgstr "축소"
 
 msgid "Zoom Out"
 msgstr "축소"
-
-msgid "Could not load branches"
-msgstr ""
-
-msgid "Switched to {branch}"
-msgstr ""
-
-msgid "Unsaved changes block the switch"
-msgstr ""
-
-msgid "Could not switch to {branch}"
-msgstr ""
-
-msgid "Switch everyone to"
-msgstr ""
-
-msgid "New branch…"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
-msgid "Switch to {target}?"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Switch"
-msgstr ""
-
-msgid "New branch"
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
-msgid "Create and switch"
-msgstr ""
-
-msgid "Opened pull request #{number}"
-msgstr ""
-
-msgid "Open pull request"
-msgstr ""
-
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
-msgstr ""
-
-msgid "Opening…"
-msgstr ""
