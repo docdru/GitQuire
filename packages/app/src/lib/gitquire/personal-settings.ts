@@ -96,7 +96,7 @@ export function createPersonalSettingsProvider(
         text.insert(0, yaml);
       }, LOAD_ORIGIN);
       loaded = true;
-      for (const listener of [...syncedListeners]) listener();
+      for (const listener of syncedListeners) listener();
     },
     flush() {
       if (timer === undefined) return saving;
