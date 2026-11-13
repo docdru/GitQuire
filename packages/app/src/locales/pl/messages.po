@@ -52,11 +52,29 @@ msgstr "\"{0}\" — instalacja odświeżona ({1})"
 msgid "\"{0}\" is ignored by git"
 msgstr "\"{0}\" jest ignorowany przez git"
 
+msgid "\"{0}\" is live."
+msgstr ""
+
+msgid "\"{0}\" is ready for review."
+msgstr ""
+
+msgid "\"{0}\" is ready for review. {1} will be notified."
+msgstr ""
+
 msgid "\"{0}\" was already added (identical content)."
 msgstr "\"{0}\" został już dodany (identyczna zawartość)."
 
 msgid "\"{0}\" was already imported (identical content)."
 msgstr "\"{0}\" został już zaimportowany (identyczna zawartość)."
+
+msgid "\"{0}\" was discarded."
+msgstr ""
+
+msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgstr ""
+
+msgid "\"{0}\" was published. You are back on the live wiki."
+msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
 msgstr "\"{docName}\" nie istnieje."
@@ -96,6 +114,9 @@ msgstr "(osadzone)"
 
 msgid "(no name)"
 msgstr "(bez nazwy)"
+
+msgid "(nothing)"
+msgstr ""
 
 msgid "(opens in new tab)"
 msgstr "(otwiera się w nowej karcie)"
@@ -199,6 +220,9 @@ msgstr "{0, plural, one {Zasady projektu ukrywają # znaleziony problem z uszkod
 msgid "{0, plural, one {Skill} other {Skills}}"
 msgstr "{0, plural, one {Umiejętność} few {Umiejętności} many {Umiejętności} other {Umiejętności}}"
 
+msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
+msgstr ""
+
 msgid "{0, plural, one {Uploading # attachment} other {Uploading # attachments}}"
 msgstr "{0, plural, one {Wysyłanie # załącznika} few {Wysyłanie # załączników} many {Wysyłanie # załączników} other {Wysyłanie # załącznika}}"
 
@@ -268,6 +292,9 @@ msgstr "{0} otwiera się przez link i nie przyjmuje załączników — zamiast t
 msgid "{0} other skills by this publisher"
 msgstr "{0} innych umiejętności tego wydawcy"
 
+msgid "{0} pages changed"
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "{0} (wtyczka)"
 
@@ -291,6 +318,9 @@ msgstr "Wybrano {0} umiejętności"
 
 msgid "{0} total"
 msgstr "Razem: {0}"
+
+msgid "{0} unchanged paragraphs"
+msgstr ""
 
 msgid "{0} version {1}"
 msgstr "{0} — wersja {1}"
@@ -678,9 +708,6 @@ msgstr "{localizedMessage} w wierszu {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{mcpTool} z serwera MCP {server}"
 
-msgid "{merged} was merged on GitHub. Switching everyone to {base}."
-msgstr ""
-
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, one {# min temu} few {# min temu} many {# min temu} other {# min temu}}"
 
@@ -731,6 +758,12 @@ msgstr "{packName} zostało już skonfigurowane. Nie ma nic do zrobienia."
 
 msgid "{pageCount, plural, one {The full text of your 1 page will be sent to <0>{host}</0> as it is re-embedded.} other {The full text of all {pageCount} pages will be sent to <1>{host}</1> as they are re-embedded.}}"
 msgstr "{pageCount, plural, one {Cały tekst twojej 1 strony zostanie wysłany do <0>{host}</0> przy ponownym osadzaniu.} few {Cały tekst wszystkich {pageCount} stron zostanie wysłany do <1>{host}</1> przy ponownym osadzaniu.} many {Cały tekst wszystkich {pageCount} stron zostanie wysłany do <1>{host}</1> przy ponownym osadzaniu.} other {Cały tekst {pageCount} strony zostanie wysłany do <1>{host}</1> przy ponownym osadzaniu.}}"
+
+msgid "{pages} changed · not live yet"
+msgstr ""
+
+msgid "{pages} pages go live for everyone. The draft is closed afterwards."
+msgstr ""
 
 msgid "{percent}% from top"
 msgstr "{percent}% od góry"
@@ -858,10 +891,16 @@ msgstr "{visibleSummary}. {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, one {# ostrzeżenie} few {# ostrzeżenia} many {# ostrzeżeń} other {# ostrzeżenia}}"
 
+msgid "{who} published \"{0}\". You are back on the live wiki."
+msgstr ""
+
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {słowo} few {słowa} many {słów} other {słowa}}"
 
 msgid "@{login} ({open} open)"
+msgstr ""
+
+msgid "@anna @ben"
 msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
@@ -949,6 +988,15 @@ msgstr "1 godzina"
 msgid "1 minute"
 msgstr "1 minuta"
 
+msgid "1 page changed"
+msgstr ""
+
+msgid "1 page goes live for everyone. The draft is closed afterwards."
+msgstr ""
+
+msgid "1 unchanged paragraph"
+msgstr ""
+
 msgid "15 minutes"
 msgstr "15 minut"
 
@@ -1005,6 +1053,9 @@ msgstr "W {0} znajduje się INNA umiejętność o takiej samej nazwie — ten fo
 
 msgid "A document has a conflict — resolve it to keep it up to date."
 msgstr "Dokument ma konflikt — rozwiąż go, aby pozostał aktualny."
+
+msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
+msgstr ""
 
 msgid "A folder containing SKILL.md."
 msgstr "Folder zawierający SKILL.md."
@@ -1447,6 +1498,9 @@ msgstr "Wszystkie konflikty rozwiązane. Zastosuj zmiany, aby zapisać."
 msgid "All dated pages"
 msgstr ""
 
+msgid "All drafts…"
+msgstr ""
+
 msgid "All files"
 msgstr "Wszystkie pliki"
 
@@ -1634,6 +1688,9 @@ msgstr "Stosowanie…"
 msgid "Approve"
 msgstr "Zatwierdź"
 
+msgid "Approve \"{0}\""
+msgstr ""
+
 msgid "Approve & proceed"
 msgstr "Zatwierdź i przejdź dalej"
 
@@ -1645,6 +1702,9 @@ msgstr "Zatwierdzone — {optionName}"
 
 msgid "Approved and ready to merge"
 msgstr "Zatwierdzone i gotowe do scalenia"
+
+msgid "Approved by {approvers}"
+msgstr ""
 
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Czy na pewno chcesz przekonwertować ten plik na szablon? Oryginalny plik zostanie usunięty. Tej akcji nie można cofnąć."
@@ -1710,6 +1770,15 @@ msgid "Ask Claude to work on this folder…"
 msgstr ""
 
 msgid "Ask Claude to work on this page…"
+msgstr ""
+
+msgid "Ask for changes"
+msgstr ""
+
+msgid "Asked: {waitingFor}"
+msgstr ""
+
+msgid "asks you to review \"{0}\""
 msgstr ""
 
 msgid "Asset"
@@ -1854,8 +1923,14 @@ msgstr "Wstecz"
 msgid "Back to document view"
 msgstr "Powrót do widoku dokumentu"
 
+msgid "Back to draft"
+msgstr ""
+
 msgid "Back to editor"
 msgstr "Wróć do edytora"
+
+msgid "Back to the live wiki"
+msgstr ""
 
 msgid "Backlinks"
 msgstr "Linki zwrotne"
@@ -1890,6 +1965,9 @@ msgstr "Zanim odejdziesz — powiesz, dlaczego?"
 
 msgid "Behind the base branch"
 msgstr "Za gałęzią bazową"
+
+msgid "Being written"
+msgstr ""
 
 msgid "Below"
 msgstr "Poniżej"
@@ -2114,11 +2192,20 @@ msgstr "Zmieniono"
 msgid "Changed here and on the remote"
 msgstr "Zmienione tutaj i na zdalnym"
 
+msgid "Changed in this draft"
+msgstr ""
+
 msgid "changed outside"
 msgstr "zmienione na zewnątrz"
 
 msgid "Changed outside OK since it last wrote here — the state shown is what's on disk now"
 msgstr "Zmienione poza OK od ostatniego zapisu tutaj — pokazany stan to stan na dysku"
+
+msgid "Changes"
+msgstr ""
+
+msgid "Changes in \"{0}\""
+msgstr ""
 
 msgid "Changes requested"
 msgstr "Zażądano zmian"
@@ -2131,6 +2218,12 @@ msgstr "Zmiany są zapisywane automatycznie."
 
 msgid "Changes saved automatically."
 msgstr "Zmiany zapisane automatycznie."
+
+msgid "changes this page"
+msgstr ""
+
+msgid "Changes to {pageName}"
+msgstr ""
 
 msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
 msgstr "Zmiany zostały zapisane, ale GitQuire nie potwierdził połączenia z {handoffLabel}. Sprawdź ustawienia serwera MCP dla tej aplikacji, a potem wybierz „Zapisz zmiany”, żeby sprawdzić ponownie."
@@ -2309,6 +2402,9 @@ msgid "Claude on the web or phone"
 msgstr ""
 
 msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
+
+msgid "Claude, for {0}"
 msgstr ""
 
 msgid "Cleanup didn’t finish"
@@ -2959,9 +3055,6 @@ msgstr "Nie udało się naprawić {0} z {total} plików."
 msgid "Could not initialize {0}."
 msgstr "Nie udało się zainicjować {0}."
 
-msgid "Could not load branches"
-msgstr ""
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "Nie udało się wczytać szablonów: {templatesError}. Nadal możesz utworzyć pustą notatkę."
 
@@ -2998,9 +3091,6 @@ msgstr "Nie udało się zapisać ustawienia synchronizacji: {detail}"
 msgid "Could not start creating a new item"
 msgstr "Nie udało się rozpocząć tworzenia nowego elementu"
 
-msgid "Could not switch to {branch}"
-msgstr ""
-
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "Nie udało się przełączyć na {shareBranch}. Spróbuj przełączyć ręcznie."
 
@@ -3027,6 +3117,9 @@ msgstr "Nie udało się zmienić sprawdzania pisowni. Spróbuj ponownie."
 
 msgid "Couldn't change the spelling languages. Try again."
 msgstr "Nie udało się zmienić języków sprawdzania pisowni. Spróbuj ponownie."
+
+msgid "Couldn't change the status."
+msgstr ""
 
 msgid "Couldn't check which tools are connected."
 msgstr "Nie udało się sprawdzić, które narzędzia są połączone."
@@ -3093,6 +3186,9 @@ msgstr "Nie udało się usunąć szablonu: {error}"
 
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "Nie udało się usunąć tego motywu. Odśwież i spróbuj ponownie."
+
+msgid "Couldn't discard the draft."
+msgstr ""
 
 msgid "Couldn't disconnect — please try again."
 msgstr "Nie udało się rozłączyć — spróbuj ponownie."
@@ -3166,6 +3262,9 @@ msgstr "Nie udało się wczytać Twoich agentów."
 msgid "Couldn't load your bug reports."
 msgstr "Nie udało się wczytać Twoich zgłoszeń błędów."
 
+msgid "Couldn't mark the draft as ready."
+msgstr ""
+
 msgid "Couldn't move {0}: {1}"
 msgstr "Nie udało się przenieść {0}: {1}"
 
@@ -3207,6 +3306,9 @@ msgstr "Nie udało się umieścić {skillName} w {root}: {0}"
 
 msgid "Couldn't prepare this project for publish."
 msgstr "Nie udało się przygotować tego projektu do publikacji."
+
+msgid "Couldn't publish the draft."
+msgstr ""
 
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "Nie udało się pobrać z repozytorium GitHub. Sprawdź połączenie i logowanie, potem spróbuj ponownie."
@@ -3346,6 +3448,9 @@ msgstr "Nie udało się zapisać ustawienia automatycznej aktualizacji: {0}"
 msgid "Couldn't save the comment."
 msgstr ""
 
+msgid "Couldn't save the draft."
+msgstr ""
+
 msgid "Couldn't save the email address."
 msgstr ""
 
@@ -3355,11 +3460,17 @@ msgstr "Nie udało się zapisać klucza — spróbuj ponownie."
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "Nie udało się zapisać rozwiązania dla {filePath}."
 
+msgid "Couldn't save the setting. Try again."
+msgstr ""
+
 msgid "Couldn't save the view."
 msgstr ""
 
 msgid "Couldn't save this setting. Try again."
 msgstr "Nie udało się zapisać tego ustawienia. Spróbuj ponownie."
+
+msgid "Couldn't save your review."
+msgstr ""
 
 msgid "Couldn't save your theme preference."
 msgstr "Nie udało się zapisać preferencji motywu."
@@ -3388,6 +3499,9 @@ msgstr "Nie udało się przełączyć na {language}."
 msgid "Couldn't switch to Only me"
 msgstr "Nie udało się przełączyć na Tylko ja"
 
+msgid "Couldn't switch views."
+msgstr ""
+
 msgid "Couldn't unpin {name}"
 msgstr "Nie udało się odpiąć {name}"
 
@@ -3399,6 +3513,9 @@ msgstr "Nie udało się zaktualizować {subRoot}: {0}"
 
 msgid "Couldn't update from {0}: {1}"
 msgstr "Nie udało się zaktualizować z {0}: {1}"
+
+msgid "Couldn't update the draft."
+msgstr ""
 
 msgid "Couldn't upload the file. The {settingKey} value in {configFile} can't be used. Fix it in that file."
 msgstr "Nie udało się przesłać pliku. Wartości {settingKey} w {configFile} nie można użyć. Popraw ją w tym pliku."
@@ -3469,7 +3586,7 @@ msgstr "Utwórz token na {host}"
 msgid "Create a worktree from this branch"
 msgstr "Utwórz worktree z tej gałęzi"
 
-msgid "Create and switch"
+msgid "Create and open"
 msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
@@ -3694,6 +3811,9 @@ msgstr "Usunięto {filePath}"
 msgid "Deleted for good"
 msgstr "Usunięte na stałe"
 
+msgid "Deleted in this draft"
+msgstr ""
+
 msgid "deleted template"
 msgstr "usunięty szablon"
 
@@ -3831,8 +3951,20 @@ msgstr "Wyłącz motywy"
 msgid "Disambiguates similarly-named templates in the menu."
 msgstr "Rozróżnia szablony o podobnych nazwach w menu."
 
+msgid "Discard"
+msgstr ""
+
+msgid "Discard \"{0}\"?"
+msgstr ""
+
+msgid "Discard draft…"
+msgstr ""
+
 msgid "Discard local edits, restore the installed version"
 msgstr "Odrzuć lokalne zmiany, przywróć zainstalowaną wersję"
+
+msgid "Discarded"
+msgstr ""
 
 msgid "Disconnect"
 msgstr "Rozłącz"
@@ -3964,8 +4096,17 @@ msgstr "Napisz specyfikację"
 msgid "Draft a technical spec for my project. Start with an overview, then add cross-linked pages for the architecture, the key modules, and the open questions, all linked from a specs index."
 msgstr "Napisz techniczną specyfikację mojego projektu. Zacznij od przeglądu, potem dodaj powiązane strony o architekturze, kluczowych modułach i otwartych pytaniach, wszystkie powiązane ze spisem specyfikacji."
 
+msgid "Draft: {0}"
+msgstr ""
+
 msgid "Drafting…"
 msgstr "Szkicuję…"
+
+msgid "Drafts"
+msgstr ""
+
+msgid "Drafts are proposed changes that are not live yet. Open one to read or edit it; publish it to make it live for everyone."
+msgstr ""
 
 msgid "Drag {keyName} to reorder"
 msgstr "Przeciągnij {keyName}, aby zmienić kolejność"
@@ -4014,6 +4155,9 @@ msgstr "Duplikaty odrzucone"
 
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "np. drafts/ lub *.draft.md"
+
+msgid "e.g. Onboarding guide update"
+msgstr ""
 
 msgid "e.g. server.ts"
 msgstr "np. server.ts"
@@ -4388,12 +4532,6 @@ msgid "every doc"
 msgstr "każdy dokument"
 
 msgid "Everyone"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
 msgstr ""
 
 msgid "Everything from {source} is already up to date"
@@ -5143,6 +5281,9 @@ msgstr "GitQuire sprawdza i pobiera aktualizacje w tle."
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire could not be reached. Check your connection and try again."
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire nie znalazło tego agenta na tym komputerze."
 
@@ -5346,6 +5487,12 @@ msgstr "Własna kopia {0} w GitQuire jest uszkodzona i nie uruchomi się. Można
 
 msgid "Give it a name before editing its colors."
 msgstr "Nadaj mu nazwę, zanim zaczniesz edytować jego kolory."
+
+msgid "Give the draft a name of up to 120 characters."
+msgstr ""
+
+msgid "Give the draft a name that says what it changes."
+msgstr ""
 
 msgid "Gives the agent instructions for working with your documents and keeps its edits attributed."
 msgstr "Przekazuje agentowi instrukcje dotyczące pracy z Twoimi dokumentami i zachowuje przypisanie jego edycji."
@@ -6127,6 +6274,9 @@ msgstr "Kursywa"
 msgid "Item {0}"
 msgstr "Element {0}"
 
+msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
+msgstr ""
+
 msgid "Join us on Discord"
 msgstr "Dołącz do nas na Discordzie"
 
@@ -6180,6 +6330,9 @@ msgstr "Utrzymuj synchronizację tego projektu ze zdalnym repozytorium git. Auto
 
 msgid "Keep track of the people and companies you work with and the meetings you have with them. Good for remembering who someone is, how you know them, and what you last talked about."
 msgstr "Śledź osoby i firmy, z którymi pracujesz, oraz spotkania z nimi. Przydatne do przypomnienia sobie, kim jest dana osoba, skąd ją znasz i o czym rozmawialiście ostatnio."
+
+msgid "Keep: {title}"
+msgstr ""
 
 msgid "keeps the skills"
 msgstr "zachowuje umiejętności"
@@ -6247,6 +6400,9 @@ msgstr "Dowiedz się więcej o udostępnianiu konfiguracji"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "Nie uwzględniaj uszkodzonych linków zapisanych w pliku log.md lub log.mdx na dowolnej głębokości folderu w panelu Problemy, wskaźnikach eksploratora plików, diagnostyce edytora, audytach i zaleceniach zapisu agenta. Liczy się plik, w którym link jest zapisany, nie plik, na który wskazuje, a LOG.md jest zwykłym dokumentem. Panel Linki i edytor nadal je pokazują."
+
+msgid "Let {0} know the draft looks good."
+msgstr ""
 
 msgid "Let agent chats use a browser"
 msgstr "Pozwól czatom z agentem korzystać z przeglądarki"
@@ -6370,6 +6526,9 @@ msgstr "Lista"
 
 msgid "Lists"
 msgstr "Listy"
+
+msgid "Live wiki"
+msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "Znajduje się w tym projekcie (niezależnie od tego, gdzie jest folder umiejętności) i jest udostępniany współpracownikom przez gita."
@@ -6593,6 +6752,9 @@ msgstr ""
 msgid "Mark done: {text}"
 msgstr ""
 
+msgid "Mark ready for review"
+msgstr ""
+
 msgid "Markdown"
 msgstr "Markdown"
 
@@ -6643,6 +6805,9 @@ msgstr "Średni nagłówek sekcji."
 
 msgid "Mention a page"
 msgstr "Wzmiankuj stronę"
+
+msgid "Mention people by their GitHub name, like @anna."
+msgstr ""
 
 msgid "Mentioning me"
 msgstr ""
@@ -6753,6 +6918,9 @@ msgstr "Więcej akcji"
 msgid "More actions ({syncAttentionLabel})"
 msgstr "Więcej akcji ({syncAttentionLabel})"
 
+msgid "More draft actions"
+msgstr ""
+
 msgid "More information"
 msgstr "Więcej informacji"
 
@@ -6824,6 +6992,15 @@ msgstr "Przenieś edytor do górnej krawędzi okna"
 
 msgid "Move GitQuire.app to the Trash"
 msgstr "Przenieś GitQuire.app do Kosza"
+
+msgid "Move into draft"
+msgstr ""
+
+msgid "Move my recent edits into a draft"
+msgstr ""
+
+msgid "Move my recent edits to a draft…"
+msgstr ""
 
 msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
 msgstr "Przenieś lub zmień nazwę tego pliku w obrębie umiejętności — ścieżka pozostaje w references/ lub scripts/."
@@ -7026,17 +7203,11 @@ msgstr "Nowa aktywność"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "Nowy rekord · naciśnij <0>Spację</0>, aby zagrać ponownie"
 
-msgid "New branch"
-msgstr ""
-
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "Nowa gałąź <0>{trimmed}</0> zostanie utworzona z <1>{currentBaseLabel}</1>, we własnym worktree w <2>.ok/worktrees/</2>."
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "Nowa gałąź <0>{trimmed}</0> zostanie utworzona z bieżącego commita, we własnym worktree w <1>.ok/worktrees/</1>."
-
-msgid "New branch…"
-msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "Nowe zmiany z twojego zdalnego repozytorium pojawiają się w twojej kopii automatycznie."
@@ -7049,6 +7220,12 @@ msgstr "Nowy czat z {agentName}"
 
 msgid "New chat with a different window"
 msgstr "Nowy czat w innym oknie"
+
+msgid "New draft"
+msgstr ""
+
+msgid "New draft…"
+msgstr ""
 
 msgid "New file"
 msgstr "Nowy plik"
@@ -7074,6 +7251,9 @@ msgstr "Nowe z szablonu…"
 msgid "New ignore pattern"
 msgstr "Nowy wzorzec ignorowania"
 
+msgid "New in this draft"
+msgstr ""
+
 msgid "New languages may need an internet connection and time to become available."
 msgstr "Nowe języki mogą wymagać połączenia z internetem i czasu, aby stały się dostępne."
 
@@ -7085,6 +7265,9 @@ msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "Nowa nazwa dla wersji {editor}"
+
+msgid "New page"
+msgstr ""
 
 msgid "New project"
 msgstr "Nowy projekt"
@@ -7211,6 +7394,9 @@ msgstr "Brak zgłoszeń błędów."
 
 msgid "No changes"
 msgstr "Brak zmian"
+
+msgid "No changes yet · not live"
+msgstr ""
 
 msgid "No chats match your search"
 msgstr "Żaden czat nie pasuje do wyszukiwania"
@@ -7482,6 +7668,9 @@ msgstr "Nie znaleziono worktrees."
 msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
+msgid "Nobody has reviewed it yet."
+msgstr ""
+
 msgid "Nobody mentioned"
 msgstr ""
 
@@ -7562,6 +7751,12 @@ msgstr "Nie działa"
 msgid "Not sent"
 msgstr "Nie wysłano"
 
+msgid "Note"
+msgstr ""
+
+msgid "Note (optional)"
+msgstr ""
+
 msgid "nothing ({0} cannot match a doc)"
 msgstr "nic ({0} nie może dopasować dokumentu)"
 
@@ -7570,6 +7765,12 @@ msgstr "nic ({0} nie jest prawidłowym wzorcem)"
 
 msgid "Nothing from {agentName} for {stalledMinutes, plural, one {# minute} other {# minutes}}. If it looks stuck, Stop and try again."
 msgstr "{agentName} milczy już {stalledMinutes, plural, one {# minutę} few {# minuty} many {# minut} other {# minuty}}. Jeśli nic się nie dzieje, naciśnij Stop i spróbuj ponownie."
+
+msgid "Nothing has changed in this draft yet."
+msgstr ""
+
+msgid "Nothing here."
+msgstr ""
 
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "Nic nie opuszcza twojego komputera, dopóki nie przejrzysz i nie wyślesz zgłoszenia."
@@ -7647,6 +7848,9 @@ msgid "On — your search queries and the text of matching pages are sent to you
 msgstr "Włączone — twoje zapytania wyszukiwania i tekst pasujących stron są wysyłane do dostawcy osadzeń (domyślnie OpenAI) w celu obliczenia osadzeń."
 
 msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
+
+msgid "On GitHub"
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -7857,15 +8061,6 @@ msgstr "Otwórz podgląd, gdy agent edytuje"
 msgid "Open project menu"
 msgstr "Otwórz menu projektu"
 
-msgid "Open pull request"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
 msgid "Open recent project"
 msgstr "Otwórz ostatni projekt"
 
@@ -7898,6 +8093,9 @@ msgstr "Otwórz terminal, aby się zalogować"
 
 msgid "Open that worktree instead"
 msgstr "Otwórz zamiast tego ten worktree"
+
+msgid "Open the draft to review it."
+msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Otwórz menu wstawiania w pustym lub aktywnym miejscu tekstu."
@@ -7950,9 +8148,6 @@ msgstr "Otwarto istniejący projekt GitQuire w {ancestorPath}"
 msgid "Opened on branch {branch}"
 msgstr "Otwarto na gałęzi {branch}"
 
-msgid "Opened pull request #{number}"
-msgstr ""
-
 msgid "Opening {openingLabel}…"
 msgstr "Otwieranie {openingLabel}…"
 
@@ -7961,9 +8156,6 @@ msgstr "Otwieranie worktree"
 
 msgid "Opening..."
 msgstr "Otwieranie..."
-
-msgid "Opening…"
-msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Otwiera wybór folderu, w którym ma zostać sklonowane repozytorium."
@@ -8495,7 +8687,7 @@ msgstr "Nazwa właściwości"
 msgid "Property value"
 msgstr "Wartość właściwości"
 
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgid "Propose changes to this page…"
 msgstr ""
 
 msgid "Protected branch — cannot push"
@@ -8516,6 +8708,9 @@ msgstr "Repozytorium publiczne"
 msgid "Publish"
 msgstr "Opublikuj"
 
+msgid "Publish \"{0}\"?"
+msgstr ""
+
 msgid "Publish to GitHub"
 msgstr "Opublikuj w GitHub"
 
@@ -8525,8 +8720,17 @@ msgstr "Opublikowano"
 msgid "Published by {publisher}"
 msgstr "Opublikowane przez {publisher}"
 
+msgid "Published on GitHub"
+msgstr ""
+
+msgid "Published or discarded"
+msgstr ""
+
 msgid "Publishing..."
 msgstr "Publikowanie..."
+
+msgid "Publishing…"
+msgstr ""
 
 msgid "Pull"
 msgstr "Pobierz"
@@ -8581,6 +8785,9 @@ msgstr "Wysłano {pushed}"
 
 msgid "Pushing"
 msgstr "Wysyłanie"
+
+msgid "Put my AI assistant's edits into a draft"
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.user"
@@ -8681,6 +8888,9 @@ msgstr "Odczytuje ustawienia GitQuire tego projektu"
 msgid "Ready"
 msgstr "Gotowe"
 
+msgid "Ready for review"
+msgstr ""
+
 msgid "Ready to merge"
 msgstr "Gotowe do scalenia"
 
@@ -8713,6 +8923,9 @@ msgstr "Ostatnie pliki"
 
 msgid "Recent project"
 msgstr "Ostatni projekt"
+
+msgid "Recently closed"
+msgstr ""
 
 msgid "Recently opened"
 msgstr "Ostatnio otwarte"
@@ -8943,6 +9156,9 @@ msgstr "Zmień nazwę {keyName}"
 msgid "Rename chat"
 msgstr "Zmień nazwę czatu"
 
+msgid "Rename draft"
+msgstr ""
+
 msgid "Rename failed: {0}"
 msgstr "Zmiana nazwy nie powiodła się: {0}"
 
@@ -8954,6 +9170,9 @@ msgstr "Zmień nazwę umiejętności"
 
 msgid "Rename succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "Nazwa zmieniona, ale pasek boczny może być nieaktualny — odśwież, aby zsynchronizować"
+
+msgid "Rename…"
+msgstr ""
 
 msgid "Renamed"
 msgstr "Zmieniono nazwę"
@@ -9429,6 +9648,9 @@ msgstr "Zapisywanie zmian…"
 
 msgid "Saving your edits before reloading…"
 msgstr "Zapisywanie Twoich edycji przed ponownym wczytaniem…"
+
+msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
+msgstr ""
 
 msgid "schema {deleteTarget}"
 msgstr "schemat {deleteTarget}"
@@ -10056,6 +10278,9 @@ msgstr "Przesiewanie…"
 msgid "Sign in"
 msgstr "Zaloguj się"
 
+msgid "Sign in again to continue."
+msgstr ""
+
 msgid "Sign in to {agentName} first"
 msgstr "Najpierw zaloguj się do {agentName}"
 
@@ -10082,6 +10307,9 @@ msgstr "Logowanie do {agentName}"
 
 msgid "Signing in to {agentName}…"
 msgstr "Logowanie do {agentName}…"
+
+msgid "Since this draft started, someone changed the live wiki in the same spots. For each spot, choose what to keep. Everything else was combined automatically."
+msgstr ""
 
 msgid "Single page"
 msgstr "Pojedyncza strona"
@@ -10394,9 +10622,6 @@ msgstr "Uruchamianie terminala…"
 msgid "Starting the agent…"
 msgstr "Uruchamianie agenta…"
 
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
 msgid "status"
 msgstr "status"
 
@@ -10496,9 +10721,6 @@ msgstr "Podsumuj wszystko, co zmieniłem w tym tygodniu"
 msgid "Swap file sidebar and document panel"
 msgstr "Zamień miejscami panel plików i panel dokumentu"
 
-msgid "Switch"
-msgstr ""
-
 msgid "Switch and update branch"
 msgstr "Przełącz i zaktualizuj gałąź"
 
@@ -10508,17 +10730,11 @@ msgstr "Przełączaj się między edytorem wizualnym a źródłowym, zachowując
 msgid "Switch branch"
 msgstr "Przełącz gałąź"
 
-msgid "Switch everyone to"
-msgstr ""
-
 msgid "Switch project"
 msgstr "Przełącz projekt"
 
 msgid "Switch project…"
 msgstr "Przełącz projekt…"
-
-msgid "Switch to {target}?"
-msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "Przełącz na gałąź, aby udostępnić."
@@ -10531,9 +10747,6 @@ msgstr "Przełącz worktree"
 
 msgid "Switch worktree…"
 msgstr "Przełącz worktree…"
-
-msgid "Switched to {branch}"
-msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "Przełącza tryb agenta"
@@ -10684,6 +10897,9 @@ msgstr "Lista zadań"
 
 msgid "Team Wiki"
 msgstr "Wiki zespołu"
+
+msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
+msgstr ""
 
 msgid "Tell us how it's going"
 msgstr "Powiedz nam, jak idzie"
@@ -10939,6 +11155,15 @@ msgstr "Aplikacja desktopowa nie odpowiada. Odśwież i spróbuj ponownie."
 msgid "the doc {0}"
 msgstr "dokument {0}"
 
+msgid "The draft could not be opened right now. Try again in a moment."
+msgstr ""
+
+msgid "The draft now includes the latest live wiki."
+msgstr ""
+
+msgid "The draft was already up to date."
+msgstr ""
+
 msgid "The embeddings provider's vector size kept changing. Semantic search is off until GitQuire restarts."
 msgstr "Wymiar wektora dostawcy osadzeń stale się zmienia. Wyszukiwanie semantyczne jest wyłączone do ponownego uruchomienia GitQuire."
 
@@ -10992,6 +11217,12 @@ msgstr "Interfejs nadal jest w języku, w którym czytałeś. Sprawdź połącze
 
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "Język, którym posługuje się GitQuire; System podąża za systemem operacyjnym. Twoje notatki pozostają w języku, w którym je napisałeś."
+
+msgid "The live wiki changed in the same places. Update the draft first."
+msgstr ""
+
+msgid "The live wiki changed since this draft started."
+msgstr ""
 
 msgid "The meeting note was created, but its date and headings couldn't be added."
 msgstr ""
@@ -11064,6 +11295,9 @@ msgstr "Oryginalny katalog klonu repozytorium"
 
 msgid "The request to enable GitQuire tools timed out. This thread runs without them."
 msgstr "Żądanie włączenia narzędzi GitQuire przekroczyło czas. Ten wątek działa bez nich."
+
+msgid "The same text changed in both places"
+msgstr ""
 
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "Plik schematu nie istnieje lub nie udało się go wczytać — dodanie pola go utworzy."
@@ -11349,6 +11583,15 @@ msgstr "W tym dokumencie brakuje wymaganych właściwości"
 msgid "This document was deleted"
 msgstr "Ten dokument został usunięty"
 
+msgid "This draft"
+msgstr ""
+
+msgid "This draft no longer exists."
+msgstr ""
+
+msgid "This draft was already published or discarded."
+msgstr ""
+
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "Ten punkt końcowy zignorował skonfigurowany wymiar wektora. Usuń <0>search.semantic.dimensions</0>, aby użyć domyślnego wymiaru modelu."
 
@@ -11472,6 +11715,9 @@ msgstr "Ta strona jeszcze nie istnieje. Otwórz ją, aby utworzyć stronę w edy
 
 msgid "This page doesn't link to anything yet."
 msgstr "Ta strona jeszcze nie linkuje do niczego."
+
+msgid "This page has changes in a draft"
+msgstr ""
 
 msgid "This page has no images or attached files."
 msgstr ""
@@ -11989,9 +12235,6 @@ msgstr "Nie można rozwiązać pliku {identity}. Przejdź do odwołania."
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "Nie można rozwiązać obrazu {identity}. Przejdź do odwołania."
 
-msgid "Unsaved changes block the switch"
-msgstr ""
-
 msgid "Unsupported file type: {fileType}."
 msgstr "Nieobsługiwany typ pliku: {fileType}."
 
@@ -12020,6 +12263,9 @@ msgstr "Zaktualizować „{skillName}” i nadpisać Twoje edycje?"
 msgid "Update all from this source"
 msgstr "Zaktualizuj wszystko z tego źródła"
 
+msgid "Update draft"
+msgstr ""
+
 msgid "Update failed: {0}"
 msgstr "Aktualizacja nie powiodła się: {0}"
 
@@ -12031,6 +12277,9 @@ msgstr "Zaktualizuj GitQuire, aby otworzyć to udostępnienie."
 
 msgid "Update the destination and optional section anchor."
 msgstr "Zaktualizuj cel i opcjonalną kotwicę sekcji."
+
+msgid "Update with the live wiki"
+msgstr ""
 
 msgid "Updated \"{0}\": added {1}, removed {2}"
 msgstr "Zaktualizowano „{0}”: dodano {1}, usunięto {2}"
@@ -12058,6 +12307,9 @@ msgstr "Aktualizacje ze źródła są stosowane automatycznie (chyba że edytowa
 
 msgid "Updating"
 msgstr "Aktualizowanie"
+
+msgid "Updating…"
+msgstr ""
 
 msgid "Upload"
 msgstr "Prześlij"
@@ -12297,6 +12549,9 @@ msgstr "Oczekiwanie na autoryzację"
 msgid "Waiting for review"
 msgstr "Oczekiwanie na przegląd"
 
+msgid "Waiting for someone to check"
+msgstr ""
+
 msgid "Waiting for your approval"
 msgstr "Oczekiwanie na Twoją zgodę"
 
@@ -12358,6 +12613,9 @@ msgstr "Jaka jest różnica między kopiami a łączami symbolicznymi?"
 msgid "What is this knowledge base for?"
 msgstr "Do czego służy ta baza wiedzy?"
 
+msgid "What should reviewers look at?"
+msgstr ""
+
 msgid "What should we work on?"
 msgstr "Nad czym mamy pracować?"
 
@@ -12367,6 +12625,9 @@ msgstr "Co agent może czytać, zapisywać i wyświetlać."
 msgid "What this checkbox changes"
 msgstr "Co zmienia to pole wyboru"
 
+msgid "What this draft changes compared with the live wiki. Added words are green, removed words are red."
+msgstr ""
+
 msgid "What to include"
 msgstr "Co dołączyć"
 
@@ -12375,6 +12636,9 @@ msgstr "Co robiłeś?"
 
 msgid "What would you like to create?"
 msgstr "Co chcesz utworzyć?"
+
+msgid "What you are looking at"
+msgstr ""
 
 msgid "What you share is sent to the GitQuire team."
 msgstr "To, co udostępniasz, jest wysyłane do zespołu GitQuire."
@@ -12390,6 +12654,9 @@ msgstr "Po włączeniu agent otwiera lub odświeża podgląd po każdej edycji. 
 
 msgid "When the agent runs its scheduled work."
 msgstr "Kiedy agent uruchamia zaplanowane zadania."
+
+msgid "When this is on, your assistant works in the draft you have open, or in its own draft for you to review and publish. When it is off, its edits go straight to the live wiki."
+msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Po najechaniu na link zewnętrzny jego adres URL jest wysyłany do strony docelowej, aby pobrać metadane podglądu strony — jedno żądanie na podglądany link."
@@ -12411,6 +12678,9 @@ msgstr "Która umiejętność"
 
 msgid "Whitespace"
 msgstr "Białe znaki"
+
+msgid "Who should review?"
+msgstr ""
 
 msgid "Who you are, so the agent has your context."
 msgstr "Kim jesteś, aby agent miał Twój kontekst."
@@ -12442,6 +12712,9 @@ msgstr "Powstanie w: <0>{targetPreview}</0>"
 msgid "Will be saved as <0>{sanitized}</0>."
 msgstr "Zostanie zapisane jako <0>{sanitized}</0>."
 
+msgid "Will notify: {0}"
+msgstr ""
+
 msgid "Window"
 msgstr "Okno"
 
@@ -12459,6 +12732,9 @@ msgstr "Pracuj bezpośrednio, bez etapu planowania"
 
 msgid "Working"
 msgstr "Pracuje"
+
+msgid "Working…"
+msgstr ""
 
 msgid "Workspace"
 msgstr "Obszar roboczy"
@@ -12479,6 +12755,9 @@ msgid "Wrap long lines in the markdown source editor."
 msgstr "Zawijaj długie wiersze w edytorze źródłowym markdown."
 
 msgid "Write a reply. Use @name to mention someone."
+msgstr ""
+
+msgid "Write it myself"
 msgstr ""
 
 #. js-lingui-explicit-id
@@ -12505,6 +12784,9 @@ msgstr "wczoraj"
 
 msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
 msgstr "Masz już własną umiejętność o nazwie „{0}” — wersja z pakietu nie zostanie zainstalowana, a Twoja pozostanie nietknięta. Zmień nazwę swojej, aby zainstalować wersję z pakietu."
+
+msgid "You are here"
+msgstr ""
 
 #. Label above the optional skill offered on first visit
 msgid "You can add"
@@ -12555,6 +12837,9 @@ msgstr "Nie masz uprawnień do zapisu w tym repozytorium."
 msgid "You edited this skill locally and the source has new changes. Taking upstream replaces your version; your edits stay recoverable in version history."
 msgstr "Ta umiejętność była edytowana lokalnie, a źródło zawiera nowe zmiany. Przyjęcie wersji źródłowej zastępuje Twoją wersję; Twoje edycje pozostają odzyskiwalne w historii wersji."
 
+msgid "You have no recent edits on this page, or someone else edited it after you."
+msgstr ""
+
 msgid "You modified <0>{filePath}</0> locally, but it was deleted upstream."
 msgstr "Plik <0>{filePath}</0> został zmodyfikowany lokalnie, ale usunięty w źródle."
 
@@ -12600,6 +12885,9 @@ msgstr "Twoje dokumenty pozostają nietknięte."
 msgid "Your edits are committed and pushed to your remote automatically."
 msgstr "Twoje edycje są automatycznie zatwierdzane i wysyłane do repozytorium zdalnego."
 
+msgid "Your edits from the last hours on \"{0}\" move into a new draft, and the live page goes back to how it was before."
+msgstr ""
+
 msgid "Your edits stay on this computer"
 msgstr "Twoje edycje pozostają na tym komputerze"
 
@@ -12636,6 +12924,9 @@ msgstr "Twoja lokalna kopia gałęzi <0>{branch}</0> jest nieaktualna. Pobierz n
 msgid "Your message didn't reach {agentName}."
 msgstr "Twoja wiadomość nie dotarła do {agentName}."
 
+msgid "Your recent edits are now in the draft \"{trimmed}\"."
+msgstr ""
+
 msgid "Your remote URL names {declaredLogin}, but that account's credentials couldn't be used."
 msgstr "Twój adres URL repozytorium zdalnego wskazuje {declaredLogin}, ale nie udało się użyć danych dostępowych tego konta."
 
@@ -12656,6 +12947,9 @@ msgstr "Twój link do udostępnienia jest gotowy poniżej."
 
 msgid "Your user settings could not be read"
 msgstr "Nie udało się odczytać Twoich ustawień użytkownika"
+
+msgid "Your version"
+msgstr ""
 
 msgid "Zip file"
 msgstr "Plik ZIP"

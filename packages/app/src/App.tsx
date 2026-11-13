@@ -22,6 +22,7 @@ import { FeedbackMenuTrigger } from '@/components/FeedbackMenuTrigger';
 import { FileListHostProvider } from '@/components/FileListHost';
 import { FileSidebar } from '@/components/FileSidebar';
 import { defaultInitialDir } from '@/components/file-tree-utils';
+import { DraftBar } from '@/components/gitquire-drafts/DraftBar';
 import { ExternalHandoffGateProvider } from '@/components/handoff/ExternalHandoffGate';
 import {
   type TerminalLaunchContextValue,
@@ -678,6 +679,7 @@ function AppBody() {
           </SidebarProvider>
         </TerminalLaunchProvider>
         {showAppHeader && !singleFile && <CornerCardStack />}
+        {showAppHeader && !singleFile && !desktopBridge ? <DraftBar /> : null}
       </PageListProvider>
     </div>
   );

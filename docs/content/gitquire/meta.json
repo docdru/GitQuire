@@ -6,7 +6,7 @@
     "run-with-docker",
     "github-sign-in",
     "repository-sync",
-    "branches-and-pull-requests",
+    "drafts",
     "comments",
     "mentions",
     "connect-ai",

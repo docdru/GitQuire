@@ -1,0 +1,94 @@
+---
+title: Drafts
+icon: LuFilePen
+description: Propose changes in your own copy of the wiki, ask for a review, and publish them when they are ready.
+---
+
+Day to day, everyone edits the **live wiki** and GitQuire commits and pushes automatically. For a
+change that should be checked first, such as a new policy or a quarterly report, start a **draft**.
+
+A draft is your own copy of the wiki. You can change any page in it; nothing goes live until someone
+publishes it. Everyone else keeps seeing the live wiki, and only the people who open the same draft
+edit it together.
+
+## Start a draft
+
+Open the menu next to the project name in the header (it says **Live wiki**):
+
+- **New draft…** asks for a name and opens the draft.
+- **Propose changes to this page…** does the same, named after the page you are on.
+- **Move my recent edits to a draft…** is for when you realise halfway that a change needs a review.
+  Your edits to the current page from the last 12 hours move into a new draft, and the live page goes
+  back to how it was before. This only works while nobody else has edited the page after you.
+
+## While you are in a draft
+
+You can't miss it: the window gets an orange frame, the header shows **Draft: name**, and a bar at
+the bottom shows the status and what to do next. Pages that the draft changes have a dot in the file
+list (green for new pages, red for deleted ones).
+
+- **Changes** shows what the draft changes compared with the live wiki, word by word.
+- **Ready for review** marks the draft as ready. Mention people (`@anna @ben`) to ask them for a
+  review: they get it in their mention inbox, by email if they turned email on, and in the team chat
+  if a chat webhook is set up. The link opens the draft.
+- Reviewers can **Approve** or **Ask for changes**. For a comment on a specific sentence, use the
+  normal [comments](./comments.mdx).
+- **Publish** makes the changes live for everyone and closes the draft. Anyone signed in can publish.
+- **Live wiki** takes you back without changing anything. The draft stays open.
+
+What you are looking at is remembered per browser, so other tabs in the same browser switch along.
+
+The menu also lists all open drafts, and **All drafts…** shows them grouped by status, with recently
+published and discarded ones.
+
+If someone publishes or discards the draft you are looking at, you are told and taken back to the live
+wiki.
+
+## When the live wiki changes meanwhile
+
+The bar tells you when the live wiki changed since the draft started. **Update draft** brings those
+changes into the draft. Changes in other places are combined automatically. Where the same text was
+changed in both, you choose for each spot: keep the live version, keep the draft's, keep both, or write
+it yourself.
+
+Publishing also checks this. If the same text changed in both places, you are asked to choose first.
+
+## AI assistants
+
+In **Settings → Connect AI**, turn on **Put my AI assistant's edits into a draft**. Your assistant then
+works in the draft you have open, or, when you are on the live wiki, in its own draft named
+"Claude's changes for …", which you review and publish like any other.
+
+## How it works
+
+Each draft is a branch named `draft/<name>` on GitHub. When the draft is ready for review, GitQuire
+opens a pull request for it; publishing squash-merges that pull request and deletes the branch. A draft
+merged or closed on GitHub is closed in GitQuire too (checked every two minutes).
+
+The server runs one extra editor process for each draft that is in use, with its own working copy.
+It starts when someone opens the draft (a few seconds), and stops after 30 minutes without anyone in
+it. Each running draft needs about 250 MB of memory. Working copies live in `GITQUIRE_DRAFTS_DIR`
+(see [DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md)).
+
+Drafts need GitHub sign-in. Pull requests are opened by the GitHub App, so the App needs **Pull
+requests: read and write** and **Contents: read and write**.
+
+## API
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/gitquire/drafts` | All drafts and the one you are looking at |
+| `POST /api/gitquire/drafts` | Create and open a draft: `{"title": "Q4 report"}` |
+| `POST /api/gitquire/drafts/move` | Move recent edits of a page into a new draft: `{"path": "notes/a.md", "title": "…"}` |
+| `GET /api/gitquire/drafts/current` | The draft you are looking at, and how far the live wiki moved on |
+| `POST /api/gitquire/view` | Open a draft (`{"slug": "q4-report"}`) or go back to the live wiki (`{"slug": null}`) |
+| `GET /api/gitquire/drafts/<slug>/changes` | Changed pages with their text before and after |
+| `POST /api/gitquire/drafts/<slug>/ready` | Ready for review: `{"logins": ["anna"], "note": "…"}` |
+| `POST /api/gitquire/drafts/<slug>/unready` | Back to draft |
+| `POST /api/gitquire/drafts/<slug>/review` | `{"verdict": "approved" \| "changes", "note": "…"}` |
+| `POST /api/gitquire/drafts/<slug>/update` | Bring in the live wiki; send `{"resolved": {"path": "text"}}` to settle conflicts |
+| `POST /api/gitquire/drafts/<slug>/publish` | Publish |
+| `POST /api/gitquire/drafts/<slug>/discard` | Discard |
+| `GET`/`PUT /api/gitquire/drafts/agent-mode` | `{"mode": "live" \| "draft"}` for your AI assistant |
+
+A link to `/?draft=<slug>` opens a draft; `/?draft=live` goes back to the live wiki.
