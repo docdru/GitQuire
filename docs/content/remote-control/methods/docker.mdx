@@ -1,7 +1,7 @@
 ---
 title: Docker
 icon: custom/Docker
-description: Build the OpenKnowledge container image and run it on Railway, Fly.io, or any Docker host.
+description: Build the GitQuire container image and run it on Railway, Fly.io, or any Docker host.
 ---
 For an always-on knowledge base without managing a box, run the server as a container on a hosting platform (Railway, Fly.io, or your own Docker host). The platform provides the domain and TLS. A volume holds the project. The `OK_*` environment variables carry the same declarations as every other path. Start with the [Remote Control overview](/docs/remote-control/overview) if you have not chosen an access path yet.
 
@@ -19,7 +19,7 @@ Anything that checks those boxes, whether a hosting platform, an orchestrator, o
 
 ## Build the image
 
-There is no official OpenKnowledge image on a registry yet, so build your own from two small files:
+There is no official GitQuire image on a registry yet, so build your own from two small files:
 
 ```dockerfile title="Dockerfile"
 FROM node:24-slim
@@ -127,7 +127,7 @@ The same image runs anywhere Docker is available. On Fly.io, mount a volume at `
 
 With Docker Compose, you can add a `cloudflared` sidecar as the only ingress. This works on a hosting platform or your own VPS. You do not need a separate public domain. Set `OK_EXTERNAL_URL` to the tunnel hostname.
 
-AWS, Google Cloud, and Azure can run the image on a virtual machine with Docker. You can also use the [CLI method](/docs/remote-control/methods/cli#a-server-you-manage) on a virtual machine. Serverless container services must provide persistent storage and support one always-on replica. Vercel and Netlify cannot host OpenKnowledge because they run request-based functions instead of one long-lived stateful process.
+AWS, Google Cloud, and Azure can run the image on a virtual machine with Docker. You can also use the [CLI method](/docs/remote-control/methods/cli#a-server-you-manage) on a virtual machine. Serverless container services must provide persistent storage and support one always-on replica. Vercel and Netlify cannot host GitQuire because they run request-based functions instead of one long-lived stateful process.
 
 ## Upgrading
 

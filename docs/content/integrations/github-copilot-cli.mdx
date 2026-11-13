@@ -1,6 +1,6 @@
 ---
 title: GitHub Copilot CLI
-description: Use OpenKnowledge with GitHub Copilot CLI.
+description: Use GitQuire with GitHub Copilot CLI.
 icon: custom/GitHub
 ---
 
@@ -10,13 +10,11 @@ icon: custom/GitHub
 
 <McpInstall editor="GitHub Copilot CLI" />
 
-`ok init` writes the MCP server to `~/.copilot/mcp-config.json`, or to `$COPILOT_HOME/mcp-config.json` when `COPILOT_HOME` is set. That machine-wide file is the one OpenKnowledge manages for Copilot, so it is where the entry goes. Copilot also reads the project `.mcp.json` OpenKnowledge writes for Claude Code, and a project-level definition of the same server takes precedence over the global one.
+`ok init` writes the MCP server to `~/.copilot/mcp-config.json`, or to `$COPILOT_HOME/mcp-config.json` when `COPILOT_HOME` is set. That machine-wide file is the one GitQuire manages for Copilot, so it is where the entry goes. Copilot also reads the project `.mcp.json` GitQuire writes for Claude Code, and a project-level definition of the same server takes precedence over the global one.
 
 If the Copilot config directory does not exist yet, launch Copilot CLI once and rerun `ok init` so it can write the MCP configuration.
 
-It also installs the project skill at `.github/skills/open-knowledge/SKILL.md` so Copilot can follow the project's OpenKnowledge workflow.
-
-OpenKnowledge Beta registers as `open-knowledge-beta` instead; see [Beta uses its own entry](/docs/reference/what-open-knowledge-writes#beta-uses-its-own-entry).
+It also installs the project skill at `.github/skills/open-knowledge/SKILL.md` so Copilot can follow the project's GitQuire workflow.
 
 ## Folder trust
 
@@ -34,7 +32,7 @@ When you launch `copilot` in a folder for the first time it asks whether you tru
 
 ## Open with AI
 
-In OpenKnowledge's docked terminal, select **GitHub Copilot** from the new-chat picker. It starts Copilot CLI in interactive mode with context for the current project. The option is hidden when the `copilot` executable is not installed.
+In GitQuire's docked terminal, select **GitHub Copilot** from the new-chat picker. It starts Copilot CLI in interactive mode with context for the current project. The option is hidden when the `copilot` executable is not installed.
 
 ## Verify
 

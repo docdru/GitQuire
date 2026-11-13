@@ -26,7 +26,7 @@ The skill is optional. The plugin's checks are the same with or without it.
 
 **Maintain index.md** creates and maintains a navigation file in every folder that contains Markdown, listing that folder's documents by type and linking its subfolders.
 
-Generated indexes are machine-owned: OpenKnowledge rewrites them as documents change, so manual edits are replaced. Titles, descriptions, folder labels, and type headings render as literal Markdown text; the generated Markdown source backslash-escapes ASCII punctuation in those values. Control characters in those values are replaced with the Unicode replacement character. Parser-reserved Private Use Area code points U+E005–U+E009 and U+E100–U+E103 are also replaced with the Unicode replacement character. Type groups compare single-line, NFC-normalized labels, so whitespace- or normalization-equivalent values share a section while punctuation-distinct values remain separate. Turning the setting on shows a disclosure before any files are written. In a Git project it also adds a scoped `.gitattributes` rule (`merge=union`). A local or CLI merge then combines concurrent index changes instead of conflicting. A merge run on GitHub or GitLab ignores `.gitattributes`, so index changes there can still conflict and need resolving by hand. After a merge across a layout change the combined file can list a document twice until the index is next rebuilt. If another attribute already controls those paths, index maintenance pauses and the plugin page explains what to resolve.
+Generated indexes are machine-owned: GitQuire rewrites them as documents change, so manual edits are replaced. Titles, descriptions, folder labels, and type headings render as literal Markdown text; the generated Markdown source backslash-escapes ASCII punctuation in those values. Control characters in those values are replaced with the Unicode replacement character. Parser-reserved Private Use Area code points U+E005–U+E009 and U+E100–U+E103 are also replaced with the Unicode replacement character. Type groups compare single-line, NFC-normalized labels, so whitespace- or normalization-equivalent values share a section while punctuation-distinct values remain separate. Turning the setting on shows a disclosure before any files are written. In a Git project it also adds a scoped `.gitattributes` rule (`merge=union`). A local or CLI merge then combines concurrent index changes instead of conflicting. A merge run on GitHub or GitLab ignores `.gitattributes`, so index changes there can still conflict and need resolving by hand. After a merge across a layout change the combined file can list a document twice until the index is next rebuilt. If another attribute already controls those paths, index maintenance pauses and the plugin page explains what to resolve.
 
 Turning it off stops rebuilds and removes the Git rule, but leaves the generated files in place.
 
@@ -73,7 +73,7 @@ Project rules need the whole file tree, which is why they run only on project-sc
 
 ## Generated schema files
 
-While a frontmatter rule is enabled, OpenKnowledge writes its JSON Schema under `.ok/okf/` so agents can read the exact field contract rather than guess:
+While a frontmatter rule is enabled, GitQuire writes its JSON Schema under `.ok/okf/` so agents can read the exact field contract rather than guess:
 
 ```text
 .ok/okf/required.schema.json
@@ -113,7 +113,7 @@ See the [configuration reference](/docs/reference/configuration) for the surroun
 | `.ok/config.yml` | You change a plugin setting | Project configuration, committed when you want to share it |
 | `.ok/okf/*.schema.json` | The matching frontmatter rule is enabled | Generated and gitignored. Deleted when the rule or plugin is switched off |
 | `**/index.md` | You opt into generated indexes | Generated. Manual edits are replaced |
-| `.gitattributes` | Generated indexes are enabled in a Git project | OpenKnowledge manages only its scoped rule |
+| `.gitattributes` | Generated indexes are enabled in a Git project | GitQuire manages only its scoped rule |
 | Project skill directory | You install the recommended skill or seed the OKF pack | Editable project skill |
 
 ## See also

@@ -16,14 +16,14 @@ meeting-notes/
 └── scripts/
 ```
 
-A new skill goes into a skills folder the project already has. OpenKnowledge never creates one for you: if no agent folder exists yet, the import is refused and names the folders it would accept. When `.agents/` already exists it wins; otherwise the first editor folder present, by precedence.
+A new skill goes into a skills folder the project already has. GitQuire never creates one for you: if no agent folder exists yet, the import is refused and names the folders it would accept. When `.agents/` already exists it wins; otherwise the first editor folder present, by precedence.
 
 | Scope | Source folder | Other locations |
 | --- | --- | --- |
 | Project | The project's existing skills folder (`.agents/skills/<name>/` when `.agents/` is there, else `.claude/skills/<name>/` and so on) | Other project-local editor skills directories |
 | Global | The same, under your home directory | Other home editor skills directories |
 
-OpenKnowledge keeps one source folder per skill. Other locations use symlinks by default, so they read the same bytes. Where the system does not allow symlinks (on Windows, creating them needs administrator rights or Developer Mode), a location gets a copy instead (the API response and the `install` tool report it with `links-not-permitted`), and converting a location to a link is refused and keeps the copy. The install menu can convert a location to a copy. OpenKnowledge refreshes a recorded, unedited copy from the source when the skill watcher runs or the server starts; a source edit may reach the copy after a delay. Editing the copy directly forks it, so later refreshes preserve those edits.
+GitQuire keeps one source folder per skill. Other locations use symlinks by default, so they read the same bytes. Where the system does not allow symlinks (on Windows, creating them needs administrator rights or Developer Mode), a location gets a copy instead (the API response and the `install` tool report it with `links-not-permitted`), and converting a location to a link is refused and keeps the copy. The install menu can convert a location to a copy. GitQuire refreshes a recorded, unedited copy from the source when the skill watcher runs or the server starts; a source edit may reach the copy after a delay. Editing the copy directly forks it, so later refreshes preserve those edits.
 
 Skill creation, import, refresh and rename require the source folder to resolve inside the project or home directory, never into private repository state, and refuse a linked `SKILL.md`. Supporting-file mutations refuse links on the affected path; refresh checks every file it would write or remove. Read-only access still supports linked files; see [writable linked layouts](./symlink-skills.mdx#writable-linked-layouts) for the supported arrangements and repair steps.
 
@@ -31,7 +31,7 @@ Skill creation, import, refresh and rename require the source folder to resolve 
 
 ## Existing skills
 
-OpenKnowledge discovers skills in `.claude/skills`, `.cursor/skills`, `.codex/skills`, `.opencode/skills`, `.github/skills`, `.pi/skills`, `.agents/skills`, and supported plugin locations.
+GitQuire discovers skills in `.claude/skills`, `.cursor/skills`, `.codex/skills`, `.opencode/skills`, `.github/skills`, `.pi/skills`, `.agents/skills`, and supported plugin locations.
 
 Detected skills are read and versioned in place. Plugin skills are read-only: **Edit a copy** creates an editable version in your base. Choosing an install destination for a plugin skill does the same thing, because install locations always link to a skill in the base. The copy no longer follows the plugin's updates.
 
@@ -81,7 +81,7 @@ See [Configuration](../../reference/configuration.mdx) for where these settings 
 
 ## Plugin marketplace
 
-OpenKnowledge's skills and starter packs are published at [inkeep/open-knowledge-skills](https://github.com/inkeep/open-knowledge-skills). For Claude Code's plugin workflow:
+Skills and starter packs from the upstream project are published at [inkeep/open-knowledge-skills](https://github.com/inkeep/open-knowledge-skills). For Claude Code's plugin workflow:
 
 ```bash
 /plugin marketplace add inkeep/open-knowledge-skills

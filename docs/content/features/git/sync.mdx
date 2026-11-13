@@ -6,8 +6,8 @@ description: Auto-sync changes with your team and resolve conflicts.
 
 import { Cloud } from 'lucide-react';
 
-OpenKnowledge can connect a project to a Git remote repository and keep it synced over time.
-Use Git sync when you want to collaborate with your team on an OpenKnowledge project.
+GitQuire can connect a project to a Git remote repository and keep it synced over time.
+Use Git sync when you want to collaborate with your team on a GitQuire project.
 
 It helps you:
 
@@ -18,14 +18,14 @@ It helps you:
 
 When you open a project for the first time, you will be prompted to enable sync. If you have push access to the repository, you will be prompted to enable **Auto (Pull and Push)**. If you have read-only access, you will be prompted to enable **Auto (Pull only)**. You can change the sync mode from the sync popover (the <Cloud role="img" aria-label="Sync" className="inline size-4 align-text-bottom" /> icon) or from **Settings → Sync** at any time.
 
-If you want to set a default sync setting for future collaborators, go to the project settings page and navigate to the **Sync** → **Shared default** section. This writes [`autoSync.default`](/docs/reference/configuration), which is one of `off` (Manual), `follow` (Auto, pull only), or `full` (Auto, pull and push), to the project's `.ok/config.yml`, pre-answering the enable-sync prompt for everyone who clones the repo. That file is only committed when **Config sharing**, in **Settings → Sync & sharing** (or `ok config-sharing share` from the CLI), is set to **Shared**; with **Only me**, the whole `.ok/` folder stays on your computer and teammates never receive the default. [What OpenKnowledge writes](/docs/reference/what-open-knowledge-writes#ok-init) lists what sharing commits. Users can always override this default with their own local auto-sync choice.
+If you want to set a default sync setting for future collaborators, go to the project settings page and navigate to the **Sync** → **Shared default** section. This writes [`autoSync.default`](/docs/reference/configuration), which is one of `off` (Manual), `follow` (Auto, pull only), or `full` (Auto, pull and push), to the project's `.ok/config.yml`, pre-answering the enable-sync prompt for everyone who clones the repo. That file is only committed when **Config sharing**, in **Settings → Sync & sharing** (or `ok config-sharing share` from the CLI), is set to **Shared**; with **Only me**, the whole `.ok/` folder stays on your computer and teammates never receive the default. [What GitQuire writes](/docs/reference/what-gitquire-writes#ok-init) lists what sharing commits. Users can always override this default with their own local auto-sync choice.
 
 Sync needs a Git remote. Until the project has one, **Settings → Sync** shows how to connect the project to GitHub or add an existing remote instead of the sync modes. If auto-sync was already turned on, the page says so and offers **Turn off auto-sync**.
 
 ## Sync modes
 
 <Callout type="warn">
-  Only enable Auto (Pull and Push) for repositories where you are comfortable with OpenKnowledge writing commits to the remote history. If you are worried about automated commits cluttering your Git history, use Manual or Auto (Pull only) for that repository.
+  Only enable Auto (Pull and Push) for repositories where you are comfortable with GitQuire writing commits to the remote history. If you are worried about automated commits cluttering your Git history, use Manual or Auto (Pull only) for that repository.
 </Callout>
 
 ### Manual
@@ -34,19 +34,19 @@ Nothing runs on a schedule. The sync menu's **Pull**, **Push**, and **Pull and P
 
 ### Auto (Pull and Push)
 
-With push-and-pull sync active, OpenKnowledge:
+With push-and-pull sync active, GitQuire:
 
 - Fetches commits from the remote
 - Commits your edits locally using the configured Git identity
 - Pushes those commits back to the remote so collaborators see your changes
 
-If your Git identity isn't set, OpenKnowledge commits under a default "**OpenKnowledge**" author; the sync status indicator reminds you to set one so teammates see your name.
+If your Git identity isn't set, GitQuire commits under a default "**GitQuire**" author; the sync status indicator reminds you to set one so teammates see your name.
 
 Auto sync pauses when an incoming update conflicts with your edits; open the conflicted file to [choose which version to keep](#resolving-a-conflict). It also pauses when an update would overwrite uncommitted changes to other tracked files, such as configs. The sync menu then lists them under **Changed here and on the remote**, and **Commit and sync** commits them and resumes. See [Conflicts and pending changes](#conflicts-and-pending-changes).
 
 ### Auto (Pull only)
 
-With pull-only sync active, OpenKnowledge:
+With pull-only sync active, GitQuire:
 
 - Fetches commits from the remote
 - Never commits or pushes your edits on its own — if you have push access, the manual **Push** button is still there when you want to send something. Collaborators who can't push to the repository don't see it; see [Remote blockers](#remote-blockers).
@@ -55,9 +55,9 @@ Your own edits stay on this computer. You can keep editing: when an update arriv
 
 ### How often sync runs
 
-With Auto mode enabled, OpenKnowledge checks for updates every **30 seconds** and pushes your edits every **60 seconds** by default. Change either one in **Settings → Sync → Advanced** (the disclosure is collapsed by default), under **Check for updates every** and **Push my edits every**. The controls appear only while an automatic mode is active, and **Push my edits every** appears only in Auto (Pull and Push), since no other mode pushes on a schedule. Both accept 30 seconds, 1 minute, 5 minutes, 15 minutes, or 1 hour. Your sync configuration is local only, so it will not be committed to the repository.
+With Auto mode enabled, GitQuire checks for updates every **30 seconds** and pushes your edits every **60 seconds** by default. Change either one in **Settings → Sync → Advanced** (the disclosure is collapsed by default), under **Check for updates every** and **Push my edits every**. The controls appear only while an automatic mode is active, and **Push my edits every** appears only in Auto (Pull and Push), since no other mode pushes on a schedule. Both accept 30 seconds, 1 minute, 5 minutes, 15 minutes, or 1 hour. Your sync configuration is local only, so it will not be committed to the repository.
 
-After repeated failures, OpenKnowledge slows each direction down independently: 3 failures in a row hold the next attempt for at least 5 minutes, 5 failures for at least 15 minutes, and 8 failures for at least 1 hour. These are floors, not replacements: if your configured interval is already longer, the interval stands. Push failures do not slow down pulls, and pull failures do not slow down pushes. A successful sync in a direction resets that direction's backoff, and a manual trigger from the sync indicator (or clicking **Pull** or **Push**) resets both immediately. If pushes were backing off because the network was unreachable, the next successful update check releases that backoff straight away; a backoff from a rejected push, such as one to a protected branch, is left alone.
+After repeated failures, GitQuire slows each direction down independently: 3 failures in a row hold the next attempt for at least 5 minutes, 5 failures for at least 15 minutes, and 8 failures for at least 1 hour. These are floors, not replacements: if your configured interval is already longer, the interval stands. Push failures do not slow down pulls, and pull failures do not slow down pushes. A successful sync in a direction resets that direction's backoff, and a manual trigger from the sync indicator (or clicking **Pull** or **Push**) resets both immediately. If pushes were backing off because the network was unreachable, the next successful update check releases that backoff straight away; a backoff from a rejected push, such as one to a protected branch, is left alone.
 
 ## Sync status and conflicts
 
@@ -67,7 +67,7 @@ If an incoming update conflicts with your edits, sync pauses and the menu lists 
 
 ## Resolving a conflict
 
-When a remote update conflicts with your local edits, OpenKnowledge surfaces the conflict in three places at once: the conflicted file gains a `⚠` badge on its tab, a pinned **Conflicts** section listing every conflicted file appears at the top of the file tree (on a phone or a narrow window, where Files opens over the editor, it sits below the file list instead), and the editor area swaps from the normal editor to a unified diff view.
+When a remote update conflicts with your local edits, GitQuire surfaces the conflict in three places at once: the conflicted file gains a `⚠` badge on its tab, a pinned **Conflicts** section listing every conflicted file appears at the top of the file tree (on a phone or a narrow window, where Files opens over the editor, it sits below the file list instead), and the editor area swaps from the normal editor to a unified diff view.
 
 Click the badged tab or any row in the Conflicts section to focus the conflict.
 
@@ -75,37 +75,37 @@ You can't edit a page with conflicts until they're resolved; the same applies to
 
 ### Conflicts that don't come from Git
 
-A conflict doesn't need a remote, though most changes on disk never raise one. When a file changes on disk while OpenKnowledge has it open, OpenKnowledge merges the two versions itself. Where both sides changed the same paragraph, both versions are kept, the OpenKnowledge version first and the outside version directly under it, and both earlier versions are saved to the [timeline](/docs/features/timeline-and-recovery). Where one side deleted a paragraph the other changed, the changed version stays. Where the two can't be merged safely, the OpenKnowledge version stays and the outside version is saved to the timeline. In each of these cases a notice on the document says what happened (see [Timeline and recovery](/docs/features/timeline-and-recovery) for how long it stays). It raises a conflict when the file on disk holds Git conflict markers, when it can't save the outside version to the timeline, or when an agent write has no acknowledged version to merge against.
+A conflict doesn't need a remote, though most changes on disk never raise one. When a file changes on disk while GitQuire has it open, GitQuire merges the two versions itself. Where both sides changed the same paragraph, both versions are kept, the GitQuire version first and the outside version directly under it, and both earlier versions are saved to the [timeline](/docs/features/timeline-and-recovery). Where one side deleted a paragraph the other changed, the changed version stays. Where the two can't be merged safely, the GitQuire version stays and the outside version is saved to the timeline. In each of these cases a notice on the document says what happened (see [Timeline and recovery](/docs/features/timeline-and-recovery) for how long it stays). It raises a conflict when the file on disk holds Git conflict markers, when it can't save the outside version to the timeline, or when an agent write has no acknowledged version to merge against.
 
-Another app can also save an exact older copy over an edit OpenKnowledge already acknowledged. In the diff view, **Current** is the protected OpenKnowledge version and **Incoming** is the rejected external save. Choose which to keep. An intentional exact revert can trigger the same confirmation. Both versions stay recoverable after a restart, and keeping current protects against repeated saves from the stale editor. That protection expires after 30 minutes, so update or close the other app rather than relying on that protection.
+Another app can also save an exact older copy over an edit GitQuire already acknowledged. In the diff view, **Current** is the protected GitQuire version and **Incoming** is the rejected external save. Choose which to keep. An intentional exact revert can trigger the same confirmation. Both versions stay recoverable after a restart, and keeping current protects against repeated saves from the stale editor. That protection expires after 30 minutes, so update or close the other app rather than relying on that protection.
 
 ## Work on multiple branches
 
-In the desktop app you can open several branches of the same project at once, each in its own window. Click the project switcher in the middle of the header at the top of the window, which shows the repository's name, and pick a branch or worktree (open worktrees also appear in the Command Palette); **New worktree** starts a fresh branch or checks out an existing one. The footer at the bottom of the editor shows which checkout a window has open: the project's folder when the project sits inside the repository rather than at its root, then the branch, or the worktree's folder name when no branch is checked out. The switcher discovers Git's complete local worktree list when you open a repository, including checkouts that have never been opened in OpenKnowledge. Each checkout shows its path and a location label: **primary** is the original clone, **internal** is beneath that clone's `.ok/worktrees/` directory, and **external** is anywhere else. A generic **worktree** label means the location could not be resolved yet, such as a recent checkout shown before its inventory loads or a checkout whose directory is unavailable. These labels describe location only.
+In the desktop app you can open several branches of the same project at once, each in its own window. Click the project switcher in the middle of the header at the top of the window, which shows the repository's name, and pick a branch or worktree (open worktrees also appear in the Command Palette); **New worktree** starts a fresh branch or checks out an existing one. The footer at the bottom of the editor shows which checkout a window has open: the project's folder when the project sits inside the repository rather than at its root, then the branch, or the worktree's folder name when no branch is checked out. The switcher discovers Git's complete local worktree list when you open a repository, including checkouts that have never been opened in GitQuire. Each checkout shows its path and a location label: **primary** is the original clone, **internal** is beneath that clone's `.ok/worktrees/` directory, and **external** is anywhere else. A generic **worktree** label means the location could not be resolved yet, such as a recent checkout shown before its inventory loads or a checkout whose directory is unavailable. These labels describe location only.
 
 Opening a branch that has no worktree yet creates one on demand under `.ok/worktrees/`, kept out of `git status`, so each window runs its own editor and server without touching your main working copy. Detached and Git-locked worktrees remain available. A row marked **project missing**, **path unreadable**, or **stale Git entry** is shown for diagnosis but cannot be opened until its filesystem or Git state is repaired.
 
-If the matching OpenKnowledge project cannot be opened safely, or its local setup fails, the checkout is still created under `.ok/worktrees/` and appears in the switcher. It is labelled **project missing** or **path unreadable** when its project folder or `.ok/config.yml` is absent or unreadable; otherwise it appears as an ordinary checkout.
+If the matching GitQuire project cannot be opened safely, or its local setup fails, the checkout is still created under `.ok/worktrees/` and appears in the switcher. It is labelled **project missing** or **path unreadable** when its project folder or `.ok/config.yml` is absent or unreadable; otherwise it appears as an ordinary checkout.
 
 ## Authentication
 
-OpenKnowledge fetches and pushes changes using plain Git operations, so syncing will work against any remote host. If `git push/pull` works in your terminal, then syncing will work in OpenKnowledge.
+GitQuire fetches and pushes changes using plain Git operations, so syncing will work against any remote host. If `git push/pull` works in your terminal, then syncing will work in GitQuire.
 
 <Tabs groupId="ok-git-host" persist items={['GitHub', 'Other Git hosts']}>
 
 <Tab>
 
-If you are logged in with the GitHub CLI, OpenKnowledge will use those credentials for GitHub operations. If not, you can complete device authentication to generate an OAuth token. OpenKnowledge stores this token in the keychain and reuses it for syncing, cloning, and publishing.
+If you are logged in with the GitHub CLI, GitQuire will use those credentials for GitHub operations. If not, you can complete device authentication to generate an OAuth token. GitQuire stores this token in the keychain and reuses it for syncing, cloning, and publishing.
 
-Manage the connection from **Settings → Git**. **Connect GitHub** authorizes OpenKnowledge to browse and sync your repositories; **Disconnect** clears OpenKnowledge's GitHub token only. From a terminal, the [`ok auth`](/docs/reference/cli) subcommands manage the same credentials: `ok auth signout` matches **Disconnect**, `ok auth pat` stores a Personal Access Token when device authentication isn't an option, and `--host` targets GitHub Enterprise.
+Manage the connection from **Settings → Git**. **Connect GitHub** authorizes GitQuire to browse and sync your repositories; **Disconnect** clears GitQuire's GitHub token only. From a terminal, the [`ok auth`](/docs/reference/cli) subcommands manage the same credentials: `ok auth signout` matches **Disconnect**, `ok auth pat` stores a Personal Access Token when device authentication isn't an option, and `--host` targets GitHub Enterprise.
 
-If you are signed into multiple accounts with the GitHub CLI, OpenKnowledge will choose the credential to use for a project in the following order of priority:
+If you are signed into multiple accounts with the GitHub CLI, GitQuire will choose the credential to use for a project in the following order of priority:
 
 | Priority | Declaration | Where it lives | How to set it |
 | --- | --- | --- | --- |
 | 1 | A username in the remote URL — `https://alice@github.com/owner/repo` | that clone's `.git/config` | `git remote set-url origin https://alice@github.com/owner/repo.git` |
 | 2 | A `credential.<url>.username` entry | git config, any scope | `git config --global credential.https://github.com.username alice` |
-| 3 | Neither | the GitHub CLI's active account, or the account connected in OpenKnowledge | — |
+| 3 | Neither | the GitHub CLI's active account, or the account connected in GitQuire | — |
 
 The username entries above apply to HTTPS remotes only. SSH projects follow the GitHub CLI's active account (switch it with `gh auth switch`), and that account decides only which identity the push-permission check runs as — the push itself authenticates with your SSH key, chosen by your SSH configuration. To pin an SSH project to a declared account, switch it to an HTTPS remote.
 
@@ -113,13 +113,13 @@ The username entries above apply to HTTPS remotes only. SSH projects follow the 
 
 <Tab>
 
-By default sync runs with whatever credentials `git` has access to. If your remote starts with `https:` you can give OpenKnowledge a username and token to override the `git` default:
+By default sync runs with whatever credentials `git` has access to. If your remote starts with `https:` you can give GitQuire a username and token to override the `git` default:
 
 ```bash
 ok auth token --host <hostname> --username <username>
 ```
 
-This command asks for the token and stores it in your operating system's credential store. The host is matched without regard to case, and `:443` is the same as no port. Once set, OpenKnowledge's sync uses this username and token, ahead of any credential git has saved for that host, in every project whose `https:` remote is on that host. That holds while OpenKnowledge is running (the desktop app or `ok start`); `ok sync`, `ok pull` and `ok push` with no server running keep using git's own credentials. The same configuration is available from **Settings → Git → Other Git hosts**. To remove a token, run `ok auth signout --host <hostname>`.
+This command asks for the token and stores it in your operating system's credential store. The host is matched without regard to case, and `:443` is the same as no port. Once set, GitQuire's sync uses this username and token, ahead of any credential git has saved for that host, in every project whose `https:` remote is on that host. That holds while GitQuire is running (the desktop app or `ok start`); `ok sync`, `ok pull` and `ok push` with no server running keep using git's own credentials. The same configuration is available from **Settings → Git → Other Git hosts**. To remove a token, run `ok auth signout --host <hostname>`.
 
 </Tab>
 
@@ -132,22 +132,22 @@ A few situations stop sync from completing successfully. Most of them change the
 ### Conflicts and pending changes
 
 - **Unresolved conflicts.** If any file has a conflict between your edits and your team's, sync pauses. You can keep working on every other doc; only the conflicted files are frozen until you choose resolution from the diff view. See [Resolving a conflict](#resolving-a-conflict) above.
-- **Local changes would be overwritten by an incoming update.** A teammate's update is ready to pull, but a file it touches has uncommitted local changes. Doc edits are committed automatically before merging, so this usually means other tracked files, like configs. Sync pauses rather than clobbering your work. The sync menu lists every blocked file under **Changed here and on the remote**, and **Commit and sync** commits exactly those files and resumes — nothing else in your working tree is touched. If you would rather stash the changes or throw them away, **Resolve in terminal** (desktop app only) opens a terminal on the project so you can run that yourself. OpenKnowledge never discards uncommitted work for you.
+- **Local changes would be overwritten by an incoming update.** A teammate's update is ready to pull, but a file it touches has uncommitted local changes. Doc edits are committed automatically before merging, so this usually means other tracked files, like configs. Sync pauses rather than clobbering your work. The sync menu lists every blocked file under **Changed here and on the remote**, and **Commit and sync** commits exactly those files and resumes — nothing else in your working tree is touched. If you would rather stash the changes or throw them away, **Resolve in terminal** (desktop app only) opens a terminal on the project so you can run that yourself. GitQuire never discards uncommitted work for you.
 - **A Git operation or unresolved conflicts need attention.** Automatic Git commits pause when the repository has an unfinished merge, rebase, cherry-pick, or unresolved conflicts. The sync indicator and **Settings → Sync** explain the pause. Edits continue to save locally. Finish the operation or resolve the conflicts in your terminal, then retry sync. With automatic sync enabled, it retries on its usual schedule and clears the notice once Git is ready.
-- **Edits made outside the app aren't ready yet.** If you (or another tool) edited a file directly on disk while sync wanted to merge, OpenKnowledge waits until those external edits settle before merging. Usually this clears in a second or two on its own.
+- **Edits made outside the app aren't ready yet.** If you (or another tool) edited a file directly on disk while sync wanted to merge, GitQuire waits until those external edits settle before merging. Usually this clears in a second or two on its own.
 
 ### Project isn't on a normal branch
 
 - **The project is parked on a specific commit, not a branch.** This usually means someone checked out an older commit from the terminal to look around. There's no branch to push to, so sync pauses. Switch back to your normal branch (`main`, your working branch, whichever) and sync resumes.
-- **Diverged history.** When the remote has been rewritten (force-push, rebase, branch reset) in a way OpenKnowledge can't reconcile automatically, sync stops and shows the error. This one usually needs a fix from the command line. Ask whoever rewrote the history for help, or restore from the [Timeline](/docs/features/timeline-and-recovery).
+- **Diverged history.** When the remote has been rewritten (force-push, rebase, branch reset) in a way GitQuire can't reconcile automatically, sync stops and shows the error. This one usually needs a fix from the command line. Ask whoever rewrote the history for help, or restore from the [Timeline](/docs/features/timeline-and-recovery).
 
 ### Incoming changes with unsafe symlinks
 
-If a teammate's update adds, retargets, or removes symlinks in a way that leaves an unsafe link, OpenKnowledge refuses the whole update. Nothing from it lands, and your local commits wait to be pushed.
+If a teammate's update adds, retargets, or removes symlinks in a way that leaves an unsafe link, GitQuire refuses the whole update. Nothing from it lands, and your local commits wait to be pushed.
 
-- **Which links are refused.** Before writing anything, OpenKnowledge works out the tree the pull would land: the incoming tree for a fast-forward, or for a three-way merge the tree Git's merge would produce, including any move caused by a local folder rename. It follows each link the update adds, retargets, or turns a file into, through any other links on the way, the same way your operating system does. The link is refused when it:
-  - points outside the repository, or at the repository root. The boundary is the Git repository, not the OpenKnowledge project, so a project in a subfolder can still link to other files in the same repository.
-  - points into any `.git` folder, at an OpenKnowledge config folder itself (such as `.ok` or `.ok-beta`), or into its machine-local state (such as `.ok/local`, or the `auth.yml` and `secrets.yml` credential files in a repository rooted at your home folder)
+- **Which links are refused.** Before writing anything, GitQuire works out the tree the pull would land: the incoming tree for a fast-forward, or for a three-way merge the tree Git's merge would produce, including any move caused by a local folder rename. It follows each link the update adds, retargets, or turns a file into, through any other links on the way, the same way your operating system does. The link is refused when it:
+  - points outside the repository, or at the repository root. The boundary is the Git repository, not the GitQuire project, so a project in a subfolder can still link to other files in the same repository.
+  - points into any `.git` folder, at a GitQuire config folder itself (such as `.ok` or `.ok-beta`), or into its machine-local state (such as `.ok/local`, or the `auth.yml` and `secrets.yml` credential files in a repository rooted at your home folder)
   - points at a file that may hold secrets, matched by name alone, whatever the file contains: `.env` and any name starting `.env.` (including `.env.example`), `.netrc`, `.npmrc`, `.pgpass`, `.git-credentials`, `credentials`, any name starting `id_rsa`, `id_ed25519`, `id_ecdsa` or `id_dsa` (including `.pub` public keys), any name ending `.pem`, `.key`, `.p12`, `.pfx`, `.keystore`, `.jks` or `.ppk`, and the folders `.ssh`, `.aws`, `.gnupg`, `.kube` and `.docker` or anything inside them
   - sits inside that private state itself
   - has a target that cannot be checked: an empty target, a target containing a NUL byte, a backslash, or a colon (which Windows reads as a file-stream name), a link whose folder or resolution passes through a name inside the repository shaped like a Windows short name (up to seven characters, a tilde and a number, optionally followed by an extension of up to three characters, such as `week~3`, `GIT-CR~1` or `REPORT~1.MD`), even when `..` removes that name again or it is itself a link (a short name of `.git` or a config folder is refused as private state instead), a target longer than 4096 bytes, a path of more than 256 steps or more than 40 link hops, a folder on the way that cannot be inspected on this machine, or a name that could resolve to a link or to something else depending on how the filesystem compares names (letter case, Unicode composition, invisible characters, trailing dots or spaces)
@@ -157,7 +157,7 @@ If a teammate's update adds, retargets, or removes symlinks in a way that leaves
 
   A link the update does not change is checked when its resolution passes through a link the update changes or removes. It is refused if it is unsafe after the pull, whether or not it was unsafe before. It is also refused, on any update that changes links, when its resolution cannot be completed (a loop, too many steps, a folder this machine cannot inspect, or a name shaped like a Windows short name as described above), because the unchecked remainder could pass through a changed link. A link already in your repository whose resolution leaves the repository (an absolute path, or a `..` above the repository root) is judged where it leaves and not followed further. It is refused only when the part of its path before it leaves passes through a link the update changes or removes; otherwise it does not block an update. Where it lands outside, including back inside the repository through a folder or link outside it, is not checked. Otherwise a link the update does not change is not checked, so a link that was already unsafe does not block an unrelated update. Link chains that stay inside the repository and away from private state pull normally, as do skill links into `.agents/skills` or the legacy `.ok/skills`.
 - **Where the refusal shows.** The sync indicator reads **Sync paused**, and its popover explains why and lists the paths of up to 50 refused links, without their reasons. **Settings → Sync** shows the same explanation and list. On the Share popover's freshness row, and on an opened [share link](/docs/features/share)'s message for a target changed in your local copy, the explanation and list take the place of **Sync now** while sync is paused. The share link's message for a local copy that is behind shows them only when a pull started from that message was refused. Without a running server, `ok pull` and `ok sync` stop with an error that names up to five refused links, each with its reason, followed by a count of any others. With a server running, those commands only trigger the pull, so check the sync indicator.
-- **Switching branches from a share link.** When a share link offers to switch to its branch, OpenKnowledge checks every link the switch would land against the rules above, except the Git 2.38 rule, which applies only to merges. If one is unsafe, it stays on the current branch and shows up to five refused links and a count of the rest. Fix them as described under **What to do**; switching to the branch by hand would bring the links in.
+- **Switching branches from a share link.** When a share link offers to switch to its branch, GitQuire checks every link the switch would land against the rules above, except the Git 2.38 rule, which applies only to merges. If one is unsafe, it stays on the current branch and shows up to five refused links and a count of the rest. Fix them as described under **What to do**; switching to the branch by hand would bring the links in.
 - **What to do.** It depends on the reason:
   - For a link that points outside the repository, at its root, into private state, or at a file that may hold secrets, ask whoever pushed it to remove or fix it on the remote. If the unsafe version is your own local change to a link, fix or remove that link, commit, and pull again. If the refused link is one the update does not change, it is yours too: retarget or remove it, commit, and pull again.
   - For a target that cannot be checked, the cause can be on either side. A folder on the way that this machine cannot inspect is local: make it readable, then pull again. A link already in your repository whose resolution cannot be completed is also yours to fix or remove. Anything else, including a target with a NUL byte, backslash or colon, an overlong target or chain, and a name the repository spells more than one way, needs whoever pushed the link to fix it on the remote.
@@ -168,15 +168,15 @@ If a teammate's update adds, retargets, or removes symlinks in a way that leaves
 
 ### The project has no commits yet
 
-- **The repository has no commits yet.** The project has a remote, but its branch does not exist yet, so there is nothing to send: **Push** stops before it starts and the sync menu says so. Editing a document does not clear this on its own — auto-save writes to OpenKnowledge's own internal ref, never to your branch. Closing and reopening the project (or restarting the app) makes that first commit for you; running `git commit` yourself does the same. Push works from then on.
+- **The repository has no commits yet.** The project has a remote, but its branch does not exist yet, so there is nothing to send: **Push** stops before it starts and the sync menu says so. Editing a document does not clear this on its own — auto-save writes to GitQuire's own internal ref, never to your branch. Closing and reopening the project (or restarting the app) makes that first commit for you; running `git commit` yourself does the same. Push works from then on.
 
 ### Remote blockers
 
 - **Authentication errors.** Your stored credentials expired, were revoked, or don't have access to this repository anymore. Reconnect from the sync indicator (or from **Settings → Git**) to clear the error.
-- **You don't have permission to push to this repo.** Someone shared a project backed by a repo where your account isn't a collaborator (or has read-only access on a private repo). For a GitHub repository, OpenKnowledge checks this up front and offers **Auto (Pull only)** instead. In that mode the manual **Push** and **Pull and Push** buttons are hidden, since GitHub would reject them. Other hosts aren't checked in advance, so a push without permission fails when it reaches the host.
-- **Protected branches and rejected pushes.** If the target branch requires reviews, signed commits, or status checks, GitHub rejects the push. OpenKnowledge turns sync off automatically so it stops retrying, and it stays off until you turn it back on from the sync indicator or **Settings → Sync**. Switch to a branch you can push to, or use a pull request for the protected branch instead.
+- **You don't have permission to push to this repo.** Someone shared a project backed by a repo where your account isn't a collaborator (or has read-only access on a private repo). For a GitHub repository, GitQuire checks this up front and offers **Auto (Pull only)** instead. In that mode the manual **Push** and **Pull and Push** buttons are hidden, since GitHub would reject them. Other hosts aren't checked in advance, so a push without permission fails when it reaches the host.
+- **Protected branches and rejected pushes.** If the target branch requires reviews, signed commits, or status checks, GitHub rejects the push. GitQuire turns sync off automatically so it stops retrying, and it stays off until you turn it back on from the sync indicator or **Settings → Sync**. Switch to a branch you can push to, or use a pull request for the protected branch instead.
 
 ### Temporary problems
 
-- **Network or service hiccups.** Flaky Wi-Fi, a VPN drop, or a brief host outage. OpenKnowledge retries automatically, slowing down progressively as described in [How often sync runs](#how-often-sync-runs). No action needed; a manual trigger from the sync indicator resets the backoff immediately if you want sync to run sooner.
+- **Network or service hiccups.** Flaky Wi-Fi, a VPN drop, or a brief host outage. GitQuire retries automatically, slowing down progressively as described in [How often sync runs](#how-often-sync-runs). No action needed; a manual trigger from the sync indicator resets the backoff immediately if you want sync to run sooner.
 - **Another program is holding the Git index lock.** Git lets one process at a time write `.git/index`, and it enforces that by creating `.git/index.lock` first. Another tool on your machine — a terminal command, an editor extension, a background indexer — was holding that lock file when sync reached for it. The sync menu names `.git/index.lock` so you know it isn't your work that's wrong. In the automatic modes, sync keeps trying and picks up on its own once the other program lets go. In Manual mode nothing runs unattended, so press Sync again after the other program finishes. If the message persists, look for a git command still open in a terminal.

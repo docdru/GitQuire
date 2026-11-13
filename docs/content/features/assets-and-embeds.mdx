@@ -4,13 +4,13 @@ icon: LuPaperclip
 description: Drop files into the editor and reference them with wiki-style embeds.
 ---
 
-OpenKnowledge treats assets (images, PDFs, video, audio) as first-class content alongside markdown.
+GitQuire treats assets (images, PDFs, video, audio) as first-class content alongside markdown.
 
 ## Adding files
 
 Drag files into the editor or paste them. Screenshots paste straight from the clipboard, and any file type is accepted. The file uploads into the project, and the matching block is inserted. You can also insert an image, video, or audio block from the `/` insert menu and upload from its settings.
 
-If the target folder already has a file with the same bytes, OpenKnowledge reuses it instead of writing a duplicate.
+If the target folder already has a file with the same bytes, GitQuire reuses it instead of writing a duplicate.
 
 AI agents add assets through the MCP [`write`](/docs/reference/mcp) tool's `asset` target, passing exactly one of `content` (the bytes as base64, for small files) or `source` (a local filesystem path the server reads — use it for large files).
 
@@ -58,7 +58,7 @@ A ` ```mermaid ` fence renders as a diagram — flowchart, sequence, class, stat
 
 ## Sharing across apps
 
-Local-path images (`![chart](./Q3-sales.png)`), wiki-embeds (`![[diagram.png]]`), and any other reference whose URL only resolves on your machine cannot render in apps that don't have access to your filesystem. When you copy a section containing one of these and paste into Gmail, Outlook, Notion, Slack, Discord, or Google Docs, OpenKnowledge degrades visibly instead of silently:
+Local-path images (`![chart](./Q3-sales.png)`), wiki-embeds (`![[diagram.png]]`), and any other reference whose URL only resolves on your machine cannot render in apps that don't have access to your filesystem. When you copy a section containing one of these and paste into Gmail, Outlook, Notion, Slack, Discord, or Google Docs, GitQuire degrades visibly instead of silently:
 
 - **Non-portable URLs surface as a styled code block.** Recipients see the literal markdown source (e.g. `![chart](./Q3-sales.png)`) in monospace, not a broken-image icon. They can read what the section was meant to include and ask for the file or accept the textual reference.
 - **Inline images in paragraphs surface as inline source.** A paragraph with a local-path image keeps its prose flow; only the `<img>` collapses to inline source markup, and the surrounding sentence is unaffected.
@@ -67,7 +67,7 @@ Local-path images (`![chart](./Q3-sales.png)`), wiki-embeds (`![[diagram.png]]`)
 Two affordances are preserved across the cross-app boundary, not degradations themselves:
 
 - **Markdown-aware destinations get the source.** Linear, Outline, Obsidian, and similar apps that read `text/plain` first receive clean canonical markdown; the cross-app degradation only affects the `text/html` payload that destinations like Gmail render.
-- **OpenKnowledge → OpenKnowledge paste round-trips images and wiki-links.** Copying out of one OpenKnowledge doc and pasting into another preserves the original markdown image and wiki-link shape. Wiki-embeds round-trip when the copied selection carries other markdown signals (a heading, a list, bold); a selection that is only a wiki-embed — or plain prose around one — pastes as literal source text, not a rendered embed.
+- **GitQuire → GitQuire paste round-trips images and wiki-links.** Copying out of one GitQuire doc and pasting into another preserves the original markdown image and wiki-link shape. Wiki-embeds round-trip when the copied selection carries other markdown signals (a heading, a list, bold); a selection that is only a wiki-embed — or plain prose around one — pastes as literal source text, not a rendered embed.
 
 Source-mode copy (the CodeMirror toggle) works the same way: the clipboard's `text/html` payload is always a styled code block of the raw markdown bytes, never the rendered output. Pasting a `# Heading` from source-mode into Gmail produces a code block, not a rendered heading. This is consistent with VS Code, Obsidian source mode, GitHub textareas, and CodeMirror itself.
 

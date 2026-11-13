@@ -4,13 +4,13 @@ icon: LuPresentation
 description: Present a markdown document as a slide deck in its own window, rendered by the Slidev CLI.
 ---
 
-[Slidev](https://sli.dev/) renders a markdown file as a presentation, with slides separated by `---`. Mark a document, click the toolbar action, and the deck opens in its own OpenKnowledge window.
+[Slidev](https://sli.dev/) renders a markdown file as a presentation, with slides separated by `---`. Mark a document, click the toolbar action, and the deck opens in its own GitQuire window.
 
 <Callout>
   **Beta.** Desktop app only. Rendering is Slidev's, so it moves at Slidev's pace.
 </Callout>
 
-OpenKnowledge does not bundle or download Slidev. You install it yourself.
+GitQuire does not bundle or download Slidev. You install it yourself.
 
 ## Install Slidev
 
@@ -28,7 +28,7 @@ Other install routes are in [Slidev's install guide](https://sli.dev/guide/insta
 
 Open Settings → **User ▸ Plugins** and switch on **Slidev**. It's a user plugin, so the choice stays on your device and is never committed.
 
-The **Slidev** page in the sidebar reports whether OpenKnowledge found Slidev. If it didn't, the page offers the install command to copy and a **Run in terminal** button. Install, click back into OpenKnowledge, and the status updates without a restart.
+The **Slidev** page in the sidebar reports whether GitQuire found Slidev. If it didn't, the page offers the install command to copy and a **Run in terminal** button. Install, click back into GitQuire, and the status updates without a restart.
 
 ## Mark a document as a deck
 
@@ -56,9 +56,9 @@ The action appears only when Slidev resolves. If you expect it and don't see it,
 
 ## Editing while presenting
 
-Edit the document and the open deck updates — Slidev watches the same file OpenKnowledge saves to. Your position in the deck is preserved. Expect a beat between typing and the refresh; OpenKnowledge debounces its writes to disk.
+Edit the document and the open deck updates — Slidev watches the same file GitQuire saves to. Your position in the deck is preserved. Expect a beat between typing and the refresh; GitQuire debounces its writes to disk.
 
-Closing a deck window stops that deck's Slidev process. Quitting OpenKnowledge stops all of them.
+Closing a deck window stops that deck's Slidev process. Quitting GitQuire stops all of them.
 
 ## Environment for the deck process
 
@@ -77,4 +77,4 @@ Past the frontmatter flag it's ordinary Slidev:
 Two notes for longer decks:
 
 - **Multi-file decks work.** Slidev's `src:` include pulls a slide's content from another file, so a deck can be one entry file plus a folder of slides.
-- **Keep the deck inside the project.** OpenKnowledge only opens documents that resolve inside the open project, including through symlinks.
+- **Keep the deck inside the project.** GitQuire only opens documents that resolve inside the open project, including through symlinks.

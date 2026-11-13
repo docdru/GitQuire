@@ -6,7 +6,7 @@ description: Community driven translations
 
 The app is natively written in English and we did our best to provide machine generated translations for some of the most spoken languages in the world.
 
-OpenKnowledge's interface is available in many languages. The language selection can be found at **Settings → Preferences → Language**.
+GitQuire's interface is available in many languages. The language selection can be found at **Settings → Preferences → Language**.
 
 This changes the interface, not the languages used to check your writing. Desktop [spelling settings](/docs/features/editor#right-click-menu-and-spell-check) are separate.
 
@@ -17,9 +17,9 @@ Language is an app appearance setting and can be set directly in the config [con
 - Fix errors, improve existing translations
 - Request support for another language
 
-## Run OpenKnowledge in the language you're checking
+## Run GitQuire in the language you're checking
 
-Set the language in the UI setting or set it by hand in `~/.ok/global.yml` (`~/.ok-beta/global.yml` in OpenKnowledge Beta):
+Set the language in the UI setting or set it by hand in `~/.ok/global.yml`:
 
 ```yaml
 appearance:
@@ -34,7 +34,7 @@ On the desktop app, the `OK_LANG` environment variable additionally overrides th
 
 ## Report a translation correction
 
-Choose **Feature request** in the [issue chooser](https://github.com/inkeep/open-knowledge/issues/new/choose). In **What problem are you trying to solve?**, include:
+Choose **Feature request** in the [issue chooser](https://github.com/docdru/GitQuire/issues/new/choose). In **What problem are you trying to solve?**, include:
 
 - The language you are checking and whether you speak it natively.
 - The screen or menu where the text appears, with a screenshot when useful.
@@ -42,7 +42,7 @@ Choose **Feature request** in the [issue chooser](https://github.com/inkeep/open
 
 Put your suggested wording and why it is clearer in **Proposed solution**.
 
-If you found the entry in `packages/app/src/locales/<locale>/messages.po`, include its `msgid` so we can locate it. The [glossary](https://github.com/inkeep/open-knowledge/blob/main/packages/app/src/locales/GLOSSARY.md) lists the words we use consistently; mention any glossary wording that needs correcting too.
+If you found the entry in `packages/app/src/locales/<locale>/messages.po`, include its `msgid` so we can locate it. The [glossary](https://github.com/docdru/GitQuire/blob/main/packages/app/src/locales/GLOSSARY.md) lists the words we use consistently; mention any glossary wording that needs correcting too.
 
 ## What is and isn't translated
 
@@ -54,4 +54,4 @@ If you found the entry in `packages/app/src/locales/<locale>/messages.po`, inclu
 
 ## A language that isn't on the list
 
-Choose **Feature request** in the [issue chooser](https://github.com/inkeep/open-knowledge/issues/new/choose), name the language and describe who would benefit.
+Choose **Feature request** in the [issue chooser](https://github.com/docdru/GitQuire/issues/new/choose), name the language and describe who would benefit.

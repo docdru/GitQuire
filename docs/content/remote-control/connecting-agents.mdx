@@ -1,19 +1,19 @@
 ---
 title: Connect remote agents
 icon: LuPlug
-description: Connect agents running on another machine or in the cloud to your OpenKnowledge project.
+description: Connect agents running on another machine or in the cloud to your GitQuire project.
 ---
-Connect agents on another computer or in a cloud service to the OpenKnowledge project on your server. They connect through the project's remote MCP endpoint and do not need a local copy of the knowledge base.
+Connect agents on another computer or in a cloud service to the GitQuire project on your server. They connect through the project's remote MCP endpoint and do not need a local copy of the knowledge base.
 
 <Callout type="info">
-If the agent runs on the same machine as your OpenKnowledge project, follow the [Quickstart](/docs/get-started/quickstart). `ok init` registers supported local agents for you. This page is for agents connecting over the network.
+If the agent runs on the same machine as your GitQuire project, follow the [Quickstart](/docs/get-started/quickstart). `ok init` registers supported local agents for you. This page is for agents connecting over the network.
 </Callout>
 
 ## Before you start
 
 Set up a running server with [remote control](/docs/remote-control/overview). Every remote agent connects to the same address, `https://<your-external-url>/mcp`, whether the server runs on your laptop, a VPS, or in a container.
 
-OpenKnowledge does not authenticate callers. The tunnel, private network, or proxy in front of the server controls access. Configure it first. Then give the agent any required network access or credentials. See [Authentication](/docs/remote-control/authentication).
+GitQuire does not authenticate callers. The tunnel, private network, or proxy in front of the server controls access. Configure it first. Then give the agent any required network access or credentials. See [Authentication](/docs/remote-control/authentication).
 
 ## Connect agents on another machine
 
