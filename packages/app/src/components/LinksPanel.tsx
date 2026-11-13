@@ -568,7 +568,7 @@ function ForwardLinksSection({
   );
 }
 
-function LocalFilesSection({
+function AttachmentsSection({
   docName,
   onDestinationComplete,
 }: {
@@ -654,10 +654,17 @@ function LocalFilesSection({
     );
   }
 
+  const confirmedEmpty =
+    !isLoading &&
+    error === null &&
+    !isUnresolvable &&
+    localTargets !== undefined &&
+    rows.length === 0;
+  const settledState = isLoading ? 'loading' : confirmedEmpty ? 'none' : 'shown';
   return (
-    <Collapsible defaultOpen>
+    <Collapsible key={settledState} defaultOpen={settledState !== 'none'}>
       <SectionTrigger
-        title={t`Local files`}
+        title={t`Attachments`}
         count={error !== null || isUnresolvable ? null : rows.length}
         isLoading={isLoading}
       />
@@ -672,19 +679,19 @@ function LocalFilesSection({
           ) : error ? (
             <div className="px-3">
               <PanelError>
-                {error instanceof Error ? error.message : t`Failed to load local files`}
+                {error instanceof Error ? error.message : t`Failed to load attachments`}
               </PanelError>
             </div>
           ) : localTargets === undefined && !isLoading ? (
             <div className="px-3">
               <PanelEmpty>
-                <Trans>Local file details aren't available yet.</Trans>
+                <Trans>Attachment details aren't available yet.</Trans>
               </PanelEmpty>
             </div>
           ) : rows.length === 0 && !isLoading ? (
             <div className="px-3">
               <PanelEmpty>
-                <Trans>This page references no local files or images.</Trans>
+                <Trans>This page has no images or attached files.</Trans>
               </PanelEmpty>
             </div>
           ) : (
@@ -719,7 +726,7 @@ export function LinksPanel({
       <PanelBody className="px-0 py-0">
         <ForwardLinksSection docName={docName} onDestinationRequested={onDestinationRequested} />
         <Separator />
-        <LocalFilesSection docName={docName} onDestinationComplete={onDestinationComplete} />
+        <AttachmentsSection docName={docName} onDestinationComplete={onDestinationComplete} />
         <Separator />
         <BacklinksSection docName={docName} onDestinationRequested={onDestinationRequested} />
       </PanelBody>

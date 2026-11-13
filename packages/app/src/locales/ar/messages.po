@@ -1733,6 +1733,9 @@ msgstr "إرفاق الملفات"
 msgid "Attach images"
 msgstr "إرفاق صور"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "المرفقات"
 
@@ -4582,6 +4585,9 @@ msgstr "فشل استيراد القالب"
 msgid "Failed to load activity"
 msgstr "فشل تحميل النشاط"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "فشل تحميل الروابط الخلفية"
 
@@ -4605,9 +4611,6 @@ msgstr "فشل تحميل العناوين"
 
 msgid "Failed to load hub pages"
 msgstr "فشل تحميل الصفحات المحورية"
-
-msgid "Failed to load local files"
-msgstr "فشل تحميل الملفات المحلية"
 
 msgid "Failed to load orphan pages"
 msgstr "فشل تحميل الصفحات اليتيمة"
@@ -6494,12 +6497,6 @@ msgstr "تعذّر مسح بيانات التعاون المحلية لـ «{doc
 msgid "Local commits are keeping this copy from updating"
 msgstr "تمنع الإيداعات المحلية هذه النسخة من التحديث"
 
-msgid "Local file details aren't available yet."
-msgstr "تفاصيل الملفات المحلية غير متاحة بعد."
-
-msgid "Local files"
-msgstr "الملفات المحلية"
-
 msgid "Local path"
 msgstr "مسار محلي"
 
@@ -7685,6 +7682,9 @@ msgstr "فتح {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "فتح {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "افتح {handoffLabel}"
@@ -11449,11 +11449,11 @@ msgstr "هذه الصفحة غير موجودة بعد. افتحها لإنشا�
 msgid "This page doesn't link to anything yet."
 msgstr "هذه الصفحة لا ترتبط بشيء بعد."
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "لم تعد هذه الصفحة في هذا المسار."
-
-msgid "This page references no local files or images."
-msgstr "لا تشير هذه الصفحة إلى أي ملفات أو صور محلية."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "هذا المسار على وحدة تخزين خارجية (/Volumes/...). سيفقد GitQuire تتبّع الملفات عند إخراج القرص."

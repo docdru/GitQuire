@@ -1733,6 +1733,9 @@ msgstr "附加文件"
 msgid "Attach images"
 msgstr "附加图片"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "附件"
 
@@ -4582,6 +4585,9 @@ msgstr "导入模板失败"
 msgid "Failed to load activity"
 msgstr "加载动态失败"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "加载反向链接失败"
 
@@ -4605,9 +4611,6 @@ msgstr "加载标题失败"
 
 msgid "Failed to load hub pages"
 msgstr "加载中枢页面失败"
-
-msgid "Failed to load local files"
-msgstr "加载本地文件失败"
 
 msgid "Failed to load orphan pages"
 msgstr "加载孤立页面失败"
@@ -6494,12 +6497,6 @@ msgstr "无法清除“{docName}”的本地协作数据。请重新加载后重
 msgid "Local commits are keeping this copy from updating"
 msgstr "本地提交使这份副本无法更新"
 
-msgid "Local file details aren't available yet."
-msgstr "本地文件详情尚不可用。"
-
-msgid "Local files"
-msgstr "本地文件"
-
 msgid "Local path"
 msgstr "本地路径"
 
@@ -7685,6 +7682,9 @@ msgstr "打开 {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "打开 {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "打开 {handoffLabel}"
@@ -11449,11 +11449,11 @@ msgstr "这个页面还不存在。打开它即可在编辑器中创建该页面
 msgid "This page doesn't link to anything yet."
 msgstr "这个页面还没有链接到任何地方。"
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "此页面已不在该路径下。"
-
-msgid "This page references no local files or images."
-msgstr "此页面未引用任何本地文件或图片。"
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "这个路径位于外置卷（/Volumes/...）。驱动器弹出后，GitQuire 会跟丢这些文件。"

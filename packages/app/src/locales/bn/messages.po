@@ -1729,6 +1729,9 @@ msgstr "ফাইল সংযুক্ত করুন"
 msgid "Attach images"
 msgstr "ছবি সংযুক্ত করুন"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "সংযুক্তি"
 
@@ -4578,6 +4581,9 @@ msgstr "টেমপ্লেট আমদানি করতে ব্যর্
 msgid "Failed to load activity"
 msgstr "কার্যকলাপ লোড করতে ব্যর্থ"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "ব্যাকলিংক লোড করতে ব্যর্থ"
 
@@ -4601,9 +4607,6 @@ msgstr "শিরোনাম লোড করতে ব্যর্থ"
 
 msgid "Failed to load hub pages"
 msgstr "হাব পাতা লোড করতে ব্যর্থ"
-
-msgid "Failed to load local files"
-msgstr "স্থানীয় ফাইল লোড করতে ব্যর্থ"
 
 msgid "Failed to load orphan pages"
 msgstr "অনাথ পাতা লোড করতে ব্যর্থ"
@@ -6490,12 +6493,6 @@ msgstr "\"{docName}\"-এর স্থানীয় সহযোগিতা �
 msgid "Local commits are keeping this copy from updating"
 msgstr "স্থানীয় কমিটগুলো এই অনুলিপিকে হালনাগাদ হতে দিচ্ছে না"
 
-msgid "Local file details aren't available yet."
-msgstr "স্থানীয় ফাইলের বিবরণ এখনও উপলব্ধ নয়।"
-
-msgid "Local files"
-msgstr "স্থানীয় ফাইল"
-
 msgid "Local path"
 msgstr "স্থানীয় পথ"
 
@@ -7681,6 +7678,9 @@ msgstr "{displayName} Desktop খুলুন"
 
 msgid "Open {docName}"
 msgstr "{docName} খুলুন"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "{handoffLabel} খুলুন"
@@ -11445,11 +11445,11 @@ msgstr "এই পাতাটি এখনও নেই। সম্পাদ�
 msgid "This page doesn't link to anything yet."
 msgstr "এই পাতাটি এখনও কোনো কিছুর সঙ্গে লিংক করে না।"
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "এই পৃষ্ঠাটি আর এই পাথে নেই।"
-
-msgid "This page references no local files or images."
-msgstr "এই পাতাটি কোনো স্থানীয় ফাইল বা ছবি উল্লেখ করে না।"
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "এই পথটি একটি বাইরের ভলিউমে (/Volumes/…)। ড্রাইভটি বের করে নিলে GitQuire ফাইলগুলোর হদিস হারিয়ে ফেলবে।"

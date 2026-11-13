@@ -9,7 +9,12 @@ import type {
   GitHubPullsClient,
   PullRequestSummary,
 } from './github-pulls.ts';
-import { createGitQuireRoutes, isSameOrigin, validateBranchName } from './routes.ts';
+import {
+  createGitQuireRoutes,
+  isSameOrigin,
+  repositoryFromEnv,
+  validateBranchName,
+} from './routes.ts';
 
 const silentLog = { info: () => {}, warn: () => {}, error: () => {} };
 
@@ -178,6 +183,24 @@ describe('GitQuire routes', () => {
     });
     const out = await call(routes, request('/api/gitquire/naming'));
     expect(out.body).toEqual({ rule: 'off' });
+  });
+
+  it('reports the GitHub repository', async () => {
+    const routes = createGitQuireRoutes({
+      projectDir: '/data',
+      log: silentLog,
+      runGit: fakeGit(baseRepo()),
+      env: { GITQUIRE_REPO: 'https://github.com/acme/team-wiki.git' },
+    });
+    const out = await call(routes, request('/api/gitquire/repository'));
+    expect(out.body).toEqual({
+      repository: { owner: 'acme', name: 'team-wiki', url: 'https://github.com/acme/team-wiki' },
+    });
+  });
+
+  it('reports no repository when GITQUIRE_REPO is unset or malformed', () => {
+    expect(repositoryFromEnv({})).toBeNull();
+    expect(repositoryFromEnv({ GITQUIRE_REPO: 'not a repo' })).toBeNull();
   });
 
   it('ignores other paths', () => {

@@ -1729,6 +1729,9 @@ msgstr "Anexar arquivos"
 msgid "Attach images"
 msgstr "Anexar imagens"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "Anexos"
 
@@ -4578,6 +4581,9 @@ msgstr "Falha ao importar o modelo"
 msgid "Failed to load activity"
 msgstr "Falha ao carregar a atividade"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "Falha ao carregar os retrolinks"
 
@@ -4601,9 +4607,6 @@ msgstr "Falha ao carregar os títulos"
 
 msgid "Failed to load hub pages"
 msgstr "Falha ao carregar as páginas de índice"
-
-msgid "Failed to load local files"
-msgstr "Falha ao carregar os arquivos locais"
 
 msgid "Failed to load orphan pages"
 msgstr "Falha ao carregar as páginas órfãs"
@@ -6490,12 +6493,6 @@ msgstr "Não foi possível limpar os dados locais de colaboração de \"{docName
 msgid "Local commits are keeping this copy from updating"
 msgstr "Commits locais estão impedindo esta cópia de atualizar"
 
-msgid "Local file details aren't available yet."
-msgstr "Os detalhes dos arquivos locais ainda não estão disponíveis."
-
-msgid "Local files"
-msgstr "Arquivos locais"
-
 msgid "Local path"
 msgstr "Caminho local"
 
@@ -7681,6 +7678,9 @@ msgstr "Abrir {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "Abrir {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "Abrir {handoffLabel}"
@@ -11445,11 +11445,11 @@ msgstr "Esta página ainda não existe. Abra para criá-la no editor e recolher 
 msgid "This page doesn't link to anything yet."
 msgstr "Esta página ainda não aponta para nada."
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "Esta página não está mais neste caminho."
-
-msgid "This page references no local files or images."
-msgstr "Esta página não faz referência a nenhum arquivo ou imagem local."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "Este caminho está em um volume externo (/Volumes/...). O GitQuire vai perder os arquivos de vista quando a unidade for ejetada."

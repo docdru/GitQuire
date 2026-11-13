@@ -1733,6 +1733,9 @@ msgstr "Dołącz pliki"
 msgid "Attach images"
 msgstr "Dołącz obrazy"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "Załączniki"
 
@@ -4582,6 +4585,9 @@ msgstr "Nie udało się zaimportować szablonu"
 msgid "Failed to load activity"
 msgstr "Nie udało się wczytać aktywności"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "Nie udało się wczytać linków zwrotnych"
 
@@ -4605,9 +4611,6 @@ msgstr "Nie udało się wczytać nagłówków"
 
 msgid "Failed to load hub pages"
 msgstr "Nie udało się wczytać stron węzłowych"
-
-msgid "Failed to load local files"
-msgstr "Nie udało się wczytać plików lokalnych"
 
 msgid "Failed to load orphan pages"
 msgstr "Nie udało się wczytać stron osieroconych"
@@ -6494,12 +6497,6 @@ msgstr "Nie udało się wyczyścić lokalnych danych współpracy dla „{docNam
 msgid "Local commits are keeping this copy from updating"
 msgstr "Lokalne commity uniemożliwiają aktualizację tej kopii"
 
-msgid "Local file details aren't available yet."
-msgstr "Szczegóły pliku lokalnego nie są jeszcze dostępne."
-
-msgid "Local files"
-msgstr "Pliki lokalne"
-
 msgid "Local path"
 msgstr "Ścieżka lokalna"
 
@@ -7685,6 +7682,9 @@ msgstr "Otwórz {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "Otwórz {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "Otwórz {handoffLabel}"
@@ -11449,11 +11449,11 @@ msgstr "Ta strona jeszcze nie istnieje. Otwórz ją, aby utworzyć stronę w edy
 msgid "This page doesn't link to anything yet."
 msgstr "Ta strona jeszcze nie linkuje do niczego."
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "Ta strona nie jest już pod tą ścieżką."
-
-msgid "This page references no local files or images."
-msgstr "Ta strona nie odwołuje się do żadnych lokalnych plików ani obrazów."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "Ta ścieżka znajduje się na wolumenie zewnętrznym (/Volumes/...). GitQuire zgubi pliki po wysunięciu dysku."

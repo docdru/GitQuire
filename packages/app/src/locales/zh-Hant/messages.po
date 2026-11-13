@@ -1733,6 +1733,9 @@ msgstr "附加檔案"
 msgid "Attach images"
 msgstr "附加圖片"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "附件"
 
@@ -4582,6 +4585,9 @@ msgstr "匯入範本失敗"
 msgid "Failed to load activity"
 msgstr "載入動態失敗"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "載入反向連結失敗"
 
@@ -4605,9 +4611,6 @@ msgstr "載入標題失敗"
 
 msgid "Failed to load hub pages"
 msgstr "載入樞紐頁面失敗"
-
-msgid "Failed to load local files"
-msgstr "載入本機檔案失敗"
 
 msgid "Failed to load orphan pages"
 msgstr "載入孤立頁面失敗"
@@ -6494,12 +6497,6 @@ msgstr "無法清除「{docName}」的本機協作資料。請重新載入後再
 msgid "Local commits are keeping this copy from updating"
 msgstr "本機的提交讓這份副本無法更新"
 
-msgid "Local file details aren't available yet."
-msgstr "本機檔案詳情尚無法使用。"
-
-msgid "Local files"
-msgstr "本機檔案"
-
 msgid "Local path"
 msgstr "本機路徑"
 
@@ -7685,6 +7682,9 @@ msgstr "開啟 {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "開啟 {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "開啟 {handoffLabel}"
@@ -11449,11 +11449,11 @@ msgstr "這個頁面還不存在。開啟它就能在編輯器中建立這個頁
 msgid "This page doesn't link to anything yet."
 msgstr "這個頁面還沒有連到任何地方。"
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "此頁面已不在該路徑下。"
-
-msgid "This page references no local files or images."
-msgstr "此頁面未引用任何本機檔案或圖片。"
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "這個路徑在外接磁碟區（/Volumes/...）上。磁碟退出後，GitQuire 會找不到這些檔案。"

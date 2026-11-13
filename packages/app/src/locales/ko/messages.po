@@ -1733,6 +1733,9 @@ msgstr "파일 첨부"
 msgid "Attach images"
 msgstr "이미지 첨부"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "첨부 파일"
 
@@ -4582,6 +4585,9 @@ msgstr "템플릿을 가져오지 못했습니다"
 msgid "Failed to load activity"
 msgstr "활동 불러오기 실패"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "백링크 불러오기 실패"
 
@@ -4605,9 +4611,6 @@ msgstr "제목 불러오기 실패"
 
 msgid "Failed to load hub pages"
 msgstr "허브 페이지 불러오기 실패"
-
-msgid "Failed to load local files"
-msgstr "로컬 파일 불러오기 실패"
 
 msgid "Failed to load orphan pages"
 msgstr "고아 페이지 불러오기 실패"
@@ -6494,12 +6497,6 @@ msgstr "\"{docName}\"의 로컬 협업 데이터를 지우지 못했습니다. �
 msgid "Local commits are keeping this copy from updating"
 msgstr "로컬 커밋 때문에 이 사본을 업데이트할 수 없습니다."
 
-msgid "Local file details aren't available yet."
-msgstr "로컬 파일 세부 정보를 아직 사용할 수 없습니다."
-
-msgid "Local files"
-msgstr "로컬 파일"
-
 msgid "Local path"
 msgstr "로컬 경로"
 
@@ -7685,6 +7682,9 @@ msgstr "{displayName} Desktop 열기"
 
 msgid "Open {docName}"
 msgstr "{docName} 열기"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "{handoffLabel} 열기"
@@ -11449,11 +11449,11 @@ msgstr "이 페이지는 아직 존재하지 않습니다. 열어서 편집기�
 msgid "This page doesn't link to anything yet."
 msgstr "이 페이지는 아직 아무것도 연결하지 않습니다."
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "이 페이지는 더 이상 이 경로에 없습니다."
-
-msgid "This page references no local files or images."
-msgstr "이 페이지는 로컬 파일이나 이미지를 참조하지 않습니다."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "이 경로는 외부 볼륨(/Volumes/...)에 있습니다. 드라이브를 꺼내면 GitQuire가 파일 추적을 잃습니다."

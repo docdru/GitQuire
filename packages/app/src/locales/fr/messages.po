@@ -1733,6 +1733,9 @@ msgstr "Joindre des fichiers"
 msgid "Attach images"
 msgstr "Joindre des images"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -4582,6 +4585,9 @@ msgstr "Échec de l'importation du modèle"
 msgid "Failed to load activity"
 msgstr "Échec du chargement de l'activité"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "Échec du chargement des rétroliens"
 
@@ -4605,9 +4611,6 @@ msgstr "Échec du chargement des titres"
 
 msgid "Failed to load hub pages"
 msgstr "Échec du chargement des pages pivots"
-
-msgid "Failed to load local files"
-msgstr "Échec du chargement des fichiers locaux"
 
 msgid "Failed to load orphan pages"
 msgstr "Échec du chargement des pages orphelines"
@@ -6494,12 +6497,6 @@ msgstr "Les données de collaboration locales de « {docName} » n'ont pas pu ê
 msgid "Local commits are keeping this copy from updating"
 msgstr "Des commits locaux empêchent cette copie de se mettre à jour"
 
-msgid "Local file details aren't available yet."
-msgstr "Les détails des fichiers locaux ne sont pas encore disponibles."
-
-msgid "Local files"
-msgstr "Fichiers locaux"
-
 msgid "Local path"
 msgstr "Chemin local"
 
@@ -7685,6 +7682,9 @@ msgstr "Ouvrir {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "Ouvrir {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "Ouvrir {handoffLabel}"
@@ -11449,11 +11449,11 @@ msgstr "Cette page n'existe pas encore. Ouvrez-la pour la créer dans l'éditeur
 msgid "This page doesn't link to anything yet."
 msgstr "Cette page ne renvoie encore vers rien."
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "Cette page ne se trouve plus à ce chemin."
-
-msgid "This page references no local files or images."
-msgstr "Cette page ne référence aucun fichier ou image local."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "Ce chemin se trouve sur un volume externe (/Volumes/...). GitQuire perdra la trace des fichiers lorsque le disque sera éjecté."

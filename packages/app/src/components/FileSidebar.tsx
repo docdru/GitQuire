@@ -114,6 +114,7 @@ import {
   emitFileTreeMenuActionDuplicate,
   emitFileTreeMenuActionRename,
 } from '@/lib/file-tree-menu-action-events';
+import { useGitQuireRepository } from '@/lib/gitquire/repository';
 import { VISIBLE_TARGETS } from '@/lib/handoff/targets';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
@@ -243,7 +244,9 @@ function FileSidebarInner() {
 
   const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
   const workspace = useWorkspace();
+  const repository = useGitQuireRepository();
   const projectName =
+    repository?.name ||
     bridge?.config?.projectName ||
     workspace?.contentDir.split('/').filter(Boolean).pop() ||
     t`Files`;

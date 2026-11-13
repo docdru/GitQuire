@@ -1733,6 +1733,9 @@ msgstr "Adjuntar archivos"
 msgid "Attach images"
 msgstr "Adjuntar imágenes"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "Adjuntos"
 
@@ -4582,6 +4585,9 @@ msgstr "No se pudo importar la plantilla"
 msgid "Failed to load activity"
 msgstr "No se pudo cargar la actividad"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "No se pudieron cargar los retroenlaces"
 
@@ -4605,9 +4611,6 @@ msgstr "No se pudieron cargar los encabezados"
 
 msgid "Failed to load hub pages"
 msgstr "No se pudieron cargar las páginas índice"
-
-msgid "Failed to load local files"
-msgstr "No se pudieron cargar los archivos locales"
 
 msgid "Failed to load orphan pages"
 msgstr "No se pudieron cargar las páginas huérfanas"
@@ -6494,12 +6497,6 @@ msgstr "No se pudieron borrar los datos locales de colaboración de \"{docName}\
 msgid "Local commits are keeping this copy from updating"
 msgstr "Hay commits locales que impiden actualizar esta copia"
 
-msgid "Local file details aren't available yet."
-msgstr "Los detalles de los archivos locales aún no están disponibles."
-
-msgid "Local files"
-msgstr "Archivos locales"
-
 msgid "Local path"
 msgstr "Ruta local"
 
@@ -7685,6 +7682,9 @@ msgstr "Abrir {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "Abrir {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "Abrir {handoffLabel}"
@@ -11449,11 +11449,11 @@ msgstr "Esta página todavía no existe. Ábrela para crearla en el editor y con
 msgid "This page doesn't link to anything yet."
 msgstr "Esta página todavía no enlaza a nada."
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "Esta página ya no está en esta ruta."
-
-msgid "This page references no local files or images."
-msgstr "Esta página no hace referencia a ningún archivo o imagen local."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "Esta ruta está en un volumen externo (/Volumes/...). GitQuire perderá la pista de los archivos cuando se expulse la unidad."
