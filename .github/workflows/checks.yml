@@ -91,7 +91,8 @@ jobs:
       - name: GitQuire discussion app tests
         run: >-
           pnpm --dir packages/app exec vitest run --config vitest.config.ts
-          src/gitquire-comments src/gitquire-mobile src/gitquire-links src/lib/gitquire
+          src/gitquire-comments src/gitquire-mobile src/gitquire-links src/gitquire-settings
+          src/lib/gitquire
 
       - name: GitQuire tests
         run: pnpm --dir packages/server exec vitest run src/gitquire

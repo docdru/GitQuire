@@ -16,8 +16,10 @@ import {
   CONFIG_DOC_NAME_PROJECT_LOCAL,
   CONFIG_DOC_NAME_USER,
 } from '@inkeep/open-knowledge-core/constants/cc1';
+import { t } from '@lingui/core/macro';
 import { useTheme } from 'next-themes';
 import { type ReactNode, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import * as Y from 'yjs';
 import { useLanguageBridge } from '@/hooks/use-language-bridge';
 import { useThemeBridge } from '@/hooks/use-theme-bridge';
@@ -30,6 +32,10 @@ import {
   resolveModePreference,
 } from './color-themes';
 import { ConfigContext, type ConfigContextValue } from './config-context';
+import {
+  createPersonalSettingsProvider,
+  probePersonalSettings,
+} from './gitquire/personal-settings';
 import { SavedThemesProvider, useSavedThemes } from './saved-themes-client';
 import { useServerInstanceId } from './server-instance-store';
 import { useThemeColorTransitions } from './theme-color-transitions';
@@ -83,6 +89,24 @@ function makeBinding(
     binding.dispose();
     provider.destroy();
     ydoc.destroy();
+  };
+  return { binding, config: binding.current(), cleanup };
+}
+
+function makePersonalBinding(yaml: string): ScopedBinding {
+  const provider = createPersonalSettingsProvider({
+    onSaveFailed: (error) => {
+      console.warn(
+        JSON.stringify({ event: 'gitquire-personal-settings-save-failed', error: String(error) }),
+      );
+      toast.error(t`Your settings could not be saved.`);
+    },
+  });
+  const binding = bindConfigDoc(provider, 'user');
+  provider.load(yaml);
+  const cleanup = () => {
+    binding.dispose();
+    provider.destroy();
   };
   return { binding, config: binding.current(), cleanup };
 }
@@ -149,7 +173,6 @@ function ConfigProviderBody({
 
   useEffect(() => {
     if (collabUrl === null) return;
-    const userScoped = makeBinding(collabUrl, CONFIG_DOC_NAME_USER, 'user', serverInstanceId);
     const projectScoped = makeBinding(
       collabUrl,
       CONFIG_DOC_NAME_PROJECT,
@@ -163,11 +186,6 @@ function ConfigProviderBody({
       serverInstanceId,
     );
     const okignoreScoped = makeOkignoreBinding(collabUrl, serverInstanceId);
-    setUserState({
-      binding: userScoped.binding,
-      config: userScoped.config,
-      synced: userScoped.binding.hasSynced(),
-    });
     setProjectState({
       binding: projectScoped.binding,
       config: projectScoped.config,
@@ -180,18 +198,6 @@ function ConfigProviderBody({
     });
     setOkignoreState({ binding: okignoreScoped.binding, synced: false });
 
-    const unsubUser = userScoped.binding.subscribe((next) => {
-      setUserState((prev) =>
-        prev?.binding === userScoped.binding ? { ...prev, config: next } : prev,
-      );
-    });
-    const unsubUserSynced = userScoped.binding.subscribeSynced(() => {
-      setUserState((prev) =>
-        prev?.binding === userScoped.binding
-          ? { ...prev, config: userScoped.binding.current(), synced: true }
-          : prev,
-      );
-    });
     const unsubProject = projectScoped.binding.subscribe((next) => {
       setProjectState((prev) =>
         prev?.binding === projectScoped.binding ? { ...prev, config: next } : prev,
@@ -224,14 +230,12 @@ function ConfigProviderBody({
     okignoreScoped.provider.on('synced', handleOkignoreSynced);
 
     return () => {
-      unsubUser();
-      unsubUserSynced();
       unsubProject();
       unsubProjectSynced();
       unsubProjectLocal();
       unsubProjectLocalSynced();
       okignoreScoped.provider.off('synced', handleOkignoreSynced);
-      for (const scoped of [userScoped, projectScoped, projectLocalScoped, okignoreScoped]) {
+      for (const scoped of [projectScoped, projectLocalScoped, okignoreScoped]) {
         try {
           scoped.cleanup();
         } catch (e) {
@@ -240,10 +244,56 @@ function ConfigProviderBody({
           );
         }
       }
-      setUserState((prev) => (prev?.binding === userScoped.binding ? null : prev));
       setProjectState((prev) => (prev?.binding === projectScoped.binding ? null : prev));
       setProjectLocalState((prev) => (prev?.binding === projectLocalScoped.binding ? null : prev));
       setOkignoreState((prev) => (prev?.binding === okignoreScoped.binding ? null : prev));
+    };
+  }, [collabUrl, serverInstanceId]);
+
+  useEffect(() => {
+    if (collabUrl === null) return;
+    let disposed = false;
+    let userScoped: ScopedBinding | undefined;
+    const unsubscribers: Array<() => void> = [];
+    void probePersonalSettings().then((probe) => {
+      if (disposed) return;
+      const scoped = probe.personal
+        ? makePersonalBinding(probe.yaml)
+        : makeBinding(collabUrl, CONFIG_DOC_NAME_USER, 'user', serverInstanceId);
+      userScoped = scoped;
+      setUserState({
+        binding: scoped.binding,
+        config: scoped.config,
+        synced: scoped.binding.hasSynced(),
+      });
+      unsubscribers.push(
+        scoped.binding.subscribe((next) => {
+          setUserState((prev) =>
+            prev?.binding === scoped.binding ? { ...prev, config: next } : prev,
+          );
+        }),
+        scoped.binding.subscribeSynced(() => {
+          setUserState((prev) =>
+            prev?.binding === scoped.binding
+              ? { ...prev, config: scoped.binding.current(), synced: true }
+              : prev,
+          );
+        }),
+      );
+    });
+    return () => {
+      disposed = true;
+      for (const unsubscribe of unsubscribers) unsubscribe();
+      const scoped = userScoped;
+      if (scoped === undefined) return;
+      try {
+        scoped.cleanup();
+      } catch (e) {
+        console.warn(
+          JSON.stringify({ event: 'ok-config-provider-cleanup-error', error: String(e) }),
+        );
+      }
+      setUserState((prev) => (prev?.binding === scoped.binding ? null : prev));
     };
   }, [collabUrl, serverInstanceId]);
 

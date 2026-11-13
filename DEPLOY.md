@@ -182,6 +182,10 @@ when the webhook is first set up are not posted.
 Each person connects their own AI agent, with their own Claude (or other) account. Nothing runs on
 the server on their behalf.
 
+In the app, **Settings → Connect Claude** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
+it shows the connector address to paste into Claude (Customize → Connectors → Add custom
+connector), and it links to the token page below for Claude Code.
+
 1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
 2. Create a token. The page shows it once, with the command for Claude Code and the config for the
    Claude desktop app:
@@ -221,6 +225,10 @@ the GitHub App when it is configured) and revokes the tokens of people who lost 
 | `GITQUIRE_ASK_AI` | `on` shows the editor's **Ask AI** box and the empty screen's prompt box. Off by default, because they hand work to an agent running on the server, which a shared team server doesn't have. While it is off, people with agent access get the **Ask Claude** box instead. |
 
 ## Other settings
+
+Settings under **User** in the app are personal: with GitHub sign-in on, each person's are saved
+on the data volume in `.ok/local/gitquire/users/<GitHub user id>.yml`, outside Git. Settings under
+**This project** are shared and live in the repository's `.ok/config.yml`.
 
 | Setting | Meaning |
 | --- | --- |

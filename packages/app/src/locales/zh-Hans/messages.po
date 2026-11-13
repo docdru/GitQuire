@@ -1411,6 +1411,9 @@ msgstr "智能体设置 — {headerSummary}"
 msgid "Agent settings — {headerSummary} — changes apply when you pick this conversation back up"
 msgstr "智能体设置 — {headerSummary}：更改将在继续此对话时生效"
 
+msgid "Agent token"
+msgstr ""
+
 msgid "Agent transcript"
 msgstr "智能体记录"
 
@@ -2347,6 +2350,9 @@ msgstr "正在重新连接前清除“{docName}”的本地协作数据。"
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "依次点击 <0>+</0> <1/> <2>创建技能</2> <3/> <4>上传技能</4>。"
 
+msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgstr ""
+
 msgid "Click an agent's avatar in the presence bar to view their session."
 msgstr "在在线状态栏中点击某个智能体的头像即可查看它的会话。"
 
@@ -2660,6 +2666,9 @@ msgstr "连接一个 GitHub 账户，以浏览和发布 GitHub 仓库。"
 msgid "Connect an existing repository"
 msgstr "连接已有仓库"
 
+msgid "Connect Claude"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "连接 GitHub"
 
@@ -2716,6 +2725,9 @@ msgstr "正在连接"
 msgid "Connecting — waiting for collab server"
 msgstr "正在连接——等待协作服务器"
 
+msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgstr ""
+
 msgid "Connecting to {agentName}…"
 msgstr "正在连接 {agentName}…"
 
@@ -2727,6 +2739,9 @@ msgstr "连接出错——请重试"
 
 msgid "Connection lost — keep this tab open, your edits will sync when reconnected"
 msgstr "连接已断开——请保持这个标签页打开，重新连接后你的编辑会同步"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Connects the agent to GitQuire in every project on this machine."
 msgstr "将智能体连接到本机所有项目中的 GitQuire。"
@@ -2877,6 +2892,9 @@ msgstr "复制代码 {code}"
 
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "复制文件树中当前聚焦的项目，以便用「粘贴」创建副本。"
+
+msgid "Copy this address:"
+msgstr ""
 
 msgid "Copying"
 msgstr "正在复制"
@@ -3444,6 +3462,9 @@ msgstr "为这个项目创建一个技能。"
 
 msgid "Create a token on {host}"
 msgstr "在 {host} 上创建一个令牌"
+
+msgid "Create a token, then run the command shown in Claude Code."
+msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "基于这个分支创建 worktree"
@@ -5116,6 +5137,9 @@ msgstr "GitQuire 检查了项目"
 msgid "GitQuire checks for and downloads updates in the background."
 msgstr "GitQuire 会在后台检查并下载更新。"
 
+msgid "GitQuire connector address"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire 未在此设备上找到该智能体。"
 
@@ -5755,6 +5779,9 @@ msgstr "在索引文档中：条目位于节标题下，每个条目都带有一
 msgid "In app"
 msgstr "在应用内"
 
+msgid "In Claude, open <0>Customize → Connectors</0>, click <1>+</1> and choose <2>Add custom connector</2>. Name it GitQuire, paste the address and click <3>Add</3>."
+msgstr ""
+
 msgid "In Git projects, GitQuire adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
 msgstr "在 Git 项目中，GitQuire 会在仓库根目录的 .gitattributes 文件中添加一条限定范围的规则，以便合并并发的索引更改。"
 
@@ -6218,6 +6245,9 @@ msgstr "允许智能体对话使用浏览器"
 msgid "Let agents use GitQuire without asking"
 msgstr "让智能体无需询问即可使用 GitQuire"
 
+msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "让 Tab 键离开源码编辑器，而不是缩进。"
 
@@ -6592,6 +6622,9 @@ msgstr "每次索引请求的最大文本块数"
 
 msgid "May include unredacted document names."
 msgstr "可能包含未经脱敏的文档名称。"
+
+msgid "MCP"
+msgstr ""
 
 msgid "MCP auto-repair failed"
 msgstr "MCP 自动修复失败"
@@ -7704,6 +7737,9 @@ msgstr "打开并聚焦底部的「问 AI」提示词输入框。"
 msgid "Open board"
 msgstr "打开画板"
 
+msgid "Open Claude connectors"
+msgstr ""
+
 msgid "Open CodeMirror search in source editor mode."
 msgstr "在源码编辑器模式下打开 CodeMirror 搜索。"
 
@@ -7937,6 +7973,9 @@ msgstr "有序列表"
 
 msgid "Ordered List"
 msgstr "有序列表"
+
+msgid "Organization connectors"
+msgstr ""
 
 msgid "Organize my existing specs into a linked index grouped by area, and flag any that have drifted out of sync with the current code."
 msgstr "把我现有的规格整理成一个按领域分组的链接索引，并标出与当前代码脱节的部分。"
@@ -11494,6 +11533,12 @@ msgstr ""
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "此服务器没有内置身份验证。任何能够访问该隧道的人都将获得对此知识库的完全控制权。请在其前面设置一道身份验证关卡，例如专用的 Tailscale 网络或带身份验证的反向代理。"
 
+msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
+msgstr ""
+
+msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgstr ""
+
 msgid "This setting is per-machine and isn't shared with collaborators."
 msgstr "这项设置按电脑生效，不会与协作者共享。"
 
@@ -11672,6 +11717,9 @@ msgstr "已为 {host} 上的 {login} 保存令牌。要移除它，请运行 <0>
 
 msgid "tokens"
 msgstr "token"
+
+msgid "Tokens and connected apps"
+msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
 msgstr ""
@@ -12112,6 +12160,9 @@ msgstr "用户插件是这台设备的个人设置——在这里开启或关闭
 
 msgid "Username"
 msgstr "用户名"
+
+msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
+msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "正在使用 <0>OK_EMBEDDINGS_API_KEY</0> 环境变量（在 GitQuire 之外管理）。"
@@ -12575,6 +12626,9 @@ msgstr "你的仓库"
 
 msgid "Your search queries and the full text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "你的搜索查询和匹配页面的全文会发送到你的嵌入服务提供方（默认是 OpenAI）来计算嵌入向量。"
+
+msgid "Your settings could not be saved."
+msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "你的共享链接已在下方生成。"

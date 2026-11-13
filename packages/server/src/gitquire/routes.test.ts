@@ -1,4 +1,7 @@
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { GitHubUnavailableError } from './github-app.ts';
 import type {
@@ -327,4 +330,93 @@ describe('GitQuire routes', () => {
     expect(out.status).toBe(503);
     expect(out.body.error).toBe('github-unavailable');
   });
+});
+
+describe('personal settings', () => {
+  function settingsRoutes(dir: string, login: string | null = 'alice', id = 42) {
+    return createGitQuireRoutes({
+      projectDir: dir,
+      log: silentLog,
+      sessionUser: () => (login === null ? undefined : { id, login, name: login, avatarUrl: '' }),
+    });
+  }
+
+  function withDir(run: (dir: string) => Promise<void>): () => Promise<void> {
+    return async () => {
+      const dir = mkdtempSync(join(tmpdir(), 'gq-settings-'));
+      try {
+        await run(dir);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    };
+  }
+
+  it(
+    'reports shared settings when nobody is signed in',
+    withDir(async (dir) => {
+      const out = await call(settingsRoutes(dir, null), request('/api/gitquire/me/settings'));
+      expect(out.body).toEqual({ personal: false });
+    }),
+  );
+
+  it(
+    'starts empty, saves per GitHub user, and keeps people apart',
+    withDir(async (dir) => {
+      const alice = settingsRoutes(dir, 'alice', 42);
+      const bob = settingsRoutes(dir, 'bob', 7);
+      expect((await call(alice, request('/api/gitquire/me/settings'))).body).toEqual({
+        personal: true,
+        login: 'alice',
+        yaml: '',
+      });
+      const yaml = 'appearance:\n  theme: dark\n';
+      const saved = await call(
+        alice,
+        request('/api/gitquire/me/settings', { method: 'PUT', body: { yaml } }),
+      );
+      expect(saved.status).toBe(200);
+      expect(readFileSync(join(dir, '.ok/local/gitquire/users/42.yml'), 'utf8')).toBe(yaml);
+      expect((await call(alice, request('/api/gitquire/me/settings'))).body.yaml).toBe(yaml);
+      expect((await call(bob, request('/api/gitquire/me/settings'))).body.yaml).toBe('');
+    }),
+  );
+
+  it(
+    'refuses invalid settings and saving without sign-in',
+    withDir(async (dir) => {
+      const broken = await call(
+        settingsRoutes(dir),
+        request('/api/gitquire/me/settings', { method: 'PUT', body: { yaml: 'a: [' } }),
+      );
+      expect(broken.status).toBe(400);
+      expect(broken.body.error).toBe('settings-invalid-yaml');
+      const list = await call(
+        settingsRoutes(dir),
+        request('/api/gitquire/me/settings', { method: 'PUT', body: { yaml: '- a\n- b\n' } }),
+      );
+      expect(list.body.error).toBe('settings-not-a-mapping');
+      const anonymous = await call(
+        settingsRoutes(dir, null),
+        request('/api/gitquire/me/settings', { method: 'PUT', body: { yaml: '' } }),
+      );
+      expect(anonymous.status).toBe(401);
+      expect(existsSync(join(dir, '.ok/local/gitquire/users'))).toBe(false);
+    }),
+  );
+
+  it(
+    'refuses cross-origin saves',
+    withDir(async (dir) => {
+      const out = await call(
+        settingsRoutes(dir),
+        request('/api/gitquire/me/settings', {
+          method: 'PUT',
+          body: { yaml: '' },
+          headers: { origin: 'https://evil.example' },
+        }),
+      );
+      expect(out.status).toBe(403);
+    }),
+  );
 });

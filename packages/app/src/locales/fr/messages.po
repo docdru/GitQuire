@@ -1411,6 +1411,9 @@ msgstr "Paramètres de l'agent — {headerSummary}"
 msgid "Agent settings — {headerSummary} — changes apply when you pick this conversation back up"
 msgstr "Paramètres de l'agent — {headerSummary} : les modifications s'appliquent lorsque vous reprendrez cette conversation"
 
+msgid "Agent token"
+msgstr ""
+
 msgid "Agent transcript"
 msgstr "Transcription de l'agent"
 
@@ -2347,6 +2350,9 @@ msgstr "Effacement des données de collaboration locales de « {docName} » avan
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "Cliquez sur <0>+</0> <1/> <2>Créer une compétence</2> <3/> <4>Envoyer une compétence</4>."
 
+msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgstr ""
+
 msgid "Click an agent's avatar in the presence bar to view their session."
 msgstr "Cliquez sur l'avatar d'un agent dans la barre de présence pour voir sa session."
 
@@ -2660,6 +2666,9 @@ msgstr "Connectez un compte GitHub pour parcourir et publier des dépôts GitHub
 msgid "Connect an existing repository"
 msgstr "Connecter un dépôt existant"
 
+msgid "Connect Claude"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "Connecter GitHub"
 
@@ -2716,6 +2725,9 @@ msgstr "Connexion"
 msgid "Connecting — waiting for collab server"
 msgstr "Connexion — en attente du serveur de collaboration"
 
+msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgstr ""
+
 msgid "Connecting to {agentName}…"
 msgstr "Connexion à {agentName}…"
 
@@ -2727,6 +2739,9 @@ msgstr "Erreur de connexion — réessayez"
 
 msgid "Connection lost — keep this tab open, your edits will sync when reconnected"
 msgstr "Connexion perdue — gardez cet onglet ouvert, vos modifications se synchroniseront une fois reconnecté"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Connects the agent to GitQuire in every project on this machine."
 msgstr "Connecte l'agent à GitQuire dans tous les projets de cette machine."
@@ -2877,6 +2892,9 @@ msgstr "Copier le code {code}"
 
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "Copie l'élément de l'arborescence ayant le focus pour que Coller puisse le dupliquer."
+
+msgid "Copy this address:"
+msgstr ""
 
 msgid "Copying"
 msgstr "Copie en cours"
@@ -3444,6 +3462,9 @@ msgstr "Créez une compétence pour ce projet."
 
 msgid "Create a token on {host}"
 msgstr "Créer un jeton sur {host}"
+
+msgid "Create a token, then run the command shown in Claude Code."
+msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "Créer un worktree à partir de cette branche"
@@ -5116,6 +5137,9 @@ msgstr "GitQuire a vérifié le projet"
 msgid "GitQuire checks for and downloads updates in the background."
 msgstr "GitQuire recherche et télécharge les mises à jour en arrière-plan."
 
+msgid "GitQuire connector address"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire n'a pas trouvé cet agent sur cette machine."
 
@@ -5755,6 +5779,9 @@ msgstr "Dans un document d'index : les entrées se trouvent sous un en-tête de
 msgid "In app"
 msgstr "Dans l'application"
 
+msgid "In Claude, open <0>Customize → Connectors</0>, click <1>+</1> and choose <2>Add custom connector</2>. Name it GitQuire, paste the address and click <3>Add</3>."
+msgstr ""
+
 msgid "In Git projects, GitQuire adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
 msgstr "Dans les projets Git, GitQuire ajoute une règle ciblée au fichier .gitattributes à la racine du dépôt afin de combiner les modifications simultanées des index."
 
@@ -6218,6 +6245,9 @@ msgstr "Laisser les chats d'agents utiliser un navigateur"
 msgid "Let agents use GitQuire without asking"
 msgstr "Laisser les agents utiliser GitQuire sans demander"
 
+msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Laisser la touche Tab quitter l'éditeur de source au lieu d'ajouter un retrait."
 
@@ -6592,6 +6622,9 @@ msgstr "Nombre maximal de fragments de texte par requête d'indexation"
 
 msgid "May include unredacted document names."
 msgstr "Peut inclure des noms de documents non masqués."
+
+msgid "MCP"
+msgstr ""
 
 msgid "MCP auto-repair failed"
 msgstr "La réparation automatique de MCP a échoué"
@@ -7704,6 +7737,9 @@ msgstr "Ouvre et met le focus sur la zone d'invite Demander à l'IA en bas."
 msgid "Open board"
 msgstr "Ouvrir le tableau"
 
+msgid "Open Claude connectors"
+msgstr ""
+
 msgid "Open CodeMirror search in source editor mode."
 msgstr "Ouvre la recherche CodeMirror en mode éditeur de source."
 
@@ -7937,6 +7973,9 @@ msgstr "Liste numérotée"
 
 msgid "Ordered List"
 msgstr "Liste numérotée"
+
+msgid "Organization connectors"
+msgstr ""
 
 msgid "Organize my existing specs into a linked index grouped by area, and flag any that have drifted out of sync with the current code."
 msgstr "Organise mes spécifications existantes en un index lié, groupé par domaine, et signale celles qui ont divergé du code actuel."
@@ -11494,6 +11533,12 @@ msgstr ""
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "Ce serveur n’a pas d’authentification intégrée. Toute personne pouvant atteindre le tunnel obtient un contrôle total de cette base de connaissances. Placez devant lui une barrière d’authentification, comme un réseau Tailscale privé ou un proxy inverse avec authentification."
 
+msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
+msgstr ""
+
+msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgstr ""
+
 msgid "This setting is per-machine and isn't shared with collaborators."
 msgstr "Ce réglage est propre à chaque machine et n'est pas partagé avec les collaborateurs."
 
@@ -11672,6 +11717,9 @@ msgstr "Jeton enregistré pour {login} sur {host}. Pour le supprimer, exécutez 
 
 msgid "tokens"
 msgstr "tokens"
+
+msgid "Tokens and connected apps"
+msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
 msgstr ""
@@ -12112,6 +12160,9 @@ msgstr "Les plugins utilisateur sont propres à cet appareil — activez-les ou 
 
 msgid "Username"
 msgstr "Nom d'utilisateur"
+
+msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
+msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "Utilise la variable d'environnement <0>OK_EMBEDDINGS_API_KEY</0> (gérée en dehors de GitQuire)."
@@ -12575,6 +12626,9 @@ msgstr "Vos dépôts"
 
 msgid "Your search queries and the full text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Vos requêtes de recherche et le texte intégral des pages correspondantes sont envoyés à votre fournisseur d'embeddings (OpenAI par défaut) pour calculer les embeddings."
+
+msgid "Your settings could not be saved."
+msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "Votre lien de partage est prêt ci-dessous."

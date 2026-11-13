@@ -1407,6 +1407,9 @@ msgstr "Pengaturan agen — {headerSummary}"
 msgid "Agent settings — {headerSummary} — changes apply when you pick this conversation back up"
 msgstr "Pengaturan agen — {headerSummary}: perubahan berlaku saat Anda melanjutkan percakapan ini"
 
+msgid "Agent token"
+msgstr ""
+
 msgid "Agent transcript"
 msgstr "Transkrip agen"
 
@@ -2343,6 +2346,9 @@ msgstr "Membersihkan data kolaborasi lokal untuk \"{docName}\" sebelum menyambun
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "Klik <0>+</0> <1/> <2>Buat keterampilan</2> <3/> <4>Unggah keterampilan</4>."
 
+msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgstr ""
+
 msgid "Click an agent's avatar in the presence bar to view their session."
 msgstr "Klik avatar seorang agen di bilah kehadiran untuk melihat sesinya."
 
@@ -2656,6 +2662,9 @@ msgstr "Hubungkan akun GitHub untuk menjelajahi dan menerbitkan repositori GitHu
 msgid "Connect an existing repository"
 msgstr "Hubungkan repositori yang sudah ada"
 
+msgid "Connect Claude"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "Hubungkan GitHub"
 
@@ -2712,6 +2721,9 @@ msgstr "Menghubungkan"
 msgid "Connecting — waiting for collab server"
 msgstr "Menghubungkan — menunggu server kolaborasi"
 
+msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgstr ""
+
 msgid "Connecting to {agentName}…"
 msgstr "Menghubungkan ke {agentName}…"
 
@@ -2723,6 +2735,9 @@ msgstr "Galat koneksi — coba lagi"
 
 msgid "Connection lost — keep this tab open, your edits will sync when reconnected"
 msgstr "Koneksi hilang — biarkan tab ini terbuka, suntingan Anda akan tersinkron saat tersambung kembali"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Connects the agent to GitQuire in every project on this machine."
 msgstr "Menghubungkan agen ke GitQuire di setiap proyek pada mesin ini."
@@ -2873,6 +2888,9 @@ msgstr "Salin kode {code}"
 
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "Menyalin item pohon berkas yang sedang difokus agar Tempel bisa menggandakannya."
+
+msgid "Copy this address:"
+msgstr ""
 
 msgid "Copying"
 msgstr "Menyalin"
@@ -3440,6 +3458,9 @@ msgstr "Buat keterampilan untuk proyek ini."
 
 msgid "Create a token on {host}"
 msgstr "Buat token di {host}"
+
+msgid "Create a token, then run the command shown in Claude Code."
+msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "Buat worktree dari cabang ini"
@@ -5112,6 +5133,9 @@ msgstr "GitQuire memeriksa proyek"
 msgid "GitQuire checks for and downloads updates in the background."
 msgstr "GitQuire memeriksa dan mengunduh pembaruan di latar belakang."
 
+msgid "GitQuire connector address"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire tidak menemukan agen ini di mesin ini."
 
@@ -5751,6 +5775,9 @@ msgstr "Dalam dokumen indeks: entri berada di bawah judul bagian dan masing-masi
 msgid "In app"
 msgstr "Di aplikasi"
 
+msgid "In Claude, open <0>Customize → Connectors</0>, click <1>+</1> and choose <2>Add custom connector</2>. Name it GitQuire, paste the address and click <3>Add</3>."
+msgstr ""
+
 msgid "In Git projects, GitQuire adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
 msgstr "Dalam proyek Git, GitQuire menambahkan aturan tercakup ke file .gitattributes di root repositori agar perubahan indeks yang bersamaan dapat digabungkan."
 
@@ -6214,6 +6241,9 @@ msgstr "Izinkan obrolan agen memakai browser"
 msgid "Let agents use GitQuire without asking"
 msgstr "Biarkan agen memakai GitQuire tanpa bertanya"
 
+msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Biarkan Tab keluar dari penyunting sumber alih-alih menambah indentasi."
 
@@ -6588,6 +6618,9 @@ msgstr "Maksimum potongan teks per permintaan pengindeksan"
 
 msgid "May include unredacted document names."
 msgstr "Dapat menyertakan nama dokumen yang tidak disamarkan."
+
+msgid "MCP"
+msgstr ""
 
 msgid "MCP auto-repair failed"
 msgstr "Perbaikan otomatis MCP gagal"
@@ -7700,6 +7733,9 @@ msgstr "Membuka dan memfokuskan penyusun prompt Tanya AI di bawah."
 msgid "Open board"
 msgstr "Buka papan"
 
+msgid "Open Claude connectors"
+msgstr ""
+
 msgid "Open CodeMirror search in source editor mode."
 msgstr "Membuka pencarian CodeMirror di mode penyunting sumber."
 
@@ -7933,6 +7969,9 @@ msgstr "Daftar berurut"
 
 msgid "Ordered List"
 msgstr "Daftar Berurut"
+
+msgid "Organization connectors"
+msgstr ""
 
 msgid "Organize my existing specs into a linked index grouped by area, and flag any that have drifted out of sync with the current code."
 msgstr "Tata spesifikasi saya yang sudah ada menjadi indeks tertaut yang dikelompokkan per bidang, dan tandai mana saja yang sudah tidak selaras dengan kode saat ini."
@@ -11490,6 +11529,12 @@ msgstr ""
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "Server ini tidak memiliki autentikasi bawaan. Siapa pun yang dapat menjangkau tunnel mendapatkan kendali penuh atas basis pengetahuan ini. Pasang gerbang autentikasi di depannya, seperti jaringan Tailscale pribadi atau reverse proxy dengan autentikasi."
 
+msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
+msgstr ""
+
+msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgstr ""
+
 msgid "This setting is per-machine and isn't shared with collaborators."
 msgstr "Pengaturan ini berlaku per komputer dan tidak dibagikan dengan kolaborator."
 
@@ -11668,6 +11713,9 @@ msgstr "Token disimpan untuk {login} di {host}. Untuk menghapusnya, jalankan <0>
 
 msgid "tokens"
 msgstr "token"
+
+msgid "Tokens and connected apps"
+msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
 msgstr ""
@@ -12108,6 +12156,9 @@ msgstr "Plugin pengguna bersifat pribadi untuk perangkat ini — nyalakan atau m
 
 msgid "Username"
 msgstr "Nama pengguna"
+
+msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
+msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "Memakai variabel lingkungan <0>OK_EMBEDDINGS_API_KEY</0> (dikelola di luar GitQuire)."
@@ -12571,6 +12622,9 @@ msgstr "Repositori Anda"
 
 msgid "Your search queries and the full text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Kueri pencarian Anda dan teks lengkap halaman yang cocok dikirim ke penyedia embedding Anda (OpenAI secara bawaan) untuk menghitung embedding."
+
+msgid "Your settings could not be saved."
+msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "Tautan berbagi Anda sudah siap di bawah."

@@ -38,6 +38,7 @@ import { useGitWorktreeStatus } from '@/hooks/use-git-worktree-status';
 import { useConfigContext } from '@/lib/config-provider';
 import { hashFromAssetPath, hashFromDocName, isSameHash } from '@/lib/doc-hash';
 import { engineSyncMode } from '@/lib/engine-sync-mode';
+import { PERSONAL_GIT_CREDENTIALS_ENABLED } from '@/lib/gitquire/personal-git-credentials';
 import { revealEditor } from '@/lib/reveal-editor';
 import { triggerSync } from '@/lib/trigger-sync';
 import { openAccountSettings, openSyncSettings } from '@/lib/use-settings-route';
@@ -1031,6 +1032,7 @@ function UpdatedLine({
 }
 
 function AddHostTokenButton() {
+  if (!PERSONAL_GIT_CREDENTIALS_ENABLED) return null;
   return (
     <PopoverClose asChild>
       <Button

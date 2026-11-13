@@ -4,6 +4,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { TriangleAlert } from 'lucide-react';
 import { type ComponentType, lazy } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AgentsSettings } from '@/gitquire-settings/AgentsSettings';
 import { lazyWithPreload } from '@/lib/lazy-with-preload';
 import { SettingsSectionHeader } from './SettingsSectionHeader';
 import { FIELDS_USER_PREFERENCES } from './settings-fields';
@@ -180,7 +181,7 @@ export function SettingsDialogBody({
     );
   }
   if (activeId === 'agent-connections') {
-    return <AgentConnectionsSection />;
+    return <AgentsSettings inAppAgents={<AgentConnectionsSection />} />;
   }
   if (activeId === 'hotkeys') {
     return <HotkeysSection />;
