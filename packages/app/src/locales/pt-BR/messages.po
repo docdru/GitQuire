@@ -9468,6 +9468,9 @@ msgstr "Buscar ramos..."
 msgid "Search by meaning"
 msgstr "Buscar por significado"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "Pesquisar no histórico de conversas"
 
@@ -9671,9 +9674,6 @@ msgstr "A busca semântica acrescenta uma classificação por significado à fer
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "A busca semântica está ligada, mas nenhuma chave de API foi definida — a busca volta para correspondência por palavra-chave. Adicione uma abaixo."
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "A busca semântica não está disponível com a configuração atual do provedor de embeddings. Confira Configurações → Busca."
 
 msgid "Send"
 msgstr "Enviar"
