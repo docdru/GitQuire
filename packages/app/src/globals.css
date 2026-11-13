@@ -7077,3 +7077,24 @@ html:not([data-color-theme]):not(.dark) [data-slot="kbd"] {
   background: var(--popover);
   box-shadow: var(--shadow-md, 0 2px 8px oklch(0% 0 0 / 0.15));
 }
+
+.ProseMirror .gq-relation-name {
+  margin-inline-end: 0.35em;
+  padding: 0.05em 0.4em;
+  border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent);
+  border-radius: var(--radius-sm, 0.25rem);
+  background: color-mix(in oklab, var(--primary) 5%, transparent);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ProseMirror .gq-relation-name::after {
+  content: " →";
+}
+
+.ProseMirror .gq-relation-syntax {
+  display: none;
+}

@@ -194,6 +194,7 @@ describe('GitQuire routes', () => {
       local: ['main'],
       remoteOnly: ['report/q3'],
       github: true,
+      currentMerged: false,
     });
   });
 

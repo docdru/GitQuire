@@ -678,6 +678,9 @@ msgstr "第 {displayLine} 行：{localizedMessage}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "來自 {server} MCP 伺服器的 {mcpTool}"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {base}."
+msgstr ""
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, other {# 分鐘前}}"
 
@@ -6729,8 +6732,8 @@ msgstr "模型預設的推理強度"
 msgid "Modified"
 msgstr "已修改"
 
-msgid "Modify the link target, anchor, and display label."
-msgstr "修改連結目標、錨點和顯示標籤。"
+msgid "Modify the link target, relation, anchor, and display label."
+msgstr ""
 
 msgid "More"
 msgstr "更多"
@@ -7397,6 +7400,9 @@ msgstr "沒有最近的專案"
 
 msgid "No recent projects."
 msgstr "沒有最近的專案。"
+
+msgid "No relation"
+msgstr ""
 
 msgid "No repositories found on your GitHub account."
 msgstr "在你的 GitHub 帳戶中找不到儲存庫。"
@@ -8753,6 +8759,9 @@ msgstr "正在重新安裝"
 
 msgid "Reject"
 msgstr "拒絕"
+
+msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr ""
 
 msgid "Relations"
 msgstr ""
@@ -12124,6 +12133,9 @@ msgstr "只能用字母、數字、<0>_</0> 和 <1>-</1>。"
 
 msgid "Use letters, digits, <0>-</0> or <1>_</1> only."
 msgstr "只能用字母、數字、<0>-</0> 或 <1>_</1>。"
+
+msgid "Use letters, digits, spaces and - _ . / (up to 60 characters)."
+msgstr ""
 
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "只能用小寫字母、數字和 <0>-</0>。"

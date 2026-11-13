@@ -678,6 +678,9 @@ msgstr "{localizedMessage}, 줄 {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{server} MCP 서버의 {mcpTool}"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {base}."
+msgstr ""
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, other {#분 전}}"
 
@@ -6729,8 +6732,8 @@ msgstr "모델 기본 작업 수준"
 msgid "Modified"
 msgstr "수정됨"
 
-msgid "Modify the link target, anchor, and display label."
-msgstr "링크 대상, 앵커, 표시 레이블을 수정합니다."
+msgid "Modify the link target, relation, anchor, and display label."
+msgstr ""
 
 msgid "More"
 msgstr "더 보기"
@@ -7397,6 +7400,9 @@ msgstr "최근 프로젝트 없음"
 
 msgid "No recent projects."
 msgstr "최근 프로젝트 없음."
+
+msgid "No relation"
+msgstr ""
 
 msgid "No repositories found on your GitHub account."
 msgstr "GitHub 계정에서 저장소를 찾을 수 없습니다."
@@ -8753,6 +8759,9 @@ msgstr "재설치 중"
 
 msgid "Reject"
 msgstr "거부"
+
+msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr ""
 
 msgid "Relations"
 msgstr ""
@@ -12124,6 +12133,9 @@ msgstr "문자, 숫자, <0>_</0>, <1>-</1>만 사용하세요."
 
 msgid "Use letters, digits, <0>-</0> or <1>_</1> only."
 msgstr "문자, 숫자, <0>-</0> 또는 <1>_</1>만 사용하세요."
+
+msgid "Use letters, digits, spaces and - _ . / (up to 60 characters)."
+msgstr ""
 
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "소문자, 숫자, <0>-</0>만 사용하세요."

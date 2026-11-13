@@ -51,6 +51,13 @@ We agreed on the new layout [supersedes:: [[Decision 9]]] in the meeting.
 - Every wiki link in the field gets the relation. Links in code blocks, embeds `![[…]]` and
   links to websites are left out.
 
+### From the link menu
+
+Click a link, choose **Edit** and fill in **Relation**. The field suggests the relations already
+used in the wiki. GitQuire writes the field for you: `relation:: ` in front of a link that starts
+the line, or `(relation:: [[Page]])` around a link inside a sentence. Clear the field to remove the
+relation.
+
 ## Relation names
 
 Names are compared without regard to case or extra spaces: `Supersedes`, `supersedes` and
@@ -63,10 +70,14 @@ never write both sides.
 
 ## Where relations show up
 
-- **Outgoing links.** The links panel shows the relation as a chip on each link, with an arrow
-  pointing away from the page: `supersedes →`.
+- **Editor.** A field shows as a badge, `supersedes →`, in front of the link, and the `::` is
+  hidden. Put the cursor on the badge to edit the text as written.
+- **Outgoing links.** The links panel shows the relation as a badge in front of the page title,
+  with an arrow pointing away from the page: `supersedes →`. The folder sits in small print below
+  the title, and the surrounding text is shown only when it adds something to the title.
 - **Backlinks.** A page that links here with a relation shows `← supersedes`: that page supersedes
   this one.
+- **Link menu.** Clicking a link shows its relation next to the page name.
 - **Graph.** Typed links are drawn in the accent colour and a little thicker. Point at one to see
   the relation; zoom in to see it written on the line.
 - **Adding a property.** The name field suggests the relations already used in the wiki, with how

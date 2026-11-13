@@ -678,6 +678,9 @@ msgstr "{localizedMessage} at line {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{mcpTool} from the {server} MCP server"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {base}."
+msgstr "{merged} was merged on GitHub. Switching everyone to {base}."
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, one {# min ago} other {# min ago}}"
 
@@ -6729,8 +6732,8 @@ msgstr "Model's default effort"
 msgid "Modified"
 msgstr "Modified"
 
-msgid "Modify the link target, anchor, and display label."
-msgstr "Modify the link target, anchor, and display label."
+msgid "Modify the link target, relation, anchor, and display label."
+msgstr "Modify the link target, relation, anchor, and display label."
 
 msgid "More"
 msgstr "More"
@@ -7397,6 +7400,9 @@ msgstr "No recent projects"
 
 msgid "No recent projects."
 msgstr "No recent projects."
+
+msgid "No relation"
+msgstr "No relation"
 
 msgid "No repositories found on your GitHub account."
 msgstr "No repositories found on your GitHub account."
@@ -8753,6 +8759,9 @@ msgstr "Reinstalling"
 
 msgid "Reject"
 msgstr "Reject"
+
+msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr "Relation <0>(optional, such as supersedes or blocks)</0>"
 
 msgid "Relations"
 msgstr "Relations"
@@ -12124,6 +12133,9 @@ msgstr "Use letters, digits, <0>_</0> and <1>-</1> only."
 
 msgid "Use letters, digits, <0>-</0> or <1>_</1> only."
 msgstr "Use letters, digits, <0>-</0> or <1>_</1> only."
+
+msgid "Use letters, digits, spaces and - _ . / (up to 60 characters)."
+msgstr "Use letters, digits, spaces and - _ . / (up to 60 characters)."
 
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "Use lowercase letters, digits, and <0>-</0> only."

@@ -10,7 +10,7 @@ export function GitQuireRelationChips({
 }) {
   if (relations.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1" data-testid="gitquire-relation-chips">
+    <div className="flex shrink-0 flex-wrap gap-1" data-testid="gitquire-relation-chips">
       {relations.map((relation) => (
         <Badge key={relation} variant="primary" className="normal-case">
           {direction === 'incoming' ? <ArrowLeft aria-hidden /> : null}
