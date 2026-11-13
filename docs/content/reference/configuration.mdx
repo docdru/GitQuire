@@ -152,6 +152,10 @@ Most users never set these — the schema settings above cover the common cases.
 
 ## Semantic search
 
+<Callout type="info">
+  **On a shared GitQuire server, the server's environment decides.** Set `GITQUIRE_SEMANTIC_SEARCH=on` and the `GITQUIRE_EMBEDDINGS_*` variables described in [DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#search-by-meaning). The app has no Search settings page there, and the `search.semantic.enabled`, `baseUrl` and `model` keys below are ignored. The rest of this section applies to a local install.
+</Callout>
+
 The MCP `search` tool can fuse an **embeddings-based semantic signal** into its ranking, so an agent's query surfaces conceptually-related pages even when they share no keywords (a query about "auth retries" can surface a page titled "Session Token Refresh"). It is **off by default** and additive. With it off, search everywhere (the MCP tool and the cmd-K omnibar) is purely lexical and stays on-machine. When it is enabled, the omnibar's **By meaning** pill appears once the endpoint has a usable credential: a stored key, or a loopback endpoint that needs none (step 2 below). A remote endpoint without a stored key stays lexical and hides the pill. Typing never embeds; pressing Enter fires one semantic search, sending the query to the embeddings provider.
 
 <Callout type="warn">

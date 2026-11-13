@@ -1253,8 +1253,8 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
                 {semanticView.notice === 'incapable' ? (
                   <CommandEmpty data-testid="command-palette-semantic-incapable">
                     <Trans>
-                      Semantic search isn't available with the current embeddings provider setup.
-                      Check Settings → Search.
+                      Search by meaning isn't working right now. Ask whoever runs GitQuire to check
+                      the embeddings provider.
                     </Trans>
                   </CommandEmpty>
                 ) : null}
