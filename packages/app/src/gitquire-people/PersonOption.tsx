@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import type { Person } from '@/lib/gitquire/people';
 import { cn } from '@/lib/utils';
 
@@ -16,14 +17,15 @@ export function PersonOption({
 }) {
   const initial = (person.name ?? person.login).slice(0, 1).toUpperCase();
   return (
-    <button
+    <Button
+      variant="ghost"
       id={id}
       type="button"
       role="option"
       aria-selected={selected}
       data-testid={`mention-option-${person.login}`}
       className={cn(
-        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm',
+        'h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-start font-normal',
         selected && 'bg-accent text-accent-foreground',
       )}
       onMouseDown={(event) => {
@@ -49,6 +51,6 @@ export function PersonOption({
       )}
       <span className="min-w-0 flex-1 truncate font-medium">{person.name ?? person.login}</span>
       <span className="shrink-0 text-muted-foreground text-xs">@{person.login}</span>
-    </button>
+    </Button>
   );
 }
