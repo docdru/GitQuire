@@ -65,8 +65,8 @@ export function ConnectMistralSection({ origin }: { origin?: string }) {
 
       <p className="text-sm text-muted-foreground">
         <Trans>
-          Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is
-          the account owner.
+          Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that
+          is the account owner.
         </Trans>
       </p>
     </section>
