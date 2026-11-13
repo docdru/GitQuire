@@ -270,7 +270,7 @@ function SettingsDialogFrame({
       items: [
         {
           id: 'agent-connections',
-          label: t`Connect Claude and Mistral`,
+          label: t`Connect AI`,
           keywords: [
             t`AI tools`,
             t`Claude`,

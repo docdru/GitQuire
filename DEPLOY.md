@@ -182,10 +182,10 @@ when the webhook is first set up are not posted.
 Each person connects their own AI agent, with their own Claude, Mistral (or other) account.
 Nothing runs on the server on their behalf.
 
-In the app, **Settings → Connect Claude and Mistral** walks people through it: with
-`GITQUIRE_MCP_CONNECTORS=on` it shows the connector address to paste into Claude (Customize →
-Connectors → Add custom connector) or Mistral's Le Chat (Intelligence → Connectors → Custom MCP
-Connector), and it links to the token page below for Claude Code.
+In the app, **Settings → Connect AI** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
+it shows the connector address and expandable steps for Claude (Customize → Connectors → Add
+custom connector) and Mistral's Le Chat (Intelligence → Connectors → Custom MCP Connector), and it
+links to the token page below for Claude Code.
 
 1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
 2. Create a token. The page shows it once, with the command for Claude Code and the config for the
