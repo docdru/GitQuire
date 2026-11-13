@@ -264,10 +264,8 @@ describe('components whose content lives in their own module', () => {
 
   test('the MCP install block names the editor it was given and keeps its guide link absolute', () => {
     const md = serialize('<McpInstall editor="Cursor" />');
-    expect(md).toContain('two ways to connect Cursor');
-    expect(md).toContain(
-      '](https://openknowledge.ai/docs/get-started/quickstart#ok-install-web-app)',
-    );
+    expect(md).toContain('so Cursor connects to it as a remote MCP server');
+    expect(md).toContain('](https://openknowledge.ai/docs/remote-control/connecting-agents)');
   });
 
   test('an MCP install block keeps the editor-specific notes nested inside it', () => {
@@ -279,12 +277,12 @@ describe('components whose content lives in their own module', () => {
   test('the verify block keeps the prompt and names the subject', () => {
     const md = serialize('<VerifyExec subject="Claude Code" />');
     expect(md).toContain('> List the first 5 documents you come across in this project.');
-    expect(md).toContain('Claude Code should call the OpenKnowledge `exec` tool');
+    expect(md).toContain('Claude Code should call the GitQuire `exec` tool');
   });
 
   test('an editor name that reads as markup is neutralised before it lands in prose', () => {
     const md = serialize('<McpInstall editor="VS_Code <beta>" />');
-    expect(md).toContain('two ways to connect VS\\_Code \\<beta>');
+    expect(md).toContain('so VS\\_Code \\<beta> connects');
     expect(md).not.toContain('VS_Code');
   });
 

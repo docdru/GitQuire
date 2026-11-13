@@ -1427,7 +1427,7 @@ describe('AcpThreadManager persistence + resume', () => {
 
     manager.sendPrompt(
       info.threadId,
-      "You're an agent working inside OpenKnowledge, with its MCP tools available to you. Here's what I'd like to do:\n\n> Fix the login redirect",
+      "You're an agent working inside GitQuire, with its MCP tools available to you. Here's what I'd like to do:\n\n> Fix the login redirect",
     );
     await waitUntil(
       () => manager.getInfo(info.threadId)?.title !== info.agent.name,

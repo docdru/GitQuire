@@ -1,22 +1,18 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
-import type { ShareFreshness } from '@inkeep/open-knowledge-core/schemas/api';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { CircleHelp, Share2 } from 'lucide-react';
 import { type Ref, useEffect, useId, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { CopyButton } from '@/components/CopyButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
-import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
 import { dispatchExternalLinkClick } from '@/lib/external-link';
+import { gitquirePageLink } from '@/lib/gitquire/page-link';
 import { formatShortcutBinding, formatShortcutBindingLabel } from '@/lib/keyboard-shortcuts';
 import { scheduleClipboardWrite } from '@/lib/share/clipboard-adapter';
-import { runShareAction, type ShareTargetInput } from '@/lib/share/run-share-action';
-import { cn } from '@/lib/utils';
-import { ShareFreshnessWarning, shareFreshnessRowVisible } from './ShareFreshnessWarning';
+import type { ShareTargetInput } from '@/lib/share/run-share-action';
 
 const SHARE_DOCS_URL = 'https://docdru.github.io/GitQuire/docs/features/share';
 const COPY_SHORTCUT = { mac: '⌘ C', windowsLinux: 'Ctrl C' };
@@ -27,15 +23,13 @@ export interface ShareButtonProps {
   triggerRef?: Ref<HTMLButtonElement>;
 }
 
-export function ShareButton({ input, onClickWhenNoRemote, triggerRef }: ShareButtonProps) {
+export function ShareButton({ input, triggerRef }: ShareButtonProps) {
   const { t } = useLingui();
   const headingId = useId();
-  const { status } = useGitSyncStatusDetailed();
   const [busy, setBusy] = useState(false);
   const [sharePopover, setSharePopover] = useState<{
     url: string;
     autoCopyFailed: boolean;
-    freshness?: ShareFreshness;
   } | null>(null);
   const urlInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -45,9 +39,7 @@ export function ShareButton({ input, onClickWhenNoRemote, triggerRef }: ShareBut
     urlInputRef.current.select();
   }, [sharePopover]);
 
-  const hasRemote = status?.hasRemote === true;
   const triggerDisabled = input === null;
-  const showFreshnessRow = shareFreshnessRowVisible(sharePopover?.freshness, status);
   const copyShortcut = formatShortcutBinding(COPY_SHORTCUT);
   const copyShortcutLabel = formatShortcutBindingLabel(COPY_SHORTCUT);
 
@@ -56,38 +48,12 @@ export function ShareButton({ input, onClickWhenNoRemote, triggerRef }: ShareBut
     if (input === null) return;
     setBusy(true);
     setSharePopover(null);
+    const url = gitquirePageLink(input, window.location);
     try {
-      const result = await runShareAction(
-        {
-          ...input,
-          hasRemote,
-          onClickWhenNoRemote,
-        },
-        {
-          clipboardWrite: scheduleClipboardWrite,
-          toastSuccess: (msg) => toast.success(msg),
-          toastError: (msg, reason) => {
-            if (reason === 'clipboard') return;
-            toast.error(msg);
-          },
-          logEvent: (msg) => console.log(msg),
-        },
-      );
-      if (result.kind === 'copied') {
-        setSharePopover({
-          url: result.shareUrl,
-          autoCopyFailed: false,
-          freshness: result.freshness,
-        });
-      } else if (result.kind === 'clipboard-failed') {
-        setSharePopover({
-          url: result.shareUrl,
-          autoCopyFailed: true,
-          freshness: result.freshness,
-        });
-      }
+      await scheduleClipboardWrite(url);
+      setSharePopover({ url, autoCopyFailed: false });
     } catch {
-      toast.error(t`Could not construct share URL.`);
+      setSharePopover({ url, autoCopyFailed: true });
     }
     setBusy(false);
   }
@@ -117,7 +83,7 @@ export function ShareButton({ input, onClickWhenNoRemote, triggerRef }: ShareBut
       <PopoverContent
         align="end"
         aria-labelledby={headingId}
-        className={cn('flex flex-col gap-2', showFreshnessRow ? 'w-96' : 'w-80')}
+        className="flex w-80 flex-col gap-2"
         data-testid="share-button-popover"
       >
         <p
@@ -129,8 +95,7 @@ export function ShareButton({ input, onClickWhenNoRemote, triggerRef }: ShareBut
         {sharePopover?.autoCopyFailed ? (
           <p className="text-xs text-muted-foreground">
             <Trans>
-              Use <Kbd aria-label={copyShortcutLabel}>{copyShortcut}</Kbd> to copy the link below,
-              or open OK in the desktop app.
+              Use <Kbd aria-label={copyShortcutLabel}>{copyShortcut}</Kbd> to copy the link below.
             </Trans>
           </p>
         ) : null}
@@ -156,11 +121,6 @@ export function ShareButton({ input, onClickWhenNoRemote, triggerRef }: ShareBut
             </div>
           </div>
         </div>
-        <ShareFreshnessWarning
-          freshness={sharePopover?.freshness}
-          status={status}
-          kind={input?.kind ?? 'doc'}
-        />
         <a
           href={SHARE_DOCS_URL}
           target="_blank"
