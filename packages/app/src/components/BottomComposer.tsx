@@ -9,19 +9,10 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { ArrowUpRight, ChevronDown, TextQuote, X } from 'lucide-react';
 import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
-import {
-  composeCommentBatchInstruction,
-  QueuedCommentsChip,
-  toCommentBatchItem,
-  useSelectedCommentCount,
-  useSelectedCommentDocs,
-} from '@/comments/comment-chips';
-import { type BatchPreparedItem, dispatchComments, subscribeCommentPosted } from '@/comments/store';
 import { PendingImageStrip } from '@/components/acp/PendingImageStrip';
 import { RegisteredAgentIcon } from '@/components/acp/RegisteredAgentIcon';
 import {
   ComposerAddMenu,
-  ComposerCommentsMenuItem,
   ComposerFilesMenuItem,
   ComposerMentionMenuItem,
   ComposerTooltipProvider,
@@ -330,10 +321,6 @@ export function BottomComposer({
 
   const [touchedFiles, setTouchedFiles] = useState<readonly string[]>([]);
   const [dismissedFiles, setDismissedFiles] = useState<ReadonlySet<string>>(() => new Set());
-  const selectedCommentCount = useSelectedCommentCount();
-  const selectedCommentDocs = useSelectedCommentDocs();
-  const [commentsAttached, setCommentsAttached] = useState(true);
-  const hasQueuedComments = selectedCommentCount > 0 && commentsAttached;
   const [inlineMentions, setInlineMentions] = useState<readonly string[]>([]);
 
   const activeFilePath =
@@ -361,15 +348,6 @@ export function BottomComposer({
   useEffect(() => {
     if (liveFrontmatterSelection) setPinnedSelection(liveFrontmatterSelection);
   }, [liveFrontmatterSelection]);
-  useEffect(
-    () =>
-      subscribeCommentPosted(() => {
-        setPinnedSelection(null);
-        setSelectionExpanded(false);
-        setCommentsAttached(true);
-      }),
-    [],
-  );
 
   const defaultRegisteredAgent = useDefaultRegisteredAgent();
   const registeredThreadAgents = useRegisteredAgents();
@@ -401,7 +379,7 @@ export function BottomComposer({
   const canSend =
     !pending &&
     pendingUploads.length === 0 &&
-    (!isEmpty || pinnedSelection !== null || hasQueuedComments || pendingAttachments.length > 0) &&
+    (!isEmpty || pinnedSelection !== null || pendingAttachments.length > 0) &&
     (isTerminalSelected || resolvedTarget !== null || isThreadSelected);
 
   const inNoteWindow = isNoteWindow();
@@ -466,14 +444,12 @@ export function BottomComposer({
         })
       : undefined;
 
-  const suggestions = hasQueuedComments
-    ? [t`Work through these comments`]
-    : [
-        t`Research the extinction of flightless birds`,
-        t`Condense my AGENTS.md file to less than 40k characters`,
-        t`Create a new spec file for my user story`,
-        t`Summarize everything I changed this week`,
-      ];
+  const suggestions = [
+    t`Research the extinction of flightless birds`,
+    t`Condense my AGENTS.md file to less than 40k characters`,
+    t`Create a new spec file for my user story`,
+    t`Summarize everything I changed this week`,
+  ];
 
   const handleSelectAgent = (target: TargetData) => {
     setSelectedId(target.id);
@@ -502,7 +478,6 @@ export function BottomComposer({
     setSelectionExpanded(false);
     setTouchedFiles([]);
     setDismissedFiles(new Set());
-    setCommentsAttached(true);
     clearPendingAttachments();
     clearComposerDraft();
   };
@@ -625,49 +600,7 @@ export function BottomComposer({
 
   const submit = () => {
     if (!canSend) return;
-    if (hasQueuedComments) {
-      submitQueuedComments().catch((err) => {
-        console.warn('[comments] queued-comment send rejected unexpectedly', err);
-      });
-      return;
-    }
     void dispatchComposed(composeCurrentInput());
-  };
-
-  const submitQueuedComments = async () => {
-    const { instruction, mentions } = inputRef.current?.getContent() ?? {
-      instruction: '',
-      mentions: [],
-    };
-    const shipped = await dispatchComments({
-      compose: async (items: readonly BatchPreparedItem[]) => {
-        const input = buildComposerHandoffInput({
-          docName: null,
-          workspace,
-          instruction: composeCommentBatchInstruction(
-            items.map((item) => toCommentBatchItem(item.payload)),
-            instruction,
-            pinnedSelection
-              ? { docName: pinnedSelection.docName, markdown: pinnedSelection.markdown }
-              : undefined,
-          ),
-          mentions: [
-            ...new Set([
-              ...items.map((item) => docNameToRelativePath(item.payload.docName)),
-              ...fileChips,
-              ...mentions,
-            ]),
-          ],
-          attachments: pendingAttachments,
-        });
-        if (input === null) {
-          toast.error(t`Couldn't send your comments — please try again.`);
-          return false;
-        }
-        return dispatchComposed(input, false);
-      },
-    });
-    if (shipped.length > 0) clearComposer();
   };
 
   if (dismissed) return null;
@@ -825,13 +758,6 @@ export function BottomComposer({
             ) : null}
           </>
         ) : null}
-        {hasQueuedComments && (
-          <QueuedCommentsChip
-            count={selectedCommentCount}
-            docs={selectedCommentDocs}
-            onDismiss={() => setCommentsAttached(false)}
-          />
-        )}
       </ComposerContextChips>
       {pendingAttachments.length > 0 || pendingUploads.length > 0 ? (
         <PendingImageStrip
@@ -871,12 +797,6 @@ export function BottomComposer({
       <div className="flex flex-wrap items-end gap-2">
         <ComposerAddMenu composerRef={inputRef} testId="ask-ai-add-to-prompt" size="icon">
           {attachmentsAccepted ? <ComposerFilesMenuItem onFiles={ingestFiles} /> : null}
-          {selectedCommentCount > 0 && !hasQueuedComments ? (
-            <ComposerCommentsMenuItem
-              count={selectedCommentCount}
-              onSelect={() => setCommentsAttached(true)}
-            />
-          ) : null}
           <ComposerMentionMenuItem onSelect={() => inputRef.current?.openMentionPicker()} />
         </ComposerAddMenu>
         <div className="relative flex min-h-8 min-w-24 flex-[1_1_6rem] flex-col justify-center">
@@ -898,7 +818,7 @@ export function BottomComposer({
           {isEmpty ? (
             <RotatingComposerPlaceholder
               phrases={suggestions}
-              rotating={!hasQueuedComments}
+              rotating
               className="flex -translate-y-px items-center px-0 py-0"
               testId="ask-ai-composer-placeholder"
             />

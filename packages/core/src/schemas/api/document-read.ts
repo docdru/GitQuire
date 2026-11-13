@@ -114,13 +114,6 @@ export const BacklinkCountsSuccessSchema = z
   .loose() satisfies StandardSchemaV1;
 export type BacklinkCountsSuccess = z.infer<typeof BacklinkCountsSuccessSchema>;
 
-export const CommentCountsSuccessSchema = z
-  .object({
-    counts: z.record(z.string().min(1), z.number().int().nonnegative()),
-  })
-  .loose() satisfies StandardSchemaV1;
-export type CommentCountsSuccess = z.infer<typeof CommentCountsSuccessSchema>;
-
 export const ForwardLinkDocEntrySchema = z
   .object({
     kind: z.literal('doc'),

@@ -623,25 +623,6 @@ test.describe('deliberate opens show a hidden editor', () => {
     await expectEditorShownOn(page, second);
   });
 
-  test('a comment marker on the document leaves with the editor and returns with it', async ({
-    page,
-    api,
-  }) => {
-    const name = await openWeb(page, api, 'comment-marker');
-    const created = await page.request.post('/api/comments', {
-      data: { docName: name, quote: 'brown fox', body: 'Is the fox brown?' },
-    });
-    expect(created.ok()).toBe(true);
-    const marker = page.getByRole('button', { name: 'Open comment', exact: true });
-    await expect(marker).toBeVisible();
-
-    await hideEditor(page);
-    await expect(marker).toHaveCount(0);
-
-    await setHeaderPane(page, 'editor', true);
-    await expect(marker).toBeVisible();
-  });
-
   test('the bubble menu over a selection leaves with the editor', async ({ page, api }) => {
     await openWeb(page, api, 'bubble-menu');
     await page.locator('.tiptap-editor .ProseMirror p').first().selectText();

@@ -34,9 +34,9 @@ import {
   enrichDirectoryRecursive,
   enrichPath,
   fetchBacklinkCountsBatch,
-  fetchCommentCountsBatch,
   pathToDocName,
 } from '../../content/enrichment.ts';
+import { countOpenCommentThreads } from '../../gitquire/open-comment-threads.ts';
 import { getLogger } from '../../logger.ts';
 import { resolveWithinRoot } from './path-safety.ts';
 import { buildListResolver, docNameFromPath, type PreviewUrlSource } from './preview-url.ts';
@@ -61,7 +61,7 @@ const BINARY_EXT_RE = /\.(png|jpe?g|gif|webp|svg|pdf|zip|tar|gz|tgz|mp4|mov|mp3|
 
 export const DESCRIPTION = [
   'STOP: with `.ok/`, use exec for in-scope .md/.mdx; native Read/Grep/Glob omit wiki context. Native tools are for source code, non-markdown or projects without .ok/. See the open-knowledge skill for the full rule and escape hatch.',
-  'Read-only bash-like command; returns stdout and enrichedPaths with frontmatter, backlinks/forward links, unresolved comments, shadow-repo activity and git history with human/agent attribution. Unresolved comments are open human review requests: consider before editing and report them.',
+  'Read-only bash-like command; returns stdout and enrichedPaths with frontmatter, backlinks/forward links, unresolved comments, shadow-repo activity and git history with human/agent attribution. Unresolved comments are open comment threads stored at the end of the page; treat them as review requests from the team: consider them before editing and report them.',
   'Allowlist: cat, ls, grep, find, head, tail, wc, sort, uniq, cut. One command or pipe per call. No &&, ;, subshells, writes or redirection (including <). Use multiple paths or separate calls.',
   "cwd: command paths resolve inside explicit absolute cwd, or the client's sole advertised root. With zero/multiple roots pass cwd; traversal above it is rejected.",
   'Stdout provenance: ls <dir>/ labels the directory; single-file cat/head/tail labels its path. Multi-file cat has no header; enrichedPaths still lists files. Piped head/tail preserve upstream provenance.',
@@ -231,11 +231,9 @@ export function formatDirectoryEntry(d: DirectoryMeta): string {
 const COMMENT_PREVIEW_CAP = 3;
 
 function formatCommentPreview(c: NonNullable<EnrichedMeta['comments']>[number]): string {
-  const flags = [c.state === 'orphaned' ? 'passage gone' : null, c.queued ? 'queued' : null].filter(
-    (f) => f !== null,
-  );
-  const suffix = flags.length > 0 ? ` [${flags.join(', ')}]` : '';
-  return c.quote === '' ? `"${c.body}"${suffix}` : `"${c.body}" on “${c.quote}”${suffix}`;
+  const replies = c.replies === 1 ? ' [1 reply]' : c.replies > 1 ? ` [${c.replies} replies]` : '';
+  const quoted = c.quote === '' ? '' : ` on “${c.quote}”`;
+  return `${c.author}: "${c.body}"${quoted}${replies}`;
 }
 
 export function formatFileEntry(m: EnrichedMeta): string {
@@ -547,18 +545,21 @@ export async function buildExecResult(
       ),
     ),
   );
-  if (!isSinglePathCat && resolvedServerUrl && fileEnriched.length > 0) {
+  if (!isSinglePathCat && fileEnriched.length > 0) {
     const docNames = fileEnriched.map((f) => pathToDocName(f.path));
     const [counts, commentCounts] = await Promise.all([
-      fetchBacklinkCountsBatch(resolvedServerUrl, docNames).catch(() => null),
-      fetchCommentCountsBatch(resolvedServerUrl, docNames).catch(() => null),
+      resolvedServerUrl
+        ? fetchBacklinkCountsBatch(resolvedServerUrl, docNames).catch(() => null)
+        : Promise.resolve(null),
+      countOpenCommentThreads(
+        cwd,
+        fileEnriched.map((f) => f.path),
+      ).catch(() => null),
     ]);
     for (const f of fileEnriched) {
-      const docName = pathToDocName(f.path);
-      const c = counts?.get(docName);
+      const c = counts?.get(pathToDocName(f.path));
       if (typeof c === 'number') f.backlinkCount = c;
-      const comments = commentCounts?.get(docName);
-      if (typeof comments === 'number') f.commentCount = comments;
+      if (commentCounts !== null) f.commentCount = commentCounts.get(f.path) ?? 0;
     }
   }
   const fileByPath = new Map(fileEnriched.map((e) => [e.path, e]));

@@ -109,90 +109,17 @@ vi.doMock('@/components/handoff/useHandoffDispatch', async () => {
   };
 });
 
-const startCommentSubscribers = new Set<() => void>();
-vi.doMock('@/comments/store', () => ({
-  createThread: () => {},
-  subscribeStartComment: (cb: () => void) => {
-    startCommentSubscribers.add(cb);
-    return () => startCommentSubscribers.delete(cb);
-  },
-  emitStartComment: () => {
-    for (const cb of startCommentSubscribers) cb();
-  },
-  editComment: () => {},
-  deleteThread: () => {},
-  clearActiveThread: () => {},
-  emitOpenThread: () => {},
-  reopenThread: () => {},
-  replaceOrphan: () => {},
-  setActiveThread: () => {},
-  toggleSending: () => {},
-  dispatchComments: async () => [],
-  subscribeCommentPosted: () => () => {},
-}));
-
-vi.doMock('@/comments/comment-chips', () => ({
-  propertyAddress: (key: string) => key,
-  revealThread: () => {},
-}));
-
 vi.doMock('@/editor/active-editor', async () => {
   const actual =
     await vi.importActual<typeof import('@/editor/active-editor')>('@/editor/active-editor');
   return { ...actual, getVisibleEditorForDoc: () => null };
 });
 
-vi.doMock('@/comments/anchor-decorations', () => ({ setCommentDraftRange: () => {} }));
-
 vi.doMock('@/components/doc-panel-events', () => ({ requestDocPanelTab: () => {} }));
 
 const { TooltipProvider } = await import('@/components/ui/tooltip');
-const { ThreadCard } = await import('@/comments/ThreadCard');
-const { CommentSelectionAffordance } = await import('@/comments/CommentSelectionAffordance');
 const { UserMessageEditor } = await import('@/components/acp/UserMessageActions');
 const { CreatePromptComposer } = await import('@/components/empty-state/CreatePromptComposer');
-
-const DOC_TEXT = 'Toss the tofu with cornstarch.';
-const QUOTE_FROM = DOC_TEXT.indexOf('the tofu');
-const QUOTE_TO = QUOTE_FROM + 'the tofu'.length;
-
-function fakeEditor() {
-  return {
-    isDestroyed: false,
-    state: {
-      selection: {
-        from: QUOTE_FROM,
-        to: QUOTE_TO,
-        empty: false,
-        ranges: [{ $from: { pos: QUOTE_FROM }, $to: { pos: QUOTE_TO } }],
-      },
-      doc: {
-        nodesBetween: (from: number, to: number, fn: (node: unknown, pos: number) => void) => {
-          fn(
-            { isText: true, text: DOC_TEXT.slice(from, to), isBlock: false, isTextblock: false },
-            from,
-          );
-        },
-        content: { size: DOC_TEXT.length },
-      },
-    },
-    commands: { setTextSelection: () => {} },
-  };
-}
-
-function commentThread() {
-  return {
-    id: 't1',
-    docName: 'recipes/stir-fry',
-    target: { kind: 'body' as const },
-    anchor: { quote: 'the tofu', prefix: '', suffix: '', start: 0, end: 8 },
-    status: 'open' as const,
-    body: 'press it?',
-    createdAt: 1000,
-    updatedAt: 1000,
-    queued: true,
-  };
-}
 
 async function expectDropIsRefusedWithAReason(textbox: Element) {
   expectDragOverIsCancelled(textbox);
@@ -216,7 +143,6 @@ beforeEach(() => {
   };
   toastMessages.length = 0;
   dispatchCalls.length = 0;
-  startCommentSubscribers.clear();
   try {
     window.localStorage.clear();
   } catch {}
@@ -231,44 +157,6 @@ afterEach(() => {
 });
 
 describe('every ComposerMentionInput surface either refuses the drop with a reason or defers it to its host', () => {
-  test('comments ThreadCard edit composer', async () => {
-    render(
-      <TooltipProvider>
-        <ThreadCard
-          layout="doc"
-          thread={commentThread()}
-          cardRef={() => {}}
-          focused={false}
-          active={false}
-          sending={false}
-        />
-      </TooltipProvider>,
-    );
-    screen.getByRole('button', { name: /edit this comment/i }).click();
-    const textbox = await screen.findByRole('textbox', { name: /edit this comment/i });
-
-    await expectDropIsRefusedWithAReason(textbox);
-  });
-
-  test('CommentSelectionAffordance comment composer', async () => {
-    const { emitStartComment } = await import('@/comments/store');
-    render(
-      <TooltipProvider>
-        <CommentSelectionAffordance
-          // biome-ignore lint/suspicious/noExplicitAny: structural editor double
-          editor={fakeEditor() as any}
-          docName="recipes/stir-fry"
-        />
-      </TooltipProvider>,
-    );
-    act(() => {
-      emitStartComment();
-    });
-    const textbox = await screen.findByRole('textbox', { name: /add a comment/i });
-
-    await expectDropIsRefusedWithAReason(textbox);
-  });
-
   test('UserMessageEditor resend composer defers the drop to its host panel', async () => {
     const hostDrops: string[] = [];
     render(

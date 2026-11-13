@@ -262,9 +262,6 @@ msgstr "{0} de {1} projetos selecionados"
 msgid "{0} of {1} selected"
 msgstr "{0} de {1} selecionados"
 
-msgid "{0} of {totalCount}"
-msgstr "{0} de {totalCount}"
-
 msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
 msgstr "{0} abre por um link e não aceita anexos — escolha um agente integrado ao app."
 
@@ -461,12 +458,6 @@ msgstr "{count, plural, one {{files} não é um arquivo de texto, então não po
 msgid "{count, plural, one {{files} isn't a text file, so it can't be sent with the message. Mention it with @ once it's in your project.} other {{files} aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.}}"
 msgstr "{count, plural, one {{files} não é um arquivo de texto, então não pode ser enviado com a mensagem. Mencione-o com @ quando ele estiver no seu projeto.} many {{files} não são arquivos de texto, então não podem ser enviados com a mensagem. Mencione-os com @ quando eles estiverem no seu projeto.} other {{files} não são arquivos de texto, então não podem ser enviados com a mensagem. Mencione-os com @ quando eles estiverem no seu projeto.}}"
 
-msgid "{count, plural, one {# comment} other {# comments}}"
-msgstr "{count, plural, one {# comentário} many {# comentários} other {# comentários}}"
-
-msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
-msgstr "{count, plural, one {# comentário} many {# comentários} other {# comentários}} em {0, plural, one {# arquivo} many {# arquivos} other {# arquivos}}"
-
 msgid "{count, plural, one {# dated page} other {# dated pages}}"
 msgstr ""
 
@@ -590,9 +581,6 @@ msgstr "{errorCount, plural, one {# erro} many {# erros} other {# erros}}"
 #. Joins the two counts in a file-tree problem tooltip. Reaches a translator as two placeholders and a conjunction, so: errorText is already pluralized ("2 errors"), warningText likewise ("1 warning"), and the result is the subject of the sentence that follows it.
 msgid "{errorText} and {warningText}"
 msgstr "{errorText} e {warningText}"
-
-msgid "{failed} of {0} comments could not be updated."
-msgstr "Não foi possível atualizar {failed} de {0} comentários."
 
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, one {Falha ao enviar 1 arquivo} many {Falha ao enviar {failedCount} arquivos} other {Falha ao enviar {failedCount} arquivos}}"
@@ -1213,9 +1201,6 @@ msgstr "Tamanho real"
 msgid "Add"
 msgstr "Adicionar"
 
-msgid "Add a comment"
-msgstr "Adicionar um comentário"
-
 msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
@@ -1245,12 +1230,6 @@ msgstr "Adicione pelo menos uma letra ou número."
 
 msgid "Add block below"
 msgstr "Adicionar bloco abaixo"
-
-msgid "Add Comment"
-msgstr "Adicionar comentário"
-
-msgid "Add Comment (Enter)"
-msgstr "Adicionar comentário (Enter)"
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "Adicione cursores ou selecione ocorrências correspondentes pelo CodeMirror."
@@ -1737,12 +1716,6 @@ msgstr "Recurso: {title}"
 
 msgid "Attach a file"
 msgstr "Anexar um arquivo"
-
-msgid "Attach comments"
-msgstr "Anexar comentários"
-
-msgid "Attach comments: {count}"
-msgstr "Anexar comentários: {count}"
 
 msgid "Attach files"
 msgstr "Anexar arquivos"
@@ -2288,9 +2261,6 @@ msgstr "Escolha o que o GitQuire configura para {agentLabel}. {agentLabel} ofere
 msgid "Choose what GitQuire sets up."
 msgstr "Escolha o que o GitQuire configura."
 
-msgid "Choose where to send these comments"
-msgstr "Escolha para onde enviar estes comentários"
-
 msgid "Choose where to send this message"
 msgstr "Escolher para onde enviar esta mensagem"
 
@@ -2448,14 +2418,11 @@ msgstr "Fechar tudo"
 msgid "Close all unpinned"
 msgstr "Fechar todas as não fixadas"
 
-msgid "Close comment"
-msgstr "Fechar comentário"
+msgid "Close comments"
+msgstr ""
 
 msgid "Close diff"
 msgstr "Fechar diferenças"
-
-msgid "Close discussions"
-msgstr ""
 
 msgid "Close find"
 msgstr "Fechar busca"
@@ -2536,9 +2503,6 @@ msgstr "Recolher tudo"
 msgid "Collapse all file groups"
 msgstr "Recolher todos os grupos de arquivos"
 
-msgid "Collapse all files"
-msgstr "Recolher todos os arquivos"
-
 msgid "Collapse Ask AI"
 msgstr "Recolher Perguntar à IA"
 
@@ -2581,20 +2545,11 @@ msgstr "Os comandos rodam com todo o acesso da sua conta de usuário nesta máqu
 msgid "Comment"
 msgstr "Comentar"
 
-msgid "Comment on {address}"
-msgstr "Comentar em {address}"
-
 msgid "Comment on selection"
 msgstr "Comentar na seleção"
 
 msgid "Comment on this selection"
 msgstr "Comentar esta seleção"
-
-msgid "Comment or ask AI about this {0}"
-msgstr "Comente ou pergunte à IA sobre este {0}"
-
-msgid "Comment or ask AI about this code block"
-msgstr "Comente ou pergunte à IA sobre este bloco de código"
 
 msgid "Comments"
 msgstr "Comentários"
@@ -3033,12 +2988,6 @@ msgstr "Não foi possível validar a pasta. Tente de novo."
 msgid "Could not write project files. Try a different location."
 msgstr "Não foi possível gravar os arquivos do projeto. Tente outro local."
 
-msgid "Couldn't add that comment: {0}"
-msgstr "Não deu para adicionar esse comentário: {0}"
-
-msgid "Couldn't add that comment."
-msgstr "Não deu para adicionar esse comentário."
-
 msgid "Couldn't apply the change: {0}"
 msgstr "Não deu para aplicar a alteração: {0}"
 
@@ -3114,9 +3063,6 @@ msgstr "Não deu para excluir a habilidade: {error}"
 msgid "Couldn't delete template: {error}"
 msgstr "Não deu para excluir o modelo: {error}"
 
-msgid "Couldn't delete that comment."
-msgstr "Não deu para excluir esse comentário."
-
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "Não foi possível excluir este tema. Atualize a página e tente novamente."
 
@@ -3125,9 +3071,6 @@ msgstr "Não deu para desconectar — tente de novo."
 
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "Não deu para duplicar \"{0}\": {1}"
-
-msgid "Couldn't find that passage — the text it was on may have changed."
-msgstr "Não foi possível encontrar esse trecho — o texto em que ele estava pode ter mudado."
 
 msgid "Couldn't finish installing {0} — see below."
 msgstr "Não deu para terminar de instalar {0} — veja abaixo."
@@ -3195,9 +3138,6 @@ msgstr "Não foi possível carregar seus agentes."
 msgid "Couldn't load your bug reports."
 msgstr "Não foi possível carregar seus relatórios de erro."
 
-msgid "Couldn't mark that comment to send."
-msgstr "Não deu para marcar esse comentário para envio."
-
 msgid "Couldn't move {0}: {1}"
 msgstr "Não foi possível mover {0}: {1}"
 
@@ -3243,9 +3183,6 @@ msgstr "Não foi possível preparar este projeto para publicação."
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "Não deu para fazer pull do GitHub. Verifique sua conexão e seu login e tente de novo."
 
-msgid "Couldn't re-place that comment."
-msgstr "Não deu para reposicionar esse comentário."
-
 msgid "Couldn't reach {displayName} — please try again later."
 msgstr "Não foi possível acessar {displayName}. Tente novamente mais tarde."
 
@@ -3288,12 +3225,6 @@ msgstr "Não deu para ler {fileName}. Ele pode ter sido movido, excluído ou nã
 msgid "Couldn't read the {gitignorePath} rule: {previewError}"
 msgstr "Não foi possível ler a regra de {gitignorePath}: {previewError}"
 
-msgid "Couldn't read the comments waiting to send — nothing was sent."
-msgstr "Não deu para ler os comentários que aguardam envio — nada foi enviado."
-
-msgid "Couldn't read the comments waiting to send: {0}"
-msgstr "Não deu para ler os comentários que aguardam envio: {0}"
-
 msgid "Couldn't read the spell checking setting."
 msgstr "Não foi possível ler a configuração de verificação ortográfica."
 
@@ -3323,9 +3254,6 @@ msgstr "Não deu para renomear \"{0}\": {1}"
 
 msgid "Couldn't rename template: {0}"
 msgstr "Não deu para renomear o modelo: {0}"
-
-msgid "Couldn't reopen that comment."
-msgstr "Não deu para reabrir esse comentário."
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "Não deu para resolver o conflito de {filePath}."
@@ -3378,9 +3306,6 @@ msgstr "Não foi possível salvar as configurações de rede. {0}"
 msgid "Couldn't save template: {error}"
 msgstr "Não deu para salvar o modelo: {error}"
 
-msgid "Couldn't save that edit."
-msgstr "Não deu para salvar essa edição."
-
 msgid "Couldn't save the action item."
 msgstr ""
 
@@ -3411,17 +3336,8 @@ msgstr "Não foi possível salvar esta configuração. Tente novamente."
 msgid "Couldn't save your theme preference."
 msgstr "Não foi possível salvar sua preferência de tema."
 
-msgid "Couldn't scroll to that passage. Try again."
-msgstr "Não foi possível rolar até esse trecho. Tente novamente."
-
 msgid "Couldn't send the report"
 msgstr "Não deu para enviar o relatório"
-
-msgid "Couldn't send your comments — please try again."
-msgstr "Não deu para enviar seus comentários — tente de novo."
-
-msgid "Couldn't send your comments — the workspace isn't ready."
-msgstr "Não deu para enviar seus comentários — o espaço de trabalho não está pronto."
 
 msgid "Couldn't send your prompt — please try again."
 msgstr "Não deu para enviar seu prompt — tente de novo."
@@ -3443,9 +3359,6 @@ msgstr "Não foi possível mudar para {language}."
 
 msgid "Couldn't switch to Only me"
 msgstr "Não deu para mudar para Somente eu"
-
-msgid "Couldn't unmark that comment — it's still waiting to send."
-msgstr "Não deu para desmarcar esse comentário — ele continua aguardando envio."
 
 msgid "Couldn't unpin {name}"
 msgstr "Não foi possível desafixar {name}"
@@ -3735,9 +3648,6 @@ msgstr "Excluir tabela"
 msgid "Delete the file"
 msgstr "Excluir o arquivo"
 
-msgid "Delete this comment"
-msgstr "Excluir este comentário"
-
 msgid "Deleted"
 msgstr "Excluído"
 
@@ -3905,12 +3815,6 @@ msgstr "Desconectando"
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "As habilidades de descoberta são gerenciadas em conjunto para todas as ferramentas de IA. Instale esta em Configurações → Estúdio de habilidades."
 
-msgid "Discuss"
-msgstr ""
-
-msgid "Discussions"
-msgstr ""
-
 msgid "Dismiss"
 msgstr "Dispensar"
 
@@ -3982,9 +3886,6 @@ msgstr "Não perguntar novamente ao abrir este aplicativo sem configuração nes
 
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "Não vê <0>Habilidades</0>? Ative antes <1>Configurações <2/> Recursos <3/> Execução de código e criação de arquivos</1>."
-
-msgid "Don't send this comment"
-msgstr "Não enviar este comentário"
 
 msgid "Don't show"
 msgstr "Não mostrar"
@@ -4520,9 +4421,6 @@ msgstr "Expandir tudo"
 
 msgid "Expand all file groups"
 msgstr "Expandir todos os grupos de arquivos"
-
-msgid "Expand all files"
-msgstr "Expandir todos os arquivos"
 
 msgid "Expand board"
 msgstr "Expandir o quadro"
@@ -5483,9 +5381,6 @@ msgstr "Orienta seus agentes de IA sobre como trabalhar aqui."
 msgid "guides/install or https://example.com"
 msgstr "guides/install ou https://exemplo.com"
 
-msgid "Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed."
-msgstr "Entrega os comentários marcados a um agente em um único turno. Em Este documento, apenas os comentários desse documento; em Este projeto, todos os comentários marcados. Não faz nada enquanto a aba Comentários está fechada."
-
 msgid "Hard break"
 msgstr "Quebra de linha forçada"
 
@@ -5633,9 +5528,6 @@ msgstr "Ocultar substituir"
 
 msgid "Hide resolved"
 msgstr "Ocultar os resolvidos"
-
-msgid "Hide resolved comments ({0})"
-msgstr "Ocultar comentários resolvidos ({0})"
 
 msgid "Hide selection preview"
 msgstr "Ocultar a pré-visualização da seleção"
@@ -6204,14 +6096,8 @@ msgstr "Ir para a última aba"
 msgid "Jump to page {pageNumber}"
 msgstr "Ir para a página {pageNumber}"
 
-msgid "Jump to selected text in property"
-msgstr "Ir para o texto selecionado na propriedade"
-
 msgid "Jump to tab 1-8"
 msgstr "Ir para as abas 1-8"
-
-msgid "Jump to the anchored text"
-msgstr "Ir para o texto ancorado"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "Ir para o código markdown do bloco onde está o cursor, centralizado e destacado."
@@ -6318,9 +6204,6 @@ msgstr "Saiba mais sobre compartilhamento de configuração"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "Deixe os links quebrados escritos em um log.md ou log.mdx, em qualquer profundidade de pasta, fora de Problemas, dos indicadores do explorador de arquivos, dos diagnósticos do editor, das auditorias e dos avisos de escrita do agente. O que conta é o arquivo em que o link foi escrito, não o arquivo para o qual ele aponta, e LOG.md é um documento comum. O painel Links e o editor continuam exibindo esses links."
-
-msgid "Leave these comments out of this message"
-msgstr "Deixar estes comentários fora desta mensagem"
 
 msgid "Let agent chats use a browser"
 msgstr "Deixar os chats de agentes usarem um navegador"
@@ -6669,12 +6552,6 @@ msgstr ""
 
 msgid "Mark done: {text}"
 msgstr ""
-
-msgid "Mark every comment in {0} to send"
-msgstr "Marcar todos os comentários de {0} para enviar"
-
-msgid "Mark every comment to send"
-msgstr "Marcar todos os comentários para enviar"
 
 msgid "Markdown"
 msgstr "Markdown"
@@ -7229,9 +7106,6 @@ msgstr "Nenhum projeto do GitQuire ativo ou recente foi encontrado."
 msgid "No agent folders yet"
 msgstr "Ainda não há pastas de agentes"
 
-msgid "No agent is set up yet — opening Configure agents."
-msgstr "Nenhum agente foi configurado ainda — abrindo Configurar agentes."
-
 msgid "No agent is set up yet — pick one from the send menu."
 msgstr "Nenhum agente foi configurado ainda — escolha um no menu de envio."
 
@@ -7297,12 +7171,6 @@ msgstr "Ainda não há chats."
 
 msgid "No collab server for this worktree — run <0>{cliCommand} start</0> here, or reopen the project."
 msgstr "Não há servidor de colaboração para este worktree — rode <0>{cliCommand} start</0> aqui ou abra o projeto de novo."
-
-msgid "No comments in this project yet. Comment on a passage to start one."
-msgstr "Ainda não há comentários neste projeto. Comente um trecho para começar."
-
-msgid "No comments yet. Select text in the document to add one."
-msgstr "Ainda não há comentários. Selecione um texto no documento para adicionar um."
 
 msgid "No common ancestor — both branches added this file (add/add conflict)."
 msgstr "Sem ancestral comum: os dois ramos adicionaram este arquivo (conflito add/add)."
@@ -7559,7 +7427,7 @@ msgstr "Sem espaço de trabalho"
 msgid "No worktrees found."
 msgstr "Nenhuma árvore de trabalho encontrada."
 
-msgid "Nobody has mentioned you yet. Mentions in discussions show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
 msgid "Nobody mentioned"
@@ -7726,12 +7594,6 @@ msgstr "Ligada — passar o cursor sobre um link externo envia a URL dele ao sit
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Ligada — suas consultas de busca e o texto das páginas correspondentes são enviados ao seu provedor de embeddings (OpenAI por padrão) para calcular os embeddings."
 
-msgid "On <0>{address}</0>"
-msgstr "Em <0>{address}</0>"
-
-msgid "On selected text in <0>{address}</0>"
-msgstr "Sobre o texto selecionado em <0>{address}</0>"
-
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "No índice raiz, okf_version é escrito como uma string entre aspas, como \"0.2\". Sem aspas, YAML lê-o como um número e 0.10 silenciosamente se torna 0.1."
 
@@ -7840,9 +7702,6 @@ msgstr "Abre a caixa de ir para a linha do CodeMirror."
 
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Abre o painel de diagnósticos de análise do CodeMirror."
-
-msgid "Open comment"
-msgstr "Abrir o comentário"
 
 msgid "Open containing folder"
 msgstr "Abrir a pasta que o contém"
@@ -7972,9 +7831,6 @@ msgstr "Abrir terminal para fazer login"
 
 msgid "Open that worktree instead"
 msgstr "Abrir aquele worktree em vez disso"
-
-msgid "Open the comment composer on the current selection and add it to the dispatch queue."
-msgstr "Abre o compositor de comentários sobre a seleção atual e o acrescenta à fila de envio."
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Abre o menu de inserção em uma posição de texto vazia ou ativa."
@@ -8701,9 +8557,6 @@ msgstr "Autenticar de novo no GitHub Enterprise Server"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "Os embeddings são recalculados à medida que as buscas rodam, então a cobertura recomeça do zero e vai enchendo."
 
-msgid "Re-place on selected text"
-msgstr "Reposicionar no texto selecionado"
-
 msgid "Re-run the project audit"
 msgstr "Rodar a auditoria do projeto de novo"
 
@@ -9252,9 +9105,6 @@ msgstr "Resolva o conflito em {files} antes de excluir."
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "Resolva o conflito em {files} e em mais {overflow} antes de excluir."
 
-msgid "Resolved"
-msgstr "Resolvido"
-
 msgid "Resolved by {resolvedBy}"
 msgstr ""
 
@@ -9455,9 +9305,6 @@ msgstr ""
 
 msgid "Save queued message"
 msgstr "Salvar a mensagem na fila"
-
-msgid "Save this comment (Enter)"
-msgstr "Salvar este comentário (Enter)"
 
 msgid "Save view as page"
 msgstr ""
@@ -9711,7 +9558,7 @@ msgstr "Selecionar a próxima ocorrência"
 msgid "Select spelling languages"
 msgstr "Selecionar idiomas de verificação ortográfica"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
 msgstr ""
 
 msgid "Select the full source document."
@@ -9768,14 +9615,8 @@ msgstr "Enviar e continuar"
 msgid "Send a new code"
 msgstr ""
 
-msgid "Send checked comments to chat"
-msgstr "Enviar os comentários marcados para o chat"
-
 msgid "Send code"
 msgstr ""
-
-msgid "Send comments to"
-msgstr "Enviar os comentários para"
 
 msgid "Send feedback"
 msgstr "Enviar comentários"
@@ -9792,17 +9633,8 @@ msgstr "Enviar agora"
 msgid "Send report"
 msgstr "Enviar o relatório"
 
-msgid "Send this comment"
-msgstr "Enviar este comentário"
-
 msgid "Send to a new chat"
 msgstr "Enviar para um novo chat"
-
-msgid "Send to chat"
-msgstr "Enviar para o chat"
-
-msgid "Send to chat ({0})"
-msgstr "Enviar para o chat ({0})"
 
 msgid "Send when the agent is free"
 msgstr "Enviar quando o agente estiver livre"
@@ -9827,9 +9659,6 @@ msgstr "Enviado em particular para a equipe do GitQuire, junto com sua nota e a 
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "Enviada para <0>{endpointHost}</0> para gerar os embeddings do seu conteúdo. Guardada fora do projeto."
-
-msgid "Sent, but the comments could not be marked done — they're still waiting to send."
-msgstr "Enviado, mas não foi possível marcar os comentários como concluídos — eles continuam aguardando envio."
 
 msgid "Separator"
 msgstr "Separador"
@@ -10103,14 +9932,8 @@ msgstr "Mostrar avisos novamente para {displayName} neste projeto"
 msgid "Show replace"
 msgstr "Mostrar substituir"
 
-msgid "Show resolved"
-msgstr "Mostrar resolvidos"
-
 msgid "Show resolved ({resolvedCount})"
 msgstr ""
-
-msgid "Show resolved comments ({0})"
-msgstr "Mostrar comentários resolvidos ({0})"
 
 msgid "Show selection preview"
 msgstr "Mostrar a pré-visualização da seleção"
@@ -10126,9 +9949,6 @@ msgstr "Mostrar o código"
 
 msgid "Show Terminal"
 msgstr "Mostrar o Terminal"
-
-msgid "Show these comments in the Comments panel"
-msgstr "Mostrar estes comentários no painel de comentários"
 
 msgid "Show thumbnails"
 msgstr "Mostrar as miniaturas"
@@ -10447,14 +10267,8 @@ msgstr "Inicia um relatório de erro com uma captura de tela exatamente como ela
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "Inicie um chat com o botão ＋ ou inicie um agente a partir de uma página."
 
-msgid "Start a discussion with your team on this selection"
+msgid "Start a comment thread on the selected text."
 msgstr ""
-
-msgid "Start a new chat"
-msgstr "Começar um novo chat"
-
-msgid "Start a new chat ({0})"
-msgstr "Começar um novo chat ({0})"
 
 msgid "Start a new GitQuire project."
 msgstr "Comece um projeto do GitQuire."
@@ -10904,9 +10718,6 @@ msgstr "Esse conflito não está mais disponível."
 msgid "That did not go through. Check the server logs and try again."
 msgstr "Isso não foi concluído. Verifique os logs do servidor e tente de novo."
 
-msgid "That document didn't open in time. Try again once it has synced."
-msgstr "Esse documento não abriu a tempo. Tente novamente quando ele estiver sincronizado."
-
 msgid "That doesn’t parse as YAML or JSON — check line {0}."
 msgstr "Não foi possível interpretar como YAML ou JSON — verifique a linha {0}."
 
@@ -11117,9 +10928,6 @@ msgstr "O id do modelo que seu endpoint serve. O tamanho do vector é detectado 
 
 msgid "the open agent"
 msgstr "o agente aberto"
-
-msgid "The original text was deleted."
-msgstr "O texto original foi excluído."
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11413,9 +11221,6 @@ msgstr "Não é possível ler este caminho de checkout."
 
 msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
 msgstr "Este comando contém caracteres ocultos que podem fazer com que ele pareça diferente do que é executado. Eles aparecem aqui como ⟨U+…⟩."
-
-msgid "This comment is on the whole property"
-msgstr "Este comentário é sobre a propriedade inteira"
 
 msgid "This component changed. Try again."
 msgstr "Este componente foi alterado. Tente novamente."
@@ -12066,12 +11871,6 @@ msgstr "Variável desconhecida {unknownList}. Variáveis disponíveis: {supporte
 msgid "unlink"
 msgstr "desvincular"
 
-msgid "Unmark every comment"
-msgstr "Desmarcar todos os comentários"
-
-msgid "Unmark every comment in {0}"
-msgstr "Desmarcar todos os comentários de {0}"
-
 msgid "Unmerged"
 msgstr "Sem merge"
 
@@ -12344,9 +12143,6 @@ msgstr "Ver {publisher} no skills.sh"
 msgid "View as text"
 msgstr "Ver como texto"
 
-msgid "View comments"
-msgstr "Ver comentários"
-
 msgid "View diff for edit {burstNumber} of {docName}"
 msgstr "Ver as diferenças da edição {burstNumber} de {docName}"
 
@@ -12507,9 +12303,6 @@ msgstr "Quando está ligado, o agente abre ou atualiza a pré-visualização dep
 msgid "When the agent runs its scheduled work."
 msgstr "Quando o agente roda o trabalho agendado dele."
 
-msgid "When the Comments tab is open"
-msgstr "Quando a aba Comentários está aberta"
-
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Quando você passa o cursor sobre um link externo, a URL dele é enviada ao site de destino para buscar os metadados de pré-visualização da página — uma requisição por link pré-visualizado."
 
@@ -12575,9 +12368,6 @@ msgstr "Quebra de linha"
 
 msgid "Work directly, no plan step"
 msgstr "Trabalhar diretamente, sem etapa de planejamento"
-
-msgid "Work through these comments"
-msgstr "Trabalhe sobre estes comentários"
 
 msgid "Working"
 msgstr "Trabalhando"
@@ -12709,9 +12499,6 @@ msgstr "Seus agentes continuam carregando esta habilidade, mas o GitQuire não c
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "Sua alteração ainda está sendo salva — rode o teste de novo em instantes."
-
-msgid "Your comments are waiting behind the running turn — they stay queued until the agent picks the message up."
-msgstr "Seus comentários estão aguardando atrás do turno em andamento — eles ficam na fila até o agente pegar a mensagem."
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "Sua cópia do ramo <0>{shareBranch}</0> tem alterações que não estão no GitHub. {targetNoun} vai aparecer assim que o ramo sincronizar."

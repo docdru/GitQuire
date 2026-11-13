@@ -31,8 +31,8 @@ describe('keyboard shortcut registry', () => {
     expect(formatShortcut('file-tree-delete', 'mac')).toBe('⌘ Backspace');
     expect(formatShortcut('file-tree-delete', 'windowsLinux')).toBe('Delete');
     expect(formatShortcut('ask-ai-selection', 'mac')).toBe('⌘ L');
-    expect(formatShortcut('send-comment-queue', 'mac')).toBe('⇧⌘ Enter');
-    expect(formatShortcut('send-comment-queue', 'windowsLinux')).toBe('Ctrl Shift Enter');
+    expect(formatShortcut('add-comment', 'mac')).toBe('⇧⌘ M');
+    expect(formatShortcut('add-comment', 'windowsLinux')).toBe('Ctrl Shift M');
     expect(formatShortcut('tab-new', 'mac')).toBe('⌘ T');
     expect(formatShortcut('tab-next', 'mac')).toBe('⌃ Tab');
     expect(formatShortcut('tab-previous', 'mac')).toBe('⌃⇧ Tab');
@@ -719,30 +719,6 @@ describe('keyboard shortcut registry', () => {
         'mac',
       ),
     ).toBe(true);
-  });
-
-  test('the queue send answers Shift+Cmd+Enter only', () => {
-    const cmdEnter = { metaKey: true, ctrlKey: false, altKey: false, key: 'Enter' };
-    const shiftCmdEnter = { ...cmdEnter, shiftKey: true };
-
-    expect(matchesKeyboardShortcut(shiftCmdEnter, 'send-comment-queue', 'mac')).toBe(true);
-    expect(
-      matchesKeyboardShortcut({ ...cmdEnter, shiftKey: false }, 'send-comment-queue', 'mac'),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, shiftKey: true, key: 'Enter' },
-        'send-comment-queue',
-        'windowsLinux',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, altKey: false, shiftKey: true, key: 'Enter' },
-        'send-comment-queue',
-        'mac',
-      ),
-    ).toBe(false);
   });
 
   test('matches both agents-panel rows on Cmd/Ctrl+L', () => {

@@ -20,7 +20,7 @@
 </div>
 
 <p align="center">
-  <img src="docs/public/screenshots/comments.png" alt="The GitQuire editor with a page open and a discussion thread in the side panel" width="860">
+  <img src="docs/public/screenshots/comments.png" alt="The GitQuire editor with a page open and a comment thread in the side panel" width="860">
 </p>
 
 Write together in a Notion-like editor while every page, link and comment stays a plain Markdown
@@ -56,10 +56,10 @@ page is renamed or moved. A broken-links list shows every link to a page that do
 where it comes from. Typed links (`supersedes:: [[Decision 9]]`, or a property such as
 `blocks: "[[Task B]]"`) say how pages relate and show up in links, backlinks and the graph.
 
-### 💬 Discussions inside the file
+### 💬 Comments inside the file
 
-Select text and choose **Discuss** to start a thread. Reply, `@mention` teammates and resolve when
-done. Threads are saved in a hidden block at the end of the Markdown file that GitHub doesn't
+Select text and choose **Comment** (or press ⇧⌘M) to start a thread. Reply, `@mention` teammates
+and resolve when done. Threads are saved in a hidden block at the end of the Markdown file that GitHub doesn't
 render, one JSON line per thread, so they travel through branches and pull requests and diff
 cleanly:
 
@@ -71,7 +71,7 @@ cleanly:
 
 ### 🔔 Mentions that reach people
 
-An **@** inbox in the header lists every discussion where someone mentioned you. Mentions can also
+An **@** inbox in the header lists every comment thread where someone mentioned you. Mentions can also
 go out by email (after the address is confirmed) or be posted to Slack, Teams, Discord, Mattermost
 or Rocket.Chat.
 
@@ -123,7 +123,9 @@ A formatting toolbar above the on-screen keyboard, and installable as a home-scr
 
 Each person connects their own Claude (or other MCP-capable) agent with a personal token, or
 adds GitQuire as a connector in Claude on the web and on phones. Agent edits show up live and are
-committed with that person as the author. Nothing runs on the server on anyone's behalf.
+committed with that person as the author. Agents also see a page's open comment threads, so
+"@claude, tighten this paragraph" in a comment is a request your agent picks up. Nothing runs on the
+server on anyone's behalf.
 
 ### 🔒 Self-hosted and signed in with GitHub
 

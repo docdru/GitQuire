@@ -262,9 +262,6 @@ msgstr "已选择 {1} 个项目中的 {0} 个"
 msgid "{0} of {1} selected"
 msgstr "已选择 {1} 项中的 {0} 项"
 
-msgid "{0} of {totalCount}"
-msgstr "{totalCount} 项中的 {0} 项"
-
 msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
 msgstr "{0} 通过链接打开，不接受附件，请改选应用内智能体。"
 
@@ -461,12 +458,6 @@ msgstr "{count, plural, other {{files} 不是文本文件，无法随消息发�
 msgid "{count, plural, one {{files} isn't a text file, so it can't be sent with the message. Mention it with @ once it's in your project.} other {{files} aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.}}"
 msgstr "{count, plural, other {{files} 不是文本文件，无法随消息发送。只要文件在项目中，就可以用 @ 提及。}}"
 
-msgid "{count, plural, one {# comment} other {# comments}}"
-msgstr "{count, plural, other {# 条评论}}"
-
-msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
-msgstr "{count, plural, other {# 条评论}}，分布在 {0, plural, other {# 个文件}}"
-
 msgid "{count, plural, one {# dated page} other {# dated pages}}"
 msgstr ""
 
@@ -590,9 +581,6 @@ msgstr "{errorCount, plural, other {# 个错误}}"
 #. Joins the two counts in a file-tree problem tooltip. Reaches a translator as two placeholders and a conjunction, so: errorText is already pluralized ("2 errors"), warningText likewise ("1 warning"), and the result is the subject of the sentence that follows it.
 msgid "{errorText} and {warningText}"
 msgstr "{errorText}和{warningText}"
-
-msgid "{failed} of {0} comments could not be updated."
-msgstr "{0} 条评论中有 {failed} 条无法更新。"
 
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount} 个文件上传失败}}"
@@ -1217,9 +1205,6 @@ msgstr "实际大小"
 msgid "Add"
 msgstr "添加"
 
-msgid "Add a comment"
-msgstr "添加评论"
-
 msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
@@ -1249,12 +1234,6 @@ msgstr "请至少加入一个字母或数字。"
 
 msgid "Add block below"
 msgstr "在下方添加块"
-
-msgid "Add Comment"
-msgstr "添加评论"
-
-msgid "Add Comment (Enter)"
-msgstr "添加评论（Enter）"
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "通过 CodeMirror 添加光标或选中匹配项。"
@@ -1741,12 +1720,6 @@ msgstr "资源：{title}"
 
 msgid "Attach a file"
 msgstr "附加文件"
-
-msgid "Attach comments"
-msgstr "附加评论"
-
-msgid "Attach comments: {count}"
-msgstr "附加评论：{count}"
 
 msgid "Attach files"
 msgstr "附加文件"
@@ -2292,9 +2265,6 @@ msgstr "选择 GitQuire 为 {agentLabel} 设置的内容。{agentLabel} 仅支�
 msgid "Choose what GitQuire sets up."
 msgstr "选择 GitQuire 设置的内容。"
 
-msgid "Choose where to send these comments"
-msgstr "选择把这些评论发送到哪里"
-
 msgid "Choose where to send this message"
 msgstr "选择把这条消息发送到哪里"
 
@@ -2452,14 +2422,11 @@ msgstr "全部关闭"
 msgid "Close all unpinned"
 msgstr "关闭所有未固定的"
 
-msgid "Close comment"
-msgstr "关闭评论"
+msgid "Close comments"
+msgstr ""
 
 msgid "Close diff"
 msgstr "关闭差异视图"
-
-msgid "Close discussions"
-msgstr ""
 
 msgid "Close find"
 msgstr "关闭查找"
@@ -2540,9 +2507,6 @@ msgstr "全部折叠"
 msgid "Collapse all file groups"
 msgstr "折叠所有文件分组"
 
-msgid "Collapse all files"
-msgstr "折叠全部文件"
-
 msgid "Collapse Ask AI"
 msgstr "折叠「问 AI」"
 
@@ -2585,20 +2549,11 @@ msgstr "命令将以你在本机用户账户的完整权限运行。关闭此项
 msgid "Comment"
 msgstr "评论"
 
-msgid "Comment on {address}"
-msgstr "对 {address} 发表评论"
-
 msgid "Comment on selection"
 msgstr "对所选内容发表评论"
 
 msgid "Comment on this selection"
 msgstr "对选中内容添加评论"
-
-msgid "Comment or ask AI about this {0}"
-msgstr "对此{0}发表评论或询问 AI"
-
-msgid "Comment or ask AI about this code block"
-msgstr "对此代码块发表评论或询问 AI"
 
 msgid "Comments"
 msgstr "评论"
@@ -3037,12 +2992,6 @@ msgstr "无法验证文件夹。请重试。"
 msgid "Could not write project files. Try a different location."
 msgstr "无法写入项目文件。请换一个位置。"
 
-msgid "Couldn't add that comment: {0}"
-msgstr "无法添加那条评论：{0}"
-
-msgid "Couldn't add that comment."
-msgstr "无法添加那条评论。"
-
 msgid "Couldn't apply the change: {0}"
 msgstr "无法应用该更改：{0}"
 
@@ -3118,9 +3067,6 @@ msgstr "无法删除技能：{error}"
 msgid "Couldn't delete template: {error}"
 msgstr "无法删除模板：{error}"
 
-msgid "Couldn't delete that comment."
-msgstr "无法删除那条评论。"
-
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "无法删除此主题。请刷新后重试。"
 
@@ -3129,9 +3075,6 @@ msgstr "无法断开连接——请重试。"
 
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "无法复制 \"{0}\"：{1}"
-
-msgid "Couldn't find that passage — the text it was on may have changed."
-msgstr "找不到该段落 — 它所在的文本可能已更改。"
 
 msgid "Couldn't finish installing {0} — see below."
 msgstr "无法完成 {0} 的安装——详见下方。"
@@ -3199,9 +3142,6 @@ msgstr "无法加载你的智能体。"
 msgid "Couldn't load your bug reports."
 msgstr "无法加载你的错误报告。"
 
-msgid "Couldn't mark that comment to send."
-msgstr "无法把那条评论标记为待发送。"
-
 msgid "Couldn't move {0}: {1}"
 msgstr "无法移动 {0}：{1}"
 
@@ -3247,9 +3187,6 @@ msgstr "无法为发布准备此项目。"
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "无法从 GitHub 拉取。请检查你的网络连接和登录状态，然后重试。"
 
-msgid "Couldn't re-place that comment."
-msgstr "无法重新定位那条评论。"
-
 msgid "Couldn't reach {displayName} — please try again later."
 msgstr "无法连接 {displayName}。请稍后再试。"
 
@@ -3292,12 +3229,6 @@ msgstr "无法读取 {fileName}。它可能已被移动、删除，或尚未下�
 msgid "Couldn't read the {gitignorePath} rule: {previewError}"
 msgstr "无法读取 {gitignorePath} 规则：{previewError}"
 
-msgid "Couldn't read the comments waiting to send — nothing was sent."
-msgstr "无法读取等待发送的评论——什么都没有发送。"
-
-msgid "Couldn't read the comments waiting to send: {0}"
-msgstr "无法读取等待发送的评论：{0}"
-
 msgid "Couldn't read the spell checking setting."
 msgstr "无法读取拼写检查设置。"
 
@@ -3327,9 +3258,6 @@ msgstr "无法重命名 \"{0}\"：{1}"
 
 msgid "Couldn't rename template: {0}"
 msgstr "无法重命名模板：{0}"
-
-msgid "Couldn't reopen that comment."
-msgstr "无法重新打开那条评论。"
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "无法解决 {filePath} 的冲突。"
@@ -3382,9 +3310,6 @@ msgstr "无法保存网络设置。{0}"
 msgid "Couldn't save template: {error}"
 msgstr "无法保存模板：{error}"
 
-msgid "Couldn't save that edit."
-msgstr "无法保存那次编辑。"
-
 msgid "Couldn't save the action item."
 msgstr ""
 
@@ -3415,17 +3340,8 @@ msgstr "无法保存此设置。请重试。"
 msgid "Couldn't save your theme preference."
 msgstr "无法保存你的主题偏好。"
 
-msgid "Couldn't scroll to that passage. Try again."
-msgstr "无法滚动到该段落。请重试。"
-
 msgid "Couldn't send the report"
 msgstr "无法发送报告"
-
-msgid "Couldn't send your comments — please try again."
-msgstr "无法发送你的评论——请重试。"
-
-msgid "Couldn't send your comments — the workspace isn't ready."
-msgstr "无法发送你的评论——工作区尚未就绪。"
 
 msgid "Couldn't send your prompt — please try again."
 msgstr "无法发送你的提示词——请重试。"
@@ -3447,9 +3363,6 @@ msgstr "无法切换到{language}。"
 
 msgid "Couldn't switch to Only me"
 msgstr "无法切换到「仅自己」"
-
-msgid "Couldn't unmark that comment — it's still waiting to send."
-msgstr "无法取消标记那条评论——它仍在等待发送。"
 
 msgid "Couldn't unpin {name}"
 msgstr "无法取消置顶 {name}"
@@ -3739,9 +3652,6 @@ msgstr "删除表格"
 msgid "Delete the file"
 msgstr "删除文件"
 
-msgid "Delete this comment"
-msgstr "删除这条评论"
-
 msgid "Deleted"
 msgstr "已删除"
 
@@ -3909,12 +3819,6 @@ msgstr "正在断开连接"
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "发现技能由所有 AI 工具统一管理。请从“设置”→“技能工作室”安装此技能。"
 
-msgid "Discuss"
-msgstr ""
-
-msgid "Discussions"
-msgstr ""
-
 msgid "Dismiss"
 msgstr "忽略"
 
@@ -3986,9 +3890,6 @@ msgstr "在此项目中未经设置打开此应用时不再询问"
 
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "没看到<0>技能</0>？请先启用<1>设置 <2/> 功能 <3/> 代码执行与文件创建</1>。"
-
-msgid "Don't send this comment"
-msgstr "不要发送这条评论"
 
 msgid "Don't show"
 msgstr "不显示"
@@ -4524,9 +4425,6 @@ msgstr "全部展开"
 
 msgid "Expand all file groups"
 msgstr "展开所有文件分组"
-
-msgid "Expand all files"
-msgstr "展开全部文件"
 
 msgid "Expand board"
 msgstr "展开画板"
@@ -5487,9 +5385,6 @@ msgstr "指导你的 AI 智能体在这里如何工作。"
 msgid "guides/install or https://example.com"
 msgstr "guides/install 或 https://example.com"
 
-msgid "Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed."
-msgstr "一次性把勾选的评论交给智能体。在“这个文档”下只发送该文档的评论；在“本项目”下发送所有勾选的评论。评论标签页关闭时不做任何事。"
-
 msgid "Hard break"
 msgstr "强制换行"
 
@@ -5637,9 +5532,6 @@ msgstr "隐藏替换"
 
 msgid "Hide resolved"
 msgstr "隐藏已解决的"
-
-msgid "Hide resolved comments ({0})"
-msgstr "隐藏已解决的评论（{0}）"
 
 msgid "Hide selection preview"
 msgstr "隐藏选区预览"
@@ -6208,14 +6100,8 @@ msgstr "跳到最后一个标签页"
 msgid "Jump to page {pageNumber}"
 msgstr "跳到第 {pageNumber} 页"
 
-msgid "Jump to selected text in property"
-msgstr "跳到属性中选中的文本"
-
 msgid "Jump to tab 1-8"
 msgstr "跳到第 1-8 个标签页"
-
-msgid "Jump to the anchored text"
-msgstr "跳到锚定的文本"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "跳到光标所在块的 markdown 源码，居中并高亮显示。"
@@ -6322,9 +6208,6 @@ msgstr "了解更多关于配置共享的信息"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "无论文件夹层级多深，都不在“问题”、文件资源管理器指示器、编辑器诊断、审计和代理写入建议中显示写在 log.md 或 log.mdx 内的失效链接。判断依据是链接写在哪个文件中，而不是它指向哪个文件；LOG.md 是普通文档。“链接”面板和编辑器仍会显示这些链接。"
-
-msgid "Leave these comments out of this message"
-msgstr "不要把这些评论放进这条消息"
 
 msgid "Let agent chats use a browser"
 msgstr "允许智能体对话使用浏览器"
@@ -6673,12 +6556,6 @@ msgstr ""
 
 msgid "Mark done: {text}"
 msgstr ""
-
-msgid "Mark every comment in {0} to send"
-msgstr "勾选 {0} 中的所有评论以发送"
-
-msgid "Mark every comment to send"
-msgstr "勾选全部评论以发送"
 
 msgid "Markdown"
 msgstr "Markdown"
@@ -7233,9 +7110,6 @@ msgstr "没有找到活跃或最近的 GitQuire 项目。"
 msgid "No agent folders yet"
 msgstr "尚无智能体文件夹"
 
-msgid "No agent is set up yet — opening Configure agents."
-msgstr "还没有配置任何智能体——正在打开「配置智能体」。"
-
 msgid "No agent is set up yet — pick one from the send menu."
 msgstr "还没有配置任何智能体——请从发送菜单中选一个。"
 
@@ -7301,12 +7175,6 @@ msgstr "还没有聊天。"
 
 msgid "No collab server for this worktree — run <0>{cliCommand} start</0> here, or reopen the project."
 msgstr "这个 worktree 没有协作服务器——请在这里运行 <0>{cliCommand} start</0>，或重新打开项目。"
-
-msgid "No comments in this project yet. Comment on a passage to start one."
-msgstr "本项目还没有评论。对一段内容添加评论即可开始。"
-
-msgid "No comments yet. Select text in the document to add one."
-msgstr "还没有评论。在文档中选中文本即可添加。"
 
 msgid "No common ancestor — both branches added this file (add/add conflict)."
 msgstr "没有共同祖先 — 两个分支都新增了此文件（add/add 冲突）。"
@@ -7563,7 +7431,7 @@ msgstr "无工作区"
 msgid "No worktrees found."
 msgstr "未找到工作树。"
 
-msgid "Nobody has mentioned you yet. Mentions in discussions show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
 msgid "Nobody mentioned"
@@ -7730,12 +7598,6 @@ msgstr "开启——把鼠标悬停在外部链接上时，会把它的 URL 发�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "开启——你的搜索查询和匹配页面的文本会发送到你的嵌入服务提供方（默认是 OpenAI）来计算嵌入向量。"
 
-msgid "On <0>{address}</0>"
-msgstr "在 <0>{address}</0> 上"
-
-msgid "On selected text in <0>{address}</0>"
-msgstr "在 <0>{address}</0> 中选中的文本上"
-
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "在根索引上，okf_version 被写为带引号的字符串，如 \"0.2\"。不加引号，YAML 将其读取为数字，0.10 默默地变成 0.1。"
 
@@ -7844,9 +7706,6 @@ msgstr "打开 CodeMirror 的跳转到行提示框。"
 
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "打开 CodeMirror 的检查诊断面板。"
-
-msgid "Open comment"
-msgstr "打开评论"
 
 msgid "Open containing folder"
 msgstr "打开所在文件夹"
@@ -7976,9 +7835,6 @@ msgstr "打开终端以登录"
 
 msgid "Open that worktree instead"
 msgstr "改为打开那个 worktree"
-
-msgid "Open the comment composer on the current selection and add it to the dispatch queue."
-msgstr "针对当前选区打开评论输入框，并把它加入发送队列。"
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "在空白或活动的文本位置打开插入菜单。"
@@ -8705,9 +8561,6 @@ msgstr "重新通过 GitHub Enterprise Server 认证"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "重新生成嵌入向量会随着搜索进行，因此覆盖率会从零重新累积。"
 
-msgid "Re-place on selected text"
-msgstr "重新定位到选中的文本上"
-
 msgid "Re-run the project audit"
 msgstr "重新运行项目审查"
 
@@ -9256,9 +9109,6 @@ msgstr "删除前请先解决 {files} 上的冲突。"
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "删除前请先解决 {files} 以及另外 {overflow} 个文件上的冲突。"
 
-msgid "Resolved"
-msgstr "已解决"
-
 msgid "Resolved by {resolvedBy}"
 msgstr ""
 
@@ -9459,9 +9309,6 @@ msgstr ""
 
 msgid "Save queued message"
 msgstr "保存排队中的消息"
-
-msgid "Save this comment (Enter)"
-msgstr "保存这条评论（Enter）"
 
 msgid "Save view as page"
 msgstr ""
@@ -9715,7 +9562,7 @@ msgstr "选中下一处出现"
 msgid "Select spelling languages"
 msgstr "选择拼写检查语言"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
 msgstr ""
 
 msgid "Select the full source document."
@@ -9772,14 +9619,8 @@ msgstr "发送并继续"
 msgid "Send a new code"
 msgstr ""
 
-msgid "Send checked comments to chat"
-msgstr "把勾选的评论发送到对话"
-
 msgid "Send code"
 msgstr ""
-
-msgid "Send comments to"
-msgstr "把评论发送到"
 
 msgid "Send feedback"
 msgstr "发送反馈"
@@ -9796,17 +9637,8 @@ msgstr "立即发送"
 msgid "Send report"
 msgstr "发送报告"
 
-msgid "Send this comment"
-msgstr "发送这条评论"
-
 msgid "Send to a new chat"
 msgstr "发送到新对话"
-
-msgid "Send to chat"
-msgstr "发送到对话"
-
-msgid "Send to chat ({0})"
-msgstr "发送到对话（{0}）"
 
 msgid "Send when the agent is free"
 msgstr "在智能体空闲时发送"
@@ -9831,9 +9663,6 @@ msgstr "会连同你的备注和应用版本一起私下发送给 GitQuire 团�
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "会发送到 <0>{endpointHost}</0> 以生成你内容的嵌入向量。保存在项目外。"
-
-msgid "Sent, but the comments could not be marked done — they're still waiting to send."
-msgstr "已发送，但无法把这些评论标记为已完成——它们仍在等待发送。"
 
 msgid "Separator"
 msgstr "分隔符"
@@ -10107,14 +9936,8 @@ msgstr "重新显示提示：此项目中的 {displayName}"
 msgid "Show replace"
 msgstr "显示替换"
 
-msgid "Show resolved"
-msgstr "显示已解决"
-
 msgid "Show resolved ({resolvedCount})"
 msgstr ""
-
-msgid "Show resolved comments ({0})"
-msgstr "显示已解决的评论（{0}）"
 
 msgid "Show selection preview"
 msgstr "显示选区预览"
@@ -10130,9 +9953,6 @@ msgstr "显示源码"
 
 msgid "Show Terminal"
 msgstr "显示 Terminal"
-
-msgid "Show these comments in the Comments panel"
-msgstr "在评论面板中显示这些评论"
 
 msgid "Show thumbnails"
 msgstr "显示缩略图"
@@ -10451,14 +10271,8 @@ msgstr "发起一份错误报告，并附上此刻画面的截图。"
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "使用 ＋ 按钮开始对话，或从页面启动智能体。"
 
-msgid "Start a discussion with your team on this selection"
+msgid "Start a comment thread on the selected text."
 msgstr ""
-
-msgid "Start a new chat"
-msgstr "开始新对话"
-
-msgid "Start a new chat ({0})"
-msgstr "开始新对话（{0}）"
 
 msgid "Start a new GitQuire project."
 msgstr "开始一个新的 GitQuire 项目。"
@@ -10908,9 +10722,6 @@ msgstr "该冲突已不再可用。"
 msgid "That did not go through. Check the server logs and try again."
 msgstr "操作没有成功。请查看服务器日志后重试。"
 
-msgid "That document didn't open in time. Try again once it has synced."
-msgstr "该文档未能及时打开。请在同步完成后重试。"
-
 msgid "That doesn’t parse as YAML or JSON — check line {0}."
 msgstr "无法将此内容解析为 YAML 或 JSON，请检查第 {0} 行。"
 
@@ -11121,9 +10932,6 @@ msgstr "你的端点提供的模型 id。它的向量维度会自动检测——
 
 msgid "the open agent"
 msgstr "已打开的智能体"
-
-msgid "The original text was deleted."
-msgstr "原始文本已被删除。"
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11417,9 +11225,6 @@ msgstr "无法读取此检出路径。"
 
 msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
 msgstr "此命令包含隐藏字符，可能使其看起来与实际运行的内容不同。这些字符在此显示为 ⟨U+…⟩。"
-
-msgid "This comment is on the whole property"
-msgstr "这条评论针对的是整个属性"
 
 msgid "This component changed. Try again."
 msgstr "此组件已更改。请重试。"
@@ -12070,12 +11875,6 @@ msgstr "未知变量 {unknownList}。可用变量：{supportedVariables}。"
 msgid "unlink"
 msgstr "取消链接"
 
-msgid "Unmark every comment"
-msgstr "取消勾选全部评论"
-
-msgid "Unmark every comment in {0}"
-msgstr "取消勾选 {0} 中的所有评论"
-
 msgid "Unmerged"
 msgstr "未合并"
 
@@ -12348,9 +12147,6 @@ msgstr "在 skills.sh 上查看 {publisher}"
 msgid "View as text"
 msgstr "以文本方式查看"
 
-msgid "View comments"
-msgstr "查看评论"
-
 msgid "View diff for edit {burstNumber} of {docName}"
 msgstr "查看 {docName} 第 {burstNumber} 次编辑的差异"
 
@@ -12511,9 +12307,6 @@ msgstr "开启后，智能体每次编辑后都会打开或刷新预览。如果
 msgid "When the agent runs its scheduled work."
 msgstr "智能体执行定时任务的时间。"
 
-msgid "When the Comments tab is open"
-msgstr "当评论标签页打开时"
-
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "把鼠标悬停在外部链接上时，它的 URL 会发送到目标站点以获取页面的预览元数据——每个被预览的链接一次请求。"
 
@@ -12579,9 +12372,6 @@ msgstr "自动换行"
 
 msgid "Work directly, no plan step"
 msgstr "直接工作，不先制定计划"
-
-msgid "Work through these comments"
-msgstr "处理这些评论"
 
 msgid "Working"
 msgstr "进行中"
@@ -12713,9 +12503,6 @@ msgstr "你的智能体仍会加载该技能，但 GitQuire 无法打开或编�
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "你的更改还在保存中——请稍后再运行一次测试。"
-
-msgid "Your comments are waiting behind the running turn — they stay queued until the agent picks the message up."
-msgstr "你的评论正在当前回合之后等待——它们会排队，直到智能体取用该消息。"
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "你本地的 <0>{shareBranch}</0> 分支副本有改动尚未推送到 GitHub。分支同步后，这个{targetNoun}就会出现。"

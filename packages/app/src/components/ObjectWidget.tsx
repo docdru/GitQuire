@@ -24,7 +24,6 @@ import {
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { PropertyCommentButton } from '@/comments/PropertyCommentButton';
 import { useFrontmatterBinding } from '@/components/FrontmatterBindingContext';
 import {
   type AddDraft,
@@ -304,12 +303,6 @@ export function ObjectWidget({ keyName, value, path, depth = 0 }: ObjectWidgetPr
                       onCommit={(v) => commitChild(childKey, v)}
                       onChangeType={(nextType) => changeChildType(childKey, nextType)}
                       onRemove={readOnly ? undefined : () => removeChild(childKey)}
-                      actionSlot={
-                        <PropertyCommentButton
-                          propertyKey={String(childPath[0])}
-                          propertyPath={childPath.slice(1)}
-                        />
-                      }
                     />
                   );
                 })}

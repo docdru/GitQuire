@@ -39,8 +39,6 @@ const PREVIEW_DOCUMENT_MUTATIONS = new Set([
   '/api/agent-patch',
   '/api/agent-undo',
   '/api/agent-write-batch',
-  '/api/comments',
-  '/api/comment',
   '/api/client-logs',
   '/api/frontmatter-patch',
   '/api/save-version',

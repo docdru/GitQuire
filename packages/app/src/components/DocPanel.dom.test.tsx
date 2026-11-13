@@ -109,18 +109,18 @@ afterEach(() => {
 });
 
 describe('DocPanel — tab gating', () => {
-  test('project mode renders the full tab strip (outline + links + graph + timeline + problems + comments)', () => {
+  test('project mode renders the full tab strip (outline + links + graph + timeline + problems)', () => {
     singleFileValue = false;
     renderPanel('outline');
-    expect(screen.getAllByRole('tab')).toHaveLength(6);
+    expect(screen.getAllByRole('tab')).toHaveLength(5);
     expect(screen.getByTestId('outline-panel')).toBeTruthy();
   });
 
-  test('single-file mode keeps Outline + Problems + Comments', () => {
+  test('single-file mode keeps Outline + Problems', () => {
     singleFileValue = true;
     renderPanel('graph');
-    expect(screen.getAllByRole('tab')).toHaveLength(3);
-    expect(screen.getByRole('tab', { name: /comments/i })).toBeTruthy();
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
+    expect(screen.getByRole('tab', { name: /problems/i })).toBeTruthy();
     expect(screen.getByTestId('outline-panel')).toBeTruthy();
   });
 

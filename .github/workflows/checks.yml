@@ -77,6 +77,9 @@ jobs:
           --filter=@inkeep/open-knowledge-server
           --filter=@inkeep/open-knowledge
 
+      - name: Typecheck app
+        run: pnpm exec turbo run typecheck --filter=@inkeep/open-knowledge-app
+
       - name: Build server dependencies
         run: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...
 

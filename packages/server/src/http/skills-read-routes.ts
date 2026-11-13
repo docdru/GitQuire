@@ -2,7 +2,6 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 import {
-  CommentCountsSuccessSchema,
   EmptyRequestSchema,
   isDetectedSkillInProject,
   isSkillOutsideOpenProject,
@@ -12,7 +11,6 @@ import {
 } from '@inkeep/open-knowledge-core';
 import { resolveProjectIdentity } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import type { enumerateInstalledSkills } from '@inkeep/open-knowledge-core/skills-catalog';
-import type { CommentService } from '../comments/comment-service.ts';
 import { resolveProjectTemplates } from '../content/templates-resolver.ts';
 import { scanGlobalInPlaceSkillsAsync, scanInPlaceSkills } from '../in-place-skills.ts';
 import { readSkillInstallStateSnapshot } from '../skill-state.ts';
@@ -27,8 +25,6 @@ export interface SkillsReadRouteDeps {
   projectDir: string | undefined;
   homeDirOverride: string | undefined;
   skillsHome: string;
-  isSafeDocName: (docName: string) => boolean;
-  commentService: Pick<CommentService, 'countThreads'>;
   enumerateInstalledSkillsCached: (
     opts: Parameters<typeof enumerateInstalledSkills>[0],
   ) => ReturnType<typeof enumerateInstalledSkills>;
@@ -50,8 +46,6 @@ export function createSkillsReadRoutes(deps: SkillsReadRouteDeps): SkillsReadRou
     projectDir,
     homeDirOverride,
     skillsHome,
-    isSafeDocName,
-    commentService,
     enumerateInstalledSkillsCached,
     checkLocalOpSecurity,
   } = deps;
@@ -99,62 +93,6 @@ export function createSkillsReadRoutes(deps: SkillsReadRouteDeps): SkillsReadRou
       }
     },
     { handler: 'skills-installed', method: 'GET', skipBodyParse: true },
-  );
-
-  const handleCommentCounts = withValidation(
-    EmptyRequestSchema,
-    async (req, res) => {
-      try {
-        const url = new URL(req.url ?? '', 'http://localhost');
-        const prefix = url.searchParams.get('prefix');
-        const raw = url.searchParams.get('docNames');
-        if (prefix === null && raw === null) {
-          errorResponse(
-            res,
-            400,
-            'urn:ok:error:invalid-request',
-            'Missing docNames or prefix parameter.',
-            { handler: 'comment-counts' },
-          );
-          return;
-        }
-        let counts: Record<string, number> = {};
-        if (prefix !== null) {
-          const trimmed = prefix.trim();
-          if (trimmed !== '' && !isSafeDocName(trimmed)) {
-            errorResponse(res, 400, 'urn:ok:error:invalid-request', 'Invalid prefix parameter.', {
-              handler: 'comment-counts',
-            });
-            return;
-          }
-          counts = Object.fromEntries(await commentService.countThreads({ prefix: trimmed }));
-        } else {
-          const docNames = (raw ?? '')
-            .split(',')
-            .map((name) => name.trim())
-            .filter((name) => name !== '' && isSafeDocName(name));
-          counts = Object.fromEntries(await commentService.countThreads({ docNames }));
-        }
-        successResponse(
-          res,
-          200,
-          CommentCountsSuccessSchema,
-          { counts },
-          {
-            handler: 'comment-counts',
-          },
-        );
-      } catch (e) {
-        errorResponse(
-          res,
-          500,
-          'urn:ok:error:internal-server-error',
-          'Failed to read comment counts.',
-          { handler: 'comment-counts', cause: e },
-        );
-      }
-    },
-    { handler: 'comment-counts', method: 'GET', skipBodyParse: true },
   );
 
   const handleTemplatesList = withValidation(
@@ -207,7 +145,6 @@ export function createSkillsReadRoutes(deps: SkillsReadRouteDeps): SkillsReadRou
   );
 
   const routes: Record<string, (req: IncomingMessage, res: ServerResponse) => Promise<void>> = {
-    '/api/comment-counts': handleCommentCounts,
     '/api/skills/installed': handleSkillsInstalled,
     '/api/templates': handleTemplatesList,
     '/api/skill/install-state': handleSkillInstallState,

@@ -333,7 +333,7 @@ export function MentionInbox() {
         </div>
         {current.mentions.length === 0 ? (
           <p className="px-2 pb-2 text-muted-foreground text-sm">
-            {t`Nobody has mentioned you yet. Mentions in discussions show up here.`}
+            {t`Nobody has mentioned you yet. Mentions in comments show up here.`}
           </p>
         ) : (
           <ul className="flex flex-col gap-1 overflow-y-auto">

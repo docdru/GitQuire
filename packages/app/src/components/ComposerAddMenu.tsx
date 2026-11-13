@@ -1,5 +1,5 @@
 import { useLingui } from '@lingui/react/macro';
-import { AtSign, MessageSquare, Paperclip, Plus, SquareSlash } from 'lucide-react';
+import { AtSign, Paperclip, Plus, SquareSlash } from 'lucide-react';
 import {
   type ComponentProps,
   createContext,
@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -148,33 +147,6 @@ export function ComposerFilesMenuItem({
         {t`Attach files`}
         {attachmentMode === 'reference' ? t` · project files as references` : null}
       </span>
-    </DropdownMenuItem>
-  );
-}
-
-export function ComposerCommentsMenuItem({
-  count,
-  onSelect,
-}: {
-  count: number;
-  onSelect: () => void;
-}): ReactNode {
-  const { t } = useLingui();
-  const scheduleComposerFocusAction = useComposerFocusAction();
-  return (
-    <DropdownMenuItem
-      aria-label={t`Attach comments: ${count}`}
-      onSelect={() => scheduleComposerFocusAction(onSelect)}
-    >
-      <MessageSquare className="size-3.5 text-muted-foreground" aria-hidden="true" />
-      <span>{t`Attach comments`}</span>
-      <Badge
-        variant="gray"
-        aria-hidden="true"
-        className="ms-auto h-4 min-w-4 rounded-xs px-1 text-2xs leading-none tabular-nums"
-      >
-        {count}
-      </Badge>
     </DropdownMenuItem>
   );
 }

@@ -32,10 +32,6 @@ const editorCtorStartTimes = new WeakMap<object, number>();
 
 import { type Transaction as PMTransaction, TextSelection } from '@tiptap/pm/state';
 import type { EditorView as PMEditorView } from '@tiptap/pm/view';
-import { CommentAnchorLayer } from '@/comments/anchor-decorations';
-import { CommentMarginRail } from '@/comments/CommentMarginRail';
-import { CommentSelectionAffordance } from '@/comments/CommentSelectionAffordance';
-import { CommentsBoundary } from '@/comments/CommentsBoundary';
 import { loadFollowFilePref } from '@/components/acp/follow-file';
 import {
   OUTLINE_NAV_BREADCRUMB,
@@ -43,6 +39,7 @@ import {
   OUTLINE_NAV_SETTLED_BREADCRUMB,
   type OutlineNavDetail,
 } from '@/components/OutlinePanel';
+import { CommentShortcut } from '@/gitquire-comments/DiscussionBubbleButton';
 import { DiscussionLayer } from '@/gitquire-comments/DiscussionLayer';
 import { DiscussionPanel } from '@/gitquire-comments/DiscussionPanel';
 import { TouchEditToolbar } from '@/gitquire-mobile/TouchEditToolbar';
@@ -1275,15 +1272,7 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
         />
       )}
       {!isSourceMode && (
-        <CommentsBoundary>
-          <CommentSelectionAffordance
-            editor={editor}
-            docName={docName}
-            shortcutEnabled={docName === activeDocName}
-          />
-          <CommentAnchorLayer editor={editor} docName={docName} />
-          {docName === activeDocName && <CommentMarginRail editor={editor} docName={docName} />}
-        </CommentsBoundary>
+        <CommentShortcut editor={editor} docName={docName} enabled={docName === activeDocName} />
       )}
       {!isSourceMode && <DiscussionLayer editor={editor} docName={docName} />}
       {!isSourceMode && docName === activeDocName && (

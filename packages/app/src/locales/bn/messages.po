@@ -262,9 +262,6 @@ msgstr "{1}টির মধ্যে {0}টি প্রকল্প নির�
 msgid "{0} of {1} selected"
 msgstr "{1}টির মধ্যে {0}টি নির্বাচিত"
 
-msgid "{0} of {totalCount}"
-msgstr "{totalCount}টির মধ্যে {0}টি"
-
 msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
 msgstr "{0} একটি লিংকের মাধ্যমে খোলে এবং সংযুক্তি গ্রহণ করে না — এর বদলে অ্যাপের ভেতরের এজেন্ট বেছে নিন।"
 
@@ -461,12 +458,6 @@ msgstr "{count, plural, one {{files} টেক্সট ফাইল নয়, 
 msgid "{count, plural, one {{files} isn't a text file, so it can't be sent with the message. Mention it with @ once it's in your project.} other {{files} aren't text files, so they can't be sent with the message. Mention them with @ once they're in your project.}}"
 msgstr "{count, plural, one {{files} টেক্সট ফাইল নয়, তাই এটি বার্তার সঙ্গে পাঠানো যায় না। প্রজেক্টে থাকলে @ দিয়ে এটির উল্লেখ করুন।} other {{files} টেক্সট ফাইল নয়, তাই এগুলো বার্তার সঙ্গে পাঠানো যায় না। প্রজেক্টে থাকলে @ দিয়ে এগুলোর উল্লেখ করুন।}}"
 
-msgid "{count, plural, one {# comment} other {# comments}}"
-msgstr "{count, plural, one {# মন্তব্য} other {# মন্তব্য}}"
-
-msgid "{count, plural, one {# comment} other {# comments}} across {0, plural, one {# file} other {# files}}"
-msgstr "{count, plural, one {# মন্তব্য} other {# মন্তব্য}} {0, plural, one {# ফাইলে} other {# ফাইলে}}"
-
 msgid "{count, plural, one {# dated page} other {# dated pages}}"
 msgstr ""
 
@@ -590,9 +581,6 @@ msgstr "{errorCount, plural, one {# ত্রুটি} other {# ত্রুট
 #. Joins the two counts in a file-tree problem tooltip. Reaches a translator as two placeholders and a conjunction, so: errorText is already pluralized ("2 errors"), warningText likewise ("1 warning"), and the result is the subject of the sentence that follows it.
 msgid "{errorText} and {warningText}"
 msgstr "{errorText} এবং {warningText}"
-
-msgid "{failed} of {0} comments could not be updated."
-msgstr "{0}টির মধ্যে {failed}টি মন্তব্য আপডেট করা যায়নি।"
 
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, one {১টি ফাইল আপলোড করা যায়নি} other {{failedCount}টি ফাইল আপলোড করা যায়নি}}"
@@ -1213,9 +1201,6 @@ msgstr "প্রকৃত আকার"
 msgid "Add"
 msgstr "যোগ করুন"
 
-msgid "Add a comment"
-msgstr "একটি মন্তব্য যোগ করুন"
-
 msgid "Add a comment. Use @name to mention someone."
 msgstr ""
 
@@ -1245,12 +1230,6 @@ msgstr "অন্তত একটি অক্ষর বা সংখ্যা �
 
 msgid "Add block below"
 msgstr "নিচে ব্লক যোগ করুন"
-
-msgid "Add Comment"
-msgstr "মন্তব্য যোগ করুন"
-
-msgid "Add Comment (Enter)"
-msgstr "মন্তব্য যোগ করুন (Enter)"
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror-এর মাধ্যমে কার্সর যোগ করুন বা মিলে যাওয়া উপস্থিতিগুলো নির্বাচন করুন।"
@@ -1737,12 +1716,6 @@ msgstr "সম্পদ: {title}"
 
 msgid "Attach a file"
 msgstr "একটি ফাইল সংযুক্ত করুন"
-
-msgid "Attach comments"
-msgstr "মন্তব্য সংযুক্ত করুন"
-
-msgid "Attach comments: {count}"
-msgstr "মন্তব্য সংযুক্ত করুন: {count}"
 
 msgid "Attach files"
 msgstr "ফাইল সংযুক্ত করুন"
@@ -2288,9 +2261,6 @@ msgstr "GitQuire {agentLabel}-এর জন্য কী সেট আপ কর
 msgid "Choose what GitQuire sets up."
 msgstr "GitQuire কী সেট আপ করবে তা বেছে নিন।"
 
-msgid "Choose where to send these comments"
-msgstr "এই মন্তব্যগুলো কোথায় পাঠাবেন তা বাছুন"
-
 msgid "Choose where to send this message"
 msgstr "এই বার্তাটি কোথায় পাঠাবেন তা বেছে নিন"
 
@@ -2448,14 +2418,11 @@ msgstr "সব বন্ধ করুন"
 msgid "Close all unpinned"
 msgstr "সব আনপিন করা বন্ধ করুন"
 
-msgid "Close comment"
-msgstr "মন্তব্য বন্ধ করুন"
+msgid "Close comments"
+msgstr ""
 
 msgid "Close diff"
 msgstr "পার্থক্য বন্ধ করুন"
-
-msgid "Close discussions"
-msgstr ""
 
 msgid "Close find"
 msgstr "খোঁজা বন্ধ করুন"
@@ -2536,9 +2503,6 @@ msgstr "সব গুটিয়ে নিন"
 msgid "Collapse all file groups"
 msgstr "সব ফাইল গোষ্ঠী গুটিয়ে নিন"
 
-msgid "Collapse all files"
-msgstr "সব ফাইল গুটিয়ে নিন"
-
 msgid "Collapse Ask AI"
 msgstr "Ask AI গুটিয়ে নিন"
 
@@ -2581,20 +2545,11 @@ msgstr "এই মেশিনে কমান্ডগুলো আপনার
 msgid "Comment"
 msgstr "মন্তব্য করুন"
 
-msgid "Comment on {address}"
-msgstr "{address}-এ মন্তব্য"
-
 msgid "Comment on selection"
 msgstr "নির্বাচনের উপর মন্তব্য"
 
 msgid "Comment on this selection"
 msgstr "এই নির্বাচিত অংশে মন্তব্য করুন"
-
-msgid "Comment or ask AI about this {0}"
-msgstr "এই {0} নিয়ে মন্তব্য করুন বা AI-কে জিজ্ঞাসা করুন"
-
-msgid "Comment or ask AI about this code block"
-msgstr "এই কোড ব্লক নিয়ে মন্তব্য করুন বা AI-কে জিজ্ঞাসা করুন"
 
 msgid "Comments"
 msgstr "মন্তব্য"
@@ -3033,12 +2988,6 @@ msgstr "ফোল্ডার যাচাই করা যায়নি। �
 msgid "Could not write project files. Try a different location."
 msgstr "প্রকল্পের ফাইল লেখা যায়নি। অন্য জায়গা চেষ্টা করুন।"
 
-msgid "Couldn't add that comment: {0}"
-msgstr "ওই মন্তব্যটি যোগ করা যায়নি: {0}"
-
-msgid "Couldn't add that comment."
-msgstr "ওই মন্তব্যটি যোগ করা যায়নি।"
-
 msgid "Couldn't apply the change: {0}"
 msgstr "পরিবর্তনটি প্রয়োগ করা যায়নি: {0}"
 
@@ -3114,9 +3063,6 @@ msgstr "স্কিল মুছে ফেলা যায়নি: {error}"
 msgid "Couldn't delete template: {error}"
 msgstr "টেমপ্লেট মুছে ফেলা যায়নি: {error}"
 
-msgid "Couldn't delete that comment."
-msgstr "ওই মন্তব্যটি মুছে ফেলা যায়নি।"
-
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "এই থিম মুছে ফেলা যায়নি। রিফ্রেশ করে আবার চেষ্টা করুন।"
 
@@ -3125,9 +3071,6 @@ msgstr "সংযোগ বিচ্ছিন্ন করা যায়নি
 
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "\"{0}\"-এর প্রতিলিপি বানানো যায়নি: {1}"
-
-msgid "Couldn't find that passage — the text it was on may have changed."
-msgstr "সেই অংশটি খুঁজে পাওয়া যায়নি — এটি যে লেখায় ছিল তা পরিবর্তিত হয়ে থাকতে পারে।"
 
 msgid "Couldn't finish installing {0} — see below."
 msgstr "{0}-এর ইনস্টল শেষ করা যায়নি — নিচে দেখুন।"
@@ -3195,9 +3138,6 @@ msgstr "আপনার এজেন্ট লোড করা যায়ন�
 msgid "Couldn't load your bug reports."
 msgstr "আপনার বাগ রিপোর্ট লোড করা যায়নি।"
 
-msgid "Couldn't mark that comment to send."
-msgstr "ওই মন্তব্যটি পাঠানোর জন্য চিহ্নিত করা যায়নি।"
-
 msgid "Couldn't move {0}: {1}"
 msgstr "{0} সরানো যায়নি: {1}"
 
@@ -3243,9 +3183,6 @@ msgstr "এই প্রকল্পটি প্রকাশের জন্য
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "GitHub থেকে টানা যায়নি। আপনার সংযোগ ও সাইন-ইন দেখুন, তারপর আবার চেষ্টা করুন।"
 
-msgid "Couldn't re-place that comment."
-msgstr "ওই মন্তব্যটি আবার বসানো যায়নি।"
-
 msgid "Couldn't reach {displayName} — please try again later."
 msgstr "{displayName}-এ পৌঁছানো যায়নি। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
 
@@ -3288,12 +3225,6 @@ msgstr "{fileName} পড়া যায়নি। হয়তো সেট�
 msgid "Couldn't read the {gitignorePath} rule: {previewError}"
 msgstr "{gitignorePath} নিয়ম পড়া যায়নি: {previewError}"
 
-msgid "Couldn't read the comments waiting to send — nothing was sent."
-msgstr "পাঠানোর অপেক্ষায় থাকা মন্তব্যগুলো পড়া যায়নি — কিছুই পাঠানো হয়নি।"
-
-msgid "Couldn't read the comments waiting to send: {0}"
-msgstr "পাঠানোর অপেক্ষায় থাকা মন্তব্যগুলো পড়া যায়নি: {0}"
-
 msgid "Couldn't read the spell checking setting."
 msgstr "বানান পরীক্ষার সেটিং পড়া যায়নি।"
 
@@ -3323,9 +3254,6 @@ msgstr "\"{0}\"-এর নাম বদলানো যায়নি: {1}"
 
 msgid "Couldn't rename template: {0}"
 msgstr "টেমপ্লেটের নাম বদলানো যায়নি: {0}"
-
-msgid "Couldn't reopen that comment."
-msgstr "ওই মন্তব্যটি আবার খোলা যায়নি।"
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "{filePath}-এর দ্বন্দ্ব মীমাংসা করা যায়নি।"
@@ -3378,9 +3306,6 @@ msgstr "নেটওয়ার্ক সেটিংস সংরক্ষণ 
 msgid "Couldn't save template: {error}"
 msgstr "টেমপ্লেট সংরক্ষণ করা যায়নি: {error}"
 
-msgid "Couldn't save that edit."
-msgstr "ওই সম্পাদনাটি সংরক্ষণ করা যায়নি।"
-
 msgid "Couldn't save the action item."
 msgstr ""
 
@@ -3411,17 +3336,8 @@ msgstr "এই সেটিংটি সংরক্ষণ করা যায�
 msgid "Couldn't save your theme preference."
 msgstr "আপনার থিম পছন্দ সংরক্ষণ করা যায়নি।"
 
-msgid "Couldn't scroll to that passage. Try again."
-msgstr "সেই অংশে স্ক্রল করা যায়নি। আবার চেষ্টা করুন।"
-
 msgid "Couldn't send the report"
 msgstr "রিপোর্ট পাঠানো যায়নি"
-
-msgid "Couldn't send your comments — please try again."
-msgstr "আপনার মন্তব্য পাঠানো যায়নি — অনুগ্রহ করে আবার চেষ্টা করুন।"
-
-msgid "Couldn't send your comments — the workspace isn't ready."
-msgstr "আপনার মন্তব্য পাঠানো যায়নি — ওয়ার্কস্পেস প্রস্তুত নয়।"
 
 msgid "Couldn't send your prompt — please try again."
 msgstr "আপনার প্রম্পট পাঠানো যায়নি — অনুগ্রহ করে আবার চেষ্টা করুন।"
@@ -3443,9 +3359,6 @@ msgstr "{language}-তে পরিবর্তন করা যায়নি�
 
 msgid "Couldn't switch to Only me"
 msgstr "শুধু আমার-এ যাওয়া যায়নি"
-
-msgid "Couldn't unmark that comment — it's still waiting to send."
-msgstr "ওই মন্তব্যের চিহ্ন সরানো যায়নি — সেটি এখনও পাঠানোর অপেক্ষায়।"
 
 msgid "Couldn't unpin {name}"
 msgstr "{name} থেকে পিন সরানো যায়নি"
@@ -3735,9 +3648,6 @@ msgstr "টেবিল মুছুন"
 msgid "Delete the file"
 msgstr "ফাইলটি মুছে ফেলুন"
 
-msgid "Delete this comment"
-msgstr "এই মন্তব্যটি মুছুন"
-
 msgid "Deleted"
 msgstr "মোছা হয়েছে"
 
@@ -3905,12 +3815,6 @@ msgstr "সংযোগ বিচ্ছিন্ন করা হচ্ছে"
 msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
 msgstr "ডিসকভারি স্কিলগুলো সব AI টুলের জন্য একসঙ্গে পরিচালিত হয়। সেটিং → স্কিল স্টুডিও থেকে এটি ইনস্টল করুন।"
 
-msgid "Discuss"
-msgstr ""
-
-msgid "Discussions"
-msgstr ""
-
 msgid "Dismiss"
 msgstr "সরিয়ে দিন"
 
@@ -3982,9 +3886,6 @@ msgstr "এই প্রকল্পে সেটআপ ছাড়া এই �
 
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "<0>Skills</0> দেখতে পাচ্ছেন না? আগে <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> চালু করুন।"
-
-msgid "Don't send this comment"
-msgstr "এই মন্তব্যটি পাঠাবেন না"
 
 msgid "Don't show"
 msgstr "দেখাবেন না"
@@ -4520,9 +4421,6 @@ msgstr "সব মেলে ধরুন"
 
 msgid "Expand all file groups"
 msgstr "সব ফাইল গোষ্ঠী মেলে ধরুন"
-
-msgid "Expand all files"
-msgstr "সব ফাইল মেলে ধরুন"
 
 msgid "Expand board"
 msgstr "বোর্ড মেলে ধরুন"
@@ -5483,9 +5381,6 @@ msgstr "আপনার AI এজেন্টদের এখানে কীভ
 msgid "guides/install or https://example.com"
 msgstr "guides/install বা https://example.com"
 
-msgid "Hand the checked comments to an agent in one turn. On This doc, that document's comments only; on This project, every checked comment. Does nothing while the Comments tab is closed."
-msgstr "চেক করা মন্তব্যগুলো এক দফায় এজেন্টকে দিন। এই নথি-তে শুধু সেই নথির মন্তব্য; এই প্রকল্প-এ সব চেক করা মন্তব্য। মন্তব্য ট্যাব বন্ধ থাকলে কিছুই হয় না।"
-
 msgid "Hard break"
 msgstr "কঠিন বিরতি"
 
@@ -5633,9 +5528,6 @@ msgstr "বদলানো লুকান"
 
 msgid "Hide resolved"
 msgstr "মীমাংসিত লুকান"
-
-msgid "Hide resolved comments ({0})"
-msgstr "সমাধান হওয়া মন্তব্য লুকান ({0})"
 
 msgid "Hide selection preview"
 msgstr "নির্বাচনের প্রাকদর্শন লুকান"
@@ -6204,14 +6096,8 @@ msgstr "শেষ ট্যাবে যান"
 msgid "Jump to page {pageNumber}"
 msgstr "পাতা {pageNumber}-এ যান"
 
-msgid "Jump to selected text in property"
-msgstr "প্রপার্টিতে নির্বাচিত লেখায় যান"
-
 msgid "Jump to tab 1-8"
 msgstr "ট্যাব ১-৮-এ যান"
-
-msgid "Jump to the anchored text"
-msgstr "অ্যাংকর করা লেখায় যান"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "কার্সরে থাকা ব্লকের markdown সোর্সে যান, মাঝখানে ও হাইলাইট করা অবস্থায়।"
@@ -6318,9 +6204,6 @@ msgstr "কনফিগ ভাগাভাগি সম্পর্কে আর
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "ফোল্ডারের যেকোনো গভীরতায় থাকা log.md বা log.mdx-এর ভেতরে লেখা ভাঙা লিংকগুলোকে সমস্যা, ফাইল এক্সপ্লোরারের সূচক, এডিটরের ডায়াগনস্টিক, অডিট এবং এজেন্ট লেখার পরামর্শ থেকে বাদ দিন। লিংকটি কোন ফাইলে লেখা হয়েছে সেটিই বিবেচ্য, এটি যে ফাইলকে নির্দেশ করে সেটি নয়; আর LOG.md একটি সাধারণ ডকুমেন্ট। লিংক প্যানেল ও এডিটরে এগুলো তবু দেখা যায়।"
-
-msgid "Leave these comments out of this message"
-msgstr "এই মন্তব্যগুলো এই বার্তার বাইরে রাখুন"
 
 msgid "Let agent chats use a browser"
 msgstr "এজেন্ট চ্যাটকে ব্রাউজার ব্যবহার করতে দিন"
@@ -6669,12 +6552,6 @@ msgstr ""
 
 msgid "Mark done: {text}"
 msgstr ""
-
-msgid "Mark every comment in {0} to send"
-msgstr "{0}-এর সব মন্তব্য পাঠানোর জন্য চিহ্নিত করুন"
-
-msgid "Mark every comment to send"
-msgstr "পাঠানোর জন্য সব মন্তব্য চিহ্নিত করুন"
 
 msgid "Markdown"
 msgstr "Markdown"
@@ -7229,9 +7106,6 @@ msgstr "সক্রিয় বা সাম্প্রতিক কোনো
 msgid "No agent folders yet"
 msgstr "এখনও কোনো এজেন্ট ফোল্ডার নেই"
 
-msgid "No agent is set up yet — opening Configure agents."
-msgstr "এখনও কোনো এজেন্ট সেট আপ করা নেই — Configure agents খোলা হচ্ছে।"
-
 msgid "No agent is set up yet — pick one from the send menu."
 msgstr "এখনও কোনো এজেন্ট সেট আপ করা নেই — পাঠানোর মেনু থেকে একটি বাছুন।"
 
@@ -7297,12 +7171,6 @@ msgstr "এখনও কোনো চ্যাট নেই।"
 
 msgid "No collab server for this worktree — run <0>{cliCommand} start</0> here, or reopen the project."
 msgstr "এই ওয়ার্কট্রির জন্য কোনো সহযোগিতা সার্ভার নেই — এখানে <0>{cliCommand} start</0> চালান, নয়তো প্রকল্পটি আবার খুলুন।"
-
-msgid "No comments in this project yet. Comment on a passage to start one."
-msgstr "এই প্রকল্পে এখনও কোনো মন্তব্য নেই। শুরু করতে কোনো অংশে মন্তব্য করুন।"
-
-msgid "No comments yet. Select text in the document to add one."
-msgstr "এখনও কোনো মন্তব্য নেই। একটি যোগ করতে নথিতে লেখা নির্বাচন করুন।"
 
 msgid "No common ancestor — both branches added this file (add/add conflict)."
 msgstr "কোনও সাধারণ পূর্বসূরি নেই — উভয় ব্রাঞ্চ এই ফাইলটি যোগ করেছে (add/add দ্বন্দ্ব)।"
@@ -7559,7 +7427,7 @@ msgstr "কোনো ওয়ার্কস্পেস নেই"
 msgid "No worktrees found."
 msgstr "কোনো ওয়ার্কট্রি পাওয়া যায়নি।"
 
-msgid "Nobody has mentioned you yet. Mentions in discussions show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
 msgid "Nobody mentioned"
@@ -7726,12 +7594,6 @@ msgstr "চালু — কোনো বাইরের লিংকের উ�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "চালু — আপনার অনুসন্ধানের প্রশ্ন ও মিলে যাওয়া পাতাগুলোর লেখা এমবেডিং হিসাব করতে আপনার এমবেডিং সরবরাহকারীর (ডিফল্টে OpenAI) কাছে পাঠানো হয়।"
 
-msgid "On <0>{address}</0>"
-msgstr "<0>{address}</0>-এ"
-
-msgid "On selected text in <0>{address}</0>"
-msgstr "<0>{address}</0>-এ নির্বাচিত লেখার উপর"
-
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "রুট ইনডেক্সে, okf_version একটি উদ্ধৃত স্ট্রিং হিসাবে লেখা হয় যেমন \"0.2\"। উদ্ধৃতিহীন, YAML এটিকে একটি সংখ্যা হিসাবে পড়ে এবং 0.10 নিঃশব্দে 0.1 হয়ে যায়।"
 
@@ -7840,9 +7702,6 @@ msgstr "CodeMirror-এর লাইনে-যাওয়া প্রম্প�
 
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "CodeMirror-এর lint নির্ণয় প্যানেল খুলুন।"
-
-msgid "Open comment"
-msgstr "মন্তব্য খুলুন"
 
 msgid "Open containing folder"
 msgstr "যে ফোল্ডারে আছে সেটি খুলুন"
@@ -7972,9 +7831,6 @@ msgstr "সাইন ইন করতে টার্মিনাল খুল�
 
 msgid "Open that worktree instead"
 msgstr "বদলে ওই ওয়ার্কট্রিটি খুলুন"
-
-msgid "Open the comment composer on the current selection and add it to the dispatch queue."
-msgstr "বর্তমান নির্বাচনে মন্তব্য রচনাপট খুলুন এবং সেটি পাঠানোর সারিতে যোগ করুন।"
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "কোনো খালি বা সক্রিয় লেখার অবস্থানে সন্নিবেশ মেনু খুলুন।"
@@ -8701,9 +8557,6 @@ msgstr "GitHub Enterprise Server-এর সঙ্গে আবার প্র�
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "অনুসন্ধান চলার সঙ্গে সঙ্গেই পুনরায় এমবেড হয়, তাই আওতা শূন্য থেকে আবার শুরু হয়ে ভরে ওঠে।"
 
-msgid "Re-place on selected text"
-msgstr "নির্বাচিত লেখার উপর আবার বসান"
-
 msgid "Re-run the project audit"
 msgstr "প্রকল্পের নিরীক্ষা আবার চালান"
 
@@ -9252,9 +9105,6 @@ msgstr "মোছার আগে {files}-এর দ্বন্দ্ব মি
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "মোছার আগে {files} এবং আরও {overflow}টি ফাইলের দ্বন্দ্ব মিটিয়ে নিন।"
 
-msgid "Resolved"
-msgstr "মীমাংসিত"
-
 msgid "Resolved by {resolvedBy}"
 msgstr ""
 
@@ -9455,9 +9305,6 @@ msgstr ""
 
 msgid "Save queued message"
 msgstr "সারিতে থাকা বার্তা সংরক্ষণ করুন"
-
-msgid "Save this comment (Enter)"
-msgstr "এই মন্তব্যটি সংরক্ষণ করুন (Enter)"
 
 msgid "Save view as page"
 msgstr ""
@@ -9711,7 +9558,7 @@ msgstr "পরবর্তী উপস্থিতি নির্বাচন 
 msgid "Select spelling languages"
 msgstr "বানান পরীক্ষার ভাষা নির্বাচন করুন"
 
-msgid "Select text and choose Discuss to start a thread. Comments are saved in the page."
+msgid "Select text and choose Comment to start a thread. Comments are saved in the page."
 msgstr ""
 
 msgid "Select the full source document."
@@ -9768,14 +9615,8 @@ msgstr "পাঠিয়ে চালিয়ে যান"
 msgid "Send a new code"
 msgstr ""
 
-msgid "Send checked comments to chat"
-msgstr "চেক করা মন্তব্য আলাপে পাঠান"
-
 msgid "Send code"
 msgstr ""
-
-msgid "Send comments to"
-msgstr "মন্তব্য পাঠান"
 
 msgid "Send feedback"
 msgstr "মতামত পাঠান"
@@ -9792,17 +9633,8 @@ msgstr "এখনই পাঠান"
 msgid "Send report"
 msgstr "রিপোর্ট পাঠান"
 
-msgid "Send this comment"
-msgstr "এই মন্তব্যটি পাঠান"
-
 msgid "Send to a new chat"
 msgstr "নতুন চ্যাটে পাঠান"
-
-msgid "Send to chat"
-msgstr "আলাপে পাঠান"
-
-msgid "Send to chat ({0})"
-msgstr "আলাপে পাঠান ({0})"
 
 msgid "Send when the agent is free"
 msgstr "এজেন্ট মুক্ত হলে পাঠান"
@@ -9827,9 +9659,6 @@ msgstr "আপনার নোট ও অ্যাপের সংস্কর�
 
 msgid "Sent to <0>{endpointHost}</0> to embed your content. Stored outside the project."
 msgstr "আপনার বিষয়বস্তু এমবেড করতে <0>{endpointHost}</0>-এ পাঠানো হয়। প্রকল্পের বাইরে সংরক্ষিত।"
-
-msgid "Sent, but the comments could not be marked done — they're still waiting to send."
-msgstr "পাঠানো হয়েছে, কিন্তু মন্তব্যগুলো সম্পন্ন হিসেবে চিহ্নিত করা যায়নি — সেগুলো এখনও পাঠানোর অপেক্ষায়।"
 
 msgid "Separator"
 msgstr "বিভাজক"
@@ -10103,14 +9932,8 @@ msgstr "আবার নির্দেশনা দেখান: এই প্�
 msgid "Show replace"
 msgstr "বদলানো দেখান"
 
-msgid "Show resolved"
-msgstr "সমাধান হওয়াগুলি দেখান"
-
 msgid "Show resolved ({resolvedCount})"
 msgstr ""
-
-msgid "Show resolved comments ({0})"
-msgstr "সমাধান হওয়া মন্তব্য দেখান ({0})"
 
 msgid "Show selection preview"
 msgstr "নির্বাচনের প্রাকদর্শন দেখান"
@@ -10126,9 +9949,6 @@ msgstr "সোর্স দেখান"
 
 msgid "Show Terminal"
 msgstr "Terminal দেখান"
-
-msgid "Show these comments in the Comments panel"
-msgstr "এই মন্তব্যগুলি মন্তব্য প্যানেলে দেখান"
 
 msgid "Show thumbnails"
 msgstr "থাম্বনেইল দেখান"
@@ -10447,14 +10267,8 @@ msgstr "স্ক্রিন এখন যেমন দেখাচ্ছে �
 msgid "Start a chat with the ＋ button, or launch an agent from a page."
 msgstr "＋ বোতাম দিয়ে চ্যাট শুরু করুন, বা কোনো পৃষ্ঠা থেকে এজেন্ট চালু করুন।"
 
-msgid "Start a discussion with your team on this selection"
+msgid "Start a comment thread on the selected text."
 msgstr ""
-
-msgid "Start a new chat"
-msgstr "একটি নতুন আলাপ শুরু করুন"
-
-msgid "Start a new chat ({0})"
-msgstr "একটি নতুন আলাপ শুরু করুন ({0})"
 
 msgid "Start a new GitQuire project."
 msgstr "একটি নতুন GitQuire প্রকল্প শুরু করুন।"
@@ -10904,9 +10718,6 @@ msgstr "সেই কনফ্লিক্টটি আর উপলব্ধ �
 msgid "That did not go through. Check the server logs and try again."
 msgstr "এটি সম্পন্ন হয়নি। সার্ভার লগ দেখে আবার চেষ্টা করুন।"
 
-msgid "That document didn't open in time. Try again once it has synced."
-msgstr "সেই নথিটি সময়মতো খোলেনি। সিঙ্ক হয়ে গেলে আবার চেষ্টা করুন।"
-
 msgid "That doesn’t parse as YAML or JSON — check line {0}."
 msgstr "এটি YAML বা JSON হিসেবে পার্স করা যাচ্ছে না — {0} নম্বর লাইনটি দেখুন।"
 
@@ -11117,9 +10928,6 @@ msgstr "আপনার এন্ডপয়েন্ট যে মডেল id
 
 msgid "the open agent"
 msgstr "খোলা এজেন্ট"
-
-msgid "The original text was deleted."
-msgstr "মূল লেখাটি মুছে ফেলা হয়েছে।"
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11413,9 +11221,6 @@ msgstr "এই চেকআউট পাথ পড়া যাচ্ছে ন�
 
 msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
 msgstr "এই কমান্ডে লুকানো অক্ষর আছে, যার ফলে এটি আসলে যা চলে তার থেকে আলাদা দেখাতে পারে। এগুলো এখানে ⟨U+…⟩ হিসেবে দেখানো হয়েছে।"
-
-msgid "This comment is on the whole property"
-msgstr "এই মন্তব্যটি পুরো প্রপার্টির উপর"
 
 msgid "This component changed. Try again."
 msgstr "এই উপাদানটি পরিবর্তিত হয়েছে। আবার চেষ্টা করুন।"
@@ -12066,12 +11871,6 @@ msgstr "অজানা ভেরিয়েবল {unknownList}। উপল�
 msgid "unlink"
 msgstr "আনলিংক করুন"
 
-msgid "Unmark every comment"
-msgstr "সব মন্তব্যের চিহ্ন সরান"
-
-msgid "Unmark every comment in {0}"
-msgstr "{0}-এর সব মন্তব্যের চিহ্ন সরান"
-
 msgid "Unmerged"
 msgstr "মার্জ হয়নি"
 
@@ -12344,9 +12143,6 @@ msgstr "skills.sh-এ {publisher} দেখুন"
 msgid "View as text"
 msgstr "লেখা হিসেবে দেখুন"
 
-msgid "View comments"
-msgstr "মন্তব্য দেখুন"
-
 msgid "View diff for edit {burstNumber} of {docName}"
 msgstr "{docName}-এর সম্পাদনা {burstNumber}-এর পার্থক্য দেখুন"
 
@@ -12507,9 +12303,6 @@ msgstr "চালু থাকলে এজেন্ট প্রতিটি �
 msgid "When the agent runs its scheduled work."
 msgstr "এজেন্ট কখন তার নির্ধারিত কাজ চালায়।"
 
-msgid "When the Comments tab is open"
-msgstr "যখন মন্তব্য ট্যাব খোলা থাকে"
-
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "আপনি কোনো বাইরের লিংকের উপর মাউস নিলে পাতার প্রাকদর্শনের মেটাডেটা আনতে তার URL গন্তব্য সাইটে পাঠানো হয় — প্রতি প্রাকদর্শিত লিংকে একটি অনুরোধ।"
 
@@ -12575,9 +12368,6 @@ msgstr "শব্দ মোড়ানো"
 
 msgid "Work directly, no plan step"
 msgstr "সরাসরি কাজ করুন, কোনো পরিকল্পনা ধাপ নেই"
-
-msgid "Work through these comments"
-msgstr "এই মন্তব্যগুলো নিয়ে কাজ করুন"
 
 msgid "Working"
 msgstr "কাজ চলছে"
@@ -12709,9 +12499,6 @@ msgstr "আপনার এজেন্টরা এখনও এই স্ক�
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "আপনার পরিবর্তন এখনও সংরক্ষিত হচ্ছে — একটু পরে পরীক্ষাটি আবার চালান।"
-
-msgid "Your comments are waiting behind the running turn — they stay queued until the agent picks the message up."
-msgstr "আপনার মন্তব্যগুলি চলমান টার্নের পিছনে অপেক্ষা করছে — এজেন্ট বার্তাটি না নেওয়া পর্যন্ত সেগুলি সারিতে থাকে।"
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "ব্রাঞ্চ <0>{shareBranch}</0>-এর আপনার অনুলিপিতে এমন পরিবর্তন আছে যা GitHub-এ নেই। ব্রাঞ্চটি সিঙ্ক হলেই {targetNoun} দেখা যাবে।"
