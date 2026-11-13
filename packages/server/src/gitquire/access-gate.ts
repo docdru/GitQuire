@@ -109,7 +109,7 @@ export function principalFromUser(user: SessionUser): GitQuirePrincipal {
   };
 }
 
-const PUBLIC_ASSET_PATHS = new Set(['/manifest.webmanifest', '/favicon.svg']);
+const PUBLIC_ASSET_PATHS = new Set(['/manifest.webmanifest', '/favicon.svg', '/favicon.ico']);
 const PUBLIC_ICON_RE = /^\/icons\/[a-z0-9-]+\.(?:png|svg)$/;
 
 export function isPublicAsset(path: string, method: string | undefined): boolean {
