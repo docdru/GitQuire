@@ -56,11 +56,37 @@ function clipName(text: string): string {
   return flat.length <= MAX_NAME_CHARS ? flat : `${flat.slice(0, MAX_NAME_CHARS - 1)}…`;
 }
 
+export function draftLink(externalUrl: string | undefined, slug: string): string | undefined {
+  if (externalUrl === undefined) return undefined;
+  return `${externalUrl}/?draft=${encodeURIComponent(slug)}`;
+}
+
+function reviewMail(
+  config: Pick<MailConfig, 'externalUrl'>,
+  to: string,
+  mention: Mention,
+  draft: { slug: string; title: string },
+): MailMessage {
+  const who = clipName(mention.author.name ?? mention.author.login ?? '') || 'Someone';
+  const title = clipName(draft.title);
+  const link = draftLink(config.externalUrl, draft.slug);
+  const lines = [`${who} asked you to review the draft "${title}".`];
+  if (mention.body.trim() !== '') lines.push('', mention.body);
+  if (link !== undefined) lines.push('', `Open the draft: ${link}`);
+  lines.push(
+    '',
+    'You get this mail because you entered this address for mentions in GitQuire.',
+    'To stop, open the mention list in GitQuire and choose "Stop emailing me".',
+  );
+  return { to, subject: `${who} asked you to review ${title}`, text: `${lines.join('\n')}\n` };
+}
+
 export function mentionMail(
   config: Pick<MailConfig, 'externalUrl'>,
   to: string,
   mention: Mention,
 ): MailMessage {
+  if (mention.draft !== undefined) return reviewMail(config, to, mention, mention.draft);
   const who = clipName(mention.author.name ?? mention.author.login ?? '') || 'Someone';
   const page = clipName(mention.docName.slice(mention.docName.lastIndexOf('/') + 1));
   const link = pageLink(config.externalUrl, mention.docName);

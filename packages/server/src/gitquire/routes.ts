@@ -35,6 +35,7 @@ import { createMentionMailer } from './mention-mailer.ts';
 import {
   buildInbox,
   createMentionReadStore,
+  type Mention,
   type MentionReader,
   mentionIndexFrom,
   mentionStatePath,
@@ -69,6 +70,8 @@ export interface GitQuireRoutesDeps {
   mailRoundMs?: number;
   chatStateFile?: string;
   postToChat?: ChatPost;
+  extraMentions?: () => Mention[];
+  notify?: boolean;
 }
 
 export interface GitQuireRoutes {
@@ -347,7 +350,10 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     Date.now,
     deps.contentFilter,
   );
-  const mentionIndex = mentionIndexFrom(pageScan, (page) => page.mentions);
+  const pageMentions = mentionIndexFrom(pageScan, (page) => page.mentions);
+  const mentionIndex = {
+    all: () => [...pageMentions.all(), ...(deps.extraMentions?.() ?? [])],
+  };
   const objectList = createObjectListCache();
   let factPages: { source: unknown; pages: ScannedPage<PageFacts>[] } | undefined;
 
@@ -433,7 +439,8 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
           log: deps.log,
         })
       : undefined;
-  const rounds = [mailer, chatNotifier].filter((job) => job !== undefined);
+  const rounds =
+    deps.notify === false ? [] : [mailer, chatNotifier].filter((job) => job !== undefined);
 
   function startMailRounds(): NodeJS.Timeout | undefined {
     if (rounds.length === 0) return undefined;
