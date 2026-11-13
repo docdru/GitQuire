@@ -1404,6 +1404,9 @@ msgstr "एजेंट सेटिंग — {headerSummary}"
 msgid "Agent settings — {headerSummary} — changes apply when you pick this conversation back up"
 msgstr "एजेंट सेटिंग — {headerSummary}: परिवर्तन तब लागू होंगे जब आप यह बातचीत फिर से शुरू करेंगे"
 
+msgid "Agent token"
+msgstr ""
+
 msgid "Agent transcript"
 msgstr "एजेंट प्रतिलेख"
 
@@ -2340,6 +2343,9 @@ msgstr "फिर से जुड़ने से पहले \"{docName}\" �
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "<0>+</0> <1/> <2>स्किल बनाएँ</2> <3/> <4>स्किल अपलोड करें</4> पर क्लिक करें।"
 
+msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgstr ""
+
 msgid "Click an agent's avatar in the presence bar to view their session."
 msgstr "किसी एजेंट का सत्र देखने के लिए उपस्थिति पट्टी में उसके अवतार पर क्लिक करें।"
 
@@ -2653,6 +2659,9 @@ msgstr "GitHub रिपॉज़िटरी ब्राउज़ और प�
 msgid "Connect an existing repository"
 msgstr "किसी मौजूदा रिपॉज़िटरी से जोड़ें"
 
+msgid "Connect Claude"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "GitHub जोड़ें"
 
@@ -2709,6 +2718,9 @@ msgstr "जोड़ा जा रहा है"
 msgid "Connecting — waiting for collab server"
 msgstr "जोड़ा जा रहा है — सहयोग सर्वर की प्रतीक्षा"
 
+msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgstr ""
+
 msgid "Connecting to {agentName}…"
 msgstr "{agentName} से जोड़ा जा रहा है…"
 
@@ -2720,6 +2732,9 @@ msgstr "कनेक्शन त्रुटि — फिर कोशिश �
 
 msgid "Connection lost — keep this tab open, your edits will sync when reconnected"
 msgstr "कनेक्शन खो गया — यह टैब खुला रखें, फिर से जुड़ने पर आपके संपादन सिंक हो जाएँगे"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Connects the agent to GitQuire in every project on this machine."
 msgstr "एजेंट को इस मशीन की हर परियोजना में GitQuire से जोड़ता है।"
@@ -2870,6 +2885,9 @@ msgstr "कोड {code} कॉपी करें"
 
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "फ़ाइल-ट्री के फ़ोकस किए गए आइटम को कॉपी करें ताकि Paste उसकी नकल बना सके।"
+
+msgid "Copy this address:"
+msgstr ""
 
 msgid "Copying"
 msgstr "कॉपी किया जा रहा है"
@@ -3437,6 +3455,9 @@ msgstr "इस प्रोजेक्ट के लिए एक स्कि�
 
 msgid "Create a token on {host}"
 msgstr "{host} पर एक टोकन बनाएँ"
+
+msgid "Create a token, then run the command shown in Claude Code."
+msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "इस ब्रांच से एक वर्कट्री बनाएँ"
@@ -5109,6 +5130,9 @@ msgstr "GitQuire ने प्रोजेक्ट की जाँच की"
 msgid "GitQuire checks for and downloads updates in the background."
 msgstr "GitQuire पृष्ठभूमि में अपडेट देखता और डाउनलोड करता है।"
 
+msgid "GitQuire connector address"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire को इस मशीन पर यह एजेंट नहीं मिला।"
 
@@ -5748,6 +5772,9 @@ msgstr "एक सूचकांक दस्तावेज़ में: प�
 msgid "In app"
 msgstr "ऐप में"
 
+msgid "In Claude, open <0>Customize → Connectors</0>, click <1>+</1> and choose <2>Add custom connector</2>. Name it GitQuire, paste the address and click <3>Add</3>."
+msgstr ""
+
 msgid "In Git projects, GitQuire adds a scoped rule to the repository-root .gitattributes file so concurrent index changes combine."
 msgstr "Git प्रोजेक्ट में, GitQuire रिपॉजिटरी के रूट की .gitattributes फ़ाइल में सीमित दायरे वाला नियम जोड़ता है, ताकि एक साथ किए गए इंडेक्स बदलाव जुड़ सकें।"
 
@@ -6211,6 +6238,9 @@ msgstr "एजेंट चैट को ब्राउज़र इस्त�
 msgid "Let agents use GitQuire without asking"
 msgstr "एजेंट को बिना पूछे GitQuire उपयोग करने दें"
 
+msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Tab को अंदर करने के बजाय स्रोत संपादक से बाहर जाने दें।"
 
@@ -6585,6 +6615,9 @@ msgstr "प्रति इंडेक्सिंग अनुरोध अध
 
 msgid "May include unredacted document names."
 msgstr "बिना छिपाए दस्तावेज़ों के नाम शामिल हो सकते हैं।"
+
+msgid "MCP"
+msgstr ""
 
 msgid "MCP auto-repair failed"
 msgstr "MCP स्वतः-मरम्मत विफल रही"
@@ -7694,6 +7727,9 @@ msgstr "नीचे वाली Ask AI प्रॉम्प्ट लेख�
 msgid "Open board"
 msgstr "बोर्ड खोलें"
 
+msgid "Open Claude connectors"
+msgstr ""
+
 msgid "Open CodeMirror search in source editor mode."
 msgstr "स्रोत संपादक मोड में CodeMirror खोज खोलें।"
 
@@ -7927,6 +7963,9 @@ msgstr "क्रमित सूची"
 
 msgid "Ordered List"
 msgstr "क्रमित सूची"
+
+msgid "Organization connectors"
+msgstr ""
 
 msgid "Organize my existing specs into a linked index grouped by area, and flag any that have drifted out of sync with the current code."
 msgstr "मेरी मौजूदा स्पेक को क्षेत्र के अनुसार समूहित एक जुड़ी हुई अनुक्रमणिका में व्यवस्थित करें, और जो मौजूदा कोड से तालमेल खो चुकी हों उन्हें चिह्नित करें।"
@@ -11481,6 +11520,12 @@ msgstr ""
 msgid "This server has no built-in authentication. Anyone who can reach the tunnel gets full control of this knowledge base. Put an authenticating gate in front, such as a private Tailscale network or a reverse proxy with authentication."
 msgstr "इस सर्वर में कोई बिल्ट-इन प्रमाणीकरण नहीं है। जो कोई भी टनल तक पहुँच सकता है उसे इस नॉलेज बेस का पूरा नियंत्रण मिल जाता है। इसके सामने एक प्रमाणीकरण गेट लगाएँ, जैसे कोई निजी Tailscale नेटवर्क या प्रमाणीकरण वाला रिवर्स प्रॉक्सी।"
 
+msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
+msgstr ""
+
+msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgstr ""
+
 msgid "This setting is per-machine and isn't shared with collaborators."
 msgstr "यह सेटिंग हर मशीन के लिए अलग है और सहयोगियों के साथ साझा नहीं होती।"
 
@@ -11659,6 +11704,9 @@ msgstr "{host} पर {login} के लिए टोकन सहेजा ग�
 
 msgid "tokens"
 msgstr "टोकन"
+
+msgid "Tokens and connected apps"
+msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
 msgstr ""
@@ -12096,6 +12144,9 @@ msgstr "उपयोगकर्ता प्लगइन इस डिवाइ
 
 msgid "Username"
 msgstr "उपयोगकर्ता नाम"
+
+msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
+msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "<0>OK_EMBEDDINGS_API_KEY</0> पर्यावरण चर का उपयोग किया जा रहा है (GitQuire के बाहर प्रबंधित)।"
@@ -12559,6 +12610,9 @@ msgstr "आपकी रिपॉज़िटरी"
 
 msgid "Your search queries and the full text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "आपकी खोज क्वेरी और मेल खाते पेजों का पूरा पाठ एम्बेडिंग बनाने के लिए आपके एम्बेडिंग प्रदाता (डिफ़ॉल्ट रूप से OpenAI) को भेजा जाता है।"
+
+msgid "Your settings could not be saved."
+msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "आपका साझा लिंक नीचे तैयार है।"
