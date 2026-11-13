@@ -40,6 +40,7 @@ import {
   mentionsFor,
   mentionsInMarkdown,
 } from './mentions.ts';
+import { mergedGoneBranches } from './merged-branches.ts';
 import { namingRuleFromEnv } from './naming.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
 import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
@@ -182,15 +183,36 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     return 'main';
   }
 
+  async function removeMergedBranches(base: string, current: string | undefined) {
+    const merged = await mergedGoneBranches(git, base, deps.pulls?.mergedPullHeads);
+    for (const name of merged) {
+      if (name === current) continue;
+      try {
+        git(['branch', '-D', name]);
+        deps.log.info(
+          { name },
+          '[gitquire] removed a branch that was merged and deleted on GitHub',
+        );
+      } catch (err) {
+        deps.log.warn({ err, name }, '[gitquire] could not remove a merged branch');
+      }
+    }
+    return merged;
+  }
+
   async function listBranches(res: ServerResponse): Promise<void> {
+    const base = await baseBranch();
+    const current = currentBranch();
+    const merged = await removeMergedBranches(base, current);
     const local = refList('refs/heads', 'refs/heads/');
     const remote = refList('refs/remotes/origin', 'refs/remotes/origin/');
     sendJson(res, 200, {
-      current: currentBranch() ?? null,
-      base: await baseBranch(),
+      current: current ?? null,
+      base,
       local,
       remoteOnly: remote.filter((name) => !local.includes(name)),
       github: deps.pulls !== undefined,
+      currentMerged: current !== undefined && merged.includes(current),
     });
   }
 

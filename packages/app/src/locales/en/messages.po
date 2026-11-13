@@ -678,6 +678,9 @@ msgstr "{localizedMessage} at line {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{mcpTool} from the {server} MCP server"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {base}."
+msgstr "{merged} was merged on GitHub. Switching everyone to {base}."
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, one {# min ago} other {# min ago}}"
 

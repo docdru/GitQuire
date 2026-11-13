@@ -678,6 +678,9 @@ msgstr "{localizedMessage} في السطر {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{mcpTool} من خادم MCP {server}"
 
+msgid "{merged} was merged on GitHub. Switching everyone to {base}."
+msgstr ""
+
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, zero {قبل # دقيقة} one {قبل # دقيقة} two {قبل # دقيقة} few {قبل # دقائق} many {قبل # دقيقة} other {قبل # دقيقة}}"
 
