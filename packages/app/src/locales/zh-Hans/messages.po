@@ -1117,9 +1117,6 @@ msgstr "在此添加的令牌只适用于 HTTPS 远程仓库，而此项目的�
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "变量两侧各需要两个花括号，例如 {filenameVariable}。"
 
-msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
-msgstr ""
-
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "{shareBranch} 的 worktree 文件夹已存在。"
 
@@ -2353,7 +2350,7 @@ msgstr "正在重新连接前清除“{docName}”的本地协作数据。"
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "依次点击 <0>+</0> <1/> <2>创建技能</2> <3/> <4>上传技能</4>。"
 
-msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -2666,14 +2663,11 @@ msgstr "连接"
 msgid "Connect a GitHub account to browse and publish GitHub repositories."
 msgstr "连接一个 GitHub 账户，以浏览和发布 GitHub 仓库。"
 
+msgid "Connect AI"
+msgstr ""
+
 msgid "Connect an existing repository"
 msgstr "连接已有仓库"
-
-msgid "Connect Claude"
-msgstr ""
-
-msgid "Connect Claude and Mistral"
-msgstr ""
 
 msgid "Connect GitHub"
 msgstr "连接 GitHub"
@@ -2683,9 +2677,6 @@ msgstr "请先连接 GitHub 再继续。"
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "把 GitQuire 与你使用的其他工具连接起来。"
-
-msgid "Connect Mistral"
-msgstr ""
 
 msgid "Connect this project to GitHub to share."
 msgstr "把这个项目连接到 GitHub 才能共享。"
@@ -2734,7 +2725,7 @@ msgstr "正在连接"
 msgid "Connecting — waiting for collab server"
 msgstr "正在连接——等待协作服务器"
 
-msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgid "Connecting AI assistants needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
 msgstr ""
 
 msgid "Connecting to {agentName}…"
@@ -2902,7 +2893,7 @@ msgstr "复制代码 {code}"
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "复制文件树中当前聚焦的项目，以便用「粘贴」创建副本。"
 
-msgid "Copy this address:"
+msgid "Copy this connector address, then follow the steps for your assistant:"
 msgstr ""
 
 msgid "Copying"
@@ -3471,9 +3462,6 @@ msgstr "为这个项目创建一个技能。"
 
 msgid "Create a token on {host}"
 msgstr "在 {host} 上创建一个令牌"
-
-msgid "Create a token, then run the command shown in Claude Code."
-msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "基于这个分支创建 worktree"
@@ -4970,6 +4958,9 @@ msgstr "正在跟随智能体的编辑"
 msgid "Footnote"
 msgstr "脚注"
 
+msgid "For Claude Code and other command-line agents, create a personal token."
+msgstr ""
+
 msgid "Force Reload"
 msgstr "强制重新加载"
 
@@ -5147,9 +5138,6 @@ msgid "GitQuire checks for and downloads updates in the background."
 msgstr "GitQuire 会在后台检查并下载更新。"
 
 msgid "GitQuire connector address"
-msgstr ""
-
-msgid "GitQuire connector address for Le Chat"
 msgstr ""
 
 msgid "GitQuire could not find this agent on this machine."
@@ -5800,7 +5788,7 @@ msgstr "在 Git 项目中，GitQuire 会在仓库根目录的 .gitattributes 文
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "在 Git 项目中，GitQuire 还添加了一个作用域 .gitattributes 规则，以便在下一次重建之前合并并发索引更改。"
 
-msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 msgstr ""
 
 msgid "In the Claude Desktop App"
@@ -6263,10 +6251,7 @@ msgstr "允许智能体对话使用浏览器"
 msgid "Let agents use GitQuire without asking"
 msgstr "让智能体无需询问即可使用 GitQuire"
 
-msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
-msgstr ""
-
-msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
+msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6742,6 +6727,9 @@ msgid "Missing theme name"
 msgstr "缺少主题名称"
 
 msgid "Mistral"
+msgstr ""
+
+msgid "Mistral Le Chat"
 msgstr ""
 
 msgid "Model"
@@ -7660,6 +7648,9 @@ msgstr "开启——把鼠标悬停在外部链接上时，会把它的 URL 发�
 
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "开启——你的搜索查询和匹配页面的文本会发送到你的嵌入服务提供方（默认是 OpenAI）来计算嵌入向量。"
+
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "在根索引上，okf_version 被写为带引号的字符串，如 \"0.2\"。不加引号，YAML 将其读取为数字，0.10 默默地变成 0.1。"
@@ -10074,6 +10065,9 @@ msgstr "请登录 {agentName} 以继续。"
 msgid "Sign in with {0}"
 msgstr "使用 {0} 登录"
 
+msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
 msgid "Sign-in failed: {0}"
 msgstr "登录失败：{0}"
 
@@ -11566,7 +11560,7 @@ msgstr "此服务器没有内置身份验证。任何能够访问该隧道的人
 msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
 msgstr ""
 
-msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators."
@@ -12190,9 +12184,6 @@ msgstr "用户插件是这台设备的个人设置——在这里开启或关闭
 
 msgid "Username"
 msgstr "用户名"
-
-msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
-msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "正在使用 <0>OK_EMBEDDINGS_API_KEY</0> 环境变量（在 GitQuire 之外管理）。"

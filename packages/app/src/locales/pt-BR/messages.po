@@ -1113,9 +1113,6 @@ msgstr "Um token adicionado aqui só se aplica a remotos HTTPS, e o remoto deste
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "Uma variável precisa de duas chaves de cada lado, como {filenameVariable}."
 
-msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
-msgstr ""
-
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "Já existe uma pasta de worktree para {shareBranch}."
 
@@ -2349,7 +2346,7 @@ msgstr "Limpando os dados locais de colaboração de \"{docName}\" antes de reco
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "Clique em <0>+</0> <1/> <2>Criar habilidade</2> <3/> <4>Enviar habilidade</4>."
 
-msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -2662,14 +2659,11 @@ msgstr "Conectar"
 msgid "Connect a GitHub account to browse and publish GitHub repositories."
 msgstr "Conecte uma conta do GitHub para explorar e publicar repositórios do GitHub."
 
+msgid "Connect AI"
+msgstr ""
+
 msgid "Connect an existing repository"
 msgstr "Conectar um repositório existente"
-
-msgid "Connect Claude"
-msgstr ""
-
-msgid "Connect Claude and Mistral"
-msgstr ""
 
 msgid "Connect GitHub"
 msgstr "Conectar GitHub"
@@ -2679,9 +2673,6 @@ msgstr "Conecte o GitHub para continuar."
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "Conecte o GitQuire às outras ferramentas que você usa."
-
-msgid "Connect Mistral"
-msgstr ""
 
 msgid "Connect this project to GitHub to share."
 msgstr "Conecte este projeto ao GitHub para compartilhar."
@@ -2730,7 +2721,7 @@ msgstr "Conectando"
 msgid "Connecting — waiting for collab server"
 msgstr "Conectando — aguardando o servidor de colaboração"
 
-msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgid "Connecting AI assistants needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
 msgstr ""
 
 msgid "Connecting to {agentName}…"
@@ -2898,7 +2889,7 @@ msgstr "Copiar o código {code}"
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "Copia o item em foco na árvore de arquivos para que Colar possa duplicá-lo."
 
-msgid "Copy this address:"
+msgid "Copy this connector address, then follow the steps for your assistant:"
 msgstr ""
 
 msgid "Copying"
@@ -3467,9 +3458,6 @@ msgstr "Crie uma habilidade para este projeto."
 
 msgid "Create a token on {host}"
 msgstr "Criar um token em {host}"
-
-msgid "Create a token, then run the command shown in Claude Code."
-msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "Criar um worktree a partir deste ramo"
@@ -4966,6 +4954,9 @@ msgstr "Acompanhando as edições do agente"
 msgid "Footnote"
 msgstr "Nota de rodapé"
 
+msgid "For Claude Code and other command-line agents, create a personal token."
+msgstr ""
+
 msgid "Force Reload"
 msgstr "Recarregar à força"
 
@@ -5143,9 +5134,6 @@ msgid "GitQuire checks for and downloads updates in the background."
 msgstr "O GitQuire busca e baixa atualizações em segundo plano."
 
 msgid "GitQuire connector address"
-msgstr ""
-
-msgid "GitQuire connector address for Le Chat"
 msgstr ""
 
 msgid "GitQuire could not find this agent on this machine."
@@ -5796,7 +5784,7 @@ msgstr "Em projetos Git, o GitQuire adiciona uma regra com escopo ao arquivo .gi
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "Em projetos Git, GitQuire também adiciona uma regra .gitattributes com escopo definido para que as alterações de índice simultâneas sejam combinadas antes da próxima reconstrução."
 
-msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 msgstr ""
 
 msgid "In the Claude Desktop App"
@@ -6259,10 +6247,7 @@ msgstr "Deixar os chats de agentes usarem um navegador"
 msgid "Let agents use GitQuire without asking"
 msgstr "Deixar os agentes usarem o GitQuire sem perguntar"
 
-msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
-msgstr ""
-
-msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
+msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6738,6 +6723,9 @@ msgid "Missing theme name"
 msgstr "Nome do tema ausente"
 
 msgid "Mistral"
+msgstr ""
+
+msgid "Mistral Le Chat"
 msgstr ""
 
 msgid "Model"
@@ -7656,6 +7644,9 @@ msgstr "Ligada — passar o cursor sobre um link externo envia a URL dele ao sit
 
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Ligada — suas consultas de busca e o texto das páginas correspondentes são enviados ao seu provedor de embeddings (OpenAI por padrão) para calcular os embeddings."
+
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "No índice raiz, okf_version é escrito como uma string entre aspas, como \"0.2\". Sem aspas, YAML lê-o como um número e 0.10 silenciosamente se torna 0.1."
@@ -10070,6 +10061,9 @@ msgstr "Faça login em {agentName} para continuar."
 msgid "Sign in with {0}"
 msgstr "Entrar com {0}"
 
+msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
 msgid "Sign-in failed: {0}"
 msgstr "Falha no login: {0}"
 
@@ -11562,7 +11556,7 @@ msgstr "Este servidor não tem autenticação integrada. Qualquer pessoa que con
 msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
 msgstr ""
 
-msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators."
@@ -12186,9 +12180,6 @@ msgstr "Os plugins de usuário são pessoais deste dispositivo — ligue ou desl
 
 msgid "Username"
 msgstr "Nome de usuário"
-
-msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
-msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "Usando a variável de ambiente <0>OK_EMBEDDINGS_API_KEY</0> (gerenciada fora do GitQuire)."
