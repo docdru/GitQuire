@@ -129,7 +129,10 @@ function githubFetch(stub: GitHubStub): typeof fetch {
       );
     }
     if (url === 'https://api.github.com/repos/acme/notes') {
-      return new Response(JSON.stringify({ permissions: { push: stub.push, maintain: stub.admin === true } }), { status: 200 });
+      return new Response(
+        JSON.stringify({ permissions: { push: stub.push, maintain: stub.admin === true } }),
+        { status: 200 },
+      );
     }
     return new Response('{}', { status: 404 });
   }) as typeof fetch;

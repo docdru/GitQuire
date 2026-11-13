@@ -564,9 +564,7 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     expect(page.tagName).toBe('SECTION');
     expect(page.getAttribute('aria-labelledby')).toBe('settings-sync-sharing-title');
 
-    expect(screen.getByTestId('settings-scope-badge-project-local').textContent).toBe(
-      'Whole wiki',
-    );
+    expect(screen.getByTestId('settings-scope-badge-project-local').textContent).toBe('Whole wiki');
     expect(screen.getByTestId('settings-scope-badge-project').textContent).toBe('Project');
   });
 

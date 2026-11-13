@@ -32,8 +32,7 @@ export function ScopeBadge({ scope }: { scope: SettingsScope }) {
             </Trans>
           ) : scope === 'project-local' ? (
             <Trans>
-              Applies to everyone using this wiki. Stored on the server in .ok/local, not in
-              Git.
+              Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git.
             </Trans>
           ) : (
             <Trans>

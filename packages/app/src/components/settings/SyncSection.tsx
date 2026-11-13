@@ -370,7 +370,9 @@ function SyncSectionContent({
               {mode === 'full' ? (
                 <Trans>Your edits are committed and pushed to your remote automatically.</Trans>
               ) : mode === 'follow' ? (
-                <Trans>Updates flow in from GitHub; edits stay on the server and are not pushed.</Trans>
+                <Trans>
+                  Updates flow in from GitHub; edits stay on the server and are not pushed.
+                </Trans>
               ) : (
                 <Trans>Nothing moves until you ask — pull and push from the sync menu.</Trans>
               )}

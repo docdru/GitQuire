@@ -17,7 +17,6 @@ import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient } from './github-pulls.ts';
 import type { ScanFilter } from './page-scan.ts';
 import { setSessionPrincipalResolver } from './principal-directory.ts';
-import { setAdminResolver } from './settings-admin.ts';
 import {
   bootstrapRepository,
   ensureAutoSyncMode,
@@ -25,6 +24,7 @@ import {
   runGitSync,
 } from './repo-bootstrap.ts';
 import { createGitQuireRoutes } from './routes.ts';
+import { setAdminResolver } from './settings-admin.ts';
 
 export type { AccessGate, SessionUser } from './access-gate.ts';
 export { noreplyEmail } from './access-gate.ts';
@@ -199,6 +199,7 @@ export function createGitQuireHttp(
       (gate?.handleRequest(req, res) ?? false) || routes.handle(req, res),
     admitUpgrade: (req, socket) => gate?.admitUpgrade(req, socket) ?? true,
     sessionUser: (req) => gate?.sessionUser(req),
+    isAdminRequest: (req) => gate?.isAdminRequest(req) ?? true,
     useContentFilter: (filter) => {
       contentFilter = filter;
     },

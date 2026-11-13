@@ -150,7 +150,9 @@ describe('LinkPreviewsSection', () => {
 
     await user.click(screen.getByTestId('settings-link-previews-toggle'));
 
-    expect(await screen.findByText('This sends link addresses from the server to other sites')).toBeDefined();
+    expect(
+      await screen.findByText('This sends link addresses from the server to other sites'),
+    ).toBeDefined();
     expect(calls.length).toBe(0);
 
     await user.click(screen.getByTestId('settings-link-previews-confirm-enable'));
@@ -168,7 +170,9 @@ describe('LinkPreviewsSection', () => {
 
     await user.click(screen.getByTestId('settings-link-previews-toggle'));
 
-    expect(screen.queryByText('This sends link addresses from the server to other sites')).toBeNull();
+    expect(
+      screen.queryByText('This sends link addresses from the server to other sites'),
+    ).toBeNull();
     expect(calls).toEqual([{ linkPreviews: { enabled: false } }]);
   });
 

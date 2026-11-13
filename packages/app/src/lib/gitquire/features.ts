@@ -40,7 +40,8 @@ export function parseFeatures(body: unknown): GitQuireFeatures {
   if (typeof features !== 'object' || features === null) return STANDALONE_FEATURES;
   const f = features as Record<string, unknown>;
   const admins = (body as { admins?: unknown }).admins;
-  const adminInfo = typeof admins === 'object' && admins !== null ? (admins as Record<string, unknown>) : {};
+  const adminInfo =
+    typeof admins === 'object' && admins !== null ? (admins as Record<string, unknown>) : {};
   return {
     askAi: f.askAi !== false,
     agentToken: f.agentToken === true,

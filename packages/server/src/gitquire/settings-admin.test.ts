@@ -71,14 +71,16 @@ describe('memberSettingsChangeAllowed', () => {
 
   test('allows file tree view toggles', () => {
     expect(memberSettingsChangeAllowed(base, base.replace('false', 'true'))).toBe(true);
-    expect(memberSettingsChangeAllowed('', 'appearance:\n  sidebar:\n    showOkFolders: true\n')).toBe(
-      true,
-    );
+    expect(
+      memberSettingsChangeAllowed('', 'appearance:\n  sidebar:\n    showOkFolders: true\n'),
+    ).toBe(true);
   });
 
   test('refuses anything else', () => {
     expect(memberSettingsChangeAllowed(base, base.replace('full', 'off'))).toBe(false);
-    expect(memberSettingsChangeAllowed(base, `${base}linkPreviews:\n  enabled: true\n`)).toBe(false);
+    expect(memberSettingsChangeAllowed(base, `${base}linkPreviews:\n  enabled: true\n`)).toBe(
+      false,
+    );
     expect(memberSettingsChangeAllowed(base, 'autoSync: [')).toBe(false);
   });
 });

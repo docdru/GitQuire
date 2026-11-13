@@ -213,8 +213,7 @@ function SettingsDialogSection({
           title={<Trans>Sync & sharing</Trans>}
         >
           <Trans>
-            Sync keeps the wiki's copy on the server up to date with GitHub. It applies to
-            everyone.
+            Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone.
           </Trans>
         </SettingsSectionHeader>
         <SyncSection />

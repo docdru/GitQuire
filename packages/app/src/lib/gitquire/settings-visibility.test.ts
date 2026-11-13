@@ -55,7 +55,13 @@ describe('isWikiAdminSetting', () => {
   });
 
   test('leaves personal settings alone', () => {
-    for (const id of ['preferences', 'hotkeys', 'agent-connections', 'plugin:theme', 'plugin:slides']) {
+    for (const id of [
+      'preferences',
+      'hotkeys',
+      'agent-connections',
+      'plugin:theme',
+      'plugin:slides',
+    ]) {
       expect(isWikiAdminSetting(id)).toBe(false);
     }
   });
