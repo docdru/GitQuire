@@ -11,15 +11,24 @@ describe('connectorUrl', () => {
 
 describe('connectClaudeMode', () => {
   test('offers the connector flow when the server accepts connectors', () => {
-    expect(connectClaudeMode({ askAi: false, agentToken: true, connector: true })).toBe(
-      'connector',
-    );
+    const features = { ...STANDALONE_FEATURES, canUseTokens: true, canConnect: true };
+    expect(connectClaudeMode(features)).toBe('connector');
   });
 
   test('falls back to personal tokens without connector support', () => {
-    expect(connectClaudeMode({ askAi: false, agentToken: true, connector: false })).toBe(
-      'token-only',
-    );
+    expect(connectClaudeMode({ ...STANDALONE_FEATURES, canUseTokens: true })).toBe('token-only');
+  });
+
+  test('offers the connector before the person has connected anything', () => {
+    expect(
+      connectClaudeMode({
+        askAi: false,
+        agentToken: false,
+        connector: false,
+        canUseTokens: true,
+        canConnect: true,
+      }),
+    ).toBe('connector');
   });
 
   test('explains that sign-in is needed on a standalone server', () => {

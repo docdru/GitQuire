@@ -249,11 +249,33 @@ describe('the agent access page', () => {
       );
       return JSON.parse(res.body).features;
     };
-    expect(me()).toEqual({ askAi: false, agentToken: false, connector: false });
+    expect(me()).toEqual({
+      askAi: false,
+      agentToken: false,
+      connector: false,
+      canUseTokens: true,
+      canConnect: false,
+    });
     store.createPersonal(ALICE, 'laptop', 30);
     expect(me()).toMatchObject({ agentToken: true, connector: false });
     store.createConnector(ALICE, 'Claude', 'https://claude.ai/client.json');
     expect(me()).toMatchObject({ agentToken: true, connector: true });
+  });
+
+  it('tells the app what the server offers before the person has connected anything', () => {
+    const { gate } = setup({ ...ENV, GITQUIRE_MCP_CONNECTORS: 'on' });
+    const res = fakeResponse();
+    gate.handleRequest(
+      fakeRequest('/auth/me', { headers: { cookie: sessionCookie(ALICE) } }),
+      res.res,
+    );
+    expect(JSON.parse(res.body).features).toEqual({
+      askAi: false,
+      agentToken: false,
+      connector: false,
+      canUseTokens: true,
+      canConnect: true,
+    });
   });
 
   it('builds the Claude Code command from the external URL', () => {

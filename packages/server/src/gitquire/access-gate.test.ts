@@ -390,7 +390,7 @@ describe('createAccessGate requests', () => {
       login: 'alice',
       email: noreplyEmail({ id: 42, login: 'alice' }),
       admin: false,
-      features: { askAi: false, agentToken: false, connector: false },
+      features: { askAi: false, agentToken: false, connector: false, canConnect: false },
     });
   });
 

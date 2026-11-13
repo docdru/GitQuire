@@ -19,10 +19,24 @@ describe('GitQuire features', () => {
     const features = await fetchFeatures(
       respond(
         200,
-        JSON.stringify({ features: { askAi: false, agentToken: true, connector: false } }),
+        JSON.stringify({
+          features: {
+            askAi: false,
+            agentToken: true,
+            connector: false,
+            canUseTokens: true,
+            canConnect: true,
+          },
+        }),
       ),
     );
-    expect(features).toEqual({ askAi: false, agentToken: true, connector: false });
+    expect(features).toEqual({
+      askAi: false,
+      agentToken: true,
+      connector: false,
+      canUseTokens: true,
+      canConnect: true,
+    });
     expect(hasClaudeAccess(features)).toBe(true);
     expect(hasClaudeAccess(STANDALONE_FEATURES)).toBe(false);
   });
