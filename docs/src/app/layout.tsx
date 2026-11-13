@@ -46,7 +46,10 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   icons: {
-    icon: `${BASE_PATH}/gitquire.svg`,
+    icon: [
+      { url: `${BASE_PATH}/favicon.ico`, sizes: '32x32' },
+      { url: `${BASE_PATH}/gitquire.svg`, type: 'image/svg+xml' },
+    ],
   },
   openGraph: {
     type: 'website',
