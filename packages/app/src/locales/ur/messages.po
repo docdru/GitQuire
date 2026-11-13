@@ -6696,8 +6696,8 @@ msgstr "ماڈل کی ڈیفالٹ کوشش"
 msgid "Modified"
 msgstr "ترمیم شدہ"
 
-msgid "Modify the link target, anchor, and display label."
-msgstr "لنک کا ہدف، اینکر اور ظاہری لیبل تبدیل کریں۔"
+msgid "Modify the link target, relation, anchor, and display label."
+msgstr ""
 
 msgid "More"
 msgstr "مزید"
@@ -7364,6 +7364,9 @@ msgstr "کوئی حالیہ پروجیکٹ نہیں"
 
 msgid "No recent projects."
 msgstr "کوئی حالیہ پروجیکٹ نہیں۔"
+
+msgid "No relation"
+msgstr ""
 
 msgid "No repositories found on your GitHub account."
 msgstr "آپ کے GitHub اکاؤنٹ پر کوئی ریپازٹری نہیں ملی۔"
@@ -8714,6 +8717,9 @@ msgstr "دوبارہ نصب کیا جا رہا ہے"
 
 msgid "Reject"
 msgstr "مسترد کریں"
+
+msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr ""
 
 msgid "Relations"
 msgstr ""
@@ -12076,6 +12082,9 @@ msgstr "صرف حروف، ہندسے، <0>_</0> اور <1>-</1> استعمال �
 
 msgid "Use letters, digits, <0>-</0> or <1>_</1> only."
 msgstr "صرف حروف، ہندسے، <0>-</0> یا <1>_</1> استعمال کریں۔"
+
+msgid "Use letters, digits, spaces and - _ . / (up to 60 characters)."
+msgstr ""
 
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "صرف چھوٹے حروف، ہندسے اور <0>-</0> استعمال کریں۔"

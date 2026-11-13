@@ -25,8 +25,22 @@ describe('normalizeRelation', () => {
 describe('inlineRelationFields', () => {
   test('reads a field that fills the line', () => {
     expect(inlineRelationFields('blocks:: [[Task B]]')).toEqual([
-      { relation: 'blocks', value: '[[Task B]]', valueStart: 9 },
+      {
+        relation: 'blocks',
+        value: '[[Task B]]',
+        valueStart: 9,
+        form: 'line',
+        start: 0,
+        nameStart: 0,
+        nameEnd: 6,
+        end: 19,
+      },
     ]);
+    expect(inlineRelationFields('- **Blocks**:: [[B]]')[0]).toMatchObject({
+      start: 2,
+      nameStart: 2,
+      nameEnd: 12,
+    });
   });
 
   test('reads a field in a list item or quote', () => {
@@ -43,6 +57,13 @@ describe('inlineRelationFields', () => {
       ['supersedes', '[[Decision 9]]'],
       ['relates to', '[[Budget]]'],
     ]);
+    expect(fields[0]).toMatchObject({
+      form: 'bracket',
+      start: 10,
+      nameStart: 11,
+      nameEnd: 21,
+      end: 39,
+    });
   });
 
   test('ignores plain links, single colons and triple colons', () => {

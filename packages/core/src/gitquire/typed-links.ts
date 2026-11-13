@@ -18,6 +18,11 @@ export interface InlineRelationField {
   relation: string;
   value: string;
   valueStart: number;
+  form: 'line' | 'bracket';
+  start: number;
+  nameStart: number;
+  nameEnd: number;
+  end: number;
 }
 
 const MAX_RELATION_CHARS = 60;
@@ -74,7 +79,19 @@ export function inlineRelationFields(line: string): InlineRelationField[] {
     const relation = normalizeRelation(lineField[2] ?? '');
     if (relation !== undefined) {
       const value = lineField[3] ?? '';
-      return [{ relation, value, valueStart: line.length - value.length }];
+      const nameStart = lineField[1]?.length ?? 0;
+      return [
+        {
+          relation,
+          value,
+          valueStart: line.length - value.length,
+          form: 'line',
+          start: nameStart,
+          nameStart,
+          nameEnd: nameStart + (lineField[2]?.length ?? 0),
+          end: line.length,
+        },
+      ];
     }
   }
   const fields: InlineRelationField[] = [];
@@ -85,7 +102,17 @@ export function inlineRelationFields(line: string): InlineRelationField[] {
     const close = closingIndex(line, valueStart, opener);
     const relation = normalizeRelation(match[1] ?? '');
     if (close !== -1 && relation !== undefined) {
-      fields.push({ relation, value: line.slice(valueStart, close), valueStart });
+      const nameStart = match.index + 1;
+      fields.push({
+        relation,
+        value: line.slice(valueStart, close),
+        valueStart,
+        form: 'bracket',
+        start: match.index,
+        nameStart,
+        nameEnd: nameStart + (match[1]?.length ?? 0),
+        end: close + 1,
+      });
       BRACKET_FIELD_RE.lastIndex = close + 1;
     }
     match = BRACKET_FIELD_RE.exec(line);

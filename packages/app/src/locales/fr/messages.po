@@ -6696,8 +6696,8 @@ msgstr "Effort par défaut du modèle"
 msgid "Modified"
 msgstr "Modifié"
 
-msgid "Modify the link target, anchor, and display label."
-msgstr "Modifiez la cible du lien, l'ancre et le libellé affiché."
+msgid "Modify the link target, relation, anchor, and display label."
+msgstr ""
 
 msgid "More"
 msgstr "Plus"
@@ -7364,6 +7364,9 @@ msgstr "Aucun projet récent"
 
 msgid "No recent projects."
 msgstr "Aucun projet récent."
+
+msgid "No relation"
+msgstr ""
 
 msgid "No repositories found on your GitHub account."
 msgstr "Aucun dépôt trouvé sur votre compte GitHub."
@@ -8714,6 +8717,9 @@ msgstr "Réinstallation"
 
 msgid "Reject"
 msgstr "Rejeter"
+
+msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr ""
 
 msgid "Relations"
 msgstr ""
@@ -12076,6 +12082,9 @@ msgstr "Utilisez uniquement des lettres, des chiffres, <0>_</0> et <1>-</1>."
 
 msgid "Use letters, digits, <0>-</0> or <1>_</1> only."
 msgstr "Utilisez uniquement des lettres, des chiffres, <0>-</0> ou <1>_</1>."
+
+msgid "Use letters, digits, spaces and - _ . / (up to 60 characters)."
+msgstr ""
 
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "Utilisez uniquement des lettres minuscules, des chiffres et <0>-</0>."
