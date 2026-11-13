@@ -1113,6 +1113,9 @@ msgstr "यहाँ जोड़ा गया टोकन केवल HTTPS �
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "किसी वेरिएबल के हर तरफ़ दो कोष्ठक चाहिए, जैसे {filenameVariable}।"
 
+msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
+msgstr ""
+
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "{shareBranch} के लिए एक वर्कट्री फ़ोल्डर पहले से मौजूद है।"
 
@@ -2665,6 +2668,9 @@ msgstr "किसी मौजूदा रिपॉज़िटरी से �
 msgid "Connect Claude"
 msgstr ""
 
+msgid "Connect Claude and Mistral"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "GitHub जोड़ें"
 
@@ -2673,6 +2679,9 @@ msgstr "जारी रखने के लिए GitHub जोड़ें।"
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "GitQuire को अपने उपयोग के अन्य टूल से जोड़ें।"
+
+msgid "Connect Mistral"
+msgstr ""
 
 msgid "Connect this project to GitHub to share."
 msgstr "साझा करने के लिए इस प्रोजेक्ट को GitHub से जोड़ें।"
@@ -5136,6 +5145,9 @@ msgstr "GitQuire पृष्ठभूमि में अपडेट देख
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire connector address for Le Chat"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire को इस मशीन पर यह एजेंट नहीं मिला।"
 
@@ -5784,6 +5796,9 @@ msgstr "Git प्रोजेक्ट में, GitQuire रिपॉजि�
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "Git परियोजनाओं में, GitQuire एक स्कोप्ड .gitattributes नियम भी जोड़ता है ताकि समवर्ती सूचकांक परिवर्तन अगले पुनर्निर्माण से पहले संयोजित हो जाएं।"
 
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
+
 msgid "In the Claude Desktop App"
 msgstr "Claude Desktop App में"
 
@@ -6223,6 +6238,9 @@ msgstr "लेआउट"
 msgid "Layout options"
 msgstr "लेआउट विकल्प"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "और जानें"
 
@@ -6242,6 +6260,9 @@ msgid "Let agents use GitQuire without asking"
 msgstr "एजेंट को बिना पूछे GitQuire उपयोग करने दें"
 
 msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
+msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6715,6 +6736,9 @@ msgstr "पैलेट के रंग मौजूद नहीं हैं"
 
 msgid "Missing theme name"
 msgstr "थीम का नाम मौजूद नहीं है"
+
+msgid "Mistral"
+msgstr ""
 
 msgid "Model"
 msgstr "मॉडल"
@@ -7645,6 +7669,9 @@ msgstr "केवल सहयोगी"
 msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 msgstr "केवल बाहरी लिंक कोई अनुरोध भेजते हैं। इस प्रोजेक्ट के अन्य दस्तावेज़ों के लिंक स्थानीय अनुक्रमणिका से पूर्वावलोकन बनाते हैं और कभी आपके कंप्यूटर से बाहर नहीं जाते।"
 
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
 msgid "Only markdown files"
 msgstr "केवल markdown फ़ाइलें"
 
@@ -7813,6 +7840,9 @@ msgstr "इसे वहाँ खोलें"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format मार्गदर्शन"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "लिंक खोलें"

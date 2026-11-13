@@ -1113,6 +1113,9 @@ msgstr "Token yang ditambahkan di sini hanya berlaku untuk remote HTTPS, dan rem
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "Variabel memerlukan dua kurung kurawal di setiap sisi, seperti {filenameVariable}."
 
+msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
+msgstr ""
+
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "Folder worktree untuk {shareBranch} sudah ada."
 
@@ -2665,6 +2668,9 @@ msgstr "Hubungkan repositori yang sudah ada"
 msgid "Connect Claude"
 msgstr ""
 
+msgid "Connect Claude and Mistral"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "Hubungkan GitHub"
 
@@ -2673,6 +2679,9 @@ msgstr "Hubungkan GitHub untuk melanjutkan."
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "Hubungkan GitQuire dengan alat lain yang Anda pakai."
+
+msgid "Connect Mistral"
+msgstr ""
 
 msgid "Connect this project to GitHub to share."
 msgstr "Hubungkan proyek ini ke GitHub untuk membagikannya."
@@ -5136,6 +5145,9 @@ msgstr "GitQuire memeriksa dan mengunduh pembaruan di latar belakang."
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire connector address for Le Chat"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire tidak menemukan agen ini di mesin ini."
 
@@ -5784,6 +5796,9 @@ msgstr "Dalam proyek Git, GitQuire menambahkan aturan tercakup ke file .gitattri
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "Dalam proyek Git, GitQuire juga menambahkan aturan cakupan .gitattributes sehingga perubahan indeks secara bersamaan digabungkan sebelum pembangunan kembali berikutnya."
 
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
+
 msgid "In the Claude Desktop App"
 msgstr "Di aplikasi Claude Desktop"
 
@@ -6223,6 +6238,9 @@ msgstr "Tata letak"
 msgid "Layout options"
 msgstr "Opsi tata letak"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "Pelajari lebih lanjut"
 
@@ -6242,6 +6260,9 @@ msgid "Let agents use GitQuire without asking"
 msgstr "Biarkan agen memakai GitQuire tanpa bertanya"
 
 msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
+msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6715,6 +6736,9 @@ msgstr "Warna palet tidak lengkap"
 
 msgid "Missing theme name"
 msgstr "Nama tema tidak ada"
+
+msgid "Mistral"
+msgstr ""
 
 msgid "Model"
 msgstr "Model"
@@ -7645,6 +7669,9 @@ msgstr "Hanya kolaborator"
 msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 msgstr "Hanya tautan eksternal yang memicu permintaan. Tautan ke dokumen lain di proyek ini dipratinjau dari indeks lokal dan tidak pernah keluar dari komputer Anda."
 
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
 msgid "Only markdown files"
 msgstr "Hanya berkas markdown"
 
@@ -7813,6 +7840,9 @@ msgstr "Buka di sana"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format bimbingan"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "Buka tautan"

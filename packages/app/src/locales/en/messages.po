@@ -1117,6 +1117,9 @@ msgstr "A token added here only applies to HTTPS remotes, and this project's rem
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "A variable needs two braces on each side, such as {filenameVariable}."
 
+msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
+msgstr "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
+
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "A worktree folder for {shareBranch} already exists."
 
@@ -2669,6 +2672,9 @@ msgstr "Connect an existing repository"
 msgid "Connect Claude"
 msgstr "Connect Claude"
 
+msgid "Connect Claude and Mistral"
+msgstr "Connect Claude and Mistral"
+
 msgid "Connect GitHub"
 msgstr "Connect GitHub"
 
@@ -2677,6 +2683,9 @@ msgstr "Connect GitHub to continue."
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "Connect GitQuire to other tools you use."
+
+msgid "Connect Mistral"
+msgstr "Connect Mistral"
 
 msgid "Connect this project to GitHub to share."
 msgstr "Connect this project to GitHub to share."
@@ -5140,6 +5149,9 @@ msgstr "GitQuire checks for and downloads updates in the background."
 msgid "GitQuire connector address"
 msgstr "GitQuire connector address"
 
+msgid "GitQuire connector address for Le Chat"
+msgstr "GitQuire connector address for Le Chat"
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire could not find this agent on this machine."
 
@@ -5788,6 +5800,9 @@ msgstr "In Git projects, GitQuire adds a scoped rule to the repository-root .git
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+
 msgid "In the Claude Desktop App"
 msgstr "In the Claude Desktop App"
 
@@ -6227,6 +6242,9 @@ msgstr "Layout"
 msgid "Layout options"
 msgstr "Layout options"
 
+msgid "Le Chat"
+msgstr "Le Chat"
+
 msgid "Learn more"
 msgstr "Learn more"
 
@@ -6247,6 +6265,9 @@ msgstr "Let agents use GitQuire without asking"
 
 msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+
+msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
+msgstr "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Let Tab leave the source editor instead of indenting."
@@ -6719,6 +6740,9 @@ msgstr "Missing palette colors"
 
 msgid "Missing theme name"
 msgstr "Missing theme name"
+
+msgid "Mistral"
+msgstr "Mistral"
 
 msgid "Model"
 msgstr "Model"
@@ -7649,6 +7673,9 @@ msgstr "Only collaborators"
 msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 msgstr "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+
 msgid "Only markdown files"
 msgstr "Only markdown files"
 
@@ -7817,6 +7844,9 @@ msgstr "Open it there"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format guidance"
+
+msgid "Open Le Chat"
+msgstr "Open Le Chat"
 
 msgid "Open link"
 msgstr "Open link"

@@ -1117,6 +1117,9 @@ msgstr "在此新增的權杖只適用於 HTTPS 遠端儲存庫，而此專案�
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "變數兩側各需要兩個大括號，例如 {filenameVariable}。"
 
+msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
+msgstr ""
+
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "{shareBranch} 的 worktree 資料夾已存在。"
 
@@ -2669,6 +2672,9 @@ msgstr "連接現有的儲存庫"
 msgid "Connect Claude"
 msgstr ""
 
+msgid "Connect Claude and Mistral"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "連接 GitHub"
 
@@ -2677,6 +2683,9 @@ msgstr "請先連接 GitHub 再繼續。"
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "把 GitQuire 和你用的其他工具連接起來。"
+
+msgid "Connect Mistral"
+msgstr ""
 
 msgid "Connect this project to GitHub to share."
 msgstr "把這個專案連接到 GitHub 才能分享。"
@@ -5140,6 +5149,9 @@ msgstr "GitQuire 會在背景檢查並下載更新。"
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire connector address for Le Chat"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire 未在此裝置上找到該代理程式。"
 
@@ -5788,6 +5800,9 @@ msgstr "在 Git 專案中，GitQuire 會在儲存庫根目錄的 .gitattributes 
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "在 Git 專案中，GitQuire 也新增了一個作用域 .gitattributes 規則，以便在下一次重建之前合併並發索引變更。"
 
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
+
 msgid "In the Claude Desktop App"
 msgstr "在 Claude Desktop App 中"
 
@@ -6227,6 +6242,9 @@ msgstr "版面配置"
 msgid "Layout options"
 msgstr "版面配置選項"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "了解更多"
 
@@ -6246,6 +6264,9 @@ msgid "Let agents use GitQuire without asking"
 msgstr "讓代理不必先詢問就能使用 GitQuire"
 
 msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
+msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6719,6 +6740,9 @@ msgstr "缺少色盤色彩"
 
 msgid "Missing theme name"
 msgstr "缺少主題名稱"
+
+msgid "Mistral"
+msgstr ""
 
 msgid "Model"
 msgstr "模型"
@@ -7649,6 +7673,9 @@ msgstr "僅協作者"
 msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 msgstr "只有外部連結才會發出要求。連到這個專案其他文件的連結是從本機索引產生預覽，絕不會離開你的電腦。"
 
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
 msgid "Only markdown files"
 msgstr "只有 markdown 檔案"
 
@@ -7817,6 +7844,9 @@ msgstr "在那裡開啟"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 指導"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "開啟連結"

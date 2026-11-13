@@ -1117,6 +1117,9 @@ msgstr "Token dodany tutaj dotyczy tylko zdalnych repozytoriów HTTPS, a zdalne 
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "Zmienna potrzebuje dwóch nawiasów klamrowych z każdej strony, na przykład {filenameVariable}."
 
+msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
+msgstr ""
+
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "Folder worktree dla {shareBranch} już istnieje."
 
@@ -2669,6 +2672,9 @@ msgstr "Połącz istniejące repozytorium"
 msgid "Connect Claude"
 msgstr ""
 
+msgid "Connect Claude and Mistral"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "Połącz GitHub"
 
@@ -2677,6 +2683,9 @@ msgstr "Połącz GitHub, aby kontynuować."
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "Połącz GitQuire z innymi używanymi narzędziami."
+
+msgid "Connect Mistral"
+msgstr ""
 
 msgid "Connect this project to GitHub to share."
 msgstr "Połącz ten projekt z GitHubem, aby go udostępniać."
@@ -5140,6 +5149,9 @@ msgstr "GitQuire sprawdza i pobiera aktualizacje w tle."
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire connector address for Le Chat"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire nie znalazło tego agenta na tym komputerze."
 
@@ -5788,6 +5800,9 @@ msgstr "W projektach Git GitQuire dodaje regułę ograniczoną zakresem do pliku
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "W projektach Git GitQuire dodaje również regułę ograniczoną zakresem w pliku .gitattributes, aby równoległe zmiany indeksu były łączone przed kolejną przebudową."
 
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
+
 msgid "In the Claude Desktop App"
 msgstr "W aplikacji Claude Desktop"
 
@@ -6227,6 +6242,9 @@ msgstr "Układ"
 msgid "Layout options"
 msgstr "Opcje układu"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "Dowiedz się więcej"
 
@@ -6246,6 +6264,9 @@ msgid "Let agents use GitQuire without asking"
 msgstr "Pozwól agentom korzystać z GitQuire bez pytania"
 
 msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
+msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6719,6 +6740,9 @@ msgstr "Brakujące kolory palety"
 
 msgid "Missing theme name"
 msgstr "Brak nazwy motywu"
+
+msgid "Mistral"
+msgstr ""
 
 msgid "Model"
 msgstr "Model"
@@ -7649,6 +7673,9 @@ msgstr "Tylko współpracownicy"
 msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 msgstr "Tylko linki zewnętrzne wywołują żądanie. Linki do innych dokumentów w tym projekcie są podglądane z lokalnego indeksu i nigdy nie opuszczają twojego komputera."
 
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
 msgid "Only markdown files"
 msgstr "Tylko pliki markdown"
 
@@ -7817,6 +7844,9 @@ msgstr "Otwórz to tam"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Wskazówki formatu GitQuire"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "Otwórz link"

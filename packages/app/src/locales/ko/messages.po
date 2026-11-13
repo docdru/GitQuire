@@ -1117,6 +1117,9 @@ msgstr "여기에 추가한 토큰은 HTTPS 원격 저장소에만 적용되며,
 msgid "A variable needs two braces on each side, such as {filenameVariable}."
 msgstr "변수는 양쪽에 중괄호가 두 개씩 필요합니다(예: {filenameVariable})."
 
+msgid "A window opens where you sign in with GitHub and approve access. Le Chat can then use the wiki in every chat where the connector is turned on."
+msgstr ""
+
 msgid "A worktree folder for {shareBranch} already exists."
 msgstr "{shareBranch}용 워크트리 폴더가 이미 있습니다."
 
@@ -2669,6 +2672,9 @@ msgstr "기존 저장소 연결"
 msgid "Connect Claude"
 msgstr ""
 
+msgid "Connect Claude and Mistral"
+msgstr ""
+
 msgid "Connect GitHub"
 msgstr "GitHub 연결"
 
@@ -2677,6 +2683,9 @@ msgstr "계속하려면 GitHub에 연결하세요."
 
 msgid "Connect GitQuire to other tools you use."
 msgstr "GitQuire를 사용하는 다른 도구에 연결합니다."
+
+msgid "Connect Mistral"
+msgstr ""
 
 msgid "Connect this project to GitHub to share."
 msgstr "공유하려면 이 프로젝트를 GitHub에 연결합니다."
@@ -5140,6 +5149,9 @@ msgstr "GitQuire가 백그라운드에서 업데이트를 확인하고 다운로
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire connector address for Le Chat"
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire가 이 컴퓨터에서 이 에이전트를 찾지 못했습니다."
 
@@ -5788,6 +5800,9 @@ msgstr "Git 프로젝트에서 GitQuire는 저장소 루트의 .gitattributes �
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "Git 프로젝트에서 GitQuire는 다음 재빌드 전에 동시에 변경한 인덱스를 결합할 수 있도록 .gitattributes 규칙도 범위를 지정해 추가합니다."
 
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>{MISTRAL_CONNECTOR_NAME}</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
+
 msgid "In the Claude Desktop App"
 msgstr "Claude Desktop App에서"
 
@@ -6227,6 +6242,9 @@ msgstr "레이아웃"
 msgid "Layout options"
 msgstr "레이아웃 옵션"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "자세히 알아보기"
 
@@ -6246,6 +6264,9 @@ msgid "Let agents use GitQuire without asking"
 msgstr "에이전트가 확인하지 않고 GitQuire를 사용하도록 허용합니다"
 
 msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgstr ""
+
+msgid "Let Mistral's Le Chat work in this wiki with you, the same way as Claude: its edits are committed with you as the author."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6719,6 +6740,9 @@ msgstr "팔레트 색상 누락"
 
 msgid "Missing theme name"
 msgstr "테마 이름 누락"
+
+msgid "Mistral"
+msgstr ""
 
 msgid "Model"
 msgstr "모델"
@@ -7649,6 +7673,9 @@ msgstr "공동 작업자만"
 msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
 msgstr "외부 링크만 요청을 발생시킵니다. 이 프로젝트의 다른 문서 링크는 로컬 인덱스에서 미리 보며 컴퓨터 밖으로 나가지 않습니다."
 
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
 msgid "Only markdown files"
 msgstr "Markdown 파일만"
 
@@ -7817,6 +7844,9 @@ msgstr "그곳에서 열기"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 안내"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "링크 열기"
