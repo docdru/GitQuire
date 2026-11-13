@@ -141,9 +141,16 @@ describe('markdown pipeline carries the trailer', () => {
     expect(md.serialize(json)).toBe(`${trailer}\n`);
   });
 
-  test('does not move a hand-written marker from the middle of a page', () => {
-    const body = `Intro\n\n${trailer}\n\nOutro\n`;
-    const json = md.parse(body);
+  test('moves a copied comment section from the middle of a page to the end', () => {
+    const json = md.parse(`Intro\n\n${trailer}\n\nOutro\n`);
+    const out = md.serialize(json);
+    expect(splitCommentTrailer(out)).toEqual({ body: 'Intro\n\nOutro\n', trailer });
+    expect(out.split('gitquire-comments')).toHaveLength(2);
+  });
+
+  test('does not move a hand-written marker that holds no threads', () => {
+    const marker = '<!-- gitquire-comments v1\nnotes\n-->';
+    const json = md.parse(`Intro\n\n${marker}\n\nOutro\n`);
     expect(json.content?.some((node) => node.type === 'gitquireComments')).toBe(false);
     expect(md.serialize(json).trimEnd().endsWith('Outro')).toBe(true);
   });
