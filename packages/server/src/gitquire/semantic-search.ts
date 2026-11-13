@@ -24,7 +24,9 @@ export function deploymentSemanticSearch(env: Env): DeploymentSemanticSearch | u
   if (switchValue === undefined && nonEmpty(env.GITQUIRE_REPO) === undefined) return undefined;
   return {
     enabled: ['on', 'true', '1', 'yes'].includes(switchValue?.toLowerCase() ?? ''),
-    baseUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_EMBEDDINGS_URL) ?? DEFAULT_EMBEDDINGS_BASE_URL),
+    baseUrl: stripTrailingSlash(
+      nonEmpty(env.GITQUIRE_EMBEDDINGS_URL) ?? DEFAULT_EMBEDDINGS_BASE_URL,
+    ),
     model: nonEmpty(env.GITQUIRE_EMBEDDINGS_MODEL) ?? DEFAULT_EMBEDDINGS_MODEL,
     apiKey: nonEmpty(env.GITQUIRE_EMBEDDINGS_API_KEY),
   };

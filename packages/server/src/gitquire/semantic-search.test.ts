@@ -64,8 +64,8 @@ describe('deploymentEmbeddingsKey', () => {
   });
 
   test('is absent without a key', () => {
-    expect(deploymentEmbeddingsKey({ GITQUIRE_REPO: 'acme/wiki' }, DEFAULT_EMBEDDINGS_BASE_URL)).toBe(
-      undefined,
-    );
+    expect(
+      deploymentEmbeddingsKey({ GITQUIRE_REPO: 'acme/wiki' }, DEFAULT_EMBEDDINGS_BASE_URL),
+    ).toBe(undefined);
   });
 });
