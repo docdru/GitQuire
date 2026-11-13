@@ -43,7 +43,7 @@ export async function mergedGoneBranches(
       continue;
     }
     if (mergedPullHeads === undefined) continue;
-    const heads = await mergedPullHeads(branch.name).catch(() => []);
+    const heads = await mergedPullHeads(branch.name).catch((): string[] => []);
     if (heads.includes(branch.tip)) merged.push(branch.name);
   }
   return merged;
