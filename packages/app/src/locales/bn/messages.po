@@ -12097,8 +12097,8 @@ msgstr "{editor} সংস্করণ ব্যবহার করুন"
 msgid "Use {filenameVariable} at most once in each folder name."
 msgstr "প্রতিটি ফোল্ডারের নামে {filenameVariable} সর্বোচ্চ একবার ব্যবহার করুন।"
 
-msgid "Use <0>{copyShortcut}</0> to copy the link below, or open OK in the desktop app."
-msgstr "নিচের লিংকটি কপি করতে <0>{copyShortcut}</0> ব্যবহার করুন, নয়তো OK ডেস্কটপ অ্যাপে খুলুন।"
+msgid "Use <0>{copyShortcut}</0> to copy the link below."
+msgstr ""
 
 msgid "Use a folder you already have."
 msgstr "আপনার কাছে আগে থেকেই আছে এমন একটি ফোল্ডার ব্যবহার করুন।"

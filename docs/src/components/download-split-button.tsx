@@ -47,7 +47,7 @@ export function DownloadSplitButton({
     // biome-ignore lint/a11y/useSemanticElements: a split button groups two controls, not form fields — role="group" is the correct ARIA pattern (fieldset is wrong here).
     <div
       role="group"
-      aria-label="Download OpenKnowledge"
+      aria-label="Download the desktop app"
       data-testid="download-split"
       className={cn('not-prose inline-flex items-stretch', chrome.group, className)}
     >

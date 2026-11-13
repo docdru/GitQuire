@@ -12101,8 +12101,8 @@ msgstr "Użyj wersji {editor}"
 msgid "Use {filenameVariable} at most once in each folder name."
 msgstr "Używaj {filenameVariable} najwyżej raz w każdej nazwie folderu."
 
-msgid "Use <0>{copyShortcut}</0> to copy the link below, or open OK in the desktop app."
-msgstr "Użyj <0>{copyShortcut}</0>, aby skopiować poniższy link, lub otwórz OK w aplikacji desktopowej."
+msgid "Use <0>{copyShortcut}</0> to copy the link below."
+msgstr ""
 
 msgid "Use a folder you already have."
 msgstr "Użyj folderu, który już masz."

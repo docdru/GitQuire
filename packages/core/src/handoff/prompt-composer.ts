@@ -40,23 +40,23 @@ function sanitizePathForAtMention(path: string): string {
 }
 
 export const OK_PROJECT_SKILL_POINTER =
-  "This is an OpenKnowledge project: load the `open-knowledge` skill and use the OpenKnowledge MCP tools for all markdown — don't probe for `.ok/` or use native file tools on `.md` / `.mdx`.";
+  "This is an GitQuire project: load the `open-knowledge` skill and use the GitQuire MCP tools for all markdown — don't probe for `.ok/` or use native file tools on `.md` / `.mdx`.";
 
 export function withSkillPointer(directive: string): string {
   return `${OK_PROJECT_SKILL_POINTER} ${directive}`;
 }
 
 export const OK_TERMINAL_SURFACE_PREAMBLE =
-  "You're running in the terminal of the OpenKnowledge desktop app.";
+  "You're running in the terminal of the GitQuire desktop app.";
 
 export const OK_THREAD_SURFACE_PREAMBLE =
-  "You're an agent working inside OpenKnowledge, with its MCP tools available to you.";
+  "You're an agent working inside GitQuire, with its MCP tools available to you.";
 
 export function composeThreadBareLaunchPrompt(relativePath: string | null): string {
   const tail =
     relativePath === null
       ? 'Then stop.'
-      : `Read \`${sanitizePathForPrompt(relativePath)}\` via the OpenKnowledge MCP server, then stop.`;
+      : `Read \`${sanitizePathForPrompt(relativePath)}\` via the GitQuire MCP server, then stop.`;
   return `${OK_THREAD_SURFACE_PREAMBLE} ${OK_PROJECT_SKILL_POINTER} ${tail}`;
 }
 
@@ -64,7 +64,7 @@ export function composeTerminalBareLaunchPrompt(relativePath: string | null): st
   const tail =
     relativePath === null
       ? 'Then stop.'
-      : `Read \`${sanitizePathForPrompt(relativePath)}\` via the OpenKnowledge MCP server, then stop.`;
+      : `Read \`${sanitizePathForPrompt(relativePath)}\` via the GitQuire MCP server, then stop.`;
   return `${OK_TERMINAL_SURFACE_PREAMBLE} ${OK_PROJECT_SKILL_POINTER} ${tail}`;
 }
 
@@ -75,7 +75,7 @@ export function composeFilePrompt(
   transport: PromptTransport = 'url',
 ): string {
   const safe = sanitizePathForPrompt(relativePath);
-  const base = `Let's work on \`${safe}\` using OpenKnowledge.`;
+  const base = `Let's work on \`${safe}\` using GitQuire.`;
   const directive = autoOpen ? `${base} Open the OK editor in web view.` : base;
   return appendInstruction(directive, instruction, transport);
 }
@@ -97,7 +97,7 @@ export function composeFolderPrompt(
   transport: PromptTransport = 'url',
 ): string {
   const safe = sanitizePathForPrompt(relativeFolderPath);
-  const base = `Let's work on the \`${safe}\` folder using OpenKnowledge.`;
+  const base = `Let's work on the \`${safe}\` folder using GitQuire.`;
   const directive = autoOpen ? `${base} Open the OK editor in web view.` : base;
   return appendInstruction(directive, instruction, transport);
 }
@@ -107,7 +107,7 @@ export function composeEmptySpacePrompt(
   instruction?: string,
   transport: PromptTransport = 'url',
 ): string {
-  const base = `Let's work on this project using OpenKnowledge.`;
+  const base = `Let's work on this project using GitQuire.`;
   const directive = autoOpen ? `${base} Open the OK editor in web view.` : base;
   return appendInstruction(directive, instruction, transport);
 }
@@ -138,12 +138,10 @@ export function composeCreatePrompt(
     if (scenario === 'existing-repo') {
       const briefPart =
         trimmed === ''
-          ? `Let's work on this project using OpenKnowledge.`
-          : [
-              "Here's what I'd like to do in this OpenKnowledge project:",
-              '',
-              blockquote(trimmed),
-            ].join('\n');
+          ? `Let's work on this project using GitQuire.`
+          : ["Here's what I'd like to do in this GitQuire project:", '', blockquote(trimmed)].join(
+              '\n',
+            );
       const base = mentionBlock === '' ? briefPart : [briefPart, '', mentionBlock].join('\n');
       return withTrailer(base);
     }
@@ -170,14 +168,14 @@ export function composeCreatePrompt(
     }
 
     const scaffold =
-      'Scaffold the folders, templates, and AI-readable rules to match, using OpenKnowledge.';
+      'Scaffold the folders, templates, and AI-readable rules to match, using GitQuire.';
     const base =
       trimmed === ''
         ? mentionBlock === ''
-          ? `Let's set up a new OpenKnowledge project. ${scaffold}`
-          : [`Let's set up a new OpenKnowledge project. ${scaffold}`, '', mentionBlock].join('\n')
+          ? `Let's set up a new GitQuire project. ${scaffold}`
+          : [`Let's set up a new GitQuire project. ${scaffold}`, '', mentionBlock].join('\n')
         : [
-            "I'm setting up a new OpenKnowledge project. Here's what I want to create:",
+            "I'm setting up a new GitQuire project. Here's what I want to create:",
             '',
             blockquote(trimmed),
             ...(mentionBlock === '' ? [] : ['', mentionBlock]),
@@ -282,7 +280,7 @@ function encodedPromptLength(prompt: string, target: HandoffTarget): number {
 }
 
 function selectionLead(safePath: string): string {
-  return `Let's work on the selected passage in @${safePath} using OpenKnowledge.`;
+  return `Let's work on the selected passage in @${safePath} using GitQuire.`;
 }
 
 function instructionLines(instruction: string): readonly string[] {
@@ -376,7 +374,7 @@ function composeLocus(safePath: string, instruction: string, selectionMarkdown: 
     anchor,
     fence,
     '',
-    `Read the full passage from @${safePath} via the OpenKnowledge MCP server before editing.`,
+    `Read the full passage from @${safePath} via the GitQuire MCP server before editing.`,
   ].join('\n');
 }
 
@@ -409,7 +407,7 @@ export function composeSelectionPrompt(input: SelectionPromptInput): string {
 }
 
 function composeAskBody(safePath: string, instruction: string, autoOpen: boolean): string {
-  const lead = `Let's work on @${safePath} using OpenKnowledge.`;
+  const lead = `Let's work on @${safePath} using GitQuire.`;
   const trailer = autoOpen ? 'Open the OK editor in web view.' : '';
   const trimmed = instruction.trim();
   if (trimmed === '') {
@@ -505,13 +503,13 @@ function locusSelectionSegment(selectionMarkdown: string, safeDocPath: string): 
     anchor,
     fence,
     '',
-    `Read the full passage from @${safeDocPath} via the OpenKnowledge MCP server before editing.`,
+    `Read the full passage from @${safeDocPath} via the GitQuire MCP server before editing.`,
   ].join('\n');
 }
 
 function linesSelectionSegment(startLine: number, endLine: number, safeDocPath: string): string {
   const range = startLine === endLine ? `line ${startLine}` : `lines ${startLine}-${endLine}`;
-  return `The selected passage is ${range} of @${safeDocPath}. Read it from @${safeDocPath} via the OpenKnowledge MCP server before editing.`;
+  return `The selected passage is ${range} of @${safeDocPath}. Read it from @${safeDocPath} via the GitQuire MCP server before editing.`;
 }
 
 function mentionsSegment(mentions: readonly string[]): string {
@@ -522,12 +520,12 @@ function mentionsSegment(mentions: readonly string[]): string {
 
 function scopeLead(input: AssembleHandoffPromptInput): string {
   if (input.scope === 'doc') {
-    return `Let's work on @${sanitizePathForAtMention(input.docRelativePath)} using OpenKnowledge.`;
+    return `Let's work on @${sanitizePathForAtMention(input.docRelativePath)} using GitQuire.`;
   }
   if (input.scope === 'folder') {
-    return `Let's work on the @${sanitizePathForAtMention(input.folderRelativePath)} folder using OpenKnowledge.`;
+    return `Let's work on the @${sanitizePathForAtMention(input.folderRelativePath)} folder using GitQuire.`;
   }
-  return `Let's work on this project using OpenKnowledge.`;
+  return `Let's work on this project using GitQuire.`;
 }
 
 function composeAssembledBlocks(
@@ -588,7 +586,7 @@ function assembleDocSelectionPrompt(
   const { target } = input;
   const transport = input.transport ?? 'url';
   const safeDocPath = sanitizePathForAtMention(input.docRelativePath);
-  const lead = `Let's work on @${safeDocPath} using OpenKnowledge.`;
+  const lead = `Let's work on @${safeDocPath} using GitQuire.`;
   const selectionSegment = selectionSegmentFor(
     selection,
     lead,
@@ -660,7 +658,7 @@ export function composeLintFixPrompt(input: LintFixPromptInput): string {
       ? `${input.source}/${input.code}`
       : `${input.source}/${input.code} (${input.ruleAlias})`;
   const lines: string[] = [
-    `Fix this lint problem in @${safePath} using OpenKnowledge.`,
+    `Fix this lint problem in @${safePath} using GitQuire.`,
     '',
     `Problem: ${rule} at line ${input.line}, column ${input.column}:`,
     '',
@@ -673,7 +671,7 @@ export function composeLintFixPrompt(input: LintFixPromptInput): string {
   }
   lines.push(
     '',
-    `Edit @${safePath} via the OpenKnowledge MCP server, then re-lint it to confirm the problem is resolved.`,
+    `Edit @${safePath} via the GitQuire MCP server, then re-lint it to confirm the problem is resolved.`,
   );
   return lines.join('\n');
 }
@@ -681,14 +679,14 @@ export function composeLintFixPrompt(input: LintFixPromptInput): string {
 export function composeFixAllProblemsPrompt(relativePath: string | null): string {
   if (relativePath === null) {
     return [
-      "Fix every problem across this project's documents using OpenKnowledge.",
+      "Fix every problem across this project's documents using GitQuire.",
       '',
       "Run the `audit` tool for the current list of lint violations and broken links, then work file by file — the `lint` tool with `fix: true` clears one document's mechanically-fixable problems at a time — and re-audit until it reports no problems.",
     ].join('\n');
   }
   const safePath = sanitizePathForAtMention(relativePath);
   return [
-    `Fix every problem in @${safePath} using OpenKnowledge.`,
+    `Fix every problem in @${safePath} using GitQuire.`,
     '',
     `Run the \`audit\` tool scoped to it for the current list of lint violations and broken links, then fix each one — the \`lint\` tool with \`fix: true\` clears the mechanically-fixable ones — and re-audit @${safePath} until it reports no problems.`,
   ].join('\n');
