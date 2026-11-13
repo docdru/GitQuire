@@ -4,15 +4,25 @@ export interface GitQuireFeatures {
   askAi: boolean;
   agentToken: boolean;
   connector: boolean;
+  canUseTokens: boolean;
+  canConnect: boolean;
 }
 
 export const STANDALONE_FEATURES: GitQuireFeatures = {
   askAi: true,
   agentToken: false,
   connector: false,
+  canUseTokens: false,
+  canConnect: false,
 };
 
-const UNKNOWN_FEATURES: GitQuireFeatures = { askAi: false, agentToken: false, connector: false };
+const UNKNOWN_FEATURES: GitQuireFeatures = {
+  askAi: false,
+  agentToken: false,
+  connector: false,
+  canUseTokens: false,
+  canConnect: false,
+};
 const REFRESH_AFTER_MS = 30_000;
 
 export function parseFeatures(body: unknown): GitQuireFeatures {
@@ -24,6 +34,8 @@ export function parseFeatures(body: unknown): GitQuireFeatures {
     askAi: f.askAi !== false,
     agentToken: f.agentToken === true,
     connector: f.connector === true,
+    canUseTokens: f.canUseTokens === true,
+    canConnect: f.canConnect === true,
   };
 }
 
@@ -55,7 +67,9 @@ function sameFeatures(a: GitQuireFeatures | undefined, b: GitQuireFeatures): boo
     a !== undefined &&
     a.askAi === b.askAi &&
     a.agentToken === b.agentToken &&
-    a.connector === b.connector
+    a.connector === b.connector &&
+    a.canUseTokens === b.canUseTokens &&
+    a.canConnect === b.canConnect
   );
 }
 

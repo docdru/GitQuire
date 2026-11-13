@@ -438,7 +438,12 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         ...user,
         email: noreplyEmail(user),
         admin: isAdmin(user),
-        features: { askAi: config.askAi, ...agentAccess(user) },
+        features: {
+          askAi: config.askAi,
+          ...agentAccess(user),
+          canUseTokens: agentPages !== undefined,
+          canConnect: oauth !== undefined,
+        },
       });
       return;
     }

@@ -17,8 +17,8 @@ export function connectorUrl(origin: string): string {
 export type ConnectClaudeMode = 'connector' | 'token-only' | 'unavailable';
 
 export function connectClaudeMode(features: GitQuireFeatures): ConnectClaudeMode {
-  if (features.connector) return 'connector';
-  if (features.agentToken) return 'token-only';
+  if (features.canConnect) return 'connector';
+  if (features.canUseTokens) return 'token-only';
   return 'unavailable';
 }
 
