@@ -268,6 +268,9 @@ msgstr "{0} एक लिंक से खुलता है और अनु�
 msgid "{0} other skills by this publisher"
 msgstr "इस प्रकाशक की {0} अन्य स्किलें"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "{0} प्लगइन"
 
@@ -1165,6 +1168,9 @@ msgstr "सहेजी गई API कुंजी तक पहुँचने 
 msgid "Access token"
 msgstr "पहुँच टोकन"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1204,7 +1210,7 @@ msgstr "वास्तविक आकार"
 msgid "Add"
 msgstr "जोड़ें"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -6628,14 +6634,14 @@ msgstr "{failures} के लिए MCP स्वतः-मरम्मत व�
 msgid "MCP servers"
 msgstr "MCP सर्वर"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "मध्यम अनुभाग शीर्षक।"
 
 msgid "Mention a page"
 msgstr "किसी पेज का उल्लेख करें"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7469,6 +7475,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "कोई नहीं"
 
@@ -8204,6 +8213,9 @@ msgstr "पैटर्न चेतावनियाँ: {summary}"
 
 msgid "pending"
 msgstr "लंबित"
+
+msgid "People"
+msgstr ""
 
 msgid "Percolating…"
 msgstr "छाना जा रहा है…"
@@ -12453,7 +12465,7 @@ msgstr "वर्कट्री"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "markdown स्रोत संपादक में लंबी पंक्तियाँ लपेटें।"
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

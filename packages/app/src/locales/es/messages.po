@@ -268,6 +268,9 @@ msgstr "{0} se abre mediante un enlace y no acepta adjuntos — elige un agente 
 msgid "{0} other skills by this publisher"
 msgstr "{0} habilidades más de este editor"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "Plugin {0}"
 
@@ -1169,6 +1172,9 @@ msgstr "Se agotó el tiempo de acceso a la clave API guardada. Espera a que term
 msgid "Access token"
 msgstr "Token de acceso"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1208,7 +1214,7 @@ msgstr "Tamaño real"
 msgid "Add"
 msgstr "Añadir"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -6632,14 +6638,14 @@ msgstr "Falló la reparación automática de MCP para {failures}"
 msgid "MCP servers"
 msgstr "Servidores MCP"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "Encabezado de sección mediano."
 
 msgid "Mention a page"
 msgstr "Mencionar una página"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7473,6 +7479,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "Ninguno"
 
@@ -8208,6 +8217,9 @@ msgstr "Advertencias del patrón: {summary}"
 
 msgid "pending"
 msgstr "pendiente"
+
+msgid "People"
+msgstr ""
 
 msgid "Percolating…"
 msgstr "Macerando…"
@@ -12457,7 +12469,7 @@ msgstr "Worktrees"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Ajusta las líneas largas en el editor de código markdown."
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

@@ -268,6 +268,9 @@ msgstr "{0} 通过链接打开，不接受附件，请改选应用内智能体�
 msgid "{0} other skills by this publisher"
 msgstr "该发布者的另外 {0} 个技能"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "{0} 插件"
 
@@ -1169,6 +1172,9 @@ msgstr "访问已保存的 API 密钥超时。请等待凭据存储操作完成�
 msgid "Access token"
 msgstr "访问令牌"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1208,7 +1214,7 @@ msgstr "实际大小"
 msgid "Add"
 msgstr "添加"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -6632,14 +6638,14 @@ msgstr "{failures} 的 MCP 自动修复失败"
 msgid "MCP servers"
 msgstr "MCP 服务器"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "中号章节标题。"
 
 msgid "Mention a page"
 msgstr "提及页面"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7473,6 +7479,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "无"
 
@@ -8208,6 +8217,9 @@ msgstr "模式警告：{summary}"
 
 msgid "pending"
 msgstr "待处理"
+
+msgid "People"
+msgstr ""
 
 msgid "Percolating…"
 msgstr "正在酝酿…"
@@ -12457,7 +12469,7 @@ msgstr "Worktree"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "在 markdown 源码编辑器中对长行自动换行。"
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

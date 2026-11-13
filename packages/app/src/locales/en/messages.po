@@ -268,6 +268,9 @@ msgstr "{0} opens via a link and doesn't accept attachments — choose an in-app
 msgid "{0} other skills by this publisher"
 msgstr "{0} other skills by this publisher"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr "{0} people match. Use the arrow keys and Enter to pick."
+
 msgid "{0} plugin"
 msgstr "{0} plugin"
 
@@ -1169,6 +1172,9 @@ msgstr "Access to the saved API key timed out. Wait for the credential store ope
 msgid "Access token"
 msgstr "Access token"
 
+msgid "Action item"
+msgstr "Action item"
+
 msgid "Action items"
 msgstr "Action items"
 
@@ -1208,8 +1214,8 @@ msgstr "Actual Size"
 msgid "Add"
 msgstr "Add"
 
-msgid "Add a comment. Use @name to mention someone."
-msgstr "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
+msgstr "Add a comment. Type @ to mention someone."
 
 msgid "Add a file name (e.g. notes.md)"
 msgstr "Add a file name (e.g. notes.md)"
@@ -6632,14 +6638,14 @@ msgstr "MCP auto-repair failed for {failures}"
 msgid "MCP servers"
 msgstr "MCP servers"
 
+msgid "Me (@{mine})"
+msgstr "Me (@{mine})"
+
 msgid "Medium section heading."
 msgstr "Medium section heading."
 
 msgid "Mention a page"
 msgstr "Mention a page"
-
-msgid "Mentioning me"
-msgstr "Mentioning me"
 
 msgid "Mentions"
 msgstr "Mentions"
@@ -7473,6 +7479,9 @@ msgstr "Nobody has mentioned you yet. Mentions in comments show up here."
 msgid "Nobody mentioned"
 msgstr "Nobody mentioned"
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr "Nobody with this GitHub username uses this wiki."
+
 msgid "None"
 msgstr "None"
 
@@ -8208,6 +8217,9 @@ msgstr "Pattern warnings: {summary}"
 
 msgid "pending"
 msgstr "pending"
+
+msgid "People"
+msgstr "People"
 
 msgid "Percolating…"
 msgstr "Percolating…"
@@ -12457,8 +12469,8 @@ msgstr "Worktrees"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Wrap long lines in the markdown source editor."
 
-msgid "Write a reply. Use @name to mention someone."
-msgstr "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
+msgstr "Write a reply. Type @ to mention someone."
 
 #. js-lingui-explicit-id
 msgid "guidance.mcp.managed-file"
