@@ -1,0 +1,83 @@
+---
+title: Typed links
+icon: LuNetwork
+description: Say how two pages relate, such as supersedes or blocks, and see the relation in links, backlinks and the graph.
+---
+
+A plain `[[wiki link]]` says that two pages are connected. A typed link also says how:
+*Decision 14 supersedes Decision 9*, *Task A blocks Task B*. Typed links are optional; untyped links
+keep working as before.
+
+There is no fixed list of relations. Use whatever word fits, and reuse the words your team already
+uses: the editor suggests them.
+
+## Two ways to write them
+
+The link itself stays a normal `[[wiki link]]`, so the page still reads well on GitHub, in Obsidian
+and in any other Markdown tool. The relation sits next to the link.
+
+### As a property
+
+Put the link in a property of the page. The property name is the relation.
+
+```markdown
+---
+title: Decision 14
+supersedes: "[[Decision 9]]"
+related:
+  - "[[Budget 2027]]"
+  - "[[Roadmap]]"
+---
+```
+
+Use this for relations of the whole page. Quote the link (`"[[Decision 9]]"`): without quotes, YAML
+reads the brackets as a list. GitQuire understands both, and the property panel writes the quotes for
+you.
+
+### As a field in the text
+
+Write the relation, two colons and the link, the same way the Obsidian Dataview plugin does:
+
+```markdown
+blocks:: [[Task B]]
+- depends on:: [[Set up the server]], [[Buy the domain]]
+
+We agreed on the new layout [supersedes:: [[Decision 9]]] in the meeting.
+```
+
+- A field can fill a line, also in a list item or quote.
+- Inside a sentence, wrap it in square brackets `[relation:: [[Page]]]` or round brackets
+  `(relation:: [[Page]])`.
+- Every wiki link in the field gets the relation. Links in code blocks, embeds `![[…]]` and
+  links to websites are left out.
+
+## Relation names
+
+Names are compared without regard to case or extra spaces: `Supersedes`, `supersedes` and
+`**Supersedes**` are the same relation, shown as `supersedes`. A name starts with a letter or digit
+and may contain letters, digits, spaces and `- _ . /`, up to 60 characters.
+
+Pick names that read from the page that holds the link: in *Decision 14*, `supersedes:: [[Decision
+9]]` means *Decision 14 supersedes Decision 9*. GitQuire shows the other direction itself, so you
+never write both sides.
+
+## Where relations show up
+
+- **Outgoing links.** The links panel shows the relation as a chip on each link, with an arrow
+  pointing away from the page: `supersedes →`.
+- **Backlinks.** A page that links here with a relation shows `← supersedes`: that page supersedes
+  this one.
+- **Graph.** Typed links are drawn in the accent colour and a little thicker. Point at one to see
+  the relation; zoom in to see it written on the line.
+- **Adding a property.** The name field suggests the relations already used in the wiki, with how
+  often each one is used, below the schema fields.
+- **Views.** Relations written as properties are ordinary properties, so the table and board in
+  [views](./views.mdx) can show, sort and group by them.
+- **Renaming.** Renaming or moving a page rewrites links in properties as well as in the text, and
+  links in properties count for backlinks and [broken links](./page-names.mdx#broken-links).
+
+## For agents and scripts
+
+`GET /api/gitquire/typed-links` lists every typed link: the source page, the target page, the
+relation, whether it came from a property (`frontmatter`) or the text (`inline`), the line, and
+whether the target page exists. It also lists each relation name with how often it is used.

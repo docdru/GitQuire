@@ -25,6 +25,7 @@ import {
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { GitQuireRelationChips } from '@/components/GitQuireRelationChips';
 import { resolveLinkTargetIntent } from '@/components/link-target-intent';
 import { usePageList } from '@/components/PageListContext';
 import { LINT_NAV_EVENT, type LintNavDetail } from '@/components/ProblemsPanel';
@@ -45,6 +46,7 @@ import { HttpResponseParseError } from '@/editor/http-client';
 import { rememberPendingSourceNavigation } from '@/editor/source-editor-navigation';
 import { type CreatePageSeed, createPageFromSeedAndUpdate } from '@/lib/create-page';
 import { hashFromDocName } from '@/lib/doc-hash';
+import { useTypedLinks } from '@/lib/gitquire/typed-links';
 import { cn } from '@/lib/utils';
 import { resolveTargetNavigationIntent } from './target-navigation-intent';
 
@@ -165,6 +167,8 @@ interface LinkRowProps {
   disabled?: boolean;
   onClick?: () => void;
   trailing?: ReactNode;
+  relations?: readonly string[];
+  relationDirection?: 'outgoing' | 'incoming';
 }
 
 function LinkRow({
@@ -182,6 +186,8 @@ function LinkRow({
   disabled,
   onClick,
   trailing,
+  relations = [],
+  relationDirection = 'outgoing',
 }: LinkRowProps) {
   const showPath = path !== undefined && path !== title;
   const iconNode = (
@@ -228,6 +234,7 @@ function LinkRow({
     <div className="group relative flex items-start gap-2.5 rounded-md px-3 py-2.5 transition-colors hover:bg-muted/80">
       <div className="mt-px flex items-center">{iconNode}</div>
       <div className="min-w-0 flex-1 space-y-0.5 text-1sm">
+        <GitQuireRelationChips relations={relations} direction={relationDirection} />
         {primaryInteractive}
         {showPath ? (
           <div className="truncate font-mono text-xs text-muted-foreground">
@@ -274,6 +281,7 @@ function BacklinksSection({
     enabled: !loading && isKnownPageDocName(pages, docName),
   });
   const backlinks = data ?? [];
+  const typedLinks = useTypedLinks();
   const isUnresolvable =
     !loading && pageListError === null && !isKnownPageDocName(pages, docName) && data !== undefined;
   const [expanded, setExpanded] = useState(false);
@@ -331,6 +339,8 @@ function BacklinksSection({
                       titleHover={backlink.source}
                       anchor={backlink.anchor}
                       snippet={backlink.snippet}
+                      relations={typedLinks.between(backlink.source, docName)}
+                      relationDirection="incoming"
                       href={hashFromDocName(navigationIntent.hashDocName, backlink.anchor)}
                       onClick={() => onDestinationRequested?.(navigationIntent.hashDocName)}
                     />
@@ -373,6 +383,7 @@ function ForwardLinksSection({
     enabled: !pagesLoading && isKnownPageDocName(pages, docName),
   });
   const links = data?.forwardLinks ?? [];
+  const typedLinks = useTypedLinks();
   const isUnresolvable =
     !pagesLoading &&
     pageListError === null &&
@@ -438,6 +449,7 @@ function ForwardLinksSection({
     const titleEqualsDocName = link.title === link.docName;
     const displayTitle = titleEqualsDocName ? path : link.title;
     const key = `doc:${link.docName}:${link.anchor ?? ''}`;
+    const relations = typedLinks.between(docName, link.docName);
     const navigateHashDocName =
       linkIntent.kind === 'navigate' ? linkIntent.hashDocName : link.docName;
     const navigateHref =
@@ -466,6 +478,7 @@ function ForwardLinksSection({
           titleHover={link.docName}
           anchor={link.anchor}
           snippet={link.snippet}
+          relations={relations}
           disabled={creatingKey !== null}
           onClick={() => void handleCreatePage(seed, key)}
         />
@@ -484,6 +497,7 @@ function ForwardLinksSection({
           titleHover={link.docName}
           anchor={link.anchor}
           snippet={link.snippet}
+          relations={relations}
           href={navigateHref}
           onClick={() => onDestinationRequested?.(navigateHashDocName)}
         />
@@ -499,6 +513,7 @@ function ForwardLinksSection({
         titleHover={link.docName}
         anchor={link.anchor}
         snippet={link.snippet}
+        relations={relations}
         href={navigateHref}
         onClick={() => onDestinationRequested?.(navigateHashDocName)}
       />

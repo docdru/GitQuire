@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { type RelationLink, relationLinks } from '@inkeep/open-knowledge-core/gitquire/typed-links';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import {
   type ChatPost,
@@ -43,6 +44,7 @@ import { namingRuleFromEnv } from './naming.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
 import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
+import { createTypedLinkListCache } from './typed-links.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_TITLE_LENGTH = 256;
@@ -290,11 +292,21 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
   }
 
+  function relationsOrNone(path: string, markdown: string): RelationLink[] {
+    try {
+      return relationLinks(markdown);
+    } catch (err) {
+      deps.log.warn({ err, path }, '[gitquire] could not read the typed links of a page');
+      return [];
+    }
+  }
+
   const pageScan = createPageScan(
     deps.contentDir ?? deps.projectDir,
     (path, markdown) => ({
       mentions: mentionsInMarkdown(path, markdown),
       facts: factsOrNone(path, markdown),
+      relations: relationsOrNone(path, markdown),
     }),
     Date.now,
     deps.contentFilter,
@@ -311,6 +323,19 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(objectList.body(factPages.pages));
+  }
+
+  const typedLinkList = createTypedLinkListCache();
+  let relationPages: { source: unknown; pages: ScannedPage<RelationLink[]>[] } | undefined;
+
+  function listTypedLinks(res: ServerResponse): void {
+    const scanned = pageScan.all();
+    if (relationPages === undefined || relationPages.source !== scanned) {
+      const pages = scanned.map((page) => ({ ...page, value: page.value.relations }));
+      relationPages = { source: scanned, pages };
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(typedLinkList.body(relationPages.pages));
   }
   const mentionReads = createMentionReadStore(
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
@@ -520,6 +545,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/pulls' && method === 'GET') return listPulls(res);
     if (path === '/api/gitquire/pulls' && method === 'POST') return createPull(req, res);
     if (path === '/api/gitquire/objects' && method === 'GET') return listPageObjects(res);
+    if (path === '/api/gitquire/typed-links' && method === 'GET') return listTypedLinks(res);
     if (path === '/api/gitquire/mentions' && method === 'GET') return listMentions(req, res);
     if (path === '/api/gitquire/mentions/read' && method === 'POST') {
       return markMentionsRead(req, res);

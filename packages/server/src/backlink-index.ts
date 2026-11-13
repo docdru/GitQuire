@@ -172,7 +172,7 @@ interface BranchGraphState {
   inventoryEpoch: number;
 }
 
-const SNAPSHOT_VERSION = 4;
+const SNAPSHOT_VERSION = 5;
 const EMPTY_BUNDLE_NEIGHBORS: ReadonlySet<string> = new Set();
 
 interface SerializedBranchGraphState {
@@ -807,6 +807,18 @@ function extractReferenceLinksFromMarkdown(
     });
   }
   return links;
+}
+
+function extractDocumentWikiLinks(
+  frontmatter: string,
+  body: string,
+  docName: string,
+  lineOffset: number,
+): Array<ExtractedWikiLink & { sourceForm: 'wiki' }> {
+  return [
+    ...extractWikiLinksFromMarkdown(frontmatter, docName),
+    ...extractWikiLinksFromMarkdown(body, docName, lineOffset),
+  ].map((link) => ({ ...link, sourceForm: 'wiki' as const }));
 }
 
 export function extractWikiLinksFromMarkdown(
@@ -1470,10 +1482,7 @@ export class BacklinkIndex {
     try {
       const { frontmatter, body } = stripFrontmatter(markdown);
       const lineOffset = frontmatterLineCount(frontmatter);
-      const wikiLinks = extractWikiLinksFromMarkdown(body, docName, lineOffset).map((link) => ({
-        ...link,
-        sourceForm: 'wiki' as const,
-      }));
+      const wikiLinks = extractDocumentWikiLinks(frontmatter, body, docName, lineOffset);
       const mdLinks = extractMarkdownLinksFromMarkdown(
         body,
         docName,
@@ -2261,10 +2270,7 @@ export class BacklinkIndex {
         mtimes.set(docName, mtimeMs);
         const { frontmatter, body } = stripFrontmatter(markdown);
         const lineOffset = frontmatterLineCount(frontmatter);
-        const wikiLinks = extractWikiLinksFromMarkdown(body, docName, lineOffset).map((link) => ({
-          ...link,
-          sourceForm: 'wiki' as const,
-        }));
+        const wikiLinks = extractDocumentWikiLinks(frontmatter, body, docName, lineOffset);
         const mdLinks = extractMarkdownLinksFromMarkdown(
           body,
           docName,

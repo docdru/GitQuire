@@ -6260,6 +6260,9 @@ msgstr "Link previews"
 msgid "Link ready but could not copy to clipboard."
 msgstr "Link ready but could not copy to clipboard."
 
+msgid "Link relation, used {usedCount} times"
+msgstr "Link relation, used {usedCount} times"
+
 msgid "Link target"
 msgstr "Link target"
 
@@ -8711,6 +8714,9 @@ msgstr "Reinstalling"
 
 msgid "Reject"
 msgstr "Reject"
+
+msgid "Relations"
+msgstr "Relations"
 
 msgid "Relative path"
 msgstr "Relative path"

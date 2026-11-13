@@ -14,7 +14,13 @@ import { usePageList } from '@/components/PageListContext';
 import { hashFromDocName } from '@/lib/doc-hash';
 import { subscribeToDocumentsChanged } from '@/lib/documents-events';
 import { openExternalUrl } from '@/lib/external-link';
+import { useTypedLinks } from '@/lib/gitquire/typed-links';
 import { cn } from '@/lib/utils';
+import {
+  drawGraphLinkRelation,
+  graphLinkRelationLabel,
+  graphLinkRelations,
+} from './gitquire-graph-relations';
 import { clusterColor } from './graph-colors';
 import {
   type GraphLabelLayoutLink,
@@ -546,6 +552,7 @@ export function GraphView({
   const inGrowth = showcase || (growthMode && !isExpanded);
   const { t } = useLingui();
   const { resolvedTheme } = useTheme();
+  const typedLinks = useTypedLinks();
   const {
     folderPaths,
     loading: pageListLoading,
@@ -704,6 +711,7 @@ export function GraphView({
   const missingNodeColor = palette.destructive;
   const edgeBaseAlpha = isDark ? 0.28 : 0.33;
   const edgeColor = withAlpha(palette.muted, edgeBaseAlpha);
+  const typedEdgeColor = withAlpha(palette.primary, isDark ? 0.6 : 0.55);
   const labelColor = palette.foreground;
   const activeNodeRingColor = withAlpha(palette.primary, isDark ? 0.45 : 0.3);
   const folderNodeRingColor = withAlpha(palette.folder, isDark ? 0.38 : 0.22);
@@ -1328,12 +1336,22 @@ export function GraphView({
                 Date.now(),
                 LINK_BIRTH_MS,
               );
-              if (born >= 1) return edgeColor;
-              return withAlpha(palette.muted, edgeBaseAlpha * born);
+              const typed = graphLinkRelations(typedLinks, link).length > 0;
+              if (born >= 1) return typed ? typedEdgeColor : edgeColor;
+              return withAlpha(typed ? palette.primary : palette.muted, edgeBaseAlpha * born);
             }}
             linkDirectionalArrowLength={3}
             linkDirectionalArrowRelPos={1}
-            linkWidth={1}
+            linkWidth={(link: LinkObject<GraphNode, GraphLink>) =>
+              graphLinkRelations(typedLinks, link).length > 0 ? 1.6 : 1
+            }
+            linkLabel={(link: LinkObject<GraphNode, GraphLink>) =>
+              graphLinkRelationLabel(typedLinks, link)
+            }
+            linkCanvasObjectMode={() => 'after'}
+            linkCanvasObject={(link: LinkObject<GraphNode, GraphLink>, ctx, globalScale) =>
+              drawGraphLinkRelation(typedLinks, link, ctx, globalScale, typedEdgeColor)
+            }
             showPointerCursor={(obj) => Boolean(obj && 'kind' in obj)}
             onNodeClick={(node: NodeObject<GraphNode>) => {
               if (node.kind === 'external') {

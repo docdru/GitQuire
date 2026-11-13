@@ -58,6 +58,7 @@ import {
 import { usePublishFrontmatterSelection } from '@/hooks/use-selection-context';
 import { enumConstraintsForDoc } from '@/lib/frontmatter-enum-constraints';
 import { schemaFieldsForDoc } from '@/lib/frontmatter-schema-fields';
+import { relationFieldSuggestions, useTypedLinks } from '@/lib/gitquire/typed-links';
 
 interface StagedDraft extends AddDraft {
   id: string;
@@ -122,6 +123,7 @@ export function PropertyPanel({ provider, reservedKeys, identitySlot }: Property
     useFrontmatterDiagnostics(provider, lintConfigData?.effective ?? null),
   );
   const schemaFields = schemaFieldsForDoc(lintConfigData?.effective ?? null, docName);
+  const typedLinks = useTypedLinks();
 
   const panelRef = useRef<HTMLDivElement>(null);
   usePublishFrontmatterSelection(panelRef, docName);
@@ -438,9 +440,17 @@ export function PropertyPanel({ provider, reservedKeys, identitySlot }: Property
     return null;
   }
 
-  const offerableFields: AddPropertyFieldSuggestion[] = [...schemaFields]
+  const offerableSchemaFields: AddPropertyFieldSuggestion[] = [...schemaFields]
     .filter(([name]) => !Object.hasOwn(map, name) && !reserved.has(name))
     .map(([name, field]) => ({ name, ...field }));
+  const offerableFields: AddPropertyFieldSuggestion[] = [
+    ...offerableSchemaFields,
+    ...relationFieldSuggestions(typedLinks, [
+      ...Object.keys(map),
+      ...schemaFields.keys(),
+      ...reserved,
+    ]),
+  ];
 
   function suggestionsFor(rowId: string): AddPropertyFieldSuggestion[] {
     const claimed = new Set(

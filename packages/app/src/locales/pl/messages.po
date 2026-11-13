@@ -6260,6 +6260,9 @@ msgstr "Podglądy linków"
 msgid "Link ready but could not copy to clipboard."
 msgstr "Link gotowy, ale nie udało się go skopiować do schowka."
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "Cel linku"
 
@@ -8711,6 +8714,9 @@ msgstr "Ponowna instalacja"
 
 msgid "Reject"
 msgstr "Odrzuć"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "Ścieżka względna"

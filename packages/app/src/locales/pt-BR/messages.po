@@ -6256,6 +6256,9 @@ msgstr "Pré-visualização de links"
 msgid "Link ready but could not copy to clipboard."
 msgstr "O link está pronto, mas não foi possível copiá-lo para a área de transferência."
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "Destino do link"
 
@@ -8707,6 +8710,9 @@ msgstr "Reinstalando"
 
 msgid "Reject"
 msgstr "Rejeitar"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "Caminho relativo"

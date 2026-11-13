@@ -6260,6 +6260,9 @@ msgstr "링크 미리보기"
 msgid "Link ready but could not copy to clipboard."
 msgstr "링크가 준비됐지만 클립보드에 복사할 수 없습니다."
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "링크 대상"
 
@@ -8711,6 +8714,9 @@ msgstr "재설치 중"
 
 msgid "Reject"
 msgstr "거부"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "상대 경로"

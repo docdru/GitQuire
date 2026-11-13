@@ -6256,6 +6256,9 @@ msgstr "लिंक पूर्वावलोकन"
 msgid "Link ready but could not copy to clipboard."
 msgstr "लिंक तैयार है, लेकिन क्लिपबोर्ड पर कॉपी नहीं हो सका।"
 
+msgid "Link relation, used {usedCount} times"
+msgstr ""
+
 msgid "Link target"
 msgstr "लिंक लक्ष्य"
 
@@ -8707,6 +8710,9 @@ msgstr "फिर से इंस्टॉल किया जा रहा ह
 
 msgid "Reject"
 msgstr "अस्वीकारें"
+
+msgid "Relations"
+msgstr ""
 
 msgid "Relative path"
 msgstr "सापेक्ष पथ"
