@@ -17,6 +17,7 @@ import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient } from './github-pulls.ts';
 import type { ScanFilter } from './page-scan.ts';
 import { setSessionPrincipalResolver } from './principal-directory.ts';
+import { setAdminResolver } from './settings-admin.ts';
 import {
   bootstrapRepository,
   ensureAutoSyncMode,
@@ -81,6 +82,7 @@ export function createAccessGateFromEnv(
     const user = gate.sessionUser(req);
     return user === undefined ? undefined : principalFromUser(user);
   });
+  setAdminResolver(gate.isAdminRequest);
   return gate;
 }
 

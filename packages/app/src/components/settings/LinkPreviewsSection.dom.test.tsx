@@ -86,7 +86,7 @@ describe('LinkPreviewsSection', () => {
     const toggle = screen.getByTestId('settings-link-previews-toggle');
     expect(toggle.getAttribute('aria-checked')).toBe('false');
     expect(screen.getByTestId('settings-link-previews-body').textContent).toContain(
-      'No requests leave this computer',
+      'The server sends no requests.',
     );
   });
 
@@ -150,7 +150,7 @@ describe('LinkPreviewsSection', () => {
 
     await user.click(screen.getByTestId('settings-link-previews-toggle'));
 
-    expect(await screen.findByText("This sends the link's address off your machine")).toBeDefined();
+    expect(await screen.findByText('This sends link addresses from the server to other sites')).toBeDefined();
     expect(calls.length).toBe(0);
 
     await user.click(screen.getByTestId('settings-link-previews-confirm-enable'));
@@ -168,7 +168,7 @@ describe('LinkPreviewsSection', () => {
 
     await user.click(screen.getByTestId('settings-link-previews-toggle'));
 
-    expect(screen.queryByText("This sends the link's address off your machine")).toBeNull();
+    expect(screen.queryByText('This sends link addresses from the server to other sites')).toBeNull();
     expect(calls).toEqual([{ linkPreviews: { enabled: false } }]);
   });
 

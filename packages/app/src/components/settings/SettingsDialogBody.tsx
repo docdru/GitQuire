@@ -5,6 +5,7 @@ import { TriangleAlert } from 'lucide-react';
 import { type ComponentType, lazy } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AgentsSettings } from '@/gitquire-settings/AgentsSettings';
+import { WikiAdminGate } from '@/gitquire-settings/WikiAdminGate';
 import { lazyWithPreload } from '@/lib/lazy-with-preload';
 import { SettingsSectionHeader } from './SettingsSectionHeader';
 import { FIELDS_USER_PREFERENCES } from './settings-fields';
@@ -137,7 +138,15 @@ interface SettingsDialogBodyProps {
   markdownlintRuleQuery?: { query: string; nonce: number } | null;
 }
 
-export function SettingsDialogBody({
+export function SettingsDialogBody(props: SettingsDialogBodyProps) {
+  return (
+    <WikiAdminGate itemId={props.activeId}>
+      <SettingsDialogSection {...props} />
+    </WikiAdminGate>
+  );
+}
+
+function SettingsDialogSection({
   activeId,
   userBinding,
   userLoadFailed = false,
@@ -170,8 +179,7 @@ export function SettingsDialogBody({
           scope="project"
         >
           <Trans>
-            Settings for this project. Some are shared with every collaborator through git; others
-            apply only on this computer.
+            Settings for this wiki. They apply to everyone; most are stored in the repository.
           </Trans>
         </SettingsSectionHeader>
         <AttachmentsSection />
@@ -205,8 +213,8 @@ export function SettingsDialogBody({
           title={<Trans>Sync & sharing</Trans>}
         >
           <Trans>
-            Sync keeps this computer's copy up to date with your Git remote. The shared settings
-            below decide what teammates get when they open the project.
+            Sync keeps the wiki's copy on the server up to date with GitHub. It applies to
+            everyone.
           </Trans>
         </SettingsSectionHeader>
         <SyncSection />

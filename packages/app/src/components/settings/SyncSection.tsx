@@ -370,7 +370,7 @@ function SyncSectionContent({
               {mode === 'full' ? (
                 <Trans>Your edits are committed and pushed to your remote automatically.</Trans>
               ) : mode === 'follow' ? (
-                <Trans>Updates flow in from your remote; your edits stay on this computer.</Trans>
+                <Trans>Updates flow in from GitHub; edits stay on the server and are not pushed.</Trans>
               ) : (
                 <Trans>Nothing moves until you ask — pull and push from the sync menu.</Trans>
               )}
@@ -382,8 +382,8 @@ function SyncSectionContent({
                 data-testid="settings-sync-mode-from-default"
               >
                 <Trans>
-                  This mode comes from the project's Shared default below. Pick a mode to choose
-                  your own for this computer.
+                  This mode comes from the project's Shared default below. Pick a mode to set one
+                  for this server.
                 </Trans>
               </p>
             ) : null}
@@ -583,7 +583,7 @@ function SyncSectionContent({
                     <Trans>Check for updates every</Trans>
                   </div>
                   <p className="text-muted-foreground text-1sm">
-                    <Trans>How often this computer pulls changes from your remote.</Trans>
+                    <Trans>How often the server pulls changes from GitHub.</Trans>
                   </p>
                 </div>
                 <Select
