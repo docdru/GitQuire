@@ -1,10 +1,10 @@
 ---
 title: Codex
-description: Use OpenKnowledge with Codex.
+description: Use GitQuire with Codex.
 icon: custom/Codex
 ---
 
-OpenKnowledge works with Codex through MCP plus an installed skill.
+GitQuire works with Codex through MCP plus an installed skill.
 
 ## Install
 
@@ -31,7 +31,7 @@ Use the absolute path of the Git repository root; Codex matches the key exactly.
 
 From the editor, **Open with AI ▸ Codex** dispatches the current file, folder, or project to Codex in one click. Entry points include the sidebar's right-click menu (file / folder / empty space), the **File → Open with AI** menu, and the Command Palette. You can also hand the current doc to Codex from the bottom **Ask AI** composer.
 
-Codex receives a short prompt asking it to open the target in OpenKnowledge's web preview. The agent then grounds the rest of the conversation through MCP. See [Editor → Open with AI](/docs/features/editor#open-with-ai) for the full UX.
+Codex receives a short prompt asking it to open the target in GitQuire's web preview. The agent then grounds the rest of the conversation through MCP. See [Editor → Open with AI](/docs/features/editor#open-with-ai) for the full UX.
 
 ## Verify
 
@@ -39,9 +39,7 @@ Open the project in Codex and ask:
 
 <VerifyExec />
 
-If you don't see the tool, check that the project is trusted first, then restart Codex. If it's still missing and `ok init` reported your config was `left unchanged`, the reason in parentheses says why `~/.codex/config.toml` (or `$CODEX_HOME/config.toml` if set) was left untouched. For config problems, fix the file and re-run `ok init`; for `no format-preserving writer available`, your config isn't the problem — OpenKnowledge can't rewrite the file safely on this platform, so add an `open-knowledge` entry to `mcp_servers` by hand (command: `ok mcp`).
-
-OpenKnowledge Beta registers as `open-knowledge-beta` instead; see [Beta uses its own entry](/docs/reference/what-open-knowledge-writes#beta-uses-its-own-entry).
+If you don't see the tool, check that the project is trusted first, then restart Codex. If it's still missing and `ok init` reported your config was `left unchanged`, the reason in parentheses says why `~/.codex/config.toml` (or `$CODEX_HOME/config.toml` if set) was left untouched. For config problems, fix the file and re-run `ok init`; for `no format-preserving writer available`, your config isn't the problem — GitQuire can't rewrite the file safely on this platform, so add an `open-knowledge` entry to `mcp_servers` by hand (command: `ok mcp`).
 
 ## Scheduled runs
 

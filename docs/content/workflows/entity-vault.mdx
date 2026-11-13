@@ -12,7 +12,7 @@ An **Entity vault (GBrain-compatible Markdown)** is a Markdown brain organized a
 
 Meetings, originals, and media stay raw records.
 
-OpenKnowledge scaffolds and edits that Markdown. Garry Tan's [`gbrain`](https://github.com/garrytan/gbrain), if you install it, can import/sync the same vault and add its DB-backed retrieval, graph extraction, embedding, and automation. OK does **not** replace `gbrain`; it gives GBrain-style Markdown brains a human cockpit for review, correction, attribution, and Git-visible edits.
+GitQuire scaffolds and edits that Markdown. Garry Tan's [`gbrain`](https://github.com/garrytan/gbrain), if you install it, can import/sync the same vault and add its DB-backed retrieval, graph extraction, embedding, and automation. OK does **not** replace `gbrain`; it gives GBrain-style Markdown brains a human cockpit for review, correction, attribution, and Git-visible edits.
 
 ```html preview
 <div style="padding:18px">
@@ -49,7 +49,7 @@ Founders and investors get a second brain over **people, companies, meetings, an
 
 ## The division of labor
 
-| Layer | OpenKnowledge | Garry Tan's `gbrain` |
+| Layer | GitQuire | Garry Tan's `gbrain` |
 | --- | --- | --- |
 | Markdown files | Creates, edits, reviews, templates, folder guidance | Imports/syncs as source material |
 | Human correction | WYSIWYG/source editor, activity attribution, version checkpoints | Sees corrections after import/sync |
@@ -86,7 +86,7 @@ your-project/
 Each folder includes an `.ok/frontmatter.yml` description that agents see during file listings/searches, plus templates under `.ok/templates/`.
 
 <Callout type="info" title="Seeding also installs a skill">
-  `ok seed --pack entity-vault` installs the **Entity vault** project skill into your agent editors (Claude Code, Cursor, Codex, OpenCode). It's the "how to work here" guidance behind the dossier conventions — compiled-truth vs. append-only timeline, path-qualified links, the correction loop — read automatically, and editable like any other doc. It lands as a single `SKILL.md` in your repo, in your project's skills directory (`.agents/skills/` when you have one, otherwise your editor's), copied into the skills directory of each editor already set up for the project. The copies refresh from the source until you hand-edit one. See [Skills Studio](../features/skills/index.mdx) and [what OpenKnowledge writes to disk](../reference/what-open-knowledge-writes.mdx).
+  `ok seed --pack entity-vault` installs the **Entity vault** project skill into your agent editors (Claude Code, Cursor, Codex, OpenCode). It's the "how to work here" guidance behind the dossier conventions — compiled-truth vs. append-only timeline, path-qualified links, the correction loop — read automatically, and editable like any other doc. It lands as a single `SKILL.md` in your repo, in your project's skills directory (`.agents/skills/` when you have one, otherwise your editor's), copied into the skills directory of each editor already set up for the project. The copies refresh from the source until you hand-edit one. See [Skills Studio](../features/skills/index.mdx) and [what GitQuire writes to disk](../reference/what-gitquire-writes.mdx).
 </Callout>
 
 ## Markdown shape
@@ -126,7 +126,7 @@ Compatibility details:
 
 ## Get meetings in from a recorder
 
-OpenKnowledge does not record meetings. Bring any recorder that speaks MCP, and each meeting lands in `meetings/` as markdown, ready for the loop below. Ask for them on demand, or have them sync automatically.
+GitQuire does not record meetings. Bring any recorder that speaks MCP, and each meeting lands in `meetings/` as markdown, ready for the loop below. Ask for them on demand, or have them sync automatically.
 
 See [Ingest meetings](./meeting-ingestion.mdx) for the recorder list, the `source` and `source_meeting_id` addressing rule, and the scheduled and event-driven options.
 

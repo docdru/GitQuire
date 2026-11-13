@@ -1,19 +1,19 @@
 ---
 title: CLI
 icon: LuTerminal
-description: Run OpenKnowledge with the CLI on your computer, a VM, or a server.
+description: Run GitQuire with the CLI on your computer, a VM, or a server.
 ---
-Install OpenKnowledge from npm, then run the server yourself:
+Install GitQuire from npm, then run the server yourself:
 
 ```bash
 npm install -g @inkeep/open-knowledge
 ```
 
-Run OpenKnowledge on a laptop or an always-on server. Use a private network, tunnel, or reverse proxy to make it reachable. See the [Remote Control overview](/docs/remote-control/overview) to choose an access method.
+Run GitQuire on a laptop or an always-on server. Use a private network, tunnel, or reverse proxy to make it reachable. See the [Remote Control overview](/docs/remote-control/overview) to choose an access method.
 
 ## Your laptop, behind a tunnel
 
-A tunnel gives the OpenKnowledge server on your laptop an HTTPS URL. The server is available only while the laptop is awake. For continuous access, use [an always-on server](#a-server-you-manage) or the [Docker method](/docs/remote-control/methods/docker).
+A tunnel gives the GitQuire server on your laptop an HTTPS URL. The server is available only while the laptop is awake. For continuous access, use [an always-on server](#a-server-you-manage) or the [Docker method](/docs/remote-control/methods/docker).
 
 ### 1. Pin a port and open a tunnel
 
@@ -120,7 +120,7 @@ Use a VPS, Mac mini, or another always-on computer. This keeps the knowledge bas
 
 Create an Ubuntu 24.04 VPS with Hetzner, DigitalOcean, Lightsail, or another provider. Allocate 1 GB of RAM. A small knowledge base can run with 512 MB. Add an SSH key during setup, then connect with `ssh root@<ip>`. Run the following commands in that shell.
 
-Install Node 24 and OpenKnowledge:
+Install Node 24 and GitQuire:
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash - && sudo apt-get install -y nodejs git
@@ -162,9 +162,9 @@ For either option, allow external access in `.ok/local/config.yml` by setting `a
 
 So it survives logout and reboots:
 
-```ini title="/etc/systemd/system/openknowledge.service"
+```ini title="/etc/systemd/system/gitquire.service"
 [Unit]
-Description=OpenKnowledge server
+Description=GitQuire server
 After=network-online.target
 
 [Service]
@@ -182,7 +182,7 @@ This matches the `ssh root@<ip>` VPS setup above. The project is at `/root/knowl
 Register the service so it starts on every boot, and launch it now:
 
 ```bash
-sudo systemctl enable --now openknowledge
+sudo systemctl enable --now gitquire
 ```
 
 <Callout>
@@ -193,7 +193,7 @@ If the URL is public, [add access control](/docs/remote-control/authentication) 
 
 ## Back up to a git remote
 
-Optional, but recommended for a server. Your knowledge base is a plain git repository, and OpenKnowledge has a built-in sync engine: point it at a GitHub remote and it commits and pushes as agents write, on its own.
+Optional, but recommended for a server. Your knowledge base is a plain git repository, and GitQuire has a built-in sync engine: point it at a GitHub remote and it commits and pushes as agents write, on its own.
 
 Create an empty **private** GitHub repo, then on the machine:
 
@@ -208,9 +208,9 @@ Turn on auto-sync:
 
 ```bash
 printf '\nautoSync:\n  mode: full\n' >> .ok/local/config.yml
-sudo systemctl restart openknowledge
+sudo systemctl restart gitquire
 ```
 
-From now on every edit is committed and pushed automatically. The commit author comes from the machine's git identity (`git config user.name` / `user.email`). A fresh server has none set, so commits fall back to a service identity, **OpenKnowledge**. Signing in with `gh` handles pushing, not authorship. Set a git identity if you'd rather commits carry your name. See [Git sync](/docs/features/git/sync) for sync modes, conflict handling, and authentication.
+From now on every edit is committed and pushed automatically. The commit author comes from the machine's git identity (`git config user.name` / `user.email`). A fresh server has none set, so commits fall back to a service identity, **GitQuire**. Signing in with `gh` handles pushing, not authorship. Set a git identity if you'd rather commits carry your name. See [Git sync](/docs/features/git/sync) for sync modes, conflict handling, and authentication.
 
 The git remote is also a way to edit locally: `git clone` it on your laptop and open the clone in OK Desktop. That gives you a separate local copy with the full editor. It syncs with the server through git (each side pushes and pulls), not live, so changes cross over on the next sync rather than instantly.

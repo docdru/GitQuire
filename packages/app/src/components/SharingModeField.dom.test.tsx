@@ -85,7 +85,7 @@ describe('SharingModeField', () => {
 
     const link = screen.getByTestId('t-sharing-docs-link');
     expect(link.getAttribute('href')).toBe(
-      'https://docdru.github.io/GitQuire/docs/reference/what-open-knowledge-writes',
+      'https://docdru.github.io/GitQuire/docs/reference/what-gitquire-writes',
     );
     expect(link.getAttribute('target')).toBe('_blank');
     expect(link.getAttribute('rel')).toBe('noopener noreferrer');

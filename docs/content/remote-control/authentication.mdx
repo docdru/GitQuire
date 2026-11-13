@@ -143,10 +143,10 @@ Internet  (Claude / Cursor cloud dial in from here)
    |  https://<host>/ (editor)   +   https://<host>/mcp (agents)
    v  Tailscale funnel: public TLS on your *.ts.net name
    v  Pomerium: MCP OAuth on /mcp, cookie session for the browser editor
-   v  OpenKnowledge: loopback, told its public externalUrl
+   v  GitQuire: loopback, told its public externalUrl
 ```
 
-**OpenKnowledge** runs on loopback, told its public origin. Pomerium is the only way in, so the server keeps no exposure of its own:
+**GitQuire** runs on loopback, told its public origin. Pomerium is the only way in, so the server keeps no exposure of its own:
 
 ```bash
 OK_ALLOW_EXTERNAL=1 ok start -p 24550 --no-open-browser --idle-shutdown off \
@@ -196,7 +196,7 @@ routes:
   # Agents: the MCP endpoint, path-scoped to /mcp.
   - from: https://<host>
     to: http://host.docker.internal:24550
-    name: OpenKnowledge MCP
+    name: GitQuire MCP
     prefix: /mcp
     preserve_host_header: true
     mcp:
@@ -207,7 +207,7 @@ routes:
   # People: the editor and everything else, behind the Google cookie login.
   - from: https://<host>
     to: http://host.docker.internal:24550
-    name: OpenKnowledge UI
+    name: GitQuire UI
     preserve_host_header: true
     allow_websockets: true
     policy: { allow: { and: [ { email: { is: you@example.com } } ] } }

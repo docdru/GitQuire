@@ -4,13 +4,13 @@ icon: LuFolderTree
 description: Describe a folder with its own properties, and offer reusable templates that give new documents their starting content and properties.
 ---
 
-Folders organize a project the same way they do on your computer: a place to group related docs. OpenKnowledge adds two things on top: a folder can **describe itself** (its own properties, exactly like a document's), and it can offer a set of **templates** for new documents.
+Folders organize a project the same way they do on your computer: a place to group related docs. GitQuire adds two things on top: a folder can **describe itself** (its own properties, exactly like a document's), and it can offer a set of **templates** for new documents.
 
 Click any folder in the sidebar to open its **overview**: a page listing what's inside, plus cards: **Folder properties**, **Templates available**, and an **Activity** feed of changes to both (hidden while empty).
 
 ## Properties, in one minute
 
-Every doc can carry a bit of structured information at the top: a `status`, an `owner`, a `tags` list, a date. OpenKnowledge calls these its **properties**. In the raw markdown file they live in a `---`-fenced block at the very top, which markdown tools call *frontmatter*; the **Properties** panel in the editor edits them as ordinary form fields, so you never touch that block by hand. See [Editor → Properties](/docs/features/editor#properties) for the basics.
+Every doc can carry a bit of structured information at the top: a `status`, an `owner`, a `tags` list, a date. GitQuire calls these its **properties**. In the raw markdown file they live in a `---`-fenced block at the very top, which markdown tools call *frontmatter*; the **Properties** panel in the editor edits them as ordinary form fields, so you never touch that block by hand. See [Editor → Properties](/docs/features/editor#properties) for the basics.
 
 A doc's properties are its own: exactly what's written in that file, nothing injected from elsewhere. The tedious part is setting the same starting properties on every new doc in a folder, which is what **templates** solve (below).
 
@@ -52,7 +52,7 @@ When you create a new file, the **New file** dialog shows a **Start from** picke
 
 A template body may use two placeholders, filled in automatically when a document is created:
 
-- `{{date}}`: today's date in the time zone of the computer running OpenKnowledge, in `YYYY-MM-DD` form. A self-hosted server uses its [`TZ` environment variable](/docs/remote-control/methods/docker#the-environment-surface).
+- `{{date}}`: today's date in the time zone of the computer running GitQuire, in `YYYY-MM-DD` form. A self-hosted server uses its [`TZ` environment variable](/docs/remote-control/methods/docker#the-environment-surface).
 - `{{user}}`: the display name of the person or agent creating the document.
 
 ```md title=".ok/templates/standup.md"
@@ -73,7 +73,7 @@ Recorded by {{user}}
 ## Blockers
 ```
 
-These two are the only placeholders OpenKnowledge fills in. Any other `{{...}}` is rejected when the template is saved, so a template never quietly grows its own mini-language.
+These two are the only placeholders GitQuire fills in. Any other `{{...}}` is rejected when the template is saved, so a template never quietly grows its own mini-language.
 
 ### Give new documents their own properties
 
@@ -98,9 +98,9 @@ tags: [daily]
 (...)
 ```
 
-The `template:` block is the template's own info (the title and description shown in the picker); OpenKnowledge strips it when a document is created. Every other key — `type`, `description`, `title`, `status`, `tags` above — becomes the new document's own properties, written as real bytes into the file. `description` gives each new document a starting one-line summary; edit it per document. Because these are the new doc's *own* properties, the doc owns them outright: editing one doc never touches another.
+The `template:` block is the template's own info (the title and description shown in the picker); GitQuire strips it when a document is created. Every other key — `type`, `description`, `title`, `status`, `tags` above — becomes the new document's own properties, written as real bytes into the file. `description` gives each new document a starting one-line summary; edit it per document. Because these are the new doc's *own* properties, the doc owns them outright: editing one doc never touches another.
 
-(Older templates that used two stacked frontmatter blocks still work — OpenKnowledge reads them and rewrites them to the single-block form the next time they're saved.)
+(Older templates that used two stacked frontmatter blocks still work — GitQuire reads them and rewrites them to the single-block form the next time they're saved.)
 
 ### Edit and delete
 
@@ -110,7 +110,7 @@ Deleting a template removes the `.ok/templates/<name>.md` file. Folders and agen
 
 ## How templates reach subfolders
 
-Templates flow **downhill**: a template on `posts/` applies to `posts/`, `posts/2026/`, `posts/2026/drafts/`, and every folder beneath it. When you create a document, OpenKnowledge starts at the document's own folder and walks up to the top of the project, gathering the templates each folder along the way offers:
+Templates flow **downhill**: a template on `posts/` applies to `posts/`, `posts/2026/`, `posts/2026/drafts/`, and every folder beneath it. When you create a document, GitQuire starts at the document's own folder and walks up to the top of the project, gathering the templates each folder along the way offers:
 
 - Templates from the document's **own folder** are marked **local**.
 - Templates from a **folder above it** are marked **inherited**.
@@ -127,7 +127,7 @@ Agents create documents from templates the same way you do. Through MCP, an agen
 write({ document: { path: "posts/launch", template: "blog-post" } })
 ```
 
-OpenKnowledge finds the `blog-post` template the same way the New file dialog does: the agent gets the one that applies to `posts/`. The template's **starter content** becomes the new document; the template's own title and description stay behind as template info and are not copied into the document.
+GitQuire finds the `blog-post` template the same way the New file dialog does: the agent gets the one that applies to `posts/`. The template's **starter content** becomes the new document; the template's own title and description stay behind as template info and are not copied into the document.
 
 When an agent creates a document without a template in a folder that offers them, the write result lists the folder's available templates (filename and description). This is why a template's **Filename** and **Description** matter: they are what an agent reads when choosing which template fits the document it is about to create.
 
@@ -151,7 +151,7 @@ Only one malformation stops the page from loading: a symlink at the folder's own
 | `.ok` is a plain file, or a directory the server cannot read — on this folder or on an ancestor it inherits from | If it is this folder's, its properties and its own templates, and saving a property edit here fails until you fix it; if an ancestor's, that ancestor's templates for every folder inheriting from it, while this folder's own properties keep saving. Templates from unaffected ancestors still resolve. |
 | `.ok/templates` is a plain file, or a directory the server cannot read — on this folder or on an ancestor it inherits from | That directory's templates, for this folder or for every folder inheriting from the affected ancestor. |
 
-Those last two rows may drop templates with nothing in the warnings, so a folder that quietly loses templates — its own or an inherited set — is the signal to check `.ok` and `.ok/templates` on that folder and on every ancestor above it. To restore what broke: replace a symlink or a plain file with a real directory or file, copying in whatever the link pointed at if you want that content back; if the directory is already there, restore read access for the OpenKnowledge process rather than replacing it. See the [Configuration reference](/docs/reference/configuration#folder-properties) for the file formats, and the [MCP reference](/docs/reference/mcp) for the `write` and `edit` tools (with `folder` and `template` targets) that set the same things from an AI agent.
+Those last two rows may drop templates with nothing in the warnings, so a folder that quietly loses templates — its own or an inherited set — is the signal to check `.ok` and `.ok/templates` on that folder and on every ancestor above it. To restore what broke: replace a symlink or a plain file with a real directory or file, copying in whatever the link pointed at if you want that content back; if the directory is already there, restore read access for the GitQuire process rather than replacing it. See the [Configuration reference](/docs/reference/configuration#folder-properties) for the file formats, and the [MCP reference](/docs/reference/mcp) for the `write` and `edit` tools (with `folder` and `template` targets) that set the same things from an AI agent.
 
 ## See also
 

@@ -7,7 +7,7 @@ description: "Start with a small OKF v0.2 knowledge base, keep it portable as it
 
 The **Open Knowledge Format (OKF)** is a portable convention for agent-readable knowledge: Markdown files, YAML frontmatter, and standard links. Use this workflow when the knowledge base may move between tools, teams, or organizations and you want that portability built in from the first file.
 
-OpenKnowledge's **Open Knowledge Format** starter pack creates the minimum useful OKF v0.2 bundle. It also enables the [OKF plugin](/docs/plugins/okf), which warns when later edits would be misread by another OKF consumer.
+GitQuire's **Open Knowledge Format** starter pack creates the minimum useful OKF v0.2 bundle. It also enables the [OKF plugin](/docs/plugins/okf), which warns when later edits would be misread by another OKF consumer.
 
 <Callout type="info">
   **OKF here means Google's Open Knowledge _Format_.** The format keeps its conformance floor deliberately small: every non-reserved document needs parseable YAML frontmatter with a non-empty `type`. Read the [OKF v0.2 specification](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md).
@@ -39,7 +39,7 @@ The starter gives the project a conformant starting point. Three habits keep it 
 
 1. Give every non-reserved `.md` document parseable frontmatter with a non-empty `type`.
 2. Keep reserved `index.md` and `log.md` filenames lowercase. An index normally has no frontmatter; only the bundle-root index may declare `okf_version`.
-3. Use standard Markdown links. OpenKnowledge understands `[[wiki-links]]`, but another OKF consumer may not.
+3. Use standard Markdown links. GitQuire understands `[[wiki-links]]`, but another OKF consumer may not.
 
 Types are an open vocabulary. Choose a useful, stable name for the concept instead of forcing every document into a fixed taxonomy.
 
@@ -72,4 +72,4 @@ The plugin checks the resulting shape. The skill guides the content decision.
 
 - **[OKF plugin](/docs/plugins/okf).** Enable the plugin, install its recommended skill, tune rules, and opt into generated indexes.
 - **[Content rules overview](/docs/advanced/content-rules/overview).** Where warnings appear in the editor, CLI, and agent tools.
-- **[Open Knowledge Format v0.2 specification](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md).** The portable format OpenKnowledge implements.
+- **[Open Knowledge Format v0.2 specification](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md).** The portable format GitQuire implements.

@@ -3,7 +3,7 @@ title: GitHub
 icon: custom/GitHub
 description: Clone and publish GitHub repositories.
 ---
-You can clone GitHub repositories and publish local projects to a GitHub remote directly from OpenKnowledge. To sign in and choose which GitHub account a project uses, see [Authentication](/docs/features/git/sync#authentication).
+You can clone GitHub repositories and publish local projects to a GitHub remote directly from GitQuire. To sign in and choose which GitHub account a project uses, see [Authentication](/docs/features/git/sync#authentication).
 
 ## Clone an existing GitHub repository
 
@@ -20,9 +20,9 @@ These steps use the desktop app; from a terminal, [`ok clone`](/docs/reference/c
 <Step>
     ### Sign in to GitHub
 
-    If you are already signed in with the GitHub CLI, OpenKnowledge will use those credentials by default. If not, click **Connect GitHub** and complete the device authentication flow.
+    If you are already signed in with the GitHub CLI, GitQuire will use those credentials by default. If not, click **Connect GitHub** and complete the device authentication flow.
 
-    **Settings → Git** shows the GitHub host and account OpenKnowledge is connected to. To switch or sign out of an account that comes from the GitHub CLI, run `gh auth` in a terminal.
+    **Settings → Git** shows the GitHub host and account GitQuire is connected to. To switch or sign out of an account that comes from the GitHub CLI, run `gh auth` in a terminal.
 </Step>
 
 <Step>
@@ -40,13 +40,13 @@ These steps use the desktop app; from a terminal, [`ok clone`](/docs/reference/c
 
 ## Publish a local project to GitHub
 
-You can publish your local project to GitHub directly from the OpenKnowledge app by opening a folder or file and clicking the **Share** button on the right of the header at the top of the window (in its [**More actions**](/docs/features/editor#when-the-header-runs-out-of-room) menu when the header is full).
+You can publish your local project to GitHub directly from the GitQuire app by opening a folder or file and clicking the **Share** button on the right of the header at the top of the window (in its [**More actions**](/docs/features/editor#when-the-header-runs-out-of-room) menu when the header is full).
 
 This will open a dialog where you can choose an owner and repository name. You can also choose to make the repository public or private.
 
 ## GitHub Enterprise Server
 
-For these features to work against a GitHub Enterprise Server, add the host under **Settings → Git → GitHub Enterprise Server hosts**, or declare it in your user configuration, `~/.ok/global.yml` (`~/.ok-beta/global.yml` in OpenKnowledge Beta), then restart OpenKnowledge:
+For these features to work against a GitHub Enterprise Server, add the host under **Settings → Git → GitHub Enterprise Server hosts**, or declare it in your user configuration, `~/.ok/global.yml`, then restart GitQuire:
 
 ```yaml
 git:
@@ -55,6 +55,6 @@ git:
       provider: github
 ```
 
-The declaration applies to every project on your machine. It enables GitHub credential handling, push-permission checks, share links, and the default host for `ok auth`. Without a declaration, OpenKnowledge treats the host as ordinary git, preserves your system git credentials unless you store a token for an `https:` remote on that host (see [Git sync](/docs/features/git/sync)), and refuses sharing and project GitHub sign-in requests.
+The declaration applies to every project on your machine. It enables GitHub credential handling, push-permission checks, share links, and the default host for `ok auth`. Without a declaration, GitQuire treats the host as ordinary git, preserves your system git credentials unless you store a token for an `https:` remote on that host (see [Git sync](/docs/features/git/sync)), and refuses sharing and project GitHub sign-in requests.
 
 [Share links](/docs/features/share) work with declared enterprise remotes. A recipient opening a GHES share is asked to confirm the server unless they are already signed in to it.
