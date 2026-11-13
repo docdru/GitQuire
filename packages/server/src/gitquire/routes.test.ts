@@ -336,8 +336,7 @@ describe('personal settings', () => {
     return createGitQuireRoutes({
       projectDir: dir,
       log: silentLog,
-      sessionUser: () =>
-        login === null ? undefined : { id, login, name: login, avatarUrl: '' },
+      sessionUser: () => (login === null ? undefined : { id, login, name: login, avatarUrl: '' }),
     });
   }
 
