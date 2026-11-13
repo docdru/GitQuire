@@ -32,7 +32,10 @@ import {
   resolveModePreference,
 } from './color-themes';
 import { ConfigContext, type ConfigContextValue } from './config-context';
-import { createPersonalSettingsProvider, probePersonalSettings } from './gitquire/personal-settings';
+import {
+  createPersonalSettingsProvider,
+  probePersonalSettings,
+} from './gitquire/personal-settings';
 import { SavedThemesProvider, useSavedThemes } from './saved-themes-client';
 import { useServerInstanceId } from './server-instance-store';
 import { useThemeColorTransitions } from './theme-color-transitions';
@@ -93,7 +96,9 @@ function makeBinding(
 function makePersonalBinding(yaml: string): ScopedBinding {
   const provider = createPersonalSettingsProvider({
     onSaveFailed: (error) => {
-      console.warn(JSON.stringify({ event: 'gitquire-personal-settings-save-failed', error: String(error) }));
+      console.warn(
+        JSON.stringify({ event: 'gitquire-personal-settings-save-failed', error: String(error) }),
+      );
       toast.error(t`Your settings could not be saved.`);
     },
   });
@@ -284,7 +289,9 @@ function ConfigProviderBody({
       try {
         scoped.cleanup();
       } catch (e) {
-        console.warn(JSON.stringify({ event: 'ok-config-provider-cleanup-error', error: String(e) }));
+        console.warn(
+          JSON.stringify({ event: 'ok-config-provider-cleanup-error', error: String(e) }),
+        );
       }
       setUserState((prev) => (prev?.binding === scoped.binding ? null : prev));
     };
