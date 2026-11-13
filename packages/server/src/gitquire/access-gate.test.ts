@@ -11,6 +11,7 @@ import {
   safeNextPath,
 } from './access-gate.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
+import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from './internal-request.ts';
 import { encodeSigned } from './signed-cookie.ts';
 
 const SECRET = 'x'.repeat(40);
@@ -281,6 +282,35 @@ describe('createAccessGate requests', () => {
     expect(gate.handleRequest(fakeRequest('/api/config'), out.res)).toBe(true);
     expect(out.status).toBe(401);
     expect(JSON.parse(out.body)).toMatchObject({ error: 'not-signed-in' });
+  });
+
+  it('lets the server call its own API for an admitted agent', () => {
+    const gate = makeGate();
+    const out = fakeResponse();
+    const req = fakeRequest('/api/agent-write-md', {
+      method: 'POST',
+      headers: internalRequestHeaders(),
+    });
+    expect(gate.handleRequest(req, out.res)).toBe(false);
+  });
+
+  it('refuses a forged internal header', () => {
+    const gate = makeGate();
+    const out = fakeResponse();
+    const req = fakeRequest('/api/agent-write-md', {
+      method: 'POST',
+      headers: { [INTERNAL_REQUEST_HEADER]: 'guess' },
+    });
+    expect(gate.handleRequest(req, out.res)).toBe(true);
+    expect(out.status).toBe(401);
+  });
+
+  it('keeps pages behind sign-in even with the internal header', () => {
+    const gate = makeGate();
+    const out = fakeResponse();
+    expect(
+      gate.handleRequest(fakeRequest('/docs/plan', { headers: internalRequestHeaders() }), out.res),
+    ).toBe(true);
   });
 
   it('starts the GitHub flow with a signed state cookie', () => {

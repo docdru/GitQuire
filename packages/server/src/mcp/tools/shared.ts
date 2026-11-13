@@ -16,6 +16,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import type { Config } from '../../config/schema.ts';
 import { SUPPORTED_DOC_EXTENSIONS } from '../../doc-extensions.ts';
+import { internalRequestHeaders } from '../../gitquire/internal-request.ts';
 import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
 import type { AgentIdentity } from '../agent-identity.ts';
 import { resolveWithinRoot } from './path-safety.ts';
@@ -465,7 +466,10 @@ export async function httpGet(
   }
   let res: Response;
   try {
-    res = await fetch(`${base}${path}`, { signal: signal ?? AbortSignal.timeout(30_000) });
+    res = await fetch(`${base}${path}`, {
+      headers: internalRequestHeaders(),
+      signal: signal ?? AbortSignal.timeout(30_000),
+    });
   } catch (err) {
     return { ok: false, error: serverRequestFailure(err, { mutating: false }) };
   }
@@ -540,7 +544,10 @@ async function httpSend(
   try {
     res = await fetch(`${base}${path}`, {
       method,
-      headers: serializedBody !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      headers:
+        serializedBody !== undefined
+          ? { ...internalRequestHeaders(), 'Content-Type': 'application/json' }
+          : internalRequestHeaders(),
       body: serializedBody,
       signal: AbortSignal.timeout(30_000),
     });

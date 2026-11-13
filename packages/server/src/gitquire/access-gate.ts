@@ -15,6 +15,7 @@ import {
   sendJson,
   wantsHtml,
 } from './http-util.ts';
+import { isInternalRequest } from './internal-request.ts';
 import { createOAuthServer } from './oauth-server.ts';
 import {
   bindRequestPrincipal,
@@ -456,6 +457,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     if (path === '/healthz' || path === '/readyz') return false;
     if (isPublicAsset(path, req.method)) return false;
     if (oauth?.handle(req, res, path, search) === true) return true;
+    if (path.startsWith('/api/') && isInternalRequest(req)) return false;
     if (path.startsWith('/auth/')) {
       handleAuthRoute(req, res, path, search);
       return true;
