@@ -1733,6 +1733,9 @@ msgstr "فائلیں منسلک کریں"
 msgid "Attach images"
 msgstr "تصاویر منسلک کریں"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "منسلکات"
 
@@ -4582,6 +4585,9 @@ msgstr "ٹیمپلیٹ درآمد نہیں ہو سکا"
 msgid "Failed to load activity"
 msgstr "سرگرمی لوڈ نہیں ہو سکی"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "بیک لنکس لوڈ نہیں ہو سکے"
 
@@ -4605,9 +4611,6 @@ msgstr "عنوانات لوڈ نہیں ہو سکے"
 
 msgid "Failed to load hub pages"
 msgstr "مرکزی صفحات لوڈ نہیں ہو سکے"
-
-msgid "Failed to load local files"
-msgstr "مقامی فائلیں لوڈ نہیں ہو سکیں"
 
 msgid "Failed to load orphan pages"
 msgstr "یتیم صفحات لوڈ نہیں ہو سکے"
@@ -6494,12 +6497,6 @@ msgstr "«{docName}» کا مقامی اشتراکی ڈیٹا صاف نہیں ہ
 msgid "Local commits are keeping this copy from updating"
 msgstr "مقامی کمٹس اس نقل کو تازہ ہونے سے روک رہے ہیں"
 
-msgid "Local file details aren't available yet."
-msgstr "مقامی فائل کی تفصیلات ابھی دستیاب نہیں ہیں۔"
-
-msgid "Local files"
-msgstr "مقامی فائلیں"
-
 msgid "Local path"
 msgstr "مقامی راستہ"
 
@@ -7685,6 +7682,9 @@ msgstr "{displayName} Desktop کھولیں"
 
 msgid "Open {docName}"
 msgstr "{docName} کھولیں"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "{handoffLabel} کھولیں"
@@ -11449,11 +11449,11 @@ msgstr "یہ صفحہ ابھی موجود نہیں۔ ایڈیٹر میں صفح�
 msgid "This page doesn't link to anything yet."
 msgstr "یہ صفحہ ابھی کسی چیز سے لنک نہیں کرتا۔"
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "یہ صفحہ اب اس راستے پر نہیں ہے۔"
-
-msgid "This page references no local files or images."
-msgstr "یہ صفحہ کسی مقامی فائل یا تصویر کا حوالہ نہیں دیتا۔"
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "یہ راستہ بیرونی والیوم پر ہے (/Volumes/...)۔ ڈرائیو نکالنے پر GitQuire فائلوں کا سراغ کھو دے گا۔"

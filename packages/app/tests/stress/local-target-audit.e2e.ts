@@ -79,7 +79,7 @@ test.describe('local-target audit composition', () => {
     );
 
     await page.locator('#tab-links').click();
-    await expect(page.getByText('Local files', { exact: true })).toBeVisible();
+    await expect(page.getByText('Attachments', { exact: true })).toBeVisible();
 
     const existingFile = `${folder}/assets/NOTICE`;
     const missingFile = `${folder}/assets/missing.pdf`;

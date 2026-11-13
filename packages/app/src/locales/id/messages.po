@@ -1729,6 +1729,9 @@ msgstr "Lampirkan berkas"
 msgid "Attach images"
 msgstr "Lampirkan gambar"
 
+msgid "Attachment details aren't available yet."
+msgstr ""
+
 msgid "Attachments"
 msgstr "Lampiran"
 
@@ -4578,6 +4581,9 @@ msgstr "Gagal mengimpor templat"
 msgid "Failed to load activity"
 msgstr "Gagal memuat aktivitas"
 
+msgid "Failed to load attachments"
+msgstr ""
+
 msgid "Failed to load backlinks"
 msgstr "Gagal memuat tautan balik"
 
@@ -4601,9 +4607,6 @@ msgstr "Gagal memuat judul"
 
 msgid "Failed to load hub pages"
 msgstr "Gagal memuat halaman pusat"
-
-msgid "Failed to load local files"
-msgstr "Gagal memuat berkas lokal"
 
 msgid "Failed to load orphan pages"
 msgstr "Gagal memuat halaman yatim"
@@ -6490,12 +6493,6 @@ msgstr "Data kolaborasi lokal untuk \"{docName}\" tidak dapat dibersihkan. Muat 
 msgid "Local commits are keeping this copy from updating"
 msgstr "Commit lokal menghalangi salinan ini diperbarui"
 
-msgid "Local file details aren't available yet."
-msgstr "Detail berkas lokal belum tersedia."
-
-msgid "Local files"
-msgstr "Berkas lokal"
-
 msgid "Local path"
 msgstr "Jalur lokal"
 
@@ -7681,6 +7678,9 @@ msgstr "Buka {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "Buka {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr ""
 
 msgid "Open {handoffLabel}"
 msgstr "Buka {handoffLabel}"
@@ -11445,11 +11445,11 @@ msgstr "Halaman ini belum ada. Buka untuk membuat halamannya di penyunting dan m
 msgid "This page doesn't link to anything yet."
 msgstr "Halaman ini belum menaut ke apa pun."
 
+msgid "This page has no images or attached files."
+msgstr ""
+
 msgid "This page is no longer at this path."
 msgstr "Halaman ini tidak lagi berada di jalur ini."
-
-msgid "This page references no local files or images."
-msgstr "Halaman ini tidak merujuk ke berkas atau gambar lokal apa pun."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "Jalur ini berada di volume eksternal (/Volumes/...). GitQuire akan kehilangan jejak berkasnya ketika drive itu dicabut."

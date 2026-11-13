@@ -1,6 +1,6 @@
 import type { ForwardLinkLocalTarget, ForwardLinksSuccess } from '@inkeep/open-knowledge-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render as rtlRender, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -109,8 +109,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('LinksPanel Local files section', () => {
-  test('renders local files apart from Outgoing and Backlinks', async () => {
+describe('LinksPanel Attachments section', () => {
+  test('renders attachments apart from Outgoing and Backlinks', async () => {
     forwardLinksResult.body = forwardLinksBody({
       forwardLinks: [
         {
@@ -127,7 +127,7 @@ describe('LinksPanel Local files section', () => {
     });
     render(<LinksPanel docName="notes" />);
 
-    expect(await screen.findByText('Local files')).toBeTruthy();
+    expect(await screen.findByText('Attachments')).toBeTruthy();
     expect(screen.getByText('Outgoing')).toBeTruthy();
     expect(screen.getByText('Backlinks')).toBeTruthy();
 
@@ -248,10 +248,14 @@ describe('LinksPanel Local files section', () => {
     expect(navEvents.map((e) => `${e.line}:${e.column}`)).toEqual(['3:2', '10:5']);
   });
 
-  test('shows an empty state when the document references no local files', async () => {
+  test('shows an empty state when the document has no attachments', async () => {
     forwardLinksResult.body = forwardLinksBody({ localTargets: [] });
     render(<LinksPanel docName="notes" />);
-    expect(await screen.findByText('This page references no local files or images.')).toBeTruthy();
+    const attachmentsTrigger = () => screen.getByRole('button', { name: /Attachments/ });
+    await waitFor(() => expect(attachmentsTrigger().getAttribute('aria-expanded')).toBe('false'));
+    expect(screen.queryByText('This page has no images or attached files.')).toBeNull();
+    fireEvent.click(attachmentsTrigger());
+    expect(await screen.findByText('This page has no images or attached files.')).toBeTruthy();
   });
 
   test('surfaces a transport failure in the section', async () => {
@@ -305,7 +309,7 @@ describe('LinksPanel Local files section', () => {
       screen.getByText(title).closest('button')?.querySelector('[data-slot="panel-count"]') ?? null;
     expect(countFor('Backlinks')?.textContent).toBe('0');
     expect(countFor('Outgoing')).toBeNull();
-    expect(countFor('Local files')).toBeNull();
+    expect(countFor('Attachments')).toBeNull();
   });
 
   test('a partial response (no localTargets) is called out without hiding document relationships', async () => {
@@ -322,7 +326,7 @@ describe('LinksPanel Local files section', () => {
     };
     render(<LinksPanel docName="notes" />);
 
-    expect(await screen.findByText("Local file details aren't available yet.")).toBeTruthy();
+    expect(await screen.findByText("Attachment details aren't available yet.")).toBeTruthy();
     expect(screen.getByRole('link', { name: /example\.com/ })).toBeTruthy();
   });
 

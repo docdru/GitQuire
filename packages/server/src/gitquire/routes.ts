@@ -21,6 +21,7 @@ import {
   recipientKey,
 } from './email-confirmation.ts';
 import { GitHubUnavailableError } from './github-app.ts';
+import { parseGitHubRepo } from './github-auth-config.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
 import {
   isAllowedRecipient,
@@ -92,6 +93,18 @@ class HttpError extends Error {
     super(message);
     this.status = status;
     this.code = code;
+  }
+}
+
+export function repositoryFromEnv(
+  env: Readonly<Record<string, string | undefined>>,
+): { owner: string; name: string; url: string } | null {
+  try {
+    const repo = parseGitHubRepo(env.GITQUIRE_REPO);
+    if (repo === undefined) return null;
+    return { ...repo, url: `https://github.com/${repo.owner}/${repo.name}` };
+  } catch {
+    return null;
   }
 }
 
@@ -589,6 +602,10 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
     if (path === '/api/gitquire/naming' && method === 'GET') {
       sendJson(res, 200, { rule: namingRuleFromEnv(deps.env) });
+      return;
+    }
+    if (path === '/api/gitquire/repository' && method === 'GET') {
+      sendJson(res, 200, { repository: repositoryFromEnv(deps.env ?? process.env) });
       return;
     }
     if (path === '/api/gitquire/branches' && method === 'GET') return listBranches(res);

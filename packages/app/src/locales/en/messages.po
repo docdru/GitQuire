@@ -1733,6 +1733,9 @@ msgstr "Attach files"
 msgid "Attach images"
 msgstr "Attach images"
 
+msgid "Attachment details aren't available yet."
+msgstr "Attachment details aren't available yet."
+
 msgid "Attachments"
 msgstr "Attachments"
 
@@ -4582,6 +4585,9 @@ msgstr "Failed to import template"
 msgid "Failed to load activity"
 msgstr "Failed to load activity"
 
+msgid "Failed to load attachments"
+msgstr "Failed to load attachments"
+
 msgid "Failed to load backlinks"
 msgstr "Failed to load backlinks"
 
@@ -4605,9 +4611,6 @@ msgstr "Failed to load headings"
 
 msgid "Failed to load hub pages"
 msgstr "Failed to load hub pages"
-
-msgid "Failed to load local files"
-msgstr "Failed to load local files"
 
 msgid "Failed to load orphan pages"
 msgstr "Failed to load orphan pages"
@@ -6494,12 +6497,6 @@ msgstr "Local collaboration data for \"{docName}\" could not be cleared. Reload 
 msgid "Local commits are keeping this copy from updating"
 msgstr "Local commits are keeping this copy from updating"
 
-msgid "Local file details aren't available yet."
-msgstr "Local file details aren't available yet."
-
-msgid "Local files"
-msgstr "Local files"
-
 msgid "Local path"
 msgstr "Local path"
 
@@ -7685,6 +7682,9 @@ msgstr "Open {displayName} Desktop"
 
 msgid "Open {docName}"
 msgstr "Open {docName}"
+
+msgid "Open {fullName} on GitHub"
+msgstr "Open {fullName} on GitHub"
 
 msgid "Open {handoffLabel}"
 msgstr "Open {handoffLabel}"
@@ -11449,11 +11449,11 @@ msgstr "This page doesn't exist yet. Open it to create the page in the editor an
 msgid "This page doesn't link to anything yet."
 msgstr "This page doesn't link to anything yet."
 
+msgid "This page has no images or attached files."
+msgstr "This page has no images or attached files."
+
 msgid "This page is no longer at this path."
 msgstr "This page is no longer at this path."
-
-msgid "This page references no local files or images."
-msgstr "This page references no local files or images."
 
 msgid "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
 msgstr "This path is on an external volume (/Volumes/...). GitQuire will lose track of files when the drive ejects."
