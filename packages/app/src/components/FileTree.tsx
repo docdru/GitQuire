@@ -210,7 +210,11 @@ import {
 } from '@/lib/file-tree-menu-action-events';
 import { importTemplate } from '@/lib/folder-config-api';
 import { loadNamingRule, nameLastSegment } from '@/lib/gitquire/naming';
-import { createdRenameSource, withTreeExtension } from '@/lib/gitquire/pending-rename';
+import {
+  createdRenameSource,
+  type PendingCreateSource,
+  withTreeExtension,
+} from '@/lib/gitquire/pending-rename';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { parseServerResponse, parseSuccessOrWarn } from '@/lib/parse-server-response';
 import { revealInFileManagerLabel, trashNounLabel } from '@/lib/platform-labels';
@@ -976,6 +980,8 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
   const rowDecorationIndexRef = useRef(rowDecorationIndex);
   const activeAncestorTreePathsRef = useRef<string[]>([]);
   const pendingCreateRef = useRef<PendingCreate | null>(null);
+  const createdSourcesRef = useRef(new Map<string, PendingCreateSource>());
+  const namedRenameBaseRef = useRef<readonly FileEntry[] | null>(null);
   const cleanupPendingCreateRef = useRef<
     (pending: PendingCreate, options: PendingCreateCleanupOptions) => Promise<void>
   >(async () => {});
@@ -1273,6 +1279,13 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
       initialExpandedPaths: expandedPathsForReset(nextDocuments),
     });
   };
+
+  useLayoutEffect(() => {
+    const base = namedRenameBaseRef.current;
+    if (base === null || documents === base) return;
+    namedRenameBaseRef.current = null;
+    resetModelToDocuments(documents);
+  });
 
   const reconcileModelAfterExtensionlessRename = (
     current: readonly FileEntry[],
@@ -1729,7 +1742,11 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
 
       const createdSource = sourceIsAsset
         ? undefined
-        : createdRenameSource(pendingCreateRef.current, sourceTreePath, event.isFolder);
+        : createdRenameSource(
+            createdSourcesRef.current.get(sourceTreePath) ?? null,
+            sourceTreePath,
+            event.isFolder,
+          );
       const sourceFolderPath = createdSource ?? treeDirectoryPathToFolderPath(sourceTreePath);
       const payload = event.isFolder
         ? {
@@ -1781,10 +1798,14 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
         return;
       }
 
+      if (createdSource !== undefined) createdSourcesRef.current.delete(sourceTreePath);
       const success = parseSuccessOrWarn(RenamePathSuccessSchema, parsed.body, 'rename-path', {
         renamed: [],
         renamedAssets: [],
       });
+      if (validation.destinationPath !== coerced.destinationPath) {
+        namedRenameBaseRef.current = documentsRef.current;
+      }
       try {
         await applyRenamedDocuments(
           success.renamed,
@@ -2180,6 +2201,11 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
         document.removeEventListener('keydown', handleCommitKeyDown, true);
       };
       document.addEventListener('keydown', handleCommitKeyDown, true);
+      createdSourcesRef.current.set(placeholder.renamePath, {
+        kind,
+        renamePath: placeholder.renamePath,
+        createdPath,
+      });
       pendingCreateRef.current = {
         kind,
         renamePath: placeholder.renamePath,

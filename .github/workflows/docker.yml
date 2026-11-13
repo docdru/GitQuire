@@ -89,6 +89,40 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Browser tests
+        run: |
+          set -eu
+          docker run -d --name gq-e2e -p 8082:8080 -e OK_ALLOW_EXTERNAL=1 gitquire:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8082/readyz >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8082/readyz
+          docker exec -i gq-e2e sh -c 'cat > /data/welcome.md' <<'MD'
+          # Welcome
+
+          A page for the browser tests.
+          MD
+          sleep 3
+          mkdir -p /tmp/e2e && cd /tmp/e2e
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund @playwright/test@1.63.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          cp "$GITHUB_WORKSPACE"/.github/e2e/* .
+          GITQUIRE_URL=http://127.0.0.1:8082 GITQUIRE_CONTAINER=gq-e2e \
+            npx playwright test -c playwright.config.mjs
+
+      - name: Upload browser test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-report
+          path: |
+            /tmp/e2e/report
+            /tmp/e2e/results
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Smoke test with GitHub sign-in enabled
         run: |
           set -eu
@@ -138,11 +172,12 @@ jobs:
         if: always()
         run: |
           docker logs gq || true
+          docker logs gq-e2e || true
           docker logs gq-auth || true
 
       - name: Remove containers
         if: always()
-        run: docker rm -f gq gq-auth || true
+        run: docker rm -f gq gq-e2e gq-auth || true
 
   publish:
     needs: build
