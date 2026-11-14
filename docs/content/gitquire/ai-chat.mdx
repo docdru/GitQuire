@@ -10,8 +10,8 @@ or ask it to write or change pages. You can also type a question into the box un
 choose **AI chat here in GitQuire**.
 
 The assistant uses the same wiki tools as connected AI assistants: it searches, reads pages,
-follows links and history, writes new pages and edits existing ones. It cannot delete pages,
-change settings or run commands. Every change is saved as your edit and shows up live for
+follows links and history, writes new pages and edits, renames or moves existing ones. It cannot
+delete pages, change settings, look into hidden folders such as `.ok` or run commands. Every change is saved as your edit and shows up live for
 everyone; if **Put my AI assistant's edits into a draft** is on (Settings → Connect AI), its
 changes go into a draft for you to review first. Each step shows in the chat, with a link to the
 page it changed.
@@ -38,16 +38,19 @@ You can save a key for both providers and switch between them, even within one c
   message, so long chats cost more; start a new chat (**+**) for a new topic.
 - **Pick a smaller model** (Claude Haiku, Mistral Small) for everyday questions.
 
-Each answer is limited to about 4,000 words of output and 12 steps of tool use. If the assistant
-stops early, say "continue".
+Each answer is limited to 16,000 output tokens (the model's thinking counts too) and 12 steps of
+tool use. If the assistant stops early, say "continue". Very long chats eventually no longer fit
+the model; start a new chat then. In long chats, older tool results are shortened before they are
+sent again, which keeps the cost down.
 
 ## Your chats
 
-Your chats are only shown to you. They are kept on the wiki server for 90 days after the last
-message, then deleted. Open earlier chats with the clock button; delete one from the **⋯** menu.
+Your chats are only shown to you, and the assistant cannot read anyone's chats. They are kept on
+the wiki server for 90 days after the last message, then deleted. Open earlier chats with the clock button; delete one from the **⋯** menu.
 
 To keep a conversation, choose **⋯ → Save as page…**. GitQuire writes it to a new page (by default
-under `AI chats/`) as your edit, so the team can read it.
+under `AI chats/`) as your edit, so the team can read it. If your AI edits go into a draft, the
+saved page goes into that draft too. It never replaces an existing page.
 
 ## For whoever runs the server
 

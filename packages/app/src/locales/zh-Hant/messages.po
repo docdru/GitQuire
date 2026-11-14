@@ -1395,6 +1395,9 @@ msgstr "新增權杖"
 msgid "Add value"
 msgstr "新增值"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
+
 msgid "Added"
 msgstr "已新增"
 
@@ -1988,6 +1991,9 @@ msgstr "反向連結"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "反向連結的回應結構與預期不符。"
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "基底分支"
@@ -3826,6 +3832,9 @@ msgstr "刪除聊天"
 msgid "Delete chat?"
 msgstr "刪除聊天？"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "刪除程式碼區塊"
 
@@ -3861,6 +3870,9 @@ msgstr "刪除表格"
 
 msgid "Delete the file"
 msgstr "刪除檔案"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "已刪除"
@@ -4965,6 +4977,9 @@ msgstr "上傳檔案失敗"
 
 msgid "Fast"
 msgstr "快速"
+
+msgid "Fastest, cheapest"
+msgstr ""
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "意見回饋功能目前無法使用。請稍後再試。"
@@ -7043,6 +7058,9 @@ msgstr "更多技能動作"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "預覽的安全性原則攔截了超過 {0} 個要求"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "安裝次數最多"
@@ -11341,6 +11359,9 @@ msgstr ""
 msgid "The conversation couldn't be added to this report."
 msgstr "無法將對話加入這份回報。"
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
@@ -11753,6 +11774,12 @@ msgstr "此分支將 GitQuire 設定路徑重新導向到工作樹之外。工�
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "這可以在「設定 > {agentConnectionsLabel}」中設定"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
 
 msgid "This checkout path cannot be read."
 msgstr "無法讀取此簽出路徑。"

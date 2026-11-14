@@ -1,9 +1,11 @@
 export type ChatProvider = 'claude' | 'mistral';
 
+export type ModelTier = 'balanced' | 'capable' | 'fast';
+
 export interface ChatModel {
   id: string;
   label: string;
-  note: string;
+  tier: ModelTier;
 }
 
 export interface ChatKeyInfo {
@@ -58,7 +60,13 @@ export interface ChatRecord extends ChatSummary {
   usage: { inputTokens: number; outputTokens: number };
 }
 
-export type ChatStopReason = 'end' | 'step-limit' | 'max-tokens' | 'aborted' | 'error';
+export type ChatStopReason =
+  | 'end'
+  | 'step-limit'
+  | 'max-tokens'
+  | 'context-full'
+  | 'aborted'
+  | 'error';
 
 export type ChatEvent =
   | { type: 'chat'; id: string; title: string; provider: ChatProvider; model: string }

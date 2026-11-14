@@ -1395,6 +1395,9 @@ msgstr "ٹوکن شامل کریں"
 msgid "Add value"
 msgstr "قدر شامل کریں"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
+
 msgid "Added"
 msgstr "شامل کر دیا گیا"
 
@@ -1988,6 +1991,9 @@ msgstr "بیک لنکس"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "بیک لنکس کا جواب متوقع ساخت سے میل نہیں کھایا۔"
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "بنیادی برانچ"
@@ -3826,6 +3832,9 @@ msgstr "چیٹ حذف کریں"
 msgid "Delete chat?"
 msgstr "چیٹ حذف کریں؟"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "کوڈ بلاک حذف کریں"
 
@@ -3861,6 +3870,9 @@ msgstr "ٹیبل حذف کریں"
 
 msgid "Delete the file"
 msgstr "فائل حذف کریں"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "حذف شدہ"
@@ -4965,6 +4977,9 @@ msgstr "فائل اپ لوڈ نہیں ہو سکی"
 
 msgid "Fast"
 msgstr "تیز"
+
+msgid "Fastest, cheapest"
+msgstr ""
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "رائے ابھی دستیاب نہیں۔ براہِ کرم بعد میں دوبارہ کوشش کریں۔"
@@ -7043,6 +7058,9 @@ msgstr "مہارت کے مزید اعمال"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "پیش منظر کی سیکیورٹی پالیسی نے {0} سے زائد درخواستیں روکیں"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "سب سے زیادہ نصب شدہ"
@@ -11341,6 +11359,9 @@ msgstr ""
 msgid "The conversation couldn't be added to this report."
 msgstr "گفتگو اس رپورٹ میں شامل نہیں کی جا سکی۔"
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
@@ -11753,6 +11774,12 @@ msgstr "یہ برانچ GitQuire سیٹ اپ پاتھ کو ورک ٹری سے ب
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "یہ ترتیبات > {agentConnectionsLabel} میں مقرر کیا جا سکتا ہے"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
 
 msgid "This checkout path cannot be read."
 msgstr "اس چیک آؤٹ پاتھ کو پڑھا نہیں جا سکتا۔"

@@ -290,7 +290,8 @@ agents under **Settings → Connect Claude**, below the connector steps.
 People can chat with Claude or Mistral in the ✨ pane (⌘L) and from the box under each page. The
 assistant searches, reads and, when asked, edits pages through the same tools as `/mcp`, so its
 changes appear live, are credited to the person chatting, and follow their **Put my AI assistant's
-edits into a draft** setting. It cannot delete pages, change settings or run commands.
+edits into a draft** setting. It cannot delete pages, change settings, read hidden folders such as
+`.ok` (where keys and chats are kept) or run commands.
 
 It is on whenever GitHub sign-in is on and in-app agents (`GITQUIRE_ASK_AI`) are off; the ✨ pane
 then shows the chat. Nothing runs until someone adds a key:
@@ -302,8 +303,9 @@ then shows the chat. Nothing runs until someone adds a key:
   but to its provider and never shows it again. Changing `GITQUIRE_SESSION_SECRET` makes saved keys
   unreadable; people then paste them again.
 - **Spending is each person's responsibility.** They pay their provider per use and should set a
-  monthly spending limit there; the settings page links to it. Each message is capped at 4,096
-  output tokens and 12 tool steps, and the chat shows the tokens a conversation has used.
+  monthly spending limit there; the settings page links to it. Each message is capped at 16,000
+  output tokens (thinking included) and 12 tool steps, older tool results are shortened in long
+  chats, and the chat shows the tokens a conversation has used.
 - **Chats are kept per person** in `/data/.ok/local/gitquire/chats/<GitHub user id>/`, outside Git,
   and deleted 90 days after their last message. Only their owner sees them in the app; whoever runs
   the server can read the files. **Save as page** writes a chat into the wiki.

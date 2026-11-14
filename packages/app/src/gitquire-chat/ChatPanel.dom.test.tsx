@@ -22,8 +22,8 @@ function overview(configured: { claude?: boolean; mistral?: boolean }): ChatOver
         id: 'claude',
         label: 'Claude (Anthropic)',
         models: [
-          { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', note: 'Balanced' },
-          { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', note: 'Fastest, cheapest' },
+          { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', tier: 'balanced' },
+          { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', tier: 'fast' },
         ],
         defaultModel: 'claude-sonnet-5-5',
         keyUrl: 'https://example.com/keys',
@@ -33,7 +33,7 @@ function overview(configured: { claude?: boolean; mistral?: boolean }): ChatOver
       {
         id: 'mistral',
         label: 'Mistral (La Plateforme)',
-        models: [{ id: 'mistral-medium-latest', label: 'Mistral Medium', note: 'Balanced' }],
+        models: [{ id: 'mistral-medium-latest', label: 'Mistral Medium', tier: 'balanced' }],
         defaultModel: 'mistral-medium-latest',
         keyUrl: 'https://example.com/keys',
         limitsUrl: 'https://example.com/limits',

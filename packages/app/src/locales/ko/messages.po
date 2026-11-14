@@ -1395,6 +1395,9 @@ msgstr "토큰 추가"
 msgid "Add value"
 msgstr "값 추가"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
+
 msgid "Added"
 msgstr "추가됨"
 
@@ -1988,6 +1991,9 @@ msgstr "백링크"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "백링크 응답 형식이 예상과 일치하지 않습니다."
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "기준 브랜치"
@@ -3826,6 +3832,9 @@ msgstr "채팅 삭제"
 msgid "Delete chat?"
 msgstr "채팅을 삭제할까요?"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "코드 블록 삭제"
 
@@ -3861,6 +3870,9 @@ msgstr "표 삭제"
 
 msgid "Delete the file"
 msgstr "파일 삭제"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "삭제됨"
@@ -4965,6 +4977,9 @@ msgstr "파일을 업로드하지 못했습니다"
 
 msgid "Fast"
 msgstr "빠름"
+
+msgid "Fastest, cheapest"
+msgstr ""
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "현재 피드백을 사용할 수 없습니다. 나중에 다시 시도하세요."
@@ -7043,6 +7058,9 @@ msgstr "스킬 추가 작업"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "{0}개를 초과하는 요청이 미리보기 보안 정책으로 차단되었습니다"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "가장 많이 설치됨"
@@ -11341,6 +11359,9 @@ msgstr ""
 msgid "The conversation couldn't be added to this report."
 msgstr "대화를 이 보고서에 추가하지 못했습니다."
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
@@ -11753,6 +11774,12 @@ msgstr "이 브랜치가 GitQuire 설정 경로를 워크트리 밖으로 리디
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "설정 > {agentConnectionsLabel}에서 구성할 수 있습니다"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
 
 msgid "This checkout path cannot be read."
 msgstr "이 체크아웃 경로를 읽을 수 없습니다."

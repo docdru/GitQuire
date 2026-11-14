@@ -14,6 +14,16 @@ import {
 } from 'lucide-react';
 import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -210,6 +220,10 @@ function ErrorLine({ item }: { item: Item & { kind: 'error' } }) {
     switch (item.code) {
       case 'invalid-key':
         return t`Check your API key in Settings → AI chat.`;
+      case 'context-too-long':
+        return t`This chat is too long for the model. Start a new chat (+) to go on.`;
+      case 'no-key':
+        return t`Add your API key in Settings → AI chat first.`;
       case 'no-credit':
         return t`Add credit to your account at the provider.`;
       case 'spend-limit':
@@ -231,7 +245,7 @@ function ErrorLine({ item }: { item: Item & { kind: 'error' } }) {
     >
       <p className="font-medium text-destructive">{hint ?? t`Something went wrong.`}</p>
       <p className="break-words text-muted-foreground text-xs">{item.message}</p>
-      {item.code === 'invalid-key' ? (
+      {item.code === 'invalid-key' || item.code === 'no-key' ? (
         <Button variant="outline" size="sm" onClick={() => openAiChatSettings()}>
           {t`Open settings`}
         </Button>
@@ -333,6 +347,7 @@ export function ChatPanel() {
   const [sending, setSending] = useState(false);
   const [suggestedPath, setSuggestedPath] = useState('');
   const [saveOpen, setSaveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -455,9 +470,11 @@ export function ChatPanel() {
             ? t`The assistant stopped after many steps. Say “continue” to let it go on.`
             : event.stopped === 'max-tokens'
               ? t`The answer was cut off because it got too long. Say “continue” for the rest.`
-              : event.stopped === 'aborted'
-                ? t`Stopped.`
-                : null;
+              : event.stopped === 'context-full'
+                ? t`This chat is too long for the model. Start a new chat to go on.`
+                : event.stopped === 'aborted'
+                  ? t`Stopped.`
+                  : null;
         if (notice !== null) {
           setItems((current) => [...current, { kind: 'notice', key: nextKey(), text: notice }]);
         }
@@ -500,6 +517,11 @@ export function ChatPanel() {
     controllerRef.current = null;
     setSending(false);
     refreshChats();
+    setItems((current) =>
+      current.map((item) =>
+        item.kind === 'tool' && item.state === 'running' ? { ...item, state: 'failed' } : item,
+      ),
+    );
     if (failure === null) return;
     if (controller.signal.aborted) {
       setItems((current) => [...current, { kind: 'notice', key: nextKey(), text: t`Stopped.` }]);
@@ -529,10 +551,10 @@ export function ChatPanel() {
 
   useEffect(() => onChatRequest(() => takeQueuedRequest()), []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a request queued before the chat settings arrive is sent once they are loaded
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a request queued while the chat loads or answers is sent once it is ready
   useEffect(() => {
     takeQueuedRequest();
-  }, [overview, selection]);
+  }, [overview, selection, sending]);
 
   const usableProviders = overview?.providers.filter((provider) => provider.key.configured) ?? [];
   const providerLabel =
@@ -635,14 +657,9 @@ export function ChatPanel() {
               <FilePlus2 aria-hidden="true" className="size-4" />
               {t`Save as page…`}
             </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={() => {
-                if (chatId !== null) void removeChat(chatId);
-              }}
-            >
+            <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
               <Trash2 aria-hidden="true" className="size-4" />
-              {t`Delete chat`}
+              {t`Delete chat…`}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -774,7 +791,14 @@ export function ChatPanel() {
                   {provider.models.map((model) => (
                     <SelectItem key={model.id} value={`${provider.id}:${model.id}`}>
                       {model.label}
-                      <span className="ms-1 text-muted-foreground">· {model.note}</span>
+                      <span className="ms-1 text-muted-foreground">
+                        ·{' '}
+                        {model.tier === 'capable'
+                          ? t`Most capable, costs more`
+                          : model.tier === 'fast'
+                            ? t`Fastest, cheapest`
+                            : t`Balanced`}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -792,6 +816,27 @@ export function ChatPanel() {
           </p>
         </div>
       </form>
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Delete this chat?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`The conversation is removed from the server. Pages the assistant changed stay as they are.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (chatId !== null) void removeChat(chatId);
+              }}
+            >
+              {t`Delete`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <SaveAsPageDialog
         open={saveOpen}
         onOpenChange={setSaveOpen}

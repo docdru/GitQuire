@@ -1,10 +1,12 @@
 export const CHAT_PROVIDERS = ['claude', 'mistral'] as const;
 export type ChatProvider = (typeof CHAT_PROVIDERS)[number];
 
+export type ModelTier = 'balanced' | 'capable' | 'fast';
+
 export interface ChatModel {
   id: string;
   label: string;
-  note: string;
+  tier: ModelTier;
 }
 
 export interface ProviderInfo {
@@ -19,9 +21,9 @@ export const PROVIDER_INFO: Record<ChatProvider, ProviderInfo> = {
   claude: {
     label: 'Claude (Anthropic)',
     models: [
-      { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', note: 'Balanced' },
-      { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', note: 'Most capable, costs more' },
-      { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', note: 'Fastest, cheapest' },
+      { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', tier: 'balanced' },
+      { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', tier: 'capable' },
+      { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', tier: 'fast' },
     ],
     defaultModel: 'claude-sonnet-5-5',
     keyUrl: 'https://platform.claude.com/settings/keys',
@@ -30,13 +32,13 @@ export const PROVIDER_INFO: Record<ChatProvider, ProviderInfo> = {
   mistral: {
     label: 'Mistral (La Plateforme)',
     models: [
-      { id: 'mistral-medium-latest', label: 'Mistral Medium', note: 'Balanced' },
-      { id: 'mistral-large-latest', label: 'Mistral Large', note: 'Most capable, costs more' },
-      { id: 'mistral-small-latest', label: 'Mistral Small', note: 'Fastest, cheapest' },
+      { id: 'mistral-medium-latest', label: 'Mistral Medium', tier: 'balanced' },
+      { id: 'mistral-large-latest', label: 'Mistral Large', tier: 'capable' },
+      { id: 'mistral-small-latest', label: 'Mistral Small', tier: 'fast' },
     ],
     defaultModel: 'mistral-medium-latest',
     keyUrl: 'https://console.mistral.ai/api-keys',
-    limitsUrl: 'https://admin.mistral.ai/plateforme/limits',
+    limitsUrl: 'https://admin.mistral.ai/organization/billing',
   },
 };
 

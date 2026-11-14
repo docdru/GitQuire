@@ -334,7 +334,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
         summary: 'Saved an AI chat as a page',
       });
       if (written.isError) {
-        if (/already exists|position/i.test(written.output)) {
+        if (/already exists/i.test(written.output)) {
           throw new ChatHttpError(409, 'page-exists', 'A page with that name already exists.');
         }
         throw new ChatHttpError(422, 'save-failed', written.output.slice(0, 300));

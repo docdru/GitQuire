@@ -1395,6 +1395,9 @@ msgstr "إضافة رمز"
 msgid "Add value"
 msgstr "إضافة قيمة"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
+
 msgid "Added"
 msgstr "أُضيف"
 
@@ -1988,6 +1991,9 @@ msgstr "الروابط الخلفية"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "لم تطابق استجابة الروابط الخلفية الشكل المتوقع."
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "الفرع الأساسي"
@@ -3826,6 +3832,9 @@ msgstr "حذف الدردشة"
 msgid "Delete chat?"
 msgstr "حذف الدردشة؟"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "حذف كتلة الكود"
 
@@ -3861,6 +3870,9 @@ msgstr "حذف الجدول"
 
 msgid "Delete the file"
 msgstr "حذف الملف"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "محذوف"
@@ -4965,6 +4977,9 @@ msgstr "فشل رفع الملف"
 
 msgid "Fast"
 msgstr "سريع"
+
+msgid "Fastest, cheapest"
+msgstr ""
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "الملاحظات غير متاحة الآن. يرجى المحاولة لاحقًا."
@@ -7043,6 +7058,9 @@ msgstr "مزيد من إجراءات المهارة"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "حُظر أكثر من {0} طلب بسياسة أمان المعاينة"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "الأكثر تثبيتًا"
@@ -11341,6 +11359,9 @@ msgstr ""
 msgid "The conversation couldn't be added to this report."
 msgstr "تعذّرت إضافة المحادثة إلى هذا التقرير."
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
@@ -11753,6 +11774,12 @@ msgstr "يعيد هذا الفرع توجيه مسار إعداد GitQuire إل�
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "يمكن ضبط هذا في الإعدادات > {agentConnectionsLabel}"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
 
 msgid "This checkout path cannot be read."
 msgstr "يتعذر قراءة مسار نسخة العمل هذه."

@@ -1395,6 +1395,9 @@ msgstr "Add token"
 msgid "Add value"
 msgstr "Add value"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr "Add your API key in Settings → AI chat first."
+
 msgid "Added"
 msgstr "Added"
 
@@ -1988,6 +1991,9 @@ msgstr "Backlinks"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "Backlinks response did not match expected shape."
+
+msgid "Balanced"
+msgstr "Balanced"
 
 msgid "Base branch"
 msgstr "Base branch"
@@ -3826,6 +3832,9 @@ msgstr "Delete chat"
 msgid "Delete chat?"
 msgstr "Delete chat?"
 
+msgid "Delete chat…"
+msgstr "Delete chat…"
+
 msgid "Delete code block"
 msgstr "Delete code block"
 
@@ -3861,6 +3870,9 @@ msgstr "Delete table"
 
 msgid "Delete the file"
 msgstr "Delete the file"
+
+msgid "Delete this chat?"
+msgstr "Delete this chat?"
 
 msgid "Deleted"
 msgstr "Deleted"
@@ -4965,6 +4977,9 @@ msgstr "Failed to upload file"
 
 msgid "Fast"
 msgstr "Fast"
+
+msgid "Fastest, cheapest"
+msgstr "Fastest, cheapest"
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "Feedback isn't available right now. Please try again later."
@@ -7043,6 +7058,9 @@ msgstr "More skill actions"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "More than {0} requests were blocked by the preview's security policy"
+
+msgid "Most capable, costs more"
+msgstr "Most capable, costs more"
 
 msgid "Most installed"
 msgstr "Most installed"
@@ -11341,6 +11359,9 @@ msgstr "The confirmation mail could not be sent. Check the address and try again
 msgid "The conversation couldn't be added to this report."
 msgstr "The conversation couldn't be added to this report."
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr "The conversation is removed from the server. Pages the assistant changed stay as they are."
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 
@@ -11753,6 +11774,12 @@ msgstr "This branch redirects a GitQuire setup path outside the worktree. The wo
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "This can be configured in Settings > {agentConnectionsLabel}"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr "This chat is too long for the model. Start a new chat (+) to go on."
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr "This chat is too long for the model. Start a new chat to go on."
 
 msgid "This checkout path cannot be read."
 msgstr "This checkout path cannot be read."

@@ -1395,6 +1395,9 @@ msgstr "Dodaj token"
 msgid "Add value"
 msgstr "Dodaj wartość"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
+
 msgid "Added"
 msgstr "Dodano"
 
@@ -1988,6 +1991,9 @@ msgstr "Linki zwrotne"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "Odpowiedź o linkach zwrotnych nie miała oczekiwanego formatu."
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "Gałąź bazowa"
@@ -3826,6 +3832,9 @@ msgstr "Usuń czat"
 msgid "Delete chat?"
 msgstr "Usunąć czat?"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "Usuń blok kodu"
 
@@ -3861,6 +3870,9 @@ msgstr "Usuń tabelę"
 
 msgid "Delete the file"
 msgstr "Usuń plik"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "Usunięto"
@@ -4965,6 +4977,9 @@ msgstr "Nie udało się przesłać pliku"
 
 msgid "Fast"
 msgstr "Szybko"
+
+msgid "Fastest, cheapest"
+msgstr ""
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "Opinie nie są teraz dostępne. Spróbuj ponownie później."
@@ -7043,6 +7058,9 @@ msgstr "Więcej akcji umiejętności"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "Więcej niż {0} żądań zablokowała polityka bezpieczeństwa podglądu"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "Najczęściej instalowane"
@@ -11341,6 +11359,9 @@ msgstr ""
 msgid "The conversation couldn't be added to this report."
 msgstr "Nie udało się dodać rozmowy do tego zgłoszenia."
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
@@ -11753,6 +11774,12 @@ msgstr "Ta gałąź przekierowuje ścieżkę konfiguracji GitQuire poza worktree
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "Można to skonfigurować w Ustawieniach > {agentConnectionsLabel}"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
 
 msgid "This checkout path cannot be read."
 msgstr "Nie można odczytać tej ścieżki checkoutu."

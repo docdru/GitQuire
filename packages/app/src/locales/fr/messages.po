@@ -1395,6 +1395,9 @@ msgstr "Ajouter le jeton"
 msgid "Add value"
 msgstr "Ajouter une valeur"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
+
 msgid "Added"
 msgstr "Ajouté"
 
@@ -1988,6 +1991,9 @@ msgstr "Rétroliens"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "La réponse des rétroliens ne correspond pas à la forme attendue."
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "Branche de base"
@@ -3826,6 +3832,9 @@ msgstr "Supprimer la discussion"
 msgid "Delete chat?"
 msgstr "Supprimer la discussion ?"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "Supprimer le bloc de code"
 
@@ -3861,6 +3870,9 @@ msgstr "Supprimer le tableau"
 
 msgid "Delete the file"
 msgstr "Supprimer le fichier"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "Supprimé"
@@ -4965,6 +4977,9 @@ msgstr "Échec de l'envoi du fichier"
 
 msgid "Fast"
 msgstr "Rapide"
+
+msgid "Fastest, cheapest"
+msgstr ""
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "Le retour d'expérience n'est pas disponible pour le moment. Veuillez réessayer plus tard."
@@ -7043,6 +7058,9 @@ msgstr "Plus d'actions sur la compétence"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "Plus de {0} requêtes ont été bloquées par la politique de sécurité de l'aperçu"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "Les plus installées"
@@ -11341,6 +11359,9 @@ msgstr ""
 msgid "The conversation couldn't be added to this report."
 msgstr "Impossible d'ajouter la conversation à ce rapport."
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
@@ -11753,6 +11774,12 @@ msgstr "Cette branche redirige un chemin de configuration GitQuire hors du workt
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "Cela se configure dans Paramètres > {agentConnectionsLabel}"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
 
 msgid "This checkout path cannot be read."
 msgstr "Impossible de lire cet emplacement de checkout."

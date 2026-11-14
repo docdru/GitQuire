@@ -17,16 +17,18 @@ export interface ProviderTurnRequest {
   signal?: AbortSignal;
 }
 
-export type StopReason = 'end' | 'tool_use' | 'max_tokens' | 'other';
+export type StopReason = 'end' | 'tool_use' | 'max_tokens' | 'context_full' | 'other';
 
 export interface ProviderTurn {
   text: string;
   toolCalls: ToolCall[];
   usage: ChatUsage;
   stopReason: StopReason;
+  claudeContent?: unknown[];
 }
 
 export type ProviderErrorCode =
+  | 'context-too-long'
   | 'invalid-key'
   | 'no-credit'
   | 'spend-limit'
@@ -85,6 +87,13 @@ function errorDetail(body: unknown): string {
 export function classifyProviderFailure(status: number, detail: string): ProviderErrorCode {
   const text = detail.toLowerCase();
   if (status === 401) return 'invalid-key';
+  if (
+    /prompt is too long|context (length|window)|too many tokens|maximum context/.test(text) &&
+    status >= 400 &&
+    status < 500
+  ) {
+    return 'context-too-long';
+  }
   if (text.includes('credit balance') || text.includes('insufficient') || status === 402) {
     return 'no-credit';
   }
@@ -152,6 +161,16 @@ function mergeAdjacent<T extends { role: string; content: unknown[] }>(messages:
   return out;
 }
 
+function withCacheBreakpoint(messages: unknown[]): unknown[] {
+  const last = messages.at(-1) as { role: string; content: Record<string, unknown>[] } | undefined;
+  if (last === undefined || last.content.length === 0) return messages;
+  const blocks = [...last.content];
+  const tail = blocks.at(-1) as Record<string, unknown>;
+  if (tail.type === 'thinking' || tail.type === 'redacted_thinking') return messages;
+  blocks[blocks.length - 1] = { ...tail, cache_control: { type: 'ephemeral' } };
+  return [...messages.slice(0, -1), { ...last, content: blocks }];
+}
+
 export function toAnthropicMessages(messages: readonly ChatMessage[]): unknown[] {
   const converted: { role: 'user' | 'assistant'; content: unknown[] }[] = [];
   for (const message of messages) {
@@ -161,6 +180,10 @@ export function toAnthropicMessages(messages: readonly ChatMessage[]): unknown[]
         content: [{ type: 'text', text: `${pageNote(message.page)}${message.text}` }],
       });
     } else if (message.role === 'assistant') {
+      if (message.claudeContent !== undefined && message.claudeContent.length > 0) {
+        converted.push({ role: 'assistant', content: [...message.claudeContent] });
+        continue;
+      }
       const content: unknown[] = [];
       if (message.text.trim() !== '') content.push({ type: 'text', text: message.text });
       for (const call of message.toolCalls) {
@@ -204,11 +227,16 @@ export function mistralToolId(id: string): string {
 }
 
 export function toMistralMessages(system: string, messages: readonly ChatMessage[]): unknown[] {
-  const out: unknown[] = [{ role: 'system', content: system }];
+  const out: { role: string }[] = [{ role: 'system', content: system } as { role: string }];
   for (const message of messages) {
     if (message.role === 'user') {
-      out.push({ role: 'user', content: `${pageNote(message.page)}${message.text}` });
+      if (out.at(-1)?.role === 'tool')
+        out.push({ role: 'assistant', content: '…' } as { role: string });
+      out.push({ role: 'user', content: `${pageNote(message.page)}${message.text}` } as {
+        role: string;
+      });
     } else if (message.role === 'assistant') {
+      if (message.text.trim() === '' && message.toolCalls.length === 0) continue;
       out.push({
         role: 'assistant',
         content: message.text,
@@ -221,7 +249,7 @@ export function toMistralMessages(system: string, messages: readonly ChatMessage
               })),
             }
           : {}),
-      });
+      } as { role: string });
     } else {
       for (const result of message.results) {
         out.push({
@@ -229,7 +257,7 @@ export function toMistralMessages(system: string, messages: readonly ChatMessage
           tool_call_id: mistralToolId(result.id),
           name: result.name,
           content: result.isError ? `Error: ${result.output}` : result.output,
-        });
+        } as { role: string });
       }
     }
   }
@@ -271,7 +299,7 @@ async function anthropicTurn(
       model: request.model,
       max_tokens: request.maxTokens,
       system: [{ type: 'text', text: request.system, cache_control: { type: 'ephemeral' } }],
-      messages: toAnthropicMessages(request.messages),
+      messages: withCacheBreakpoint(toAnthropicMessages(request.messages)),
       ...(tools.length > 0 ? { tools } : {}),
     },
     request.signal,
@@ -296,6 +324,7 @@ async function anthropicTurn(
   return {
     text,
     toolCalls,
+    claudeContent: content,
     usage: {
       inputTokens:
         number(usage.input_tokens) +
@@ -308,9 +337,11 @@ async function anthropicTurn(
         ? 'tool_use'
         : stop === 'max_tokens'
           ? 'max_tokens'
-          : stop === 'end_turn' || stop === 'stop_sequence'
-            ? 'end'
-            : 'other',
+          : stop === 'model_context_window_exceeded'
+            ? 'context_full'
+            : stop === 'end_turn' || stop === 'stop_sequence'
+              ? 'end'
+              : 'other',
   };
 }
 

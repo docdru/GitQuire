@@ -15,8 +15,13 @@ export const WIKI_TOOL_NAMES = [
   'move',
 ] as const;
 
-const WRITE_TARGETS = new Set(['document', 'documents', 'folder', 'summary', 'cwd']);
-const EDIT_TARGETS = new Set(['document', 'folder', 'summary', 'cwd']);
+const ALLOWED_ARGUMENTS: Readonly<Record<string, ReadonlySet<string>>> = {
+  write: new Set(['document', 'documents', 'folder', 'summary']),
+  edit: new Set(['document', 'folder', 'summary']),
+  move: new Set(['from', 'to', 'summary']),
+  exec: new Set(['command']),
+};
+const HIDDEN_PATH_RE = /(^|[\s/'"=(|:])\.(?!\.?(?:[\s/'"|)]|$))/;
 export const MAX_TOOL_OUTPUT_CHARS = 20_000;
 
 export interface WikiToolResult {
@@ -37,11 +42,17 @@ export type OpenWikiTools = (
 ) => Promise<WikiTools>;
 
 export function refusedArguments(name: string, input: Record<string, unknown>): string | undefined {
-  const allowed = name === 'write' ? WRITE_TARGETS : name === 'edit' ? EDIT_TARGETS : undefined;
-  if (allowed === undefined) return undefined;
-  const refused = Object.keys(input).filter((key) => !allowed.has(key));
-  if (refused.length === 0) return undefined;
-  return `In this chat, ${name} only changes pages and folders (not ${refused.join(', ')}).`;
+  const allowed = ALLOWED_ARGUMENTS[name];
+  if (allowed !== undefined) {
+    const refused = Object.keys(input).filter((key) => !allowed.has(key));
+    if (refused.length > 0) {
+      return `In this chat, ${name} only works on pages and folders (not ${refused.join(', ')}).`;
+    }
+  }
+  if (name === 'exec' && typeof input.command === 'string' && HIDDEN_PATH_RE.test(input.command)) {
+    return 'In this chat, exec cannot look into hidden folders such as .ok or .git.';
+  }
+  return undefined;
 }
 
 export function truncateOutput(text: string): string {
@@ -64,12 +75,18 @@ function resultText(result: unknown): string {
 }
 
 function restrictedSchema(name: string, schema: Record<string, unknown>): Record<string, unknown> {
-  const allowed = name === 'write' ? WRITE_TARGETS : name === 'edit' ? EDIT_TARGETS : undefined;
-  if (allowed === undefined) return schema;
+  const allowed = ALLOWED_ARGUMENTS[name];
   const properties = (schema.properties ?? {}) as Record<string, unknown>;
+  const kept = Object.entries(properties).filter(([key]) =>
+    allowed === undefined ? key !== 'cwd' : allowed.has(key),
+  );
+  const required = Array.isArray(schema.required)
+    ? (schema.required as unknown[]).filter((key) => kept.some(([name]) => name === key))
+    : undefined;
   return {
     ...schema,
-    properties: Object.fromEntries(Object.entries(properties).filter(([key]) => allowed.has(key))),
+    properties: Object.fromEntries(kept),
+    ...(required === undefined ? {} : { required }),
   };
 }
 

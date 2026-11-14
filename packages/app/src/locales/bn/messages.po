@@ -1391,6 +1391,9 @@ msgstr "টোকেন যোগ করুন"
 msgid "Add value"
 msgstr "মান যোগ করুন"
 
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
+
 msgid "Added"
 msgstr "যোগ করা হয়েছে"
 
@@ -1984,6 +1987,9 @@ msgstr "ব্যাকলিংক"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "ব্যাকলিংকের সাড়া প্রত্যাশিত আকারের সঙ্গে মেলেনি।"
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "ভিত্তি ব্রাঞ্চ"
@@ -3822,6 +3828,9 @@ msgstr "চ্যাট মুছুন"
 msgid "Delete chat?"
 msgstr "চ্যাট মুছবেন?"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "কোড ব্লক মুছুন"
 
@@ -3857,6 +3866,9 @@ msgstr "টেবিল মুছুন"
 
 msgid "Delete the file"
 msgstr "ফাইলটি মুছে ফেলুন"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "মোছা হয়েছে"
@@ -4961,6 +4973,9 @@ msgstr "ফাইল আপলোড করতে ব্যর্থ"
 
 msgid "Fast"
 msgstr "দ্রুত"
+
+msgid "Fastest, cheapest"
+msgstr ""
 
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "মতামত এখন পাওয়া যাচ্ছে না। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
@@ -7039,6 +7054,9 @@ msgstr "স্কিলের আরও ক্রিয়া"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "প্রাকদর্শনের নিরাপত্তা নীতি {0}-এর বেশি অনুরোধ আটকে দিয়েছে"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "সবচেয়ে বেশি ইনস্টল হওয়া"
@@ -11337,6 +11355,9 @@ msgstr ""
 msgid "The conversation couldn't be added to this report."
 msgstr "কথোপকথনটি এই রিপোর্টে যোগ করা যায়নি।"
 
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
@@ -11749,6 +11770,12 @@ msgstr "এই ব্রাঞ্চ GitQuire সেটআপ পাথকে �
 #. Toast after first-launch setup ends without connecting AI tools; agentConnectionsLabel is the Settings sidebar pane name
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "এটি সেটিং > {agentConnectionsLabel}-এ কনফিগার করা যায়"
+
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
 
 msgid "This checkout path cannot be read."
 msgstr "এই চেকআউট পাথ পড়া যাচ্ছে না।"

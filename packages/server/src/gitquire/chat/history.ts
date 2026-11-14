@@ -16,6 +16,7 @@ export const CHAT_RETENTION_DAYS = 90;
 export const MAX_CHATS_LISTED = 200;
 const CHAT_ID_RE = /^[A-Za-z0-9_-]{16,32}$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const STALE_TMP_MS = 60 * 60 * 1000;
 
 export interface ToolCall {
   id: string;
@@ -32,7 +33,13 @@ export interface ToolResult {
 
 export type ChatMessage =
   | { role: 'user'; text: string; page?: string; at: string }
-  | { role: 'assistant'; text: string; toolCalls: ToolCall[]; at: string }
+  | {
+      role: 'assistant';
+      text: string;
+      toolCalls: ToolCall[];
+      at: string;
+      claudeContent?: unknown[];
+    }
   | { role: 'tool'; results: ToolResult[]; at: string };
 
 export interface ChatUsage {
@@ -168,14 +175,20 @@ export function createChatHistoryStore(
         }
         for (const name of entries) {
           const file = join(dir, name);
+          let modified: number;
+          try {
+            modified = statSync(file).mtimeMs;
+          } catch {
+            continue;
+          }
           if (name.endsWith('.tmp')) {
-            rmSync(file, { force: true });
+            if (modified < now.getTime() - STALE_TMP_MS) rmSync(file, { force: true });
             continue;
           }
           if (!name.endsWith('.json')) continue;
           const chat = readChat(file);
           const updated = chat === undefined ? Number.NaN : Date.parse(chat.updatedAt);
-          const last = Number.isNaN(updated) ? statSync(file).mtimeMs : updated;
+          const last = Number.isNaN(updated) ? modified : updated;
           if (last < cutoff) {
             rmSync(file, { force: true });
             removed += 1;

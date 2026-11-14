@@ -114,19 +114,23 @@ describe('chat history store', () => {
     const store = createChatHistoryStore(dir);
     const old = newChatId();
     const recent = newChatId();
-    store.save(7, chat(old, '2026-08-01T00:00:00.000Z'));
-    store.save(7, chat(recent, '2026-08-20T00:00:00.000Z'));
+    const day = 24 * 60 * 60 * 1000;
+    store.save(7, chat(old, new Date(Date.now() - 100 * day).toISOString()));
+    store.save(7, chat(recent, new Date(Date.now() - 80 * day).toISOString()));
     const broken = join(chatsDir(dir), '7', 'broken.json');
     writeFileSync(broken, '{');
     const past = new Date('2026-01-01T00:00:00Z');
     utimesSync(broken, past, past);
     writeFileSync(join(chatsDir(dir), '7', 'x.json.1.tmp'), '');
+    utimesSync(join(chatsDir(dir), '7', 'x.json.1.tmp'), past, past);
+    writeFileSync(join(chatsDir(dir), '7', 'y.json.2.tmp'), '');
 
-    const removed = store.purgeExpired(new Date('2026-11-14T00:00:00.000Z'));
+    const removed = store.purgeExpired(new Date(Date.now()));
 
     expect(removed).toBe(2);
     expect(store.list(7).map((entry) => entry.id)).toEqual([recent]);
     expect(existsSync(join(chatsDir(dir), '7', 'x.json.1.tmp'))).toBe(false);
+    expect(existsSync(join(chatsDir(dir), '7', 'y.json.2.tmp'))).toBe(true);
   });
 
   it('rejects ids that could leave the folder', () => {

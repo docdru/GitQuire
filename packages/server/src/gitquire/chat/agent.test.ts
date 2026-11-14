@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { type ChatEvent, runChatTurn, systemPrompt } from './agent.ts';
+import {
+  type ChatEvent,
+  compactHistory,
+  OLD_TOOL_OUTPUT_CHARS,
+  runChatTurn,
+  systemPrompt,
+} from './agent.ts';
 import type { ChatMessage, ChatRecord } from './history.ts';
 import {
   classifyProviderFailure,
@@ -75,6 +81,56 @@ describe('provider message formats', () => {
     expect(messages[2]?.content[0]).toMatchObject({ type: 'tool_result', tool_use_id: 'toolu_01' });
   });
 
+  it('sends Claude’s own content back unchanged, thinking included', () => {
+    const thinking = { type: 'thinking', thinking: 'Plan…', signature: 'sig-abc' };
+    const toolUse = { type: 'tool_use', id: 'toolu_1', name: 'search', input: { query: 'x' } };
+    const messages = toAnthropicMessages([
+      { role: 'user', text: 'Find x', at: AT },
+      {
+        role: 'assistant',
+        text: '',
+        toolCalls: [{ id: 'toolu_1', name: 'search', input: { query: 'x' } }],
+        claudeContent: [thinking, toolUse],
+        at: AT,
+      },
+      {
+        role: 'tool',
+        results: [{ id: 'toolu_1', name: 'search', output: 'hit', isError: false }],
+        at: AT,
+      },
+    ]) as { role: string; content: unknown[] }[];
+    expect(messages[1]?.content).toEqual([thinking, toolUse]);
+  });
+
+  it('keeps Mistral’s message order valid after a stopped turn and drops empty answers', () => {
+    const messages = toMistralMessages('s', [
+      { role: 'user', text: 'Go', at: AT },
+      {
+        role: 'assistant',
+        text: '',
+        toolCalls: [{ id: 'abcDEF123', name: 'search', input: {} }],
+        at: AT,
+      },
+      {
+        role: 'tool',
+        results: [{ id: 'abcDEF123', name: 'search', output: 'x', isError: false }],
+        at: AT,
+      },
+      { role: 'user', text: 'continue', at: AT },
+      { role: 'assistant', text: '', toolCalls: [], at: AT },
+      { role: 'user', text: 'again', at: AT },
+    ]) as { role: string }[];
+    expect(messages.map((message) => message.role)).toEqual([
+      'system',
+      'user',
+      'assistant',
+      'tool',
+      'assistant',
+      'user',
+      'user',
+    ]);
+  });
+
   it('builds Mistral messages with nine-character tool call ids', () => {
     const messages = toMistralMessages('system text', conversation) as Record<string, unknown>[];
     expect(messages[0]).toEqual({ role: 'system', content: 'system text' });
@@ -94,6 +150,27 @@ describe('provider message formats', () => {
     expect(classifyProviderFailure(529, 'Overloaded')).toBe('overloaded');
     expect(classifyProviderFailure(404, 'model: x not found')).toBe('model-unavailable');
     expect(classifyProviderFailure(400, 'max_tokens: must be positive')).toBe('bad-request');
+    expect(classifyProviderFailure(400, 'prompt is too long: 210000 tokens > 200000 maximum')).toBe(
+      'context-too-long',
+    );
+  });
+});
+
+describe('long chats', () => {
+  it('shortens tool output except in the two newest tool steps', () => {
+    const big = 'y'.repeat(OLD_TOOL_OUTPUT_CHARS + 500);
+    const tool = (id: string): ChatMessage => ({
+      role: 'tool',
+      results: [{ id, name: 'exec', output: big, isError: false }],
+      at: AT,
+    });
+    const compacted = compactHistory([tool('a'), tool('b'), tool('c')]);
+    const lengths = compacted.map((message) =>
+      message.role === 'tool' ? message.results[0]?.output.length : 0,
+    );
+    expect(lengths[0]).toBeLessThan(big.length);
+    expect(lengths[1]).toBe(big.length);
+    expect(lengths[2]).toBe(big.length);
   });
 });
 
@@ -125,7 +202,14 @@ describe('provider calls', () => {
     expect(headers['x-api-key']).toBe('sk-ant-key');
     const body = JSON.parse(String(seen?.init.body));
     expect(body.tools[0]).toMatchObject({ name: 'search', input_schema: { type: 'object' } });
+    expect(body.max_tokens).toBe(1000);
+    const lastBlocks = body.messages.at(-1).content;
+    expect(lastBlocks.at(-1).cache_control).toEqual({ type: 'ephemeral' });
     expect(turn).toEqual({
+      claudeContent: [
+        { type: 'text', text: 'Let me look.' },
+        { type: 'tool_use', id: 'toolu_9', name: 'search', input: { query: 'plan' } },
+      ],
       text: 'Let me look.',
       toolCalls: [{ id: 'toolu_9', name: 'search', input: { query: 'plan' } }],
       usage: { inputTokens: 120, outputTokens: 30 },
@@ -268,6 +352,41 @@ describe('the chat loop', () => {
     ]);
   });
 
+  it('saves Claude’s content with the answer so the next request sends it back', async () => {
+    const chat = chatRecord();
+    const blocks = [
+      { type: 'thinking', thinking: 'hmm', signature: 's1' },
+      { type: 'tool_use', id: 't1', name: 'search', input: { query: 'a' } },
+    ];
+    const { providers, requests } = scriptedProviders([
+      {
+        text: '',
+        toolCalls: [{ id: 't1', name: 'search', input: { query: 'a' } }],
+        usage: { inputTokens: 1, outputTokens: 1 },
+        stopReason: 'tool_use',
+        claudeContent: blocks,
+      },
+      {
+        text: 'Done',
+        toolCalls: [],
+        usage: { inputTokens: 1, outputTokens: 1 },
+        stopReason: 'end',
+      },
+    ]);
+    await runChatTurn({
+      chat,
+      apiKey: 'k',
+      providers,
+      tools: fakeTools(),
+      system: 's',
+      emit: () => {},
+      persist: () => {},
+    });
+    const second = requests[1] as { messages: ChatMessage[] };
+    const assistant = second.messages.find((message) => message.role === 'assistant');
+    expect(assistant?.role === 'assistant' ? assistant.claudeContent : undefined).toEqual(blocks);
+  });
+
   it('stops after the step limit', async () => {
     const loop: ProviderTurn = {
       text: '',
@@ -362,11 +481,40 @@ describe('the chat loop', () => {
 });
 
 describe('wiki tool guards', () => {
-  it('lets write and edit change pages and folders only', () => {
+  it('lets write, edit and move work on pages and folders only', () => {
     expect(refusedArguments('write', { document: {} })).toBeUndefined();
     expect(refusedArguments('write', { skill: {} })).toContain('skill');
+    expect(refusedArguments('write', { document: {}, cwd: '/' })).toContain('cwd');
     expect(refusedArguments('edit', { template: {} })).toContain('template');
+    expect(refusedArguments('move', { from: 'a', to: 'b' })).toBeUndefined();
+    expect(
+      refusedArguments('move', { skill: { from: 'a', to: 'b', toScope: 'global' } }),
+    ).toContain('skill');
     expect(refusedArguments('search', { anything: 1 })).toBeUndefined();
+  });
+
+  it('keeps exec out of hidden folders such as .ok', () => {
+    for (const command of [
+      'cat .ok/local/gitquire/chats/7/x.json',
+      'ls .ok',
+      'grep -r key notes/.secret',
+      'head -1 ".git/config"',
+      'cat notes/a.md | grep .ok',
+    ]) {
+      expect(refusedArguments('exec', { command }), command).toContain('hidden folders');
+    }
+    for (const command of [
+      'cat notes/plan.md',
+      'ls .',
+      'ls ./notes',
+      'grep -rn "x" .',
+      "find . -name '*.md'",
+      'cat ../outside.md',
+      "grep '\\.md' notes/a.md",
+    ]) {
+      expect(refusedArguments('exec', { command }), command).toBeUndefined();
+    }
+    expect(refusedArguments('exec', { command: 'ls', cwd: '/data/.ok' })).toContain('cwd');
   });
 
   it('shortens long tool output', () => {

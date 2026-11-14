@@ -29,6 +29,14 @@ export function ChatPaneHost({
     setAttached(host);
   }, [host, container]);
 
-  if (attached === null) return null;
-  return createPortal(isShowing ? <ChatPanel /> : null, attached);
+  const [opened, setOpened] = useState(false);
+  if (isShowing && !opened) setOpened(true);
+
+  if (attached === null || !opened) return null;
+  return createPortal(
+    <div className={isShowing ? 'flex min-h-0 flex-1 flex-col' : 'hidden'}>
+      <ChatPanel />
+    </div>,
+    attached,
+  );
 }
