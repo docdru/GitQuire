@@ -268,6 +268,9 @@ msgstr "{0} ایک لنک کے ذریعے کھلتا ہے اور منسلکات 
 msgid "{0} other skills by this publisher"
 msgstr "اس ناشر کی {0} مزید مہارتیں"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "{0} پلگ ان"
 
@@ -1169,6 +1172,9 @@ msgstr "محفوظ API کلید تک رسائی کا وقت ختم ہو گیا۔
 msgid "Access token"
 msgstr "رسائی ٹوکن"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1208,7 +1214,7 @@ msgstr "اصل حجم"
 msgid "Add"
 msgstr "شامل کریں"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -1607,8 +1613,11 @@ msgstr "اس مشین کے تمام پروجیکٹس پر لاگو ہوتا ہے
 msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
 msgstr "اس مشین کے تمام پروجیکٹس پر لاگو ہوتا ہے۔ بلٹ اِن ٹرمینل سے شروع کیے گئے Claude اور Codex، اور ایپ کے ایجنٹ پینل چیٹ میں کوئی بھی ایجنٹ، GitQuire کے پڑھنے اور لکھنے کے ٹولز خود بخود منظور کرتے ہیں (Claude \"{cliCommand} open\" بھی خود چلاتا ہے)۔ اسکلز حذف کرنا، منتقل کرنا، شیئر کرنا، درآمد یا انسٹال کرنا، دیگر کمانڈز اور غیر GitQuire فائل ترامیم اب بھی پوچھتی ہیں۔ ٹرمینل میں Cursor، OpenCode اور Pi متاثر نہیں ہوتے۔ ہر ایجنٹ کے لیے حتی الامکان۔"
 
-msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
-msgstr "صرف اسی کمپیوٹر پر اس پروجیکٹ پر لاگو ہوتا ہے۔ ‎.ok/local میں محفوظ، git کے ذریعے مشترک نہیں۔"
+msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+msgstr ""
+
+msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgstr ""
 
 msgid "Applies when you pick this conversation back up"
 msgstr "جب آپ یہ گفتگو دوبارہ شروع کریں گے تو لاگو ہوگا"
@@ -5626,8 +5635,8 @@ msgstr "انڈیکس بناتے وقت GitQuire ہر ایمبیڈنگ درخوا
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "گم شدہ پروجیکٹ-لوکل دستاویزات، فائلوں اور تصاویر کو مسائل، ایڈیٹر تشخیصات، آڈٹس اور ایجنٹ ٹولز میں کیسے رپورٹ کیا جاتا ہے۔"
 
-msgid "How often this computer pulls changes from your remote."
-msgstr "یہ کمپیوٹر آپ کے ریموٹ سے کتنی بار تبدیلیاں کھینچتا ہے۔"
+msgid "How often the server pulls changes from GitHub."
+msgstr ""
 
 msgid "How to push manually"
 msgstr "دستی طور پر پُش کیسے کریں"
@@ -6638,14 +6647,14 @@ msgstr "{failures} کے لیے MCP خودکار مرمت ناکام رہی"
 msgid "MCP servers"
 msgstr "MCP سرورز"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "درمیانہ سیکشن عنوان۔"
 
 msgid "Mention a page"
 msgstr "کسی صفحہ کا حوالہ دیں"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7485,6 +7494,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "کوئی نہیں"
 
@@ -7616,8 +7628,8 @@ msgstr "{0} میں سے"
 msgid "of {totalPages}"
 msgstr "{totalPages} میں سے"
 
-msgid "Off — external links show only their URL. No requests leave this computer."
-msgstr "بند — بیرونی لنکس صرف اپنا URL دکھاتے ہیں۔ کوئی درخواست اس کمپیوٹر سے باہر نہیں جاتی۔"
+msgid "Off — external links show only their URL. The server sends no requests."
+msgstr ""
 
 msgid "Off — search ranks by keyword only. No content leaves this computer."
 msgstr "بند — تلاش صرف کلیدی الفاظ سے درجہ بندی کرتی ہے۔ کوئی مواد اس کمپیوٹر سے باہر نہیں جاتا۔"
@@ -7658,10 +7670,13 @@ msgstr "ہر سطر پر ایک پیٹرن — <0>.okignore</0> میں شامل 
 msgid "Only collaborators"
 msgstr "صرف ساتھی"
 
-msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
-msgstr "صرف بیرونی لنکس درخواست بھیجتے ہیں۔ اس پروجیکٹ کی دیگر دستاویزات کے لنکس مقامی اشاریے سے پیش منظر دکھاتے ہیں اور کبھی آپ کے کمپیوٹر سے باہر نہیں جاتے۔"
+msgid "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+msgstr ""
 
 msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
+msgid "Only maintainers of {repo} can change these settings."
 msgstr ""
 
 msgid "Only markdown files"
@@ -7681,6 +7696,15 @@ msgstr "صرف PNG، JPEG یا WebP تصاویر کی اجازت ہے۔"
 
 msgid "Only the current document uses <0>#{tag}</0>."
 msgstr "صرف موجودہ دستاویز <0>#{tag}</0> استعمال کرتی ہے۔"
+
+msgid "Only wiki admins can change these settings."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}."
+msgstr ""
 
 msgid "Open"
 msgstr "کھولیں"
@@ -8230,6 +8254,9 @@ msgstr "پیٹرن کے انتباہات: {summary}"
 msgid "pending"
 msgstr "زیرِ التوا"
 
+msgid "People"
+msgstr ""
+
 msgid "Percolating…"
 msgstr "چھان بین جاری ہے…"
 
@@ -8647,6 +8674,9 @@ msgstr "کسی دوسری دستاویز کے MirrorSource بلاک کی صرف 
 
 msgid "Read-only file in the {name} skill"
 msgstr "{name} مہارت میں صرف پڑھنے والی فائل"
+
+msgid "Read-only settings"
+msgstr ""
 
 msgid "Reading the current languages…"
 msgstr "موجودہ زبانیں پڑھی جا رہی ہیں…"
@@ -9472,6 +9502,9 @@ msgstr "برانچیں تلاش کریں..."
 msgid "Search by meaning"
 msgstr "معنی کے لحاظ سے تلاش کریں"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "چیٹ ہسٹری میں تلاش کریں"
 
@@ -9676,9 +9709,6 @@ msgstr "معنوی تلاش، تلاش کے ٹول میں معنی پر مبنی
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "معنوی تلاش فعال ہے، مگر کوئی API کلید مقرر نہیں — تلاش کلیدی الفاظ کی مماثلت پر واپس آ جاتی ہے۔ نیچے ایک شامل کریں۔"
 
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "موجودہ ایمبیڈنگ فراہم کنندہ سیٹ اپ کے ساتھ معنوی تلاش دستیاب نہیں ہے۔ ترتیبات ← تلاش دیکھیں۔"
-
 msgid "Send"
 msgstr "بھیجیں"
 
@@ -9829,8 +9859,8 @@ msgstr "ترتیبات کا مواد"
 msgid "Settings failed to load"
 msgstr "ترتیبات لوڈ نہیں ہو سکیں"
 
-msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
-msgstr "اس پروجیکٹ کی ترتیبات۔ کچھ git کے ذریعے ہر ساتھی کے ساتھ مشترک ہوتی ہیں؛ باقی صرف اسی کمپیوٹر پر لاگو ہوتی ہیں۔"
+msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
+msgstr ""
 
 msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
 msgstr "{fileName} کی ترتیبات GitQuire کے باہر بدلی گئیں اور اب لاگو ہیں۔ آپ جو تبدیلی کر رہے تھے اس کی ایک نقل اس پروجیکٹ کی تاریخ میں رکھی گئی ہے، جسے ایپ ابھی نہیں دکھا سکتی۔"
@@ -9887,9 +9917,6 @@ msgstr "مشترکہ طے شدہ"
 
 msgid "Shared repositories"
 msgstr "مشترکہ ریپازٹریز"
-
-msgid "Shared with everyone on this project. Stored in the project folder and travels with it through git."
-msgstr "اس پروجیکٹ کے سب لوگوں کے ساتھ مشترک۔ پروجیکٹ فولڈر میں محفوظ ہوتا ہے اور git کے ذریعے اسی کے ساتھ جاتا ہے۔"
 
 msgid "Sharing a doc needs a GitHub repository. Create one for this project."
 msgstr "دستاویز شیئر کرنے کے لیے GitHub ریپازٹری درکار ہے۔ اس پروجیکٹ کے لیے ایک بنائیں۔"
@@ -10589,8 +10616,8 @@ msgstr "اس ورک ٹری کی مطابقت پذیری «دستی» پر سیٹ
 msgid "Sync is taking longer than usual — your changes are safe on this device."
 msgstr "ہم آہنگی معمول سے زیادہ وقت لے رہی ہے — آپ کی تبدیلیاں اس ڈیوائس پر محفوظ ہیں۔"
 
-msgid "Sync keeps this computer's copy up to date with your Git remote. The shared settings below decide what teammates get when they open the project."
-msgstr "مطابقت پذیری اس کمپیوٹر کی کاپی کو آپ کے Git ریموٹ کے ساتھ تازہ رکھتی ہے۔ نیچے دی گئی مشترکہ ترتیبات طے کرتی ہیں کہ پروجیکٹ کھولنے پر ساتھیوں کو کیا ملے گا۔"
+msgid "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+msgstr ""
 
 msgid "Sync mode"
 msgstr "مطابقت پذیری کا موڈ"
@@ -11448,8 +11475,8 @@ msgstr "یہ مشین"
 msgid "This may take a moment. Your markdown content is kept."
 msgstr "اس میں تھوڑا وقت لگ سکتا ہے۔ آپ کا Markdown مواد محفوظ رہتا ہے۔"
 
-msgid "This mode comes from the project's Shared default below. Pick a mode to choose your own for this computer."
-msgstr "یہ موڈ نیچے دیے گئے پروجیکٹ کے مشترکہ طے شدہ سے آتا ہے۔ اس کمپیوٹر کے لیے اپنا موڈ منتخب کرنے کے لیے کوئی موڈ چنیں۔"
+msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "یہ <0>{name}</0> کو {0} سے {1} پر منتقل کرتا ہے، ڈسک پر اس کی فائلوں کی جگہ بدلتا ہے اور اسے آپ کے ایڈیٹرز میں {2} سطح پر دوبارہ نصب کرتا ہے۔"
@@ -11548,8 +11575,8 @@ msgstr "اس اسکیما میں جڑ کی سطح کے اعلیٰ قواعد ہ�
 msgid "This sends content off your machine"
 msgstr "یہ مواد آپ کی مشین سے باہر بھیجتا ہے"
 
-msgid "This sends the link's address off your machine"
-msgstr "یہ لنک کا پتہ آپ کی مشین سے باہر بھیجتا ہے"
+msgid "This sends link addresses from the server to other sites"
+msgstr ""
 
 msgid "This server does not send mail to that domain."
 msgstr ""
@@ -11563,8 +11590,8 @@ msgstr ""
 msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
-msgid "This setting is per-machine and isn't shared with collaborators."
-msgstr "یہ ترتیب ہر مشین کے لیے الگ ہے اور ساتھیوں کے ساتھ مشترک نہیں ہوتی۔"
+msgid "This setting applies to everyone using this wiki."
+msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "یہ ترتیب ہر مشین کے لیے الگ ہے اور ساتھیوں کے ساتھ مشترک نہیں ہوتی۔ اسے ایک API کلید درکار ہے (نیچے مقرر کریں) الّا یہ کہ آپ کا اینڈ پوائنٹ کوئی مقامی سرور ہو جسے اس کی ضرورت نہ ہو۔"
@@ -12050,6 +12077,9 @@ msgstr ""
 msgid "Updates flow in"
 msgstr "اپ ڈیٹس آتی رہتی ہیں"
 
+msgid "Updates flow in from GitHub; edits stay on the server and are not pushed."
+msgstr ""
+
 msgid "Updates flow in from your remote; your edits stay on this computer."
 msgstr "اپ ڈیٹس آپ کے ریموٹ سے آتی ہیں؛ آپ کی ترامیم اسی کمپیوٹر پر رہتی ہیں۔"
 
@@ -12415,11 +12445,17 @@ msgstr "خالی جگہ"
 msgid "Who you are, so the agent has your context."
 msgstr "آپ کون ہیں، تاکہ ایجنٹ کو آپ کا سیاق معلوم ہو۔"
 
+msgid "Whole wiki"
+msgstr ""
+
 msgid "Whole word"
 msgstr "پورا لفظ"
 
 msgid "Why this needs attention"
 msgstr "اس پر توجہ کیوں درکار ہے"
+
+msgid "Wiki administration"
+msgstr ""
 
 msgid "Wiki link"
 msgstr "وکی لنک"
@@ -12478,7 +12514,7 @@ msgstr "ورک ٹریز"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Markdown سورس ایڈیٹر میں لمبی سطریں لپیٹیں۔"
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

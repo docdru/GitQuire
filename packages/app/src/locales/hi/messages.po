@@ -268,6 +268,9 @@ msgstr "{0} एक लिंक से खुलता है और अनु�
 msgid "{0} other skills by this publisher"
 msgstr "इस प्रकाशक की {0} अन्य स्किलें"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "{0} प्लगइन"
 
@@ -1165,6 +1168,9 @@ msgstr "सहेजी गई API कुंजी तक पहुँचने 
 msgid "Access token"
 msgstr "पहुँच टोकन"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1204,7 +1210,7 @@ msgstr "वास्तविक आकार"
 msgid "Add"
 msgstr "जोड़ें"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -1603,8 +1609,11 @@ msgstr "इस मशीन के सभी प्रोजेक्ट पर 
 msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
 msgstr "इस मशीन के सभी प्रोजेक्ट पर लागू होता है। बिल्ट-इन टर्मिनल से शुरू किए गए Claude और Codex, और ऐप के एजेंट पैनल चैट में कोई भी एजेंट, GitQuire के पढ़ने और लिखने वाले टूल स्वतः स्वीकृत करते हैं (Claude \"{cliCommand} open\" भी स्वतः चलाता है)। स्किल हटाना, ले जाना, साझा करना, आयात या इंस्टॉल करना, अन्य कमांड और गैर-GitQuire फ़ाइल संपादन अब भी पूछते हैं। टर्मिनल में Cursor, OpenCode और Pi पर असर नहीं पड़ता। हर एजेंट के लिए यथासंभव।"
 
-msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
-msgstr "केवल इस कंप्यूटर पर इस प्रोजेक्ट पर लागू होता है। .ok/local में सहेजा जाता है, git के ज़रिए साझा नहीं होता।"
+msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+msgstr ""
+
+msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgstr ""
 
 msgid "Applies when you pick this conversation back up"
 msgstr "जब आप यह बातचीत फिर से शुरू करेंगे तब लागू होगा"
@@ -5622,8 +5631,8 @@ msgstr "इंडेक्स बनाते समय GitQuire हर एम�
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "गायब प्रोजेक्ट-स्थानीय दस्तावेज़ों, फ़ाइलों और इमेज को समस्याएँ, एडिटर डायग्नोस्टिक्स, ऑडिट और एजेंट टूल में कैसे रिपोर्ट किया जाता है।"
 
-msgid "How often this computer pulls changes from your remote."
-msgstr "यह कंप्यूटर आपके रिमोट से कितनी बार बदलाव खींचता है।"
+msgid "How often the server pulls changes from GitHub."
+msgstr ""
 
 msgid "How to push manually"
 msgstr "हाथ से कैसे भेजें"
@@ -6634,14 +6643,14 @@ msgstr "{failures} के लिए MCP स्वतः-मरम्मत व�
 msgid "MCP servers"
 msgstr "MCP सर्वर"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "मध्यम अनुभाग शीर्षक।"
 
 msgid "Mention a page"
 msgstr "किसी पेज का उल्लेख करें"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7481,6 +7490,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "कोई नहीं"
 
@@ -7612,8 +7624,8 @@ msgstr "{0} में से"
 msgid "of {totalPages}"
 msgstr "{totalPages} में से"
 
-msgid "Off — external links show only their URL. No requests leave this computer."
-msgstr "बंद — बाहरी लिंक केवल अपना URL दिखाते हैं। कोई अनुरोध इस कंप्यूटर से बाहर नहीं जाता।"
+msgid "Off — external links show only their URL. The server sends no requests."
+msgstr ""
 
 msgid "Off — search ranks by keyword only. No content leaves this computer."
 msgstr "बंद — खोज केवल कीवर्ड से क्रम तय करती है। कोई सामग्री इस कंप्यूटर से बाहर नहीं जाती।"
@@ -7654,10 +7666,13 @@ msgstr "प्रति पंक्ति एक पैटर्न — <0>.oki
 msgid "Only collaborators"
 msgstr "केवल सहयोगी"
 
-msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
-msgstr "केवल बाहरी लिंक कोई अनुरोध भेजते हैं। इस प्रोजेक्ट के अन्य दस्तावेज़ों के लिंक स्थानीय अनुक्रमणिका से पूर्वावलोकन बनाते हैं और कभी आपके कंप्यूटर से बाहर नहीं जाते।"
+msgid "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+msgstr ""
 
 msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
+msgid "Only maintainers of {repo} can change these settings."
 msgstr ""
 
 msgid "Only markdown files"
@@ -7677,6 +7692,15 @@ msgstr "केवल PNG, JPEG या WebP छवियाँ अनुमत �
 
 msgid "Only the current document uses <0>#{tag}</0>."
 msgstr "केवल मौजूदा दस्तावेज़ <0>#{tag}</0> का उपयोग करता है।"
+
+msgid "Only wiki admins can change these settings."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}."
+msgstr ""
 
 msgid "Open"
 msgstr "खोलें"
@@ -8226,6 +8250,9 @@ msgstr "पैटर्न चेतावनियाँ: {summary}"
 msgid "pending"
 msgstr "लंबित"
 
+msgid "People"
+msgstr ""
+
 msgid "Percolating…"
 msgstr "छाना जा रहा है…"
 
@@ -8643,6 +8670,9 @@ msgstr "किसी दूसरे दस्तावेज़ के MirrorSo
 
 msgid "Read-only file in the {name} skill"
 msgstr "{name} स्किल में केवल पढ़ने योग्य फ़ाइल"
+
+msgid "Read-only settings"
+msgstr ""
 
 msgid "Reading the current languages…"
 msgstr "मौजूदा भाषाएँ पढ़ी जा रही हैं…"
@@ -9468,6 +9498,9 @@ msgstr "ब्रांच खोजें…"
 msgid "Search by meaning"
 msgstr "अर्थ के अनुसार खोजें"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "चैट इतिहास खोजें"
 
@@ -9672,9 +9705,6 @@ msgstr "अर्थ-आधारित खोज, खोज टूल में
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "अर्थ-आधारित खोज चालू है, पर कोई API कुंजी सेट नहीं है — खोज कीवर्ड मिलान पर लौट आती है। नीचे एक जोड़ें।"
 
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "मौजूदा एम्बेडिंग प्रोवाइडर सेटअप के साथ सिमेंटिक खोज उपलब्ध नहीं है। सेटिंग्स → खोज देखें।"
-
 msgid "Send"
 msgstr "भेजें"
 
@@ -9825,8 +9855,8 @@ msgstr "सेटिंग सामग्री"
 msgid "Settings failed to load"
 msgstr "सेटिंग लोड नहीं हो सकीं"
 
-msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
-msgstr "इस प्रोजेक्ट की सेटिंग्स। कुछ git के ज़रिए हर सहयोगी के साथ साझा होती हैं; बाक़ी केवल इस कंप्यूटर पर लागू होती हैं।"
+msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
+msgstr ""
 
 msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
 msgstr "{fileName} की सेटिंग्स GitQuire के बाहर बदली गईं और अब लागू हैं। आप जो बदलाव कर रहे थे, उसकी एक प्रति इस प्रोजेक्ट के इतिहास में रखी गई है, जिसे ऐप अभी नहीं दिखा सकता।"
@@ -9883,9 +9913,6 @@ msgstr "साझा डिफ़ॉल्ट"
 
 msgid "Shared repositories"
 msgstr "साझा रिपॉज़िटरी"
-
-msgid "Shared with everyone on this project. Stored in the project folder and travels with it through git."
-msgstr "इस प्रोजेक्ट के सभी लोगों के साथ साझा। प्रोजेक्ट फ़ोल्डर में सहेजा जाता है और git के ज़रिए उसी के साथ जाता है।"
 
 msgid "Sharing a doc needs a GitHub repository. Create one for this project."
 msgstr "दस्तावेज़ साझा करने के लिए एक GitHub रिपॉज़िटरी चाहिए। इस प्रोजेक्ट के लिए एक बनाएँ।"
@@ -10585,8 +10612,8 @@ msgstr "इस वर्कट्री के लिए सिंक “मै�
 msgid "Sync is taking longer than usual — your changes are safe on this device."
 msgstr "सिंक होने में सामान्य से ज़्यादा समय लग रहा है — आपके बदलाव इस डिवाइस पर सुरक्षित हैं।"
 
-msgid "Sync keeps this computer's copy up to date with your Git remote. The shared settings below decide what teammates get when they open the project."
-msgstr "सिंक इस कंप्यूटर की कॉपी को आपके Git रिमोट के साथ अद्यतन रखता है। नीचे दी गई साझा सेटिंग तय करती हैं कि प्रोजेक्ट खोलने पर सहकर्मियों को क्या मिलेगा।"
+msgid "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+msgstr ""
 
 msgid "Sync mode"
 msgstr "सिंक मोड"
@@ -11444,8 +11471,8 @@ msgstr "यह मशीन"
 msgid "This may take a moment. Your markdown content is kept."
 msgstr "इसमें कुछ समय लग सकता है। आपकी markdown सामग्री सुरक्षित रहती है।"
 
-msgid "This mode comes from the project's Shared default below. Pick a mode to choose your own for this computer."
-msgstr "यह मोड नीचे दिए प्रोजेक्ट के साझा डिफ़ॉल्ट से आता है। इस कंप्यूटर के लिए अपना मोड चुनने हेतु कोई मोड चुनें।"
+msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "यह <0>{name}</0> को {0} से {1} में ले जाता है, डिस्क पर इसकी फ़ाइलें दूसरी जगह रखता है और इसे आपके संपादकों में {2} स्तर पर फिर से इंस्टॉल करता है।"
@@ -11544,8 +11571,8 @@ msgstr "इस स्कीमा में रूट-स्तर के उन
 msgid "This sends content off your machine"
 msgstr "यह सामग्री आपकी मशीन से बाहर भेजता है"
 
-msgid "This sends the link's address off your machine"
-msgstr "यह लिंक का पता आपकी मशीन से बाहर भेजता है"
+msgid "This sends link addresses from the server to other sites"
+msgstr ""
 
 msgid "This server does not send mail to that domain."
 msgstr ""
@@ -11559,8 +11586,8 @@ msgstr ""
 msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
-msgid "This setting is per-machine and isn't shared with collaborators."
-msgstr "यह सेटिंग हर मशीन के लिए अलग है और सहयोगियों के साथ साझा नहीं होती।"
+msgid "This setting applies to everyone using this wiki."
+msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "यह सेटिंग हर मशीन के लिए अलग है और सहयोगियों के साथ साझा नहीं होती। इसके लिए एक API कुंजी चाहिए (नीचे सेट करें), बशर्ते आपका एंडपॉइंट कोई ऐसा स्थानीय सर्वर न हो जिसे इसकी ज़रूरत न हो।"
@@ -12046,6 +12073,9 @@ msgstr ""
 msgid "Updates flow in"
 msgstr "अपडेट आते रहते हैं"
 
+msgid "Updates flow in from GitHub; edits stay on the server and are not pushed."
+msgstr ""
+
 msgid "Updates flow in from your remote; your edits stay on this computer."
 msgstr "अपडेट आपके रिमोट से आते हैं; आपके संपादन इसी कंप्यूटर पर रहते हैं।"
 
@@ -12411,11 +12441,17 @@ msgstr "रिक्त स्थान"
 msgid "Who you are, so the agent has your context."
 msgstr "आप कौन हैं, ताकि एजेंट को आपका संदर्भ मिले।"
 
+msgid "Whole wiki"
+msgstr ""
+
 msgid "Whole word"
 msgstr "पूरा शब्द"
 
 msgid "Why this needs attention"
 msgstr "इस पर ध्यान क्यों देना है"
+
+msgid "Wiki administration"
+msgstr ""
 
 msgid "Wiki link"
 msgstr "विकी लिंक"
@@ -12474,7 +12510,7 @@ msgstr "वर्कट्री"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "markdown स्रोत संपादक में लंबी पंक्तियाँ लपेटें।"
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

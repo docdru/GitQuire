@@ -90,20 +90,26 @@ export function mentionMail(
   const who = clipName(mention.author.name ?? mention.author.login ?? '') || 'Someone';
   const page = clipName(mention.docName.slice(mention.docName.lastIndexOf('/') + 1));
   const link = pageLink(config.externalUrl, mention.docName);
-  const lines = [
-    `${who} mentioned you in "${page}".`,
-    '',
-    `On the text: "${mention.quote}"`,
-    '',
-    mention.body,
-  ];
+  const task = mention.kind === 'task';
+  const lines = task
+    ? [`${who} mentioned you in an action item in "${page}":`, '', `- [ ] ${mention.body}`]
+    : [
+        `${who} mentioned you in "${page}".`,
+        '',
+        `On the text: "${mention.quote}"`,
+        '',
+        mention.body,
+      ];
   if (link !== undefined) lines.push('', `Open the page: ${link}`);
   lines.push(
     '',
     'You get this mail because you entered this address for mentions in GitQuire.',
     'To stop, open the mention list in GitQuire and choose "Stop emailing me".',
   );
-  return { to, subject: `${who} mentioned you in ${page}`, text: `${lines.join('\n')}\n` };
+  const subject = task
+    ? `${who} mentioned you in an action item in ${page}`
+    : `${who} mentioned you in ${page}`;
+  return { to, subject, text: `${lines.join('\n')}\n` };
 }
 
 function recent(times: readonly number[], now: number, windowMs: number): number[] {

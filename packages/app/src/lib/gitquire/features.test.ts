@@ -7,6 +7,21 @@ function respond(status: number, body: string, type = 'application/json'): typeo
 }
 
 describe('GitQuire features', () => {
+  it('reads who may change wiki settings', () => {
+    const member = parseFeatures({
+      admin: false,
+      admins: { logins: ['bob', 7], repo: 'acme/notes' },
+      features: {},
+    });
+    expect(member).toMatchObject({
+      settingsAdmin: false,
+      adminLogins: ['bob'],
+      adminRepo: 'acme/notes',
+    });
+    expect(parseFeatures({ admin: true, features: {} }).settingsAdmin).toBe(true);
+    expect(STANDALONE_FEATURES.settingsAdmin).toBe(true);
+  });
+
   it('hides Ask AI when the server says so', async () => {
     const features = await fetchFeatures(
       respond(200, JSON.stringify({ login: 'alice', features: { askAi: false } })),
@@ -36,6 +51,9 @@ describe('GitQuire features', () => {
       connector: false,
       canUseTokens: true,
       canConnect: true,
+      settingsAdmin: false,
+      adminLogins: [],
+      adminRepo: null,
     });
     expect(hasClaudeAccess(features)).toBe(true);
     expect(hasClaudeAccess(STANDALONE_FEATURES)).toBe(false);

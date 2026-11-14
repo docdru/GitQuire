@@ -61,7 +61,7 @@ function endsInsideFence(text: string): boolean {
   return open !== undefined;
 }
 
-export function splitCommentTrailer(source: string): TrailerSplit {
+function splitFinalTrailer(source: string): TrailerSplit {
   const normalizedEnd = trimTrailingSpace(source);
   if (!normalizedEnd.endsWith(COMMENT_TRAILER_CLOSE)) return { body: source, trailer: undefined };
   const marker = `\n${COMMENT_TRAILER_OPEN}\n`;
@@ -77,6 +77,102 @@ export function splitCommentTrailer(source: string): TrailerSplit {
   if (endsInsideFence(before)) return { body: source, trailer: undefined };
   const trimmed = trimTrailingSpace(before);
   return { body: trimmed === '' ? '' : `${trimmed}\n`, trailer };
+}
+
+function isTrailerOpenLine(line: string): boolean {
+  return trimTrailingSpace(line) === COMMENT_TRAILER_OPEN;
+}
+
+function isTrailerCloseLine(line: string): boolean {
+  return trimTrailingSpace(line) === COMMENT_TRAILER_CLOSE;
+}
+
+interface StrayTrailers {
+  body: string;
+  blocks: string[];
+}
+
+function extractStrayTrailers(body: string): StrayTrailers {
+  const lines = body.split('\n');
+  const kept: string[] = [];
+  const blocks: string[] = [];
+  let fence: string | undefined;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] as string;
+    const fenceMatch = FENCE_LINE_RE.exec(line);
+    if (fence !== undefined) {
+      const marker = fenceMatch?.[1];
+      if (marker !== undefined && marker[0] === fence[0] && marker.length >= fence.length) {
+        fence = undefined;
+      }
+      kept.push(line);
+      continue;
+    }
+    if (fenceMatch !== null) {
+      fence = fenceMatch[1];
+      kept.push(line);
+      continue;
+    }
+    if (!isTrailerOpenLine(line)) {
+      kept.push(line);
+      continue;
+    }
+    let close = index + 1;
+    while (close < lines.length && !isTrailerCloseLine(lines[close] as string)) close += 1;
+    if (close >= lines.length) {
+      kept.push(line);
+      continue;
+    }
+    const block = [COMMENT_TRAILER_OPEN, ...lines.slice(index + 1, close).map(trimTrailingSpace)]
+      .concat(COMMENT_TRAILER_CLOSE)
+      .join('\n');
+    const parsed = parseCommentTrailer(block);
+    if (parsed.threads.length === 0 || parsed.skippedLines > 0) {
+      kept.push(line);
+      continue;
+    }
+    blocks.push(block);
+    index = close;
+    const previous = kept[kept.length - 1];
+    const next = lines[index + 1];
+    if ((previous === undefined || previous.trim() === '') && next?.trim() === '') {
+      index += 1;
+    }
+  }
+  return { body: kept.join('\n'), blocks };
+}
+
+function mergeThreads(blocks: readonly string[]): CommentThread[] {
+  const threads = new Map<string, CommentThread>();
+  for (const block of blocks) {
+    for (const thread of parseCommentTrailer(block).threads) {
+      const existing = threads.get(thread.id);
+      if (existing === undefined) {
+        threads.set(thread.id, { ...thread, comments: [...thread.comments] });
+        continue;
+      }
+      const comments = new Map(existing.comments.map((comment) => [comment.id, comment]));
+      for (const comment of thread.comments) comments.set(comment.id, comment);
+      threads.set(thread.id, {
+        ...thread,
+        comments: [...comments.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+      });
+    }
+  }
+  return [...threads.values()];
+}
+
+export function splitCommentTrailer(source: string): TrailerSplit {
+  const final = splitFinalTrailer(source);
+  if (!final.body.includes(COMMENT_TRAILER_OPEN)) return final;
+  const stray = extractStrayTrailers(final.body);
+  if (stray.blocks.length === 0) return final;
+  const blocks = final.trailer === undefined ? stray.blocks : [...stray.blocks, final.trailer];
+  const trimmed = trimTrailingSpace(stray.body);
+  return {
+    body: trimmed === '' ? '' : `${trimmed}\n`,
+    trailer: serializeCommentTrailer(mergeThreads(blocks)),
+  };
 }
 
 export function joinCommentTrailer(body: string, trailer: string | undefined): string {

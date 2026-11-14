@@ -202,7 +202,7 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     expect(screen.getByRole('navigation', { name: 'Settings sections' })).toBeTruthy();
     expect(screen.getByText('Agents')).toBeTruthy();
     expect(screen.getByText('User')).toBeTruthy();
-    expect(screen.getByText('This project')).toBeTruthy();
+    expect(screen.getByText('Wiki administration')).toBeTruthy();
     expect(screen.getByTestId('settings-sidebar-item-agent-connections')).toBeTruthy();
     expect(screen.queryByTestId('settings-sidebar-item-configure-agents')).toBeNull();
     expect(screen.queryByTestId('settings-sidebar-item-ai-tools')).toBeNull();

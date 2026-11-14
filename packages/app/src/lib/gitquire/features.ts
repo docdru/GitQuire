@@ -6,6 +6,9 @@ export interface GitQuireFeatures {
   connector: boolean;
   canUseTokens: boolean;
   canConnect: boolean;
+  settingsAdmin: boolean;
+  adminLogins: readonly string[];
+  adminRepo: string | null;
 }
 
 export const STANDALONE_FEATURES: GitQuireFeatures = {
@@ -14,6 +17,9 @@ export const STANDALONE_FEATURES: GitQuireFeatures = {
   connector: false,
   canUseTokens: false,
   canConnect: false,
+  settingsAdmin: true,
+  adminLogins: [],
+  adminRepo: null,
 };
 
 const UNKNOWN_FEATURES: GitQuireFeatures = {
@@ -22,6 +28,9 @@ const UNKNOWN_FEATURES: GitQuireFeatures = {
   connector: false,
   canUseTokens: false,
   canConnect: false,
+  settingsAdmin: true,
+  adminLogins: [],
+  adminRepo: null,
 };
 const REFRESH_AFTER_MS = 30_000;
 
@@ -30,12 +39,20 @@ export function parseFeatures(body: unknown): GitQuireFeatures {
   const features = (body as { features?: unknown }).features;
   if (typeof features !== 'object' || features === null) return STANDALONE_FEATURES;
   const f = features as Record<string, unknown>;
+  const admins = (body as { admins?: unknown }).admins;
+  const adminInfo =
+    typeof admins === 'object' && admins !== null ? (admins as Record<string, unknown>) : {};
   return {
     askAi: f.askAi !== false,
     agentToken: f.agentToken === true,
     connector: f.connector === true,
     canUseTokens: f.canUseTokens === true,
     canConnect: f.canConnect === true,
+    settingsAdmin: (body as { admin?: unknown }).admin === true,
+    adminLogins: Array.isArray(adminInfo.logins)
+      ? adminInfo.logins.filter((login): login is string => typeof login === 'string')
+      : [],
+    adminRepo: typeof adminInfo.repo === 'string' ? adminInfo.repo : null,
   };
 }
 
@@ -69,7 +86,10 @@ function sameFeatures(a: GitQuireFeatures | undefined, b: GitQuireFeatures): boo
     a.agentToken === b.agentToken &&
     a.connector === b.connector &&
     a.canUseTokens === b.canUseTokens &&
-    a.canConnect === b.canConnect
+    a.canConnect === b.canConnect &&
+    a.settingsAdmin === b.settingsAdmin &&
+    a.adminRepo === b.adminRepo &&
+    a.adminLogins.join(',') === b.adminLogins.join(',')
   );
 }
 
