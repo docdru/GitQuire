@@ -12,10 +12,20 @@ pull requests are all welcome.
 
 ## How GitQuire relates to OpenKnowledge
 
-GitQuire is a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by Inkeep, Inc.
-GitQuire-specific code lives in separate modules (`packages/*/src/gitquire/`, `gitquire-comments/`)
-so upstream changes can be merged without much friction. If you find a bug that also exists
-upstream, consider reporting it there as well.
+GitQuire started as a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by
+Inkeep, Inc. to get a head start, and is now developed independently: OpenKnowledge changes are not
+merged, and any file in this repository may be changed or removed when that is right for GitQuire.
+The license (GPL-3.0-or-later) and the acknowledgement stay. If you find a bug that also exists in
+OpenKnowledge, consider reporting it there as well.
+
+### Security fixes from OpenKnowledge
+
+Much of GitQuire's code came from OpenKnowledge, so some of their security fixes apply here too.
+Once a month, a maintainer looks through OpenKnowledge's commits and releases since the last check
+for security fixes (input validation, authentication, path handling, dependency upgrades with
+advisories) in code GitQuire still has, and ports the relevant ones in a pull request that links the
+original commit. Record the date and the last commit looked at in the pull request, or in an issue
+when nothing applied, so the next check knows where to start.
 
 ## Development setup
 

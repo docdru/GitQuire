@@ -192,8 +192,8 @@ conventions.
 
 ## Credits and license
 
-GitQuire is a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by Inkeep, Inc., and
-keeps its history. The original README is in [UPSTREAM-README.md](./UPSTREAM-README.md). Parts of the
+GitQuire started as a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by
+Inkeep, Inc., keeps its history, and is now developed independently. The original README is in [UPSTREAM-README.md](./UPSTREAM-README.md). Parts of the
 GitHub, branch, PR and comment features are adapted from
 [GitMarkdown](https://github.com/pooriaarab/gitmarkdown) by Pooria Arab (MIT).
 
