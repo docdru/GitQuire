@@ -85,16 +85,6 @@ vi.doMock('@/components/SkillBulkDeleteDialog', () => ({ SkillBulkDeleteDialog: 
 vi.doMock('@/lib/use-workspace', () => ({ useWorkspace: () => null }));
 vi.doMock('@/hooks/use-open-skill', () => ({ useOpenSkill: () => () => {} }));
 vi.doMock('@/hooks/use-skills', () => ({ useSkills: () => ({ status: 'ready', data: [skill] }) }));
-vi.doMock('@/components/handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: {} }),
-}));
-vi.doMock('@/components/handoff/useHandoffDispatch', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/components/handoff/useHandoffDispatch')>()),
-  useHandoffDispatch: () => ({ dispatch: () => {} }),
-}));
-vi.doMock('@/components/handoff/OpenInAgentContextSubmenu', () => ({
-  OpenInAgentContextSubmenu: () => null,
-}));
 vi.doMock('@/lib/skills-api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/skills-api')>()),
   putSkillFolderAction,

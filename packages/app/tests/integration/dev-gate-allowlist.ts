@@ -9,5 +9,4 @@ export const DEV_GATED_WINDOW_WRITERS: Readonly<Record<string, readonly string[]
     '__test_rejectSyncPromise',
   ],
   'packages/app/src/editor/TiptapEditor.tsx': ['__agentFlashState'],
-  'packages/app/src/lib/acp/dev-thread-harness.ts': ['__acpThreadHarness'],
 };

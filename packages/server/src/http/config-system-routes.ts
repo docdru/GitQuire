@@ -19,22 +19,6 @@ import {
   ServerInfoSuccessSchema,
   WorkspaceSuccessSchema,
 } from '@inkeep/open-knowledge-core';
-import { z } from 'zod';
-import {
-  ACP_AGENT_HARNESS_CLIS,
-  type AcpHarnessAvailability,
-} from '../acp/harness-availability.ts';
-import { mergedEnv, withLoginShellPathEnv } from '../acp/launch.ts';
-import { getSharedLoginShellPathProvider } from '../acp/login-shell-path.ts';
-import { codexCandidates } from '../acp/model-discovery/candidates.ts';
-import { probeCodexCatalog } from '../acp/model-discovery/codex-probe.ts';
-import {
-  type AcpRegistry,
-  type CustomAgentEntry,
-  FEATURED_AGENT_IDS,
-  registryPlatformKey,
-} from '../acp/registry.ts';
-import { MAX_ACP_THREADS } from '../acp/thread-manager.ts';
 import { getBootTimings } from '../boot-timings.ts';
 import { isConfigDoc, isSystemDoc } from '../cc1-broadcast.ts';
 import { collabUrlFromRequestHeaders } from '../collab-bootstrap-url.ts';
@@ -73,9 +57,6 @@ export interface ConfigSystemRouteDeps {
   getDiskAckSVs: (() => Record<string, string>) | undefined;
   getCollabClientCount: (() => number) | undefined;
   getConfigDiagnostics: (() => ConfigDiagnosticsReport) | undefined;
-  acpRegistry: AcpRegistry | undefined;
-  loadAcpCustomAgents: (() => Promise<CustomAgentEntry[]>) | undefined;
-  acpHarnessAvailability: () => Promise<AcpHarnessAvailability>;
   isRoutePeerAdmitted: (remoteAddress: string | undefined) => boolean;
   isAllowedWorkspaceHostHeader: (host: string | undefined) => boolean;
   checkLocalOpSecurity: (
@@ -110,9 +91,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
     getDiskAckSVs,
     getCollabClientCount,
     getConfigDiagnostics,
-    acpRegistry,
-    loadAcpCustomAgents,
-    acpHarnessAvailability,
     isRoutePeerAdmitted,
     isAllowedWorkspaceHostHeader,
     checkLocalOpSecurity,
@@ -169,186 +147,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
       }
     },
     { handler: 'server-info', method: 'GET', skipBodyParse: true },
-  );
-
-  const AcpCatalogAgentSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    version: z.string(),
-    description: z.string().optional(),
-    license: z.string().optional(),
-    iconUrl: z.string().optional(),
-    website: z.string().optional(),
-    source: z.enum(['registry', 'custom']),
-    supported: z.boolean(),
-    featured: z.boolean(),
-    harness: z
-      .object({
-        cli: z.enum(['claude', 'codex', 'cursor', 'gemini', 'opencode', 'pi']),
-        availability: z.enum(['present', 'not-found', 'unknown']),
-        credentials: z.enum(['present', 'unknown']),
-      })
-      .optional(),
-  });
-  const AcpCatalogSuccessSchema = z.object({
-    agents: z.array(AcpCatalogAgentSchema),
-    stale: z.boolean(),
-    maxThreads: z.number(),
-  });
-
-  const AcpModelsSuccessSchema = z.object({
-    agentId: z.string(),
-    reason: z.string().nullable(),
-    candidates: z.array(
-      z.object({
-        value: z.string(),
-        label: z.string(),
-        description: z.string().nullable(),
-        group: z.string().nullable(),
-        contextChoices: z.array(z.number()),
-        context: z.object({ effectiveTokens: z.number(), origin: z.string() }).nullable(),
-        selectability: z.string(),
-        setPhase: z.string(),
-      }),
-    ),
-  });
-
-  const handleAcpModels = withValidation(
-    EmptyRequestSchema,
-    async (req, res) => {
-      const agentId = new URL(req.url ?? '', 'http://localhost').searchParams.get('agent') ?? '';
-      const empty = (reason: string) =>
-        successResponse(res, 200, AcpModelsSuccessSchema, { agentId, candidates: [], reason });
-      if (agentId === '') {
-        errorResponse(res, 400, 'urn:ok:error:invalid-request', 'An agent id is required.', {
-          handler: 'acp-models',
-        });
-        return;
-      }
-      if (agentId !== 'codex-acp') {
-        empty('unsupported');
-        return;
-      }
-      const availability = await acpHarnessAvailability();
-      if (availability.codex?.availability !== 'present') {
-        empty('unavailable');
-        return;
-      }
-      const spawnEnv = mergedEnv();
-      let probe = await probeCodexCatalog('codex', spawnEnv);
-      if (probe.outcome === 'not-found') {
-        const loginShellPath = await getSharedLoginShellPathProvider(log)();
-        if (loginShellPath !== null) {
-          probe = await probeCodexCatalog('codex', withLoginShellPathEnv(spawnEnv, loginShellPath));
-        }
-      }
-      if (probe.outcome !== 'ok') {
-        log.warn({ agentId, outcome: probe.outcome }, '[acp-models] codex catalog probe failed');
-        empty('unavailable');
-        return;
-      }
-      const catalog = probe.models;
-      if (catalog.length === 0) {
-        empty('unavailable');
-        return;
-      }
-      const fingerprint = {
-        harness: 'codex',
-        cliVersion: null,
-        adapterVersion: null,
-        endpoint: null,
-        account: null,
-      };
-      successResponse(res, 200, AcpModelsSuccessSchema, {
-        agentId,
-        reason: null,
-        candidates: codexCandidates(catalog, fingerprint, Date.now()).map((c) => ({
-          value: c.value,
-          label: c.label,
-          description: c.description,
-          group: c.group,
-          contextChoices: [...c.contextChoices],
-          context: c.context,
-          selectability: c.selectability,
-          setPhase: c.setPhase,
-        })),
-      });
-    },
-    { handler: 'acp-models' },
-  );
-
-  const handleAcpCatalog = withValidation(
-    EmptyRequestSchema,
-    async (_req, res) => {
-      if (acpRegistry === undefined) {
-        errorResponse(res, 404, 'urn:ok:error:not-found', 'ACP catalog unavailable.', {
-          handler: 'acp-catalog',
-        });
-        return;
-      }
-      try {
-        const platform = registryPlatformKey();
-        const { agents, stale } = await acpRegistry.getCatalog();
-        const custom = (await loadAcpCustomAgents?.()) ?? [];
-        const harnessAvailability = await acpHarnessAvailability();
-        const rows = [
-          ...agents.map((a) => {
-            const harnessCli = ACP_AGENT_HARNESS_CLIS[a.id];
-            return {
-              id: a.id,
-              name: a.name,
-              version: a.version,
-              ...(a.description !== undefined ? { description: a.description } : {}),
-              ...(a.license !== undefined ? { license: a.license } : {}),
-              ...(a.icon !== undefined ? { iconUrl: a.icon } : {}),
-              ...(a.website !== undefined ? { website: a.website } : {}),
-              source: 'registry' as const,
-              supported:
-                a.distribution.npx !== undefined ||
-                a.distribution.uvx !== undefined ||
-                (platform !== null && a.distribution.binary?.[platform] !== undefined),
-              featured: FEATURED_AGENT_IDS.includes(a.id),
-              ...(harnessCli !== undefined
-                ? {
-                    harness: {
-                      cli: harnessCli,
-                      availability: harnessAvailability[harnessCli]?.availability ?? 'unknown',
-                      credentials: harnessAvailability[harnessCli]?.credentials ?? 'unknown',
-                    },
-                  }
-                : {}),
-            };
-          }),
-          ...custom.map((c: CustomAgentEntry) => ({
-            id: c.id,
-            name: c.name,
-            version: 'custom',
-            source: 'custom' as const,
-            supported: true,
-            featured: false,
-          })),
-        ];
-        successResponse(
-          res,
-          200,
-          AcpCatalogSuccessSchema,
-          { agents: rows, stale, maxThreads: MAX_ACP_THREADS },
-          { handler: 'acp-catalog', extraHeaders: { 'Cache-Control': 'no-store' } },
-        );
-      } catch (e) {
-        errorResponse(
-          res,
-          502,
-          'urn:ok:error:registry-unreachable',
-          'Agent registry unreachable.',
-          {
-            handler: 'acp-catalog',
-            cause: e,
-          },
-        );
-      }
-    },
-    { handler: 'acp-catalog', method: 'GET', skipBodyParse: true },
   );
 
   async function handlePrincipal(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -749,8 +547,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
     '/api/principal': handlePrincipal,
     '/api/workspace': handleWorkspace,
     '/api/semantic-status': handleSemanticStatus,
-    '/api/acp/catalog': handleAcpCatalog,
-    '/api/acp/models': handleAcpModels,
     '/api/installed-agents': handleInstalledAgentsRoute,
     '/api/__embed-detect': handleEmbedDetect,
     '/api/rescue': handleRescueList,

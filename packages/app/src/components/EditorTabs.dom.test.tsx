@@ -245,18 +245,6 @@ vi.doMock('@/hooks/use-git-sync-status', () => ({
   useGitSyncStatusDetailed: () => ({ status: { hasRemote: false } }),
 }));
 
-vi.doMock('@/components/handoff/useHandoffDispatch', () => ({
-  useHandoffDispatch: () => ({ dispatch: vi.fn() }),
-}));
-
-vi.doMock('@/components/handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: {} }),
-}));
-
-vi.doMock('@/components/handoff/OpenInAgentEmptySpaceSubmenu', () => ({
-  OpenInAgentEmptySpaceSubmenu: () => null,
-}));
-
 vi.doMock('@/components/template-menu-rows', () => ({
   TemplateMenuRows: () => null,
 }));

@@ -23,17 +23,9 @@ import { FileListHostProvider } from '@/components/FileListHost';
 import { FileSidebar } from '@/components/FileSidebar';
 import { defaultInitialDir } from '@/components/file-tree-utils';
 import { DraftBar } from '@/components/gitquire-drafts/DraftBar';
-import { ExternalHandoffGateProvider } from '@/components/handoff/ExternalHandoffGate';
-import {
-  type TerminalLaunchContextValue,
-  TerminalLaunchProvider,
-} from '@/components/handoff/TerminalLaunchContext';
-import { requestTerminalLaunch } from '@/components/handoff/terminal-launch-events';
-import { composeTerminalLaunchPrompt } from '@/components/handoff/useHandoffDispatch';
 import { InstallInClaudeDesktopDialog } from '@/components/InstallInClaudeDesktopDialog';
 import { McpConsentDialog } from '@/components/McpConsentDialog';
 import { isNewItemShortcut, NewItemDialog } from '@/components/NewItemDialog';
-import { NoteWindowMainActionReceiver } from '@/components/NoteWindowMainActionReceiver';
 import {
   downgradeFolderIndexForHashNav,
   type ResolvedNavigationTarget,
@@ -59,7 +51,6 @@ import { StaleTabReloadPrompt } from '@/editor/StaleTabReloadPrompt';
 import { ConflictsProvider } from '@/hooks/use-conflicts';
 import { DocNoticesProvider } from '@/hooks/use-doc-notices';
 import { useFolderConfig } from '@/hooks/use-folder-config';
-import { useInstalledClis } from '@/hooks/use-installed-clis';
 import { useReconcileSkillTabs } from '@/hooks/use-reconcile-skill-tabs';
 import { ConfigProvider, useConfigContext } from '@/lib/config-provider';
 import { createPageRequest, nextUntitledDocName, openCreatedPage } from '@/lib/create-page-request';
@@ -562,7 +553,7 @@ function ConfigProviderHost({ children }: { children: ReactNode }) {
       <EditorLifecycleFlush />
       <BackgroundThrottleReporter />
       <StaleTabReloadPrompt />
-      <ExternalHandoffGateProvider>{children}</ExternalHandoffGateProvider>
+      {children}
     </ConfigProvider>
   );
 }
@@ -610,23 +601,11 @@ function AppBody() {
     ? ({ '--ok-app-header-height': APP_HEADER_HEIGHT } as CSSProperties)
     : undefined;
 
-  const installedClis = useInstalledClis();
-  const terminalLaunch: TerminalLaunchContextValue | null =
-    desktopBridge && desktopBridge.config.ptyAvailable === true
-      ? {
-          launchInTerminal: (input, cli) => {
-            requestTerminalLaunch(composeTerminalLaunchPrompt(input, cli), cli);
-          },
-          installedClis,
-        }
-      : null;
-
   return (
     <div data-app-shell="" className="contents" style={appHeaderStyle}>
       <ConnectingBanner />
       <BranchRecycleBanner />
       <PageListProvider>
-        <NoteWindowMainActionReceiver />
         {!noteWindow && <SystemDocSubscriber />}
         <ValidationFreshness />
         <SkillTrackInGitDialog />
@@ -660,24 +639,22 @@ function AppBody() {
             className="pointer-events-none fixed inset-x-0 top-0 z-50 h-2 [-webkit-app-region:drag]"
           />
         )}
-        <TerminalLaunchProvider value={terminalLaunch}>
-          {showAppHeader && <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />}
-          <SidebarProvider className="h-[calc(100vh-var(--ok-app-header-height,0px))] min-h-[calc(100svh-var(--ok-app-header-height,0px))]">
-            <FileListHostProvider enabled={showAppHeader && !singleFile} fileList={<FileSidebar />}>
-              <div
-                data-app-main=""
-                className={cn(
-                  'relative flex w-full flex-1 flex-col',
-                  showAppHeader
-                    ? 'ps-2 pe-2 pb-2 h-[calc(100vh-var(--ok-app-header-height,0px))]'
-                    : 'h-screen overflow-hidden bg-background',
-                )}
-              >
-                <EditorPane />
-              </div>
-            </FileListHostProvider>
-          </SidebarProvider>
-        </TerminalLaunchProvider>
+        {showAppHeader && <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />}
+        <SidebarProvider className="h-[calc(100vh-var(--ok-app-header-height,0px))] min-h-[calc(100svh-var(--ok-app-header-height,0px))]">
+          <FileListHostProvider enabled={showAppHeader && !singleFile} fileList={<FileSidebar />}>
+            <div
+              data-app-main=""
+              className={cn(
+                'relative flex w-full flex-1 flex-col',
+                showAppHeader
+                  ? 'ps-2 pe-2 pb-2 h-[calc(100vh-var(--ok-app-header-height,0px))]'
+                  : 'h-screen overflow-hidden bg-background',
+              )}
+            >
+              <EditorPane />
+            </div>
+          </FileListHostProvider>
+        </SidebarProvider>
         {showAppHeader && !singleFile && <CornerCardStack />}
         {showAppHeader && !singleFile && !desktopBridge ? <DraftBar /> : null}
       </PageListProvider>

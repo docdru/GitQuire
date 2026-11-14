@@ -14,7 +14,6 @@ export interface GitHubAuthConfig {
   mcpToken: string | undefined;
   agentTokenDays: number;
   mcpConnectors: boolean;
-  askAi: boolean;
   aiChat: boolean;
   sessionMaxAgeSeconds: number;
   githubWebUrl: string;
@@ -155,7 +154,6 @@ export function resolveGitHubAuthConfig(
     mcpToken: nonEmpty(env.GITQUIRE_MCP_TOKEN),
     agentTokenDays,
     mcpConnectors: isOn(env.GITQUIRE_MCP_CONNECTORS),
-    askAi: isOn(env.GITQUIRE_ASK_AI),
     aiChat: !isOff(env.GITQUIRE_AI_CHAT),
     sessionMaxAgeSeconds: Math.round(sessionDays * 24 * 60 * 60),
     githubWebUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),

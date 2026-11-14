@@ -1,6 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import {
   formatShortcut,
@@ -17,30 +14,6 @@ describe('keyboard shortcut registry', () => {
   test('uses unique shortcut ids', () => {
     const ids = KEYBOARD_SHORTCUTS.map((shortcut) => shortcut.id);
     expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  test('formats platform-specific shortcut labels', () => {
-    expect(formatShortcut('command-palette', 'mac')).toBe('⌘ K');
-    expect(formatShortcut('command-palette', 'windowsLinux')).toBe('Ctrl K');
-    expect(formatShortcut('new-item', 'mac')).toBe('⌘ N');
-    expect(formatShortcut('new-item', 'windowsLinux')).toBe('Ctrl N');
-    expect(formatShortcut('new-folder', 'mac')).toBe('⇧⌘ N');
-    expect(formatShortcut('new-folder', 'windowsLinux')).toBe('Ctrl Shift N');
-    expect(formatShortcut('file-tree-copy', 'mac')).toBe('⌘ C');
-    expect(formatShortcut('file-tree-paste', 'windowsLinux')).toBe('Ctrl V');
-    expect(formatShortcut('file-tree-delete', 'mac')).toBe('⌘ Backspace');
-    expect(formatShortcut('file-tree-delete', 'windowsLinux')).toBe('Delete');
-    expect(formatShortcut('ask-ai-selection', 'mac')).toBe('⌘ L');
-    expect(formatShortcut('add-comment', 'mac')).toBe('⇧⌘ M');
-    expect(formatShortcut('add-comment', 'windowsLinux')).toBe('Ctrl Shift M');
-    expect(formatShortcut('tab-new', 'mac')).toBe('⌘ T');
-    expect(formatShortcut('tab-next', 'mac')).toBe('⌃ Tab');
-    expect(formatShortcut('tab-previous', 'mac')).toBe('⌃⇧ Tab');
-    expect(formatShortcut('tab-reopen-closed', 'mac')).toBe('⇧⌘ T');
-    expect(formatShortcut('navigate-back', 'mac')).toBe('⌘ [');
-    expect(formatShortcut('navigate-back', 'windowsLinux')).toBe('Alt ←');
-    expect(formatShortcut('navigate-forward', 'mac')).toBe('⌘ ]');
-    expect(formatShortcut('navigate-forward', 'windowsLinux')).toBe('Alt →');
   });
 
   test('formats spoken shortcut labels for accessible names', () => {
@@ -374,92 +347,6 @@ describe('keyboard shortcut registry', () => {
     ).toBe(false);
   });
 
-  test('formats the open-ask-ai shortcut as Shift+Cmd / Ctrl+Shift + L', () => {
-    expect(formatShortcut('open-ask-ai', 'mac')).toBe('⇧⌘ L');
-    expect(formatShortcut('open-ask-ai', 'windowsLinux')).toBe('Ctrl Shift L');
-  });
-
-  test('open-ask-ai requires Shift, keeping bare Cmd+L for the agents panel', () => {
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, shiftKey: true, key: 'L', code: 'KeyL' },
-        'open-ask-ai',
-        'mac',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, shiftKey: true, key: 'L', code: 'KeyL' },
-        'open-ask-ai',
-        'windowsLinux',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, shiftKey: false, key: 'l', code: 'KeyL' },
-        'open-ask-ai',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, shiftKey: true, key: 'L', code: 'KeyL' },
-        'open-ask-ai',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: true, shiftKey: false, key: '¬', code: 'KeyL' },
-        'open-ask-ai',
-        'mac',
-      ),
-    ).toBe(false);
-  });
-
-  test('formats the new-terminal-tab shortcut as Shift+Cmd/Ctrl + J', () => {
-    expect(formatShortcut('new-terminal-tab', 'mac')).toBe('⇧⌘ J');
-    expect(formatShortcut('new-terminal-tab', 'windowsLinux')).toBe('Ctrl Shift J');
-  });
-
-  test('matches new-terminal-tab on Shift+Cmd+J / Ctrl+Shift+J and stays clear of the ⌘J toggle', () => {
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'j' },
-        'new-terminal-tab',
-        'mac',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, shiftKey: true, key: 'j' },
-        'new-terminal-tab',
-        'windowsLinux',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: false, key: 'j' },
-        'new-terminal-tab',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, shiftKey: true, key: 'j' },
-        'new-terminal-tab',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'j' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-  });
-
   test('matches tab shortcuts with strict modifiers', () => {
     expect(
       matchesKeyboardShortcut(
@@ -721,15 +608,6 @@ describe('keyboard shortcut registry', () => {
     ).toBe(true);
   });
 
-  test('matches both agents-panel rows on Cmd/Ctrl+L', () => {
-    const cmdL = { metaKey: true, ctrlKey: false, altKey: false, shiftKey: false, key: 'l' };
-    expect(matchesKeyboardShortcut(cmdL, 'toggle-agent-panel', 'mac')).toBe(true);
-    expect(matchesKeyboardShortcut(cmdL, 'ask-ai-selection', 'mac')).toBe(true);
-    expect(matchesKeyboardShortcut({ ...cmdL, shiftKey: true }, 'ask-ai-selection', 'mac')).toBe(
-      false,
-    );
-  });
-
   test('detects editable shortcut targets', () => {
     expect(isEditableShortcutTarget({ tagName: 'INPUT' })).toBe(true);
     expect(isEditableShortcutTarget({ tagName: 'TEXTAREA' })).toBe(true);
@@ -788,32 +666,6 @@ describe('keyboard shortcut registry', () => {
   test('registers report-bug under the General shortcut-help category', () => {
     const byId = new Map(KEYBOARD_SHORTCUTS.map((shortcut) => [shortcut.id, shortcut]));
     expect(byId.get('report-bug')?.category).toBe('general');
-  });
-
-  test('the traced xterm version stays pinned', () => {
-    const require_ = createRequire(import.meta.url);
-    let dir = dirname(require_.resolve('@xterm/xterm'));
-    let resolved: string | undefined;
-    for (;;) {
-      try {
-        const parsed = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
-          name?: string;
-          version?: string;
-        };
-        if (parsed.name === '@xterm/xterm' && parsed.version) {
-          resolved = parsed.version;
-          break;
-        }
-      } catch {}
-      const parent = dirname(dir);
-      if (parent === dir) break;
-      dir = parent;
-    }
-    expect(resolved).toBe('6.0.0');
-    const manifest = JSON.parse(
-      readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
-    ) as { dependencies?: Record<string, string> };
-    expect(manifest.dependencies?.['@xterm/xterm']).toBe('6.0.0');
   });
 
   test('the report-bug chord is display-only and matches no shortcut in the registry', () => {

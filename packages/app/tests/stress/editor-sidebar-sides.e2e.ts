@@ -5,7 +5,6 @@ import {
   headerPaneButton,
   openDesktopHeader,
   runPaletteCommand,
-  stubAgentCatalog,
   test,
   waitForActiveProviderSynced,
 } from './_helpers';
@@ -32,7 +31,6 @@ async function spanOf(page: Page, selector: string): Promise<Span | null> {
 async function openWide(page: Page, api: ApiHelpers, slug: string): Promise<void> {
   const name = `editor-sidebar-sides-${slug}-${test.info().workerIndex}`;
   await api.seedDocs([{ name, markdown: `# ${name}\n\n${DOC_TEXT}\n` }]);
-  await stubAgentCatalog(page);
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`/#/${name}`);
   await waitForActiveProviderSynced(page);
@@ -220,7 +218,6 @@ test.describe('swapping the editor sidebars', () => {
   }) => {
     const name = `editor-sidebar-sides-desktop-${test.info().workerIndex}`;
     await api.seedDocs([{ name, markdown: `# ${name}\n\n${DOC_TEXT}\n` }]);
-    await stubAgentCatalog(page);
     await page.setViewportSize({ width: 1600, height: 900 });
     await openDesktopHeader(page, workerServer, name, {});
     await expect(page.locator('.tiptap-editor .ProseMirror').first()).toContainText(DOC_TEXT, {

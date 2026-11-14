@@ -218,48 +218,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     ],
   },
   {
-    id: 'ask-ai-selection',
-    category: 'general',
-    title: msg`Ask AI about selection`,
-    description: msg`Stage the selected passage in the agents panel, ready to extend and send.`,
-    scope: msg`Editor selection`,
-    bindings: [
-      {
-        mac: '⌘ L',
-        windowsLinux: 'Ctrl L',
-        match: { key: 'l', mod: true },
-      },
-    ],
-  },
-  {
-    id: 'open-ask-ai',
-    category: 'general',
-    title: msg`Ask AI`,
-    description: msg`Open and focus the bottom Ask AI prompt composer.`,
-    scope: msg`Global`,
-    bindings: [
-      {
-        mac: '⇧⌘ L',
-        windowsLinux: 'Ctrl Shift L',
-        match: { code: 'KeyL', anyMod: true, shiftKey: true, allowExtraModifiers: true },
-      },
-    ],
-  },
-  {
-    id: 'new-terminal-tab',
-    category: 'general',
-    title: msg`New session`,
-    description: msg`Open a new session with your preferred AI. With text selected, stage it there instead of running it.`,
-    scope: msg`OK Desktop`,
-    bindings: [
-      {
-        mac: '⇧⌘ J',
-        windowsLinux: 'Ctrl Shift J',
-        match: { key: 'j', mod: true, shiftKey: true },
-      },
-    ],
-  },
-  {
     id: 'report-bug',
     category: 'general',
     title: msg`Report a bug`,

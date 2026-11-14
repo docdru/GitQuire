@@ -386,18 +386,6 @@ describe('defaultReadLocalStorageGuard — production scanner', () => {
       skillVersion: null,
     });
   });
-
-  test('cross-module prefix contract holds — writer key shape matches reader prefix', async () => {
-    const { buildCoworkSkillGuardKey } = await import('./cowork-skill-install');
-    const key = buildCoworkSkillGuardKey('1.2.3');
-    expect(key).toBe('ok:skill:cowork:installed:v1.2.3');
-    installMemoryStorage({ [key]: '1' });
-    const { defaultReadLocalStorageGuard } = await import('./use-claude-desktop-integration');
-    expect(defaultReadLocalStorageGuard()).toEqual({
-      skillInstalled: true,
-      skillVersion: '1.2.3',
-    });
-  });
 });
 
 describe('validateSkillInstallStateSnapshot — shape-drift defense', () => {

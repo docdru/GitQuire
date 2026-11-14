@@ -23,8 +23,6 @@ export interface ProjectRuntime {
     readonly sessionManager: ServerInstance['sessionManager'];
     readonly agentFocusBroadcaster: ServerInstance['agentFocusBroadcaster'];
     readonly agentPresenceBroadcaster: ServerInstance['agentPresenceBroadcaster'];
-    readonly acpRegistry: ServerInstance['acpRegistry'];
-    readonly acpPermissions: ServerInstance['acpPermissions'];
   };
   readonly background: {
     readonly maintenanceCoordinator: ServerInstance['maintenanceCoordinator'];
@@ -66,8 +64,6 @@ export function createProjectRuntime(
       sessionManager: instance.sessionManager,
       agentFocusBroadcaster: instance.agentFocusBroadcaster,
       agentPresenceBroadcaster: instance.agentPresenceBroadcaster,
-      acpRegistry: instance.acpRegistry,
-      acpPermissions: instance.acpPermissions,
     },
     background: {
       maintenanceCoordinator: instance.maintenanceCoordinator,

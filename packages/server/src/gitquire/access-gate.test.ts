@@ -442,7 +442,7 @@ describe('createAccessGate requests', () => {
       login: 'alice',
       email: noreplyEmail({ id: 42, login: 'alice' }),
       admin: false,
-      features: { askAi: false, agentToken: false, connector: false, canConnect: false },
+      features: { agentToken: false, connector: false, canConnect: false },
     });
   });
 
@@ -505,13 +505,6 @@ describe('createAccessGate requests', () => {
         admin.res,
       ),
     ).toBe(false);
-  });
-
-  it('turns Ask AI on with GITQUIRE_ASK_AI', () => {
-    const gate = makeGate({ ...BASE_ENV, GITQUIRE_ASK_AI: 'on' });
-    const out = fakeResponse();
-    gate.handleRequest(fakeRequest('/auth/me', { headers: { cookie: sessionCookie() } }), out.res);
-    expect(JSON.parse(out.body).features).toMatchObject({ askAi: true });
   });
 
   it('only clears the session on a POST to logout', () => {
@@ -613,10 +606,10 @@ describe('createAccessGate upgrades', () => {
     expect(sock.destroyed).toBe(true);
   });
 
-  it('admits in-app agent sessions when Ask AI is on', () => {
+  it('refuses in-app agent sessions', () => {
     const gate = makeGate({ ...BASE_ENV, GITQUIRE_ASK_AI: 'on' });
     const req = fakeRequest('/collab/thread', { headers: { cookie: sessionCookie() } });
-    expect(gate.admitUpgrade(req, fakeSocket().socket)).toBe(true);
+    expect(gate.admitUpgrade(req, fakeSocket().socket)).toBe(false);
   });
 });
 
@@ -631,20 +624,16 @@ describe('in-app agent routes', () => {
     expect(isInAppAgentPath('/mcp')).toBe(false);
   });
 
-  it('refuses them while Ask AI is off and lets them through when it is on', () => {
-    const off = fakeResponse();
-    const handledOff = makeGate().handleRequest(
-      fakeRequest('/api/acp/catalog', { headers: { cookie: sessionCookie() } }),
-      off.res,
-    );
-    expect(handledOff).toBe(true);
-    expect(off.status).toBe(403);
-    expect(JSON.parse(off.body).error).toBe('in-app-agents-off');
-
-    const handledOn = makeGate({ ...BASE_ENV, GITQUIRE_ASK_AI: 'on' }).handleRequest(
-      fakeRequest('/api/acp/catalog', { headers: { cookie: sessionCookie() } }),
-      fakeResponse().res,
-    );
-    expect(handledOn).toBe(false);
+  it('refuses them even with the retired GITQUIRE_ASK_AI switch on', () => {
+    for (const env of [BASE_ENV, { ...BASE_ENV, GITQUIRE_ASK_AI: 'on' }]) {
+      const out = fakeResponse();
+      const handled = makeGate(env).handleRequest(
+        fakeRequest('/api/acp/catalog', { headers: { cookie: sessionCookie() } }),
+        out.res,
+      );
+      expect(handled).toBe(true);
+      expect(out.status).toBe(403);
+      expect(JSON.parse(out.body).error).toBe('in-app-agents-removed');
+    }
   });
 });

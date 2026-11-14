@@ -1,11 +1,10 @@
 import { useLingui } from '@lingui/react/macro';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { PANE_ICON, paneLabel } from '@/components/pane-icons';
 import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useTerminalConsentState } from '@/hooks/use-terminal-enabled';
 import { useAgentsPaneIsChat } from '@/lib/gitquire/features';
 import {
   formatShortcut,
@@ -49,26 +48,16 @@ const SWITCHER_SHOWN_CLASSES = cn(
   HIGH_CONTRAST_OUTLINE_CLASSES,
 );
 
-function useTerminalTurnedOff(): boolean {
-  const { enabled, synced } = useTerminalConsentState();
-  const [offWhenLastSynced, setOffWhenLastSynced] = useState(false);
-  useEffect(() => {
-    if (synced) setOffWhenLastSynced(enabled === false);
-  }, [enabled, synced]);
-  return synced ? enabled === false : offWhenLastSynced;
-}
-
 function useHeaderPaneButtonStates(): readonly HeaderPaneButtonState[] {
   const snapshot = useSyncExternalStore(
     paneVisibilityStore.subscribe,
     paneVisibilityStore.getSnapshot,
     paneVisibilityStore.getSnapshot,
   );
-  const terminalTurnedOff = useTerminalTurnedOff();
   return PANE_ORDER.flatMap((pane) => {
     const visibility = snapshot[pane];
     if (visibility === null) return [];
-    if (pane === 'terminal' && terminalTurnedOff) return [];
+    if (pane === 'terminal') return [];
     return [{ pane, pressed: visibility.onScreen }];
   });
 }

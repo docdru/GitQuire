@@ -175,7 +175,6 @@ const PALETTE_COMMAND_LABELS = {
   terminalMoveBottom: msg`Move Terminal to bottom`,
   agentPanelShow: msg`Show Agents`,
   agentPanelHide: msg`Hide Agents`,
-  agentPanelAskSelection: msg`Ask AI About Selection`,
   editorMoveToLeftEdge: msg`Move Editor to the left edge of the window`,
   editorMoveToRightEdge: msg`Move Editor to the right edge of the window`,
   editorMoveToTopEdge: msg`Move Editor to the top edge of the window`,

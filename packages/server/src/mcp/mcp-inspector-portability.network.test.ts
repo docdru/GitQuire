@@ -6,10 +6,10 @@ import { join } from 'node:path';
 import { OPEN_KNOWLEDGE_MCP_TOOLS } from '@inkeep/open-knowledge-core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { z } from 'zod';
-import { captureChild, isolateNpmHome, npmCli } from '../acp/package-acquisition.test-helper.ts';
 import { ConfigSchema } from '../config/schema.ts';
 import { listenOnLoopback } from '../loopback-rig-test-helpers.ts';
 import { createMcpHttpHandler, type McpHttpHandler } from '../mcp-http.ts';
+import { captureChild, isolateNpmHome, npmCli } from './npm-child.test-helper.ts';
 
 const INSPECTOR_PACKAGE = '@modelcontextprotocol/inspector@2.10.1';
 const NPM_RESOLUTION_CUTOFF = '2026-10-08T06:00:00.000Z';

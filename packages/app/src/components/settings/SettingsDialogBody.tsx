@@ -10,7 +10,6 @@ import { WikiAdminGate } from '@/gitquire-settings/WikiAdminGate';
 import { lazyWithPreload } from '@/lib/lazy-with-preload';
 import { SettingsSectionHeader } from './SettingsSectionHeader';
 import { FIELDS_USER_PREFERENCES } from './settings-fields';
-import { isTerminalSettingsAvailable } from './settings-host-gates';
 
 function lazySection<Props>(load: () => Promise<ComponentType<Props>>) {
   return lazy(async () => ({ default: await load() }));
@@ -19,9 +18,6 @@ function lazySection<Props>(load: () => Promise<ComponentType<Props>>) {
 const AboutSection = lazySection(async () => (await import('./AboutSection')).AboutSection);
 const SharingSection = lazySection(async () => (await import('./SharingSection')).SharingSection);
 const AccountSection = lazySection(async () => (await import('./AccountSection')).AccountSection);
-const AgentConnectionsSection = lazySection(
-  async () => (await import('./AgentConnectionsSection')).AgentConnectionsSection,
-);
 const AttachmentsSection = lazySection(
   async () => (await import('./AttachmentsSection')).AttachmentsSection,
 );
@@ -62,9 +58,6 @@ const SlidesPluginSection = lazySection(
   async () => (await import('./SlidesPluginSection')).SlidesPluginSection,
 );
 const SyncSection = lazySection(async () => (await import('./SyncSection')).SyncSection);
-const TerminalSection = lazySection(
-  async () => (await import('./TerminalSection')).TerminalSection,
-);
 const ThemePluginSection = lazySection(
   async () => (await import('./ThemePluginSection')).ThemePluginSection,
 );
@@ -185,7 +178,6 @@ function SettingsDialogSection({
         </SettingsSectionHeader>
         <AttachmentsSection />
         <ContentRulesSection />
-        {isTerminalSettingsAvailable() ? <TerminalSection /> : null}
       </section>
     );
   }
@@ -193,7 +185,7 @@ function SettingsDialogSection({
     return <AiChatSettings />;
   }
   if (activeId === 'agent-connections') {
-    return <AgentsSettings inAppAgents={<AgentConnectionsSection />} />;
+    return <AgentsSettings />;
   }
   if (activeId === 'hotkeys') {
     return <HotkeysSection />;

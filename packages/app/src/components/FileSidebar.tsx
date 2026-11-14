@@ -30,15 +30,6 @@ import { ConflictsSection } from '@/components/ConflictsSection';
 import { FileTree, type FileTreeHandle } from '@/components/FileTree';
 import { defaultInitialDir, hasOkPathSegment } from '@/components/file-tree-utils';
 import { subscribeToFilesSectionReveal } from '@/components/files-section-reveal-store';
-import { OpenInAgentEmptySpaceSubmenu } from '@/components/handoff/OpenInAgentEmptySpaceSubmenu';
-import { useTerminalLaunch } from '@/components/handoff/TerminalLaunchContext';
-import {
-  buildProjectScopedHandoffInput,
-  openInstallUrl,
-  startAgentThreadForInput,
-  useHandoffDispatch,
-} from '@/components/handoff/useHandoffDispatch';
-import { useInstalledAgents } from '@/components/handoff/useInstalledAgents';
 import { OnboardingCardMount } from '@/components/OnboardingCard';
 import {
   SidebarToolbarButton as ToolbarButton,
@@ -88,24 +79,10 @@ import { useDocumentContext } from '@/editor/DocumentContext';
 import { useFolderConfig } from '@/hooks/use-folder-config';
 import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
 import { useIsEmbedded } from '@/hooks/use-is-embedded';
-import { useEnabledOverrides } from '@/lib/acp/enabled-agents';
-import {
-  enabledDesktopTargets,
-  enabledTerminalClis,
-  enabledThreadAgents,
-  resolveLauncherSelection,
-  unresolvedDesktopTargets,
-} from '@/lib/acp/launcher-selection';
-import {
-  pickEffectiveDefaultAgent,
-  useDefaultRegisteredAgent,
-  useRegisteredAgents,
-} from '@/lib/acp/registered-agents';
 import { useSettingsLoadingReason } from '@/lib/config-context';
 import { useConfigContext } from '@/lib/config-provider';
 import { subscribeToCreateTopLevelFile } from '@/lib/create-file-events';
 import {
-  buildSendToAiInputForActiveTarget,
   resolveActiveTargetAbsPath,
   resolveActiveTargetRelativePath,
 } from '@/lib/file-menu-target-resolvers';
@@ -115,7 +92,6 @@ import {
   emitFileTreeMenuActionRename,
 } from '@/lib/file-tree-menu-action-events';
 import { useGitQuireRepository } from '@/lib/gitquire/repository';
-import { VISIBLE_TARGETS } from '@/lib/handoff/targets';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { ProfilerBoundary } from '@/lib/perf';
@@ -124,7 +100,6 @@ import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { scheduleClipboardWrite } from '@/lib/share/clipboard-adapter';
 import { buildFolderShareInput, runShareAction } from '@/lib/share/run-share-action';
 import { physicalSide, useFileSidebarSide } from '@/lib/sidebar-side-store';
-import { useStickyAgent } from '@/lib/unified-agent-store';
 import { useDocumentDirection } from '@/lib/use-document-direction';
 import { useWorkspace } from '@/lib/use-workspace';
 import { cn } from '@/lib/utils';
@@ -252,14 +227,6 @@ function FileSidebarInner() {
     t`Files`;
   const { status: gitSyncStatus } = useGitSyncStatusDetailed();
   const hasRemote = gitSyncStatus?.hasRemote === true;
-  const handoffInstallStates = useInstalledAgents().states;
-  const { dispatch: dispatchHandoff } = useHandoffDispatch();
-  const emptySpaceHandoffInput = buildProjectScopedHandoffInput({ workspace });
-  const terminalLaunch = useTerminalLaunch();
-  const enabledOverrides = useEnabledOverrides();
-  const registeredAgents = useRegisteredAgents();
-  const defaultRegisteredAgent = useDefaultRegisteredAgent();
-  const stickyAgentId = useStickyAgent();
   const { projectLocalBinding, projectLocalSynced, merged } = useConfigContext();
   const projectLocalBindingReady = projectLocalSynced && projectLocalBinding !== null;
   const settingsLoadingReason = useSettingsLoadingReason();
@@ -445,56 +412,8 @@ function FileSidebarInner() {
           void bridge.shell.showItemInFolder(absPath);
           return;
         }
-        case 'send-to-ai': {
-          const selection = resolveLauncherSelection({
-            sticky: stickyAgentId,
-            effectiveThreadAgent: pickEffectiveDefaultAgent(
-              enabledThreadAgents(registeredAgents, enabledOverrides),
-              defaultRegisteredAgent,
-            ),
-            enabledClis:
-              terminalLaunch !== null
-                ? enabledTerminalClis(enabledOverrides, terminalLaunch.installedClis)
-                : [],
-            enabledDesktopTargets: enabledDesktopTargets(enabledOverrides, handoffInstallStates),
-            unresolvedDesktopTargets: unresolvedDesktopTargets(
-              enabledOverrides,
-              handoffInstallStates,
-            ),
-            installedClis: terminalLaunch?.installedClis ?? {},
-            terminalAvailable: terminalLaunch !== null,
-            threadsAvailable: true,
-            desktopSelectable: true,
-          });
-          if (selection.kind === 'none') {
-            toast.error(t`No AI agents installed`);
-            return;
-          }
-          const input = buildSendToAiInputForActiveTarget(activeTarget, workspace);
-          if (!input) return;
-          if (selection.kind === 'thread') {
-            startAgentThreadForInput(input, {
-              agent: { source: selection.agent.source, id: selection.agent.id },
-            });
-            return;
-          }
-          if (selection.kind === 'cli') {
-            terminalLaunch?.launchInTerminal(input, selection.cli);
-            return;
-          }
-          if (selection.kind === 'terminal') return;
-          const target = VISIBLE_TARGETS.find((tg) => tg.id === selection.target);
-          if (!target) return;
-          if (handoffInstallStates[target.id]?.installed !== true) {
-            void openInstallUrl(target);
-            toast.info(t`${target.displayName} isn't installed yet — opening its download page.`);
-            return;
-          }
-          void dispatchHandoff(target.id, input, {
-            installState: handoffInstallStates[target.id],
-          });
+        case 'send-to-ai':
           return;
-        }
         case 'copy-full-path': {
           if (!workspace) return;
           const absPath = resolveActiveTargetAbsPath(activeTarget, workspace);
@@ -581,13 +500,6 @@ function FileSidebarInner() {
     showOkFolders,
     showOnlyMarkdownFiles,
     showSkillsSection,
-    handoffInstallStates,
-    dispatchHandoff,
-    terminalLaunch,
-    enabledOverrides,
-    registeredAgents,
-    defaultRegisteredAgent,
-    stickyAgentId,
     toggleSidebar,
     t,
   ]);
@@ -892,11 +804,6 @@ function FileSidebarInner() {
               ) : null}
             </ContextMenuItem>
           ) : null}
-          <OpenInAgentEmptySpaceSubmenu
-            input={emptySpaceHandoffInput}
-            installStates={handoffInstallStates}
-            dispatch={dispatchHandoff}
-          />
           {hasRemote ? (
             <ContextMenuItem onSelect={handleEmptySpaceShare} data-testid="empty-space-menu-share">
               <Share2 aria-hidden="true" />

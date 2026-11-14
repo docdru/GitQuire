@@ -18,17 +18,10 @@ import {
   type ServerRuntimeConfig,
   SKILLS_STORE_DIRNAME,
 } from '@inkeep/open-knowledge-core';
-import { okProjectLogsDir, okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+import { okProjectLogsDir } from '@inkeep/open-knowledge-core/server';
 import { resolveGitDirDetailed } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import { context, propagation } from '@opentelemetry/api';
 import sirv from 'sirv';
-import { readAgentBrowserTools, readAutoApproveOkTools } from './acp/permissions.ts';
-import {
-  AcpThreadManager,
-  type AcpThreadManagerOptions,
-  buildOkMcpStdioCommand,
-} from './acp/thread-manager.ts';
-import { collectServerHostSnapshot } from './agent-registry-probes.ts';
 import { createAssetServeMiddleware } from './asset-serve-middleware.ts';
 import { bootElapsedMs, recordBootPhase, startBootTimings } from './boot-timings.ts';
 import type { Config } from './config/schema.ts';
@@ -165,7 +158,6 @@ export interface BootServerOptions
     | 'singleDocRelPath'
     | 'ephemeral'
     | 'configHomedirOverride'
-    | 'acpRegistryFetchImpl'
     | 'watcherBackend'
     | 'watcherClock'
     | 'freshnessIntervalMs'
@@ -174,10 +166,6 @@ export interface BootServerOptions
   skipAutoInit?: boolean;
   serverRuntime?: ServerRuntimeConfig;
   bind?: readonly string[];
-  probeHarnessManagedMcpEntry?: AcpThreadManagerOptions['probeHarnessManagedMcpEntry'];
-  probePiAcpBridge?: AcpThreadManagerOptions['probePiAcpBridge'];
-  ensurePiAcpBridge?: AcpThreadManagerOptions['ensurePiAcpBridge'];
-  terminalAuthAvailable?: boolean;
   idleShutdownMs?: number | null;
   serveContentAssets?: boolean;
   reactShellDistDir?: string;
@@ -207,7 +195,6 @@ export interface BootedServer {
   didAutoInit: boolean;
   serverInstance: ServerInstance;
   runtime: ProjectRuntime;
-  acpThreadManager: AcpThreadManager | null;
 }
 
 const PINO_REDACT_MAX_DEPTH = 5;
@@ -423,7 +410,6 @@ async function bootServerInner(
   const serverInstance = createServer({
     authorityRegistryPath: opts.authorityRegistryPath,
     getCollabClientCount: () => collabClientCounter?.getCount() ?? 0,
-    acpRegistryFetchImpl: opts.acpRegistryFetchImpl,
     contentDir: opts.contentDir,
     projectDir: opts.projectDir,
     ingressPolicy,
@@ -522,45 +508,6 @@ async function bootServerInner(
       })
     : undefined;
 
-  const acpThreadManager = opts.ephemeral
-    ? null
-    : new AcpThreadManager({
-        contentDir: opts.contentDir,
-        localDir: lockDir,
-        globalDir: okUserHomeDir(),
-        registry: serverInstance.acpRegistry,
-        permissions: serverInstance.acpPermissions,
-        sessionManager,
-        agentPresenceBroadcaster,
-        localApi: serverInstance.localApi,
-        isExcludedPath: (rel) => serverInstance.contentFilter.isExcluded(rel),
-        isIgnoredPath: (rel) => serverInstance.contentFilter.isPathIgnored(rel),
-        getLoadedDocText: (docName) =>
-          hocuspocus.documents.get(docName)?.getText('source').toString() ?? null,
-        getServerUrl: () => internalBaseUrl(),
-        getMcpStdioCommand: () => buildOkMcpStdioCommand(opts.localOpCliArgs, boundPort, { log }),
-        probeHarnessManagedMcpEntry: opts.probeHarnessManagedMcpEntry,
-        probePiAcpBridge: opts.probePiAcpBridge,
-        ensurePiAcpBridge: opts.ensurePiAcpBridge,
-        terminalAuthAvailable: opts.terminalAuthAvailable === true,
-        hostSnapshot: () =>
-          collectServerHostSnapshot({ env: 'local-web', resolve: opts.agentIntegrations?.probe }),
-        autoApproveOkTools: () =>
-          readAutoApproveOkTools(
-            opts.projectDir ?? opts.contentDir,
-            opts.configHomedirOverride,
-            log,
-          ),
-        agentBrowserTools: () =>
-          readAgentBrowserTools(
-            opts.projectDir ?? opts.contentDir,
-            opts.configHomedirOverride,
-            log,
-          ),
-        log,
-      });
-  if (acpThreadManager !== null) await acpThreadManager.init();
-
   let readinessState: ReadinessState = 'pending';
   ready.then(
     () => {
@@ -591,7 +538,6 @@ async function bootServerInner(
     contentAssetMiddleware,
     reactShellMiddleware,
     ephemeral: opts.ephemeral,
-    acpThreadManager,
   });
 
   let destroy: BootedServer['destroy'] = async () => {
@@ -780,9 +726,6 @@ async function bootServerInner(
       log.warn({ err, step: 'idleHandle.detach' }, 'bootServer destroy step failed');
     }
 
-    if (acpThreadManager !== null) {
-      await runStep('acpThreads.destroy', () => acpThreadManager.destroy());
-    }
     await runStep('secondaryListeners.close', async () => {
       for (const secondary of secondaryServers) {
         secondary.closeAllConnections?.();
@@ -910,6 +853,5 @@ async function bootServerInner(
     didAutoInit,
     serverInstance,
     runtime: createProjectRuntime(serverInstance, { contentDir: opts.contentDir, projectDir }),
-    acpThreadManager,
   };
 }

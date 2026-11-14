@@ -58,7 +58,7 @@ describe('OnboardingCard', () => {
   test('shows the registry shortcut glyphs for the active platform', () => {
     render(<OnboardingCard store={freshStore()} />);
     expect(screen.getByText(formatShortcut('new-item'))).toBeTruthy();
-    expect(screen.getByText(formatShortcut('open-ask-ai'))).toBeTruthy();
+    expect(screen.getByText(formatShortcut('toggle-agent-panel'))).toBeTruthy();
   });
 
   test('Dismiss permanently dismisses via the store', () => {

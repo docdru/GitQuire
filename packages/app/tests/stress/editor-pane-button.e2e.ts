@@ -13,7 +13,6 @@ import {
   openDesktopHeader,
   presetTerminalPlacement,
   setHeaderPane,
-  stubAgentCatalog,
   terminalPaneCard,
   test,
   waitForActiveProviderSynced,
@@ -81,7 +80,6 @@ async function waitForDocument(page: Page): Promise<void> {
 
 async function openWeb(page: Page, api: ApiHelpers, slug: string, extraParagraphs = 0) {
   const name = await seedDoc(api, slug, extraParagraphs);
-  await stubAgentCatalog(page);
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`/#/${name}`);
   await waitForActiveProviderSynced(page);
@@ -98,7 +96,6 @@ async function openDesktop(
   placement: TerminalPlacement,
 ) {
   const name = await seedDoc(api, slug);
-  await stubAgentCatalog(page);
   await presetTerminalPlacement(page, placement);
   await page.setViewportSize({ width: 1600, height: 900 });
   await openDesktopHeader(page, workerServer, name, {});

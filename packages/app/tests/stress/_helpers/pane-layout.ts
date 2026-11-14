@@ -3,7 +3,6 @@ import {
   TERMINAL_PLACEMENT_KEY,
   type TerminalPlacement,
 } from '../../../src/lib/terminal-placement-store';
-import { acpCatalogBody } from './acp-catalog.ts';
 import { openDesktopHeader } from './app-header-host.ts';
 import { expect } from './fixtures.ts';
 import { waitForActiveProviderSynced } from './provider.ts';
@@ -102,10 +101,6 @@ export async function dragDockSeam(
   await expect(workspace).not.toHaveAttribute('data-dragging');
 }
 
-export async function stubAgentCatalog(page: Page): Promise<void> {
-  await page.route('**/api/acp/catalog', (route) => route.fulfill({ json: acpCatalogBody([]) }));
-}
-
 export async function presetTerminalPlacement(
   page: Page,
   placement: TerminalPlacement,
@@ -121,7 +116,6 @@ export async function openWebLayout(
   docName: string,
   viewport: LayoutViewport,
 ): Promise<void> {
-  await stubAgentCatalog(page);
   await page.setViewportSize(viewport);
   await page.goto(`/#/${docName}`);
   await waitForActiveProviderSynced(page);
@@ -134,7 +128,6 @@ export async function openDesktopLayout(
   docName: string,
   { viewport, terminalPlacement }: DesktopLayoutOptions,
 ): Promise<void> {
-  await stubAgentCatalog(page);
   await presetTerminalPlacement(page, terminalPlacement);
   await page.setViewportSize(viewport);
   await openDesktopHeader(page, workerServer, docName, {});
