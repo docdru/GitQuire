@@ -1778,13 +1778,13 @@ msgstr "詢問 {agentName}"
 msgid "Ask {agentName}, {hint}"
 msgstr "詢問 {agentName}，{hint}"
 
-msgid "Ask about the wiki…"
+msgid "Ask about the wiki"
 msgstr ""
 
 msgid "Ask about this page or anything in the wiki."
 msgstr ""
 
-msgid "Ask about this page or the wiki…"
+msgid "Ask about this page or the wiki"
 msgstr ""
 
 msgid "Ask again before read-only commands"

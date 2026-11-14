@@ -51,6 +51,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { hashFromDocName } from '@/lib/doc-hash';
 import {
@@ -193,10 +194,7 @@ function ToolLine({ item }: { item: Item & { kind: 'tool' } }) {
       data-testid="ai-chat-tool"
     >
       {item.state === 'running' ? (
-        <span
-          aria-hidden="true"
-          className="size-3 animate-spin rounded-full border border-current border-t-transparent"
-        />
+        <Spinner aria-hidden="true" className="size-3" />
       ) : item.state === 'failed' ? (
         <AlertTriangle aria-hidden="true" className="size-3" />
       ) : (
@@ -727,7 +725,7 @@ export function ChatPanel() {
             value={text}
             aria-label={t`Message`}
             placeholder={
-              currentDoc === null ? t`Ask about the wiki…` : t`Ask about this page or the wiki…`
+              currentDoc === null ? t`Ask about the wiki` : t`Ask about this page or the wiki`
             }
             onChange={(event) => {
               setText(event.target.value);

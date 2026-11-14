@@ -1774,13 +1774,13 @@ msgstr "{agentName}-কে জিজ্ঞেস করুন"
 msgid "Ask {agentName}, {hint}"
 msgstr "{agentName}-কে জিজ্ঞেস করুন, {hint}"
 
-msgid "Ask about the wiki…"
+msgid "Ask about the wiki"
 msgstr ""
 
 msgid "Ask about this page or anything in the wiki."
 msgstr ""
 
-msgid "Ask about this page or the wiki…"
+msgid "Ask about this page or the wiki"
 msgstr ""
 
 msgid "Ask again before read-only commands"
