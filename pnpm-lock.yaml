@@ -219,9 +219,6 @@ importers:
       smol-toml:
         specifier: ~1.9.0
         version: 1.9.1
-      ts-morph:
-        specifier: ^28.0.0
-        version: 28.0.0
       tsrs:
         specifier: 0.20.0-ts7.1.0-beta
         version: 0.20.0-ts7.1.0-beta
