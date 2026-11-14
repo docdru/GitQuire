@@ -9490,6 +9490,9 @@ msgstr "Szukaj gałęzi..."
 msgid "Search by meaning"
 msgstr "Szukaj według znaczenia"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "Przeszukaj historię czatu"
 
@@ -9693,9 +9696,6 @@ msgstr "Wyszukiwanie semantyczne dodaje do narzędzia wyszukiwania ranking opart
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "Wyszukiwanie semantyczne jest włączone, ale nie ustawiono klucza API — wyszukiwanie wraca do dopasowywania słów kluczowych. Dodaj go poniżej."
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "Wyszukiwanie semantyczne jest niedostępne przy aktualnej konfiguracji dostawcy osadzania. Sprawdź Ustawienia → Wyszukiwanie."
 
 msgid "Send"
 msgstr "Wyślij"

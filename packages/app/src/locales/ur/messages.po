@@ -9490,6 +9490,9 @@ msgstr "برانچیں تلاش کریں..."
 msgid "Search by meaning"
 msgstr "معنی کے لحاظ سے تلاش کریں"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "چیٹ ہسٹری میں تلاش کریں"
 
@@ -9693,9 +9696,6 @@ msgstr "معنوی تلاش، تلاش کے ٹول میں معنی پر مبنی
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "معنوی تلاش فعال ہے، مگر کوئی API کلید مقرر نہیں — تلاش کلیدی الفاظ کی مماثلت پر واپس آ جاتی ہے۔ نیچے ایک شامل کریں۔"
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "موجودہ ایمبیڈنگ فراہم کنندہ سیٹ اپ کے ساتھ معنوی تلاش دستیاب نہیں ہے۔ ترتیبات ← تلاش دیکھیں۔"
 
 msgid "Send"
 msgstr "بھیجیں"

@@ -9490,6 +9490,9 @@ msgstr "البحث في الفروع..."
 msgid "Search by meaning"
 msgstr "البحث حسب المعنى"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "البحث في سجل المحادثات"
 
@@ -9693,9 +9696,6 @@ msgstr "يضيف البحث الدلالي ترتيبًا قائمًا على ا
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "البحث الدلالي مفعّل، لكن لم يُضبط مفتاح API — يعود البحث إلى مطابقة الكلمات المفتاحية. أضف واحدًا أدناه."
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "البحث الدلالي غير متاح مع إعداد موفر التضمينات الحالي. تحقق من الإعدادات ← البحث."
 
 msgid "Send"
 msgstr "إرسال"

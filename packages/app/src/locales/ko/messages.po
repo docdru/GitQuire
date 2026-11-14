@@ -9490,6 +9490,9 @@ msgstr "브랜치 검색…"
 msgid "Search by meaning"
 msgstr "의미로 검색"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "채팅 기록 검색"
 
@@ -9693,9 +9696,6 @@ msgstr "의미 기반 검색은 검색 도구에 의미 기반 순위를 추가�
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "의미 기반 검색이 켜져 있지만 API 키가 설정되지 않아 검색이 키워드 매칭으로 대체됩니다. 아래에 추가합니다."
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "현재 임베딩 제공업체 설정에서는 시맨틱 검색을 사용할 수 없습니다. 설정 → 검색을 확인하세요."
 
 msgid "Send"
 msgstr "전송"

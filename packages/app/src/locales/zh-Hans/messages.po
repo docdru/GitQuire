@@ -9490,6 +9490,9 @@ msgstr "搜索分支…"
 msgid "Search by meaning"
 msgstr "按语义搜索"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "搜索聊天记录"
 
@@ -9693,9 +9696,6 @@ msgstr "语义搜索为搜索工具加入基于语义的排序，即使没有共
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "语义搜索已开启，但没有设置 API 密钥——搜索会退回到关键词匹配。请在下方添加一个。"
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "当前嵌入提供商设置无法使用语义搜索。请检查“设置”→“搜索”。"
 
 msgid "Send"
 msgstr "发送"

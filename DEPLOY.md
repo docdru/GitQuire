@@ -11,6 +11,7 @@ agent access. For what GitQuire does, see the [README](./README.md).
 - [Mention emails](#mention-emails)
 - [Chat notifications](#chat-notifications)
 - [AI agents](#ai-agents)
+- [Search by meaning](#search-by-meaning)
 - [Wiki administration](#wiki-administration)
 - [Build the image yourself](#build-the-image-yourself)
 - [Environment variable reference](#environment-variable-reference)
@@ -261,6 +262,39 @@ It can make sense for a small team that trusts each other, runs GitQuire on its 
 wants agents to share one API key. Turn it on with `GITQUIRE_ASK_AI=on`; members then set up the
 agents under **Settings → Connect Claude**, below the connector steps.
 
+## Search by meaning
+
+The command palette (⌘K) and the MCP `search` tool find pages by their words. Search by meaning
+adds a **By meaning** mode to the palette and lets agents find related pages that share no
+keywords. It is off by default and set by the server, for everyone:
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_SEMANTIC_SEARCH` | `on` turns it on. |
+| `GITQUIRE_EMBEDDINGS_API_KEY` | API key for the embeddings provider. Not needed for a provider on the same machine, such as Ollama on `localhost`. |
+| `GITQUIRE_EMBEDDINGS_URL` | Base URL of an OpenAI-compatible embeddings API. Default `https://api.openai.com/v1`. |
+| `GITQUIRE_EMBEDDINGS_MODEL` | Embeddings model. Default `text-embedding-3-small`. |
+
+For example, with OpenAI:
+
+```bash
+GITQUIRE_SEMANTIC_SEARCH=on
+GITQUIRE_EMBEDDINGS_API_KEY=sk-...
+```
+
+Know what you're choosing:
+
+- **Page text leaves the server.** The wiki's pages, and every search typed in **By meaning**
+  mode, are sent to the embeddings provider. Pages excluded by `.gitignore` or `.okignore` are
+  never sent. Use a self-hosted provider such as Ollama if that matters to you.
+- **One key, billed per use.** Pages are embedded the first time someone searches by meaning and
+  again when they change. With OpenAI's small model, a typical team wiki costs cents.
+- **Changing the URL or model re-embeds every page.** Vectors are cached on the data volume in
+  `.ok/local/embeddings/`.
+
+The key is only ever sent to `GITQUIRE_EMBEDDINGS_URL`. There is no Search page in the app's
+settings: the environment is the only place to change this.
+
 ## Wiki administration
 
 Settings under **User** in the app are personal: with GitHub sign-in on, each person's are saved
@@ -308,4 +342,5 @@ CI builds and smoke-tests the image on every pull request and publishes it to
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM`, `GITQUIRE_MAIL_DOMAINS` | [Mention emails](#mention-emails) |
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | [Chat notifications](#chat-notifications) |
 | `GITQUIRE_AGENT_TOKEN_DAYS`, `GITQUIRE_MCP_CONNECTORS`, `GITQUIRE_MCP_TOKEN`, `GITQUIRE_ASK_AI` | [AI agents](#ai-agents) |
+| `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |

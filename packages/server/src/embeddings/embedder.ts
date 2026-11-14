@@ -7,6 +7,7 @@ import {
   sleep as defaultSleep,
   isLoopbackEmbeddingsUrl,
 } from '@inkeep/open-knowledge-core';
+import { deploymentEmbeddingsKey } from '../gitquire/semantic-search.ts';
 import { getLogger } from '../logger.ts';
 import { EmbeddingsSecretStoreError } from './credential-errors.ts';
 import {
@@ -356,6 +357,8 @@ export async function resolveEmbeddingsCredential(
   projectDir: string,
   baseUrl: string,
 ): Promise<ResolvedEmbeddingsCredential> {
+  const deploymentKey = deploymentEmbeddingsKey(process.env, baseUrl);
+  if (deploymentKey !== undefined) return { apiKey: deploymentKey, keyless: false, source: 'env' };
   let failureCode: EmbeddingsSecretStoreError['code'] | null = null;
   let failureDiagnostic: EmbeddingsSecretStoreError['cause'];
   const resolved = keyStore

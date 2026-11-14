@@ -9490,6 +9490,9 @@ msgstr "Search branches..."
 msgid "Search by meaning"
 msgstr "Search by meaning"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+
 msgid "Search chat history"
 msgstr "Search chat history"
 
@@ -9693,9 +9696,6 @@ msgstr "Semantic search adds meaning-based ranking to the search tool so concept
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
 
 msgid "Send"
 msgstr "Send"
