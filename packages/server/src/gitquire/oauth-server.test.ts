@@ -261,6 +261,79 @@ describe('OAuth sign-in for connectors', () => {
     expect(back.searchParams.get('code')).toBeTruthy();
   });
 
+  it('registers a confidential client like Le Chat and checks its secret', async () => {
+    const { gate } = setup();
+    const registered = await send(gate, '/oauth/register', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        client_name: 'Mistral Le Chat',
+        redirect_uris: [CALLBACK],
+        grant_types: ['authorization_code', 'refresh_token'],
+        response_types: ['code'],
+        token_endpoint_auth_method: 'client_secret_basic',
+        scope: 'wiki',
+      }),
+    });
+    expect(registered.status).toBe(201);
+    const client = JSON.parse(registered.body) as Record<string, unknown>;
+    expect(client.token_endpoint_auth_method).toBe('client_secret_basic');
+    expect(client.client_secret_expires_at).toBe(0);
+    const clientId = String(client.client_id);
+    const clientSecret = String(client.client_secret);
+    expect(clientSecret).toMatch(/^gqs_/);
+    const basic = `Basic ${Buffer.from(
+      `${encodeURIComponent(clientId)}:${encodeURIComponent(clientSecret)}`,
+    ).toString('base64')}`;
+
+    const back = await approve(gate, clientId);
+    const fields = {
+      grant_type: 'authorization_code',
+      code: back.searchParams.get('code') ?? '',
+      redirect_uri: CALLBACK,
+      code_verifier: VERIFIER,
+    };
+    const withoutSecret = await exchange(gate, { ...fields, client_id: clientId });
+    expect(withoutSecret.status).toBe(401);
+    expect(JSON.parse(withoutSecret.body).error).toBe('invalid_client');
+    const wrongSecret = await exchange(gate, {
+      ...fields,
+      client_id: clientId,
+      client_secret: 'gqs_wrong',
+    });
+    expect(wrongSecret.status).toBe(401);
+
+    const tokens = await send(gate, '/oauth/token', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded', authorization: basic },
+      body: new URLSearchParams(fields).toString(),
+    });
+    expect(tokens.status).toBe(200);
+    const body = JSON.parse(tokens.body) as Record<string, string>;
+
+    const refreshed = await exchange(gate, {
+      grant_type: 'refresh_token',
+      refresh_token: body.refresh_token ?? '',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+    expect(refreshed.status).toBe(200);
+  });
+
+  it('refuses an unknown token endpoint auth method', async () => {
+    const { gate } = setup();
+    const registered = await send(gate, '/oauth/register', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        redirect_uris: [CALLBACK],
+        token_endpoint_auth_method: 'private_key_jwt',
+      }),
+    });
+    expect(registered.status).toBe(400);
+    expect(JSON.parse(registered.body).error).toBe('invalid_client_metadata');
+  });
+
   it('refuses a wrong code verifier', async () => {
     const { gate } = setup();
     const back = await approve(gate, CIMD);

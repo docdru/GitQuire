@@ -83,7 +83,7 @@ export function sessionPrincipal(req: IncomingMessage | undefined): GitQuirePrin
   return principal;
 }
 
-function cookieFromBag(bag: unknown): string | undefined {
+export function cookieFromBag(bag: unknown): string | undefined {
   if (typeof bag !== 'object' || bag === null) return undefined;
   const maybeHeaders = bag as { get?: unknown };
   if (typeof maybeHeaders.get === 'function') {

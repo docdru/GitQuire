@@ -11,7 +11,8 @@ agent access. For what GitQuire does, see the [README](./README.md).
 - [Mention emails](#mention-emails)
 - [Chat notifications](#chat-notifications)
 - [AI agents](#ai-agents)
-- [Other settings](#other-settings)
+- [Search by meaning](#search-by-meaning)
+- [Wiki administration](#wiki-administration)
 - [Build the image yourself](#build-the-image-yourself)
 - [Environment variable reference](#environment-variable-reference)
 
@@ -93,7 +94,7 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_SESSION_SECRET` | At least 32 random characters; signs the session cookie. |
 | `GITQUIRE_REPO` | `owner/name`. Anyone with write access to it may sign in. |
 | `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition (or instead). |
-| `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
+| `GITQUIRE_ADMINS` | Optional comma-separated logins that may change wiki settings, in addition to the repository's admins and maintainers. See [Wiki administration](#wiki-administration). |
 | `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
 | `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
 
@@ -190,12 +191,13 @@ when the webhook is first set up are not posted.
 
 ## AI agents
 
-Each person connects their own AI agent, with their own Claude (or other) account. Nothing runs on
-the server on their behalf.
+Each person connects their own AI agent, with their own Claude, Mistral (or other) account.
+Nothing runs on the server on their behalf.
 
-In the app, **Settings → Connect Claude** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
-it shows the connector address to paste into Claude (Customize → Connectors → Add custom
-connector), and it links to the token page below for Claude Code.
+In the app, **Settings → Connect AI** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
+it shows the connector address and expandable steps for Claude (Customize → Connectors → Add
+custom connector) and Mistral's Le Chat (Intelligence → Connectors → Custom MCP Connector), and it
+links to the token page below for Claude Code.
 
 1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
 2. Create a token. The page shows it once, with the command for Claude Code and the config for the
@@ -221,6 +223,16 @@ internet over HTTPS. GitHub sign-in and the repository's write access still deci
 Each connected app shows up on `/auth/agents`, where it can be revoked. Its access token lasts an
 hour and is renewed with a refresh token for up to 90 days of inactivity.
 
+### Mistral Le Chat
+
+Le Chat connects the same way. An administrator of the Le Chat account (on the Free, Pro and Student
+plans, the account owner) opens **Intelligence → Connectors**, clicks **+ Add Connector**, switches
+to **Custom MCP Connector**, names it `gitquire` and enters `https://wiki.example.com/mcp`. Le Chat
+registers itself with a client secret (`client_secret_basic`), which GitQuire issues at
+registration and checks on every token request; the sign-in is then the same GitHub popup as for
+Claude. Like Claude, Le Chat connects from Mistral's servers, so the wiki must be reachable on the
+public internet over HTTPS.
+
 ### Token storage
 
 Tokens are stored hashed in `.ok/local/gitquire/agent-tokens.json` on the data volume, never in
@@ -233,13 +245,86 @@ the GitHub App when it is configured) and revokes the tokens of people who lost 
 | `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
 | `GITQUIRE_MCP_CONNECTORS` | `on` lets Claude on the web, desktop chat and phones connect through GitHub sign-in. Needs a public `https://` URL. |
 | `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
-| `GITQUIRE_ASK_AI` | `on` shows the editor's **Ask AI** box and the empty screen's prompt box. Off by default, because they hand work to an agent running on the server, which a shared team server doesn't have. While it is off, people with agent access get the **Ask Claude** box instead. |
+| `GITQUIRE_ASK_AI` | `on` turns on the in-app agents: the ✨ Agents pane (⌘L), the editor's **Ask AI** box and the empty screen's prompt box. Off by default; read [In-app agents](#in-app-agents) first. While it is off, the server refuses agent sessions and people with agent access get the **Ask Claude** box instead. |
 
-## Other settings
+### In-app agents
+
+The ✨ Agents pane is a chat with an AI agent (Claude Code, Codex and others) that runs **on the
+GitQuire server**, not on each person's computer. It's off by default; with `GITQUIRE_ASK_AI` unset
+the pane is hidden and the server refuses agent sessions and agent setup requests (HTTP 403).
+Connecting Claude through **Settings → Connect Claude** is the recommended way for a team.
+
+If you turn it on, know what you're choosing:
+
+- **One AI account for everyone.** The agent signs in once on the server (its own login step, or an
+  API key such as `ANTHROPIC_API_KEY` in the server's environment), and every member's chats use it. Personal
+  Claude subscriptions are meant for one person, so a team needs an API key, billed per use, with
+  no per-person limits in GitQuire.
+- **The agent runs as the server.** It can run commands and read files inside the container,
+  including the data volume and any secrets the server can read, such as the GitHub App's private
+  key. Everyone who can sign in can start one.
+- **Network and disk.** The server downloads the agent's adapter when it first starts (the
+  container needs internet access), and keeps agent logins and chat history on the server.
+- **Inherited behaviour.** The pane comes from OpenKnowledge, which was built for one person on one
+  computer. How agent edits are credited and who can see whose chats have not been adapted for
+  teams.
+
+It can make sense for a small team that trusts each other, runs GitQuire on its own server, and
+wants agents to share one API key. Turn it on with `GITQUIRE_ASK_AI=on`; members then set up the
+agents under **Settings → Connect Claude**, below the connector steps.
+
+## Search by meaning
+
+The command palette (⌘K) and the MCP `search` tool find pages by their words. Search by meaning
+adds a **By meaning** mode to the palette and lets agents find related pages that share no
+keywords. It is off by default and set by the server, for everyone:
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_SEMANTIC_SEARCH` | `on` turns it on. |
+| `GITQUIRE_EMBEDDINGS_API_KEY` | API key for the embeddings provider. Not needed for a provider on the same machine, such as Ollama on `localhost`. |
+| `GITQUIRE_EMBEDDINGS_URL` | Base URL of an OpenAI-compatible embeddings API. Default `https://api.openai.com/v1`. |
+| `GITQUIRE_EMBEDDINGS_MODEL` | Embeddings model. Default `text-embedding-3-small`. |
+
+For example, with OpenAI:
+
+```bash
+GITQUIRE_SEMANTIC_SEARCH=on
+GITQUIRE_EMBEDDINGS_API_KEY=sk-...
+```
+
+Know what you're choosing:
+
+- **Page text leaves the server.** The wiki's pages, and every search typed in **By meaning**
+  mode, are sent to the embeddings provider. Pages excluded by `.gitignore` or `.okignore` are
+  never sent. Use a self-hosted provider such as Ollama if that matters to you.
+- **One key, billed per use.** Pages are embedded the first time someone searches by meaning and
+  again when they change. With OpenAI's small model, a typical team wiki costs cents.
+- **Changing the URL or model re-embeds every page.** Vectors are cached on the data volume in
+  `.ok/local/embeddings/`.
+
+The key is only ever sent to `GITQUIRE_EMBEDDINGS_URL`. There is no Search page in the app's
+settings: the environment is the only place to change this.
+
+## Wiki administration
 
 Settings under **User** in the app are personal: with GitHub sign-in on, each person's are saved
-on the data volume in `.ok/local/gitquire/users/<GitHub user id>.yml`, outside Git. Settings under
-**This project** are shared and live in the repository's `.ok/config.yml`.
+on the data volume in `.ok/local/gitquire/users/<GitHub user id>.yml`, outside Git.
+
+Settings under **Wiki administration** apply to everyone: attachments, content rules, sync, link
+previews, plugins, templates, skills and ignore patterns. Most are saved in the repository
+(`.ok/config.yml`, `.okignore`, `.ok/templates/`); sync and link previews are saved on the data
+volume in `.ok/local/config.yml`.
+
+Wiki admins are the logins in `GITQUIRE_ADMINS` and everyone with the **Admin** or **Maintain**
+role on `GITQUIRE_REPO`. Everyone else sees these pages greyed out and read-only, with a note
+naming who to ask. The server enforces it: it refuses changes to the shared settings, the server
+settings and the ignore patterns from anyone else. Each person can still show or hide hidden files
+and folders in their own file tree.
+
+GitHub roles are checked when someone signs in, so a person who just became a maintainer signs
+out and in again. Templates and skills are files in the repository, so anyone who can push to it
+can still change them there.
 
 | Setting | Meaning |
 | --- | --- |
@@ -268,4 +353,5 @@ CI builds and smoke-tests the image on every pull request and publishes it to
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM`, `GITQUIRE_MAIL_DOMAINS` | [Mention emails](#mention-emails) |
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | [Chat notifications](#chat-notifications) |
 | `GITQUIRE_AGENT_TOKEN_DAYS`, `GITQUIRE_MCP_CONNECTORS`, `GITQUIRE_MCP_TOKEN`, `GITQUIRE_ASK_AI` | [AI agents](#ai-agents) |
-| `GITQUIRE_NAMING` | [Other settings](#other-settings) |
+| `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
+| `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |

@@ -270,8 +270,16 @@ function SettingsDialogFrame({
       items: [
         {
           id: 'agent-connections',
-          label: t`Connect Claude`,
-          keywords: [t`AI tools`, t`Claude`, t`Connector`, t`MCP`, t`Agent token`],
+          label: t`Connect AI`,
+          keywords: [
+            t`AI tools`,
+            t`Claude`,
+            t`Mistral`,
+            t`Le Chat`,
+            t`Connector`,
+            t`MCP`,
+            t`Agent token`,
+          ],
         },
       ],
     },
@@ -350,7 +358,7 @@ function SettingsDialogFrame({
     },
     {
       id: 'project',
-      label: t`This project`,
+      label: t`Wiki administration`,
       enabled: hasProject,
       items: [
         {

@@ -51,6 +51,7 @@ import { type DockPaneMove, subscribeDockPaneMoves } from '@/lib/dock-move-reque
 import { readWebDockSessionOrder } from '@/lib/dock-session-persistence';
 import type { DockEdge, DockNode } from '@/lib/dock-tree';
 import { focusAwayFromHiddenEditor } from '@/lib/editor-hidden-focus';
+import { useGitQuireFeatures } from '@/lib/gitquire/features';
 import { matchesKeyboardShortcut, matchesRendererShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import {
@@ -372,6 +373,7 @@ type PaneExtentPublisherState = {
   editorAreaRef: { current: EditorAreaHandle | null };
   editorVisible: boolean;
   agentsVisible: boolean;
+  agentsAvailable: boolean;
   terminalVisible: boolean;
   terminalAvailable: boolean;
   noteWindow: boolean;
@@ -395,9 +397,9 @@ function usePaneExtentPublisher(state: PaneExtentPublisherState) {
         editor: latest.noteWindow
           ? null
           : { open: latest.editorVisible, onScreen: latest.editorVisible },
-        agents: latest.noteWindow
-          ? null
-          : { open: latest.agentsVisible, onScreen: latest.agentsVisible && onScreen.agents },
+        agents: latest.agentsAvailable
+          ? { open: latest.agentsVisible, onScreen: latest.agentsVisible && onScreen.agents }
+          : null,
         terminal: latest.terminalAvailable
           ? {
               open: latest.terminalVisible,
@@ -560,6 +562,8 @@ export function EditorPane() {
   const [autoSyncOnboardingDismissed, setAutoSyncOnboardingDismissed] = useState(false);
   const desktopBridge = typeof window !== 'undefined' ? (window.okDesktop ?? null) : null;
   const noteWindow = isNoteWindow();
+  const gitquireFeatures = useGitQuireFeatures();
+  const agentsAvailable = !noteWindow && gitquireFeatures.askAi;
   const singleFile = useSingleFileMode();
   const workspace = useWorkspace();
   const belowMainBreakpoint = useSyncExternalStore(
@@ -874,6 +878,7 @@ export function EditorPane() {
     editorAreaRef,
     editorVisible: effectiveEditorVisible,
     agentsVisible: effectiveAgentsVisible,
+    agentsAvailable,
     terminalVisible: effectiveTerminalVisible,
     terminalAvailable,
     noteWindow,
@@ -885,6 +890,7 @@ export function EditorPane() {
   useLayoutEffect(() => {
     return paneVisibilityStore.subscribeRequests(({ pane, open, reason }) => {
       if (noteWindow) return;
+      if (pane === 'agents' && !agentsAvailable) return;
       if (pane === 'agents' && open && reason === 'user')
         setAgentsFocusRevealNonce((nonce) => nonce + 1);
       if (exclusive) {
@@ -911,7 +917,14 @@ export function EditorPane() {
           return assertNeverPaneId(pane);
       }
     });
-  }, [noteWindow, terminalAvailable, editorToggleable, exclusive, applyPaneRequest]);
+  }, [
+    noteWindow,
+    agentsAvailable,
+    terminalAvailable,
+    editorToggleable,
+    exclusive,
+    applyPaneRequest,
+  ]);
 
   function focusEditorOrFallback() {
     if (effectiveEditorVisible) placements.editorRegion?.focus();
@@ -988,13 +1001,14 @@ export function EditorPane() {
       } else if (action === 'new-terminal') {
         showTerminalEvent();
       } else if (action === 'toggle-agent-panel') {
+        if (!agentsAvailable) return;
         if (sendSelectionToAgents()) return;
         toggleAgentsEvent();
       } else if (action === 'toggle-editor') {
         toggleEditorEvent();
       }
     });
-  }, [noteWindow, sendSelectionToAgents]);
+  }, [noteWindow, agentsAvailable, sendSelectionToAgents]);
 
   useEffect(() => {
     const hasNativeMenu = window.okDesktop != null;
@@ -1012,6 +1026,7 @@ export function EditorPane() {
   useEffect(() => {
     if (window.okDesktop != null) return;
     function handleKeyDown(event: KeyboardEvent) {
+      if (!agentsAvailable) return;
       if (!matchesKeyboardShortcut(event, 'toggle-agent-panel')) return;
       if (isOverlayLayerOpen()) return;
       event.preventDefault();
@@ -1020,7 +1035,7 @@ export function EditorPane() {
     }
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [sendSelectionToAgents]);
+  }, [agentsAvailable, sendSelectionToAgents]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -1326,7 +1341,7 @@ export function EditorPane() {
             terminalBridge={terminalAvailable ? desktopBridge : null}
             editorVisible={effectiveEditorVisible}
             terminalVisible={noteWindow ? false : effectiveTerminalVisible}
-            agentsVisible={noteWindow ? false : effectiveAgentsVisible}
+            agentsVisible={agentsAvailable ? effectiveAgentsVisible : false}
             dockTree={dockTree}
             onDockTreeChange={changeDockTree}
             onSessionPlacements={setPlacements}

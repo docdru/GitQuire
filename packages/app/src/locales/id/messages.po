@@ -1609,8 +1609,11 @@ msgstr "Berlaku untuk semua proyek di mesin ini, pada obrolan Claude Code dan Co
 msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
 msgstr "Berlaku untuk semua proyek di mesin ini. Claude dan Codex yang dimulai dari terminal bawaan, serta agen apa pun dalam obrolan panel Agen di aplikasi, otomatis menyetujui alat baca dan tulis GitQuire (Claude juga otomatis menjalankan \"{cliCommand} open\"). Menghapus, memindahkan, membagikan, mengimpor atau memasang skill, perintah lain, dan pengeditan berkas non-GitQuire tetap bertanya. Di terminal, Cursor, OpenCode, dan Pi tidak terpengaruh. Upaya terbaik per agen."
 
-msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
-msgstr "Berlaku untuk proyek ini hanya di komputer ini. Disimpan di .ok/local, tidak dibagikan lewat git."
+msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+msgstr ""
+
+msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgstr ""
 
 msgid "Applies when you pick this conversation back up"
 msgstr "Berlaku saat Anda melanjutkan percakapan ini"
@@ -2355,7 +2358,7 @@ msgstr "Membersihkan data kolaborasi lokal untuk \"{docName}\" sebelum menyambun
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "Klik <0>+</0> <1/> <2>Buat keterampilan</2> <3/> <4>Unggah keterampilan</4>."
 
-msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -2668,11 +2671,11 @@ msgstr "Hubungkan"
 msgid "Connect a GitHub account to browse and publish GitHub repositories."
 msgstr "Hubungkan akun GitHub untuk menjelajahi dan menerbitkan repositori GitHub."
 
+msgid "Connect AI"
+msgstr ""
+
 msgid "Connect an existing repository"
 msgstr "Hubungkan repositori yang sudah ada"
-
-msgid "Connect Claude"
-msgstr ""
 
 msgid "Connect GitHub"
 msgstr "Hubungkan GitHub"
@@ -2730,7 +2733,7 @@ msgstr "Menghubungkan"
 msgid "Connecting — waiting for collab server"
 msgstr "Menghubungkan — menunggu server kolaborasi"
 
-msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgid "Connecting AI assistants needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
 msgstr ""
 
 msgid "Connecting to {agentName}…"
@@ -2898,7 +2901,7 @@ msgstr "Salin kode {code}"
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "Menyalin item pohon berkas yang sedang difokus agar Tempel bisa menggandakannya."
 
-msgid "Copy this address:"
+msgid "Copy this connector address, then follow the steps for your assistant:"
 msgstr ""
 
 msgid "Copying"
@@ -3467,9 +3470,6 @@ msgstr "Buat keterampilan untuk proyek ini."
 
 msgid "Create a token on {host}"
 msgstr "Buat token di {host}"
-
-msgid "Create a token, then run the command shown in Claude Code."
-msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "Buat worktree dari cabang ini"
@@ -4966,6 +4966,9 @@ msgstr "Mengikuti suntingan agen"
 msgid "Footnote"
 msgstr "Catatan kaki"
 
+msgid "For Claude Code and other command-line agents, create a personal token."
+msgstr ""
+
 msgid "Force Reload"
 msgstr "Muat Ulang Paksa"
 
@@ -5628,8 +5631,8 @@ msgstr "Berapa lama GitQuire menunggu setiap permintaan embedding saat pengindek
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "Cara dokumen, file, dan gambar lokal proyek yang hilang dilaporkan di Masalah, diagnostik editor, audit, dan alat agen."
 
-msgid "How often this computer pulls changes from your remote."
-msgstr "Seberapa sering komputer ini menarik perubahan dari remote Anda."
+msgid "How often the server pulls changes from GitHub."
+msgstr ""
 
 msgid "How to push manually"
 msgstr "Cara push manual"
@@ -5792,6 +5795,9 @@ msgstr "Dalam proyek Git, GitQuire menambahkan aturan tercakup ke file .gitattri
 
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "Dalam proyek Git, GitQuire juga menambahkan aturan cakupan .gitattributes sehingga perubahan indeks secara bersamaan digabungkan sebelum pembangunan kembali berikutnya."
+
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
 
 msgid "In the Claude Desktop App"
 msgstr "Di aplikasi Claude Desktop"
@@ -6232,6 +6238,9 @@ msgstr "Tata letak"
 msgid "Layout options"
 msgstr "Opsi tata letak"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "Pelajari lebih lanjut"
 
@@ -6250,7 +6259,7 @@ msgstr "Izinkan obrolan agen memakai browser"
 msgid "Let agents use GitQuire without asking"
 msgstr "Biarkan agen memakai GitQuire tanpa bertanya"
 
-msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6718,6 +6727,12 @@ msgstr "Warna palet tidak lengkap"
 
 msgid "Missing theme name"
 msgstr "Nama tema tidak ada"
+
+msgid "Mistral"
+msgstr ""
+
+msgid "Mistral Le Chat"
+msgstr ""
 
 msgid "Model"
 msgstr "Model"
@@ -7609,8 +7624,8 @@ msgstr "dari {0}"
 msgid "of {totalPages}"
 msgstr "dari {totalPages}"
 
-msgid "Off — external links show only their URL. No requests leave this computer."
-msgstr "Mati — tautan eksternal hanya menampilkan URL-nya. Tidak ada permintaan yang keluar dari komputer ini."
+msgid "Off — external links show only their URL. The server sends no requests."
+msgstr ""
 
 msgid "Off — search ranks by keyword only. No content leaves this computer."
 msgstr "Mati — pencarian hanya memeringkat berdasarkan kata kunci. Tidak ada konten yang keluar dari komputer ini."
@@ -7639,6 +7654,9 @@ msgstr "Aktif — mengarahkan kursor ke tautan eksternal mengirim URL-nya ke sit
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Aktif — kueri pencarian Anda dan teks halaman yang cocok dikirim ke penyedia embedding Anda (OpenAI secara bawaan) untuk menghitung embedding."
 
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
+
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "Pada indeks root, okf_version ditulis sebagai string yang dikutip seperti \"0.2\". Tanpa tanda kutip, YAML membacanya sebagai angka dan 0.10 diam-diam menjadi 0.1."
 
@@ -7648,8 +7666,14 @@ msgstr "Satu pola per baris — ditambahkan ke <0>.okignore</0>."
 msgid "Only collaborators"
 msgstr "Hanya kolaborator"
 
-msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
-msgstr "Hanya tautan eksternal yang memicu permintaan. Tautan ke dokumen lain di proyek ini dipratinjau dari indeks lokal dan tidak pernah keluar dari komputer Anda."
+msgid "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+msgstr ""
+
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
+msgid "Only maintainers of {repo} can change these settings."
+msgstr ""
 
 msgid "Only markdown files"
 msgstr "Hanya berkas markdown"
@@ -7668,6 +7692,15 @@ msgstr "Hanya gambar PNG, JPEG, atau WebP yang diizinkan."
 
 msgid "Only the current document uses <0>#{tag}</0>."
 msgstr "Hanya dokumen saat ini yang memakai <0>#{tag}</0>."
+
+msgid "Only wiki admins can change these settings."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}."
+msgstr ""
 
 msgid "Open"
 msgstr "Buka"
@@ -7822,6 +7855,9 @@ msgstr "Buka di sana"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format bimbingan"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "Buka tautan"
@@ -8634,6 +8670,9 @@ msgstr "Salinan hanya-baca dari blok MirrorSource di dokumen lain. Sunting di su
 
 msgid "Read-only file in the {name} skill"
 msgstr "Berkas hanya-baca di keterampilan {name}"
+
+msgid "Read-only settings"
+msgstr ""
 
 msgid "Reading the current languages…"
 msgstr "Membaca bahasa saat ini…"
@@ -9459,6 +9498,9 @@ msgstr "Cari cabang..."
 msgid "Search by meaning"
 msgstr "Cari berdasarkan makna"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "Cari riwayat percakapan"
 
@@ -9663,9 +9705,6 @@ msgstr "Pencarian semantik menambahkan pemeringkatan berbasis makna ke alat penc
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "Pencarian semantik aktif, tetapi tidak ada kunci API yang disetel — pencarian kembali ke pencocokan kata kunci. Tambahkan satu di bawah."
 
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "Pencarian semantik tidak tersedia dengan penyiapan penyedia embedding saat ini. Periksa Pengaturan → Pencarian."
-
 msgid "Send"
 msgstr "Kirim"
 
@@ -9816,8 +9855,8 @@ msgstr "Isi pengaturan"
 msgid "Settings failed to load"
 msgstr "Gagal memuat pengaturan"
 
-msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
-msgstr "Pengaturan untuk proyek ini. Sebagian dibagikan ke setiap kolaborator lewat git; sisanya hanya berlaku di komputer ini."
+msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
+msgstr ""
 
 msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
 msgstr "Pengaturan di {fileName} diubah dari luar GitQuire dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di riwayat proyek ini, yang belum bisa ditampilkan aplikasi."
@@ -9874,9 +9913,6 @@ msgstr "Bawaan bersama"
 
 msgid "Shared repositories"
 msgstr "Repositori bersama"
-
-msgid "Shared with everyone on this project. Stored in the project folder and travels with it through git."
-msgstr "Dibagikan ke semua orang di proyek ini. Disimpan di folder proyek dan ikut berpindah lewat git."
 
 msgid "Sharing a doc needs a GitHub repository. Create one for this project."
 msgstr "Membagikan sebuah dokumen memerlukan repositori GitHub. Buat satu untuk proyek ini."
@@ -10051,6 +10087,9 @@ msgstr "Masuk ke {agentName} untuk melanjutkan."
 
 msgid "Sign in with {0}"
 msgstr "Masuk dengan {0}"
+
+msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
 
 msgid "Sign-in failed: {0}"
 msgstr "Gagal masuk: {0}"
@@ -10573,8 +10612,8 @@ msgstr "Sinkronisasi worktree ini disetel ke Manual, diwarisi dari {project}. Ub
 msgid "Sync is taking longer than usual — your changes are safe on this device."
 msgstr "Sinkronisasi memakan waktu lebih lama dari biasanya — perubahan Anda aman di perangkat ini."
 
-msgid "Sync keeps this computer's copy up to date with your Git remote. The shared settings below decide what teammates get when they open the project."
-msgstr "Sinkronisasi menjaga salinan di komputer ini tetap mutakhir dengan remote Git Anda. Pengaturan bersama di bawah menentukan apa yang didapat rekan tim saat mereka membuka proyek."
+msgid "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+msgstr ""
 
 msgid "Sync mode"
 msgstr "Mode sinkronisasi"
@@ -11432,8 +11471,8 @@ msgstr "Mesin ini"
 msgid "This may take a moment. Your markdown content is kept."
 msgstr "Ini mungkin makan waktu sebentar. Konten markdown Anda dipertahankan."
 
-msgid "This mode comes from the project's Shared default below. Pick a mode to choose your own for this computer."
-msgstr "Mode ini berasal dari Bawaan bersama proyek di bawah. Pilih mode untuk menentukan pilihan Anda sendiri di komputer ini."
+msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "Ini memindahkan <0>{name}</0> dari {0} ke {1}, memindahkan berkasnya di disk dan memasangnya ulang di penyunting Anda pada tingkat {2}."
@@ -11532,8 +11571,8 @@ msgstr "Skema ini membawa aturan lanjutan tingkat akar yang tidak ditampilkan pe
 msgid "This sends content off your machine"
 msgstr "Ini mengirim konten keluar dari komputer Anda"
 
-msgid "This sends the link's address off your machine"
-msgstr "Ini mengirim alamat tautannya keluar dari komputer Anda"
+msgid "This sends link addresses from the server to other sites"
+msgstr ""
 
 msgid "This server does not send mail to that domain."
 msgstr ""
@@ -11544,11 +11583,11 @@ msgstr "Server ini tidak memiliki autentikasi bawaan. Siapa pun yang dapat menja
 msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
 msgstr ""
 
-msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
-msgid "This setting is per-machine and isn't shared with collaborators."
-msgstr "Pengaturan ini berlaku per komputer dan tidak dibagikan dengan kolaborator."
+msgid "This setting applies to everyone using this wiki."
+msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "Pengaturan ini berlaku per komputer dan tidak dibagikan dengan kolaborator. Ia memerlukan kunci API (setel di bawah) kecuali endpoint Anda adalah server lokal yang tidak memerlukannya."
@@ -12034,6 +12073,9 @@ msgstr ""
 msgid "Updates flow in"
 msgstr "Pembaruan mengalir masuk"
 
+msgid "Updates flow in from GitHub; edits stay on the server and are not pushed."
+msgstr ""
+
 msgid "Updates flow in from your remote; your edits stay on this computer."
 msgstr "Pembaruan masuk dari remote Anda; suntingan Anda tetap di komputer ini."
 
@@ -12168,9 +12210,6 @@ msgstr "Plugin pengguna bersifat pribadi untuk perangkat ini — nyalakan atau m
 
 msgid "Username"
 msgstr "Nama pengguna"
-
-msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
-msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "Memakai variabel lingkungan <0>OK_EMBEDDINGS_API_KEY</0> (dikelola di luar GitQuire)."
@@ -12402,11 +12441,17 @@ msgstr "Spasi"
 msgid "Who you are, so the agent has your context."
 msgstr "Siapa Anda, agar agennya punya konteks Anda."
 
+msgid "Whole wiki"
+msgstr ""
+
 msgid "Whole word"
 msgstr "Kata utuh"
 
 msgid "Why this needs attention"
 msgstr "Mengapa ini perlu diperhatikan"
+
+msgid "Wiki administration"
+msgstr ""
 
 msgid "Wiki link"
 msgstr "Tautan wiki"

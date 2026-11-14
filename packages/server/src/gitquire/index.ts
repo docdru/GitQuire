@@ -24,6 +24,7 @@ import {
   runGitSync,
 } from './repo-bootstrap.ts';
 import { createGitQuireRoutes } from './routes.ts';
+import { setAdminResolver } from './settings-admin.ts';
 
 export type { AccessGate, SessionUser } from './access-gate.ts';
 export { noreplyEmail } from './access-gate.ts';
@@ -81,6 +82,7 @@ export function createAccessGateFromEnv(
     const user = gate.sessionUser(req);
     return user === undefined ? undefined : principalFromUser(user);
   });
+  setAdminResolver(gate.isAdminRequest);
   return gate;
 }
 
@@ -197,6 +199,7 @@ export function createGitQuireHttp(
       (gate?.handleRequest(req, res) ?? false) || routes.handle(req, res),
     admitUpgrade: (req, socket) => gate?.admitUpgrade(req, socket) ?? true,
     sessionUser: (req) => gate?.sessionUser(req),
+    isAdminRequest: (req) => gate?.isAdminRequest(req) ?? true,
     useContentFilter: (filter) => {
       contentFilter = filter;
     },

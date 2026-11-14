@@ -41,6 +41,7 @@ export interface SessionUser {
   login: string;
   name: string;
   avatarUrl: string;
+  repoAdmin?: boolean;
 }
 
 interface SessionPayload extends SessionUser {
@@ -69,6 +70,7 @@ export interface AccessGate {
   handleRequest: (req: IncomingMessage, res: ServerResponse) => boolean;
   admitUpgrade: (req: IncomingMessage, socket: Duplex) => boolean;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
+  isAdminRequest: (req: IncomingMessage) => boolean;
 }
 
 function isSessionPayload(value: unknown): value is SessionPayload {
@@ -118,6 +120,21 @@ export function isPublicAsset(path: string, method: string | undefined): boolean
   return PUBLIC_ASSET_PATHS.has(path) || PUBLIC_ICON_RE.test(path);
 }
 
+const IN_APP_AGENT_PREFIXES = ['/api/acp/', '/api/agent-integrations/', '/collab/thread'];
+
+export function isInAppAgentPath(path: string): boolean {
+  return IN_APP_AGENT_PREFIXES.some(
+    (prefix) => path === prefix.replace(/\/$/, '') || path.startsWith(prefix),
+  );
+}
+
+const ADMIN_ONLY_WRITE_PREFIXES = ['/api/generated-index/'];
+
+export function isAdminOnlyApi(path: string, method: string | undefined): boolean {
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return false;
+  return ADMIN_ONLY_WRITE_PREFIXES.some((prefix) => path.startsWith(prefix));
+}
+
 export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps): AccessGate {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
@@ -140,6 +157,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       login: decoded.login,
       name: decoded.name,
       avatarUrl: decoded.avatarUrl,
+      ...(decoded.repoAdmin === true ? { repoAdmin: true } : {}),
     };
   }
 
@@ -198,7 +216,12 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         });
 
   function isAdmin(user: SessionUser): boolean {
-    return config.admins.has(user.login.toLowerCase());
+    return config.admins.has(user.login.toLowerCase()) || user.repoAdmin === true;
+  }
+
+  function isAdminRequest(req: IncomingMessage): boolean {
+    const user = sessionUser(req);
+    return user !== undefined && isAdmin(user);
   }
 
   function startLogin(req: IncomingMessage, res: ServerResponse, search: string): void {
@@ -279,18 +302,18 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     return { id: u.id, login: u.login, name, avatarUrl };
   }
 
-  async function hasRepoWriteAccess(token: string): Promise<boolean> {
-    if (config.repo === undefined) return false;
+  async function repoAccess(token: string): Promise<{ write: boolean; admin: boolean }> {
+    const none = { write: false, admin: false };
+    if (config.repo === undefined) return none;
     const owner = encodeURIComponent(config.repo.owner);
     const name = encodeURIComponent(config.repo.name);
     const { status, body } = await githubJson(`${config.githubApiUrl}/repos/${owner}/${name}`, {
       headers: apiHeaders(token),
     });
-    if (status !== 200 || typeof body !== 'object' || body === null) return false;
+    if (status !== 200 || typeof body !== 'object' || body === null) return none;
     const permissions = (body as { permissions?: Record<string, unknown> }).permissions;
-    return (
-      permissions?.push === true || permissions?.admin === true || permissions?.maintain === true
-    );
+    const admin = permissions?.admin === true || permissions?.maintain === true;
+    return { write: admin || permissions?.push === true, admin };
   }
 
   async function completeLogin(
@@ -346,8 +369,8 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       return;
     }
 
-    const allowed =
-      config.allowedUsers.has(user.login.toLowerCase()) || (await hasRepoWriteAccess(token));
+    const access = await repoAccess(token);
+    const allowed = config.allowedUsers.has(user.login.toLowerCase()) || access.write;
     if (!allowed) {
       deps.log.warn({ login: user.login }, '[gitquire-auth] sign-in refused: no access');
       const reason =
@@ -367,6 +390,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const session: SessionPayload = {
       v: 1,
       ...user,
+      ...(access.admin ? { repoAdmin: true } : {}),
       exp: Math.floor(now() / 1000) + config.sessionMaxAgeSeconds,
     };
     deps.log.info({ login: user.login }, '[gitquire-auth] signed in');
@@ -439,6 +463,10 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         ...user,
         email: noreplyEmail(user),
         admin: isAdmin(user),
+        admins: {
+          logins: [...config.admins].sort(),
+          repo: repoLabel ?? null,
+        },
         features: {
           askAi: config.askAi,
           ...agentAccess(user),
@@ -492,6 +520,14 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       });
       return true;
     }
+    if (!config.askAi && isInAppAgentPath(path)) {
+      sendJson(res, 403, { error: 'in-app-agents-off', enable: 'GITQUIRE_ASK_AI=on' });
+      return true;
+    }
+    if (isAdminOnlyApi(path, req.method) && !isAdmin(user)) {
+      sendJson(res, 403, { error: 'admin-only' });
+      return true;
+    }
     if (path.startsWith('/api/local-op/')) {
       const readOnlyStatus = path === '/api/local-op/auth/status' && req.method === 'GET';
       if (!readOnlyStatus && !isAdmin(user)) {
@@ -505,6 +541,15 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   function admitUpgrade(req: IncomingMessage, socket: Duplex): boolean {
     const { path } = pathOf(req);
     if (!path.startsWith('/collab')) return true;
+    if (!config.askAi && isInAppAgentPath(path)) {
+      deps.log.warn(
+        { path },
+        '[gitquire-auth] refused in-app agent session: GITQUIRE_ASK_AI is off',
+      );
+      socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return false;
+    }
     if (sessionUser(req) !== undefined) return true;
     if (path === '/collab/keepalive' && admitAgent(req)) return true;
     deps.log.warn({ path }, '[gitquire-auth] refused unauthenticated websocket upgrade');
@@ -513,5 +558,5 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     return false;
   }
 
-  return { handleRequest, admitUpgrade, sessionUser };
+  return { handleRequest, admitUpgrade, sessionUser, isAdminRequest };
 }

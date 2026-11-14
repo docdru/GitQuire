@@ -1613,8 +1613,11 @@ msgstr "이 컴퓨터의 모든 프로젝트에 적용되며, 켠 뒤에 시작�
 msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
 msgstr "이 컴퓨터의 모든 프로젝트에 적용됩니다. 내장 터미널에서 시작한 Claude와 Codex, 그리고 앱 내 에이전트 패널 채팅의 모든 에이전트는 GitQuire의 읽기 및 쓰기 도구를 자동으로 승인합니다(Claude는 \"{cliCommand} open\"도 자동 실행). 스킬 삭제·이동·공유·가져오기·설치, 기타 명령, GitQuire 외 파일 편집은 여전히 확인을 요청합니다. 터미널에서는 Cursor, OpenCode, Pi에 영향이 없습니다. 에이전트별 최선 노력."
 
-msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
-msgstr "이 컴퓨터의 이 프로젝트에만 적용됩니다. .ok/local에 저장되며 git으로 공유되지 않습니다."
+msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+msgstr ""
+
+msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgstr ""
 
 msgid "Applies when you pick this conversation back up"
 msgstr "이 대화를 다시 시작할 때 적용됩니다"
@@ -2359,7 +2362,7 @@ msgstr "다시 연결하기 전에 \"{docName}\"의 로컬 협업 데이터를 �
 msgid "Click <0>+</0> <1/> <2>Create skill</2> <3/> <4>Upload skill</4>."
 msgstr "<0>+</0> <1/> <2>스킬 만들기</2> <3/> <4>스킬 업로드</4> 클릭하세요."
 
-msgid "Click <0>Connect</0>. A window opens where you sign in with GitHub and approve access. That's it: Claude can now read and edit this wiki as you, on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -2672,11 +2675,11 @@ msgstr "연결"
 msgid "Connect a GitHub account to browse and publish GitHub repositories."
 msgstr "GitHub 저장소를 찾아보고 게시하려면 GitHub 계정을 연결하세요."
 
+msgid "Connect AI"
+msgstr ""
+
 msgid "Connect an existing repository"
 msgstr "기존 저장소 연결"
-
-msgid "Connect Claude"
-msgstr ""
 
 msgid "Connect GitHub"
 msgstr "GitHub 연결"
@@ -2734,7 +2737,7 @@ msgstr "연결 중"
 msgid "Connecting — waiting for collab server"
 msgstr "협업 서버 연결 대기 중"
 
-msgid "Connecting Claude needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
+msgid "Connecting AI assistants needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
 msgstr ""
 
 msgid "Connecting to {agentName}…"
@@ -2902,7 +2905,7 @@ msgstr "코드 {code} 복사"
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "붙여넣기로 복제할 수 있도록 파일 트리에서 포커스된 항목을 복사합니다."
 
-msgid "Copy this address:"
+msgid "Copy this connector address, then follow the steps for your assistant:"
 msgstr ""
 
 msgid "Copying"
@@ -3471,9 +3474,6 @@ msgstr "이 프로젝트용 스킬을 만듭니다."
 
 msgid "Create a token on {host}"
 msgstr "{host}에서 토큰 만들기"
-
-msgid "Create a token, then run the command shown in Claude Code."
-msgstr ""
 
 msgid "Create a worktree from this branch"
 msgstr "이 브랜치에서 워크트리 만들기"
@@ -4970,6 +4970,9 @@ msgstr "에이전트 변경 내용 따라가는 중"
 msgid "Footnote"
 msgstr "각주"
 
+msgid "For Claude Code and other command-line agents, create a personal token."
+msgstr ""
+
 msgid "Force Reload"
 msgstr "강제 새로 고침"
 
@@ -5632,8 +5635,8 @@ msgstr "색인 생성 중 GitQuire가 각 임베딩 요청을 기다리는 시�
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "프로젝트 로컬 문서, 파일, 이미지의 누락을 Problems, 편집기 진단, 감사, 에이전트 도구에서 보고하는 방식을 설정합니다."
 
-msgid "How often this computer pulls changes from your remote."
-msgstr "이 컴퓨터가 원격에서 변경 사항을 가져오는 주기입니다."
+msgid "How often the server pulls changes from GitHub."
+msgstr ""
 
 msgid "How to push manually"
 msgstr "수동으로 푸시하는 방법"
@@ -5796,6 +5799,9 @@ msgstr "Git 프로젝트에서 GitQuire는 저장소 루트의 .gitattributes �
 
 msgid "In Git projects, GitQuire also adds a scoped .gitattributes rule so concurrent index changes combine before the next rebuild."
 msgstr "Git 프로젝트에서 GitQuire는 다음 재빌드 전에 동시에 변경한 인덱스를 결합할 수 있도록 .gitattributes 규칙도 범위를 지정해 추가합니다."
+
+msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
+msgstr ""
 
 msgid "In the Claude Desktop App"
 msgstr "Claude Desktop App에서"
@@ -6236,6 +6242,9 @@ msgstr "레이아웃"
 msgid "Layout options"
 msgstr "레이아웃 옵션"
 
+msgid "Le Chat"
+msgstr ""
+
 msgid "Learn more"
 msgstr "자세히 알아보기"
 
@@ -6254,7 +6263,7 @@ msgstr "에이전트 채팅에서 브라우저를 사용하도록 허용합니�
 msgid "Let agents use GitQuire without asking"
 msgstr "에이전트가 확인하지 않고 GitQuire를 사용하도록 허용합니다"
 
-msgid "Let Claude work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
+msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
@@ -6722,6 +6731,12 @@ msgstr "팔레트 색상 누락"
 
 msgid "Missing theme name"
 msgstr "테마 이름 누락"
+
+msgid "Mistral"
+msgstr ""
+
+msgid "Mistral Le Chat"
+msgstr ""
 
 msgid "Model"
 msgstr "모델"
@@ -7613,8 +7628,8 @@ msgstr "{0} 중"
 msgid "of {totalPages}"
 msgstr "{totalPages}페이지 중"
 
-msgid "Off — external links show only their URL. No requests leave this computer."
-msgstr "꺼짐, 외부 링크에는 URL만 나타납니다. 이 컴퓨터 밖으로 요청이 전송되지 않습니다."
+msgid "Off — external links show only their URL. The server sends no requests."
+msgstr ""
 
 msgid "Off — search ranks by keyword only. No content leaves this computer."
 msgstr "꺼짐, 검색은 키워드로만 순위를 매깁니다. 이 컴퓨터 밖으로 콘텐츠가 전송되지 않습니다."
@@ -7643,6 +7658,9 @@ msgstr "켜짐, 외부 링크 위에 마우스를 올리면 미리보기를 가�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "켜짐, 검색어와 일치하는 페이지의 텍스트가 임베딩 제공업체(OpenAI가 기본값)로 전송되어 임베딩을 계산합니다."
 
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
+
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "루트 인덱스에서 okf_version은 \"0.2\"와 같은 따옴표 문자열로 작성됩니다. 따옴표가 없으면 YAML이 숫자로 읽어 0.10이 조용히 0.1로 바뀝니다."
 
@@ -7652,8 +7670,14 @@ msgstr "줄마다 패턴 하나, <0>.okignore</0>에 추가됩니다."
 msgid "Only collaborators"
 msgstr "공동 작업자만"
 
-msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
-msgstr "외부 링크만 요청을 발생시킵니다. 이 프로젝트의 다른 문서 링크는 로컬 인덱스에서 미리 보며 컴퓨터 밖으로 나가지 않습니다."
+msgid "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+msgstr ""
+
+msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
+msgid "Only maintainers of {repo} can change these settings."
+msgstr ""
 
 msgid "Only markdown files"
 msgstr "Markdown 파일만"
@@ -7672,6 +7696,15 @@ msgstr "PNG, JPEG 또는 WebP 이미지만 허용됩니다."
 
 msgid "Only the current document uses <0>#{tag}</0>."
 msgstr "현재 문서만 <0>#{tag}</0>을 사용합니다."
+
+msgid "Only wiki admins can change these settings."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}."
+msgstr ""
 
 msgid "Open"
 msgstr "열기"
@@ -7826,6 +7859,9 @@ msgstr "그곳에서 열기"
 
 msgid "Open Knowledge Format guidance"
 msgstr "Open Knowledge Format 안내"
+
+msgid "Open Le Chat"
+msgstr ""
 
 msgid "Open link"
 msgstr "링크 열기"
@@ -8638,6 +8674,9 @@ msgstr "다른 문서의 MirrorSource 블록을 읽기 전용으로 복사한 �
 
 msgid "Read-only file in the {name} skill"
 msgstr "{name} 스킬의 읽기 전용 파일"
+
+msgid "Read-only settings"
+msgstr ""
 
 msgid "Reading the current languages…"
 msgstr "현재 언어를 읽는 중…"
@@ -9463,6 +9502,9 @@ msgstr "브랜치 검색…"
 msgid "Search by meaning"
 msgstr "의미로 검색"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "채팅 기록 검색"
 
@@ -9667,9 +9709,6 @@ msgstr "의미 기반 검색은 검색 도구에 의미 기반 순위를 추가�
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "의미 기반 검색이 켜져 있지만 API 키가 설정되지 않아 검색이 키워드 매칭으로 대체됩니다. 아래에 추가합니다."
 
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "현재 임베딩 제공업체 설정에서는 시맨틱 검색을 사용할 수 없습니다. 설정 → 검색을 확인하세요."
-
 msgid "Send"
 msgstr "전송"
 
@@ -9820,8 +9859,8 @@ msgstr "설정 콘텐츠"
 msgid "Settings failed to load"
 msgstr "설정을 불러오지 못했습니다"
 
-msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
-msgstr "이 프로젝트의 설정입니다. 일부는 git을 통해 모든 협업자와 공유되고, 일부는 이 컴퓨터에만 적용됩니다."
+msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
+msgstr ""
 
 msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
 msgstr "{fileName}의 설정이 GitQuire 밖에서 변경되어 이제 적용됩니다. 진행 중이던 변경 내용의 사본은 이 프로젝트 기록에 보관되었지만, 앱에서는 아직 볼 수 없습니다."
@@ -9878,9 +9917,6 @@ msgstr "공유 기본값"
 
 msgid "Shared repositories"
 msgstr "공유 저장소"
-
-msgid "Shared with everyone on this project. Stored in the project folder and travels with it through git."
-msgstr "이 프로젝트의 모든 사람과 공유됩니다. 프로젝트 폴더에 저장되어 git을 통해 함께 이동합니다."
 
 msgid "Sharing a doc needs a GitHub repository. Create one for this project."
 msgstr "문서 공유에는 GitHub 저장소가 필요합니다. 이 프로젝트용 저장소를 만드세요."
@@ -10055,6 +10091,9 @@ msgstr "계속하려면 {agentName} 로그인."
 
 msgid "Sign in with {0}"
 msgstr "{0}으로 로그인"
+
+msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
 
 msgid "Sign-in failed: {0}"
 msgstr "로그인 실패: {0}"
@@ -10577,8 +10616,8 @@ msgstr "이 워크트리의 동기화가 수동으로 설정되어 있습니다.
 msgid "Sync is taking longer than usual — your changes are safe on this device."
 msgstr "동기화가 평소보다 오래 걸리고 있습니다. 변경 내용은 이 기기에 안전하게 보관됩니다."
 
-msgid "Sync keeps this computer's copy up to date with your Git remote. The shared settings below decide what teammates get when they open the project."
-msgstr "동기화는 이 컴퓨터의 사본을 Git 원격과 최신 상태로 유지합니다. 아래 공유 설정은 팀원이 프로젝트를 열 때 무엇을 받을지 결정합니다."
+msgid "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+msgstr ""
 
 msgid "Sync mode"
 msgstr "동기화 모드"
@@ -11436,8 +11475,8 @@ msgstr "이 컴퓨터"
 msgid "This may take a moment. Your markdown content is kept."
 msgstr "잠시 시간이 걸릴 수 있습니다. markdown 콘텐츠는 유지됩니다."
 
-msgid "This mode comes from the project's Shared default below. Pick a mode to choose your own for this computer."
-msgstr "이 모드는 아래 프로젝트의 공유 기본값에서 가져온 것입니다. 이 컴퓨터에서 사용할 모드를 직접 고르려면 모드를 선택하세요."
+msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "이 작업은 <0>{name}</0>을 {0}에서 {1}로 이동하고, 디스크의 파일을 재배치하며, {2} 수준에서 편집기에 다시 설치합니다."
@@ -11536,8 +11575,8 @@ msgstr "이 스키마에는 편집기에 표시되지 않는 루트 수준 고�
 msgid "This sends content off your machine"
 msgstr "이 컴퓨터 밖으로 콘텐츠를 전송합니다"
 
-msgid "This sends the link's address off your machine"
-msgstr "이 컴퓨터 밖으로 링크 주소를 전송합니다"
+msgid "This sends link addresses from the server to other sites"
+msgstr ""
 
 msgid "This server does not send mail to that domain."
 msgstr ""
@@ -11548,11 +11587,11 @@ msgstr "이 서버에는 기본 인증이 없습니다. 터널에 접근할 수 
 msgid "This server is not connected to a GitHub repository. Set up the GitHub App to sync (see DEPLOY.md)."
 msgstr ""
 
-msgid "This server is not set up for Claude on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
+msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
-msgid "This setting is per-machine and isn't shared with collaborators."
-msgstr "이 설정은 컴퓨터별로 적용되며 공동 작업자와 공유되지 않습니다."
+msgid "This setting applies to everyone using this wiki."
+msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "이 설정은 컴퓨터별로 적용되며 공동 작업자와 공유되지 않습니다. 엔드포인트가 키를 요구하지 않는 로컬 서버가 아니면 API 키(아래에서 설정)가 필요합니다."
@@ -12038,6 +12077,9 @@ msgstr ""
 msgid "Updates flow in"
 msgstr "업데이트가 들어옴"
 
+msgid "Updates flow in from GitHub; edits stay on the server and are not pushed."
+msgstr ""
+
 msgid "Updates flow in from your remote; your edits stay on this computer."
 msgstr "업데이트는 원격에서 들어오고, 편집 내용은 이 컴퓨터에 남습니다."
 
@@ -12172,9 +12214,6 @@ msgstr "사용자 플러그인은 이 기기에만 적용됩니다. 여기에서
 
 msgid "Username"
 msgstr "사용자 이름"
-
-msgid "Using a Team or Enterprise plan? An owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect. For Claude Code, create a personal token instead."
-msgstr ""
 
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "GitQuire 외부에서 관리되는 <0>OK_EMBEDDINGS_API_KEY</0> 환경 변수를 사용합니다."
@@ -12406,11 +12445,17 @@ msgstr "공백"
 msgid "Who you are, so the agent has your context."
 msgstr "에이전트가 사용자의 컨텍스트를 가질 수 있도록 사용자가 누구인지 알려 줍니다."
 
+msgid "Whole wiki"
+msgstr ""
+
 msgid "Whole word"
 msgstr "전체 단어"
 
 msgid "Why this needs attention"
 msgstr "주의가 필요한 이유"
+
+msgid "Wiki administration"
+msgstr ""
 
 msgid "Wiki link"
 msgstr "위키 링크"

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { STANDALONE_FEATURES } from '@/lib/gitquire/features';
-import { connectClaudeMode, connectorUrl } from './ConnectClaudeSection';
+import { connectAiMode, connectorUrl } from './ConnectAiSection';
 
 describe('connectorUrl', () => {
   test('appends /mcp to the page origin', () => {
@@ -9,19 +9,19 @@ describe('connectorUrl', () => {
   });
 });
 
-describe('connectClaudeMode', () => {
+describe('connectAiMode', () => {
   test('offers the connector flow when the server accepts connectors', () => {
     const features = { ...STANDALONE_FEATURES, canUseTokens: true, canConnect: true };
-    expect(connectClaudeMode(features)).toBe('connector');
+    expect(connectAiMode(features)).toBe('connector');
   });
 
   test('falls back to personal tokens without connector support', () => {
-    expect(connectClaudeMode({ ...STANDALONE_FEATURES, canUseTokens: true })).toBe('token-only');
+    expect(connectAiMode({ ...STANDALONE_FEATURES, canUseTokens: true })).toBe('token-only');
   });
 
   test('offers the connector before the person has connected anything', () => {
     expect(
-      connectClaudeMode({
+      connectAiMode({
         askAi: false,
         agentToken: false,
         connector: false,
@@ -32,6 +32,6 @@ describe('connectClaudeMode', () => {
   });
 
   test('explains that sign-in is needed on a standalone server', () => {
-    expect(connectClaudeMode(STANDALONE_FEATURES)).toBe('unavailable');
+    expect(connectAiMode(STANDALONE_FEATURES)).toBe('unavailable');
   });
 });

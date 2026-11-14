@@ -120,6 +120,10 @@ type RenameRedirectHandler = (args: {
 type ObserverCounterMap = { providerObserverFires: Record<string, number> };
 const counterGlobal = globalThis as unknown as { __okPerfCounters?: ObserverCounterMap };
 
+function knownServerInstanceId(id: string | null): string | null {
+  return id !== null && id.length > 0 ? id : null;
+}
+
 function bumpObserverFire(docName: string): void {
   if (import.meta.env.PROD === true) return;
   let bag = counterGlobal.__okPerfCounters;
@@ -929,15 +933,14 @@ export class ProviderPool {
       this.evictLru();
     }
 
-    const expectedServerInstanceId = this.cachedServerInstanceId;
+    let expectedServerInstanceId = knownServerInstanceId(this.cachedServerInstanceId);
     const lineageEpochRecordAtOpen = this.getRecordedLineageEpoch(docName);
+    const branchAtOpen = this.getOrInitObservedBranch();
     const token = buildAuthToken(
       this.tabIdentity,
       expectedServerInstanceId,
-      this.getOrInitObservedBranch(),
-      expectedServerInstanceId !== null && expectedServerInstanceId.length > 0
-        ? lineageEpochRecordAtOpen
-        : null,
+      branchAtOpen,
+      expectedServerInstanceId !== null ? lineageEpochRecordAtOpen : null,
     );
     const provider = new HocuspocusProvider({
       url: appendTraceContextToCollabUrl(this.wsUrl),
@@ -945,6 +948,17 @@ export class ProviderPool {
       forceSyncInterval: FORCE_SYNC_INTERVAL_MS,
       token,
     });
+    const pinServerInstance = (id: string | null) => {
+      if (expectedServerInstanceId !== null) return;
+      expectedServerInstanceId = knownServerInstanceId(id);
+      if (expectedServerInstanceId === null) return;
+      provider.configuration.token = buildAuthToken(
+        this.tabIdentity,
+        expectedServerInstanceId,
+        branchAtOpen,
+        null,
+      );
+    };
 
     const persistenceServerInstanceId = this.cachedServerInstanceId;
     if (this.clearFailures.has(docName)) {
@@ -1024,6 +1038,12 @@ export class ProviderPool {
     };
     const onSynced = () => {
       if (entry.kind !== 'active' || this.entries.get(docName) !== entry) return;
+      if (expectedServerInstanceId === null) {
+        pinServerInstance(this.cachedServerInstanceId);
+        if (expectedServerInstanceId === null) {
+          void this.whenServerInstanceKnown().then(pinServerInstance);
+        }
+      }
       entry.syncState = 'synced';
       entry.hasSynced = true;
       entry.lastServerSyncedSV = captureStateVector(provider.document);
