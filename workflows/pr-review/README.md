@@ -45,10 +45,13 @@ Workflow input:
   token (no API key in the repo).
 - GitHub access comes from the `GITHUB_TOKEN` env var, read **inside the activities**
   so it never enters the workflow event history. On a managed deployment, bind the
-  workspace secret `github_token` to `GITHUB_TOKEN` (a classic PAT with `repo` scope,
-  or a fine-grained PAT with `pull-requests: write`, `issues: write`,
-  `contents: read` on the target repo). Create the secret in Mistral Studio
-  (Secrets); never commit its value.
+  workspace secret `github_token` to `GITHUB_TOKEN`. `docdru/GitQuire` is public, so
+  all read endpoints (PRs, commits, diffs, check runs) need no permission at all; the
+  token only authorizes posting the review comment. Use a fine-grained PAT scoped to
+  `docdru/GitQuire` with `issues: read & write` (PR comments are issue comments),
+  plus `pull-requests: read` and `contents: read` for clarity; a classic PAT with
+  `repo` scope also works. Create the secret in Mistral Studio (Secrets); never
+  commit its value.
 - The LLM call uses the same service-account token (`MISTRAL_SA_TOKEN_PATH`); locally
   it falls back to `MISTRAL_API_KEY`.
 
