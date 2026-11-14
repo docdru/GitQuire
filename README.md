@@ -48,10 +48,13 @@ Every page is a `.md` file in a GitHub repository. Pull it, grep it, edit it in 
 or let a script generate it; GitQuire picks up the changes. File names are kept link-friendly:
 *Meeting Notes 2026* is saved as `meeting-notes-2026.md`.
 
-### 🔀 Branches and pull requests
+### 📝 Drafts
 
-Work on `main` by default. For something bigger, like a quarterly report, create a branch from
-the editor, write on it, and open a pull request without leaving GitQuire.
+Edit the live wiki by default. For something bigger, like a quarterly report, start a draft: your
+own copy of the wiki that nobody else sees change until it's published. Mention people to ask for a
+review, see the changes word by word, and publish with one click. If the live wiki changed in the
+meantime, GitQuire combines the changes and asks only where the same text changed in both places.
+Under the hood a draft is a branch and a pull request, so nothing is lost and everything stays in Git.
 
 ### 🔗 Links that stay correct
 
@@ -156,7 +159,9 @@ Done:
 
 1. **Shared server in Docker** with CI and a published image.
 2. **GitHub sign-in**, live editing on `main`, per-user commit authorship.
-3. **Branches and pull requests** from the editor.
+3. **Drafts**: each person works on the live wiki or in a draft of their own; review requests with
+   mentions, word-by-word changes, publish, and merging in live changes (branches and pull requests
+   underneath).
 4. **Comments stored in the Markdown files**: threads, editing, simultaneous comments, a mention
    inbox, email and chat notifications.
 5. **Mobile**: toolbar above the keyboard, installable as a home-screen app. The touch link

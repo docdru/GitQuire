@@ -5,9 +5,9 @@ import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
 import { BetaBadge } from '@/components/BetaBadge';
-import { GitQuireBranchMenu } from '@/components/GitQuireBranchMenu';
 import { GitQuireBrokenLinks } from '@/components/GitQuireBrokenLinks';
 import { GitQuireViews } from '@/components/GitQuireViews';
+import { DraftMenu } from '@/components/gitquire-drafts/DraftMenu';
 import {
   HEADER_OVERFLOW_SLACK_PX,
   HeaderOverflowActions,
@@ -292,7 +292,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         ) : (
           <>
             <WebProjectName />
-            <GitQuireBranchMenu />
+            <DraftMenu />
             <MentionInbox />
             <GitQuireBrokenLinks />
             <GitQuireViews />

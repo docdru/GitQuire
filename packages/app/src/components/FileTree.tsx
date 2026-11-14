@@ -150,6 +150,7 @@ import {
   isDocumentEntry,
   isFolderEntry,
 } from '@/components/file-tree-utils';
+import { useDraftTreeBadges } from '@/components/gitquire-drafts/use-draft-tree-badges';
 import { NewItemDialog } from '@/components/NewItemDialog';
 import {
   largeFileNavigationTarget,
@@ -209,6 +210,7 @@ import {
   subscribeToFileTreeMenuActionRename,
 } from '@/lib/file-tree-menu-action-events';
 import { importTemplate } from '@/lib/folder-config-api';
+import { FILE_TREE_DRAFT_BADGE_CSS } from '@/lib/gitquire/draft-tree-badges';
 import { loadNamingRule, nameLastSegment } from '@/lib/gitquire/naming';
 import {
   createdRenameSource,
@@ -423,6 +425,7 @@ const FILE_TREE_NAME_FOREGROUND_CSS = `
 
 const FILE_TREE_UNSAFE_CSS = [
   OK_FILE_TREE_READONLY_UNSAFE_CSS,
+  FILE_TREE_DRAFT_BADGE_CSS,
   FILE_TREE_NAME_FOREGROUND_CSS,
   FILE_TREE_PROBLEM_CSS,
   FILE_TREE_RENAME_INPUT_CSS,
@@ -2439,6 +2442,8 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
     });
     return () => observer.disconnect();
   }, [loading, documents.length]);
+
+  useDraftTreeBadges(fileTreeHostRef, FILE_TREE_TAG_NAME, !loading && documents.length > 0);
 
   useEffect(() => {
     if (loading || documents.length === 0) return;

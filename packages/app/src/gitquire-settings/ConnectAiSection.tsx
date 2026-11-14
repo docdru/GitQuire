@@ -5,6 +5,7 @@ import { SettingsSectionHeader } from '@/components/settings/SettingsSectionHead
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
+import { AgentDraftSetting } from '@/gitquire-settings/AgentDraftSetting';
 import { type GitQuireFeatures, useGitQuireFeatures } from '@/lib/gitquire/features';
 
 export const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
@@ -196,6 +197,8 @@ export function ConnectAiSection({ origin }: { origin?: string }) {
           <MistralSteps />
         </div>
       ) : null}
+
+      {mode !== 'unavailable' ? <AgentDraftSetting /> : null}
 
       {mode === 'token-only' ? (
         <p className="text-sm text-muted-foreground" data-testid="connect-ai-token-only">

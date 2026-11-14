@@ -19,6 +19,7 @@ export interface InboxMention {
   quote: string;
   resolved: boolean;
   read: boolean;
+  draft?: { slug: string; title: string };
 }
 
 export interface MentionEmail {

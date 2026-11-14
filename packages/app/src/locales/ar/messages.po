@@ -52,11 +52,29 @@ msgstr "تم تحديث تثبيت «{0}» ({1})"
 msgid "\"{0}\" is ignored by git"
 msgstr "يتجاهل git \"{0}\""
 
+msgid "\"{0}\" is live."
+msgstr ""
+
+msgid "\"{0}\" is ready for review."
+msgstr ""
+
+msgid "\"{0}\" is ready for review. {1} will be notified."
+msgstr ""
+
 msgid "\"{0}\" was already added (identical content)."
 msgstr "«{0}» مضاف بالفعل (محتوى مطابق)."
 
 msgid "\"{0}\" was already imported (identical content)."
 msgstr "«{0}» مستورد بالفعل (محتوى مطابق)."
+
+msgid "\"{0}\" was discarded."
+msgstr ""
+
+msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgstr ""
+
+msgid "\"{0}\" was published. You are back on the live wiki."
+msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
 msgstr "«{docName}» غير موجود."
@@ -96,6 +114,9 @@ msgstr "(مضمَّن)"
 
 msgid "(no name)"
 msgstr "(بدون اسم)"
+
+msgid "(nothing)"
+msgstr ""
 
 msgid "(opens in new tab)"
 msgstr "(يفتح في تبويب جديد)"
@@ -199,6 +220,9 @@ msgstr "{0, plural, zero {لا تخفي سياسة المشروع أي نتائ�
 msgid "{0, plural, one {Skill} other {Skills}}"
 msgstr "{0, plural, zero {مهارات} one {مهارة} two {مهارتان} few {مهارات} many {مهارةً} other {مهارة}}"
 
+msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
+msgstr ""
+
 msgid "{0, plural, one {Uploading # attachment} other {Uploading # attachments}}"
 msgstr "{0, plural, zero {لا مرفقات يجري رفعها} one {يجري رفع مرفق واحد} two {يجري رفع مرفقين} few {يجري رفع # مرفقات} many {يجري رفع # مرفقًا} other {يجري رفع # مرفق}}"
 
@@ -268,6 +292,9 @@ msgstr "{0} يفتح عبر رابط ولا يقبل المرفقات — اخت
 msgid "{0} other skills by this publisher"
 msgstr "{0} مهارات أخرى من هذا الناشر"
 
+msgid "{0} pages changed"
+msgstr ""
+
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
@@ -294,6 +321,9 @@ msgstr "تم تحديد {0} مهارات"
 
 msgid "{0} total"
 msgstr "{0} إجمالًا"
+
+msgid "{0} unchanged paragraphs"
+msgstr ""
 
 msgid "{0} version {1}"
 msgstr "{0} الإصدار {1}"
@@ -681,9 +711,6 @@ msgstr "{localizedMessage} في السطر {displayLine}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{mcpTool} من خادم MCP {server}"
 
-msgid "{merged} was merged on GitHub. Switching everyone to {base}."
-msgstr ""
-
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, zero {قبل # دقيقة} one {قبل # دقيقة} two {قبل # دقيقة} few {قبل # دقائق} many {قبل # دقيقة} other {قبل # دقيقة}}"
 
@@ -734,6 +761,12 @@ msgstr "{packName} مُعدّ بالفعل. لا شيء لفعله."
 
 msgid "{pageCount, plural, one {The full text of your 1 page will be sent to <0>{host}</0> as it is re-embedded.} other {The full text of all {pageCount} pages will be sent to <1>{host}</1> as they are re-embedded.}}"
 msgstr "{pageCount, plural, zero {سيُرسل النص الكامل لـ {pageCount} صفحة إلى <1>{host}</1> عند إعادة تضمينها.} one {سيُرسل النص الكامل لصفحتك الواحدة إلى <0>{host}</0> عند إعادة تضمينها.} two {سيُرسل النص الكامل لصفحتيك إلى <1>{host}</1> عند إعادة تضمينهما.} few {سيُرسل النص الكامل لكل الصفحات {pageCount} إلى <1>{host}</1> عند إعادة تضمينها.} many {سيُرسل النص الكامل لكل الصفحات {pageCount} إلى <1>{host}</1> عند إعادة تضمينها.} other {سيُرسل النص الكامل لكل الصفحات {pageCount} إلى <1>{host}</1> عند إعادة تضمينها.}}"
+
+msgid "{pages} changed · not live yet"
+msgstr ""
+
+msgid "{pages} pages go live for everyone. The draft is closed afterwards."
+msgstr ""
 
 msgid "{percent}% from top"
 msgstr "{percent}% من الأعلى"
@@ -861,10 +894,16 @@ msgstr "{visibleSummary}. {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, zero {# تحذير} one {تحذير واحد} two {تحذيران} few {# تحذيرات} many {# تحذيرًا} other {# تحذير}}"
 
+msgid "{who} published \"{0}\". You are back on the live wiki."
+msgstr ""
+
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, zero {كلمات} one {كلمة} two {كلمتان} few {كلمات} many {كلمةً} other {كلمة}}"
 
 msgid "@{login} ({open} open)"
+msgstr ""
+
+msgid "@anna @ben"
 msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
@@ -952,6 +991,15 @@ msgstr "ساعة واحدة"
 msgid "1 minute"
 msgstr "دقيقة واحدة"
 
+msgid "1 page changed"
+msgstr ""
+
+msgid "1 page goes live for everyone. The draft is closed afterwards."
+msgstr ""
+
+msgid "1 unchanged paragraph"
+msgstr ""
+
 msgid "15 minutes"
 msgstr "15 دقيقة"
 
@@ -1008,6 +1056,9 @@ msgstr "توجد مهارة مختلفة بالاسم نفسه في {0} — ذل
 
 msgid "A document has a conflict — resolve it to keep it up to date."
 msgstr "يوجد تعارض في أحد المستندات — احلله لإبقائه محدَّثًا."
+
+msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
+msgstr ""
 
 msgid "A folder containing SKILL.md."
 msgstr "مجلد يحتوي على SKILL.md."
@@ -1453,6 +1504,9 @@ msgstr "تم حل جميع التعارضات. طبّق التغييرات لل�
 msgid "All dated pages"
 msgstr ""
 
+msgid "All drafts…"
+msgstr ""
+
 msgid "All files"
 msgstr "كل الملفات"
 
@@ -1643,6 +1697,9 @@ msgstr "جارٍ التطبيق…"
 msgid "Approve"
 msgstr "موافقة"
 
+msgid "Approve \"{0}\""
+msgstr ""
+
 msgid "Approve & proceed"
 msgstr "موافقة ومتابعة"
 
@@ -1654,6 +1711,9 @@ msgstr "موافق عليه — {optionName}"
 
 msgid "Approved and ready to merge"
 msgstr "معتمد وجاهز للدمج"
+
+msgid "Approved by {approvers}"
+msgstr ""
 
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "هل أنت متأكد أنك تريد تحويل هذا الملف إلى قالب؟ سيُحذف الملف الأصلي. لا يمكن التراجع عن هذا الإجراء."
@@ -1719,6 +1779,15 @@ msgid "Ask Claude to work on this folder…"
 msgstr ""
 
 msgid "Ask Claude to work on this page…"
+msgstr ""
+
+msgid "Ask for changes"
+msgstr ""
+
+msgid "Asked: {waitingFor}"
+msgstr ""
+
+msgid "asks you to review \"{0}\""
 msgstr ""
 
 msgid "Asset"
@@ -1863,8 +1932,14 @@ msgstr "رجوع"
 msgid "Back to document view"
 msgstr "العودة إلى عرض المستند"
 
+msgid "Back to draft"
+msgstr ""
+
 msgid "Back to editor"
 msgstr "العودة إلى المحرر"
+
+msgid "Back to the live wiki"
+msgstr ""
 
 msgid "Backlinks"
 msgstr "الروابط الخلفية"
@@ -1899,6 +1974,9 @@ msgstr "قبل أن تغادر، هل تخبرنا بالسبب؟"
 
 msgid "Behind the base branch"
 msgstr "متأخر عن الفرع الأساسي"
+
+msgid "Being written"
+msgstr ""
 
 msgid "Below"
 msgstr "أسفل"
@@ -2123,11 +2201,20 @@ msgstr "تغيّر"
 msgid "Changed here and on the remote"
 msgstr "تغيّرت هنا وعلى المستودع البعيد"
 
+msgid "Changed in this draft"
+msgstr ""
+
 msgid "changed outside"
 msgstr "تغيّر خارجًا"
 
 msgid "Changed outside OK since it last wrote here — the state shown is what's on disk now"
 msgstr "تغيّر خارج OK منذ آخر كتابة هنا — الحالة المعروضة هي ما على القرص الآن"
+
+msgid "Changes"
+msgstr ""
+
+msgid "Changes in \"{0}\""
+msgstr ""
 
 msgid "Changes requested"
 msgstr "طُلبت تغييرات"
@@ -2140,6 +2227,12 @@ msgstr "تُحفظ التغييرات تلقائيًا."
 
 msgid "Changes saved automatically."
 msgstr "حُفظت التغييرات تلقائيًا."
+
+msgid "changes this page"
+msgstr ""
+
+msgid "Changes to {pageName}"
+msgstr ""
 
 msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
 msgstr "تم حفظ التغييرات، لكن تعذّر على GitQuire تأكيد الاتصال بـ {handoffLabel}. تحقّق من إعدادات خادم MCP لهذا التطبيق، ثم اختر حفظ التغييرات للتحقق مرة أخرى."
@@ -2318,6 +2411,9 @@ msgid "Claude on the web or phone"
 msgstr ""
 
 msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
+
+msgid "Claude, for {0}"
 msgstr ""
 
 msgid "Cleanup didn’t finish"
@@ -2968,9 +3064,6 @@ msgstr "تعذّر إصلاح {0} من أصل {total} ملفًا."
 msgid "Could not initialize {0}."
 msgstr "تعذّرت تهيئة {0}."
 
-msgid "Could not load branches"
-msgstr ""
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "تعذّر تحميل القوالب: {templatesError}. لا يزال بإمكانك إنشاء ملاحظة فارغة."
 
@@ -3007,9 +3100,6 @@ msgstr "تعذّر حفظ تفضيل المزامنة: {detail}"
 msgid "Could not start creating a new item"
 msgstr "تعذّر بدء إنشاء عنصر جديد"
 
-msgid "Could not switch to {branch}"
-msgstr ""
-
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "تعذّر التبديل إلى {shareBranch}. حاول التبديل يدويًا."
 
@@ -3036,6 +3126,9 @@ msgstr "تعذّر تغيير التدقيق الإملائي. حاول مرة �
 
 msgid "Couldn't change the spelling languages. Try again."
 msgstr "تعذّر تغيير لغات التدقيق الإملائي. حاول مرة أخرى."
+
+msgid "Couldn't change the status."
+msgstr ""
 
 msgid "Couldn't check which tools are connected."
 msgstr "تعذّر تحديد الأدوات المتّصلة."
@@ -3102,6 +3195,9 @@ msgstr "تعذّر حذف القالب: {error}"
 
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "تعذّر حذف هذه السمة. حدّث الصفحة وحاول مرة أخرى."
+
+msgid "Couldn't discard the draft."
+msgstr ""
 
 msgid "Couldn't disconnect — please try again."
 msgstr "تعذّر قطع الاتصال — يرجى المحاولة مرة أخرى."
@@ -3175,6 +3271,9 @@ msgstr "تعذّر تحميل وكلائك."
 msgid "Couldn't load your bug reports."
 msgstr "تعذّر تحميل تقارير العلل الخاصة بك."
 
+msgid "Couldn't mark the draft as ready."
+msgstr ""
+
 msgid "Couldn't move {0}: {1}"
 msgstr "تعذر نقل {0}: {1}"
 
@@ -3216,6 +3315,9 @@ msgstr "تعذر وضع {skillName} في {root}: {0}"
 
 msgid "Couldn't prepare this project for publish."
 msgstr "تعذّر تجهيز هذا المشروع للنشر."
+
+msgid "Couldn't publish the draft."
+msgstr ""
 
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "تعذّر السحب من GitHub. تحقق من اتصالك وتسجيل دخولك، ثم أعد المحاولة."
@@ -3355,6 +3457,9 @@ msgstr "تعذّر حفظ إعداد التحديث التلقائي: {0}"
 msgid "Couldn't save the comment."
 msgstr ""
 
+msgid "Couldn't save the draft."
+msgstr ""
+
 msgid "Couldn't save the email address."
 msgstr ""
 
@@ -3364,11 +3469,17 @@ msgstr "تعذّر حفظ المفتاح — يرجى المحاولة مرة أ
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "تعذّر حفظ الحل لـ {filePath}."
 
+msgid "Couldn't save the setting. Try again."
+msgstr ""
+
 msgid "Couldn't save the view."
 msgstr ""
 
 msgid "Couldn't save this setting. Try again."
 msgstr "تعذّر حفظ هذا الإعداد. حاول مرة أخرى."
+
+msgid "Couldn't save your review."
+msgstr ""
 
 msgid "Couldn't save your theme preference."
 msgstr "تعذّر حفظ تفضيل السمة لديك."
@@ -3397,6 +3508,9 @@ msgstr "تعذّر التبديل إلى {language}."
 msgid "Couldn't switch to Only me"
 msgstr "تعذّر التبديل إلى «أنا فقط»"
 
+msgid "Couldn't switch views."
+msgstr ""
+
 msgid "Couldn't unpin {name}"
 msgstr "تعذر إلغاء تثبيت {name}"
 
@@ -3408,6 +3522,9 @@ msgstr "تعذّر تحديث {subRoot}: {0}"
 
 msgid "Couldn't update from {0}: {1}"
 msgstr "تعذّر التحديث من {0}: {1}"
+
+msgid "Couldn't update the draft."
+msgstr ""
 
 msgid "Couldn't upload the file. The {settingKey} value in {configFile} can't be used. Fix it in that file."
 msgstr "تعذّر رفع الملف. لا يمكن استخدام قيمة {settingKey} في {configFile}. أصلحها في ذلك الملف."
@@ -3478,7 +3595,7 @@ msgstr "أنشئ رمزًا على {host}"
 msgid "Create a worktree from this branch"
 msgstr "إنشاء شجرة عمل من هذا الفرع"
 
-msgid "Create and switch"
+msgid "Create and open"
 msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
@@ -3703,6 +3820,9 @@ msgstr "تم حذف {filePath}"
 msgid "Deleted for good"
 msgstr "تُحذف نهائيًا"
 
+msgid "Deleted in this draft"
+msgstr ""
+
 msgid "deleted template"
 msgstr "حذف قالبًا"
 
@@ -3840,8 +3960,20 @@ msgstr "تعطيل السمات"
 msgid "Disambiguates similarly-named templates in the menu."
 msgstr "يميّز بين القوالب المتشابهة الأسماء في القائمة."
 
+msgid "Discard"
+msgstr ""
+
+msgid "Discard \"{0}\"?"
+msgstr ""
+
+msgid "Discard draft…"
+msgstr ""
+
 msgid "Discard local edits, restore the installed version"
 msgstr "تجاهل التعديلات المحلية واستعد النسخة المثبتة"
+
+msgid "Discarded"
+msgstr ""
 
 msgid "Disconnect"
 msgstr "قطع الاتصال"
@@ -3973,8 +4105,17 @@ msgstr "صُغ مواصفات"
 msgid "Draft a technical spec for my project. Start with an overview, then add cross-linked pages for the architecture, the key modules, and the open questions, all linked from a specs index."
 msgstr "صُغ مواصفات تقنية لمشروعي. ابدأ بنظرة عامة، ثم أضف صفحات مترابطة للبنية، والوحدات الرئيسية، والأسئلة المفتوحة، وكلها مرتبطة من فهرس المواصفات."
 
+msgid "Draft: {0}"
+msgstr ""
+
 msgid "Drafting…"
 msgstr "يجري الصياغة…"
+
+msgid "Drafts"
+msgstr ""
+
+msgid "Drafts are proposed changes that are not live yet. Open one to read or edit it; publish it to make it live for everyone."
+msgstr ""
 
 msgid "Drag {keyName} to reorder"
 msgstr "اسحب {keyName} لإعادة الترتيب"
@@ -4023,6 +4164,9 @@ msgstr "إسقاط المكرر"
 
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "مثال: drafts/ أو *.draft.md"
+
+msgid "e.g. Onboarding guide update"
+msgstr ""
 
 msgid "e.g. server.ts"
 msgstr "مثال: server.ts"
@@ -4397,12 +4541,6 @@ msgid "every doc"
 msgstr "كل مستند"
 
 msgid "Everyone"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
 msgstr ""
 
 msgid "Everything from {source} is already up to date"
@@ -5152,6 +5290,9 @@ msgstr "يتحقق GitQuire من وجود تحديثات وينزّلها في �
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire could not be reached. Check your connection and try again."
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "لم يتمكن GitQuire من العثور على هذا الوكيل على هذا الجهاز."
 
@@ -5355,6 +5496,12 @@ msgstr "نسخة {0} الخاصة بـ GitQuire تالفة ولا تعمل. يس
 
 msgid "Give it a name before editing its colors."
 msgstr "امنحها اسمًا قبل تعديل ألوانها."
+
+msgid "Give the draft a name of up to 120 characters."
+msgstr ""
+
+msgid "Give the draft a name that says what it changes."
+msgstr ""
 
 msgid "Gives the agent instructions for working with your documents and keeps its edits attributed."
 msgstr "يمنح الوكيل إرشادات للعمل مع مستنداتك ويحافظ على نسبة تعديلاته إليه."
@@ -6136,6 +6283,9 @@ msgstr "مائل"
 msgid "Item {0}"
 msgstr "العنصر {0}"
 
+msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
+msgstr ""
+
 msgid "Join us on Discord"
 msgstr "انضم إلينا على Discord"
 
@@ -6189,6 +6339,9 @@ msgstr "أبقِ هذا المشروع متزامنًا مع مستودعك ال
 
 msgid "Keep track of the people and companies you work with and the meetings you have with them. Good for remembering who someone is, how you know them, and what you last talked about."
 msgstr "تتبّع الأشخاص والشركات التي تعمل معها والاجتماعات التي تعقدها معهم. مناسب لتذكّر من يكون أحدهم، وكيف تعرفه، وآخر ما تحدثتما عنه."
+
+msgid "Keep: {title}"
+msgstr ""
 
 msgid "keeps the skills"
 msgstr "يحتفظ بالمهارات"
@@ -6256,6 +6409,9 @@ msgstr "اعرف المزيد عن مشاركة الإعدادات"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "استبعد الروابط المعطلة المكتوبة داخل log.md أو log.mdx على أي عمق للمجلد من «المشكلات» ومؤشرات مستكشف الملفات وتشخيصات المحرر وعمليات التدقيق وتنبيهات كتابة الوكيل. المهم هو الملف الذي كُتب فيه الرابط، وليس الملف الذي يشير إليه، وLOG.md مستند عادي. تظل لوحة «الروابط» والمحرر تعرضانها."
+
+msgid "Let {0} know the draft looks good."
+msgstr ""
 
 msgid "Let agent chats use a browser"
 msgstr "اسمح لمحادثات الوكلاء باستخدام متصفح"
@@ -6379,6 +6535,9 @@ msgstr "قائمة"
 
 msgid "Lists"
 msgstr "القوائم"
+
+msgid "Live wiki"
+msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "يعيش في هذا المشروع (حيثما كان مجلد المهارة) ويُشارَك مع المتعاونين عبر git."
@@ -6602,6 +6761,9 @@ msgstr ""
 msgid "Mark done: {text}"
 msgstr ""
 
+msgid "Mark ready for review"
+msgstr ""
+
 msgid "Markdown"
 msgstr "Markdown"
 
@@ -6655,6 +6817,9 @@ msgstr "عنوان قسم متوسط."
 
 msgid "Mention a page"
 msgstr "الإشارة إلى صفحة"
+
+msgid "Mention people by their GitHub name, like @anna."
+msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -6762,6 +6927,9 @@ msgstr "مزيد من الإجراءات"
 msgid "More actions ({syncAttentionLabel})"
 msgstr "مزيد من الإجراءات ({syncAttentionLabel})"
 
+msgid "More draft actions"
+msgstr ""
+
 msgid "More information"
 msgstr "مزيد من المعلومات"
 
@@ -6833,6 +7001,15 @@ msgstr "نقل المحرر إلى الحافة العلوية للنافذة"
 
 msgid "Move GitQuire.app to the Trash"
 msgstr "انقل GitQuire.app إلى سلة المهملات"
+
+msgid "Move into draft"
+msgstr ""
+
+msgid "Move my recent edits into a draft"
+msgstr ""
+
+msgid "Move my recent edits to a draft…"
+msgstr ""
 
 msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
 msgstr "انقل هذا الملف أو أعد تسميته داخل المهارة — يبقى المسار تحت references/ أو scripts/."
@@ -7035,17 +7212,11 @@ msgstr "نشاط جديد"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "رقم قياسي جديد · اضغط <0>مسافة</0> للعب مرة أخرى"
 
-msgid "New branch"
-msgstr ""
-
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "سيُنشأ الفرع الجديد <0>{trimmed}</0> من <1>{currentBaseLabel}</1>، في شجرة عمل خاصة به تحت <2>.ok/worktrees/</2>."
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "سيُنشأ الفرع الجديد <0>{trimmed}</0> من الإيداع الحالي، في شجرة عمل خاصة به تحت <1>.ok/worktrees/</1>."
-
-msgid "New branch…"
-msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "تظهر التغييرات الجديدة من مستودعك البعيد في نسختك تلقائيًا."
@@ -7058,6 +7229,12 @@ msgstr "محادثة جديدة مع {agentName}"
 
 msgid "New chat with a different window"
 msgstr "محادثة جديدة بنافذة مختلفة"
+
+msgid "New draft"
+msgstr ""
+
+msgid "New draft…"
+msgstr ""
 
 msgid "New file"
 msgstr "ملف جديد"
@@ -7083,6 +7260,9 @@ msgstr "جديد من قالب…"
 msgid "New ignore pattern"
 msgstr "نمط تجاهل جديد"
 
+msgid "New in this draft"
+msgstr ""
+
 msgid "New languages may need an internet connection and time to become available."
 msgstr "قد تحتاج اللغات الجديدة إلى اتصال بالإنترنت وبعض الوقت حتى تصبح متاحة."
 
@@ -7094,6 +7274,9 @@ msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "اسم جديد لنسخة {editor}"
+
+msgid "New page"
+msgstr ""
 
 msgid "New project"
 msgstr "مشروع جديد"
@@ -7220,6 +7403,9 @@ msgstr "لا توجد تقارير علل بعد."
 
 msgid "No changes"
 msgstr "لا تغييرات"
+
+msgid "No changes yet · not live"
+msgstr ""
 
 msgid "No chats match your search"
 msgstr "لا توجد دردشات تطابق بحثك"
@@ -7491,6 +7677,9 @@ msgstr "لم يتم العثور على أشجار عمل."
 msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
+msgid "Nobody has reviewed it yet."
+msgstr ""
+
 msgid "Nobody mentioned"
 msgstr ""
 
@@ -7574,6 +7763,12 @@ msgstr "لا يعمل"
 msgid "Not sent"
 msgstr "غير مُرسل"
 
+msgid "Note"
+msgstr ""
+
+msgid "Note (optional)"
+msgstr ""
+
 msgid "nothing ({0} cannot match a doc)"
 msgstr "لا شيء ({0} لا يمكن أن يطابق مستندًا)"
 
@@ -7582,6 +7777,12 @@ msgstr "لا شيء ({0} ليس نمطًا صالحًا)"
 
 msgid "Nothing from {agentName} for {stalledMinutes, plural, one {# minute} other {# minutes}}. If it looks stuck, Stop and try again."
 msgstr "لا شيء من {agentName} منذ {stalledMinutes, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتين} few {# دقائق} many {# دقيقة} other {# دقيقة}}. إن بدا عالقًا، أوقفه وحاول مجددًا."
+
+msgid "Nothing has changed in this draft yet."
+msgstr ""
+
+msgid "Nothing here."
+msgstr ""
 
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "لا يغادر أي شيء جهازك حتى تراجع التقرير وترسله."
@@ -7659,6 +7860,9 @@ msgid "On — your search queries and the text of matching pages are sent to you
 msgstr "مفعّل — تُرسل استعلامات بحثك ونص الصفحات المطابقة إلى مزوّد التضمينات لديك (OpenAI افتراضيًا) لحساب التضمينات."
 
 msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
+
+msgid "On GitHub"
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -7881,15 +8085,6 @@ msgstr "فتح المعاينة عند تحرير الوكيل"
 msgid "Open project menu"
 msgstr "فتح قائمة المشروع"
 
-msgid "Open pull request"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
 msgid "Open recent project"
 msgstr "فتح مشروع حديث"
 
@@ -7922,6 +8117,9 @@ msgstr "افتح الطرفية لتسجيل الدخول"
 
 msgid "Open that worktree instead"
 msgstr "افتح شجرة العمل تلك بدلًا من ذلك"
+
+msgid "Open the draft to review it."
+msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "افتح قائمة الإدراج في موضع نصي فارغ أو نشط."
@@ -7974,9 +8172,6 @@ msgstr "تم فتح مشروع GitQuire الموجود في {ancestorPath}"
 msgid "Opened on branch {branch}"
 msgstr "فُتح على الفرع {branch}"
 
-msgid "Opened pull request #{number}"
-msgstr ""
-
 msgid "Opening {openingLabel}…"
 msgstr "يجري فتح {openingLabel}…"
 
@@ -7985,9 +8180,6 @@ msgstr "يجري فتح شجرة العمل"
 
 msgid "Opening..."
 msgstr "يجري الفتح..."
-
-msgid "Opening…"
-msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "يفتح منتقي مجلدات لاختيار مكان استنساخ المستودع."
@@ -8522,7 +8714,7 @@ msgstr "اسم الخاصية"
 msgid "Property value"
 msgstr "قيمة الخاصية"
 
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgid "Propose changes to this page…"
 msgstr ""
 
 msgid "Protected branch — cannot push"
@@ -8543,6 +8735,9 @@ msgstr "مستودع عام"
 msgid "Publish"
 msgstr "نشر"
 
+msgid "Publish \"{0}\"?"
+msgstr ""
+
 msgid "Publish to GitHub"
 msgstr "النشر على GitHub"
 
@@ -8552,8 +8747,17 @@ msgstr "منشور"
 msgid "Published by {publisher}"
 msgstr "منشور بواسطة {publisher}"
 
+msgid "Published on GitHub"
+msgstr ""
+
+msgid "Published or discarded"
+msgstr ""
+
 msgid "Publishing..."
 msgstr "يجري النشر..."
+
+msgid "Publishing…"
+msgstr ""
 
 msgid "Pull"
 msgstr "سحب"
@@ -8608,6 +8812,9 @@ msgstr "تم الدفع {pushed}"
 
 msgid "Pushing"
 msgstr "يجري الدفع"
+
+msgid "Put my AI assistant's edits into a draft"
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.user"
@@ -8711,6 +8918,9 @@ msgstr "يقرأ إعدادات GitQuire لهذا المشروع"
 msgid "Ready"
 msgstr "جاهز"
 
+msgid "Ready for review"
+msgstr ""
+
 msgid "Ready to merge"
 msgstr "جاهز للدمج"
 
@@ -8743,6 +8953,9 @@ msgstr "الملفات الأخيرة"
 
 msgid "Recent project"
 msgstr "مشروع حديث"
+
+msgid "Recently closed"
+msgstr ""
 
 msgid "Recently opened"
 msgstr "فُتح مؤخرًا"
@@ -8973,6 +9186,9 @@ msgstr "إعادة تسمية {keyName}"
 msgid "Rename chat"
 msgstr "إعادة تسمية الدردشة"
 
+msgid "Rename draft"
+msgstr ""
+
 msgid "Rename failed: {0}"
 msgstr "فشلت إعادة التسمية: {0}"
 
@@ -8984,6 +9200,9 @@ msgstr "إعادة تسمية المهارة"
 
 msgid "Rename succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "نجحت إعادة التسمية لكن الشريط الجانبي قد يكون قديمًا — حدّث لإعادة المزامنة"
+
+msgid "Rename…"
+msgstr ""
 
 msgid "Renamed"
 msgstr "معاد التسمية"
@@ -9459,6 +9678,9 @@ msgstr "جارٍ حفظ التغييرات…"
 
 msgid "Saving your edits before reloading…"
 msgstr "جارٍ حفظ تعديلاتك قبل إعادة التحميل…"
+
+msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
+msgstr ""
 
 msgid "schema {deleteTarget}"
 msgstr "المخطط {deleteTarget}"
@@ -10083,6 +10305,9 @@ msgstr "يجري الغربلة…"
 msgid "Sign in"
 msgstr "تسجيل الدخول"
 
+msgid "Sign in again to continue."
+msgstr ""
+
 msgid "Sign in to {agentName} first"
 msgstr "سجّل الدخول إلى {agentName} أولًا"
 
@@ -10109,6 +10334,9 @@ msgstr "جارٍ تسجيل الدخول إلى {agentName}"
 
 msgid "Signing in to {agentName}…"
 msgstr "جارٍ تسجيل الدخول إلى {agentName}…"
+
+msgid "Since this draft started, someone changed the live wiki in the same spots. For each spot, choose what to keep. Everything else was combined automatically."
+msgstr ""
 
 msgid "Single page"
 msgstr "صفحة واحدة"
@@ -10421,9 +10649,6 @@ msgstr "جارٍ بدء تشغيل الطرفية…"
 msgid "Starting the agent…"
 msgstr "يجري تشغيل الوكيل…"
 
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
 msgid "status"
 msgstr "الحالة"
 
@@ -10523,9 +10748,6 @@ msgstr "لخّص كل ما غيّرته هذا الأسبوع"
 msgid "Swap file sidebar and document panel"
 msgstr "تبديل موضعي الشريط الجانبي للملفات ولوحة المستند"
 
-msgid "Switch"
-msgstr ""
-
 msgid "Switch and update branch"
 msgstr "تبديل الفرع وتحديثه"
 
@@ -10535,17 +10757,11 @@ msgstr "بدّل بين المحرر المرئي ومحرر المصدر مع �
 msgid "Switch branch"
 msgstr "تبديل الفرع"
 
-msgid "Switch everyone to"
-msgstr ""
-
 msgid "Switch project"
 msgstr "تبديل المشروع"
 
 msgid "Switch project…"
 msgstr "تبديل المشروع…"
-
-msgid "Switch to {target}?"
-msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "انتقل إلى أحد الفروع للمشاركة."
@@ -10558,9 +10774,6 @@ msgstr "تبديل شجرة العمل"
 
 msgid "Switch worktree…"
 msgstr "تبديل شجرة العمل…"
-
-msgid "Switched to {branch}"
-msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "يبدّل وضع الوكيل"
@@ -10711,6 +10924,9 @@ msgstr "قائمة مهام"
 
 msgid "Team Wiki"
 msgstr "ويكي الفريق"
+
+msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
+msgstr ""
 
 msgid "Tell us how it's going"
 msgstr "أخبرنا كيف تسير الأمور"
@@ -10966,6 +11182,15 @@ msgstr "تطبيق سطح المكتب لا يستجيب. حدّث وأعد ال
 msgid "the doc {0}"
 msgstr "المستند {0}"
 
+msgid "The draft could not be opened right now. Try again in a moment."
+msgstr ""
+
+msgid "The draft now includes the latest live wiki."
+msgstr ""
+
+msgid "The draft was already up to date."
+msgstr ""
+
 msgid "The embeddings provider's vector size kept changing. Semantic search is off until GitQuire restarts."
 msgstr "استمر حجم المتجه لدى موفر التضمينات في التغير. تم إيقاف البحث الدلالي حتى تتم إعادة تشغيل GitQuire."
 
@@ -11019,6 +11244,12 @@ msgstr "لا تزال الواجهة باللغة التي كنت تقرأ به�
 
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "اللغة التي يتحدث بها GitQuire؛ ويتبع خيار النظام لغة نظام التشغيل لديك. تبقى ملاحظاتك باللغة التي كتبتها بها."
+
+msgid "The live wiki changed in the same places. Update the draft first."
+msgstr ""
+
+msgid "The live wiki changed since this draft started."
+msgstr ""
 
 msgid "The meeting note was created, but its date and headings couldn't be added."
 msgstr ""
@@ -11091,6 +11322,9 @@ msgstr "دليل النسخة الأصلية للمستودع"
 
 msgid "The request to enable GitQuire tools timed out. This thread runs without them."
 msgstr "انتهت مهلة طلب تفعيل أدوات GitQuire. تعمل هذه السلسلة بدونها."
+
+msgid "The same text changed in both places"
+msgstr ""
 
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "ملف المخطط غير موجود أو فشل تحميله — إضافة حقل تنشئه."
@@ -11376,6 +11610,15 @@ msgstr "ينقص هذا المستند خصائص مطلوبة"
 msgid "This document was deleted"
 msgstr "تم حذف هذا المستند"
 
+msgid "This draft"
+msgstr ""
+
+msgid "This draft no longer exists."
+msgstr ""
+
+msgid "This draft was already published or discarded."
+msgstr ""
+
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "تجاهلت نقطة النهاية هذه حجم المتجه الذي ضبطته. أزل <0>search.semantic.dimensions</0> لاستخدام حجم النموذج نفسه."
 
@@ -11499,6 +11742,9 @@ msgstr "هذه الصفحة غير موجودة بعد. افتحها لإنشا�
 
 msgid "This page doesn't link to anything yet."
 msgstr "هذه الصفحة لا ترتبط بشيء بعد."
+
+msgid "This page has changes in a draft"
+msgstr ""
 
 msgid "This page has no images or attached files."
 msgstr ""
@@ -12016,9 +12262,6 @@ msgstr "تعذّر حل الملف {identity}. انتقل إلى المرجع."
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "تعذّر حل الصورة {identity}. انتقل إلى المرجع."
 
-msgid "Unsaved changes block the switch"
-msgstr ""
-
 msgid "Unsupported file type: {fileType}."
 msgstr "نوع ملف غير مدعوم: {fileType}."
 
@@ -12047,6 +12290,9 @@ msgstr "هل تحدّث «{skillName}» فوق تعديلاتك؟"
 msgid "Update all from this source"
 msgstr "تحديث الكل من هذا المصدر"
 
+msgid "Update draft"
+msgstr ""
+
 msgid "Update failed: {0}"
 msgstr "فشل التحديث: {0}"
 
@@ -12058,6 +12304,9 @@ msgstr "حدّث GitQuire لفتح هذه المشاركة."
 
 msgid "Update the destination and optional section anchor."
 msgstr "حدّث الوجهة ومرساة القسم الاختيارية."
+
+msgid "Update with the live wiki"
+msgstr ""
 
 msgid "Updated \"{0}\": added {1}, removed {2}"
 msgstr "حُدِّث «{0}»: أُضيف {1}، وأُزيل {2}"
@@ -12088,6 +12337,9 @@ msgstr "تُطبَّق تحديثات المصدر تلقائيًا (ما لم �
 
 msgid "Updating"
 msgstr "يجري التحديث"
+
+msgid "Updating…"
+msgstr ""
 
 msgid "Upload"
 msgstr "رفع"
@@ -12327,6 +12579,9 @@ msgstr "في انتظار التفويض"
 msgid "Waiting for review"
 msgstr "في انتظار المراجعة"
 
+msgid "Waiting for someone to check"
+msgstr ""
+
 msgid "Waiting for your approval"
 msgstr "في انتظار موافقتك"
 
@@ -12388,6 +12643,9 @@ msgstr "ما الفرق بين النسخ والروابط الرمزية؟"
 msgid "What is this knowledge base for?"
 msgstr "ما الغرض من قاعدة المعرفة هذه؟"
 
+msgid "What should reviewers look at?"
+msgstr ""
+
 msgid "What should we work on?"
 msgstr "على ماذا نعمل؟"
 
@@ -12397,6 +12655,9 @@ msgstr "ما يجوز للوكيل قراءته وكتابته وإظهاره."
 msgid "What this checkbox changes"
 msgstr "ما الذي يغيّره مربع الاختيار هذا"
 
+msgid "What this draft changes compared with the live wiki. Added words are green, removed words are red."
+msgstr ""
+
 msgid "What to include"
 msgstr "ما الذي يُدرَج"
 
@@ -12405,6 +12666,9 @@ msgstr "ماذا كنت تفعل؟"
 
 msgid "What would you like to create?"
 msgstr "ماذا تود أن تنشئ؟"
+
+msgid "What you are looking at"
+msgstr ""
 
 msgid "What you share is sent to the GitQuire team."
 msgstr "ما تشاركه يُرسل إلى فريق GitQuire."
@@ -12420,6 +12684,9 @@ msgstr "عند التفعيل، يفتح الوكيل المعاينة أو يح
 
 msgid "When the agent runs its scheduled work."
 msgstr "متى ينفّذ الوكيل عمله المجدول."
+
+msgid "When this is on, your assistant works in the draft you have open, or in its own draft for you to review and publish. When it is off, its edits go straight to the live wiki."
+msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "عند تمرير المؤشر فوق رابط خارجي، يُرسل رابطه إلى الموقع الوجهة لجلب بيانات معاينة الصفحة — طلب واحد لكل رابط معاين."
@@ -12441,6 +12708,9 @@ msgstr "أي مهارة"
 
 msgid "Whitespace"
 msgstr "المسافات البيضاء"
+
+msgid "Who should review?"
+msgstr ""
 
 msgid "Who you are, so the agent has your context."
 msgstr "من أنت، ليكون لدى الوكيل سياقك."
@@ -12478,6 +12748,9 @@ msgstr "سيُنشأ في: <0>{targetPreview}</0>"
 msgid "Will be saved as <0>{sanitized}</0>."
 msgstr "سيُحفظ باسم <0>{sanitized}</0>."
 
+msgid "Will notify: {0}"
+msgstr ""
+
 msgid "Window"
 msgstr "نافذة"
 
@@ -12495,6 +12768,9 @@ msgstr "العمل مباشرة، دون خطوة تخطيط"
 
 msgid "Working"
 msgstr "يعمل"
+
+msgid "Working…"
+msgstr ""
 
 msgid "Workspace"
 msgstr "مساحة العمل"
@@ -12515,6 +12791,9 @@ msgid "Wrap long lines in the markdown source editor."
 msgstr "لُف الأسطر الطويلة في محرر مصدر Markdown."
 
 msgid "Write a reply. Type @ to mention someone."
+msgstr ""
+
+msgid "Write it myself"
 msgstr ""
 
 #. js-lingui-explicit-id
@@ -12541,6 +12820,9 @@ msgstr "أمس"
 
 msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
 msgstr "لديك بالفعل مهارة خاصة بك باسم «{0}» — لن يتم تثبيت نسخة الحزمة، ولن تُمسّ مهارتك. أعد تسمية مهارتك لتثبيت نسخة الحزمة."
+
+msgid "You are here"
+msgstr ""
 
 #. Label above the optional skill offered on first visit
 msgid "You can add"
@@ -12591,6 +12873,9 @@ msgstr "ليس لديك صلاحية الكتابة في هذا المستودع
 msgid "You edited this skill locally and the source has new changes. Taking upstream replaces your version; your edits stay recoverable in version history."
 msgstr "حرّرت هذه المهارة محليًا وللمصدر تغييرات جديدة. أخذ نسخة المستودع البعيد يستبدل نسختك؛ وتبقى تعديلاتك قابلة للاستعادة في سجل النسخ."
 
+msgid "You have no recent edits on this page, or someone else edited it after you."
+msgstr ""
+
 msgid "You modified <0>{filePath}</0> locally, but it was deleted upstream."
 msgstr "عدّلت <0>{filePath}</0> محليًا، لكنه حُذف في المستودع البعيد."
 
@@ -12636,6 +12921,9 @@ msgstr "لن تتأثر مستنداتك."
 msgid "Your edits are committed and pushed to your remote automatically."
 msgstr "تُودَع تعديلاتك وتُدفع إلى المستودع البعيد تلقائيًا."
 
+msgid "Your edits from the last hours on \"{0}\" move into a new draft, and the live page goes back to how it was before."
+msgstr ""
+
 msgid "Your edits stay on this computer"
 msgstr "تبقى تعديلاتك على هذا الجهاز"
 
@@ -12672,6 +12960,9 @@ msgstr "نسختك المحلية من الفرع <0>{branch}</0> متأخرة. 
 msgid "Your message didn't reach {agentName}."
 msgstr "لم تصل رسالتك إلى {agentName}."
 
+msgid "Your recent edits are now in the draft \"{trimmed}\"."
+msgstr ""
+
 msgid "Your remote URL names {declaredLogin}, but that account's credentials couldn't be used."
 msgstr "عنوان URL البعيد لديك يشير إلى {declaredLogin}، لكن تعذّر استخدام بيانات اعتماد ذلك الحساب."
 
@@ -12692,6 +12983,9 @@ msgstr "رابط المشاركة الخاص بك جاهز أدناه."
 
 msgid "Your user settings could not be read"
 msgstr "تعذّرت قراءة إعدادات المستخدم الخاصة بك"
+
+msgid "Your version"
+msgstr ""
 
 msgid "Zip file"
 msgstr "ملف Zip"

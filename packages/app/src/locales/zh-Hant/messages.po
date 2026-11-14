@@ -52,11 +52,29 @@ msgstr "已重新整理「{0}」的安裝（{1}）"
 msgid "\"{0}\" is ignored by git"
 msgstr "git 已忽略「{0}」"
 
+msgid "\"{0}\" is live."
+msgstr ""
+
+msgid "\"{0}\" is ready for review."
+msgstr ""
+
+msgid "\"{0}\" is ready for review. {1} will be notified."
+msgstr ""
+
 msgid "\"{0}\" was already added (identical content)."
 msgstr "「{0}」先前已新增過（內容相同）。"
 
 msgid "\"{0}\" was already imported (identical content)."
 msgstr "「{0}」先前已匯入過（內容相同）。"
+
+msgid "\"{0}\" was discarded."
+msgstr ""
+
+msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgstr ""
+
+msgid "\"{0}\" was published. You are back on the live wiki."
+msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
 msgstr "「{docName}」不存在。"
@@ -96,6 +114,9 @@ msgstr "（行內）"
 
 msgid "(no name)"
 msgstr "（無名稱）"
+
+msgid "(nothing)"
+msgstr ""
 
 msgid "(opens in new tab)"
 msgstr "（在新分頁中開啟）"
@@ -199,6 +220,9 @@ msgstr "{0, plural, other {專案政策從此次稽核中隱藏了 # 個失效�
 msgid "{0, plural, one {Skill} other {Skills}}"
 msgstr "{0, plural, other {技能}}"
 
+msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
+msgstr ""
+
 msgid "{0, plural, one {Uploading # attachment} other {Uploading # attachments}}"
 msgstr "{0, plural, other {正在上傳 # 個附件}}"
 
@@ -268,6 +292,9 @@ msgstr "{0} 透過連結開啟，不接受附件，請改選應用程式內的�
 msgid "{0} other skills by this publisher"
 msgstr "該發布者的另外 {0} 個技能"
 
+msgid "{0} pages changed"
+msgstr ""
+
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
@@ -294,6 +321,9 @@ msgstr "已選擇 {0} 個技能"
 
 msgid "{0} total"
 msgstr "共 {0} 個"
+
+msgid "{0} unchanged paragraphs"
+msgstr ""
 
 msgid "{0} version {1}"
 msgstr "{0} 版本 {1}"
@@ -681,9 +711,6 @@ msgstr "第 {displayLine} 行：{localizedMessage}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "來自 {server} MCP 伺服器的 {mcpTool}"
 
-msgid "{merged} was merged on GitHub. Switching everyone to {base}."
-msgstr ""
-
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, other {# 分鐘前}}"
 
@@ -734,6 +761,12 @@ msgstr "{packName} 先前已設定完成，不必再操作。"
 
 msgid "{pageCount, plural, one {The full text of your 1 page will be sent to <0>{host}</0> as it is re-embedded.} other {The full text of all {pageCount} pages will be sent to <1>{host}</1> as they are re-embedded.}}"
 msgstr "{pageCount, plural, other {重新建立嵌入時，全部 {pageCount} 個頁面的完整內容都會送到 <1>{host}</1>。}}"
+
+msgid "{pages} changed · not live yet"
+msgstr ""
+
+msgid "{pages} pages go live for everyone. The draft is closed afterwards."
+msgstr ""
 
 msgid "{percent}% from top"
 msgstr "距頂端 {percent}%"
@@ -861,10 +894,16 @@ msgstr "{visibleSummary}。{0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, other {# 個警告}}"
 
+msgid "{who} published \"{0}\". You are back on the live wiki."
+msgstr ""
+
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, other {字詞}}"
 
 msgid "@{login} ({open} open)"
+msgstr ""
+
+msgid "@anna @ben"
 msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
@@ -952,6 +991,15 @@ msgstr "1 小時"
 msgid "1 minute"
 msgstr "1 分鐘"
 
+msgid "1 page changed"
+msgstr ""
+
+msgid "1 page goes live for everyone. The draft is closed afterwards."
+msgstr ""
+
+msgid "1 unchanged paragraph"
+msgstr ""
+
 msgid "15 minutes"
 msgstr "15 分鐘"
 
@@ -1008,6 +1056,9 @@ msgstr "{0} 有一個名稱相近但完全不同的技能——那個資料夾�
 
 msgid "A document has a conflict — resolve it to keep it up to date."
 msgstr "有一份文件發生衝突——請解決衝突，讓它保持在最新狀態。"
+
+msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
+msgstr ""
 
 msgid "A folder containing SKILL.md."
 msgstr "一個包含 SKILL.md 的資料夾。"
@@ -1453,6 +1504,9 @@ msgstr "所有衝突已解決。套用變更以儲存。"
 msgid "All dated pages"
 msgstr ""
 
+msgid "All drafts…"
+msgstr ""
+
 msgid "All files"
 msgstr "所有檔案"
 
@@ -1643,6 +1697,9 @@ msgstr "套用中…"
 msgid "Approve"
 msgstr "核准"
 
+msgid "Approve \"{0}\""
+msgstr ""
+
 msgid "Approve & proceed"
 msgstr "核准並繼續"
 
@@ -1654,6 +1711,9 @@ msgstr "已核准 — {optionName}"
 
 msgid "Approved and ready to merge"
 msgstr "已核准，可以合併"
+
+msgid "Approved by {approvers}"
+msgstr ""
 
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "確定要把這個檔案轉換成範本嗎？原始檔案會被刪除。這個動作無法復原。"
@@ -1719,6 +1779,15 @@ msgid "Ask Claude to work on this folder…"
 msgstr ""
 
 msgid "Ask Claude to work on this page…"
+msgstr ""
+
+msgid "Ask for changes"
+msgstr ""
+
+msgid "Asked: {waitingFor}"
+msgstr ""
+
+msgid "asks you to review \"{0}\""
 msgstr ""
 
 msgid "Asset"
@@ -1863,8 +1932,14 @@ msgstr "返回"
 msgid "Back to document view"
 msgstr "回到文件檢視"
 
+msgid "Back to draft"
+msgstr ""
+
 msgid "Back to editor"
 msgstr "返回編輯器"
+
+msgid "Back to the live wiki"
+msgstr ""
 
 msgid "Backlinks"
 msgstr "反向連結"
@@ -1899,6 +1974,9 @@ msgstr "在你離開之前，方便說說原因嗎？"
 
 msgid "Behind the base branch"
 msgstr "落後於基礎分支"
+
+msgid "Being written"
+msgstr ""
 
 msgid "Below"
 msgstr "下方"
@@ -2123,11 +2201,20 @@ msgstr "已修改"
 msgid "Changed here and on the remote"
 msgstr "本機和遠端都有變更"
 
+msgid "Changed in this draft"
+msgstr ""
+
 msgid "changed outside"
 msgstr "在外部被改動"
 
 msgid "Changed outside OK since it last wrote here — the state shown is what's on disk now"
 msgstr "自從它上次寫入這裡之後，在 OK 之外被改動過——顯示的是磁碟上現在的狀態"
+
+msgid "Changes"
+msgstr ""
+
+msgid "Changes in \"{0}\""
+msgstr ""
 
 msgid "Changes requested"
 msgstr "已要求變更"
@@ -2140,6 +2227,12 @@ msgstr "變更會自動儲存。"
 
 msgid "Changes saved automatically."
 msgstr "變更已自動儲存。"
+
+msgid "changes this page"
+msgstr ""
+
+msgid "Changes to {pageName}"
+msgstr ""
 
 msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
 msgstr "變更已儲存，但 GitQuire 無法確認與 {handoffLabel} 的連線。請檢查此應用程式的 MCP 伺服器設定，然後選擇「儲存變更」再次檢查。"
@@ -2318,6 +2411,9 @@ msgid "Claude on the web or phone"
 msgstr ""
 
 msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
+
+msgid "Claude, for {0}"
 msgstr ""
 
 msgid "Cleanup didn’t finish"
@@ -2968,9 +3064,6 @@ msgstr "無法修復 {total} 個檔案中的 {0} 個。"
 msgid "Could not initialize {0}."
 msgstr "無法初始化 {0}。"
 
-msgid "Could not load branches"
-msgstr ""
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "無法載入範本：{templatesError}。你仍然可以建立空白筆記。"
 
@@ -3007,9 +3100,6 @@ msgstr "無法儲存同步偏好設定：{detail}"
 msgid "Could not start creating a new item"
 msgstr "無法開始建立新項目"
 
-msgid "Could not switch to {branch}"
-msgstr ""
-
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "無法切換到 {shareBranch}。請試著手動切換。"
 
@@ -3036,6 +3126,9 @@ msgstr "無法變更拼字檢查。請重試。"
 
 msgid "Couldn't change the spelling languages. Try again."
 msgstr "無法變更拼字檢查語言。請重試。"
+
+msgid "Couldn't change the status."
+msgstr ""
 
 msgid "Couldn't check which tools are connected."
 msgstr "無法檢查哪些工具已連接。"
@@ -3102,6 +3195,9 @@ msgstr "無法刪除範本：{error}"
 
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "無法刪除這個主題。請重新整理後再試一次。"
+
+msgid "Couldn't discard the draft."
+msgstr ""
 
 msgid "Couldn't disconnect — please try again."
 msgstr "無法中斷連接——請再試一次。"
@@ -3175,6 +3271,9 @@ msgstr "無法載入你的智慧代理。"
 msgid "Couldn't load your bug reports."
 msgstr "無法載入你的錯誤回報。"
 
+msgid "Couldn't mark the draft as ready."
+msgstr ""
+
 msgid "Couldn't move {0}: {1}"
 msgstr "無法移動 {0}：{1}"
 
@@ -3216,6 +3315,9 @@ msgstr "無法將 {skillName} 放入 {root}：{0}"
 
 msgid "Couldn't prepare this project for publish."
 msgstr "無法為發布準備這個專案。"
+
+msgid "Couldn't publish the draft."
+msgstr ""
 
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "無法從 GitHub 拉取。請檢查你的網路連線和登入狀態，然後再試一次。"
@@ -3355,6 +3457,9 @@ msgstr "無法儲存自動更新設定：{0}"
 msgid "Couldn't save the comment."
 msgstr ""
 
+msgid "Couldn't save the draft."
+msgstr ""
+
 msgid "Couldn't save the email address."
 msgstr ""
 
@@ -3364,11 +3469,17 @@ msgstr "無法儲存金鑰——請再試一次。"
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "無法儲存 {filePath} 的解決結果。"
 
+msgid "Couldn't save the setting. Try again."
+msgstr ""
+
 msgid "Couldn't save the view."
 msgstr ""
 
 msgid "Couldn't save this setting. Try again."
 msgstr "無法儲存此設定。請再試一次。"
+
+msgid "Couldn't save your review."
+msgstr ""
 
 msgid "Couldn't save your theme preference."
 msgstr "無法儲存你的主題偏好。"
@@ -3397,6 +3508,9 @@ msgstr "無法切換為{language}。"
 msgid "Couldn't switch to Only me"
 msgstr "無法切換到「僅自己」"
 
+msgid "Couldn't switch views."
+msgstr ""
+
 msgid "Couldn't unpin {name}"
 msgstr "無法取消置頂 {name}"
 
@@ -3408,6 +3522,9 @@ msgstr "無法更新 {subRoot}：{0}"
 
 msgid "Couldn't update from {0}: {1}"
 msgstr "無法從 {0} 更新：{1}"
+
+msgid "Couldn't update the draft."
+msgstr ""
 
 msgid "Couldn't upload the file. The {settingKey} value in {configFile} can't be used. Fix it in that file."
 msgstr "無法上傳檔案。{configFile} 中的 {settingKey} 值無法使用。請在該檔案中修正。"
@@ -3478,7 +3595,7 @@ msgstr "在 {host} 上建立一個權杖"
 msgid "Create a worktree from this branch"
 msgstr "從這個分支建立 worktree"
 
-msgid "Create and switch"
+msgid "Create and open"
 msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
@@ -3703,6 +3820,9 @@ msgstr "已刪除 {filePath}"
 msgid "Deleted for good"
 msgstr "徹底刪除"
 
+msgid "Deleted in this draft"
+msgstr ""
+
 msgid "deleted template"
 msgstr "已刪除範本"
 
@@ -3840,8 +3960,20 @@ msgstr "停用主題"
 msgid "Disambiguates similarly-named templates in the menu."
 msgstr "用來在選單中區分名稱相近的範本。"
 
+msgid "Discard"
+msgstr ""
+
+msgid "Discard \"{0}\"?"
+msgstr ""
+
+msgid "Discard draft…"
+msgstr ""
+
 msgid "Discard local edits, restore the installed version"
 msgstr "捨棄本機編輯，還原成已安裝的版本"
+
+msgid "Discarded"
+msgstr ""
 
 msgid "Disconnect"
 msgstr "中斷連接"
@@ -3973,8 +4105,17 @@ msgstr "草擬一份規格"
 msgid "Draft a technical spec for my project. Start with an overview, then add cross-linked pages for the architecture, the key modules, and the open questions, all linked from a specs index."
 msgstr "為我的專案草擬一份技術規格。先寫總覽，再加上互相連結的頁面來介紹架構、關鍵模組和待解決的問題，全部從規格索引頁連過去。"
 
+msgid "Draft: {0}"
+msgstr ""
+
 msgid "Drafting…"
 msgstr "草擬中…"
+
+msgid "Drafts"
+msgstr ""
+
+msgid "Drafts are proposed changes that are not live yet. Open one to read or edit it; publish it to make it live for everyone."
+msgstr ""
 
 msgid "Drag {keyName} to reorder"
 msgstr "拖曳 {keyName} 以重新排序"
@@ -4023,6 +4164,9 @@ msgstr "捨棄重複項"
 
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "例如 drafts/ 或 *.draft.md"
+
+msgid "e.g. Onboarding guide update"
+msgstr ""
 
 msgid "e.g. server.ts"
 msgstr "例如 server.ts"
@@ -4397,12 +4541,6 @@ msgid "every doc"
 msgstr "所有文件"
 
 msgid "Everyone"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
 msgstr ""
 
 msgid "Everything from {source} is already up to date"
@@ -5152,6 +5290,9 @@ msgstr "GitQuire 會在背景檢查並下載更新。"
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire could not be reached. Check your connection and try again."
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire 未在此裝置上找到該代理程式。"
 
@@ -5355,6 +5496,12 @@ msgstr "GitQuire 自己的 {0} 副本已損壞，無法執行。它可以下載�
 
 msgid "Give it a name before editing its colors."
 msgstr "請先為主題命名，再編輯色彩。"
+
+msgid "Give the draft a name of up to 120 characters."
+msgstr ""
+
+msgid "Give the draft a name that says what it changes."
+msgstr ""
 
 msgid "Gives the agent instructions for working with your documents and keeps its edits attributed."
 msgstr "為智慧代理提供處理你文件的說明，並保留其編輯的歸屬記錄。"
@@ -6136,6 +6283,9 @@ msgstr "斜體"
 msgid "Item {0}"
 msgstr "項目 {0}"
 
+msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
+msgstr ""
+
 msgid "Join us on Discord"
 msgstr "來 Discord 加入我們"
 
@@ -6189,6 +6339,9 @@ msgstr "讓此專案與你的 git 遠端儲存庫保持同步。自動（僅拉�
 
 msgid "Keep track of the people and companies you work with and the meetings you have with them. Good for remembering who someone is, how you know them, and what you last talked about."
 msgstr "記錄你往來的人和公司，以及你們之間的會面。適合用來記住某人是誰、你怎麼認識他們，還有上次聊了什麼。"
+
+msgid "Keep: {title}"
+msgstr ""
 
 msgid "keeps the skills"
 msgstr "保留這些技能"
@@ -6256,6 +6409,9 @@ msgstr "了解更多關於設定分享的資訊"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "無論資料夾層級多深，都不在「問題」、檔案總管指示器、編輯器診斷、稽核和代理程式寫入建議中顯示寫在 log.md 或 log.mdx 內的失效連結。判斷依據是連結寫在哪個檔案中，而不是它指向哪個檔案；LOG.md 是一般文件。「連結」面板和編輯器仍會顯示這些連結。"
+
+msgid "Let {0} know the draft looks good."
+msgstr ""
 
 msgid "Let agent chats use a browser"
 msgstr "允許代理對話使用瀏覽器"
@@ -6379,6 +6535,9 @@ msgstr "清單"
 
 msgid "Lists"
 msgstr "清單"
+
+msgid "Live wiki"
+msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "放在這個專案裡（技能資料夾在哪都行），並透過 git 分享給協作者。"
@@ -6602,6 +6761,9 @@ msgstr ""
 msgid "Mark done: {text}"
 msgstr ""
 
+msgid "Mark ready for review"
+msgstr ""
+
 msgid "Markdown"
 msgstr "Markdown"
 
@@ -6655,6 +6817,9 @@ msgstr "中型章節標題。"
 
 msgid "Mention a page"
 msgstr "提及頁面"
+
+msgid "Mention people by their GitHub name, like @anna."
+msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -6762,6 +6927,9 @@ msgstr "更多動作"
 msgid "More actions ({syncAttentionLabel})"
 msgstr "更多動作（{syncAttentionLabel}）"
 
+msgid "More draft actions"
+msgstr ""
+
 msgid "More information"
 msgstr "更多資訊"
 
@@ -6833,6 +7001,15 @@ msgstr "將編輯器移到視窗頂部邊緣"
 
 msgid "Move GitQuire.app to the Trash"
 msgstr "將 GitQuire.app 移到垃圾桶"
+
+msgid "Move into draft"
+msgstr ""
+
+msgid "Move my recent edits into a draft"
+msgstr ""
+
+msgid "Move my recent edits to a draft…"
+msgstr ""
 
 msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
 msgstr "在技能內部移動或重新命名這個檔案——路徑仍會留在 references/ 或 scripts/ 底下。"
@@ -7035,17 +7212,11 @@ msgstr "有新動態"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "新紀錄 · 按<0>空白鍵</0>再玩一次"
 
-msgid "New branch"
-msgstr ""
-
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "新分支 <0>{trimmed}</0> 會從 <1>{currentBaseLabel}</1> 建立，放在 <2>.ok/worktrees/</2> 底下自己的 worktree 中。"
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "新分支 <0>{trimmed}</0> 會從目前的提交建立，放在 <1>.ok/worktrees/</1> 底下自己的 worktree 中。"
-
-msgid "New branch…"
-msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "來自遠端的新變更會自動出現在你的副本裡。"
@@ -7058,6 +7229,12 @@ msgstr "與 {agentName} 的新對話"
 
 msgid "New chat with a different window"
 msgstr "使用其他視窗新建對話"
+
+msgid "New draft"
+msgstr ""
+
+msgid "New draft…"
+msgstr ""
 
 msgid "New file"
 msgstr "新增檔案"
@@ -7083,6 +7260,9 @@ msgstr "從範本新增…"
 msgid "New ignore pattern"
 msgstr "新的忽略模式"
 
+msgid "New in this draft"
+msgstr ""
+
 msgid "New languages may need an internet connection and time to become available."
 msgstr "新語言可能需要連線網路並等待一段時間才能使用。"
 
@@ -7094,6 +7274,9 @@ msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "{editor} 版本的新名稱"
+
+msgid "New page"
+msgstr ""
 
 msgid "New project"
 msgstr "新增專案"
@@ -7220,6 +7403,9 @@ msgstr "還沒有錯誤回報。"
 
 msgid "No changes"
 msgstr "沒有變更"
+
+msgid "No changes yet · not live"
+msgstr ""
 
 msgid "No chats match your search"
 msgstr "沒有符合搜尋條件的聊天"
@@ -7491,6 +7677,9 @@ msgstr "找不到工作樹。"
 msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
+msgid "Nobody has reviewed it yet."
+msgstr ""
+
 msgid "Nobody mentioned"
 msgstr ""
 
@@ -7574,6 +7763,12 @@ msgstr "未執行"
 msgid "Not sent"
 msgstr "未傳送"
 
+msgid "Note"
+msgstr ""
+
+msgid "Note (optional)"
+msgstr ""
+
 msgid "nothing ({0} cannot match a doc)"
 msgstr "無（{0} 無法比對到任何文件）"
 
@@ -7582,6 +7777,12 @@ msgstr "無（{0} 不是有效的模式）"
 
 msgid "Nothing from {agentName} for {stalledMinutes, plural, one {# minute} other {# minutes}}. If it looks stuck, Stop and try again."
 msgstr "{agentName} 已有 {stalledMinutes, plural, other {# 分鐘}}沒有任何回應。如果看起來卡住了，請停止並重試。"
+
+msgid "Nothing has changed in this draft yet."
+msgstr ""
+
+msgid "Nothing here."
+msgstr ""
 
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "在您檢查並傳送報告之前，任何資訊都不會離開您的電腦。"
@@ -7659,6 +7860,9 @@ msgid "On — your search queries and the text of matching pages are sent to you
 msgstr "開啟——你的搜尋查詢和相符頁面的內容會送到你的嵌入服務供應商（預設是 OpenAI）來計算嵌入向量。"
 
 msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
+
+msgid "On GitHub"
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -7881,15 +8085,6 @@ msgstr "代理編輯時開啟預覽"
 msgid "Open project menu"
 msgstr "開啟專案選單"
 
-msgid "Open pull request"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
 msgid "Open recent project"
 msgstr "開啟最近的專案"
 
@@ -7922,6 +8117,9 @@ msgstr "開啟終端機以登入"
 
 msgid "Open that worktree instead"
 msgstr "改為開啟那個 worktree"
+
+msgid "Open the draft to review it."
+msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "在空白或作用中的文字位置開啟插入選單。"
@@ -7974,9 +8172,6 @@ msgstr "已開啟位於 {ancestorPath} 的現有 GitQuire 專案"
 msgid "Opened on branch {branch}"
 msgstr "已在分支 {branch} 上開啟"
 
-msgid "Opened pull request #{number}"
-msgstr ""
-
 msgid "Opening {openingLabel}…"
 msgstr "正在開啟 {openingLabel}…"
 
@@ -7985,9 +8180,6 @@ msgstr "正在開啟 worktree"
 
 msgid "Opening..."
 msgstr "正在開啟…"
-
-msgid "Opening…"
-msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "開啟資料夾選擇器，挑一個地方把儲存庫複製過去。"
@@ -8522,7 +8714,7 @@ msgstr "屬性名稱"
 msgid "Property value"
 msgstr "屬性值"
 
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgid "Propose changes to this page…"
 msgstr ""
 
 msgid "Protected branch — cannot push"
@@ -8543,6 +8735,9 @@ msgstr "公開儲存庫"
 msgid "Publish"
 msgstr "發布"
 
+msgid "Publish \"{0}\"?"
+msgstr ""
+
 msgid "Publish to GitHub"
 msgstr "發布到 GitHub"
 
@@ -8552,8 +8747,17 @@ msgstr "已發布"
 msgid "Published by {publisher}"
 msgstr "由 {publisher} 發布"
 
+msgid "Published on GitHub"
+msgstr ""
+
+msgid "Published or discarded"
+msgstr ""
+
 msgid "Publishing..."
 msgstr "正在發布…"
+
+msgid "Publishing…"
+msgstr ""
 
 msgid "Pull"
 msgstr "拉取"
@@ -8608,6 +8812,9 @@ msgstr "{pushed}推送"
 
 msgid "Pushing"
 msgstr "正在推送"
+
+msgid "Put my AI assistant's edits into a draft"
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.user"
@@ -8711,6 +8918,9 @@ msgstr "讀取此專案的 GitQuire 設定"
 msgid "Ready"
 msgstr "就緒"
 
+msgid "Ready for review"
+msgstr ""
+
 msgid "Ready to merge"
 msgstr "可以合併"
 
@@ -8743,6 +8953,9 @@ msgstr "最近的檔案"
 
 msgid "Recent project"
 msgstr "最近的專案"
+
+msgid "Recently closed"
+msgstr ""
 
 msgid "Recently opened"
 msgstr "最近開啟"
@@ -8973,6 +9186,9 @@ msgstr "重新命名 {keyName}"
 msgid "Rename chat"
 msgstr "重新命名聊天"
 
+msgid "Rename draft"
+msgstr ""
+
 msgid "Rename failed: {0}"
 msgstr "重新命名失敗：{0}"
 
@@ -8984,6 +9200,9 @@ msgstr "重新命名技能"
 
 msgid "Rename succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "重新命名成功，但側邊欄可能不是最新的——請重新整理以重新同步"
+
+msgid "Rename…"
+msgstr ""
 
 msgid "Renamed"
 msgstr "已重新命名"
@@ -9459,6 +9678,9 @@ msgstr "正在儲存變更…"
 
 msgid "Saving your edits before reloading…"
 msgstr "正在儲存你的編輯，然後重新載入…"
+
+msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
+msgstr ""
 
 msgid "schema {deleteTarget}"
 msgstr "結構描述 {deleteTarget}"
@@ -10083,6 +10305,9 @@ msgstr "篩查中…"
 msgid "Sign in"
 msgstr "登入"
 
+msgid "Sign in again to continue."
+msgstr ""
+
 msgid "Sign in to {agentName} first"
 msgstr "請先登入 {agentName}"
 
@@ -10109,6 +10334,9 @@ msgstr "正在登入 {agentName}"
 
 msgid "Signing in to {agentName}…"
 msgstr "正在登入 {agentName}…"
+
+msgid "Since this draft started, someone changed the live wiki in the same spots. For each spot, choose what to keep. Everything else was combined automatically."
+msgstr ""
 
 msgid "Single page"
 msgstr "單頁"
@@ -10421,9 +10649,6 @@ msgstr "正在啟動終端機…"
 msgid "Starting the agent…"
 msgstr "正在啟動代理…"
 
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
 msgid "status"
 msgstr "狀態"
 
@@ -10523,9 +10748,6 @@ msgstr "總結我這週改了哪些東西"
 msgid "Swap file sidebar and document panel"
 msgstr "交換檔案側邊欄與文件面板的位置"
 
-msgid "Switch"
-msgstr ""
-
 msgid "Switch and update branch"
 msgstr "切換並更新分支"
 
@@ -10535,17 +10757,11 @@ msgstr "在視覺化編輯器和原始碼編輯器之間切換，並保持目前
 msgid "Switch branch"
 msgstr "切換分支"
 
-msgid "Switch everyone to"
-msgstr ""
-
 msgid "Switch project"
 msgstr "切換專案"
 
 msgid "Switch project…"
 msgstr "切換專案…"
-
-msgid "Switch to {target}?"
-msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "請切換到某個分支後再分享。"
@@ -10558,9 +10774,6 @@ msgstr "切換 worktree"
 
 msgid "Switch worktree…"
 msgstr "切換 worktree…"
-
-msgid "Switched to {branch}"
-msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "切換智慧代理模式"
@@ -10711,6 +10924,9 @@ msgstr "工作清單"
 
 msgid "Team Wiki"
 msgstr "團隊維基"
+
+msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
+msgstr ""
 
 msgid "Tell us how it's going"
 msgstr "告訴我們進行得怎麼樣"
@@ -10966,6 +11182,15 @@ msgstr "桌面應用程式沒有回應。請重新整理後再試一次。"
 msgid "the doc {0}"
 msgstr "文件 {0}"
 
+msgid "The draft could not be opened right now. Try again in a moment."
+msgstr ""
+
+msgid "The draft now includes the latest live wiki."
+msgstr ""
+
+msgid "The draft was already up to date."
+msgstr ""
+
 msgid "The embeddings provider's vector size kept changing. Semantic search is off until GitQuire restarts."
 msgstr "嵌入提供商的向量大小不斷變動。在 GitQuire 重新啟動前，語意搜尋將保持關閉。"
 
@@ -11019,6 +11244,12 @@ msgstr "介面仍是你先前閱讀的語言。請檢查網路連線，然後重
 
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "GitQuire 使用的語言；「跟隨系統」會跟隨你的作業系統。你自己的筆記會保持你書寫時的語言。"
+
+msgid "The live wiki changed in the same places. Update the draft first."
+msgstr ""
+
+msgid "The live wiki changed since this draft started."
+msgstr ""
 
 msgid "The meeting note was created, but its date and headings couldn't be added."
 msgstr ""
@@ -11091,6 +11322,9 @@ msgstr "儲存庫的原始複製目錄"
 
 msgid "The request to enable GitQuire tools timed out. This thread runs without them."
 msgstr "啟用 GitQuire 工具的請求已逾時。此執行緒將在沒有這些工具的情況下運作。"
+
+msgid "The same text changed in both places"
+msgstr ""
 
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "結構描述檔案不存在或載入失敗——新增欄位就會建立它。"
@@ -11376,6 +11610,15 @@ msgstr "這份文件缺少必要的屬性"
 msgid "This document was deleted"
 msgstr "此文件已被刪除"
 
+msgid "This draft"
+msgstr ""
+
+msgid "This draft no longer exists."
+msgstr ""
+
+msgid "This draft was already published or discarded."
+msgstr ""
+
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "這個端點忽略了你設定的向量維度。移除 <0>search.semantic.dimensions</0> 就會改用模型自己的維度。"
 
@@ -11499,6 +11742,9 @@ msgstr "這個頁面還不存在。開啟它就能在編輯器中建立這個頁
 
 msgid "This page doesn't link to anything yet."
 msgstr "這個頁面還沒有連到任何地方。"
+
+msgid "This page has changes in a draft"
+msgstr ""
 
 msgid "This page has no images or attached files."
 msgstr ""
@@ -12016,9 +12262,6 @@ msgstr "無法解析檔案 {identity}。前往引用位置。"
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "無法解析圖片 {identity}。前往引用位置。"
 
-msgid "Unsaved changes block the switch"
-msgstr ""
-
 msgid "Unsupported file type: {fileType}."
 msgstr "不支援的檔案類型：{fileType}。"
 
@@ -12047,6 +12290,9 @@ msgstr "要用「{skillName}」覆蓋你的編輯來更新嗎？"
 msgid "Update all from this source"
 msgstr "從此來源更新全部"
 
+msgid "Update draft"
+msgstr ""
+
 msgid "Update failed: {0}"
 msgstr "更新失敗：{0}"
 
@@ -12058,6 +12304,9 @@ msgstr "請更新 GitQuire 以開啟這個分享內容。"
 
 msgid "Update the destination and optional section anchor."
 msgstr "更新目標位置和選填的章節錨點。"
+
+msgid "Update with the live wiki"
+msgstr ""
 
 msgid "Updated \"{0}\": added {1}, removed {2}"
 msgstr "已更新「{0}」：新增 {1}，移除 {2}"
@@ -12088,6 +12337,9 @@ msgstr "來源的更新會自動套用（除非在本機編輯過）"
 
 msgid "Updating"
 msgstr "正在更新"
+
+msgid "Updating…"
+msgstr ""
 
 msgid "Upload"
 msgstr "上傳"
@@ -12327,6 +12579,9 @@ msgstr "正在等待授權"
 msgid "Waiting for review"
 msgstr "等待審查"
 
+msgid "Waiting for someone to check"
+msgstr ""
+
 msgid "Waiting for your approval"
 msgstr "正在等你核准"
 
@@ -12388,6 +12643,9 @@ msgstr "副本和符號連結有什麼差別？"
 msgid "What is this knowledge base for?"
 msgstr "這個知識庫是要做什麼用的？"
 
+msgid "What should reviewers look at?"
+msgstr ""
+
 msgid "What should we work on?"
 msgstr "我們來做些什麼？"
 
@@ -12397,6 +12655,9 @@ msgstr "代理可以讀取、寫入和呈現的內容。"
 msgid "What this checkbox changes"
 msgstr "這個核取方塊會改變什麼"
 
+msgid "What this draft changes compared with the live wiki. Added words are green, removed words are red."
+msgstr ""
+
 msgid "What to include"
 msgstr "要包含哪些內容"
 
@@ -12405,6 +12666,9 @@ msgstr "你當時在做什麼？"
 
 msgid "What would you like to create?"
 msgstr "你想建立什麼？"
+
+msgid "What you are looking at"
+msgstr ""
 
 msgid "What you share is sent to the GitQuire team."
 msgstr "你分享的內容會寄給 GitQuire 團隊。"
@@ -12420,6 +12684,9 @@ msgstr "開啟之後，代理每次編輯完都會開啟或重新整理預覽。
 
 msgid "When the agent runs its scheduled work."
 msgstr "代理執行排程工作的時間。"
+
+msgid "When this is on, your assistant works in the draft you have open, or in its own draft for you to review and publish. When it is off, its edits go straight to the live wiki."
+msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "把游標停在外部連結上時，它的 URL 會送到目標網站，以取得那個頁面的預覽中繼資料——每個被預覽的連結送一次要求。"
@@ -12441,6 +12708,9 @@ msgstr "哪一個技能"
 
 msgid "Whitespace"
 msgstr "空白字元"
+
+msgid "Who should review?"
+msgstr ""
 
 msgid "Who you are, so the agent has your context."
 msgstr "你是誰，好讓代理知道你的背景。"
@@ -12478,6 +12748,9 @@ msgstr "會建立在：<0>{targetPreview}</0>"
 msgid "Will be saved as <0>{sanitized}</0>."
 msgstr "會儲存成 <0>{sanitized}</0>。"
 
+msgid "Will notify: {0}"
+msgstr ""
+
 msgid "Window"
 msgstr "視窗"
 
@@ -12495,6 +12768,9 @@ msgstr "直接工作，不先制定計畫"
 
 msgid "Working"
 msgstr "進行中"
+
+msgid "Working…"
+msgstr ""
 
 msgid "Workspace"
 msgstr "工作區"
@@ -12515,6 +12791,9 @@ msgid "Wrap long lines in the markdown source editor."
 msgstr "在 markdown 原始碼編輯器中把過長的行自動換行。"
 
 msgid "Write a reply. Type @ to mention someone."
+msgstr ""
+
+msgid "Write it myself"
 msgstr ""
 
 #. js-lingui-explicit-id
@@ -12541,6 +12820,9 @@ msgstr "昨天"
 
 msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
 msgstr "你已有名為「{0}」的自有技能——不會安裝入門包中的版本，你的技能也不會被更動。如需安裝入門包版本，請重新命名你自己的技能。"
+
+msgid "You are here"
+msgstr ""
 
 #. Label above the optional skill offered on first visit
 msgid "You can add"
@@ -12591,6 +12873,9 @@ msgstr "你沒有這個儲存庫的寫入權限。"
 msgid "You edited this skill locally and the source has new changes. Taking upstream replaces your version; your edits stay recoverable in version history."
 msgstr "你在本機編輯過這個技能，而來源又有了新的變更。採用上游版本會取代你的版本；你的編輯仍然可以在版本記錄中找回。"
 
+msgid "You have no recent edits on this page, or someone else edited it after you."
+msgstr ""
+
 msgid "You modified <0>{filePath}</0> locally, but it was deleted upstream."
 msgstr "你在本機修改了 <0>{filePath}</0>，但它在上游被刪除了。"
 
@@ -12636,6 +12921,9 @@ msgstr "不會變更你的文件。"
 msgid "Your edits are committed and pushed to your remote automatically."
 msgstr "你的編輯會自動提交並推送到遠端儲存庫。"
 
+msgid "Your edits from the last hours on \"{0}\" move into a new draft, and the live page goes back to how it was before."
+msgstr ""
+
 msgid "Your edits stay on this computer"
 msgstr "你的編輯會留在這台電腦上"
 
@@ -12672,6 +12960,9 @@ msgstr "你本機的 <0>{branch}</0> 分支副本落後了。請拉取最新的�
 msgid "Your message didn't reach {agentName}."
 msgstr "你的訊息未送達 {agentName}。"
 
+msgid "Your recent edits are now in the draft \"{trimmed}\"."
+msgstr ""
+
 msgid "Your remote URL names {declaredLogin}, but that account's credentials couldn't be used."
 msgstr "你的遠端 URL 中指定了 {declaredLogin}，但無法使用該帳戶的憑證。"
 
@@ -12692,6 +12983,9 @@ msgstr "你的分享連結已經在下面產生好了。"
 
 msgid "Your user settings could not be read"
 msgstr "無法讀取你的使用者設定"
+
+msgid "Your version"
+msgstr ""
 
 msgid "Zip file"
 msgstr "zip 檔案"

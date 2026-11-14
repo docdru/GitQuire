@@ -36,7 +36,10 @@ function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => 
   const { t } = useLingui();
   const isTask = mention.kind === 'task';
   const who = mention.author.name ?? mention.author.login ?? mention.author.id;
-  const page = pageTitle(mention.docName);
+  const page =
+    mention.draft === undefined
+      ? pageTitle(mention.docName)
+      : t`asks you to review "${mention.draft.title}"`;
   const age = mention.at < '2000' ? '' : formatRelativeAge(mention.at);
   return (
     <li>
@@ -59,7 +62,11 @@ function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => 
           <span className="ms-auto shrink-0">{age}</span>
         </span>
         <span className={cn('line-clamp-3 text-sm', mention.read && 'text-muted-foreground')}>
-          {isTask ? `☐ ${mention.body}` : mention.body}
+          {mention.body === '' && mention.draft !== undefined
+            ? t`Open the draft to review it.`
+            : isTask
+              ? `☐ ${mention.body}`
+              : mention.body}
         </span>
       </Button>
     </li>
@@ -287,6 +294,11 @@ export function MentionInbox() {
   function openMention(mention: InboxMention) {
     setOpen(false);
     if (!mention.read) markRead({ ids: [mention.id] });
+    if (mention.draft !== undefined) {
+      const target = `/?draft=${encodeURIComponent(mention.draft.slug)}${window.location.hash}`;
+      setTimeout(() => window.location.assign(target), 200);
+      return;
+    }
     revealEditor();
     window.location.assign(hashFromDocName(mention.docName));
     if (mention.kind !== 'task') revealDiscussion(mention.docName, mention.threadId);

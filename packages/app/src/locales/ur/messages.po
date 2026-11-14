@@ -52,11 +52,29 @@ msgstr "«{0}» کی تنصیب تازہ کر دی گئی ({1})"
 msgid "\"{0}\" is ignored by git"
 msgstr "\"{0}\" کو git نظر انداز کر رہا ہے"
 
+msgid "\"{0}\" is live."
+msgstr ""
+
+msgid "\"{0}\" is ready for review."
+msgstr ""
+
+msgid "\"{0}\" is ready for review. {1} will be notified."
+msgstr ""
+
 msgid "\"{0}\" was already added (identical content)."
 msgstr "«{0}» پہلے ہی شامل تھا (یکساں مواد)۔"
 
 msgid "\"{0}\" was already imported (identical content)."
 msgstr "«{0}» پہلے ہی درآمد ہو چکا تھا (یکساں مواد)۔"
+
+msgid "\"{0}\" was discarded."
+msgstr ""
+
+msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgstr ""
+
+msgid "\"{0}\" was published. You are back on the live wiki."
+msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
 msgstr "«{docName}» موجود نہیں ہے۔"
@@ -96,6 +114,9 @@ msgstr "(اِن لائن)"
 
 msgid "(no name)"
 msgstr "(کوئی نام نہیں)"
+
+msgid "(nothing)"
+msgstr ""
 
 msgid "(opens in new tab)"
 msgstr "(نئے ٹیب میں کھلتا ہے)"
@@ -199,6 +220,9 @@ msgstr "{0, plural, one {پروجیکٹ پالیسی اس آڈٹ سے خراب �
 msgid "{0, plural, one {Skill} other {Skills}}"
 msgstr "{0, plural, one {مہارت} other {مہارتیں}}"
 
+msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
+msgstr ""
+
 msgid "{0, plural, one {Uploading # attachment} other {Uploading # attachments}}"
 msgstr "{0, plural, one {# منسلکہ اپ لوڈ ہو رہا ہے} other {# منسلکات اپ لوڈ ہو رہے ہیں}}"
 
@@ -268,6 +292,9 @@ msgstr "{0} ایک لنک کے ذریعے کھلتا ہے اور منسلکات 
 msgid "{0} other skills by this publisher"
 msgstr "اس ناشر کی {0} مزید مہارتیں"
 
+msgid "{0} pages changed"
+msgstr ""
+
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
@@ -294,6 +321,9 @@ msgstr "{0} مہارتیں منتخب"
 
 msgid "{0} total"
 msgstr "کل {0}"
+
+msgid "{0} unchanged paragraphs"
+msgstr ""
 
 msgid "{0} version {1}"
 msgstr "{0} ورژن {1}"
@@ -681,9 +711,6 @@ msgstr "سطر {displayLine} پر {localizedMessage}"
 msgid "{mcpTool} from the {server} MCP server"
 msgstr "{server} MCP سرور کا {mcpTool}"
 
-msgid "{merged} was merged on GitHub. Switching everyone to {base}."
-msgstr ""
-
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, one {# منٹ پہلے} other {# منٹ پہلے}}"
 
@@ -734,6 +761,12 @@ msgstr "{packName} پہلے ہی ترتیب دی جا چکی تھی۔ کچھ ک�
 
 msgid "{pageCount, plural, one {The full text of your 1 page will be sent to <0>{host}</0> as it is re-embedded.} other {The full text of all {pageCount} pages will be sent to <1>{host}</1> as they are re-embedded.}}"
 msgstr "{pageCount, plural, one {آپ کے 1 صفحے کا مکمل متن <0>{host}</0> کو بھیجا جائے گا جب اسے دوبارہ ایمبیڈ کیا جائے گا۔} other {تمام {pageCount} صفحات کا مکمل متن <1>{host}</1> کو بھیجا جائے گا جب انہیں دوبارہ ایمبیڈ کیا جائے گا۔}}"
+
+msgid "{pages} changed · not live yet"
+msgstr ""
+
+msgid "{pages} pages go live for everyone. The draft is closed afterwards."
+msgstr ""
 
 msgid "{percent}% from top"
 msgstr "اوپر سے {percent}%"
@@ -861,10 +894,16 @@ msgstr "{visibleSummary}۔ {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, one {# انتباہ} other {# انتباہات}}"
 
+msgid "{who} published \"{0}\". You are back on the live wiki."
+msgstr ""
+
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {لفظ} other {الفاظ}}"
 
 msgid "@{login} ({open} open)"
+msgstr ""
+
+msgid "@anna @ben"
 msgstr ""
 
 msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
@@ -952,6 +991,15 @@ msgstr "1 گھنٹہ"
 msgid "1 minute"
 msgstr "1 منٹ"
 
+msgid "1 page changed"
+msgstr ""
+
+msgid "1 page goes live for everyone. The draft is closed afterwards."
+msgstr ""
+
+msgid "1 unchanged paragraph"
+msgstr ""
+
 msgid "15 minutes"
 msgstr "15 منٹ"
 
@@ -1008,6 +1056,9 @@ msgstr "اس جیسے نام کی ایک مختلف مہارت {0} پر موجو
 
 msgid "A document has a conflict — resolve it to keep it up to date."
 msgstr "ایک دستاویز میں تصادم ہے — اسے تازہ رکھنے کے لیے حل کریں۔"
+
+msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
+msgstr ""
 
 msgid "A folder containing SKILL.md."
 msgstr "ایک فولڈر جس میں SKILL.md ہو۔"
@@ -1453,6 +1504,9 @@ msgstr "تمام کنفلکٹس حل ہو گئے۔ محفوظ کرنے کے لی
 msgid "All dated pages"
 msgstr ""
 
+msgid "All drafts…"
+msgstr ""
+
 msgid "All files"
 msgstr "تمام فائلیں"
 
@@ -1643,6 +1697,9 @@ msgstr "لاگو کیا جا رہا ہے…"
 msgid "Approve"
 msgstr "منظوری دیں"
 
+msgid "Approve \"{0}\""
+msgstr ""
+
 msgid "Approve & proceed"
 msgstr "منظور کریں اور آگے بڑھیں"
 
@@ -1654,6 +1711,9 @@ msgstr "منظور شدہ — {optionName}"
 
 msgid "Approved and ready to merge"
 msgstr "منظور شدہ اور مرج کے لیے تیار"
+
+msgid "Approved by {approvers}"
+msgstr ""
 
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "کیا آپ واقعی اس فائل کو ٹیمپلیٹ میں تبدیل کرنا چاہتے ہیں؟ اصل فائل حذف ہو جائے گی۔ یہ عمل واپس نہیں لیا جا سکتا۔"
@@ -1719,6 +1779,15 @@ msgid "Ask Claude to work on this folder…"
 msgstr ""
 
 msgid "Ask Claude to work on this page…"
+msgstr ""
+
+msgid "Ask for changes"
+msgstr ""
+
+msgid "Asked: {waitingFor}"
+msgstr ""
+
+msgid "asks you to review \"{0}\""
 msgstr ""
 
 msgid "Asset"
@@ -1863,8 +1932,14 @@ msgstr "واپس"
 msgid "Back to document view"
 msgstr "دستاویز کے منظر پر واپس"
 
+msgid "Back to draft"
+msgstr ""
+
 msgid "Back to editor"
 msgstr "ایڈیٹر پر واپس"
+
+msgid "Back to the live wiki"
+msgstr ""
 
 msgid "Backlinks"
 msgstr "بیک لنکس"
@@ -1899,6 +1974,9 @@ msgstr "جانے سے پہلے، وجہ بتانا پسند کریں گے؟"
 
 msgid "Behind the base branch"
 msgstr "بیس برانچ سے پیچھے"
+
+msgid "Being written"
+msgstr ""
 
 msgid "Below"
 msgstr "نیچے"
@@ -2123,11 +2201,20 @@ msgstr "تبدیل شدہ"
 msgid "Changed here and on the remote"
 msgstr "یہاں اور ریموٹ دونوں پر تبدیل ہوئیں"
 
+msgid "Changed in this draft"
+msgstr ""
+
 msgid "changed outside"
 msgstr "باہر تبدیل ہوا"
 
 msgid "Changed outside OK since it last wrote here — the state shown is what's on disk now"
 msgstr "آخری بار یہاں لکھنے کے بعد OK سے باہر تبدیل ہوا — دکھائی گئی حالت وہی ہے جو اب ڈسک پر ہے"
+
+msgid "Changes"
+msgstr ""
+
+msgid "Changes in \"{0}\""
+msgstr ""
 
 msgid "Changes requested"
 msgstr "تبدیلیوں کی درخواست کی گئی"
@@ -2140,6 +2227,12 @@ msgstr "تبدیلیاں خودکار طور پر محفوظ ہو جاتی ہی�
 
 msgid "Changes saved automatically."
 msgstr "تبدیلیاں خودکار طور پر محفوظ ہو گئیں۔"
+
+msgid "changes this page"
+msgstr ""
+
+msgid "Changes to {pageName}"
+msgstr ""
 
 msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
 msgstr "تبدیلیاں محفوظ ہو گئیں، لیکن GitQuire {handoffLabel} سے کنکشن کی تصدیق نہیں کر سکا۔ اس ایپ کی MCP سرور ترتیبات چیک کریں، پھر دوبارہ جانچنے کے لیے تبدیلیاں محفوظ کریں منتخب کریں۔"
@@ -2318,6 +2411,9 @@ msgid "Claude on the web or phone"
 msgstr ""
 
 msgid "Claude opened with your request. Check it there and press send."
+msgstr ""
+
+msgid "Claude, for {0}"
 msgstr ""
 
 msgid "Cleanup didn’t finish"
@@ -2968,9 +3064,6 @@ msgstr "{total} میں سے {0} فائلیں درست نہیں کی جا سکی�
 msgid "Could not initialize {0}."
 msgstr "{0} کا ابتدائیہ نہیں ہو سکا۔"
 
-msgid "Could not load branches"
-msgstr ""
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "ٹیمپلیٹس لوڈ نہیں ہو سکے: {templatesError}۔ آپ اب بھی خالی نوٹ بنا سکتے ہیں۔"
 
@@ -3007,9 +3100,6 @@ msgstr "مطابقت پذیری کی ترجیح محفوظ نہیں ہو سکی:
 msgid "Could not start creating a new item"
 msgstr "نیا آئٹم بنانا شروع نہیں ہو سکا"
 
-msgid "Could not switch to {branch}"
-msgstr ""
-
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "{shareBranch} پر تبدیل نہیں ہو سکا۔ دستی طور پر تبدیل کرنے کی کوشش کریں۔"
 
@@ -3036,6 +3126,9 @@ msgstr "املا کی جانچ تبدیل نہیں کی جا سکی۔ دوبار
 
 msgid "Couldn't change the spelling languages. Try again."
 msgstr "املا کی جانچ کی زبانیں تبدیل نہیں ہو سکیں۔ دوبارہ کوشش کریں۔"
+
+msgid "Couldn't change the status."
+msgstr ""
 
 msgid "Couldn't check which tools are connected."
 msgstr "معلوم نہیں ہو سکا کہ کون سے ٹولز منسلک ہیں۔"
@@ -3102,6 +3195,9 @@ msgstr "ٹیمپلیٹ حذف نہیں ہو سکا: {error}"
 
 msgid "Couldn’t delete this theme. Refresh and try again."
 msgstr "یہ تھیم حذف نہیں کی جا سکی۔ تازہ کر کے دوبارہ کوشش کریں۔"
+
+msgid "Couldn't discard the draft."
+msgstr ""
 
 msgid "Couldn't disconnect — please try again."
 msgstr "منقطع نہیں ہو سکا — براہِ کرم دوبارہ کوشش کریں۔"
@@ -3175,6 +3271,9 @@ msgstr "آپ کے ایجنٹس لوڈ نہیں ہو سکے۔"
 msgid "Couldn't load your bug reports."
 msgstr "آپ کی بگ رپورٹس لوڈ نہیں ہو سکیں۔"
 
+msgid "Couldn't mark the draft as ready."
+msgstr ""
+
 msgid "Couldn't move {0}: {1}"
 msgstr "{0} منتقل نہیں ہو سکی: {1}"
 
@@ -3216,6 +3315,9 @@ msgstr "{skillName} کو {root} میں نہیں رکھا جا سکا: {0}"
 
 msgid "Couldn't prepare this project for publish."
 msgstr "اس پروجیکٹ کو اشاعت کے لیے تیار نہیں کیا جا سکا۔"
+
+msgid "Couldn't publish the draft."
+msgstr ""
 
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "GitHub سے کھینچا نہیں جا سکا۔ اپنا کنکشن اور سائن اِن دیکھیں، پھر دوبارہ کوشش کریں۔"
@@ -3355,6 +3457,9 @@ msgstr "خودکار اپ ڈیٹ کی ترتیب محفوظ نہیں ہو سکی
 msgid "Couldn't save the comment."
 msgstr ""
 
+msgid "Couldn't save the draft."
+msgstr ""
+
 msgid "Couldn't save the email address."
 msgstr ""
 
@@ -3364,11 +3469,17 @@ msgstr "کلید محفوظ نہیں ہو سکی — براہِ کرم دوبا�
 msgid "Couldn't save the resolution for {filePath}."
 msgstr "{filePath} کا حل محفوظ نہیں ہو سکا۔"
 
+msgid "Couldn't save the setting. Try again."
+msgstr ""
+
 msgid "Couldn't save the view."
 msgstr ""
 
 msgid "Couldn't save this setting. Try again."
 msgstr "یہ ترتیب محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔"
+
+msgid "Couldn't save your review."
+msgstr ""
 
 msgid "Couldn't save your theme preference."
 msgstr "آپ کی تھیم ترجیح محفوظ نہیں ہو سکی۔"
@@ -3397,6 +3508,9 @@ msgstr "{language} پر تبدیل نہیں کیا جا سکا۔"
 msgid "Couldn't switch to Only me"
 msgstr "«صرف میں» پر تبدیل نہیں ہو سکا"
 
+msgid "Couldn't switch views."
+msgstr ""
+
 msgid "Couldn't unpin {name}"
 msgstr "{name} سے پن نہیں ہٹایا جا سکا"
 
@@ -3408,6 +3522,9 @@ msgstr "{subRoot} تازہ نہیں ہو سکا: {0}"
 
 msgid "Couldn't update from {0}: {1}"
 msgstr "{0} سے اپ ڈیٹ نہیں ہو سکا: {1}"
+
+msgid "Couldn't update the draft."
+msgstr ""
 
 msgid "Couldn't upload the file. The {settingKey} value in {configFile} can't be used. Fix it in that file."
 msgstr "فائل اپ لوڈ نہیں ہو سکی۔ {configFile} میں {settingKey} کی قدر استعمال نہیں ہو سکتی۔ اسے اسی فائل میں درست کریں۔"
@@ -3478,7 +3595,7 @@ msgstr "{host} پر ٹوکن بنائیں"
 msgid "Create a worktree from this branch"
 msgstr "اس برانچ سے ورک ٹری بنائیں"
 
-msgid "Create and switch"
+msgid "Create and open"
 msgstr ""
 
 msgid "Create in <0>{dirDisplay}</0>"
@@ -3703,6 +3820,9 @@ msgstr "{filePath} حذف کر دی گئی"
 msgid "Deleted for good"
 msgstr "ہمیشہ کے لیے حذف"
 
+msgid "Deleted in this draft"
+msgstr ""
+
 msgid "deleted template"
 msgstr "ٹیمپلیٹ حذف کیا"
 
@@ -3840,8 +3960,20 @@ msgstr "تھیمز بند کریں"
 msgid "Disambiguates similarly-named templates in the menu."
 msgstr "مینو میں ملتے جلتے ناموں والے ٹیمپلیٹس کو الگ پہچانتا ہے۔"
 
+msgid "Discard"
+msgstr ""
+
+msgid "Discard \"{0}\"?"
+msgstr ""
+
+msgid "Discard draft…"
+msgstr ""
+
 msgid "Discard local edits, restore the installed version"
 msgstr "مقامی ترامیم رد کریں، نصب شدہ ورژن بحال کریں"
+
+msgid "Discarded"
+msgstr ""
 
 msgid "Disconnect"
 msgstr "منقطع کریں"
@@ -3973,8 +4105,17 @@ msgstr "ایک اسپیک لکھیں"
 msgid "Draft a technical spec for my project. Start with an overview, then add cross-linked pages for the architecture, the key modules, and the open questions, all linked from a specs index."
 msgstr "میرے پروجیکٹ کے لیے تکنیکی اسپیک لکھیں۔ ایک جائزے سے شروع کریں، پھر ڈھانچے، بنیادی ماڈیولز اور کھلے سوالات کے لیے باہم مربوط صفحات شامل کریں، جو سب اسپیکس کے اشاریے سے جڑے ہوں۔"
 
+msgid "Draft: {0}"
+msgstr ""
+
 msgid "Drafting…"
 msgstr "مسودہ لکھا جا رہا ہے…"
+
+msgid "Drafts"
+msgstr ""
+
+msgid "Drafts are proposed changes that are not live yet. Open one to read or edit it; publish it to make it live for everyone."
+msgstr ""
 
 msgid "Drag {keyName} to reorder"
 msgstr "ترتیب بدلنے کے لیے {keyName} کھینچیں"
@@ -4023,6 +4164,9 @@ msgstr "نقول ہٹا دی گئیں"
 
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "مثلاً drafts/ یا *.draft.md"
+
+msgid "e.g. Onboarding guide update"
+msgstr ""
 
 msgid "e.g. server.ts"
 msgstr "مثلاً server.ts"
@@ -4397,12 +4541,6 @@ msgid "every doc"
 msgstr "ہر دستاویز"
 
 msgid "Everyone"
-msgstr ""
-
-msgid "Everyone editing this space moves to that branch."
-msgstr ""
-
-msgid "Everyone moves to the new branch once it is created."
 msgstr ""
 
 msgid "Everything from {source} is already up to date"
@@ -5152,6 +5290,9 @@ msgstr "GitQuire پس منظر میں اپ ڈیٹس دیکھتا اور ڈاؤن
 msgid "GitQuire connector address"
 msgstr ""
 
+msgid "GitQuire could not be reached. Check your connection and try again."
+msgstr ""
+
 msgid "GitQuire could not find this agent on this machine."
 msgstr "GitQuire کو اس مشین پر یہ ایجنٹ نہیں ملا۔"
 
@@ -5355,6 +5496,12 @@ msgstr "GitQuire کی اپنی {0} نقل خراب ہے اور چلتی نہیں
 
 msgid "Give it a name before editing its colors."
 msgstr "اس کے رنگوں میں ترمیم سے پہلے اسے نام دیں۔"
+
+msgid "Give the draft a name of up to 120 characters."
+msgstr ""
+
+msgid "Give the draft a name that says what it changes."
+msgstr ""
 
 msgid "Gives the agent instructions for working with your documents and keeps its edits attributed."
 msgstr "ایجنٹ کو آپ کی دستاویزات کے ساتھ کام کرنے کی ہدایات دیتا ہے اور اس کی ترامیم کا انتساب برقرار رکھتا ہے۔"
@@ -6136,6 +6283,9 @@ msgstr "ترچھا"
 msgid "Item {0}"
 msgstr "آئٹم {0}"
 
+msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
+msgstr ""
+
 msgid "Join us on Discord"
 msgstr "Discord پر ہمارے ساتھ شامل ہوں"
 
@@ -6189,6 +6339,9 @@ msgstr "اس پروجیکٹ کو اپنے git ریموٹ کے ساتھ مطاب�
 
 msgid "Keep track of the people and companies you work with and the meetings you have with them. Good for remembering who someone is, how you know them, and what you last talked about."
 msgstr "ان لوگوں اور کمپنیوں کا حساب رکھیں جن کے ساتھ آپ کام کرتے ہیں اور ان کے ساتھ ہونے والی ملاقاتوں کا۔ یہ یاد رکھنے کے لیے مفید کہ کوئی کون ہے، آپ اسے کیسے جانتے ہیں، اور آخری بار کس بارے میں بات ہوئی تھی۔"
+
+msgid "Keep: {title}"
+msgstr ""
 
 msgid "keeps the skills"
 msgstr "مہارتیں اپنے پاس رکھتا ہے"
@@ -6256,6 +6409,9 @@ msgstr "کنفیگ کے اشتراک کے بارے میں مزید جانیں"
 
 msgid "Leave the broken links written inside a log.md or log.mdx at any folder depth out of Problems, file explorer indicators, editor diagnostics, audits, and agent write advisories. What counts is the file a link is written in, not the file it points at, and LOG.md is an ordinary document. The Links panel and the editor still show them."
 msgstr "کسی بھی فولڈر کی گہرائی میں log.md یا log.mdx کے اندر لکھے خراب لنکس کو مسائل، فائل ایکسپلورر کے اشاروں، ایڈیٹر کی تشخیص، آڈٹس اور ایجنٹ تحریری مشوروں سے باہر رکھیں۔ اہم وہ فائل ہے جس میں لنک لکھا گیا ہے، نہ کہ وہ فائل جس کی طرف لنک اشارہ کرتا ہے، اور LOG.md ایک عام دستاویز ہے۔ لنکس پینل اور ایڈیٹر میں یہ لنکس پھر بھی دکھائی دیتے ہیں۔"
+
+msgid "Let {0} know the draft looks good."
+msgstr ""
 
 msgid "Let agent chats use a browser"
 msgstr "ایجنٹ چیٹس کو براؤزر استعمال کرنے دیں"
@@ -6379,6 +6535,9 @@ msgstr "فہرست"
 
 msgid "Lists"
 msgstr "فہرستیں"
+
+msgid "Live wiki"
+msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "اسی پروجیکٹ میں رہتا ہے (جہاں بھی مہارت کا فولڈر ہو) اور git کے ذریعے ساتھیوں کے ساتھ مشترک ہوتا ہے۔"
@@ -6602,6 +6761,9 @@ msgstr ""
 msgid "Mark done: {text}"
 msgstr ""
 
+msgid "Mark ready for review"
+msgstr ""
+
 msgid "Markdown"
 msgstr "Markdown"
 
@@ -6655,6 +6817,9 @@ msgstr "درمیانہ سیکشن عنوان۔"
 
 msgid "Mention a page"
 msgstr "کسی صفحہ کا حوالہ دیں"
+
+msgid "Mention people by their GitHub name, like @anna."
+msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -6762,6 +6927,9 @@ msgstr "مزید اعمال"
 msgid "More actions ({syncAttentionLabel})"
 msgstr "مزید اعمال ({syncAttentionLabel})"
 
+msgid "More draft actions"
+msgstr ""
+
 msgid "More information"
 msgstr "مزید معلومات"
 
@@ -6833,6 +7001,15 @@ msgstr "ایڈیٹر کو ونڈو کے اوپری کنارے پر منتقل ک
 
 msgid "Move GitQuire.app to the Trash"
 msgstr "GitQuire.app کو کوڑے دان میں منتقل کریں"
+
+msgid "Move into draft"
+msgstr ""
+
+msgid "Move my recent edits into a draft"
+msgstr ""
+
+msgid "Move my recent edits to a draft…"
+msgstr ""
 
 msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
 msgstr "اس فائل کو مہارت کے اندر منتقل کریں یا اس کا نام بدلیں — راستہ references/ یا scripts/ کے تحت ہی رہتا ہے۔"
@@ -7035,17 +7212,11 @@ msgstr "نئی سرگرمی"
 msgid "New best · press <0>Space</0> to play again"
 msgstr "نیا ریکارڈ · دوبارہ کھیلنے کے لیے <0>اسپیس</0> دبائیں"
 
-msgid "New branch"
-msgstr ""
-
 msgid "New branch <0>{trimmed}</0> will be created from <1>{currentBaseLabel}</1>, in its own worktree under <2>.ok/worktrees/</2>."
 msgstr "نئی برانچ <0>{trimmed}</0> <1>{currentBaseLabel}</1> سے بنے گی، <2>.ok/worktrees/</2> کے تحت اپنے الگ ورک ٹری میں۔"
 
 msgid "New branch <0>{trimmed}</0> will be created from the current commit, in its own worktree under <1>.ok/worktrees/</1>."
 msgstr "نئی برانچ <0>{trimmed}</0> موجودہ کمٹ سے بنے گی، <1>.ok/worktrees/</1> کے تحت اپنے الگ ورک ٹری میں۔"
-
-msgid "New branch…"
-msgstr ""
 
 msgid "New changes from your remote appear in your copy automatically."
 msgstr "آپ کے ریموٹ کی نئی تبدیلیاں خودکار طور پر آپ کی نقل میں آ جاتی ہیں۔"
@@ -7058,6 +7229,12 @@ msgstr "{agentName} کے ساتھ نئی چیٹ"
 
 msgid "New chat with a different window"
 msgstr "مختلف ونڈو کے ساتھ نئی گفتگو"
+
+msgid "New draft"
+msgstr ""
+
+msgid "New draft…"
+msgstr ""
 
 msgid "New file"
 msgstr "نئی فائل"
@@ -7083,6 +7260,9 @@ msgstr "ٹیمپلیٹ سے نیا…"
 msgid "New ignore pattern"
 msgstr "نظر انداز کرنے کا نیا پیٹرن"
 
+msgid "New in this draft"
+msgstr ""
+
 msgid "New languages may need an internet connection and time to become available."
 msgstr "نئی زبانوں کو دستیاب ہونے کے لیے انٹرنیٹ کنکشن اور کچھ وقت درکار ہو سکتا ہے۔"
 
@@ -7094,6 +7274,9 @@ msgstr ""
 
 msgid "New name for the {editor} version"
 msgstr "{editor} ورژن کے لیے نیا نام"
+
+msgid "New page"
+msgstr ""
 
 msgid "New project"
 msgstr "نیا پروجیکٹ"
@@ -7220,6 +7403,9 @@ msgstr "ابھی کوئی بگ رپورٹ نہیں۔"
 
 msgid "No changes"
 msgstr "کوئی تبدیلی نہیں"
+
+msgid "No changes yet · not live"
+msgstr ""
 
 msgid "No chats match your search"
 msgstr "آپ کی تلاش سے کوئی چیٹ مماثل نہیں"
@@ -7491,6 +7677,9 @@ msgstr "کوئی ورک ٹری نہیں ملی۔"
 msgid "Nobody has mentioned you yet. Mentions in comments show up here."
 msgstr ""
 
+msgid "Nobody has reviewed it yet."
+msgstr ""
+
 msgid "Nobody mentioned"
 msgstr ""
 
@@ -7574,6 +7763,12 @@ msgstr "نہیں چل رہا"
 msgid "Not sent"
 msgstr "نہیں بھیجا گیا"
 
+msgid "Note"
+msgstr ""
+
+msgid "Note (optional)"
+msgstr ""
+
 msgid "nothing ({0} cannot match a doc)"
 msgstr "کچھ نہیں ({0} کسی دستاویز سے مماثل نہیں ہو سکتا)"
 
@@ -7582,6 +7777,12 @@ msgstr "کچھ نہیں ({0} درست پیٹرن نہیں ہے)"
 
 msgid "Nothing from {agentName} for {stalledMinutes, plural, one {# minute} other {# minutes}}. If it looks stuck, Stop and try again."
 msgstr "{agentName} کی طرف سے {stalledMinutes, plural, one {# منٹ} other {# منٹ}} سے کچھ نہیں آیا۔ اگر پھنسا ہوا لگے تو روکیں اور دوبارہ کوشش کریں۔"
+
+msgid "Nothing has changed in this draft yet."
+msgstr ""
+
+msgid "Nothing here."
+msgstr ""
 
 msgid "Nothing leaves your computer until you review and send the report."
 msgstr "رپورٹ کا جائزہ لے کر بھیجنے تک کمپیوٹر سے کچھ بھی باہر نہیں جاتا۔"
@@ -7659,6 +7860,9 @@ msgid "On — your search queries and the text of matching pages are sent to you
 msgstr "فعال — آپ کے تلاش استفسارات اور مماثل صفحات کا متن ایمبیڈنگز شمار کرنے کے لیے آپ کے ایمبیڈنگز فراہم کنندہ (طے شدہ طور پر OpenAI) کو بھیجے جاتے ہیں۔"
 
 msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
+msgstr ""
+
+msgid "On GitHub"
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -7881,15 +8085,6 @@ msgstr "ایجنٹ کی ترمیم پر پیش منظر کھولیں"
 msgid "Open project menu"
 msgstr "پروجیکٹ کا مینو کھولیں"
 
-msgid "Open pull request"
-msgstr ""
-
-msgid "Open pull request…"
-msgstr ""
-
-msgid "Open pull requests"
-msgstr ""
-
 msgid "Open recent project"
 msgstr "حالیہ پروجیکٹ کھولیں"
 
@@ -7922,6 +8117,9 @@ msgstr "سائن اِن کرنے کے لیے ٹرمینل کھولیں"
 
 msgid "Open that worktree instead"
 msgstr "اس کے بجائے وہ ورک ٹری کھولیں"
+
+msgid "Open the draft to review it."
+msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "خالی یا فعال متن کی جگہ پر داخل کرنے کا مینو کھولیں۔"
@@ -7974,9 +8172,6 @@ msgstr "{ancestorPath} پر موجود GitQuire پروجیکٹ کھول دیا �
 msgid "Opened on branch {branch}"
 msgstr "برانچ {branch} پر کھولا گیا"
 
-msgid "Opened pull request #{number}"
-msgstr ""
-
 msgid "Opening {openingLabel}…"
 msgstr "{openingLabel} کھولا جا رہا ہے…"
 
@@ -7985,9 +8180,6 @@ msgstr "ورک ٹری کھولا جا رہا ہے"
 
 msgid "Opening..."
 msgstr "کھولا جا رہا ہے..."
-
-msgid "Opening…"
-msgstr ""
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "ریپازٹری کہاں کلون کرنی ہے، یہ منتخب کرنے کے لیے فولڈر منتخب کنندہ کھولتا ہے۔"
@@ -8522,7 +8714,7 @@ msgstr "خصوصیت کا نام"
 msgid "Property value"
 msgstr "خصوصیت کی قدر"
 
-msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgid "Propose changes to this page…"
 msgstr ""
 
 msgid "Protected branch — cannot push"
@@ -8543,6 +8735,9 @@ msgstr "عوامی ریپازٹری"
 msgid "Publish"
 msgstr "شائع کریں"
 
+msgid "Publish \"{0}\"?"
+msgstr ""
+
 msgid "Publish to GitHub"
 msgstr "GitHub پر شائع کریں"
 
@@ -8552,8 +8747,17 @@ msgstr "شائع شدہ"
 msgid "Published by {publisher}"
 msgstr "{publisher} کی طرف سے شائع کردہ"
 
+msgid "Published on GitHub"
+msgstr ""
+
+msgid "Published or discarded"
+msgstr ""
+
 msgid "Publishing..."
 msgstr "شائع کیا جا رہا ہے..."
+
+msgid "Publishing…"
+msgstr ""
 
 msgid "Pull"
 msgstr "کھینچیں"
@@ -8608,6 +8812,9 @@ msgstr "{pushed} بھیجا گیا"
 
 msgid "Pushing"
 msgstr "پُش کیا جا رہا ہے"
+
+msgid "Put my AI assistant's edits into a draft"
+msgstr ""
 
 #. js-lingui-explicit-id
 msgid "guidance.skill.user"
@@ -8711,6 +8918,9 @@ msgstr "اس پروجیکٹ کی GitQuire ترتیبات پڑھتا ہے"
 msgid "Ready"
 msgstr "تیار"
 
+msgid "Ready for review"
+msgstr ""
+
 msgid "Ready to merge"
 msgstr "مرج کے لیے تیار"
 
@@ -8743,6 +8953,9 @@ msgstr "حالیہ فائلیں"
 
 msgid "Recent project"
 msgstr "حالیہ پروجیکٹ"
+
+msgid "Recently closed"
+msgstr ""
 
 msgid "Recently opened"
 msgstr "حال ہی میں کھولے گئے"
@@ -8973,6 +9186,9 @@ msgstr "{keyName} کا نام بدلیں"
 msgid "Rename chat"
 msgstr "چیٹ کا نام بدلیں"
 
+msgid "Rename draft"
+msgstr ""
+
 msgid "Rename failed: {0}"
 msgstr "نام بدلنا ناکام: {0}"
 
@@ -8984,6 +9200,9 @@ msgstr "مہارت کا نام بدلیں"
 
 msgid "Rename succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "نام بدل گیا مگر سائیڈ بار پرانا ہو سکتا ہے — دوبارہ مطابقت کے لیے تازہ کریں"
+
+msgid "Rename…"
+msgstr ""
 
 msgid "Renamed"
 msgstr "نام تبدیل شدہ"
@@ -9459,6 +9678,9 @@ msgstr "تبدیلیاں محفوظ ہو رہی ہیں…"
 
 msgid "Saving your edits before reloading…"
 msgstr "دوبارہ لوڈ کرنے سے پہلے آپ کی ترامیم محفوظ کی جا رہی ہیں…"
+
+msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
+msgstr ""
 
 msgid "schema {deleteTarget}"
 msgstr "اسکیما {deleteTarget}"
@@ -10083,6 +10305,9 @@ msgstr "چھانٹا جا رہا ہے…"
 msgid "Sign in"
 msgstr "سائن اِن کریں"
 
+msgid "Sign in again to continue."
+msgstr ""
+
 msgid "Sign in to {agentName} first"
 msgstr "پہلے {agentName} میں سائن اِن کریں"
 
@@ -10109,6 +10334,9 @@ msgstr "{agentName} میں سائن اِن کیا جا رہا ہے"
 
 msgid "Signing in to {agentName}…"
 msgstr "{agentName} میں سائن اِن کیا جا رہا ہے…"
+
+msgid "Since this draft started, someone changed the live wiki in the same spots. For each spot, choose what to keep. Everything else was combined automatically."
+msgstr ""
 
 msgid "Single page"
 msgstr "ایک صفحہ"
@@ -10421,9 +10649,6 @@ msgstr "ٹرمینل شروع ہو رہا ہے…"
 msgid "Starting the agent…"
 msgstr "ایجنٹ شروع کیا جا رہا ہے…"
 
-msgid "Starts from {from}. Everyone moves to the new branch once it is created."
-msgstr ""
-
 msgid "status"
 msgstr "حالت"
 
@@ -10523,9 +10748,6 @@ msgstr "اس ہفتے میں نے جو کچھ بدلا اس کا خلاصہ کر
 msgid "Swap file sidebar and document panel"
 msgstr "فائل سائیڈ بار اور دستاویز کے پینل کی جگہ بدلیں"
 
-msgid "Switch"
-msgstr ""
-
 msgid "Switch and update branch"
 msgstr "برانچ بدلیں اور تازہ کریں"
 
@@ -10535,17 +10757,11 @@ msgstr "اپنی جگہ برقرار رکھتے ہوئے بصری اور سور�
 msgid "Switch branch"
 msgstr "برانچ بدلیں"
 
-msgid "Switch everyone to"
-msgstr ""
-
 msgid "Switch project"
 msgstr "پروجیکٹ بدلیں"
 
 msgid "Switch project…"
 msgstr "پروجیکٹ بدلیں…"
-
-msgid "Switch to {target}?"
-msgstr ""
 
 msgid "Switch to a branch to share."
 msgstr "شیئر کرنے کے لیے کسی برانچ پر جائیں۔"
@@ -10558,9 +10774,6 @@ msgstr "ورک ٹری بدلیں"
 
 msgid "Switch worktree…"
 msgstr "ورک ٹری بدلیں…"
-
-msgid "Switched to {branch}"
-msgstr ""
 
 msgid "Switches the agent's mode"
 msgstr "ایجنٹ کا موڈ بدلتا ہے"
@@ -10711,6 +10924,9 @@ msgstr "کاموں کی فہرست"
 
 msgid "Team Wiki"
 msgstr "ٹیم وکی"
+
+msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
+msgstr ""
 
 msgid "Tell us how it's going"
 msgstr "ہمیں بتائیں کہ کیسا چل رہا ہے"
@@ -10966,6 +11182,15 @@ msgstr "ڈیسک ٹاپ ایپ جواب نہیں دے رہی۔ تازہ کریں
 msgid "the doc {0}"
 msgstr "دستاویز {0}"
 
+msgid "The draft could not be opened right now. Try again in a moment."
+msgstr ""
+
+msgid "The draft now includes the latest live wiki."
+msgstr ""
+
+msgid "The draft was already up to date."
+msgstr ""
+
 msgid "The embeddings provider's vector size kept changing. Semantic search is off until GitQuire restarts."
 msgstr "ایمبیڈنگ فراہم کنندہ کے ویکٹر کا سائز مسلسل بدلتا رہا۔ GitQuire دوبارہ شروع ہونے تک معنوی تلاش بند رہے گی۔"
 
@@ -11019,6 +11244,12 @@ msgstr "انٹرفیس اب بھی اسی زبان میں ہے جو آپ پڑھ 
 
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "وہ زبان جو GitQuire بولتا ہے؛ سسٹم آپ کے آپریٹنگ سسٹم کی پیروی کرتا ہے۔ آپ کے اپنے نوٹس اسی زبان میں رہیں گے جس میں آپ نے لکھے تھے۔"
+
+msgid "The live wiki changed in the same places. Update the draft first."
+msgstr ""
+
+msgid "The live wiki changed since this draft started."
+msgstr ""
 
 msgid "The meeting note was created, but its date and headings couldn't be added."
 msgstr ""
@@ -11091,6 +11322,9 @@ msgstr "ریپازٹری کی اصل کلون ڈائریکٹری"
 
 msgid "The request to enable GitQuire tools timed out. This thread runs without them."
 msgstr "GitQuire ٹولز فعال کرنے کی درخواست کا وقت ختم ہو گیا۔ یہ تھریڈ ان کے بغیر چلے گا۔"
+
+msgid "The same text changed in both places"
+msgstr ""
 
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "اسکیما فائل موجود نہیں یا لوڈ نہیں ہو سکی — فیلڈ شامل کرنے سے یہ بن جاتی ہے۔"
@@ -11376,6 +11610,15 @@ msgstr "اس دستاویز میں مطلوبہ خصوصیات غائب ہیں"
 msgid "This document was deleted"
 msgstr "یہ دستاویز حذف کر دی گئی تھی"
 
+msgid "This draft"
+msgstr ""
+
+msgid "This draft no longer exists."
+msgstr ""
+
+msgid "This draft was already published or discarded."
+msgstr ""
+
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "اس اینڈ پوائنٹ نے آپ کا مقرر کردہ ویکٹر حجم نظر انداز کر دیا۔ ماڈل کا اپنا حجم استعمال کرنے کے لیے <0>search.semantic.dimensions</0> ہٹا دیں۔"
 
@@ -11499,6 +11742,9 @@ msgstr "یہ صفحہ ابھی موجود نہیں۔ ایڈیٹر میں صفح�
 
 msgid "This page doesn't link to anything yet."
 msgstr "یہ صفحہ ابھی کسی چیز سے لنک نہیں کرتا۔"
+
+msgid "This page has changes in a draft"
+msgstr ""
 
 msgid "This page has no images or attached files."
 msgstr ""
@@ -12016,9 +12262,6 @@ msgstr "ناقابلِ حل فائل {identity}۔ حوالہ پر جائیں۔"
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "ناقابلِ حل تصویر {identity}۔ حوالہ پر جائیں۔"
 
-msgid "Unsaved changes block the switch"
-msgstr ""
-
 msgid "Unsupported file type: {fileType}."
 msgstr "غیر معاون فائل کی قسم: {fileType}۔"
 
@@ -12047,6 +12290,9 @@ msgstr "کیا «{skillName}» کو آپ کی ترامیم پر اپ ڈیٹ کر
 msgid "Update all from this source"
 msgstr "اس ماخذ سے سب کچھ اپ ڈیٹ کریں"
 
+msgid "Update draft"
+msgstr ""
+
 msgid "Update failed: {0}"
 msgstr "اپ ڈیٹ ناکام: {0}"
 
@@ -12058,6 +12304,9 @@ msgstr "اس شیئر کو کھولنے کے لیے GitQuire اپ ڈیٹ کری�
 
 msgid "Update the destination and optional section anchor."
 msgstr "منزل اور اختیاری سیکشن اینکر تازہ کریں۔"
+
+msgid "Update with the live wiki"
+msgstr ""
 
 msgid "Updated \"{0}\": added {1}, removed {2}"
 msgstr "«{0}» تازہ ہوا: {1} شامل، {2} ہٹائے گئے"
@@ -12088,6 +12337,9 @@ msgstr "ماخذ کی اپ ڈیٹس خودکار طور پر لاگو ہوتی �
 
 msgid "Updating"
 msgstr "تازہ کیا جا رہا ہے"
+
+msgid "Updating…"
+msgstr ""
 
 msgid "Upload"
 msgstr "اپ لوڈ کریں"
@@ -12327,6 +12579,9 @@ msgstr "اجازت کا انتظار ہے"
 msgid "Waiting for review"
 msgstr "جائزے کا انتظار"
 
+msgid "Waiting for someone to check"
+msgstr ""
+
 msgid "Waiting for your approval"
 msgstr "آپ کی منظوری کا انتظار ہے"
 
@@ -12388,6 +12643,9 @@ msgstr "نقول اور سِم لنکس میں کیا فرق ہے؟"
 msgid "What is this knowledge base for?"
 msgstr "یہ نالج بیس کس لیے ہے؟"
 
+msgid "What should reviewers look at?"
+msgstr ""
+
 msgid "What should we work on?"
 msgstr "ہم کس چیز پر کام کریں؟"
 
@@ -12397,6 +12655,9 @@ msgstr "ایجنٹ کیا پڑھ، لکھ اور ظاہر کر سکتا ہے۔"
 msgid "What this checkbox changes"
 msgstr "یہ چیک باکس کیا بدلتا ہے"
 
+msgid "What this draft changes compared with the live wiki. Added words are green, removed words are red."
+msgstr ""
+
 msgid "What to include"
 msgstr "کیا شامل کرنا ہے"
 
@@ -12405,6 +12666,9 @@ msgstr "آپ کیا کر رہے تھے؟"
 
 msgid "What would you like to create?"
 msgstr "آپ کیا بنانا چاہیں گے؟"
+
+msgid "What you are looking at"
+msgstr ""
 
 msgid "What you share is sent to the GitQuire team."
 msgstr "آپ جو شیئر کرتے ہیں وہ GitQuire ٹیم کو بھیجا جاتا ہے۔"
@@ -12420,6 +12684,9 @@ msgstr "فعال ہونے پر، ایجنٹ ہر ترمیم کے بعد پیش �
 
 msgid "When the agent runs its scheduled work."
 msgstr "ایجنٹ اپنا طے شدہ کام کب چلاتا ہے۔"
+
+msgid "When this is on, your assistant works in the draft you have open, or in its own draft for you to review and publish. When it is off, its edits go straight to the live wiki."
+msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "جب آپ کسی بیرونی لنک پر ماؤس لے جاتے ہیں تو صفحے کا پیش منظر ڈیٹا لانے کے لیے اس کا URL منزل کی سائٹ کو بھیجا جاتا ہے — ہر پیش منظر والے لنک کے لیے ایک درخواست۔"
@@ -12441,6 +12708,9 @@ msgstr "کون سی مہارت"
 
 msgid "Whitespace"
 msgstr "خالی جگہ"
+
+msgid "Who should review?"
+msgstr ""
 
 msgid "Who you are, so the agent has your context."
 msgstr "آپ کون ہیں، تاکہ ایجنٹ کو آپ کا سیاق معلوم ہو۔"
@@ -12478,6 +12748,9 @@ msgstr "یہاں بنے گا: <0>{targetPreview}</0>"
 msgid "Will be saved as <0>{sanitized}</0>."
 msgstr "<0>{sanitized}</0> کے نام سے محفوظ ہو گا۔"
 
+msgid "Will notify: {0}"
+msgstr ""
+
 msgid "Window"
 msgstr "ونڈو"
 
@@ -12495,6 +12768,9 @@ msgstr "براہ راست کام کریں، منصوبہ بندی کے مرحل�
 
 msgid "Working"
 msgstr "کام جاری ہے"
+
+msgid "Working…"
+msgstr ""
 
 msgid "Workspace"
 msgstr "ورک اسپیس"
@@ -12515,6 +12791,9 @@ msgid "Wrap long lines in the markdown source editor."
 msgstr "Markdown سورس ایڈیٹر میں لمبی سطریں لپیٹیں۔"
 
 msgid "Write a reply. Type @ to mention someone."
+msgstr ""
+
+msgid "Write it myself"
 msgstr ""
 
 #. js-lingui-explicit-id
@@ -12541,6 +12820,9 @@ msgstr "کل"
 
 msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
 msgstr "«{0}» نام سے آپ کی اپنی اسکل پہلے سے موجود ہے — پیک والا ورژن انسٹال نہیں ہوگا اور آپ کی اسکل میں کوئی تبدیلی نہیں ہوگی۔ پیک والا ورژن انسٹال کرنے کے لیے اپنی اسکل کا نام تبدیل کریں۔"
+
+msgid "You are here"
+msgstr ""
 
 #. Label above the optional skill offered on first visit
 msgid "You can add"
@@ -12591,6 +12873,9 @@ msgstr "آپ کو اس ریپو میں لکھنے کی رسائی نہیں۔"
 msgid "You edited this skill locally and the source has new changes. Taking upstream replaces your version; your edits stay recoverable in version history."
 msgstr "آپ نے یہ مہارت مقامی طور پر بدلی اور ماخذ میں نئی تبدیلیاں ہیں۔ اپ سٹریم لینا آپ کے ورژن کی جگہ لے لیتا ہے؛ آپ کی ترامیم ورژن کی تاریخ میں بحالی کے قابل رہتی ہیں۔"
 
+msgid "You have no recent edits on this page, or someone else edited it after you."
+msgstr ""
+
 msgid "You modified <0>{filePath}</0> locally, but it was deleted upstream."
 msgstr "آپ نے <0>{filePath}</0> میں مقامی طور پر ترمیم کی، مگر اپ سٹریم یہ حذف ہو گئی۔"
 
@@ -12636,6 +12921,9 @@ msgstr "آپ کی دستاویزات میں کوئی تبدیلی نہیں کی 
 msgid "Your edits are committed and pushed to your remote automatically."
 msgstr "آپ کی ترامیم خودکار طور پر کمٹ ہو کر آپ کے ریموٹ پر بھیج دی جاتی ہیں۔"
 
+msgid "Your edits from the last hours on \"{0}\" move into a new draft, and the live page goes back to how it was before."
+msgstr ""
+
 msgid "Your edits stay on this computer"
 msgstr "آپ کی ترامیم اسی کمپیوٹر پر رہتی ہیں"
 
@@ -12672,6 +12960,9 @@ msgstr "برانچ <0>{branch}</0> کی آپ کی مقامی نقل پیچھے �
 msgid "Your message didn't reach {agentName}."
 msgstr "آپ کا پیغام {agentName} تک نہیں پہنچا۔"
 
+msgid "Your recent edits are now in the draft \"{trimmed}\"."
+msgstr ""
+
 msgid "Your remote URL names {declaredLogin}, but that account's credentials couldn't be used."
 msgstr "آپ کے ریموٹ URL میں {declaredLogin} درج ہے، لیکن اس اکاؤنٹ کی کریڈینشلز استعمال نہیں ہو سکیں۔"
 
@@ -12692,6 +12983,9 @@ msgstr "آپ کا شیئر لنک نیچے تیار ہے۔"
 
 msgid "Your user settings could not be read"
 msgstr "آپ کی صارف ترتیبات پڑھی نہیں جا سکیں"
+
+msgid "Your version"
+msgstr ""
 
 msgid "Zip file"
 msgstr "Zip فائل"
