@@ -31,7 +31,7 @@ Once a month, a maintainer runs the check:
    with advisories) in code GitQuire still has, and port the relevant ones in a pull request that
    links the original commit.
 4. Run `pnpm audit --prod` and fix or list what it reports.
-5. Add a comment to the pinned issue labelled `security-sync` with the date, the last commit looked
+5. Add a comment to the `security-sync` issue ([#84](https://github.com/docdru/GitQuire/issues/84)) with the date, the last commit looked
    at and what was ported, so the next check knows where to start.
 
 ## Development setup
