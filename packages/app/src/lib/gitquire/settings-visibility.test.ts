@@ -24,13 +24,14 @@ const groups: SidebarGroup[] = [
         label: 'Sync & sharing',
         subsections: [{ id: 'sharing', label: 'Config sharing', anchor: 'section:sharing' }],
       },
+      { id: 'search', label: 'Search' },
       { id: 'skills', label: 'Skills Studio' },
     ],
   },
 ];
 
 describe('withoutHiddenSettings', () => {
-  test('hides server-wide user items, config sharing and the personal Git token page', () => {
+  test('hides server-wide user items, config sharing, search and the personal Git token page', () => {
     const shown = withoutHiddenSettings(groups, false);
     expect(shown[0]?.items.map((item) => item.id)).toEqual(['preferences']);
     expect(shown[1]?.items.map((item) => item.id)).toEqual(['sync', 'skills']);

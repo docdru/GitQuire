@@ -6,6 +6,7 @@ import {
   DEFAULT_EMBEDDINGS_MODEL,
 } from '@inkeep/open-knowledge-core';
 import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+import { withDeploymentSemanticSearch } from '../gitquire/semantic-search.ts';
 
 export interface ResolvedSemanticConfig {
   enabled: boolean;
@@ -27,7 +28,7 @@ export function readProjectLocalSemanticConfig(
     sideline: false,
     warn: opts?.onWarn ?? (() => {}),
   }).value.search?.semantic;
-  return {
+  return withDeploymentSemanticSearch(process.env, {
     enabled: semantic?.enabled === true,
     baseUrl: semantic?.baseUrl ?? DEFAULT_EMBEDDINGS_BASE_URL,
     model: semantic?.model ?? DEFAULT_EMBEDDINGS_MODEL,
@@ -36,5 +37,5 @@ export function readProjectLocalSemanticConfig(
     maxBatchSize: semantic?.maxBatchSize ?? DEFAULT_EMBEDDINGS_MAX_BATCH_SIZE,
     maxBatchChars: semantic?.maxBatchChars ?? DEFAULT_EMBEDDINGS_MAX_BATCH_CHARS,
     docTimeoutMs: semantic?.docTimeoutMs ?? DEFAULT_EMBEDDINGS_DOC_TIMEOUT_MS,
-  };
+  });
 }

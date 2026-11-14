@@ -9468,6 +9468,9 @@ msgstr "ब्रांच खोजें…"
 msgid "Search by meaning"
 msgstr "अर्थ के अनुसार खोजें"
 
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr ""
+
 msgid "Search chat history"
 msgstr "चैट इतिहास खोजें"
 
@@ -9671,9 +9674,6 @@ msgstr "अर्थ-आधारित खोज, खोज टूल में
 
 msgid "Semantic search is on, but no API key is set — search falls back to keyword matching. Add one below."
 msgstr "अर्थ-आधारित खोज चालू है, पर कोई API कुंजी सेट नहीं है — खोज कीवर्ड मिलान पर लौट आती है। नीचे एक जोड़ें।"
-
-msgid "Semantic search isn't available with the current embeddings provider setup. Check Settings → Search."
-msgstr "मौजूदा एम्बेडिंग प्रोवाइडर सेटअप के साथ सिमेंटिक खोज उपलब्ध नहीं है। सेटिंग्स → खोज देखें।"
 
 msgid "Send"
 msgstr "भेजें"
