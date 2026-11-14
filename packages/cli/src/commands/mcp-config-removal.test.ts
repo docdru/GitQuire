@@ -17,7 +17,7 @@ import { MCP_SERVER_NAME } from '@inkeep/open-knowledge-server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { buildPiExtensionSource } from '../integrations/pi-extension.ts';
 import {
-  createTomlConfigEngine,
+  getTomlConfigEngine,
   setTomlConfigEngineForTesting,
 } from '../native/toml-config-engine.ts';
 import {
@@ -282,7 +282,7 @@ describe('removeOwnMcpEntry — TOML (Codex)', () => {
       const chain = (ownEntry.args as string[])[2];
       const raw = `[mcp_servers.${MCP_SERVER_NAME}]\ncommand = "/bin/sh"\nargs = ["-l", "-c", ${JSON.stringify(chain)}]\n`;
       writeFileSync(configPath, raw);
-      setTomlConfigEngineForTesting(createTomlConfigEngine(() => null));
+      setTomlConfigEngineForTesting(getTomlConfigEngine());
       try {
         const outcome = removeOwnMcpEntry(EDITOR_TARGETS.codex, dir, undefined, configPath);
         expect(outcome.kind).toBe('declined');

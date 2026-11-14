@@ -7,4 +7,3 @@
 **/test-results
 **/playwright-report
 .env
-packages/native-config/*.node

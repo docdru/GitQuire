@@ -1,6 +1,6 @@
 # GitQuire server image, built from this repository's source.
 #
-# Stage 1 builds the cli package (server + web app + native module) and packs
+# Stage 1 builds the cli package (server + web app) and packs
 # it as an npm tarball. Stage 2 installs that tarball on a slim Node image.
 #
 #   docker build -t gitquire:local .
@@ -11,22 +11,14 @@ ARG NODE_VERSION=24.21.0
 # ---------------------------------------------------------------- build ----
 FROM node:${NODE_VERSION}-bookworm AS build
 
-# Rust builds packages/native-config (napi). The toolchain version comes from
-# rust-toolchain.toml; rustup installs it on first use.
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH \
-    ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
     CI=1
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --no-modify-path --profile minimal --default-toolchain none
 
 # pnpm version comes from package.json "packageManager".
 RUN npm install -g corepack@latest && corepack enable
 
 WORKDIR /src
 COPY . .
-RUN rustup toolchain install --no-self-update && rustc -vV
 
 RUN pnpm install --frozen-lockfile
 

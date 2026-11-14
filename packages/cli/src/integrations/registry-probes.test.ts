@@ -17,7 +17,6 @@ import {
 } from '../commands/editors.ts';
 import { writeEditorMcpConfig } from '../commands/init.ts';
 import {
-  createTomlConfigEngine,
   setTomlConfigEngineForTesting,
   type TomlConfigEngine,
 } from '../native/toml-config-engine.ts';
@@ -235,29 +234,6 @@ describe('an MCP entry', () => {
     try {
       setTomlConfigEngineForTesting(FALLBACK_ENGINE);
       expect(await answerFor('codex/mcp/project/config-entry')).toMatchObject({ state: 'foreign' });
-    } finally {
-      setTomlConfigEngineForTesting(null);
-    }
-  });
-
-  it('reads our Codex entry with an env table added after we wrote it as drifted', async () => {
-    const engine = createTomlConfigEngine();
-    if (engine.backend !== 'native') {
-      throw new Error('native toml_edit addon must be built for the Codex drift probe');
-    }
-    mkdirSync(join(ctx.cwd, '.codex'), { recursive: true });
-    const chain = JSON.stringify(
-      buildManagedServerEntry({ mode: 'published', platformName: 'darwin' }).args,
-    );
-    writeFileSync(
-      join(ctx.cwd, '.codex', 'config.toml'),
-      `[mcp_servers.open-knowledge]\ncommand = "/bin/sh"\nargs = ${chain}\n\n[mcp_servers.open-knowledge.env]\nNODE_OPTIONS = "--require ./payload.cjs"\n`,
-    );
-    try {
-      setTomlConfigEngineForTesting(engine);
-      const answer = await answerFor('codex/mcp/project/config-entry');
-      expect(answer?.state).toBe('drifted');
-      expect(answer?.strictness).toContain('reclaim-permissive');
     } finally {
       setTomlConfigEngineForTesting(null);
     }

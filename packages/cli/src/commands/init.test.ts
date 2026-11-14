@@ -42,7 +42,7 @@ const PUBLISHED_CHAIN_ENTRY = { command: '/bin/sh', args: ['-l', '-c', CHAIN_V2]
 
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import {
-  createTomlConfigEngine,
+  getTomlConfigEngine,
   setTomlConfigEngineForTesting,
 } from '../native/toml-config-engine.ts';
 import {
@@ -73,7 +73,7 @@ vi.mock('@inkeep/open-knowledge-server', async (importOriginal) => {
   return { ...actual, readBundleDecision: vi.fn(actual.readBundleDecision) };
 });
 
-const NATIVE_TOML_AVAILABLE = createTomlConfigEngine().backend === 'native';
+const NATIVE_TOML_AVAILABLE = getTomlConfigEngine().backend === 'native';
 
 beforeEach(() => {
   vi.stubEnv('OK_CHANNEL', 'stable');
@@ -2779,7 +2779,7 @@ describe('writeEditorMcpConfig — TOML fallback declines a present config', () 
     mkdirSync(testDir, { recursive: true });
     fakeHome = join(testDir, 'fakehome');
     mkdirSync(fakeHome, { recursive: true });
-    setTomlConfigEngineForTesting(createTomlConfigEngine(() => null));
+    setTomlConfigEngineForTesting(getTomlConfigEngine());
   });
 
   afterEach(() => {

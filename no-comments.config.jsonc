@@ -40,7 +40,6 @@
   "exclude": [
     "packages/md-conformance/**",
     "packages/app/src/locales/**",
-    "packages/native-config/index.js",
     "docs/.source/**",
     "docs/.source-vitest/**",
     "knip.config.ts",

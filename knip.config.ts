@@ -91,7 +91,6 @@ export default {
     'packages/cli/src/commands/diagnose-health-checks/git.ts': ['exports'],
     'packages/cli/src/commands/diagnose-health-checks/index.ts': ['exports', 'types'],
     'packages/cli/src/commands/diagnose-health-checks/types.ts': ['types'],
-    'packages/native-config/index.js': ['unlisted', 'unresolved'],
   },
   workspaces: {
     '.': {

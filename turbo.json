@@ -39,9 +39,6 @@
     "@inkeep/open-knowledge#types": {
       "dependsOn": ["^types", "build"]
     },
-    "@inkeep/open-knowledge-native-config#types": {
-      "dependsOn": ["^types", "build"]
-    },
     "typecheck": {
       "env": ["TSRS_BINARY"],
       "dependsOn": ["^types", "//#typecheck:no-net-connect", "//#typecheck:lint-plugins"]

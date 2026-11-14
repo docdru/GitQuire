@@ -27,9 +27,6 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
 
-      - name: Install the declared Rust toolchain
-        run: rustup toolchain install --no-self-update
-
       - name: Install
         run: pnpm install --frozen-lockfile
 

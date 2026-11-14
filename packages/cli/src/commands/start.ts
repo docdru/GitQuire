@@ -38,7 +38,6 @@ import { PACKAGE_VERSION } from '../constants.ts';
 import { createCliStepExecutor } from '../integrations/registry-apply.ts';
 import { createCliProbeResolver } from '../integrations/registry-probes.ts';
 import { userSkillPresentAnywhere } from '../integrations/write-user-skill.ts';
-import { getNativeTomlMcpEditor } from '../native/toml-config-engine.ts';
 import { probeOwnManagedEditorMcpEntry } from './acp-harness-probe.ts';
 import {
   createRealDetectDeps,
@@ -473,7 +472,6 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
       detectGhAccounts,
       tokenStore,
       embeddingsKeyStore,
-      mcpTomlEditor: getNativeTomlMcpEditor(),
       ...(ephemeral
         ? {
             ephemeral: true as const,

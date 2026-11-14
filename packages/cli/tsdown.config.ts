@@ -12,11 +12,7 @@ const jsoncParserEsmEntry = createRequire(import.meta.url).resolve('jsonc-parser
 
 // Native addons stay external in EVERY build — they ship .node binaries
 // resolved at runtime.
-const nativeAddonNeverBundle = [
-  '@parcel/watcher',
-  '@napi-rs/keyring',
-  '@inkeep/open-knowledge-native-config',
-];
+const nativeAddonNeverBundle = ['@parcel/watcher', '@napi-rs/keyring'];
 
 // tsdown defaults to externalizing entries in `dependencies`, but the
 // desktop install ships no node_modules/ next to dist/cli.mjs, so bare
