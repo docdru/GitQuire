@@ -1,9 +1,5 @@
 node_modules/
 dist/
-packages/desktop/out/
-packages/desktop/dist-desktop/
-packages/desktop/dev-app-update.yml
-packages/desktop/electron.vite.config.*.mjs
 .turbo/
 turbo-cache-key.json
 tmp/
@@ -16,7 +12,6 @@ tmp/
 .vercel/
 packages/content/
 test-results/
-packages/desktop/test-results-packaged/
 packages/app/test-results/
 playwright-report/
 playwright-report-json/

@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-`@inkeep/open-knowledge` (npm CLI) and `@inkeep/open-knowledge-desktop` (Electron app) bundle source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.
+GitQuire (the `@inkeep/open-knowledge` CLI, server and web app in its Docker image) bundles source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.
 
 This file is generated. **Do not edit by hand.** Regenerate with `pnpm run notices` from the repo root, then commit the result.
 
@@ -2888,11 +2888,6 @@ Homepage: https://github.com/evidentpoint/buffer-image-size
 
 _(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
 
-### `builder-util-runtime@9.7.0`
-Homepage: https://github.com/electron-userland/electron-builder
-
-Copyright (c) 2015 Loopline Systems
-
 ### `bundle-name@4.1.0`
 Homepage: https://github.com/sindresorhus/bundle-name
 
@@ -3314,11 +3309,6 @@ Homepage: https://github.com/jonathanong/ee-first
 
 Copyright (c) 2014 Jonathan Ong me@jongleberry.com
 
-### `electron-updater@6.8.4`
-Homepage: https://github.com/electron-userland/electron-builder
-
-Copyright (c) 2015 Loopline Systems
-
 ### `emoji-regex@10.6.0`
 Homepage: https://mths.be/emoji-regex
 
@@ -3574,11 +3564,6 @@ Copyright (c) 2018 Mathias Buus
 Homepage: https://github.com/jprichardson/node-fs-extra
 
 Copyright (c) 2011-2024 JP Richardson
-
-### `fs-extra@10.1.0`
-Homepage: https://github.com/jprichardson/node-fs-extra
-
-Copyright (c) 2011-2017 JP Richardson
 
 ### `function-bind@1.1.2`
 Homepage: https://github.com/Raynos/function-bind
@@ -4122,11 +4107,6 @@ Homepage: https://github.com/iVis-at-Bilkent/layout-base#readme
 
 Copyright (c) 2019 iVis@Bilkent
 
-### `lazy-val@1.0.5`
-Homepage: https://github.com/develar/lazy-val
-
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
-
 ### `leven@3.1.0`
 Homepage: https://github.com/sindresorhus/leven
 
@@ -4166,16 +4146,6 @@ Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
 Homepage: https://lodash.com/
 
 _(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
-
-### `lodash.escaperegexp@4.1.2`
-Homepage: https://lodash.com/
-
-_(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
-
-### `lodash.isequal@4.5.0`
-Homepage: https://lodash.com/
-
-Copyright JS Foundation and other contributors <https://js.foundation/>
 
 ### `lodash.throttle@4.1.1`
 Homepage: https://lodash.com/
@@ -4656,13 +4626,6 @@ Copyright (c) 2006, 2008 Tony Garnock-Jones &lt;tonyg@lshift.net&gt;<br/> Copyri
 Homepage: https://github.com/prebuild/node-gyp-build
 
 Copyright (c) 2017 Mathias Buus
-
-### `node-pty@1.2.0-beta.15`
-Homepage: https://github.com/microsoft/node-pty
-
-Copyright (c) 2012-2015, Christopher Jeffrey (https://github.com/chjj/)
-Copyright (c) 2016, Daniel Imms (http://www.growingwiththeweb.com)
-Copyright (c) 2018 - present Microsoft Corporation
 
 ### `node-releases@2.0.60`
 Homepage: https://github.com/chicoxyzzy/node-releases
@@ -5670,11 +5633,6 @@ Homepage: https://github.com/alexreardon/tiny-invariant
 
 Copyright (c) 2019 Alexander Reardon
 
-### `tiny-typed-emitter@2.1.0`
-Homepage: https://github.com/binier/tiny-typed-emitter
-
-Copyright (c) 2020 Zurab Benashvili (binier) <zura.bena@gmail.com>
-
 ### `tinycolor2@1.6.0`
 Homepage: https://github.com/bgrins/TinyColor
 
@@ -6290,17 +6248,12 @@ Homepage: https://github.com/alexeyraspopov/picocolors
 
 Copyright (c) 2021-2024 Oleksii Raspopov, Kostiantyn Denysov, Anton Verinov
 
-### `semver@7.8.5`
-Homepage: https://github.com/npm/node-semver
-
-Copyright (c) Isaac Z. Schlueter and Contributors
-
-### `semver@7.7.4`
-Homepage: https://github.com/npm/node-semver
-
-Copyright (c) Isaac Z. Schlueter and Contributors
-
 ### `semver@6.3.1`
+Homepage: https://github.com/npm/node-semver
+
+Copyright (c) Isaac Z. Schlueter and Contributors
+
+### `semver@7.8.5`
 Homepage: https://github.com/npm/node-semver
 
 Copyright (c) Isaac Z. Schlueter and Contributors
@@ -6648,7 +6601,6 @@ The following packages are under licenses that do not require attribution (BlueO
 - `isexe@3.1.5` — BlueOak-1.0.0
 - `minimatch@10.2.5` — BlueOak-1.0.0
 - `robust-predicates@3.0.3` — Unlicense
-- `sax@1.6.0` — BlueOak-1.0.0
 - `tslib@2.8.1` — 0BSD
 
 ---

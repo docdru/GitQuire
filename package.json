@@ -22,7 +22,6 @@
     "build": "turbo run build",
     "build:desktop": "turbo run build:desktop",
     "build:desktop:dir": "turbo run build:desktop:dir",
-    "check:desktop": "turbo run lint typecheck test --filter=@inkeep/open-knowledge-desktop && pnpm run test:uncached",
     "check:types": "pnpm run typecheck",
     "check:doc-links": "pnpm --dir docs run validate-link",
     "check:server-test-inputs": "node scripts/check-server-test-inputs.mjs",

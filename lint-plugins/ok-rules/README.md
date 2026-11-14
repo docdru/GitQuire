@@ -46,9 +46,9 @@ Rule: [`lint-plugins/ok-rules/rules/no-loosely-typed-webcontents-ipc.mjs`](rules
 
 ### `no-raw-html-interactive-element`
 
-UI primitives discipline. Forbids raw JSX `<button>`, `<input>`, `<textarea>`, `<select>` inside production `.tsx` under `packages/{app,desktop}/src/**`. Consumers must use the shadcn primitives (`Button`, `Input`, `Textarea`, `Select`) from `@/components/ui/*`; if the primitive isn't installed yet, add it via `pnpm dlx shadcn@latest add <name>` from `packages/app` first. The rule catches the PR #937 failure mode: contributors (including Codex / Claude Code / human reviewers) introducing raw `<button>` JSX while a shadcn `<Button>` from `@/components/ui/button` was already imported in the same file.
+UI primitives discipline. Forbids raw JSX `<button>`, `<input>`, `<textarea>`, `<select>` inside production `.tsx` under `packages/app/src/**`. Consumers must use the shadcn primitives (`Button`, `Input`, `Textarea`, `Select`) from `@/components/ui/*`; if the primitive isn't installed yet, add it via `pnpm dlx shadcn@latest add <name>` from `packages/app` first. The rule catches the PR #937 failure mode: contributors (including Codex / Claude Code / human reviewers) introducing raw `<button>` JSX while a shadcn `<Button>` from `@/components/ui/button` was already imported in the same file.
 
-**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/{app,desktop}/src/**/*.tsx`. Exemptions are the leading-`!` globs in that same entry:
+**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/app/src/**/*.tsx`. Exemptions are the leading-`!` globs in that same entry:
 
 - `!packages/app/src/editor/**` — ProseMirror NodeViews + editor chrome legitimately render raw HTML for measurement / PM-managed DOM. The exemption matches the existing `a11y/useSemanticElements` suppressions scattered through the editor subtree.
 - `!packages/app/src/components/ui/**` — these files ARE the shadcn primitive wrappers; they MUST render raw HTML by definition.
@@ -62,9 +62,9 @@ The rule does NOT catch:
 - Raw `<a>` used as an action — anchor-as-button is governed by Biome's built-in `a11y/useSemanticElements` + the codebase's existing button-vs-anchor conventions.
 - Other interactive primitives (`<dialog>`, `<details>`, `<summary>`) where the team hasn't yet committed to a shadcn-only contract.
 
-**Scope** (`RULE_SCOPES['no-raw-html-interactive-element']` in [`scope.mjs`](scope.mjs)). UI primitives discipline (see PR #937 retrospective). Scoped to packages/{app,desktop}/src/**/*.tsx — production UI surfaces. Exemptions: - packages/app/src/editor/** — ProseMirror NodeViews + chrome legitimately render raw HTML for measurement / PM-managed DOM (matches the existing a11y/useSemanticElements suppressions in editor/*). - packages/app/src/components/ui/** — these ARE the shadcn primitive wrappers; they must render raw HTML by definition. - *.test.tsx / *.dom.test.tsx / *.test-helper.tsx — test fixtures and shared test doubles aren't user-facing UI. Pre-rule backlog (files outside the exemptions that pre-date the rule) is annotated via `// oxlint-disable ok/no-raw-html-interactive-element --` at the top of each offender file — the comment list is the visible migration backlog. New files cannot opt out: PR review treats the suppression header as a backlog marker, not a free pass.
+**Scope** (`RULE_SCOPES['no-raw-html-interactive-element']` in [`scope.mjs`](scope.mjs)). UI primitives discipline (see PR #937 retrospective). Scoped to packages/app/src/**/*.tsx — production UI surfaces. Exemptions: - packages/app/src/editor/** — ProseMirror NodeViews + chrome legitimately render raw HTML for measurement / PM-managed DOM (matches the existing a11y/useSemanticElements suppressions in editor/*). - packages/app/src/components/ui/** — these ARE the shadcn primitive wrappers; they must render raw HTML by definition. - *.test.tsx / *.dom.test.tsx / *.test-helper.tsx — test fixtures and shared test doubles aren't user-facing UI. Pre-rule backlog (files outside the exemptions that pre-date the rule) is annotated via `// oxlint-disable ok/no-raw-html-interactive-element --` at the top of each offender file — the comment list is the visible migration backlog. New files cannot opt out: PR review treats the suppression header as a backlog marker, not a free pass.
 
-Included: `packages/app/src/**/*.tsx`, `packages/desktop/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-raw-html-interactive-element.fixture.tsx`. Excluded: `packages/app/src/editor/**`, `packages/app/src/components/ui/**`, `**/*.test.tsx`, `**/*.dom.test.tsx`, `**/*.test-helper.tsx`.
+Included: `packages/app/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-raw-html-interactive-element.fixture.tsx`. Excluded: `packages/app/src/editor/**`, `packages/app/src/components/ui/**`, `**/*.test.tsx`, `**/*.dom.test.tsx`, `**/*.test-helper.tsx`.
 
 Rule: [`lint-plugins/ok-rules/rules/no-raw-html-interactive-element.mjs`](rules/no-raw-html-interactive-element.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-raw-html-interactive-element.fixture.tsx`](__fixtures__/no-raw-html-interactive-element.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-raw-html-interactive-element.uncached.test.mjs`](tests/no-raw-html-interactive-element.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
 
@@ -445,7 +445,7 @@ The rule does NOT catch: bare `exec(...)` (the identifier is too commonly shadow
 
 **Scope** (`RULE_SCOPES['require-windowshide-on-spawn']` in [`scope.mjs`](scope.mjs)). Windows console-flash prevention: every hand-rolled `child_process` spawn in the runtime-spawning packages must hide the Windows console (via `withHiddenWindowsConsole(...)` or `windowsHide: true`), else a console-less parent (MCP-spawned/detached OK server) flashes a terminal window per spawn on Windows. Scoped to the server, CLI, and desktop packages that spawn processes on Windows. Tests excluded. `simple-git` sets the flag internally, so git routed through it is out of scope by nature.
 
-Included: `packages/server/src/**/*.ts`, `packages/cli/src/**/*.ts`, `packages/desktop/src/**/*.ts`, `lint-plugins/ok-rules/__fixtures__/require-windowshide-on-spawn.fixture.tsx`. Excluded: `**/*.test.ts`, `**/*.test-helper.ts`.
+Included: `packages/server/src/**/*.ts`, `packages/cli/src/**/*.ts`, `lint-plugins/ok-rules/__fixtures__/require-windowshide-on-spawn.fixture.tsx`. Excluded: `**/*.test.ts`, `**/*.test-helper.ts`.
 
 Rule: [`lint-plugins/ok-rules/rules/require-windowshide-on-spawn.mjs`](rules/require-windowshide-on-spawn.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/require-windowshide-on-spawn.fixture.tsx`](__fixtures__/require-windowshide-on-spawn.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/require-windowshide-on-spawn.uncached.test.mjs`](tests/require-windowshide-on-spawn.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
 
@@ -519,9 +519,8 @@ The wrapped forms — `<Trans>…</Trans>`, `` t`…` `` from `useLingui()` / `@
 
 `<Brand> icon` is exempt in-pattern: it is the accessible name of a third-party mark, and translating it renames the product.
 
-**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/{app,desktop}/src/**`, `.ts` as well as `.tsx` — the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions as negative `!`-globs: `!packages/app/src/editor/**` (ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances), `!packages/app/src/components/ui/**` (shadcn primitive wrappers — attribute strings there are prop plumbing), `!packages/desktop/src/main/**` (the Electron main process — see below), and `!**/*.test.ts` / `!**/*.test.tsx` / `!**/*.dom.test.tsx`.
+**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/app/src/**`, `.ts` as well as `.tsx` — the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions as negative `!`-globs: `!packages/app/src/editor/**` (ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances), `!packages/app/src/components/ui/**` (shadcn primitive wrappers — attribute strings there are prop plumbing), `!packages/desktop/src/main/**` (the Electron main process — see below), and `!**/*.test.ts` / `!**/*.test.tsx` / `!**/*.dom.test.tsx`.
 
-`packages/desktop/src/main/**` is excluded because `lingui extract` reads `packages/app/src` only, so a `t` macro written there reaches no catalog; main's one translated surface, the native menus, goes through `main-i18n.ts`, which looks its labels up by hash against the renderer's compiled catalogs. The object-property branch fires on 20 of main's `dialog.showMessageBox` templates and OTel metric descriptions, and asking for a fix that does not exist is how a rule earns a blanket suppression. Main's four sibling dirs (`preload` / `renderer` / `shared` / `utility`) stay in scope.
 
 The rule does NOT catch:
 
@@ -533,9 +532,9 @@ The rule does NOT catch:
 - **Template literals** anywhere, including a toast `description`.
 - **The CLI command surface** — `packages/cli/src/**`, deliberately never localized.
 
-**Scope** (`RULE_SCOPES['no-unwrapped-user-facing-string']` in [`scope.mjs`](scope.mjs)). Localization discipline — a shipped hardcoded string is a build-visible defect, not a convention someone has to remember. Scoped to packages/{app,desktop}/src, `.ts` included: the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions: - packages/app/src/editor/** — ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances rather than chrome copy (matches the no-raw-html-interactive-element exemption). - packages/app/src/components/ui/** — shadcn primitive wrappers; their attribute strings are prop plumbing, not copy. - packages/desktop/src/main/** — the Electron main process. `lingui extract` reads packages/app/src only, so a `t` macro here reaches no catalog; main's one translated surface (the native menus) goes through `main-i18n.ts`, which looks labels up by hash against the renderer's compiled catalogs. Firing on its dialog templates would ask for a fix that does not exist. The other four sibling dirs (preload / renderer / shared / utility) stay in scope. - *.test.ts / *.test.tsx / *.dom.test.tsx — test fixtures aren't user-facing.
+**Scope** (`RULE_SCOPES['no-unwrapped-user-facing-string']` in [`scope.mjs`](scope.mjs)). Localization discipline — a shipped hardcoded string is a build-visible defect, not a convention someone has to remember. Scoped to packages/app/src, `.ts` included: the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions: - packages/app/src/editor/** — ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances rather than chrome copy (matches the no-raw-html-interactive-element exemption). - packages/app/src/components/ui/** — shadcn primitive wrappers; their attribute strings are prop plumbing, not copy. - packages/desktop/src/main/** — the Electron main process. `lingui extract` reads packages/app/src only, so a `t` macro here reaches no catalog; main's one translated surface (the native menus) goes through `main-i18n.ts`, which looks labels up by hash against the renderer's compiled catalogs. Firing on its dialog templates would ask for a fix that does not exist. The other four sibling dirs (preload / renderer / shared / utility) stay in scope. - *.test.ts / *.test.tsx / *.dom.test.tsx — test fixtures aren't user-facing.
 
-Included: `packages/app/src/**/*.ts`, `packages/app/src/**/*.tsx`, `packages/desktop/src/**/*.ts`, `packages/desktop/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-unwrapped-user-facing-string.fixture.tsx`. Excluded: `packages/app/src/editor/**`, `packages/app/src/components/ui/**`, `packages/desktop/src/main/**`, `**/*.test.ts`, `**/*.test.tsx`, `**/*.dom.test.tsx`.
+Included: `packages/app/src/**/*.ts`, `packages/app/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-unwrapped-user-facing-string.fixture.tsx`. Excluded: `packages/app/src/editor/**`, `packages/app/src/components/ui/**`, `**/*.test.ts`, `**/*.test.tsx`, `**/*.dom.test.tsx`.
 
 Rule: [`lint-plugins/ok-rules/rules/no-unwrapped-user-facing-string.mjs`](rules/no-unwrapped-user-facing-string.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-unwrapped-user-facing-string.fixture.tsx`](__fixtures__/no-unwrapped-user-facing-string.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-unwrapped-user-facing-string.uncached.test.mjs`](tests/no-unwrapped-user-facing-string.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
 
@@ -550,7 +549,7 @@ Reading-direction discipline. Chrome layout takes its side from the reading dire
 - **`inset-x-*` is already logical.** Tailwind v4 compiles `inset-x-0` to `inset-inline: 0`. It is absent from the pattern for that reason, not as a carve-out.
 - **`left-1/2` is the centering anchor.** It exists to be cancelled by the `-translate-x-1/2` beside it, and at 50% the offset is symmetric, so it centers correctly in both directions; `start-1/2` would flip the anchor while the translate kept pulling the same way. The pattern requires a delimiter after a numeric value, which leaves every fractional inset alone — all 10 `left-1/2` sites in the tree carry that translate.
 
-**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/{app,desktop}/src/**/*.tsx`. `.tsx` only: the single branch matches a JSX attribute, so a `.ts` glob would be dead scope rather than extra coverage. Exemptions as negative `!`-globs: `!packages/app/src/editor/**` (ProseMirror and CodeMirror own their DOM and take per-string direction from the text rather than from the chrome), `!packages/app/src/components/ui/**` (shadcn primitives are regenerated by `shadcn add`, so an edit there is overwritten on the next pull), and `!**/*.test.tsx` / `!**/*.dom.test.tsx`.
+**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/app/src/**/*.tsx`. `.tsx` only: the single branch matches a JSX attribute, so a `.ts` glob would be dead scope rather than extra coverage. Exemptions as negative `!`-globs: `!packages/app/src/editor/**` (ProseMirror and CodeMirror own their DOM and take per-string direction from the text rather than from the chrome), `!packages/app/src/components/ui/**` (shadcn primitives are regenerated by `shadcn add`, so an edit there is overwritten on the next pull), and `!**/*.test.tsx` / `!**/*.dom.test.tsx`.
 
 **Pre-rule backlog (ratchet pattern).** The 66 files that pre-date the rule carry a file-level `// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — …` header, same contract as `no-raw-html-interactive-element`: the comment list across the codebase IS the visible backlog, and review treats each header as a backlog marker rather than a free pass. Drain a file by swapping `ml`/`mr` → `ms`/`me`, `pl`/`pr` → `ps`/`pe`, `left`/`right` → `start`/`end`, then deleting the header — the rule starts firing again immediately, so a partial pass that misses one utility fails the gate. 66 of the 375 chrome files in scope carry a header (127 utilities in total), so the rule is live on the other 309 today.
 
@@ -563,7 +562,7 @@ The rule does NOT catch:
 
 **Scope** (`RULE_SCOPES['no-physical-direction-utility']` in [`scope.mjs`](scope.mjs)). Reading-direction discipline. The rule's only branch matches a JSX attribute, so the scope is `.tsx` alone — a `.ts` glob would be dead scope, not extra coverage. Exemptions: - packages/app/src/editor/** — ProseMirror/CodeMirror own their DOM and take per-string direction from the text rather than from the chrome (matches the no-raw-html-interactive-element exemption). - packages/app/src/components/ui/** — shadcn primitives are regenerated by `shadcn add`, so an edit here is overwritten on the next pull. - *.test.tsx / *.dom.test.tsx — fixtures aren't rendered chrome.
 
-Included: `packages/app/src/**/*.tsx`, `packages/desktop/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-physical-direction-utility.fixture.tsx`. Excluded: `packages/app/src/editor/**`, `packages/app/src/components/ui/**`, `**/*.test.tsx`, `**/*.dom.test.tsx`.
+Included: `packages/app/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-physical-direction-utility.fixture.tsx`. Excluded: `packages/app/src/editor/**`, `packages/app/src/components/ui/**`, `**/*.test.tsx`, `**/*.dom.test.tsx`.
 
 Rule: [`lint-plugins/ok-rules/rules/no-physical-direction-utility.mjs`](rules/no-physical-direction-utility.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-physical-direction-utility.fixture.tsx`](__fixtures__/no-physical-direction-utility.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-physical-direction-utility.uncached.test.mjs`](tests/no-physical-direction-utility.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
 
@@ -611,7 +610,7 @@ Historically the two sites this rule was written against had reached for `varian
 
 **Matched as one whole JSX element.** The rule visits the footer element and tests its full source text, because a footer holds two or more children and the confirm can sit at any position among them. Testing the whole element text matches the entire node text, so the leading tag name anchors the match to footers themselves rather than to any ancestor that happens to contain one.
 
-**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/{app,desktop}/src/**/*.tsx`. `.tsx` only: the single branch matches a JSX element, so a `.ts` glob would be dead scope rather than extra coverage. Exemptions as negative `!`-globs: `!packages/app/src/components/ui/**` (the dialog and button primitives themselves, regenerated by `shadcn add`), and `!**/*.test.tsx` / `!**/*.dom.test.tsx` (a test that renders the demoted shape on purpose is pinning the regression, not shipping it).
+**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/app/src/**/*.tsx`. `.tsx` only: the single branch matches a JSX element, so a `.ts` glob would be dead scope rather than extra coverage. Exemptions as negative `!`-globs: `!packages/app/src/components/ui/**` (the dialog and button primitives themselves, regenerated by `shadcn add`), and `!**/*.test.tsx` / `!**/*.dom.test.tsx` (a test that renders the demoted shape on purpose is pinning the regression, not shipping it).
 
 The rule does NOT catch:
 
@@ -623,23 +622,9 @@ Suppress a footer that genuinely wants a muted tertiary control alongside a prop
 
 **Scope** (`RULE_SCOPES['no-demoted-dialog-confirm']` in [`scope.mjs`](scope.mjs)). Dialog-footer emphasis hierarchy. `secondary` is the one Button variant whose fill is low enough in contrast to lose the emphasis contest with the `outline` dismiss standing beside it — a footer authored that way reads with its hierarchy inverted. The rule's only branch matches a JSX element, so the scope is `.tsx` alone; a `.ts` glob would be dead scope, not extra coverage. Exemptions: - packages/app/src/components/ui/** — the dialog and button primitives themselves, regenerated by `shadcn add` (matches the no-physical-direction-utility exemption). - *.test.tsx / *.dom.test.tsx — fixtures aren't rendered chrome, and a test that renders the demoted shape on purpose is pinning the regression, not shipping it.
 
-Included: `packages/app/src/**/*.tsx`, `packages/desktop/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-demoted-dialog-confirm.fixture.tsx`. Excluded: `packages/app/src/components/ui/**`, `**/*.test.tsx`, `**/*.dom.test.tsx`.
+Included: `packages/app/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-demoted-dialog-confirm.fixture.tsx`. Excluded: `packages/app/src/components/ui/**`, `**/*.test.tsx`, `**/*.dom.test.tsx`.
 
 Rule: [`lint-plugins/ok-rules/rules/no-demoted-dialog-confirm.mjs`](rules/no-demoted-dialog-confirm.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-demoted-dialog-confirm.fixture.tsx`](__fixtures__/no-demoted-dialog-confirm.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-demoted-dialog-confirm.uncached.test.mjs`](tests/no-demoted-dialog-confirm.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
-
-### `no-blocking-error-box`
-
-Desktop error reporting. No code under `packages/desktop/src` calls `showErrorBox` on Electron's `dialog`, or on anything shaped like it. Errors are shown with `showErrorDialog` from [`packages/desktop/src/main/error-dialog.ts`](../../packages/desktop/src/main/error-dialog.ts), an async `showMessageBox` attached to a parent window.
-
-**Why.** `dialog.showErrorBox` is synchronous and takes no parent window. On Linux it runs `gtk_dialog_run`, which holds the main thread in a nested GTK loop until someone presses its button. With no parent, the window manager can stack the dialog behind the window it is reporting on, and the dialog has no taskbar entry, so nothing on screen shows it is still open. In PRD-9099 that left the Project Navigator on "Opening <folder>…" indefinitely: the `ok:project:open` reply could not leave the main process. SIGTERM was ignored as well, because both Chromium's shutdown task and the app's Node signal handler wait for the main loop. `showMessageBox` with a parent stays above that window, and the main loop keeps running while it is open.
-
-**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/desktop/src/**/*.ts`, the only package that runs in Electron's main process. `**/*.test.ts` and `**/*.test-helper.ts` are excluded, because tests stub the method by name.
-
-The rule matches a call of a non-computed `.showErrorBox` member, whatever the receiver: `dialog`, `electron.dialog`, or an injected dialog host. It does NOT catch a bare `showErrorBox(...)` identifier, a computed `dialog['showErrorBox'](...)`, or a reference taken without calling it (`const f = dialog.showErrorBox`). Those shapes have no realistic occurrence.
-
-**Opting out.** There is no sanctioned use after `app` is ready. Before `ready`, Electron prints the error box to stderr on Linux instead of showing it, so even an early-boot error needs a different reporting path.
-
-Rule: [`lint-plugins/ok-rules/rules/no-blocking-error-box.mjs`](rules/no-blocking-error-box.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-blocking-error-box.fixture.tsx`](__fixtures__/no-blocking-error-box.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-blocking-error-box.uncached.test.mjs`](tests/no-blocking-error-box.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
 
 ### `no-unconverted-git-pathspec`
 
@@ -653,7 +638,7 @@ Git pathspec discipline. Fires on a hand-written `'--'` string literal in an arr
 
 **Scope** (`RULE_SCOPES['no-unconverted-git-pathspec']` in [`scope.mjs`](scope.mjs)). The four packages that build git argvs today. `git-pathspec.ts` is excluded because it is the one sanctioned emitter of the separator. Tests and test helpers are excluded per the `no-raw-html-interactive-element` precedent: fixture code that seeds a hostile filename deliberately passes a correct `:(literal)` pathspec by hand, and that is the control proving git can do the right thing, not a production argv.
 
-Included: `packages/core/src/**/*.ts`, `packages/server/src/**/*.ts`, `packages/cli/src/**/*.ts`, `packages/desktop/src/**/*.ts`, `lint-plugins/ok-rules/__fixtures__/no-unconverted-git-pathspec.fixture.tsx`. Excluded: `packages/core/src/git-pathspec.ts`, `**/*.test.ts`, `**/*.test-helper.ts`.
+Included: `packages/core/src/**/*.ts`, `packages/server/src/**/*.ts`, `packages/cli/src/**/*.ts`, `lint-plugins/ok-rules/__fixtures__/no-unconverted-git-pathspec.fixture.tsx`. Excluded: `packages/core/src/git-pathspec.ts`, `**/*.test.ts`, `**/*.test-helper.ts`.
 
 The rule does NOT catch:
 
@@ -726,7 +711,7 @@ Theme discipline. Chrome colors come from the active theme, so a custom or bundl
 
 The rule does NOT catch hex, `rgb()` or `oklch()` literals, or colors in stylesheets.
 
-Included: `packages/app/src/**/*.ts`, `packages/app/src/**/*.tsx`, `packages/desktop/src/**/*.ts`, `packages/desktop/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-fixed-palette-color.fixture.tsx`. Excluded: `**/*.test.ts`, `**/*.test.tsx`, `**/*.dom.test.tsx`, `**/*.test-helper.ts`, `**/*.test-helper.tsx`.
+Included: `packages/app/src/**/*.ts`, `packages/app/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-fixed-palette-color.fixture.tsx`. Excluded: `**/*.test.ts`, `**/*.test.tsx`, `**/*.dom.test.tsx`, `**/*.test-helper.ts`, `**/*.test-helper.tsx`.
 
 Rule: [`no-fixed-palette-color.mjs`](rules/no-fixed-palette-color.mjs). Fixture: [`no-fixed-palette-color.fixture.tsx`](__fixtures__/no-fixed-palette-color.fixture.tsx). Test: [`no-fixed-palette-color.uncached.test.mjs`](tests/no-fixed-palette-color.uncached.test.mjs).
 
@@ -788,7 +773,7 @@ Feedback-surface discipline, from the display guide at [`plugins/ok/skills/feedb
 
 The rule fires on a call of `window.confirm`, `window.alert` or `window.prompt` (also through `globalThis` or `self`), and on a bare `confirm(...)`, `alert(...)` or `prompt(...)` call whose name resolves to the global. Resolution walks the scope chain from the call: an import, a parameter, or a function or variable declared in any enclosing scope is a local binding, so `consentStore.confirm(...)`, `threadClient.prompt(...)`, an imported `prompt` and a local `function confirm` stay silent. A parameter named `window` is local too, so `window.confirm` on it is not flagged.
 
-The scope is the renderer package, `packages/app/src`. `packages/desktop/src` is left out: it holds the Electron main process, the preload bridge, the utility process and shared modules, none of which renders UI, and the desktop renderer is `packages/app` itself (the desktop build sets `root: ../app`). Native Electron dialogs in the main process are a different surface that the guide limits separately and `no-blocking-error-box` partly gates.
+The scope is the renderer package, `packages/app/src`.
 
 The rule does NOT catch a dialog function taken by reference and called later (`const ask = window.confirm; ask(...)`), a computed member (`window['confirm']`), or a call through another alias of the global object.
 

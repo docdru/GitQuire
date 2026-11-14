@@ -48,7 +48,6 @@ describe(`${RULE} oxlint rule`, () => {
       [
         'packages/server/src/**/*.ts',
         'packages/cli/src/**/*.ts',
-        'packages/desktop/src/**/*.ts',
         '!**/*.test.ts',
         '!**/*.test-helper.ts',
         FIXTURE,

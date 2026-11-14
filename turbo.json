@@ -237,30 +237,6 @@
       ],
       "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
     },
-    "@inkeep/open-knowledge-desktop#test": {
-      "dependsOn": ["^build"],
-      "cache": true,
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!CHANGELOG.md",
-        "!README.md",
-        "$TURBO_ROOT$/lint-plugins/no-comments/**",
-        "$TURBO_ROOT$/test-support/**",
-        "../../scripts/verify-native-config-in-packaged-dmg.mjs",
-        "../../scripts/verify-keyring-in-packaged-dmg.mjs",
-        "../../scripts/lume-bake/**",
-        "../../scripts/lume-qa/**",
-        "../app/vite.*.ts",
-        "../app/lingui.config.ts",
-        "../app/scripts/compile-i18n-catalogs.ts",
-        "../app/postcss.config.ts",
-        "../app/*.html",
-        "../app/src/**",
-        "!../app/src/**/*.md",
-        "!../app/src/locales/*/messages.json"
-      ],
-      "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
-    },
     "@inkeep/md-conformance#test": {
       "dependsOn": ["^build"],
       "cache": true,

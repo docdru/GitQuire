@@ -1767,7 +1767,6 @@ describe('tsconfigFiles', () => {
       const real = outputDirRules(fs.readFileSync(rootGitignore, 'utf8'));
       expect(real.names.has('dist')).toBe(true);
       expect(real.names.has('out')).toBe(false);
-      expect(real.anchored.has('packages/desktop/out')).toBe(true);
       expect(real.names.has('target')).toBe(false);
     },
   );
@@ -1793,7 +1792,6 @@ describe('tsconfigFiles', () => {
           'desktop-smoke-test-results-',
         ]),
       );
-      expect(real.anchored.has('packages/desktop/build/parcel-watcher-staging')).toBe(true);
       expect(real.anchored.has('perf-fixtures')).toBe(true);
       expect(real.names.has('perf-fixtures')).toBe(false);
     },

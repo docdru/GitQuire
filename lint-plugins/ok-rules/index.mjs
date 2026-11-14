@@ -5,7 +5,6 @@ import { cstPmHandlerTodoStub } from './rules/cst-pm-handler-todo-stub.mjs';
 import { microcopyEllipsis } from './rules/microcopy-ellipsis.mjs';
 import { noAppCoreBarrelImport } from './rules/no-app-core-barrel-import.mjs';
 import { noBlindAgentHostFanout } from './rules/no-blind-agent-host-fanout.mjs';
-import { noBlockingErrorBox } from './rules/no-blocking-error-box.mjs';
 import { noCustomToast } from './rules/no-custom-toast.mjs';
 import { noDemotedDialogConfirm } from './rules/no-demoted-dialog-confirm.mjs';
 import { noEmptyJsxExpression } from './rules/no-empty-jsx-expression.ts';
@@ -46,7 +45,6 @@ const declared = {
   'microcopy-ellipsis': microcopyEllipsis,
   'no-app-core-barrel-import': noAppCoreBarrelImport,
   'no-blind-agent-host-fanout': noBlindAgentHostFanout,
-  'no-blocking-error-box': noBlockingErrorBox,
   'no-custom-toast': noCustomToast,
   'no-demoted-dialog-confirm': noDemotedDialogConfirm,
   'no-empty-jsx-expression': noEmptyJsxExpression,

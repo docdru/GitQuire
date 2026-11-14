@@ -34,7 +34,6 @@ const KNOWN_TEST_PROJECTS = [
   'packages/cli/vitest.config.ts',
   'packages/cli/vitest.e2e.config.ts',
   'packages/core/vitest.config.ts',
-  'packages/desktop/vitest.config.ts',
   'packages/server/vitest.config.ts',
   'packages/server/vitest.mcp-inspector.config.ts',
   'packages/server/vitest.network.config.ts',
@@ -50,12 +49,13 @@ const TEST_PROJECTS_OUTSIDE_THE_PUBLIC_TREE = [
   'vitest.config.ts',
 ];
 
-const KNOWN_BUILD_CONFIGS = [
-  'packages/app/vite.config.ts',
-  'packages/desktop/electron.vite.config.ts',
-];
+const KNOWN_BUILD_CONFIGS = ['packages/app/vite.config.ts'];
 
-const REQUIRED_BASE_SETUP_FILES = ['bun-global-shim.ts', 'no-net-connect.ts', 'read-declarations.ts'];
+const REQUIRED_BASE_SETUP_FILES = [
+  'bun-global-shim.ts',
+  'no-net-connect.ts',
+  'read-declarations.ts',
+];
 
 const BROWSER_PROJECT_SETUP_FILES: Readonly<Record<string, readonly string[]>> = {
   'packages/app/tests/foundation/fixtures/vitest.browser-fixture.config.ts': ['browser-setup.ts'],

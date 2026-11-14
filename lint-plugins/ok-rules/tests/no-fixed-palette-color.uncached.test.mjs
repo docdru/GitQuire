@@ -42,8 +42,6 @@ describe(`${RULE} oxlint rule`, () => {
       [
         'packages/app/src/**/*.ts',
         'packages/app/src/**/*.tsx',
-        'packages/desktop/src/**/*.ts',
-        'packages/desktop/src/**/*.tsx',
         '!**/*.test.ts',
         '!**/*.test.tsx',
         '!**/*.dom.test.tsx',

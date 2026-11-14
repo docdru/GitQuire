@@ -8,13 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = dirname(SCRIPT_DIR);
 
-const SHIPPING_WORKSPACES = [
-  'packages/cli',
-  'packages/server',
-  'packages/core',
-  'packages/app',
-  'packages/desktop',
-];
+const SHIPPING_WORKSPACES = ['packages/cli', 'packages/server', 'packages/core', 'packages/app'];
 
 const WORKSPACE_NAME_PREFIX = '@inkeep/open-knowledge';
 
@@ -189,10 +183,7 @@ function readNoticeText(pkgDir) {
   return readTextOrNull(findFileCaseInsensitive(pkgDir, NOTICE_FILENAMES));
 }
 
-const FIRST_PARTY_GPL_PACKAGES = new Set([
-  '@visimer/core',
-  '@visimer/dom',
-]);
+const FIRST_PARTY_GPL_PACKAGES = new Set(['@visimer/core', '@visimer/dom']);
 
 const SPDX_OVERRIDES = {
   khroma: 'MIT',
@@ -586,7 +577,7 @@ function build() {
 
   push('# Third-Party Notices', '');
   push(
-    '`@inkeep/open-knowledge` (npm CLI) and `@inkeep/open-knowledge-desktop` (Electron app) bundle source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.',
+    'GitQuire (the `@inkeep/open-knowledge` CLI, server and web app in its Docker image) bundles source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.',
     '',
   );
   push(

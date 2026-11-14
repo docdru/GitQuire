@@ -91,16 +91,9 @@ export const RULE_SCOPES = {
     '!packages/md-conformance/src/class-proofs/proofs/**',
     'lint-plugins/ok-rules/__fixtures__/class-proof-registration-discipline.fixture.tsx',
   ],
-  'no-blocking-error-box': [
-    'packages/desktop/src/**/*.ts',
-    '!**/*.test.ts',
-    '!**/*.test-helper.ts',
-    'lint-plugins/ok-rules/__fixtures__/no-blocking-error-box.fixture.tsx',
-  ],
   'require-windowshide-on-spawn': [
     'packages/server/src/**/*.ts',
     'packages/cli/src/**/*.ts',
-    'packages/desktop/src/**/*.ts',
     '!**/*.test.ts',
     '!**/*.test-helper.ts',
     'lint-plugins/ok-rules/__fixtures__/require-windowshide-on-spawn.fixture.tsx',
@@ -140,7 +133,6 @@ export const RULE_SCOPES = {
     'packages/core/src/**/*.ts',
     'packages/server/src/**/*.ts',
     'packages/cli/src/**/*.ts',
-    'packages/desktop/src/**/*.ts',
     '!packages/core/src/git-pathspec.ts',
     '!**/*.test.ts',
     '!**/*.test-helper.ts',
@@ -148,7 +140,6 @@ export const RULE_SCOPES = {
   ],
   'no-raw-html-interactive-element': [
     'packages/app/src/**/*.tsx',
-    'packages/desktop/src/**/*.tsx',
     '!packages/app/src/editor/**',
     '!packages/app/src/components/ui/**',
     '!**/*.test.tsx',
@@ -166,11 +157,8 @@ export const RULE_SCOPES = {
   'no-unwrapped-user-facing-string': [
     'packages/app/src/**/*.ts',
     'packages/app/src/**/*.tsx',
-    'packages/desktop/src/**/*.ts',
-    'packages/desktop/src/**/*.tsx',
     '!packages/app/src/editor/**',
     '!packages/app/src/components/ui/**',
-    '!packages/desktop/src/main/**',
     '!**/*.test.ts',
     '!**/*.test.tsx',
     '!**/*.dom.test.tsx',
@@ -178,7 +166,6 @@ export const RULE_SCOPES = {
   ],
   'no-physical-direction-utility': [
     'packages/app/src/**/*.tsx',
-    'packages/desktop/src/**/*.tsx',
     '!packages/app/src/editor/**',
     '!packages/app/src/components/ui/**',
     '!**/*.test.tsx',
@@ -188,8 +175,6 @@ export const RULE_SCOPES = {
   'no-fixed-palette-color': [
     'packages/app/src/**/*.ts',
     'packages/app/src/**/*.tsx',
-    'packages/desktop/src/**/*.ts',
-    'packages/desktop/src/**/*.tsx',
     '!**/*.test.ts',
     '!**/*.test.tsx',
     '!**/*.dom.test.tsx',
@@ -199,7 +184,6 @@ export const RULE_SCOPES = {
   ],
   'no-demoted-dialog-confirm': [
     'packages/app/src/**/*.tsx',
-    'packages/desktop/src/**/*.tsx',
     '!packages/app/src/components/ui/**',
     '!**/*.test.tsx',
     '!**/*.dom.test.tsx',
