@@ -149,7 +149,6 @@ export const RULE_SCOPES = {
   'no-raw-html-interactive-element': [
     'packages/app/src/**/*.tsx',
     'packages/desktop/src/**/*.tsx',
-    'packages/plugin/src/**/*.tsx',
     '!packages/app/src/editor/**',
     '!packages/app/src/components/ui/**',
     '!**/*.test.tsx',
@@ -169,8 +168,6 @@ export const RULE_SCOPES = {
     'packages/app/src/**/*.tsx',
     'packages/desktop/src/**/*.ts',
     'packages/desktop/src/**/*.tsx',
-    'packages/plugin/src/**/*.ts',
-    'packages/plugin/src/**/*.tsx',
     '!packages/app/src/editor/**',
     '!packages/app/src/components/ui/**',
     '!packages/desktop/src/main/**',
@@ -182,7 +179,6 @@ export const RULE_SCOPES = {
   'no-physical-direction-utility': [
     'packages/app/src/**/*.tsx',
     'packages/desktop/src/**/*.tsx',
-    'packages/plugin/src/**/*.tsx',
     '!packages/app/src/editor/**',
     '!packages/app/src/components/ui/**',
     '!**/*.test.tsx',
@@ -194,8 +190,6 @@ export const RULE_SCOPES = {
     'packages/app/src/**/*.tsx',
     'packages/desktop/src/**/*.ts',
     'packages/desktop/src/**/*.tsx',
-    'packages/plugin/src/**/*.ts',
-    'packages/plugin/src/**/*.tsx',
     '!**/*.test.ts',
     '!**/*.test.tsx',
     '!**/*.dom.test.tsx',
@@ -206,7 +200,6 @@ export const RULE_SCOPES = {
   'no-demoted-dialog-confirm': [
     'packages/app/src/**/*.tsx',
     'packages/desktop/src/**/*.tsx',
-    'packages/plugin/src/**/*.tsx',
     '!packages/app/src/components/ui/**',
     '!**/*.test.tsx',
     '!**/*.dom.test.tsx',
@@ -215,8 +208,6 @@ export const RULE_SCOPES = {
   'no-native-renderer-dialog': [
     'packages/app/src/**/*.ts',
     'packages/app/src/**/*.tsx',
-    'packages/plugin/src/**/*.ts',
-    'packages/plugin/src/**/*.tsx',
     '!**/*.test.ts',
     '!**/*.test.tsx',
     '!**/*.dom.test.tsx',

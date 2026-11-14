@@ -1307,8 +1307,6 @@ importers:
         specifier: ^3.7.2
         version: 3.7.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.3)(node-addon-api@8.9.0)(supports-color@7.2.0)
 
-  packages/plugin: {}
-
   packages/server:
     dependencies:
       '@agentclientprotocol/sdk':

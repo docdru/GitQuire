@@ -49,7 +49,6 @@ describe(`${RULE} oxlint rule`, () => {
       [
         'packages/app/src/**/*.tsx',
         'packages/desktop/src/**/*.tsx',
-        'packages/plugin/src/**/*.tsx',
         '!packages/app/src/editor/**',
         '!packages/app/src/components/ui/**',
         '!**/*.test.tsx',
