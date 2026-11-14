@@ -1,5 +1,8 @@
 # `no-comments`
 
+> Written for OpenKnowledge's monorepo. References to the public mirror and to upstream-only
+> scripts describe tooling that GitQuire does not have; the policy itself applies here.
+
 Open Knowledge writes **no code comments by default**. A comment is legal only when a tool
 parses it, or when it carries a contract that code cannot express. Everything else belongs in
 the commit message, the PR body, `AGENTS.md`, a spec, or a `README`.

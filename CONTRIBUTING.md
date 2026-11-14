@@ -12,10 +12,27 @@ pull requests are all welcome.
 
 ## How GitQuire relates to OpenKnowledge
 
-GitQuire is a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by Inkeep, Inc.
-GitQuire-specific code lives in separate modules (`packages/*/src/gitquire/`, `gitquire-comments/`)
-so upstream changes can be merged without much friction. If you find a bug that also exists
-upstream, consider reporting it there as well.
+GitQuire started as a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by
+Inkeep, Inc. to get a head start, and is now developed independently: OpenKnowledge changes are not
+merged, and any file in this repository may be changed or removed when that is right for GitQuire.
+The license (GPL-3.0-or-later) and the acknowledgement stay. If you find a bug that also exists in
+OpenKnowledge, consider reporting it there as well.
+
+### Security fixes from OpenKnowledge
+
+Much of GitQuire's code came from OpenKnowledge, so some of their security fixes apply here too.
+Once a month, a maintainer runs the check:
+
+1. `git remote add openknowledge https://github.com/inkeep/open-knowledge` (once), then
+   `git fetch openknowledge` and `git log <last-checked>..openknowledge/main`.
+2. Read OpenKnowledge's [security advisories](https://github.com/inkeep/open-knowledge/security/advisories)
+   published since the last check.
+3. Look for security fixes (input validation, authentication, path handling, dependency upgrades
+   with advisories) in code GitQuire still has, and port the relevant ones in a pull request that
+   links the original commit.
+4. Run `pnpm audit --prod` and fix or list what it reports.
+5. Add a comment to the `security-sync` issue ([#84](https://github.com/docdru/GitQuire/issues/84)) with the date, the last commit looked
+   at and what was ported, so the next check knows where to start.
 
 ## Development setup
 
