@@ -83,33 +83,68 @@ A short allowlist survives: directives a tool parses (`biome-ignore lint/style/n
 
 If lint stops you, the diagnostic names the class of comment, the fix, and links to [`lint-plugins/no-comments/README.md`](./lint-plugins/no-comments/README.md) — the full policy, including how to convert a comment worth keeping into one of the allowed forms. Deleting it is usually the right answer.
 
-## Common commands
+## Sync test with a test GitHub App
+
+`.github/workflows/sync-nightly.yml` runs the Docker image against a real GitHub repository through
+a separate **test GitHub App**: every night, on demand (**Actions → Nightly sync test → Run
+workflow**), and on pull requests that touch sync, the GitHub App code, the container or the
+lockfile. It creates a throwaway branch `sync-test/run-…`, then checks that GitQuire
+
+- clones the branch through the App,
+- pulls a commit made on GitHub and pushes a page changed in the editor,
+- handles changes on both sides at once,
+- reports a healthy sync status (no push/pull error, push permission not denied, no conflicts),
+- can read pull requests through the App, and
+- keeps syncing after a container restart with a freshly minted token.
+
+The branch is deleted at the end. Without the configuration below the workflow is skipped with a
+notice, so forks stay green.
+
+### Set it up once
+
+1. Create a **private, throwaway repository**, e.g. `<you>/gitquire-sync-test`, with a `README.md`
+   on its default branch. The test only writes to `sync-test/run-…` branches, but use nothing you
+   care about.
+2. Create a GitHub App just for testing (**Settings → Developer settings → GitHub Apps → New**):
+   any name and homepage URL, **Webhook** off, repository permissions **Contents: Read and write**,
+   **Pull requests: Read and write**, **Metadata: Read-only**, installable on **Only this
+   account**.
+3. Generate a **private key** (`.pem`) and note the **App ID**.
+4. **Install** the App on the test repository only.
+5. In the GitQuire repository, **Settings → Secrets and variables → Actions**:
+   - variable `GITQUIRE_TEST_REPO` = `<owner>/<name>` of the test repository,
+   - variable `GITQUIRE_TEST_APP_ID` = the App ID,
+   - secret `GITQUIRE_TEST_APP_PRIVATE_KEY` = the whole content of the `.pem` file.
+6. Run the workflow once by hand.
+
+Keep this App separate from the one your team's GitQuire uses: the test key then never has access
+to real wiki content.
+
+To run the same checks against a local image: `docker build -t gitquire:local .`, then
+`IMAGE=gitquire:local TEST_REPO=… TEST_BRANCH=… APP_ID=… APP_PRIVATE_KEY="$(cat key.pem)"
+GH_TOKEN=<installation token> bash .github/scripts/sync-e2e.sh` (create `TEST_BRANCH` first).
+
+### Without access to nodejs.org
+
+`pnpm` downloads the Node.js release pinned in `package.json` (`devEngines.runtime`). Where
+nodejs.org is blocked but the npm registry is not (some sandboxes and coding agents), take the same
+release from npm and put it first on `PATH`:
 
 ```bash
-pnpm run format       # format (Biome)
-pnpm run lint         # lint (Biome)
-pnpm run typecheck    # TypeScript
-pnpm run test         # tests
-pnpm run build        # build all packages
-pnpm run check        # lint + typecheck + test
-pnpm run check:drift:guards  # unused deps/exports, generated-artifact freshness, toolchain pins (not part of `check`)
+npm pack node-linux-x64@$(cat .node-version) && tar xzf node-linux-x64-*.tgz
+export PATH="$PWD/package/bin:$PATH"
 ```
 
-Run a single package's scripts from its directory, e.g. `cd packages/app && pnpm run test`.
-
-## Code comments
-
-This repo does not use code comments, and `pnpm run lint` enforces that. It inverts the usual open-source norm, so it catches most first-time contributors by surprise — it is deliberate, not an oversight. Put the explanation in a name, a type, a test, your commit message, or the PR body instead.
-
-A short allowlist survives: directives a tool parses (`biome-ignore lint/style/noVar: reason`, `@ts-expect-error the fixture is deliberately malformed`, `@vitest-environment jsdom`, `/// <reference types="vite/client" />`, `SPDX-License-Identifier: GPL-3.0-or-later`), JSDoc carrying `@deprecated` (the audit-tag class is empty in this repo and admits nothing), and comments that BEGIN with a contract marker — `STOP: a cross-file contract a reader must not break`, `WARN: a sibling that silently drifts if this changes`, or `UPSTREAM(electron/electron#19920): a code shape forced on us from outside this repo`.
-
-If lint stops you, the diagnostic names the class of comment, the fix, and links to [`lint-plugins/no-comments/README.md`](./lint-plugins/no-comments/README.md) — the full policy, including how to convert a comment worth keeping into one of the allowed forms. Deleting it is usually the right answer.
+`pnpm install --frozen-lockfile` still wants to fetch the runtime's checksums. For running tests,
+install once with `"onFail": "ignore"` in `package.json` and do not commit that change or the
+lockfile it produces.
 
 ## Pull requests
 
 - Keep each pull request focused on one change and describe what it does and why.
 - CI (`.github/workflows/checks.yml` and `docker.yml`) must be green: lint, typecheck, tests and
-  the Docker build with its smoke tests.
+  the Docker build with its smoke tests. Pull requests that touch sync also run the sync test
+  against the test GitHub App.
 - Add or update tests for behavior you change. Changesets are not used in GitQuire.
 - New user-facing text goes through Lingui (`t`, `<Trans>`) so it can be translated.
 
