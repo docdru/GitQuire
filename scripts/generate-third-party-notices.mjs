@@ -41,6 +41,27 @@ const outIdx = args.indexOf('--out');
 const OUT_PATH =
   outIdx >= 0 && args[outIdx + 1] ? args[outIdx + 1] : join(REPO_ROOT, 'THIRD_PARTY_NOTICES.md');
 
+const ADAPTED_SOURCES = [
+  {
+    name: 'GitMarkdown',
+    homepage: 'https://github.com/pooriaarab/gitmarkdown',
+    copyright: 'Copyright (c) 2026 Pooria Arab',
+    scope:
+      'Parts of the GitHub, branch, pull request and comment features are adapted from this project.',
+  },
+];
+
+function adaptedSourceEntry(source) {
+  return [
+    `### ${source.name} (adapted source)`,
+    `Homepage: ${source.homepage}`,
+    '',
+    source.scope,
+    '',
+    source.copyright,
+  ].join('\n');
+}
+
 function byteCompare(a, b) {
   return a < b ? -1 : a > b ? 1 : 0;
 }
@@ -467,18 +488,19 @@ function build() {
   }
   hr();
 
-  if (grouped.has('MIT')) {
-    push('## MIT License', '');
-    push(
-      'Each package in this section is licensed under the MIT License. The full text of the permission notice is reproduced once below and applies to every entry; per-package copyright lines are listed inline.',
-      '',
-    );
-    push('```', LICENSE_TEXTS.mit, '```', '');
-    for (const e of grouped.get('MIT')) {
-      push(shortEntry(e), '');
-    }
-    hr();
+  push('## MIT License', '');
+  push(
+    'Each package and adapted source in this section is licensed under the MIT License. The full text of the permission notice is reproduced once below and applies to every entry; per-entry copyright lines are listed inline.',
+    '',
+  );
+  push('```', LICENSE_TEXTS.mit, '```', '');
+  for (const source of ADAPTED_SOURCES) {
+    push(adaptedSourceEntry(source), '');
   }
+  for (const e of grouped.get('MIT') || []) {
+    push(shortEntry(e), '');
+  }
+  hr();
 
   if (grouped.has('ISC')) {
     push('## ISC License', '');
