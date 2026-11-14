@@ -218,6 +218,7 @@ import type {
 } from './github-permissions.ts';
 import { createGitHubTokenResolver } from './github-reference/token-resolver.ts';
 import { sessionPrincipalForAuthPayload } from './gitquire/principal-directory.ts';
+import { applySettingsAccess, createSettingsWriteGuard } from './gitquire/settings-admin.ts';
 import { type HeadWatcherHandle, readProjectHeadState, startHeadWatcher } from './head-watcher.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import type { NativeApiHandle } from './http/http-app.ts';
@@ -2561,6 +2562,7 @@ export function createServer(options: ServerOptions): ServerInstance {
             sessionCtx.tabSessionId = parsed.tabSessionId;
           }
           sessionCtx.kind = 'human';
+          applySettingsAccess(payload);
           return;
         }
 
@@ -2625,6 +2627,14 @@ export function createServer(options: ServerOptions): ServerInstance {
         logAuthRejection('config-doc-admission-denied', CONFIG_DOC_NAME_USER, {
           check: 'private-skill-trust',
           rejectionClass,
+        }),
+      ),
+    );
+
+    hocuspocus.configuration.extensions.push(
+      createSettingsWriteGuard(() =>
+        logAuthRejection('config-doc-admission-denied', CONFIG_DOC_NAME_PROJECT_LOCAL, {
+          check: 'gitquire-admin',
         }),
       ),
     );

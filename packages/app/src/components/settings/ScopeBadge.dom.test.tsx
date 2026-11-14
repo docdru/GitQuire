@@ -40,10 +40,10 @@ describe('ScopeBadge', () => {
     expect(screen.queryByTestId('settings-scope-badge-user')).toBeNull();
   });
 
-  test('project-local scope renders a "This machine" badge', () => {
+  test('project-local scope renders a "Whole wiki" badge', () => {
     renderBadge('project-local');
     const badge = screen.getByTestId('settings-scope-badge-project-local');
-    expect(badge.textContent).toBe('This machine');
+    expect(badge.textContent).toBe('Whole wiki');
     expect(screen.queryByTestId('settings-scope-badge-project')).toBeNull();
     expect(screen.queryByTestId('settings-scope-badge-user')).toBeNull();
   });
@@ -64,7 +64,7 @@ describe('ScopeBadge', () => {
     expect(within(tooltip[0]).queryByText(/config\.yml/i)).toBeNull();
   });
 
-  test('project-local tooltip explains it stays on this computer', async () => {
+  test('project-local tooltip explains it is stored on the server', async () => {
     renderBadge('project-local');
     await userEvent.hover(screen.getByTestId('settings-scope-badge-project-local'));
     const tooltip = await screen.findAllByRole('tooltip');

@@ -31,3 +31,25 @@ export function withoutHiddenSettings(
       ),
   }));
 }
+
+const WIKI_ADMIN_ITEMS = new Set([
+  'project-preferences',
+  'sync',
+  'link-previews',
+  'plugins-manage',
+  'project-templates',
+  'skills',
+  'okignore',
+]);
+const PERSONAL_PLUGIN_ITEMS = new Set(['plugin:theme', 'plugin:slides']);
+
+export function isWikiAdminSetting(itemId: string): boolean {
+  if (WIKI_ADMIN_ITEMS.has(itemId)) return true;
+  return itemId.startsWith('plugin:') && !PERSONAL_PLUGIN_ITEMS.has(itemId);
+}
+
+const HIDDEN_LINT_PLUGINS = new Set(['okf']);
+
+export function isLintPluginOffered(plugin: { id: string }): boolean {
+  return !HIDDEN_LINT_PLUGINS.has(plugin.id);
+}

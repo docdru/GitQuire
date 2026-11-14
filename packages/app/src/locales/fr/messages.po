@@ -1607,8 +1607,11 @@ msgstr "S'applique à tous les projets de cette machine, dans les chats Claude C
 msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
 msgstr "S'applique à tous les projets de cette machine. Claude et Codex lancés depuis le terminal intégré, ainsi que tout agent dans un chat du panneau Agents de l'app, approuvent automatiquement les outils de lecture et d'écriture de GitQuire (Claude exécute aussi \"{cliCommand} open\" automatiquement). Supprimer, déplacer, partager, importer ou installer des skills, les autres commandes et les modifications de fichiers hors GitQuire demandent toujours confirmation. Dans le terminal, Cursor, OpenCode et Pi ne sont pas concernés. Au mieux, selon l'agent."
 
-msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
-msgstr "S'applique à ce projet sur cet ordinateur uniquement. Stocké dans .ok/local, non partagé via git."
+msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+msgstr ""
+
+msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgstr ""
 
 msgid "Applies when you pick this conversation back up"
 msgstr "S'applique lorsque vous reprendrez cette conversation"
@@ -5626,8 +5629,8 @@ msgstr "Durée pendant laquelle GitQuire attend chaque requête d’embedding lo
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "Comment les documents, fichiers et images locaux au projet manquants sont signalés dans Problèmes, les diagnostics de l’éditeur, les audits et les outils d’agent."
 
-msgid "How often this computer pulls changes from your remote."
-msgstr "À quelle fréquence cet ordinateur récupère les modifications de votre dépôt distant."
+msgid "How often the server pulls changes from GitHub."
+msgstr ""
 
 msgid "How to push manually"
 msgstr "Comment pousser manuellement"
@@ -7616,8 +7619,8 @@ msgstr "sur {0}"
 msgid "of {totalPages}"
 msgstr "sur {totalPages}"
 
-msgid "Off — external links show only their URL. No requests leave this computer."
-msgstr "Désactivé — les liens externes n'affichent que leur URL. Aucune requête ne quitte cet ordinateur."
+msgid "Off — external links show only their URL. The server sends no requests."
+msgstr ""
 
 msgid "Off — search ranks by keyword only. No content leaves this computer."
 msgstr "Désactivé — la recherche classe uniquement par mots-clés. Aucun contenu ne quitte cet ordinateur."
@@ -7658,10 +7661,13 @@ msgstr "Un motif par ligne — ajouté à <0>.okignore</0>."
 msgid "Only collaborators"
 msgstr "Collaborateurs uniquement"
 
-msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
-msgstr "Seuls les liens externes déclenchent une requête. Les liens vers d'autres documents de ce projet s'affichent depuis l'index local et ne quittent jamais votre ordinateur."
+msgid "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+msgstr ""
 
 msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
+msgid "Only maintainers of {repo} can change these settings."
 msgstr ""
 
 msgid "Only markdown files"
@@ -7681,6 +7687,15 @@ msgstr "Seules les images PNG, JPEG ou WebP sont autorisées."
 
 msgid "Only the current document uses <0>#{tag}</0>."
 msgstr "Seul le document actuel utilise <0>#{tag}</0>."
+
+msgid "Only wiki admins can change these settings."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}."
+msgstr ""
 
 msgid "Open"
 msgstr "Ouvrir"
@@ -8647,6 +8662,9 @@ msgstr "Copie en lecture seule d'un bloc MirrorSource d'un autre document. Modif
 
 msgid "Read-only file in the {name} skill"
 msgstr "Fichier en lecture seule dans la compétence {name}"
+
+msgid "Read-only settings"
+msgstr ""
 
 msgid "Reading the current languages…"
 msgstr "Lecture des langues actuelles…"
@@ -9829,8 +9847,8 @@ msgstr "Contenu des paramètres"
 msgid "Settings failed to load"
 msgstr "Échec du chargement des paramètres"
 
-msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
-msgstr "Paramètres de ce projet. Certains sont partagés avec chaque collaborateur via git ; d'autres ne s'appliquent que sur cet ordinateur."
+msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
+msgstr ""
 
 msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
 msgstr "Les paramètres de {fileName} ont été modifiés en dehors de GitQuire et s'appliquent désormais. Une copie de la modification que vous étiez en train de faire a été conservée dans l'historique de ce projet, que l'application ne peut pas encore afficher."
@@ -9887,9 +9905,6 @@ msgstr "Valeur par défaut partagée"
 
 msgid "Shared repositories"
 msgstr "Dépôts partagés"
-
-msgid "Shared with everyone on this project. Stored in the project folder and travels with it through git."
-msgstr "Partagé avec tous les membres du projet. Stocké dans le dossier du projet et le suit via git."
 
 msgid "Sharing a doc needs a GitHub repository. Create one for this project."
 msgstr "Partager un document nécessite un dépôt GitHub. Créez-en un pour ce projet."
@@ -10589,8 +10604,8 @@ msgstr "La synchronisation de ce worktree est réglée sur Manuel, héritée de 
 msgid "Sync is taking longer than usual — your changes are safe on this device."
 msgstr "La synchronisation prend plus de temps que d'habitude — vos modifications sont en sécurité sur cet appareil."
 
-msgid "Sync keeps this computer's copy up to date with your Git remote. The shared settings below decide what teammates get when they open the project."
-msgstr "La synchronisation maintient la copie de cet ordinateur à jour avec votre dépôt distant Git. Les paramètres partagés ci-dessous déterminent ce que reçoivent vos coéquipiers lorsqu'ils ouvrent le projet."
+msgid "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+msgstr ""
 
 msgid "Sync mode"
 msgstr "Mode de synchronisation"
@@ -11448,8 +11463,8 @@ msgstr "Cette machine"
 msgid "This may take a moment. Your markdown content is kept."
 msgstr "Cela peut prendre un moment. Votre contenu markdown est conservé."
 
-msgid "This mode comes from the project's Shared default below. Pick a mode to choose your own for this computer."
-msgstr "Ce mode provient de la Valeur par défaut partagée du projet, ci-dessous. Choisissez un mode pour définir le vôtre sur cet ordinateur."
+msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "Cela déplace <0>{name}</0> de {0} vers {1}, en relocalisant ses fichiers sur le disque et en la réinstallant dans vos éditeurs au niveau {2}."
@@ -11548,8 +11563,8 @@ msgstr "Ce schéma porte des règles avancées de niveau racine que l'éditeur n
 msgid "This sends content off your machine"
 msgstr "Ceci envoie du contenu hors de votre machine"
 
-msgid "This sends the link's address off your machine"
-msgstr "Ceci envoie l'adresse du lien hors de votre machine"
+msgid "This sends link addresses from the server to other sites"
+msgstr ""
 
 msgid "This server does not send mail to that domain."
 msgstr ""
@@ -11563,8 +11578,8 @@ msgstr ""
 msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
-msgid "This setting is per-machine and isn't shared with collaborators."
-msgstr "Ce réglage est propre à chaque machine et n'est pas partagé avec les collaborateurs."
+msgid "This setting applies to everyone using this wiki."
+msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "Ce réglage est propre à chaque machine et n'est pas partagé avec les collaborateurs. Il nécessite une clé API (définie ci-dessous), sauf si votre point de terminaison est un serveur local qui n'en demande pas."
@@ -12050,6 +12065,9 @@ msgstr ""
 msgid "Updates flow in"
 msgstr "Les mises à jour arrivent"
 
+msgid "Updates flow in from GitHub; edits stay on the server and are not pushed."
+msgstr ""
+
 msgid "Updates flow in from your remote; your edits stay on this computer."
 msgstr "Les mises à jour arrivent depuis votre dépôt distant ; vos modifications restent sur cet ordinateur."
 
@@ -12415,11 +12433,17 @@ msgstr "Espaces"
 msgid "Who you are, so the agent has your context."
 msgstr "Qui vous êtes, pour que l'agent connaisse votre contexte."
 
+msgid "Whole wiki"
+msgstr ""
+
 msgid "Whole word"
 msgstr "Mot entier"
 
 msgid "Why this needs attention"
 msgstr "Pourquoi cela demande votre attention"
+
+msgid "Wiki administration"
+msgstr ""
 
 msgid "Wiki link"
 msgstr "Lien wiki"

@@ -358,7 +358,7 @@ function SettingsDialogFrame({
     },
     {
       id: 'project',
-      label: t`This project`,
+      label: t`Wiki administration`,
       enabled: hasProject,
       items: [
         {

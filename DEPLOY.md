@@ -11,7 +11,8 @@ agent access. For what GitQuire does, see the [README](./README.md).
 - [Mention emails](#mention-emails)
 - [Chat notifications](#chat-notifications)
 - [AI agents](#ai-agents)
-- [Other settings](#other-settings)
+- [Search by meaning](#search-by-meaning)
+- [Wiki administration](#wiki-administration)
 - [Build the image yourself](#build-the-image-yourself)
 - [Environment variable reference](#environment-variable-reference)
 
@@ -93,7 +94,7 @@ docker run -d --name gitquire -p 8080:8080 \
 | `GITQUIRE_SESSION_SECRET` | At least 32 random characters; signs the session cookie. |
 | `GITQUIRE_REPO` | `owner/name`. Anyone with write access to it may sign in. |
 | `GITQUIRE_ALLOWED_USERS` | Optional comma-separated GitHub logins allowed in addition (or instead). |
-| `GITQUIRE_ADMINS` | Optional logins allowed to use server administration routes. |
+| `GITQUIRE_ADMINS` | Optional comma-separated logins that may change wiki settings, in addition to the repository's admins and maintainers. See [Wiki administration](#wiki-administration). |
 | `GITQUIRE_SESSION_DAYS` | Session length, default 7. |
 | `GITQUIRE_AUTH` | `off` disables sign-in even when a client ID is set. |
 
@@ -294,11 +295,25 @@ Know what you're choosing:
 The key is only ever sent to `GITQUIRE_EMBEDDINGS_URL`. There is no Search page in the app's
 settings: the environment is the only place to change this.
 
-## Other settings
+## Wiki administration
 
 Settings under **User** in the app are personal: with GitHub sign-in on, each person's are saved
-on the data volume in `.ok/local/gitquire/users/<GitHub user id>.yml`, outside Git. Settings under
-**This project** are shared and live in the repository's `.ok/config.yml`.
+on the data volume in `.ok/local/gitquire/users/<GitHub user id>.yml`, outside Git.
+
+Settings under **Wiki administration** apply to everyone: attachments, content rules, sync, link
+previews, plugins, templates, skills and ignore patterns. Most are saved in the repository
+(`.ok/config.yml`, `.okignore`, `.ok/templates/`); sync and link previews are saved on the data
+volume in `.ok/local/config.yml`.
+
+Wiki admins are the logins in `GITQUIRE_ADMINS` and everyone with the **Admin** or **Maintain**
+role on `GITQUIRE_REPO`. Everyone else sees these pages greyed out and read-only, with a note
+naming who to ask. The server enforces it: it refuses changes to the shared settings, the server
+settings and the ignore patterns from anyone else. Each person can still show or hide hidden files
+and folders in their own file tree.
+
+GitHub roles are checked when someone signs in, so a person who just became a maintainer signs
+out and in again. Templates and skills are files in the repository, so anyone who can push to it
+can still change them there.
 
 | Setting | Meaning |
 | --- | --- |
@@ -328,4 +343,4 @@ CI builds and smoke-tests the image on every pull request and publishes it to
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | [Chat notifications](#chat-notifications) |
 | `GITQUIRE_AGENT_TOKEN_DAYS`, `GITQUIRE_MCP_CONNECTORS`, `GITQUIRE_MCP_TOKEN`, `GITQUIRE_ASK_AI` | [AI agents](#ai-agents) |
 | `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
-| `GITQUIRE_NAMING` | [Other settings](#other-settings) |
+| `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |

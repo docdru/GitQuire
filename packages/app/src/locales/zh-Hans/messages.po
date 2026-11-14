@@ -1607,8 +1607,11 @@ msgstr "适用于本机上的所有项目，作用于开启后新建的智能体
 msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
 msgstr "适用于本机上的所有项目。从内置终端启动的 Claude 和 Codex，以及应用内智能体面板对话中的任何智能体，都会自动批准 GitQuire 的读写工具（Claude 还会自动运行 \"{cliCommand} open\"）。删除、移动、分享、导入或安装技能、其他命令以及非 GitQuire 文件的编辑仍会询问。在终端中，Cursor、OpenCode 和 Pi 不受影响。按各智能体尽力而为。"
 
-msgid "Applies to this project on this computer only. Stored in .ok/local, not shared via git."
-msgstr "仅在这台电脑上对本项目生效。保存在 .ok/local 中，不通过 git 共享。"
+msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+msgstr ""
+
+msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgstr ""
 
 msgid "Applies when you pick this conversation back up"
 msgstr "继续此对话时生效"
@@ -5626,8 +5629,8 @@ msgstr "GitQuire 在建立索引时等待每次嵌入请求的时长。搜索请
 msgid "How missing project-local documents, files, and images are reported in Problems, editor diagnostics, audits, and agent tools."
 msgstr "如何在“问题”、编辑器诊断、审计和代理工具中报告缺失的项目本地文档、文件和图像。"
 
-msgid "How often this computer pulls changes from your remote."
-msgstr "这台电脑从你的远程仓库拉取更改的频率。"
+msgid "How often the server pulls changes from GitHub."
+msgstr ""
 
 msgid "How to push manually"
 msgstr "如何手动推送"
@@ -7616,8 +7619,8 @@ msgstr "共 {0}"
 msgid "of {totalPages}"
 msgstr "共 {totalPages}"
 
-msgid "Off — external links show only their URL. No requests leave this computer."
-msgstr "关闭——外部链接只显示 URL。不会有任何请求离开这台电脑。"
+msgid "Off — external links show only their URL. The server sends no requests."
+msgstr ""
 
 msgid "Off — search ranks by keyword only. No content leaves this computer."
 msgstr "关闭——搜索仅按关键词排序。不会有任何内容离开这台电脑。"
@@ -7658,10 +7661,13 @@ msgstr "每行一个模式——会追加到 <0>.okignore</0> 中。"
 msgid "Only collaborators"
 msgstr "仅协作者"
 
-msgid "Only external links trigger a request. Links to other documents in this project preview from the local index and never leave your computer."
-msgstr "只有外部链接才会发起请求。指向本项目其他文档的链接从本地索引生成预览，绝不会离开你的电脑。"
+msgid "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+msgstr ""
 
 msgid "Only Le Chat administrators can add connectors. On the Free, Pro and Student plans, that is the account owner."
+msgstr ""
+
+msgid "Only maintainers of {repo} can change these settings."
 msgstr ""
 
 msgid "Only markdown files"
@@ -7681,6 +7687,15 @@ msgstr "只允许 PNG、JPEG 或 WebP 图片。"
 
 msgid "Only the current document uses <0>#{tag}</0>."
 msgstr "只有当前文档使用 <0>#{tag}</0>。"
+
+msgid "Only wiki admins can change these settings."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+msgstr ""
+
+msgid "Only wiki admins can change these settings. Ask {names}."
+msgstr ""
 
 msgid "Open"
 msgstr "打开"
@@ -8647,6 +8662,9 @@ msgstr "来自另一个文档的 MirrorSource 块的只读副本。在来源处�
 
 msgid "Read-only file in the {name} skill"
 msgstr "{name} 技能中的只读文件"
+
+msgid "Read-only settings"
+msgstr ""
 
 msgid "Reading the current languages…"
 msgstr "正在读取当前语言…"
@@ -9829,8 +9847,8 @@ msgstr "设置内容"
 msgid "Settings failed to load"
 msgstr "设置加载失败"
 
-msgid "Settings for this project. Some are shared with every collaborator through git; others apply only on this computer."
-msgstr "本项目的设置。部分设置通过 git 与每位协作者共享；其余仅在这台电脑上生效。"
+msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
+msgstr ""
 
 msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
 msgstr "{fileName} 中的设置已在 GitQuire 之外更改，现已生效。你正在进行的更改已保存一份副本到本项目的历史记录中，应用暂时无法显示这些记录。"
@@ -9887,9 +9905,6 @@ msgstr "共享的默认值"
 
 msgid "Shared repositories"
 msgstr "共享的仓库"
-
-msgid "Shared with everyone on this project. Stored in the project folder and travels with it through git."
-msgstr "与项目里的所有人共享。保存在项目文件夹中，并通过 git 随项目一起流转。"
 
 msgid "Sharing a doc needs a GitHub repository. Create one for this project."
 msgstr "共享文档需要一个 GitHub 仓库。请为这个项目创建一个。"
@@ -10589,8 +10604,8 @@ msgstr "这个 worktree 的同步已设为「手动」，继承自 {project}。�
 msgid "Sync is taking longer than usual — your changes are safe on this device."
 msgstr "同步用时比平常更久——你的更改已安全保存在此设备上。"
 
-msgid "Sync keeps this computer's copy up to date with your Git remote. The shared settings below decide what teammates get when they open the project."
-msgstr "同步会让这台电脑上的副本与你的 Git 远程仓库保持一致。下方的共享设置决定队友打开项目时会获得什么。"
+msgid "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+msgstr ""
 
 msgid "Sync mode"
 msgstr "同步模式"
@@ -11448,8 +11463,8 @@ msgstr "本机"
 msgid "This may take a moment. Your markdown content is kept."
 msgstr "这可能需要一点时间。你的 markdown 内容会保留。"
 
-msgid "This mode comes from the project's Shared default below. Pick a mode to choose your own for this computer."
-msgstr "此模式来自下方项目的共享的默认值。选择一个模式即可为这台电脑设定你自己的模式。"
+msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "这会把 <0>{name}</0> 从 {0} 移到 {1}，在磁盘上重新放置它的文件，并在你的编辑器中以 {2} 级别重新安装它。"
@@ -11548,8 +11563,8 @@ msgstr "这个架构带有编辑器不显示的根级高级规则（{0}）——
 msgid "This sends content off your machine"
 msgstr "这会把内容发送到你的电脑之外"
 
-msgid "This sends the link's address off your machine"
-msgstr "这会把链接地址发送到你的电脑之外"
+msgid "This sends link addresses from the server to other sites"
+msgstr ""
 
 msgid "This server does not send mail to that domain."
 msgstr ""
@@ -11563,8 +11578,8 @@ msgstr ""
 msgid "This server is not set up for AI assistants on the web and on phones yet (it needs GITQUIRE_MCP_CONNECTORS=on and a public HTTPS address). You can still connect Claude Code with a personal token."
 msgstr ""
 
-msgid "This setting is per-machine and isn't shared with collaborators."
-msgstr "这项设置按电脑生效，不会与协作者共享。"
+msgid "This setting applies to everyone using this wiki."
+msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "这项设置按电脑生效，不会与协作者共享。除非你的端点是不需要密钥的本地服务器，否则需要一个 API 密钥（在下方设置）。"
@@ -12050,6 +12065,9 @@ msgstr ""
 msgid "Updates flow in"
 msgstr "更新会自动流入"
 
+msgid "Updates flow in from GitHub; edits stay on the server and are not pushed."
+msgstr ""
+
 msgid "Updates flow in from your remote; your edits stay on this computer."
 msgstr "更新会从远程仓库流入；你的编辑只保留在这台电脑上。"
 
@@ -12415,11 +12433,17 @@ msgstr "空白字符"
 msgid "Who you are, so the agent has your context."
 msgstr "你是谁，好让智能体了解你的背景。"
 
+msgid "Whole wiki"
+msgstr ""
+
 msgid "Whole word"
 msgstr "全字匹配"
 
 msgid "Why this needs attention"
 msgstr "为什么需要注意"
+
+msgid "Wiki administration"
+msgstr ""
 
 msgid "Wiki link"
 msgstr "维基链接"
