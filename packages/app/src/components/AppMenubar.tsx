@@ -307,12 +307,6 @@ export function AppMenubar({ className }: AppMenubarProps) {
           >
             {t`Show only markdown files`}
           </MenubarCheckboxItem>
-          <MenubarCheckboxItem
-            checked={view?.showSkillsSection ?? true}
-            onSelect={() => dispatch({ kind: 'menu-action', action: 'toggle-show-skills-section' })}
-          >
-            {t`Skills section`}
-          </MenubarCheckboxItem>
           <MenubarSeparator />
           {(view?.canExpandAll ?? true) && (
             <MenubarItem

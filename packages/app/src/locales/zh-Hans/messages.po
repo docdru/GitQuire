@@ -25,9 +25,6 @@ msgstr " 已恢复你的选择。"
 msgid "— except"
 msgstr "— 除了"
 
-msgid ".myteam/skills"
-msgstr ".myteam/skills"
-
 msgid ".ok folders"
 msgstr ".ok 文件夹"
 
@@ -232,23 +229,11 @@ msgstr ""
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
-msgid "{0} plugin"
-msgstr "{0} 插件"
-
-msgid "{0} plugin · {1}"
-msgstr "{0} 插件 · {1}"
-
 msgid "{0} Properties"
 msgstr "{0} 属性"
 
 msgid "{0} reads this skill via {poolRootRel}. Click to stop {1} getting \"{2}\" — {subRoot} keeps its other skills but stops following {poolRootRel}."
 msgstr "{0} 通过 {poolRootRel} 读取这个技能。点击可让 {1} 不再获取“{2}”——{subRoot} 保留其他技能，但不再跟随 {poolRootRel}。"
-
-msgid "{0} share this folder."
-msgstr "{0} 共用此文件夹。"
-
-msgid "{0} skills selected"
-msgstr "已选择 {0} 个技能"
 
 msgid "{0} total"
 msgstr "共 {0} 个"
@@ -394,9 +379,6 @@ msgstr "领先 {count} 个提交"
 msgid "{count} behind"
 msgstr "落后 {count} 个提交"
 
-msgid "{count} skills"
-msgstr "{count} 个技能"
-
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, other {# 天前}}"
 
@@ -414,9 +396,6 @@ msgstr "{diffHrs} 小时前"
 
 msgid "{diffMin}m ago"
 msgstr "{diffMin} 分钟前"
-
-msgid "{dir} (symlink)"
-msgstr "{dir}（符号链接）"
 
 msgid "{display} is a symlink to the source while the skill's other locations are copies. Click to make it an independent copy."
 msgstr "{display} 是指向源文件的符号链接，而该技能的其他位置是副本。点击可将它改为独立副本。"
@@ -539,9 +518,6 @@ msgstr "{minutes} 分钟前"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
-msgid "{name} moved, but its pin did not. Pin it again after settings finish loading."
-msgstr "{name} 已移动，但置顶状态未随之移动。设置加载完成后，请重新置顶。"
-
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, other {# 个节点}}"
 
@@ -589,12 +565,6 @@ msgstr "距顶部 {percent}%"
 
 msgid "{phase} — {pct}%"
 msgstr "{phase} — {pct}%"
-
-msgid "{pick} and {keep} both hold a different version of: {0}. Resolve those first — a symlink can only keep one of each."
-msgstr "{pick} 和 {keep} 各自保存着不同版本的：{0}。请先处理这些冲突：符号链接对每个技能只能保留一个版本。"
-
-msgid "{pick} holds entries that aren't skills: {0}. Remove or move them from the folder and try again."
-msgstr "{pick} 中包含非技能条目：{0}。请将它们从文件夹中删除或移走，然后重试。"
 
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin} 还提供另外 {0} 个技能"
@@ -647,12 +617,6 @@ msgstr "{slot} 颜色 — {0}"
 msgid "{slot} hex value"
 msgstr "{slot} 十六进制值"
 
-msgid "{source} · imported source"
-msgstr "{source} · 导入的来源"
-
-msgid "{source} · skills.sh source"
-msgstr "{source} · skills.sh 来源"
-
 msgid "{source}: {updated} updated, {upToDate} already up to date"
 msgstr "{source}：已更新 {updated} 个，{upToDate} 个已是最新"
 
@@ -679,12 +643,6 @@ msgstr "{truncatedShownCount, plural, other {只显示某个文件夹里的前 {
 
 msgid "{uploadedCount, plural, one {Uploaded one file} other {Uploaded {uploadedCount} files}}"
 msgstr "{uploadedCount, plural, other {已上传 {uploadedCount} 个文件}}"
-
-msgid "{uploadFolderName} — {0} files"
-msgstr "{uploadFolderName} — {0} 个文件"
-
-msgid "{uploadFolderName} — 1 file"
-msgstr "{uploadFolderName} — 1 个文件"
 
 msgid "{userName} · {tabCount, plural, one {# tab} other {# tabs}}"
 msgstr "{userName} · {tabCount, plural, other {# 个标签页}}"
@@ -771,9 +729,6 @@ msgstr "<0>空格</0>跳跃 · <1>↓</1>下蹲"
 msgid "<0>Too many live references on this page.</0> This mirror of <1>{src}</1> was not loaded."
 msgstr "<0>此页面的实时引用过多。</0><1>{src}</1> 的此镜像未加载。"
 
-msgid "~/.myteam/skills"
-msgstr "~/.myteam/skills"
-
 msgid "📝 or assets/icon.png"
 msgstr "📝 或 assets/icon.png"
 
@@ -803,9 +758,6 @@ msgstr "30 秒"
 
 msgid "5 minutes"
 msgstr "5 分钟"
-
-msgid "A .zip or .skill archive."
-msgstr "一个 .zip 或 .skill 压缩包。"
 
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "<0>已修改</0>标记表示你的配置显式设置过的规则——直接设置，或通过 <1>extends</1> 继承而来。未标记的规则保持默认状态。"
@@ -849,9 +801,6 @@ msgstr "有一个文档存在冲突——请解决冲突以保持它是最新的
 msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
 msgstr ""
 
-msgid "A folder containing SKILL.md."
-msgstr "一个包含 SKILL.md 的文件夹。"
-
 msgid "A folder named <0>{sanitized}</0> already has files here. Pick a different name."
 msgstr "名为 <0>{sanitized}</0> 的文件夹这里已经有文件了。请换一个名字。"
 
@@ -888,9 +837,6 @@ msgstr "该路径下已存在一个非空文件夹。请换一个文件夹。"
 msgid "A page with that name exists. Choose another name."
 msgstr ""
 
-msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
-msgstr "作为符号链接的是上层目录——请对那个文件夹取消链接，才能收回这一个。"
-
 msgid "A path inside the skill — any folder works (e.g. references/notes.md). Folders in the path are created for you."
 msgstr "技能内部的一个路径——任何文件夹都可以（例如 references/notes.md）。路径中的文件夹会自动创建。"
 
@@ -926,9 +872,6 @@ msgstr "在模板列表中显示在标题下方的一行简介。"
 
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "一个简单的写作空间，每个主题一个文件，外加一份日志。如果你只想先动笔，让笔记之间的链接慢慢生长，请选这个。"
-
-msgid "A skill named \"{trimmed}\" already exists here"
-msgstr "这里已存在名为“{trimmed}”的技能"
 
 msgid "A skill with that name already exists."
 msgstr "同名技能已存在。"
@@ -1084,9 +1027,6 @@ msgstr ""
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "通过 CodeMirror 添加光标或选中匹配项。"
 
-msgid "Add custom path"
-msgstr "添加自定义路径"
-
 msgid "Add description"
 msgstr "添加描述"
 
@@ -1128,9 +1068,6 @@ msgstr "添加属性"
 
 msgid "Add property to {keyName}"
 msgstr "向 {keyName} 添加属性"
-
-msgid "Add skill"
-msgstr "添加技能"
 
 msgid "Add tab"
 msgstr "添加标签页"
@@ -1369,9 +1306,6 @@ msgstr "任何 .mdx 文件。该格式仅限 .md，因此扫描 .md 的阅读器
 
 msgid "any doc named {0}"
 msgstr "任何名为 {0} 的文档"
-
-msgid "Any scripts are shown for review, never run."
-msgstr "任何脚本都只会展示以供查看，绝不会运行。"
 
 msgid "Any value"
 msgstr ""
@@ -1663,9 +1597,6 @@ msgctxt "settings search keyword"
 msgid "batch"
 msgstr "批次"
 
-msgid "becomes a symlink"
-msgstr "变成符号链接"
-
 msgid "Becomes the document's content when someone creates a doc from this template. Type <0>{dateToken}</0> or <1>{userToken}</1> to fill in today's date or the author's name automatically."
 msgstr "当有人用这个模板创建文档时，这会成为该文档的内容。输入 <0>{dateToken}</0> 或 <1>{userToken}</1> 可自动填入今天的日期或作者姓名。"
 
@@ -1733,9 +1664,6 @@ msgstr "粗体"
 msgid "Both"
 msgstr "两者"
 
-msgid "Both agents end up reading everything in {keep}."
-msgstr "两个智能体最终都会读取 {keep} 中的全部内容。"
-
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "两个版本完全相同。选择“采用当前”会让 GitQuire 的保护保持开启，因此再次保存较旧的版本仍会被拒绝。选择“采用传入”会关闭该保护。"
 
@@ -1799,9 +1727,6 @@ msgstr "浏览文件夹"
 msgid "Browse hundreds of themes"
 msgstr "浏览数百个主题"
 
-msgid "Browse or upload a skill for this project."
-msgstr "为这个项目浏览或上传技能。"
-
 msgid "Browse your repos:"
 msgstr "浏览你的仓库："
 
@@ -1837,9 +1762,6 @@ msgstr "无序列表"
 
 msgid "Bulleted list"
 msgstr ""
-
-msgid "By GitQuire"
-msgstr "来自 GitQuire"
 
 msgid "By meaning"
 msgstr "按语义"
@@ -2007,9 +1929,6 @@ msgstr "正在检查登录状态"
 msgid "Checking skill"
 msgstr "检查技能"
 
-msgid "Checking source"
-msgstr "正在检查来源"
-
 msgid "Checking which AI tools you have"
 msgstr "正在检查你安装了哪些 AI 工具"
 
@@ -2028,20 +1947,8 @@ msgstr "带复选框的清单。"
 msgid "Checks your project against the Open Knowledge Format. Turn it off any time in Settings."
 msgstr "根据 Open Knowledge Format 检查您的项目。随时在“设置”中将其关闭。"
 
-msgid "Choose a skill archive"
-msgstr "选择技能压缩包"
-
-msgid "Choose a skill folder"
-msgstr "选择技能文件夹"
-
 msgid "Choose color"
 msgstr "选择颜色"
-
-msgid "Choose file"
-msgstr "选择文件"
-
-msgid "Choose folder"
-msgstr "选择文件夹"
 
 msgid "Choose icon"
 msgstr "选择图标"
@@ -2097,9 +2004,6 @@ msgstr "清除颜色"
 
 msgid "Clear menu"
 msgstr "清空菜单"
-
-msgid "Clear selection"
-msgstr "清除选择"
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "清空该字段即可恢复为默认的 OpenAI 端点。"
@@ -2607,9 +2511,6 @@ msgstr "无法访问已保存的 API 密钥。请解锁系统凭据存储或检�
 msgid "Could not check the symlinks in {shareBranch}, so it was not switched. Try again; if it keeps failing, check that Git is installed and the project folder is readable."
 msgstr "无法检查 {shareBranch} 中的符号链接，因此未切换。请重试；如果仍然失败，请确认已安装 Git 且项目文件夹可读。"
 
-msgid "Could not classify the merge — try again."
-msgstr "无法对合并进行分类，请重试。"
-
 msgid "Could not complete delete"
 msgstr "无法完成删除"
 
@@ -2736,9 +2637,6 @@ msgstr "无法复制。请选中上方的 URL 手动复制。"
 msgid "Couldn't create {effective}: {0}"
 msgstr "无法创建 {effective}：{0}"
 
-msgid "Couldn't create skill: {0}"
-msgstr "无法创建技能：{0}"
-
 msgid "Couldn't create template: {error}"
 msgstr "无法创建模板：{error}"
 
@@ -2753,9 +2651,6 @@ msgstr "无法创建 worktree。请换一个名字。"
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "无法创建此主题。请重试。"
-
-msgid "Couldn't delete {0}: {error}"
-msgstr "无法删除 {0}：{error}"
 
 msgid "Couldn’t delete {0}. Try again."
 msgstr "无法删除 {0}。请重试。"
@@ -2793,9 +2688,6 @@ msgstr "无法从 {0} 安装：{1}"
 msgid "Couldn't install skill: {0}"
 msgstr "无法安装技能：{0}"
 
-msgid "Couldn't install the project skill: {0}"
-msgstr "无法安装项目技能：{0}"
-
 msgid "Couldn't install: {0}"
 msgstr "无法安装：{0}"
 
@@ -2820,9 +2712,6 @@ msgstr "无法加载入门包：{error}"
 msgid "Couldn't load templates"
 msgstr "无法加载模板"
 
-msgid "Couldn't load the GitQuire skills. Try again."
-msgstr "无法加载 GitQuire 技能。请重试。"
-
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2841,9 +2730,6 @@ msgstr "无法加载你的错误报告。"
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
-msgid "Couldn't move {0}: {1}"
-msgstr "无法移动 {0}：{1}"
-
 msgid "Couldn't move skill: {0}"
 msgstr "无法移动技能：{0}"
 
@@ -2859,9 +2745,6 @@ msgstr "无法打开“{name}”——它还不在项目的技能里。"
 msgid "Couldn't open \"{name}\": {0}"
 msgstr "无法打开“{name}”：{0}"
 
-msgid "Couldn't open {0} for editing: {1}"
-msgstr "无法打开 {0} 进行编辑：{1}"
-
 msgid "Couldn't open document"
 msgstr "无法打开文档"
 
@@ -2870,9 +2753,6 @@ msgstr "无法打开 worktree。请重试。"
 
 msgid "Couldn't open this document in Slidev."
 msgstr "无法在 Slidev 中打开此文档。"
-
-msgid "Couldn't pin {name}"
-msgstr "无法置顶 {name}"
 
 msgid "Couldn't place {skillName} in {root}: {0}"
 msgstr "无法将 {skillName} 放入 {root}：{0}"
@@ -2927,12 +2807,6 @@ msgstr "无法读取工作区。请查看服务器日志。"
 
 msgid "Couldn’t read this theme ({0})"
 msgstr "无法读取此主题（{0}）"
-
-msgid "Couldn't read whether this project's skill is installed."
-msgstr "无法读取本项目的技能是否已安装。"
-
-msgid "Couldn't read which skills are installed."
-msgstr "无法读取已安装的技能。"
 
 msgid "Couldn't reconnect after server restart"
 msgstr "服务器重启后无法重新连接"
@@ -3048,9 +2922,6 @@ msgstr "无法切换到「仅自己」"
 msgid "Couldn't switch views."
 msgstr ""
 
-msgid "Couldn't unpin {name}"
-msgstr "无法取消置顶 {name}"
-
 msgid "Couldn't update {gitignorePath}: {0}"
 msgstr "无法更新 {gitignorePath}：{0}"
 
@@ -3110,12 +2981,6 @@ msgstr "在你选择的文件夹中创建一个新的 GitQuire 项目。"
 
 msgid "Create a new list item from the current list item."
 msgstr "基于当前列表项创建一个新的列表项。"
-
-msgid "Create a personal skill, available across every project."
-msgstr "创建一个个人技能，在每个项目中都可用。"
-
-msgid "Create a skill for this project."
-msgstr "为这个项目创建一个技能。"
 
 msgid "Create a token on {host}"
 msgstr "在 {host} 上创建一个令牌"
@@ -3219,9 +3084,6 @@ msgstr "自定义端点"
 msgid "Custom HTML with a live preview pane (sandboxed iframe)."
 msgstr "带实时预览面板的自定义 HTML（沙箱 iframe）。"
 
-msgid "Custom skills folder path"
-msgstr "自定义技能文件夹路径"
-
 msgid "Custom theme"
 msgstr "自定义主题"
 
@@ -3236,9 +3098,6 @@ msgstr "剪切"
 
 msgid "Dark"
 msgstr "深色"
-
-msgid "Data"
-msgstr "数据"
 
 msgid "Date"
 msgstr "日期"
@@ -3257,9 +3116,6 @@ msgstr "删除"
 
 msgid "Delete {0}"
 msgstr "删除 {0}"
-
-msgid "Delete {0} skills"
-msgstr "删除 {0} 个技能"
 
 msgid "Delete {deleteDescriptorLabel}"
 msgstr "删除 {deleteDescriptorLabel}"
@@ -3330,17 +3186,11 @@ msgstr "已删除"
 msgid "Deleted {0}."
 msgstr "已删除 {0}。"
 
-msgid "Deleted {deleted} skills"
-msgstr "已删除 {deleted} 个技能"
-
 msgid "Deleted {file}"
 msgstr "已删除 {file}"
 
 msgid "Deleted {filePath}"
 msgstr "已删除 {filePath}"
-
-msgid "Deleted for good"
-msgstr "彻底删除"
 
 msgid "Deleted in this draft"
 msgstr ""
@@ -3350,9 +3200,6 @@ msgstr "已删除模板"
 
 msgid "Deleting"
 msgstr "正在删除"
-
-msgid "Deleting {progress} of {count}"
-msgstr "正在删除第 {progress} 个，共 {count} 个"
 
 #. The skill's frontmatter description — the always-loaded tier
 msgid "description"
@@ -3366,13 +3213,6 @@ msgstr "描述（可选）"
 
 msgid "Description for {field}"
 msgstr "{field} 的描述"
-
-#. Suffix on a skill directory card's context-cost figure — the always-loaded description tier
-msgid "description tokens"
-msgstr "描述 token"
-
-msgid "Design"
-msgstr "设计"
 
 msgid "Detached at {0}"
 msgstr "在 {0} 处分离"
@@ -3391,12 +3231,6 @@ msgstr "详情"
 
 msgid "Detected GitQuire projects"
 msgstr "检测到的 GitQuire 项目"
-
-msgid "Detected in {0}"
-msgstr "在 {0} 中检测到"
-
-msgid "DevOps"
-msgstr "DevOps"
 
 msgid "Diagram"
 msgstr "图示"
@@ -3620,9 +3454,6 @@ msgstr "当焦点在「文件」侧边栏时，为聚焦的文件树项目创建
 msgid "Duplicated to \"{0}\""
 msgstr "已创建副本 \"{0}\""
 
-msgid "Duplicates dropped"
-msgstr "丢弃重复项"
-
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "例如 drafts/ 或 *.draft.md"
 
@@ -3640,10 +3471,6 @@ msgstr "例如：粘贴一个很大的表格后编辑器卡住了"
 
 msgid "Each {open} needs a matching {close}."
 msgstr "每个 {open} 都需要一个对应的 {close}。"
-
-#. Says what symlinking two skill folders together buys the user, before any button names it
-msgid "Each AI tool reads skills from its own folder. Point one folder at another and both tools see the same skills — add a skill once instead of copying it into every tool."
-msgstr "每个 AI 工具都从各自的文件夹读取技能。将一个文件夹指向另一个，两个工具就会看到相同的技能——只需添加一次技能，而不必复制到每个工具。"
 
 msgid "Each pack scaffolds your project with ready-made folders and templates."
 msgstr "每个包都会用现成的文件夹和模板为你的项目搭好骨架。"
@@ -4055,9 +3882,6 @@ msgstr "讲清楚你的代码库是怎么运作的，让队友和 AI 智能体�
 msgid "Explore"
 msgstr "探索"
 
-msgid "Explore skills"
-msgstr "探索技能"
-
 msgid "Expose and restart"
 msgstr "公开并重启"
 
@@ -4207,9 +4031,6 @@ msgstr "加载项目模板失败"
 
 msgid "Failed to load recent projects."
 msgstr "加载最近的项目失败。"
-
-msgid "Failed to load skill settings: {0}"
-msgstr "加载技能设置失败：{0}"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "加载标签失败。按 <0>Esc</0> 后重新打开可重试。"
@@ -4409,9 +4230,6 @@ msgstr ""
 msgid "Filter languages"
 msgstr "筛选语言"
 
-msgid "Filter skills"
-msgstr "筛选技能"
-
 msgid "Find"
 msgstr "查找"
 
@@ -4536,9 +4354,6 @@ msgstr "出链响应的结构与预期不符。"
 msgid "Found {countDisplay} markdown files"
 msgstr "找到 {countDisplay} 个 markdown 文件"
 
-msgid "Found one skill: {0}"
-msgstr "找到一个技能：{0}"
-
 msgid "Found the repo but could not open the project. Please try again."
 msgstr "找到了仓库，但无法打开项目。请重试。"
 
@@ -4550,9 +4365,6 @@ msgstr "来自模板"
 
 msgid "From the {0} plugin"
 msgstr "来自 {0} 插件"
-
-msgid "From the {residentPlugin} plugin — read-only; plugin updates replace these files."
-msgstr "来自 {residentPlugin} 插件 — 只读；插件更新会替换这些文件。"
 
 msgid "Frontmatter"
 msgstr "frontmatter"
@@ -4600,9 +4412,6 @@ msgstr "GHES"
 
 msgid "Git"
 msgstr "Git"
-
-msgid "Git & PRs"
-msgstr "Git 与 PR"
 
 msgid "Git can't track this folder — it's empty or contains only ignored files. The link won't work until you add a tracked document."
 msgstr "Git 无法跟踪这个文件夹——它是空的，或者只包含被忽略的文件。在你添加一个受跟踪的文档之前，链接不会生效。"
@@ -4660,18 +4469,12 @@ msgstr "GitHub Enterprise Server 主机"
 msgid "GitHub sign-in is missing or expired. Reconnect to resume syncing."
 msgstr "GitHub 登录缺失或已过期。请重新连接以继续同步。"
 
-msgid "GitHub, a git URL, or a local path."
-msgstr "GitHub、一个 git URL，或一个本地路径。"
-
 msgid "github.com is always recognized, so it doesn't need to be added."
 msgstr "github.com 始终会被识别，无需添加。"
 
 msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
-
-msgid "GitQuire"
-msgstr "GitQuire"
 
 msgid "GitQuire can't sign in to GitHub for this project."
 msgstr "GitQuire 无法为此项目登录 GitHub。"
@@ -4788,10 +4591,6 @@ msgstr "跳转到 {1} 的第 {0} 行"
 msgid "Good"
 msgstr "良好"
 
-#. Sole button when the intro has nothing left to offer
-msgid "Got it"
-msgstr "知道了"
-
 msgid "Graph"
 msgstr "关系图"
 
@@ -4812,9 +4611,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Group skills by source"
-msgstr "按来源分组技能"
 
 msgid "Guides your AI agents on how to work here."
 msgstr "指导你的 AI 智能体在这里如何工作。"
@@ -5060,9 +4856,6 @@ msgstr "图标选择器"
 msgid "ID: {0}"
 msgstr "ID：{0}"
 
-msgid "Identical in both — {pick} still reads them."
-msgstr "两边完全相同，{pick} 仍会读取它们。"
-
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "如果你正在编辑的内容收到更新，你可以像处理合并冲突那样选择保留哪个版本。"
 
@@ -5108,14 +4901,8 @@ msgstr "图片目标“{shown}”存在，但被 .gitignore 或 .okignore 排除
 msgid "Images aren't redacted."
 msgstr "图片不会进行脱敏处理。"
 
-msgid "Import"
-msgstr "导入"
-
 msgid "Import as template"
 msgstr "作为模板导入"
-
-msgid "Import failed: {0}"
-msgstr "导入失败：{0}"
 
 msgid "Imported \"{0}\"."
 msgstr "已导入“{0}”。"
@@ -5125,9 +4912,6 @@ msgstr "已导入 {importedLabel}"
 
 msgid "Imported as \"{0}\" — the name \"{1}\" was taken."
 msgstr "已作为“{0}”导入——名称“{1}”已被占用。"
-
-msgid "Importing"
-msgstr "正在导入"
 
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "在日志文档中：条目标题以 ISO YYYY-MM-DD 日期开头，最新的在前。您使用多少个 title，以及条目是否为项目符号，都取决于您。"
@@ -5288,12 +5072,6 @@ msgstr "位于此仓库的 GitQuire 工作树文件夹内"
 msgid "Install"
 msgstr "安装"
 
-msgid "Install {0}"
-msgstr "安装 {0}"
-
-msgid "install a skill here first"
-msgstr "请先在此处安装一个技能"
-
 msgid "Install failed: {0}"
 msgstr "安装失败：{0}"
 
@@ -5328,9 +5106,6 @@ msgstr "安装到 Claude Desktop"
 
 msgid "Install into"
 msgstr "安装到"
-
-msgid "Install it to your other editors (Claude Code, Cursor, Codex) to share it."
-msgstr "把它安装到你的其他编辑器（Claude Code、Cursor、Codex）中即可共享。"
 
 msgid "Install on"
 msgstr "安装到"
@@ -5369,9 +5144,6 @@ msgstr "已安装 {imported} 个，但 {failed} 个失败：{failedNames}"
 msgid "Installed at {path} — click to remove"
 msgstr "已安装在 {path}——点击可移除"
 
-msgid "Installed in {0}"
-msgstr "已安装在 {0}"
-
 msgid "Installed in {label} — click to remove"
 msgstr "已安装在 {label}——点击可移除"
 
@@ -5386,12 +5158,6 @@ msgstr "安装到此项目"
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "将技能安装到 {path} — 第一个位置保存技能自身的副本"
-
-msgid "Installs to"
-msgstr "安装到"
-
-msgid "installs:"
-msgstr "安装量："
 
 msgid "Integrations"
 msgstr "集成"
@@ -5510,9 +5276,6 @@ msgstr "记录你打交道的人和公司，以及你们之间的会面。适合
 msgid "Keep: {title}"
 msgstr ""
 
-msgid "keeps the skills"
-msgstr "保留这些技能"
-
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "让您的知识库与 Open Knowledge Format 保持一致。"
 
@@ -5622,9 +5385,6 @@ msgstr "链接"
 msgid "Link copied."
 msgstr "链接已复制。"
 
-msgid "Link folders"
-msgstr "链接文件夹"
-
 msgid "Link preview settings not yet loaded — try again in a moment"
 msgstr "链接预览设置尚未加载——请稍后再试"
 
@@ -5655,9 +5415,6 @@ msgstr "链接目标“{shown}”存在，但被 .gitignore 或 .okignore 排除
 msgid "Link the selected text, or edit the link under the caret."
 msgstr "为选中的文本加链接，或编辑光标处的链接。"
 
-msgid "Link these skill folders?"
-msgstr "要链接这两个技能文件夹吗？"
-
 msgid "Link to a page"
 msgstr ""
 
@@ -5682,9 +5439,6 @@ msgstr "链接关系图响应的结构与预期不符。"
 msgid "Linked theme files aren’t supported"
 msgstr "不支持链接的主题文件"
 
-msgid "Linking merges another folder into this one. This folder does not exist yet, so install a skill here first."
-msgstr "链接会将另一个文件夹合并到此文件夹中。此文件夹尚不存在，因此请先在此处安装一个技能。"
-
 msgid "Links"
 msgstr "链接"
 
@@ -5708,9 +5462,6 @@ msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "保存在这个项目里（技能文件夹在哪里都行），并通过 git 与协作者共享。"
-
-msgid "Lives outside this project — read-only here."
-msgstr "位于此项目之外 — 在这里只读。"
 
 msgid "Loading"
 msgstr "正在加载"
@@ -5754,9 +5505,6 @@ msgstr "正在加载文件"
 msgid "Loading folder contents"
 msgstr "正在加载文件夹内容"
 
-msgid "Loading GitQuire skills"
-msgstr "正在加载 GitQuire 技能"
-
 msgid "Loading graph"
 msgstr "正在加载关系图"
 
@@ -5775,9 +5523,6 @@ msgstr "正在加载路径…"
 msgid "Loading PDF"
 msgstr "正在加载 PDF"
 
-msgid "Loading popular skills"
-msgstr "正在加载热门技能"
-
 msgid "Loading preview"
 msgstr "正在加载预览"
 
@@ -5786,9 +5531,6 @@ msgstr "正在加载仓库"
 
 msgid "Loading settings"
 msgstr "正在加载设置"
-
-msgid "Loading skills"
-msgstr "正在加载技能"
 
 msgid "Loading starter packs"
 msgstr "正在加载入门包"
@@ -5894,9 +5636,6 @@ msgstr "listPacks 响应格式错误"
 
 msgid "Malformed plan response"
 msgstr "计划响应格式错误"
-
-msgid "Manage"
-msgstr "管理"
 
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "在「设置 → 忽略模式」中管理隐藏文件。"
@@ -6090,23 +5829,11 @@ msgstr "预览的安全策略拦截了超过 {0} 个请求"
 msgid "Most capable, costs more"
 msgstr ""
 
-msgid "Most installed"
-msgstr "安装量最高"
-
 msgid "Move"
 msgstr "移动"
 
 msgid "Move \"{title}\" to"
 msgstr ""
-
-msgid "Move {0} to Global"
-msgstr "将 {0} 个技能移至全局"
-
-msgid "Move {0} to Project"
-msgstr "将 {0} 个技能移至项目"
-
-msgid "Move across"
-msgstr "移动过去"
 
 msgid "Move Agents to the bottom edge of the window"
 msgstr "将「智能体」移到窗口底部边缘"
@@ -6242,12 +5969,6 @@ msgstr "已将 {label} 移动到右侧的新窗格。"
 
 msgid "Moved {moved} of {total} skills to {scopeLabel}"
 msgstr "已将 {total} 个技能中的 {moved} 个移至{scopeLabel}"
-
-msgid "Moved {moved} skills to Global"
-msgstr "已将 {moved} 个技能移至全局"
-
-msgid "Moved {moved} skills to Project"
-msgstr "已将 {moved} 个技能移至项目"
 
 msgid "Moved a page"
 msgstr ""
@@ -6408,9 +6129,6 @@ msgstr "新属性名"
 msgid "New schema"
 msgstr "新建架构"
 
-msgid "New skill"
-msgstr "新建技能"
-
 msgid "New skill file"
 msgstr "新建技能文件"
 
@@ -6468,9 +6186,6 @@ msgstr "尚未检测到 AI 工具。安装之后，可在「设置 > {agentConne
 
 msgid "No AI tools detected yet. Once you install one, connect it from Settings > This project."
 msgstr "尚未检测到 AI 工具。安装之后，可在「设置 > 本项目」中连接。"
-
-msgid "No AI tools detected. Install one to use this skill."
-msgstr "未检测到 AI 工具。请先安装一个再使用此技能。"
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "这个端点还没有设置 API 密钥。请在上方添加一个。"
@@ -6543,9 +6258,6 @@ msgstr "没有摘要"
 
 msgid "No file or folder selected"
 msgstr "未选择任何文件或文件夹"
-
-msgid "No file selected"
-msgstr "未选择任何文件"
 
 msgid "No files yet."
 msgstr "还没有文件。"
@@ -6718,12 +6430,6 @@ msgstr "没有架构匹配你的搜索。"
 msgid "No settings found"
 msgstr "没有找到设置项"
 
-msgid "No skill found at that source. Import will report why if you continue."
-msgstr "在那个来源没有找到技能。如果继续，导入会告诉你原因。"
-
-msgid "No skills found."
-msgstr "没有找到技能。"
-
 msgid "No spaces — use <0>-</0> instead."
 msgstr "不能有空格——请改用 <0>-</0>。"
 
@@ -6790,9 +6496,6 @@ msgstr "不是 base16 主题"
 msgid "Not a hex color: {0}"
 msgstr "不是十六进制颜色：{0}"
 
-msgid "Not added to any AI tool yet."
-msgstr "尚未添加到任何 AI 工具。"
-
 msgid "Not attached to desktop bridge"
 msgstr "未连接到桌面桥接"
 
@@ -6808,13 +6511,9 @@ msgstr "不太好"
 msgid "Not in sidebar"
 msgstr "不在侧边栏中"
 
-msgid "Not installed in this project yet."
-msgstr "尚未安装到此项目。"
-
 msgid "Not merged"
 msgstr "未合并"
 
-#. Declines the first-visit skill offer; the row on the page keeps it available
 msgid "Not now"
 msgstr "暂时不用"
 
@@ -6899,14 +6598,8 @@ msgstr "关闭——搜索仅按关键词排序。不会有任何内容离开这
 msgid "Offline"
 msgstr "离线"
 
-msgid "OK can't move these, so they go when {pick} does."
-msgstr "OK 无法移动这些内容，它们会随 {pick} 一起消失。"
-
 msgid "OK Desktop"
 msgstr "OK 桌面版"
-
-msgid "OK last set this folder to {0} — something outside OK changed it since. The state shown is what's on disk now; your next Symlink/Unlink wins."
-msgstr "OK 上次把这个文件夹设为 {0}——此后 OK 之外的操作改动过它。显示的是磁盘上现在的状态；你下一次的「符号链接/取消链接」会覆盖它。"
 
 msgid "OKF agent skill installed"
 msgstr "OKF 代理技能已安装"
@@ -7302,9 +6995,6 @@ msgstr "重叠的编辑"
 msgid "Owner"
 msgstr "所有者"
 
-msgid "owner/repo, a git URL, or a local path"
-msgstr "owner/repo、一个 git URL，或一个本地路径"
-
 msgid "Pack preview unavailable."
 msgstr "无法预览入门包。"
 
@@ -7382,12 +7072,6 @@ msgstr "解析错误"
 
 msgid "Parse failed"
 msgstr "解析失败"
-
-msgid "Part of the {0} plugin — read-only; open it to edit a copy"
-msgstr "属于 {0} 插件——只读；打开它可编辑一份副本"
-
-msgid "Part of the {plugin} plugin"
-msgstr "属于 {plugin} 插件"
 
 msgid "Paste"
 msgstr "粘贴"
@@ -7489,9 +7173,6 @@ msgstr "仅限这台设备。对你在这里打开的每个项目都生效，而
 msgid "Pick <0>openknowledge.skill</0> from your <1>Downloads</1> folder. It enables automatically."
 msgstr "从你的<1>下载</1>文件夹中选择 <0>openknowledge.skill</0>。它会自动启用。"
 
-msgid "Pick a folder to merge INTO {display}. That folder becomes a symlink to this one, so its agent reads everything placed here. This folder stays real. Conflicting skills abort the merge."
-msgstr "选择一个文件夹，把它合并进 {display}。那个文件夹会变成指向这个文件夹的符号链接，因此它的智能体会读取放在这里的一切。这个文件夹仍然是真实文件夹。如果技能冲突，合并会中止。"
-
 msgid "Pick a name"
 msgstr "取个名字"
 
@@ -7531,12 +7212,6 @@ msgstr "已从 {1} 拾取 {0}。"
 msgid "Pin tab"
 msgstr "固定标签页"
 
-msgid "Pin to top"
-msgstr "置顶"
-
-msgid "Pinned"
-msgstr "已置顶"
-
 msgid "Plain"
 msgstr "纯文本"
 
@@ -7560,9 +7235,6 @@ msgstr "插件"
 
 msgid "Point semantic search at any OpenAI-compatible embeddings endpoint — a self-hosted server or another provider. The API key above is for whichever endpoint you set here."
 msgstr "把语义搜索指向任何兼容 OpenAI 的嵌入端点——自建服务器或其他提供方均可。上方的 API 密钥用于你在这里设置的端点。"
-
-msgid "Popular"
-msgstr "热门"
 
 msgid "Port {0} is already in use by another process. Pick a different one so your tunnel target stays stable across restarts."
 msgstr "端口 {0} 已被另一个进程占用。请选择其他端口，使您的隧道目标在重启后保持稳定。"
@@ -7837,9 +7509,6 @@ msgstr "重新生成嵌入向量会随着搜索进行，因此覆盖率会从零
 msgid "Re-run the project audit"
 msgstr "重新运行项目审查"
 
-msgid "React"
-msgstr "React"
-
 msgid "Read pages"
 msgstr ""
 
@@ -7936,9 +7605,6 @@ msgstr "回收站"
 msgid "Redo"
 msgstr "重做"
 
-msgid "Refactoring"
-msgstr "重构"
-
 msgid "Reference"
 msgstr "编号"
 
@@ -7976,9 +7642,6 @@ msgstr "版本说明"
 msgid "Release plan"
 msgstr "发布计划"
 
-msgid "Relevance"
-msgstr "相关度"
-
 msgid "Reload"
 msgstr "重新加载"
 
@@ -7988,17 +7651,11 @@ msgstr "重新加载这个标签页即可更新到最新。重新加载前会先
 msgid "remote"
 msgstr "远程"
 
-msgid "Remote"
-msgstr "远程"
-
 msgid "Remote branch <0>{remoteCheckoutRef}</0> will be checked out as a new local tracking branch <1>{trimmed}</1>, in its own window under <2>.ok/worktrees/</2>."
 msgstr "远程分支 <0>{remoteCheckoutRef}</0> 会作为新的本地跟踪分支 <1>{trimmed}</1> 检出，位于 <2>.ok/worktrees/</2> 下自己的窗口中。"
 
 msgid "Remote control"
 msgstr "远程控制"
-
-msgid "Remote skill source"
-msgstr "远程技能来源"
 
 msgid "Remove"
 msgstr "移除"
@@ -8292,9 +7949,6 @@ msgstr "调整 {pane} 的大小"
 msgid "Resize document panel"
 msgstr "调整文档面板大小"
 
-msgid "Resize skills panel"
-msgstr "调整「技能」面板大小"
-
 msgid "Resolve"
 msgstr ""
 
@@ -8490,12 +8144,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "已保存为 <0>{slug}.md</0>"
 
-msgid "Saved into this project's skills folder (e.g. <0>.agents/skills</0>), versioned alongside your project."
-msgstr "保存到这个项目的技能文件夹中（例如 <0>.agents/skills</0>），与项目一起做版本管理。"
-
-msgid "Saved into your global skills folder (e.g. <0>~/.agents/skills</0>)."
-msgstr "保存到你的全局技能文件夹中（例如 <0>~/.agents/skills</0>）。"
-
 msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
 msgstr "已保存的密钥发生冲突。请输入此项目和端点的替代密钥。"
 
@@ -8574,9 +8222,6 @@ msgstr "搜索表情符号"
 msgid "Search failed."
 msgstr "搜索失败。"
 
-msgid "Search failed. Try again."
-msgstr "搜索失败。请重试。"
-
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
 msgstr "搜索文件、命令、项目和 AI 交接操作。在可视化编辑器中选中文本时，K 组合键会改为添加链接；P 组合键始终打开命令面板。"
 
@@ -8628,9 +8273,6 @@ msgstr "搜索设置"
 msgid "Search settings not yet loaded — try again in a moment"
 msgstr "搜索设置尚未加载——请稍后再试"
 
-msgid "Search skills"
-msgstr "搜索技能"
-
 msgid "Search templates"
 msgstr "搜索模板"
 
@@ -8666,9 +8308,6 @@ msgstr "章节 <0>（可选的标题锚点）</0>"
 
 msgid "Sections"
 msgstr "章节"
-
-msgid "Security"
-msgstr "安全"
 
 msgid "See <0>#design-docs</0> for the latest specs."
 msgstr "最新的规格见 <0>#design-docs</0>。"
@@ -8947,10 +8586,6 @@ msgstr "分享反馈"
 msgid "Share folder"
 msgstr "共享文件夹"
 
-#. Heading above the skill-folder list in Settings → Skills Studio — the reason, not the mechanism
-msgid "Share skills between AI tools"
-msgstr "在 AI 工具之间共用技能"
-
 msgid "Share this setup with your team?"
 msgstr "要把这套配置分享给你的团队吗？"
 
@@ -9143,59 +8778,14 @@ msgstr "未安装技能“{conflictName}”——你已有同名的自有技能�
 msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
 msgstr "未为 {conflictHosts} 安装技能“{conflictName}”——你在那里已有同名的自有技能。如需使用入门包中的版本，请重命名你自己的技能。"
 
-msgid "Skill \"{name}\" created"
-msgstr "已创建技能“{name}”"
-
 msgid "Skill already in project"
 msgstr "项目中已有的技能"
-
-msgid "Skill discovery powered by <0>skills.sh</0>"
-msgstr "技能发现由 <0>skills.sh</0> 提供支持"
 
 msgid "SKILL.md is managed by the skill itself — pick another name"
 msgstr "SKILL.md 由技能本身管理——请选择其他名称"
 
-msgid "Skills"
-msgstr "技能"
-
-msgid "Skills from {0}."
-msgstr "来自 {0} 的技能。"
-
-msgid "Skills from {0}/{1}."
-msgstr "来自 {0}/{1} 的技能。"
-
-#. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
-msgid "Skills from GitQuire"
-msgstr "来自 GitQuire 的技能"
-
-msgid "Skills reassigned"
-msgstr "技能已重新分配"
-
-msgid "Skills section"
-msgstr "技能区"
-
-msgid "Skills Studio"
-msgstr "技能工作室"
-
-#. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
-msgstr "技能让你的 AI 工具学会可重复的任务。安装 GitQuire 提供的技能，或在编辑器的“技能”侧边栏中编写你自己的技能。"
-
-msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
-msgstr "技能让你的 AI 工具学会可重复的任务。在编辑器的“技能”侧边栏中编写你自己的技能；本页用于启用和共用它们。"
-
-msgid "Skills that come with this project, and the folders its AI tools read them from."
-msgstr "本项目自带的技能，以及它的 AI 工具读取这些技能的文件夹。"
-
-msgid "Skills toolbar"
-msgstr "「技能」工具栏"
-
 msgid "skills.sh"
 msgstr "skills.sh"
-
-msgid "skills.sh is unavailable; showing GitHub results (no install ranking)."
-msgstr "skills.sh 不可用；改为显示 GitHub 结果（没有安装量排名）。"
 
 msgid "Skip"
 msgstr "跳过"
@@ -9255,9 +8845,6 @@ msgstr "部分文件可能尚未移除。打开清理日志查看详情。你可
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "因为主题文件夹超出扫描限制，部分已保存的主题未显示。"
 
-msgid "Some skills were deleted with a warning"
-msgstr "部分技能删除时带有警告"
-
 msgid "Some templates may not be listed because this knowledge base has too many folders to scan. To see a folder's templates, open its menu in the file tree and choose New from template."
 msgstr "部分模板可能未列出，因为此知识库的文件夹太多，无法全部扫描。要查看某个文件夹的模板，请在文件树中打开该文件夹的菜单，然后选择「从模板新建」。"
 
@@ -9293,12 +8880,6 @@ msgstr ""
 
 msgid "Something went wrong. Please try again."
 msgstr "出了点问题。请重试。"
-
-msgid "Sort by"
-msgstr "排序方式"
-
-msgid "Sort skills"
-msgstr "技能排序"
 
 msgid "source"
 msgstr "源码"
@@ -9523,9 +9104,6 @@ msgstr "符号链接"
 msgid "Symlink to {targetPath}"
 msgstr "指向 {targetPath} 的符号链接"
 
-msgid "symlinked via parent"
-msgstr "通过上级目录建立的符号链接"
-
 msgid "Symlinks the skill to {path}"
 msgstr "把技能符号链接到 {path}"
 
@@ -9664,9 +9242,6 @@ msgstr "告诉我们进展如何"
 msgid "Tell us more (optional)"
 msgstr "再多说一些（可选）"
 
-msgid "Tells agents when to reach for this skill. You can edit it later."
-msgstr "告诉智能体什么时候该用这个技能。之后可以再修改。"
-
 msgid "Template \"{label}\" deleted"
 msgstr "已删除模板“{label}”"
 
@@ -9760,9 +9335,6 @@ msgstr "该语言不支持拼写检查。"
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "解析成功，但这不是 base16 主题。"
-
-msgid "The {0} plugin serves these skills from its cache — OK never edits or updates them."
-msgstr "{0} 插件从其缓存提供这些技能 — OK 绝不会编辑或更新它们。"
 
 msgid "The {editor} folder holds a different version of this skill. Pick which one wins, or keep both under different names. Whatever you replace is backed up first."
 msgstr "{editor} 文件夹中有这个技能的另一个版本。请选择保留哪一个，或者用不同的名字都保留。被替换的内容会先备份。"
@@ -10097,18 +9669,11 @@ msgstr "主题"
 msgid "There is no address waiting for a code."
 msgstr ""
 
-msgid "These currently read from another folder. After linking, they read from {keep} instead."
-msgstr "这些技能目前从另一个文件夹读取。链接后，它们将改为从 {keep} 读取。"
-
 msgid "These links remain visible in Links and are not part of the repair queue."
 msgstr "这些链接仍会显示在“链接”中，但不属于修复队列。"
 
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "这些规则来自你项目的 <0>{configFile}</0> 文件，该文件完全决定了这个项目的检查行为。可以在这里开关规则并编辑它们的选项；更改会写回该文件。"
-
-#. Says what the GitQuire-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
-msgstr "它们教你的 AI 工具如何使用 GitQuire。安装其中一个，会把它添加到本机的每个 AI 工具。"
 
 msgid "Thinking…"
 msgstr "正在思考…"
@@ -10321,10 +9886,6 @@ msgstr "这会把 <0>{name}</0> 从 {0} 移到 {1}，在磁盘上重新放置它
 msgid "This one needs to see your files, not just the open document, so it appears when you run a project audit rather than while you type."
 msgstr "这个需要查看您的文件，而不仅仅是打开的文档，因此它会在您运行项目审核时出现，而不是在您键入时出现。"
 
-#. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "这一个教你的 AI 工具如何使用 GitQuire。它位于项目文件夹中，因此会为每个打开本项目的人安装。"
-
 msgid "This pack is already set up here."
 msgstr "这个包在这里已经设置好了。"
 
@@ -10357,9 +9918,6 @@ msgstr "这会永久移除 {0}。它复制自的那个插件不受影响——�
 
 msgid "This permanently removes {0}/{1} from the \"{2}\" skill. Anything in SKILL.md that points at it will break until it's recreated."
 msgstr "此操作会从“{2}”技能中永久删除 {0}/{1}。SKILL.md 中指向它的内容将失效，直到重新创建为止。"
-
-msgid "This permanently removes {names}. Agents that invoke these skills by name will fail until they're recreated."
-msgstr "这将永久删除 {names}。按名称调用这些技能的智能体将失败，直到重新创建它们。"
 
 msgid "This permanently removes {path}. Agents that reference this template by name will fail until it's recreated or replaced by one in a parent folder."
 msgstr "这会永久移除 {path}。在重新创建它，或者由上级文件夹中的同名模板取代之前，按名称引用这个模板的智能体都会失败。"
@@ -10429,12 +9987,6 @@ msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "这项设置按电脑生效，不会与协作者共享。除非你的端点是不需要密钥的本地服务器，否则需要一个 API 密钥（在下方设置）。"
-
-msgid "This source bundles several skills — choose one, then Import."
-msgstr "这个来源包含多个技能——请先选择一个，然后导入。"
-
-msgid "This source bundles several skills — choose the one to import."
-msgstr "这个来源包含多个技能——请选择要导入的那一个。"
 
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "此标签页无法确认你的编辑已保存，因此没有重新加载。你的编辑仍然保留在这里。"
@@ -10628,12 +10180,6 @@ msgstr "树状视图选项"
 msgid "Try again"
 msgstr "重试"
 
-msgid "Turn {0} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "把 {0} 变回一个真实目录，其中为它当前看到的每个技能各放一个符号链接——一切照常可用，之后由每个技能自己的菜单来管理。"
-
-msgid "Turn {display} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "把 {display} 变回一个真实目录，其中为它当前看到的每个技能各放一个符号链接——一切照常可用，之后由每个技能自己的菜单来管理。"
-
 msgid "Turn it off any time in Settings."
 msgstr "随时在“设置”中将其关闭。"
 
@@ -10775,17 +10321,11 @@ msgstr "未知错误"
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "未知变量 {unknownList}。可用变量：{supportedVariables}。"
 
-msgid "unlink"
-msgstr "取消链接"
-
 msgid "Unmerged"
 msgstr "未合并"
 
 msgid "Unordered list of items."
 msgstr "不带编号的项目列表。"
-
-msgid "Unpin"
-msgstr "取消置顶"
 
 msgid "Unpin {accessibleLabel}"
 msgstr "取消固定 {accessibleLabel}"
@@ -10835,9 +10375,6 @@ msgstr "更新"
 
 msgid "Update \"{skillName}\" over your edits?"
 msgstr "要用“{skillName}”覆盖你的编辑进行更新吗？"
-
-msgid "Update all from this source"
-msgstr "从此来源更新全部"
 
 msgid "Update draft"
 msgstr ""
@@ -10890,9 +10427,6 @@ msgstr "正在更新"
 msgid "Updating…"
 msgstr ""
 
-msgid "Upload"
-msgstr "上传"
-
 msgid "Upload {keyName}"
 msgstr "上传 {keyName}"
 
@@ -10902,9 +10436,6 @@ msgstr "上传失败"
 msgid "Upload failed — please try again"
 msgstr "上传失败——请重试"
 
-msgid "Upload failed: {0}"
-msgstr "上传失败：{0}"
-
 msgid "Upload failed: {message}"
 msgstr "上传失败：{message}"
 
@@ -10913,9 +10444,6 @@ msgstr "从电脑上传"
 
 msgid "Upload may have succeeded but the sidebar is out of date — refresh to resync"
 msgstr "上传可能已成功，但侧边栏不是最新的——请刷新以重新同步"
-
-msgid "Upload skill"
-msgstr "上传技能"
 
 msgid "Uploaded \"{0}\"."
 msgstr "已上传“{0}”。"
@@ -10995,9 +10523,6 @@ msgstr ""
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "只能使用小写字母、数字和 <0>-</0>。"
 
-msgid "Use lowercase letters, numbers, and hyphens only"
-msgstr "只能使用小写字母、数字和连字符"
-
 msgid "Use one slash between folder names."
 msgstr "文件夹名称之间只用一个斜杠。"
 
@@ -11047,9 +10572,6 @@ msgstr "GitQuire 中的版本"
 msgid "via {viaTags}"
 msgstr "通过 {viaTags}"
 
-msgid "via parent"
-msgstr "通过上级目录"
-
 msgid "via plugin"
 msgstr "来自插件"
 
@@ -11058,9 +10580,6 @@ msgstr "查看"
 
 msgid "View {name}"
 msgstr "查看 {name}"
-
-msgid "View {publisher} on skills.sh"
-msgstr "在 skills.sh 上查看 {publisher}"
 
 msgid "View as text"
 msgstr "以文本方式查看"
@@ -11082,12 +10601,6 @@ msgstr "仅供查看"
 
 msgid "View plugin"
 msgstr "查看插件"
-
-msgid "View source"
-msgstr "查看来源"
-
-msgid "View the {plugin} plugin repo"
-msgstr "查看 {plugin} 插件的代码仓库"
 
 msgid "Views"
 msgstr ""
@@ -11177,9 +10690,6 @@ msgstr "是什么妨碍了你？"
 msgid "What happened?"
 msgstr "发生了什么？"
 
-msgid "What happens next"
-msgstr "接下来会怎样"
-
 msgid "What is a starter pack?"
 msgstr "什么是入门包？"
 
@@ -11245,9 +10755,6 @@ msgstr "它应该保存在哪里？"
 
 msgid "Where to ask"
 msgstr ""
-
-msgid "Which skill"
-msgstr "哪个技能"
 
 msgid "Whitespace"
 msgstr "空白字符"
@@ -11353,10 +10860,6 @@ msgstr "你已有名为“{0}”的自有技能——不会安装入门包中的
 
 msgid "You are here"
 msgstr ""
-
-#. Label above the optional skill offered on first visit
-msgid "You can add"
-msgstr "你可以添加"
 
 msgid "You can also create one from a terminal with <0>{cliCommand} bug-report</0>."
 msgstr "你也可以在终端中用 <0>{cliCommand} bug-report</0> 创建一个。"
@@ -11513,9 +11016,6 @@ msgstr "无法读取你的用户设置"
 
 msgid "Your version"
 msgstr ""
-
-msgid "Zip file"
-msgstr "zip 文件"
 
 msgid "Zoom"
 msgstr "缩放"

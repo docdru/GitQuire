@@ -25,9 +25,6 @@ msgstr " 선택 영역을 복원했습니다."
 msgid "— except"
 msgstr "제외"
 
-msgid ".myteam/skills"
-msgstr ".myteam/skills"
-
 msgid ".ok folders"
 msgstr ".ok 폴더"
 
@@ -232,23 +229,11 @@ msgstr ""
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
-msgid "{0} plugin"
-msgstr "{0} 플러그인"
-
-msgid "{0} plugin · {1}"
-msgstr "{0} 플러그인 · {1}"
-
 msgid "{0} Properties"
 msgstr "{0} 속성"
 
 msgid "{0} reads this skill via {poolRootRel}. Click to stop {1} getting \"{2}\" — {subRoot} keeps its other skills but stops following {poolRootRel}."
 msgstr "{0}: {poolRootRel}을 통해 이 스킬을 읽는 중입니다. {1}이 \"{2}\"을 읽지 않게 하려면 클릭하세요. {subRoot}의 다른 스킬은 유지되고 {poolRootRel} 추적만 중단됩니다."
-
-msgid "{0} share this folder."
-msgstr "{0}이(가) 이 폴더를 공유합니다."
-
-msgid "{0} skills selected"
-msgstr "스킬 {0}개 선택됨"
 
 msgid "{0} total"
 msgstr "총 {0}"
@@ -394,9 +379,6 @@ msgstr "{count}개 앞섬"
 msgid "{count} behind"
 msgstr "{count}개 뒤처짐"
 
-msgid "{count} skills"
-msgstr "스킬 {count}개"
-
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, other {#일 전}}"
 
@@ -414,9 +396,6 @@ msgstr "{diffHrs}시간 전"
 
 msgid "{diffMin}m ago"
 msgstr "{diffMin}분 전"
-
-msgid "{dir} (symlink)"
-msgstr "{dir} (심볼릭 링크)"
 
 msgid "{display} is a symlink to the source while the skill's other locations are copies. Click to make it an independent copy."
 msgstr "{display}은 소스를 가리키는 심볼릭 링크이고, 스킬의 다른 위치에는 복사본이 있습니다. 독립적인 복사본으로 만들려면 클릭하세요."
@@ -539,9 +518,6 @@ msgstr "{minutes}분 전"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
-msgid "{name} moved, but its pin did not. Pin it again after settings finish loading."
-msgstr "{name}은(는) 이동했지만 고정 상태는 함께 이동하지 않았습니다. 설정을 모두 불러온 후 다시 고정하세요."
-
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, other {노드 #개}}"
 
@@ -589,12 +565,6 @@ msgstr "위에서부터 {percent}%"
 
 msgid "{phase} — {pct}%"
 msgstr "{phase}: {pct}%"
-
-msgid "{pick} and {keep} both hold a different version of: {0}. Resolve those first — a symlink can only keep one of each."
-msgstr "{pick} 및 {keep}에 {0}의 서로 다른 버전이 있습니다. 먼저 정리하세요. 심볼릭 링크는 각 스킬을 하나만 유지할 수 있습니다."
-
-msgid "{pick} holds entries that aren't skills: {0}. Remove or move them from the folder and try again."
-msgstr "{pick}에 스킬이 아닌 항목이 있습니다: {0}. 폴더에서 제거하거나 이동한 후 다시 시도하세요."
 
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin}에 다른 스킬 {0}개가 더 있습니다"
@@ -647,12 +617,6 @@ msgstr "{slot} 색상, {0}"
 msgid "{slot} hex value"
 msgstr "{slot} 16진수 값"
 
-msgid "{source} · imported source"
-msgstr "{source} · 가져온 소스"
-
-msgid "{source} · skills.sh source"
-msgstr "{source} · skills.sh 소스"
-
 msgid "{source}: {updated} updated, {upToDate} already up to date"
 msgstr "{source}: {updated}개 업데이트, {upToDate}개는 이미 최신"
 
@@ -679,12 +643,6 @@ msgstr "{truncatedShownCount, plural, other {한 폴더의 첫 {formattedCount}�
 
 msgid "{uploadedCount, plural, one {Uploaded one file} other {Uploaded {uploadedCount} files}}"
 msgstr "{uploadedCount, plural, other {{uploadedCount}개 파일을 업로드했습니다}}"
-
-msgid "{uploadFolderName} — {0} files"
-msgstr "{uploadFolderName} … 파일 {0}개"
-
-msgid "{uploadFolderName} — 1 file"
-msgstr "{uploadFolderName} … 파일 1개"
 
 msgid "{userName} · {tabCount, plural, one {# tab} other {# tabs}}"
 msgstr "{userName} · {tabCount, plural, other {탭 #개}}"
@@ -771,9 +729,6 @@ msgstr "<0>스페이스</0>로 점프 · <1>↓</1>로 숙이기"
 msgid "<0>Too many live references on this page.</0> This mirror of <1>{src}</1> was not loaded."
 msgstr "<0>이 페이지에 라이브 참조가 너무 많습니다.</0> <1>{src}</1>의 이 미러는 불러오지 않았습니다."
 
-msgid "~/.myteam/skills"
-msgstr "~/.myteam/skills"
-
 msgid "📝 or assets/icon.png"
 msgstr "📝 또는 assets/icon.png"
 
@@ -803,9 +758,6 @@ msgstr "30초"
 
 msgid "5 minutes"
 msgstr "5분"
-
-msgid "A .zip or .skill archive."
-msgstr ".zip 또는 .skill 아카이브입니다."
 
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "<0>수정됨</0> 배지는 config가 직접 설정했거나 <1>extends</1>를 통해 상속한 규칙을 나타냅니다. 표시가 없는 규칙은 기본 상태를 유지합니다."
@@ -849,9 +801,6 @@ msgstr "문서에 충돌이 있습니다. 최신 상태로 유지하려면 충�
 msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
 msgstr ""
 
-msgid "A folder containing SKILL.md."
-msgstr "SKILL.md가 들어 있는 폴더입니다."
-
 msgid "A folder named <0>{sanitized}</0> already has files here. Pick a different name."
 msgstr "폴더 이름 <0>{sanitized}</0>이 여기에 이미 파일을 포함하고 있습니다. 다른 이름을 선택하세요."
 
@@ -888,9 +837,6 @@ msgstr "이 경로에 비어 있지 않은 폴더가 이미 있습니다. 다른
 msgid "A page with that name exists. Choose another name."
 msgstr ""
 
-msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
-msgstr "상위 디렉터리가 심볼릭 링크입니다. 이 폴더 자체의 링크를 해제하면 다시 가져올 수 있습니다."
-
 msgid "A path inside the skill — any folder works (e.g. references/notes.md). Folders in the path are created for you."
 msgstr "스킬 내부 경로입니다. 모든 폴더를 사용할 수 있습니다(예: references/notes.md). 경로의 폴더는 자동으로 생성됩니다."
 
@@ -926,9 +872,6 @@ msgstr "템플릿 목록에서 제목 아래에 표시되는 짧은 문장입니
 
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "주제별 파일 하나와 일일 저널을 제공하는 간단한 작성 공간입니다. 글쓰기를 시작하고 시간이 지나며 노트 사이의 링크를 쌓고 싶다면 이것을 선택하세요."
-
-msgid "A skill named \"{trimmed}\" already exists here"
-msgstr "\"{trimmed}\"이라는 스킬이 이미 있습니다"
 
 msgid "A skill with that name already exists."
 msgstr "같은 이름의 스킬이 이미 있습니다."
@@ -1084,9 +1027,6 @@ msgstr ""
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror에서 커서를 추가하거나 일치하는 항목을 선택합니다."
 
-msgid "Add custom path"
-msgstr "사용자 지정 경로 추가"
-
 msgid "Add description"
 msgstr "설명 추가"
 
@@ -1128,9 +1068,6 @@ msgstr "속성 추가"
 
 msgid "Add property to {keyName}"
 msgstr "{keyName}에 속성 추가"
-
-msgid "Add skill"
-msgstr "스킬 추가"
 
 msgid "Add tab"
 msgstr "탭 추가"
@@ -1369,9 +1306,6 @@ msgstr "모든 .mdx 파일에 적용됩니다. 형식은 .md 전용이므로 .md
 
 msgid "any doc named {0}"
 msgstr "이름이 {0}인 문서"
-
-msgid "Any scripts are shown for review, never run."
-msgstr "스크립트는 검토용으로만 표시하며 실행하지 않습니다."
 
 msgid "Any value"
 msgstr ""
@@ -1663,9 +1597,6 @@ msgctxt "settings search keyword"
 msgid "batch"
 msgstr "배치"
 
-msgid "becomes a symlink"
-msgstr "심볼릭 링크가 됩니다"
-
 msgid "Becomes the document's content when someone creates a doc from this template. Type <0>{dateToken}</0> or <1>{userToken}</1> to fill in today's date or the author's name automatically."
 msgstr "누군가 이 템플릿으로 문서를 만들면 문서 내용이 됩니다. <0>{dateToken}</0> 또는 <1>{userToken}</1>을 입력하면 오늘 날짜나 작성자 이름이 자동으로 채워집니다."
 
@@ -1733,9 +1664,6 @@ msgstr "굵게"
 msgid "Both"
 msgstr "둘 다"
 
-msgid "Both agents end up reading everything in {keep}."
-msgstr "두 에이전트 모두 결국 {keep}의 모든 항목을 읽게 됩니다."
-
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "두 버전이 동일합니다. 현재 항목 적용을 선택하면 GitQuire의 보호가 켜진 상태로 유지되어 이전 버전의 또 다른 저장이 다시 거부됩니다. 수신 항목 적용을 선택하면 그 보호가 해제됩니다."
 
@@ -1799,9 +1727,6 @@ msgstr "폴더 찾아보기"
 msgid "Browse hundreds of themes"
 msgstr "수백 개의 테마 찾아보기"
 
-msgid "Browse or upload a skill for this project."
-msgstr "이 프로젝트에서 스킬을 찾아보거나 업로드합니다."
-
 msgid "Browse your repos:"
 msgstr "저장소 찾아보기:"
 
@@ -1837,9 +1762,6 @@ msgstr "글머리 기호 목록"
 
 msgid "Bulleted list"
 msgstr ""
-
-msgid "By GitQuire"
-msgstr "GitQuire 제공"
 
 msgid "By meaning"
 msgstr "의미순"
@@ -2007,9 +1929,6 @@ msgstr "로그인 상태 확인 중"
 msgid "Checking skill"
 msgstr "스킬 확인 중"
 
-msgid "Checking source"
-msgstr "소스 확인 중"
-
 msgid "Checking which AI tools you have"
 msgstr "보유한 AI 도구를 확인하는 중"
 
@@ -2028,20 +1947,8 @@ msgstr "체크박스가 있는 체크리스트입니다."
 msgid "Checks your project against the Open Knowledge Format. Turn it off any time in Settings."
 msgstr "Open Knowledge Format에 맞춰 프로젝트를 검사합니다. 설정에서 언제든지 끌 수 있습니다."
 
-msgid "Choose a skill archive"
-msgstr "스킬 아카이브 선택"
-
-msgid "Choose a skill folder"
-msgstr "스킬 폴더 선택"
-
 msgid "Choose color"
 msgstr "색상 선택"
-
-msgid "Choose file"
-msgstr "파일 선택"
-
-msgid "Choose folder"
-msgstr "폴더 선택"
 
 msgid "Choose icon"
 msgstr "아이콘 선택"
@@ -2097,9 +2004,6 @@ msgstr "색상 지우기"
 
 msgid "Clear menu"
 msgstr "메뉴 지우기"
-
-msgid "Clear selection"
-msgstr "선택 해제"
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "필드를 지우면 기본 OpenAI 엔드포인트로 돌아갑니다."
@@ -2607,9 +2511,6 @@ msgstr "저장된 API 키에 접근할 수 없습니다. 시스템 자격 증명
 msgid "Could not check the symlinks in {shareBranch}, so it was not switched. Try again; if it keeps failing, check that Git is installed and the project folder is readable."
 msgstr "{shareBranch}의 심볼릭 링크를 확인할 수 없어 전환하지 않았습니다. 다시 시도하세요. 계속 실패하면 Git이 설치되어 있고 프로젝트 폴더를 읽을 수 있는지 확인하세요."
 
-msgid "Could not classify the merge — try again."
-msgstr "병합을 분류할 수 없습니다. 다시 시도하세요."
-
 msgid "Could not complete delete"
 msgstr "삭제를 완료하지 못했습니다"
 
@@ -2736,9 +2637,6 @@ msgstr "복사할 수 없습니다. 위 URL을 선택해 직접 복사하세요.
 msgid "Couldn't create {effective}: {0}"
 msgstr "{effective}을(를) 만들 수 없습니다: {0}"
 
-msgid "Couldn't create skill: {0}"
-msgstr "스킬 생성 실패: {0}"
-
 msgid "Couldn't create template: {error}"
 msgstr "템플릿 생성 실패: {error}"
 
@@ -2753,9 +2651,6 @@ msgstr "워크트리를 만들 수 없습니다. 다른 이름을 사용해 보�
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "이 테마를 만들지 못했습니다. 다시 시도합니다."
-
-msgid "Couldn't delete {0}: {error}"
-msgstr "{0}을(를) 삭제할 수 없음: {error}"
 
 msgid "Couldn’t delete {0}. Try again."
 msgstr "{0} 삭제에 실패했습니다. 다시 시도합니다."
@@ -2793,9 +2688,6 @@ msgstr "{0}에서 설치하지 못했습니다: {1}"
 msgid "Couldn't install skill: {0}"
 msgstr "스킬 설치 실패: {0}"
 
-msgid "Couldn't install the project skill: {0}"
-msgstr "프로젝트 스킬을 설치할 수 없음: {0}"
-
 msgid "Couldn't install: {0}"
 msgstr "설치하지 못했습니다: {0}"
 
@@ -2820,9 +2712,6 @@ msgstr "스타터 팩을 불러오지 못했습니다: {error}"
 msgid "Couldn't load templates"
 msgstr "템플릿을 불러오지 못했습니다"
 
-msgid "Couldn't load the GitQuire skills. Try again."
-msgstr "GitQuire 스킬을 불러오지 못했습니다. 다시 시도하세요."
-
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2841,9 +2730,6 @@ msgstr "버그 보고서를 불러오지 못했습니다."
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
-msgid "Couldn't move {0}: {1}"
-msgstr "{0}을(를) 이동할 수 없음: {1}"
-
 msgid "Couldn't move skill: {0}"
 msgstr "스킬 이동 실패: {0}"
 
@@ -2859,9 +2745,6 @@ msgstr "\"{name}\" 열기 실패: 프로젝트 스킬에 아직 없습니다."
 msgid "Couldn't open \"{name}\": {0}"
 msgstr "\"{name}\" 열기 실패: {0}"
 
-msgid "Couldn't open {0} for editing: {1}"
-msgstr "{0} 편집용 열기 실패: {1}"
-
 msgid "Couldn't open document"
 msgstr "문서를 열지 못했습니다"
 
@@ -2870,9 +2753,6 @@ msgstr "워크트리를 열 수 없습니다. 다시 시도하세요."
 
 msgid "Couldn't open this document in Slidev."
 msgstr "이 문서를 Slidev에서 열지 못했습니다."
-
-msgid "Couldn't pin {name}"
-msgstr "{name}을(를) 고정할 수 없습니다"
 
 msgid "Couldn't place {skillName} in {root}: {0}"
 msgstr "{skillName}을(를) {root}에 배치할 수 없음: {0}"
@@ -2927,12 +2807,6 @@ msgstr "작업 트리를 읽지 못했습니다. 서버 로그를 확인하세�
 
 msgid "Couldn’t read this theme ({0})"
 msgstr "이 테마를 읽지 못했습니다 ({0})"
-
-msgid "Couldn't read whether this project's skill is installed."
-msgstr "이 프로젝트의 스킬이 설치되어 있는지 확인할 수 없습니다."
-
-msgid "Couldn't read which skills are installed."
-msgstr "어떤 스킬이 설치되어 있는지 확인할 수 없습니다."
 
 msgid "Couldn't reconnect after server restart"
 msgstr "서버를 다시 시작한 후 다시 연결하지 못했습니다"
@@ -3048,9 +2922,6 @@ msgstr "나만 보기로 전환하지 못했습니다"
 msgid "Couldn't switch views."
 msgstr ""
 
-msgid "Couldn't unpin {name}"
-msgstr "{name}의 고정을 해제할 수 없습니다"
-
 msgid "Couldn't update {gitignorePath}: {0}"
 msgstr "{gitignorePath} 업데이트 실패: {0}"
 
@@ -3110,12 +2981,6 @@ msgstr "선택한 폴더에 새 GitQuire 프로젝트를 만듭니다."
 
 msgid "Create a new list item from the current list item."
 msgstr "현재 목록 항목에서 새 목록 항목을 만듭니다."
-
-msgid "Create a personal skill, available across every project."
-msgstr "모든 프로젝트에서 사용할 수 있는 개인 스킬을 만듭니다."
-
-msgid "Create a skill for this project."
-msgstr "이 프로젝트용 스킬을 만듭니다."
 
 msgid "Create a token on {host}"
 msgstr "{host}에서 토큰 만들기"
@@ -3219,9 +3084,6 @@ msgstr "사용자 지정 엔드포인트"
 msgid "Custom HTML with a live preview pane (sandboxed iframe)."
 msgstr "실시간 미리보기 창이 있는 사용자 지정 HTML입니다. 샌드박스 처리된 iframe입니다."
 
-msgid "Custom skills folder path"
-msgstr "사용자 지정 스킬 폴더 경로"
-
 msgid "Custom theme"
 msgstr "사용자 지정 테마"
 
@@ -3236,9 +3098,6 @@ msgstr "잘라내기"
 
 msgid "Dark"
 msgstr "어두운 테마"
-
-msgid "Data"
-msgstr "데이터"
 
 msgid "Date"
 msgstr "날짜"
@@ -3257,9 +3116,6 @@ msgstr "삭제"
 
 msgid "Delete {0}"
 msgstr "{0} 삭제"
-
-msgid "Delete {0} skills"
-msgstr "스킬 {0}개 삭제"
 
 msgid "Delete {deleteDescriptorLabel}"
 msgstr "{deleteDescriptorLabel} 삭제"
@@ -3330,17 +3186,11 @@ msgstr "삭제됨"
 msgid "Deleted {0}."
 msgstr "{0} 삭제됨."
 
-msgid "Deleted {deleted} skills"
-msgstr "스킬 {deleted}개 삭제됨"
-
 msgid "Deleted {file}"
 msgstr "{file} 삭제됨"
 
 msgid "Deleted {filePath}"
 msgstr "{filePath} 삭제됨"
-
-msgid "Deleted for good"
-msgstr "완전히 삭제됨"
 
 msgid "Deleted in this draft"
 msgstr ""
@@ -3350,9 +3200,6 @@ msgstr "템플릿 삭제됨"
 
 msgid "Deleting"
 msgstr "삭제 중"
-
-msgid "Deleting {progress} of {count}"
-msgstr "{count}개 중 {progress}개 삭제 중"
 
 #. The skill's frontmatter description — the always-loaded tier
 msgid "description"
@@ -3366,13 +3213,6 @@ msgstr "설명(선택 사항)"
 
 msgid "Description for {field}"
 msgstr "{field} 설명"
-
-#. Suffix on a skill directory card's context-cost figure — the always-loaded description tier
-msgid "description tokens"
-msgstr "설명 토큰"
-
-msgid "Design"
-msgstr "디자인"
 
 msgid "Detached at {0}"
 msgstr "{0}에서 분리됨"
@@ -3391,12 +3231,6 @@ msgstr "세부 정보"
 
 msgid "Detected GitQuire projects"
 msgstr "감지된 GitQuire 프로젝트"
-
-msgid "Detected in {0}"
-msgstr "{0}에서 감지됨"
-
-msgid "DevOps"
-msgstr "DevOps"
 
 msgid "Diagram"
 msgstr "다이어그램"
@@ -3620,9 +3454,6 @@ msgstr "파일 사이드바에 포커스가 있을 때 포커스된 파일 트�
 msgid "Duplicated to \"{0}\""
 msgstr "\"{0}\"에 복제됨"
 
-msgid "Duplicates dropped"
-msgstr "중복 항목 정리"
-
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "예: drafts/ 또는 *.draft.md"
 
@@ -3640,10 +3471,6 @@ msgstr "예: 큰 표를 붙여넣은 후 편집기가 멈춤"
 
 msgid "Each {open} needs a matching {close}."
 msgstr "각 {open}에는 짝이 되는 {close}가 필요합니다."
-
-#. Says what symlinking two skill folders together buys the user, before any button names it
-msgid "Each AI tool reads skills from its own folder. Point one folder at another and both tools see the same skills — add a skill once instead of copying it into every tool."
-msgstr "각 AI 도구는 자체 폴더에서 스킬을 읽습니다. 한 폴더를 다른 폴더로 연결하면 두 도구가 같은 스킬을 봅니다. 모든 도구에 복사하는 대신 스킬을 한 번만 추가하세요."
 
 msgid "Each pack scaffolds your project with ready-made folders and templates."
 msgstr "각 팩은 바로 사용할 수 있는 폴더와 템플릿으로 프로젝트의 뼈대를 만듭니다."
@@ -4055,9 +3882,6 @@ msgstr "팀원과 AI 에이전트가 코드베이스를 파악할 수 있도록 
 msgid "Explore"
 msgstr "탐색"
 
-msgid "Explore skills"
-msgstr "스킬 탐색"
-
 msgid "Expose and restart"
 msgstr "노출하고 재시작"
 
@@ -4207,9 +4031,6 @@ msgstr "프로젝트 템플릿을 불러오지 못했습니다"
 
 msgid "Failed to load recent projects."
 msgstr "최근 프로젝트를 불러오지 못했습니다."
-
-msgid "Failed to load skill settings: {0}"
-msgstr "스킬 설정을 불러오지 못했습니다: {0}"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "태그를 불러오지 못했습니다. <0>Esc</0> 키를 누르고 다시 열어 보세요."
@@ -4409,9 +4230,6 @@ msgstr ""
 msgid "Filter languages"
 msgstr "언어 필터"
 
-msgid "Filter skills"
-msgstr "스킬 필터"
-
 msgid "Find"
 msgstr "찾기"
 
@@ -4536,9 +4354,6 @@ msgstr "포워드 링크 응답 형식이 예상과 일치하지 않습니다."
 msgid "Found {countDisplay} markdown files"
 msgstr "{countDisplay}개의 markdown 파일을 찾았습니다"
 
-msgid "Found one skill: {0}"
-msgstr "스킬 1개를 찾았습니다: {0}"
-
 msgid "Found the repo but could not open the project. Please try again."
 msgstr "저장소를 찾았지만 프로젝트를 열 수 없습니다. 다시 시도하세요."
 
@@ -4550,9 +4365,6 @@ msgstr "템플릿에서"
 
 msgid "From the {0} plugin"
 msgstr "{0} 플러그인에서"
-
-msgid "From the {residentPlugin} plugin — read-only; plugin updates replace these files."
-msgstr "{residentPlugin} 플러그인 제공 — 읽기 전용이며, 플러그인 업데이트가 이 파일들을 교체합니다."
 
 msgid "Frontmatter"
 msgstr "Frontmatter"
@@ -4600,9 +4412,6 @@ msgstr "GHES"
 
 msgid "Git"
 msgstr "Git"
-
-msgid "Git & PRs"
-msgstr "Git 및 PR"
 
 msgid "Git can't track this folder — it's empty or contains only ignored files. The link won't work until you add a tracked document."
 msgstr "Git이 이 폴더를 추적할 수 없습니다. 비어 있거나 무시된 파일만 포함되어 있습니다. 추적할 문서를 추가해야 링크가 작동합니다."
@@ -4660,18 +4469,12 @@ msgstr "GitHub Enterprise Server 호스트"
 msgid "GitHub sign-in is missing or expired. Reconnect to resume syncing."
 msgstr "GitHub 로그인이 없거나 만료되었습니다. 동기화를 계속하려면 다시 연결하세요."
 
-msgid "GitHub, a git URL, or a local path."
-msgstr "GitHub, git URL 또는 로컬 경로입니다."
-
 msgid "github.com is always recognized, so it doesn't need to be added."
 msgstr "github.com은 항상 인식되므로 추가할 필요가 없습니다."
 
 msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
-
-msgid "GitQuire"
-msgstr "GitQuire"
 
 msgid "GitQuire can't sign in to GitHub for this project."
 msgstr "GitQuire는 이 프로젝트에서 GitHub에 로그인할 수 없습니다."
@@ -4788,10 +4591,6 @@ msgstr "줄 {0}, {1}에서 이동"
 msgid "Good"
 msgstr "좋음"
 
-#. Sole button when the intro has nothing left to offer
-msgid "Got it"
-msgstr "확인"
-
 msgid "Graph"
 msgstr "그래프"
 
@@ -4812,9 +4611,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Group skills by source"
-msgstr "소스별로 스킬 그룹화"
 
 msgid "Guides your AI agents on how to work here."
 msgstr "AI 에이전트가 여기서 작업하는 방법을 안내합니다."
@@ -5060,9 +4856,6 @@ msgstr "아이콘 선택기"
 msgid "ID: {0}"
 msgstr "ID: {0}"
 
-msgid "Identical in both — {pick} still reads them."
-msgstr "양쪽이 동일하며 {pick}에서 계속 읽을 수 있습니다."
-
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "편집 중인 항목에 업데이트가 도착하면 병합 충돌처럼 유지할 버전을 선택합니다."
 
@@ -5108,14 +4901,8 @@ msgstr "이미지 대상 \"{shown}\"은 존재하지만 .gitignore 또는 .okign
 msgid "Images aren't redacted."
 msgstr "이미지는 민감 정보가 가려지지 않습니다."
 
-msgid "Import"
-msgstr "가져오기"
-
 msgid "Import as template"
 msgstr "템플릿으로 가져오기"
-
-msgid "Import failed: {0}"
-msgstr "가져오기 실패: {0}"
 
 msgid "Imported \"{0}\"."
 msgstr "\"{0}\"을 가져왔습니다."
@@ -5125,9 +4912,6 @@ msgstr "{importedLabel}을 가져왔습니다"
 
 msgid "Imported as \"{0}\" — the name \"{1}\" was taken."
 msgstr "\"{0}\"으로 가져왔습니다. 이름 \"{1}\"은 이미 사용 중입니다."
-
-msgid "Importing"
-msgstr "가져오는 중"
 
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "로그 문서에서는 항목 제목을 ISO YYYY-MM-DD 날짜로 시작하고 최신 항목부터 정렬합니다. 제목을 몇 개 사용할지, 항목을 글머리표로 만들지는 자유롭게 정합니다."
@@ -5288,12 +5072,6 @@ msgstr "이 저장소의 GitQuire 워크트리 폴더 내부"
 msgid "Install"
 msgstr "설치"
 
-msgid "Install {0}"
-msgstr "{0} 설치"
-
-msgid "install a skill here first"
-msgstr "여기에 먼저 스킬을 설치하세요"
-
 msgid "Install failed: {0}"
 msgstr "설치 실패: {0}"
 
@@ -5328,9 +5106,6 @@ msgstr "Claude Desktop에 설치"
 
 msgid "Install into"
 msgstr "설치 위치"
-
-msgid "Install it to your other editors (Claude Code, Cursor, Codex) to share it."
-msgstr "공유하려면 다른 편집기(Claude Code, Cursor, Codex)에 설치하세요."
 
 msgid "Install on"
 msgstr "설치 대상"
@@ -5369,9 +5144,6 @@ msgstr "{imported}개 설치됨. {failed}개 실패: {failedNames}"
 msgid "Installed at {path} — click to remove"
 msgstr "{path}에 설치됨. 제거하려면 클릭"
 
-msgid "Installed in {0}"
-msgstr "{0}에 설치됨"
-
 msgid "Installed in {label} — click to remove"
 msgstr "{label}에 설치됨. 제거하려면 클릭"
 
@@ -5386,12 +5158,6 @@ msgstr "이 프로젝트에 설치됨"
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "스킬을 {path}에 설치합니다 — 첫 위치가 스킬의 원본 사본을 보관합니다"
-
-msgid "Installs to"
-msgstr "설치 위치"
-
-msgid "installs:"
-msgstr "설치 항목:"
 
 msgid "Integrations"
 msgstr "통합"
@@ -5510,9 +5276,6 @@ msgstr "함께 일하는 사람과 회사, 그들과의 회의를 기록합니�
 msgid "Keep: {title}"
 msgstr ""
 
-msgid "keeps the skills"
-msgstr "스킬을 유지합니다"
-
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "지식 베이스를 Open Knowledge Format에 맞게 유지합니다."
 
@@ -5622,9 +5385,6 @@ msgstr "링크"
 msgid "Link copied."
 msgstr "링크가 복사되었습니다."
 
-msgid "Link folders"
-msgstr "폴더 연결"
-
 msgid "Link preview settings not yet loaded — try again in a moment"
 msgstr "링크 미리보기 설정을 아직 불러오지 못했습니다. 잠시 후 다시 시도합니다."
 
@@ -5655,9 +5415,6 @@ msgstr "링크 대상 \"{shown}\"은 존재하지만 .gitignore 또는 .okignore
 msgid "Link the selected text, or edit the link under the caret."
 msgstr "선택한 텍스트에 링크를 추가하거나 커서 아래의 링크를 편집합니다."
 
-msgid "Link these skill folders?"
-msgstr "이 스킬 폴더를 연결할까요?"
-
 msgid "Link to a page"
 msgstr ""
 
@@ -5682,9 +5439,6 @@ msgstr "링크 그래프 응답 형식이 예상과 일치하지 않습니다."
 msgid "Linked theme files aren’t supported"
 msgstr "연결된 테마 파일은 지원되지 않습니다"
 
-msgid "Linking merges another folder into this one. This folder does not exist yet, so install a skill here first."
-msgstr "연결하면 다른 폴더가 이 폴더로 병합됩니다. 이 폴더는 아직 없으므로 여기에 먼저 스킬을 설치하세요."
-
 msgid "Links"
 msgstr "링크"
 
@@ -5708,9 +5462,6 @@ msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "이 프로젝트에 있습니다(스킬 폴더 위치와 무관). git을 통해 협업자와 공유됩니다."
-
-msgid "Lives outside this project — read-only here."
-msgstr "이 프로젝트 밖에 있습니다 — 여기서는 읽기 전용입니다."
 
 msgid "Loading"
 msgstr "로드 중"
@@ -5754,9 +5505,6 @@ msgstr "파일 불러오는 중"
 msgid "Loading folder contents"
 msgstr "폴더 내용 불러오는 중"
 
-msgid "Loading GitQuire skills"
-msgstr "GitQuire 스킬 불러오는 중"
-
 msgid "Loading graph"
 msgstr "그래프 불러오는 중"
 
@@ -5775,9 +5523,6 @@ msgstr "경로를 불러오는 중…"
 msgid "Loading PDF"
 msgstr "PDF를 불러오는 중"
 
-msgid "Loading popular skills"
-msgstr "인기 스킬 불러오는 중"
-
 msgid "Loading preview"
 msgstr "미리보기 불러오는 중"
 
@@ -5786,9 +5531,6 @@ msgstr "저장소 불러오는 중"
 
 msgid "Loading settings"
 msgstr "설정 불러오는 중"
-
-msgid "Loading skills"
-msgstr "스킬 불러오는 중"
 
 msgid "Loading starter packs"
 msgstr "스타터 팩 불러오는 중"
@@ -5894,9 +5636,6 @@ msgstr "잘못된 listPacks 응답"
 
 msgid "Malformed plan response"
 msgstr "잘못된 plan 응답"
-
-msgid "Manage"
-msgstr "관리"
 
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "설정 → 무시 패턴에서 숨김 파일을 관리합니다."
@@ -6090,23 +5829,11 @@ msgstr "{0}개를 초과하는 요청이 미리보기 보안 정책으로 차단
 msgid "Most capable, costs more"
 msgstr ""
 
-msgid "Most installed"
-msgstr "가장 많이 설치됨"
-
 msgid "Move"
 msgstr "이동"
 
 msgid "Move \"{title}\" to"
 msgstr ""
-
-msgid "Move {0} to Global"
-msgstr "스킬 {0}개를 전역으로 이동"
-
-msgid "Move {0} to Project"
-msgstr "스킬 {0}개를 프로젝트로 이동"
-
-msgid "Move across"
-msgstr "이동됨"
 
 msgid "Move Agents to the bottom edge of the window"
 msgstr "에이전트를 창 아래쪽 가장자리로 이동"
@@ -6242,12 +5969,6 @@ msgstr "{label}을 오른쪽의 새 패널로 이동했습니다."
 
 msgid "Moved {moved} of {total} skills to {scopeLabel}"
 msgstr "스킬 {total}개 중 {moved}개를 {scopeLabel}(으)로 이동함"
-
-msgid "Moved {moved} skills to Global"
-msgstr "스킬 {moved}개를 전역으로 이동함"
-
-msgid "Moved {moved} skills to Project"
-msgstr "스킬 {moved}개를 프로젝트로 이동함"
 
 msgid "Moved a page"
 msgstr ""
@@ -6408,9 +6129,6 @@ msgstr "새 속성 이름"
 msgid "New schema"
 msgstr "새 스키마"
 
-msgid "New skill"
-msgstr "새 스킬"
-
 msgid "New skill file"
 msgstr "새 스킬 파일"
 
@@ -6468,9 +6186,6 @@ msgstr "아직 감지된 AI 도구가 없습니다. 설치한 후 설정 > {agen
 
 msgid "No AI tools detected yet. Once you install one, connect it from Settings > This project."
 msgstr "아직 감지된 AI 도구가 없습니다. 설치한 후 Settings > This project에서 연결하세요."
-
-msgid "No AI tools detected. Install one to use this skill."
-msgstr "AI 도구가 감지되지 않았습니다. 이 스킬을 사용하려면 하나를 설치하세요."
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "이 엔드포인트에 API 키가 설정되지 않았습니다. 위에서 추가합니다."
@@ -6543,9 +6258,6 @@ msgstr "발췌문 없음"
 
 msgid "No file or folder selected"
 msgstr "선택한 파일 또는 폴더가 없습니다"
-
-msgid "No file selected"
-msgstr "파일 선택 안 됨"
 
 msgid "No files yet."
 msgstr "아직 파일이 없습니다."
@@ -6718,12 +6430,6 @@ msgstr "검색과 일치하는 스키마 없음."
 msgid "No settings found"
 msgstr "설정을 찾을 수 없습니다"
 
-msgid "No skill found at that source. Import will report why if you continue."
-msgstr "해당 소스에서 스킬을 찾지 못했습니다. 계속하면 가져오기에서 이유를 알려줍니다."
-
-msgid "No skills found."
-msgstr "스킬을 찾지 못했습니다."
-
 msgid "No spaces — use <0>-</0> instead."
 msgstr "공백은 사용할 수 없습니다. <0>-</0>을 대신 사용하세요."
 
@@ -6790,9 +6496,6 @@ msgstr "base16 테마가 아님"
 msgid "Not a hex color: {0}"
 msgstr "16진수 색상이 아닙니다: {0}"
 
-msgid "Not added to any AI tool yet."
-msgstr "아직 어떤 AI 도구에도 추가되지 않았습니다."
-
 msgid "Not attached to desktop bridge"
 msgstr "데스크톱 브리지에 연결되지 않음"
 
@@ -6808,13 +6511,9 @@ msgstr "별로 좋지 않음"
 msgid "Not in sidebar"
 msgstr "사이드바에 없음"
 
-msgid "Not installed in this project yet."
-msgstr "아직 이 프로젝트에 설치되지 않았습니다."
-
 msgid "Not merged"
 msgstr "병합되지 않음"
 
-#. Declines the first-visit skill offer; the row on the page keeps it available
 msgid "Not now"
 msgstr "나중에"
 
@@ -6899,14 +6598,8 @@ msgstr "꺼짐, 검색은 키워드로만 순위를 매깁니다. 이 컴퓨터 
 msgid "Offline"
 msgstr "오프라인"
 
-msgid "OK can't move these, so they go when {pick} does."
-msgstr "OK가 이 항목은 옮길 수 없어 {pick}과(와) 함께 사라집니다."
-
 msgid "OK Desktop"
 msgstr "OK Desktop"
-
-msgid "OK last set this folder to {0} — something outside OK changed it since. The state shown is what's on disk now; your next Symlink/Unlink wins."
-msgstr "OK가 마지막으로 이 폴더에 설정한 값은 {0}이지만, 그 후 OK 외부에서 변경되었습니다. 현재 디스크의 상태를 표시하며 다음 Symlink/Unlink 작업이 적용됩니다."
 
 msgid "OKF agent skill installed"
 msgstr "OKF 에이전트 스킬 설치됨"
@@ -7302,9 +6995,6 @@ msgstr "겹치는 편집 내용"
 msgid "Owner"
 msgstr "소유자"
 
-msgid "owner/repo, a git URL, or a local path"
-msgstr "owner/repo, git URL 또는 로컬 경로"
-
 msgid "Pack preview unavailable."
 msgstr "팩 미리보기를 사용할 수 없습니다."
 
@@ -7382,12 +7072,6 @@ msgstr "구문 분석 오류"
 
 msgid "Parse failed"
 msgstr "구문 분석 실패"
-
-msgid "Part of the {0} plugin — read-only; open it to edit a copy"
-msgstr "{0} 플러그인의 일부. 읽기 전용이며, 복사본을 편집하려면 엽니다"
-
-msgid "Part of the {plugin} plugin"
-msgstr "{plugin} 플러그인의 일부"
 
 msgid "Paste"
 msgstr "붙여넣기"
@@ -7489,9 +7173,6 @@ msgstr "이 기기에만 적용됩니다. 여기에서 여는 모든 프로젝�
 msgid "Pick <0>openknowledge.skill</0> from your <1>Downloads</1> folder. It enables automatically."
 msgstr "<0>openknowledge.skill</0> 선택: <1>Downloads</1> 폴더. 자동 활성화."
 
-msgid "Pick a folder to merge INTO {display}. That folder becomes a symlink to this one, so its agent reads everything placed here. This folder stays real. Conflicting skills abort the merge."
-msgstr "병합 대상 폴더를 {display} 안에서 선택합니다. 해당 폴더는 이 폴더를 가리키는 심볼릭 링크가 되므로 그 에이전트가 여기에 있는 모든 항목을 읽습니다. 이 폴더는 실제 폴더로 유지됩니다. 충돌하는 스킬이 있으면 병합을 중단합니다."
-
 msgid "Pick a name"
 msgstr "이름 선택"
 
@@ -7531,12 +7212,6 @@ msgstr "{0}을 {1}에서 가져왔습니다."
 msgid "Pin tab"
 msgstr "탭 고정"
 
-msgid "Pin to top"
-msgstr "맨 위에 고정"
-
-msgid "Pinned"
-msgstr "고정됨"
-
 msgid "Plain"
 msgstr "일반"
 
@@ -7560,9 +7235,6 @@ msgstr "플러그인"
 
 msgid "Point semantic search at any OpenAI-compatible embeddings endpoint — a self-hosted server or another provider. The API key above is for whichever endpoint you set here."
 msgstr "의미 기반 검색을 OpenAI 호환 임베딩 엔드포인트에 연결합니다. 자체 호스팅 서버나 다른 제공업체를 사용할 수 있습니다. 위의 API 키는 여기서 설정한 엔드포인트에 사용됩니다."
-
-msgid "Popular"
-msgstr "인기"
 
 msgid "Port {0} is already in use by another process. Pick a different one so your tunnel target stays stable across restarts."
 msgstr "포트 {0}은(는) 이미 다른 프로세스가 사용 중입니다. 재시작 후에도 터널 대상이 안정적으로 유지되도록 다른 포트를 선택하세요."
@@ -7837,9 +7509,6 @@ msgstr "검색을 실행하면 다시 임베딩되므로, 적용 범위가 0부�
 msgid "Re-run the project audit"
 msgstr "프로젝트 감사 다시 실행"
 
-msgid "React"
-msgstr "React"
-
 msgid "Read pages"
 msgstr ""
 
@@ -7936,9 +7605,6 @@ msgstr "휴지통"
 msgid "Redo"
 msgstr "다시 실행"
 
-msgid "Refactoring"
-msgstr "리팩터링"
-
 msgid "Reference"
 msgstr "참조"
 
@@ -7976,9 +7642,6 @@ msgstr "릴리스 노트"
 msgid "Release plan"
 msgstr "릴리스 계획"
 
-msgid "Relevance"
-msgstr "관련성"
-
 msgid "Reload"
 msgstr "새로 고침"
 
@@ -7988,17 +7651,11 @@ msgstr "이 탭을 새로 고쳐 최신 상태로 맞추세요. 새로 고치기
 msgid "remote"
 msgstr "원격"
 
-msgid "Remote"
-msgstr "원격"
-
 msgid "Remote branch <0>{remoteCheckoutRef}</0> will be checked out as a new local tracking branch <1>{trimmed}</1>, in its own window under <2>.ok/worktrees/</2>."
 msgstr "원격 브랜치 <0>{remoteCheckoutRef}</0>에서 새 로컬 추적 브랜치 <1>{trimmed}</1>로 체크아웃합니다. <2>.ok/worktrees/</2> 아래 자체 창에서 엽니다."
 
 msgid "Remote control"
 msgstr "원격 제어"
-
-msgid "Remote skill source"
-msgstr "원격 스킬 소스"
 
 msgid "Remove"
 msgstr "제거"
@@ -8292,9 +7949,6 @@ msgstr "{pane} 크기 조정"
 msgid "Resize document panel"
 msgstr "문서 패널 크기 조절"
 
-msgid "Resize skills panel"
-msgstr "스킬 패널 크기 조절"
-
 msgid "Resolve"
 msgstr ""
 
@@ -8490,12 +8144,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "<0>{slug}.md</0>로 저장됨"
 
-msgid "Saved into this project's skills folder (e.g. <0>.agents/skills</0>), versioned alongside your project."
-msgstr "이 프로젝트의 스킬 폴더(예: <0>.agents/skills</0>)에 저장되며, 프로젝트와 함께 버전 관리됩니다."
-
-msgid "Saved into your global skills folder (e.g. <0>~/.agents/skills</0>)."
-msgstr "전역 스킬 폴더(예: <0>~/.agents/skills</0>)에 저장됩니다."
-
 msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
 msgstr "저장된 키가 충돌합니다. 대신 사용할 이 프로젝트와 엔드포인트의 새 키를 입력하세요."
 
@@ -8574,9 +8222,6 @@ msgstr "이모지 검색"
 msgid "Search failed."
 msgstr "검색에 실패했습니다."
 
-msgid "Search failed. Try again."
-msgstr "검색 실패. 다시 시도하세요."
-
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
 msgstr "파일, 명령, 프로젝트 및 AI 핸드오프 작업을 검색합니다. 비주얼 편집기에서 텍스트를 선택하면 K 키 조합 대신 링크를 추가하고, P 키 조합은 항상 팔레트를 엽니다."
 
@@ -8628,9 +8273,6 @@ msgstr "설정 검색"
 msgid "Search settings not yet loaded — try again in a moment"
 msgstr "검색 설정을 아직 불러오지 못했습니다. 잠시 후 다시 시도합니다."
 
-msgid "Search skills"
-msgstr "스킬 검색"
-
 msgid "Search templates"
 msgstr "템플릿 검색"
 
@@ -8666,9 +8308,6 @@ msgstr "섹션 <0>(선택적 제목 앵커)</0>"
 
 msgid "Sections"
 msgstr "섹션"
-
-msgid "Security"
-msgstr "보안"
 
 msgid "See <0>#design-docs</0> for the latest specs."
 msgstr "최신 사양은 <0>#design-docs</0>에서 확인하세요."
@@ -8947,10 +8586,6 @@ msgstr "피드백 공유"
 msgid "Share folder"
 msgstr "폴더 공유"
 
-#. Heading above the skill-folder list in Settings → Skills Studio — the reason, not the mechanism
-msgid "Share skills between AI tools"
-msgstr "AI 도구 간에 스킬 공유"
-
 msgid "Share this setup with your team?"
 msgstr "이 설정을 팀과 공유하시겠습니까?"
 
@@ -9143,59 +8778,14 @@ msgstr "스킬 \"{conflictName}\"을 설치하지 않았습니다. 같은 이름
 msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
 msgstr "스킬 \"{conflictName}\"은 {conflictHosts}에 설치하지 않았습니다. 그곳에 같은 이름의 내 스킬이 이미 있습니다. 팩 버전을 사용하려면 내 스킬 이름을 바꾸세요."
 
-msgid "Skill \"{name}\" created"
-msgstr "스킬 \"{name}\" 생성됨"
-
 msgid "Skill already in project"
 msgstr "이미 프로젝트에 있는 스킬"
-
-msgid "Skill discovery powered by <0>skills.sh</0>"
-msgstr "스킬 탐색: <0>skills.sh</0> 제공"
 
 msgid "SKILL.md is managed by the skill itself — pick another name"
 msgstr "SKILL.md는 스킬 자체에서 관리합니다. 다른 이름을 선택하세요"
 
-msgid "Skills"
-msgstr "스킬"
-
-msgid "Skills from {0}."
-msgstr "{0}의 스킬."
-
-msgid "Skills from {0}/{1}."
-msgstr "{0}/{1}의 스킬."
-
-#. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
-msgid "Skills from GitQuire"
-msgstr "GitQuire 스킬"
-
-msgid "Skills reassigned"
-msgstr "스킬 재할당됨"
-
-msgid "Skills section"
-msgstr "스킬 섹션"
-
-msgid "Skills Studio"
-msgstr "스킬 스튜디오"
-
-#. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
-msgstr "스킬은 AI 도구에 반복 작업을 가르칩니다. GitQuire가 제공하는 스킬을 설치하거나, 편집기의 스킬 사이드바에서 직접 작성하세요."
-
-msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
-msgstr "스킬은 AI 도구에 반복 작업을 가르칩니다. 직접 만든 스킬은 편집기의 스킬 사이드바에서 작성하세요. 이 페이지에서 스킬을 켜고 공유합니다."
-
-msgid "Skills that come with this project, and the folders its AI tools read them from."
-msgstr "이 프로젝트에 포함된 스킬과 AI 도구가 스킬을 읽는 폴더입니다."
-
-msgid "Skills toolbar"
-msgstr "스킬 도구 모음"
-
 msgid "skills.sh"
 msgstr "skills.sh"
-
-msgid "skills.sh is unavailable; showing GitHub results (no install ranking)."
-msgstr "skills.sh를 사용할 수 없어 GitHub 결과를 보기로 전환합니다(설치 순위 없음)."
 
 msgid "Skip"
 msgstr "건너뛰기"
@@ -9255,9 +8845,6 @@ msgstr "일부 파일이 제거되지 않았을 수 있습니다. 정리 로그�
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "테마 폴더가 스캔 한도를 초과해 일부 저장된 테마가 나타나지 않습니다."
 
-msgid "Some skills were deleted with a warning"
-msgstr "일부 스킬이 경고와 함께 삭제되었습니다"
-
 msgid "Some templates may not be listed because this knowledge base has too many folders to scan. To see a folder's templates, open its menu in the file tree and choose New from template."
 msgstr "이 지식 베이스에는 폴더가 너무 많아 모두 스캔할 수 없으므로 일부 템플릿이 목록에 표시되지 않을 수 있습니다. 폴더의 템플릿을 보려면 파일 트리에서 해당 폴더의 메뉴를 열고 \"템플릿에서 새로 만들기\"를 선택하세요."
 
@@ -9293,12 +8880,6 @@ msgstr ""
 
 msgid "Something went wrong. Please try again."
 msgstr "문제가 발생했습니다. 다시 시도하세요."
-
-msgid "Sort by"
-msgstr "정렬 기준"
-
-msgid "Sort skills"
-msgstr "스킬 정렬"
 
 msgid "source"
 msgstr "소스"
@@ -9523,9 +9104,6 @@ msgstr "심볼릭 링크"
 msgid "Symlink to {targetPath}"
 msgstr "심볼릭 링크: {targetPath}"
 
-msgid "symlinked via parent"
-msgstr "상위 경로를 통한 심볼릭 링크"
-
 msgid "Symlinks the skill to {path}"
 msgstr "{path}에 스킬을 심볼릭 링크합니다"
 
@@ -9664,9 +9242,6 @@ msgstr "진행 상황을 알려 주세요"
 msgid "Tell us more (optional)"
 msgstr "더 알려 주세요 (선택 사항)"
 
-msgid "Tells agents when to reach for this skill. You can edit it later."
-msgstr "에이전트가 이 스킬을 사용할 시점을 알려줍니다. 나중에 편집할 수 있습니다."
-
 msgid "Template \"{label}\" deleted"
 msgstr "템플릿 \"{label}\" 삭제됨"
 
@@ -9760,9 +9335,6 @@ msgstr "해당 언어는 맞춤법 검사에서 지원되지 않습니다."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "해석했지만 base16 테마가 아닙니다."
-
-msgid "The {0} plugin serves these skills from its cache — OK never edits or updates them."
-msgstr "{0} 플러그인이 캐시에서 이 스킬들을 제공합니다 — OK는 이를 편집하거나 업데이트하지 않습니다."
 
 msgid "The {editor} folder holds a different version of this skill. Pick which one wins, or keep both under different names. Whatever you replace is backed up first."
 msgstr "{editor} 폴더에 이 스킬의 다른 버전이 있습니다. 어느 버전을 사용할지 선택하거나 서로 다른 이름으로 둘 다 유지하세요. 교체하는 항목은 먼저 백업합니다."
@@ -10097,18 +9669,11 @@ msgstr "테마"
 msgid "There is no address waiting for a code."
 msgstr ""
 
-msgid "These currently read from another folder. After linking, they read from {keep} instead."
-msgstr "현재 다른 폴더에서 읽습니다. 연결한 후에는 대신 {keep}에서 읽습니다."
-
 msgid "These links remain visible in Links and are not part of the repair queue."
 msgstr "이 링크는 링크 패널에 계속 표시되며 수정 대기열에는 포함되지 않습니다."
 
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "이 규칙은 프로젝트의 <0>{configFile}</0> 파일에서 가져오며, 이 파일이 프로젝트의 linting을 완전히 관리합니다. 여기서 규칙을 켜거나 끄고 옵션을 편집하면 파일에 다시 기록됩니다."
-
-#. Says what the GitQuire-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
-msgstr "이 스킬들은 AI 도구가 GitQuire와 함께 작동하는 방법을 가르칩니다. 하나를 설치하면 이 컴퓨터의 모든 AI 도구에 추가됩니다."
 
 msgid "Thinking…"
 msgstr "생각 중…"
@@ -10321,10 +9886,6 @@ msgstr "이 작업은 <0>{name}</0>을 {0}에서 {1}로 이동하고, 디스크�
 msgid "This one needs to see your files, not just the open document, so it appears when you run a project audit rather than while you type."
 msgstr "이 규칙은 열린 문서만이 아니라 파일을 확인해야 하므로 입력 중이 아니라 프로젝트 감사를 실행할 때 나타납니다."
 
-#. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "이 스킬은 AI 도구가 GitQuire와 함께 작동하는 방법을 가르칩니다. 프로젝트 폴더에 있으므로 프로젝트를 여는 모든 사람에게 설치됩니다."
-
 msgid "This pack is already set up here."
 msgstr "이 팩은 여기에서 이미 설정되어 있습니다."
 
@@ -10357,9 +9918,6 @@ msgstr "{0}이 영구적으로 삭제됩니다. 복사한 플러그인은 영향
 
 msgid "This permanently removes {0}/{1} from the \"{2}\" skill. Anything in SKILL.md that points at it will break until it's recreated."
 msgstr "{0}/{1}은 \"{2}\" 스킬에서 영구적으로 삭제됩니다. 이를 가리키는 SKILL.md의 항목은 다시 만들 때까지 작동하지 않습니다."
-
-msgid "This permanently removes {names}. Agents that invoke these skills by name will fail until they're recreated."
-msgstr "{names}이(가) 영구적으로 삭제됩니다. 이 스킬들을 이름으로 호출하는 에이전트는 다시 만들 때까지 실패합니다."
 
 msgid "This permanently removes {path}. Agents that reference this template by name will fail until it's recreated or replaced by one in a parent folder."
 msgstr "{path}이 영구적으로 삭제됩니다. 이 템플릿을 이름으로 참조하는 에이전트는 템플릿을 다시 만들거나 상위 폴더의 템플릿으로 교체할 때까지 실패합니다."
@@ -10429,12 +9987,6 @@ msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "이 설정은 컴퓨터별로 적용되며 공동 작업자와 공유되지 않습니다. 엔드포인트가 키를 요구하지 않는 로컬 서버가 아니면 API 키(아래에서 설정)가 필요합니다."
-
-msgid "This source bundles several skills — choose one, then Import."
-msgstr "이 소스에는 여러 스킬이 들어 있습니다. 하나를 선택한 후 가져오기를 누르세요."
-
-msgid "This source bundles several skills — choose the one to import."
-msgstr "이 소스에는 여러 스킬이 들어 있습니다. 가져올 항목을 선택하세요."
 
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "이 탭에서 편집 내용이 저장되었는지 확인하지 못해 새로 고치지 않았습니다. 편집 내용은 그대로 있습니다."
@@ -10628,12 +10180,6 @@ msgstr "트리 보기 옵션"
 msgid "Try again"
 msgstr "다시 시도"
 
-msgid "Turn {0} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "{0}을 현재 감지하는 각 스킬의 스킬별 심볼릭 링크가 있는 실제 디렉터리로 되돌립니다. 아무것도 중단되지 않으며 각 스킬 메뉴에서 관리합니다."
-
-msgid "Turn {display} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "{display}을 현재 감지하는 각 스킬의 스킬별 심볼릭 링크가 있는 실제 디렉터리로 되돌립니다. 아무것도 중단되지 않으며 각 스킬 메뉴에서 관리합니다."
-
 msgid "Turn it off any time in Settings."
 msgstr "설정에서 언제든지 끌 수 있습니다."
 
@@ -10775,17 +10321,11 @@ msgstr "알 수 없는 오류"
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "알 수 없는 변수 {unknownList}. 사용할 수 있는 변수: {supportedVariables}."
 
-msgid "unlink"
-msgstr "링크 해제"
-
 msgid "Unmerged"
 msgstr "병합 안 됨"
 
 msgid "Unordered list of items."
 msgstr "글머리 기호 목록입니다."
-
-msgid "Unpin"
-msgstr "고정 해제"
 
 msgid "Unpin {accessibleLabel}"
 msgstr "{accessibleLabel} 고정 해제"
@@ -10835,9 +10375,6 @@ msgstr "업데이트"
 
 msgid "Update \"{skillName}\" over your edits?"
 msgstr "\"{skillName}\"을 편집한 내용 위에 업데이트할까요?"
-
-msgid "Update all from this source"
-msgstr "이 소스의 항목 모두 업데이트"
 
 msgid "Update draft"
 msgstr ""
@@ -10890,9 +10427,6 @@ msgstr "업데이트 중"
 msgid "Updating…"
 msgstr ""
 
-msgid "Upload"
-msgstr "업로드"
-
 msgid "Upload {keyName}"
 msgstr "{keyName} 업로드"
 
@@ -10902,9 +10436,6 @@ msgstr "업로드 실패"
 msgid "Upload failed — please try again"
 msgstr "업로드 실패, 다시 시도하세요"
 
-msgid "Upload failed: {0}"
-msgstr "업로드 실패: {0}"
-
 msgid "Upload failed: {message}"
 msgstr "업로드 실패: {message}"
 
@@ -10913,9 +10444,6 @@ msgstr "컴퓨터에서 업로드"
 
 msgid "Upload may have succeeded but the sidebar is out of date — refresh to resync"
 msgstr "업로드에 성공했을 수 있지만 사이드바가 최신 상태가 아닙니다. 다시 동기화하려면 새로 고침하세요."
-
-msgid "Upload skill"
-msgstr "스킬 업로드"
 
 msgid "Uploaded \"{0}\"."
 msgstr "\"{0}\"을 업로드했습니다."
@@ -10995,9 +10523,6 @@ msgstr ""
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "소문자, 숫자, <0>-</0>만 사용하세요."
 
-msgid "Use lowercase letters, numbers, and hyphens only"
-msgstr "소문자, 숫자, 하이픈만 사용하세요"
-
 msgid "Use one slash between folder names."
 msgstr "폴더 이름 사이에는 슬래시를 하나만 쓰세요."
 
@@ -11047,9 +10572,6 @@ msgstr "GitQuire의 버전"
 msgid "via {viaTags}"
 msgstr "{viaTags} 경유"
 
-msgid "via parent"
-msgstr "상위 경로를 통해"
-
 msgid "via plugin"
 msgstr "플러그인 제공"
 
@@ -11058,9 +10580,6 @@ msgstr "보기"
 
 msgid "View {name}"
 msgstr "{name} 보기"
-
-msgid "View {publisher} on skills.sh"
-msgstr "skills.sh에서 {publisher} 보기"
 
 msgid "View as text"
 msgstr "텍스트로 보기"
@@ -11082,12 +10601,6 @@ msgstr "보기 전용"
 
 msgid "View plugin"
 msgstr "플러그인 보기"
-
-msgid "View source"
-msgstr "소스 보기"
-
-msgid "View the {plugin} plugin repo"
-msgstr "{plugin} 플러그인 저장소 보기"
 
 msgid "Views"
 msgstr ""
@@ -11177,9 +10690,6 @@ msgstr "무엇이 방해했나요?"
 msgid "What happened?"
 msgstr "무슨 일이 있었나요?"
 
-msgid "What happens next"
-msgstr "다음 단계"
-
 msgid "What is a starter pack?"
 msgstr "스타터 팩이란?"
 
@@ -11245,9 +10755,6 @@ msgstr "어디에 둘까요?"
 
 msgid "Where to ask"
 msgstr ""
-
-msgid "Which skill"
-msgstr "어떤 스킬"
 
 msgid "Whitespace"
 msgstr "공백"
@@ -11353,10 +10860,6 @@ msgstr "이름이 \"{0}\"인 내 스킬이 이미 있습니다. 팩 버전은 �
 
 msgid "You are here"
 msgstr ""
-
-#. Label above the optional skill offered on first visit
-msgid "You can add"
-msgstr "추가할 수 있는 항목"
 
 msgid "You can also create one from a terminal with <0>{cliCommand} bug-report</0>."
 msgstr "<0>{cliCommand} bug-report</0>를 사용해 터미널에서 만들 수도 있습니다."
@@ -11513,9 +11016,6 @@ msgstr "사용자 설정을 읽을 수 없습니다"
 
 msgid "Your version"
 msgstr ""
-
-msgid "Zip file"
-msgstr "Zip 파일"
 
 msgid "Zoom"
 msgstr "확대/축소"

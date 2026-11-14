@@ -25,9 +25,6 @@ msgstr " Pilihan Anda telah dipulihkan."
 msgid "— except"
 msgstr "— kecuali"
 
-msgid ".myteam/skills"
-msgstr ".myteam/skills"
-
 msgid ".ok folders"
 msgstr "Folder .ok"
 
@@ -232,23 +229,11 @@ msgstr ""
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
-msgid "{0} plugin"
-msgstr "Plugin {0}"
-
-msgid "{0} plugin · {1}"
-msgstr "Plugin {0} · {1}"
-
 msgid "{0} Properties"
 msgstr "Properti {0}"
 
 msgid "{0} reads this skill via {poolRootRel}. Click to stop {1} getting \"{2}\" — {subRoot} keeps its other skills but stops following {poolRootRel}."
 msgstr "{0} membaca keterampilan ini lewat {poolRootRel}. Klik agar {1} berhenti menerima \"{2}\" — {subRoot} tetap punya keterampilan lainnya tetapi berhenti mengikuti {poolRootRel}."
-
-msgid "{0} share this folder."
-msgstr "{0} berbagi folder ini."
-
-msgid "{0} skills selected"
-msgstr "{0} keterampilan dipilih"
 
 msgid "{0} total"
 msgstr "{0} total"
@@ -394,9 +379,6 @@ msgstr "{count} di depan"
 msgid "{count} behind"
 msgstr "{count} di belakang"
 
-msgid "{count} skills"
-msgstr "{count} keterampilan"
-
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, other {# hari lalu}}"
 
@@ -414,9 +396,6 @@ msgstr "{diffHrs} j lalu"
 
 msgid "{diffMin}m ago"
 msgstr "{diffMin} mnt lalu"
-
-msgid "{dir} (symlink)"
-msgstr "{dir} (symlink)"
 
 msgid "{display} is a symlink to the source while the skill's other locations are copies. Click to make it an independent copy."
 msgstr "{display} adalah symlink ke sumbernya, sedangkan lokasi lain keterampilan ini berupa salinan. Klik untuk menjadikannya salinan mandiri."
@@ -539,9 +518,6 @@ msgstr "{minutes} mnt lalu"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
-msgid "{name} moved, but its pin did not. Pin it again after settings finish loading."
-msgstr "{name} telah dipindahkan, tetapi sematannya tidak ikut berpindah. Sematkan lagi setelah pengaturan selesai dimuat."
-
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, other {# simpul}}"
 
@@ -589,12 +565,6 @@ msgstr "{percent}% dari atas"
 
 msgid "{phase} — {pct}%"
 msgstr "{phase} — {pct}%"
-
-msgid "{pick} and {keep} both hold a different version of: {0}. Resolve those first — a symlink can only keep one of each."
-msgstr "{pick} dan {keep} sama-sama memuat versi berbeda dari: {0}. Selesaikan itu dulu: satu tautan simbolik hanya bisa menyimpan satu versi untuk masing-masing."
-
-msgid "{pick} holds entries that aren't skills: {0}. Remove or move them from the folder and try again."
-msgstr "{pick} berisi entri yang bukan keterampilan: {0}. Hapus atau pindahkan entri tersebut dari folder, lalu coba lagi."
 
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin} menyertakan {0} keterampilan lain"
@@ -647,12 +617,6 @@ msgstr "Warna {slot} — {0}"
 msgid "{slot} hex value"
 msgstr "Nilai heksa {slot}"
 
-msgid "{source} · imported source"
-msgstr "{source} · sumber impor"
-
-msgid "{source} · skills.sh source"
-msgstr "{source} · sumber skills.sh"
-
 msgid "{source}: {updated} updated, {upToDate} already up to date"
 msgstr "{source}: {updated} diperbarui, {upToDate} sudah terbaru"
 
@@ -679,12 +643,6 @@ msgstr "{truncatedShownCount, plural, other {Menampilkan {formattedCount} item p
 
 msgid "{uploadedCount, plural, one {Uploaded one file} other {Uploaded {uploadedCount} files}}"
 msgstr "{uploadedCount, plural, other {{uploadedCount} berkas diunggah}}"
-
-msgid "{uploadFolderName} — {0} files"
-msgstr "{uploadFolderName} — {0} berkas"
-
-msgid "{uploadFolderName} — 1 file"
-msgstr "{uploadFolderName} — 1 berkas"
 
 msgid "{userName} · {tabCount, plural, one {# tab} other {# tabs}}"
 msgstr "{userName} · {tabCount, plural, other {# tab}}"
@@ -767,9 +725,6 @@ msgstr "<0>Spasi</0> untuk melompat · <1>↓</1> untuk menunduk"
 msgid "<0>Too many live references on this page.</0> This mirror of <1>{src}</1> was not loaded."
 msgstr "<0>Terlalu banyak referensi langsung di halaman ini.</0> Cermin <1>{src}</1> ini tidak dimuat."
 
-msgid "~/.myteam/skills"
-msgstr "~/.myteam/skills"
-
 msgid "📝 or assets/icon.png"
 msgstr "📝 atau assets/icon.png"
 
@@ -799,9 +754,6 @@ msgstr "30 detik"
 
 msgid "5 minutes"
 msgstr "5 menit"
-
-msgid "A .zip or .skill archive."
-msgstr "Arsip .zip atau .skill."
 
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "Lencana <0>Diubah</0> menandai aturan yang disetel konfigurasi Anda secara eksplisit — langsung, atau diwarisi lewat <1>extends</1>. Aturan tanpa lencana tetap pada keadaan bawaannya."
@@ -845,9 +797,6 @@ msgstr "Sebuah dokumen mengalami konflik — selesaikan agar tetap mutakhir."
 msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
 msgstr ""
 
-msgid "A folder containing SKILL.md."
-msgstr "Sebuah folder yang berisi SKILL.md."
-
 msgid "A folder named <0>{sanitized}</0> already has files here. Pick a different name."
 msgstr "Folder bernama <0>{sanitized}</0> sudah punya berkas di sini. Pilih nama lain."
 
@@ -884,9 +833,6 @@ msgstr "Sudah ada folder tidak kosong di jalur ini. Pilih folder lain."
 msgid "A page with that name exists. Choose another name."
 msgstr ""
 
-msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
-msgstr "Direktori di atasnya yang merupakan symlink — lepaskan tautan folder itu untuk mengambil kembali yang ini."
-
 msgid "A path inside the skill — any folder works (e.g. references/notes.md). Folders in the path are created for you."
 msgstr "Sebuah jalur di dalam keterampilan — folder apa pun bisa (mis. references/notes.md). Folder pada jalur itu dibuatkan untuk Anda."
 
@@ -922,9 +868,6 @@ msgstr "Satu baris singkat yang ditampilkan di bawah judul pada daftar templat."
 
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "Tempat sederhana untuk menulis, dengan satu berkas per topik dan jurnal harian. Pilih ini jika Anda hanya ingin mulai menulis dan membiarkan tautan antarcatatan tumbuh seiring waktu."
-
-msgid "A skill named \"{trimmed}\" already exists here"
-msgstr "Keterampilan bernama \"{trimmed}\" sudah ada di sini"
 
 msgid "A skill with that name already exists."
 msgstr "Keterampilan dengan nama itu sudah ada."
@@ -1080,9 +1023,6 @@ msgstr ""
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "Menambahkan kursor atau memilih kemunculan yang cocok lewat CodeMirror."
 
-msgid "Add custom path"
-msgstr "Tambahkan jalur khusus"
-
 msgid "Add description"
 msgstr "Tambahkan deskripsi"
 
@@ -1124,9 +1064,6 @@ msgstr "Tambahkan properti"
 
 msgid "Add property to {keyName}"
 msgstr "Tambahkan properti ke {keyName}"
-
-msgid "Add skill"
-msgstr "Tambahkan keterampilan"
 
 msgid "Add tab"
 msgstr "Tambah tab"
@@ -1365,9 +1302,6 @@ msgstr "File .mdx apa pun. Formatnya hanya .md saja, sehingga pembaca yang memin
 
 msgid "any doc named {0}"
 msgstr "dokumen mana pun bernama {0}"
-
-msgid "Any scripts are shown for review, never run."
-msgstr "Skrip apa pun ditampilkan untuk ditinjau, tidak pernah dijalankan."
 
 msgid "Any value"
 msgstr ""
@@ -1659,9 +1593,6 @@ msgctxt "settings search keyword"
 msgid "batch"
 msgstr "batch"
 
-msgid "becomes a symlink"
-msgstr "menjadi tautan simbolik"
-
 msgid "Becomes the document's content when someone creates a doc from this template. Type <0>{dateToken}</0> or <1>{userToken}</1> to fill in today's date or the author's name automatically."
 msgstr "Menjadi isi dokumen ketika seseorang membuat dokumen dari templat ini. Ketik <0>{dateToken}</0> atau <1>{userToken}</1> untuk mengisi tanggal hari ini atau nama penulis secara otomatis."
 
@@ -1729,9 +1660,6 @@ msgstr "Tebal"
 msgid "Both"
 msgstr "Keduanya"
 
-msgid "Both agents end up reading everything in {keep}."
-msgstr "Kedua agen akhirnya membaca semua yang ada di {keep}."
-
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "Kedua versi identik. Memilih Terima yang sekarang membuat perlindungan GitQuire tetap aktif, sehingga penyimpanan versi lama berikutnya akan ditolak lagi. Memilih Terima yang masuk menonaktifkan perlindungan tersebut."
 
@@ -1795,9 +1723,6 @@ msgstr "Pilih folder"
 msgid "Browse hundreds of themes"
 msgstr "Jelajahi ratusan tema"
 
-msgid "Browse or upload a skill for this project."
-msgstr "Telusuri atau unggah sebuah keterampilan untuk proyek ini."
-
 msgid "Browse your repos:"
 msgstr "Jelajahi repo Anda:"
 
@@ -1833,9 +1758,6 @@ msgstr "Daftar Berpoin"
 
 msgid "Bulleted list"
 msgstr ""
-
-msgid "By GitQuire"
-msgstr "Oleh GitQuire"
 
 msgid "By meaning"
 msgstr "Berdasarkan makna"
@@ -2003,9 +1925,6 @@ msgstr "Memeriksa status masuk"
 msgid "Checking skill"
 msgstr "Memeriksa keterampilan"
 
-msgid "Checking source"
-msgstr "Memeriksa sumber"
-
 msgid "Checking which AI tools you have"
 msgstr "Memeriksa alat AI yang Anda miliki"
 
@@ -2024,20 +1943,8 @@ msgstr "Daftar periksa dengan kotak centang."
 msgid "Checks your project against the Open Knowledge Format. Turn it off any time in Settings."
 msgstr "Periksa proyek Anda terhadap Open Knowledge Format. Matikan kapan saja di Pengaturan."
 
-msgid "Choose a skill archive"
-msgstr "Pilih arsip keterampilan"
-
-msgid "Choose a skill folder"
-msgstr "Pilih folder keterampilan"
-
 msgid "Choose color"
 msgstr "Pilih warna"
-
-msgid "Choose file"
-msgstr "Pilih berkas"
-
-msgid "Choose folder"
-msgstr "Pilih folder"
 
 msgid "Choose icon"
 msgstr "Pilih ikon"
@@ -2093,9 +2000,6 @@ msgstr "Hapus warna"
 
 msgid "Clear menu"
 msgstr "Kosongkan menu"
-
-msgid "Clear selection"
-msgstr "Bersihkan pilihan"
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "Kosongkan bidang ini untuk kembali ke endpoint OpenAI bawaan."
@@ -2603,9 +2507,6 @@ msgstr "Tidak dapat mengakses kunci API yang disimpan. Buka kunci penyimpanan kr
 msgid "Could not check the symlinks in {shareBranch}, so it was not switched. Try again; if it keeps failing, check that Git is installed and the project folder is readable."
 msgstr "Tidak dapat memeriksa symlink di {shareBranch}, jadi tidak beralih. Coba lagi; jika terus gagal, pastikan Git terpasang dan folder proyek dapat dibaca."
 
-msgid "Could not classify the merge — try again."
-msgstr "Penggabungan tidak dapat diklasifikasikan — coba lagi."
-
 msgid "Could not complete delete"
 msgstr "Penghapusan tidak dapat diselesaikan"
 
@@ -2732,9 +2633,6 @@ msgstr "Tidak bisa menyalin. Pilih URL di atas untuk menyalinnya secara manual."
 msgid "Couldn't create {effective}: {0}"
 msgstr "Tidak dapat membuat {effective}: {0}"
 
-msgid "Couldn't create skill: {0}"
-msgstr "Keterampilan tidak bisa dibuat: {0}"
-
 msgid "Couldn't create template: {error}"
 msgstr "Templat tidak bisa dibuat: {error}"
 
@@ -2749,9 +2647,6 @@ msgstr "Worktree-nya tidak bisa dibuat. Coba nama lain."
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "Tema ini tidak dapat dibuat. Coba lagi."
-
-msgid "Couldn't delete {0}: {error}"
-msgstr "Tidak dapat menghapus {0}: {error}"
 
 msgid "Couldn’t delete {0}. Try again."
 msgstr "{0} tidak dapat dihapus. Coba lagi."
@@ -2789,9 +2684,6 @@ msgstr "Tidak bisa memasang dari {0}: {1}"
 msgid "Couldn't install skill: {0}"
 msgstr "Keterampilan tidak bisa dipasang: {0}"
 
-msgid "Couldn't install the project skill: {0}"
-msgstr "Tidak dapat memasang keterampilan proyek: {0}"
-
 msgid "Couldn't install: {0}"
 msgstr "Tidak bisa memasang: {0}"
 
@@ -2816,9 +2708,6 @@ msgstr "Paket awal tidak bisa dimuat: {error}"
 msgid "Couldn't load templates"
 msgstr "Templat tidak bisa dimuat"
 
-msgid "Couldn't load the GitQuire skills. Try again."
-msgstr "Keterampilan GitQuire tidak dapat dimuat. Coba lagi."
-
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2837,9 +2726,6 @@ msgstr "Laporan bug Anda tidak bisa dimuat."
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
-msgid "Couldn't move {0}: {1}"
-msgstr "Tidak dapat memindahkan {0}: {1}"
-
 msgid "Couldn't move skill: {0}"
 msgstr "Keterampilan tidak bisa dipindahkan: {0}"
 
@@ -2855,9 +2741,6 @@ msgstr "\"{name}\" tidak bisa dibuka — ia belum ada di keterampilan proyek ini
 msgid "Couldn't open \"{name}\": {0}"
 msgstr "\"{name}\" tidak bisa dibuka: {0}"
 
-msgid "Couldn't open {0} for editing: {1}"
-msgstr "{0} tidak bisa dibuka untuk disunting: {1}"
-
 msgid "Couldn't open document"
 msgstr "Dokumen tidak bisa dibuka"
 
@@ -2866,9 +2749,6 @@ msgstr "Worktree-nya tidak bisa dibuka. Coba lagi."
 
 msgid "Couldn't open this document in Slidev."
 msgstr "Tidak dapat membuka dokumen ini di Slidev."
-
-msgid "Couldn't pin {name}"
-msgstr "Tidak dapat menyematkan {name}"
 
 msgid "Couldn't place {skillName} in {root}: {0}"
 msgstr "Tidak dapat menempatkan {skillName} di {root}: {0}"
@@ -2923,12 +2803,6 @@ msgstr "Tidak bisa membaca working tree. Periksa log server."
 
 msgid "Couldn’t read this theme ({0})"
 msgstr "Tema ini tidak dapat dibaca ({0})"
-
-msgid "Couldn't read whether this project's skill is installed."
-msgstr "Tidak dapat membaca apakah keterampilan proyek ini terpasang."
-
-msgid "Couldn't read which skills are installed."
-msgstr "Tidak dapat membaca keterampilan mana yang terpasang."
 
 msgid "Couldn't reconnect after server restart"
 msgstr "Tidak bisa tersambung kembali setelah server dimulai ulang"
@@ -3044,9 +2918,6 @@ msgstr "Tidak bisa berpindah ke Hanya saya"
 msgid "Couldn't switch views."
 msgstr ""
 
-msgid "Couldn't unpin {name}"
-msgstr "Tidak dapat melepas sematan {name}"
-
 msgid "Couldn't update {gitignorePath}: {0}"
 msgstr "Tidak dapat memperbarui {gitignorePath}: {0}"
 
@@ -3106,12 +2977,6 @@ msgstr "Membuat proyek GitQuire baru di folder pilihan Anda."
 
 msgid "Create a new list item from the current list item."
 msgstr "Membuat item daftar baru dari item daftar saat ini."
-
-msgid "Create a personal skill, available across every project."
-msgstr "Buat keterampilan pribadi, tersedia di semua proyek."
-
-msgid "Create a skill for this project."
-msgstr "Buat keterampilan untuk proyek ini."
 
 msgid "Create a token on {host}"
 msgstr "Buat token di {host}"
@@ -3215,9 +3080,6 @@ msgstr "Endpoint khusus"
 msgid "Custom HTML with a live preview pane (sandboxed iframe)."
 msgstr "HTML khusus dengan panel pratinjau langsung (iframe tersekat)."
 
-msgid "Custom skills folder path"
-msgstr "Jalur folder keterampilan khusus"
-
 msgid "Custom theme"
 msgstr "Tema khusus"
 
@@ -3232,9 +3094,6 @@ msgstr "Potong"
 
 msgid "Dark"
 msgstr "Gelap"
-
-msgid "Data"
-msgstr "Data"
 
 msgid "Date"
 msgstr "Tanggal"
@@ -3253,9 +3112,6 @@ msgstr "Hapus"
 
 msgid "Delete {0}"
 msgstr "Hapus {0}"
-
-msgid "Delete {0} skills"
-msgstr "Hapus {0} keterampilan"
 
 msgid "Delete {deleteDescriptorLabel}"
 msgstr "Hapus {deleteDescriptorLabel}"
@@ -3326,17 +3182,11 @@ msgstr "Dihapus"
 msgid "Deleted {0}."
 msgstr "{0} dihapus."
 
-msgid "Deleted {deleted} skills"
-msgstr "{deleted} keterampilan dihapus"
-
 msgid "Deleted {file}"
 msgstr "{file} dihapus"
 
 msgid "Deleted {filePath}"
 msgstr "{filePath} dihapus"
-
-msgid "Deleted for good"
-msgstr "Dihapus permanen"
 
 msgid "Deleted in this draft"
 msgstr ""
@@ -3346,9 +3196,6 @@ msgstr "templat dihapus"
 
 msgid "Deleting"
 msgstr "Menghapus"
-
-msgid "Deleting {progress} of {count}"
-msgstr "Menghapus {progress} dari {count}"
 
 #. The skill's frontmatter description — the always-loaded tier
 msgid "description"
@@ -3362,13 +3209,6 @@ msgstr "Deskripsi (opsional)"
 
 msgid "Description for {field}"
 msgstr "Deskripsi untuk {field}"
-
-#. Suffix on a skill directory card's context-cost figure — the always-loaded description tier
-msgid "description tokens"
-msgstr "token deskripsi"
-
-msgid "Design"
-msgstr "Desain"
 
 msgid "Detached at {0}"
 msgstr "Terlepas pada {0}"
@@ -3387,12 +3227,6 @@ msgstr "Detail"
 
 msgid "Detected GitQuire projects"
 msgstr "Proyek GitQuire yang terdeteksi"
-
-msgid "Detected in {0}"
-msgstr "Terdeteksi di {0}"
-
-msgid "DevOps"
-msgstr "DevOps"
 
 msgid "Diagram"
 msgstr "Diagram"
@@ -3616,9 +3450,6 @@ msgstr "Menggandakan item pohon berkas yang difokus ketika fokus ada di bilah si
 msgid "Duplicated to \"{0}\""
 msgstr "Digandakan menjadi \"{0}\""
 
-msgid "Duplicates dropped"
-msgstr "Duplikat dibuang"
-
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "mis. drafts/ atau *.draft.md"
 
@@ -3636,10 +3467,6 @@ msgstr "mis. Penyunting membeku setelah saya menempelkan tabel besar"
 
 msgid "Each {open} needs a matching {close}."
 msgstr "Setiap {open} perlu {close} pasangannya."
-
-#. Says what symlinking two skill folders together buys the user, before any button names it
-msgid "Each AI tool reads skills from its own folder. Point one folder at another and both tools see the same skills — add a skill once instead of copying it into every tool."
-msgstr "Setiap alat AI membaca keterampilan dari foldernya sendiri. Arahkan satu folder ke folder lain dan kedua alat akan melihat keterampilan yang sama — tambahkan keterampilan sekali saja alih-alih menyalinnya ke setiap alat."
 
 msgid "Each pack scaffolds your project with ready-made folders and templates."
 msgstr "Setiap paket menyusun proyek Anda dengan folder dan templat siap pakai."
@@ -4051,9 +3878,6 @@ msgstr "Jelaskan cara kerja basis kode Anda agar rekan tim dan agen AI bisa mene
 msgid "Explore"
 msgstr "Jelajahi"
 
-msgid "Explore skills"
-msgstr "Jelajahi keterampilan"
-
 msgid "Expose and restart"
 msgstr "Ekspos dan mulai ulang"
 
@@ -4203,9 +4027,6 @@ msgstr "Gagal memuat templat proyek"
 
 msgid "Failed to load recent projects."
 msgstr "Gagal memuat proyek terbaru."
-
-msgid "Failed to load skill settings: {0}"
-msgstr "Gagal memuat pengaturan keterampilan: {0}"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "Gagal memuat tag. Tekan <0>Esc</0> lalu buka lagi untuk mencoba ulang."
@@ -4405,9 +4226,6 @@ msgstr ""
 msgid "Filter languages"
 msgstr "Saring bahasa"
 
-msgid "Filter skills"
-msgstr "Saring keterampilan"
-
 msgid "Find"
 msgstr "Cari"
 
@@ -4532,9 +4350,6 @@ msgstr "Respons tautan keluar tidak sesuai bentuk yang diharapkan."
 msgid "Found {countDisplay} markdown files"
 msgstr "Ditemukan {countDisplay} berkas markdown"
 
-msgid "Found one skill: {0}"
-msgstr "Ditemukan satu keterampilan: {0}"
-
 msgid "Found the repo but could not open the project. Please try again."
 msgstr "Repo ditemukan tetapi proyeknya tidak dapat dibuka. Silakan coba lagi."
 
@@ -4546,9 +4361,6 @@ msgstr "Dari templat"
 
 msgid "From the {0} plugin"
 msgstr "Dari plugin {0}"
-
-msgid "From the {residentPlugin} plugin — read-only; plugin updates replace these files."
-msgstr "Dari plugin {residentPlugin} — hanya-baca; pembaruan plugin mengganti file-file ini."
 
 msgid "Frontmatter"
 msgstr "frontmatter"
@@ -4596,9 +4408,6 @@ msgstr "GHES"
 
 msgid "Git"
 msgstr "Git"
-
-msgid "Git & PRs"
-msgstr "Git & PR"
 
 msgid "Git can't track this folder — it's empty or contains only ignored files. The link won't work until you add a tracked document."
 msgstr "Git tidak bisa melacak folder ini — folder ini kosong atau hanya berisi berkas yang diabaikan. Tautannya tidak akan berfungsi sampai Anda menambahkan dokumen yang dilacak."
@@ -4656,18 +4465,12 @@ msgstr "Host GitHub Enterprise Server"
 msgid "GitHub sign-in is missing or expired. Reconnect to resume syncing."
 msgstr "Status masuk GitHub tidak ada atau kedaluwarsa. Sambungkan ulang untuk melanjutkan sinkronisasi."
 
-msgid "GitHub, a git URL, or a local path."
-msgstr "GitHub, sebuah URL git, atau jalur lokal."
-
 msgid "github.com is always recognized, so it doesn't need to be added."
 msgstr "github.com selalu dikenali, jadi tidak perlu ditambahkan."
 
 msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
-
-msgid "GitQuire"
-msgstr "GitQuire"
 
 msgid "GitQuire can't sign in to GitHub for this project."
 msgstr "GitQuire tidak dapat masuk ke GitHub untuk proyek ini."
@@ -4784,10 +4587,6 @@ msgstr "Ke baris {0} di {1}"
 msgid "Good"
 msgstr "Bagus"
 
-#. Sole button when the intro has nothing left to offer
-msgid "Got it"
-msgstr "Mengerti"
-
 msgid "Graph"
 msgstr "Graf"
 
@@ -4808,9 +4607,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Group skills by source"
-msgstr "Kelompokkan keterampilan menurut sumber"
 
 msgid "Guides your AI agents on how to work here."
 msgstr "Memandu agen AI Anda tentang cara bekerja di sini."
@@ -5056,9 +4852,6 @@ msgstr "Pemilih ikon"
 msgid "ID: {0}"
 msgstr "ID: {0}"
 
-msgid "Identical in both — {pick} still reads them."
-msgstr "Identik di keduanya — {pick} tetap membacanya."
-
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "Jika sebuah pembaruan datang untuk hal yang sedang Anda sunting, Anda memilih versi mana yang disimpan, seperti konflik penggabungan."
 
@@ -5104,14 +4897,8 @@ msgstr "Target gambar \"{shown}\" ada, tetapi dikecualikan oleh .gitignore atau 
 msgid "Images aren't redacted."
 msgstr "Gambar tidak disamarkan."
 
-msgid "Import"
-msgstr "Impor"
-
 msgid "Import as template"
 msgstr "Impor sebagai templat"
-
-msgid "Import failed: {0}"
-msgstr "Impor gagal: {0}"
 
 msgid "Imported \"{0}\"."
 msgstr "\"{0}\" diimpor."
@@ -5121,9 +4908,6 @@ msgstr "{importedLabel} diimpor"
 
 msgid "Imported as \"{0}\" — the name \"{1}\" was taken."
 msgstr "Diimpor sebagai \"{0}\" — nama \"{1}\" sudah dipakai."
-
-msgid "Importing"
-msgstr "Mengimpor"
 
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "Dalam dokumen log: judul entri diawali dengan tanggal ISO YYYY-MM-DD, terbaru terlebih dahulu. Berapa banyak title yang Anda gunakan, dan apakah entri merupakan poin, terserah Anda."
@@ -5284,12 +5068,6 @@ msgstr "Di dalam folder worktree GitQuire repositori ini"
 msgid "Install"
 msgstr "Pasang"
 
-msgid "Install {0}"
-msgstr "Pasang {0}"
-
-msgid "install a skill here first"
-msgstr "instal dulu sebuah skill di sini"
-
 msgid "Install failed: {0}"
 msgstr "Pemasangan gagal: {0}"
 
@@ -5324,9 +5102,6 @@ msgstr "Pasang di Claude Desktop"
 
 msgid "Install into"
 msgstr "Pasang ke"
-
-msgid "Install it to your other editors (Claude Code, Cursor, Codex) to share it."
-msgstr "Pasang di penyunting Anda yang lain (Claude Code, Cursor, Codex) untuk membagikannya."
 
 msgid "Install on"
 msgstr "Pasang di"
@@ -5365,9 +5140,6 @@ msgstr "{imported} dipasang, tetapi {failed} gagal: {failedNames}"
 msgid "Installed at {path} — click to remove"
 msgstr "Terpasang di {path} — klik untuk menghapus"
 
-msgid "Installed in {0}"
-msgstr "Terpasang di {0}"
-
 msgid "Installed in {label} — click to remove"
 msgstr "Terpasang di {label} — klik untuk menghapus"
 
@@ -5382,12 +5154,6 @@ msgstr "Terpasang ke proyek ini"
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "Memasang skill ke {path} — lokasi pertama menyimpan salinan aslinya"
-
-msgid "Installs to"
-msgstr "Dipasang di"
-
-msgid "installs:"
-msgstr "pemasangan:"
 
 msgid "Integrations"
 msgstr "Integrasi"
@@ -5506,9 +5272,6 @@ msgstr "Catat orang dan perusahaan yang bekerja dengan Anda serta pertemuan yang
 msgid "Keep: {title}"
 msgstr ""
 
-msgid "keeps the skills"
-msgstr "menyimpan keterampilan"
-
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "Menjaga basis pengetahuan Anda tetap selaras dengan Open Knowledge Format."
 
@@ -5618,9 +5381,6 @@ msgstr "Tautan"
 msgid "Link copied."
 msgstr "Tautan disalin."
 
-msgid "Link folders"
-msgstr "Tautkan folder"
-
 msgid "Link preview settings not yet loaded — try again in a moment"
 msgstr "Pengaturan pratinjau tautan belum dimuat — coba lagi sebentar"
 
@@ -5651,9 +5411,6 @@ msgstr "Target tautan \"{shown}\" ada, tetapi dikecualikan oleh .gitignore atau 
 msgid "Link the selected text, or edit the link under the caret."
 msgstr "Menautkan teks yang dipilih, atau menyunting tautan di bawah kursor."
 
-msgid "Link these skill folders?"
-msgstr "Tautkan folder keterampilan ini?"
-
 msgid "Link to a page"
 msgstr ""
 
@@ -5678,9 +5435,6 @@ msgstr "Respons graf tautan tidak sesuai bentuk yang diharapkan."
 msgid "Linked theme files aren’t supported"
 msgstr "Berkas tema tertaut tidak didukung"
 
-msgid "Linking merges another folder into this one. This folder does not exist yet, so install a skill here first."
-msgstr "Menautkan akan menggabungkan folder lain ke folder ini. Folder ini belum ada, jadi instal dulu sebuah skill di sini."
-
 msgid "Links"
 msgstr "Tautan"
 
@@ -5704,9 +5458,6 @@ msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "Berada di proyek ini (di mana pun folder keterampilannya) dan dibagikan ke kolaborator lewat git."
-
-msgid "Lives outside this project — read-only here."
-msgstr "Berada di luar proyek ini — hanya-baca di sini."
 
 msgid "Loading"
 msgstr "Memuat"
@@ -5750,9 +5501,6 @@ msgstr "Memuat berkas"
 msgid "Loading folder contents"
 msgstr "Memuat isi folder"
 
-msgid "Loading GitQuire skills"
-msgstr "Memuat keterampilan GitQuire"
-
 msgid "Loading graph"
 msgstr "Memuat graf"
 
@@ -5771,9 +5519,6 @@ msgstr "Memuat jalur…"
 msgid "Loading PDF"
 msgstr "Memuat PDF"
 
-msgid "Loading popular skills"
-msgstr "Memuat keterampilan populer"
-
 msgid "Loading preview"
 msgstr "Memuat pratinjau"
 
@@ -5782,9 +5527,6 @@ msgstr "Memuat repositori"
 
 msgid "Loading settings"
 msgstr "Memuat pengaturan"
-
-msgid "Loading skills"
-msgstr "Memuat keterampilan"
 
 msgid "Loading starter packs"
 msgstr "Memuat paket awal"
@@ -5890,9 +5632,6 @@ msgstr "Respons listPacks salah bentuk"
 
 msgid "Malformed plan response"
 msgstr "Respons plan salah bentuk"
-
-msgid "Manage"
-msgstr "Kelola"
 
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "Kelola berkas tersembunyi di Pengaturan → Pola abaikan."
@@ -6086,23 +5825,11 @@ msgstr "Lebih dari {0} permintaan diblokir oleh kebijakan keamanan pratinjau"
 msgid "Most capable, costs more"
 msgstr ""
 
-msgid "Most installed"
-msgstr "Paling banyak dipasang"
-
 msgid "Move"
 msgstr "Pindahkan"
 
 msgid "Move \"{title}\" to"
 msgstr ""
-
-msgid "Move {0} to Global"
-msgstr "Pindahkan {0} ke Global"
-
-msgid "Move {0} to Project"
-msgstr "Pindahkan {0} ke Proyek"
-
-msgid "Move across"
-msgstr "Dipindahkan"
 
 msgid "Move Agents to the bottom edge of the window"
 msgstr "Pindahkan Agen ke tepi bawah jendela"
@@ -6238,12 +5965,6 @@ msgstr "{label} dipindahkan ke panel baru di sebelah kanan."
 
 msgid "Moved {moved} of {total} skills to {scopeLabel}"
 msgstr "{moved} dari {total} keterampilan dipindahkan ke {scopeLabel}"
-
-msgid "Moved {moved} skills to Global"
-msgstr "{moved} keterampilan dipindahkan ke Global"
-
-msgid "Moved {moved} skills to Project"
-msgstr "{moved} keterampilan dipindahkan ke Proyek"
 
 msgid "Moved a page"
 msgstr ""
@@ -6404,9 +6125,6 @@ msgstr "Nama properti baru"
 msgid "New schema"
 msgstr "Skema baru"
 
-msgid "New skill"
-msgstr "Keterampilan baru"
-
 msgid "New skill file"
 msgstr "Berkas keterampilan baru"
 
@@ -6464,9 +6182,6 @@ msgstr "Belum ada alat AI yang terdeteksi. Setelah Anda memasang satu, hubungkan
 
 msgid "No AI tools detected yet. Once you install one, connect it from Settings > This project."
 msgstr "Belum ada alat AI yang terdeteksi. Setelah Anda memasang satu, hubungkan dari Pengaturan > Proyek ini."
-
-msgid "No AI tools detected. Install one to use this skill."
-msgstr "Tidak ada alat AI yang terdeteksi. Pasang satu untuk memakai keterampilan ini."
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "Tidak ada kunci API yang disetel untuk endpoint ini. Tambahkan satu di atas."
@@ -6539,9 +6254,6 @@ msgstr "Tanpa cuplikan"
 
 msgid "No file or folder selected"
 msgstr "Tidak ada berkas atau folder yang dipilih"
-
-msgid "No file selected"
-msgstr "Tidak ada berkas yang dipilih"
 
 msgid "No files yet."
 msgstr "Belum ada berkas."
@@ -6714,12 +6426,6 @@ msgstr "Tidak ada skema yang cocok dengan pencarian Anda."
 msgid "No settings found"
 msgstr "Tidak ada pengaturan yang ditemukan"
 
-msgid "No skill found at that source. Import will report why if you continue."
-msgstr "Tidak ada keterampilan yang ditemukan di sumber itu. Jika Anda melanjutkan, impor akan melaporkan alasannya."
-
-msgid "No skills found."
-msgstr "Tidak ada keterampilan yang ditemukan."
-
 msgid "No spaces — use <0>-</0> instead."
 msgstr "Tanpa spasi — gunakan <0>-</0> saja."
 
@@ -6786,9 +6492,6 @@ msgstr "Bukan tema base16"
 msgid "Not a hex color: {0}"
 msgstr "Bukan warna heksa: {0}"
 
-msgid "Not added to any AI tool yet."
-msgstr "Belum ditambahkan ke alat AI mana pun."
-
 msgid "Not attached to desktop bridge"
 msgstr "Tidak terhubung ke bridge desktop"
 
@@ -6804,13 +6507,9 @@ msgstr "Kurang bagus"
 msgid "Not in sidebar"
 msgstr "Tidak ada di bilah sisi"
 
-msgid "Not installed in this project yet."
-msgstr "Belum terpasang di proyek ini."
-
 msgid "Not merged"
 msgstr "Tidak digabungkan"
 
-#. Declines the first-visit skill offer; the row on the page keeps it available
 msgid "Not now"
 msgstr "Nanti saja"
 
@@ -6895,14 +6594,8 @@ msgstr "Mati — pencarian hanya memeringkat berdasarkan kata kunci. Tidak ada k
 msgid "Offline"
 msgstr "Luring"
 
-msgid "OK can't move these, so they go when {pick} does."
-msgstr "OK tidak bisa memindahkan ini, jadi ikut hilang bersama {pick}."
-
 msgid "OK Desktop"
 msgstr "OK Desktop"
-
-msgid "OK last set this folder to {0} — something outside OK changed it since. The state shown is what's on disk now; your next Symlink/Unlink wins."
-msgstr "Terakhir kali OK menyetel folder ini menjadi {0} — sesuatu di luar OK mengubahnya sejak itu. Keadaan yang ditampilkan adalah apa yang ada di disk sekarang; Symlink/Lepas tautan Anda berikutnya yang menang."
 
 msgid "OKF agent skill installed"
 msgstr "OKF keterampilan agen diinstal"
@@ -7298,9 +6991,6 @@ msgstr "Suntingan bertumpang tindih"
 msgid "Owner"
 msgstr "Pemilik"
 
-msgid "owner/repo, a git URL, or a local path"
-msgstr "pemilik/repo, sebuah URL git, atau jalur lokal"
-
 msgid "Pack preview unavailable."
 msgstr "Pratinjau paket tidak tersedia."
 
@@ -7378,12 +7068,6 @@ msgstr "galat penguraian"
 
 msgid "Parse failed"
 msgstr "Penguraian gagal"
-
-msgid "Part of the {0} plugin — read-only; open it to edit a copy"
-msgstr "Bagian dari plugin {0} — hanya-baca; buka untuk menyunting salinannya"
-
-msgid "Part of the {plugin} plugin"
-msgstr "Bagian dari plugin {plugin}"
 
 msgid "Paste"
 msgstr "Tempel"
@@ -7485,9 +7169,6 @@ msgstr "Pribadi untuk perangkat ini. Berlaku untuk setiap proyek yang Anda buka 
 msgid "Pick <0>openknowledge.skill</0> from your <1>Downloads</1> folder. It enables automatically."
 msgstr "Pilih <0>openknowledge.skill</0> dari folder <1>Downloads</1> Anda. Ia aktif otomatis."
 
-msgid "Pick a folder to merge INTO {display}. That folder becomes a symlink to this one, so its agent reads everything placed here. This folder stays real. Conflicting skills abort the merge."
-msgstr "Pilih sebuah folder untuk digabungkan KE DALAM {display}. Folder itu menjadi symlink ke folder ini, jadi agennya membaca semua yang ditaruh di sini. Folder ini tetap nyata. Keterampilan yang berkonflik membatalkan penggabungan."
-
 msgid "Pick a name"
 msgstr "Pilih sebuah nama"
 
@@ -7527,12 +7208,6 @@ msgstr "{0} diambil dari {1}."
 msgid "Pin tab"
 msgstr "Sematkan tab"
 
-msgid "Pin to top"
-msgstr "Sematkan di atas"
-
-msgid "Pinned"
-msgstr "Disematkan"
-
 msgid "Plain"
 msgstr "Polos"
 
@@ -7556,9 +7231,6 @@ msgstr "Plugin"
 
 msgid "Point semantic search at any OpenAI-compatible embeddings endpoint — a self-hosted server or another provider. The API key above is for whichever endpoint you set here."
 msgstr "Arahkan pencarian semantik ke endpoint embedding mana pun yang kompatibel dengan OpenAI — server milik sendiri atau penyedia lain. Kunci API di atas berlaku untuk endpoint mana pun yang Anda setel di sini."
-
-msgid "Popular"
-msgstr "Populer"
 
 msgid "Port {0} is already in use by another process. Pick a different one so your tunnel target stays stable across restarts."
 msgstr "Port {0} sudah digunakan oleh proses lain. Pilih port lain agar target tunnel Anda tetap stabil setelah restart."
@@ -7833,9 +7505,6 @@ msgstr "Embedding dihitung ulang seiring pencarian berjalan, jadi cakupannya dim
 msgid "Re-run the project audit"
 msgstr "Jalankan ulang audit proyek"
 
-msgid "React"
-msgstr "React"
-
 msgid "Read pages"
 msgstr ""
 
@@ -7932,9 +7601,6 @@ msgstr "Recycle Bin"
 msgid "Redo"
 msgstr "Ulangi"
 
-msgid "Refactoring"
-msgstr "Refaktor"
-
 msgid "Reference"
 msgstr "Referensi"
 
@@ -7972,9 +7638,6 @@ msgstr "Catatan rilis"
 msgid "Release plan"
 msgstr "Rencana rilis"
 
-msgid "Relevance"
-msgstr "Relevansi"
-
 msgid "Reload"
 msgstr "Muat ulang"
 
@@ -7984,17 +7647,11 @@ msgstr "Muat ulang tab ini untuk memperbaruinya. Suntingan Anda disimpan sebelum
 msgid "remote"
 msgstr "remote"
 
-msgid "Remote"
-msgstr "Remote"
-
 msgid "Remote branch <0>{remoteCheckoutRef}</0> will be checked out as a new local tracking branch <1>{trimmed}</1>, in its own window under <2>.ok/worktrees/</2>."
 msgstr "Cabang remote <0>{remoteCheckoutRef}</0> akan diambil sebagai cabang pelacak lokal baru <1>{trimmed}</1>, di jendelanya sendiri di bawah <2>.ok/worktrees/</2>."
 
 msgid "Remote control"
 msgstr "Kontrol jarak jauh"
-
-msgid "Remote skill source"
-msgstr "Sumber keterampilan remote"
 
 msgid "Remove"
 msgstr "Hapus"
@@ -8288,9 +7945,6 @@ msgstr "Ubah ukuran {pane}"
 msgid "Resize document panel"
 msgstr "Ubah ukuran panel dokumen"
 
-msgid "Resize skills panel"
-msgstr "Ubah ukuran panel Keterampilan"
-
 msgid "Resolve"
 msgstr ""
 
@@ -8486,12 +8140,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Disimpan sebagai <0>{slug}.md</0>"
 
-msgid "Saved into this project's skills folder (e.g. <0>.agents/skills</0>), versioned alongside your project."
-msgstr "Disimpan ke folder keterampilan proyek ini (mis. <0>.agents/skills</0>), diberi versi bersama proyek Anda."
-
-msgid "Saved into your global skills folder (e.g. <0>~/.agents/skills</0>)."
-msgstr "Disimpan ke folder keterampilan global Anda (mis. <0>~/.agents/skills</0>)."
-
 msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
 msgstr "Kunci yang disimpan bertentangan. Masukkan kunci pengganti untuk proyek dan endpoint ini."
 
@@ -8570,9 +8218,6 @@ msgstr "Cari emoji"
 msgid "Search failed."
 msgstr "Pencarian gagal."
 
-msgid "Search failed. Try again."
-msgstr "Pencarian gagal. Coba lagi."
-
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
 msgstr "Cari berkas, perintah, proyek, dan tindakan serah terima AI. Kombinasi K justru menambahkan tautan bila ada teks terpilih di penyunting visual; kombinasi P selalu membuka palet perintah."
 
@@ -8624,9 +8269,6 @@ msgstr "Cari di pengaturan"
 msgid "Search settings not yet loaded — try again in a moment"
 msgstr "Pengaturan pencarian belum dimuat — coba lagi sebentar"
 
-msgid "Search skills"
-msgstr "Cari keterampilan"
-
 msgid "Search templates"
 msgstr "Cari templat"
 
@@ -8662,9 +8304,6 @@ msgstr "Bagian <0>(jangkar judul opsional)</0>"
 
 msgid "Sections"
 msgstr "Bagian"
-
-msgid "Security"
-msgstr "Keamanan"
 
 msgid "See <0>#design-docs</0> for the latest specs."
 msgstr "Lihat <0>#design-docs</0> untuk spesifikasi terbaru."
@@ -8943,10 +8582,6 @@ msgstr "Bagikan masukan"
 msgid "Share folder"
 msgstr "Bagikan folder"
 
-#. Heading above the skill-folder list in Settings → Skills Studio — the reason, not the mechanism
-msgid "Share skills between AI tools"
-msgstr "Bagikan keterampilan antar alat AI"
-
 msgid "Share this setup with your team?"
 msgstr "Bagikan penyiapan ini dengan tim Anda?"
 
@@ -9139,59 +8774,14 @@ msgstr "Skill “{conflictName}” tidak dipasang — kamu sudah punya skill sen
 msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
 msgstr "Skill “{conflictName}” tidak dipasang untuk {conflictHosts} — di sana kamu sudah punya skill sendiri dengan nama itu. Ganti nama milikmu jika ingin versi dari paket."
 
-msgid "Skill \"{name}\" created"
-msgstr "Keterampilan \"{name}\" dibuat"
-
 msgid "Skill already in project"
 msgstr "Keterampilan sudah ada dalam proyek"
-
-msgid "Skill discovery powered by <0>skills.sh</0>"
-msgstr "Penemuan keterampilan ditenagai <0>skills.sh</0>"
 
 msgid "SKILL.md is managed by the skill itself — pick another name"
 msgstr "SKILL.md dikelola oleh skill itu sendiri — pilih nama lain"
 
-msgid "Skills"
-msgstr "Keterampilan"
-
-msgid "Skills from {0}."
-msgstr "Keterampilan dari {0}."
-
-msgid "Skills from {0}/{1}."
-msgstr "Keterampilan dari {0}/{1}."
-
-#. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
-msgid "Skills from GitQuire"
-msgstr "Keterampilan dari GitQuire"
-
-msgid "Skills reassigned"
-msgstr "Keterampilan dialihkan"
-
-msgid "Skills section"
-msgstr "Bagian Keterampilan"
-
-msgid "Skills Studio"
-msgstr "Studio Keterampilan"
-
-#. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
-msgstr "Keterampilan mengajarkan tugas berulang kepada alat AI Anda. Pasang keterampilan bawaan GitQuire, atau tulis milik Anda di bilah sisi Keterampilan pada editor."
-
-msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
-msgstr "Keterampilan mengajarkan tugas berulang kepada alat AI Anda. Tulis milik Anda di bilah sisi Keterampilan pada editor; halaman ini tempat keterampilan diaktifkan dan dibagikan."
-
-msgid "Skills that come with this project, and the folders its AI tools read them from."
-msgstr "Keterampilan yang disertakan dengan proyek ini, dan folder tempat alat AI-nya membacanya."
-
-msgid "Skills toolbar"
-msgstr "Bilah alat Keterampilan"
-
 msgid "skills.sh"
 msgstr "skills.sh"
-
-msgid "skills.sh is unavailable; showing GitHub results (no install ranking)."
-msgstr "skills.sh tidak tersedia; menampilkan hasil GitHub (tanpa peringkat pemasangan)."
 
 msgid "Skip"
 msgstr "Lewati"
@@ -9251,9 +8841,6 @@ msgstr "Beberapa file mungkin belum dihapus. Buka log pembersihan untuk melihat 
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Beberapa tema tersimpan tidak ditampilkan karena folder tema melewati batas pemindaian."
 
-msgid "Some skills were deleted with a warning"
-msgstr "Beberapa keterampilan dihapus dengan peringatan"
-
 msgid "Some templates may not be listed because this knowledge base has too many folders to scan. To see a folder's templates, open its menu in the file tree and choose New from template."
 msgstr "Beberapa templat mungkin tidak tercantum karena basis pengetahuan ini memiliki terlalu banyak folder untuk dipindai. Untuk melihat templat sebuah folder, buka menunya di pohon berkas lalu pilih \"Baru dari templat\"."
 
@@ -9289,12 +8876,6 @@ msgstr ""
 
 msgid "Something went wrong. Please try again."
 msgstr "Ada yang tidak beres. Silakan coba lagi."
-
-msgid "Sort by"
-msgstr "Urutkan menurut"
-
-msgid "Sort skills"
-msgstr "Urutkan keterampilan"
 
 msgid "source"
 msgstr "sumber"
@@ -9519,9 +9100,6 @@ msgstr "Symlink"
 msgid "Symlink to {targetPath}"
 msgstr "Symlink ke {targetPath}"
 
-msgid "symlinked via parent"
-msgstr "ditautkan lewat folder induk"
-
 msgid "Symlinks the skill to {path}"
 msgstr "Menautkan keterampilan secara symlink ke {path}"
 
@@ -9660,9 +9238,6 @@ msgstr "Ceritakan bagaimana perkembangannya"
 msgid "Tell us more (optional)"
 msgstr "Ceritakan lebih banyak (opsional)"
 
-msgid "Tells agents when to reach for this skill. You can edit it later."
-msgstr "Memberi tahu agen kapan harus memakai keterampilan ini. Anda bisa menyuntingnya nanti."
-
 msgid "Template \"{label}\" deleted"
 msgstr "Templat \"{label}\" dihapus"
 
@@ -9756,9 +9331,6 @@ msgstr "Bahasa itu tidak tersedia untuk pemeriksaan ejaan."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "Berhasil diurai, tetapi ini bukan tema base16."
-
-msgid "The {0} plugin serves these skills from its cache — OK never edits or updates them."
-msgstr "Plugin {0} menyajikan keterampilan ini dari cache-nya — OK tidak pernah mengedit atau memperbaruinya."
 
 msgid "The {editor} folder holds a different version of this skill. Pick which one wins, or keep both under different names. Whatever you replace is backed up first."
 msgstr "Folder {editor} memuat versi lain dari keterampilan ini. Pilih mana yang menang, atau simpan keduanya dengan nama berbeda. Apa pun yang Anda ganti dicadangkan lebih dulu."
@@ -10093,18 +9665,11 @@ msgstr "Tema"
 msgid "There is no address waiting for a code."
 msgstr ""
 
-msgid "These currently read from another folder. After linking, they read from {keep} instead."
-msgstr "Saat ini keterampilan ini dibaca dari folder lain. Setelah ditautkan, keterampilan ini dibaca dari {keep}."
-
 msgid "These links remain visible in Links and are not part of the repair queue."
 msgstr "Tautan ini tetap terlihat di Tautan dan bukan bagian dari antrean perbaikan."
 
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "Aturan-aturan ini berasal dari berkas <0>{configFile}</0> proyek Anda, yang sepenuhnya mengatur lint untuk proyek ini. Nyalakan atau matikan aturan dan sunting opsinya di sini; perubahannya ditulis kembali ke berkas itu."
-
-#. Says what the GitQuire-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
-msgstr "Keterampilan ini mengajarkan alat AI Anda cara bekerja dengan GitQuire. Memasang satu akan menambahkannya ke setiap alat AI di mesin ini."
 
 msgid "Thinking…"
 msgstr "Berpikir…"
@@ -10317,10 +9882,6 @@ msgstr "Ini memindahkan <0>{name}</0> dari {0} ke {1}, memindahkan berkasnya di 
 msgid "This one needs to see your files, not just the open document, so it appears when you run a project audit rather than while you type."
 msgstr "Yang ini perlu melihat file Anda, bukan hanya dokumen yang terbuka, sehingga muncul saat Anda menjalankan audit proyek, bukan saat Anda mengetik."
 
-#. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "Yang ini mengajarkan alat AI Anda cara bekerja dengan GitQuire. Keterampilan ini berada di folder proyek, jadi terpasang untuk semua orang yang membuka proyek."
-
 msgid "This pack is already set up here."
 msgstr "Paket ini sudah disiapkan di sini."
 
@@ -10353,9 +9914,6 @@ msgstr "Ini menghapus {0} secara permanen. Plugin asal salinannya tidak tersentu
 
 msgid "This permanently removes {0}/{1} from the \"{2}\" skill. Anything in SKILL.md that points at it will break until it's recreated."
 msgstr "Ini menghapus {0}/{1} secara permanen dari skill “{2}”. Apa pun di SKILL.md yang menunjuk ke berkas itu akan rusak sampai dibuat ulang."
-
-msgid "This permanently removes {names}. Agents that invoke these skills by name will fail until they're recreated."
-msgstr "Ini menghapus {names} secara permanen. Agen yang memanggil keterampilan ini berdasarkan nama akan gagal sampai dibuat ulang."
 
 msgid "This permanently removes {path}. Agents that reference this template by name will fail until it's recreated or replaced by one in a parent folder."
 msgstr "Ini menghapus {path} secara permanen. Agen yang merujuk templat ini berdasarkan nama akan gagal sampai ia dibuat ulang atau digantikan oleh templat di folder induk."
@@ -10425,12 +9983,6 @@ msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "Pengaturan ini berlaku per komputer dan tidak dibagikan dengan kolaborator. Ia memerlukan kunci API (setel di bawah) kecuali endpoint Anda adalah server lokal yang tidak memerlukannya."
-
-msgid "This source bundles several skills — choose one, then Import."
-msgstr "Sumber ini memuat beberapa keterampilan — pilih satu, lalu Impor."
-
-msgid "This source bundles several skills — choose the one to import."
-msgstr "Sumber ini memuat beberapa keterampilan — pilih yang akan diimpor."
 
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "Tab ini tidak dapat memastikan suntingan Anda sudah tersimpan, jadi tidak dimuat ulang. Suntingan Anda masih ada di sini."
@@ -10624,12 +10176,6 @@ msgstr "Opsi tampilan pohon"
 msgid "Try again"
 msgstr "Coba lagi"
 
-msgid "Turn {0} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "Mengubah {0} kembali menjadi direktori nyata yang memuat satu symlink per keterampilan untuk setiap keterampilan yang saat ini dilihatnya — tidak ada yang berhenti bekerja, dan sejak itu menu tiap keterampilan yang mengelolanya."
-
-msgid "Turn {display} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "Mengubah {display} kembali menjadi direktori nyata yang memuat satu symlink per keterampilan untuk setiap keterampilan yang saat ini dilihatnya — tidak ada yang berhenti bekerja, dan sejak itu menu tiap keterampilan yang mengelolanya."
-
 msgid "Turn it off any time in Settings."
 msgstr "Matikan kapan saja di Pengaturan."
 
@@ -10771,17 +10317,11 @@ msgstr "Galat tidak diketahui"
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "Variabel tidak dikenal {unknownList}. Variabel yang tersedia: {supportedVariables}."
 
-msgid "unlink"
-msgstr "lepas tautan"
-
 msgid "Unmerged"
 msgstr "Belum digabungkan"
 
 msgid "Unordered list of items."
 msgstr "Daftar item tanpa nomor."
-
-msgid "Unpin"
-msgstr "Lepas sematan"
 
 msgid "Unpin {accessibleLabel}"
 msgstr "Lepas sematan {accessibleLabel}"
@@ -10831,9 +10371,6 @@ msgstr "Perbarui"
 
 msgid "Update \"{skillName}\" over your edits?"
 msgstr "Perbarui \"{skillName}\" menimpa suntingan Anda?"
-
-msgid "Update all from this source"
-msgstr "Perbarui semua dari sumber ini"
 
 msgid "Update draft"
 msgstr ""
@@ -10886,9 +10423,6 @@ msgstr "Memperbarui"
 msgid "Updating…"
 msgstr ""
 
-msgid "Upload"
-msgstr "Unggah"
-
 msgid "Upload {keyName}"
 msgstr "Unggah {keyName}"
 
@@ -10898,9 +10432,6 @@ msgstr "Unggahan gagal"
 msgid "Upload failed — please try again"
 msgstr "Unggahan gagal — silakan coba lagi"
 
-msgid "Upload failed: {0}"
-msgstr "Unggahan gagal: {0}"
-
 msgid "Upload failed: {message}"
 msgstr "Unggahan gagal: {message}"
 
@@ -10909,9 +10440,6 @@ msgstr "Unggah dari komputer"
 
 msgid "Upload may have succeeded but the sidebar is out of date — refresh to resync"
 msgstr "Unggahan mungkin berhasil tetapi bilah sisi tidak mutakhir — segarkan untuk menyinkronkan ulang"
-
-msgid "Upload skill"
-msgstr "Unggah keterampilan"
 
 msgid "Uploaded \"{0}\"."
 msgstr "\"{0}\" diunggah."
@@ -10991,9 +10519,6 @@ msgstr ""
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "Pakai hanya huruf kecil, angka, dan <0>-</0>."
 
-msgid "Use lowercase letters, numbers, and hyphens only"
-msgstr "Pakai hanya huruf kecil, angka, dan tanda hubung"
-
 msgid "Use one slash between folder names."
 msgstr "Gunakan satu garis miring di antara nama folder."
 
@@ -11043,9 +10568,6 @@ msgstr "Versi di GitQuire"
 msgid "via {viaTags}"
 msgstr "via {viaTags}"
 
-msgid "via parent"
-msgstr "lewat folder induk"
-
 msgid "via plugin"
 msgstr "via plugin"
 
@@ -11054,9 +10576,6 @@ msgstr "Tampilan"
 
 msgid "View {name}"
 msgstr "Lihat {name}"
-
-msgid "View {publisher} on skills.sh"
-msgstr "Lihat {publisher} di skills.sh"
 
 msgid "View as text"
 msgstr "Lihat sebagai teks"
@@ -11078,12 +10597,6 @@ msgstr "Hanya lihat"
 
 msgid "View plugin"
 msgstr "Lihat plugin"
-
-msgid "View source"
-msgstr "Lihat sumber"
-
-msgid "View the {plugin} plugin repo"
-msgstr "Lihat repositori plugin {plugin}"
 
 msgid "Views"
 msgstr ""
@@ -11173,9 +10686,6 @@ msgstr "Apa yang menghambat?"
 msgid "What happened?"
 msgstr "Apa yang terjadi?"
 
-msgid "What happens next"
-msgstr "Apa yang terjadi selanjutnya"
-
 msgid "What is a starter pack?"
 msgstr "Apa itu paket awal?"
 
@@ -11241,9 +10751,6 @@ msgstr "Di mana ia sebaiknya berada?"
 
 msgid "Where to ask"
 msgstr ""
-
-msgid "Which skill"
-msgstr "Keterampilan yang mana"
 
 msgid "Whitespace"
 msgstr "Spasi"
@@ -11349,10 +10856,6 @@ msgstr "Kamu sudah punya skill sendiri bernama “{0}” — versi dari paket ti
 
 msgid "You are here"
 msgstr ""
-
-#. Label above the optional skill offered on first visit
-msgid "You can add"
-msgstr "Anda dapat menambahkan"
 
 msgid "You can also create one from a terminal with <0>{cliCommand} bug-report</0>."
 msgstr "Anda juga bisa membuatnya dari terminal dengan <0>{cliCommand} bug-report</0>."
@@ -11509,9 +11012,6 @@ msgstr "Pengaturan pengguna Anda tidak dapat dibaca"
 
 msgid "Your version"
 msgstr ""
-
-msgid "Zip file"
-msgstr "Berkas zip"
 
 msgid "Zoom"
 msgstr "Zoom"

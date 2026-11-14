@@ -25,9 +25,6 @@ msgstr " আপনার নির্বাচন পুনরুদ্ধার
 msgid "— except"
 msgstr "— ছাড়া"
 
-msgid ".myteam/skills"
-msgstr ".myteam/skills"
-
 msgid ".ok folders"
 msgstr ".ok ফোল্ডার"
 
@@ -232,23 +229,11 @@ msgstr ""
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
-msgid "{0} plugin"
-msgstr "{0} প্লাগইন"
-
-msgid "{0} plugin · {1}"
-msgstr "{0} প্লাগইন · {1}"
-
 msgid "{0} Properties"
 msgstr "{0} প্রপার্টি"
 
 msgid "{0} reads this skill via {poolRootRel}. Click to stop {1} getting \"{2}\" — {subRoot} keeps its other skills but stops following {poolRootRel}."
 msgstr "{0} এই স্কিলটি {poolRootRel}-এর মাধ্যমে পড়ে। {1}-কে \"{2}\" পাওয়া বন্ধ করতে ক্লিক করুন — {subRoot} তার অন্য স্কিলগুলো রাখবে কিন্তু {poolRootRel} অনুসরণ করা বন্ধ করবে।"
-
-msgid "{0} share this folder."
-msgstr "{0} এই ফোল্ডারটি ভাগ করে।"
-
-msgid "{0} skills selected"
-msgstr "{0}টি স্কিল নির্বাচিত"
 
 msgid "{0} total"
 msgstr "মোট {0}"
@@ -394,9 +379,6 @@ msgstr "{count} এগিয়ে"
 msgid "{count} behind"
 msgstr "{count} পিছিয়ে"
 
-msgid "{count} skills"
-msgstr "{count}টি স্কিল"
-
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {# দিন আগে} other {# দিন আগে}}"
 
@@ -414,9 +396,6 @@ msgstr "{diffHrs} ঘণ্টা আগে"
 
 msgid "{diffMin}m ago"
 msgstr "{diffMin} মিনিট আগে"
-
-msgid "{dir} (symlink)"
-msgstr "{dir} (সিমলিংক)"
 
 msgid "{display} is a symlink to the source while the skill's other locations are copies. Click to make it an independent copy."
 msgstr "{display} উৎসের একটি সিমলিংক, অথচ এই স্কিলের অন্য জায়গাগুলো অনুলিপি। এটিকে স্বতন্ত্র অনুলিপি বানাতে ক্লিক করুন।"
@@ -539,9 +518,6 @@ msgstr "{minutes} মিনিট আগে"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
-msgid "{name} moved, but its pin did not. Pin it again after settings finish loading."
-msgstr "{name} সরানো হয়েছে, কিন্তু এর পিন সরেনি। সেটিংস লোড হওয়া শেষ হলে আবার পিন করুন।"
-
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, one {# নোড} other {# নোড}}"
 
@@ -589,12 +565,6 @@ msgstr "উপর থেকে {percent}%"
 
 msgid "{phase} — {pct}%"
 msgstr "{phase} — {pct}%"
-
-msgid "{pick} and {keep} both hold a different version of: {0}. Resolve those first — a symlink can only keep one of each."
-msgstr "{pick} এবং {keep} দুটোতেই {0}-এর আলাদা সংস্করণ আছে। আগে সেগুলো মিটিয়ে নিন: একটি সিমলিংক প্রতিটির শুধু একটি সংস্করণই রাখতে পারে।"
-
-msgid "{pick} holds entries that aren't skills: {0}. Remove or move them from the folder and try again."
-msgstr "{pick}-এ এমন এন্ট্রি আছে যা স্কিল নয়: {0}। সেগুলো ফোল্ডার থেকে সরান বা অন্যত্র নিন, তারপর আবার চেষ্টা করুন।"
 
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin}-এ আরও {0}টি স্কিল আছে"
@@ -647,12 +617,6 @@ msgstr "{slot} রং — {0}"
 msgid "{slot} hex value"
 msgstr "{slot} হেক্স মান"
 
-msgid "{source} · imported source"
-msgstr "{source} · আমদানি করা উৎস"
-
-msgid "{source} · skills.sh source"
-msgstr "{source} · skills.sh উৎস"
-
 msgid "{source}: {updated} updated, {upToDate} already up to date"
 msgstr "{source}: {updated}টি আপডেট হয়েছে, {upToDate}টি ইতিমধ্যে আপ টু ডেট"
 
@@ -679,12 +643,6 @@ msgstr "{truncatedShownCount, plural, one {একটি ফোল্ডারে
 
 msgid "{uploadedCount, plural, one {Uploaded one file} other {Uploaded {uploadedCount} files}}"
 msgstr "{uploadedCount, plural, one {একটি ফাইল আপলোড হয়েছে} other {{uploadedCount}টি ফাইল আপলোড হয়েছে}}"
-
-msgid "{uploadFolderName} — {0} files"
-msgstr "{uploadFolderName} — {0}টি ফাইল"
-
-msgid "{uploadFolderName} — 1 file"
-msgstr "{uploadFolderName} — ১টি ফাইল"
 
 msgid "{userName} · {tabCount, plural, one {# tab} other {# tabs}}"
 msgstr "{userName} · {tabCount, plural, one {# ট্যাব} other {# ট্যাব}}"
@@ -767,9 +725,6 @@ msgstr "লাফাতে <0>স্পেস</0> · নিচু হতে <1>�
 msgid "<0>Too many live references on this page.</0> This mirror of <1>{src}</1> was not loaded."
 msgstr "<0>এই পাতায় অনেক বেশি লাইভ রেফারেন্স।</0> <1>{src}</1>-এর এই মিররটি লোড করা হয়নি।"
 
-msgid "~/.myteam/skills"
-msgstr "~/.myteam/skills"
-
 msgid "📝 or assets/icon.png"
 msgstr "📝 বা assets/icon.png"
 
@@ -799,9 +754,6 @@ msgstr "30 সেকেন্ড"
 
 msgid "5 minutes"
 msgstr "5 মিনিট"
-
-msgid "A .zip or .skill archive."
-msgstr "একটি .zip বা .skill আর্কাইভ।"
 
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "<0>পরিবর্তিত</0> ব্যাজ সেই নিয়মগুলো চিহ্নিত করে যেগুলো আপনার কনফিগ স্পষ্টভাবে নির্ধারণ করে — সরাসরি, বা <1>extends</1>-এর মাধ্যমে উত্তরাধিকারসূত্রে। চিহ্নহীন নিয়মগুলো তাদের ডিফল্ট অবস্থায় থাকে।"
@@ -845,9 +797,6 @@ msgstr "একটি নথিতে দ্বন্দ্ব আছে — হ�
 msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
 msgstr ""
 
-msgid "A folder containing SKILL.md."
-msgstr "SKILL.md আছে এমন একটি ফোল্ডার।"
-
 msgid "A folder named <0>{sanitized}</0> already has files here. Pick a different name."
 msgstr "<0>{sanitized}</0> নামের একটি ফোল্ডারে এখানে আগে থেকেই ফাইল আছে। অন্য নাম বাছুন।"
 
@@ -884,9 +833,6 @@ msgstr "এই পথে আগে থেকেই একটি অ-খালি
 msgid "A page with that name exists. Choose another name."
 msgstr ""
 
-msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
-msgstr "একটি মূল ডিরেক্টরিই সিমলিংক — এটি ফিরিয়ে নিতে সেই ফোল্ডারটিকেই আনলিংক করুন।"
-
 msgid "A path inside the skill — any folder works (e.g. references/notes.md). Folders in the path are created for you."
 msgstr "স্কিলের ভেতরের একটি পথ — যেকোনো ফোল্ডার চলে (যেমন references/notes.md)। পথের ফোল্ডারগুলো আপনার জন্য তৈরি করে দেওয়া হয়।"
 
@@ -922,9 +868,6 @@ msgstr "টেমপ্লেট তালিকায় শিরোনাম�
 
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "লেখার জন্য একটি সহজ জায়গা, প্রতি বিষয়ে একটি ফাইল আর একটি দৈনিক জার্নাল নিয়ে। আপনি যদি কেবল লেখা শুরু করতে চান এবং সময়ের সঙ্গে নোটগুলোর মধ্যে যোগসূত্র গড়ে উঠতে দিতে চান, তবে এটি বাছুন।"
-
-msgid "A skill named \"{trimmed}\" already exists here"
-msgstr "\"{trimmed}\" নামের একটি স্কিল এখানে আগে থেকেই আছে"
 
 msgid "A skill with that name already exists."
 msgstr "ওই নামের একটি স্কিল আগে থেকেই আছে।"
@@ -1080,9 +1023,6 @@ msgstr ""
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror-এর মাধ্যমে কার্সর যোগ করুন বা মিলে যাওয়া উপস্থিতিগুলো নির্বাচন করুন।"
 
-msgid "Add custom path"
-msgstr "কাস্টম পথ যোগ করুন"
-
 msgid "Add description"
 msgstr "বিবরণ যোগ করুন"
 
@@ -1124,9 +1064,6 @@ msgstr "প্রপার্টি যোগ করুন"
 
 msgid "Add property to {keyName}"
 msgstr "{keyName}-এ প্রপার্টি যোগ করুন"
-
-msgid "Add skill"
-msgstr "স্কিল যোগ করুন"
 
 msgid "Add tab"
 msgstr "ট্যাব যোগ করুন"
@@ -1365,9 +1302,6 @@ msgstr "যেকোনো .mdx ফাইল। বিন্যাসটি হ�
 
 msgid "any doc named {0}"
 msgstr "{0} নামের যেকোনো নথি"
-
-msgid "Any scripts are shown for review, never run."
-msgstr "যেকোনো স্ক্রিপ্ট পর্যালোচনার জন্য দেখানো হয়, কখনও চালানো হয় না।"
 
 msgid "Any value"
 msgstr ""
@@ -1659,9 +1593,6 @@ msgctxt "settings search keyword"
 msgid "batch"
 msgstr "ব্যাচ"
 
-msgid "becomes a symlink"
-msgstr "সিমলিংক হয়ে যায়"
-
 msgid "Becomes the document's content when someone creates a doc from this template. Type <0>{dateToken}</0> or <1>{userToken}</1> to fill in today's date or the author's name automatically."
 msgstr "কেউ এই টেমপ্লেট থেকে নথি তৈরি করলে এটিই সেই নথির বিষয়বস্তু হয়। আজকের তারিখ বা লেখকের নাম নিজে থেকে বসাতে <0>{dateToken}</0> বা <1>{userToken}</1> লিখুন।"
 
@@ -1729,9 +1660,6 @@ msgstr "গাঢ়"
 msgid "Both"
 msgstr "দুটোই"
 
-msgid "Both agents end up reading everything in {keep}."
-msgstr "শেষমেশ দুই এজেন্টই {keep}-এর সবকিছু পড়বে।"
-
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "দুটি সংস্করণ অভিন্ন। বর্তমানটি গ্রহণ করুন বেছে নিলে GitQuire-এর সুরক্ষা চালু থাকে, ফলে পুরোনো সংস্করণের আরেকটি সেভ আবার প্রত্যাখ্যান করা হবে। আগতটি গ্রহণ করুন বেছে নিলে সেই সুরক্ষা বন্ধ হয়ে যায়।"
 
@@ -1795,9 +1723,6 @@ msgstr "ফোল্ডার ব্রাউজ করুন"
 msgid "Browse hundreds of themes"
 msgstr "শত শত থিম দেখুন"
 
-msgid "Browse or upload a skill for this project."
-msgstr "এই প্রকল্পের জন্য কোনো স্কিল ব্রাউজ বা আপলোড করুন।"
-
 msgid "Browse your repos:"
 msgstr "আপনার রিপোজিটরি ব্রাউজ করুন:"
 
@@ -1833,9 +1758,6 @@ msgstr "বুলেট তালিকা"
 
 msgid "Bulleted list"
 msgstr ""
-
-msgid "By GitQuire"
-msgstr "GitQuire-এর তৈরি"
 
 msgid "By meaning"
 msgstr "অর্থ অনুসারে"
@@ -2003,9 +1925,6 @@ msgstr "সাইন-ইন অবস্থা পরীক্ষা করা �
 msgid "Checking skill"
 msgstr "দক্ষতা পরীক্ষা করা"
 
-msgid "Checking source"
-msgstr "উৎস পরীক্ষা করা হচ্ছে"
-
 msgid "Checking which AI tools you have"
 msgstr "আপনার কোন AI টুল আছে তা যাচাই করা হচ্ছে"
 
@@ -2024,20 +1943,8 @@ msgstr "চেকবক্সসহ চেকলিস্ট।"
 msgid "Checks your project against the Open Knowledge Format. Turn it off any time in Settings."
 msgstr "Open Knowledge Format এর বিরুদ্ধে আপনার প্রকল্প পরীক্ষা করে। সেটিংস থেকে যেকোনো সময় এটি বন্ধ করুন।"
 
-msgid "Choose a skill archive"
-msgstr "একটি স্কিল আর্কাইভ বাছুন"
-
-msgid "Choose a skill folder"
-msgstr "একটি স্কিল ফোল্ডার বাছুন"
-
 msgid "Choose color"
 msgstr "রং বেছে নিন"
-
-msgid "Choose file"
-msgstr "ফাইল বাছুন"
-
-msgid "Choose folder"
-msgstr "ফোল্ডার বাছুন"
 
 msgid "Choose icon"
 msgstr "আইকন বেছে নিন"
@@ -2093,9 +2000,6 @@ msgstr "রং সরান"
 
 msgid "Clear menu"
 msgstr "মেনু মুছুন"
-
-msgid "Clear selection"
-msgstr "নির্বাচন মুছুন"
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "ডিফল্ট OpenAI এন্ডপয়েন্টে ফিরতে ফিল্ডটি খালি করুন।"
@@ -2603,9 +2507,6 @@ msgstr "সংরক্ষিত API কী অ্যাক্সেস কর�
 msgid "Could not check the symlinks in {shareBranch}, so it was not switched. Try again; if it keeps failing, check that Git is installed and the project folder is readable."
 msgstr "{shareBranch}-এর সিমলিংকগুলো যাচাই করা যায়নি, তাই সেখানে যাওয়া হয়নি। আবার চেষ্টা করুন; বারবার ব্যর্থ হলে Git ইনস্টল করা আছে কি না এবং প্রজেক্ট ফোল্ডারটি পড়া যায় কি না তা দেখুন।"
 
-msgid "Could not classify the merge — try again."
-msgstr "মার্জটি শ্রেণিবদ্ধ করা যায়নি — আবার চেষ্টা করুন।"
-
 msgid "Could not complete delete"
 msgstr "মুছে ফেলা সম্পূর্ণ করা যায়নি"
 
@@ -2732,9 +2633,6 @@ msgstr "কপি করা যায়নি। হাতে কপি কর�
 msgid "Couldn't create {effective}: {0}"
 msgstr "{effective} তৈরি করা যায়নি: {0}"
 
-msgid "Couldn't create skill: {0}"
-msgstr "স্কিল তৈরি করা যায়নি: {0}"
-
 msgid "Couldn't create template: {error}"
 msgstr "টেমপ্লেট তৈরি করা যায়নি: {error}"
 
@@ -2749,9 +2647,6 @@ msgstr "ওয়ার্কট্রি তৈরি করা যায়ন
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "এই থিম তৈরি করা যায়নি। আবার চেষ্টা করুন।"
-
-msgid "Couldn't delete {0}: {error}"
-msgstr "{0} মুছে ফেলা যায়নি: {error}"
 
 msgid "Couldn’t delete {0}. Try again."
 msgstr "{0} মুছে ফেলা যায়নি। আবার চেষ্টা করুন।"
@@ -2789,9 +2684,6 @@ msgstr "{0} থেকে ইনস্টল করা যায়নি: {1}"
 msgid "Couldn't install skill: {0}"
 msgstr "স্কিল ইনস্টল করা যায়নি: {0}"
 
-msgid "Couldn't install the project skill: {0}"
-msgstr "প্রকল্পের স্কিল ইনস্টল করা যায়নি: {0}"
-
 msgid "Couldn't install: {0}"
 msgstr "ইনস্টল করা যায়নি: {0}"
 
@@ -2816,9 +2708,6 @@ msgstr "স্টার্টার প্যাক লোড করা যা�
 msgid "Couldn't load templates"
 msgstr "টেমপ্লেট লোড করা যায়নি"
 
-msgid "Couldn't load the GitQuire skills. Try again."
-msgstr "GitQuire স্কিল লোড করা যায়নি। আবার চেষ্টা করুন।"
-
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2837,9 +2726,6 @@ msgstr "আপনার বাগ রিপোর্ট লোড করা য�
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
-msgid "Couldn't move {0}: {1}"
-msgstr "{0} সরানো যায়নি: {1}"
-
 msgid "Couldn't move skill: {0}"
 msgstr "স্কিল সরানো যায়নি: {0}"
 
@@ -2855,9 +2741,6 @@ msgstr "\"{name}\" খোলা যায়নি — এটি এখনও �
 msgid "Couldn't open \"{name}\": {0}"
 msgstr "\"{name}\" খোলা যায়নি: {0}"
 
-msgid "Couldn't open {0} for editing: {1}"
-msgstr "{0} সম্পাদনার জন্য খোলা যায়নি: {1}"
-
 msgid "Couldn't open document"
 msgstr "নথি খোলা যায়নি"
 
@@ -2866,9 +2749,6 @@ msgstr "ওয়ার্কট্রি খোলা যায়নি। আ
 
 msgid "Couldn't open this document in Slidev."
 msgstr "এই নথিটি Slidev-এ খোলা যায়নি।"
-
-msgid "Couldn't pin {name}"
-msgstr "{name} পিন করা যায়নি"
 
 msgid "Couldn't place {skillName} in {root}: {0}"
 msgstr "{skillName}-কে {root}-এ রাখা যায়নি: {0}"
@@ -2923,12 +2803,6 @@ msgstr "ওয়ার্কিং ট্রি পড়া যায়নি
 
 msgid "Couldn’t read this theme ({0})"
 msgstr "এই থিমটি পড়া যায়নি ({0})"
-
-msgid "Couldn't read whether this project's skill is installed."
-msgstr "এই প্রকল্পের স্কিল ইনস্টল করা আছে কিনা পড়া যায়নি।"
-
-msgid "Couldn't read which skills are installed."
-msgstr "কোন স্কিলগুলি ইনস্টল করা আছে তা পড়া যায়নি।"
 
 msgid "Couldn't reconnect after server restart"
 msgstr "সার্ভার পুনরায় চালুর পর আবার যুক্ত হওয়া যায়নি"
@@ -3044,9 +2918,6 @@ msgstr "শুধু আমার-এ যাওয়া যায়নি"
 msgid "Couldn't switch views."
 msgstr ""
 
-msgid "Couldn't unpin {name}"
-msgstr "{name} থেকে পিন সরানো যায়নি"
-
 msgid "Couldn't update {gitignorePath}: {0}"
 msgstr "{gitignorePath} আপডেট করা যায়নি: {0}"
 
@@ -3106,12 +2977,6 @@ msgstr "আপনার পছন্দের ফোল্ডারে একট
 
 msgid "Create a new list item from the current list item."
 msgstr "বর্তমান তালিকা আইটেম থেকে একটি নতুন তালিকা আইটেম তৈরি করুন।"
-
-msgid "Create a personal skill, available across every project."
-msgstr "একটি ব্যক্তিগত স্কিল তৈরি করুন, যা প্রতিটি প্রকল্পে পাওয়া যাবে।"
-
-msgid "Create a skill for this project."
-msgstr "এই প্রকল্পের জন্য একটি স্কিল তৈরি করুন।"
 
 msgid "Create a token on {host}"
 msgstr "{host}-এ একটি টোকেন তৈরি করুন"
@@ -3215,9 +3080,6 @@ msgstr "কাস্টম এন্ডপয়েন্ট"
 msgid "Custom HTML with a live preview pane (sandboxed iframe)."
 msgstr "সরাসরি প্রাকদর্শন প্যানেলসহ কাস্টম HTML (স্যান্ডবক্স করা iframe)।"
 
-msgid "Custom skills folder path"
-msgstr "কাস্টম স্কিল ফোল্ডারের পাথ"
-
 msgid "Custom theme"
 msgstr "কাস্টম থিম"
 
@@ -3232,9 +3094,6 @@ msgstr "কাটুন"
 
 msgid "Dark"
 msgstr "গাঢ়"
-
-msgid "Data"
-msgstr "তথ্য"
 
 msgid "Date"
 msgstr "তারিখ"
@@ -3253,9 +3112,6 @@ msgstr "মুছুন"
 
 msgid "Delete {0}"
 msgstr "{0} মুছুন"
-
-msgid "Delete {0} skills"
-msgstr "{0}টি স্কিল মুছুন"
 
 msgid "Delete {deleteDescriptorLabel}"
 msgstr "{deleteDescriptorLabel} মুছুন"
@@ -3326,17 +3182,11 @@ msgstr "মোছা হয়েছে"
 msgid "Deleted {0}."
 msgstr "{0} মুছে ফেলা হয়েছে।"
 
-msgid "Deleted {deleted} skills"
-msgstr "{deleted}টি স্কিল মুছে ফেলা হয়েছে"
-
 msgid "Deleted {file}"
 msgstr "{file} মুছে ফেলা হয়েছে"
 
 msgid "Deleted {filePath}"
 msgstr "{filePath} মোছা হয়েছে"
-
-msgid "Deleted for good"
-msgstr "চিরতরে মুছে যাবে"
 
 msgid "Deleted in this draft"
 msgstr ""
@@ -3346,9 +3196,6 @@ msgstr "টেমপ্লেট মুছে ফেলা হয়েছে"
 
 msgid "Deleting"
 msgstr "মুছে ফেলা হচ্ছে"
-
-msgid "Deleting {progress} of {count}"
-msgstr "{count}টির মধ্যে {progress}টি মুছে ফেলা হচ্ছে"
 
 #. The skill's frontmatter description — the always-loaded tier
 msgid "description"
@@ -3362,13 +3209,6 @@ msgstr "বিবরণ (ঐচ্ছিক)"
 
 msgid "Description for {field}"
 msgstr "{field}-এর বিবরণ"
-
-#. Suffix on a skill directory card's context-cost figure — the always-loaded description tier
-msgid "description tokens"
-msgstr "বিবরণ টোকেন"
-
-msgid "Design"
-msgstr "নকশা"
 
 msgid "Detached at {0}"
 msgstr "{0}-এ বিচ্ছিন্ন"
@@ -3387,12 +3227,6 @@ msgstr "বিস্তারিত"
 
 msgid "Detected GitQuire projects"
 msgstr "শনাক্ত হওয়া GitQuire প্রকল্প"
-
-msgid "Detected in {0}"
-msgstr "{0}-এ শনাক্ত হয়েছে"
-
-msgid "DevOps"
-msgstr "DevOps"
 
 msgid "Diagram"
 msgstr "চিত্র"
@@ -3616,9 +3450,6 @@ msgstr "ফোকাস Files সাইডবারে থাকলে ফোক
 msgid "Duplicated to \"{0}\""
 msgstr "\"{0}\"-এ প্রতিলিপি করা হয়েছে"
 
-msgid "Duplicates dropped"
-msgstr "ডুপ্লিকেট বাদ"
-
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "যেমন drafts/ বা *.draft.md"
 
@@ -3636,10 +3467,6 @@ msgstr "যেমন একটি বড় টেবিল পেস্ট ক�
 
 msgid "Each {open} needs a matching {close}."
 msgstr "প্রতিটি {open}-এর জন্য একটি মিলে যাওয়া {close} দরকার।"
-
-#. Says what symlinking two skill folders together buys the user, before any button names it
-msgid "Each AI tool reads skills from its own folder. Point one folder at another and both tools see the same skills — add a skill once instead of copying it into every tool."
-msgstr "প্রতিটি AI টুল নিজের ফোল্ডার থেকে স্কিল পড়ে। একটি ফোল্ডারকে আরেকটির দিকে নির্দেশ করুন, তখন দুটি টুলই একই স্কিল দেখবে — প্রতিটি টুলে কপি করার বদলে স্কিল একবারই যোগ করুন।"
 
 msgid "Each pack scaffolds your project with ready-made folders and templates."
 msgstr "প্রতিটি প্যাক আপনার প্রকল্পকে তৈরি ফোল্ডার ও টেমপ্লেট দিয়ে কাঠামো দেয়।"
@@ -4051,9 +3878,6 @@ msgstr "আপনার কোডবেস কীভাবে কাজ কর�
 msgid "Explore"
 msgstr "ঘুরে দেখুন"
 
-msgid "Explore skills"
-msgstr "স্কিল ঘুরে দেখুন"
-
 msgid "Expose and restart"
 msgstr "এক্সপোজ করুন এবং পুনরায় চালু করুন"
 
@@ -4203,9 +4027,6 @@ msgstr "প্রকল্পের টেমপ্লেট লোড করত
 
 msgid "Failed to load recent projects."
 msgstr "সাম্প্রতিক প্রকল্প লোড করতে ব্যর্থ।"
-
-msgid "Failed to load skill settings: {0}"
-msgstr "স্কিলের সেটিং লোড করতে ব্যর্থ: {0}"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "ট্যাগ লোড করতে ব্যর্থ। <0>Esc</0> চেপে আবার খুলে চেষ্টা করুন।"
@@ -4405,9 +4226,6 @@ msgstr ""
 msgid "Filter languages"
 msgstr "ভাষা ছাঁকুন"
 
-msgid "Filter skills"
-msgstr "স্কিল ছাঁকুন"
-
 msgid "Find"
 msgstr "খুঁজুন"
 
@@ -4532,9 +4350,6 @@ msgstr "বহির্গামী লিংকের সাড়া প্র
 msgid "Found {countDisplay} markdown files"
 msgstr "{countDisplay}টি markdown ফাইল পাওয়া গেছে"
 
-msgid "Found one skill: {0}"
-msgstr "একটি স্কিল পাওয়া গেছে: {0}"
-
 msgid "Found the repo but could not open the project. Please try again."
 msgstr "রিপোজিটরি পাওয়া গেছে কিন্তু প্রকল্পটি খোলা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
 
@@ -4546,9 +4361,6 @@ msgstr "টেমপ্লেট থেকে"
 
 msgid "From the {0} plugin"
 msgstr "{0} প্লাগইন থেকে"
-
-msgid "From the {residentPlugin} plugin — read-only; plugin updates replace these files."
-msgstr "{residentPlugin} প্লাগইন থেকে — শুধুমাত্র-পঠনযোগ্য; প্লাগইন আপডেট এই ফাইলগুলো প্রতিস্থাপন করে।"
 
 msgid "Frontmatter"
 msgstr "frontmatter"
@@ -4596,9 +4408,6 @@ msgstr "GHES"
 
 msgid "Git"
 msgstr "Git"
-
-msgid "Git & PRs"
-msgstr "Git ও PR"
 
 msgid "Git can't track this folder — it's empty or contains only ignored files. The link won't work until you add a tracked document."
 msgstr "Git এই ফোল্ডারের হিসাব রাখতে পারে না — এটি খালি বা এতে কেবল উপেক্ষিত ফাইল আছে। আপনি একটি হিসাবভুক্ত নথি যোগ না করা পর্যন্ত লিংকটি কাজ করবে না।"
@@ -4656,18 +4465,12 @@ msgstr "GitHub Enterprise Server হোস্ট"
 msgid "GitHub sign-in is missing or expired. Reconnect to resume syncing."
 msgstr "GitHub সাইন-ইন অনুপস্থিত বা এর মেয়াদ শেষ। সিঙ্ক আবার শুরু করতে পুনরায় যুক্ত হোন।"
 
-msgid "GitHub, a git URL, or a local path."
-msgstr "GitHub, একটি git URL, বা একটি স্থানীয় পথ।"
-
 msgid "github.com is always recognized, so it doesn't need to be added."
 msgstr "github.com সবসময় চেনা হয়, তাই এটি যোগ করার দরকার নেই।"
 
 msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
-
-msgid "GitQuire"
-msgstr "GitQuire"
 
 msgid "GitQuire can't sign in to GitHub for this project."
 msgstr "GitQuire এই প্রকল্পের জন্য GitHub-এ সাইন ইন করতে পারে না।"
@@ -4784,10 +4587,6 @@ msgstr "{1}-এ লাইন {0}-এ যান"
 msgid "Good"
 msgstr "ভালো"
 
-#. Sole button when the intro has nothing left to offer
-msgid "Got it"
-msgstr "বুঝেছি"
-
 msgid "Graph"
 msgstr "গ্রাফ"
 
@@ -4808,9 +4607,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Group skills by source"
-msgstr "উৎস অনুসারে স্কিল গোষ্ঠীবদ্ধ করুন"
 
 msgid "Guides your AI agents on how to work here."
 msgstr "আপনার AI এজেন্টদের এখানে কীভাবে কাজ করতে হয় তা দেখায়।"
@@ -5056,9 +4852,6 @@ msgstr "আইকন নির্বাচক"
 msgid "ID: {0}"
 msgstr "আইডি: {0}"
 
-msgid "Identical in both — {pick} still reads them."
-msgstr "দুই জায়গাতেই এক — {pick} এগুলো পড়তেই থাকবে।"
-
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "আপনি যা সম্পাদনা করছেন তার জন্য কোনো হালনাগাদ এলে আপনি বেছে নেন কোন সংস্করণটি রাখবেন, ঠিক মার্জ দ্বন্দ্বের মতো।"
 
@@ -5104,14 +4897,8 @@ msgstr "ছবির লক্ষ্য \"{shown}\" বিদ্যমান, �
 msgid "Images aren't redacted."
 msgstr "ছবির সংবেদনশীল তথ্য আড়াল করা হয় না।"
 
-msgid "Import"
-msgstr "আমদানি করুন"
-
 msgid "Import as template"
 msgstr "টেমপ্লেট হিসেবে আমদানি করুন"
-
-msgid "Import failed: {0}"
-msgstr "আমদানি ব্যর্থ: {0}"
 
 msgid "Imported \"{0}\"."
 msgstr "\"{0}\" আমদানি করা হয়েছে।"
@@ -5121,9 +4908,6 @@ msgstr "{importedLabel} আমদানি করা হয়েছে"
 
 msgid "Imported as \"{0}\" — the name \"{1}\" was taken."
 msgstr "\"{0}\" হিসেবে আমদানি করা হয়েছে — \"{1}\" নামটি আগেই নেওয়া ছিল।"
-
-msgid "Importing"
-msgstr "আমদানি করা হচ্ছে"
 
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "একটি লগ নথিতে: এন্ট্রি শিরোনাম একটি ISO YYYY-MM-DD তারিখ সহ, নতুন প্রথম। আপনি কতগুলি title ব্যবহার করবেন এবং এন্ট্রিগুলি বুলেট কিনা তা আপনার উপর নির্ভর করে।"
@@ -5284,12 +5068,6 @@ msgstr "এই রিপোজিটরির GitQuire ওয়ার্কট�
 msgid "Install"
 msgstr "ইনস্টল করুন"
 
-msgid "Install {0}"
-msgstr "{0} ইনস্টল করুন"
-
-msgid "install a skill here first"
-msgstr "প্রথমে এখানে একটি স্কিল ইনস্টল করুন"
-
 msgid "Install failed: {0}"
 msgstr "ইনস্টল ব্যর্থ: {0}"
 
@@ -5324,9 +5102,6 @@ msgstr "Claude Desktop-এ ইনস্টল করুন"
 
 msgid "Install into"
 msgstr "এখানে ইনস্টল করুন"
-
-msgid "Install it to your other editors (Claude Code, Cursor, Codex) to share it."
-msgstr "এটি ভাগ করতে আপনার অন্য সম্পাদকগুলোতে (Claude Code, Cursor, Codex) ইনস্টল করুন।"
 
 msgid "Install on"
 msgstr "এতে ইনস্টল করুন"
@@ -5365,9 +5140,6 @@ msgstr "{imported}টি ইনস্টল হয়েছে, কিন্ত�
 msgid "Installed at {path} — click to remove"
 msgstr "{path}-এ ইনস্টল করা — সরাতে ক্লিক করুন"
 
-msgid "Installed in {0}"
-msgstr "{0}-এ ইনস্টল করা"
-
 msgid "Installed in {label} — click to remove"
 msgstr "{label}-এ ইনস্টল করা — সরাতে ক্লিক করুন"
 
@@ -5382,12 +5154,6 @@ msgstr "এই প্রকল্পে ইনস্টল হবে"
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "স্কিলটি {path}-এ ইনস্টল করে — প্রথম অবস্থানটি এর নিজস্ব কপি রাখে"
-
-msgid "Installs to"
-msgstr "যেখানে ইনস্টল হবে"
-
-msgid "installs:"
-msgstr "ইনস্টল:"
 
 msgid "Integrations"
 msgstr "সংযুক্তি"
@@ -5506,9 +5272,6 @@ msgstr "আপনি যাদের ও যে কোম্পানিগু�
 msgid "Keep: {title}"
 msgstr ""
 
-msgid "keeps the skills"
-msgstr "স্কিলগুলো রেখে দেয়"
-
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "আপনার জ্ঞানভান্ডারকে Open Knowledge Format-এর সঙ্গে সামঞ্জস্যপূর্ণ রাখে।"
 
@@ -5618,9 +5381,6 @@ msgstr "লিংক"
 msgid "Link copied."
 msgstr "লিংক কপি হয়েছে।"
 
-msgid "Link folders"
-msgstr "ফোল্ডার লিংক করুন"
-
 msgid "Link preview settings not yet loaded — try again in a moment"
 msgstr "লিংক প্রাকদর্শনের সেটিং এখনও লোড হয়নি — একটু পরে আবার চেষ্টা করুন"
 
@@ -5651,9 +5411,6 @@ msgstr "লিংকের লক্ষ্য \"{shown}\" বিদ্যমা�
 msgid "Link the selected text, or edit the link under the caret."
 msgstr "নির্বাচিত লেখাটি লিংক করুন, বা কার্সরের নিচের লিংকটি সম্পাদনা করুন।"
 
-msgid "Link these skill folders?"
-msgstr "এই স্কিল ফোল্ডারগুলো লিংক করবেন?"
-
 msgid "Link to a page"
 msgstr ""
 
@@ -5678,9 +5435,6 @@ msgstr "লিংক-গ্রাফের সাড়া প্রত্যা
 msgid "Linked theme files aren’t supported"
 msgstr "লিঙ্ক করা থিম ফাইল সমর্থিত নয়"
 
-msgid "Linking merges another folder into this one. This folder does not exist yet, so install a skill here first."
-msgstr "লিংক করলে অন্য একটি ফোল্ডার এই ফোল্ডারে মার্জ হয়ে যায়। এই ফোল্ডারটি এখনও নেই, তাই প্রথমে এখানে একটি স্কিল ইনস্টল করুন।"
-
 msgid "Links"
 msgstr "লিংক"
 
@@ -5704,9 +5458,6 @@ msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "এই প্রকল্পেই থাকে (স্কিলের ফোল্ডার যেখানেই হোক) এবং git-এর মাধ্যমে সহযোগীদের সঙ্গে ভাগ করা হয়।"
-
-msgid "Lives outside this project — read-only here."
-msgstr "এই প্রকল্পের বাইরে অবস্থিত — এখানে শুধুমাত্র-পঠনযোগ্য।"
 
 msgid "Loading"
 msgstr "লোড হচ্ছে"
@@ -5750,9 +5501,6 @@ msgstr "ফাইল লোড হচ্ছে"
 msgid "Loading folder contents"
 msgstr "ফোল্ডারের বিষয়বস্তু লোড হচ্ছে"
 
-msgid "Loading GitQuire skills"
-msgstr "GitQuire স্কিল লোড হচ্ছে"
-
 msgid "Loading graph"
 msgstr "গ্রাফ লোড হচ্ছে"
 
@@ -5771,9 +5519,6 @@ msgstr "পথ লোড হচ্ছে…"
 msgid "Loading PDF"
 msgstr "PDF লোড হচ্ছে"
 
-msgid "Loading popular skills"
-msgstr "জনপ্রিয় স্কিল লোড হচ্ছে"
-
 msgid "Loading preview"
 msgstr "প্রাকদর্শন লোড হচ্ছে"
 
@@ -5782,9 +5527,6 @@ msgstr "রিপোজিটরি লোড হচ্ছে"
 
 msgid "Loading settings"
 msgstr "সেটিং লোড হচ্ছে"
-
-msgid "Loading skills"
-msgstr "স্কিল লোড হচ্ছে"
 
 msgid "Loading starter packs"
 msgstr "স্টার্টার প্যাক লোড হচ্ছে"
@@ -5890,9 +5632,6 @@ msgstr "listPacks প্রতিক্রিয়ার গঠন ত্রু
 
 msgid "Malformed plan response"
 msgstr "প্ল্যান প্রতিক্রিয়ার গঠন ত্রুটিপূর্ণ"
-
-msgid "Manage"
-msgstr "পরিচালনা করুন"
 
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "লুকানো ফাইল Settings → Ignore patterns-এ সামলান।"
@@ -6086,23 +5825,11 @@ msgstr "প্রাকদর্শনের নিরাপত্তা নী�
 msgid "Most capable, costs more"
 msgstr ""
 
-msgid "Most installed"
-msgstr "সবচেয়ে বেশি ইনস্টল হওয়া"
-
 msgid "Move"
 msgstr "সরান"
 
 msgid "Move \"{title}\" to"
 msgstr ""
-
-msgid "Move {0} to Global"
-msgstr "{0}টি স্কিল গ্লোবালে সরান"
-
-msgid "Move {0} to Project"
-msgstr "{0}টি স্কিল প্রকল্পে সরান"
-
-msgid "Move across"
-msgstr "সরে যাবে"
 
 msgid "Move Agents to the bottom edge of the window"
 msgstr "এজেন্ট উইন্ডোর নিচের প্রান্তে সরান"
@@ -6238,12 +5965,6 @@ msgstr "{label}-কে ডান পাশের নতুন প্যানে
 
 msgid "Moved {moved} of {total} skills to {scopeLabel}"
 msgstr "{total}টির মধ্যে {moved}টি স্কিল {scopeLabel}-এ সরানো হয়েছে"
-
-msgid "Moved {moved} skills to Global"
-msgstr "{moved}টি স্কিল গ্লোবালে সরানো হয়েছে"
-
-msgid "Moved {moved} skills to Project"
-msgstr "{moved}টি স্কিল প্রকল্পে সরানো হয়েছে"
 
 msgid "Moved a page"
 msgstr ""
@@ -6404,9 +6125,6 @@ msgstr "নতুন প্রপার্টির নাম"
 msgid "New schema"
 msgstr "নতুন স্কিমা"
 
-msgid "New skill"
-msgstr "নতুন স্কিল"
-
 msgid "New skill file"
 msgstr "নতুন স্কিল ফাইল"
 
@@ -6464,9 +6182,6 @@ msgstr "এখনও কোনো AI টুল পাওয়া যায়�
 
 msgid "No AI tools detected yet. Once you install one, connect it from Settings > This project."
 msgstr "এখনও কোনো AI টুল পাওয়া যায়নি। একটি ইনস্টল করার পর Settings > This project থেকে সেটি যুক্ত করুন।"
-
-msgid "No AI tools detected. Install one to use this skill."
-msgstr "কোনো AI টুল পাওয়া যায়নি। এই স্কিল ব্যবহার করতে একটি ইনস্টল করুন।"
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "এই এন্ডপয়েন্টের জন্য কোনো API কী নির্ধারিত নেই। উপরে একটি যোগ করুন।"
@@ -6539,9 +6254,6 @@ msgstr "কোনো উদ্ধৃতাংশ নেই"
 
 msgid "No file or folder selected"
 msgstr "কোনো ফাইল বা ফোল্ডার নির্বাচিত নেই"
-
-msgid "No file selected"
-msgstr "কোনো ফাইল নির্বাচিত নেই"
 
 msgid "No files yet."
 msgstr "এখনও কোনো ফাইল নেই।"
@@ -6714,12 +6426,6 @@ msgstr "আপনার অনুসন্ধানের সঙ্গে কো
 msgid "No settings found"
 msgstr "কোনো সেটিং পাওয়া যায়নি"
 
-msgid "No skill found at that source. Import will report why if you continue."
-msgstr "ওই উৎসে কোনো স্কিল পাওয়া যায়নি। আপনি চালিয়ে গেলে আমদানি কারণ জানাবে।"
-
-msgid "No skills found."
-msgstr "কোনো স্কিল পাওয়া যায়নি।"
-
 msgid "No spaces — use <0>-</0> instead."
 msgstr "ফাঁকা জায়গা নয় — বদলে <0>-</0> ব্যবহার করুন।"
 
@@ -6786,9 +6492,6 @@ msgstr "এটি base16 থিম নয়"
 msgid "Not a hex color: {0}"
 msgstr "হেক্স রঙ নয়: {0}"
 
-msgid "Not added to any AI tool yet."
-msgstr "এখনও কোনো AI টুলে যোগ করা হয়নি।"
-
 msgid "Not attached to desktop bridge"
 msgstr "ডেস্কটপ ব্রিজের সাথে সংযুক্ত নয়"
 
@@ -6804,13 +6507,9 @@ msgstr "তেমন ভালো নয়"
 msgid "Not in sidebar"
 msgstr "সাইডবারে নেই"
 
-msgid "Not installed in this project yet."
-msgstr "এই প্রকল্পে এখনো ইনস্টল হয়নি।"
-
 msgid "Not merged"
 msgstr "মার্জ হয়নি"
 
-#. Declines the first-visit skill offer; the row on the page keeps it available
 msgid "Not now"
 msgstr "এখন নয়"
 
@@ -6895,14 +6594,8 @@ msgstr "বন্ধ — অনুসন্ধান কেবল কীওয�
 msgid "Offline"
 msgstr "অফলাইন"
 
-msgid "OK can't move these, so they go when {pick} does."
-msgstr "OK এগুলো সরাতে পারে না, তাই {pick}-এর সঙ্গেই এগুলো চলে যাবে।"
-
 msgid "OK Desktop"
 msgstr "OK Desktop"
-
-msgid "OK last set this folder to {0} — something outside OK changed it since. The state shown is what's on disk now; your next Symlink/Unlink wins."
-msgstr "OK শেষবার এই ফোল্ডারটি {0}-এ নির্ধারণ করেছিল — এরপর OK-এর বাইরের কিছু সেটি বদলে দিয়েছে। দেখানো অবস্থাটি এখন ডিস্কে যা আছে তাই; আপনার পরবর্তী Symlink/Unlink কার্যকর হবে।"
 
 msgid "OKF agent skill installed"
 msgstr "OKF এজেন্ট দক্ষতা ইনস্টল করা হয়েছে"
@@ -7298,9 +6991,6 @@ msgstr "পরস্পরে মিলে যাওয়া সম্পাদ
 msgid "Owner"
 msgstr "মালিক"
 
-msgid "owner/repo, a git URL, or a local path"
-msgstr "owner/repo, একটি git URL, বা একটি স্থানীয় পথ"
-
 msgid "Pack preview unavailable."
 msgstr "প্যাক প্রিভিউ অনুপলব্ধ।"
 
@@ -7378,12 +7068,6 @@ msgstr "পার্স ত্রুটি"
 
 msgid "Parse failed"
 msgstr "পার্স ব্যর্থ"
-
-msgid "Part of the {0} plugin — read-only; open it to edit a copy"
-msgstr "{0} প্লাগইনের অংশ — শুধু পড়ার জন্য; একটি অনুলিপি সম্পাদনা করতে এটি খুলুন"
-
-msgid "Part of the {plugin} plugin"
-msgstr "{plugin} প্লাগইনের অংশ"
 
 msgid "Paste"
 msgstr "পেস্ট করুন"
@@ -7485,9 +7169,6 @@ msgstr "এই যন্ত্রেই সীমাবদ্ধ। এখান
 msgid "Pick <0>openknowledge.skill</0> from your <1>Downloads</1> folder. It enables automatically."
 msgstr "আপনার <1>Downloads</1> ফোল্ডার থেকে <0>openknowledge.skill</0> বাছুন। এটি নিজে থেকেই চালু হয়।"
 
-msgid "Pick a folder to merge INTO {display}. That folder becomes a symlink to this one, so its agent reads everything placed here. This folder stays real. Conflicting skills abort the merge."
-msgstr "{display}-এর মধ্যে মেলানোর জন্য একটি ফোল্ডার বাছুন। ওই ফোল্ডারটি এটির সিমলিংক হয়ে যায়, তাই তার এজেন্ট এখানে রাখা সবকিছু পড়ে। এই ফোল্ডারটি সত্যিকারের থেকে যায়। দ্বন্দ্বপূর্ণ স্কিল মার্জ বাতিল করে দেয়।"
-
 msgid "Pick a name"
 msgstr "একটি নাম বাছুন"
 
@@ -7527,12 +7208,6 @@ msgstr "{1} থেকে {0} তোলা হয়েছে।"
 msgid "Pin tab"
 msgstr "ট্যাব পিন করুন"
 
-msgid "Pin to top"
-msgstr "উপরে পিন করুন"
-
-msgid "Pinned"
-msgstr "পিন করা"
-
 msgid "Plain"
 msgstr "সাদামাটা"
 
@@ -7556,9 +7231,6 @@ msgstr "প্লাগইন"
 
 msgid "Point semantic search at any OpenAI-compatible embeddings endpoint — a self-hosted server or another provider. The API key above is for whichever endpoint you set here."
 msgstr "অর্থভিত্তিক অনুসন্ধানকে যেকোনো OpenAI-সঙ্গতিপূর্ণ এমবেডিং এন্ডপয়েন্টে লাগান — নিজে হোস্ট করা সার্ভার বা অন্য কোনো সরবরাহকারী। উপরের API কী-টি আপনি এখানে যে এন্ডপয়েন্ট নির্ধারণ করেন তার জন্যই।"
-
-msgid "Popular"
-msgstr "জনপ্রিয়"
 
 msgid "Port {0} is already in use by another process. Pick a different one so your tunnel target stays stable across restarts."
 msgstr "পোর্ট {0} ইতিমধ্যে অন্য একটি প্রসেস দ্বারা ব্যবহৃত হচ্ছে। একটি ভিন্ন পোর্ট বেছে নিন যাতে রিস্টার্টের পরেও আপনার টানেলের লক্ষ্য স্থিতিশীল থাকে।"
@@ -7833,9 +7505,6 @@ msgstr "অনুসন্ধান চলার সঙ্গে সঙ্গে
 msgid "Re-run the project audit"
 msgstr "প্রকল্পের নিরীক্ষা আবার চালান"
 
-msgid "React"
-msgstr "React"
-
 msgid "Read pages"
 msgstr ""
 
@@ -7932,9 +7601,6 @@ msgstr "রিসাইকেল বিন"
 msgid "Redo"
 msgstr "পুনরায় করুন"
 
-msgid "Refactoring"
-msgstr "পুনর্গঠন"
-
 msgid "Reference"
 msgstr "রেফারেন্স"
 
@@ -7972,9 +7638,6 @@ msgstr "প্রকাশের নোট"
 msgid "Release plan"
 msgstr "প্রকাশের পরিকল্পনা"
 
-msgid "Relevance"
-msgstr "প্রাসঙ্গিকতা"
-
 msgid "Reload"
 msgstr "আবার লোড করুন"
 
@@ -7984,17 +7647,11 @@ msgstr "হালনাগাদ করতে এই ট্যাবটি আ�
 msgid "remote"
 msgstr "রিমোট"
 
-msgid "Remote"
-msgstr "রিমোট"
-
 msgid "Remote branch <0>{remoteCheckoutRef}</0> will be checked out as a new local tracking branch <1>{trimmed}</1>, in its own window under <2>.ok/worktrees/</2>."
 msgstr "রিমোট ব্রাঞ্চ <0>{remoteCheckoutRef}</0> একটি নতুন স্থানীয় অনুসরণকারী ব্রাঞ্চ <1>{trimmed}</1> হিসেবে চেক আউট করা হবে, <2>.ok/worktrees/</2>-এর নিচে নিজের জানালায়।"
 
 msgid "Remote control"
 msgstr "রিমোট কন্ট্রোল"
-
-msgid "Remote skill source"
-msgstr "রিমোট স্কিল উৎস"
 
 msgid "Remove"
 msgstr "সরান"
@@ -8288,9 +7945,6 @@ msgstr "{pane}-এর আকার বদলান"
 msgid "Resize document panel"
 msgstr "নথি প্যানেলের আকার পরিবর্তন করুন"
 
-msgid "Resize skills panel"
-msgstr "স্কিল প্যানেলের আকার পরিবর্তন করুন"
-
 msgid "Resolve"
 msgstr ""
 
@@ -8486,12 +8140,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "<0>{slug}.md</0> হিসেবে সংরক্ষিত"
 
-msgid "Saved into this project's skills folder (e.g. <0>.agents/skills</0>), versioned alongside your project."
-msgstr "এই প্রকল্পের স্কিল ফোল্ডারে সংরক্ষিত (যেমন <0>.agents/skills</0>), আপনার প্রকল্পের সঙ্গেই সংস্করণ করা।"
-
-msgid "Saved into your global skills folder (e.g. <0>~/.agents/skills</0>)."
-msgstr "আপনার বৈশ্বিক স্কিল ফোল্ডারে সংরক্ষিত (যেমন <0>~/.agents/skills</0>)।"
-
 msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
 msgstr "সংরক্ষিত কীগুলির মধ্যে বিরোধ আছে। এর বদলে ব্যবহার করতে এই প্রকল্প ও এন্ডপয়েন্টের জন্য একটি নতুন কী দিন।"
 
@@ -8570,9 +8218,6 @@ msgstr "ইমোজি খুঁজুন"
 msgid "Search failed."
 msgstr "অনুসন্ধান ব্যর্থ।"
 
-msgid "Search failed. Try again."
-msgstr "অনুসন্ধান ব্যর্থ। আবার চেষ্টা করুন।"
-
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
 msgstr "ফাইল, কমান্ড, প্রকল্প ও AI হস্তান্তরের ক্রিয়া খুঁজুন। দৃশ্য সম্পাদকে লেখা নির্বাচিত থাকলে K সংযোগটি বদলে একটি লিংক যোগ করে; P সংযোগটি সবসময় কমান্ড প্যালেট খোলে।"
 
@@ -8624,9 +8269,6 @@ msgstr "সেটিং খুঁজুন"
 msgid "Search settings not yet loaded — try again in a moment"
 msgstr "অনুসন্ধানের সেটিং এখনও লোড হয়নি — একটু পরে আবার চেষ্টা করুন"
 
-msgid "Search skills"
-msgstr "স্কিল খুঁজুন"
-
 msgid "Search templates"
 msgstr "টেমপ্লেট খুঁজুন"
 
@@ -8662,9 +8304,6 @@ msgstr "বিভাগ <0>(ঐচ্ছিক শিরোনাম অ্য�
 
 msgid "Sections"
 msgstr "বিভাগ"
-
-msgid "Security"
-msgstr "নিরাপত্তা"
 
 msgid "See <0>#design-docs</0> for the latest specs."
 msgstr "সর্বশেষ স্পেকের জন্য <0>#design-docs</0> দেখুন।"
@@ -8943,10 +8582,6 @@ msgstr "মতামত ভাগ করুন"
 msgid "Share folder"
 msgstr "ফোল্ডার ভাগ করুন"
 
-#. Heading above the skill-folder list in Settings → Skills Studio — the reason, not the mechanism
-msgid "Share skills between AI tools"
-msgstr "AI টুলগুলির মধ্যে স্কিল ভাগ করুন"
-
 msgid "Share this setup with your team?"
 msgstr "এই সেটআপটি আপনার দলের সঙ্গে ভাগ করবেন?"
 
@@ -9139,59 +8774,14 @@ msgstr "“{conflictName}” স্কিলটি ইনস্টল করা 
 msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
 msgstr "{conflictHosts}-এর জন্য “{conflictName}” স্কিলটি ইনস্টল করা হয়নি — সেখানে ওই নামে আপনার নিজের একটি স্কিল আগে থেকেই আছে। প্যাকের সংস্করণ চাইলে আপনার স্কিলের নাম বদলান।"
 
-msgid "Skill \"{name}\" created"
-msgstr "স্কিল \"{name}\" তৈরি হয়েছে"
-
 msgid "Skill already in project"
 msgstr "ইতিমধ্যে প্রকল্পে দক্ষতা"
-
-msgid "Skill discovery powered by <0>skills.sh</0>"
-msgstr "স্কিল খোঁজা <0>skills.sh</0> দ্বারা চালিত"
 
 msgid "SKILL.md is managed by the skill itself — pick another name"
 msgstr "SKILL.md স্কিল নিজেই পরিচালনা করে — অন্য একটি নাম বেছে নিন"
 
-msgid "Skills"
-msgstr "স্কিল"
-
-msgid "Skills from {0}."
-msgstr "{0} থেকে স্কিল।"
-
-msgid "Skills from {0}/{1}."
-msgstr "{0}/{1} থেকে স্কিল।"
-
-#. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
-msgid "Skills from GitQuire"
-msgstr "GitQuire-এর স্কিল"
-
-msgid "Skills reassigned"
-msgstr "স্কিলগুলো পুনরায় নির্ধারিত হয়েছে"
-
-msgid "Skills section"
-msgstr "স্কিল বিভাগ"
-
-msgid "Skills Studio"
-msgstr "স্কিল স্টুডিও"
-
-#. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
-msgstr "স্কিল আপনার AI টুলকে পুনরাবৃত্ত কাজ শেখায়। GitQuire-এর সঙ্গে আসা স্কিল ইনস্টল করুন, বা এডিটরের স্কিল সাইডবারে নিজের স্কিল লিখুন।"
-
-msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
-msgstr "স্কিল আপনার AI টুলকে পুনরাবৃত্ত কাজ শেখায়। নিজের স্কিল এডিটরের স্কিল সাইডবারে লিখুন; এই পাতায় সেগুলি চালু ও ভাগ করা হয়।"
-
-msgid "Skills that come with this project, and the folders its AI tools read them from."
-msgstr "এই প্রকল্পের সঙ্গে আসা স্কিল, এবং যে ফোল্ডারগুলি থেকে এর AI টুল সেগুলি পড়ে।"
-
-msgid "Skills toolbar"
-msgstr "স্কিল টুলবার"
-
 msgid "skills.sh"
 msgstr "skills.sh"
-
-msgid "skills.sh is unavailable; showing GitHub results (no install ranking)."
-msgstr "skills.sh পাওয়া যাচ্ছে না; GitHub-এর ফলাফল দেখানো হচ্ছে (ইনস্টল অনুযায়ী ক্রম নেই)।"
 
 msgid "Skip"
 msgstr "এড়িয়ে যান"
@@ -9251,9 +8841,6 @@ msgstr "কিছু ফাইল হয়তো সরানো হয়ন�
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "থিম ফোল্ডারটি স্ক্যানের সীমা ছাড়িয়ে যাওয়ায় কিছু সংরক্ষিত থিম দেখানো হচ্ছে না।"
 
-msgid "Some skills were deleted with a warning"
-msgstr "কিছু স্কিল সতর্কবার্তাসহ মুছে ফেলা হয়েছে"
-
 msgid "Some templates may not be listed because this knowledge base has too many folders to scan. To see a folder's templates, open its menu in the file tree and choose New from template."
 msgstr "কিছু টেমপ্লেট তালিকায় না-ও থাকতে পারে, কারণ এই জ্ঞানভাণ্ডারে স্ক্যান করার জন্য অনেক বেশি ফোল্ডার আছে। কোনো ফোল্ডারের টেমপ্লেট দেখতে, ফাইল ট্রিতে তার মেনু খুলে \"টেমপ্লেট থেকে নতুন\" বেছে নিন।"
 
@@ -9289,12 +8876,6 @@ msgstr ""
 
 msgid "Something went wrong. Please try again."
 msgstr "কিছু একটা ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
-
-msgid "Sort by"
-msgstr "এই অনুযায়ী সাজান"
-
-msgid "Sort skills"
-msgstr "স্কিল সাজান"
 
 msgid "source"
 msgstr "উৎস"
@@ -9519,9 +9100,6 @@ msgstr "সিমলিংক"
 msgid "Symlink to {targetPath}"
 msgstr "{targetPath}-এর সিমলিংক"
 
-msgid "symlinked via parent"
-msgstr "মূলের মাধ্যমে সিমলিংক করা"
-
 msgid "Symlinks the skill to {path}"
 msgstr "স্কিলটি {path}-এ সিমলিংক করে"
 
@@ -9660,9 +9238,6 @@ msgstr "কেমন চলছে আমাদের জানান"
 msgid "Tell us more (optional)"
 msgstr "আরও বলুন (ঐচ্ছিক)"
 
-msgid "Tells agents when to reach for this skill. You can edit it later."
-msgstr "এজেন্টদের জানায় এই স্কিলটি কখন কাজে লাগাতে হবে। আপনি পরে এটি সম্পাদনা করতে পারবেন।"
-
 msgid "Template \"{label}\" deleted"
 msgstr "টেমপ্লেট \"{label}\" মুছে ফেলা হয়েছে"
 
@@ -9756,9 +9331,6 @@ msgstr "সেই ভাষাটি বানান পরীক্ষার �
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "এটি পার্স করা গেছে, তবে এটি base16 থিম নয়।"
-
-msgid "The {0} plugin serves these skills from its cache — OK never edits or updates them."
-msgstr "{0} প্লাগইন এই স্কিলগুলো তার ক্যাশ থেকে সরবরাহ করে — OK কখনো এগুলো সম্পাদনা বা আপডেট করে না।"
 
 msgid "The {editor} folder holds a different version of this skill. Pick which one wins, or keep both under different names. Whatever you replace is backed up first."
 msgstr "{editor} ফোল্ডারে এই স্কিলের একটি ভিন্ন সংস্করণ আছে। কোনটি থাকবে তা বাছুন, নয়তো দুটোই আলাদা নামে রাখুন। আপনি যা-ই বদলান, তার আগে ব্যাকআপ নেওয়া হয়।"
@@ -10093,18 +9665,11 @@ msgstr "থিম"
 msgid "There is no address waiting for a code."
 msgstr ""
 
-msgid "These currently read from another folder. After linking, they read from {keep} instead."
-msgstr "এগুলো বর্তমানে অন্য একটি ফোল্ডার থেকে পড়ে। লিংক করার পরে এগুলো পরিবর্তে {keep} থেকে পড়বে।"
-
 msgid "These links remain visible in Links and are not part of the repair queue."
 msgstr "এই লিংকগুলো লিংক প্যানেলে দৃশ্যমান থাকে এবং মেরামতের সারির অংশ নয়।"
 
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "এই নিয়মগুলো আপনার প্রকল্পের <0>{configFile}</0> ফাইল থেকে আসে, যা এই প্রকল্পের linting পুরোপুরি নিয়ন্ত্রণ করে। নিয়ম এখানে চালু বা বন্ধ করুন ও তাদের বিকল্প সম্পাদনা করুন; পরিবর্তন সেই ফাইলেই ফিরে লেখা হয়।"
-
-#. Says what the GitQuire-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
-msgstr "এগুলি আপনার AI টুলকে GitQuire-এর সঙ্গে কাজ করতে শেখায়। একটি ইনস্টল করলে সেটি এই মেশিনের প্রতিটি AI টুলে যুক্ত হয়।"
 
 msgid "Thinking…"
 msgstr "ভাবা হচ্ছে…"
@@ -10317,10 +9882,6 @@ msgstr "এটি <0>{name}</0>-কে {0} থেকে {1}-এ সরায়,
 msgid "This one needs to see your files, not just the open document, so it appears when you run a project audit rather than while you type."
 msgstr "এটির জন্য আপনার ফাইলগুলি দেখতে হবে, শুধু খোলা নথি নয়, তাই এটি প্রদর্শিত হয় যখন আপনি টাইপ করার পরিবর্তে একটি প্রকল্প অডিট চালান।"
 
-#. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "এটি আপনার AI টুলকে GitQuire-এর সঙ্গে কাজ করতে শেখায়। এটি প্রকল্প ফোল্ডারে থাকে, তাই যিনিই প্রকল্প খুলবেন তাঁর জন্য ইনস্টল হয়।"
-
 msgid "This pack is already set up here."
 msgstr "এই প্যাকটি এখানে আগে থেকেই সেট আপ করা আছে।"
 
@@ -10353,9 +9914,6 @@ msgstr "এটি {0}-কে স্থায়ীভাবে সরিয়�
 
 msgid "This permanently removes {0}/{1} from the \"{2}\" skill. Anything in SKILL.md that points at it will break until it's recreated."
 msgstr "এটি “{2}” স্কিল থেকে {0}/{1} স্থায়ীভাবে সরিয়ে দেয়। SKILL.md-এ যা কিছু সেটির দিকে নির্দেশ করে, তা পুনরায় তৈরি না করা পর্যন্ত কাজ করবে না।"
-
-msgid "This permanently removes {names}. Agents that invoke these skills by name will fail until they're recreated."
-msgstr "এটি {names} স্থায়ীভাবে মুছে ফেলে। নাম ধরে এই স্কিলগুলো ব্যবহারকারী এজেন্টরা এগুলো পুনরায় তৈরি না হওয়া পর্যন্ত ব্যর্থ হবে।"
 
 msgid "This permanently removes {path}. Agents that reference this template by name will fail until it's recreated or replaced by one in a parent folder."
 msgstr "এটি {path}-কে স্থায়ীভাবে সরিয়ে দেয়। যেসব এজেন্ট এই টেমপ্লেটটি নাম ধরে উল্লেখ করে সেগুলো এটি আবার তৈরি না হওয়া বা কোনো মূল ফোল্ডারের টেমপ্লেট এর জায়গা না নেওয়া পর্যন্ত ব্যর্থ হবে।"
@@ -10425,12 +9983,6 @@ msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "এই সেটিংটি প্রতি-মেশিন ভিত্তিক এবং সহযোগীদের সঙ্গে ভাগ করা হয় না। এর জন্য একটি API কী দরকার (নিচে নির্ধারণ করুন), যদি না আপনার এন্ডপয়েন্ট এমন কোনো স্থানীয় সার্ভার হয় যার সেটি লাগে না।"
-
-msgid "This source bundles several skills — choose one, then Import."
-msgstr "এই উৎসে কয়েকটি স্কিল আছে — একটি বাছুন, তারপর Import করুন।"
-
-msgid "This source bundles several skills — choose the one to import."
-msgstr "এই উৎসে কয়েকটি স্কিল আছে — আমদানি করার জন্য একটি বাছুন।"
 
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "এই ট্যাবটি নিশ্চিত করতে পারেনি যে আপনার সম্পাদনা সংরক্ষিত হয়েছে, তাই আবার লোড হয়নি। আপনার সম্পাদনা এখনও এখানেই আছে।"
@@ -10624,12 +10176,6 @@ msgstr "ট্রি দৃশ্যের বিকল্প"
 msgid "Try again"
 msgstr "আবার চেষ্টা করুন"
 
-msgid "Turn {0} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "{0}-কে আবার একটি সত্যিকারের ডিরেক্টরি বানান যাতে এখন দেখা প্রতিটি স্কিলের জন্য আলাদা সিমলিংক থাকে — কিছুই কাজ করা বন্ধ করে না, আর তারপর প্রতিটি স্কিলের মেনু সেটি সামলায়।"
-
-msgid "Turn {display} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "{display}-কে আবার একটি সত্যিকারের ডিরেক্টরি বানান যাতে এখন দেখা প্রতিটি স্কিলের জন্য আলাদা সিমলিংক থাকে — কিছুই কাজ করা বন্ধ করে না, আর তারপর প্রতিটি স্কিলের মেনু সেটি সামলায়।"
-
 msgid "Turn it off any time in Settings."
 msgstr "সেটিংস থেকে যেকোনো সময় এটি বন্ধ করুন।"
 
@@ -10771,17 +10317,11 @@ msgstr "অজানা ত্রুটি"
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "অজানা ভেরিয়েবল {unknownList}। উপলব্ধ ভেরিয়েবল: {supportedVariables}।"
 
-msgid "unlink"
-msgstr "আনলিংক করুন"
-
 msgid "Unmerged"
 msgstr "মার্জ হয়নি"
 
 msgid "Unordered list of items."
 msgstr "আইটেমের অক্রমিক তালিকা।"
-
-msgid "Unpin"
-msgstr "পিন সরান"
 
 msgid "Unpin {accessibleLabel}"
 msgstr "{accessibleLabel} আনপিন করুন"
@@ -10831,9 +10371,6 @@ msgstr "হালনাগাদ করুন"
 
 msgid "Update \"{skillName}\" over your edits?"
 msgstr "আপনার সম্পাদনার উপরে \"{skillName}\" হালনাগাদ করবেন?"
-
-msgid "Update all from this source"
-msgstr "এই উৎস থেকে সবকিছু আপডেট করুন"
 
 msgid "Update draft"
 msgstr ""
@@ -10886,9 +10423,6 @@ msgstr "হালনাগাদ করা হচ্ছে"
 msgid "Updating…"
 msgstr ""
 
-msgid "Upload"
-msgstr "আপলোড করুন"
-
 msgid "Upload {keyName}"
 msgstr "{keyName} আপলোড করুন"
 
@@ -10898,9 +10432,6 @@ msgstr "আপলোড ব্যর্থ"
 msgid "Upload failed — please try again"
 msgstr "আপলোড ব্যর্থ — অনুগ্রহ করে আবার চেষ্টা করুন"
 
-msgid "Upload failed: {0}"
-msgstr "আপলোড ব্যর্থ: {0}"
-
 msgid "Upload failed: {message}"
 msgstr "আপলোড ব্যর্থ: {message}"
 
@@ -10909,9 +10440,6 @@ msgstr "কম্পিউটার থেকে আপলোড করুন"
 
 msgid "Upload may have succeeded but the sidebar is out of date — refresh to resync"
 msgstr "আপলোড হয়তো সফল হয়েছে কিন্তু সাইডবার পুরোনো — আবার সিঙ্ক করতে সতেজ করুন"
-
-msgid "Upload skill"
-msgstr "স্কিল আপলোড করুন"
 
 msgid "Uploaded \"{0}\"."
 msgstr "\"{0}\" আপলোড হয়েছে।"
@@ -10991,9 +10519,6 @@ msgstr ""
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "কেবল ছোট হাতের অক্ষর, অঙ্ক ও <0>-</0> ব্যবহার করুন।"
 
-msgid "Use lowercase letters, numbers, and hyphens only"
-msgstr "কেবল ছোট হাতের অক্ষর, সংখ্যা ও হাইফেন ব্যবহার করুন"
-
 msgid "Use one slash between folder names."
 msgstr "ফোল্ডারের নামের মাঝে একটি স্ল্যাশ ব্যবহার করুন।"
 
@@ -11043,9 +10568,6 @@ msgstr "GitQuire-এর সংস্করণ"
 msgid "via {viaTags}"
 msgstr "{viaTags}-এর মাধ্যমে"
 
-msgid "via parent"
-msgstr "মূলের মাধ্যমে"
-
 msgid "via plugin"
 msgstr "প্লাগইন থেকে"
 
@@ -11054,9 +10576,6 @@ msgstr "দেখুন"
 
 msgid "View {name}"
 msgstr "{name} দেখুন"
-
-msgid "View {publisher} on skills.sh"
-msgstr "skills.sh-এ {publisher} দেখুন"
 
 msgid "View as text"
 msgstr "লেখা হিসেবে দেখুন"
@@ -11078,12 +10597,6 @@ msgstr "শুধু দেখার জন্য"
 
 msgid "View plugin"
 msgstr "প্লাগইন দেখুন"
-
-msgid "View source"
-msgstr "উৎস দেখুন"
-
-msgid "View the {plugin} plugin repo"
-msgstr "{plugin} প্লাগইনের রিপোজিটরি দেখুন"
 
 msgid "Views"
 msgstr ""
@@ -11173,9 +10686,6 @@ msgstr "কী বাধা হয়ে দাঁড়িয়েছিল?"
 msgid "What happened?"
 msgstr "কী হয়েছিল?"
 
-msgid "What happens next"
-msgstr "এরপর কী হয়"
-
 msgid "What is a starter pack?"
 msgstr "স্টার্টার প্যাক কী?"
 
@@ -11241,9 +10751,6 @@ msgstr "এটি কোথায় থাকবে?"
 
 msgid "Where to ask"
 msgstr ""
-
-msgid "Which skill"
-msgstr "কোন স্কিল"
 
 msgid "Whitespace"
 msgstr "ফাঁকা জায়গা"
@@ -11349,10 +10856,6 @@ msgstr "“{0}” নামে আপনার নিজের একটি স�
 
 msgid "You are here"
 msgstr ""
-
-#. Label above the optional skill offered on first visit
-msgid "You can add"
-msgstr "আপনি যোগ করতে পারেন"
 
 msgid "You can also create one from a terminal with <0>{cliCommand} bug-report</0>."
 msgstr "আপনি টার্মিনাল থেকে <0>{cliCommand} bug-report</0> দিয়েও একটি তৈরি করতে পারেন।"
@@ -11509,9 +11012,6 @@ msgstr "আপনার ব্যবহারকারী সেটিং পড
 
 msgid "Your version"
 msgstr ""
-
-msgid "Zip file"
-msgstr "Zip ফাইল"
 
 msgid "Zoom"
 msgstr "জুম"

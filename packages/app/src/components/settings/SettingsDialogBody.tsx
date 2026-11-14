@@ -51,9 +51,6 @@ const ProjectTemplatesSection = lazySection(
   async () => (await import('./ProjectTemplatesSection')).ProjectTemplatesSection,
 );
 const SearchSection = lazySection(async () => (await import('./SearchSection')).SearchSection);
-const SkillsManagerSection = lazySection(
-  async () => (await import('./SkillsManagerSection')).SkillsManagerSection,
-);
 const SlidesPluginSection = lazySection(
   async () => (await import('./SlidesPluginSection')).SlidesPluginSection,
 );
@@ -247,12 +244,6 @@ function SettingsDialogSection({
   }
   if (activeId === 'project-templates') {
     return <ProjectTemplatesSection />;
-  }
-  if (activeId === 'skills') {
-    return <SkillsManagerSection scope="project" />;
-  }
-  if (activeId === 'user-skills') {
-    return <SkillsManagerSection scope="global" />;
   }
   if (activeId === 'okignore') {
     return <OkignoreSection binding={okignoreBinding} synced={okignoreSynced} />;

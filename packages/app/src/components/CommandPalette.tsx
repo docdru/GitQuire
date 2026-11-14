@@ -85,7 +85,6 @@ import { Kbd } from '@/components/ui/kbd';
 import { Spinner } from '@/components/ui/spinner';
 import { useDocumentContext, useOpenBlobRunner } from '@/editor/DocumentContext';
 import type { TagSummaryEntry } from '@/editor/extensions/tag-suggestion';
-import { useCreateBlankSkill } from '@/hooks/use-create-blank-skill';
 import { useSemanticSearchStatus } from '@/hooks/use-semantic-search-status';
 import { useWorktrees } from '@/hooks/use-worktrees';
 import { useBugReport } from '@/lib/bug-report-capture';
@@ -285,7 +284,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
   const [reportBugHistoryOpen, setReportBugHistoryOpen] = useState(false);
   const [historyEverOpened, setHistoryEverOpened] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const { createBlank: createBlankSkill } = useCreateBlankSkill();
   const openBlobRunner = useOpenBlobRunner();
   const [tagsList, setTagsList] = useState<TagSummaryEntry[]>([]);
   const [tagsListStatus, setTagsListStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
@@ -694,7 +692,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
       setReportBugHistoryOpen(true);
     },
     openFeedbackDialog: () => setFeedbackOpen(true),
-    createBlankSkill: () => void createBlankSkill('project'),
     openBlobRun: () => openBlobRunner?.(),
   };
   const visibleFixedCommands = inExclusiveMode

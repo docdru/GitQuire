@@ -15,7 +15,6 @@ const groups: SidebarGroup[] = [
       { id: 'preferences', label: 'Preferences' },
       { id: 'account', label: 'Git' },
       { id: 'user-plugins-manage', label: 'Plugins' },
-      { id: 'user-skills', label: 'Skills Studio' },
     ],
   },
   {
@@ -29,7 +28,6 @@ const groups: SidebarGroup[] = [
         subsections: [{ id: 'sharing', label: 'Config sharing', anchor: 'section:sharing' }],
       },
       { id: 'search', label: 'Search' },
-      { id: 'skills', label: 'Skills Studio' },
     ],
   },
 ];
@@ -38,7 +36,7 @@ describe('withoutHiddenSettings', () => {
   test('hides server-wide user items, config sharing, search and the personal Git token page', () => {
     const shown = withoutHiddenSettings(groups, false);
     expect(shown[0]?.items.map((item) => item.id)).toEqual(['preferences']);
-    expect(shown[1]?.items.map((item) => item.id)).toEqual(['sync', 'skills']);
+    expect(shown[1]?.items.map((item) => item.id)).toEqual(['sync']);
     expect(shown[1]?.items[0]?.subsections).toEqual([]);
   });
 
@@ -50,7 +48,7 @@ describe('withoutHiddenSettings', () => {
 
 describe('isWikiAdminSetting', () => {
   test('covers the shared wiki settings', () => {
-    for (const id of ['project-preferences', 'sync', 'okignore', 'skills', 'plugin:markdownlint']) {
+    for (const id of ['project-preferences', 'sync', 'okignore', 'plugin:markdownlint']) {
       expect(isWikiAdminSetting(id)).toBe(true);
     }
   });

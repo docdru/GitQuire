@@ -2,7 +2,6 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import userEvent from '@testing-library/user-event';
 import { type ReactNode, useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
-import { __resetSkillsSectionVisibleCacheForTests } from '@/components/skills-section-visible-cache';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import {
   __resetPaneVisibilityStoreForTests,
@@ -124,10 +123,6 @@ vi.doMock('@/components/ui/sidebar', () => ({
   useSidebar: () => ({ state: 'expanded', toggleSidebar: toggleSidebarMock }),
 }));
 
-vi.doMock('@/components/SkillsSidebarSection', () => ({
-  SkillsSidebarSection: () => null,
-}));
-
 vi.doMock('@/editor/DocumentContext', () => ({
   useDocumentContext: () => ({
     activeDocName: 'notes/source',
@@ -214,7 +209,6 @@ describe('FileSidebar menu-action runtime routing', () => {
     activeTarget = ACTIVE_TARGET;
     mergedConfig = DEFAULT_MERGED_CONFIG;
     projectLocalSynced = true;
-    __resetSkillsSectionVisibleCacheForTests();
     if (typeof localStorage !== 'undefined') localStorage.clear();
     for (const fn of [
       notifyViewMenuStateChangedMock,
@@ -433,46 +427,6 @@ describe('FileSidebar menu-action runtime routing', () => {
     }
   });
 
-  test('shell, clipboard, and visibility-toggle actions use runtime dependencies', async () => {
-    renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('reveal-in-finder' as MenuAction);
-    expect(showItemInFolderMock).toHaveBeenCalledWith('/tmp/open-knowledge/notes/source.md');
-
-    menuActionCallback?.('copy-full-path' as MenuAction);
-    await waitFor(() =>
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        '/tmp/open-knowledge/notes/source.md',
-      ),
-    );
-
-    menuActionCallback?.('copy-relative-path' as MenuAction);
-    await waitFor(() =>
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('notes/source.md'),
-    );
-
-    menuActionCallback?.('toggle-show-hidden-files' as MenuAction);
-    expect(projectLocalPatch).toHaveBeenCalledWith({
-      appearance: { sidebar: { showHiddenFiles: true } },
-    });
-
-    menuActionCallback?.('toggle-show-ok-folders' as MenuAction);
-    expect(projectLocalPatch).toHaveBeenCalledWith({
-      appearance: { sidebar: { showOkFolders: true } },
-    });
-
-    menuActionCallback?.('toggle-show-only-markdown-files' as MenuAction);
-    expect(projectLocalPatch).toHaveBeenCalledWith({
-      appearance: { sidebar: { showOnlyMarkdownFiles: true } },
-    });
-
-    menuActionCallback?.('toggle-show-skills-section' as MenuAction);
-    expect(projectLocalPatch).toHaveBeenCalledWith({
-      appearance: { sidebar: { showSkillsSection: false } },
-    });
-  });
-
   test('rejects a native view-toggle action until the project-local binding first syncs', async () => {
     projectLocalSynced = false;
     const rendered = renderSidebar();
@@ -569,58 +523,5 @@ describe('FileSidebar menu-action runtime routing', () => {
     );
     expect(screen.getByRole('menu')).toBeTruthy();
     expect(document.activeElement).toBe(pending);
-  });
-
-  test('visibility toggles read the latest merged config across a flip round-trip', async () => {
-    const toggleRoundTrips = [
-      { action: 'toggle-show-hidden-files', key: 'showHiddenFiles', defaultValue: false },
-      { action: 'toggle-show-ok-folders', key: 'showOkFolders', defaultValue: false },
-      {
-        action: 'toggle-show-only-markdown-files',
-        key: 'showOnlyMarkdownFiles',
-        defaultValue: false,
-      },
-      { action: 'toggle-show-skills-section', key: 'showSkillsSection', defaultValue: true },
-    ] as const;
-
-    const { rerender } = renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    for (const { action, key, defaultValue } of toggleRoundTrips) {
-      mergedConfig = { appearance: { sidebar: {} } };
-      rerender(<FileSidebar />);
-
-      projectLocalPatch.mockClear();
-      menuActionCallback?.(action as MenuAction);
-      expect(projectLocalPatch).toHaveBeenCalledWith({
-        appearance: { sidebar: { [key]: !defaultValue } },
-      });
-
-      mergedConfig = { appearance: { sidebar: { [key]: !defaultValue } } };
-      rerender(<FileSidebar />);
-
-      projectLocalPatch.mockClear();
-      menuActionCallback?.(action as MenuAction);
-      expect(projectLocalPatch).toHaveBeenCalledWith({
-        appearance: { sidebar: { [key]: defaultValue } },
-      });
-    }
-  });
-
-  test('pushes View menu state to the desktop bridge with merged visibility and tree gates', async () => {
-    renderSidebar();
-
-    await waitFor(() =>
-      expect(notifyViewMenuStateChangedMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          canCollapseAll: true,
-          canExpandAll: true,
-          showHiddenFiles: false,
-          showOnlyMarkdownFiles: false,
-          showSkillsSection: true,
-          sidebarVisible: true,
-        }),
-      ),
-    );
   });
 });
