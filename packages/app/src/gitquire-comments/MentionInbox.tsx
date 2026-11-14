@@ -34,12 +34,13 @@ const ignore = (): undefined => undefined;
 
 function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => void }) {
   const { t } = useLingui();
+  const isTask = mention.kind === 'task';
   const who = mention.author.name ?? mention.author.login ?? mention.author.id;
   const page =
     mention.draft === undefined
       ? pageTitle(mention.docName)
       : t`asks you to review "${mention.draft.title}"`;
-  const age = formatRelativeAge(mention.at);
+  const age = mention.at < '2000' ? '' : formatRelativeAge(mention.at);
   return (
     <li>
       <Button
@@ -55,14 +56,17 @@ function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => 
               <span className="sr-only">{t`Unread`}</span>
             </span>
           )}
-          <span className="truncate font-medium text-foreground">{who}</span>
+          {who !== '' && <span className="truncate font-medium text-foreground">{who}</span>}
+          {isTask && <span className="shrink-0">{t`Action item`}</span>}
           <span className="truncate">{page}</span>
           <span className="ms-auto shrink-0">{age}</span>
         </span>
         <span className={cn('line-clamp-3 text-sm', mention.read && 'text-muted-foreground')}>
           {mention.body === '' && mention.draft !== undefined
             ? t`Open the draft to review it.`
-            : mention.body}
+            : isTask
+              ? `☐ ${mention.body}`
+              : mention.body}
         </span>
       </Button>
     </li>
@@ -297,7 +301,7 @@ export function MentionInbox() {
     }
     revealEditor();
     window.location.assign(hashFromDocName(mention.docName));
-    revealDiscussion(mention.docName, mention.threadId);
+    if (mention.kind !== 'task') revealDiscussion(mention.docName, mention.threadId);
   }
 
   const email = current.email;

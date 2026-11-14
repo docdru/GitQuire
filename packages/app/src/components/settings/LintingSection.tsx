@@ -78,6 +78,7 @@ import { useSkills } from '@/hooks/use-skills';
 import { useConfigContext } from '@/lib/config-provider';
 import { hashFromAssetPath } from '@/lib/doc-hash';
 import { dispatchExternalLinkClick } from '@/lib/external-link';
+import { isLintPluginOffered } from '@/lib/gitquire/settings-visibility';
 import { requestSchemaFieldsView } from '@/lib/schema-fields-view-intent';
 import { installPackSkill } from '@/lib/skills-api';
 import { countMatchingDocs } from './applies-to-folder-globs';
@@ -156,7 +157,7 @@ export function ProjectPluginsManageSection() {
       </SettingsSectionHeader>
 
       <div className="divide-y rounded-md border" data-testid="settings-plugins-list">
-        {LINT_PLUGIN_META.map((plugin) => {
+        {LINT_PLUGIN_META.filter(isLintPluginOffered).map((plugin) => {
           const on = contentRules?.[plugin.id]?.enabled === true;
           const descriptionId = `settings-plugin-toggle-${plugin.id}-description`;
           return (

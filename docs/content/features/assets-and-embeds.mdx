@@ -16,7 +16,7 @@ AI agents add assets through the MCP [`write`](/docs/reference/mcp) tool's `asse
 
 ### Attachment folder
 
-By default, each document gets its own upload folder beside it: a file added to `notes/meeting.md` goes to `notes/meeting.assets/`. Files uploaded earlier stay where they are. To change this, set **Settings → This project → Preferences → Attachments**, or [`content.attachmentFolderPath`](/docs/reference/configuration) in `.ok/config.yml`.
+By default, each document gets its own upload folder beside it: a file added to `notes/meeting.md` goes to `notes/meeting.assets/`. Files uploaded earlier stay where they are. To change this, set **Settings → Wiki administration → Preferences → Attachments**, or [`content.attachmentFolderPath`](/docs/reference/configuration) in `.ok/config.yml`.
 
 The path must start with `./`, relative to the document, or `/`, relative to the content root. The settings field rejects a bare name such as `attachments`: write `/attachments` instead. A bare name in an existing config keeps working and is read as `/attachments`. Version 0.86.18 and earlier reject `/attachments`, so update every collaborator before you save it.
 

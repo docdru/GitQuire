@@ -18,7 +18,7 @@ export function ScopeBadge({ scope }: { scope: SettingsScope }) {
             {scope === 'user' ? (
               <Trans>User</Trans>
             ) : scope === 'project-local' ? (
-              <Trans>This machine</Trans>
+              <Trans>Whole wiki</Trans>
             ) : (
               <Trans>Project</Trans>
             )}
@@ -32,12 +32,11 @@ export function ScopeBadge({ scope }: { scope: SettingsScope }) {
             </Trans>
           ) : scope === 'project-local' ? (
             <Trans>
-              Applies to this project on this computer only. Stored in .ok/local, not shared via
-              git.
+              Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git.
             </Trans>
           ) : (
             <Trans>
-              Shared with everyone on this project. Stored in the project folder and travels with it
+              Applies to everyone using this wiki. Stored in the repository and travels with it
               through git.
             </Trans>
           )}

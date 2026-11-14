@@ -2,6 +2,12 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { type RelationLink, relationLinks } from '@inkeep/open-knowledge-core/gitquire/typed-links';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import {
+  actionItemStatePath,
+  combinedMentionIndex,
+  createActionItemMentions,
+  WRITER_WINDOW_MS,
+} from './action-item-mentions.ts';
+import {
   type ChatPost,
   chatStatePath,
   createChatNotifier,
@@ -46,7 +52,9 @@ import { mergedGoneBranches } from './merged-branches.ts';
 import { namingRuleFromEnv } from './naming.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
 import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
+import { allowedLoginsFrom, createPeopleDirectory, peopleStatePath } from './people.ts';
 import { checkPersonalSettings, createPersonalSettingsStore } from './personal-settings.ts';
+import { recentDocumentWriter } from './principal-directory.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 import { createTypedLinkListCache } from './typed-links.ts';
 
@@ -350,10 +358,22 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     Date.now,
     deps.contentFilter,
   );
-  const pageMentions = mentionIndexFrom(pageScan, (page) => page.mentions);
-  const mentionIndex = {
-    all: () => [...pageMentions.all(), ...(deps.extraMentions?.() ?? [])],
-  };
+  const actionItemMentions = createActionItemMentions({
+    stateFile: actionItemStatePath(deps.projectDir),
+    pages: () => pageScan.all().map((page) => ({ path: page.path, facts: page.value.facts })),
+    writerOf: (docName) => {
+      const writer = recentDocumentWriter(docName, WRITER_WINDOW_MS);
+      return writer === undefined
+        ? undefined
+        : { id: writer.id, login: writer.login, name: writer.name };
+    },
+    onError: (err) => deps.log.warn({ err }, '[gitquire] could not save action item mentions'),
+  });
+  const mentionIndex = combinedMentionIndex(
+    mentionIndexFrom(pageScan, (page) => page.mentions),
+    actionItemMentions,
+    { all: () => deps.extraMentions?.() ?? [] },
+  );
   const objectList = createObjectListCache();
   let factPages: { source: unknown; pages: ScannedPage<PageFacts>[] } | undefined;
 
@@ -380,6 +400,22 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     res.end(typedLinkList.body(relationPages.pages));
   }
   const personalSettings = createPersonalSettingsStore(deps.projectDir);
+  const people = createPeopleDirectory({
+    stateFile: peopleStatePath(deps.projectDir),
+    allowedLogins: allowedLoginsFrom(deps.env?.GITQUIRE_ALLOWED_USERS),
+    ...(deps.pulls?.collaborators === undefined ? {} : { collaborators: deps.pulls.collaborators }),
+    onError: (err) => deps.log.warn({ err }, '[gitquire] could not read or save the people list'),
+  });
+
+  async function listPeople(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const user = deps.sessionUser?.(req);
+    if (user === undefined) {
+      sendJson(res, 200, { people: [], me: null });
+      return;
+    }
+    people.remember(user);
+    sendJson(res, 200, { people: await people.list(), me: user.login });
+  }
 
   function readPersonalSettings(req: IncomingMessage, res: ServerResponse): void {
     const user = deps.sessionUser?.(req);
@@ -473,6 +509,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       return;
     }
     mentionReads.seen(user, new Date());
+    people.remember(user);
     const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
     sendJson(res, 200, { enabled: true, ...inbox, email: emailState(user.id) });
   }
@@ -622,6 +659,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/objects' && method === 'GET') return listPageObjects(res);
     if (path === '/api/gitquire/typed-links' && method === 'GET') return listTypedLinks(res);
     if (path === '/api/gitquire/mentions' && method === 'GET') return listMentions(req, res);
+    if (path === '/api/gitquire/people' && method === 'GET') return listPeople(req, res);
     if (path === '/api/gitquire/me/settings' && method === 'GET') {
       return readPersonalSettings(req, res);
     }

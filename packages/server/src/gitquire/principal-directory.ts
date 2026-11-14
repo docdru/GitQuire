@@ -18,6 +18,8 @@ type SessionResolver = (req: IncomingMessage) => GitQuirePrincipal | undefined;
 let resolver: SessionResolver | undefined;
 const known = new Map<string, GitQuirePrincipal>();
 const pendingEdits = new Map<string, number>();
+const documentWriters = new Map<string, { principalId: string; at: number }>();
+const MAX_DOCUMENT_WRITERS = 5000;
 
 export function sanitizeDisplayName(raw: string, fallback: string): string {
   const cleaned = Array.from(raw, (char) => {
@@ -43,6 +45,31 @@ export function resetPrincipalDirectory(): void {
   known.clear();
   pendingEdits.clear();
   agentOwners.clear();
+  documentWriters.clear();
+}
+
+export function noteDocumentWriter(
+  documentName: string,
+  principalId: string,
+  at: number = Date.now(),
+): void {
+  if (!known.has(principalId)) return;
+  documentWriters.delete(documentName);
+  documentWriters.set(documentName, { principalId, at });
+  if (documentWriters.size > MAX_DOCUMENT_WRITERS) {
+    const oldest = documentWriters.keys().next().value;
+    if (oldest !== undefined) documentWriters.delete(oldest);
+  }
+}
+
+export function recentDocumentWriter(
+  documentName: string,
+  maxAgeMs: number,
+  now: number = Date.now(),
+): GitQuirePrincipal | undefined {
+  const entry = documentWriters.get(documentName);
+  if (entry === undefined || now - entry.at > maxAgeMs) return undefined;
+  return known.get(entry.principalId);
 }
 
 export function rememberPrincipal(principal: GitQuirePrincipal): void {
@@ -56,7 +83,7 @@ export function sessionPrincipal(req: IncomingMessage | undefined): GitQuirePrin
   return principal;
 }
 
-function cookieFromBag(bag: unknown): string | undefined {
+export function cookieFromBag(bag: unknown): string | undefined {
   if (typeof bag !== 'object' || bag === null) return undefined;
   const maybeHeaders = bag as { get?: unknown };
   if (typeof maybeHeaders.get === 'function') {

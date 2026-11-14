@@ -111,6 +111,7 @@ function fakeSocket(): FakeSocket {
 
 interface GitHubStub {
   push: boolean;
+  admin?: boolean;
   calls: string[];
 }
 
@@ -128,7 +129,10 @@ function githubFetch(stub: GitHubStub): typeof fetch {
       );
     }
     if (url === 'https://api.github.com/repos/acme/notes') {
-      return new Response(JSON.stringify({ permissions: { push: stub.push } }), { status: 200 });
+      return new Response(
+        JSON.stringify({ permissions: { push: stub.push, maintain: stub.admin === true } }),
+        { status: 200 },
+      );
     }
     return new Response('{}', { status: 404 });
   }) as typeof fetch;
@@ -423,6 +427,67 @@ describe('createAccessGate requests', () => {
       admin: false,
       features: { askAi: false, agentToken: false, connector: false, canConnect: false },
     });
+  });
+
+  it('names the wiki admins on /auth/me', () => {
+    const gate = makeGate({ ...BASE_ENV, GITQUIRE_ADMINS: 'Zed,bob' });
+    const out = fakeResponse();
+    gate.handleRequest(fakeRequest('/auth/me', { headers: { cookie: sessionCookie() } }), out.res);
+    expect(JSON.parse(out.body)).toMatchObject({
+      admin: false,
+      admins: { logins: ['bob', 'zed'], repo: 'acme/notes' },
+    });
+  });
+
+  it('treats repository maintainers as admins', async () => {
+    const gate = makeGate(BASE_ENV, { push: true, admin: true, calls: [] });
+    const callback = await signIn(gate);
+    const session = cookiesFrom(callback.headers['Set-Cookie']).get(SESSION_COOKIE);
+    const cookie = `${SESSION_COOKIE}=${encodeURIComponent(session ?? '')}`;
+    expect(gate.isAdminRequest(fakeRequest('/', { headers: { cookie } }))).toBe(true);
+    const out = fakeResponse();
+    gate.handleRequest(fakeRequest('/auth/me', { headers: { cookie } }), out.res);
+    expect(JSON.parse(out.body)).toMatchObject({ admin: true });
+  });
+
+  it('does not treat plain writers as admins', async () => {
+    const gate = makeGate();
+    const callback = await signIn(gate);
+    const session = cookiesFrom(callback.headers['Set-Cookie']).get(SESSION_COOKIE);
+    const cookie = `${SESSION_COOKIE}=${encodeURIComponent(session ?? '')}`;
+    expect(gate.isAdminRequest(fakeRequest('/', { headers: { cookie } }))).toBe(false);
+  });
+
+  it('keeps admin-only setting changes to admins', () => {
+    const gate = makeGate({ ...BASE_ENV, GITQUIRE_ADMINS: 'bob' });
+    const write = fakeResponse();
+    expect(
+      gate.handleRequest(
+        fakeRequest('/api/generated-index/settings', {
+          method: 'PUT',
+          headers: { cookie: sessionCookie() },
+        }),
+        write.res,
+      ),
+    ).toBe(true);
+    expect(write.status).toBe(403);
+    const read = fakeResponse();
+    expect(
+      gate.handleRequest(
+        fakeRequest('/api/generated-index/settings', { headers: { cookie: sessionCookie() } }),
+        read.res,
+      ),
+    ).toBe(false);
+    const admin = fakeResponse();
+    expect(
+      gate.handleRequest(
+        fakeRequest('/api/generated-index/settings', {
+          method: 'PUT',
+          headers: { cookie: sessionCookie({ login: 'bob' }) },
+        }),
+        admin.res,
+      ),
+    ).toBe(false);
   });
 
   it('turns Ask AI on with GITQUIRE_ASK_AI', () => {

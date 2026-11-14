@@ -93,7 +93,7 @@ export function LinkPreviewsSection() {
                 </Trans>
               ) : (
                 <Trans>
-                  Off — external links show only their URL. No requests leave this computer.
+                  Off — external links show only their URL. The server sends no requests.
                 </Trans>
               )}
             </p>
@@ -167,7 +167,7 @@ function EnableLinkPreviewsConfirmDialog({
             className="rounded-md border border-warning/40 px-3 py-2.5 text-sm text-foreground"
           >
             <p className="mb-2 font-medium">
-              <Trans>This sends the link's address off your machine</Trans>
+              <Trans>This sends link addresses from the server to other sites</Trans>
             </p>
             <ul className="list-disc space-y-1.5 pl-5">
               <li>
@@ -184,12 +184,12 @@ function EnableLinkPreviewsConfirmDialog({
               </li>
               <li>
                 <Trans>
-                  Only external links trigger a request. Links to other documents in this project
-                  preview from the local index and never leave your computer.
+                  Only external links trigger a request. Links to other pages in this wiki preview
+                  from the wiki's own index.
                 </Trans>
               </li>
               <li>
-                <Trans>This setting is per-machine and isn't shared with collaborators.</Trans>
+                <Trans>This setting applies to everyone using this wiki.</Trans>
               </li>
             </ul>
           </div>

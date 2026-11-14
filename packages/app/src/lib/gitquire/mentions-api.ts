@@ -8,6 +8,7 @@ export interface MentionAuthor {
 
 export interface InboxMention {
   id: string;
+  kind?: 'comment' | 'task';
   path: string;
   docName: string;
   threadId: string;

@@ -12968,3 +12968,141 @@ msgstr "Zoom out"
 
 msgid "Zoom Out"
 msgstr "Zoom Out"
+
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr "{0} people match. Use the arrow keys and Enter to pick."
+
+msgid "{merged} was merged on GitHub. Switching everyone to {base}."
+msgstr "{merged} was merged on GitHub. Switching everyone to {base}."
+
+msgid "Action item"
+msgstr "Action item"
+
+msgid "Add a comment. Type @ to mention someone."
+msgstr "Add a comment. Type @ to mention someone."
+
+msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+msgstr "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
+
+msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgstr "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+
+msgid "Could not load branches"
+msgstr "Could not load branches"
+
+msgid "Could not switch to {branch}"
+msgstr "Could not switch to {branch}"
+
+msgid "Create and switch"
+msgstr "Create and switch"
+
+msgid "Everyone editing this space moves to that branch."
+msgstr "Everyone editing this space moves to that branch."
+
+msgid "Everyone moves to the new branch once it is created."
+msgstr "Everyone moves to the new branch once it is created."
+
+msgid "How often the server pulls changes from GitHub."
+msgstr "How often the server pulls changes from GitHub."
+
+msgid "Me (@{mine})"
+msgstr "Me (@{mine})"
+
+msgid "New branch"
+msgstr "New branch"
+
+msgid "New branch…"
+msgstr "New branch…"
+
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr "Nobody with this GitHub username uses this wiki."
+
+msgid "Off — external links show only their URL. The server sends no requests."
+msgstr "Off — external links show only their URL. The server sends no requests."
+
+msgid "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+msgstr "Only external links trigger a request. Links to other pages in this wiki preview from the wiki's own index."
+
+msgid "Only maintainers of {repo} can change these settings."
+msgstr "Only maintainers of {repo} can change these settings."
+
+msgid "Only wiki admins can change these settings."
+msgstr "Only wiki admins can change these settings."
+
+msgid "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+msgstr "Only wiki admins can change these settings. Ask {names}, or a maintainer of {repo}."
+
+msgid "Only wiki admins can change these settings. Ask {names}."
+msgstr "Only wiki admins can change these settings. Ask {names}."
+
+msgid "Open pull request"
+msgstr "Open pull request"
+
+msgid "Open pull request…"
+msgstr "Open pull request…"
+
+msgid "Open pull requests"
+msgstr "Open pull requests"
+
+msgid "Opened pull request #{number}"
+msgstr "Opened pull request #{number}"
+
+msgid "Opening…"
+msgstr "Opening…"
+
+msgid "People"
+msgstr "People"
+
+msgid "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+msgstr "Proposes merging {headName} into {baseName}. Pending edits are pushed first."
+
+msgid "Read-only settings"
+msgstr "Read-only settings"
+
+msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+msgstr "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
+
+msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
+msgstr "Settings for this wiki. They apply to everyone; most are stored in the repository."
+
+msgid "Starts from {from}. Everyone moves to the new branch once it is created."
+msgstr "Starts from {from}. Everyone moves to the new branch once it is created."
+
+msgid "Switch"
+msgstr "Switch"
+
+msgid "Switch everyone to"
+msgstr "Switch everyone to"
+
+msgid "Switch to {target}?"
+msgstr "Switch to {target}?"
+
+msgid "Switched to {branch}"
+msgstr "Switched to {branch}"
+
+msgid "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+msgstr "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone."
+
+msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+
+msgid "This sends link addresses from the server to other sites"
+msgstr "This sends link addresses from the server to other sites"
+
+msgid "This setting applies to everyone using this wiki."
+msgstr "This setting applies to everyone using this wiki."
+
+msgid "Unsaved changes block the switch"
+msgstr "Unsaved changes block the switch"
+
+msgid "Updates flow in from GitHub; edits stay on the server and are not pushed."
+msgstr "Updates flow in from GitHub; edits stay on the server and are not pushed."
+
+msgid "Whole wiki"
+msgstr "Whole wiki"
+
+msgid "Wiki administration"
+msgstr "Wiki administration"
+
+msgid "Write a reply. Type @ to mention someone."
+msgstr "Write a reply. Type @ to mention someone."

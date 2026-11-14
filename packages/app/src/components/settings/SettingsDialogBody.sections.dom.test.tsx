@@ -564,13 +564,11 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     expect(page.tagName).toBe('SECTION');
     expect(page.getAttribute('aria-labelledby')).toBe('settings-sync-sharing-title');
 
-    expect(screen.getByTestId('settings-scope-badge-project-local').textContent).toBe(
-      'This machine',
-    );
+    expect(screen.getByTestId('settings-scope-badge-project-local').textContent).toBe('Whole wiki');
     expect(screen.getByTestId('settings-scope-badge-project').textContent).toBe('Project');
   });
 
-  test('sync page says what stays on this computer and what teammates get', async () => {
+  test('sync page says it applies to everyone and what teammates get', async () => {
     syncStatus = {
       state: 'idle',
       hasRemote: true,
@@ -584,7 +582,7 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     await renderBody({ activeId: 'sync' });
 
     expect(screen.getByTestId('settings-sync-sharing').textContent ?? '').toContain(
-      'The shared settings below decide what teammates get when they open the project.',
+      "Sync keeps the wiki's copy on the server up to date with GitHub. It applies to everyone.",
     );
     expect(screen.getByTestId('settings-sync-default').textContent ?? '').toContain(
       'it only reaches them when Config sharing below is set to Shared',
