@@ -43,7 +43,7 @@ import { MountStalledAffordance } from '@/components/MountStalledAffordance';
 import { NothingOpen } from '@/components/NothingOpen';
 import { OkBlobRunnerPage } from '@/components/OkBlobRunnerPage';
 import { PropertyProvider, useProperties } from '@/components/PropertyContext';
-import { PANE_LABEL } from '@/components/pane-icons';
+import { paneLabel } from '@/components/pane-icons';
 import { ShareReceiveMissPanel } from '@/components/ShareReceiveMissPanel';
 import { SkillFileViewer } from '@/components/SkillFileViewer';
 import { SkillPreviewTab } from '@/components/SkillPreviewTab';
@@ -83,7 +83,7 @@ import { type DockLayout, dockPaneMinExtent, EMPTY_DOCK_LAYOUT } from '@/lib/doc
 import type { DockNode } from '@/lib/dock-tree';
 import { focusAwayFromHiddenEditor, focusWaitsForEditor } from '@/lib/editor-hidden-focus';
 import { type EditorSidebar, resolveEditorSidebarFit } from '@/lib/editor-sidebar-fit';
-import { hasClaudeAccess, useGitQuireFeatures } from '@/lib/gitquire/features';
+import { agentsPaneIsChat, hasClaudeAccess, useGitQuireFeatures } from '@/lib/gitquire/features';
 import { useCompactViewport } from '@/lib/gitquire/use-compact-viewport';
 import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
@@ -673,7 +673,8 @@ function EditorAreaInner({
   const compactViewport = useCompactViewport();
   const gitquireFeatures = useGitQuireFeatures();
   const askAiAvailable = gitquireFeatures.askAi;
-  const askClaudeAvailable = !askAiAvailable && hasClaudeAccess(gitquireFeatures);
+  const askClaudeAvailable =
+    !askAiAvailable && (hasClaudeAccess(gitquireFeatures) || agentsPaneIsChat(gitquireFeatures));
   const [initialRightPartition] = useState(() =>
     resolvePartition(embeddedHost, window.innerWidth, 'right'),
   );
@@ -2261,7 +2262,7 @@ function EditorAreaInner({
           units={{ editor: editorUnit, agents: agentsUnit, terminal: terminalUnit }}
           gap={cardLook ? PANE_CARD_GAP_PX : 0}
           minExtent={dockPaneMinExtent}
-          paneLabel={(pane) => t(PANE_LABEL[pane])}
+          paneLabel={(pane) => t(paneLabel(pane, agentsPaneIsChat(gitquireFeatures)))}
           onTreeChange={onDockTreeChange}
           onLayoutChange={setDockLayout}
           redockable={!noteWindow}

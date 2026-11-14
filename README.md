@@ -126,13 +126,18 @@ group: status
 
 A formatting toolbar above the on-screen keyboard, and installable as a home-screen app.
 
+### ✨ AI chat with your own key
+
+Chat with Claude or Mistral in a side pane: it searches and reads the wiki and, when you ask,
+writes or edits pages as you. Each person adds their own API key and pays the provider directly;
+chats stay private to them for 90 days and can be saved as a page.
+
 ### 🤖 Bring your own AI agent
 
 Each person connects their own Claude (or other MCP-capable) agent with a personal token, or
 adds GitQuire as a connector in Claude on the web and on phones. Agent edits show up live and are
 committed with that person as the author. Agents also see a page's open comment threads, so
-"@claude, tighten this paragraph" in a comment is a request your agent picks up. Nothing runs on the
-server on anyone's behalf.
+"@claude, tighten this paragraph" in a comment is a request your agent picks up.
 
 ### 🔒 Self-hosted and signed in with GitHub
 

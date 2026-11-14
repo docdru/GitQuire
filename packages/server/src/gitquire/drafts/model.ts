@@ -109,6 +109,7 @@ const LIVE_ONLY_PREFIXES = [
   '/.well-known/',
   '/api/gitquire/drafts',
   '/api/gitquire/view',
+  '/api/gitquire/chat',
 ];
 const LIVE_ONLY_PATHS = new Set([
   '/healthz',

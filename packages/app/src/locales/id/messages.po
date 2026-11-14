@@ -109,6 +109,9 @@ msgstr "(berkas biner, tidak bisa dipratinjau)"
 msgid "(detached)"
 msgstr "(terlepas)"
 
+msgid "(failed)"
+msgstr ""
+
 msgid "(inline)"
 msgstr "(sebaris)"
 
@@ -261,6 +264,9 @@ msgstr "{0} tidak dapat membaca atau menyunting dokumen Anda sendiri. Menyetujui
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0} belum melaporkan pengaturannya"
+
+msgid "{0} in · {1} out"
+msgstr ""
 
 msgid "{0} is over {destination}."
 msgstr "{0} berada di atas {destination}."
@@ -1189,6 +1195,9 @@ msgstr "Tentang {appName}"
 msgid "About & updates"
 msgstr "Tentang & pembaruan"
 
+msgid "About the folder"
+msgstr ""
+
 msgid "Above"
 msgstr "Di atas"
 
@@ -1282,6 +1291,9 @@ msgstr "Tambahkan paket awal"
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "Tambahkan token akses untuk server GitLab, Gitea, Bitbucket, Azure DevOps, atau git yang di-host sendiri. Tanpa token, git memakai kredensial yang sudah tersimpan untuk host tersebut; dengan token, GitQuire memakai token itu sebagai gantinya."
 
+msgid "Add an API key"
+msgstr ""
+
 msgid "Add another pattern"
 msgstr "Tambahkan pola lain"
 
@@ -1290,6 +1302,9 @@ msgstr "Tambahkan setidaknya satu huruf atau angka."
 
 msgid "Add block below"
 msgstr "Tambahkan blok di bawah"
+
+msgid "Add credit to your account at the provider."
+msgstr ""
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "Menambahkan kursor atau memilih kemunculan yang cocok lewat CodeMirror."
@@ -1375,6 +1390,9 @@ msgstr "Tambah token"
 
 msgid "Add value"
 msgstr "Tambahkan nilai"
+
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
 
 msgid "Added"
 msgstr "Ditambahkan"
@@ -1472,6 +1490,12 @@ msgstr "Transkrip agen"
 
 msgid "Agents"
 msgstr "Agen"
+
+msgid "AI chat"
+msgstr ""
+
+msgid "AI chat here in GitQuire"
+msgstr ""
 
 msgid "AI tools"
 msgstr "Alat AI"
@@ -1633,6 +1657,9 @@ msgstr "Siapa pun bisa melihat"
 msgid "Anything you'd like to add? (optional)"
 msgstr "Ada yang ingin Anda tambahkan? (opsional)"
 
+msgid "API key"
+msgstr ""
+
 msgid "API key set"
 msgstr "Kunci API disetel"
 
@@ -1747,6 +1774,15 @@ msgstr "Tanya {agentName}"
 msgid "Ask {agentName}, {hint}"
 msgstr "Tanya {agentName}, {hint}"
 
+msgid "Ask about the wiki"
+msgstr ""
+
+msgid "Ask about this page or anything in the wiki."
+msgstr ""
+
+msgid "Ask about this page or the wiki"
+msgstr ""
+
 msgid "Ask again before read-only commands"
 msgstr "Tanya lagi sebelum perintah hanya-baca"
 
@@ -1765,6 +1801,9 @@ msgstr "Minta AI memperbaiki {flatId}"
 msgid "Ask an agent"
 msgstr "Tanya agen"
 
+msgid "Ask anything about the wiki."
+msgstr ""
+
 msgid "Ask changes…"
 msgstr "Minta perubahan…"
 
@@ -1778,6 +1817,12 @@ msgid "Ask Claude to work on this page…"
 msgstr ""
 
 msgid "Ask for changes"
+msgstr ""
+
+msgid "Ask the AI chat about this folder…"
+msgstr ""
+
+msgid "Ask the AI chat about this page…"
 msgstr ""
 
 msgid "Asked: {waitingFor}"
@@ -1942,6 +1987,9 @@ msgstr "Tautan balik"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "Respons tautan balik tidak sesuai bentuk yang diharapkan."
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "Cabang dasar"
@@ -2240,6 +2288,9 @@ msgctxt "settings search keyword"
 msgid "characters"
 msgstr "karakter"
 
+msgid "Chat"
+msgstr ""
+
 msgid "Chat history"
 msgstr "Riwayat chat"
 
@@ -2248,6 +2299,12 @@ msgstr "Riwayat chat tidak dapat dimuat. Coba buka kembali chat dari Riwayat cha
 
 msgid "Chat name"
 msgstr "Nama obrolan"
+
+msgid "Chat with Claude or Mistral about the wiki"
+msgstr ""
+
+msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
+msgstr ""
 
 msgid "Check for updates"
 msgstr "Periksa pembaruan"
@@ -2267,11 +2324,17 @@ msgstr "Ambil worktree"
 msgid "Check spelling while typing"
 msgstr "Periksa ejaan saat mengetik"
 
+msgid "Check your API key in Settings → AI chat."
+msgstr ""
+
 msgid "Checkbox"
 msgstr "Kotak centang"
 
 msgid "Checked by: {0}"
 msgstr "Diperiksa oleh: {0}"
+
+msgid "Checked pages"
+msgstr ""
 
 msgid "Checking"
 msgstr "Memeriksa"
@@ -2320,6 +2383,9 @@ msgstr "Memeriksa koneksi GitHub Anda"
 
 msgid "Checking..."
 msgstr "Memeriksa..."
+
+msgid "Checking…"
+msgstr ""
 
 msgid "Checklist with checkboxes."
 msgstr "Daftar periksa dengan kotak centang."
@@ -3762,6 +3828,9 @@ msgstr "Hapus chat"
 msgid "Delete chat?"
 msgstr "Hapus chat?"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "Hapus blok kode"
 
@@ -3797,6 +3866,9 @@ msgstr "Hapus tabel"
 
 msgid "Delete the file"
 msgstr "Hapus berkas"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "Dihapus"
@@ -4186,6 +4258,9 @@ msgstr "Setiap paket menyusun proyek Anda dengan folder dan templat siap pakai."
 msgid "Each push is one commit to your remote."
 msgstr "Setiap push adalah satu commit ke remote Anda."
 
+msgid "Earlier chats"
+msgstr ""
+
 msgid "Edit"
 msgstr "Sunting"
 
@@ -4246,8 +4321,14 @@ msgstr ""
 msgid "Edited"
 msgstr "Disunting"
 
+msgid "Edited {detail}"
+msgstr ""
+
 msgid "Edited {editedAgo}"
 msgstr "Disunting {editedAgo}"
+
+msgid "Edited a page"
+msgstr ""
 
 msgid "Edited locally since it was installed"
 msgstr "Disunting secara lokal sejak dipasang"
@@ -4507,6 +4588,9 @@ msgstr "Masukkan bilangan bulat antara {minimum} dan {maximum}."
 
 msgid "Enter at least 3 characters to search by meaning."
 msgstr "Masukkan minimal 3 karakter untuk mencari berdasarkan makna."
+
+msgid "Enter it again"
+msgstr ""
 
 msgid "Enter the host name git connects to, with an optional :port and no scheme or path, for example git.example.com."
 msgstr "Masukkan nama host yang dihubungi git, dengan :port opsional dan tanpa skema atau path, misalnya git.example.com."
@@ -4890,6 +4974,9 @@ msgstr "Gagal mengunggah berkas"
 msgid "Fast"
 msgstr "Cepat"
 
+msgid "Fastest, cheapest"
+msgstr ""
+
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "Masukan tidak tersedia saat ini. Silakan coba lagi nanti."
 
@@ -5175,6 +5262,9 @@ msgstr "File yang dihasilkan"
 
 msgid "Get {displayName}"
 msgstr "Dapatkan {displayName}"
+
+msgid "Get an API key"
+msgstr ""
 
 msgid "Get Claude Code"
 msgstr "Dapatkan Claude Code"
@@ -6327,6 +6417,9 @@ msgstr "Simpan berkas asli"
 msgid "Keep source"
 msgstr "Simpan sumbernya"
 
+msgid "Keep the cost under control"
+msgstr ""
+
 msgid "Keep the name to 64 characters or fewer."
 msgstr "Nama harus 64 karakter atau kurang."
 
@@ -6354,8 +6447,17 @@ msgstr "Konten Anda dipertahankan"
 msgid "Key ending in {keyHint}"
 msgstr "Kunci yang berakhiran {keyHint}"
 
+msgid "Key removed for {0}."
+msgstr ""
+
+msgid "Key saved for {0}."
+msgstr ""
+
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "Pintasan papan ketik yang tersedia di penyunting dan ruang kerja."
+
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgstr ""
 
 msgid "Kill Terminal"
 msgstr "Matikan Terminal"
@@ -6688,6 +6790,15 @@ msgstr "Log & info sistem"
 msgid "Look Up \"{word}\""
 msgstr "Cari \"{word}\""
 
+msgid "Looked at links"
+msgstr ""
+
+msgid "Looked at the page history"
+msgstr ""
+
+msgid "Looked at: {detail}"
+msgstr ""
+
 msgid "Looking for <0>{lookingForUrl}</0>."
 msgstr "Mencari <0>{lookingForUrl}</0>."
 
@@ -6836,6 +6947,9 @@ msgstr "Kendali diagram Mermaid"
 msgid "Mermaid diagram failed to render."
 msgstr "Diagram Mermaid gagal dirender."
 
+msgid "Message"
+msgstr ""
+
 msgid "Message {agentName}"
 msgstr "Kirim pesan ke {agentName}"
 
@@ -6923,6 +7037,9 @@ msgstr "Tindakan lainnya"
 msgid "More actions ({syncAttentionLabel})"
 msgstr "Tindakan lainnya ({syncAttentionLabel})"
 
+msgid "More chat actions"
+msgstr ""
+
 msgid "More draft actions"
 msgstr ""
 
@@ -6937,6 +7054,9 @@ msgstr "Tindakan keterampilan lainnya"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "Lebih dari {0} permintaan diblokir oleh kebijakan keamanan pratinjau"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "Paling banyak dipasang"
@@ -7102,6 +7222,9 @@ msgstr "{moved} keterampilan dipindahkan ke Global"
 
 msgid "Moved {moved} skills to Project"
 msgstr "{moved} keterampilan dipindahkan ke Proyek"
+
+msgid "Moved a page"
+msgstr ""
 
 msgid "Moved down."
 msgstr "Dipindahkan ke bawah."
@@ -7495,6 +7618,9 @@ msgstr "Tidak ada gambar yang ditambahkan."
 
 msgid "No Incoming"
 msgstr "Tidak Ada Masuk"
+
+msgid "No key"
+msgstr ""
 
 msgid "No language match."
 msgstr "Tidak ada bahasa yang cocok."
@@ -8394,6 +8520,9 @@ msgstr "Tempelkan URL, pemilik/repo, atau cari di repo Anda"
 msgid "Paste was incomplete — {chunksCompleted} of {totalChunks} chunks landed.{restoreSuffix}"
 msgstr "Penempelan belum lengkap — {chunksCompleted} dari {totalChunks} potongan sudah masuk.{restoreSuffix}"
 
+msgid "Paste your {0} API key"
+msgstr ""
+
 msgid "Paste your API key"
 msgstr "Tempelkan kunci API Anda"
 
@@ -8866,6 +8995,9 @@ msgstr "React"
 msgid "Read"
 msgstr "Baca"
 
+msgid "Read pages"
+msgstr ""
+
 msgid "Read through this codebase and draft a technical spec for the most complex module: an overview, the architecture, key files, and open questions, all linked from a specs index page."
 msgstr "Baca basis kode ini dan susun spesifikasi teknis untuk modul yang paling rumit: sebuah ikhtisar, arsitekturnya, berkas-berkas utamanya, dan pertanyaan terbuka, semuanya tertaut dari sebuah halaman indeks spesifikasi."
 
@@ -9275,6 +9407,9 @@ msgstr "Ganti kunci"
 msgid "Replace the active match from the replace field."
 msgstr "Mengganti kecocokan yang aktif dengan isi bidang penggantian."
 
+msgid "Replace the API key"
+msgstr ""
+
 msgid "Replace the copy at {display} with a symlink to the skill's source folder? Nothing else moves."
 msgstr "Ganti salinan di {display} dengan symlink ke folder sumber keterampilan ini? Tidak ada hal lain yang berpindah."
 
@@ -9612,8 +9747,14 @@ msgstr "Simpan"
 msgid "Save as page"
 msgstr ""
 
+msgid "Save as page…"
+msgstr ""
+
 msgid "Save changes"
 msgstr "Simpan perubahan"
+
+msgid "Save chat as a page"
+msgstr ""
 
 msgid "Save failed: {error}"
 msgstr "Gagal menyimpan: {error}"
@@ -9630,7 +9771,13 @@ msgstr ""
 msgid "Saved"
 msgstr "Tersimpan"
 
+msgid "Saved {0}"
+msgstr ""
+
 msgid "Saved as {docName}.md"
+msgstr ""
+
+msgid "Saved as {saved}."
 msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
@@ -9674,6 +9821,9 @@ msgstr "Menyimpan perubahan…"
 
 msgid "Saving your edits before reloading…"
 msgstr "Menyimpan suntingan Anda sebelum memuat ulang…"
+
+msgid "Saving…"
+msgstr ""
 
 msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
 msgstr ""
@@ -9803,6 +9953,12 @@ msgstr "Cari worktree"
 
 msgid "Search worktrees and branches"
 msgstr "Cari worktree dan cabang"
+
+msgid "Searched “{detail}”"
+msgstr ""
+
+msgid "Searched the wiki"
+msgstr ""
 
 msgid "Searches files"
 msgstr "Mencari di berkas"
@@ -10037,6 +10193,12 @@ msgstr "Sesi berakhir"
 
 msgid "Session ended — undo unavailable"
 msgstr "Sesi berakhir — pembatalan tidak tersedia"
+
+msgid "Set a monthly spending limit at the provider (links below). It stops the key once the limit is reached."
+msgstr ""
+
+msgid "Set a spending limit"
+msgstr ""
 
 msgid "Set git identity"
 msgstr "Setel identitas git"
@@ -10512,6 +10674,9 @@ msgstr "Ada yang tidak beres saat mengirim masukan Anda. Silakan coba lagi."
 msgid "Something went wrong starting the terminal."
 msgstr "Ada yang tidak beres saat memulai terminal."
 
+msgid "Something went wrong."
+msgstr ""
+
 msgid "Something went wrong. Please try again."
 msgstr "Ada yang tidak beres. Silakan coba lagi."
 
@@ -10575,6 +10740,9 @@ msgstr "pemeriksaan ejaan"
 
 msgid "Spelling languages"
 msgstr "Bahasa pemeriksaan ejaan"
+
+msgid "Spending limit"
+msgstr ""
 
 msgid "Split list item"
 msgstr "Pisahkan item daftar"
@@ -10701,6 +10869,9 @@ msgstr "Berhenti"
 
 msgid "Stopped fixing. Files already fixed stay fixed."
 msgstr "Perbaikan dihentikan. Berkas yang sudah diperbaiki tetap terperbaiki."
+
+msgid "Stopped."
+msgstr ""
 
 msgid "Stopping"
 msgstr "Menghentikan"
@@ -11121,6 +11292,21 @@ msgstr "Instalasi agen kehilangan beberapa berkas (sebuah modul tidak ditemukan)
 msgid "The agent's persona, values, and voice."
 msgstr "Kepribadian, nilai, dan gaya bicara agen."
 
+msgid "The AI chat could not be loaded."
+msgstr ""
+
+msgid "The AI chat settings could not be loaded."
+msgstr ""
+
+msgid "The answer was cut off because it got too long. Say “continue” for the rest."
+msgstr ""
+
+msgid "The assistant can search and read pages and change them when you ask. Add your own API key to start; you pay the provider for what you use."
+msgstr ""
+
+msgid "The assistant stopped after many steps. Say “continue” to let it go on."
+msgstr ""
+
 msgid "The attested-computation contract. Only applies to documents typed Attested Computation, where OKF requires a runtime; ordinary concepts are unaffected."
 msgstr "Kontrak perhitungan yang dibuktikan. Hanya berlaku untuk dokumen yang diketik Attested Computation, dimana OKF memerlukan runtime; konsep biasa tidak terpengaruh."
 
@@ -11145,6 +11331,15 @@ msgstr "Browser tidak tersedia di obrolan ini karena tidak dapat disiapkan. Log 
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "Browser tidak tersedia di obrolan ini karena tidak ditemukan instalasi Node.js yang dapat menjalankannya. Pasang Node.js, lalu mulai obrolan baru."
 
+msgid "The chat could not be deleted."
+msgstr ""
+
+msgid "The chat could not be opened."
+msgstr ""
+
+msgid "The chat shows how many tokens each conversation used. Long chats cost more, because the whole conversation is sent with every message; start a new chat for a new topic."
+msgstr ""
+
 msgid "The chat's messages, tool calls, and their output, so we can see what the agent did, plus the chat's title, the project folder's path, the document it started from, and the agent and its settings. Images are replaced by their type and size, and attached text files are included. It can contain document content, so uncheck it if you'd rather not share it."
 msgstr "Pesan chat, panggilan alat, dan hasilnya, agar kami bisa melihat apa yang dilakukan agen, beserta judul chat, jalur folder proyek, dokumen tempat chat ini dimulai, serta agen dan pengaturannya. Gambar diganti dengan jenis dan ukurannya, dan berkas teks yang dilampirkan disertakan. Isinya bisa memuat isi dokumen, jadi hapus centangnya jika Anda tidak ingin membagikannya."
 
@@ -11159,6 +11354,12 @@ msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "Percakapan tidak dapat ditambahkan ke laporan ini."
+
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
+msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
+msgstr ""
 
 msgid "The copy of \"{name}\" kept in {scopeLabel} is a redundant duplicate: the original was verified unchanged. Remove that copy, then retry the move."
 msgstr "Salinan “{name}” yang disimpan di {scopeLabel} adalah duplikat yang tidak diperlukan: aslinya sudah diverifikasi tidak berubah. Hapus salinan itu, lalu coba pemindahan lagi."
@@ -11238,6 +11439,12 @@ msgstr "File indeks tetap di tempatnya. GitQuire hanya menghapus aturan Git yang
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "Antarmuka masih dalam bahasa yang tadi Anda baca. Periksa koneksi Anda, lalu muat ulang untuk mencoba lagi."
 
+msgid "The key could not be removed. Try again."
+msgstr ""
+
+msgid "The key could not be saved."
+msgstr ""
+
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "Bahasa yang digunakan GitQuire; Sistem mengikuti sistem operasi Anda. Catatan Anda sendiri tetap dalam bahasa saat Anda menulisnya."
 
@@ -11258,6 +11465,9 @@ msgstr "Id model yang dilayani endpoint Anda. Ukuran vektornya terdeteksi otomat
 
 msgid "the open agent"
 msgstr "agen yang terbuka"
+
+msgid "The page could not be saved."
+msgstr ""
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11288,6 +11498,12 @@ msgstr "Properti berubah, tetapi tidak bisa dibandingkan — YAML gagal diurai. 
 
 msgid "The provenance, trust, and lifecycle families: sources, generated, verified, status, and stale_after. Every field is optional, and absence is never an error."
 msgstr "Keluarga asal, kepercayaan, dan siklus hidup: sources, generated, verified, status, dan stale_after. Setiap bidang bersifat opsional, dan ketidakhadiran tidak pernah merupakan kesalahan."
+
+msgid "The provider asks to slow down. Wait a minute and try again."
+msgstr ""
+
+msgid "The provider is busy. Try again in a moment."
+msgstr ""
 
 msgid "The provider is rate-limiting this key. Try again in a moment."
 msgstr "Penyedianya sedang membatasi laju kunci ini. Coba lagi sebentar."
@@ -11322,6 +11538,9 @@ msgstr "Permintaan untuk mengaktifkan alat GitQuire kedaluwarsa. Utas ini berjal
 msgid "The same text changed in both places"
 msgstr ""
 
+msgid "The saved key can no longer be read, usually because the server's session secret changed. Paste it again."
+msgstr ""
+
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "Berkas skemanya tidak ada atau gagal dimuat — menambahkan sebuah bidang akan membuatnya."
 
@@ -11354,6 +11573,9 @@ msgstr "Folder milik keterampilan itu sendiri ({path}) — sumber tempat lokasi 
 
 msgid "The skills list did not match its schema."
 msgstr "Daftar skill tidak cocok dengan skemanya."
+
+msgid "The smaller models are much cheaper and fine for most questions."
+msgstr ""
 
 msgid "The source folder itself does not move."
 msgstr "Folder sumbernya sendiri tidak berpindah."
@@ -11549,6 +11771,12 @@ msgstr "Branch ini mengarahkan jalur penyiapan GitQuire ke luar worktree. Worktr
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "Ini bisa diatur di Pengaturan > {agentConnectionsLabel}"
 
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
+
 msgid "This checkout path cannot be read."
 msgstr "Jalur checkout ini tidak dapat dibaca."
 
@@ -11715,6 +11943,9 @@ msgid "This may take a moment. Your markdown content is kept."
 msgstr "Ini mungkin makan waktu sebentar. Konten markdown Anda dipertahankan."
 
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
+
+msgid "This model is not available for your key. Choose another one."
 msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
@@ -12012,6 +12243,9 @@ msgid "tokens"
 msgstr "token"
 
 msgid "Tokens and connected apps"
+msgstr ""
+
+msgid "Tokens sent and received in this chat, billed to your {providerLabel} key"
 msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
@@ -12454,6 +12688,9 @@ msgstr "Pakai versi mereka"
 msgid "Use this starter pack"
 msgstr "Pakai paket awal ini"
 
+msgid "Used {0}"
+msgstr ""
+
 msgid "User"
 msgstr "Pengguna"
 
@@ -12696,7 +12933,7 @@ msgstr "Di mana"
 msgid "Where should it live?"
 msgstr "Di mana ia sebaiknya berada?"
 
-msgid "Where to open Claude"
+msgid "Where to ask"
 msgstr ""
 
 msgid "Which skill"
@@ -12805,6 +13042,12 @@ msgstr "menulis"
 msgid "Writing this file failed. Check the GitQuire log for the reason."
 msgstr "Gagal menulis file ini. Periksa log GitQuire untuk mengetahui alasannya."
 
+msgid "Wrote {detail}"
+msgstr ""
+
+msgid "Wrote pages"
+msgstr ""
+
 msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
 msgstr "Ekstensi GitQuire sudah ditulis, tetapi folder tidak bisa ditandai tepercaya, jadi ekstensi itu tidak akan dimuat. Utas ini tidak memiliki alat GitQuire."
 
@@ -12899,11 +13142,17 @@ msgstr "Anda sudah berlangganan!"
 msgid "you@company.com"
 msgstr "anda@perusahaan.com"
 
+msgid "Your {providerLabel} key"
+msgstr ""
+
 msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
 msgstr "Agen Anda tetap memuat keterampilan ini, tetapi GitQuire tidak dapat membuka atau mengeditnya: GitQuire tidak mengindeks berkas yang diatur untuk diabaikan oleh git, karena sinkronisasi akan gagal. Menambahkan satu baris ke {gitignorePath} membuatnya dapat diedit di sini."
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "Perubahan Anda masih disimpan — jalankan pengujiannya lagi sebentar."
+
+msgid "Your chats (kept {0} days)"
+msgstr ""
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "Salinan cabang <0>{shareBranch}</0> milik Anda punya perubahan yang belum ada di GitHub. {targetNoun} akan muncul begitu cabangnya tersinkron."
@@ -12976,6 +13225,9 @@ msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "Tautan berbagi Anda sudah siap di bawah."
+
+msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
 
 msgid "Your user settings could not be read"
 msgstr "Pengaturan pengguna Anda tidak dapat dibaca"

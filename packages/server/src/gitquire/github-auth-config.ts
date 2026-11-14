@@ -15,6 +15,7 @@ export interface GitHubAuthConfig {
   agentTokenDays: number;
   mcpConnectors: boolean;
   askAi: boolean;
+  aiChat: boolean;
   sessionMaxAgeSeconds: number;
   githubWebUrl: string;
   githubApiUrl: string;
@@ -39,6 +40,10 @@ function nonEmpty(value: string | undefined): string | undefined {
 
 function isOn(value: string | undefined): boolean {
   return ['1', 'on', 'true', 'yes'].includes(nonEmpty(value)?.toLowerCase() ?? '');
+}
+
+function isOff(value: string | undefined): boolean {
+  return ['0', 'off', 'false', 'no'].includes(nonEmpty(value)?.toLowerCase() ?? '');
 }
 
 function loginSet(value: string | undefined): ReadonlySet<string> {
@@ -151,6 +156,7 @@ export function resolveGitHubAuthConfig(
     agentTokenDays,
     mcpConnectors: isOn(env.GITQUIRE_MCP_CONNECTORS),
     askAi: isOn(env.GITQUIRE_ASK_AI),
+    aiChat: !isOff(env.GITQUIRE_AI_CHAT),
     sessionMaxAgeSeconds: Math.round(sessionDays * 24 * 60 * 60),
     githubWebUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),
     githubApiUrl: stripTrailingSlash(
