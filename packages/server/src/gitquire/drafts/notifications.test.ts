@@ -59,4 +59,10 @@ describe('agent requests forwarded to a draft', () => {
       proxiedUser(req({ [PROXIED_PRINCIPAL_HEADER]: 'not-json', ...internalRequestHeaders() })),
     ).toBeUndefined();
   });
+
+  it('keep the repository admin flag', () => {
+    const admin = { ...user, repoAdmin: true };
+    const principal = { [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(admin) };
+    expect(proxiedUser(req({ ...principal, ...internalRequestHeaders() }))).toEqual(admin);
+  });
 });
