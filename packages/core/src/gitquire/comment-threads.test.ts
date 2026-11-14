@@ -11,6 +11,7 @@ import {
   readCommentThreads,
   serializeCommentTrailer,
   splitCommentTrailer,
+  type ThreadComment,
   writeCommentThreads,
 } from './comment-threads.ts';
 
@@ -50,10 +51,13 @@ describe('comment trailer format', () => {
     expect(parseCommentTrailer(damaged)).toEqual({ threads: [thread], skippedLines: 2 });
   });
 
-  test('splits only a trailer at the very end', () => {
+  test('splits the trailer from the end of the page', () => {
     const md = `# Title\n\nBody text.\n\n${trailer}\n`;
     expect(splitCommentTrailer(md)).toEqual({ body: '# Title\n\nBody text.\n', trailer });
-    expect(splitCommentTrailer(`${trailer}\n\nmore text\n`).trailer).toBeUndefined();
+    expect(splitCommentTrailer(`${trailer}\n\nmore text\n`)).toEqual({
+      body: 'more text\n',
+      trailer,
+    });
     expect(splitCommentTrailer('plain\n').trailer).toBeUndefined();
     expect(splitCommentTrailer(`${trailer}\n`)).toEqual({ body: '', trailer });
   });
@@ -61,6 +65,40 @@ describe('comment trailer format', () => {
   test('ignores a trailer inside an unclosed code fence', () => {
     const md = `\`\`\`md\nexample\n${trailer}\n`;
     expect(splitCommentTrailer(md).trailer).toBeUndefined();
+  });
+
+  test('folds copies a merge left in the body into one trailer at the end', () => {
+    const body = '# Roadmap\n\nPlan text.\n';
+    const md = `${body}\n${trailer}\n\n${body}\n${trailer}\n\n${body}\n${trailer}\n`;
+    const split = splitCommentTrailer(md);
+    expect(split.trailer).toBe(trailer);
+    expect(split.body).not.toContain('gitquire-comments');
+    expect(split.body.match(/# Roadmap/g)).toHaveLength(3);
+  });
+
+  test('recovers a copy when the file no longer ends with a trailer', () => {
+    const split = splitCommentTrailer(`Intro\n\n${trailer}\n\nMore text\n`);
+    expect(split).toEqual({ body: 'Intro\n\nMore text\n', trailer });
+  });
+
+  test('merges threads that appear in more than one copy', () => {
+    const [first, second] = thread.comments as [ThreadComment, ThreadComment];
+    const older = serializeCommentTrailer([{ ...thread, comments: [first] }]);
+    const newer = serializeCommentTrailer([
+      { ...thread, resolved: true, comments: [second] },
+      { ...thread, id: 't2', comments: [first] },
+    ]);
+    const split = splitCommentTrailer(`Body\n\n${older}\n\nTail\n\n${newer}\n`);
+    expect(split.body).toBe('Body\n\nTail\n');
+    expect(parseCommentTrailer(split.trailer as string).threads).toEqual([
+      { ...thread, resolved: true },
+      { ...thread, id: 't2', comments: [first] },
+    ]);
+  });
+
+  test('leaves a copy inside a code fence alone', () => {
+    const md = `\`\`\`md\n${trailer}\n\`\`\`\n\n${trailer}\n`;
+    expect(splitCommentTrailer(md)).toEqual({ body: `\`\`\`md\n${trailer}\n\`\`\`\n`, trailer });
   });
 
   test('normalizes the join and supports removing every thread', () => {
@@ -103,9 +141,16 @@ describe('markdown pipeline carries the trailer', () => {
     expect(md.serialize(json)).toBe(`${trailer}\n`);
   });
 
-  test('does not move a hand-written marker from the middle of a page', () => {
-    const body = `Intro\n\n${trailer}\n\nOutro\n`;
-    const json = md.parse(body);
+  test('moves a copied comment section from the middle of a page to the end', () => {
+    const json = md.parse(`Intro\n\n${trailer}\n\nOutro\n`);
+    const out = md.serialize(json);
+    expect(splitCommentTrailer(out)).toEqual({ body: 'Intro\n\nOutro\n', trailer });
+    expect(out.split('gitquire-comments')).toHaveLength(2);
+  });
+
+  test('does not move a hand-written marker that holds no threads', () => {
+    const marker = '<!-- gitquire-comments v1\nnotes\n-->';
+    const json = md.parse(`Intro\n\n${marker}\n\nOutro\n`);
     expect(json.content?.some((node) => node.type === 'gitquireComments')).toBe(false);
     expect(md.serialize(json).trimEnd().endsWith('Outro')).toBe(true);
   });
