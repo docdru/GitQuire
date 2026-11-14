@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import { formatOkActor, type OkActorEntry } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import {
@@ -15,6 +14,7 @@ import {
   saveVersion,
   type WriterIdentity,
 } from '../shadow-repo.ts';
+import { simpleGit } from '../simple-git-client.ts';
 import { readShadowLog } from './shadow-log.ts';
 
 function wipBody(subject: string, writerId: string, displayName: string): string {

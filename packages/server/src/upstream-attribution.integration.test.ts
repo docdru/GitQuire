@@ -1,12 +1,13 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { __resetContributorsForTests as resetContributorsForTest } from './contributor-tracker.ts';
 import { createServer, type ServerInstance } from './server-factory.ts';
 import { initShadowRepo, type ShadowHandle, shadowGit } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { getDocumentHistory } from './timeline-query.ts';
 
 let dir: string;

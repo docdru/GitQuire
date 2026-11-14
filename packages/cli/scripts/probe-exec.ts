@@ -14,9 +14,9 @@ import {
   commitWip,
   type ExecStructuredResult,
   initShadowRepo,
+  simpleGit,
   type WriterIdentity,
 } from '@inkeep/open-knowledge-server';
-import simpleGit from 'simple-git';
 
 const root = resolve(tmpdir(), `ok-exec-probe-${Date.now()}`);
 mkdirSync(root, { recursive: true });

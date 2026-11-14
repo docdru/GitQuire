@@ -2,7 +2,6 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } 
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { getLogger } from './logger.ts';
@@ -36,6 +35,7 @@ import {
   saveVersion,
   type WriterIdentity,
 } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 let shadowDir: string;
 

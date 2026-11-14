@@ -1,5 +1,4 @@
 import { parseWriterId } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { getLogger } from './logger.ts';
 import { gcRenameLog, getOrLoadRenameLogIndex } from './rename-log.ts';
 import type { CheckpointRetentionPolicy, ShadowHandle, WriterIdentity } from './shadow-repo.ts';
@@ -11,6 +10,7 @@ import {
   saveVersion,
   shadowGit,
 } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const log = getLogger('shadow-gc');
 

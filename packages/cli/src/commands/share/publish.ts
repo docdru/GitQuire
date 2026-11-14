@@ -7,11 +7,12 @@ import {
   initContent,
   isFilesystemRoot,
   isHomeDir,
+  simpleGit,
   withHiddenWindowsConsole,
 } from '@inkeep/open-knowledge-server';
 import { Octokit } from '@octokit/rest';
 import { Command } from 'commander';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 import { buildHttpsHostCliCredentialConfig, type ResolvedAuth } from '../../auth/resolve-auth.ts';
 import type { TokenStore } from '../../auth/token-store.ts';
 import { resolveReposToken } from '../auth/repos.ts';

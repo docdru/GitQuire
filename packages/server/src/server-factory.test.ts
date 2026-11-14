@@ -31,7 +31,6 @@ import {
   writeConfigPatch,
 } from '@inkeep/open-knowledge-core/server';
 import { parseCheckpoint } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { stringify as stringifyYaml } from 'yaml';
 import * as Y from 'yjs';
@@ -73,6 +72,7 @@ import {
   type ShadowHandle,
   shadowGit,
 } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { SyncEngine } from './sync-engine.ts';
 import { TagIndex } from './tag-index.ts';
 import { contentHash } from './version-hash.ts';

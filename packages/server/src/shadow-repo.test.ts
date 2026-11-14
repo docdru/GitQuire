@@ -14,7 +14,6 @@ import {
   parseCheckpoint,
   parseOkActor,
 } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { applySkillWrite } from './content/skills-write.ts';
@@ -45,6 +44,7 @@ import {
   sweepLegacyShadowRefs,
   type WriterIdentity,
 } from './shadow-repo';
+import { simpleGit } from './simple-git-client.ts';
 
 const fsTracedRecorder = vi.hoisted(() => ({ renameSources: [] as string[] }));
 

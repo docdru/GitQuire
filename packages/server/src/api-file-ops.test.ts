@@ -15,7 +15,6 @@ import { join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { Hocuspocus } from '@hocuspocus/server';
 import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
-import simpleGit from 'simple-git';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
@@ -28,6 +27,7 @@ import { type ContentFilter, createContentFilter } from './content-filter.ts';
 import type { DerivedDocumentIndexApiPort } from './derived-document-index.ts';
 import { _resetDocExtensionsForTests, getDocExtension } from './doc-extensions.ts';
 import type { FileIndexEntry, FolderIndexEntry } from './file-watcher.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 function makeReq(url: string, method: string, body: unknown): IncomingMessage {
   const raw = body === undefined ? '' : JSON.stringify(body);

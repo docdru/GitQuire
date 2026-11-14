@@ -1,12 +1,12 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { __resetQuiescenceForTests } from './bridge-quiescence.ts';
 import { resetMetrics } from './metrics.ts';
 import { createServer } from './server-factory.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 
 vi.setConfig({ testTimeout: 20_000, hookTimeout: 20_000 });

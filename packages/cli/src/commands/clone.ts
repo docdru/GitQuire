@@ -14,6 +14,7 @@ import {
   assertGitAvailable,
   type Config,
   type CredentialUrlMatchReader,
+  GIT_ALLOWED_ENVIRONMENT,
   type GitHubAccountSource,
   GitNotAvailableError,
   GitProbeTimeoutError,
@@ -22,10 +23,11 @@ import {
   redactShareSubprocessStderr,
   resolveGitHubAccountFromUrl,
   sameGitHubLogin,
+  simpleGit,
   UnsafeIncomingSymlinkError,
 } from '@inkeep/open-knowledge-server';
 import { Command } from 'commander';
-import simpleGit, { GitPluginError, type SimpleGitOptions } from 'simple-git';
+import { GitPluginError, type SimpleGitOptions } from 'simple-git';
 import type { GhDetectResult } from '../auth/gh-detect.ts';
 import { type ResolvedAuth, resolveAuth } from '../auth/resolve-auth.ts';
 import { makeLazyTokenStore, type TokenStore } from '../auth/token-store.ts';
@@ -58,10 +60,56 @@ function emit(json: boolean, obj: Record<string, unknown>): void {
   if (json) process.stdout.write(`${JSON.stringify(obj)}\n`);
 }
 
-export function buildCloneEnv(sourceEnv: NodeJS.ProcessEnv = process.env): Record<string, string> {
+export const CLONE_USER_ENVIRONMENT: readonly string[] = [
+  'EDITOR',
+  'VISUAL',
+  'GIT_EDITOR',
+  'GIT_SEQUENCE_EDITOR',
+  'PAGER',
+  'GIT_PAGER',
+  'GIT_SSH',
+  'GIT_SSH_COMMAND',
+  'GIT_ASKPASS',
+  'SSH_ASKPASS',
+  'GIT_CONFIG_PARAMETERS',
+  'GIT_SSL_CAINFO',
+  'GIT_SSL_CAPATH',
+  'GIT_SSL_CERT',
+  'GIT_SSL_KEY',
+  'GIT_SSL_VERSION',
+  'GIT_SSL_CIPHER_LIST',
+  'GIT_HTTP_USER_AGENT',
+  'GIT_HTTP_LOW_SPEED_LIMIT',
+  'GIT_HTTP_LOW_SPEED_TIME',
+  'GIT_CURL_VERBOSE',
+  'GIT_TRACE_CURL',
+  'GIT_TRACE_PACKET',
+  'GIT_TRACE_PERFORMANCE',
+  'GIT_TRACE_SETUP',
+];
+
+const CLONE_PASSED_GIT_ENVIRONMENT = new Set(
+  [...GIT_ALLOWED_ENVIRONMENT, ...CLONE_USER_ENVIRONMENT].map((key) => key.toLowerCase()),
+);
+
+function isDroppedGitEnvironmentKey(key: string): boolean {
+  const lower = key.toLowerCase();
+  return lower.startsWith('git_') && !CLONE_PASSED_GIT_ENVIRONMENT.has(lower);
+}
+
+export interface CloneEnvOptions {
+  keepGitEnvironment?: boolean;
+}
+
+export function buildCloneEnv(
+  sourceEnv: NodeJS.ProcessEnv = process.env,
+  options: CloneEnvOptions = {},
+): Record<string, string> {
   const env: Record<string, string> = {};
   for (const [key, value] of Object.entries(sourceEnv)) {
-    if (value !== undefined) env[key] = value;
+    if (value === undefined) continue;
+    if (!options.keepGitEnvironment && isDroppedGitEnvironmentKey(key)) continue;
+    env[key] = value;
   }
   env.GIT_TERMINAL_PROMPT = '0';
   env.LANG = 'C';
@@ -72,8 +120,9 @@ export function buildCloneEnv(sourceEnv: NodeJS.ProcessEnv = process.env): Recor
 export function buildCloneAuthEnv(
   resolved: Pick<ResolvedAuth, 'relayToken'>,
   sourceEnv: NodeJS.ProcessEnv = process.env,
+  options: CloneEnvOptions = {},
 ): Record<string, string> {
-  const env = buildCloneEnv(sourceEnv);
+  const env = buildCloneEnv(sourceEnv, options);
   if (resolved.relayToken) {
     env.OK_GH_TOKEN = resolved.relayToken.token;
     env.OK_GH_TOKEN_HOST = resolved.relayToken.host;
@@ -132,6 +181,7 @@ export function buildCloneGitOptions(cwd: string, gitConfig: string[]): Partial<
   return {
     baseDir: cwd,
     config: gitConfig,
+    allowEnvironment: CLONE_USER_ENVIRONMENT,
     unsafe: {
       allowUnsafeCredentialHelper: true,
       allowUnsafePager: true,
@@ -139,6 +189,7 @@ export function buildCloneGitOptions(cwd: string, gitConfig: string[]): Partial<
       allowUnsafeAskPass: true,
       allowUnsafeEditor: true,
       allowUnsafeConfigEnvCount: true,
+      allowUnsafeUrlRewrite: true,
     },
   };
 }

@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSy
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parseCheckpoint } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { DocNoticeLedger } from './doc-notices.ts';
@@ -10,6 +9,7 @@ import { createMergeHistoryRecorder, keepNoEngineVersion } from './merge-history
 import { getMetrics, resetMetrics } from './metrics.ts';
 import type { KeptBlockPair } from './reconciliation.ts';
 import { initShadowRepo, type ShadowHandle, shadowGit } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const KEPT_TWICE: KeptBlockPair = {
   blockIndex: 1,

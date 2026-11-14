@@ -3,7 +3,6 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
@@ -24,6 +23,7 @@ import {
   saveVersion,
   type WriterIdentity,
 } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 interface CapturedResponse {
   status: number;

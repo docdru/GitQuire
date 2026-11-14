@@ -3,11 +3,11 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { BacklinkIndex } from './backlink-index.ts';
 import { _resetDocExtensionsForTests } from './doc-extensions.ts';
 import { createServer } from './server-factory.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 interface ApiExtensionLike {
   priority?: number;

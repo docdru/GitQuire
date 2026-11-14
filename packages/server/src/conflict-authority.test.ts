@@ -15,7 +15,6 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
@@ -30,6 +29,7 @@ import type { Conflict } from './conflict-kinds.ts';
 import { strategiesFor } from './conflict-kinds.ts';
 import { _resetDocExtensionsForTests, registerDocExtension } from './doc-extensions.ts';
 import { getLogger } from './logger.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 let tmpDir = '';
 let projectDir = '';

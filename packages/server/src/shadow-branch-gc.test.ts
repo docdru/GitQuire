@@ -3,11 +3,11 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { parseCheckpoint } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { gcShadowBranches } from './shadow-branch-gc';
 import { commitWip, initShadowRepo, shadowGit, type WriterIdentity } from './shadow-repo';
+import { simpleGit } from './simple-git-client.ts';
 
 let tmpDir: string;
 

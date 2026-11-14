@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { Principal } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { getLocalDir } from './config/paths.ts';
 import { sanitizeGitIdentity } from './git-identity-sanitize.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const PRINCIPAL_FILE = 'principal.json';
 const GIT_TIMEOUT_MS = 3000;

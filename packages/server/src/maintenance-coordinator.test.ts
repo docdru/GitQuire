@@ -3,7 +3,6 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import {
@@ -20,6 +19,7 @@ import {
   type WriterIdentity,
 } from './shadow-repo.ts';
 import { countShadowObjects } from './shadow-repo-stats.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 let tmpDir: string;
 let projectRoot: string;

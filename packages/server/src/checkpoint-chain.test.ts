@@ -2,7 +2,6 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { resolveCheckpointChainAnchors } from './checkpoint-chain.ts';
@@ -12,6 +11,7 @@ import {
   saveInMemoryCheckpoint,
   shadowGit,
 } from './shadow-repo';
+import { simpleGit } from './simple-git-client.ts';
 
 let tmpDir: string;
 let projectRoot: string;

@@ -4,7 +4,6 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { createGitTriangle, type GitTriangle } from '../tests/support/git-fixture.test-helper.ts';
@@ -23,6 +22,7 @@ import {
 } from './shadow-repo.ts';
 import { computeShareFreshness } from './share/freshness.ts';
 import { computeShareTargetStatus } from './share/target-status.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { restoreSkillVersion } from './skill-restore.ts';
 import { SyncEngine } from './sync-engine.ts';
 import { getDocumentHistory } from './timeline-query.ts';

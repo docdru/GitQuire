@@ -7,8 +7,8 @@ import {
   countStaleAgentWipRefs,
   countWipRefs,
   hasGcLogLatch,
+  simpleGit,
 } from '@inkeep/open-knowledge-server';
-import simpleGit from 'simple-git';
 import type { CheckContext, CheckDefinition, CheckResult } from './types.ts';
 
 const LOOSE_WARN = 2000;

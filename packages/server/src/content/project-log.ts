@@ -1,7 +1,8 @@
 import { statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathspecArgs } from '@inkeep/open-knowledge-core';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
+import { simpleGit } from '../simple-git-client.ts';
 
 export interface GitCommit {
   hash: string;

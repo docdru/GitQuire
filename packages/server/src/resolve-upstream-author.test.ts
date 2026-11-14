@@ -1,10 +1,11 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { resolveUpstreamChanges } from './server-factory.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 describe('resolveUpstreamChanges', () => {
   let dir: string;

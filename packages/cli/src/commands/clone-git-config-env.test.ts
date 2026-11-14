@@ -13,8 +13,8 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { shellSingleQuote } from '@inkeep/open-knowledge-core';
-import { UnsafeIncomingSymlinkError } from '@inkeep/open-knowledge-server';
-import simpleGit, { GitPluginError, type SimpleGitOptions } from 'simple-git';
+import { simpleGit, UnsafeIncomingSymlinkError } from '@inkeep/open-knowledge-server';
+import { GitPluginError, type SimpleGitOptions } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { startGitHubStandIn } from '../../tests/support/github-stand-in.test-helper.ts';

@@ -171,7 +171,6 @@ import { createSkillsCatalogCache } from './skills-catalog-cache.ts';
 
 export { extractPageTitle } from './page-identity.ts';
 
-import simpleGit from 'simple-git';
 import {
   parseAgentBodyFields,
   type RawWriterId,
@@ -397,6 +396,7 @@ import {
   createSyncCredentialConfigResolver,
   readDeclaredGitHubHosts,
 } from './share/git-context.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 import { readSkillInstallModeRaw } from './skill-placements.ts';
 

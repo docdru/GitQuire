@@ -2159,15 +2159,15 @@ Homepage: https://github.com/shikijs/vscode-textmate
 
 Copyright (c) Microsoft Corporation
 
-### `@simple-git/args-pathspec@1.0.3`
+### `@simple-git/args-pathspec@1.0.4`
 Homepage: https://github.com/steveukx/git-js
 
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
+Copyright (c) 2025 Steve King
 
-### `@simple-git/argv-parser@1.1.1`
+### `@simple-git/argv-parser@2.0.1`
 Homepage: https://github.com/steveukx/git-js
 
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
+Copyright (c) 2025 Steve King
 
 ### `@sinclair/typebox@0.27.10`
 Homepage: https://github.com/sinclairzx81/typebox-legacy
@@ -5483,10 +5483,10 @@ Homepage: https://github.com/feross/simple-get
 
 Copyright (c) Feross Aboukhadijeh
 
-### `simple-git@3.36.0`
+### `simple-git@4.0.2`
 Homepage: https://github.com/steveukx/git-js
 
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
+Copyright (c) 2025 Steve King
 
 ### `sirv@3.0.2`
 Homepage: https://github.com/lukeed/sirv

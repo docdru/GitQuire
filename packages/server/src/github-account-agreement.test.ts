@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { createTestConflictAuthority } from './conflict-authority.test-helper.ts';
@@ -18,6 +17,7 @@ import {
   type GitHubAccount,
   resolveGitHubAccountFromUrl,
 } from './share/github-account.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { SyncEngine } from './sync-engine.ts';
 
 const stubContentFilter = {

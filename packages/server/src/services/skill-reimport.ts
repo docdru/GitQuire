@@ -13,7 +13,6 @@ import {
   type SkillsLock,
   upsertLockEntry,
 } from '@inkeep/open-knowledge-core/skills-catalog';
-import simpleGit from 'simple-git';
 import type { z } from 'zod';
 import {
   applySkillBundleFileDelete,
@@ -23,6 +22,7 @@ import {
   validateSkillMutationPath,
 } from '../content/skills-write.ts';
 import type { extractActorIdentity } from '../extract-actor-identity.ts';
+import { simpleGit } from '../simple-git-client.ts';
 import { mutateSkillsLock } from '../skills-lock-store.ts';
 import { importedBundleLimitError, SKILL_IMPORT_WRITE_LIMITS } from './skill-import.ts';
 

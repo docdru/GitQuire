@@ -1,7 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import {
@@ -10,6 +9,7 @@ import {
   swapContributors,
 } from './contributor-tracker.ts';
 import { commitWip, initShadowRepo, type WriterIdentity } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { getDocumentHistory } from './timeline-query.ts';
 
 let projectDir: string;
