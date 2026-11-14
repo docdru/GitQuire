@@ -268,6 +268,9 @@ msgstr "{0}은(는) 링크로 열리므로 첨부를 받을 수 없습니다. �
 msgid "{0} other skills by this publisher"
 msgstr "이 게시자의 다른 스킬 {0}개"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "{0} 플러그인"
 
@@ -1169,6 +1172,9 @@ msgstr "저장된 API 키에 접근하는 시간이 초과되었습니다. 자�
 msgid "Access token"
 msgstr "액세스 토큰"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1208,7 +1214,7 @@ msgstr "실제 크기"
 msgid "Add"
 msgstr "추가"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -6641,14 +6647,14 @@ msgstr "{failures}의 MCP 자동 복구에 실패했습니다"
 msgid "MCP servers"
 msgstr "MCP 서버"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "중간 크기 섹션 제목입니다."
 
 msgid "Mention a page"
 msgstr "페이지 언급"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7488,6 +7494,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "없음"
 
@@ -8244,6 +8253,9 @@ msgstr "패턴 경고: {summary}"
 
 msgid "pending"
 msgstr "대기 중"
+
+msgid "People"
+msgstr ""
 
 msgid "Percolating…"
 msgstr "전파 중…"
@@ -12502,7 +12514,7 @@ msgstr "워크트리"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Markdown 소스 편집기에서 긴 줄을 자동으로 줄바꿈합니다."
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

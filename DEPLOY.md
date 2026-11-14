@@ -171,6 +171,17 @@ no mail. The link in the mail is built from `OK_EXTERNAL_URL`; without it, the m
 Read state and email settings are kept on the server in `/data/.ok/local/gitquire/mentions.json`,
 outside Git.
 
+## People you can mention
+
+Typing `@` in a comment or a page offers the people who use this wiki: everyone who has signed in,
+the repository's collaborators with write access (read through the GitHub App, cached for ten
+minutes; if GitHub refuses, only the other two sources are used) and `GITQUIRE_ALLOWED_USERS`. The
+list of people who signed in is kept in `.ok/local/gitquire/people.json` on the data volume.
+
+Action items that mention someone (`- [ ] … @alice`) notify them like comments do. When this
+first runs, existing open action items are recorded as already seen, so nobody gets a burst of old
+notifications.
+
 ## Chat notifications
 
 Set `GITQUIRE_CHAT_WEBHOOK_URL` to an incoming webhook of Slack, Microsoft Teams (Workflows),

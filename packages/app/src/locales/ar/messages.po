@@ -268,6 +268,9 @@ msgstr "{0} يفتح عبر رابط ولا يقبل المرفقات — اخت
 msgid "{0} other skills by this publisher"
 msgstr "{0} مهارات أخرى من هذا الناشر"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "مكوّن {0} الإضافي"
 
@@ -1169,6 +1172,9 @@ msgstr "انتهت مهلة الوصول إلى مفتاح API المحفوظ. �
 msgid "Access token"
 msgstr "رمز الوصول"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1208,7 +1214,7 @@ msgstr "الحجم الفعلي"
 msgid "Add"
 msgstr "إضافة"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -6641,14 +6647,14 @@ msgstr "فشل الإصلاح التلقائي لـ MCP لـ {failures}"
 msgid "MCP servers"
 msgstr "خوادم MCP"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "عنوان قسم متوسط."
 
 msgid "Mention a page"
 msgstr "الإشارة إلى صفحة"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7488,6 +7494,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "لا شيء"
 
@@ -8244,6 +8253,9 @@ msgstr "تحذيرات النمط: {summary}"
 
 msgid "pending"
 msgstr "معلّق"
+
+msgid "People"
+msgstr ""
 
 msgid "Percolating…"
 msgstr "يجري الترشيح…"
@@ -12502,7 +12514,7 @@ msgstr "أشجار العمل"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "لُف الأسطر الطويلة في محرر مصدر Markdown."
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

@@ -373,7 +373,7 @@ export function ActionItemList({
   const mine = me?.toLowerCase() ?? '';
   const personChoices: Choice[] = [
     { value: '', label: t`Everyone` },
-    ...(mine === '' ? [] : [{ value: mine, label: t`Mentioning me` }]),
+    ...(mine === '' ? [] : [{ value: mine, label: t`Me (@${mine})` }]),
     { value: UNASSIGNED, label: t`Nobody mentioned` },
     ...people
       .filter((person) => person.login !== mine)

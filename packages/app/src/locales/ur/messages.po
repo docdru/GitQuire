@@ -268,6 +268,9 @@ msgstr "{0} ایک لنک کے ذریعے کھلتا ہے اور منسلکات 
 msgid "{0} other skills by this publisher"
 msgstr "اس ناشر کی {0} مزید مہارتیں"
 
+msgid "{0} people match. Use the arrow keys and Enter to pick."
+msgstr ""
+
 msgid "{0} plugin"
 msgstr "{0} پلگ ان"
 
@@ -1169,6 +1172,9 @@ msgstr "محفوظ API کلید تک رسائی کا وقت ختم ہو گیا۔
 msgid "Access token"
 msgstr "رسائی ٹوکن"
 
+msgid "Action item"
+msgstr ""
+
 msgid "Action items"
 msgstr ""
 
@@ -1208,7 +1214,7 @@ msgstr "اصل حجم"
 msgid "Add"
 msgstr "شامل کریں"
 
-msgid "Add a comment. Use @name to mention someone."
+msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
 msgid "Add a file name (e.g. notes.md)"
@@ -6641,14 +6647,14 @@ msgstr "{failures} کے لیے MCP خودکار مرمت ناکام رہی"
 msgid "MCP servers"
 msgstr "MCP سرورز"
 
+msgid "Me (@{mine})"
+msgstr ""
+
 msgid "Medium section heading."
 msgstr "درمیانہ سیکشن عنوان۔"
 
 msgid "Mention a page"
 msgstr "کسی صفحہ کا حوالہ دیں"
-
-msgid "Mentioning me"
-msgstr ""
 
 msgid "Mentions"
 msgstr ""
@@ -7488,6 +7494,9 @@ msgstr ""
 msgid "Nobody mentioned"
 msgstr ""
 
+msgid "Nobody with this GitHub username uses this wiki."
+msgstr ""
+
 msgid "None"
 msgstr "کوئی نہیں"
 
@@ -8244,6 +8253,9 @@ msgstr "پیٹرن کے انتباہات: {summary}"
 
 msgid "pending"
 msgstr "زیرِ التوا"
+
+msgid "People"
+msgstr ""
 
 msgid "Percolating…"
 msgstr "چھان بین جاری ہے…"
@@ -12502,7 +12514,7 @@ msgstr "ورک ٹریز"
 msgid "Wrap long lines in the markdown source editor."
 msgstr "Markdown سورس ایڈیٹر میں لمبی سطریں لپیٹیں۔"
 
-msgid "Write a reply. Use @name to mention someone."
+msgid "Write a reply. Type @ to mention someone."
 msgstr ""
 
 #. js-lingui-explicit-id

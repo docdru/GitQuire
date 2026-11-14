@@ -4,20 +4,44 @@ icon: LuAtSign
 description: See where teammates mentioned you, and get mentions by email or in your team chat.
 ---
 
-Write `@login` in a comment to mention a teammate. GitQuire tells them in three ways: in the
-app, by email if they want it, and in a team chat if the server is set up for it.
+Mention a teammate with `@` and their GitHub username, in a comment or in an action item. GitQuire
+tells them in three ways: in the app, by email if they want it, and in a team chat if the server is
+set up for it.
+
+## Mentioning someone
+
+Type `@` in a comment, a reply or anywhere in a page: a list of the people who use this wiki opens.
+Keep typing a name or username to narrow it, then pick someone with the arrow keys and Enter (or
+click). GitQuire inserts their username, for example `@alice`. Typing the username yourself works
+the same.
+
+The list holds everyone who has signed in to this GitQuire, the repository's collaborators with
+write access, and anyone in `GITQUIRE_ALLOWED_USERS`. Mentions of people on that list are
+highlighted; in comments, an `@name` nobody here uses is shown with a dotted underline instead.
+
+- **In a comment or reply:** the person is notified.
+- **In an action item** (`- [ ] Send the numbers @alice`): the person is notified when the item
+  appears, and **Views → Action items** can show only their items (choose **Me** for your own).
+  Ticking the item off ends it; editing its text counts as a new item.
+- **Yourself:** you can mention yourself, for example to find your own action items, but you are
+  never notified about your own mentions. For action items GitQuire knows who wrote them when they
+  were typed in GitQuire in the last ten minutes; an item added outside GitQuire (in a commit, or by
+  a script) is shown without an author and does notify the people it mentions.
 
 ## Mention inbox
 
-When you are signed in, the **@** button in the header lists the comment threads where someone
-mentioned you, newest first, with a count of unread ones (at most 100; mentioning yourself does
-not count). Choose a mention to open the page at that thread; it is marked read.
+When you are signed in, the **@** button in the header lists the comment threads and open action
+items where someone mentioned you, newest first, with a count of unread ones (at most 100;
+mentioning yourself does not count). Choose a mention to open the page, at the thread for a
+comment; it is marked read. Action items that already mentioned you when this feature arrived are
+listed as read and are not mailed or posted.
 **Mark all as read** clears the count.
 
 The inbox needs [GitHub sign-in](./github-sign-in.mdx), because it has to know who is asking. The
 mentions themselves stay in the pages, in Git. Only who has read what, and the email settings
 below, are kept on the server in `/data/.ok/local/gitquire/mentions.json`, outside Git. The team
-chat keeps what it has posted next to it, in `chat.json`.
+chat keeps what it has posted next to it, in `chat.json`; when each action item mention was first
+seen is in `action-item-mentions.json`, and the people list in `people.json`.
 
 ## Email
 
