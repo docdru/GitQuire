@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { Hocuspocus } from '@hocuspocus/server';
-import simpleGit from 'simple-git';
 import { afterAll, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { createTempDirFactory } from '../../../../test-support/temp-dir.test-helper.ts';
@@ -12,6 +11,7 @@ import { makeCaptureRes, makeSyntheticReq } from '../composition-rig.test-helper
 import { createTestConflictAuthority } from '../conflict-authority.test-helper.ts';
 import type { ConflictAuthority } from '../conflict-authority.ts';
 import { loggerFactory } from '../logger.ts';
+import { simpleGit } from '../simple-git-client.ts';
 import { createSyncRoutes } from './sync-routes.ts';
 
 const makeTempDir = createTempDirFactory(afterAll);

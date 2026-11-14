@@ -2,12 +2,12 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { prependFrontmatter, stripFrontmatter } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { __resetQuiescenceForTests } from './bridge-quiescence.ts';
 import { resetMetrics } from './metrics.ts';
 import { createServer } from './server-factory.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 
 function reconstructSerializeDoc(

@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-`@inkeep/open-knowledge` (npm CLI) and `@inkeep/open-knowledge-desktop` (Electron app) bundle source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.
+GitQuire (the `@inkeep/open-knowledge` CLI, server and web app in its Docker image) bundles source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.
 
 This file is generated. **Do not edit by hand.** Regenerate with `pnpm run notices` from the repo root, then commit the result.
 
@@ -997,66 +997,6 @@ Copyright 2023 Vercel, Inc.
 Homepage: https://github.com/mikeal/tunnel-agent
 
 _(LICENSE template present but no copyright line filled in; refer to the package source for canonical attribution.)_
-
-### OpenAI Codex (vendored into `packages/native-config`)
-Homepage: https://github.com/openai/codex
-
-Copyright 2025 OpenAI
-
-The native harness-config addon contains Rust code derived from OpenAI Codex's `toml_edit`-based config-edit implementation, adapted to an insert-only single-entry upsert. The Apache License, Version 2.0 reproduced above applies. Derived files and their upstream origins:
-
-- `src/document_helpers.rs` — from `codex-rs/core/src/config/edit/document_helpers.rs`
-- `src/mcp_edit.rs` — adapted from `codex-rs/core/src/config/edit.rs` (insert-only, not `replace_mcp_servers`)
-- `src/path_resolve.rs` — from `codex-rs/utils/path-utils/src/lib.rs`
-- `src/mcp_edit_conformance_tests.rs` — ported from `codex-rs/core/src/config/edit_tests.rs`
-
-NOTICE:
-
-```
-OpenAI Codex
-Copyright 2025 OpenAI
-```
-
----
-
-## Bundled Rust crates (native-config addon)
-
-The native harness-config addon's `.node` binaries statically link the Rust crates below. Each is redistributed under the license shown; every license here is MIT, Apache-2.0, or ISC, whose full texts are reproduced elsewhere in this document (for dual- or multi-licensed crates OpenKnowledge elects a reproduced license). Compile-time-only crates (proc-macros, build scripts) and test-only dev-dependencies are not listed — their code is not present in the distributed binary. Versions track `packages/native-config/Cargo.lock`.
-
-- `bitflags@2.13.0` — MIT OR Apache-2.0 — https://github.com/bitflags/bitflags
-- `cfg-if@1.0.4` — MIT OR Apache-2.0 — https://github.com/rust-lang/cfg-if
-- `ctor@1.0.7` — Apache-2.0 OR MIT — https://github.com/mmastrac/linktime
-- `equivalent@1.0.2` — Apache-2.0 OR MIT — https://github.com/indexmap-rs/equivalent
-- `futures@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `futures-channel@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `futures-core@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `futures-executor@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `futures-io@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `futures-sink@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `futures-task@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `futures-util@0.3.32` — MIT OR Apache-2.0 — https://github.com/rust-lang/futures-rs
-- `hashbrown@0.17.1` — MIT OR Apache-2.0 — https://github.com/rust-lang/hashbrown
-- `indexmap@2.14.0` — Apache-2.0 OR MIT — https://github.com/indexmap-rs/indexmap
-- `itoa@1.0.18` — MIT OR Apache-2.0 — https://github.com/dtolnay/itoa
-- `libloading@0.9.0` — ISC — https://github.com/nagisa/rust_libloading
-- `memchr@2.8.2` — Unlicense OR MIT — https://github.com/BurntSushi/memchr
-- `napi@3.9.4` — MIT — https://github.com/napi-rs/napi-rs
-- `napi-sys@3.2.2` — MIT — https://github.com/napi-rs/napi-rs
-- `nohash-hasher@0.2.0` — Apache-2.0 OR MIT — https://github.com/paritytech/nohash-hasher
-- `pin-project-lite@0.2.17` — Apache-2.0 OR MIT — https://github.com/taiki-e/pin-project-lite
-- `rustc-hash@2.1.2` — Apache-2.0 OR MIT — https://github.com/rust-lang/rustc-hash
-- `serde@1.0.228` — MIT OR Apache-2.0 — https://github.com/serde-rs/serde
-- `serde_core@1.0.228` — MIT OR Apache-2.0 — https://github.com/serde-rs/serde
-- `serde_json@1.0.150` — MIT OR Apache-2.0 — https://github.com/serde-rs/json
-- `slab@0.4.12` — MIT — https://github.com/tokio-rs/slab
-- `toml_datetime@0.7.5+spec-1.1.0` — MIT OR Apache-2.0 — https://github.com/toml-rs/toml
-- `toml_edit@0.24.1+spec-1.1.0` — MIT OR Apache-2.0 — https://github.com/toml-rs/toml
-- `toml_parser@1.1.2+spec-1.1.0` — MIT OR Apache-2.0 — https://github.com/toml-rs/toml
-- `toml_writer@1.1.1+spec-1.1.0` — MIT OR Apache-2.0 — https://github.com/toml-rs/toml
-- `windows-link@0.2.1` — MIT OR Apache-2.0 — https://github.com/microsoft/windows-rs
-- `winnow@0.7.15` — MIT — https://github.com/winnow-rs/winnow
-- `winnow@1.0.3` — MIT — https://github.com/winnow-rs/winnow
-- `zmij@1.0.21` — MIT — https://github.com/dtolnay/zmij
 
 ---
 
@@ -2159,15 +2099,15 @@ Homepage: https://github.com/shikijs/vscode-textmate
 
 Copyright (c) Microsoft Corporation
 
-### `@simple-git/args-pathspec@1.0.3`
+### `@simple-git/args-pathspec@1.0.4`
 Homepage: https://github.com/steveukx/git-js
 
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
+Copyright (c) 2025 Steve King
 
-### `@simple-git/argv-parser@1.1.1`
+### `@simple-git/argv-parser@2.0.1`
 Homepage: https://github.com/steveukx/git-js
 
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
+Copyright (c) 2025 Steve King
 
 ### `@sinclair/typebox@0.27.10`
 Homepage: https://github.com/sinclairzx81/typebox-legacy
@@ -2888,11 +2828,6 @@ Homepage: https://github.com/evidentpoint/buffer-image-size
 
 _(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
 
-### `builder-util-runtime@9.7.0`
-Homepage: https://github.com/electron-userland/electron-builder
-
-Copyright (c) 2015 Loopline Systems
-
 ### `bundle-name@4.1.0`
 Homepage: https://github.com/sindresorhus/bundle-name
 
@@ -3314,11 +3249,6 @@ Homepage: https://github.com/jonathanong/ee-first
 
 Copyright (c) 2014 Jonathan Ong me@jongleberry.com
 
-### `electron-updater@6.8.4`
-Homepage: https://github.com/electron-userland/electron-builder
-
-Copyright (c) 2015 Loopline Systems
-
 ### `emoji-regex@10.6.0`
 Homepage: https://mths.be/emoji-regex
 
@@ -3574,11 +3504,6 @@ Copyright (c) 2018 Mathias Buus
 Homepage: https://github.com/jprichardson/node-fs-extra
 
 Copyright (c) 2011-2024 JP Richardson
-
-### `fs-extra@10.1.0`
-Homepage: https://github.com/jprichardson/node-fs-extra
-
-Copyright (c) 2011-2017 JP Richardson
 
 ### `function-bind@1.1.2`
 Homepage: https://github.com/Raynos/function-bind
@@ -4122,11 +4047,6 @@ Homepage: https://github.com/iVis-at-Bilkent/layout-base#readme
 
 Copyright (c) 2019 iVis@Bilkent
 
-### `lazy-val@1.0.5`
-Homepage: https://github.com/develar/lazy-val
-
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
-
 ### `leven@3.1.0`
 Homepage: https://github.com/sindresorhus/leven
 
@@ -4166,16 +4086,6 @@ Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
 Homepage: https://lodash.com/
 
 _(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
-
-### `lodash.escaperegexp@4.1.2`
-Homepage: https://lodash.com/
-
-_(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
-
-### `lodash.isequal@4.5.0`
-Homepage: https://lodash.com/
-
-Copyright JS Foundation and other contributors <https://js.foundation/>
 
 ### `lodash.throttle@4.1.1`
 Homepage: https://lodash.com/
@@ -4656,13 +4566,6 @@ Copyright (c) 2006, 2008 Tony Garnock-Jones &lt;tonyg@lshift.net&gt;<br/> Copyri
 Homepage: https://github.com/prebuild/node-gyp-build
 
 Copyright (c) 2017 Mathias Buus
-
-### `node-pty@1.2.0-beta.15`
-Homepage: https://github.com/microsoft/node-pty
-
-Copyright (c) 2012-2015, Christopher Jeffrey (https://github.com/chjj/)
-Copyright (c) 2016, Daniel Imms (http://www.growingwiththeweb.com)
-Copyright (c) 2018 - present Microsoft Corporation
 
 ### `node-releases@2.0.60`
 Homepage: https://github.com/chicoxyzzy/node-releases
@@ -5483,10 +5386,10 @@ Homepage: https://github.com/feross/simple-get
 
 Copyright (c) Feross Aboukhadijeh
 
-### `simple-git@3.36.0`
+### `simple-git@4.0.2`
 Homepage: https://github.com/steveukx/git-js
 
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
+Copyright (c) 2025 Steve King
 
 ### `sirv@3.0.2`
 Homepage: https://github.com/lukeed/sirv
@@ -5669,11 +5572,6 @@ Copyright (c) 2021 Matteo Collina
 Homepage: https://github.com/alexreardon/tiny-invariant
 
 Copyright (c) 2019 Alexander Reardon
-
-### `tiny-typed-emitter@2.1.0`
-Homepage: https://github.com/binier/tiny-typed-emitter
-
-Copyright (c) 2020 Zurab Benashvili (binier) <zura.bena@gmail.com>
 
 ### `tinycolor2@1.6.0`
 Homepage: https://github.com/bgrins/TinyColor
@@ -6290,17 +6188,12 @@ Homepage: https://github.com/alexeyraspopov/picocolors
 
 Copyright (c) 2021-2024 Oleksii Raspopov, Kostiantyn Denysov, Anton Verinov
 
-### `semver@7.8.5`
-Homepage: https://github.com/npm/node-semver
-
-Copyright (c) Isaac Z. Schlueter and Contributors
-
-### `semver@7.7.4`
-Homepage: https://github.com/npm/node-semver
-
-Copyright (c) Isaac Z. Schlueter and Contributors
-
 ### `semver@6.3.1`
+Homepage: https://github.com/npm/node-semver
+
+Copyright (c) Isaac Z. Schlueter and Contributors
+
+### `semver@7.8.5`
 Homepage: https://github.com/npm/node-semver
 
 Copyright (c) Isaac Z. Schlueter and Contributors
@@ -6648,7 +6541,6 @@ The following packages are under licenses that do not require attribution (BlueO
 - `isexe@3.1.5` — BlueOak-1.0.0
 - `minimatch@10.2.5` — BlueOak-1.0.0
 - `robust-predicates@3.0.3` — Unlicense
-- `sax@1.6.0` — BlueOak-1.0.0
 - `tslib@2.8.1` — 0BSD
 
 ---

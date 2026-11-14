@@ -2,7 +2,6 @@ import { execSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import {
@@ -18,6 +17,7 @@ import {
   parseTreeLongEntriesZ,
   splitNulSeparatedPaths,
 } from './git-paths.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const NON_ASCII = 'hyvää yötä.md';
 

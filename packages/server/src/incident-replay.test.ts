@@ -10,7 +10,6 @@ import {
   MeterProvider,
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { createMaintenanceCoordinator } from './maintenance-coordinator.ts';
@@ -22,6 +21,7 @@ import {
 } from './shadow-maintenance-telemetry.ts';
 import { commitWip, initShadowRepo, type ShadowHandle } from './shadow-repo.ts';
 import { countShadowObjects, countWipRefs, hasGcLogLatch } from './shadow-repo-stats.ts';
+import { simpleGit } from './simple-git-client.ts';
 import {
   __resetTimelineTelemetryForTesting,
   commitsBucket,

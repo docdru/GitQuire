@@ -2,13 +2,13 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { __resetQuiescenceForTests, __setQuiescentOverrideForTests } from './bridge-quiescence.ts';
 import { __resetBridgeWatchdogForTests } from './bridge-watchdog.ts';
 import { getMetrics, resetMetrics } from './metrics.ts';
 import { createServer } from './server-factory.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 interface Fixture {
   tmpDir: string;

@@ -23,10 +23,7 @@ const DEFINITION_DIR = join('core', 'src', 'logging');
 
 const SKIP_DIR_NAMES = new Set(['node_modules', 'dist', 'out', 'build', '.turbo']);
 
-const KNOWN_CAPTURE_SITES = [
-  'app/src/lib/install-client-log-forwarder.ts',
-  'desktop/src/main/renderer-console-capture.ts',
-];
+const KNOWN_CAPTURE_SITES = ['app/src/lib/install-client-log-forwarder.ts'];
 
 function listSourceFiles(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -60,7 +57,7 @@ function findCaptureSites(): string[] {
   return sites.sort();
 }
 
-const PACKAGES_WITHOUT_SOURCE = new Set(['plugin']);
+const PACKAGES_WITHOUT_SOURCE = new Set<string>();
 
 function isDirectory(path: string): boolean {
   return statSync(path, { throwIfNoEntry: false })?.isDirectory() ?? false;
@@ -91,8 +88,6 @@ describe('renderer-console capture sites', () => {
       writeFileSync(join(packagesDir, 'with-src', 'package.json'), '{}\n');
       mkdirSync(join(packagesDir, 'without-src'));
       writeFileSync(join(packagesDir, 'without-src', 'package.json'), '{}\n');
-      mkdirSync(join(packagesDir, 'plugin'));
-      writeFileSync(join(packagesDir, 'plugin', 'package.json'), '{}\n');
       mkdirSync(join(packagesDir, 'leftover', 'node_modules'), { recursive: true });
       expect(packagesWithoutSource(packagesDir)).toEqual(['without-src']);
     } finally {

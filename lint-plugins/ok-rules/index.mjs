@@ -5,7 +5,6 @@ import { cstPmHandlerTodoStub } from './rules/cst-pm-handler-todo-stub.mjs';
 import { microcopyEllipsis } from './rules/microcopy-ellipsis.mjs';
 import { noAppCoreBarrelImport } from './rules/no-app-core-barrel-import.mjs';
 import { noBlindAgentHostFanout } from './rules/no-blind-agent-host-fanout.mjs';
-import { noBlockingErrorBox } from './rules/no-blocking-error-box.mjs';
 import { noCustomToast } from './rules/no-custom-toast.mjs';
 import { noDemotedDialogConfirm } from './rules/no-demoted-dialog-confirm.mjs';
 import { noEmptyJsxExpression } from './rules/no-empty-jsx-expression.ts';
@@ -14,7 +13,6 @@ import { noHandRolledBranchValidation } from './rules/no-hand-rolled-branch-vali
 import { noHandRolledSpinner } from './rules/no-hand-rolled-spinner.mjs';
 import { noHandRolledTestFileSuffix } from './rules/no-hand-rolled-test-file-suffix.mjs';
 import { noInlineToleranceClass } from './rules/no-inline-tolerance-class.mjs';
-import { noLooselyTypedWebcontentsIpc } from './rules/no-loosely-typed-webcontents-ipc.mjs';
 import { noNativeRendererDialog } from './rules/no-native-renderer-dialog.mjs';
 import { noPhysicalDirectionUtility } from './rules/no-physical-direction-utility.mjs';
 import { noRawErrorToast } from './rules/no-raw-error-toast.mjs';
@@ -46,7 +44,6 @@ const declared = {
   'microcopy-ellipsis': microcopyEllipsis,
   'no-app-core-barrel-import': noAppCoreBarrelImport,
   'no-blind-agent-host-fanout': noBlindAgentHostFanout,
-  'no-blocking-error-box': noBlockingErrorBox,
   'no-custom-toast': noCustomToast,
   'no-demoted-dialog-confirm': noDemotedDialogConfirm,
   'no-empty-jsx-expression': noEmptyJsxExpression,
@@ -55,7 +52,6 @@ const declared = {
   'no-hand-rolled-test-file-suffix': noHandRolledTestFileSuffix,
   'no-hand-rolled-spinner': noHandRolledSpinner,
   'no-inline-tolerance-class': noInlineToleranceClass,
-  'no-loosely-typed-webcontents-ipc': noLooselyTypedWebcontentsIpc,
   'no-native-renderer-dialog': noNativeRendererDialog,
   'no-physical-direction-utility': noPhysicalDirectionUtility,
   'no-raw-error-toast': noRawErrorToast,

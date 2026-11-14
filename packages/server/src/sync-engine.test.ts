@@ -15,7 +15,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { LOCAL_DIR, type SyncMode, SyncStatusSchema } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { type Conflict, ConflictAuthority } from './conflict-authority.ts';
@@ -33,6 +32,7 @@ import { getLogger } from './logger.ts';
 import { createSyncCredentialConfigResolver } from './share/git-context.ts';
 import { declareGitHubHosts, useIsolatedHome } from './share/git-host-declarations.test-helper.ts';
 import type { CredentialUrlMatchReader } from './share/github-account.ts';
+import { simpleGit } from './simple-git-client.ts';
 import {
   CONTENTION_WARN_THRESHOLD,
   classifyFastForwardRefusal,

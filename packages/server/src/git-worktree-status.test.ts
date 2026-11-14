@@ -12,7 +12,6 @@ import {
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 import type { GitWorktreeOpenTarget } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import type { PorcelainEntry } from './git-paths.ts';
@@ -25,6 +24,7 @@ import {
   WORKTREE_STATUS_LIST_CAP,
 } from './git-worktree-status.ts';
 import { getLogger } from './logger.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const gitInstanceTimeouts = vi.hoisted(() => [] as (number | undefined)[]);
 const gitInstanceAbortSignals = vi.hoisted(() => [] as (AbortSignal | undefined)[]);

@@ -9,7 +9,7 @@ const cliPkg = JSON.parse(readFileSync(resolve(cliRoot, 'package.json'), 'utf8')
   dependencies: Record<string, string>;
 };
 const declaredDeps = Object.keys(cliPkg.dependencies).sort();
-const nativeDeps = ['@parcel/watcher', '@napi-rs/keyring', '@inkeep/open-knowledge-native-config'];
+const nativeDeps = ['@parcel/watcher', '@napi-rs/keyring'];
 const fileTypeClosure = [
   '@borewit/text-codec',
   '@tokenizer/inflate',

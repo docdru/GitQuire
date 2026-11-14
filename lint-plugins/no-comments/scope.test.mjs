@@ -108,7 +108,6 @@ describe('scope membership', () => {
     'lint-plugins/no-comments/__fixtures__/must-fire.fixture.ts',
     'packages/app/node_modules/x/src/a.ts',
     'tech-probes/r1-preflight-gate/probe.mjs',
-    'packages/native-config/index.js',
     'packages/desktop/out/main/index.js',
     'packages/desktop/dist-desktop/linux-unpacked/resources/app/index.js',
     'packages/desktop/playwright-report/trace/assets/index.js',

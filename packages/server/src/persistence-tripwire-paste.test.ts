@@ -12,7 +12,6 @@ import { realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
@@ -31,6 +30,7 @@ import { createPersistenceExtension } from './persistence.ts';
 import { classifyDuplication } from './persistence-tripwire.ts';
 import { createServer } from './server-factory.ts';
 import { initShadowRepo, type ShadowHandle, shadowGit } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { getDocumentHistory } from './timeline-query.ts';
 import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 

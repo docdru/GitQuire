@@ -36,7 +36,6 @@ export {
   isOwnManagedEntry,
   type McpInstallOptions,
 } from './commands/editors.ts';
-export { registerWindowsProcessStartReader } from './commands/holder-process-start.ts';
 export {
   classifyExistingMcpEntry,
   detectInstalledEditors,
@@ -138,7 +137,6 @@ export {
   userSkillPresentAnywhere,
   writeUserSkill,
 } from './integrations/write-user-skill.ts';
-export { getNativeTomlMcpEditor } from './native/toml-config-engine.ts';
 export {
   type CollectReportBundleOptions,
   collectReportBundle,

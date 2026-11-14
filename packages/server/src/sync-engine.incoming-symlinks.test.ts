@@ -13,7 +13,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { createTestConflictAuthority } from './conflict-authority.test-helper.ts';
@@ -25,6 +25,7 @@ import {
   UnsafeIncomingSymlinkError,
 } from './incoming-symlink-guard.ts';
 import { getLogger } from './logger.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { SyncEngine } from './sync-engine.ts';
 
 const stubContentFilter = {

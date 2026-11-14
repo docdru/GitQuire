@@ -70,7 +70,6 @@ import {
   writeProjectSkill,
   writeProjectSkillToHub,
 } from '../integrations/write-project-skill.ts';
-import { debugNativeLoadFailure } from '../native/load-native-config.ts';
 import { resolveHarnessWritePaths } from '../native/symlink-resolve.ts';
 import {
   getTomlConfigEngine,
@@ -91,6 +90,7 @@ import {
   type ConfigFileDeclineReason,
   configFileDeclineReason,
 } from '../utils/config-file-error.ts';
+import { debugConfigFailure } from '../utils/debug-config-failure.ts';
 import { isObject } from '../utils/is-object.ts';
 import {
   ALL_EDITOR_IDS,
@@ -232,7 +232,7 @@ function upsertJsonMcpConfig(
   try {
     raw = readFileSync(configPath, 'utf-8');
   } catch (err) {
-    debugNativeLoadFailure('json config read failed', err);
+    debugConfigFailure('json config read failed', err);
     return { kind: 'declined', reason: configFileDeclineReason(err) };
   }
   if (raw.trim() === '') {
@@ -310,7 +310,7 @@ function upsertTomlMcpConfig(
     try {
       raw = readFileSync(configPath, 'utf-8');
     } catch (err) {
-      debugNativeLoadFailure('toml config read failed', err);
+      debugConfigFailure('toml config read failed', err);
       return { kind: 'declined', reason: configFileDeclineReason(err) };
     }
   }
@@ -348,7 +348,7 @@ function upsertTomlMcpConfig(
       result = engine.upsertEntry(base, serverName, entry);
     }
   } catch (err) {
-    debugNativeLoadFailure('upsertEntry failed', err);
+    debugConfigFailure('upsertEntry failed', err);
     return { kind: 'declined', reason: 'unparseable' };
   }
 
@@ -411,7 +411,7 @@ function upsertYamlMcpConfig(
     try {
       raw = readFileSync(configPath, 'utf-8');
     } catch (err) {
-      debugNativeLoadFailure('yaml config read failed', err);
+      debugConfigFailure('yaml config read failed', err);
       return { kind: 'declined', reason: configFileDeclineReason(err) };
     }
   }

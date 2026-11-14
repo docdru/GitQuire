@@ -7,11 +7,12 @@ import {
   initContent,
   isFilesystemRoot,
   isHomeDir,
+  simpleGit,
   withHiddenWindowsConsole,
 } from '@inkeep/open-knowledge-server';
 import { Octokit } from '@octokit/rest';
 import { Command } from 'commander';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 import { buildHttpsHostCliCredentialConfig, type ResolvedAuth } from '../../auth/resolve-auth.ts';
 import type { TokenStore } from '../../auth/token-store.ts';
 import { resolveReposToken } from '../auth/repos.ts';
@@ -145,14 +146,17 @@ type RelayToken = NonNullable<ResolvedAuth['relayToken']>;
 
 function makeGit(projectDir: string, relayToken?: RelayToken): SimpleGit {
   if (relayToken === undefined) {
-    return simpleGit(buildCloneGitOptions(projectDir, [])).env(buildCloneEnv());
+    const env = buildCloneEnv();
+    return simpleGit(buildCloneGitOptions(projectDir, [], env)).env(env);
   }
+  const env = buildCloneAuthEnv({ relayToken });
   return simpleGit(
     buildCloneGitOptions(
       projectDir,
       buildHttpsHostCliCredentialConfig(resolveSelfCliArgs(), relayToken.host),
+      env,
     ),
-  ).env(buildCloneAuthEnv({ relayToken }));
+  ).env(env);
 }
 
 function isGitHubDotComHttpsUrl(cloneUrl: string): boolean {

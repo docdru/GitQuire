@@ -15,11 +15,12 @@ import {
   readServerLock,
   resolveLockDir,
   SYMLINK_MERGE_MIN_GIT_LABEL,
+  simpleGit,
   UnsafeIncomingSymlinkError,
   type UnsafeSymlinkReason,
 } from '@inkeep/open-knowledge-server';
 import { Command } from 'commander';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import type { GhDetectResult } from '../auth/gh-detect.ts';
 import { buildHttpsHostCliCredentialConfig, type ResolvedAuth } from '../auth/resolve-auth.ts';
 import { makeLazyTokenStore, type TokenStore } from '../auth/token-store.ts';
@@ -111,13 +112,43 @@ function failedRequestServedBy(message: string, host: string): boolean {
   );
 }
 
-function inheritingAmbientEnv(env: Record<string, string>): NodeJS.ProcessEnv {
-  const ambient = { ...process.env };
-  const inherited: NodeJS.ProcessEnv = Object.create(ambient);
-  for (const key of new Set([...Object.keys(ambient), ...Object.keys(env)])) {
-    if (env[key] !== ambient[key]) inherited[key] = env[key];
-  }
-  return inherited;
+const USER_ENVIRONMENT_UNSAFE: NonNullable<SimpleGitOptions['unsafe']> = {
+  allowAbbreviatedOptions: true,
+  allowUnsafeAlias: true,
+  allowUnsafeAskPass: true,
+  allowUnsafeCommandBinaries: true,
+  allowUnsafeConfigEnvCount: true,
+  allowUnsafeConfigPaths: true,
+  allowUnsafeCredentialHelper: true,
+  allowUnsafeDiffExternal: true,
+  allowUnsafeDiffTextConv: true,
+  allowUnsafeEditor: true,
+  allowUnsafeExec: true,
+  allowUnsafeFilter: true,
+  allowUnsafeFsMonitor: true,
+  allowUnsafeGitProxy: true,
+  allowUnsafeGpgProgram: true,
+  allowUnsafeHooksPath: true,
+  allowUnsafeInclude: true,
+  allowUnsafeMergeDriver: true,
+  allowUnsafePack: true,
+  allowUnsafePager: true,
+  allowUnsafeProtocolOverride: true,
+  allowUnsafeSshCommand: true,
+  allowUnsafeSubmodule: true,
+  allowUnsafeTemplateDir: true,
+  allowUnsafeUrlRewrite: true,
+};
+
+export function withUserGitEnvironment(
+  options: Partial<SimpleGitOptions>,
+  sourceEnv: NodeJS.ProcessEnv = process.env,
+): Partial<SimpleGitOptions> {
+  return {
+    ...options,
+    allowEnvironment: [...(options.allowEnvironment ?? []), ...Object.keys(sourceEnv)],
+    unsafe: { ...USER_ENVIRONMENT_UNSAFE, ...options.unsafe },
+  };
 }
 
 async function gitForRemoteUrl(
@@ -125,7 +156,7 @@ async function gitForRemoteUrl(
   url: string | null,
   sources: CredentialSources,
 ): Promise<RemoteGit> {
-  const ambient: RemoteGit = { git: simpleGit({ baseDir: cwd }) };
+  const ambient: RemoteGit = { git: simpleGit(withUserGitEnvironment({ baseDir: cwd })) };
   const host = url === null ? null : httpsCredentialHost(url);
   if (
     url === null ||
@@ -142,8 +173,10 @@ async function gitForRemoteUrl(
   if (auth.tier === 'none') return ambient;
   return {
     git: simpleGit(
-      buildCloneGitOptions(cwd, buildHttpsHostCliCredentialConfig(resolveSelfCliArgs(), host)),
-    ).env(inheritingAmbientEnv(buildCloneAuthEnv(auth))),
+      withUserGitEnvironment(
+        buildCloneGitOptions(cwd, buildHttpsHostCliCredentialConfig(resolveSelfCliArgs(), host)),
+      ),
+    ).env(buildCloneAuthEnv(auth, process.env, { keepGitEnvironment: true })),
     signIn: { host, tier: auth.tier },
     ...(declaredMiss !== undefined ? { declaredMiss } : {}),
   };
@@ -333,7 +366,7 @@ export async function runSync(
     process.stderr.write(`Running ${op} directly (no live server)\n`);
   }
 
-  const local = simpleGit({ baseDir: cwd });
+  const local = simpleGit(withUserGitEnvironment({ baseDir: cwd }));
   const sources: CredentialSources = {
     tokenStore: opts.tokenStore ?? makeLazyTokenStore(),
     detectGh: opts._detectGhFn,

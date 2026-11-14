@@ -620,6 +620,7 @@ export {
   resolveGitHubAccountFromUrl,
 } from './share/github-account.ts';
 export { redactShareSubprocessStderr } from './share/publish.ts';
+export { GIT_ALLOWED_ENVIRONMENT, simpleGit } from './simple-git-client.ts';
 export {
   createEphemeralProjectDir,
   EPHEMERAL_PROJECT_DIR_PREFIX,

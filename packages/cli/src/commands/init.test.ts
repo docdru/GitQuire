@@ -42,7 +42,7 @@ const PUBLISHED_CHAIN_ENTRY = { command: '/bin/sh', args: ['-l', '-c', CHAIN_V2]
 
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import {
-  createTomlConfigEngine,
+  getTomlConfigEngine,
   setTomlConfigEngineForTesting,
 } from '../native/toml-config-engine.ts';
 import {
@@ -72,8 +72,6 @@ vi.mock('@inkeep/open-knowledge-server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@inkeep/open-knowledge-server')>();
   return { ...actual, readBundleDecision: vi.fn(actual.readBundleDecision) };
 });
-
-const NATIVE_TOML_AVAILABLE = createTomlConfigEngine().backend === 'native';
 
 beforeEach(() => {
   vi.stubEnv('OK_CHANNEL', 'stable');
@@ -530,21 +528,6 @@ describe('runInit', () => {
       const config = Bun.TOML.parse(readFileSync(join(testDir, '.codex', 'config.toml'), 'utf-8'));
       expect(config.mcp_servers['open-knowledge-dev']).toEqual(expectedDevMcpEntry());
       expect(existsSync(codexConfigPath())).toBe(false);
-    });
-
-    it.skipIf(!NATIVE_TOML_AVAILABLE)('preserves existing Codex MCP entries', async () => {
-      mkdirSync(dirname(codexConfigPath()), { recursive: true });
-      writeFileSync(
-        codexConfigPath(),
-        ['[mcp_servers.other]', 'command = "node"', 'args = ["x"]', ''].join('\n'),
-      );
-
-      const result = await runInitForTest({ editors: ['codex'] });
-      expect(result.editors[0].action).toBe('written');
-
-      const config = Bun.TOML.parse(readFileSync(codexConfigPath(), 'utf-8'));
-      expect(config.mcp_servers.other).toEqual({ command: 'node', args: ['x'] });
-      expect(config.mcp_servers[result.editors[0].serverName]).toEqual(PUBLISHED_CHAIN_ENTRY);
     });
   });
 
@@ -2779,7 +2762,7 @@ describe('writeEditorMcpConfig — TOML fallback declines a present config', () 
     mkdirSync(testDir, { recursive: true });
     fakeHome = join(testDir, 'fakehome');
     mkdirSync(fakeHome, { recursive: true });
-    setTomlConfigEngineForTesting(createTomlConfigEngine(() => null));
+    setTomlConfigEngineForTesting(getTomlConfigEngine());
   });
 
   afterEach(() => {
@@ -3041,22 +3024,6 @@ describe('classifyExistingMcpEntry', () => {
       reason: 'unparseable',
     });
   });
-
-  it.skipIf(!NATIVE_TOML_AVAILABLE)(
-    'no-entry (not decline) on a valid Codex config with a 2^53+ integer',
-    () => {
-      const path = resolveCodexConfigPath({ home: fakeHome, env: {} });
-      mkdirSync(dirname(path), { recursive: true });
-      writeFileSync(
-        path,
-        '# keep my comments\nmodel = "gpt-5"\n[mcp_servers.other]\ncommand = "node"\nstartup_timeout_ms = 9223372036854775807\n',
-        'utf-8',
-      );
-      expect(classifyExistingMcpEntry(EDITOR_TARGETS.codex, '', fakeHome)).toEqual({
-        kind: 'no-entry',
-      });
-    },
-  );
 
   it('present on a valid Codex config with a microsecond datetime and OK entry', () => {
     const path = resolveCodexConfigPath({ home: fakeHome, env: {} });

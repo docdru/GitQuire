@@ -9,7 +9,6 @@ if (process.argv.includes('--no-color')) {
 }
 
 trustSystemCertificates();
-registerWindowsProcessStartReader();
 
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -40,7 +39,6 @@ import { createRealDetectDeps, detectDesktop, launchDesktop } from './commands/d
 import { diagnoseCommand } from './commands/diagnose.ts';
 import { embeddingsCommand } from './commands/embeddings/index.ts';
 import { gitquireBootstrapCommand } from './commands/gitquire-bootstrap.ts';
-import { registerWindowsProcessStartReader } from './commands/holder-process-start.ts';
 import { initCommand } from './commands/init.ts';
 import { lintCommand } from './commands/lint.ts';
 import { mcpCommand } from './commands/mcp.ts';

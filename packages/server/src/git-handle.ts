@@ -2,8 +2,9 @@ import { existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter, resolve } from 'node:path';
 import { augmentGitSpawnPath, OkCliCommand } from '@inkeep/open-knowledge-core';
-import simpleGit, { type SimpleGit, type SimpleGitOptions } from 'simple-git';
+import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import { shellEscape } from './bash/shell-escape.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 function isDir(dir: string): boolean {
   try {

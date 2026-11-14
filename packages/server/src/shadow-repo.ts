@@ -28,7 +28,6 @@ import {
   resolveShadowDir,
   type WriterClassification,
 } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { resolveCheckpointChainAnchors } from './checkpoint-chain.ts';
 import { tracedMkdirSync, tracedRenameSync, tracedWriteFileSync } from './fs-traced.ts';
 import { escapeGitPatternSegment, listTreeLongEntries, realpathOrResolved } from './git-paths.ts';
@@ -41,6 +40,7 @@ import {
 } from './metrics.ts';
 import { acquireLock, releaseLock } from './shadow-lock.ts';
 import { releaseShadowOpGate, shadowOpGateFor } from './shadow-op-gate.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { withSpan } from './telemetry.ts';
 
 const log = getLogger('shadow-repo');

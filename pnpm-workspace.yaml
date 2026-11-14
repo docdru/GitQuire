@@ -13,10 +13,7 @@ engineStrict: true
 # lockfile document, which single-document dependency scanners cannot read.
 pmOnFail: ignore
 
-# Surgical flat-root hoist for the desktop native packaging deps only.
-# electron-builder.yml copies these packages from the workspace-root
-# node_modules, and the packaging guards assert that source layout. pnpm's
-# default isolated layout remains in place for everything else.
+# Flat-root hoist for the native addons the CLI bundle keeps external.
 publicHoistPattern:
   - '@napi-rs/keyring*'
   - '@parcel/watcher'
@@ -39,25 +36,15 @@ minimumReleaseAgeExclude:
 verifyDepsBeforeRun: false
 
 # Dependency build scripts are blocked by default. Every detected
-# script is explicitly allowed or denied. Electron ships no install script of
-# its own as of 43, but the entry stays so a future release that reintroduces one
-# is not silently blocked. The napi native addon
-# (@inkeep/open-knowledge-native-config) builds via its own turbo `napi build`
-# task, not a dependency install script, so it needs no entry here. node-pty
-# publishes N-API prebuilds for the supported desktop platforms; its install
-# script remains allowlisted as a source-build fallback when no matching
-# prebuild is present.
+# script is explicitly allowed or denied.
 allowBuilds:
   '@memlab/cli': false
   '@mongodb-js/zstd': false
   '@parcel/watcher': false
   core-js: false
-  electron: true
-  electron-winstaller: false
   esbuild: false
   memlab: false
   node-liblzma: false
-  node-pty: true
   protobufjs: false
   puppeteer: false
   sharp: false
@@ -103,7 +90,6 @@ overrides:
   'browserslist@4': ~4.29.4
   'baseline-browser-mapping@2': ~2.11.0
   'basic-ftp@6': ~6.2.4
-  'builder-util-runtime@9': ~9.7.0
   'dompurify@3': ~3.4.17
   'esbuild@0.27': ~0.28.1
   'fast-copy@4': ~4.1.0

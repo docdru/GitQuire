@@ -51,7 +51,6 @@ describe(`${RULE} oxlint rule`, () => {
       'packages/core/src/**/*.ts',
       'packages/server/src/**/*.ts',
       'packages/cli/src/**/*.ts',
-      'packages/desktop/src/**/*.ts',
     ]) {
       expect(scope).toContain(included);
     }

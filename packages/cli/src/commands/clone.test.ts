@@ -3,8 +3,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { type Config, UnsafeIncomingSymlinkError } from '@inkeep/open-knowledge-server';
-import simpleGit, { type SimpleGitOptions } from 'simple-git';
+import { type Config, simpleGit, UnsafeIncomingSymlinkError } from '@inkeep/open-knowledge-server';
+import type { SimpleGitOptions } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import type { ExecFileSyncFn, GhDetectResult } from '../auth/gh-detect.ts';
@@ -560,6 +560,47 @@ describe('buildCloneEnv', () => {
     const env = buildCloneEnv({ PATH: '/usr/bin', ELECTRON_RUN_AS_NODE: '1' });
     expect(env.ELECTRON_RUN_AS_NODE).toBe('1');
   });
+
+  test('drops repository-location and command GIT_ variables and keeps the rest', () => {
+    const env = buildCloneEnv({
+      PATH: '/usr/bin',
+      GIT_SSL_CAINFO: '/etc/ca.pem',
+      GIT_SSH_COMMAND: 'ssh -i key',
+      GIT_LFS_SKIP_SMUDGE: '1',
+      GIT_CONFIG_COUNT: '1',
+      GIT_DIR: '/elsewhere/.git',
+      GIT_WORK_TREE: '/elsewhere',
+      GIT_INDEX_FILE: '/elsewhere/index',
+      GIT_EXEC_PATH: '/tmp/evil',
+      GIT_EXTERNAL_DIFF: '/tmp/evil',
+    });
+    expect(env.GIT_SSL_CAINFO).toBe('/etc/ca.pem');
+    expect(env.GIT_SSH_COMMAND).toBe('ssh -i key');
+    expect(env.GIT_LFS_SKIP_SMUDGE).toBe('1');
+    expect(env.GIT_CONFIG_COUNT).toBe('1');
+    for (const key of [
+      'GIT_DIR',
+      'GIT_WORK_TREE',
+      'GIT_INDEX_FILE',
+      'GIT_EXEC_PATH',
+      'GIT_EXTERNAL_DIFF',
+    ]) {
+      expect(key in env).toBe(false);
+    }
+  });
+
+  test('a clone env built from an ambient GIT_SSL_CAINFO runs git without tripping the guard', async () => {
+    const env = buildCloneEnv({
+      PATH: process.env.PATH ?? '',
+      GIT_SSL_CAINFO: '/etc/ca.pem',
+      GIT_LFS_SKIP_SMUDGE: '1',
+      GIT_EXEC_PATH: '/tmp/evil',
+    });
+    const out = await simpleGit(buildCloneGitOptions(tmpdir(), [], env))
+      .env(env)
+      .raw(['--version']);
+    expect(out).toContain('git version');
+  });
 });
 
 describe('buildCloneAuthEnv', () => {
@@ -631,7 +672,12 @@ describe('buildCloneGitOptions', () => {
       allowUnsafeAskPass: true,
       allowUnsafeEditor: true,
       allowUnsafeConfigEnvCount: true,
+      allowUnsafeUrlRewrite: true,
     });
+    expect(o.allowEnvironment).toEqual(expect.arrayContaining(['EDITOR', 'PAGER']));
+    expect(
+      buildCloneGitOptions('/work/dir', [], { GIT_SSH_COMMAND: 'ssh' }).allowEnvironment,
+    ).toContain('GIT_SSH_COMMAND');
   });
 
   test('passes an empty config through unchanged (no credential helper injected)', () => {

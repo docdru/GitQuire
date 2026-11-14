@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import type { Principal } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
@@ -16,6 +15,7 @@ import {
   __resetContributorsForTests as resetContributorsForTest,
 } from './contributor-tracker.ts';
 import { commitWip, initShadowRepo, type ShadowRef, type WriterIdentity } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 interface CapturedResponse {
   status: number;

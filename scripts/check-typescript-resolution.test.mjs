@@ -29,11 +29,11 @@ import {
   SHIM_LINE,
   SOURCE_CONDITION,
   sourceConditionSites,
-  TSRS_LINE,
-  tsrsSupportsPlatform,
   staleNonTscListing,
+  TSRS_LINE,
   tsconfigConditions,
   tsconfigFiles,
+  tsrsSupportsPlatform,
   unbundleCensus,
   versionLine,
 } from './check-typescript-resolution.mjs';
@@ -177,9 +177,9 @@ describe('checkTsrs', () => {
   });
 
   it('leaves the binary line unchecked on a platform tsrs ships no binary for', () => {
-    expect(
-      checkTsrs(tsrsMember({ tsrsPlatformSupported: false, tsrsBinVersion: null })),
-    ).toEqual([]);
+    expect(checkTsrs(tsrsMember({ tsrsPlatformSupported: false, tsrsBinVersion: null }))).toEqual(
+      [],
+    );
   });
 
   it('still checks the pin on a platform tsrs ships no binary for', () => {
@@ -194,7 +194,9 @@ describe('checkTsrs', () => {
     expect(checkTsrs(tsrsMember({ tsrsBinVersion: '7.2.0-dev.1' }))[0]).toContain(
       `not ${TSRS_LINE}.x`,
     );
-    expect(checkTsrs(tsrsMember({ tsrsBinVersion: null }))[0]).toContain('reporting TypeScript nothing');
+    expect(checkTsrs(tsrsMember({ tsrsBinVersion: null }))[0]).toContain(
+      'reporting TypeScript nothing',
+    );
   });
 });
 
@@ -208,7 +210,10 @@ describe('checkTsrsPinsAgree', () => {
   it('rejects packages that pin different exact builds, naming each', () => {
     const [violation, ...rest] = checkTsrsPinsAgree([
       tsrsMember(),
-      tsrsMember({ name: '@inkeep/open-knowledge-server', tsrsDeclared: '0.19.0-ts7.1.0-dev.20261020' }),
+      tsrsMember({
+        name: '@inkeep/open-knowledge-server',
+        tsrsDeclared: '0.19.0-ts7.1.0-dev.20261020',
+      }),
     ]);
     expect(rest).toEqual([]);
     expect(violation).toContain('2 different exact versions');
@@ -480,8 +485,9 @@ describe('memberDirs', () => {
     );
     expect(names).toContain('docs');
     expect(names).toEqual(expect.arrayContaining(nestedMembersOnDisk));
-    expect(names).toContain(path.join('packages', 'core'));
-    expect(dirs.length).toBeGreaterThanOrEqual(8);
+    expect(names).toEqual(
+      expect.arrayContaining(['app', 'cli', 'core', 'server'].map((p) => path.join('packages', p))),
+    );
   });
 
   it('keeps enumerating past a comment interleaved in the packages list', () => {
@@ -773,7 +779,9 @@ describe('evaluate wires every probe into the verdict', () => {
     const result = evaluate({ ...healthy, rootMember: rangePinned });
 
     expect(result.code).toBe(1);
-    expect(result.violations).toEqual([expect.stringContaining('open-knowledge (/ok) declares tsrs')]);
+    expect(result.violations).toEqual([
+      expect.stringContaining('open-knowledge (/ok) declares tsrs'),
+    ]);
   });
 
   it('fails a root and a workspace package that pin different tsrs builds', () => {
@@ -1759,7 +1767,6 @@ describe('tsconfigFiles', () => {
       const real = outputDirRules(fs.readFileSync(rootGitignore, 'utf8'));
       expect(real.names.has('dist')).toBe(true);
       expect(real.names.has('out')).toBe(false);
-      expect(real.anchored.has('packages/desktop/out')).toBe(true);
       expect(real.names.has('target')).toBe(false);
     },
   );
@@ -1785,7 +1792,6 @@ describe('tsconfigFiles', () => {
           'desktop-smoke-test-results-',
         ]),
       );
-      expect(real.anchored.has('packages/desktop/build/parcel-watcher-staging')).toBe(true);
       expect(real.anchored.has('perf-fixtures')).toBe(true);
       expect(real.names.has('perf-fixtures')).toBe(false);
     },

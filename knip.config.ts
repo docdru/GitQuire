@@ -36,11 +36,9 @@ export default {
     'sw_vers', // macOS version query — bug-report.ts
     'mktemp', // where macOS puts -t files — b4-acceptance-gate.test.ts observes the gate's scratch
     'mkfifo', // named-pipe creation — keepalive-orphan-reaping.test.ts
-    'xcrun', // macOS notarization tool — desktop afterSign.mjs
     'xdg-mime', // Linux default-app query — desktop ipc-handlers.ts
     'ssh-keygen', // ephemeral VM keypair — lume-qa lume-orchestrator.ts
     'zsh', // the executor's `.private.` test also runs the printed Biome fix under zsh -c
-    'rustup',
   ],
   ignoreIssues: {
     'test-support/vitest.base.ts': ['exports'],
@@ -53,13 +51,11 @@ export default {
     '{tech-probes,reports,specs}/**': ['files', 'exports', 'types'],
     'tests/integration/**': ['files'],
     'packages/core/src/desktop-bridge.ts': ['files', 'types'],
-    'packages/desktop/src/shared/ipc-events.ts': ['files'],
     'packages/app/src/components/CloneDialog.tsx': ['files'],
     'docs/content/**/*.mdx': ['files'],
     'docs/_snippets/**/*.mdx': ['files'],
     'packages/app/src/components/McpConsentDialogBody.tsx': ['duplicates'],
     'packages/core/src/extensions/list.ts': ['duplicates'],
-    'packages/desktop/src/main/auto-updater.ts': ['types'],
     'packages/app/src/lib/perf/index.ts': ['exports', 'types'],
     'packages/app/src/lib/perf/env-override.ts': ['types'],
     'packages/app/src/lib/perf/mark.ts': ['types'],
@@ -73,8 +69,6 @@ export default {
     'lint-plugins/no-comments/__fixtures__/**': ['files'],
     'lint-plugins/ok-rules/__fixtures__/**': ['files', 'exports'],
     '**/*.reads.{ts,mjs}': ['files', 'exports'],
-    'scripts/compute-next-beta.mjs': ['files'],
-    'scripts/build-slack-release-payload.mjs': ['files'],
     'scripts/assert-smoke-not-vacuous.mjs': ['files'],
     'scripts/assert-app-built.mjs': ['files'],
     'scripts/acp-mcp-rig/*.mjs': ['files'],
@@ -89,10 +83,6 @@ export default {
     'packages/cli/src/commands/share/owners.ts': ['types'],
     'packages/cli/src/commands/share/publish.ts': ['types'],
     'packages/cli/src/commands/init.ts': ['types'],
-    'packages/desktop/src/main/create-new-project.ts': ['types'],
-    'packages/desktop/src/main/url-scheme.ts': ['types'],
-    'packages/desktop/src/shared/bridge-contract.ts': ['types'],
-    'packages/desktop/src/shared/ipc-channels.ts': ['types'],
     'packages/app/src/lib/desktop-bridge-types.ts': ['types'],
     'packages/server/src/share/git-context.ts': ['types'],
     'packages/server/src/git-preflight.ts': ['exports'],
@@ -100,8 +90,6 @@ export default {
     'packages/cli/src/commands/diagnose-health-checks/git.ts': ['exports'],
     'packages/cli/src/commands/diagnose-health-checks/index.ts': ['exports', 'types'],
     'packages/cli/src/commands/diagnose-health-checks/types.ts': ['types'],
-    'packages/desktop/src/main/git-preflight-handler.ts': ['types'],
-    'packages/native-config/index.js': ['unlisted', 'unresolved'],
   },
   workspaces: {
     '.': {
@@ -109,7 +97,6 @@ export default {
         'test-support/fixtures/no-net-connect/no-net-connect.fixture.ts',
         'test-support/fixtures/read-declarations/vitest.read-declarations-fixture.config.ts',
         'test-support/fixtures/read-declarations/*.cjs',
-        'scripts/check-no-major-changeset.mjs',
       ],
       vitest: { entry: ['**/*.uncached.test.{ts,tsx,mjs}', '!.{agents,codex}/skills/**'] },
     },
@@ -168,23 +155,6 @@ export default {
         'src/bin.ts',
       ],
       ignoreDependencies: ['yjs'],
-    },
-    'packages/desktop': {
-      entry: [
-        'src/main/entry.ts',
-        'src/utility/server-entry.ts',
-        'src/utility/pty-host-entry.ts',
-        'src/**/*.test.ts',
-        'src/**/*.typelock.ts',
-        'src/utility/server-entry-load-probe.fixture.test-helper.ts',
-        'scripts/*.mjs',
-        'tests/**/*.test.ts',
-        'tests/**/*.test.mjs',
-        'tests/support/fixtures/final-failure-annotations/*.ts',
-        'tests/support/final-failure-annotations.type-tests.ts',
-      ],
-      ignoreDependencies: ['@inkeep/open-knowledge-native-config', 'culori'],
-      project: 'src/**',
     },
   },
 } satisfies KnipConfig;

@@ -184,21 +184,20 @@ describe('scripts outside the app compile the catalogs before they read them', (
       }
     ).scripts;
 
-  test.each([
-    ['packages/desktop/package.json', 'dev:electron', 'electron-vite'],
-    ['packages/desktop/package.json', 'build:desktop', 'electron-vite'],
-    ['package.json', 'knip', '&& knip'],
-  ])('%s "%s" compiles before it runs %s', (manifest, name, reader) => {
-    const command = scriptsOf(manifest)[name] ?? '';
-    const compileAt = command.indexOf('compile-i18n-catalogs.ts');
-    expect(
-      {
-        compiles: compileAt >= 0,
-        beforeReader: compileAt >= 0 && command.indexOf(reader) > compileAt,
-      },
-      `${manifest} "${name}" must run compile-i18n-catalogs.ts before ${reader}, which reads packages/app/src/locales/*/messages.json. Those catalogs are generated and ignored by git, so a fresh checkout has none. Found: ${command}`,
-    ).toEqual({ compiles: true, beforeReader: true });
-  });
+  test.each([['package.json', 'knip', '&& knip']])(
+    '%s "%s" compiles before it runs %s',
+    (manifest, name, reader) => {
+      const command = scriptsOf(manifest)[name] ?? '';
+      const compileAt = command.indexOf('compile-i18n-catalogs.ts');
+      expect(
+        {
+          compiles: compileAt >= 0,
+          beforeReader: compileAt >= 0 && command.indexOf(reader) > compileAt,
+        },
+        `${manifest} "${name}" must run compile-i18n-catalogs.ts before ${reader}, which reads packages/app/src/locales/*/messages.json. Those catalogs are generated and ignored by git, so a fresh checkout has none. Found: ${command}`,
+      ).toEqual({ compiles: true, beforeReader: true });
+    },
+  );
 
   test('the root postinstall compiles the catalogs on every install, without failing it', () => {
     expect(

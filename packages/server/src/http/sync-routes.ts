@@ -15,7 +15,6 @@ import {
   SyncTriggerRequestSchema,
   SyncTriggerSuccessSchema,
 } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import type { ConflictAuthority } from '../conflict-authority.ts';
 import {
   ConflictMarkersInContentError,
@@ -33,6 +32,7 @@ import { pathToDocName } from '../file-watcher.ts';
 import { SymlinkEscapeError } from '../fs-safety.ts';
 import type { PinoLogger } from '../logger.ts';
 import { containsUnresolvedConflictBlock } from '../reconciliation.ts';
+import { simpleGit } from '../simple-git-client.ts';
 import { assertRealpathWithinDir } from '../symlink-guard.ts';
 import type { SyncEngine } from '../sync-engine.ts';
 import { type ApiRouteGroup, type ApiRouteRecord, createApiRouteGroup } from './api-pipeline.ts';

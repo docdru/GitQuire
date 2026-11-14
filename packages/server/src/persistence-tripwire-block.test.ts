@@ -2,13 +2,13 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { updateYFragment } from '@tiptap/y-tiptap';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { expectStable } from './expect-stable.test-helper.ts';
 import { mdManager, schema } from './md-manager.ts';
 import { createServer } from './server-factory.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 
 const FIXTURE_DIR = resolve(import.meta.dirname, 'persistence-tripwire.fixtures');

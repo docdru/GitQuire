@@ -23,9 +23,6 @@ export default defineConfig({
       ...okVitestBase.test.setupFiles,
       fileURLToPath(new URL('./tests/support/zod-compile.test-helper.ts', import.meta.url)),
       serverAuthorityRegistrySetup,
-      fileURLToPath(
-        new URL('./tests/support/windows-process-start-reader.test-helper.ts', import.meta.url),
-      ),
     ],
     exclude: [...okVitestBase.test.exclude, '.ok-skill-publish-*'],
   },

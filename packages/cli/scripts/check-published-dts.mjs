@@ -118,7 +118,6 @@ export const PUBLISHED_SURFACE_BASELINE = {
     'formatTrackedRemediation',
     'getExcludedOkPaths',
     'getInstalledSkillProjectionPaths',
-    'getNativeTomlMcpEditor',
     'getOkArtifactPaths',
     'isEntryUpToDate',
     'isOwnManagedEntry',

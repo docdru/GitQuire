@@ -7,11 +7,7 @@ import { isTestOnlySourceFile } from '../../../test-support/test-only-source-fil
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const WORKSPACE_ROOT = resolve(__dirname, '../../..');
-const SCAN_ROOTS = [
-  resolve(__dirname),
-  resolve(__dirname, '../../cli/src'),
-  resolve(__dirname, '../../desktop/src/main'),
-];
+const SCAN_ROOTS = [resolve(__dirname), resolve(__dirname, '../../cli/src')];
 
 const SELF_BASENAME = basename(fileURLToPath(import.meta.url));
 
@@ -100,7 +96,7 @@ export function findStringifiedErrorFields(lines: string[]): ErrorLogViolation[]
   return violations;
 }
 
-describe('error-log payload discipline (server + cli + desktop main)', () => {
+describe('error-log payload discipline (server + cli)', () => {
   test('every scan root exists (layout sanity)', () => {
     for (const root of SCAN_ROOTS) {
       expect(existsSync(root)).toBe(true);
@@ -114,9 +110,6 @@ describe('error-log payload discipline (server + cli + desktop main)', () => {
     expect(files.some((f) => f.path === join('packages', 'server', 'src', 'file-watcher.ts'))).toBe(
       true,
     );
-    expect(
-      files.some((f) => f.path === join('packages', 'desktop', 'src', 'main', 'auto-updater.ts')),
-    ).toBe(true);
   });
 
   test('every FILE_ALLOWLIST entry still exists on disk', () => {

@@ -5,12 +5,12 @@ import { join, normalize } from 'node:path';
 import { setImmediate as nextTurn } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { getCallSites } from 'node:util';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { createServer, type ServerInstance, SHADOW_FANOUT_WARMUP_MS } from './server-factory.ts';
 import { type ShadowOpGate, shadowOpGateFor } from './shadow-op-gate.ts';
 import { FANOUT_INDEX_NAME, initShadowRepo, type ShadowHandle } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const serverFactoryPath = fileURLToPath(new URL('./server-factory.ts', import.meta.url));
 

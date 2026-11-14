@@ -1,15 +1,8 @@
 import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import * as nativeConfig from '@inkeep/open-knowledge-native-config';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { resolveHarnessWritePaths, type SymlinkWritePaths } from './symlink-resolve.ts';
-
-interface NativeSymlinkBinding {
-  resolveSymlinkWritePath(path: string): { readPath?: string | null; writePath: string };
-}
-
-const nativeBinding: NativeSymlinkBinding = nativeConfig;
 
 const unix = process.platform !== 'win32';
 
@@ -85,30 +78,4 @@ function describeResolver(label: string, resolve: (path: string) => SymlinkWrite
   });
 }
 
-describeResolver('js fallback', (path) => resolveHarnessWritePaths(path, () => null));
-describeResolver('native', (path) => resolveHarnessWritePaths(path, () => nativeBinding));
-
-describe('resolveHarnessWritePaths backend selection', () => {
-  let dir: string;
-
-  beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), 'ok-symlink-backend-'));
-  });
-
-  afterEach(() => {
-    rmSync(dir, { recursive: true, force: true });
-  });
-
-  test('degrades to the JS mirror when the native binding throws', () => {
-    const path = join(dir, 'config.toml');
-    writeFileSync(path, 'x = 1\n');
-    const throwingBinding: NativeSymlinkBinding = {
-      resolveSymlinkWritePath() {
-        throw new Error('binding cannot execute');
-      },
-    };
-    const resolved = resolveHarnessWritePaths(path, () => throwingBinding);
-    expect(resolved.writePath).toBe(path);
-    expect(resolved.readPath).toBe(path);
-  });
-});
+describeResolver('js', (path) => resolveHarnessWritePaths(path));

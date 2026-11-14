@@ -14,9 +14,10 @@ import { fileURLToPath } from 'node:url';
 import {
   assertMergeNameResolvesTo,
   type Config,
+  simpleGit,
   UnsafeIncomingSymlinkError,
 } from '@inkeep/open-knowledge-server';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { FileBackend } from '../auth/token-store.ts';

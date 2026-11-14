@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSy
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { CONFIG_DOC_NAMES } from '@inkeep/open-knowledge-core';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { _resetDocExtensionsForTests, registerDocExtension } from './doc-extensions.ts';
@@ -19,6 +18,7 @@ import {
   initShadowRepo,
   type ShadowHandle,
 } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const KEPT_ONE = { duplicated: 1, restoredDeletedHere: 0, restoredDeletedOutside: 0 };
 

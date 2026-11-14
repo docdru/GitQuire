@@ -5,7 +5,6 @@ import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { templateContentDocName } from '@inkeep/open-knowledge-core';
 import { formatOkActor, type OkActorEntry } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { getLogger } from './logger.ts';
@@ -30,6 +29,7 @@ import {
   saveVersion,
   type WriterIdentity,
 } from './shadow-repo';
+import { simpleGit } from './simple-git-client.ts';
 import { getDocumentHistory, getFolderTimeline, historyWalkCap } from './timeline-query';
 
 const CHAIN_PERF_SAMPLES = 3;

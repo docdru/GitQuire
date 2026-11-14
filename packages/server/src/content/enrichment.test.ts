@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { okfAdvertisedSchemaMappings } from '@inkeep/open-knowledge-core';
 import { commitWip, initShadowRepo, type WriterIdentity } from '@inkeep/open-knowledge-server';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
+import { simpleGit } from '../simple-git-client.ts';
 import { computeGraphRole, enrichDirectory, enrichPath } from './enrichment.ts';
 
 let tmpDir: string;

@@ -38,8 +38,6 @@ describe(`${RULE} oxlint rule`, () => {
     expect(readRuleScope(REPO_ROOT, RULE).sort()).toEqual(
       [
         'packages/app/src/**/*.tsx',
-        'packages/desktop/src/**/*.tsx',
-        'packages/plugin/src/**/*.tsx',
         '!packages/app/src/components/ui/**',
         '!**/*.test.tsx',
         '!**/*.dom.test.tsx',

@@ -148,12 +148,7 @@ const SRC_ROOTS = [
   join(HERE, '../../src'),
 ];
 const AGENT_SESSIONS_PATH = join(HERE, '../../../server/src/agent-sessions.ts');
-const CONTRACT_SEARCH_ROOTS = [
-  ...SRC_ROOTS,
-  join(HERE, '..'),
-  join(HERE, '../../../cli/src'),
-  join(HERE, '../../../desktop/src'),
-];
+const CONTRACT_SEARCH_ROOTS = [...SRC_ROOTS, join(HERE, '..'), join(HERE, '../../../cli/src')];
 
 const ORIGIN_SEGMENT = /(^|_)ORIGIN(_|$)/;
 const CONST_DECL = /\bconst\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*(?::[^=;\n]+)?=/g;

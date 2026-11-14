@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,7 +8,6 @@ import { expectConformantManifest, readManifest } from './agent-plugin-manifest.
 import { BUNDLE_IDS, BUNDLE_SKILL_NAME } from './skill-bundles.ts';
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const REPO_OK_ROOT = join(PKG_ROOT, '..', '..');
 
 describe('shipped Agent Plugins conformance', () => {
   test('every starter pack carries a conformant manifest matching its dir name', () => {
@@ -20,20 +19,6 @@ describe('shipped Agent Plugins conformance', () => {
       expectConformantManifest(dir);
       expect(readManifest(dir).name, `${pack.name} name`).toBe(pack.name);
     }
-  });
-
-  test('the OK MCP plugin ships the spec manifest pair beside its Claude one', () => {
-    const dir = join(REPO_OK_ROOT, 'packages', 'plugin');
-    expectConformantManifest(dir);
-    const mcp = JSON.parse(readFileSync(join(dir, 'mcp.json'), 'utf-8')) as {
-      $schema?: unknown;
-      mcpServers?: Record<string, { type?: unknown; command?: unknown }>;
-    };
-    expect(mcp.$schema).toBe('https://agent-plugins.org/schemas/1.0.0/mcp.schema.json');
-    const server = mcp.mcpServers?.['open-knowledge'];
-    expect(server?.type).toBe('stdio');
-    expect(server?.command).toBe('npx');
-    expect(existsSync(join(dir, '.claude-plugin', 'plugin.json'))).toBe(true);
   });
 
   test('the composed built-ins artifact is a conformant plugin with real skill names', () => {

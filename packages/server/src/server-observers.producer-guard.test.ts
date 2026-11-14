@@ -5,7 +5,6 @@ import { resolve } from 'node:path';
 import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
-import simpleGit from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
@@ -17,6 +16,7 @@ import {
   setupServerObservers,
 } from './server-observers.ts';
 import { initShadowRepo, type ShadowHandle, shadowGit } from './shadow-repo.ts';
+import { simpleGit } from './simple-git-client.ts';
 
 const mdManager = new MarkdownManager({ extensions: sharedExtensions });
 const schema = getSchema(sharedExtensions);

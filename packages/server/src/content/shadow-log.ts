@@ -8,9 +8,10 @@ import {
   readContributors,
   type WriterClassification,
 } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 import { resolveCheckpointChainAnchors } from '../checkpoint-chain.ts';
 import { getLogger } from '../logger.ts';
+import { simpleGit } from '../simple-git-client.ts';
 
 export interface ShadowCommit {
   hash: string;

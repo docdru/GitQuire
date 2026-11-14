@@ -1,11 +1,11 @@
 import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import simpleGit from 'simple-git';
 import { afterAll, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { ConfigSchema } from '../config/schema.ts';
 import { buildExecResult } from '../mcp/tools/exec.ts';
+import { simpleGit } from '../simple-git-client.ts';
 
 const CONFIG = ConfigSchema.parse({});
 const created: string[] = [];

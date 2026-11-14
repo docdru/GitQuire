@@ -60,7 +60,6 @@ import {
   resolveGitDir,
   resolveShadowDir,
 } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import simpleGit from 'simple-git';
 import type { Doc } from 'yjs';
 import { AcpPermissionStore } from './acp/permissions.ts';
 import { AcpRegistry, loadCustomAgents } from './acp/registry.ts';
@@ -364,6 +363,7 @@ import {
   createSyncCredentialConfigResolver,
   readDeclaredGitHubHosts,
 } from './share/git-context.ts';
+import { simpleGit } from './simple-git-client.ts';
 import { resyncRecordedSkillCopies } from './skill-placements.ts';
 import { skillStateYamlPath } from './skill-state.ts';
 import { assertCompatibleStateManifest } from './state-manifest.ts';

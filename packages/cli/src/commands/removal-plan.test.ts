@@ -20,7 +20,7 @@ import { EmbeddingsSecretStoreError } from '../auth/embeddings-key-store.ts';
 import { DESKTOP_UPDATER_CACHE_DIR_NAME } from '../integrations/desktop-state.ts';
 import { readPathInstallMarker } from '../integrations/path-shim.ts';
 import {
-  createTomlConfigEngine,
+  getTomlConfigEngine,
   setTomlConfigEngineForTesting,
 } from '../native/toml-config-engine.ts';
 import { buildManagedServerEntry } from './editors.ts';
@@ -1094,7 +1094,7 @@ describe('configuration repair guidance', () => {
       const configPath = join(dir, 'config.toml');
       const raw = `[mcp_servers.${MCP_SERVER_NAME}]\ncommand = "/bin/sh"\nargs = ${JSON.stringify(OWN_ENTRY.args)}\n`;
       writeFileSync(configPath, raw);
-      setTomlConfigEngineForTesting(createTomlConfigEngine(() => null));
+      setTomlConfigEngineForTesting(getTomlConfigEngine());
       const plan = { scope: 'deinit' as const, ops: [mcpOp(dir, 'codex', configPath)] };
       const outcome = await runRemoval(plan, stubDeps());
       expect(outcome.failed[0]?.detail).toContain('no format-preserving TOML writer');
@@ -1122,7 +1122,7 @@ describe('configuration repair guidance', () => {
         configPath,
         `[mcp_servers.${MCP_SERVER_NAME}]\ncommand = "/bin/sh"\nargs = ${JSON.stringify(OWN_ENTRY.args)}\n`,
       );
-      const parser = createTomlConfigEngine(() => null);
+      const parser = getTomlConfigEngine();
       setTomlConfigEngineForTesting({
         backend: 'native',
         parseToObject(raw) {

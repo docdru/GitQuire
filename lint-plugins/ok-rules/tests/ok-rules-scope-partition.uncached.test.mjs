@@ -41,7 +41,6 @@ describe('ok-rules scope table', () => {
       'microcopy-ellipsis',
       'no-empty-jsx-expression',
       'no-hand-rolled-spinner',
-      'no-loosely-typed-webcontents-ipc',
       'no-redundant-jsx-element-braces',
       'no-resolved-value-theme-source',
       'no-sentinel-signal-target',

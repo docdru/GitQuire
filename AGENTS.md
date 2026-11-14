@@ -56,8 +56,6 @@ pnpm run dev
 - `packages/app` - web app and editor UI
 - `packages/cli` - CLI and package entrypoint
 - `packages/core` - shared domain logic
-- `packages/desktop` - Electron desktop app
-- `packages/plugin` - agent integration package
 - `packages/server` - local collaboration server
 - `docs` - documentation site
 

@@ -32,42 +32,11 @@
       "cache": false,
       "command": ["node", "scripts/build-output.mjs", "complete"]
     },
-    "build:desktop": {
-      "dependsOn": ["^build", "@inkeep/open-knowledge#build"],
-      "outputs": ["out/**"]
-    },
-    "dev:electron": {
-      "dependsOn": ["^build"],
-      "cache": false,
-      "persistent": true,
-      "passThroughEnv": [
-        "OK_CHANNEL",
-        "OK_INSTANCE",
-        "OK_AUTO_INSTANCE",
-        "OK_DEV_PROTOCOL",
-        "OK_M6B_FORCE",
-        "OK_RECLAIM_DISABLE",
-        "OK_UNINSTALL_UI_PREVIEW",
-        "OK_FEEDBACK_INTAKE_ORIGIN"
-      ]
-    },
-    "build:desktop:dir": {
-      "dependsOn": ["build:desktop"],
-      "outputs": ["dist-desktop/**"],
-      "env": ["ELECTRON_CACHE", "ELECTRON_MIRROR"]
-    },
-    "rebuild:native": {
-      "cache": false,
-      "dependsOn": []
-    },
     "lint": {},
     "types": {
       "dependsOn": ["^types"]
     },
     "@inkeep/open-knowledge#types": {
-      "dependsOn": ["^types", "build"]
-    },
-    "@inkeep/open-knowledge-native-config#types": {
       "dependsOn": ["^types", "build"]
     },
     "typecheck": {
@@ -234,30 +203,6 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/test-support/**",
         "$TURBO_ROOT$/scripts/read-jsonc.mjs"
-      ],
-      "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
-    },
-    "@inkeep/open-knowledge-desktop#test": {
-      "dependsOn": ["^build"],
-      "cache": true,
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!CHANGELOG.md",
-        "!README.md",
-        "$TURBO_ROOT$/lint-plugins/no-comments/**",
-        "$TURBO_ROOT$/test-support/**",
-        "../../scripts/verify-native-config-in-packaged-dmg.mjs",
-        "../../scripts/verify-keyring-in-packaged-dmg.mjs",
-        "../../scripts/lume-bake/**",
-        "../../scripts/lume-qa/**",
-        "../app/vite.*.ts",
-        "../app/lingui.config.ts",
-        "../app/scripts/compile-i18n-catalogs.ts",
-        "../app/postcss.config.ts",
-        "../app/*.html",
-        "../app/src/**",
-        "!../app/src/**/*.md",
-        "!../app/src/locales/*/messages.json"
       ],
       "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
     },
