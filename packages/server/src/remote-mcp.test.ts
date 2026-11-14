@@ -59,7 +59,6 @@ interface RigExtras {
     res: import('node:http').ServerResponse,
     next: () => void,
   ) => void;
-  acpThreadManager?: unknown;
 }
 
 async function bootRemoteRig(externalUrl: string | null, extras: RigExtras = {}): Promise<Rig> {
@@ -83,9 +82,6 @@ async function bootRemoteRig(externalUrl: string | null, extras: RigExtras = {})
     mcpHttpHandler: handler,
     ingressPolicy: buildIngressPolicy({ serverRuntime: resolveServerRuntimeConfig(config) }),
     ...(extras.reactShellMiddleware ? { reactShellMiddleware: extras.reactShellMiddleware } : {}),
-    ...(extras.acpThreadManager !== undefined
-      ? { acpThreadManager: extras.acpThreadManager as never }
-      : {}),
     log,
   });
   const { port } = await listenOnLoopback(httpServer);
@@ -322,23 +318,6 @@ describe('remote enabled — trust-the-tunnel admission', () => {
     ).resolves.toBe('upgraded');
     await expect(
       attemptCollabUpgrade(rig.port, { Host: 'evil.example.com' }, '/collab/keepalive'),
-    ).resolves.toBe('closed');
-  });
-
-  test('/collab/thread upgrade admits the tunnel Host so Ask AI works over the tunnel', async () => {
-    const rig = await bootRemoteRig(EXTERNAL_URL, { acpThreadManager: { listThreads: () => [] } });
-    await expect(
-      attemptCollabUpgrade(rig.port, { Host: EXTERNAL_HOST }, '/collab/thread'),
-    ).resolves.toBe('upgraded');
-    await expect(
-      attemptCollabUpgrade(rig.port, { Host: 'evil.example.com' }, '/collab/thread'),
-    ).resolves.toBe('closed');
-    await expect(
-      attemptCollabUpgrade(
-        rig.port,
-        { Host: EXTERNAL_HOST, Origin: 'https://evil.example.com' },
-        '/collab/thread',
-      ),
     ).resolves.toBe('closed');
   });
 

@@ -4,7 +4,6 @@ import {
   expect,
   headerPaneButton,
   setHeaderPane,
-  stubAgentCatalog,
   test,
   waitForActiveProviderSynced,
 } from './_helpers';
@@ -37,7 +36,6 @@ test.describe('dock seams', () => {
   }) => {
     const name = `dock-seam-focus-${test.info().workerIndex}`;
     await api.seedDocs([{ name, markdown: `# ${name}\n\nA document beside the Agents panel.\n` }]);
-    await stubAgentCatalog(page);
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto(`/#/${name}`);
     await waitForActiveProviderSynced(page);

@@ -18,13 +18,6 @@ import {
 } from 'lucide-react';
 import { lazy, type ReactNode, Suspense, useState } from 'react';
 import { toast } from 'sonner';
-import { OpenInAgentContextSubmenu } from '@/components/handoff/OpenInAgentContextSubmenu';
-import { OpenInAgentEmptySpaceSubmenu } from '@/components/handoff/OpenInAgentEmptySpaceSubmenu';
-import {
-  buildSkillHandoffInput,
-  useHandoffDispatch,
-} from '@/components/handoff/useHandoffDispatch';
-import { useInstalledAgents } from '@/components/handoff/useInstalledAgents';
 import { SkillDeleteDialog } from '@/components/SkillDeleteDialog';
 import {
   SkillFileCreateDialog,
@@ -67,7 +60,6 @@ import {
   installSkill,
   reimportSkillsBulk,
 } from '@/lib/skills-api';
-import { useWorkspace } from '@/lib/use-workspace';
 
 const LazySkillForkDialog = lazy(async () => {
   const mod = await import('@/components/SkillForkDialog');
@@ -513,38 +505,13 @@ export function SkillContextMenuItems({
   existingNames: ReadonlySet<string>;
   menuKind?: SkillMenuKind;
 }) {
-  const workspace = useWorkspace();
-  const installStates = useInstalledAgents().states;
-  const { dispatch } = useHandoffDispatch();
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  const input = buildSkillHandoffInput({
-    skillName: skill.name,
-    scope: skill.scope,
-    workspace,
-  });
-
   return (
     <SkillTargetMenuItems
       actions={actions}
       existingNames={existingNames}
       menuKind={menuKind}
       skill={skill}
-      openWithAi={
-        menuKind === 'context' ? (
-          <OpenInAgentEmptySpaceSubmenu
-            input={input}
-            installStates={installStates}
-            dispatch={dispatch}
-          />
-        ) : (
-          <OpenInAgentContextSubmenu
-            input={input}
-            installStates={installStates}
-            isElectronHost={bridge != null}
-            dispatch={dispatch}
-          />
-        )
-      }
+      openWithAi={null}
     />
   );
 }

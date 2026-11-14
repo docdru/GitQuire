@@ -322,10 +322,9 @@ describe('collaboration WebSocket upgrades on the real server', () => {
     await expect(upgradeOutcome('/collab', LOOPBACK_ORIGIN)).resolves.toBe('open');
   });
 
-  test('/collab/thread refuses a null origin and still opens for file:// and loopback', async () => {
+  test('/collab/thread is refused for every origin', async () => {
     await expect(upgradeOutcome('/collab/thread', 'null')).resolves.toBe('refused');
-    await expect(upgradeOutcome('/collab/thread', 'file://')).resolves.toBe('open');
-    await expect(upgradeOutcome('/collab/thread', LOOPBACK_ORIGIN)).resolves.toBe('open');
+    await expect(upgradeOutcome('/collab/thread', LOOPBACK_ORIGIN)).resolves.toBe('refused');
   });
 
   test('/collab/keepalive refuses a null origin and still opens without one', async () => {

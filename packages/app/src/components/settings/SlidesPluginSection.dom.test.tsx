@@ -1,9 +1,7 @@
 import * as actualLinguiMacro from '@lingui/react/macro';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { terminalCommandFor } from '@/components/handoff/terminal-command-events';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import type { OkSlidesStatusResult } from '@/lib/desktop-bridge-types';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
@@ -141,61 +139,11 @@ describe('SlidesPluginSection — re-probe', () => {
   });
 });
 
-describe('SlidesPluginSection — run in terminal', () => {
-  test('asks the terminal to run the install, and closes Settings first', async () => {
-    const user = userEvent.setup();
-    const requests: string[] = [];
-    const onCommand = (e: Event) => requests.push((e as CustomEvent<string>).detail);
-    window.addEventListener('open-knowledge:terminal-command', onCommand);
-    const backSpy = vi.spyOn(window.history, 'back').mockImplementation(() => {});
-    window.location.hash = '#settings/plugin:slides';
-
-    installBridge(() => Promise.resolve({ kind: 'status', available: false }));
-    await renderPanel();
-    await user.click(await screen.findByTestId('slides-run-install'));
-
-    expect(requests).toEqual(['install-slidev']);
-    expect(backSpy).toHaveBeenCalledTimes(1);
-
-    window.removeEventListener('open-knowledge:terminal-command', onCommand);
-    backSpy.mockRestore();
-    window.location.hash = '';
-  });
-
-  test('does not offer the run button once Slidev is found', async () => {
-    installBridge(() => Promise.resolve({ kind: 'status', available: true, source: 'global' }));
-    await renderPanel();
-    await screen.findByTestId('slides-status-available');
-    expect(screen.queryByTestId('slides-run-install')).toBeNull();
-  });
-});
-
-describe('SlidesPluginSection — single source for the command', () => {
-  test('shows exactly the command the Run button will execute', async () => {
+describe('SlidesPluginSection — install command', () => {
+  test('shows the global install command', async () => {
     installBridge(() => Promise.resolve({ kind: 'status', available: false }));
     await renderPanel();
     const shown = (await screen.findByTestId('slides-install-command')) as HTMLInputElement;
-    expect(shown.value).toBe(terminalCommandFor('install-slidev'));
-  });
-});
-
-describe('SlidesPluginSection — terminal availability', () => {
-  test('hides Run in terminal where no PTY can be spawned', async () => {
-    installBridge(() => Promise.resolve({ kind: 'status', available: false }), {
-      ptyAvailable: false,
-    });
-    await renderPanel();
-    await screen.findByTestId('slides-status-missing');
-    expect(screen.queryByTestId('slides-run-install')).toBeNull();
-    expect(screen.getByTestId('slides-install-command')).toBeTruthy();
-    expect(screen.getByTestId('slides-install-docs-link')).toBeTruthy();
-  });
-
-  test('offers Run in terminal where a PTY can be spawned', async () => {
-    installBridge(() => Promise.resolve({ kind: 'status', available: false }), {
-      ptyAvailable: true,
-    });
-    await renderPanel();
-    expect(await screen.findByTestId('slides-run-install')).toBeTruthy();
+    expect(shown.value).toBe('npm install -g @slidev/cli @slidev/theme-default');
   });
 });

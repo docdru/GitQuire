@@ -29,7 +29,6 @@ import {
   SaveVersionRequestSchema,
   SaveVersionSuccessSchema,
   stripFrontmatter,
-  validateDocName,
 } from '@inkeep/open-knowledge-core';
 import { formatRollbackSubject } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import { z } from 'zod';
@@ -77,12 +76,7 @@ import {
 } from '../content-divergence-gate.ts';
 import type { ContentFilter } from '../content-filter.ts';
 import { recordContributor } from '../contributor-tracker.ts';
-import {
-  canonicalDocName,
-  registerDocExtension,
-  SUPPORTED_DOC_EXTENSIONS,
-  stripDocExtension,
-} from '../doc-extensions.ts';
+import { canonicalDocName, registerDocExtension, stripDocExtension } from '../doc-extensions.ts';
 import {
   type DocumentDurabilityState,
   type StoreFailure,
@@ -125,7 +119,6 @@ import { respondAgentSessionCapacity } from './agent-session-capacity.ts';
 import { respondBothKept } from './agent-write-response.ts';
 import { type ApiRouteGroup, createApiRouteGroup } from './api-pipeline.ts';
 import { errorResponse } from './error-response.ts';
-import type { RouteHandler } from './method-router.ts';
 import { getRequestId } from './request-id.ts';
 import { withValidation } from './request-validation.ts';
 import { successResponse } from './success-response.ts';
@@ -197,12 +190,7 @@ export interface AgentWriteRouteDeps {
   mergeHistory: MergeHistoryRecorder;
   agentPresenceBroadcaster: AgentPresenceBroadcaster | undefined;
   recordContentDivergenceGate: (
-    handler:
-      | 'agent-write-md'
-      | 'acp-document-write'
-      | 'agent-write-batch'
-      | 'agent-patch'
-      | 'rollback',
+    handler: 'agent-write-md' | 'agent-write-batch' | 'agent-patch' | 'rollback',
     divergence: AgentWriteContentDivergence | undefined,
   ) => void;
   buildAgentActor: (args: {
@@ -254,7 +242,7 @@ export interface AgentWriteRouteDeps {
 }
 
 interface MarkdownWriteMode {
-  readonly handler: 'agent-write-md' | 'acp-document-write';
+  readonly handler: 'agent-write-md';
   readonly preWriteMerge: boolean;
   readonly callerReadsWriteReport: boolean;
 }
@@ -265,31 +253,11 @@ const ROUTE_MARKDOWN_WRITE: MarkdownWriteMode = {
   callerReadsWriteReport: true,
 };
 
-const ACP_MARKDOWN_WRITE: MarkdownWriteMode = {
-  handler: 'acp-document-write',
-  preWriteMerge: false,
-  callerReadsWriteReport: false,
-};
-
-const AcpDocumentWriteRequestSchema = z
-  .object({
-    docName: z.string().min(1),
-    file: z.string().min(1),
-    markdown: z.string(),
-    extension: z.enum(SUPPORTED_DOC_EXTENSIONS).optional(),
-    agentId: z.string().optional(),
-    agentName: z.string().optional(),
-    clientName: z.string().optional(),
-  })
-  .strict();
-
 const AcpDocumentWriteSuccessSchema = z
   .object({ ...agentWriteOutcomeWireFields, timestamp: z.string().min(1) })
   .strict();
 
-export function createAgentWriteRoutes(
-  deps: AgentWriteRouteDeps,
-): ApiRouteGroup & { readonly acpDocumentWrite: RouteHandler } {
+export function createAgentWriteRoutes(deps: AgentWriteRouteDeps): ApiRouteGroup {
   const {
     conflicts,
     getLinkAdvisoryPolicy,
@@ -402,12 +370,6 @@ export function createAgentWriteRoutes(
     (req, res, body) => writeAgentMarkdownDocument(req, res, body, ROUTE_MARKDOWN_WRITE),
     { handler: 'agent-write-md', method: 'POST' },
   );
-
-  function isAcpWritableDocument(docName: string, file: string): boolean {
-    if (docName !== file && docName !== stripDocExtension(file)) return false;
-    if (validateDocName(docName).ok) return true;
-    return options.contentFilter !== undefined && !options.contentFilter.isExcluded(file);
-  }
 
   async function writeAgentMarkdownDocument(
     req: IncomingMessage,
@@ -672,35 +634,6 @@ export function createAgentWriteRoutes(
       });
     }
   }
-
-  const acpDocumentWrite = withValidation(
-    AcpDocumentWriteRequestSchema,
-    async (req, res, body) => {
-      if (!isAcpWritableDocument(body.docName, body.file)) {
-        errorResponse(
-          res,
-          400,
-          'urn:ok:error:invalid-request',
-          `'${body.file}' is not a document GitQuire keeps for the in-app agent.`,
-          {
-            handler: ACP_MARKDOWN_WRITE.handler,
-            detail:
-              'The path is excluded from the project content, so there is no document to write it through. Nothing was written.',
-            extensions: { outcome: 'refused', saved: false, nextStep: 'none' },
-          },
-        );
-        return;
-      }
-      const { file: _file, ...write } = body;
-      await writeAgentMarkdownDocument(
-        req,
-        res,
-        { ...write, position: 'replace' },
-        ACP_MARKDOWN_WRITE,
-      );
-    },
-    { handler: ACP_MARKDOWN_WRITE.handler, method: 'POST', maxBodyBytes: Number.POSITIVE_INFINITY },
-  );
 
   const handleFrontmatterPatch = withValidation(
     FrontmatterPatchRequestSchema,
@@ -1918,5 +1851,5 @@ export function createAgentWriteRoutes(
       ],
     },
   );
-  return { ...group, acpDocumentWrite };
+  return group;
 }

@@ -3,7 +3,7 @@
 import { EDITOR_LABELS } from '@inkeep/open-knowledge-core/constants/editors';
 import { Folder, Sparkles } from 'lucide-react';
 import type { SVGProps } from 'react';
-import { TargetIcon } from '@/components/handoff/OpenInAgentMenuItem';
+import { TargetIcon } from '@/components/agent-target-icon';
 import { LmStudioIcon } from '@/components/icons/lmstudio';
 import { OkBlob } from '@/components/OkBlob';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';

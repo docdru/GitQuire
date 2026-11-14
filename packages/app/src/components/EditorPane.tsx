@@ -1,12 +1,7 @@
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import type { AttachmentPart } from '@inkeep/open-knowledge-core/acp/thread-protocol';
 import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
-import type { TerminalCli, TerminalLaunchCommand } from '@inkeep/open-knowledge-core/handoff';
-import type { TerminalPlacement } from '@inkeep/open-knowledge-core/terminal-layout';
 import {
-  lazy,
   type ReactNode,
-  Suspense,
   useEffect,
   useEffectEvent,
   useLayoutEffect,
@@ -28,12 +23,9 @@ import { type EditorModeValue, useEditorMode } from '@/editor/use-editor-mode';
 import { VIEW_IN_SOURCE_EVENT, type ViewInSourceDetail } from '@/editor/view-in-source-event';
 import { ChatPaneHost } from '@/gitquire-chat/ChatPaneHost';
 import { useGitSyncStatus } from '@/hooks/use-git-sync-status';
-import { useInstalledClis } from '@/hooks/use-installed-clis';
 import { useNoPushPermissionToast } from '@/hooks/use-no-push-permission-toast';
 import { useSyncAuthPrompt } from '@/hooks/use-sync-auth-prompt';
 import { useWorktreeAutoSyncNotice } from '@/hooks/use-worktree-autosync-notice';
-import { LAUNCHER_KIND_PANE } from '@/lib/acp/launcher-selection';
-import { usePreferredSessionSelection } from '@/lib/acp/use-preferred-session-selection';
 import type { AuthPromptStep } from '@/lib/auth-prompt-store';
 import { loadBoolPref, saveBoolPref } from '@/lib/bool-pref';
 import { useConfigContext } from '@/lib/config-provider';
@@ -51,7 +43,6 @@ import {
 import { type DockPaneMove, subscribeDockPaneMoves } from '@/lib/dock-move-requests';
 import { readWebDockSessionOrder } from '@/lib/dock-session-persistence';
 import type { DockEdge, DockNode } from '@/lib/dock-tree';
-import { focusAwayFromHiddenEditor } from '@/lib/editor-hidden-focus';
 import { agentsPaneIsChat, useGitQuireFeatures } from '@/lib/gitquire/features';
 import { matchesKeyboardShortcut, matchesRendererShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
@@ -72,7 +63,6 @@ import {
 import { RESTORE_SETTLE_TIMEOUT_MS } from '@/lib/restore-settle-timeout';
 import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { useSingleFileMode } from '@/lib/single-file-mode';
-import { recordTerminalOpened } from '@/lib/terminal-telemetry';
 import { useWorkspace } from '@/lib/use-workspace';
 import { setViewMenuState } from '@/lib/view-menu-state-store';
 import { useSyncStatus } from '@/presence/use-sync-status';
@@ -89,59 +79,6 @@ import {
 import { EditorHeader } from './EditorHeader';
 import { EditorModeToggle } from './EditorModeToggle';
 import { EditorSidebarsContextMenu } from './EditorSidebarsContextMenu';
-import { composeTerminalSelectionPaste } from './handoff/compose-terminal-selection';
-import { requestPreferredSession } from './handoff/preferred-session-events';
-import {
-  subscribeToTerminalCommandRequests,
-  type TerminalCommandId,
-} from './handoff/terminal-command-events';
-import { requestActiveTerminalInput } from './handoff/terminal-input-events';
-import { subscribeToTerminalLaunchRequests } from './handoff/terminal-launch-events';
-import {
-  type AgentThreadLaunchDetail,
-  subscribeToAgentThreadLaunchRequests,
-} from './handoff/thread-launch-events';
-
-const AgentThreadClientBinder = lazy(() =>
-  import('./acp/AgentThreadClientBinder').then((mod) => ({
-    default: mod.AgentThreadClientBinder,
-  })),
-);
-const SessionsHost = lazy(() =>
-  import('./SessionsHost').then((mod) => ({ default: mod.SessionsHost })),
-);
-
-export interface TerminalCliLaunchIntent {
-  readonly prompt: string | null;
-  readonly cli: TerminalCli;
-  readonly nonce: number;
-  readonly stagePaste?: string;
-  readonly command?: undefined;
-  readonly signInThreadId?: string;
-}
-
-interface TerminalCommandLaunchIntent {
-  readonly prompt: null;
-  readonly cli: null;
-  readonly nonce: number;
-  readonly command: TerminalLaunchCommand;
-  readonly label: string;
-  readonly stagePaste?: undefined;
-  readonly signInThreadId?: string;
-}
-
-export type TerminalLaunchIntent = TerminalCliLaunchIntent | TerminalCommandLaunchIntent;
-
-export interface ThreadLaunchIntent {
-  readonly agentSource: 'registry' | 'custom';
-  readonly agentId: string;
-  readonly prompt: string | null;
-  readonly docName: string | null;
-  readonly titleHint: string | null;
-  readonly attachments: readonly AttachmentPart[] | null;
-  readonly nonce: number;
-}
-
 export type EditorMode = EditorModeValue;
 
 type ModeChangeState = {
@@ -261,23 +198,8 @@ function hidePaneForState(state: PaneSelectionState, pane: PaneId) {
   selectPaneForState(state, next);
 }
 
-type PreferredRequestCancellationState = {
-  kind: ReturnType<typeof usePreferredSessionSelection>['kind'];
-  ownerRef: { current: { pending: number } };
-};
-
-function cancelPendingPreferredSessionsForState(
-  state: PreferredRequestCancellationState,
-  pane: PaneId,
-) {
-  if (LAUNCHER_KIND_PANE[state.kind] === pane) {
-    state.ownerRef.current.pending = 0;
-  }
-}
-
 type PaneVisibilityState = {
   selection: PaneSelectionState;
-  cancellation: PreferredRequestCancellationState;
   setAgentsVisible: (visible: boolean) => void;
   setTerminalVisible: (visible: boolean) => void;
 };
@@ -299,15 +221,12 @@ function usePaneVisibilityHandlers(state: PaneVisibilityState) {
       selectPaneForState(currentState.selection, pane);
       return;
     }
-    cancelPendingPreferredSessionsForState(currentState.cancellation, pane);
     hidePaneForState(currentState.selection, pane);
   });
   const [handleAgentsVisibleChange] = useState(
     () => (visible: boolean, reason?: 'session-close') => {
       const currentState = current.current;
       const selection = currentState.selection;
-      if (!visible && reason !== 'session-close')
-        cancelPendingPreferredSessionsForState(currentState.cancellation, 'agents');
       if (!selection.exclusive) {
         if (visible) selectPaneForState(selection, 'agents');
         else hidePaneForState(selection, 'agents');
@@ -323,8 +242,6 @@ function usePaneVisibilityHandlers(state: PaneVisibilityState) {
     () => (visible: boolean, reason?: 'session-close') => {
       const currentState = current.current;
       const selection = currentState.selection;
-      if (!visible && reason !== 'session-close')
-        cancelPendingPreferredSessionsForState(currentState.cancellation, 'terminal');
       if (!selection.exclusive) {
         if (visible && selection.terminalAvailable) selectPaneForState(selection, 'terminal');
         else if (!visible) hidePaneForState(selection, 'terminal');
@@ -343,31 +260,6 @@ function usePaneVisibilityHandlers(state: PaneVisibilityState) {
     handleAgentsVisibleChange,
     handleTerminalVisibleChange,
   };
-}
-
-type SelectionHandoffState = {
-  activeDocName: string | null;
-  editingSurface: ReturnType<typeof editingSurfaceFor>;
-  effectiveEditorVisible: boolean;
-};
-
-function useSelectionHandoffHandlers(state: SelectionHandoffState) {
-  const current = useRef(state);
-  useLayoutEffect(() => {
-    current.current = state;
-  });
-  const [sendSelectionToTerminal] = useState(() => (newTab: boolean, target?: 'agents') => {
-    const { activeDocName, editingSurface, effectiveEditorVisible } = current.current;
-    if (!effectiveEditorVisible || activeDocName == null) return false;
-    const snapshot = getSelectionContext(activeDocName, editingSurface);
-    const selectionMarkdown = snapshot?.markdown ?? '';
-    if (selectionMarkdown.trim() === '') return false;
-    const staged = `${composeTerminalSelectionPaste(activeDocName, selectionMarkdown)}\n\n`;
-    requestActiveTerminalInput(staged, { newTab, submit: false, target });
-    return true;
-  });
-  const [sendSelectionToAgents] = useState(() => () => sendSelectionToTerminal(false, 'agents'));
-  return { sendSelectionToTerminal, sendSelectionToAgents };
 }
 
 type PaneExtentPublisherState = {
@@ -565,7 +457,7 @@ export function EditorPane() {
   const noteWindow = isNoteWindow();
   const gitquireFeatures = useGitQuireFeatures();
   const chatPane = !noteWindow && agentsPaneIsChat(gitquireFeatures);
-  const agentsAvailable = !noteWindow && (gitquireFeatures.askAi || chatPane);
+  const agentsAvailable = chatPane;
   const singleFile = useSingleFileMode();
   const workspace = useWorkspace();
   const belowMainBreakpoint = useSyncExternalStore(
@@ -582,7 +474,6 @@ export function EditorPane() {
   const narrowInteractedSinceMountRef = useRef(false);
   const loadedNarrowSessionKeyRef = useRef<string | null>(null);
   const initialExclusiveRef = useRef(exclusive);
-  const [layoutRestoreFocusHold, setLayoutRestoreFocusHold] = useState(false);
   const layoutRestoreFocusHoldRef = useRef(false);
   const wasExclusiveRef = useRef(exclusive);
   const editorToggleable = !noteWindow && !singleFile;
@@ -600,7 +491,6 @@ export function EditorPane() {
     workspace === null
       ? null
       : narrowWorkspaceSessionKey(workspace.contentDir, desktopBridge === null ? 'web' : 'desktop');
-  const preferredSessionOwnerKey = workspace?.contentDir ?? null;
   useEffect(() => {
     if (narrowSessionKey === null || loadedNarrowSessionKeyRef.current === narrowSessionKey) return;
     loadedNarrowSessionKeyRef.current = narrowSessionKey;
@@ -634,7 +524,6 @@ export function EditorPane() {
     );
   }, [exclusive, readyNarrowSessionKey, narrowSessionKey, narrowSelection]);
   const [terminalVisible, setTerminalVisible] = useState<boolean>(RESTORE_UNESTABLISHED_LEVEL);
-  const [terminalRestoreRevealNonce, setTerminalRestoreRevealNonce] = useState(0);
   const dockArrangementKey = dockArrangementStorageKey(
     desktopBridge === null ? null : (workspace?.contentDir ?? null),
   );
@@ -666,9 +555,6 @@ export function EditorPane() {
   }
   const dockTree = dock.arrangement.tree;
   const terminalPlacement = dockTerminalPlacement(dockTree);
-  function placeTerminal(placement: TerminalPlacement) {
-    updateDockArrangement((current) => withDockTerminalPlacement(current, placement));
-  }
   const moveTerminalEvent = useEffectEvent(() => {
     updateDockArrangement((current) =>
       withDockTerminalPlacement(
@@ -710,7 +596,6 @@ export function EditorPane() {
       setNarrowSelection(next ?? null);
     } else if (!exclusive && wasExclusiveRef.current) {
       layoutRestoreFocusHoldRef.current = true;
-      setLayoutRestoreFocusHold(true);
     }
     wasExclusiveRef.current = exclusive;
   }, [exclusive, terminalAvailable, agentsVisible, terminalVisible]);
@@ -719,76 +604,7 @@ export function EditorPane() {
   const effectiveTerminalVisible = exclusive
     ? narrowSelection === 'terminal' && terminalAvailable
     : terminalVisible;
-  const installedClis = useInstalledClis();
-  const preferredSessionSelection = usePreferredSessionSelection({
-    installedClis,
-    terminalAvailable,
-    threadsAvailable: true,
-  });
-  const lastPreferredSessionKindRef = useRef(preferredSessionSelection.kind);
-  const preferredRequestOwnerRef = useRef<{
-    key: string | null;
-    hasKnownKey: boolean;
-    pending: number;
-    active: boolean;
-    readyCallback: (() => void) | null;
-  }>({
-    key: preferredSessionOwnerKey,
-    hasKnownKey: preferredSessionOwnerKey !== null,
-    pending: 0,
-    active: true,
-    readyCallback: null,
-  });
-  useLayoutEffect(() => {
-    const owner = preferredRequestOwnerRef.current;
-    if (preferredSessionOwnerKey === null) {
-      if (owner.hasKnownKey) {
-        owner.key = null;
-        owner.hasKnownKey = false;
-        owner.pending = 0;
-      }
-    } else if (!owner.hasKnownKey) {
-      owner.key = preferredSessionOwnerKey;
-      owner.hasKnownKey = true;
-    } else if (owner.key !== preferredSessionOwnerKey) {
-      owner.key = preferredSessionOwnerKey;
-      owner.pending = 0;
-    }
-  }, [preferredSessionOwnerKey]);
-  useLayoutEffect(() => {
-    const owner = preferredRequestOwnerRef.current;
-    owner.active = true;
-    return () => {
-      owner.active = false;
-      owner.pending = 0;
-      owner.readyCallback = null;
-    };
-  }, []);
-  const drainPreferredSessions = useEffectEvent(() => {
-    const owner = preferredRequestOwnerRef.current;
-    if (!owner.active) return;
-    while (owner.pending > 0) {
-      owner.pending -= 1;
-      if (!requestPreferredSession()) {
-        owner.pending += 1;
-        return;
-      }
-    }
-  });
-  const onPreferredSessionHostReady = () => {
-    if (preferredRequestOwnerRef.current.readyCallback !== onPreferredSessionHostReady) return;
-    drainPreferredSessions();
-  };
-  useLayoutEffect(() => {
-    preferredRequestOwnerRef.current.readyCallback = onPreferredSessionHostReady;
-  });
-  useEffect(() => {
-    if (lastPreferredSessionKindRef.current === preferredSessionSelection.kind) return;
-    lastPreferredSessionKindRef.current = preferredSessionSelection.kind;
-    drainPreferredSessions();
-  }, [preferredSessionSelection.kind]);
   const [dockRestoreSettled, setDockRestoreSettled] = useState(false);
-  const restoreRevealRef = useRef(false);
   const terminalRestoreGateRef = useRef<RestoreVisibilityGate>(
     makeRestoreVisibilityGate(terminalVisible),
   );
@@ -798,20 +614,11 @@ export function EditorPane() {
   const editorRestoreGateRef = useRef<RestoreVisibilityGate>(
     makeRestoreVisibilityGate(editorShown),
   );
-  const [terminalLaunch, setTerminalLaunch] = useState<TerminalLaunchIntent | null>(null);
-  const [terminalCommand, setTerminalCommand] = useState<{
-    id: TerminalCommandId;
-    nonce: number;
-  } | null>(null);
-  const [threadLaunch, setThreadLaunch] = useState<ThreadLaunchIntent | null>(null);
-  const threadLaunchNonceRef = useRef(0);
-  const [agentsFocusRevealNonce, setAgentsFocusRevealNonce] = useState(0);
   const [placements, setPlacements] = useState<SessionPlacements>({
     terminal: { container: null, isShowing: false },
     agents: { container: null, isShowing: false },
     editorRegion: null,
   });
-  const launchNonceRef = useRef(0);
 
   const editorAreaRef = useRef<EditorAreaHandle>(null);
   const paneSelectionState: PaneSelectionState = {
@@ -828,10 +635,6 @@ export function EditorPane() {
     narrowInteractedSinceMountRef,
     setNarrowSelection,
   };
-  const preferredCancellationState: PreferredRequestCancellationState = {
-    kind: preferredSessionSelection.kind,
-    ownerRef: preferredRequestOwnerRef,
-  };
 
   const {
     selectPane,
@@ -841,7 +644,6 @@ export function EditorPane() {
     handleTerminalVisibleChange,
   } = usePaneVisibilityHandlers({
     selection: paneSelectionState,
-    cancellation: preferredCancellationState,
     setAgentsVisible,
     setTerminalVisible,
   });
@@ -851,9 +653,8 @@ export function EditorPane() {
     const recordInteraction = (event: Event) => {
       if (event.type === 'focusin') {
         if (layoutRestoreFocusHoldRef.current) return;
-      } else if (layoutRestoreFocusHoldRef.current) {
+      } else {
         layoutRestoreFocusHoldRef.current = false;
-        setLayoutRestoreFocusHold(false);
       }
       if (event.type === 'keydown' && event.defaultPrevented) return;
       if (!(event.target instanceof Element)) return;
@@ -890,11 +691,9 @@ export function EditorPane() {
   useLayoutEffect(publishPaneVisibility);
 
   useLayoutEffect(() => {
-    return paneVisibilityStore.subscribeRequests(({ pane, open, reason }) => {
+    return paneVisibilityStore.subscribeRequests(({ pane, open }) => {
       if (noteWindow) return;
       if (pane === 'agents' && !agentsAvailable) return;
-      if (pane === 'agents' && open && reason === 'user')
-        setAgentsFocusRevealNonce((nonce) => nonce + 1);
       if (exclusive) {
         if (pane === 'terminal' && !terminalAvailable) return;
         applyPaneRequest(pane, open);
@@ -928,25 +727,11 @@ export function EditorPane() {
     applyPaneRequest,
   ]);
 
-  function focusEditorOrFallback() {
-    if (effectiveEditorVisible) placements.editorRegion?.focus();
-    else focusAwayFromHiddenEditor();
-  }
-
-  function launchNewChat() {
-    if (!requestPreferredSession()) preferredRequestOwnerRef.current.pending += 1;
-  }
-
   const { projectConfig, projectLocalConfig, projectLocalSynced, projectSynced } =
     useConfigContext();
 
   const { activeDocName, activeProvider } = useDocumentContext();
   const editingSurface = editingSurfaceFor(activeDocName, editorMode);
-  const { sendSelectionToTerminal, sendSelectionToAgents } = useSelectionHandoffHandlers({
-    activeDocName,
-    editingSurface,
-    effectiveEditorVisible,
-  });
 
   const autoSyncOnboardingVariant = resolveAutoSyncOnboarding({
     autoSyncOnboardingDismissed,
@@ -970,7 +755,6 @@ export function EditorPane() {
     return () => window.removeEventListener(RAW_MDX_NAV_EVENT, onRawMdxNav);
   }, [activeDocName]);
 
-  const launchNewChatEvent = useEffectEvent(() => launchNewChat());
   const toggleEditorEvent = useEffectEvent(() => {
     if (!editorToggleable) return;
     if (exclusive) {
@@ -984,9 +768,7 @@ export function EditorPane() {
     setEditorShown(!editorShown);
   });
   const toggleAgentsEvent = useEffectEvent(() => {
-    const next = !effectiveAgentsVisible;
-    if (next) setAgentsFocusRevealNonce((nonce) => nonce + 1);
-    handleAgentsVisibleChange(next);
+    handleAgentsVisibleChange(!effectiveAgentsVisible);
   });
   const toggleTerminalEvent = useEffectEvent(() =>
     handleTerminalVisibleChange(!effectiveTerminalVisible),
@@ -1004,13 +786,12 @@ export function EditorPane() {
         showTerminalEvent();
       } else if (action === 'toggle-agent-panel') {
         if (!agentsAvailable) return;
-        if (!chatPane && sendSelectionToAgents()) return;
         toggleAgentsEvent();
       } else if (action === 'toggle-editor') {
         toggleEditorEvent();
       }
     });
-  }, [noteWindow, agentsAvailable, chatPane, sendSelectionToAgents]);
+  }, [noteWindow, agentsAvailable]);
 
   useEffect(() => {
     const hasNativeMenu = window.okDesktop != null;
@@ -1032,87 +813,11 @@ export function EditorPane() {
       if (!matchesKeyboardShortcut(event, 'toggle-agent-panel')) return;
       if (isOverlayLayerOpen()) return;
       event.preventDefault();
-      if (!chatPane && sendSelectionToAgents()) return;
       toggleAgentsEvent();
     }
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [agentsAvailable, chatPane, sendSelectionToAgents]);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (!matchesKeyboardShortcut(event, 'new-terminal-tab')) return;
-      if (isOverlayLayerOpen()) return;
-      event.preventDefault();
-      if (!sendSelectionToTerminal(true)) launchNewChatEvent();
-    }
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
-    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [sendSelectionToTerminal]);
-
-  useEffect(() => {
-    return subscribeToTerminalCommandRequests((id) => {
-      if (!terminalAvailable) return;
-      selectPane('terminal');
-      if (!exclusive) setTerminalVisible(true);
-      launchNonceRef.current += 1;
-      setTerminalCommand({ id, nonce: launchNonceRef.current });
-    });
-  }, [exclusive, terminalAvailable, selectPane]);
-
-  useEffect(() => {
-    return subscribeToTerminalLaunchRequests((request) => {
-      if (!terminalAvailable) return;
-      selectPane('terminal');
-      if (!exclusive) setTerminalVisible(true);
-      launchNonceRef.current += 1;
-      const nonce = launchNonceRef.current;
-      const signIn =
-        request.signInThreadId === undefined ? {} : { signInThreadId: request.signInThreadId };
-      setTerminalLaunch(
-        request.kind === 'command'
-          ? {
-              prompt: null,
-              cli: null,
-              command: request.command,
-              label: request.label,
-              nonce,
-              ...signIn,
-            }
-          : {
-              prompt: request.stage ? null : request.prompt,
-              cli: request.cli,
-              nonce,
-              stagePaste: request.stage ? request.prompt : undefined,
-              ...signIn,
-            },
-      );
-    });
-  }, [exclusive, terminalAvailable, selectPane]);
-
-  useEffect(() => {
-    return subscribeToAgentThreadLaunchRequests((detail: AgentThreadLaunchDetail) => {
-      selectPane('agents');
-      if (!exclusive) {
-        if (agentsVisible) paneVisibilityStore.request('agents', true);
-        else setAgentsVisible(true);
-      }
-      threadLaunchNonceRef.current += 1;
-      setThreadLaunch({
-        agentSource: detail.agentSource,
-        agentId: detail.agentId,
-        prompt: detail.prompt,
-        docName: detail.docName,
-        titleHint: detail.titleHint,
-        attachments: detail.attachments ?? null,
-        nonce: threadLaunchNonceRef.current,
-      });
-    });
-  }, [exclusive, agentsVisible, selectPane]);
-
-  useEffect(() => {
-    if (!terminalVisible) setTerminalLaunch(null);
-  }, [terminalVisible]);
+  }, [agentsAvailable]);
 
   useEffect(() => {
     if (window.okDesktop == null) return;
@@ -1220,8 +925,6 @@ export function EditorPane() {
         setAgentsVisible((current) => (current ? current : state.agentPanelVisible === true));
         if (!editorChosenSinceMountRef.current) setEditorShown(state.editorVisible !== false);
         if (!state.terminalVisible) return;
-        restoreRevealRef.current = true;
-        setTerminalRestoreRevealNonce((nonce) => nonce + 1);
         setTerminalVisible(true);
       })
       .catch((err) => {
@@ -1249,15 +952,6 @@ export function EditorPane() {
       resetRestoreVisibilityGate(editorRestoreGateRef);
     };
   }, [noteWindow]);
-
-  useEffect(() => {
-    if (window.okDesktop == null) return;
-    if (restoreRevealRef.current) {
-      restoreRevealRef.current = false;
-      return;
-    }
-    if (terminalVisible) recordTerminalOpened();
-  }, [terminalVisible]);
 
   useNoPushPermissionToast(syncStatus?.pausedReason);
 
@@ -1328,9 +1022,6 @@ export function EditorPane() {
 
   return (
     <>
-      <Suspense fallback={null}>
-        <AgentThreadClientBinder />
-      </Suspense>
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
           <EditorArea
@@ -1357,53 +1048,11 @@ export function EditorPane() {
           />
         </div>
       </div>
-      {noteWindow ? null : chatPane ? (
+      {chatPane ? (
         <ChatPaneHost
           container={placements.agents.container}
           isShowing={placements.agents.isShowing}
         />
-      ) : (
-        <Suspense fallback={null}>
-          <SessionsHost
-            surface="agents-panel"
-            bridge={desktopBridge}
-            terminalCapable={terminalAvailable}
-            visible={effectiveAgentsVisible}
-            wideVisible={agentsVisible}
-            onVisibleChange={handleAgentsVisibleChange}
-            onPreferredSessionHostReady={onPreferredSessionHostReady}
-            agentsVisibilityRestoreSettled={desktopBridge == null || dockRestoreSettled}
-            threadLaunch={threadLaunch}
-            focusRevealRequestNonce={agentsFocusRevealNonce}
-            installedClis={installedClis}
-            container={placements.agents.container}
-            isShowing={placements.agents.isShowing}
-            revealFocusHold={layoutRestoreFocusHold}
-            onRequestEditorFocus={focusEditorOrFallback}
-          />
-        </Suspense>
-      )}
-      {terminalAvailable ? (
-        <Suspense fallback={null}>
-          <SessionsHost
-            surface="terminal-dock"
-            terminalPlacement={terminalPlacement}
-            onTerminalPlacementChange={placeTerminal}
-            bridge={desktopBridge}
-            terminalCapable
-            visible={effectiveTerminalVisible}
-            terminalRestoreRevealNonce={terminalRestoreRevealNonce}
-            onVisibleChange={handleTerminalVisibleChange}
-            onPreferredSessionHostReady={onPreferredSessionHostReady}
-            launch={terminalLaunch}
-            commandLaunch={terminalCommand}
-            installedClis={installedClis}
-            container={placements.terminal.container}
-            isShowing={placements.terminal.isShowing}
-            revealFocusHold={layoutRestoreFocusHold}
-            onRequestEditorFocus={focusEditorOrFallback}
-          />
-        </Suspense>
       ) : null}
       <AuthModal
         open={authModalOpen}

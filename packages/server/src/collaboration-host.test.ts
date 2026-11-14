@@ -87,7 +87,7 @@ describe('createCollaborationHost', () => {
   test('routes thread then keepalive before bare collaboration', () => {
     const log = createLog();
     const hocuspocus = createHocuspocus();
-    const host = createCollaborationHost({ hocuspocus, log, acpThreadManager: null });
+    const host = createCollaborationHost({ hocuspocus, log });
     const thread = createSocket();
     expect(host.handleUpgrade(request('/collab/thread'), thread as never, Buffer.alloc(0))).toBe(
       true,
@@ -108,35 +108,11 @@ describe('createCollaborationHost', () => {
     expect(hocuspocus.handleConnection).toHaveBeenCalledOnce();
   });
 
-  test('routes an admitted thread socket without forwarding it to Hocuspocus', () => {
-    const log = createLog();
-    const hocuspocus = createHocuspocus();
-    const host = createCollaborationHost({
-      hocuspocus,
-      log,
-      acpThreadManager: {} as never,
-    });
-    const threadWs = new EventEmitter() as EventEmitter & {
-      close: () => void;
-      send: () => void;
-    };
-    threadWs.close = () => {};
-    threadWs.send = () => {};
-    callbackUpgrade(host, threadWs);
-
-    expect(
-      host.handleUpgrade(request('/collab/thread'), createSocket() as never, Buffer.alloc(0)),
-    ).toBe(true);
-    expect(threadWs.listenerCount('message')).toBe(1);
-    expect(hocuspocus.handleConnection).not.toHaveBeenCalled();
-  });
-
   test('refuses local bad Host and foreign thread Origin', () => {
     const log = createLog();
     const host = createCollaborationHost({
       hocuspocus: createHocuspocus(),
       log,
-      acpThreadManager: {} as never,
     });
     const badThread = createSocket();
     const badKeepalive = createSocket();
@@ -364,7 +340,6 @@ describe('createCollaborationHost', () => {
     expect(native.destroy).not.toHaveBeenCalled();
     expect(hocuspocus.handleConnection).toHaveBeenCalledTimes(2);
   });
-
   test('under allowExternal consent, /collab/keepalive refuses a foreign Origin (CSWSH)', () => {
     const log = createLog();
     const hocuspocus = createHocuspocus();
@@ -409,49 +384,6 @@ describe('createCollaborationHost', () => {
       Buffer.alloc(0),
     );
     expect(native.destroy).not.toHaveBeenCalled();
-  });
-
-  test('under allowExternal consent, /collab/thread refuses a foreign Origin (CSWSH)', () => {
-    const log = createLog();
-    const hocuspocus = createHocuspocus();
-    const host = createCollaborationHost({
-      hocuspocus,
-      log,
-      acpThreadManager: {} as never,
-      ingressPolicy: buildIngressPolicy({
-        serverRuntime: {
-          port: undefined,
-          bind: ['127.0.0.1', '100.64.0.7'],
-          externalUrl: 'https://kb.example.com',
-          allowExternal: true,
-          openBrowser: false,
-          idleShutdown: 'off',
-          loopbackOnly: false,
-        },
-      }),
-    });
-
-    const attacker = createSocket();
-    host.handleUpgrade(
-      request('/collab/thread', 'kb.example.com', 'https://evil.example'),
-      attacker as never,
-      Buffer.alloc(0),
-    );
-    expect(attacker.destroy).toHaveBeenCalledOnce();
-    expect(hocuspocus.handleConnection).not.toHaveBeenCalled();
-
-    const threadWs = new EventEmitter() as EventEmitter & { close: () => void; send: () => void };
-    threadWs.close = () => {};
-    threadWs.send = () => {};
-    callbackUpgrade(host, threadWs);
-    const firstParty = createSocket();
-    host.handleUpgrade(
-      request('/collab/thread', 'kb.example.com', 'https://kb.example.com'),
-      firstParty as never,
-      Buffer.alloc(0),
-    );
-    expect(firstParty.destroy).not.toHaveBeenCalled();
-    expect(threadWs.listenerCount('message')).toBe(1);
   });
 
   test('bootstraps presence only for a complete valid keepalive identity', () => {

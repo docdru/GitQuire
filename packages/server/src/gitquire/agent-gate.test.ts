@@ -250,7 +250,6 @@ describe('the agent access page', () => {
       return JSON.parse(res.body).features;
     };
     expect(me()).toEqual({
-      askAi: false,
       aiChat: true,
       agentToken: false,
       connector: false,
@@ -271,7 +270,6 @@ describe('the agent access page', () => {
       res.res,
     );
     expect(JSON.parse(res.body).features).toEqual({
-      askAi: false,
       aiChat: true,
       agentToken: false,
       connector: false,

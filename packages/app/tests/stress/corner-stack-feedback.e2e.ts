@@ -13,7 +13,6 @@ import {
   seedFeedbackEligibleDocs,
   seedFeedbackNudgeStateBeforeLoad,
   sidebarTrigger,
-  stubAgentCatalog,
   test,
   waitForActiveProviderSynced,
 } from './_helpers';
@@ -48,7 +47,6 @@ async function openWithEligibleFeedback(
 ): Promise<Locator> {
   const docName = await seedFeedbackEligibleDocs(api, `${slug}-w${test.info().workerIndex}`);
   await seedFeedbackNudgeStateBeforeLoad(page);
-  await stubAgentCatalog(page);
   await page.setViewportSize(viewport);
   await page.goto(`/#/${docName}`);
   await waitForActiveProviderSynced(page);

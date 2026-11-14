@@ -21,7 +21,6 @@ import {
   seedFeedbackEligibleDocs,
   seedFeedbackNudgeStateBeforeLoad,
   seedNewsletterStateBeforeLoad,
-  stubAgentCatalog,
   test,
   type WorkerServer,
 } from './_helpers';
@@ -52,7 +51,6 @@ async function openDesktopWithUpdateEvents(
   docName: string,
   overlay: UpdateEventOverlayConfig = {},
 ): Promise<void> {
-  await stubAgentCatalog(page);
   await page.setViewportSize(WIDE);
   await installUpdateEventOverlay(page, overlay);
   await openDesktopHeader(page, workerServer, docName, {});

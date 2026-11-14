@@ -2643,31 +2643,6 @@ Homepage: https://github.com/vimeo/player.js
 
 Copyright (c) 2016 [Vimeo](https://vimeo.com)
 
-### `@xterm/addon-fit@0.11.0`
-Homepage: https://github.com/xtermjs/xterm.js/tree/master/addons/addon-fit
-
-Copyright (c) 2019, The xterm.js authors (https://github.com/xtermjs/xterm.js)
-
-### `@xterm/addon-unicode11@0.9.0`
-Homepage: https://github.com/xtermjs/xterm.js/tree/master/addons/addon-unicode11
-
-Copyright (c) 2019, The xterm.js authors (https://github.com/xtermjs/xterm.js)
-
-### `@xterm/addon-web-links@0.12.0`
-Homepage: https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links
-
-Copyright (c) 2017, The xterm.js authors (https://github.com/xtermjs/xterm.js)
-
-### `@xterm/addon-webgl@0.19.0`
-Homepage: https://github.com/xtermjs/xterm.js/tree/master/addons/addon-webgl
-
-Copyright (c) 2018, The xterm.js authors (https://github.com/xtermjs/xterm.js)
-
-### `@xterm/xterm@6.0.0`
-Homepage: https://github.com/xtermjs/xterm.js
-
-Copyright (c) 2017-2019, The xterm.js authors (https://github.com/xtermjs/xterm.js) Copyright (c) 2014-2016, SourceLair Private Company (https://www.sourcelair.com) Copyright (c) 2012-2013, Christopher Jeffrey (https://github.com/chjj/)
-
 ### `accepts@2.0.0`
 Homepage: https://github.com/jshttp/accepts
 
@@ -6597,7 +6572,6 @@ The following packages are patched in this repository via pnpm's `patchedDepende
 | `@radix-ui/react-tooltip@1.2.8` | `patches/@radix-ui__react-tooltip@1.2.8.patch` |
 | `@tiptap/extension-drag-handle@3.22.3` | `patches/@tiptap%2Fextension-drag-handle@3.22.3.patch` |
 | `@tiptap/y-tiptap@3.0.3` | `patches/@tiptap%2Fy-tiptap@3.0.3.patch` |
-| `@xterm/xterm@6.0.0` | `patches/@xterm%2Fxterm@6.0.0.patch` |
 | `cmdk@1.1.1` | `patches/cmdk@1.1.1.patch` |
 | `just-bash@2.14.5` | `patches/just-bash@2.14.5.patch` |
 | `react-medium-image-zoom@5.4.3` | `patches/react-medium-image-zoom@5.4.3.patch` |

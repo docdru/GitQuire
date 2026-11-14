@@ -1,14 +1,8 @@
 import { Trans } from '@lingui/react/macro';
-import { Terminal } from 'lucide-react';
 import { useState } from 'react';
-import { requestTerminalCommand } from '@/components/handoff/terminal-command-events';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { resolveBlockingChanges } from '@/lib/resolve-blocking';
-
-function terminalAvailable(): boolean {
-  return typeof window !== 'undefined' && window.okDesktop != null;
-}
 
 export function SyncBlockingChanges({ paths }: { paths: readonly string[] }) {
   const [pending, setPending] = useState<'commit' | null>(null);
@@ -74,20 +68,6 @@ export function SyncBlockingChanges({ paths }: { paths: readonly string[] }) {
         {pending === 'commit' && <Spinner aria-hidden="true" data-icon="inline-start" />}
         <Trans>Commit and sync</Trans>
       </Button>
-
-      {terminalAvailable() && (
-        <Button
-          variant="link-muted"
-          size="xs"
-          className="self-start p-0"
-          disabled={busy}
-          onClick={() => requestTerminalCommand('git-status')}
-          data-testid="sync-blocking-terminal"
-        >
-          <Terminal data-icon="inline-start" />
-          <Trans>Resolve in terminal</Trans>
-        </Button>
-      )}
     </div>
   );
 }

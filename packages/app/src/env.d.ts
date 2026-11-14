@@ -64,7 +64,6 @@ declare namespace globalThis {
    * without an agent process. Tree-shaken from production bundles by the
    * `import.meta.env.DEV` guard in `AgentThreadClientBinder.tsx`.
    */
-  var __acpThreadHarness: import('@/lib/acp/dev-thread-harness').AcpThreadHarness | undefined;
   var __providerPool: import('@/editor/provider-pool').ProviderPool | undefined;
   var __activeProvider: import('@hocuspocus/provider').HocuspocusProvider | null;
   /**

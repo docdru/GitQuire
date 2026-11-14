@@ -2,11 +2,6 @@
 
 import type { OkignoreBinding } from '@inkeep/open-knowledge-core/config/bind-okignore-doc';
 import { isDocumentOverOpenByteLimit } from '@inkeep/open-knowledge-core/constants/document-open';
-import type {
-  HandoffOutcome,
-  HandoffTarget,
-  InstallState,
-} from '@inkeep/open-knowledge-core/handoff';
 import {
   CreateFolderSuccessSchema,
   CreatePageSuccessSchema,
@@ -235,15 +230,6 @@ import {
 import { cn } from '@/lib/utils';
 import { getValidationSnapshot, subscribeToValidationStore } from '@/lib/validation-store';
 import { joinWorkspacePath } from '@/lib/workspace-paths';
-import { OpenInAgentContextSubmenu } from './handoff/OpenInAgentContextSubmenu';
-import {
-  buildFolderHandoffInput,
-  buildHandoffInput,
-  type HandoffDispatchInput,
-  type HandoffDispatchOptions,
-  useHandoffDispatch,
-} from './handoff/useHandoffDispatch';
-import { useInstalledAgents } from './handoff/useInstalledAgents';
 import { cancelHoverPrewarm, scheduleHoverPrewarm } from './sidebar-hover-prewarm';
 import { useSidebar } from './ui/sidebar';
 import { useFileTreeListing } from './use-file-tree-listing';
@@ -487,15 +473,6 @@ interface FileTreeMenuProps {
   context: ContextMenuOpenContext;
   anyActionBusy: boolean;
   workspace: WorkspaceInfo | null;
-  handoff: {
-    readonly installStates: Record<HandoffTarget, InstallState>;
-    readonly isElectronHost: boolean;
-    readonly dispatch: (
-      target: HandoffTarget,
-      input: HandoffDispatchInput,
-      options: HandoffDispatchOptions,
-    ) => Promise<HandoffOutcome>;
-  };
   model: PierreFileTreeModel;
   okignoreBinding: OkignoreBinding | null;
   onStartCreating: (kind: 'file' | 'folder', parentDir: string) => void;
@@ -515,7 +492,6 @@ function FileTreeMenu({
   context,
   anyActionBusy,
   workspace,
-  handoff,
   model,
   okignoreBinding,
   onStartCreating,
@@ -549,15 +525,6 @@ function FileTreeMenu({
   const deleteTargets = selectedDeleteTargets.length > 1 ? selectedDeleteTargets : [target];
   const deleteLabel = plural(deleteTargets.length, { one: 'Delete', other: 'Delete # items' });
   const relativePath = relativePathForTreeItem(item);
-  let handoffInput: HandoffDispatchInput | null = null;
-  if (isFolder) {
-    handoffInput = buildFolderHandoffInput({ folderRelativePath: relativePath, workspace });
-  } else if (!isAsset) {
-    handoffInput = buildHandoffInput({
-      docName: treeFilePathToDocumentDocName(item.path, documents),
-      workspace,
-    });
-  }
   const closeForInlineSurface = () => context.close({ restoreFocus: false });
   const close = () => context.close();
 
@@ -695,18 +662,6 @@ function FileTreeMenu({
                   },
                 }
               : undefined
-          }
-          openWithAi={
-            isAsset ? undefined : (
-              <OpenInAgentContextSubmenu
-                input={handoffInput}
-                installStates={handoff.installStates}
-                isElectronHost={handoff.isElectronHost}
-                dispatch={handoff.dispatch}
-                onBeforeLaunch={close}
-                restoreFocus={context.restoreFocus}
-              />
-            )
           }
           share={
             canShare
@@ -1147,13 +1102,6 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
   const activeTreePath = creationDirCleared ? null : baseActiveTreePath;
   const activeSelectionId = baseActiveTreeSelection?.selectionId ?? null;
 
-  const handoffInstallStates = useInstalledAgents().states;
-  const { dispatch: dispatchHandoff } = useHandoffDispatch();
-  const handoff = {
-    installStates: handoffInstallStates,
-    isElectronHost: typeof window !== 'undefined' && window.okDesktop != null,
-    dispatch: dispatchHandoff,
-  };
   const isAvailable = () => busyPathRef.current === null;
 
   const { model } = useFileTree({
@@ -3231,7 +3179,6 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
               context={context}
               anyActionBusy={anyActionBusy}
               workspace={workspace}
-              handoff={handoff}
               model={model}
               okignoreBinding={okignoreBinding}
               onStartCreating={startCreating}

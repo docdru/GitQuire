@@ -1,4 +1,3 @@
-export { acpCatalogBody } from './acp-catalog.ts';
 export {
   DESKTOP_HEADER_PLATFORM_NAMES,
   DESKTOP_HEADER_PLATFORMS,
@@ -122,7 +121,6 @@ export {
   presetTerminalPlacement,
   runPaletteCommand,
   setHeaderPane,
-  stubAgentCatalog,
   terminalPaneCard,
 } from './pane-layout.ts';
 export {
@@ -195,7 +193,6 @@ export {
   type ThemeFadeProbeWindow,
   type ThemeFadeReport,
 } from './theme-fade.ts';
-export { threadRosterDelivered } from './thread-roster.ts';
 export {
   createMp3Buffer,
   createMp4Buffer,

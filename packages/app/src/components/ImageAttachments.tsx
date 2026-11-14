@@ -12,7 +12,7 @@ import {
   useState,
 } from 'react';
 import { isExternalFileDrag } from '@/components/file-tree-adapter';
-import { collectImageFiles } from '@/lib/acp/image-attachment';
+import { collectImageFiles } from '@/lib/attachment-files';
 import {
   ACCEPTED_IMAGE_TYPES,
   formatFileSize,

@@ -69,12 +69,6 @@ import {
   pluginRepositoryUrl,
   type SkillsLock,
 } from '@inkeep/open-knowledge-core/skills-catalog';
-import { ACP_DOCUMENT_WRITE_PATH } from './acp/document-write.ts';
-import {
-  type AcpHarnessAvailability,
-  createAcpHarnessAvailabilityProbe,
-} from './acp/harness-availability.ts';
-import type { AcpRegistry, CustomAgentEntry } from './acp/registry.ts';
 import { captureEffect } from './activity-log.ts';
 import type { AgentFocusBroadcaster } from './agent-focus.ts';
 import type { AgentPresenceBroadcaster } from './agent-presence.ts';
@@ -420,7 +414,7 @@ let _agentWriteGateFiredCounter: ReturnType<ReturnType<typeof getMeter>['createC
 function agentWriteGateFiredCounter(): ReturnType<ReturnType<typeof getMeter>['createCounter']> {
   _agentWriteGateFiredCounter ||= getMeter().createCounter('ok.agent_write.gate_fired_total', {
     description:
-      'Count of agent writes that ran the Site A content-divergence gate (denominator for the divergence rate). Bounded label: handler ∈ {agent-write-md, acp-document-write, agent-write-batch, agent-patch, rollback}.',
+      'Count of agent writes that ran the Site A content-divergence gate (denominator for the divergence rate). Bounded label: handler ∈ {agent-write-md, agent-write-batch, agent-patch, rollback}.',
   });
   return _agentWriteGateFiredCounter;
 }
@@ -435,18 +429,13 @@ function agentWriteContentDivergenceCounter(): ReturnType<
     'ok.agent_write.content_divergence_total',
     {
       description:
-        'Count of agent writes whose converged Y.Text diverged from the composed intent (numerator for the divergence rate). Bounded labels: handler ∈ {agent-write-md, acp-document-write, agent-write-batch, agent-patch, rollback}, divergence_type.',
+        'Count of agent writes whose converged Y.Text diverged from the composed intent (numerator for the divergence rate). Bounded labels: handler ∈ {agent-write-md, agent-write-batch, agent-patch, rollback}, divergence_type.',
     },
   );
   return _agentWriteContentDivergenceCounter;
 }
 
-type DivergenceHandler =
-  | 'agent-write-md'
-  | 'acp-document-write'
-  | 'agent-write-batch'
-  | 'agent-patch'
-  | 'rollback';
+type DivergenceHandler = 'agent-write-md' | 'agent-write-batch' | 'agent-patch' | 'rollback';
 
 function recordContentDivergenceGate(
   handler: DivergenceHandler,
@@ -1369,9 +1358,6 @@ interface ApiExtensionBaseOptions {
   settleDiskEventsForTest?: () => Promise<void>;
   agentIntegrations?: AgentRegistryHostSeam;
   savedThemeLockTimeoutMs?: number;
-  acpRegistry?: AcpRegistry;
-  loadAcpCustomAgents?: () => Promise<CustomAgentEntry[]>;
-  acpHarnessAvailability?: () => Promise<AcpHarnessAvailability>;
   contentFilter?: ContentFilter;
   installedAgentsProbe?: (scheme: InstalledAgentScheme) => Promise<boolean>;
   forceUnloadDocument?: (document: Document) => Promise<void>;
@@ -1821,9 +1807,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     settleDiskEventsForTest,
     agentIntegrations,
     savedThemeLockTimeoutMs,
-    acpRegistry,
-    loadAcpCustomAgents,
-    acpHarnessAvailability = createAcpHarnessAvailabilityProbe(),
     contentFilter,
     installedAgentsProbe,
     forceUnloadDocument,
@@ -5329,9 +5312,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     getDiskAckSVs,
     getCollabClientCount,
     getConfigDiagnostics,
-    acpRegistry,
-    loadAcpCustomAgents,
-    acpHarnessAvailability,
     isRoutePeerAdmitted,
     isAllowedWorkspaceHostHeader,
     checkLocalOpSecurity,
@@ -5878,16 +5858,8 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       throw new Error(`MCP_LOCAL_API_PATHS has no handler for ${path}`);
     }
   }
-  const inProcessOnlyRoutes: ReadonlyMap<
-    string,
-    (req: IncomingMessage, res: ServerResponse) => Promise<void> | void
-  > = new Map([[ACP_DOCUMENT_WRITE_PATH, agentWriteRoutes.acpDocumentWrite]]);
   const localApi = createLocalApiDispatch({
     resolve: (pathname) => {
-      const inProcessOnly = inProcessOnlyRoutes.get(pathname);
-      if (inProcessOnly !== undefined) {
-        return (req, res) => dispatchMutation(async () => inProcessOnly(req, res), pathname);
-      }
       if (!MCP_LOCAL_API_PATHS.has(pathname)) return undefined;
       const legacy = routes[pathname];
       if (legacy !== undefined) {

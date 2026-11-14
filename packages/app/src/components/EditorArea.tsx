@@ -7,7 +7,6 @@ import {
 } from '@inkeep/open-knowledge-core/markdown/lint';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ChevronLeft, PanelRightClose } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import {
   lazy,
   type ReactNode,
@@ -112,7 +111,6 @@ import { cn } from '@/lib/utils';
 import { setViewMenuState } from '@/lib/view-menu-state-store';
 import { withViewTransition } from '@/lib/view-transition';
 import { useSyncStatus } from '@/presence/use-sync-status';
-import { BottomComposer } from './BottomComposer';
 import { shouldShowBottomComposer, shouldShowFolderComposer } from './bottom-composer-gate';
 import { EditorActivityPool } from './EditorActivityPool';
 import { EditorFooter } from './EditorFooter';
@@ -134,7 +132,6 @@ import { DOC_PANEL_ID, findResidualPanelId } from './editor-area-rail-registry';
 import { computeStickyRepinLayout } from './editor-area-sticky-repin';
 import { GitQuireAskClaude } from './GitQuireAskClaude';
 import { isSlidesHost } from './slides-host-gate';
-import { useLiveXtermTheme } from './use-live-xterm-theme';
 
 const LazyActivityModeContent = lazy(async () => {
   const mod = await import('@/components/ActivityModeContent');
@@ -672,9 +669,8 @@ function EditorAreaInner({
   const isEmbedded = embeddedHost !== null;
   const compactViewport = useCompactViewport();
   const gitquireFeatures = useGitQuireFeatures();
-  const askAiAvailable = gitquireFeatures.askAi;
   const askClaudeAvailable =
-    !askAiAvailable && (hasClaudeAccess(gitquireFeatures) || agentsPaneIsChat(gitquireFeatures));
+    hasClaudeAccess(gitquireFeatures) || agentsPaneIsChat(gitquireFeatures);
   const [initialRightPartition] = useState(() =>
     resolvePartition(embeddedHost, window.innerWidth, 'right'),
   );
@@ -763,8 +759,6 @@ function EditorAreaInner({
   );
   const [workspaceColumnEl, setWorkspaceColumnEl] = useState<HTMLElement | null>(null);
   const [terminalEditorRegion, setTerminalEditorRegion] = useState<HTMLDivElement | null>(null);
-  const { resolvedTheme } = useTheme();
-  const xtermBackground = useLiveXtermTheme(resolvedTheme).background;
 
   const agentsUnitShown = !noteWindow && agentsVisible;
   const terminalUnitShown = !noteWindow && terminalAvailable && terminalVisible;
@@ -1447,22 +1441,12 @@ function EditorAreaInner({
         agentsVisible,
         isEmbedded,
       });
-    const showFolderComposer = askAiAvailable && folderComposerFits;
     const showFolderAskClaude = askClaudeAvailable && folderComposerFits;
     viewContent = (
       <div className="relative flex h-full min-h-0 flex-col">
         <div className="relative flex min-h-0 flex-1 flex-col">
           <FolderOverview folderPath={activeTarget.folderPath} />
-          {showFolderComposer ? (
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-2 bg-linear-to-t from-background to-transparent"
-            />
-          ) : null}
         </div>
-        {showFolderComposer ? (
-          <BottomComposer folderPath={activeTarget.folderPath} editorVisible={editorVisible} />
-        ) : null}
         {showFolderAskClaude ? <GitQuireAskClaude folderPath={activeTarget.folderPath} /> : null}
       </div>
     );
@@ -1570,7 +1554,6 @@ function EditorAreaInner({
       }) &&
       !(timelineDiff && timelineDiff.docName === activeDocName) &&
       !(agentDiff && agentDiffDoc === activeDocName);
-    const showBottomComposer = askAiAvailable && bottomComposerFits;
     const showAskClaude = askClaudeAvailable && bottomComposerFits;
     const externalSkillEdit = activeDocName ? parseExternalSkillDocName(activeDocName) : null;
     const renderEditorContent = (activityMount: ReactNode) => (
@@ -1626,23 +1609,13 @@ function EditorAreaInner({
               onDismiss={() => setComposerDismissed(true)}
             />
           ) : null}
-          {showBottomComposer ? (
-            <BottomComposer
-              docName={activeDocName}
-              surface={editingSurface}
-              editorVisible={editorVisible}
-              dismissed={composerDismissed}
-              onDismiss={() => setComposerDismissed(true)}
-              onReopen={() => setComposerDismissed(false)}
-            />
-          ) : null}
         </div>
         <EditorFooter
           stats={stats}
           selectionStats={selectionStats}
           showStats={showStats}
           composerBadge={
-            (showBottomComposer || showAskClaude) && composerDismissed
+            showAskClaude && composerDismissed
               ? { onReopen: () => setComposerDismissed(false) }
               : null
           }
@@ -2237,12 +2210,7 @@ function EditorAreaInner({
   );
 
   const terminalUnit = terminalAvailable ? (
-    <PaneCard
-      pane="terminal"
-      variant={cardVariant}
-      data-placement={terminalPlacement}
-      style={{ backgroundColor: xtermBackground }}
-    >
+    <PaneCard pane="terminal" variant={cardVariant} data-placement={terminalPlacement}>
       <div
         ref={setTerminalContainer}
         data-terminal-panel-mount=""
