@@ -109,6 +109,9 @@ msgstr "(بائنری فائل، پیش منظر ممکن نہیں)"
 msgid "(detached)"
 msgstr "(منقطع)"
 
+msgid "(failed)"
+msgstr ""
+
 msgid "(inline)"
 msgstr "(اِن لائن)"
 
@@ -261,6 +264,9 @@ msgstr "{0} خود سے آپ کی دستاویزات پڑھ یا ان میں ت�
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0} نے ابھی تک اپنی ترتیبات نہیں بتائیں"
+
+msgid "{0} in · {1} out"
+msgstr ""
 
 msgid "{0} is over {destination}."
 msgstr "{0} {destination} کے اوپر ہے۔"
@@ -1193,6 +1199,9 @@ msgstr "{appName} کے بارے میں"
 msgid "About & updates"
 msgstr "تعارف اور اپ ڈیٹس"
 
+msgid "About the folder"
+msgstr ""
+
 msgid "Above"
 msgstr "اوپر"
 
@@ -1286,6 +1295,9 @@ msgstr "ابتدائی پیک شامل کریں"
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab، Gitea، Bitbucket، Azure DevOps یا خود میزبانی والے git سرور کے لیے رسائی ٹوکن شامل کریں۔ ٹوکن کے بغیر git اس ہوسٹ کے لیے پہلے سے محفوظ اسناد استعمال کرتا ہے؛ ٹوکن ہونے پر GitQuire ان کی جگہ ٹوکن استعمال کرتا ہے۔"
 
+msgid "Add an API key"
+msgstr ""
+
 msgid "Add another pattern"
 msgstr "ایک اور پیٹرن شامل کریں"
 
@@ -1294,6 +1306,9 @@ msgstr "کم از کم ایک حرف یا عدد شامل کریں۔"
 
 msgid "Add block below"
 msgstr "نیچے بلاک شامل کریں"
+
+msgid "Add credit to your account at the provider."
+msgstr ""
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror کے ذریعے کرسر شامل کریں یا مماثل مواقع منتخب کریں۔"
@@ -1477,6 +1492,12 @@ msgstr "ایجنٹ کا ٹرانسکرپٹ"
 msgid "Agents"
 msgstr "ایجنٹس"
 
+msgid "AI chat"
+msgstr ""
+
+msgid "AI chat here in GitQuire"
+msgstr ""
+
 msgid "AI tools"
 msgstr "AI ٹولز"
 
@@ -1637,6 +1658,9 @@ msgstr "کوئی بھی دیکھ سکتا ہے"
 msgid "Anything you'd like to add? (optional)"
 msgstr "کچھ اور شامل کرنا چاہیں گے؟ (اختیاری)"
 
+msgid "API key"
+msgstr ""
+
 msgid "API key set"
 msgstr "API کلید مقرر ہے"
 
@@ -1751,6 +1775,15 @@ msgstr "{agentName} سے پوچھیں"
 msgid "Ask {agentName}, {hint}"
 msgstr "{agentName} سے پوچھیں، {hint}"
 
+msgid "Ask about the wiki…"
+msgstr ""
+
+msgid "Ask about this page or anything in the wiki."
+msgstr ""
+
+msgid "Ask about this page or the wiki…"
+msgstr ""
+
 msgid "Ask again before read-only commands"
 msgstr "صرف پڑھنے والے کمانڈز سے پہلے دوبارہ پوچھیں"
 
@@ -1769,6 +1802,9 @@ msgstr "AI سے {flatId} ٹھیک کرنے کو کہیں"
 msgid "Ask an agent"
 msgstr "ایجنٹ سے پوچھیں"
 
+msgid "Ask anything about the wiki."
+msgstr ""
+
 msgid "Ask changes…"
 msgstr "تبدیلیاں مانگیں…"
 
@@ -1782,6 +1818,12 @@ msgid "Ask Claude to work on this page…"
 msgstr ""
 
 msgid "Ask for changes"
+msgstr ""
+
+msgid "Ask the AI chat about this folder…"
+msgstr ""
+
+msgid "Ask the AI chat about this page…"
 msgstr ""
 
 msgid "Asked: {waitingFor}"
@@ -2244,6 +2286,9 @@ msgctxt "settings search keyword"
 msgid "characters"
 msgstr "حروف"
 
+msgid "Chat"
+msgstr ""
+
 msgid "Chat history"
 msgstr "چیٹ کی سرگزشت"
 
@@ -2252,6 +2297,12 @@ msgstr "چیٹ کی سرگزشت لوڈ نہیں ہو سکی۔ چیٹ کی سر�
 
 msgid "Chat name"
 msgstr "چیٹ کا نام"
+
+msgid "Chat with Claude or Mistral about the wiki"
+msgstr ""
+
+msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
+msgstr ""
 
 msgid "Check for updates"
 msgstr "اپ ڈیٹس دیکھیں"
@@ -2271,11 +2322,17 @@ msgstr "ورک ٹری چیک آؤٹ کریں"
 msgid "Check spelling while typing"
 msgstr "ٹائپ کرتے وقت املا جانچیں"
 
+msgid "Check your API key in Settings → AI chat."
+msgstr ""
+
 msgid "Checkbox"
 msgstr "چیک باکس"
 
 msgid "Checked by: {0}"
 msgstr "جانچا گیا: {0}"
+
+msgid "Checked pages"
+msgstr ""
 
 msgid "Checking"
 msgstr "جانچا جا رہا ہے"
@@ -2324,6 +2381,9 @@ msgstr "آپ کا GitHub کنکشن جانچا جا رہا ہے"
 
 msgid "Checking..."
 msgstr "جانچا جا رہا ہے..."
+
+msgid "Checking…"
+msgstr ""
 
 msgid "Checklist with checkboxes."
 msgstr "چیک باکسز کے ساتھ چیک لسٹ۔"
@@ -4190,6 +4250,9 @@ msgstr "ہر پیک آپ کے پروجیکٹ کا ڈھانچہ تیار شدہ �
 msgid "Each push is one commit to your remote."
 msgstr "ہر پُش آپ کے ریموٹ پر ایک کمٹ ہے۔"
 
+msgid "Earlier chats"
+msgstr ""
+
 msgid "Edit"
 msgstr "ترمیم"
 
@@ -4250,8 +4313,14 @@ msgstr ""
 msgid "Edited"
 msgstr "ترمیم شدہ"
 
+msgid "Edited {detail}"
+msgstr ""
+
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo} ترمیم ہوئی"
+
+msgid "Edited a page"
+msgstr ""
 
 msgid "Edited locally since it was installed"
 msgstr "نصب ہونے کے بعد مقامی طور پر ترمیم ہوئی"
@@ -4511,6 +4580,9 @@ msgstr "{minimum} اور {maximum} کے درمیان ایک صحیح عدد در
 
 msgid "Enter at least 3 characters to search by meaning."
 msgstr "معنی کے لحاظ سے تلاش کرنے کے لیے کم از کم 3 حروف درج کریں۔"
+
+msgid "Enter it again"
+msgstr ""
 
 msgid "Enter the host name git connects to, with an optional :port and no scheme or path, for example git.example.com."
 msgstr "وہ ہوسٹ نام درج کریں جس سے git جڑتا ہے، اختیاری :port کے ساتھ اور بغیر اسکیم یا پاتھ کے، مثلاً git.example.com۔"
@@ -5179,6 +5251,9 @@ msgstr "تیار کردہ فائلیں۔"
 
 msgid "Get {displayName}"
 msgstr "{displayName} حاصل کریں"
+
+msgid "Get an API key"
+msgstr ""
 
 msgid "Get Claude Code"
 msgstr "Claude Code حاصل کریں"
@@ -6331,6 +6406,9 @@ msgstr "اصل فائل رکھیں"
 msgid "Keep source"
 msgstr "ماخذ رکھیں"
 
+msgid "Keep the cost under control"
+msgstr ""
+
 msgid "Keep the name to 64 characters or fewer."
 msgstr "نام کو 64 حروف یا اس سے کم رکھیں۔"
 
@@ -6358,8 +6436,17 @@ msgstr "آپ کا مواد محفوظ رکھا گیا"
 msgid "Key ending in {keyHint}"
 msgstr "{keyHint} پر ختم ہونے والی کلید"
 
+msgid "Key removed for {0}."
+msgstr ""
+
+msgid "Key saved for {0}."
+msgstr ""
+
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "ایڈیٹر اور ورک اسپیس میں دستیاب کی بورڈ شارٹ کٹس۔"
+
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgstr ""
 
 msgid "Kill Terminal"
 msgstr "ٹرمینل ختم کریں"
@@ -6692,6 +6779,15 @@ msgstr "لاگز اور سسٹم کی معلومات"
 msgid "Look Up \"{word}\""
 msgstr "\"{word}\" تلاش کریں"
 
+msgid "Looked at links"
+msgstr ""
+
+msgid "Looked at the page history"
+msgstr ""
+
+msgid "Looked at: {detail}"
+msgstr ""
+
 msgid "Looking for <0>{lookingForUrl}</0>."
 msgstr "<0>{lookingForUrl}</0> تلاش کیا جا رہا ہے۔"
 
@@ -6840,6 +6936,9 @@ msgstr "Mermaid خاکے کے کنٹرولز"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid خاکہ رینڈر نہیں ہو سکا۔"
 
+msgid "Message"
+msgstr ""
+
 msgid "Message {agentName}"
 msgstr "{agentName} کو پیغام بھیجیں"
 
@@ -6926,6 +7025,9 @@ msgstr "مزید اعمال"
 
 msgid "More actions ({syncAttentionLabel})"
 msgstr "مزید اعمال ({syncAttentionLabel})"
+
+msgid "More chat actions"
+msgstr ""
 
 msgid "More draft actions"
 msgstr ""
@@ -7106,6 +7208,9 @@ msgstr "{moved} مہارتیں گلوبل میں منتقل ہو گئیں"
 
 msgid "Moved {moved} skills to Project"
 msgstr "{moved} مہارتیں پروجیکٹ میں منتقل ہو گئیں"
+
+msgid "Moved a page"
+msgstr ""
 
 msgid "Moved down."
 msgstr "نیچے منتقل کر دیا گیا۔"
@@ -7499,6 +7604,9 @@ msgstr "کوئی تصویر شامل نہیں کی گئی۔"
 
 msgid "No Incoming"
 msgstr "کوئی آنے والا نہیں"
+
+msgid "No key"
+msgstr ""
 
 msgid "No language match."
 msgstr "کوئی زبان مماثل نہیں۔"
@@ -8398,6 +8506,9 @@ msgstr "URL، owner/repo چسپاں کریں، یا اپنی ریپوز میں �
 msgid "Paste was incomplete — {chunksCompleted} of {totalChunks} chunks landed.{restoreSuffix}"
 msgstr "چسپاں کرنا نامکمل رہا — {totalChunks} میں سے {chunksCompleted} حصے پہنچے۔{restoreSuffix}"
 
+msgid "Paste your {0} API key"
+msgstr ""
+
 msgid "Paste your API key"
 msgstr "اپنی API کلید چسپاں کریں"
 
@@ -8870,6 +8981,9 @@ msgstr "React"
 msgid "Read"
 msgstr "پڑھنا"
 
+msgid "Read pages"
+msgstr ""
+
 msgid "Read through this codebase and draft a technical spec for the most complex module: an overview, the architecture, key files, and open questions, all linked from a specs index page."
 msgstr "اس کوڈ بیس کو پڑھیں اور سب سے پیچیدہ ماڈیول کے لیے تکنیکی اسپیک لکھیں: ایک جائزہ، ڈھانچہ، بنیادی فائلیں، اور کھلے سوالات، جو سب اسپیکس کے اشاریہ صفحے سے جڑے ہوں۔"
 
@@ -9279,6 +9393,9 @@ msgstr "کلید تبدیل کریں"
 msgid "Replace the active match from the replace field."
 msgstr "تبدیلی کے فیلڈ سے فعال مماثلت تبدیل کریں۔"
 
+msgid "Replace the API key"
+msgstr ""
+
 msgid "Replace the copy at {display} with a symlink to the skill's source folder? Nothing else moves."
 msgstr "کیا {display} پر موجود نقل کو مہارت کے ماخذ فولڈر کے سِم لنک سے بدل دیا جائے؟ اور کچھ نہیں ہلتا۔"
 
@@ -9616,8 +9733,14 @@ msgstr "محفوظ کریں"
 msgid "Save as page"
 msgstr ""
 
+msgid "Save as page…"
+msgstr ""
+
 msgid "Save changes"
 msgstr "تبدیلیاں محفوظ کریں"
+
+msgid "Save chat as a page"
+msgstr ""
 
 msgid "Save failed: {error}"
 msgstr "محفوظ کرنا ناکام: {error}"
@@ -9634,7 +9757,13 @@ msgstr ""
 msgid "Saved"
 msgstr "محفوظ ہو گیا"
 
+msgid "Saved {0}"
+msgstr ""
+
 msgid "Saved as {docName}.md"
+msgstr ""
+
+msgid "Saved as {saved}."
 msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
@@ -9678,6 +9807,9 @@ msgstr "تبدیلیاں محفوظ ہو رہی ہیں…"
 
 msgid "Saving your edits before reloading…"
 msgstr "دوبارہ لوڈ کرنے سے پہلے آپ کی ترامیم محفوظ کی جا رہی ہیں…"
+
+msgid "Saving…"
+msgstr ""
 
 msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
 msgstr ""
@@ -9807,6 +9939,12 @@ msgstr "ورک ٹریز تلاش کریں"
 
 msgid "Search worktrees and branches"
 msgstr "ورک ٹریز اور برانچیں تلاش کریں"
+
+msgid "Searched “{detail}”"
+msgstr ""
+
+msgid "Searched the wiki"
+msgstr ""
 
 msgid "Searches files"
 msgstr "فائلوں میں تلاش کرتا ہے"
@@ -10041,6 +10179,12 @@ msgstr "سیشن ختم ہو گیا"
 
 msgid "Session ended — undo unavailable"
 msgstr "سیشن ختم ہو گیا — واپسی دستیاب نہیں"
+
+msgid "Set a monthly spending limit at the provider (links below). It stops the key once the limit is reached."
+msgstr ""
+
+msgid "Set a spending limit"
+msgstr ""
 
 msgid "Set git identity"
 msgstr "git کی شناخت مقرر کریں"
@@ -10516,6 +10660,9 @@ msgstr "آپ کی رائے بھیجتے ہوئے کچھ غلط ہو گیا۔ ب�
 msgid "Something went wrong starting the terminal."
 msgstr "ٹرمینل شروع کرتے ہوئے کچھ غلط ہو گیا۔"
 
+msgid "Something went wrong."
+msgstr ""
+
 msgid "Something went wrong. Please try again."
 msgstr "کچھ غلط ہو گیا۔ براہِ کرم دوبارہ کوشش کریں۔"
 
@@ -10579,6 +10726,9 @@ msgstr "ہجے کی جانچ"
 
 msgid "Spelling languages"
 msgstr "املا کی جانچ کی زبانیں"
+
+msgid "Spending limit"
+msgstr ""
 
 msgid "Split list item"
 msgstr "فہرست آئٹم تقسیم کریں"
@@ -10705,6 +10855,9 @@ msgstr "رک گیا"
 
 msgid "Stopped fixing. Files already fixed stay fixed."
 msgstr "ٹھیک کرنا رک گیا۔ جو فائلیں پہلے ہی ٹھیک ہو چکی ہیں وہ ٹھیک ہی رہیں گی۔"
+
+msgid "Stopped."
+msgstr ""
 
 msgid "Stopping"
 msgstr "روکا جا رہا ہے"
@@ -11125,6 +11278,21 @@ msgstr "ایجنٹ کی انسٹالیشن میں فائلیں موجود نہی
 msgid "The agent's persona, values, and voice."
 msgstr "ایجنٹ کی شخصیت، اقدار اور لہجہ۔"
 
+msgid "The AI chat could not be loaded."
+msgstr ""
+
+msgid "The AI chat settings could not be loaded."
+msgstr ""
+
+msgid "The answer was cut off because it got too long. Say “continue” for the rest."
+msgstr ""
+
+msgid "The assistant can search and read pages and change them when you ask. Add your own API key to start; you pay the provider for what you use."
+msgstr ""
+
+msgid "The assistant stopped after many steps. Say “continue” to let it go on."
+msgstr ""
+
 msgid "The attested-computation contract. Only applies to documents typed Attested Computation, where OKF requires a runtime; ordinary concepts are unaffected."
 msgstr "تصدیق شدہ حساب کا معاہدہ۔ صرف Attested Computation ٹائپ شدہ دستاویزات پر لاگو ہوتا ہے، جہاں OKF کو runtime کی ضرورت ہوتی ہے؛ عام تصورات متاثر نہیں ہوتے ہیں۔"
 
@@ -11149,6 +11317,15 @@ msgstr "اس چیٹ میں براؤزر دستیاب نہیں ہے، کیونک�
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "اس چیٹ میں براؤزر دستیاب نہیں ہے، کیونکہ اسے شروع کر سکنے والی کوئی Node.js تنصیب نہیں ملی۔ Node.js انسٹال کریں، پھر نئی چیٹ شروع کریں۔"
 
+msgid "The chat could not be deleted."
+msgstr ""
+
+msgid "The chat could not be opened."
+msgstr ""
+
+msgid "The chat shows how many tokens each conversation used. Long chats cost more, because the whole conversation is sent with every message; start a new chat for a new topic."
+msgstr ""
+
 msgid "The chat's messages, tool calls, and their output, so we can see what the agent did, plus the chat's title, the project folder's path, the document it started from, and the agent and its settings. Images are replaced by their type and size, and attached text files are included. It can contain document content, so uncheck it if you'd rather not share it."
 msgstr "چیٹ کے پیغامات، ٹول کالز اور ان کا آؤٹ پٹ، تاکہ ہم دیکھ سکیں کہ ایجنٹ نے کیا کیا، نیز چیٹ کا عنوان، پروجیکٹ کے فولڈر کا راستہ، وہ دستاویز جس سے یہ شروع ہوئی، اور ایجنٹ بمع اس کی ترتیبات۔ تصاویر کی جگہ ان کی قسم اور سائز دیا جاتا ہے، اور منسلک ٹیکسٹ فائلیں شامل کی جاتی ہیں۔ اس میں دستاویز کا مواد ہو سکتا ہے، اس لیے اگر آپ اسے شیئر نہیں کرنا چاہتے تو نشان ہٹا دیں۔"
 
@@ -11163,6 +11340,9 @@ msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "گفتگو اس رپورٹ میں شامل نہیں کی جا سکی۔"
+
+msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
+msgstr ""
 
 msgid "The copy of \"{name}\" kept in {scopeLabel} is a redundant duplicate: the original was verified unchanged. Remove that copy, then retry the move."
 msgstr "{scopeLabel} میں رکھی گئی “{name}” کی کاپی ایک غیر ضروری نقل ہے: جانچ میں اصل غیر تبدیل شدہ پایا گیا۔ وہ کاپی حذف کریں، پھر منتقلی دوبارہ آزمائیں۔"
@@ -11242,6 +11422,12 @@ msgstr "انڈیکس فائلیں اپنی جگہ پر رہتی ہیں۔ GitQuir
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "انٹرفیس اب بھی اسی زبان میں ہے جو آپ پڑھ رہے تھے۔ اپنا کنکشن دیکھیں، پھر دوبارہ کوشش کے لیے ری لوڈ کریں۔"
 
+msgid "The key could not be removed. Try again."
+msgstr ""
+
+msgid "The key could not be saved."
+msgstr ""
+
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "وہ زبان جو GitQuire بولتا ہے؛ سسٹم آپ کے آپریٹنگ سسٹم کی پیروی کرتا ہے۔ آپ کے اپنے نوٹس اسی زبان میں رہیں گے جس میں آپ نے لکھے تھے۔"
 
@@ -11262,6 +11448,9 @@ msgstr "وہ ماڈل شناخت جو آپ کا اینڈ پوائنٹ فراہم
 
 msgid "the open agent"
 msgstr "کھلا ہوا ایجنٹ"
+
+msgid "The page could not be saved."
+msgstr ""
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11292,6 +11481,12 @@ msgstr "خصوصیات تبدیل ہوئیں، مگر ان کا موازنہ ن�
 
 msgid "The provenance, trust, and lifecycle families: sources, generated, verified, status, and stale_after. Every field is optional, and absence is never an error."
 msgstr "اصل، اعتماد، اور لائف سائیکل فیملیز: sources، generated، verified، status، اور stale_after۔ ہر فیلڈ اختیاری ہے، اور غیر موجودگی کبھی بھی غلطی نہیں ہوتی۔"
+
+msgid "The provider asks to slow down. Wait a minute and try again."
+msgstr ""
+
+msgid "The provider is busy. Try again in a moment."
+msgstr ""
 
 msgid "The provider is rate-limiting this key. Try again in a moment."
 msgstr "فراہم کنندہ اس کلید کی شرح محدود کر رہا ہے۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔"
@@ -11326,6 +11521,9 @@ msgstr "GitQuire ٹولز فعال کرنے کی درخواست کا وقت خت
 msgid "The same text changed in both places"
 msgstr ""
 
+msgid "The saved key can no longer be read, usually because the server's session secret changed. Paste it again."
+msgstr ""
+
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "اسکیما فائل موجود نہیں یا لوڈ نہیں ہو سکی — فیلڈ شامل کرنے سے یہ بن جاتی ہے۔"
 
@@ -11358,6 +11556,9 @@ msgstr "مہارت کا اپنا فولڈر ({path}) — وہ ماخذ جس سے
 
 msgid "The skills list did not match its schema."
 msgstr "اسکلز کی فہرست اپنے اسکیما سے مطابقت نہیں رکھتی۔"
+
+msgid "The smaller models are much cheaper and fine for most questions."
+msgstr ""
 
 msgid "The source folder itself does not move."
 msgstr "ماخذ فولڈر خود نہیں ہلتا۔"
@@ -11721,6 +11922,9 @@ msgstr "اس میں تھوڑا وقت لگ سکتا ہے۔ آپ کا Markdown م
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
+msgid "This model is not available for your key. Choose another one."
+msgstr ""
+
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "یہ <0>{name}</0> کو {0} سے {1} پر منتقل کرتا ہے، ڈسک پر اس کی فائلوں کی جگہ بدلتا ہے اور اسے آپ کے ایڈیٹرز میں {2} سطح پر دوبارہ نصب کرتا ہے۔"
 
@@ -12016,6 +12220,9 @@ msgid "tokens"
 msgstr "ٹوکنز"
 
 msgid "Tokens and connected apps"
+msgstr ""
+
+msgid "Tokens sent and received in this chat, billed to your {providerLabel} key"
 msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
@@ -12458,6 +12665,9 @@ msgstr "ان کا ورژن لیں"
 msgid "Use this starter pack"
 msgstr "یہ ابتدائی پیک استعمال کریں"
 
+msgid "Used {0}"
+msgstr ""
+
 msgid "User"
 msgstr "صارف"
 
@@ -12700,7 +12910,7 @@ msgstr "کہاں"
 msgid "Where should it live?"
 msgstr "یہ کہاں رہنا چاہیے؟"
 
-msgid "Where to open Claude"
+msgid "Where to ask"
 msgstr ""
 
 msgid "Which skill"
@@ -12809,6 +13019,12 @@ msgstr "لکھائی"
 msgid "Writing this file failed. Check the GitQuire log for the reason."
 msgstr "یہ فائل لکھنے میں ناکامی ہوئی۔ وجہ جاننے کے لیے GitQuire لاگ دیکھیں۔"
 
+msgid "Wrote {detail}"
+msgstr ""
+
+msgid "Wrote pages"
+msgstr ""
+
 msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
 msgstr "GitQuire ایکسٹینشن لکھ دی گئی، لیکن فولڈر کو قابلِ اعتماد نشان زد نہیں کیا جا سکا، اس لیے یہ لوڈ نہیں ہوگی۔ اس تھریڈ میں GitQuire ٹولز نہیں ہیں۔"
 
@@ -12903,11 +13119,17 @@ msgstr "آپ رکن بن گئے!"
 msgid "you@company.com"
 msgstr "you@company.com"
 
+msgid "Your {providerLabel} key"
+msgstr ""
+
 msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
 msgstr "آپ کے ایجنٹ اب بھی یہ مہارت لوڈ کرتے ہیں، لیکن GitQuire اسے کھول یا ترمیم نہیں کر سکتا: یہ ایسی فائل کو انڈیکس نہیں کرتا جسے نظر انداز کرنے کے لیے git مقرر ہے، کیونکہ سنک ناکام ہو جائے گا۔ {gitignorePath} میں ایک سطر شامل کرنے سے یہ یہاں قابلِ ترمیم ہو جاتی ہے۔"
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "آپ کی تبدیلی ابھی محفوظ ہو رہی ہے — تھوڑی دیر بعد ٹیسٹ دوبارہ چلائیں۔"
+
+msgid "Your chats (kept {0} days)"
+msgstr ""
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "برانچ <0>{shareBranch}</0> کی آپ کی نقل میں ایسی تبدیلیاں ہیں جو GitHub پر نہیں۔ برانچ مطابق ہوتے ہی {targetNoun} ظاہر ہو جائے گا۔"
@@ -12980,6 +13202,9 @@ msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "آپ کا شیئر لنک نیچے تیار ہے۔"
+
+msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
 
 msgid "Your user settings could not be read"
 msgstr "آپ کی صارف ترتیبات پڑھی نہیں جا سکیں"

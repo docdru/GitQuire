@@ -16,3 +16,9 @@ export const PANE_LABEL = {
   agents: msg`Agents`,
   terminal: msg`Terminal`,
 } as const satisfies Record<PaneId, MessageDescriptor>;
+
+export const AI_CHAT_PANE_LABEL = msg`AI chat`;
+
+export function paneLabel(pane: PaneId, agentsPaneIsChat: boolean): MessageDescriptor {
+  return pane === 'agents' && agentsPaneIsChat ? AI_CHAT_PANE_LABEL : PANE_LABEL[pane];
+}

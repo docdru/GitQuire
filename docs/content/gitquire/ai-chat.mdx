@@ -1,0 +1,56 @@
+---
+title: AI chat
+icon: LuSparkles
+description: Chat with Claude or Mistral inside the wiki, using your own API key.
+---
+
+The ✨ button in the top bar (or ⌘L) opens the **AI chat**: a conversation with Claude or Mistral
+that knows the wiki. Ask about the page you are looking at, have it find things across the wiki,
+or ask it to write or change pages. You can also type a question into the box under a page and
+choose **AI chat here in GitQuire**.
+
+The assistant uses the same wiki tools as connected AI assistants: it searches, reads pages,
+follows links and history, writes new pages and edits existing ones. It cannot delete pages,
+change settings or run commands. Every change is saved as your edit and shows up live for
+everyone; if **Put my AI assistant's edits into a draft** is on (Settings → Connect AI), its
+changes go into a draft for you to review first. Each step shows in the chat, with a link to the
+page it changed.
+
+## Add your API key
+
+The chat uses **your own** API key, so you pay the provider directly for what you use.
+
+1. Get a key from the [Claude Console](https://platform.claude.com/settings/keys) or from
+   [Mistral La Plateforme](https://console.mistral.ai/api-keys).
+2. In GitQuire, open **Settings → AI chat**, paste the key and click **Save**. GitQuire checks the
+   key with the provider before saving it.
+3. Open the ✨ pane and pick a model below the message box.
+
+You can save a key for both providers and switch between them, even within one chat.
+
+## Keep the cost under control
+
+- **Set a monthly spending limit at the provider.** In the Claude Console, give the key its own
+  workspace and set a limit on it; in Mistral's admin panel, set a monthly limit for the workspace
+  or the organisation. The provider stops the key once the limit is reached, and the chat tells
+  you so.
+- **Watch the token count** at the bottom of the chat. The whole conversation is sent with every
+  message, so long chats cost more; start a new chat (**+**) for a new topic.
+- **Pick a smaller model** (Claude Haiku, Mistral Small) for everyday questions.
+
+Each answer is limited to about 4,000 words of output and 12 steps of tool use. If the assistant
+stops early, say "continue".
+
+## Your chats
+
+Your chats are only shown to you. They are kept on the wiki server for 90 days after the last
+message, then deleted. Open earlier chats with the clock button; delete one from the **⋯** menu.
+
+To keep a conversation, choose **⋯ → Save as page…**. GitQuire writes it to a new page (by default
+under `AI chats/`) as your edit, so the team can read it.
+
+## For whoever runs the server
+
+The AI chat is on whenever GitHub sign-in is on and the in-app agents are off. See
+[AI chat in DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#ai-chat) for where
+keys and chats are stored and how to turn it off.

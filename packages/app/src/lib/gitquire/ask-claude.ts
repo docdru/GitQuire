@@ -1,12 +1,34 @@
-import type { GitQuireFeatures } from './features';
+import { agentsPaneIsChat, type GitQuireFeatures, hasClaudeAccess } from './features';
 
 export type ClaudeDestination = 'claude-web' | 'claude-app' | 'claude-code';
+export type AskDestination = ClaudeDestination | 'gitquire-chat';
 
 export const CLAUDE_DESTINATIONS: readonly ClaudeDestination[] = [
   'claude-web',
   'claude-app',
   'claude-code',
 ];
+
+export function askDestinations(features: GitQuireFeatures): AskDestination[] {
+  return [
+    ...(agentsPaneIsChat(features) ? (['gitquire-chat'] as const) : []),
+    ...(hasClaudeAccess(features) ? CLAUDE_DESTINATIONS : []),
+  ];
+}
+
+export function isAskDestination(value: unknown): value is AskDestination {
+  return value === 'gitquire-chat' || isClaudeDestination(value);
+}
+
+export function defaultAskDestination(
+  features: GitQuireFeatures,
+  stored: string | null,
+): AskDestination {
+  const available = askDestinations(features);
+  if (isAskDestination(stored) && available.includes(stored)) return stored;
+  if (available.includes('gitquire-chat')) return 'gitquire-chat';
+  return defaultDestination(features, null);
+}
 
 export const MAX_REQUEST_CHARS = 4000;
 const DESTINATION_STORAGE_KEY = 'gitquire.askClaude.destination';
@@ -68,7 +90,7 @@ export function loadStoredDestination(): string | null {
   }
 }
 
-export function storeDestination(destination: ClaudeDestination): void {
+export function storeDestination(destination: AskDestination): void {
   try {
     window.localStorage.setItem(DESTINATION_STORAGE_KEY, destination);
   } catch {}

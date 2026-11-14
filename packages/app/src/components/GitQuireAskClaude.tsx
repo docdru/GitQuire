@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro';
-import { ArrowUpRight, X } from 'lucide-react';
+import { ArrowUp, ArrowUpRight, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -13,18 +13,20 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { publishAskComposerHeight } from '@/editor/ask-composer-inset';
 import {
+  type AskDestination,
+  askDestinations,
   buildClaudePrompt,
-  CLAUDE_DESTINATIONS,
-  type ClaudeDestination,
   claudeLink,
-  defaultDestination,
-  isClaudeDestination,
+  defaultAskDestination,
+  isAskDestination,
   loadStoredDestination,
   MAX_REQUEST_CHARS,
   openClaudeLink,
   storeDestination,
 } from '@/lib/gitquire/ask-claude';
+import { queueChatRequest } from '@/lib/gitquire/chat-requests';
 import { useGitQuireFeatures } from '@/lib/gitquire/features';
+import { paneVisibilityStore } from '@/lib/pane-visibility-store';
 import { cn } from '@/lib/utils';
 import { docNameToRelativePath } from '@/lib/workspace-paths';
 
@@ -52,9 +54,12 @@ export function GitQuireAskClaude({
   const features = useGitQuireFeatures();
   const folderMode = folderPath !== undefined;
   const [text, setText] = useState('');
-  const [destination, setDestination] = useState<ClaudeDestination>(() =>
-    defaultDestination(features, loadStoredDestination()),
-  );
+  const [chosen, setChosen] = useState<string | null>(() => loadStoredDestination());
+  const destinations = askDestinations(features);
+  const destination: AskDestination =
+    isAskDestination(chosen) && destinations.includes(chosen)
+      ? chosen
+      : defaultAskDestination(features, chosen);
   const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -72,7 +77,8 @@ export function GitQuireAskClaude({
     };
   }, [dismissed, folderMode]);
 
-  const labels: Record<ClaudeDestination, string> = {
+  const labels: Record<AskDestination, string> = {
+    'gitquire-chat': t`AI chat here in GitQuire`,
     'claude-web': t`Claude on the web or phone`,
     'claude-app': t`Claude desktop app`,
     'claude-code': t`Claude Code in the desktop app`,
@@ -81,9 +87,14 @@ export function GitQuireAskClaude({
   if (dismissed) return null;
 
   const canSend = text.trim() !== '';
-  const placeholder = folderMode
-    ? t`Ask Claude to work on this folder…`
-    : t`Ask Claude to work on this page…`;
+  const toChat = destination === 'gitquire-chat';
+  const placeholder = toChat
+    ? folderMode
+      ? t`Ask the AI chat about this folder…`
+      : t`Ask the AI chat about this page…`
+    : folderMode
+      ? t`Ask Claude to work on this folder…`
+      : t`Ask Claude to work on this page…`;
 
   const submit = () => {
     if (!canSend) return;
@@ -91,10 +102,19 @@ export function GitQuireAskClaude({
       folderMode || docName == null
         ? { kind: 'folder' as const, path: folderPath ?? '' }
         : { kind: 'page' as const, path: docNameToRelativePath(docName) };
-    const prompt = buildClaudePrompt({ wikiUrl: window.location.origin, target, request: text });
-    openClaudeLink(claudeLink(destination, prompt));
     setText('');
     if (inputRef.current !== null) inputRef.current.style.height = 'auto';
+    if (destination === 'gitquire-chat') {
+      const request =
+        target.kind === 'folder'
+          ? `${t`About the folder`} "${target.path === '' ? '/' : target.path}": ${text.trim()}`
+          : text.trim();
+      queueChatRequest(request);
+      paneVisibilityStore.request('agents', true, 'user');
+      return;
+    }
+    const prompt = buildClaudePrompt({ wikiUrl: window.location.origin, target, request: text });
+    openClaudeLink(claudeLink(destination, prompt));
     toast.success(t`Claude opened with your request. Check it there and press send.`);
   };
 
@@ -141,20 +161,16 @@ export function GitQuireAskClaude({
         <Select
           value={destination}
           onValueChange={(value) => {
-            if (!isClaudeDestination(value)) return;
-            setDestination(value);
+            if (!isAskDestination(value)) return;
+            setChosen(value);
             storeDestination(value);
           }}
         >
-          <SelectTrigger
-            size="sm"
-            className="w-auto max-w-full"
-            aria-label={t`Where to open Claude`}
-          >
+          <SelectTrigger size="sm" className="w-auto max-w-full" aria-label={t`Where to ask`}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {CLAUDE_DESTINATIONS.map((id) => (
+            {destinations.map((id) => (
               <SelectItem key={id} value={id}>
                 {labels[id]}
               </SelectItem>
@@ -162,8 +178,17 @@ export function GitQuireAskClaude({
           </SelectContent>
         </Select>
         <Button type="button" size="sm" disabled={!canSend} onClick={submit}>
-          <Trans>Open in Claude</Trans>
-          <ArrowUpRight aria-hidden className="size-3.5" />
+          {toChat ? (
+            <>
+              <Trans>Ask</Trans>
+              <ArrowUp aria-hidden className="size-3.5" />
+            </>
+          ) : (
+            <>
+              <Trans>Open in Claude</Trans>
+              <ArrowUpRight aria-hidden className="size-3.5" />
+            </>
+          )}
         </Button>
       </div>
     </div>

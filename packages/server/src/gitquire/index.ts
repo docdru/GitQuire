@@ -6,6 +6,7 @@ import type { AccessGate, GateLogger } from './access-gate.ts';
 import { createAccessGate, principalFromUser } from './access-gate.ts';
 import { createRepoAccessCheck, startAccessSweep } from './agent-access.ts';
 import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
+import { createChatFromEnv } from './chat/setup.ts';
 import { createDrafts, type Drafts, isDraftInstance } from './drafts/setup.ts';
 import {
   type CheckPushPermissionFn,
@@ -214,10 +215,19 @@ export function createGitQuireHttp(
     extraMentions: drafts === undefined ? undefined : () => drafts.service.reviewMentions(),
     notify: !isDraftInstance(env),
   });
+  const chat =
+    gate === undefined || isDraftInstance(env)
+      ? undefined
+      : createChatFromEnv(env, {
+          projectDir: options.projectDir,
+          sessionUser: gate.sessionUser,
+          log: options.log,
+        });
   return {
     handleRequest: (req, res) =>
       (gate?.handleRequest(req, res) ?? false) ||
       (drafts?.http.handleRequest(req, res) ?? false) ||
+      (chat?.handle(req, res) ?? false) ||
       routes.handle(req, res),
     admitUpgrade: (req, socket) => gate?.admitUpgrade(req, socket) ?? true,
     routeUpgrade: (req, socket, head) => drafts?.http.handleUpgrade(req, socket, head) ?? false,

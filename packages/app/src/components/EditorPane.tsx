@@ -26,6 +26,7 @@ import { editingSurfaceFor } from '@/editor/selection-stats';
 import { rememberPendingSourceNavigation } from '@/editor/source-editor-navigation';
 import { type EditorModeValue, useEditorMode } from '@/editor/use-editor-mode';
 import { VIEW_IN_SOURCE_EVENT, type ViewInSourceDetail } from '@/editor/view-in-source-event';
+import { ChatPaneHost } from '@/gitquire-chat/ChatPaneHost';
 import { useGitSyncStatus } from '@/hooks/use-git-sync-status';
 import { useInstalledClis } from '@/hooks/use-installed-clis';
 import { useNoPushPermissionToast } from '@/hooks/use-no-push-permission-toast';
@@ -51,7 +52,7 @@ import { type DockPaneMove, subscribeDockPaneMoves } from '@/lib/dock-move-reque
 import { readWebDockSessionOrder } from '@/lib/dock-session-persistence';
 import type { DockEdge, DockNode } from '@/lib/dock-tree';
 import { focusAwayFromHiddenEditor } from '@/lib/editor-hidden-focus';
-import { useGitQuireFeatures } from '@/lib/gitquire/features';
+import { agentsPaneIsChat, useGitQuireFeatures } from '@/lib/gitquire/features';
 import { matchesKeyboardShortcut, matchesRendererShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import {
@@ -563,7 +564,8 @@ export function EditorPane() {
   const desktopBridge = typeof window !== 'undefined' ? (window.okDesktop ?? null) : null;
   const noteWindow = isNoteWindow();
   const gitquireFeatures = useGitQuireFeatures();
-  const agentsAvailable = !noteWindow && gitquireFeatures.askAi;
+  const chatPane = !noteWindow && agentsPaneIsChat(gitquireFeatures);
+  const agentsAvailable = !noteWindow && (gitquireFeatures.askAi || chatPane);
   const singleFile = useSingleFileMode();
   const workspace = useWorkspace();
   const belowMainBreakpoint = useSyncExternalStore(
@@ -1002,13 +1004,13 @@ export function EditorPane() {
         showTerminalEvent();
       } else if (action === 'toggle-agent-panel') {
         if (!agentsAvailable) return;
-        if (sendSelectionToAgents()) return;
+        if (!chatPane && sendSelectionToAgents()) return;
         toggleAgentsEvent();
       } else if (action === 'toggle-editor') {
         toggleEditorEvent();
       }
     });
-  }, [noteWindow, agentsAvailable, sendSelectionToAgents]);
+  }, [noteWindow, agentsAvailable, chatPane, sendSelectionToAgents]);
 
   useEffect(() => {
     const hasNativeMenu = window.okDesktop != null;
@@ -1030,12 +1032,12 @@ export function EditorPane() {
       if (!matchesKeyboardShortcut(event, 'toggle-agent-panel')) return;
       if (isOverlayLayerOpen()) return;
       event.preventDefault();
-      if (sendSelectionToAgents()) return;
+      if (!chatPane && sendSelectionToAgents()) return;
       toggleAgentsEvent();
     }
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [agentsAvailable, sendSelectionToAgents]);
+  }, [agentsAvailable, chatPane, sendSelectionToAgents]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -1355,7 +1357,12 @@ export function EditorPane() {
           />
         </div>
       </div>
-      {noteWindow ? null : (
+      {noteWindow ? null : chatPane ? (
+        <ChatPaneHost
+          container={placements.agents.container}
+          isShowing={placements.agents.isShowing}
+        />
+      ) : (
         <Suspense fallback={null}>
           <SessionsHost
             surface="agents-panel"

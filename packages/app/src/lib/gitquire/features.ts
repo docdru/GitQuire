@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 
 export interface GitQuireFeatures {
   askAi: boolean;
+  aiChat: boolean;
   agentToken: boolean;
   connector: boolean;
   canUseTokens: boolean;
@@ -13,6 +14,7 @@ export interface GitQuireFeatures {
 
 export const STANDALONE_FEATURES: GitQuireFeatures = {
   askAi: true,
+  aiChat: false,
   agentToken: false,
   connector: false,
   canUseTokens: false,
@@ -24,6 +26,7 @@ export const STANDALONE_FEATURES: GitQuireFeatures = {
 
 const UNKNOWN_FEATURES: GitQuireFeatures = {
   askAi: false,
+  aiChat: false,
   agentToken: false,
   connector: false,
   canUseTokens: false,
@@ -44,6 +47,7 @@ export function parseFeatures(body: unknown): GitQuireFeatures {
     typeof admins === 'object' && admins !== null ? (admins as Record<string, unknown>) : {};
   return {
     askAi: f.askAi !== false,
+    aiChat: f.aiChat === true,
     agentToken: f.agentToken === true,
     connector: f.connector === true,
     canUseTokens: f.canUseTokens === true,
@@ -83,6 +87,7 @@ function sameFeatures(a: GitQuireFeatures | undefined, b: GitQuireFeatures): boo
   return (
     a !== undefined &&
     a.askAi === b.askAi &&
+    a.aiChat === b.aiChat &&
     a.agentToken === b.agentToken &&
     a.connector === b.connector &&
     a.canUseTokens === b.canUseTokens &&
@@ -128,4 +133,12 @@ export function useGitQuireFeatures(): GitQuireFeatures {
 
 export function useAskAiAvailable(): boolean {
   return useGitQuireFeatures().askAi;
+}
+
+export function agentsPaneIsChat(features: GitQuireFeatures): boolean {
+  return features.aiChat && !features.askAi;
+}
+
+export function useAgentsPaneIsChat(): boolean {
+  return agentsPaneIsChat(useGitQuireFeatures());
 }

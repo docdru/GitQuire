@@ -251,6 +251,7 @@ describe('the agent access page', () => {
     };
     expect(me()).toEqual({
       askAi: false,
+      aiChat: true,
       agentToken: false,
       connector: false,
       canUseTokens: true,
@@ -271,11 +272,22 @@ describe('the agent access page', () => {
     );
     expect(JSON.parse(res.body).features).toEqual({
       askAi: false,
+      aiChat: true,
       agentToken: false,
       connector: false,
       canUseTokens: true,
       canConnect: true,
     });
+  });
+
+  it('turns the AI chat off with GITQUIRE_AI_CHAT=off', () => {
+    const { gate } = setup({ ...ENV, GITQUIRE_AI_CHAT: 'off' });
+    const res = fakeResponse();
+    gate.handleRequest(
+      fakeRequest('/auth/me', { headers: { cookie: sessionCookie(ALICE) } }),
+      res.res,
+    );
+    expect(JSON.parse(res.body).features.aiChat).toBe(false);
   });
 
   it('builds the Claude Code command from the external URL', () => {

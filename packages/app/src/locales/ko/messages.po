@@ -109,6 +109,9 @@ msgstr "(바이너리 파일, 미리볼 수 없음)"
 msgid "(detached)"
 msgstr "(분리됨)"
 
+msgid "(failed)"
+msgstr ""
+
 msgid "(inline)"
 msgstr "(인라인)"
 
@@ -261,6 +264,9 @@ msgstr "{0}은(는) 스스로 문서를 읽거나 편집할 수 없습니다. �
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0}에서 아직 설정을 보고하지 않았습니다"
+
+msgid "{0} in · {1} out"
+msgstr ""
 
 msgid "{0} is over {destination}."
 msgstr "{0}이 {destination} 위에 있습니다."
@@ -1193,6 +1199,9 @@ msgstr "{appName} 정보"
 msgid "About & updates"
 msgstr "정보 및 업데이트"
 
+msgid "About the folder"
+msgstr ""
+
 msgid "Above"
 msgstr "위"
 
@@ -1286,6 +1295,9 @@ msgstr "스타터 팩 추가"
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab, Gitea, Bitbucket, Azure DevOps 또는 자체 호스팅 git 서버용 액세스 토큰을 추가합니다. 토큰이 없으면 git은 해당 호스트에 이미 저장된 자격 증명을 사용하고, 토큰이 있으면 GitQuire가 대신 토큰을 사용합니다."
 
+msgid "Add an API key"
+msgstr ""
+
 msgid "Add another pattern"
 msgstr "패턴 추가"
 
@@ -1294,6 +1306,9 @@ msgstr "문자 또는 숫자를 하나 이상 추가하세요."
 
 msgid "Add block below"
 msgstr "아래에 블록 추가"
+
+msgid "Add credit to your account at the provider."
+msgstr ""
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror에서 커서를 추가하거나 일치하는 항목을 선택합니다."
@@ -1477,6 +1492,12 @@ msgstr "에이전트 대화 기록"
 msgid "Agents"
 msgstr "에이전트"
 
+msgid "AI chat"
+msgstr ""
+
+msgid "AI chat here in GitQuire"
+msgstr ""
+
 msgid "AI tools"
 msgstr "AI 도구"
 
@@ -1637,6 +1658,9 @@ msgstr "누구나 볼 수 있음"
 msgid "Anything you'd like to add? (optional)"
 msgstr "추가할 내용이 있나요? (선택 사항)"
 
+msgid "API key"
+msgstr ""
+
 msgid "API key set"
 msgstr "API 키 설정됨"
 
@@ -1751,6 +1775,15 @@ msgstr "{agentName}에게 질문"
 msgid "Ask {agentName}, {hint}"
 msgstr "{agentName}에게 질문, {hint}"
 
+msgid "Ask about the wiki…"
+msgstr ""
+
+msgid "Ask about this page or anything in the wiki."
+msgstr ""
+
+msgid "Ask about this page or the wiki…"
+msgstr ""
+
 msgid "Ask again before read-only commands"
 msgstr "읽기 전용 명령 전에 다시 묻기"
 
@@ -1769,6 +1802,9 @@ msgstr "AI에 {flatId} 수정 요청"
 msgid "Ask an agent"
 msgstr "에이전트에게 질문"
 
+msgid "Ask anything about the wiki."
+msgstr ""
+
 msgid "Ask changes…"
 msgstr "변경 요청…"
 
@@ -1782,6 +1818,12 @@ msgid "Ask Claude to work on this page…"
 msgstr ""
 
 msgid "Ask for changes"
+msgstr ""
+
+msgid "Ask the AI chat about this folder…"
+msgstr ""
+
+msgid "Ask the AI chat about this page…"
 msgstr ""
 
 msgid "Asked: {waitingFor}"
@@ -2244,6 +2286,9 @@ msgctxt "settings search keyword"
 msgid "characters"
 msgstr "문자"
 
+msgid "Chat"
+msgstr ""
+
 msgid "Chat history"
 msgstr "채팅 기록"
 
@@ -2252,6 +2297,12 @@ msgstr "채팅 기록을 불러올 수 없습니다. 채팅 기록에서 채팅�
 
 msgid "Chat name"
 msgstr "채팅 이름"
+
+msgid "Chat with Claude or Mistral about the wiki"
+msgstr ""
+
+msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
+msgstr ""
 
 msgid "Check for updates"
 msgstr "업데이트 확인"
@@ -2271,11 +2322,17 @@ msgstr "워크트리 체크아웃"
 msgid "Check spelling while typing"
 msgstr "입력하는 동안 맞춤법 검사"
 
+msgid "Check your API key in Settings → AI chat."
+msgstr ""
+
 msgid "Checkbox"
 msgstr "체크박스"
 
 msgid "Checked by: {0}"
 msgstr "확인한 사람: {0}"
+
+msgid "Checked pages"
+msgstr ""
 
 msgid "Checking"
 msgstr "확인 중"
@@ -2324,6 +2381,9 @@ msgstr "GitHub 연결 확인 중"
 
 msgid "Checking..."
 msgstr "확인 중…"
+
+msgid "Checking…"
+msgstr ""
 
 msgid "Checklist with checkboxes."
 msgstr "체크박스가 있는 체크리스트입니다."
@@ -4190,6 +4250,9 @@ msgstr "각 팩은 바로 사용할 수 있는 폴더와 템플릿으로 프로�
 msgid "Each push is one commit to your remote."
 msgstr "푸시 한 번이 원격에 커밋 하나입니다."
 
+msgid "Earlier chats"
+msgstr ""
+
 msgid "Edit"
 msgstr "편집"
 
@@ -4250,8 +4313,14 @@ msgstr ""
 msgid "Edited"
 msgstr "편집됨"
 
+msgid "Edited {detail}"
+msgstr ""
+
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo}에 편집됨"
+
+msgid "Edited a page"
+msgstr ""
 
 msgid "Edited locally since it was installed"
 msgstr "설치 후 로컬에서 편집됨"
@@ -4511,6 +4580,9 @@ msgstr "{minimum}에서 {maximum} 사이의 정수를 입력하세요."
 
 msgid "Enter at least 3 characters to search by meaning."
 msgstr "의미로 검색하려면 3자 이상 입력하세요."
+
+msgid "Enter it again"
+msgstr ""
 
 msgid "Enter the host name git connects to, with an optional :port and no scheme or path, for example git.example.com."
 msgstr "git이 연결하는 호스트 이름을 입력하세요. :port는 선택 사항이며 스킴이나 경로는 넣지 마세요. 예: git.example.com."
@@ -5179,6 +5251,9 @@ msgstr "생성된 파일"
 
 msgid "Get {displayName}"
 msgstr "{displayName} 가져오기"
+
+msgid "Get an API key"
+msgstr ""
 
 msgid "Get Claude Code"
 msgstr "Claude Code 받기"
@@ -6331,6 +6406,9 @@ msgstr "원본 파일 유지"
 msgid "Keep source"
 msgstr "소스 유지"
 
+msgid "Keep the cost under control"
+msgstr ""
+
 msgid "Keep the name to 64 characters or fewer."
 msgstr "이름은 64자 이하로 유지하세요."
 
@@ -6358,8 +6436,17 @@ msgstr "콘텐츠를 보관했습니다"
 msgid "Key ending in {keyHint}"
 msgstr "끝이 {keyHint}인 키"
 
+msgid "Key removed for {0}."
+msgstr ""
+
+msgid "Key saved for {0}."
+msgstr ""
+
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "편집기와 워크스페이스에서 사용할 수 있는 키보드 단축키입니다."
+
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgstr ""
 
 msgid "Kill Terminal"
 msgstr "터미널 종료"
@@ -6692,6 +6779,15 @@ msgstr "로그 및 시스템 정보"
 msgid "Look Up \"{word}\""
 msgstr "“{word}” 찾아보기"
 
+msgid "Looked at links"
+msgstr ""
+
+msgid "Looked at the page history"
+msgstr ""
+
+msgid "Looked at: {detail}"
+msgstr ""
+
 msgid "Looking for <0>{lookingForUrl}</0>."
 msgstr "<0>{lookingForUrl}</0> 찾는 중입니다."
 
@@ -6840,6 +6936,9 @@ msgstr "Mermaid 다이어그램 컨트롤"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid 다이어그램을 렌더링하지 못했습니다."
 
+msgid "Message"
+msgstr ""
+
 msgid "Message {agentName}"
 msgstr "{agentName} 메시지"
 
@@ -6926,6 +7025,9 @@ msgstr "추가 작업"
 
 msgid "More actions ({syncAttentionLabel})"
 msgstr "추가 작업 ({syncAttentionLabel})"
+
+msgid "More chat actions"
+msgstr ""
 
 msgid "More draft actions"
 msgstr ""
@@ -7106,6 +7208,9 @@ msgstr "스킬 {moved}개를 전역으로 이동함"
 
 msgid "Moved {moved} skills to Project"
 msgstr "스킬 {moved}개를 프로젝트로 이동함"
+
+msgid "Moved a page"
+msgstr ""
 
 msgid "Moved down."
 msgstr "아래로 이동했습니다."
@@ -7499,6 +7604,9 @@ msgstr "추가된 이미지가 없습니다."
 
 msgid "No Incoming"
 msgstr "들어오는 링크 없음"
+
+msgid "No key"
+msgstr ""
 
 msgid "No language match."
 msgstr "일치하는 언어가 없습니다."
@@ -8398,6 +8506,9 @@ msgstr "URL 또는 owner/repo를 붙여넣거나 저장소 검색"
 msgid "Paste was incomplete — {chunksCompleted} of {totalChunks} chunks landed.{restoreSuffix}"
 msgstr "붙여넣기가 완료되지 않았습니다. {chunksCompleted}/{totalChunks}개 청크가 적용되었습니다.{restoreSuffix}"
 
+msgid "Paste your {0} API key"
+msgstr ""
+
 msgid "Paste your API key"
 msgstr "API 키 붙여넣기"
 
@@ -8870,6 +8981,9 @@ msgstr "React"
 msgid "Read"
 msgstr "읽기"
 
+msgid "Read pages"
+msgstr ""
+
 msgid "Read through this codebase and draft a technical spec for the most complex module: an overview, the architecture, key files, and open questions, all linked from a specs index page."
 msgstr "이 코드베이스를 읽고 가장 복잡한 모듈의 기술 사양 초안을 작성합니다. 개요, 아키텍처, 주요 파일, 미해결 질문을 모두 사양 색인 페이지에서 연결합니다."
 
@@ -9279,6 +9393,9 @@ msgstr "키 교체"
 msgid "Replace the active match from the replace field."
 msgstr "바꾸기 필드에서 활성 일치 항목을 바꿉니다."
 
+msgid "Replace the API key"
+msgstr ""
+
 msgid "Replace the copy at {display} with a symlink to the skill's source folder? Nothing else moves."
 msgstr "{display}의 복사본을 스킬 소스 폴더를 가리키는 심볼릭 링크로 바꿀까요? 다른 항목은 이동하지 않습니다."
 
@@ -9616,8 +9733,14 @@ msgstr "저장"
 msgid "Save as page"
 msgstr ""
 
+msgid "Save as page…"
+msgstr ""
+
 msgid "Save changes"
 msgstr "변경 사항 저장"
+
+msgid "Save chat as a page"
+msgstr ""
 
 msgid "Save failed: {error}"
 msgstr "저장 실패: {error}"
@@ -9634,7 +9757,13 @@ msgstr ""
 msgid "Saved"
 msgstr "저장됨"
 
+msgid "Saved {0}"
+msgstr ""
+
 msgid "Saved as {docName}.md"
+msgstr ""
+
+msgid "Saved as {saved}."
 msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
@@ -9678,6 +9807,9 @@ msgstr "변경사항 저장 중…"
 
 msgid "Saving your edits before reloading…"
 msgstr "새로 고치기 전에 편집 내용을 저장하는 중…"
+
+msgid "Saving…"
+msgstr ""
 
 msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
 msgstr ""
@@ -9807,6 +9939,12 @@ msgstr "워크트리 검색"
 
 msgid "Search worktrees and branches"
 msgstr "워크트리 및 브랜치 검색"
+
+msgid "Searched “{detail}”"
+msgstr ""
+
+msgid "Searched the wiki"
+msgstr ""
 
 msgid "Searches files"
 msgstr "파일을 검색합니다"
@@ -10041,6 +10179,12 @@ msgstr "세션 종료됨"
 
 msgid "Session ended — undo unavailable"
 msgstr "세션 종료됨, 실행 취소를 사용할 수 없음"
+
+msgid "Set a monthly spending limit at the provider (links below). It stops the key once the limit is reached."
+msgstr ""
+
+msgid "Set a spending limit"
+msgstr ""
 
 msgid "Set git identity"
 msgstr "git 사용자 정보 설정"
@@ -10516,6 +10660,9 @@ msgstr "피드백을 보내는 중 문제가 발생했습니다. 다시 시도�
 msgid "Something went wrong starting the terminal."
 msgstr "터미널 시작 중 문제 발생."
 
+msgid "Something went wrong."
+msgstr ""
+
 msgid "Something went wrong. Please try again."
 msgstr "문제가 발생했습니다. 다시 시도하세요."
 
@@ -10579,6 +10726,9 @@ msgstr "맞춤법 검사"
 
 msgid "Spelling languages"
 msgstr "맞춤법 검사 언어"
+
+msgid "Spending limit"
+msgstr ""
 
 msgid "Split list item"
 msgstr "목록 항목 분할"
@@ -10705,6 +10855,9 @@ msgstr "중지됨"
 
 msgid "Stopped fixing. Files already fixed stay fixed."
 msgstr "수정을 중지했습니다. 이미 수정된 파일은 그대로 유지됩니다."
+
+msgid "Stopped."
+msgstr ""
 
 msgid "Stopping"
 msgstr "중지 중"
@@ -11125,6 +11278,21 @@ msgstr "에이전트 설치에 파일이 누락되었습니다(모듈을 찾을 
 msgid "The agent's persona, values, and voice."
 msgstr "에이전트의 페르소나, 가치관, 말투입니다."
 
+msgid "The AI chat could not be loaded."
+msgstr ""
+
+msgid "The AI chat settings could not be loaded."
+msgstr ""
+
+msgid "The answer was cut off because it got too long. Say “continue” for the rest."
+msgstr ""
+
+msgid "The assistant can search and read pages and change them when you ask. Add your own API key to start; you pay the provider for what you use."
+msgstr ""
+
+msgid "The assistant stopped after many steps. Say “continue” to let it go on."
+msgstr ""
+
 msgid "The attested-computation contract. Only applies to documents typed Attested Computation, where OKF requires a runtime; ordinary concepts are unaffected."
 msgstr "attested-computation 계약입니다. Attested Computation 유형 문서에만 적용되며, OKF는 런타임을 요구합니다. 일반 개념에는 영향을 주지 않습니다."
 
@@ -11149,6 +11317,15 @@ msgstr "이 채팅에서는 브라우저를 사용할 수 없습니다. 브라�
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "이 채팅에서는 브라우저를 사용할 수 없습니다. 브라우저를 시작할 수 있는 Node.js 설치를 찾지 못했기 때문입니다. Node.js를 설치한 뒤 새 채팅을 시작하세요."
 
+msgid "The chat could not be deleted."
+msgstr ""
+
+msgid "The chat could not be opened."
+msgstr ""
+
+msgid "The chat shows how many tokens each conversation used. Long chats cost more, because the whole conversation is sent with every message; start a new chat for a new topic."
+msgstr ""
+
 msgid "The chat's messages, tool calls, and their output, so we can see what the agent did, plus the chat's title, the project folder's path, the document it started from, and the agent and its settings. Images are replaced by their type and size, and attached text files are included. It can contain document content, so uncheck it if you'd rather not share it."
 msgstr "채팅 메시지, 도구 호출과 그 출력으로, 에이전트가 무엇을 했는지 확인할 수 있습니다. 채팅 제목, 프로젝트 폴더 경로, 채팅을 시작한 문서, 에이전트와 그 설정도 포함됩니다. 이미지는 형식과 크기로 대체되고, 첨부한 텍스트 파일은 포함됩니다. 문서 내용이 포함될 수 있으므로 공유하지 않으려면 선택을 해제하세요."
 
@@ -11163,6 +11340,9 @@ msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "대화를 이 보고서에 추가하지 못했습니다."
+
+msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
+msgstr ""
 
 msgid "The copy of \"{name}\" kept in {scopeLabel} is a redundant duplicate: the original was verified unchanged. Remove that copy, then retry the move."
 msgstr "{scopeLabel}에 남아 있는 “{name}” 사본은 불필요한 중복입니다. 원본이 변경되지 않았음을 확인했습니다. 그 사본을 삭제한 뒤 이동을 다시 시도하세요."
@@ -11242,6 +11422,12 @@ msgstr "인덱스 파일은 그대로 유지됩니다. GitQuire가 추가한 Git
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "인터페이스가 아직 읽고 있던 언어로 표시됩니다. 연결을 확인한 다음 다시 로드하여 시도하세요."
 
+msgid "The key could not be removed. Try again."
+msgstr ""
+
+msgid "The key could not be saved."
+msgstr ""
+
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "GitQuire가 사용하는 언어입니다. 시스템은 운영 체제를 따릅니다. 작성한 노트는 작성한 언어로 유지됩니다."
 
@@ -11262,6 +11448,9 @@ msgstr "엔드포인트가 제공하는 모델 ID입니다. 벡터 크기는 자
 
 msgid "the open agent"
 msgstr "열린 에이전트"
+
+msgid "The page could not be saved."
+msgstr ""
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11292,6 +11481,12 @@ msgstr "속성이 변경되었지만 비교하지 못했습니다. YAML을 해�
 
 msgid "The provenance, trust, and lifecycle families: sources, generated, verified, status, and stale_after. Every field is optional, and absence is never an error."
 msgstr "출처, 신뢰, 수명 주기 그룹은 sources, generated, verified, status, stale_after입니다. 모든 필드는 선택 사항이며, 없어도 오류가 아닙니다."
+
+msgid "The provider asks to slow down. Wait a minute and try again."
+msgstr ""
+
+msgid "The provider is busy. Try again in a moment."
+msgstr ""
 
 msgid "The provider is rate-limiting this key. Try again in a moment."
 msgstr "제공업체가 이 키의 요청 속도를 제한하고 있습니다. 잠시 후 다시 시도합니다."
@@ -11326,6 +11521,9 @@ msgstr "GitQuire 도구 사용 설정 요청 시간이 초과되었습니다. �
 msgid "The same text changed in both places"
 msgstr ""
 
+msgid "The saved key can no longer be read, usually because the server's session secret changed. Paste it again."
+msgstr ""
+
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "스키마 파일이 없거나 불러오지 못했습니다. 필드를 추가하면 파일이 생성됩니다."
 
@@ -11358,6 +11556,9 @@ msgstr "스킬 자체의 폴더({path}). 다른 위치가 복사하거나 링크
 
 msgid "The skills list did not match its schema."
 msgstr "스킬 목록이 스키마와 일치하지 않습니다."
+
+msgid "The smaller models are much cheaper and fine for most questions."
+msgstr ""
 
 msgid "The source folder itself does not move."
 msgstr "소스 폴더 자체는 이동하지 않습니다."
@@ -11721,6 +11922,9 @@ msgstr "잠시 시간이 걸릴 수 있습니다. markdown 콘텐츠는 유지�
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
+msgid "This model is not available for your key. Choose another one."
+msgstr ""
+
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
 msgstr "이 작업은 <0>{name}</0>을 {0}에서 {1}로 이동하고, 디스크의 파일을 재배치하며, {2} 수준에서 편집기에 다시 설치합니다."
 
@@ -12016,6 +12220,9 @@ msgid "tokens"
 msgstr "토큰"
 
 msgid "Tokens and connected apps"
+msgstr ""
+
+msgid "Tokens sent and received in this chat, billed to your {providerLabel} key"
 msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
@@ -12458,6 +12665,9 @@ msgstr "상대 버전 사용"
 msgid "Use this starter pack"
 msgstr "이 스타터 팩 사용"
 
+msgid "Used {0}"
+msgstr ""
+
 msgid "User"
 msgstr "사용자"
 
@@ -12700,7 +12910,7 @@ msgstr "위치"
 msgid "Where should it live?"
 msgstr "어디에 둘까요?"
 
-msgid "Where to open Claude"
+msgid "Where to ask"
 msgstr ""
 
 msgid "Which skill"
@@ -12809,6 +13019,12 @@ msgstr "작성 중"
 msgid "Writing this file failed. Check the GitQuire log for the reason."
 msgstr "이 파일을 쓰지 못했습니다. 이유는 GitQuire 로그를 확인하세요."
 
+msgid "Wrote {detail}"
+msgstr ""
+
+msgid "Wrote pages"
+msgstr ""
+
 msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
 msgstr "GitQuire 확장을 기록했지만 폴더를 신뢰할 수 있는 폴더로 표시하지 못해 로드되지 않습니다. 이 스레드에는 GitQuire 도구가 없습니다."
 
@@ -12903,11 +13119,17 @@ msgstr "구독했습니다!"
 msgid "you@company.com"
 msgstr "you@company.com"
 
+msgid "Your {providerLabel} key"
+msgstr ""
+
 msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
 msgstr "에이전트는 여전히 이 스킬을 불러오지만 GitQuire에서 열거나 편집할 수 없습니다. git에서 무시하도록 설정된 파일은 동기화가 실패하므로 색인하지 않습니다. {gitignorePath}에 한 줄을 추가하면 여기에서 편집할 수 있습니다."
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "변경사항을 아직 저장 중입니다. 잠시 후 테스트를 다시 실행합니다."
+
+msgid "Your chats (kept {0} days)"
+msgstr ""
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "브랜치 <0>{shareBranch}</0> 사본에 GitHub에 없는 변경 사항이 있습니다. 브랜치가 동기화되면 {targetNoun}이 나타납니다."
@@ -12980,6 +13202,9 @@ msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "공유 링크가 아래에 준비되어 있습니다."
+
+msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
 
 msgid "Your user settings could not be read"
 msgstr "사용자 설정을 읽을 수 없습니다"

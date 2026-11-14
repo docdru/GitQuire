@@ -1,11 +1,12 @@
 import { useLingui } from '@lingui/react/macro';
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { PANE_ICON, PANE_LABEL } from '@/components/pane-icons';
+import { PANE_ICON, paneLabel } from '@/components/pane-icons';
 import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTerminalConsentState } from '@/hooks/use-terminal-enabled';
+import { useAgentsPaneIsChat } from '@/lib/gitquire/features';
 import {
   formatShortcut,
   formatShortcutLabel,
@@ -95,7 +96,8 @@ function HeaderPaneButton({
   switcher,
 }: HeaderPaneButtonState & { readonly switcher: boolean }) {
   const { t } = useLingui();
-  const name = t(PANE_LABEL[pane]);
+  const chatPane = useAgentsPaneIsChat();
+  const name = t(paneLabel(pane, chatPane));
   const Icon = PANE_ICON[pane];
   const shortcutId = PANE_SHORTCUT[pane];
 

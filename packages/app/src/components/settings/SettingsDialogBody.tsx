@@ -4,6 +4,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { TriangleAlert } from 'lucide-react';
 import { type ComponentType, lazy } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AiChatSettings } from '@/gitquire-chat/AiChatSettings';
 import { AgentsSettings } from '@/gitquire-settings/AgentsSettings';
 import { WikiAdminGate } from '@/gitquire-settings/WikiAdminGate';
 import { lazyWithPreload } from '@/lib/lazy-with-preload';
@@ -187,6 +188,9 @@ function SettingsDialogSection({
         {isTerminalSettingsAvailable() ? <TerminalSection /> : null}
       </section>
     );
+  }
+  if (activeId === 'ai-chat') {
+    return <AiChatSettings />;
   }
   if (activeId === 'agent-connections') {
     return <AgentsSettings inAppAgents={<AgentConnectionsSection />} />;
