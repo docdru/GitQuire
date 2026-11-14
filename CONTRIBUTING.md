@@ -21,11 +21,18 @@ OpenKnowledge, consider reporting it there as well.
 ### Security fixes from OpenKnowledge
 
 Much of GitQuire's code came from OpenKnowledge, so some of their security fixes apply here too.
-Once a month, a maintainer looks through OpenKnowledge's commits and releases since the last check
-for security fixes (input validation, authentication, path handling, dependency upgrades with
-advisories) in code GitQuire still has, and ports the relevant ones in a pull request that links the
-original commit. Record the date and the last commit looked at in the pull request, or in an issue
-when nothing applied, so the next check knows where to start.
+Once a month, a maintainer runs the check:
+
+1. `git remote add openknowledge https://github.com/inkeep/open-knowledge` (once), then
+   `git fetch openknowledge` and `git log <last-checked>..openknowledge/main`.
+2. Read OpenKnowledge's [security advisories](https://github.com/inkeep/open-knowledge/security/advisories)
+   published since the last check.
+3. Look for security fixes (input validation, authentication, path handling, dependency upgrades
+   with advisories) in code GitQuire still has, and port the relevant ones in a pull request that
+   links the original commit.
+4. Run `pnpm audit --prod` and fix or list what it reports.
+5. Add a comment to the pinned issue labelled `security-sync` with the date, the last commit looked
+   at and what was ported, so the next check knows where to start.
 
 ## Development setup
 
@@ -70,28 +77,6 @@ The spelling-language picker uses [shadcn Combobox multiple-selection chips](htt
 With the installed Base UI version, ArrowLeft from the empty search input moves focus onto a chip and closes the popup. Escape then dismisses Settings because no popup remains open. Keep this distinct from Escape in the expanded input, which closes only the popup first.
 
 The four Floating UI overrides in `pnpm-workspace.yaml` satisfy Base UI's direct and transitive dependency floors, rather than the historical Radix dependency freeze. They are shared with Radix positioning and editor suggestion popups. Changes need regression coverage of Settings, ShareBranchSwitchDialog and CreateProjectDialog, not just the language picker. Keyboard selection/removal, popup-first Escape dismissal, empty search and reduced-motion styling have DOM coverage beside the components.
-
-## Common commands
-
-```bash
-pnpm run format       # format (Biome)
-pnpm run lint         # lint (Biome)
-pnpm run typecheck    # TypeScript
-pnpm run test         # tests
-pnpm run build        # build all packages
-pnpm run check        # lint + typecheck + test
-pnpm run check:drift:guards  # unused deps/exports, generated-artifact freshness, toolchain pins (not part of `check`)
-```
-
-Run a single package's scripts from its directory, e.g. `cd packages/app && pnpm run test`.
-
-## Code comments
-
-This repo does not use code comments, and `pnpm run lint` enforces that. It inverts the usual open-source norm, so it catches most first-time contributors by surprise — it is deliberate, not an oversight. Put the explanation in a name, a type, a test, your commit message, or the PR body instead.
-
-A short allowlist survives: directives a tool parses (`biome-ignore lint/style/noVar: reason`, `@ts-expect-error the fixture is deliberately malformed`, `@vitest-environment jsdom`, `/// <reference types="vite/client" />`, `SPDX-License-Identifier: GPL-3.0-or-later`), JSDoc carrying `@deprecated` (the audit-tag class is empty in this repo and admits nothing), and comments that BEGIN with a contract marker — `STOP: a cross-file contract a reader must not break`, `WARN: a sibling that silently drifts if this changes`, or `UPSTREAM(electron/electron#19920): a code shape forced on us from outside this repo`.
-
-If lint stops you, the diagnostic names the class of comment, the fix, and links to [`lint-plugins/no-comments/README.md`](./lint-plugins/no-comments/README.md) — the full policy, including how to convert a comment worth keeping into one of the allowed forms. Deleting it is usually the right answer.
 
 ## Common commands
 

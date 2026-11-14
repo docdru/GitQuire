@@ -23,12 +23,16 @@ GitQuire is pre-1.0. Only the latest image published from `main`
 
 ## Scope
 
-**In scope:** all code in this repository, including the parts that came from OpenKnowledge: the
-server and web app, GitHub sign-in and session handling, GitHub App token handling, repository
-sync, drafts, comments stored in pages, the MCP endpoint, the AI chat and the Docker image. If the
-same problem also exists in OpenKnowledge, we may let them know after it is fixed here.
+**In scope:** the code that ships in the GitQuire Docker image, including the parts that came from
+OpenKnowledge: the server and web app, GitHub sign-in and session handling, GitHub App token
+handling, repository sync, drafts, comments stored in pages, the MCP endpoint, the AI chat and the
+image itself. If the same problem also exists in OpenKnowledge, we tell Inkeep privately through
+their [security advisories](https://github.com/inkeep/open-knowledge/security/advisories/new) and
+coordinate before publishing the fix.
 
-**Out of scope:** vulnerabilities in third-party dependencies (please report those to the
-dependency's maintainers; tell us if GitQuire needs an upgrade), deployments
+**Out of scope:** the desktop app and `ok` CLI packages, which GitQuire does not ship; behaviour
+documented as a known limitation in [DEPLOY.md](../DEPLOY.md) (for example what the opt-in AI chat
+can reach); vulnerabilities in third-party dependencies (please report those to the
+dependency's maintainers; tell us if GitQuire needs an upgrade); deployments
 that expose the server without sign-in (`GITQUIRE_AUTH=off`) to untrusted networks, and findings
 that need physical access to a compromised machine or social engineering.

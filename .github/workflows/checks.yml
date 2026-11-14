@@ -97,7 +97,7 @@ jobs:
       - name: GitQuire tests
         run: pnpm --dir packages/server exec vitest run src/gitquire
 
-      - name: Upstream tests for modules GitQuire hooks into
+      - name: Inherited tests for modules GitQuire changes
         run: >-
           pnpm --dir packages/server exec vitest run
           src/persistence src/sync-engine src/principal src/server-factory.test.ts

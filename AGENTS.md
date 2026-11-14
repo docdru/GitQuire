@@ -6,8 +6,8 @@ GitQuire started as a fork of [OpenKnowledge](https://github.com/inkeep/open-kno
 - Change any file, including code that came from OpenKnowledge, when the change is right for GitQuire. Prefer fixing shared code in place over working around it.
 - Removing inherited parts GitQuire does not use (for example the desktop app) is welcome, one area per pull request, with CI and the Docker build green.
 - CI: `.github/workflows/checks.yml` runs lint, the server typecheck and the GitQuire tests; `.github/workflows/docker.yml` builds the Docker image, smoke-tests it, and publishes it to `ghcr.io` from `main`.
-- GitQuire server code lives in `packages/server/src/gitquire/`; new GitQuire features keep going there or in `packages/app/src/gitquire-*`.
-- Keep the GPL-3.0-or-later license and the acknowledgement that GitQuire is based on OpenKnowledge (README, LICENSE, THIRD_PARTY_NOTICES.md).
+- GitQuire's own code lives in `packages/*/src/gitquire/`, `packages/app/src/lib/gitquire/` and `packages/app/src/gitquire-*`; new GitQuire features keep going there.
+- Keep the GPL-3.0-or-later license and the acknowledgement that GitQuire is based on OpenKnowledge (README, UPSTREAM-README.md, LICENSE, THIRD_PARTY_NOTICES.md), and keep existing copyright and license notices in files.
 - OpenKnowledge security fixes are not merged automatically; see "Security fixes from OpenKnowledge" in CONTRIBUTING.md.
 
 ## General conventions
@@ -75,7 +75,7 @@ Keep only these, and nothing else:
 - **JSDoc carrying `@deprecated`.** The allowlist also defines an audit-tag class, but its tag list is empty in this repo, so that class admits nothing here: a tag-bearing JSDoc block is rejected as prose.
 - **Contract markers**, which the comment must BEGIN with: `STOP: a cross-file contract a reader must not break`, `WARN: a sibling that silently drifts if this changes`, `UPSTREAM(electron/electron#19920): a code shape forced on us from outside this repo`.
 - **A validated citation**, as in `precedent #42`; the numbered titles are listed in [`PRECEDENTS.md`](./PRECEDENTS.md) at the repo root.
-- **Registered guard markers**: write `error-log-shape-ok: <why>` and `presence-exempt: <why>` only. The predicate also admits `documented exemption from Precedent #30`, `Defect class: <slug>` and `TOLERATED: <why>`, but their checkers live in test trees the mirror does not carry, so lint accepts them here while nothing reads them — that is prose wearing a marker, and it is a review finding even though the gate is green. The set is fixed; you cannot invent a new one.
+- **Registered guard markers**: write `error-log-shape-ok: <why>` and `presence-exempt: <why>` only. The predicate also admits `documented exemption from Precedent #30`, `Defect class: <slug>` and `TOLERATED: <why>`, but their checkers live in OpenKnowledge test trees this repository does not have, so lint accepts them here while nothing reads them — that is prose wearing a marker, and it is a review finding even though the gate is green. The set is fixed; you cannot invent a new one.
 - **Type-only JSDoc**, in a .mjs or .js file only: a JSDoc block whose every line is a bare type annotation, which is the only typing mechanism the JavaScript strata have. Two hard edges: a description after the identifier makes the block prose, and the same block in a .ts file is prose, because TypeScript has real syntax there.
 
 An `UPSTREAM` referent must be one of four shapes, so it always resolves to something a reader can look up: a GitHub issue (`electron/electron#19920`), an RFC (`RFC 9457`), a CommonMark section (`CommonMark §6.5`), or a package version (`vite@7.1.0`). Anything else fails lint.
@@ -86,7 +86,7 @@ A marker is not a license, and passing lint is not the same as being legitimate.
 
 If `pnpm run lint` fails on a comment, the diagnostic names the class, the fix, and a link into [`lint-plugins/no-comments/README.md`](./lint-plugins/no-comments/README.md), which is the full policy. Delete the comment, or convert it to one of the forms above.
 
-Shell scripts are declared in scope by `no-comments.config.jsonc`, but the sweep that reads the hash grammars is not part of this repository, so `pnpm run lint` here checks the JavaScript and TypeScript families only. A `.sh` file is gated upstream; the same policy applies to it, and a reviewer will hold it to that.
+Shell scripts are declared in scope by `no-comments.config.jsonc`, but the sweep that reads the hash grammars is not part of this repository, so `pnpm run lint` here checks the JavaScript and TypeScript families only. Nothing in this repository gates `.sh` files yet; the same policy applies to them, and a reviewer will hold them to it.
 
 ## Dependencies
 
