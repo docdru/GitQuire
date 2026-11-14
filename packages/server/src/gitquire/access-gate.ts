@@ -71,6 +71,35 @@ export interface AccessGate {
   admitUpgrade: (req: IncomingMessage, socket: Duplex) => boolean;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   isAdminRequest: (req: IncomingMessage) => boolean;
+  agentOwner?: (req: IncomingMessage) => SessionUser | undefined;
+  routeUpgrade?: (req: IncomingMessage, socket: Duplex, head: Buffer) => boolean;
+}
+
+export const PROXIED_PRINCIPAL_HEADER = 'x-gitquire-principal';
+
+export function encodeProxiedUser(user: SessionUser): string {
+  return Buffer.from(JSON.stringify(user), 'utf8').toString('base64url');
+}
+
+export function proxiedUser(req: IncomingMessage): SessionUser | undefined {
+  const raw = req.headers[PROXIED_PRINCIPAL_HEADER];
+  if (typeof raw !== 'string' || !isInternalRequest(req)) return undefined;
+  try {
+    const value = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8')) as Record<
+      string,
+      unknown
+    >;
+    if (typeof value.id !== 'number' || typeof value.login !== 'string') return undefined;
+    return {
+      id: value.id,
+      login: value.login,
+      name: typeof value.name === 'string' ? value.name : value.login,
+      avatarUrl: typeof value.avatarUrl === 'string' ? value.avatarUrl : '',
+      ...(value.repoAdmin === true ? { repoAdmin: true } : {}),
+    };
+  } catch {
+    return undefined;
+  }
 }
 
 function isSessionPayload(value: unknown): value is SessionPayload {
@@ -178,7 +207,16 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       bindRequestPrincipal(req, principalFromUser(record.owner));
       return true;
     }
+    const forwarded = proxiedUser(req);
+    if (forwarded !== undefined) {
+      bindRequestPrincipal(req, principalFromUser(forwarded));
+      return true;
+    }
     return sharedMcpTokenAccepted(token);
+  }
+
+  function agentOwner(req: IncomingMessage): SessionUser | undefined {
+    return agentTokenRecord(bearerToken(req))?.owner;
   }
 
   function agentAccess(user: SessionUser): { agentToken: boolean; connector: boolean } {
@@ -558,5 +596,5 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     return false;
   }
 
-  return { handleRequest, admitUpgrade, sessionUser, isAdminRequest };
+  return { handleRequest, admitUpgrade, sessionUser, isAdminRequest, agentOwner };
 }

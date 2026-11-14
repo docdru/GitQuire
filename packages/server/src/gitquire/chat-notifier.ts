@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { GateLogger } from './access-gate.ts';
-import { pageLink } from './mention-mailer.ts';
+import { draftLink, pageLink } from './mention-mailer.ts';
 import type { Mention, MentionIndex } from './mentions.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -85,6 +85,7 @@ function slackEscape(text: string): string {
 }
 
 export interface ChatMessage {
+  review?: boolean;
   who: string;
   page: string;
   docName: string;
@@ -98,6 +99,18 @@ export function chatMessage(
   config: Pick<ChatConfig, 'externalUrl'>,
   mention: Mention,
 ): ChatMessage {
+  if (mention.draft !== undefined) {
+    return {
+      review: true,
+      who: clip(mention.author.name?.trim() || mention.author.login || '') || 'Someone',
+      page: clip(mention.draft.title),
+      docName: mention.draft.title,
+      link: draftLink(config.externalUrl, mention.draft.slug),
+      mentioned: mention.logins.map((login) => `@${login}`),
+      quote: '',
+      comment: clip(mention.body),
+    };
+  }
   return {
     who: clip(mention.author.name?.trim() || mention.author.login || '') || 'Someone',
     page: clip(mention.docName.slice(mention.docName.lastIndexOf('/') + 1)),
@@ -109,10 +122,19 @@ export function chatMessage(
   };
 }
 
+function headline(message: ChatMessage): string {
+  const verb = message.review === true ? 'asked' : 'mentioned';
+  return `${message.who} ${verb} ${message.mentioned.join(', ')}`;
+}
+
+function preposition(message: ChatMessage): string {
+  return message.review === true ? 'to review' : 'in';
+}
+
 function plainText(message: ChatMessage): string {
   const where = message.link === undefined ? message.page : `${message.page} (${message.link})`;
-  const who = `${message.who} mentioned ${message.mentioned.join(', ')}`;
-  return `${who} in ${where}: "${message.comment}"`;
+  const head = `${headline(message)} ${preposition(message)} ${where}`;
+  return message.comment === '' ? head : `${head}: "${message.comment}"`;
 }
 
 export function chatPayload(format: ChatFormat, message: ChatMessage): unknown {
@@ -121,8 +143,9 @@ export function chatPayload(format: ChatFormat, message: ChatMessage): unknown {
       message.link === undefined
         ? `*${slackEscape(message.page)}*`
         : `<${message.link}|${slackEscape(message.page)}>`;
-    const who = slackEscape(`${message.who} mentioned ${message.mentioned.join(', ')}`);
-    const lines = [`${who} in ${page}`, `> ${slackEscape(message.comment)}`];
+    const who = slackEscape(headline(message));
+    const lines = [`${who} ${preposition(message)} ${page}`];
+    if (message.comment !== '') lines.push(`> ${slackEscape(message.comment)}`);
     return { text: lines.join('\n') };
   }
   if (format === 'discord') {
@@ -132,14 +155,27 @@ export function chatPayload(format: ChatFormat, message: ChatMessage): unknown {
     const body: unknown[] = [
       {
         type: 'TextBlock',
-        text: `${message.who} mentioned ${message.mentioned.join(', ')} in ${message.page}`,
+        text: `${headline(message)} ${preposition(message)} ${message.page}`,
         weight: 'Bolder',
         wrap: true,
       },
       { type: 'TextBlock', text: message.comment, wrap: true },
-      { type: 'TextBlock', text: `On the text: "${message.quote}"`, isSubtle: true, wrap: true },
+      ...(message.quote === ''
+        ? []
+        : [
+            {
+              type: 'TextBlock',
+              text: `On the text: "${message.quote}"`,
+              isSubtle: true,
+              wrap: true,
+            },
+          ]),
     ];
-    const open = { type: 'Action.OpenUrl', title: 'Open page', url: message.link };
+    const open = {
+      type: 'Action.OpenUrl',
+      title: message.review === true ? 'Open draft' : 'Open page',
+      url: message.link,
+    };
     const actions = message.link === undefined ? [] : [open];
     return {
       type: 'message',
@@ -159,7 +195,7 @@ export function chatPayload(format: ChatFormat, message: ChatMessage): unknown {
   }
   return {
     text: plainText(message),
-    event: 'mention',
+    event: message.review === true ? 'review-request' : 'mention',
     author: message.who,
     mentioned: message.mentioned,
     page: message.page,

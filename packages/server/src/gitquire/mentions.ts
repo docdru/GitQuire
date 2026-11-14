@@ -29,6 +29,7 @@ export interface Mention {
   quote: string;
   resolved: boolean;
   logins: string[];
+  draft?: { slug: string; title: string };
 }
 
 export interface InboxMention extends Omit<Mention, 'logins' | 'quiet'> {
@@ -455,6 +456,7 @@ export function buildInbox(
     body: mention.body,
     quote: mention.quote,
     resolved: mention.resolved,
+    ...(mention.draft === undefined ? {} : { draft: mention.draft }),
     read: read.has(mention.id) || mention.quiet === true,
   }));
   return {

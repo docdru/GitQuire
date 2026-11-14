@@ -6,6 +6,7 @@ import type { AccessGate, GateLogger } from './access-gate.ts';
 import { createAccessGate, principalFromUser } from './access-gate.ts';
 import { createRepoAccessCheck, startAccessSweep } from './agent-access.ts';
 import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
+import { createDrafts, type Drafts, isDraftInstance } from './drafts/setup.ts';
 import {
   type CheckPushPermissionFn,
   createGitHubAppClient,
@@ -52,7 +53,7 @@ export function createAccessGateFromEnv(
   if (config === undefined) return undefined;
   let agentTokens: AgentTokenStore | undefined;
   const check = createRepoAccessCheck(config, { installationToken: options.tokens?.current });
-  if (options.projectDir !== undefined) {
+  if (options.projectDir !== undefined && !isDraftInstance(env)) {
     agentTokens = createAgentTokenStore({ file: agentTokensFile(env, options.projectDir), log });
     const sweep = startAccessSweep(agentTokens, check, { log });
     sweep.runOnce().catch((err: unknown) => {
@@ -172,6 +173,7 @@ export function createGitQuireHttp(
     gate: AccessGate | undefined;
     tokens: InstallationTokenManager | undefined;
     log: GateLogger;
+    cli?: readonly string[];
   },
 ): GitQuireHttp {
   const appConfig = options.tokens === undefined ? undefined : resolveGitHubAppConfig(env);
@@ -183,6 +185,23 @@ export function createGitQuireHttp(
           apiUrl: appConfig.githubApiUrl,
           retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
         });
+  const gate = options.gate;
+  const drafts: Drafts | undefined =
+    gate === undefined
+      ? undefined
+      : createDrafts({
+          env,
+          projectDir: options.projectDir,
+          log: options.log,
+          sessionUser: gate.sessionUser,
+          agentOwner: (req) => gate.agentOwner?.(req),
+          secure: (env.OK_EXTERNAL_URL ?? '').trim().startsWith('https:'),
+          appConfig,
+          client: pulls,
+          token: () => options.tokens?.current(),
+          cli: options.cli ?? [process.execPath, process.argv[1] ?? ''],
+          initProject: initProjectWithCli(options.cli ?? [process.execPath, process.argv[1] ?? '']),
+        });
   let contentFilter: ScanFilter | undefined;
   const routes = createGitQuireRoutes({
     projectDir: options.projectDir,
@@ -192,12 +211,16 @@ export function createGitQuireHttp(
     pulls,
     baseBranch: appConfig?.branch,
     sessionUser: options.gate?.sessionUser,
+    extraMentions: drafts === undefined ? undefined : () => drafts.service.reviewMentions(),
+    notify: !isDraftInstance(env),
   });
-  const gate = options.gate;
   return {
     handleRequest: (req, res) =>
-      (gate?.handleRequest(req, res) ?? false) || routes.handle(req, res),
+      (gate?.handleRequest(req, res) ?? false) ||
+      (drafts?.http.handleRequest(req, res) ?? false) ||
+      routes.handle(req, res),
     admitUpgrade: (req, socket) => gate?.admitUpgrade(req, socket) ?? true,
+    routeUpgrade: (req, socket, head) => drafts?.http.handleUpgrade(req, socket, head) ?? false,
     sessionUser: (req) => gate?.sessionUser(req),
     isAdminRequest: (req) => gate?.isAdminRequest(req) ?? true,
     useContentFilter: (filter) => {

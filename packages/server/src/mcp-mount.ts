@@ -151,6 +151,7 @@ export function mountMcpAndApi(opts: MountMcpAndApiOptions): MountMcpAndApiHandl
       ? onUpgrade
       : (req: IncomingMessage, socket: Duplex, head: Buffer): void => {
           if (!accessGate.admitUpgrade(req, socket)) return;
+          if (accessGate.routeUpgrade?.(req, socket, head) === true) return;
           onUpgrade(req, socket, head);
         };
   httpServer.on('request', gatedRequestListener);

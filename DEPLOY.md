@@ -7,7 +7,7 @@ agent access. For what GitQuire does, see the [README](./README.md).
 - [Quick start](#quick-start)
 - [GitHub sign-in](#github-sign-in)
 - [Sync a GitHub repository](#sync-a-github-repository)
-- [Branches and pull requests](#branches-and-pull-requests)
+- [Drafts](#drafts)
 - [Mention emails](#mention-emails)
 - [Chat notifications](#chat-notifications)
 - [AI agents](#ai-agents)
@@ -134,20 +134,29 @@ starts the branch and pushes the first commit. Commits are authored by the peopl
 edits; changes without a signed-in person are authored as `GITQUIRE_GIT_NAME` /
 `GITQUIRE_GIT_EMAIL`.
 
-## Branches and pull requests
+## Drafts
 
-Everyone edits one working copy, so the branch is shared: switching it moves every open editor to
-that branch. Pull requests are opened by the GitHub App, with the proposer's GitHub login in the
-description, so the app needs **Pull requests: read and write**. Any signed-in member may switch or
-create branches.
+People edit the live wiki, or a draft: their own copy that becomes live when someone publishes it
+(see [Drafts](https://github.com/docdru/GitQuire/blob/main/docs/content/gitquire/drafts.mdx)). Drafts
+need GitHub sign-in; with the GitHub App, each draft is a `draft/<name>` branch and a pull request,
+so the App needs **Pull requests: read and write** and **Contents: read and write**. Without the App,
+drafts use the repository's `origin` remote directly and are published by a squash merge.
 
-| Endpoint | Purpose |
+For each draft in use, the server starts one more editor process on a loopback port, with its own
+working copy, and forwards the people who opened that draft to it. A process needs about 250 MB of
+memory, starts in a few seconds, and stops after 30 minutes without anyone in the draft. Working
+copies are kept in `GITQUIRE_DRAFTS_DIR` (default: `.gitquire-drafts/<folder>` next to the project,
+so `/.gitquire-drafts/data` in the container). They can be recreated from GitHub, but mount a volume
+there so edits that are less than a minute old survive a container restart; `deploy/compose.yaml`
+does that.
+
+| Variable | Meaning |
 | --- | --- |
-| `GET /api/gitquire/branches` | Current, base, local and remote-only branches. |
-| `POST /api/gitquire/branches` | Create a branch: `{"name": "report/q4", "from": "main"}` (`from` defaults to the current state). |
-| `POST /api/git/checkout` | Switch the shared working copy to another branch. |
-| `GET /api/gitquire/pulls` | Open pull requests on the repository. |
-| `POST /api/gitquire/pulls` | Open a pull request from the current branch: `{"title": "…", "body": "…", "draft": false}`. |
+| `GITQUIRE_DRAFTS_DIR` | Where draft working copies live. Must be outside the project folder. |
+
+The old shared branch switch (`POST /api/git/checkout`) and the branch and pull request endpoints
+(`/api/gitquire/branches`, `/api/gitquire/pulls`) still exist for scripts, but the editor no longer
+offers them.
 
 ## Mention emails
 
@@ -197,7 +206,8 @@ Nothing runs on the server on their behalf.
 In the app, **Settings → Connect AI** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
 it shows the connector address and expandable steps for Claude (Customize → Connectors → Add
 custom connector) and Mistral's Le Chat (Intelligence → Connectors → Custom MCP Connector), and it
-links to the token page below for Claude Code.
+links to the token page below for Claude Code. There, people can also choose to have their
+assistant's edits go into a [draft](#drafts) instead of the live wiki.
 
 1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
 2. Create a token. The page shows it once, with the command for Claude Code and the config for the
@@ -352,6 +362,7 @@ CI builds and smoke-tests the image on every pull request and publishes it to
 | `GITQUIRE_BRANCH`, `GITQUIRE_SYNC_MODE` | [Sync a GitHub repository](#sync-a-github-repository) |
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM`, `GITQUIRE_MAIL_DOMAINS` | [Mention emails](#mention-emails) |
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | [Chat notifications](#chat-notifications) |
+| `GITQUIRE_DRAFTS_DIR` | [Drafts](#drafts) |
 | `GITQUIRE_AGENT_TOKEN_DAYS`, `GITQUIRE_MCP_CONNECTORS`, `GITQUIRE_MCP_TOKEN`, `GITQUIRE_ASK_AI` | [AI agents](#ai-agents) |
 | `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |
