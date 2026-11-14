@@ -12,8 +12,8 @@ if [ -n "${GITHUB_APP_ID:-}" ]; then
   echo "[entrypoint] Syncing /data with ${GITQUIRE_REPO:-<GITQUIRE_REPO unset>} through the GitHub App"
   ok gitquire-bootstrap /data
 elif [ ! -d /data/.ok ]; then
-  echo "[entrypoint] /data is not initialized. Running ok init --no-mcp --no-skills"
-  ok init --no-mcp --no-skills < /dev/null
+  echo "[entrypoint] /data is not initialized. Running ok init"
+  ok init < /dev/null
 fi
 
 exec ok start

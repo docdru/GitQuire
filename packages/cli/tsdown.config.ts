@@ -21,7 +21,6 @@ const nativeAddonNeverBundle = ['@parcel/watcher', '@napi-rs/keyring'];
 // packages/cli/package.json `dependencies` (tsdown-bundle-coverage.test.ts
 // enforces).
 const alwaysBundlePureJsDeps = [
-  /^@inquirer\/checkbox(\/|$)/,
   /^@inquirer\/password(\/|$)/,
   /^@inquirer\/select(\/|$)/,
   /^@modelcontextprotocol\/sdk(\/|$)/,
@@ -46,7 +45,6 @@ const alwaysBundlePureJsDeps = [
   // can't cross into the sibling app.asar/ for node_modules. Inlining
   // here removes the runtime resolution entirely.
   /^pino(\/|$)/,
-  /^proper-lockfile(\/|$)/,
   /^shell-quote(\/|$)/,
   /^simple-git(\/|$)/,
   // sirv is inlined TRANSITIVELY via @inkeep/open-knowledge-server (boot.ts's
@@ -55,7 +53,6 @@ const alwaysBundlePureJsDeps = [
   // against cli deps; the server-inlined-closure guard in
   // tsdown-bundle-coverage.test.ts pins it.
   /^sirv(\/|$)/,
-  /^smol-toml(\/|$)/,
   /^strtok3(\/|$)/,
   /^token-types(\/|$)/,
   /^uint8array-extras(\/|$)/,

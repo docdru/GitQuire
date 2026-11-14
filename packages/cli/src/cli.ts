@@ -18,12 +18,7 @@ import {
   formatIgnoredCommittedKey,
   humanFormat,
 } from '@inkeep/open-knowledge-core';
-import {
-  type Config,
-  ConfigSchema,
-  loggerFactory,
-  trustSystemCertificates,
-} from '@inkeep/open-knowledge-server';
+import { type Config, loggerFactory, trustSystemCertificates } from '@inkeep/open-knowledge-server';
 import { Command } from 'commander';
 import { recordCliEntryPath } from './cli-entry-path.ts';
 import { getCliLogger, initCliLogger } from './cli-logger.ts';
@@ -33,33 +28,27 @@ import { bugReportCommand } from './commands/bug-report.ts';
 import { cleanCommand } from './commands/clean.ts';
 import { cloneCommand } from './commands/clone.ts';
 import { configCommand, shouldAnnounceRemovedKeys } from './commands/config.ts';
-import { coworkCommand } from './commands/cowork.ts';
-import { deinitCommand } from './commands/deinit.ts';
 import { createRealDetectDeps, detectDesktop, launchDesktop } from './commands/desktop-dispatch.ts';
 import { diagnoseCommand } from './commands/diagnose.ts';
 import { embeddingsCommand } from './commands/embeddings/index.ts';
 import { gitquireBootstrapCommand } from './commands/gitquire-bootstrap.ts';
 import { initCommand } from './commands/init.ts';
 import { lintCommand } from './commands/lint.ts';
-import { mcpCommand } from './commands/mcp.ts';
 import { migrateCommand } from './commands/migrate.ts';
 import { openCommand } from './commands/open.ts';
 import { previewCommand } from './commands/preview.ts';
 import { psCommand } from './commands/ps.ts';
 import { pullCommand } from './commands/pull.ts';
 import { pushCommand } from './commands/push.ts';
-import { repairSkillsCommand } from './commands/repair-skills.ts';
 import { seedCommand } from './commands/seed.ts';
 import { shareCommand } from './commands/share/index.ts';
 import { sharingCommand } from './commands/sharing/index.ts';
 import { isFileishTarget, resolveRootDispatch } from './commands/single-file-dispatch.ts';
 import { createRealSingleFileOpenDeps, runSingleFileOpen } from './commands/single-file-open.ts';
-import { skillsCommand } from './commands/skills.ts';
 import { runStartCommand, startCommand } from './commands/start.ts';
 import { statusCommand } from './commands/status.ts';
 import { stopCommand } from './commands/stop.ts';
 import { syncCommand } from './commands/sync.ts';
-import { uninstallCommand } from './commands/uninstall.ts';
 import { PACKAGE_VERSION } from './constants.ts';
 import { loadConfig } from './index.ts';
 import { recordInvocationCwd, resolveProjectAnchor } from './project-anchor.ts';
@@ -113,33 +102,19 @@ program
     if (anchorRoot !== null) {
       recordInvocationCwd(process.cwd());
       process.chdir(anchorRoot);
-      if (subcommandName !== 'deinit' || actionCommand.args.length === 0) {
-        console.error(`[ok] Using GitQuire project at ${anchorRoot}`);
-      }
+      console.error(`[ok] Using GitQuire project at ${anchorRoot}`);
     }
 
-    let config: Config;
-    try {
-      const loaded = loadConfig(anchorRoot ?? cwd);
-      config = loaded.config;
-      if (shouldAnnounceRemovedKeys(subcommandName)) {
-        for (const diagnostic of loaded.diagnostics) {
-          if (diagnostic.code !== 'REMOVED_KEY') continue;
-          console.error(`[ok] ${humanFormat(diagnostic)}`);
-        }
+    const loaded = loadConfig(anchorRoot ?? cwd);
+    const config: Config = loaded.config;
+    if (shouldAnnounceRemovedKeys(subcommandName)) {
+      for (const diagnostic of loaded.diagnostics) {
+        if (diagnostic.code !== 'REMOVED_KEY') continue;
+        console.error(`[ok] ${humanFormat(diagnostic)}`);
       }
-      for (const key of loaded.ignoredCommittedKeys) {
-        console.error(`[ok] ${formatIgnoredCommittedKey(key)}`);
-      }
-    } catch (err) {
-      if (subcommandName === 'uninstall' || subcommandName === 'deinit') {
-        console.error(
-          `[ok] project config could not be loaded; ${subcommandName} will use defaults: ${err instanceof Error ? err.message : String(err)}`,
-        );
-        config = ConfigSchema.parse({});
-      } else {
-        throw err;
-      }
+    }
+    for (const key of loaded.ignoredCommittedKeys) {
+      console.error(`[ok] ${formatIgnoredCommittedKey(key)}`);
     }
     resolvedConfig = config;
 
@@ -165,20 +140,11 @@ program.action(async () => {
 const start = startCommand(() => resolvedConfig);
 program.addCommand(start);
 
-const mcp = mcpCommand(() => resolvedConfig);
-program.addCommand(mcp);
-
 program.addCommand(initCommand());
 
 program.addCommand(seedCommand());
 
 program.addCommand(migrateCommand());
-
-program.addCommand(coworkCommand(), { hidden: true });
-
-program.addCommand(repairSkillsCommand());
-
-program.addCommand(skillsCommand());
 
 const preview = previewCommand(() => resolvedConfig);
 program.addCommand(preview);
@@ -206,8 +172,6 @@ program.addCommand(stopCommand(() => resolvedConfig));
 program.addCommand(cleanCommand(() => resolvedConfig));
 program.addCommand(statusCommand(() => resolvedConfig));
 
-program.addCommand(deinitCommand());
-program.addCommand(uninstallCommand());
 program.addCommand(gitquireBootstrapCommand(), { hidden: true });
 
 program.addCommand(psCommand());

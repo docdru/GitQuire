@@ -2,7 +2,7 @@ import { spawn as nativeSpawn } from 'node:child_process';
 import { existsSync as fsExistsSync, realpathSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import type { Server as HttpServer } from 'node:http';
-import { homedir, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import { basename, dirname, resolve as pathResolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import {
@@ -35,17 +35,12 @@ import { makeLazyEmbeddingsKeyStore } from '../auth/embeddings-key-store.ts';
 import { detectGh, detectGhAccounts } from '../auth/gh-detect.ts';
 import { makeLazyProbeTokenStore } from '../auth/token-store.ts';
 import { PACKAGE_VERSION } from '../constants.ts';
-import { createCliStepExecutor } from '../integrations/registry-apply.ts';
-import { createCliProbeResolver } from '../integrations/registry-probes.ts';
-import { userSkillPresentAnywhere } from '../integrations/write-user-skill.ts';
 import {
   createRealDetectDeps,
   detectDesktop,
   launchDesktop,
   notFoundMessage,
 } from './desktop-dispatch.ts';
-import type { LaunchJsonRepairResult } from './repair-launch-json.ts';
-import type { RepairResult } from './repair-mcp-configs.ts';
 
 const DEFAULT_IDLE_THRESHOLD_MS = 30 * 60 * 1000;
 
@@ -299,16 +294,6 @@ interface BootStartServerOptions {
   bind?: readonly string[];
   idleExit?: (code: number) => void;
   log?: PinoLogger;
-  repairMcpConfigsFn?: (opts: {
-    projectDir: string;
-    reclaimDisableEnv: string | null;
-    logger?: (event: { event: string; severity: 'info' | 'warn' }) => void;
-  }) => RepairResult;
-  repairLaunchJsonFn?: (opts: {
-    projectDir: string;
-    reclaimDisableEnv: string | null;
-    logger?: (event: { event: string; severity: 'info' | 'warn' }) => void;
-  }) => LaunchJsonRepairResult;
   serveContentAssets?: boolean;
   reactShellDistDir?: string;
   singleFile?: string;
@@ -392,39 +377,6 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
     if (!skipAutoInit && !isProjectRoot(cwd)) {
       throw new OkDirMissingError(cwd);
     }
-
-    const reclaimDisableEnv = process.env.OK_RECLAIM_DISABLE ?? null;
-
-    const reclaimEventLogger = (event: { event: string; severity: 'info' | 'warn' }) => {
-      if (event.severity === 'info') log.debug({ event }, '[start] reclaim sweep event');
-      else log.warn({ event }, '[start] reclaim sweep reported a problem');
-    };
-
-    try {
-      const repair =
-        opts.repairMcpConfigsFn ?? (await import('./repair-mcp-configs.ts')).repairMcpConfigs;
-      const sweep = repair({ projectDir: cwd, reclaimDisableEnv, logger: reclaimEventLogger });
-      const unhealed = sweep.outcomes.filter(
-        (o) =>
-          o.outcome !== 'no-entry' &&
-          o.outcome !== 'canonical' &&
-          o.outcome !== 'repaired' &&
-          o.outcome !== 'foreign',
-      );
-      if (unhealed.length > 0) {
-        log.warn({ unhealed }, '[start] reclaim sweep left entries it could not heal');
-      }
-    } catch (err) {
-      log.warn({ err }, '[start] mcp-config repair sweep failed; continuing');
-    }
-
-    try {
-      const repair =
-        opts.repairLaunchJsonFn ?? (await import('./repair-launch-json.ts')).repairLaunchJson;
-      repair({ projectDir: cwd, reclaimDisableEnv, logger: reclaimEventLogger });
-    } catch (err) {
-      log.warn({ err }, '[start] launch.json repair sweep failed; continuing');
-    }
   }
 
   const contentDir = ephemeralContentDir ?? resolveContentDir(config, cwd);
@@ -483,14 +435,6 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
           }
         : {}),
       localOpCliArgs: [process.execPath, process.argv[1]],
-      agentIntegrations: (() => {
-        const registryCtx = { cwd: ephemeralProjectDir ?? cwd, home: homedir(), env: process.env };
-        return {
-          probe: createCliProbeResolver(registryCtx),
-          execute: createCliStepExecutor(registryCtx),
-          userSkillPresentAnywhere,
-        };
-      })(),
       idleShutdownMs: idleThresholdMs,
       ...(opts.serverRuntime !== undefined ? { serverRuntime: opts.serverRuntime } : {}),
       ...(opts.bind !== undefined ? { bind: opts.bind } : {}),

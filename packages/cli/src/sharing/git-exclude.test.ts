@@ -8,30 +8,11 @@ import { configureTestGitRepository } from '../../../../test-support/configure-g
 import {
   addOkPathsToGitExclude,
   formatTrackedRemediation,
-  getExcludedOkPaths,
-  getInstalledSkillProjectionPaths,
   getOkArtifactPaths,
   probeTrackedOkPaths,
   readSharingMode,
   removeOkPathsFromGitExclude,
 } from './git-exclude.ts';
-
-function writeMarker(dir: string, skills: Record<string, string[]>): void {
-  mkdirSync(join(dir, OK_DIR, 'local'), { recursive: true });
-  writeFileSync(
-    join(dir, OK_DIR, 'local', 'installed-skills.json'),
-    JSON.stringify({
-      schema: 1,
-      skills: Object.fromEntries(
-        Object.entries(skills).map(([name, hosts]) => [
-          name,
-          { hosts, scope: 'project', scripts: false, installedAt: '2026-06-05T00:00:00.000Z' },
-        ]),
-      ),
-    }),
-    'utf-8',
-  );
-}
 
 function uniqueDir(prefix: string): string {
   return resolve(tmpdir(), `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
@@ -68,23 +49,8 @@ describe('getOkArtifactPaths', () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it('returns the canonical eight-path artifact set (bundle projection carved out) when no config.yml exists', () => {
-    const paths = getOkArtifactPaths(dir);
-    expect(paths).toContain(`${OK_DIR}/`);
-    expect(paths).toContain('.okignore');
-    expect(paths).toContain('.mcp.json');
-    expect(paths).toContain('.cursor/mcp.json');
-    expect(paths).toContain('.codex/config.toml');
-    expect(paths).toContain('opencode.json');
-    expect(paths).toContain('.pi/extensions/open-knowledge.ts');
-    expect(paths).toContain('.claude/launch.json');
-    expect(paths).not.toContain('.claude/skills/open-knowledge/');
-    expect(paths).not.toContain('.cursor/skills/open-knowledge/');
-    expect(paths).not.toContain('.codex/skills/open-knowledge/');
-    expect(paths).not.toContain('.github/skills/open-knowledge/');
-    expect(paths).not.toContain('.opencode/skills/open-knowledge/');
-    expect(paths).not.toContain('.pi/skills/open-knowledge/');
-    expect(paths).toHaveLength(8);
+  it('returns `.ok/` and `.okignore` when no config.yml exists', () => {
+    expect(getOkArtifactPaths(dir)).toEqual([`${OK_DIR}/`, '.okignore']);
   });
 
   it('preserves a stable order so `ok config-sharing status` and unit-test snapshots are deterministic', () => {
@@ -97,34 +63,7 @@ describe('getOkArtifactPaths', () => {
     mkdirSync(join(dir, OK_DIR), { recursive: true });
     writeFileSync(join(dir, OK_DIR, 'config.yml'), 'content:\n  dir: docs\n', 'utf-8');
     const paths = getOkArtifactPaths(dir);
-    expect(paths).toContain('.ok/');
-    expect(paths).toContain('.okignore');
-    expect(paths).not.toContain('docs/.ok/');
-    expect(paths).not.toContain('docs/.okignore');
-    expect(paths.some((p) => p.includes('**'))).toBe(false);
-    expect(paths).toHaveLength(8);
-  });
-
-  it('never excludes an AUTHORED skill projection, marker or not', () => {
-    writeMarker(dir, { 'trip-log': ['claude', 'cursor', 'copilot'], 'open-knowledge': ['claude'] });
-    const paths = getOkArtifactPaths(dir);
-    expect(paths).not.toContain('.claude/skills/trip-log/');
-    expect(paths).not.toContain('.cursor/skills/trip-log/');
-    expect(paths).not.toContain('.github/skills/trip-log/');
-    expect(paths).toHaveLength(8);
-
-    const projections = getInstalledSkillProjectionPaths(dir);
-    expect(projections).toContain('.claude/skills/trip-log/');
-    expect(projections).toContain('.cursor/skills/trip-log/');
-    expect(projections).toContain('.github/skills/trip-log/');
-    expect(projections).not.toContain('.claude/skills/open-knowledge/');
-  });
-
-  it('reads the marker fail-soft — a corrupt marker yields no projections', () => {
-    mkdirSync(join(dir, OK_DIR, 'local'), { recursive: true });
-    writeFileSync(join(dir, OK_DIR, 'local', 'installed-skills.json'), '{ corrupt', 'utf-8');
-    expect(getOkArtifactPaths(dir)).toHaveLength(8);
-    expect(getInstalledSkillProjectionPaths(dir)).toEqual([]);
+    expect(paths).toEqual(['.ok/', '.okignore']);
   });
 });
 
@@ -447,7 +386,7 @@ describe('readSharingMode', () => {
   });
 
   it('returns `local-only` when EVEN ONE OK artifact path is excluded (OR-of-variants, not AND)', () => {
-    writeExclude(dir, '.mcp.json\n');
+    writeExclude(dir, '.okignore\n');
     expect(readSharingMode(dir)).toBe('local-only');
   });
 
@@ -614,129 +553,6 @@ describe('shared -> local-only transition with tracked shareable .ok artifacts',
     expect(retried.kind).toBe('updated');
     expect(readSharingMode(dir)).toBe('local-only');
     expect(existsSync(join(dir, '.ok', 'config.yml'))).toBe(true);
-  });
-});
-
-describe('legacy skill-projection drain (lines older builds wrote)', () => {
-  it('drains stale skill lines on the way IN, so a project that stays local-only self-heals', () => {
-    writeMarker(dir, { 'trip-log': ['claude'] });
-    writeExclude(dir, ['.ok/', '.okignore', '.claude/skills/trip-log/', '*.tmp', ''].join('\n'));
-    const result = addOkPathsToGitExclude(dir, getOkArtifactPaths(dir));
-    expect(result.kind).toBe('updated');
-    const content = readExclude(dir);
-    expect(content).not.toContain('.claude/skills/trip-log/');
-    expect(content).toContain('.ok/');
-    expect(content).toContain('*.tmp');
-    expect(readSharingMode(dir)).toBe('local-only');
-  });
-
-  it('outbound drain also leaves hand-written spellings alone (mirrors the inbound rule)', () => {
-    writeMarker(dir, { 'trip-log': ['claude'] });
-    writeExclude(
-      dir,
-      [
-        '.ok/',
-        '.claude/skills/trip-log/',
-        '.claude/skills/trip-log',
-        '/.claude/skills/trip-log/',
-        '',
-      ].join('\n'),
-    );
-
-    const result = removeOkPathsFromGitExclude(dir, getOkArtifactPaths(dir));
-
-    expect(result.kind).toBe('updated');
-    const content = readExclude(dir);
-    expect(content).not.toMatch(/^\.claude\/skills\/trip-log\/$/m);
-    expect(content).toMatch(/^\.claude\/skills\/trip-log$/m);
-    expect(content).toMatch(/^\/\.claude\/skills\/trip-log\/$/m);
-  });
-
-  it('getExcludedOkPaths surfaces an orphaned skill line whose marker entry is gone', () => {
-    writeExclude(dir, ['.ok/', '.claude/skills/ghost-skill/', ''].join('\n'));
-    const excluded = getExcludedOkPaths(dir);
-    expect(excluded).toContain('.claude/skills/ghost-skill/');
-  });
-
-  it('does not claim a hand-placed non-OK path as an OK exclude', () => {
-    writeExclude(dir, ['.ok/', 'vendor/skills/thing/', 'notes/', ''].join('\n'));
-    const excluded = getExcludedOkPaths(dir);
-    expect(excluded).not.toContain('vendor/skills/thing/');
-    expect(excluded).not.toContain('notes/');
-  });
-
-  it('leaves a hand-written skill exclude alone (drains only the spelling OK writes)', () => {
-    writeMarker(dir, { 'trip-log': ['claude'] });
-    const artifacts = getOkArtifactPaths(dir);
-    writeExclude(dir, `${artifacts.join('\n')}\n.claude/skills/trip-log\n`);
-
-    const result = addOkPathsToGitExclude(dir, artifacts);
-
-    expect(result.kind).toBe('updated');
-    if (result.kind !== 'updated') throw new Error('unreachable');
-    expect(result.removed).toEqual([]);
-    expect(readExclude(dir)).toContain('.claude/skills/trip-log');
-  });
-
-  it('self-heals an already fully local-only project (drain with zero appends)', () => {
-    writeMarker(dir, { 'trip-log': ['claude'] });
-    const artifacts = getOkArtifactPaths(dir);
-    writeExclude(dir, `${artifacts.join('\n')}\n.claude/skills/trip-log/\n`);
-
-    const result = addOkPathsToGitExclude(dir, artifacts);
-
-    expect(result.kind).toBe('updated');
-    if (result.kind !== 'updated') throw new Error('unreachable');
-    expect(result.appended).toEqual([]);
-    expect(result.removed).toEqual(['.claude/skills/trip-log/']);
-    expect(readExclude(dir)).toBe(`${artifacts.join('\n')}\n`);
-    expect(readSharingMode(dir)).toBe('local-only');
-  });
-
-  it("reports the drained lines in `removed`, not just the caller's candidates", () => {
-    writeMarker(dir, { 'trip-log': ['claude'] });
-    writeExclude(dir, ['.ok/', '.claude/skills/trip-log/', ''].join('\n'));
-    const result = removeOkPathsFromGitExclude(dir, getOkArtifactPaths(dir));
-    expect(result.kind).toBe('updated');
-    if (result.kind !== 'updated') throw new Error('expected updated');
-    expect(result.removed).toContain('.claude/skills/trip-log/');
-    expect(result.removed).toContain('.ok/');
-  });
-
-  it('getExcludedOkPaths surfaces legacy skill lines the current set no longer names', () => {
-    writeMarker(dir, { 'trip-log': ['claude'] });
-    writeExclude(dir, ['.ok/', '.claude/skills/trip-log/', ''].join('\n'));
-    const excluded = getExcludedOkPaths(dir);
-    expect(excluded).toContain('.ok/');
-    expect(excluded).toContain('.claude/skills/trip-log/');
-  });
-
-  let dir: string;
-  beforeEach(() => {
-    dir = uniqueDir('legacy-drain-test');
-    initGitRepo(dir);
-  });
-  afterEach(() => {
-    rmSync(dir, { recursive: true, force: true });
-  });
-
-  it('strips skill-projection lines on the switch to shared', () => {
-    writeMarker(dir, { 'trip-log': ['claude'] });
-    writeExclude(dir, ['.ok/', '.okignore', '.claude/skills/trip-log/', '*.tmp', ''].join('\n'));
-    removeOkPathsFromGitExclude(dir, getOkArtifactPaths(dir));
-    const content = readExclude(dir);
-    expect(content).not.toContain('.claude/skills/trip-log/');
-    expect(content).not.toContain('.ok/');
-    expect(content).toContain('*.tmp');
-    expect(readSharingMode(dir)).toBe('shared');
-  });
-
-  it('is a no-op when the marker is gone (nothing left to name the old lines)', () => {
-    writeExclude(dir, '.ok/\n.claude/skills/trip-log/\n');
-    removeOkPathsFromGitExclude(dir, getOkArtifactPaths(dir));
-    const content = readExclude(dir);
-    expect(content).not.toContain('.ok/');
-    expect(content).toContain('.claude/skills/trip-log/');
   });
 });
 

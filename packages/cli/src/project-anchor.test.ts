@@ -1,15 +1,7 @@
 import { spawn } from 'node:child_process';
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 import { getMachineId } from '@inkeep/open-knowledge-server';
 import { afterAll, afterEach, describe, expect, test } from 'vitest';
 import { getInvocationCwd, recordInvocationCwd, resolveProjectAnchor } from './project-anchor.ts';
@@ -37,7 +29,7 @@ function makeProjectRoot(dir: string, configYaml = ''): void {
 describe('resolveProjectAnchor — command gating', () => {
   const stubHit = () => ({ rootPath: '/proj', distance: 2 });
 
-  test.each(['start', 'stop', 'status', 'clean', 'ui', 'mcp', 'preview', 'auth'])(
+  test.each(['start', 'stop', 'status', 'clean', 'ui', 'preview', 'auth'])(
     'anchors lifecycle command %s',
     (name) => {
       expect(resolveProjectAnchor(name, '/proj/sub/dir', stubHit)).toBe('/proj');
@@ -147,7 +139,7 @@ function spawnCli(
       `,
     ],
     cwd: CLI_PACKAGE_ROOT,
-    env: { ...process.env, ...env, NO_COLOR: '1', OK_BUNDLE_PROXY: '0' },
+    env: { ...process.env, ...env, NO_COLOR: '1' },
     stdin: 'ignore',
     timeout: 25_000,
   });
@@ -159,77 +151,6 @@ function spawnCli(
 }
 
 describe('CLI preAction project anchoring (cold spawn)', () => {
-  test.each([
-    'relative',
-    'absolute',
-    'missing',
-    'dot',
-    'empty',
-    'global-cwd-relative',
-    'omitted',
-  ] as const)(
-    '`ok deinit` preserves invocation-relative targeting (%s)',
-    (targetKind) => {
-      const fixture = realpathSync(makeFixture());
-      const home = join(fixture, 'home');
-      const outer = join(fixture, 'outer');
-      const sub = join(outer, 'sub');
-      const intended = join(sub, 'target');
-      const sibling = join(outer, 'target');
-      const missingSibling = join(outer, 'missing');
-      mkdirSync(home);
-      for (const dir of [outer, intended, sibling, missingSibling]) {
-        makeProjectRoot(dir);
-        writeFileSync(join(dir, 'canary.txt'), dir);
-      }
-      const targets = {
-        relative: ['./target'],
-        absolute: [intended],
-        missing: ['./missing'],
-        dot: ['.'],
-        empty: [''],
-        'global-cwd-relative': ['./target'],
-        omitted: [],
-      };
-      const cwd = targetKind === 'global-cwd-relative' ? relative(CLI_PACKAGE_ROOT, sub) : sub;
-      const { exitCode, stdout, stderr } = spawnCli(
-        ['--cwd', cwd, 'deinit', ...targets[targetKind], '--yes', '--json'],
-        { HOME: home, USERPROFILE: home },
-      );
-
-      expect(exitCode).toBe(0);
-      if (targetKind === 'omitted') {
-        expect(stderr).toContain(`[ok] Using GitQuire project at ${outer}`);
-      } else {
-        const expectedTarget =
-          targetKind === 'relative' ||
-          targetKind === 'absolute' ||
-          targetKind === 'global-cwd-relative'
-            ? intended
-            : targetKind === 'missing'
-              ? join(sub, 'missing')
-              : sub;
-        expect(stderr).not.toContain('Using OpenKnowledge project at');
-        expect(stderr).toContain(`[ok] Deinit target: ${expectedTarget}`);
-      }
-      expect(existsSync(join(outer, '.ok'))).toBe(targetKind !== 'omitted');
-      expect(existsSync(join(intended, '.ok'))).toBe(
-        targetKind !== 'relative' &&
-          targetKind !== 'absolute' &&
-          targetKind !== 'global-cwd-relative',
-      );
-      expect(existsSync(join(sibling, '.ok'))).toBe(true);
-      expect(existsSync(join(missingSibling, '.ok'))).toBe(true);
-      for (const dir of [outer, intended, sibling, missingSibling]) {
-        expect(readFileSync(join(dir, 'canary.txt'), 'utf8')).toBe(dir);
-      }
-      if (targetKind === 'missing' || targetKind === 'dot' || targetKind === 'empty') {
-        expect(stdout).toContain('Nothing to remove.');
-      }
-    },
-    30_000,
-  );
-
   test('`ok status` from a subdirectory anchors to the root and prints the disclosure line', () => {
     const root = makeFixture();
     makeProjectRoot(root);
@@ -297,19 +218,6 @@ describe('CLI preAction project anchoring (cold spawn)', () => {
     } finally {
       sleeper.kill();
     }
-  }, 30_000);
-
-  test('`ok mcp` from a subdirectory keeps stdout clean for JSON-RPC', () => {
-    const root = makeFixture();
-    makeProjectRoot(root);
-    const sub = join(root, 'notes');
-    mkdirSync(sub, { recursive: true });
-
-    const { exitCode, stdout, stderr } = spawnCli(['--cwd', sub, 'mcp']);
-
-    expect(exitCode).toBe(0);
-    expect(stderr).toContain(`[ok] Using GitQuire project at ${realpathSync(root)}`);
-    expect(stdout).toBe('');
   }, 30_000);
 
   test('non-anchored commands keep literal-cwd semantics from a subdirectory', () => {

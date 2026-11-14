@@ -217,6 +217,4 @@ Read and write tools return a `previewUrl` for any doc they touched, but **those
 
 Update the GitQuire build that serves your MCP connection. If you use the desktop app, update that app; on macOS, the CLI can use its bundled server and skills, so updating only the npm package can leave the desktop's older guidance in use. For a standalone CLI installation, update the CLI.
 
-Then run `ok init` in the project, or turn its editor integration off and on in **Settings → Agent connections**. Reconnect the agent client to load the updated tools and project skill.
-
-The Claude Code plugin starts GitQuire through `npx @inkeep/open-knowledge@latest mcp` and does not bundle a skill; refresh project guidance with the steps above. `ok repair-skills` repairs user-global bundles and restores missing project copies, but preserves an existing project skill; use the steps above to refresh that copy.
+Then reconnect the agent client to load the updated tools.
