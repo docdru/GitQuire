@@ -26,8 +26,9 @@ GitQuire is pre-1.0. Only the latest image published from `main`
 **In scope:** the code that ships in the GitQuire Docker image, including the parts that came from
 OpenKnowledge: the server and web app, GitHub sign-in and session handling, GitHub App token
 handling, repository sync, drafts, comments stored in pages, the MCP endpoint, the AI chat, the
-`ok` CLI commands the image runs, and the image itself. If the same problem also exists in OpenKnowledge, we tell Inkeep privately through
-their [security advisories](https://github.com/inkeep/open-knowledge/security/advisories/new) and
+`ok` CLI commands the image runs, and the image itself. If the same problem also exists in
+OpenKnowledge, we tell Inkeep privately through their
+[security advisories](https://github.com/inkeep/open-knowledge/security/advisories/new) and
 coordinate before publishing the fix.
 
 **Out of scope:** the desktop app, which GitQuire does not ship, and `ok` CLI commands the image
