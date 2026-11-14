@@ -13,7 +13,6 @@ import { noHandRolledBranchValidation } from './rules/no-hand-rolled-branch-vali
 import { noHandRolledSpinner } from './rules/no-hand-rolled-spinner.mjs';
 import { noHandRolledTestFileSuffix } from './rules/no-hand-rolled-test-file-suffix.mjs';
 import { noInlineToleranceClass } from './rules/no-inline-tolerance-class.mjs';
-import { noLooselyTypedWebcontentsIpc } from './rules/no-loosely-typed-webcontents-ipc.mjs';
 import { noNativeRendererDialog } from './rules/no-native-renderer-dialog.mjs';
 import { noPhysicalDirectionUtility } from './rules/no-physical-direction-utility.mjs';
 import { noRawErrorToast } from './rules/no-raw-error-toast.mjs';
@@ -53,7 +52,6 @@ const declared = {
   'no-hand-rolled-test-file-suffix': noHandRolledTestFileSuffix,
   'no-hand-rolled-spinner': noHandRolledSpinner,
   'no-inline-tolerance-class': noInlineToleranceClass,
-  'no-loosely-typed-webcontents-ipc': noLooselyTypedWebcontentsIpc,
   'no-native-renderer-dialog': noNativeRendererDialog,
   'no-physical-direction-utility': noPhysicalDirectionUtility,
   'no-raw-error-toast': noRawErrorToast,

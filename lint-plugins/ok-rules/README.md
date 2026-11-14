@@ -38,12 +38,6 @@ The rule does NOT catch:
 
 Rule: [`lint-plugins/ok-rules/rules/microcopy-ellipsis.mjs`](rules/microcopy-ellipsis.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/microcopy-ellipsis.fixture.tsx`](__fixtures__/microcopy-ellipsis.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/microcopy-ellipsis.uncached.test.mjs`](tests/microcopy-ellipsis.uncached.test.mjs).
 
-### `no-loosely-typed-webcontents-ipc`
-
-IPC discipline enforcement. Forbids direct electron IPC primitives (`webContents.send`, `ipcMain.handle/on`, `ipcRenderer.invoke/on/once`) outside the typed-wrapper files. Consumers must route through `createInvoker` / `createHandler` / `sendToRenderer` from `packages/desktop/src/shared/ipc-*.ts`. See [PRECEDENTS.md #14](../../PRECEDENTS.md) for the IPC discipline rationale.
-
-Rule: [`lint-plugins/ok-rules/rules/no-loosely-typed-webcontents-ipc.mjs`](rules/no-loosely-typed-webcontents-ipc.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-loosely-typed-webcontents-ipc.fixture.tsx`](__fixtures__/no-loosely-typed-webcontents-ipc.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-loosely-typed-webcontents-ipc.uncached.test.mjs`](tests/no-loosely-typed-webcontents-ipc.uncached.test.mjs).
-
 ### `no-raw-html-interactive-element`
 
 UI primitives discipline. Forbids raw JSX `<button>`, `<input>`, `<textarea>`, `<select>` inside production `.tsx` under `packages/app/src/**`. Consumers must use the shadcn primitives (`Button`, `Input`, `Textarea`, `Select`) from `@/components/ui/*`; if the primitive isn't installed yet, add it via `pnpm dlx shadcn@latest add <name>` from `packages/app` first. The rule catches the PR #937 failure mode: contributors (including Codex / Claude Code / human reviewers) introducing raw `<button>` JSX while a shadcn `<Button>` from `@/components/ui/button` was already imported in the same file.
@@ -162,7 +156,7 @@ Scoped (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `pack
 - A static import (`import … from`, `import type … from`, `import * as … from`, or side-effect `import`) whose source is an editor / CRDT / provider-pool / Hocuspocus-server specifier (`@/editor/*`, `@inkeep/open-knowledge-server`, `@hocuspocus/*`, `yjs`, `y-protocols`, `y-prosemirror`, `y-codemirror.next`, `y-indexeddb`, `@tiptap/y-tiptap`, `@tiptap/extension-collaboration*`). `@inkeep/open-knowledge-core` (shared types + constants) is deliberately allowed.
 - Any dynamic `import()`.
 
-This rule is **shallow, first-hop feedback only**. The authoritative gate is the transitive-module-graph test at [`packages/desktop/tests/unit/uninstall-module-graph.test.ts`](../../packages/desktop/tests/unit/uninstall-module-graph.test.ts), which builds the entry alone and checks its whole loaded-module set — so it also catches a forbidden module reached indirectly through a shared `@/lib` / `@/components/ui` module, and re-export (`export … from`) edges a first-hop rule cannot express.
+This rule is **shallow, first-hop feedback only**. The desktop app's transitive module-graph test that backed it was removed with the desktop package, so this first-hop check is the only gate left.
 
 **Scope** (`RULE_SCOPES['no-uninstall-forbidden-import']` in [`scope.mjs`](scope.mjs)). "Connects to nothing" first-hop feedback. The self-uninstall window's survey/completion screens render after `ok uninstall --yes` stops the local Hocuspocus server and removes ~/.ok, so the uninstall entry must never import the editor / CRDT / provider-pool / Hocuspocus-server surface, and must eager-load (no dynamic import). This is SHALLOW first-hop feedback; the authoritative gate is the transitive-graph test at packages/desktop/tests/unit/uninstall-module-graph.test.ts, which also catches indirect and re-export pull-ins a first-hop rule can't express. @inkeep/open-knowledge-core (shared types + constants) is allowed. Test files are excluded: the invariant is about the SHIPPED entry graph, and a dom test legitimately does `await import('./main')` to prove the entry paints (a dynamic import the eager-load rule would otherwise flag).
 
@@ -430,7 +424,7 @@ Windows console-flash prevention. Every hand-rolled `node:child_process` process
 
 `simple-git` already sets `windowsHide: true` internally, so git routed through it (shadow repo, share, conflicts) is out of scope by nature — this rule governs only the hand-rolled call sites that bypass it.
 
-**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/{server,cli,desktop}/src/**/*.ts` (the packages that spawn processes at runtime on Windows), with `!**/*.test.ts` + `!**/*.test-helper.ts` excluded.
+**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/{server,cli}/src/**/*.ts` (the packages that spawn processes at runtime on Windows), with `!**/*.test.ts` + `!**/*.test-helper.ts` excluded.
 
 **Opting out (macOS/Linux-only spawns).** For a spawn that only ever runs on macOS and/or Linux — `codesign`, `sw_vers`, an `open(1)` launch — hiding a console is meaningless. Either add the flag anyway (a harmless no-op that keeps the rule uniform) or suppress that one call with a reason:
 
@@ -519,7 +513,7 @@ The wrapped forms — `<Trans>…</Trans>`, `` t`…` `` from `useLingui()` / `@
 
 `<Brand> icon` is exempt in-pattern: it is the accessible name of a third-party mark, and translating it renames the product.
 
-**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/app/src/**`, `.ts` as well as `.tsx` — the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions as negative `!`-globs: `!packages/app/src/editor/**` (ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances), `!packages/app/src/components/ui/**` (shadcn primitive wrappers — attribute strings there are prop plumbing), `!packages/desktop/src/main/**` (the Electron main process — see below), and `!**/*.test.ts` / `!**/*.test.tsx` / `!**/*.dom.test.tsx`.
+**Scoped** (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/app/src/**`, `.ts` as well as `.tsx` — the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions as negative `!`-globs: `!packages/app/src/editor/**` (ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances), `!packages/app/src/components/ui/**` (shadcn primitive wrappers — attribute strings there are prop plumbing), and `!**/*.test.ts` / `!**/*.test.tsx` / `!**/*.dom.test.tsx`.
 
 
 The rule does NOT catch:
@@ -532,7 +526,7 @@ The rule does NOT catch:
 - **Template literals** anywhere, including a toast `description`.
 - **The CLI command surface** — `packages/cli/src/**`, deliberately never localized.
 
-**Scope** (`RULE_SCOPES['no-unwrapped-user-facing-string']` in [`scope.mjs`](scope.mjs)). Localization discipline — a shipped hardcoded string is a build-visible defect, not a convention someone has to remember. Scoped to packages/app/src, `.ts` included: the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions: - packages/app/src/editor/** — ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances rather than chrome copy (matches the no-raw-html-interactive-element exemption). - packages/app/src/components/ui/** — shadcn primitive wrappers; their attribute strings are prop plumbing, not copy. - packages/desktop/src/main/** — the Electron main process. `lingui extract` reads packages/app/src only, so a `t` macro here reaches no catalog; main's one translated surface (the native menus) goes through `main-i18n.ts`, which looks labels up by hash against the renderer's compiled catalogs. Firing on its dialog templates would ask for a fix that does not exist. The other four sibling dirs (preload / renderer / shared / utility) stay in scope. - *.test.ts / *.test.tsx / *.dom.test.tsx — test fixtures aren't user-facing.
+**Scope** (`RULE_SCOPES['no-unwrapped-user-facing-string']` in [`scope.mjs`](scope.mjs)). Localization discipline — a shipped hardcoded string is a build-visible defect, not a convention someone has to remember. Scoped to packages/app/src, `.ts` included: the toast branch's dominant shape is a plain `lib/` helper, not a component. Exemptions: - packages/app/src/editor/** — ProseMirror/CodeMirror-managed views, whose placeholder and title strings are editor affordances rather than chrome copy (matches the no-raw-html-interactive-element exemption). - packages/app/src/components/ui/** — shadcn primitive wrappers; their attribute strings are prop plumbing, not copy. - Firing on its dialog templates would ask for a fix that does not exist. The other four sibling dirs (preload / renderer / shared / utility) stay in scope. - *.test.ts / *.test.tsx / *.dom.test.tsx — test fixtures aren't user-facing.
 
 Included: `packages/app/src/**/*.ts`, `packages/app/src/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-unwrapped-user-facing-string.fixture.tsx`. Excluded: `packages/app/src/editor/**`, `packages/app/src/components/ui/**`, `**/*.test.ts`, `**/*.test.tsx`, `**/*.dom.test.tsx`.
 
@@ -628,7 +622,7 @@ Rule: [`lint-plugins/ok-rules/rules/no-demoted-dialog-confirm.mjs`](rules/no-dem
 
 ### `no-unconverted-git-pathspec`
 
-Git pathspec discipline. Fires on a hand-written `'--'` string literal in an array literal, or as a direct argument of a `.raw(...)` varargs call, anywhere under `packages/{core,server,cli,desktop}/src/**` — unless the argv's leading non-flag token is one of the five verbs whose `--` operands are not pathspecs. The array branch consults no git token of any kind; see the over-catch note below. The tail after the separator is built with `pathspecArgs(paths)` from [`packages/core/src/git-pathspec.ts`](../../packages/core/src/git-pathspec.ts), which emits the separator and the `:(literal)` conversion together.
+Git pathspec discipline. Fires on a hand-written `'--'` string literal in an array literal, or as a direct argument of a `.raw(...)` varargs call, anywhere under `packages/{core,server,cli}/src/**` — unless the argv's leading non-flag token is one of the five verbs whose `--` operands are not pathspecs. The array branch consults no git token of any kind; see the over-catch note below. The tail after the separator is built with `pathspecArgs(paths)` from [`packages/core/src/git-pathspec.ts`](../../packages/core/src/git-pathspec.ts), which emits the separator and the `:(literal)` conversion together.
 
 **Why.** git parses a pathspec argument position as a pattern language, and `--` does not disable that parsing: it stops option parsing only. A filesystem path handed over bare is therefore reinterpreted whenever its first path segment carries a metacharacter. PRD-8638 is what that costs: a doc named `:colon.md` fatals the push cycle, a doc named `:!bang.md` reads as exclusion magic and is silently subtracted from the set it was meant to join, and a wildcard-named skill directory makes `ls-files --error-unmatch` report an untracked file as tracked. Thirty-six `pathspecArgs` call sites across fourteen files now carry the conversion. That count is post-fix call sites, not pre-fix `--` literals: the two differ because one `sync-engine.ts` staging loop collapsed two pre-fix literals into a single call, and four `shadow-repo.ts` / `persistence.ts` sites had no `--` to count in the first place. Every converted site that did carry a `--` already had it, which is what made the omission look handled. The pattern is not a regression: three of those sites are present verbatim in the initial Copybara mirror-import commit `6bd7d8ba7d`.
 
@@ -843,7 +837,6 @@ Current production suppressions:
 | rule | line-level | file-level (backlog) |
 | - | - | - |
 | `no-physical-direction-utility` | 4 | 66 |
-| `no-loosely-typed-webcontents-ipc` | 32 | 0 |
 | `no-raw-html-interactive-element` | 0 | 19 |
 | `no-unportaled-editor-content` | 10 | 0 |
 | `require-windowshide-on-spawn` | 6 | 0 |

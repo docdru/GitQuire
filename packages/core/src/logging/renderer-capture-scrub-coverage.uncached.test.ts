@@ -25,7 +25,6 @@ const SKIP_DIR_NAMES = new Set(['node_modules', 'dist', 'out', 'build', '.turbo'
 
 const KNOWN_CAPTURE_SITES = [
   'app/src/lib/install-client-log-forwarder.ts',
-  'desktop/src/main/renderer-console-capture.ts',
 ];
 
 function listSourceFiles(dir: string, out: string[] = []): string[] {

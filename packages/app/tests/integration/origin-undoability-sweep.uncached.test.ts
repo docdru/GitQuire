@@ -152,7 +152,6 @@ const CONTRACT_SEARCH_ROOTS = [
   ...SRC_ROOTS,
   join(HERE, '..'),
   join(HERE, '../../../cli/src'),
-  join(HERE, '../../../desktop/src'),
 ];
 
 const ORIGIN_SEGMENT = /(^|_)ORIGIN(_|$)/;

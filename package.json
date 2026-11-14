@@ -20,8 +20,6 @@
     "notices": "node scripts/generate-third-party-notices.mjs",
     "schema:dump": "node --import tsx packages/core/scripts/dump-schema.ts",
     "build": "turbo run build",
-    "build:desktop": "turbo run build:desktop",
-    "build:desktop:dir": "turbo run build:desktop:dir",
     "check:types": "pnpm run typecheck",
     "check:doc-links": "pnpm --dir docs run validate-link",
     "check:server-test-inputs": "node scripts/check-server-test-inputs.mjs",

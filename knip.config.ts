@@ -36,7 +36,6 @@ export default {
     'sw_vers', // macOS version query — bug-report.ts
     'mktemp', // where macOS puts -t files — b4-acceptance-gate.test.ts observes the gate's scratch
     'mkfifo', // named-pipe creation — keepalive-orphan-reaping.test.ts
-    'xcrun', // macOS notarization tool — desktop afterSign.mjs
     'xdg-mime', // Linux default-app query — desktop ipc-handlers.ts
     'ssh-keygen', // ephemeral VM keypair — lume-qa lume-orchestrator.ts
     'zsh', // the executor's `.private.` test also runs the printed Biome fix under zsh -c
