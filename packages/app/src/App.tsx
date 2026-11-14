@@ -38,7 +38,6 @@ import { SkillTrackInGitDialog } from '@/components/SkillTrackInGitDialog';
 import { SystemDocSubscriber } from '@/components/SystemDocSubscriber';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { ValidationFreshness } from '@/components/ValidationFreshness';
-import { BackgroundThrottleReporter } from '@/editor/BackgroundThrottleReporter';
 import {
   DocumentProvider,
   useDocumentContext,
@@ -551,7 +550,6 @@ function ConfigProviderHost({ children }: { children: ReactNode }) {
   return (
     <ConfigProvider collabUrl={collabUrl} collabTerminal={collabTerminal}>
       <EditorLifecycleFlush />
-      <BackgroundThrottleReporter />
       <StaleTabReloadPrompt />
       {children}
     </ConfigProvider>

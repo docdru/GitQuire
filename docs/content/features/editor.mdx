@@ -5,23 +5,6 @@ description: The GitQuire editor. WYSIWYG markdown, source toggle, content block
 ---
 The editor is where you read, write, and collaborate on your docs, and where AI agents land when they edit. WYSIWYG by default with a source-mode toggle, a frontmatter properties pane, real-time CRDT collaboration, and a file sidebar that organizes the project.
 
-## Open a single file
-
-Want the editor on one loose markdown file without setting up a project? Run `ok <file>`:
-
-```bash
-ok notes.md            # open a single file in the editor
-ok ./specs/foo/SPEC.md # a file inside a project opens that project, focused on the doc
-```
-
-When the file is inside an existing GitQuire project, this opens that project focused on the doc. When it's a loose file, it opens an **ephemeral single-file session**: a throwaway editor scoped to just that one file, with no project scaffolding or git. Your edits save straight back to the original file, and **nothing is written into the file's directory** — all session state lives in a temporary directory that's removed when you close the window. Opening a file you don't edit leaves it byte-for-byte unchanged.
-
-Single-file sessions own only the selected file. Different-file previews can coexist, but an enclosing project cannot start until its overlapping preview closes. File uploads and project-wide configuration changes require opening a project; they cannot create files beside a loose preview. Appearance settings and document comments remain available. See [overlapping projects and previews](/docs/reference/cli#overlapping-projects-and-previews) for nested-project boundaries and restart requirements.
-
-It opens in the desktop app when it's installed, and falls back to your browser otherwise (press Ctrl-C in the terminal to end a browser session). Single-file sessions use the shared header and editor card without a project file sidebar, project tabs, or project switcher. At narrow widths, the header lets you choose Editor, Agents, or Terminal where available and return to Editor. Discover it any time with `ok --help`.
-
-On Windows, you can also open `.md` and `.mdx` files from Explorer with **Open With → GitQuire**, or double-click them when GitQuire is their default app. With the desktop app installed, these actions open a project or a standalone file using the same rules as `ok <file>`; see [Windows file associations and changing the default app](/docs/reference/what-gitquire-writes#installing-and-launching-the-app).
-
 ## Document body
 
 Open any doc from the sidebar. The body renders as WYSIWYG markdown with familiar conventions: bold / italic / headings / lists / tables / code fences / links / images. Toggle to source mode from the editor controls or with `Cmd+Option+M` to edit the raw markdown directly; both views are bound to the same CRDT document, so they stay in sync across users and AI agents. Switching modes keeps your place — the block you were looking at stays in view either way.
@@ -103,77 +86,13 @@ Links work the way they do in the editors you already know:
 
 For legacy wiki links and ambiguous names, see [how links resolve and what to review after upgrading](../reference/core-concepts.md#review-links-after-upgrading).
 
-## Right-click menu and spell check
-
-In the desktop app, right-clicking editable text opens a native context menu. Any editable field gets **Cut / Copy / Paste / Select All**; when there's a selection or a flagged word under the cursor, **Search with Google** joins it — plus, on macOS, **Look Up** (the dictionary panel).
-
-Over the document body, the menu also carries **View in Source `</>`** — the desktop equivalent of `Cmd+Option+E`, opening the Markdown behind the block you right-clicked in the visual editor.
-
-Spell checking uses the native macOS spellchecker on macOS (language follows your macOS settings) and Chromium's built-in spellchecker on Windows and Linux, so misspelled words get the familiar red underline. Right-clicking a flagged word adds the spelling section:
-
-| Item | Behavior |
-| --- | --- |
-| *Suggestions* | The spellchecker's corrections, one row each; pick one to replace the word. |
-| **Add to Dictionary** | Teaches your system dictionary the word — persistent and, on macOS, shared with your other Mac apps (Safari, Notes). |
-| **Disable Spell Check** | Turns spell checking off app-wide. The choice persists across relaunches. |
-
-While spell check is off, right-clicking any editable text offers **Enable Spell Check**, and the menu bar carries the same toggle as **Edit ▸ Check Spelling While Typing** (see [Edit menu](#edit-menu)). You can also change **Check spelling while typing** in **Settings → User → Preferences**, beside **Language**. These controls share the same app-wide preference.
-
-On Windows and Linux, **Spelling languages** lets you check multiple languages together, such as English and Vietnamese, independently of the interface language. The choice applies across projects in the same desktop profile and survives a restart. Keep at least one language selected; use the spelling toggle to turn checking off without losing your languages. On macOS, checking languages remain managed by macOS.
-
-Uncached dictionaries may download from Google's dictionary CDN; document text and typed words are not sent to Google for spell checking ([Electron's spellchecker documentation](https://www.electronjs.org/docs/latest/tutorial/spellchecker#does-the-spellchecker-use-any-google-services)). Downloads need an internet connection, and existing underlines may not update immediately after changing languages.
-
-Surfaces with their own specialized right-click menus — asset and wiki-link chips, the [file sidebar](#right-click-context-menus), editor tabs — keep them; the editor menu never doubles up on top. In the web build the browser's own context menu fills this role.
-
 ## Comment on a selection
 
 Select text in the WYSIWYG editor and the selection bubble menu shows a **Comment** button alongside the formatting controls. Clicking it — or pressing `Cmd+Shift+M` — starts a [comment thread](/docs/gitquire/comments) on the selection, stored in the page.
 
 ## Header panes
 
-The **Agents** button at the right end of the header shows and hides the Agents panel in project windows and single-file windows on desktop and on the web, and is highlighted while the panel is open. `Cmd+L` on macOS or `Ctrl+L` on Windows and Linux shows and hides it too. The panel holds the [AI chat](/docs/gitquire/ai-chat).
-
-The **Editor** button comes first in the same group, before **Agents** and **Terminal**. It appears in project and single-file windows on desktop and on the web, but not in note windows, and is highlighted while the editor is shown. In a window narrower than 48rem it selects Editor, including when returning from Agents or Terminal; see [Narrow windows](#narrow-windows). Project windows can also hide Editor; see [Hide the editor](#hide-the-editor).
-
-The editor, the Agents panel and the terminal split the window by proportion. Drag the gap between two of them, or focus it and use the arrow keys, to change their shares; each project remembers its own arrangement. Opening a panel never closes another one to make room. Dragging a gap stops at each panel's minimum size; when there is not room for the open panels' minimum sizes, they shrink below them in proportion, so a right-side Terminal between the editor and the Agents panel can drop under 40 columns. Below 48rem only one of Editor, Agents and Terminal is shown at a time; see [Narrow windows](#narrow-windows).
-
-To move a panel, drag an empty part of its tab strip (the editor's row of tabs, or the Agents or Terminal tab strip) onto another panel; with only one panel open there is nowhere to move it, and the drag does nothing. Drop it within about a quarter of the way in from one of that panel's edges and it docks on that side, in the area the outline shows; drop it nearer the middle and the two panels swap places. Pressing a tab or a button in the strip starts no move, and `Esc` cancels one. In the desktop app's project and single-file windows these strips never move the window, even with one panel open, so drag the header at the top of the window to move it; note windows have no panels to move, and their header still moves the window. The command palette can also move a panel along a whole edge of the window and show it: search for **Move Editor to the left edge of the window**, **Move Agents to the left edge of the window** or **Move Terminal to the left edge of the window**, or the same for the right, top or bottom edge. These commands are not in the menus and appear only when you search, and the Terminal ones only in the desktop app, where a terminal can run. They also reach a panel whose tab strip has no empty space left to grab. **Move Terminal to right** and **Move Terminal to bottom** are different: they put the Terminal beside or below the editor.
-
-## Hide the editor
-
-In a project window you can hide the editor and give the window to the Agents panel and the terminal. At 48rem and wider, click the **Editor** button at the right end of the header; at any width, choose **View ▸ Show / Hide Editor** in the desktop app or search `editor` in the [command palette](#command-palette). Below 48rem the **Editor** button only selects Editor, and hiding it works as described in [Narrow windows](#narrow-windows). There is no keyboard shortcut for it. Single-file windows keep Editor available in the shared header but can show another supported component instead while narrow. Note windows remain editor-only.
-
-Hiding the editor hides all of it: the file sidebar, the tabs, the document, the document panel, the status bar with the checkout line (the project folder and the branch or worktree). Nothing reloads. Open documents, tabs, the file sidebar and the document panel stay loaded, and showing the editor brings them back as they were.
-
-The panels that are still open take over the editor's space, shared in proportion to their sizes among the panels in the same row or column as the editor. With the Agents panel at the right and the Terminal below or to the right of the editor, where **Move Terminal to bottom** and **Move Terminal to right** put it:
-
-- A terminal below the editor fills the column they share, top to bottom, and beside the Agents panel that column takes the same share of the row whether the editor is shown or hidden.
-- A terminal to the right of the editor and the Agents panel divide the row in the ratio of their shares, as far as each one's minimum width allows.
-- A single remaining panel fills the window.
-- The Agents panel on its own keeps the conversation and the message box at a comfortable reading width, centered.
-
-Sizes you drag while the editor is hidden are kept. In the arrangements above, a terminal below the editor shares its column with it, so dragging the gap beside the Agents panel also sets the editor's width; with the terminal to the right of the editor, the editor keeps its own size.
-
-Any deliberate way of opening a document shows the editor again with that document: search and quick open, links in the Agents panel and the terminal, an agent navigating, deep and share links, back and forward, creating a page, the sync badge, dialogs that open a file, and opening the document that is already active. Editor shortcuts and menu actions show the editor first and then act: the tab shortcuts, reopening or closing a tab, **New File**, **New Folder**, **New from Template…**, **Rename**, **Duplicate**, **Move to Trash**, showing or hiding the document panel or the file sidebar, the file sidebar's view options (hidden files, `.ok` folders, Markdown only, the skills section) and **Expand all** / **Collapse all**, **Skills**, **Blob Run**, **Initialize starter pack** once it applies, and **View in source**. Reloading the window or restarting the app never shows a hidden editor.
-
-While the editor is hidden, `Cmd+L` (`Ctrl+L` on Windows and Linux) still shows and hides the Agents panel.
-
-Whether the editor is shown is remembered: in the desktop app per project, including across a full app restart, and on the web in your browser. A **Hide Editor** in a window narrower than 48rem lasts only for that window's session and does not change this setting.
-
-### Nothing open
-
-When the editor, the Agents panel and the terminal are all hidden, the main area shows **Nothing open** with **Open editor**, **Open agents** and **Open terminal** buttons. **Open terminal** appears only where the **Terminal** button would, so not on the web or in a project with the terminal turned off. Quitting with every panel hidden reopens to **Nothing open**.
-
-## Narrow windows
-
-When a project or single-file window is narrower than 48rem (768px at the default text size), it shows one of Editor, Agents and Terminal at a time instead of side by side. The **Editor**, **Agents** and **Terminal** buttons in the header join into one switcher that selects which one you see, with the shown one raised; pressing the one already shown does nothing. The others keep running while hidden: chats keep streaming, shells keep their output, and drafts, tabs, scroll positions and undo history are kept for when you switch back.
-
-- The component you used last is selected when the window narrows. Opening a document from search, history, a link, the terminal or a chat selects Editor with that document.
-- **Hide Agents** or **Hide Terminal** (from the View menu, the command palette or `Cmd+L` for Agents) returns to Editor. **Hide Editor** shows an Agents or Terminal session that is already open, or **Nothing open** if none is.
-- Refreshing keeps the selection in the same window or tab. A new tab or window starts with Editor.
-- Widening the window restores the layout you had at full width. Choosing a component or hiding one while narrow does not change which panels open when the window is wide again, but closing a chat or terminal session closes it everywhere.
-
-When the editor is too narrow to show every [split pane](#tabs-and-split-panes) side by side, it shows one pane at a time, and an **Editor pane** selector in the editor header switches between them. Each pane keeps its own tabs and reading position.
+The **✨** button at the right end of the header shows and hides the AI chat pane; `Cmd+L` on macOS or `Ctrl+L` on Windows and Linux does the same. See [AI chat](/docs/gitquire/ai-chat). The editor and the pane split the window; drag the gap between them to change their shares. In a window narrower than 48rem (768px at the default text size) only one of them is shown at a time, and opening a document selects the editor.
 
 ## Properties
 
@@ -206,7 +125,7 @@ Right-click anywhere in the sidebar to get a context-aware menu. Three shapes sh
 | Hide folder / Hide this file | no | yes | yes |
 | Delete | no | yes | yes |
 
-Items that depend on the desktop app (revealing in your file manager, Delete via the OS trash) are hidden in the web build. Asset rows (images, PDFs, other non-markdown files) suppress Share, Duplicate, and Hide; they keep Reveal, Copy Path, Rename, and Delete.
+Asset rows (images, PDFs, other non-markdown files) suppress Share, Duplicate, and Hide; they keep Reveal, Copy Path, Rename, and Delete.
 
 Expand all and Collapse all only appear when they have work to do: Expand all is hidden when no folder is collapsed; Collapse all is hidden when no folder is expanded. New from template appears when templates are available for the target folder, and also whenever its folder config has not loaded — if the load failed, the item opens to a disabled "Couldn't load templates" row. A symlink, a plain file, or an unreadable directory under `.ok/` can drop a folder's templates (hiding the item); a symlink at the folder's own `.ok` fails its config load (the disabled row) — see [where templates are stored](../advanced/folders-and-templates.mdx#where-its-stored). Share appears only when the project has a GitHub remote.
 
@@ -230,10 +149,6 @@ The sidebar always lists every file on disk under the content directory (includi
 
 On very large trees the disk walk is capped per level, and the sidebar shows a notice telling you the list is partial.
 
-### Deleting via Trash
-
-**Delete** moves the item to the system Trash via the same `shell.trashItem` call VS Code and Finder use: recoverable, not destructive.
-
 ## Tabs and split panes
 
 Tabs share the main editor header and shrink as the row fills, keeping every open target visible without a horizontal scrollbar. Drag a tab to reorder it. Opening a file from the sidebar uses a lightweight preview tab by default: the next single-clicked file replaces it, while double-clicking the tab title, pinning, or choosing **Keep open** from its context menu keeps it open. Turn previews off with **Settings → Preferences → Preview tabs** ([`editor.previewTabs`](/docs/reference/configuration)).
@@ -244,7 +159,7 @@ Open tabs, pane order, sizes, and the focused pane are restored with the project
 
 ## Command palette
 
-`Cmd+K` opens the command palette in both the desktop app and the browser, and `Cmd+P` (`Ctrl+P` on Windows / Linux) does the same from anywhere — including while text is selected in the visual editor, where `Cmd+K` adds a link instead. Type to jump to any file or folder, run create commands, open the graph or settings, or dispatch to an agent; recently opened entries surface first. In the desktop app it also switches projects and worktrees. In project windows, searching `editor` finds **Show Editor** or **Hide Editor**, whichever applies, the same toggle as the header's **Editor** button (see [Hide the editor](#hide-the-editor)).
+`Cmd+K` opens the command palette, and `Cmd+P` (`Ctrl+P` on Windows / Linux) does the same from anywhere — including while text is selected in the visual editor, where `Cmd+K` adds a link instead. Type to jump to any file or folder, run create commands, open the graph or settings, or dispatch to an agent; recently opened entries surface first. In the desktop app it also switches projects and worktrees. In project windows, searching `editor` finds **Show Editor** or **Hide Editor**, whichever applies, the same toggle as the header's **Editor** button (see [Hide the editor](#hide-the-editor)).
 
 In the browser, `Cmd+P` is normally the print shortcut; GitQuire takes it for the palette, so print from the browser's own menu instead.
 
@@ -280,69 +195,18 @@ Keyboard shortcuts (on Windows / Linux, use `Ctrl` in place of `Cmd` and `Alt` i
 | `Cmd+Option+B` | Show / Hide the document panel. Matches VS Code's Secondary Side Bar accelerator. |
 | `Cmd+Option+M` | Toggle between the visual and source editors, keeping your place. |
 | `Cmd+Option+E` | **View in source** — jump from the visual editor to the Markdown for the block at the cursor, centered and highlighted (visual editor only). |
-| `Cmd+J` / `Ctrl+J` | Show / Hide the Terminal in its current placement (macOS / Windows and Linux desktop apps). |
-| `` Ctrl+` `` | Show / Hide the Terminal too — the VS Code / Zed chord, literal `Ctrl` (desktop app). Works even while a terminal holds focus. |
 | `Cmd+P` | Open the [command palette](#command-palette) from anywhere — unlike `Cmd+K`, it opens the palette even while text is selected in the visual editor. |
-| `Cmd+L` | Show / Hide the Agents panel. |
-| `Cmd+Shift+D` / `Ctrl+Shift+D` | Start a bug report (desktop app). The screenshot it attaches is the screen exactly as it looks when you press the chord — open menus, tooltips and hover states included — plus a marker drawn where your pointer was, since a screenshot never includes the cursor. No marker appears if the pointer has not moved since the window loaded, or has since left the window. Nothing is sent until you press Send. |
+| `Cmd+L` | Show / Hide the AI chat pane. |
 | `Cmd+Shift+M` | [Comment](/docs/gitquire/comments) on the selected text (visual editor). |
-| `Cmd+Shift+Enter` | Send the checked comments the open **Comments** tab is showing to an agent. Does nothing while that tab is closed. |
 | `Cmd+F` | Find in the visual editor. |
 | `Cmd+Option+F` | Find and replace (`Ctrl+H` on Windows / Linux). |
 | `Cmd+G` / `Shift+Cmd+G` | Next / previous find match. |
 
-In the desktop app the sidebar and terminal toggles also live in the **View** menu (see below), where each label flips between **Show …** and **Hide …** based on current state.
 
 
 ### When the header runs out of room
 
 At any window width, when the header has no room for all of its controls, the presence avatars for agents and collaborators, **Share**, sync, settings and resources move into a **More actions** menu. The menu sits on the right side of the header, just before the **Editor**, **Agents** and **Terminal** buttons, which always stay outside it. Pages that point to those controls on the right of the header mean this menu while it is showing.
-
-## Application menus
-
-The GitQuire desktop app keeps its menu bar in sync with the active editor target: File menu items enable / disable based on whether a doc, folder, or nothing is currently selected. On macOS this is the system menu bar; on Windows and Linux the same menus live in the app window's title bar, with `Ctrl` in place of `Cmd`.
-
-On Windows and Linux, an open dialog such as Settings blocks the title-bar menus until you close it, the way a dialog blocks its window's menus in other Windows and Linux apps. Pressing `Ctrl+,` while Settings is open keeps it open on the page you were viewing; close it with the X button or `Esc`.
-
-### File menu
-
-Alongside the project items (Recent project, New project…, Switch Project… `Cmd+Shift+P`, Open Folder… `Cmd+O`), the worktree pair (New worktree…, Switch worktree…), **Set up GitQuire integrations…** (re-runs the first-launch integrations setup), and Close tab, the File menu surfaces the most-used sidebar affordances so they're reachable from the keyboard:
-
-| Item | Accelerator | Behavior |
-| --- | --- | --- |
-| **New File** | `Cmd+N` | Creates a new file at the project root (or under the active folder if one is selected). |
-| **New Folder** | `Cmd+Shift+N` | Creates a new folder. |
-| **New from Template…** | (none) | Opens the template picker. |
-| **Duplicate** | `Cmd+D` | Duplicates the active file or folder. Disabled when nothing is selected. |
-| **Rename** | (none) | Inline-renames the active file or folder. Disabled when nothing is selected. |
-| **Move to Trash** | `Cmd+Delete` | Sends the active file or folder to the OS trash (with the same confirm modal as the sidebar). On Windows the item reads **Move to Recycle Bin**. Disabled when nothing is selected. |
-| **Reveal in Finder** | (none) | Reveals the active target in your file manager. The label adapts per platform — **Reveal in File Explorer** on Windows, **Open containing folder** on Linux. Empty selection reveals the project root. |
-| **Copy Path ▸** | (none) | Full / Relative path of the active target. |
-
-### Edit menu
-
-Alongside the standard Undo / Redo / Cut / Copy / Paste / Select All items:
-
-| Item | Accelerator | Behavior |
-| --- | --- | --- |
-| **Check Spelling While Typing** | (none) | Checkbox reflecting whether spell check is on. Toggling applies app-wide and persists across relaunches — it's the same switch the editor right-click menu's Disable / Enable Spell Check rows flip (see [Right-click menu and spell check](#right-click-menu-and-spell-check)). |
-
-### View menu
-
-Before the existing Zoom and Toggle Fullscreen items, the View menu gets:
-
-| Item | Accelerator | Bound to |
-| --- | --- | --- |
-| **Show / Hide Sidebar** | `Cmd+Option+S` | Toggles the file sidebar. Label flips between Show and Hide based on current state, matching Finder. |
-| **Show / Hide Document Panel** | `Cmd+Option+B` | Toggles the document panel. |
-| **Show / Hide Editor** | (none) | Toggles the editor, in project windows only (see [Hide the editor](#hide-the-editor)). Label flips between Show and Hide like the other toggles. |
-| **Show / Hide Terminal** | `Cmd+J` / `Ctrl+J` | Toggles the Terminal in its current placement. (`` Ctrl+` `` toggles it too, though that chord has no menu accelerator.) |
-| **Show / Hide Agents** | `Cmd+L` | macOS View menu only: the Windows and Linux title-bar menus have no Agents item, so there use `Ctrl+L`, the header **Agents** button or the command palette. Toggles the Agents panel. |
-| **Show Hidden Files** | `Cmd+Shift+.` | `appearance.sidebar.showHiddenFiles`; same toggle as the sidebar's right-click menu. |
-| **Expand All** | (none) | Expands every folder in the tree. Hidden when nothing is collapsed. |
-| **Collapse All** | (none) | Collapses every folder in the tree. Hidden when nothing is expanded. |
-
-Toggling the menu checkboxes flips the underlying config field, which propagates back to the sidebar via the standard CRDT subscription; both surfaces stay synchronized.
 
 ## Real-time collaboration
 

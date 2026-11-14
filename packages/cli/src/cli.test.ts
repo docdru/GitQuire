@@ -138,27 +138,18 @@ function runCliSource(args: readonly string[], channel: 'stable' | 'beta') {
 }
 
 describe('CLI names the running channel command', () => {
-  test('Stable --help keeps its program name and examples', () => {
+  test('Stable --help keeps its program name', () => {
     const result = runCliSource(['--help'], 'stable');
     const stdout = result.stdout.toString();
     expect(result.exitCode).toBe(0);
-    expect(stdout).toContain('Usage: open-knowledge [options] [file | command]');
-    expect(stdout).toContain(
-      '  ok notes.md              Open a single markdown file in the editor',
-    );
-    expect(stdout).toContain(
-      '  ok open ./start.md       Open a file whose name collides with a subcommand',
-    );
+    expect(stdout).toContain('Usage: open-knowledge [options] [command]');
   }, 30_000);
 
-  test('Beta --help names open-knowledge-beta and ok-beta', () => {
+  test('Beta --help names open-knowledge-beta', () => {
     const result = runCliSource(['--help'], 'beta');
     const stdout = result.stdout.toString();
     expect(result.exitCode).toBe(0);
-    expect(stdout).toContain('Usage: open-knowledge-beta [options] [file | command]');
-    expect(stdout).toContain(
-      '  ok-beta notes.md              Open a single markdown file in the editor',
-    );
+    expect(stdout).toContain('Usage: open-knowledge-beta [options] [command]');
     expect(stdout).not.toMatch(/^ {2}ok /m);
   }, 30_000);
 

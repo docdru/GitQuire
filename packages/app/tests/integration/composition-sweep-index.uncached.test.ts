@@ -27,7 +27,6 @@ const SHIPPED_MECHANISMS = [
   'checkpoint-restore-floor',
   'durable-replay-outbox',
   'flush-on-hide',
-  'desktop-background-throttle',
   'pre-drain',
 ] as const;
 
@@ -95,14 +94,6 @@ const COMPOSITION_ROWS: readonly CompositionRow[] = [
     rung: 'booted-server',
   },
   {
-    mechanism: 'desktop-background-throttle',
-    file: 'desktop/src/main/background-throttle.test.ts',
-    title: 'keeps timers alive (setBackgroundThrottling false) when work is pending and enabled',
-    rung: 'desktop-unit',
-    residual:
-      '§9.5(3): Electron main-process mechanism — the behavioral observable rides the required desktop-smoke CI tier, which contains no throttle test today; only the keying predicate is merge-gated here.',
-  },
-  {
     mechanism: 'pre-drain',
     file: 'app/tests/integration/pre-drain-composition.test.ts',
     title: 'cross-block keystroke survives a paired derive while a client reconnects and resyncs',
@@ -112,7 +103,6 @@ const COMPOSITION_ROWS: readonly CompositionRow[] = [
 
 const KILL_SWITCH_MECHANISM: Readonly<Record<string, string>> = {
   lossCapture: 'loss-capture-ring',
-  'bridge.backgroundThrottle': 'desktop-background-throttle',
   'bridge.deferGuard': 'defer-guard',
   'bridge.lossDetector': 'loss-detector',
   'bridge.fixedPoint': 'fixed-point-backstop',
@@ -211,7 +201,7 @@ describe('composition sweep index (H13)', () => {
 
   test('every kill-switch in the production config schema maps to a covered mechanism', () => {
     const paths = shippedKillSwitchPaths();
-    expect(paths.length).toBeGreaterThanOrEqual(7);
+    expect(paths.length).toBeGreaterThanOrEqual(6);
 
     const unregistered = paths.filter((p) => KILL_SWITCH_MECHANISM[p] === undefined);
     expect(unregistered).toEqual([]);

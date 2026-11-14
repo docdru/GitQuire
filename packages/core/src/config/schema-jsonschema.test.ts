@@ -361,16 +361,6 @@ describe('loose-mode forgiveness', () => {
     expect(config.lossCapture.enabled).toBe(true);
   });
 
-  test('bridge.backgroundThrottle defaults to enabled', () => {
-    const config = ConfigSchema.parse({});
-    expect(config.bridge.backgroundThrottle.enabled).toBe(true);
-  });
-
-  test('bridge.backgroundThrottle.enabled=false preserved through parse', () => {
-    const config = ConfigSchema.parse({ bridge: { backgroundThrottle: { enabled: false } } });
-    expect(config.bridge.backgroundThrottle.enabled).toBe(false);
-  });
-
   test('bridge.deferGuard defaults to enabled', () => {
     const config = ConfigSchema.parse({});
     expect(config.bridge.deferGuard.enabled).toBe(true);

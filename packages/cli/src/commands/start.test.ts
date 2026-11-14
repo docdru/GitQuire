@@ -5,7 +5,6 @@ import {
   mkdirSync,
   mkdtempSync,
   readdirSync,
-  readFileSync,
   realpathSync,
   rmSync,
   symlinkSync,
@@ -978,109 +977,6 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
     } finally {
       if (booted) await booted.destroy();
     }
-  });
-});
-
-describe('startCommand — --mode flag wiring', () => {
-  function fakeConfig() {
-    return makeTestConfig();
-  }
-
-  function quietCommand() {
-    const cmd = startCommand(fakeConfig);
-    cmd.exitOverride();
-    cmd.configureOutput({ writeOut: () => {}, writeErr: () => {} });
-    return cmd;
-  }
-
-  test('reports a preserved corrupt recovery snapshot without an unhandled startup stack', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'ok-start-corrupt-snapshot-'));
-    const snapshot = join(dir, '.ok', 'local', 'stale-external-writes.json');
-    mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'config.yml'), '');
-    writeFileSync(snapshot, '{protected edits, truncated');
-    const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue(dir);
-    const stderrSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const exit = new Error('test process exit');
-    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw exit;
-    });
-    const originalTitle = process.title;
-    try {
-      await expect(
-        quietCommand().parseAsync(['--mode', 'browser', '--only', 'server', '--no-open-browser'], {
-          from: 'user',
-        }),
-      ).rejects.toBe(exit);
-      expect(exitSpy).toHaveBeenCalledWith(1);
-      const output = stderrSpy.mock.calls.flat().join('\n');
-      expect(output).toContain(snapshot);
-      expect(output).toContain('ok bug-report');
-      expect(output).not.toContain('    at ');
-      expect(readFileSync(snapshot, 'utf-8')).toBe('{protected edits, truncated');
-    } finally {
-      cwdSpy.mockRestore();
-      stderrSpy.mockRestore();
-      exitSpy.mockRestore();
-      process.title = originalTitle;
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  test('--mode <value> rejects values outside the browser|app enum (FR13)', () => {
-    const cmd = quietCommand();
-    expect(() => cmd.parse(['--mode', 'desktop'], { from: 'user' })).toThrow(
-      /--mode must be 'browser' or 'app'/,
-    );
-  });
-
-  test("--mode 'browser' parses successfully (no exit)", () => {
-    const cmd = quietCommand();
-    let helpDisplayed = false;
-    try {
-      cmd.parse(['--mode', 'browser', '--help'], { from: 'user' });
-    } catch (err) {
-      helpDisplayed = (err as { code?: string }).code === 'commander.helpDisplayed';
-    }
-    expect(helpDisplayed).toBe(true);
-  });
-
-  test('--mode=app with detection unavailable exits 1 + emits a contextual notFoundMessage (FR5)', async () => {
-    const previousForceBrowser = process.env.OK_FORCE_BROWSER;
-    process.env.OK_FORCE_BROWSER = '1';
-
-    const cmd = quietCommand();
-
-    let capturedExitCode: number | undefined;
-    let capturedStderr = '';
-    const originalExit = process.exit;
-    const originalConsoleError = console.error;
-    process.exit = ((code?: number) => {
-      capturedExitCode = code;
-      throw new Error('exit-stub');
-    }) as never;
-    console.error = (...args: unknown[]) => {
-      capturedStderr += `${args.map(String).join(' ')}\n`;
-    };
-
-    try {
-      await cmd.parseAsync(['--mode', 'app'], { from: 'user' });
-    } catch (err) {
-      if ((err as Error).message !== 'exit-stub') throw err;
-    } finally {
-      process.exit = originalExit;
-      console.error = originalConsoleError;
-      if (previousForceBrowser === undefined) {
-        delete process.env.OK_FORCE_BROWSER;
-      } else {
-        process.env.OK_FORCE_BROWSER = previousForceBrowser;
-      }
-    }
-
-    expect(capturedExitCode).toBe(1);
-    expect(capturedStderr).toContain('OK_FORCE_BROWSER');
-    expect(capturedStderr).toMatch(/disabled|unset/i);
-    expect(capturedStderr).not.toContain('not found');
   });
 });
 

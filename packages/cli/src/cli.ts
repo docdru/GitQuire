@@ -10,8 +10,6 @@ if (process.argv.includes('--no-color')) {
 
 trustSystemCertificates();
 
-import { spawn } from 'node:child_process';
-import { resolve } from 'node:path';
 import {
   currentCliCommandName,
   currentDesktopProduct,
@@ -28,14 +26,12 @@ import { bugReportCommand } from './commands/bug-report.ts';
 import { cleanCommand } from './commands/clean.ts';
 import { cloneCommand } from './commands/clone.ts';
 import { configCommand, shouldAnnounceRemovedKeys } from './commands/config.ts';
-import { createRealDetectDeps, detectDesktop, launchDesktop } from './commands/desktop-dispatch.ts';
 import { diagnoseCommand } from './commands/diagnose.ts';
 import { embeddingsCommand } from './commands/embeddings/index.ts';
 import { gitquireBootstrapCommand } from './commands/gitquire-bootstrap.ts';
 import { initCommand } from './commands/init.ts';
 import { lintCommand } from './commands/lint.ts';
 import { migrateCommand } from './commands/migrate.ts';
-import { openCommand } from './commands/open.ts';
 import { previewCommand } from './commands/preview.ts';
 import { psCommand } from './commands/ps.ts';
 import { pullCommand } from './commands/pull.ts';
@@ -43,8 +39,6 @@ import { pushCommand } from './commands/push.ts';
 import { seedCommand } from './commands/seed.ts';
 import { shareCommand } from './commands/share/index.ts';
 import { sharingCommand } from './commands/sharing/index.ts';
-import { isFileishTarget, resolveRootDispatch } from './commands/single-file-dispatch.ts';
-import { createRealSingleFileOpenDeps, runSingleFileOpen } from './commands/single-file-open.ts';
 import { runStartCommand, startCommand } from './commands/start.ts';
 import { statusCommand } from './commands/status.ts';
 import { stopCommand } from './commands/stop.ts';
@@ -63,7 +57,7 @@ let resolvedConfig: Config;
 program
   .name(currentDesktopProduct().cliCommandNames[1])
   .description('Local-first knowledge base with CRDT collaboration')
-  .usage('[options] [file | command]')
+  .usage('[options] [command]')
   .version(buildVersionNotice(PACKAGE_VERSION))
   .option('--cwd <path>', 'Working directory')
   .option(
@@ -127,13 +121,6 @@ program
   });
 
 program.action(async () => {
-  const decision = detectDesktop(createRealDetectDeps());
-
-  if (decision.available) {
-    launchDesktop({ spawn }, decision);
-    return;
-  }
-
   await runStartCommand(resolvedConfig, {});
 });
 
@@ -166,8 +153,6 @@ const uiTombstone = new Command('ui')
   });
 program.addCommand(uiTombstone, { hidden: true });
 
-program.addCommand(openCommand());
-
 program.addCommand(stopCommand(() => resolvedConfig));
 program.addCommand(cleanCommand(() => resolvedConfig));
 program.addCommand(statusCommand(() => resolvedConfig));
@@ -195,36 +180,5 @@ program.addCommand(pullCommand(() => resolvedConfig));
 program.addCommand(shareCommand());
 
 program.addCommand(sharingCommand());
-
-const helpCommand = currentCliCommandName();
-program.addHelpText(
-  'after',
-  `
-Examples:
-  ${helpCommand}                       Launch the desktop app (or start a local server if it isn't installed)
-  ${helpCommand} notes.md              Open a single markdown file in the editor
-  ${helpCommand} ./specs/foo/SPEC.md   Open a file inside a project, focused on that doc
-  ${helpCommand} open ./start.md       Open a file whose name collides with a subcommand`,
-);
-
-{
-  const dispatch = resolveRootDispatch(process.argv.slice(2), {
-    knownSubcommands: new Set(program.commands.map((c) => c.name())),
-    cwd: process.cwd(),
-    isFileish: isFileishTarget,
-    resolvePath: (base, token) => resolve(base, token),
-  });
-  if (dispatch !== null) {
-    initCliLogger({ command: 'open-file', cwd: process.cwd() });
-    getCliLogger()?.info(
-      { file: dispatch.absPath, projectOverride: dispatch.projectRoot },
-      'single-file open dispatch',
-    );
-    const code = await runSingleFileOpen(dispatch.absPath, createRealSingleFileOpenDeps(), {
-      projectRoot: dispatch.projectRoot ?? undefined,
-    });
-    process.exit(code);
-  }
-}
 
 await program.parseAsync(process.argv, { from: 'node' });

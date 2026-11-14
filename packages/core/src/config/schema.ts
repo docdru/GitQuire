@@ -909,21 +909,6 @@ export const ConfigSchema = z.looseObject({
     }),
   bridge: z
     .looseObject({
-      backgroundThrottle: z
-        .looseObject({
-          enabled: z
-            .boolean()
-            .register(fieldRegistry, {
-              scope: 'project',
-              agentSettable: false,
-              reload: 'live',
-              defaultScope: 'project',
-              description:
-                "Keep the desktop window's timers running at full rate while it holds unsynced work, so backgrounding the app never starves sync or recovery; when the window is idle the OS-default background throttling is restored (battery). Honored by the desktop app. Default ON — disable only to isolate a suspected regression.",
-            })
-            .default(true),
-        })
-        .default({ enabled: true }),
       deferGuard: z
         .looseObject({
           enabled: z
@@ -1001,7 +986,6 @@ export const ConfigSchema = z.looseObject({
         .default({ enabled: true }),
     })
     .default({
-      backgroundThrottle: { enabled: true },
       deferGuard: { enabled: true },
       lossDetector: { enabled: true },
       fixedPoint: { enabled: true },

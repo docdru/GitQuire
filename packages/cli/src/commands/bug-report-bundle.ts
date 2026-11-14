@@ -14,6 +14,7 @@ import {
   ACP_LAUNCH_FAILURE_LOG,
   type BundleManifest,
   type BundleRedaction,
+  DESKTOP_PRODUCTS,
   okUserHomeDisplayPath,
   PROJECT_DIAGNOSTIC_FILES,
   REPORT_SENT_MARKER_SUFFIX,
@@ -37,7 +38,6 @@ import {
 } from '../diagnose/os-termination-evidence.ts';
 import type { LanguageMetadata } from '../report-language.ts';
 import { redactContent, SECRET_PATTERN_NAMES } from './bug-report-redact.ts';
-import { DESKTOP_BUNDLE_ID } from './desktop-dispatch.ts';
 
 export function okBugReportsDir(): string {
   return join(okUserHomeDir(), 'bug-reports');
@@ -174,7 +174,7 @@ export function collectUserLogFiles(projectSlug: string | null, logsDir: string)
   return collectLogs(projectSlug, logsDir).files;
 }
 
-export { DESKTOP_BUNDLE_ID };
+export const DESKTOP_BUNDLE_ID = DESKTOP_PRODUCTS.stable.appId;
 
 const SHIPIT_LOG_STREAMS = ['ShipIt_stderr.log', 'ShipIt_stdout.log'] as const;
 

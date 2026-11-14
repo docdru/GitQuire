@@ -54,13 +54,6 @@ const KILL_SWITCHES: readonly MechanismRow[] = [
     onTitle: 'force-syncs the server AND commits IDB for a doc with a pending delta',
   },
   {
-    leaf: 'bridge.backgroundThrottle.enabled',
-    offFile: 'desktop/src/main/background-throttle.test.ts',
-    offTitle: 'is inert when the kill-switch is OFF: applies the OS default despite pending work',
-    onFile: 'desktop/src/main/background-throttle.test.ts',
-    onTitle: 'keeps timers alive (setBackgroundThrottling false) when work is pending and enabled',
-  },
-  {
     leaf: 'lossCapture.enabled',
     offFile: 'app/tests/integration/loss-capture-killswitch.test.ts',
     offTitle:
@@ -105,7 +98,7 @@ describe('kill-switch sweep (H12)', () => {
     const declared = enumerateKillSwitchLeaves();
     const registered = KILL_SWITCHES.map((m) => m.leaf).sort();
 
-    expect(declared.length).toBeGreaterThanOrEqual(7);
+    expect(declared.length).toBeGreaterThanOrEqual(6);
 
     const unregistered = declared.filter((leaf) => !registered.includes(leaf));
     expect(unregistered).toEqual([]);
