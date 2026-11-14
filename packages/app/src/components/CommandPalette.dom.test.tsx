@@ -1,6 +1,6 @@
 import type { HandoffHostPlatform } from '@inkeep/open-knowledge-core/agent-registry';
 import type { OkBugReportScreenshot } from '@inkeep/open-knowledge-core/logger-types';
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { BugReportCapture } from '@/lib/bug-report-capture';
@@ -14,10 +14,7 @@ import {
 } from '@/lib/pane-visibility-store';
 import { installPointerPositionTracker } from '@/lib/pointer-position';
 import { __resetViewMenuStateForTests, setViewMenuState } from '@/lib/view-menu-state-store';
-import {
-  restrictHandoffTargetPlatforms,
-  withRestrictableHandoffPlatforms,
-} from '@/test-utils/handoff-platforms.test-helper';
+import { withRestrictableHandoffPlatforms } from '@/test-utils/handoff-platforms.test-helper';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 
 const toastError = vi.fn((_message: string) => {});
@@ -57,15 +54,6 @@ let createProjectDialogProps: Array<{ open: boolean; bridge: unknown }> = [];
 let reportBugDialogProps: Array<{ capture: BugReportCapture | null }> = [];
 let feedbackDialogProps: Array<{ open: boolean; source?: string }> = [];
 let commandDialogProps: CommandDialogProps[] = [];
-let refreshInstallStatesCalls = 0;
-const refreshInstallStates = () => {
-  refreshInstallStatesCalls += 1;
-};
-const installedAgentStates = {
-  codex: { installed: false },
-  'claude-code': { installed: false },
-  cursor: { installed: false },
-};
 const workspaceValue = { rootPath: '/workspace' };
 let pageListLoading = false;
 const COMMAND_PALETTE_POLL_GRACE_MS = 1400;
@@ -228,21 +216,6 @@ vi.doMock('@inkeep/open-knowledge-core/agent-registry', async (importOriginal) =
   ),
 );
 
-vi.doMock('./handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({
-    states: installedAgentStates,
-    refresh: refreshInstallStates,
-  }),
-}));
-
-vi.doMock('./handoff/useHandoffDispatch', () => ({
-  buildHandoffInput: ({ docName, workspace }: { docName: string | null; workspace: unknown }) =>
-    docName && workspace ? { docName, workspace } : null,
-  useHandoffDispatch: () => ({
-    dispatch: vi.fn(() => Promise.resolve()),
-  }),
-}));
-
 vi.doMock('@/components/command-palette-tag-search', () => ({
   TAG_QUERY_PREFIX: 'tag:',
   parseTagPaletteQuery: () => ({ kind: 'normal' }),
@@ -395,7 +368,6 @@ describe('CommandPalette DOM behavior', () => {
     clearCaptureBridge();
     feedbackDialogProps = [];
     commandDialogProps = [];
-    refreshInstallStatesCalls = 0;
     worktreeModelMock = null;
     refreshWorktreesMock.mockClear();
     toastError.mockClear();
@@ -410,7 +382,6 @@ describe('CommandPalette DOM behavior', () => {
 
     expect(document.body.textContent).not.toContain('No active doc');
     expect(screen.queryByTestId('command-palette-open-graph')).toBeNull();
-    expect(screen.queryByText('Open with AI ChatGPT Desktop')).toBeNull();
 
     cleanup();
     await renderPalette({ bridge: null, docName: 'docs/active' });
@@ -433,7 +404,6 @@ describe('CommandPalette DOM behavior', () => {
     const bridge = createBridge();
     const { onOpenChange } = await renderPalette({ bridge });
     await waitFor(() => expect(bridge.project.listRecent).toHaveBeenCalledTimes(1));
-    expect(refreshInstallStatesCalls).toBeGreaterThan(0);
 
     const switchProject = screen.getByTestId('command-palette-switch-project');
     expect(switchProject.textContent).toContain('Switch project');
@@ -1154,14 +1124,6 @@ describe('CommandPalette DOM behavior', () => {
     expect(screen.queryByTestId('command-palette-worktree-feature-x')).not.toBeNull();
     expect(screen.queryByTestId('command-palette-worktree-dev')).toBeNull();
   });
-
-  test('open-with-AI rows match multi-word queries spanning the label and its keywords', async () => {
-    await renderPalette({ bridge: createBridge() });
-
-    await setQuery('open cursor');
-    expect(screen.queryByTestId('command-palette-open-in-cursor')).not.toBeNull();
-    expect(screen.queryByTestId('command-palette-open-in-claude-code')).toBeNull();
-  });
 });
 
 describe('NavigationItem path subtitle', () => {
@@ -1872,61 +1834,5 @@ describe('CommandPalette ⌘K — overlay gate', () => {
 
     expect(cmdP.defaultPrevented || ctrlP.defaultPrevented).toBe(true);
     expect(onOpenChange).not.toHaveBeenCalled();
-  });
-});
-
-describe('CommandPalette Open with AI on the host OS', () => {
-  beforeEach(() => {
-    cleanup();
-    restrictHandoffTargetPlatforms({ codex: ['darwin', 'win32'] });
-  });
-
-  afterEach(() => {
-    restrictHandoffTargetPlatforms({});
-  });
-
-  test('leaves out an app the host OS has no build for', async () => {
-    await renderPalette({ bridge: { ...createBridge(), platform: 'linux' } });
-    expect(screen.getByTestId('command-palette-open-in-cursor')).toBeTruthy();
-    expect(screen.queryByTestId('command-palette-open-in-codex')).toBeNull();
-  });
-
-  test('lists the same app on a host OS it supports', async () => {
-    await renderPalette({ bridge: { ...createBridge(), platform: 'darwin' } });
-    expect(screen.getByTestId('command-palette-open-in-codex')).toBeTruthy();
-  });
-
-  test('keeps an app detected on the host listed and enabled even without an official build', async () => {
-    installedAgentStates.codex = { installed: true };
-    try {
-      await renderPalette({ bridge: { ...createBridge(), platform: 'linux' } });
-      const item = screen.getByTestId('command-palette-open-in-codex') as HTMLButtonElement;
-      expect(item.disabled).toBe(false);
-    } finally {
-      installedAgentStates.codex = { installed: false };
-    }
-  });
-
-  test('shows the Open with AI heading over the apps when the host OS has a build of them', async () => {
-    restrictHandoffTargetPlatforms({
-      'claude-code': ['darwin', 'win32'],
-      codex: ['darwin', 'win32'],
-      cursor: ['darwin', 'win32'],
-    });
-    await renderPalette({ bridge: { ...createBridge(), platform: 'darwin' } });
-    const agentGroup = screen.getByRole('region', { name: 'Open with AI' });
-    expect(within(agentGroup).getByRole('heading', { name: 'Open with AI' })).toBeTruthy();
-    expect(within(agentGroup).getByTestId('command-palette-open-in-codex')).toBeTruthy();
-  });
-
-  test('shows no Open with AI heading when the host OS has a build of none of the apps', async () => {
-    restrictHandoffTargetPlatforms({
-      'claude-code': ['darwin', 'win32'],
-      codex: ['darwin', 'win32'],
-      cursor: ['darwin', 'win32'],
-    });
-    await renderPalette({ bridge: { ...createBridge(), platform: 'linux' } });
-    expect(screen.queryByRole('region', { name: 'Open with AI' })).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Open with AI' })).toBeNull();
   });
 });

@@ -217,7 +217,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
       },
     ],
   },
-
   {
     id: 'report-bug',
     category: 'general',

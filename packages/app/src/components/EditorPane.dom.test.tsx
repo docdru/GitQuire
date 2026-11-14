@@ -1,10 +1,18 @@
+import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@inkeep/open-knowledge-core';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { type Editor, getSchema, isMacOS } from '@tiptap/core';
+import type { Node as PmNode } from '@tiptap/pm/model';
 import { type ReactNode, type Ref, useEffect, useImperativeHandle } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
+import { registerEditor, unregisterEditor } from '@/editor/active-editor';
 import { publishSelectionContext } from '@/editor/selection-context';
-import { clearPendingSourceNavigationsForTest } from '@/editor/source-editor-navigation';
+import {
+  clearPendingSourceNavigationsForTest,
+  peekPendingSourceNavigation,
+} from '@/editor/source-editor-navigation';
+import { VIEW_IN_SOURCE_EVENT, type ViewInSourceDetail } from '@/editor/view-in-source-event';
 import {
   type DockArrangement,
   dockArrangementStorageKey,
@@ -32,6 +40,24 @@ import { RESTORE_SETTLE_TIMEOUT_MS } from '@/lib/restore-settle-timeout';
 import { revealEditor } from '@/lib/reveal-editor';
 
 const TEST_DOC = 'docs/notes';
+
+const jumpMd = new MarkdownManager({ extensions: sharedExtensions });
+const jumpSchema = getSchema(sharedExtensions);
+
+function pmPosOfBlock(doc: PmNode, index: number): number {
+  let pos = 0;
+  for (let i = 0; i < index; i++) pos += doc.child(i).nodeSize;
+  return pos + 1;
+}
+
+function makeJumpEditor(markdown: string, caretBlock: number): Editor {
+  const { body } = stripFrontmatter(markdown);
+  const doc = jumpSchema.nodeFromJSON(jumpMd.parse(body));
+  return {
+    isDestroyed: false,
+    editorView: { state: { doc, selection: { from: pmPosOfBlock(doc, caretBlock) } } },
+  } as unknown as Editor;
+}
 
 function clearSelection(): void {
   publishSelectionContext(TEST_DOC, 'wysiwyg', null);
@@ -1362,5 +1388,134 @@ describe('EditorPane auth prompts', () => {
     const modal = screen.getByTestId('auth-modal');
     expect(modal.getAttribute('data-open')).toBe('true');
     expect(modal.getAttribute('data-identity-prompt')).toBe('false');
+  });
+});
+
+describe('EditorPane keeps the Agents pane and view-in-source wiring', () => {
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+    delete (window as { okDesktop?: unknown }).okDesktop;
+    activeProvider = undefined;
+    paneExtents = { ...PANES_WITH_EXTENT };
+    __resetPaneVisibilityStoreForTests();
+    clearPendingSourceNavigationsForTest();
+  });
+
+  const agentsShown = () => screen.getByTestId('editor-area').getAttribute('data-agents-visible');
+
+  test('web host: a Cmd/Ctrl+L keydown is intercepted (the agents toggle is wired)', async () => {
+    await renderEditorPane();
+
+    const init: KeyboardEventInit = { key: 'l', cancelable: true, bubbles: true };
+    if (isMacOS()) init.metaKey = true;
+    else init.ctrlKey = true;
+    const event = new KeyboardEvent('keydown', init);
+    act(() => {
+      window.dispatchEvent(event);
+    });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(agentsShown()).toBe('true');
+  });
+
+  test('web host: an unrelated keydown is not intercepted', async () => {
+    await renderEditorPane();
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'g',
+      metaKey: true,
+      ctrlKey: true,
+      cancelable: true,
+      bubbles: true,
+    });
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  test('a header request shows and hides chat', async () => {
+    await renderEditorPane();
+
+    act(() => paneVisibilityStore.request('agents', true));
+    expect(agentsShown()).toBe('true');
+    expect(paneVisibilityStore.getSnapshot().agents?.open).toBe(true);
+
+    act(() => paneVisibilityStore.request('agents', true));
+    expect(agentsShown()).toBe('true');
+
+    act(() => paneVisibilityStore.request('agents', false));
+    expect(agentsShown()).toBe('false');
+    expect(paneVisibilityStore.getSnapshot().agents).toEqual({ open: false, onScreen: false });
+  });
+
+  test('desktop: the toggle-source menu action runs the view-in-source jump', async () => {
+    const desk = makeOkDesktopStub();
+    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
+
+    const markdown = '# Title\n\nfirst paragraph\n\ntarget paragraph';
+    const ydoc = new Y.Doc();
+    ydoc.getText('source').insert(0, markdown);
+    activeProvider = { document: ydoc };
+    const editor = makeJumpEditor(markdown, 3);
+    registerEditor(TEST_DOC, editor);
+
+    const flips: string[] = [];
+    const onFlip = (e: Event) => flips.push((e as CustomEvent<ViewInSourceDetail>).detail.docName);
+    window.addEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
+
+    await renderEditorPane();
+    act(() => desk.dispatchMenuAction('toggle-source'));
+
+    window.removeEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
+    unregisterEditor(TEST_DOC, editor);
+
+    expect(flips).toEqual([TEST_DOC]);
+    const nav = peekPendingSourceNavigation(TEST_DOC);
+    if (nav?.kind !== 'selection-offset') throw new Error('expected a selection-offset nav');
+    expect(nav.intent).toBe('jump');
+  });
+
+  test('desktop: view in source with the editor hidden shows the editor before it jumps', async () => {
+    const desk = makeOkDesktopStub();
+    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
+    const markdown = '# Title\n\nfirst paragraph\n\ntarget paragraph';
+    const ydoc = new Y.Doc();
+    ydoc.getText('source').insert(0, markdown);
+    activeProvider = { document: ydoc };
+    const editor = makeJumpEditor(markdown, 3);
+    registerEditor(TEST_DOC, editor);
+    const editorShownAtJump: Array<string | null> = [];
+    const onFlip = () =>
+      editorShownAtJump.push(screen.getByTestId('editor-area').getAttribute('data-editor-visible'));
+    window.addEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
+
+    await renderEditorPane();
+    act(() => paneVisibilityStore.request('editor', false));
+    act(() => desk.dispatchMenuAction('toggle-source'));
+
+    window.removeEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
+    unregisterEditor(TEST_DOC, editor);
+
+    expect(editorShownAtJump).toEqual(['true']);
+  });
+
+  test('desktop: pushes the view-in-source capability for the context-menu row', async () => {
+    const desk = makeOkDesktopStub();
+    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
+
+    await renderEditorPane();
+    expect(desk.viewMenuPushes).toContainEqual({ canViewInSource: false });
+    expect(desk.viewMenuPushes).not.toContainEqual({ canViewInSource: true });
+
+    cleanup();
+    const ydoc = new Y.Doc();
+    ydoc.getText('source').insert(0, '# Title\n\nbody');
+    activeProvider = { document: ydoc };
+    const live = makeOkDesktopStub();
+    (window as { okDesktop?: unknown }).okDesktop = live.stub;
+
+    await renderEditorPane();
+    expect(live.viewMenuPushes).toContainEqual({ canViewInSource: true });
   });
 });

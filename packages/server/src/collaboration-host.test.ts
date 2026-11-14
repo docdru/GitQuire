@@ -340,6 +340,7 @@ describe('createCollaborationHost', () => {
     expect(native.destroy).not.toHaveBeenCalled();
     expect(hocuspocus.handleConnection).toHaveBeenCalledTimes(2);
   });
+
   test('under allowExternal consent, /collab/keepalive refuses a foreign Origin (CSWSH)', () => {
     const log = createLog();
     const hocuspocus = createHocuspocus();
