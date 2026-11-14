@@ -8,6 +8,7 @@ set -euo pipefail
 : "${APP_PRIVATE_KEY:?APP_PRIVATE_KEY (the test GitHub App private key, PEM) is required}"
 : "${GH_TOKEN:?GH_TOKEN (an installation token of the test App) is required}"
 export GH_TOKEN
+export GITHUB_APP_PRIVATE_KEY="$APP_PRIVATE_KEY"
 
 CONTAINER="${CONTAINER:-gq-sync}"
 VOLUME="${VOLUME:-gq-sync-data}"
@@ -23,18 +24,24 @@ fail() {
 
 api() { gh api -H 'X-GitHub-Api-Version: 2022-11-28' "$@"; }
 
+LAST_REMOTE_ERROR=""
+
 remote_file() {
-  api "repos/${TEST_REPO}/contents/$1?ref=${TEST_BRANCH}" -H 'Accept: application/vnd.github.raw' 2>/dev/null
+  local out
+  if out="$(api "repos/${TEST_REPO}/contents/$1?ref=${TEST_BRANCH}" -H 'Accept: application/vnd.github.raw' 2>&1)"; then
+    printf '%s' "$out"
+  else
+    LAST_REMOTE_ERROR="$out"
+    return 1
+  fi
 }
 
 put_remote_file() {
-  local path="$1" content="$2" message="$3" sha
-  sha="$(api "repos/${TEST_REPO}/contents/${path}?ref=${TEST_BRANCH}" --jq .sha 2>/dev/null || true)"
-  local args=(-X PUT "repos/${TEST_REPO}/contents/${path}"
-    -f "message=${message}" -f "branch=${TEST_BRANCH}"
-    -f "content=$(printf '%s' "$content" | base64 -w0)")
-  if [ -n "$sha" ]; then args+=(-f "sha=${sha}"); fi
-  api "${args[@]}" --jq .commit.sha
+  local path="$1" content="$2" message="$3" encoded
+  encoded="$(printf '%s' "$content" | base64 | tr -d '\n')"
+  api -X PUT "repos/${TEST_REPO}/contents/${path}" \
+    -f "message=${message}" -f "branch=${TEST_BRANCH}" -f "content=${encoded}" \
+    --jq .commit.sha || fail "could not commit ${path} on GitHub"
 }
 
 local_file() { docker exec "$CONTAINER" cat "/data/$1" 2>/dev/null; }
@@ -50,6 +57,11 @@ trigger_sync() {
 
 sync_status() { docker exec "$CONTAINER" curl -fsS "http://127.0.0.1:8080/api/sync/status"; }
 
+cleanup() {
+  docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+  docker volume rm -f "$VOLUME" >/dev/null 2>&1 || true
+}
+
 wait_until() {
   local what="$1"
   shift
@@ -58,6 +70,7 @@ wait_until() {
     if [ "$SECONDS" -ge "$deadline" ]; then
       echo "--- sync status"
       sync_status || true
+      if [ -n "$LAST_REMOTE_ERROR" ]; then echo "--- last GitHub error: ${LAST_REMOTE_ERROR}"; fi
       fail "timed out after ${WAIT_SECONDS}s waiting for: ${what}"
     fi
     trigger_sync || true
@@ -75,7 +88,7 @@ start_container() {
     -v "${VOLUME}:/data" \
     -e OK_ALLOW_EXTERNAL=1 \
     -e GITHUB_APP_ID="$APP_ID" \
-    -e GITHUB_APP_PRIVATE_KEY="$APP_PRIVATE_KEY" \
+    -e GITHUB_APP_PRIVATE_KEY \
     -e GITQUIRE_REPO="$TEST_REPO" \
     -e GITQUIRE_BRANCH="$TEST_BRANCH" \
     -e GITQUIRE_GIT_NAME="GitQuire sync test" \
@@ -92,7 +105,13 @@ start_container() {
   done
 }
 
-stop_container() { docker rm -f "$CONTAINER" >/dev/null 2>&1 || true; }
+stop_container() {
+  docker stop -t 20 "$CONTAINER" >/dev/null 2>&1 || true
+  docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+}
+
+cleanup
+trap cleanup EXIT
 
 step "Start GitQuire against ${TEST_REPO}@${TEST_BRANCH}"
 start_container
@@ -106,9 +125,10 @@ wait_until "remote page appears in /data" local_has "sync-test/pull-${STAMP}.md"
 step "Push: a page changed in the editor reaches GitHub"
 write_local_file "sync-test/push-${STAMP}.md" "# Pushed ${STAMP}"$'\n'
 wait_until "local page appears on GitHub" remote_has "sync-test/push-${STAMP}.md" "Pushed ${STAMP}"
-author="$(api "repos/${TEST_REPO}/commits?sha=${TEST_BRANCH}&path=sync-test/push-${STAMP}.md&per_page=1" --jq '.[0].commit.author.name')"
+author="$(api "repos/${TEST_REPO}/commits?sha=${TEST_BRANCH}&path=sync-test/push-${STAMP}.md&per_page=1" --jq '.[0].commit.author.name // ""')" ||
+  fail "could not read the pushed commit"
 echo "pushed commit author: ${author}"
-[ -n "$author" ] || fail "the pushed commit has no author"
+[ "$author" = "GitQuire sync test" ] || fail "the pushed commit is authored by '${author}', not by GITQUIRE_GIT_NAME"
 
 step "Both sides at once: different pages changed on GitHub and in the editor"
 put_remote_file "sync-test/both-remote-${STAMP}.md" "remote side ${STAMP}"$'\n' "sync test: concurrent remote ${STAMP}" >/dev/null
@@ -117,12 +137,14 @@ wait_until "remote change pulled" local_has "sync-test/both-remote-${STAMP}.md" 
 wait_until "local change pushed" remote_has "sync-test/both-local-${STAMP}.md" "local side ${STAMP}"
 
 step "Sync status is healthy"
-status="$(sync_status)"
+status="$(sync_status)" || fail "GET /api/sync/status failed"
 echo "$status"
 python3 - "$status" <<'PY'
 import json, sys
 s = json.loads(sys.argv[1])
 problems = []
+if s.get("state") in ("auth-error", "offline", "conflict", "disabled", "dormant"):
+    problems.append(f"state is {s['state']}")
 if not s.get("hasRemote"):
     problems.append("no remote")
 if not s.get("syncEnabled"):
@@ -141,7 +163,8 @@ print("ok: sync status healthy")
 PY
 
 step "The App can read pull requests"
-pulls="$(docker exec "$CONTAINER" curl -fsS "http://127.0.0.1:8080/api/gitquire/pulls")"
+pulls="$(docker exec "$CONTAINER" curl -fsS "http://127.0.0.1:8080/api/gitquire/pulls")" ||
+  fail "GET /api/gitquire/pulls failed (does the App have Pull requests: Read?)"
 echo "$pulls"
 contains "$pulls" '"configured":true' || fail "GET /api/gitquire/pulls did not use the GitHub App"
 

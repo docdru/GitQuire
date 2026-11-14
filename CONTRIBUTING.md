@@ -107,7 +107,7 @@ notice, so forks stay green.
    care about.
 2. Create a GitHub App just for testing (**Settings → Developer settings → GitHub Apps → New**):
    any name and homepage URL, **Webhook** off, repository permissions **Contents: Read and write**,
-   **Pull requests: Read and write**, **Metadata: Read-only**, installable on **Only this
+   **Pull requests: Read-only**, **Metadata: Read-only**, installable on **Only this
    account**.
 3. Generate a **private key** (`.pem`) and note the **App ID**.
 4. **Install** the App on the test repository only.
@@ -122,7 +122,10 @@ to real wiki content.
 
 To run the same checks against a local image: `docker build -t gitquire:local .`, then
 `IMAGE=gitquire:local TEST_REPO=… TEST_BRANCH=… APP_ID=… APP_PRIVATE_KEY="$(cat key.pem)"
-GH_TOKEN=<installation token> bash .github/scripts/sync-e2e.sh` (create `TEST_BRANCH` first).
+GH_TOKEN=<installation token> bash .github/scripts/sync-e2e.sh`. Create `TEST_BRANCH` first. An
+installation token comes from the App's private key, for example with the GitHub CLI extension
+`gh token generate` or the `actions/create-github-app-token` steps of the workflow. The script
+removes its container and volume when it ends, so it can be run again.
 
 ### Without access to nodejs.org
 
@@ -143,8 +146,8 @@ lockfile it produces.
 
 - Keep each pull request focused on one change and describe what it does and why.
 - CI (`.github/workflows/checks.yml` and `docker.yml`) must be green: lint, typecheck, tests and
-  the Docker build with its smoke tests. Pull requests that touch sync also run the sync test
-  against the test GitHub App.
+  the Docker build with its smoke tests. Once the test App is configured, pull requests that
+  touch sync also run the sync test against it.
 - Add or update tests for behavior you change. Changesets are not used in GitQuire.
 - New user-facing text goes through Lingui (`t`, `<Trans>`) so it can be translated.
 
