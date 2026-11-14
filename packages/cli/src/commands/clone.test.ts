@@ -561,29 +561,44 @@ describe('buildCloneEnv', () => {
     expect(env.ELECTRON_RUN_AS_NODE).toBe('1');
   });
 
-  test('keeps the git variables clone passes on and drops other GIT_ variables', () => {
+  test('drops repository-location and command GIT_ variables and keeps the rest', () => {
     const env = buildCloneEnv({
       PATH: '/usr/bin',
       GIT_SSL_CAINFO: '/etc/ca.pem',
       GIT_SSH_COMMAND: 'ssh -i key',
+      GIT_LFS_SKIP_SMUDGE: '1',
       GIT_CONFIG_COUNT: '1',
+      GIT_DIR: '/elsewhere/.git',
+      GIT_WORK_TREE: '/elsewhere',
+      GIT_INDEX_FILE: '/elsewhere/index',
       GIT_EXEC_PATH: '/tmp/evil',
       GIT_EXTERNAL_DIFF: '/tmp/evil',
     });
     expect(env.GIT_SSL_CAINFO).toBe('/etc/ca.pem');
     expect(env.GIT_SSH_COMMAND).toBe('ssh -i key');
+    expect(env.GIT_LFS_SKIP_SMUDGE).toBe('1');
     expect(env.GIT_CONFIG_COUNT).toBe('1');
-    expect('GIT_EXEC_PATH' in env).toBe(false);
-    expect('GIT_EXTERNAL_DIFF' in env).toBe(false);
+    for (const key of [
+      'GIT_DIR',
+      'GIT_WORK_TREE',
+      'GIT_INDEX_FILE',
+      'GIT_EXEC_PATH',
+      'GIT_EXTERNAL_DIFF',
+    ]) {
+      expect(key in env).toBe(false);
+    }
   });
 
   test('a clone env built from an ambient GIT_SSL_CAINFO runs git without tripping the guard', async () => {
     const env = buildCloneEnv({
       PATH: process.env.PATH ?? '',
       GIT_SSL_CAINFO: '/etc/ca.pem',
+      GIT_LFS_SKIP_SMUDGE: '1',
       GIT_EXEC_PATH: '/tmp/evil',
     });
-    const out = await simpleGit(buildCloneGitOptions(tmpdir(), [])).env(env).raw(['--version']);
+    const out = await simpleGit(buildCloneGitOptions(tmpdir(), [], env))
+      .env(env)
+      .raw(['--version']);
     expect(out).toContain('git version');
   });
 });
@@ -659,7 +674,10 @@ describe('buildCloneGitOptions', () => {
       allowUnsafeConfigEnvCount: true,
       allowUnsafeUrlRewrite: true,
     });
-    expect(o.allowEnvironment).toEqual(expect.arrayContaining(['EDITOR', 'GIT_SSH_COMMAND']));
+    expect(o.allowEnvironment).toEqual(expect.arrayContaining(['EDITOR', 'PAGER']));
+    expect(
+      buildCloneGitOptions('/work/dir', [], { GIT_SSH_COMMAND: 'ssh' }).allowEnvironment,
+    ).toContain('GIT_SSH_COMMAND');
   });
 
   test('passes an empty config through unchanged (no credential helper injected)', () => {

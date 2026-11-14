@@ -14,7 +14,6 @@ import {
   assertGitAvailable,
   type Config,
   type CredentialUrlMatchReader,
-  GIT_ALLOWED_ENVIRONMENT,
   type GitHubAccountSource,
   GitNotAvailableError,
   GitProbeTimeoutError,
@@ -60,41 +59,26 @@ function emit(json: boolean, obj: Record<string, unknown>): void {
   if (json) process.stdout.write(`${JSON.stringify(obj)}\n`);
 }
 
-export const CLONE_USER_ENVIRONMENT: readonly string[] = [
-  'EDITOR',
-  'VISUAL',
-  'GIT_EDITOR',
-  'GIT_SEQUENCE_EDITOR',
-  'PAGER',
-  'GIT_PAGER',
-  'GIT_SSH',
-  'GIT_SSH_COMMAND',
-  'GIT_ASKPASS',
-  'SSH_ASKPASS',
-  'GIT_CONFIG_PARAMETERS',
-  'GIT_SSL_CAINFO',
-  'GIT_SSL_CAPATH',
-  'GIT_SSL_CERT',
-  'GIT_SSL_KEY',
-  'GIT_SSL_VERSION',
-  'GIT_SSL_CIPHER_LIST',
-  'GIT_HTTP_USER_AGENT',
-  'GIT_HTTP_LOW_SPEED_LIMIT',
-  'GIT_HTTP_LOW_SPEED_TIME',
-  'GIT_CURL_VERBOSE',
-  'GIT_TRACE_CURL',
-  'GIT_TRACE_PACKET',
-  'GIT_TRACE_PERFORMANCE',
-  'GIT_TRACE_SETUP',
-];
+const CLONE_USER_ENVIRONMENT: readonly string[] = ['EDITOR', 'VISUAL', 'PAGER', 'SSH_ASKPASS'];
 
-const CLONE_PASSED_GIT_ENVIRONMENT = new Set(
-  [...GIT_ALLOWED_ENVIRONMENT, ...CLONE_USER_ENVIRONMENT].map((key) => key.toLowerCase()),
-);
+const CLONE_DROPPED_GIT_ENVIRONMENT = new Set([
+  'git_dir',
+  'git_work_tree',
+  'git_index_file',
+  'git_object_directory',
+  'git_alternate_object_directories',
+  'git_common_dir',
+  'git_namespace',
+  'git_prefix',
+  'git_exec_path',
+  'git_external_diff',
+  'git_proxy_command',
+  'git_template_dir',
+  'git_config',
+]);
 
 function isDroppedGitEnvironmentKey(key: string): boolean {
-  const lower = key.toLowerCase();
-  return lower.startsWith('git_') && !CLONE_PASSED_GIT_ENVIRONMENT.has(lower);
+  return CLONE_DROPPED_GIT_ENVIRONMENT.has(key.toLowerCase());
 }
 
 export interface CloneEnvOptions {
@@ -177,11 +161,15 @@ interface CloneOptions {
   _detectGhFn?: (host?: string, options?: { login?: string }) => GhDetectResult;
 }
 
-export function buildCloneGitOptions(cwd: string, gitConfig: string[]): Partial<SimpleGitOptions> {
+export function buildCloneGitOptions(
+  cwd: string,
+  gitConfig: string[],
+  env: Record<string, string> = {},
+): Partial<SimpleGitOptions> {
   return {
     baseDir: cwd,
     config: gitConfig,
-    allowEnvironment: CLONE_USER_ENVIRONMENT,
+    allowEnvironment: [...CLONE_USER_ENVIRONMENT, ...Object.keys(env)],
     unsafe: {
       allowUnsafeCredentialHelper: true,
       allowUnsafePager: true,
@@ -331,7 +319,7 @@ export async function runClone(
 
   const env = buildCloneAuthEnv(resolved);
 
-  const gitOptions = buildCloneGitOptions(cwd, resolved.gitConfig);
+  const gitOptions = buildCloneGitOptions(cwd, resolved.gitConfig, env);
   const git = simpleGit(gitOptions).env(env);
 
   let lastPct = -1;

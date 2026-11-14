@@ -113,11 +113,13 @@ function failedRequestServedBy(message: string, host: string): boolean {
 }
 
 const USER_ENVIRONMENT_UNSAFE: NonNullable<SimpleGitOptions['unsafe']> = {
+  allowAbbreviatedOptions: true,
   allowUnsafeAlias: true,
   allowUnsafeAskPass: true,
   allowUnsafeCommandBinaries: true,
   allowUnsafeConfigEnvCount: true,
   allowUnsafeConfigPaths: true,
+  allowUnsafeCredentialHelper: true,
   allowUnsafeDiffExternal: true,
   allowUnsafeDiffTextConv: true,
   allowUnsafeEditor: true,

@@ -21,16 +21,12 @@ describe('simpleGit client defaults', () => {
     const env = {
       PATH: process.env.PATH ?? '',
       GIT_DIR: gitDir,
-      GIT_CONFIG_NOSYSTEM: '1',
-      GIT_CONFIG_GLOBAL: '/dev/null',
       GIT_AUTHOR_NAME: 'Test',
       GIT_AUTHOR_EMAIL: 'test@example.com',
       GIT_COMMITTER_NAME: 'Test',
       GIT_COMMITTER_EMAIL: 'test@example.com',
     };
-    const out = await simpleGit({ baseDir: dir, unsafe: { allowUnsafeConfigPaths: true } })
-      .env(env)
-      .raw(['rev-parse', '--git-dir']);
+    const out = await simpleGit(dir).env(env).raw(['rev-parse', '--git-dir']);
     expect(out.trim()).toBe(gitDir);
   });
 
@@ -50,8 +46,27 @@ describe('simpleGit client defaults', () => {
     await expect(git.raw(['--version'])).resolves.toContain('git version');
   });
 
-  test('covers every GIT_CONFIG slot up to 32', () => {
-    expect(GIT_ALLOWED_ENVIRONMENT).toContain('GIT_CONFIG_KEY_31');
-    expect(GIT_ALLOWED_ENVIRONMENT).toContain('GIT_CONFIG_VALUE_31');
+  test('allows only the variables production code sets', () => {
+    expect(GIT_ALLOWED_ENVIRONMENT).not.toContain('GIT_CONFIG_GLOBAL');
+    expect(GIT_ALLOWED_ENVIRONMENT).not.toContain('GIT_CONFIG_COUNT');
+  });
+
+  test('a call without .env() drops an inherited GIT_CONFIG_COUNT', async () => {
+    await simpleGit(dir).raw(['init', '-q']);
+    const previous = { ...process.env };
+    process.env.GIT_CONFIG_COUNT = '1';
+    process.env.GIT_CONFIG_KEY_0 = 'gitquire.probe';
+    process.env.GIT_CONFIG_VALUE_0 = 'inherited';
+    try {
+      const out = await simpleGit(dir)
+        .raw(['config', '--get', 'gitquire.probe'])
+        .catch(() => '');
+      expect(out.trim()).toBe('');
+    } finally {
+      for (const key of ['GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0']) {
+        if (previous[key] === undefined) delete process.env[key];
+        else process.env[key] = previous[key];
+      }
+    }
   });
 });

@@ -146,14 +146,17 @@ type RelayToken = NonNullable<ResolvedAuth['relayToken']>;
 
 function makeGit(projectDir: string, relayToken?: RelayToken): SimpleGit {
   if (relayToken === undefined) {
-    return simpleGit(buildCloneGitOptions(projectDir, [])).env(buildCloneEnv());
+    const env = buildCloneEnv();
+    return simpleGit(buildCloneGitOptions(projectDir, [], env)).env(env);
   }
+  const env = buildCloneAuthEnv({ relayToken });
   return simpleGit(
     buildCloneGitOptions(
       projectDir,
       buildHttpsHostCliCredentialConfig(resolveSelfCliArgs(), relayToken.host),
+      env,
     ),
-  ).env(buildCloneAuthEnv({ relayToken }));
+  ).env(env);
 }
 
 function isGitHubDotComHttpsUrl(cloneUrl: string): boolean {

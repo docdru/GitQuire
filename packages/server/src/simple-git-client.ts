@@ -1,23 +1,10 @@
 import { simpleGit as createSimpleGit, type SimpleGit, type SimpleGitOptions } from 'simple-git';
 
-const GIT_CONFIG_ENV_SLOTS = 32;
-
 export const GIT_ALLOWED_ENVIRONMENT: readonly string[] = [
   'GIT_DIR',
   'GIT_WORK_TREE',
   'GIT_INDEX_FILE',
-  'GIT_OBJECT_DIRECTORY',
-  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
-  'GIT_COMMON_DIR',
-  'GIT_NAMESPACE',
   'GIT_CONFIG_NOSYSTEM',
-  'GIT_CONFIG_GLOBAL',
-  'GIT_CONFIG_SYSTEM',
-  'GIT_CONFIG_COUNT',
-  ...Array.from({ length: GIT_CONFIG_ENV_SLOTS }, (_, i) => [
-    `GIT_CONFIG_KEY_${i}`,
-    `GIT_CONFIG_VALUE_${i}`,
-  ]).flat(),
   'GIT_AUTHOR_NAME',
   'GIT_AUTHOR_EMAIL',
   'GIT_AUTHOR_DATE',
@@ -27,8 +14,6 @@ export const GIT_ALLOWED_ENVIRONMENT: readonly string[] = [
   'GIT_TERMINAL_PROMPT',
   'GIT_MERGE_AUTOEDIT',
   'GIT_OPTIONAL_LOCKS',
-  'GIT_NO_LAZY_FETCH',
-  'GIT_TRACE',
 ];
 
 function withDefaults(options: Partial<SimpleGitOptions>): Partial<SimpleGitOptions> {

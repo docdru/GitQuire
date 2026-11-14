@@ -228,19 +228,18 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
         _detectGhFn: () => ({ available: false }),
       });
       expect(auth.tier).toBe('B');
+      const env = buildCloneAuthEnv(auth, {
+        PATH: process.env.PATH ?? '',
+        HOME: workspace,
+        GIT_CONFIG_NOSYSTEM: '1',
+        ...commandScopeConfig([
+          ['credential.helper', helperConfigValue(envHelper)],
+          ...server.gitConfig,
+        ]),
+      });
       const git = simpleGit(
-        buildCloneGitOptions(workspace, auth.gitConfig) as Partial<SimpleGitOptions>,
-      ).env(
-        buildCloneAuthEnv(auth, {
-          PATH: process.env.PATH ?? '',
-          HOME: workspace,
-          GIT_CONFIG_NOSYSTEM: '1',
-          ...commandScopeConfig([
-            ['credential.helper', helperConfigValue(envHelper)],
-            ...server.gitConfig,
-          ]),
-        }),
-      );
+        buildCloneGitOptions(workspace, auth.gitConfig, env) as Partial<SimpleGitOptions>,
+      ).env(env);
 
       await expect(git.clone(url, join(workspace, 'target'), buildCloneArgs(null))).rejects.toThrow(
         'Authentication failed',
@@ -259,10 +258,10 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
   test.each([
     {
       pair: 'share publish pair',
-      open: async (dir: string, sourceEnv: NodeJS.ProcessEnv) =>
-        simpleGit(buildCloneGitOptions(dir, []) as Partial<SimpleGitOptions>).env(
-          buildCloneEnv(sourceEnv),
-        ),
+      open: async (dir: string, sourceEnv: NodeJS.ProcessEnv) => {
+        const env = buildCloneEnv(sourceEnv);
+        return simpleGit(buildCloneGitOptions(dir, [], env) as Partial<SimpleGitOptions>).env(env);
+      },
     },
     {
       pair: 'ok clone pair',
@@ -272,9 +271,10 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
           new FileBackend(join(dir, 'auth.yml')),
           { selfCliArgs: ['open-knowledge'], cwd: dir, _detectGhFn: relayTokenGh },
         );
+        const env = buildCloneAuthEnv(auth, sourceEnv);
         return simpleGit(
-          buildCloneGitOptions(dir, auth.gitConfig) as Partial<SimpleGitOptions>,
-        ).env(buildCloneAuthEnv(auth, sourceEnv));
+          buildCloneGitOptions(dir, auth.gitConfig, env) as Partial<SimpleGitOptions>,
+        ).env(env);
       },
     },
   ])(
@@ -300,15 +300,16 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
     { key: 'core.fsmonitor', value: 'true', category: 'allowUnsafeFsMonitor' },
     { key: 'protocol.file.allow', value: 'always', category: 'allowUnsafeProtocolOverride' },
   ])('an environment $key stays refused under $category', async ({ key, value, category }) => {
-    const git = simpleGit(buildCloneGitOptions(workspace, []) as Partial<SimpleGitOptions>).env(
-      buildCloneEnv({
-        PATH: process.env.PATH ?? '',
-        HOME: workspace,
-        GIT_CONFIG_COUNT: '1',
-        GIT_CONFIG_KEY_0: key,
-        GIT_CONFIG_VALUE_0: value,
-      }),
-    );
+    const env = buildCloneEnv({
+      PATH: process.env.PATH ?? '',
+      HOME: workspace,
+      GIT_CONFIG_COUNT: '1',
+      GIT_CONFIG_KEY_0: key,
+      GIT_CONFIG_VALUE_0: value,
+    });
+    const git = simpleGit(
+      buildCloneGitOptions(workspace, [], env) as Partial<SimpleGitOptions>,
+    ).env(env);
 
     await expect(git.raw(['--version'])).rejects.toThrow(category);
   });
