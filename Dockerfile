@@ -11,8 +11,7 @@ ARG NODE_VERSION=24.21.0
 # ---------------------------------------------------------------- build ----
 FROM node:${NODE_VERSION}-bookworm AS build
 
-ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
-    CI=1
+ENV CI=1
 
 # pnpm version comes from package.json "packageManager".
 RUN npm install -g corepack@latest && corepack enable

@@ -208,26 +208,6 @@ describe('removeOwnMcpEntry — JSON', () => {
 });
 
 describe('removeOwnMcpEntry — TOML (Codex)', () => {
-  test('removes OK’s entry, preserving a sibling table + its comment', () => {
-    const dir = tmp();
-    try {
-      const configPath = join(dir, 'config.toml');
-      const chain = (ownEntry.args as string[])[2];
-      const raw = `# codex config\nmodel = "gpt-5"\n\n[mcp_servers.other]\ncommand = "node"  # keep me\n\n[mcp_servers.${MCP_SERVER_NAME}]\ncommand = "/bin/sh"\nargs = ["-l", "-c", ${JSON.stringify(chain)}]\n`;
-      writeFileSync(configPath, raw);
-      const outcome = removeOwnMcpEntry(EDITOR_TARGETS.codex, dir, undefined, configPath);
-      expect(outcome.kind).toBe('removed');
-      const after = readFileSync(configPath, 'utf-8');
-      expect(after).toContain('# codex config');
-      expect(after).toContain('model = "gpt-5"');
-      expect(after).toContain('[mcp_servers.other]');
-      expect(after).toContain('command = "node"  # keep me');
-      expect(after).not.toContain(`[mcp_servers.${MCP_SERVER_NAME}]`);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
   test('idempotent — removing an already-absent Codex entry is a no-op', () => {
     const dir = tmp();
     try {
@@ -237,25 +217,6 @@ describe('removeOwnMcpEntry — TOML (Codex)', () => {
       const outcome = removeOwnMcpEntry(EDITOR_TARGETS.codex, dir, undefined, configPath);
       expect(outcome.kind).toBe('not-present');
       expect(readFileSync(configPath, 'utf-8')).toBe(raw);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  test('preserves CRLF line endings across the removal', () => {
-    const dir = tmp();
-    try {
-      const configPath = join(dir, 'config.toml');
-      const chain = (ownEntry.args as string[])[2];
-      const raw = `# codex\r\n[mcp_servers.other]\r\ncommand = "node"\r\n\r\n[mcp_servers.${MCP_SERVER_NAME}]\r\ncommand = "/bin/sh"\r\nargs = ["-l", "-c", ${JSON.stringify(chain)}]\r\n`;
-      writeFileSync(configPath, raw);
-      expect(removeOwnMcpEntry(EDITOR_TARGETS.codex, dir, undefined, configPath).kind).toBe(
-        'removed',
-      );
-      const after = readFileSync(configPath, 'utf-8');
-      expect(after.includes('\r\n')).toBe(true);
-      expect(after).not.toContain(`[mcp_servers.${MCP_SERVER_NAME}]`);
-      expect(after).toContain('[mcp_servers.other]');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -518,20 +479,17 @@ describe('removeOwnMcpEntry — symlinks', () => {
     },
   );
 
-  test.skipIf(process.platform === 'win32').each(['claude', 'hermes', 'codex'] as const)(
+  test.skipIf(process.platform === 'win32').each(['claude', 'hermes'] as const)(
     'preserves the %s config symlink chain and edits only its destination',
     (editorId) => {
       const dir = tmp();
       try {
         const configPath = join(dir, 'config');
         const targetPath = join(dir, 'dotfiles-config');
-        const chain = (ownEntry.args as string[])[2];
         const raw =
-          editorId === 'codex'
-            ? `# user configuration\n[mcp_servers.other]\ncommand = "node"\n\n[mcp_servers.${MCP_SERVER_NAME}]\ncommand = "/bin/sh"\nargs = ["-l", "-c", ${JSON.stringify(chain)}]\n`
-            : editorId === 'hermes'
-              ? `# user configuration\nmcp_servers:\n  other:\n    command: node\n  ${MCP_SERVER_NAME}: ${JSON.stringify(ownEntry)}\n`
-              : `{\n  // user configuration\n  "mcpServers": {"other": {"command": "node"}, "${MCP_SERVER_NAME}": ${JSON.stringify(ownEntry)}}\n}\n`;
+          editorId === 'hermes'
+            ? `# user configuration\nmcp_servers:\n  other:\n    command: node\n  ${MCP_SERVER_NAME}: ${JSON.stringify(ownEntry)}\n`
+            : `{\n  // user configuration\n  "mcpServers": {"other": {"command": "node"}, "${MCP_SERVER_NAME}": ${JSON.stringify(ownEntry)}}\n}\n`;
         writeFileSync(targetPath, raw, { mode: 0o640 });
         symlinkSync('dotfiles-config', join(dir, 'intermediate'));
         symlinkSync('intermediate', configPath);

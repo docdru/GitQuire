@@ -5,7 +5,7 @@ function describeValue(value: unknown): string {
   return `${typeof value} keys=[${Object.keys(value).join(',')}]`;
 }
 
-export function describeConfigFailure(context: string, err: unknown): string {
+function describeConfigFailure(context: string, err: unknown): string {
   const messages: string[] = [];
   const seen = new WeakSet<object>();
   let current: unknown = err;

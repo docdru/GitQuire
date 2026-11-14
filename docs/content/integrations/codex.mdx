@@ -39,7 +39,7 @@ Open the project in Codex and ask:
 
 <VerifyExec />
 
-If you don't see the tool, check that the project is trusted first, then restart Codex. If it's still missing and `ok init` reported your config was `left unchanged`, the reason in parentheses says why `~/.codex/config.toml` (or `$CODEX_HOME/config.toml` if set) was left untouched. For config problems, fix the file and re-run `ok init`; for `no format-preserving writer available`, your config isn't the problem — GitQuire can't rewrite the file safely on this platform, so add an `open-knowledge` entry to `mcp_servers` by hand (command: `ok mcp`).
+If you don't see the tool, check that the project is trusted first, then restart Codex. If it's still missing and `ok init` reported your config was `left unchanged`, the reason in parentheses says why `~/.codex/config.toml` (or `$CODEX_HOME/config.toml` if set) was left untouched. For config problems, fix the file and re-run `ok init`; for `no format-preserving writer available`, your config isn't the problem — GitQuire doesn't edit TOML configs, so add an `open-knowledge` entry to `mcp_servers` by hand (command: `ok mcp`).
 
 ## Scheduled runs
 
