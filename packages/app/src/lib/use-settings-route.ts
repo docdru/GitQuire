@@ -45,6 +45,12 @@ export function openAgentSettings(): void {
   openSettingsSection(AGENT_SETTINGS_SECTION);
 }
 
+const AI_CHAT_SECTION = 'ai-chat';
+
+export function openAiChatSettings(): void {
+  openSettingsSection(AI_CHAT_SECTION);
+}
+
 const ABOUT_SECTION = 'about';
 
 export function openAboutSettings(): void {

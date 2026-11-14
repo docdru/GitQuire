@@ -289,7 +289,7 @@ const ALLOWLIST: ReadonlySet<string> = new Set([
 
 const ALLOWLIST_HINT = 'cat, ls, grep, find, head, tail, wc, sort, uniq, cut';
 
-const WRITE_OPS: ReadonlySet<string> = new Set(['>', '>>']);
+const WRITE_OPS: ReadonlySet<string> = new Set(['>', '>>', '>|', '&>', '&>>', '<>']);
 
 const REDIRECT_OPS: ReadonlySet<string> = new Set(['<', '<&', '<<<', '>&', '|&']);
 
@@ -305,6 +305,8 @@ const SHELL_CONSTRUCT_OPS: ReadonlySet<string> = new Set([
   '>(',
   '<<',
   '<<-',
+  ';&',
+  ';;&',
 ]);
 
 const FIND_EXEC_DENY: ReadonlySet<string> = new Set(['-exec', '-execdir', '-ok', '-okdir']);

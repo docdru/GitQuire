@@ -27,6 +27,7 @@ interface McpHttpSession {
   ownerId?: string;
 }
 
+export const MCP_MAX_REQUEST_BODY_BYTES = 32 * 1024 * 1024;
 export interface McpHttpHandlerOptions {
   contentDir: string;
   projectDir?: string;
@@ -192,6 +193,7 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
       const isHostedAgent = firstHeader(req.headers[MCP_HOSTED_AGENT_HEADER]) === '1';
 
       const transport = new StreamableHTTPServerTransport({
+        maxRequestBodySize: MCP_MAX_REQUEST_BODY_BYTES,
         sessionIdGenerator: () => randomUUID(),
         enableJsonResponse: true,
         onsessioninitialized: async (newSessionId) => {

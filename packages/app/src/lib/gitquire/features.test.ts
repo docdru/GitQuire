@@ -37,6 +37,7 @@ describe('GitQuire features', () => {
         JSON.stringify({
           features: {
             askAi: false,
+            aiChat: true,
             agentToken: true,
             connector: false,
             canUseTokens: true,
@@ -47,6 +48,7 @@ describe('GitQuire features', () => {
     );
     expect(features).toEqual({
       askAi: false,
+      aiChat: true,
       agentToken: true,
       connector: false,
       canUseTokens: true,

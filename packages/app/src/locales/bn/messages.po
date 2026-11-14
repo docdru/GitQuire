@@ -109,6 +109,9 @@ msgstr "(বাইনারি ফাইল, প্রাকদর্শন ক�
 msgid "(detached)"
 msgstr "(বিচ্ছিন্ন)"
 
+msgid "(failed)"
+msgstr ""
+
 msgid "(inline)"
 msgstr "(ইনলাইন)"
 
@@ -261,6 +264,9 @@ msgstr "{0} নিজে থেকে আপনার নথি পড়তে 
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0} এখনও তার সেটিং জানায়নি"
+
+msgid "{0} in · {1} out"
+msgstr ""
 
 msgid "{0} is over {destination}."
 msgstr "{0} {destination}-এর উপরে রয়েছে।"
@@ -1189,6 +1195,9 @@ msgstr "{appName} সম্পর্কে"
 msgid "About & updates"
 msgstr "সম্পর্কে ও হালনাগাদ"
 
+msgid "About the folder"
+msgstr ""
+
 msgid "Above"
 msgstr "উপরে"
 
@@ -1282,6 +1291,9 @@ msgstr "একটি স্টার্টার প্যাক যোগ ক�
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab, Gitea, Bitbucket, Azure DevOps বা স্ব-হোস্ট করা git সার্ভারের জন্য একটি প্রবেশ টোকেন যোগ করুন। টোকেন না থাকলে git ওই হোস্টের জন্য আগে থেকে সংরক্ষিত শংসাপত্র ব্যবহার করে; টোকেন থাকলে GitQuire তার বদলে টোকেনটি ব্যবহার করে।"
 
+msgid "Add an API key"
+msgstr ""
+
 msgid "Add another pattern"
 msgstr "আরেকটি প্যাটার্ন যোগ করুন"
 
@@ -1290,6 +1302,9 @@ msgstr "অন্তত একটি অক্ষর বা সংখ্যা �
 
 msgid "Add block below"
 msgstr "নিচে ব্লক যোগ করুন"
+
+msgid "Add credit to your account at the provider."
+msgstr ""
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "CodeMirror-এর মাধ্যমে কার্সর যোগ করুন বা মিলে যাওয়া উপস্থিতিগুলো নির্বাচন করুন।"
@@ -1375,6 +1390,9 @@ msgstr "টোকেন যোগ করুন"
 
 msgid "Add value"
 msgstr "মান যোগ করুন"
+
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
 
 msgid "Added"
 msgstr "যোগ করা হয়েছে"
@@ -1472,6 +1490,12 @@ msgstr "এজেন্ট প্রতিলিপি"
 
 msgid "Agents"
 msgstr "এজেন্ট"
+
+msgid "AI chat"
+msgstr ""
+
+msgid "AI chat here in GitQuire"
+msgstr ""
 
 msgid "AI tools"
 msgstr "AI টুল"
@@ -1633,6 +1657,9 @@ msgstr "যে কেউ দেখতে পারে"
 msgid "Anything you'd like to add? (optional)"
 msgstr "আর কিছু যোগ করতে চান? (ঐচ্ছিক)"
 
+msgid "API key"
+msgstr ""
+
 msgid "API key set"
 msgstr "API কী নির্ধারিত"
 
@@ -1747,6 +1774,15 @@ msgstr "{agentName}-কে জিজ্ঞেস করুন"
 msgid "Ask {agentName}, {hint}"
 msgstr "{agentName}-কে জিজ্ঞেস করুন, {hint}"
 
+msgid "Ask about the wiki"
+msgstr ""
+
+msgid "Ask about this page or anything in the wiki."
+msgstr ""
+
+msgid "Ask about this page or the wiki"
+msgstr ""
+
 msgid "Ask again before read-only commands"
 msgstr "শুধু-পড়ার কমান্ডের আগে আবার জিজ্ঞাসা করুন"
 
@@ -1765,6 +1801,9 @@ msgstr "AI-কে {flatId} ঠিক করতে বলুন"
 msgid "Ask an agent"
 msgstr "একটি এজেন্টকে জিজ্ঞেস করুন"
 
+msgid "Ask anything about the wiki."
+msgstr ""
+
 msgid "Ask changes…"
 msgstr "পরিবর্তন চাওয়া…"
 
@@ -1778,6 +1817,12 @@ msgid "Ask Claude to work on this page…"
 msgstr ""
 
 msgid "Ask for changes"
+msgstr ""
+
+msgid "Ask the AI chat about this folder…"
+msgstr ""
+
+msgid "Ask the AI chat about this page…"
 msgstr ""
 
 msgid "Asked: {waitingFor}"
@@ -1942,6 +1987,9 @@ msgstr "ব্যাকলিংক"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "ব্যাকলিংকের সাড়া প্রত্যাশিত আকারের সঙ্গে মেলেনি।"
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "ভিত্তি ব্রাঞ্চ"
@@ -2240,6 +2288,9 @@ msgctxt "settings search keyword"
 msgid "characters"
 msgstr "অক্ষর"
 
+msgid "Chat"
+msgstr ""
+
 msgid "Chat history"
 msgstr "চ্যাটের ইতিহাস"
 
@@ -2248,6 +2299,12 @@ msgstr "চ্যাটের ইতিহাস লোড করা যায�
 
 msgid "Chat name"
 msgstr "চ্যাটের নাম"
+
+msgid "Chat with Claude or Mistral about the wiki"
+msgstr ""
+
+msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
+msgstr ""
 
 msgid "Check for updates"
 msgstr "হালনাগাদ দেখুন"
@@ -2267,11 +2324,17 @@ msgstr "ওয়ার্কট্রি চেক আউট করুন"
 msgid "Check spelling while typing"
 msgstr "টাইপ করার সময় বানান দেখুন"
 
+msgid "Check your API key in Settings → AI chat."
+msgstr ""
+
 msgid "Checkbox"
 msgstr "চেকবক্স"
 
 msgid "Checked by: {0}"
 msgstr "পরীক্ষা করেছেন: {0}"
+
+msgid "Checked pages"
+msgstr ""
 
 msgid "Checking"
 msgstr "পরীক্ষা করা হচ্ছে"
@@ -2320,6 +2383,9 @@ msgstr "আপনার GitHub সংযোগ পরীক্ষা করা �
 
 msgid "Checking..."
 msgstr "পরীক্ষা করা হচ্ছে…"
+
+msgid "Checking…"
+msgstr ""
 
 msgid "Checklist with checkboxes."
 msgstr "চেকবক্সসহ চেকলিস্ট।"
@@ -3762,6 +3828,9 @@ msgstr "চ্যাট মুছুন"
 msgid "Delete chat?"
 msgstr "চ্যাট মুছবেন?"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "কোড ব্লক মুছুন"
 
@@ -3797,6 +3866,9 @@ msgstr "টেবিল মুছুন"
 
 msgid "Delete the file"
 msgstr "ফাইলটি মুছে ফেলুন"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "মোছা হয়েছে"
@@ -4186,6 +4258,9 @@ msgstr "প্রতিটি প্যাক আপনার প্রকল্
 msgid "Each push is one commit to your remote."
 msgstr "প্রতিটি পুশ আপনার রিমোটে একটি কমিট।"
 
+msgid "Earlier chats"
+msgstr ""
+
 msgid "Edit"
 msgstr "সম্পাদনা করুন"
 
@@ -4246,8 +4321,14 @@ msgstr ""
 msgid "Edited"
 msgstr "সম্পাদিত"
 
+msgid "Edited {detail}"
+msgstr ""
+
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo} সম্পাদিত"
+
+msgid "Edited a page"
+msgstr ""
 
 msgid "Edited locally since it was installed"
 msgstr "ইনস্টল হওয়ার পর থেকে স্থানীয়ভাবে সম্পাদিত"
@@ -4507,6 +4588,9 @@ msgstr "{minimum} থেকে {maximum} এর মধ্যে একটি প
 
 msgid "Enter at least 3 characters to search by meaning."
 msgstr "অর্থের ভিত্তিতে অনুসন্ধান করতে অন্তত ৩টি অক্ষর লিখুন।"
+
+msgid "Enter it again"
+msgstr ""
 
 msgid "Enter the host name git connects to, with an optional :port and no scheme or path, for example git.example.com."
 msgstr "git যে হোস্ট নামে সংযোগ করে সেটি লিখুন, ঐচ্ছিক :port সহ এবং কোনো স্কিম বা পাথ ছাড়া, যেমন git.example.com।"
@@ -4890,6 +4974,9 @@ msgstr "ফাইল আপলোড করতে ব্যর্থ"
 msgid "Fast"
 msgstr "দ্রুত"
 
+msgid "Fastest, cheapest"
+msgstr ""
+
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "মতামত এখন পাওয়া যাচ্ছে না। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
 
@@ -5175,6 +5262,9 @@ msgstr "জেনারেটেড ফাইল"
 
 msgid "Get {displayName}"
 msgstr "{displayName} নিন"
+
+msgid "Get an API key"
+msgstr ""
 
 msgid "Get Claude Code"
 msgstr "Claude Code নিন"
@@ -6327,6 +6417,9 @@ msgstr "মূল ফাইলটি রাখুন"
 msgid "Keep source"
 msgstr "উৎস রাখুন"
 
+msgid "Keep the cost under control"
+msgstr ""
+
 msgid "Keep the name to 64 characters or fewer."
 msgstr "নামটি ৬৪ অক্ষর বা তার কমে রাখুন।"
 
@@ -6354,8 +6447,17 @@ msgstr "আপনার বিষয়বস্তু রাখা হয়ে
 msgid "Key ending in {keyHint}"
 msgstr "{keyHint}-এ শেষ হওয়া কী"
 
+msgid "Key removed for {0}."
+msgstr ""
+
+msgid "Key saved for {0}."
+msgstr ""
+
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "সম্পাদক ও ওয়ার্কস্পেসে যেসব কীবোর্ড শর্টকাট আছে।"
+
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgstr ""
 
 msgid "Kill Terminal"
 msgstr "টার্মিনাল বন্ধ করুন"
@@ -6688,6 +6790,15 @@ msgstr "লগ ও সিস্টেমের তথ্য"
 msgid "Look Up \"{word}\""
 msgstr "\"{word}\" খুঁজুন"
 
+msgid "Looked at links"
+msgstr ""
+
+msgid "Looked at the page history"
+msgstr ""
+
+msgid "Looked at: {detail}"
+msgstr ""
+
 msgid "Looking for <0>{lookingForUrl}</0>."
 msgstr "<0>{lookingForUrl}</0> খোঁজা হচ্ছে।"
 
@@ -6836,6 +6947,9 @@ msgstr "Mermaid চিত্রের নিয়ন্ত্রণ"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid চিত্র রেন্ডার করা যায়নি।"
 
+msgid "Message"
+msgstr ""
+
 msgid "Message {agentName}"
 msgstr "{agentName}-কে বার্তা পাঠান"
 
@@ -6923,6 +7037,9 @@ msgstr "আরও ক্রিয়া"
 msgid "More actions ({syncAttentionLabel})"
 msgstr "আরও ক্রিয়া ({syncAttentionLabel})"
 
+msgid "More chat actions"
+msgstr ""
+
 msgid "More draft actions"
 msgstr ""
 
@@ -6937,6 +7054,9 @@ msgstr "স্কিলের আরও ক্রিয়া"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "প্রাকদর্শনের নিরাপত্তা নীতি {0}-এর বেশি অনুরোধ আটকে দিয়েছে"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "সবচেয়ে বেশি ইনস্টল হওয়া"
@@ -7102,6 +7222,9 @@ msgstr "{moved}টি স্কিল গ্লোবালে সরানো �
 
 msgid "Moved {moved} skills to Project"
 msgstr "{moved}টি স্কিল প্রকল্পে সরানো হয়েছে"
+
+msgid "Moved a page"
+msgstr ""
 
 msgid "Moved down."
 msgstr "নিচে সরানো হয়েছে।"
@@ -7495,6 +7618,9 @@ msgstr "কোনো ছবি যোগ করা হয়নি।"
 
 msgid "No Incoming"
 msgstr "কোনো আগত নেই"
+
+msgid "No key"
+msgstr ""
 
 msgid "No language match."
 msgstr "কোনো ভাষা মেলে না।"
@@ -8394,6 +8520,9 @@ msgstr "URL, owner/repo পেস্ট করুন, বা আপনার র
 msgid "Paste was incomplete — {chunksCompleted} of {totalChunks} chunks landed.{restoreSuffix}"
 msgstr "পেস্ট অসম্পূর্ণ ছিল — {totalChunks}টি খণ্ডের মধ্যে {chunksCompleted}টি পৌঁছেছে।{restoreSuffix}"
 
+msgid "Paste your {0} API key"
+msgstr ""
+
 msgid "Paste your API key"
 msgstr "আপনার API কী পেস্ট করুন"
 
@@ -8866,6 +8995,9 @@ msgstr "React"
 msgid "Read"
 msgstr "পড়া"
 
+msgid "Read pages"
+msgstr ""
+
 msgid "Read through this codebase and draft a technical spec for the most complex module: an overview, the architecture, key files, and open questions, all linked from a specs index page."
 msgstr "এই কোডবেসটি পড়ে সবচেয়ে জটিল মডিউলের জন্য একটি কারিগরি স্পেকের খসড়া করুন: একটি সংক্ষিপ্তসার, স্থাপত্য, প্রধান ফাইল ও খোলা প্রশ্ন, যেগুলো সবই একটি স্পেক সূচি পাতা থেকে যুক্ত থাকবে।"
 
@@ -9275,6 +9407,9 @@ msgstr "কী বদলান"
 msgid "Replace the active match from the replace field."
 msgstr "বদলানোর ফিল্ড থেকে সক্রিয় মিলটি বদলান।"
 
+msgid "Replace the API key"
+msgstr ""
+
 msgid "Replace the copy at {display} with a symlink to the skill's source folder? Nothing else moves."
 msgstr "{display}-এ থাকা অনুলিপিটি স্কিলের উৎস ফোল্ডারের একটি সিমলিংক দিয়ে বদলাবেন? আর কিছু সরে না।"
 
@@ -9612,8 +9747,14 @@ msgstr "সংরক্ষণ করুন"
 msgid "Save as page"
 msgstr ""
 
+msgid "Save as page…"
+msgstr ""
+
 msgid "Save changes"
 msgstr "পরিবর্তন সংরক্ষণ করুন"
+
+msgid "Save chat as a page"
+msgstr ""
 
 msgid "Save failed: {error}"
 msgstr "সংরক্ষণ ব্যর্থ: {error}"
@@ -9630,7 +9771,13 @@ msgstr ""
 msgid "Saved"
 msgstr "সংরক্ষিত"
 
+msgid "Saved {0}"
+msgstr ""
+
 msgid "Saved as {docName}.md"
+msgstr ""
+
+msgid "Saved as {saved}."
 msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
@@ -9674,6 +9821,9 @@ msgstr "পরিবর্তনগুলি সংরক্ষণ করা হ
 
 msgid "Saving your edits before reloading…"
 msgstr "আবার লোড করার আগে আপনার সম্পাদনা সংরক্ষণ করা হচ্ছে…"
+
+msgid "Saving…"
+msgstr ""
 
 msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
 msgstr ""
@@ -9803,6 +9953,12 @@ msgstr "ওয়ার্কট্রি খুঁজুন"
 
 msgid "Search worktrees and branches"
 msgstr "ওয়ার্কট্রি ও ব্রাঞ্চ খুঁজুন"
+
+msgid "Searched “{detail}”"
+msgstr ""
+
+msgid "Searched the wiki"
+msgstr ""
 
 msgid "Searches files"
 msgstr "ফাইলে খোঁজে"
@@ -10037,6 +10193,12 @@ msgstr "সেশন শেষ হয়েছে"
 
 msgid "Session ended — undo unavailable"
 msgstr "সেশন শেষ হয়েছে — পূর্বাবস্থা পাওয়া যাচ্ছে না"
+
+msgid "Set a monthly spending limit at the provider (links below). It stops the key once the limit is reached."
+msgstr ""
+
+msgid "Set a spending limit"
+msgstr ""
 
 msgid "Set git identity"
 msgstr "git পরিচয় নির্ধারণ করুন"
@@ -10512,6 +10674,9 @@ msgstr "আপনার মতামত পাঠানোর সময় ক�
 msgid "Something went wrong starting the terminal."
 msgstr "টার্মিনাল চালু করার সময় কিছু একটা ভুল হয়েছে।"
 
+msgid "Something went wrong."
+msgstr ""
+
 msgid "Something went wrong. Please try again."
 msgstr "কিছু একটা ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
 
@@ -10575,6 +10740,9 @@ msgstr "বানান পরীক্ষা"
 
 msgid "Spelling languages"
 msgstr "বানান পরীক্ষার ভাষা"
+
+msgid "Spending limit"
+msgstr ""
 
 msgid "Split list item"
 msgstr "তালিকা আইটেম ভাগ করুন"
@@ -10701,6 +10869,9 @@ msgstr "থেমে গেছে"
 
 msgid "Stopped fixing. Files already fixed stay fixed."
 msgstr "ঠিক করা থামানো হয়েছে। যেসব ফাইল আগেই ঠিক হয়েছে সেগুলো ঠিকই থাকে।"
+
+msgid "Stopped."
+msgstr ""
 
 msgid "Stopping"
 msgstr "থামানো হচ্ছে"
@@ -11121,6 +11292,21 @@ msgstr "এজেন্টের ইনস্টলেশনে ফাইল অ
 msgid "The agent's persona, values, and voice."
 msgstr "এজেন্টের ব্যক্তিত্ব, মূল্যবোধ ও স্বর।"
 
+msgid "The AI chat could not be loaded."
+msgstr ""
+
+msgid "The AI chat settings could not be loaded."
+msgstr ""
+
+msgid "The answer was cut off because it got too long. Say “continue” for the rest."
+msgstr ""
+
+msgid "The assistant can search and read pages and change them when you ask. Add your own API key to start; you pay the provider for what you use."
+msgstr ""
+
+msgid "The assistant stopped after many steps. Say “continue” to let it go on."
+msgstr ""
+
 msgid "The attested-computation contract. Only applies to documents typed Attested Computation, where OKF requires a runtime; ordinary concepts are unaffected."
 msgstr "প্রত্যয়িত-গণনা চুক্তি। শুধুমাত্র Attested Computation টাইপ করা নথিতে প্রযোজ্য, যেখানে OKF একটি runtime প্রয়োজন; সাধারণ ধারণাগুলি প্রভাবিত হয় না।"
 
@@ -11145,6 +11331,15 @@ msgstr "এই চ্যাটে ব্রাউজার উপলভ্য �
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "এই চ্যাটে ব্রাউজার উপলভ্য নয়, কারণ এটি চালু করতে পারে এমন কোনো Node.js ইনস্টল পাওয়া যায়নি। Node.js ইনস্টল করুন, তারপর একটি নতুন চ্যাট শুরু করুন।"
 
+msgid "The chat could not be deleted."
+msgstr ""
+
+msgid "The chat could not be opened."
+msgstr ""
+
+msgid "The chat shows how many tokens each conversation used. Long chats cost more, because the whole conversation is sent with every message; start a new chat for a new topic."
+msgstr ""
+
 msgid "The chat's messages, tool calls, and their output, so we can see what the agent did, plus the chat's title, the project folder's path, the document it started from, and the agent and its settings. Images are replaced by their type and size, and attached text files are included. It can contain document content, so uncheck it if you'd rather not share it."
 msgstr "চ্যাটের বার্তা, টুল কল এবং সেগুলোর আউটপুট, যাতে আমরা দেখতে পারি এজেন্ট কী করেছে, সেই সঙ্গে এর শিরোনাম, প্রকল্পের ফোল্ডারের পথ, যে নথি থেকে এটি শুরু হয়েছিল এবং এজেন্ট ও তার সেটিং। ছবির জায়গায় সেগুলোর ধরন ও আকার দেওয়া হয়, আর সংযুক্ত টেক্সট ফাইল অন্তর্ভুক্ত থাকে। এতে নথির বিষয়বস্তু থাকতে পারে, তাই ভাগ করতে না চাইলে এটি অচিহ্নিত করে দিন।"
 
@@ -11159,6 +11354,12 @@ msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "কথোপকথনটি এই রিপোর্টে যোগ করা যায়নি।"
+
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
+msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
+msgstr ""
 
 msgid "The copy of \"{name}\" kept in {scopeLabel} is a redundant duplicate: the original was verified unchanged. Remove that copy, then retry the move."
 msgstr "{scopeLabel}-এ রাখা “{name}”-এর কপিটি একটি অপ্রয়োজনীয় নকল: যাচাই করে দেখা গেছে মূলটি অপরিবর্তিত আছে। ওই কপিটি মুছে ফেলুন, তারপর সরানোর কাজটি আবার চেষ্টা করুন।"
@@ -11238,6 +11439,12 @@ msgstr "ইনডেক্স ফাইলগুলি জায়গায় 
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "ইন্টারফেসটি এখনও সেই ভাষাতেই আছে যেটি আপনি পড়ছিলেন। আপনার সংযোগ দেখে নিন, তারপর আবার চেষ্টা করতে রিলোড করুন।"
 
+msgid "The key could not be removed. Try again."
+msgstr ""
+
+msgid "The key could not be saved."
+msgstr ""
+
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "GitQuire যে ভাষায় কথা বলে; সিস্টেম আপনার অপারেটিং সিস্টেমকে অনুসরণ করে। আপনার নিজের নোট যে ভাষায় লিখেছেন সেই ভাষাতেই থাকবে।"
 
@@ -11258,6 +11465,9 @@ msgstr "আপনার এন্ডপয়েন্ট যে মডেল id
 
 msgid "the open agent"
 msgstr "খোলা এজেন্ট"
+
+msgid "The page could not be saved."
+msgstr ""
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11288,6 +11498,12 @@ msgstr "প্রপার্টি বদলেছে, কিন্তু ত�
 
 msgid "The provenance, trust, and lifecycle families: sources, generated, verified, status, and stale_after. Every field is optional, and absence is never an error."
 msgstr "মূল, বিশ্বাস, এবং জীবনচক্র পরিবারগুলি: sources, generated, verified, status, এবং stale_after। প্রতিটি ক্ষেত্র ঐচ্ছিক, এবং অনুপস্থিতি কখনও একটি ত্রুটি নয়।"
+
+msgid "The provider asks to slow down. Wait a minute and try again."
+msgstr ""
+
+msgid "The provider is busy. Try again in a moment."
+msgstr ""
 
 msgid "The provider is rate-limiting this key. Try again in a moment."
 msgstr "সরবরাহকারী এই কী-টির হার সীমিত করছে। একটু পরে আবার চেষ্টা করুন।"
@@ -11322,6 +11538,9 @@ msgstr "GitQuire টুল সক্ষম করার অনুরোধের
 msgid "The same text changed in both places"
 msgstr ""
 
+msgid "The saved key can no longer be read, usually because the server's session secret changed. Paste it again."
+msgstr ""
+
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "স্কিমা ফাইলটি নেই বা লোড করা যায়নি — একটি ফিল্ড যোগ করলে সেটি তৈরি হয়।"
 
@@ -11354,6 +11573,9 @@ msgstr "স্কিলের নিজের ফোল্ডার ({path}) —
 
 msgid "The skills list did not match its schema."
 msgstr "স্কিল তালিকা তার স্কিমার সাথে মেলেনি।"
+
+msgid "The smaller models are much cheaper and fine for most questions."
+msgstr ""
 
 msgid "The source folder itself does not move."
 msgstr "উৎস ফোল্ডারটি নিজে সরে না।"
@@ -11549,6 +11771,12 @@ msgstr "এই ব্রাঞ্চ GitQuire সেটআপ পাথকে �
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "এটি সেটিং > {agentConnectionsLabel}-এ কনফিগার করা যায়"
 
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
+
 msgid "This checkout path cannot be read."
 msgstr "এই চেকআউট পাথ পড়া যাচ্ছে না।"
 
@@ -11715,6 +11943,9 @@ msgid "This may take a moment. Your markdown content is kept."
 msgstr "এতে একটু সময় লাগতে পারে। আপনার markdown বিষয়বস্তু রক্ষা করা হয়।"
 
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
+
+msgid "This model is not available for your key. Choose another one."
 msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
@@ -12012,6 +12243,9 @@ msgid "tokens"
 msgstr "টোকেন"
 
 msgid "Tokens and connected apps"
+msgstr ""
+
+msgid "Tokens sent and received in this chat, billed to your {providerLabel} key"
 msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
@@ -12454,6 +12688,9 @@ msgstr "তাদের সংস্করণ ব্যবহার করুন
 msgid "Use this starter pack"
 msgstr "এই স্টার্টার প্যাক ব্যবহার করুন"
 
+msgid "Used {0}"
+msgstr ""
+
 msgid "User"
 msgstr "ব্যবহারকারী"
 
@@ -12696,7 +12933,7 @@ msgstr "কোথায়"
 msgid "Where should it live?"
 msgstr "এটি কোথায় থাকবে?"
 
-msgid "Where to open Claude"
+msgid "Where to ask"
 msgstr ""
 
 msgid "Which skill"
@@ -12805,6 +13042,12 @@ msgstr "লেখা"
 msgid "Writing this file failed. Check the GitQuire log for the reason."
 msgstr "এই ফাইলটি লেখা যায়নি। কারণ জানতে GitQuire লগ দেখুন।"
 
+msgid "Wrote {detail}"
+msgstr ""
+
+msgid "Wrote pages"
+msgstr ""
+
 msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
 msgstr "GitQuire এক্সটেনশন লেখা হয়েছে, কিন্তু ফোল্ডারটিকে বিশ্বস্ত হিসেবে চিহ্নিত করা যায়নি, তাই সেটি লোড হবে না। এই থ্রেডে GitQuire টুল নেই।"
 
@@ -12899,11 +13142,17 @@ msgstr "আপনি সদস্য হয়েছেন!"
 msgid "you@company.com"
 msgstr "you@company.com"
 
+msgid "Your {providerLabel} key"
+msgstr ""
+
 msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
 msgstr "আপনার এজেন্টরা এখনও এই স্কিলটি লোড করে, কিন্তু GitQuire এটি খুলতে বা সম্পাদনা করতে পারে না: git যে ফাইল উপেক্ষা করতে সেট করা আছে সেটি এটি ইনডেক্স করে না, কারণ সিঙ্ক ব্যর্থ হবে। {gitignorePath}-এ একটি লাইন যোগ করলে এটি এখানে সম্পাদনাযোগ্য হয়ে যায়।"
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "আপনার পরিবর্তন এখনও সংরক্ষিত হচ্ছে — একটু পরে পরীক্ষাটি আবার চালান।"
+
+msgid "Your chats (kept {0} days)"
+msgstr ""
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "ব্রাঞ্চ <0>{shareBranch}</0>-এর আপনার অনুলিপিতে এমন পরিবর্তন আছে যা GitHub-এ নেই। ব্রাঞ্চটি সিঙ্ক হলেই {targetNoun} দেখা যাবে।"
@@ -12976,6 +13225,9 @@ msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "আপনার শেয়ার লিংক নিচে প্রস্তুত।"
+
+msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
 
 msgid "Your user settings could not be read"
 msgstr "আপনার ব্যবহারকারী সেটিং পড়া যায়নি"

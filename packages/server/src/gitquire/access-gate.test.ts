@@ -4,9 +4,11 @@ import { describe, expect, it } from 'vitest';
 import {
   type AccessGate,
   createAccessGate,
+  encodeProxiedUser,
   isInAppAgentPath,
   isPublicAsset,
   noreplyEmail,
+  PROXIED_PRINCIPAL_HEADER,
   SESSION_COOKIE,
   STATE_COOKIE,
   safeNextPath,
@@ -308,6 +310,21 @@ describe('createAccessGate requests', () => {
     });
     expect(gate.handleRequest(req, out.res)).toBe(true);
     expect(out.status).toBe(401);
+  });
+
+  it('names the person behind the server’s own AI chat calls, and only for internal requests', () => {
+    const gate = makeGate();
+    const bob = { id: 8, login: 'bob', name: 'Bob', avatarUrl: '' };
+    const internal = fakeRequest('/mcp', {
+      method: 'POST',
+      headers: { ...internalRequestHeaders(), [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(bob) },
+    });
+    expect(gate.agentOwner?.(internal)).toMatchObject({ id: 8, login: 'bob' });
+    const forged = fakeRequest('/mcp', {
+      method: 'POST',
+      headers: { [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(bob) },
+    });
+    expect(gate.agentOwner?.(forged)).toBeUndefined();
   });
 
   it('keeps pages behind sign-in even with the internal header', () => {

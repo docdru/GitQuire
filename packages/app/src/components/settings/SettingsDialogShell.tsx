@@ -27,6 +27,7 @@ import { useDocumentContext } from '@/editor/DocumentContext';
 import type { ConfigContextValue } from '@/lib/config-context';
 import { useConfigContext } from '@/lib/config-provider';
 import { isFileProtocolPage } from '@/lib/file-protocol-page';
+import { useGitQuireFeatures } from '@/lib/gitquire/features';
 import { withoutHiddenSettings } from '@/lib/gitquire/settings-visibility';
 import { useClaudeDesktopIntegration } from '@/lib/handoff/use-claude-desktop-integration';
 import { getNoticesSnapshot, subscribeToNotices } from '@/lib/update-notices-store';
@@ -152,6 +153,7 @@ function SettingsDialogFrame({
   integrationsMenuAvailable,
 }: SettingsDialogFrameProps) {
   const { t } = useLingui();
+  const aiChatAvailable = useGitQuireFeatures().aiChat;
   const {
     userBinding,
     userSynced,
@@ -281,6 +283,16 @@ function SettingsDialogFrame({
             t`Agent token`,
           ],
         },
+        ...(aiChatAvailable
+          ? [
+              {
+                id: 'ai-chat',
+                label: t`AI chat`,
+                userScope: true,
+                keywords: [t`API key`, t`Claude`, t`Mistral`, t`Chat`, t`Spending limit`],
+              },
+            ]
+          : []),
       ],
     },
     {

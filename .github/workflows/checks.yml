@@ -109,5 +109,5 @@ jobs:
       - name: GitQuire app DOM tests
         run: >-
           pnpm --dir packages/app exec vitest run --config vitest.dom.config.ts
-          src/gitquire-settings src/components/settings/ScopeBadge.dom.test.tsx
+          src/gitquire-settings src/gitquire-chat src/components/settings/ScopeBadge.dom.test.tsx
           src/components/settings/LinkPreviewsSection.dom.test.tsx

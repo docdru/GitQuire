@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  askDestinations,
   buildClaudePrompt,
   claudeLink,
+  defaultAskDestination,
   defaultDestination,
   isClaudeDestination,
   MAX_REQUEST_CHARS,
 } from './ask-claude';
+import { STANDALONE_FEATURES } from './features';
 
 describe('Ask Claude', () => {
   it('names the wiki and the page in the prompt', () => {
@@ -62,5 +65,27 @@ describe('Ask Claude', () => {
     );
     expect(isClaudeDestination('claude-web')).toBe(true);
     expect(isClaudeDestination('chatgpt')).toBe(false);
+  });
+
+  it('offers the in-app chat when it takes the place of in-app agents', () => {
+    const base = { ...STANDALONE_FEATURES, askAi: false };
+    const chatOnly = { ...base, aiChat: true };
+    const both = { ...base, aiChat: true, connector: true };
+    expect(askDestinations(chatOnly)).toEqual(['gitquire-chat']);
+    expect(askDestinations(both)).toEqual([
+      'gitquire-chat',
+      'claude-web',
+      'claude-app',
+      'claude-code',
+    ]);
+    expect(askDestinations({ ...base, connector: true })).toEqual([
+      'claude-web',
+      'claude-app',
+      'claude-code',
+    ]);
+    expect(defaultAskDestination(both, null)).toBe('gitquire-chat');
+    expect(defaultAskDestination(both, 'claude-app')).toBe('claude-app');
+    expect(defaultAskDestination(chatOnly, 'claude-app')).toBe('gitquire-chat');
+    expect(defaultAskDestination({ ...base, connector: true }, 'gitquire-chat')).toBe('claude-web');
   });
 });

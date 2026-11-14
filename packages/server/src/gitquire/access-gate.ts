@@ -216,7 +216,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   }
 
   function agentOwner(req: IncomingMessage): SessionUser | undefined {
-    return agentTokenRecord(bearerToken(req))?.owner;
+    return agentTokenRecord(bearerToken(req))?.owner ?? proxiedUser(req);
   }
 
   function agentAccess(user: SessionUser): { agentToken: boolean; connector: boolean } {
@@ -507,6 +507,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         },
         features: {
           askAi: config.askAi,
+          aiChat: config.aiChat,
           ...agentAccess(user),
           canUseTokens: agentPages !== undefined,
           canConnect: oauth !== undefined,

@@ -109,6 +109,9 @@ msgstr "（二進位檔案，無法預覽）"
 msgid "(detached)"
 msgstr "（分離狀態）"
 
+msgid "(failed)"
+msgstr ""
+
 msgid "(inline)"
 msgstr "（行內）"
 
@@ -261,6 +264,9 @@ msgstr "{0} 無法自行讀取或編輯你的文件。核准後會將 GitQuire �
 
 msgid "{0} hasn't reported its settings yet"
 msgstr "{0} 尚未回報其設定"
+
+msgid "{0} in · {1} out"
+msgstr ""
 
 msgid "{0} is over {destination}."
 msgstr "{0} 位於 {destination} 上方。"
@@ -1193,6 +1199,9 @@ msgstr "關於 {appName}"
 msgid "About & updates"
 msgstr "關於與更新"
 
+msgid "About the folder"
+msgstr ""
+
 msgid "Above"
 msgstr "上方"
 
@@ -1286,6 +1295,9 @@ msgstr "加入入門套件"
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "為 GitLab、Gitea、Bitbucket、Azure DevOps 或自架 git 伺服器新增存取權杖。沒有權杖時，git 會使用它已為該主機儲存的憑證；新增權杖後，GitQuire 改用該權杖。"
 
+msgid "Add an API key"
+msgstr ""
+
 msgid "Add another pattern"
 msgstr "再新增一個模式"
 
@@ -1294,6 +1306,9 @@ msgstr "請至少加入一個字母或數字。"
 
 msgid "Add block below"
 msgstr "在下方新增區塊"
+
+msgid "Add credit to your account at the provider."
+msgstr ""
 
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "透過 CodeMirror 新增游標或選取相符的項目。"
@@ -1379,6 +1394,9 @@ msgstr "新增權杖"
 
 msgid "Add value"
 msgstr "新增值"
+
+msgid "Add your API key in Settings → AI chat first."
+msgstr ""
 
 msgid "Added"
 msgstr "已新增"
@@ -1476,6 +1494,12 @@ msgstr "代理記錄"
 
 msgid "Agents"
 msgstr "代理"
+
+msgid "AI chat"
+msgstr ""
+
+msgid "AI chat here in GitQuire"
+msgstr ""
 
 msgid "AI tools"
 msgstr "AI 工具"
@@ -1637,6 +1661,9 @@ msgstr "任何人都看得到"
 msgid "Anything you'd like to add? (optional)"
 msgstr "還有什麼想補充的嗎？（選填）"
 
+msgid "API key"
+msgstr ""
+
 msgid "API key set"
 msgstr "API 金鑰已設定"
 
@@ -1751,6 +1778,15 @@ msgstr "詢問 {agentName}"
 msgid "Ask {agentName}, {hint}"
 msgstr "詢問 {agentName}，{hint}"
 
+msgid "Ask about the wiki"
+msgstr ""
+
+msgid "Ask about this page or anything in the wiki."
+msgstr ""
+
+msgid "Ask about this page or the wiki"
+msgstr ""
+
 msgid "Ask again before read-only commands"
 msgstr "唯讀命令前重新詢問"
 
@@ -1769,6 +1805,9 @@ msgstr "請 AI 修正 {flatId}"
 msgid "Ask an agent"
 msgstr "詢問智慧代理"
 
+msgid "Ask anything about the wiki."
+msgstr ""
+
 msgid "Ask changes…"
 msgstr "要求變更…"
 
@@ -1782,6 +1821,12 @@ msgid "Ask Claude to work on this page…"
 msgstr ""
 
 msgid "Ask for changes"
+msgstr ""
+
+msgid "Ask the AI chat about this folder…"
+msgstr ""
+
+msgid "Ask the AI chat about this page…"
 msgstr ""
 
 msgid "Asked: {waitingFor}"
@@ -1946,6 +1991,9 @@ msgstr "反向連結"
 
 msgid "Backlinks response did not match expected shape."
 msgstr "反向連結的回應結構與預期不符。"
+
+msgid "Balanced"
+msgstr ""
 
 msgid "Base branch"
 msgstr "基底分支"
@@ -2244,6 +2292,9 @@ msgctxt "settings search keyword"
 msgid "characters"
 msgstr "字元"
 
+msgid "Chat"
+msgstr ""
+
 msgid "Chat history"
 msgstr "聊天記錄"
 
@@ -2252,6 +2303,12 @@ msgstr "無法載入聊天記錄。請嘗試從「聊天記錄」重新開啟此
 
 msgid "Chat name"
 msgstr "對話名稱"
+
+msgid "Chat with Claude or Mistral about the wiki"
+msgstr ""
+
+msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
+msgstr ""
 
 msgid "Check for updates"
 msgstr "檢查更新"
@@ -2271,11 +2328,17 @@ msgstr "簽出 worktree"
 msgid "Check spelling while typing"
 msgstr "輸入時檢查拼字"
 
+msgid "Check your API key in Settings → AI chat."
+msgstr ""
+
 msgid "Checkbox"
 msgstr "核取方塊"
 
 msgid "Checked by: {0}"
 msgstr "檢查者：{0}"
+
+msgid "Checked pages"
+msgstr ""
 
 msgid "Checking"
 msgstr "正在檢查"
@@ -2324,6 +2387,9 @@ msgstr "正在檢查你的 GitHub 連線"
 
 msgid "Checking..."
 msgstr "正在檢查…"
+
+msgid "Checking…"
+msgstr ""
 
 msgid "Checklist with checkboxes."
 msgstr "帶核取方塊的清單。"
@@ -3766,6 +3832,9 @@ msgstr "刪除聊天"
 msgid "Delete chat?"
 msgstr "刪除聊天？"
 
+msgid "Delete chat…"
+msgstr ""
+
 msgid "Delete code block"
 msgstr "刪除程式碼區塊"
 
@@ -3801,6 +3870,9 @@ msgstr "刪除表格"
 
 msgid "Delete the file"
 msgstr "刪除檔案"
+
+msgid "Delete this chat?"
+msgstr ""
 
 msgid "Deleted"
 msgstr "已刪除"
@@ -4190,6 +4262,9 @@ msgstr "每個套件都會用現成的資料夾和範本幫你的專案搭好骨
 msgid "Each push is one commit to your remote."
 msgstr "每次推送就是向你的遠端儲存庫提交一次。"
 
+msgid "Earlier chats"
+msgstr ""
+
 msgid "Edit"
 msgstr "編輯"
 
@@ -4250,8 +4325,14 @@ msgstr ""
 msgid "Edited"
 msgstr "已編輯"
 
+msgid "Edited {detail}"
+msgstr ""
+
 msgid "Edited {editedAgo}"
 msgstr "{editedAgo}編輯"
+
+msgid "Edited a page"
+msgstr ""
 
 msgid "Edited locally since it was installed"
 msgstr "安裝之後在本機被編輯過"
@@ -4511,6 +4592,9 @@ msgstr "請輸入介於 {minimum} 和 {maximum} 之間的整數。"
 
 msgid "Enter at least 3 characters to search by meaning."
 msgstr "輸入至少 3 個字元以依含義搜尋。"
+
+msgid "Enter it again"
+msgstr ""
 
 msgid "Enter the host name git connects to, with an optional :port and no scheme or path, for example git.example.com."
 msgstr "輸入 git 連線的主機名稱，可加上選用的 :port，不要包含協定或路徑，例如 git.example.com。"
@@ -4894,6 +4978,9 @@ msgstr "上傳檔案失敗"
 msgid "Fast"
 msgstr "快速"
 
+msgid "Fastest, cheapest"
+msgstr ""
+
 msgid "Feedback isn't available right now. Please try again later."
 msgstr "意見回饋功能目前無法使用。請稍後再試。"
 
@@ -5179,6 +5266,9 @@ msgstr "產生的文件"
 
 msgid "Get {displayName}"
 msgstr "取得 {displayName}"
+
+msgid "Get an API key"
+msgstr ""
 
 msgid "Get Claude Code"
 msgstr "取得 Claude Code"
@@ -6331,6 +6421,9 @@ msgstr "保留原始檔案"
 msgid "Keep source"
 msgstr "保留來源"
 
+msgid "Keep the cost under control"
+msgstr ""
+
 msgid "Keep the name to 64 characters or fewer."
 msgstr "名稱請控制在 64 個字元以內。"
 
@@ -6358,8 +6451,17 @@ msgstr "已保留你的內容"
 msgid "Key ending in {keyHint}"
 msgstr "以 {keyHint} 結尾的金鑰"
 
+msgid "Key removed for {0}."
+msgstr ""
+
+msgid "Key saved for {0}."
+msgstr ""
+
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "編輯器和工作區中可用的鍵盤快速鍵。"
+
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgstr ""
 
 msgid "Kill Terminal"
 msgstr "強制結束終端機"
@@ -6692,6 +6794,15 @@ msgstr "記錄與系統資訊"
 msgid "Look Up \"{word}\""
 msgstr "查詢「{word}」"
 
+msgid "Looked at links"
+msgstr ""
+
+msgid "Looked at the page history"
+msgstr ""
+
+msgid "Looked at: {detail}"
+msgstr ""
+
 msgid "Looking for <0>{lookingForUrl}</0>."
 msgstr "正在尋找 <0>{lookingForUrl}</0>。"
 
@@ -6840,6 +6951,9 @@ msgstr "Mermaid 圖表控制項"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid 圖表顯示失敗。"
 
+msgid "Message"
+msgstr ""
+
 msgid "Message {agentName}"
 msgstr "傳訊息給 {agentName}"
 
@@ -6927,6 +7041,9 @@ msgstr "更多動作"
 msgid "More actions ({syncAttentionLabel})"
 msgstr "更多動作（{syncAttentionLabel}）"
 
+msgid "More chat actions"
+msgstr ""
+
 msgid "More draft actions"
 msgstr ""
 
@@ -6941,6 +7058,9 @@ msgstr "更多技能動作"
 
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "預覽的安全性原則攔截了超過 {0} 個要求"
+
+msgid "Most capable, costs more"
+msgstr ""
 
 msgid "Most installed"
 msgstr "安裝次數最多"
@@ -7106,6 +7226,9 @@ msgstr "已將 {moved} 個技能移至全域"
 
 msgid "Moved {moved} skills to Project"
 msgstr "已將 {moved} 個技能移至專案"
+
+msgid "Moved a page"
+msgstr ""
 
 msgid "Moved down."
 msgstr "已向下移動。"
@@ -7499,6 +7622,9 @@ msgstr "未新增任何圖片。"
 
 msgid "No Incoming"
 msgstr "沒有連入"
+
+msgid "No key"
+msgstr ""
 
 msgid "No language match."
 msgstr "沒有相符的語言。"
@@ -8398,6 +8524,9 @@ msgstr "貼上 URL、owner/repo，或搜尋你的儲存庫"
 msgid "Paste was incomplete — {chunksCompleted} of {totalChunks} chunks landed.{restoreSuffix}"
 msgstr "貼上不完整——{totalChunks} 個區塊中只完成了 {chunksCompleted} 個。{restoreSuffix}"
 
+msgid "Paste your {0} API key"
+msgstr ""
+
 msgid "Paste your API key"
 msgstr "貼上你的 API 金鑰"
 
@@ -8870,6 +8999,9 @@ msgstr "React"
 msgid "Read"
 msgstr "讀取"
 
+msgid "Read pages"
+msgstr ""
+
 msgid "Read through this codebase and draft a technical spec for the most complex module: an overview, the architecture, key files, and open questions, all linked from a specs index page."
 msgstr "把這個程式碼庫讀過一遍，為其中最複雜的模組草擬一份技術規格：總覽、架構、關鍵檔案和待解決的問題，全部從規格索引頁連過去。"
 
@@ -9279,6 +9411,9 @@ msgstr "更換金鑰"
 msgid "Replace the active match from the replace field."
 msgstr "用取代輸入框中的內容取代目前的相符項。"
 
+msgid "Replace the API key"
+msgstr ""
+
 msgid "Replace the copy at {display} with a symlink to the skill's source folder? Nothing else moves."
 msgstr "要把 {display} 處的副本換成指向技能來源資料夾的符號連結嗎？其他東西都不會動。"
 
@@ -9616,8 +9751,14 @@ msgstr "儲存"
 msgid "Save as page"
 msgstr ""
 
+msgid "Save as page…"
+msgstr ""
+
 msgid "Save changes"
 msgstr "儲存變更"
+
+msgid "Save chat as a page"
+msgstr ""
 
 msgid "Save failed: {error}"
 msgstr "儲存失敗：{error}"
@@ -9634,7 +9775,13 @@ msgstr ""
 msgid "Saved"
 msgstr "已儲存"
 
+msgid "Saved {0}"
+msgstr ""
+
 msgid "Saved as {docName}.md"
+msgstr ""
+
+msgid "Saved as {saved}."
 msgstr ""
 
 msgid "Saved as <0>{slug}.md</0>"
@@ -9678,6 +9825,9 @@ msgstr "正在儲存變更…"
 
 msgid "Saving your edits before reloading…"
 msgstr "正在儲存你的編輯，然後重新載入…"
+
+msgid "Saving…"
+msgstr ""
 
 msgid "Say what should change. For a specific sentence, you can also leave a comment on the page."
 msgstr ""
@@ -9807,6 +9957,12 @@ msgstr "搜尋 worktree"
 
 msgid "Search worktrees and branches"
 msgstr "搜尋 worktree 和分支"
+
+msgid "Searched “{detail}”"
+msgstr ""
+
+msgid "Searched the wiki"
+msgstr ""
 
 msgid "Searches files"
 msgstr "搜尋檔案"
@@ -10041,6 +10197,12 @@ msgstr "工作階段已結束"
 
 msgid "Session ended — undo unavailable"
 msgstr "工作階段已結束——無法復原"
+
+msgid "Set a monthly spending limit at the provider (links below). It stops the key once the limit is reached."
+msgstr ""
+
+msgid "Set a spending limit"
+msgstr ""
 
 msgid "Set git identity"
 msgstr "設定 git 身分"
@@ -10516,6 +10678,9 @@ msgstr "傳送你的意見回饋時出了點問題。請再試一次。"
 msgid "Something went wrong starting the terminal."
 msgstr "啟動終端機時出了點問題。"
 
+msgid "Something went wrong."
+msgstr ""
+
 msgid "Something went wrong. Please try again."
 msgstr "出了點問題。請再試一次。"
 
@@ -10579,6 +10744,9 @@ msgstr "拼字檢查"
 
 msgid "Spelling languages"
 msgstr "拼字檢查語言"
+
+msgid "Spending limit"
+msgstr ""
 
 msgid "Split list item"
 msgstr "分割清單項目"
@@ -10705,6 +10873,9 @@ msgstr "已停止"
 
 msgid "Stopped fixing. Files already fixed stay fixed."
 msgstr "已停止修正。已經修正好的檔案會維持原狀。"
+
+msgid "Stopped."
+msgstr ""
 
 msgid "Stopping"
 msgstr "正在停止"
@@ -11125,6 +11296,21 @@ msgstr "智慧代理的安裝缺少檔案（找不到某個模組）。重新安
 msgid "The agent's persona, values, and voice."
 msgstr "代理的人設、價值觀和語氣。"
 
+msgid "The AI chat could not be loaded."
+msgstr ""
+
+msgid "The AI chat settings could not be loaded."
+msgstr ""
+
+msgid "The answer was cut off because it got too long. Say “continue” for the rest."
+msgstr ""
+
+msgid "The assistant can search and read pages and change them when you ask. Add your own API key to start; you pay the provider for what you use."
+msgstr ""
+
+msgid "The assistant stopped after many steps. Say “continue” to let it go on."
+msgstr ""
+
 msgid "The attested-computation contract. Only applies to documents typed Attested Computation, where OKF requires a runtime; ordinary concepts are unaffected."
 msgstr "經證明的計算合約。僅適用於類型為 Attested Computation 的文檔，其中 OKF 需要 runtime；普通概念不受影響。"
 
@@ -11149,6 +11335,15 @@ msgstr "此對話中無法使用瀏覽器，因為未能完成設定。詳細資
 msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
 msgstr "此對話中無法使用瀏覽器，因為找不到能啟動它的 Node.js 安裝。請安裝 Node.js，然後開始新的對話。"
 
+msgid "The chat could not be deleted."
+msgstr ""
+
+msgid "The chat could not be opened."
+msgstr ""
+
+msgid "The chat shows how many tokens each conversation used. Long chats cost more, because the whole conversation is sent with every message; start a new chat for a new topic."
+msgstr ""
+
 msgid "The chat's messages, tool calls, and their output, so we can see what the agent did, plus the chat's title, the project folder's path, the document it started from, and the agent and its settings. Images are replaced by their type and size, and attached text files are included. It can contain document content, so uncheck it if you'd rather not share it."
 msgstr "對話中的訊息、工具呼叫及其輸出，方便我們了解智慧代理做了什麼，另外還包括對話標題、專案資料夾路徑、對話開始時所在的文件，以及智慧代理及其設定。圖片會替換為其類型和大小，附加的文字檔案會包含在內。它可能含有文件內容，如果你不想分享，請取消勾選。"
 
@@ -11163,6 +11358,12 @@ msgstr ""
 
 msgid "The conversation couldn't be added to this report."
 msgstr "無法將對話加入這份回報。"
+
+msgid "The conversation is removed from the server. Pages the assistant changed stay as they are."
+msgstr ""
+
+msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
+msgstr ""
 
 msgid "The copy of \"{name}\" kept in {scopeLabel} is a redundant duplicate: the original was verified unchanged. Remove that copy, then retry the move."
 msgstr "保留在{scopeLabel}中的「{name}」副本是多餘的重複：原件已核實未被更動。請刪除該副本，然後重試移動。"
@@ -11242,6 +11443,12 @@ msgstr "索引檔案保留在原處。 GitQuire 僅刪除它所新增的 Git 規
 msgid "The interface is still in the language you were reading. Check your connection, then reload to try again."
 msgstr "介面仍是你先前閱讀的語言。請檢查網路連線，然後重新載入再試一次。"
 
+msgid "The key could not be removed. Try again."
+msgstr ""
+
+msgid "The key could not be saved."
+msgstr ""
+
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "GitQuire 使用的語言；「跟隨系統」會跟隨你的作業系統。你自己的筆記會保持你書寫時的語言。"
 
@@ -11262,6 +11469,9 @@ msgstr "你的端點提供的模型 id。它的向量維度會自動偵測——
 
 msgid "the open agent"
 msgstr "已開啟的代理"
+
+msgid "The page could not be saved."
+msgstr ""
 
 msgid "The page shows this view live, for everyone, and is committed like any page."
 msgstr ""
@@ -11292,6 +11502,12 @@ msgstr "屬性有變更，但無法比較——YAML 解析失敗。兩個版本�
 
 msgid "The provenance, trust, and lifecycle families: sources, generated, verified, status, and stale_after. Every field is optional, and absence is never an error."
 msgstr "來源、信任與生命週期系列：sources、generated、verified、status 和 stale_after。每個欄位都是可選的，缺席絕不是一個錯誤。"
+
+msgid "The provider asks to slow down. Wait a minute and try again."
+msgstr ""
+
+msgid "The provider is busy. Try again in a moment."
+msgstr ""
 
 msgid "The provider is rate-limiting this key. Try again in a moment."
 msgstr "供應商正在對這把金鑰限流。請稍候再試。"
@@ -11326,6 +11542,9 @@ msgstr "啟用 GitQuire 工具的請求已逾時。此執行緒將在沒有這�
 msgid "The same text changed in both places"
 msgstr ""
 
+msgid "The saved key can no longer be read, usually because the server's session secret changed. Paste it again."
+msgstr ""
+
 msgid "The schema file does not exist or failed to load — adding a field creates it."
 msgstr "結構描述檔案不存在或載入失敗——新增欄位就會建立它。"
 
@@ -11358,6 +11577,9 @@ msgstr "技能自己的資料夾（{path}）——其他位置從這裡複製或
 
 msgid "The skills list did not match its schema."
 msgstr "技能清單與其結構定義不符。"
+
+msgid "The smaller models are much cheaper and fine for most questions."
+msgstr ""
 
 msgid "The source folder itself does not move."
 msgstr "來源資料夾本身不會移動。"
@@ -11553,6 +11775,12 @@ msgstr "此分支將 GitQuire 設定路徑重新導向到工作樹之外。工�
 msgid "This can be configured in Settings > {agentConnectionsLabel}"
 msgstr "這可以在「設定 > {agentConnectionsLabel}」中設定"
 
+msgid "This chat is too long for the model. Start a new chat (+) to go on."
+msgstr ""
+
+msgid "This chat is too long for the model. Start a new chat to go on."
+msgstr ""
+
 msgid "This checkout path cannot be read."
 msgstr "無法讀取此簽出路徑。"
 
@@ -11719,6 +11947,9 @@ msgid "This may take a moment. Your markdown content is kept."
 msgstr "這可能要花一點時間。你的 markdown 內容會保留。"
 
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
+msgstr ""
+
+msgid "This model is not available for your key. Choose another one."
 msgstr ""
 
 msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
@@ -12016,6 +12247,9 @@ msgid "tokens"
 msgstr "token"
 
 msgid "Tokens and connected apps"
+msgstr ""
+
+msgid "Tokens sent and received in this chat, billed to your {providerLabel} key"
 msgstr ""
 
 msgid "Too many confirmation mails for now. Try again later."
@@ -12458,6 +12692,9 @@ msgstr "使用對方的版本"
 msgid "Use this starter pack"
 msgstr "使用此入門套件"
 
+msgid "Used {0}"
+msgstr ""
+
 msgid "User"
 msgstr "使用者"
 
@@ -12700,7 +12937,7 @@ msgstr "位置"
 msgid "Where should it live?"
 msgstr "它應該放在哪裡？"
 
-msgid "Where to open Claude"
+msgid "Where to ask"
 msgstr ""
 
 msgid "Which skill"
@@ -12809,6 +13046,12 @@ msgstr "寫作"
 msgid "Writing this file failed. Check the GitQuire log for the reason."
 msgstr "寫入此檔案失敗。請查看 GitQuire 記錄檔以了解原因。"
 
+msgid "Wrote {detail}"
+msgstr ""
+
+msgid "Wrote pages"
+msgstr ""
+
 msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
 msgstr "已寫入 GitQuire 擴充功能，但無法將該資料夾標記為受信任，因此不會載入。此執行緒沒有 GitQuire 工具。"
 
@@ -12903,11 +13146,17 @@ msgstr "訂閱成功！"
 msgid "you@company.com"
 msgstr "you@company.com"
 
+msgid "Your {providerLabel} key"
+msgstr ""
+
 msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
 msgstr "你的智慧代理仍會載入該技能，但 GitQuire 無法開啟或編輯它：它不會索引 git 設定為忽略的檔案，因為同步會失敗。在 {gitignorePath} 中新增一行即可在這裡編輯它。"
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "你的變更還在儲存中——請等一下再執行一次測試。"
+
+msgid "Your chats (kept {0} days)"
+msgstr ""
 
 msgid "Your copy of branch <0>{shareBranch}</0> has changes that aren't on GitHub. The {targetNoun} will appear once the branch syncs."
 msgstr "你本機的 <0>{shareBranch}</0> 分支副本有變更還沒推到 GitHub。分支同步之後，這個{targetNoun}就會出現。"
@@ -12980,6 +13229,9 @@ msgstr ""
 
 msgid "Your share link is ready below."
 msgstr "你的分享連結已經在下面產生好了。"
+
+msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
 
 msgid "Your user settings could not be read"
 msgstr "無法讀取你的使用者設定"
