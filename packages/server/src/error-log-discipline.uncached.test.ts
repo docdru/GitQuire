@@ -7,10 +7,7 @@ import { isTestOnlySourceFile } from '../../../test-support/test-only-source-fil
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const WORKSPACE_ROOT = resolve(__dirname, '../../..');
-const SCAN_ROOTS = [
-  resolve(__dirname),
-  resolve(__dirname, '../../cli/src'),
-];
+const SCAN_ROOTS = [resolve(__dirname), resolve(__dirname, '../../cli/src')];
 
 const SELF_BASENAME = basename(fileURLToPath(import.meta.url));
 

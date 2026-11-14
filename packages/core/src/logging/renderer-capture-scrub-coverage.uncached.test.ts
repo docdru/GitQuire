@@ -23,9 +23,7 @@ const DEFINITION_DIR = join('core', 'src', 'logging');
 
 const SKIP_DIR_NAMES = new Set(['node_modules', 'dist', 'out', 'build', '.turbo']);
 
-const KNOWN_CAPTURE_SITES = [
-  'app/src/lib/install-client-log-forwarder.ts',
-];
+const KNOWN_CAPTURE_SITES = ['app/src/lib/install-client-log-forwarder.ts'];
 
 function listSourceFiles(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
