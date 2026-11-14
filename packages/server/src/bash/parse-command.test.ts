@@ -112,8 +112,17 @@ describe('parseCommand — shell_construct_blocked', () => {
   test('empty pipeline stage', () => expectError('cat file |', 'shell_construct_blocked'));
   test('process substitution `<(cmd)`', () =>
     expectError('cat <(grep x file)', 'shell_construct_blocked'));
-  test('process substitution `>(cmd)` — `>` fires first', () =>
-    expectError('tee >(cat)', 'write_blocked'));
+  test('process substitution `>(cmd)`', () => expectError('tee >(cat)', 'shell_construct_blocked'));
+  test('case fall-through `;&` and `;;&`', () => {
+    expectError('cat a ;& cat b', 'shell_construct_blocked');
+    expectError('cat a ;;& cat b', 'shell_construct_blocked');
+  });
+  test('clobber and combined redirects are writes', () => {
+    expectError('ls >| out', 'write_blocked');
+    expectError('ls &> out', 'write_blocked');
+    expectError('ls &>> out', 'write_blocked');
+    expectError('cat <> file', 'write_blocked');
+  });
 });
 
 describe('parseCommand — env/var expansions pass-through (handled at runtime)', () => {

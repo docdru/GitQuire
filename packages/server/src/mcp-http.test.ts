@@ -9,6 +9,7 @@ import { listenOnLoopback } from './loopback-rig-test-helpers.ts';
 import { MCP_CONNECTION_ID_HEADER, MCP_HOSTED_AGENT_HEADER } from './mcp/agent-identity.ts';
 import {
   createMcpHttpHandler,
+  MCP_MAX_REQUEST_BODY_BYTES,
   type McpHttpHandler,
   type McpHttpHandlerOptions,
 } from './mcp-http.ts';
@@ -162,6 +163,33 @@ test('active MCP session cap refuses new sessions before allocation', async () =
 
   expect(second.status).toBe(503);
   expect(await second.text()).toContain('Too many active MCP sessions');
+});
+
+test('requests up to the MCP body limit are accepted, larger ones are refused', async () => {
+  const config: Config = ConfigSchema.parse({});
+  const harness = await bootHandler(config);
+  openHarnesses.push(harness);
+  const session = await openMcpSession(harness.port);
+
+  const listTools = (padding: number) =>
+    fetch(`http://127.0.0.1:${harness.port}/mcp`, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        'mcp-session-id': session.sessionId,
+        'mcp-protocol-version': session.protocolVersion,
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 3,
+        method: 'tools/list',
+        params: { _meta: { padding: 'x'.repeat(padding) } },
+      }),
+    });
+
+  expect((await listTools(5 * 1024 * 1024)).status).toBe(200);
+  expect((await listTools(MCP_MAX_REQUEST_BODY_BYTES + 1024)).status).toBe(413);
 });
 
 test('mcp-tool-path-traversal: explicit cwd outside configured project root is rejected', async () => {

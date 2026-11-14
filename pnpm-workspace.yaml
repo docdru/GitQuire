@@ -93,14 +93,14 @@ overrides:
   # that would not surface on their own.
   # ---
   '@babel/core@7': ~7.29.6
-  '@modelcontextprotocol/sdk@1': ~1.32.0
   '@hono/node-server@1': ~2.1.3 # no 1.x fixes the serveStatic double-decode; the MCP SDK accepts ^2.0.5
+  '@modelcontextprotocol/sdk@1': ~1.32.0
   '@opentelemetry/core@2': ~2.8.0
   'body-parser@2': ~2.4.0
   'brace-expansion@1': ~1.1.21
   'brace-expansion@2': ~2.1.7
   'brace-expansion@5': ~5.0.12
-  'browserslist@4': ~4.28.7
+  'browserslist@4': ~4.29.4
   'baseline-browser-mapping@2': ~2.11.0
   'basic-ftp@6': ~6.2.4
   'builder-util-runtime@9': ~9.7.0
@@ -140,7 +140,7 @@ overrides:
   'tar@7': ~7.5.21
   'undici@6': ~6.29.1
   'undici@7': ~7.30.1
-  'zod@4': ^4.6.7
+  'zod@4': ~4.6.7
   # `vite` is deliberately absent. 8.0.16 pulls rolldown 1.0.0-rc.15 -> 1.0.3,
   # which re-partitions chunks and moves ~253 kB gzipped into the app's main
   # entry (423.8 kB -> 676.8 kB, over the 487 kB size-limit). Its two advisories
@@ -299,8 +299,9 @@ overrides:
   # The ProseMirror runtime the pinned TipTap suite above binds to — same
   # decision, same bun baseline. Floating these independently reintroduces the
   # merge-behavior regression the `@tiptap/*` pins exist to avoid. `view` was
-  # moved by hand to 1.42.3 for its paste XSS advisory, with the editor suites.
-  prosemirror-model: 1.25.4
+  # moved by hand to 1.42.3 for its paste XSS advisory, and `model` to 1.25.8,
+  # the floor that `view` declares; the editor suites were rerun for both.
+  prosemirror-model: 1.25.8
   prosemirror-view: 1.42.3
   'radix-ui': 1.4.3
   # React + the lite-YouTube facade also floated past the bun baseline; the

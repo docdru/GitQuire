@@ -2868,7 +2868,7 @@ Homepage: https://github.com/micromatch/braces
 
 Copyright (c) 2014-present, Jon Schlinkert.
 
-### `browserslist@4.28.9`
+### `browserslist@4.29.5`
 Homepage: https://github.com/browserslist/browserslist
 
 Copyright 2014 Andrey Sitnik <andrey@sitnik.es> and other contributors
@@ -5044,8 +5044,8 @@ Homepage: https://github.com/prosemirror/prosemirror-keymap
 
 Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
-### `prosemirror-model@1.25.4`
-Homepage: https://github.com/prosemirror/prosemirror-model
+### `prosemirror-model@1.25.8`
+Homepage: https://code.haverbeke.berlin/prosemirror/prosemirror-model
 
 Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
