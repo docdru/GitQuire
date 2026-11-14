@@ -859,11 +859,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 ```
 
-### `baseline-browser-mapping@2.10.43`
-Homepage: https://github.com/web-platform-dx/baseline-browser-mapping
-
-_(LICENSE template present but no copyright line filled in; refer to the package source for canonical attribution.)_
-
 ### `baseline-browser-mapping@2.11.32`
 Homepage: https://github.com/web-platform-dx/baseline-browser-mapping
 
@@ -904,7 +899,7 @@ Homepage: https://github.com/JackuB/diff-match-patch
 
 _(LICENSE template present but no copyright line filled in; refer to the package source for canonical attribution.)_
 
-### `dompurify@3.4.13`
+### `dompurify@3.4.17`
 Homepage: https://github.com/cure53/DOMPurify
 
 _(LICENSE template present but no copyright line filled in; refer to the package source for canonical attribution.)_
@@ -1449,12 +1444,7 @@ Homepage: https://hocuspocus.dev
 
 Copyright (c) 2023, Tiptap GmbH
 
-### `@hono/node-server@2.0.12`
-Homepage: https://github.com/honojs/node-server
-
-Copyright (c) 2022 - present, Yusuke Wada and Hono contributors
-
-### `@hono/node-server@1.19.17`
+### `@hono/node-server@2.1.6`
 Homepage: https://github.com/honojs/node-server
 
 Copyright (c) 2022 - present, Yusuke Wada and Hono contributors
@@ -1689,7 +1679,7 @@ Homepage: http://messageformat.github.io/messageformat/api/parser/
 
 Copyright OpenJS Foundation and contributors, https://openjsf.org/
 
-### `@modelcontextprotocol/sdk@1.29.0`
+### `@modelcontextprotocol/sdk@1.32.2`
 Homepage: https://modelcontextprotocol.io
 
 Copyright (c) 2024 Anthropic, PBC
@@ -1704,7 +1694,7 @@ Homepage: https://github.com/Brooooooklyn/keyring-node
 
 Copyright (c) 2020 N-API for Rust
 
-### `@nodable/entities@3.0.0`
+### `@nodable/entities@3.1.0`
 Homepage: https://github.com/nodable/val-parsers
 
 _(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
@@ -2863,12 +2853,12 @@ Homepage: https://github.com/rvagg/bl
 
 Copyright (c) 2013-2019 bl contributors ----------------------------------
 
-### `body-parser@2.3.0`
+### `body-parser@2.4.0`
 Homepage: https://github.com/expressjs/body-parser
 
 Copyright (c) 2014 Jonathan Ong <me@jongleberry.com> Copyright (c) 2014-2015 Douglas Christopher Wilson <doug@somethingdoug.com>
 
-### `brace-expansion@5.0.7`
+### `brace-expansion@5.0.12`
 Homepage: https://github.com/juliangruber/brace-expansion
 
 Copyright Julian Gruber <julian@juliangruber.com>
@@ -2878,12 +2868,7 @@ Homepage: https://github.com/micromatch/braces
 
 Copyright (c) 2014-present, Jon Schlinkert.
 
-### `browserslist@4.28.6`
-Homepage: https://github.com/browserslist/browserslist
-
-Copyright 2014 Andrey Sitnik <andrey@sitnik.es> and other contributors
-
-### `browserslist@4.29.4`
+### `browserslist@4.28.9`
 Homepage: https://github.com/browserslist/browserslist
 
 Copyright 2014 Andrey Sitnik <andrey@sitnik.es> and other contributors
@@ -3118,6 +3103,11 @@ Homepage: https://github.com/jshttp/content-type
 
 Copyright (c) 2015 Douglas Christopher Wilson
 
+### `content-type@2.1.0`
+Homepage: https://github.com/jshttp/content-type
+
+Copyright (c) 2015 Douglas Christopher Wilson
+
 ### `convert-source-map@2.0.0`
 Homepage: https://github.com/thlorenz/convert-source-map
 
@@ -3173,11 +3163,6 @@ Homepage: https://crossws.h3.dev
 
 Copyright (c) Pooya Parsa <pooya@pi0.io>
 Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com> Copyright (c) 2013 Arnout Kazemier and contributors Copyright (c) 2016 Luigi Pinca and contributors
-
-### `cssesc@3.0.0`
-Homepage: https://mths.be/cssesc
-
-_(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
 
 ### `csstype@3.2.3`
 Homepage: https://github.com/frenic/csstype
@@ -3459,7 +3444,7 @@ Homepage: https://github.com/justmoon/node-extend
 
 Copyright (c) 2014 Stefan Thomas
 
-### `fast-copy@4.0.4`
+### `fast-copy@4.1.2`
 Homepage: https://github.com/planttheidea/fast-copy#readme
 
 Copyright (c) 2025 Tony Quetano
@@ -3500,12 +3485,12 @@ Homepage: https://github.com/43081j/fast-wrap-ansi#readme
 Copyright (c) 2025 James Garbutt
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 
-### `fast-xml-builder@1.3.0`
+### `fast-xml-builder@1.3.1`
 Homepage: https://github.com/NaturalIntelligence/fast-xml-builder
 
 Copyright (c) 2026 Natural Intelligence
 
-### `fast-xml-parser@5.10.1`
+### `fast-xml-parser@5.12.0`
 Homepage: https://github.com/NaturalIntelligence/fast-xml-parser
 
 Copyright (c) 2017 Amit Kumar Gupta
@@ -3670,7 +3655,7 @@ Homepage: https://github.com/pshihn/hachure-fill#readme
 
 Copyright (c) 2023 Preet Shihn
 
-### `happy-dom@20.10.6`
+### `happy-dom@21.0.4`
 Homepage: https://github.com/capricorn86/happy-dom
 
 Copyright (c) 2019 David Ortner (capricorn86)
@@ -3785,7 +3770,7 @@ Homepage: https://github.com/mcollina/help-me
 
 Copyright (c) 2014-2022 Matteo Collina
 
-### `hono@4.12.34`
+### `hono@4.13.17`
 Homepage: https://hono.dev
 
 Copyright (c) 2021 - present, Yusuke Wada and Hono contributors
@@ -3852,7 +3837,7 @@ Homepage: https://github.com/remarkablemark/inline-style-parser
 
 Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
 
-### `ip-address@10.3.1`
+### `ip-address@10.7.6`
 Homepage: https://github.com/beaugunderson/ip-address
 
 Copyright (C) 2011 by Beau Gunderson
@@ -3987,7 +3972,7 @@ Homepage: https://github.com/sindresorhus/is-unicode-supported
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 
-### `is-unsafe@2.0.0`
+### `is-unsafe@2.0.3`
 Homepage: https://github.com/NaturalIntelligence/is-unsafe
 
 Copyright (c) 2026 Natural Intelligence
@@ -4057,7 +4042,7 @@ Homepage: https://github.com/lydell/js-tokens
 
 Copyright (c) 2014, 2015, 2016, 2017, 2018 Simon Lydell
 
-### `js-yaml@4.3.1`
+### `js-yaml@4.3.2`
 Homepage: https://github.com/nodeca/js-yaml
 
 Copyright (C) 2011-2015 by Vitaly Puzrin
@@ -4679,11 +4664,6 @@ Copyright (c) 2012-2015, Christopher Jeffrey (https://github.com/chjj/)
 Copyright (c) 2016, Daniel Imms (http://www.growingwiththeweb.com)
 Copyright (c) 2018 - present Microsoft Corporation
 
-### `node-releases@2.0.51`
-Homepage: https://github.com/chicoxyzzy/node-releases
-
-Copyright (c) 2017 Sergey Rubanov (https://github.com/chicoxyzzy)
-
 ### `node-releases@2.0.60`
 Homepage: https://github.com/chicoxyzzy/node-releases
 
@@ -4964,7 +4944,7 @@ Homepage: https://postcss.org/
 
 Copyright 2013 Andrey Sitnik <andrey@sitnik.es>
 
-### `postcss-selector-parser@7.1.4`
+### `postcss-selector-parser@7.1.8`
 Homepage: https://github.com/postcss/postcss-selector-parser
 
 Copyright (c) Ben Briggs <beneb.info@gmail.com> (http://beneb.info)
@@ -5089,12 +5069,12 @@ Homepage: https://github.com/prosemirror/prosemirror-transform
 
 Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
-### `prosemirror-view@1.41.8`
+### `prosemirror-view@1.42.3`
 Homepage: https://code.haverbeke.berlin/prosemirror/prosemirror-view
 
 Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
-### `proxy-addr@2.0.7`
+### `proxy-addr@2.0.8`
 Homepage: https://github.com/jshttp/proxy-addr
 
 Copyright (c) 2014-2016 Douglas Christopher Wilson
@@ -5463,7 +5443,7 @@ Homepage: https://github.com/sindresorhus/shebang-regex
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
 
-### `shell-quote@1.10.0`
+### `shell-quote@1.12.0`
 Homepage: https://github.com/ljharb/shell-quote
 
 Copyright (c) 2013 James Halliday (mail@substack.net)
@@ -5615,7 +5595,7 @@ Homepage: https://github.com/sindresorhus/strip-json-comments
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
 
-### `strnum@2.4.2`
+### `strnum@2.5.1`
 Homepage: https://github.com/NaturalIntelligence/strnum
 
 Copyright (c) 2021 Natural Intelligence
@@ -5780,7 +5760,7 @@ Homepage: https://github.com/sindresorhus/uint8array-extras
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 
-### `undici@7.29.0`
+### `undici@7.30.2`
 Homepage: https://undici.nodejs.org
 
 Copyright (c) Matteo Collina and Undici contributors
@@ -5854,11 +5834,6 @@ Copyright (c) 2017, Ryan Zimmerman <opensrc@ryanzim.com>
 Homepage: https://github.com/stream-utils/unpipe
 
 Copyright (c) 2015 Douglas Christopher Wilson <doug@somethingdoug.com>
-
-### `update-browserslist-db@1.2.3`
-Homepage: https://github.com/browserslist/update-db
-
-Copyright 2022 Andrey Sitnik <andrey@sitnik.ru> and other contributors
 
 ### `update-browserslist-db@1.3.4`
 Homepage: https://github.com/browserslist/update-db
@@ -6239,11 +6214,6 @@ Homepage: https://github.com/mapbox/delaunator
 
 Copyright (c) 2026, Mapbox
 
-### `electron-to-chromium@1.5.389`
-Homepage: https://github.com/Kilian/electron-to-chromium
-
-Copyright 2018 Kilian Valkhof
-
 ### `electron-to-chromium@1.5.464`
 Homepage: https://github.com/Kilian/electron-to-chromium
 
@@ -6526,7 +6496,7 @@ Homepage: https://github.com/kpdecker/jsdiff
 
 Copyright (c) 2009-2015, Kevin Decker <kpdecker@gmail.com>
 
-### `fast-uri@3.1.5`
+### `fast-uri@3.1.9`
 Homepage: https://github.com/fastify/fast-uri
 
 Copyright (c) 2011-2021, Gary Court until https://github.com/garycourt/uri-js/commit/a1acf730b4bba3f1097c9f52e7d9d3aba8cdcaae Copyright (c) 2021-present The Fastify team <https://github.com/fastify/fastify#team>
@@ -6551,7 +6521,7 @@ Homepage: https://protobufjs.github.io/protobuf.js/
 
 Copyright (c) 2016, Daniel Wirtz  All rights reserved.
 
-### `qs@6.15.3`
+### `qs@6.16.2`
 Homepage: https://github.com/ljharb/qs
 
 Copyright (c) 2014, Nathan LaFreniere and other [contributors](https://github.com/ljharb/qs/graphs/contributors)
@@ -6571,7 +6541,7 @@ Homepage: https://github.com/fastify/secure-json-parse#readme
 
 Copyright (c) 2019, Sideway Inc, and project contributors Copyright (c) 2019-present The Fastify team
 
-### `smol-toml@1.7.0`
+### `smol-toml@1.9.1`
 Homepage: https://github.com/squirrelchat/smol-toml
 
 Copyright (c) Squirrel Chat et al., All rights reserved.
@@ -6581,7 +6551,7 @@ Homepage: https://github.com/mozilla/source-map
 
 Copyright (c) 2009-2011, Mozilla Foundation and contributors
 
-### `source-map-js@1.2.1`
+### `source-map-js@1.2.2`
 Homepage: https://github.com/7rulnik/source-map-js
 
 Copyright (c) 2009-2011, Mozilla Foundation and contributors
@@ -6686,11 +6656,6 @@ The following packages are under licenses that do not require attribution (BlueO
 ## Creative Commons Attribution 4.0 International (CC-BY-4.0)
 
 The data files below are licensed under CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/legalcode). Each entry preserves its copyright and license URI per §3(a)(1). Note: CC-BY-4.0 §5 disclaims warranties; the licensor offers the work as-is.
-
-### `caniuse-lite@1.0.30001805`
-Homepage: https://github.com/browserslist/caniuse-lite
-
-_(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
 
 ### `caniuse-lite@1.0.30001819`
 Homepage: https://github.com/browserslist/caniuse-lite
