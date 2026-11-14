@@ -52,7 +52,6 @@ const PLUGIN_AS_MODULE = new RegExp(
     'plugins\\.html',
     'JS[- ]plugins?',
     'packages/\\{[^}]*plugin[^}]*\\}',
-    'packages/plugin',
     'index\\.(?:private\\.)?mjs',
     'lint/plugin/',
     'import plugin',
