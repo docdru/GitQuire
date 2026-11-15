@@ -111,7 +111,7 @@ function paths(record: Record<string, unknown>, name: string): string[] {
 function parseSpec(raw: string | undefined): WatcherProcessSpec {
   const spec: unknown = JSON.parse(raw ?? 'null');
   if (!isRecord(spec)) throw new Error('watcher process: missing spec');
-  const entry = oneOf<WatcherEntry>(text(spec, 'entry'), ['managed', 'config', 'multi-config']);
+  const entry = oneOf<WatcherEntry>(text(spec, 'entry'), ['config', 'multi-config']);
   const watch = paths(spec, 'watch');
   if (oneOf(text(spec, 'mode'), ['readiness', 'contract']) === 'contract') {
     if (spec.coarseTimestampsAt === undefined) return { mode: 'contract', entry, watch };
@@ -216,15 +216,6 @@ function parseCommand(message: unknown): ContractCommand {
 }
 
 async function loadWatcher(entry: WatcherEntry): Promise<StartWatcher> {
-  if (entry === 'managed') {
-    const { startManagedArtifactWatcher } = await import('./managed-artifact-watcher.ts');
-    return (watch, deliver) =>
-      startManagedArtifactWatcher(
-        watch,
-        (path, content) => deliver({ kind: 'change', path, content }),
-        (path) => deliver({ kind: 'unlink', path }),
-      );
-  }
   const { startConfigFileWatcher, startMultiPathConfigFileWatcher } = await import(
     './config-file-watcher.ts'
   );
@@ -832,7 +823,7 @@ async function runContract(spec: ContractSpec): Promise<void> {
 
   const holdNextSample = (path: string, content: string, barrier: string): void => {
     assertFifo(barrier);
-    const listedRoots = spec.entry === 'managed' ? spec.watch : [];
+    const listedRoots: string[] = [];
     let stage: 'armed' | 'held' | 'checked' = 'armed';
     let samplesBegunWhileHeld = 0;
     const began = (): void => {
@@ -1187,7 +1178,7 @@ async function runContract(spec: ContractSpec): Promise<void> {
   if (firstWatched === undefined) throw new Error('watcher process: nothing to watch');
   const start = await loadWatcher(spec.entry);
   stopWatcher = await startupTimers.whileStarting(() => start(spec.watch, deliver));
-  await stat(spec.entry === 'managed' ? firstWatched : dirname(firstWatched));
+  await stat(dirname(firstWatched));
   process.on('message', (message) => {
     const command = parseCommand(message);
     if (command.op === 'write-in-two-steps') {

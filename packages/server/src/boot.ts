@@ -1,6 +1,5 @@
 import { existsSync, lstatSync, readdirSync, statSync } from 'node:fs';
 import type { Server as HttpServer } from 'node:http';
-import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 import {
   ASSET_EXTENSIONS,
@@ -16,7 +15,6 @@ import {
   requiresExternalConsent,
   resolveServerRuntimeConfig,
   type ServerRuntimeConfig,
-  SKILLS_STORE_DIRNAME,
 } from '@inkeep/open-knowledge-core';
 import { okProjectLogsDir } from '@inkeep/open-knowledge-core/server';
 import { resolveGitDirDetailed } from '@inkeep/open-knowledge-core/shadow-repo-layout';
@@ -52,7 +50,6 @@ import {
   type CollabClientCounter,
   type IdleShutdownHandle,
 } from './idle-shutdown.ts';
-import { scanGlobalInPlaceSkillsAsync, scanInPlaceSkills } from './in-place-skills.ts';
 import { buildIngressPolicy, ExposureConsentError } from './ingress-policy.ts';
 import { resolveLocalSinkConfig } from './local-sink-resolver.ts';
 import { getLogger, loggerFactory, type PinoLogger } from './logger.ts';
@@ -68,11 +65,6 @@ import {
   type ServerOptions,
 } from './server-factory.ts';
 import { installServerMemoryGauge, installServerRuntimeGauges } from './server-memory-telemetry.ts';
-import {
-  genuineInPlaceNames,
-  migrateStoreSkillsInPlace,
-  USER_HOST_ROOTS_BY_PRECEDENCE,
-} from './skill-migrate.ts';
 import { initTelemetry, shutdownTelemetry, withSpan } from './telemetry.ts';
 import {
   initToleranceTelemetryWriter,
@@ -771,55 +763,6 @@ async function bootServerInner(
       throw new AggregateError(errors, 'bootServer destroy completed with errors');
     }
   };
-
-  try {
-    const m = await migrateStoreSkillsInPlace({
-      projectDir,
-      skillsRoot: resolve(opts.contentDir, OK_DIR, SKILLS_STORE_DIRNAME),
-      inPlaceNames: async () =>
-        genuineInPlaceNames(opts.contentDir, scanInPlaceSkills(opts.contentDir)),
-    });
-    if (m.migrated.length + m.skipped.length > 0) {
-      log.info?.(
-        {
-          event: 'store-skills-migrated-in-place',
-          migrated: m.migrated,
-          skipped: m.skipped,
-        },
-        `Migrated ${m.migrated.length} store skill(s) in place (${m.skipped.length} skipped).`,
-      );
-    }
-  } catch (err) {
-    log.warn?.(
-      { err, event: 'store-skill-migration-failed' },
-      'Store-skill in-place migration failed (non-fatal).',
-    );
-  }
-
-  try {
-    const home = homedir();
-    const gm = await migrateStoreSkillsInPlace({
-      projectDir: home,
-      skillsRoot: resolve(home, OK_DIR, SKILLS_STORE_DIRNAME),
-      hostRoots: USER_HOST_ROOTS_BY_PRECEDENCE,
-      inPlaceNames: async () => genuineInPlaceNames(home, await scanGlobalInPlaceSkillsAsync(home)),
-    });
-    if (gm.migrated.length + gm.skipped.length > 0) {
-      log.info?.(
-        {
-          event: 'global-store-skills-migrated-in-place',
-          migrated: gm.migrated,
-          skipped: gm.skipped,
-        },
-        `Migrated ${gm.migrated.length} global store skill(s) in place (${gm.skipped.length} skipped).`,
-      );
-    }
-  } catch (err) {
-    log.warn?.(
-      { err, event: 'global-store-skill-migration-failed' },
-      'Global store-skill in-place migration failed (non-fatal).',
-    );
-  }
 
   if (opts.idleShutdownMs !== null) {
     const idleMs = opts.idleShutdownMs ?? DEFAULT_IDLE_THRESHOLD_MS;

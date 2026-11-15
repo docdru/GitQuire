@@ -6,7 +6,6 @@ import {
   renameSync,
   rmSync,
   statSync,
-  symlinkSync,
   utimesSync,
   writeFileSync,
 } from 'node:fs';
@@ -40,7 +39,7 @@ interface EntryCase {
 }
 
 interface UnreadableCase extends EntryCase {
-  unreadable: 'skill directory' | 'skills root' | 'directory';
+  unreadable: 'directory';
 }
 
 interface RecoveryCase extends UnreadableCase {
@@ -48,14 +47,11 @@ interface RecoveryCase extends UnreadableCase {
 }
 
 const ENTRIES: EntryCase[] = [
-  { watcher: 'startManagedArtifactWatcher', entry: 'managed' },
   { watcher: 'startConfigFileWatcher', entry: 'config' },
   { watcher: 'startMultiPathConfigFileWatcher', entry: 'multi-config' },
 ];
 
 const UNREADABLE_CASES: UnreadableCase[] = [
-  { watcher: 'startManagedArtifactWatcher', entry: 'managed', unreadable: 'skill directory' },
-  { watcher: 'startManagedArtifactWatcher', entry: 'managed', unreadable: 'skills root' },
   { watcher: 'startConfigFileWatcher', entry: 'config', unreadable: 'directory' },
   { watcher: 'startMultiPathConfigFileWatcher', entry: 'multi-config', unreadable: 'directory' },
 ];
@@ -65,7 +61,6 @@ const RECOVERY_CASES: RecoveryCase[] = UNREADABLE_CASES.flatMap((unreadableCase)
 );
 
 const INITIAL: Record<WatcherEntry, string> = {
-  managed: 'demo skill',
   config: 'theme: light\n',
   'multi-config': '*.tmp\n',
 };
@@ -75,7 +70,6 @@ const COMPLETE = 'half-written, then completed\n';
 const HELD_CHANGE = 'changed while the next sample was held\n';
 const READABLE_AGAIN = 'edited once readable\n';
 const SAME_SIZE_REPLACEMENT = 'theme: dark!\n';
-const IN_PLACE_REWRITE = 'DEMO SKILL';
 
 function write(path: string, content: string): void {
   mkdirSync(dirname(path), { recursive: true });
@@ -96,28 +90,18 @@ afterEach(async () => {
   rmSync(fixture, { recursive: true, force: true });
 });
 
-function skillsRoot(): string {
-  return join(fixture, 'skills');
-}
-
-function leaf(...segments: string[]): string {
-  return join(skillsRoot(), ...segments, 'SKILL.md');
-}
-
 function watchedFile(entry: WatcherEntry, scenario: ReadinessScenario): WatchedFile {
   const project = join(fixture, 'project');
   const file: WatchedFile =
-    entry === 'managed'
-      ? { watch: [skillsRoot()], target: leaf('demo') }
-      : entry === 'config'
-        ? {
-            watch: [join(project, '.ok', 'config.yml')],
-            target: join(project, '.ok', 'config.yml'),
-          }
-        : {
-            watch: [join(project, '.okignore'), join(project, '.gitignore')],
-            target: join(project, '.okignore'),
-          };
+    entry === 'config'
+      ? {
+          watch: [join(project, '.ok', 'config.yml')],
+          target: join(project, '.ok', 'config.yml'),
+        }
+      : {
+          watch: [join(project, '.okignore'), join(project, '.gitignore')],
+          target: join(project, '.okignore'),
+        };
   mkdirSync(dirname(file.target), { recursive: true });
   if (entry === 'multi-config') write(join(project, '.gitignore'), 'dist/\n');
   if (scenario === 'edit') write(file.target, INITIAL[entry]);
@@ -140,12 +124,10 @@ async function watchFrom(
 }
 
 function unreadableScope(
-  { entry, unreadable }: UnreadableCase,
+  _case: UnreadableCase,
   { watch, target }: WatchedFile,
 ): { dir: string; failing: string[] } {
-  if (entry !== 'managed') return { dir: dirname(target), failing: watch };
-  if (unreadable === 'skills root') return { dir: skillsRoot(), failing: [skillsRoot(), target] };
-  return { dir: dirname(target), failing: [target] };
+  return { dir: dirname(target), failing: watch };
 }
 
 function accessDenials(logged: readonly LoggedError[] = []): LoggedError[] {
@@ -172,149 +154,17 @@ function reportsBefore(
   return at === -1 ? reports : reports.slice(0, at);
 }
 
-function failingSampleOf({ unreadable }: UnreadableCase, { target }: WatchedFile): string {
-  return unreadable === 'skills root' ? skillsRoot() : target;
+function failingSampleOf(_case: UnreadableCase, { target }: WatchedFile): string {
+  return target;
 }
 
-function sampledEveryPollOf({ entry }: UnreadableCase, { target }: WatchedFile): string {
-  return entry === 'managed' ? skillsRoot() : target;
+function sampledEveryPollOf(_case: UnreadableCase, { target }: WatchedFile): string {
+  return target;
 }
 
-function failingOnceMore({ unreadable, recovery }: RecoveryCase, failing: string[]): string[] {
-  const recreatedRootListsNothing = unreadable === 'skills root' && recovery === 'removed';
-  return recreatedRootListsNothing ? [skillsRoot()] : failing;
+function failingOnceMore(_case: RecoveryCase, failing: string[]): string[] {
+  return failing;
 }
-
-describe('startManagedArtifactWatcher reports SKILL.md at a skills root and one directory down', () => {
-  test('reports the root SKILL.md, a skill directory SKILL.md and one reached through a symlinked skill directory, and nothing deeper or beside them', async () => {
-    const outside = join(fixture, 'outside');
-    const nestedTwoDown = leaf('demo', 'nested');
-    const notesBesideASkill = join(skillsRoot(), 'demo', 'NOTES.md');
-    const fileAtTheRoot = join(skillsRoot(), 'README.md');
-    const outsideTheLeafSet = [nestedTwoDown, notesBesideASkill, fileAtTheRoot];
-    write(leaf(), 'root skill');
-    write(leaf('demo'), 'demo skill');
-    write(nestedTwoDown, 'nested skill');
-    write(notesBesideASkill, 'notes');
-    write(fileAtTheRoot, 'readme');
-    write(join(outside, 'linked-skill', 'SKILL.md'), 'linked skill');
-    write(join(outside, 'late-skill', 'SKILL.md'), 'late skill');
-    symlinkSync(join(outside, 'linked-skill'), join(skillsRoot(), 'linked'), 'junction');
-    const run = await watchFrom('managed', [skillsRoot()]);
-
-    for (const path of outsideTheLeafSet) {
-      writeFileSync(path, 'edited, never to be reported', 'utf-8');
-    }
-    writeFileSync(leaf(), 'root skill, edited', 'utf-8');
-    writeFileSync(leaf('demo'), 'demo skill, edited', 'utf-8');
-    writeFileSync(join(outside, 'linked-skill', 'SKILL.md'), 'linked skill, edited', 'utf-8');
-    symlinkSync(join(outside, 'late-skill'), join(skillsRoot(), 'late'), 'junction');
-
-    const nothingOutsideTheLeafSet = (reports: readonly WatcherProcessReport[]): void => {
-      expect(
-        reports.filter(
-          (report) =>
-            (report.kind === 'change' || report.kind === 'unlink') &&
-            outsideTheLeafSet.includes(report.path),
-        ),
-        'the watcher reported a path other than <root>/SKILL.md or <root>/<entry>/SKILL.md',
-      ).toEqual([]);
-    };
-    const expected: Array<[string, string]> = [
-      [leaf(), 'root skill, edited'],
-      [leaf('demo'), 'demo skill, edited'],
-      [leaf('linked'), 'linked skill, edited'],
-      [leaf('late'), 'late skill'],
-    ];
-    await run.until(
-      'the watcher to report the root SKILL.md, the skill directory SKILL.md, the edited one behind a symlink and the one behind a symlink made after start',
-      (reports) => {
-        nothingOutsideTheLeafSet(reports);
-        return expected.every(([path, content]) => delivered(reports, path, content));
-      },
-    );
-
-    writeFileSync(leaf('demo'), 'demo skill, edited again', 'utf-8');
-    await run.until(
-      'a later report, after which every report the earlier changes could produce has arrived',
-      (reports) => {
-        nothingOutsideTheLeafSet(reports);
-        return delivered(reports, leaf('demo'), 'demo skill, edited again');
-      },
-    );
-  });
-});
-
-describe('startManagedArtifactWatcher when a skill directory stops being a readable directory', () => {
-  test('reports a SKILL.md unlinked when its skill directory is replaced by a regular file, and keeps reporting the others', async () => {
-    write(leaf('demo'), 'demo skill');
-    write(leaf('kept'), 'kept skill');
-    const run = await watchFrom('managed', [skillsRoot()]);
-
-    rmSync(join(skillsRoot(), 'demo'), { recursive: true, force: true });
-    writeFileSync(
-      join(skillsRoot(), 'demo'),
-      'a regular file where the skill directory was',
-      'utf-8',
-    );
-    await run.until(`onUnlink to report ${leaf('demo')}`, (reports) => {
-      expect(
-        deliveriesFor(reports, leaf('demo')),
-        'the watcher reported the SKILL.md under a directory turned into a file as changed, not unlinked',
-      ).toEqual([]);
-      return unlinked(reports, leaf('demo'));
-    });
-
-    writeFileSync(leaf('kept'), 'kept skill, edited', 'utf-8');
-    await run.until('the watcher to keep reporting the other skill', (reports) =>
-      delivered(reports, leaf('kept'), 'kept skill, edited'),
-    );
-  });
-
-  describe.skipIf(process.platform === 'win32' || process.geteuid?.() === 0)(
-    'while a directory on the path is unreadable (EACCES; chmod does not bind root or Windows)',
-    () => {
-      test.each([{ unreadable: 'skill directory' }, { unreadable: 'skills root' }])(
-        'keeps a SKILL.md, reporting it neither unlinked nor changed, while its $unreadable is briefly unreadable, then reports its next edit',
-        async ({ unreadable }) => {
-          write(leaf('demo'), 'demo skill');
-          const dir = unreadable === 'skills root' ? skillsRoot() : join(skillsRoot(), 'demo');
-          const run = await watchFrom('managed', [skillsRoot()]);
-
-          madeUnreadable.push(dir);
-          run.send({ op: 'unreadable-until-sampled', dir, leaf: leaf('demo') });
-          const onlyTheEdit = (reports: readonly WatcherProcessReport[]): void => {
-            expect(
-              unlinked(reports, leaf('demo')),
-              `onUnlink reported ${leaf('demo')} although only its ${unreadable} was unreadable: ` +
-                'a sample that fails with EACCES must keep the last observation, not read as a deletion',
-            ).toBe(false);
-            expect(
-              deliveriesFor(reports, leaf('demo')),
-              'the watcher reported the untouched SKILL.md as changed after the directory was readable again',
-            ).not.toContain('demo skill');
-          };
-          await run.until(
-            `the watcher to sample ${leaf('demo')} while its ${unreadable} was unreadable, and the harness to restore it`,
-            (reports) => {
-              onlyTheEdit(reports);
-              return reportOf(reports, 'readable-again') !== undefined;
-            },
-          );
-
-          writeFileSync(leaf('demo'), 'demo skill, edited once readable again', 'utf-8');
-          await run.until(
-            `onChange to report the edit made once the ${unreadable} was readable again`,
-            (reports) => {
-              onlyTheEdit(reports);
-              return delivered(reports, leaf('demo'), 'demo skill, edited once readable again');
-            },
-          );
-        },
-      );
-    },
-  );
-});
 
 describe('a file written in two steps is reported only once its size holds', () => {
   test.each(
@@ -565,57 +415,6 @@ describe.skipIf(process.platform === 'win32' || process.geteuid?.() === 0)(
   },
 );
 
-describe('startManagedArtifactWatcher when a SKILL.md or its skill directory goes away', () => {
-  test('reports a SKILL.md unlinked, never changed, once a directory takes its place', async () => {
-    write(leaf('demo'), 'demo skill');
-    const run = await watchFrom('managed', [skillsRoot()]);
-
-    rmSync(leaf('demo'));
-    mkdirSync(leaf('demo'));
-    await run.until(`onUnlink to report ${leaf('demo')}, now a directory`, (reports) => {
-      expect(
-        deliveriesFor(reports, leaf('demo')),
-        'the watcher reported a SKILL.md that became a directory as changed: only a regular file reads as present',
-      ).toEqual([]);
-      return unlinked(reports, leaf('demo'));
-    });
-  });
-
-  test('reports a deleted SKILL.md unlinked once, and not again while it stays deleted', async () => {
-    write(leaf('demo'), 'demo skill');
-    write(leaf('kept'), 'kept skill');
-    const run = await watchFrom('managed', [skillsRoot()]);
-
-    rmSync(leaf('demo'));
-    await run.until(`onUnlink to report ${leaf('demo')}`, (reports) =>
-      unlinked(reports, leaf('demo')),
-    );
-    for (const content of ['kept skill, edited once', 'kept skill, edited twice']) {
-      writeFileSync(leaf('kept'), content, 'utf-8');
-      await run.until(
-        `a later report of ${leaf('kept')}, polls after the deletion was reported`,
-        (reports) => delivered(reports, leaf('kept'), content),
-      );
-    }
-    expect(
-      run.reports().filter((report) => report.kind === 'unlink' && report.path === leaf('demo')),
-      'the watcher reported the deleted SKILL.md unlinked again in later polls while it stayed deleted',
-    ).toHaveLength(1);
-  });
-
-  test('reports a SKILL.md unlinked when its whole skill directory is deleted', async () => {
-    write(leaf('demo'), 'demo skill');
-    const run = await watchFrom('managed', [skillsRoot()]);
-
-    rmSync(join(skillsRoot(), 'demo'), { recursive: true, force: true });
-    await run.until(
-      `onUnlink to report ${leaf('demo')} once its skill directory was deleted, which drops it from the listing`,
-      (reports) => unlinked(reports, leaf('demo')),
-    );
-    expect(unlinked(run.reports(), leaf('demo'))).toBe(true);
-  });
-});
-
 describe('closing a watcher between polls', () => {
   test('startConfigFileWatcher cleanup, called while no sample is in flight, leaves no poll armed to sample again', async () => {
     const { watch, target } = watchedFile('config', 'edit');
@@ -747,35 +546,10 @@ describe('a watched file replaced by one of the same size and modification time'
   });
 });
 
-describe('a watched file rewritten in place at its size inside the timestamp granule its baseline was sampled in (whole-second timestamps modelled at the stat seam)', () => {
-  test('startManagedArtifactWatcher reports the rewrite, which leaves every stat field as the baseline sampled it', async () => {
-    const { watch, target } = watchedFile('managed', 'edit');
-    const run = await watchFrom('managed', watch, target);
-
-    run.send({ op: 'rewrite-in-place', path: target, content: IN_PLACE_REWRITE });
-    await run.until(
-      `the watcher process to rewrite ${target} in place`,
-      (reports) => reportOf(reports, 'rewritten-in-place') !== undefined,
-    );
-    expect(
-      reportOf(run.reports(), 'rewritten-in-place')?.statUnchanged,
-      `the rewrite of ${target} changed its device, inode, size, modification time or change time, so it does not reproduce a rewrite inside one timestamp granule`,
-    ).toBe(true);
-    await run.until(
-      `onChange to report the in-place rewrite of ${target}, which kept its size inside the timestamp granule of the baseline sample`,
-      (reports) => delivered(reports, target, IN_PLACE_REWRITE),
-    );
-  });
-});
-
 describe.skipIf(process.platform === 'win32' || process.geteuid?.() === 0)(
   'an error the watcher reported is reported again once its directory has been a regular file (EACCES, then ENOTDIR, then EACCES; chmod does not bind root or Windows)',
   () => {
-    test.each(
-      UNREADABLE_CASES.filter(
-        ({ entry, unreadable }) => entry !== 'multi-config' && unreadable !== 'skills root',
-      ),
-    )(
+    test.each(UNREADABLE_CASES.filter(({ entry }) => entry !== 'multi-config'))(
       '$watcher reports the EACCES of every path it cannot read in each episode when its $unreadable is unreadable, then a regular file, then unreadable once more',
       async (unreadableCase) => {
         const { unreadable } = unreadableCase;

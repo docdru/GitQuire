@@ -318,7 +318,6 @@ describe('AgentPresenceBroadcaster', () => {
     const dir = import.meta.dirname ?? new URL('.', import.meta.url).pathname;
     const files = [
       'api-extension.ts',
-      'content/skills-write.ts',
       ...readdirSync(resolve(dir, 'http'))
         .filter((file) => file.endsWith('-routes.ts'))
         .sort()

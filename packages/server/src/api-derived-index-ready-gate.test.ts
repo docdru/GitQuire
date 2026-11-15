@@ -4,10 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { describe, expect, test, vi } from 'vitest';
-import {
-  createApiExtension,
-  createDerivedDocumentIndexApiPortStub,
-} from './api-extension.test-helper.ts';
+import { createApiExtension } from './api-extension.test-helper.ts';
 import { BacklinkIndex } from './backlink-index.ts';
 import { createContentFilter } from './content-filter.ts';
 import { DerivedDocumentIndex } from './derived-document-index.ts';
@@ -136,63 +133,6 @@ describe('derived-index API readiness gate', () => {
       vi.restoreAllMocks();
       await index.close();
       rmSync(projectDir, { recursive: true, force: true });
-    }
-  });
-
-  test('project skill move responds WITHOUT waiting for derived-index projection', async () => {
-    const contentDir = mkdtempSync(join(tmpdir(), 'ok-derived-skill-move-'));
-    const sourceSkillDir = join(contentDir, '.ok', 'skills', 'old-skill');
-    mkdirSync(sourceSkillDir, { recursive: true });
-    writeFileSync(
-      join(sourceSkillDir, 'SKILL.md'),
-      '---\nname: old-skill\ndescription: Use when testing moves.\n---\n\n# Old skill\n',
-    );
-    const { promise: projectionBarrier, resolve: releaseProjection } =
-      Promise.withResolvers<void>();
-    const { promise: started, resolve: projectionStarted } = Promise.withResolvers<void>();
-    const recordDirectMutations = vi.fn(async () => {
-      projectionStarted();
-      await projectionBarrier;
-    });
-    const extension = createApiExtension({
-      hocuspocus: {
-        documents: new Map(),
-        closeConnections() {},
-        unloadDocument: async () => {},
-      } as never,
-      sessionManager: {
-        closeSession: async () => {},
-        closeAllForDoc: async () => {},
-      } as never,
-      contentDir,
-      getFileIndex: () => new Map(),
-      derivedDocumentIndex: createDerivedDocumentIndexApiPortStub({
-        recordDirectMutations,
-      }),
-    });
-
-    try {
-      const route = startRoute(extension, '/api/skill', 'POST', {
-        scope: 'project',
-        fromName: 'old-skill',
-        toName: 'new-skill',
-      });
-
-      await route.done;
-      expect(route.captured.status).toBe(200);
-
-      await started;
-      releaseProjection();
-      await vi.waitFor(() => {
-        expect(recordDirectMutations).toHaveBeenCalledTimes(1);
-      });
-      expect(JSON.parse(route.captured.body)).toMatchObject({
-        from: '.ok/skills/old-skill',
-        to: '.ok/skills/new-skill',
-      });
-    } finally {
-      releaseProjection();
-      rmSync(contentDir, { recursive: true, force: true });
     }
   });
 });

@@ -1,8 +1,6 @@
-import { existsSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { join, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import {
-  AGENTS_SKILLS_ROOT,
   EmptyRequestSchema,
   GitHubReferenceRequestSchema,
   GitHubReferenceResponseSchema,
@@ -17,14 +15,10 @@ import {
   SearchRequestSchema,
   type SearchSource,
   SearchSuccessSchema,
-  SkillTargetsGetSuccessSchema,
-  SkillTargetsPutRequestSchema,
-  SkillTargetsPutSuccessSchema,
   type WorkspaceSearchIntent,
   type WorkspaceSearchRanking,
   type WorkspaceSearchScope,
 } from '@inkeep/open-knowledge-core';
-import { skillFolderStateForWire } from '@inkeep/open-knowledge-core/skill-folder-state';
 import { z } from 'zod';
 import { fetchGitHubReference, GitHubRateLimitHolds } from '../github-reference/fetch-reference.ts';
 import { GitHubReferenceCache } from '../github-reference/reference-cache.ts';
@@ -33,7 +27,6 @@ import {
   parseGitHubReferenceUrl,
 } from '../github-reference/reference-target.ts';
 import { mayUseGitHubToken } from '../github-reference/token-resolver.ts';
-import { isActivatedSkillRoot, knownSkillRootsFor } from '../in-place-skills.ts';
 import { guardedFetch } from '../link-preview/guarded-fetch.ts';
 import { buildLinkPreviewMetadata, type GuardedFetch } from '../link-preview/metadata.ts';
 import { LinkPreviewCache, type LinkPreviewOutcome } from '../link-preview/preview-cache.ts';
@@ -42,18 +35,6 @@ import type { PinoLogger } from '../logger.ts';
 import { scanSavedThemes } from '../saved-themes-store.ts';
 import { deleteSavedTheme, saveSavedTheme, updateSavedTheme } from '../saved-themes-write.ts';
 import type { SearchService } from '../services/search.ts';
-import {
-  linkEditorSkillFolder,
-  previewEditorFolderLink,
-  scanSkillFolderStates,
-  unlinkEditorSkillFolder,
-} from '../skill-folder-links.ts';
-import {
-  readFolderExpectations,
-  recordFolderExpectation,
-  recordKnownSkillRoot,
-} from '../skill-placements.ts';
-import { resolveSkillTargets } from '../skill-projection.ts';
 import { type ApiRouteGroup, createApiRouteGroup } from './api-pipeline.ts';
 import { catchErrors } from './catch-errors.ts';
 import { errorResponse } from './error-response.ts';
@@ -79,12 +60,10 @@ export type GeneratedIndexSettingsStatus = z.infer<typeof GeneratedIndexSettings
 export interface WorkspaceToolsRouteDeps {
   contentDir: string;
   projectDir: string | undefined;
-  skillsHome: string;
   homeDirOverride: string | undefined;
   savedThemeLockTimeoutMs: number | undefined;
   ephemeral: boolean | undefined;
   log: PinoLogger;
-  signalChannel: ((channel: 'files' | 'lint-config' | 'comments') => void) | undefined;
   searchService: SearchService;
   linkPreviewFetch: GuardedFetch | undefined;
   getLinkPreviewsEnabled: (() => boolean) | undefined;
@@ -117,12 +96,10 @@ export function createWorkspaceToolsRoutes(deps: WorkspaceToolsRouteDeps): ApiRo
   const {
     contentDir,
     projectDir,
-    skillsHome,
     homeDirOverride,
     savedThemeLockTimeoutMs,
     ephemeral,
     log,
-    signalChannel,
     searchService,
     linkPreviewFetch,
     getLinkPreviewsEnabled,
@@ -355,262 +332,6 @@ export function createWorkspaceToolsRoutes(deps: WorkspaceToolsRouteDeps): ApiRo
   const handleSavedTheme = methodRouter(
     { POST: handleSavedThemeSave, PUT: handleSavedThemeUpdate, DELETE: handleSavedThemeDelete },
     { handler: 'saved-theme' },
-  );
-
-  const handleSkillTargetsGet = withValidation(
-    EmptyRequestSchema,
-    async (_req, res) => {
-      try {
-        const targets = resolveSkillTargets(projectDir ?? '');
-        const withDrift = (
-          base: string,
-          f: ReturnType<typeof scanSkillFolderStates>[number],
-        ): { drift?: true; expected?: string } => {
-          const exp = readFolderExpectations(base)[f.root];
-          if (exp === undefined) return {};
-          const matches =
-            exp.expect === 'link'
-              ? f.state === 'linked' && f.target === exp.target
-              : f.state === 'own';
-          if (matches) return {};
-          return {
-            drift: true,
-            expected: exp.expect === 'link' ? `link → ${exp.target}` : 'own folder',
-          };
-        };
-        successResponse(
-          res,
-          200,
-          SkillTargetsGetSuccessSchema,
-          {
-            targets,
-            configured: false,
-            folders: [
-              ...(projectDir
-                ? scanSkillFolderStates(contentDir, knownSkillRootsFor(contentDir, 'project'))
-                    .filter((f) => isActivatedSkillRoot(contentDir, 'project', f.root, skillsHome))
-                    .map((f) => ({
-                      ...skillFolderStateForWire(f),
-                      scope: 'project' as const,
-                      ...withDrift(contentDir, f),
-                    }))
-                : []),
-              ...scanSkillFolderStates(skillsHome, knownSkillRootsFor(skillsHome, 'global'))
-                .filter((f) => isActivatedSkillRoot(skillsHome, 'global', f.root, skillsHome))
-                .map((f) => ({
-                  ...skillFolderStateForWire(f),
-                  scope: 'global' as const,
-                  ...withDrift(skillsHome, f),
-                })),
-            ],
-          },
-          { handler: 'skill-targets-get' },
-        );
-      } catch (e) {
-        errorResponse(
-          res,
-          500,
-          'urn:ok:error:internal-server-error',
-          'Failed to read skill targets.',
-          { handler: 'skill-targets-get', cause: e },
-        );
-      }
-    },
-    { handler: 'skill-targets-get', method: 'GET', skipBodyParse: true },
-  );
-
-  const handleSkillTargetsPut = withValidation(
-    SkillTargetsPutRequestSchema,
-    async (_req, res, body) => {
-      try {
-        {
-          const fa = body.folderAction;
-          const base = fa.scope === 'project' ? contentDir : skillsHome;
-          if (fa.scope === 'project' && !projectDir) {
-            errorResponse(
-              res,
-              400,
-              'urn:ok:error:invalid-request',
-              'Cannot manage skill folders — no project root is resolved for this server.',
-              { handler: 'skill-targets-put', detail: 'NO_PROJECT_ROOT' },
-            );
-            return;
-          }
-          if (fa.action === 'add-root') {
-            const raw = fa.root.replace(/\\/g, '/');
-            const rel = raw.replace(/\/+$/g, '');
-            const segs = rel.split('/').filter((seg) => seg !== '' && seg !== '.');
-            if (
-              rel === '' ||
-              rel.startsWith('/') ||
-              rel.startsWith('~') ||
-              /^[A-Za-z]:/.test(rel) ||
-              rel.includes('\x00') ||
-              segs.length === 0 ||
-              segs.some((seg) => seg === '..')
-            ) {
-              errorResponse(res, 400, 'urn:ok:error:invalid-request', 'Invalid folder path.', {
-                handler: 'skill-targets-put',
-                detail: fa.root,
-              });
-              return;
-            }
-            await recordKnownSkillRoot(base, segs.join('/'));
-            signalChannel?.('files');
-            successResponse(
-              res,
-              200,
-              SkillTargetsPutSuccessSchema,
-              {
-                targets: resolveSkillTargets(projectDir ?? ''),
-                reprojected: [],
-                bundleHosts: [],
-                removedFrom: [],
-              },
-              { handler: 'skill-targets-put' },
-            );
-            return;
-          }
-          const knownRoots = new Set(
-            knownSkillRootsFor(base, fa.scope)
-              .map((r) => r.root)
-              .filter((r) => !r.startsWith('/') && !r.split('/').includes('..')),
-          );
-          const target = fa.action === 'link' ? (fa.target ?? '') : fa.root;
-          if (
-            !knownRoots.has(fa.root) ||
-            (fa.action === 'link' && (!knownRoots.has(target) || fa.root === target))
-          ) {
-            errorResponse(
-              res,
-              400,
-              'urn:ok:error:invalid-request',
-              'Folder and target must be distinct standard skills roots.',
-              { handler: 'skill-targets-put', detail: `${fa.root} -> ${target}` },
-            );
-            return;
-          }
-          const refuseNotPermitted = (roots: string[]): void => {
-            errorResponse(
-              res,
-              400,
-              'urn:ok:error:invalid-request',
-              `That link would create a folder GitQuire may not create on this machine: ${roots.join(', ')}.`,
-              { handler: 'skill-targets-put', detail: roots.join(', ') },
-            );
-          };
-          const mayCreate = (rootRel: string): boolean =>
-            isActivatedSkillRoot(base, fa.scope, rootRel, skillsHome) &&
-            !(rootRel === AGENTS_SKILLS_ROOT && !existsSync(join(base, rootRel)));
-
-          if (fa.action === 'link' && fa.preview) {
-            const p = previewEditorFolderLink({
-              base,
-              folderRel: fa.root,
-              targetRootRel: target,
-              mayCreate,
-            });
-            if (p.kind === 'not-permitted') {
-              refuseNotPermitted(p.roots);
-              return;
-            }
-            const plan = p.kind === 'plan' ? p.plan : null;
-            successResponse(
-              res,
-              200,
-              SkillTargetsPutSuccessSchema,
-              {
-                targets: resolveSkillTargets(projectDir ?? ''),
-                reprojected: [],
-                bundleHosts: [],
-                removedFrom: [],
-                preview: {
-                  moves: plan
-                    ? [...plan.linkedBundlesToMove.map(({ name }) => name), ...plan.toMove]
-                    : [],
-                  drops: plan?.toDrop ?? [],
-                  removes: plan?.removes ?? [],
-                  replaces: plan?.liveDestLinks ?? [],
-                  conflicts: p.kind === 'conflicts' ? p.conflicts : [],
-                  strays: p.kind === 'stray-entries' ? p.strays : [],
-                },
-              },
-              { handler: 'skill-targets-put' },
-            );
-            return;
-          }
-          const result =
-            fa.action === 'link'
-              ? linkEditorSkillFolder({
-                  base,
-                  folderRel: fa.root,
-                  targetRootRel: target,
-                  mayCreate,
-                })
-              : unlinkEditorSkillFolder({
-                  base,
-                  folderRel: fa.root,
-                  ...(fa.exclude !== undefined ? { exclude: fa.exclude } : {}),
-                });
-          if (!result.ok && result.reason === 'not-permitted') {
-            refuseNotPermitted(result.roots);
-            return;
-          }
-          if (!result.ok) {
-            errorResponse(
-              res,
-              409,
-              'urn:ok:error:invalid-request',
-              result.reason === 'conflicts'
-                ? `Cannot link — differing skills exist in both folders: ${result.conflicts.join(', ')}. Resolve them first.`
-                : result.reason === 'stray-entries'
-                  ? `Cannot link — the folder holds non-skill entries: ${result.strays.join(', ')}.`
-                  : result.reason === 'partial-move'
-                    ? `The merge stopped partway (${result.moved.length} skill(s) already moved — nothing lost). Run Link again to resume and complete it. (${result.error ?? ''})`
-                    : result.reason === 'not-linked'
-                      ? 'That folder is not a symlink — nothing to unlink.'
-                      : 'That folder cannot be linked (it is already a link or the same directory).',
-              { handler: 'skill-targets-put', detail: result.reason },
-            );
-            return;
-          }
-          await recordFolderExpectation(
-            base,
-            fa.root,
-            fa.action === 'link' ? { expect: 'link', target } : { expect: 'own' },
-          );
-          signalChannel?.('files');
-          successResponse(
-            res,
-            200,
-            SkillTargetsPutSuccessSchema,
-            {
-              targets: resolveSkillTargets(projectDir ?? ''),
-              reprojected: [],
-              bundleHosts: [],
-              removedFrom: [],
-              folder: { moved: result.moved, dropped: result.dropped, linked: result.linked },
-            },
-            { handler: 'skill-targets-put' },
-          );
-          return;
-        }
-      } catch (e) {
-        errorResponse(
-          res,
-          500,
-          'urn:ok:error:internal-server-error',
-          'Failed to set skill targets.',
-          { handler: 'skill-targets-put', cause: e },
-        );
-      }
-    },
-    { handler: 'skill-targets-put', method: 'PUT' },
-  );
-
-  const handleSkillTargets = methodRouter(
-    { GET: handleSkillTargetsGet, PUT: handleSkillTargetsPut },
-    { handler: 'skill-targets' },
   );
 
   function parseSearchRanking(value: unknown): WorkspaceSearchRanking | undefined {
@@ -910,11 +631,10 @@ export function createWorkspaceToolsRoutes(deps: WorkspaceToolsRouteDeps): ApiRo
       '/api/search': handleSearch,
       '/api/link-preview': handleLinkPreview,
       '/api/github-reference': handleGitHubReference,
-      '/api/skill-targets': handleSkillTargets,
       '/api/saved-themes': handleSavedThemesList,
       '/api/saved-theme': handleSavedTheme,
       '/api/generated-index/settings': handleGeneratedIndexSettings,
     },
-    { mutating: ['/api/skill-targets', '/api/saved-theme', '/api/generated-index/settings'] },
+    { mutating: ['/api/saved-theme', '/api/generated-index/settings'] },
   );
 }

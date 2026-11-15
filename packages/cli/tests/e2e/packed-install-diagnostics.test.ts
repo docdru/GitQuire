@@ -40,8 +40,7 @@ function createDiagnosticFixture() {
 }
 
 function writeLocalPackage(packageDir: string, failingInstall = false) {
-  for (const dir of ['dist/public', 'dist/assets/skills'])
-    mkdirSync(join(packageDir, dir), { recursive: true });
+  mkdirSync(join(packageDir, 'dist/public'), { recursive: true });
   writeFileSync(
     join(packageDir, 'package.json'),
     JSON.stringify({
@@ -56,7 +55,6 @@ function writeLocalPackage(packageDir: string, failingInstall = false) {
     '#!/usr/bin/env node\nconsole.log("diagnostic fixture ready");\n',
   );
   writeFileSync(join(packageDir, 'dist/public/index.html'), '<title>CLI fixture</title>');
-  writeFileSync(join(packageDir, 'dist/assets/skills/SKILL.md'), '# CLI fixture\n');
   if (failingInstall)
     writeFileSync(
       join(packageDir, 'install-failure.cjs'),

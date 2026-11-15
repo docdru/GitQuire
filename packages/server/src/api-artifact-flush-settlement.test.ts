@@ -1,17 +1,12 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setImmediate } from 'node:timers/promises';
 import { expect, test, vi } from 'vitest';
-import {
-  bootArtifactAdmissionRig,
-  settleArtifactContributors,
-} from './artifact-admission-rig.test-helper.ts';
 import type { BootedServer } from './boot.ts';
 import { bootCompositionRig, rawRequest } from './composition-rig.test-helper.ts';
 import { __formatContributorsForTests } from './contributor-tracker.ts';
 import * as persistence from './persistence.ts';
-import * as shadowRepo from './shadow-repo.ts';
 
 test('test flush waits for accepted artifact attribution before acknowledging settlement', async () => {
   const root = mkdtempSync(join(tmpdir(), 'ok-artifact-flush-settlement-'));
@@ -72,74 +67,6 @@ test('test flush waits for accepted artifact attribution before acknowledging se
     expect(beforeRelease).toEqual([]);
     expect(response.status, response.body).toBe(200);
     expect(gitFlushes).toEqual([true]);
-    expect(__formatContributorsForTests()).toBe('');
-  } finally {
-    release();
-    await server?.destroy();
-    vi.restoreAllMocks();
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test('shared settlement joins the separate skill-file attribution flush', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'ok-skill-file-flush-settlement-'));
-  const directory = join(root, '.agents', 'skills', 'example');
-  mkdirSync(directory, { recursive: true });
-  writeFileSync(
-    join(directory, 'SKILL.md'),
-    '---\nname: example\ndescription: Example\n---\nGuidance.\n',
-  );
-  let server: BootedServer | undefined;
-  let tracked = false;
-  const { promise: commitGate, resolve: release } = Promise.withResolvers<void>();
-  const { promise: commitStarted, resolve: commitEntered } = Promise.withResolvers<void>();
-  const { promise: joinStarted, resolve: joinEntered } = Promise.withResolvers<void>();
-  let joinCompleted = false;
-  const commit = shadowRepo.commitWipFromTree;
-  vi.spyOn(shadowRepo, 'commitWipFromTree').mockImplementation(async (...args) => {
-    if (tracked) {
-      commitEntered();
-      await commitGate;
-    }
-    return commit(...args);
-  });
-  const create = persistence.createPersistenceExtension;
-  vi.spyOn(persistence, 'createPersistenceExtension').mockImplementation((...args) => {
-    const result = create(...args);
-    const flushGit = result.flushPendingGitCommit;
-    result.flushPendingGitCommit = async () => {
-      const work = flushGit();
-      if (tracked) joinEntered();
-      await work;
-      if (tracked) joinCompleted = true;
-    };
-    return result;
-  });
-  try {
-    server = await bootArtifactAdmissionRig(root);
-    await settleArtifactContributors(server);
-    tracked = true;
-    const response = await rawRequest(server.port, '/api/skill-file', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'example',
-        scope: 'project',
-        path: 'references/example.md',
-        content: 'Safe.\n',
-        agentId: 'file-writer',
-      }),
-    });
-    expect(response.status, response.body).toBe(200);
-    await commitStarted;
-    const settling = settleArtifactContributors(server);
-    await joinStarted;
-    await setImmediate();
-    const completedBeforeRelease = joinCompleted;
-    release();
-    await settling;
-    expect(completedBeforeRelease).toBe(false);
-    expect(joinCompleted).toBe(true);
     expect(__formatContributorsForTests()).toBe('');
   } finally {
     release();

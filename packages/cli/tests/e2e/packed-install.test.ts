@@ -111,7 +111,7 @@ test('keeps fresh npm resolution selectable', async () => {
   }
 });
 
-test.each(['dist/public/index.html', 'dist/assets/skills'])(
+test.each(['dist/public/index.html'])(
   'rejects a packed files list that omits %s',
   async (asset) => {
     const fixture = await createInstallFixture();
@@ -120,10 +120,7 @@ test.each(['dist/public/index.html', 'dist/assets/skills'])(
         join(fixture.packageDir, 'package.json'),
         JSON.stringify({
           ...fixture.manifest,
-          files: [
-            'dist/cli.mjs',
-            asset === 'dist/public/index.html' ? 'dist/assets' : 'dist/public',
-          ],
+          files: ['dist/cli.mjs'],
         }),
       );
       await expect(installPackedCli(fixture)).rejects.toThrow(`missing required asset: ${asset}`);

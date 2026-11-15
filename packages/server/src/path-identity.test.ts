@@ -33,7 +33,6 @@ import { LocalTargetIndex } from './local-target-index.ts';
 import { createPersistenceExtension } from './persistence.ts';
 import { createServer, type ServerInstance } from './server-factory.ts';
 import { destroyShadowRepo, initShadowRepo, shadowGit } from './shadow-repo.ts';
-import { readSkillPlacements } from './skill-placements.ts';
 import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 
 const echoGate = vi.hoisted(() => ({
@@ -707,55 +706,6 @@ describe('one directory identity for watcher keys and linked documents', () => {
         });
       } finally {
         await watcher.unsubscribe();
-      }
-    },
-  );
-
-  test.for(WATCHED_ROOT_ROWS)(
-    'an in-place skill edited under the %s root refreshes its recorded copy with the %s watcher',
-    async ([spelling, watcher], ctx) => {
-      const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
-      const { contentDir } = root;
-      const home = mkdtempSync(join(tmpdir(), 'ok-path-identity-home-'));
-      fixtures.push(home);
-      const skillName = 'alias-refresh';
-      const skillFile = (body: string) =>
-        `---\nname: ${skillName}\ndescription: Keeps its recorded copies current.\n---\n\n${body}\n`;
-      const canonicalSkill = join('.agents', 'skills', skillName, 'SKILL.md');
-      const copiedSkill = join('.claude', 'skills', skillName, 'SKILL.md');
-      for (const skill of [canonicalSkill, copiedSkill]) {
-        mkdirSync(join(root.canonicalContentDir, skill, '..'), { recursive: true });
-        writeFileSync(join(root.canonicalContentDir, skill), skillFile('Before the edit.'));
-      }
-      if (watcher === 'chokidar') vi.stubEnv('OK_FILE_WATCHER_BACKEND', 'chokidar');
-      const server = createServer({
-        contentDir,
-        quiet: true,
-        gitEnabled: false,
-        configHomedirOverride: home,
-        skipStateManifestCheck: true,
-      });
-      try {
-        await server.ready;
-        await untilWatcherReportsChanges(contentDir);
-        await vi.waitFor(() =>
-          expect(readSkillPlacements(contentDir)[skillName]?.map((p) => p.path)).toEqual([
-            `.claude/skills/${skillName}`,
-          ]),
-        );
-        resetWatcherDecisionDiagnostics();
-        const edited = skillFile('After the edit.');
-        writeFileSync(join(root.canonicalContentDir, canonicalSkill), edited);
-        await vi.waitFor(() =>
-          expect(watcherDecisionsFor(join(skillName, 'SKILL.md'))).not.toEqual([]),
-        );
-        await vi.waitFor(() =>
-          expect(readFileSync(join(root.canonicalContentDir, copiedSkill), 'utf8')).toBe(edited),
-        );
-      } finally {
-        vi.unstubAllEnvs();
-        await server.destroy();
       }
     },
   );

@@ -9,20 +9,15 @@ function buildGroup() {
 }
 
 describe('createSeedRoutes table', () => {
-  test('registers exactly the four seed paths', () => {
+  test('registers exactly the three seed paths', () => {
     expect([...buildGroup().paths].sort()).toEqual(
-      [
-        '/api/seed/plan',
-        '/api/seed/apply',
-        '/api/seed/install-pack-skill',
-        '/api/seed/packs',
-      ].sort(),
+      ['/api/seed/plan', '/api/seed/apply', '/api/seed/packs'].sort(),
     );
   });
 
   test('legacy MUTATING_ROUTES members are mutating; the reads are not', () => {
     const { table } = buildGroup();
-    for (const path of ['/api/seed/apply', '/api/seed/install-pack-skill']) {
+    for (const path of ['/api/seed/apply']) {
       expect(table.isMutating(path), path).toBe(true);
     }
     for (const path of ['/api/seed/plan', '/api/seed/packs']) {

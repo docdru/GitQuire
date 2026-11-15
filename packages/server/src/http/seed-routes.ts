@@ -2,15 +2,12 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import {
   SeedApplyRequestSchema,
   SeedApplySuccessSchema,
-  SeedInstallPackSkillRequestSchema,
-  SeedInstallPackSkillSuccessSchema,
   SeedListPacksSuccessSchema,
   SeedPlanSuccessSchema,
 } from '@inkeep/open-knowledge-core';
 import {
   applySeed,
   coercePackId,
-  installPackSkillOnDemand,
   listStarterPacks,
   planSeed,
   type ScaffoldPlan,
@@ -127,40 +124,6 @@ export function createSeedRoutes(deps: SeedRouteDeps): ApiRouteGroup {
     },
   );
 
-  const handleSeedInstallPackSkill = withValidation(
-    SeedInstallPackSkillRequestSchema,
-    async (_req, res, body) => {
-      const packId = coercePackId(body.packId);
-      if (packId === undefined) {
-        errorResponse(res, 400, 'urn:ok:error:invalid-request', 'Unknown packId.', {
-          handler: 'seed-install-pack-skill',
-          detail: `Pack id "${body.packId}" is not registered.`,
-        });
-        return;
-      }
-      try {
-        const result = await installPackSkillOnDemand(contentDir, packId);
-        successResponse(res, 200, SeedInstallPackSkillSuccessSchema, result, {
-          handler: 'seed-install-pack-skill',
-        });
-      } catch (err) {
-        errorResponse(
-          res,
-          500,
-          'urn:ok:error:internal-server-error',
-          'Failed to install pack skill.',
-          { handler: 'seed-install-pack-skill', cause: err },
-        );
-      }
-    },
-    {
-      handler: 'seed-install-pack-skill',
-      method: 'POST',
-      preBodyGate: (req, res) =>
-        checkLocalOpSecurity(req, res, { handler: 'seed-install-pack-skill' }),
-    },
-  );
-
   async function handleSeedPacks(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!checkLocalOpSecurity(req, res, { handler: 'seed-packs' })) return;
     if (req.method !== 'GET') {
@@ -183,9 +146,8 @@ export function createSeedRoutes(deps: SeedRouteDeps): ApiRouteGroup {
     {
       '/api/seed/plan': handleSeedPlan,
       '/api/seed/apply': handleSeedApply,
-      '/api/seed/install-pack-skill': handleSeedInstallPackSkill,
       '/api/seed/packs': handleSeedPacks,
     },
-    { mutating: ['/api/seed/apply', '/api/seed/install-pack-skill'] },
+    { mutating: ['/api/seed/apply'] },
   );
 }

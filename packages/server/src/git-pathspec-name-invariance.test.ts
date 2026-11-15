@@ -17,13 +17,11 @@ import {
   commitWip,
   initShadowRepo,
   type ShadowHandle,
-  saveVersion,
   type WriterIdentity,
 } from './shadow-repo.ts';
 import { computeShareFreshness } from './share/freshness.ts';
 import { computeShareTargetStatus } from './share/target-status.ts';
 import { simpleGit } from './simple-git-client.ts';
-import { restoreSkillVersion } from './skill-restore.ts';
 import { SyncEngine } from './sync-engine.ts';
 import { getDocumentHistory } from './timeline-query.ts';
 
@@ -603,44 +601,6 @@ describe('pathspec name invariance — tracked-path rename probe (site 15)', () 
 });
 
 describe('pathspec argv sites with no product-producible hostile input today', () => {
-  const human: WriterIdentity = {
-    id: 'human-ada',
-    name: 'Ada Lovelace',
-    email: 'ada@example.com',
-  };
-  const WILDCARD_SKILL = 'star*';
-  const SIBLING_SKILL = 'starfish';
-
-  test('restoring a wildcard-named skill restores only its own files', async () => {
-    const g = simpleGit(projectDir);
-    await g.init(['--initial-branch=main']);
-    configureTestGitRepository(projectDir);
-    await g.raw('config', 'user.name', 'Test');
-    await g.raw('config', 'user.email', 'test@test.com');
-    writeFileSync(join(projectDir, 'README.md'), '# seed\n', 'utf-8');
-    await g.add('README.md');
-    await g.commit('seed');
-
-    const shadow = await initShadowRepo(projectDir);
-    for (const name of [WILDCARD_SKILL, SIBLING_SKILL]) {
-      mkdirSync(join(projectDir, '.ok', 'skills', name), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'skills', name, 'SKILL.md'), `# ${name}\n`, 'utf-8');
-    }
-    const saved = await saveVersion(shadow, '.', [human], 'main', 'seed skills');
-    expect(saved.checkpointRef).toBeTruthy();
-
-    const restored = await restoreSkillVersion({
-      shadow,
-      contentDir: projectDir,
-      contentRoot: '.',
-      name: WILDCARD_SKILL,
-      version: saved.checkpointRef,
-    });
-
-    expect(restored.ok).toBe(true);
-    if (restored.ok) expect(restored.restoredFiles).toEqual(['SKILL.md']);
-  });
-
   test('every tracked MCP config target is free of pathspec magic (sites 6b, 7)', () => {
     for (const target of TRACKED_MCP_CONFIG_TARGETS) {
       expect(target.startsWith(':')).toBe(false);

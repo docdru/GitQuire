@@ -8,7 +8,6 @@ import {
 } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import { extensionlessDocTreePath, getDocExtension } from './doc-extensions.ts';
 import { getLogger } from './logger.ts';
-import { managedArtifactTimelinePaths } from './managed-artifact-persistence.ts';
 import {
   type AncestorShaSetCache,
   batchCheckExistence,
@@ -326,19 +325,9 @@ export async function getDocumentHistory(
     return extless ? [full, extless] : [full];
   };
 
-  const managed = query.docName
-    ? managedArtifactTimelinePaths(query.docName)
-    : ({ managed: false } as const);
-  const managedFilePath = managed.managed && managed.versioned ? managed.filePath : undefined;
-  const effectiveDocName = managed.managed && managed.versioned ? managed.docKey : query.docName;
+  const effectiveDocName = query.docName;
 
-  const docPath = query.docName
-    ? managedFilePath
-      ? normalizedRoot
-        ? `${normalizedRoot}/${managedFilePath}`
-        : managedFilePath
-      : pathFor(query.docName)
-    : undefined;
+  const docPath = query.docName ? pathFor(query.docName) : undefined;
 
   try {
     const renameLogIndex = options?.renameLogIndex ?? getOrLoadRenameLogIndex(shadow.gitDir);

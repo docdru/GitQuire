@@ -98,7 +98,7 @@ export interface FolderTemplateRouteDeps {
     principal: (() => Principal | null) | undefined,
   ) => ReturnType<typeof extractActorIdentity>;
   okArtifactKey: (
-    kind: 'template' | 'folder-frontmatter' | 'folder' | 'skill',
+    kind: 'template' | 'folder-frontmatter' | 'folder',
     folder: string,
     name?: string,
   ) => string;

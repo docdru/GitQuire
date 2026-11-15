@@ -1,4 +1,4 @@
-import { mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -144,35 +144,6 @@ describe('planSeed — nested .ok/ era', () => {
   test('rootDir rejects path traversal', async () => {
     await expect(planSeed({ projectDir, rootDir: '../escape' })).rejects.toThrow(SeedRootDirError);
   });
-
-  test('no agent folder: pack skills are not pending, and the plan says why', async () => {
-    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
-    expect(plan.packSkills?.length).toBeGreaterThan(0);
-    expect(plan.packSkills?.some((s) => s.pending)).toBe(false);
-    expect(plan.packSkillHomeRefusal).toBe('no-agent-folder');
-  });
-
-  test('with an adopted agent folder, an absent pack skill is pending', async () => {
-    mkdirSync(join(projectDir, '.claude'), { recursive: true });
-    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
-    expect(plan.packSkills?.some((s) => s.pending)).toBe(true);
-    expect(plan.packSkillHomeRefusal).toBeUndefined();
-  });
-
-  test('an agent folder symlinked outside the project refuses with home-escapes-project', async () => {
-    const outside = await mkdtemp(join(tmpdir(), 'seed-outside-'));
-    try {
-      symlinkSync(outside, join(projectDir, '.claude'));
-      mkdirSync(join(outside, 'skills'), { recursive: true });
-
-      const plan = await planSeed({ projectDir, packId: 'plain-notes' });
-
-      expect(plan.packSkillHomeRefusal).toBe('home-escapes-project');
-      expect(plan.packSkills?.some((s) => s.pending)).toBe(false);
-    } finally {
-      await rm(outside, { recursive: true, force: true });
-    }
-  });
 });
 
 describe('planSeed — codebase-wiki nested paths', () => {
@@ -209,60 +180,5 @@ describe('planSeed — codebase-wiki nested paths', () => {
     const createdPaths = new Set(plan.created.map((e) => e.path));
     expect(createdPaths.has('wiki/OVERVIEW.md')).toBe(true);
     expect(createdPaths.has('wiki/log.md')).toBe(true);
-  });
-
-  test('a pack skill installed under its old name reads as present, not pending, not conflicted', async () => {
-    const oldName = 'open-knowledge-pack-plain-notes';
-    const skillDir = join(projectDir, '.claude', 'skills', oldName);
-    mkdirSync(skillDir, { recursive: true });
-    writeFileSync(
-      join(skillDir, 'SKILL.md'),
-      `---\nname: ${oldName}\ndescription: "Plain notes."\nmetadata:\n  pack: "plain-notes"\n---\n\nBody.\n`,
-      'utf-8',
-    );
-
-    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
-
-    const orientation = plan.packSkills?.find((s) => s.name === 'note-taking');
-    expect(orientation).toBeDefined();
-    expect(orientation?.pending).toBe(false);
-    expect(orientation?.conflict).toBeUndefined();
-  });
-
-  test('an updated legacy install (no metadata.pack) is still ours, via its old lock key', async () => {
-    const oldName = 'open-knowledge-pack-plain-notes';
-    const skillDir = join(projectDir, '.claude', 'skills', oldName);
-    mkdirSync(skillDir, { recursive: true });
-    writeFileSync(
-      join(skillDir, 'SKILL.md'),
-      `---\nname: ${oldName}\ndescription: "Plain notes."\n---\n\nBody.\n`,
-      'utf-8',
-    );
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(
-      join(projectDir, '.ok', 'skills-lock.json'),
-      `${JSON.stringify(
-        {
-          schema: 1,
-          skills: {
-            [oldName]: {
-              source: 'inkeep/open-knowledge-skills',
-              skill: oldName,
-              contentHash: 'h',
-              importedAt: '2026-01-01T00:00:00.000Z',
-            },
-          },
-        },
-        null,
-        2,
-      )}\n`,
-      'utf-8',
-    );
-
-    const plan = await planSeed({ projectDir, packId: 'plain-notes' });
-
-    const orientation = plan.packSkills?.find((s) => s.name === 'note-taking');
-    expect(orientation?.pending).toBe(false);
-    expect(orientation?.conflict).toBeUndefined();
   });
 });

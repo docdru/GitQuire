@@ -58,7 +58,6 @@ export interface TestRouteDeps {
   forceUnloadDocument: ((document: Document) => Promise<void>) | undefined;
   derivedDocumentIndex: DerivedDocumentIndexApiPort | undefined;
   contentFilter: ContentFilter | undefined;
-  bumpSkillsCatalogGen: () => void;
   signalChannel: ((channel: 'files' | 'lint-config' | 'comments') => void) | undefined;
   flushGitCommit: (() => Promise<void>) | undefined;
   rescanFiles: (() => void | Promise<void>) | undefined;
@@ -80,7 +79,6 @@ export function createTestRoutes(deps: TestRouteDeps): ApiRouteGroup {
     forceUnloadDocument,
     derivedDocumentIndex,
     contentFilter,
-    bumpSkillsCatalogGen,
     signalChannel,
     flushGitCommit,
     rescanFiles,
@@ -250,7 +248,6 @@ export function createTestRoutes(deps: TestRouteDeps): ApiRouteGroup {
               writeFileSync(okignorePath, '', 'utf-8');
             }
             if (contentFilter) {
-              bumpSkillsCatalogGen();
               await contentFilter.rebuildIgnorePatterns();
             }
           } catch (err) {

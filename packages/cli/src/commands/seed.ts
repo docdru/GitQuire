@@ -1,13 +1,6 @@
 import { relative, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import {
-  AGENTS_SKILLS_ROOT,
-  currentCliCommandName,
-  EDITOR_PROJECT_SKILL_ROOT,
-  PROJECT_SKILL_EDITOR_IDS,
-  planHasOutstandingWork,
-  skillRootActivationPath,
-} from '@inkeep/open-knowledge-core';
+import { planHasOutstandingWork } from '@inkeep/open-knowledge-core';
 import {
   applySeed,
   DEFAULT_PACK_ID,
@@ -29,21 +22,6 @@ interface SeedCommandOptions {
   yes?: boolean;
   dryRun?: boolean;
   confirmStream?: NodeJS.ReadableStream;
-}
-
-function skillHomeRefusalNote(plan: ScaffoldPlan, packName: string): string {
-  if (plan.packSkillHomeRefusal === undefined) return '';
-  if (plan.packSkillHomeRefusal === 'home-escapes-project') {
-    return `\n${warning('!')} The ${packName} skills were not installed: this project's skill folder is a symlink pointing outside the project, and Open Knowledge will not write through it. Replace it with a real directory inside the project, then run \`${currentCliCommandName()} seed\` again.`;
-  }
-  const homes = [
-    ...new Set(
-      [AGENTS_SKILLS_ROOT, ...PROJECT_SKILL_EDITOR_IDS.map((id) => EDITOR_PROJECT_SKILL_ROOT[id])]
-        .filter((root): root is string => root !== null)
-        .map(skillRootActivationPath),
-    ),
-  ].map((home) => `${home}/`);
-  return `\n${warning('!')} The ${packName} skills were not installed: this project has no agent folder for them. Open Knowledge only writes skills into a folder that already exists (${homes.join(', ')}) and never creates one for you. Create the folder your agent uses, then run \`${currentCliCommandName()} seed\` again to install them.`;
 }
 
 function isPackId(value: unknown): value is PackId {
@@ -94,17 +72,9 @@ export async function runSeed(opts: SeedCommandOptions = {}): Promise<SeedComman
 
   if (!planHasOutstandingWork(plan)) {
     const packName = STARTER_PACKS[packId].name;
-    const conflictNote = (plan.packSkills ?? [])
-      .filter((s) => s.conflict)
-      .map(
-        (s) =>
-          `\n${warning('!')} Skill "${s.name}" is your own — the pack's version is not installed. Rename yours to install the pack's version.`,
-      )
-      .join('');
-    const refusalNote = skillHomeRefusalNote(plan, packName);
     return {
       status: 'no-op',
-      message: `${success(`Your ${packName} pack is already seeded.`)}${refusalNote}${conflictNote}${refusalNote === '' ? `\n${dim('Nothing to do.')}` : ''}`,
+      message: `${success(`Your ${packName} pack is already seeded.`)}\n${dim('Nothing to do.')}`,
       plan,
       exitCode: 0,
     };
@@ -152,27 +122,14 @@ export async function runSeed(opts: SeedCommandOptions = {}): Promise<SeedComman
 
   const packName = STARTER_PACKS[packId].name;
 
-  const skillLine =
-    applyResult.packSkillsInstalled.length > 0
-      ? `\n${dim(`Installed the ${packName} skills for: ${applyResult.packSkillsInstalled.join(', ')}`)}`
-      : '';
-
   const pluginLine =
     applyResult.pluginsEnabled.length > 0
       ? `\n${dim(`Enabled plugin(s) included with this pack: ${applyResult.pluginsEnabled.join(', ')} — turn off any time in Settings.`)}`
       : '';
 
-  const conflictLines = (applyResult.packSkillConflicts ?? [])
-    .map((c) =>
-      c.hosts === undefined || c.hosts.length === 0
-        ? `\n${warning('!')} Skill "${c.name}" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version.`
-        : `\n${warning('!')} Skill "${c.name}" was not installed for ${c.hosts.join(', ')} — you already have your own skill with that name there. Rename yours if you want the pack's version.`,
-    )
-    .join('');
-
   return {
     status: 'applied',
-    message: `${success(`✓ Seeded ${packName}`)} ${dim(`(${applyResult.applied} entries, ${applyResult.durationMs}ms)`)}${skillLine}${pluginLine}${skillHomeRefusalNote(plan, packName)}${conflictLines}`,
+    message: `${success(`✓ Seeded ${packName}`)} ${dim(`(${applyResult.applied} entries, ${applyResult.durationMs}ms)`)}${pluginLine}`,
     plan,
     exitCode: 0,
   };
@@ -223,17 +180,6 @@ function formatPlanBody(plan: ScaffoldPlan, cwd: string): string {
     lines.push(warning('Warnings:'));
     for (const w of plan.warnings) {
       lines.push(`  ${warning('!')} ${w}`);
-    }
-  }
-
-  const conflicts = (plan.packSkills ?? []).filter((s) => s.conflict);
-  if (conflicts.length > 0) {
-    if (lines.length > 0) lines.push('');
-    lines.push(warning('Name collisions:'));
-    for (const s of conflicts) {
-      lines.push(
-        `  ${warning('!')} Skill "${s.name}" is your own — the pack's version will not be installed. Rename yours to install the pack's version.`,
-      );
     }
   }
 

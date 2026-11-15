@@ -2,7 +2,7 @@ import { fork } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 
-export type WatcherEntry = 'managed' | 'config' | 'multi-config';
+export type WatcherEntry = 'config' | 'multi-config';
 
 export type ReadinessScenario = 'create' | 'edit';
 

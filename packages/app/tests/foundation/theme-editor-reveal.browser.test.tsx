@@ -72,7 +72,6 @@ function serveSavedThemes(names: string[]): void {
   stubApiRoutes({
     '/api/config': () => new Response(null, { status: 404 }),
     '/api/principal': () => new Response(null, { status: 404 }),
-    '/api/skill/install-state': () => new Response(null, { status: 404 }),
     '/api/saved-themes': () => Response.json({ themes: savedThemes, truncated: false }),
     '/api/saved-theme': (_url, init) => {
       if (init?.method !== 'POST') return new Response(null, { status: 405 });

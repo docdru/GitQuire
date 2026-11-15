@@ -119,7 +119,6 @@ vi.doMock('@/lib/seed-client', () => ({
           applied: plan.created.length,
           errors: [],
           durationMs: 1,
-          packSkillConflicts: [],
         },
       };
     },
@@ -244,37 +243,5 @@ describe('SeedDialog runtime behavior', () => {
     expect(onOpenChangeCalls).toEqual([false]);
     expect(toastSuccesses[0]).toContain('Plain Notes initialized');
     expect(toastErrors).toEqual([]);
-  });
-
-  test('a pending pack skill renders a skill card naming the skill, not a separate reinstall line', async () => {
-    planImpl = async () => ({
-      ok: true,
-      plan: {
-        ...plainNotesPlan,
-        packSkills: [{ name: 'note-taking', pending: true }],
-      },
-    });
-
-    await renderSeedDialog({ initialPackId: 'plain-notes' });
-
-    const skillName = await screen.findByText('note-taking');
-    expect(skillName.getAttribute('title')).toBe('note-taking');
-    expect(screen.queryByText(/will be \(re\)installed/)).toBeNull();
-  });
-
-  test('a conflicted pack skill is surfaced in the already-set-up phase', async () => {
-    planImpl = async () => ({
-      ok: true,
-      plan: {
-        ...plainNotesPlan,
-        created: [],
-        packSkills: [{ name: 'note-taking', pending: false, conflict: true }],
-      },
-    });
-
-    await renderSeedDialog({ initialPackId: 'plain-notes' });
-
-    expect(await screen.findByText(/already set up here/)).toBeTruthy();
-    expect(await screen.findByText(/your own skill named "note-taking"/)).toBeTruthy();
   });
 });

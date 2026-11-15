@@ -90,7 +90,6 @@ export interface OkScaffoldPlan {
   created: OkScaffoldFileEntry[];
   skipped: OkScaffoldSkipEntry[];
   warnings: string[];
-  packSkills?: { name: string; pending: boolean; conflict?: boolean }[];
   requiredPlugins?: { id: LintPluginId; pending: boolean }[];
 }
 
@@ -103,9 +102,7 @@ export interface OkScaffoldApplyResult {
   applied: number;
   errors: OkScaffoldApplyError[];
   durationMs: number;
-  packSkillsInstalled: string[];
   pluginsEnabled: LintPluginId[];
-  packSkillConflicts: { name: string; hosts?: string[] }[];
 }
 
 export interface OkSeedError {
