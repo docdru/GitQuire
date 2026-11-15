@@ -7,7 +7,6 @@ import {
   KEYBOARD_SHORTCUTS,
   type KeyboardShortcutId,
   matchesKeyboardShortcut,
-  matchesRendererShortcut,
 } from './keyboard-shortcuts';
 
 describe('keyboard shortcut registry', () => {
@@ -170,131 +169,6 @@ describe('keyboard shortcut registry', () => {
         'windowsLinux',
       ),
     ).toBe(false);
-  });
-
-  test('formats the terminal-panel shortcut as Cmd/Ctrl + J', () => {
-    expect(formatShortcut('toggle-terminal-panel', 'mac')).toBe('⌘ J');
-    expect(formatShortcut('toggle-terminal-panel', 'windowsLinux')).toBe('Ctrl J');
-  });
-
-  test('matches the terminal-panel shortcut on Cmd+J / Ctrl+J and excludes extra modifiers', () => {
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, key: 'j' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 'j' },
-        'toggle-terminal-panel',
-        'windowsLinux',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 'j' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: true, key: 'j' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'j' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, altKey: false, key: 'j' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-  });
-
-  test('matches the terminal-panel shortcut on Ctrl+` on both platforms', () => {
-    for (const platform of ['mac', 'windowsLinux'] as const) {
-      expect(
-        matchesKeyboardShortcut(
-          { metaKey: false, ctrlKey: true, altKey: false, key: '`', code: 'Backquote' },
-          'toggle-terminal-panel',
-          platform,
-        ),
-      ).toBe(true);
-    }
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, key: '`', code: 'Backquote' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, altKey: false, key: '`', code: 'Backquote' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: '<', code: 'Backquote' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: '`', code: 'IntlBackslash' },
-        'toggle-terminal-panel',
-        'mac',
-      ),
-    ).toBe(false);
-  });
-
-  test('⌘J stays bindings[0] so the menu-accelerator parity ratchet keeps matching', () => {
-    expect(formatShortcut('toggle-terminal-panel', 'mac')).toBe('⌘ J');
-    const terminalShortcut = KEYBOARD_SHORTCUTS.find((s) => s.id === 'toggle-terminal-panel');
-    expect(terminalShortcut?.bindings.map((binding) => binding.mac)).toEqual(['⌘ J', '⌃ `']);
-  });
-
-  test('matchesRendererShortcut drops menu-delivered chords only when a native menu exists', () => {
-    const cmdJ = { metaKey: true, ctrlKey: false, altKey: false, key: 'j' };
-    const ctrlBacktick = {
-      metaKey: false,
-      ctrlKey: true,
-      altKey: false,
-      key: '`',
-      code: 'Backquote',
-    };
-    expect(matchesRendererShortcut(cmdJ, 'toggle-terminal-panel', true, 'mac')).toBe(false);
-    expect(matchesRendererShortcut(ctrlBacktick, 'toggle-terminal-panel', true, 'mac')).toBe(true);
-    expect(matchesRendererShortcut(cmdJ, 'toggle-terminal-panel', false, 'mac')).toBe(true);
-    expect(matchesRendererShortcut(ctrlBacktick, 'toggle-terminal-panel', false, 'mac')).toBe(true);
-
-    const ctrlJ = { metaKey: false, ctrlKey: true, altKey: false, key: 'j' };
-    expect(matchesRendererShortcut(ctrlJ, 'toggle-terminal-panel', true, 'windowsLinux')).toBe(
-      false,
-    );
-    expect(
-      matchesRendererShortcut(ctrlBacktick, 'toggle-terminal-panel', true, 'windowsLinux'),
-    ).toBe(true);
-    expect(matchesRendererShortcut(ctrlJ, 'toggle-terminal-panel', false, 'windowsLinux')).toBe(
-      true,
-    );
-    expect(
-      matchesRendererShortcut(ctrlBacktick, 'toggle-terminal-panel', false, 'windowsLinux'),
-    ).toBe(true);
   });
 
   test('formats the toggle-agent-panel shortcut as Cmd/Ctrl + L', () => {
@@ -696,14 +570,6 @@ describe('keyboard shortcut registry', () => {
       const id = shortcut.id as KeyboardShortcutId;
       if (matchesKeyboardShortcut(macEvent, id, 'mac')) claimedBy.push(`mac:${id}`);
       if (matchesKeyboardShortcut(winEvent, id, 'windowsLinux')) claimedBy.push(`win:${id}`);
-      for (const hasNativeMenu of [true, false]) {
-        if (matchesRendererShortcut(macEvent, id, hasNativeMenu, 'mac')) {
-          claimedBy.push(`mac-renderer:${id}`);
-        }
-        if (matchesRendererShortcut(winEvent, id, hasNativeMenu, 'windowsLinux')) {
-          claimedBy.push(`win-renderer:${id}`);
-        }
-      }
     }
     expect(claimedBy).toEqual([]);
   });

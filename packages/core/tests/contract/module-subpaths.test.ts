@@ -89,7 +89,6 @@ import * as seedPlanWorkSubpath from '@inkeep/open-knowledge-core/seed-plan-work
 import * as serverBarrel from '@inkeep/open-knowledge-core/server';
 import * as sharingSubpath from '@inkeep/open-knowledge-core/sharing';
 import * as syncPausedReasonSubpath from '@inkeep/open-knowledge-core/sync-paused-reason';
-import * as terminalLayoutSubpath from '@inkeep/open-knowledge-core/terminal-layout';
 import * as themeBase16Subpath from '@inkeep/open-knowledge-core/theme/base16';
 import * as themeThemePluginsSubpath from '@inkeep/open-knowledge-core/theme/theme-plugins';
 import * as typesAwarenessSubpath from '@inkeep/open-knowledge-core/types/awareness';
@@ -227,7 +226,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './seed-plan-work': seedPlanWorkSubpath,
   './sharing': sharingSubpath,
   './sync-paused-reason': syncPausedReasonSubpath,
-  './terminal-layout': terminalLayoutSubpath,
   './theme/base16': themeBase16Subpath,
   './theme/theme-plugins': themeThemePluginsSubpath,
   './types/awareness': typesAwarenessSubpath,

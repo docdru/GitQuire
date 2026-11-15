@@ -4442,18 +4442,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "منتقلی ہو گئی مگر سائیڈ بار پرانا ہو سکتا ہے — دوبارہ مطابقت کے لیے تازہ کریں"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Terminal کو ونڈو کے نچلے کنارے پر منتقل کریں"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Terminal کو ونڈو کے بائیں کنارے پر منتقل کریں"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Terminal کو ونڈو کے دائیں کنارے پر منتقل کریں"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Terminal کو ونڈو کے اوپری کنارے پر منتقل کریں"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "موجودہ بلاک کو اوپر یا نیچے منتقل کریں۔ فہرستوں میں، موجودہ آئٹم یا منتخب آئٹمز کو منتقل کریں۔"
 
@@ -5179,9 +5167,6 @@ msgstr "ماخذ کھولیں: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "ٹرمینل کھولیں"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6550,9 +6535,6 @@ msgstr "دستاویز کا پینل دکھائیں یا چھپائیں"
 msgid "Show or hide Files"
 msgstr "فائلیں دکھائیں یا چھپائیں"
 
-msgid "Show or hide Terminal"
-msgstr "Terminal دکھائیں یا چھپائیں"
-
 msgid "Show original"
 msgstr "اصل دکھائیں"
 
@@ -6987,9 +6969,6 @@ msgstr "ٹیمپلیٹس"
 
 msgid "Templates available"
 msgstr "دستیاب ٹیمپلیٹس"
-
-msgid "Terminal"
-msgstr "ٹرمینل"
 
 msgid "Test connection"
 msgstr "کنکشن جانچیں"
@@ -7585,9 +7564,6 @@ msgstr "سورس کا منظر بدلیں"
 
 msgid "Toggle strikethrough formatting."
 msgstr "درمیان سے کٹی فارمیٹنگ بدلیں۔"
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Terminal کو اس کی موجودہ ڈاک میں دکھائیں یا چھپائیں۔"
 
 msgid "Toggle the document panel."
 msgstr "دستاویز پینل بدلیں۔"

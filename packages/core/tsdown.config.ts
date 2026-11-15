@@ -100,7 +100,6 @@ const entry = {
   'seed-plan-work': 'src/seed-plan-work.ts',
   sharing: 'src/sharing/index.ts',
   'sync-paused-reason': 'src/sync-paused-reason.ts',
-  'terminal-layout': 'src/terminal-layout.ts',
   'theme-base16': 'src/theme/base16.ts',
   'theme-theme-plugins': 'src/theme/theme-plugins.ts',
   'types-awareness': 'src/types/awareness.ts',

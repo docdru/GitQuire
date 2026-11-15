@@ -599,12 +599,6 @@
       "types": "./dist/sync-paused-reason.d.mts",
       "default": "./dist/sync-paused-reason.mjs"
     },
-    "./terminal-layout": {
-      "@inkeep/source": "./src/terminal-layout.ts",
-      "development": "./src/terminal-layout.ts",
-      "types": "./dist/terminal-layout.d.mts",
-      "default": "./dist/terminal-layout.mjs"
-    },
     "./theme/base16": {
       "@inkeep/source": "./src/theme/base16.ts",
       "development": "./src/theme/base16.ts",

@@ -131,17 +131,13 @@ describe('EmptyEditorState file creation with session panels', () => {
     expect(await screen.findByTestId('pack-card-grid')).toBeTruthy();
   });
 
-  describe.each([
-    { name: 'agents', agentsOpen: true, terminalOpen: false },
-    { name: 'terminal', agentsOpen: false, terminalOpen: true },
-    { name: 'both panels', agentsOpen: true, terminalOpen: true },
-  ])('$name open', ({ agentsOpen, terminalOpen }) => {
+  describe('agents open', () => {
     test.each([false, true])('file actions work when project is empty: %s', async (empty) => {
       if (empty) fetchDocumentListShared.mockResolvedValue(documentListResult([]));
       const onCreate = vi.fn();
       const unsubscribe = subscribeToCreateTopLevelFile(onCreate);
       try {
-        render(<EmptyEditorState agentsOpen={agentsOpen} terminalOpen={terminalOpen} />);
+        render(<EmptyEditorState agentsOpen />);
         const template = await screen.findByRole('button', { name: templateRowName });
         fireEvent.click(template);
         expect(onCreate).toHaveBeenLastCalledWith({
@@ -158,44 +154,10 @@ describe('EmptyEditorState file creation with session panels', () => {
     });
   });
 
-  describe.each([
-    {
-      name: 'terminal docked bottom',
-      props: { terminalOpen: true, bottomDockOpen: true },
-      pose: 'mt-auto',
-      notPose: 'my-auto',
-    },
-    {
-      name: 'terminal docked right',
-      props: { terminalOpen: true },
-      pose: 'my-auto',
-      notPose: 'mt-auto',
-    },
-    {
-      name: 'agents only',
-      props: { agentsOpen: true },
-      pose: 'my-auto',
-      notPose: 'mt-auto',
-    },
-    {
-      name: 'agents plus terminal docked bottom',
-      props: { agentsOpen: true, terminalOpen: true, bottomDockOpen: true },
-      pose: 'mt-auto',
-      notPose: 'my-auto',
-    },
-    {
-      name: 'agents plus terminal docked right',
-      props: { agentsOpen: true, terminalOpen: true },
-      pose: 'my-auto',
-      notPose: 'mt-auto',
-    },
-  ])('$name', ({ props, pose, notPose }) => {
-    test(`anchors the panel content via .${pose}`, async () => {
-      render(<EmptyEditorState {...props} />);
-      const header = await screen.findByTestId('empty-state-header');
-      expect(header.closest(`.${pose}`)).not.toBeNull();
-      expect(header.closest(`.${notPose}`)).toBeNull();
-    });
+  test('centres the panel content while agents is open', async () => {
+    render(<EmptyEditorState agentsOpen />);
+    const header = await screen.findByTestId('empty-state-header');
+    expect(header.closest('.my-auto')).not.toBeNull();
   });
 
   test('toggling the AI sidebar keeps file actions available', async () => {
@@ -208,43 +170,42 @@ describe('EmptyEditorState file creation with session panels', () => {
     expect(screen.getByRole('region', { name: 'From template' })).toBeTruthy();
   });
 
-  test.each([
-    { agentsOpen: true },
-    { terminalOpen: true },
-    { agentsOpen: true, terminalOpen: true },
-  ])('preserves loaded templates across panel toggles: %j', async (panelProps) => {
-    fetchDocumentListShared.mockClear();
-    const onMount = vi.fn();
-    const onUnmount = vi.fn();
-    let finishLoading: () => void = () => {};
-    useAllTemplates.mockImplementation(function useTemplatesState() {
-      const [state, setState] = useState<AsyncState<TemplatesListSuccess>>({
-        status: 'loading',
+  test.each([{ agentsOpen: true }])(
+    'preserves loaded templates across panel toggles: %j',
+    async (panelProps) => {
+      fetchDocumentListShared.mockClear();
+      const onMount = vi.fn();
+      const onUnmount = vi.fn();
+      let finishLoading: () => void = () => {};
+      useAllTemplates.mockImplementation(function useTemplatesState() {
+        const [state, setState] = useState<AsyncState<TemplatesListSuccess>>({
+          status: 'loading',
+        });
+        useEffect(() => {
+          onMount();
+          finishLoading = () => setState(readyTemplates([templateFixture]));
+          return onUnmount;
+        }, []);
+        return state;
       });
-      useEffect(() => {
-        onMount();
-        finishLoading = () => setState(readyTemplates([templateFixture]));
-        return onUnmount;
-      }, []);
-      return state;
-    });
 
-    const { rerender } = render(<EmptyEditorState />);
-    await screen.findByText('Loading templates');
-    act(() => finishLoading());
-    expect(screen.getByRole('button', { name: templateRowName })).toBeTruthy();
+      const { rerender } = render(<EmptyEditorState />);
+      await screen.findByText('Loading templates');
+      act(() => finishLoading());
+      expect(screen.getByRole('button', { name: templateRowName })).toBeTruthy();
 
-    rerender(<EmptyEditorState {...panelProps} />);
-    expect(screen.getByRole('button', { name: templateRowName })).toBeTruthy();
-    expect(screen.queryByText('Loading templates')).toBeNull();
+      rerender(<EmptyEditorState {...panelProps} />);
+      expect(screen.getByRole('button', { name: templateRowName })).toBeTruthy();
+      expect(screen.queryByText('Loading templates')).toBeNull();
 
-    rerender(<EmptyEditorState />);
-    expect(screen.getByRole('button', { name: templateRowName })).toBeTruthy();
-    expect(screen.queryByText('Loading templates')).toBeNull();
-    expect(onMount).toHaveBeenCalledTimes(1);
-    expect(onUnmount).not.toHaveBeenCalled();
-    expect(fetchDocumentListShared).toHaveBeenCalledTimes(1);
-  });
+      rerender(<EmptyEditorState />);
+      expect(screen.getByRole('button', { name: templateRowName })).toBeTruthy();
+      expect(screen.queryByText('Loading templates')).toBeNull();
+      expect(onMount).toHaveBeenCalledTimes(1);
+      expect(onUnmount).not.toHaveBeenCalled();
+      expect(fetchDocumentListShared).toHaveBeenCalledTimes(1);
+    },
+  );
 
   test.each<AsyncState<TemplatesListSuccess>>([
     { status: 'idle' },

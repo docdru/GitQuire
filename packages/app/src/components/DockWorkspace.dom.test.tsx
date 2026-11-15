@@ -3,7 +3,12 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { type ReactNode, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { DockExtent, DockLayout } from '@/lib/dock-layout';
-import { DEFAULT_DOCK_TREE, type DockNode, moveDockPane } from '@/lib/dock-tree';
+import {
+  DEFAULT_DOCK_TREE,
+  type DockNode,
+  moveDockPaneToEdge,
+  swapDockPanes,
+} from '@/lib/dock-tree';
 import type { PaneId } from '@/lib/pane-visibility-store';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 
@@ -21,10 +26,11 @@ const GAP = 8;
 const MINS: Record<PaneId, DockExtent> = {
   editor: { width: 340, height: 180 },
   agents: { width: 290, height: 170 },
-  terminal: { width: 325, height: 120 },
 };
-const LABELS: Record<PaneId, string> = { editor: 'Editor', agents: 'Agents', terminal: 'Terminal' };
-const EVERY_PANE: Record<PaneId, boolean> = { editor: true, agents: true, terminal: true };
+const LABELS: Record<PaneId, string> = { editor: 'Editor', agents: 'Agents' };
+const EVERY_PANE: Record<PaneId, boolean> = { editor: true, agents: true };
+const STACKED = moveDockPaneToEdge(DEFAULT_DOCK_TREE, 'agents', 'bottom', 0.3);
+const SWAPPED = swapDockPanes(DEFAULT_DOCK_TREE, 'editor', 'agents');
 
 let direction = 'ltr';
 let workspaceSize = { width: WIDTH, height: HEIGHT };
@@ -114,7 +120,7 @@ function Workspace({
     <DockWorkspace
       tree={tree}
       visible={visible}
-      units={units ?? { editor: 'editor', agents: 'agents', terminal: 'terminal' }}
+      units={units ?? { editor: 'editor', agents: 'agents' }}
       gap={GAP}
       minExtent={(pane) => MINS[pane]}
       paneLabel={(pane) => LABELS[pane]}
@@ -135,11 +141,6 @@ const HEADED_UNITS: Record<PaneId, ReactNode> = {
     <header data-dock-handle="" data-testid="agents-handle">
       Agent chats
       <button type="button">New chat</button>
-    </header>
-  ),
-  terminal: (
-    <header data-dock-handle="" data-testid="terminal-handle">
-      Terminal sessions
     </header>
   ),
 };
@@ -202,13 +203,12 @@ describe('DockWorkspace', () => {
   test('places each unit from the tree, with the gap between them', () => {
     render(<Workspace tree={DEFAULT_DOCK_TREE} />);
     const editor = unit('editor');
-    const terminal = unit('terminal');
     const agents = unit('agents');
     expect(px(editor, 'insetInlineStart')).toBe(0);
     expect(px(agents, 'insetInlineStart')).toBe(px(editor, 'width') + GAP);
     expect(px(agents, 'insetInlineStart') + px(agents, 'width')).toBe(WIDTH);
-    expect(px(terminal, 'insetBlockStart')).toBe(px(editor, 'height') + GAP);
-    expect(px(terminal, 'insetBlockStart') + px(terminal, 'height')).toBe(HEIGHT);
+    expect(px(editor, 'height')).toBe(HEIGHT);
+    expect(px(agents, 'height')).toBe(HEIGHT);
   });
 
   test('lays the units out again when the workspace is resized, keeping their shares', () => {
@@ -222,7 +222,7 @@ describe('DockWorkspace', () => {
 
     expect(px(unit('agents'), 'insetInlineStart') + px(unit('agents'), 'width')).toBe(1100);
     expect(px(unit('agents'), 'height')).toBe(600);
-    expect(px(unit('terminal'), 'insetBlockStart') + px(unit('terminal'), 'height')).toBe(600);
+    expect(px(unit('editor'), 'height')).toBe(600);
     expect(px(unit('agents'), 'width') / (1100 - GAP)).toBeCloseTo(agentsShare, 2);
   });
 
@@ -244,11 +244,11 @@ describe('DockWorkspace', () => {
   });
 
   test('hides a pane that was never on and gives its room to the others', () => {
-    render(<Workspace tree={DEFAULT_DOCK_TREE} visible={{ ...EVERY_PANE, terminal: false }} />);
-    expect(unit('terminal').hidden).toBe(true);
-    expect(unit('terminal').hasAttribute('inert')).toBe(true);
-    expect(px(unit('editor'), 'height')).toBe(HEIGHT);
-    expect(screen.getAllByRole('separator')).toHaveLength(1);
+    render(<Workspace tree={DEFAULT_DOCK_TREE} visible={{ ...EVERY_PANE, agents: false }} />);
+    expect(unit('agents').hidden).toBe(true);
+    expect(unit('agents').hasAttribute('inert')).toBe(true);
+    expect(px(unit('editor'), 'width')).toBe(WIDTH);
+    expect(screen.queryAllByRole('separator')).toHaveLength(0);
   });
 
   test('keeps a pane that turns off at its last size, invisible and inert, so its content does not reflow', () => {
@@ -262,7 +262,7 @@ describe('DockWorkspace', () => {
     expect(editor.classList.contains('invisible')).toBe(true);
     expect(px(editor, 'width')).toBe(width);
     expect(px(editor, 'height')).toBe(height);
-    expect(px(unit('terminal'), 'insetBlockStart')).toBe(0);
+    expect(px(unit('agents'), 'insetInlineStart')).toBe(0);
   });
 
   test('names each seam after the pane it resizes and reports its position', () => {
@@ -270,9 +270,6 @@ describe('DockWorkspace', () => {
     const agentsSeam = screen.getByRole('separator', { name: 'Resize Agents' });
     expect(agentsSeam.getAttribute('aria-orientation')).toBe('vertical');
     expect(agentsSeam.getAttribute('aria-controls')).toBe('dock-unit-agents');
-    const terminalSeam = screen.getByRole('separator', { name: 'Resize Terminal' });
-    expect(terminalSeam.getAttribute('aria-orientation')).toBe('horizontal');
-    expect(terminalSeam.getAttribute('aria-controls')).toBe('dock-unit-terminal');
     const now = Number(agentsSeam.getAttribute('aria-valuenow'));
     expect(now).toBe(Math.round((px(unit('agents'), 'width') / (WIDTH - GAP)) * 100));
     expect(now).toBeGreaterThanOrEqual(Number(agentsSeam.getAttribute('aria-valuemin')));
@@ -299,13 +296,20 @@ describe('DockWorkspace', () => {
     expect(seam.getAttribute('aria-valuenow')).toBe(seam.getAttribute('aria-valuemax'));
   });
 
+  test('a seam between stacked panes is horizontal', () => {
+    render(<Workspace tree={STACKED} />);
+    const seam = screen.getByRole('separator', { name: 'Resize Agents' });
+    expect(seam.getAttribute('aria-orientation')).toBe('horizontal');
+    expect(seam.getAttribute('aria-controls')).toBe('dock-unit-agents');
+  });
+
   test('up and down arrows move a seam between stacked panes', () => {
     function Harness() {
-      const [tree, setTree] = useState<DockNode>(DEFAULT_DOCK_TREE);
+      const [tree, setTree] = useState<DockNode>(STACKED);
       return <Workspace tree={tree} onTreeChange={setTree} />;
     }
     render(<Harness />);
-    const seam = screen.getByRole('separator', { name: 'Resize Terminal' });
+    const seam = screen.getByRole('separator', { name: 'Resize Agents' });
     const before = px(unit('editor'), 'height');
     fireEvent.keyDown(seam, { key: 'ArrowUp' });
     expect(px(unit('editor'), 'height')).toBe(before - 16);
@@ -324,19 +328,11 @@ describe('DockWorkspace', () => {
       }
       render(<Harness />);
       const agentsSeam = screen.getByRole('separator', { name: 'Resize Agents' });
-      const terminalSeam = screen.getByRole('separator', { name: 'Resize Terminal' });
       const width = px(unit('editor'), 'width');
-      const height = px(unit('editor'), 'height');
       for (const key of ['ArrowLeft', 'ArrowRight', 'Home', 'End']) {
         expect(fireEvent.keyDown(agentsSeam, { key, [modifier]: true })).toBe(true);
       }
-      for (const key of ['ArrowUp', 'ArrowDown']) {
-        expect(fireEvent.keyDown(terminalSeam, { key, [modifier]: true, shiftKey: true })).toBe(
-          true,
-        );
-      }
       expect(px(unit('editor'), 'width')).toBe(width);
-      expect(px(unit('editor'), 'height')).toBe(height);
       fireEvent.keyDown(agentsSeam, { key: 'ArrowRight' });
       expect(px(unit('editor'), 'width')).toBe(width + 16);
     },
@@ -378,25 +374,24 @@ describe('DockWorkspace', () => {
     const onTreeChange = vi.fn();
     const { rerender } = render(<Workspace tree={DEFAULT_DOCK_TREE} onTreeChange={onTreeChange} />);
     const workspace = document.querySelector('[data-dock-workspace]');
-    const seam = screen.getByRole('separator', { name: 'Resize Terminal' });
-    fireEvent.pointerDown(seam, { button: 0, pointerId: 1, clientY: 500 });
-    fireEvent.pointerMove(seam, { pointerId: 1, clientY: 450 });
+    const seam = screen.getByRole('separator', { name: 'Resize Agents' });
+    fireEvent.pointerDown(seam, { button: 0, pointerId: 1, clientX: 500 });
+    fireEvent.pointerMove(seam, { pointerId: 1, clientX: 450 });
     expect(workspace?.hasAttribute('data-dragging')).toBe(true);
     expect(unit('editor').classList.contains('pointer-events-none')).toBe(true);
 
     rerender(
       <Workspace
         tree={DEFAULT_DOCK_TREE}
-        visible={{ ...EVERY_PANE, terminal: false }}
+        visible={{ ...EVERY_PANE, agents: false }}
         onTreeChange={onTreeChange}
       />,
     );
 
-    expect(screen.queryByRole('separator', { name: 'Resize Terminal' })).toBeNull();
+    expect(screen.queryByRole('separator', { name: 'Resize Agents' })).toBeNull();
     expect(workspace?.hasAttribute('data-dragging')).toBe(false);
     expect(unit('editor').classList.contains('pointer-events-none')).toBe(false);
-    expect(unit('agents').classList.contains('pointer-events-none')).toBe(false);
-    fireEvent.pointerUp(window, { pointerId: 1, clientY: 450 });
+    fireEvent.pointerUp(window, { pointerId: 1, clientX: 450 });
     expect(onTreeChange).not.toHaveBeenCalled();
   });
 
@@ -410,7 +405,7 @@ describe('DockWorkspace', () => {
     const seam = screen.getByRole('separator', { name: 'Resize Agents' });
     const before = px(unit('editor'), 'width');
     fireEvent.pointerDown(seam, { button: 0, pointerId: 1, clientX: before });
-    rerender(<Harness visible={{ ...EVERY_PANE, terminal: false }} />);
+    rerender(<Harness visible={{ ...EVERY_PANE }} />);
 
     fireEvent.pointerMove(window, { pointerId: 1, clientX: before - 100 });
     expect(px(unit('editor'), 'width')).toBe(before - 100);
@@ -437,7 +432,7 @@ describe('DockWorkspace', () => {
     fireEvent.pointerMove(seam, { pointerId: 1, clientX: before - 100 });
     expect(workspace?.hasAttribute('data-dragging')).toBe(true);
 
-    const moved = moveDockPane(DEFAULT_DOCK_TREE, 'terminal', 'editor', 'end');
+    const moved = SWAPPED;
     act(() => replaceTree(moved));
     expect(workspace?.hasAttribute('data-dragging')).toBe(false);
     fireEvent.pointerUp(seam, { pointerId: 1, clientX: before - 100 });
@@ -453,7 +448,7 @@ describe('DockWorkspace', () => {
     });
     const update = onTreeChange.mock.calls[0]?.[0] as ((tree: DockNode) => DockNode) | undefined;
     if (update === undefined) throw new Error('the seam handed the owner no resize');
-    const moved = moveDockPane(DEFAULT_DOCK_TREE, 'terminal', 'editor', 'end');
+    const moved = SWAPPED;
 
     expect(update(moved)).toBe(moved);
     expect(update(DEFAULT_DOCK_TREE)).not.toBe(DEFAULT_DOCK_TREE);
@@ -489,21 +484,13 @@ describe('DockWorkspace', () => {
     expect(changes).toHaveLength(1);
   });
 
-  test('a focused seam keeps focus when hiding a pane or moving the terminal changes what it follows', () => {
-    const right = moveDockPane(DEFAULT_DOCK_TREE, 'terminal', 'editor', 'end');
+  test('a focused seam keeps focus when the tree it follows is resized', () => {
     const { rerender } = render(<Workspace tree={DEFAULT_DOCK_TREE} />);
     const seam = screen.getByRole('separator', { name: 'Resize Agents' });
     act(() => seam.focus());
     expect(document.activeElement).toBe(seam);
 
-    rerender(<Workspace tree={DEFAULT_DOCK_TREE} visible={{ ...EVERY_PANE, terminal: false }} />);
-    expect(document.activeElement).toBe(seam);
-    expect(seam.getAttribute('aria-label')).toBe('Resize Agents');
-
-    rerender(<Workspace tree={right} />);
-    expect(document.activeElement).toBe(seam);
-
-    rerender(<Workspace tree={right} visible={{ ...EVERY_PANE, terminal: false }} />);
+    rerender(<Workspace tree={moveDockPaneToEdge(DEFAULT_DOCK_TREE, 'agents', 'end', 0.4)} />);
     expect(document.activeElement).toBe(seam);
     expect(seam.getAttribute('aria-label')).toBe('Resize Agents');
   });
@@ -516,7 +503,7 @@ describe('DockWorkspace', () => {
       );
     }
     const { rerender } = render(<Workspace tree={DEFAULT_DOCK_TREE} />);
-    expect(order()).toEqual(['editor', 'Resize Terminal', 'terminal', 'Resize Agents', 'agents']);
+    expect(order()).toEqual(['editor', 'Resize Agents', 'agents']);
     const workspace = document.querySelector('[data-dock-workspace]');
     if (workspace === null) throw new Error('no dock workspace');
     const removed: Node[] = [];
@@ -525,11 +512,11 @@ describe('DockWorkspace', () => {
     });
     observer.observe(workspace, { childList: true });
 
-    rerender(<Workspace tree={moveDockPane(DEFAULT_DOCK_TREE, 'terminal', 'editor', 'end')} />);
+    rerender(<Workspace tree={STACKED} />);
     for (const record of observer.takeRecords()) removed.push(...record.removedNodes);
     observer.disconnect();
 
-    expect(order()).toEqual(['editor', 'Resize Terminal', 'terminal', 'Resize Agents', 'agents']);
+    expect(order()).toEqual(['editor', 'Resize Agents', 'agents']);
     expect(
       removed.filter((node) => node instanceof HTMLElement && node.hasAttribute('data-dock-unit')),
     ).toEqual([]);
@@ -618,7 +605,7 @@ describe('DockWorkspace', () => {
     const onLayoutChange = vi.fn();
     render(<Workspace tree={DEFAULT_DOCK_TREE} onLayoutChange={onLayoutChange} />);
     const layout = onLayoutChange.mock.calls.at(-1)?.[0] as DockLayout;
-    expect([...layout.panes.keys()].toSorted()).toEqual(['agents', 'editor', 'terminal']);
+    expect([...layout.panes.keys()].toSorted()).toEqual(['agents', 'editor']);
   });
 
   test('keeps each unit mounted when the tree moves it', () => {
@@ -633,20 +620,14 @@ describe('DockWorkspace', () => {
     const units = {
       editor: <Counter name="editor-content" />,
       agents: <Counter name="agents-content" />,
-      terminal: <Counter name="terminal-content" />,
     };
     const { rerender } = render(<Workspace tree={DEFAULT_DOCK_TREE} units={units} />);
-    expect(mounts).toBe(3);
+    expect(mounts).toBe(2);
     act(() => {
-      rerender(
-        <Workspace
-          tree={moveDockPane(DEFAULT_DOCK_TREE, 'terminal', 'agents', 'top')}
-          units={units}
-        />,
-      );
+      rerender(<Workspace tree={STACKED} units={units} />);
     });
-    expect(mounts).toBe(3);
-    expect(px(unit('terminal'), 'insetInlineStart')).toBe(px(unit('agents'), 'insetInlineStart'));
+    expect(mounts).toBe(2);
+    expect(px(unit('agents'), 'insetInlineStart')).toBe(px(unit('editor'), 'insetInlineStart'));
   });
 });
 
@@ -671,7 +652,6 @@ describe('DockWorkspace re-docking', () => {
     expect(agents.start).toBe(editor.start);
     expect(agents.top).toBe(moved.top);
     expect(moved.start).toBeGreaterThan(agents.start);
-    expect(box('terminal').width).toBe(WIDTH);
     expect(chip()).toBeNull();
     expect(dropZone()).toBeNull();
   });
@@ -784,7 +764,7 @@ describe('DockWorkspace re-docking', () => {
   });
 
   test('with one unit showing, a header drag finds nowhere to go and starts nothing', () => {
-    render(<RedockHarness visible={{ editor: true, agents: false, terminal: false }} />);
+    render(<RedockHarness visible={{ editor: true, agents: false }} />);
     const editor = box('editor');
 
     dragHeader(
@@ -804,15 +784,15 @@ describe('DockWorkspace re-docking', () => {
     const physicalLeft = WIDTH - (editor.start + editor.width);
     const target = { clientX: physicalLeft + 10, clientY: editor.top + editor.height / 2 };
 
-    dragHeader('terminal', target, { release: false });
+    dragHeader('agents', target, { release: false });
     expect(dropZone()?.dataset).toMatchObject({ dockDropZone: 'end', dockDropPane: 'editor' });
-    fireEvent.pointerUp(screen.getByTestId('terminal-handle'), { pointerId: 7, ...target });
+    fireEvent.pointerUp(screen.getByTestId('agents-handle'), { pointerId: 7, ...target });
 
-    expect(box('terminal').start).toBeGreaterThan(box('editor').start);
-    expect(box('terminal').top).toBe(box('editor').top);
+    expect(box('agents').start).toBeGreaterThan(box('editor').start);
+    expect(box('agents').top).toBe(box('editor').top);
   });
 });
 
 function layoutBoxes() {
-  return { editor: box('editor'), agents: box('agents'), terminal: box('terminal') };
+  return { editor: box('editor'), agents: box('agents') };
 }

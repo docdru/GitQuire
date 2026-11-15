@@ -21,11 +21,11 @@ afterEach(() => __resetPaneVisibilityStoreForTests());
 describe('revealing the editor', () => {
   test('every reveal is handed to the editor, whether it reads hidden or shown', () => {
     const requests = recordRequests();
-    paneVisibilityStore.publish({ editor: SHOWN, agents: null, terminal: null });
+    paneVisibilityStore.publish({ editor: SHOWN, agents: null });
     revealEditor();
     revealEditorBeforeActing();
 
-    paneVisibilityStore.publish({ editor: HIDDEN, agents: null, terminal: null });
+    paneVisibilityStore.publish({ editor: HIDDEN, agents: null });
     revealEditor();
     revealEditorBeforeActing();
 

@@ -12,11 +12,7 @@ import {
   type PaneVisibility,
   paneVisibilityStore,
 } from '@/lib/pane-visibility-store';
-import {
-  configContextWithTerminal,
-  type ProjectTerminalSetting,
-  TERMINAL_SETTING_UNSET,
-} from '@/test-utils/config-context';
+import { configContextFixture } from '@/test-utils/config-context';
 import {
   expectVisualClassTokens,
   expectVisualClassTokensAbsent,
@@ -129,11 +125,9 @@ function setElectronHost(
 
 const onOpenSearch = vi.fn(() => {});
 
-let projectTerminal: ProjectTerminalSetting = TERMINAL_SETTING_UNSET;
-
 function HeaderProviders({ children }: { children: ReactNode }) {
   return (
-    <ConfigContext value={configContextWithTerminal(projectTerminal)}>
+    <ConfigContext value={configContextFixture()}>
       <TooltipProvider>{children}</TooltipProvider>
     </ConfigContext>
   );
@@ -291,13 +285,9 @@ const TRAILING_ACTION_QUERIES = [
 
 const PANE_HIDDEN: PaneVisibility = { open: false, onScreen: false };
 
-function publishPanes({ terminal = true }: { terminal?: boolean } = {}) {
+function publishPanes() {
   act(() => {
-    paneVisibilityStore.publish({
-      editor: null,
-      agents: PANE_HIDDEN,
-      terminal: terminal ? PANE_HIDDEN : null,
-    });
+    paneVisibilityStore.publish({ editor: null, agents: PANE_HIDDEN });
   });
 }
 
@@ -305,7 +295,6 @@ function paneControls(): HTMLElement[] {
   return [
     screen.getByTestId('header-pane-divider'),
     screen.getByRole('button', { name: 'Agents' }),
-    screen.getByRole('button', { name: 'Terminal' }),
   ];
 }
 
@@ -327,7 +316,6 @@ afterEach(() => {
   shell.syncToastHosts = 0;
   shell.singleFile = false;
   __resetPaneVisibilityStoreForTests();
-  projectTerminal = TERMINAL_SETTING_UNSET;
   vi.unstubAllGlobals();
 });
 
@@ -339,7 +327,6 @@ describe('AppHeader', () => {
       paneVisibilityStore.publish({
         editor: { open: true, onScreen: true },
         agents: PANE_HIDDEN,
-        terminal: PANE_HIDDEN,
       });
     });
     renderHeader();
@@ -352,7 +339,6 @@ describe('AppHeader', () => {
     expect(screen.getByRole('group', { name: 'Panels' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Editor' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Agents' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Terminal' })).toBeTruthy();
     expect(screen.queryByTestId('project-switcher-trigger')).toBeNull();
     expect(screen.queryByRole('button', { name: /^Search/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Share/ })).toBeNull();
@@ -439,7 +425,7 @@ describe('AppHeader', () => {
     renderHeader();
 
     const header = screen.getByRole('banner');
-    for (const name of ['Agents', 'Terminal']) {
+    for (const name of ['Agents']) {
       const button = screen.getByRole('button', { name });
       expect(header.contains(button)).toBe(true);
       expect(button.tagName, `${name} must be a <button> for the header's no-drag rule`).toBe(
@@ -537,7 +523,7 @@ describe('AppHeader', () => {
   });
 
   describe('trailing group', () => {
-    test('holds presence, Share, sync, settings and resources, then a divider and the Agents and Terminal buttons, in that order', () => {
+    test('holds presence, Share, sync, settings and resources, then a divider and the Agents button, in that order', () => {
       shell.syncStatus = { state: 'idle', conflictCount: 0, hasRemote: true };
       publishPanes();
       renderHeader();
@@ -827,116 +813,6 @@ describe('AppHeader', () => {
         await waitFor(() => expect(overflowTrigger()).toBeNull());
         observer.flush();
         expect(overflowTrigger()).toBeNull();
-      } finally {
-        restoreMetrics();
-        observer.restore();
-      }
-    });
-
-    test('a pane button that goes while folded resets the remembered width, and the header unfolds and stays unfolded', () => {
-      const observer = captureResizeObserver();
-      publishPanes();
-      const restoreMetrics = mockHeaderMetrics({
-        header: 600,
-        leading: 220,
-        trailing: 300,
-        collapsedTrailing: 44,
-        paneButton: 40,
-      });
-      try {
-        renderHeader();
-        expect(
-          overflowTrigger(),
-          '300px of controls and two 40px pane buttons do not fit in 380px',
-        ).not.toBeNull();
-
-        publishPanes({ terminal: false });
-
-        expect(
-          overflowTrigger(),
-          'the header kept the width it remembered with the Terminal button though the button is gone',
-        ).toBeNull();
-        for (const pass of [1, 2, 3]) {
-          observer.flush();
-          expect(
-            overflowTrigger(),
-            `re-measurement pass ${pass} folded the header again`,
-          ).toBeNull();
-        }
-      } finally {
-        restoreMetrics();
-        observer.restore();
-      }
-    });
-
-    test('a pane button that appears re-measures at once, and the header folds and stays folded', () => {
-      const observer = captureResizeObserver();
-      publishPanes({ terminal: false });
-      const restoreMetrics = mockHeaderMetrics({
-        header: 600,
-        leading: 220,
-        trailing: 300,
-        collapsedTrailing: 44,
-        paneButton: 40,
-      });
-      try {
-        renderHeader();
-        expect(overflowTrigger()).toBeNull();
-
-        publishPanes();
-
-        expect(
-          overflowTrigger(),
-          'the Terminal button appeared and the header kept a verdict measured without it',
-        ).not.toBeNull();
-        for (const pass of [1, 2, 3]) {
-          observer.flush();
-          expect(
-            overflowTrigger(),
-            `re-measurement pass ${pass} unfolded the header though the room never changed`,
-          ).not.toBeNull();
-        }
-      } finally {
-        restoreMetrics();
-        observer.restore();
-      }
-    });
-
-    test('turning the project terminal off and on re-measures the fold each time', () => {
-      const observer = captureResizeObserver();
-      publishPanes();
-      const restoreMetrics = mockHeaderMetrics({
-        header: 600,
-        leading: 220,
-        trailing: 300,
-        collapsedTrailing: 44,
-        paneButton: 40,
-      });
-      try {
-        const view = renderHeader();
-        expect(overflowTrigger()).not.toBeNull();
-
-        projectTerminal = { synced: true, enabled: false };
-        view.rerender(<AppHeader onOpenSearch={onOpenSearch} />);
-
-        expect(screen.queryByRole('button', { name: 'Terminal' })).toBeNull();
-        expect(
-          overflowTrigger(),
-          'the header kept the width it remembered with the Terminal button after the terminal was turned off',
-        ).toBeNull();
-        observer.flush();
-        expect(overflowTrigger()).toBeNull();
-
-        projectTerminal = { synced: true, enabled: true };
-        view.rerender(<AppHeader onOpenSearch={onOpenSearch} />);
-
-        expect(screen.getByRole('button', { name: 'Terminal' })).toBeTruthy();
-        expect(
-          overflowTrigger(),
-          'the Terminal button came back and the header kept a verdict measured without it',
-        ).not.toBeNull();
-        observer.flush();
-        expect(overflowTrigger()).not.toBeNull();
       } finally {
         restoreMetrics();
         observer.restore();

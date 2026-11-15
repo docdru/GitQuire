@@ -12,7 +12,6 @@ export function NothingOpen() {
   const openLabels: Record<PaneId, string> = {
     editor: t`Open editor`,
     agents: t`Open agents`,
-    terminal: t`Open terminal`,
   };
 
   return (

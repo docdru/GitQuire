@@ -1,17 +1,6 @@
 import type { LintPluginId } from './markdown/lint/types.ts';
-import type { TerminalPlacement } from './terminal-layout.ts';
 
 export type { RecentProjectEntry } from './sharing/index.ts';
-
-export interface OkTerminalRestartTab {
-  ordinal: number;
-  customLabel: string | null;
-}
-
-export interface OkTerminalRestartSnapshot {
-  tabs: OkTerminalRestartTab[];
-  activeOrdinal: number | null;
-}
 
 export interface OkMenuActionOrigin {
   readonly launcherBorne: boolean;
@@ -45,12 +34,8 @@ export type OkMenuAction =
   | 'expand-all-tree'
   | 'collapse-all-tree'
   | 'toggle-doc-panel'
-  | 'toggle-terminal'
-  | 'move-terminal'
   | 'toggle-agent-panel'
   | 'toggle-editor'
-  | 'new-terminal'
-  | 'kill-terminal'
   | 'new-worktree'
   | 'switch-worktree'
   | 'send-feedback';
@@ -211,9 +196,6 @@ export interface OkEditorViewMenuStateSnapshot {
   readonly canCollapseAll: boolean;
   readonly sidebarVisible: boolean;
   readonly docPanelVisible?: boolean;
-  readonly terminalVisible?: boolean;
-  readonly terminalPlacement?: TerminalPlacement;
-  readonly terminalLive?: boolean;
   readonly agentPanelVisible?: boolean;
   readonly editorVisible?: boolean;
   readonly canViewInSource?: boolean;
@@ -222,7 +204,6 @@ export interface OkEditorViewMenuStateSnapshot {
 
 export interface OkEditorWideVisibility {
   readonly editorVisible?: boolean;
-  readonly terminalVisible?: boolean;
   readonly agentPanelVisible?: boolean;
 }
 
@@ -267,47 +248,6 @@ export function assetOpenRefusalRevealsInstead(reason: OkAssetOpenRefusalReason)
       return false;
     }
   }
-}
-
-const TERMINAL_SHELL_NOTICE_REASON_VOCABULARY = [
-  'config-unreadable',
-  'invalid-value',
-  'not-absolute',
-  'not-found',
-  'unsupported-family',
-] as const;
-
-export type TerminalShellNoticeReason = (typeof TERMINAL_SHELL_NOTICE_REASON_VOCABULARY)[number];
-
-export const TERMINAL_SHELL_NOTICE_REASONS: ReadonlySet<TerminalShellNoticeReason> = new Set(
-  TERMINAL_SHELL_NOTICE_REASON_VOCABULARY,
-);
-
-export function isTerminalShellNoticeReason(value: unknown): value is TerminalShellNoticeReason {
-  return (
-    typeof value === 'string' &&
-    TERMINAL_SHELL_NOTICE_REASONS.has(value as TerminalShellNoticeReason)
-  );
-}
-
-const TERMINAL_SUPPORT_FILE_NOTICE_REASON_VOCABULARY = [
-  'containment-refused',
-  'write-failed',
-] as const;
-
-export type TerminalSupportFileNoticeReason =
-  (typeof TERMINAL_SUPPORT_FILE_NOTICE_REASON_VOCABULARY)[number];
-
-export const TERMINAL_SUPPORT_FILE_NOTICE_REASONS: ReadonlySet<TerminalSupportFileNoticeReason> =
-  new Set(TERMINAL_SUPPORT_FILE_NOTICE_REASON_VOCABULARY);
-
-export function isTerminalSupportFileNoticeReason(
-  value: unknown,
-): value is TerminalSupportFileNoticeReason {
-  return (
-    typeof value === 'string' &&
-    TERMINAL_SUPPORT_FILE_NOTICE_REASONS.has(value as TerminalSupportFileNoticeReason)
-  );
 }
 
 export interface CopyImageRequest {

@@ -6,7 +6,6 @@ import {
 } from './bottom-composer-gate';
 
 const PASSING: BottomComposerGateInputs = {
-  terminalVisible: false,
   agentsVisible: false,
   isEmbedded: false,
   activeDocName: 'notes',
@@ -18,10 +17,6 @@ describe('shouldShowBottomComposer', () => {
   });
 
   describe('each gate input independently hides the composer', () => {
-    test('hidden when the terminal is open', () => {
-      expect(shouldShowBottomComposer({ ...PASSING, terminalVisible: true })).toBe(false);
-    });
-
     test('hidden when the agents panel is open', () => {
       expect(shouldShowBottomComposer({ ...PASSING, agentsVisible: true })).toBe(false);
     });
@@ -38,7 +33,6 @@ describe('shouldShowBottomComposer', () => {
   test('stays hidden when several inputs fail at once', () => {
     expect(
       shouldShowBottomComposer({
-        terminalVisible: true,
         agentsVisible: true,
         isEmbedded: true,
         activeDocName: null,
@@ -48,14 +42,10 @@ describe('shouldShowBottomComposer', () => {
 });
 
 describe('shouldShowFolderComposer', () => {
-  const PASSING_FOLDER = { terminalVisible: false, agentsVisible: false, isEmbedded: false };
+  const PASSING_FOLDER = { agentsVisible: false, isEmbedded: false };
 
   test('renders when not embedded and both panels closed (no doc required)', () => {
     expect(shouldShowFolderComposer(PASSING_FOLDER)).toBe(true);
-  });
-
-  test('hidden when the terminal is open', () => {
-    expect(shouldShowFolderComposer({ ...PASSING_FOLDER, terminalVisible: true })).toBe(false);
   });
 
   test('hidden when the agents panel is open', () => {

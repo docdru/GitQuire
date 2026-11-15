@@ -4442,18 +4442,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "Déplacement réussi, mais la barre latérale n'est peut-être pas à jour — actualisez pour resynchroniser"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Déplacer Terminal vers le bord inférieur de la fenêtre"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Déplacer Terminal vers le bord gauche de la fenêtre"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Déplacer Terminal vers le bord droit de la fenêtre"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Déplacer Terminal vers le bord supérieur de la fenêtre"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "Déplace le bloc courant vers le haut ou vers le bas. Dans les listes, déplace l’élément courant ou les éléments sélectionnés."
 
@@ -5179,9 +5167,6 @@ msgstr "Source : {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "Ouvrir le terminal"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6550,9 +6535,6 @@ msgstr "Afficher ou masquer le panneau du document"
 msgid "Show or hide Files"
 msgstr "Afficher ou masquer les fichiers"
 
-msgid "Show or hide Terminal"
-msgstr "Afficher ou masquer Terminal"
-
 msgid "Show original"
 msgstr "Afficher l’original"
 
@@ -6987,9 +6969,6 @@ msgstr "Modèles"
 
 msgid "Templates available"
 msgstr "Modèles disponibles"
-
-msgid "Terminal"
-msgstr "Terminal"
 
 msgid "Test connection"
 msgstr "Tester la connexion"
@@ -7585,9 +7564,6 @@ msgstr "Basculer l'affichage de la source"
 
 msgid "Toggle strikethrough formatting."
 msgstr "Bascule la mise en forme barrée."
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Affichez ou masquez Terminal dans son panneau actuel."
 
 msgid "Toggle the document panel."
 msgstr "Affiche ou masque le panneau du document."

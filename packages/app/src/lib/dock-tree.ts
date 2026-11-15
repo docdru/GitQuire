@@ -41,46 +41,31 @@ export interface VisibleDockGroup {
 
 export type VisibleDockNode = VisibleDockLeaf | VisibleDockGroup;
 
-const DOCK_PANE_ORDER = { editor: true, terminal: true, agents: true } satisfies Record<
-  PaneId,
-  true
->;
+const DOCK_PANE_ORDER = { editor: true, agents: true } satisfies Record<PaneId, true>;
 
 export const DOCK_PANES = Object.keys(DOCK_PANE_ORDER) as readonly PaneId[];
 
 const MAX_DOCK_DEPTH = DOCK_PANES.length;
 
 export const DEFAULT_CHAT_SHARE = 1 / 3.5;
-export const DEFAULT_BOTTOM_TERMINAL_SHARE = 1 / 3.3;
-
 export const DOCK_EDGE_SHARE = {
   editor: 1 - DEFAULT_CHAT_SHARE,
   agents: DEFAULT_CHAT_SHARE,
-} as const satisfies Record<Exclude<PaneId, 'terminal'>, number>;
+} as const satisfies Record<PaneId, number>;
 
-export function bottomTerminalDockTree(chatShare: number, terminalShare: number): DockGroup {
+export function chatDockTree(chatShare: number): DockGroup {
   return {
     direction: 'row',
     items: [
-      {
-        size: 1 - chatShare,
-        node: {
-          direction: 'column',
-          items: [
-            { size: 1 - terminalShare, node: { pane: 'editor' } },
-            { size: terminalShare, node: { pane: 'terminal' } },
-          ],
-        },
-      },
+      { size: 1 - chatShare, node: { pane: 'editor' } },
       { size: chatShare, node: { pane: 'agents' } },
     ],
   };
 }
 
-export const DEFAULT_DOCK_TREE: DockGroup = bottomTerminalDockTree(
-  DEFAULT_CHAT_SHARE,
-  DEFAULT_BOTTOM_TERMINAL_SHARE,
-);
+export const DEFAULT_DOCK_TREE: DockGroup = chatDockTree(DEFAULT_CHAT_SHARE);
+
+const RETIRED_DOCK_PANES: ReadonlySet<unknown> = new Set(['terminal']);
 
 export function isDockLeaf(node: DockNode): node is DockLeaf {
   return 'pane' in node;
@@ -103,10 +88,13 @@ export function dockTreePanes(node: DockNode): PaneId[] {
   return node.items.flatMap((item) => dockTreePanes(item.node));
 }
 
-function parseDockNode(value: unknown, depth: number): DockNode | null {
+function parseDockNode(value: unknown, depth: number): DockNode | 'retired' | null {
   if (typeof value !== 'object' || value === null || depth > MAX_DOCK_DEPTH) return null;
   const record = value as Record<string, unknown>;
-  if ('pane' in record) return isPaneId(record.pane) ? { pane: record.pane } : null;
+  if ('pane' in record) {
+    if (RETIRED_DOCK_PANES.has(record.pane)) return 'retired';
+    return isPaneId(record.pane) ? { pane: record.pane } : null;
+  }
   if (record.direction !== 'row' && record.direction !== 'column') return null;
   if (!Array.isArray(record.items) || record.items.length < 2) return null;
   const items: DockItem[] = [];
@@ -116,8 +104,10 @@ function parseDockNode(value: unknown, depth: number): DockNode | null {
     if (typeof size !== 'number' || !Number.isFinite(size) || size <= 0) return null;
     const child = parseDockNode(node, depth + 1);
     if (child === null) return null;
+    if (child === 'retired') continue;
     items.push(alongEdge === true ? { size, node: child, alongEdge } : { size, node: child });
   }
+  if (items.length === 0) return 'retired';
   return { direction: record.direction, items };
 }
 
@@ -132,7 +122,7 @@ function hasUsableSizes(node: DockNode): boolean {
 
 export function parseDockTree(value: unknown): DockNode | null {
   const node = parseDockNode(value, 0);
-  if (node === null) return null;
+  if (node === null || node === 'retired') return null;
   const panes = dockTreePanes(node);
   if (panes.length !== DOCK_PANES.length || new Set(panes).size !== panes.length) return null;
   const tree = normalizeDockTree(node);

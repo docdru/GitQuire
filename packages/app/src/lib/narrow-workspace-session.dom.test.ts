@@ -16,11 +16,11 @@ describe('readNarrowWorkspaceSession', () => {
       selected: 'agents' as const,
       lastInteracted: 'agents' as const,
       recent: ['agents' as const, 'editor' as const],
-      hidden: ['terminal' as const],
+      hidden: ['editor' as const],
     };
     writeNarrowWorkspaceSession(KEY, session);
 
-    expect(readNarrowWorkspaceSession(KEY, true)).toEqual(session);
+    expect(readNarrowWorkspaceSession(KEY)).toEqual(session);
   });
 
   test('rejects a record whose selected pane is also hidden', () => {
@@ -35,6 +35,6 @@ describe('readNarrowWorkspaceSession', () => {
       }),
     );
 
-    expect(readNarrowWorkspaceSession(KEY, true)).toBeUndefined();
+    expect(readNarrowWorkspaceSession(KEY)).toBeUndefined();
   });
 });

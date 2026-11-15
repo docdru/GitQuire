@@ -186,20 +186,13 @@ function recent(name: string, path = `/projects/${name.toLowerCase()}`) {
   return { name, path: path.replaceAll(' ', '-') };
 }
 
-function createBridge({
-  ptyAvailable = true,
-  terminalAvailable = true,
-}: {
-  ptyAvailable?: boolean;
-  terminalAvailable?: boolean;
-} = {}) {
+function createBridge({ ptyAvailable = true }: { ptyAvailable?: boolean } = {}) {
   return {
     config: {
       projectName: 'Current Project',
       projectPath: '/projects/current',
       ptyAvailable,
     },
-    terminal: terminalAvailable ? {} : undefined,
     project: {
       listRecent: vi.fn(() =>
         Promise.resolve([
@@ -423,7 +416,6 @@ describe('CommandPalette DOM behavior', () => {
     paneVisibilityStore.publish({
       editor: { open: false, onScreen: false },
       agents: null,
-      terminal: null,
     });
 
     act(() => seedDialogProps.at(-1)?.onSeedApplied?.());
@@ -765,9 +757,6 @@ describe('Cmd+K menu-parity backfill', () => {
     setViewMenuState({
       sidebarVisible: true,
       docPanelVisible: true,
-      terminalVisible: true,
-      terminalPlacement: 'bottom',
-      terminalLive: true,
     });
     busActions = [];
     unsubscribeBus = subscribeLocalMenuAction((action) => busActions.push(action));
@@ -830,10 +819,6 @@ describe('Cmd+K menu-parity backfill', () => {
     await setQuery('agents');
     const agents = screen.getByTestId('command-palette-toggle-agent-panel').querySelector('svg');
     expect(agents?.classList.contains('lucide-sparkles')).toBe(true);
-
-    await setQuery('hide terminal');
-    const terminal = screen.getByTestId('command-palette-toggle-terminal').querySelector('svg');
-    expect(terminal?.classList.contains('lucide-square-terminal')).toBe(true);
 
     await setQuery('hide editor');
     const editor = screen.getByTestId('command-palette-toggle-editor').querySelector('svg');
@@ -906,8 +891,6 @@ describe('Cmd+K menu-parity backfill', () => {
     await setQuery('expand all');
     expect(screen.queryByTestId('command-palette-expand-all-tree')).not.toBeNull();
 
-    await setQuery('new terminal');
-    expect(screen.queryByTestId('command-palette-new-terminal')).toBeNull();
     await setQuery('check for updates');
     expect(screen.queryByTestId('command-palette-check-for-updates')).toBeNull();
     await setQuery('rename');
@@ -935,35 +918,11 @@ describe('Cmd+K menu-parity backfill', () => {
     );
   });
 
-  test('PTY-less and incomplete desktop bridges hide every PTY-backed palette command', async () => {
-    const terminalCommands = [
-      ['show terminal', 'toggle-terminal'],
-      ['new terminal', 'new-terminal'],
-      ['move terminal', 'move-terminal'],
-      ['kill terminal', 'kill-terminal'],
-    ] as const;
-
-    setViewMenuState({ terminalLive: true });
-    await renderPalette({ bridge: createBridge({ ptyAvailable: false }) });
-    for (const [query, id] of terminalCommands) {
-      await setQuery(query);
-      expect(screen.queryByTestId(`command-palette-${id}`)).toBeNull();
-    }
-
-    cleanup();
-    await renderPalette({ bridge: createBridge({ terminalAvailable: false }) });
-    for (const [query, id] of terminalCommands) {
-      await setQuery(query);
-      expect(screen.queryByTestId(`command-palette-${id}`)).toBeNull();
-    }
-  });
-
   test('AC8: backfilled rows do not render on empty open', async () => {
     await renderPalette({ bridge: createBridge() });
     expect(screen.queryByTestId('command-palette-rename')).toBeNull();
     expect(screen.queryByTestId('command-palette-toggle-sidebar')).toBeNull();
     expect(screen.queryByTestId('command-palette-check-for-updates')).toBeNull();
-    expect(screen.queryByTestId('command-palette-new-terminal')).toBeNull();
   });
 });
 

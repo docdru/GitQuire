@@ -4438,18 +4438,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "Pemindahan berhasil tetapi bilah sisi mungkin tidak mutakhir — segarkan untuk menyinkronkan ulang"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Pindahkan Terminal ke tepi bawah jendela"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Pindahkan Terminal ke tepi kiri jendela"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Pindahkan Terminal ke tepi kanan jendela"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Pindahkan Terminal ke tepi atas jendela"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "Pindahkan blok saat ini ke atas atau ke bawah. Dalam daftar, pindahkan item saat ini atau item yang dipilih."
 
@@ -5175,9 +5163,6 @@ msgstr "Buka sumber: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "Buka terminal"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6546,9 +6531,6 @@ msgstr "Tampilkan atau sembunyikan panel dokumen"
 msgid "Show or hide Files"
 msgstr "Tampilkan atau sembunyikan Berkas"
 
-msgid "Show or hide Terminal"
-msgstr "Tampilkan atau sembunyikan Terminal"
-
 msgid "Show original"
 msgstr "Tampilkan versi asli"
 
@@ -6983,9 +6965,6 @@ msgstr "Templat"
 
 msgid "Templates available"
 msgstr "Templat tersedia"
-
-msgid "Terminal"
-msgstr "Terminal"
 
 msgid "Test connection"
 msgstr "Uji koneksi"
@@ -7581,9 +7560,6 @@ msgstr "Tampilkan atau sembunyikan tampilan sumber"
 
 msgid "Toggle strikethrough formatting."
 msgstr "Menyalakan atau mematikan format coret."
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Tampilkan atau sembunyikan Terminal di dok saat ini."
 
 msgid "Toggle the document panel."
 msgstr "Menampilkan atau menyembunyikan panel dokumen."

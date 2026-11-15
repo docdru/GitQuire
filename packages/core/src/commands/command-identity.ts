@@ -1,15 +1,12 @@
 import type { MenuLabelKey } from '../constants/menu-labels.ts';
-import type { PaneId } from '../terminal-layout.ts';
 
-export type CommandGroup = 'commands' | 'project' | 'file' | 'view' | 'terminal' | 'app';
+export type CommandGroup = 'commands' | 'project' | 'file' | 'view' | 'app';
 
 export type ContextualTargetKind = 'doc' | 'folder' | 'asset' | 'project' | 'none';
 
 export interface CommandAvailabilitySpec {
   readonly requiresTargetKinds?: readonly ContextualTargetKind[];
   readonly singleFileHidden?: boolean;
-  readonly requiresTerminalCapability?: boolean;
-  readonly requiresTerminalLive?: boolean;
   readonly requiresCanExpandAll?: boolean;
   readonly requiresCanCollapseAll?: boolean;
   readonly requiresActiveDoc?: boolean;
@@ -18,8 +15,6 @@ export interface CommandAvailabilitySpec {
 export interface CommandContext {
   readonly activeTargetKind: ContextualTargetKind;
   readonly singleFile: boolean;
-  readonly terminalCapable: boolean;
-  readonly terminalLive: boolean;
   readonly canExpandAll: boolean;
   readonly canCollapseAll: boolean;
   readonly hasActiveDoc: boolean;
@@ -30,8 +25,6 @@ export function evaluateCommandAvailability(
   ctx: CommandContext,
 ): boolean {
   if (spec.singleFileHidden && ctx.singleFile) return false;
-  if (spec.requiresTerminalCapability && !ctx.terminalCapable) return false;
-  if (spec.requiresTerminalLive && !ctx.terminalLive) return false;
   if (spec.requiresCanExpandAll && !ctx.canExpandAll) return false;
   if (spec.requiresCanCollapseAll && !ctx.canCollapseAll) return false;
   if (spec.requiresActiveDoc && !ctx.hasActiveDoc) return false;
@@ -61,7 +54,6 @@ export type MenuSection =
   | 'view-visibility'
   | 'view-tree'
   | 'view-history'
-  | 'terminal'
   | 'window'
   | 'help-install'
   | 'help-links'
@@ -82,20 +74,10 @@ export interface CommandMenuPlacement {
 export interface CommandStateToggle {
   readonly showKey: MenuLabelKey;
   readonly hideKey: MenuLabelKey;
-  readonly stateField:
-    | 'sidebarVisible'
-    | 'docPanelVisible'
-    | 'terminalVisible'
-    | 'agentPanelVisible'
-    | 'editorVisible';
+  readonly stateField: 'sidebarVisible' | 'docPanelVisible' | 'agentPanelVisible' | 'editorVisible';
   readonly defaultVisible: boolean;
   readonly overrideKey?: MenuLabelKey;
   readonly overrideField?: 'hasEditorSelection';
-}
-
-interface CommandPlacementToggle {
-  readonly bottomKey: MenuLabelKey;
-  readonly rightKey: MenuLabelKey;
 }
 
 export type CommandCheckField = 'showHiddenFiles' | 'showOkFolders' | 'showOnlyMarkdownFiles';
@@ -113,12 +95,13 @@ export interface CommandIdentity {
   readonly shortcutId?: string;
   readonly shortcutDesktopOnly?: boolean;
   readonly stateToggle?: CommandStateToggle;
-  readonly placementToggle?: CommandPlacementToggle;
   readonly checkField?: CommandCheckField;
   readonly availability: CommandAvailabilitySpec;
   readonly palette?: CommandPalettePresence;
   readonly menu?: readonly CommandMenuPlacement[];
 }
+
+export type PaneId = 'editor' | 'agents';
 
 export type DockMoveSide = 'left' | 'right' | 'top' | 'bottom';
 
@@ -142,18 +125,11 @@ const DOCK_MOVE_LABELS = {
     top: 'agentsMoveToTopEdge',
     bottom: 'agentsMoveToBottomEdge',
   },
-  terminal: {
-    left: 'terminalMoveToLeftEdge',
-    right: 'terminalMoveToRightEdge',
-    top: 'terminalMoveToTopEdge',
-    bottom: 'terminalMoveToBottomEdge',
-  },
 } as const satisfies Record<PaneId, Record<DockMoveSide, MenuLabelKey>>;
 
 const DOCK_MOVE_PANE_ALIASES = {
   editor: ['document'],
   agents: ['chat', 'ai'],
-  terminal: ['shell', 'console'],
 } as const satisfies Record<PaneId, readonly string[]>;
 
 const DOCK_MOVE_SIDES: readonly DockMoveSide[] = ['left', 'right', 'top', 'bottom'];
@@ -170,7 +146,6 @@ export const DOCK_MOVE_COMMANDS: readonly DockMoveCommand[] = (
 );
 
 function dockMoveIdentity(command: DockMoveCommand): CommandIdentity {
-  const terminal = command.pane === 'terminal';
   return {
     id: command.id,
     labelKey: command.labelKey,
@@ -184,8 +159,8 @@ function dockMoveIdentity(command: DockMoveCommand): CommandIdentity {
       ...DOCK_MOVE_PANE_ALIASES[command.pane],
       command.side,
     ],
-    availability: terminal ? { requiresTerminalCapability: true } : {},
-    palette: { group: terminal ? 'terminal' : 'view', visibility: 'search-only' },
+    availability: {},
+    palette: { group: 'view', visibility: 'search-only' },
   };
 }
 

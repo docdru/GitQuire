@@ -4442,18 +4442,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "이동은 성공했지만 사이드바가 최신 상태가 아닐 수 있습니다. 다시 동기화하려면 새로 고침하세요."
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "터미널을 창 아래쪽 가장자리로 이동"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "터미널을 창 왼쪽 가장자리로 이동"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "터미널을 창 오른쪽 가장자리로 이동"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "터미널을 창 위쪽 가장자리로 이동"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "현재 블록을 위나 아래로 이동합니다. 목록에서는 현재 항목이나 선택한 항목을 이동합니다."
 
@@ -5179,9 +5167,6 @@ msgstr "소스 열기: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "터미널 열기"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6550,9 +6535,6 @@ msgstr "문서 패널 표시 또는 숨기기"
 msgid "Show or hide Files"
 msgstr "파일 표시 또는 숨기기"
 
-msgid "Show or hide Terminal"
-msgstr "터미널 표시 또는 숨기기"
-
 msgid "Show original"
 msgstr "원본 표시"
 
@@ -6987,9 +6969,6 @@ msgstr "템플릿"
 
 msgid "Templates available"
 msgstr "사용 가능한 템플릿"
-
-msgid "Terminal"
-msgstr "터미널"
 
 msgid "Test connection"
 msgstr "연결 테스트"
@@ -7585,9 +7564,6 @@ msgstr "소스 보기 전환"
 
 msgid "Toggle strikethrough formatting."
 msgstr "취소선 서식을 전환합니다."
-
-msgid "Toggle Terminal in its current dock."
-msgstr "현재 도크에서 터미널 전환"
 
 msgid "Toggle the document panel."
 msgstr "문서 패널 전환"

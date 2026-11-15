@@ -46,7 +46,6 @@ export interface ShortcutBinding {
   mac: string;
   windowsLinux: string;
   match?: PlatformShortcutMatch;
-  nativeMenuAccelerator?: boolean;
 }
 
 export interface KeyboardShortcutDefinition {
@@ -180,26 +179,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
         mac: '⌥⌘ M',
         windowsLinux: 'Ctrl Alt M',
         match: { code: 'KeyM', anyMod: true, altKey: true, allowExtraModifiers: true },
-      },
-    ],
-  },
-  {
-    id: 'toggle-terminal-panel',
-    category: 'general',
-    title: msg`Show or hide Terminal`,
-    description: msg`Toggle Terminal in its current dock.`,
-    scope: msg`OK Desktop`,
-    bindings: [
-      {
-        mac: '⌘ J',
-        windowsLinux: 'Ctrl J',
-        match: { key: 'j', mod: true },
-        nativeMenuAccelerator: true,
-      },
-      {
-        mac: '⌃ `',
-        windowsLinux: 'Ctrl `',
-        match: { code: 'Backquote', ctrlKey: true },
       },
     ],
   },
@@ -975,19 +954,6 @@ export function matchesKeyboardShortcut(
 ): boolean {
   const shortcut = getShortcut(id);
   return shortcut.bindings.some((binding) => {
-    const match = resolveMatch(binding.match, platform);
-    return match ? matchesBinding(event, match, platform) : false;
-  });
-}
-
-export function matchesRendererShortcut(
-  event: ShortcutEventLike,
-  id: KeyboardShortcutId,
-  hasNativeMenu: boolean,
-  platform: ShortcutPlatform = currentShortcutPlatform(),
-): boolean {
-  return getShortcut(id).bindings.some((binding) => {
-    if (hasNativeMenu && binding.nativeMenuAccelerator === true) return false;
     const match = resolveMatch(binding.match, platform);
     return match ? matchesBinding(event, match, platform) : false;
   });

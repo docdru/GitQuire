@@ -70,9 +70,7 @@ export {
   waitForLandingSettled,
 } from './landing.ts';
 export {
-  arrangeTerminalAlone,
   CHAT_PANE_CARD,
-  type DesktopLayoutOptions,
   DOCK_WORKSPACE,
   type DockSeamDrag,
   type DockUnitRect,
@@ -86,12 +84,9 @@ export {
   type HeaderPane,
   headerPaneButton,
   type LayoutViewport,
-  openDesktopLayout,
   openWebLayout,
-  presetTerminalPlacement,
   runPaletteCommand,
   setHeaderPane,
-  terminalPaneCard,
 } from './pane-layout.ts';
 export {
   appSourcesIn,

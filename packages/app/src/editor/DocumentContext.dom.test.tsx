@@ -353,7 +353,6 @@ function hideEditorAndRecordRequests(): PaneVisibilityRequest[] {
   paneVisibilityStore.publish({
     editor: { open: false, onScreen: false },
     agents: null,
-    terminal: null,
   });
   return requests;
 }

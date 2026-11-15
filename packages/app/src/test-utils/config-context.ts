@@ -1,29 +1,18 @@
-import { ConfigSchema } from '@inkeep/open-knowledge-core/config/schema';
 import type { ConfigContextValue } from '@/lib/config-context';
 
-export interface ProjectTerminalSetting {
-  readonly synced: boolean;
-  readonly enabled: boolean | null;
-}
-
-export const TERMINAL_SETTING_UNSET: ProjectTerminalSetting = { synced: true, enabled: null };
-
-export function configContextWithTerminal({
-  synced,
-  enabled,
-}: ProjectTerminalSetting): ConfigContextValue {
+export function configContextFixture(): ConfigContextValue {
   return {
     userBinding: null,
-    userSynced: synced,
+    userSynced: true,
     projectBinding: null,
     projectLocalBinding: null,
     okignoreBinding: null,
-    okignoreSynced: synced,
+    okignoreSynced: true,
     userConfig: null,
     projectConfig: null,
-    projectSynced: synced,
-    projectLocalConfig: ConfigSchema.parse({ terminal: { enabled } }),
-    projectLocalSynced: synced,
+    projectSynced: true,
+    projectLocalConfig: null,
+    projectLocalSynced: true,
     merged: null,
   };
 }

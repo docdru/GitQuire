@@ -136,21 +136,8 @@ vi.doMock('@/editor/DocumentContext', () => ({
 }));
 
 vi.doMock('@/components/EmptyEditorState', () => ({
-  EmptyEditorState: ({
-    terminalOpen,
-    bottomDockOpen,
-    agentsOpen,
-  }: {
-    terminalOpen?: boolean;
-    bottomDockOpen?: boolean;
-    agentsOpen?: boolean;
-  }) => (
-    <div
-      data-testid="empty-editor-state"
-      data-terminal-open={String(terminalOpen === true)}
-      data-bottom-dock-open={String(bottomDockOpen === true)}
-      data-agents-open={String(agentsOpen === true)}
-    />
+  EmptyEditorState: ({ agentsOpen }: { agentsOpen?: boolean }) => (
+    <div data-testid="empty-editor-state" data-agents-open={String(agentsOpen === true)} />
   ),
 }));
 
@@ -423,7 +410,6 @@ vi.doMock('@/components/ui/resizable', () => ({
     'aria-label'?: string;
     'data-agents-panel-resize-handle'?: string;
     'data-doc-panel-handle'?: string;
-    'data-terminal-panel-handle'?: string;
     style?: CSSProperties;
   }) => (
     <hr
@@ -434,7 +420,6 @@ vi.doMock('@/components/ui/resizable', () => ({
       data-testid="resizable-handle"
       data-agents-panel-resize-handle={props['data-agents-panel-resize-handle']}
       data-doc-panel-handle={props['data-doc-panel-handle']}
-      data-terminal-panel-handle={props['data-terminal-panel-handle']}
       onPointerDown={onPointerDown}
       // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- mirrors react-resizable-panels' Separator, which renders tabIndex 0; a focusable separator is a widget.
       tabIndex={0}
@@ -535,7 +520,7 @@ const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
 const { emitLocalMenuAction } = await import('@/lib/local-menu-action-bus');
 const { requestDocPanelTab } = await import('./doc-panel-events');
 
-const RIGHT_TERMINAL_TREE = moveDockPane(DEFAULT_DOCK_TREE, 'terminal', 'editor', 'end', 0.3);
+const CHAT_BELOW_TREE = moveDockPane(DEFAULT_DOCK_TREE, 'agents', 'editor', 'bottom', 0.3);
 
 type DockedEditorAreaProps = ComponentProps<typeof DockedEditorArea>;
 type EditorAreaProps = Omit<DockedEditorAreaProps, 'dockTree' | 'onDockTreeChange'> &
@@ -587,10 +572,6 @@ function paneCard(pane: PaneId): HTMLElement | null {
   return document.querySelector<HTMLElement>(`[data-slot="pane-card"][data-pane="${pane}"]`);
 }
 
-function terminalMount(): HTMLElement | null {
-  return document.querySelector<HTMLElement>('[data-terminal-panel-mount]');
-}
-
 function agentsMount(): HTMLElement | null {
   return document.querySelector<HTMLElement>('[data-agents-panel-mount]');
 }
@@ -626,30 +607,10 @@ describe('EditorArea SettingsDialogPortal runtime wiring', () => {
   });
 });
 
-describe('EditorArea empty-state terminal host', () => {
+describe('EditorArea empty state', () => {
   beforeEach(() => {
     cleanup();
     docCtx = EMPTY_DOC_CTX;
-  });
-
-  test('places the terminal unit beside the empty state when a terminal bridge is present', () => {
-    render(
-      <EditorArea
-        editorMode="wysiwyg"
-        onModeChange={() => {}}
-        activeTab="timeline"
-        onActiveTabChange={() => {}}
-        terminalAvailable
-        terminalVisible
-      />,
-    );
-
-    const emptyState = screen.getByTestId('empty-editor-state');
-    expect(dockUnit('editor').contains(emptyState)).toBe(true);
-    expect(emptyState.getAttribute('data-terminal-open')).toBe('true');
-    expect(emptyState.getAttribute('data-agents-open')).toBe('false');
-    expect(dockUnit('terminal').hidden).toBe(false);
-    expect(dockUnit('terminal').contains(terminalMount())).toBe(true);
   });
 
   test('collapses the empty state to the header-only view when the agents panel is open', () => {
@@ -665,75 +626,6 @@ describe('EditorArea empty-state terminal host', () => {
 
     const emptyState = screen.getByTestId('empty-editor-state');
     expect(emptyState.getAttribute('data-agents-open')).toBe('true');
-    expect(emptyState.getAttribute('data-terminal-open')).toBe('false');
-  });
-
-  test('renders the empty state with no terminal unit on the web host', () => {
-    render(
-      <EditorArea
-        editorMode="wysiwyg"
-        onModeChange={() => {}}
-        activeTab="timeline"
-        onActiveTabChange={() => {}}
-      />,
-    );
-
-    expect(dockUnit('terminal').hidden).toBe(true);
-    expect(terminalMount()).toBeNull();
-    const emptyState = screen.getByTestId('empty-editor-state');
-    expect(emptyState.getAttribute('data-terminal-open')).toBe('false');
-    expect(emptyState.getAttribute('data-agents-open')).toBe('false');
-  });
-
-  test('reports the bottom dock as open when a visible terminal is docked at the bottom', () => {
-    render(
-      <EditorArea
-        editorMode="wysiwyg"
-        onModeChange={() => {}}
-        activeTab="timeline"
-        onActiveTabChange={() => {}}
-        terminalAvailable
-        terminalVisible
-      />,
-    );
-
-    const emptyState = screen.getByTestId('empty-editor-state');
-    expect(emptyState.getAttribute('data-terminal-open')).toBe('true');
-    expect(emptyState.getAttribute('data-bottom-dock-open')).toBe('true');
-  });
-
-  test('reports the bottom dock as closed when the visible terminal is docked to the right', () => {
-    render(
-      <EditorArea
-        editorMode="wysiwyg"
-        onModeChange={() => {}}
-        activeTab="timeline"
-        onActiveTabChange={() => {}}
-        terminalAvailable
-        terminalVisible
-        dockTree={RIGHT_TERMINAL_TREE}
-      />,
-    );
-
-    const emptyState = screen.getByTestId('empty-editor-state');
-    expect(emptyState.getAttribute('data-terminal-open')).toBe('true');
-    expect(emptyState.getAttribute('data-bottom-dock-open')).toBe('false');
-  });
-
-  test('reports the bottom dock as closed when a bottom-placed terminal is not visible', () => {
-    render(
-      <EditorArea
-        editorMode="wysiwyg"
-        onModeChange={() => {}}
-        activeTab="timeline"
-        onActiveTabChange={() => {}}
-        terminalAvailable
-      />,
-    );
-
-    const emptyState = screen.getByTestId('empty-editor-state');
-    expect(emptyState.getAttribute('data-terminal-open')).toBe('false');
-    expect(emptyState.getAttribute('data-bottom-dock-open')).toBe('false');
   });
 });
 
@@ -751,7 +643,6 @@ describe('EditorArea document panel slot', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalAvailable: true,
   } as const;
 
   const pctOf = (px: number) => (px / mockEditorUnitPx) * 100;
@@ -1251,7 +1142,6 @@ describe('EditorArea agents panel region', () => {
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalAvailable
         agentsVisible
       />,
     );
@@ -1272,7 +1162,6 @@ describe('EditorArea dock units', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalAvailable: true,
   } as const;
 
   beforeEach(() => {
@@ -1282,146 +1171,56 @@ describe('EditorArea dock units', () => {
     editorWorkspaceMounts = 0;
   });
 
-  test('places a bottom terminal under the editor, with chat beside the column', () => {
-    render(<EditorArea {...unitProps} terminalVisible agentsVisible />);
-
-    expect(unitPx('editor', 'insetInlineStart')).toBe(0);
-    expect(unitPx('terminal', 'insetInlineStart')).toBe(0);
-    expect(unitPx('terminal', 'insetBlockStart')).toBeGreaterThan(unitPx('editor', 'height'));
-    expect(unitPx('terminal', 'width')).toBe(unitPx('editor', 'width'));
-    expect(unitPx('agents', 'insetInlineStart')).toBeGreaterThan(unitPx('editor', 'width'));
-    expect(unitPx('agents', 'height')).toBe(WORKSPACE_HEIGHT_PX);
-    expect(paneCard('terminal')?.getAttribute('data-placement')).toBe('bottom');
-  });
-
-  test('places a right terminal between the editor and chat', () => {
-    const placements: SessionPlacements[] = [];
-    render(
-      <EditorArea
-        {...unitProps}
-        dockTree={RIGHT_TERMINAL_TREE}
-        terminalVisible
-        agentsVisible
-        onSessionPlacements={(value) => placements.push(value)}
-      />,
-    );
-
-    const editorEnd = unitPx('editor', 'insetInlineStart') + unitPx('editor', 'width');
-    const terminalStart = unitPx('terminal', 'insetInlineStart');
-    const terminalEnd = terminalStart + unitPx('terminal', 'width');
-    expect(terminalStart).toBeGreaterThan(editorEnd);
-    expect(unitPx('agents', 'insetInlineStart')).toBeGreaterThan(terminalEnd);
-    expect(unitPx('terminal', 'height')).toBe(WORKSPACE_HEIGHT_PX);
-    expect(paneCard('terminal')?.getAttribute('data-placement')).toBe('right');
-    expect(placements.at(-1)?.terminal.container).toBe(terminalMount());
-    expect(placements.at(-1)?.terminal.isShowing).toBe(true);
-  });
-
-  test('a right terminal and chat are their own cards in their own units, outside the editor card', () => {
-    render(
-      <TooltipProvider>
-        <EditorArea {...unitProps} dockTree={RIGHT_TERMINAL_TREE} terminalVisible agentsVisible />
-      </TooltipProvider>,
-    );
-
-    const editorCard = paneCard('editor');
-    const terminalCard = paneCard('terminal');
-    const chatCard = paneCard('agents');
-    expect(terminalCard?.getAttribute('data-variant')).toBe('card');
-    expect(chatCard?.getAttribute('data-variant')).toBe('card');
-    expect(dockUnit('editor').contains(editorCard)).toBe(true);
-    expect(dockUnit('terminal').contains(terminalCard)).toBe(true);
-    expect(dockUnit('agents').contains(chatCard)).toBe(true);
-    expect(terminalCard?.contains(terminalMount())).toBe(true);
-    expect(chatCard?.contains(agentsMount())).toBe(true);
-    expect(editorCard?.contains(terminalCard)).toBe(false);
-    expect(editorCard?.contains(chatCard)).toBe(false);
-  });
-
-  test('without a terminal, as on the web, the terminal unit stays hidden and draws no card', () => {
-    render(
-      <TooltipProvider>
-        <EditorArea {...unitProps} terminalAvailable={false} agentsVisible terminalVisible />
-      </TooltipProvider>,
-    );
-
-    expect(paneCard('terminal')).toBeNull();
-    expect(terminalMount()).toBeNull();
-    expect(dockUnit('terminal').hidden).toBe(true);
-    expect(paneCard('agents')).not.toBeNull();
-    expect(unitPx('agents', 'height')).toBe(WORKSPACE_HEIGHT_PX);
-    expect(unitPx('editor', 'height')).toBe(WORKSPACE_HEIGHT_PX);
-  });
-
   test('pane mounts are inert while their panes are off', () => {
     render(<EditorArea {...unitProps} />);
 
     expect(agentsMount()?.hasAttribute('inert')).toBe(true);
-    expect(terminalMount()?.hasAttribute('inert')).toBe(true);
     expect(dockUnit('agents').hidden).toBe(true);
-    expect(dockUnit('terminal').hidden).toBe(true);
   });
 
   test('pane mounts stay focusable while their panes are on', () => {
-    render(<EditorArea {...unitProps} agentsVisible terminalVisible />);
+    render(<EditorArea {...unitProps} agentsVisible />);
 
     expect(agentsMount()?.hasAttribute('inert')).toBe(false);
-    expect(terminalMount()?.hasAttribute('inert')).toBe(false);
     expect(dockUnit('agents').hasAttribute('inert')).toBe(false);
-    expect(dockUnit('terminal').hasAttribute('inert')).toBe(false);
   });
 
   test('a pane reports that it is showing only while it is on', () => {
     const placements: SessionPlacements[] = [];
-    const area = (agentsVisible: boolean, terminalVisible: boolean) => (
+    const area = (agentsVisible: boolean) => (
       <EditorArea
         {...unitProps}
         agentsVisible={agentsVisible}
-        terminalVisible={terminalVisible}
         onSessionPlacements={(value) => placements.push(value)}
       />
     );
-    const view = render(area(true, true));
+    const view = render(area(true));
     expect(placements.at(-1)?.agents.isShowing).toBe(true);
-    expect(placements.at(-1)?.terminal.isShowing).toBe(true);
 
-    view.rerender(area(false, true));
+    view.rerender(area(false));
     expect(placements.at(-1)?.agents.isShowing).toBe(false);
     expect(placements.at(-1)?.agents.container).toBe(agentsMount());
-    expect(placements.at(-1)?.terminal.isShowing).toBe(true);
 
-    view.rerender(area(false, false));
-    expect(placements.at(-1)?.terminal.isShowing).toBe(false);
-    expect(placements.at(-1)?.terminal.container).toBe(terminalMount());
-
-    view.rerender(area(true, true));
+    view.rerender(area(true));
     expect(placements.at(-1)?.agents.isShowing).toBe(true);
-    expect(placements.at(-1)?.terminal.isShowing).toBe(true);
   });
 
-  test('moving or hiding the terminal, and showing or hiding chat, never remounts the open editor', () => {
+  test('moving chat, and showing or hiding it, never remounts the open editor', () => {
     const { rerender } = render(
       <TooltipProvider>
-        <EditorArea {...unitProps} terminalVisible agentsVisible={false} />
+        <EditorArea {...unitProps} agentsVisible={false} />
       </TooltipProvider>,
     );
     const tabs = screen.getByTestId('workspace-tabs');
     const editorRegion = document.querySelector('[data-editor-region]');
-    const terminal = terminalMount();
     const chat = agentsMount();
     expect(editorWorkspaceMounts).toBe(1);
 
-    const steps: Array<{
-      terminalVisible: boolean;
-      dockTree: DockNode;
-      agentsVisible: boolean;
-    }> = [
-      { terminalVisible: true, dockTree: RIGHT_TERMINAL_TREE, agentsVisible: false },
-      { terminalVisible: true, dockTree: RIGHT_TERMINAL_TREE, agentsVisible: true },
-      { terminalVisible: false, dockTree: RIGHT_TERMINAL_TREE, agentsVisible: true },
-      { terminalVisible: true, dockTree: DEFAULT_DOCK_TREE, agentsVisible: true },
-      { terminalVisible: false, dockTree: DEFAULT_DOCK_TREE, agentsVisible: false },
-      { terminalVisible: true, dockTree: DEFAULT_DOCK_TREE, agentsVisible: false },
+    const steps: Array<{ dockTree: DockNode; agentsVisible: boolean }> = [
+      { dockTree: CHAT_BELOW_TREE, agentsVisible: false },
+      { dockTree: CHAT_BELOW_TREE, agentsVisible: true },
+      { dockTree: DEFAULT_DOCK_TREE, agentsVisible: true },
+      { dockTree: DEFAULT_DOCK_TREE, agentsVisible: false },
     ];
     for (const step of steps) {
       rerender(
@@ -1436,7 +1235,6 @@ describe('EditorArea dock units', () => {
     expect(editorWorkspaceMounts).toBe(1);
     expect(screen.getByTestId('workspace-tabs')).toBe(tabs);
     expect(document.querySelector('[data-editor-region]')).toBe(editorRegion);
-    expect(terminalMount()).toBe(terminal);
     expect(agentsMount()).toBe(chat);
     expect(screen.getByRole('main').contains(tabs)).toBe(true);
   });
@@ -1448,7 +1246,6 @@ describe('EditorArea dock seams', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalAvailable: true,
   } as const;
 
   beforeEach(() => {
@@ -1458,7 +1255,7 @@ describe('EditorArea dock seams', () => {
   });
 
   test('names each seam for the pane it resizes, next to the side panel separator', () => {
-    render(<EditorArea {...seamProps} agentsVisible terminalVisible />);
+    render(<EditorArea {...seamProps} agentsVisible />);
 
     expect(
       screen
@@ -1467,15 +1264,12 @@ describe('EditorArea dock seams', () => {
     ).toBe('doc-panel');
     expect(dockSeam('Resize Agents').getAttribute('aria-controls')).toBe(dockUnit('agents').id);
     expect(dockSeam('Resize Agents').getAttribute('aria-orientation')).toBe('vertical');
-    expect(dockSeam('Resize Terminal').getAttribute('aria-controls')).toBe(dockUnit('terminal').id);
-    expect(dockSeam('Resize Terminal').getAttribute('aria-orientation')).toBe('horizontal');
   });
 
   test('a pane that is off takes its seam with it', () => {
-    render(<EditorArea {...seamProps} agentsVisible />);
+    render(<EditorArea {...seamProps} />);
 
-    expect(dockSeam('Resize Agents')).toBeTruthy();
-    expect(screen.queryByRole('separator', { name: 'Resize Terminal' })).toBeNull();
+    expect(screen.queryByRole('separator', { name: 'Resize Agents' })).toBeNull();
   });
 
   test('a seam reports the resized tree, and the panes follow it', () => {
@@ -1485,7 +1279,6 @@ describe('EditorArea dock seams', () => {
         <EditorArea
           {...seamProps}
           agentsVisible
-          terminalVisible
           dockTree={tree}
           onDockTreeChange={(update) => {
             const next = update(tree);
@@ -1541,73 +1334,6 @@ describe('EditorArea dock seams', () => {
   });
 });
 
-describe('EditorArea terminal unit across view kinds', () => {
-  const viewKinds = [
-    { name: 'folder', ctx: FOLDER_DOC_CTX, content: 'folder-overview' },
-    { name: 'large-file', ctx: LARGE_FILE_DOC_CTX, content: 'large-file-state' },
-    { name: 'asset', ctx: ASSET_DOC_CTX, content: 'asset-preview' },
-  ] as const;
-
-  beforeEach(() => {
-    cleanup();
-  });
-
-  test.each(viewKinds)(
-    'places the terminal unit beside the $name view when a bridge is present',
-    ({ ctx, content }) => {
-      docCtx = ctx;
-      render(
-        <EditorArea
-          editorMode="wysiwyg"
-          onModeChange={() => {}}
-          activeTab="timeline"
-          onActiveTabChange={() => {}}
-          terminalAvailable
-          terminalVisible
-        />,
-      );
-
-      expect(dockUnit('editor').contains(screen.getByTestId(content))).toBe(true);
-      expect(dockUnit('terminal').hidden).toBe(false);
-      expect(dockUnit('terminal').contains(terminalMount())).toBe(true);
-    },
-  );
-
-  test.each(viewKinds)(
-    'renders the $name view with no terminal unit on the web host',
-    ({ ctx, content }) => {
-      docCtx = ctx;
-      renderEditorArea();
-
-      expect(dockUnit('editor').contains(screen.getByTestId(content))).toBe(true);
-      expect(dockUnit('terminal').hidden).toBe(true);
-      expect(terminalMount()).toBeNull();
-    },
-  );
-
-  test('keeps the same terminal mount while the active view kind changes', () => {
-    docCtx = FOLDER_DOC_CTX;
-    const props = {
-      editorMode: 'wysiwyg' as const,
-      onModeChange: () => {},
-      activeTab: 'timeline' as const,
-      onActiveTabChange: () => {},
-      terminalAvailable: true,
-      terminalVisible: true,
-    };
-    const { rerender } = render(<EditorArea {...props} />);
-    const mount = terminalMount();
-    expect(mount).not.toBeNull();
-
-    for (const { ctx, content } of [...viewKinds].reverse()) {
-      docCtx = ctx;
-      rerender(<EditorArea {...props} />);
-      expect(dockUnit('editor').contains(screen.getByTestId(content))).toBe(true);
-      expect(terminalMount()).toBe(mount);
-    }
-  });
-});
-
 describe('EditorArea hash-load skeleton renders inside the editor card (cold start)', () => {
   beforeEach(() => {
     cleanup();
@@ -1625,8 +1351,6 @@ describe('EditorArea hash-load skeleton renders inside the editor card (cold sta
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalAvailable
-        terminalVisible
       />,
     );
 
@@ -1727,7 +1451,7 @@ describe('EditorArea document panel host ownership', () => {
   });
 });
 
-describe('EditorArea terminal persists across a mid-session cold navigation', () => {
+describe('EditorArea across a mid-session cold navigation', () => {
   beforeEach(() => {
     cleanup();
     window.location.hash = '';
@@ -1735,31 +1459,6 @@ describe('EditorArea terminal persists across a mid-session cold navigation', ()
   });
   afterEach(() => {
     window.location.hash = '';
-  });
-
-  test('keeps the terminal mount when a tab close/switch transiently nulls the provider', () => {
-    const props = {
-      editorMode: 'wysiwyg' as const,
-      onModeChange: () => {},
-      activeTab: 'timeline' as const,
-      onActiveTabChange: () => {},
-      terminalAvailable: true,
-      terminalVisible: true,
-    };
-    const { rerender } = render(<EditorArea {...props} />);
-    const mount = terminalMount();
-    expect(mount).not.toBeNull();
-    expect(dockUnit('editor').contains(screen.getByTestId('folder-overview'))).toBe(true);
-
-    act(() => {
-      docCtx = DOC_COLD_CTX;
-      window.location.hash = '#/some-doc';
-    });
-    rerender(<EditorArea {...props} />);
-
-    expect(dockUnit('editor').contains(screen.getByTestId('editor-skeleton'))).toBe(true);
-    expect(terminalMount()).toBe(mount);
-    expect(dockUnit('terminal').hidden).toBe(false);
   });
 
   test('web host keeps chat on screen through a mid-session cold nav, with the skeleton in the document area', () => {
@@ -1992,7 +1691,6 @@ describe('EditorArea editor card rows', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalAvailable: true,
   } as const;
   const setViewportWidth = (px: number) => {
     Object.defineProperty(window, 'innerWidth', { value: px, configurable: true, writable: true });
@@ -2014,9 +1712,7 @@ describe('EditorArea editor card rows', () => {
   test('a project window puts the tab row, the workspace and the side panel inside one editor card', () => {
     setViewportWidth(1400);
     docCtx = DOC_LIVE_CTX;
-    render(
-      <EditorArea {...rowProps} agentsVisible terminalVisible dockTree={RIGHT_TERMINAL_TREE} />,
-    );
+    render(<EditorArea {...rowProps} agentsVisible />);
 
     const card = paneCard('editor');
     const inner = screen.getByTestId('resizable-group-inner');
@@ -2035,7 +1731,6 @@ describe('EditorArea editor card rows', () => {
     expect(column.firstElementChild).toBe(header);
     expect(header.contains(screen.getByTestId('workspace-tabs'))).toBe(true);
     expect(docPanel.contains(header)).toBe(false);
-    expect(card.contains(terminalMount())).toBe(false);
     expect(card.contains(agentsMount())).toBe(false);
     expect(document.querySelector('[data-editor-inner-panels]')?.firstElementChild).toBe(inner);
   });
@@ -2109,7 +1804,7 @@ describe('EditorArea editor card rows', () => {
     docCtx = DOC_LIVE_CTX;
     render(
       <FileListShell>
-        <EditorArea {...rowProps} agentsVisible={false} terminalVisible={false} />
+        <EditorArea {...rowProps} agentsVisible={false} />
       </FileListShell>,
     );
 
@@ -2227,7 +1922,7 @@ describe('EditorArea editor card rows', () => {
   });
 });
 
-describe('EditorArea terminal and chat cards', () => {
+describe('EditorArea chat and side panel cards', () => {
   const cardProps = {
     editorMode: 'wysiwyg',
     onModeChange: () => {},
@@ -2269,7 +1964,6 @@ describe('EditorArea terminal and chat cards', () => {
     const chat = screen.getByRole('region', { name: 'Agent panel' });
     expect(chat.hasAttribute('data-agents-panel-mount')).toBe(true);
     expect(main.contains(chat)).toBe(false);
-    expect(main.contains(document.querySelector('[data-terminal-panel-mount]'))).toBe(false);
     expect(cardOf('editor')?.querySelector('[data-slot="sidebar-inset"]')?.contains(main)).toBe(
       true,
     );
@@ -2344,18 +2038,11 @@ describe('EditorArea terminal and chat cards', () => {
       render(
         <TooltipProvider>
           <SingleFileModeProvider>
-            <EditorArea
-              {...cardProps}
-              terminalAvailable
-              terminalVisible
-              dockTree={RIGHT_TERMINAL_TREE}
-              agentsVisible
-            />
+            <EditorArea {...cardProps} agentsVisible />
           </SingleFileModeProvider>
         </TooltipProvider>,
       );
       expect(cardOf('editor')?.getAttribute('data-variant')).toBe('card');
-      expect(cardOf('terminal')?.getAttribute('data-variant')).toBe('card');
       expect(cardOf('agents')?.getAttribute('data-variant')).toBe('card');
       expect(screen.getByRole('main').contains(screen.getByTestId('workspace-tabs'))).toBe(true);
     } finally {
@@ -2396,17 +2083,10 @@ describe('EditorArea with the editor hidden', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalAvailable: true,
   } as const;
   const settle = () => act(async () => {});
   const unitStyles = () =>
-    (['editor', 'agents', 'terminal'] as const).map((pane) => dockUnit(pane).getAttribute('style'));
-  const rowShare = (tree: DockNode, pane: PaneId) => {
-    if (!('items' in tree)) throw new Error('expected a row of panes');
-    const item = tree.items.find(({ node }) => 'pane' in node && node.pane === pane);
-    if (item === undefined) throw new Error(`${pane} is not in the row`);
-    return item.size;
-  };
+    (['editor', 'agents'] as const).map((pane) => dockUnit(pane).getAttribute('style'));
 
   beforeEach(() => {
     cleanup();
@@ -2436,40 +2116,12 @@ describe('EditorArea with the editor hidden', () => {
     expect(document.querySelectorAll('[data-dock-seam]')).toHaveLength(0);
   });
 
-  test('a right terminal and chat share the workspace in proportion to their shares of the tree', async () => {
-    const view = render(
-      <EditorArea {...hiddenProps} agentsVisible terminalVisible dockTree={RIGHT_TERMINAL_TREE} />,
-    );
-    await settle();
-
-    view.rerender(
-      <EditorArea
-        {...hiddenProps}
-        agentsVisible
-        terminalVisible
-        dockTree={RIGHT_TERMINAL_TREE}
-        editorVisible={false}
-      />,
-    );
-    await settle();
-
-    const terminalWidth = unitPx('terminal', 'width');
-    const agentsWidth = unitPx('agents', 'width');
-    expect(unitPx('terminal', 'insetInlineStart')).toBe(0);
-    expect(unitPx('agents', 'insetInlineStart') + agentsWidth).toBe(WORKSPACE_WIDTH_PX);
-    expect(terminalWidth / agentsWidth).toBeCloseTo(
-      rowShare(RIGHT_TERMINAL_TREE, 'terminal') / rowShare(RIGHT_TERMINAL_TREE, 'agents'),
-      2,
-    );
-  });
-
   test('showing the editor again restores the layout it had before it was hidden', async () => {
     const changes: DockNode[] = [];
     const area = (editorVisible: boolean) => (
       <EditorArea
         {...hiddenProps}
         agentsVisible
-        terminalVisible
         editorVisible={editorVisible}
         onDockTreeChange={(update) => changes.push(update(DEFAULT_DOCK_TREE))}
       />
@@ -2592,42 +2244,7 @@ describe('EditorArea with the editor hidden', () => {
     composer.remove();
   });
 
-  test('a seam moved while the editor is hidden leaves the editor share alone', async () => {
-    const trees: DockNode[] = [];
-    function DockHost({ editorVisible }: { editorVisible: boolean }) {
-      const [tree, setTree] = useState<DockNode>(RIGHT_TERMINAL_TREE);
-      return (
-        <EditorArea
-          {...hiddenProps}
-          agentsVisible
-          terminalVisible
-          editorVisible={editorVisible}
-          dockTree={tree}
-          onDockTreeChange={(update) => {
-            const next = update(tree);
-            trees.push(next);
-            setTree(next);
-          }}
-        />
-      );
-    }
-    const view = render(<DockHost editorVisible />);
-    await settle();
-    view.rerender(<DockHost editorVisible={false} />);
-    await settle();
-    const terminalWidth = unitPx('terminal', 'width');
-
-    fireEvent.keyDown(dockSeam('Resize Agents'), { key: 'ArrowRight', shiftKey: true });
-    await settle();
-
-    const moved = trees.at(-1);
-    if (moved === undefined) throw new Error('the seam reported no tree');
-    expect(unitPx('terminal', 'width')).toBeGreaterThan(terminalWidth);
-    expect(rowShare(moved, 'editor')).toBeCloseTo(rowShare(RIGHT_TERMINAL_TREE, 'editor'), 10);
-    expect(rowShare(moved, 'terminal')).toBeGreaterThan(rowShare(RIGHT_TERMINAL_TREE, 'terminal'));
-  });
-
-  test('chat is marked as the only pane only while the editor is hidden and no terminal shows', async () => {
+  test('chat is marked as the only pane only while the editor is hidden', async () => {
     const view = render(<EditorArea {...hiddenProps} agentsVisible />);
     await settle();
     expect(agentsMount()?.hasAttribute('data-chat-alone')).toBe(false);
@@ -2635,21 +2252,9 @@ describe('EditorArea with the editor hidden', () => {
     view.rerender(<EditorArea {...hiddenProps} agentsVisible editorVisible={false} />);
     await settle();
     expect(agentsMount()?.hasAttribute('data-chat-alone')).toBe(true);
-
-    view.rerender(
-      <EditorArea
-        {...hiddenProps}
-        agentsVisible
-        editorVisible={false}
-        terminalVisible
-        dockTree={RIGHT_TERMINAL_TREE}
-      />,
-    );
-    await settle();
-    expect(agentsMount()?.hasAttribute('data-chat-alone')).toBe(false);
   });
 
-  test('Nothing open appears only when the editor, chat and terminal are all hidden', async () => {
+  test('Nothing open appears only when the editor and chat are both hidden', async () => {
     const view = render(<EditorArea {...hiddenProps} agentsVisible editorVisible={false} />);
     await settle();
     expect(document.querySelector('[data-nothing-open]')).toBeNull();
@@ -2673,24 +2278,6 @@ describe('EditorArea with the editor hidden', () => {
     await settle();
 
     expect(document.activeElement).toBe(document.querySelector('[data-nothing-open]'));
-  });
-
-  test('hiding the editor above a bottom terminal hands the column to the terminal and keeps chat at its share', async () => {
-    const area = (editorVisible: boolean) => (
-      <EditorArea {...hiddenProps} agentsVisible terminalVisible editorVisible={editorVisible} />
-    );
-    const view = render(area(true));
-    await settle();
-    const agentsStyle = dockUnit('agents').getAttribute('style');
-    const columnWidth = unitPx('editor', 'width');
-
-    view.rerender(area(false));
-    await settle();
-
-    expect(unitPx('terminal', 'insetBlockStart')).toBe(0);
-    expect(unitPx('terminal', 'height')).toBe(WORKSPACE_HEIGHT_PX);
-    expect(unitPx('terminal', 'width')).toBe(columnWidth);
-    expect(dockUnit('agents').getAttribute('style')).toBe(agentsStyle);
   });
 });
 

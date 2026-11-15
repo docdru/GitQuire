@@ -55,7 +55,7 @@ describe('PaneCard', () => {
 
   test('the flat variant keeps the fill and background but drops the rounding and shadow', () => {
     const { container } = render(
-      <PaneCard pane="terminal" variant="flat">
+      <PaneCard pane="agents" variant="flat">
         body
       </PaneCard>,
     );
@@ -66,7 +66,7 @@ describe('PaneCard', () => {
     expectVisualClassTokensAbsent(el.getAttribute('class'), SHAPE_TOKENS);
   });
 
-  test.each(['editor', 'agents', 'terminal'] as const)('identifies the %s pane', (pane) => {
+  test.each(['editor', 'agents'] as const)('identifies the %s pane', (pane) => {
     const { container } = render(<PaneCard pane={pane}>body</PaneCard>);
     expect(card(container).getAttribute('data-pane')).toBe(pane);
   });

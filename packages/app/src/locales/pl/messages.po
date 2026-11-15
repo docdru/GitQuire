@@ -4442,18 +4442,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "Przeniesienie powiodło się, ale pasek boczny może być nieaktualny — odśwież, aby zsynchronizować"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Przenieś terminal do dolnej krawędzi okna"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Przenieś terminal do lewej krawędzi okna"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Przenieś terminal do prawej krawędzi okna"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Przenieś terminal do górnej krawędzi okna"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "Przenieś bieżący blok w górę lub w dół. Na listach przenieś bieżący element lub zaznaczone elementy."
 
@@ -5179,9 +5167,6 @@ msgstr "Otwórz źródło: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "Otwórz terminal"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6550,9 +6535,6 @@ msgstr "Pokaż lub ukryj panel dokumentu"
 msgid "Show or hide Files"
 msgstr "Pokaż lub ukryj pliki"
 
-msgid "Show or hide Terminal"
-msgstr "Pokaż lub ukryj terminal"
-
 msgid "Show original"
 msgstr "Pokaż oryginał"
 
@@ -6987,9 +6969,6 @@ msgstr "Szablony"
 
 msgid "Templates available"
 msgstr "Dostępne szablony"
-
-msgid "Terminal"
-msgstr "Terminal"
 
 msgid "Test connection"
 msgstr "Testuj połączenie"
@@ -7585,9 +7564,6 @@ msgstr "Przełącz widok źródłowy"
 
 msgid "Toggle strikethrough formatting."
 msgstr "Przełącz formatowanie przekreślenia."
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Przełącz Terminal w jego bieżącym doku."
 
 msgid "Toggle the document panel."
 msgstr "Przełącz panel dokumentu."

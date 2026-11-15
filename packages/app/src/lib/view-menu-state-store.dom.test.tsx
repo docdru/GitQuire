@@ -16,18 +16,18 @@ describe('view-menu-state store', () => {
     const { result } = renderHook(() => useViewMenuState());
 
     act(() => setViewMenuState({ docPanelVisible: true }));
-    act(() => setViewMenuState({ terminalVisible: false }));
+    act(() => setViewMenuState({ agentPanelVisible: false }));
 
-    expect(result.current).toEqual({ docPanelVisible: true, terminalVisible: false });
+    expect(result.current).toEqual({ docPanelVisible: true, agentPanelVisible: false });
   });
 
   test('a later partial overwrites the same field', () => {
     const { result } = renderHook(() => useViewMenuState());
 
-    act(() => setViewMenuState({ terminalVisible: false }));
-    act(() => setViewMenuState({ terminalVisible: true }));
+    act(() => setViewMenuState({ agentPanelVisible: false }));
+    act(() => setViewMenuState({ agentPanelVisible: true }));
 
-    expect(result.current.terminalVisible).toBe(true);
+    expect(result.current.agentPanelVisible).toBe(true);
   });
 
   test('writes notify subscribers; the snapshot is referentially stable between writes', () => {

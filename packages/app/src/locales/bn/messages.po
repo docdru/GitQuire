@@ -4438,18 +4438,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "সরানো সফল হয়েছে কিন্তু সাইডবার পুরোনো হতে পারে — আবার সিঙ্ক করতে সতেজ করুন"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Terminal উইন্ডোর নিচের প্রান্তে সরান"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Terminal উইন্ডোর বাম প্রান্তে সরান"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Terminal উইন্ডোর ডান প্রান্তে সরান"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Terminal উইন্ডোর উপরের প্রান্তে সরান"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "বর্তমান ব্লকটি উপরে বা নিচে সরান। তালিকায়, বর্তমান আইটেম বা নির্বাচিত আইটেমগুলি সরান।"
 
@@ -5175,9 +5163,6 @@ msgstr "উৎস খুলুন: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "টার্মিনাল খুলুন"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6546,9 +6531,6 @@ msgstr "নথি প্যানেল দেখান বা লুকান"
 msgid "Show or hide Files"
 msgstr "Files দেখান বা লুকান"
 
-msgid "Show or hide Terminal"
-msgstr "Terminal দেখান বা লুকান"
-
 msgid "Show original"
 msgstr "মূল সংস্করণ দেখান"
 
@@ -6983,9 +6965,6 @@ msgstr "টেমপ্লেট"
 
 msgid "Templates available"
 msgstr "উপলব্ধ টেমপ্লেট"
-
-msgid "Terminal"
-msgstr "টার্মিনাল"
 
 msgid "Test connection"
 msgstr "সংযোগ পরীক্ষা করুন"
@@ -7581,9 +7560,6 @@ msgstr "সোর্স দৃশ্য চালু বা বন্ধ কর�
 
 msgid "Toggle strikethrough formatting."
 msgstr "কাটা দাগের বিন্যাস চালু বা বন্ধ করুন।"
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Terminal-কে তার বর্তমান ডকে দেখান বা লুকান।"
 
 msgid "Toggle the document panel."
 msgstr "নথি প্যানেল চালু বা বন্ধ করুন।"
