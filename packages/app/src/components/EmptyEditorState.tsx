@@ -22,13 +22,9 @@ import { fetchDocumentListShared } from '@/lib/documents-fetch';
 import { cn } from '@/lib/utils';
 
 export function EmptyEditorState({
-  terminalOpen = false,
-  bottomDockOpen = false,
   agentsOpen = false,
   onRageStreak,
 }: {
-  terminalOpen?: boolean;
-  bottomDockOpen?: boolean;
   agentsOpen?: boolean;
   onRageStreak?: () => void;
 }) {
@@ -99,7 +95,7 @@ export function EmptyEditorState({
     if (!next) setSeedDialogInitialPackId(undefined);
   }
 
-  if (terminalOpen || agentsOpen) {
+  if (agentsOpen) {
     return (
       <div
         data-testid="empty-editor-state"
@@ -108,7 +104,7 @@ export function EmptyEditorState({
         <div
           className={cn(
             'flex w-full shrink-0 flex-col items-center px-4 @md/emptystate:px-10 @2xl/emptystate:px-16',
-            bottomDockOpen ? 'mt-auto' : 'my-auto',
+            'my-auto',
           )}
         >
           {messageReady ? (

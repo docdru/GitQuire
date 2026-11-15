@@ -8,8 +8,6 @@ const renderableLabels = (command: (typeof COMMAND_IDENTITIES)[number]): string[
     command.stateToggle?.showKey,
     command.stateToggle?.hideKey,
     command.stateToggle?.overrideKey,
-    command.placementToggle?.bottomKey,
-    command.placementToggle?.rightKey,
   ].filter((key) => key !== undefined);
   const resolved = [...new Set(keys)].map((key) => MENU_LABELS[key]).filter((label) => !!label);
   return resolved.length > 0 ? resolved : [''];
@@ -41,8 +39,6 @@ const INTENTS: ReadonlyArray<readonly [string, string]> = [
 
   ['move chat left', 'move-agents-left'],
   ['move ai to bottom', 'move-agents-bottom'],
-  ['move console top', 'move-terminal-top'],
-  ['move shell right', 'move-terminal-right'],
   ['move document right', 'move-editor-right'],
   ['open chat', 'toggle-agent-panel'],
   ['open agents', 'toggle-agent-panel'],

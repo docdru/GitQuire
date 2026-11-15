@@ -1,4 +1,3 @@
-import { MIN_TERMINAL_RIGHT_WIDTH } from '@inkeep/open-knowledge-core/terminal-layout';
 import {
   type DockDirection,
   type DockPath,
@@ -41,7 +40,6 @@ export const EMPTY_DOCK_LAYOUT: DockLayout = { panes: new Map(), seams: [] };
 const DOCK_PANE_MIN_EXTENT: Readonly<Record<PaneId, DockExtent>> = {
   editor: { width: 340, height: 180 },
   agents: { width: 290, height: 170 },
-  terminal: { width: MIN_TERMINAL_RIGHT_WIDTH, height: 120 },
 };
 
 export function dockPaneMinExtent(pane: PaneId): DockExtent {

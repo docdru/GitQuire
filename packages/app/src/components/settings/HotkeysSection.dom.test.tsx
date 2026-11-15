@@ -41,7 +41,7 @@ describe('HotkeysSection host awareness', () => {
   test('keeps every other row on web, including the OK Desktop-scoped ones', () => {
     renderUnderHost(false);
 
-    for (const id of ['new-folder', 'toggle-terminal-panel', 'navigate-back']) {
+    for (const id of ['new-folder', 'navigate-back']) {
       expect(screen.queryByTestId(`settings-hotkey-${id}`)).not.toBeNull();
     }
   });

@@ -16,7 +16,6 @@ import type { PaneId } from './pane-visibility-store.ts';
 const MINS: Record<PaneId, DockExtent> = {
   editor: { width: 340, height: 180 },
   agents: { width: 290, height: 170 },
-  terminal: { width: 325, height: 120 },
 };
 const minOf = (pane: PaneId) => MINS[pane];
 const GAP = 8;
@@ -58,7 +57,7 @@ describe('minDockExtent', () => {
     if (tree === null) throw new Error('expected a tree');
     expect(minDockExtent(tree, minOf, GAP)).toEqual({
       width: 340 + GAP + 290,
-      height: 180 + GAP + 120,
+      height: 180,
     });
   });
 });
@@ -67,36 +66,30 @@ describe('layoutDock', () => {
   test('lays the default tree out edge to edge with a gap between units', () => {
     const layout = layoutDock(visibleDockTree(DEFAULT_DOCK_TREE, everyPane), BOUNDS, GAP, minOf);
     const editor = layout.panes.get('editor');
-    const terminal = layout.panes.get('terminal');
     const agents = layout.panes.get('agents');
-    if (editor === undefined || terminal === undefined || agents === undefined) {
+    if (editor === undefined || agents === undefined) {
       throw new Error('expected every pane');
     }
     expect(editor.x).toBe(0);
     expect(editor.y).toBe(0);
-    expect(terminal.x).toBe(0);
-    expect(terminal.y).toBe(editor.height + GAP);
-    expect(terminal.y + terminal.height).toBe(BOUNDS.height);
+    expect(editor.height).toBe(BOUNDS.height);
     expect(agents.x).toBe(editor.width + GAP);
     expect(agents.x + agents.width).toBe(BOUNDS.width);
     expect(agents.height).toBe(BOUNDS.height);
     expect(editor.width / agents.width).toBeCloseTo(2.5, 1);
-    expect(editor.height / terminal.height).toBeCloseTo(2.3, 1);
-    expect(layout.seams).toHaveLength(2);
+    expect(layout.seams).toHaveLength(1);
   });
 
-  test('puts each seam in the gap between the units it separates', () => {
+  test('puts the seam in the gap between the units it separates', () => {
     const layout = layoutDock(visibleDockTree(DEFAULT_DOCK_TREE, everyPane), BOUNDS, GAP, minOf);
     const editor = layout.panes.get('editor');
     const row = layout.seams.find((seam) => seam.direction === 'row');
-    const column = layout.seams.find((seam) => seam.direction === 'column');
-    if (editor === undefined || row === undefined || column === undefined) {
-      throw new Error('expected both seams');
+    if (editor === undefined || row === undefined) {
+      throw new Error('expected the seam');
     }
     expect(row.rect).toEqual({ x: editor.width, y: 0, width: GAP, height: BOUNDS.height });
     expect(row.after).toEqual(['agents']);
-    expect(column.rect).toEqual({ x: 0, y: editor.height, width: editor.width, height: GAP });
-    expect(column.path).toEqual([0]);
+    expect(row.path).toEqual([]);
   });
 
   test('gives a lone pane the whole workspace and no seams', () => {

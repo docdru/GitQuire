@@ -19,10 +19,7 @@ export function narrowWorkspaceSessionKey(namespace: string, host: 'desktop' | '
   return scopedStorageKey(STORAGE_KEY, `${host}:${namespace}`);
 }
 
-export function readNarrowWorkspaceSession(
-  key: string,
-  terminalAvailable: boolean,
-): NarrowWorkspaceSession | undefined {
+export function readNarrowWorkspaceSession(key: string): NarrowWorkspaceSession | undefined {
   try {
     const raw = window.sessionStorage.getItem(key);
     if (raw === null) return undefined;
@@ -30,7 +27,6 @@ export function readNarrowWorkspaceSession(
     if (typeof value !== 'object' || value === null || !('version' in value)) return undefined;
     if (value.version !== 1 || !('selected' in value)) return undefined;
     if (value.selected !== null && !isPaneId(value.selected)) return undefined;
-    if (value.selected === 'terminal' && !terminalAvailable) return undefined;
     const recent = 'recent' in value ? value.recent : [];
     const hidden = 'hidden' in value ? value.hidden : [];
     const lastInteracted = 'lastInteracted' in value ? value.lastInteracted : value.selected;
@@ -39,9 +35,9 @@ export function readNarrowWorkspaceSession(
     if (lastInteracted !== null && !isPaneId(lastInteracted)) return undefined;
     return {
       selected: value.selected,
-      lastInteracted: lastInteracted === 'terminal' && !terminalAvailable ? null : lastInteracted,
-      recent: terminalAvailable ? recent : recent.filter((pane) => pane !== 'terminal'),
-      hidden: terminalAvailable ? hidden : hidden.filter((pane) => pane !== 'terminal'),
+      lastInteracted,
+      recent,
+      hidden,
     };
   } catch {
     return undefined;

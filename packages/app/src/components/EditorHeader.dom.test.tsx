@@ -12,11 +12,7 @@ import {
   type PaneVisibility,
   paneVisibilityStore,
 } from '@/lib/pane-visibility-store';
-import {
-  configContextWithTerminal,
-  type ProjectTerminalSetting,
-  TERMINAL_SETTING_UNSET,
-} from '@/test-utils/config-context';
+import { configContextFixture } from '@/test-utils/config-context';
 import {
   expectVisualClassTokens,
   expectVisualClassTokensAbsent,
@@ -106,25 +102,18 @@ function setWindowsHost() {
   });
 }
 
-let projectTerminal: ProjectTerminalSetting = TERMINAL_SETTING_UNSET;
-
-const PANE_HIDDEN: PaneVisibility = { open: false, onScreen: false };
 const PANE_SHOWN: PaneVisibility = { open: true, onScreen: true };
 
-function publishPanes({ terminal = true }: { terminal?: boolean } = {}) {
+function publishPanes() {
   act(() => {
-    paneVisibilityStore.publish({
-      editor: null,
-      agents: PANE_SHOWN,
-      terminal: terminal ? PANE_HIDDEN : null,
-    });
+    paneVisibilityStore.publish({ editor: null, agents: PANE_SHOWN });
   });
 }
 
 async function renderHeader(tabs?: ReactNode) {
   const { EditorHeader } = await import('./EditorHeader');
   const tree = (nextTabs?: ReactNode) => (
-    <ConfigContext value={configContextWithTerminal(projectTerminal)}>
+    <ConfigContext value={configContextFixture()}>
       <TooltipProvider delayDuration={0}>
         <EditorHeader>{nextTabs}</EditorHeader>
       </TooltipProvider>
@@ -159,7 +148,6 @@ describe('EditorHeader runtime behavior', () => {
     syncToastsHookCalls.length = 0;
     syncToastsHosts.mounted = 0;
     gitSyncStatusReads.count = 0;
-    projectTerminal = TERMINAL_SETTING_UNSET;
     __resetPaneVisibilityStoreForTests();
   });
 
@@ -311,14 +299,13 @@ describe('EditorHeader runtime behavior', () => {
     expect(gitSyncStatusReads.count).toBe(0);
   });
 
-  test('a project window tab row leaves the Agents and Terminal buttons to the app header', async () => {
+  test('a project window tab row leaves the Agents button to the app header', async () => {
     publishPanes();
     const header = await renderHeader(<div>tabs</div>);
 
     expect(header.querySelector('[data-testid="header-pane-buttons"]')).toBeNull();
     expect(screen.queryByRole('group', { name: 'Panels' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Agents' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Terminal' })).toBeNull();
   });
 
   test('dragging the tab row onto the middle of the Agents panel trades the editor and the Agents panel', async () => {
@@ -344,11 +331,11 @@ describe('EditorHeader runtime behavior', () => {
     function Workspace() {
       const [tree, setTree] = useState<DockNode>(DEFAULT_DOCK_TREE);
       return (
-        <ConfigContext value={configContextWithTerminal(projectTerminal)}>
+        <ConfigContext value={configContextFixture()}>
           <TooltipProvider delayDuration={0}>
             <DockWorkspace
               tree={tree}
-              visible={{ editor: true, agents: true, terminal: true }}
+              visible={{ editor: true, agents: true }}
               units={{
                 editor: (
                   <EditorHeader>
@@ -356,7 +343,6 @@ describe('EditorHeader runtime behavior', () => {
                   </EditorHeader>
                 ),
                 agents: <div>Agents</div>,
-                terminal: <div>Terminal</div>,
               }}
               gap={8}
               minExtent={() => ({ width: 100, height: 100 })}

@@ -1461,7 +1461,6 @@ describe('SyncStatusBadge working-tree listing', () => {
     paneVisibilityStore.publish({
       editor: { open: false, onScreen: false },
       agents: null,
-      terminal: null,
     });
     status = { ...baseStatus, state: 'idle' };
     projectLocalConfig = { autoSync: { mode: 'off' } };

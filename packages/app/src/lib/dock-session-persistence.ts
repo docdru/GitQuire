@@ -1,4 +1,4 @@
-export type DockSurface = 'terminal' | 'agents';
+export type DockSurface = 'agents';
 
 export interface DockSessionOrder {
   readonly order: readonly string[];
@@ -10,7 +10,6 @@ export interface WebAgentsDockSessionOrder extends DockSessionOrder {
 }
 
 const WEB_STORAGE_KEYS: Record<DockSurface, string> = {
-  terminal: 'ok-dock-session-order-v1',
   agents: 'ok-agent-session-order-v1',
 };
 
@@ -63,10 +62,7 @@ function readWebRecord(surface: DockSurface): WebRecordRead {
   }
 }
 
-export function readWebDockSessionOrder(surface: 'terminal'): DockSessionOrder | null;
-export function readWebDockSessionOrder(surface: 'agents'): WebAgentsDockSessionOrder | null;
-export function readWebDockSessionOrder(surface: DockSurface): DockSessionOrder | null;
-export function readWebDockSessionOrder(surface: DockSurface): DockSessionOrder | null {
+export function readWebDockSessionOrder(surface: DockSurface): WebAgentsDockSessionOrder | null {
   const read = readWebRecord(surface);
   return read.status === 'parsed' ? read.record : null;
 }

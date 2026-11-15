@@ -4442,18 +4442,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "نجح النقل لكن الشريط الجانبي قد يكون قديمًا — حدّث لإعادة المزامنة"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "نقل Terminal إلى الحافة السفلية للنافذة"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "نقل Terminal إلى الحافة اليسرى للنافذة"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "نقل Terminal إلى الحافة اليمنى للنافذة"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "نقل Terminal إلى الحافة العلوية للنافذة"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "انقل الكتلة الحالية إلى أعلى أو أسفل. في القوائم، انقل العنصر الحالي أو العناصر المحددة."
 
@@ -5179,9 +5167,6 @@ msgstr "فتح المصدر: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "فتح الطرفية"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6550,9 +6535,6 @@ msgstr "إظهار لوحة المستند أو إخفاؤها"
 msgid "Show or hide Files"
 msgstr "إظهار الملفات أو إخفاؤها"
 
-msgid "Show or hide Terminal"
-msgstr "إظهار Terminal أو إخفاؤه"
-
 msgid "Show original"
 msgstr "إظهار الأصل"
 
@@ -6987,9 +6969,6 @@ msgstr "القوالب"
 
 msgid "Templates available"
 msgstr "قوالب متاحة"
-
-msgid "Terminal"
-msgstr "الطرفية"
 
 msgid "Test connection"
 msgstr "اختبار الاتصال"
@@ -7585,9 +7564,6 @@ msgstr "تبديل عرض المصدر"
 
 msgid "Toggle strikethrough formatting."
 msgstr "بدّل تنسيق الخط في المنتصف."
-
-msgid "Toggle Terminal in its current dock."
-msgstr "أظهر Terminal أو أخفه في موضع الإرساء الحالي."
 
 msgid "Toggle the document panel."
 msgstr "بدّل لوحة المستند."

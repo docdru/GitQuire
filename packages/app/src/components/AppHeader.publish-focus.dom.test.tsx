@@ -7,7 +7,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ConfigContext } from '@/lib/config-context';
 import { i18n } from '@/lib/i18n';
-import { configContextWithTerminal, TERMINAL_SETTING_UNSET } from '@/test-utils/config-context';
+import { configContextFixture } from '@/test-utils/config-context';
 
 vi.mock('@/editor/DocumentContext', () => ({
   useDocumentContext: () => ({
@@ -123,7 +123,7 @@ function relayout(next: typeof CRAMPED | typeof ROOMY) {
 
 function HeaderProviders({ children }: { children: ReactNode }) {
   return (
-    <ConfigContext value={configContextWithTerminal(TERMINAL_SETTING_UNSET)}>
+    <ConfigContext value={configContextFixture()}>
       <I18nProvider i18n={i18n}>
         <TooltipProvider>{children}</TooltipProvider>
       </I18nProvider>

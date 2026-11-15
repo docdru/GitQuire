@@ -19,7 +19,7 @@ type HeaderPaneButtonState = {
   readonly pressed: boolean;
 };
 
-const PANE_ORDER = ['editor', 'agents', 'terminal'] as const satisfies readonly PaneId[];
+const PANE_ORDER = ['editor', 'agents'] as const satisfies readonly PaneId[];
 
 type _PaneOrderDrift = Exclude<PaneId, (typeof PANE_ORDER)[number]>;
 const _paneOrderDriftGuard: [_PaneOrderDrift] extends [never]
@@ -30,7 +30,6 @@ void _paneOrderDriftGuard;
 const PANE_SHORTCUT = {
   editor: null,
   agents: 'toggle-agent-panel',
-  terminal: 'toggle-terminal-panel',
 } as const satisfies Record<PaneId, KeyboardShortcutId | null>;
 
 const HIGH_CONTRAST_OUTLINE_CLASSES =
@@ -57,7 +56,6 @@ function useHeaderPaneButtonStates(): readonly HeaderPaneButtonState[] {
   return PANE_ORDER.flatMap((pane) => {
     const visibility = snapshot[pane];
     if (visibility === null) return [];
-    if (pane === 'terminal') return [];
     return [{ pane, pressed: visibility.onScreen }];
   });
 }

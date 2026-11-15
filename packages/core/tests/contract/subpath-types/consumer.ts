@@ -569,14 +569,6 @@ export type {
 } from '@inkeep/open-knowledge-core/sharing';
 export type { SyncPausedReason } from '@inkeep/open-knowledge-core/sync-paused-reason';
 export type {
-  DEFAULT_TERMINAL_PLACEMENT,
-  MIN_TERMINAL_RIGHT_WIDTH,
-  normalizeTerminalPlacement,
-  normalizeTerminalRightWidth,
-  PREFERRED_TERMINAL_RIGHT_WIDTH,
-  TerminalPlacement,
-} from '@inkeep/open-knowledge-core/terminal-layout';
-export type {
   AnsiSlotName,
   BASE16_SLOT_ROLES,
   BASE16_SLOTS,

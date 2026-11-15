@@ -4438,18 +4438,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "A movimentação deu certo, mas a barra lateral pode estar desatualizada — atualize para ressincronizar"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Mover o Terminal para a borda inferior da janela"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Mover o Terminal para a borda esquerda da janela"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Mover o Terminal para a borda direita da janela"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Mover o Terminal para a borda superior da janela"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "Move o bloco atual para cima ou para baixo. Nas listas, move o item atual ou os itens selecionados."
 
@@ -5175,9 +5163,6 @@ msgstr "Abrir a fonte: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "Abrir terminal"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6546,9 +6531,6 @@ msgstr "Mostrar ou ocultar o painel do documento"
 msgid "Show or hide Files"
 msgstr "Mostrar ou ocultar Arquivos"
 
-msgid "Show or hide Terminal"
-msgstr "Mostrar ou ocultar o Terminal"
-
 msgid "Show original"
 msgstr "Mostrar original"
 
@@ -6983,9 +6965,6 @@ msgstr "Modelos"
 
 msgid "Templates available"
 msgstr "Modelos disponíveis"
-
-msgid "Terminal"
-msgstr "Terminal"
 
 msgid "Test connection"
 msgstr "Testar conexão"
@@ -7581,9 +7560,6 @@ msgstr "Mostrar ou ocultar a visualização de código"
 
 msgid "Toggle strikethrough formatting."
 msgstr "Liga ou desliga o tachado."
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Mostre ou oculte o Terminal no painel atual."
 
 msgid "Toggle the document panel."
 msgstr "Mostra ou oculta o painel do documento."

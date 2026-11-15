@@ -11,11 +11,7 @@ import {
   type PaneVisibilityRequest,
   paneVisibilityStore,
 } from '@/lib/pane-visibility-store';
-import {
-  configContextWithTerminal,
-  type ProjectTerminalSetting,
-  TERMINAL_SETTING_UNSET,
-} from '@/test-utils/config-context';
+import { configContextFixture } from '@/test-utils/config-context';
 import {
   expectVisualClassTokens,
   expectVisualClassTokensAbsent,
@@ -45,23 +41,17 @@ function setPlatform(platform: string): void {
   });
 }
 
-function Providers({
-  setting,
-  children,
-}: {
-  setting: ProjectTerminalSetting;
-  children: ReactNode;
-}) {
+function Providers({ children }: { children: ReactNode }) {
   return (
-    <ConfigContext value={configContextWithTerminal(setting)}>
+    <ConfigContext value={configContextFixture()}>
       <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
     </ConfigContext>
   );
 }
 
-function renderButtons(setting: ProjectTerminalSetting = TERMINAL_SETTING_UNSET) {
+function renderButtons() {
   return render(
-    <Providers setting={setting}>
+    <Providers>
       <HeaderPaneButtons />
     </Providers>,
   );
@@ -90,7 +80,7 @@ describe('HeaderPaneButtons', () => {
   });
 
   test('renders Agents inside a group named Panels, after a divider', () => {
-    paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
     renderButtons();
 
     const group = screen.getByRole('group', { name: 'Panels' });
@@ -101,16 +91,8 @@ describe('HeaderPaneButtons', () => {
     expect(divider.contains(group)).toBe(false);
   });
 
-  test('never renders a Terminal button, even when the snapshot carries a terminal pane', () => {
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN, terminal: SHOWN });
-    renderButtons();
-
-    expect(paneButtonNames()).toEqual(['Editor', 'Agents']);
-    expect(screen.queryByTestId('header-pane-button-terminal')).toBeNull();
-  });
-
   test('the Agents button is a 28px ghost icon button with a hidden glyph and a stable test id', () => {
-    paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: SHOWN });
     renderButtons();
 
     const agents = screen.getByTestId('header-pane-button-agents');
@@ -122,14 +104,14 @@ describe('HeaderPaneButtons', () => {
   });
 
   test('pressed state follows whether the pane is on screen and flips when the store publishes', () => {
-    paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
     renderButtons();
 
     const agents = screen.getByRole('button', { name: 'Agents' });
     expect(agents.getAttribute('aria-pressed')).toBe('false');
 
     act(() => {
-      paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+      paneVisibilityStore.publish({ editor: null, agents: SHOWN });
     });
 
     expect(screen.getByRole('button', { name: 'Agents' })).toBe(agents);
@@ -139,7 +121,7 @@ describe('HeaderPaneButtons', () => {
   test('a pane that is open but collapsed to zero size reads off, and a click asks to show it', async () => {
     const user = userEvent.setup();
     const requests = recordRequests();
-    paneVisibilityStore.publish({ editor: null, agents: OPEN_OFF_SCREEN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: OPEN_OFF_SCREEN });
     renderButtons();
 
     const agents = screen.getByRole('button', { name: 'Agents' });
@@ -159,7 +141,7 @@ describe('HeaderPaneButtons', () => {
     expect(screen.queryByRole('group', { name: 'Panels' })).toBeNull();
 
     act(() => {
-      paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+      paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
     });
     expect(screen.getByTestId('header-pane-divider')).toBeTruthy();
   });
@@ -167,7 +149,7 @@ describe('HeaderPaneButtons', () => {
   test('a click asks for the opposite of the shown state and leaves focus on the button', async () => {
     const user = userEvent.setup();
     const requests = recordRequests();
-    paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: SHOWN });
     renderButtons();
 
     const agents = screen.getByRole('button', { name: 'Agents' });
@@ -179,7 +161,7 @@ describe('HeaderPaneButtons', () => {
 
   test('hiding a pane keeps focus on the button even when the pane hands focus elsewhere as it hides', async () => {
     const user = userEvent.setup();
-    paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: SHOWN });
     renderButtons();
     const elsewhere = document.createElement('div');
     elsewhere.tabIndex = -1;
@@ -199,14 +181,14 @@ describe('HeaderPaneButtons', () => {
   test('each click acts on the state shown at that moment, not a local toggle', async () => {
     const user = userEvent.setup();
     const requests = recordRequests();
-    paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
     renderButtons();
 
     const agents = screen.getByRole('button', { name: 'Agents' });
     await user.click(agents);
     await user.click(agents);
     act(() => {
-      paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+      paneVisibilityStore.publish({ editor: null, agents: SHOWN });
     });
     await user.click(agents);
 
@@ -216,14 +198,14 @@ describe('HeaderPaneButtons', () => {
   test('Enter and Space on a focused button send the same request as a click', async () => {
     const user = userEvent.setup();
     const requests = recordRequests();
-    paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: SHOWN });
     renderButtons();
 
     const agents = screen.getByRole('button', { name: 'Agents' });
     act(() => agents.focus());
     await user.keyboard('{Enter}');
     act(() => {
-      paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+      paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
     });
     await user.keyboard(' ');
 
@@ -243,7 +225,7 @@ describe('HeaderPaneButtons', () => {
     async ({ platform, agents }) => {
       setPlatform(platform);
       const user = userEvent.setup();
-      paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+      paneVisibilityStore.publish({ editor: null, agents: SHOWN });
       renderButtons();
 
       await user.tab();
@@ -253,14 +235,14 @@ describe('HeaderPaneButtons', () => {
       expect(tooltip.querySelector('[data-slot="kbd"]')?.textContent).toBe(agents);
 
       act(() => {
-        paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+        paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
       });
       expect((await screen.findByRole('tooltip')).textContent).toBe(`Agents ${agents}`);
     },
   );
 
   test('pressed buttons carry the tinted look, a hover tint of their own and a high-contrast outline', () => {
-    paneVisibilityStore.publish({ editor: HIDDEN, agents: SHOWN, terminal: null });
+    paneVisibilityStore.publish({ editor: HIDDEN, agents: SHOWN });
     renderButtons();
 
     const on = screen.getByRole('button', { name: 'Agents' });
@@ -281,7 +263,7 @@ describe('HeaderPaneButtons', () => {
 
   test('with one pane shown at a time the buttons sit on one track with the shown pane raised, and a press on it asks for nothing', async () => {
     const user = userEvent.setup();
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN, terminal: null }, true);
+    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN }, true);
     const requests = recordRequests();
     renderButtons();
 
@@ -301,16 +283,16 @@ describe('HeaderPaneButtons', () => {
     expect(requests).toEqual([{ pane: 'agents', open: true, reason: 'user' }]);
 
     act(() => {
-      paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN, terminal: null }, false);
+      paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN }, false);
     });
     expectVisualClassTokensAbsent(group.className, SWITCHER_TRACK);
     expectVisualClassTokens(shown.className, PRESSED_LOOK);
     expectVisualClassTokensAbsent(shown.className, RAISED_SEGMENT);
   });
 
-  test('useHeaderPaneButtonSet lists the panes to render in header order, never the terminal', () => {
+  test('useHeaderPaneButtonSet lists the panes to render in header order', () => {
     render(
-      <Providers setting={TERMINAL_SETTING_UNSET}>
+      <Providers>
         <PaneSetProbe />
       </Providers>,
     );
@@ -318,12 +300,12 @@ describe('HeaderPaneButtons', () => {
     expect(probe.textContent).toBe('');
 
     act(() => {
-      paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+      paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
     });
     expect(probe.textContent).toBe('agents');
 
     act(() => {
-      paneVisibilityStore.publish({ editor: SHOWN, agents: SHOWN, terminal: HIDDEN });
+      paneVisibilityStore.publish({ editor: SHOWN, agents: SHOWN });
     });
     expect(probe.textContent).toBe('editor,agents');
   });
@@ -336,7 +318,7 @@ describe('the Editor header button', () => {
   });
 
   test('a project window lists Editor first, then Agents', () => {
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
     renderButtons();
 
     expect(paneButtonNames()).toEqual(['Editor', 'Agents']);
@@ -346,21 +328,21 @@ describe('the Editor header button', () => {
   });
 
   test('no Editor button appears where the snapshot has no editor pane', () => {
-    paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: HIDDEN });
+    paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
     renderButtons();
 
     expect(screen.queryByRole('button', { name: 'Editor' })).toBeNull();
   });
 
   test('its pressed state follows whether the editor is shown and it keeps its name', () => {
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
     renderButtons();
     const editor = screen.getByRole('button', { name: 'Editor' });
     expect(editor.getAttribute('aria-pressed')).toBe('true');
     expectVisualClassTokens(editor.className, PRESSED_LOOK);
 
     act(() => {
-      paneVisibilityStore.publish({ editor: HIDDEN, agents: HIDDEN, terminal: null });
+      paneVisibilityStore.publish({ editor: HIDDEN, agents: HIDDEN });
     });
     expect(editor.getAttribute('aria-pressed')).toBe('false');
     expect(editor.getAttribute('aria-label')).toBe('Editor');
@@ -371,13 +353,13 @@ describe('the Editor header button', () => {
     const user = userEvent.setup();
     const requests: PaneVisibilityRequest[] = [];
     paneVisibilityStore.subscribeRequests((request) => requests.push(request));
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
     renderButtons();
     const editor = screen.getByRole('button', { name: 'Editor' });
 
     await user.click(editor);
     act(() => {
-      paneVisibilityStore.publish({ editor: HIDDEN, agents: HIDDEN, terminal: null });
+      paneVisibilityStore.publish({ editor: HIDDEN, agents: HIDDEN });
     });
     await user.keyboard('{Enter}');
 
@@ -391,7 +373,7 @@ describe('the Editor header button', () => {
   test('its tooltip names it with no shortcut, on hover and on keyboard focus', async () => {
     setPlatform('MacIntel');
     const user = userEvent.setup();
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
     renderButtons();
 
     await user.tab();

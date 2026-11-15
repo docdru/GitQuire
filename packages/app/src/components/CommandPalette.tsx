@@ -621,8 +621,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         return t`File`;
       case 'view':
         return t`View`;
-      case 'terminal':
-        return t`Terminal`;
       case 'app':
         return t`Application`;
     }
@@ -813,7 +811,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     commandGroupBlock('project'),
     commandGroupBlock('file'),
     commandGroupBlock('view'),
-    commandGroupBlock('terminal'),
     commandGroupBlock('app'),
   ].sort((a, b) => a.rank - b.rank);
 

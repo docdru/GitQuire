@@ -13,7 +13,6 @@ describe('dock move palette commands', () => {
   test.each([
     ['move-agents-left', { pane: 'agents', side: 'left' }],
     ['move-editor-bottom', { pane: 'editor', side: 'bottom' }],
-    ['move-terminal-top', { pane: 'terminal', side: 'top' }],
   ] as const)('%s closes the palette and asks for that pane at that edge', (id, move) => {
     const requested: DockPaneMove[] = [];
     stopListening = subscribeDockPaneMoves((request) => requested.push(request));
@@ -28,10 +27,8 @@ describe('dock move palette commands', () => {
   });
 
   test('the moves only show up when searched for', () => {
-    const moves = PALETTE_COMMANDS.filter((entry) =>
-      /^move-(editor|agents|terminal)-/.test(entry.id),
-    );
-    expect(moves).toHaveLength(12);
+    const moves = PALETTE_COMMANDS.filter((entry) => /^move-(editor|agents)-/.test(entry.id));
+    expect(moves).toHaveLength(8);
     expect(new Set(moves.map((entry) => entry.visibility))).toEqual(new Set(['search-only']));
   });
 });

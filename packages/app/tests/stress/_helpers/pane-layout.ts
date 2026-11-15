@@ -1,21 +1,12 @@
 import type { Locator, Page } from '@playwright/test';
-import {
-  TERMINAL_PLACEMENT_KEY,
-  type TerminalPlacement,
-} from '../../../src/lib/terminal-placement-store';
 import { expect } from './fixtures.ts';
 import { waitForActiveProviderSynced } from './provider.ts';
 
-export type HeaderPane = 'editor' | 'agents' | 'terminal';
+export type HeaderPane = 'editor' | 'agents';
 
 export interface LayoutViewport {
   readonly width: number;
   readonly height: number;
-}
-
-export interface DesktopLayoutOptions {
-  readonly viewport: LayoutViewport;
-  readonly terminalPlacement: TerminalPlacement;
 }
 
 const BOOT_TIMEOUT_MS = 30_000;
@@ -27,7 +18,6 @@ export const DOCK_WORKSPACE = '[data-dock-workspace]';
 const PANE_LABELS: Readonly<Record<HeaderPane, string>> = {
   editor: 'Editor',
   agents: 'Agents',
-  terminal: 'Terminal',
 };
 
 export interface DockUnitRect {
@@ -42,10 +32,6 @@ export interface DockSeamDrag {
   readonly dy?: number;
   readonly grabOffsetPx?: number;
   readonly whileDragging?: () => Promise<void>;
-}
-
-export function terminalPaneCard(placement: TerminalPlacement): string {
-  return `[data-slot="pane-card"][data-pane="terminal"][data-placement="${placement}"]`;
 }
 
 export function headerPaneButton(page: Page, pane: HeaderPane): Locator {
@@ -100,16 +86,6 @@ export async function dragDockSeam(
   await expect(workspace).not.toHaveAttribute('data-dragging');
 }
 
-export async function presetTerminalPlacement(
-  page: Page,
-  placement: TerminalPlacement,
-): Promise<void> {
-  await page.addInitScript(({ key, value }) => window.localStorage.setItem(key, value), {
-    key: TERMINAL_PLACEMENT_KEY,
-    value: placement,
-  });
-}
-
 export async function openWebLayout(
   page: Page,
   docName: string,
@@ -149,15 +125,4 @@ export async function expectEditorHidden(page: Page): Promise<void> {
   await expect(headerPaneButton(page, 'editor')).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator(EDITOR_PANE_CARD)).toHaveAttribute('inert', '');
   await expect(page.locator(EDITOR_PANE_CARD)).toHaveCSS('visibility', 'hidden');
-}
-
-export async function arrangeTerminalAlone(
-  page: Page,
-  placement: TerminalPlacement,
-): Promise<void> {
-  await setHeaderPane(page, 'agents', false);
-  await setHeaderPane(page, 'terminal', true);
-  await setHeaderPane(page, 'editor', false);
-  await expectEditorHidden(page);
-  await expect(page.locator(terminalPaneCard(placement))).toBeVisible();
 }

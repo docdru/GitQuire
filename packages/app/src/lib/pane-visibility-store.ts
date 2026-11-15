@@ -1,6 +1,6 @@
-import type { PaneId } from '@inkeep/open-knowledge-core/terminal-layout';
+import type { PaneId } from '@inkeep/open-knowledge-core/commands/command-identity';
 
-export type { PaneId } from '@inkeep/open-knowledge-core/terminal-layout';
+export type { PaneId } from '@inkeep/open-knowledge-core/commands/command-identity';
 
 export function assertNeverPaneId(pane: never): never {
   throw new Error(`unhandled pane: ${String(pane)}`);
@@ -33,7 +33,6 @@ export interface PaneVisibilityStore {
 const NO_PANES: PaneVisibilitySnapshot = Object.freeze({
   editor: null,
   agents: null,
-  terminal: null,
 });
 
 const PANE_IDS = Object.keys(NO_PANES) as readonly PaneId[];

@@ -32,11 +32,9 @@ import { useConfigContext } from '@/lib/config-provider';
 import {
   type DockArrangement,
   dockArrangementStorageKey,
-  dockTerminalPlacement,
   legacyDockArrangement,
   readDockArrangement,
   withDockPaneAtEdge,
-  withDockTerminalPlacement,
   withDockTree,
   writeDockArrangement,
 } from '@/lib/dock-arrangement-store';
@@ -44,7 +42,7 @@ import { type DockPaneMove, subscribeDockPaneMoves } from '@/lib/dock-move-reque
 import { readWebDockSessionOrder } from '@/lib/dock-session-persistence';
 import type { DockEdge, DockNode } from '@/lib/dock-tree';
 import { agentsPaneIsChat, useGitQuireFeatures } from '@/lib/gitquire/features';
-import { matchesKeyboardShortcut, matchesRendererShortcut } from '@/lib/keyboard-shortcuts';
+import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import {
   isExplicitInitialDocumentNavigation,
@@ -116,8 +114,6 @@ type PaneSelectionState = {
   narrowSessionKey: string | null;
   narrowSelection: PaneId | null;
   agentsVisible: boolean;
-  terminalAvailable: boolean;
-  terminalVisible: boolean;
   lastInteractedPaneRef: { current: PaneId | null };
   narrowRecentPanesRef: { current: PaneId[] };
   narrowHiddenPanesRef: { current: Set<PaneId> };
@@ -179,15 +175,8 @@ function hidePaneForState(state: PaneSelectionState, pane: PaneId) {
   const eligible = (candidate: PaneId) =>
     candidate !== 'editor' &&
     !state.narrowHiddenPanesRef.current.has(candidate) &&
-    (candidate === 'agents'
-      ? state.agentsVisible || state.narrowRecentPanesRef.current.includes('agents')
-      : state.terminalAvailable &&
-        (state.terminalVisible || state.narrowRecentPanesRef.current.includes('terminal')));
-  const fallbackOrder: readonly PaneId[] = [
-    ...state.narrowRecentPanesRef.current,
-    'agents',
-    'terminal',
-  ];
+    (state.agentsVisible || state.narrowRecentPanesRef.current.includes('agents'));
+  const fallbackOrder: readonly PaneId[] = [...state.narrowRecentPanesRef.current, 'agents'];
   const next = fallbackOrder.find(eligible);
   if (next === undefined) {
     state.setNarrowSelection(null);
@@ -200,7 +189,6 @@ function hidePaneForState(state: PaneSelectionState, pane: PaneId) {
 type PaneVisibilityState = {
   selection: PaneSelectionState;
   setAgentsVisible: (visible: boolean) => void;
-  setTerminalVisible: (visible: boolean) => void;
 };
 
 function usePaneVisibilityHandlers(state: PaneVisibilityState) {
@@ -237,28 +225,7 @@ function usePaneVisibilityHandlers(state: PaneVisibilityState) {
       else hidePaneForState(selection, 'agents');
     },
   );
-  const [handleTerminalVisibleChange] = useState(
-    () => (visible: boolean, reason?: 'session-close') => {
-      const currentState = current.current;
-      const selection = currentState.selection;
-      if (!selection.exclusive) {
-        if (visible && selection.terminalAvailable) selectPaneForState(selection, 'terminal');
-        else if (!visible) hidePaneForState(selection, 'terminal');
-        currentState.setTerminalVisible(visible);
-        return;
-      }
-      if (reason === 'session-close') currentState.setTerminalVisible(false);
-      if (visible && selection.terminalAvailable) selectPaneForState(selection, 'terminal');
-      else if (!visible) hidePaneForState(selection, 'terminal');
-    },
-  );
-  return {
-    selectPane,
-    hidePane,
-    applyPaneRequest,
-    handleAgentsVisibleChange,
-    handleTerminalVisibleChange,
-  };
+  return { selectPane, hidePane, applyPaneRequest, handleAgentsVisibleChange };
 }
 
 type PaneExtentPublisherState = {
@@ -266,8 +233,6 @@ type PaneExtentPublisherState = {
   editorVisible: boolean;
   agentsVisible: boolean;
   agentsAvailable: boolean;
-  terminalVisible: boolean;
-  terminalAvailable: boolean;
   noteWindow: boolean;
   exclusive: boolean;
 };
@@ -282,7 +247,6 @@ function usePaneExtentPublisher(state: PaneExtentPublisherState) {
     const onScreen = latest.editorAreaRef.current?.panesOnScreen() ?? {
       editor: latest.editorVisible,
       agents: false,
-      terminal: false,
     };
     paneVisibilityStore.publish(
       {
@@ -291,12 +255,6 @@ function usePaneExtentPublisher(state: PaneExtentPublisherState) {
           : { open: latest.editorVisible, onScreen: latest.editorVisible },
         agents: latest.agentsAvailable
           ? { open: latest.agentsVisible, onScreen: latest.agentsVisible && onScreen.agents }
-          : null,
-        terminal: latest.terminalAvailable
-          ? {
-              open: latest.terminalVisible,
-              onScreen: latest.terminalVisible && onScreen.terminal,
-            }
           : null,
       },
       latest.exclusive,
@@ -443,7 +401,6 @@ export function EditorPane() {
   const [editorShown, setEditorShown] = useState(() => loadBoolPref(WEB_EDITOR_VISIBLE_KEY, true));
   const editorChosenSinceMountRef = useRef(false);
   const editorVisible = !editorToggleable || editorShown;
-  const terminalAvailable = false;
   const narrowSessionKey =
     workspace === null ? null : narrowWorkspaceSessionKey(workspace.contentDir, 'web');
   useEffect(() => {
@@ -454,7 +411,7 @@ export function EditorPane() {
         lastInteractedPaneRef.current = 'editor';
         setNarrowSelection('editor');
       } else {
-        const stored = readNarrowWorkspaceSession(narrowSessionKey, terminalAvailable);
+        const stored = readNarrowWorkspaceSession(narrowSessionKey);
         if (stored !== undefined) {
           lastInteractedPaneRef.current = stored.lastInteracted;
           narrowRecentPanesRef.current = stored.recent;
@@ -478,7 +435,6 @@ export function EditorPane() {
       narrowSelection,
     );
   }, [exclusive, readyNarrowSessionKey, narrowSessionKey, narrowSelection]);
-  const [terminalVisible, setTerminalVisible] = useState(false);
   const dockArrangementKey = dockArrangementStorageKey(null);
   const [dock, setDock] = useState<ProjectDock>(() => ({
     key: dockArrangementKey,
@@ -507,15 +463,6 @@ export function EditorPane() {
     updateDockArrangement((current) => withDockTree(current, update(current.tree)));
   }
   const dockTree = dock.arrangement.tree;
-  const _terminalPlacement = dockTerminalPlacement(dockTree);
-  const moveTerminalEvent = useEffectEvent(() => {
-    updateDockArrangement((current) =>
-      withDockTerminalPlacement(
-        current,
-        dockTerminalPlacement(current.tree) === 'bottom' ? 'right' : 'bottom',
-      ),
-    );
-  });
   const moveDockPaneEvent = useEffectEvent(({ pane, side }: DockPaneMove) => {
     const rtl = getComputedStyle(document.documentElement).direction === 'rtl';
     const edge: DockEdge =
@@ -538,25 +485,17 @@ export function EditorPane() {
         ...narrowRecentPanesRef.current,
         'editor',
         ...(agentsVisible ? ['agents' as const] : []),
-        ...(terminalVisible ? ['terminal' as const] : []),
       ];
-      const next = candidates.find(
-        (pane) =>
-          !narrowHiddenPanesRef.current.has(pane) && (pane !== 'terminal' || terminalAvailable),
-      );
+      const next = candidates.find((pane) => !narrowHiddenPanesRef.current.has(pane));
       setNarrowSelection(next ?? null);
     } else if (!exclusive && wasExclusiveRef.current) {
       layoutRestoreFocusHoldRef.current = true;
     }
     wasExclusiveRef.current = exclusive;
-  }, [exclusive, agentsVisible, terminalVisible]);
+  }, [exclusive, agentsVisible]);
   const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : editorVisible;
   const effectiveAgentsVisible = exclusive ? narrowSelection === 'agents' : agentsVisible;
-  const effectiveTerminalVisible = exclusive
-    ? narrowSelection === 'terminal' && terminalAvailable
-    : terminalVisible;
   const [placements, setPlacements] = useState<SessionPlacements>({
-    terminal: { container: null, isShowing: false },
     agents: { container: null, isShowing: false },
     editorRegion: null,
   });
@@ -568,8 +507,6 @@ export function EditorPane() {
     narrowSessionKey,
     narrowSelection,
     agentsVisible,
-    terminalAvailable,
-    terminalVisible,
     lastInteractedPaneRef,
     narrowRecentPanesRef,
     narrowHiddenPanesRef,
@@ -577,17 +514,11 @@ export function EditorPane() {
     setNarrowSelection,
   };
 
-  const {
-    selectPane,
-    hidePane,
-    applyPaneRequest,
-    handleAgentsVisibleChange,
-    handleTerminalVisibleChange,
-  } = usePaneVisibilityHandlers({
-    selection: paneSelectionState,
-    setAgentsVisible,
-    setTerminalVisible,
-  });
+  const { selectPane, hidePane, applyPaneRequest, handleAgentsVisibleChange } =
+    usePaneVisibilityHandlers({
+      selection: paneSelectionState,
+      setAgentsVisible,
+    });
 
   useEffect(() => {
     if (exclusive || noteWindow) return;
@@ -623,8 +554,6 @@ export function EditorPane() {
     editorVisible: effectiveEditorVisible,
     agentsVisible: effectiveAgentsVisible,
     agentsAvailable,
-    terminalVisible: effectiveTerminalVisible,
-    terminalAvailable,
     noteWindow,
     exclusive,
   });
@@ -636,7 +565,6 @@ export function EditorPane() {
       if (noteWindow) return;
       if (pane === 'agents' && !agentsAvailable) return;
       if (exclusive) {
-        if (pane === 'terminal' && !terminalAvailable) return;
         applyPaneRequest(pane, open);
         return;
       }
@@ -650,10 +578,6 @@ export function EditorPane() {
         case 'agents':
           applyPaneRequest(pane, open);
           setAgentsVisible(open);
-          return;
-        case 'terminal':
-          applyPaneRequest(pane, open);
-          if (terminalAvailable) setTerminalVisible(open);
           return;
         default:
           return assertNeverPaneId(pane);
@@ -704,21 +628,11 @@ export function EditorPane() {
   const toggleAgentsEvent = useEffectEvent(() => {
     handleAgentsVisibleChange(!effectiveAgentsVisible);
   });
-  const toggleTerminalEvent = useEffectEvent(() =>
-    handleTerminalVisibleChange(!effectiveTerminalVisible),
-  );
-  const showTerminalEvent = useEffectEvent(() => handleTerminalVisibleChange(true));
 
   useEffect(() => {
     if (noteWindow) return;
     return subscribeLocalMenuAction((action) => {
-      if (action === 'toggle-terminal') {
-        toggleTerminalEvent();
-      } else if (action === 'move-terminal') {
-        moveTerminalEvent();
-      } else if (action === 'new-terminal') {
-        showTerminalEvent();
-      } else if (action === 'toggle-agent-panel') {
+      if (action === 'toggle-agent-panel') {
         if (!agentsAvailable) return;
         toggleAgentsEvent();
       } else if (action === 'toggle-editor') {
@@ -726,19 +640,6 @@ export function EditorPane() {
       }
     });
   }, [noteWindow, agentsAvailable]);
-
-  useEffect(() => {
-    const hasNativeMenu = false;
-    function handleKeyDown(event: KeyboardEvent) {
-      if (!matchesRendererShortcut(event, 'toggle-terminal-panel', hasNativeMenu)) return;
-      if (isOverlayLayerOpen()) return;
-      if (!terminalAvailable) return;
-      event.preventDefault();
-      toggleTerminalEvent();
-    }
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
-    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -761,9 +662,8 @@ export function EditorPane() {
     setViewMenuState({
       editorVisible: effectiveEditorVisible,
       agentPanelVisible: effectiveAgentsVisible,
-      terminalVisible: effectiveTerminalVisible,
     });
-  }, [effectiveEditorVisible, effectiveAgentsVisible, effectiveTerminalVisible]);
+  }, [effectiveEditorVisible, effectiveAgentsVisible]);
 
   useEffect(() => {
     let last: boolean | null = null;
@@ -854,7 +754,6 @@ export function EditorPane() {
             activeTab={activeTab}
             onActiveTabChange={setActiveTab}
             editorVisible={effectiveEditorVisible}
-            terminalVisible={noteWindow ? false : effectiveTerminalVisible}
             agentsVisible={agentsAvailable ? effectiveAgentsVisible : false}
             dockTree={dockTree}
             onDockTreeChange={changeDockTree}

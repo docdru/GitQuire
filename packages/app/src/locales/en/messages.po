@@ -4442,18 +4442,6 @@ msgstr "Move my recent edits to a draft…"
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "Move succeeded but the sidebar may be out of date — refresh to resync"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Move Terminal to the bottom edge of the window"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Move Terminal to the left edge of the window"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Move Terminal to the right edge of the window"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Move Terminal to the top edge of the window"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "Move the current block up or down. In lists, move the current item or selected items."
 
@@ -5179,9 +5167,6 @@ msgstr "Open source: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr "Open tasks"
-
-msgid "Open terminal"
-msgstr "Open terminal"
 
 msgid "Open the draft to review it."
 msgstr "Open the draft to review it."
@@ -6550,9 +6535,6 @@ msgstr "Show or hide document panel"
 msgid "Show or hide Files"
 msgstr "Show or hide Files"
 
-msgid "Show or hide Terminal"
-msgstr "Show or hide Terminal"
-
 msgid "Show original"
 msgstr "Show original"
 
@@ -6987,9 +6969,6 @@ msgstr "Templates"
 
 msgid "Templates available"
 msgstr "Templates available"
-
-msgid "Terminal"
-msgstr "Terminal"
 
 msgid "Test connection"
 msgstr "Test connection"
@@ -7585,9 +7564,6 @@ msgstr "Toggle source view"
 
 msgid "Toggle strikethrough formatting."
 msgstr "Toggle strikethrough formatting."
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Toggle Terminal in its current dock."
 
 msgid "Toggle the document panel."
 msgstr "Toggle the document panel."

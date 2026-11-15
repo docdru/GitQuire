@@ -4438,18 +4438,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "हिलाना सफल रहा पर साइडबार पुराना हो सकता है — फिर से सिंक करने के लिए ताज़ा करें"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "Terminal को विंडो के निचले किनारे पर ले जाएँ"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "Terminal को विंडो के बाएँ किनारे पर ले जाएँ"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "Terminal को विंडो के दाएँ किनारे पर ले जाएँ"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "Terminal को विंडो के ऊपरी किनारे पर ले जाएँ"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "मौजूदा ब्लॉक को ऊपर या नीचे ले जाएँ। सूचियों में, मौजूदा आइटम या चुने हुए आइटम ले जाएँ।"
 
@@ -5175,9 +5163,6 @@ msgstr "स्रोत खोलें: {mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "टर्मिनल खोलें"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6546,9 +6531,6 @@ msgstr "दस्तावेज़ पैनल दिखाएँ या छ�
 msgid "Show or hide Files"
 msgstr "Files दिखाएँ या छिपाएँ"
 
-msgid "Show or hide Terminal"
-msgstr "Terminal दिखाएँ या छिपाएँ"
-
 msgid "Show original"
 msgstr "मूल दिखाएँ"
 
@@ -6983,9 +6965,6 @@ msgstr "टेम्पलेट"
 
 msgid "Templates available"
 msgstr "उपलब्ध टेम्पलेट"
-
-msgid "Terminal"
-msgstr "टर्मिनल"
 
 msgid "Test connection"
 msgstr "कनेक्शन जाँचें"
@@ -7581,9 +7560,6 @@ msgstr "स्रोत दृश्य चालू या बंद करे�
 
 msgid "Toggle strikethrough formatting."
 msgstr "काटी हुई फ़ॉर्मैटिंग चालू या बंद करें।"
-
-msgid "Toggle Terminal in its current dock."
-msgstr "Terminal को उसके मौजूदा डॉक में दिखाएँ या छिपाएँ।"
 
 msgid "Toggle the document panel."
 msgstr "दस्तावेज़ पैनल चालू या बंद करें।"

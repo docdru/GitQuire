@@ -34,7 +34,6 @@ describe('pane-visibility-store', () => {
     expect(paneVisibilityStore.getSnapshot()).toEqual({
       editor: null,
       agents: null,
-      terminal: null,
     });
   });
 
@@ -44,7 +43,7 @@ describe('pane-visibility-store', () => {
     paneVisibilityStore.subscribe(() => seenA.push(paneVisibilityStore.getSnapshot()));
     paneVisibilityStore.subscribe(() => seenB.push(paneVisibilityStore.getSnapshot()));
 
-    const next: PaneVisibilitySnapshot = { editor: null, agents: SHOWN, terminal: HIDDEN };
+    const next: PaneVisibilitySnapshot = { editor: null, agents: SHOWN };
     paneVisibilityStore.publish(next);
 
     expect(paneVisibilityStore.getSnapshot()).toEqual(next);
@@ -53,46 +52,15 @@ describe('pane-visibility-store', () => {
   });
 
   test.each<[string, PaneVisibilitySnapshot, PaneVisibilitySnapshot]>([
-    [
-      'agents opens',
-      { editor: null, agents: HIDDEN, terminal: null },
-      { editor: null, agents: SHOWN, terminal: null },
-    ],
+    ['agents opens', { editor: null, agents: HIDDEN }, { editor: null, agents: SHOWN }],
     [
       'agents goes off screen while open',
-      { editor: null, agents: SHOWN, terminal: null },
-      { editor: null, agents: OPEN_OFF_SCREEN, terminal: null },
+      { editor: null, agents: SHOWN },
+      { editor: null, agents: OPEN_OFF_SCREEN },
     ],
-    [
-      'terminal starts existing',
-      { editor: null, agents: HIDDEN, terminal: null },
-      { editor: null, agents: HIDDEN, terminal: HIDDEN },
-    ],
-    [
-      'terminal stops existing',
-      { editor: null, agents: HIDDEN, terminal: SHOWN },
-      { editor: null, agents: HIDDEN, terminal: null },
-    ],
-    [
-      'terminal closes',
-      { editor: null, agents: HIDDEN, terminal: SHOWN },
-      { editor: null, agents: HIDDEN, terminal: HIDDEN },
-    ],
-    [
-      'agents stops existing',
-      { editor: null, agents: HIDDEN, terminal: null },
-      { editor: null, agents: null, terminal: null },
-    ],
-    [
-      'editor starts existing',
-      { editor: null, agents: HIDDEN, terminal: null },
-      { editor: SHOWN, agents: HIDDEN, terminal: null },
-    ],
-    [
-      'editor hides',
-      { editor: SHOWN, agents: HIDDEN, terminal: null },
-      { editor: HIDDEN, agents: HIDDEN, terminal: null },
-    ],
+    ['agents stops existing', { editor: null, agents: HIDDEN }, { editor: null, agents: null }],
+    ['editor starts existing', { editor: null, agents: HIDDEN }, { editor: SHOWN, agents: HIDDEN }],
+    ['editor hides', { editor: SHOWN, agents: HIDDEN }, { editor: HIDDEN, agents: HIDDEN }],
   ])('publishing a snapshot where %s notifies once', (_label, before, after) => {
     paneVisibilityStore.publish(before);
     let calls = 0;
@@ -110,7 +78,6 @@ describe('pane-visibility-store', () => {
     paneVisibilityStore.publish({
       editor: null,
       agents: { ...OPEN_OFF_SCREEN },
-      terminal: { ...HIDDEN },
     });
     const before = paneVisibilityStore.getSnapshot();
     let calls = 0;
@@ -121,7 +88,6 @@ describe('pane-visibility-store', () => {
     paneVisibilityStore.publish({
       editor: null,
       agents: { ...OPEN_OFF_SCREEN },
-      terminal: { ...HIDDEN },
     });
 
     expect(calls).toBe(0);
@@ -129,7 +95,7 @@ describe('pane-visibility-store', () => {
   });
 
   test('a publish that changes only exclusivity updates it and notifies subscribers once', () => {
-    const snapshot: PaneVisibilitySnapshot = { editor: SHOWN, agents: HIDDEN, terminal: null };
+    const snapshot: PaneVisibilitySnapshot = { editor: SHOWN, agents: HIDDEN };
     paneVisibilityStore.publish(snapshot, false);
     let calls = 0;
     paneVisibilityStore.subscribe(() => {
@@ -148,7 +114,7 @@ describe('pane-visibility-store', () => {
       calls += 1;
     });
 
-    paneVisibilityStore.publish({ editor: null, agents: null, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: null });
 
     expect(calls).toBe(0);
   });
@@ -167,9 +133,9 @@ describe('pane-visibility-store', () => {
 
   test('requests carry the pane and the wanted state in order', () => {
     const sent: Array<[PaneId, boolean]> = [
-      ['terminal', true],
+      ['editor', true],
       ['agents', true],
-      ['terminal', false],
+      ['editor', false],
       ['agents', false],
     ];
     const seen: PaneVisibilityRequest[] = [];
@@ -178,9 +144,9 @@ describe('pane-visibility-store', () => {
     for (const [pane, open] of sent) paneVisibilityStore.request(pane, open);
 
     expect(seen).toEqual([
-      { pane: 'terminal', open: true },
+      { pane: 'editor', open: true },
       { pane: 'agents', open: true },
-      { pane: 'terminal', open: false },
+      { pane: 'editor', open: false },
       { pane: 'agents', open: false },
     ]);
   });
@@ -228,11 +194,11 @@ describe('pane-visibility-store', () => {
     const stop = paneVisibilityStore.subscribe(() => {
       calls += 1;
     });
-    paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: SHOWN });
     expect(calls).toBe(1);
 
     stop();
-    paneVisibilityStore.publish({ editor: null, agents: HIDDEN, terminal: null });
+    paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
 
     expect(calls).toBe(1);
   });
@@ -263,12 +229,12 @@ describe('pane-visibility-store', () => {
     const seen: PaneVisibilityRequest[] = [];
     subscribeRequests((r) => seen.push(r));
 
-    publish({ editor: null, agents: SHOWN, terminal: null });
-    request('terminal', true);
+    publish({ editor: null, agents: SHOWN });
+    request('editor', true);
 
     expect(calls).toBe(1);
-    expect(getSnapshot()).toEqual({ editor: null, agents: SHOWN, terminal: null });
-    expect(seen).toEqual([{ pane: 'terminal', open: true }]);
+    expect(getSnapshot()).toEqual({ editor: null, agents: SHOWN });
+    expect(seen).toEqual([{ pane: 'editor', open: true }]);
   });
 
   test('publishing and requesting touch neither browser storage nor the desktop bridge', () => {
@@ -282,8 +248,8 @@ describe('pane-visibility-store', () => {
 
     paneVisibilityStore.subscribe(() => {});
     paneVisibilityStore.subscribeRequests(() => {});
-    paneVisibilityStore.publish({ editor: null, agents: SHOWN, terminal: OPEN_OFF_SCREEN });
-    paneVisibilityStore.request('terminal', false);
+    paneVisibilityStore.publish({ editor: null, agents: SHOWN });
+    paneVisibilityStore.request('editor', false);
     paneVisibilityStore.request('agents', true);
     paneVisibilityStore.getSnapshot();
 

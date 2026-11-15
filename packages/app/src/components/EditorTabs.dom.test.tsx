@@ -1297,7 +1297,6 @@ describe('EditorTabs shortcuts with the editor hidden', () => {
     paneVisibilityStore.publish({
       editor: { open: false, onScreen: false },
       agents: null,
-      terminal: null,
     });
     performs.mockImplementation(() => log.push('act'));
     onTestFinished(() => {

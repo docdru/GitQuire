@@ -83,7 +83,7 @@ export interface PaletteCommandContext {
   openBlobRun(): void;
 }
 
-export type PaletteCommandGroup = 'commands' | 'project' | 'file' | 'view' | 'terminal' | 'app';
+export type PaletteCommandGroup = 'commands' | 'project' | 'file' | 'view' | 'app';
 
 export interface PaletteCommand {
   id: string;
@@ -128,10 +128,6 @@ const PALETTE_COMMAND_LABELS = {
   agentsMoveToRightEdge: msg`Move Agents to the right edge of the window`,
   agentsMoveToTopEdge: msg`Move Agents to the top edge of the window`,
   agentsMoveToBottomEdge: msg`Move Agents to the bottom edge of the window`,
-  terminalMoveToLeftEdge: msg`Move Terminal to the left edge of the window`,
-  terminalMoveToRightEdge: msg`Move Terminal to the right edge of the window`,
-  terminalMoveToTopEdge: msg`Move Terminal to the top edge of the window`,
-  terminalMoveToBottomEdge: msg`Move Terminal to the bottom edge of the window`,
   showHiddenFiles: msg`Show hidden files`,
   showOkFolders: msg`Show .ok folders`,
   showOnlyMarkdownFiles: msg`Show only markdown files`,
@@ -246,8 +242,6 @@ function paletteCoreContext(ctx: PaletteCommandContext): CommandContext {
   return {
     activeTargetKind: ctx.contextualTargetKind,
     singleFile: ctx.singleFile,
-    terminalCapable: false,
-    terminalLive: ctx.viewMenuState.terminalLive === true,
     canExpandAll: ctx.viewMenuState.canExpandAll !== false,
     canCollapseAll: ctx.viewMenuState.canCollapseAll !== false,
     hasActiveDoc: ctx.activeDocName !== null,
@@ -267,13 +261,6 @@ function resolvePaletteLabel(cmd: CommandIdentity, ctx: PaletteCommandContext): 
     const visible =
       (ctx.viewMenuState[cmd.stateToggle.stateField] ?? cmd.stateToggle.defaultVisible) === true;
     const key = visible ? cmd.stateToggle.hideKey : cmd.stateToggle.showKey;
-    return i18n._(paletteLabelDescriptor(key as PaletteLabelKey));
-  }
-  if (cmd.placementToggle) {
-    const key =
-      ctx.viewMenuState.terminalPlacement === 'right'
-        ? cmd.placementToggle.rightKey
-        : cmd.placementToggle.bottomKey;
     return i18n._(paletteLabelDescriptor(key as PaletteLabelKey));
   }
   return i18n._(paletteLabelDescriptor(cmd.labelKey as PaletteLabelKey));

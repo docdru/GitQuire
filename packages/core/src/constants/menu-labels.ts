@@ -47,10 +47,6 @@ export const MENU_LABELS = {
   agentsMoveToRightEdge: 'Move Agents to the right edge of the window',
   agentsMoveToTopEdge: 'Move Agents to the top edge of the window',
   agentsMoveToBottomEdge: 'Move Agents to the bottom edge of the window',
-  terminalMoveToLeftEdge: 'Move Terminal to the left edge of the window',
-  terminalMoveToRightEdge: 'Move Terminal to the right edge of the window',
-  terminalMoveToTopEdge: 'Move Terminal to the top edge of the window',
-  terminalMoveToBottomEdge: 'Move Terminal to the bottom edge of the window',
 } as const satisfies Record<string, string>;
 
 export type MenuLabelKey = keyof typeof MENU_LABELS;

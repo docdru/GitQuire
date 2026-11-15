@@ -11,8 +11,6 @@ function ctx(overrides: Partial<CommandContext> = {}): CommandContext {
   return {
     activeTargetKind: 'doc',
     singleFile: false,
-    terminalCapable: true,
-    terminalLive: false,
     canExpandAll: true,
     canCollapseAll: true,
     hasActiveDoc: true,
@@ -43,13 +41,10 @@ describe('evaluateCommandAvailability', () => {
     expect(evaluateCommandAvailability(spec, ctx({ activeTargetKind: 'none' }))).toBe(false);
   });
 
-  test('singleFileHidden, terminalLive, expand/collapse, activeDoc, installSkill gates', () => {
+  test('singleFileHidden, expand/collapse, activeDoc, installSkill gates', () => {
     expect(evaluateCommandAvailability({ singleFileHidden: true }, ctx({ singleFile: true }))).toBe(
       false,
     );
-    expect(
-      evaluateCommandAvailability({ requiresTerminalLive: true }, ctx({ terminalLive: false })),
-    ).toBe(false);
     expect(
       evaluateCommandAvailability({ requiresCanExpandAll: true }, ctx({ canExpandAll: false })),
     ).toBe(false);
@@ -60,37 +55,9 @@ describe('evaluateCommandAvailability', () => {
       evaluateCommandAvailability({ requiresActiveDoc: true }, ctx({ hasActiveDoc: false })),
     ).toBe(false);
   });
-
-  test('requiresTerminalCapability gates on actual PTY support', () => {
-    expect(
-      evaluateCommandAvailability(
-        { requiresTerminalCapability: true },
-        ctx({ terminalCapable: false }),
-      ),
-    ).toBe(false);
-    expect(
-      evaluateCommandAvailability(
-        { requiresTerminalCapability: true },
-        ctx({ terminalCapable: true }),
-      ),
-    ).toBe(true);
-  });
 });
 
 describe('COMMAND_IDENTITIES registry invariants', () => {
-  test('every PTY-backed palette command declares the terminal capability gate', () => {
-    const gatedIds = COMMAND_IDENTITIES.filter(
-      (command) => command.palette && command.availability.requiresTerminalCapability,
-    ).map((command) => command.id);
-
-    expect(gatedIds).toEqual([
-      'move-terminal-left',
-      'move-terminal-right',
-      'move-terminal-top',
-      'move-terminal-bottom',
-    ]);
-  });
-
   test('command ids are unique', () => {
     const ids = COMMAND_IDENTITIES.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -115,17 +82,12 @@ describe('COMMAND_IDENTITIES registry invariants', () => {
         expect(MENU_LABELS[cmd.stateToggle.showKey]).toBeDefined();
         expect(MENU_LABELS[cmd.stateToggle.hideKey]).toBeDefined();
       }
-      if (cmd.placementToggle) {
-        expect(MENU_LABELS[cmd.placementToggle.bottomKey]).toBeDefined();
-        expect(MENU_LABELS[cmd.placementToggle.rightKey]).toBeDefined();
-      }
       for (const placement of cmd.menu ?? []) {
         if (placement.menuLabelKey) expect(MENU_LABELS[placement.menuLabelKey]).toBeDefined();
         const resolvable =
           placement.menuLabelText !== undefined ||
           placement.menuLabelKey !== undefined ||
           cmd.stateToggle !== undefined ||
-          cmd.placementToggle !== undefined ||
           cmd.labelKey !== undefined;
         expect({ id: cmd.id, resolvable }).toEqual({ id: cmd.id, resolvable: true });
       }
@@ -150,7 +112,7 @@ describe('dock move commands', () => {
   test('every pane can be moved to every edge, each by one search-only command', () => {
     const moves = DOCK_MOVE_COMMANDS.map((command) => `${command.pane}:${command.side}`);
     expect(moves.toSorted()).toEqual(
-      ['editor', 'agents', 'terminal']
+      ['editor', 'agents']
         .flatMap((pane) => ['left', 'right', 'top', 'bottom'].map((side) => `${pane}:${side}`))
         .toSorted(),
     );
@@ -169,10 +131,6 @@ describe('dock move commands', () => {
     ['move-agents-right', 'Move Agents to the right edge of the window'],
     ['move-agents-top', 'Move Agents to the top edge of the window'],
     ['move-agents-bottom', 'Move Agents to the bottom edge of the window'],
-    ['move-terminal-left', 'Move Terminal to the left edge of the window'],
-    ['move-terminal-right', 'Move Terminal to the right edge of the window'],
-    ['move-terminal-top', 'Move Terminal to the top edge of the window'],
-    ['move-terminal-bottom', 'Move Terminal to the bottom edge of the window'],
   ])('%s is labelled "%s"', (id, label) => {
     const identity = COMMAND_IDENTITIES.find((entry) => entry.id === id);
     expect(identity?.labelKey === undefined ? undefined : MENU_LABELS[identity.labelKey]).toBe(

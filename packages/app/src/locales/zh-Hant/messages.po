@@ -4442,18 +4442,6 @@ msgstr ""
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "移動成功，但側邊欄可能不是最新的——請重新整理以重新同步"
 
-msgid "Move Terminal to the bottom edge of the window"
-msgstr "將 Terminal 移到視窗底部邊緣"
-
-msgid "Move Terminal to the left edge of the window"
-msgstr "將 Terminal 移到視窗左邊緣"
-
-msgid "Move Terminal to the right edge of the window"
-msgstr "將 Terminal 移到視窗右邊緣"
-
-msgid "Move Terminal to the top edge of the window"
-msgstr "將 Terminal 移到視窗頂部邊緣"
-
 msgid "Move the current block up or down. In lists, move the current item or selected items."
 msgstr "將目前的區塊向上或向下移動。在清單中，移動目前的項目或所選項目。"
 
@@ -5179,9 +5167,6 @@ msgstr "來源：{mirrorSrc}"
 
 msgid "Open tasks"
 msgstr ""
-
-msgid "Open terminal"
-msgstr "開啟終端機"
 
 msgid "Open the draft to review it."
 msgstr ""
@@ -6550,9 +6535,6 @@ msgstr "顯示或隱藏文件面板"
 msgid "Show or hide Files"
 msgstr "顯示或隱藏「檔案」"
 
-msgid "Show or hide Terminal"
-msgstr "顯示或隱藏 Terminal"
-
 msgid "Show original"
 msgstr "顯示原始版本"
 
@@ -6987,9 +6969,6 @@ msgstr "範本"
 
 msgid "Templates available"
 msgstr "可用的範本"
-
-msgid "Terminal"
-msgstr "終端機"
 
 msgid "Test connection"
 msgstr "測試連線"
@@ -7585,9 +7564,6 @@ msgstr "切換原始碼檢視"
 
 msgid "Toggle strikethrough formatting."
 msgstr "切換刪除線格式。"
-
-msgid "Toggle Terminal in its current dock."
-msgstr "在目前的停靠位置顯示或隱藏 Terminal。"
 
 msgid "Toggle the document panel."
 msgstr "顯示或隱藏文件面板。"

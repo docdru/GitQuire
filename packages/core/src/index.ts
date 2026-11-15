@@ -188,6 +188,7 @@ export {
   evaluateCommandAvailability,
   type MenuPlatform,
   type MenuSection,
+  type PaneId,
 } from './commands/command-identity.ts';
 export { commentLeafText, commentQuoteText } from './comments/leaf-text.ts';
 export {
@@ -1728,19 +1729,6 @@ export {
   type TemplateIdentity,
   type TemplateModel,
 } from './templates/template-format.ts';
-export {
-  DEFAULT_TERMINAL_PLACEMENT,
-  MIN_TERMINAL_RIGHT_WIDTH,
-  normalizeTerminalPlacement,
-  normalizeTerminalRightWidth,
-  PREFERRED_TERMINAL_RIGHT_WIDTH,
-  RIGHT_TERMINAL_CELL_WIDTH_PX,
-  RIGHT_TERMINAL_CHROME_WIDTH_PX,
-  RIGHT_TERMINAL_MIN_COLUMNS,
-  RIGHT_TERMINAL_PREFERRED_COLUMNS,
-  TERMINAL_PLACEMENTS,
-  type TerminalPlacement,
-} from './terminal-layout.ts';
 export { TEST_LOOP_CORE_MARKER } from './test-loop-marker.ts';
 export type {
   AnsiSlotName,

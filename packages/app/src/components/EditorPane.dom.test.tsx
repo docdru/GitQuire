@@ -9,14 +9,13 @@ import { clearPendingSourceNavigationsForTest } from '@/editor/source-editor-nav
 import {
   type DockArrangement,
   dockArrangementStorageKey,
-  dockTerminalPlacement,
   legacyDockArrangement,
   readDockArrangement,
-  withDockTerminalPlacement,
+  withDockPaneAtEdge,
   writeDockArrangement,
 } from '@/lib/dock-arrangement-store';
 import { requestDockPaneMove } from '@/lib/dock-move-requests';
-import { type DockNode, isDockLeaf, moveDockPane } from '@/lib/dock-tree';
+import { type DockNode, dockPaneDirection, isDockLeaf, moveDockPane } from '@/lib/dock-tree';
 import { narrowWorkspaceSessionKey } from '@/lib/narrow-workspace-session';
 import {
   __resetPaneVisibilityStoreForTests,
@@ -105,14 +104,13 @@ vi.doMock('./EditorHeader', () => ({
 }));
 
 type MockPlacements = {
-  terminal: { container: HTMLElement | null; isShowing: boolean };
   agents: { container: HTMLElement | null; isShowing: boolean };
   editorRegion: HTMLElement | null;
 };
 let reportedPlacements: MockPlacements | null = null;
 
 type MockPaneExtents = Record<PaneId, boolean>;
-const PANES_WITH_EXTENT: MockPaneExtents = { editor: true, agents: true, terminal: true };
+const PANES_WITH_EXTENT: MockPaneExtents = { editor: true, agents: true };
 let paneExtents: MockPaneExtents = { ...PANES_WITH_EXTENT };
 
 type MockEditorAreaHandle = {
@@ -165,7 +163,7 @@ vi.doMock('./EditorArea', () => ({
     return (
       <div
         data-testid="editor-area"
-        data-terminal-placement={dockTerminalPlacement(dockTree)}
+        data-agents-direction={dockPaneDirection(dockTree, 'agents') ?? ''}
         data-editor-visible={String(editorVisible)}
         data-agents-visible={String(agentsVisible)}
       >
@@ -464,22 +462,13 @@ describe('EditorPane pane visibility for the header', () => {
     __resetPaneVisibilityStoreForTests();
   });
 
-  test('web host reports chat and no terminal', async () => {
+  test('web host reports the editor and chat', async () => {
     await renderEditorPane();
 
     expect(paneVisibilityStore.getSnapshot()).toEqual({
       editor: { open: true, onScreen: true },
       agents: { open: false, onScreen: false },
-      terminal: null,
     });
-  });
-
-  test('desktop host without a working shell reports no terminal', async () => {
-    (window as { okDesktop?: unknown }).okDesktop = makeOkDesktopStub(undefined, false).stub;
-    await renderEditorPane();
-
-    expect(paneVisibilityStore.getSnapshot().terminal).toBeNull();
-    expect(paneVisibilityStore.getSnapshot().agents).toEqual({ open: false, onScreen: false });
   });
 
   test('a project window shows the editor by default and applies header hide and show requests', async () => {
@@ -747,9 +736,9 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
       { widthPx: window.innerWidth, heightPx: window.innerHeight },
       NO_LEGACY_KEYS,
     );
-  const rightTerminal = (): DockArrangement => withDockTerminalPlacement(seed(), 'right');
-  const drawnPlacement = () =>
-    screen.getByTestId('editor-area').getAttribute('data-terminal-placement');
+  const chatBelow = (): DockArrangement => withDockPaneAtEdge(seed(), 'agents', 'bottom');
+  const drawnAgentsDirection = () =>
+    screen.getByTestId('editor-area').getAttribute('data-agents-direction');
   function storedDockKeys(): string[] {
     const keys: string[] = [];
     for (let index = 0; index < localStorage.length; index += 1) {
@@ -758,7 +747,7 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
     }
     return keys;
   }
-  const moveTerminalRight = (tree: DockNode) => moveDockPane(tree, 'terminal', 'editor', 'end');
+  const moveChatBelow = (tree: DockNode) => moveDockPane(tree, 'agents', 'editor', 'bottom');
   const shape = (node: DockNode): unknown =>
     isDockLeaf(node) ? node.pane : { [node.direction]: node.items.map((item) => shape(item.node)) };
 
@@ -770,35 +759,35 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
 
       const drawn = drawnDockTrees.at(-1);
       if (drawn === undefined) throw new Error('the editor area never drew');
-      expect(shape(drawn)).toEqual({ row: ['agents', { column: ['editor', 'terminal'] }] });
+      expect(shape(drawn)).toEqual({ row: ['agents', 'editor'] });
     } finally {
       document.documentElement.style.direction = '';
     }
   });
 
-  test('a request to move the Terminal to the bottom edge puts it under the editor and Agents', async () => {
+  test('a request to move Agents to the bottom edge puts it under the editor', async () => {
     await renderEditorPane();
-    act(() => requestDockPaneMove({ pane: 'terminal', side: 'bottom' }));
+    act(() => requestDockPaneMove({ pane: 'agents', side: 'bottom' }));
 
     const drawn = drawnDockTrees.at(-1);
     if (drawn === undefined) throw new Error('the editor area never drew');
-    expect(shape(drawn)).toEqual({ column: [{ row: ['editor', 'agents'] }, 'terminal'] });
+    expect(shape(drawn)).toEqual({ column: ['editor', 'agents'] });
   });
 
-  test('repeated trips to the right edge and back under the editor by header drag open the same sizes every time', async () => {
+  test('repeated trips to the bottom edge and back beside the editor by header drag open the same sizes every time', async () => {
     await renderEditorPane();
     const atEdge: number[][] = [];
 
     for (let round = 0; round < 3; round += 1) {
-      act(() => requestDockPaneMove({ pane: 'terminal', side: 'right' }));
+      act(() => requestDockPaneMove({ pane: 'agents', side: 'bottom' }));
       const drawn = drawnDockTrees.at(-1);
       if (drawn === undefined || isDockLeaf(drawn)) throw new Error('the editor area never drew');
-      expect(shape(drawn)).toEqual({ row: ['editor', 'agents', 'terminal'] });
+      expect(shape(drawn)).toEqual({ column: ['editor', 'agents'] });
       atEdge.push(drawn.items.map((item) => Number(item.size.toFixed(9))));
       act(() =>
-        changeDrawnDockTree?.((tree) => moveDockPane(tree, 'terminal', 'editor', 'bottom', 0.5)),
+        changeDrawnDockTree?.((tree) => moveDockPane(tree, 'agents', 'editor', 'end', 0.5)),
       );
-      expect(drawnPlacement()).toBe('bottom');
+      expect(drawnAgentsDirection()).toBe('row');
     }
 
     expect(atEdge[1]).toEqual(atEdge[0]);
@@ -807,33 +796,35 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
 
   test('on the web the first layout drawn is the one stored for the origin, and it holds when the project becomes known', async () => {
     delete (window as { okDesktop?: unknown }).okDesktop;
-    writeDockArrangement(dockArrangementStorageKey(null), rightTerminal());
+    writeDockArrangement(dockArrangementStorageKey(null), chatBelow());
     workspaceKnown = false;
     const view = await renderEditorPane();
     const { EditorPane } = await import('./EditorPane');
 
     const first = drawnDockTrees[0];
     if (first === undefined) throw new Error('the editor area never drew');
-    expect(dockTerminalPlacement(first)).toBe('right');
+    expect(dockPaneDirection(first, 'agents')).toBe('column');
 
     workspaceKnown = true;
     act(() => view.rerender(<EditorPane />));
 
     expect(drawnDockTrees.length).toBeGreaterThan(1);
-    expect(drawnDockTrees.map(dockTerminalPlacement)).toEqual(drawnDockTrees.map(() => 'right'));
+    expect(drawnDockTrees.map((tree) => dockPaneDirection(tree, 'agents'))).toEqual(
+      drawnDockTrees.map(() => 'column'),
+    );
   });
 
   test('on the web a layout change is saved under the origin’s name while the project is still unknown', async () => {
     delete (window as { okDesktop?: unknown }).okDesktop;
     workspaceKnown = false;
     await renderEditorPane();
-    act(() => changeDrawnDockTree?.(moveTerminalRight));
+    act(() => changeDrawnDockTree?.(moveChatBelow));
     await act(async () => {});
 
-    expect(drawnPlacement()).toBe('right');
+    expect(drawnAgentsDirection()).toBe('column');
     expect(storedDockKeys()).toEqual([dockArrangementStorageKey(null)]);
     const saved = readDockArrangement(dockArrangementStorageKey(null));
-    expect(saved === null ? null : dockTerminalPlacement(saved.tree)).toBe('right');
+    expect(saved === null ? null : dockPaneDirection(saved.tree, 'agents')).toBe('column');
   });
 });
 

@@ -72,7 +72,6 @@ import { useSelectionStats } from '@/hooks/use-selection-stats';
 import { closeAgentDiff, useAgentDiffView } from '@/lib/agent-diff-store';
 import { docNameFromHash, hashFromDocName, isSameHash } from '@/lib/doc-hash';
 import { getInitialDocPanelWidth, writeDocPanelWidth } from '@/lib/doc-panel-width-store';
-import { dockTerminalPlacement } from '@/lib/dock-arrangement-store';
 import { type DockLayout, dockPaneMinExtent, EMPTY_DOCK_LAYOUT } from '@/lib/dock-layout';
 import type { DockNode } from '@/lib/dock-tree';
 import { focusAwayFromHiddenEditor, focusWaitsForEditor } from '@/lib/editor-hidden-focus';
@@ -410,7 +409,6 @@ interface SessionPanelPlacement {
 }
 
 export interface SessionPlacements {
-  readonly terminal: SessionPanelPlacement;
   readonly agents: SessionPanelPlacement;
   readonly editorRegion: HTMLElement | null;
 }
@@ -440,9 +438,7 @@ interface EditorAreaProps {
   onModeChange: (mode: EditorMode) => void;
   activeTab: PanelTab;
   onActiveTabChange: (tab: PanelTab) => void;
-  terminalAvailable?: boolean;
   editorVisible?: boolean;
-  terminalVisible?: boolean;
   agentsVisible?: boolean;
   dockTree: DockNode;
   onDockTreeChange: (update: (tree: DockNode) => DockNode) => void;
@@ -576,9 +572,7 @@ function EditorAreaInner({
   onModeChange,
   activeTab,
   onActiveTabChange,
-  terminalAvailable = false,
   editorVisible = true,
-  terminalVisible = false,
   agentsVisible = false,
   dockTree,
   onDockTreeChange,
@@ -604,10 +598,6 @@ function EditorAreaInner({
   const stats = useDocumentStats(activeProvider, activeDocName);
   const editingSurface = editingSurfaceFor(activeDocName, editorMode);
   const selectionStats = useSelectionStats(activeDocName, editingSurface);
-  const [everHadProvider, setEverHadProvider] = useState(false);
-  useEffect(() => {
-    if (activeProvider != null && !everHadProvider) setEverHadProvider(true);
-  }, [activeProvider, everHadProvider]);
   const deferredActiveDocName = useDeferredValue(activeDocName);
   const isSourceMode = editorMode === 'source';
   const isNewDoc = activeTarget?.kind === 'missing';
@@ -742,29 +732,21 @@ function EditorAreaInner({
   const [filesCoverTarget, setFilesCoverTarget] = useState<HTMLDivElement | null>(null);
 
   const [agentsContainer, setAgentsContainer] = useState<HTMLElement | null>(null);
-  const [terminalContainer, setTerminalContainer] = useState<HTMLDivElement | null>(null);
   const [workspaceHeaderContainer, setWorkspaceHeaderContainer] = useState<HTMLDivElement | null>(
     null,
   );
   const [workspaceColumnEl, setWorkspaceColumnEl] = useState<HTMLElement | null>(null);
-  const [terminalEditorRegion, setTerminalEditorRegion] = useState<HTMLDivElement | null>(null);
+  const [editorRegion, setEditorRegion] = useState<HTMLDivElement | null>(null);
 
   const agentsUnitShown = !noteWindow && agentsVisible;
-  const terminalUnitShown = !noteWindow && terminalAvailable && terminalVisible;
-  const terminalPlacement = dockTerminalPlacement(dockTree);
   const [dockLayout, setDockLayout] = useState<DockLayout>(EMPTY_DOCK_LAYOUT);
   const editorVisibleRef = useRef(editorVisible);
   const editorCardRef = useRef<HTMLDivElement | null>(null);
   const [paneVisibilityWhileEditorShown, setPaneVisibilityWhileEditorShown] = useState({
-    terminalVisible,
     agentsVisible,
   });
-  if (
-    editorVisible &&
-    (paneVisibilityWhileEditorShown.terminalVisible !== terminalVisible ||
-      paneVisibilityWhileEditorShown.agentsVisible !== agentsVisible)
-  ) {
-    setPaneVisibilityWhileEditorShown({ terminalVisible, agentsVisible });
+  if (editorVisible && paneVisibilityWhileEditorShown.agentsVisible !== agentsVisible) {
+    setPaneVisibilityWhileEditorShown({ agentsVisible });
   }
   const editorVisibleBeforeRef = useRef(editorVisible);
   useLayoutEffect(() => {
@@ -772,30 +754,20 @@ function EditorAreaInner({
     editorVisibleBeforeRef.current = editorVisible;
     editorVisibleRef.current = editorVisible;
     if (editorVisible) {
-      if (!wasVisible && focusWaitsForEditor()) terminalEditorRegion?.focus();
+      if (!wasVisible && focusWaitsForEditor()) editorRegion?.focus();
       return;
     }
     const card = editorCardRef.current;
     if (card?.contains(document.activeElement)) focusAwayFromHiddenEditor();
-  }, [editorVisible, terminalEditorRegion]);
-  const terminalShowing =
-    terminalUnitShown && terminalContainer != null && dockLayout.panes.has('terminal');
+  }, [editorVisible, editorRegion]);
   const agentsShowing =
     agentsUnitShown && agentsContainer != null && dockLayout.panes.has('agents');
   useEffect(() => {
     onSessionPlacements?.({
-      terminal: { container: terminalContainer, isShowing: terminalShowing },
       agents: { container: agentsContainer, isShowing: agentsShowing },
-      editorRegion: terminalEditorRegion,
+      editorRegion,
     });
-  }, [
-    onSessionPlacements,
-    terminalContainer,
-    terminalShowing,
-    agentsContainer,
-    agentsShowing,
-    terminalEditorRegion,
-  ]);
+  }, [onSessionPlacements, agentsContainer, agentsShowing, editorRegion]);
 
   const onPaneExtentChangeRef = useRef(onPaneExtentChange);
   useLayoutEffect(() => {
@@ -814,12 +786,10 @@ function EditorAreaInner({
   useLayoutEffect(() => {
     const observer = paneExtentObserverRef.current;
     if (observer == null) return;
-    const mounts = [agentsContainer, terminalContainer].filter((mount) => mount != null);
-    for (const mount of mounts) observer.observe(mount);
-    return () => {
-      for (const mount of mounts) observer.unobserve(mount);
-    };
-  }, [agentsContainer, terminalContainer]);
+    if (agentsContainer == null) return;
+    observer.observe(agentsContainer);
+    return () => observer.unobserve(agentsContainer);
+  }, [agentsContainer]);
 
   useEffect(() => {
     isCollapsedRef.current = isCollapsed;
@@ -1069,7 +1039,6 @@ function EditorAreaInner({
     panesOnScreen: () => ({
       editor: editorVisible && dockLayout.panes.has('editor'),
       agents: hasExtent(agentsContainer),
-      terminal: hasExtent(terminalContainer),
     }),
   }));
 
@@ -1091,13 +1060,13 @@ function EditorAreaInner({
         opener,
         document.querySelector<HTMLElement>('[data-doc-panel-toggle]'),
         document.querySelector<HTMLElement>('[data-header-pane-button="editor"]'),
-        terminalEditorRegion,
+        editorRegion,
       ];
       for (const candidate of candidates) {
         if (
           candidate?.isConnected &&
           candidate !== document.body &&
-          (candidate.tabIndex >= 0 || candidate === terminalEditorRegion) &&
+          (candidate.tabIndex >= 0 || candidate === editorRegion) &&
           !candidate.matches(':disabled') &&
           candidate.closest('[inert]') == null &&
           candidate.getClientRects().length > 0 &&
@@ -1421,7 +1390,6 @@ function EditorAreaInner({
     const folderComposerFits =
       !compactViewport &&
       shouldShowFolderComposer({
-        terminalVisible,
         agentsVisible,
         isEmbedded,
       });
@@ -1484,7 +1452,7 @@ function EditorAreaInner({
       viewContent = <EditorSkeleton />;
       docSlotContent = <div className="min-h-0 flex-1" />;
       docSlotHeldForLoad = true;
-      skeletonReplacesWorkspace = !terminalAvailable || !everHadProvider;
+      skeletonReplacesWorkspace = true;
     } else if (isBlobRunnerNewTabId(activeNewTabId)) {
       viewContent = <OkBlobRunnerPage />;
     } else {
@@ -1493,8 +1461,6 @@ function EditorAreaInner({
           <OkBlobRunnerPage autoStart />
         ) : (
           <EmptyEditorState
-            terminalOpen={terminalVisible}
-            bottomDockOpen={terminalVisible && terminalPlacement === 'bottom'}
             agentsOpen={agentsVisible}
             onRageStreak={
               activeNewTabId
@@ -1508,7 +1474,7 @@ function EditorAreaInner({
     const bottomComposerFits =
       !compactViewport &&
       shouldShowBottomComposer({
-        ...(editorVisible ? { terminalVisible, agentsVisible } : paneVisibilityWhileEditorShown),
+        ...(editorVisible ? { agentsVisible } : paneVisibilityWhileEditorShown),
         isEmbedded,
         activeDocName,
       }) &&
@@ -1918,7 +1884,7 @@ function EditorAreaInner({
     <EditorSkeleton />
   ) : (
     <div
-      ref={setTerminalEditorRegion}
+      ref={setEditorRegion}
       tabIndex={-1}
       data-editor-region=""
       className="relative flex min-h-0 flex-1 flex-col outline-none"
@@ -1996,8 +1962,8 @@ function EditorAreaInner({
       </>
     );
 
-  const chatAlone = !editorVisible && agentsShowing && !terminalShowing;
-  const nothingOpen = !editorVisible && !agentsVisible && !terminalVisible;
+  const chatAlone = !editorVisible && agentsShowing;
+  const nothingOpen = !editorVisible && !agentsVisible;
   const workspaceAbsorbsResidual = docSlotPresent && !initialRightCollapsed;
   const workspaceHeaderTarget = (
     <div
@@ -2139,25 +2105,14 @@ function EditorAreaInner({
     </PaneCard>
   );
 
-  const terminalUnit = terminalAvailable ? (
-    <PaneCard pane="terminal" variant={cardVariant} data-placement={terminalPlacement}>
-      <div
-        ref={setTerminalContainer}
-        data-terminal-panel-mount=""
-        inert={!terminalUnitShown}
-        className="flex min-h-0 flex-1 flex-col overflow-hidden"
-      />
-    </PaneCard>
-  ) : null;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {noteWindow ? workspaceHeaderTarget : null}
       <div data-editor-area-panels="" className="relative flex min-h-0 flex-1">
         <DockWorkspace
           tree={dockTree}
-          visible={{ editor: editorVisible, agents: agentsUnitShown, terminal: terminalUnitShown }}
-          units={{ editor: editorUnit, agents: agentsUnit, terminal: terminalUnit }}
+          visible={{ editor: editorVisible, agents: agentsUnitShown }}
+          units={{ editor: editorUnit, agents: agentsUnit }}
           gap={cardLook ? PANE_CARD_GAP_PX : 0}
           minExtent={dockPaneMinExtent}
           paneLabel={(pane) => t(paneLabel(pane, agentsPaneIsChat(gitquireFeatures)))}

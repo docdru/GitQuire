@@ -856,7 +856,6 @@ describe('App runtime wiring', () => {
     paneVisibilityStore.publish({
       editor: { open: false, onScreen: false },
       agents: null,
-      terminal: null,
     });
     const link = document.createElement('a');
     link.setAttribute('href', href);
