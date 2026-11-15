@@ -363,7 +363,6 @@ function SettingsDialogFrame({
           ] satisfies SidebarSubsection[],
         },
         { id: 'user-plugins-manage', label: t`Plugins` },
-        { id: 'user-skills', label: t`Skills Studio` },
       ],
     },
     {
@@ -410,7 +409,6 @@ function SettingsDialogFrame({
         ...(isFileProtocolRenderer ? [] : [{ id: 'link-previews', label: t`Link previews` }]),
         ...(isOkDesktopHost ? [{ id: 'network-access', label: t`Remote control` }] : []),
         { id: 'project-templates', label: t`Templates` },
-        { id: 'skills', label: t`Skills Studio` },
         { id: 'okignore', label: t`Ignore patterns` },
       ],
     },

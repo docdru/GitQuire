@@ -45,7 +45,6 @@ import {
   Plus,
   RefreshCw,
   Settings,
-  Sparkles,
   SpellCheck,
   SquareArrowOutUpRight,
   SquareTerminal,
@@ -58,7 +57,6 @@ import { requestDocPanelTab } from '@/components/doc-panel-events';
 import { GithubIcon } from '@/components/icons/github';
 import type { ResolvedNavigationTarget } from '@/components/navigation-targets';
 import { PANE_ICON } from '@/components/pane-icons';
-import { requestSkillsDockExpanded } from '@/components/skills-dock-expanded-store';
 import type { OkDesktopBridge, OkMenuAction } from '@/lib/desktop-bridge-types';
 import { requestDockPaneMove } from '@/lib/dock-move-requests';
 import { i18n } from '@/lib/i18n';
@@ -109,7 +107,6 @@ export interface PaletteCommandContext {
   reportBug(): void;
   openBugReportHistory(): void;
   openFeedbackDialog(): void;
-  createBlankSkill(): void;
   openBlobRun(): void;
 }
 
@@ -139,12 +136,10 @@ const PALETTE_COMMAND_LABELS = {
   openGraph: msg`Open graph`,
   openInNewWindow: msg`Open in New Window`,
   initializeStarterPack: msg`Initialize starter pack`,
-  newSkill: msg`New skill`,
   newProject: msg`New project`,
   openFolderOnDisk: msg`Open folder on disk`,
   openFileOnDisk: msg`Open file on disk`,
   switchProject: msg`Switch project`,
-  openSkills: msg`Skills`,
   settings: msg`Settings`,
   installClaudeDesktop: msg`Install for Claude Chat & Cowork (Desktop App)`,
   reportBug: msg`Report a bug`,
@@ -190,7 +185,6 @@ const PALETTE_COMMAND_LABELS = {
   showHiddenFiles: msg`Show hidden files`,
   showOkFolders: msg`Show .ok folders`,
   showOnlyMarkdownFiles: msg`Show only markdown files`,
-  showSkillsSection: msg`Skills section`,
   expandAll: msg`Expand all`,
   collapseAll: msg`Collapse all`,
   newTerminal: msg`New Terminal`,
@@ -252,12 +246,10 @@ const COMMAND_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   'open-graph': Network,
   'open-in-new-window': SquareArrowOutUpRight,
   'initialize-starter-pack': Package,
-  'new-skill': Sparkles,
   'new-project': Plus,
   'open-folder': FolderOpen,
   'open-file': FileText,
   'switch-project': LayoutGrid,
-  'open-skills': Package,
   settings: Settings,
   'install-claude-desktop': Download,
   'report-bug': Bug,
@@ -285,7 +277,6 @@ const COMMAND_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   'toggle-show-hidden-files': Eye,
   'toggle-show-ok-folders': Folder,
   'toggle-show-only-markdown-files': FileText,
-  'toggle-show-skills-section': Sparkles,
   'expand-all-tree': UnfoldVertical,
   'collapse-all-tree': FoldVertical,
   'new-terminal': SquareTerminal,
@@ -341,10 +332,6 @@ const COMMAND_DISPATCH: Record<string, (ctx: PaletteCommandContext) => void> = {
     ctx.closePalette();
     ctx.openSeedDialog();
   },
-  'new-skill': (ctx) => {
-    ctx.closePalette();
-    ctx.createBlankSkill();
-  },
   'new-project': (ctx) => {
     ctx.closePalette();
     ctx.openCreateProjectDialog();
@@ -367,10 +354,6 @@ const COMMAND_DISPATCH: Record<string, (ctx: PaletteCommandContext) => void> = {
     const bridge = ctx.bridge;
     if (!bridge) return;
     ctx.runAction(() => bridge.navigator.open(), t`Failed to open Project Navigator.`);
-  },
-  'open-skills': (ctx) => {
-    ctx.closePalette();
-    requestSkillsDockExpanded();
   },
   settings: (ctx) => {
     ctx.closePalette();

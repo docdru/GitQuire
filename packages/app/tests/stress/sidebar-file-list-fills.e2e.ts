@@ -160,28 +160,4 @@ test.describe('sidebar file list fills the body', () => {
       savedHeight,
     );
   });
-
-  test('a round trip through Skills mode leaves the file list correctly sized', async ({
-    page,
-    api,
-  }) => {
-    await api.seedDocs([{ name: 'folder/note', markdown: '# Note\n' }]);
-    await page.goto('/#/folder/note');
-    await expect(page.locator(SIDEBAR).getByRole('treeitem', { name: 'note.md' })).toBeVisible({
-      timeout: 20_000,
-    });
-    const before = await boxOf(page, TREE_SCROLL);
-
-    const dock = page.getByTestId('skills-dock');
-    const dockTrigger = dock.getByRole('button', { name: 'Skills Studio', exact: true });
-    await dockTrigger.click();
-    await expect(page.locator(TREE_SCROLL)).toHaveCount(1, { timeout: 10_000 });
-    await dockTrigger.click();
-
-    await expect(page.locator(SIDEBAR).getByRole('treeitem', { name: 'note.md' })).toBeVisible({
-      timeout: 20_000,
-    });
-    const after = await boxOf(page, TREE_SCROLL);
-    expect(Math.abs(after.height - before.height)).toBeLessThan(ROW_HEIGHT);
-  });
 });

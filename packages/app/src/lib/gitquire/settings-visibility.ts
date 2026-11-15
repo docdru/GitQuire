@@ -1,7 +1,7 @@
 import type { SidebarGroup } from '@/components/settings/settings-sidebar-types';
 import { PERSONAL_GIT_CREDENTIALS_ENABLED } from './personal-git-credentials';
 
-const ALWAYS_HIDDEN_ITEMS = new Set(['user-skills', 'user-plugins-manage', 'search']);
+const ALWAYS_HIDDEN_ITEMS = new Set(['user-plugins-manage', 'search']);
 const ALWAYS_HIDDEN_SUBSECTIONS = new Set(['sharing']);
 
 export function hiddenSettingsItems(personalGitCredentials: boolean): ReadonlySet<string> {
@@ -38,7 +38,6 @@ const WIKI_ADMIN_ITEMS = new Set([
   'link-previews',
   'plugins-manage',
   'project-templates',
-  'skills',
   'okignore',
 ]);
 const PERSONAL_PLUGIN_ITEMS = new Set(['plugin:theme', 'plugin:slides']);

@@ -25,9 +25,6 @@ msgstr " Zaznaczenie zostało przywrócone."
 msgid "— except"
 msgstr "— za wyjątkiem"
 
-msgid ".myteam/skills"
-msgstr ".myteam/skills"
-
 msgid ".ok folders"
 msgstr "foldery .ok"
 
@@ -232,23 +229,11 @@ msgstr ""
 msgid "{0} people match. Use the arrow keys and Enter to pick."
 msgstr ""
 
-msgid "{0} plugin"
-msgstr "{0} (wtyczka)"
-
-msgid "{0} plugin · {1}"
-msgstr "{0} (wtyczka) · {1}"
-
 msgid "{0} Properties"
 msgstr "Właściwości: {0}"
 
 msgid "{0} reads this skill via {poolRootRel}. Click to stop {1} getting \"{2}\" — {subRoot} keeps its other skills but stops following {poolRootRel}."
 msgstr "{0} odczytuje tę umiejętność przez {poolRootRel}. Kliknij, aby {1} przestał otrzymywać \"{2}\" — {subRoot} zachowuje pozostałe umiejętności, ale przestaje śledzić {poolRootRel}."
-
-msgid "{0} share this folder."
-msgstr "{0} udostępniają ten folder."
-
-msgid "{0} skills selected"
-msgstr "Wybrano {0} umiejętności"
 
 msgid "{0} total"
 msgstr "Razem: {0}"
@@ -394,9 +379,6 @@ msgstr "{count} do przodu"
 msgid "{count} behind"
 msgstr "{count} do tyłu"
 
-msgid "{count} skills"
-msgstr "{count} umiejętności"
-
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {# dzień temu} few {# dni temu} many {# dni temu} other {# dnia temu}}"
 
@@ -414,9 +396,6 @@ msgstr "{diffHrs} godz. temu"
 
 msgid "{diffMin}m ago"
 msgstr "{diffMin} min temu"
-
-msgid "{dir} (symlink)"
-msgstr "{dir} (dowiązanie symboliczne)"
 
 msgid "{display} is a symlink to the source while the skill's other locations are copies. Click to make it an independent copy."
 msgstr "{display} jest dowiązaniem symbolicznym do źródła, podczas gdy pozostałe lokalizacje umiejętności są kopiami. Kliknij, aby utworzyć niezależną kopię."
@@ -539,9 +518,6 @@ msgstr "{minutes} min temu"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
-msgid "{name} moved, but its pin did not. Pin it again after settings finish loading."
-msgstr "{name} przeniesiono, ale przypięcie nie. Przypnij je ponownie po zakończeniu wczytywania ustawień."
-
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, one {# węzeł} few {# węzły} many {# węzłów} other {# węzła}}"
 
@@ -589,12 +565,6 @@ msgstr "{percent}% od góry"
 
 msgid "{phase} — {pct}%"
 msgstr "{phase} — {pct}%"
-
-msgid "{pick} and {keep} both hold a different version of: {0}. Resolve those first — a symlink can only keep one of each."
-msgstr "{pick} i {keep} zawierają różne wersje: {0}. Najpierw rozwiąż te konflikty — dowiązanie symboliczne może zachować tylko jedną wersję każdego z nich."
-
-msgid "{pick} holds entries that aren't skills: {0}. Remove or move them from the folder and try again."
-msgstr "{pick} zawiera wpisy, które nie są umiejętnościami: {0}. Usuń je z folderu lub przenieś je i spróbuj ponownie."
 
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin} zawiera {0} innych umiejętności"
@@ -647,12 +617,6 @@ msgstr "kolor {slot} — {0}"
 msgid "{slot} hex value"
 msgstr "{slot} — wartość hex"
 
-msgid "{source} · imported source"
-msgstr "{source} · zaimportowane źródło"
-
-msgid "{source} · skills.sh source"
-msgstr "{source} · źródło skills.sh"
-
 msgid "{source}: {updated} updated, {upToDate} already up to date"
 msgstr "{source}: {updated} zaktualizowanych, {upToDate} już aktualnych"
 
@@ -679,12 +643,6 @@ msgstr "{truncatedShownCount, plural, one {Pokazywany jest pierwszy element w je
 
 msgid "{uploadedCount, plural, one {Uploaded one file} other {Uploaded {uploadedCount} files}}"
 msgstr "{uploadedCount, plural, one {Wgrano 1 plik} few {Wgrano {uploadedCount} pliki} many {Wgrano {uploadedCount} plików} other {Wgrano {uploadedCount} pliku}}"
-
-msgid "{uploadFolderName} — {0} files"
-msgstr "{uploadFolderName} — pliki: {0}"
-
-msgid "{uploadFolderName} — 1 file"
-msgstr "{uploadFolderName} — 1 plik"
 
 msgid "{userName} · {tabCount, plural, one {# tab} other {# tabs}}"
 msgstr "{userName} · {tabCount, plural, one {# karta} few {# karty} many {# kart} other {# karty}}"
@@ -771,9 +729,6 @@ msgstr "<0>Spacja</0>, aby przeskoczyć · <1>↓</1>, aby się schować"
 msgid "<0>Too many live references on this page.</0> This mirror of <1>{src}</1> was not loaded."
 msgstr "<0>Za dużo aktywnych odwołań na tej stronie.</0> To odbicie <1>{src}</1> nie zostało wczytane."
 
-msgid "~/.myteam/skills"
-msgstr "~/.myteam/skills"
-
 msgid "📝 or assets/icon.png"
 msgstr "📝 lub assets/icon.png"
 
@@ -803,9 +758,6 @@ msgstr "30 sekund"
 
 msgid "5 minutes"
 msgstr "5 minut"
-
-msgid "A .zip or .skill archive."
-msgstr "Archiwum .zip lub .skill."
 
 msgid "A <0>Modified</0> badge marks rules your config sets explicitly — directly, or inherited through <1>extends</1>. Unmarked rules keep their default state."
 msgstr "Znacznik <0>Zmodyfikowane</0> oznacza reguły, które twoja konfiguracja ustawia jawnie — bezpośrednio lub przez dziedziczenie w <1>extends</1>. Reguły bez znacznika zachowują swój stan domyślny."
@@ -849,9 +801,6 @@ msgstr "Dokument ma konflikt — rozwiąż go, aby pozostał aktualny."
 msgid "A draft is your own copy of the wiki. Change anything; nothing goes live until someone publishes it. Others keep seeing the live wiki."
 msgstr ""
 
-msgid "A folder containing SKILL.md."
-msgstr "Folder zawierający SKILL.md."
-
 msgid "A folder named <0>{sanitized}</0> already has files here. Pick a different name."
 msgstr "Folder o nazwie <0>{sanitized}</0> ma już tutaj pliki. Wybierz inną nazwę."
 
@@ -888,9 +837,6 @@ msgstr "Pod tą ścieżką istnieje już niepusty folder. Wybierz inny folder."
 msgid "A page with that name exists. Choose another name."
 msgstr ""
 
-msgid "A parent directory is the symlink — unlink that folder itself to take this one back."
-msgstr "Katalog nadrzędny jest dowiązaniem symbolicznym — odłącz sam folder, aby odzyskać ten."
-
 msgid "A path inside the skill — any folder works (e.g. references/notes.md). Folders in the path are created for you."
 msgstr "Ścieżka wewnątrz umiejętności — działa każdy folder (np. references/notes.md). Foldery w ścieżce zostaną utworzone za ciebie."
 
@@ -926,9 +872,6 @@ msgstr "Krótka linia wyświetlana pod tytułem na liście szablonów."
 
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "Proste miejsce do pisania: jeden plik na temat i dziennik dzienny. Wybierz to, jeśli chcesz po prostu zacząć pisać i pozwolić linkom między notatkami narastać z czasem."
-
-msgid "A skill named \"{trimmed}\" already exists here"
-msgstr "Umiejętność o nazwie \"{trimmed}\" już tutaj istnieje"
 
 msgid "A skill with that name already exists."
 msgstr "Umiejętność o tej nazwie już istnieje."
@@ -1084,9 +1027,6 @@ msgstr ""
 msgid "Add cursors or select matching occurrences through CodeMirror."
 msgstr "Dodaj kursory lub zaznacz pasujące wystąpienia w CodeMirror."
 
-msgid "Add custom path"
-msgstr "Dodaj własną ścieżkę"
-
 msgid "Add description"
 msgstr "Dodaj opis"
 
@@ -1128,9 +1068,6 @@ msgstr "Dodaj właściwość"
 
 msgid "Add property to {keyName}"
 msgstr "Dodaj właściwość do {keyName}"
-
-msgid "Add skill"
-msgstr "Dodaj umiejętność"
 
 msgid "Add tab"
 msgstr "Dodaj kartę"
@@ -1369,9 +1306,6 @@ msgstr "Dowolny plik .mdx. Format jest tylko .md, więc czytnik szukający plik�
 
 msgid "any doc named {0}"
 msgstr "dokument o nazwie {0}"
-
-msgid "Any scripts are shown for review, never run."
-msgstr "Wszystkie skrypty są wyświetlane do przeglądu i nigdy nie są uruchamiane."
 
 msgid "Any value"
 msgstr ""
@@ -1663,9 +1597,6 @@ msgctxt "settings search keyword"
 msgid "batch"
 msgstr "wsad"
 
-msgid "becomes a symlink"
-msgstr "staje się symlinkiem"
-
 msgid "Becomes the document's content when someone creates a doc from this template. Type <0>{dateToken}</0> or <1>{userToken}</1> to fill in today's date or the author's name automatically."
 msgstr "Staje się zawartością dokumentu, gdy ktoś utworzy dokument z tego szablonu. Wpisz <0>{dateToken}</0> lub <1>{userToken}</1>, żeby automatycznie wstawić dzisiejszą datę lub nazwę autora."
 
@@ -1733,9 +1664,6 @@ msgstr "Pogrubienie"
 msgid "Both"
 msgstr "Obie"
 
-msgid "Both agents end up reading everything in {keep}."
-msgstr "Oba agenty ostatecznie czytają wszystko w {keep}."
-
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "Obie wersje są identyczne. Wybranie „Akceptuj bieżącą” pozostawia ochronę GitQuire włączoną, więc kolejne zapisanie starszej wersji zostanie ponownie odrzucone. Wybranie „Akceptuj przychodzącą” wyłącza tę ochronę."
 
@@ -1799,9 +1727,6 @@ msgstr "Przeglądaj folder"
 msgid "Browse hundreds of themes"
 msgstr "Przeglądaj setki motywów"
 
-msgid "Browse or upload a skill for this project."
-msgstr "Przeglądaj lub wgraj umiejętność dla tego projektu."
-
 msgid "Browse your repos:"
 msgstr "Przeglądaj swoje repozytoria:"
 
@@ -1837,9 +1762,6 @@ msgstr "Lista punktowana"
 
 msgid "Bulleted list"
 msgstr ""
-
-msgid "By GitQuire"
-msgstr "Od GitQuire"
 
 msgid "By meaning"
 msgstr "Według znaczenia"
@@ -2007,9 +1929,6 @@ msgstr "Sprawdzanie statusu logowania"
 msgid "Checking skill"
 msgstr "Sprawdzanie umiejętności"
 
-msgid "Checking source"
-msgstr "Sprawdzanie źródła"
-
 msgid "Checking which AI tools you have"
 msgstr "Sprawdzanie, jakie narzędzia AI masz"
 
@@ -2028,20 +1947,8 @@ msgstr "Lista kontrolna z polami wyboru."
 msgid "Checks your project against the Open Knowledge Format. Turn it off any time in Settings."
 msgstr "Sprawdza projekt zgodnie z Open Knowledge Format. Możesz to wyłączyć w dowolnym momencie w Ustawieniach."
 
-msgid "Choose a skill archive"
-msgstr "Wybierz archiwum umiejętności"
-
-msgid "Choose a skill folder"
-msgstr "Wybierz folder umiejętności"
-
 msgid "Choose color"
 msgstr "Wybierz kolor"
-
-msgid "Choose file"
-msgstr "Wybierz plik"
-
-msgid "Choose folder"
-msgstr "Wybierz folder"
 
 msgid "Choose icon"
 msgstr "Wybierz ikonę"
@@ -2097,9 +2004,6 @@ msgstr "Wyczyść kolor"
 
 msgid "Clear menu"
 msgstr "Wyczyść menu"
-
-msgid "Clear selection"
-msgstr "Wyczyść zaznaczenie"
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "Wyczyść pole, aby przywrócić domyślny punkt końcowy OpenAI."
@@ -2607,9 +2511,6 @@ msgstr "Nie można uzyskać dostępu do zapisanego klucza API. Odblokuj systemow
 msgid "Could not check the symlinks in {shareBranch}, so it was not switched. Try again; if it keeps failing, check that Git is installed and the project folder is readable."
 msgstr "Nie udało się sprawdzić dowiązań symbolicznych w {shareBranch}, więc nie przełączono. Spróbuj ponownie; jeśli błąd się powtarza, sprawdź, czy Git jest zainstalowany i czy folder projektu można odczytać."
 
-msgid "Could not classify the merge — try again."
-msgstr "Nie udało się sklasyfikować scalenia — spróbuj ponownie."
-
 msgid "Could not complete delete"
 msgstr "Nie udało się zakończyć usuwania"
 
@@ -2736,9 +2637,6 @@ msgstr "Nie udało się skopiować. Zaznacz adres URL powyżej, aby skopiować g
 msgid "Couldn't create {effective}: {0}"
 msgstr "Nie udało się utworzyć {effective}: {0}"
 
-msgid "Couldn't create skill: {0}"
-msgstr "Nie udało się utworzyć umiejętności: {0}"
-
 msgid "Couldn't create template: {error}"
 msgstr "Nie udało się utworzyć szablonu: {error}"
 
@@ -2753,9 +2651,6 @@ msgstr "Nie udało się utworzyć worktree. Wybierz inną nazwę."
 
 msgid "Couldn’t create this theme. Try again."
 msgstr "Nie udało się utworzyć tego motywu. Spróbuj ponownie."
-
-msgid "Couldn't delete {0}: {error}"
-msgstr "Nie udało się usunąć {0}: {error}"
 
 msgid "Couldn’t delete {0}. Try again."
 msgstr "Nie udało się usunąć {0}. Spróbuj ponownie."
@@ -2793,9 +2688,6 @@ msgstr "Nie udało się zainstalować z {0}: {1}"
 msgid "Couldn't install skill: {0}"
 msgstr "Nie udało się zainstalować umiejętności: {0}"
 
-msgid "Couldn't install the project skill: {0}"
-msgstr "Nie udało się zainstalować umiejętności projektu: {0}"
-
 msgid "Couldn't install: {0}"
 msgstr "Nie udało się zainstalować: {0}"
 
@@ -2820,9 +2712,6 @@ msgstr "Nie udało się wczytać pakietów startowych: {error}"
 msgid "Couldn't load templates"
 msgstr "Nie udało się wczytać szablonów"
 
-msgid "Couldn't load the GitQuire skills. Try again."
-msgstr "Nie udało się wczytać skilli GitQuire. Spróbuj ponownie."
-
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2841,9 +2730,6 @@ msgstr "Nie udało się wczytać Twoich zgłoszeń błędów."
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
-msgid "Couldn't move {0}: {1}"
-msgstr "Nie udało się przenieść {0}: {1}"
-
 msgid "Couldn't move skill: {0}"
 msgstr "Nie udało się przenieść umiejętności: {0}"
 
@@ -2859,9 +2745,6 @@ msgstr "Nie udało się otworzyć „{name}” — nie ma go jeszcze w skillach 
 msgid "Couldn't open \"{name}\": {0}"
 msgstr "Nie udało się otworzyć „{name}”: {0}"
 
-msgid "Couldn't open {0} for editing: {1}"
-msgstr "Nie udało się otworzyć {0} do edycji: {1}"
-
 msgid "Couldn't open document"
 msgstr "Nie udało się otworzyć dokumentu"
 
@@ -2870,9 +2753,6 @@ msgstr "Nie udało się otworzyć worktree. Spróbuj ponownie."
 
 msgid "Couldn't open this document in Slidev."
 msgstr "Nie można otworzyć tego dokumentu w Slidev."
-
-msgid "Couldn't pin {name}"
-msgstr "Nie udało się przypiąć {name}"
 
 msgid "Couldn't place {skillName} in {root}: {0}"
 msgstr "Nie udało się umieścić {skillName} w {root}: {0}"
@@ -2927,12 +2807,6 @@ msgstr "Nie udało się odczytać drzewa roboczego. Sprawdź logi serwera."
 
 msgid "Couldn’t read this theme ({0})"
 msgstr "Nie udało się odczytać tego motywu ({0})"
-
-msgid "Couldn't read whether this project's skill is installed."
-msgstr "Nie udało się sprawdzić, czy umiejętność tego projektu jest zainstalowana."
-
-msgid "Couldn't read which skills are installed."
-msgstr "Nie udało się sprawdzić, które umiejętności są zainstalowane."
 
 msgid "Couldn't reconnect after server restart"
 msgstr "Nie udało się ponownie połączyć po restarcie serwera"
@@ -3048,9 +2922,6 @@ msgstr "Nie udało się przełączyć na Tylko ja"
 msgid "Couldn't switch views."
 msgstr ""
 
-msgid "Couldn't unpin {name}"
-msgstr "Nie udało się odpiąć {name}"
-
 msgid "Couldn't update {gitignorePath}: {0}"
 msgstr "Nie udało się zaktualizować {gitignorePath}: {0}"
 
@@ -3110,12 +2981,6 @@ msgstr "Utwórz nowy projekt GitQuire w wybranym folderze."
 
 msgid "Create a new list item from the current list item."
 msgstr "Utwórz nowy element listy z bieżącego elementu listy."
-
-msgid "Create a personal skill, available across every project."
-msgstr "Utwórz umiejętność osobistą, dostępną we wszystkich projektach."
-
-msgid "Create a skill for this project."
-msgstr "Utwórz umiejętność dla tego projektu."
 
 msgid "Create a token on {host}"
 msgstr "Utwórz token na {host}"
@@ -3219,9 +3084,6 @@ msgstr "Niestandardowy punkt końcowy"
 msgid "Custom HTML with a live preview pane (sandboxed iframe)."
 msgstr "Niestandardowy HTML z panelem podglądu na żywo (izolowany iframe)."
 
-msgid "Custom skills folder path"
-msgstr "Niestandardowa ścieżka folderu umiejętności"
-
 msgid "Custom theme"
 msgstr "Niestandardowy motyw"
 
@@ -3236,9 +3098,6 @@ msgstr "Wytnij"
 
 msgid "Dark"
 msgstr "Ciemny"
-
-msgid "Data"
-msgstr "Dane"
 
 msgid "Date"
 msgstr "Data"
@@ -3257,9 +3116,6 @@ msgstr "Usuń"
 
 msgid "Delete {0}"
 msgstr "Usuń {0}"
-
-msgid "Delete {0} skills"
-msgstr "Usuń {0} umiejętności"
 
 msgid "Delete {deleteDescriptorLabel}"
 msgstr "Usuń {deleteDescriptorLabel}"
@@ -3330,17 +3186,11 @@ msgstr "Usunięto"
 msgid "Deleted {0}."
 msgstr "Usunięto {0}."
 
-msgid "Deleted {deleted} skills"
-msgstr "Usunięto {deleted} umiejętności"
-
 msgid "Deleted {file}"
 msgstr "Usunięto {file}"
 
 msgid "Deleted {filePath}"
 msgstr "Usunięto {filePath}"
-
-msgid "Deleted for good"
-msgstr "Usunięte na stałe"
 
 msgid "Deleted in this draft"
 msgstr ""
@@ -3350,9 +3200,6 @@ msgstr "usunięty szablon"
 
 msgid "Deleting"
 msgstr "Usuwanie"
-
-msgid "Deleting {progress} of {count}"
-msgstr "Usuwanie {progress} z {count}"
 
 #. The skill's frontmatter description — the always-loaded tier
 msgid "description"
@@ -3366,13 +3213,6 @@ msgstr "Opis (opcjonalny)"
 
 msgid "Description for {field}"
 msgstr "Opis dla {field}"
-
-#. Suffix on a skill directory card's context-cost figure — the always-loaded description tier
-msgid "description tokens"
-msgstr "tokeny opisu"
-
-msgid "Design"
-msgstr "Design"
 
 msgid "Detached at {0}"
 msgstr "Odłączone na {0}"
@@ -3391,12 +3231,6 @@ msgstr "Szczegóły"
 
 msgid "Detected GitQuire projects"
 msgstr "Wykryte projekty GitQuire"
-
-msgid "Detected in {0}"
-msgstr "Wykryto w {0}"
-
-msgid "DevOps"
-msgstr "DevOps"
 
 msgid "Diagram"
 msgstr "Diagram"
@@ -3620,9 +3454,6 @@ msgstr "Duplikuje aktywny element drzewa plików, gdy fokus jest w pasku bocznym
 msgid "Duplicated to \"{0}\""
 msgstr "Zduplikowano do \"{0}\""
 
-msgid "Duplicates dropped"
-msgstr "Duplikaty odrzucone"
-
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "np. drafts/ lub *.draft.md"
 
@@ -3640,10 +3471,6 @@ msgstr "np. Edytor zawiesił się po wklejeniu dużej tabeli"
 
 msgid "Each {open} needs a matching {close}."
 msgstr "Każde {open} wymaga pasującego {close}."
-
-#. Says what symlinking two skill folders together buys the user, before any button names it
-msgid "Each AI tool reads skills from its own folder. Point one folder at another and both tools see the same skills — add a skill once instead of copying it into every tool."
-msgstr "Każde narzędzie AI czyta umiejętności z własnego folderu. Skieruj jeden folder na drugi, a oba narzędzia zobaczą te same umiejętności — dodaj umiejętność raz, zamiast kopiować ją do każdego narzędzia."
 
 msgid "Each pack scaffolds your project with ready-made folders and templates."
 msgstr "Każdy zestaw tworzy szkielet Twojego projektu z gotowymi folderami i szablonami."
@@ -4055,9 +3882,6 @@ msgstr "Wyjaśnij, jak działa Twoja baza kodu, aby współpracownicy i agenci A
 msgid "Explore"
 msgstr "Przeglądaj"
 
-msgid "Explore skills"
-msgstr "Przeglądaj umiejętności"
-
 msgid "Expose and restart"
 msgstr "Udostępnij i uruchom ponownie"
 
@@ -4207,9 +4031,6 @@ msgstr "Nie udało się wczytać szablonów projektu"
 
 msgid "Failed to load recent projects."
 msgstr "Nie udało się wczytać ostatnich projektów."
-
-msgid "Failed to load skill settings: {0}"
-msgstr "Nie udało się wczytać ustawień umiejętności: {0}"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "Nie udało się wczytać tagów. Naciśnij <0>Esc</0> i otwórz ponownie, aby spróbować jeszcze raz."
@@ -4409,9 +4230,6 @@ msgstr ""
 msgid "Filter languages"
 msgstr "Filtruj języki"
 
-msgid "Filter skills"
-msgstr "Filtruj umiejętności"
-
 msgid "Find"
 msgstr "Znajdź"
 
@@ -4536,9 +4354,6 @@ msgstr "Odpowiedź linków wychodzących nie miała oczekiwanej struktury."
 msgid "Found {countDisplay} markdown files"
 msgstr "Znaleziono {countDisplay} plików Markdown"
 
-msgid "Found one skill: {0}"
-msgstr "Znaleziono jedną umiejętność: {0}"
-
 msgid "Found the repo but could not open the project. Please try again."
 msgstr "Znaleziono repozytorium, ale nie udało się otworzyć projektu. Spróbuj ponownie."
 
@@ -4550,9 +4365,6 @@ msgstr "Z szablonu"
 
 msgid "From the {0} plugin"
 msgstr "Z wtyczki {0}"
-
-msgid "From the {residentPlugin} plugin — read-only; plugin updates replace these files."
-msgstr "Z wtyczki {residentPlugin} — tylko do odczytu; aktualizacje wtyczki zastępują te pliki."
 
 msgid "Frontmatter"
 msgstr "Frontmatter"
@@ -4600,9 +4412,6 @@ msgstr "GHES"
 
 msgid "Git"
 msgstr "Git"
-
-msgid "Git & PRs"
-msgstr "Git i PR-y"
 
 msgid "Git can't track this folder — it's empty or contains only ignored files. The link won't work until you add a tracked document."
 msgstr "Git nie może śledzić tego folderu — jest pusty lub zawiera tylko pliki ignorowane. Link nie będzie działać, dopóki nie dodasz śledzonego dokumentu."
@@ -4660,18 +4469,12 @@ msgstr "Hosty GitHub Enterprise Server"
 msgid "GitHub sign-in is missing or expired. Reconnect to resume syncing."
 msgstr "Logowanie do GitHub brakuje lub wygasło. Połącz ponownie, aby wznowić synchronizację."
 
-msgid "GitHub, a git URL, or a local path."
-msgstr "GitHub, adres URL git lub ścieżka lokalna."
-
 msgid "github.com is always recognized, so it doesn't need to be added."
 msgstr "github.com jest zawsze rozpoznawane, więc nie trzeba go dodawać."
 
 msgctxt "settings search keyword"
 msgid "GitLab"
 msgstr "GitLab"
-
-msgid "GitQuire"
-msgstr "GitQuire"
 
 msgid "GitQuire can't sign in to GitHub for this project."
 msgstr "GitQuire nie może zalogować się do GitHub dla tego projektu."
@@ -4788,10 +4591,6 @@ msgstr "Przejdź do linii {0} w {1}"
 msgid "Good"
 msgstr "Dobre"
 
-#. Sole button when the intro has nothing left to offer
-msgid "Got it"
-msgstr "Rozumiem"
-
 msgid "Graph"
 msgstr "Graf"
 
@@ -4812,9 +4611,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Group skills by source"
-msgstr "Grupuj umiejętności według źródła"
 
 msgid "Guides your AI agents on how to work here."
 msgstr "Podpowiada Twoim agentom AI, jak pracować tutaj."
@@ -5060,9 +4856,6 @@ msgstr "Wybór ikon"
 msgid "ID: {0}"
 msgstr "ID: {0}"
 
-msgid "Identical in both — {pick} still reads them."
-msgstr "Identyczne w obu — {pick} nadal je odczytuje."
-
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "Jeśli podczas Twojej edycji przyjdzie aktualizacja, Ty wybierasz, która wersja ma zostać — jak przy konflikcie scalania."
 
@@ -5108,14 +4901,8 @@ msgstr "Cel obrazu „{shown}” istnieje, ale wyklucza go .gitignore lub .okign
 msgid "Images aren't redacted."
 msgstr "Obrazy nie są anonimizowane."
 
-msgid "Import"
-msgstr "Importuj"
-
 msgid "Import as template"
 msgstr "Importuj jako szablon"
-
-msgid "Import failed: {0}"
-msgstr "Nie udało się zaimportować: {0}"
 
 msgid "Imported \"{0}\"."
 msgstr "Zaimportowano „{0}”."
@@ -5125,9 +4912,6 @@ msgstr "Zaimportowano {importedLabel}"
 
 msgid "Imported as \"{0}\" — the name \"{1}\" was taken."
 msgstr "Zaimportowano jako „{0}” — nazwa „{1}” była zajęta."
-
-msgid "Importing"
-msgstr "Importowanie"
 
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "W dokumencie dziennika: nagłówki wpisów zaczynają się od daty w formacie ISO YYYY-MM-DD, od najnowszych. To, ile tytułów użyjesz i czy wpisy będą punktami listy, zależy od Ciebie."
@@ -5288,12 +5072,6 @@ msgstr "Wewnątrz folderu worktrees GitQuire w tym repozytorium"
 msgid "Install"
 msgstr "Zainstaluj"
 
-msgid "Install {0}"
-msgstr "Zainstaluj {0}"
-
-msgid "install a skill here first"
-msgstr "najpierw zainstaluj tutaj umiejętność"
-
 msgid "Install failed: {0}"
 msgstr "Nie udało się zainstalować: {0}"
 
@@ -5328,9 +5106,6 @@ msgstr "Zainstaluj w Claude Desktop"
 
 msgid "Install into"
 msgstr "Zainstaluj w"
-
-msgid "Install it to your other editors (Claude Code, Cursor, Codex) to share it."
-msgstr "Zainstaluj je w swoich pozostałych edytorach (Claude Code, Cursor, Codex), aby się nim podzielić."
 
 msgid "Install on"
 msgstr "Instaluj na"
@@ -5369,9 +5144,6 @@ msgstr "Zainstalowano {imported}, ale {failed} nie powiodło się: {failedNames}
 msgid "Installed at {path} — click to remove"
 msgstr "Zainstalowano w {path} — kliknij, aby usunąć"
 
-msgid "Installed in {0}"
-msgstr "Zainstalowano w {0}"
-
 msgid "Installed in {label} — click to remove"
 msgstr "Zainstalowano w {label} — kliknij, aby usunąć"
 
@@ -5386,12 +5158,6 @@ msgstr "Instaluje w tym projekcie"
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "Instaluje umiejętność w {path} — pierwsza lokalizacja przechowuje własną kopię"
-
-msgid "Installs to"
-msgstr "Instaluje w"
-
-msgid "installs:"
-msgstr "instalacje:"
 
 msgid "Integrations"
 msgstr "Integracje"
@@ -5510,9 +5276,6 @@ msgstr "Śledź osoby i firmy, z którymi pracujesz, oraz spotkania z nimi. Przy
 msgid "Keep: {title}"
 msgstr ""
 
-msgid "keeps the skills"
-msgstr "zachowuje umiejętności"
-
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "Utrzymuje zgodność Twojej bazy wiedzy ze standardem Open Knowledge Format."
 
@@ -5622,9 +5385,6 @@ msgstr "Link"
 msgid "Link copied."
 msgstr "Skopiowano link."
 
-msgid "Link folders"
-msgstr "Połącz foldery"
-
 msgid "Link preview settings not yet loaded — try again in a moment"
 msgstr "Ustawienia podglądu linków jeszcze się nie wczytały — spróbuj za chwilę"
 
@@ -5655,9 +5415,6 @@ msgstr "Cel linku „{shown}” istnieje, ale wyklucza go .gitignore lub .okigno
 msgid "Link the selected text, or edit the link under the caret."
 msgstr "Utwórz link z zaznaczonego tekstu lub edytuj link pod kursorem."
 
-msgid "Link these skill folders?"
-msgstr "Połączyć te foldery umiejętności?"
-
 msgid "Link to a page"
 msgstr ""
 
@@ -5682,9 +5439,6 @@ msgstr "Odpowiedź grafu linków nie miała oczekiwanej struktury."
 msgid "Linked theme files aren’t supported"
 msgstr "Powiązane pliki motywów nie są obsługiwane"
 
-msgid "Linking merges another folder into this one. This folder does not exist yet, so install a skill here first."
-msgstr "Łączenie scala inny folder z tym. Ten folder jeszcze nie istnieje, więc najpierw zainstaluj tutaj umiejętność."
-
 msgid "Links"
 msgstr "Linki"
 
@@ -5708,9 +5462,6 @@ msgstr ""
 
 msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
 msgstr "Znajduje się w tym projekcie (niezależnie od tego, gdzie jest folder umiejętności) i jest udostępniany współpracownikom przez gita."
-
-msgid "Lives outside this project — read-only here."
-msgstr "Znajduje się poza tym projektem — tutaj tylko do odczytu."
 
 msgid "Loading"
 msgstr "Ładowanie"
@@ -5754,9 +5505,6 @@ msgstr "Ładowanie plików"
 msgid "Loading folder contents"
 msgstr "Ładowanie zawartości folderu"
 
-msgid "Loading GitQuire skills"
-msgstr "Ładowanie umiejętności GitQuire"
-
 msgid "Loading graph"
 msgstr "Ładowanie grafu"
 
@@ -5775,9 +5523,6 @@ msgstr "Ładowanie ścieżek…"
 msgid "Loading PDF"
 msgstr "Ładowanie pliku PDF"
 
-msgid "Loading popular skills"
-msgstr "Ładowanie popularnych umiejętności"
-
 msgid "Loading preview"
 msgstr "Ładowanie podglądu"
 
@@ -5786,9 +5531,6 @@ msgstr "Ładowanie repozytoriów"
 
 msgid "Loading settings"
 msgstr "Ładowanie ustawień"
-
-msgid "Loading skills"
-msgstr "Ładowanie umiejętności"
 
 msgid "Loading starter packs"
 msgstr "Ładowanie pakietów startowych"
@@ -5895,14 +5637,8 @@ msgstr "Nieprawidłowa odpowiedź listPacks"
 msgid "Malformed plan response"
 msgstr "Nieprawidłowa odpowiedź plan"
 
-msgid "Manage"
-msgstr "Zarządzaj"
-
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "Zarządzaj ukrytymi plikami w Ustawieniach → Wzorce ignorowania."
-
-msgid "Manage skill folders"
-msgstr "Zarządzaj folderami umiejętności"
 
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "Zarządzaj kontami i tokenami dostępowymi, których GitQuire używa do łączenia się z Twoimi hostami git."
@@ -6090,23 +5826,11 @@ msgstr "Więcej niż {0} żądań zablokowała polityka bezpieczeństwa podgląd
 msgid "Most capable, costs more"
 msgstr ""
 
-msgid "Most installed"
-msgstr "Najczęściej instalowane"
-
 msgid "Move"
 msgstr "Przenieś"
 
 msgid "Move \"{title}\" to"
 msgstr ""
-
-msgid "Move {0} to Global"
-msgstr "Przenieś {0} do globalnych"
-
-msgid "Move {0} to Project"
-msgstr "Przenieś {0} do projektu"
-
-msgid "Move across"
-msgstr "Przenieś w inne miejsce"
 
 msgid "Move Agents to the bottom edge of the window"
 msgstr "Przenieś agentów do dolnej krawędzi okna"
@@ -6242,12 +5966,6 @@ msgstr "Przeniesiono {label} do nowego panelu po prawej."
 
 msgid "Moved {moved} of {total} skills to {scopeLabel}"
 msgstr "Przeniesiono {moved} z {total} umiejętności do: {scopeLabel}"
-
-msgid "Moved {moved} skills to Global"
-msgstr "Przeniesiono {moved} umiejętności do globalnych"
-
-msgid "Moved {moved} skills to Project"
-msgstr "Przeniesiono {moved} umiejętności do projektu"
 
 msgid "Moved a page"
 msgstr ""
@@ -6408,9 +6126,6 @@ msgstr "Nowa nazwa właściwości"
 msgid "New schema"
 msgstr "Nowy schemat"
 
-msgid "New skill"
-msgstr "Nowa umiejętność"
-
 msgid "New skill file"
 msgstr "Nowy plik umiejętności"
 
@@ -6468,9 +6183,6 @@ msgstr "Nie wykryto jeszcze narzędzi AI. Po zainstalowaniu połącz je w Ustawi
 
 msgid "No AI tools detected yet. Once you install one, connect it from Settings > This project."
 msgstr "Nie wykryto jeszcze narzędzi AI. Po zainstalowaniu połącz je w Ustawieniach > Ten projekt."
-
-msgid "No AI tools detected. Install one to use this skill."
-msgstr "Nie wykryto narzędzi AI. Zainstaluj jedno, aby używać tej umiejętności."
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "Dla tego punktu końcowego nie ustawiono klucza API. Dodaj go powyżej."
@@ -6543,9 +6255,6 @@ msgstr "Brak fragmentu"
 
 msgid "No file or folder selected"
 msgstr "Nie wybrano pliku ani folderu"
-
-msgid "No file selected"
-msgstr "Nie wybrano pliku"
 
 msgid "No files yet."
 msgstr "Brak plików."
@@ -6718,12 +6427,6 @@ msgstr "Żaden schemat nie pasuje do wyszukiwania."
 msgid "No settings found"
 msgstr "Nie znaleziono ustawień"
 
-msgid "No skill found at that source. Import will report why if you continue."
-msgstr "Nie znaleziono umiejętności w tym źródle. Jeśli kontynuujesz, import poda przyczynę."
-
-msgid "No skills found."
-msgstr "Nie znaleziono umiejętności."
-
 msgid "No spaces — use <0>-</0> instead."
 msgstr "Bez spacji — użyj zamiast tego <0>-</0>."
 
@@ -6790,9 +6493,6 @@ msgstr "To nie jest motyw base16"
 msgid "Not a hex color: {0}"
 msgstr "To nie jest kolor hex: {0}"
 
-msgid "Not added to any AI tool yet."
-msgstr "Jeszcze nie dodano do żadnego narzędzia AI."
-
 msgid "Not attached to desktop bridge"
 msgstr "Nie podłączono do mostka pulpitu"
 
@@ -6808,13 +6508,9 @@ msgstr "Nie najlepiej"
 msgid "Not in sidebar"
 msgstr "Poza paskiem bocznym"
 
-msgid "Not installed in this project yet."
-msgstr "Jeszcze nie zainstalowano w tym projekcie."
-
 msgid "Not merged"
 msgstr "Nie scalono"
 
-#. Declines the first-visit skill offer; the row on the page keeps it available
 msgid "Not now"
 msgstr "Nie teraz"
 
@@ -6899,14 +6595,8 @@ msgstr "Wyłączone — wyszukiwanie sortuje wyłącznie według słów kluczowy
 msgid "Offline"
 msgstr "Offline"
 
-msgid "OK can't move these, so they go when {pick} does."
-msgstr "OK nie może tego przenieść, więc znikną razem z {pick}."
-
 msgid "OK Desktop"
 msgstr "OK Desktop"
-
-msgid "OK last set this folder to {0} — something outside OK changed it since. The state shown is what's on disk now; your next Symlink/Unlink wins."
-msgstr "OK ostatnio ustawił ten folder na {0} — coś poza OK to od tego czasu zmieniło. Pokazany stan to stan z dysku; twój następny Symlink/Unlink wygra."
 
 msgid "OKF agent skill installed"
 msgstr "Zainstalowano umiejętność agenta OKF"
@@ -7208,9 +6898,6 @@ msgstr "Otwiera wybór folderu, w którym ma zostać sklonowane repozytorium."
 msgid "Opens in a new tab"
 msgstr "Otwiera się w nowej karcie"
 
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "Otwiera Ustawienia → Studio umiejętności, gdzie łączysz cały folder z innym, aby oba agenci korzystały z tych samych umiejętności, oraz dodajesz własne katalogi nadrzędne umiejętności."
-
 msgid "or create a new file <0/>"
 msgstr "lub utwórz nowy plik <0/>"
 
@@ -7302,9 +6989,6 @@ msgstr "Nakładające się edycje"
 msgid "Owner"
 msgstr "Właściciel"
 
-msgid "owner/repo, a git URL, or a local path"
-msgstr "właściciel/repozytorium, adres URL git lub ścieżka lokalna"
-
 msgid "Pack preview unavailable."
 msgstr "Podgląd pakietu niedostępny."
 
@@ -7382,12 +7066,6 @@ msgstr "błąd parsowania"
 
 msgid "Parse failed"
 msgstr "Analiza nie powiodła się"
-
-msgid "Part of the {0} plugin — read-only; open it to edit a copy"
-msgstr "Część wtyczki {0} — tylko do odczytu; otwórz ją, aby edytować kopię"
-
-msgid "Part of the {plugin} plugin"
-msgstr "Część wtyczki {plugin}"
 
 msgid "Paste"
 msgstr "Wklej"
@@ -7489,9 +7167,6 @@ msgstr "Prywatne dla tego urządzenia. Dotyczy każdego projektu otwieranego tut
 msgid "Pick <0>openknowledge.skill</0> from your <1>Downloads</1> folder. It enables automatically."
 msgstr "Wybierz <0>openknowledge.skill</0> z folderu <1>Pobrane</1>. Włączy się automatycznie."
 
-msgid "Pick a folder to merge INTO {display}. That folder becomes a symlink to this one, so its agent reads everything placed here. This folder stays real. Conflicting skills abort the merge."
-msgstr "Wybierz folder do POŁĄCZENIA Z {display}. Ten folder staje się dowiązaniem symbolicznym do tego, więc jego agent czyta wszystko, co umieścisz tutaj. Ten folder pozostaje prawdziwy. Konfliktujące umiejętności przerywają łączenie."
-
 msgid "Pick a name"
 msgstr "Wybierz nazwę"
 
@@ -7531,12 +7206,6 @@ msgstr "Przejęto {0} z {1}."
 msgid "Pin tab"
 msgstr "Przypnij kartę"
 
-msgid "Pin to top"
-msgstr "Przypnij na górze"
-
-msgid "Pinned"
-msgstr "Przypięte"
-
 msgid "Plain"
 msgstr "Zwykły"
 
@@ -7560,9 +7229,6 @@ msgstr "Wtyczki"
 
 msgid "Point semantic search at any OpenAI-compatible embeddings endpoint — a self-hosted server or another provider. The API key above is for whichever endpoint you set here."
 msgstr "Skieruj wyszukiwanie semantyczne na dowolny punkt końcowy osadzania zgodny z OpenAI — własny serwer lub innego dostawcę. Powyższy klucz API dotyczy punktu końcowego ustawionego tutaj."
-
-msgid "Popular"
-msgstr "Popularne"
 
 msgid "Port {0} is already in use by another process. Pick a different one so your tunnel target stays stable across restarts."
 msgstr "Port {0} jest już używany przez inny proces. Wybierz inny, aby cel tunelu pozostał stabilny po ponownym uruchomieniu."
@@ -7837,9 +7503,6 @@ msgstr "Ponowne osadzanie odbywa się podczas wyszukiwania, więc pokrycie zaczy
 msgid "Re-run the project audit"
 msgstr "Uruchom ponownie audyt projektu"
 
-msgid "React"
-msgstr "React"
-
 msgid "Read pages"
 msgstr ""
 
@@ -7936,9 +7599,6 @@ msgstr "Kosz"
 msgid "Redo"
 msgstr "Ponów"
 
-msgid "Refactoring"
-msgstr "Refaktoryzacja"
-
 msgid "Reference"
 msgstr "Referencja"
 
@@ -7976,9 +7636,6 @@ msgstr "Informacje o wydaniu"
 msgid "Release plan"
 msgstr "Plan wydania"
 
-msgid "Relevance"
-msgstr "Trafność"
-
 msgid "Reload"
 msgstr "Wczytaj ponownie"
 
@@ -7988,17 +7645,11 @@ msgstr "Wczytaj tę kartę ponownie, aby ją zaktualizować. Twoje edycje zostan
 msgid "remote"
 msgstr "zdalny"
 
-msgid "Remote"
-msgstr "Zdalne"
-
 msgid "Remote branch <0>{remoteCheckoutRef}</0> will be checked out as a new local tracking branch <1>{trimmed}</1>, in its own window under <2>.ok/worktrees/</2>."
 msgstr "Zdalna gałąź <0>{remoteCheckoutRef}</0> zostanie przełączona jako nowa lokalna gałąź śledząca <1>{trimmed}</1>, w osobnym oknie w <2>.ok/worktrees/</2>."
 
 msgid "Remote control"
 msgstr "Zdalne sterowanie"
-
-msgid "Remote skill source"
-msgstr "Zdalne źródło umiejętności"
 
 msgid "Remove"
 msgstr "Usuń"
@@ -8292,9 +7943,6 @@ msgstr "Zmień rozmiar: {pane}"
 msgid "Resize document panel"
 msgstr "Zmień rozmiar panelu dokumentu"
 
-msgid "Resize skills panel"
-msgstr "Zmień rozmiar panelu umiejętności"
-
 msgid "Resolve"
 msgstr ""
 
@@ -8490,12 +8138,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Zapisano jako <0>{slug}.md</0>"
 
-msgid "Saved into this project's skills folder (e.g. <0>.agents/skills</0>), versioned alongside your project."
-msgstr "Zapisano w folderze umiejętności tego projektu (np. <0>.agents/skills</0>), wersjonowanym razem z projektem."
-
-msgid "Saved into your global skills folder (e.g. <0>~/.agents/skills</0>)."
-msgstr "Zapisano w Twoim globalnym folderze umiejętności (np. <0>~/.agents/skills</0>)."
-
 msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
 msgstr "Zapisane klucze są sprzeczne. Wprowadź klucz zastępczy dla tego projektu i punktu końcowego."
 
@@ -8574,9 +8216,6 @@ msgstr "Szukaj emoji"
 msgid "Search failed."
 msgstr "Wyszukiwanie nie powiodło się."
 
-msgid "Search failed. Try again."
-msgstr "Wyszukiwanie nie powiodło się. Spróbuj ponownie."
-
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
 msgstr "Przeszukaj pliki, polecenia, projekty i akcje przekazywania do AI. Skrót K dodaje zamiast tego link, gdy w edytorze wizualnym zaznaczony jest tekst; skrót P zawsze otwiera paletę."
 
@@ -8628,9 +8267,6 @@ msgstr "Szukaj w ustawieniach"
 msgid "Search settings not yet loaded — try again in a moment"
 msgstr "Ustawienia wyszukiwania jeszcze się nie wczytały — spróbuj ponownie za chwilę"
 
-msgid "Search skills"
-msgstr "Szukaj umiejętności"
-
 msgid "Search templates"
 msgstr "Szukaj szablonów"
 
@@ -8666,9 +8302,6 @@ msgstr "Sekcja <0>(opcjonalna kotwica nagłówka)</0>"
 
 msgid "Sections"
 msgstr "Sekcje"
-
-msgid "Security"
-msgstr "Bezpieczeństwo"
 
 msgid "See <0>#design-docs</0> for the latest specs."
 msgstr "Zobacz <0>#design-docs</0>, aby poznać najnowsze specyfikacje."
@@ -8947,10 +8580,6 @@ msgstr "Przekaż opinię"
 msgid "Share folder"
 msgstr "Udostępnij folder"
 
-#. Heading above the skill-folder list in Settings → Skills Studio — the reason, not the mechanism
-msgid "Share skills between AI tools"
-msgstr "Udostępniaj umiejętności między narzędziami AI"
-
 msgid "Share this setup with your team?"
 msgstr "Udostępnić tę konfigurację swojemu zespołowi?"
 
@@ -9143,59 +8772,14 @@ msgstr "Umiejętność \"{conflictName}\" nie została zainstalowana — masz ju
 msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
 msgstr "Umiejętność \"{conflictName}\" nie została zainstalowana dla {conflictHosts} — masz tam już własną umiejętność o tej nazwie. Zmień jej nazwę, jeśli chcesz wersję z pakietu."
 
-msgid "Skill \"{name}\" created"
-msgstr "Umiejętność \"{name}\" utworzona"
-
 msgid "Skill already in project"
 msgstr "Umiejętność jest już w projekcie"
-
-msgid "Skill discovery powered by <0>skills.sh</0>"
-msgstr "Odkrywanie umiejętności umożliwia <0>skills.sh</0>"
 
 msgid "SKILL.md is managed by the skill itself — pick another name"
 msgstr "Plik SKILL.md jest zarządzany przez samą umiejętność — wybierz inną nazwę"
 
-msgid "Skills"
-msgstr "Umiejętności"
-
-msgid "Skills from {0}."
-msgstr "Umiejętności z {0}."
-
-msgid "Skills from {0}/{1}."
-msgstr "Umiejętności z {0}/{1}."
-
-#. Heading above the project's own skill row, in Settings → This project → Skills Studio
-#. Heading above the rows for the skills GitQuire ships, in Settings → Skills Studio
-msgid "Skills from GitQuire"
-msgstr "Umiejętności pochodzące od GitQuire"
-
-msgid "Skills reassigned"
-msgstr "Umiejętności przypisane ponownie"
-
-msgid "Skills section"
-msgstr "Sekcja umiejętności"
-
-msgid "Skills Studio"
-msgstr "Studio umiejętności"
-
-#. First-visit explanation of what the Skills Studio settings page is for
-msgid "Skills teach your AI tools repeatable tasks. Install the ones GitQuire ships, or write your own in the editor's Skills sidebar."
-msgstr "Umiejętności uczą narzędzia AI powtarzalnych zadań. Zainstaluj te dostarczane przez GitQuire albo napisz własne w panelu Umiejętności edytora."
-
-msgid "Skills teach your AI tools repeatable tasks. Write your own in the editor's Skills sidebar; this page is where they get switched on and shared."
-msgstr "Umiejętności uczą narzędzia AI powtarzalnych zadań. Napisz własne w panelu Umiejętności edytora; ta strona służy do ich włączania i udostępniania."
-
-msgid "Skills that come with this project, and the folders its AI tools read them from."
-msgstr "Umiejętności dostarczane z tym projektem oraz foldery, z których jego narzędzia AI je odczytują."
-
-msgid "Skills toolbar"
-msgstr "Pasek narzędzi umiejętności"
-
 msgid "skills.sh"
 msgstr "skills.sh"
-
-msgid "skills.sh is unavailable; showing GitHub results (no install ranking)."
-msgstr "skills.sh jest niedostępne; wyświetlane są wyniki z GitHub (bez rankingu instalacji)."
 
 msgid "Skip"
 msgstr "Pomiń"
@@ -9255,9 +8839,6 @@ msgstr "Niektóre pliki mogły nie zostać usunięte. Otwórz dziennik czyszczen
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Niektóre zapisane motywy nie są wyświetlane, ponieważ folder motywów przekracza limit skanowania."
 
-msgid "Some skills were deleted with a warning"
-msgstr "Niektóre umiejętności zostały usunięte z ostrzeżeniem"
-
 msgid "Some templates may not be listed because this knowledge base has too many folders to scan. To see a folder's templates, open its menu in the file tree and choose New from template."
 msgstr "Niektóre szablony mogą nie być widoczne na liście, ponieważ ta baza wiedzy ma zbyt wiele folderów, aby przeskanować je wszystkie. Aby zobaczyć szablony folderu, otwórz jego menu w drzewie plików i wybierz „Nowe z szablonu”."
 
@@ -9293,12 +8874,6 @@ msgstr ""
 
 msgid "Something went wrong. Please try again."
 msgstr "Coś poszło nie tak. Spróbuj ponownie."
-
-msgid "Sort by"
-msgstr "Sortuj według"
-
-msgid "Sort skills"
-msgstr "Sortuj umiejętności"
 
 msgid "source"
 msgstr "źródło"
@@ -9523,9 +9098,6 @@ msgstr "Symlink"
 msgid "Symlink to {targetPath}"
 msgstr "Symlink do {targetPath}"
 
-msgid "symlinked via parent"
-msgstr "symlink przez katalog nadrzędny"
-
 msgid "Symlinks the skill to {path}"
 msgstr "Tworzy symlink umiejętności do {path}"
 
@@ -9664,9 +9236,6 @@ msgstr "Powiedz nam, jak idzie"
 msgid "Tell us more (optional)"
 msgstr "Powiedz więcej (opcjonalnie)"
 
-msgid "Tells agents when to reach for this skill. You can edit it later."
-msgstr "Mówi agentom, kiedy sięgać po tę umiejętność. Możesz to edytować później."
-
 msgid "Template \"{label}\" deleted"
 msgstr "Szablon „{label}” usunięty"
 
@@ -9760,9 +9329,6 @@ msgstr "Język ten nie jest dostępny do sprawdzania pisowni."
 
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "Udało się odczytać dane, ale to nie jest motyw base16."
-
-msgid "The {0} plugin serves these skills from its cache — OK never edits or updates them."
-msgstr "Wtyczka {0} udostępnia te umiejętności ze swojej pamięci podręcznej — OK nigdy ich nie edytuje ani nie aktualizuje."
 
 msgid "The {editor} folder holds a different version of this skill. Pick which one wins, or keep both under different names. Whatever you replace is backed up first."
 msgstr "Folder {editor} zawiera inną wersję tej umiejętności. Zdecyduj, która ma obowiązywać, albo zachowaj obie pod różnymi nazwami. Zastępowana wersja jest najpierw zapisywana jako kopia zapasowa."
@@ -10097,18 +9663,11 @@ msgstr "Motywy"
 msgid "There is no address waiting for a code."
 msgstr ""
 
-msgid "These currently read from another folder. After linking, they read from {keep} instead."
-msgstr "Te elementy są obecnie odczytywane z innego folderu. Po połączeniu będą odczytywane z {keep}."
-
 msgid "These links remain visible in Links and are not part of the repair queue."
 msgstr "Te łącza pozostają widoczne w panelu Linki i nie wchodzą w kolejkę napraw."
 
 msgid "These rules come from your project's <0>{configFile}</0> file, which fully governs linting for this project. Turn rules on or off and edit their options here; changes write back to the file."
 msgstr "Te reguły pochodzą z pliku <0>{configFile}</0> projektu, który w pełni steruje lintowaniem tego projektu. Włączaj i wyłączaj reguły oraz edytuj ich opcje tutaj; zmiany są zapisywane z powrotem do pliku."
-
-#. Says what the GitQuire-authored skills are for, and where installing one puts it
-msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
-msgstr "Uczą Twoje narzędzia AI, jak pracować z GitQuire. Zainstalowanie jednego dodaje je do każdego narzędzia AI na tym komputerze."
 
 msgid "Thinking…"
 msgstr "Myślenie…"
@@ -10321,10 +9880,6 @@ msgstr "Operacja przenosi <0>{name}</0> z {0} do {1}, przenosząc pliki na dysku
 msgid "This one needs to see your files, not just the open document, so it appears when you run a project audit rather than while you type."
 msgstr "Ten wymaga dostępu do Twoich plików, nie tylko otwartego dokumentu, więc pojawia się podczas audytu projektu, a nie podczas pisania."
 
-#. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
-msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
-msgstr "Ten uczy Twoje narzędzia AI, jak pracować z GitQuire. Znajduje się w folderze projektu, więc instaluje się dla każdego, kto otworzy projekt."
-
 msgid "This pack is already set up here."
 msgstr "Ta paczka jest już tutaj skonfigurowana."
 
@@ -10357,9 +9912,6 @@ msgstr "Operacja trwale usuwa {0}. Wtyczka, z której skopiowano, pozostaje niet
 
 msgid "This permanently removes {0}/{1} from the \"{2}\" skill. Anything in SKILL.md that points at it will break until it's recreated."
 msgstr "Operacja trwale usuwa {0}/{1} z umiejętności „{2}”. Wszystko w SKILL.md, co się do tego odwołuje, przestanie działać do czasu odtworzenia."
-
-msgid "This permanently removes {names}. Agents that invoke these skills by name will fail until they're recreated."
-msgstr "Operacja trwale usuwa {names}. Agenty wywołujące te umiejętności po nazwie przestaną działać do czasu ich odtworzenia."
 
 msgid "This permanently removes {path}. Agents that reference this template by name will fail until it's recreated or replaced by one in a parent folder."
 msgstr "Operacja trwale usuwa {path}. Agenty odwołujące się do tego szablonu po nazwie przestaną działać do czasu jego odtworzenia lub zastąpienia szablonem z folderu nadrzędnego."
@@ -10429,12 +9981,6 @@ msgstr ""
 
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "To ustawienie dotyczy tylko tego komputera i nie jest udostępniane współpracownikom. Wymaga klucza API (ustawionego poniżej), chyba że Twój punkt końcowy to lokalny serwer, który go nie wymaga."
-
-msgid "This source bundles several skills — choose one, then Import."
-msgstr "To źródło zawiera kilka umiejętności — wybierz jedną, a następnie kliknij Importuj."
-
-msgid "This source bundles several skills — choose the one to import."
-msgstr "To źródło zawiera kilka umiejętności — wybierz tę do zaimportowania."
 
 msgid "This tab couldn't confirm that your edits are saved, so it didn't reload. Your edits are still here."
 msgstr "Ta karta nie mogła potwierdzić, że Twoje edycje są zapisane, więc nie została wczytana ponownie. Twoje edycje nadal tu są."
@@ -10628,12 +10174,6 @@ msgstr "Opcje widoku drzewa"
 msgid "Try again"
 msgstr "Spróbuj ponownie"
 
-msgid "Turn {0} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "Zamień {0} z powrotem w prawdziwy katalog zawierający osobne łącze symboliczne dla każdej obecnie widocznej umiejętności — nic nie przestaje działać, a menu każdej umiejętności zarządza nim od tej pory."
-
-msgid "Turn {display} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
-msgstr "Zamień {display} z powrotem w prawdziwy katalog zawierający osobne łącze symboliczne dla każdej obecnie widocznej umiejętności — nic nie przestaje działać, a menu każdej umiejętności zarządza nim od tej pory."
-
 msgid "Turn it off any time in Settings."
 msgstr "W dowolnej chwili wyłączysz to w Ustawieniach."
 
@@ -10775,17 +10315,11 @@ msgstr "Nieznany błąd"
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "Nieznana zmienna {unknownList}. Dostępne zmienne: {supportedVariables}."
 
-msgid "unlink"
-msgstr "odłącz"
-
 msgid "Unmerged"
 msgstr "Niescalone"
 
 msgid "Unordered list of items."
 msgstr "Lista punktowana elementów."
-
-msgid "Unpin"
-msgstr "Odepnij"
 
 msgid "Unpin {accessibleLabel}"
 msgstr "Odepnij {accessibleLabel}"
@@ -10835,9 +10369,6 @@ msgstr "Aktualizuj"
 
 msgid "Update \"{skillName}\" over your edits?"
 msgstr "Zaktualizować „{skillName}” i nadpisać Twoje edycje?"
-
-msgid "Update all from this source"
-msgstr "Zaktualizuj wszystko z tego źródła"
 
 msgid "Update draft"
 msgstr ""
@@ -10890,9 +10421,6 @@ msgstr "Aktualizowanie"
 msgid "Updating…"
 msgstr ""
 
-msgid "Upload"
-msgstr "Prześlij"
-
 msgid "Upload {keyName}"
 msgstr "Prześlij {keyName}"
 
@@ -10902,9 +10430,6 @@ msgstr "Przesyłanie nie powiodło się"
 msgid "Upload failed — please try again"
 msgstr "Przesyłanie nie powiodło się — spróbuj ponownie"
 
-msgid "Upload failed: {0}"
-msgstr "Przesyłanie nie powiodło się: {0}"
-
 msgid "Upload failed: {message}"
 msgstr "Przesyłanie nie powiodło się: {message}"
 
@@ -10913,9 +10438,6 @@ msgstr "Prześlij z komputera"
 
 msgid "Upload may have succeeded but the sidebar is out of date — refresh to resync"
 msgstr "Przesyłanie mogło się udać, ale panel boczny jest nieaktualny — odśwież, aby zsynchronizować ponownie"
-
-msgid "Upload skill"
-msgstr "Prześlij umiejętność"
 
 msgid "Uploaded \"{0}\"."
 msgstr "Przesłano „{0}”."
@@ -10995,9 +10517,6 @@ msgstr ""
 msgid "Use lowercase letters, digits, and <0>-</0> only."
 msgstr "Używaj wyłącznie małych liter, cyfr oraz <0>-</0>."
 
-msgid "Use lowercase letters, numbers, and hyphens only"
-msgstr "Używaj wyłącznie małych liter, cyfr i myślników"
-
 msgid "Use one slash between folder names."
 msgstr "Między nazwami folderów użyj jednego ukośnika."
 
@@ -11047,9 +10566,6 @@ msgstr "Wersja w GitQuire"
 msgid "via {viaTags}"
 msgstr "przez {viaTags}"
 
-msgid "via parent"
-msgstr "przez element nadrzędny"
-
 msgid "via plugin"
 msgstr "przez wtyczkę"
 
@@ -11058,9 +10574,6 @@ msgstr "Widok"
 
 msgid "View {name}"
 msgstr "Zobacz {name}"
-
-msgid "View {publisher} on skills.sh"
-msgstr "Zobacz {publisher} na skills.sh"
 
 msgid "View as text"
 msgstr "Wyświetl jako tekst"
@@ -11082,12 +10595,6 @@ msgstr "Tylko do podglądu"
 
 msgid "View plugin"
 msgstr "Zobacz wtyczkę"
-
-msgid "View source"
-msgstr "Zobacz źródło"
-
-msgid "View the {plugin} plugin repo"
-msgstr "Zobacz repozytorium wtyczki {plugin}"
 
 msgid "Views"
 msgstr ""
@@ -11177,9 +10684,6 @@ msgstr "Co stanęło na przeszkodzie?"
 msgid "What happened?"
 msgstr "Co się stało?"
 
-msgid "What happens next"
-msgstr "Co dalej"
-
 msgid "What is a starter pack?"
 msgstr "Czym jest pakiet startowy?"
 
@@ -11245,9 +10749,6 @@ msgstr "Gdzie ma się znajdować?"
 
 msgid "Where to ask"
 msgstr ""
-
-msgid "Which skill"
-msgstr "Która umiejętność"
 
 msgid "Whitespace"
 msgstr "Białe znaki"
@@ -11353,10 +10854,6 @@ msgstr "Masz już własną umiejętność o nazwie „{0}” — wersja z pakiet
 
 msgid "You are here"
 msgstr ""
-
-#. Label above the optional skill offered on first visit
-msgid "You can add"
-msgstr "Możesz dodać"
 
 msgid "You can also create one from a terminal with <0>{cliCommand} bug-report</0>."
 msgstr "Możesz też utworzyć je w terminalu poleceniem <0>{cliCommand} bug-report</0>."
@@ -11513,9 +11010,6 @@ msgstr "Nie udało się odczytać Twoich ustawień użytkownika"
 
 msgid "Your version"
 msgstr ""
-
-msgid "Zip file"
-msgstr "Plik ZIP"
 
 msgid "Zoom"
 msgstr "Zoom"

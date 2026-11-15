@@ -5,7 +5,7 @@ import type { SkillsListEntry } from '@inkeep/open-knowledge-core/schemas/api';
 import type { SkillInstallTarget } from '@inkeep/open-knowledge-core/skill-targets/schema';
 import { isSkillInstallTarget } from '@inkeep/open-knowledge-core/skill-targets/schema';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { Folder, Settings as SettingsIcon } from 'lucide-react';
+import { Folder } from 'lucide-react';
 import { type ReactElement, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { AgentBrandIcon } from '@/components/AgentIconCluster';
@@ -13,10 +13,8 @@ import { ChangedOutsideBadge } from '@/components/ChangedOutsideBadge';
 import type { SkillActions } from '@/components/skill-actions';
 import {
   SkillMenuCheckboxItem,
-  SkillMenuItem,
   type SkillMenuKind,
   SkillMenuLabel,
-  SkillMenuSeparator,
 } from '@/components/skill-menu-primitives';
 import {
   AlertDialog,
@@ -746,21 +744,6 @@ export function SkillInstallMenuItems({
           </Hint>
         </div>
       ) : null}
-      <SkillMenuSeparator menuKind={menuKind} />
-      <Hint
-        hint={t`Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots.`}
-      >
-        <SkillMenuItem
-          menuKind={menuKind}
-          onSelect={() => {
-            window.location.hash =
-              skill?.scope === 'global' ? '#settings/user-skills' : '#settings/skills';
-          }}
-        >
-          <SettingsIcon aria-hidden />
-          <Trans>Manage skill folders</Trans>
-        </SkillMenuItem>
-      </Hint>
       <SkillInstallConfirmDialog
         confirmation={confirmation}
         onClose={() => setConfirmation(null)}

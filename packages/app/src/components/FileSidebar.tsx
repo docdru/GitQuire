@@ -35,11 +35,6 @@ import {
   SidebarToolbarButton as ToolbarButton,
   type SidebarToolbarButtonProps as ToolbarButtonProps,
 } from '@/components/SidebarToolbarButton';
-import { SkillsSidebarDock } from '@/components/SkillsSidebarDock';
-import {
-  readCachedSkillsSectionVisible,
-  writeCachedSkillsSectionVisible,
-} from '@/components/skills-section-visible-cache';
 import { TemplateMenuRows } from '@/components/template-menu-rows';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -234,14 +229,8 @@ function FileSidebarInner() {
   const showHiddenFiles = merged?.appearance?.sidebar?.showHiddenFiles ?? false;
   const showOkFolders = merged?.appearance?.sidebar?.showOkFolders ?? false;
   const showOnlyMarkdownFiles = merged?.appearance?.sidebar?.showOnlyMarkdownFiles ?? false;
-  const showSkillGroups = merged?.appearance?.sidebar?.showSkillGroups ?? true;
   const [filesOpen, setFilesOpen] = useState(true);
   useEffect(() => subscribeToFilesSectionReveal(() => setFilesOpen(true)), []);
-  const configSkillsSection = merged?.appearance?.sidebar?.showSkillsSection;
-  const showSkillsSection = configSkillsSection ?? readCachedSkillsSectionVisible() ?? true;
-  useEffect(() => {
-    if (configSkillsSection !== undefined) writeCachedSkillsSectionVisible(configSkillsSection);
-  }, [configSkillsSection]);
   const showExpandAll = hasFolders && !allExpanded;
   const showCollapseAll = hasFolders && !noneExpanded;
   const showTreeStateSection = showExpandAll || showCollapseAll;
@@ -315,8 +304,6 @@ function FileSidebarInner() {
     showHiddenFiles?: boolean;
     showOkFolders?: boolean;
     showOnlyMarkdownFiles?: boolean;
-    showSkillsSection?: boolean;
-    showSkillGroups?: boolean;
   }) => {
     if (!projectLocalBindingReady) {
       toast.info(settingsLoadingReason, { id: 'sidebar-settings-not-ready' });
@@ -345,7 +332,6 @@ function FileSidebarInner() {
       showHiddenFiles,
       showOkFolders,
       showOnlyMarkdownFiles,
-      showSkillsSection,
       canExpandAll: showExpandAll,
       canCollapseAll: showCollapseAll,
       sidebarVisible: sidebarState === 'expanded',
@@ -358,7 +344,6 @@ function FileSidebarInner() {
     showHiddenFiles,
     showOkFolders,
     showOnlyMarkdownFiles,
-    showSkillsSection,
     showExpandAll,
     showCollapseAll,
     sidebarState,
@@ -456,11 +441,6 @@ function FileSidebarInner() {
           patchSidebarVisibility({ showOnlyMarkdownFiles: !showOnlyMarkdownFiles });
           return;
         }
-        case 'toggle-show-skills-section': {
-          revealEditorBeforeActing();
-          patchSidebarVisibility({ showSkillsSection: !showSkillsSection });
-          return;
-        }
         case 'expand-all-tree': {
           revealEditorBeforeActing();
           tree?.expandAll();
@@ -499,7 +479,6 @@ function FileSidebarInner() {
     showHiddenFiles,
     showOkFolders,
     showOnlyMarkdownFiles,
-    showSkillsSection,
     toggleSidebar,
     t,
   ]);
@@ -641,45 +620,8 @@ function FileSidebarInner() {
                                 >
                                   <Trans>Only markdown files</Trans>
                                 </DropdownMenuCheckboxItem>
-                                <DropdownMenuCheckboxItem
-                                  checked={showSkillsSection}
-                                  onCheckedChange={(checked) =>
-                                    patchSidebarVisibility({ showSkillsSection: checked })
-                                  }
-                                  aria-disabled={pendingSettingsReason ? true : undefined}
-                                  onSelect={preventPendingSettingsSelection}
-                                  aria-describedby={
-                                    pendingSettingsReason ? settingsLoadingReasonId : undefined
-                                  }
-                                  data-testid="tree-options-show-skills"
-                                >
-                                  <Trans>Skills Studio</Trans>
-                                </DropdownMenuCheckboxItem>
                               </DropdownMenuGroup>
                             </SettingsLoadingMenuGroupTooltip>
-                            {showSkillsSection ? (
-                              <>
-                                <DropdownMenuSeparator />
-                                <SettingsLoadingMenuGroupTooltip reason={pendingSettingsReason}>
-                                  <DropdownMenuGroup>
-                                    <DropdownMenuCheckboxItem
-                                      checked={showSkillGroups}
-                                      onCheckedChange={(checked) =>
-                                        patchSidebarVisibility({ showSkillGroups: checked })
-                                      }
-                                      aria-disabled={pendingSettingsReason ? true : undefined}
-                                      onSelect={preventPendingSettingsSelection}
-                                      aria-describedby={
-                                        pendingSettingsReason ? settingsLoadingReasonId : undefined
-                                      }
-                                      data-testid="tree-options-group-skills"
-                                    >
-                                      <Trans>Group skills by source</Trans>
-                                    </DropdownMenuCheckboxItem>
-                                  </DropdownMenuGroup>
-                                </SettingsLoadingMenuGroupTooltip>
-                              </>
-                            ) : null}
                             <DropdownMenuSeparator />
                             <DropdownMenuGroup>
                               <DropdownMenuItem
@@ -736,7 +678,6 @@ function FileSidebarInner() {
                 </SidebarGroup>
               </Collapsible>
               {cover ? <ConflictsSection /> : null}
-              {showSkillsSection ? <SkillsSidebarDock filesOpen={filesOpen} /> : null}
             </SidebarContent>
             <SidebarFooter className="px-0 empty:hidden">
               <OnboardingCardMount />
@@ -860,18 +801,6 @@ function FileSidebarInner() {
                 data-testid="empty-space-menu-show-only-markdown-files"
               >
                 <Trans>Show only markdown files</Trans>
-              </ContextMenuCheckboxItem>
-              <ContextMenuCheckboxItem
-                checked={showSkillsSection}
-                onCheckedChange={(checked) =>
-                  patchSidebarVisibility({ showSkillsSection: checked })
-                }
-                aria-disabled={pendingSettingsReason ? true : undefined}
-                onSelect={preventPendingSettingsSelection}
-                aria-describedby={pendingSettingsReason ? settingsLoadingReasonId : undefined}
-                data-testid="empty-space-menu-show-skills-section"
-              >
-                <Trans>Skills section</Trans>
               </ContextMenuCheckboxItem>
             </ContextMenuGroup>
           </SettingsLoadingMenuGroupTooltip>

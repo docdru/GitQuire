@@ -25,7 +25,6 @@ export const OK_MENU_ACTIONS = [
   'toggle-show-hidden-files',
   'toggle-show-ok-folders',
   'toggle-show-only-markdown-files',
-  'toggle-show-skills-section',
   'expand-all-tree',
   'collapse-all-tree',
   'toggle-doc-panel',

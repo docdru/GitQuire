@@ -1328,11 +1328,6 @@ describe('Cmd+K menu-parity backfill', () => {
       query: 'only markdown',
       id: 'toggle-show-only-markdown-files',
     },
-    {
-      testid: 'command-palette-toggle-show-skills-section',
-      query: 'skills section',
-      id: 'toggle-show-skills-section',
-    },
     { testid: 'command-palette-expand-all-tree', query: 'expand all', id: 'expand-all-tree' },
     { testid: 'command-palette-collapse-all-tree', query: 'collapse all', id: 'collapse-all-tree' },
     { testid: 'command-palette-new-terminal', query: 'new terminal', id: 'new-terminal' },

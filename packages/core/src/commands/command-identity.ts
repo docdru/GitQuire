@@ -106,11 +106,7 @@ interface CommandPlacementToggle {
   readonly rightKey: MenuLabelKey;
 }
 
-export type CommandCheckField =
-  | 'showHiddenFiles'
-  | 'showOkFolders'
-  | 'showOnlyMarkdownFiles'
-  | 'showSkillsSection';
+export type CommandCheckField = 'showHiddenFiles' | 'showOkFolders' | 'showOnlyMarkdownFiles';
 
 export interface CommandPalettePresence {
   readonly group: CommandGroup;
@@ -281,13 +277,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     palette: { group: 'commands', visibility: 'always' },
   },
   {
-    id: 'new-skill',
-    labelKey: 'newSkill',
-    keywords: ['skill', 'create', 'author', 'new'],
-    availability: { singleFileHidden: true },
-    palette: { group: 'commands', visibility: 'always' },
-  },
-  {
     id: 'new-project',
     menuActionId: 'new-project',
     labelKey: 'newProject',
@@ -329,14 +318,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
         menuLabelKey: 'openFile',
       },
     ],
-  },
-  {
-    id: 'open-skills',
-    labelKey: 'openSkills',
-    keywords: ['skills marketplace explore import discover', 'browse', 'install', 'open'],
-    availability: { singleFileHidden: true },
-    palette: { group: 'project', visibility: 'always' },
-    menu: [],
   },
   {
     id: 'switch-project',
@@ -687,16 +668,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     availability: {},
     palette: { group: 'view', visibility: 'search-only' },
     menu: [{ section: 'view-visibility', order: 2, checkbox: true }],
-  },
-  {
-    id: 'toggle-show-skills-section',
-    menuActionId: 'toggle-show-skills-section',
-    labelKey: 'showSkillsSection',
-    keywords: ['skills', 'section', 'sidebar', 'show'],
-    checkField: 'showSkillsSection',
-    availability: {},
-    palette: { group: 'view', visibility: 'search-only' },
-    menu: [{ section: 'view-visibility', order: 3, checkbox: true }],
   },
   {
     id: 'expand-all-tree',
