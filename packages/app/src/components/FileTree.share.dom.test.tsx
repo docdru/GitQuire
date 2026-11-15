@@ -250,24 +250,6 @@ vi.doMock('@/lib/config-provider', () => ({
   useConfigContext: () => ({ okignoreBinding: null, projectLocalBinding: null, merged: null }),
 }));
 
-vi.doMock('./handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: {} }),
-}));
-
-vi.doMock('./handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => null,
-  buildHandoffInput: () => null,
-  useHandoffDispatch: () => ({ dispatch: async () => ({ ok: true as const }) }),
-}));
-
-vi.doMock('./handoff/OpenInAgentContextSubmenu', () => ({
-  OpenInAgentContextSubmenu: () => (
-    <button type="button" role="menuitem" data-testid="file-tree-menu-open-in-agent">
-      Open with AI
-    </button>
-  ),
-}));
-
 vi.doMock('./sidebar-hover-prewarm', () => ({
   cancelHoverPrewarm: () => {},
   scheduleHoverPrewarm: () => {},

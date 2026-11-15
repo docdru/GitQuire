@@ -67,8 +67,8 @@ describe('Ask Claude', () => {
     expect(isClaudeDestination('chatgpt')).toBe(false);
   });
 
-  it('offers the in-app chat when it takes the place of in-app agents', () => {
-    const base = { ...STANDALONE_FEATURES, askAi: false };
+  it('offers the in-app chat when the server has it', () => {
+    const base = STANDALONE_FEATURES;
     const chatOnly = { ...base, aiChat: true };
     const both = { ...base, aiChat: true, connector: true };
     expect(askDestinations(chatOnly)).toEqual(['gitquire-chat']);

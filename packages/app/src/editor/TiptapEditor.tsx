@@ -32,7 +32,6 @@ const editorCtorStartTimes = new WeakMap<object, number>();
 
 import { type Transaction as PMTransaction, TextSelection } from '@tiptap/pm/state';
 import type { EditorView as PMEditorView } from '@tiptap/pm/view';
-import { loadFollowFilePref } from '@/components/acp/follow-file';
 import {
   OUTLINE_NAV_BREADCRUMB,
   OUTLINE_NAV_EVENT,
@@ -947,7 +946,7 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
         );
       }, AGENT_INSERT_FLASH_MS + 50);
 
-      if (!followChange || !loadFollowFilePref()) return;
+      if (!followChange) return;
       if (document.visibilityState !== 'visible') return;
       if (view.hasFocus()) return;
       if (view.dom.closest('[data-editor-pane-panel][inert]')) return;

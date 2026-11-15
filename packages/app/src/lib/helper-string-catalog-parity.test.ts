@@ -1,11 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import {
-  errorToastMessage,
-  MAX_DISPATCH_ATTEMPTS,
-  retryActionLabel,
-} from '@/components/handoff/useHandoffDispatch';
 import { formatContainerAriaLabel } from '@/editor/utils/editor-strings';
 import { deriveShareReceiveToast } from '@/lib/install-deep-link-listener';
 import { presentPublishError, resolveNameCheckStatus } from '@/lib/share/publish-wizard';
@@ -148,14 +143,6 @@ describe('helper messages round-trip to a catalog id with named placeholders', (
           '/projects/demo',
         )?.message ?? '',
     ],
-    ['handoff: first failure', () => errorToastMessage('{displayName}', 1)],
-    [
-      'handoff: penultimate failure',
-      () => errorToastMessage('{displayName}', MAX_DISPATCH_ATTEMPTS - 1),
-    ],
-    ['handoff: final failure', () => errorToastMessage('{displayName}', MAX_DISPATCH_ATTEMPTS)],
-    ['handoff: retry label', () => retryActionLabel(1) ?? ''],
-    ['handoff: last-retry label', () => retryActionLabel(MAX_DISPATCH_ATTEMPTS - 1) ?? ''],
     [
       'editor: empty container label',
       () => formatContainerAriaLabel('{componentLabel}', undefined, 0),

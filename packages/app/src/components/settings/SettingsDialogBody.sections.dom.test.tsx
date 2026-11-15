@@ -404,25 +404,6 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  test('project preferences stacks the Terminal block only on a pty-capable Electron host', async () => {
-    const w = window as unknown as { okDesktop?: unknown };
-    w.okDesktop = {
-      config: { ptyAvailable: true },
-      terminal: { cliPreflight: () => Promise.resolve({ onPath: 'absent' }) },
-    };
-    try {
-      await renderBody({ activeId: 'project-preferences' });
-      expect(screen.getByTestId('settings-terminal-body')).not.toBeNull();
-
-      cleanup();
-      w.okDesktop = undefined;
-      await renderBody({ activeId: 'project-preferences' });
-      expect(screen.queryByTestId('settings-terminal-body')).toBeNull();
-    } finally {
-      w.okDesktop = undefined;
-    }
-  });
-
   test('project preferences stacks attachments and content rules under one page title', async () => {
     await renderBody({ activeId: 'project-preferences' });
 

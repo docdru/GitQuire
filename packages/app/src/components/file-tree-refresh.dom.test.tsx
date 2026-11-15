@@ -148,20 +148,6 @@ vi.doMock('@/hooks/use-conflicts', () => ({
   }),
 }));
 
-vi.doMock('./handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: {} }),
-}));
-
-vi.doMock('./handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => null,
-  buildHandoffInput: () => null,
-  useHandoffDispatch: () => ({ dispatch: async () => ({ ok: true as const }) }),
-}));
-
-vi.doMock('./handoff/OpenInAgentContextSubmenu', () => ({
-  OpenInAgentContextSubmenu: () => null,
-}));
-
 vi.doMock('./sidebar-hover-prewarm', () => ({
   cancelHoverPrewarm: () => {},
   scheduleHoverPrewarm: () => {},

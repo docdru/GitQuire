@@ -6,9 +6,6 @@ import {
 } from '@/components/FileTargetMenuItems';
 import { buildOkignorePatternFromTarget } from '@/components/file-tree-okignore';
 import { hasOkPathSegment } from '@/components/file-tree-utils';
-import { OpenInAgentEmptySpaceSubmenu } from '@/components/handoff/OpenInAgentEmptySpaceSubmenu';
-import { useHandoffDispatch } from '@/components/handoff/useHandoffDispatch';
-import { useInstalledAgents } from '@/components/handoff/useInstalledAgents';
 import type { ResolvedNavigationTarget } from '@/components/navigation-targets';
 import {
   appendPattern,
@@ -27,10 +24,7 @@ import {
 import { useGitSyncStatusDetailed } from '@/hooks/use-git-sync-status';
 import { useConfigContext } from '@/lib/config-provider';
 import { emitCreateTopLevelFile } from '@/lib/create-file-events';
-import {
-  buildSendToAiInputForActiveTarget,
-  resolveActiveTargetRelativePath,
-} from '@/lib/file-menu-target-resolvers';
+import { resolveActiveTargetRelativePath } from '@/lib/file-menu-target-resolvers';
 import {
   emitFileTreeMenuActionDelete,
   emitFileTreeMenuActionDuplicate,
@@ -98,14 +92,11 @@ export function EditorTabTargetMenuItems({
   const workspace = useWorkspace();
   const { okignoreBinding } = useConfigContext();
   const { status: gitSyncStatus } = useGitSyncStatusDetailed();
-  const installStates = useInstalledAgents().states;
-  const { dispatch } = useHandoffDispatch();
   const relativePath = relativePathForTarget(target, docExt);
   const isManaged = hasOkPathSegment(relativePath);
   const isAsset = target.kind === 'asset';
   const isFolder = target.kind === 'folder';
   const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  const handoffInput = isAsset ? null : buildSendToAiInputForActiveTarget(target, workspace);
   const shareInput = shareInputForTarget(target);
   const canShare = gitSyncStatus?.hasRemote === true && shareInput !== null;
   const okignoreTarget = okignoreTargetForTarget(target, docExt);
@@ -192,15 +183,6 @@ export function EditorTabTargetMenuItems({
               },
             }
           : undefined
-      }
-      openWithAi={
-        isAsset ? undefined : (
-          <OpenInAgentEmptySpaceSubmenu
-            input={handoffInput}
-            installStates={installStates}
-            dispatch={dispatch}
-          />
-        )
       }
       share={canShare ? { onSelect: shareTarget } : undefined}
       onCopyFullPath={() => {

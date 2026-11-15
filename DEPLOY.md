@@ -256,34 +256,6 @@ the GitHub App when it is configured) and revokes the tokens of people who lost 
 | `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
 | `GITQUIRE_MCP_CONNECTORS` | `on` lets Claude on the web, desktop chat and phones connect through GitHub sign-in. Needs a public `https://` URL. |
 | `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
-| `GITQUIRE_ASK_AI` | `on` turns on the in-app agents: the ✨ Agents pane (⌘L), the editor's **Ask AI** box and the empty screen's prompt box. Off by default; read [In-app agents](#in-app-agents) first. While it is off, the server refuses agent sessions and people with agent access get the **Ask Claude** box instead. |
-
-### In-app agents
-
-The ✨ Agents pane is a chat with an AI agent (Claude Code, Codex and others) that runs **on the
-GitQuire server**, not on each person's computer. It's off by default; with `GITQUIRE_ASK_AI` unset
-the pane shows the [AI chat](#ai-chat) instead, and the server refuses agent sessions and agent
-setup requests (HTTP 403). The AI chat or connecting Claude through **Settings → Connect AI** is
-the recommended way for a team.
-
-If you turn it on, know what you're choosing:
-
-- **One AI account for everyone.** The agent signs in once on the server (its own login step, or an
-  API key such as `ANTHROPIC_API_KEY` in the server's environment), and every member's chats use it. Personal
-  Claude subscriptions are meant for one person, so a team needs an API key, billed per use, with
-  no per-person limits in GitQuire.
-- **The agent runs as the server.** It can run commands and read files inside the container,
-  including the data volume and any secrets the server can read, such as the GitHub App's private
-  key. Everyone who can sign in can start one.
-- **Network and disk.** The server downloads the agent's adapter when it first starts (the
-  container needs internet access), and keeps agent logins and chat history on the server.
-- **Inherited behaviour.** The pane comes from OpenKnowledge, which was built for one person on one
-  computer. How agent edits are credited and who can see whose chats have not been adapted for
-  teams.
-
-It can make sense for a small team that trusts each other, runs GitQuire on its own server, and
-wants agents to share one API key. Turn it on with `GITQUIRE_ASK_AI=on`; members then set up the
-agents under **Settings → Connect Claude**, below the connector steps.
 
 ## AI chat
 
@@ -293,8 +265,8 @@ changes appear live, are credited to the person chatting, and follow their **Put
 edits into a draft** setting. It cannot delete pages, change settings, read hidden folders such as
 `.ok` (where keys and chats are kept) or run commands.
 
-It is on whenever GitHub sign-in is on and in-app agents (`GITQUIRE_ASK_AI`) are off; the ✨ pane
-then shows the chat. Nothing runs until someone adds a key:
+It is on whenever GitHub sign-in is on; the ✨ pane
+shows the chat. Nothing runs until someone adds a key:
 
 - **Each person uses their own API key** from the [Claude Console](https://platform.claude.com) or
   [Mistral La Plateforme](https://console.mistral.ai), entered under **Settings → AI chat**. GitQuire
@@ -397,7 +369,7 @@ CI builds and smoke-tests the image on every pull request and publishes it to
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM`, `GITQUIRE_MAIL_DOMAINS` | [Mention emails](#mention-emails) |
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | [Chat notifications](#chat-notifications) |
 | `GITQUIRE_DRAFTS_DIR` | [Drafts](#drafts) |
-| `GITQUIRE_AGENT_TOKEN_DAYS`, `GITQUIRE_MCP_CONNECTORS`, `GITQUIRE_MCP_TOKEN`, `GITQUIRE_ASK_AI` | [AI agents](#ai-agents) |
+| `GITQUIRE_AGENT_TOKEN_DAYS`, `GITQUIRE_MCP_CONNECTORS`, `GITQUIRE_MCP_TOKEN` | [AI agents](#ai-agents) |
 | `GITQUIRE_AI_CHAT`, `GITQUIRE_ANTHROPIC_BASE_URL`, `GITQUIRE_MISTRAL_BASE_URL` | [AI chat](#ai-chat) |
 | `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |

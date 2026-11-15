@@ -487,12 +487,6 @@ function isRemoteImageHost(line: string): boolean {
   return /\b(picsum\.photos|images\.unsplash\.com|via\.placeholder\.com)\b/i.test(line);
 }
 
-function isStaticDevHarnessImport(line: string): boolean {
-  return /^\s*(?:import|export)\s+(?!type\b)[^;]*from\s+['"][^'"]*dev-thread-harness['"]/.test(
-    line,
-  );
-}
-
 function collectMatches(
   files: FileLines[],
   predicate: (line: string, lineIdx: number, file: FileLines) => boolean,
@@ -787,16 +781,6 @@ describe('E2E STOP rule — zero allowlist', () => {
       { kind: 'stale-entry', path: 'packages/app/src/lib/Deleted.ts', global: '__goneHook' },
     ]);
     expect(scanDevGatedWrites([writerFile], { [writer]: ['__keptHook'] }).findings).toEqual([]);
-  });
-
-  test('no static value import of the DEV ACP thread harness', () => {
-    const violations = collectMatches(listAppSrcTsFiles(), (line) =>
-      isStaticDevHarnessImport(line),
-    );
-    expect(
-      violations,
-      `Static import of dev-thread-harness in app source — it must be reached only through the DEV-gated dynamic import:\n${violations.join('\n')}`,
-    ).toEqual([]);
   });
 
   test('no editor.mount( / editor.unmount( in V2 cache surfaces (precedent §25(a), SPEC US-001 Phase 1.0)', () => {
@@ -1319,26 +1303,6 @@ describe('E2E STOP rule — zero allowlist', () => {
       scanPlantedSpawnIsolation(multiLineTemplateEnvValue).violations,
       'an env value spelled as a multi-line template literal made a fully compliant spawn report as un-isolated',
     ).toEqual([]);
-  });
-
-  test('dev-harness import rule fires on a static import and not on the sanctioned shapes', () => {
-    expect(
-      isStaticDevHarnessImport("import { installAcpThreadHarness } from './dev-thread-harness';"),
-    ).toBe(true);
-    expect(
-      isStaticDevHarnessImport(
-        "import { installAcpThreadHarness } from '@/lib/acp/dev-thread-harness';",
-      ),
-    ).toBe(true);
-    expect(isStaticDevHarnessImport("export * from './dev-thread-harness';")).toBe(true);
-
-    expect(
-      isStaticDevHarnessImport("import type { AcpThreadHarness } from './dev-thread-harness';"),
-    ).toBe(false);
-    expect(
-      isStaticDevHarnessImport("  void import('@/lib/acp/dev-thread-harness').then(fn);"),
-    ).toBe(false);
-    expect(isStaticDevHarnessImport("import { x } from './thread-client';")).toBe(false);
   });
 
   test('window.__activeEditor is published only by DocumentContext.tsx (regression — PR #168 merge collision)', () => {

@@ -105,9 +105,6 @@ let mergedConfig: {
 let projectLocalBindingNull = false;
 let projectLocalSynced = true;
 let projectPatchResult: { ok: true } | { ok: false; error: unknown } = { ok: true };
-let openInAgentSubmenuProps: Array<{
-  input: unknown;
-}> = [];
 let toastSuccesses: unknown[][] = [];
 let toastErrors: unknown[][] = [];
 let toastInfos: unknown[][] = [];
@@ -208,28 +205,6 @@ vi.doMock('@/components/FeedbackCard', async () => ({
     '@/components/FeedbackCard',
   )),
   FeedbackCardMount: () => <div data-testid="feedback-card-mount" />,
-}));
-
-vi.doMock('@/components/handoff/OpenInAgentEmptySpaceSubmenu', () => ({
-  OpenInAgentEmptySpaceSubmenu: (props: { input: unknown }) => {
-    openInAgentSubmenuProps.push(props);
-    return <div data-testid="open-in-agent-empty-space-submenu" />;
-  },
-}));
-
-vi.doMock('@/components/handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => ({ docContext: null, docPath: '', folderRelativePath: 'docs' }),
-  buildHandoffInput: () => ({
-    docContext: { docName: 'docs/current' },
-    docPath: 'docs/current.md',
-  }),
-  buildProjectScopedHandoffInput: ({ workspace: inputWorkspace }: { workspace: unknown }) =>
-    inputWorkspace ? { docContext: null, docPath: '', projectDir: '/tmp/open-knowledge' } : null,
-  useHandoffDispatch: () => ({ dispatch: vi.fn(() => Promise.resolve({ ok: true })) }),
-}));
-
-vi.doMock('@/components/handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: { codex: { installed: true } } }),
 }));
 
 vi.doMock('@/components/ui/button', () => ({
@@ -469,7 +444,6 @@ describe('FileSidebar runtime behavior', () => {
     projectLocalBindingNull = false;
     projectLocalSynced = true;
     projectPatchResult = { ok: true };
-    openInAgentSubmenuProps = [];
     toastSuccesses = [];
     toastErrors = [];
     toastInfos = [];
@@ -828,7 +802,6 @@ describe('FileSidebar runtime behavior', () => {
       'empty-space-menu-new-from-template',
       'empty-space-menu-new-folder',
       'empty-space-menu-reveal-in-finder',
-      'open-in-agent-empty-space-submenu',
       'empty-space-menu-copy-full-path',
       'empty-space-menu-show-hidden-files',
       'empty-space-menu-show-ok-folders',
@@ -867,11 +840,7 @@ describe('FileSidebar runtime behavior', () => {
       appearance: { sidebar: { showHiddenFiles: true } },
     });
 
-    expect(openInAgentSubmenuProps.at(-1)?.input).toEqual({
-      docContext: null,
-      docPath: '',
-      projectDir: '/tmp/open-knowledge',
-    });
+    expect(screen.queryByTestId('open-in-agent-empty-space-submenu')).toBeNull();
   });
 
   test('empty-space visibility toggles carry full-form labels and patch their own leaves', async () => {

@@ -22,7 +22,6 @@ describe('connectAiMode', () => {
   test('offers the connector before the person has connected anything', () => {
     expect(
       connectAiMode({
-        askAi: false,
         agentToken: false,
         connector: false,
         canUseTokens: true,

@@ -8,7 +8,6 @@ import {
   headerPaneButton,
   openDesktopHeader,
   presetTerminalPlacement,
-  stubAgentCatalog,
   terminalPaneCard,
   test,
   waitForActiveProviderSynced,
@@ -108,7 +107,6 @@ async function seedDoc(api: ApiHelpers, slug: string): Promise<string> {
 
 async function openWeb(page: Page, api: ApiHelpers, slug: string): Promise<string> {
   const name = await seedDoc(api, slug);
-  await stubAgentCatalog(page);
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`/#/${name}`);
   await waitForActiveProviderSynced(page);
@@ -130,7 +128,6 @@ async function openDesktop(
   }: { viewport?: { width: number; height: number }; host?: DesktopHeaderHost } = {},
 ): Promise<string> {
   const name = await seedDoc(api, slug);
-  await stubAgentCatalog(page);
   await page.setViewportSize(viewport);
   await openDesktopHeader(page, workerServer, name, host);
   await expect(headerPaneButton(page, 'terminal')).toBeVisible({ timeout: BOOT_TIMEOUT_MS });
@@ -801,7 +798,6 @@ test.describe('the pane buttons during the desktop restore wait', () => {
     workerServer,
   }) => {
     const name = await seedDoc(api, 'restore-wait');
-    await stubAgentCatalog(page);
     await page.setViewportSize({ width: 1600, height: 900 });
     const restoreTimeouts: string[] = [];
     page.on('console', (message) => {
@@ -846,7 +842,6 @@ test.describe('the pane buttons during the desktop restore wait', () => {
     workerServer,
   }) => {
     const name = await seedDoc(api, 'narrow-restore-wait');
-    await stubAgentCatalog(page);
     await page.setViewportSize({ width: 767, height: 800 });
     let contentDir = workerServer.contentDir;
     try {
@@ -1333,7 +1328,6 @@ test.describe('the pane buttons match their panes in every frame', () => {
     workerServer,
   }) => {
     const name = await seedDoc(api, 'frames-restore');
-    await stubAgentCatalog(page);
     await page.setViewportSize({ width: 1600, height: 900 });
     let contentDir = workerServer.contentDir;
     try {

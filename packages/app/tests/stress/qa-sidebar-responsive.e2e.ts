@@ -1,11 +1,5 @@
 import type { Page } from '@playwright/test';
-import {
-  type ApiHelpers,
-  acpCatalogBody,
-  expect,
-  test,
-  waitForActiveProviderSynced,
-} from './_helpers';
+import { type ApiHelpers, expect, test, waitForActiveProviderSynced } from './_helpers';
 
 const SIDEBAR_PINS_KEY = 'ok-sidebar-pins-v2';
 const SIDEBAR_STATE_COOKIE_NAME = 'sidebar_state';
@@ -53,7 +47,6 @@ async function docPanelOpen(page: Page): Promise<boolean> {
 async function expectEmbeddedHeaderAddsOnlyAgents(page: Page, api: ApiHelpers, slug: string) {
   const name = `${slug}-${test.info().workerIndex}`;
   await seedDoc(api, name);
-  await page.route('**/api/acp/catalog', (route) => route.fulfill({ json: acpCatalogBody([]) }));
   await page.setViewportSize(WIDE);
   await page.goto(`/#/${name}`);
   await waitForActiveProviderSynced(page);

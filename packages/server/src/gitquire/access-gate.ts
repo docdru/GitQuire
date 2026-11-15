@@ -506,7 +506,6 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
           repo: repoLabel ?? null,
         },
         features: {
-          askAi: config.askAi,
           aiChat: config.aiChat,
           ...agentAccess(user),
           canUseTokens: agentPages !== undefined,
@@ -559,8 +558,8 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       });
       return true;
     }
-    if (!config.askAi && isInAppAgentPath(path)) {
-      sendJson(res, 403, { error: 'in-app-agents-off', enable: 'GITQUIRE_ASK_AI=on' });
+    if (isInAppAgentPath(path)) {
+      sendJson(res, 403, { error: 'in-app-agents-removed' });
       return true;
     }
     if (isAdminOnlyApi(path, req.method) && !isAdmin(user)) {
@@ -580,11 +579,8 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   function admitUpgrade(req: IncomingMessage, socket: Duplex): boolean {
     const { path } = pathOf(req);
     if (!path.startsWith('/collab')) return true;
-    if (!config.askAi && isInAppAgentPath(path)) {
-      deps.log.warn(
-        { path },
-        '[gitquire-auth] refused in-app agent session: GITQUIRE_ASK_AI is off',
-      );
+    if (isInAppAgentPath(path)) {
+      deps.log.warn({ path }, '[gitquire-auth] refused in-app agent session');
       socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
       socket.destroy();
       return false;

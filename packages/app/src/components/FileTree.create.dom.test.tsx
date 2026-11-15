@@ -49,7 +49,6 @@ const closeTabsMock = vi.fn(() => {});
 const closeDocumentMock = vi.fn(() => {});
 const reconcileLocalRenameMock = vi.fn(async () => {});
 const reconcileLocalRemovalMock = vi.fn(async () => {});
-const dispatchHandoffMock = vi.fn(async () => ({ ok: true as const }));
 
 const DOCUMENTS: FileEntry[] = [
   {
@@ -297,20 +296,6 @@ vi.doMock('@/hooks/use-folder-config', () => ({
       refresh: () => {},
     };
   },
-}));
-
-vi.doMock('./handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: {} }),
-}));
-
-vi.doMock('./handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => null,
-  buildHandoffInput: () => null,
-  useHandoffDispatch: () => ({ dispatch: dispatchHandoffMock }),
-}));
-
-vi.doMock('./handoff/OpenInAgentContextSubmenu', () => ({
-  OpenInAgentContextSubmenu: () => null,
 }));
 
 vi.doMock('./sidebar-hover-prewarm', () => ({

@@ -32,8 +32,6 @@ describe('ProjectRuntime view over ServerInstance', () => {
     expect(runtime.agents.sessionManager).toBe(serverInstance.sessionManager);
     expect(runtime.agents.agentFocusBroadcaster).toBe(serverInstance.agentFocusBroadcaster);
     expect(runtime.agents.agentPresenceBroadcaster).toBe(serverInstance.agentPresenceBroadcaster);
-    expect(runtime.agents.acpRegistry).toBe(serverInstance.acpRegistry);
-    expect(runtime.agents.acpPermissions).toBe(serverInstance.acpPermissions);
     expect(runtime.background.maintenanceCoordinator).toBe(serverInstance.maintenanceCoordinator);
     expect(runtime.config.getLinkPreviewsEnabled).toBe(serverInstance.getLinkPreviewsEnabled);
     expect(runtime.ready).toBe(serverInstance.ready);

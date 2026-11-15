@@ -4,13 +4,11 @@ import { msg } from '@lingui/core/macro';
 export function getEmptyStateCopy({
   isOnboarding,
   isEmbedded,
-  askAi = true,
 }: {
   isOnboarding: boolean;
   isEmbedded: boolean;
-  askAi?: boolean;
 }): { title: MessageDescriptor; subtitle: MessageDescriptor } {
-  if (!askAi && !isEmbedded) {
+  if (!isEmbedded) {
     return isOnboarding
       ? {
           title: msg`What would you like to create?`,
@@ -24,15 +22,11 @@ export function getEmptyStateCopy({
   if (isOnboarding) {
     return {
       title: msg`What would you like to create?`,
-      subtitle: isEmbedded
-        ? msg`Copy a prompt and paste it into your agent to set up your project.`
-        : msg`Describe what you're working on and the agent sets it up for you.`,
+      subtitle: msg`Copy a prompt and paste it into your agent to set up your project.`,
     };
   }
   return {
     title: msg`Create something great.`,
-    subtitle: isEmbedded
-      ? msg`Copy a prompt for your agent, start a blank file, or scaffold from a template.`
-      : msg`Describe what you want to build, start a blank file, or scaffold from a template.`,
+    subtitle: msg`Copy a prompt for your agent, start a blank file, or scaffold from a template.`,
   };
 }

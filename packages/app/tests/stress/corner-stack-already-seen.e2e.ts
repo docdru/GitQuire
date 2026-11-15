@@ -14,7 +14,6 @@ import {
   openWebLayout,
   seedFeedbackEligibleDocs,
   setHeaderPane,
-  stubAgentCatalog,
   test,
   type WorkerServer,
 } from './_helpers';
@@ -137,7 +136,6 @@ async function openWebWithSavedFeedback(
   await seedLocalStorageBeforeLoad(page, FEEDBACK_NUDGE_KEY, savedFeedback);
   if (layout === 'editor hidden') {
     await seedLocalStorageBeforeLoad(page, WEB_EDITOR_VISIBLE_KEY, 'false');
-    await stubAgentCatalog(page);
     await page.setViewportSize(WIDE);
     await page.goto('/');
     await expectEditorHidden(page);

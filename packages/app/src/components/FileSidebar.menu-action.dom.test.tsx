@@ -66,9 +66,6 @@ let activeTarget: ResolvedNavigationTarget | null = ACTIVE_TARGET;
 const notifyViewMenuStateChangedMock = vi.fn(() => {});
 const toggleSidebarMock = vi.fn(() => {});
 const showItemInFolderMock = vi.fn((_path: string) => Promise.resolve());
-const handoffDispatchMock = vi.fn((_target: string, _input: unknown) =>
-  Promise.resolve({ ok: true }),
-);
 const treeCalls = {
   collapseAll: vi.fn(() => {}),
   expandAll: vi.fn(() => {}),
@@ -131,43 +128,6 @@ vi.doMock('@/components/SkillsSidebarSection', () => ({
   SkillsSidebarSection: () => null,
 }));
 
-vi.doMock('@/components/handoff/OpenInAgentEmptySpaceSubmenu', () => ({
-  OpenInAgentEmptySpaceSubmenu: () => null,
-}));
-
-const threadLaunchMock = vi.fn(
-  (_input: unknown, _opts?: { agent?: { source: string; id: string } }) => {},
-);
-const openInstallUrlMock = vi.fn((_target: unknown) => Promise.resolve());
-vi.doMock('@/components/handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => ({ docContext: null, docPath: '', folderRelativePath: 'notes' }),
-  buildHandoffInput: () => ({
-    docContext: { docName: 'notes/source' },
-    docPath: 'notes/source.md',
-    projectDir: '/tmp/open-knowledge',
-  }),
-  buildProjectScopedHandoffInput: () => ({
-    docContext: null,
-    docPath: '',
-    projectDir: '/tmp/open-knowledge',
-  }),
-  openInstallUrl: openInstallUrlMock,
-  startAgentThreadForInput: threadLaunchMock,
-  useHandoffDispatch: () => ({ dispatch: handoffDispatchMock }),
-}));
-
-const installedAgentStates = { codex: { installed: true } };
-const noAgentStates = {
-  'claude-code': { installed: false },
-  'claude-cowork': { installed: false },
-  codex: { installed: false },
-  cursor: { installed: false },
-};
-let noAgentsInstalled = false;
-vi.doMock('@/components/handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: noAgentsInstalled ? noAgentStates : installedAgentStates }),
-}));
-
 vi.doMock('@/editor/DocumentContext', () => ({
   useDocumentContext: () => ({
     activeDocName: 'notes/source',
@@ -217,11 +177,6 @@ const {
   subscribeToFileTreeMenuActionDuplicate,
   subscribeToFileTreeMenuActionRename,
 } = await import('@/lib/file-tree-menu-action-events');
-const { reloadEnabledAgentsFromStorage } = await import('@/lib/acp/enabled-agents');
-const { registerAgent, reloadRegisteredAgentsFromStorage } = await import(
-  '@/lib/acp/registered-agents'
-);
-const { saveStickyAgent } = await import('@/lib/unified-agent-store');
 
 function renderSidebar() {
   return render(<FileSidebar />, { wrapper: TooltipProvider });
@@ -259,18 +214,12 @@ describe('FileSidebar menu-action runtime routing', () => {
     activeTarget = ACTIVE_TARGET;
     mergedConfig = DEFAULT_MERGED_CONFIG;
     projectLocalSynced = true;
-    noAgentsInstalled = false;
     __resetSkillsSectionVisibleCacheForTests();
     if (typeof localStorage !== 'undefined') localStorage.clear();
-    reloadRegisteredAgentsFromStorage();
-    reloadEnabledAgentsFromStorage();
     for (const fn of [
       notifyViewMenuStateChangedMock,
       toggleSidebarMock,
       showItemInFolderMock,
-      handoffDispatchMock,
-      threadLaunchMock,
-      openInstallUrlMock,
       toastInfoMock,
       toastErrorMock,
       projectLocalPatch,
@@ -484,76 +433,12 @@ describe('FileSidebar menu-action runtime routing', () => {
     }
   });
 
-  test('send-to-ai prefers an enabled in-app agent over an installed external app', async () => {
-    registerAgent({ source: 'registry', id: 'claude-acp', name: 'Claude Agent' });
-    renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('send-to-ai' as MenuAction);
-
-    expect(threadLaunchMock).toHaveBeenCalledWith(
-      expect.objectContaining({ docPath: 'notes/source.md' }),
-      { agent: { source: 'registry', id: 'claude-acp' } },
-    );
-    expect(handoffDispatchMock).not.toHaveBeenCalled();
-  });
-
-  test('send-to-ai still honors an explicit saved external-app choice', async () => {
-    registerAgent({ source: 'registry', id: 'claude-acp', name: 'Claude Agent' });
-    saveStickyAgent('codex');
-    renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('send-to-ai' as MenuAction);
-
-    expect(handoffDispatchMock).toHaveBeenCalledWith(
-      'codex',
-      expect.objectContaining({ docPath: 'notes/source.md' }),
-      expect.objectContaining({ installState: expect.objectContaining({ installed: true }) }),
-    );
-    expect(threadLaunchMock).not.toHaveBeenCalled();
-  });
-
-  test('send-to-ai sends an uninstalled saved external app to its installer and says so', async () => {
-    saveStickyAgent('claude-code');
-    renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('send-to-ai' as MenuAction);
-
-    expect(openInstallUrlMock).toHaveBeenCalledWith(expect.objectContaining({ id: 'claude-code' }));
-    expect(handoffDispatchMock).not.toHaveBeenCalled();
-    expect(threadLaunchMock).not.toHaveBeenCalled();
-    expect(toastInfoMock).toHaveBeenCalledTimes(1);
-    expect(String(toastInfoMock.mock.calls[0]?.[0])).toContain("isn't installed yet");
-  });
-
-  test('send-to-ai reports when no route is available at all', async () => {
-    noAgentsInstalled = true;
-    renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('send-to-ai' as MenuAction);
-
-    expect(toastErrorMock).toHaveBeenCalledTimes(1);
-    expect(handoffDispatchMock).not.toHaveBeenCalled();
-    expect(threadLaunchMock).not.toHaveBeenCalled();
-    expect(openInstallUrlMock).not.toHaveBeenCalled();
-  });
-
-  test('shell, clipboard, handoff, and visibility-toggle actions use runtime dependencies', async () => {
+  test('shell, clipboard, and visibility-toggle actions use runtime dependencies', async () => {
     renderSidebar();
     await waitFor(() => expect(menuActionCallback).not.toBeNull());
 
     menuActionCallback?.('reveal-in-finder' as MenuAction);
     expect(showItemInFolderMock).toHaveBeenCalledWith('/tmp/open-knowledge/notes/source.md');
-
-    menuActionCallback?.('send-to-ai' as MenuAction);
-    expect(handoffDispatchMock).toHaveBeenCalledWith(
-      'codex',
-      expect.objectContaining({ docPath: 'notes/source.md' }),
-      expect.objectContaining({ installState: expect.objectContaining({ installed: true }) }),
-    );
 
     menuActionCallback?.('copy-full-path' as MenuAction);
     await waitFor(() =>

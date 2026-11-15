@@ -1,18 +1,12 @@
 import { Trans, useLingui } from '@lingui/react/macro';
-import { ArrowUpRight, TerminalIcon } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { CopyButton } from '@/components/CopyButton';
-import {
-  requestTerminalCommand,
-  terminalCommandFor,
-} from '@/components/handoff/terminal-command-events';
-import { Button } from '@/components/ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { dispatchExternalLinkClick } from '@/lib/external-link';
-import { isSettingsHashOpen } from '@/lib/use-settings-route';
 import { SettingsSectionHeader } from './SettingsSectionHeader';
 
-const INSTALL_COMMAND = terminalCommandFor('install-slidev') ?? '';
+const INSTALL_COMMAND = 'npm install -g @slidev/cli @slidev/theme-default';
 
 const SLIDEV_INSTALL_DOCS = 'https://sli.dev/guide/install';
 
@@ -58,11 +52,6 @@ function useSlidevStatus(): Availability {
   }, []);
 
   return availability;
-}
-
-function canRunInTerminal(): boolean {
-  const bridge = window.okDesktop;
-  return bridge?.terminal != null && bridge.config?.ptyAvailable === true;
 }
 
 function StatusRow({ availability }: { availability: Availability }) {
@@ -128,23 +117,6 @@ function StatusRow({ availability }: { availability: Availability }) {
         </InputGroupAddon>
       </InputGroup>
       <div className="flex items-center gap-3">
-        {canRunInTerminal() ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="slides-run-install"
-            onClick={() => {
-              if (typeof window !== 'undefined' && isSettingsHashOpen(window.location.hash)) {
-                window.history.back();
-              }
-              requestTerminalCommand('install-slidev');
-            }}
-          >
-            <TerminalIcon aria-hidden className="size-3.5" />
-            <Trans>Run in terminal</Trans>
-          </Button>
-        ) : null}
         <a
           href={SLIDEV_INSTALL_DOCS}
           target="_blank"

@@ -2,7 +2,6 @@ import type { Server as HttpServer, IncomingMessage, ServerResponse } from 'node
 import type { Duplex } from 'node:stream';
 import type { Hocuspocus } from '@hocuspocus/server';
 import type { WebSocketServer } from 'ws';
-import type { AcpThreadManager } from './acp/thread-manager.ts';
 import type { AgentFocusBroadcaster } from './agent-focus.ts';
 import type { AgentPresenceBroadcaster } from './agent-presence.ts';
 import type { AgentSessionManager } from './agent-sessions.ts';
@@ -41,7 +40,6 @@ export interface MountMcpAndApiOptions {
   keepaliveGraceMs?: number;
   contentAssetMiddleware?: (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
   reactShellMiddleware?: (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
-  acpThreadManager?: AcpThreadManager | null;
   ephemeral?: boolean;
   health?: HealthProvider;
   nativeApi: NativeApiHandle | undefined;
@@ -78,7 +76,6 @@ export function mountMcpAndApi(opts: MountMcpAndApiOptions): MountMcpAndApiHandl
     agentPresenceBroadcaster,
     maintenanceCoordinator,
     keepaliveGraceMs: opts.keepaliveGraceMs,
-    acpThreadManager: opts.acpThreadManager,
     ingressPolicy,
   });
 

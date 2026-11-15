@@ -28,7 +28,6 @@ import { OK_FILE_TREE_READONLY_UNSAFE_CSS } from '@/components/file-tree-shared'
 import { MermaidDocEditor } from '@/components/MermaidDocEditor';
 import { ColorThemePicker } from '@/components/settings/ColorThemePicker';
 import { SettingsDialogShell } from '@/components/settings/SettingsDialogShell';
-import { TerminalPanel } from '@/components/TerminalPanel';
 import { TextDocEditor } from '@/components/TextDocEditor';
 import { TextViewer } from '@/components/TextViewer';
 import { Kbd } from '@/components/ui/kbd';
@@ -42,7 +41,6 @@ import { CodeBlockFidelity } from '@/editor/extensions/code-block';
 import { RawMdxFallback } from '@/editor/extensions/raw-mdx-fallback';
 import { SourceEditor } from '@/editor/SourceEditor';
 import { ConfigContext, type ConfigContextValue } from '@/lib/config-context';
-import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
 import { stubApiRoutes } from './api-routes.test-helper';
 import { renderWithI18n } from './render-with-i18n.test-helper';
 import { textLeaves, textMeasurement } from './theme-contrast.test-helper';
@@ -291,27 +289,6 @@ function richEditorPortal(editor: Editor) {
       {content}
     </>
   );
-}
-
-function terminalBridge(): OkDesktopBridge {
-  const terminal = {
-    adopt: async () => ({
-      ok: true as const,
-      replay: 'Plain text\r\n\x1b[90mBright black\x1b[0m\r\n\x1b[31mRed text\x1b[0m\r\n',
-    }),
-    input: () => {},
-    resize: () => {},
-    drain: () => {},
-    kill: async () => {},
-    onData: () => () => {},
-    onExit: () => () => {},
-    onNotice: () => () => {},
-  };
-  return {
-    terminal,
-    config: { e2eSmoke: true, projectPath: '/contrast-fixture' },
-    platform: 'darwin',
-  } as unknown as OkDesktopBridge;
 }
 
 describe('rendered theme text contrast', () => {
@@ -706,21 +683,6 @@ describe('rendered theme text contrast', () => {
           `${reading.text}: ${reading.foreground} on ${reading.background.join(', ')}`,
         ).toBeGreaterThanOrEqual(4.5);
       }
-    });
-
-    test(`${theme.id} terminal ordinary cells are readable`, async () => {
-      const { container } = mount(
-        theme,
-        <div style={{ height: 280 }}>
-          <TerminalPanel bridge={terminalBridge()} adoptPtyId="contrast-terminal" />
-        </div>,
-      );
-      await waitFor(() =>
-        expect(container.querySelector('.xterm-rows')?.textContent).toContain('Red text'),
-      );
-      const rows = container.querySelector('.xterm-rows');
-      if (!rows) throw new Error('Terminal did not render');
-      checkText(theme, 'terminal', textLeaves(rows));
     });
   }
 });

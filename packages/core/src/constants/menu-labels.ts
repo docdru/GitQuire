@@ -62,7 +62,6 @@ export const MENU_LABELS = {
   editorHide: 'Hide Editor',
   agentPanelShow: 'Show Agents',
   agentPanelHide: 'Hide Agents',
-  agentPanelAskSelection: 'Ask AI About Selection',
   editorMoveToLeftEdge: 'Move Editor to the left edge of the window',
   editorMoveToRightEdge: 'Move Editor to the right edge of the window',
   editorMoveToTopEdge: 'Move Editor to the top edge of the window',

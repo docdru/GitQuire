@@ -148,21 +148,6 @@ vi.doMock('@/components/ui/dropdown-menu', () => ({
   DropdownMenuTrigger: PassThrough,
 }));
 
-vi.doMock('@/components/handoff/OpenInAgentEmptySpaceSubmenu', () => ({
-  OpenInAgentEmptySpaceSubmenu: () => null,
-}));
-
-vi.doMock('@/components/handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => null,
-  buildHandoffInput: () => null,
-  buildProjectScopedHandoffInput: () => ({ docContext: null, docPath: '', projectDir: '/tmp/ok' }),
-  useHandoffDispatch: () => ({ dispatch: async () => ({ ok: true as const }) }),
-}));
-
-vi.doMock('@/components/handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: {} }),
-}));
-
 vi.doMock('@/editor/DocumentContext', () => ({
   useDocumentContext: () => ({
     activeDocName: 'notes/source',

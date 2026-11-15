@@ -3,7 +3,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PICKER_LOCALES } from '@inkeep/open-knowledge-core';
 import {
-  acpCatalogBody,
   DESKTOP_HEADER_PLATFORM_NAMES,
   DESKTOP_HEADER_PLATFORMS,
   type DesktopHeaderHost,
@@ -38,9 +37,6 @@ const BUILDS = [
   },
 ] as const;
 
-test.beforeEach(async ({ page }) => {
-  await page.route('**/api/acp/catalog', (route) => route.fulfill({ json: acpCatalogBody([]) }));
-});
 for (const locale of PICKER_LOCALES) {
   test.describe(`in ${locale}`, () => {
     test.use({ locale });

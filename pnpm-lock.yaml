@@ -169,7 +169,6 @@ patchedDependencies:
   '@radix-ui/react-tooltip@1.2.8': 782d82d9e8abae7307ad4b4ab18b1680d374a2ff86f4aaa0a7a1528db1406693
   '@tiptap/extension-drag-handle@3.22.3': 1b9619bc7312665109e19145213057775714cfb21879fb32ab1237fbfbffcdc5
   '@tiptap/y-tiptap@3.0.3': cf143fe8d2092247ec0d3e596841b684f9f84e37d0eff4a1b45eb89f1e791c43
-  '@xterm/xterm@6.0.0': 52e724ea4ed73d38923344d68d2e1e8503110de5870507336fe8b096d92d7d90
   cmdk@1.1.1: b06bc76a3813cc8142d7f75f85020a8ebff65a0ee84fac816da25986da6aa2a1
   just-bash@2.14.5: 4093617c8b341f27c6643c80bc7a1511f02a6d8b6c127f2669dde162d79e5c15
   react-medium-image-zoom@5.4.3: d59ed459a6ae570e843d0829f844dde24c0697b883351b198034f47606766517
@@ -570,21 +569,6 @@ importers:
       '@visimer/dom':
         specifier: ^1.1.3
         version: 1.1.3
-      '@xterm/addon-fit':
-        specifier: 0.11.0
-        version: 0.11.0
-      '@xterm/addon-unicode11':
-        specifier: 0.9.0
-        version: 0.9.0
-      '@xterm/addon-web-links':
-        specifier: 0.12.0
-        version: 0.12.0
-      '@xterm/addon-webgl':
-        specifier: 0.19.0
-        version: 0.19.0
-      '@xterm/xterm':
-        specifier: 6.0.0
-        version: 6.0.0(patch_hash=52e724ea4ed73d38923344d68d2e1e8503110de5870507336fe8b096d92d7d90)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1201,9 +1185,6 @@ importers:
 
   packages/server:
     dependencies:
-      '@agentclientprotocol/sdk':
-        specifier: ^1.1.0
-        version: 1.2.1(zod@4.6.7)
       '@hocuspocus/server':
         specifier: 4.0.0-rc.1
         version: 4.0.0-rc.1(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31)
@@ -5701,21 +5682,6 @@ packages:
 
   '@vitest/utils@5.1.0':
     resolution: {integrity: sha512-V+qgCwkvVw+s1t1S5TaoBHsLi5Sz/YmohCMoOu0mZ8ZQst2bKhRYARAQucWpVg8D0mv0x5MHcWXY5QdOsoiGBQ==}
-
-  '@xterm/addon-fit@0.11.0':
-    resolution: {integrity: sha512-jYcgT6xtVYhnhgxh3QgYDnnNMYTcf8ElbxxFzX0IZo+vabQqSPAjC3c1wJrKB5E19VwQei89QCiZZP86DCPF7g==}
-
-  '@xterm/addon-unicode11@0.9.0':
-    resolution: {integrity: sha512-FxDnYcyuXhNl+XSqGZL/t0U9eiNb/q3EWT5rYkQT/zuig8Gz/VagnQANKHdDWFM2lTMk9ly0EFQxxxtZUoRetw==}
-
-  '@xterm/addon-web-links@0.12.0':
-    resolution: {integrity: sha512-4Smom3RPyVp7ZMYOYDoC/9eGJJJqYhnPLGGqJ6wOBfB8VxPViJNSKdgRYb8NpaM6YSelEKbA2SStD7lGyqaobw==}
-
-  '@xterm/addon-webgl@0.19.0':
-    resolution: {integrity: sha512-b3fMOsyLVuCeNJWxolACEUED0vm7qC0cy4wRvf3oURSzDTYVQiGPhTnhWZwIHdvC48Y+oLhvYXnY4XDXPoJo6A==}
-
-  '@xterm/xterm@6.0.0':
-    resolution: {integrity: sha512-TQwDdQGtwwDt+2cgKDLn0IRaSxYu1tSUjgKarSDkUM0ZNiSRXFpjxEsvc/Zgc5kq5omJ+V0a8/kIM2WD3sMOYg==}
 
   '@yuku-codegen/binding-android-arm64@0.8.7':
     resolution: {integrity: sha512-C/0zV5IhgVdYhGJTwrY0v8dknxlhiKwtVJkMUaexu9/QvRmzlV4vfU3hZlUSgqc2BxQHntL1mCVbDq8j0FRFDw==}
@@ -15312,16 +15278,6 @@ snapshots:
       '@vitest/pretty-format': 5.1.0
       convert-source-map: 2.0.0
       tinyrainbow: 3.2.0
-
-  '@xterm/addon-fit@0.11.0': {}
-
-  '@xterm/addon-unicode11@0.9.0': {}
-
-  '@xterm/addon-web-links@0.12.0': {}
-
-  '@xterm/addon-webgl@0.19.0': {}
-
-  '@xterm/xterm@6.0.0(patch_hash=52e724ea4ed73d38923344d68d2e1e8503110de5870507336fe8b096d92d7d90)': {}
 
   '@yuku-codegen/binding-android-arm64@0.8.7':
     optional: true

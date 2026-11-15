@@ -106,9 +106,6 @@ vi.doMock('./EditorToolbar', () => ({
   EditorToolbar: () => <div data-testid="editor-toolbar" />,
 }));
 vi.doMock('./EditorFooter', () => ({ EditorFooter: () => <div data-testid="editor-footer" /> }));
-vi.doMock('./BottomComposer', () => ({
-  BottomComposer: () => <div data-testid="bottom-composer" />,
-}));
 vi.doMock('./editor-area-overlay', () => ({ shouldPaintOverlay: () => false }));
 vi.doMock('@/components/DocPanel', () => ({ DocPanel: () => <div data-testid="doc-panel" /> }));
 

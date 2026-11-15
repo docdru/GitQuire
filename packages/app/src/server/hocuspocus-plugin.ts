@@ -6,17 +6,13 @@ import {
   EXECUTABLE_BLOCKLIST_EXTENSIONS,
   INLINE_RENDERABLE_EXTENSIONS,
 } from '@inkeep/open-knowledge-core/constants/upload';
-import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
 import {
-  AcpThreadManager,
   buildIngressPolicy,
-  buildOkMcpStdioCommand,
   createAssetServeMiddleware,
   createCollaborationHost,
   createServer,
   getLogger,
   makeLazyEmbeddingsKeyStore,
-  readAgentBrowserTools,
   releaseServerLock,
   updateServerLockPort,
 } from '@inkeep/open-knowledge-server';
@@ -232,38 +228,6 @@ async function attachOkServer(
   const { hocuspocus, nativeApi, sessionManager, agentFocusBroadcaster, agentPresenceBroadcaster } =
     currentSrv;
 
-  const acpThreadManager = isEphemeralTest
-    ? null
-    : new AcpThreadManager({
-        contentDir: CONTENT_DIR,
-        localDir: currentSrv.lockDir,
-        globalDir: okUserHomeDir(),
-        registry: currentSrv.acpRegistry,
-        permissions: currentSrv.acpPermissions,
-        sessionManager,
-        agentPresenceBroadcaster,
-        localApi: currentSrv.localApi,
-        isExcludedPath: (rel) => currentSrv.contentFilter.isExcluded(rel),
-        isIgnoredPath: (rel) => currentSrv.contentFilter.isPathIgnored(rel),
-        getLoadedDocText: (docName) =>
-          hocuspocus.documents.get(docName)?.getText('source').toString() ?? null,
-        getServerUrl: () => {
-          const addr = server.httpServer?.address();
-          const port = typeof addr === 'object' && addr !== null ? addr.port : 5173;
-          return `http://localhost:${port}`;
-        },
-        getMcpStdioCommand: () => {
-          const addr = server.httpServer?.address();
-          const port = typeof addr === 'object' && addr !== null ? addr.port : 5173;
-          return buildOkMcpStdioCommand(localOpCliArgs, port, { log: getLogger('acp-threads') });
-        },
-        agentBrowserTools: () =>
-          !isTestIsolated &&
-          readAgentBrowserTools(PROJECT_ROOT, undefined, getLogger('acp-permissions')),
-        log: getLogger('acp-threads'),
-      });
-  await acpThreadManager?.init();
-
   const collaborationHost = createCollaborationHost({
     hocuspocus,
     log: getLogger('hocuspocus'),
@@ -271,7 +235,6 @@ async function attachOkServer(
     agentFocusBroadcaster,
     agentPresenceBroadcaster,
     maintenanceCoordinator: currentSrv.maintenanceCoordinator,
-    acpThreadManager,
   });
   server.httpServer?.prependListener('upgrade', collaborationHost.handleUpgrade);
 
@@ -332,7 +295,6 @@ async function attachOkServer(
         }
       };
       server.httpServer?.off('upgrade', collaborationHost.handleUpgrade);
-      await run('ACP thread manager', async () => acpThreadManager?.destroy());
       await run('collaboration host', () => collaborationHost.shutdown());
       await run('WebSocket server', () => closeWebSocketServer(collaborationHost.wss));
       await run('server instance', () => currentSrv.destroy());

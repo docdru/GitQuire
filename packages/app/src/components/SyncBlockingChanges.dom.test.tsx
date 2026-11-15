@@ -27,11 +27,6 @@ vi.doMock('@/lib/resolve-blocking', () => ({
 }));
 
 const terminalCommands: string[] = [];
-vi.doMock('@/components/handoff/terminal-command-events', () => ({
-  requestTerminalCommand: (id: string) => {
-    terminalCommands.push(id);
-  },
-}));
 
 const PATHS = ['.claude/launch.json', '.codex/config.toml'];
 
@@ -90,17 +85,5 @@ describe('SyncBlockingChanges', () => {
     await waitFor(() => {
       expect(screen.getByTestId('sync-blocking-error')).toBeTruthy();
     });
-  });
-
-  test('the terminal action appears only where a terminal exists', async () => {
-    await renderPanel();
-    expect(screen.queryByTestId('sync-blocking-terminal')).toBeNull();
-    cleanup();
-
-    (window as { okDesktop?: unknown }).okDesktop = {};
-    await renderPanel();
-
-    await userEvent.click(screen.getByTestId('sync-blocking-terminal'));
-    expect(terminalCommands).toEqual(['git-status']);
   });
 });

@@ -3,8 +3,6 @@ import type { Duplex } from 'node:stream';
 import type { Hocuspocus } from '@hocuspocus/server';
 import { AGENT_ICON_COLORS, colorFromSeed, iconFromClientName } from '@inkeep/open-knowledge-core';
 import { WebSocketServer } from 'ws';
-import type { AcpThreadManager } from './acp/thread-manager.ts';
-import { attachAcpThreadSocket } from './acp/thread-socket.ts';
 import type { AgentFocusBroadcaster } from './agent-focus.ts';
 import { toBroadcasterKey, validateAgentId } from './agent-id.ts';
 import type { AgentPresenceBroadcaster } from './agent-presence.ts';
@@ -36,7 +34,6 @@ export interface CollaborationHostOptions {
   agentPresenceBroadcaster?: AgentPresenceBroadcaster | null;
   maintenanceCoordinator?: MaintenanceCoordinator;
   keepaliveGraceMs?: number;
-  acpThreadManager?: AcpThreadManager | null;
   ingressPolicy?: IngressPolicy;
 }
 
@@ -90,7 +87,6 @@ export function createCollaborationHost(options: CollaborationHostOptions): Coll
     agentFocusBroadcaster,
     agentPresenceBroadcaster,
     maintenanceCoordinator,
-    acpThreadManager,
   } = options;
   const ingressPolicy = options.ingressPolicy ?? buildIngressPolicy({});
   const keepaliveGraceMs = options.keepaliveGraceMs ?? DEFAULT_KEEPALIVE_GRACE_MS;
@@ -259,23 +255,7 @@ export function createCollaborationHost(options: CollaborationHostOptions): Coll
       return true;
     }
     if (req.url.startsWith('/collab/thread')) {
-      if (
-        acpThreadManager === undefined ||
-        acpThreadManager === null ||
-        !admitted(req) ||
-        (req.headers.origin !== undefined && !isOriginAdmitted(req.headers.origin, ingressPolicy))
-      ) {
-        log.debug(
-          { url: req.url, host: req.headers.host, origin: req.headers.origin },
-          '[collab] /collab/thread upgrade refused',
-        );
-        socket.destroy();
-        return true;
-      }
-      trackSocket(socket, 'ACP thread');
-      safelyHandleUpgrade(req, socket, head, 'thread', (ws) =>
-        attachAcpThreadSocket(ws, acpThreadManager, log),
-      );
+      socket.destroy();
       return true;
     }
     if (req.url.startsWith('/collab/keepalive')) {

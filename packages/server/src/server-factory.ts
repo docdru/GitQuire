@@ -61,8 +61,6 @@ import {
   resolveShadowDir,
 } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import type { Doc } from 'yjs';
-import { AcpPermissionStore } from './acp/permissions.ts';
-import { AcpRegistry, loadCustomAgents } from './acp/registry.ts';
 import { AgentFocusBroadcaster } from './agent-focus.ts';
 import { AgentPresenceBroadcaster } from './agent-presence.ts';
 import type { AgentRegistryHostSeam } from './agent-registry-apply.ts';
@@ -386,7 +384,6 @@ import { type WatcherClock, type WatcherTimer, watcherClock } from './watcher-cl
 import { FRESHNESS_BASE_INTERVAL_MS } from './watcher-freshness.ts';
 
 export interface ServerOptions {
-  acpRegistryFetchImpl?: typeof fetch;
   ingressPolicy?: IngressPolicy;
   port?: number;
   host?: string;
@@ -481,8 +478,6 @@ export interface ServerInstance {
   readonly getLinkPreviewsEnabled: () => boolean;
   readonly resolveEmbed: (basename: string, sourcePath: string) => string | null;
   readonly resolveTrackedFile: (relativePath: string) => string | undefined;
-  readonly acpRegistry: AcpRegistry;
-  readonly acpPermissions: AcpPermissionStore;
   readonly recheckDisk: () => Promise<RecheckResult>;
 }
 
@@ -1163,13 +1158,6 @@ export function createServer(options: ServerOptions): ServerInstance {
   }
 
   const lockDir = getLocalDir(projectDir);
-
-  const acpRegistry = new AcpRegistry({
-    localDir: lockDir,
-    log: getLogger('acp-registry'),
-    fetchImpl: options.acpRegistryFetchImpl,
-  });
-  const acpPermissions = new AcpPermissionStore(lockDir, getLogger('acp-permissions'));
 
   let authority: ReturnType<typeof acquireServerAuthority>;
   try {
@@ -2794,8 +2782,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       getBridgeLossReporter: () => bridgeLossReporter,
       getPrincipal: () => loadedPrincipal,
       agentIntegrations: options.agentIntegrations,
-      acpRegistry,
-      loadAcpCustomAgents: () => loadCustomAgents(lockDir, getLogger('acp-registry')),
       homeDirOverride: configHomedirOverride,
       resetSettingsForTest:
         configHomedirOverride === undefined
@@ -6286,8 +6272,6 @@ export function createServer(options: ServerOptions): ServerInstance {
     getLinkPreviewsEnabled: readLinkPreviewsEnabled,
     resolveEmbed,
     resolveTrackedFile,
-    acpRegistry,
-    acpPermissions,
     recheckDisk: () => {
       if (!watcher) {
         return Promise.reject(

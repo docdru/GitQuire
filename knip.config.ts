@@ -32,7 +32,7 @@ export default {
     'ps', // process listing — diagnose.ts, process-scan.ts
     'lsof', // open-file listing — diagnose.ts, process-scan.ts
     'pgrep', // process lookup — process-scan.ts
-    'taskkill', // Windows process-tree termination — acp/launch.ts
+    'taskkill', // Windows process-tree termination — mcp/npm-child.test-helper.ts
     'sw_vers', // macOS version query — bug-report.ts
     'mktemp', // where macOS puts -t files — b4-acceptance-gate.test.ts observes the gate's scratch
     'mkfifo', // named-pipe creation — keepalive-orphan-reaping.test.ts

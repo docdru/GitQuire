@@ -149,14 +149,6 @@ vi.doMock('@/lib/config-context', () => ({
   useConfigContext: () => ({ merged: mergedConfig }),
 }));
 
-vi.doMock('@/components/handoff/TerminalLaunchContext', () => ({
-  TerminalLaunchProvider: ({ value, children }: { value: unknown; children: ReactNode }) => (
-    <div data-testid="terminal-launch-provider" data-enabled={String(value !== null)}>
-      {children}
-    </div>
-  ),
-}));
-
 vi.doMock('@/lib/api-config', () => ({
   fetchApiConfig: (...args: Parameters<typeof fetchApiConfigMock>) => fetchApiConfigMock(...args),
 }));
@@ -445,14 +437,6 @@ describe('App runtime wiring', () => {
     expect(
       screen.getByTestId('editor-file-list-slot').contains(screen.getByTestId('file-sidebar')),
     ).toBe(true);
-  });
-
-  test('a desktop host without PTY capability keeps terminal launching disabled', () => {
-    renderApp({ bridge: createBridge({ ptyAvailable: false }) });
-
-    expect(screen.getByTestId('terminal-launch-provider').getAttribute('data-enabled')).toBe(
-      'false',
-    );
   });
 
   test('promotes preview tabs when the setting changes from enabled to disabled', async () => {

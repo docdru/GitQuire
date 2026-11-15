@@ -86,7 +86,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { useDocumentContext, useOpenBlobRunner } from '@/editor/DocumentContext';
 import type { TagSummaryEntry } from '@/editor/extensions/tag-suggestion';
 import { useCreateBlankSkill } from '@/hooks/use-create-blank-skill';
-import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { useSemanticSearchStatus } from '@/hooks/use-semantic-search-status';
 import { useWorktrees } from '@/hooks/use-worktrees';
 import { useBugReport } from '@/lib/bug-report-capture';
@@ -94,7 +93,6 @@ import type { OkDesktopBridge, OkMenuAction, RecentProjectEntry } from '@/lib/de
 import { hashFromDocName } from '@/lib/doc-hash';
 import { runWithToast as runWithToastBase } from '@/lib/error-state';
 import { openExternalUrl as openExternalUrlViaHost } from '@/lib/external-link';
-import { isTargetOfferedOnHost, VISIBLE_TARGETS } from '@/lib/handoff/targets';
 import {
   formatShortcut,
   formatShortcutLabel,
@@ -106,13 +104,10 @@ import { revealEditor } from '@/lib/reveal-editor';
 import { physicalSide, useChatHistorySide } from '@/lib/sidebar-side-store';
 import { useSingleFileMode } from '@/lib/single-file-mode';
 import { useDocumentDirection } from '@/lib/use-document-direction';
-import { useWorkspace } from '@/lib/use-workspace';
 import { cn } from '@/lib/utils.ts';
 import { useViewMenuState } from '@/lib/view-menu-state-store';
 import { worktreeCreateErrorCopy } from '@/lib/worktree-create-error';
 import { refreshWorktrees } from '@/lib/worktree-store';
-import { buildHandoffInput, useHandoffDispatch } from './handoff/useHandoffDispatch';
-import { useInstalledAgents } from './handoff/useInstalledAgents';
 import { basenameOf } from './project-switcher-recents';
 import { RecentItemContextMenu, RecentRemoveButton } from './recent-remove-controls';
 
@@ -315,9 +310,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     filePaths,
     loading: pagesLoading,
   } = usePageList();
-  const workspace = useWorkspace();
-  const { states: installStates, refresh: refreshInstallStates } = useInstalledAgents();
-  const { dispatch: dispatchHandoff } = useHandoffDispatch();
   const {
     status: semanticCapability,
     stale: semanticStatusStale,
@@ -348,7 +340,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     const id = window.setInterval(() => refreshSemanticStatus(), 2500);
     return () => window.clearInterval(id);
   }, [open, isSemanticMode, semanticStatusPollNeeded]);
-  const handoffInput = buildHandoffInput({ docName: activeDocName, workspace });
 
   const workspaceEntries = buildWorkspaceEntries(
     pages,
@@ -389,7 +380,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
   useEffect(() => {
     if (open) {
       setRecentNavigation(loadOmnibarRecents());
-      void refreshInstallStates();
       if (bridge) {
         let cancelled = false;
         void runWithToast(async () => {
@@ -418,7 +408,7 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     setSemanticResults([]);
     setSemanticFiredQuery(null);
     setSemanticStatus('idle');
-  }, [open, bridge, refreshInstallStates, t]);
+  }, [open, bridge, t]);
 
   useEffect(() => {
     void query;
@@ -664,22 +654,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     keywords: ['worktree branch'],
   })).slice(0, 10);
   const showWorktrees = !inExclusiveMode && bridge !== null && rankedWorktrees.length > 0;
-  const isEmbedded = useIsEmbedded();
-  const hostAgentTargets = VISIBLE_TARGETS.filter((target) =>
-    isTargetOfferedOnHost(target, {
-      platform: bridge?.platform,
-      installed: installStates[target.id]?.installed,
-    }),
-  );
-  const rankedAgentTargets = rankRows(hostAgentTargets, deferredQuery, (target) => {
-    const displayName = target.displayName;
-    return {
-      label: t`Open with AI ${displayName} Desktop`,
-      keywords: [target.id, 'agent handoff', 'open in'],
-    };
-  });
-  const showAgentGroup =
-    !inExclusiveMode && !isEmbedded && handoffInput !== null && rankedAgentTargets.length > 0;
   const tagListItems =
     paletteMode.kind === 'tag-list' ? filterTagList(tagsList, paletteMode.query) : [];
   const showTagListEmpty =
@@ -788,7 +762,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     showSearchLoading ||
     showSearchPreparing ||
     showProjectRecents ||
-    showAgentGroup ||
     hasVisibleFixedCommand;
 
   function navigateToTagDocs(tagName: string) {
@@ -936,52 +909,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
   });
   const rankedCommandBlocks = [
     commandGroupBlock('commands'),
-    {
-      key: 'open-with-ai',
-      rank: firstRank(rankedAgentTargets),
-      node: showAgentGroup ? (
-        <CommandGroup heading={t`Open with AI`}>
-          {rankedAgentTargets.map(({ row: target }) => {
-            const installState = installStates[target.id];
-            const enabled = installState.installed === true && handoffInput !== null;
-            const displayName = target.displayName;
-            const hint =
-              installState.installed === null
-                ? t`Detecting`
-                : installState.installed === false
-                  ? t`Not installed`
-                  : null;
-            const accessibleLabel = hint
-              ? t`Open with AI ${displayName} Desktop, ${hint}`
-              : t`Open with AI ${displayName} Desktop`;
-
-            return (
-              <CommandItem
-                key={target.id}
-                value={`send to ai ${target.displayName} desktop ${target.id} agent open in`}
-                disabled={!enabled}
-                onSelect={() => {
-                  if (!enabled || !handoffInput) return;
-                  onOpenChange(false);
-                  void dispatchHandoff(target.id, handoffInput, { installState });
-                }}
-                data-testid={`command-palette-open-in-${target.id}`}
-                aria-label={accessibleLabel}
-              >
-                <span className="flex-1">
-                  <Trans>Open with AI {displayName} Desktop</Trans>
-                </span>
-                {hint ? (
-                  <span aria-hidden="true" className="ml-auto text-muted-foreground text-xs">
-                    {hint}
-                  </span>
-                ) : null}
-              </CommandItem>
-            );
-          })}
-        </CommandGroup>
-      ) : null,
-    },
     commandGroupBlock('project'),
     {
       key: 'recent-projects',
@@ -1267,32 +1194,28 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
             ) : null}
           </div>
 
-          {isSemanticMode && semanticView ? (
-            <>
-              {semanticView.results.show ? (
-                <CommandGroup
-                  heading={
-                    semanticView.results.dimmed
-                      ? t`Showing results for "${semanticResultsLabel}"`
-                      : t`By meaning`
-                  }
-                >
-                  <div
-                    data-testid="command-palette-semantic-results"
-                    data-dimmed={semanticView.results.dimmed}
-                  >
-                    {semanticResults.map((entry) => (
-                      <NavigationItem
-                        key={makeOmnibarRecentKey(entry.kind, entry.path)}
-                        entry={entry}
-                        disabled={semanticView.results.dimmed}
-                        onSelect={() => navigateToEntry(entry)}
-                      />
-                    ))}
-                  </div>
-                </CommandGroup>
-              ) : null}
-            </>
+          {isSemanticMode && semanticView?.results.show ? (
+            <CommandGroup
+              heading={
+                semanticView.results.dimmed
+                  ? t`Showing results for "${semanticResultsLabel}"`
+                  : t`By meaning`
+              }
+            >
+              <div
+                data-testid="command-palette-semantic-results"
+                data-dimmed={semanticView.results.dimmed}
+              >
+                {semanticResults.map((entry) => (
+                  <NavigationItem
+                    key={makeOmnibarRecentKey(entry.kind, entry.path)}
+                    entry={entry}
+                    disabled={semanticView.results.dimmed}
+                    onSelect={() => navigateToEntry(entry)}
+                  />
+                ))}
+              </div>
+            </CommandGroup>
           ) : null}
           {showSearchPreparing ? (
             <div

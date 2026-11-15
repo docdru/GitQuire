@@ -3,7 +3,6 @@ import type { ElementHandle, JSHandle, Locator, Page } from '@playwright/test';
 import {
   type ApiHelpers,
   arrangeTerminalAlone,
-  CHAT_PANE_CARD,
   CORNER_STACK_TEST_ID,
   contrastRatioOf,
   cornerStack,
@@ -23,7 +22,6 @@ import {
   setHeaderPane,
   terminalPaneCard,
   test,
-  threadRosterDelivered,
   type WorkerServer,
 } from '../stress/_helpers';
 import {
@@ -41,9 +39,7 @@ const BOTTOM_TERMINAL = terminalPaneCard('bottom');
 const ANY_TERMINAL = '[data-pane="terminal"], .xterm';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const FEEDBACK_LATCH_TIMEOUT_MS = 15_000;
-const HARNESS_TIMEOUT_MS = 30_000;
 const MAX_TAB_PRESSES = 40;
-const CHAT_AGENT = { source: 'registry', id: 'codex-acp', name: 'Codex' } as const;
 const TAB_STOP_CANDIDATES =
   'a[href], area[href], button, input, select, textarea, iframe, summary, [tabindex], [contenteditable=""], [contenteditable="true"]';
 const LIVE_REGION =
@@ -317,27 +313,6 @@ const FOCUS_SITES: readonly FocusSite[] = [
       await focusTheTerminal(page);
     },
   },
-  {
-    name: 'the chat composer',
-    focus: async (page) => {
-      await setHeaderPane(page, 'agents', true);
-      await expect(page.locator(CHAT_PANE_CARD)).toBeVisible();
-      await page.waitForFunction(() => window.__acpThreadHarness !== undefined, null, {
-        timeout: HARNESS_TIMEOUT_MS,
-      });
-      const threadId = await page.evaluate((agent) => {
-        const harness = window.__acpThreadHarness;
-        if (harness === undefined) throw new Error('ACP thread harness is not installed');
-        return harness.openThread({ agent, title: 'Corner stack focus' });
-      }, CHAT_AGENT);
-      const composer = page.locator(
-        `[data-session-id="${threadId}"] [data-testid="agent-thread-composer"]`,
-      );
-      await expect(composer).toBeVisible({ timeout: HARNESS_TIMEOUT_MS });
-      await composer.focus();
-      await expect(composer).toBeFocused();
-    },
-  },
 ];
 
 test.describe('an arriving notice never takes focus', () => {
@@ -347,14 +322,12 @@ test.describe('an arriving notice never takes focus', () => {
       api,
       workerServer,
     }) => {
-      const roster = threadRosterDelivered(page);
       await openDesktop(
         page,
         api,
         workerServer,
         `no-focus-theft-${name.replaceAll(/[^a-z]+/g, '-')}`,
       );
-      await roster;
       await focus(page);
       const focused = await focusedElement(page);
       const before = await tabStops(page);

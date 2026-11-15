@@ -6,7 +6,6 @@ import { plural } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowRightIcon, Info, Plus } from 'lucide-react';
 import { CopyablePromptList } from '@/components/empty-state/CopyablePromptList';
-import { CreatePromptComposer } from '@/components/empty-state/CreatePromptComposer';
 import { EmptyStateHeader } from '@/components/empty-state/EmptyStateHeader';
 import { getEmptyStateCopy } from '@/components/empty-state/empty-state-copy';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -15,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import type { AsyncState } from '@/hooks/use-folder-config';
 import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { emitCreateTopLevelFile } from '@/lib/create-file-events';
-import { useAskAiAvailable } from '@/lib/gitquire/features';
 import { cn } from '@/lib/utils';
 
 interface CreateViewProps {
@@ -33,8 +31,7 @@ export function CreateView({
 }: CreateViewProps) {
   const { t } = useLingui();
   const isEmbedded = useIsEmbedded();
-  const askAi = useAskAiAvailable();
-  const { title, subtitle } = getEmptyStateCopy({ isOnboarding: false, isEmbedded, askAi });
+  const { title, subtitle } = getEmptyStateCopy({ isOnboarding: false, isEmbedded });
 
   return (
     <div className="flex w-full flex-col gap-8 py-12 max-w-5xl my-auto" data-testid="create-view">
@@ -45,11 +42,7 @@ export function CreateView({
         onRageStreak={onRageStreak}
       />
 
-      {isEmbedded ? (
-        <CopyablePromptList scenario="existing-repo" />
-      ) : askAi ? (
-        <CreatePromptComposer scenario="existing-repo" />
-      ) : null}
+      {isEmbedded ? <CopyablePromptList scenario="existing-repo" /> : null}
 
       <FileCreationActions templatesState={templatesState} onAddStarterPack={onAddStarterPack} />
     </div>

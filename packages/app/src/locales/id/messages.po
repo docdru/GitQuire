@@ -13,9 +13,6 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-msgid " · project files as references"
-msgstr " · file proyek sebagai referensi"
-
 msgid " or "
 msgstr " atau "
 
@@ -27,15 +24,6 @@ msgstr " Pilihan Anda telah dipulihkan."
 
 msgid "— except"
 msgstr "— kecuali"
-
-msgid ", {status}"
-msgstr ", {status}"
-
-msgid ", {status}, new activity"
-msgstr ", {status}, ada aktivitas baru"
-
-msgid "… earlier output trimmed"
-msgstr "… keluaran sebelumnya dipangkas"
 
 msgid ".myteam/skills"
 msgstr ".myteam/skills"
@@ -94,9 +82,6 @@ msgstr "\"{trimmed}\" sudah ada di sini"
 msgid "\"frontmatter\" is a reserved property name"
 msgstr "\"frontmatter\" adalah nama properti yang dicadangkan"
 
-msgid "({0, plural, one {# attempt} other {# attempts}})"
-msgstr "({0, plural, other {# percobaan}})"
-
 msgid "(a bare folder name needs /** after it to match what's inside)"
 msgstr "(nama folder saja memerlukan /** setelahnya agar cocok dengan isinya)"
 
@@ -139,16 +124,10 @@ msgstr "(sebagian mungkin sudah disembunyikan oleh aturan lain)"
 msgid "(symlink)"
 msgstr "(symlink)"
 
-msgid "{0, plural, one {# attachment is ready to send} other {# attachments are ready to send}}"
-msgstr "{0, plural, other {# lampiran siap dikirim}}"
-
 msgid "{0, plural, one {# backlink} other {# backlinks}}"
 msgstr "{0, plural, other {# tautan balik}}"
 
 msgid "{0, plural, one {# doc} other {# docs}}"
-msgstr "{0, plural, other {# dokumen}}"
-
-msgid "{0, plural, one {# document} other {# documents}}"
 msgstr "{0, plural, other {# dokumen}}"
 
 msgid "{0, plural, one {# error} other {# errors}}"
@@ -226,44 +205,11 @@ msgstr "{0, plural, other {Keterampilan}}"
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
-msgid "{0, plural, one {Uploading # attachment} other {Uploading # attachments}}"
-msgstr "{0, plural, other {Mengunggah # lampiran}}"
-
-msgid "{0} · default"
-msgstr "{0} · bawaan"
-
 msgid "{0} (opens in a new tab)"
 msgstr "{0} (terbuka di tab baru)"
 
-msgid "{0} +{rest} more"
-msgstr "{0} +{rest} lainnya"
-
-msgid "{0} × {label}"
-msgstr "{0} × {label}"
-
-msgid "{0} acts without asking — GitQuire can't add permission prompts for it"
-msgstr "{0} bertindak tanpa bertanya — GitQuire tidak dapat menambahkan permintaan izin untuknya"
-
 msgid "{0} added, {1} removed"
 msgstr "{0} ditambahkan, {1} dihapus"
-
-msgid "{0} CLI"
-msgstr "CLI {0}"
-
-msgid "{0} couldn't restart on that context window. Use Try again to bring it back."
-msgstr "{0} tidak dapat dijalankan ulang pada jendela konteks itu. Gunakan Coba lagi untuk memulihkannya."
-
-msgid "{0} didn't confirm the context window change. Check the conversation before picking again."
-msgstr "{0} tidak mengonfirmasi perubahan jendela konteks. Periksa percakapan sebelum memilih lagi."
-
-msgid "{0} doesn't offer any settings to adjust"
-msgstr "{0} tidak menawarkan pengaturan untuk disesuaikan"
-
-msgid "{0} has no way to read or edit your documents on its own. Approving writes the GitQuire extension to {1} and leaves it there, so this session and later ones in this project have the GitQuire tools."
-msgstr "{0} tidak dapat membaca atau menyunting dokumen Anda sendiri. Menyetujui akan menulis ekstensi GitQuire ke {1} dan membiarkannya di sana, sehingga sesi ini dan sesi berikutnya dalam proyek ini memiliki alat GitQuire."
-
-msgid "{0} hasn't reported its settings yet"
-msgstr "{0} belum melaporkan pengaturannya"
 
 msgid "{0} in · {1} out"
 msgstr ""
@@ -271,29 +217,11 @@ msgstr ""
 msgid "{0} is over {destination}."
 msgstr "{0} berada di atas {destination}."
 
-msgid "{0} isn't installed yet — opening its download page."
-msgstr "{0} belum terpasang — membuka halaman unduhannya."
-
-msgid "{0} kept its current context window."
-msgstr "{0} mempertahankan jendela konteksnya saat ini."
-
-msgid "{0} needs {1}"
-msgstr "{0} membutuhkan {1}"
-
-msgid "{0} needs {1}. Turn both off, or keep both on."
-msgstr "{0} memerlukan {1}. Nonaktifkan keduanya, atau biarkan keduanya aktif."
-
-msgid "{0} needs replacing"
-msgstr "{0} perlu diganti"
-
 msgid "{0} of {1} projects selected"
 msgstr "{0} dari {1} proyek dipilih"
 
 msgid "{0} of {1} selected"
 msgstr "{0} dari {1} dipilih"
-
-msgid "{0} opens via a link and doesn't accept attachments — choose an in-app agent instead."
-msgstr "{0} terbuka lewat tautan dan tidak menerima lampiran — pilih agen dalam aplikasi."
 
 msgid "{0} other skills by this publisher"
 msgstr "{0} keterampilan lain dari penerbit ini"
@@ -316,9 +244,6 @@ msgstr "Properti {0}"
 msgid "{0} reads this skill via {poolRootRel}. Click to stop {1} getting \"{2}\" — {subRoot} keeps its other skills but stops following {poolRootRel}."
 msgstr "{0} membaca keterampilan ini lewat {poolRootRel}. Klik agar {1} berhenti menerima \"{2}\" — {subRoot} tetap punya keterampilan lainnya tetapi berhenti mengikuti {poolRootRel}."
 
-msgid "{0} runs in a terminal and doesn't accept attachments — choose an in-app agent instead."
-msgstr "{0} berjalan di terminal dan tidak menerima lampiran — pilih agen dalam aplikasi."
-
 msgid "{0} share this folder."
 msgstr "{0} berbagi folder ini."
 
@@ -330,9 +255,6 @@ msgstr "{0} total"
 
 msgid "{0} unchanged paragraphs"
 msgstr ""
-
-msgid "{0} version {1}"
-msgstr "{0} versi {1}"
 
 msgid "{0} was already deleted."
 msgstr "{0} sudah dihapus."
@@ -369,79 +291,6 @@ msgstr "{0} thn lalu"
 
 msgid "{accessibleLabel} (conflict)"
 msgstr "{accessibleLabel} (konflik)"
-
-msgid "{addingCount, plural, one {# added} other {# added}}"
-msgstr "{addingCount, plural, other {# ditambahkan}}"
-
-msgid "{addingCount, plural, one {# added} other {# added}} · {removingCount, plural, one {# removed} other {# removed}}"
-msgstr "{addingCount, plural, other {# ditambahkan}} · {removingCount, plural, other {# dihapus}}"
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.claude-desktop.per-tool-approval"
-msgstr "{agent} meminta Anda menyetujui setiap alat GitQuire saat pertama kali digunakan."
-
-#. js-lingui-explicit-id
-msgid "guidance.mcp.session-injection"
-msgstr "{agent} menerima alat GitQuire setiap kali GitQuire menjalankannya; tidak ada yang ditulis ke konfigurasinya."
-
-#. js-lingui-explicit-id
-msgid "followup.enable-manually"
-msgstr "{agent} membiarkan server MCP proyek mati sampai Anda menyalakannya di Customize → MCPs. GitQuire tidak bisa melihat pengaturan itu."
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.codex.folder-trust"
-msgstr "{agent} memuat entri proyek hanya di folder yang sudah Anda percayai. CLI menanyakannya saat pertama kali dijalankan di folder baru, tetapi codex exec tidak bisa bertanya dan versi lama mungkin tidak mengingat jawabannya, jadi jika alatnya tidak muncul, tandai proyek itu sebagai tepercaya di ~/.codex/config.toml. Memercayai sebuah proyek akan memuat seluruh lapisan .codex/ miliknya, termasuk hook dan aturan."
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.pi.folder-trust"
-msgstr "{agent} hanya memuat ekstensi proyek di folder yang Anda percayai; percayai folder ini di {agent} jika alat tidak muncul."
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.copilot.shared-workspace-config"
-msgstr "{agent} membaca konfigurasi MCP ruang kerja yang ditulis GitQuire untuk {sourceAgent}; menghapusnya untuk satu berarti menghapusnya untuk keduanya. {agent} memuatnya hanya setelah Anda mengonfirmasi kepercayaan folder saat peluncuran pertama, dan melewatinya diam-diam di folder yang belum Anda percayai, termasuk di bawah copilot -p, yang tidak bisa menampilkan permintaan kepercayaan."
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.openclaw.central-store-missing"
-msgstr "Penyimpanan keterampilan pusat {agent} belum ada; jalankan {agent} sekali agar ia membuatnya, lalu coba lagi."
-
-msgid "{agentName} can't pick this chat back up. The transcript is kept, so start a new chat to continue."
-msgstr "{agentName} tidak dapat melanjutkan obrolan ini. Transkrip tetap tersimpan, jadi mulai obrolan baru untuk melanjutkan."
-
-msgid "{agentName} couldn't start"
-msgstr "{agentName} tidak dapat dijalankan"
-
-msgid "{agentName} couldn't start a conversation."
-msgstr "{agentName} tidak dapat memulai percakapan."
-
-msgid "{agentName} couldn't start."
-msgstr "{agentName} tidak dapat dijalankan."
-
-msgid "{agentName} doesn't accept image attachments."
-msgstr "{agentName} tidak menerima lampiran gambar."
-
-msgid "{agentName} is ready"
-msgstr "{agentName} siap"
-
-msgid "{agentName} isn't running. Start a new chat to sign in."
-msgstr "{agentName} tidak berjalan. Mulai obrolan baru untuk masuk."
-
-msgid "{agentName} needed you to sign in."
-msgstr "{agentName} tadi memerlukan Anda untuk masuk."
-
-msgid "{agentName} needed you to sign in. Resume this chat to try again."
-msgstr "{agentName} tadi memerlukan Anda untuk masuk. Lanjutkan obrolan ini untuk mencoba lagi."
-
-msgid "{agentName} needs you to sign in."
-msgstr "{agentName} memerlukan Anda untuk masuk."
-
-msgid "{agentName} reported: {headline}"
-msgstr "{agentName} melaporkan: {headline}"
-
-msgid "{agentName} stopped unexpectedly."
-msgstr "{agentName} berhenti secara tak terduga."
-
-msgid "{agentName} stopped with an error."
-msgstr "{agentName} berhenti dengan galat."
 
 msgid "{ahead} ahead"
 msgstr "{ahead} di depan"
@@ -551,24 +400,6 @@ msgstr "{count} keterampilan"
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, other {# hari lalu}}"
 
-msgid "{days}d ago"
-msgstr "{days} hr lalu"
-
-msgid "{dependent} needs {prerequisite}, and GitQuire cannot safely replace that entry in this file's format."
-msgstr "{dependent} memerlukan {prerequisite}, dan GitQuire tidak dapat mengganti entri tersebut dengan aman dalam format file ini."
-
-msgid "{dependent} needs {prerequisite}, and GitQuire could not find this agent on this machine."
-msgstr "{dependent} memerlukan {prerequisite}, dan GitQuire tidak menemukan agen ini di mesin ini."
-
-msgid "{dependent} needs {prerequisite}, and GitQuire does not recognize that entry. Tick {prerequisite} to replace it, then save again."
-msgstr "{dependent} memerlukan {prerequisite}, dan GitQuire tidak mengenali entri tersebut. Centang {prerequisite} untuk menggantinya, lalu simpan lagi."
-
-msgid "{dependent} needs {prerequisite}, and this agent has no file of that kind on this machine yet. Open the agent once, then try again."
-msgstr "{dependent} memerlukan {prerequisite}, dan agen ini belum memiliki file jenis itu di mesin ini. Buka agen sekali, lalu coba lagi."
-
-msgid "{dependent} needs {prerequisite}, which GitQuire cannot set up for you. Its setup guide has the manual steps."
-msgstr "{dependent} memerlukan {prerequisite}, yang tidak dapat disiapkan GitQuire untuk Anda. Panduan penyiapannya berisi langkah-langkah manual."
-
 msgid "{descriptorLabel} — render error, source editable below"
 msgstr "{descriptorLabel} — galat render, sumber bisa disunting di bawah"
 
@@ -592,21 +423,6 @@ msgstr "{display} adalah symlink ke sumbernya, sedangkan lokasi lain keterampila
 
 msgid "{display} is an independent copy while the skill's other locations are symlinks. Click to make it a symlink to the source."
 msgstr "{display} adalah salinan mandiri, sedangkan lokasi lain keterampilan ini berupa symlink. Klik untuk menjadikannya symlink ke sumbernya."
-
-msgid "{displayName} ({bin}) isn't installed or on your PATH."
-msgstr "{displayName} ({bin}) belum terpasang atau tidak ada di PATH Anda."
-
-msgid "{displayName} CLI"
-msgstr "CLI {displayName}"
-
-msgid "{displayName} CLI, {hint}"
-msgstr "CLI {displayName}, {hint}"
-
-msgid "{displayName} Desktop"
-msgstr "{displayName} Desktop"
-
-msgid "{displayName} is installed, but GitQuire tools aren't connected to it yet."
-msgstr "{displayName} sudah terpasang, tetapi alat GitQuire belum terhubung dengannya."
 
 msgid "{docName} is {0}. GitQuire currently opens files up to {1}."
 msgstr "{docName} berukuran {0}. Saat ini GitQuire membuka berkas hingga {1}."
@@ -714,9 +530,6 @@ msgstr "{loadErrorTitle}: {message}"
 msgid "{localizedMessage} at line {displayLine}"
 msgstr "{localizedMessage} pada baris {displayLine}"
 
-msgid "{mcpTool} from the {server} MCP server"
-msgstr "{mcpTool} dari server MCP {server}"
-
 msgid "{mins, plural, one {# min ago} other {# min ago}}"
 msgstr "{mins, plural, other {# mnt lalu}}"
 
@@ -725,9 +538,6 @@ msgstr "{minutes} mnt lalu"
 
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
-
-msgid "{name} CLI"
-msgstr "CLI {name}"
 
 msgid "{name} moved, but its pin did not. Pin it again after settings finish loading."
 msgstr "{name} telah dipindahkan, tetapi sematannya tidak ikut berpindah. Sematkan lagi setelah pengaturan selesai dimuat."
@@ -777,9 +587,6 @@ msgstr ""
 msgid "{percent}% from top"
 msgstr "{percent}% dari atas"
 
-msgid "{percent}% used ({left}% left)"
-msgstr "{percent}% terpakai (sisa {left}%)"
-
 msgid "{phase} — {pct}%"
 msgstr "{phase} — {pct}%"
 
@@ -803,9 +610,6 @@ msgstr "{propertyCount, plural, other {# properti}}"
 
 msgid "{propPanelDescriptorLabel} Properties"
 msgstr "Properti {propPanelDescriptorLabel}"
-
-msgid "{removingCount, plural, one {# removed} other {# removed}}"
-msgstr "{removingCount, plural, other {# dihapus}}"
 
 msgid "{rowCount, plural, one {# page} other {# pages}}"
 msgstr ""
@@ -867,9 +671,6 @@ msgstr "{templateCount, plural, other {templat}}"
 msgid "{tokens, plural, one {token} other {tokens}}"
 msgstr "{tokens, plural, other {token}}"
 
-msgid "{tooLargeTotalCount, plural, one {Skipped # file — attachments can't total more than {budgetKb} KB per message.} other {Skipped # files — attachments can't total more than {budgetKb} KB per message.}}"
-msgstr "{tooLargeTotalCount, plural, other {# berkas dilewati — total lampiran tidak boleh lebih dari {budgetKb} KB per pesan.}}"
-
 msgid "{total, plural, one {# problem} other {# problems}}"
 msgstr "{total, plural, other {# masalah}}"
 
@@ -884,9 +685,6 @@ msgstr "{uploadFolderName} — {0} berkas"
 
 msgid "{uploadFolderName} — 1 file"
 msgstr "{uploadFolderName} — 1 berkas"
-
-msgid "{usedLabel} / {sizeLabel} tokens used"
-msgstr "{usedLabel} / {sizeLabel} token terpakai"
 
 msgid "{userName} · {tabCount, plural, one {# tab} other {# tabs}}"
 msgstr "{userName} · {tabCount, plural, other {# tab}}"
@@ -912,9 +710,6 @@ msgstr ""
 msgid "@anna @ben"
 msgstr ""
 
-msgid "/{0} isn't a command this agent offers — it will be sent as plain text"
-msgstr "/{0} bukan perintah yang ditawarkan agen ini — akan dikirim sebagai teks biasa"
-
 msgid "// note"
 msgstr "// catatan"
 
@@ -930,9 +725,6 @@ msgid "# One pattern per line.\n"
 "#   *.draft.md\n"
 "#   !keep.md"
 msgstr "# Satu pola per baris.\\n# Contoh:\\n#   drafts/\\n#   *.draft.md\\n#   !keep.md"
-
-msgid "#{position} in the merge queue"
-msgstr "#{position} di antrean merge"
 
 msgid "+ {overflow} more"
 msgstr "+ {overflow} lagi"
@@ -978,9 +770,6 @@ msgstr "<0>Terlalu banyak referensi langsung di halaman ini.</0> Cermin <1>{src}
 msgid "~/.myteam/skills"
 msgstr "~/.myteam/skills"
 
-msgid "⋯ {0} unchanged lines"
-msgstr "⋯ {0} baris tidak berubah"
-
 msgid "📝 or assets/icon.png"
 msgstr "📝 atau assets/icon.png"
 
@@ -1025,12 +814,6 @@ msgstr "Cabang bernama {shareBranch} sudah ada. Buka worktree-nya dari pengalih 
 
 msgid "A branch with that name already exists. Open its worktree from the switcher instead."
 msgstr "Cabang dengan nama itu sudah ada. Buka worktree-nya dari pengalih saja."
-
-msgid "A command the agent needs could not be run (exit code {code}). Check that it is executable and that you have permission to run it."
-msgstr "Perintah yang dibutuhkan agen tidak dapat dijalankan (kode keluar {code}). Pastikan perintah itu dapat dieksekusi dan Anda punya izin menjalankannya."
-
-msgid "A command the agent needs was not found (exit code {code}). Check that the agent's dependencies are installed and on your PATH."
-msgstr "Perintah yang dibutuhkan agen tidak ditemukan (kode keluar {code}). Pastikan dependensi agen sudah terpasang dan ada di PATH Anda."
 
 msgid "A copy is a real folder of its own, and OK keeps it in step with the source: edit the skill here and every copy is refreshed. That stops the moment you hand-edit a copy outside OK — from then on it goes its own way and shows up as a separate skill."
 msgstr "Salinan adalah folder tersendiri, dan OK menjaganya tetap selaras dengan sumbernya: sunting keterampilan di sini dan setiap salinan ikut diperbarui. Itu berhenti begitu Anda menyunting sebuah salinan secara manual di luar OK — sejak saat itu ia berjalan sendiri dan muncul sebagai keterampilan terpisah."
@@ -1092,9 +875,6 @@ msgstr "panel baru di sebelah kiri {0}"
 msgid "a new pane to the right of {0}"
 msgstr "panel baru di sebelah kanan {0}"
 
-msgid "A newer handoff replaced this retry."
-msgstr "Handoff yang lebih baru menggantikan percobaan ulang ini."
-
 msgid "A newer version may have been deployed since this tab opened."
 msgstr "Versi yang lebih baru mungkin sudah dirilis sejak tab ini dibuka."
 
@@ -1113,17 +893,11 @@ msgstr "Sebuah jalur di dalam keterampilan — folder apa pun bisa (mis. referen
 msgid "A personal color-theme picker — not shared with your project. When on, it appears under Plugins in the sidebar."
 msgstr "Pemilih tema warna pribadi — tidak dibagikan dengan proyek Anda. Saat aktif, ia muncul di bawah Plugin pada bilah sisi."
 
-msgid "A PR reviewer, a release-notes writer, a deploy checklist..."
-msgstr "Peninjau PR, penulis catatan rilis, daftar periksa penerapan..."
-
 msgid "A project already exists at this location. Pick a different parent folder."
 msgstr "Sudah ada proyek di lokasi ini. Pilih folder induk lain."
 
 msgid "A pull quote stands out from the surrounding text."
 msgstr "Kutipan sorot menonjol dari teks di sekitarnya."
-
-msgid "A real shell is off for this project. Turning it on runs commands with the full access of your user account."
-msgstr "Shell asli dinonaktifkan untuk proyek ini. Mengaktifkannya membuat perintah berjalan dengan akses penuh akun pengguna Anda."
 
 msgid "A redundant copy was kept in {scopeLabel} for: {names}. Each original was verified unchanged, so remove those copies and retry the move."
 msgstr "Salinan yang tidak diperlukan disimpan di {scopeLabel} untuk: {names}. Setiap aslinya sudah diverifikasi tidak berubah, jadi hapus salinan itu lalu coba pemindahan lagi."
@@ -1157,9 +931,6 @@ msgstr "Keterampilan dengan nama itu sudah ada."
 
 msgid "A symlink is a pointer to the source folder rather than a folder of its own. Every location reads the exact same bytes, so nothing can drift, and a location stops working if the source is deleted."
 msgstr "Symlink adalah penunjuk ke folder sumber, bukan folder tersendiri. Setiap lokasi membaca bita yang persis sama, jadi tidak ada yang bisa melenceng, dan sebuah lokasi berhenti bekerja jika sumbernya dihapus."
-
-msgid "A team knowledge base, a personal wiki, project docs..."
-msgstr "Basis pengetahuan tim, wiki pribadi, dokumentasi proyek..."
 
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "Templat bernama <0>{trimmedSlug}</0> sudah ada di sini. Menyimpan akan membuat salinan lokal yang menimpanya untuk folder ini."
@@ -1336,12 +1107,6 @@ msgstr "Tambahkan item ke {keyName}"
 msgid "Add link"
 msgstr "Tambahkan tautan"
 
-msgid "Add MCP & skill"
-msgstr "Tambahkan MCP & keterampilan"
-
-msgid "Add MCP & skill for {rowLabel}"
-msgstr "Tambahkan MCP & keterampilan untuk {rowLabel}"
-
 msgid "Add meaning-based ranking to search so conceptually-related pages surface even when they share no keywords."
 msgstr "Menambahkan pemeringkatan berbasis makna ke pencarian agar halaman yang berkaitan secara konsep tetap muncul meski tidak berbagi kata kunci."
 
@@ -1382,9 +1147,6 @@ msgstr "Tambahkan ke {gitignorePath}"
 msgid "Add to Dictionary"
 msgstr "Tambahkan ke kamus"
 
-msgid "Add to prompt"
-msgstr "Tambahkan ke prompt"
-
 msgid "Add token"
 msgstr "Tambah token"
 
@@ -1408,22 +1170,8 @@ msgstr "Menambahkan entri MCP GitQuire dan keterampilan proyek ke <0>{toolList}<
 msgid "Adds a GitQuire MCP entry to <0>{connectToolList}</0>, so your agents can read and edit your files."
 msgstr "Menambahkan entri MCP GitQuire ke <0>{connectToolList}</0> agar agen Anda dapat membaca dan mengedit berkas Anda."
 
-msgid "Adds a GitQuire MCP entry to this project's agent config."
-msgstr "Menambahkan entri MCP GitQuire ke konfigurasi agen proyek ini."
-
-msgid "Adds a global GitQuire MCP entry for this agent."
-msgstr "Menambahkan entri MCP GitQuire global untuk agen ini."
-
 msgid "Adds a managed block to"
 msgstr "Menambahkan blok terkelola ke"
-
-#. js-lingui-explicit-id
-msgid "guidance.mcp.user-config"
-msgstr "Menambahkan GitQuire ke konfigurasi MCP milik {agent}, sehingga semua proyek di mesin ini dapat dijangkau."
-
-#. js-lingui-explicit-id
-msgid "guidance.mcp.project-config"
-msgstr "Menambahkan GitQuire ke konfigurasi MCP yang dibaca {agent} di proyek ini, sehingga ia dapat membaca, mencari, dan mengedit dokumen-dokumen ini."
 
 msgid "Adds telemetry, server state, and runtime info when available. Credentials are always removed; document names, if included, appear in cleartext (not redacted)."
 msgstr "Menambahkan telemetri, keadaan server, dan info runtime bila tersedia. Kredensial selalu dihapus; nama dokumen, jika disertakan, muncul sebagai teks biasa (tidak disunting)."
@@ -1458,35 +1206,17 @@ msgstr "Agen"
 msgid "Agent activity"
 msgstr "Aktivitas agen"
 
-msgid "Agent chats"
-msgstr "Obrolan agen"
-
 msgid "Agent configuration file"
 msgstr "Berkas konfigurasi agen"
 
 msgid "Agent connections"
 msgstr "Koneksi agen"
 
-msgid "Agent mode"
-msgstr "Mode agen"
-
 msgid "Agent panel"
 msgstr "Panel agen"
 
-msgid "Agent settings"
-msgstr "Pengaturan agen"
-
-msgid "Agent settings — {headerSummary}"
-msgstr "Pengaturan agen — {headerSummary}"
-
-msgid "Agent settings — {headerSummary} — changes apply when you pick this conversation back up"
-msgstr "Pengaturan agen — {headerSummary}: perubahan berlaku saat Anda melanjutkan percakapan ini"
-
 msgid "Agent token"
 msgstr ""
-
-msgid "Agent transcript"
-msgstr "Transkrip agen"
 
 msgid "Agents"
 msgstr "Agen"
@@ -1542,9 +1272,6 @@ msgstr "Semua tag"
 msgid "Allow external access"
 msgstr "Izinkan akses eksternal"
 
-msgid "Allow read-only commands while this chat is open"
-msgstr "Izinkan perintah hanya-baca selama obrolan ini terbuka"
-
 msgid "Allowed element values (empty = any)"
 msgstr "Nilai elemen yang diizinkan (kosong = apa saja)"
 
@@ -1587,12 +1314,6 @@ msgstr "Laporan ini sudah dikirim"
 
 msgid "Already set up — {cliCommand} is available in your terminal"
 msgstr "Sudah disiapkan — {cliCommand} tersedia di terminal Anda"
-
-msgid "Already signed in?"
-msgstr "Sudah masuk?"
-
-msgid "Already starting a chat with this agent — try again in a moment."
-msgstr "Obrolan dengan agen ini sudah mulai dibuka — coba lagi sebentar lagi."
 
 msgid "Always included"
 msgstr "Selalu disertakan"
@@ -1687,17 +1408,11 @@ msgstr "Berlaku untuk (glob — awalan ! mengecualikan; kosong berarti semua dok
 msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
 msgstr "Berlaku untuk semua proyek di mesin ini, pada obrolan Claude Code dan Codex di panel Agen yang dimulai setelah Anda mengaktifkannya. Agen dapat membuka halaman, mengeklik, mengetik, dan mengambil tangkapan layar di jendela Google Chrome miliknya dengan profil baru. Memerlukan Google Chrome dan Node.js yang terpasang. Setiap tindakan browser meminta persetujuan Anda, tanpa opsi untuk selalu mengizinkannya, kecuali mode agen itu sendiri atau pengaturan izinnya melewati persetujuan."
 
-msgid "Applies to all projects on this machine. Claude and Codex started from the built-in terminal, and any agent in an in-app Agents panel chat, auto-approve GitQuire's read and write tools (Claude also auto-runs \"{cliCommand} open\"). Deleting, moving, sharing, importing or installing skills, other commands, and non-GitQuire file edits still ask. In the terminal, Cursor, OpenCode, and Pi are unaffected. Best-effort per agent."
-msgstr "Berlaku untuk semua proyek di mesin ini. Claude dan Codex yang dimulai dari terminal bawaan, serta agen apa pun dalam obrolan panel Agen di aplikasi, otomatis menyetujui alat baca dan tulis GitQuire (Claude juga otomatis menjalankan \"{cliCommand} open\"). Menghapus, memindahkan, membagikan, mengimpor atau memasang skill, perintah lain, dan pengeditan berkas non-GitQuire tetap bertanya. Di terminal, Cursor, OpenCode, dan Pi tidak terpengaruh. Upaya terbaik per agen."
-
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
 msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
 msgstr ""
-
-msgid "Applies when you pick this conversation back up"
-msgstr "Berlaku saat Anda melanjutkan percakapan ini"
 
 msgid "Apply and restart project server"
 msgstr "Terapkan dan mulai ulang server proyek"
@@ -1723,17 +1438,8 @@ msgstr "Setujui"
 msgid "Approve \"{0}\""
 msgstr ""
 
-msgid "Approve & proceed"
-msgstr "Setujui dan lanjutkan"
-
 msgid "Approved"
 msgstr "Disetujui"
-
-msgid "Approved — {optionName}"
-msgstr "Disetujui — {optionName}"
-
-msgid "Approved and ready to merge"
-msgstr "Disetujui dan siap di-merge"
 
 msgid "Approved by {approvers}"
 msgstr ""
@@ -1765,15 +1471,6 @@ msgstr "Yakin ingin menghapus item yang dipilih?"
 msgid "Ask"
 msgstr "Tanya"
 
-msgid "Ask {0} CLI"
-msgstr "Tanya CLI {0}"
-
-msgid "Ask {agentName}"
-msgstr "Tanya {agentName}"
-
-msgid "Ask {agentName}, {hint}"
-msgstr "Tanya {agentName}, {hint}"
-
 msgid "Ask about the wiki"
 msgstr ""
 
@@ -1783,29 +1480,14 @@ msgstr ""
 msgid "Ask about this page or the wiki"
 msgstr ""
 
-msgid "Ask again before read-only commands"
-msgstr "Tanya lagi sebelum perintah hanya-baca"
-
 msgid "Ask AI"
 msgstr "Tanya AI"
-
-msgid "Ask AI about selection"
-msgstr "Tanya AI tentang pilihan"
-
-msgid "Ask AI About Selection"
-msgstr "Tanya AI tentang Pilihan"
 
 msgid "Ask AI to fix {flatId}"
 msgstr "Minta AI memperbaiki {flatId}"
 
-msgid "Ask an agent"
-msgstr "Tanya agen"
-
 msgid "Ask anything about the wiki."
 msgstr ""
-
-msgid "Ask changes…"
-msgstr "Minta perubahan…"
 
 msgid "Ask Claude"
 msgstr ""
@@ -1843,12 +1525,6 @@ msgstr "Saran aset"
 msgid "Asset: {title}"
 msgstr "Aset: {title}"
 
-msgid "Attach a file"
-msgstr "Lampirkan berkas"
-
-msgid "Attach files"
-msgstr "Lampirkan berkas"
-
 msgid "Attach images"
 msgstr "Lampirkan gambar"
 
@@ -1857,9 +1533,6 @@ msgstr ""
 
 msgid "Attachments"
 msgstr "Lampiran"
-
-msgid "Attachments aren't available in note windows yet — use the main window to attach files."
-msgstr "Lampiran belum tersedia di jendela catatan — gunakan jendela utama untuk melampirkan berkas."
 
 msgid "Attachments must total under 3 MB."
 msgstr "Total lampiran harus di bawah 3 MB."
@@ -1888,15 +1561,6 @@ msgstr "Otomatis (hanya Pull) mengambil pembaruan dari repositori git remote And
 msgid "Auto (Pull only) never pushes or commits your local changes. They stay only on this machine."
 msgstr "Otomatis (hanya Pull) tidak pernah melakukan push atau commit perubahan lokal Anda. Semuanya tetap hanya di mesin ini."
 
-msgid "Auto-approve settings not yet loaded — try again in a moment"
-msgstr "Pengaturan persetujuan otomatis belum dimuat — coba lagi sebentar"
-
-msgid "Auto-approved"
-msgstr "Disetujui otomatis"
-
-msgid "Auto-denied"
-msgstr "Ditolak otomatis"
-
 msgid "Auto-fix — no problems here have an automatic fix"
 msgstr "Perbaikan otomatis — tidak ada masalah di sini yang punya perbaikan otomatis"
 
@@ -1908,9 +1572,6 @@ msgstr "Perbaikan otomatis ({count})"
 
 msgid "Auto-fix applies only to problems with a known mechanical fix."
 msgstr "Perbaikan otomatis hanya berlaku untuk masalah yang punya perbaikan mekanis yang diketahui."
-
-msgid "Auto-merge is on"
-msgstr "Merge otomatis aktif"
 
 msgid "Auto-save"
 msgstr "Simpan otomatis"
@@ -2016,9 +1677,6 @@ msgstr "Sebelum menyinkronkan, setel identitas Anda untuk commit git:"
 msgid "Before you go, mind sharing why?"
 msgstr "Sebelum pergi, boleh cerita kenapa?"
 
-msgid "Behind the base branch"
-msgstr "Tertinggal dari cabang dasar"
-
 msgid "Being written"
 msgstr ""
 
@@ -2052,9 +1710,6 @@ msgstr "Blob Run"
 
 msgid "Block math equation rendered with KaTeX from a LaTeX source string."
 msgstr "Persamaan matematika blok yang dirender dengan KaTeX dari sumber LaTeX."
-
-msgid "Blocked from merging"
-msgstr "Merge diblokir"
 
 msgid "Blog post"
 msgstr "Pos blog"
@@ -2170,9 +1825,6 @@ msgstr "Bangun dan pantau dunia di balik cerita Anda. Rumah bagi tokoh, tempat, 
 msgid "Building <0>openknowledge.skill</0> and opening the Claude Desktop App"
 msgstr "Membangun <0>openknowledge.skill</0> dan membuka aplikasi Claude Desktop"
 
-msgid "Builds a shareable link to a document or folder"
-msgstr "Membuat tautan yang bisa dibagikan ke dokumen atau folder"
-
 msgid "Bullet list"
 msgstr "Daftar berpoin"
 
@@ -2205,9 +1857,6 @@ msgstr "Tidak dapat membagikan jalur ini."
 
 msgid "Cancel"
 msgstr "Batal"
-
-msgid "Cancel editing"
-msgstr "Batalkan penyuntingan"
 
 msgid "Cancelled"
 msgstr "Dibatalkan"
@@ -2278,9 +1927,6 @@ msgstr ""
 msgid "Changes to {pageName}"
 msgstr ""
 
-msgid "Changes were saved, but GitQuire could not confirm a connection to {handoffLabel}. Check the MCP server settings for this app, then select Save changes to check again."
-msgstr "Perubahan telah disimpan, tetapi GitQuire tidak dapat memastikan koneksi ke {handoffLabel}. Periksa pengaturan server MCP aplikasi ini, lalu pilih Simpan perubahan untuk memeriksa lagi."
-
 msgid "Character budget per indexing request"
 msgstr "Anggaran karakter per permintaan pengindeksan"
 
@@ -2290,15 +1936,6 @@ msgstr "karakter"
 
 msgid "Chat"
 msgstr ""
-
-msgid "Chat history"
-msgstr "Riwayat chat"
-
-msgid "Chat history could not be loaded. Try opening the chat again from Chat history."
-msgstr "Riwayat chat tidak dapat dimuat. Coba buka kembali chat dari Riwayat chat."
-
-msgid "Chat name"
-msgstr "Nama obrolan"
 
 msgid "Chat with Claude or Mistral about the wiki"
 msgstr ""
@@ -2338,12 +1975,6 @@ msgstr ""
 
 msgid "Checking"
 msgstr "Memeriksa"
-
-msgid "Checking connection to {checkingLabel}…"
-msgstr "Memeriksa koneksi ke {checkingLabel}…"
-
-msgid "Checking for agents"
-msgstr "Mencari agen"
 
 msgid "Checking for Slidev"
 msgstr "Mencari Slidev"
@@ -2390,15 +2021,6 @@ msgstr ""
 msgid "Checklist with checkboxes."
 msgstr "Daftar periksa dengan kotak centang."
 
-msgid "Checks are running"
-msgstr "Pemeriksaan sedang berjalan"
-
-msgid "Checks documents for markdown problems and can fix them"
-msgstr "Memeriksa dokumen untuk masalah markdown dan bisa memperbaikinya"
-
-msgid "Checks the whole project for markdown problems and broken links"
-msgstr "Memeriksa seluruh proyek untuk masalah markdown dan tautan rusak"
-
 msgid "Checks your project against the Open Knowledge Format. Turn it off any time in Settings."
 msgstr "Periksa proyek Anda terhadap Open Knowledge Format. Matikan kapan saja di Pengaturan."
 
@@ -2407,9 +2029,6 @@ msgstr "Pilih arsip keterampilan"
 
 msgid "Choose a skill folder"
 msgstr "Pilih folder keterampilan"
-
-msgid "Choose agent"
-msgstr "Pilih agen"
 
 msgid "Choose color"
 msgstr "Pilih warna"
@@ -2423,29 +2042,8 @@ msgstr "Pilih folder"
 msgid "Choose icon"
 msgstr "Pilih ikon"
 
-msgid "Choose what a new chat starts"
-msgstr "Pilih apa yang dimulai obrolan baru"
-
-msgid "Choose what a new tab starts"
-msgstr "Pilih apa yang dimulai tab baru"
-
-msgid "Choose what GitQuire sets up for {0}."
-msgstr "Pilih apa yang disiapkan GitQuire untuk {0}."
-
-msgid "Choose what GitQuire sets up for {agentLabel}. {agentLabel} only supports global configuration."
-msgstr "Pilih apa yang disiapkan GitQuire untuk {agentLabel}. {agentLabel} hanya mendukung konfigurasi global."
-
-msgid "Choose what GitQuire sets up."
-msgstr "Pilih apa yang disiapkan GitQuire."
-
-msgid "Choose where to send this message"
-msgstr "Pilih ke mana pesan ini dikirim"
-
 msgid "Choose whether this project's GitQuire setup, including its AI-tool connections and the Shared default sync mode, is saved with the project so teammates get it too, or kept only on your computer."
 msgstr "Pilih apakah penyiapan GitQuire proyek ini, termasuk koneksi alat AI-nya dan mode sinkronisasi Bawaan bersama, disimpan bersama proyek agar rekan tim juga mendapatkannya, atau disimpan hanya di komputer Anda."
-
-msgid "Choose which agents appear in agent menus across the app, and set them up to read and update your documents."
-msgstr "Pilih agen mana yang muncul di menu agen di seluruh aplikasi, lalu siapkan agar mereka dapat membaca dan memperbarui dokumen Anda."
 
 #. Section label above the light/dark/system cards in the first-launch dialog
 msgid "Choose your theme"
@@ -2453,12 +2051,6 @@ msgstr "Pilih tema Anda"
 
 msgid "Claude"
 msgstr "Claude"
-
-msgid "Claude CLI"
-msgstr "Claude CLI"
-
-msgid "Claude Code (claude) isn't installed or on your PATH."
-msgstr "Claude Code (claude) belum terpasang atau tidak ada di PATH Anda."
 
 msgid "Claude Code in the desktop app"
 msgstr ""
@@ -2498,9 +2090,6 @@ msgstr "Kosongkan kolom untuk mengembalikan nilai defaultnya."
 
 msgid "Clear color"
 msgstr "Hapus warna"
-
-msgid "Clear history search"
-msgstr "Hapus pencarian riwayat"
 
 msgid "Clear menu"
 msgstr "Kosongkan menu"
@@ -2589,9 +2178,6 @@ msgstr "Mengkloning..."
 msgid "Close"
 msgstr "Tutup"
 
-msgid "Close {0}"
-msgstr "Tutup {0}"
-
 msgid "Close {accessibleLabel}"
 msgstr "Tutup {accessibleLabel}"
 
@@ -2619,12 +2205,6 @@ msgstr "Tutup yang lain"
 msgid "Close tab"
 msgstr "Tutup tab"
 
-msgid "Close terminal"
-msgstr "Tutup terminal"
-
-msgid "Close this chat's tab to delete it"
-msgstr "Tutup tab obrolan ini untuk menghapusnya"
-
 msgid "Close this preview, then open the folder to upload files"
 msgstr "Tutup pratinjau ini, lalu buka folder untuk mengunggah file"
 
@@ -2633,10 +2213,6 @@ msgstr "Tutup jendela"
 
 msgid "Close Window"
 msgstr "Tutup Jendela"
-
-msgctxt "GitHub pull request or issue state"
-msgid "Closed"
-msgstr "Ditutup"
 
 msgid "Clusters"
 msgstr "Klaster"
@@ -2656,9 +2232,6 @@ msgstr "Bahasa blok kode: {currentLabel}. Klik untuk mengubah."
 msgid "Code block settings"
 msgstr "Pengaturan blok kode"
 
-msgid "Code copied"
-msgstr "Kode disalin"
-
 msgid "Code copied to clipboard"
 msgstr "Kode disalin ke papan klip"
 
@@ -2667,9 +2240,6 @@ msgstr "Kode kedaluwarsa — silakan coba lagi"
 
 msgid "Code field undo or redo"
 msgstr "Batalkan atau ulangi di bidang kode"
-
-msgid "Codex will still ask until you run \"{cliCommand} init\" in a terminal for this project."
-msgstr "Codex akan tetap bertanya sampai Anda menjalankan \"{cliCommand} init\" di terminal untuk proyek ini."
 
 msgid "Collaborators see your in-progress edits as soon as they sync."
 msgstr "Kolaborator melihat suntingan Anda yang sedang berjalan begitu tersinkronkan."
@@ -2685,9 +2255,6 @@ msgstr "Ciutkan semua"
 
 msgid "Collapse all file groups"
 msgstr "Ciutkan semua grup berkas"
-
-msgid "Collapse Ask AI"
-msgstr "Ciutkan Tanya AI"
 
 msgid "Collapse graph"
 msgstr "Ciutkan graf"
@@ -2721,9 +2288,6 @@ msgstr "perintah"
 
 msgid "Commands"
 msgstr "Perintah"
-
-msgid "Commands run with the full access of your user account on this machine. Turn this off to disable the shell."
-msgstr "Perintah berjalan dengan akses penuh akun pengguna Anda di mesin ini. Matikan ini untuk menonaktifkan shell."
 
 msgid "Comment"
 msgstr "Komentari"
@@ -2764,9 +2328,6 @@ msgstr "Selesai:"
 msgid "Component boundary navigation"
 msgstr "Navigasi batas komponen"
 
-msgid "Condense my AGENTS.md file to less than 40k characters"
-msgstr "Ringkas berkas AGENTS.md saya menjadi kurang dari 40 ribu karakter"
-
 msgid "Config sharing"
 msgstr "Berbagi konfigurasi"
 
@@ -2796,9 +2357,6 @@ msgstr "Masalah konfigurasi"
 
 msgid "Configuration warnings"
 msgstr "Peringatan konfigurasi"
-
-msgid "Configure agents"
-msgstr "Atur agen"
 
 msgid "Configure user, project, and integration settings."
 msgstr "Atur pengaturan pengguna, proyek, dan integrasi."
@@ -2857,9 +2415,6 @@ msgstr "Hubungkan ke GitHub"
 msgid "Connect to GitHub Enterprise Server"
 msgstr "Hubungkan ke GitHub Enterprise Server"
 
-msgid "Connect tools"
-msgstr "Hubungkan alat"
-
 #. Section label above the AI-tools checkboxes in the first-launch dialog
 msgid "Connect your AI tools"
 msgstr "Hubungkan alat AI Anda"
@@ -2867,9 +2422,6 @@ msgstr "Hubungkan alat AI Anda"
 #. Checkbox that wires the GitQuire MCP into every detected AI tool for the project
 msgid "Connect your AI tools to this project"
 msgstr "Hubungkan alat AI Anda ke proyek ini"
-
-msgid "Connected"
-msgstr "Terhubung"
 
 msgid "Connected — this endpoint returns {0}-dimension vectors."
 msgstr "Terhubung — endpoint ini mengembalikan vektor berdimensi {0}."
@@ -2898,9 +2450,6 @@ msgstr "Menghubungkan — menunggu server kolaborasi"
 msgid "Connecting AI assistants needs GitHub sign-in on this server. See DEPLOY.md for how to set it up."
 msgstr ""
 
-msgid "Connecting to {agentName}…"
-msgstr "Menghubungkan ke {agentName}…"
-
 msgid "Connection dropped"
 msgstr "Koneksi terputus"
 
@@ -2913,15 +2462,6 @@ msgstr "Koneksi hilang — biarkan tab ini terbuka, suntingan Anda akan tersinkr
 msgid "Connector"
 msgstr ""
 
-msgid "Connects the agent to GitQuire in every project on this machine."
-msgstr "Menghubungkan agen ke GitQuire di setiap proyek pada mesin ini."
-
-msgid "Connects the agent to this project so it can read, search, and edit your documents."
-msgstr "Menghubungkan agen ke proyek ini agar dapat membaca, mencari, dan mengedit dokumen Anda."
-
-msgid "Contemplating…"
-msgstr "Merenung…"
-
 msgid "Content directory"
 msgstr "Direktori konten"
 
@@ -2933,15 +2473,6 @@ msgstr "Aturan konten"
 
 msgid "Content rules not yet loaded — try again in a moment"
 msgstr "Aturan konten belum dimuat — coba lagi sebentar"
-
-msgid "Context window"
-msgstr "Jendela konteks"
-
-msgid "Context window:"
-msgstr "Jendela konteks:"
-
-msgid "Context window: {percent}% used, {usedLabel} of {sizeLabel} tokens"
-msgstr "Jendela konteks: {percent}% terpakai, {usedLabel} dari {sizeLabel} token"
 
 msgid "Continue in browser"
 msgstr "Lanjutkan di peramban"
@@ -3018,9 +2549,6 @@ msgstr "Salin kode {userCode}"
 msgid "Copy command"
 msgstr "Salin perintah"
 
-msgid "Copy error"
-msgstr "Salin galat"
-
 msgid "Copy full path"
 msgstr "Salin jalur lengkap"
 
@@ -3032,9 +2560,6 @@ msgstr "Salin ke sini"
 
 msgid "Copy link"
 msgstr "Salin tautan"
-
-msgid "Copy message"
-msgstr "Salin pesan"
 
 msgid "Copy path"
 msgstr "Salin jalur"
@@ -3056,9 +2581,6 @@ msgstr "Salin tautan berbagi"
 
 msgid "Copy source"
 msgstr "Salin sumber"
-
-msgid "Copy the code {code}"
-msgstr "Salin kode {code}"
 
 msgid "Copy the focused file-tree item so Paste can duplicate it."
 msgstr "Menyalin item pohon berkas yang sedang difokus agar Tempel bisa menggandakannya."
@@ -3107,9 +2629,6 @@ msgstr "Item tidak dapat digandakan"
 
 msgid "Could not enable sync: {detail}"
 msgstr "Sinkronisasi tidak dapat diaktifkan: {detail}"
-
-msgid "Could not enable the terminal: {0}"
-msgstr "Terminal tidak dapat diaktifkan: {0}"
 
 msgid "Could not fetch branch — sign in to GitHub and try again."
 msgstr "Cabang tidak dapat diambil — masuk ke GitHub lalu coba lagi."
@@ -3165,9 +2684,6 @@ msgstr "Pembuatan item baru tidak dapat dimulai"
 msgid "Could not switch to {shareBranch}. Try switching manually."
 msgstr "Tidak dapat berpindah ke {shareBranch}. Coba berpindah secara manual."
 
-msgid "Could not turn off the terminal: {0}"
-msgstr "Terminal tidak dapat dimatikan: {0}"
-
 msgid "Could not update sidebar settings"
 msgstr "Pengaturan bilah sisi tidak dapat diperbarui"
 
@@ -3192,9 +2708,6 @@ msgstr "Tidak dapat mengubah bahasa pemeriksaan ejaan. Coba lagi."
 msgid "Couldn't change the status."
 msgstr ""
 
-msgid "Couldn't check which tools are connected."
-msgstr "Tidak bisa memeriksa alat mana yang terhubung."
-
 msgid "Couldn't clear the key — please try again."
 msgstr "Kuncinya tidak bisa dibersihkan — silakan coba lagi."
 
@@ -3203,9 +2716,6 @@ msgstr "Pencarian semantik tidak dapat diselesaikan — coba lagi"
 
 msgid "Couldn't confirm the address."
 msgstr ""
-
-msgid "Couldn't connect to the agent service. Make sure the GitQuire server is running and up to date (restart it if it was already running), then try again."
-msgstr "Tidak bisa terhubung ke layanan agen. Pastikan server GitQuire berjalan dan mutakhir (mulai ulang jika sudah berjalan), lalu coba lagi."
 
 msgid "Couldn't construct the share URL. Try Done and re-share."
 msgstr "URL berbagi tidak bisa disusun. Tekan Selesai lalu bagikan ulang."
@@ -3267,9 +2777,6 @@ msgstr "Tidak bisa memutus koneksi — silakan coba lagi."
 msgid "Couldn't duplicate \"{0}\": {1}"
 msgstr "\"{0}\" tidak bisa digandakan: {1}"
 
-msgid "Couldn't finish installing {0} — see below."
-msgstr "Pemasangan {0} tidak bisa diselesaikan — lihat di bawah."
-
 msgid "Couldn't fully clear network settings, but exposure is turning off. {0}"
 msgstr "Tidak dapat sepenuhnya menghapus pengaturan jaringan, tetapi paparan sedang dimatikan. {0}"
 
@@ -3278,9 +2785,6 @@ msgstr "{skillName} tidak bisa dipasang: {0}"
 
 msgid "Couldn't install from {0}: {1}"
 msgstr "Tidak bisa memasang dari {0}: {1}"
-
-msgid "Couldn't install GitQuire skill — {message}"
-msgstr "Tidak dapat memasang keterampilan GitQuire: {message}"
 
 msgid "Couldn't install skill: {0}"
 msgstr "Keterampilan tidak bisa dipasang: {0}"
@@ -3327,9 +2831,6 @@ msgstr "Pratinjau versinya tidak bisa dimuat. Anda tetap bisa memilih cara menye
 msgid "Couldn't load worktrees."
 msgstr "Worktree tidak dapat dimuat."
 
-msgid "Couldn't load your agents."
-msgstr "Agen Anda tidak bisa dimuat."
-
 msgid "Couldn't load your bug reports."
 msgstr "Laporan bug Anda tidak bisa dimuat."
 
@@ -3360,9 +2861,6 @@ msgstr "{0} tidak bisa dibuka untuk disunting: {1}"
 msgid "Couldn't open document"
 msgstr "Dokumen tidak bisa dibuka"
 
-msgid "Couldn't open the terminal — please try again."
-msgstr "Terminal tidak bisa dibuka — silakan coba lagi."
-
 msgid "Couldn't open the worktree. Try again."
 msgstr "Worktree-nya tidak bisa dibuka. Coba lagi."
 
@@ -3384,20 +2882,11 @@ msgstr ""
 msgid "Couldn't pull from GitHub. Check your connection and sign-in, then retry."
 msgstr "Tidak bisa melakukan pull dari GitHub. Periksa koneksi dan status masuk Anda, lalu coba lagi."
 
-msgid "Couldn't reach {displayName} — please try again later."
-msgstr "Tidak dapat menghubungi {displayName}. Silakan coba lagi nanti."
-
-msgid "Couldn't reach {displayName} — try again?"
-msgstr "Tidak dapat menghubungi {displayName}. Coba lagi?"
-
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "Server kolaborasi tidak bisa dihubungi — {errorDetail}. Coba <0>{cliCommand} status</0> atau kumpulkan log dengan <1>{cliCommand} diagnose bundle</1>."
 
 msgid "Couldn't reach GitHub. Try again?"
 msgstr "GitHub tidak bisa dihubungi. Coba lagi?"
-
-msgid "Couldn't reach the agent registry."
-msgstr "Registri agen tidak bisa dihubungi."
 
 msgid "Couldn’t reach the clipboard — the theme is in the box below."
 msgstr "Papan klip tidak dapat diakses — tema ada di kotak di bawah."
@@ -3416,9 +2905,6 @@ msgstr "Server GitQuire tidak bisa dihubungi untuk mengunggah {fileName}."
 
 msgid "Couldn't reach the GitQuire server, so sync options are hidden. They appear here as soon as the sync status loads; closing and reopening Settings also retries."
 msgstr "Tidak dapat menghubungi server GitQuire, jadi opsi sinkronisasi disembunyikan. Opsi akan muncul di sini begitu status sinkronisasi dimuat; menutup lalu membuka kembali Pengaturan juga akan mencoba lagi."
-
-msgid "Couldn't read {fileName}."
-msgstr "Tidak dapat membaca {fileName}."
 
 msgid "Couldn't read {fileName}. It may have been moved, deleted, or not finished downloading. Try adding it again."
 msgstr "{fileName} tidak bisa dibaca. Mungkin ia sudah dipindahkan, dihapus, atau belum selesai diunduh. Coba tambahkan lagi."
@@ -3462,9 +2948,6 @@ msgstr "Konflik untuk {filePath} tidak bisa diselesaikan."
 msgid "Couldn't resolve the fork: {0}"
 msgstr "Percabangannya tidak bisa diselesaikan: {0}"
 
-msgid "Couldn't restart {agentName}."
-msgstr "{agentName} tidak bisa dimulai ulang."
-
 msgid "Couldn't restart the server — another process owns it. Quit other GitQuire windows for this project, then try again."
 msgstr "Server tidak bisa dimulai ulang — proses lain menguasainya. Tutup jendela GitQuire lain untuk proyek ini, lalu coba lagi."
 
@@ -3491,9 +2974,6 @@ msgstr "{0} tidak dapat dipulihkan. Nama itu sudah digunakan."
 
 msgid "Couldn’t restore {0}. Try again."
 msgstr "{0} tidak dapat dipulihkan. Coba lagi."
-
-msgid "Couldn't resume this chat: {0}"
-msgstr "Tidak dapat melanjutkan obrolan ini: {0}"
 
 msgid "Couldn't run the test. Check that GitQuire is still running."
 msgstr "Pengujiannya tidak bisa dijalankan. Pastikan GitQuire masih berjalan."
@@ -3549,17 +3029,8 @@ msgstr "Tidak dapat menyimpan preferensi tema Anda."
 msgid "Couldn't send the report"
 msgstr "Laporannya tidak bisa dikirim"
 
-msgid "Couldn't send your prompt — please try again."
-msgstr "Prompt Anda tidak bisa dikirim — silakan coba lagi."
-
 msgid "Couldn't start Slidev."
 msgstr "Tidak dapat menjalankan Slidev."
-
-msgid "Couldn't start the agent thread — please try again."
-msgstr "Utas agen tidak bisa dimulai — silakan coba lagi."
-
-msgid "Couldn't start the agent thread."
-msgstr "Utas agen tidak bisa dimulai."
 
 msgid "Couldn't start the sync. Check your connection, then retry."
 msgstr "Sinkronisasinya tidak bisa dimulai. Periksa koneksi Anda, lalu coba lagi."
@@ -3600,12 +3071,6 @@ msgstr "Tidak dapat mengunggah berkas. Folder lampiran memakai {filenameVariable
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Tidak dapat mengunggah berkas. Folder lampiran memakai variabel tak dikenal {variables}. Perbaiki di Lampiran, di Pengaturan."
 
-msgid "Couldn't verify that {displayName} ({bin}) is available, so this is a plain shell. You can still run {bin} yourself."
-msgstr "Tidak dapat memverifikasi bahwa {displayName} ({bin}) tersedia, jadi ini adalah shell biasa. Anda tetap dapat menjalankan {bin} sendiri."
-
-msgid "Couldn't write the GitQuire extension. This thread has no GitQuire tools."
-msgstr "Ekstensi GitQuire tidak bisa ditulis. Utas ini tidak memiliki alat GitQuire."
-
 msgid "Count skill installs publicly"
 msgstr "Hitung pemasangan keterampilan secara publik"
 
@@ -3641,9 +3106,6 @@ msgstr "Membuat proyek GitQuire baru di folder pilihan Anda."
 
 msgid "Create a new list item from the current list item."
 msgstr "Membuat item daftar baru dari item daftar saat ini."
-
-msgid "Create a new spec file for my user story"
-msgstr "Buat berkas spesifikasi baru untuk cerita pengguna saya"
 
 msgid "Create a personal skill, available across every project."
 msgstr "Buat keterampilan pribadi, tersedia di semua proyek."
@@ -3720,9 +3182,6 @@ msgstr "folder dibuat"
 msgid "created template"
 msgstr "templat dibuat"
 
-msgid "Creates or replaces a document, folder, template, skill, or asset"
-msgstr "Membuat atau mengganti dokumen, folder, templat, keterampilan, atau aset"
-
 msgid "Creates the <0>{folderPart}/</0> folder"
 msgstr "Membuat folder <0>{folderPart}/</0>"
 
@@ -3783,9 +3242,6 @@ msgstr "Tanggal"
 msgid "Date from"
 msgstr ""
 
-msgid "Default"
-msgstr "Bawaan"
-
 msgid "Default properties"
 msgstr "Properti bawaan"
 
@@ -3821,12 +3277,6 @@ msgstr "Menghapus chip tautan wiki atau tag yang ada di sebelahnya."
 
 msgid "Delete block"
 msgstr "Hapus blok"
-
-msgid "Delete chat"
-msgstr "Hapus chat"
-
-msgid "Delete chat?"
-msgstr "Hapus chat?"
 
 msgid "Delete chat…"
 msgstr ""
@@ -3894,41 +3344,11 @@ msgstr ""
 msgid "deleted template"
 msgstr "templat dihapus"
 
-msgid "Deletes a document, folder, template, skill, or asset"
-msgstr "Menghapus dokumen, folder, templat, keterampilan, atau aset"
-
-msgid "Deletes a file"
-msgstr "Menghapus berkas"
-
 msgid "Deleting"
 msgstr "Menghapus"
 
 msgid "Deleting {progress} of {count}"
 msgstr "Menghapus {progress} dari {count}"
-
-msgid "Denied"
-msgstr "Ditolak"
-
-msgid "Denied — {optionName}"
-msgstr "Ditolak — {optionName}"
-
-msgid "Deny"
-msgstr "Tolak"
-
-msgid "Describe the project you want to create"
-msgstr "Jelaskan proyek yang ingin Anda buat"
-
-msgid "Describe the skill you want to create"
-msgstr "Jelaskan keterampilan yang ingin Anda buat"
-
-msgid "Describe what you want to build, start a blank file, or scaffold from a template."
-msgstr "Jelaskan apa yang ingin Anda bangun, mulai dari berkas kosong, atau susun dari templat."
-
-msgid "Describe what you want to create to continue"
-msgstr "Jelaskan apa yang ingin Anda buat untuk melanjutkan"
-
-msgid "Describe what you're working on and the agent sets it up for you."
-msgstr "Jelaskan apa yang sedang Anda kerjakan dan agennya akan menyiapkannya untuk Anda."
 
 #. The skill's frontmatter description — the always-loaded tier
 msgid "description"
@@ -3971,9 +3391,6 @@ msgstr "Proyek GitQuire yang terdeteksi"
 msgid "Detected in {0}"
 msgstr "Terdeteksi di {0}"
 
-msgid "Detecting"
-msgstr "Mendeteksi"
-
 msgid "DevOps"
 msgstr "DevOps"
 
@@ -4000,9 +3417,6 @@ msgstr "Perbedaan tidak tersedia"
 
 msgid "Different version here — click to compare and resolve"
 msgstr "Versi berbeda di sini — klik untuk membandingkan dan menyelesaikannya"
-
-msgid "Digging…"
-msgstr "Menggali…"
 
 msgid "Disable {0}"
 msgstr "Nonaktifkan {0}"
@@ -4048,9 +3462,6 @@ msgstr "Putuskan koneksi"
 
 msgid "Disconnecting"
 msgstr "Memutus koneksi"
-
-msgid "Discovery skills are managed for all AI tools together. Install this one from Settings → Skills Studio."
-msgstr "Skill penemuan dikelola bersama untuk semua alat AI. Instal skill ini dari Pengaturan → Studio Keterampilan."
 
 msgid "Dismiss"
 msgstr "Tutup"
@@ -4118,17 +3529,11 @@ msgstr "Respons dokumen tidak sesuai bentuk yang diharapkan."
 msgid "Documents tagged <0>#{tagName}</0>"
 msgstr "Dokumen bertag <0>#{tagName}</0>"
 
-msgid "Don't ask again when opening this app without setup in this project"
-msgstr "Jangan tanya lagi saat membuka aplikasi ini tanpa penyiapan di proyek ini"
-
 msgid "Don't see <0>Skills</0>? Enable <1>Settings <2/> Capabilities <3/> Code execution and file creation</1> first."
 msgstr "Tidak melihat <0>Keterampilan</0>? Aktifkan dulu <1>Pengaturan <2/> Kemampuan <3/> Eksekusi kode dan pembuatan berkas</1>."
 
 msgid "Don't show"
 msgstr "Jangan tampilkan"
-
-msgid "done"
-msgstr "selesai"
 
 msgid "Done"
 msgstr "Selesai"
@@ -4142,9 +3547,6 @@ msgstr "Selesai."
 msgid "Double-click to edit"
 msgstr "Klik dua kali untuk menyunting"
 
-msgid "Download {0}"
-msgstr "Unduh {0}"
-
 msgid "Download and install updates automatically"
 msgstr "Unduh dan pasang pembaruan secara otomatis"
 
@@ -4154,18 +3556,11 @@ msgstr "Unduh berkas"
 msgid "Download started"
 msgstr "Unduhan dimulai"
 
-msgid "Downloading {0} {1}…"
-msgstr "Mengunduh {0} {1}…"
-
 msgid "Downloads a fresh copy from GitHub."
 msgstr "Mengunduh salinan baru dari GitHub."
 
 msgid "Draft"
 msgstr ""
-
-msgctxt "GitHub pull request or issue state"
-msgid "Draft"
-msgstr "Draf"
 
 msgid "Draft a spec"
 msgstr "Susun spesifikasi"
@@ -4175,9 +3570,6 @@ msgstr "Susun spesifikasi teknis untuk proyek saya. Mulai dengan ikhtisar, lalu 
 
 msgid "Draft: {0}"
 msgstr ""
-
-msgid "Drafting…"
-msgstr "Menyusun…"
 
 msgid "Drafts"
 msgstr ""
@@ -4193,9 +3585,6 @@ msgstr "Seret {patternText} untuk menata ulang"
 
 msgid "Drag item {0} to reorder"
 msgstr "Seret item {0} untuk menata ulang"
-
-msgid "Drop a file to attach"
-msgstr "Lepaskan berkas untuk melampirkan"
 
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "Letakkan, tempel, atau lampirkan hingga {MAX_ATTACHMENTS} gambar."
@@ -4279,20 +3668,11 @@ msgstr "Sunting {tag}"
 msgid "Edit a copy"
 msgstr "Sunting salinan"
 
-msgid "Edit and resend"
-msgstr "Ubah dan kirim ulang"
-
-msgid "Edit and send again"
-msgstr "Sunting dan kirim lagi"
-
 msgid "Edit in config file"
 msgstr "Sunting di berkas konfigurasi"
 
 msgid "Edit markdown link"
 msgstr "Sunting tautan markdown"
-
-msgid "Edit queued message"
-msgstr "Sunting pesan dalam antrean"
 
 msgid "Edit schema {file}"
 msgstr "Sunting skema {file}"
@@ -4365,12 +3745,6 @@ msgstr "Pilihan penyunting"
 
 msgid "Editor status bar"
 msgstr "Bilah status penyunting"
-
-msgid "Edits a document, folder, template, or skill in place"
-msgstr "Mengedit dokumen, folder, templat, atau keterampilan di tempat"
-
-msgid "Edits a file"
-msgstr "Mengedit berkas"
 
 msgid "Edits apply live and save automatically to this theme."
 msgstr "Suntingan langsung diterapkan dan disimpan otomatis ke tema ini."
@@ -4466,12 +3840,6 @@ msgstr "Isi awal kosong"
 msgid "Enable {0}"
 msgstr "Aktifkan {0}"
 
-msgid "Enable {displayName} CLI"
-msgstr "Aktifkan CLI {displayName}"
-
-msgid "Enable {displayName} Desktop"
-msgstr "Aktifkan {displayName} Desktop"
-
 msgid "Enable {file}"
 msgstr "Aktifkan {file}"
 
@@ -4490,9 +3858,6 @@ msgstr "Aktifkan Otomatis (hanya Pull)"
 msgid "Enable Auto (Pull only)?"
 msgstr "Aktifkan Otomatis (hanya Pull)?"
 
-msgid "Enable GitQuire tools for {0}?"
-msgstr "Aktifkan alat GitQuire untuk {0}?"
-
 msgid "Enable indexes"
 msgstr "Aktifkan indeks"
 
@@ -4508,17 +3873,8 @@ msgstr "Aktifkan Slidev"
 msgid "Enable Spell Check"
 msgstr "Aktifkan pemeriksa ejaan"
 
-msgid "Enable terminal"
-msgstr "Aktifkan terminal"
-
-msgid "Enable terminal for this project"
-msgstr "Aktifkan terminal untuk proyek ini"
-
 msgid "Enable Themes"
 msgstr "Aktifkan Tema"
-
-msgid "Enabling GitQuire tools"
-msgstr "Mengaktifkan alat GitQuire"
 
 msgid "Enabling index generation"
 msgstr "Mengaktifkan pembuatan indeks"
@@ -4665,9 +4021,6 @@ msgstr "Garis bawah yang sudah ada mungkin tidak langsung diperbarui."
 msgid "Exit"
 msgstr "Keluar"
 
-msgid "exit {0}"
-msgstr "keluar {0}"
-
 msgid "Expand {keyName}"
 msgstr "Bentangkan {keyName}"
 
@@ -4716,9 +4069,6 @@ msgstr "Mengekspos akan menetapkan port tetap agar target tunnel tetap stabil di
 msgid "external"
 msgstr "eksternal"
 
-msgid "External apps"
-msgstr "Aplikasi eksternal"
-
 msgid "External link"
 msgstr "Tautan eksternal"
 
@@ -4736,9 +4086,6 @@ msgstr "Origin eksternal"
 
 msgid "External wiki link"
 msgstr "Tautan wiki eksternal"
-
-msgid "failed"
-msgstr "gagal"
 
 msgid "Failed"
 msgstr "Gagal"
@@ -4956,9 +4303,6 @@ msgstr "Gagal memperbarui sinkronisasi — {detail}"
 msgid "Failed to update sync mode — {detail}"
 msgstr "Gagal memperbarui mode sinkronisasi — {detail}"
 
-msgid "Failed to update the auto-approve setting — {detail}"
-msgstr "Gagal memperbarui pengaturan persetujuan otomatis — {detail}"
-
 msgid "Failed to update the embeddings provider — {detail}"
 msgstr "Gagal memperbarui penyedia embedding — {detail}"
 
@@ -4971,9 +4315,6 @@ msgstr "Gagal memperbarui interval sinkronisasi — {detail}"
 msgid "Failed to upload file"
 msgstr "Gagal mengunggah berkas"
 
-msgid "Fast"
-msgstr "Cepat"
-
 msgid "Fastest, cheapest"
 msgstr ""
 
@@ -4983,14 +4324,8 @@ msgstr "Masukan tidak tersedia saat ini. Silakan coba lagi nanti."
 msgid "Fenced code block with monospace text."
 msgstr "Blok kode berpagar dengan teks monospasi."
 
-msgid "Fetch"
-msgstr "Ambil"
-
 msgid "Fetch failed — check the server logs for details."
 msgstr "Fetch gagal — periksa log server untuk detailnya."
-
-msgid "Fetches a web page"
-msgstr "Mengambil halaman web"
 
 msgid "Fetching"
 msgstr "Mengambil"
@@ -5091,12 +4426,6 @@ msgstr "Cari kecocokan berikutnya"
 msgid "Find previous match"
 msgstr "Cari kecocokan sebelumnya"
 
-msgid "Finds documents and files in this project by title, content, or path"
-msgstr "Mencari dokumen dan berkas di proyek ini berdasarkan judul, isi, atau path"
-
-msgid "Finds skills and reads what's installed"
-msgstr "Mencari keterampilan dan membaca yang sudah terpasang"
-
 #. Primary button that applies the first-launch setup choices
 msgid "Finish setup"
 msgstr "Selesaikan penyiapan"
@@ -5179,15 +4508,6 @@ msgstr "Tautan berbagi folder disalin."
 msgid "Folder target: {linkTitle}. Click to open the overview."
 msgstr "Folder tujuan: {linkTitle}. Klik untuk membuka ikhtisarnya."
 
-msgid "Folders and empty files can't be attached — drop the files themselves."
-msgstr "Folder dan berkas kosong tidak bisa dilampirkan — lepaskan berkasnya langsung."
-
-msgid "Follow the agent's edits"
-msgstr "Ikuti suntingan agen"
-
-msgid "Following the agent's edits"
-msgstr "Mengikuti suntingan agen"
-
 msgid "Footnote"
 msgstr "Catatan kaki"
 
@@ -5196,9 +4516,6 @@ msgstr ""
 
 msgid "Force Reload"
 msgstr "Muat Ulang Paksa"
-
-msgid "Force stop"
-msgstr "Hentikan paksa"
 
 msgid "Formatting"
 msgstr ""
@@ -5260,23 +4577,14 @@ msgstr "Umum"
 msgid "Generated files"
 msgstr "File yang dihasilkan"
 
-msgid "Get {displayName}"
-msgstr "Dapatkan {displayName}"
-
 msgid "Get an API key"
 msgstr ""
-
-msgid "Get Claude Code"
-msgstr "Dapatkan Claude Code"
 
 msgid "Get product updates in your inbox."
 msgstr "Dapatkan kabar terbaru produk di kotak masuk Anda."
 
 msgid "Get set up"
 msgstr "Mulai siapkan"
-
-msgid "Gets the link that opens this project or a document in the app"
-msgstr "Mengambil tautan yang membuka proyek ini atau sebuah dokumen di aplikasi"
 
 msgctxt "settings search keyword"
 msgid "gh"
@@ -5364,12 +4672,6 @@ msgstr "GitQuire"
 msgid "GitQuire can't sign in to GitHub for this project."
 msgstr "GitQuire tidak dapat masuk ke GitHub untuk proyek ini."
 
-msgid "GitQuire checked {subject}"
-msgstr "GitQuire memeriksa {subject}"
-
-msgid "GitQuire checked the project"
-msgstr "GitQuire memeriksa proyek"
-
 msgid "GitQuire checks for and downloads updates in the background."
 msgstr "GitQuire memeriksa dan mengunduh pembaruan di latar belakang."
 
@@ -5379,56 +4681,17 @@ msgstr ""
 msgid "GitQuire could not be reached. Check your connection and try again."
 msgstr ""
 
-msgid "GitQuire could not find this agent on this machine."
-msgstr "GitQuire tidak menemukan agen ini di mesin ini."
-
 msgid "GitQuire could not reach the project server to check index maintenance. The status updates when the project reconnects."
 msgstr "GitQuire tidak dapat menjangkau server proyek untuk memeriksa pemeliharaan indeks. Status akan diperbarui saat proyek tersambung kembali."
 
 msgid "GitQuire couldn't finish setting up this project. The worktree was created but not opened."
 msgstr "GitQuire tidak dapat menyelesaikan penyiapan proyek ini. Worktree dibuat, tetapi tidak dibuka."
 
-msgid "GitQuire couldn't read terminal.shell in .ok/local/config.yml. Using an available Windows shell instead."
-msgstr "GitQuire tidak dapat membaca terminal.shell di .ok/local/config.yml. Shell Windows yang tersedia akan digunakan sebagai gantinya."
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal because the folder is not safely contained in this project. Check that it is a real folder inside the project, not a link. Claude will ask you to approve GitQuire."
-msgstr "GitQuire tidak dapat menulis pengaturan peluncuran di .ok/local/terminal karena folder tersebut tidak berada dengan aman di dalam proyek ini. Pastikan folder tersebut adalah folder nyata di dalam proyek, bukan tautan. Claude akan meminta Anda menyetujui GitQuire."
-
-msgid "GitQuire couldn't write launch settings under .ok/local/terminal this time. Check that the folder is writable. Claude will ask you to approve GitQuire."
-msgstr "GitQuire tidak dapat menulis pengaturan peluncuran di .ok/local/terminal kali ini. Pastikan folder tersebut dapat ditulisi. Claude akan meminta Anda menyetujui GitQuire."
-
-msgid "GitQuire created a share link"
-msgstr "GitQuire membuat tautan berbagi"
-
-msgid "GitQuire created a share link for {subject}"
-msgstr "GitQuire membuat tautan berbagi untuk {subject}"
-
 msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
 msgstr "GitQuire membuat dan memelihara file navigasi bernama index.md di setiap folder yang berisi Markdown."
 
-msgid "GitQuire deleted {subject}"
-msgstr "GitQuire menghapus {subject}"
-
-msgid "GitQuire deleted a document"
-msgstr "GitQuire menghapus sebuah dokumen"
-
-msgid "GitQuire discovery skill"
-msgstr "Keterampilan penemuan GitQuire"
-
-msgid "GitQuire does not recognize this entry, and cannot safely replace it in this file's format."
-msgstr "GitQuire tidak mengenali entri ini, dan tidak dapat menggantinya dengan aman dalam format file ini."
-
-msgid "GitQuire does not recognize this entry. Turning it on replaces it."
-msgstr "GitQuire tidak mengenali entri ini. Mengaktifkannya akan menggantinya."
-
 msgid "GitQuire doesn't check for or download updates on its own. Check for updates still works when you want a newer version."
 msgstr "GitQuire tidak memeriksa atau mengunduh pembaruan dengan sendirinya. Periksa pembaruan tetap berfungsi saat Anda menginginkan versi yang lebih baru."
-
-msgid "GitQuire edited {subject}"
-msgstr "GitQuire menyunting {subject}"
-
-msgid "GitQuire edited a document"
-msgstr "GitQuire menyunting sebuah dokumen"
 
 msgid "GitQuire files were removed"
 msgstr "File GitQuire telah dihapus"
@@ -5436,20 +4699,8 @@ msgstr "File GitQuire telah dihapus"
 msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
 msgstr "GitQuire tidak menyimpan kredensial apa pun untuk host ini. Tambahkan token di Pengaturan, atau biarkan git memakai kredensial yang sudah dimilikinya."
 
-msgid "GitQuire imported {source}"
-msgstr "GitQuire mengimpor {source}"
-
-msgid "GitQuire imported a skill"
-msgstr "GitQuire mengimpor sebuah keterampilan"
-
 msgid "GitQuire initializes at <0>{projectDir}</0> — the parent of <1>{pickedRelative}</1> because it contains a <2>.git</2> folder (one .ok/ per git repo). <3>Content directory</3> defaults to <4>.</4> (the whole repo); type a sub-folder to narrow it."
 msgstr "GitQuire diinisialisasi di <0>{projectDir}</0> — folder induk dari <1>{pickedRelative}</1>, karena folder itu memuat folder <2>.git</2> (satu .ok/ per repo git). <3>Direktori konten</3> secara bawaan adalah <4>.</4> (seluruh repo); ketik sebuah subfolder untuk mempersempitnya."
-
-msgid "GitQuire installed {subject}"
-msgstr "GitQuire memasang {subject}"
-
-msgid "GitQuire installed a skill"
-msgstr "GitQuire memasang sebuah keterampilan"
 
 msgid "GitQuire integrations checked."
 msgstr "Integrasi GitQuire telah diperiksa."
@@ -5463,35 +4714,14 @@ msgstr "GitQuire memakai akun GitHub ini."
 msgid "GitQuire keeps retrying and shows them as soon as the file can be read."
 msgstr "GitQuire terus mencoba lagi dan akan menampilkannya segera setelah berkas dapat dibaca."
 
-msgid "GitQuire left this file alone because it could not parse it safely. Fix the file by hand, then try again."
-msgstr "GitQuire tidak mengubah file ini karena tidak dapat mengurainya dengan aman. Perbaiki file secara manual, lalu coba lagi."
-
-msgid "GitQuire listed the installed skills"
-msgstr "GitQuire menampilkan daftar keterampilan yang terpasang"
-
 msgid "GitQuire logs across projects. No project is open, so project server logs are not included."
 msgstr "Log GitQuire lintas proyek. Tidak ada proyek yang terbuka, jadi log server proyek tidak disertakan."
 
 msgid "GitQuire logs, including activity across projects."
 msgstr "Log GitQuire, termasuk aktivitas lintas proyek."
 
-msgid "GitQuire looked at the link graph"
-msgstr "GitQuire melihat grafik tautan"
-
-msgid "GitQuire looked up links for {subject}"
-msgstr "GitQuire mencari tautan untuk {subject}"
-
-msgid "GitQuire looked up the authoring palette"
-msgstr "GitQuire membuka palet penulisan"
-
 msgid "GitQuire maintains a navigation file named index.md in every folder that contains Markdown, each listing that folder's documents by type and linking to its subfolders. It rewrites these files as your documents change, and anything you edit into them yourself is replaced."
 msgstr "GitQuire menyimpan file navigasi bernama index.md di setiap folder yang berisi Markdown, masing-masing mencantumkan dokumen folder tersebut berdasarkan jenis dan tautan ke subfoldernya. Itu menulis ulang file-file ini saat dokumen Anda berubah, dan apa pun yang Anda edit sendiri ke dalamnya akan diganti."
-
-msgid "GitQuire moved {subject} to {destination}"
-msgstr "GitQuire memindahkan {subject} ke {destination}"
-
-msgid "GitQuire moved a document"
-msgstr "GitQuire memindahkan sebuah dokumen"
 
 msgid "GitQuire on GitHub"
 msgstr "GitQuire di GitHub"
@@ -5502,83 +4732,20 @@ msgstr "GitQuire di komputer ini berganti ke build lain, tetapi tab ini masih me
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "GitQuire di komputer ini sekarang v{serverVersion}, tetapi tab ini masih menjalankan v{tabVersion}."
 
-msgid "GitQuire opened the live preview"
-msgstr "GitQuire membuka pratinjau langsung"
-
 msgid "GitQuire quit unexpectedly last time."
 msgstr "GitQuire berhenti tak terduga terakhir kali."
-
-msgid "GitQuire ran {command}"
-msgstr "GitQuire menjalankan {command}"
-
-msgid "GitQuire ran {tool}"
-msgstr "GitQuire menjalankan {tool}"
-
-msgid "GitQuire ran a command"
-msgstr "GitQuire menjalankan sebuah perintah"
-
-msgid "GitQuire read the edit history"
-msgstr "GitQuire membaca riwayat penyuntingan"
-
-msgid "GitQuire read the history of {subject}"
-msgstr "GitQuire membaca riwayat {subject}"
-
-msgid "GitQuire read the project settings"
-msgstr "GitQuire membaca pengaturan proyek"
-
-msgid "GitQuire read the setting {key}"
-msgstr "GitQuire membaca pengaturan {key}"
-
-msgid "GitQuire restored an earlier version"
-msgstr "GitQuire memulihkan versi sebelumnya"
-
-msgid "GitQuire restored an earlier version of {subject}"
-msgstr "GitQuire memulihkan versi sebelumnya dari {subject}"
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "GitQuire menulis ulang file index.md ini seiring perubahan dokumen, sehingga pengeditan manual pada file tersebut diganti."
 
-msgid "GitQuire saved a checkpoint"
-msgstr "GitQuire menyimpan titik pemeriksaan"
-
-msgid "GitQuire searched for {query}"
-msgstr "GitQuire mencari {query}"
-
-msgid "GitQuire searched the knowledge base"
-msgstr "GitQuire mencari di basis pengetahuan"
-
-msgid "GitQuire skill saved. Upload it in Claude Desktop, then click Cowork again."
-msgstr "Keterampilan GitQuire disimpan. Unggah di Claude Desktop, lalu klik Cowork lagi."
-
 msgid "GitQuire stores its configuration and internal files inside a newly created <0>.ok</0> directory in your project root folder."
 msgstr "GitQuire menyimpan konfigurasi dan berkas internalnya di dalam direktori <0>.ok</0> yang baru dibuat di folder akar proyek Anda."
-
-msgid "GitQuire tools are available in this thread."
-msgstr "Alat GitQuire tersedia di utas ini."
-
-msgid "GitQuire tools are unavailable because the project folder is missing, inaccessible, or has changed. Check its location and permissions, then retry."
-msgstr "Alat GitQuire tidak tersedia karena folder proyek tidak ada, tidak dapat diakses, atau telah berubah. Periksa lokasi dan izinnya, lalu coba lagi."
-
-msgid "GitQuire tools are unavailable: a file GitQuire didn't write is already at {bridgePath}."
-msgstr "Alat GitQuire tidak tersedia: sudah ada berkas di {bridgePath} yang tidak ditulis GitQuire."
-
-msgid "GitQuire tools are unavailable: something is already at {bridgePath} but couldn't be read, so GitQuire left it alone."
-msgstr "Alat GitQuire tidak tersedia: sudah ada sesuatu di {bridgePath}, tetapi tidak dapat dibaca, jadi GitQuire membiarkannya."
 
 msgid "GitQuire will be initialized at <0>{gitRoot}</0> — the parent of your new folder, because it contains a <1>.git</1> folder (one project per git repo)."
 msgstr "GitQuire akan diinisialisasi di <0>{gitRoot}</0> — folder induk dari folder baru Anda, karena folder itu memuat folder <1>.git</1> (satu proyek per repo git)."
 
 msgid "GitQuire will create commits and push them to your remote automatically. If you do not want automatic commits in your git history, you should not enable auto-sync."
 msgstr "GitQuire akan membuat commit dan mengirimkannya ke remote Anda secara otomatis. Jika Anda tidak ingin commit otomatis di riwayat git Anda, sebaiknya jangan aktifkan sinkronisasi otomatis."
-
-msgid "GitQuire wrote a document"
-msgstr "GitQuire menulis sebuah dokumen"
-
-msgid "GitQuire wrote to {subject}"
-msgstr "GitQuire menulis ke {subject}"
-
-msgid "GitQuire's own copy of {0} is damaged and won't run. It can download a fresh copy of {1} {2} (about {3} MB from {4}) to replace it."
-msgstr "Salinan {0} milik GitQuire sendiri rusak dan tidak bisa berjalan. GitQuire dapat mengunduh salinan baru {1} {2} (sekitar {3} MB dari {4}) untuk menggantinya."
 
 msgid "Give it a name before editing its colors."
 msgstr "Beri nama sebelum menyunting warnanya."
@@ -5589,17 +4756,11 @@ msgstr ""
 msgid "Give the draft a name that says what it changes."
 msgstr ""
 
-msgid "Gives the agent instructions for working with your documents and keeps its edits attributed."
-msgstr "Memberi agen instruksi untuk bekerja dengan dokumen Anda dan menjaga suntingannya tetap teratribusi."
-
 msgid "Glob patterns this schema applies to"
 msgstr "Pola glob tempat skema ini berlaku"
 
 msgid "Global"
 msgstr "Global"
-
-msgid "Global MCP server"
-msgstr "Server MCP global"
 
 msgid "Global outside text fields"
 msgstr "Global di luar bidang teks"
@@ -5663,12 +4824,6 @@ msgstr "Ganti baris paksa"
 msgid "Hard to use"
 msgstr "Sulit dipakai"
 
-msgid "Has merge conflicts"
-msgstr "Ada konflik merge"
-
-msgid "Having a look around…"
-msgstr "Melihat-lihat sekitar…"
-
 msgid "Heading"
 msgstr ""
 
@@ -5702,17 +4857,11 @@ msgstr "Perhatian"
 msgid "Heads up: editing any rule or option here creates a <0>.markdownlint.json</0> file in your project to save your changes."
 msgstr "Perhatian: menyunting aturan atau opsi apa pun di sini membuat berkas <0>.markdownlint.json</0> di proyek Anda untuk menyimpan perubahannya."
 
-msgid "Held"
-msgstr "Ditahan"
-
 msgid "Hello, world!"
 msgstr "Halo, dunia!"
 
 msgid "Help"
 msgstr "Bantuan"
-
-msgid "Help me understand the conflict in {filePath}. Explain what I should compare in the GitQuire Conflict view; I will choose and apply the resolution there."
-msgstr "Bantu saya memahami konflik dalam {filePath}. Jelaskan apa yang perlu saya bandingkan di tampilan konflik GitQuire; saya akan memilih dan menerapkan penyelesaiannya di sana."
 
 #. Subtext under the discovery-skill checkbox
 msgid "Help your agents discover and use GitQuire in any project."
@@ -5756,9 +4905,6 @@ msgstr "Sembunyikan opsi lanjutan"
 
 msgid "Hide Agents"
 msgstr "Sembunyikan Agen"
-
-msgid "Hide details"
-msgstr "Sembunyikan detail"
 
 msgid "Hide document panel"
 msgstr "Sembunyikan panel dokumen"
@@ -5804,9 +4950,6 @@ msgstr "Sembunyikan penggantian"
 
 msgid "Hide resolved"
 msgstr "Sembunyikan yang sudah selesai"
-
-msgid "Hide selection preview"
-msgstr "Sembunyikan pratinjau pilihan"
 
 msgid "Hide sidebar"
 msgstr "Sembunyikan bilah sisi"
@@ -5874,12 +5017,6 @@ msgstr ""
 msgid "How to push manually"
 msgstr "Cara push manual"
 
-msgid "How to set up"
-msgstr "Cara menyiapkan"
-
-msgid "How to set up {rowLabel}"
-msgstr "Cara menyiapkan {rowLabel}"
-
 msgid "How to set up new projects with GitQuire."
 msgstr "Cara menyiapkan proyek baru dengan GitQuire."
 
@@ -5922,18 +5059,6 @@ msgstr "ID: {0}"
 msgid "Identical in both — {pick} still reads them."
 msgstr "Identik di keduanya — {pick} tetap membacanya."
 
-#. js-lingui-explicit-id
-msgid "troubleshooting.lm-studio.config-path-mismatch"
-msgstr "Jika {agent} tidak menampilkan alat GitQuire, periksa apakah jalur konfigurasi MCP di pengaturannya cocok dengan berkas yang ditulis GitQuire."
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.cursor.project-entry-not-loaded"
-msgstr "Jika {agent} tidak menampilkan alat GitQuire, buka Customize → MCPs, pilih {server} dan nyalakan sumber .cursor/mcp.json miliknya; {agent} membiarkan server proyek mati sampai Anda melakukannya."
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.claude.project-entry-not-approved"
-msgstr "Jika {agent} tidak menampilkan alat GitQuire, jalankan di proyek ini dan setujui server GitQuire sekali."
-
 msgid "If an update arrives for something you are editing, you choose which version to keep, like a merge conflict."
 msgstr "Jika sebuah pembaruan datang untuk hal yang sedang Anda sunting, Anda memilih versi mana yang disimpan, seperti konflik penggabungan."
 
@@ -5967,9 +5092,6 @@ msgstr "Gambar tidak ditemukan"
 msgid "Image not found: {errorLabel}"
 msgstr "Gambar tidak ditemukan: {errorLabel}"
 
-msgid "Image preview"
-msgstr "Pratinjau gambar"
-
 msgid "Image target \"{shown}\" could not be resolved to a project-local file."
 msgstr "Target gambar \"{shown}\" tidak dapat dicocokkan dengan file lokal proyek."
 
@@ -5981,9 +5103,6 @@ msgstr "Target gambar \"{shown}\" ada, tetapi dikecualikan oleh .gitignore atau 
 
 msgid "Images aren't redacted."
 msgstr "Gambar tidak disamarkan."
-
-msgid "Images from anywhere · non-image files must be in the workspace"
-msgstr "Gambar dari mana saja · berkas non-gambar harus berada di ruang kerja"
 
 msgid "Import"
 msgstr "Impor"
@@ -6006,9 +5125,6 @@ msgstr "Diimpor sebagai \"{0}\" — nama \"{1}\" sudah dipakai."
 msgid "Importing"
 msgstr "Mengimpor"
 
-msgid "Imports a skill into this project"
-msgstr "Mengimpor keterampilan ke proyek ini"
-
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "Dalam dokumen log: judul entri diawali dengan tanggal ISO YYYY-MM-DD, terbaru terlebih dahulu. Berapa banyak title yang Anda gunakan, dan apakah entri merupakan poin, terserah Anda."
 
@@ -6020,9 +5136,6 @@ msgstr "Di chat agen, mengarahkan kursor ke tautan pull request atau issue GitHu
 
 msgid "In an index document: entries sit under a section heading and each one carries a link. Prose around the lists is fine."
 msgstr "Dalam dokumen indeks: entri berada di bawah judul bagian dan masing-masing membawa tautan. Prosa seputar daftar itu baik-baik saja."
-
-msgid "In app"
-msgstr "Di aplikasi"
 
 msgid "In Claude, open <0>Customize → Connectors</0>, click <1>+</1> and choose <2>Add custom connector</2>. Name it GitQuire, paste the address and click <3>Add</3>."
 msgstr ""
@@ -6038,15 +5151,6 @@ msgstr ""
 
 msgid "In the Claude Desktop App"
 msgstr "Di aplikasi Claude Desktop"
-
-msgid "In the merge queue"
-msgstr "Di antrean merge"
-
-msgid "In the merge queue, but it can't merge"
-msgstr "Di antrean merge, tetapi tidak bisa di-merge"
-
-msgid "In the plan above, please "
-msgstr "Dalam rencana di atas, tolong "
 
 msgid "In this repo — collaborators get copies via git."
 msgstr "Di repositori ini — kolaborator mendapat salinan lewat git."
@@ -6150,9 +5254,6 @@ msgstr "Properti Matematika Sebaris"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "Baris sebaris untuk berkas yang bisa diunduh. Seret-lepas juga berfungsi."
 
-msgid "Input"
-msgstr "Masukan"
-
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "Menyisipkan rujukan catatan kaki + kerangka definisi yang sesuai."
 
@@ -6185,12 +5286,6 @@ msgstr "Pasang"
 
 msgid "Install {0}"
 msgstr "Pasang {0}"
-
-msgid "Install {brand} →"
-msgstr "Pasang {brand} →"
-
-msgid "Install {rowLabel}"
-msgstr "Pasang {rowLabel}"
 
 msgid "install a skill here first"
 msgstr "instal dulu sebuah skill di sini"
@@ -6258,9 +5353,6 @@ msgstr "Terpasang"
 msgid "Installed \"{0}\" into {1}"
 msgstr "\"{0}\" dipasang ke {1}"
 
-msgid "Installed {0} {1}"
-msgstr "{0} {1} dipasang"
-
 msgid "Installed {imported} skills ({alreadyImported} were already present)"
 msgstr "{imported} keterampilan dipasang ({alreadyImported} sudah ada sebelumnya)"
 
@@ -6282,20 +5374,11 @@ msgstr "Terpasang di {label} — klik untuk menghapus"
 msgid "Installing"
 msgstr "Memasang"
 
-msgid "Installing {agentName}…"
-msgstr "Memasang {agentName}…"
-
 msgid "Installs for all your projects"
 msgstr "Terpasang untuk semua proyek Anda"
 
 msgid "Installs into this project"
 msgstr "Terpasang ke proyek ini"
-
-msgid "Installs the GitQuire discovery skill for this agent."
-msgstr "Menginstal keterampilan penemuan GitQuire untuk agen ini."
-
-msgid "Installs the GitQuire project skill for this agent."
-msgstr "Menginstal keterampilan proyek GitQuire untuk agen ini."
 
 msgid "Installs the skill to {path} — the first location holds its own copy"
 msgstr "Memasang skill ke {path} — lokasi pertama menyimpan salinan aslinya"
@@ -6321,12 +5404,6 @@ msgstr "Masukan tidak valid — pilih folder lain."
 msgid "Invalid patch payload"
 msgstr "Muatan patch tidak valid"
 
-msgid "Invalid server response"
-msgstr "Respons server tidak valid"
-
-msgid "Invalid server response shape"
-msgstr "Bentuk respons server tidak valid"
-
 msgid "Invalid share URL."
 msgstr "URL berbagi tidak valid."
 
@@ -6347,9 +5424,6 @@ msgstr "Ini juga menambahkan laporan memori rendah yang ditulis macOS dalam semi
 
 msgid "It also adds the out-of-memory kills of GitQuire that the system journal recorded in the past week, without the machine name, account id, or folder paths."
 msgstr "Ini juga menambahkan penghentian GitQuire karena kehabisan memori yang dicatat jurnal sistem dalam seminggu terakhir, tanpa nama mesin, ID akun, atau jalur folder."
-
-msgid "It also marks {0} as trusted, which is what makes the extension load. That trust covers the whole folder — {1} will load every extension in it, not only GitQuire's — and both stay until you remove GitQuire from this project."
-msgstr "Ini juga menandai {0} sebagai tepercaya, yang membuat ekstensi itu dimuat. Kepercayaan itu mencakup seluruh folder: {1} akan memuat setiap ekstensi di dalamnya, bukan hanya milik GitQuire, dan keduanya tetap ada sampai Anda menghapus GitQuire dari proyek ini."
 
 msgid "It didn't fit into my workflow"
 msgstr "Tidak cocok dengan alur kerja saya"
@@ -6474,9 +5548,6 @@ msgstr "Label <0>(teks tautan yang terlihat)</0>"
 msgid "Language"
 msgstr "Bahasa"
 
-msgid "Last activity {lastActivity}"
-msgstr "Aktivitas terakhir: {lastActivity}"
-
 msgid "Later"
 msgstr ""
 
@@ -6514,9 +5585,6 @@ msgstr ""
 msgid "Let agent chats use a browser"
 msgstr "Izinkan obrolan agen memakai browser"
 
-msgid "Let agents use GitQuire without asking"
-msgstr "Biarkan agen memakai GitQuire tanpa bertanya"
-
 msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
 
@@ -6543,9 +5611,6 @@ msgstr "Membatasi total teks yang dikirim dalam setiap permintaan. Potongan yang
 
 msgid "line {displayLine}"
 msgstr "baris {displayLine}"
-
-msgid "Lines changed: {additions} added, {deletions} removed"
-msgstr "Baris berubah: {additions} ditambahkan, {deletions} dihapus"
 
 msgid "Link"
 msgstr "Tautan"
@@ -6652,9 +5717,6 @@ msgstr "Memuat {fileName}"
 msgid "Loading agent activity"
 msgstr "Memuat aktivitas agen"
 
-msgid "Loading agents…"
-msgstr "Memuat agen…"
-
 msgid "Loading both versions"
 msgstr "Memuat kedua versinya"
 
@@ -6735,9 +5797,6 @@ msgstr "Memuat tag"
 
 msgid "Loading templates"
 msgstr "Memuat templat"
-
-msgid "Loading the chat"
-msgstr "Memuat obrolan"
 
 msgid "Loading timeline history"
 msgstr "Memuat riwayat lini masa"
@@ -6823,9 +5882,6 @@ msgstr "Jadikan basis pengetahuan ini tersedia sebagai Keterampilan Claude."
 msgid "Make this the source — the skill's real folder moves here"
 msgstr "Jadikan ini sumbernya — folder asli keterampilan ini pindah ke sini"
 
-msgid "Makes a skill available in more places, or removes it from one"
-msgstr "Membuat keterampilan tersedia di lebih banyak tempat, atau menghapusnya dari satu tempat"
-
 msgid "Malformed apply response"
 msgstr "Respons apply salah bentuk"
 
@@ -6838,9 +5894,6 @@ msgstr "Respons plan salah bentuk"
 msgid "Manage"
 msgstr "Kelola"
 
-msgid "Manage {rowLabel}"
-msgstr "Kelola {rowLabel}"
-
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "Kelola berkas tersembunyi di Pengaturan → Pola abaikan."
 
@@ -6849,9 +5902,6 @@ msgstr "Kelola folder keterampilan"
 
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "Kelola akun dan token akses yang dipakai GitQuire untuk terhubung ke host git Anda."
-
-msgid "Managing agent connections is unavailable in this build."
-msgstr "Pengelolaan koneksi agen tidak tersedia di build ini."
 
 msgid "Manual"
 msgstr "Manual"
@@ -6895,9 +5945,6 @@ msgstr "Cocokkan huruf besar-kecil"
 msgid "Maximum {MAX_ATTACHMENTS} attachments"
 msgstr "Maksimal {MAX_ATTACHMENTS} lampiran"
 
-msgid "Maximum agents already running"
-msgstr "Jumlah agen yang berjalan sudah maksimal"
-
 msgid "Maximum text chunks per indexing request"
 msgstr "Maksimum potongan teks per permintaan pengindeksan"
 
@@ -6922,9 +5969,6 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "Judul bagian sedang."
 
-msgid "Mention a page"
-msgstr "Sebut halaman"
-
 msgid "Mention people by their GitHub name, like @anna."
 msgstr ""
 
@@ -6933,10 +5977,6 @@ msgstr ""
 
 msgid "Mentions, {0} unread"
 msgstr ""
-
-msgctxt "GitHub pull request or issue state"
-msgid "Merged"
-msgstr "Di-merge"
 
 msgid "Mermaid diagram"
 msgstr "Diagram Mermaid"
@@ -6949,12 +5989,6 @@ msgstr "Diagram Mermaid gagal dirender."
 
 msgid "Message"
 msgstr ""
-
-msgid "Message {agentName}"
-msgstr "Kirim pesan ke {agentName}"
-
-msgid "Message not sent: {0}"
-msgstr "Pesan tidak terkirim: {0}"
 
 msgid "Minimize"
 msgstr "Perkecil"
@@ -7019,9 +6053,6 @@ msgstr "Model"
 msgid "Model: <0>{0}</0>"
 msgstr "Model: <0>{0}</0>"
 
-msgid "Model's default effort"
-msgstr "Upaya bawaan model"
-
 msgid "Modified"
 msgstr "Diubah"
 
@@ -7042,9 +6073,6 @@ msgstr ""
 
 msgid "More draft actions"
 msgstr ""
-
-msgid "More information"
-msgstr "Informasi selengkapnya"
 
 msgid "More requests were blocked."
 msgstr "Lebih banyak permintaan diblokir."
@@ -7178,9 +6206,6 @@ msgstr "Pindahkan ke panel baru di kanan"
 msgid "Move to Recycle Bin"
 msgstr "Pindahkan ke Recycle Bin"
 
-msgid "Move to right panel"
-msgstr "Pindahkan ke panel kanan"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Pergi ke diagnostik lint CodeMirror berikutnya."
 
@@ -7204,9 +6229,6 @@ msgstr "\"{0}\" dipindahkan ke {1}"
 
 msgid "Moved {0} to {destination}."
 msgstr "{0} dipindahkan ke {destination}."
-
-msgid "Moved {0} to position {1} of {2}"
-msgstr "{0} dipindahkan ke posisi {1} dari {2}"
 
 msgid "Moved {label} to a new pane on the left."
 msgstr "{label} dipindahkan ke panel baru di sebelah kiri."
@@ -7235,26 +6257,14 @@ msgstr "templat dipindahkan"
 msgid "Moved up."
 msgstr "Dipindahkan ke atas."
 
-msgid "Moves or renames a document, folder, asset, template, or skill"
-msgstr "Memindahkan atau mengganti nama dokumen, folder, aset, templat, atau keterampilan"
-
-msgid "Moves or renames a file"
-msgstr "Memindahkan atau mengganti nama berkas"
-
 msgid "Moving"
 msgstr "Memindahkan"
-
-msgid "Mulling…"
-msgstr "Mempertimbangkan…"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Penampil PDF multi-halaman dengan kendali bilah alat (gambar mini, navigasi halaman, zoom)."
 
 msgid "Multiple files use this theme name"
 msgstr "Beberapa berkas menggunakan nama tema ini"
-
-msgid "Musing…"
-msgstr "Melamun…"
 
 msgid "my-feature"
 msgstr "fitur-saya"
@@ -7295,9 +6305,6 @@ msgstr "Navigasi dan saran"
 msgid "Navigation history"
 msgstr "Riwayat navigasi"
 
-msgid "Needs you to sign in"
-msgstr "Anda perlu masuk"
-
 msgid "Nested .okignore error in {path}"
 msgstr "Galat .okignore bersarang di {path}"
 
@@ -7322,12 +6329,6 @@ msgstr "Pengaturan jaringan belum dimuat. Coba lagi sebentar."
 msgid "New"
 msgstr "Baru"
 
-msgid "New {0} chat"
-msgstr "Obrolan {0} baru"
-
-msgid "New activity"
-msgstr "Ada aktivitas baru"
-
 msgid "New best · press <0>Space</0> to play again"
 msgstr "Rekor baru · tekan <0>Spasi</0> untuk main lagi"
 
@@ -7342,12 +6343,6 @@ msgstr "Perubahan baru dari remote Anda muncul di salinan Anda secara otomatis."
 
 msgid "New chat"
 msgstr "Obrolan baru"
-
-msgid "New chat with {agentName}"
-msgstr "Obrolan baru dengan {agentName}"
-
-msgid "New chat with a different window"
-msgstr "Percakapan baru dengan jendela lain"
 
 msgid "New draft"
 msgstr ""
@@ -7409,9 +6404,6 @@ msgstr "Nama properti baru"
 msgid "New schema"
 msgstr "Skema baru"
 
-msgid "New session"
-msgstr "Sesi baru"
-
 msgid "New skill"
 msgstr "Keterampilan baru"
 
@@ -7423,9 +6415,6 @@ msgstr "Tab baru"
 
 msgid "New template"
 msgstr "Templat baru"
-
-msgid "New terminal"
-msgstr "Terminal baru"
 
 msgid "New Terminal"
 msgstr "Terminal Baru"
@@ -7466,31 +6455,8 @@ msgstr "Tidak ditemukan proyek GitQuire yang aktif maupun yang terbaru."
 msgid "No agent folders yet"
 msgstr "Belum ada folder agen"
 
-msgid "No agent is set up yet — pick one from the send menu."
-msgstr "Belum ada agen yang disiapkan — pilih satu dari menu kirim."
-
 msgid "no agents — saved, not installed anywhere"
 msgstr "tanpa agen — disimpan, tidak dipasang di mana pun"
-
-#. Composer hint when no agent is set up; agentConnectionsLabel is the Settings sidebar pane name
-#. Composer hint when no agent is set up; agentConnectionsLabel is the Settings sidebar pane name
-msgid "No agents are set up yet — add an in-app agent in {agentConnectionsLabel} to attach files."
-msgstr "Belum ada agen yang disiapkan — untuk melampirkan berkas, tambahkan agen dalam aplikasi lewat {agentConnectionsLabel}."
-
-msgid "No agents available."
-msgstr "Tidak ada agen yang tersedia."
-
-msgid "No agents enabled"
-msgstr "Tidak ada agen yang diaktifkan"
-
-msgid "No agents enabled."
-msgstr "Tidak ada agen yang diaktifkan."
-
-msgid "No agents match your search."
-msgstr "Tidak ada agen yang cocok dengan pencarian Anda."
-
-msgid "No AI agents installed"
-msgstr "Tidak ada agen AI yang terpasang"
 
 #. Shown in place of the AI-tools checkbox when no AI tool was detected; agentConnectionsLabel is the Settings sidebar pane name
 msgid "No AI tools detected yet. Once you install one, connect it from Settings > {agentConnectionsLabel}."
@@ -7525,9 +6491,6 @@ msgstr "Tidak ada perubahan"
 
 msgid "No changes yet · not live"
 msgstr ""
-
-msgid "No chats match your search"
-msgstr "Tidak ada chat yang cocok dengan pencarian Anda"
 
 msgid "No chats yet."
 msgstr "Belum ada chat."
@@ -7826,14 +6789,8 @@ msgstr "Bukan warna heksa: {0}"
 msgid "Not added to any AI tool yet."
 msgstr "Belum ditambahkan ke alat AI mana pun."
 
-msgid "Not answered"
-msgstr "Belum dijawab"
-
 msgid "Not attached to desktop bridge"
 msgstr "Tidak terhubung ke bridge desktop"
-
-msgid "Not available on this platform"
-msgstr "Tidak tersedia di platform ini"
 
 msgid "Not connected"
 msgstr "Tidak terhubung"
@@ -7841,23 +6798,11 @@ msgstr "Tidak terhubung"
 msgid "Not connected to GitHub."
 msgstr "Tidak terhubung ke GitHub."
 
-msgid "Not detected on this machine"
-msgstr "Tidak terdeteksi di mesin ini"
-
-msgid "Not detected on this machine · GitQuire files present"
-msgstr "Tidak terdeteksi di mesin ini · File GitQuire ada"
-
 msgid "Not great"
 msgstr "Kurang bagus"
 
 msgid "Not in sidebar"
 msgstr "Tidak ada di bilah sisi"
-
-msgid "Not installed"
-msgstr "Belum terpasang"
-
-msgid "Not installed · GitQuire files present"
-msgstr "Belum terpasang · File GitQuire ada"
 
 msgid "Not installed in this project yet."
 msgstr "Belum terpasang di proyek ini."
@@ -7869,18 +6814,11 @@ msgstr "Tidak digabungkan"
 msgid "Not now"
 msgstr "Nanti saja"
 
-msgctxt "GitHub pull request or issue state"
-msgid "Not planned"
-msgstr "Tidak direncanakan"
-
 msgid "Not redacted. Check the image before sharing."
 msgstr "Tidak disamarkan. Periksa gambar sebelum membagikannya."
 
 msgid "Not required for a loopback endpoint like <0>{endpointHost}</0> — most local servers ignore it. Add one only if yours needs it."
 msgstr "Tidak diperlukan untuk endpoint loopback seperti <0>{endpointHost}</0> — kebanyakan server lokal mengabaikannya. Tambahkan hanya jika milik Anda memerlukannya."
-
-msgid "Not running"
-msgstr "Tidak berjalan"
 
 msgid "Not sent"
 msgstr "Belum terkirim"
@@ -7896,9 +6834,6 @@ msgstr "tidak apa pun ({0} tidak bisa cocok dengan sebuah dokumen)"
 
 msgid "nothing ({0} is not a valid pattern)"
 msgstr "tidak apa pun ({0} bukan pola yang valid)"
-
-msgid "Nothing from {agentName} for {stalledMinutes, plural, one {# minute} other {# minutes}}. If it looks stuck, Stop and try again."
-msgstr "Tidak ada kabar dari {agentName} selama {stalledMinutes, plural, other {# menit}}. Jika tampak macet, hentikan dan coba lagi."
 
 msgid "Nothing has changed in this draft yet."
 msgstr ""
@@ -7972,9 +6907,6 @@ msgstr "Terakhir kali OK menyetel folder ini menjadi {0} — sesuatu di luar OK 
 msgid "OKF agent skill installed"
 msgstr "OKF keterampilan agen diinstal"
 
-msgid "Older"
-msgstr "Lebih lama"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "Aktif — mengarahkan kursor ke tautan eksternal mengirim URL-nya ke situs tujuan untuk mengambil pratinjau, dan mengarahkan kursor ke referensi GitHub di chat agen memintanya dari GitHub."
 
@@ -8035,27 +6967,14 @@ msgstr ""
 msgid "Open"
 msgstr "Buka"
 
-msgctxt "GitHub pull request or issue state"
-msgid "Open"
-msgstr "Terbuka"
-
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "Buka {0} di GitHub (terbuka di tab baru)"
 
 msgid "Open {basename}"
 msgstr "Buka {basename}"
 
-msgid "Open {displayName} Desktop"
-msgstr "Buka {displayName} Desktop"
-
-msgid "Open {docName}"
-msgstr "Buka {docName}"
-
 msgid "Open {fullName} on GitHub"
 msgstr ""
-
-msgid "Open {handoffLabel}"
-msgstr "Buka {handoffLabel}"
 
 msgid "Open {keyName} in browser"
 msgstr "Buka {keyName} di peramban"
@@ -8071,9 +6990,6 @@ msgstr "Membuka tab penyunting kosong."
 
 msgid "Open a doc to share its URL."
 msgstr "Buka sebuah dokumen untuk membagikan URL-nya."
-
-msgid "Open a new session with your preferred AI. With text selected, stage it there instead of running it."
-msgstr "Membuka sesi baru dengan AI pilihan Anda. Dengan teks terpilih, teks itu disiapkan di sana alih-alih dijalankan."
 
 msgid "Open a project first."
 msgstr "Buka proyek terlebih dahulu."
@@ -8098,9 +7014,6 @@ msgstr "Buka agen"
 
 msgid "Open an existing project folder from disk."
 msgstr "Membuka folder proyek yang sudah ada dari disk."
-
-msgid "Open and focus the bottom Ask AI prompt composer."
-msgstr "Membuka dan memfokuskan penyusun prompt Tanya AI di bawah."
 
 msgid "Open board"
 msgstr "Buka papan"
@@ -8234,9 +7147,6 @@ msgstr ""
 msgid "Open terminal"
 msgstr "Buka terminal"
 
-msgid "Open terminal to sign in"
-msgstr "Buka terminal untuk masuk"
-
 msgid "Open that worktree instead"
 msgstr "Buka worktree itu saja"
 
@@ -8267,26 +7177,11 @@ msgstr "Membuka pencarian penyunting visual dengan kendali penggantian terbentan
 msgid "Open with AI"
 msgstr "Buka dengan AI"
 
-msgid "Open with AI {displayName} Desktop"
-msgstr "Buka dengan AI {displayName} Desktop"
-
-msgid "Open with AI {displayName} Desktop, {hint}"
-msgstr "Buka dengan AI {displayName} Desktop, {hint}"
-
-msgid "Open with AI {targetDisplayName}"
-msgstr "Buka dengan AI {targetDisplayName}"
-
-msgid "Open with AI {targetDisplayName}, {hint}"
-msgstr "Buka dengan AI {targetDisplayName}, {hint}"
-
 msgid "Open worktree"
 msgstr "Buka worktree"
 
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "Membuka, menelusuri, menerima, atau menutup saran pelengkapan CodeMirror."
-
-msgid "Opened by {author}"
-msgstr "Dibuka oleh {author}"
 
 msgid "Opened existing GitQuire project at {ancestorPath}"
 msgstr "Proyek GitQuire yang sudah ada dibuka di {ancestorPath}"
@@ -8323,9 +7218,6 @@ msgstr "Atau, untuk memakai proses masuk lewat peramban:"
 
 msgid "or use a starter pack"
 msgstr "atau pakai paket awal"
-
-msgid "Or use a starter pack"
-msgstr "Atau pakai paket awal"
 
 msgid "Ordered list"
 msgstr "Daftar berurut"
@@ -8568,14 +7460,8 @@ msgstr "Galat sintaks pola: {message}"
 msgid "Pattern warnings: {summary}"
 msgstr "Peringatan pola: {summary}"
 
-msgid "pending"
-msgstr "tertunda"
-
 msgid "People"
 msgstr ""
-
-msgid "Percolating…"
-msgstr "Mengendap…"
 
 msgctxt "settings search keyword"
 msgid "performance"
@@ -8586,9 +7472,6 @@ msgstr "Menghapus <0>{targetGitPath}</0> secara permanen beserta seluruh riwayat
 
 msgid "Permission denied"
 msgstr "Izin ditolak"
-
-msgid "Permission required"
-msgstr "Perlu izin"
 
 msgid "Person"
 msgstr ""
@@ -8635,9 +7518,6 @@ msgstr "Pilih keterampilan yang akan dipasang. Masing-masing masuk sebagai keter
 msgid "Pick the skills to install. Each one lands as an editable skill you own."
 msgstr "Pilih keterampilan yang akan dipasang. Masing-masing masuk sebagai keterampilan milik Anda yang bisa disunting."
 
-msgid "Pick up where you left off"
-msgstr "Lanjutkan dari tempat Anda berhenti"
-
 msgid "Pick where your copy goes. Choosing a destination creates it."
 msgstr "Pilih tujuan salinan Anda. Memilih tujuan akan membuatnya."
 
@@ -8659,9 +7539,6 @@ msgstr "Polos"
 msgid "Plain text"
 msgstr "Teks biasa"
 
-msgid "Plan ({done}/{0})"
-msgstr "Rencana ({done}/{0})"
-
 msgid "Play Blob Run"
 msgstr "Mainkan Blob Run"
 
@@ -8679,9 +7556,6 @@ msgstr "Plugin"
 
 msgid "Point semantic search at any OpenAI-compatible embeddings endpoint — a self-hosted server or another provider. The API key above is for whichever endpoint you set here."
 msgstr "Arahkan pencarian semantik ke endpoint embedding mana pun yang kompatibel dengan OpenAI — server milik sendiri atau penyedia lain. Kunci API di atas berlaku untuk endpoint mana pun yang Anda setel di sini."
-
-msgid "Pondering…"
-msgstr "Menimbang…"
 
 msgid "Popular"
 msgstr "Populer"
@@ -8791,9 +7665,6 @@ msgstr "Folder proyek dibuat, tetapi git init gagal. Coba lagi."
 msgid "Project folder: <0>{projectDir}</0>"
 msgstr "Folder proyek: <0>{projectDir}</0>"
 
-msgid "Project MCP server"
-msgstr "Server MCP proyek"
-
 msgid "project missing"
 msgstr "proyek tidak ada"
 
@@ -8805,9 +7676,6 @@ msgstr "Plugin proyek adalah standar penulisan proyek Anda — nyalakan atau mat
 
 msgid "Project root"
 msgstr "Akar proyek"
-
-msgid "Project skill"
-msgstr "Keterampilan proyek"
 
 msgid "Project templates"
 msgstr "Templat proyek"
@@ -8941,30 +7809,6 @@ msgstr "Melakukan push"
 msgid "Put my AI assistant's edits into a draft"
 msgstr ""
 
-#. js-lingui-explicit-id
-msgid "guidance.skill.user"
-msgstr "Menempatkan keterampilan penemuan GitQuire di folder keterampilan global {agent}, sehingga ia dapat menemukan GitQuire di proyek mana pun."
-
-#. js-lingui-explicit-id
-msgid "guidance.skill.project"
-msgstr "Menempatkan keterampilan GitQuire di folder keterampilan {agent} untuk proyek ini, sehingga suntingannya tetap teratribusi."
-
-#. js-lingui-explicit-id
-msgid "guidance.skill.central-store"
-msgstr "Menempatkan keterampilan GitQuire di penyimpanan keterampilan pusat yang dibaca {agent}."
-
-msgid "Puzzling…"
-msgstr "Memecahkan teka-teki…"
-
-msgid "Queue message"
-msgstr "Antrekan pesan"
-
-msgid "Queued — sends when this run finishes"
-msgstr "Dalam antrean — dikirim saat proses ini selesai"
-
-msgid "Queues behind the running turn"
-msgstr "Mengantre di belakang giliran yang sedang berjalan"
-
 msgid "Quit"
 msgstr "Keluar"
 
@@ -8992,17 +7836,11 @@ msgstr "Jalankan ulang audit proyek"
 msgid "React"
 msgstr "React"
 
-msgid "Read"
-msgstr "Baca"
-
 msgid "Read pages"
 msgstr ""
 
 msgid "Read through this codebase and draft a technical spec for the most complex module: an overview, the architecture, key files, and open questions, all linked from a specs index page."
 msgstr "Baca basis kode ini dan susun spesifikasi teknis untuk modul yang paling rumit: sebuah ikhtisar, arsitekturnya, berkas-berkas utamanya, dan pertanyaan terbuka, semuanya tertaut dari sebuah halaman indeks spesifikasi."
-
-msgid "Read-only allowed"
-msgstr "Hanya-baca diizinkan"
 
 msgid "Read-only copy of a MirrorSource block from another doc. Edit at the source and it updates live."
 msgstr "Salinan hanya-baca dari blok MirrorSource di dokumen lain. Sunting di sumbernya dan salinan ini diperbarui langsung."
@@ -9022,35 +7860,8 @@ msgstr "Membaca pengaturan saat ini…"
 msgid "Reading working tree"
 msgstr "Membaca working tree"
 
-msgid "Reading…"
-msgstr "Membaca…"
-
-msgid "Reads a file"
-msgstr "Membaca berkas"
-
-msgid "Reads documents and folders in this project with read-only shell commands"
-msgstr "Membaca dokumen dan folder di proyek ini dengan perintah shell hanya-baca"
-
-msgid "Reads the authoring palette so new documents match the project's style"
-msgstr "Membaca palet penulisan agar dokumen baru mengikuti gaya proyek"
-
-msgid "Reads the link graph: what links to what"
-msgstr "Membaca graf tautan: apa menaut ke apa"
-
-msgid "Reads the version history of a document or skill, or a folder's activity"
-msgstr "Membaca riwayat versi dokumen atau keterampilan, atau aktivitas folder"
-
-msgid "Reads this project's GitQuire settings"
-msgstr "Membaca pengaturan GitQuire proyek ini"
-
-msgid "Ready"
-msgstr "Siap"
-
 msgid "Ready for review"
 msgstr ""
-
-msgid "Ready to merge"
-msgstr "Siap di-merge"
 
 msgid "Ready-made folders and templates to get you started quickly."
 msgstr "Folder dan templat siap pakai agar Anda cepat memulai."
@@ -9063,9 +7874,6 @@ msgstr "Alasan: {reason}"
 
 msgid "Reason: {reason} ({osDetail})"
 msgstr "Alasan: {reason} ({osDetail})"
-
-msgid "Reasons before acting"
-msgstr "Bernalar sebelum bertindak"
 
 msgid "Receiving objects"
 msgstr "Menerima objek"
@@ -9112,9 +7920,6 @@ msgstr "Tersambung kembali"
 msgid "Reconnecting after server restart"
 msgstr "Menyambung ulang setelah server dimulai ulang"
 
-msgid "Reconnecting to the agent service…"
-msgstr "Menyambung ulang ke layanan agen…"
-
 msgid "Reconnecting…"
 msgstr "Menyambung ulang…"
 
@@ -9136,9 +7941,6 @@ msgstr "Referensi"
 msgid "Reference <0>{0}</0>"
 msgstr "Referensi <0>{0}</0>"
 
-msgid "Reflecting…"
-msgstr "Merenungkan…"
-
 msgid "Reinstall"
 msgstr "Pasang ulang"
 
@@ -9148,9 +7950,6 @@ msgstr "Pasang ulang untuk Claude Chat & Cowork"
 
 msgid "Reinstalling"
 msgstr "Memasang ulang"
-
-msgid "Reject"
-msgstr "Tolak"
 
 msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
 msgstr ""
@@ -9215,9 +8014,6 @@ msgstr "Hapus {host}"
 msgid "Remove {keyName}"
 msgstr "Hapus {keyName}"
 
-msgid "Remove {label} from context"
-msgstr "Hapus {label} dari konteks"
-
 msgid "Remove {name} from recent projects"
 msgstr "Hapus {name} dari proyek terbaru"
 
@@ -9236,23 +8032,11 @@ msgstr "Gagal menghapus: {error}"
 msgid "Remove field {field}"
 msgstr "Hapus bidang {field}"
 
-msgid "Remove for both"
-msgstr "Hapus untuk keduanya"
-
 msgid "Remove from recent projects"
 msgstr "Hapus dari proyek terbaru"
 
 msgid "Remove GitQuire from {0}"
 msgstr "Hapus GitQuire dari {0}"
-
-msgid "Remove GitQuire from {0}?"
-msgstr "Hapus GitQuire dari {0}?"
-
-msgid "Remove GitQuire from {rowLabel}"
-msgstr "Hapus GitQuire dari {rowLabel}"
-
-msgid "Remove GitQuire?"
-msgstr "Hapus GitQuire?"
 
 msgid "Remove item {0}"
 msgstr "Hapus item {0}"
@@ -9262,12 +8046,6 @@ msgstr "Hapus tautan"
 
 msgid "Remove property"
 msgstr "Hapus properti"
-
-msgid "Remove queued message"
-msgstr "Hapus pesan dari antrean"
-
-msgid "Remove selection"
-msgstr "Hapus pilihan"
 
 msgid "Remove the parent <0>.git</0> folder"
 msgstr "Hapus folder <0>.git</0> induknya"
@@ -9290,12 +8068,6 @@ msgstr "\"{projectName}\" dihapus dari proyek terbaru. Foldernya sudah tidak ada
 msgid "Removed GitQuire files"
 msgstr "File GitQuire dihapus"
 
-msgid "Removes it for {0} and {1}. {addingCount, plural, one {# added} other {# added}} · {removingCount, plural, one {# removed} other {# removed}}"
-msgstr "Menghapusnya untuk {0} dan {1}. {addingCount, plural, other {# ditambahkan}} · {removingCount, plural, other {# dihapus}}"
-
-msgid "Removes it for {0} and {1}. {removingCount, plural, one {# removed} other {# removed}}"
-msgstr "Menghapusnya untuk {0} dan {1}. {removingCount, plural, other {# dihapus}}"
-
 msgid "Removing"
 msgstr "Menghapus"
 
@@ -9305,14 +8077,8 @@ msgstr "Menghapus berkas GitQuire…"
 msgid "Rename"
 msgstr "Ganti nama"
 
-msgid "Rename {0}"
-msgstr "Ganti nama {0}"
-
 msgid "Rename {keyName}"
 msgstr "Ganti nama {keyName}"
-
-msgid "Rename chat"
-msgstr "Ganti nama chat"
 
 msgid "Rename draft"
 msgstr ""
@@ -9392,9 +8158,6 @@ msgstr "Ganti {keyName}"
 msgid "Replace all matches"
 msgstr "Ganti semua kecocokan"
 
-msgid "Replace and save"
-msgstr "Ganti dan simpan"
-
 msgid "Replace current match"
 msgstr "Ganti kecocokan saat ini"
 
@@ -9434,9 +8197,6 @@ msgstr "Ganti dengan salinan"
 msgid "Replace with symlink"
 msgstr "Ganti dengan symlink"
 
-msgid "Replaces the existing {server} entry in this file. Other servers in the file are left alone."
-msgstr "Mengganti entri {server} yang ada di file ini. Server lain dalam file ini tidak diubah."
-
 msgid "Replaces the existing GitQuire entry in {0}"
 msgstr "Mengganti entri GitQuire yang ada di {0}"
 
@@ -9451,9 +8211,6 @@ msgstr "Laporkan bug"
 
 msgid "Report a bug…"
 msgstr "Laporkan bug…"
-
-msgid "Report a problem with this chat…"
-msgstr "Laporkan masalah dengan chat ini…"
 
 msgid "Report an issue"
 msgstr ""
@@ -9498,15 +8255,6 @@ msgstr "wajib"
 msgid "Required"
 msgstr "Wajib"
 
-msgid "Required checks are failing"
-msgstr "Pemeriksaan wajib gagal"
-
-msgid "Requires {brand}."
-msgstr "Memerlukan {brand}."
-
-msgid "Research the extinction of flightless birds"
-msgstr "Teliti kepunahan burung yang tidak bisa terbang"
-
 msgid "research-note"
 msgstr "catatan-riset"
 
@@ -9549,9 +8297,6 @@ msgstr ""
 msgid "Resolve conflict in your terminal"
 msgstr "Selesaikan konfliknya di terminal Anda"
 
-msgid "Resolve in terminal"
-msgstr "Selesaikan di terminal"
-
 msgid "Resolve the conflict on {files} before deleting."
 msgstr "Selesaikan konflik pada {files} sebelum menghapus."
 
@@ -9572,12 +8317,6 @@ msgstr "Sumber daya"
 
 msgid "Restart server"
 msgstr "Mulai ulang server"
-
-msgid "Restart terminal"
-msgstr "Mulai ulang terminal"
-
-msgid "Restart this terminal session to use the newly installed GitQuire tools."
-msgstr "Mulai ulang sesi terminal ini untuk menggunakan alat GitQuire yang baru diinstal."
 
 msgid "Restart with this app's version"
 msgstr "Mulai ulang dengan versi aplikasi ini"
@@ -9630,29 +8369,14 @@ msgstr "Versi terdahulu dipulihkan ({0})"
 msgid "Restored to the version from {0}"
 msgstr "Dipulihkan ke versi dari {0}"
 
-msgid "Restores a document or skill to an earlier version"
-msgstr "Memulihkan dokumen atau keterampilan ke versi sebelumnya"
-
 msgid "Results capped — this workspace has more files than search can index. A missing file may be a cap artifact, not a typo."
 msgstr "Hasil dibatasi — ruang kerja ini punya lebih banyak berkas daripada yang bisa diindeks pencarian. Berkas yang hilang bisa jadi efek batasan itu, bukan salah ketik."
-
-msgid "Resume chat"
-msgstr "Lanjutkan obrolan"
-
-msgid "Resuming the chat"
-msgstr "Melanjutkan obrolan"
-
-msgid "Retrieving…"
-msgstr "Mengambil…"
 
 msgid "Retry push"
 msgstr "Coba push lagi"
 
 msgid "Retrying"
 msgstr "Mencoba lagi"
-
-msgid "Retrying…"
-msgstr "Mencoba lagi…"
 
 msgid "Reuse one tab when clicking through the sidebars. Off opens every click in its own tab."
 msgstr "Pakai ulang satu tab saat Anda mengeklik lewat bilah sisi. Bila mati, setiap klik terbuka di tabnya sendiri."
@@ -9708,32 +8432,14 @@ msgstr "Penyuntingan aturan tersedia untuk konfigurasi markdownlint di akar proy
 msgid "Rules"
 msgstr "Aturan"
 
-msgid "Ruminating…"
-msgstr "Merenung…"
-
-msgid "Run"
-msgstr "Jalankan"
-
 msgid "Run a project audit from the Problems panel."
 msgstr "Jalankan audit proyek dari panel Masalah."
-
-msgid "Run a real terminal docked inside GitQuire, starting in this project's folder."
-msgstr "Jalankan terminal sungguhan yang tertambat di dalam GitQuire, dimulai di folder proyek ini."
-
-msgid "Run in terminal"
-msgstr "Jalankan di terminal"
 
 msgid "Run this in your terminal"
 msgstr "Jalankan ini di terminal Anda"
 
-msgid "running"
-msgstr "berjalan"
-
 msgid "Running project audit"
 msgstr "Menjalankan audit proyek"
-
-msgid "Runs a shell command"
-msgstr "Menjalankan perintah shell"
 
 msgid "Sample image"
 msgstr "Contoh gambar"
@@ -9761,9 +8467,6 @@ msgstr "Gagal menyimpan: {error}"
 
 msgid "Save page"
 msgstr ""
-
-msgid "Save queued message"
-msgstr "Simpan pesan dalam antrean"
 
 msgid "Save view as page"
 msgstr ""
@@ -9807,9 +8510,6 @@ msgstr "Disimpan bersama proyek untuk tim Anda."
 msgid "Saved. Restart GitQuire to apply the change."
 msgstr "Tersimpan. Mulai ulang GitQuire untuk menerapkan perubahan."
 
-msgid "Saves a restore point for every document in the project"
-msgstr "Menyimpan titik pemulihan untuk setiap dokumen di proyek"
-
 msgid "Saves the file to <0>~/Downloads/openknowledge.skill</0> and opens the Claude Desktop App. Requires Node.js or Bun on your PATH."
 msgstr "Menyimpan berkasnya ke <0>~/Downloads/openknowledge.skill</0> dan membuka aplikasi Claude Desktop. Memerlukan Node.js atau Bun di PATH Anda."
 
@@ -9846,20 +8546,11 @@ msgstr "Tangkapan layar"
 msgid "Screenshot preview"
 msgstr "Pratinjau tangkapan layar"
 
-msgid "Scroll to end"
-msgstr "Gulir ke akhir"
-
-msgid "Scroll to start"
-msgstr "Gulir ke awal"
-
 msgid "Search"
 msgstr "Cari"
 
 msgid "Search \"{semanticSubmitQuery}\" by meaning"
 msgstr "Cari \"{semanticSubmitQuery}\" berdasarkan makna"
-
-msgid "Search agents"
-msgstr "Cari agen"
 
 msgid "Search branches"
 msgstr "Cari cabang"
@@ -9872,12 +8563,6 @@ msgstr "Cari berdasarkan makna"
 
 msgid "Search by meaning isn't working right now. Ask whoever runs GitQuire to check the embeddings provider."
 msgstr ""
-
-msgid "Search chat history"
-msgstr "Cari riwayat percakapan"
-
-msgid "Search chats"
-msgstr "Cari chat"
 
 msgid "Search emoji"
 msgstr "Cari emoji"
@@ -9959,9 +8644,6 @@ msgstr ""
 
 msgid "Searched the wiki"
 msgstr ""
-
-msgid "Searches files"
-msgstr "Mencari di berkas"
 
 msgid "Searching"
 msgstr "Mencari"
@@ -10101,20 +8783,8 @@ msgstr "Kirim masukan"
 msgid "Send feedback…"
 msgstr "Kirim masukan…"
 
-msgid "Send in this chat"
-msgstr "Kirim di obrolan ini"
-
-msgid "Send now"
-msgstr "Kirim sekarang"
-
 msgid "Send report"
 msgstr "Kirim laporan"
-
-msgid "Send to a new chat"
-msgstr "Kirim ke obrolan baru"
-
-msgid "Send when the agent is free"
-msgstr "Kirim saat agen sedang senggang"
 
 msgid "Send your report by email"
 msgstr "Kirim laporan Anda lewat surel"
@@ -10124,9 +8794,6 @@ msgstr "Mengirim"
 
 msgid "Sending report"
 msgstr "Mengirim laporan"
-
-msgid "Sending…"
-msgstr "Mengirim…"
 
 msgid "Sent"
 msgstr "Terkirim"
@@ -10322,9 +8989,6 @@ msgstr "Tampilkan {0} lagi"
 msgid "Show {hidden} more"
 msgstr "Tampilkan {hidden} lagi"
 
-msgid "Show {hiddenCount} more"
-msgstr "Tampilkan {hiddenCount} lagi"
-
 msgid "Show a preview card when you hover an external link in the editor or a GitHub pull request or issue in an agent chat."
 msgstr "Menampilkan kartu pratinjau saat Anda mengarahkan kursor ke tautan eksternal di penyunting atau ke pull request atau issue GitHub di chat agen."
 
@@ -10334,14 +8998,8 @@ msgstr "Tampilkan opsi lanjutan"
 msgid "Show Agents"
 msgstr "Tampilkan Agen"
 
-msgid "Show all"
-msgstr "Tampilkan semua"
-
 msgid "Show All"
 msgstr "Tampilkan semua"
-
-msgid "Show details"
-msgstr "Tampilkan detail"
 
 msgid "Show diagram"
 msgstr "Tampilkan diagram"
@@ -10403,20 +9061,11 @@ msgstr "Tampilkan panel"
 msgid "Show panel ({panelShortcutLabel})"
 msgstr "Tampilkan panel ({panelShortcutLabel})"
 
-msgid "Show prompts again"
-msgstr "Tampilkan petunjuk lagi"
-
-msgid "Show prompts again for {displayName} in this project"
-msgstr "Tampilkan petunjuk lagi untuk {displayName} di proyek ini"
-
 msgid "Show replace"
 msgstr "Tampilkan penggantian"
 
 msgid "Show resolved ({resolvedCount})"
 msgstr ""
-
-msgid "Show selection preview"
-msgstr "Tampilkan pratinjau pilihan"
 
 msgid "Show sidebar"
 msgstr "Tampilkan bilah sisi"
@@ -10457,41 +9106,17 @@ msgstr "Menampilkan kecocokan teratas — terus ketik untuk mempersempit"
 msgid "Shows above the code body. Round-trips as `title=\"...\"` in markdown."
 msgstr "Muncul di atas badan kode. Bolak-balik sebagai `title=\"...\"` di markdown."
 
-msgid "Sifting…"
-msgstr "Menyaring…"
-
 msgid "Sign in"
 msgstr "Masuk"
 
 msgid "Sign in again to continue."
 msgstr ""
 
-msgid "Sign in to {agentName} first"
-msgstr "Masuk dulu ke {agentName}"
-
-msgid "Sign in to {agentName} to continue."
-msgstr "Masuk ke {agentName} untuk melanjutkan."
-
-msgid "Sign in with {0}"
-msgstr "Masuk dengan {0}"
-
 msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
 msgstr ""
 
-msgid "Sign-in failed: {0}"
-msgstr "Gagal masuk: {0}"
-
 msgid "Sign-in stream ended without confirmation — please try again"
 msgstr "Aliran proses masuk berakhir tanpa konfirmasi — silakan coba lagi"
-
-msgid "Signing in"
-msgstr "Sedang masuk"
-
-msgid "Signing in to {agentName}"
-msgstr "Sedang masuk ke {agentName}"
-
-msgid "Signing in to {agentName}…"
-msgstr "Sedang masuk ke {agentName}…"
 
 msgid "Since this draft started, someone changed the live wiki in the same spots. For each spot, choose what to keep. Everything else was combined automatically."
 msgstr ""
@@ -10575,12 +9200,6 @@ msgstr "Lewati"
 msgid "Skip for now"
 msgstr "Lewati dulu"
 
-msgid "Skipped downloading {0}."
-msgstr "Unduhan {0} dilewati."
-
-msgid "Skipped enabling GitQuire tools. This thread runs without them."
-msgstr "Pengaktifan alat GitQuire dilewati. Utas ini berjalan tanpa alat itu."
-
 msgid "Slash command menu"
 msgstr "Menu perintah garis miring"
 
@@ -10616,12 +9235,6 @@ msgstr "Slidev terlalu lama saat memulai. Coba lagi."
 
 msgid "Small section heading."
 msgstr "Judul bagian kecil."
-
-msgid "Some checks failed, but it can still merge"
-msgstr "Beberapa pemeriksaan gagal, tetapi masih bisa di-merge"
-
-msgid "Some dropped files could not be inserted safely."
-msgstr "Beberapa file yang dilepas tidak dapat disisipkan dengan aman."
 
 msgid "Some edits haven't reached the server yet, so the tab didn't reload. Open {docs} to save them, then reload."
 msgstr "Beberapa suntingan belum sampai ke server, jadi tab tidak dimuat ulang. Buka {docs} untuk menyimpannya, lalu muat ulang."
@@ -10671,9 +9284,6 @@ msgstr "Ada yang tidak beres saat membuka berkas ini (HTTP {status})."
 msgid "Something went wrong sending your feedback. Please try again."
 msgstr "Ada yang tidak beres saat mengirim masukan Anda. Silakan coba lagi."
 
-msgid "Something went wrong starting the terminal."
-msgstr "Ada yang tidak beres saat memulai terminal."
-
 msgid "Something went wrong."
 msgstr ""
 
@@ -10685,9 +9295,6 @@ msgstr "Urutkan menurut"
 
 msgid "Sort skills"
 msgstr "Urutkan keterampilan"
-
-msgid "Sorting…"
-msgstr "Mengurutkan…"
 
 msgid "source"
 msgstr "sumber"
@@ -10747,9 +9354,6 @@ msgstr ""
 msgid "Split list item"
 msgstr "Pisahkan item daftar"
 
-msgid "Stage the selected passage in the agents panel, ready to extend and send."
-msgstr "Siapkan bagian yang dipilih di panel agen, siap dilengkapi dan dikirim."
-
 msgid "stale Git entry"
 msgstr "entri Git usang"
 
@@ -10759,17 +9363,11 @@ msgstr ""
 msgid "Start a bug report with a screenshot of the screen as it looks right now."
 msgstr "Memulai laporan bug dengan tangkapan layar persis seperti tampilannya saat ini."
 
-msgid "Start a chat with the ＋ button, or launch an agent from a page."
-msgstr "Mulai obrolan dengan tombol ＋, atau luncurkan agen dari halaman."
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
 msgid "Start a new GitQuire project."
 msgstr "Mulai proyek GitQuire baru."
-
-msgid "Start an agent"
-msgstr "Mulai sebuah agen"
 
 msgid "Start from"
 msgstr "Mulai dari"
@@ -10795,23 +9393,11 @@ msgstr "paket awal"
 msgid "Starter packs"
 msgstr "Paket awal"
 
-msgid "Starting"
-msgstr "Memulai"
-
-msgid "Starting {agentName}…"
-msgstr "Memulai {agentName}…"
-
 msgid "Starting clone"
 msgstr "Memulai kloning"
 
 msgid "Starting sign-in flow"
 msgstr "Memulai alur masuk"
-
-msgid "Starting terminal…"
-msgstr "Memulai terminal…"
-
-msgid "Starting the agent…"
-msgstr "Memulai agennya…"
 
 msgid "status"
 msgstr "status"
@@ -10825,23 +9411,11 @@ msgstr "Terus ikuti kabar terbaru"
 msgid "Stays on this computer. Not committed to git."
 msgstr "Tetap di komputer ini. Tidak di-commit ke git."
 
-msgid "Steer now"
-msgstr "Alihkan sekarang"
-
-msgid "Steering — waiting for the current run to stop…"
-msgstr "Mengalihkan — menunggu proses saat ini berhenti…"
-
-msgid "Still couldn't reach {displayName} — try one more time?"
-msgstr "Masih tidak dapat menghubungi {displayName}. Coba sekali lagi?"
-
 msgid "Still loading"
 msgstr "Masih memuat"
 
 msgid "Stop"
 msgstr "Hentikan"
-
-msgid "Stop (Esc)"
-msgstr "Hentikan (Esc)"
 
 msgid "Stop {0} reading \"{1}\"? {subRoot} will keep its other skills (as symlinks) but stop following {poolRootRel} — new skills added there won't reach {2} automatically."
 msgstr "Hentikan {0} membaca \"{1}\"? {subRoot} akan tetap punya keterampilan lainnya (sebagai symlink) tetapi berhenti mengikuti {poolRootRel} — keterampilan baru yang ditambahkan di sana tidak akan sampai ke {2} secara otomatis."
@@ -10864,20 +9438,11 @@ msgstr "Berhenti mempertahankan index.md"
 msgid "Stop reading"
 msgstr "Berhenti membaca"
 
-msgid "Stopped"
-msgstr "Berhenti"
-
 msgid "Stopped fixing. Files already fixed stay fixed."
 msgstr "Perbaikan dihentikan. Berkas yang sudah diperbaiki tetap terperbaiki."
 
 msgid "Stopped."
 msgstr ""
-
-msgid "Stopping"
-msgstr "Menghentikan"
-
-msgid "Stops the current run and sends this instead"
-msgstr "Menghentikan proses saat ini dan mengirim ini sebagai gantinya"
 
 msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
 msgstr "Disimpan di <0>.ok/templates/</0> pada proyek ini. Tersedia di setiap folder (templat khusus folder bisa menimpanya berdasarkan nama berkas)."
@@ -10909,9 +9474,6 @@ msgstr "Navigasi menu saran"
 msgid "Suggestion menu open"
 msgstr "Menu saran terbuka"
 
-msgid "Summarize everything I changed this week"
-msgstr "Ringkas semua yang saya ubah minggu ini"
-
 msgid "Swap file sidebar and document panel"
 msgstr "Tukar posisi bilah sisi berkas dan panel dokumen"
 
@@ -10941,9 +9503,6 @@ msgstr "Ganti worktree"
 
 msgid "Switch worktree…"
 msgstr "Ganti worktree…"
-
-msgid "Switches the agent's mode"
-msgstr "Mengganti mode agen"
 
 msgid "Switching branches"
 msgstr "Mengganti cabang"
@@ -11135,36 +9694,6 @@ msgstr "Templat tersedia"
 msgid "Terminal"
 msgstr "Terminal"
 
-msgid "Terminal {0}"
-msgstr "Terminal {0}"
-
-msgid "Terminal access isn't enabled for this project."
-msgstr "Akses terminal belum diaktifkan untuk proyek ini."
-
-msgid "Terminal disabled"
-msgstr "Terminal dinonaktifkan"
-
-msgid "Terminal failed to load"
-msgstr "Gagal memuat terminal"
-
-msgid "Terminal sessions"
-msgstr "Sesi terminal"
-
-msgid "Terminal settings not loaded yet — try again in a moment."
-msgstr "Pengaturan terminal belum dimuat — coba lagi sebentar."
-
-msgid "Terminal settings not yet loaded — try again in a moment"
-msgstr "Pengaturan terminal belum dimuat — coba lagi sebentar"
-
-msgid "terminal.shell in .ok/local/config.yml must be a string. Using an available Windows shell instead."
-msgstr "terminal.shell di .ok/local/config.yml harus berupa string. Shell Windows yang tersedia akan digunakan sebagai gantinya."
-
-msgid "terminal.shell in .ok/local/config.yml must be an absolute Windows path. Using an available Windows shell instead."
-msgstr "terminal.shell di .ok/local/config.yml harus berupa jalur Windows absolut. Shell Windows yang tersedia akan digunakan sebagai gantinya."
-
-msgid "terminal.shell in .ok/local/config.yml supports PowerShell, cmd.exe, or Git Bash for GitQuire-managed launches and dropped-file paths. This shell opens a plain terminal only; agent and command launches do not run in it."
-msgstr "terminal.shell di .ok/local/config.yml mendukung PowerShell, cmd.exe, atau Git Bash untuk peluncuran yang dikelola GitQuire dan jalur file yang diletakkan. Shell ini hanya membuka terminal biasa; peluncuran agen dan perintah tidak berjalan di dalamnya."
-
 msgid "Test connection"
 msgstr "Uji koneksi"
 
@@ -11213,9 +9742,6 @@ msgstr "Ini tidak dapat diurai sebagai YAML atau JSON."
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "Endpoint itu tidak bisa dipakai. Masukkan URL https:// — http:// hanya diizinkan untuk endpoint loopback."
 
-msgid "That folder already holds code GitQuire didn't write, which the same trust would let {0} run: {otherExtensions}."
-msgstr "Folder itu sudah berisi kode yang tidak ditulis GitQuire, dan kepercayaan yang sama akan mengizinkan {0} menjalankannya: {otherExtensions}."
-
 msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
 msgstr "Folder itu belum menjadi proyek GitQuire. Inisialisasi lalu buka?"
 
@@ -11228,21 +9754,11 @@ msgstr "Itu bukan nama host yang valid. Masukkan nama servernya saja, misalnya g
 msgid "That language isn't available for spell checking."
 msgstr "Bahasa itu tidak tersedia untuk pemeriksaan ejaan."
 
-msgid "That message already went out — your edit wasn't applied."
-msgstr "Pesan itu sudah terkirim — hasil suntinganmu tidak diterapkan."
-
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "Berhasil diurai, tetapi ini bukan tema base16."
 
-msgid "The {0} download request timed out."
-msgstr "Permintaan unduhan {0} kehabisan waktu."
-
 msgid "The {0} plugin serves these skills from its cache — OK never edits or updates them."
 msgstr "Plugin {0} menyajikan keterampilan ini dari cache-nya — OK tidak pernah mengedit atau memperbaruinya."
-
-#. js-lingui-explicit-id
-msgid "troubleshooting.codex.desktop-project-config"
-msgstr "Aplikasi desktop {agent} mengabaikan konfigurasi proyek ini; hanya CLI {agent} yang membacanya."
 
 msgid "The {editor} folder holds a different version of this skill. Pick which one wins, or keep both under different names. Whatever you replace is backed up first."
 msgstr "Folder {editor} memuat versi lain dari keterampilan ini. Pilih mana yang menang, atau simpan keduanya dengan nama berbeda. Apa pun yang Anda ganti dicadangkan lebih dulu."
@@ -11255,39 +9771,6 @@ msgstr "{targetNoun} tidak dapat dibuka — coba menuju ke sana secara manual."
 
 msgid "The <0>type</0> every document created from this template gets (e.g. <1>research-note</1>). Keeps new docs Open Knowledge Format–conformant."
 msgstr "<0>type</0> yang didapat setiap dokumen yang dibuat dari templat ini (mis. <1>research-note</1>). Menjaga dokumen baru tetap sesuai Open Knowledge Format."
-
-msgid "The agent is working"
-msgstr "Agennya sedang bekerja"
-
-msgid "The agent isn't stopping. Force stop closes this chat and quits the agent."
-msgstr "Agen tidak berhenti. Hentikan paksa menutup obrolan ini dan keluar dari agen."
-
-msgid "The agent process ended on its own."
-msgstr "Proses agen berakhir dengan sendirinya."
-
-msgid "The agent process stopped for an unknown reason."
-msgstr "Proses agen berhenti karena alasan yang tidak diketahui."
-
-msgid "The agent process stopped with exit code {code}."
-msgstr "Proses agen berhenti dengan kode keluar {code}."
-
-msgid "The agent process was killed (SIGKILL). That usually comes from the system, for example when memory runs out, or from another process ending it."
-msgstr "Proses agen dihentikan paksa (SIGKILL). Biasanya ini berasal dari sistem, misalnya saat memori habis, atau dari proses lain yang mengakhirinya."
-
-msgid "The agent process was stopped by a {signal} signal."
-msgstr "Proses agen dihentikan oleh sinyal {signal}."
-
-msgid "The agent process was told to stop ({signal}) by something outside this chat."
-msgstr "Sesuatu di luar obrolan ini meminta proses agen berhenti ({signal})."
-
-msgid "The agent ran out of memory."
-msgstr "Agen kehabisan memori."
-
-msgid "The agent's GitQuire tools couldn't reach the server. Ask the agent to try again, and if it keeps failing, start a new chat."
-msgstr "Alat GitQuire milik agen tidak bisa menjangkau server. Minta agen untuk mencoba lagi, dan jika terus gagal, mulai obrolan baru."
-
-msgid "The agent's installation is missing files (a module could not be found). Reinstalling the agent usually fixes this."
-msgstr "Instalasi agen kehilangan beberapa berkas (sebuah modul tidak ditemukan). Memasang ulang agen biasanya memperbaikinya."
 
 msgid "The agent's persona, values, and voice."
 msgstr "Kepribadian, nilai, dan gaya bicara agen."
@@ -11324,12 +9807,6 @@ msgstr "Penampil papan gagal dimuat. Periksa koneksi Anda dan coba lagi."
 
 msgid "The board's content is not a valid Excalidraw scene."
 msgstr "Konten papan bukan scene Excalidraw yang valid."
-
-msgid "The browser isn't available in this chat because it couldn't be set up. GitQuire's log has the details."
-msgstr "Browser tidak tersedia di obrolan ini karena tidak dapat disiapkan. Log GitQuire berisi detailnya."
-
-msgid "The browser isn't available in this chat because no Node.js install that can start it was found. Install Node.js, then start a new chat."
-msgstr "Browser tidak tersedia di obrolan ini karena tidak ditemukan instalasi Node.js yang dapat menjalankannya. Pasang Node.js, lalu mulai obrolan baru."
 
 msgid "The chat could not be deleted."
 msgstr ""
@@ -11427,12 +9904,6 @@ msgstr "Jalur proyek GitQuire pada branch ini tidak dapat dibaca. Worktree dibua
 msgid "The GitQuire project path on this branch leaves the worktree. The worktree was created but not opened."
 msgstr "Jalur proyek GitQuire pada branch ini keluar dari worktree. Worktree dibuat, tetapi tidak dibuka."
 
-msgid "The GitQuire server took too long to answer, and the change may still have gone through. Ask the agent to check before trying again."
-msgstr "Server GitQuire terlalu lama merespons, dan perubahan mungkin tetap diterapkan. Minta agen memeriksanya sebelum mencoba lagi."
-
-msgid "The GitQuire server took too long to answer. Ask the agent to try again."
-msgstr "Server GitQuire terlalu lama merespons. Minta agen mencoba lagi."
-
 msgid "The index files stay in place. GitQuire removes only the Git rule it added."
 msgstr "File indeks tetap di tempatnya. GitQuire hanya menghapus aturan Git yang ditambahkannya."
 
@@ -11463,9 +9934,6 @@ msgstr "Label menu yang dipakai agen untuk memilih templat ini (wajib)."
 msgid "The model id your endpoint serves. Its vector size is detected automatically — clear the field to go back to {DEFAULT_EMBEDDINGS_MODEL}."
 msgstr "Id model yang dilayani endpoint Anda. Ukuran vektornya terdeteksi otomatis — kosongkan bidang ini untuk kembali ke {DEFAULT_EMBEDDINGS_MODEL}."
 
-msgid "the open agent"
-msgstr "agen yang terbuka"
-
 msgid "The page could not be saved."
 msgstr ""
 
@@ -11486,9 +9954,6 @@ msgstr "Pratinjau memblokir sumber daya yang tidak memenuhi aturan keamanannya (
 
 msgid "The project's server is on a different branch than this window — content can't load."
 msgstr "Server proyek ini berada di branch yang berbeda dari jendela ini — konten tidak dapat dimuat."
-
-msgid "The prompt was pasted but not submitted automatically. Review it, then press Enter to send it."
-msgstr "Prompt telah ditempel, tetapi tidak dikirim secara otomatis. Tinjau prompt tersebut, lalu tekan Enter untuk mengirimnya."
 
 msgid "The properties block at the top of this doc has a formatting error. Switch to source mode to fix it."
 msgstr "Blok properti di bagian atas dokumen ini punya galat format. Beralihlah ke mode sumber untuk memperbaikinya."
@@ -11532,9 +9997,6 @@ msgstr "Repositorinya dipindahkan, diganti nama, atau dihapus."
 msgid "The repository's original clone directory"
 msgstr "Direktori klon asli repositori"
 
-msgid "The request to enable GitQuire tools timed out. This thread runs without them."
-msgstr "Permintaan untuk mengaktifkan alat GitQuire kedaluwarsa. Utas ini berjalan tanpa alat itu."
-
 msgid "The same text changed in both places"
 msgstr ""
 
@@ -11562,9 +10024,6 @@ msgstr "Server akan menerima permintaan untuk {0} tanpa autentikasi bawaan. Siap
 msgid "The shapes of title, description, resource, and tags when you use them. None are required; declaring one only pins its type, so tags written as a comma-separated string is flagged."
 msgstr "Bentuk title, description, resource, dan tags saat Anda menggunakannya. Tidak ada yang diperlukan; mendeklarasikan satu hanya menyematkan tipenya, jadi tags yang ditulis sebagai string yang dipisahkan koma akan ditandai."
 
-msgid "The shell for this session was never started."
-msgstr "Shell untuk sesi ini tidak pernah dimulai."
-
 msgid "The skill's own folder — the source other locations copy or link from"
 msgstr "Folder milik keterampilan itu sendiri — sumber tempat lokasi lain menyalin atau menaut"
 
@@ -11591,42 +10050,6 @@ msgstr "Penyimpanan kredensial sistem tidak tersedia. Kunci ini disimpan dalam f
 
 msgid "The template's filename (without `.md`)."
 msgstr "Nama berkas templatnya (tanpa `.md`)."
-
-msgid "The terminal and desktop rows for {label} share one setup, so changes here apply to both."
-msgstr "Baris terminal dan desktop untuk {label} berbagi satu pengaturan, jadi perubahan di sini berlaku untuk keduanya."
-
-msgid "The terminal and desktop rows for {label} share one setup, so removing it disconnects both."
-msgstr "Baris terminal dan desktop untuk {label} berbagi satu pengaturan, jadi menghapusnya akan memutuskan keduanya."
-
-msgid "The terminal background service isn't running."
-msgstr "Layanan latar belakang terminal tidak berjalan."
-
-msgid "The terminal background service stopped before the shell could start."
-msgstr "Layanan latar belakang terminal berhenti sebelum shell sempat dimulai."
-
-msgid "The terminal can't run this command in the configured shell."
-msgstr "Terminal tidak dapat menjalankan perintah ini di shell yang dikonfigurasi."
-
-msgid "The terminal couldn't start."
-msgstr "Terminal tidak dapat dimulai."
-
-msgid "The terminal is turned off for this project. Turn it back on to run commands here."
-msgstr "Terminal dimatikan untuk proyek ini. Nyalakan lagi untuk menjalankan perintah di sini."
-
-msgid "The terminal session ended (exit code {0})."
-msgstr "Sesi terminal berakhir (kode keluar {0})."
-
-msgid "The terminal session ended (signal {0})."
-msgstr "Sesi terminal berakhir (sinyal {0})."
-
-msgid "The terminal session ended."
-msgstr "Sesi terminal berakhir."
-
-msgid "The terminal stopped unexpectedly."
-msgstr "Terminal berhenti tak terduga."
-
-msgid "The terminal.shell executable in .ok/local/config.yml was not found. Using an available Windows shell instead."
-msgstr "Executable terminal.shell di .ok/local/config.yml tidak ditemukan. Shell Windows yang tersedia akan digunakan sebagai gantinya."
 
 msgid "The token needs the repo and read:user scopes."
 msgstr "Token itu memerlukan cakupan repo dan read:user."
@@ -11670,9 +10093,6 @@ msgstr "Tema"
 msgid "There is no address waiting for a code."
 msgstr ""
 
-msgid "There's no project folder for this window, so a terminal can't start here."
-msgstr "Tidak ada folder proyek untuk jendela ini, jadi terminal tidak bisa dimulai di sini."
-
 msgid "These currently read from another folder. After linking, they read from {keep} instead."
 msgstr "Saat ini keterampilan ini dibaca dari folder lain. Setelah ditautkan, keterampilan ini dibaca dari {keep}."
 
@@ -11685,15 +10105,6 @@ msgstr "Aturan-aturan ini berasal dari berkas <0>{configFile}</0> proyek Anda, y
 #. Says what the GitQuire-authored skills are for, and where installing one puts it
 msgid "These teach your AI tools how to work with GitQuire. Installing one adds it to every AI tool on this machine."
 msgstr "Keterampilan ini mengajarkan alat AI Anda cara bekerja dengan GitQuire. Memasang satu akan menambahkannya ke setiap alat AI di mesin ini."
-
-msgid "They run without asking while this chat is open"
-msgstr "Perintah tersebut berjalan tanpa bertanya selama obrolan ini terbuka"
-
-msgid "Think"
-msgstr "Berpikir"
-
-msgid "Thinking"
-msgstr "Berpikir"
 
 msgid "Thinking…"
 msgstr "Berpikir…"
@@ -11731,29 +10142,11 @@ msgstr "{targetNoun} ini dibagikan dari cabang <0>{shareBranch}</0>. Ia tidak ad
 msgid "This {targetNoun} was shared from branch <0>{shareBranch}</0>. You're currently on <1>{currentLabel}</1>."
 msgstr "{targetNoun} ini dibagikan dari cabang <0>{shareBranch}</0>. Anda sekarang berada di <1>{currentLabel}</1>."
 
-msgid "This agent doesn't accept attachments — remove them or choose an in-app agent."
-msgstr "Agen ini tidak menerima lampiran — hapus lampiran atau pilih agen dalam aplikasi."
-
 msgid "This agent doesn't offer slash commands"
 msgstr "Agen ini tidak menawarkan perintah garis miring"
 
-msgid "This agent doesn't offer slash commands — your message will be sent as plain text"
-msgstr "Agen ini tidak menawarkan perintah garis miring — pesan Anda akan dikirim sebagai teks biasa"
-
-msgid "This agent gives GitQuire no way to set this up for you. Its setup guide has the manual steps."
-msgstr "Agen ini tidak memberi GitQuire cara untuk menyiapkannya untuk Anda. Panduan penyiapannya memuat langkah-langkah manual."
-
-msgid "This agent has no file of this kind on this machine yet. Open the agent once, then check again."
-msgstr "Agen ini belum memiliki file jenis ini di mesin ini. Buka agen sekali, lalu periksa lagi."
-
 msgid "This agent hasn't announced its commands yet"
 msgstr "Agen ini belum mengumumkan perintahnya"
-
-msgid "This agent runs through {0}, which is installed but won't run — its {1} looks broken. GitQuire can download a private copy of {2} {3} (about {4} MB from {5}) that won't touch the rest of your system."
-msgstr "Agen ini berjalan lewat {0}, yang sudah terpasang tetapi tidak bisa jalan — {1}-nya tampak rusak. GitQuire bisa mengunduh salinan pribadi {2} {3} (sekitar {4} MB dari {5}) yang tidak akan menyentuh bagian lain sistem Anda."
-
-msgid "This agent runs through {0}, which isn't installed. GitQuire can download a private copy of {1} {2} (about {3} MB from {4}) that won't touch the rest of your system."
-msgstr "Agen ini berjalan lewat {0}, yang belum terpasang. GitQuire bisa mengunduh salinan pribadi {1} {2} (sekitar {3} MB dari {4}) yang tidak akan menyentuh bagian lain sistem Anda."
 
 msgid "This also installs the pack's {packSkillCount, plural, one {# skill} other {# skills}}."
 msgstr "Ini juga memasang {packSkillCount, plural, one {# skill} other {# skill}} dari paket."
@@ -11780,9 +10173,6 @@ msgstr ""
 msgid "This checkout path cannot be read."
 msgstr "Jalur checkout ini tidak dapat dibaca."
 
-msgid "This command contains hidden characters that can make it look different from what runs. They are shown here as ⟨U+…⟩."
-msgstr "Perintah ini berisi karakter tersembunyi yang dapat membuatnya terlihat berbeda dari yang dijalankan. Karakter tersebut ditampilkan di sini sebagai ⟨U+…⟩."
-
 msgid "This component changed. Try again."
 msgstr "Komponen ini telah berubah. Coba lagi."
 
@@ -11792,26 +10182,8 @@ msgstr "Komponen ini terlalu besar untuk ditampilkan."
 msgid "This component was removed."
 msgstr "Komponen ini telah dihapus."
 
-msgid "This composer doesn't accept attachments."
-msgstr "Berkas tidak bisa dilampirkan di sini."
-
 msgid "This conversation"
 msgstr "Percakapan ini"
-
-msgid "This conversation keeps the window it started with. A new chat can use a different one."
-msgstr "Percakapan ini mempertahankan jendela awalnya. Percakapan baru bisa memakai jendela lain."
-
-msgid "This could not be set up because the MCP server entry it needs was not written."
-msgstr "Ini tidak dapat disiapkan karena entri server MCP yang diperlukan tidak ditulis."
-
-msgid "This deletes the MCP server entries and skill files listed below. The agent will lose access to your documents until you add it again."
-msgstr "Tindakan ini menghapus entri server MCP dan file keterampilan yang tercantum di bawah. Agen akan kehilangan akses ke dokumen Anda sampai Anda menambahkannya lagi."
-
-msgid "This development build can't connect agents, so it won't change the agent setup of your installed GitQuire app."
-msgstr "Build pengembangan ini tidak dapat menghubungkan agen, jadi tidak akan mengubah pengaturan agen di aplikasi GitQuire yang terpasang."
-
-msgid "This disconnects {0} from GitQuire."
-msgstr "Ini memutuskan koneksi {0} dari GitQuire."
 
 msgid "This doc"
 msgstr "Dokumen ini"
@@ -11845,9 +10217,6 @@ msgstr ""
 
 msgid "This endpoint ignored the vector size you configured. Remove <0>search.semantic.dimensions</0> to use the model's own size."
 msgstr "Endpoint ini mengabaikan ukuran vektor yang Anda atur. Hapus <0>search.semantic.dimensions</0> untuk memakai ukuran milik modelnya sendiri."
-
-msgid "This entry changed after GitQuire wrote it. Turning it on replaces it."
-msgstr "Entri ini berubah setelah ditulis GitQuire. Mengaktifkannya akan menggantinya."
 
 msgid "This field carries additional schema keywords the editor does not show — they are preserved on save."
 msgstr "Bidang ini membawa kata kunci skema tambahan yang tidak ditampilkan penyunting — semuanya dipertahankan saat disimpan."
@@ -11888,9 +10257,6 @@ msgstr "Folder ini adalah klona dari {actualOwner}/{actualRepo}, bukan {expected
 msgid "This folder is a clone of {expectedOwner}/{expectedRepo} on {actualHost}, not {expectedHost}. Pick a folder cloned from {expectedHost}?"
 msgstr "Folder ini adalah klona dari {expectedOwner}/{expectedRepo} di {actualHost}, bukan {expectedHost}. Pilih folder yang diklona dari {expectedHost}?"
 
-msgid "This folder is also {alsoAffects}'s."
-msgstr "Folder ini juga milik {alsoAffects}."
-
 msgid "This folder is empty."
 msgstr "Folder ini kosong."
 
@@ -11917,9 +10283,6 @@ msgstr "Ini pratinjau {boldName}, terdeteksi di {boldHarness} pada tingkat {bold
 
 msgid "This is a preview of {boldName}. Install it into your agents."
 msgstr "Ini pratinjau {boldName}. Pasang ke agen Anda."
-
-msgid "This is taking longer than usual. Reloading the window usually clears it."
-msgstr "Ini memakan waktu lebih lama dari biasanya. Memuat ulang jendela biasanya mengatasinya."
 
 msgid "This isn’t a regular theme file"
 msgstr "Ini bukan berkas tema biasa"
@@ -11957,9 +10320,6 @@ msgstr "Yang ini perlu melihat file Anda, bukan hanya dokumen yang terbuka, sehi
 #. Says what the project skill is for, then the thing that makes it different from the user-scope ones: it is committed to the repo
 msgid "This one teaches your AI tools how to work with GitQuire. It lives in the project folder, so it installs for everyone who opens the project."
 msgstr "Yang ini mengajarkan alat AI Anda cara bekerja dengan GitQuire. Keterampilan ini berada di folder proyek, jadi terpasang untuk semua orang yang membuka proyek."
-
-msgid "This option cannot be changed automatically."
-msgstr "Opsi ini tidak dapat diubah secara otomatis."
 
 msgid "This pack is already set up here."
 msgstr "Paket ini sudah disiapkan di sini."
@@ -12039,9 +10399,6 @@ msgstr "Laporan ini sudah dalam perjalanan. Hasilnya akan muncul di riwayat lapo
 msgid "This repository has no commits yet — reopen the project to create the first commit, then Push will work"
 msgstr "Repositori ini belum punya commit — buka lagi proyeknya untuk membuat commit pertama, lalu Push akan berfungsi"
 
-msgid "This request is no longer active."
-msgstr "Permintaan ini sudah tidak aktif."
-
 msgid "This schema carries root-level advanced rules the editor does not show ({0}) — they still validate and survive every edit. Open the schema file to see them."
 msgstr "Skema ini membawa aturan lanjutan tingkat akar yang tidak ditampilkan penyunting ({0}) — semuanya tetap memvalidasi dan bertahan pada setiap suntingan. Buka berkas skemanya untuk melihatnya."
 
@@ -12069,15 +10426,6 @@ msgstr ""
 msgid "This setting is per-machine and isn't shared with collaborators. It needs an API key (set below) unless your endpoint is a local server that doesn't require one."
 msgstr "Pengaturan ini berlaku per komputer dan tidak dibagikan dengan kolaborator. Ia memerlukan kunci API (setel di bawah) kecuali endpoint Anda adalah server lokal yang tidak memerlukannya."
 
-msgid "This setup is shared with {peers} through <0>{path}</0>. Removing it here removes it for {peers} too."
-msgstr "Konfigurasi ini dibagikan dengan {peers} melalui <0>{path}</0>. Menghapusnya di sini juga menghapusnya untuk {peers}."
-
-msgid "This setup is shared with {peers}, and GitQuire cannot change it from here. Unlink the folder in Skills Studio first."
-msgstr "Penyiapan ini dibagikan dengan {peers}, dan GitQuire tidak dapat mengubahnya dari sini. Lepaskan tautan folder di Skills Studio terlebih dahulu."
-
-msgid "This setup is shared with {peers}. Removing it here removes it for {peers} too."
-msgstr "Konfigurasi ini dibagikan dengan {peers}. Menghapusnya di sini juga menghapusnya untuk {peers}."
-
 msgid "This source bundles several skills — choose one, then Import."
 msgstr "Sumber ini memuat beberapa keterampilan — pilih satu, lalu Impor."
 
@@ -12092,9 +10440,6 @@ msgstr "Tab ini masih menyambung ulang ke GitQuire, jadi tidak dimuat ulang. Cob
 
 msgid "This template lives in a parent folder — deleting it affects every folder beneath it that doesn't define its own version."
 msgstr "Templat ini berada di folder induk — menghapusnya memengaruhi setiap folder di bawahnya yang tidak menentukan versinya sendiri."
-
-msgid "This terminal session is no longer available."
-msgstr "Sesi terminal ini sudah tidak tersedia."
 
 msgid "This theme can’t be used until the file is fixed."
 msgstr "Tema ini tidak dapat digunakan sampai berkasnya diperbaiki."
@@ -12120,9 +10465,6 @@ msgstr "Jendela ini tidak bisa menyimpan token — buka Pengaturan dari jendela 
 msgid "This worktree is no longer available."
 msgstr "Worktree ini tidak lagi tersedia."
 
-msgid "Tidying up…"
-msgstr "Merapikan…"
-
 msgid "Timeline"
 msgstr "Lini masa"
 
@@ -12147,9 +10489,6 @@ msgstr "Akan dikerjakan"
 
 msgid "To do."
 msgstr "Akan dikerjakan."
-
-msgid "To save this setup, turn on Project MCP server or Global MCP server."
-msgstr "Untuk menyimpan penyiapan ini, aktifkan server MCP proyek atau server MCP global."
 
 msgid "Today"
 msgstr "Hari ini"
@@ -12260,9 +10599,6 @@ msgstr ""
 msgid "Too slow"
 msgstr "Terlalu lambat"
 
-msgid "Tool call"
-msgstr "Panggilan alat"
-
 msgid "Top linked pages"
 msgstr "Halaman paling banyak ditaut"
 
@@ -12285,17 +10621,8 @@ msgstr "Menyusuri riwayat navigasi GitQuire ke depan."
 msgid "Tree view options"
 msgstr "Opsi tampilan pohon"
 
-msgid "Try a prompt"
-msgstr "Coba sebuah prompt"
-
 msgid "Try again"
 msgstr "Coba lagi"
-
-msgid "Try one more time"
-msgstr "Coba sekali lagi"
-
-msgid "Trying it out…"
-msgstr "Mencobanya…"
 
 msgid "Turn {0} back into a real directory holding a per-skill symlink for each skill it currently sees — nothing stops working, and each skill's menu manages it from there."
 msgstr "Mengubah {0} kembali menjadi direktori nyata yang memuat satu symlink per keterampilan untuk setiap keterampilan yang saat ini dilihatnya — tidak ada yang berhenti bekerja, dan sejak itu menu tiap keterampilan yang mengelolanya."
@@ -12315,9 +10642,6 @@ msgstr "Matikan Hanya berkas markdown"
 msgid "Turn on"
 msgstr "Nyalakan"
 
-msgid "Turn on an agent to create with AI"
-msgstr "Nyalakan sebuah agen untuk membuat dengan AI"
-
 msgid "Turn on external link previews?"
 msgstr "Nyalakan pratinjau tautan eksternal?"
 
@@ -12329,9 +10653,6 @@ msgstr "Ubah apa yang Anda baca menjadi artikel yang jelas dan tepercaya. Simpan
 
 msgid "Turning it off"
 msgstr "Mematikannya"
-
-msgid "Turning it over…"
-msgstr "Membolak-balikkannya…"
 
 msgid "Turning off index maintenance failed because GitQuire could not reach the project server. Try again when the project reconnects."
 msgstr "Gagal menonaktifkan pemeliharaan indeks karena GitQuire tidak dapat menjangkau server proyek. Coba lagi saat proyek tersambung kembali."
@@ -12356,9 +10677,6 @@ msgstr "Dua halaman (ganjil)"
 
 msgid "Type"
 msgstr "Tipe"
-
-msgid "Type '@' to mention a page"
-msgstr "Ketik '@' untuk menyebut halaman"
 
 msgid "Type '/' for commands"
 msgstr "Ketik '/' untuk melihat perintah"
@@ -12437,9 +10755,6 @@ msgstr "tidak diketahui"
 
 msgid "Unknown"
 msgstr "Tidak diketahui"
-
-msgid "unknown build failure"
-msgstr "kegagalan build tidak diketahui"
 
 msgid "Unknown component: {componentName} — source editable below"
 msgstr "Komponen tidak dikenal: {componentName} — sumber bisa disunting di bawah"
@@ -12809,14 +11124,8 @@ msgstr ""
 msgid "Waiting for authorization"
 msgstr "Menunggu otorisasi"
 
-msgid "Waiting for review"
-msgstr "Menunggu tinjauan"
-
 msgid "Waiting for someone to check"
 msgstr ""
-
-msgid "Waiting for your approval"
-msgstr "Menunggu persetujuan Anda"
 
 msgid "Warning"
 msgstr "Peringatan"
@@ -12878,9 +11187,6 @@ msgstr "Untuk apa basis pengetahuan ini?"
 
 msgid "What should reviewers look at?"
 msgstr ""
-
-msgid "What should we work on?"
-msgstr "Apa yang ingin kita kerjakan?"
 
 msgid "What the agent may read, write, and surface."
 msgstr "Apa yang boleh dibaca, ditulis, dan ditampilkan agen."
@@ -12954,9 +11260,6 @@ msgstr ""
 msgid "Whole word"
 msgstr "Kata utuh"
 
-msgid "Why this needs attention"
-msgstr "Mengapa ini perlu diperhatikan"
-
 msgid "Wiki administration"
 msgstr ""
 
@@ -12990,14 +11293,8 @@ msgstr "Jendela"
 msgid "Without a connected AI tool, the pack's {packSkillCount, plural, one {# skill} other {# skills}} won't be installed."
 msgstr "Tanpa alat AI yang terhubung, {packSkillCount, plural, one {# skill} other {# skill}} dari paket ini tidak akan dipasang."
 
-msgid "Without the skill the agent still works, but it loses edit attribution and the live preview."
-msgstr "Tanpa keterampilan ini agen tetap berfungsi, tetapi kehilangan atribusi suntingan dan pratinjau langsung."
-
 msgid "Word wrap"
 msgstr "Bungkus baris"
-
-msgid "Work directly, no plan step"
-msgstr "Bekerja langsung, tanpa tahap perencanaan"
 
 msgid "Working"
 msgstr "Bekerja"
@@ -13029,27 +11326,17 @@ msgstr ""
 msgid "Write it myself"
 msgstr ""
 
-#. js-lingui-explicit-id
-msgid "guidance.mcp.managed-file"
-msgstr "Menulis berkas jembatan kecil yang dimuat {agent} dari proyek ini untuk menjangkau GitQuire."
-
 msgid "Writes an entry to"
 msgstr "Menulis entri ke"
 
 msgid "writing"
 msgstr "menulis"
 
-msgid "Writing this file failed. Check the GitQuire log for the reason."
-msgstr "Gagal menulis file ini. Periksa log GitQuire untuk mengetahui alasannya."
-
 msgid "Wrote {detail}"
 msgstr ""
 
 msgid "Wrote pages"
 msgstr ""
-
-msgid "Wrote the GitQuire extension, but couldn't mark the folder trusted, so it won't load. This thread has no GitQuire tools."
-msgstr "Ekstensi GitQuire sudah ditulis, tetapi folder tidak bisa ditandai tepercaya, jadi ekstensi itu tidak akan dimuat. Utas ini tidak memiliki alat GitQuire."
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML atau JSON, dalam salah satu tata letak base16."
@@ -13070,9 +11357,6 @@ msgstr "Anda dapat menambahkan"
 msgid "You can also create one from a terminal with <0>{cliCommand} bug-report</0>."
 msgstr "Anda juga bisa membuatnya dari terminal dengan <0>{cliCommand} bug-report</0>."
 
-msgid "You can also manage this in Settings."
-msgstr "Anda juga bisa mengelola ini di Pengaturan."
-
 msgid "You can attach up to {MAX_ATTACHMENTS} images."
 msgstr "Anda bisa melampirkan hingga {MAX_ATTACHMENTS} gambar."
 
@@ -13090,9 +11374,6 @@ msgstr "Anda membatalkan pemuatan \"{docName}\"."
 
 msgid "You deleted <0>{filePath}</0> locally, but it was modified upstream."
 msgstr "Anda menghapus <0>{filePath}</0> secara lokal, tetapi ia diubah di remote."
-
-msgid "You denied this. To let it run, ask the agent to try again and approve it."
-msgstr "Anda menolak ini. Agar bisa berjalan, minta agen untuk mencoba lagi lalu setujui."
 
 msgid "You don't have access to this private repo. Sign in with an account that does."
 msgstr "Anda tidak punya akses ke repo pribadi ini. Masuk dengan akun yang punya akses."
@@ -13160,9 +11441,6 @@ msgstr "Salinan cabang <0>{shareBranch}</0> milik Anda punya perubahan yang belu
 msgid "Your current version is saved first, so this is reversible."
 msgstr "Versi Anda saat ini disimpan lebih dulu, jadi ini bisa dikembalikan."
 
-msgid "Your documents are not touched."
-msgstr "Dokumen Anda tidak diubah."
-
 msgid "Your edits are committed and pushed to your remote automatically."
 msgstr "Suntingan Anda di-commit dan dikirim ke remote Anda secara otomatis."
 
@@ -13201,9 +11479,6 @@ msgstr "Salinan lokal cabang <0>{branch}</0> milik Anda tertinggal."
 
 msgid "Your local copy of branch <0>{branch}</0> is behind. Pull the latest changes, then open the link again."
 msgstr "Salinan lokal cabang <0>{branch}</0> milik Anda tertinggal. Tarik perubahan terbaru, lalu buka tautannya lagi."
-
-msgid "Your message didn't reach {agentName}."
-msgstr "Pesanmu tidak sampai ke {agentName}."
 
 msgid "Your recent edits are now in the draft \"{trimmed}\"."
 msgstr ""

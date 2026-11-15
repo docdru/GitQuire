@@ -37,7 +37,6 @@ import { LINT_PLUGIN_META } from './lint-plugin-meta';
 import {
   isOkDesktopHost as isOkDesktopHostGate,
   isSpellcheckLanguageSelectionAvailable,
-  isTerminalSettingsAvailable,
 } from './settings-host-gates';
 import {
   isSidebarItemSelectable,
@@ -246,7 +245,6 @@ function SettingsDialogFrame({
   }, [fieldFlash]);
 
   const isOkDesktopHost = isOkDesktopHostGate();
-  const terminalSettingsAvailable = isTerminalSettingsAvailable();
   const spellcheckLanguagesAvailable = isSpellcheckLanguageSelectionAvailable();
 
   const enabledPluginItems: SidebarItem[] = LINT_PLUGIN_META.filter(
@@ -379,9 +377,6 @@ function SettingsDialogFrame({
           subsections: [
             { id: 'attachments', label: t`Attachments`, anchor: 'content.attachmentFolderPath' },
             { id: 'content-rules', label: t`Content rules`, anchor: 'section:content-rules' },
-            ...(terminalSettingsAvailable
-              ? [{ id: 'terminal', label: t`Terminal`, anchor: 'section:terminal' }]
-              : []),
           ] satisfies SidebarSubsection[],
         },
         {

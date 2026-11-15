@@ -651,8 +651,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
       hideKey: 'agentPanelHide',
       stateField: 'agentPanelVisible',
       defaultVisible: false,
-      overrideKey: 'agentPanelAskSelection',
-      overrideField: 'hasEditorSelection',
     },
     availability: {},
     palette: { group: 'view', visibility: 'search-only' },

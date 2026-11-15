@@ -29,9 +29,6 @@ const server = await bootServer({
   gitEnabled: false,
   idleShutdownMs: null,
   enableTestRoutes: true,
-  acpRegistryFetchImpl: (async () => {
-    throw new Error('the test-reset home fixture makes no network requests');
-  }) as typeof fetch,
   ...(homeMode === 'isolated' ? { configHomedirOverride: home } : {}),
 });
 await server.ready;

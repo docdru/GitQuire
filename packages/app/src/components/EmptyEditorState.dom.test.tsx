@@ -24,9 +24,6 @@ vi.doMock('@/components/empty-state/EmptyStateHeader', () => ({
 vi.doMock('@/components/empty-state/empty-state-copy', () => ({
   getEmptyStateCopy: () => ({ title: 'title', subtitle: 'subtitle' }),
 }));
-vi.doMock('@/components/empty-state/CreatePromptComposer', () => ({
-  CreatePromptComposer: () => <div data-testid="create-prompt-composer" />,
-}));
 vi.doMock('@/components/empty-state/CopyablePromptList', () => ({
   CopyablePromptList: () => <div data-testid="copyable-prompt-list" />,
 }));
@@ -104,13 +101,13 @@ describe('EmptyEditorState file creation with session panels', () => {
     },
   );
 
-  test('closed panels show the composer, the starter-pack action and both create paths', async () => {
+  test('closed panels show the starter-pack action and both create paths, and no composer', async () => {
     const onCreate = vi.fn();
     const unsubscribe = subscribeToCreateTopLevelFile(onCreate);
     try {
       render(<EmptyEditorState />);
       await screen.findByRole('region', { name: 'From template' });
-      expect(screen.getByTestId('create-prompt-composer')).toBeTruthy();
+      expect(screen.queryByTestId('create-prompt-composer')).toBeNull();
       expect(screen.getByRole('button', { name: 'Add a starter pack' })).toBeTruthy();
 
       fireEvent.click(screen.getByRole('button', { name: templateRowName }));
@@ -201,15 +198,13 @@ describe('EmptyEditorState file creation with session panels', () => {
     });
   });
 
-  test('toggling the AI sidebar keeps file actions available and restores the composer', async () => {
+  test('toggling the AI sidebar keeps file actions available', async () => {
     const { rerender } = render(<EmptyEditorState />);
     await screen.findByRole('region', { name: 'From template' });
     rerender(<EmptyEditorState agentsOpen />);
     expect(screen.getByRole('region', { name: 'From template' })).toBeTruthy();
     expect(screen.getByRole('button', { name: /or create a new file/ })).toBeTruthy();
-    expect(screen.queryByTestId('create-prompt-composer')).toBeNull();
     rerender(<EmptyEditorState />);
-    expect(screen.getByTestId('create-prompt-composer')).toBeTruthy();
     expect(screen.getByRole('region', { name: 'From template' })).toBeTruthy();
   });
 

@@ -6,7 +6,6 @@ import {
   relativeLuminance,
   rgbaBytesOf,
   screenshotBrightness,
-  stubAgentCatalog,
   test,
   waitForActiveProviderSynced,
 } from './_helpers';
@@ -32,7 +31,6 @@ async function openInTheme(page: Page, api: ApiHelpers, theme: Theme): Promise<v
   await api.seedDocs([{ name, markdown: `# ${name}\n\n${DOC_TEXT}\n` }]);
   await page.emulateMedia({ colorScheme: theme });
   await page.addInitScript((value) => window.localStorage.setItem('ok-theme-v1', value), theme);
-  await stubAgentCatalog(page);
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`/#/${name}`);
   await waitForActiveProviderSynced(page);

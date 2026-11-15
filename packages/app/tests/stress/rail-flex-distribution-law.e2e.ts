@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { DOC_PANEL_ID } from '../../src/components/editor-area-rail-registry';
-import { acpCatalogBody, expect, test, waitForActiveProviderSynced } from './_helpers';
+import { expect, test, waitForActiveProviderSynced } from './_helpers';
 
 const ROW_SELECTOR = '[data-editor-inner-panels] > [data-group]';
 
@@ -50,9 +50,6 @@ async function settleFrames(page: Page): Promise<void> {
   );
 }
 
-test.beforeEach(async ({ page }) => {
-  await page.route('**/api/acp/catalog', (route) => route.fulfill({ json: acpCatalogBody([]) }));
-});
 test.describe('document panel row flex distribution law', () => {
   test('rendered document row widths stay proportional to flex-grow across a viewport sweep', async ({
     page,

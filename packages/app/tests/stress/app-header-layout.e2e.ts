@@ -1,7 +1,6 @@
 import { basename } from 'node:path';
 import type { Page } from '@playwright/test';
 import {
-  acpCatalogBody,
   contrastRatioOf,
   DESKTOP_HEADER_PLATFORM_NAMES,
   DESKTOP_HEADER_PLATFORMS,
@@ -72,9 +71,6 @@ async function toggleFileList(page: Page) {
   await expect(sidebar).not.toHaveAttribute('data-state', before ?? '');
 }
 
-test.beforeEach(async ({ page }) => {
-  await page.route('**/api/acp/catalog', (route) => route.fulfill({ json: acpCatalogBody([]) }));
-});
 for (const viewport of [
   { width: 1280, height: 800, filesSteps: ['none', 'none', 'none'] as const },
   { width: 393, height: 852, filesSteps: ['none', 'cover', 'none'] as const },

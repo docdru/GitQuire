@@ -475,12 +475,6 @@ vi.doMock('@/components/FolderOverview', () => ({
   ),
 }));
 
-vi.doMock('./BottomComposer', () => ({
-  BottomComposer: ({ docName, folderPath }: { docName?: string | null; folderPath?: string }) => (
-    <div data-testid="bottom-composer" data-doc={docName ?? ''} data-folder={folderPath ?? ''} />
-  ),
-}));
-
 vi.doMock('@/components/ActivityModeContent', () => ({
   ActivityModeContent: () => <div data-testid="activity-mode-content" />,
 }));
@@ -2406,7 +2400,6 @@ describe('EditorArea terminal and chat cards', () => {
       );
       expect(cardOf('editor')?.getAttribute('data-variant')).toBe('card');
       expect(cardOf('agents')?.getAttribute('data-variant')).toBe('card');
-      expect(screen.queryByTestId('bottom-composer')).toBeNull();
       expect(document.getElementById('doc-panel')?.hasAttribute('inert')).toBe(true);
       expect(document.querySelector('[data-doc-panel-toggle]')?.getAttribute('aria-expanded')).toBe(
         'false',
@@ -2417,13 +2410,6 @@ describe('EditorArea terminal and chat cards', () => {
         value: originalUserAgent,
       });
     }
-    cleanup();
-    render(
-      <TooltipProvider>
-        <EditorArea {...cardProps} agentsVisible={false} />
-      </TooltipProvider>,
-    );
-    expect(screen.getByTestId('bottom-composer')).toBeTruthy();
   });
 });
 
@@ -2472,51 +2458,6 @@ describe('EditorArea with the editor hidden', () => {
     expect(unitPx('editor', 'width')).toBe(editorWidth);
     expect(document.querySelectorAll('[data-dock-seam]')).toHaveLength(0);
   });
-
-  test.each([
-    {
-      pane: 'Chat',
-      open: { agentsVisible: true },
-      closed: { agentsVisible: false },
-    },
-    {
-      pane: 'a right Terminal',
-      open: { terminalVisible: true, dockTree: RIGHT_TERMINAL_TREE },
-      closed: { terminalVisible: false, dockTree: RIGHT_TERMINAL_TREE },
-    },
-  ] as const)(
-    'closing $pane while the editor is hidden mounts no composer until the editor shows',
-    async ({ open, closed }) => {
-      const view = render(<EditorArea {...hiddenProps} {...closed} />);
-      await settle();
-      expect(screen.queryByTestId('bottom-composer')).not.toBeNull();
-      view.rerender(<EditorArea {...hiddenProps} {...open} />);
-      await settle();
-      expect(
-        screen.queryByTestId('bottom-composer'),
-        'precondition: an open pane beside the shown editor keeps the composer out',
-      ).toBeNull();
-
-      view.rerender(<EditorArea {...hiddenProps} {...open} editorVisible={false} />);
-      await settle();
-      view.rerender(<EditorArea {...hiddenProps} {...closed} editorVisible={false} />);
-      await settle();
-      expect(
-        screen.queryByTestId('bottom-composer'),
-        'a hidden editor keeps the pane visibility it had when it was last shown, so closing the ' +
-          'pane under it must not mount a composer inside the hidden card. Reading either pane ' +
-          'live, or dropping its field from that snapshot, mounts one here',
-      ).toBeNull();
-
-      view.rerender(<EditorArea {...hiddenProps} {...closed} />);
-      await settle();
-      expect(
-        screen.queryByTestId('bottom-composer'),
-        'showing the editor again with no pane open has to bring the composer back, so the ' +
-          'hidden-state absence above is the snapshot and not a gate that never opens',
-      ).not.toBeNull();
-    },
-  );
 
   test('a right terminal and chat share the workspace in proportion to their shares of the tree', async () => {
     const view = render(

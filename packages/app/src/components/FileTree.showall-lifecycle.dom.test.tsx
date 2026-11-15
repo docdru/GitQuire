@@ -186,15 +186,6 @@ vi.doMock('@/lib/config-provider', () => ({
     merged: mergedConfig,
   }),
 }));
-vi.doMock('./handoff/useInstalledAgents', () => ({ useInstalledAgents: () => ({ states: {} }) }));
-vi.doMock('./handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => null,
-  buildHandoffInput: () => null,
-  useHandoffDispatch: () => ({ dispatch: vi.fn(async () => ({ ok: true as const })) }),
-}));
-vi.doMock('./handoff/OpenInAgentContextSubmenu', () => ({
-  OpenInAgentContextSubmenu: () => null,
-}));
 vi.doMock('./sidebar-hover-prewarm', () => ({
   cancelHoverPrewarm: () => {},
   scheduleHoverPrewarm: () => {},

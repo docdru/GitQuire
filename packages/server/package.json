@@ -35,7 +35,6 @@
     "src"
   ],
   "dependencies": {
-    "@agentclientprotocol/sdk": "^1.1.0",
     "@hocuspocus/server": "4.0.0-rc.1",
     "@hono/node-server": "^2.1.6",
     "@inkeep/open-knowledge-core": "workspace:*",
@@ -91,7 +90,6 @@
     "test:shard2": "vitest run --shard=2/4",
     "test:shard3": "vitest run --shard=3/4",
     "test:shard4": "vitest run --shard=4/4",
-    "test:network": "vitest run --config vitest.network.config.ts",
     "test:mcp-inspector": "vitest run --config vitest.mcp-inspector.config.ts",
     "measure:generated-index-sweep": "node --import tsx --conditions=development measure-generated-index-sweep.ts",
     "measure:observer-a-drain": "node --import tsx --conditions=development measure-observer-a-drain.ts",

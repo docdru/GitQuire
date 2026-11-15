@@ -22,11 +22,11 @@ describe('GitQuire features', () => {
     expect(STANDALONE_FEATURES.settingsAdmin).toBe(true);
   });
 
-  it('hides Ask AI when the server says so', async () => {
+  it('ignores the retired askAi flag from an older server', async () => {
     const features = await fetchFeatures(
-      respond(200, JSON.stringify({ login: 'alice', features: { askAi: false } })),
+      respond(200, JSON.stringify({ login: 'alice', features: { askAi: true } })),
     );
-    expect(features.askAi).toBe(false);
+    expect(features).not.toHaveProperty('askAi');
     expect(features.agentToken).toBe(false);
   });
 
@@ -36,7 +36,6 @@ describe('GitQuire features', () => {
         200,
         JSON.stringify({
           features: {
-            askAi: false,
             aiChat: true,
             agentToken: true,
             connector: false,
@@ -47,7 +46,6 @@ describe('GitQuire features', () => {
       ),
     );
     expect(features).toEqual({
-      askAi: false,
       aiChat: true,
       agentToken: true,
       connector: false,
@@ -59,13 +57,6 @@ describe('GitQuire features', () => {
     });
     expect(hasClaudeAccess(features)).toBe(true);
     expect(hasClaudeAccess(STANDALONE_FEATURES)).toBe(false);
-  });
-
-  it('keeps Ask AI when the server turns it on', async () => {
-    const features = await fetchFeatures(
-      respond(200, JSON.stringify({ login: 'alice', features: { askAi: true } })),
-    );
-    expect(features.askAi).toBe(true);
   });
 
   it('keeps the upstream behaviour without GitHub sign-in', async () => {

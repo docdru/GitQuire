@@ -69,7 +69,6 @@ const closeTabsMock = vi.fn(() => {});
 const closeDocumentMock = vi.fn(() => {});
 const reconcileLocalRenameMock = vi.fn(async () => {});
 const reconcileLocalRemovalMock = vi.fn(async () => {});
-const dispatchHandoffMock = vi.fn(async () => ({ ok: true as const }));
 
 const DOCUMENTS: FileEntry[] = [
   {
@@ -327,24 +326,6 @@ vi.doMock('@/lib/config-provider', () => ({
     projectLocalBinding: projectLocalBindingMock,
     merged: mergedConfigMock,
   }),
-}));
-
-vi.doMock('./handoff/useInstalledAgents', () => ({
-  useInstalledAgents: () => ({ states: {} }),
-}));
-
-vi.doMock('./handoff/useHandoffDispatch', () => ({
-  buildFolderHandoffInput: () => null,
-  buildHandoffInput: () => null,
-  useHandoffDispatch: () => ({ dispatch: dispatchHandoffMock }),
-}));
-
-vi.doMock('./handoff/OpenInAgentContextSubmenu', () => ({
-  OpenInAgentContextSubmenu: () => (
-    <button type="button" role="menuitem" data-testid="file-tree-menu-open-in-agent">
-      Open with AI
-    </button>
-  ),
 }));
 
 vi.doMock('./sidebar-hover-prewarm', () => ({
@@ -621,7 +602,6 @@ describe('FileTree duplicate action runtime behavior', () => {
       /New file/,
       /New from template/,
       /New folder/,
-      /Open with AI/,
       /Copy path/,
       /Expand all/,
       /Duplicate/,

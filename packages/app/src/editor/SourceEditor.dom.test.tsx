@@ -7,7 +7,6 @@ import { Activity } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';
-import { subscribeToOpenAskAiComposer } from '@/components/ask-ai-composer-events';
 import {
   OUTLINE_NAV_BREADCRUMB,
   OUTLINE_NAV_EVENT,
@@ -95,9 +94,6 @@ Object.defineProperty(window.Range.prototype, 'getBoundingClientRect', {
 });
 
 const mountedDocNames = new Set<string>();
-
-let composerOpenRequests = 0;
-let unsubscribeComposer: (() => void) | null = null;
 
 function makeConfigValue(wordWrap: boolean): ConfigContextValue {
   return {
@@ -241,10 +237,6 @@ describe('SourceEditor host contract', () => {
 
 describe('SourceEditor word-wrap preference wiring', () => {
   beforeEach(() => {
-    composerOpenRequests = 0;
-    unsubscribeComposer = subscribeToOpenAskAiComposer(() => {
-      composerOpenRequests += 1;
-    });
     globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url === '/api/pages') return Response.json({ pages: [] });
@@ -256,8 +248,6 @@ describe('SourceEditor word-wrap preference wiring', () => {
 
   afterEach(() => {
     setPlatform(ORIGINAL_PLATFORM);
-    unsubscribeComposer?.();
-    unsubscribeComposer = null;
     cleanup();
     for (const docName of mountedDocNames) {
       evictCmEditor(docName);
@@ -315,8 +305,6 @@ describe('SourceEditor word-wrap preference wiring', () => {
         }),
       );
     });
-
-    expect(composerOpenRequests).toBe(0);
   });
 });
 

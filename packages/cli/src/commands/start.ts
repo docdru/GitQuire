@@ -38,14 +38,12 @@ import { PACKAGE_VERSION } from '../constants.ts';
 import { createCliStepExecutor } from '../integrations/registry-apply.ts';
 import { createCliProbeResolver } from '../integrations/registry-probes.ts';
 import { userSkillPresentAnywhere } from '../integrations/write-user-skill.ts';
-import { probeOwnManagedEditorMcpEntry } from './acp-harness-probe.ts';
 import {
   createRealDetectDeps,
   detectDesktop,
   launchDesktop,
   notFoundMessage,
 } from './desktop-dispatch.ts';
-import { ensurePiBridge, probePiBridgeState } from './pi-acp-bridge.ts';
 import type { LaunchJsonRepairResult } from './repair-launch-json.ts';
 import type { RepairResult } from './repair-mcp-configs.ts';
 
@@ -315,7 +313,6 @@ interface BootStartServerOptions {
   reactShellDistDir?: string;
   singleFile?: string;
   projectDir?: string;
-  terminalAuthAvailable?: boolean;
 }
 
 export interface BootedStartServer {
@@ -486,11 +483,6 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
           }
         : {}),
       localOpCliArgs: [process.execPath, process.argv[1]],
-      probeHarnessManagedMcpEntry: (editorId, agentCwd) =>
-        probeOwnManagedEditorMcpEntry(editorId, agentCwd),
-      probePiAcpBridge: (agentCwd) => probePiBridgeState(agentCwd),
-      ensurePiAcpBridge: (agentCwd, approvedCanonicalCwd) =>
-        ensurePiBridge(agentCwd, undefined, undefined, undefined, approvedCanonicalCwd),
       agentIntegrations: (() => {
         const registryCtx = { cwd: ephemeralProjectDir ?? cwd, home: homedir(), env: process.env };
         return {
@@ -514,7 +506,6 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
         ? { serveContentAssets: opts.serveContentAssets }
         : {}),
       ...(opts.reactShellDistDir ? { reactShellDistDir: opts.reactShellDistDir } : {}),
-      ...(opts.terminalAuthAvailable === true ? { terminalAuthAvailable: true } : {}),
     });
   } catch (err) {
     await reapOwnedEphemeralDir();
@@ -557,7 +548,6 @@ interface StartCommandOptions {
   singleFile?: string;
   projectDir?: string;
   externalUrl?: string;
-  terminalAuth?: boolean;
 }
 
 export function resolveStartConfig(
@@ -711,7 +701,6 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
       serverRuntime: runtime,
       ...(opts.singleFile ? { singleFile: opts.singleFile } : {}),
       ...(opts.projectDir ? { projectDir: opts.projectDir } : {}),
-      ...(opts.terminalAuth === true ? { terminalAuthAvailable: true } : {}),
     });
   } catch (err) {
     if (err instanceof OkDirMissingError) {
@@ -1018,12 +1007,6 @@ export function startCommand(getConfig: () => Config): Command {
       new Option(
         '--project-dir <dir>',
         'Throwaway project root for --single-file (where ephemeral .ok/ state lives)',
-      ).hideHelp(),
-    )
-    .addOption(
-      new Option(
-        '--terminal-auth',
-        "Tell in-app agents that this server's client can run terminal sign-ins (the desktop app passes it when it has a terminal)",
       ).hideHelp(),
     )
     .option(

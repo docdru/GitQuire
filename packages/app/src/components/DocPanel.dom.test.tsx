@@ -58,10 +58,6 @@ vi.doMock('@/editor/validation-audit-client', () => ({
   runValidationAudit: async () => null,
   useDocLinkFindings: () => docLinkFindingsValue,
 }));
-let terminalLaunchValue: unknown = null;
-vi.doMock('@/components/handoff/TerminalLaunchContext', () => ({
-  useTerminalLaunch: () => terminalLaunchValue,
-}));
 
 vi.doMock('@/components/OutlinePanel', () => ({
   OutlinePanel: () => <div data-testid="outline-panel" />,
@@ -103,7 +99,6 @@ afterEach(() => {
   singleFileValue = false;
   diagnosticsValue = [];
   activeProviderValue = null;
-  terminalLaunchValue = null;
   lastProblemsProps = null;
   docLinkFindingsValue = { status: 'loaded', findings: [] };
 });
@@ -147,36 +142,23 @@ describe('DocPanel — tab gating', () => {
   });
 });
 
-describe('DocPanel — Problems fix/ask-ai wiring', () => {
+describe('DocPanel — Problems fix wiring', () => {
   const fakeProvider = { document: { getText: () => ({ toString: () => '' }) } };
 
-  test('web host (no terminal launch context) withholds onAskAi but keeps the fix handlers', () => {
+  test('passes the fix handlers and no AI handlers', () => {
     activeProviderValue = fakeProvider;
-    terminalLaunchValue = null;
     renderPanel('problems');
-    expect(lastProblemsProps?.onAskAi).toBeUndefined();
     expect(typeof lastProblemsProps?.onFix).toBe('function');
     expect(typeof lastProblemsProps?.onAutoFix).toBe('function');
+    expect(lastProblemsProps?.onAskAi).toBeUndefined();
     expect(lastProblemsProps?.onFixWithAi).toBeUndefined();
   });
 
-  test('desktop host (terminal launch available) passes onAskAi alongside the fix handlers', () => {
-    activeProviderValue = fakeProvider;
-    terminalLaunchValue = { launchInTerminal: () => {}, installedClis: {} };
-    renderPanel('problems');
-    expect(typeof lastProblemsProps?.onAskAi).toBe('function');
-    expect(typeof lastProblemsProps?.onAutoFix).toBe('function');
-    expect(typeof lastProblemsProps?.onFixWithAi).toBe('function');
-  });
-
-  test('without a matching provider every fix/ask handler is withheld', () => {
+  test('without a matching provider the fix handlers are withheld', () => {
     activeProviderValue = null;
-    terminalLaunchValue = { launchInTerminal: () => {}, installedClis: {} };
     renderPanel('problems');
     expect(lastProblemsProps?.onFix).toBeUndefined();
     expect(lastProblemsProps?.onAutoFix).toBeUndefined();
-    expect(lastProblemsProps?.onAskAi).toBeUndefined();
-    expect(typeof lastProblemsProps?.onFixWithAi).toBe('function');
   });
 });
 

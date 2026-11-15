@@ -5,15 +5,8 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { AlertTriangle, Clock, Link2, ListTree, Network } from 'lucide-react';
 import { lazy, Suspense, useEffect } from 'react';
 import { setDocPanelOnScreen } from '@/components/doc-panel-visibility';
-import {
-  composeFixAllProblemsTerminalPaste,
-  composeLintFixTerminalPaste,
-} from '@/components/handoff/compose-lint-fix-prompt';
-import { useTerminalLaunch } from '@/components/handoff/TerminalLaunchContext';
-import { requestActiveTerminalInput } from '@/components/handoff/terminal-input-events';
 import { LinksPanel } from '@/components/LinksPanel';
 import { OutlinePanel } from '@/components/OutlinePanel';
-import type { PanelScope } from '@/components/PanelScopeHeader';
 import { type DiagnosticLike, ProblemsPanel } from '@/components/ProblemsPanel';
 import { TimelineContent } from '@/components/TimelinePanel';
 import { Badge } from '@/components/ui/badge';
@@ -127,23 +120,6 @@ export function DocPanel({
     if (lintProvider !== null) {
       applyLintFixes(lintProvider, collectFixes(lintDiagnostics), docName);
     }
-  };
-  const terminalLaunch = useTerminalLaunch();
-  const handleAskAi = (diagnostic: DiagnosticLike) => {
-    if (lintProvider === null) return;
-    const source = lintProvider.document.getText('source').toString();
-    const lineText = source.split('\n')[diagnostic.range.start.line];
-    requestActiveTerminalInput(composeLintFixTerminalPaste(docName, diagnostic, lineText), {
-      submit: true,
-    });
-  };
-  const handleFixWithAi = (scope: PanelScope) => {
-    requestActiveTerminalInput(
-      composeFixAllProblemsTerminalPaste(scope === 'doc' ? docName : null),
-      {
-        submit: true,
-      },
-    );
   };
   const singleFile = useSingleFileMode();
   const tabs = singleFile ? TABS.filter((tab) => SINGLE_FILE_TABS.includes(tab.id)) : TABS;
@@ -259,8 +235,6 @@ export function DocPanel({
               brokenLinkSuppression={linkFindingsState.brokenLinkSuppression}
               onFix={lintProvider !== null ? handleFix : undefined}
               onAutoFix={lintProvider !== null ? handleAutoFix : undefined}
-              onAskAi={lintProvider !== null && terminalLaunch !== null ? handleAskAi : undefined}
-              onFixWithAi={terminalLaunch !== null ? handleFixWithAi : undefined}
               onDestinationComplete={onDestinationComplete}
               onDestinationRequested={onDestinationRequested}
             />

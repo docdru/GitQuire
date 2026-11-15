@@ -132,7 +132,7 @@ export function OnboardingCard({
             <StepRow
               complete={steps.askedAi}
               label={<Trans>Ask AI</Trans>}
-              shortcutId="open-ask-ai"
+              shortcutId="toggle-agent-panel"
             />
           </ul>
 
