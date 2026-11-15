@@ -797,8 +797,7 @@
         },
         "class": {
           "hasDefault": true,
-          "default": null,
-          "__nonSerializableDefault": true
+          "default": null
         },
         "href": {
           "hasDefault": true,

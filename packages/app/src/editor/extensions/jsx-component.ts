@@ -11,6 +11,6 @@ export const JsxComponent = BaseJsxComponent.extend<{ docName: string }>({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(JsxComponentView);
+    return ReactNodeViewRenderer(JsxComponentView, { trackNodeViewPosition: true });
   },
 });

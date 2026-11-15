@@ -26,6 +26,7 @@ export const CodeBlockFidelity = BaseCodeBlockFidelity.extend({
 
   addNodeView() {
     return ReactNodeViewRenderer(CodeBlockView, {
+      trackNodeViewPosition: true,
       stopEvent: ({ event }) => isInsideSavedView(event.target),
     });
   },

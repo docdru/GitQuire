@@ -210,7 +210,7 @@ function DiffJsxComponentView({ node, editor, extension }: NodeViewProps) {
 
 export const DiffJsxComponent = JsxComponent.extend({
   addNodeView() {
-    return ReactNodeViewRenderer(DiffJsxComponentView);
+    return ReactNodeViewRenderer(DiffJsxComponentView, { trackNodeViewPosition: true });
   },
 });
 

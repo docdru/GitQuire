@@ -46,6 +46,7 @@ export const RawMdxFallback = BaseRawMdxFallback.extend({
 
   addNodeView() {
     return ReactNodeViewRenderer(RawMdxFallbackView, {
+      trackNodeViewPosition: true,
       stopEvent: () => true,
       ignoreMutation: () => true,
     });

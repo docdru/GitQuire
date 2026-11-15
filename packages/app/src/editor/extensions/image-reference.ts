@@ -11,6 +11,6 @@ export const ImageReference = ImageReferenceFidelity.extend<{ docName: string }>
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(ImageReferenceView);
+    return ReactNodeViewRenderer(ImageReferenceView, { trackNodeViewPosition: true });
   },
 });

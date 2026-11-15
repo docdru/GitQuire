@@ -146,9 +146,9 @@ describe('R13 patch verification (y-prosemirror + @tiptap/y-tiptap)', () => {
     expect(patched['y-prosemirror@1.3.7']).toContain('patches/');
     expect(patched['y-prosemirror@1.3.7']).toContain('y-prosemirror');
 
-    expect(patched['@tiptap/y-tiptap@3.0.3']).toBeDefined();
-    expect(patched['@tiptap/y-tiptap@3.0.3']).toContain('patches/');
-    expect(patched['@tiptap/y-tiptap@3.0.3']).toContain('y-tiptap');
+    expect(patched['@tiptap/y-tiptap@3.0.7']).toBeDefined();
+    expect(patched['@tiptap/y-tiptap@3.0.7']).toContain('patches/');
+    expect(patched['@tiptap/y-tiptap@3.0.7']).toContain('y-tiptap');
   });
 
   for (const bundle of PATCHED_BUNDLES) {
@@ -220,7 +220,7 @@ describe('R13 patch verification (y-prosemirror + @tiptap/y-tiptap)', () => {
   });
 
   test('@tiptap/y-tiptap patch file exists on disk and references both bundles', () => {
-    const patchPath = join(REPO_ROOT, 'patches', '@tiptap%2Fy-tiptap@3.0.3.patch');
+    const patchPath = join(REPO_ROOT, 'patches', '@tiptap%2Fy-tiptap@3.0.7.patch');
     const patchContent = readFileSync(patchPath, 'utf8');
     expect(patchContent).toContain('dist/y-tiptap.cjs');
     expect(patchContent).toContain('dist/y-tiptap.js');

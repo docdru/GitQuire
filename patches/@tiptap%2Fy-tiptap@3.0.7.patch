@@ -1,8 +1,8 @@
 diff --git a/dist/y-tiptap.cjs b/dist/y-tiptap.cjs
-index 4dd5b4df7c0c589f4781807bf775f791e216e92a..f5e48a1b18d2c61f27dda46732aa0f238df7b172 100644
+index 824431f..2566d1f 100644
 --- a/dist/y-tiptap.cjs
 +++ b/dist/y-tiptap.cjs
-@@ -887,14 +887,31 @@ const createNodeFromYElement = (
+@@ -995,14 +995,31 @@ const createNodeFromYElement = (
            : { type: 'added' };
        }
      }
@@ -39,7 +39,7 @@ index 4dd5b4df7c0c589f4781807bf775f791e216e92a..f5e48a1b18d2c61f27dda46732aa0f23
      meta.mapping.delete(el);
      return null
    }
-@@ -926,10 +943,10 @@ const createTextNodesFromYText = (
+@@ -1034,10 +1051,10 @@ const createTextNodesFromYText = (
        nodes.push(schema.text(delta.insert, attributesToMarks(delta.attributes, schema)));
      }
    } catch (e) {
@@ -54,7 +54,7 @@ index 4dd5b4df7c0c589f4781807bf775f791e216e92a..f5e48a1b18d2c61f27dda46732aa0f23
      return null
    }
    // @ts-ignore
-@@ -968,6 +985,15 @@ const createTypeFromElementNode = (node, meta) => {
+@@ -1076,6 +1093,15 @@ const createTypeFromElementNode = (node, meta) => {
        type.setAttribute(key, val);
      }
    }
@@ -70,7 +70,7 @@ index 4dd5b4df7c0c589f4781807bf775f791e216e92a..f5e48a1b18d2c61f27dda46732aa0f23
    type.insert(
      0,
      normalizePNodeContent(node).map((n) =>
-@@ -1067,6 +1093,56 @@ const equalYTextPText = (ytext, ptexts) => {
+@@ -1175,6 +1201,56 @@ const equalYTextPText = (ytext, ptexts) => {
      )
  };
  
@@ -127,7 +127,7 @@ index 4dd5b4df7c0c589f4781807bf775f791e216e92a..f5e48a1b18d2c61f27dda46732aa0f23
  /**
   * @param {Y.XmlElement|Y.XmlText|Y.XmlHook} ytype
   * @param {any|Array<any>} pnode
-@@ -1077,8 +1153,13 @@ const equalYTypePNode = (ytype, pnode) => {
+@@ -1185,8 +1261,13 @@ const equalYTypePNode = (ytype, pnode) => {
      matchNodeName(ytype, pnode)
    ) {
      const normalizedContent = normalizePNodeContent(pnode);
@@ -142,7 +142,7 @@ index 4dd5b4df7c0c589f4781807bf775f791e216e92a..f5e48a1b18d2c61f27dda46732aa0f23
        ytype.toArray().every((ychild, i) =>
          equalYTypePNode(ychild, normalizedContent[i])
        )
-@@ -1263,7 +1344,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
+@@ -1371,7 +1452,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
      }
      // remove all keys that are no longer in pAttrs
      for (const key in yDomAttrs) {
@@ -167,37 +167,11 @@ index 4dd5b4df7c0c589f4781807bf775f791e216e92a..f5e48a1b18d2c61f27dda46732aa0f23
          yDomFragment.removeAttribute(key);
        }
      }
-@@ -1643,7 +1740,11 @@ const relativePositionToAbsolutePosition = (y, documentType, relPos, mapping) =>
-         if (t instanceof Y__namespace.XmlText) {
-           pos += t._length;
-         } else {
--          pos += /** @type {any} */ (mapping.get(t)).nodeSize;
-+          const mapped = mapping.get(t);
-+          if (mapped == null) {
-+            return null
-+          }
-+          pos += mapped.nodeSize;
-         }
-       }
-       n = /** @type {Y.Item} */ (n.right);
-@@ -1667,7 +1768,11 @@ const relativePositionToAbsolutePosition = (y, documentType, relPos, mapping) =>
-           if (contentType instanceof Y__namespace.XmlText) {
-             pos += contentType._length;
-           } else {
--            pos += /** @type {any} */ (mapping.get(contentType)).nodeSize;
-+            const mapped = mapping.get(contentType);
-+            if (mapped == null) {
-+              return null
-+            }
-+            pos += mapped.nodeSize;
-           }
-         }
-         n = n.right;
 diff --git a/dist/y-tiptap.js b/dist/y-tiptap.js
-index 1cddd60120846234225be3c6768fd2da8410fc5c..eefda74f42514889b6e306e2451884a47de488ab 100644
+index ed2c98f..61b144e 100644
 --- a/dist/y-tiptap.js
 +++ b/dist/y-tiptap.js
-@@ -853,14 +853,31 @@ const createNodeFromYElement = (
+@@ -961,14 +961,31 @@ const createNodeFromYElement = (
            : { type: 'added' };
        }
      }
@@ -234,7 +208,7 @@ index 1cddd60120846234225be3c6768fd2da8410fc5c..eefda74f42514889b6e306e2451884a4
      meta.mapping.delete(el);
      return null
    }
-@@ -892,10 +909,10 @@ const createTextNodesFromYText = (
+@@ -1000,10 +1017,10 @@ const createTextNodesFromYText = (
        nodes.push(schema.text(delta.insert, attributesToMarks(delta.attributes, schema)));
      }
    } catch (e) {
@@ -249,7 +223,7 @@ index 1cddd60120846234225be3c6768fd2da8410fc5c..eefda74f42514889b6e306e2451884a4
      return null
    }
    // @ts-ignore
-@@ -934,6 +951,15 @@ const createTypeFromElementNode = (node, meta) => {
+@@ -1042,6 +1059,15 @@ const createTypeFromElementNode = (node, meta) => {
        type.setAttribute(key, val);
      }
    }
@@ -265,7 +239,7 @@ index 1cddd60120846234225be3c6768fd2da8410fc5c..eefda74f42514889b6e306e2451884a4
    type.insert(
      0,
      normalizePNodeContent(node).map((n) =>
-@@ -1033,6 +1059,56 @@ const equalYTextPText = (ytext, ptexts) => {
+@@ -1141,6 +1167,56 @@ const equalYTextPText = (ytext, ptexts) => {
      )
  };
  
@@ -322,7 +296,7 @@ index 1cddd60120846234225be3c6768fd2da8410fc5c..eefda74f42514889b6e306e2451884a4
  /**
   * @param {Y.XmlElement|Y.XmlText|Y.XmlHook} ytype
   * @param {any|Array<any>} pnode
-@@ -1043,8 +1119,13 @@ const equalYTypePNode = (ytype, pnode) => {
+@@ -1151,8 +1227,13 @@ const equalYTypePNode = (ytype, pnode) => {
      matchNodeName(ytype, pnode)
    ) {
      const normalizedContent = normalizePNodeContent(pnode);
@@ -337,7 +311,7 @@ index 1cddd60120846234225be3c6768fd2da8410fc5c..eefda74f42514889b6e306e2451884a4
        ytype.toArray().every((ychild, i) =>
          equalYTypePNode(ychild, normalizedContent[i])
        )
-@@ -1229,7 +1310,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
+@@ -1337,7 +1418,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
      }
      // remove all keys that are no longer in pAttrs
      for (const key in yDomAttrs) {
@@ -362,29 +336,3 @@ index 1cddd60120846234225be3c6768fd2da8410fc5c..eefda74f42514889b6e306e2451884a4
          yDomFragment.removeAttribute(key);
        }
      }
-@@ -1609,7 +1706,11 @@ const relativePositionToAbsolutePosition = (y, documentType, relPos, mapping) =>
-         if (t instanceof Y.XmlText) {
-           pos += t._length;
-         } else {
--          pos += /** @type {any} */ (mapping.get(t)).nodeSize;
-+          const mapped = mapping.get(t);
-+          if (mapped == null) {
-+            return null
-+          }
-+          pos += mapped.nodeSize;
-         }
-       }
-       n = /** @type {Y.Item} */ (n.right);
-@@ -1633,7 +1734,11 @@ const relativePositionToAbsolutePosition = (y, documentType, relPos, mapping) =>
-           if (contentType instanceof Y.XmlText) {
-             pos += contentType._length;
-           } else {
--            pos += /** @type {any} */ (mapping.get(contentType)).nodeSize;
-+            const mapped = mapping.get(contentType);
-+            if (mapped == null) {
-+              return null
-+            }
-+            pos += mapped.nodeSize;
-           }
-         }
-         n = n.right;
