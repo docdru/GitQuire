@@ -188,18 +188,6 @@ describe('navigateToMarkdownTarget — external routing', () => {
     });
   }
 
-  it('desktop (bridge present): routes through okDesktop.shell.openExternal, NOT window.open', () => {
-    const openExternal = vi.fn(async (_url: string) => {});
-    const openWindow = vi.fn(() => null);
-    stubWindow({ okDesktop: { shell: { openExternal } }, open: openWindow });
-
-    navigateToMarkdownTarget({ kind: 'external', url: 'https://example.com/watch' });
-
-    expect(openExternal).toHaveBeenCalledTimes(1);
-    expect(openExternal).toHaveBeenCalledWith('https://example.com/watch');
-    expect(openWindow).not.toHaveBeenCalled();
-  });
-
   it('web (no bridge): falls back to window.open with the new-tab + noopener features', () => {
     const openWindow = vi.fn(() => null);
     stubWindow({ okDesktop: undefined, open: openWindow });

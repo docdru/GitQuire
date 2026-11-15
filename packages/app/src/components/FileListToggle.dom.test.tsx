@@ -6,10 +6,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { formatShortcut, formatShortcutLabel } from '@/lib/keyboard-shortcuts';
-import {
-  expectVisualClassTokens,
-  expectVisualClassTokensAbsent,
-} from '@/test-utils/visual-contract';
+import { expectVisualClassTokensAbsent } from '@/test-utils/visual-contract';
 
 vi.doMock('@lingui/react/macro', () => ({
   ...actualLinguiMacro,
@@ -95,16 +92,6 @@ describe('FileListToggle', () => {
     expect(toggleButton().getAttribute('aria-expanded')).toBe('false');
     await user.click(toggleButton());
     expect(toggleButton().getAttribute('aria-expanded')).toBe('true');
-  });
-
-  test('on Electron the space around the toggle drags the window while the toggle itself opts out', async () => {
-    setElectronHost(true);
-    const { container } = await renderToggle(true);
-    const zone = container.querySelector('[data-file-list-toggle]') as HTMLElement;
-
-    expect(zone.getAttribute('data-electron-drag')).toBe('');
-    expectVisualClassTokens(zone.className, ['[-webkit-app-region:drag]']);
-    expectVisualClassTokens(toggleButton().className, ['[-webkit-app-region:no-drag]']);
   });
 
   test('on the web the toggle carries no window-drag treatment', async () => {

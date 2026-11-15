@@ -13,12 +13,6 @@ vi.mock('@/editor/DocumentContext', () => ({
     dismissContentRecycleNotice: dismiss,
   }),
 }));
-vi.mock('@/lib/restart-collab-server', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/restart-collab-server')>(
-    '@/lib/restart-collab-server',
-  );
-  return { ...actual, restartCollabServer: restartMock };
-});
 
 async function renderBanner() {
   const { BranchRecycleBanner } = await import('./BranchRecycleBanner');
@@ -70,40 +64,6 @@ test('the transient switch banner dismisses itself after its deadline', async ()
     expect(screen.queryByTestId('branch-recycle-banner-switch')).toBeNull();
   } finally {
     vi.useRealTimers();
-  }
-});
-
-test('with the desktop bridge, Restart server disables in flight and re-enables on failure', async () => {
-  let resolveRestart: (v: { ok: boolean }) => void = () => {};
-  restartMock.mockImplementation(() => {
-    const { promise, resolve } = Promise.withResolvers<{ ok: boolean }>();
-    resolveRestart = resolve;
-    return promise;
-  });
-  Object.defineProperty(window, 'okDesktop', {
-    value: { restart: true },
-    configurable: true,
-    writable: true,
-  });
-  try {
-    notice = { kind: 'refused', at: Date.now() };
-    await renderBanner();
-
-    const button = screen.getByRole('button', { name: 'Restart server' });
-    fireEvent.click(button);
-    expect(restartMock).toHaveBeenCalledTimes(1);
-    expect((screen.getByRole('button', { name: 'Restarting' }) as HTMLButtonElement).disabled).toBe(
-      true,
-    );
-
-    await act(async () => {
-      resolveRestart({ ok: false });
-    });
-    expect(
-      (screen.getByRole('button', { name: 'Restart server' }) as HTMLButtonElement).disabled,
-    ).toBe(false);
-  } finally {
-    Reflect.deleteProperty(window, 'okDesktop');
   }
 });
 

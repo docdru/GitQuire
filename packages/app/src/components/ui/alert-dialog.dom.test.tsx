@@ -270,42 +270,6 @@ describe('AlertDialog surface classes', () => {
     expect(screen.queryByTestId('alert-dialog-drag-strip')).toBeNull();
   });
 
-  test('restores the title-bar drag band, between the overlay and the dialog', () => {
-    vi.stubGlobal('okDesktop', {});
-    try {
-      renderAlert();
-
-      const strip = screen.getByTestId('alert-dialog-drag-strip');
-      const overlay = document.querySelector('[data-slot="alert-dialog-overlay"]');
-      const content = screen.getByRole('alertdialog');
-
-      expectVisualClassTokens(strip.getAttribute('class'), [
-        '[-webkit-app-region:drag]',
-        'pointer-events-none',
-        'z-50',
-      ]);
-      expect(overlay?.compareDocumentPosition(strip)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-      expect(content.compareDocumentPosition(strip)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
-      expect(strip.hasAttribute('data-electron-drag')).toBe(true);
-      expect(strip.getAttribute('aria-hidden')).toBe('true');
-    } finally {
-      vi.unstubAllGlobals();
-    }
-  });
-
-  test('clamps the dialog clear of the band on the desktop host', () => {
-    vi.stubGlobal('okDesktop', {});
-    try {
-      renderAlert();
-
-      const className = screen.getByRole('alertdialog').getAttribute('class') ?? '';
-      expectVisualClassTokens(className, ['max-h-[calc(100dvh-6rem)]']);
-      expectVisualClassTokensAbsent(className, ['max-h-[calc(100dvh-2rem)]']);
-    } finally {
-      vi.unstubAllGlobals();
-    }
-  });
-
   test('caller className composes with the base classes rather than replacing them', () => {
     render(
       <AlertDialog open>

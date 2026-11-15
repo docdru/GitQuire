@@ -182,23 +182,9 @@ vi.doMock('@/lib/single-file-mode', () => ({
 vi.doMock('@/components/ConnectingBanner', () => ({ ConnectingBanner: () => null }));
 vi.doMock('@/components/SystemDocSubscriber', () => ({ SystemDocSubscriber: () => null }));
 vi.doMock('@/editor/EditorLifecycleFlush', () => ({ EditorLifecycleFlush: () => null }));
-vi.doMock('@/editor/BackgroundThrottleReporter', () => ({
-  BackgroundThrottleReporter: () => null,
-}));
 vi.doMock('@/editor/StaleTabReloadPrompt', () => ({ StaleTabReloadPrompt: () => null }));
-vi.doMock('@/components/McpConsentDialog', () => ({ McpConsentDialog: () => null }));
 vi.doMock('@/components/CommandPalette', () => ({ CommandPalette: () => null }));
 vi.doMock('@/components/AuthModal', () => ({ AuthModal: () => null }));
-vi.doMock('@/components/InstallInClaudeDesktopDialog', () => ({
-  InstallInClaudeDesktopDialog: () => null,
-}));
-vi.doMock('@/components/CreateProjectMenuTrigger', () => ({
-  CreateProjectMenuTrigger: () => null,
-}));
-vi.doMock('@/components/ReportBugMenuTrigger', () => ({ ReportBugMenuTrigger: () => null }));
-vi.doMock('@/components/FeedbackMenuTrigger', () => ({ FeedbackMenuTrigger: () => null }));
-vi.doMock('@/components/ShareBranchSwitchDialog', () => ({ ShareBranchSwitchDialog: () => null }));
-vi.doMock('@/components/ShareReceiveMissDialog', () => ({ ShareReceiveMissDialog: () => null }));
 vi.doMock('@/components/NewItemDialog', () => ({
   isNewItemShortcut: () => false,
   NewItemDialog: () => null,

@@ -16,11 +16,6 @@ afterEach(() => {
 });
 
 describe('isNoteWindow', () => {
-  test('is true for a popped-out note window', () => {
-    stubMode('note');
-    expect(isNoteWindow()).toBe(true);
-  });
-
   test.each(['editor', 'navigator', 'terminal'])('is false for the %s window mode', (mode) => {
     stubMode(mode);
     expect(isNoteWindow()).toBe(false);

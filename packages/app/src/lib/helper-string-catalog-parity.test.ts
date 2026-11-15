@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { formatContainerAriaLabel } from '@/editor/utils/editor-strings';
-import { deriveShareReceiveToast } from '@/lib/install-deep-link-listener';
 import { presentPublishError, resolveNameCheckStatus } from '@/lib/share/publish-wizard';
 import { mapValidationToToast, presentReceiveError } from '@/lib/share/receive-flow';
 import { mapShareErrorToToast } from '@/lib/share/run-share-action';
@@ -134,14 +133,6 @@ describe('helper messages round-trip to a catalog id with named placeholders', (
         );
         return status.kind === 'error' ? status.banner : '';
       },
-    ],
-    [
-      'deep link: opened on a named branch',
-      () =>
-        deriveShareReceiveToast(
-          { doc: 'readme', branch: '{branch}', multiCandidate: true },
-          '/projects/demo',
-        )?.message ?? '',
     ],
     [
       'editor: empty container label',

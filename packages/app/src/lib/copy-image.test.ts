@@ -158,16 +158,6 @@ describe('copyImage — default environment', () => {
     );
   }
 
-  test('uses the desktop bridge on window.okDesktop when it is present', async () => {
-    const copy = vi.fn(async (): Promise<CopyImageResult> => ({ ok: true }));
-    const write = vi.fn(async () => {});
-    stubBrowser({ write });
-    vi.stubGlobal('window', { okDesktop: { clipboard: { copyImage: copy } } });
-    await expect(copyImage(REQUEST)).resolves.toEqual({ ok: true, via: 'desktop' });
-    expect(copy).toHaveBeenCalledWith(REQUEST);
-    expect(write).not.toHaveBeenCalled();
-  });
-
   test('writes only image/png through navigator.clipboard without a desktop bridge', async () => {
     const write = vi.fn(async (_items: ClipboardItem[]) => {});
     stubBrowser({ write });

@@ -26,7 +26,6 @@ vi.mock('sonner', () => ({
     error: () => {},
   },
 }));
-vi.mock('@/lib/relaunch-store', () => ({ useRelaunchInFlight: () => false }));
 
 import { ProviderPool } from '@/editor/provider-pool';
 import {

@@ -57,10 +57,6 @@ vi.doMock('@/components/GraphView', () => ({
 
 const EXTERNAL_URL = 'https://www.youtube.com/watch?v=abc123';
 
-function setDesktopBridge(openExternal: (url: string) => Promise<void>) {
-  (window as unknown as { okDesktop?: unknown }).okDesktop = { shell: { openExternal } };
-}
-
 describe('GraphPanel — external "Open link" routes to the OS browser', () => {
   let originalOpen: typeof window.open;
 
@@ -92,20 +88,6 @@ describe('GraphPanel — external "Open link" routes to the OS browser', () => {
       });
     });
   }
-
-  test('Electron host: "Open link" calls okDesktop.shell.openExternal and never window.open', async () => {
-    const openExternal = vi.fn(async () => {});
-    setDesktopBridge(openExternal);
-    const openSpy = vi.fn(() => null);
-    window.open = openSpy as unknown as typeof window.open;
-
-    await expandAndSelectExternal();
-    await userEvent.click(screen.getByRole('button', { name: 'Open link' }));
-
-    expect(openExternal).toHaveBeenCalledTimes(1);
-    expect(openExternal).toHaveBeenCalledWith(EXTERNAL_URL);
-    expect(openSpy).not.toHaveBeenCalled();
-  });
 
   test('Web host (no bridge): "Open link" falls back to window.open in a new tab', async () => {
     const openSpy = vi.fn(() => null);

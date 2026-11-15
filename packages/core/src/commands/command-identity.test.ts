@@ -9,7 +9,6 @@ import {
 
 function ctx(overrides: Partial<CommandContext> = {}): CommandContext {
   return {
-    host: 'desktop',
     activeTargetKind: 'doc',
     singleFile: false,
     terminalCapable: true,
@@ -28,12 +27,6 @@ describe('evaluateCommandAvailability', () => {
     expect(evaluateCommandAvailability({}, ctx({ host: 'web', activeTargetKind: 'none' }))).toBe(
       true,
     );
-  });
-
-  test('host: desktop hides on web', () => {
-    expect(evaluateCommandAvailability({ host: 'desktop' }, ctx({ host: 'web' }))).toBe(false);
-    expect(evaluateCommandAvailability({ host: 'desktop' }, ctx({ host: 'desktop' }))).toBe(true);
-    expect(evaluateCommandAvailability({ host: 'all' }, ctx({ host: 'web' }))).toBe(true);
   });
 
   test('requiresTargetKinds gates on the projected kind', () => {
@@ -86,19 +79,6 @@ describe('evaluateCommandAvailability', () => {
       ),
     ).toBe(true);
   });
-
-  test('compound gates: host AND target-kind must both pass', () => {
-    const spec = { host: 'desktop', requiresTargetKinds: ['doc'] } as const;
-    expect(evaluateCommandAvailability(spec, ctx({ host: 'web', activeTargetKind: 'doc' }))).toBe(
-      false,
-    );
-    expect(
-      evaluateCommandAvailability(spec, ctx({ host: 'desktop', activeTargetKind: 'asset' })),
-    ).toBe(false);
-    expect(
-      evaluateCommandAvailability(spec, ctx({ host: 'desktop', activeTargetKind: 'doc' })),
-    ).toBe(true);
-  });
 });
 
 describe('COMMAND_IDENTITIES registry invariants', () => {
@@ -108,20 +88,11 @@ describe('COMMAND_IDENTITIES registry invariants', () => {
     ).map((command) => command.id);
 
     expect(gatedIds).toEqual([
-      'toggle-terminal',
-      'new-terminal',
-      'move-terminal',
-      'kill-terminal',
       'move-terminal-left',
       'move-terminal-right',
       'move-terminal-top',
       'move-terminal-bottom',
     ]);
-  });
-
-  test('the menu-only terminal window command declares the terminal capability gate', () => {
-    const command = COMMAND_IDENTITIES.find((entry) => entry.id === 'new-terminal-window');
-    expect(command?.availability.requiresTerminalCapability).toBe(true);
   });
 
   test('command ids are unique', () => {

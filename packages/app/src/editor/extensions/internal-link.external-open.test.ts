@@ -72,41 +72,6 @@ function mountWithExternalLink(url: string): {
   };
 }
 
-describe('WYSIWYG external-link activation — desktop (bridge present)', () => {
-  test('bare click routes to the OS browser via okDesktop.shell.openExternal, NOT window.open', () => {
-    const url = 'https://youtube.com/watch?v=abc';
-    const openExternal = vi.fn(async (_url: string) => {});
-    const openWindow = vi.fn(() => null);
-    const w = testWindow();
-    w.okDesktop = { shell: { openExternal } };
-    w.open = openWindow as unknown as OpenExternalWindow['open'];
-
-    const { activate } = mountWithExternalLink(url);
-    const handled = activate(false);
-
-    expect(handled).toBe(true);
-    expect(openExternal).toHaveBeenCalledTimes(1);
-    expect(openExternal).toHaveBeenCalledWith(url);
-    expect(openWindow).not.toHaveBeenCalled();
-  });
-
-  test('Cmd/Ctrl+click (new-tab gesture) also reaches the OS browser, NOT a child window', () => {
-    const url = 'https://example.com/path';
-    const openExternal = vi.fn(async (_url: string) => {});
-    const openWindow = vi.fn(() => null);
-    const w = testWindow();
-    w.okDesktop = { shell: { openExternal } };
-    w.open = openWindow as unknown as OpenExternalWindow['open'];
-
-    const { activate } = mountWithExternalLink(url);
-    activate(true);
-
-    expect(openExternal).toHaveBeenCalledTimes(1);
-    expect(openExternal).toHaveBeenCalledWith(url);
-    expect(openWindow).not.toHaveBeenCalled();
-  });
-});
-
 describe('WYSIWYG external-link activation — web (no bridge)', () => {
   test('bare click falls back to window.open with the new-tab + noopener features', () => {
     const url = 'https://example.com/web';

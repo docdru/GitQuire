@@ -28,7 +28,7 @@ export function DocPanelToggle({
   const direction = useDocumentDirection();
   const panelShortcut = formatShortcut('toggle-document-panel');
   const panelShortcutLabel = formatShortcutLabel('toggle-document-panel');
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const isElectronHost = false;
   if (isNoteWindow()) return null;
   return (
     <Tooltip>

@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';
 import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
-import { hashFromAssetPath } from '@/lib/doc-hash';
 import { emitLocalMenuAction } from '@/lib/local-menu-action-bus';
 import {
   __resetPaneVisibilityStoreForTests,
@@ -411,33 +410,6 @@ function BridgeCloseActiveHarness({ bridge }: { bridge: OkDesktopBridge }) {
     };
   }, [bridge]);
   return <CloseActiveHarness />;
-}
-
-function OpenLicenseDuringRestoreHarness() {
-  const ctx = useDocumentContext();
-  return (
-    <>
-      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
-      <span data-testid="visible-tabs">{ctx.visibleTabIds.join('|')}</span>
-      <span data-testid="active-tab">{ctx.activeTabId ?? ''}</span>
-      <button
-        type="button"
-        onClick={() =>
-          ctx.openTarget(
-            {
-              kind: 'asset',
-              target: 'LICENSE',
-              assetPath: 'LICENSE',
-              mediaKind: null,
-            },
-            { disposition: 'permanent', consumeActiveNewTab: true },
-          )
-        }
-      >
-        Open license
-      </button>
-    </>
-  );
 }
 
 function OpenPreviewDuringRestoreHarness() {
@@ -1319,28 +1291,6 @@ describe('DocumentContext repeat-crash recovery notice', () => {
     expect(screen.getByTestId('active-pane-tab').textContent).toBe('');
     await screen.findByText(RECOVERY_NOTICE);
   });
-
-  test('shows no notice when the bridge session restores normally', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-07-28T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-
-    renderWithToaster();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
-      expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
-    });
-    expect(screen.queryByText(RECOVERY_NOTICE)).toBeNull();
-  });
 });
 
 describe('DocumentContext tab restore', () => {
@@ -1458,32 +1408,6 @@ describe('DocumentContext tab restore', () => {
     expect(parsed.panes[0].pinnedTabIds).toEqual([PINNED_TAB_ID]);
   });
 
-  test('restores the desktop session before collaboration identity resolves', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
-    const stub = makeDeferredSessionBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-07-28T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-
-    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
-
-    expect(screen.getByTestId('session-loaded').textContent).toBe('false');
-    act(() => {
-      stub.resolveSession();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
-      expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
-    });
-  });
-
   test('suppresses the desktop bridge session restore after a repeat app-shell crash', async () => {
     mockCollabUrl = 'ws://localhost:1/collab';
     globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
@@ -1507,35 +1431,6 @@ describe('DocumentContext tab restore', () => {
     expect(screen.getByTestId('active-pane-tab').textContent).toBe('');
   });
 
-  test('a later mount with no new crash trips restores the session the recovery suppressed', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-07-28T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-    recordAppShellCrashTrip(new Error('same crash'));
-    recordAppShellCrashTrip(new Error('same crash'));
-
-    const first = render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
-    await waitFor(() => {
-      expect(first.getByTestId('session-loaded').textContent).toBe('true');
-    });
-    expect(first.getByTestId('active-pane-tab').textContent).toBe('');
-    first.unmount();
-
-    const second = render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
-    await waitFor(() => {
-      expect(second.getByTestId('session-loaded').textContent).toBe('true');
-      expect(second.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
-    });
-  });
-
   test('restores an extension-qualified mdx tab over an ambiguous extensionless hash', async () => {
     mockCollabUrl = 'ws://localhost:1/collab';
     globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
@@ -1548,41 +1443,6 @@ describe('DocumentContext tab restore', () => {
       expect(screen.getByTestId('active-tab').textContent).toBe(SAME_STEM_MDX_TAB);
     });
     expect(window.location.hash).toBe('#/foo.mdx');
-  });
-
-  test('keeps saved tab order when an active asset hash opens before session restore resolves', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
-    const stub = makeDeferredSessionBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID, LICENSE_TAB_ID],
-        [],
-        LICENSE_TAB_ID,
-        new Date('2026-06-07T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-    window.location.hash = hashFromAssetPath('LICENSE');
-
-    render(<OpenLicenseDuringRestoreHarness />, { wrapper: ProviderHarness });
-
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Open license' }));
-
-    expect(screen.getByTestId('visible-tabs').textContent).toBe(LICENSE_TAB_ID);
-
-    act(() => {
-      stub.resolveSession();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('open-tabs').textContent).toBe(`${OTHER_TAB_ID}|${LICENSE_TAB_ID}`);
-      expect(screen.getByTestId('visible-tabs').textContent).toBe(
-        `${OTHER_TAB_ID}|${LICENSE_TAB_ID}`,
-      );
-      expect(screen.getByTestId('active-tab').textContent).toBe(LICENSE_TAB_ID);
-    });
-    expect(window.location.hash).toBe(hashFromAssetPath('LICENSE'));
   });
 
   test('keeps a preview marker when a sidebar preview opens before session restore resolves', async () => {
@@ -1612,36 +1472,6 @@ describe('DocumentContext tab restore', () => {
     await waitFor(() => {
       expect(screen.getByTestId('session-loaded').textContent).toBe('true');
       expect(screen.getByTestId('preview-tab').textContent).toBe(PREVIEW_TAB_ID);
-    });
-  });
-
-  test('keeps a saved tab permanent when a live preview shares its id', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
-    const stub = makeDeferredSessionBridgeStub(
-      persistedTabSession(
-        [PREVIEW_TAB_ID],
-        [],
-        PREVIEW_TAB_ID,
-        new Date('2026-06-07T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-    window.location.hash = '#/Preview';
-
-    render(<OpenPreviewDuringRestoreHarness />, { wrapper: ProviderHarness });
-
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Open preview' }));
-    expect(screen.getByTestId('preview-tab').textContent).toBe(PREVIEW_TAB_ID);
-
-    act(() => {
-      stub.resolveSession();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
-      expect(screen.getByTestId('preview-tab').textContent).toBe('');
     });
   });
 

@@ -5,10 +5,7 @@ export type CommandGroup = 'commands' | 'project' | 'file' | 'view' | 'terminal'
 
 export type ContextualTargetKind = 'doc' | 'folder' | 'asset' | 'project' | 'none';
 
-export type CommandHostScope = 'all' | 'desktop';
-
 export interface CommandAvailabilitySpec {
-  readonly host?: CommandHostScope;
   readonly requiresTargetKinds?: readonly ContextualTargetKind[];
   readonly singleFileHidden?: boolean;
   readonly requiresTerminalCapability?: boolean;
@@ -20,7 +17,6 @@ export interface CommandAvailabilitySpec {
 }
 
 export interface CommandContext {
-  readonly host: 'desktop' | 'web';
   readonly activeTargetKind: ContextualTargetKind;
   readonly singleFile: boolean;
   readonly terminalCapable: boolean;
@@ -35,7 +31,6 @@ export function evaluateCommandAvailability(
   spec: CommandAvailabilitySpec,
   ctx: CommandContext,
 ): boolean {
-  if (spec.host === 'desktop' && ctx.host !== 'desktop') return false;
   if (spec.singleFileHidden && ctx.singleFile) return false;
   if (spec.requiresTerminalCapability && !ctx.terminalCapable) return false;
   if (spec.requiresTerminalLive && !ctx.terminalLive) return false;
@@ -192,7 +187,7 @@ function dockMoveIdentity(command: DockMoveCommand): CommandIdentity {
       ...DOCK_MOVE_PANE_ALIASES[command.pane],
       command.side,
     ],
-    availability: terminal ? { host: 'desktop', requiresTerminalCapability: true } : {},
+    availability: terminal ? { requiresTerminalCapability: true } : {},
     palette: { group: terminal ? 'terminal' : 'view', visibility: 'search-only' },
   };
 }
@@ -204,34 +199,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     keywords: ['game', 'blob', 'runner', 'play', 'easter egg', 'dino'],
     availability: {},
     palette: { group: 'app', visibility: 'search-only' },
-  },
-  {
-    id: 'navigate-back',
-    menuActionId: 'navigate-back',
-    labelKey: 'back',
-    keywords: ['previous history', 'go'],
-    shortcutId: 'navigate-back',
-    shortcutDesktopOnly: true,
-    availability: { host: 'desktop' },
-    palette: { group: 'commands', visibility: 'search-only' },
-    menu: [
-      { section: 'view-history', order: 0, platform: 'mac', accelerator: 'Cmd+[' },
-      { section: 'view-history', order: 0, platform: 'other', accelerator: 'Alt+Left' },
-    ],
-  },
-  {
-    id: 'navigate-forward',
-    menuActionId: 'navigate-forward',
-    labelKey: 'forward',
-    keywords: ['next history', 'go'],
-    shortcutId: 'navigate-forward',
-    shortcutDesktopOnly: true,
-    availability: { host: 'desktop' },
-    palette: { group: 'commands', visibility: 'search-only' },
-    menu: [
-      { section: 'view-history', order: 1, platform: 'mac', accelerator: 'Cmd+]' },
-      { section: 'view-history', order: 1, platform: 'other', accelerator: 'Alt+Right' },
-    ],
   },
   {
     id: 'new-file',
@@ -262,71 +229,11 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     palette: { group: 'commands', visibility: 'always' },
   },
   {
-    id: 'open-in-new-window',
-    labelKey: 'openInNewWindow',
-    keywords: ['pop out', 'detach', 'separate window', 'second monitor'],
-    availability: { host: 'desktop', requiresActiveDoc: true, singleFileHidden: true },
-    palette: { group: 'commands', visibility: 'always' },
-    menu: [{ section: 'window', order: 0 }],
-  },
-  {
     id: 'initialize-starter-pack',
     labelKey: 'initializeStarterPack',
     keywords: ['scaffold', 'seed', 'pack', 'starter'],
     availability: {},
     palette: { group: 'commands', visibility: 'always' },
-  },
-  {
-    id: 'new-project',
-    menuActionId: 'new-project',
-    labelKey: 'newProject',
-    keywords: ['create new project scaffold'],
-    availability: { host: 'desktop' },
-    palette: { group: 'project', visibility: 'always' },
-    menu: [{ section: 'file-project', order: 0, ellipsis: true }],
-  },
-  {
-    id: 'open-folder',
-    labelKey: 'openFolderOnDisk',
-    keywords: ['project', 'folder', 'disk'],
-    shortcutId: 'open-folder',
-    availability: { host: 'desktop' },
-    palette: { group: 'project', visibility: 'always' },
-    menu: [
-      {
-        section: 'file-project',
-        order: 2,
-        accelerator: 'CmdOrCtrl+O',
-        ellipsis: true,
-        menuLabelKey: 'openFolder',
-      },
-    ],
-  },
-  {
-    id: 'open-file',
-    labelKey: 'openFileOnDisk',
-    keywords: ['file', 'markdown', 'single', 'standalone', 'temporary'],
-    shortcutId: 'open-file',
-    availability: { host: 'desktop' },
-    palette: { group: 'project', visibility: 'always' },
-    menu: [
-      {
-        section: 'file-project',
-        order: 3,
-        accelerator: 'CmdOrCtrl+Shift+O',
-        ellipsis: true,
-        menuLabelKey: 'openFile',
-      },
-    ],
-  },
-  {
-    id: 'switch-project',
-    labelKey: 'switchProject',
-    keywords: ['switch project navigator projects', 'change'],
-    shortcutId: 'switch-project',
-    availability: { host: 'desktop', singleFileHidden: true },
-    palette: { group: 'project', visibility: 'always' },
-    menu: [{ section: 'file-project', order: 1, accelerator: 'CmdOrCtrl+Shift+P', ellipsis: true }],
   },
   {
     id: 'settings',
@@ -353,39 +260,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     ],
   },
   {
-    id: 'install-claude-desktop',
-    labelKey: 'installClaudeDesktop',
-    keywords: ['claude desktop install cowork'],
-    availability: { requiresInstallSkill: true },
-    palette: { group: 'project', visibility: 'always' },
-    menu: [
-      {
-        section: 'help-install',
-        order: 0,
-        ellipsis: true,
-        menuLabelText: 'Install for Claude Chat & Cowork (desktop app)',
-      },
-    ],
-  },
-  {
-    id: 'report-bug',
-    menuActionId: 'report-bug',
-    labelKey: 'reportBug',
-    keywords: ['bug report issue feedback problem', 'file'],
-    shortcutId: 'report-bug',
-    shortcutDesktopOnly: true,
-    availability: { host: 'desktop' },
-    palette: { group: 'project', visibility: 'always' },
-    menu: [{ section: 'help-links', order: 3, ellipsis: true, accelerator: 'CmdOrCtrl+Shift+D' }],
-  },
-  {
-    id: 'bug-report-history',
-    labelKey: 'bugReportHistory',
-    keywords: ['bug report history previous reports past retry resend'],
-    availability: { host: 'desktop' },
-    palette: { group: 'project', visibility: 'always' },
-  },
-  {
     id: 'send-feedback',
     menuActionId: 'send-feedback',
     labelKey: 'sendFeedback',
@@ -402,97 +276,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     availability: { singleFileHidden: true },
     palette: { group: 'file', visibility: 'search-only' },
     menu: [{ section: 'file-create', order: 2, ellipsis: true }],
-  },
-  {
-    id: 'rename',
-    menuActionId: 'rename',
-    labelKey: 'rename',
-    keywords: ['rename', 'file', 'folder'],
-    availability: { host: 'desktop', requiresTargetKinds: ['doc', 'folder', 'asset'] },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-item', order: 1 }],
-  },
-  {
-    id: 'duplicate',
-    menuActionId: 'duplicate',
-    labelKey: 'duplicate',
-    keywords: ['duplicate', 'copy', 'file', 'folder'],
-    shortcutId: 'file-tree-duplicate',
-    availability: { host: 'desktop', requiresTargetKinds: ['doc', 'folder'] },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-item', order: 0, accelerator: 'CmdOrCtrl+D' }],
-  },
-  {
-    id: 'move-to-trash',
-    menuActionId: 'move-to-trash',
-    labelKey: 'moveToTrash',
-    keywords: ['delete', 'trash', 'remove', 'file', 'folder'],
-    shortcutId: 'file-tree-delete',
-    availability: { host: 'desktop', requiresTargetKinds: ['doc', 'folder', 'asset'] },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-item', order: 2, accelerator: 'CmdOrCtrl+Delete' }],
-  },
-  {
-    id: 'reveal-in-finder',
-    menuActionId: 'reveal-in-finder',
-    labelKey: 'revealInFinder',
-    keywords: ['finder', 'reveal', 'show', 'file', 'folder', 'open'],
-    availability: { host: 'desktop', requiresTargetKinds: ['doc', 'folder', 'asset', 'project'] },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-reveal', order: 0 }],
-  },
-  {
-    id: 'send-to-ai',
-    menuActionId: 'send-to-ai',
-    labelKey: 'openWithAi',
-    keywords: ['ai', 'agent', 'handoff'],
-    availability: { host: 'desktop', requiresTargetKinds: ['doc', 'folder', 'project'] },
-    menu: [{ section: 'file-reveal', order: 1 }],
-  },
-  {
-    id: 'copy-full-path',
-    menuActionId: 'copy-full-path',
-    labelKey: 'copyFullPath',
-    keywords: ['copy', 'path', 'absolute', 'full'],
-    availability: { host: 'desktop', requiresTargetKinds: ['doc', 'folder', 'asset', 'project'] },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-copy-path', order: 0, menuLabelKey: 'fullPath' }],
-  },
-  {
-    id: 'copy-relative-path',
-    menuActionId: 'copy-relative-path',
-    labelKey: 'copyRelativePath',
-    keywords: ['copy', 'path', 'relative'],
-    availability: { host: 'desktop', requiresTargetKinds: ['doc', 'folder', 'asset', 'project'] },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-copy-path', order: 1, menuLabelKey: 'relativePath' }],
-  },
-  {
-    id: 'close-tab',
-    menuActionId: 'close-active-tab-or-window',
-    labelKey: 'closeTab',
-    keywords: ['close', 'tab', 'window'],
-    availability: { host: 'desktop' },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-close', order: 0, platform: 'mac', accelerator: 'CmdOrCtrl+W' }],
-  },
-  {
-    id: 'new-worktree',
-    menuActionId: 'new-worktree',
-    labelKey: 'newWorktree',
-    keywords: ['worktree', 'branch', 'new', 'create'],
-    availability: { host: 'desktop' },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-worktree', order: 0, ellipsis: true }],
-  },
-  {
-    id: 'switch-worktree',
-    menuActionId: 'switch-worktree',
-    labelKey: 'switchWorktree',
-    keywords: ['worktree', 'switch', 'branch', 'change', 'checkout'],
-    availability: { host: 'desktop' },
-    palette: { group: 'file', visibility: 'search-only' },
-    menu: [{ section: 'file-worktree', order: 1, ellipsis: true }],
   },
   {
     id: 'toggle-sidebar',
@@ -595,33 +378,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     menu: [{ section: 'view-panels', order: 2 }],
   },
   {
-    id: 'toggle-terminal',
-    menuActionId: 'toggle-terminal',
-    labelKey: 'terminalShow',
-    keywords: [
-      'terminal',
-      'shell',
-      'console',
-      'panel',
-      'toggle terminal',
-      'toggle bottom dock',
-      'show terminal',
-      'hide terminal',
-      'close',
-      'open',
-    ],
-    shortcutId: 'toggle-terminal-panel',
-    stateToggle: {
-      showKey: 'terminalShow',
-      hideKey: 'terminalHide',
-      stateField: 'terminalVisible',
-      defaultVisible: false,
-    },
-    availability: { host: 'desktop', requiresTerminalCapability: true },
-    palette: { group: 'view', visibility: 'search-only' },
-    menu: [{ section: 'view-panels', order: 3, accelerator: 'CmdOrCtrl+J' }],
-  },
-  {
     id: 'toggle-agent-panel',
     menuActionId: 'toggle-agent-panel',
     labelKey: 'agentPanelShow',
@@ -688,74 +444,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     menu: [{ section: 'view-tree', order: 1, smartHide: true }],
   },
   {
-    id: 'new-terminal',
-    menuActionId: 'new-terminal',
-    labelKey: 'newTerminal',
-    keywords: ['terminal', 'shell', 'new', 'tab'],
-    availability: { host: 'desktop', requiresTerminalCapability: true },
-    palette: { group: 'terminal', visibility: 'search-only' },
-    menu: [{ section: 'terminal', order: 0 }],
-  },
-  {
-    id: 'new-terminal-window',
-    keywords: [],
-    availability: { host: 'desktop', requiresTerminalCapability: true },
-    menu: [{ section: 'terminal', order: 1, menuLabelText: 'New Terminal Window' }],
-  },
-  {
-    id: 'move-terminal',
-    menuActionId: 'move-terminal',
-    labelKey: 'terminalMoveRight',
-    keywords: ['terminal', 'shell', 'console', 'move', 'dock', 'right', 'bottom', 'placement'],
-    placementToggle: {
-      bottomKey: 'terminalMoveRight',
-      rightKey: 'terminalMoveBottom',
-    },
-    availability: { host: 'desktop', requiresTerminalCapability: true },
-    palette: { group: 'terminal', visibility: 'search-only' },
-    menu: [{ section: 'terminal', order: 2 }],
-  },
-  {
-    id: 'kill-terminal',
-    menuActionId: 'kill-terminal',
-    labelKey: 'killTerminal',
-    keywords: ['terminal', 'kill', 'close', 'session', 'stop'],
-    availability: {
-      host: 'desktop',
-      requiresTerminalCapability: true,
-      requiresTerminalLive: true,
-    },
-    palette: { group: 'terminal', visibility: 'search-only' },
-    menu: [{ section: 'terminal', order: 3 }],
-  },
-  {
-    id: 'check-for-updates',
-    labelKey: 'checkForUpdates',
-    keywords: ['update', 'upgrade', 'version', 'check', 'app'],
-    availability: { host: 'desktop' },
-    palette: { group: 'app', visibility: 'search-only' },
-    menu: [
-      { section: 'app-updates', order: 0, platform: 'mac', ellipsis: true },
-      { section: 'help-updates', order: 0, platform: 'other', ellipsis: true },
-    ],
-  },
-  {
-    id: 'set-up-integrations',
-    labelKey: 'setUpIntegrations',
-    keywords: ['integrations', 'mcp', 'setup', 'claude', 'configure'],
-    availability: { host: 'desktop' },
-    palette: { group: 'app', visibility: 'search-only' },
-    menu: [{ section: 'file-integrations', order: 0, ellipsis: true }],
-  },
-  {
-    id: 'toggle-spell-check',
-    labelKey: 'checkSpelling',
-    keywords: ['spell', 'spelling', 'check', 'typing'],
-    availability: { host: 'desktop' },
-    palette: { group: 'app', visibility: 'search-only' },
-    menu: [{ section: 'edit-spell', order: 0, checkbox: true }],
-  },
-  {
     id: 'open-github',
     labelKey: 'openOnGithub',
     keywords: ['github', 'source', 'repository', 'code', 'view'],
@@ -778,20 +466,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     availability: {},
     palette: { group: 'app', visibility: 'search-only' },
     menu: [{ section: 'help-links', order: 2 }],
-  },
-  {
-    id: 'uninstall',
-    keywords: [],
-    availability: { host: 'desktop' },
-    menu: [
-      {
-        section: 'app-uninstall',
-        order: 0,
-        platform: 'mac',
-        ellipsis: true,
-        menuLabelText: 'Uninstall GitQuire',
-      },
-    ],
   },
   ...DOCK_MOVE_COMMANDS.map(dockMoveIdentity),
 ];

@@ -1,9 +1,4 @@
 import { BROWSER_RUNTIME_VERSION } from './client-version';
-import {
-  IMAGE_ATTACHMENT_EXTENSIONS,
-  type ImageAttachmentType,
-  isImageAttachmentType,
-} from './image-attachments';
 
 const importMetaEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
 
@@ -67,42 +62,15 @@ async function toBase64Transport(files: readonly File[]): Promise<FeedbackAttach
   return { attachments: await Promise.all(files.map(fileToFeedbackAttachment)) };
 }
 
-async function uploadThroughDesktop(files: readonly File[]): Promise<string[] | null> {
-  const bridge = typeof window === 'undefined' ? undefined : window.okDesktop;
-  if (bridge === undefined) return null;
-  const assetUrls: string[] = [];
-  for (const [index, file] of files.entries()) {
-    if (!isImageAttachmentType(file.type)) return null;
-    const contentType: ImageAttachmentType = file.type;
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const filename = `feedback-${index + 1}.${IMAGE_ATTACHMENT_EXTENSIONS[contentType]}`;
-    const result = await bridge.assetUpload.uploadImage({ contentType, bytes, filename });
-    if (!('assetUrl' in result)) {
-      console.warn(`[feedback] action=upload-image result=${result.error} index=${index}`);
-      return null;
-    }
-    assetUrls.push(result.assetUrl);
-  }
-  return assetUrls;
-}
-
 export async function toFeedbackAttachmentPayloads(
   files: readonly File[],
 ): Promise<FeedbackAttachmentTransport> {
   if (files.length === 0) return {};
-  try {
-    const assetUrls = await uploadThroughDesktop(files);
-    if (assetUrls !== null) return { attachmentAssetUrls: assetUrls };
-  } catch (err) {
-    console.warn(
-      `[feedback] action=upload-image result=unexpected-error message=${err instanceof Error ? err.message : String(err)}`,
-    );
-  }
   return toBase64Transport(files);
 }
 
 function resolvePlatform(): string {
-  return (typeof window !== 'undefined' && window.okDesktop?.platform) || 'web';
+  return 'web';
 }
 
 export async function submitFeedback(payload: FeedbackPayload): Promise<FeedbackResult> {

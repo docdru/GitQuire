@@ -6,30 +6,10 @@ const LAUNCHER_FREE_ORIGIN: OkMenuActionOrigin = Object.freeze({ launcherBorne: 
 
 const listeners = new Set<Listener>();
 
-let bridgeForwarderUnsubscribe: (() => void) | null = null;
-
-function ensureBridgeForwarder(): void {
-  if (bridgeForwarderUnsubscribe !== null) return;
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  if (bridge == null || typeof bridge.onMenuAction !== 'function') return;
-  bridgeForwarderUnsubscribe = bridge.onMenuAction((action, origin) => {
-    emitLocalMenuAction(action, origin);
-  });
-}
-
-function teardownBridgeForwarderIfIdle(): void {
-  if (listeners.size === 0 && bridgeForwarderUnsubscribe !== null) {
-    bridgeForwarderUnsubscribe();
-    bridgeForwarderUnsubscribe = null;
-  }
-}
-
 export function subscribeLocalMenuAction(cb: Listener): () => void {
   listeners.add(cb);
-  ensureBridgeForwarder();
   return () => {
     listeners.delete(cb);
-    teardownBridgeForwarderIfIdle();
   };
 }
 
@@ -48,8 +28,4 @@ export function emitLocalMenuAction(
 
 export function __resetLocalMenuActionBusForTests(): void {
   listeners.clear();
-  if (bridgeForwarderUnsubscribe !== null) {
-    bridgeForwarderUnsubscribe();
-    bridgeForwarderUnsubscribe = null;
-  }
 }

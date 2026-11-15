@@ -297,7 +297,7 @@ export function GraphPanel({
     pagesBySlug,
     pagesByBasename,
   } = usePageList();
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const isElectronHost = false;
   const [isExpanded, setIsExpanded] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState<FullscreenGraphMode>('explore');
   const [orphanMode, setOrphanMode] = useState<OrphanMode>('both');

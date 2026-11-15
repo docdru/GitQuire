@@ -3,12 +3,10 @@
  * follows the MaybeThrow Pattern C documented in precedent #43(d).
  */
 
-import type { OkBugReportCreateResult } from '@inkeep/open-knowledge-core';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as syncPromiseModule from '@/editor/sync-promise';
-import { SyncTimeoutError } from '@/editor/sync-promise';
 import { DocumentErrorBoundary, errorCopy } from './DocumentErrorBoundary';
 
 type WindowGlobals = { NodeFilter?: typeof NodeFilter };
@@ -39,53 +37,7 @@ function MaybeThrow({ label }: { label: string }) {
   return <span data-testid="payload">{label}</span>;
 }
 
-function ThrowSyncTimeout({ docName }: { docName: string }) {
-  if (shouldThrow) {
-    throw new SyncTimeoutError(docName, 10_000);
-  }
-  return <span data-testid="payload">{docName}</span>;
-}
-
-type CreateRequest = { level: 'standard' | 'full'; note?: string };
-
 const restartServer = vi.fn(async () => ({ ok: true as const }));
-
-function installBugReportBridge(): CreateRequest[] {
-  const createCalls: CreateRequest[] = [];
-  const bridge = {
-    config: { projectPath: '/tmp/ok', collabUrl: 'ws://127.0.0.1:5200/collab' },
-    restartServer,
-    bugReport: {
-      create: (request: CreateRequest) => {
-        createCalls.push(request);
-        const result: OkBugReportCreateResult = {
-          ok: true,
-          zipPath: '/tmp/report.zip',
-          zipSizeBytes: 1024,
-          summary: {
-            level: request.level,
-            systemWide: false,
-            projectSlug: 'demo',
-            files: [],
-            redactions: [],
-            redactedLineCount: 0,
-            generatedAt: '2026-07-10T00:00:00.000Z',
-          },
-        };
-        return Promise.resolve(result);
-      },
-      send: () => Promise.resolve({ ok: true as const, reference: 'OK-TEST01' }),
-    },
-    shell: {
-      showItemInFolder: () => Promise.resolve(),
-      openExternal: () => Promise.resolve(),
-    },
-  };
-  for (const host of [window, globalThis] as unknown as Array<Record<string, unknown>>) {
-    Object.defineProperty(host, 'okDesktop', { configurable: true, writable: true, value: bridge });
-  }
-  return createCalls;
-}
 
 function clearBugReportBridge() {
   for (const host of [window, globalThis] as unknown as Array<Record<string, unknown>>) {
@@ -238,37 +190,6 @@ describe('DocumentErrorBoundary (Tier-3 mount)', () => {
     invalidateSpy.mockRestore();
   });
 
-  test('Report this error opens the report dialog with full detail and the crash context in the note', async () => {
-    shouldThrow = true;
-    const createCalls = installBugReportBridge();
-    render(
-      <DocumentErrorBoundary activeDocName="alpha.md" onRecycle={vi.fn(() => {})}>
-        <MaybeThrow label="alpha" />
-      </DocumentErrorBoundary>,
-    );
-
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /report this error/i }));
-
-    expect(await screen.findByRole('dialog', undefined, { timeout: 5000 })).not.toBeNull();
-    expect(screen.getByRole('heading', { name: 'Report a bug' })).not.toBeNull();
-    const checkbox = screen.getByRole('checkbox', { name: 'Detailed diagnostics' });
-    expect(checkbox.getAttribute('aria-checked')).toBe('true');
-
-    await user.click(screen.getByRole('button', { name: 'Create report' }));
-    await screen.findByRole('heading', { name: 'Review your report' });
-
-    expect(createCalls).toHaveLength(1);
-    expect(createCalls[0]?.level).toBe('full');
-    const note = createCalls[0]?.note ?? '';
-    expect(note).toContain('Crash source: document view');
-    expect(note).toContain('Document: alpha.md');
-    expect(note).toContain('Error: MaybeThrow boom: alpha');
-    expect(note).toContain('Component stack:');
-    expect(note).toContain('at MaybeThrow');
-    expect(note).not.toContain('/Users/');
-  });
-
   test('the report action is absent without the desktop bridge', () => {
     shouldThrow = true;
     clearBugReportBridge();
@@ -304,33 +225,5 @@ describe('DocumentErrorBoundary (Tier-3 mount)', () => {
       );
     });
     expect(sawBoundaryError).toBe(true);
-  });
-
-  test('the restart action is disabled while a restart is in flight', async () => {
-    shouldThrow = true;
-    installBugReportBridge();
-    let releaseRestart!: (value: { ok: true }) => void;
-    restartServer.mockImplementationOnce(() => {
-      const { promise, resolve } = Promise.withResolvers<{ ok: true }>();
-      releaseRestart = resolve;
-      return promise;
-    });
-
-    render(
-      <DocumentErrorBoundary activeDocName="alpha.md" onRecycle={vi.fn(() => {})}>
-        <ThrowSyncTimeout docName="alpha.md" />
-      </DocumentErrorBoundary>,
-    );
-
-    const restart = screen.getByRole('button', { name: /restart server/i });
-    await userEvent.click(restart);
-    expect((restart as HTMLButtonElement).disabled).toBe(true);
-
-    await userEvent.click(restart);
-    expect(restartServer).toHaveBeenCalledTimes(1);
-
-    releaseRestart({ ok: true });
-    await screen.findByRole('button', { name: /restart server/i });
-    expect((restart as HTMLButtonElement).disabled).toBe(false);
   });
 });

@@ -4,18 +4,13 @@ import { getGitHubStars } from '@inkeep/open-knowledge-core/utils/github-stars';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { BookOpen, Bug, CircleHelp, Megaphone, MessageSquare, RefreshCw, Star } from 'lucide-react';
+import { BookOpen, CircleHelp, Megaphone, MessageSquare, Star } from 'lucide-react';
 import type { ComponentProps, FC, ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import { ReportBugDialog } from '@/components/ReportBugDialog';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useBugReport } from '@/lib/bug-report-capture';
-import type { OkAboutInfo } from '@/lib/desktop-bridge-types';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { DOCS_URL, GITHUB_REPO_URL, ISSUES_URL } from '@/lib/social-links';
-import { openAboutSettings } from '@/lib/use-settings-route';
 import { cn } from '@/lib/utils';
 import { GithubIcon } from './icons/github';
 
@@ -78,14 +73,7 @@ const ResourceLinkRow: FC<{ link: ResourceLink; trailing?: ReactNode }> = ({ lin
   const { label, href, icon: Icon } = link;
   return (
     <li>
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => dispatchExternalLinkClick(e, href)}
-        onAuxClick={(e) => dispatchExternalLinkClick(e, href)}
-        className={rowClassName}
-      >
+      <a href={href} target="_blank" rel="noopener noreferrer" className={rowClassName}>
         <Icon aria-hidden="true" className="size-4 shrink-0" />
         {typeof label === 'string' ? label : t(label)}
         {trailing}
@@ -94,23 +82,6 @@ const ResourceLinkRow: FC<{ link: ResourceLink; trailing?: ReactNode }> = ({ lin
   );
 };
 
-const ActionRow: FC<{
-  icon: FC<ComponentProps<'svg'>>;
-  onSelect: () => void;
-  children: ReactNode;
-}> = ({ icon: Icon, onSelect, children }) => (
-  <li>
-    <Button
-      variant="ghost"
-      className={cn(rowClassName, 'h-auto w-full justify-start font-normal')}
-      onClick={onSelect}
-    >
-      <Icon aria-hidden="true" className="size-4 shrink-0" />
-      {children}
-    </Button>
-  </li>
-);
-
 const SectionHeading: FC<{ children: ReactNode }> = ({ children }) => (
   <p className="font-mono tracking-wide uppercase text-muted-foreground text-xs mb-1">{children}</p>
 );
@@ -118,30 +89,7 @@ const SectionHeading: FC<{ children: ReactNode }> = ({ children }) => (
 export const HelpPopover: FC = () => {
   const { t } = useLingui();
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const bugReport = useBugReport();
   const [starCount, setStarCount] = useState<number | null>(null);
-  const [about, setAbout] = useState<OkAboutInfo | null>(null);
-
-  const bridge = typeof window !== 'undefined' ? (window.okDesktop ?? null) : null;
-  const hasDesktopBridge = bridge != null;
-  const appVersion = bridge?.appVersion;
-  const whatsNewHref = about?.releasesUrl ?? WHATS_NEW_HREF;
-
-  useEffect(() => {
-    if (!popoverOpen || !bridge) return;
-    let cancelled = false;
-    bridge.state
-      .query()
-      .then((snapshot) => {
-        if (!cancelled && snapshot.about) setAbout(snapshot.about);
-      })
-      .catch((err: unknown) => {
-        console.warn('[help-popover] bridge.state.query() failed', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [popoverOpen, bridge]);
 
   useEffect(() => {
     if (!popoverOpen || starCount !== null) return;
@@ -153,125 +101,70 @@ export const HelpPopover: FC = () => {
   }, [popoverOpen, starCount]);
 
   return (
-    <>
-      <Popover
-        open={popoverOpen}
-        onOpenChange={(open) => {
-          setPopoverOpen(open);
-        }}
+    <Popover
+      open={popoverOpen}
+      onOpenChange={(open) => {
+        setPopoverOpen(open);
+      }}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 hover:bg-accent text-muted-foreground"
+            >
+              <CircleHelp className="size-4" />
+              <span className="sr-only">
+                <Trans>Resources</Trans>
+              </span>
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          <Trans>Resources</Trans>
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent
+        align="end"
+        aria-label={t`Resources`}
+        className="w-56 p-3 subtle-scrollbar max-h-(--radix-popover-content-available-height) overflow-y-auto data-[state=closed]:overflow-hidden"
       >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7 hover:bg-accent text-muted-foreground"
-              >
-                <CircleHelp className="size-4" />
-                <span className="sr-only">
-                  <Trans>Resources</Trans>
-                </span>
-              </Button>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Trans>Resources</Trans>
-          </TooltipContent>
-        </Tooltip>
-        <PopoverContent
-          align="end"
-          aria-label={t`Resources`}
-          data-bug-report-launcher=""
-          className="w-56 p-3 subtle-scrollbar max-h-(--radix-popover-content-available-height) overflow-y-auto data-[state=closed]:overflow-hidden"
-        >
-          {sections.map((section, index) => (
-            <div key={section.key} className={cn(index > 0 && 'mt-3')}>
-              <SectionHeading>{t(section.heading)}</SectionHeading>
-              <nav aria-label={t(section.heading)}>
-                <ul className="space-y-0.5">
-                  {section.links.map((link) => (
-                    <ResourceLinkRow
-                      key={link.href}
-                      link={link}
-                      trailing={
-                        link.href === GITHUB_REPO_URL && starCount !== null ? (
-                          <StarCount count={starCount} />
-                        ) : undefined
-                      }
-                    />
-                  ))}
-                  {section.key === 'resources' && (
-                    <>
-                      {hasDesktopBridge && (
-                        <ActionRow
-                          icon={Bug}
-                          onSelect={() =>
-                            bugReport.start({ launcherBorne: true }, () => setPopoverOpen(false))
-                          }
-                        >
-                          <Trans>Report a bug</Trans>
-                        </ActionRow>
-                      )}
-                    </>
-                  )}
-                </ul>
-              </nav>
-            </div>
-          ))}
-
-          <div className="mt-3">
-            <SectionHeading>
-              <Trans>Product updates</Trans>
-            </SectionHeading>
-            <nav aria-label={t`Product updates`}>
+        {sections.map((section, index) => (
+          <div key={section.key} className={cn(index > 0 && 'mt-3')}>
+            <SectionHeading>{t(section.heading)}</SectionHeading>
+            <nav aria-label={t(section.heading)}>
               <ul className="space-y-0.5">
-                <ResourceLinkRow
-                  link={{ label: msg`What's new`, href: whatsNewHref, icon: Megaphone }}
-                />
-                {bridge && about?.updateChecks === 'available' ? (
-                  <ActionRow
-                    icon={RefreshCw}
-                    onSelect={() => {
-                      setPopoverOpen(false);
-                      bridge.update.checkNow().catch((err: unknown) => {
-                        console.warn('[help-popover] bridge.update.checkNow() failed', err);
-                      });
-                    }}
-                  >
-                    <Trans>Check for updates</Trans>
-                  </ActionRow>
-                ) : null}
+                {section.links.map((link) => (
+                  <ResourceLinkRow
+                    key={link.href}
+                    link={link}
+                    trailing={
+                      link.href === GITHUB_REPO_URL && starCount !== null ? (
+                        <StarCount count={starCount} />
+                      ) : undefined
+                    }
+                  />
+                ))}
               </ul>
             </nav>
           </div>
+        ))}
 
-          {appVersion ? (
-            <div className="mt-3 border-t pt-2">
-              <Button
-                variant="ghost"
-                className={cn(
-                  rowClassName,
-                  'h-auto w-full flex-wrap justify-between gap-y-0.5 text-start font-mono text-xs font-normal whitespace-normal',
-                )}
-                onClick={() => {
-                  setPopoverOpen(false);
-                  openAboutSettings();
-                }}
-                data-testid="help-popover-version"
-              >
-                <span className="min-w-0 max-w-full truncate">v{appVersion}</span>{' '}
-                <span className="font-sans text-muted-foreground group-hover:text-sidebar-hover-muted-foreground">
-                  <Trans>About & updates</Trans>
-                </span>
-              </Button>
-            </div>
-          ) : null}
-        </PopoverContent>
-      </Popover>
-      {hasDesktopBridge && (
-        <ReportBugDialog capture={bugReport.capture} onClose={bugReport.close} />
-      )}
-    </>
+        <div className="mt-3">
+          <SectionHeading>
+            <Trans>Product updates</Trans>
+          </SectionHeading>
+          <nav aria-label={t`Product updates`}>
+            <ul className="space-y-0.5">
+              <ResourceLinkRow
+                link={{ label: msg`What's new`, href: WHATS_NEW_HREF, icon: Megaphone }}
+              />
+            </ul>
+          </nav>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };

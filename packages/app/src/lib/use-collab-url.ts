@@ -5,32 +5,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { type FetchApiConfigResult, fetchApiConfig } from '@/lib/api-config';
 import { defaultCollabWsUrl } from '@/lib/cc1';
-import '@/lib/desktop-bridge-types';
-import type { OkDesktopBridge, OkDesktopConfig } from '@/lib/desktop-bridge-types';
-
-export function tryElectronBridge(
-  windowLike: { okDesktop?: OkDesktopBridge } | undefined,
-): OkDesktopBridge | null {
-  if (typeof windowLike === 'undefined') return null;
-  const bridge = windowLike.okDesktop;
-  if (!bridge) return null;
-  if (!bridge.config.collabUrl || bridge.config.collabUrl.length === 0) return null;
-  return bridge;
-}
-
-export function electronStateFromConfig(config: OkDesktopConfig): {
-  collabUrl: string;
-  attempts: number;
-  terminal: boolean;
-  lastError: null;
-} {
-  return {
-    collabUrl: config.collabUrl,
-    attempts: 0,
-    terminal: false,
-    lastError: null,
-  };
-}
 
 const INITIAL_DELAY_MS = 2_000;
 const MAX_DELAY_MS = 15_000;
@@ -55,16 +29,12 @@ interface CollabPollState {
   lastError: CollabUrlError | null;
 }
 
-export function initialCollabUrlState(config: OkDesktopConfig | undefined): CollabPollState {
-  return config
-    ? electronStateFromConfig(config)
-    : {
-        collabUrl: null,
-        attempts: 0,
-        terminal: false,
-        lastError: null,
-      };
-}
+const INITIAL_COLLAB_URL_STATE: CollabPollState = {
+  collabUrl: null,
+  attempts: 0,
+  terminal: false,
+  lastError: null,
+};
 
 interface CollabPollHandle {
   cancel: () => void;
@@ -171,31 +141,16 @@ interface LoopState {
 }
 
 export function useCollabUrl(): UseCollabUrlState {
-  const [state, setState] = useState<
-    Pick<UseCollabUrlState, 'collabUrl' | 'attempts' | 'terminal' | 'lastError'>
-  >(() =>
-    initialCollabUrlState(
-      tryElectronBridge(typeof window === 'undefined' ? undefined : window)?.config,
-    ),
-  );
+  const [state, setState] =
+    useState<Pick<UseCollabUrlState, 'collabUrl' | 'attempts' | 'terminal' | 'lastError'>>(
+      INITIAL_COLLAB_URL_STATE,
+    );
   const retryTokenRef = useRef<LoopState>({ token: 0 });
   const [retrySignal, setRetrySignal] = useState(0);
 
   useEffect(() => {
     void retrySignal;
     const token = ++retryTokenRef.current.token;
-
-    const bridge = tryElectronBridge(window);
-    if (bridge) {
-      setState(electronStateFromConfig(bridge.config));
-      const unsubscribe = bridge.onProjectSwitched((next) => {
-        if (token !== retryTokenRef.current.token) return;
-        setState(electronStateFromConfig(next));
-      });
-      return () => {
-        unsubscribe();
-      };
-    }
 
     const handle = runCollabUrlPoll({
       fetchConfig: fetchApiConfig,

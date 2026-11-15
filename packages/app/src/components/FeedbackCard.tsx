@@ -4,7 +4,6 @@ import { useOptionalPageList } from '@/components/PageListContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { FEEDBACK_NUDGE_SOURCE, useFeedbackNudgeVisible } from '@/hooks/use-feedback-nudge';
 import { feedbackNudgeStore } from '@/lib/feedback-nudge-store';
-import { onboardingCardStore } from '@/lib/onboarding-card-store';
 import { getNoticesSnapshot, subscribeToNotices } from '@/lib/update-notices-store';
 import { FeedbackForm } from './FeedbackForm';
 
@@ -33,16 +32,9 @@ export function FeedbackCard({ onClose }: { onClose: () => void }) {
 
 export function FeedbackCardMount() {
   const pageList = useOptionalPageList();
-  const onboarding = useSyncExternalStore(
-    onboardingCardStore.subscribe,
-    onboardingCardStore.getSnapshot,
-    onboardingCardStore.getSnapshot,
-  );
   const notices = useSyncExternalStore(subscribeToNotices, getNoticesSnapshot, getNoticesSnapshot);
 
-  const blocked =
-    (onboarding.initialized && !onboarding.dismissed && !onboarding.completed) ||
-    notices.length > 0;
+  const blocked = notices.length > 0;
 
   const visible = useFeedbackNudgeVisible({
     pages: pageList?.pages ?? null,

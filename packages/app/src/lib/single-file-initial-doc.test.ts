@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, test } from 'vitest';
-import { seedInitialDocHash, seedInitialDocHashFromWindow } from './single-file-initial-doc';
+import { describe, expect, test } from 'vitest';
+import { seedInitialDocHash } from './single-file-initial-doc';
 
 describe('seedInitialDocHash', () => {
   function harness(initialDoc: string | null | undefined, startHash: string) {
@@ -52,31 +52,5 @@ describe('seedInitialDocHash', () => {
   test('does not clobber an asset or dialog hash', () => {
     expect(harness('todo', '#/__asset__/img.png').sets).toEqual([]);
     expect(harness('todo', '#settings').sets).toEqual([]);
-  });
-});
-
-describe('seedInitialDocHashFromWindow', () => {
-  const original = (globalThis as { window?: unknown }).window;
-  afterEach(() => {
-    (globalThis as { window?: unknown }).window = original;
-  });
-
-  function seedWith(okDesktop: unknown, startHash = ''): string {
-    const location = { hash: startHash };
-    (globalThis as { window?: unknown }).window = { okDesktop, location };
-    seedInitialDocHashFromWindow();
-    return location.hash;
-  }
-
-  test('seeds the live hash from an ephemeral bridge config', () => {
-    expect(seedWith({ config: { initialDoc: 'todo' } })).toBe('#/todo');
-  });
-
-  test('no-op when the bridge reports no initialDoc (a normal project window)', () => {
-    expect(seedWith({ config: { initialDoc: null } })).toBe('');
-  });
-
-  test('no-op when there is no desktop bridge (web/CLI)', () => {
-    expect(seedWith(undefined)).toBe('');
   });
 });

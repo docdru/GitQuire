@@ -82,13 +82,6 @@ afterEach(() => {
 });
 
 describe('EditorToolbar — Slidev action gate', () => {
-  test('shows the action when the plugin is enabled on a deck with a resolvable slidev', async () => {
-    mockMergedConfig = { slides: { enabled: true } };
-    installSlidesBridge();
-    await renderToolbar(makeDeckProvider());
-    expect(await screen.findByTestId('slides-toolbar-action')).toBeTruthy();
-  });
-
   test('hides the action when the plugin is disabled', async () => {
     mockMergedConfig = { slides: { enabled: false } };
     installSlidesBridge();

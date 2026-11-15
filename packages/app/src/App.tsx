@@ -1,30 +1,17 @@
 // oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
-import { SHOW_INSTALL_SKILL } from '@inkeep/open-knowledge-core/constants/feature-flags';
 import { mediaKindForSidebarAssetExtension } from '@inkeep/open-knowledge-core/constants/upload';
-import {
-  type CSSProperties,
-  lazy,
-  type ReactNode,
-  Suspense,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { APP_HEADER_HEIGHT, AppHeader } from '@/components/AppHeader';
 import { BranchRecycleBanner } from '@/components/BranchRecycleBanner';
 import { CommandPalette } from '@/components/CommandPalette';
 import { ConnectingBanner } from '@/components/ConnectingBanner';
 import { CornerCardStack } from '@/components/CornerCardStack';
-import { CreateProjectMenuTrigger } from '@/components/CreateProjectMenuTrigger';
 import { EditorPane } from '@/components/EditorPane';
-import { FeedbackMenuTrigger } from '@/components/FeedbackMenuTrigger';
 import { FileListHostProvider } from '@/components/FileListHost';
 import { FileSidebar } from '@/components/FileSidebar';
 import { defaultInitialDir } from '@/components/file-tree-utils';
 import { DraftBar } from '@/components/gitquire-drafts/DraftBar';
-import { InstallInClaudeDesktopDialog } from '@/components/InstallInClaudeDesktopDialog';
-import { McpConsentDialog } from '@/components/McpConsentDialog';
 import { isNewItemShortcut, NewItemDialog } from '@/components/NewItemDialog';
 import {
   downgradeFolderIndexForHashNav,
@@ -33,7 +20,6 @@ import {
   withLargeFileOpenGuard,
 } from '@/components/navigation-targets';
 import { PageListProvider, usePageList } from '@/components/PageListContext';
-import { ReportBugMenuTrigger } from '@/components/ReportBugMenuTrigger';
 import { SkillTrackInGitDialog } from '@/components/SkillTrackInGitDialog';
 import { SystemDocSubscriber } from '@/components/SystemDocSubscriber';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -68,7 +54,6 @@ import {
 } from '@/lib/doc-hash';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isExplicitInitialDocumentNavigation } from '@/lib/narrow-workspace-session';
-import { isNoteWindow } from '@/lib/note-window-mode';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { mark, ProfilerBoundary } from '@/lib/perf';
 import { revealEditor } from '@/lib/reveal-editor';
@@ -76,25 +61,11 @@ import { SingleFileModeProvider, useSingleFileMode } from '@/lib/single-file-mod
 import { consumeHashNavigationSuppression } from '@/lib/tab-session-restore-suppression';
 import { useServerKeepalive } from '@/lib/use-server-keepalive';
 import { isSettingsHashOpen, isSettingsShortcut, openSettings } from '@/lib/use-settings-route';
-import { cn } from '@/lib/utils';
 import { consumeWorkspaceHashWrite } from '@/lib/workspace-hash-writes';
 
-const ShareBranchSwitchDialog = lazy(() =>
-  import('@/components/ShareBranchSwitchDialog').then((m) => ({
-    default: m.ShareBranchSwitchDialog,
-  })),
-);
-
-const ShareReceiveMissDialog = lazy(() =>
-  import('@/components/ShareReceiveMissDialog').then((m) => ({
-    default: m.ShareReceiveMissDialog,
-  })),
-);
-
-const INSTALL_DIALOG_HASH = '#install-claude-desktop';
 const MARKDOWN_EXTENSION_QUALIFIED_DOC_PATTERN = /\.(md|mdx)$/i;
 function isAuxiliaryDialogHash(hash: string): boolean {
-  return isSettingsHashOpen(hash) || hash === INSTALL_DIALOG_HASH;
+  return isSettingsHashOpen(hash);
 }
 
 function exactOpenMarkdownTabTarget(
@@ -220,7 +191,6 @@ function NavigationHandler() {
   }, []);
 
   useEffect(() => {
-    if (!tabSessionLoaded && window.okDesktop?.config.mode === 'editor') return;
     if (initialDocumentNavigationRef.current) {
       initialDocumentNavigationRef.current = false;
       revealEditor();
@@ -387,33 +357,9 @@ function NavigationHandler() {
     pagesBySlug,
     pagesByBasename,
     previewTabsEnabled,
-    tabSessionLoaded,
   ]);
 
   return null;
-}
-
-function InstallInClaudeDesktopTrigger() {
-  const [open, setOpen] = useState(
-    typeof window !== 'undefined' && window.location.hash === INSTALL_DIALOG_HASH,
-  );
-
-  useEffect(() => {
-    function onHashChange() {
-      if (window.location.hash === INSTALL_DIALOG_HASH) setOpen(true);
-    }
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
-
-  function handleOpenChange(next: boolean) {
-    setOpen(next);
-    if (!next && window.location.hash === INSTALL_DIALOG_HASH) {
-      clearHashWithoutNavigation();
-    }
-  }
-
-  return <InstallInClaudeDesktopDialog open={open} onOpenChange={handleOpenChange} />;
 }
 
 function SettingsShortcutHandler() {
@@ -438,38 +384,6 @@ function SettingsShortcutHandler() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
-
-  return null;
-}
-
-function ActiveTargetBridgePush() {
-  const { activeTarget } = useDocumentContext();
-  const bridge = typeof window !== 'undefined' ? (window.okDesktop ?? null) : null;
-
-  const kind =
-    activeTarget?.kind === 'doc' ||
-    activeTarget?.kind === 'folder' ||
-    activeTarget?.kind === 'asset'
-      ? activeTarget.kind
-      : null;
-  const identifier =
-    activeTarget?.kind === 'doc'
-      ? activeTarget.docName
-      : activeTarget?.kind === 'folder'
-        ? activeTarget.folderPath
-        : activeTarget?.kind === 'asset'
-          ? activeTarget.assetPath
-          : null;
-
-  useEffect(() => {
-    if (!bridge) return;
-    if (kind === null) {
-      bridge.editor.notifyActiveTargetChanged({ kind: null });
-      return;
-    }
-    if (identifier === null) return;
-    bridge.editor.notifyActiveTargetChanged({ kind, identifier });
-  }, [bridge, kind, identifier]);
 
   return null;
 }
@@ -588,73 +502,37 @@ export function App() {
 }
 
 function AppBody() {
-  const desktopBridge = typeof window !== 'undefined' ? (window.okDesktop ?? null) : null;
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const singleFile = useSingleFileMode();
-  const noteWindow = isNoteWindow();
-
-  const showAppHeader = !noteWindow;
-  const appHeaderStyle: CSSProperties | undefined = showAppHeader
-    ? ({ '--ok-app-header-height': APP_HEADER_HEIGHT } as CSSProperties)
-    : undefined;
+  const appHeaderStyle: CSSProperties = {
+    '--ok-app-header-height': APP_HEADER_HEIGHT,
+  } as CSSProperties;
 
   return (
     <div data-app-shell="" className="contents" style={appHeaderStyle}>
       <ConnectingBanner />
       <BranchRecycleBanner />
       <PageListProvider>
-        {!noteWindow && <SystemDocSubscriber />}
+        <SystemDocSubscriber />
         <ValidationFreshness />
         <SkillTrackInGitDialog />
         <NavigationHandler />
-        <ActiveTargetBridgePush />
         <NewItemShortcutHandler />
-        {!singleFile && !noteWindow && <SettingsShortcutHandler />}
-        {SHOW_INSTALL_SKILL && <InstallInClaudeDesktopTrigger />}
-        {desktopBridge ? <CreateProjectMenuTrigger bridge={desktopBridge} /> : null}
-        {desktopBridge ? <ReportBugMenuTrigger /> : null}
-        {desktopBridge ? <FeedbackMenuTrigger /> : null}
-        <McpConsentDialog />
-        {desktopBridge ? (
-          <Suspense fallback={null}>
-            <ShareBranchSwitchDialog bridge={desktopBridge} />
-            <ShareReceiveMissDialog />
-          </Suspense>
-        ) : null}
-        {!noteWindow && (
-          <CommandPalette
-            bridge={desktopBridge}
-            open={commandPaletteOpen}
-            onOpenChange={setCommandPaletteOpen}
-          />
-        )}
-        {isElectronHost && !showAppHeader && (
-          <div
-            aria-hidden="true"
-            data-testid="editor-window-chrome-drag-strip"
-            data-electron-drag=""
-            className="pointer-events-none fixed inset-x-0 top-0 z-50 h-2 [-webkit-app-region:drag]"
-          />
-        )}
-        {showAppHeader && <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />}
+        {!singleFile && <SettingsShortcutHandler />}
+        <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
+        <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />
         <SidebarProvider className="h-[calc(100vh-var(--ok-app-header-height,0px))] min-h-[calc(100svh-var(--ok-app-header-height,0px))]">
-          <FileListHostProvider enabled={showAppHeader && !singleFile} fileList={<FileSidebar />}>
+          <FileListHostProvider enabled={!singleFile} fileList={<FileSidebar />}>
             <div
               data-app-main=""
-              className={cn(
-                'relative flex w-full flex-1 flex-col',
-                showAppHeader
-                  ? 'ps-2 pe-2 pb-2 h-[calc(100vh-var(--ok-app-header-height,0px))]'
-                  : 'h-screen overflow-hidden bg-background',
-              )}
+              className="relative flex w-full flex-1 flex-col ps-2 pe-2 pb-2 h-[calc(100vh-var(--ok-app-header-height,0px))]"
             >
               <EditorPane />
             </div>
           </FileListHostProvider>
         </SidebarProvider>
-        {showAppHeader && !singleFile && <CornerCardStack />}
-        {showAppHeader && !singleFile && !desktopBridge ? <DraftBar /> : null}
+        {!singleFile && <CornerCardStack />}
+        {!singleFile ? <DraftBar /> : null}
       </PageListProvider>
     </div>
   );

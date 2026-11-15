@@ -1,26 +1,9 @@
-import { COMMAND_IDENTITIES } from '@inkeep/open-knowledge-core';
 import { cleanup } from '@testing-library/react';
 import { Editor } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 import { afterEach, describe, expect, test } from 'vitest';
 import { pressEditorKey } from '../editor-rig.test-helper';
 import { sharedExtensions } from './shared';
-
-function acceleratorToTiptapShortcut(accelerator: string): string | null {
-  const parts = accelerator.split('+');
-  const key = parts[parts.length - 1];
-  if (key === undefined || key.length !== 1) return null;
-  const modifiers: string[] = [];
-  for (const part of parts.slice(0, -1)) {
-    if (part === 'CmdOrCtrl' || part === 'CommandOrControl') modifiers.push('Mod');
-    else if (part === 'Cmd' || part === 'Command' || part === 'Super') modifiers.push('Cmd');
-    else if (part === 'Ctrl' || part === 'Control') modifiers.push('Ctrl');
-    else if (part === 'Alt' || part === 'Option') modifiers.push('Alt');
-    else if (part === 'Shift') modifiers.push('Shift');
-    else return null;
-  }
-  return [...modifiers, key.toLowerCase()].join('-');
-}
 
 describe('sharedExtensions module graph', () => {
   afterEach(() => {
@@ -165,46 +148,5 @@ describe('sharedExtensions module graph', () => {
       editor.destroy();
       container.remove();
     }
-  });
-  test('no menu accelerator is claimed by the editor keymap', () => {
-    const accelerators = COMMAND_IDENTITIES.flatMap((identity) =>
-      (identity.menu ?? []).flatMap((placement) =>
-        placement.accelerator === undefined
-          ? []
-          : [{ id: identity.id, accelerator: placement.accelerator }],
-      ),
-    );
-    expect(accelerators.length).toBeGreaterThan(0);
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const editor = new Editor({
-      element: container,
-      content: '<p>alpha</p>',
-      extensions: sharedExtensions,
-      editable: true,
-    });
-
-    const claimed: { id: string; accelerator: string; handled: boolean; docMoved: boolean }[] = [];
-    const unmappable: string[] = [];
-    try {
-      for (const entry of accelerators) {
-        const shortcut = acceleratorToTiptapShortcut(entry.accelerator);
-        if (shortcut === null) {
-          unmappable.push(entry.accelerator);
-          continue;
-        }
-        editor.commands.setContent('<p>alpha</p>');
-        editor.commands.setTextSelection({ from: 1, to: 1 });
-        const { handled, docMoved } = pressEditorKey(editor, shortcut);
-        if (handled || docMoved) claimed.push({ ...entry, handled, docMoved });
-      }
-    } finally {
-      editor.destroy();
-      container.remove();
-    }
-
-    expect(claimed).toEqual([]);
-    expect(unmappable.sort()).toEqual(['Alt+Left', 'Alt+Right', 'CmdOrCtrl+Delete']);
   });
 });

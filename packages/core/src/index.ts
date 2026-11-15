@@ -179,7 +179,6 @@ export {
   type CommandCheckField,
   type CommandContext,
   type CommandGroup,
-  type CommandHostScope,
   type CommandIdentity,
   type CommandMenuPlacement,
   type CommandPalettePresence,

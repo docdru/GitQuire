@@ -8,7 +8,6 @@ import {
 } from 'react';
 import { subscribeToDocumentsChanged } from '@/lib/documents-events';
 import { createRefreshScheduler } from '@/lib/refresh-scheduler';
-import { getRelaunchInFlightSnapshot, useRelaunchInFlight } from '@/lib/relaunch-store';
 import { fileEntryToTreePath, treeDirectoryPathToFolderPath } from './file-tree-adapter';
 import {
   type FileTreeListingSource,
@@ -16,8 +15,6 @@ import {
 } from './file-tree-listing-transport';
 import { mergeRootEntriesAdditive, spliceLazyFolderChildren } from './file-tree-merge';
 import { type FileEntry, filterVisibleEntries, isFolderEntry } from './file-tree-utils';
-
-const CONNECTIVITY_RECONNECT_RETRY_MS = 2_000;
 
 interface ListingMessages {
   fallbackErrorTitle: string;
@@ -40,8 +37,6 @@ export interface FileTreeListingHandle {
   loading: boolean;
   error: string | null;
   setError: Dispatch<SetStateAction<string | null>>;
-  reconnecting: boolean;
-  relaunchInFlight: boolean;
   truncatedShownCount: number | null;
   unfilteredRootEntryCount: number;
   observeExpandedFolderPaths(paths: readonly string[]): void;
@@ -57,10 +52,8 @@ export function useFileTreeListing({
   const [documents, setDocuments] = useState<FileEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [reconnecting, setReconnecting] = useState(false);
   const [truncatedShownCount, setTruncatedShownCount] = useState<number | null>(null);
   const [unfilteredRootEntryCount, setUnfilteredRootEntryCount] = useState(0);
-  const relaunchInFlight = useRelaunchInFlight();
 
   const documentsRef = useRef(documents);
   const visibilityRef = useRef({ showHiddenFiles, showOnlyMarkdownFiles, showOkFolders });
@@ -71,7 +64,6 @@ export function useFileTreeListing({
   const childControllersRef = useRef<Map<string, AbortController>>(new Map());
   const childGenerationRef = useRef(0);
   const requestRefreshRef = useRef<(() => void) | null>(null);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useLayoutEffect(() => {
     documentsRef.current = documents;
@@ -81,35 +73,11 @@ export function useFileTreeListing({
     return visibilityRef.current;
   }
 
-  function clearRetry() {
-    if (retryTimerRef.current !== null) {
-      clearTimeout(retryTimerRef.current);
-      retryTimerRef.current = null;
-    }
-  }
-
-  function noteConnectivityRecovered() {
-    clearRetry();
-    setReconnecting(false);
-  }
-
   function reportServerReachableError(title: string) {
-    noteConnectivityRecovered();
     setError(title);
   }
 
   function reportConnectivityFailure() {
-    clearRetry();
-    if (getRelaunchInFlightSnapshot()) {
-      setError(null);
-      setReconnecting(true);
-      retryTimerRef.current = setTimeout(() => {
-        retryTimerRef.current = null;
-        requestRefreshRef.current?.();
-      }, CONNECTIVITY_RECONNECT_RETRY_MS);
-      return;
-    }
-    setReconnecting(false);
     setError(messagesRef.current.couldNotReachServerTitle);
   }
 
@@ -163,7 +131,6 @@ export function useFileTreeListing({
           spliceLazyFolderChildren(previous, folderTreePath, children, optimisticAddsRef.current),
         );
         setError(null);
-        noteConnectivityRecovered();
         if (result.truncated) setTruncatedShownCount(result.entries.length);
       });
   }
@@ -216,7 +183,6 @@ export function useFileTreeListing({
             if (!paintedFirstVisibleBatch) {
               paintedFirstVisibleBatch = true;
               setError(null);
-              noteConnectivityRecovered();
               setLoading(false);
             }
           },
@@ -240,7 +206,6 @@ export function useFileTreeListing({
           spliceLazyFolderChildren(previous, '', serverEntries, optimisticAddsRef.current),
         );
         setError(null);
-        noteConnectivityRecovered();
         setTruncatedShownCount(result.truncated ? result.entries.length : null);
         setUnfilteredRootEntryCount(result.entries.length);
         revalidateExpandedFolders();
@@ -285,19 +250,6 @@ export function useFileTreeListing({
     requestRefreshRef.current?.();
   }, [showHiddenFiles, showOnlyMarkdownFiles, showOkFolders]);
 
-  const firstRelaunchEffectRunRef = useRef(true);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: relaunchInFlight is a transition trigger; the body schedules through a stable ref.
-  useEffect(() => {
-    if (firstRelaunchEffectRunRef.current) {
-      firstRelaunchEffectRunRef.current = false;
-      return;
-    }
-    requestRefreshRef.current?.();
-  }, [relaunchInFlight]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: mount/unmount cleanup reads the retry ref and must not cancel a live retry after each render.
-  useEffect(() => clearRetry, []);
-
   return {
     documents,
     setDocuments,
@@ -305,8 +257,6 @@ export function useFileTreeListing({
     loading,
     error,
     setError,
-    reconnecting,
-    relaunchInFlight,
     truncatedShownCount,
     unfilteredRootEntryCount,
     observeExpandedFolderPaths,

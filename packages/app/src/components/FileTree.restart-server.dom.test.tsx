@@ -1,6 +1,5 @@
 import { i18n } from '@lingui/core';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { cleanup, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -20,16 +19,6 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { 'content-type': 'application/json' },
   });
-}
-
-function docEntry(docName: string) {
-  return {
-    kind: 'document',
-    docName,
-    docExt: '.md',
-    size: 1,
-    modified: '2026-08-18T00:00:00.000Z',
-  };
 }
 
 function makeFetchMock() {
@@ -191,10 +180,6 @@ vi.doMock('@/components/DeleteConfirmationDialog', () => ({
   DeleteConfirmationDialog: () => null,
 }));
 vi.doMock('@/components/NewItemDialog', () => ({ NewItemDialog: () => null }));
-vi.doMock('@/components/TrashFailureModal', () => ({
-  TrashFailureModal: () => null,
-  coerceTrashFailureReason: (reason: string) => reason,
-}));
 vi.doMock('@/components/use-selection-mirror', () => ({
   asDirectoryHandle: (item: StubItem | null) => (item?.isDirectory() ? item : null),
   useSelectionMirror: () => {},
@@ -234,16 +219,6 @@ describe('FileTree unreachable-server restart action', () => {
     (window as unknown as { okDesktop?: unknown }).okDesktop = undefined;
   });
 
-  test('offers the restart action on the unreachable-server empty state', async () => {
-    installBridge();
-    listingFails = true;
-    render(<FileTree />);
-
-    const alert = await screen.findByRole('alert');
-    expect(alert.textContent ?? '').toContain('Could not reach server');
-    expect(await screen.findByRole('button', { name: RESTART_LABEL })).toBeTruthy();
-  });
-
   test('omits the restart action when there is no bridge to restart through', async () => {
     listingFails = true;
     render(<FileTree />);
@@ -261,59 +236,5 @@ describe('FileTree unreachable-server restart action', () => {
     const alert = await screen.findByRole('alert');
     expect(alert.textContent ?? '').toContain('Internal server error');
     expect(screen.queryByRole('button', { name: RESTART_LABEL })).toBeNull();
-  });
-
-  test('pressing the action restarts this project through the desktop bridge', async () => {
-    installBridge();
-    listingFails = true;
-    render(<FileTree />);
-
-    const restart = await screen.findByRole('button', { name: RESTART_LABEL });
-    await userEvent.click(restart);
-
-    await waitFor(() => expect(restartServer).toHaveBeenCalledTimes(1));
-    expect(restartServer).toHaveBeenCalledWith('/tmp/ok');
-  });
-
-  test('a restart already in flight disables the action instead of spawning twice', async () => {
-    installBridge();
-    listingFails = true;
-    let releaseRestart!: (value: { ok: true }) => void;
-    restartServer.mockImplementationOnce(() => {
-      const { promise, resolve } = Promise.withResolvers<{ ok: true }>();
-      releaseRestart = resolve;
-      return promise;
-    });
-    render(<FileTree />);
-
-    const restart = await screen.findByRole('button', { name: RESTART_LABEL });
-    await userEvent.click(restart);
-    expect((restart as HTMLButtonElement).disabled).toBe(true);
-
-    await userEvent.click(restart);
-    expect(restartServer).toHaveBeenCalledTimes(1);
-
-    releaseRestart({ ok: true });
-    await waitFor(() => expect((restart as HTMLButtonElement).disabled).toBe(false));
-  });
-
-  test('offers the restart action alongside the header notice on a populated tree', async () => {
-    installBridge();
-    listingDocuments = [docEntry('notes/a')];
-    render(<FileTree />);
-
-    await screen.findByTestId('fake-pierre-tree');
-    expect(screen.queryByRole('button', { name: RESTART_LABEL })).toBeNull();
-
-    listingFails = true;
-    window.dispatchEvent(new Event('focus'));
-
-    await waitFor(() =>
-      expect((screen.getByRole('alert').textContent ?? '').includes('Could not reach server')).toBe(
-        true,
-      ),
-    );
-    const restart = await screen.findByRole('button', { name: RESTART_LABEL });
-    expect(screen.getByRole('alert').contains(restart)).toBe(false);
   });
 });

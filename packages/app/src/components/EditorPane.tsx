@@ -60,7 +60,6 @@ import {
   type PaneId,
   paneVisibilityStore,
 } from '@/lib/pane-visibility-store';
-import { RESTORE_SETTLE_TIMEOUT_MS } from '@/lib/restore-settle-timeout';
 import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { useSingleFileMode } from '@/lib/single-file-mode';
 import { useWorkspace } from '@/lib/use-workspace';
@@ -380,13 +379,6 @@ function createWorkspaceHeaderRenderer(state: WorkspaceHeaderState) {
   );
 }
 
-interface RestoreVisibilityGate {
-  pendingWithhold: boolean;
-  levelEstablished: boolean;
-  lastLevel: boolean;
-}
-
-const RESTORE_UNESTABLISHED_LEVEL = false;
 const WEB_EDITOR_VISIBLE_KEY = 'ok-editor-visible-v1';
 const NARROW_WORKSPACE_QUERY = '(width < 48rem)';
 
@@ -413,34 +405,6 @@ function loadDockArrangement(key: string): DockArrangement {
   );
 }
 
-function makeRestoreVisibilityGate(mountLevel: boolean): RestoreVisibilityGate {
-  return { pendingWithhold: false, levelEstablished: false, lastLevel: mountLevel };
-}
-
-function armRestoreVisibilityGate(gate: { current: RestoreVisibilityGate }): void {
-  gate.current.pendingWithhold = true;
-}
-
-function resetRestoreVisibilityGate(gate: { current: RestoreVisibilityGate }): void {
-  gate.current.pendingWithhold = false;
-  gate.current.levelEstablished = false;
-}
-
-function noteRestoreVisibilityLevel(
-  gate: { current: RestoreVisibilityGate },
-  visible: boolean,
-): void {
-  if (gate.current.lastLevel === visible) return;
-  gate.current.lastLevel = visible;
-  gate.current.levelEstablished = true;
-}
-
-function consumeRestoreVisibilityGate(gate: { current: RestoreVisibilityGate }): boolean {
-  if (!gate.current.pendingWithhold) return true;
-  gate.current.pendingWithhold = false;
-  return gate.current.levelEstablished;
-}
-
 export function EditorPane() {
   const [persistedMode, setPersistedMode] = useEditorMode();
   const [editorMode, setEditorMode] = useState<EditorMode>(persistedMode);
@@ -453,7 +417,6 @@ export function EditorPane() {
   });
   const [activeTab, setActiveTab] = useState<PanelTab>(TABS[0].id);
   const [autoSyncOnboardingDismissed, setAutoSyncOnboardingDismissed] = useState(false);
-  const desktopBridge = typeof window !== 'undefined' ? (window.okDesktop ?? null) : null;
   const noteWindow = isNoteWindow();
   const gitquireFeatures = useGitQuireFeatures();
   const chatPane = !noteWindow && agentsPaneIsChat(gitquireFeatures);
@@ -477,20 +440,12 @@ export function EditorPane() {
   const layoutRestoreFocusHoldRef = useRef(false);
   const wasExclusiveRef = useRef(exclusive);
   const editorToggleable = !noteWindow && !singleFile;
-  const [editorShown, setEditorShown] = useState(() =>
-    desktopBridge == null ? loadBoolPref(WEB_EDITOR_VISIBLE_KEY, true) : true,
-  );
+  const [editorShown, setEditorShown] = useState(() => loadBoolPref(WEB_EDITOR_VISIBLE_KEY, true));
   const editorChosenSinceMountRef = useRef(false);
   const editorVisible = !editorToggleable || editorShown;
-  const terminalAvailable =
-    !noteWindow &&
-    desktopBridge != null &&
-    desktopBridge.terminal != null &&
-    desktopBridge.config.ptyAvailable === true;
+  const terminalAvailable = false;
   const narrowSessionKey =
-    workspace === null
-      ? null
-      : narrowWorkspaceSessionKey(workspace.contentDir, desktopBridge === null ? 'web' : 'desktop');
+    workspace === null ? null : narrowWorkspaceSessionKey(workspace.contentDir, 'web');
   useEffect(() => {
     if (narrowSessionKey === null || loadedNarrowSessionKeyRef.current === narrowSessionKey) return;
     loadedNarrowSessionKeyRef.current = narrowSessionKey;
@@ -509,7 +464,7 @@ export function EditorPane() {
       }
     }
     setReadyNarrowSessionKey(narrowSessionKey);
-  }, [narrowSessionKey, terminalAvailable, singleFile]);
+  }, [narrowSessionKey, singleFile]);
   useEffect(() => {
     persistNarrowSessionForState(
       {
@@ -523,10 +478,8 @@ export function EditorPane() {
       narrowSelection,
     );
   }, [exclusive, readyNarrowSessionKey, narrowSessionKey, narrowSelection]);
-  const [terminalVisible, setTerminalVisible] = useState<boolean>(RESTORE_UNESTABLISHED_LEVEL);
-  const dockArrangementKey = dockArrangementStorageKey(
-    desktopBridge === null ? null : (workspace?.contentDir ?? null),
-  );
+  const [terminalVisible, setTerminalVisible] = useState(false);
+  const dockArrangementKey = dockArrangementStorageKey(null);
   const [dock, setDock] = useState<ProjectDock>(() => ({
     key: dockArrangementKey,
     arrangement: loadDockArrangement(dockArrangementKey),
@@ -554,7 +507,7 @@ export function EditorPane() {
     updateDockArrangement((current) => withDockTree(current, update(current.tree)));
   }
   const dockTree = dock.arrangement.tree;
-  const terminalPlacement = dockTerminalPlacement(dockTree);
+  const _terminalPlacement = dockTerminalPlacement(dockTree);
   const moveTerminalEvent = useEffectEvent(() => {
     updateDockArrangement((current) =>
       withDockTerminalPlacement(
@@ -574,10 +527,8 @@ export function EditorPane() {
     if (noteWindow) return;
     return subscribeDockPaneMoves(moveDockPaneEvent);
   }, [noteWindow]);
-  const [agentsVisible, setAgentsVisible] = useState<boolean>(() =>
-    desktopBridge == null
-      ? (readWebDockSessionOrder('agents')?.agentPanelVisible ?? false)
-      : RESTORE_UNESTABLISHED_LEVEL,
+  const [agentsVisible, setAgentsVisible] = useState<boolean>(
+    () => readWebDockSessionOrder('agents')?.agentPanelVisible ?? false,
   );
   useLayoutEffect(() => {
     if (exclusive && !wasExclusiveRef.current) {
@@ -598,22 +549,12 @@ export function EditorPane() {
       layoutRestoreFocusHoldRef.current = true;
     }
     wasExclusiveRef.current = exclusive;
-  }, [exclusive, terminalAvailable, agentsVisible, terminalVisible]);
+  }, [exclusive, agentsVisible, terminalVisible]);
   const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : editorVisible;
   const effectiveAgentsVisible = exclusive ? narrowSelection === 'agents' : agentsVisible;
   const effectiveTerminalVisible = exclusive
     ? narrowSelection === 'terminal' && terminalAvailable
     : terminalVisible;
-  const [dockRestoreSettled, setDockRestoreSettled] = useState(false);
-  const terminalRestoreGateRef = useRef<RestoreVisibilityGate>(
-    makeRestoreVisibilityGate(terminalVisible),
-  );
-  const agentsRestoreGateRef = useRef<RestoreVisibilityGate>(
-    makeRestoreVisibilityGate(agentsVisible),
-  );
-  const editorRestoreGateRef = useRef<RestoreVisibilityGate>(
-    makeRestoreVisibilityGate(editorShown),
-  );
   const [placements, setPlacements] = useState<SessionPlacements>({
     terminal: { container: null, isShowing: false },
     agents: { container: null, isShowing: false },
@@ -718,14 +659,7 @@ export function EditorPane() {
           return assertNeverPaneId(pane);
       }
     });
-  }, [
-    noteWindow,
-    agentsAvailable,
-    terminalAvailable,
-    editorToggleable,
-    exclusive,
-    applyPaneRequest,
-  ]);
+  }, [noteWindow, agentsAvailable, editorToggleable, exclusive, applyPaneRequest]);
 
   const { projectConfig, projectLocalConfig, projectLocalSynced, projectSynced } =
     useConfigContext();
@@ -794,7 +728,7 @@ export function EditorPane() {
   }, [noteWindow, agentsAvailable]);
 
   useEffect(() => {
-    const hasNativeMenu = window.okDesktop != null;
+    const hasNativeMenu = false;
     function handleKeyDown(event: KeyboardEvent) {
       if (!matchesRendererShortcut(event, 'toggle-terminal-panel', hasNativeMenu)) return;
       if (isOverlayLayerOpen()) return;
@@ -804,10 +738,9 @@ export function EditorPane() {
     }
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [terminalAvailable]);
+  }, []);
 
   useEffect(() => {
-    if (window.okDesktop != null) return;
     function handleKeyDown(event: KeyboardEvent) {
       if (!agentsAvailable) return;
       if (!matchesKeyboardShortcut(event, 'toggle-agent-panel')) return;
@@ -820,49 +753,9 @@ export function EditorPane() {
   }, [agentsAvailable]);
 
   useEffect(() => {
-    if (window.okDesktop == null) return;
-    noteRestoreVisibilityLevel(terminalRestoreGateRef, terminalVisible);
-    if (!dockRestoreSettled) return;
-    if (!consumeRestoreVisibilityGate(terminalRestoreGateRef)) return;
-    window.okDesktop.editor.notifyViewMenuStateChanged({
-      terminalVisible: effectiveTerminalVisible,
-      wideIntent: { terminalVisible },
-    });
-  }, [terminalVisible, effectiveTerminalVisible, dockRestoreSettled]);
-
-  useEffect(() => {
-    if (window.okDesktop == null) return;
-    if (!dockRestoreSettled) return;
-    setViewMenuState({ terminalPlacement });
-    window.okDesktop.editor.notifyViewMenuStateChanged({ terminalPlacement });
-  }, [terminalPlacement, dockRestoreSettled]);
-
-  useEffect(() => {
-    if (window.okDesktop == null) return;
-    noteRestoreVisibilityLevel(agentsRestoreGateRef, agentsVisible);
-    if (!dockRestoreSettled) return;
-    if (!consumeRestoreVisibilityGate(agentsRestoreGateRef)) return;
-    window.okDesktop.editor.notifyViewMenuStateChanged({
-      agentPanelVisible: effectiveAgentsVisible,
-      wideIntent: { agentPanelVisible: agentsVisible },
-    });
-  }, [agentsVisible, effectiveAgentsVisible, dockRestoreSettled]);
-
-  useEffect(() => {
-    if (desktopBridge != null || !editorToggleable) return;
+    if (!editorToggleable) return;
     saveBoolPref(WEB_EDITOR_VISIBLE_KEY, editorShown, true);
-  }, [desktopBridge, editorToggleable, editorShown]);
-
-  useEffect(() => {
-    if (window.okDesktop == null || !editorToggleable) return;
-    noteRestoreVisibilityLevel(editorRestoreGateRef, editorShown);
-    if (!dockRestoreSettled && !editorChosenSinceMountRef.current) return;
-    if (dockRestoreSettled && !consumeRestoreVisibilityGate(editorRestoreGateRef)) return;
-    window.okDesktop.editor.notifyViewMenuStateChanged({
-      editorVisible: effectiveEditorVisible,
-      wideIntent: { editorVisible: editorShown },
-    });
-  }, [editorShown, effectiveEditorVisible, dockRestoreSettled, editorToggleable]);
+  }, [editorToggleable, editorShown]);
 
   useEffect(() => {
     setViewMenuState({
@@ -881,77 +774,10 @@ export function EditorPane() {
       if (hasEditorSelection === last) return;
       last = hasEditorSelection;
       setViewMenuState({ hasEditorSelection });
-      window.okDesktop?.editor.notifyViewMenuStateChanged({ hasEditorSelection });
     };
     publish();
     return subscribeSelectionContext(publish);
   }, [activeDocName, editingSurface, effectiveEditorVisible]);
-
-  useEffect(() => {
-    if (noteWindow) {
-      setDockRestoreSettled(true);
-      return;
-    }
-    const bridge = window.okDesktop;
-    if (bridge == null) return;
-    if (typeof bridge.terminal?.getDockState !== 'function') {
-      setDockRestoreSettled(true);
-      return;
-    }
-    let cancelled = false;
-    let abandoned = false;
-    const restoreDeadline = window.setTimeout(() => {
-      abandoned = true;
-      armRestoreVisibilityGate(terminalRestoreGateRef);
-      armRestoreVisibilityGate(agentsRestoreGateRef);
-      armRestoreVisibilityGate(editorRestoreGateRef);
-      console.warn(
-        `[dock] dock-state restore exceeded its ${RESTORE_SETTLE_TIMEOUT_MS}ms bound; the agents panel and terminal start closed and the editor starts shown until the read lands; a read that still lands reveals nothing, and hides the editor only when the saved layout had no pane open and the user has not chosen an editor level since mount; each level still unrestored is withheld from the view menu and the dock record, so a later reveal or toggle still publishes`,
-      );
-      setDockRestoreSettled(true);
-    }, RESTORE_SETTLE_TIMEOUT_MS);
-    void bridge.terminal
-      .getDockState()
-      .then((state) => {
-        if (cancelled) return;
-        if (abandoned) {
-          const savedLayoutHadNoPaneOpen =
-            state.editorVisible === false &&
-            !state.terminalVisible &&
-            state.agentPanelVisible !== true;
-          if (savedLayoutHadNoPaneOpen && !editorChosenSinceMountRef.current) setEditorShown(false);
-          return;
-        }
-        setAgentsVisible((current) => (current ? current : state.agentPanelVisible === true));
-        if (!editorChosenSinceMountRef.current) setEditorShown(state.editorVisible !== false);
-        if (!state.terminalVisible) return;
-        setTerminalVisible(true);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (!abandoned) {
-          armRestoreVisibilityGate(terminalRestoreGateRef);
-          armRestoreVisibilityGate(agentsRestoreGateRef);
-          armRestoreVisibilityGate(editorRestoreGateRef);
-        }
-        console.error(
-          '[dock] dock-state restore failed; the agents panel and terminal start closed and the editor starts shown without its saved state applied; each un-restored level is withheld from the view menu and the dock record, so a later reveal or toggle still publishes:',
-          err,
-        );
-      })
-      .finally(() => {
-        window.clearTimeout(restoreDeadline);
-        if (!cancelled) setDockRestoreSettled(true);
-      });
-    return () => {
-      cancelled = true;
-      abandoned = true;
-      window.clearTimeout(restoreDeadline);
-      resetRestoreVisibilityGate(terminalRestoreGateRef);
-      resetRestoreVisibilityGate(agentsRestoreGateRef);
-      resetRestoreVisibilityGate(editorRestoreGateRef);
-    };
-  }, [noteWindow]);
 
   useNoPushPermissionToast(syncStatus?.pausedReason);
 
@@ -982,10 +808,6 @@ export function EditorPane() {
       ytext: activeProvider.document.getText('source'),
     });
   });
-
-  useEffect(() => {
-    window.okDesktop?.editor.notifyViewMenuStateChanged({ canViewInSource });
-  }, [canViewInSource]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -1031,7 +853,7 @@ export function EditorPane() {
             onModeChange={handleModeChange}
             activeTab={activeTab}
             onActiveTabChange={setActiveTab}
-            terminalBridge={terminalAvailable ? desktopBridge : null}
+            terminalBridge={null}
             editorVisible={effectiveEditorVisible}
             terminalVisible={noteWindow ? false : effectiveTerminalVisible}
             agentsVisible={agentsAvailable ? effectiveAgentsVisible : false}

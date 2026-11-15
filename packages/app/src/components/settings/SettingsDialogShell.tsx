@@ -1,16 +1,11 @@
 // oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button> awaiting shadcn Button migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
 
-// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
-
-import { SHOW_INSTALL_SKILL } from '@inkeep/open-knowledge-core/constants/feature-flags';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
-import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { matchesCommandQuery, splitTextByQueryMatches } from '@/components/command-palette-search';
 import { SettingsConfigNotices } from '@/components/settings/SettingsConfigNotices';
 import { SettingsDialogBodyLazy } from '@/components/settings/SettingsDialogBodyLazy';
 import { SettingsDialogErrorBoundary } from '@/components/settings/SettingsDialogErrorBoundary';
-import { UPDATE_CHECKING_NOTICE_ID } from '@/components/UpdateNotices.shared';
-import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -20,24 +15,16 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { electronDragBandClearance } from '@/components/ui/electron-drag-strip';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDocumentContext } from '@/editor/DocumentContext';
 import type { ConfigContextValue } from '@/lib/config-context';
 import { useConfigContext } from '@/lib/config-provider';
 import { isFileProtocolPage } from '@/lib/file-protocol-page';
 import { useGitQuireFeatures } from '@/lib/gitquire/features';
 import { withoutHiddenSettings } from '@/lib/gitquire/settings-visibility';
-import { useClaudeDesktopIntegration } from '@/lib/handoff/use-claude-desktop-integration';
-import { getNoticesSnapshot, subscribeToNotices } from '@/lib/update-notices-store';
 import { subscribeToSettingsSection } from '@/lib/use-settings-route';
 import { cn } from '@/lib/utils';
 import { LINT_PLUGIN_META } from './lint-plugin-meta';
-import {
-  isOkDesktopHost as isOkDesktopHostGate,
-  isSpellcheckLanguageSelectionAvailable,
-} from './settings-host-gates';
 import {
   isSidebarItemSelectable,
   type SettingsHost,
@@ -84,61 +71,25 @@ type SettingsDialogHostProps = Omit<SettingsDialogShellProps, 'host'>;
 function ProjectSettingsDialogShell(props: SettingsDialogHostProps) {
   const { collabUrl } = useDocumentContext();
   const config = useConfigContext();
-  const { desktopPresent } = useClaudeDesktopIntegration();
   return (
     <SettingsDialogFrame
       {...props}
       host="project"
       hasProject={collabUrl !== null}
       config={config}
-      desktopPresent={desktopPresent}
-      integrationsMenuAvailable={false}
     />
   );
 }
 
 function NavigatorSettingsDialogShell(props: SettingsDialogHostProps) {
   const config = useConfigContext();
-  const integrationsMenuAvailable = useIntegrationsMenuAvailable();
-  return (
-    <SettingsDialogFrame
-      {...props}
-      host="navigator"
-      hasProject={false}
-      config={config}
-      desktopPresent={false}
-      integrationsMenuAvailable={integrationsMenuAvailable}
-    />
-  );
-}
-
-function useIntegrationsMenuAvailable(): boolean {
-  const [available, setAvailable] = useState(false);
-  useEffect(() => {
-    const menu = window.okDesktop?.menu;
-    if (!menu) return;
-    let cancelled = false;
-    menu
-      .dispatch({ kind: 'query' })
-      .then((snapshot) => {
-        if (!cancelled) setAvailable(snapshot?.canReconfigureMcpWiring === true);
-      })
-      .catch((error: unknown) => {
-        console.warn('[SettingsDialogShell] Could not read the desktop menu state', error);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  return available;
+  return <SettingsDialogFrame {...props} host="navigator" hasProject={false} config={config} />;
 }
 
 interface SettingsDialogFrameProps extends SettingsDialogHostProps {
   host: SettingsHost;
   hasProject: boolean;
   config: ConfigContextValue;
-  desktopPresent: boolean;
-  integrationsMenuAvailable: boolean;
 }
 
 function SettingsDialogFrame({
@@ -148,8 +99,6 @@ function SettingsDialogFrame({
   host,
   hasProject,
   config,
-  desktopPresent,
-  integrationsMenuAvailable,
 }: SettingsDialogFrameProps) {
   const { t } = useLingui();
   const aiChatAvailable = useGitQuireFeatures().aiChat;
@@ -244,9 +193,6 @@ function SettingsDialogFrame({
     };
   }, [fieldFlash]);
 
-  const isOkDesktopHost = isOkDesktopHostGate();
-  const spellcheckLanguagesAvailable = isSpellcheckLanguageSelectionAvailable();
-
   const enabledPluginItems: SidebarItem[] = LINT_PLUGIN_META.filter(
     (p) => projectConfig?.contentRules?.[p.id]?.enabled === true,
   ).map((p) => ({ id: `plugin:${p.id}`, label: p.label }));
@@ -262,11 +208,6 @@ function SettingsDialogFrame({
       id: 'agents',
       label: t`Agents`,
       enabled: true,
-      ...(integrationsMenuAvailable
-        ? {
-            disabledHint: t`To connect AI tools without a project, use File > Set up GitQuire integrations…`,
-          }
-        : {}),
       items: [
         {
           id: 'agent-connections',
@@ -302,28 +243,6 @@ function SettingsDialogFrame({
           id: 'preferences',
           label: t`Preferences`,
           userScope: true,
-          subsections: [
-            ...(isOkDesktopHost
-              ? [
-                  {
-                    id: 'spellcheck',
-                    label: t`Check spelling while typing`,
-                    anchor: 'spellcheck.enabled',
-                    keywords: [t({ message: 'spellcheck', context: 'settings search keyword' })],
-                  },
-                ]
-              : []),
-            ...(spellcheckLanguagesAvailable
-              ? [
-                  {
-                    id: 'spellcheck-languages',
-                    label: t`Spelling languages`,
-                    anchor: 'spellcheck.languages',
-                    keywords: [t({ message: 'spellcheck', context: 'settings search keyword' })],
-                  },
-                ]
-              : []),
-          ] satisfies SidebarSubsection[],
         },
         { id: 'hotkeys', label: t`Hotkeys`, userScope: true },
         {
@@ -407,7 +326,6 @@ function SettingsDialogFrame({
         },
         { id: 'plugins-manage', label: t`Plugins` },
         ...(isFileProtocolRenderer ? [] : [{ id: 'link-previews', label: t`Link previews` }]),
-        ...(isOkDesktopHost ? [{ id: 'network-access', label: t`Remote control` }] : []),
         { id: 'project-templates', label: t`Templates` },
         { id: 'okignore', label: t`Ignore patterns` },
       ],
@@ -423,40 +341,6 @@ function SettingsDialogFrame({
         ...(slidesEnabled ? [{ id: 'plugin:slides', label: t`Slidev` }] : []),
       ],
     },
-    {
-      id: 'integrations',
-      label: t`Integrations`,
-      enabled: true,
-      hideOutsideProject: true,
-      items:
-        desktopPresent && SHOW_INSTALL_SKILL
-          ? [{ id: 'claude-desktop', label: t`Claude Desktop` }]
-          : [],
-    },
-    ...(isOkDesktopHost
-      ? ([
-          {
-            id: 'app',
-            label: t`App`,
-            enabled: true,
-            items: [
-              {
-                id: 'about',
-                label: t`About & updates`,
-                userScope: true,
-                keywords: [
-                  t({ message: 'update', context: 'settings search keyword' }),
-                  t({ message: 'version', context: 'settings search keyword' }),
-                  t({ message: 'about', context: 'settings search keyword' }),
-                  t`Release notes`,
-                  t`Check for updates`,
-                  t`Automatic updates`,
-                ],
-              },
-            ],
-          },
-        ] satisfies SidebarGroup[])
-      : []),
   ];
 
   const groups = withoutHiddenSettings(scopeSettingsGroupsForHost(declaredGroups, host));
@@ -487,7 +371,6 @@ function SettingsDialogFrame({
       <DialogContent
         className={cn(
           'flex h-[700px] max-h-[calc(100dvh-4rem)] w-[900px] max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:grid sm:grid-cols-[220px_1fr] sm:max-w-[min(900px,calc(100%-2rem))]',
-          electronDragBandClearance(),
         )}
         data-testid="settings-dialog"
         onEscapeKeyDown={(event) => {
@@ -647,7 +530,6 @@ function SettingsSidebar({
               />
             ))
           : null}
-        <SettingsSidebarVersion onSelect={onSelect} />
       </div>
     </nav>
   );
@@ -685,46 +567,6 @@ function SettingsSearchResultItem({
         </span>
       ) : null}
     </CommandItem>
-  );
-}
-
-function SettingsSidebarVersion({ onSelect }: { onSelect: (id: string) => void }) {
-  const { t } = useLingui();
-  const notices = useSyncExternalStore(subscribeToNotices, getNoticesSnapshot, getNoticesSnapshot);
-  const version = typeof window !== 'undefined' ? window.okDesktop?.appVersion : undefined;
-  if (!version) return null;
-  const checkingForUpdates = notices.some((notice) => notice.id === UPDATE_CHECKING_NOTICE_ID);
-
-  return (
-    <div className="ml-auto shrink-0 px-2 sm:ml-0 sm:mt-auto sm:pt-3">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="link"
-              onClick={() => onSelect('about')}
-              data-testid="settings-sidebar-version"
-              className="h-auto whitespace-nowrap p-0 font-mono text-xs font-normal text-muted-foreground/70 hover:text-foreground"
-            >
-              v{version}{' '}
-              <span className="sr-only">
-                <Trans>About & updates</Trans>
-              </span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Trans>About & updates</Trans>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <p
-        role="status"
-        className="whitespace-nowrap text-xs text-muted-foreground"
-        data-testid="settings-sidebar-update-checking"
-      >
-        {checkingForUpdates ? t`Checking for updates…` : null}
-      </p>
-    </div>
   );
 }
 

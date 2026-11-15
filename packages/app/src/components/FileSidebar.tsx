@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Copy,
   FilePlus,
-  FolderOpen,
   FolderPlus,
   FoldVertical,
   ListCollapse,
@@ -30,7 +29,6 @@ import { ConflictsSection } from '@/components/ConflictsSection';
 import { FileTree, type FileTreeHandle } from '@/components/FileTree';
 import { defaultInitialDir, hasOkPathSegment } from '@/components/file-tree-utils';
 import { subscribeToFilesSectionReveal } from '@/components/files-section-reveal-store';
-import { OnboardingCardMount } from '@/components/OnboardingCard';
 import {
   SidebarToolbarButton as ToolbarButton,
   type SidebarToolbarButtonProps as ToolbarButtonProps,
@@ -63,7 +61,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarRail,
@@ -90,7 +87,6 @@ import { useGitQuireRepository } from '@/lib/gitquire/repository';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { ProfilerBoundary } from '@/lib/perf';
-import { revealInFileManagerLabel } from '@/lib/platform-labels';
 import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { scheduleClipboardWrite } from '@/lib/share/clipboard-adapter';
 import { buildFolderShareInput, runShareAction } from '@/lib/share/run-share-action';
@@ -168,7 +164,7 @@ function FileSidebarInner() {
   const [treeCreationCleared, setTreeCreationCleared] = useState(false);
   const initialCreateDir = treeCreationCleared ? '' : baseCreateDir;
 
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const isElectronHost = false;
 
   const { state: sidebarState, toggleSidebar, setOpen, cover, dismissCover } = useSidebar();
   const isEmbedded = useIsEmbedded();
@@ -212,14 +208,10 @@ function FileSidebarInner() {
       ? (activeFolderConfig.state.data.folder.templates_available?.length ?? 0) > 0
       : true;
 
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
   const workspace = useWorkspace();
   const repository = useGitQuireRepository();
   const projectName =
-    repository?.name ||
-    bridge?.config?.projectName ||
-    workspace?.contentDir.split('/').filter(Boolean).pop() ||
-    t`Files`;
+    repository?.name || workspace?.contentDir.split('/').filter(Boolean).pop() || t`Files`;
   const { status: gitSyncStatus } = useGitSyncStatusDetailed();
   const hasRemote = gitSyncStatus?.hasRemote === true;
   const { projectLocalBinding, projectLocalSynced, merged } = useConfigContext();
@@ -268,10 +260,6 @@ function FileSidebarInner() {
     if (!workspace) return;
     suppressCreateMenuFocusRestoreRef.current = true;
     tree?.startCreating('folder', '');
-  };
-  const handleEmptySpaceReveal = () => {
-    if (!workspace || !bridge) return;
-    void bridge.shell.showItemInFolder(workspace.contentDir);
   };
   const handleEmptySpaceCopyFullPath = async () => {
     if (!workspace) return;
@@ -337,10 +325,7 @@ function FileSidebarInner() {
       sidebarVisible: sidebarState === 'expanded',
     };
     setViewMenuState(snapshot);
-    if (!bridge) return;
-    bridge.editor.notifyViewMenuStateChanged(snapshot);
   }, [
-    bridge,
     showHiddenFiles,
     showOkFolders,
     showOnlyMarkdownFiles,
@@ -391,12 +376,7 @@ function FileSidebarInner() {
           emitFileTreeMenuActionDelete(activeTarget);
           return;
         }
-        case 'reveal-in-finder': {
-          if (!bridge || !workspace) return;
-          const absPath = resolveActiveTargetAbsPath(activeTarget, workspace);
-          void bridge.shell.showItemInFolder(absPath);
-          return;
-        }
+        case 'reveal-in-finder':
         case 'send-to-ai':
           return;
         case 'copy-full-path': {
@@ -468,7 +448,6 @@ function FileSidebarInner() {
       }
     });
   }, [
-    bridge,
     tree,
     workspace,
     activeTarget,
@@ -679,9 +658,6 @@ function FileSidebarInner() {
               </Collapsible>
               {cover ? <ConflictsSection /> : null}
             </SidebarContent>
-            <SidebarFooter className="px-0 empty:hidden">
-              <OnboardingCardMount />
-            </SidebarFooter>
             <SidebarRail
               enableToggle={false}
               enableDrag={!(isEmbedded && sidebarState === 'collapsed')}
@@ -725,26 +701,6 @@ function FileSidebarInner() {
             <Trans>New folder</Trans>
           </ContextMenuItem>
           <ContextMenuSeparator />
-          {bridge ? (
-            <ContextMenuItem
-              disabled={!workspace}
-              onSelect={handleEmptySpaceReveal}
-              data-testid="empty-space-menu-reveal-in-finder"
-              aria-label={
-                workspace
-                  ? revealInFileManagerLabel(bridge.platform)
-                  : t`${revealInFileManagerLabel(bridge.platform)}, No workspace`
-              }
-            >
-              <FolderOpen aria-hidden="true" />
-              <span className="flex-1">{revealInFileManagerLabel(bridge.platform)}</span>
-              {!workspace ? (
-                <span aria-hidden="true" className="ml-2 text-muted-foreground text-xs">
-                  <Trans>No workspace</Trans>
-                </span>
-              ) : null}
-            </ContextMenuItem>
-          ) : null}
           {hasRemote ? (
             <ContextMenuItem onSelect={handleEmptySpaceShare} data-testid="empty-space-menu-share">
               <Share2 aria-hidden="true" />

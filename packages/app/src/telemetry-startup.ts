@@ -7,8 +7,7 @@ let startupSpan: Span | undefined;
 export function initStartupTrace(): void {
   if (startupSpan) return;
   try {
-    const traceparent =
-      typeof window !== 'undefined' ? window.okDesktop?.config.startupTraceparent : undefined;
+    const traceparent = undefined;
     if (!traceparent) return;
 
     const parentCtx = propagation.extract(context.active(), { traceparent });

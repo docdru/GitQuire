@@ -8,7 +8,6 @@ import {
   DeletePathSuccessSchema,
   DuplicatePathSuccessSchema,
   RenamePathSuccessSchema,
-  TrashCleanupSuccessSchema,
   UploadAssetSuccessSchema,
   WorkspaceSuccessSchema,
 } from '@inkeep/open-knowledge-core/schemas/api';
@@ -23,7 +22,7 @@ import {
   type FileTree as PierreFileTreeModel,
 } from '@pierre/trees';
 import { FileTree as PierreFileTree, useFileTree } from '@pierre/trees/react';
-import { Info, RefreshCw, TriangleAlert } from 'lucide-react';
+import { Info, TriangleAlert } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
   type DragEvent as ReactDragEvent,
@@ -91,7 +90,6 @@ import {
   applyDuplicateToDocuments,
   applyRenameToDocuments,
   buildRenamedNodePath,
-  buildTrashAbsPath,
   canonicalizeAssetTargetForDelete,
   type FileTreeTarget,
   type RenamedAssetMapping,
@@ -153,18 +151,12 @@ import {
   type ResolvedNavigationTarget,
 } from '@/components/navigation-targets';
 import { usePageList } from '@/components/PageListContext';
-import { RestartServerButton } from '@/components/RestartServerButton';
 import {
   appendPattern,
   parseOkignoreDoc,
   serializeOkignoreDoc,
 } from '@/components/settings/okignore-doc';
 import { sidebarDragPayloadForTreePath } from '@/components/sidebar-drag-payload';
-import {
-  coerceTrashFailureReason,
-  type TrashFailedTarget,
-  TrashFailureModal,
-} from '@/components/TrashFailureModal';
 import { TemplateMenuRows } from '@/components/template-menu-rows';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -179,7 +171,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Spinner } from '@/components/ui/spinner';
 import { asDirectoryHandle, useSelectionMirror } from '@/components/use-selection-mirror';
 import { getEditorForDoc } from '@/editor/active-editor';
 import { type OpenTargetOptions, useDocumentContext } from '@/editor/DocumentContext';
@@ -214,7 +205,6 @@ import {
 } from '@/lib/gitquire/pending-rename';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { parseServerResponse, parseSuccessOrWarn } from '@/lib/parse-server-response';
-import { revealInFileManagerLabel, trashNounLabel } from '@/lib/platform-labels';
 import { scheduleClipboardWrite } from '@/lib/share/clipboard-adapter';
 import {
   buildDocShareInput,
@@ -450,11 +440,6 @@ interface FileTreeDeleteRequest {
   targets: FileTreeTarget[];
 }
 
-interface TrashFailureRequest {
-  failed: TrashFailedTarget[];
-  originalTargets: FileTreeTarget[];
-}
-
 interface WorkspaceInfo {
   contentDir: string;
   pathSeparator: '/' | '\\';
@@ -572,10 +557,6 @@ function FileTreeMenu({
   }
   const showSubtreeExpandAll = isFolder && subtreeExpandedCount < subtreeFolderCount;
   const showSubtreeCollapseAll = isFolder && subtreeExpandedCount > 0;
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  const revealHint = !workspace ? t`No workspace` : null;
-  const revealLabel = bridge ? revealInFileManagerLabel(bridge.platform) : null;
-  const revealAriaLabel = revealLabel && revealHint ? `${revealLabel}, ${revealHint}` : revealLabel;
 
   function hideTarget() {
     if (!okignoreBinding || !okignoreTarget) return;
@@ -640,26 +621,6 @@ function FileTreeMenu({
                       ItemComponent={DropdownMenuItem}
                     />
                   ) : undefined,
-                }
-              : undefined
-          }
-          reveal={
-            bridge
-              ? {
-                  label: revealLabel,
-                  ariaLabel: revealAriaLabel ?? undefined,
-                  disabled: !workspace,
-                  hint: revealHint,
-                  onSelect: () => {
-                    if (!workspace) return;
-                    close();
-                    const full = joinWorkspacePath(
-                      workspace.contentDir,
-                      relativePath,
-                      workspace.pathSeparator,
-                    );
-                    void bridge.shell.showItemInFolder(full);
-                  },
                 }
               : undefined
           }
@@ -795,8 +756,6 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
     loading,
     error,
     setError,
-    reconnecting,
-    relaunchInFlight,
     truncatedShownCount,
     unfilteredRootEntryCount,
     observeExpandedFolderPaths,
@@ -825,7 +784,6 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
   const [busyPath, setBusyPath] = useState<string | null>(null);
   const [deleteRequest, setDeleteRequest] = useState<FileTreeDeleteRequest | null>(null);
   const [templateConvertRequest, setTemplateConvertRequest] = useState<FileTreeTarget | null>(null);
-  const [trashFailure, setTrashFailure] = useState<TrashFailureRequest | null>(null);
   const { conflicts: activeConflicts } = useConflicts();
   const [newItemRequest, setNewItemRequest] = useState<{ parentDir: string } | null>(null);
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
@@ -2703,94 +2661,6 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
     );
   }
 
-  async function trashTargetsViaShell(
-    targets: readonly FileTreeTarget[],
-    bridge: NonNullable<typeof window.okDesktop>,
-    workspaceInfo: WorkspaceInfo,
-  ): Promise<{
-    trashed: FileTreeTarget[];
-    failed: TrashFailedTarget[];
-  }> {
-    const trashed: FileTreeTarget[] = [];
-    const failed: TrashFailedTarget[] = [];
-    for (const target of targets) {
-      setBusyPath(target.path);
-      const absPath = buildTrashAbsPath(target, workspaceInfo);
-      const result = await bridge.shell.trashItem(absPath);
-      if (result.ok) {
-        trashed.push(target);
-      } else {
-        failed.push({
-          kind: target.kind,
-          path: target.path,
-          name: target.name,
-          reason: coerceTrashFailureReason(result.reason),
-          detail: result.detail,
-        });
-      }
-    }
-    return { trashed, failed };
-  }
-
-  async function postTrashCleanup(
-    trashed: readonly FileTreeTarget[],
-  ): Promise<{ deletedDocNames: string[]; deletedFolderPaths: string[] } | null> {
-    const deletedDocNames: string[] = [];
-    const deletedFolderPaths: string[] = [];
-    const failedCleanups: Array<{ target: FileTreeTarget; reason: string }> = [];
-    for (const target of trashed) {
-      const kind = target.kind;
-      try {
-        const res = await fetch('/api/trash/cleanup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ kind, path: target.path }),
-        });
-        const parsed = await parseServerResponse(res, t`Failed to clean up after trash`);
-        if (!parsed.ok) {
-          console.warn('[FileTree] trash-cleanup failed', {
-            target: `${target.kind}:${target.path}`,
-            reason: parsed.title,
-          });
-          failedCleanups.push({ target, reason: parsed.title });
-          continue;
-        }
-        const success = parseSuccessOrWarn(
-          TrashCleanupSuccessSchema,
-          parsed.body,
-          'trash-cleanup',
-          { deletedDocNames: [] },
-        );
-        deletedDocNames.push(...success.deletedDocNames);
-        if (kind === 'folder') {
-          deletedFolderPaths.push(target.path);
-        }
-      } catch (err) {
-        console.warn('[FileTree] trash-cleanup threw', {
-          target: `${target.kind}:${target.path}`,
-          err,
-        });
-        failedCleanups.push({ target, reason: t`Network error during cleanup` });
-      }
-    }
-    if (failedCleanups.length > 0) {
-      const failedCount = failedCleanups.length;
-      const trashNoun = trashNounLabel(
-        typeof window !== 'undefined' ? window.okDesktop?.platform : undefined,
-      );
-      toast.error(
-        t`Server-side cleanup failed for ${plural(failedCount, { one: '# item', other: '# items' })}`,
-        {
-          description: t`The file is in your ${trashNoun}; the file-watcher will reconcile.`,
-        },
-      );
-    }
-    if (failedCleanups.length === trashed.length && trashed.length > 0) {
-      return null;
-    }
-    return { deletedDocNames, deletedFolderPaths };
-  }
-
   async function handleDeleteTargets(targets: FileTreeTarget[]) {
     const deleteTargets = targets
       .filter((target) => !hasOkPathSegment(target.path))
@@ -2822,68 +2692,15 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
     setBusyPath(firstTarget.path);
     setDeleteRequest(null);
 
-    const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
     try {
-      if (bridge && workspace) {
-        const { trashed, failed } = await trashTargetsViaShell(deleteTargets, bridge, workspace);
-        if (trashed.length > 0) {
-          const cleanup = await postTrashCleanup(trashed);
-          if (cleanup) {
-            await applyDeleteAftermath(
-              trashed,
-              cleanup.deletedDocNames,
-              cleanup.deletedFolderPaths,
-            );
-          } else {
-            const localDocNames = trashed.filter((t) => t.kind === 'file').map((t) => t.path);
-            const localFolderPaths = trashed.filter((t) => t.kind === 'folder').map((t) => t.path);
-            await applyDeleteAftermath(trashed, localDocNames, localFolderPaths);
-          }
-        }
-        if (failed.length > 0) {
-          setTrashFailure({ failed, originalTargets: [...deleteTargets] });
-        }
-        setBusyPath(null);
-      } else {
-        await hardDeleteTargets(deleteTargets);
-        setBusyPath(null);
-      }
+      await hardDeleteTargets(deleteTargets);
+      setBusyPath(null);
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
       console.warn('[FileTree] delete failed:', err);
       toast.error(t`Could not complete delete`, { description: detail });
       setBusyPath(null);
     }
-  }
-
-  async function handleTrashFailureDeletePermanently() {
-    if (!trashFailure) return;
-    const failedSet = new Set(trashFailure.failed.map((t) => `${t.kind}:${t.path}`));
-    const targetsToHardDelete = trashFailure.originalTargets.filter((t) =>
-      failedSet.has(`${t.kind}:${t.path}`),
-    );
-    setTrashFailure(null);
-    if (targetsToHardDelete.length === 0) return;
-    setBusyPath(targetsToHardDelete[0]?.path ?? null);
-    try {
-      await hardDeleteTargets(targetsToHardDelete);
-      setBusyPath(null);
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err);
-      console.warn('[FileTree] hard-delete fallback failed:', err);
-      toast.error(t`Could not complete delete`, { description: detail });
-      setBusyPath(null);
-    }
-  }
-
-  async function handleTrashFailureRetry() {
-    if (!trashFailure) return;
-    const failedSet = new Set(trashFailure.failed.map((f) => `${f.kind}:${f.path}`));
-    const originals = trashFailure.originalTargets.filter((t) =>
-      failedSet.has(`${t.kind}:${t.path}`),
-    );
-    setTrashFailure(null);
-    await handleDeleteTargets(originals);
   }
 
   useEffect(() => {
@@ -3085,30 +2902,13 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
     return <FileTreeSkeleton />;
   }
 
-  const reconnectNotice = reconnecting
-    ? relaunchInFlight
-      ? t`Relaunching to install the update…`
-      : t`Reconnecting…`
-    : null;
-  const serverUnreachable = error === couldNotReachServerTitle;
-
   if (documents.length === 0) {
-    if (reconnectNotice !== null) {
-      return (
-        <div className="flex flex-1 items-center justify-center py-8">
-          <span role="status" className="select-none text-sidebar-foreground/50 text-sm">
-            {reconnectNotice}
-          </span>
-        </div>
-      );
-    }
     if (error) {
       return (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
           <span role="alert" className="select-none text-sidebar-foreground/50 text-sm">
             {error}
           </span>
-          {serverUnreachable ? <RestartServerButton /> : null}
         </div>
       );
     }
@@ -3147,18 +2947,9 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
       <div ref={fileTreeHostRef} className="flex min-h-0 flex-1 flex-col">
         <PierreFileTree
           header={
-            (error || reconnectNotice !== null || truncationNotice !== null) && (
+            (error || truncationNotice !== null) && (
               <>
-                {reconnectNotice !== null ? (
-                  <FileTreeHeaderNotice kind="reconnecting">{reconnectNotice}</FileTreeHeaderNotice>
-                ) : (
-                  error && (
-                    <>
-                      <FileTreeHeaderNotice kind="error">{error}</FileTreeHeaderNotice>
-                      {serverUnreachable ? <RestartServerButton className="mx-2 mb-1" /> : null}
-                    </>
-                  )
-                )}
+                {error && <FileTreeHeaderNotice kind="error">{error}</FileTreeHeaderNotice>}
                 {truncationNotice !== null && (
                   <FileTreeHeaderNotice kind="info">{truncationNotice}</FileTreeHeaderNotice>
                 )}
@@ -3206,13 +2997,7 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
         {deleteRequest && primaryDeleteTarget && (
           <DeleteConfirmationDialog
             {...(() => {
-              const variant: 'electron' | 'web' =
-                typeof window !== 'undefined' && window.okDesktop != null ? 'electron' : 'web';
-              const copy = selectTrashConfirmCopy(
-                variant,
-                deleteRequest.targets,
-                typeof window !== 'undefined' ? window.okDesktop?.platform : undefined,
-              );
+              const copy = selectTrashConfirmCopy('web', deleteRequest.targets, undefined);
               if (copy) {
                 return {
                   customTitle: copy.title,
@@ -3276,22 +3061,6 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
             customConfirmLabelBusy={t`Converting...`}
             isSubmitting={busyPath !== null}
             onDelete={() => executeImportTemplate(templateConvertRequest, true)}
-          />
-        )}
-      </AlertDialog>
-      <AlertDialog
-        open={!!trashFailure}
-        onOpenChange={(open) => {
-          if (!open && !busyPath) setTrashFailure(null);
-        }}
-      >
-        {trashFailure && (
-          <TrashFailureModal
-            failedTargets={trashFailure.failed}
-            isSubmitting={busyPath !== null}
-            onDeletePermanently={handleTrashFailureDeletePermanently}
-            onRetry={handleTrashFailureRetry}
-            onCancel={() => setTrashFailure(null)}
           />
         )}
       </AlertDialog>
@@ -3437,13 +3206,7 @@ function FileTreeSkeleton() {
   );
 }
 
-function FileTreeHeaderNotice({
-  kind,
-  children,
-}: {
-  kind: 'error' | 'info' | 'reconnecting';
-  children: ReactNode;
-}) {
+function FileTreeHeaderNotice({ kind, children }: { kind: 'error' | 'info'; children: ReactNode }) {
   const Icon = kind === 'error' ? TriangleAlert : Info;
   const iconClassName = 'mt-0.5 size-3.5 shrink-0';
   return (
@@ -3454,11 +3217,7 @@ function FileTreeHeaderNotice({
         kind === 'error' ? 'text-destructive' : 'text-muted-foreground',
       )}
     >
-      {kind === 'reconnecting' ? (
-        <Spinner aria-hidden="true" icon={RefreshCw} className={iconClassName} />
-      ) : (
-        <Icon aria-hidden="true" className={iconClassName} />
-      )}
+      <Icon aria-hidden="true" className={iconClassName} />
       <span className="min-w-0">{children}</span>
     </span>
   );

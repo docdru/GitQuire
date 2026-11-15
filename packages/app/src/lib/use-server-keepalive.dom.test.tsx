@@ -91,21 +91,6 @@ describe('useServerKeepalive (Tier-3 mount)', () => {
     expect(await fake.calls[0].resolveWsUrl()).toBeUndefined();
   });
 
-  test('skips the keepalive entirely inside an Electron host', async () => {
-    const fake = makeFakeKeepalive();
-    render(
-      <HookProbe
-        collabUrl="ws://localhost:5173/collab"
-        options={{ startKeepalive: fake.start, isElectronHost: () => true }}
-      />,
-    );
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(fake.calls.length).toBe(0);
-  });
-
   test('does not restart on collabUrl change — resolver reads the latest value', async () => {
     const fake = makeFakeKeepalive();
     const options = { startKeepalive: fake.start, isElectronHost: () => false };

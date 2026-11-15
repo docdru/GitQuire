@@ -34,7 +34,6 @@ import {
   resolveModePreference,
 } from '@/lib/color-themes';
 import { useConfigContextOptional } from '@/lib/config-context';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { useSavedThemes } from '@/lib/saved-themes-client';
 import { applyColorThemeToDom } from '@/lib/use-apply-config-color-theme';
 import { cn } from '@/lib/utils';
@@ -439,8 +438,6 @@ export function CustomThemeEditor({
               href={SCHEMES_URL}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => dispatchExternalLinkClick(e, SCHEMES_URL)}
-              onAuxClick={(e) => dispatchExternalLinkClick(e, SCHEMES_URL)}
               className="inline-flex items-center gap-0.5 text-primary underline-offset-2 hover:underline"
             >
               {t`Browse hundreds of themes`}

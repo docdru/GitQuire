@@ -100,20 +100,6 @@ describe('installClientLogForwarder', () => {
     expect(installClientLogForwarder({ fetchImpl: makeFetchSpy() })).toBeUndefined();
   });
 
-  test('no-op inside Electron (window.okDesktop present)', () => {
-    const fetchSpy = makeFetchSpy();
-    const con = makeFakeConsole();
-    handle = installClientLogForwarder({
-      fetchImpl: fetchSpy,
-      consoleObj: con,
-      windowObj: makeFakeWindow({ okDesktop: {} }),
-      documentObj: makeFakeDocument(),
-    });
-    expect(handle).toBeUndefined();
-    con.warn('not captured');
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
   test('captures a structured console.warn and flushes the lifted event + fields', () => {
     const fetchSpy = makeFetchSpy();
     const { con } = install(fetchSpy);

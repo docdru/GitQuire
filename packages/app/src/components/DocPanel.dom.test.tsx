@@ -196,22 +196,4 @@ describe('DocPanel — card top bar', () => {
     ]);
     expect(header?.contains(screen.getByRole('tab', { name: 'Outline' }))).toBe(true);
   });
-
-  test('on desktop the empty top bar drags the window while the tab buttons opt out', () => {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: { config: { mode: 'editor' } },
-    });
-    renderPanel('outline');
-    const header = document.querySelector('[data-doc-panel-header]');
-    expect(header?.getAttribute('data-electron-drag')).toBe('');
-    expectVisualClassTokens(header?.getAttribute('class'), ['[-webkit-app-region:drag]']);
-    expectVisualClassTokens(
-      screen
-        .getByRole('tab', { name: 'Outline' })
-        .closest('[data-slot="toggle-group"]')
-        ?.getAttribute('class'),
-      ['[-webkit-app-region:no-drag]'],
-    );
-  });
 });

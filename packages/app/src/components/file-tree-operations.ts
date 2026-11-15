@@ -20,7 +20,6 @@ import {
   isFolderEntry,
   synthesizeFileAssetExt,
 } from '@/components/file-tree-utils';
-import { joinWorkspacePath, type Workspace } from '@/lib/workspace-paths';
 
 export type { RenamedAssetMapping, RenamedDocMapping };
 
@@ -241,12 +240,6 @@ export function remapActiveDocName(
 ): string | null {
   if (!activeDocName) return null;
   return renamed.find((entry) => entry.fromDocName === activeDocName)?.toDocName ?? activeDocName;
-}
-
-export function buildTrashAbsPath(target: FileTreeTarget, workspace: Workspace): string {
-  const relative =
-    target.kind === 'file' ? docNameToTreePath(target.path, target.docExt) : target.path;
-  return joinWorkspacePath(workspace.contentDir, relative, workspace.pathSeparator);
 }
 
 function remapPathForFolderRenames(path: string, renamedFolders: RenamedFolderMapping[]): string {

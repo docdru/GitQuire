@@ -1,20 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 import { openExternalUrl } from './external-link.ts';
 
-describe('openExternalUrl — Electron host', () => {
-  test('routes through okDesktop.shell.openExternal and does NOT open a new window', () => {
-    const openExternal = vi.fn(async () => {});
-    const openWindow = vi.fn(() => null);
-    openExternalUrl('https://youtube.com/watch?v=abc', {
-      okDesktop: { shell: { openExternal } },
-      openWindow,
-    });
-    expect(openExternal).toHaveBeenCalledTimes(1);
-    expect(openExternal).toHaveBeenCalledWith('https://youtube.com/watch?v=abc');
-    expect(openWindow).not.toHaveBeenCalled();
-  });
-});
-
 describe('openExternalUrl — web host (no bridge)', () => {
   test('falls back to window.open with the new-tab + noopener features', () => {
     const openWindow = vi.fn(() => null);

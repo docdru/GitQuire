@@ -4,13 +4,10 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useDocumentContext } from '@/editor/DocumentContext';
 import { BRANCH_SWITCH_NOTICE_MS, computeRecycleBannerMode } from '@/lib/branch-recycle-notice';
-import { restartCollabServer } from '@/lib/restart-collab-server';
 
 export function BranchRecycleBanner() {
   const { contentRecycleNotice, dismissContentRecycleNotice } = useDocumentContext();
-  const [restarting, setRestarting] = useState(false);
   const [switchExpired, setSwitchExpired] = useState(false);
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
 
   useEffect(() => {
     setSwitchExpired(false);
@@ -40,17 +37,6 @@ export function BranchRecycleBanner() {
     );
   }
 
-  const handleRestart = async () => {
-    if (!bridge) return;
-    setRestarting(true);
-    try {
-      const result = await restartCollabServer(bridge);
-      if (!result.ok) setRestarting(false);
-    } catch {
-      setRestarting(false);
-    }
-  };
-
   return (
     <div
       role="alert"
@@ -62,16 +48,6 @@ export function BranchRecycleBanner() {
           The project's server is on a different branch than this window — content can't load.
         </Trans>
       </span>
-      {bridge ? (
-        <Button
-          size="sm"
-          onClick={handleRestart}
-          disabled={restarting}
-          className="h-6 bg-background text-foreground px-2 text-xs font-medium hover:bg-background/90"
-        >
-          {restarting ? <Trans>Restarting</Trans> : <Trans>Restart server</Trans>}
-        </Button>
-      ) : null}
       <Button
         size="sm"
         onClick={() => window.location.reload()}

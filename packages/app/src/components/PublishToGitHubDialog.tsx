@@ -262,12 +262,7 @@ export function PublishToGitHubDialog({
   }
 
   function handleAuthorizeInBrowser(authorizeUrl: string) {
-    const opener = window.okDesktop?.shell?.openExternal;
-    if (opener) {
-      void opener(authorizeUrl);
-    } else {
-      window.open(authorizeUrl, '_blank', 'noopener');
-    }
+    window.open(authorizeUrl, '_blank', 'noopener');
   }
 
   function handleClose() {

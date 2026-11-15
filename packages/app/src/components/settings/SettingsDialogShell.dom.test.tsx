@@ -60,7 +60,6 @@ let mockUserSynced = false;
 let mockOkignoreBinding: OkignoreBinding | null = null;
 let mockOkignoreSynced = false;
 let mockCollabUrl: string | null = 'ws://test.invalid';
-let mockDesktopPresent = false;
 let mockBodyMode: BodyMode = 'probe';
 let mockShowInstallSkill = true;
 let mockProjectConfig: unknown = { contentRules: { markdownlint: { enabled: true } } };
@@ -112,14 +111,6 @@ vi.doMock('@/lib/config-provider', () => ({
   }),
 }));
 
-vi.doMock('@/lib/handoff/use-claude-desktop-integration', () => ({
-  useClaudeDesktopIntegration: () => ({
-    desktopPresent: mockDesktopPresent,
-    skillInstalled: false,
-    refresh: () => {},
-  }),
-}));
-
 const { SettingsDialogShell } = await import('./SettingsDialogShell');
 const { DocNoticesProvider } = await import('@/hooks/use-doc-notices');
 const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
@@ -143,7 +134,6 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     mockOkignoreBinding = null;
     mockOkignoreSynced = false;
     mockCollabUrl = 'ws://test.invalid';
-    mockDesktopPresent = false;
     mockBodyMode = 'probe';
     mockShowInstallSkill = true;
     mockProjectConfig = { contentRules: { markdownlint: { enabled: true } } };
@@ -268,17 +258,6 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     expect(screen.getByTestId('settings-sidebar-item-plugin:theme')).toBeTruthy();
   });
 
-  test('hides or shows the Integrations group from desktop availability', () => {
-    const { rerender } = render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
-    expect(screen.queryByTestId('settings-sidebar-item-claude-desktop') === null).toBe(true);
-
-    mockDesktopPresent = true;
-    rerender(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
-
-    expect(screen.getByText('Integrations')).toBeTruthy();
-    expect(screen.getByTestId('settings-sidebar-item-claude-desktop')).toBeTruthy();
-  });
-
   test('changes sections through the sidebar and resets to Preferences on each fresh open', async () => {
     const { rerender } = render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
 
@@ -365,35 +344,6 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     expectVisualClassTokens(className, ['max-h-[calc(100dvh-4rem)]']);
     expectVisualClassTokensAbsent(className, ['max-h-[calc(100dvh-6rem)]']);
     expect(screen.queryByTestId('dialog-drag-strip')).toBeNull();
-  });
-
-  test('yields to the drag-band clearance on the desktop host', () => {
-    vi.stubGlobal('okDesktop', { config: { ptyAvailable: false } });
-    try {
-      render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
-
-      const className = screen.getByTestId('settings-dialog').getAttribute('class');
-      expectVisualClassTokens(className, ['max-h-[calc(100dvh-6rem)]']);
-      expectVisualClassTokensAbsent(className, ['max-h-[calc(100dvh-4rem)]']);
-      expect(screen.getByTestId('dialog-drag-strip')).toBeTruthy();
-    } finally {
-      vi.unstubAllGlobals();
-    }
-  });
-
-  test('the Claude Desktop sidebar item appears because the feature-flag replacement serves the install-skill flag on', () => {
-    mockDesktopPresent = true;
-    const since = servedCore.mark();
-    render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
-
-    expect(screen.getByTestId('settings-sidebar-item-claude-desktop')).toBeTruthy();
-    expect(
-      servedCore.readersOf(
-        '@inkeep/open-knowledge-core/constants/feature-flags',
-        'SHOW_INSTALL_SKILL',
-        since,
-      ),
-    ).toEqual(['components/settings/SettingsDialogShell.tsx']);
   });
 
   test('settings search finds no markdownlint rule because the lint replacement serves an empty catalog', async () => {

@@ -203,9 +203,6 @@ vi.doMock('@/components/PublishToGitHubDialog', () => ({
   PublishToGitHubDialog: () => null,
 }));
 vi.doMock('@/components/AuthModal', () => ({ AuthModal: () => null }));
-vi.doMock('@/components/InstallInClaudeDesktopDialog', () => ({
-  InstallInClaudeDesktopDialog: () => null,
-}));
 vi.doMock('./OkignoreSection', () => ({ OkignoreSection: () => null }));
 vi.doMock('./ProjectTemplatesSection', () => ({ ProjectTemplatesSection: () => null }));
 

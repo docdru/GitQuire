@@ -2,17 +2,13 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { useEffect, useRef } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { OkBlobRunnerEasterEgg } from '@/components/OkBlobRunnerEasterEgg';
-import { ReportBugDialog } from '@/components/ReportBugDialog';
 import { Button } from '@/components/ui/button';
-import { useBugReport } from '@/lib/bug-report-capture';
-import { recallComponentStack, rememberComponentStack } from '@/lib/component-stack-registry';
+import { rememberComponentStack } from '@/lib/component-stack-registry';
 import { recordAppShellCrashTrip } from '@/lib/tab-session-restore-suppression';
 
 function AppErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const { t } = useLingui();
-  const bugReport = useBugReport();
   const retryRef = useRef<HTMLButtonElement>(null);
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
   const message =
     error instanceof Error && error.message ? error.message : t`An unexpected error occurred.`;
 
@@ -38,30 +34,7 @@ function AppErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
         <Button ref={retryRef} variant="default" onClick={() => resetErrorBoundary()}>
           <Trans>Try again</Trans>
         </Button>
-        {bridge ? (
-          <Button
-            variant="ghost"
-            className="font-mono uppercase"
-            onClick={() => bugReport.start({ launcherBorne: false })}
-          >
-            <Trans>Report this error</Trans>
-          </Button>
-        ) : null}
       </div>
-      {bridge ? (
-        <CrashReportingBoundary>
-          <ReportBugDialog
-            capture={bugReport.capture}
-            onClose={bugReport.close}
-            systemWide={bridge.config.mode === 'navigator'}
-            crashContext={{
-              source: 'app shell',
-              errorMessage: error instanceof Error && error.message ? error.message : String(error),
-              componentStack: recallComponentStack(error),
-            }}
-          />
-        </CrashReportingBoundary>
-      ) : null}
     </div>
   );
 }

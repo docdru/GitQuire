@@ -25,7 +25,6 @@ import {
   uploadedPathForSidebarDrop,
   uploadParentDocNameForFolderDrop,
 } from './file-tree-adapter';
-import { buildTrashAbsPath } from './file-tree-operations';
 import type { DocEntry, FileEntry } from './file-tree-utils';
 
 function doc(docName: string): DocEntry {
@@ -573,25 +572,6 @@ describe('file-tree-adapter', () => {
     const documents: FileEntry[] = [];
 
     expect(treeItemToTarget(item, documents).docExt).toBe('.md');
-  });
-
-  test('buildTrashAbsPath(treeItemToTarget(item, documents)) produces a workspace path with the on-disk extension', () => {
-    const item: ContextMenuItem = {
-      kind: 'file',
-      name: 'Untitled',
-      path: 'Untitled',
-    };
-    const documents: FileEntry[] = [
-      { kind: 'document', docName: 'Untitled', docExt: '.md', size: 0, modified: '' },
-    ];
-    const target = treeItemToTarget(item, documents);
-
-    const absPath = buildTrashAbsPath(target, {
-      contentDir: '/workspace',
-      pathSeparator: '/',
-    });
-
-    expect(absPath).toBe('/workspace/Untitled.md');
   });
 
   test('treeItemToTarget(item, documents) classifies asset-shaped paths explicitly', () => {

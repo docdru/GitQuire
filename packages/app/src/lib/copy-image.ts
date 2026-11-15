@@ -67,10 +67,9 @@ async function copyImageInBrowser(
 }
 
 function browserCopyImageEnv(): CopyImageEnv {
-  const desktop = typeof window === 'undefined' ? undefined : window.okDesktop?.clipboard;
   const clipboard = typeof navigator === 'undefined' ? undefined : navigator.clipboard;
   return {
-    desktopCopyImage: desktop ? (request) => desktop.copyImage(request) : null,
+    desktopCopyImage: null,
     writeClipboard: clipboard?.write ? (items) => clipboard.write(items) : null,
     createClipboardItem: (items) => new ClipboardItem(items),
     fetch: (input, init) => fetch(input, init),

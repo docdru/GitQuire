@@ -12,7 +12,6 @@ import type { SkillScope } from '@inkeep/open-knowledge-core/schemas/api';
 import { lazy, Suspense } from 'react';
 import { AddPropertiesButton } from '@/components/AddPropertiesButton';
 import type { EditorModeValue } from '@/editor/use-editor-mode.ts';
-import { useConfigContextOptional } from '@/lib/config-context';
 import { parseProjectSkillContentDocName } from '@/lib/managed-artifact-doc-name';
 import {
   NO_RESERVED_KEYS,
@@ -22,7 +21,6 @@ import {
 import { EditorBreadcrumb } from './EditorBreadcrumb';
 import { EditorModeToggle } from './EditorModeToggle';
 import { NotInSidebarIndicator } from './NotInSidebarIndicator';
-import { isSlidesHost } from './slides-host-gate';
 
 const SkillToolbarControls = lazy(async () => ({
   default: (await import('./SkillToolbarControls')).SkillToolbarControls,
@@ -30,10 +28,6 @@ const SkillToolbarControls = lazy(async () => ({
 
 const SkillOriginInline = lazy(async () => ({
   default: (await import('./SkillOriginInline')).SkillOriginInline,
-}));
-
-const SlidesToolbarControls = lazy(async () => ({
-  default: (await import('./SlidesToolbarControls')).SlidesToolbarControls,
 }));
 
 const NO_FRONTMATTER_PROBLEMS: readonly LintDiagnostic[] = [];
@@ -51,7 +45,6 @@ interface EditorToolbarProps {
 
 export function EditorToolbar({
   activeDocName,
-  activeProvider,
   isSourceMode,
   sourceDisabled,
   onModeChange,
@@ -59,7 +52,6 @@ export function EditorToolbar({
   onAddProperty,
   frontmatterProblems = NO_FRONTMATTER_PROBLEMS,
 }: EditorToolbarProps) {
-  const slidesPluginEnabled = useConfigContextOptional()?.merged?.slides?.enabled === true;
   const managed = activeDocName ? parseManagedArtifactName(activeDocName) : null;
   const projectSkillName = activeDocName ? parseProjectSkillContentDocName(activeDocName) : null;
   const activeSkill: { scope: SkillScope; name: string } | null =
@@ -131,14 +123,6 @@ export function EditorToolbar({
             />
           )
         )}
-        {slidesPluginEnabled &&
-        isSlidesHost() &&
-        activeProvider != null &&
-        activeDocName !== null ? (
-          <Suspense fallback={null}>
-            <SlidesToolbarControls provider={activeProvider} docName={activeDocName} />
-          </Suspense>
-        ) : null}
       </div>
       <div
         aria-hidden

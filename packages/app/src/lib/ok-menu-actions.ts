@@ -36,7 +36,6 @@ export const OK_MENU_ACTIONS = [
   'kill-terminal',
   'new-worktree',
   'switch-worktree',
-  'report-bug',
   'send-feedback',
 ] as const satisfies readonly OkMenuAction[];
 

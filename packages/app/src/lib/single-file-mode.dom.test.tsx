@@ -17,32 +17,6 @@ afterEach(() => {
   }
 });
 
-describe('SingleFileModeProvider — desktop bridge channel', () => {
-  beforeEach(() => {
-    (window as { okDesktop?: unknown }).okDesktop = {
-      config: {
-        singleFile: true,
-        initialDoc: 'todo',
-        collabUrl: 'ws://x/collab',
-        apiOrigin: 'http://x',
-        mode: 'editor',
-      },
-      onProjectSwitched: () => () => {},
-    };
-  });
-
-  test('reads singleFile synchronously from the bridge config (no fetch)', () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch');
-    render(
-      <SingleFileModeProvider>
-        <Probe />
-      </SingleFileModeProvider>,
-    );
-    expect(screen.getByTestId('probe').textContent).toBe('single-file');
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-});
-
 describe('SingleFileModeProvider — browser /api/config channel', () => {
   beforeEach(() => {
     (window as { okDesktop?: unknown }).okDesktop = undefined;

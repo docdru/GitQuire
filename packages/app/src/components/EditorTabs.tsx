@@ -13,7 +13,6 @@ import {
   PanelRight,
   PinIcon,
   PlusIcon,
-  SquareArrowOutUpRight,
   Trash2,
   XIcon,
 } from 'lucide-react';
@@ -62,7 +61,6 @@ import { useSkills } from '@/hooks/use-skills';
 import { emitFileTreeMenuActionRename } from '@/lib/file-tree-menu-action-events';
 import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
 import { skillEntryLiveDocName } from '@/lib/managed-artifact-doc-name';
-import { openDocInNoteWindow } from '@/lib/open-note-window';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { cn } from '@/lib/utils';
@@ -311,11 +309,6 @@ function EditorTabContextMenu({
   );
   const closableTabIds = filterClosableTabIds(openTabs, pinnedTabIds);
   const canMoveToNewPane = canSplit && openTabs.length > 1;
-  const parsedTab = parseEditorTabId(tabId);
-  const popOutDocName =
-    parsedTab.kind === 'doc' && target && typeof window !== 'undefined' && window.okDesktop
-      ? parsedTab.docName
-      : null;
 
   return (
     <>
@@ -402,17 +395,6 @@ function EditorTabContextMenu({
               <PanelRight aria-hidden="true" />
               <Trans>Move to new pane right</Trans>
             </ContextMenuItem>
-            {popOutDocName ? (
-              <ContextMenuItem
-                data-testid="editor-tab-context-open-in-new-window"
-                onSelect={() => {
-                  void openDocInNoteWindow(popOutDocName, 'tab-menu');
-                }}
-              >
-                <SquareArrowOutUpRight aria-hidden="true" />
-                <Trans>Open in New Window</Trans>
-              </ContextMenuItem>
-            ) : null}
           </ContextMenuGroup>
         </ContextMenuContent>
       </ContextMenu>
@@ -783,7 +765,7 @@ export function EditorTabs({
     };
   }, []);
 
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const isElectronHost = false;
   const newTabIdSet = new Set(newTabIds);
 
   function closeVisibleTabs(tabIds: readonly string[]) {

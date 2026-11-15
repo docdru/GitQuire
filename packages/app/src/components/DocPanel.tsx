@@ -95,7 +95,7 @@ export function DocPanel({
   onDestinationRequested,
 }: DocPanelProps) {
   const { t } = useLingui();
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const isElectronHost = false;
   const { activeProvider, activeDocName } = useDocumentContext();
   const { data: lintConfig } = useDocLintConfig(docName);
   const lintProvider = activeDocName === docName ? activeProvider : null;

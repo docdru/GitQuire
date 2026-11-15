@@ -9,7 +9,6 @@ import {
   useSyncEnabledWriter,
 } from '@/hooks/use-enable-sync-with-confirm';
 import type { GitSyncStatus } from '@/hooks/use-git-sync-status';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { triggerSync } from '@/lib/trigger-sync';
 import { cn } from '@/lib/utils';
 import { EnableSyncConfirmDialog } from './EnableSyncConfirmDialog';
@@ -195,8 +194,6 @@ export function ShareFreshnessWarning({ freshness, status, kind }: ShareFreshnes
                 href={PUSH_DOCS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => dispatchExternalLinkClick(e, PUSH_DOCS_URL)}
-                onAuxClick={(e) => dispatchExternalLinkClick(e, PUSH_DOCS_URL)}
                 className="inline-flex items-center gap-1 transition-colors hover:text-primary"
               >
                 <Trans>How to push manually</Trans>

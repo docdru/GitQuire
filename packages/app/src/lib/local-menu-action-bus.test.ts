@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import type { OkMenuAction, OkMenuActionOrigin } from './desktop-bridge-types';
+import type { OkMenuActionOrigin } from './desktop-bridge-types';
 import {
   __resetLocalMenuActionBusForTests,
   emitLocalMenuAction,
@@ -114,85 +114,6 @@ describe('local menu-action bus', () => {
     emitLocalMenuAction('report-bug');
 
     expect(seen).toEqual({ launcherBorne: false });
-  });
-});
-
-type InboundMenuAction = (action: OkMenuAction, origin: OkMenuActionOrigin) => void;
-
-describe('local menu-action bus — bridge forwarder', () => {
-  const originalWindow = globalThis.window;
-
-  function setDesktop(okDesktop: unknown): void {
-    globalThis.window = { okDesktop } as unknown as Window & typeof globalThis;
-  }
-
-  afterEach(() => {
-    __resetLocalMenuActionBusForTests();
-    if (originalWindow === undefined) {
-      delete (globalThis as { window?: unknown }).window;
-    } else {
-      globalThis.window = originalWindow;
-    }
-  });
-
-  test('a single inbound native menu action fires each handler exactly once', () => {
-    let inbound: InboundMenuAction | null = null;
-    setDesktop({
-      onMenuAction: (cb: InboundMenuAction) => {
-        inbound = cb;
-        return () => {};
-      },
-    });
-
-    const handler = vi.fn(() => {});
-    subscribeLocalMenuAction(handler);
-    expect(inbound).not.toBeNull();
-    inbound?.('toggle-sidebar', { launcherBorne: false });
-    expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenLastCalledWith('toggle-sidebar', { launcherBorne: false });
-  });
-
-  test('the forwarder hands subscribers the origin main stamped, not a default', () => {
-    let inbound: InboundMenuAction | null = null;
-    setDesktop({
-      onMenuAction: (cb: InboundMenuAction) => {
-        inbound = cb;
-        return () => {};
-      },
-    });
-
-    const handler = vi.fn(() => {});
-    subscribeLocalMenuAction(handler);
-    inbound?.('report-bug', { launcherBorne: true });
-
-    expect(handler).toHaveBeenLastCalledWith('report-bug', { launcherBorne: true });
-  });
-
-  test('the forwarder installs once (ref-counted) and tears down when the last subscriber leaves', () => {
-    let installs = 0;
-    const unsubscribe = vi.fn(() => {});
-    setDesktop({
-      onMenuAction: () => {
-        installs += 1;
-        return unsubscribe;
-      },
-    });
-
-    const off1 = subscribeLocalMenuAction(() => {});
-    const off2 = subscribeLocalMenuAction(() => {});
-    expect(installs).toBe(1);
-    off1();
-    expect(unsubscribe).toHaveBeenCalledTimes(0);
-    off2();
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
-  });
-
-  test('a partial bridge without onMenuAction never throws; direct emits still deliver', () => {
-    setDesktop({});
-    const handler = vi.fn(() => {});
-    expect(() => subscribeLocalMenuAction(handler)).not.toThrow();
-    emitLocalMenuAction('rename');
-    expect(handler).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -77,7 +77,6 @@ import { useOpenSkill } from '@/hooks/use-open-skill';
 import { useSkills } from '@/hooks/use-skills';
 import { useConfigContext } from '@/lib/config-provider';
 import { hashFromAssetPath } from '@/lib/doc-hash';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { isLintPluginOffered } from '@/lib/gitquire/settings-visibility';
 import { requestSchemaFieldsView } from '@/lib/schema-fields-view-intent';
 import { installPackSkill } from '@/lib/skills-api';
@@ -329,12 +328,6 @@ export function MarkdownlintPluginSection({
             href="https://github.com/DavidAnson/markdownlint"
             target="_blank"
             rel="noopener noreferrer"
-            onClick={(e) =>
-              dispatchExternalLinkClick(e, 'https://github.com/DavidAnson/markdownlint')
-            }
-            onAuxClick={(e) =>
-              dispatchExternalLinkClick(e, 'https://github.com/DavidAnson/markdownlint')
-            }
             className="inline-flex items-center gap-0.5 text-primary underline-offset-2 hover:underline"
           >
             markdownlint

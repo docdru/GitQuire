@@ -38,7 +38,6 @@ let presentError: PublishErrorPresentation = {
 let workspaceContentDir = '/Users/alice/My Project';
 let activeDocName: string | null = 'docs/intro';
 let submitCalls: SubmitPayload[] = [];
-let openExternalCalls: string[] = [];
 let windowOpenCalls: string[] = [];
 let shareConstructUrlResponse:
   | { ok: true; shareUrl: string; sharedUrl: string; branch: string }
@@ -196,7 +195,6 @@ describe('PublishToGitHubDialog runtime behavior', () => {
     workspaceContentDir = '/Users/alice/My Project';
     activeDocName = 'docs/intro';
     submitCalls = [];
-    openExternalCalls = [];
     shareConstructUrlResponse = {
       ok: true,
       shareUrl: 'https://openknowledge.ai/d/Published123',
@@ -376,37 +374,5 @@ describe('PublishToGitHubDialog runtime behavior', () => {
     });
     await waitForAvailableNameCheck();
     expect(screen.queryByTestId('auth-modal') === null).toBe(true);
-  });
-
-  test('routes SAML authorization through desktop openExternal and falls back to window.open', async () => {
-    submitResult = { ok: false, error: 'saml-sso' };
-    presentError = {
-      banner: 'Authorize this organization.',
-      next: { authorizeUrl: 'https://github.com/orgs/docs-team/sso', kind: 'authorize-org' },
-    };
-    setDesktopBridge({
-      shell: {
-        openExternal: async (url: string) => {
-          openExternalCalls.push(url);
-          return { ok: true };
-        },
-      },
-    });
-    await renderDialog();
-    await waitForAvailableNameCheck();
-
-    await userEvent.click(screen.getByTestId('publish-submit'));
-    await userEvent.click(await screen.findByTestId('publish-authorize-org'));
-
-    expect(openExternalCalls).toEqual(['https://github.com/orgs/docs-team/sso']);
-    cleanup();
-
-    setDesktopBridge(undefined);
-    await renderDialog();
-    await waitForAvailableNameCheck();
-    await userEvent.click(screen.getByTestId('publish-submit'));
-    await userEvent.click(await screen.findByTestId('publish-authorize-org'));
-
-    expect(windowOpenCalls).toEqual(['https://github.com/orgs/docs-team/sso']);
   });
 });

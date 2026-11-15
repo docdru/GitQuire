@@ -2,9 +2,6 @@ import { useLingui } from '@lingui/react/macro';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { FORCE_SYNC_INTERVAL_MS } from '@/editor/provider-pool';
-import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
-import { useRelaunchInFlight } from '@/lib/relaunch-store';
-import { restartCollabServer } from '@/lib/restart-collab-server';
 import type { SyncStatus } from './use-sync-status';
 
 const TOAST_ID = 'sync-status';
@@ -16,20 +13,8 @@ const NO_TOAST_HANDLERS = { onDismiss: undefined, onAutoClose: undefined };
 
 type CatchupClaim = 'idle' | 'armed' | 'asserted' | 'dismissed';
 
-export async function runDisconnectRestart(
-  bridge: Pick<OkDesktopBridge, 'restartServer' | 'config'>,
-): Promise<void> {
-  try {
-    const result = await restartCollabServer(bridge);
-    if (!result.ok) {
-      toast.error(result.message, { id: TOAST_ID, duration: Infinity, ...NO_TOAST_HANDLERS });
-    }
-  } catch {}
-}
-
 export function useSyncToasts(status: SyncStatus, activeDocName: string | null) {
   const { t } = useLingui();
-  const relaunchInFlight = useRelaunchInFlight();
   const hasConnectedRef = useRef(false);
   const wasDisconnectedRef = useRef(false);
   const downgradeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,16 +60,6 @@ export function useSyncToasts(status: SyncStatus, activeDocName: string | null) 
       hasConnectedRef.current = true;
     }
 
-    if (relaunchInFlight) {
-      clearDowngradeTimer();
-      clearCatchupTimer();
-      downgradedRef.current = false;
-      disconnectedSinceRef.current = null;
-      toast.dismiss(TOAST_ID);
-      endOutageEpisode();
-      return;
-    }
-
     if (!activeDocName) {
       clearDowngradeTimer();
       clearCatchupTimer();
@@ -94,43 +69,25 @@ export function useSyncToasts(status: SyncStatus, activeDocName: string | null) 
       return;
     }
 
-    const bridge = window.okDesktop;
-    const hasRestartButton = bridge !== undefined;
-    const restartAction =
-      bridge !== undefined
-        ? {
-            action: {
-              label: t`Restart server`,
-              onClick: () => {
-                void runDisconnectRestart(bridge);
-              },
-            },
-          }
-        : {};
     const showOutageToast = (message: string) => {
       outageEpisodeRef.current = true;
       toast.warning(message, {
         id: TOAST_ID,
         duration: Infinity,
         ...NO_TOAST_HANDLERS,
-        ...restartAction,
       });
     };
     const showConnectionLost = () =>
       showOutageToast(
         t`Connection lost — keep this tab open, your edits will sync when reconnected`,
       );
-    const showServerStopped = () =>
-      showOutageToast(
-        hasRestartButton ? t`The server stopped. Restart it to reconnect.` : t`The server stopped.`,
-      );
+    const showServerStopped = () => showOutageToast(t`The server stopped.`);
     const showSyncCatchingUp = () => {
       catchupClaimRef.current = 'asserted';
       toast.warning(t`Sync is taking longer than usual — your changes are safe on this device.`, {
         id: TOAST_ID,
         duration: Infinity,
         ...NO_TOAST_HANDLERS,
-        ...restartAction,
         onDismiss: () => {
           catchupClaimRef.current = 'dismissed';
         },
@@ -194,5 +151,5 @@ export function useSyncToasts(status: SyncStatus, activeDocName: string | null) 
       endOutageEpisode();
       toast.success(t`Reconnected`, { id: TOAST_ID, duration: 3000, ...NO_TOAST_HANDLERS });
     }
-  }, [status, activeDocName, t, relaunchInFlight]);
+  }, [status, activeDocName, t]);
 }

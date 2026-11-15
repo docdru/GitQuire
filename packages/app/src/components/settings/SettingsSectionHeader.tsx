@@ -1,7 +1,6 @@
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowUpRight } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { cn } from '@/lib/utils';
 import { PluginBetaBadge } from './PluginBetaBadge';
 import { ScopeBadge, type SettingsScope } from './ScopeBadge';
@@ -36,8 +35,6 @@ export function SettingsSectionHeader({
         href={docUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={(e) => dispatchExternalLinkClick(e, docUrl)}
-        onAuxClick={(e) => dispatchExternalLinkClick(e, docUrl)}
         aria-label={typeof title === 'string' ? t`Learn more about ${title}` : t`Learn more`}
         className="inline-flex items-center gap-0.5 text-sm text-primary underline-offset-2 hover:underline"
         data-testid={`${titleId}-docs-link`}

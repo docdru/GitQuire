@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { UserText } from '@/components/UserText';
 import { hashFromDocName } from '@/lib/doc-hash';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { cn } from '@/lib/utils';
 import {
   hasInlineLinks,
@@ -60,10 +59,6 @@ function renderSegment(seg: PropertyInlineSegment, index: number): ReactNode {
           target="_blank"
           rel="noopener noreferrer"
           data-testid="property-inline-link"
-          onClick={(e) => dispatchExternalLinkClick(e, seg.url)}
-          onAuxClick={(e) => {
-            if (e.button === 1) dispatchExternalLinkClick(e, seg.url);
-          }}
           title={seg.url}
           className={cn(
             'text-link underline decoration-link/40 underline-offset-2 hover:decoration-link',
@@ -82,10 +77,6 @@ function renderSegment(seg: PropertyInlineSegment, index: number): ReactNode {
           target="_blank"
           rel="noopener noreferrer"
           data-testid="property-inline-autolink"
-          onClick={(e) => dispatchExternalLinkClick(e, seg.url)}
-          onAuxClick={(e) => {
-            if (e.button === 1) dispatchExternalLinkClick(e, seg.url);
-          }}
           title={seg.url}
           className={cn(
             'text-link underline decoration-link/40 underline-offset-2 hover:decoration-link',

@@ -4,9 +4,7 @@ import {
   applyDuplicateToDocuments,
   applyRenameToDocuments,
   buildRenamedNodePath,
-  buildTrashAbsPath,
   canonicalizeAssetTargetForDelete,
-  type FileTreeTarget,
   isValidNodeName,
   normalizeRenameValue,
   remapActiveDocName,
@@ -309,76 +307,5 @@ describe('file-tree-operations', () => {
     expect(
       remapActiveDocName('README', [{ fromDocName: 'docs/notes', toDocName: 'docs/renamed' }]),
     ).toBe('README');
-  });
-
-  describe('buildTrashAbsPath', () => {
-    const posixWorkspace: { contentDir: string; pathSeparator: '/' | '\\' } = {
-      contentDir: '/workspace',
-      pathSeparator: '/',
-    };
-
-    test('.md file in a plain folder — restores the .md suffix on the absolute path', () => {
-      const target: FileTreeTarget = {
-        kind: 'file',
-        path: 'notes/USER',
-        name: 'USER',
-        docExt: '.md',
-      };
-      expect(buildTrashAbsPath(target, posixWorkspace)).toBe('/workspace/notes/USER.md');
-    });
-
-    test('.mdx file in a plain folder — restores the .mdx suffix', () => {
-      const target: FileTreeTarget = {
-        kind: 'file',
-        path: 'docs/guide',
-        name: 'guide',
-        docExt: '.mdx',
-      };
-      expect(buildTrashAbsPath(target, posixWorkspace)).toBe('/workspace/docs/guide.mdx');
-    });
-
-    test('.md file in a folder containing `+` — the user-reported case', () => {
-      const target: FileTreeTarget = {
-        kind: 'file',
-        path: 'TLA+/USER',
-        name: 'USER',
-        docExt: '.md',
-      };
-      expect(buildTrashAbsPath(target, posixWorkspace)).toBe('/workspace/TLA+/USER.md');
-    });
-
-    test('folder target — path passes through unchanged (no extension to restore)', () => {
-      const target: FileTreeTarget = {
-        kind: 'folder',
-        path: 'docs/archive',
-        name: 'archive',
-      };
-      expect(buildTrashAbsPath(target, posixWorkspace)).toBe('/workspace/docs/archive');
-    });
-
-    test('asset (e.g. .png) path passes through unchanged', () => {
-      const target: FileTreeTarget = {
-        kind: 'asset',
-        path: 'docs/photo.png',
-        name: 'photo.png',
-      };
-      expect(buildTrashAbsPath(target, posixWorkspace)).toBe('/workspace/docs/photo.png');
-    });
-
-    test('Windows-shaped workspace — relative POSIX path is converted to backslashes', () => {
-      const target: FileTreeTarget = {
-        kind: 'file',
-        path: 'notes/USER',
-        name: 'USER',
-        docExt: '.md',
-      };
-      const winWorkspace: { contentDir: string; pathSeparator: '/' | '\\' } = {
-        contentDir: 'C:\\Users\\me\\workspace',
-        pathSeparator: '\\',
-      };
-      expect(buildTrashAbsPath(target, winWorkspace)).toBe(
-        'C:\\Users\\me\\workspace\\notes\\USER.md',
-      );
-    });
   });
 });

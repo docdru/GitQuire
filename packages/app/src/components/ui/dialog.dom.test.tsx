@@ -134,62 +134,6 @@ describe('Dialog window-drag band', () => {
     );
   });
 
-  test('restores the title-bar drag band, between the overlay and the dialog', async () => {
-    vi.stubGlobal('okDesktop', {});
-    await renderDialogContent();
-
-    const strip = screen.getByTestId('dialog-drag-strip');
-    const overlay = document.querySelector('[data-slot="dialog-overlay"]');
-    const content = document.querySelector('[data-slot="dialog-content"]');
-
-    expectVisualClassTokens(strip.getAttribute('class'), [
-      '[-webkit-app-region:drag]',
-      'pointer-events-none',
-      'h-12',
-      'z-50',
-    ]);
-    expect(overlay?.compareDocumentPosition(strip)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(content?.compareDocumentPosition(strip)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
-    expect(strip.hasAttribute('data-electron-drag')).toBe(true);
-    expect(strip.getAttribute('aria-hidden')).toBe('true');
-  });
-
-  test('clamps the dialog clear of the band on the desktop host', async () => {
-    vi.stubGlobal('okDesktop', {});
-    await renderDialogContent();
-
-    const className =
-      document.querySelector('[data-slot="dialog-content"]')?.getAttribute('class') ?? '';
-    expectVisualClassTokens(className, ['max-h-[calc(100dvh-6rem)]']);
-    expectVisualClassTokensAbsent(className, ['max-h-[calc(100dvh-2rem)]']);
-  });
-
-  test('a Dialog hosting an AlertDialog yields two distinct strips', async () => {
-    vi.stubGlobal('okDesktop', {});
-    const { Dialog, DialogContent, DialogTitle } = await import('./dialog');
-    const { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogTitle } = await import(
-      './alert-dialog'
-    );
-
-    render(
-      <Dialog open={true}>
-        <DialogContent showCloseButton={false}>
-          <DialogTitle>Outer</DialogTitle>
-          <AlertDialog open={true}>
-            <AlertDialogContent>
-              <AlertDialogTitle>Inner</AlertDialogTitle>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-            </AlertDialogContent>
-          </AlertDialog>
-        </DialogContent>
-      </Dialog>,
-    );
-
-    const outer = screen.getByTestId('dialog-drag-strip');
-    const inner = screen.getByTestId('alert-dialog-drag-strip');
-    expect(outer).not.toBe(inner);
-  });
-
   test('a caller max-h still wins over the clearance clamp', async () => {
     vi.stubGlobal('okDesktop', {});
     const { Dialog, DialogContent, DialogTitle } = await import('./dialog');

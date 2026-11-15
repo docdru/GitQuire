@@ -5,9 +5,7 @@ import {
 } from '@inkeep/open-knowledge-core/constants/product';
 
 function rendererDesktopProduct(): DesktopProduct {
-  return desktopProductForCliCommand(
-    typeof window === 'undefined' ? null : window.okDesktop?.cliCommandName,
-  );
+  return desktopProductForCliCommand(null);
 }
 
 export function okCliCommandName(): string {
