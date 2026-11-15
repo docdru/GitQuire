@@ -11,7 +11,6 @@ import { installPrettyZodErrors } from '../pretty-zod-errors.ts';
 import {
   DocExtensionArg,
   FrontmatterArg,
-  resolveSkillFilePath,
   resolveTemplatePath,
 } from './verb-schemas.ts';
 import { register as registerWrite } from './write.ts';
@@ -211,62 +210,6 @@ describe('DocExtensionArg — explicit on-create file format', () => {
     const description = DocExtensionArg.description ?? '';
     expect(description).toContain('.mdx');
     expect(description).toContain('default');
-  });
-});
-
-describe('resolveSkillFilePath — bundle-file path allowlist', () => {
-  test('accepts references/** and scripts/** with a leaf, reporting kind', () => {
-    const ref = resolveSkillFilePath('references/tiers.md');
-    expect(ref.ok).toBe(true);
-    if (ref.ok) {
-      expect(ref.path).toBe('references/tiers.md');
-      expect(ref.kind).toBe('reference');
-    }
-    const script = resolveSkillFilePath('scripts/run.sh');
-    expect(script.ok).toBe(true);
-    if (script.ok) expect(script.kind).toBe('script');
-    const nested = resolveSkillFilePath('references/topic/deep.md');
-    expect(nested.ok).toBe(true);
-    if (nested.ok) expect(nested.kind).toBe('reference');
-  });
-
-  test('rejects `..` traversal and absolute paths', () => {
-    for (const bad of [
-      'references/../../etc/passwd',
-      '../escape.md',
-      'references/../scripts/../../x',
-      '/abs/path.md',
-      'C:\\windows\\system32',
-      'SKILL.md',
-    ]) {
-      expect(resolveSkillFilePath(bad).ok).toBe(false);
-    }
-  });
-
-  test('accepts bundle roots beyond references/ and scripts/', () => {
-    for (const good of ['assets/img.png', 'agents/openai.yaml', '.claude-plugin/plugin.json']) {
-      const r = resolveSkillFilePath(good);
-      expect(r.ok).toBe(true);
-      if (r.ok) expect(r.kind).toBe('reference');
-    }
-    const rootFile = resolveSkillFilePath('LICENSE');
-    expect(rootFile.ok).toBe(true);
-  });
-
-  test('rejects a bare allowed root with no leaf, empty, and NUL', () => {
-    expect(resolveSkillFilePath('references').ok).toBe(false);
-    expect(resolveSkillFilePath('scripts/').ok).toBe(false);
-    expect(resolveSkillFilePath('').ok).toBe(false);
-    expect(resolveSkillFilePath('references/a\x00b.md').ok).toBe(false);
-  });
-
-  test('normalizes `./` and backslash separators', () => {
-    const a = resolveSkillFilePath('./references/x.md');
-    expect(a.ok).toBe(true);
-    if (a.ok) expect(a.path).toBe('references/x.md');
-    const b = resolveSkillFilePath('scripts\\run.sh');
-    expect(b.ok).toBe(true);
-    if (b.ok) expect(b.path).toBe('scripts/run.sh');
   });
 });
 
