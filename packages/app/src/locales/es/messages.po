@@ -28,15 +28,6 @@ msgstr "— excepto"
 msgid ".ok folders"
 msgstr "Carpetas .ok"
 
-msgid "\"{0}\""
-msgstr "«{0}»"
-
-msgid "\"{0}\" install refreshed ({1})"
-msgstr "Se actualizó la instalación de \"{0}\" ({1})"
-
-msgid "\"{0}\" is ignored by git"
-msgstr "«{0}» está ignorado por git"
-
 msgid "\"{0}\" is live."
 msgstr ""
 
@@ -45,12 +36,6 @@ msgstr ""
 
 msgid "\"{0}\" is ready for review. {1} will be notified."
 msgstr ""
-
-msgid "\"{0}\" was already added (identical content)."
-msgstr "\"{0}\" ya se había añadido (contenido idéntico)."
-
-msgid "\"{0}\" was already imported (identical content)."
-msgstr "\"{0}\" ya se había importado (contenido idéntico)."
 
 msgid "\"{0}\" was discarded."
 msgstr ""
@@ -70,9 +55,6 @@ msgstr "\"{docName}\" tardó demasiado. Revisa tu conexión."
 msgid "\"{name}\""
 msgstr "\"{name}\""
 
-msgid "\"{name}\" is already up to date"
-msgstr "\"{name}\" ya está al día"
-
 msgid "\"{trimmed}\" already exists here"
 msgstr "\"{trimmed}\" ya existe aquí"
 
@@ -81,9 +63,6 @@ msgstr "\"frontmatter\" es un nombre de propiedad reservado"
 
 msgid "(a bare folder name needs /** after it to match what's inside)"
 msgstr "(un nombre de carpeta solo necesita /** después para coincidir con su contenido)"
-
-msgid "(binary file, not previewable)"
-msgstr "(archivo binario, sin vista previa)"
 
 msgid "(failed)"
 msgstr ""
@@ -108,9 +87,6 @@ msgstr "(raíz)"
 
 msgid "(some may already be hidden by other rules)"
 msgstr "(puede que otras reglas ya oculten algunos)"
-
-msgid "(symlink)"
-msgstr "(enlace simbólico)"
 
 msgid "{0, plural, one {# backlink} other {# backlinks}}"
 msgstr "{0, plural, one {# retroenlace} many {# retroenlaces} other {# retroenlaces}}"
@@ -172,9 +148,6 @@ msgstr "{0, plural, one {Archivo} many {Archivos} other {Archivos}}"
 msgid "{0, plural, one {Folder} other {Folders}}"
 msgstr "{0, plural, one {Carpeta} many {Carpetas} other {Carpetas}}"
 
-msgid "{0, plural, one {Install # skill} other {Install # skills}}"
-msgstr "{0, plural, one {Instalar # habilidad} many {Instalar # de habilidades} other {Instalar # habilidades}}"
-
 msgid "{0, plural, one {Matches {1} of {2} doc right now.} other {Matches {3} of {4} docs right now.}}"
 msgstr "{0, plural, one {Ahora mismo coincide con {1} de {2} documento.} many {Ahora mismo coincide con {3} de {4} documentos.} other {Ahora mismo coincide con {3} de {4} documentos.}}"
 
@@ -193,9 +166,6 @@ msgstr "{0, plural, one {Habilidad} many {Habilidades} other {Habilidades}}"
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
-msgid "{0} (opens in a new tab)"
-msgstr "{0} (se abre en una pestaña nueva)"
-
 msgid "{0} added, {1} removed"
 msgstr "{0} añadidos, {1} eliminados"
 
@@ -208,12 +178,6 @@ msgstr "{0} está sobre {destination}."
 msgid "{0} of {1} projects selected"
 msgstr "{0} de {1} proyectos seleccionados"
 
-msgid "{0} of {1} selected"
-msgstr "{0} de {1} seleccionados"
-
-msgid "{0} other skills by this publisher"
-msgstr "{0} habilidades más de este editor"
-
 msgid "{0} pages changed"
 msgstr ""
 
@@ -222,9 +186,6 @@ msgstr ""
 
 msgid "{0} Properties"
 msgstr "Propiedades de {0}"
-
-msgid "{0} reads this skill via {poolRootRel}. Click to stop {1} getting \"{2}\" — {subRoot} keeps its other skills but stops following {poolRootRel}."
-msgstr "{0} lee esta habilidad a través de {poolRootRel}. Haz clic para que {1} deje de recibir \"{2}\": {subRoot} conserva sus demás habilidades pero deja de seguir a {poolRootRel}."
 
 msgid "{0} unchanged paragraphs"
 msgstr ""
@@ -267,15 +228,6 @@ msgstr "{basename} — editor de texto"
 
 msgid "{behind} behind"
 msgstr "{behind} por detrás"
-
-msgid "{boldName} is a symlink — its editable source is <0>{0}</0>. Edit the file there; this skill view is read-only."
-msgstr "{boldName} es un enlace simbólico; su fuente editable es <0>{0}</0>. Edita el archivo allí; esta vista de la skill es de solo lectura."
-
-msgid "{boldName} is part of the <0>{0}</0> plugin{pluginVersion} — read-only. {boldHarness} replaces plugin files on update."
-msgstr "{boldName} forma parte del complemento <0>{0}</0>{pluginVersion}: es de solo lectura. {boldHarness} reemplaza los archivos del complemento al actualizar."
-
-msgid "{boldName} lives outside this project, at <0>{source}</0> — agents running here can't load it. Copy it in to edit."
-msgstr "{boldName} está fuera de este proyecto, en <0>{source}</0>: los agentes que se ejecutan aquí no pueden cargarlo. Cópialo aquí para editarlo."
 
 msgid "{chars, plural, one {char} other {chars}}"
 msgstr "{chars, plural, one {carácter} many {caracteres} other {caracteres}}"
@@ -364,12 +316,6 @@ msgstr "hace {diffHrs} h"
 msgid "{diffMin}m ago"
 msgstr "hace {diffMin} min"
 
-msgid "{display} is a symlink to the source while the skill's other locations are copies. Click to make it an independent copy."
-msgstr "{display} es un enlace simbólico al origen, mientras que las demás ubicaciones de la habilidad son copias. Haz clic para convertirlo en una copia independiente."
-
-msgid "{display} is an independent copy while the skill's other locations are symlinks. Click to make it a symlink to the source."
-msgstr "{display} es una copia independiente, mientras que las demás ubicaciones de la habilidad son enlaces simbólicos. Haz clic para convertirlo en un enlace simbólico al origen."
-
 msgid "{docName} is {0}. GitQuire currently opens files up to {1}."
 msgstr "{docName} ocupa {0}. Por ahora GitQuire abre archivos de hasta {1}."
 
@@ -404,9 +350,6 @@ msgstr "{fileCount, plural, one {# archivo} many {# archivos} other {# archivos}
 msgid "{fileCount, plural, one {file} other {files}}"
 msgstr "{fileCount, plural, one {archivo} many {archivos} other {archivos}}"
 
-msgid "{filePath} is no longer in this skill"
-msgstr "{filePath} ya no está en esta skill"
-
 msgid "{folderCount, plural, one {folder} other {folders}}"
 msgstr "{folderCount, plural, one {carpeta} many {carpetas} other {carpetas}}"
 
@@ -439,9 +382,6 @@ msgstr "Valor de {keyName}"
 
 msgid "{label} ({0})"
 msgstr "{label} ({0})"
-
-msgid "{label} already loads \"{0}\" from the {1} plugin. Installing here puts a copy at {2} that {label} uses instead of the plugin's — it stops tracking plugin updates."
-msgstr "{label} ya carga \"{0}\" desde el plugin {1}. Instalar aquí crea una copia en {2} que {label} usa en lugar de la del plugin; deja de seguir las actualizaciones del plugin."
 
 msgid "{label} enabled"
 msgstr "{label} activado"
@@ -515,9 +455,6 @@ msgstr ""
 msgid "{percent}% from top"
 msgstr "{percent}% desde arriba"
 
-msgid "{plugin} ships {0} other skills"
-msgstr "{plugin} incluye {0} habilidades más"
-
 msgid "{pluginCount, plural, one {plugin} other {plugins}}"
 msgstr "{pluginCount, plural, one {complemento} many {complementos} other {complementos}}"
 
@@ -545,9 +482,6 @@ msgstr "Propiedades de {settingsDescriptorLabel}"
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
 
-msgid "{shown} and {more} more"
-msgstr "{shown} y {more} más"
-
 msgid "{skillCount, plural, one {skill} other {skills}}"
 msgstr "{skillCount, plural, one {habilidad} many {habilidades} other {habilidades}}"
 
@@ -556,12 +490,6 @@ msgstr "Color de {slot} — {0}"
 
 msgid "{slot} hex value"
 msgstr "Valor hexadecimal de {slot}"
-
-msgid "{source}: {updated} updated, {upToDate} already up to date"
-msgstr "{source}: {updated} actualizados, {upToDate} ya actualizados"
-
-msgid "{source}: {updated} updated, {upToDate} already up to date, {failed} failed — {detail}"
-msgstr "{source}: {updated} actualizados, {upToDate} ya actualizados, {failed} fallidos — {detail}"
 
 msgid "{strandedCommitCount, plural, one {You have 1 change you haven't shared. It will stay on this computer.} other {You have # changes you haven't shared. They will stay on this computer.}}"
 msgstr "{strandedCommitCount, plural, one {Tienes 1 cambio sin compartir. Se quedará en este equipo.} many {Tienes # cambios sin compartir. Se quedarán en este equipo.} other {Tienes # cambios sin compartir. Se quedarán en este equipo.}}"
@@ -697,18 +625,6 @@ msgstr "La etiqueta <0>Modificada</0> marca las reglas que tu configuración def
 msgid "A board needs a property that several pages share, with a few different values, such as \"status: To do\" and \"status: Done\"."
 msgstr ""
 
-msgid "A copy is a real folder of its own, and OK keeps it in step with the source: edit the skill here and every copy is refreshed. That stops the moment you hand-edit a copy outside OK — from then on it goes its own way and shows up as a separate skill."
-msgstr "Una copia es una carpeta propia, y OK la mantiene alineada con el origen: edita la habilidad aquí y todas las copias se actualizan. Eso se detiene en cuanto editas a mano una copia fuera de OK; a partir de ahí sigue su propio camino y aparece como una habilidad aparte."
-
-msgid "A copy is a real folder of its own, and OK keeps it in step with the source: edit the skill here and every copy is refreshed. That stops the moment you hand-edit a copy outside OK — from then on it goes its own way and shows up as a separate skill. A symlink is a pointer to the source instead, so nothing can drift, but a location stops working if the source is deleted."
-msgstr "Una copia es una carpeta propia, y OK la mantiene alineada con el origen: edita la habilidad aquí y todas las copias se actualizan. Eso se detiene en cuanto editas a mano una copia fuera de OK; a partir de ahí sigue su propio camino y aparece como una habilidad aparte. Un enlace simbólico, en cambio, apunta al origen, así que nada se desvía, pero una ubicación deja de funcionar si se elimina el origen."
-
-msgid "A copy may remain in {scopeLabel} for: {names}. Don't delete anything there before comparing it with the original: it may hold the only copy of files a failed move already removed."
-msgstr "Puede quedar una copia en {scopeLabel} de: {names}. No elimines nada de ahí antes de compararlo con el original: puede contener la única copia de los archivos que un movimiento fallido ya eliminó."
-
-msgid "A copy of \"{name}\" was kept in {scopeLabel} on purpose. Don't delete it before comparing it with the original: it may hold the only copy of files the failed move already removed."
-msgstr "Se conservó a propósito una copia de «{name}» en {scopeLabel}. No la elimines antes de compararla con el original: puede contener la única copia de los archivos que el movimiento fallido ya eliminó."
-
 msgid "A deletion in {fileName} was undone because the same text was changed on the other side."
 msgstr "Se deshizo una eliminación en {fileName} porque el mismo texto se cambió en el otro lado."
 
@@ -717,9 +633,6 @@ msgstr "Se deshizo una eliminación en {fileName} porque el mismo texto se cambi
 
 msgid "A deletion in {fileName} was undone because the same text was changed on the other side. The earlier versions were saved to the document's history."
 msgstr "Se deshizo una eliminación en {fileName} porque el mismo texto se cambió en el otro lado. Las versiones anteriores se guardaron en el historial del documento."
-
-msgid "A DIFFERENT skill named like this one lives at {0} — that folder is not this skill. Rename or delete one of the two to resolve."
-msgstr "En {0} vive una habilidad DISTINTA con un nombre parecido a esta; esa carpeta no es esta habilidad. Cambia el nombre o elimina una de las dos para resolverlo."
 
 msgid "A document has a conflict — resolve it to keep it up to date."
 msgstr "Un documento tiene un conflicto: resuélvelo para mantenerlo al día."
@@ -748,17 +661,11 @@ msgstr "Puede que se haya desplegado una versión más reciente desde que se abr
 msgid "A page with that name exists. Choose another name."
 msgstr ""
 
-msgid "A path inside the skill — any folder works (e.g. references/notes.md). Folders in the path are created for you."
-msgstr "Una ruta dentro de la habilidad; cualquier carpeta sirve (p. ej. references/notes.md). Las carpetas de la ruta se crean automáticamente."
-
 msgid "A personal color-theme picker — not shared with your project. When on, it appears under Plugins in the sidebar."
 msgstr "Un selector de tema de color personal, no compartido con tu proyecto. Al activarlo aparece en Complementos, en la barra lateral."
 
 msgid "A pull quote stands out from the surrounding text."
 msgstr "Una cita destacada resalta sobre el texto que la rodea."
-
-msgid "A redundant copy was kept in {scopeLabel} for: {names}. Each original was verified unchanged, so remove those copies and retry the move."
-msgstr "Se conservó una copia redundante en {scopeLabel} de: {names}. Se verificó que cada original no cambió, así que elimina esas copias y vuelve a intentar el movimiento."
 
 msgid "A reusable starting point for new documents in this folder."
 msgstr "Un punto de partida reutilizable para los documentos nuevos de esta carpeta."
@@ -766,20 +673,11 @@ msgstr "Un punto de partida reutilizable para los documentos nuevos de esta carp
 msgid "A saved theme already uses this name."
 msgstr "Ya existe un tema guardado con este nombre."
 
-msgid "A second skill with this name — rename it (or delete one) to manage it fully."
-msgstr "Una segunda habilidad tiene este nombre — cámbiale el nombre (o elimina una) para gestionarla por completo."
-
 msgid "A short line shown under the title in the template list."
 msgstr "Una línea breve que aparece bajo el título en la lista de plantillas."
 
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "Un sitio sencillo para escribir, con un archivo por tema y un diario. Elige esto si solo quieres empezar a escribir y dejar que los enlaces entre notas surjan con el tiempo."
-
-msgid "A skill with that name already exists."
-msgstr "Ya existe una habilidad con ese nombre."
-
-msgid "A symlink is a pointer to the source folder rather than a folder of its own. Every location reads the exact same bytes, so nothing can drift, and a location stops working if the source is deleted."
-msgstr "Un enlace simbólico apunta a la carpeta de origen en lugar de ser una carpeta propia. Todas las ubicaciones leen exactamente los mismos bytes, así que nada se desvía, y una ubicación deja de funcionar si se elimina el origen."
 
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "Ya existe aquí una plantilla llamada <0>{trimmedSlug}</0>. Al guardar se crea una copia local que la sustituye en esta carpeta."
@@ -877,9 +775,6 @@ msgstr "Añadir"
 msgid "Add a comment. Type @ to mention someone."
 msgstr ""
 
-msgid "Add a file name (e.g. notes.md)"
-msgstr "Añade un nombre de archivo (p. ej., notes.md)"
-
 msgid "Add a host"
 msgstr "Agregar un host"
 
@@ -961,9 +856,6 @@ msgstr "Añadir etiqueta"
 msgid "Add the next matching source selection."
 msgstr "Añade la siguiente coincidencia de la selección de origen."
 
-msgid "Add to {gitignorePath}"
-msgstr "Añadir a {gitignorePath}"
-
 msgid "Add token"
 msgstr "Añadir token"
 
@@ -978,9 +870,6 @@ msgstr "Añadido"
 
 msgid "Adding"
 msgstr "Añadiendo"
-
-msgid "Adds the skill to {rootRel} — also read by {0}"
-msgstr "Añade la habilidad a {rootRel}, que también lee {0}"
 
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "Ajusta el tamaño y el tiempo de espera de las solicitudes de indexación para servidores de embeddings lentos o con poca memoria. La mayoría de las configuraciones deberían mantener los valores predeterminados."
@@ -1033,12 +922,6 @@ msgstr "Alinear a la izquierda"
 msgid "Align right"
 msgstr "Alinear a la derecha"
 
-msgid "Aligned {editor} to the source (its bytes are backed up)"
-msgstr "Se alineó {editor} con el código fuente (se hizo copia de seguridad de sus bytes)"
-
-msgid "All"
-msgstr "Todo"
-
 msgid "All action items done"
 msgstr ""
 
@@ -1086,12 +969,6 @@ msgstr "Ya cubierta por una carpeta principal seleccionada"
 
 msgid "Already have a git repository? Add it with <0>git remote add origin <url></0> in this project's folder. This page updates automatically once a remote is detected."
 msgstr "¿Ya tienes un repositorio git? Añádelo con <0>git remote add origin <url></0> en la carpeta de este proyecto. Esta página se actualiza automáticamente en cuanto se detecta un remoto."
-
-msgid "Already in project"
-msgstr "Ya está en el proyecto"
-
-msgid "Already installed — nothing new to import."
-msgstr "Ya está instalado: no hay nada nuevo que importar."
 
 msgid "Already open"
 msgstr "Ya está abierto"
@@ -1330,29 +1207,8 @@ msgstr "La sincronización automática está en pausa: no tienes permiso para ha
 msgid "Auto-sync periodically fetches, pulls, and pushes commits to your remote git repository so your edits stay in sync across machines."
 msgstr "La sincronización automática hace fetch, pull y push de commits a tu repositorio git remoto cada cierto tiempo para que tus ediciones sigan sincronizadas entre equipos."
 
-msgid "Auto-update"
-msgstr "Actualización automática"
-
-msgid "Auto-update from source"
-msgstr "Actualizar automáticamente desde el origen"
-
-msgid "Auto-update is off — use Update to pull new versions"
-msgstr "La actualización automática está desactivada: usa Actualizar para traer versiones nuevas"
-
-msgid "Auto-update off for \"{name}\""
-msgstr "Actualización automática desactivada para \"{name}\""
-
-msgid "Auto-update on for \"{name}\""
-msgstr "Actualización automática activada para \"{name}\""
-
 msgid "Available"
 msgstr "Disponible"
-
-msgid "Available in"
-msgstr "Disponible en"
-
-msgid "Available in every project on this machine. Not shared through git."
-msgstr "Disponible en todos los proyectos de este equipo. No se comparte por git."
 
 msgid "Back"
 msgstr "Atrás"
@@ -1545,9 +1401,6 @@ msgstr ""
 msgid "changed outside"
 msgstr "modificado fuera"
 
-msgid "Changed outside OK since it last wrote here — the state shown is what's on disk now"
-msgstr "Se modificó fuera de OK desde la última vez que escribió aquí; el estado que se muestra es el que hay ahora en el disco"
-
 msgid "Changes"
 msgstr ""
 
@@ -1603,9 +1456,6 @@ msgstr "Comprobado por: {0}"
 msgid "Checked pages"
 msgstr ""
 
-msgid "Checking"
-msgstr "Comprobando"
-
 msgid "Checking for updates"
 msgstr "Buscando actualizaciones"
 
@@ -1617,9 +1467,6 @@ msgstr "Extrayendo archivos"
 
 msgid "Checking sign-in status"
 msgstr "Comprobando el estado de la sesión"
-
-msgid "Checking skill"
-msgstr "Comprobando habilidad"
 
 msgid "Checking your GitHub connection"
 msgstr "Comprobando tu conexión con GitHub"
@@ -1701,9 +1548,6 @@ msgstr "Haz clic para añadirlos y completarlos"
 
 msgid "Click to expand"
 msgstr "Haz clic para expandir"
-
-msgid "Click to install in {label}"
-msgstr "Haz clic para instalarlo en {label}"
 
 msgid "Clone"
 msgstr "Clonar"
@@ -1837,9 +1681,6 @@ msgstr "El comando falló."
 msgid "Command palette"
 msgstr "Paleta de comandos"
 
-msgid "commands"
-msgstr "comandos"
-
 msgid "Commands"
 msgstr "Comandos"
 
@@ -1890,9 +1731,6 @@ msgstr "Configura los ajustes de usuario, de proyecto y de integraciones."
 
 msgid "Confirm"
 msgstr ""
-
-msgid "conflict"
-msgstr "conflicto"
 
 msgid "Conflict"
 msgstr "Conflicto"
@@ -1990,12 +1828,6 @@ msgstr "Convertir"
 msgid "Convert (delete original)"
 msgstr "Convertir (eliminar el original)"
 
-msgid "Convert locations to copies"
-msgstr "Convertir las ubicaciones en copias"
-
-msgid "Convert locations to symlinks"
-msgstr "Convertir las ubicaciones en enlaces simbólicos"
-
 msgid "Convert selection to footnote"
 msgstr "Convertir la selección en nota al pie"
 
@@ -2017,20 +1849,11 @@ msgstr "Se copió {selectedSlot}"
 msgid "Copied full path"
 msgstr "Ruta completa copiada"
 
-msgid "Copied path"
-msgstr "Ruta copiada"
-
 msgid "Copied relative path"
 msgstr "Ruta relativa copiada"
 
 msgid "Copied!"
 msgstr "¡Copiado!"
-
-msgid "Copies the skill to {path}"
-msgstr "Copia la habilidad en {path}"
-
-msgid "copy"
-msgstr "copiar"
 
 msgid "Copy"
 msgstr "Copiar"
@@ -2059,13 +1882,7 @@ msgstr "Copiar ruta completa"
 msgid "Copy full path, No workspace"
 msgstr "Copiar ruta completa, sin espacio de trabajo"
 
-msgid "Copy in"
-msgstr "Copiar aquí"
-
 msgid "Copy path"
-msgstr "Copiar ruta"
-
-msgid "Copy Path"
 msgstr "Copiar ruta"
 
 msgid "Copy selected file or folder"
@@ -2082,9 +1899,6 @@ msgstr "Copia el elemento enfocado del árbol de archivos para que Pegar pueda d
 
 msgid "Copy this connector address, then follow the steps for your assistant:"
 msgstr ""
-
-msgid "Copying"
-msgstr "Copiando"
 
 msgid "Copying..."
 msgstr "Copiando..."
@@ -2152,14 +1966,8 @@ msgstr ""
 msgid "Couldn't construct the share URL. Try Done and re-share."
 msgstr "No se pudo construir la URL para compartir. Pulsa Listo y vuelve a compartir."
 
-msgid "Couldn't copy path"
-msgstr "No se pudo copiar la ruta"
-
 msgid "Couldn't copy. Select the URL above to copy it manually."
 msgstr "No se pudo copiar. Selecciona la URL de arriba para copiarla a mano."
-
-msgid "Couldn't create {effective}: {0}"
-msgstr "No se pudo crear {effective}: {0}"
 
 msgid "Couldn't create template: {error}"
 msgstr "No se pudo crear la plantilla: {error}"
@@ -2173,12 +1981,6 @@ msgstr "No se pudo crear este tema. Inténtalo de nuevo."
 msgid "Couldn’t delete {0}. Try again."
 msgstr "No se pudo eliminar {0}. Inténtalo de nuevo."
 
-msgid "Couldn't delete file: {0}"
-msgstr "No se pudo eliminar el archivo: {0}"
-
-msgid "Couldn't delete skill: {error}"
-msgstr "No se pudo eliminar la habilidad: {error}"
-
 msgid "Couldn't delete template: {error}"
 msgstr "No se pudo eliminar la plantilla: {error}"
 
@@ -2190,21 +1992,6 @@ msgstr ""
 
 msgid "Couldn't disconnect — please try again."
 msgstr "No se pudo desconectar; inténtalo de nuevo."
-
-msgid "Couldn't duplicate \"{0}\": {1}"
-msgstr "No se pudo duplicar \"{0}\": {1}"
-
-msgid "Couldn't install {skillName}: {0}"
-msgstr "No se pudo instalar {skillName}: {0}"
-
-msgid "Couldn't install from {0}: {1}"
-msgstr "No se pudo instalar desde {0}: {1}"
-
-msgid "Couldn't install skill: {0}"
-msgstr "No se pudo instalar la habilidad: {0}"
-
-msgid "Couldn't install: {0}"
-msgstr "No se pudo instalar: {0}"
 
 msgid "Couldn't load {fileName}"
 msgstr "No se pudo cargar {fileName}"
@@ -2233,29 +2020,14 @@ msgstr ""
 msgid "Couldn't load the pages."
 msgstr ""
 
-msgid "Couldn't load the version preview. You can still choose how to resolve it below."
-msgstr "No se pudo cargar la vista previa de la versión. Aun así puedes elegir abajo cómo resolverlo."
-
 msgid "Couldn't mark the draft as ready."
 msgstr ""
-
-msgid "Couldn't move skill: {0}"
-msgstr "No se pudo mover la habilidad: {0}"
 
 msgid "Couldn't move the page. The board was reloaded."
 msgstr ""
 
-msgid "Couldn't open \"{name}\" — it isn't in the project's skills yet."
-msgstr "No se pudo abrir \"{name}\": todavía no está entre las habilidades del proyecto."
-
-msgid "Couldn't open \"{name}\": {0}"
-msgstr "No se pudo abrir \"{name}\": {0}"
-
 msgid "Couldn't open document"
 msgstr "No se pudo abrir el documento"
-
-msgid "Couldn't place {skillName} in {root}: {0}"
-msgstr "No se pudo colocar {skillName} en {root}: {0}"
 
 msgid "Couldn't prepare this project for publish."
 msgstr "No se pudo preparar este proyecto para publicarlo."
@@ -2290,9 +2062,6 @@ msgstr "No se pudo contactar con el servidor de GitQuire, así que las opciones 
 msgid "Couldn't read {fileName}. It may have been moved, deleted, or not finished downloading. Try adding it again."
 msgstr "No se pudo leer {fileName}. Puede que se haya movido, eliminado o que no haya terminado de descargarse. Prueba a añadirlo de nuevo."
 
-msgid "Couldn't read the {gitignorePath} rule: {previewError}"
-msgstr "No se pudo leer la regla de {gitignorePath}: {previewError}"
-
 msgid "Couldn't read the working tree. Check the server logs."
 msgstr "No se pudo leer el árbol de trabajo. Revisa los registros del servidor."
 
@@ -2302,17 +2071,11 @@ msgstr "No se pudo leer este tema ({0})"
 msgid "Couldn't reconnect after server restart"
 msgstr "No se pudo reconectar tras el reinicio del servidor"
 
-msgid "Couldn't rename \"{0}\": {1}"
-msgstr "No se pudo renombrar \"{0}\": {1}"
-
 msgid "Couldn't rename template: {0}"
 msgstr "No se pudo renombrar la plantilla: {0}"
 
 msgid "Couldn't resolve the conflict for {filePath}."
 msgstr "No se pudo resolver el conflicto de {filePath}."
-
-msgid "Couldn't resolve the fork: {0}"
-msgstr "No se pudo resolver la bifurcación: {0}"
 
 msgid "Couldn’t restore {0}. That name is already in use."
 msgstr "No se pudo restaurar {0}. Ese nombre ya está en uso."
@@ -2334,9 +2097,6 @@ msgstr ""
 
 msgid "Couldn't save the action item. The list was reloaded."
 msgstr ""
-
-msgid "Couldn't save the auto-update setting: {0}"
-msgstr "No se pudo guardar el ajuste de actualización automática: {0}"
 
 msgid "Couldn't save the comment."
 msgstr ""
@@ -2367,15 +2127,6 @@ msgstr "No se pudo cambiar a {language}."
 
 msgid "Couldn't switch views."
 msgstr ""
-
-msgid "Couldn't update {gitignorePath}: {0}"
-msgstr "No se pudo actualizar {gitignorePath}: {0}"
-
-msgid "Couldn't update {subRoot}: {0}"
-msgstr "No se pudo actualizar {subRoot}: {0}"
-
-msgid "Couldn't update from {0}: {1}"
-msgstr "No se pudo actualizar desde {0}: {1}"
 
 msgid "Couldn't update the draft."
 msgstr ""
@@ -2446,9 +2197,6 @@ msgstr "Crear plantilla"
 msgid "Create your first file"
 msgstr "Crea tu primer archivo"
 
-msgid "Created {0}"
-msgstr "Se creó {0}"
-
 msgid "Created {owner}/{name}, push failed."
 msgstr "Se creó {owner}/{name}, pero falló el envío."
 
@@ -2460,9 +2208,6 @@ msgstr "carpeta creada"
 
 msgid "created template"
 msgstr "plantilla creada"
-
-msgid "Creates the <0>{folderPart}/</0> folder"
-msgstr "Crea la carpeta <0>{folderPart}/</0>"
 
 msgid "Creating"
 msgstr "Creando"
@@ -2578,9 +2323,6 @@ msgstr "Se eliminó {0}."
 msgid "Deleted {file}"
 msgstr "Se eliminó {file}"
 
-msgid "Deleted {filePath}"
-msgstr "Se eliminó {filePath}"
-
 msgid "Deleted in this draft"
 msgstr ""
 
@@ -2590,7 +2332,6 @@ msgstr "plantilla eliminada"
 msgid "Deleting"
 msgstr "Eliminando"
 
-#. The skill's frontmatter description — the always-loaded tier
 msgid "description"
 msgstr "descripción"
 
@@ -2630,9 +2371,6 @@ msgstr "Modo de renderizado de diferencias"
 msgid "Diff unavailable"
 msgstr "No hay diferencias disponibles"
 
-msgid "Different version here — click to compare and resolve"
-msgstr "Aquí hay otra versión: haz clic para compararla y resolverla"
-
 msgid "Disable {0}"
 msgstr "Desactivar {0}"
 
@@ -2662,9 +2400,6 @@ msgstr ""
 
 msgid "Discard draft…"
 msgstr ""
-
-msgid "Discard local edits, restore the installed version"
-msgstr "Descartar las ediciones locales y restaurar la versión instalada"
 
 msgid "Discarded"
 msgstr ""
@@ -2807,9 +2542,6 @@ msgstr "Duplica el elemento del árbol de archivos copiado desde la barra latera
 msgid "Duplicate the focused file-tree item when focus is in the Files sidebar."
 msgstr "Duplica el elemento enfocado del árbol de archivos cuando el foco está en la barra lateral Archivos."
 
-msgid "Duplicated to \"{0}\""
-msgstr "Se duplicó en \"{0}\""
-
 msgid "e.g. drafts/ or *.draft.md"
 msgstr "p. ej. drafts/ o *.draft.md"
 
@@ -2842,9 +2574,6 @@ msgstr "Editar {keyName}"
 
 msgid "Edit {tag}"
 msgstr "Editar {tag}"
-
-msgid "Edit a copy"
-msgstr "Editar una copia"
 
 msgid "Edit in config file"
 msgstr "Editar en el archivo de configuración"
@@ -2888,9 +2617,6 @@ msgstr "Editado {editedAgo}"
 msgid "Edited a page"
 msgstr ""
 
-msgid "Edited locally since it was installed"
-msgstr "Editado en local desde que se instaló"
-
 msgid "edited template"
 msgstr "plantilla editada"
 
@@ -2899,9 +2625,6 @@ msgstr "editando [[{realCurrentDoc}]]"
 
 msgid "Editing {0}"
 msgstr "Editando {0}"
-
-msgid "Editing {boldName} in place. Changes save straight to your editor's copy."
-msgstr "Editando {boldName} en su sitio. Los cambios se guardan directamente en la copia de tu editor."
 
 msgid "Editing broken MDX source: {reason}"
 msgstr "Editando código MDX defectuoso: {reason}"
@@ -2999,9 +2722,6 @@ msgstr "Pizarra vacía"
 
 msgid "Empty diagram"
 msgstr "Diagrama vacío"
-
-msgid "Empty folder names aren't allowed (//)"
-msgstr "No se permiten nombres de carpeta vacíos (//)"
 
 msgid "Empty starting content"
 msgstr "Contenido inicial vacío"
@@ -3120,9 +2840,6 @@ msgstr "todos los documentos"
 
 msgid "Everyone"
 msgstr ""
-
-msgid "Everything from {source} is already up to date"
-msgstr "Todo lo de {source} ya está actualizado"
 
 msgid "everything under {0}/"
 msgstr "todo lo que hay en {0}/"
@@ -3577,14 +3294,8 @@ msgstr "Adelante"
 msgid "Forward-links response did not match expected shape."
 msgstr "La respuesta de enlaces salientes no tenía la forma esperada."
 
-msgid "From {harnessLabel}"
-msgstr "De {harnessLabel}"
-
 msgid "From template"
 msgstr "Desde plantilla"
-
-msgid "From the {0} plugin"
-msgstr "Del complemento {0}"
 
 msgid "Frontmatter"
 msgstr "frontmatter"
@@ -3596,9 +3307,6 @@ msgid "Frontmatter schemas"
 msgstr "Esquemas de frontmatter"
 
 msgid "Full path"
-msgstr "Ruta completa"
-
-msgid "Full Path"
 msgstr "Ruta completa"
 
 msgid "Game over · press <0>Space</0> to play again"
@@ -3825,9 +3533,6 @@ msgstr "Atención: editar cualquier regla u opción de aquí crea un archivo <0>
 msgid "Hello, world!"
 msgstr "¡Hola, mundo!"
 
-msgid "Helps coding agents choose OKF document types, preserve provenance, and avoid inventing unsupported metadata."
-msgstr "Ayuda a los agentes de programación a elegir tipos de documento OKF, preservar la procedencia y evitar inventar metadatos no compatibles."
-
 msgid "HI"
 msgstr "MÁX"
 
@@ -3900,9 +3605,6 @@ msgstr "Ocultar los resueltos"
 msgid "Hide sidebar"
 msgstr "Ocultar la barra lateral"
 
-msgid "Hide skill nodes"
-msgstr "Ocultar los nodos de habilidades"
-
 msgid "Hide this file"
 msgstr "Ocultar este archivo"
 
@@ -3923,9 +3625,6 @@ msgstr "Página de inicio y punto de entrada."
 
 msgid "Home page and navigation hub."
 msgstr "Página de inicio y centro de navegación."
-
-msgid "hooks"
-msgstr "hooks"
 
 msgid "Horizontal pill strip + active panel below; click a pill to switch panels."
 msgstr "Tira horizontal de pastillas con el panel activo debajo; haz clic en una pastilla para cambiar de panel."
@@ -3956,15 +3655,6 @@ msgstr ""
 
 msgid "How to push manually"
 msgstr "Cómo hacer push manualmente"
-
-msgid "How to set up new projects with GitQuire."
-msgstr "Cómo configurar nuevos proyectos con GitQuire."
-
-msgid "How to use GitQuire and its MCP tools."
-msgstr "Cómo usar GitQuire y sus herramientas MCP."
-
-msgid "How to write a new skill and install it."
-msgstr "Cómo escribir una nueva habilidad e instalarla."
 
 msgid "How validation findings surface across the project."
 msgstr "Cómo aparecen los hallazgos de validación en el proyecto."
@@ -4035,15 +3725,6 @@ msgstr "El destino de la imagen «{shown}» existe, pero .gitignore o .okignore 
 msgid "Import as template"
 msgstr "Importar como plantilla"
 
-msgid "Imported \"{0}\"."
-msgstr "Se importó \"{0}\"."
-
-msgid "Imported {importedLabel}"
-msgstr "Se importó {importedLabel}"
-
-msgid "Imported as \"{0}\" — the name \"{1}\" was taken."
-msgstr "Se importó como \"{0}\": el nombre \"{1}\" ya estaba ocupado."
-
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "En un documento de registro, los encabezados de las entradas comienzan con una fecha ISO YYYY-MM-DD y se ordenan de más reciente a más antigua. Tú decides cuántos títulos usar y si las entradas llevan viñetas."
 
@@ -4067,12 +3748,6 @@ msgstr "En proyectos Git, GitQuire también agrega una regla .gitattributes con 
 
 msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 msgstr ""
-
-msgid "In this repo — collaborators get copies via git."
-msgstr "En este repositorio: los colaboradores reciben copias mediante git."
-
-msgid "In your home folder — every project on this machine, just you."
-msgstr "En tu carpeta de inicio: todos los proyectos de esta máquina, solo para ti."
 
 msgid "Indent"
 msgstr ""
@@ -4185,71 +3860,8 @@ msgstr "Insertar fila debajo"
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "Inserta, elimina, mueve, copia y sangra líneas del editor de código con el mapa de teclas por defecto de CodeMirror."
 
-msgid "Install"
-msgstr "Instalar"
-
-msgid "Install failed: {0}"
-msgstr "Falló la instalación: {0}"
-
-msgid "Install from {plugin}"
-msgstr "Instalar desde {plugin}"
-
-msgid "Install from {source}"
-msgstr "Instalar desde {source}"
-
-msgid "Install in a shared folder?"
-msgstr "¿Instalar en una carpeta compartida?"
-
-msgid "Install into"
-msgstr "Instalar en"
-
-msgid "Install on"
-msgstr "Instalar en"
-
-msgid "Install on all agents"
-msgstr "Instalar en todos los agentes"
-
-msgid "Install skill"
-msgstr "Instalar habilidad"
-
 msgid "Install the gh CLI"
 msgstr "Instalar la CLI de gh"
-
-msgid "Install this skill"
-msgstr "Instalar esta habilidad"
-
-msgid "Installed"
-msgstr "Instalado"
-
-msgid "Installed \"{0}\" into {1}"
-msgstr "Se instaló \"{0}\" en {1}"
-
-msgid "Installed {imported} skills ({alreadyImported} were already present)"
-msgstr "Se instalaron {imported} habilidades ({alreadyImported} ya estaban)"
-
-msgid "Installed {imported} skills from {0}"
-msgstr "Se instalaron {imported} habilidades desde {0}"
-
-msgid "Installed {imported}, but {failed} failed: {failedNames}"
-msgstr "Se instalaron {imported}, pero fallaron {failed}: {failedNames}"
-
-msgid "Installed at {path} — click to remove"
-msgstr "Instalado en {path}: haz clic para quitarlo"
-
-msgid "Installed in {label} — click to remove"
-msgstr "Instalado en {label}: haz clic para quitarlo"
-
-msgid "Installing"
-msgstr "Instalando"
-
-msgid "Installs for all your projects"
-msgstr "Se instala para todos tus proyectos"
-
-msgid "Installs into this project"
-msgstr "Se instala en este proyecto"
-
-msgid "Installs the skill to {path} — the first location holds its own copy"
-msgstr "Instala la skill en {path} — la primera ubicación guarda su propia copia"
 
 msgid "Invalid color value"
 msgstr "Valor de color no válido"
@@ -4308,9 +3920,6 @@ msgstr "Dejarlo desactivado"
 msgid "Keep file deleted"
 msgstr "Mantener el archivo eliminado"
 
-msgid "Keep mine"
-msgstr "Conservar el mío"
-
 msgid "Keep my version"
 msgstr "Conservar mi versión"
 
@@ -4320,14 +3929,8 @@ msgstr "Mantener abierto"
 msgid "Keep original file"
 msgstr "Conservar el archivo original"
 
-msgid "Keep source"
-msgstr "Conservar el origen"
-
 msgid "Keep the cost under control"
 msgstr ""
-
-msgid "Keep the name to 64 characters or fewer."
-msgstr "El nombre debe tener 64 caracteres o menos."
 
 msgid "Keep this project in sync with your git remote. Auto (Pull only) brings in updates without pushing; Auto (Pull and Push) sends your edits too. Turning auto-sync on requires confirmation."
 msgstr "Mantén este proyecto sincronizado con tu remoto de git. Automático (solo Pull) trae actualizaciones sin hacer push; Automático (Pull y Push) también envía tus ediciones. Activar la sincronización automática requiere confirmación."
@@ -4340,9 +3943,6 @@ msgstr ""
 
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "Mantiene tu base de conocimientos alineada con el Open Knowledge Format."
-
-msgid "Kept both — \"{0}\" is its own skill now"
-msgstr "Se conservaron ambos: \"{0}\" ahora es una habilidad aparte"
 
 msgid "Kept your content"
 msgstr "Tu contenido se conservó"
@@ -4406,9 +4006,6 @@ msgstr "Permitir que el tabulador salga del editor de código en lugar de sangra
 
 msgid "Let us follow up by email"
 msgstr "Permítenos escribirte por correo"
-
-msgid "Level"
-msgstr "Nivel"
 
 msgid "Light"
 msgstr "Claro"
@@ -4503,9 +4100,6 @@ msgstr "Listas"
 msgid "Live wiki"
 msgstr ""
 
-msgid "Lives in this project (wherever the skill's folder is) and is shared with collaborators through git."
-msgstr "Vive en este proyecto (esté donde esté la carpeta de la habilidad) y se comparte con tus colaboradores mediante git."
-
 msgid "Loading"
 msgstr "Cargando"
 
@@ -4514,9 +4108,6 @@ msgstr "Cargando {fileName}"
 
 msgid "Loading agent activity"
 msgstr "Cargando la actividad del agente"
-
-msgid "Loading both versions"
-msgstr "Cargando ambas versiones"
 
 msgid "Loading conflict for {filePath}"
 msgstr "Cargando el conflicto de {filePath}"
@@ -4629,12 +4220,6 @@ msgstr "¿Mantener índices generados en cada carpeta?"
 msgid "Maintain index.md"
 msgstr "Mantener index.md"
 
-msgid "make source"
-msgstr "convertir en origen"
-
-msgid "Make this the source — the skill's real folder moves here"
-msgstr "Convertir esto en el origen: la carpeta real de la habilidad se traslada aquí"
-
 msgid "Malformed apply response"
 msgstr "Respuesta de aplicación con formato incorrecto"
 
@@ -4697,9 +4282,6 @@ msgstr "Máximo de fragmentos de texto por solicitud de indexación"
 
 msgid "MCP"
 msgstr ""
-
-msgid "MCP servers"
-msgstr "Servidores MCP"
 
 msgid "Me (@{mine})"
 msgstr ""
@@ -4812,17 +4394,11 @@ msgstr ""
 msgid "More requests were blocked."
 msgstr "Se bloquearon más solicitudes."
 
-msgid "More skill actions"
-msgstr "Más acciones de habilidad"
-
 msgid "More than {0} requests were blocked by the preview's security policy"
 msgstr "La política de seguridad de la vista previa bloqueó más de {0} solicitudes"
 
 msgid "Most capable, costs more"
 msgstr ""
-
-msgid "Move"
-msgstr "Mover"
 
 msgid "Move \"{title}\" to"
 msgstr ""
@@ -4878,9 +4454,6 @@ msgstr ""
 msgid "Move my recent edits to a draft…"
 msgstr ""
 
-msgid "Move or rename this file inside the skill — the path stays under references/ or scripts/."
-msgstr "Mueve o renombra este archivo dentro de la habilidad: la ruta se mantiene bajo references/ o scripts/."
-
 msgid "Move succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "Se movió correctamente, pero puede que la barra lateral esté desactualizada; actualízala para resincronizar"
 
@@ -4907,12 +4480,6 @@ msgstr "Recorre las sugerencias de barra, enlace wiki, etiqueta y ruta; acepta o
 
 msgid "Move through visual-editor find results from the find field."
 msgstr "Recorre los resultados de búsqueda del editor visual desde el campo de búsqueda."
-
-msgid "Move to {0}"
-msgstr "Mover a {0}"
-
-msgid "Move to {0}?"
-msgstr "¿Mover a {0}?"
 
 msgid "Move to new pane left"
 msgstr "Mover a un panel nuevo a la izquierda"
@@ -4941,9 +4508,6 @@ msgstr "Mover a la Papelera"
 msgid "Move up"
 msgstr "Subir"
 
-msgid "Moved \"{0}\" to {1}"
-msgstr "Se movió \"{0}\" a {1}"
-
 msgid "Moved {0} to {destination}."
 msgstr "Se movió {0} a {destination}."
 
@@ -4952,9 +4516,6 @@ msgstr "Se movió {label} a un panel nuevo a la izquierda."
 
 msgid "Moved {label} to a new pane on the right."
 msgstr "Se movió {label} a un panel nuevo a la derecha."
-
-msgid "Moved {moved} of {total} skills to {scopeLabel}"
-msgstr "{moved} de {total} habilidades movidas a {scopeLabel}"
 
 msgid "Moved a page"
 msgstr ""
@@ -5055,9 +4616,6 @@ msgstr "Archivo nuevo a partir de la plantilla \"{displayTitle}\" ({fileName}) e
 msgid "New file from template \"{displayTitle}\" ({fileName}) in the project root"
 msgstr "Archivo nuevo a partir de la plantilla \"{displayTitle}\" ({fileName}) en la raíz del proyecto"
 
-msgid "New file in this skill"
-msgstr "Archivo nuevo en esta habilidad"
-
 msgid "New folder"
 msgstr "Carpeta nueva"
 
@@ -5076,9 +4634,6 @@ msgstr ""
 msgid "New mentions are emailed to {0}"
 msgstr ""
 
-msgid "New name for the {editor} version"
-msgstr "Nombre nuevo para la versión de {editor}"
-
 msgid "New page"
 msgstr ""
 
@@ -5087,9 +4642,6 @@ msgstr "Nombre de la propiedad nueva"
 
 msgid "New schema"
 msgstr "Esquema nuevo"
-
-msgid "New skill file"
-msgstr "Archivo de habilidad nuevo"
 
 msgid "New tab"
 msgstr "Pestaña nueva"
@@ -5120,12 +4672,6 @@ msgstr ""
 
 msgid "No active or recent GitQuire projects were found."
 msgstr "No se encontró ningún proyecto de GitQuire activo ni reciente."
-
-msgid "No agent folders yet"
-msgstr "Aún no hay carpetas de agentes"
-
-msgid "no agents — saved, not installed anywhere"
-msgstr "sin agentes — guardadas, no instaladas en ningún sitio"
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "No hay ninguna clave de API definida para este endpoint. Añade una arriba."
@@ -5340,9 +4886,6 @@ msgstr "Ningún esquema coincide con tu búsqueda."
 msgid "No settings found"
 msgstr "No se encontraron ajustes"
 
-msgid "No spaces — use <0>-</0> instead."
-msgstr "Sin espacios: usa <0>-</0> en su lugar."
-
 msgid "No starter packs available."
 msgstr "No hay paquetes iniciales disponibles."
 
@@ -5480,9 +5023,6 @@ msgstr "Sin conexión"
 
 msgid "OK Desktop"
 msgstr "OK Desktop"
-
-msgid "OKF agent skill installed"
-msgstr "Habilidad de agente OKF instalada"
 
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "Activada: al pasar el cursor por un enlace externo se envía su URL al sitio de destino para obtener una vista previa, y al pasar el cursor por una referencia de GitHub en el chat de un agente se le pide a GitHub."
@@ -5625,9 +5165,6 @@ msgstr "Abrir el grafo"
 msgid "Open in Claude"
 msgstr ""
 
-msgid "Open Knowledge Format guidance"
-msgstr "Guía de Open Knowledge Format"
-
 msgid "Open Le Chat"
 msgstr ""
 
@@ -5645,9 +5182,6 @@ msgstr "Abrir la vista previa cuando el agente edite"
 
 msgid "Open settings"
 msgstr "Abrir los ajustes"
-
-msgid "Open skill"
-msgstr "Abrir habilidad"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "Abrir el documento de origen: {mirrorSrc}"
@@ -5730,10 +5264,6 @@ msgstr "Modo huérfanos"
 msgid "Orphans"
 msgstr "Huérfanas"
 
-#. Bundled non-SKILL.md files — read only when opened
-msgid "other"
-msgstr "otros"
-
 msgid "Other"
 msgstr "Otro"
 
@@ -5757,12 +5287,6 @@ msgstr "Versión externa"
 
 msgid "Outside what GitQuire commits."
 msgstr "Fuera de lo que confirma GitQuire."
-
-msgid "over the {budgetLabel} token budget"
-msgstr "supera el presupuesto de tokens de {budgetLabel}"
-
-msgid "Over the {budgetLabel} token guidance. Everything here loads into the agent's context when the skill is used — keep it lean, or move detail into references/ files that load only on demand."
-msgstr "Por encima de la guía de {budgetLabel} tokens. Todo esto se carga en el contexto del agente cuando se usa la habilidad — manténlo ligero, o mueve el detalle a archivos references/ que se cargan solo bajo demanda."
 
 msgid "Overdue"
 msgstr ""
@@ -5878,9 +5402,6 @@ msgstr ""
 msgid "Paste your API key"
 msgstr "Pega tu clave de API"
 
-msgid "Path"
-msgstr "Ruta"
-
 msgid "Path cannot contain \"..\""
 msgstr "La ruta no puede contener \"..\""
 
@@ -5947,15 +5468,6 @@ msgstr "Elegir carpetas"
 
 msgid "Pick folders this schema applies to"
 msgstr "Elegir las carpetas a las que se aplica este esquema"
-
-msgid "Pick the skills to install. Each one lands as an editable skill you own; the plugin's hooks, commands, and MCP servers are not installed."
-msgstr "Elige las habilidades que quieres instalar. Cada una llega como una habilidad editable que es tuya; los hooks, comandos y servidores MCP del complemento no se instalan."
-
-msgid "Pick the skills to install. Each one lands as an editable skill you own."
-msgstr "Elige las habilidades que quieres instalar. Cada una llega como una habilidad editable que es tuya."
-
-msgid "Pick where your copy goes. Choosing a destination creates it."
-msgstr "Elige dónde va tu copia. Al elegir un destino, se crea."
 
 msgid "Picked up {0} from {1}."
 msgstr "Se tomó {0} de {1}."
@@ -6215,9 +5727,6 @@ msgstr "Lee este código y redacta una especificación técnica del módulo más
 msgid "Read-only copy of a MirrorSource block from another doc. Edit at the source and it updates live."
 msgstr "Copia de solo lectura de un bloque MirrorSource de otro documento. Edítalo en el origen y se actualiza en vivo."
 
-msgid "Read-only file in the {name} skill"
-msgstr "Archivo de solo lectura en la habilidad {name}"
-
 msgid "Read-only settings"
 msgstr ""
 
@@ -6244,9 +5753,6 @@ msgstr ""
 
 msgid "Recently opened"
 msgstr "Abiertos recientemente"
-
-msgid "Recommended agent skill"
-msgstr "Habilidad de agente recomendada"
 
 msgid "Reconnect required"
 msgstr "Hay que reconectar"
@@ -6282,9 +5788,6 @@ msgid "Relations"
 msgstr ""
 
 msgid "Relative path"
-msgstr "Ruta relativa"
-
-msgid "Relative Path"
 msgstr "Ruta relativa"
 
 msgid "Release plan"
@@ -6353,9 +5856,6 @@ msgstr "Quita los espacios al principio o al final de la ruta."
 msgid "Removed"
 msgstr "Eliminado"
 
-msgid "Removed \"{0}\" from every other location — its source folder still loads"
-msgstr "Se quitó \"{0}\" de todas las demás ubicaciones; su carpeta de origen se sigue cargando"
-
 msgid "Removed GitQuire files"
 msgstr "Archivos de GitQuire eliminados"
 
@@ -6371,15 +5871,6 @@ msgstr "Renombrar {keyName}"
 msgid "Rename draft"
 msgstr ""
 
-msgid "Rename failed: {0}"
-msgstr "Falló al renombrar: {0}"
-
-msgid "Rename file"
-msgstr "Renombrar el archivo"
-
-msgid "Rename skill"
-msgstr "Renombrar la habilidad"
-
 msgid "Rename succeeded but the sidebar may be out of date — refresh to resync"
 msgstr "Se renombró correctamente, pero puede que la barra lateral esté desactualizada; actualízala para resincronizar"
 
@@ -6391,18 +5882,6 @@ msgstr "Renombrado"
 
 msgid "Renamed {0} → {1}"
 msgstr "Se renombró {0} → {1}"
-
-msgid "Renamed to \"{next}\""
-msgstr "Se renombró a \"{next}\""
-
-msgid "Renamed to {0}"
-msgstr "Se renombró a {0}"
-
-msgid "Renames the folder on disk and the id agents use to invoke it."
-msgstr "Renombra la carpeta en el disco y el id con el que los agentes la invocan."
-
-msgid "Renaming"
-msgstr "Renombrando"
 
 msgid "Renaming changes the file on disk and the id agents use to pick this template."
 msgstr "Renombrarlo cambia el archivo en el disco y el id con el que los agentes eligen esta plantilla."
@@ -6457,30 +5936,6 @@ msgstr "Reemplaza la coincidencia activa con el contenido del campo de reemplazo
 
 msgid "Replace the API key"
 msgstr ""
-
-msgid "Replace the copy at {display} with a symlink to the skill's source folder? Nothing else moves."
-msgstr "¿Reemplazar la copia de {display} por un enlace simbólico a la carpeta de origen de la habilidad? No se mueve nada más."
-
-msgid "Replace the symlink at {display} with an independent copy of the skill? Nothing else moves."
-msgstr "¿Reemplazar el enlace simbólico de {display} por una copia independiente de la habilidad? No se mueve nada más."
-
-msgid "Replace these copies with symlinks to the source?"
-msgstr "¿Reemplazar estas copias por enlaces simbólicos al origen?"
-
-msgid "Replace these symlinks with independent copies?"
-msgstr "¿Reemplazar estos enlaces simbólicos por copias independientes?"
-
-msgid "Replace with a copy?"
-msgstr "¿Reemplazar por una copia?"
-
-msgid "Replace with a symlink?"
-msgstr "¿Reemplazar por un enlace simbólico?"
-
-msgid "Replace with copy"
-msgstr "Reemplazar por copia"
-
-msgid "Replace with symlink"
-msgstr "Reemplazar por enlace simbólico"
 
 msgid "Reply"
 msgstr ""
@@ -6630,21 +6085,6 @@ msgstr "Mostrar en el Finder"
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "Mostrar en Finder muestra la aplicación para que puedas arrastrarla a la Papelera."
 
-msgid "Revert"
-msgstr "Revertir"
-
-msgid "Revert failed: {0}"
-msgstr "Falló la reversión: {0}"
-
-msgid "Revert to installed version"
-msgstr "Revertir a la versión instalada"
-
-msgid "Reverted \"{name}\" to the installed version"
-msgstr "Se revirtió \"{name}\" a la versión instalada"
-
-msgid "Reverting"
-msgstr "Revirtiendo"
-
 msgid "Review"
 msgstr "Revisar"
 
@@ -6719,9 +6159,6 @@ msgstr "Las claves guardadas entran en conflicto. Introduce una clave de reempla
 
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "No se pudieron cargar los temas guardados. Se sigue mostrando la última lista de temas disponible."
-
-msgid "Saved to"
-msgstr "Guardado en"
 
 msgid "Saved view: {0}"
 msgstr ""
@@ -6849,9 +6286,6 @@ msgstr "Consulta <0>#design-docs</0> para ver las últimas especificaciones."
 msgid "See <0>Architecture</0> for the system overview."
 msgstr "Consulta <0>Arquitectura</0> para ver una visión general del sistema."
 
-msgid "See all {count} skills"
-msgstr "Ver las {count} habilidades"
-
 msgid "See what's added"
 msgstr "Ver qué se añade"
 
@@ -6963,29 +6397,8 @@ msgstr "Error del servidor: {status}"
 msgid "Server error: {status} {statusText}"
 msgstr "Error del servidor: {status} {statusText}"
 
-msgid "Server returned a malformed duplicate response."
-msgstr "El servidor devolvió una respuesta de duplicación con formato incorrecto."
-
-msgid "Server returned a malformed import response."
-msgstr "El servidor devolvió una respuesta de importación con formato incorrecto."
-
-msgid "Server returned a malformed response."
-msgstr "El servidor devolvió una respuesta con formato incorrecto."
-
-msgid "Server returned a malformed update response."
-msgstr "El servidor devolvió una respuesta de actualización con formato incorrecto."
-
-msgid "Server returned a malformed upload response."
-msgstr "El servidor devolvió una respuesta de subida con formato incorrecto."
-
 msgid "Server returned an incomplete folder response."
 msgstr "El servidor devolvió una respuesta de carpeta incompleta."
-
-msgid "Server returned an incomplete skill-targets response."
-msgstr "El servidor devolvió una respuesta de destinos de habilidades incompleta."
-
-msgid "Server returned an incomplete skills response."
-msgstr "El servidor devolvió una respuesta de habilidades incompleta."
 
 msgid "Server returned an incomplete templates response."
 msgstr "El servidor devolvió una respuesta de plantillas incompleta."
@@ -7173,9 +6586,6 @@ msgstr ""
 msgid "Show sidebar"
 msgstr "Mostrar la barra lateral"
 
-msgid "Show skill nodes"
-msgstr "Mostrar los nodos de habilidades"
-
 msgid "Show source"
 msgstr "Mostrar el código"
 
@@ -7227,26 +6637,11 @@ msgstr "Página única"
 msgid "size limit"
 msgstr "límite de tamaño"
 
-msgid "skill \"{0}\""
-msgstr "habilidad \"{0}\""
-
-msgid "Skill \"{0}\" deleted"
-msgstr "Se eliminó la habilidad \"{0}\""
-
 msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
 msgstr "No se instaló la skill «{conflictName}»: ya tienes una skill propia con ese nombre. Cambia el nombre de la tuya si quieres la versión del paquete."
 
 msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
 msgstr "No se instaló la skill «{conflictName}» para {conflictHosts}: ya tienes ahí una skill propia con ese nombre. Cambia el nombre de la tuya si quieres la versión del paquete."
-
-msgid "Skill already in project"
-msgstr "La habilidad ya está en el proyecto"
-
-msgid "SKILL.md is managed by the skill itself — pick another name"
-msgstr "SKILL.md lo gestiona la propia habilidad; elige otro nombre"
-
-msgid "skills.sh"
-msgstr "skills.sh"
 
 msgid "Skip"
 msgstr "Omitir"
@@ -7293,9 +6688,6 @@ msgstr "Algo se rompió"
 msgid "Something else"
 msgstr "Otra cosa"
 
-msgid "Something named \"{name}\" is already in {scopeLabel}, and the server couldn't confirm what it is. An earlier failed move may have kept it there on purpose: compare it with the original before you delete or replace it."
-msgstr "Ya hay algo llamado «{name}» en {scopeLabel} y el servidor no pudo confirmar qué es. Puede que un movimiento fallido anterior lo dejara ahí a propósito: compáralo con el original antes de eliminarlo o reemplazarlo."
-
 msgid "Something went wrong"
 msgstr "Algo salió mal"
 
@@ -7316,9 +6708,6 @@ msgstr ""
 
 msgid "Something went wrong. Please try again."
 msgstr "Algo salió mal. Inténtalo de nuevo."
-
-msgid "source"
-msgstr "código"
 
 msgid "Source"
 msgstr "Código"
@@ -7352,9 +6741,6 @@ msgstr "Deshacer o rehacer en el código"
 
 msgid "Space to jump, down arrow to duck. That is the whole game."
 msgstr "Espacio para saltar, flecha abajo para agacharse. Ese es todo el juego."
-
-msgid "Spaces aren't allowed in the path"
-msgstr "No se permiten espacios en la ruta"
 
 msgid "Spending limit"
 msgstr ""
@@ -7413,12 +6799,6 @@ msgstr "Todavía cargando"
 msgid "Stop"
 msgstr "Detener"
 
-msgid "Stop {0} reading \"{1}\"? {subRoot} will keep its other skills (as symlinks) but stop following {poolRootRel} — new skills added there won't reach {2} automatically."
-msgstr "¿Hacer que {0} deje de leer \"{1}\"? {subRoot} conservará sus demás habilidades (como enlaces simbólicos), pero dejará de seguir a {poolRootRel}: las habilidades nuevas que se añadan ahí no llegarán a {2} automáticamente."
-
-msgid "Stop {0} reading this skill"
-msgstr "Hacer que {0} deje de leer esta habilidad"
-
 msgid "Stop emailing me"
 msgstr ""
 
@@ -7430,9 +6810,6 @@ msgstr "Deja de arreglar. Los archivos ya arreglados se quedan como están."
 
 msgid "Stop maintaining index.md"
 msgstr "Dejar de mantener index.md"
-
-msgid "Stop reading"
-msgstr "Dejar de leer"
 
 msgid "Stopped fixing. Files already fixed stay fixed."
 msgstr "Se dejó de arreglar. Los archivos ya arreglados se quedan como están."
@@ -7448,9 +6825,6 @@ msgstr "Tachado"
 
 msgid "Style"
 msgstr "Estilo"
-
-msgid "subagents"
-msgstr "subagentes"
 
 msgid "Subfolder name"
 msgstr "Nombre de la subcarpeta"
@@ -7485,17 +6859,11 @@ msgstr "Cambia a una rama para compartir."
 msgid "Switch to Auto (Pull only)"
 msgstr "Cambiar a Automático (solo Pull)"
 
-msgid "symlink"
-msgstr "enlace simbólico"
-
 msgid "Symlink"
 msgstr "Enlace simbólico"
 
 msgid "Symlink to {targetPath}"
 msgstr "Enlace simbólico a {targetPath}"
-
-msgid "Symlinks the skill to {path}"
-msgstr "Enlaza simbólicamente la habilidad a {path}"
 
 msgid "Sync"
 msgstr "Sincronización"
@@ -7593,17 +6961,11 @@ msgstr "Valor de la etiqueta"
 msgid "tag-name"
 msgstr "nombre-de-etiqueta"
 
-msgid "tags"
-msgstr "etiquetas"
-
 msgid "Tags matching \"{tagListQuery}\""
 msgstr "Etiquetas que coinciden con \"{tagListQuery}\""
 
 msgid "Take a piece of writing from a rough idea to a finished draft to something you're ready to share. Good for blog posts, essays, or anything you want to move through clear stages."
 msgstr "Lleva un texto de una idea en bruto a un borrador terminado y luego a algo listo para compartir. Va bien para entradas de blog, ensayos o cualquier cosa que quieras mover por etapas claras."
-
-msgid "Take upstream"
-msgstr "Aceptar la versión remota"
 
 msgid "Task list"
 msgstr "Lista de tareas"
@@ -7701,12 +7063,6 @@ msgstr "Ese no es un nombre de host válido. Escribe solo el nombre del servidor
 msgid "That parsed, but it isn’t a base16 theme."
 msgstr "Se pudo interpretar, pero no es un tema base16."
 
-msgid "The {editor} folder holds a different version of this skill. Pick which one wins, or keep both under different names. Whatever you replace is backed up first."
-msgstr "La carpeta de {editor} tiene otra versión de esta habilidad. Elige cuál gana o conserva ambas con nombres distintos. De lo que reemplaces se hace copia de seguridad primero."
-
-msgid "The {editor} version is now the source"
-msgstr "La versión de {editor} es ahora el origen"
-
 msgid "The <0>type</0> every document created from this template gets (e.g. <1>research-note</1>). Keeps new docs Open Knowledge Format–conformant."
 msgstr "El <0>type</0> que recibe cada documento creado a partir de esta plantilla (p. ej. <1>research-note</1>). Mantiene los documentos nuevos conformes al Open Knowledge Format."
 
@@ -7767,14 +7123,8 @@ msgstr ""
 msgid "The conversation is written to a new wiki page as your edit, so the team can read it. Tool details are summarised."
 msgstr ""
 
-msgid "The copy of \"{name}\" kept in {scopeLabel} is a redundant duplicate: the original was verified unchanged. Remove that copy, then retry the move."
-msgstr "La copia de «{name}» conservada en {scopeLabel} es un duplicado redundante: se verificó que el original no cambió. Elimina esa copia y vuelve a intentar el movimiento."
-
 msgid "The default branch is protected — pushes need a pull request."
 msgstr "La rama por defecto está protegida: los push requieren una pull request."
-
-msgid "the default skills folder (the exact path appears once saved)"
-msgstr "la carpeta de habilidades por defecto (la ruta exacta aparece al guardar)"
 
 msgid "the doc {0}"
 msgstr "el documento {0}"
@@ -7805,9 +7155,6 @@ msgstr "El archivo se restauró a una versión anterior. Actual es la versión q
 
 msgid "The file was restored to an older version. Open it to choose which version to keep."
 msgstr "El archivo se restauró a una versión anterior. Ábrelo para elegir qué versión conservar."
-
-msgid "The folder on disk and the id agents use to invoke this skill."
-msgstr "La carpeta en el disco y el id con el que los agentes invocan esta habilidad."
 
 msgid "The folders and templates are already here, so there's nothing to add."
 msgstr "Las carpetas y las plantillas ya están aquí, así que no hay nada que añadir."
@@ -7853,12 +7200,6 @@ msgstr ""
 
 msgid "The page was created, but the view couldn't be written into it."
 msgstr ""
-
-msgid "The path can't leave the skill (no . or ..)"
-msgstr "La ruta no puede salir de la habilidad (sin . ni ..)"
-
-msgid "The plugin also ships {0} — named here, never installed by OK."
-msgstr "El complemento también incluye {0} — se nombran aquí, OK nunca los instala."
 
 msgid "The preview blocks resources that don't meet its security rules (for example plain http:// URLs, or code that uses eval). The content above may render incompletely."
 msgstr "La vista previa bloquea los recursos que no cumplen sus reglas de seguridad (por ejemplo URLs http:// sin cifrar, o código que usa eval). Puede que el contenido de arriba se renderice de forma incompleta."
@@ -7917,20 +7258,8 @@ msgstr "El servidor se detuvo."
 msgid "The shapes of title, description, resource, and tags when you use them. None are required; declaring one only pins its type, so tags written as a comma-separated string is flagged."
 msgstr "Las formas de title, description, resource y tags cuando se usan. Ninguno es obligatorio; declararlos solo fija su tipo, por lo que se marca si tags se escribe como una cadena separada por comas."
 
-msgid "The skill's own folder — the source other locations copy or link from"
-msgstr "La carpeta propia de la habilidad: el origen del que copian o al que enlazan las demás ubicaciones"
-
-msgid "The skill's own folder ({path}) — the source other locations copy or link from"
-msgstr "La carpeta propia de la habilidad ({path}): el origen del que copian o al que enlazan las demás ubicaciones"
-
-msgid "The skills list did not match its schema."
-msgstr "La lista de habilidades no coincide con su esquema."
-
 msgid "The smaller models are much cheaper and fine for most questions."
 msgstr ""
-
-msgid "The source folder itself does not move."
-msgstr "La carpeta de origen en sí no se mueve."
 
 msgid "The stored token is missing the permissions this host needs to push."
 msgstr "Al token guardado le faltan los permisos que este host necesita para hacer push."
@@ -8088,21 +7417,6 @@ msgstr "Esta carpeta todavía no está en GitHub. El enlace no funcionará hasta
 msgid "This GitHub URL can't be shared."
 msgstr "No se puede compartir esta URL de GitHub."
 
-msgid "This is a preview of {boldName} — a built-in skill shipped with GitQuire. It's read-only."
-msgstr "Esto es una vista previa de {boldName}, una habilidad integrada que viene con GitQuire. Es de solo lectura."
-
-msgid "This is a preview of {boldName} — one of {0} skills at this source. Install it into your agents."
-msgstr "Esto es una vista previa de {boldName} — una de las {0} habilidades de esta fuente. Instálala en tus agentes."
-
-msgid "This is a preview of {boldName} — one of {0} skills in this repo. Install it into your agents."
-msgstr "Esto es una vista previa de {boldName} — una de las {0} habilidades de este repositorio. Instálala en tus agentes."
-
-msgid "This is a preview of {boldName}, detected in {boldHarness} at the {boldLevel} level."
-msgstr "Esto es una vista previa de {boldName}, detectada en {boldHarness} en el nivel {boldLevel}."
-
-msgid "This is a preview of {boldName}. Install it into your agents."
-msgstr "Esto es una vista previa de {boldName}. Instálala en tus agentes."
-
 msgid "This isn’t a regular theme file"
 msgstr "Este no es un archivo de tema normal"
 
@@ -8115,9 +7429,6 @@ msgstr "Puede que esta lista esté desactualizada; última lectura: {staleRelati
 msgid "This list may be out of date."
 msgstr "Puede que esta lista esté desactualizada."
 
-msgid "This machine"
-msgstr "Este equipo"
-
 msgid "This may take a moment. Your markdown content is kept."
 msgstr "Esto puede tardar un momento. Tu contenido markdown se conserva."
 
@@ -8126,9 +7437,6 @@ msgstr ""
 
 msgid "This model is not available for your key. Choose another one."
 msgstr ""
-
-msgid "This moves <0>{name}</0> from {0} to {1}, relocating its files on disk and re-installing it in your editors at the {2} level."
-msgstr "Esto mueve <0>{name}</0> de {0} a {1}, reubicando sus archivos en el disco y reinstalándola en tus editores en el nivel {2}."
 
 msgid "This one needs to see your files, not just the open document, so it appears when you run a project audit rather than while you type."
 msgstr "Esta regla necesita ver tus archivos, no solo el documento abierto, por lo que aparece al ejecutar una auditoría del proyecto y no mientras escribes."
@@ -8153,15 +7461,6 @@ msgstr "Esta página ya no está en esta ruta."
 
 msgid "This permanently deletes {deleteTarget} from the project and removes its mapping from config.yml."
 msgstr "Esto elimina definitivamente {deleteTarget} del proyecto y quita su asignación de config.yml."
-
-msgid "This permanently removes {0}. Agents that invoke this skill by name will fail until it's recreated."
-msgstr "Esto elimina definitivamente {0}. Los agentes que invoquen esta habilidad por su nombre fallarán hasta que se vuelva a crear."
-
-msgid "This permanently removes {0}. The plugin it was copied from is untouched — its read-only version will show up as detected again."
-msgstr "Esto elimina definitivamente {0}. El complemento del que se copió no se toca: su versión de solo lectura volverá a aparecer como detectada."
-
-msgid "This permanently removes {0}/{1} from the \"{2}\" skill. Anything in SKILL.md that points at it will break until it's recreated."
-msgstr "Esto elimina permanentemente {0}/{1} de la skill «{2}». Todo lo que apunte a ese archivo en SKILL.md dejará de funcionar hasta que se vuelva a crear."
 
 msgid "This permanently removes {path}. Agents that reference this template by name will fail until it's recreated or replaced by one in a parent folder."
 msgstr "Esto elimina definitivamente {path}. Los agentes que hagan referencia a esta plantilla por su nombre fallarán hasta que se vuelva a crear o la sustituya una de una carpeta superior."
@@ -8336,9 +7635,6 @@ msgstr "token"
 msgid "Token stored for {login} on {host}. To remove it, run <0>{cliCommand} auth signout --host {host}</0>."
 msgstr "Token guardado para {login} en {host}. Para quitarlo, ejecuta <0>{cliCommand} auth signout --host {host}</0>."
 
-msgid "tokens"
-msgstr "tokens"
-
 msgid "Tokens and connected apps"
 msgstr ""
 
@@ -8359,13 +7655,6 @@ msgstr "Demasiado lento"
 
 msgid "Top linked pages"
 msgstr "Páginas más enlazadas"
-
-#. Sum of all three token tiers
-msgid "total"
-msgstr "total"
-
-msgid "Tracked in git — updates flow through your repo (pull or CI), not auto-update"
-msgstr "Seguido en git: las actualizaciones llegan por tu repositorio (pull o CI), no por actualización automática"
 
 msgid "Trash"
 msgstr "Papelera"
@@ -8417,9 +7706,6 @@ msgstr "No se pudo desactivar el mantenimiento del índice porque la sección de
 
 msgid "Turning off index maintenance failed because the project setting could not be saved. Check the project file permissions, then try again."
 msgstr "No se pudo desactivar el mantenimiento del índice porque no fue posible guardar la configuración del proyecto. Comprueba los permisos del archivo del proyecto y vuelve a intentarlo."
-
-msgid "Two versions of \"{0}\" — source vs {editor}"
-msgstr "Dos versiones de \"{0}\": el origen frente a {editor}"
 
 msgid "Two-page (even)"
 msgstr "Dos páginas (pares)"
@@ -8493,9 +7779,6 @@ msgstr "Desinstalar GitQuire"
 msgid "Uninstall GitQuire?"
 msgstr "¿Desinstalar GitQuire?"
 
-msgid "Uninstalled \"{0}\" from {1}"
-msgstr "Se desinstaló \"{0}\" de {1}"
-
 msgid "unknown"
 msgstr "desconocido"
 
@@ -8556,32 +7839,14 @@ msgstr "Sin seguimiento"
 msgid "Up to date"
 msgstr "Al día"
 
-msgid "Update"
-msgstr "Actualizar"
-
-msgid "Update \"{skillName}\" over your edits?"
-msgstr "¿Actualizar \"{skillName}\" sobre tus ediciones?"
-
 msgid "Update draft"
 msgstr ""
-
-msgid "Update failed: {0}"
-msgstr "Falló la actualización: {0}"
-
-msgid "Update from source"
-msgstr "Actualizar desde el origen"
 
 msgid "Update the destination and optional section anchor."
 msgstr "Actualiza el destino y el ancla de sección opcional."
 
 msgid "Update with the live wiki"
 msgstr ""
-
-msgid "Updated \"{0}\": added {1}, removed {2}"
-msgstr "Se actualizó \"{0}\": {1} añadidos, {2} eliminados"
-
-msgid "Updated \"{name}\" from {0}"
-msgstr "Se actualizó \"{name}\" desde {0}"
 
 msgid "Updated {updatedRelative}"
 msgstr "Actualizado {updatedRelative}"
@@ -8597,9 +7862,6 @@ msgstr ""
 
 msgid "Updates flow in from your remote; your edits stay on this computer."
 msgstr "Las actualizaciones llegan desde tu remoto; tus ediciones se quedan en este equipo."
-
-msgid "Updates from the source apply automatically (unless edited locally)"
-msgstr "Las actualizaciones del origen se aplican automáticamente (salvo que se haya editado en local)"
 
 msgid "Updating"
 msgstr "Actualizando"
@@ -8624,12 +7886,6 @@ msgstr "Subir desde el equipo"
 
 msgid "Upload may have succeeded but the sidebar is out of date — refresh to resync"
 msgstr "Puede que la subida haya funcionado, pero la barra lateral está desactualizada; actualízala para resincronizar"
-
-msgid "Uploaded \"{0}\"."
-msgstr "Se subió \"{0}\"."
-
-msgid "Uploaded as \"{0}\" — the name \"{1}\" was taken."
-msgstr "Se subió como \"{0}\": el nombre \"{1}\" ya estaba ocupado."
 
 msgid "Uploading"
 msgstr "Subiendo"
@@ -8658,9 +7914,6 @@ msgstr "Usar {0} para el modo oscuro activo"
 msgid "Use {0} for the active light mode"
 msgstr "Usar {0} para el modo claro activo"
 
-msgid "Use {editor} version"
-msgstr "Usar la versión de {editor}"
-
 msgid "Use {filenameVariable} at most once in each folder name."
 msgstr "Usa {filenameVariable} como máximo una vez en cada nombre de carpeta."
 
@@ -8669,12 +7922,6 @@ msgstr ""
 
 msgid "Use a lowercase .yaml or .yml extension"
 msgstr "Usa una extensión .yaml o .yml en minúsculas"
-
-msgid "Use a relative path inside the skill"
-msgstr "Usa una ruta relativa dentro de la habilidad"
-
-msgid "Use a relative path inside the skill (no .., no spaces; SKILL.md is managed)."
-msgstr "Usa una ruta relativa dentro de la habilidad (sin .., sin espacios; SKILL.md está gestionado)."
 
 msgid "Use a starter pack"
 msgstr "Usar un paquete inicial"
@@ -8693,9 +7940,6 @@ msgstr "Usa solo letras, dígitos, <0>-</0> o <1>_</1>."
 
 msgid "Use letters, digits, spaces and - _ . / (up to 60 characters)."
 msgstr ""
-
-msgid "Use lowercase letters, digits, and <0>-</0> only."
-msgstr "Usa solo letras minúsculas, dígitos y <0>-</0>."
 
 msgid "Use one slash between folder names."
 msgstr "Usa una sola barra entre los nombres de carpeta."
@@ -8739,14 +7983,8 @@ msgstr "Versión en GitQuire"
 msgid "via {viaTags}"
 msgstr "vía {viaTags}"
 
-msgid "via plugin"
-msgstr "vía plugin"
-
 msgid "View"
 msgstr "Ver"
-
-msgid "View {name}"
-msgstr "Ver {name}"
 
 msgid "View as text"
 msgstr "Ver como texto"
@@ -8762,9 +8000,6 @@ msgstr "Ver en el markdown de origen"
 
 msgid "View only"
 msgstr "Solo lectura"
-
-msgid "View plugin"
-msgstr "Ver el complemento"
 
 msgid "Views"
 msgstr ""
@@ -8832,9 +8067,6 @@ msgstr "¿Qué te lo impidió?"
 msgid "What is a starter pack?"
 msgstr "¿Qué es un paquete inicial?"
 
-msgid "What is the difference between copies and symlinks?"
-msgstr "¿Qué diferencia hay entre las copias y los enlaces simbólicos?"
-
 msgid "What is this knowledge base for?"
 msgstr "¿Para qué es esta base de conocimiento?"
 
@@ -8874,9 +8106,6 @@ msgstr "Al pasar el cursor por un enlace externo, su URL se envía al sitio de d
 msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
 msgstr "Cuando instalas una habilidad publicada, se avisa al directorio de habilidades (skills.sh) para que su recuento de instalaciones sea exacto. Se envía el nombre de la habilidad, su repositorio de origen y a qué herramientas de IA fue; nunca el contenido de los archivos, y nunca en el caso de una habilidad de un origen privado, local o escrito a mano. Una vez por habilidad y equipo."
 
-msgid "Where"
-msgstr "Dónde"
-
 msgid "Where should it live?"
 msgstr "¿Dónde debería vivir?"
 
@@ -8910,9 +8139,6 @@ msgstr "Sugerencias de enlaces wiki"
 msgid "Wiki-links like [[Page]] — a supported way to link here, but an external reader resolves nothing and shows the brackets."
 msgstr "Enlaces wiki como [[Page]]: una forma compatible de vincular aquí, pero un lector externo no resuelve nada y muestra los corchetes."
 
-msgid "Will be created as <0>{effective}</0>"
-msgstr "Se creará como <0>{effective}</0>"
-
 msgid "Will be created as <0>{sanitizedName}</0>"
 msgstr "Se creará como <0>{sanitizedName}</0>"
 
@@ -8921,9 +8147,6 @@ msgstr ""
 
 msgid "Word wrap"
 msgstr "Ajuste de línea"
-
-msgid "Working"
-msgstr "Trabajando"
 
 msgid "Working…"
 msgstr ""
@@ -8997,9 +8220,6 @@ msgstr "No tienes permiso para hacer push en este repositorio. Automático (solo
 msgid "You don't have write access to this repo."
 msgstr "No tienes acceso de escritura a este repositorio."
 
-msgid "You edited this skill locally and the source has new changes. Taking upstream replaces your version; your edits stay recoverable in version history."
-msgstr "Editaste esta habilidad en local y el origen tiene cambios nuevos. Aceptar la versión remota reemplaza la tuya; tus ediciones siguen recuperables en el historial de versiones."
-
 msgid "You have no recent edits on this page, or someone else edited it after you."
 msgstr ""
 
@@ -9020,9 +8240,6 @@ msgstr "tu@empresa.com"
 
 msgid "Your {providerLabel} key"
 msgstr ""
-
-msgid "Your agents still load this skill, but GitQuire can't open or edit it: it won't index a file that git is set to ignore, because syncing it would fail. Adding one line to {gitignorePath} makes it editable here."
-msgstr "Tus agentes siguen cargando esta habilidad, pero GitQuire no puede abrirla ni editarla: no indexa un archivo que git está configurado para ignorar, porque la sincronización fallaría. Añadir una línea a {gitignorePath} la hace editable aquí."
 
 msgid "Your change is still being saved — run the test again in a moment."
 msgstr "Tu cambio todavía se está guardando; vuelve a ejecutar la prueba en un momento."

@@ -1,4 +1,3 @@
-import { hashFromSkillFile } from '@/lib/doc-hash';
 import { docNameToDialogSeed } from '@/lib/doc-paths';
 import { type ResolvedNavigationTarget, resolveNavigationTarget } from './navigation-targets';
 
@@ -6,14 +5,13 @@ type NavigableTarget = Extract<
   ResolvedNavigationTarget,
   { kind: 'doc' | 'folder-index' | 'folder' | 'large-file' }
 >;
-type SkillFileTarget = Extract<ResolvedNavigationTarget, { kind: 'skill-file' }>;
 type MissingTarget = Extract<ResolvedNavigationTarget, { kind: 'missing' }>;
 
 type LinkTargetIntent =
   | {
       kind: 'navigate';
       displayState: 'resolved' | 'folder';
-      resolvedTarget: NavigableTarget | SkillFileTarget;
+      resolvedTarget: NavigableTarget;
       hashDocName: string;
       hash: string | null;
     }
@@ -24,18 +22,6 @@ type LinkTargetIntent =
       initialDir: string;
       suggestedName: string;
     };
-
-function skillFileNavigate(
-  target: SkillFileTarget,
-): Extract<LinkTargetIntent, { kind: 'navigate' }> {
-  return {
-    kind: 'navigate',
-    displayState: 'resolved',
-    resolvedTarget: target,
-    hashDocName: target.target,
-    hash: hashFromSkillFile({ scope: target.scope, name: target.name, path: target.path }),
-  };
-}
 
 export function resolveLinkTargetIntent(
   target: string,
@@ -65,7 +51,6 @@ export function resolveLinkTargetIntent(
       pagesBySlug: options.pagesBySlug,
       pagesByBasename: options.pagesByBasename,
     });
-    if (resolvedTarget.kind === 'skill-file') return skillFileNavigate(resolvedTarget);
     if (resolvedTarget.kind === 'asset') continue;
     if (resolvedTarget.kind === 'missing') {
       missingTarget ??= resolvedTarget;
@@ -88,7 +73,6 @@ export function resolveLinkTargetIntent(
       pagesBySlug: options.pagesBySlug,
       pagesByBasename: options.pagesByBasename,
     });
-  if (resolvedFallback.kind === 'skill-file') return skillFileNavigate(resolvedFallback);
   if (resolvedFallback.kind !== 'missing' && resolvedFallback.kind !== 'asset') {
     return {
       kind: 'navigate',

@@ -1,3 +1,4 @@
+import { PACK_SKILL_PREFIX } from '@inkeep/open-knowledge-core/constants/skills';
 import type { LintPluginId } from '@inkeep/open-knowledge-core/markdown/lint';
 import { plural } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
@@ -7,7 +8,6 @@ import { LINT_PLUGIN_META } from '@/components/settings/lint-plugin-meta';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { OkScaffoldPlan, OkSeedPackInfo } from '@/lib/desktop-bridge-types';
-import { skillDisplayName } from '@/lib/skill-scope';
 
 function basename(path: string): string {
   return path.split('/').pop() ?? path;
@@ -168,7 +168,9 @@ export function CreatedItemsList({
   const skillRows: PreviewRow[] = pendingSkills.map((skill) => ({
     key: `skill:${skill.name}`,
     icon: Hexagon,
-    name: skillDisplayName(skill.name),
+    name: skill.name.startsWith(PACK_SKILL_PREFIX)
+      ? skill.name.slice(PACK_SKILL_PREFIX.length)
+      : skill.name,
     title: skill.name,
     description: t`Guides your AI agents on how to work here.`,
   }));

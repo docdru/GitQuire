@@ -3,7 +3,7 @@ import { isMacOS } from '@tiptap/core';
 import type { ComponentProps, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { assetTabId, folderTabId, skillFileTabId } from '@/editor/editor-tabs';
+import { assetTabId, folderTabId } from '@/editor/editor-tabs';
 import {
   __resetPaneVisibilityStoreForTests,
   type PaneVisibilityRequest,
@@ -28,7 +28,6 @@ let previewTabId: string | null = null;
 let pageMeta: Map<string, { docExt?: string }> = new Map();
 let conflictedDocs: Set<string> = new Set();
 let focusedPaneId = 'pane-a';
-let skillsState: unknown = { status: 'idle' };
 let renderRealTabTargetMenuItems = false;
 
 const activateTab = vi.fn(() => {});
@@ -43,8 +42,6 @@ const reopenClosedTab = vi.fn(() => {});
 const reorderTabs = vi.fn(() => {});
 const unpinTab = vi.fn(() => {});
 const moveTabToNewPane = vi.fn(() => 'pane-new' as string | null);
-const requestSkillDelete = vi.fn(() => {});
-const requestSkillFileRename = vi.fn(() => {});
 const scheduleClipboardWrite = vi.fn(() => Promise.resolve());
 const okignorePatch = vi.fn(() => {});
 
@@ -260,52 +257,6 @@ vi.doMock('@/lib/file-menu-target-resolvers', () => ({
   }) => (target.kind === 'folder' ? (target.folderPath ?? '') : (target.docName ?? '')),
 }));
 
-vi.doMock('@/components/skill-actions', () => ({
-  SkillFileContextMenuItems: ({
-    actions,
-    filePath,
-    menuKind,
-    skill,
-  }: {
-    actions: { requestFileRename: (skill: unknown, filePath: string) => void };
-    filePath: string;
-    menuKind?: string;
-    skill: { name: string };
-  }) => (
-    <button
-      type="button"
-      role="menuitem"
-      data-menu-kind={menuKind}
-      onClick={() => actions.requestFileRename(skill, filePath)}
-    >
-      Rename skill file {filePath}
-    </button>
-  ),
-  SkillContextMenuItems: ({
-    actions,
-    menuKind,
-    skill,
-  }: {
-    actions: { requestDelete: (skill: unknown) => void };
-    menuKind?: string;
-    skill: { name: string };
-  }) => (
-    <button
-      type="button"
-      role="menuitem"
-      data-menu-kind={menuKind}
-      onClick={() => actions.requestDelete(skill)}
-    >
-      Delete skill {skill.name}
-    </button>
-  ),
-  useSkillActions: () => ({
-    dialogs: <div data-testid="skill-action-dialogs" />,
-    requestDelete: requestSkillDelete,
-    requestFileRename: requestSkillFileRename,
-  }),
-}));
-
 vi.doMock('@/editor/DocumentContext', () => ({
   isBlobRunnerNewTabId: () => false,
   useDocumentContext: () => ({
@@ -377,10 +328,6 @@ vi.doMock('@/hooks/use-conflicts', () => ({
   },
 }));
 
-vi.doMock('@/hooks/use-skills', () => ({
-  useSkills: () => skillsState,
-}));
-
 function defaultTabs() {
   const folderId = folderTabId('docs/team');
   const assetId = assetTabId('images/cat.png');
@@ -413,7 +360,6 @@ function resetState() {
   ]);
   conflictedDocs = new Set();
   focusedPaneId = 'pane-a';
-  skillsState = { status: 'idle' };
   renderRealTabTargetMenuItems = false;
   activeDrag = null;
   dndContextProps.length = 0;
@@ -433,8 +379,6 @@ function resetState() {
     reorderTabs,
     unpinTab,
     moveTabToNewPane,
-    requestSkillDelete,
-    requestSkillFileRename,
     scheduleClipboardWrite,
     okignorePatch,
   ]) {
@@ -681,179 +625,6 @@ describe('EditorTabs runtime behavior', () => {
     expect(openNewTab).toHaveBeenCalledTimes(1);
   });
 
-  test('reuses the sidebar skill actions for an editable skill tab', async () => {
-    const skill = {
-      scope: 'project',
-      name: 'release-notes',
-      path: '.ok/skills/release-notes/SKILL.md',
-      managed: false,
-    };
-    const skillTabId = '.ok/skills/release-notes/SKILL';
-    activeDocName = skillTabId;
-    activeTabId = skillTabId;
-    openTabs = [skillTabId];
-    visibleTabIds = [skillTabId];
-    newTabIds = [];
-    skillsState = { status: 'ready', data: [skill] };
-
-    await renderEditorTabs();
-
-    const deleteItem = screen.getByRole('menuitem', { name: 'Delete skill release-notes' });
-    expect(deleteItem.getAttribute('data-menu-kind')).toBe('context');
-    expect(screen.getByTestId('skill-action-dialogs')).toBeTruthy();
-
-    fireEvent.click(deleteItem);
-    expect(requestSkillDelete).toHaveBeenCalledWith(skill);
-  });
-
-  test('does not expose skill actions for a managed skill tab', async () => {
-    const skill = {
-      scope: 'project',
-      name: 'release-notes',
-      path: '.ok/skills/release-notes/SKILL.md',
-      managed: true,
-    };
-    const skillTabId = '.ok/skills/release-notes/SKILL';
-    activeDocName = skillTabId;
-    activeTabId = skillTabId;
-    openTabs = [skillTabId];
-    visibleTabIds = [skillTabId];
-    newTabIds = [];
-    skillsState = { status: 'ready', data: [skill] };
-
-    await renderEditorTabs();
-
-    expect(screen.queryByRole('menuitem', { name: 'Delete skill release-notes' })).toBeNull();
-  });
-
-  test('reuses the sidebar file actions for an editable skill-file tab', async () => {
-    const skill = {
-      scope: 'global',
-      name: 'ask-matt',
-      path: '.agents/skills/ask-matt/SKILL.md',
-      absolutePath: '/Users/example/.agents/skills/ask-matt/SKILL.md',
-      hosts: ['agents'],
-      managed: false,
-    };
-    const filePath = 'agents/openai.yml';
-    const skillTabId = skillFileTabId({ scope: 'global', name: skill.name, path: filePath });
-    activeDocName = null;
-    activeTabId = skillTabId;
-    openTabs = [skillTabId];
-    visibleTabIds = [skillTabId];
-    newTabIds = [];
-    skillsState = { status: 'ready', data: [skill] };
-
-    await renderEditorTabs();
-
-    const renameItem = screen.getByRole('menuitem', {
-      name: `Rename skill file ${filePath}`,
-    });
-    expect(renameItem.getAttribute('data-menu-kind')).toBe('context');
-
-    fireEvent.click(renameItem);
-    expect(requestSkillFileRename).toHaveBeenCalledWith(skill, filePath);
-  });
-
-  test('reuses the sidebar file actions for an editable reference DOC tab', async () => {
-    const skill = {
-      scope: 'project',
-      name: 'ask-matt',
-      path: '.agents/skills/ask-matt/SKILL.md',
-      hosts: ['agents'],
-      managed: false,
-    };
-    const docName = '.agents/skills/ask-matt/references/notes';
-    activeDocName = docName;
-    activeTabId = docName;
-    openTabs = [docName];
-    visibleTabIds = [docName];
-    newTabIds = [];
-    skillsState = { status: 'ready', data: [skill] };
-
-    await renderEditorTabs();
-
-    const renameItem = screen.getByRole('menuitem', {
-      name: 'Rename skill file references/notes.md',
-    });
-    expect(renameItem.getAttribute('data-menu-kind')).toBe('context');
-
-    fireEvent.click(renameItem);
-    expect(requestSkillFileRename).toHaveBeenCalledWith(skill, 'references/notes.md');
-  });
-
-  test('uses the host-qualified owner for an editable skill-file tab', async () => {
-    const agentsSkill = {
-      scope: 'global',
-      name: 'ask-matt',
-      path: '.agents/skills/ask-matt/SKILL.md',
-      hosts: ['agents'],
-      managed: false,
-    };
-    const claudeSkill = {
-      scope: 'global',
-      name: 'ask-matt',
-      path: '.claude/skills/ask-matt/SKILL.md',
-      hosts: ['claude'],
-      managed: false,
-    };
-    const filePath = 'agents/openai.yml';
-    const skillTabId = skillFileTabId({
-      scope: 'global',
-      name: agentsSkill.name,
-      path: filePath,
-      host: 'agents',
-    });
-    activeDocName = null;
-    activeTabId = skillTabId;
-    openTabs = [skillTabId];
-    visibleTabIds = [skillTabId];
-    newTabIds = [];
-    skillsState = { status: 'ready', data: [claudeSkill, agentsSkill] };
-
-    await renderEditorTabs();
-
-    fireEvent.click(
-      screen.getByRole('menuitem', {
-        name: `Rename skill file ${filePath}`,
-      }),
-    );
-    expect(requestSkillFileRename).toHaveBeenCalledWith(agentsSkill, filePath);
-  });
-
-  test('does not expose file actions when a host-less skill-file owner is ambiguous', async () => {
-    const filePath = 'agents/openai.yml';
-    const skillTabId = skillFileTabId({ scope: 'global', name: 'ask-matt', path: filePath });
-    activeDocName = null;
-    activeTabId = skillTabId;
-    openTabs = [skillTabId];
-    visibleTabIds = [skillTabId];
-    newTabIds = [];
-    skillsState = {
-      status: 'ready',
-      data: [
-        {
-          scope: 'global',
-          name: 'ask-matt',
-          path: '.agents/skills/ask-matt/SKILL.md',
-          hosts: ['agents'],
-          managed: false,
-        },
-        {
-          scope: 'global',
-          name: 'ask-matt',
-          path: '.claude/skills/ask-matt/SKILL.md',
-          hosts: ['claude'],
-          managed: false,
-        },
-      ],
-    };
-
-    await renderEditorTabs();
-
-    expect(screen.queryByRole('menuitem', { name: `Rename skill file ${filePath}` })).toBeNull();
-  });
-
   test('a leading control sits in the tab row ahead of the tabs, as an ordinary row item', async () => {
     const { container } = await renderEditorTabs({
       leading: <button type="button">Files</button>,
@@ -1092,28 +863,18 @@ describe('EditorTabs runtime behavior', () => {
   test('uses one truncation owner for every path-based tab while preserving its full label', async () => {
     const folderId = folderTabId('wiki/modules');
     const assetId = assetTabId('images/brand/logo.png');
-    const skillId = skillFileTabId({
-      scope: 'project',
-      name: 'release-notes',
-      path: 'references/publishing.md',
-    });
-    openTabs = [folderId, assetId, skillId];
-    visibleTabIds = [folderId, assetId, skillId];
+    openTabs = [folderId, assetId];
+    visibleTabIds = [folderId, assetId];
     newTabIds = [];
 
     await renderEditorTabs();
 
-    const pathTabs = [
-      tabButton('wiki/modules/'),
-      tabButton('images/brand/logo.png'),
-      tabButton('references/publishing.md'),
-    ];
+    const pathTabs = [tabButton('wiki/modules/'), tabButton('images/brand/logo.png')];
     expect(pathTabs.map((tab) => tab.textContent)).toEqual([
       'wiki/modules/',
       'images/brand/logo.png',
-      'references/publishing.md',
     ]);
-    expect(pathTabs.map((tab) => tab.querySelectorAll('.truncate').length)).toEqual([1, 1, 1]);
+    expect(pathTabs.map((tab) => tab.querySelectorAll('.truncate').length)).toEqual([1, 1]);
   });
 
   test('leaves the shared dnd context to the workspace and registers pane-owned sortables', async () => {

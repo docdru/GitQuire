@@ -49,7 +49,6 @@ import {
   SELECTION_STATS_DEBOUNCE_MS,
   selectionStatsFromSource,
 } from './selection-stats';
-import { createSkillPathLinksSourceExtension } from './skill-path-links-source';
 import {
   clearPendingSourceNavigation,
   consumePendingSourceNavigation,
@@ -237,7 +236,6 @@ export function SourceEditor({
                   currentDocName: resolvedDocName,
                 }),
                 createSourcePolishExtension(),
-                createSkillPathLinksSourceExtension(resolvedDocName),
                 landingFlashSource(),
                 lintCompartment.of(createMarkdownLintExtension(linterConfig, docName)),
                 createLocalTargetDiagnosticsExtension(docName),

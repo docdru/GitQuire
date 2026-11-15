@@ -11,7 +11,6 @@ import { LandingFlash } from '../plugins/landing-flash-wysiwyg';
 import { getComponentItems, getInlineComponentItems } from '../slash-command/component-items';
 import { getEmbedStarterItems } from '../slash-command/embed-starter-items';
 import { getSlashCommandItems } from '../slash-command/items';
-import { getSkillReferenceItems } from '../slash-command/skill-reference-items';
 
 import { BlockMover } from './block-mover';
 import { BridgeIdPlugin } from './bridge-id-plugin';
@@ -69,7 +68,7 @@ export const sharedExtensions = [
   }),
   CellInsertionGate,
   SlashCommand.configure({
-    itemsSources: [...SLASH_ITEM_SOURCES, getSkillReferenceItems],
+    itemsSources: [...SLASH_ITEM_SOURCES],
     categoryLabels: {
       skills: 'Skills',
       content: 'Components',

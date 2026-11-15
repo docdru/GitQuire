@@ -295,36 +295,6 @@ test.describe('Editor tabs', () => {
     await expect(activateNewTabButtons(page)).toHaveCount(0);
   });
 
-  test('Skills blank tabs stay independently selectable and close for good', async ({
-    page,
-    api,
-  }) => {
-    await api.testReset();
-    await page.goto('/#/__skills__');
-    const newTabs = activateNewTabButtons(page);
-    await expect(newTabs).toHaveCount(1, { timeout: 10_000 });
-
-    await editorNewTabButton(page).click();
-    await expect(newTabs).toHaveCount(2);
-    await expectActiveTab(newTabs.nth(1));
-
-    await newTabs.nth(0).click();
-    await expectActiveTab(newTabs.nth(0));
-    await expectInactiveTab(newTabs.nth(1));
-
-    await newTabs.nth(1).click();
-    await expectActiveTab(newTabs.nth(1));
-    await expectInactiveTab(newTabs.nth(0));
-
-    await clickNewTabCloseButton(page, 0);
-    await expect(newTabs).toHaveCount(1);
-    await clickNewTabCloseButton(page, 0);
-
-    await expect(newTabs).toHaveCount(0);
-    await expect(page.getByTestId('create-view')).toBeVisible();
-    await expect(newTabs).toHaveCount(0);
-  });
-
   test('closing multiple new tabs preserves active placeholder and falls back to document tab', async ({
     page,
     api,

@@ -81,9 +81,6 @@ export function resolveFileTreeSelection(
         navigationPath: null,
       };
     case 'asset':
-    case 'skill-file':
-    case 'skills':
-    case 'skill-preview':
       return {
         selectedFilePath: null,
         selectedFolderPath: null,

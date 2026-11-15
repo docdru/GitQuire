@@ -61,12 +61,9 @@ export function projectContextualTargetKind(
     case 'folder':
       return 'folder';
     case 'asset':
-    case 'skill-file':
     case 'large-file':
       return 'asset';
     case 'missing':
-    case 'skills':
-    case 'skill-preview':
       return 'none';
   }
 }

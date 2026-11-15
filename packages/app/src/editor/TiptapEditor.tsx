@@ -77,7 +77,6 @@ import { setEditorSingleFileMode, setEditorSourceMode } from './extensions/edito
 import { FrozenTableHeaders } from './extensions/frozen-table-headers.ts';
 import { MarkdownLintDecorations } from './extensions/markdown-lint-decorations.ts';
 import { scopeExtensionsToDocument, sharedExtensions } from './extensions/shared.ts';
-import { SkillPathLinks } from './extensions/skill-path-links';
 import { uploadDecorationPlugin } from './image-upload/index.ts';
 import type { LandingHandle } from './landing-controller';
 import { startWysiwygLanding } from './mode-switch-landing';
@@ -262,7 +261,6 @@ export function buildExtensionList(args: BuildEditorOptionsArgs): AnyExtension[]
       placeholder: () => placeholder ?? t`Type '/' for commands`,
       showOnlyCurrent: true,
     }),
-    SkillPathLinks.configure({ docName: provider.configuration.name ?? '' }),
     GitQuireRelationFields,
     GitQuirePeopleMentions,
     collaboration,

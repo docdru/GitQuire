@@ -6,26 +6,17 @@ import {
   clearHashWithoutNavigation,
   docNameFromHash,
   encodeShareTargetForHash,
-  encodeSkillPreviewSegments,
   filePathToDocName,
   hashFromAssetPath,
   hashFromDocName,
   hashFromFolderPath,
-  hashFromSkillFile,
-  hashFromSkillPreview,
   isContentRootHash,
   isManagedHashHistoryState,
   isSameHash,
   markCurrentHashHistoryEntry,
   pushHashWithoutNavigation,
   readManagedHashHistoryEntry,
-  type SkillFileHashTarget,
-  type SkillPreviewHashTarget,
-  selectedPathForSkillPreview,
-  skillFileFromHash,
-  skillPreviewFromHash,
 } from './doc-hash';
-import { skillLiveDocName } from './managed-artifact-doc-name';
 
 describe('docNameFromHash', () => {
   test('returns null for empty hash', () => {
@@ -509,14 +500,7 @@ describe('asset hash helpers', () => {
   });
 });
 
-describe('skill and template doc names round-trip as documents', () => {
-  test('skill doc name round-trips through the hash', () => {
-    const docName = skillLiveDocName('global', 'run-tests');
-    expect(docName).toBe('__skill__/global/run-tests');
-    expect(hashFromDocName(docName)).toBe('#/__skill__/global/run-tests');
-    expect(docNameFromHash(hashFromDocName(docName))).toBe(docName);
-  });
-
+describe('template doc names round-trip as documents', () => {
   test('template CONTENT doc name (nested folder) round-trips through the hash', () => {
     const docName = templateContentDocName('a/b/c', 'deep');
     expect(docName).toBe('a/b/c/.ok/templates/deep');
@@ -539,174 +523,6 @@ describe('skill and template doc names round-trip as documents', () => {
 
   test('a legacy `__template__/…` hash still decodes (input to the navigation redirect)', () => {
     expect(docNameFromHash('#/__template__/My%20Notes/plan')).toBe('__template__/My Notes/plan');
-  });
-});
-
-describe('skill-file hash', () => {
-  test('round-trips scope / name / nested path', () => {
-    const target = {
-      scope: 'global',
-      name: 'trip-log',
-      path: 'references/guide.md',
-    } satisfies SkillFileHashTarget;
-    const hash = hashFromSkillFile(target);
-    expect(hash).toBe('#/__skill-file__/global/trip-log/references/guide.md');
-    expect(skillFileFromHash(hash)).toEqual(target);
-  });
-
-  test('round-trips a script path', () => {
-    const target = {
-      scope: 'project',
-      name: 'my-skill',
-      path: 'scripts/run.sh',
-    } satisfies SkillFileHashTarget;
-    expect(skillFileFromHash(hashFromSkillFile(target))).toEqual(target);
-  });
-
-  test('round-trips the host that separates two same-named skills', () => {
-    const target = {
-      scope: 'project',
-      name: 'review',
-      path: 'references/guide.md',
-      host: 'codex',
-    } satisfies SkillFileHashTarget;
-    const hash = hashFromSkillFile(target);
-    expect(skillFileFromHash(hash)).toEqual(target);
-    expect(hash).not.toBe(hashFromSkillFile({ ...target, host: 'claude' }));
-  });
-
-  test('a hash written before hosts existed still parses (by-name default)', () => {
-    expect(skillFileFromHash('#/__skill-file__/global/trip-log/references/guide.md')).toEqual({
-      scope: 'global',
-      name: 'trip-log',
-      path: 'references/guide.md',
-    });
-  });
-
-  test('a skill-file hash is not read as a docName or asset path', () => {
-    const hash = hashFromSkillFile({ scope: 'global', name: 'x', path: 'scripts/run.sh' });
-    expect(docNameFromHash(hash)).toBeNull();
-    expect(assetPathFromHash(hash)).toBeNull();
-  });
-
-  test('returns null for a non-skill-file hash', () => {
-    expect(skillFileFromHash('#/some/doc')).toBeNull();
-    expect(skillFileFromHash('#/__asset__/images/x.png')).toBeNull();
-    expect(skillFileFromHash('#/__skill-file__/global/trip-log')).toBeNull();
-  });
-
-  test('rejects an unknown scope segment (hash is untrusted/editable)', () => {
-    expect(skillFileFromHash('#/__skill-file__/bogus/trip-log/references/x.md')).toBeNull();
-    expect(skillFileFromHash('#/__skill-file__/personal/trip-log/references/x.md')).toBeNull();
-  });
-});
-
-describe('skill-preview hash', () => {
-  test('preserves a file selection only for the same preview identity', () => {
-    const alpha = {
-      flavor: 'explore',
-      source: 'owner/a',
-      name: 'alpha',
-      subtitle: 'owner/a',
-      path: 'references/details.md',
-    } satisfies SkillPreviewHashTarget;
-    const beta = {
-      flavor: 'explore',
-      source: 'owner/b',
-      name: 'beta',
-      subtitle: 'owner/b',
-    } satisfies SkillPreviewHashTarget;
-
-    expect(selectedPathForSkillPreview(hashFromSkillPreview(alpha), alpha)).toBe(
-      'references/details.md',
-    );
-    expect(selectedPathForSkillPreview(hashFromSkillPreview(alpha), beta)).toBeUndefined();
-  });
-
-  test('round-trips explore + detected targets, defaulting an absent level', () => {
-    const cases: SkillPreviewHashTarget[] = [
-      { flavor: 'explore', source: 'owner/repo', name: 'ai-sdk', subtitle: 'owner/repo' },
-      { flavor: 'detected', source: '/Users/me/.ok/skills/1on1', name: '1on1', subtitle: 'claude' },
-    ];
-    for (const target of cases) {
-      expect(skillPreviewFromHash(hashFromSkillPreview(target))).toEqual({
-        ...target,
-        level: 'project',
-      });
-    }
-    const global = {
-      flavor: 'explore',
-      source: 'owner/repo',
-      name: 'ai-sdk',
-      subtitle: 'owner/repo',
-      level: 'global',
-    } satisfies SkillPreviewHashTarget;
-    expect(skillPreviewFromHash(hashFromSkillPreview(global))).toEqual(global);
-  });
-
-  test('a level-less and a project-level target share ONE identity', () => {
-    const withoutLevel = {
-      flavor: 'explore',
-      source: 'open.feishu.cn',
-      name: 'lark-doc',
-      subtitle: 'open.feishu.cn',
-    } satisfies SkillPreviewHashTarget;
-    const withLevel = { ...withoutLevel, level: 'project' } satisfies SkillPreviewHashTarget;
-    expect(encodeSkillPreviewSegments(withoutLevel)).toBe(encodeSkillPreviewSegments(withLevel));
-  });
-
-  test('round-trips a selected-file path (with and without a level)', () => {
-    const cases: SkillPreviewHashTarget[] = [
-      {
-        flavor: 'detected',
-        source: '/x/1on1',
-        name: '1on1',
-        subtitle: 'claude',
-        path: 'references/notes.md',
-      },
-      {
-        flavor: 'detected',
-        source: '/x/1on1',
-        name: '1on1',
-        subtitle: 'claude',
-        level: 'global',
-        path: 'references/sub/deep.md',
-      },
-      { flavor: 'explore', source: 'o/r', name: 'x', subtitle: 'o/r', path: 'scripts/run.sh' },
-    ];
-    for (const target of cases) {
-      expect(skillPreviewFromHash(hashFromSkillPreview(target))).toEqual({
-        level: 'project',
-        ...target,
-      });
-    }
-  });
-
-  test('path is NOT part of the tab-identity encoding (one tab, body switches)', () => {
-    const base: SkillPreviewHashTarget = {
-      flavor: 'detected',
-      source: '/x/1on1',
-      name: '1on1',
-      subtitle: 'claude',
-      level: 'global',
-    };
-    expect(encodeSkillPreviewSegments({ ...base, path: 'references/notes.md' })).toBe(
-      encodeSkillPreviewSegments(base),
-    );
-  });
-
-  test('rejects an unknown flavor', () => {
-    expect(skillPreviewFromHash('#/__skill-preview__/bogus/owner%2Frepo/x/y')).toBeNull();
-  });
-
-  test('docNameFromHash ignores the skill-preview route', () => {
-    const hash = hashFromSkillPreview({
-      flavor: 'explore',
-      source: 'o/r',
-      name: 'x',
-      subtitle: 'o/r',
-    });
-    expect(docNameFromHash(hash)).toBeNull();
   });
 });
 

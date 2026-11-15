@@ -17,11 +17,7 @@ import {
   hashFromAssetPath,
   hashFromDocName,
   hashFromFolderPath,
-  hashFromSkillFile,
-  hashFromSkillPreview,
   isSameHash,
-  skillFileFromHash,
-  skillPreviewFromHash,
 } from '@/lib/doc-hash';
 import { emitBranchChanged, emitDocumentsChanged } from '@/lib/documents-events';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
@@ -84,9 +80,6 @@ import {
   remapOpenTabs,
   remapVisibleTabsForRename,
   shouldPersistTabSession,
-  skillFileTabId,
-  skillPreviewTabId,
-  staleLocalSkillPreviewTwins,
   type TabSessionRestoreOutcome,
   tabIdForNavigationTarget,
   writeLocalTabSessionState,
@@ -302,16 +295,6 @@ function hashFromTabId(tabId: string): string {
       return hashFromFolderPath(tab.folderPath);
     case 'asset':
       return hashFromAssetPath(tab.assetPath);
-    case 'skill-file':
-      return hashFromSkillFile({ scope: tab.scope, name: tab.name, path: tab.path });
-    case 'skill-preview':
-      return hashFromSkillPreview({
-        flavor: tab.flavor,
-        source: tab.source,
-        name: tab.name,
-        subtitle: tab.subtitle,
-        level: tab.level,
-      });
   }
 }
 
@@ -338,25 +321,6 @@ function resolvedTargetForTabId(tabId: string): ResolvedNavigationTarget {
       return { kind: 'folder', target: tab.folderPath, folderPath: tab.folderPath };
     case 'asset':
       return assetTargetForPath(tab.assetPath);
-    case 'skill-file':
-      return {
-        kind: 'skill-file',
-        target: `${tab.scope}/${tab.name}${tab.host ? `:${tab.host}` : ''}/${tab.path}`,
-        scope: tab.scope,
-        name: tab.name,
-        path: tab.path,
-        ...(tab.host ? { host: tab.host } : {}),
-      };
-    case 'skill-preview':
-      return {
-        kind: 'skill-preview',
-        target: `${tab.flavor}/${tab.source}/${tab.name}`,
-        flavor: tab.flavor,
-        source: tab.source,
-        name: tab.name,
-        subtitle: tab.subtitle,
-        level: tab.level,
-      };
   }
 }
 
@@ -404,10 +368,6 @@ function visibleProviderDocNames(workspace: EditorWorkspaceState): Set<string> {
 function tabIdFromHash(hash: string): string | null {
   const assetPath = assetPathFromHash(hash);
   if (assetPath) return assetTabId(assetPath);
-  const skillFile = skillFileFromHash(hash);
-  if (skillFile) return skillFileTabId(skillFile);
-  const skillPreview = skillPreviewFromHash(hash);
-  if (skillPreview) return skillPreviewTabId(skillPreview);
   const docName = docNameFromHash(hash);
   if (!docName) return null;
   const trimmed = docName.trim();
@@ -452,12 +412,6 @@ function navigationTargetKey(target: ResolvedNavigationTarget): string {
       return `folder:${target.folderPath}`;
     case 'asset':
       return `asset:${target.assetPath}:${target.mediaKind ?? ''}`;
-    case 'skill-file':
-      return `skill-file:${target.scope}:${target.name}:${target.path}`;
-    case 'skills':
-      return 'skills:hub';
-    case 'skill-preview':
-      return `skill-preview:${target.flavor}:${target.source}:${target.name}:${target.subtitle}:${target.path ?? ''}`;
     case 'large-file':
       return `large-file:${target.docName}:${target.size}:${target.limit}`;
     case 'missing':
@@ -1217,10 +1171,6 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     if (options.deliberate !== false) revealEditor();
     const paneId = requestedPaneId ?? workspaceRef.current.focusedPaneId;
     const p = getPool(collabUrl);
-    if (target.kind === 'skills') {
-      activateOrOpenSurfaceNewTab(paneId, 'files');
-      return;
-    }
     const docName = docNameForNavigationTarget(target);
     const nextTabId = tabIdForNavigationTarget(target);
     if (!nextTabId) return;
@@ -1241,37 +1191,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
       existingTabBehavior,
     });
     if (transition.replacedPreviewTabId !== null) markTabSessionClosedDuringRestore();
-    let nextWorkspace = transition.workspace;
-    if (target.kind === 'skill-preview' && target.level) {
-      const twins = new Set(
-        staleLocalSkillPreviewTwins(
-          flattenWorkspaceTabs(nextWorkspace),
-          {
-            flavor: target.flavor,
-            name: target.name,
-            subtitle: target.subtitle ?? '',
-            level: target.level,
-          },
-          nextTabId,
-        ),
-      );
-      if (twins.size > 0) {
-        markTabSessionClosedDuringRestore();
-        for (const paneId of nextWorkspace.panes.map((pane) => pane.id)) {
-          const pane = nextWorkspace.panes.find((candidate) => candidate.id === paneId);
-          if (!pane) continue;
-          const inPane = pane.openTabs.filter((tabId) => twins.has(tabId));
-          if (inPane.length === 0) continue;
-          nextWorkspace = transitionEditorWorkspace(nextWorkspace, {
-            type: 'close-tabs',
-            paneId,
-            tabIds: inPane,
-          }).workspace;
-        }
-        closeProvidersWithoutOpenTabs(twins, nextWorkspace);
-      }
-    }
-    commitWorkspace(nextWorkspace);
+    commitWorkspace(transition.workspace);
   };
   const openTarget = (target: ResolvedNavigationTarget, options?: OpenTargetOptions) => {
     openTargetWithOptions(target, options);

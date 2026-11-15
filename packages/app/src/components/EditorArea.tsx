@@ -1,5 +1,4 @@
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { parseExternalSkillDocName } from '@inkeep/open-knowledge-core/constants/cc1';
 import { detectEmbeddedHostFromBrowser } from '@inkeep/open-knowledge-core/constants/embedded-host';
 import {
   isFrontmatterSchemaAsset,
@@ -43,8 +42,6 @@ import { NothingOpen } from '@/components/NothingOpen';
 import { OkBlobRunnerPage } from '@/components/OkBlobRunnerPage';
 import { PropertyProvider, useProperties } from '@/components/PropertyContext';
 import { paneLabel } from '@/components/pane-icons';
-import { SkillFileViewer } from '@/components/SkillFileViewer';
-import { SkillPreviewTab } from '@/components/SkillPreviewTab';
 import { SettingsDialogShell } from '@/components/settings/SettingsDialogShell';
 import { Button } from '@/components/ui/button';
 import {
@@ -334,10 +331,6 @@ function runRailLayoutRetry({
   };
   retry(30);
 }
-
-const SkillEditBanner = lazy(async () => ({
-  default: (await import('@/components/SkillEditBanner')).SkillEditBanner,
-}));
 
 const LazyLintConfigEditor = lazy(async () => {
   const mod = await import('@/components/LintConfigEditor');
@@ -1485,28 +1478,6 @@ function EditorAreaInner({
         mediaKind={activeTarget.mediaKind}
       />
     );
-  } else if (activeTarget?.kind === 'skill-file') {
-    viewContent = (
-      <SkillFileViewer
-        key={`${activeTarget.scope}/${activeTarget.name}/${activeTarget.host ?? ''}/${activeTarget.path}`}
-        scope={activeTarget.scope}
-        name={activeTarget.name}
-        path={activeTarget.path}
-        host={activeTarget.host}
-      />
-    );
-  } else if (activeTarget?.kind === 'skill-preview') {
-    viewContent = (
-      <SkillPreviewTab
-        key={`${activeTarget.flavor}:${activeTarget.source}:${activeTarget.name}:${activeTarget.level ?? ''}`}
-        flavor={activeTarget.flavor}
-        source={activeTarget.source}
-        name={activeTarget.name}
-        subtitle={activeTarget.subtitle}
-        level={activeTarget.level}
-        path={activeTarget.path}
-      />
-    );
   } else if (!activeProvider || !activeDocName) {
     const hashDoc = typeof window !== 'undefined' ? docNameFromHash(window.location.hash) : null;
     if (hashDoc !== null) {
@@ -1544,14 +1515,8 @@ function EditorAreaInner({
       !(timelineDiff && timelineDiff.docName === activeDocName) &&
       !(agentDiff && agentDiffDoc === activeDocName);
     const showAskClaude = askClaudeAvailable && bottomComposerFits;
-    const externalSkillEdit = activeDocName ? parseExternalSkillDocName(activeDocName) : null;
     const renderEditorContent = (activityMount: ReactNode) => (
       <div className="relative flex h-full flex-col">
-        {externalSkillEdit ? (
-          <Suspense fallback={null}>
-            <SkillEditBanner name={externalSkillEdit.name} />
-          </Suspense>
-        ) : null}
         <DocChangeNotice docName={activeDocName} timelineAvailable={!noteWindow} />
         <div className="relative min-h-0 flex-1">
           <div className="relative h-full">
@@ -1895,30 +1860,6 @@ function EditorAreaInner({
           key={target.assetPath}
           assetPath={target.assetPath}
           mediaKind={target.mediaKind}
-        />
-      );
-    }
-    if (target?.kind === 'skill-file') {
-      return (
-        <SkillFileViewer
-          key={`${target.scope}/${target.name}/${target.host ?? ''}/${target.path}`}
-          scope={target.scope}
-          name={target.name}
-          path={target.path}
-          host={target.host}
-        />
-      );
-    }
-    if (target?.kind === 'skill-preview') {
-      return (
-        <SkillPreviewTab
-          key={`${target.flavor}:${target.source}:${target.name}:${target.level ?? ''}`}
-          flavor={target.flavor}
-          source={target.source}
-          name={target.name}
-          subtitle={target.subtitle}
-          level={target.level}
-          path={target.path}
         />
       );
     }

@@ -16,7 +16,7 @@ import {
   recordAppShellCrashTrip,
   resetTabSessionRestoreSuppression,
 } from '@/lib/tab-session-restore-suppression';
-import { assetTabId, docTabId, localTabSessionStorageKey, skillFileTabId } from './editor-tabs';
+import { assetTabId, docTabId, localTabSessionStorageKey } from './editor-tabs';
 import {
   requestPreviewTabPromotion,
   requestPreviewTabPromotionForTab,
@@ -34,12 +34,6 @@ vi.doMock('@/lib/use-collab-url', () => ({
   }),
 }));
 
-const mockSkillsStatus: 'idle' | 'loading' | 'ready' = 'idle';
-
-vi.doMock('@/hooks/use-skills', () => ({
-  useSkills: () => ({ status: mockSkillsStatus, data: [] }),
-}));
-
 const { DocumentProvider, useDocumentContext } = await import('./DocumentContext');
 
 const PINNED_TAB_ID = docTabId('Pinned');
@@ -47,7 +41,6 @@ const OTHER_TAB_ID = docTabId('Other');
 const THIRD_TAB_ID = docTabId('Third');
 const PREVIEW_TAB_ID = docTabId('Preview');
 const LICENSE_TAB_ID = assetTabId('LICENSE');
-const SKILL_TAB_ID = skillFileTabId({ scope: 'project', name: 'example', path: 'SKILL.md' });
 const originalFetch = globalThis.fetch;
 
 function persistedTabSession(
@@ -149,32 +142,6 @@ function seedPaneWorkspaceSession() {
       ],
       focusedPaneId: 'pane-right',
       updatedAt: new Date('2026-07-23T00:00:00.000Z').toISOString(),
-    }),
-  );
-}
-
-function seedMixedSurfacePaneWorkspaceSession() {
-  window.localStorage.setItem(
-    localTabSessionStorageKey(window.location.origin),
-    JSON.stringify({
-      panes: [
-        {
-          id: 'pane-left',
-          openTabs: [PINNED_TAB_ID],
-          pinnedTabIds: [],
-          activeTabId: PINNED_TAB_ID,
-          size: 50,
-        },
-        {
-          id: 'pane-right',
-          openTabs: [OTHER_TAB_ID, SKILL_TAB_ID],
-          pinnedTabIds: [],
-          activeTabId: SKILL_TAB_ID,
-          size: 50,
-        },
-      ],
-      focusedPaneId: 'pane-left',
-      updatedAt: new Date('2026-08-04T00:00:00.000Z').toISOString(),
     }),
   );
 }
@@ -342,9 +309,6 @@ function CloseActiveHarness() {
       <button type="button" onClick={() => ctx.reopenClosedTab()}>
         Reopen closed
       </button>
-      <button type="button" onClick={() => ctx.openTarget({ kind: 'skills', target: 'skills' })}>
-        Resolve skills hub
-      </button>
       <button
         type="button"
         onClick={() => {
@@ -363,14 +327,6 @@ function HiddenEditorRevealHarness() {
   return (
     <>
       <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
-      <button
-        type="button"
-        onClick={() =>
-          ctx.openTargetTransition({ kind: 'skills', target: 'skills' }, { deliberate: false })
-        }
-      >
-        Sync skills
-      </button>
       <button type="button" onClick={() => ctx.clearTarget()}>
         Clear target
       </button>
@@ -461,9 +417,6 @@ function PaneWorkspaceHarness() {
       </button>
       <button type="button" onClick={() => ctx.activateTabInPane('pane-files', PINNED_TAB_ID)}>
         Activate file surface
-      </button>
-      <button type="button" onClick={() => ctx.activateTabInPane('pane-skills', SKILL_TAB_ID)}>
-        Activate skill surface
       </button>
       <button type="button" onClick={() => ctx.activateTabInPane('pane-left', OTHER_TAB_ID)}>
         Activate other in left
@@ -886,19 +839,6 @@ describe('DocumentContext tab close force contract', () => {
 
     expect(requests).toEqual([{ pane: 'editor', open: true }]);
     expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
-  });
-
-  test('a non-deliberate skills sync leaves a hidden editor hidden, while Blob Run shows it', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    render(<HiddenEditorRevealHarness />, { wrapper: ProviderHarness });
-    await new Promise((r) => setTimeout(r, 0));
-    const requests = hideEditorAndRecordRequests();
-
-    act(() => screen.getByRole('button', { name: 'Sync skills' }).click());
-    expect(requests).toEqual([]);
-
-    act(() => screen.getByRole('button', { name: 'Blob run' }).click());
-    expect(requests).toEqual([{ pane: 'editor', open: true }]);
   });
 
   test('clearing the target over restored tabs leaves a hidden editor hidden', async () => {
@@ -1575,23 +1515,6 @@ describe('DocumentContext pane workspace', () => {
     expect(screen.getByTestId('focused-pane').textContent).toBe('pane-1');
     expect(screen.getByTestId('active-pane-tab').textContent).toBe(OTHER_TAB_ID);
     expect(screen.getByTestId('pane-tabs').textContent?.match(/Other/g)).toHaveLength(1);
-  });
-
-  test('shows file and skill tabs together across panes', async () => {
-    seedMixedSurfacePaneWorkspaceSession();
-    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
-
-    const visible = () => screen.getByTestId('pane-visible-tabs').textContent ?? '';
-    expect(visible()).toContain(PINNED_TAB_ID);
-    expect(visible()).toContain(SKILL_TAB_ID);
-    expect(screen.getByTestId('pane-count').textContent).toBe('2');
-
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Focus right' }));
-
-    expect(screen.getByTestId('focused-pane').textContent).toBe('pane-right');
-    expect(visible()).toContain(PINNED_TAB_ID);
-    expect(visible()).toContain(SKILL_TAB_ID);
   });
 
   test('maps a cross-pane visible drop slot around a blank tab to regular-tab order', async () => {
