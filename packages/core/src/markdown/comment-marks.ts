@@ -46,6 +46,7 @@ function splitText(node: Text, labels: ReadonlySet<string>): Phrasing[] | undefi
     const label = match[1] as string;
     if (!labels.has(label)) continue;
     const index = match.index ?? 0;
+    if (node.data?.escapedChars?.some((entry) => entry.offset === index)) continue;
     if (index > cursor) pieces.push(textPiece(node, cursor, index));
     pieces.push({
       type: 'footnoteReference',

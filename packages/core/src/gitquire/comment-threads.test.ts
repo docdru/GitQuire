@@ -206,6 +206,12 @@ describe('markdown pipeline', () => {
     expect(md.serialize(json)).toBe(source);
   });
 
+  test('an escaped mark stays escaped', () => {
+    const json = md.parse(`Text \\[^c-7f3a] here.\n\n${trailer}\n`);
+    expect(JSON.stringify(json)).not.toContain('gitquireCommentMark');
+    expect(md.serialize(json).split('\n')[0]).toBe('Text \\[^c-7f3a] here.');
+  });
+
   test('a mark for an unknown label stays text', () => {
     const json = md.parse('Text[^c-dead] here.\n');
     expect(JSON.stringify(json)).not.toContain('gitquireCommentMark');

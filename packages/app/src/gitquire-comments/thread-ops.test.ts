@@ -70,6 +70,19 @@ describe('thread operations', () => {
     expect(setResolved(replied, created.thread.id, false)).toEqual(replied);
   });
 
+  test('an author without a GitHub login gets a login the format can hold', () => {
+    const guest: OpContext = {
+      author: { id: 'principal-0f8e2c4a-1b2c-4d5e-8f90-123456789abc' },
+      now: () => new Date('2026-11-11T12:00:00Z'),
+      newId: () => 'x',
+    };
+    const created = createThread([], anchor, 'hello there', guest);
+    const raw = serializeCommentTrailer(created.threads) as string;
+    expect(raw).toContain(
+      '- **@principal-0f8e2c4a-1b2c-4d5e-8f90-12345** · 2026-11-11 12:00 — hello there',
+    );
+  });
+
   test('two comments by one person in the same minute get distinct ids', () => {
     const created = createThread([], anchor, 'One', alice);
     const twice = addReply(created.threads, created.thread.id, 'Two', alice);

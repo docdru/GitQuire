@@ -99,6 +99,41 @@ describe('mergeThreads', () => {
   });
 });
 
+describe('review cases', () => {
+  test('keeps unreadable lines and threads that only hold them', () => {
+    const { base, threadId } = seed();
+    const withNote = base.map((thread) => ({ ...thread, unreadable: ['note: see ticket 12'] }));
+    const onlyNote = {
+      id: 'c-1',
+      anchor: { exact: '' },
+      resolved: false,
+      comments: [],
+      unreadable: ['x'],
+    };
+    const start = [...withNote, onlyNote];
+    const mine = addReply(start, threadId, 'From Alice', alice);
+    const theirs = addReply(start, threadId, 'From Bob', bob);
+    const merged = mergeThreads(start, mine, theirs);
+    expect(merged.find((thread) => thread.id === threadId)?.unreadable).toEqual([
+      'note: see ticket 12',
+    ]);
+    expect(merged.find((thread) => thread.id === 'c-1')?.unreadable).toEqual(['x']);
+  });
+
+  test('two tabs of one person replying in the same minute keep both replies', () => {
+    const { base, threadId } = seed();
+    const tabA = context('alice', 1, '2026-11-11T12:05:10Z');
+    const tabB = context('alice', 1, '2026-11-11T12:05:40Z');
+    const mine = addReply(base, threadId, 'from tab A', tabA);
+    const theirs = addReply(base, threadId, 'from tab B', tabB);
+    expect(
+      bodies(mergeThreads(base, mine, theirs))[0]
+        ?.slice(1)
+        .sort(),
+    ).toEqual(['from tab A', 'from tab B']);
+  });
+});
+
 describe('reconcileThreads', () => {
   test('writes a merge when a remote change dropped my comment', () => {
     const { base, threadId } = seed();

@@ -109,6 +109,17 @@ function compareThreadOrder(a: Thread, b: Thread): number {
   return a.id < b.id ? -1 : 1;
 }
 
+function mergeUnreadable(
+  base: readonly string[] | undefined,
+  mine: readonly string[] | undefined,
+  theirs: readonly string[] | undefined,
+): string[] {
+  const key = (lines: readonly string[] | undefined) => JSON.stringify(lines ?? []);
+  if (key(mine) === key(base)) return [...(theirs ?? [])];
+  if (key(theirs) === key(base)) return [...(mine ?? [])];
+  return [...new Set([...(theirs ?? []), ...(mine ?? [])])];
+}
+
 function mergeThread(
   base: Thread | undefined,
   mine: Thread | undefined,
@@ -121,10 +132,23 @@ function mergeThread(
   const theirComments = byId(theirs?.comments);
   const comments: ThreadComment[] = [];
   for (const id of unionIds(theirs?.comments, mine?.comments)) {
-    const merged = mergeComment(baseComments.get(id), mineComments.get(id), theirComments.get(id));
+    const baseComment = baseComments.get(id);
+    const mineComment = mineComments.get(id);
+    const theirComment = theirComments.get(id);
+    if (
+      baseComment === undefined &&
+      mineComment !== undefined &&
+      theirComment !== undefined &&
+      commentKey(mineComment) !== commentKey(theirComment)
+    ) {
+      comments.push(theirComment, mineComment);
+      continue;
+    }
+    const merged = mergeComment(baseComment, mineComment, theirComment);
     if (merged !== undefined) comments.push(merged);
   }
-  if (comments.length === 0) return undefined;
+  const unreadable = mergeUnreadable(base?.unreadable, mine?.unreadable, theirs?.unreadable);
+  if (comments.length === 0 && unreadable.length === 0) return undefined;
   comments.sort(compareComments);
   const state = mergeState(base, mine, theirs);
   const thread: Thread = {
@@ -133,6 +157,7 @@ function mergeThread(
     resolved: state.resolved,
     comments,
   };
+  if (unreadable.length > 0) thread.unreadable = unreadable;
   if (state.resolved && state.resolvedBy !== undefined) thread.resolvedBy = state.resolvedBy;
   if (state.resolved && state.resolvedAt !== undefined) thread.resolvedAt = state.resolvedAt;
   return thread;

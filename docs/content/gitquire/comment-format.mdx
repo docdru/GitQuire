@@ -22,10 +22,10 @@ The quarterly numbers[^c-7f3a] look good.
 
 | Part | Form | Notes |
 | --- | --- | --- |
-| Label | `c-` followed by letters and digits | Footnote labels starting with `c-` are reserved for comments. GitQuire picks 4 hex digits, more when those are taken. |
+| Label | `c-` followed by letters and digits | GitQuire picks 4 hex digits, more when those are taken. A `c-` footnote is a thread when it starts with the 💬 header or holds at least one comment line; otherwise it stays an ordinary footnote. |
 | Mark | `[^c-7f3a]` | Directly after the last character of the commented passage. It moves, copies and is deleted with the text. |
 | Header | `💬 on "<passage>"` | The commented text on one line; `"` inside it is written `\"`. `💬 comment` when there is no passage. |
-| Comment | `- **@login** · YYYY-MM-DD HH:MM — text` | Indented 4 spaces. Times are UTC, to the minute (to the second when one person writes twice in the same minute). An edit adds `· edited YYYY-MM-DD HH:MM`. |
+| Comment | `- **@login** · YYYY-MM-DD HH:MM — text` | Indented 4 spaces. Times are UTC, to the minute (to the second when one person writes twice in the same minute). An edit adds `· edited YYYY-MM-DD HH:MM`. Logins are letters, digits and `-`, at most 39 characters. |
 | More lines | indented 6 spaces | Continue the comment above. Blank lines inside a comment are allowed. |
 | Place | last block of the page | After real footnotes, oldest thread first. |
 
@@ -45,8 +45,9 @@ GitQuire writes the form above, and reads these as well:
 
 - no blank line between the header and the first comment;
 - `- @name: text`, `- @name — text` or `- @name text`, with or without bold and date;
-- comments written without indentation directly under a thread;
-- a `c-` footnote without the 💬 header.
+- comments written without indentation directly under a thread, with no blank line in between;
+- a `c-` footnote without the 💬 header, as long as it holds a comment line;
+- the same label defined twice (for example after a merge that kept both sides): the comments are joined, exact duplicates once.
 
 When it writes the page again, it uses the canonical form. A line it cannot read as a comment is
 kept, word for word, at the end of its thread and shown as unreadable; nothing is dropped.

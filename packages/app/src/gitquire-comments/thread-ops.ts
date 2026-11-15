@@ -3,6 +3,7 @@ import {
   type CommentAuthor,
   type CommentThread,
   commentIdFor,
+  commentLogin,
   newCommentLabel,
   normalizeCommentTimes,
   type ThreadComment as StoredComment,
@@ -58,7 +59,7 @@ function stamp(ctx: OpContext, iso: string = ctx.now().toISOString()): string {
 }
 
 function authorOf(ctx: OpContext): Author {
-  const login = ctx.author.login ?? ctx.author.id;
+  const login = commentLogin(ctx.author);
   return { id: login.toLowerCase(), login };
 }
 
@@ -70,7 +71,7 @@ function sameAuthorAt(
   return existing.filter(
     (comment) =>
       comment.createdAt === createdAt &&
-      (comment.author.login ?? comment.author.id).toLowerCase() === login.toLowerCase(),
+      commentLogin(comment.author).toLowerCase() === login.toLowerCase(),
   ).length;
 }
 
@@ -112,10 +113,6 @@ export function createThread(
   return { threads: [...threads, thread], thread };
 }
 
-function reopened(thread: Thread): Thread {
-  return { id: thread.id, anchor: thread.anchor, resolved: false, comments: thread.comments };
-}
-
 function updateThread(
   threads: readonly Thread[],
   threadId: string,
@@ -140,7 +137,7 @@ export function addReply(
   ctx: OpContext,
 ): Thread[] {
   return updateThread(threads, threadId, (thread) => ({
-    ...reopened(thread),
+    ...thread,
     comments: [...thread.comments, newComment(body, ctx, thread.id, thread.comments)],
   }));
 }
@@ -155,7 +152,7 @@ export function setResolved(
 }
 
 function loginOf(author: Author): string {
-  return (author.login ?? author.id).toLowerCase();
+  return commentLogin(author).toLowerCase();
 }
 
 export function canModify(comment: ThreadComment, author: Author): boolean {

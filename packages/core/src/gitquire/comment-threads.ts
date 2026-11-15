@@ -1,4 +1,6 @@
 import {
+  commentLogin,
+  type FenceState,
   type FootnoteAuthor,
   type FootnoteComment,
   type FootnoteThread,
@@ -8,6 +10,7 @@ import {
   parseCommentFootnotes,
   serializeCommentFootnotes,
   splitCommentFootnotes,
+  stepFence,
   stripCommentMarks,
 } from './comment-format.ts';
 
@@ -284,12 +287,8 @@ function serializeLegacyTrailer(threads: readonly CommentThread[]): string | und
   return `${COMMENT_TRAILER_OPEN}\n${lines.join('\n')}\n${COMMENT_TRAILER_CLOSE}`;
 }
 
-const LOGIN_SAFE_RE = /[^A-Za-z0-9-]+/g;
-
 function legacyLogin(author: CommentAuthor): string {
-  const raw = author.login ?? author.name ?? author.id;
-  const safe = raw.replace(LOGIN_SAFE_RE, '-').replace(/^-+|-+$/g, '');
-  return safe === '' ? 'unknown' : safe;
+  return commentLogin(author);
 }
 
 function convertLegacyThreads(legacy: LegacyParse, taken: Set<string>): CommentThread[] {
@@ -338,11 +337,33 @@ interface Candidate {
   after: string;
 }
 
+const PROTECTED_SPAN_RES: readonly RegExp[] = [
+  /(`+)[\s\S]*?\1/g,
+  /\]\([^)]*\)/g,
+  /\]\[[^\]]*\]/g,
+  /\[\[[^\]]*\]\]/g,
+  /<[^>]*>/g,
+  /\$\$?[^$]*\$\$?/g,
+  /\[\^[^\]]*\]/g,
+  /https?:\/\/\S+/g,
+];
+
+function protectedSpans(line: string): Array<[number, number]> {
+  const spans: Array<[number, number]> = [];
+  for (const re of PROTECTED_SPAN_RES) {
+    for (const match of line.matchAll(new RegExp(re.source, re.flags))) {
+      const start = match.index ?? 0;
+      spans.push([start, start + match[0].length]);
+    }
+  }
+  return spans;
+}
+
 function markableCandidates(body: string, exact: string): Candidate[] {
   const candidates: Candidate[] = [];
   const lines = body.split('\n');
   let offset = 0;
-  let fence: string | undefined;
+  const fence: FenceState = { marker: undefined };
   let inFrontmatter = lines[0]?.trimEnd() === '---';
   for (const [index, line] of lines.entries()) {
     const lineStart = offset;
@@ -352,29 +373,21 @@ function markableCandidates(body: string, exact: string): Candidate[] {
         inFrontmatter = false;
       continue;
     }
-    const fenceMatch = FENCE_LINE_RE.exec(line);
-    if (fence !== undefined) {
-      const marker = fenceMatch?.[1];
-      if (marker !== undefined && marker[0] === fence[0] && marker.length >= fence.length) {
-        fence = undefined;
-      }
-      continue;
-    }
-    if (fenceMatch !== null) {
-      fence = fenceMatch[1];
-      continue;
-    }
+    if (stepFence(fence, line)) continue;
     if (HEADING_LINE_RE.test(line) || line.startsWith('    ') || line.trimStart().startsWith('<')) {
       continue;
     }
+    const spans = protectedSpans(line);
     let at = line.indexOf(exact);
     while (at !== -1) {
-      const backticks = (line.slice(0, at).match(/`/g) ?? []).length;
-      if (backticks % 2 === 0) {
+      const end = at + exact.length;
+      const blocked =
+        spans.some(([from, to]) => at < to && end > from) || /[A-Za-z0-9]/.test(line[end] ?? '');
+      if (!blocked) {
         candidates.push({
-          offset: lineStart + at + exact.length,
+          offset: lineStart + end,
           before: body.slice(Math.max(0, lineStart + at - 200), lineStart + at),
-          after: body.slice(lineStart + at + exact.length, lineStart + at + exact.length + 200),
+          after: body.slice(lineStart + end, lineStart + end + 200),
         });
       }
       at = line.indexOf(exact, at + 1);
@@ -499,6 +512,7 @@ export function convertCommentsToFootnotes(markdown: string): string {
 export {
   COMMENT_LABEL_PREFIX,
   commentIdFor,
+  commentLogin,
   extractMentions,
   findCommentMarks,
   formatStamp,
