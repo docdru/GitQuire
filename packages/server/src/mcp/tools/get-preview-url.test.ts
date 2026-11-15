@@ -142,27 +142,6 @@ describe('preview_url tool — UI running', () => {
       expect(result.structuredContent?.okOpenCommand).toBe('ok open specs/foo');
     });
 
-    test('skill default scope (project): steers to `ok open <name> --skill` (no --scope)', async () => {
-      const cwd = temporaryProject();
-      bindTestUiServerLock(cwd);
-      const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
-      const result = await handler({ skill: { name: 'trip-log' } });
-      expect(result.content[0]?.text ?? '').toContain('ok open trip-log --skill');
-      expect(result.content[0]?.text ?? '').not.toContain('--scope');
-      expect(result.structuredContent?.okOpenCommand).toBe('ok open trip-log --skill');
-    });
-
-    test('skill --scope global: steers to `ok open <name> --skill --scope global`', async () => {
-      const cwd = temporaryProject();
-      bindTestUiServerLock(cwd);
-      const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
-      const result = await handler({ skill: { name: 'trip-log', scope: 'global' } });
-      expect(result.content[0]?.text ?? '').toContain('ok open trip-log --skill --scope global');
-      expect(result.structuredContent?.okOpenCommand).toBe(
-        'ok open trip-log --skill --scope global',
-      );
-    });
-
     test('no target (root): no steer — nothing to `ok open`', async () => {
       const cwd = temporaryProject();
       bindTestUiServerLock(cwd);
@@ -242,33 +221,6 @@ describe('preview_url tool — UI running', () => {
     const handler = captureRegistration(cwd);
     const result = await handler({ document: 'notes/My Doc' });
     expect(result.structuredContent?.url).toBe(`${uiBase}/#/notes/My%20Doc`);
-  });
-});
-
-describe('preview_url tool — skill target', () => {
-  test('with skill: composes the __skill__ route (default project scope)', async () => {
-    const cwd = temporaryProject();
-    const uiBase = bindTestUiServerLock(cwd);
-    const handler = captureRegistration(cwd);
-    const result = await handler({ skill: { name: 'trip-log' } });
-    expect(result.structuredContent?.url).toBe(`${uiBase}/#/__skill__/project/trip-log`);
-  });
-
-  test('with skill + explicit global scope and a spaced name', async () => {
-    const cwd = temporaryProject();
-    const uiBase = bindTestUiServerLock(cwd);
-    const handler = captureRegistration(cwd);
-    const result = await handler({ skill: { name: 'run tests', scope: 'global' } });
-    expect(result.structuredContent?.url).toBe(`${uiBase}/#/__skill__/global/run%20tests`);
-  });
-
-  test('skill + document together is rejected (mutually exclusive)', async () => {
-    const cwd = temporaryProject();
-    bindTestUiServerLock(cwd);
-    const handler = captureRegistration(cwd);
-    const result = await handler({ skill: { name: 'trip-log' }, document: 'specs/foo/SPEC' });
-    expect(result.isError).toBe(true);
-    expect(result.content[0]?.text).toContain('mutually exclusive');
   });
 });
 
@@ -681,11 +633,6 @@ describe('preview_url tool — names the running channel command', () => {
     const doc = await handler({ document: 'specs/foo/SPEC' });
     expect(doc.structuredContent?.okOpenCommand).toBe('ok-beta open specs/foo/SPEC');
     expect(doc.content[0]?.text ?? '').toContain('run `ok-beta open specs/foo/SPEC`');
-
-    const skill = await handler({ skill: { name: 'trip-log', scope: 'global' } });
-    expect(skill.structuredContent?.okOpenCommand).toBe(
-      'ok-beta open trip-log --skill --scope global',
-    );
   });
 
   test('a Beta server with nothing running says ok-beta start', async () => {

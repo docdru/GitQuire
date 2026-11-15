@@ -296,13 +296,10 @@ export async function resolveProjectServerContext(
 export function okReservedPathRedirect(path: string): string | null {
   const p = path.replace(/^\/+/, '');
   if (p !== '.ok' && !p.startsWith('.ok/')) return null;
-  if (p.startsWith('.ok/skills/')) {
-    return 'Skills are authored with the `skill` target, not a raw document path: `write({ skill: { name, description, body?, scope? } })` writes the SKILL.md wherever the skill lives (a NEW skill lands at the project default skill home, e.g. `.agents/skills/<name>/`). To author or improve a skill, use the `open-knowledge-write-skill` skill.';
-  }
   if (p.startsWith('.ok/templates/')) {
     return 'Templates are authored with the `template` target (`write({ template: { … } })`), not a raw document path.';
   }
-  return 'Paths under `.ok/` are not addressable as documents. Edit folder config/frontmatter via the `folder` target, skills via the `skill` target, and templates via the `template` target.';
+  return 'Paths under `.ok/` are not addressable as documents. Edit folder config/frontmatter via the `folder` target and templates via the `template` target.';
 }
 
 export function normalizeDocName(
@@ -645,12 +642,6 @@ export function warningsFieldContract(reporter: string): string {
 }
 
 export const WARNINGS_FIELD_CONTRACT = warningsFieldContract('the server');
-
-export const AUTHORING_WARNING_CODE_GLOSS =
-  '`skill-name-vendor-word`: the name contains a vendor word. `skill-body-too-long`: the body exceeds the 500-line soft cap.';
-
-export const INSTALL_WARNING_CODE_GLOSS =
-  '`no-targets`: nothing was projected, no editor is configured for this project. `scripts-present`: the skill ships executable `scripts/` (projected, never auto-run). `no-description`: installed, but its `description` is empty, so agents cannot route to it. `name-conflict`: a DIFFERENT skill already holds that name at a location. `place-path-invalid`: a named location is not a placeable root. `place-fork-refused`: a copy differing from the current source was left alone rather than deleted. `skill-fork-name-unpatched`: a fork rename moved the folder but could not rewrite `name` in its SKILL.md. `links-not-permitted`: the OS refused symlinks, so the named locations are copies that refresh while unedited and fork when edited.';
 
 export const AUDIT_FILE_CAP = 10;
 export const AUDIT_FILE_DIAGNOSTIC_CAP = 10;

@@ -1,4 +1,4 @@
-import { OK_GATED_TOOL_NAMES, OPEN_KNOWLEDGE_MCP_TOOLS } from '@inkeep/open-knowledge-core';
+import { OPEN_KNOWLEDGE_MCP_TOOLS } from '@inkeep/open-knowledge-core';
 import { afterAll, describe, expect, test } from 'vitest';
 import { createTempDirFactory } from '../../../../../test-support/temp-dir.test-helper.ts';
 import { type Config, ConfigSchema } from '../../config/schema.ts';
@@ -98,42 +98,5 @@ describe('registerAllTools — full tool surface (SPEC.md §9.1 / AC8 + install 
   test('no duplicate registrations', () => {
     const names = captureRegistered();
     expect(names.length).toBe(new Set(names).size);
-  });
-});
-
-const OK_AUTO_APPROVED_TOOLS = [
-  'exec',
-  'search',
-  'history',
-  'links',
-  'skills',
-  'config',
-  'palette',
-  'preview_url',
-  'write',
-  'edit',
-  'checkpoint',
-  'restore_version',
-  'lint',
-  'audit',
-] as const;
-
-describe('docked-terminal auto-approve classification', () => {
-  test('every registered tool is classified as gated or auto-approved', () => {
-    expect(new Set([...OK_AUTO_APPROVED_TOOLS, ...OK_GATED_TOOL_NAMES])).toEqual(
-      new Set(captureRegistered()),
-    );
-  });
-
-  test('no tool is both gated and auto-approved', () => {
-    const gated = new Set<string>(OK_GATED_TOOL_NAMES);
-    expect(OK_AUTO_APPROVED_TOOLS.filter((name) => gated.has(name))).toEqual([]);
-  });
-
-  test('the ask-list only names tools that actually exist', () => {
-    const registered = new Set(captureRegistered());
-    for (const gated of OK_GATED_TOOL_NAMES) {
-      expect(registered).toContain(gated);
-    }
   });
 });

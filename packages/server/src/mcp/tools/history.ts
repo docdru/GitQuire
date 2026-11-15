@@ -4,7 +4,6 @@ import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './sh
 import {
   hocuspocusNotRunningError,
   httpGet,
-  httpGetRows,
   looseObjectArray,
   normalizeDocName,
   outputSchemaWithText,
@@ -39,8 +38,8 @@ const HistoryEntryOutputSchema = z.object({
 });
 
 const DESCRIPTION = [
-  'Read version history: pass exactly one document, folder or skill. Requires the Hocuspocus server. Returns shadow-repo entries newest first; version is a 40-char SHA for restore_version({document,version}) or restore_version({skill,version}).',
-  'document accepts optional .md/.mdx. folder lists attributed template/frontmatter activity; empty string is project root. skill is a project-scope name; global skills are unversioned. Optional branch (current default), limit (50 default, 200 max), offset (0), kind (checkpoint/upstream/wip), author and excludeAuthor (name/email).',
+  'Read version history: pass exactly one document or folder. Requires the Hocuspocus server. Returns shadow-repo entries newest first; version is a 40-char SHA for restore_version({document,version}).',
+  'document accepts optional .md/.mdx. folder lists attributed template/frontmatter activity; empty string is project root. Optional branch (current default), limit (50 default, 200 max), offset (0), kind (checkpoint/upstream/wip), author and excludeAuthor (name/email).',
 ].join('\n');
 
 export interface GetHistoryDeps {
@@ -64,12 +63,6 @@ export function register(server: ServerInstance, deps: GetHistoryDeps): void {
           .optional()
           .describe(
             'Folder path to query the FOLDER timeline for — attributed activity over the folder\'s `.ok/` artifacts (templates + frontmatter): created / edited / renamed / moved / deleted, by whom, when. Mutually exclusive with `document`. Use `""` for the project root.',
-          ),
-        skill: z
-          .string()
-          .optional()
-          .describe(
-            'Skill name to query version history for. Mutually exclusive with `document` / `folder`.',
           ),
         branch: z.string().optional().describe('Branch name (default: current branch)'),
         limit: z
@@ -116,7 +109,6 @@ export function register(server: ServerInstance, deps: GetHistoryDeps): void {
     async (args: {
       document?: string;
       folder?: string;
-      skill?: string;
       branch?: string;
       limit?: number;
       offset?: number;
@@ -136,11 +128,9 @@ export function register(server: ServerInstance, deps: GetHistoryDeps): void {
       if (!url) return textResult(hocuspocusNotRunningError(), true);
 
       const targetCount =
-        (args.document !== undefined ? 1 : 0) +
-        (args.folder !== undefined ? 1 : 0) +
-        (args.skill !== undefined ? 1 : 0);
+        (args.document !== undefined ? 1 : 0) + (args.folder !== undefined ? 1 : 0);
       if (targetCount !== 1) {
-        return textResult('Error: pass EXACTLY ONE of `document`, `folder`, or `skill`.', true);
+        return textResult('Error: pass EXACTLY ONE of `document` or `folder`.', true);
       }
 
       const isFolder = args.folder !== undefined;
@@ -148,21 +138,6 @@ export function register(server: ServerInstance, deps: GetHistoryDeps): void {
       let previewDocName: string | null = null;
       if (isFolder) {
         params.set('folder', args.folder ?? '');
-      } else if (args.skill !== undefined) {
-        const listed = await httpGetRows(url, '/api/skills', 'skills');
-        if ('error' in listed) return textResult(`Error: ${listed.error}`, true);
-        const entry = listed.rows.find(
-          (r) => r.name === args.skill && r.scope === 'project' && typeof r.path === 'string',
-        );
-        if (!entry) {
-          return textResult(
-            `Error: No project skill named "${args.skill}". Global skills are unversioned.`,
-            true,
-          );
-        }
-        const docName = String(entry.path).replace(/\/SKILL\.mdx?$/i, '/SKILL');
-        params.set('docName', docName);
-        previewDocName = docName;
       } else {
         const normalized = normalizeDocName(args.document as string);
         if (!normalized.ok) return textResult(normalized.error, true);

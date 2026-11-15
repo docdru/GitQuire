@@ -1,9 +1,5 @@
 import { isAbsolute } from 'node:path';
-import {
-  currentCliCommandName,
-  MANAGED_ARTIFACT_SCOPES,
-  SKILL_NAME_REGEX,
-} from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@inkeep/open-knowledge-core';
 import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
 import { z } from 'zod';
 import { AutoStartDisabledError } from '../../autostart.ts';
@@ -19,7 +15,6 @@ import {
   awaitUiBaseUrl,
   encodeDocName,
   encodeFolderRoute,
-  encodeSkillRoute,
   type PreviewUrlContext,
   resolveUiInfo,
 } from './preview-url.ts';
@@ -33,8 +28,8 @@ import {
 } from './shared.ts';
 
 const DESCRIPTION = [
-  "Get the full browser URL for this project or a document/folder/skill, or an absolute markdown file outside the project. Opening is demand: auto-starts OK under the normal OK_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the GitQuire CLI's ps/status.",
-  'Choose one: document (extension-less), folder (trailing-slash route), skill:{name,scope?} (project default), or file (absolute .md/.mdx in a loose-file/worktree session). file ignores cwd; other targets use current project. Omit targets for UI root.',
+  "Get the full browser URL for this project or a document/folder, or an absolute markdown file outside the project. Opening is demand: auto-starts OK under the normal OK_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the GitQuire CLI's ps/status.",
+  'Choose one: document (extension-less), folder (trailing-slash route), or file (absolute .md/.mdx in a loose-file/worktree session). file ignores cwd; other targets use current project. Omit targets for UI root.',
   "When YOUR host opens URLs, navigate its embedded browser to url; Claude Code Desktop uses preview_start({url}) then navigate({url}). Only a stdio host without a browser tool should open the URL in the system browser. A CLI without a browser can use the GitQuire CLI's open <doc> for OK Desktop. This tool forces browser access even when Desktop is installed.",
   "INSIDE OK's terminal/agent panel, use returned okOpenCommand instead; never paste url in the answer. If no UI is reachable, returns url:null, baseUrl:null, running:false, autoOpen plus state-specific recovery text (autostart disabled, no spawn authority or UI timeout). Follow it.",
 ].join('\n');
@@ -67,27 +62,11 @@ const InputSchema = {
     .describe(
       'Folder path to resolve a folder-route preview URL for (e.g. "specs/foo"); returns the `…/#/<folder>/` route. Mutually exclusive with `document`.',
     ),
-  skill: z
-    .object({
-      name: z
-        .string()
-        .min(1)
-        .regex(SKILL_NAME_REGEX, 'Skill name must be lowercase letters, digits, and hyphens only.')
-        .describe('Skill name (the bundle-dir identity, wherever the skill lives).'),
-      scope: z
-        .enum(MANAGED_ARTIFACT_SCOPES)
-        .optional()
-        .describe('Skill scope; defaults to `project`.'),
-    })
-    .optional()
-    .describe(
-      'Skill to resolve an editor preview URL for; returns the `…/#/__skill__/<scope>/<name>` route. Mutually exclusive with `document`/`folder`/`file`.',
-    ),
   file: z
     .string()
     .optional()
     .describe(
-      'Absolute path to a single markdown file to open, including one OUTSIDE any Open Knowledge project. Resolves to the running single-file (or worktree) session whose content directory contains it and returns that session’s `url`. Mutually exclusive with `document` / `folder` / `skill`. When `file` is set, `cwd` is ignored.',
+      'Absolute path to a single markdown file to open, including one OUTSIDE any Open Knowledge project. Resolves to the running single-file (or worktree) session whose content directory contains it and returns that session’s `url`. Mutually exclusive with `document` / `folder`. When `file` is set, `cwd` is ignored.',
     ),
   cwd: z.string().optional().describe(ROUTED_CWD_DESCRIPTION),
 } as const;
@@ -116,7 +95,7 @@ const OutputSchema = outputSchemaWithText({
     .nullable()
     .optional()
     .describe(
-      'Machine-readable form of the hosted-agent steer: when the calling agent runs inside a GitQuire surface (the desktop app’s built-in terminal, or its in-app agent panel) AND a doc/folder/skill target was given, the exact GitQuire CLI `open` command to run to bring it up for the user. Run it INSTEAD of navigating `url`, and do not paste `url` into your reply — the user is already in the app it points at. `null`/absent in every other context (navigate `url` per your host instead).',
+      'Machine-readable form of the hosted-agent steer: when the calling agent runs inside a GitQuire surface (the desktop app’s built-in terminal, or its in-app agent panel) AND a doc/folder target was given, the exact GitQuire CLI `open` command to run to bring it up for the user. Run it INSTEAD of navigating `url`, and do not paste `url` into your reply — the user is already in the app it points at. `null`/absent in every other context (navigate `url` per your host instead).',
     ),
 });
 
@@ -191,20 +170,14 @@ export function register(server: ServerInstance, deps: GetPreviewUrlDeps): void 
         idempotentHint: true,
       },
     },
-    async (args: {
-      document?: string;
-      folder?: string;
-      skill?: { name: string; scope?: 'project' | 'global' };
-      file?: string;
-      cwd?: string;
-    }) => {
-      if ([args.document, args.folder, args.skill, args.file].filter((t) => t != null).length > 1) {
+    async (args: { document?: string; folder?: string; file?: string; cwd?: string }) => {
+      if ([args.document, args.folder, args.file].filter((t) => t != null).length > 1) {
         return {
           isError: true,
           content: [
             {
               type: 'text' as const,
-              text: 'Error: document, folder, skill, and file are mutually exclusive — pass at most one.',
+              text: 'Error: document, folder, and file are mutually exclusive — pass at most one.',
             },
           ],
         };
@@ -266,18 +239,14 @@ export function register(server: ServerInstance, deps: GetPreviewUrlDeps): void 
         ? `#/${encodeDocName(args.document)}`
         : args.folder
           ? `#/${encodeFolderRoute(args.folder)}`
-          : args.skill
-            ? `#/${encodeSkillRoute(args.skill.scope ?? 'project', args.skill.name)}`
-            : null;
+          : null;
 
       const cliCommand = currentCliCommandName();
       const okOpenCommand = args.document
         ? `${cliCommand} open ${shellQuoteArg(args.document)}`
         : args.folder
           ? `${cliCommand} open ${shellQuoteArg(args.folder)}`
-          : args.skill
-            ? `${cliCommand} open ${args.skill.name} --skill${args.skill.scope === 'global' ? ' --scope global' : ''}`
-            : null;
+          : null;
       const hostedAgentSteer =
         deps.isHostedAgent && okOpenCommand
           ? `You're running inside GitQuire — run \`${okOpenCommand}\` to bring this up for the user. Don't navigate the URL below, open a browser, or paste the URL into your reply; it's for reference only.\n\n`

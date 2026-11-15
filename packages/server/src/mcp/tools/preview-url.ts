@@ -30,10 +30,6 @@ export function encodeFolderRoute(folder: string): string {
   return normalized ? `${encodeDocName(normalized)}/` : '';
 }
 
-export function encodeSkillRoute(scope: string, name: string): string {
-  return `__skill__/${scope}/${encodeDocName(name)}`;
-}
-
 type PreviewAttachWarning =
   | {
       action: 'attach-preview-once';
@@ -141,14 +137,6 @@ export function resolvePreviewUrl(
   ctx: PreviewUrlContext,
 ): PreviewUrlResult | null {
   return previewForRoute(`/#/${encodeDocName(docName)}`, ctx);
-}
-
-export function resolveSkillPreviewUrl(
-  scope: string,
-  name: string,
-  ctx: PreviewUrlContext,
-): PreviewUrlResult | null {
-  return previewForRoute(`/#/${encodeSkillRoute(scope, name)}`, ctx);
 }
 
 function previewForRoute(hash: string, ctx: PreviewUrlContext): PreviewUrlResult | null {

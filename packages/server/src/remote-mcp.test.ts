@@ -205,7 +205,7 @@ async function listToolNames(port: number, gateHeaders: Record<string, string>):
   return (tools ?? []).map((t) => t.name);
 }
 
-const WRITE_TOOLS = ['write', 'edit', 'delete', 'move', 'install', 'checkpoint', 'restore_version'];
+const WRITE_TOOLS = ['write', 'edit', 'delete', 'move', 'checkpoint', 'restore_version'];
 
 function attemptCollabUpgrade(
   port: number,

@@ -12,7 +12,6 @@ import { registerAllTools } from './index.ts';
 const BOTH_KEPT = { outcome: 'both-kept', saved: true, nextStep: 're-read' } as const;
 const REFUSED = { outcome: 'refused', saved: false, nextStep: 're-read' } as const;
 let appRouteFields: Record<string, unknown> = BOTH_KEPT;
-let skillFileWrites = 0;
 const LANDED = 'The write landed and is saved; do not retry it.';
 
 const documentAnswers = new Map<string, { status: number; body: Record<string, unknown> }>([
@@ -180,9 +179,6 @@ beforeAll(async () => {
       if (request.method === 'GET' && pathname.startsWith('/api/history/')) {
         return Response.json({ author: 'someone', timestamp: 't', content: '# v1\n' });
       }
-      if (request.method === 'GET' && pathname === '/api/skill-file') {
-        return Response.json({ path: 'references/a.md', kind: 'reference', text: 'a\n' });
-      }
       const body = (await request.json()) as { docName?: string };
       switch (pathname) {
         case '/api/agent-write-md': {
@@ -239,23 +235,6 @@ beforeAll(async () => {
             path: 'guides/.ok/templates/tpl.md',
             created: false,
             warnings: [],
-            ...appRouteFields,
-          });
-        case '/api/skill':
-          return Response.json({
-            path: '.agents/skills/demo/SKILL.md',
-            created: false,
-            warnings: [],
-            warningCodes: [],
-            ...appRouteFields,
-          });
-        case '/api/skill-file':
-          skillFileWrites += 1;
-          return Response.json({
-            path: 'references/a.md',
-            created: false,
-            kind: 'reference',
-            content: true,
             ...appRouteFields,
           });
         case '/api/rollback':
@@ -371,14 +350,6 @@ describe('a both-kept result from every write tool opens by saying the write lan
       tool: 'edit',
       args: { template: { path: 'guides/tpl', find: 'Body line.', replace: 'Edited line.' } },
     },
-    {
-      tool: 'write',
-      args: { skill: { name: 'demo', description: 'Use when testing.', body: '# Demo\n' } },
-    },
-    {
-      tool: 'edit',
-      args: { skill: { name: 'demo', file: 'references/a.md', find: 'a', replace: 'b' } },
-    },
     { tool: 'restore_version', args: { document: 'notes/a', version: 'a'.repeat(40) } },
     { tool: 'lint', args: { document: 'notes/a', fix: true } },
   ])('$tool $args', async ({ tool, args }) => {
@@ -386,19 +357,6 @@ describe('a both-kept result from every write tool opens by saying the write lan
     expect(result.isError).toBe(true);
     expect(result.structuredContent).toMatchObject(BOTH_KEPT);
     expect(textOf(result).split('\n')[0]).toContain(LANDED);
-  });
-
-  test('write skill files each open their line with the landed note', async () => {
-    const result = await client.callTool({
-      name: 'write',
-      arguments: { skill: { name: 'demo', files: [{ path: 'references/a.md', content: 'a\n' }] } },
-    });
-    expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain(LANDED);
-    expect(
-      (result.structuredContent as { skill: { files: Array<Record<string, unknown>> } }).skill
-        .files[0],
-    ).toMatchObject(BOTH_KEPT);
   });
 });
 
@@ -449,16 +407,6 @@ describe('a write the server answered without an error status but reported as re
       success: /Edited template/,
     },
     {
-      tool: 'write',
-      args: { skill: { name: 'demo', description: 'Use when testing.', body: '# Demo\n' } },
-      success: /Created skill|Updated skill/,
-    },
-    {
-      tool: 'edit',
-      args: { skill: { name: 'demo', file: 'references/a.md', find: 'a', replace: 'b' } },
-      success: /Updated skill|Created skill/,
-    },
-    {
       tool: 'restore_version',
       args: { document: 'notes/a', version: 'a'.repeat(40) },
       success: /Restored/,
@@ -472,7 +420,6 @@ describe('a write the server answered without an error status but reported as re
         const result = await client.callTool({ name: tool, arguments: args });
         expect(result.isError).toBe(true);
         expect(result.structuredContent).toMatchObject(REFUSED);
-        expect(result.structuredContent).not.toHaveProperty('skill');
         expect(result.structuredContent).not.toHaveProperty('template');
         const firstLine = textOf(result).split('\n')[0] ?? '';
         expect(firstLine).toMatch(/^Error: .* was not saved\./);
@@ -482,27 +429,6 @@ describe('a write the server answered without an error status but reported as re
       }
     },
   );
-
-  test('a refused SKILL.md stops the bundle file writes', async () => {
-    appRouteFields = REFUSED;
-    const before = skillFileWrites;
-    try {
-      const result = await client.callTool({
-        name: 'write',
-        arguments: {
-          skill: {
-            name: 'demo',
-            description: 'Use when testing.',
-            files: [{ path: 'references/a.md', content: 'a\n' }],
-          },
-        },
-      });
-      expect(result.isError).toBe(true);
-      expect(skillFileWrites).toBe(before);
-    } finally {
-      appRouteFields = BOTH_KEPT;
-    }
-  });
 });
 
 describe('fields a server leaves out stay out', () => {

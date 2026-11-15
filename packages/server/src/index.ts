@@ -386,7 +386,6 @@ export { registerAllTools } from './mcp/tools/index.ts';
 export {
   encodeDocName,
   encodeFolderRoute,
-  encodeSkillRoute,
   resolveUiInfo,
 } from './mcp/tools/preview-url.ts';
 export {

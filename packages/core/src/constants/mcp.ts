@@ -15,7 +15,6 @@ export const OPEN_KNOWLEDGE_MCP_TOOLS = [
   'search',
   'history',
   'links',
-  'skills',
   'config',
   'palette',
   'preview_url',
@@ -26,8 +25,6 @@ export const OPEN_KNOWLEDGE_MCP_TOOLS = [
   'edit',
   'delete',
   'move',
-  'install',
-  'import',
   'checkpoint',
   'restore_version',
 ] as const;
@@ -39,8 +36,6 @@ export const OPEN_KNOWLEDGE_MCP_WRITE_TOOLS = [
   'edit',
   'delete',
   'move',
-  'install',
-  'import',
   'checkpoint',
   'restore_version',
 ] as const satisfies ReadonlyArray<OpenKnowledgeMcpTool>;

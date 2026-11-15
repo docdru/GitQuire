@@ -35,7 +35,7 @@ import {
 } from './write-outcome.ts';
 
 export const DESCRIPTION = [
-  'Restore exactly one document or skill to version (40-char SHA from history). Requires the Hocuspocus server. document accepts optional .md/.mdx; restore is append-only through CRDT and visible to connected editors. skill is a PROJECT-scope name (global is unversioned); its folder is rewritten. Recorded, unedited copies refresh on watcher/startup sync; links reflect edits immediately. Hand-edited copies are preserved.',
+  'Restore one document to version (40-char SHA from history). Requires the Hocuspocus server. document accepts optional .md/.mdx; restore is append-only through CRDT and visible to connected editors.',
   'Optional summary ≤80 chars; avoid secrets or PII, persisted to git history. content-divergence in structuredContent.warnings means restore landed but bytes differ: re-read with exec to see the converged result.',
 ].join('\n');
 
@@ -52,14 +52,7 @@ export function register(server: ServerInstance, deps: RestoreVersionDeps): void
     {
       description: DESCRIPTION,
       inputSchema: {
-        document: z
-          .string()
-          .optional()
-          .describe('Document to restore (path, no extension). Mutually exclusive with `skill`.'),
-        skill: z
-          .string()
-          .optional()
-          .describe('Skill name to restore. Mutually exclusive with `document`.'),
+        document: z.string().optional().describe('Document to restore (path, no extension).'),
         version: versionInputSchema.describe(
           "The 40-character commit SHA to restore to — copy it straight from a `history` entry's `version` field (same name there).",
         ),
@@ -74,35 +67,24 @@ export function register(server: ServerInstance, deps: RestoreVersionDeps): void
           .string()
           .optional()
           .describe('The document that was restored (echo of the input).'),
-        skill: z.string().optional().describe('The skill that was restored (echo of the input).'),
         version: z
           .string()
           .optional()
           .describe(
             'The version that was restored to (echo of the input); absent when the restore did not land.',
           ),
-        restoredFiles: z
-          .array(z.string())
-          .optional()
-          .describe('Skill restore only: the skill-dir-relative files rewritten.'),
         previewUrl: previewUrlOutputField.optional(),
         previewUrlSource: previewUrlSourceField,
         summary: summaryOutputSchema.optional(),
         warnings: z
-          .union([z.array(z.string()), z.array(AdvisoryWarningSchema)])
+          .array(AdvisoryWarningSchema)
           .optional()
           .describe(
-            'Skill restore: plain warning strings. Document restore: advisory entries (kind `content-divergence`) present only when the restored Y.Text did not byte-match the target version.',
+            'Advisory entries (kind `content-divergence`) present only when the restored Y.Text did not byte-match the target version.',
           ),
       }),
     },
-    async (args: {
-      document?: string;
-      skill?: string;
-      version: string;
-      summary?: string;
-      cwd?: string;
-    }) => {
+    async (args: { document?: string; version: string; summary?: string; cwd?: string }) => {
       const context = await resolveProjectServerContext(
         deps.resolveCwd,
         deps.config,
@@ -113,37 +95,11 @@ export function register(server: ServerInstance, deps: RestoreVersionDeps): void
       const { cwd, url } = context;
       if (!url) return textResult(hocuspocusNotRunningError(), true);
 
-      if ((args.document !== undefined) === (args.skill !== undefined)) {
-        return textResult('Error: pass EXACTLY ONE of `document` or `skill`.', true);
+      if (args.document === undefined) {
+        return textResult('Error: pass `document`.', true);
       }
 
-      if (args.skill !== undefined) {
-        const result = await httpPost(url, '/api/skill/restore', {
-          scope: 'project',
-          name: args.skill,
-          version: args.version,
-          ...(args.summary !== undefined ? { summary: args.summary } : {}),
-          ...agentIdentityFields(deps.identityRef?.current),
-        });
-        if (!result.ok) return textResult(`Error: ${result.error}`, true);
-        const restoredFiles = Array.isArray(result.restoredFiles)
-          ? (result.restoredFiles as string[])
-          : [];
-        const warnings = Array.isArray(result.warnings) ? (result.warnings as string[]) : [];
-        const lines = [
-          `Restored skill "${args.skill}" to version ${args.version.slice(0, 8)} (${restoredFiles.length} file(s)).`,
-          ...warnings,
-        ];
-        return textPlusStructured(lines.join('\n'), {
-          skill: args.skill,
-          version: args.version,
-          restoredFiles,
-          warnings,
-          previewUrl: null,
-        });
-      }
-
-      const normalized = normalizeDocName(args.document as string);
+      const normalized = normalizeDocName(args.document);
       if (!normalized.ok) return textResult(normalized.error, true);
       const docName = normalized.docName;
 
