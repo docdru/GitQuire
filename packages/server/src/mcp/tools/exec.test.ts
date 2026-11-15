@@ -1098,6 +1098,27 @@ describe('formatFileEntry — unresolved comments', () => {
     expect(line).toContain('[3 replies]');
   });
 
+  test('shows the replies of a thread when they are known', () => {
+    const line = formatFileEntry({
+      ...base,
+      commentCount: 1,
+      comments: [
+        {
+          threadId: 'c-1',
+          author: '@alice',
+          body: 'source?',
+          quote: 'numbers',
+          replies: 1,
+          comments: [
+            { author: '@alice', at: '2026-11-14T10:32:00.000Z', body: 'source?' },
+            { author: '@bob', at: '2026-11-14T11:02:00.000Z', body: 'Q3 export' },
+          ],
+        },
+      ],
+    });
+    expect(line).toContain('@alice: "source?" on “numbers” → @bob: "Q3 export"');
+  });
+
   test('caps inlined bodies and elides the rest', () => {
     const line = formatFileEntry({
       ...base,

@@ -58,8 +58,19 @@ describe('openCommentThreads', () => {
         body: '@claude please tighten this',
         quote: 'passage t1',
         replies: 1,
+        comments: [
+          { author: '@alice', at: '2026-11-12T10:00:00.000Z', body: '@claude please tighten this' },
+          { author: '@bob', at: '2026-11-12T10:00:00.000Z', body: 'agreed' },
+        ],
       },
-      { threadId: 'c-t3', author: '@alice', body: 'source?', quote: 'passage t3', replies: 0 },
+      {
+        threadId: 'c-t3',
+        author: '@alice',
+        body: 'source?',
+        quote: 'passage t3',
+        replies: 0,
+        comments: [{ author: '@alice', at: '2026-11-12T10:00:00.000Z', body: 'source?' }],
+      },
     ]);
   });
 

@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
+import { createWorkspaceSearchDocument } from '../search/workspace-search.ts';
 import { commentLogin, newCommentLabel, splitCommentFootnotes } from './comment-format.ts';
 import {
   convertCommentsToFootnotes,
@@ -120,5 +121,16 @@ describe('v1 conversion never marks inside syntax', () => {
   ])('%s', (line) => {
     const out = convertCommentsToFootnotes(`${line}\n\n${block('numbers')}\n`);
     expect(out.split('\n')[0]).toBe(line);
+  });
+});
+
+describe('search', () => {
+  test('page content in the search index leaves comment marks out', () => {
+    const document = createWorkspaceSearchDocument({
+      kind: 'page',
+      path: 'a.md',
+      content: 'The quarterly numbers[^c-7f3a] look good.',
+    });
+    expect(document.content).toBe('The quarterly numbers look good.');
   });
 });

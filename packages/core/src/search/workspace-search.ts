@@ -1,5 +1,6 @@
 import { type AnyOrama, count, create, insertMultiple, removeMultiple, search } from '@orama/orama';
 import { tokenizer as oramaTokenizer } from '@orama/orama/components';
+import { stripCommentMarks } from '../gitquire/comment-format.ts';
 import { isHiddenDocName } from '../util/doc-name.ts';
 
 export type WorkspaceSearchKind = 'page' | 'folder' | 'file';
@@ -135,7 +136,7 @@ export function createWorkspaceSearchDocument(input: {
     title,
     name,
     pathSegments: [...baseSegments, ...aliasSegments].join(' '),
-    content: input.content ?? '',
+    content: stripCommentMarks(input.content ?? ''),
     modifiedTs: Number.isFinite(modifiedTs) ? modifiedTs : 0,
   };
 }

@@ -10,6 +10,7 @@ const PROJECT_ANCHORED_COMMANDS: ReadonlySet<string> = new Set([
   'lint',
   'audit',
   'auth',
+  'comments',
 ]);
 
 export function resolveProjectAnchor(
