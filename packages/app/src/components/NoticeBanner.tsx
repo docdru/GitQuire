@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export function SkillModeBanner({
+export function NoticeBanner({
   icon,
   children,
   actions,

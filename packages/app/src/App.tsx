@@ -19,7 +19,6 @@ import {
   withLargeFileOpenGuard,
 } from '@/components/navigation-targets';
 import { PageListProvider, usePageList } from '@/components/PageListContext';
-import { SkillTrackInGitDialog } from '@/components/SkillTrackInGitDialog';
 import { SystemDocSubscriber } from '@/components/SystemDocSubscriber';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { ValidationFreshness } from '@/components/ValidationFreshness';
@@ -35,7 +34,6 @@ import { StaleTabReloadPrompt } from '@/editor/StaleTabReloadPrompt';
 import { ConflictsProvider } from '@/hooks/use-conflicts';
 import { DocNoticesProvider } from '@/hooks/use-doc-notices';
 import { useFolderConfig } from '@/hooks/use-folder-config';
-import { useReconcileSkillTabs } from '@/hooks/use-reconcile-skill-tabs';
 import { ConfigProvider, useConfigContext } from '@/lib/config-provider';
 import { createPageRequest, nextUntitledDocName, openCreatedPage } from '@/lib/create-page-request';
 import {
@@ -47,9 +45,6 @@ import {
   isManagedHashHistoryState,
   markCurrentHashHistoryEntry,
   readManagedHashHistoryEntry,
-  skillFileFromHash,
-  skillPreviewFromHash,
-  skillsFromHash,
 } from '@/lib/doc-hash';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isExplicitInitialDocumentNavigation } from '@/lib/narrow-workspace-session';
@@ -81,22 +76,6 @@ function exactOpenMarkdownTabTarget(
   return null;
 }
 
-function selectedPathForNavigationTarget(target: ResolvedNavigationTarget): string | null {
-  switch (target.kind) {
-    case 'skill-file':
-    case 'skill-preview':
-      return target.path ?? null;
-    case 'doc':
-    case 'folder-index':
-    case 'folder':
-    case 'asset':
-    case 'skills':
-    case 'large-file':
-    case 'missing':
-      return null;
-  }
-}
-
 function knownTargetsSignature(
   pages: ReadonlySet<string>,
   folderPaths: ReadonlySet<string>,
@@ -119,7 +98,6 @@ function NavigationHandler() {
     tabSessionLoaded,
   } = useDocumentContext();
   const { openTargetTransition } = useDocumentTransition();
-  useReconcileSkillTabs();
   const {
     assetPaths,
     filePaths,
@@ -226,8 +204,7 @@ function NavigationHandler() {
         if (
           tabIdForNavigationTarget(target) === activeTabId &&
           activeTarget?.kind === target.kind &&
-          activeTarget.target === target.target &&
-          selectedPathForNavigationTarget(activeTarget) === selectedPathForNavigationTarget(target)
+          activeTarget.target === target.target
         ) {
           if (deliberate) revealEditor();
           return;
@@ -259,44 +236,6 @@ function NavigationHandler() {
           target: assetPath,
           assetPath,
           mediaKind,
-        });
-        return;
-      }
-      const skillFile = skillFileFromHash(window.location.hash);
-      if (skillFile) {
-        mark('ok/nav/hash-change', { docName: null, kind: 'skill-file' });
-        openHashTarget({
-          kind: 'skill-file',
-          target: `${skillFile.scope}/${skillFile.name}${skillFile.host ? `:${skillFile.host}` : ''}/${skillFile.path}`,
-          scope: skillFile.scope,
-          name: skillFile.name,
-          path: skillFile.path,
-          ...(skillFile.host ? { host: skillFile.host } : {}),
-        });
-        return;
-      }
-      if (skillsFromHash(window.location.hash)) {
-        if (activeNewTabId !== null) {
-          latchSurfaceHash();
-          return;
-        }
-        if (isSurfaceHashRepeat) return;
-        mark('ok/nav/hash-change', { docName: null, kind: 'skills' });
-        openTargetTransition({ kind: 'skills', target: 'skills' }, { deliberate });
-        return;
-      }
-      const skillPreview = skillPreviewFromHash(window.location.hash);
-      if (skillPreview) {
-        mark('ok/nav/hash-change', { docName: null, kind: 'skill-preview' });
-        openHashTarget({
-          kind: 'skill-preview',
-          target: `${skillPreview.flavor}/${skillPreview.source}/${skillPreview.name}`,
-          flavor: skillPreview.flavor,
-          source: skillPreview.source,
-          name: skillPreview.name,
-          subtitle: skillPreview.subtitle,
-          level: skillPreview.level,
-          path: skillPreview.path,
         });
         return;
       }
@@ -514,7 +453,6 @@ function AppBody() {
       <PageListProvider>
         <SystemDocSubscriber />
         <ValidationFreshness />
-        <SkillTrackInGitDialog />
         <NavigationHandler />
         <NewItemShortcutHandler />
         {!singleFile && <SettingsShortcutHandler />}

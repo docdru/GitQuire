@@ -2,10 +2,6 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
 import {
-  parseGlobalSkillBundleDoc,
-  parseProjectSkillBundleDoc,
-} from '@inkeep/open-knowledge-core/constants/cc1';
-import {
   isOrphanMode,
   ORPHAN_MODES,
   type OrphanMode,
@@ -25,14 +21,12 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Globe,
-  Hexagon,
   Maximize2,
   Minimize2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { GraphLegend } from '@/components/GraphLegend';
 import { GraphView } from '@/components/GraphView';
-import type { GraphSkillVisibility } from '@/components/graph-skill-filter';
 import { useGraphPalette } from '@/components/graph-theme';
 import {
   type GraphNodeSelection,
@@ -62,7 +56,6 @@ const FULLSCREEN_HUB_LIMIT = 50;
 
 const GRAPH_URL_NODES_DOCKED_KEY = 'ok-graph-docked-url-nodes-v1';
 const GRAPH_URL_NODES_FULLSCREEN_KEY = 'ok-graph-fullscreen-url-nodes-v1';
-const GRAPH_SKILL_NODES_FULLSCREEN_KEY = 'ok-graph-fullscreen-skill-nodes-v1';
 
 type FullscreenGraphMode = 'explore' | 'orphans' | 'hubs';
 
@@ -311,9 +304,6 @@ export function GraphPanel({
   const [showUrlNodesFull, setShowUrlNodesFull] = useState(() =>
     loadBoolPref(GRAPH_URL_NODES_FULLSCREEN_KEY),
   );
-  const [showSkillsFull, setShowSkillsFull] = useState(() =>
-    loadBoolPref(GRAPH_SKILL_NODES_FULLSCREEN_KEY, true),
-  );
   const nodeCount = stats?.nodes ?? 0;
   const linkCount = stats?.links ?? 0;
 
@@ -324,10 +314,6 @@ export function GraphPanel({
   useEffect(() => {
     saveBoolPref(GRAPH_URL_NODES_FULLSCREEN_KEY, showUrlNodesFull);
   }, [showUrlNodesFull]);
-
-  useEffect(() => {
-    saveBoolPref(GRAPH_SKILL_NODES_FULLSCREEN_KEY, showSkillsFull, true);
-  }, [showSkillsFull]);
 
   useEffect(() => {
     if (!isExpanded) return;
@@ -354,24 +340,8 @@ export function GraphPanel({
     }
   }, [fullscreenMode, selectedNode]);
 
-  useEffect(() => {
-    if (
-      !showSkillsFull &&
-      selectedNode?.kind === 'doc' &&
-      (parseProjectSkillBundleDoc(selectedNode.docName) !== null ||
-        parseGlobalSkillBundleDoc(selectedNode.docName) !== null)
-    ) {
-      setSelectedNode(null);
-    }
-  }, [showSkillsFull, selectedNode]);
-
   const activeMode = isExpanded ? fullscreenMode : 'explore';
   const showUrlNodes = isExpanded ? showUrlNodesFull : showUrlNodesDocked;
-  const skillVisibility: GraphSkillVisibility = !isExpanded
-    ? 'all'
-    : showSkillsFull
-      ? 'hide-builtins'
-      : 'none';
   const setShowUrlNodes = isExpanded ? setShowUrlNodesFull : setShowUrlNodesDocked;
   const selectedNodeIntent =
     selectedNode?.kind === 'doc' && !pageListLoading
@@ -541,35 +511,6 @@ export function GraphPanel({
                 )}
               </TooltipContent>
             </Tooltip>
-            {isExpanded ? (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="text-muted-foreground hover:text-foreground hover:bg-accent"
-                    aria-label={showSkillsFull ? t`Hide skill nodes` : t`Show skill nodes`}
-                    aria-pressed={showSkillsFull}
-                    onClick={() => setShowSkillsFull((prev) => !prev)}
-                  >
-                    <Hexagon
-                      className={
-                        showSkillsFull
-                          ? 'size-4 text-sidebar-accent-foreground'
-                          : 'size-4 text-muted-foreground'
-                      }
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={8} className="z-[9999]">
-                  {showSkillsFull ? (
-                    <Trans>Hide skill nodes</Trans>
-                  ) : (
-                    <Trans>Show skill nodes</Trans>
-                  )}
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <Button
@@ -600,7 +541,6 @@ export function GraphPanel({
             selectedNodeId={isExpanded ? (selectedNode?.id ?? null) : null}
             isExpanded={isExpanded}
             showUrlNodes={showUrlNodes}
-            skillVisibility={skillVisibility}
             className="h-full min-h-0"
             docClickBehavior={isExpanded ? 'select' : 'navigate'}
             onSelectNode={

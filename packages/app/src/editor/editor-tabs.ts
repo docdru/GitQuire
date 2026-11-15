@@ -1,33 +1,16 @@
 import {
   isManagedArtifactDocName,
-  MANAGED_ARTIFACT_SCOPES,
-  parseExternalSkillDocName,
-  parseManagedArtifactName,
-  parseProjectSkillBundleDoc,
   parseTemplateContentDocName,
 } from '@inkeep/open-knowledge-core/constants/cc1';
 import { isExcalidrawDocFile } from '@inkeep/open-knowledge-core/constants/upload';
-import type { RenamedAssetMapping, SkillScope } from '@inkeep/open-knowledge-core/schemas/api';
+import type { RenamedAssetMapping } from '@inkeep/open-knowledge-core/schemas/api';
 import { resolveName } from '@inkeep/open-knowledge-core/utils/target-namespace';
-import {
-  decodeSkillPreviewSegments,
-  encodeSkillPreviewSegments,
-  type SkillPreviewFlavor,
-  type SkillPreviewHashTarget,
-} from '@/lib/doc-hash';
-import { getKnownProjectSkillDirs } from '@/lib/known-skill-dirs';
-import { parseProjectSkillContentDocName } from '@/lib/managed-artifact-doc-name';
-import { skillDisplayName } from '@/lib/skill-scope';
 import {
   type EditorWorkspaceState,
   type PersistedEditorPane,
   parsePersistedEditorWorkspace,
   persistEditorWorkspace,
 } from './editor-panes';
-
-function isSkillScope(value: string): value is SkillScope {
-  return (MANAGED_ARTIFACT_SCOPES as readonly string[]).includes(value);
-}
 
 export interface EditorTabSessionState {
   updatedAt: string | null;
@@ -58,8 +41,6 @@ const EMPTY_FOLDER_PATHS: ReadonlySet<string> = new Set<string>();
 const LOCAL_TAB_SESSION_PREFIX = 'ok-editor-tabs-v1:';
 const FOLDER_TAB_PREFIX = '\u0000folder:';
 const ASSET_TAB_PREFIX = '\u0000asset:';
-const SKILL_FILE_TAB_PREFIX = '\u0000skill-file:';
-const SKILL_PREVIEW_TAB_PREFIX = '\u0000skill-preview:';
 const MARKDOWN_TAB_EXTENSION_PATTERN = /\.(md|mdx)$/i;
 
 function stripMarkdownTabExtension(path: string): string | null {
@@ -139,91 +120,7 @@ function isValidTabId(value: unknown): value is string {
   const base = value;
   if (base.startsWith(FOLDER_TAB_PREFIX)) return base.length > FOLDER_TAB_PREFIX.length;
   if (base.startsWith(ASSET_TAB_PREFIX)) return base.length > ASSET_TAB_PREFIX.length;
-  if (base.startsWith(SKILL_FILE_TAB_PREFIX)) return parseSkillFileTabBody(base) !== null;
-  if (base.startsWith(SKILL_PREVIEW_TAB_PREFIX)) return parseSkillPreviewTabBody(base) !== null;
   return true;
-}
-
-export interface SkillFileTabTarget {
-  scope: SkillScope;
-  name: string;
-  path: string;
-  host?: string;
-}
-
-const SKILL_FILE_TAB_HOST_SEP = ':';
-
-export function skillFileTabId(target: SkillFileTabTarget): string {
-  const named =
-    target.host === undefined
-      ? target.name
-      : `${target.name}${SKILL_FILE_TAB_HOST_SEP}${target.host}`;
-  return `${SKILL_FILE_TAB_PREFIX}${target.scope}/${named}/${target.path}`;
-}
-
-function parseSkillFileTabBody(base: string): SkillFileTabTarget | null {
-  if (!base.startsWith(SKILL_FILE_TAB_PREFIX)) return null;
-  const body = base.slice(SKILL_FILE_TAB_PREFIX.length);
-  const segments = body.split('/');
-  if (segments.length < 3) return null;
-  const [scope, named, ...rest] = segments;
-  const path = rest.join('/');
-  if (!scope || !named || !path || !isSkillScope(scope)) return null;
-  const sep = named.indexOf(SKILL_FILE_TAB_HOST_SEP);
-  const name = sep === -1 ? named : named.slice(0, sep);
-  const host = sep === -1 ? undefined : named.slice(sep + 1);
-  if (!name) return null;
-  return { scope, name, path, ...(host ? { host } : {}) };
-}
-
-export function skillPreviewTabId(target: SkillPreviewHashTarget): string {
-  return `${SKILL_PREVIEW_TAB_PREFIX}${encodeSkillPreviewSegments(target)}`;
-}
-
-export function staleLocalSkillPreviewTwins(
-  openTabs: readonly string[],
-  opened: { flavor: SkillPreviewFlavor; name: string; subtitle: string; level: SkillScope },
-  openedTabId: string,
-): string[] {
-  if (opened.flavor === 'explore') return [];
-  return openTabs.filter((id) => {
-    if (id === openedTabId) return false;
-    const tab = parseEditorTabId(id);
-    return (
-      tab.kind === 'skill-preview' &&
-      tab.flavor === opened.flavor &&
-      tab.name === opened.name &&
-      tab.subtitle === opened.subtitle &&
-      tab.level === opened.level
-    );
-  });
-}
-
-export function findLocalSkillPreviewTabId(
-  openTabs: readonly string[],
-  flavor: Extract<SkillPreviewFlavor, 'builtin' | 'detected' | 'foreign' | 'linked'>,
-  name: string,
-  subtitle: string,
-  scope: SkillScope,
-): string | null {
-  for (const id of openTabs) {
-    const tab = parseEditorTabId(id);
-    if (
-      tab.kind === 'skill-preview' &&
-      tab.flavor === flavor &&
-      tab.name === name &&
-      tab.subtitle === subtitle &&
-      tab.level === scope
-    ) {
-      return id;
-    }
-  }
-  return null;
-}
-
-function parseSkillPreviewTabBody(base: string): SkillPreviewHashTarget | null {
-  if (!base.startsWith(SKILL_PREVIEW_TAB_PREFIX)) return null;
-  return decodeSkillPreviewSegments(base.slice(SKILL_PREVIEW_TAB_PREFIX.length));
 }
 
 export function docTabId(docName: string): string {
@@ -242,18 +139,6 @@ export function tabParts(
   docName: string,
   docExt: string,
 ): { baseName: string; extension: string; label: string; prefix: string } {
-  const projectSkill = parseProjectSkillContentDocName(docName);
-  if (projectSkill) {
-    const display = skillDisplayName(projectSkill);
-    return { baseName: display, extension: '', label: display, prefix: '' };
-  }
-  const extSkill = parseExternalSkillDocName(docName);
-  if (extSkill) {
-    const display = extSkill.rel
-      ? (extSkill.rel.split('/').pop() ?? extSkill.rel)
-      : skillDisplayName(extSkill.name);
-    return { baseName: display, extension: '', label: display, prefix: '' };
-  }
   const template = parseTemplateContentDocName(docName);
   if (template) {
     return { baseName: template.name, extension: '', label: template.name, prefix: '' };
@@ -280,16 +165,6 @@ export function tabIdForNavigationTarget(
     | { kind: 'folder-index'; docName: string }
     | { kind: 'folder'; folderPath: string }
     | { kind: 'asset'; assetPath: string }
-    | { kind: 'skill-file'; scope: SkillScope; name: string; path: string; host?: string }
-    | { kind: 'skills'; target: string }
-    | {
-        kind: 'skill-preview';
-        flavor: SkillPreviewFlavor;
-        source: string;
-        name: string;
-        subtitle: string;
-        level?: SkillScope;
-      }
     | { kind: 'large-file'; docName: string }
     | { kind: 'missing'; target: string },
 ): string | null {
@@ -304,42 +179,21 @@ export function tabIdForNavigationTarget(
       return docTabId(target.target);
     case 'asset':
       return assetTabId(target.assetPath);
-    case 'skill-file':
-      return skillFileTabId(target);
-    case 'skills':
-      return null;
-    case 'skill-preview':
-      return skillPreviewTabId(target);
   }
 }
 
-export function parseEditorTabId(tabId: string):
+export function parseEditorTabId(
+  tabId: string,
+):
   | { kind: 'doc'; docName: string }
   | { kind: 'folder'; folderPath: string }
-  | { kind: 'asset'; assetPath: string }
-  | { kind: 'skill-file'; scope: SkillScope; name: string; path: string; host?: string }
-  | {
-      kind: 'skill-preview';
-      flavor: SkillPreviewFlavor;
-      source: string;
-      name: string;
-      subtitle: string;
-      level?: SkillScope;
-    } {
+  | { kind: 'asset'; assetPath: string } {
   const base = tabId;
   if (base.startsWith(FOLDER_TAB_PREFIX)) {
     return { kind: 'folder', folderPath: base.slice(FOLDER_TAB_PREFIX.length) };
   }
   if (base.startsWith(ASSET_TAB_PREFIX)) {
     return { kind: 'asset', assetPath: base.slice(ASSET_TAB_PREFIX.length) };
-  }
-  const skillPreview = parseSkillPreviewTabBody(base);
-  if (skillPreview) {
-    return { kind: 'skill-preview', ...skillPreview };
-  }
-  const skillFile = parseSkillFileTabBody(base);
-  if (skillFile) {
-    return { kind: 'skill-file', ...skillFile };
   }
   return { kind: 'doc', docName: base };
 }
@@ -357,26 +211,6 @@ export function shouldPersistTabSession(
 ): boolean {
   if (restoreOutcome === 'suppressed') return false;
   return restoreOutcome === 'applied' || openTabCount > 0;
-}
-
-export function isSkillDocName(docName: string): boolean {
-  return (
-    parseProjectSkillBundleDoc(docName) != null ||
-    parseManagedArtifactName(docName)?.kind === 'skill' ||
-    parseExternalSkillDocName(docName) != null
-  );
-}
-
-const SKILL_BUNDLE_ROOT_PATH = /(?:^|\/)\.[A-Za-z0-9_-]+\/skills\/[^/]+\/.+$/;
-
-export function isSkillBundleShapedPath(docName: string): boolean {
-  if (SKILL_BUNDLE_ROOT_PATH.test(docName)) return true;
-  const known = getKnownProjectSkillDirs();
-  if (known.size === 0) return false;
-  for (let cut = docName.lastIndexOf('/'); cut > 0; cut = docName.lastIndexOf('/', cut - 1)) {
-    if (known.has(docName.slice(0, cut))) return true;
-  }
-  return false;
 }
 
 export function normalizeOpenTabs(value: unknown, limit: number): string[] {
@@ -521,11 +355,6 @@ export function filterOpenTabsForKnownTargets(
         resolveName(assetPaths, tab.assetPath) !== undefined ||
         (filePaths !== undefined && resolveName(filePaths, tab.assetPath) !== undefined)
       );
-    }
-    if (tab.kind === 'skill-file') return true;
-    if (tab.kind === 'skill-preview') return true;
-    if (tab.kind === 'doc' && parseProjectSkillBundleDoc(tab.docName)?.kind === 'skill') {
-      return true;
     }
     const markdownStem = stripMarkdownTabExtension(tab.docName);
     return (

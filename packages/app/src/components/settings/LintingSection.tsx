@@ -1,8 +1,6 @@
-// oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
 import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
 import { humanFormat } from '@inkeep/open-knowledge-core/config/errors';
 import type { ConfigPatch } from '@inkeep/open-knowledge-core/config/schema';
-import { OPENKNOWLEDGE_SKILLS_REPO } from '@inkeep/open-knowledge-core/constants/skills';
 import {
   type AppliesToPatternSummary,
   assertNeverOkfRuleGroupId,
@@ -34,18 +32,8 @@ import { toast } from 'sonner';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { DisclosureWarning, DisclosureWarningItem } from '@/components/DisclosureWarning';
 import { useOptionalPageList } from '@/components/PageListContext';
-import { SkillPluginBundleDialog } from '@/components/SkillPluginBundleDialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import {
   Dialog,
   DialogBody,
@@ -73,13 +61,10 @@ import {
   type GeneratedIndexSettingsIssue,
   useGeneratedIndexSettings,
 } from '@/hooks/use-generated-index-settings';
-import { useOpenSkill } from '@/hooks/use-open-skill';
-import { useSkills } from '@/hooks/use-skills';
 import { useConfigContext } from '@/lib/config-provider';
 import { hashFromAssetPath } from '@/lib/doc-hash';
 import { isLintPluginOffered } from '@/lib/gitquire/settings-visibility';
 import { requestSchemaFieldsView } from '@/lib/schema-fields-view-intent';
-import { installPackSkill } from '@/lib/skills-api';
 import { countMatchingDocs } from './applies-to-folder-globs';
 import { AppliesToFolderPicker } from './applies-to-folder-picker';
 import { indexGlobProblemsByFile, parseAppliesToGlobProblem } from './applies-to-glob-problems';
@@ -450,105 +435,6 @@ function OkfGroupNote({ id }: { id: OkfRuleGroupId }) {
   );
 }
 
-function OkfRecommendedSkillCard({ packId, name }: { packId: string; name: string }) {
-  const { t } = useLingui();
-  const skills = useSkills();
-  const openSkill = useOpenSkill();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [optimisticStatus, setOptimisticStatus] = useState<'installed' | 'existing' | null>(null);
-  const installSkillTriggerRef = useRef<HTMLButtonElement>(null);
-  const description = t`Helps coding agents choose OKF document types, preserve provenance, and avoid inventing unsupported metadata.`;
-  const entry =
-    skills.status === 'ready'
-      ? skills.data.find((skill) => skill.scope === 'project' && skill.name === name)
-      : undefined;
-  const status = entry
-    ? entry.origin?.source === OPENKNOWLEDGE_SKILLS_REPO
-      ? 'installed'
-      : 'existing'
-    : optimisticStatus;
-  const checking = skills.status === 'idle' || skills.status === 'loading';
-
-  async function installSelected(
-    selected: readonly string[],
-  ): Promise<ReadonlyMap<string, string> | null> {
-    if (!selected.includes(name)) return new Map();
-    const result = await installPackSkill(packId);
-    if (!result.ok) {
-      toast.error(result.error);
-      return null;
-    }
-    const installed = result.skills.find((skill) => skill.name === name);
-    const nextStatus = installed?.created === false ? 'existing' : 'installed';
-    setOptimisticStatus(nextStatus);
-    toast.success(
-      nextStatus === 'installed' ? t`OKF agent skill installed` : t`Skill already in project`,
-    );
-    return new Map([[name, name]]);
-  }
-
-  return (
-    <>
-      <Card size="sm" data-testid="settings-okf-recommended-skill">
-        <CardHeader>
-          <CardTitle>
-            <Trans>Open Knowledge Format guidance</Trans>
-          </CardTitle>
-          <CardDescription>{description}</CardDescription>
-          {status === 'installed' ? (
-            <CardAction>
-              <Badge variant="secondary">
-                <Trans>Installed</Trans>
-              </Badge>
-            </CardAction>
-          ) : status === 'existing' ? (
-            <CardAction>
-              <Badge variant="outline">
-                <Trans>Already in project</Trans>
-              </Badge>
-            </CardAction>
-          ) : null}
-        </CardHeader>
-        <CardFooter className="justify-end gap-2">
-          {status !== null ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => openSkill('project', name)}
-            >
-              <Trans>Open skill</Trans>
-            </Button>
-          ) : (
-            <Button
-              ref={installSkillTriggerRef}
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={checking}
-              onClick={() => setDialogOpen(true)}
-            >
-              {checking ? <Trans>Checking skill</Trans> : <Trans>Install skill</Trans>}
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-      <SkillPluginBundleDialog
-        bundle={
-          dialogOpen
-            ? { plugin: 'OKF', names: [name], descriptions: { [name]: description } }
-            : null
-        }
-        source={OPENKNOWLEDGE_SKILLS_REPO}
-        defaultScope="project"
-        installOverride={{ scope: 'project', installSelected }}
-        onOpenChange={setDialogOpen}
-        returnFocus={() => installSkillTriggerRef.current?.focus()}
-      />
-    </>
-  );
-}
-
 export function OkfPluginSection() {
   const { t } = useLingui();
   const { contentRules, bindingReady, write } = useLinterConfig();
@@ -559,8 +445,6 @@ export function OkfPluginSection() {
   const generateIndexEnabled = generatedIndexSettings.status?.enabled ?? generateIndex;
   const [confirmingGenerateIndex, setConfirmingGenerateIndex] = useState(false);
   const generateIndexTriggerRef = useRef<HTMLButtonElement>(null);
-  const recommendedSkills =
-    LINT_PLUGIN_META.find((plugin) => plugin.id === 'okf')?.recommendedSkills ?? [];
 
   function toggleGenerateIndex(next: boolean): void {
     if (next) {
@@ -598,17 +482,6 @@ export function OkfPluginSection() {
       >
         <Trans>Keeps your knowledge base aligned with the Open Knowledge Format.</Trans>
       </SettingsSectionHeader>
-
-      {recommendedSkills.length > 0 ? (
-        <div className="flex flex-col gap-2" data-testid="settings-okf-recommended-skills">
-          <h4 className="text-sm font-medium">
-            <Trans>Recommended agent skill</Trans>
-          </h4>
-          {recommendedSkills.map((skill) => (
-            <OkfRecommendedSkillCard key={skill.name} packId={skill.packId} name={skill.name} />
-          ))}
-        </div>
-      ) : null}
 
       <div className="space-y-2" data-testid="settings-okf-generated-files">
         <h4 className="text-sm font-medium">

@@ -31,11 +31,6 @@ import {
   EditorTabTargetMenuItems,
 } from '@/components/EditorTabTargetMenuItems';
 import { FileTargetRenameDialog } from '@/components/FileTargetRenameDialog';
-import {
-  SkillContextMenuItems,
-  SkillFileContextMenuItems,
-  useSkillActions,
-} from '@/components/skill-actions';
 import { Button } from '@/components/ui/button';
 import {
   ContextMenu,
@@ -49,18 +44,13 @@ import { Kbd } from '@/components/ui/kbd';
 import { isBlobRunnerNewTabId, useDocumentContext } from '@/editor/DocumentContext';
 import {
   filterClosableTabIds,
-  isSkillBundleShapedPath,
-  isSkillDocName,
   parseEditorTabId,
   tabIdForNavigationTarget,
   tabParts,
 } from '@/editor/editor-tabs';
 import { useDocConflict } from '@/hooks/use-conflicts';
-import { skillFileForDocName } from '@/hooks/use-reconcile-skill-tabs';
-import { useSkills } from '@/hooks/use-skills';
 import { emitFileTreeMenuActionRename } from '@/lib/file-tree-menu-action-events';
 import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
-import { skillEntryLiveDocName } from '@/lib/managed-artifact-doc-name';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { cn } from '@/lib/utils';
@@ -115,7 +105,6 @@ function hasTabShortcutModifier(event: globalThis.KeyboardEvent): boolean {
 }
 
 const TAB_SHORTCUT_HINT_DELAY_MS = 1000;
-const EMPTY_SKILL_NAME_SET: ReadonlySet<string> = new Set();
 
 function shortcutDigitForIndex(index: number, tabCount: number): string | null {
   if (index < 0 || index >= tabCount) return null;
@@ -275,7 +264,6 @@ function EditorTabContextMenu({
   pinnedTabIds,
   promoteTab,
   splitTab,
-  skillMenuItems,
   tabLabel,
   tabId,
   target,
@@ -294,7 +282,6 @@ function EditorTabContextMenu({
   pinnedTabIds: readonly string[];
   promoteTab: (tabId: string) => void;
   splitTab: (tabId: string, side: 'left' | 'right', label: string) => void;
-  skillMenuItems?: ReactNode;
   tabLabel: string;
   tabId: string;
   target?: EditorTabFileTarget;
@@ -340,17 +327,14 @@ function EditorTabContextMenu({
               {pinnedTabIds.length ? <Trans>Close all unpinned</Trans> : <Trans>Close all</Trans>}
             </ContextMenuItem>
           </ContextMenuGroup>
-          {target || skillMenuItems ? (
+          {target ? (
             <>
               <ContextMenuSeparator />
-              {target ? (
-                <EditorTabTargetMenuItems
-                  docExt={docExt}
-                  target={target}
-                  onRename={() => setRenameOpen(true)}
-                />
-              ) : null}
-              {skillMenuItems}
+              <EditorTabTargetMenuItems
+                docExt={docExt}
+                target={target}
+                onRename={() => setRenameOpen(true)}
+              />
             </>
           ) : null}
           {isPreview && (
@@ -578,7 +562,6 @@ interface EditorTabFrameProps {
   renameName?: string;
   shortcutHint: string | null;
   splitTab: (tabId: string, side: 'left' | 'right', label: string) => void;
-  skillMenuItems?: ReactNode;
   tabId: string;
   target?: EditorTabFileTarget;
   unpinTab: (tabId: string) => void;
@@ -606,7 +589,6 @@ function EditorTabFrame({
   renameName,
   shortcutHint,
   splitTab,
-  skillMenuItems,
   tabId,
   target,
   unpinTab,
@@ -625,7 +607,6 @@ function EditorTabFrame({
       pinnedTabIds={pinnedTabIds}
       promoteTab={promoteTab}
       splitTab={splitTab}
-      skillMenuItems={skillMenuItems}
       tabLabel={accessibleLabel}
       unpinTab={unpinTab}
     >
@@ -699,27 +680,6 @@ export function EditorTabs({
   const activeNewTabId = pane?.activeNewTabId ?? null;
   const isNewTabActive = activeNewTabId !== null;
   const isFocusedPane = context.focusedPaneId === resolvedPaneId;
-  const hasSkillTab = visibleTabIds.some((tabId) => {
-    const tab = parseEditorTabId(tabId);
-    return tab.kind === 'skill-file' || (tab.kind === 'doc' && isSkillDocName(tab.docName));
-  });
-  const skillsState = useSkills({ enabled: hasSkillTab });
-  const skillActions = useSkillActions();
-  const editableSkills =
-    skillsState.status === 'ready' ? skillsState.data.filter((skill) => !skill.managed) : [];
-  const editableSkillsByTabId = new Map(
-    editableSkills.map((skill) => [skillEntryLiveDocName(skill), skill] as const),
-  );
-  const skillNamesByScope = new Map(
-    (['project', 'global'] as const).map((scope) => [
-      scope,
-      new Set(
-        skillsState.status === 'ready'
-          ? skillsState.data.filter((skill) => skill.scope === scope).map((skill) => skill.name)
-          : [],
-      ),
-    ]),
-  );
   const activateTab = (tabId: string) => context.activateTabInPane(resolvedPaneId, tabId);
   const activateNewTab = (tabId: string) => context.activateNewTabInPane(resolvedPaneId, tabId);
   const closeTab = (tabId: string) => context.closeTabInPane(resolvedPaneId, tabId);
@@ -1146,39 +1106,9 @@ export function EditorTabs({
                   );
                 }
 
-                if (
-                  tab.kind === 'asset' ||
-                  tab.kind === 'skill-file' ||
-                  tab.kind === 'skill-preview'
-                ) {
-                  let labelPath: string;
-                  switch (tab.kind) {
-                    case 'asset':
-                      labelPath = tab.assetPath;
-                      break;
-                    case 'skill-file':
-                      labelPath = tab.path;
-                      break;
-                    case 'skill-preview':
-                      labelPath = tab.name;
-                      break;
-                  }
-                  const { baseName, label, prefix } = tabParts(labelPath, '');
+                if (tab.kind === 'asset') {
+                  const { baseName, label, prefix } = tabParts(tab.assetPath, '');
                   const accessibleLabel = `${prefix}${label}`;
-                  const skillFileCandidates =
-                    tab.kind === 'skill-file'
-                      ? editableSkills.filter(
-                          (skill) => skill.scope === tab.scope && skill.name === tab.name,
-                        )
-                      : [];
-                  const skillFileOwner =
-                    tab.kind === 'skill-file'
-                      ? tab.host
-                        ? skillFileCandidates.find((skill) => skill.hosts[0] === tab.host)
-                        : skillFileCandidates.length === 1
-                          ? skillFileCandidates[0]
-                          : undefined
-                      : undefined;
                   return (
                     <EditorTabFrame
                       key={tabId}
@@ -1188,17 +1118,13 @@ export function EditorTabs({
                       dropIndicatorSide={dropIndicatorSideForTab(tabIndex)}
                       tabId={tabId}
                       paneId={resolvedPaneId}
-                      target={
-                        tab.kind === 'asset'
-                          ? {
-                              kind: 'asset',
-                              target: tab.assetPath,
-                              assetPath: tab.assetPath,
-                              mediaKind: null,
-                            }
-                          : undefined
-                      }
-                      renameName={tab.kind === 'asset' ? baseName : undefined}
+                      target={{
+                        kind: 'asset',
+                        target: tab.assetPath,
+                        assetPath: tab.assetPath,
+                        mediaKind: null,
+                      }}
+                      renameName={baseName}
                       openTabs={visibleTabIds}
                       closeTab={closeTab}
                       closeTabs={closeVisibleTabs}
@@ -1212,16 +1138,6 @@ export function EditorTabs({
                       promoteTab={promoteTab}
                       shortcutHint={shortcutHint}
                       splitTab={splitTab}
-                      skillMenuItems={
-                        tab.kind === 'skill-file' && skillFileOwner ? (
-                          <SkillFileContextMenuItems
-                            actions={skillActions}
-                            filePath={tab.path}
-                            menuKind="context"
-                            skill={skillFileOwner}
-                          />
-                        ) : undefined
-                      }
                       unpinTab={unpinTab}
                     >
                       <TabPathTooltip path={accessibleLabel}>
@@ -1261,17 +1177,11 @@ export function EditorTabs({
                 }
 
                 const docName = tab.docName;
-                const skill = editableSkillsByTabId.get(docName);
                 const metadataDocExt = pageMeta.get(docName)?.docExt;
                 const docExt = metadataDocExt ?? (isMarkdownDocFile(docName) ? '.md' : '');
-                const bundleFile = skill
-                  ? null
-                  : skillFileForDocName(docName, editableSkills, docExt);
                 const { baseName, extension, label, prefix } = tabParts(docName, docExt);
                 const accessibleLabel = `${prefix}${label}`;
                 const hideDocExtension = docExt === '' || docExt === '.md' || docExt === '.mdx';
-                const hasFileTargetActions =
-                  !isSkillDocName(docName) && !isSkillBundleShapedPath(docName);
                 return (
                   <EditorTabFrame
                     key={tabId}
@@ -1282,10 +1192,8 @@ export function EditorTabs({
                     tabId={tabId}
                     paneId={resolvedPaneId}
                     docExt={docExt}
-                    target={
-                      hasFileTargetActions ? { kind: 'doc', target: docName, docName } : undefined
-                    }
-                    renameName={hasFileTargetActions ? `${baseName}${extension}` : undefined}
+                    target={{ kind: 'doc', target: docName, docName }}
+                    renameName={`${baseName}${extension}`}
                     openTabs={visibleTabIds}
                     closeTab={closeTab}
                     closeTabs={closeVisibleTabs}
@@ -1299,23 +1207,6 @@ export function EditorTabs({
                     promoteTab={promoteTab}
                     shortcutHint={shortcutHint}
                     splitTab={splitTab}
-                    skillMenuItems={
-                      skill ? (
-                        <SkillContextMenuItems
-                          actions={skillActions}
-                          existingNames={skillNamesByScope.get(skill.scope) ?? EMPTY_SKILL_NAME_SET}
-                          menuKind="context"
-                          skill={skill}
-                        />
-                      ) : bundleFile ? (
-                        <SkillFileContextMenuItems
-                          actions={skillActions}
-                          filePath={bundleFile.filePath}
-                          menuKind="context"
-                          skill={bundleFile.skill}
-                        />
-                      ) : undefined
-                    }
                     unpinTab={unpinTab}
                   >
                     <DocumentTabButton
@@ -1356,7 +1247,6 @@ export function EditorTabs({
         </Tooltip>
       </div>
       {trailing}
-      {skillActions.dialogs}
     </div>
   );
 }

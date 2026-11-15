@@ -1,10 +1,5 @@
 import { isEditableTextDocFile } from '@inkeep/open-knowledge-core';
-import { afterEach, describe, expect, test, vi } from 'vitest';
-import { hashFromSkillPreview, skillPreviewFromHash } from '@/lib/doc-hash';
-import {
-  __resetKnownProjectSkillDirsForTests,
-  setKnownProjectSkillDirs,
-} from '@/lib/known-skill-dirs';
+import { describe, expect, test, vi } from 'vitest';
 import {
   addPinnedTab,
   applyDragPinMutation,
@@ -14,10 +9,7 @@ import {
   docTabId,
   filterClosableTabIds,
   filterOpenTabsForKnownTargets,
-  findLocalSkillPreviewTabId,
   folderTabId,
-  isSkillBundleShapedPath,
-  isSkillDocName,
   localTabSessionKeyForMode,
   localTabSessionStorageKey,
   nextActiveTabAfterClose,
@@ -33,8 +25,6 @@ import {
   removeOpenTab,
   removePinnedTab,
   shouldPersistTabSession,
-  skillFileTabId,
-  skillPreviewTabId,
   tabIdForNavigationTarget,
   tabParts,
   writeLocalTabSessionState,
@@ -142,7 +132,6 @@ describe('editor tab state', () => {
         assetPath: 'docs/photo.png',
       }),
     ).toBe(assetTabId('docs/photo.png'));
-    expect(tabIdForNavigationTarget({ kind: 'skills', target: 'skills' })).toBeNull();
   });
 
   test('parses tab ids back to their navigation payload', () => {
@@ -157,23 +146,6 @@ describe('editor tab state', () => {
     });
     expect(docNameForTabId(folderTabId('docs'))).toBeNull();
     expect(docNameForTabId(assetTabId('docs/photo.png'))).toBeNull();
-    expect(parseEditorTabId('skills:hub')).toEqual({ kind: 'doc', docName: 'skills:hub' });
-  });
-
-  test('round-trips a skill-file tab id (scope / name / nested path)', () => {
-    const tabId = skillFileTabId({ scope: 'global', name: 'trip-log', path: 'references/x.md' });
-    expect(parseEditorTabId(tabId)).toEqual({
-      kind: 'skill-file',
-      scope: 'global',
-      name: 'trip-log',
-      path: 'references/x.md',
-    });
-    expect(docNameForTabId(tabId)).toBeNull();
-  });
-
-  test('a skill-file tab id with an unknown scope is not parsed as a skill-file', () => {
-    const bogus = `\u0000skill-file:personal/trip-log/references/x.md`;
-    expect(parseEditorTabId(bogus).kind).toBe('doc');
   });
 
   test('removeOpenTab removes only the requested tab', () => {
@@ -236,43 +208,6 @@ describe('editor tab state', () => {
     ).toEqual([]);
   });
 
-  test('filterOpenTabsForKnownTargets keeps the SKILL doc that left the page list', () => {
-    expect(
-      filterOpenTabsForKnownTargets(['.claude/skills/demo/SKILL', 'docs/a', 'deleted'], {
-        pages: new Set(['docs/a']),
-        folderPaths: new Set(),
-        assetPaths: new Set(),
-      }),
-    ).toEqual(['.claude/skills/demo/SKILL', 'docs/a']);
-  });
-
-  test('filterOpenTabsForKnownTargets still prunes a bundle FILE tab', () => {
-    expect(
-      filterOpenTabsForKnownTargets(['.claude/skills/demo/references/notes'], {
-        pages: new Set(),
-        folderPaths: new Set(),
-        assetPaths: new Set(),
-      }),
-    ).toEqual([]);
-  });
-
-  test('filterOpenTabsForKnownTargets does not exempt a shape the reconciler cannot parse', () => {
-    expect(
-      filterOpenTabsForKnownTargets(['plugins/ok/skills/demo/SKILL'], {
-        pages: new Set(),
-        folderPaths: new Set(),
-        assetPaths: new Set(),
-      }),
-    ).toEqual([]);
-    expect(
-      filterOpenTabsForKnownTargets(['plugins/ok/skills/demo/SKILL'], {
-        pages: new Set(['plugins/ok/skills/demo/SKILL']),
-        folderPaths: new Set(),
-        assetPaths: new Set(),
-      }),
-    ).toEqual(['plugins/ok/skills/demo/SKILL']);
-  });
-
   test('filterOpenTabsForKnownTargets preserves the active missing document draft', () => {
     expect(
       filterOpenTabsForKnownTargets(['docs/a', 'Untitled', 'deleted'], {
@@ -301,17 +236,6 @@ describe('editor tab state', () => {
         keepHashDocName: 'event_watcher',
       }),
     ).toEqual(['event_watcher']);
-  });
-
-  test('filterOpenTabsForKnownTargets keeps a managed skill tab and a template content tab', () => {
-    expect(
-      filterOpenTabsForKnownTargets(['__skill__/global/foo', 'notes/.ok/templates/daily', 'gone'], {
-        pages: new Set(),
-        folderPaths: new Set(),
-        assetPaths: new Set(),
-        keepHashDocName: 'some-other-doc',
-      }),
-    ).toEqual(['__skill__/global/foo', 'notes/.ok/templates/daily']);
   });
 
   test('filterOpenTabsForKnownTargets keeps a template content tab once it lands in pages', () => {
@@ -696,30 +620,6 @@ describe('editor tab state', () => {
 });
 
 describe('preview-tab integration', () => {
-  test('local skill previews deduplicate across source-path drift', () => {
-    const first = skillPreviewTabId({
-      flavor: 'builtin',
-      source: '/a/.ok/skills/write-skill',
-      name: 'write-skill',
-      subtitle: '',
-      level: 'global',
-    });
-    const second = skillPreviewTabId({
-      flavor: 'builtin',
-      source: '/b/.ok/skills/write-skill',
-      name: 'write-skill',
-      subtitle: '',
-      level: 'global',
-    });
-
-    expect(
-      findLocalSkillPreviewTabId([first, second], 'builtin', 'write-skill', '', 'global'),
-    ).toBe(first);
-    expect(
-      findLocalSkillPreviewTabId([first, second], 'builtin', 'write-skill', 'claude', 'global'),
-    ).toBeNull();
-  });
-
   test('session persistence waits after a failed empty restore but resumes after a tab opens', () => {
     expect(shouldPersistTabSession('unread', 0)).toBe(false);
     expect(shouldPersistTabSession('unread', 1)).toBe(true);
@@ -840,59 +740,6 @@ describe('tabParts — non-`.md` call-site shapes (folder + asset)', () => {
   });
 });
 
-describe('skill discriminators reject template content shapes', () => {
-  const templateDocs = ['.ok/templates/daily', 'docs/.ok/templates/note', 'a/b/.ok/templates/x'];
-
-  test('isSkillDocName is false for every template content doc', () => {
-    for (const doc of templateDocs) expect(isSkillDocName(doc)).toBe(false);
-  });
-
-  test('isSkillBundleShapedPath is false for template content docs', () => {
-    for (const doc of templateDocs) expect(isSkillBundleShapedPath(doc)).toBe(false);
-  });
-
-  const dotRootedCompanionDocs = [
-    '.claude/skills/tdd/mocking',
-    '.claude/skills/tdd/tests',
-    '.agents/skills/grill-me/GUIDE',
-  ];
-
-  afterEach(() => {
-    __resetKnownProjectSkillDirsForTests();
-  });
-
-  test('isSkillBundleShapedPath is true for companion docs inside a dot-rooted bundle', () => {
-    for (const doc of dotRootedCompanionDocs) expect(isSkillBundleShapedPath(doc)).toBe(true);
-  });
-
-  test('isSkillBundleShapedPath is false for the bundle dir itself', () => {
-    expect(isSkillBundleShapedPath('.claude/skills/tdd')).toBe(false);
-    setKnownProjectSkillDirs(new Set(['.claude/skills/tdd', 'plugins/ok/skills/demo']));
-    expect(isSkillBundleShapedPath('.claude/skills/tdd')).toBe(false);
-    expect(isSkillBundleShapedPath('plugins/ok/skills/demo')).toBe(false);
-  });
-});
-test('a global-level skill-preview tab id round-trips its level through the hash', () => {
-  const tabId = skillPreviewTabId({
-    flavor: 'detected',
-    source: '/cache/eng/1.2.725/skills/ai-sdk',
-    name: 'ai-sdk',
-    subtitle: 'claude',
-    level: 'global',
-  });
-  const tab = parseEditorTabId(tabId);
-  if (tab.kind !== 'skill-preview') throw new Error('expected skill-preview');
-  expect(tab.level).toBe('global');
-  const hash = hashFromSkillPreview({
-    flavor: tab.flavor,
-    source: tab.source,
-    name: tab.name,
-    subtitle: tab.subtitle,
-    level: tab.level,
-  });
-  expect(skillPreviewFromHash(hash)?.level).toBe('global');
-});
-
 describe('persisted tab ids are repaired on read', () => {
   const session = (
     openTabs: string[],
@@ -920,13 +767,6 @@ describe('persisted tab ids are repaired on read', () => {
     expect(parseEditorTabSessionState(session(['notes/idea.md.mdx'])).panes[0].openTabs).toEqual([
       'notes/idea',
     ]);
-  });
-
-  test('a managed-artifact skill reference tab is repaired', () => {
-    expect(
-      parseEditorTabSessionState(session(['__skill__/global/my-skill/references/guide.md']))
-        .panes[0].openTabs,
-    ).toEqual(['__skill__/global/my-skill/references/guide']);
   });
 
   test('repair dedupes rather than opening two tabs on one file', () => {

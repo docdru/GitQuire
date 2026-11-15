@@ -1,34 +1,15 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import {
-  parseExternalSkillDocName,
-  parseManagedArtifactName,
-} from '@inkeep/open-knowledge-core/constants/cc1';
 import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
 import { isExcalidrawDocFile } from '@inkeep/open-knowledge-core/constants/upload';
 import type { LintDiagnostic } from '@inkeep/open-knowledge-core/markdown/lint';
-import type { SkillScope } from '@inkeep/open-knowledge-core/schemas/api';
-import { lazy, Suspense } from 'react';
 import { AddPropertiesButton } from '@/components/AddPropertiesButton';
 import type { EditorModeValue } from '@/editor/use-editor-mode.ts';
-import { parseProjectSkillContentDocName } from '@/lib/managed-artifact-doc-name';
-import {
-  NO_RESERVED_KEYS,
-  SKILL_RESERVED_KEYS,
-  withoutReservedProperties,
-} from '@/lib/reserved-property-keys';
+import { NO_RESERVED_KEYS, withoutReservedProperties } from '@/lib/reserved-property-keys';
 import { EditorBreadcrumb } from './EditorBreadcrumb';
 import { EditorModeToggle } from './EditorModeToggle';
 import { NotInSidebarIndicator } from './NotInSidebarIndicator';
-
-const SkillToolbarControls = lazy(async () => ({
-  default: (await import('./SkillToolbarControls')).SkillToolbarControls,
-}));
-
-const SkillOriginInline = lazy(async () => ({
-  default: (await import('./SkillOriginInline')).SkillOriginInline,
-}));
 
 const NO_FRONTMATTER_PROBLEMS: readonly LintDiagnostic[] = [];
 
@@ -52,20 +33,8 @@ export function EditorToolbar({
   onAddProperty,
   frontmatterProblems = NO_FRONTMATTER_PROBLEMS,
 }: EditorToolbarProps) {
-  const managed = activeDocName ? parseManagedArtifactName(activeDocName) : null;
-  const projectSkillName = activeDocName ? parseProjectSkillContentDocName(activeDocName) : null;
-  const activeSkill: { scope: SkillScope; name: string } | null =
-    managed?.kind === 'skill'
-      ? { scope: managed.scope, name: managed.name }
-      : projectSkillName
-        ? { scope: 'project', name: projectSkillName }
-        : null;
-  const stageableProblems = withoutReservedProperties(
-    frontmatterProblems,
-    activeSkill ? SKILL_RESERVED_KEYS : NO_RESERVED_KEYS,
-  );
+  const stageableProblems = withoutReservedProperties(frontmatterProblems, NO_RESERVED_KEYS);
   const problemMessages = stageableProblems.map((diagnostic) => diagnostic.message);
-  const externalSkill = activeDocName ? parseExternalSkillDocName(activeDocName) : null;
   const showDocumentAddPropertyButton =
     showAddPropertyButton && (activeDocName === null || !isEditableTextDocFile(activeDocName));
   return (
@@ -76,13 +45,7 @@ export function EditorToolbar({
       <div className="editor-content-aligned bg-background py-2">
         <div className="grid grid-cols-3 items-center">
           <div className="pointer-events-auto flex min-w-0 items-center gap-2">
-            {activeSkill ? (
-              <Suspense fallback={null}>
-                <SkillOriginInline scope={activeSkill.scope} name={activeSkill.name} />
-              </Suspense>
-            ) : externalSkill ? null : (
-              <EditorBreadcrumb docName={activeDocName} />
-            )}
+            <EditorBreadcrumb docName={activeDocName} />
             {activeDocName === null ? null : (
               <NotInSidebarIndicator
                 entry={{ kind: 'document', docName: activeDocName }}
@@ -103,25 +66,12 @@ export function EditorToolbar({
         </div>
       </div>
       <div className="pointer-events-auto absolute top-0 right-0 flex min-w-0 max-w-[calc(50%_-_3rem)] items-center justify-end gap-1 py-2 pr-2">
-        {activeSkill && activeDocName ? (
-          <Suspense fallback={null}>
-            <SkillToolbarControls
-              scope={activeSkill.scope}
-              name={activeSkill.name}
-              showAddPropertyButton={showDocumentAddPropertyButton}
-              onAddProperty={onAddProperty}
-              problemCount={stageableProblems.length}
-              problemMessages={problemMessages}
-            />
-          </Suspense>
-        ) : externalSkill ? null : (
-          showDocumentAddPropertyButton && (
-            <AddPropertiesButton
-              onAddProperty={onAddProperty}
-              problemCount={stageableProblems.length}
-              problemMessages={problemMessages}
-            />
-          )
+        {showDocumentAddPropertyButton && (
+          <AddPropertiesButton
+            onAddProperty={onAddProperty}
+            problemCount={stageableProblems.length}
+            problemMessages={problemMessages}
+          />
         )}
       </div>
       <div

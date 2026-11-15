@@ -3,7 +3,6 @@ import {
   type ConfigBinding,
   OKF_RULE_GROUPS,
   OKF_RULE_IDS,
-  type SkillsListEntry,
 } from '@inkeep/open-knowledge-core';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -50,19 +49,6 @@ let mockGeneratedIndexApplyResult: {
   reason?: 'git-conflict' | 'git-unavailable' | 'config-write';
 } | null = null;
 let mockGeneratedIndexFetchRejects = false;
-let mockSkillsState:
-  | { status: 'idle' | 'loading' }
-  | { status: 'ready'; data: readonly SkillsListEntry[] }
-  | { status: 'error'; message: string } = { status: 'ready', data: [] };
-const installPackSkillCalls: string[] = [];
-const openSkillCalls: Array<[string, string]> = [];
-let installPackSkillResult:
-  | { ok: true; skills: Array<{ name: string; created: boolean }>; installedHosts: string[] }
-  | { ok: false; error: string } = {
-  ok: true,
-  skills: [{ name: 'okf-knowledge-base', created: true }],
-  installedHosts: ['Claude Code'],
-};
 
 function configuredGeneratedIndexEnabled(): boolean {
   return mockProjectConfig?.contentRules?.okf?.generate?.index === true;
@@ -138,23 +124,6 @@ vi.doMock('@/editor/lint-config-client', () => ({
   writeMarkdownlintRule: async (ruleId: string, value: unknown) => {
     writeMarkdownlintRuleCalls.push([ruleId, value]);
     return { ok: true, response: mockProjectLintData };
-  },
-}));
-
-vi.doMock('@/hooks/use-skills', () => ({
-  useSkills: () => mockSkillsState,
-}));
-
-vi.doMock('@/hooks/use-open-skill', () => ({
-  useOpenSkill: () => (scope: string, name: string) => {
-    openSkillCalls.push([scope, name]);
-  },
-}));
-
-vi.doMock('@/lib/skills-api', () => ({
-  installPackSkill: async (packId: string) => {
-    installPackSkillCalls.push(packId);
-    return installPackSkillResult;
   },
 }));
 
@@ -237,15 +206,7 @@ beforeEach(() => {
   mockGeneratedIndexGitState = null;
   mockGeneratedIndexApplyResult = null;
   mockGeneratedIndexFetchRejects = false;
-  installPackSkillCalls.length = 0;
-  openSkillCalls.length = 0;
   errorToasts.length = 0;
-  mockSkillsState = { status: 'ready', data: [] };
-  installPackSkillResult = {
-    ok: true,
-    skills: [{ name: 'okf-knowledge-base', created: true }],
-    installedHosts: ['Claude Code'],
-  };
   vi.stubGlobal('fetch', generatedIndexFetch);
   window.location.hash = '';
 });
@@ -573,89 +534,6 @@ describe('OkfPluginSection', () => {
     expect(docsLink.getAttribute('href')).toBe(
       LINT_PLUGIN_META.find((plugin) => plugin.id === 'okf')?.docUrl,
     );
-  });
-
-  test('offers the declared OKF agent skill as an explicit install', () => {
-    const { binding } = makeBinding();
-    mockProjectBinding = binding;
-    renderPanel();
-
-    const card = screen.getByTestId('settings-okf-recommended-skill');
-    expect(screen.getByRole('heading', { name: 'Recommended agent skill' })).toBeDefined();
-    expect(card.textContent).toContain('Open Knowledge Format guidance');
-    expect(within(card).getByRole('button', { name: 'Install skill' })).toBeDefined();
-  });
-
-  test('reuses the skill-bundle picker before installing the OKF skill', async () => {
-    const user = userEvent.setup();
-    const { binding } = makeBinding();
-    mockProjectBinding = binding;
-    renderPanel();
-
-    await user.click(screen.getByRole('button', { name: 'Install skill' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Install from OKF' });
-    expect(within(dialog).getByTestId('plugin-bundle-install')).toBeDefined();
-    expect(within(dialog).getByText('Installs into this project')).toBeDefined();
-    expect(dialog.textContent).not.toContain('Install into');
-    expect(dialog.textContent).toContain('okf-knowledge-base');
-    expect(installPackSkillCalls).toEqual([]);
-
-    await user.click(within(dialog).getByRole('button', { name: 'Install 1 skill' }));
-
-    await waitFor(() => expect(installPackSkillCalls).toEqual(['okf']));
-    expect(successToasts.at(-1)?.message).toContain('OKF agent skill installed');
-    expect(screen.getByTestId('settings-okf-recommended-skill').textContent).toContain('Installed');
-  });
-
-  test('recognizes a same-name project skill without claiming or overwriting it', async () => {
-    const user = userEvent.setup();
-    const { binding } = makeBinding();
-    mockProjectBinding = binding;
-    mockSkillsState = {
-      status: 'ready',
-      data: [
-        {
-          name: 'okf-knowledge-base',
-          description: 'Team-authored OKF conventions',
-          scope: 'project',
-          path: '.agents/skills/okf-knowledge-base/SKILL.md',
-          installed: true,
-          hosts: ['agents'],
-        },
-      ],
-    };
-    renderPanel();
-
-    const card = screen.getByTestId('settings-okf-recommended-skill');
-    expect(card.textContent).toContain('Already in project');
-    expect(within(card).queryByRole('button', { name: 'Install skill' })).toBeNull();
-    await user.click(within(card).getByRole('button', { name: 'Open skill' }));
-    expect(openSkillCalls).toEqual([['project', 'okf-knowledge-base']]);
-    expect(installPackSkillCalls).toEqual([]);
-  });
-
-  test('surfaces install failure and leaves the action available', async () => {
-    const user = userEvent.setup();
-    const { binding } = makeBinding();
-    mockProjectBinding = binding;
-    installPackSkillResult = { ok: false, error: 'Skill source could not be authored.' };
-    renderPanel();
-
-    await user.click(screen.getByRole('button', { name: 'Install skill' }));
-    await user.click(
-      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Install 1 skill' }),
-    );
-
-    await waitFor(() => expect(errorToasts).toContain('Skill source could not be authored.'));
-    expect(screen.getByTestId('settings-okf-recommended-skill').textContent).not.toContain(
-      'Installed',
-    );
-
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }));
-    await waitFor(() =>
-      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Install skill' })),
-    );
-    expect(screen.getByRole('button', { name: 'Install skill' })).toBeDefined();
   });
 
   test('renders a switch per registered rule, all on when config says nothing', () => {

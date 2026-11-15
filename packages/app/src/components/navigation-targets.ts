@@ -17,10 +17,8 @@ import {
   isMermaidDocFile,
   mediaKindForSidebarAssetExtension,
 } from '@inkeep/open-knowledge-core/constants/upload';
-import type { SkillScope } from '@inkeep/open-knowledge-core/schemas/api';
 import { resolveName } from '@inkeep/open-knowledge-core/utils/target-namespace';
 import { resolveWikiLinkTargetDocName } from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
-import type { SkillPreviewFlavor } from '@/lib/doc-hash';
 import { normalizeDocNameInput } from '@/lib/doc-paths';
 import { parseProjectSkillContentDocName } from '@/lib/managed-artifact-doc-name';
 import { computeAncestors, hasOkPathSegment } from './file-tree-utils';
@@ -50,28 +48,6 @@ export type ResolvedNavigationTarget =
       mediaKind: InlineAssetMediaKind | null;
     }
   | {
-      kind: 'skill-file';
-      target: string;
-      scope: SkillScope;
-      name: string;
-      path: string;
-      host?: string;
-    }
-  | {
-      kind: 'skills';
-      target: string;
-    }
-  | {
-      kind: 'skill-preview';
-      target: string;
-      flavor: SkillPreviewFlavor;
-      source: string;
-      name: string;
-      subtitle: string;
-      level?: SkillScope;
-      path?: string;
-    }
-  | {
       kind: 'large-file';
       target: string;
       docName: string;
@@ -83,10 +59,7 @@ export type ResolvedNavigationTarget =
       target: string;
     };
 
-export type ResolvedContentTarget = Exclude<
-  ResolvedNavigationTarget,
-  { kind: 'skills' | 'skill-preview' }
->;
+export type ResolvedContentTarget = ResolvedNavigationTarget;
 
 interface DocumentSizeMeta {
   size?: number;
@@ -315,9 +288,6 @@ export function docNameForNavigationTarget(target: ResolvedNavigationTarget): st
     case 'missing':
       return target.target;
     case 'asset':
-    case 'skill-file':
-    case 'skills':
-    case 'skill-preview':
     case 'folder':
       return null;
   }

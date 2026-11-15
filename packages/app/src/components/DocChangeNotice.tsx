@@ -3,7 +3,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { History, X } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { requestDocPanelTab } from '@/components/doc-panel-events';
-import { SkillModeBanner } from '@/components/SkillModeBanner';
+import { NoticeBanner } from '@/components/NoticeBanner';
 import { Button } from '@/components/ui/button';
 import { useDocNotices } from '@/hooks/use-doc-notices';
 import { saveHeldMessage } from '@/lib/save-held-message';
@@ -193,7 +193,7 @@ function NoticeSection({
       onKeyDown={handleKeyDown}
       className="shrink-0"
     >
-      <SkillModeBanner
+      <NoticeBanner
         icon={<History className="size-4" aria-hidden />}
         clampLines={false}
         actions={
@@ -223,7 +223,7 @@ function NoticeSection({
         <span ref={messageRef}>
           <NoticeMessage notice={notice} canOpenTimeline={canOpenTimeline} fileLabel={fileLabel} />
         </span>
-      </SkillModeBanner>
+      </NoticeBanner>
     </section>
   );
 }

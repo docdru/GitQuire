@@ -29,7 +29,6 @@ import {
   planGraphLabels,
 } from './graph-label-layout';
 import { buildGraphLabelDescriptors } from './graph-label-utils';
-import { filterGraphSkillNodes, type GraphSkillVisibility } from './graph-skill-filter';
 import { type GraphPalette, withAlpha } from './graph-theme';
 import {
   buildGraphLinkSignature,
@@ -507,7 +506,6 @@ export function GraphView({
   showcase = false,
   showcaseBaseline = null,
   showUrlNodes = true,
-  skillVisibility = 'all',
   className = '',
   docClickBehavior = 'navigate',
   onSelectNode,
@@ -523,7 +521,6 @@ export function GraphView({
   showcase?: boolean;
   showcaseBaseline?: { nodeIds: ReadonlySet<string>; linkKeys: ReadonlySet<string> } | null;
   showUrlNodes?: boolean;
-  skillVisibility?: GraphSkillVisibility;
   className?: string;
   docClickBehavior?: GraphDocClickBehavior;
   onSelectNode?: (selection: GraphNodeSelection) => void;
@@ -740,7 +737,7 @@ export function GraphView({
         };
       })();
 
-  const displayData: GraphData = filterGraphSkillNodes(urlFilteredData, skillVisibility);
+  const displayData: GraphData = urlFilteredData;
 
   const layoutNodes = displayData.nodes as GraphLabelLayoutNode[];
   const layoutLinks = displayData.links as GraphLabelLayoutLink[];
