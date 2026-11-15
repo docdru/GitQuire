@@ -85,7 +85,7 @@ const retiredToolAdvice =
   /\bresolve_conflict\b|(?<![\w.])conflicts\s*\(|mcp__[\w-]+__(?:conflicts|resolve_conflict)\b|\b(?:call|use|invoke|run)\s+(?:the\s+)?`conflicts`|`conflicts`(?!\s+(?:outcomes?|arms?)\b)/i;
 
 test('the production registration after dialect conversion meets both budgets', () => {
-  expect(tools).toHaveLength(19);
+  expect(tools).toHaveLength(16);
   expect(new Set(tools.map((tool) => tool.name))).toEqual(new Set(OPEN_KNOWLEDGE_MCP_TOOLS));
   for (const tool of tools) expect(tool.inputSchema.$schema).toBe(JSON_SCHEMA_DIALECT_2020_12);
   assertBudget(tools);
@@ -158,7 +158,6 @@ test('formerly CI-skipped navigation, validation and summary pins execute agains
   expect(description('checkpoint')).toContain('project-wide');
   expect(description('restore_version')).toContain('version');
   expect(description('restore_version')).toContain('secrets or PII');
-  expect(description('config')).toContain('`install`');
   expect(description('config')).not.toMatch(/action:\s*"(link|unlink|add-root)"/);
 });
 
@@ -422,7 +421,7 @@ const SERVER_FIELDS_FOR_GUIDED_RESULT: Readonly<Record<string, AgentWriteOutcome
     message: 'm',
     dropped: 'intake-landed',
   }),
-  '`write-dropped` (409) for a skill folder that is gone or a path that does not resolve':
+  '`write-dropped` (409) for a path that does not resolve':
     outcomeOfStoreFailure({ code: OK_WRITE_DROPPED, message: 'm', dropped: 'container-gone' }),
   '`doc-moved` (409)': outcomeOfStoreFailure({ code: OK_DOC_MOVED, message: 'm' }),
   '`branch-switched` (409)': outcomeOfStoreFailure({ code: OK_STORE_DISCARDED, message: 'm' }),

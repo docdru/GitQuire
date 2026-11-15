@@ -23,7 +23,7 @@ type LinkKind = (typeof LINK_KINDS)[number];
 export const DESCRIPTION = [
   'Read the wiki-link graph. Requires the Hocuspocus server. kind is one value or an array; results merge, failures go in errors. Use audit for validation.',
   '`backlinks`/`forward`/`suggest` require document. suggest finds unlinked prose mentions; excerpt is normalized context, NOT edit-ready text. Re-read with exec, locate the real text using offset, then edit into a wiki-link.',
-  '`dead` lists raw unresolved internal targets; sourceDocuments optionally filters with OR semantics. Includes skill docs and lowercase log.md/log.mdx: inspect deliberately, never use as a repair queue or rewrite existing log entries to clear findings.',
+  '`dead` lists raw unresolved internal targets; sourceDocuments optionally filters with OR semantics. Includes lowercase log.md/log.mdx: inspect deliberately, never use as a repair queue or rewrite existing log entries to clear findings.',
   '`orphans` finds disconnected pages; mode incoming/outgoing/both. `hubs` lists most-linked pages; limit defaults 20.',
 ].join('\n');
 

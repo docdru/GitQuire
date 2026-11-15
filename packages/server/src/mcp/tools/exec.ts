@@ -60,7 +60,7 @@ const SOFT_CAP_BYTES =
 const BINARY_EXT_RE = /\.(png|jpe?g|gif|webp|svg|pdf|zip|tar|gz|tgz|mp4|mov|mp3|wav|ico|bmp)$/i;
 
 export const DESCRIPTION = [
-  'STOP: with `.ok/`, use exec for in-scope .md/.mdx; native Read/Grep/Glob omit wiki context. Native tools are for source code, non-markdown or projects without .ok/. See the open-knowledge skill for the full rule and escape hatch.',
+  'STOP: with `.ok/`, use exec for in-scope .md/.mdx; native Read/Grep/Glob omit wiki context. Native tools are for source code, non-markdown or projects without .ok/.',
   'Read-only bash-like command; returns stdout and enrichedPaths with frontmatter, backlinks/forward links, unresolved comments, shadow-repo activity and git history with human/agent attribution. Unresolved comments are open comment threads stored at the end of the page; treat them as review requests from the team: consider them before editing and report them.',
   'Allowlist: cat, ls, grep, find, head, tail, wc, sort, uniq, cut. One command or pipe per call. No &&, ;, subshells, writes or redirection (including <). Use multiple paths or separate calls.',
   "cwd: command paths resolve inside explicit absolute cwd, or the client's sole advertised root. With zero/multiple roots pass cwd; traversal above it is rejected.",

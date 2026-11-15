@@ -9,7 +9,7 @@ import {
 
 const DESCRIPTION = [
   'Read effective config merged defaults → user → project; no running OK server needed. Optional key is a dotted path (content, appearance.theme); omit for the full config. All fields are readable. Re-read after disk changes or before relying on an old value.',
-  'Removed server.*, mcp.*, github.*, preview.baseUrl and preview.scriptSrc return exists:false; appearance.preview.autoOpen remains live. This is a pure read. Use `install` skillFolders for folder topology.',
+  'Removed server.*, mcp.*, github.*, preview.baseUrl and preview.scriptSrc return exists:false; appearance.preview.autoOpen remains live. This is a pure read.',
 ].join('\n');
 
 interface GetConfigDeps {
