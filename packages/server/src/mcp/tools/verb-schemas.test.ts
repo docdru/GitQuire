@@ -8,11 +8,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { ConfigSchema } from '../../config/schema.ts';
 import { SUPPORTED_DOC_EXTENSIONS } from '../../doc-extensions.ts';
 import { installPrettyZodErrors } from '../pretty-zod-errors.ts';
-import {
-  DocExtensionArg,
-  FrontmatterArg,
-  resolveTemplatePath,
-} from './verb-schemas.ts';
+import { DocExtensionArg, FrontmatterArg, resolveTemplatePath } from './verb-schemas.ts';
 import { register as registerWrite } from './write.ts';
 
 describe('FrontmatterArg — recursive value contract (PRD-6947)', () => {
