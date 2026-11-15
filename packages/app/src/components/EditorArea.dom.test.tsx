@@ -639,7 +639,7 @@ describe('EditorArea empty-state terminal host', () => {
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalBridge={{} as never}
+        terminalAvailable
         terminalVisible
       />,
     );
@@ -692,7 +692,7 @@ describe('EditorArea empty-state terminal host', () => {
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalBridge={{} as never}
+        terminalAvailable
         terminalVisible
       />,
     );
@@ -709,7 +709,7 @@ describe('EditorArea empty-state terminal host', () => {
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalBridge={{} as never}
+        terminalAvailable
         terminalVisible
         dockTree={RIGHT_TERMINAL_TREE}
       />,
@@ -727,7 +727,7 @@ describe('EditorArea empty-state terminal host', () => {
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalBridge={{} as never}
+        terminalAvailable
       />,
     );
 
@@ -751,7 +751,7 @@ describe('EditorArea document panel slot', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalBridge: {} as never,
+    terminalAvailable: true,
   } as const;
 
   const pctOf = (px: number) => (px / mockEditorUnitPx) * 100;
@@ -1251,7 +1251,7 @@ describe('EditorArea agents panel region', () => {
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalBridge={{ terminal: {} } as never}
+        terminalAvailable
         agentsVisible
       />,
     );
@@ -1272,7 +1272,7 @@ describe('EditorArea dock units', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalBridge: {} as never,
+    terminalAvailable: true,
   } as const;
 
   beforeEach(() => {
@@ -1341,7 +1341,7 @@ describe('EditorArea dock units', () => {
   test('without a terminal, as on the web, the terminal unit stays hidden and draws no card', () => {
     render(
       <TooltipProvider>
-        <EditorArea {...unitProps} terminalBridge={undefined} agentsVisible terminalVisible />
+        <EditorArea {...unitProps} terminalAvailable={false} agentsVisible terminalVisible />
       </TooltipProvider>,
     );
 
@@ -1448,7 +1448,7 @@ describe('EditorArea dock seams', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalBridge: {} as never,
+    terminalAvailable: true,
   } as const;
 
   beforeEach(() => {
@@ -1562,7 +1562,7 @@ describe('EditorArea terminal unit across view kinds', () => {
           onModeChange={() => {}}
           activeTab="timeline"
           onActiveTabChange={() => {}}
-          terminalBridge={{} as never}
+          terminalAvailable
           terminalVisible
         />,
       );
@@ -1592,7 +1592,7 @@ describe('EditorArea terminal unit across view kinds', () => {
       onModeChange: () => {},
       activeTab: 'timeline' as const,
       onActiveTabChange: () => {},
-      terminalBridge: {} as never,
+      terminalAvailable: true,
       terminalVisible: true,
     };
     const { rerender } = render(<EditorArea {...props} />);
@@ -1625,7 +1625,7 @@ describe('EditorArea hash-load skeleton renders inside the editor card (cold sta
         onModeChange={() => {}}
         activeTab="timeline"
         onActiveTabChange={() => {}}
-        terminalBridge={{} as never}
+        terminalAvailable
         terminalVisible
       />,
     );
@@ -1743,7 +1743,7 @@ describe('EditorArea terminal persists across a mid-session cold navigation', ()
       onModeChange: () => {},
       activeTab: 'timeline' as const,
       onActiveTabChange: () => {},
-      terminalBridge: {} as never,
+      terminalAvailable: true,
       terminalVisible: true,
     };
     const { rerender } = render(<EditorArea {...props} />);
@@ -1992,7 +1992,7 @@ describe('EditorArea editor card rows', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalBridge: {} as never,
+    terminalAvailable: true,
   } as const;
   const setViewportWidth = (px: number) => {
     Object.defineProperty(window, 'innerWidth', { value: px, configurable: true, writable: true });
@@ -2346,7 +2346,7 @@ describe('EditorArea terminal and chat cards', () => {
           <SingleFileModeProvider>
             <EditorArea
               {...cardProps}
-              terminalBridge={{} as never}
+              terminalAvailable
               terminalVisible
               dockTree={RIGHT_TERMINAL_TREE}
               agentsVisible
@@ -2396,7 +2396,7 @@ describe('EditorArea with the editor hidden', () => {
     onModeChange: () => {},
     activeTab: 'timeline',
     onActiveTabChange: () => {},
-    terminalBridge: {} as never,
+    terminalAvailable: true,
   } as const;
   const settle = () => act(async () => {});
   const unitStyles = () =>

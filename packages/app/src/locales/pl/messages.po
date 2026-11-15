@@ -82,9 +82,6 @@ msgstr "\"frontmatter\" jest zarezerwowaną nazwą właściwości"
 msgid "(a bare folder name needs /** after it to match what's inside)"
 msgstr "(sama nazwa folderu wymaga po niej /**, aby dopasować jego zawartość)"
 
-msgid "(a worktree of {0})"
-msgstr "(worktree projektu {0})"
-
 msgid "(binary file, not previewable)"
 msgstr "(plik binarny, podgląd niedostępny)"
 
@@ -237,9 +234,6 @@ msgstr "{0} został już usunięty."
 
 msgid "{0} was not moved."
 msgstr "{0} nie został przeniesiony."
-
-msgid "{0}/{1} {2}"
-msgstr "{0}/{1} {2}"
 
 msgid "{0}d ago"
 msgstr "{0} dni temu"
@@ -521,9 +515,6 @@ msgstr ""
 msgid "{percent}% from top"
 msgstr "{percent}% od góry"
 
-msgid "{phase} — {pct}%"
-msgstr "{phase} — {pct}%"
-
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin} zawiera {0} innych umiejętności"
 
@@ -744,9 +735,6 @@ msgstr "Baza wiedzy zgodna z Google Open Knowledge Format, wspólnym sposobem or
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "Wiersz z przypisem<0><1>[1]</1></0> i definicją wyświetloną poniżej."
-
-msgid "A network problem or GitHub outage interrupted the clone."
-msgstr "Problem z siecią lub awaria GitHub przerwały klonowanie."
 
 msgid "a new pane to the left of {0}"
 msgstr "nowy panel po lewej stronie {0}"
@@ -1464,9 +1452,6 @@ msgstr "Zachowano obie wersje w {fileName}. Plik zmienił się poza GitQuire w t
 msgid "Branch"
 msgstr "Gałąź"
 
-msgid "Branch {0} no longer exists. Cloned to default branch."
-msgstr "Gałąź {0} już nie istnieje. Sklonowano do gałęzi domyślnej."
-
 msgid "breadcrumb"
 msgstr "okruszki"
 
@@ -1603,9 +1588,6 @@ msgstr ""
 msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
 msgstr ""
 
-msgid "Check for updates"
-msgstr "Sprawdź aktualizacje"
-
 msgid "Check for updates every"
 msgstr "Sprawdzaj aktualizacje co"
 
@@ -1626,12 +1608,6 @@ msgstr "Sprawdzanie"
 
 msgid "Checking for updates"
 msgstr "Sprawdzanie aktualizacji"
-
-msgid "Checking for updates…"
-msgstr "Sprawdzanie aktualizacji…"
-
-msgid "Checking GitHub connection..."
-msgstr "Sprawdzanie połączenia z GitHubem..."
 
 msgid "Checking links"
 msgstr "Sprawdzanie linków"
@@ -1735,9 +1711,6 @@ msgstr "Sklonuj"
 msgid "Clone complete — opening project"
 msgstr "Klonowanie zakończone — otwieranie projektu"
 
-msgid "Clone ended unexpectedly."
-msgstr "Klonowanie zakończyło się nieoczekiwanie."
-
 msgid "Clone failed — check the URL and try again ({status})"
 msgstr "Klonowanie nie powiodło się — sprawdź adres URL i spróbuj ponownie ({status})"
 
@@ -1756,29 +1729,11 @@ msgstr "Klonowanie nie powiodło się: {title}"
 msgid "Clone from GitHub"
 msgstr "Sklonuj z GitHuba"
 
-msgid "Clone happens in the Project Navigator. Reclick the share link there."
-msgstr "Klonowanie odbywa się w Nawigatorze projektów. Kliknij tam ponownie link udostępniania."
-
 msgid "Clone stream ended unexpectedly — check if the clone completed"
 msgstr "Strumień klonowania został przerwany — sprawdź, czy klonowanie się zakończyło"
 
-msgid "Clone to a new folder"
-msgstr "Sklonuj do nowego folderu"
-
-msgid "Cloned {repoName}."
-msgstr "Sklonowano {repoName}."
-
-msgid "Cloned successfully, but could not open the project."
-msgstr "Sklonowano pomyślnie, ale nie udało się otworzyć projektu."
-
 msgid "Cloning"
 msgstr "Klonowanie"
-
-msgid "Cloning {repoName}..."
-msgstr "Klonowanie {repoName}..."
-
-msgid "Cloning..."
-msgstr "Klonowanie..."
 
 msgid "Close"
 msgstr "Zamknij"
@@ -1990,9 +1945,6 @@ msgstr "Połączono — ten punkt końcowy zwraca wektory o {0} wymiarach."
 msgid "Connected as @{login}"
 msgstr "Połączono jako @{login}"
 
-msgid "Connected as <0>@{signedInLogin}</0>"
-msgstr "Połączono jako <0>@{signedInLogin}</0>"
-
 msgid "Connected to"
 msgstr "Połączono z"
 
@@ -2164,17 +2116,11 @@ msgstr "Nie udało się włączyć synchronizacji: {detail}"
 msgid "Could not fix {0} of {total} files."
 msgstr "Nie udało się naprawić {0} z {total} plików."
 
-msgid "Could not initialize {0}."
-msgstr "Nie udało się zainicjować {0}."
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "Nie udało się wczytać szablonów: {templatesError}. Nadal możesz utworzyć pustą notatkę."
 
 msgid "Could not load templates. Try again later."
 msgstr "Nie udało się wczytać szablonów. Spróbuj ponownie później."
-
-msgid "Could not open GitHub sign-in. Please try again."
-msgstr "Nie udało się otworzyć logowania do GitHuba. Spróbuj ponownie."
 
 msgid "Could not reach server"
 msgstr "Nie udało się połączyć z serwerem"
@@ -2187,9 +2133,6 @@ msgstr "Nie udało się rozpocząć tworzenia nowego elementu"
 
 msgid "Could not update sidebar settings"
 msgstr "Nie udało się zaktualizować ustawień panelu bocznego"
-
-msgid "Could not validate folder. Please try again."
-msgstr "Nie udało się zwalidować folderu. Spróbuj ponownie."
 
 msgid "Couldn't cancel."
 msgstr ""
@@ -2756,9 +2699,6 @@ msgstr "dokumenty pasujące do {0}"
 msgid "Docs tagged #{tagDocsName}"
 msgstr "Dokumenty oznaczone #{tagDocsName}"
 
-msgid "document"
-msgstr "dokument"
-
 msgid "Document not found"
 msgstr "Nie znaleziono dokumentu"
 
@@ -2812,9 +2752,6 @@ msgstr "Kliknij dwukrotnie, aby edytować"
 
 msgid "Download file"
 msgstr "Pobierz plik"
-
-msgid "Downloads a fresh copy from GitHub."
-msgstr "Pobiera świeżą kopię z repozytorium GitHub."
 
 msgid "Draft"
 msgstr ""
@@ -3171,9 +3108,6 @@ msgstr "enterprise"
 
 msgid "Error"
 msgstr "Błąd"
-
-msgid "Error:"
-msgstr "Błąd:"
 
 msgid "Escape"
 msgstr "Escape"
@@ -3643,9 +3577,6 @@ msgstr "Do przodu"
 msgid "Forward-links response did not match expected shape."
 msgstr "Odpowiedź linków wychodzących nie miała oczekiwanej struktury."
 
-msgid "Found the repo but could not open the project. Please try again."
-msgstr "Znaleziono repozytorium, ale nie udało się otworzyć projektu. Spróbuj ponownie."
-
 msgid "From {harnessLabel}"
 msgstr "Z {harnessLabel}"
 
@@ -4050,12 +3981,6 @@ msgstr "https://github.com/owner/repo lub owner/repo"
 msgid "Hubs"
 msgstr "Huby"
 
-msgid "I already have it locally"
-msgstr "Mam to już lokalnie"
-
-msgid "I already have it locally →"
-msgstr "Mam to już lokalnie →"
-
 msgid "I'm switching to another tool"
 msgstr "Przechodzę na inne narzędzie"
 
@@ -4209,17 +4134,11 @@ msgstr "Inicjalizuj {selectedPackName}"
 msgid "Initialize a starter pack"
 msgstr "Inicjalizuj pakiet startowy"
 
-msgid "Initialize and open"
-msgstr "Inicjalizuj i otwórz"
-
 msgid "Initialize failed: {errorDetail}"
 msgstr "Nie udało się zainicjować: {errorDetail}"
 
 msgid "Initialize starter pack"
 msgstr "Inicjalizuj pakiet startowy"
-
-msgid "Initialized {0} but could not open it."
-msgstr "Zainicjowano {0}, ale nie udało się go otworzyć."
 
 msgid "Initializing project"
 msgstr "Inicjalizowanie projektu"
@@ -4337,9 +4256,6 @@ msgstr "Nieprawidłowa wartość koloru"
 
 msgid "Invalid patch payload"
 msgstr "Nieprawidłowe dane łaty"
-
-msgid "Invalid share URL."
-msgstr "Nieprawidłowy adres URL udostępniania."
 
 msgid "Invalid YAML"
 msgstr "Nieprawidłowy YAML"
@@ -4700,9 +4616,6 @@ msgstr ""
 
 msgid "Looked at: {detail}"
 msgstr ""
-
-msgid "Looking for <0>{lookingForUrl}</0>."
-msgstr "Szukam <0>{lookingForUrl}</0>."
 
 msgid "Lost connection to \"{docName}\"."
 msgstr "Utracono połączenie z „{docName}”."
@@ -5487,9 +5400,6 @@ msgstr "To nie jest kolor hex: {0}"
 msgid "Not connected"
 msgstr "Niepołączone"
 
-msgid "Not connected to GitHub."
-msgstr "Nie połączono z GitHub."
-
 msgid "Not great"
 msgstr "Nie najlepiej"
 
@@ -5727,9 +5637,6 @@ msgstr "Otwórz link"
 msgid "Open link in new tab"
 msgstr "Otwórz link w nowej karcie"
 
-msgid "Open Navigator"
-msgstr "Otwórz Nawigator"
-
 msgid "Open or close visual-editor find."
 msgstr "Otwórz lub zamknij wyszukiwanie w edytorze wizualnym."
 
@@ -5738,9 +5645,6 @@ msgstr "Otwórz podgląd, gdy agent edytuje"
 
 msgid "Open settings"
 msgstr "Otwórz ustawienia"
-
-msgid "Open shared {targetNoun}"
-msgstr "Otwórz udostępniony {targetNoun}"
 
 msgid "Open skill"
 msgstr "Otwórz umiejętność"
@@ -5786,9 +5690,6 @@ msgstr "Otwórz wyszukiwanie w edytorze wizualnym z rozwiniętymi opcjami zastę
 
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "Otwórz, nawiguj, zaakceptuj lub odrzuć podpowiedzi uzupełniania CodeMirror."
-
-msgid "Opening..."
-msgstr "Otwieranie..."
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Otwiera wybór folderu, w którym ma zostać sklonowane repozytorium."
@@ -6046,9 +5947,6 @@ msgstr "Wybierz foldery"
 
 msgid "Pick folders this schema applies to"
 msgstr "Wybierz foldery, których dotyczy ten schemat"
-
-msgid "Pick the folder where you've cloned it."
-msgstr "Wybierz folder, w którym go sklonowałeś."
 
 msgid "Pick the skills to install. Each one lands as an editable skill you own; the plugin's hooks, commands, and MCP servers are not installed."
 msgstr "Wybierz umiejętności do instalacji. Każda z nich trafia jako umiejętność edytowana, do której należysz; haki, polecenia i serwery MCP wtyczki nie są instalowane."
@@ -7794,9 +7692,6 @@ msgstr "Nie można odczytać tego jako YAML ani JSON."
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "Tego punktu końcowego nie można użyć. Podaj adres https:// — http:// jest dozwolone tylko dla punktów końcowych loopback."
 
-msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
-msgstr "Ten folder nie jest jeszcze projektem GitQuire. Zainicjować go i otworzyć?"
-
 msgid "That host is already in the list."
 msgstr "Ten host jest już na liście."
 
@@ -8001,12 +7896,6 @@ msgstr "Wymiar wektora dostawcy stale się zmienia. Uruchom ponownie GitQuire, z
 msgid "The quoted text is no longer in the page."
 msgstr ""
 
-msgid "The repository is private and your GitHub account doesn't have access to it."
-msgstr "Repozytorium jest prywatne i Twoje konto GitHub nie ma do niego dostępu."
-
-msgid "The repository was moved, renamed, or deleted."
-msgstr "Repozytorium zostało przeniesione, zmienione nazwę lub usunięte."
-
 msgid "The same text changed in both places"
 msgstr ""
 
@@ -8112,9 +8001,6 @@ msgstr "Ten agent nie udostępnia poleceń slash"
 msgid "This agent hasn't announced its commands yet"
 msgstr "Ten agent jeszcze nie ogłosił swoich poleceń"
 
-msgid "This branch is checked out in:"
-msgstr "Ta gałąź jest aktualnie otwarta w:"
-
 msgid "This chat is too long for the model. Start a new chat (+) to go on."
 msgstr ""
 
@@ -8187,26 +8073,14 @@ msgstr "Ten plik został usunięty na bieżącej gałęzi (konflikt usunięcie�
 msgid "This file was deleted on the incoming branch (modify-delete conflict)."
 msgstr "Ten plik został usunięty na gałęzi nadchodzącej (konflikt modyfikacja–usunięcie)."
 
-msgid "This folder doesn't contain a git repository. Pick a different folder?"
-msgstr "Ten folder nie zawiera repozytorium gita. Wybrać inny folder?"
-
 msgid "This folder has unpushed changes. Recipients will see the last pushed version."
 msgstr "Ten folder ma niewypchnięte zmiany. Odbiorcy zobaczą ostatnią wypchniętą wersję."
 
 msgid "This folder hasn't synced to GitHub yet. The link will work after the next sync."
 msgstr "Ten folder nie został jeszcze zsynchronizowany z GitHub. Link zacznie działać po następnej synchronizacji."
 
-msgid "This folder is a clone of {actualOwner}/{actualRepo}, not {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "Ten folder jest klonem {actualOwner}/{actualRepo}, a nie {expectedOwner}/{expectedRepo}. Wybrać inny folder?"
-
-msgid "This folder is a clone of {expectedOwner}/{expectedRepo} on {actualHost}, not {expectedHost}. Pick a folder cloned from {expectedHost}?"
-msgstr "Ten folder jest klonem {expectedOwner}/{expectedRepo} na {actualHost}, a nie {expectedHost}. Wybrać folder sklonowany z {expectedHost}?"
-
 msgid "This folder is empty."
 msgstr "Ten folder jest pusty."
-
-msgid "This folder isn't a clone of {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "Ten folder nie jest klonem {expectedOwner}/{expectedRepo}. Wybrać inny folder?"
 
 msgid "This folder isn't on GitHub yet. The link won't work until it's pushed."
 msgstr "Tego folderu nie ma jeszcze na GitHub. Link nie będzie działał, dopóki go nie wypchniesz."
@@ -8351,12 +8225,6 @@ msgstr "Nie udało się odczytać tego pliku motywu"
 
 msgid "This theme file is too large"
 msgstr "Ten plik motywu jest za duży"
-
-msgid "This update is no longer ready to install."
-msgstr "Ta aktualizacja nie jest już gotowa do instalacji."
-
-msgid "This usually means one of:"
-msgstr "Zwykle oznacza to jedno z:"
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -8703,9 +8571,6 @@ msgstr "Aktualizacja nie powiodła się: {0}"
 msgid "Update from source"
 msgstr "Zaktualizuj ze źródła"
 
-msgid "Update GitQuire to open this share."
-msgstr "Zaktualizuj GitQuire, aby otworzyć to udostępnienie."
-
 msgid "Update the destination and optional section anchor."
 msgstr "Zaktualizuj cel i opcjonalną kotwicę sekcji."
 
@@ -8723,9 +8588,6 @@ msgstr "Zaktualizowano {updatedRelative}"
 
 msgid "updated folder properties"
 msgstr "zaktualizowano właściwości folderu"
-
-msgid "Updates"
-msgstr ""
 
 msgid "Updates flow in"
 msgstr "Napływające aktualizacje"
@@ -8951,9 +8813,6 @@ msgstr "Ostrzeżenie"
 
 msgid "We couldn't check your GitHub connection."
 msgstr "Nie udało się sprawdzić połączenia z GitHubem."
-
-msgid "We couldn't clone this repository."
-msgstr "Nie udało się sklonować tego repozytorium."
 
 msgid "We sent a code to {pending}. Enter it to turn on email."
 msgstr ""

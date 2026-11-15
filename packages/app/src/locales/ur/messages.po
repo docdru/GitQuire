@@ -82,9 +82,6 @@ msgstr "«frontmatter» ایک محفوظ خصوصیت کا نام ہے"
 msgid "(a bare folder name needs /** after it to match what's inside)"
 msgstr "(صرف فولڈر کے نام کے بعد /** لگانا ضروری ہے تاکہ اس کے اندر کا مواد مماثل ہو)"
 
-msgid "(a worktree of {0})"
-msgstr "({0} کا ورک ٹری)"
-
 msgid "(binary file, not previewable)"
 msgstr "(بائنری فائل، پیش منظر ممکن نہیں)"
 
@@ -237,9 +234,6 @@ msgstr "{0} پہلے ہی حذف ہو چکا تھا۔"
 
 msgid "{0} was not moved."
 msgstr "{0} منتقل نہیں کیا گیا۔"
-
-msgid "{0}/{1} {2}"
-msgstr "{0}/{1} {2}"
 
 msgid "{0}d ago"
 msgstr "{0} دن پہلے"
@@ -521,9 +515,6 @@ msgstr ""
 msgid "{percent}% from top"
 msgstr "اوپر سے {percent}%"
 
-msgid "{phase} — {pct}%"
-msgstr "{phase} — {pct}%"
-
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin} میں {0} مزید مہارتیں شامل ہیں"
 
@@ -744,9 +735,6 @@ msgstr "ایک نالج بیس جو Google کے Open Knowledge Format کی پی�
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "ایک سطر جس میں فٹ نوٹ<0><1>[1]</1></0> اور نیچے دکھائی گئی تعریف ہے۔"
-
-msgid "A network problem or GitHub outage interrupted the clone."
-msgstr "نیٹ ورک کے مسئلے یا GitHub کی بندش نے کلون میں خلل ڈالا۔"
 
 msgid "a new pane to the left of {0}"
 msgstr "{0} کے بائیں جانب ایک نیا پین"
@@ -1464,9 +1452,6 @@ msgstr "{fileName} میں دونوں ورژن رکھے گئے۔ فائل GitQuir
 msgid "Branch"
 msgstr "برانچ"
 
-msgid "Branch {0} no longer exists. Cloned to default branch."
-msgstr "برانچ {0} اب موجود نہیں۔ طے شدہ برانچ پر کلون کر دیا گیا۔"
-
 msgid "breadcrumb"
 msgstr "بریڈ کرمب"
 
@@ -1603,9 +1588,6 @@ msgstr ""
 msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
 msgstr ""
 
-msgid "Check for updates"
-msgstr "اپ ڈیٹس دیکھیں"
-
 msgid "Check for updates every"
 msgstr "اپ ڈیٹس دیکھنے کا وقفہ"
 
@@ -1626,12 +1608,6 @@ msgstr "جانچا جا رہا ہے"
 
 msgid "Checking for updates"
 msgstr "اپ ڈیٹس دیکھے جا رہے ہیں"
-
-msgid "Checking for updates…"
-msgstr "اپ ڈیٹس دیکھے جا رہے ہیں…"
-
-msgid "Checking GitHub connection..."
-msgstr "GitHub کنکشن جانچا جا رہا ہے..."
 
 msgid "Checking links"
 msgstr "لنکس کی جانچ ہو رہی ہے"
@@ -1735,9 +1711,6 @@ msgstr "کلون"
 msgid "Clone complete — opening project"
 msgstr "کلون مکمل — پروجیکٹ کھولا جا رہا ہے"
 
-msgid "Clone ended unexpectedly."
-msgstr "کلون غیر متوقع طور پر ختم ہو گیا۔"
-
 msgid "Clone failed — check the URL and try again ({status})"
 msgstr "کلون ناکام — URL جانچیں اور دوبارہ کوشش کریں ({status})"
 
@@ -1756,29 +1729,11 @@ msgstr "کلون ناکام: {title}"
 msgid "Clone from GitHub"
 msgstr "GitHub سے کلون کریں"
 
-msgid "Clone happens in the Project Navigator. Reclick the share link there."
-msgstr "کلون پروجیکٹ نیویگیٹر میں ہوتا ہے۔ وہاں شیئر لنک پر دوبارہ کلک کریں۔"
-
 msgid "Clone stream ended unexpectedly — check if the clone completed"
 msgstr "کلون کی سٹریم غیر متوقع طور پر ختم ہو گئی — دیکھیں کہ کلون مکمل ہوا یا نہیں"
 
-msgid "Clone to a new folder"
-msgstr "نئے فولڈر میں کلون کریں"
-
-msgid "Cloned {repoName}."
-msgstr "{repoName} کلون ہو گیا۔"
-
-msgid "Cloned successfully, but could not open the project."
-msgstr "کلون کامیاب رہا، مگر پروجیکٹ نہیں کھل سکا۔"
-
 msgid "Cloning"
 msgstr "کلون کیا جا رہا ہے"
-
-msgid "Cloning {repoName}..."
-msgstr "{repoName} کلون کیا جا رہا ہے..."
-
-msgid "Cloning..."
-msgstr "کلون کیا جا رہا ہے..."
 
 msgid "Close"
 msgstr "بند کریں"
@@ -1990,9 +1945,6 @@ msgstr "منسلک — یہ اینڈ پوائنٹ {0} ابعاد والے ویک
 msgid "Connected as @{login}"
 msgstr "@{login} کے طور پر منسلک"
 
-msgid "Connected as <0>@{signedInLogin}</0>"
-msgstr "<0>@{signedInLogin}</0> کے طور پر منسلک"
-
 msgid "Connected to"
 msgstr "منسلک ہے"
 
@@ -2164,17 +2116,11 @@ msgstr "مطابقت پذیری فعال نہیں ہو سکی: {detail}"
 msgid "Could not fix {0} of {total} files."
 msgstr "{total} میں سے {0} فائلیں درست نہیں کی جا سکیں۔"
 
-msgid "Could not initialize {0}."
-msgstr "{0} کا ابتدائیہ نہیں ہو سکا۔"
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "ٹیمپلیٹس لوڈ نہیں ہو سکے: {templatesError}۔ آپ اب بھی خالی نوٹ بنا سکتے ہیں۔"
 
 msgid "Could not load templates. Try again later."
 msgstr "ٹیمپلیٹس لوڈ نہیں ہو سکے۔ بعد میں دوبارہ کوشش کریں۔"
-
-msgid "Could not open GitHub sign-in. Please try again."
-msgstr "GitHub سائن اِن نہیں کھل سکا۔ براہِ کرم دوبارہ کوشش کریں۔"
 
 msgid "Could not reach server"
 msgstr "سرور تک رسائی نہیں ہو سکی"
@@ -2187,9 +2133,6 @@ msgstr "نیا آئٹم بنانا شروع نہیں ہو سکا"
 
 msgid "Could not update sidebar settings"
 msgstr "سائیڈ بار کی ترتیبات تازہ نہیں ہو سکیں"
-
-msgid "Could not validate folder. Please try again."
-msgstr "فولڈر کی توثیق نہیں ہو سکی۔ براہِ کرم دوبارہ کوشش کریں۔"
 
 msgid "Couldn't cancel."
 msgstr ""
@@ -2756,9 +2699,6 @@ msgstr "{0} سے مماثل دستاویزات"
 msgid "Docs tagged #{tagDocsName}"
 msgstr "#{tagDocsName} سے ٹیگ شدہ دستاویزات"
 
-msgid "document"
-msgstr "دستاویز"
-
 msgid "Document not found"
 msgstr "دستاویز نہیں ملی"
 
@@ -2812,9 +2752,6 @@ msgstr "ترمیم کے لیے ڈبل کلک کریں"
 
 msgid "Download file"
 msgstr "فائل ڈاؤن لوڈ کریں"
-
-msgid "Downloads a fresh copy from GitHub."
-msgstr "GitHub سے تازہ نقل ڈاؤن لوڈ کرتا ہے۔"
 
 msgid "Draft"
 msgstr ""
@@ -3171,9 +3108,6 @@ msgstr "انٹرپرائز"
 
 msgid "Error"
 msgstr "خرابی"
-
-msgid "Error:"
-msgstr "خرابی:"
 
 msgid "Escape"
 msgstr "Escape"
@@ -3643,9 +3577,6 @@ msgstr "آگے"
 msgid "Forward-links response did not match expected shape."
 msgstr "باہر جانے والے لنکس کا جواب متوقع ساخت سے میل نہیں کھایا۔"
 
-msgid "Found the repo but could not open the project. Please try again."
-msgstr "ریپو مل گیا مگر پروجیکٹ نہیں کھل سکا۔ براہِ کرم دوبارہ کوشش کریں۔"
-
 msgid "From {harnessLabel}"
 msgstr "{harnessLabel} سے"
 
@@ -4050,12 +3981,6 @@ msgstr "https://github.com/owner/repo یا owner/repo"
 msgid "Hubs"
 msgstr "مراکز"
 
-msgid "I already have it locally"
-msgstr "یہ میرے پاس پہلے سے مقامی طور پر موجود ہے"
-
-msgid "I already have it locally →"
-msgstr "یہ میرے پاس پہلے سے مقامی طور پر موجود ہے ←"
-
 msgid "I'm switching to another tool"
 msgstr "میں کسی دوسرے ٹول پر جا رہا ہوں"
 
@@ -4209,17 +4134,11 @@ msgstr "{selectedPackName} کا ابتدائیہ کریں"
 msgid "Initialize a starter pack"
 msgstr "کسی ابتدائی پیک کا ابتدائیہ کریں"
 
-msgid "Initialize and open"
-msgstr "ابتدائیہ کریں اور کھولیں"
-
 msgid "Initialize failed: {errorDetail}"
 msgstr "ابتدائیہ ناکام: {errorDetail}"
 
 msgid "Initialize starter pack"
 msgstr "ابتدائی پیک کا ابتدائیہ کریں"
-
-msgid "Initialized {0} but could not open it."
-msgstr "{0} کا ابتدائیہ ہو گیا مگر یہ کھل نہیں سکا۔"
 
 msgid "Initializing project"
 msgstr "پروجیکٹ کا ابتدائیہ ہو رہا ہے"
@@ -4337,9 +4256,6 @@ msgstr "رنگ کی قدر درست نہیں"
 
 msgid "Invalid patch payload"
 msgstr "غلط پیچ پے لوڈ"
-
-msgid "Invalid share URL."
-msgstr "شیئر URL درست نہیں۔"
 
 msgid "Invalid YAML"
 msgstr "YAML درست نہیں"
@@ -4700,9 +4616,6 @@ msgstr ""
 
 msgid "Looked at: {detail}"
 msgstr ""
-
-msgid "Looking for <0>{lookingForUrl}</0>."
-msgstr "<0>{lookingForUrl}</0> تلاش کیا جا رہا ہے۔"
 
 msgid "Lost connection to \"{docName}\"."
 msgstr "«{docName}» سے رابطہ ختم ہو گیا۔"
@@ -5487,9 +5400,6 @@ msgstr "ہیکس رنگ نہیں ہے: {0}"
 msgid "Not connected"
 msgstr "منسلک نہیں"
 
-msgid "Not connected to GitHub."
-msgstr "GitHub سے منسلک نہیں۔"
-
 msgid "Not great"
 msgstr "زیادہ اچھا نہیں"
 
@@ -5727,9 +5637,6 @@ msgstr "لنک کھولیں"
 msgid "Open link in new tab"
 msgstr "لنک نئے ٹیب میں کھولیں"
 
-msgid "Open Navigator"
-msgstr "نیویگیٹر کھولیں"
-
 msgid "Open or close visual-editor find."
 msgstr "بصری ایڈیٹر کی تلاش کھولیں یا بند کریں۔"
 
@@ -5738,9 +5645,6 @@ msgstr "ایجنٹ کی ترمیم پر پیش منظر کھولیں"
 
 msgid "Open settings"
 msgstr "ترتیبات کھولیں"
-
-msgid "Open shared {targetNoun}"
-msgstr "مشترکہ {targetNoun} کھولیں"
 
 msgid "Open skill"
 msgstr "کھلی مہارت"
@@ -5786,9 +5690,6 @@ msgstr "بصری ایڈیٹر کی تلاش تبدیلی کے کنٹرولز ک�
 
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror کی تکمیلی تجاویز کھولیں، ان میں گھومیں، قبول کریں یا برخاست کریں۔"
-
-msgid "Opening..."
-msgstr "کھولا جا رہا ہے..."
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "ریپازٹری کہاں کلون کرنی ہے، یہ منتخب کرنے کے لیے فولڈر منتخب کنندہ کھولتا ہے۔"
@@ -6046,9 +5947,6 @@ msgstr "فولڈر منتخب کریں"
 
 msgid "Pick folders this schema applies to"
 msgstr "وہ فولڈر منتخب کریں جن پر یہ اسکیما لاگو ہوتا ہے"
-
-msgid "Pick the folder where you've cloned it."
-msgstr "وہ فولڈر منتخب کریں جہاں آپ نے اسے کلون کیا ہے۔"
 
 msgid "Pick the skills to install. Each one lands as an editable skill you own; the plugin's hooks, commands, and MCP servers are not installed."
 msgstr "نصب کرنے کے لیے مہارتیں منتخب کریں۔ ہر ایک آپ کی اپنی قابلِ ترمیم مہارت بن کر آتی ہے؛ پلگ اِن کے ہکس، کمانڈز اور MCP سرورز نصب نہیں ہوتے۔"
@@ -7794,9 +7692,6 @@ msgstr "اسے YAML یا JSON کے طور پر پارس نہیں کیا جا س�
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "وہ اینڈ پوائنٹ استعمال نہیں ہو سکتا۔ https:// والا URL درج کریں — http:// کی اجازت صرف loopback اینڈ پوائنٹس کے لیے ہے۔"
 
-msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
-msgstr "وہ فولڈر ابھی GitQuire پروجیکٹ نہیں ہے۔ اس کا ابتدائیہ کر کے کھولیں؟"
-
 msgid "That host is already in the list."
 msgstr "یہ ہوسٹ پہلے سے فہرست میں ہے۔"
 
@@ -8001,12 +7896,6 @@ msgstr "فراہم کنندہ کے ویکٹر کا سائز مسلسل بدلت�
 msgid "The quoted text is no longer in the page."
 msgstr ""
 
-msgid "The repository is private and your GitHub account doesn't have access to it."
-msgstr "ریپازٹری نجی ہے اور آپ کے GitHub اکاؤنٹ کو اس تک رسائی نہیں۔"
-
-msgid "The repository was moved, renamed, or deleted."
-msgstr "ریپازٹری منتقل ہو گئی، اس کا نام بدل گیا، یا وہ حذف ہو گئی۔"
-
 msgid "The same text changed in both places"
 msgstr ""
 
@@ -8112,9 +8001,6 @@ msgstr "یہ ایجنٹ سلیش کمانڈ پیش نہیں کرتا"
 msgid "This agent hasn't announced its commands yet"
 msgstr "اس ایجنٹ نے ابھی تک اپنی کمانڈز کا اعلان نہیں کیا"
 
-msgid "This branch is checked out in:"
-msgstr "یہ برانچ یہاں چیک آؤٹ ہے:"
-
 msgid "This chat is too long for the model. Start a new chat (+) to go on."
 msgstr ""
 
@@ -8187,26 +8073,14 @@ msgstr "یہ فائل موجودہ برانچ پر حذف کر دی گئی تھ�
 msgid "This file was deleted on the incoming branch (modify-delete conflict)."
 msgstr "یہ فائل آنے والی برانچ پر حذف کر دی گئی تھی (modify-delete تنازع)۔"
 
-msgid "This folder doesn't contain a git repository. Pick a different folder?"
-msgstr "اس فولڈر میں کوئی git ریپوزٹری نہیں۔ کوئی اور فولڈر منتخب کریں؟"
-
 msgid "This folder has unpushed changes. Recipients will see the last pushed version."
 msgstr "اس فولڈر میں غیر پُش شدہ تبدیلیاں ہیں۔ وصول کنندگان آخری پُش شدہ ورژن دیکھیں گے۔"
 
 msgid "This folder hasn't synced to GitHub yet. The link will work after the next sync."
 msgstr "یہ فولڈر ابھی GitHub سے مطابق نہیں ہوا۔ لنک اگلی مطابقت پذیری کے بعد کام کرے گا۔"
 
-msgid "This folder is a clone of {actualOwner}/{actualRepo}, not {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "یہ فولڈر {actualOwner}/{actualRepo} کا کلون ہے، {expectedOwner}/{expectedRepo} کا نہیں۔ کوئی اور فولڈر منتخب کریں؟"
-
-msgid "This folder is a clone of {expectedOwner}/{expectedRepo} on {actualHost}, not {expectedHost}. Pick a folder cloned from {expectedHost}?"
-msgstr "یہ فولڈر {actualHost} پر موجود {expectedOwner}/{expectedRepo} کا کلون ہے، {expectedHost} کا نہیں۔ {expectedHost} سے کلون کیا گیا کوئی فولڈر منتخب کریں؟"
-
 msgid "This folder is empty."
 msgstr "یہ فولڈر خالی ہے۔"
-
-msgid "This folder isn't a clone of {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "یہ فولڈر {expectedOwner}/{expectedRepo} کا کلون نہیں۔ کوئی اور فولڈر منتخب کریں؟"
 
 msgid "This folder isn't on GitHub yet. The link won't work until it's pushed."
 msgstr "یہ فولڈر ابھی GitHub پر نہیں ہے۔ پُش ہونے تک لنک کام نہیں کرے گا۔"
@@ -8351,12 +8225,6 @@ msgstr "یہ تھیم فائل پڑھی نہیں جا سکی"
 
 msgid "This theme file is too large"
 msgstr "یہ تھیم فائل بہت بڑی ہے"
-
-msgid "This update is no longer ready to install."
-msgstr "یہ اپ ڈیٹ اب نصب کرنے کے لیے تیار نہیں ہے۔"
-
-msgid "This usually means one of:"
-msgstr "اس کا عام طور پر مطلب ان میں سے کوئی ایک ہے:"
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -8703,9 +8571,6 @@ msgstr "اپ ڈیٹ ناکام: {0}"
 msgid "Update from source"
 msgstr "ماخذ سے اپ ڈیٹ کریں"
 
-msgid "Update GitQuire to open this share."
-msgstr "اس شیئر کو کھولنے کے لیے GitQuire اپ ڈیٹ کریں۔"
-
 msgid "Update the destination and optional section anchor."
 msgstr "منزل اور اختیاری سیکشن اینکر تازہ کریں۔"
 
@@ -8723,9 +8588,6 @@ msgstr "{updatedRelative} اپ ڈیٹ ہوا"
 
 msgid "updated folder properties"
 msgstr "فولڈر کی خصوصیات تازہ کیں"
-
-msgid "Updates"
-msgstr ""
 
 msgid "Updates flow in"
 msgstr "اپ ڈیٹس آتی رہتی ہیں"
@@ -8951,9 +8813,6 @@ msgstr "انتباہ"
 
 msgid "We couldn't check your GitHub connection."
 msgstr "ہم آپ کا GitHub کنکشن نہیں جانچ سکے۔"
-
-msgid "We couldn't clone this repository."
-msgstr "ہم یہ ریپازٹری کلون نہیں کر سکے۔"
 
 msgid "We sent a code to {pending}. Enter it to turn on email."
 msgstr ""

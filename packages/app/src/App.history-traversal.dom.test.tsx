@@ -195,8 +195,6 @@ vi.doMock('@/components/ui/sidebar', () => ({
   SidebarProvider: ({ children }: { children: ReactNode }) => <section>{children}</section>,
   SidebarInset: ({ children }: { children: ReactNode }) => <section>{children}</section>,
 }));
-vi.doMock('@/components/ShareReceiveDialog', () => ({ ShareReceiveDialog: () => null }));
-vi.doMock('@/lib/share/clone-controller', () => ({ createCloneController: () => ({}) }));
 vi.doMock('@/lib/transports/auth-query-transport', () => ({ httpAuthQueryTransport: () => ({}) }));
 vi.doMock('@/lib/transports/clone-transport', () => ({ httpCloneTransport: () => ({}) }));
 

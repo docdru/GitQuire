@@ -73,7 +73,6 @@ import { useDocConflict } from '@/hooks/use-conflicts';
 import { useDocumentStats } from '@/hooks/use-document-stats';
 import { useSelectionStats } from '@/hooks/use-selection-stats';
 import { closeAgentDiff, useAgentDiffView } from '@/lib/agent-diff-store';
-import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
 import { docNameFromHash, hashFromDocName, isSameHash } from '@/lib/doc-hash';
 import { getInitialDocPanelWidth, writeDocPanelWidth } from '@/lib/doc-panel-width-store';
 import { dockTerminalPlacement } from '@/lib/dock-arrangement-store';
@@ -448,7 +447,7 @@ interface EditorAreaProps {
   onModeChange: (mode: EditorMode) => void;
   activeTab: PanelTab;
   onActiveTabChange: (tab: PanelTab) => void;
-  terminalBridge?: OkDesktopBridge | null;
+  terminalAvailable?: boolean;
   editorVisible?: boolean;
   terminalVisible?: boolean;
   agentsVisible?: boolean;
@@ -584,7 +583,7 @@ function EditorAreaInner({
   onModeChange,
   activeTab,
   onActiveTabChange,
-  terminalBridge,
+  terminalAvailable = false,
   editorVisible = true,
   terminalVisible = false,
   agentsVisible = false,
@@ -597,7 +596,6 @@ function EditorAreaInner({
   const noteWindow = isNoteWindow();
   const cardLook = !noteWindow;
   const cardVariant = cardLook ? 'card' : 'flat';
-  const terminalAvailable = terminalBridge != null;
   const {
     activeDocName,
     activeProvider,
@@ -1515,7 +1513,7 @@ function EditorAreaInner({
       viewContent = <EditorSkeleton />;
       docSlotContent = <div className="min-h-0 flex-1" />;
       docSlotHeldForLoad = true;
-      skeletonReplacesWorkspace = terminalBridge == null || !everHadProvider;
+      skeletonReplacesWorkspace = !terminalAvailable || !everHadProvider;
     } else if (isBlobRunnerNewTabId(activeNewTabId)) {
       viewContent = <OkBlobRunnerPage />;
     } else {

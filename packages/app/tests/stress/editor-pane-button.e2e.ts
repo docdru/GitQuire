@@ -1,19 +1,13 @@
 import type { Page } from '@playwright/test';
-import type { TerminalPlacement } from '../../src/lib/terminal-placement-store';
-import type { ApiHelpers, WorkerServer } from './_helpers';
+import type { ApiHelpers } from './_helpers';
 import {
   CHAT_PANE_CARD,
-  dockSeam,
-  dragDockSeam,
   EDITOR_PANE_CARD,
   expect,
   expectDockUnitOff,
   expectEditorHidden,
   headerPaneButton,
-  openDesktopHeader,
-  presetTerminalPlacement,
   setHeaderPane,
-  terminalPaneCard,
   test,
   waitForActiveProviderSynced,
 } from './_helpers';
@@ -25,12 +19,9 @@ type Box = {
   readonly height: number;
 };
 
-const RIGHT_TERMINAL_PANE_CARD = terminalPaneCard('right');
 const BOOT_TIMEOUT_MS = 30_000;
 const THREAD_FIRST_RENDER_TIMEOUT_MS = 60_000;
 const DOC_TEXT = 'The quick brown fox jumps over the lazy dog.';
-const BOTTOM_TERMINAL_CARD =
-  '[data-slot="pane-card"][data-pane="terminal"][data-placement="bottom"]';
 const PANELS = '[data-editor-area-panels]';
 const EDITOR_REGION = '[data-editor-region]';
 const FILE_LIST_SLOT = '[data-editor-file-list-slot]';
@@ -84,22 +75,6 @@ async function openWeb(page: Page, api: ApiHelpers, slug: string, extraParagraph
   await page.goto(`/#/${name}`);
   await waitForActiveProviderSynced(page);
   await expect(headerPaneButton(page, 'editor')).toBeVisible({ timeout: BOOT_TIMEOUT_MS });
-  await waitForDocument(page);
-  return name;
-}
-
-async function openDesktop(
-  page: Page,
-  api: ApiHelpers,
-  workerServer: WorkerServer,
-  slug: string,
-  placement: TerminalPlacement,
-) {
-  const name = await seedDoc(api, slug);
-  await presetTerminalPlacement(page, placement);
-  await page.setViewportSize({ width: 1600, height: 900 });
-  await openDesktopHeader(page, workerServer, name, {});
-  await expect(headerPaneButton(page, 'terminal')).toBeVisible({ timeout: BOOT_TIMEOUT_MS });
   await waitForDocument(page);
   return name;
 }
@@ -224,120 +199,6 @@ test.describe('the Editor header button', () => {
 
     await setHeaderPane(page, 'editor', true);
     await expect.poll(() => widthOf(page, CHAT_PANE_CARD)).toBeCloseTo(chatWidthBefore, 0);
-  });
-});
-
-test.describe('filling the space on the mocked desktop', () => {
-  async function expectBottomTerminalBesideChat(page: Page): Promise<void> {
-    await expectFillsRow(page, [BOTTOM_TERMINAL_CARD, CHAT_PANE_CARD]);
-    await expect
-      .poll(
-        async () =>
-          (await boxOf(page, PANELS)).height - (await boxOf(page, BOTTOM_TERMINAL_CARD)).height,
-      )
-      .toBeLessThanOrEqual(2);
-    await expect(headerPaneButton(page, 'terminal')).toHaveAttribute('aria-pressed', 'true');
-    await expect(headerPaneButton(page, 'agents')).toHaveAttribute('aria-pressed', 'true');
-  }
-
-  test('a bottom terminal takes the full height alone, then keeps its column beside chat', async ({
-    page,
-    api,
-    workerServer,
-  }) => {
-    await openDesktop(page, api, workerServer, 'bottom', 'bottom');
-    await setHeaderPane(page, 'terminal', true);
-    const heightBefore = (await boxOf(page, BOTTOM_TERMINAL_CARD)).height;
-
-    await setHeaderPane(page, 'editor', false);
-    await expectEditorHidden(page);
-    await expect
-      .poll(async () => {
-        const panels = await boxOf(page, PANELS);
-        const terminal = await boxOf(page, BOTTOM_TERMINAL_CARD);
-        return Math.round(Math.abs(panels.height - terminal.height));
-      })
-      .toBeLessThanOrEqual(2);
-    await expectFillsRow(page, [BOTTOM_TERMINAL_CARD]);
-
-    await setHeaderPane(page, 'agents', true);
-    await expectBottomTerminalBesideChat(page);
-
-    await setHeaderPane(page, 'editor', true);
-    await expect
-      .poll(async () => (await boxOf(page, BOTTOM_TERMINAL_CARD)).height)
-      .toBeCloseTo(heightBefore, 0);
-  });
-
-  test('hiding the editor beside chat, or opening a bottom terminal beside chat alone, keeps the terminal on screen', async ({
-    page,
-    api,
-    workerServer,
-  }) => {
-    await openDesktop(page, api, workerServer, 'bottom-chat-first', 'bottom');
-    await setHeaderPane(page, 'terminal', true);
-    await setHeaderPane(page, 'agents', true);
-    await setHeaderPane(page, 'editor', false);
-    await expectEditorHidden(page);
-    await expectBottomTerminalBesideChat(page);
-
-    await setHeaderPane(page, 'terminal', false);
-    await expectFillsRow(page, [CHAT_PANE_CARD]);
-    await setHeaderPane(page, 'terminal', true);
-    await expectBottomTerminalBesideChat(page);
-  });
-
-  test('a right terminal alone fills the row', async ({ page, api, workerServer }) => {
-    await openDesktop(page, api, workerServer, 'right-alone', 'right');
-    await setHeaderPane(page, 'terminal', true);
-
-    await setHeaderPane(page, 'editor', false);
-    await expectEditorHidden(page);
-    await expectDockUnitOff(page, 'editor');
-    await expectFillsRow(page, [RIGHT_TERMINAL_PANE_CARD]);
-  });
-
-  test('a right terminal and chat share the row in proportion, and a drag between them while the editor is hidden gives the editor back its width on show', async ({
-    page,
-    api,
-    workerServer,
-  }) => {
-    await openDesktop(page, api, workerServer, 'right-and-chat', 'right');
-    await setHeaderPane(page, 'terminal', true);
-    await setHeaderPane(page, 'agents', true);
-    const editorBefore = await widthOf(page, EDITOR_PANE_CARD);
-    const terminalBefore = await widthOf(page, RIGHT_TERMINAL_PANE_CARD);
-    const chatBefore = await widthOf(page, CHAT_PANE_CARD);
-    const sidePanelBefore = await widthOf(page, '#doc-panel');
-
-    await setHeaderPane(page, 'editor', false);
-    await expectEditorHidden(page);
-    await expectDockUnitOff(page, 'editor');
-    await expectFillsRow(page, [RIGHT_TERMINAL_PANE_CARD, CHAT_PANE_CARD]);
-    await expect
-      .poll(
-        async () =>
-          (await widthOf(page, RIGHT_TERMINAL_PANE_CARD)) / (await widthOf(page, CHAT_PANE_CARD)),
-      )
-      .toBeCloseTo(terminalBefore / chatBefore, 1);
-
-    const chatHidden = await widthOf(page, CHAT_PANE_CARD);
-    await dragDockSeam(page, dockSeam(page, 'agents'), { dx: 150 });
-    await expect.poll(() => widthOf(page, CHAT_PANE_CARD)).toBeLessThan(chatHidden - 100);
-    await expectFillsRow(page, [RIGHT_TERMINAL_PANE_CARD, CHAT_PANE_CARD]);
-
-    await setHeaderPane(page, 'editor', true);
-    await expect.poll(() => widthOf(page, EDITOR_PANE_CARD)).toBeCloseTo(editorBefore, 0);
-    await expect.poll(() => widthOf(page, '#doc-panel')).toBeCloseTo(sidePanelBefore, 0);
-    expect(await widthOf(page, CHAT_PANE_CARD)).toBeLessThan(chatBefore);
-    expect(await widthOf(page, RIGHT_TERMINAL_PANE_CARD)).toBeGreaterThan(terminalBefore);
-    expect(
-      Math.abs(
-        (await widthOf(page, CHAT_PANE_CARD)) +
-          (await widthOf(page, RIGHT_TERMINAL_PANE_CARD)) -
-          (chatBefore + terminalBefore),
-      ),
-    ).toBeLessThanOrEqual(2);
   });
 });
 
@@ -482,26 +343,6 @@ test.describe('Nothing open', () => {
     await expect(screenRegion).toHaveCount(0);
     await expect(page.locator(EDITOR_REGION)).toBeFocused();
     await waitForDocument(page);
-  });
-
-  test('offers Open terminal on the desktop, and it opens the terminal', async ({
-    page,
-    api,
-    workerServer,
-  }) => {
-    await openDesktop(page, api, workerServer, 'nothing-open-desktop', 'bottom');
-    await setHeaderPane(page, 'editor', false);
-    const screenRegion = page.getByRole('region', { name: 'Nothing open' });
-    await expect(screenRegion.getByRole('button')).toHaveText([
-      'Open editor',
-      'Open agents',
-      'Open terminal',
-    ]);
-
-    await screenRegion.getByRole('button', { name: 'Open terminal' }).click();
-    await expect(headerPaneButton(page, 'terminal')).toHaveAttribute('aria-pressed', 'true');
-    await expect(screenRegion).toHaveCount(0);
-    await expectFillsRow(page, [BOTTOM_TERMINAL_CARD]);
   });
 });
 
@@ -766,23 +607,6 @@ test.describe('editor shortcuts show a hidden editor before acting', () => {
     await hideEditor(page);
     await page.keyboard.press('Control+Tab');
     await expectEditorShownOn(page, first);
-  });
-
-  test('Rename from the palette shows the editor first, so the inline name field is visible and focused', async ({
-    page,
-    api,
-    workerServer,
-  }) => {
-    const name = await openDesktop(page, api, workerServer, 'rename-inline', 'bottom');
-    await hideEditor(page);
-    await page.keyboard.press('ControlOrMeta+k');
-    await page.locator('[data-slot="command-input"]').fill('Rename');
-    await page.getByTestId('command-palette-rename').click();
-
-    const nameField = page.getByRole('textbox', { name: new RegExp(`rename ${name}\\.md`, 'i') });
-    await expect(nameField).toBeVisible();
-    await expect(nameField).toBeFocused();
-    await expect(headerPaneButton(page, 'editor')).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('the side panel and file list shortcuts show the editor', async ({ page, api }) => {

@@ -1,6 +1,6 @@
 import { ProblemDetailsSchema } from '@inkeep/open-knowledge-core/schemas/api';
 import { t } from '@lingui/core/macro';
-import type { OkDesktopBridge, OkLocalOpCloneEvent } from '@/lib/desktop-bridge-types';
+import type { OkLocalOpCloneEvent } from '@/lib/desktop-bridge-types';
 import { createBufferedAsyncStream } from './buffered-async-stream';
 
 type HttpCloneCompleteEvent = { type: 'complete'; port: number; dir: string };
@@ -101,20 +101,6 @@ export function httpCloneTransport(): CloneTransport {
             push({ type: 'error', message: t`Clone failed — connection error` });
           }
         })();
-      });
-    },
-  };
-}
-
-export function ipcCloneTransport(bridge: OkDesktopBridge): CloneTransport {
-  return {
-    start(request): CloneTransportHandle {
-      const branch =
-        typeof request.branch === 'string' && request.branch.length > 0 ? request.branch : null;
-      return bridge.localOp.clone.start({
-        url: request.url,
-        dir: request.dir,
-        branch,
       });
     },
   };

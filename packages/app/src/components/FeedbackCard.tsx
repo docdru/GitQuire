@@ -1,10 +1,8 @@
 import { useLingui } from '@lingui/react/macro';
-import { useSyncExternalStore } from 'react';
 import { useOptionalPageList } from '@/components/PageListContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { FEEDBACK_NUDGE_SOURCE, useFeedbackNudgeVisible } from '@/hooks/use-feedback-nudge';
 import { feedbackNudgeStore } from '@/lib/feedback-nudge-store';
-import { getNoticesSnapshot, subscribeToNotices } from '@/lib/update-notices-store';
 import { FeedbackForm } from './FeedbackForm';
 
 export function FeedbackCard({ onClose }: { onClose: () => void }) {
@@ -32,14 +30,11 @@ export function FeedbackCard({ onClose }: { onClose: () => void }) {
 
 export function FeedbackCardMount() {
   const pageList = useOptionalPageList();
-  const notices = useSyncExternalStore(subscribeToNotices, getNoticesSnapshot, getNoticesSnapshot);
-
-  const blocked = notices.length > 0;
 
   const visible = useFeedbackNudgeVisible({
     pages: pageList?.pages ?? null,
     ready: pageList != null && !pageList.loading,
-    blocked,
+    blocked: false,
   });
 
   if (!visible) return null;

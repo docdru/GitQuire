@@ -1,7 +1,7 @@
 import { ProblemDetailsSchema } from '@inkeep/open-knowledge-core/schemas/api';
 import { t } from '@lingui/core/macro';
 import { consumeAuthEventStream } from '@/components/auth-event-stream';
-import type { OkDesktopBridge, OkLocalOpAuthEvent } from '@/lib/desktop-bridge-types';
+import type { OkLocalOpAuthEvent } from '@/lib/desktop-bridge-types';
 import { httpAuthQueryTransport } from './auth-query-transport';
 import { createBufferedAsyncStream } from './buffered-async-stream';
 
@@ -234,14 +234,6 @@ export function httpAuthTransport(): AuthTransport {
       } catch {
         return { ok: false, error: t`Connection error — try again` };
       }
-    },
-  };
-}
-
-export function ipcAuthTransport(bridge: OkDesktopBridge): AuthTransport {
-  return {
-    start(): AuthTransportHandle {
-      return bridge.localOp.auth.start();
     },
   };
 }

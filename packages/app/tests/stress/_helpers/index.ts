@@ -1,16 +1,4 @@
 export {
-  DESKTOP_HEADER_PLATFORM_NAMES,
-  DESKTOP_HEADER_PLATFORMS,
-  type DesktopHeaderHost,
-  MAC_WINDOW_BUTTONS_WIDTH_PX,
-  MAC_WINDOW_BUTTONS_X_PX,
-  openDesktopHeader,
-  settledHeaderFit,
-  settleFrames,
-  type WindowControls,
-  windowControlsOf,
-} from './app-header-host.ts';
-export {
   AUDIT_CONSOLE_RECORD_CASES,
   chromiumResourceFailureRecord,
 } from './audit-console-records.test-helper.ts';
@@ -35,25 +23,7 @@ export {
 } from './card-surface.ts';
 export { simulateCopyAndRead, simulateCutAndRead } from './clipboard.ts';
 export { resetContentToFixtureBaseline } from './content-reset.ts';
-export {
-  type CardPlacement,
-  CORNER_STACK_TEST_ID,
-  type ControlReach,
-  cornerStack,
-  cornerStackColumn,
-  expectDocumentOpen,
-  FLOATING_AND_HIT_TESTABLE,
-  feedbackCard,
-  identityOf,
-  newsletterCard,
-  noticeList,
-  noticeWithText,
-  placementOf,
-  REACHABLE,
-  reachOf,
-  SAME_NODE,
-  sidebarTrigger,
-} from './corner-stack.ts';
+export { expectDocumentOpen } from './document-open.ts';
 export { afterEditorFocusSync, PROSEMIRROR_FOCUS_SYNC_DELAY_MS } from './editor-focus-sync.ts';
 export {
   type CaretPlacement,

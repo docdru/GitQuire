@@ -199,10 +199,6 @@ vi.doMock('@/components/FileSidebar', () => ({
   FileSidebar: () => <div data-testid="file-sidebar">Sidebar</div>,
 }));
 
-vi.doMock('@/components/UpdateNotices', () => ({
-  UpdateNotices: () => <div data-testid="update-notices" />,
-}));
-
 vi.doMock('@/components/FeedbackCard', () => ({
   FeedbackCardMount: () => <div data-testid="feedback-card-mount" />,
 }));
@@ -229,14 +225,6 @@ vi.doMock('@/components/ui/sidebar', () => ({
       {children}
     </section>
   ),
-}));
-
-vi.doMock('@/components/ShareReceiveDialog', () => ({
-  ShareReceiveDialog: () => <div data-testid="share-receive-dialog" />,
-}));
-
-vi.doMock('@/lib/share/clone-controller', () => ({
-  createCloneController: () => ({}),
 }));
 
 vi.doMock('@/lib/transports/auth-query-transport', () => ({
@@ -919,21 +907,6 @@ describe('App runtime wiring', () => {
     expect(requests).toEqual([{ pane: 'editor', open: true }]);
     expect(openTargetTransitionMock).not.toHaveBeenCalled();
     __resetPaneVisibilityStoreForTests();
-  });
-
-  test('active-target push is a web-mode no-op without the desktop bridge', () => {
-    activeTarget = { kind: 'doc', target: 'docs/readme', docName: 'docs/readme' };
-
-    renderApp();
-
-    expect(screen.queryByTestId('share-receive-dialog')).toBeNull();
-  });
-
-  test('web host does not render Electron-only drag or share-receive surfaces', () => {
-    renderApp();
-
-    expect(screen.queryByTestId('editor-window-chrome-drag-strip')).toBeNull();
-    expect(screen.queryByTestId('share-receive-dialog')).toBeNull();
   });
 
   describe('application header placement', () => {
