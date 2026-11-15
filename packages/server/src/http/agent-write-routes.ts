@@ -588,7 +588,7 @@ export function createAgentWriteRoutes(deps: AgentWriteRouteDeps): ApiRouteGroup
         respondAgentSessionCapacity(res, e, 'agent-write-md');
         return;
       }
-      log.error({ err: e, requestId: getRequestId(req) }, `[${'agent-write-md'}] handler failed`);
+      log.error({ err: e, requestId: getRequestId(req) }, '[agent-write-md] handler failed');
       errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
         handler: 'agent-write-md',
         cause: e,

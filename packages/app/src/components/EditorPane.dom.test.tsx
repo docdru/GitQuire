@@ -1356,39 +1356,20 @@ describe('EditorPane auth prompts', () => {
     cleanup();
   });
 
-  test.each([
-    { requested: 'identity', identityPrompt: 'true' },
-    { requested: 'auth', identityPrompt: 'false' },
-  ] as const)(
-    'a $requested request from outside the pane opens the auth modal at that step',
-    async ({ requested, identityPrompt }) => {
+  test.each(['identity', 'auth', undefined] as const)(
+    'a %s request from outside the pane is cleared without opening the auth modal, because personal git credentials are hidden',
+    async (requested) => {
       const { authPromptStore } = await import('@/lib/auth-prompt-store');
       await renderEditorPane();
-      expect(screen.getByTestId('auth-modal').getAttribute('data-open')).toBe('false');
 
       await act(async () => {
         authPromptStore.request(requested);
       });
 
-      const modal = screen.getByTestId('auth-modal');
-      expect(modal.getAttribute('data-open')).toBe('true');
-      expect(modal.getAttribute('data-identity-prompt')).toBe(identityPrompt);
+      expect(screen.getByTestId('auth-modal').getAttribute('data-open')).toBe('false');
       expect(authPromptStore.getSnapshot()).toBeNull();
     },
   );
-
-  test('a request that names no step opens the sign-in step', async () => {
-    const { authPromptStore } = await import('@/lib/auth-prompt-store');
-    await renderEditorPane();
-
-    await act(async () => {
-      authPromptStore.request();
-    });
-
-    const modal = screen.getByTestId('auth-modal');
-    expect(modal.getAttribute('data-open')).toBe('true');
-    expect(modal.getAttribute('data-identity-prompt')).toBe('false');
-  });
 });
 
 describe('EditorPane keeps the Agents pane and view-in-source wiring', () => {

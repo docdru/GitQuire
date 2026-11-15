@@ -597,7 +597,7 @@ describe('createAccessGate upgrades', () => {
     expect(gate.admitUpgrade(fakeRequest('/other'), fakeSocket().socket)).toBe(true);
   });
 
-  it('refuses in-app agent sessions while Ask AI is off, even when signed in', () => {
+  it('refuses in-app agent sessions, even when signed in', () => {
     const gate = makeGate();
     const sock = fakeSocket();
     const req = fakeRequest('/collab/thread', { headers: { cookie: sessionCookie() } });
