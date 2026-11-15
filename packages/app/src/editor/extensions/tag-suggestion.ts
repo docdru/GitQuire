@@ -14,6 +14,7 @@ import {
   destroySuggestionPopup,
   type SuggestionPositionState,
 } from './suggestion-floating-ui';
+import { settledSuggestionRender } from './suggestion-settled';
 
 export const tagSuggestionKey = new PluginKey('tagSuggestion');
 
@@ -147,7 +148,7 @@ export function configureTagSuggestion(editor: Editor) {
       }
     },
 
-    render: () => {
+    render: settledSuggestionRender(() => {
       let renderer: ReactRenderer<typeof TagSuggestionMenu> | null = null;
       let currentProps: SuggestionProps<TagSuggestionItem> | null = null;
       let selectedIndex = 0;
@@ -271,6 +272,6 @@ export function configureTagSuggestion(editor: Editor) {
           tagsPromise = null;
         },
       };
-    },
+    }),
   });
 }

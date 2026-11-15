@@ -83,7 +83,9 @@ export const ListBoundaryMerge = Extension.create({
       const boundary = backspaceBoundary(editor.state);
       if (boundary === null) return false;
       if (editor.commands.undoInputRule()) return true;
-      if (boundary === 'flat') return editor.commands.joinItemBackward();
+      if (boundary === 'flat') {
+        return editor.commands.joinItemBackward() || editor.commands.joinBackward();
+      }
       const { state, view } = editor;
       return joinTextblockBackward(state, view.dispatch, view);
     };

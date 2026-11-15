@@ -125,4 +125,21 @@ describe('a completion keystroke whose match window spans an inline object', () 
       expect(editor.state.doc.firstChild?.textContent).toBe(`see ${body} here`);
     }
   });
+
+  test('a match that starts inside a node with children leaves that node alone', () => {
+    const editor = mountEditor();
+    const object = inlineObject(editor, 'jsxInline', 'q **a');
+    expect(object).not.toBeNull();
+    seedParagraph(editor, 't ', object as PMNode, 'b*');
+
+    expect(() => typeCharacter(editor, '*')).not.toThrow();
+
+    let inner: string | undefined;
+    editor.state.doc.descendants((node) => {
+      if (node.type.name === 'jsxInline') inner = node.textContent;
+      return true;
+    });
+    expect(inner).toBe('q **a');
+    expect(editor.state.doc.firstChild?.textContent).toBe('t q **ab**');
+  });
 });

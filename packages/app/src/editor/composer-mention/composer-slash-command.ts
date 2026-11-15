@@ -18,6 +18,7 @@ import {
   IDEOGRAPHIC_SPACE,
   SLASH_TRIGGER_CHARS,
 } from '../extensions/suggestion-ime';
+import { settledSuggestionRender } from '../extensions/suggestion-settled';
 import { ComposerSlashMenu } from './ComposerSlashMenu';
 
 export interface SlashCommandItem {
@@ -330,7 +331,7 @@ export const ComposerSlashCommand = Extension.create<SlashCommandOptions, SlashC
         }
       },
 
-      render: () => {
+      render: settledSuggestionRender(() => {
         let renderer: ReactRenderer<typeof ComposerSlashMenu> | null = null;
         let currentProps: SuggestionProps<SlashCommandItem> | null = null;
         let selectedIndex = 0;
@@ -429,7 +430,7 @@ export const ComposerSlashCommand = Extension.create<SlashCommandOptions, SlashC
             }
           },
         };
-      },
+      }),
     });
 
     return [tokenPlugin, suggestion];

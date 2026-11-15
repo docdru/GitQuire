@@ -30,6 +30,7 @@ import {
   destroySuggestionPopup,
   type SuggestionPositionState,
 } from './suggestion-floating-ui';
+import { settledSuggestionRender } from './suggestion-settled';
 import { buildUnresolvedWikiLinkAttrs } from './wiki-link-helpers';
 
 export const wikiLinkSuggestionKey = new PluginKey('wikiLinkSuggestion');
@@ -526,7 +527,7 @@ export function configureWikiLinkSuggestion(editor: Editor) {
       }
     },
 
-    render: () => {
+    render: settledSuggestionRender(() => {
       let renderer: ReactRenderer<typeof WikiLinkSuggestionMenu> | null = null;
       let currentProps: SuggestionProps<WikiLinkSuggestionItem> | null = null;
       let selectedIndex = 0;
@@ -684,6 +685,6 @@ export function configureWikiLinkSuggestion(editor: Editor) {
           anchorFetchingFor = null;
         },
       };
-    },
+    }),
   });
 }

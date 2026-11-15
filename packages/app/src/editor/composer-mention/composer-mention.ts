@@ -25,6 +25,7 @@ import {
   SUGGESTION_TRIGGER_PREFIXES,
   SuggestionCompositionEnd,
 } from '../extensions/suggestion-ime';
+import { settledSuggestionRender } from '../extensions/suggestion-settled';
 import { fetchPages, filterPages, type PageItem } from '../extensions/wiki-link-suggestion';
 import { lucideIconToSvgString } from '../registry/lucide-svg';
 import { ComposerMentionMenu } from './ComposerMentionMenu';
@@ -353,7 +354,7 @@ function configureComposerMentionSuggestion(editor: Editor) {
       }
     },
 
-    render: () => {
+    render: settledSuggestionRender(() => {
       let renderer: ReactRenderer<typeof ComposerMentionMenu> | null = null;
       let currentProps: SuggestionProps<MentionItem> | null = null;
       let selectedIndex = 0;
@@ -462,7 +463,7 @@ function configureComposerMentionSuggestion(editor: Editor) {
           corpus.reset();
         },
       };
-    },
+    }),
   });
 }
 

@@ -17,6 +17,7 @@ import {
   SLASH_TRIGGER_CHARS,
   SUGGESTION_TRIGGER_PREFIXES,
 } from './suggestion-ime';
+import { settledSuggestionRender } from './suggestion-settled';
 
 const slashCommandKey = new PluginKey('slashCommand');
 
@@ -109,7 +110,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
 
         command: ({ editor, range, props: item }) => applySlashCommandItem({ editor, item, range }),
 
-        render: () => {
+        render: settledSuggestionRender(() => {
           let renderer: ReactRenderer<typeof SlashCommandMenu> | null = null;
           let currentProps: SuggestionProps<SlashCommandItem> | null = null;
           let selectedIndex = 0;
@@ -201,7 +202,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
               selectedIndex = 0;
             },
           };
-        },
+        }),
       }),
     ];
   },

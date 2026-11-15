@@ -1,8 +1,18 @@
 diff --git a/dist/y-tiptap.cjs b/dist/y-tiptap.cjs
-index 824431f..2566d1f 100644
+index 824431f..08493d8 100644
 --- a/dist/y-tiptap.cjs
 +++ b/dist/y-tiptap.cjs
-@@ -995,14 +995,31 @@ const createNodeFromYElement = (
+@@ -811,9 +811,6 @@ class ProsemirrorBinding {
+       );
+       transaction.changed.forEach(delType);
+       transaction.changedParentTypes.forEach(delType);
+-      // Rebuild the full Y↔PM mapping so relative cursor positions resolve against
+-      // current node sizes after structural changes (e.g. drag-and-drop block moves).
+-      this.mapping.clear();
+       const fragmentContent = this.type.toArray().map((t) =>
+         createNodeIfNotExists(
+           /** @type {Y.XmlElement | Y.XmlHook} */ (t),
+@@ -995,14 +992,31 @@ const createNodeFromYElement = (
            : { type: 'added' };
        }
      }
@@ -39,7 +49,7 @@ index 824431f..2566d1f 100644
      meta.mapping.delete(el);
      return null
    }
-@@ -1034,10 +1051,10 @@ const createTextNodesFromYText = (
+@@ -1034,10 +1048,10 @@ const createTextNodesFromYText = (
        nodes.push(schema.text(delta.insert, attributesToMarks(delta.attributes, schema)));
      }
    } catch (e) {
@@ -54,7 +64,7 @@ index 824431f..2566d1f 100644
      return null
    }
    // @ts-ignore
-@@ -1076,6 +1093,15 @@ const createTypeFromElementNode = (node, meta) => {
+@@ -1076,6 +1090,15 @@ const createTypeFromElementNode = (node, meta) => {
        type.setAttribute(key, val);
      }
    }
@@ -70,7 +80,7 @@ index 824431f..2566d1f 100644
    type.insert(
      0,
      normalizePNodeContent(node).map((n) =>
-@@ -1175,6 +1201,56 @@ const equalYTextPText = (ytext, ptexts) => {
+@@ -1175,6 +1198,56 @@ const equalYTextPText = (ytext, ptexts) => {
      )
  };
  
@@ -127,7 +137,7 @@ index 824431f..2566d1f 100644
  /**
   * @param {Y.XmlElement|Y.XmlText|Y.XmlHook} ytype
   * @param {any|Array<any>} pnode
-@@ -1185,8 +1261,13 @@ const equalYTypePNode = (ytype, pnode) => {
+@@ -1185,8 +1258,13 @@ const equalYTypePNode = (ytype, pnode) => {
      matchNodeName(ytype, pnode)
    ) {
      const normalizedContent = normalizePNodeContent(pnode);
@@ -142,7 +152,7 @@ index 824431f..2566d1f 100644
        ytype.toArray().every((ychild, i) =>
          equalYTypePNode(ychild, normalizedContent[i])
        )
-@@ -1371,7 +1452,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
+@@ -1371,7 +1449,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
      }
      // remove all keys that are no longer in pAttrs
      for (const key in yDomAttrs) {
@@ -168,10 +178,20 @@ index 824431f..2566d1f 100644
        }
      }
 diff --git a/dist/y-tiptap.js b/dist/y-tiptap.js
-index ed2c98f..61b144e 100644
+index ed2c98f..fd201eb 100644
 --- a/dist/y-tiptap.js
 +++ b/dist/y-tiptap.js
-@@ -961,14 +961,31 @@ const createNodeFromYElement = (
+@@ -777,9 +777,6 @@ class ProsemirrorBinding {
+       );
+       transaction.changed.forEach(delType);
+       transaction.changedParentTypes.forEach(delType);
+-      // Rebuild the full Y↔PM mapping so relative cursor positions resolve against
+-      // current node sizes after structural changes (e.g. drag-and-drop block moves).
+-      this.mapping.clear();
+       const fragmentContent = this.type.toArray().map((t) =>
+         createNodeIfNotExists(
+           /** @type {Y.XmlElement | Y.XmlHook} */ (t),
+@@ -961,14 +958,31 @@ const createNodeFromYElement = (
            : { type: 'added' };
        }
      }
@@ -208,7 +228,7 @@ index ed2c98f..61b144e 100644
      meta.mapping.delete(el);
      return null
    }
-@@ -1000,10 +1017,10 @@ const createTextNodesFromYText = (
+@@ -1000,10 +1014,10 @@ const createTextNodesFromYText = (
        nodes.push(schema.text(delta.insert, attributesToMarks(delta.attributes, schema)));
      }
    } catch (e) {
@@ -223,7 +243,7 @@ index ed2c98f..61b144e 100644
      return null
    }
    // @ts-ignore
-@@ -1042,6 +1059,15 @@ const createTypeFromElementNode = (node, meta) => {
+@@ -1042,6 +1056,15 @@ const createTypeFromElementNode = (node, meta) => {
        type.setAttribute(key, val);
      }
    }
@@ -239,7 +259,7 @@ index ed2c98f..61b144e 100644
    type.insert(
      0,
      normalizePNodeContent(node).map((n) =>
-@@ -1141,6 +1167,56 @@ const equalYTextPText = (ytext, ptexts) => {
+@@ -1141,6 +1164,56 @@ const equalYTextPText = (ytext, ptexts) => {
      )
  };
  
@@ -296,7 +316,7 @@ index ed2c98f..61b144e 100644
  /**
   * @param {Y.XmlElement|Y.XmlText|Y.XmlHook} ytype
   * @param {any|Array<any>} pnode
-@@ -1151,8 +1227,13 @@ const equalYTypePNode = (ytype, pnode) => {
+@@ -1151,8 +1224,13 @@ const equalYTypePNode = (ytype, pnode) => {
      matchNodeName(ytype, pnode)
    ) {
      const normalizedContent = normalizePNodeContent(pnode);
@@ -311,7 +331,7 @@ index ed2c98f..61b144e 100644
        ytype.toArray().every((ychild, i) =>
          equalYTypePNode(ychild, normalizedContent[i])
        )
-@@ -1337,7 +1418,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
+@@ -1337,7 +1415,23 @@ const updateYFragment = (y, yDomFragment, pNode, meta) => {
      }
      // remove all keys that are no longer in pAttrs
      for (const key in yDomAttrs) {
