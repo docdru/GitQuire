@@ -1,5 +1,4 @@
 import type { EditorView } from '@codemirror/view';
-import type { ComposeSelection } from '@inkeep/open-knowledge-core/handoff';
 import type { Editor } from '@tiptap/core';
 import { serializeWysiwygSelection } from './edit-with-ai-selection';
 import type { EditorSurface } from './selection-stats';
@@ -15,16 +14,6 @@ export interface SelectionSnapshot {
 }
 
 export const INLINE_SELECTION_MAX_CHARS = 100;
-
-export function selectionSnapshotToCompose(s: SelectionSnapshot): ComposeSelection {
-  if (s.lineCount === 1 && s.charLen < INLINE_SELECTION_MAX_CHARS) {
-    return { kind: 'inline', markdown: s.markdown };
-  }
-  if (s.surface === 'source' && s.sourceLineStart !== undefined && s.sourceLineEnd !== undefined) {
-    return { kind: 'lines', startLine: s.sourceLineStart, endLine: s.sourceLineEnd };
-  }
-  return { kind: 'anchor', markdown: s.markdown };
-}
 
 export function selectionChipLabel(s: SelectionSnapshot, name: string): string {
   if (s.sourceLineStart !== undefined && s.sourceLineEnd !== undefined) {

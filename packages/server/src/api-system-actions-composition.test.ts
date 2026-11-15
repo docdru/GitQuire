@@ -25,34 +25,11 @@ afterAll(async () => {
 
 describe('system-actions group over the composed listener — served natively', () => {
   test('every path is registered natively with verb gating (405 + Allow: POST)', async () => {
-    for (const path of ['/api/spawn-cursor', '/api/handoff', '/api/client-logs']) {
+    for (const path of ['/api/client-logs']) {
       const res = await fetch(`http://127.0.0.1:${server.port}${path}`);
       expect(res.status, path).toBe(405);
       expect(res.headers.get('allow'), path).toBe('POST');
     }
-  });
-
-  test('spawn-cursor reaches the real handler (its own 400 before any spawn)', async () => {
-    const res = await fetch(`http://127.0.0.1:${server.port}/api/spawn-cursor`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-    expect(res.status).toBe(400);
-    const body = (await res.json()) as { type?: string; title?: string };
-    expect(body.type).toBe('urn:ok:error:invalid-request');
-    expect(body.title).toContain('path');
-    expect(res.headers.get('x-request-id')).not.toBeNull();
-  });
-
-  test('handoff reaches the real handler (schema 400 before any dispatch)', async () => {
-    const res = await fetch(`http://127.0.0.1:${server.port}/api/handoff`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-    expect(res.status).toBe(400);
-    expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:invalid-request');
   });
 
   test('client-logs ingests a batch natively (accepted count, gap marker tolerated)', async () => {
@@ -102,14 +79,6 @@ describe('system-actions group over the composed listener — served natively', 
     expect(res.status).toBe(403);
     expect(res.headers.allow).toBeUndefined();
     expect(parseProblem(res.body).type).toBe('urn:ok:error:host-not-allowed');
-  });
-
-  test('spawn-cursor and handoff are Host-gated by the shared read choke point', async () => {
-    for (const path of ['/api/spawn-cursor', '/api/handoff']) {
-      const res = await rawRequest(server.port, path, { headers: { Host: 'evil.example' } });
-      expect(res.status, path).toBe(403);
-      expect(parseProblem(res.body).type, path).toBe('urn:ok:error:host-not-allowed');
-    }
   });
 
   test('foreign Origin is refused before dispatch on a ported route', async () => {

@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import * as root from '@inkeep/open-knowledge-core';
-import * as agentRegistrySubpath from '@inkeep/open-knowledge-core/agent-registry';
 import * as bridgeSubpath from '@inkeep/open-knowledge-core/bridge';
 import * as bugReportSidecarNoteContentSubpath from '@inkeep/open-knowledge-core/bug-report-sidecar/note-content';
 import * as checkpointKindsSubpath from '@inkeep/open-knowledge-core/checkpoint-kinds';
@@ -65,7 +64,6 @@ import * as gitWorktreeSelectorModelSubpath from '@inkeep/open-knowledge-core/gi
 import * as gitquireCommentThreadsSubpath from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import * as gitquireNamingSubpath from '@inkeep/open-knowledge-core/gitquire/naming';
 import * as gitquireTypedLinksSubpath from '@inkeep/open-knowledge-core/gitquire/typed-links';
-import * as handoffSubpath from '@inkeep/open-knowledge-core/handoff';
 import * as i18nBrowserLocaleProviderSubpath from '@inkeep/open-knowledge-core/i18n/browser-locale-provider';
 import * as i18nDirectionSubpath from '@inkeep/open-knowledge-core/i18n/direction';
 import * as i18nLocalesSubpath from '@inkeep/open-knowledge-core/i18n/locales';
@@ -144,7 +142,6 @@ const PRE_EXISTING_KEYS = [
   './helper-bundle',
   './skills-catalog',
   './acp/thread-protocol',
-  './acp/agent-posture',
   './acp/permissive-mode',
   './acp/codex-legacy-notice',
   './acp/tool-call-input',
@@ -152,7 +149,6 @@ const PRE_EXISTING_KEYS = [
 ];
 
 const MODULE_SUBPATHS: Record<string, object> = {
-  './agent-registry': agentRegistrySubpath,
   './bridge': bridgeSubpath,
   './bug-report-sidecar/note-content': bugReportSidecarNoteContentSubpath,
   './checkpoint-kinds': checkpointKindsSubpath,
@@ -216,7 +212,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './gitquire/comment-threads': gitquireCommentThreadsSubpath,
   './gitquire/naming': gitquireNamingSubpath,
   './gitquire/typed-links': gitquireTypedLinksSubpath,
-  './handoff': handoffSubpath,
   './i18n/browser-locale-provider': i18nBrowserLocaleProviderSubpath,
   './i18n/direction': i18nDirectionSubpath,
   './i18n/locales': i18nLocalesSubpath,

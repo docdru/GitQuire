@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import {
   existsSync,
   lstatSync,
@@ -12,10 +11,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { InstallSkillSuccessSchema, SkillInstallSuccessSchema } from '@inkeep/open-knowledge-core';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { type Entry, fromBuffer } from 'yauzl';
 import type { BootedServer } from './boot.ts';
 import { bootCompositionRig, rawRequest } from './composition-rig.test-helper.ts';
-import { readSkillStateFile } from './skill-state.ts';
 
 const isolated = vi.hoisted(() => ({ home: '' }));
 vi.mock('node:os', async (original) => ({
@@ -44,34 +41,6 @@ async function post(path: string, body: object) {
     body: JSON.stringify(body),
   });
 }
-test('handoff builds a real archive without opening and ignores force on a current installation', async () => {
-  const out = join(isolated.home, 'bundle.skill');
-  const first = await post('/api/install-skill', { noOpen: true, out });
-  expect(first.status, first.body).toBe(200);
-  const built = InstallSkillSuccessSchema.parse(JSON.parse(first.body));
-  expect(built).toMatchObject({ status: 'built', outputPath: out });
-  const bytes = readFileSync(out);
-  expect(built).toMatchObject({
-    size: bytes.length,
-    sha256: createHash('sha256').update(bytes).digest('hex'),
-  });
-  const entries = await readArchive(bytes);
-  const skill = entries.get('open-knowledge/SKILL.md');
-  expect(skill).toMatch(/^name: open-knowledge$/m);
-  expect(skill).toContain('OpenKnowledge');
-  expect((await readSkillStateFile(isolated.home)).targets['claude-cowork']?.version).toBe(
-    built.skillVersion,
-  );
-  const another = join(isolated.home, 'another.skill');
-  const second = await post('/api/install-skill', { noOpen: true, out: another, force: true });
-  expect(second.status, second.body).toBe(200);
-  expect(InstallSkillSuccessSchema.parse(JSON.parse(second.body))).toMatchObject({
-    status: 'skip-current',
-  });
-  expect(existsSync(another)).toBe(false);
-  expect(SkillInstallSuccessSchema.safeParse(JSON.parse(first.body)).success).toBe(false);
-  expect(first.headers['x-request-id']).toBe('install-contract');
-});
 
 const markdown = (name: string) =>
   `---\nname: ${name}\ndescription: Install contract\n---\n\nLiteral \\* and <custom>raw</custom>.  \n`;
@@ -112,11 +81,10 @@ test('catalog installation projects exact bytes and preserves placement, convers
   expect(readFileSync(join(root, '.cursor/skills', name, 'SKILL.md'), 'utf8')).toBe(markdown(name));
 });
 
-test('install contracts reject unsafe output, invalid source and conflicting operations independently', async () => {
+test('install contracts reject invalid source and conflicting operations independently', async () => {
   const name = 'negative-contract';
   seed(name);
   for (const [path, body, status, detail] of [
-    ['/api/install-skill', { noOpen: true, out: join(root, 'outside.skill') }, 400, undefined],
     ['/api/skill/install', { noOpen: true }, 400, undefined],
     ['/api/skill/install', { scope: 'project', name: 'missing' }, 404, undefined],
     [
@@ -139,45 +107,7 @@ test('install contracts reject unsafe output, invalid source and conflicting ope
     expect(result.headers['x-request-id']).toBe('install-contract');
     if (detail !== undefined) expect(JSON.parse(result.body).detail).toBe(detail);
   }
-  expect(existsSync(join(root, 'outside.skill'))).toBe(false);
-  const malformed = await rawRequest(server.port, '/api/install-skill', {
-    method: 'POST',
-    headers: { Origin: 'https://untrusted.example.com' },
-    body: '{broken',
-  });
-  expect(malformed.status, malformed.body).toBe(403);
 });
-
-async function readArchive(bytes: Buffer): Promise<Map<string, string>> {
-  return new Promise((resolve, reject) => {
-    fromBuffer(bytes, { lazyEntries: true }, (error, zip) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      const contents = new Map<string, string>();
-      zip.on('error', reject);
-      zip.on('end', () => resolve(contents));
-      zip.on('entry', (entry: Entry) => {
-        zip.openReadStream(entry, (streamError, stream) => {
-          if (streamError) {
-            zip.close();
-            reject(streamError);
-            return;
-          }
-          const chunks: Buffer[] = [];
-          stream.on('error', reject);
-          stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-          stream.on('end', () => {
-            contents.set(entry.fileName, Buffer.concat(chunks).toString('utf8'));
-            zip.readEntry();
-          });
-        });
-      });
-      zip.readEntry();
-    });
-  });
-}
 
 test.each(['convert', 'unplace'] as const)(
   '%s preserves an untouched copy after a source edit and reports divergence without assigning blame',

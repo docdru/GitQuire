@@ -1,74 +1,22 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { ClientLogsRequestSchema, ClientLogsSuccessSchema } from '@inkeep/open-knowledge-core';
-import type { AgentRegistryHostSeam } from '../agent-registry-apply.ts';
-import { collectServerHostSnapshot } from '../agent-registry-probes.ts';
-import type { createInstalledAgentsProbe } from '../handoff-api.ts';
-import { handleHandoffDispatch } from '../handoff-dispatch-api.ts';
 import { getIngressContext } from '../ingress-policy.ts';
-import { getLogger, type PinoLogger } from '../logger.ts';
-import { handleSpawnCursor } from '../spawn-cursor-api.ts';
+import { getLogger } from '../logger.ts';
 import { type ApiRouteGroup, createApiRouteGroup } from './api-pipeline.ts';
 import { errorResponse } from './error-response.ts';
-import { getRequestId } from './request-id.ts';
 import { withValidation } from './request-validation.ts';
 import { successResponse } from './success-response.ts';
 
 export interface SystemActionsRouteDeps {
-  contentDir: string;
-  log: PinoLogger;
   checkLocalOpSecurity: (
     req: IncomingMessage,
     res: ServerResponse,
     opts: { handler: string },
   ) => boolean;
-  installedAgentsCache: Pick<ReturnType<typeof createInstalledAgentsProbe>, 'probeWithCache'>;
-  agentIntegrations?: AgentRegistryHostSeam;
 }
 
 export function createSystemActionsRoutes(deps: SystemActionsRouteDeps): ApiRouteGroup {
-  const { contentDir, log, checkLocalOpSecurity, installedAgentsCache, agentIntegrations } = deps;
-
-  async function handleHandoffDispatchRoute(
-    req: IncomingMessage,
-    res: ServerResponse,
-  ): Promise<void> {
-    if (!checkLocalOpSecurity(req, res, { handler: 'handoff' })) return;
-    try {
-      await handleHandoffDispatch(req, res, {
-        contentDir,
-        platform: process.platform,
-        isSchemeRegistered: installedAgentsCache.probeWithCache,
-        hostSnapshot: () =>
-          collectServerHostSnapshot({ env: 'local-web', resolve: agentIntegrations?.probe }),
-      });
-    } catch (e) {
-      if (!res.headersSent) {
-        log.error({ err: e, requestId: getRequestId(req) }, '[handoff] route wrapper failed');
-        errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
-          handler: 'handoff',
-          cause: e,
-        });
-      }
-    }
-  }
-
-  async function handleSpawnCursorRoute(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    if (!checkLocalOpSecurity(req, res, { handler: 'spawn-cursor' })) return;
-    try {
-      await handleSpawnCursor(req, res, {
-        contentDir,
-        platform: process.platform,
-      });
-    } catch (e) {
-      if (!res.headersSent) {
-        log.error({ err: e, requestId: getRequestId(req) }, '[spawn-cursor] route wrapper failed');
-        errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
-          handler: 'spawn-cursor',
-          cause: e,
-        });
-      }
-    }
-  }
+  const { checkLocalOpSecurity } = deps;
 
   const handleClientLogs = withValidation(
     ClientLogsRequestSchema,
@@ -128,8 +76,6 @@ export function createSystemActionsRoutes(deps: SystemActionsRouteDeps): ApiRout
 
   return createApiRouteGroup(
     {
-      '/api/spawn-cursor': handleSpawnCursorRoute,
-      '/api/handoff': handleHandoffDispatchRoute,
       '/api/client-logs': handleClientLogs,
     },
     { mutating: ['/api/client-logs'] },

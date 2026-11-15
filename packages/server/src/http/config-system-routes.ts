@@ -34,7 +34,6 @@ import {
 } from '../embeddings/index.ts';
 import type { FileIndexEntry } from '../file-watcher.ts';
 import { tracedRmdirSync, tracedUnlinkSync } from '../fs-traced.ts';
-import { type createInstalledAgentsProbe, handleInstalledAgents } from '../handoff-api.ts';
 import type { PinoLogger } from '../logger.ts';
 import { isWithinDir } from '../path-utils.ts';
 import { readServerLock } from '../server-lock.ts';
@@ -43,7 +42,6 @@ import { PROTOCOL_VERSION, RUNTIME_VERSION } from '../version-constants.ts';
 import type { ApiRouteTable } from './api-pipeline.ts';
 import { errorResponse } from './error-response.ts';
 import { errnoCode } from './handler-utils.ts';
-import { getRequestId } from './request-id.ts';
 import { withValidation } from './request-validation.ts';
 import { successResponse } from './success-response.ts';
 
@@ -59,11 +57,6 @@ export interface ConfigSystemRouteDeps {
   getConfigDiagnostics: (() => ConfigDiagnosticsReport) | undefined;
   isRoutePeerAdmitted: (remoteAddress: string | undefined) => boolean;
   isAllowedWorkspaceHostHeader: (host: string | undefined) => boolean;
-  checkLocalOpSecurity: (
-    req: IncomingMessage,
-    res: ServerResponse,
-    opts: { handler: string },
-  ) => boolean;
   getPrincipal: (() => Principal | null) | undefined;
   semanticSearch: Pick<SemanticSearchService, 'getStatus'> | undefined;
   readSemanticProviderConfig: (() => ResolvedSemanticConfig) | undefined;
@@ -72,7 +65,6 @@ export interface ConfigSystemRouteDeps {
   shadowRef: ShadowRef | undefined;
   getCurrentBranch: (() => string | null) | undefined;
   getReportedBranch: (() => string | null) | undefined;
-  installedAgentsCache: Pick<ReturnType<typeof createInstalledAgentsProbe>, 'probeAll'>;
 }
 
 export interface ConfigSystemRoutes {
@@ -93,7 +85,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
     getConfigDiagnostics,
     isRoutePeerAdmitted,
     isAllowedWorkspaceHostHeader,
-    checkLocalOpSecurity,
     getPrincipal,
     semanticSearch,
     readSemanticProviderConfig,
@@ -102,7 +93,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
     shadowRef,
     getCurrentBranch,
     getReportedBranch,
-    installedAgentsCache,
   } = deps;
 
   const handleServerInfo = withValidation(
@@ -269,27 +259,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
       },
       { handler: 'workspace' },
     );
-  }
-
-  async function handleInstalledAgentsRoute(
-    req: IncomingMessage,
-    res: ServerResponse,
-  ): Promise<void> {
-    if (!checkLocalOpSecurity(req, res, { handler: 'installed-agents' })) return;
-    try {
-      await handleInstalledAgents(req, res, installedAgentsCache.probeAll);
-    } catch (e) {
-      if (!res.headersSent) {
-        log.error(
-          { err: e, requestId: getRequestId(req) },
-          '[installed-agents] route wrapper failed',
-        );
-        errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Internal server error.', {
-          handler: 'installed-agents',
-          cause: e,
-        });
-      }
-    }
   }
 
   const lockDir = projectDir ? getLocalDir(projectDir) : null;
@@ -547,7 +516,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
     '/api/principal': handlePrincipal,
     '/api/workspace': handleWorkspace,
     '/api/semantic-status': handleSemanticStatus,
-    '/api/installed-agents': handleInstalledAgentsRoute,
     '/api/__embed-detect': handleEmbedDetect,
     '/api/rescue': handleRescueList,
   };

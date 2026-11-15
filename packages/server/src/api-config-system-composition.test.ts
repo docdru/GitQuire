@@ -27,7 +27,6 @@ import {
   type ConfigSystemRouteDeps,
   createConfigSystemRoutes,
 } from './http/config-system-routes.ts';
-import { checkLocalOpSecurity } from './local-op-security.ts';
 import type { PinoLogger } from './logger.ts';
 import { saveInMemoryCheckpoint } from './shadow-repo.ts';
 
@@ -107,7 +106,6 @@ function buildConfigSystemRoutes(overrides: Partial<ConfigSystemRouteDeps> = {})
     getConfigDiagnostics: undefined,
     isRoutePeerAdmitted: () => true,
     isAllowedWorkspaceHostHeader: (host) => host === '127.0.0.1',
-    checkLocalOpSecurity,
     getPrincipal: undefined,
     semanticSearch: undefined,
     readSemanticProviderConfig: undefined,
@@ -150,7 +148,7 @@ const READ_200 = [
   '/api/__embed-detect',
 ];
 
-const ALL_ROUTES = [...READ_200, '/api/installed-agents', '/api/principal'];
+const ALL_ROUTES = [...READ_200, '/api/principal'];
 
 let tmpRoot: string;
 let server: BootedServer;
@@ -247,26 +245,6 @@ describe('config-system inline gates — observable only at the handler layer', 
       expect(out.body.type, path).toBe('urn:ok:error:host-not-allowed');
       expect(out.allow, path).toBeUndefined();
     }
-  });
-
-  test('installed-agents short-circuits on checkLocalOpSecurity (foreign Origin → its own invalid-origin)', async () => {
-    let probes = 0;
-    const group = buildConfigSystemRoutes({
-      installedAgentsCache: {
-        probeAll: (async () => {
-          probes += 1;
-          return {};
-        }) as ConfigSystemRouteDeps['installedAgentsCache']['probeAll'],
-      },
-    });
-    const out = await dispatch(group, '/api/installed-agents', {
-      remoteAddress: '127.0.0.1',
-      origin: 'https://evil.example.com',
-    });
-    expect(out.status).toBe(403);
-    expect(out.body.type).toBe('urn:ok:error:invalid-origin');
-    expect(out.body.title).toBe('Origin header is not a permitted loopback origin.');
-    expect(probes).toBe(0);
   });
 
   test('HEAD reaches the config handler through direct dispatch (statusCode fallback surfaces 200)', async () => {

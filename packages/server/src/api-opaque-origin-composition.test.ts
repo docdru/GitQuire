@@ -173,8 +173,6 @@ describe('writes on the real server take JSON from a site origin only', () => {
       '/api/create-page',
       '/api/agent-write',
       '/api/skill/install',
-      '/api/handoff',
-      '/api/spawn-cursor',
       '/api/link-preview',
     ]) {
       const res = await rawRequest(server.port, path, {
