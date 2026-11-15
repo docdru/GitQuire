@@ -1630,6 +1630,12 @@ describe('startCommand — flag-conflict guards (exit 2)', () => {
     expect(code).toBe(2);
     expect(stderr).toContain('--react-shell-dist-dir');
   });
+
+  test('--mode app exits 2 and points to ok start', async () => {
+    const { code, stderr } = await captureGuard(['--mode', 'app']);
+    expect(code).toBe(2);
+    expect(stderr).toContain("run 'ok start'");
+  });
 });
 
 describe('start messages name the running channel command', () => {

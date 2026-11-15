@@ -472,6 +472,7 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
 }
 
 interface StartCommandOptions {
+  mode?: string;
   port?: string | number;
   bind?: string[];
   openBrowser?: boolean;
@@ -949,6 +950,13 @@ export function startCommand(getConfig: () => Config): Command {
       if (opts.only === 'server' && opts.reactShellDistDir !== undefined) {
         process.stderr.write(
           "error: option '--only server' cannot be combined with '--react-shell-dist-dir'\n",
+        );
+        process.exit(2);
+      }
+
+      if (opts.mode === 'app') {
+        process.stderr.write(
+          "error: '--mode app' opened the desktop app, which GitQuire does not ship; run 'ok start' to serve the web editor\n",
         );
         process.exit(2);
       }
