@@ -10,10 +10,9 @@ const METHOD_SURFACE: ReadonlyArray<{ path: string; unsupported: string; allow: 
   { path: '/api/seed/plan', unsupported: 'POST', allow: 'GET' },
   { path: '/api/seed/packs', unsupported: 'POST', allow: 'GET' },
   { path: '/api/seed/apply', unsupported: 'GET', allow: 'POST' },
-  { path: '/api/seed/install-pack-skill', unsupported: 'GET', allow: 'POST' },
 ];
 
-const MUTATING_ROUTES = ['/api/seed/apply', '/api/seed/install-pack-skill'];
+const MUTATING_ROUTES = ['/api/seed/apply'];
 
 let tmpRoot: string;
 let server: BootedServer;
@@ -57,22 +56,12 @@ describe('seed group over the composed listener — served natively', () => {
     expect(body.plan).toBeDefined();
   });
 
-  test('unknown packId reaches the real handlers (their own 400, not a route-miss 404)', async () => {
+  test('unknown packId reaches the real handler (its own 400, not a route-miss 404)', async () => {
     const viaPlan = await fetch(
       `http://127.0.0.1:${server.port}/api/seed/plan?packId=not-a-real-pack`,
     );
     expect(viaPlan.status).toBe(400);
     expect(((await viaPlan.json()) as { type?: string }).type).toBe('urn:ok:error:invalid-request');
-
-    const viaInstall = await fetch(`http://127.0.0.1:${server.port}/api/seed/install-pack-skill`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ packId: 'not-a-real-pack' }),
-    });
-    expect(viaInstall.status).toBe(400);
-    expect(((await viaInstall.json()) as { type?: string }).type).toBe(
-      'urn:ok:error:invalid-request',
-    );
   });
 
   test('POST /api/seed/apply refuses a malformed plan with its own 400 (no disk write)', async () => {

@@ -17,8 +17,6 @@ type ArtifactKind = 'template' | 'skill';
 const routes = [
   { label: 'PUT /api/template', kind: 'template', method: 'PUT' },
   { label: 'POST /api/template', kind: 'template', method: 'POST' },
-  { label: 'PUT /api/skill', kind: 'skill', method: 'PUT' },
-  { label: 'POST /api/skill', kind: 'skill', method: 'POST' },
 ] as const;
 const allowed = 'Exact \t whitespace\r\nPrintable \\u0000 \\u001F 😀\u007f\u0080\u009f.\n';
 const historical = `Historical ${String.fromCharCode(0, 31)} bytes stay.\r\n`;
@@ -97,7 +95,7 @@ function expectActionableRefusal(result: { isError?: boolean; content?: unknown 
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'ok-artifact-body-admission-'));
   mkdirSync(join(root, 'templates'));
-  for (const kind of ['template', 'skill'] as const) {
+  for (const kind of ['template'] as const) {
     for (const metadata of [false, true]) {
       const name = `historical-${kind}${metadata ? '-metadata' : ''}`;
       const path = artifactPath(kind, name);
@@ -110,12 +108,6 @@ beforeAll(async () => {
       );
     }
   }
-  const builtin = artifactPath('skill', 'open-knowledge');
-  mkdirSync(dirname(builtin), { recursive: true });
-  writeFileSync(
-    builtin,
-    '---\nname: open-knowledge\ndescription: Project instructions\n---\nProject.\n',
-  );
   const template = artifactPath('template', 'historical-generated');
   writeFileSync(
     template,
@@ -187,88 +179,85 @@ describe.each(routes)('$label incoming body over real HTTP', ({ kind, method }) 
   });
 });
 
-describe.each(['template', 'skill'] as const)(
-  '%s body admission through registered MCP tools',
-  (kind) => {
-    test.each([0, 31])('refuses decoded control %i before creating an artifact', async (code) => {
-      const name = nextName();
-      await settleArtifactContributors(server);
-      const contributors = __formatContributorsForTests();
-      const response = await request(kind, 'PUT', {
-        ...putBody(kind, name, unsafe(code)),
-        agentId: name,
-      });
-      expect.soft(response.status, response.body).toBe(400);
-      expectControlDetail(response.body, code);
-      expect.soft(existsSync(artifactPath(kind, name))).toBe(false);
-      expect.soft(__formatContributorsForTests()).toBe(contributors);
+describe.each(['template'] as const)('%s body admission through registered MCP tools', (kind) => {
+  test.each([0, 31])('refuses decoded control %i before creating an artifact', async (code) => {
+    const name = nextName();
+    await settleArtifactContributors(server);
+    const contributors = __formatContributorsForTests();
+    const response = await request(kind, 'PUT', {
+      ...putBody(kind, name, unsafe(code)),
+      agentId: name,
     });
+    expect.soft(response.status, response.body).toBe(400);
+    expectControlDetail(response.body, code);
+    expect.soft(existsSync(artifactPath(kind, name))).toBe(false);
+    expect.soft(__formatContributorsForTests()).toBe(contributors);
+  });
 
-    test.each([false, true])(
-      'body-omitted moves preserve historical raw body bytes (metadata=%s)',
-      async (metadata) => {
-        const name = `historical-${kind}${metadata ? '-metadata' : ''}`;
-        const path = artifactPath(kind, name);
-        const original = readFileSync(path, 'utf8');
-        expect(original).toContain(historical);
-        const destination = nextName();
-        const response = await request(kind, 'POST', {
-          ...moveBody(kind, name, destination),
-          ...(metadata
-            ? {
-                frontmatter:
-                  kind === 'template'
-                    ? { title: 'Updated' }
-                    : { name: destination, description: 'Updated' },
-              }
-            : {}),
-        });
-        expect(response.status, response.body).toBe(200);
-        expect(existsSync(path)).toBe(false);
-        const raw = readFileSync(artifactPath(kind, destination), 'utf8');
-        expect(kind === 'template' ? instantiateDoc(raw) : stripFrontmatter(raw).body).toBe(
-          historical,
-        );
-        if (kind === 'template' && !metadata) expect(raw).toBe(original);
-      },
-    );
-
-    test('write returns the actionable control detail without creating an artifact', async () => {
-      const name = nextName();
-      const target =
-        kind === 'template'
+  test.each([false, true])(
+    'body-omitted moves preserve historical raw body bytes (metadata=%s)',
+    async (metadata) => {
+      const name = `historical-${kind}${metadata ? '-metadata' : ''}`;
+      const path = artifactPath(kind, name);
+      const original = readFileSync(path, 'utf8');
+      expect(original).toContain(historical);
+      const destination = nextName();
+      const response = await request(kind, 'POST', {
+        ...moveBody(kind, name, destination),
+        ...(metadata
           ? {
-              template: {
-                path: `templates/${name}`,
-                content: unsafe(0),
-                frontmatter: { title: 'Admission' },
-              },
+              frontmatter:
+                kind === 'template'
+                  ? { title: 'Updated' }
+                  : { name: destination, description: 'Updated' },
             }
-          : { skill: { name, description: 'Admission', body: unsafe(0) } };
-      const result = await client.callTool({ name: 'write', arguments: target });
-      const text = expectActionableRefusal(result, 0);
-      expect.soft(text).toMatch(/\bbody\b|\bcontent\b/i);
-      expect.soft(text).toMatch(new RegExp(`offset\\D*${'private-prefix😀'.length}\\b`, 'i'));
-      expect.soft(existsSync(artifactPath(kind, name))).toBe(false);
-    });
+          : {}),
+      });
+      expect(response.status, response.body).toBe(200);
+      expect(existsSync(path)).toBe(false);
+      const raw = readFileSync(artifactPath(kind, destination), 'utf8');
+      expect(kind === 'template' ? instantiateDoc(raw) : stripFrontmatter(raw).body).toBe(
+        historical,
+      );
+      if (kind === 'template' && !metadata) expect(raw).toBe(original);
+    },
+  );
 
-    test('edit returns the actionable control detail without changing the existing body', async () => {
-      const name = kind === 'template' ? 'legacy-edit' : nextName();
-      if (kind === 'skill') await createArtifact(kind, name);
-      const original = readFileSync(artifactPath(kind, name));
-      const target =
-        kind === 'template'
-          ? { template: { path: `templates/${name}`, find: 'target', replace: unsafe(31) } }
-          : { skill: { name, find: 'target', replace: unsafe(31) } };
-      const result = await client.callTool({ name: 'edit', arguments: target });
-      const text = expectActionableRefusal(result, 31);
-      const bodyCoordinate = /\bbody\b/i.test(text) && /offset\D*25\b/i.test(text);
-      const replacementCoordinate = /replace/i.test(text) && /offset\D*16\b/i.test(text);
-      expect.soft(bodyCoordinate || replacementCoordinate, text).toBe(true);
-      expect.soft(readFileSync(artifactPath(kind, name))).toEqual(original);
-    });
-  },
-);
+  test('write returns the actionable control detail without creating an artifact', async () => {
+    const name = nextName();
+    const target =
+      kind === 'template'
+        ? {
+            template: {
+              path: `templates/${name}`,
+              content: unsafe(0),
+              frontmatter: { title: 'Admission' },
+            },
+          }
+        : { skill: { name, description: 'Admission', body: unsafe(0) } };
+    const result = await client.callTool({ name: 'write', arguments: target });
+    const text = expectActionableRefusal(result, 0);
+    expect.soft(text).toMatch(/\bbody\b|\bcontent\b/i);
+    expect.soft(text).toMatch(new RegExp(`offset\\D*${'private-prefix😀'.length}\\b`, 'i'));
+    expect.soft(existsSync(artifactPath(kind, name))).toBe(false);
+  });
+
+  test('edit returns the actionable control detail without changing the existing body', async () => {
+    const name = kind === 'template' ? 'legacy-edit' : nextName();
+    if (kind === 'skill') await createArtifact(kind, name);
+    const original = readFileSync(artifactPath(kind, name));
+    const target =
+      kind === 'template'
+        ? { template: { path: `templates/${name}`, find: 'target', replace: unsafe(31) } }
+        : { skill: { name, find: 'target', replace: unsafe(31) } };
+    const result = await client.callTool({ name: 'edit', arguments: target });
+    const text = expectActionableRefusal(result, 31);
+    const bodyCoordinate = /\bbody\b/i.test(text) && /offset\D*25\b/i.test(text);
+    const replacementCoordinate = /replace/i.test(text) && /offset\D*16\b/i.test(text);
+    expect.soft(bodyCoordinate || replacementCoordinate, text).toBe(true);
+    expect.soft(readFileSync(artifactPath(kind, name))).toEqual(original);
+  });
+});
 
 test('MCP frontmatter-composed write identifies the offset basis and remedy', async () => {
   const name = nextName();
@@ -288,21 +277,6 @@ test('MCP frontmatter-composed write identifies the offset basis and remedy', as
     new RegExp(`offset\\D*${composedOffset}\\b`, 'i').test(text);
   expect.soft(sourceCoordinate || composedCoordinate, text).toBe(true);
   expect.soft(existsSync(join(root, `${name}.md`))).toBe(false);
-});
-
-test('non-Markdown skill scripts and assets retain opaque control bytes', async () => {
-  const name = nextName();
-  await createArtifact('skill', name);
-  const content = `Opaque ${String.fromCharCode(0, 31)} bytes.\n`;
-  for (const path of ['scripts/fixture.py', 'assets/data.bin']) {
-    const response = await rawRequest(server.port, '/api/skill-file', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scope: 'project', name, path, content }),
-    });
-    expect(response.status, response.body).toBe(200);
-    expect(readFileSync(join(dirname(artifactPath('skill', name)), path), 'utf8')).toBe(content);
-  }
 });
 
 test('MCP template-expanded write identifies generated Markdown coordinates and remedy', async () => {

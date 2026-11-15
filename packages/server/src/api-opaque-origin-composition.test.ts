@@ -169,12 +169,7 @@ describe('writes on the real server take JSON from a site origin only', () => {
   });
 
   test('every JSON write route refuses a text/plain body with 415, direct body readers included', async () => {
-    for (const path of [
-      '/api/create-page',
-      '/api/agent-write',
-      '/api/skill/install',
-      '/api/link-preview',
-    ]) {
+    for (const path of ['/api/create-page', '/api/agent-write', '/api/link-preview']) {
       const res = await rawRequest(server.port, path, {
         method: 'POST',
         headers: {

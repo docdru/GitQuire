@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -204,13 +204,13 @@ function currentAdviceFiles(root: string): string[] {
       (file) => /\.[cm]?tsx?$/.test(file) && !/\.(?:test|test-helper|spec)\.[cm]?tsx?$/.test(file),
     ),
   );
-  const guidance = ['packages/server/assets/skills', 'docs/content'].flatMap((path) =>
+  const guidance = ['docs/content'].flatMap((path) =>
     filesUnder(join(root, path)).filter((file) => /\.mdx?$/.test(file)),
   );
   return [...runtime, ...guidance];
 }
 
-test('retired tool guidance cannot return in runtime strings, bundled skills or published docs', () => {
+test('retired tool guidance cannot return in runtime strings or published docs', () => {
   for (const file of currentAdviceFiles(adviceRoot))
     expect(readFileSync(file, 'utf8'), relative(adviceRoot, file)).not.toMatch(retiredToolAdvice);
 });
@@ -222,7 +222,6 @@ test('the advice guard covers every production surface without scanning historic
     'packages/cli/src/',
     'packages/app/src/',
     'packages/core/src/',
-    'packages/server/assets/skills/',
     'docs/content/',
   ])
     expect(
@@ -286,25 +285,15 @@ test('published scope guidance preserves selection, error, empty-scope and trunc
     expect(overview).toContain(pin);
 });
 
-test('skill router and published reference names and counts equal the actual serving surface', () => {
-  const skill = readFileSync(
-    new URL('../../../assets/skills/project/SKILL.md', import.meta.url),
-    'utf8',
-  );
+test('published reference names and counts equal the actual serving surface', () => {
   const reference = readFileSync(
     new URL('../../../../../docs/content/reference/mcp.mdx', import.meta.url),
     'utf8',
   );
-  const router = skill.split('## Tool index')[1]?.split('**Read `ran`')[0];
-  expect(router).toBeDefined();
-  expect(router).toContain(`${tools.length} tools`);
-  const routerNames = [...(router ?? '').matchAll(/^- `([^`]+)` —/gm)].map((match) => match[1]);
   const referenceNames = [...reference.matchAll(/^\| `([^`]+)` \|/gm)].map((match) => match[1]);
   const served = tools.map((tool) => tool.name).sort();
-  expect(routerNames.sort()).toEqual(served);
   expect(referenceNames.sort()).toEqual(served);
   expect(reference).toContain(`**${tools.length} tools**`);
-  expect(router).not.toMatch(/\bconflicts\s*\(|\bresolve_conflict\b/);
 });
 
 const resolveActionNames =
@@ -314,7 +303,6 @@ const diskCollisionStateNames =
 const residualDiskConflictStates = /\b(?:stale-external-write|pending-conflict)\b/;
 const RESIDUAL_STATES_RETIRED_WITH_THE_CONFLICT_ROUTE: ReadonlySet<string> = new Set([
   'docs/content/reference/mcp.mdx',
-  'packages/server/assets/skills/project/references/conflict-resolution.md',
 ]);
 
 function withoutGitConflictSections(markdown: string): string {
@@ -325,16 +313,15 @@ function agentFacingGuidance(root: string): Array<{ path: string; text: string }
   const docs = [
     'docs/content/reference/mcp.mdx',
     'docs/content/features/agent-activity.mdx',
-    ...['docs/content/integrations', 'docs/content/remote-control'].flatMap((dir) =>
-      filesUnder(join(root, dir))
-        .filter((file) => /\.mdx?$/.test(file))
-        .map((file) => relative(root, file)),
-    ),
+    ...['docs/content/integrations', 'docs/content/remote-control']
+      .filter((dir) => existsSync(join(root, dir)))
+      .flatMap((dir) =>
+        filesUnder(join(root, dir))
+          .filter((file) => /\.mdx?$/.test(file))
+          .map((file) => relative(root, file)),
+      ),
   ];
-  const skills = filesUnder(join(root, 'packages/server/assets/skills'))
-    .filter((file) => /\.mdx?$/.test(file))
-    .map((file) => relative(root, file));
-  return [...docs, ...skills].map((path) => ({
+  return docs.map((path) => ({
     path: path.replaceAll('\\', '/'),
     text: withoutGitConflictSections(readFileSync(join(root, path), 'utf8')),
   }));
@@ -349,7 +336,7 @@ test('no served tool names a resolve action or a disk-collision conflict state',
   }
 });
 
-test('no bundled skill or agent-facing doc names a resolve action or a disk-collision conflict state outside Git conflicts', () => {
+test('no agent-facing doc names a resolve action or a disk-collision conflict state outside Git conflicts', () => {
   for (const { path, text } of agentFacingGuidance(adviceRoot)) {
     expect(text, path).not.toMatch(resolveActionNames);
     expect(text, path).not.toMatch(diskCollisionStateNames);
@@ -453,11 +440,8 @@ const SERVER_FIELDS_FOR_GUIDED_RESULT: Readonly<Record<string, AgentWriteOutcome
   }),
 };
 
-test('the per-result guidance in the bundled skill and the reference gives the fields the server sends', () => {
-  for (const path of [
-    'packages/server/assets/skills/project/references/conflict-resolution.md',
-    'docs/content/reference/mcp.mdx',
-  ]) {
+test('the per-result guidance in the reference gives the fields the server sends', () => {
+  for (const path of ['docs/content/reference/mcp.mdx']) {
     const rows = guidedResultRows(readFileSync(join(adviceRoot, path), 'utf8'));
     expect(rows.map((row) => row.result).sort(), path).toEqual(
       Object.keys(SERVER_FIELDS_FOR_GUIDED_RESULT).sort(),
@@ -475,10 +459,7 @@ test('the per-result guidance in the bundled skill and the reference gives the f
 
 test('the move for each guided result is the one its next step asks for', () => {
   const rows = guidedResultRows(
-    readFileSync(
-      join(adviceRoot, 'packages/server/assets/skills/project/references/conflict-resolution.md'),
-      'utf8',
-    ),
+    readFileSync(join(adviceRoot, 'docs/content/reference/mcp.mdx'), 'utf8'),
   );
   for (const { result, cells } of rows) {
     const nextStep = cells[3];

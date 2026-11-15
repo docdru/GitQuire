@@ -131,7 +131,7 @@ description: Append-only audit trail of changes to this knowledge base.
 
 # Work Log
 
-Append-only audit trail. Add one dated entry per turn that creates, edits, or restructures content. The knowledge-base skill describes what to log and the entry shape.
+Append-only audit trail. Add one dated entry per turn that creates, edits, or restructures content. Each entry gives the date, what changed, and links to the pages it touched.
 `;
 
 const SOFTWARE_LIFECYCLE_FOLDERS: readonly StarterFolder[] = [
@@ -542,7 +542,7 @@ tags: [wiki, overview]
 
 # Overview
 
-The home page and navigation hub for this codebase's wiki. It is a stub until it is generated — ask your agent to "build the wiki" (optionally naming an audience and depth, e.g. "public, exhaustive"). The full generate/refresh procedure ships with this pack's skill.
+The home page and navigation hub for this codebase's wiki. It is a stub until it is generated — ask your agent to "build the wiki" (optionally naming an audience and depth, e.g. "public, exhaustive").
 
 Once generated, this page carries: what the project is, a big-picture architecture diagram, and a navigation map linking every section below.
 
@@ -566,7 +566,7 @@ description: Append-only audit trail of wiki generation and refresh runs.
 
 # Wiki Log
 
-Append-only audit trail. Add one dated entry per generation or refresh run, recording the profile, the \`source_commit\` it was anchored to, and the coverage. The codebase-wiki skill describes the entry shape.
+Append-only audit trail. Add one dated entry per generation or refresh run, recording the profile, the \`source_commit\` it was anchored to, and the coverage.
 `;
 
 const PLAIN_NOTES_FOLDERS: readonly StarterFolder[] = [
@@ -1324,7 +1324,7 @@ Use this knowledge base for durable concepts that people and agents can link, ex
 
 Each concept needs parseable YAML frontmatter with a non-empty \`type\`. Use standard Markdown links so relationships remain portable to other OKF tools.
 
-The GitQuire OKF plugin warns when content may not survive a handoff to another OKF consumer. Its companion skill provides the complete authoring guidance.
+The GitQuire OKF plugin warns when content may not survive a handoff to another OKF consumer.
 `;
 
 const OKF_INDEX_MD = `---

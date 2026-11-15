@@ -133,10 +133,10 @@ describe('LOG_MD_TEMPLATE', () => {
     expect(LOG_MD_TEMPLATE).toContain('# Work Log');
   });
 
-  test('is slim — log discipline lives in the pack skill, not in the log body', () => {
+  test('is slim — no example entry block in the log body', () => {
     expect(LOG_MD_TEMPLATE).not.toContain('<!-- Example entry shape:');
     expect(LOG_MD_TEMPLATE).not.toContain('What to log:');
-    expect(LOG_MD_TEMPLATE).toContain('knowledge-base skill');
+    expect(LOG_MD_TEMPLATE).toContain('Each entry gives the date');
   });
 });
 

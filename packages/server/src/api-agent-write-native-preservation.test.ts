@@ -30,7 +30,7 @@ const TEST_PATHS = [
   '/api/test-rescan-backlinks',
   '/api/test-rescan-files',
 ];
-const RESIDUAL = ['/api/skill/uninstall', '/api/agent-write', '/api/agent-write-batch'];
+const RESIDUAL = ['/api/agent-write', '/api/agent-write-batch'];
 const AGENT_INTEGRATIONS_APPLY = '/api/agent-integrations/apply';
 let root: string;
 let enabled: BootedServer;

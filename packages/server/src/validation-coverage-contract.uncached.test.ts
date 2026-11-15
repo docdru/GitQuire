@@ -10,10 +10,6 @@ import { formatValidatorDegradationWarning } from './lint/validation-audit.ts';
 import { DESCRIPTION as AUDIT_DESCRIPTION, AUDIT_WARNINGS_DESCRIPTION } from './mcp/tools/audit.ts';
 import { DESCRIPTION as LINT_DESCRIPTION, LINT_WARNINGS_DESCRIPTION } from './mcp/tools/lint.ts';
 
-const PROJECT_SKILL = readFileSync(
-  join(import.meta.dir, '../assets/skills/project/SKILL.md'),
-  'utf8',
-);
 const CONTENT_RULES_OVERVIEW = readFileSync(
   join(import.meta.dir, '../../../docs/content/advanced/content-rules/overview.mdx'),
   'utf8',
@@ -76,16 +72,12 @@ describe('validation coverage source contract', () => {
     const clause = 'absent from `ran` was not checked';
     expect(LINT_DESCRIPTION).toContain(clause);
     expect(AUDIT_DESCRIPTION).toContain(clause);
-    expect(PROJECT_SKILL).toContain(clause);
     expect(CONTENT_RULES_OVERVIEW).toContain(clause);
     expect(mcpReferenceRow('lint')).toContain(clause);
     expect(mcpReferenceRow('audit')).toContain(clause);
   });
 
   test('agent guidance and public docs explain ran in lockstep', () => {
-    expect(PROJECT_SKILL).toContain('Read `ran`');
-    expect(PROJECT_SKILL).toContain('`[]` means no checks were selected');
-
     expect(mcpReferenceRow('lint')).toContain('Successful responses include `ran`');
     expect(mcpReferenceRow('audit')).toContain('Successful responses include `ran`');
     expect(mcpReferenceRow('audit')).toContain('remains in `ran` if it degrades');

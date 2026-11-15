@@ -9,13 +9,12 @@ import { bootCompositionRig, parseProblem, rawRequest } from './composition-rig.
 const METHOD_SURFACE: ReadonlyArray<{ path: string; unsupported: string; allow: string }> = [
   { path: '/api/search', unsupported: 'DELETE', allow: 'GET, POST' },
   { path: '/api/link-preview', unsupported: 'GET', allow: 'POST' },
-  { path: '/api/skill-targets', unsupported: 'POST', allow: 'GET, PUT' },
   { path: '/api/saved-themes', unsupported: 'POST', allow: 'GET' },
   { path: '/api/saved-theme', unsupported: 'GET', allow: 'POST, PUT, DELETE' },
   { path: '/api/generated-index/settings', unsupported: 'DELETE', allow: 'GET, POST' },
 ];
 
-const MUTATING_ROUTES = ['/api/skill-targets', '/api/saved-theme', '/api/generated-index/settings'];
+const MUTATING_ROUTES = ['/api/saved-theme', '/api/generated-index/settings'];
 
 let tmpRoot: string;
 let server: BootedServer;
@@ -59,12 +58,8 @@ describe('workspace-tools group over the composed listener — served natively',
     expect(Array.isArray(postBody.results)).toBe(true);
   });
 
-  test('GET reads serve 200 natively (skill-targets, saved-themes, generated-index settings)', async () => {
-    for (const path of [
-      '/api/skill-targets',
-      '/api/saved-themes',
-      '/api/generated-index/settings',
-    ]) {
+  test('GET reads serve 200 natively (saved-themes, generated-index settings)', async () => {
+    for (const path of ['/api/saved-themes', '/api/generated-index/settings']) {
       const res = await fetch(`http://127.0.0.1:${server.port}${path}`);
       expect(res.status, path).toBe(200);
       expect(res.headers.get('content-type'), path).toBe('application/json');
@@ -135,7 +130,7 @@ describe('workspace-tools group over the composed listener — served natively',
   });
 
   test('OPTIONS preflight answers 204 on a ported route', async () => {
-    const res = await fetch(`http://127.0.0.1:${server.port}/api/skill-targets`, {
+    const res = await fetch(`http://127.0.0.1:${server.port}/api/saved-themes`, {
       method: 'OPTIONS',
       headers: { Origin: 'http://localhost:5173' },
     });
@@ -144,7 +139,7 @@ describe('workspace-tools group over the composed listener — served natively',
   });
 
   test('any forwarding header trips the proxied-request refusal on a ported route', async () => {
-    const res = await rawRequest(server.port, '/api/skill-targets', {
+    const res = await rawRequest(server.port, '/api/saved-themes', {
       headers: { 'X-Forwarded-For': '203.0.113.7' },
     });
     expect(res.status).toBe(403);
