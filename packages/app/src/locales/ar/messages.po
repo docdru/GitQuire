@@ -3569,9 +3569,6 @@ msgstr "إخفاء اللوحة ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "إخفاء الاستبدال"
 
-msgid "Hide resolved"
-msgstr "إخفاء المحلولة"
-
 msgid "Hide sidebar"
 msgstr "إخفاء الشريط الجانبي"
 
@@ -5841,9 +5838,6 @@ msgstr "خطأ في العرض"
 msgid "Rendered"
 msgstr "معروض"
 
-msgid "Reopen"
-msgstr "إعادة فتح"
-
 msgid "Reopen closed tab"
 msgstr "إعادة فتح التبويب المغلق"
 
@@ -5970,9 +5964,6 @@ msgstr "احسم التعارض في {files} قبل الحذف."
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "احسم التعارض في {files} و{overflow} ملفات أخرى قبل الحذف."
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "يجري حل الفروق"
@@ -6522,9 +6513,6 @@ msgstr "إظهار اللوحة ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "إظهار الاستبدال"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "إظهار الشريط الجانبي"

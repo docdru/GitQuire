@@ -5,9 +5,12 @@ import { serializeCommentTrailer } from '@inkeep/open-knowledge-core/gitquire/co
 import { getSchema } from '@tiptap/core';
 import { EditorState } from '@tiptap/pm/state';
 import { describe, expect, test } from 'vitest';
+import { findQuoteRange } from './anchor-search';
 import {
   anchorFromSelection,
+  canPlaceMark,
   countTrailers,
+  findMarks,
   placeThreads,
   readThreads,
   writeThreads,
@@ -131,8 +134,12 @@ describe('editor storage', () => {
     return EditorState.create({ schema, doc: schema.nodeFromJSON(md.parse(markdown)) });
   }
 
-  function withThreads(state: EditorState, threads: Parameters<typeof writeThreads>[1]) {
-    const tr = writeThreads(state, threads);
+  function withThreads(
+    state: EditorState,
+    threads: Parameters<typeof writeThreads>[1],
+    mark?: Parameters<typeof writeThreads>[2],
+  ) {
+    const tr = writeThreads(state, threads, mark);
     if (tr === undefined) throw new Error('expected a transaction');
     return state.apply(tr);
   }
@@ -194,5 +201,67 @@ describe('editor storage', () => {
     expect(placed?.range).not.toBeNull();
     const range = placed?.range as { from: number; to: number };
     expect(edited.doc.textBetween(range.from, range.to)).toBe(text);
+  });
+
+  function commentOn(state: EditorState, quote: string, body: string) {
+    const range = findQuoteRange(state.doc, quote);
+    if (range === null) throw new Error(`quote not found: ${quote}`);
+    const created = createThread(readThreads(state.doc), { exact: quote }, body, alice);
+    return {
+      thread: created.thread,
+      state: withThreads(state, created.threads, { id: created.thread.id, pos: range.to }),
+    };
+  }
+
+  test('a new comment puts a mark after the passage and highlights from it', () => {
+    const { state, thread } = commentOn(
+      stateFor('The quarterly numbers look good.\n'),
+      'quarterly numbers',
+      'Source?',
+    );
+    expect(md.serialize(state.doc.toJSON()).split('\n')[0]).toBe(
+      `The quarterly numbers[^${thread.id}] look good.`,
+    );
+    const [placed] = placeThreads(state.doc, readThreads(state.doc));
+    expect(placed?.marked).toBe(true);
+    const range = placed?.range as { from: number; to: number };
+    expect(state.doc.textBetween(range.from, range.to)).toBe('quarterly numbers');
+  });
+
+  test('the mark keeps the thread when the passage is reworded, and goes with deleted text', () => {
+    const { state, thread } = commentOn(
+      stateFor('The quarterly numbers look good.\n'),
+      'quarterly numbers',
+      'Source?',
+    );
+    const markPos = findMarks(state.doc).get(thread.id)?.[0] as number;
+    const reworded = state.apply(state.tr.insertText('Q3 figures', 5, markPos));
+    const [placed] = placeThreads(reworded.doc, readThreads(reworded.doc));
+    expect(placed?.range).not.toBeNull();
+    expect(findMarks(reworded.doc).has(thread.id)).toBe(true);
+    const deleted = state.apply(state.tr.delete(1, markPos + 1));
+    expect(findMarks(deleted.doc).has(thread.id)).toBe(false);
+    expect(readThreads(deleted.doc)).toHaveLength(1);
+  });
+
+  test('resolving removes the mark and the thread', () => {
+    const { state, thread } = commentOn(
+      stateFor('The quarterly numbers look good.\n'),
+      'quarterly numbers',
+      'Source?',
+    );
+    const resolved = withThreads(state, setResolved(readThreads(state.doc), thread.id, true));
+    expect(md.serialize(resolved.doc.toJSON())).toBe('The quarterly numbers look good.\n');
+  });
+
+  test('no mark in a heading or in code; the thread is found by its quote', () => {
+    const state = stateFor('# Plan title\n\nSome `inline code` here.\n');
+    const heading = commentOn(state, 'Plan title', 'Title?');
+    expect(findMarks(heading.state.doc).size).toBe(0);
+    expect(
+      placeThreads(heading.state.doc, readThreads(heading.state.doc))[0]?.range,
+    ).not.toBeNull();
+    const code = findQuoteRange(state.doc, 'inline code');
+    expect(code === null ? true : canPlaceMark(state.doc, code.to)).toBe(false);
   });
 });

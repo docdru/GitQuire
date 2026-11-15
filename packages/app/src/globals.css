@@ -4484,6 +4484,20 @@ html [data-editor-file-list-slot] [data-slot="sidebar-inner"] {
   text-decoration: underline;
 }
 
+.gitquire-comment-mark {
+  font-size: 0.7em;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.45em;
+  margin: 0 0.05em;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.8;
+}
+.gitquire-comment-mark:hover {
+  opacity: 1;
+}
+
 /* Counter resets at the editor root so all `.footnote-def` blocks in the
  * document share one auto-numbering sequence (1., 2., 3., …) regardless
  * of their identifier strings. */

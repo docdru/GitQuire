@@ -3569,9 +3569,6 @@ msgstr "패널 숨기기 ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "바꾸기 숨기기"
 
-msgid "Hide resolved"
-msgstr "해결됨 숨기기"
-
 msgid "Hide sidebar"
 msgstr "사이드바 가리기"
 
@@ -5841,9 +5838,6 @@ msgstr "렌더링 오류"
 msgid "Rendered"
 msgstr "렌더링됨"
 
-msgid "Reopen"
-msgstr "다시 열기"
-
 msgid "Reopen closed tab"
 msgstr "닫은 탭 다시 열기"
 
@@ -5970,9 +5964,6 @@ msgstr "삭제하기 전에 {files}의 충돌을 해결하세요."
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "삭제하기 전에 {files}의 충돌을 해결하고, +{overflow}개 항목을 더 처리하세요."
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "델타 해결 중"
@@ -6522,9 +6513,6 @@ msgstr "패널 보기 ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "바꾸기 표시"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "사이드바 표시"

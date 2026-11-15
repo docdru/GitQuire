@@ -3569,9 +3569,6 @@ msgstr "Hide panel ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "Hide replace"
 
-msgid "Hide resolved"
-msgstr "Hide resolved"
-
 msgid "Hide sidebar"
 msgstr "Hide sidebar"
 
@@ -5841,9 +5838,6 @@ msgstr "render error"
 msgid "Rendered"
 msgstr "Rendered"
 
-msgid "Reopen"
-msgstr "Reopen"
-
 msgid "Reopen closed tab"
 msgstr "Reopen closed tab"
 
@@ -5970,9 +5964,6 @@ msgstr "Resolve the conflict on {files} before deleting."
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "Resolve the conflict on {files}, +{overflow} more before deleting."
-
-msgid "Resolved by {resolvedBy}"
-msgstr "Resolved by {resolvedBy}"
 
 msgid "Resolving deltas"
 msgstr "Resolving deltas"
@@ -6522,9 +6513,6 @@ msgstr "Show panel ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "Show replace"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr "Show resolved ({resolvedCount})"
 
 msgid "Show sidebar"
 msgstr "Show sidebar"

@@ -3569,9 +3569,6 @@ msgstr "Ukryj panel ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "Ukryj pole zastępowania"
 
-msgid "Hide resolved"
-msgstr "Ukryj rozwiązane"
-
 msgid "Hide sidebar"
 msgstr "Ukryj panel boczny"
 
@@ -5841,9 +5838,6 @@ msgstr "błąd renderowania"
 msgid "Rendered"
 msgstr "Wyrenderowano"
 
-msgid "Reopen"
-msgstr "Otwórz ponownie"
-
 msgid "Reopen closed tab"
 msgstr "Otwórz ponownie zamkniętą kartę"
 
@@ -5970,9 +5964,6 @@ msgstr "Rozwiąż konflikt dotyczący {files} przed usunięciem."
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "Rozwiąż konflikt dotyczący {files} i jeszcze {overflow} przed usunięciem."
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "Rozwiązywanie delt"
@@ -6522,9 +6513,6 @@ msgstr "Pokaż panel ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "Pokaż pole zamiany"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "Pokaż panel boczny"

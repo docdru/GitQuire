@@ -1,7 +1,7 @@
 import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
-import { Check, MessagesSquare, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
+import { Check, MessagesSquare, Pencil, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { MentionTextarea } from '@/gitquire-people/MentionTextarea';
 import { knownLogins, usePeople } from '@/lib/gitquire/people';
 import { cn } from '@/lib/utils';
 
+import { findQuoteRange } from './anchor-search';
 import { type PlacedThread, placeThreads, readThreads } from './editor-threads';
 import {
   type Author,
@@ -241,13 +242,12 @@ function ThreadCard({
   me: Author | null;
   onSelect: () => void;
   onReply: (body: string) => Promise<void>;
-  onResolve: (resolved: boolean) => void;
+  onResolve: () => void;
   onDelete: (commentId: string) => void;
   onEdit: (commentId: string, body: string) => Promise<void>;
 }) {
   const { t } = useLingui();
   const { thread, range } = placed;
-  const resolvedBy = thread.resolvedBy;
   const [reply, setReply] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -267,7 +267,6 @@ function ThreadCard({
       className={cn(
         'flex flex-col gap-3 rounded-lg border p-3',
         active && 'border-warning shadow-sm',
-        thread.resolved && 'opacity-70',
       )}
       data-discussion-thread={thread.id}
     >
@@ -293,9 +292,6 @@ function ThreadCard({
           />
         ))}
       </div>
-      {thread.resolved && resolvedBy !== undefined && (
-        <p className="text-muted-foreground text-xs">{t`Resolved by ${resolvedBy}`}</p>
-      )}
       {active && (
         <div className="flex flex-col gap-2">
           <MentionTextarea
@@ -309,14 +305,9 @@ function ThreadCard({
             }}
           />
           <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => onResolve(!thread.resolved)}
-            >
-              {thread.resolved ? <RotateCcw aria-hidden="true" /> : <Check aria-hidden="true" />}
-              {thread.resolved ? t`Reopen` : t`Resolve`}
+            <Button type="button" size="sm" variant="ghost" onClick={onResolve}>
+              <Check aria-hidden="true" />
+              {t`Resolve`}
             </Button>
             <Button type="button" size="sm" disabled={reply.trim() === '' || busy} onClick={send}>
               {t`Reply`}
@@ -334,10 +325,9 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   const threads = useThreads(editor);
   const [me, setMe] = useState<Author | null>(null);
   const [draftBody, setDraftBody] = useState('');
-  const [showResolved, setShowResolved] = useState(false);
 
   const isOpen = ui.open && ui.docName === docName;
-  const openCount = threads.filter((thread) => !thread.resolved).length;
+  const openCount = threads.length;
 
   useEffect(() => {
     if (!isOpen || me !== null) return;
@@ -381,7 +371,12 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       return;
     }
     const created = createThread(readThreads(editor.state.doc), draft.anchor, body, ctx);
-    if (!writeAndTrack(editor, created.threads)) return;
+    const range = findQuoteRange(editor.state.doc, draft.anchor.exact, {
+      prefix: draft.anchor.prefix,
+      suffix: draft.anchor.suffix,
+    });
+    const mark = range === null ? undefined : { id: created.thread.id, pos: range.to };
+    if (!writeAndTrack(editor, created.threads, mark)) return;
     setDraftBody('');
     clearDraft();
     setActiveThread(created.thread.id);
@@ -391,8 +386,8 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     return run((current, ctx) => addReply(current, threadId, body, ctx));
   }
 
-  function resolve(threadId: string, resolved: boolean) {
-    run((current) => setResolved(current, threadId, resolved)).catch(ignore);
+  function resolve(threadId: string) {
+    run((current) => setResolved(current, threadId, true)).catch(ignore);
   }
 
   function remove(threadId: string, commentId: string) {
@@ -434,10 +429,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   }
 
   const placed = placeThreads(editor.state.doc, [...threads].sort(compareThreads));
-  const visible = placed.filter(
-    (p) => showResolved || !p.thread.resolved || p.thread.id === ui.activeThreadId,
-  );
-  const resolvedCount = threads.length - openCount;
+  const visible = placed;
 
   return (
     <aside className={PANEL_CLASS} aria-label={t`Comments`} data-testid="discussion-panel">
@@ -500,23 +492,12 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
               me={me}
               onSelect={() => select(p)}
               onReply={(body) => replyTo(p.thread.id, body)}
-              onResolve={(resolved) => resolve(p.thread.id, resolved)}
+              onResolve={() => resolve(p.thread.id)}
               onDelete={(commentId) => remove(p.thread.id, commentId)}
               onEdit={(commentId, body) => edit(p.thread.id, commentId, body)}
             />
           ))}
         </ul>
-        {resolvedCount > 0 && (
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="self-start"
-            onClick={() => setShowResolved(!showResolved)}
-          >
-            {showResolved ? t`Hide resolved` : t`Show resolved (${resolvedCount})`}
-          </Button>
-        )}
       </div>
     </aside>
   );
