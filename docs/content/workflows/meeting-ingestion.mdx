@@ -11,7 +11,7 @@ Meetings live in a `meetings/` folder. Any project can have one. The [Entity vau
 There are two ways to get meetings in:
 
 - **On demand.** You ask, the agent writes. Works in any editor, no extra infrastructure.
-- **Automatically.** A schedule or a webhook asks for you, so meetings appear on their own. Schedules run from your agent's own scheduler (Claude Code, Codex) or the [OpenClaw](../integrations/openclaw.mdx) gateway; webhooks route through the gateway.
+- **Automatically.** A schedule or a webhook asks for you, so meetings appear on their own. Schedules run from your agent's own scheduler (Claude Code, Codex) or the [OpenClaw](../gitquire/connect-ai.mdx) gateway; webhooks route through the gateway.
 
 Both write the same doc, into the same folder, using the same addressing rule below.
 
@@ -65,9 +65,9 @@ Schedule the on-demand flow in whatever scheduler your agent already has. This p
 Pull meetings from the recorder MCP since the last run. Write each new one into the meetings/ folder of this project, addressed as meetings/<source>-<source_meeting_id> so re-runs update in place. Do not duplicate meetings already present.
 ```
 
-- **Claude Code.** Three tiers, from a local desktop task to a cloud routine that runs with your machine off. Each reaches a different set of files and MCP servers: [Scheduled runs](../integrations/claude-code.mdx#scheduled-runs).
-- **Codex.** The ChatGPT desktop app schedules it; Codex CLI runs it from OS cron: [Scheduled runs](../integrations/codex.mdx#scheduled-runs).
-- **[OpenClaw](../integrations/openclaw.mdx).** The gateway has a built-in scheduler. Register both MCP servers with it, `open-knowledge` via `ok init` and your recorder's MCP per the vendor's install guide, then create one cron job that wakes an agent with the prompt above:
+- **Claude Code.** Three tiers, from a local desktop task to a cloud routine that runs with your machine off. Each reaches a different set of files and MCP servers: [Scheduled runs](../gitquire/connect-ai.mdx).
+- **Codex.** The ChatGPT desktop app schedules it; Codex CLI runs it from OS cron: [Scheduled runs](../gitquire/connect-ai.mdx).
+- **[OpenClaw](../gitquire/connect-ai.mdx).** The gateway has a built-in scheduler. Register both MCP servers with it, `open-knowledge` via `ok init` and your recorder's MCP per the vendor's install guide, then create one cron job that wakes an agent with the prompt above:
 
 ```bash
 openclaw cron create "*/30 * * * *" \
@@ -81,7 +81,7 @@ Polling works for every recorder, including Granola, which has no native webhook
 
 ## Automatically, on an event
 
-If you want lower latency than a poll, the gateway can run the same agent the moment something happens. The wiring (hooks config, endpoints, auth) lives in [trigger runs from external events](../integrations/openclaw.mdx#trigger-runs-from-external-events).
+If you want lower latency than a poll, the gateway can run the same agent the moment something happens. The wiring (hooks config, endpoints, auth) lives in [trigger runs from external events](../gitquire/connect-ai.mdx).
 
 Choosing which event to send matters more than the plumbing, because the two moments are different jobs:
 

@@ -1,12 +1,4 @@
-import {
-  chmodSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { isLockProcessRunning, readProcessState } from '@inkeep/open-knowledge-server';
@@ -17,7 +9,6 @@ import { inspectLock } from './lock-state.ts';
 import { runPs } from './ps.ts';
 import { buildStatusReport, renderStatusText } from './status.ts';
 import { runStop } from './stop.ts';
-import { stopServerForRemoval } from './stop-for-removal.ts';
 
 let project: string;
 let lockDir: string;
@@ -141,36 +132,6 @@ test('stop never signals an unverified owner even with force', async () => {
   });
   expect(kill).not.toHaveBeenCalled();
   expect(outcome.stopped).toEqual([]);
-});
-
-test('global-only cleanup retains an unattributed live PID lock and reports its evidence', async () => {
-  const outcome = await stopServerForRemoval(lockDir, {
-    preserveProjectState: true,
-    isAlive: () => true,
-    scanProcesses: async () => ({ candidates: [], unavailable: [] }),
-  });
-  expect(outcome).toMatchObject({
-    stopped: 0,
-    failed: [],
-    skipped: expect.stringContaining('unverified owner'),
-  });
-  expect(outcome.skipped).toContain('process 4242');
-  expect(outcome.skipped).toContain('could not attribute');
-  expect(readFileSync(lockPath, 'utf8')).toBe(raw);
-});
-
-test('global-only cleanup still refuses an associated live server candidate', async () => {
-  await expect(
-    stopServerForRemoval(lockDir, {
-      preserveProjectState: true,
-      isAlive: () => true,
-      scanProcesses: async () => ({
-        candidates: [{ lockDir: realpathSync(lockDir), pid: 4242, source: 'process-cwd' }],
-        unavailable: [],
-      }),
-    }),
-  ).rejects.toThrow('unverified');
-  expect(readFileSync(lockPath, 'utf8')).toBe(raw);
 });
 
 test.skipIf(process.platform === 'win32')(

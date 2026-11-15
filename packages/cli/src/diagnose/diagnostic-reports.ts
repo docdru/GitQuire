@@ -1,6 +1,7 @@
 import { closeSync, type Dirent, openSync, readdirSync, readSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { DESKTOP_PRODUCT_NAME } from '../integrations/desktop-state.ts';
+
+const DESKTOP_PRODUCT_NAME = 'OpenKnowledge';
 
 export const DIAGNOSTIC_REPORT_WINDOW_DAYS = 7;
 const DIAGNOSTIC_REPORT_WINDOW_MS = DIAGNOSTIC_REPORT_WINDOW_DAYS * 24 * 60 * 60 * 1000;

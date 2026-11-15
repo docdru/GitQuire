@@ -27,7 +27,7 @@ function readExclude(dir: string): string {
   return readFileSync(join(dir, '.git', 'info', 'exclude'), 'utf-8');
 }
 
-function writeExclude(dir: string, content: string): void {
+function _writeExclude(dir: string, content: string): void {
   writeFileSync(join(dir, '.git', 'info', 'exclude'), content, 'utf-8');
 }
 
@@ -70,15 +70,13 @@ describe('ok config-sharing unshare → share round-trip', () => {
     process.exitCode = 0;
   });
 
-  it('unshare appends OK artifact paths to .git/info/exclude (8 paths in default repo)', async () => {
+  it('unshare appends OK artifact paths to .git/info/exclude', async () => {
     await capture(async () => {
       await sharingUnshareCommand().parseAsync(['node', 'unshare', '--project', dir]);
     });
     const exclude = readExclude(dir);
     expect(exclude).toContain('.ok/');
-    expect(exclude).toContain('.mcp.json');
-    expect(exclude).toContain('.claude/launch.json');
-    expect(exclude).not.toContain('.claude/skills/open-knowledge/');
+    expect(exclude).toContain('.okignore');
     expect(process.exitCode).not.toBe(1);
   });
 
@@ -117,55 +115,6 @@ describe('ok config-sharing unshare → share round-trip', () => {
   });
 });
 
-describe('draining a stale skill exclude is reported, never silently written', () => {
-  let dir: string;
-  beforeEach(() => {
-    dir = uniqueDir('sharing-drain-test');
-    initGitRepo(dir);
-    mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
-    writeFileSync(
-      join(dir, '.ok', 'local', 'installed-skills.json'),
-      JSON.stringify({
-        schema: 1,
-        skills: {
-          'trip-log': {
-            hosts: ['claude'],
-            scope: 'project',
-            scripts: false,
-            installedAt: '2026-06-05T00:00:00.000Z',
-          },
-        },
-      }),
-      'utf-8',
-    );
-  });
-  afterEach(() => {
-    rmSync(dir, { recursive: true, force: true });
-    process.exitCode = 0;
-  });
-
-  it('unshare that BOTH appends and drains reports both halves', async () => {
-    writeExclude(dir, '.ok/\n.claude/skills/trip-log/\n');
-    const { stderr } = await capture(async () => {
-      await sharingUnshareCommand().parseAsync(['node', 'unshare', '--project', dir]);
-    });
-    expect(stderr).toMatch(/Added \d+ path\(s\)/);
-    expect(stderr).toContain('.claude/skills/trip-log/');
-    expect(stderr).toMatch(/stale entry/);
-    expect(readExclude(dir)).not.toContain('.claude/skills/trip-log/');
-  });
-
-  it('share on an already-shared project that still drains does not claim "nothing to do"', async () => {
-    writeExclude(dir, '.claude/skills/trip-log/\n');
-    const { stderr } = await capture(async () => {
-      await sharingShareCommand().parseAsync(['node', 'share', '--project', dir]);
-    });
-    expect(stderr).not.toMatch(/nothing to do/);
-    expect(stderr).toContain('.claude/skills/trip-log/');
-    expect(readExclude(dir)).not.toContain('.claude/skills/trip-log/');
-  });
-});
-
 describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
   let dir: string;
   beforeEach(() => {
@@ -178,8 +127,8 @@ describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
   });
 
   it('refuses with exit code 1 and a remediation message when an OK path is tracked upstream', async () => {
-    writeFileSync(join(dir, '.mcp.json'), '{}', 'utf-8');
-    execFileSync('git', ['add', '.mcp.json'], { cwd: dir });
+    writeFileSync(join(dir, '.okignore'), 'drafts/\n', 'utf-8');
+    execFileSync('git', ['add', '.okignore'], { cwd: dir });
     execFileSync('git', ['commit', '-m', 'add mcp'], {
       cwd: dir,
       stdio: ['ignore', 'ignore', 'ignore'],
@@ -190,17 +139,17 @@ describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
     });
     expect(process.exitCode).toBe(1);
     expect(stderr).toContain('Cannot switch GitQuire to local-only');
-    expect(stderr).toContain('git rm --cached -- .mcp.json');
+    expect(stderr).toContain('git rm --cached -- .okignore');
     expect(stderr).toContain('your teammates will see a deletion on their next pull');
 
     const after = readExclude(dir);
     expect(after).not.toContain('.ok/');
-    expect(after).not.toContain('.mcp.json');
+    expect(after).not.toContain('.okignore');
   });
 
   it('JSON form emits a refused-tracked report on stdout (no stderr)', async () => {
-    writeFileSync(join(dir, '.mcp.json'), '{}', 'utf-8');
-    execFileSync('git', ['add', '.mcp.json'], { cwd: dir });
+    writeFileSync(join(dir, '.okignore'), 'drafts/\n', 'utf-8');
+    execFileSync('git', ['add', '.okignore'], { cwd: dir });
     execFileSync('git', ['commit', '-m', 'add mcp'], {
       cwd: dir,
       stdio: ['ignore', 'ignore', 'ignore'],
@@ -213,19 +162,19 @@ describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
     expect(parsed).toMatchObject({
       type: 'sharing-unshare',
       mode: 'refused-tracked',
-      tracked: ['.mcp.json'],
+      tracked: ['.okignore'],
     });
     expect(typeof parsed.remediation).toBe('string');
   });
 
   it('proceeds after the user runs `git rm --cached` on the tracked path (recovery path)', async () => {
-    writeFileSync(join(dir, '.mcp.json'), '{}', 'utf-8');
-    execFileSync('git', ['add', '.mcp.json'], { cwd: dir });
+    writeFileSync(join(dir, '.okignore'), 'drafts/\n', 'utf-8');
+    execFileSync('git', ['add', '.okignore'], { cwd: dir });
     execFileSync('git', ['commit', '-m', 'add mcp'], {
       cwd: dir,
       stdio: ['ignore', 'ignore', 'ignore'],
     });
-    execFileSync('git', ['rm', '--cached', '.mcp.json'], {
+    execFileSync('git', ['rm', '--cached', '.okignore'], {
       cwd: dir,
       stdio: ['ignore', 'ignore', 'ignore'],
     });
@@ -234,7 +183,7 @@ describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
       await sharingUnshareCommand().parseAsync(['node', 'unshare', '--project', dir]);
     });
     expect(process.exitCode).not.toBe(1);
-    expect(readExclude(dir)).toContain('.mcp.json');
+    expect(readExclude(dir)).toContain('.okignore');
     expect(readExclude(dir)).toContain('.ok/');
   });
 });
@@ -273,8 +222,8 @@ describe('ok config-sharing status', () => {
   });
 
   it('lists tracked-upstream OK paths when present', async () => {
-    writeFileSync(join(dir, '.mcp.json'), '{}', 'utf-8');
-    execFileSync('git', ['add', '.mcp.json'], { cwd: dir });
+    writeFileSync(join(dir, '.okignore'), 'drafts/\n', 'utf-8');
+    execFileSync('git', ['add', '.okignore'], { cwd: dir });
     execFileSync('git', ['commit', '-m', 'add mcp'], {
       cwd: dir,
       stdio: ['ignore', 'ignore', 'ignore'],
@@ -283,7 +232,7 @@ describe('ok config-sharing status', () => {
       await sharingStatusCommand().parseAsync(['node', 'status', '--project', dir, '--json']);
     });
     const parsed = JSON.parse(stdout.trim());
-    expect(parsed.trackedUpstream).toEqual(['.mcp.json']);
+    expect(parsed.trackedUpstream).toEqual(['.okignore']);
   });
 
   it('reports `no-git` for a non-git directory', async () => {

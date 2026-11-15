@@ -27,22 +27,18 @@ npm install -g @inkeep/open-knowledge
 
 ## Set up a project
 
-Run `ok init` in any folder to turn it into a GitQuire project. It scaffolds a `.ok/` directory and registers the GitQuire MCP server with the AI editors it detects on your machine (Claude Code, Claude Desktop, Cursor, Codex, OpenCode, OpenClaw, Pi, Antigravity, LM Studio, Hermes). It only ever adds its own entry — your other settings, comments, and formatting are left untouched.
+Run `ok init` in any folder to turn it into a GitQuire project. It scaffolds a `.ok/` directory and leaves your editors and their settings alone: AI assistants reach the wiki through the server's `/mcp` endpoint (see [Connect AI](/docs/gitquire/connect-ai)).
 
 ```bash
 cd my-project
 ok init
 ```
 
-`ok init` asks two questions: where to register the MCP server (user-level, project-level, or both) and whether to share the GitQuire config files with your team (committed alongside your content) or keep them local to this machine.
+`ok init` asks whether to share the GitQuire config files with your team (committed alongside your content) or keep them local to this machine. `--shared` and `--local-only` answer that question up front.
 
-In a sub-folder of a git repo, `ok init` sets the project up at the git root — one `.ok/` per repo — and the whole repo becomes the content scope. Pass `--content-dir <dir>` to limit content to one folder (`ok init --content-dir .` scopes it to the folder you run in); the choice is saved as `content.dir` in `.ok/config.yml`. For scripts, `--json` prints a structured JSON summary. `ok init` also installs the user-global `open-knowledge-discovery` skill, the same one the desktop's first launch offers, unless you uninstalled it in **Settings → Skills Studio**; `--skills discovery,write-skill` adds the authoring skill, and `--no-skills` installs none on that run. `open-knowledge-write-skill` is otherwise one click away in **Settings → Skills Studio**.
+In a sub-folder of a git repo, `ok init` sets the project up at the git root — one `.ok/` per repo — and the whole repo becomes the content scope. Pass `--content-dir <dir>` to limit content to one folder (`ok init --content-dir .` scopes it to the folder you run in); the choice is saved as `content.dir` in `.ok/config.yml`. For scripts, `--json` prints a structured JSON summary.
 
-`ok init` refuses to set up a project in your home directory or at the top of a drive (`/`, `C:\`, a network share root) and exits with status 64. Make a folder for the project and run it there. The desktop app's **Open folder** refuses the same folders, plus system folders such as `/usr` or `C:\Windows`.
-
-<Callout type="info" title="If an editor shows “left unchanged”">
-  GitQuire prints `left unchanged (<reason>)` when it cannot safely read or update an editor's config. This can mean a permission problem, a path that is not a regular file, invalid JSON/TOML/YAML, duplicate MCP server blocks, or an unusually large file. The config stays **byte-for-byte untouched**. Follow the printed reason and then re-run `ok init`. Correct permissions or the path for an access failure, or repair syntax for a parse failure. For `no format-preserving writer available`, reinstall GitQuire to restore its TOML writer, or add the MCP entry manually as described in the [Codex integration guide](/docs/integrations/codex#verify).
-</Callout>
+`ok init` refuses to set up a project in your home directory or at the top of a drive (`/`, `C:\`, a network share root) and exits with status 64. Make a folder for the project and run it there.
 
 Once you have initialized your project, launch the app in your browser:
 
@@ -185,8 +181,6 @@ Serve this project's web UI and `/mcp` endpoint to your other devices through an
 | `ok migrate notion <dir>` | Clean up a Notion export in place, dry-run unless `--apply` (see [migrating from Notion](/docs/migrate/notion)) |
 | `ok config validate` | Validate the merged config (defaults → user → project) |
 | `ok config migrate` | Remove keys the schema no longer reads from your config files (`--dry-run` to preview; `--scope` to narrow — defaults to every layer) |
-| `ok skills installed` | List every skill installed across your agents (read-only, cross-harness) |
-| `ok skills import <source>` | Import a skill as versioned content from skills.sh, a GitHub `owner/repo`, a git URL, or a local path |
 | `ok bug-report` | Package a support bundle — recent app logs, the project's server logs and lock diagnostics, and system info — as an auto-redacted zip under `~/.ok/bug-reports/` (`~/.ok-beta/bug-reports/` for `ok-beta`), revealed in your file manager when it's done (`--no-reveal` to skip). Collects the same `standard` set as the desktop app's **Help → Report a bug…**; `ok diagnose bundle` produces the `full` superset (telemetry spans, live server state) into the project's `.ok/local/diagnostics/` |
 
 ## Global flags
@@ -195,28 +189,8 @@ Every command takes `--cwd <path>` to run from another directory, `--log-level <
 
 ## Commands that run for you
 
-The rest of the CLI exists mostly for tooling and automation. Your AI editor spawns `ok mcp` to talk to the knowledge base. `ok start` repairs existing editor connection settings; it leaves installed editor skills alone. Run `ok repair-skills` explicitly to restore missing project skill copies and repair user-global bundles. To update an existing project skill, follow [Refresh agent guidance](./mcp.mdx#refresh-agent-guidance). `ok diagnose` and `ok bug-report` produce support bundles when something goes wrong. Run `ok --help` for an overview of all commands.
+The rest of the CLI exists mostly for tooling and automation. `ok diagnose` and `ok bug-report` produce support bundles when something goes wrong. Run `ok --help` for an overview of all commands.
 
-## Remove GitQuire
+## Remove GitQuire from a project
 
-`ok deinit [path]` reverses `ok init` for one project: it removes the project's `.ok/` directory, GitQuire's editor MCP entries, its own git-exclude lines, and shadow repo, leaving your markdown untouched. Shared editor settings and their symlinks are preserved; ignore rules for shared config files stay while those files still exist. User-level project diagnostics remain under `~/.ok/logs/projects/<project-hash>/`. Later server starts with local diagnostic sinks enabled can reclaim inactive directories older than seven days; disabling the sinks does not erase existing files.
-
-When `path` is omitted, `ok deinit` targets the enclosing project. An explicit path resolves from where the command runs, honoring `--cwd`. From a subdirectory, `ok deinit` selects the enclosing project while `ok deinit .` selects that subdirectory instead.
-
-`ok uninstall` removes the global footprint: running servers, credentials, the PATH shim, GitQuire's editor MCP entries and bundled skills, app data, and `~/.ok`. It keeps the `~/.ok` entries every product shares: `~/.ok/machine-id`, the user skills store `~/.ok/skills`, `~/.ok/skills-lock.json`, the Global-scope skill bookkeeping in `~/.ok/local/installed-skills.json`, `~/.ok/local/skill-placements.json`, and `~/.ok/local/skill-move-retained.json`, plus the shared ownership registry `~/.ok/local/server-authority.sqlite`, its `-journal` file, and `~/.ok/local/server-authority-leases/`. These coordination files stay even with `--purge-content`. It removes only the running product's footprint: `ok-beta uninstall` removes `~/.ok-beta` and Beta's credentials and leaves Stable's `~/.ok` alone. No product's uninstall removes `~/.ok/machine-id`. With `--purge-content`, either product also removes the shared `~/.ok/skills`, unless an earlier uninstall step failed. See [Stable and Beta home folders](/docs/reference/what-gitquire-writes#stable-and-beta-home-folders). Your markdown and other skills in your editors' skill directories stay. An interactive run lets you select projects to deinitialize; `--yes` removes only the global footprint unless you also pass `--all-projects`, which covers current, recent, and discovered running projects. The CLI binary stays installed; the command ends by printing how to remove it (`npm uninstall -g @inkeep/open-knowledge` for the install above).
-
-Both `ok deinit` and `ok uninstall` wait for servers to exit before deleting their state. If a server cannot be safely stopped or an integration cannot be cleaned up, the command reports the problem and retains state needed for repair and retry. Applied cleanup exits `1` when anything remains unresolved. With `--yes --json`, inspect `failed[]` for those items and their reasons; `skipped[]` covers intentionally preserved entries. Repair the reported problem and rerun the command.
-
-Removal checks a server more strictly than `ok stop` when its lock is from this machine and records no process start. `ok deinit` and `ok uninstall`, including the `ok uninstall --yes` that the macOS app's **Uninstall GitQuire** command runs, refuse a process that started after the lock's `startedAt` at all, even one that did not start "well after" it as [Manage local servers](#manage-local-servers) defines that term: more than 10 seconds on macOS and Windows, more than 5 minutes on Linux. The refusal says the process "started after the server lock" and "was not signalled". Confirm that the process it names is a GitQuire server before ending it yourself, then, once no GitQuire server is running for the project, remove the lock file the refusal names and rerun.
-
-On Windows, confirming that a running server really is the process the lock names uses GitQuire's bundled native component. Removal refuses rather than signalling a process it has not identified, and the refusal names which of two things went wrong. If the component could not be loaded, reinstalling GitQuire restores it — the same remedy as for [its TOML writer](#set-up-a-project). If the component loaded but Windows refused the query, reinstalling will not help: that is usually a permissions difference, so rerun from an account that can inspect the server process. Either way you can instead check whether the process is a GitQuire server and, if it is, stop it yourself; once no GitQuire server is running for the project, remove the lock file the refusal names, then rerun. The failure detail itself is recorded in `~/.ok/logs` (`~/.ok-beta/logs` for `ok-beta`), not printed.
-
-`ok deinit` needs the project's `.ok/` directory; once that directory is gone, it reports nothing to remove. Remove any retained Pi trust entry manually using its reported exact key and file, as described in [installation details](./what-gitquire-writes.mdx#pi-folder-trust).
-
-Malformed filesystem residue does not by itself establish a running server. Cleanup can skip it after process and listener inspection succeeds and finds no associated live candidate. A read failure, incomplete inspection, or associated live server remains a blocker. A process that has exited is not a live server, and its unreadable working directory does not make the inspection incomplete, even while the process lingers as a defunct entry in the process table. Global-only uninstall can retain foreign-owned or ownership-unverified project state after the same local inspection; selecting project deinitialization keeps those ownership checks strict. Dead PID-only locks are recoverable. Human output lists root blockers once; JSON `failed[]` includes both direct failures and blocked dependent operations, with `blocked[]` providing the dependent subset.
-
-Without `--yes`, both commands print their plan and ask before acting; `--yes` skips both the plan and the question. `--dry-run` previews without changing anything. Once `ok uninstall` has finished successfully, an interactive run also asks one optional question about why you're leaving — you can skip it, and `--yes`, `--json`, and non-interactive runs never ask. Anything you do answer is [sent to us](/docs/reference/what-gitquire-writes#what-leaves-your-machine).
-
-On the macOS desktop app, **App menu → Uninstall GitQuire…** lets you choose projects to deinitialize, confirm removal, and answer or skip the optional "why are you leaving?" screen. The progress window stays visible while the original app quits and cleanup runs, so shutdown cannot recreate its settings. The same window then reports the result: successful cleanup guides you through dragging the app to the Trash; incomplete cleanup points to a retained log so you can repair the problem and retry.
-
-To remove the desktop app on the other platforms: on **Windows**, uninstall GitQuire from **Settings → Apps → Installed apps**; on **Linux**, remove the package with your package manager. `ok uninstall` prints the command for the package that is actually installed. Both the deb and the rpm are named `openknowledge` for Stable and `openknowledge-beta` for Beta: `sudo apt remove openknowledge` on Debian/Ubuntu, `sudo dnf remove openknowledge` on Fedora/RHEL, `sudo zypper remove openknowledge` on openSUSE. An install that has not yet updated to the renamed package keeps its earlier name: `OpenKnowledge` for the Stable rpm and `openknowledge-beta-desktop` for the Beta deb and rpm (the Stable deb was always `openknowledge`). Run `ok uninstall` first if you also want the rest of the footprint cleaned up — it works the same on every platform.
+Delete the project's `.ok/` directory (and `.okignore`, if you added one); your Markdown stays as it is. If the project was set up as local-only, also remove the `.ok/` and `.okignore` lines GitQuire added to `.git/info/exclude`.

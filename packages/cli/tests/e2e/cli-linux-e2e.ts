@@ -14,8 +14,6 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getMachineId } from '@inkeep/open-knowledge-server';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { afterAll, beforeAll, describe, expect, onTestFinished, test } from 'vitest';
 import {
   legacyServerLock,
@@ -37,7 +35,7 @@ const NODE = process.execPath.includes('bun') ? 'node' : process.execPath;
 const SUT_MODE = process.env.OK_E2E_SUT === 'workspace' ? 'workspace' : 'packed';
 const LOCKED_PACKED_INSTALL =
   SUT_MODE === 'packed' && (process.env.OK_CLI_E2E_INSTALL_MODE ?? 'locked') === 'locked';
-const HERMETIC_ENV = { OK_BUNDLE_PROXY: '0' } as const;
+const HERMETIC_ENV = {} as const;
 const START_PORT = Number(process.env.OK_E2E_PORT ?? 13581);
 
 type Acquisition = Awaited<ReturnType<typeof installPackedCli>>['acquisition'];
@@ -415,176 +413,6 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
     const reachable = await waitFor(() => tcpReachable(port as number), { timeoutMs: 15_000 });
     expect(reachable, 'server port never accepted a TCP connection').toBe(true);
   }, 70_000);
-
-  test('4. ok mcp answers a stdio round-trip: tools/list + exec + write + read-back', async () => {
-    const transport = new StdioClientTransport({
-      command: NODE,
-      args: [H.cliPath, 'mcp'],
-      cwd: H.contentDir,
-      env: { ...process.env, ...HERMETIC_ENV } as Record<string, string>,
-    });
-    const client = new Client({ name: 'ok-e2e', version: '0.0.0' });
-    try {
-      await client.connect(transport);
-
-      const tools = await client.listTools();
-      const names = new Set(tools.tools.map((t) => t.name));
-      for (const required of ['exec', 'search', 'write', 'edit']) {
-        expect(names.has(required), `MCP tool "${required}" missing`).toBe(true);
-      }
-
-      const marker = `e2e-marker-${START_PORT}`;
-      const writeRes = (await client.callTool({
-        name: 'write',
-        arguments: {
-          cwd: H.contentDir,
-          document: { path: 'e2e/smoke', content: `# Smoke\n\n${marker}\n` },
-        },
-      })) as { isError?: boolean };
-      expect(writeRes.isError ?? false).toBe(false);
-
-      const catRes = (await client.callTool({
-        name: 'exec',
-        arguments: { command: 'cat e2e/smoke.md', cwd: H.contentDir },
-      })) as { isError?: boolean; content?: Array<{ type: string; text?: string }> };
-      expect(catRes.isError ?? false).toBe(false);
-      const catText = (catRes.content ?? []).map((c) => c.text ?? '').join('\n');
-      expect(catText).toContain(marker);
-    } finally {
-      await client.close().catch(() => {});
-    }
-  }, 60_000);
-
-  test('4b. bundled mermaid validator emits renderWarnings through the packed bin', async () => {
-    const transport = new StdioClientTransport({
-      command: NODE,
-      args: [H.cliPath, 'mcp'],
-      cwd: H.contentDir,
-      env: { ...process.env, ...HERMETIC_ENV } as Record<string, string>,
-    });
-    const client = new Client({ name: 'ok-e2e-mermaid', version: '0.0.0' });
-    try {
-      await client.connect(transport);
-      const writeRes = (await client.callTool({
-        name: 'write',
-        arguments: {
-          cwd: H.contentDir,
-          document: {
-            path: 'e2e/mermaid-smoke',
-            content: '# Smoke\n\n```mermaid\nsequenceDiagram\n  A->>B: hi; there\n```\n',
-          },
-        },
-      })) as {
-        isError?: boolean;
-        content?: Array<{ type: string; text?: string }>;
-        structuredContent?: {
-          document?: {
-            warnings?: Array<{ kind: string; fenceIndex: number; message: string }>;
-          };
-        };
-      };
-      expect(writeRes.isError ?? false).toBe(false);
-      const warnings = writeRes.structuredContent?.document?.warnings;
-      expect(warnings, 'warnings missing from packed-bin write response').toBeDefined();
-      expect(warnings?.[0]?.kind).toBe('mermaid-parse-error');
-      expect(warnings?.[0]?.message).toContain('Parse error');
-      const text = (writeRes.content ?? []).map((c) => c.text ?? '').join('\n');
-      expect(text).toContain('⚠');
-      expect(text).toContain('will not render');
-
-      const editRes = (await client.callTool({
-        name: 'edit',
-        arguments: {
-          cwd: H.contentDir,
-          document: { path: 'e2e/mermaid-smoke', find: '# Smoke', replace: '# Smoke (edited)' },
-        },
-      })) as {
-        isError?: boolean;
-        content?: Array<{ type: string; text?: string }>;
-        structuredContent?: { document?: { warnings?: Array<{ kind: string }> } };
-      };
-      expect(editRes.isError ?? false).toBe(false);
-      expect(editRes.structuredContent?.document?.warnings?.[0]?.kind).toBe('mermaid-parse-error');
-      const editText = (editRes.content ?? []).map((c) => c.text ?? '').join('\n');
-      expect(editText).toContain('will not render');
-
-      const validRes = (await client.callTool({
-        name: 'write',
-        arguments: {
-          cwd: H.contentDir,
-          document: {
-            path: 'e2e/mermaid-smoke-valid',
-            content: '```mermaid\ngraph LR\n  A-->B\n```\n',
-          },
-        },
-      })) as {
-        isError?: boolean;
-        structuredContent?: { document?: { warnings?: unknown } };
-      };
-      expect(validRes.isError ?? false).toBe(false);
-      expect(validRes.structuredContent?.document?.warnings).toBeUndefined();
-
-      const batchRes = (await client.callTool({
-        name: 'write',
-        arguments: {
-          cwd: H.contentDir,
-          documents: [
-            { path: 'e2e/mermaid-batch-ok', content: '```mermaid\ngraph LR\n  A-->B\n```\n' },
-            {
-              path: 'e2e/mermaid-batch-bad',
-              content: '```mermaid\nsequenceDiagram\n  A->>B: x; y\n```\n',
-            },
-          ],
-        },
-      })) as {
-        isError?: boolean;
-        structuredContent?: {
-          documents?: Array<{ docName: string; warnings?: Array<{ kind: string }> }>;
-        };
-      };
-      expect(batchRes.isError ?? false).toBe(false);
-      const batchDocs = batchRes.structuredContent?.documents ?? [];
-      expect(batchDocs).toHaveLength(2);
-      expect(batchDocs[0]?.warnings).toBeUndefined();
-      expect(batchDocs[1]?.warnings?.[0]?.kind).toBe('mermaid-parse-error');
-    } finally {
-      await client.close().catch(() => {});
-    }
-  }, 60_000);
-
-  test('5. file-watcher ingests an external disk write (inotify on Linux)', async () => {
-    const marker = `okwatchprobe${START_PORT}`;
-    writeFileSync(
-      join(H.contentDir, `${marker}.md`),
-      `---\ntitle: Watcher Probe\n---\n\n# Watcher Probe\n\n${marker} body sentinel\n`,
-    );
-
-    const transport = new StdioClientTransport({
-      command: NODE,
-      args: [H.cliPath, 'mcp'],
-      cwd: H.contentDir,
-      env: { ...process.env, ...HERMETIC_ENV } as Record<string, string>,
-    });
-    const client = new Client({ name: 'ok-e2e-watch', version: '0.0.0' });
-    try {
-      await client.connect(transport);
-      const found = await waitFor(
-        async () => {
-          const res = (await client.callTool({
-            name: 'search',
-            arguments: { query: marker, cwd: H.contentDir },
-          })) as { isError?: boolean; content?: Array<{ type: string; text?: string }> };
-          if (res.isError) return false;
-          const text = (res.content ?? []).map((c) => c.text ?? '').join('\n');
-          return text.includes(marker);
-        },
-        { timeoutMs: 20_000, intervalMs: 500 },
-      );
-      expect(found, 'file-watcher never surfaced the disk-dropped doc via search').toBe(true);
-    } finally {
-      await client.close().catch(() => {});
-    }
-  }, 40_000);
 
   test('6. keyring resolves without hanging and `ok auth status` names the backend', () => {
     const headlessEnv = { DBUS_SESSION_BUS_ADDRESS: '', XDG_RUNTIME_DIR: '' };

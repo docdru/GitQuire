@@ -128,7 +128,7 @@ When you initialize or open a project, the app scaffolds the same project files 
 | `.ok/.gitignore` | Keeps machine-local runtime state (`local/`, `principal.json`, `server.lock`, …) out of git | In-project, committed |
 | `.okignore` | Paths excluded from the editor, search, and agents — see [Ignore patterns](../features/ignore-patterns.mdx) | In-project, committed |
 | `.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `opencode.json` | Project-scoped MCP registration for the four MCP-capable project editors (Claude, Cursor, Codex, OpenCode), written regardless of what's installed so the repo is ready for teammates | In-project, committed |
-| `.pi/extensions/open-knowledge.ts` | Managed bridge extension connecting [Pi](../integrations/pi.mdx) (which has no MCP support) to the project | In-project, committed |
+| `.pi/extensions/open-knowledge.ts` | Managed bridge extension connecting [Pi](../gitquire/connect-ai.mdx) (which has no MCP support) to the project | In-project, committed |
 | `.claude/skills/`, `.cursor/skills/`, `.codex/skills/`, `.github/skills/`, `.opencode/skills/`, `.pi/skills/` | Project-local "rich" GitQuire skill (`SKILL.md`) for Claude, Cursor, Codex, GitHub Copilot, OpenCode, and Pi | In-project, committed |
 | `.ok/skills-lock.json` | Provenance for imported skills — source, selected skill, commit/ref when available, content hash, publisher, and import time | In-project, committed |
 | `~/.claude.json`, `~/Library/Application Support/Claude/claude_desktop_config.json`, `~/.cursor/mcp.json`, `~/.codex/config.toml`, `~/.copilot/mcp-config.json`, `~/.config/opencode/opencode.json`, `~/.openclaw/openclaw.json`, `~/.gemini/config/mcp_config.json`, `~/.lmstudio/mcp.json`, `~/.hermes/config.yaml` | User-level `open-knowledge` MCP registration, one per detected editor, so it's available in every project (`~/.copilot/mcp-config.json` only when `~/.copilot/` exists; `~/.openclaw/openclaw.json` only when `~/.openclaw/` exists; `~/.gemini/config/mcp_config.json` is Antigravity's shared IDE + `agy` config, only when `~/.gemini/` exists; `~/.lmstudio/mcp.json` and `~/.hermes/config.yaml` only when those apps are installed) | Outside-project (editor config) |
@@ -235,12 +235,12 @@ Installing `@inkeep/open-knowledge` from npm (or invoking it with `npx`) drops t
 | `<pkg>/dist/native/` | Bundled native addon, shipped inside the package: TOML editing on all platforms, plus a Windows-only reader of a process's creation time, which confirms that the process a server lock names is the server that wrote it | Outside-project (package dir) |
 
 <Callout type="info" title="Opt out">
-  Installing the package writes nothing outside its own directory, so there is nothing to opt out of here. The user-global skills are installed by `ok init`, and `ok init --no-skills` skips installing them for that run.
+  Installing the package writes nothing outside its own directory, so there is nothing to opt out of here.
 </Callout>
 
 ### `ok init`
 
-`ok init` turns a folder into a GitQuire project. It scaffolds the project's `.ok/` directory, and — unless you pass `--no-mcp` — registers the `open-knowledge` MCP server with the AI editors it detects. The MCP registration is **surgical**: it touches only the entry named `open-knowledge` and leaves your other settings, comments, and formatting byte-for-byte intact (if a config cannot be read or updated safely, it is left untouched and the reason is reported; follow that reason when repairing permissions, the path, or syntax. If it reports `no format-preserving writer available`, reinstall GitQuire to restore its TOML writer or configure the integration manually).
+`ok init` turns a folder into a GitQuire project. It scaffolds the project's `.ok/` directory and touches nothing outside the project.
 
 | Path | What it is | Scope |
 | --- | --- | --- |
@@ -248,53 +248,8 @@ Installing `@inkeep/open-knowledge` from npm (or invoking it with `npx`) drops t
 | `.ok/.gitignore` | Keeps machine-local runtime state (`local/`, `principal.json`, `server.lock`, …) out of git | In-project, committed |
 | `.okignore` | Paths excluded from the editor, search, and agents — see [Ignore patterns](../features/ignore-patterns.mdx) | In-project, committed |
 | `.gitignore` (project root) | Seeded (with `.DS_Store`) **only** when `ok init` creates a new git repo | In-project, committed |
-| `.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `opencode.json` | Project-scoped MCP registration for the four MCP-capable project editors (Claude, Cursor, Codex, OpenCode) regardless of what's installed — prepares the repo for teammates (with `--scope project` or `both`) | In-project, committed |
-| `.pi/extensions/open-knowledge.ts` | Managed bridge extension connecting [Pi](../integrations/pi.mdx) (which has no MCP support) to the project | In-project, committed |
-| `.claude/skills/`, `.cursor/skills/`, `.codex/skills/`, `.github/skills/`, `.opencode/skills/`, `.pi/skills/` | Project-local "rich" GitQuire skill (`SKILL.md`) for Claude, Cursor, Codex, GitHub Copilot, OpenCode, and Pi | In-project, committed |
-| `.ok/skills-lock.json` | Provenance for imported skills — source, selected skill, commit/ref when available, content hash, publisher, and import time | In-project, committed |
 
-With `--scope user` or `both` (the default), `ok init` also registers the `open-knowledge` MCP server in each detected editor's **user-level** config, so it's available in every project:
-
-| Path | Editor | Scope |
-| --- | --- | --- |
-| `~/.claude.json` | Claude Code | Outside-project (editor config) |
-| `~/Library/Application Support/Claude/claude_desktop_config.json` | Claude Desktop | Outside-project (editor config) |
-| `~/.cursor/mcp.json` | Cursor | Outside-project (editor config) |
-| `~/.codex/config.toml` | Codex | Outside-project (editor config) |
-| `~/.copilot/mcp-config.json` | GitHub Copilot CLI (only when `~/.copilot/` exists; respects `COPILOT_HOME`) | Outside-project (editor config) |
-| `~/.config/opencode/opencode.json` | OpenCode | Outside-project (editor config) |
-| `~/.openclaw/openclaw.json` | OpenClaw (only when `~/.openclaw/` exists) | Outside-project (editor config) |
-| `~/.gemini/config/mcp_config.json` | Antigravity (only when `~/.gemini/` exists) — shared by the IDE and the `agy` CLI | Outside-project (editor config) |
-| `~/.lmstudio/mcp.json` | LM Studio (only when installed; also checks `~/.cache/lm-studio/mcp.json`) | Outside-project (editor config) |
-| `~/.hermes/config.yaml` | Hermes (only when `~/.hermes/` exists) | Outside-project (editor config) |
-
-`ok init` also installs the user-global **discovery skill** — a short instruction file that teaches an agent host how to find and initialize GitQuire — so it is available in every project. It is written **only** into the skills directories of agent hosts already present in your home directory, plus the shared `~/.agents/skills/` hub those hosts read. If none of them is present, nothing is written at all.
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `~/.agents/skills/open-knowledge-*/` | Shared hub read natively by Codex, OpenCode, and Cursor | Outside-project (home dir) |
-| `~/.claude/skills/open-knowledge-*/` | Written only when `~/.claude/` already exists | Outside-project (home dir) |
-| `~/.lmstudio/skills/open-knowledge-*/` | Written only when `~/.lmstudio/` already exists (LM Studio reads these in agent mode) | Outside-project (home dir) |
-| `~/.cursor/skills/open-knowledge-*/` | Written only when `~/.cursor/` already exists | Outside-project (home dir) |
-| `~/.codex/skills/open-knowledge-*/` | Written only when `~/.codex/` already exists | Outside-project (home dir) |
-| `~/.opencode/skills/open-knowledge-*/` | Written only when `~/.opencode/` already exists | Outside-project (home dir) |
-| `~/.ok/skill-state.yml` | Records which skill version is installed, so the step is skipped next time | Outside-project (home dir) |
-| `~/.ok/skill-install-events.jsonl` | Append-only local log of skill-install attempts | Outside-project (home dir) |
-
-The install is **non-fatal** (`ok init` still exits 0 if it fails), **version-gated** (a no-op when the current version is already installed), and needs **no network access**. Skip it for one run with `ok init --no-skills`, or choose individual bundles with `--skills <ids>`. Skipping records nothing and removes nothing, so skills already on the machine are left alone. An installed bundle is remembered in `~/.ok/skill-state.yml` and honored by every later install path. Leaving a skill unchecked at the first-launch prompt records nothing, so a later `ok init` still installs `open-knowledge-discovery`. To turn a built-in skill off for good, uninstall it from **Settings → Skills Studio**, or remove `open-knowledge-discovery` from **Settings → Agent connections**; either records a durable machine-wide choice: a plain `ok init` then reports it as turned off and leaves it uninstalled, and only naming it with `--skills <ids>` or installing it again from either pane brings it back. If `ok init` cannot read that file, it installs nothing for the skill and says so rather than risk reversing your choice. `ok repair-skills` explicitly repairs these user-global bundles. Its project sweep restores missing skill copies but leaves existing project copies unchanged; see [Refresh agent guidance](./mcp.mdx#refresh-agent-guidance) to update those.
-
-Pi has no user-level MCP config. `ok init` writes its project-scoped bridge extension; using Pi inside GitQuire can also add a [folder trust grant](#pi-folder-trust), whose location respects `PI_CODING_AGENT_DIR`.
-
-On Windows, Claude Desktop and OpenCode configs live under `%APPDATA%\Claude\` and `%APPDATA%\opencode\`, and the MCP entry is a PowerShell launcher.
-
-`ok init` also installs `open-knowledge-discovery` (the same skill first launch offers — pass `--skills discovery,write-skill` to add the authoring skill too), skipping any skill you turned off in Skills Studio or Agent connections unless you name it with `--skills`, and, for a project it is setting up for the first time, adds the GitQuire paths to `.git/info/exclude` so `.ok/` stays off your remote. Pass `--shared` to commit it instead. Re-running `ok init` on a project you already set up keeps that project's current choice. Switch modes later with `ok config-sharing share` / `unshare` (`unshare` refuses if an OK config file is already tracked); `ok config-sharing status` prints the current mode and the excluded paths.
-
-<Callout type="info" title="Controlling it">
-  - `--no-mcp` — register nothing in any editor's MCP config. `ok init` still scaffolds `.ok/` and writes the project-local `open-knowledge` skill; GitHub Copilot's copy is written only when Copilot already has a GitQuire MCP entry.
-  - `--scope user | project | both` — where the MCP entry is written. In an interactive terminal, `ok init` prompts for this; scripted/CI runs default to `both`, so pass the flag to constrain them.
-  - `--no-skills` — install no user-global skills on this run; `--skills discovery,write-skill` — install only the named bundles. **Default installs `discovery` only**, matching what the desktop's first launch offers, and skips a bundle you turned off in Skills Studio or Agent connections; naming a bundle with `--skills` installs it even then. `write-skill` is opt-in here and in **Settings → Skills Studio**. Installing is recorded and honored by the desktop app too; skipping is not recorded, so it never affects another project. Neither flag affects the project-local `open-knowledge` skill, which is still written.
-  - `--shared` (vs `--local-only`) — commit `.ok/` rather than keeping it out of git.
-</Callout>
+For a project it is setting up for the first time, `ok init` adds `.ok/` and `.okignore` to `.git/info/exclude` so they stay off your remote. Pass `--shared` to commit them instead. Re-running `ok init` on a project you already set up keeps that project's current choice. Switch modes later with `ok config-sharing share` / `unshare` (`unshare` refuses if one of those files is already tracked); `ok config-sharing status` prints the current mode and the excluded paths.
 
 ### `ok start`
 
@@ -325,20 +280,7 @@ When local diagnostic sinks are enabled, server startup removes inactive project
 
 Diagnostic logs and telemetry are **on by default but local-only** — credential-bearing attributes are redacted (`[REDACTED]`) before anything is written, the files rotate at the size caps above, and the files stay local unless shared, including in a support bundle. Turn the local sink off with `telemetry.localSink.enabled: false`; see [Configuration](./configuration.mdx).
 
-On each boot, `ok start` also runs **repair sweeps**: it re-checks a few things that drift as GitQuire updates and rewrites any that have fallen out of the current canonical form — a no-op when nothing has changed, and it **never adds** an entry that isn't already there.
-
-| What it re-checks | Where | Scope |
-| --- | --- | --- |
-| Existing `open-knowledge` MCP entries | The same editor configs `ok init` writes — **both** user-level (`~/.claude.json`, `~/.cursor/mcp.json`, …) and project-level | Outside-project (editor config) **and** in-project |
-| Stale `open-knowledge-ui` entry in `.claude/launch.json` | Project | Removed if present — OK no longer writes launch.json |
-
-Disable both repair sweeps with `OK_RECLAIM_DISABLE=1`. They leave installed editor skills alone. `ok repair-skills` explicitly restores missing project copies and repairs user-global bundles; [refresh existing project guidance](./mcp.mdx#refresh-agent-guidance) with `ok init` or the integration settings.
-
 Projects initialized by an older CLI may lack the `local/` rule in `.ok/.gitignore`, which leaves these runtime files visible in `git status`. Add `local/` to that file or open the project in the desktop app, which updates it automatically. The runtime skill copy is always excluded from the knowledge base.
-
-### `ok mcp`
-
-`ok mcp` is the stdio bridge your editor spawns to talk to the server. It routes tool calls to a running `ok start` backend (starting one on the first tool call that needs it — reads included). When it starts a backend, it captures startup stderr in the user-level project logs listed above.
 
 ### Home directory and credentials (`~/.ok/`)
 
@@ -372,47 +314,16 @@ The shadow repo's `info/exclude` is forward-only. Versions saved by an earlier G
 
 All of it stays in the shadow git repo inside your own `.git/` directory, which GitQuire never pushes anywhere. A version you saved yourself is kept rather than expired, so this does not age out on its own. `ok deinit` removes the shadow repo along with the rest of a project's GitQuire state.
 
-## Pi folder trust
-
-When you use Pi inside GitQuire and accept its bridge setup prompt, GitQuire also grants Pi trust in the project folder. This applies to both the desktop app and the web app served by `ok start`; `ok init` writes the project bridge without adding this trust grant.
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `~/.pi/agent/trust.json` (or `$PI_CODING_AGENT_DIR/trust.json`) | Pi's trust store. Bridge setup can add an exact-folder trust decision so Pi can load the GitQuire bridge | In-project or Outside-project (follows the trust destination) |
-| `~/.ok/pi-trust/` | Records the previous decision and trust-store path when GitQuire changes a folder's trust. An interrupted, unconfirmed change is not treated as proven ownership | Outside-project (home dir) |
-| `<configured trust path>.lock` | Temporary directory lock shared with Pi while accessing its trust store | In-project or Outside-project (follows the configured Pi directory) |
-| `<resolved trust target>.ok.lock` | Temporary GitQuire lock coordinating access through different symlinks. For a linked trust file, this sits beside its destination | In-project or Outside-project (follows the trust destination) |
-
-Pi's directory lock coordinates with Pi itself at the configured path. The separate GitQuire lock uses the resolved destination so GitQuire processes using different symlinks also coordinate. Pi's store and locks normally live outside the project; a custom configuration or symlink can place them inside it.
-
-New Pi trust checks, grants, and ownership records use the real project directory, even when the project was opened through a symlink. The setup prompt shows that directory; if the symlink points elsewhere when setup begins, GitQuire refuses the change and asks you to reopen the intended project and approve it again. GitQuire also refuses a project path it cannot resolve or access, instead of falling back to an unverified spelling.
-
-`ok deinit`, project cleanup selected during `ok uninstall`, and removing the Pi connection in Settings reverse recorded GitQuire trust changes when the current exact-folder value still matches the recorded grant and no other Pi resources need it. Cleanup restores the previous exact-folder decision, or removes the entry if none existed. Other projects' entries, parent-folder decisions, and Pi's global trust default are preserved; a folder may still be trusted through those settings.
-
-Every Pi trust grant made before ownership recording was introduced lacks a record and is preserved, including grants made by GitQuire. There is no automatic backfill. Older entries under a non-canonical project spelling, such as a symlink path, are also preserved and named when found. Pi does not use those literal keys, and cleanup does not move them to the real-path key. An interrupted setup can leave a pending record that does not prove the trust write completed; setup and cleanup do not reconcile it while the folder remains trusted. To remove an unrecorded or non-canonical grant manually, close Pi and remove only the project's exact-folder key from its `trust.json`, leaving the other entries intact. The cleanup message names an entry's exact key and file when it can inspect that entry. If the project path is already unavailable when cleanup starts and ownership records can be read, cleanup names those records and their recorded locations without checking current trust decisions. If a later project-path check fails, the affected trust store is left pending with guidance to repair the path and retry. For manual cleanup using a record, inspect the intended destination and restore the recorded previous decision only if you choose to undo a current true entry, removing that key only when there was no previous entry. Parent-folder and global trust settings can still apply; see [Pi's project trust rules](https://pi.dev/docs/latest/security#project-trust).
-
-Trust is also kept when other project resources need it, including Pi settings, extensions, skills, prompts, themes, system prompts, and inherited project skills. Cleanup lists up to three of those resources, reports how many more remain, and relinquishes its ownership record where one exists: later cleanup runs will not revoke that grant even if those resources are removed. Manage the retained decision in Pi or remove the exact-folder key manually as described above. Removing the grant may stop Pi from loading those resources. GitQuire's own skill namespace is managed separately in the current project; ancestor skill roots remain outside that project's cleanup and can still require trust.
-
-Bridge setup requires a project directory it can resolve and access, and refuses unreadable trust files or broken or cyclic trust-file symlinks. Cleanup reports a failure if a project path or required trust check cannot be verified, retains retry information, and tells you what to repair. For a missing project, cleanup checks for ownership records under both the supplied path and the missing path appended to its nearest resolvable, accessible ancestor's real path. Healthy directory aliases are followed for this additional record lookup only; it cannot recover a deleted symlink's former target or an ancestor's historical target. With no bridge or record at either checked path, cleanup treats the project as already absent. A record at either path, or an ancestor that cannot be resolved or accessed, requires repairing the project path before retrying. With neither a bridge nor a record and a verifiable project path, cleanup treats the trust store as unrelated and does not inspect it.
-
-`PI_CODING_AGENT_DIR` changes the trust-store directory; it does not relocate the project's `.pi/extensions/open-knowledge.ts` bridge. When a bridge or record requires trust cleanup, GitQuire checks the currently configured store as well as saved locations for recorded grants, even if the environment setting has changed. It reports retained exact keys it finds, including the supplied project spelling when it differs from the real path. It does not search arbitrary Pi directories or infer unknown historical aliases for older, unrecorded entries.
-
 ## Opt-outs in one place
 
 | To skip… | Do this |
 | --- | --- |
-| The `postinstall` skill install (CLI) | `npm install --ignore-scripts` |
 | The shell-config `PATH` block (macOS and Linux app) | Leave "Add the `ok` command to your terminal" unchecked in the first-launch dialog (the default) |
-| All editor MCP registration in `ok init` | `ok init --no-mcp` |
-| User-global skills in `ok init` | `ok init --no-skills` |
-| The project-local `open-knowledge` skill | Not skippable at `ok init`, even with `--no-mcp` or `--no-skills`; `ok deinit` removes it |
-| User-level (vs project) MCP writes | `ok init --scope project` |
 | Committing `.ok/` to git | Off by default for a new project; `ok init --shared` commits it instead |
 | The repair sweeps and the desktop app's shell / `PATH` changes | `OK_RECLAIM_DISABLE=1` (also delete the managed block from your shell config to remove the `PATH` entry) |
 | Local diagnostic logs and telemetry | `telemetry.localSink.enabled: false` in config |
-| Auto-starting the MCP server | `OK_MCP_AUTOSTART=0` |
 
-To review the footprint after the fact, `ok diagnose` reports what's on disk (and the desktop `path-install.json` records exactly which shell/`PATH` changes were made). To reverse it, `ok deinit` removes GitQuire from one project and `ok uninstall` removes the global footprint, with optional project cleanup. It keeps the [shared `~/.ok/` entries](#stable-and-beta-home-folders): no product's uninstall removes `~/.ok/machine-id`, and Stable's keeps the rest of that list too. `--purge-content` also removes the user skills store at `~/.ok/skills/`, which every product shares, whichever product you uninstall; it is skipped if an earlier uninstall step failed. Both keep your markdown and authored skills by default; GitQuire's bundled skills are removed. Shared configs and their symlinks are preserved, and incomplete cleanup reports a failure while retaining state needed to retry. Both commands take `--dry-run` to preview. See the [CLI reference](./cli.mdx#remove-openknowledge) for project selection and scripting behavior.
+To review the footprint after the fact, `ok diagnose` reports what's on disk. To remove GitQuire from a project, delete its `.ok/` directory; see the [CLI reference](./cli.mdx#remove-gitquire-from-a-project).
 
 In the desktop app you don't need the CLI for finer control, and the split follows what each thing is. **Settings → Agent connections** lists every agent GitQuire can wire up, grouped by how you reach it — In app, Terminal, External apps. Each row says whether GitQuire can reach that agent's tools and offers the action that fits: **Add MCP & skill** when nothing is set up, **Manage** when something is, and **Remove** when the tool itself is present but you have turned it off. A tool that is not on this machine always leads with **Install**, or **How to set up** when GitQuire has no download link for it; neither writes anything. When GitQuire files are still on disk for a tool that is not on this machine, the row keeps whichever of **Install** or **How to set up** it already had, and adds a muted **Remove** link beside the hint — `Not installed · OpenKnowledge files present`, or `Not detected on this machine · OpenKnowledge files present` for a tool GitQuire cannot launch directly. Where one tool has two rows — a CLI and its editor, sharing a single setup — that hint and link appear only when GitQuire can confirm the other row's tool is also absent, so the row for the half you do not have never offers to delete a setup the other half is using — and when it cannot tell, it says nothing rather than guess. Both scopes are chosen in the same place: the dialog behind those actions groups what it writes under *This project* and *This machine*, so a project-scoped MCP config and a user-global one sit side by side, each naming the file it touches. *Skills* live on their own page at both scopes: **Settings → Skills Studio** carries the skills GitQuire ships (user scope) or the project's own skill (project scope), each with an explicit Install/Uninstall button behind a confirmation naming every path it touches, plus the folders your AI tools read skills from. Removal keeps the guest discipline you would expect: only entries GitQuire recognizably wrote are removed, and anything you customized is left intact.
 

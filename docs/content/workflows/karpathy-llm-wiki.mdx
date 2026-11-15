@@ -65,7 +65,7 @@ Either way, by the end of this guide you'll have a working source-grounded knowl
 You need:
 
 - **The GitQuire desktop app.** The desktop app (macOS 13+, Windows, Linux) is the canonical surface: WYSIWYG editor, file sidebar, agent activity panel, version timeline, and the starter-pack picker all live there. Install it from the [Quickstart](../get-started/quickstart.mdx).
-- **An MCP-capable agent assistant.** [Claude Code](../integrations/claude-code.mdx), [Cursor](../integrations/cursor.mdx), [Codex](../integrations/codex.mdx), [OpenCode](../integrations/opencode.mdx), or [OpenClaw](../integrations/openclaw.mdx). The OK desktop app's first-launch flow detects them and offers to wire them up.
+- **An MCP-capable agent assistant.** [Claude Code](../gitquire/connect-ai.mdx), [Cursor](../gitquire/connect-ai.mdx), [Codex](../gitquire/connect-ai.mdx), [OpenCode](../gitquire/connect-ai.mdx), or [OpenClaw](../gitquire/connect-ai.mdx). The OK desktop app's first-launch flow detects them and offers to wire them up.
 - **A read of the source pattern.** Andrej Karpathy's [LLM wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) is the canonical description of what we're implementing here. It's a 10-minute read and worth doing first; this guide builds on it directly.
 
 If you're brand new to OK, run the [Quickstart](../get-started/quickstart.mdx) (≤5 minutes to first agent-driven edit) and come back here.
@@ -139,7 +139,7 @@ The **Knowledge base** pack scaffolds Karpathy's pattern with one significant ad
 | `log.md` (append-only record) | `log.md` at project root, written by the pack |
 | `index.md` (static content catalog) | Provided dynamically via `exec` (`ls`) + the file sidebar. The agent reads folder frontmatter + per-doc metadata on every list call, so a static index isn't required. You can still hand-write `index.md` if you prefer. |
 | `CLAUDE.md` / `AGENTS.md` (centralized schema) | `<folder>/.ok/frontmatter.yml` + per-folder templates; schema lives next to the action |
-| LLM agent | [Claude Code](../integrations/claude-code.mdx), [Cursor](../integrations/cursor.mdx), [Codex](../integrations/codex.mdx), [OpenCode](../integrations/opencode.mdx), [OpenClaw](../integrations/openclaw.mdx) |
+| LLM agent | [Claude Code](../gitquire/connect-ai.mdx), [Cursor](../gitquire/connect-ai.mdx), [Codex](../gitquire/connect-ai.mdx), [OpenCode](../gitquire/connect-ai.mdx), [OpenClaw](../gitquire/connect-ai.mdx) |
 
 When your agent lists `external-sources/`, it reads the folder description telling it to ingest verbatim and *not* analyze in those files. That's the schema layer doing its job, without you hand-writing a `CLAUDE.md` from scratch.
 
@@ -266,7 +266,7 @@ This guide is the **source-grounded** posture: bring sources, the LLM curates th
 ### GitQuire internals that support this workflow
 
 - **[Agent activity](../features/agent-activity.mdx).** How every agent edit lands in the shadow repo with attribution.
-- **[Claude Code](../integrations/claude-code.mdx)**, **[Cursor](../integrations/cursor.mdx)**, **[Codex](../integrations/codex.mdx)**, **[OpenCode](../integrations/opencode.mdx)**, **[OpenClaw](../integrations/openclaw.mdx).** Agent-assistant integrations.
+- **[Claude Code](../gitquire/connect-ai.mdx)**, **[Cursor](../gitquire/connect-ai.mdx)**, **[Codex](../gitquire/connect-ai.mdx)**, **[OpenCode](../gitquire/connect-ai.mdx)**, **[OpenClaw](../gitquire/connect-ai.mdx).** Agent-assistant integrations.
 - **[`STARTER_PACKS` registry](https://github.com/docdru/GitQuire/blob/main/packages/server/src/seed/starter.ts).** Canonical source for the Knowledge base pack content.
 
 ### Adjacent OK workflow

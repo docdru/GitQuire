@@ -54,7 +54,7 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 The entrypoint is the container's boot script. It runs every time the container starts. `ok start` needs an initialized project, but no one is inside the container to run `ok init`. The script handles this automatically. The first boot initializes the project on the empty volume. Later boots find `.ok/` and start the server directly. Official database images use the same pattern for empty data directories.
 
-The `--no-mcp --no-skills` flags skip the editor MCP registration and the user-global skills, which the container does not need. `ok init` still writes the project-local `open-knowledge` skill, and the server still provides its `/mcp` endpoint.
+`ok init` only scaffolds the project; the server provides its `/mcp` endpoint for AI assistants.
 
 ```sh title="entrypoint.sh"
 #!/bin/sh
@@ -65,8 +65,8 @@ The `--no-mcp --no-skills` flags skip the editor MCP registration and the user-g
 set -eu
 if [ ! -d /data/.ok ]
 then
-  echo "[entrypoint] /data is not initialized. Running ok init --no-mcp --no-skills"
-  ok init --no-mcp --no-skills < /dev/null
+  echo "[entrypoint] /data is not initialized. Running ok init"
+  ok init < /dev/null
 fi
 exec ok start
 ```

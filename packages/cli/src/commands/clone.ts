@@ -370,7 +370,7 @@ export async function runClone(
 
   try {
     const { runInit } = await import('./init.ts');
-    const initResult = await runInit({ cwd: targetDir, projectRootMode: 'cwd', mcp: false });
+    const initResult = await runInit({ cwd: targetDir, projectRootMode: 'cwd' });
     if (initResult.contentUpdated.length > 0) {
       const msg = `auto-init: updated ${initResult.contentUpdated.join(', ')}`;
       if (opts.json) emit(true, { type: 'warning', message: msg });

@@ -156,11 +156,11 @@ export async function runGitQuireBootstrap(
 
 export function initProjectWithCli(cliArgs: readonly string[]): (dir: string) => void {
   return (dir) => {
-    execFileSync(
-      cliArgs[0] ?? process.execPath,
-      [...cliArgs.slice(1), 'init', '--no-mcp', '--no-skills', '--local-only'],
-      { cwd: dir, stdio: 'inherit', windowsHide: true },
-    );
+    execFileSync(cliArgs[0] ?? process.execPath, [...cliArgs.slice(1), 'init', '--local-only'], {
+      cwd: dir,
+      stdio: 'inherit',
+      windowsHide: true,
+    });
   };
 }
 

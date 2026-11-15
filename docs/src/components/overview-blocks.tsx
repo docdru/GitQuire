@@ -80,9 +80,9 @@ export const PATHS: Path[] = [
     desc: 'Install the desktop app and get your first agent-driven edit in under five minutes.',
   },
   {
-    href: '/docs/integrations/claude-code',
-    title: 'Setting up an editor?',
-    desc: 'Use with Claude, Cursor, Codex, OpenCode, OpenClaw, Pi, or Antigravity.',
+    href: '/docs/gitquire/connect-ai',
+    title: 'Connecting an AI assistant?',
+    desc: 'Connect Claude, Claude Code or Mistral Le Chat to the wiki through /mcp.',
   },
   {
     href: '/docs/workflows/karpathy-llm-wiki',

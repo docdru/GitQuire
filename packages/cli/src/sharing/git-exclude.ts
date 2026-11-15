@@ -1,22 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, relative, resolve, sep } from 'node:path';
+import { join, resolve } from 'node:path';
 import {
-  EDITOR_PROJECT_SKILL_ROOT,
-  type EditorId,
-  INSTALLED_SKILLS_REL,
   LEGACY_SKILL_STORE_ROOT,
   OK_DIR,
-  parseInstalledSkills,
   pathspecArgs,
-  RESERVED_PROJECT_SKILL_NAME,
   toPathspec,
 } from '@inkeep/open-knowledge-core';
 import { discoverGitRepository } from '@inkeep/open-knowledge-core/git-repository';
 import { withHiddenWindowsConsole } from '@inkeep/open-knowledge-server';
-import { ALL_EDITOR_IDS, EDITOR_TARGETS } from '../commands/editors.ts';
-
-const CLAUDE_LAUNCH_JSON = '.claude/launch.json';
 
 const OK_IGNORE_FILENAME = '.okignore';
 
@@ -38,36 +30,8 @@ export interface TrackedRefusal {
 
 export type SharingMode = 'shared' | 'local-only' | 'no-git';
 
-export function getOkArtifactPaths(projectRoot: string): readonly string[] {
-  const paths: string[] = [`${OK_DIR}/`, OK_IGNORE_FILENAME];
-  for (const id of ALL_EDITOR_IDS) {
-    const target = EDITOR_TARGETS[id];
-    if (target.projectConfigPath) {
-      paths.push(toProjectRelative(target.projectConfigPath(projectRoot), projectRoot));
-    }
-  }
-  paths.push(CLAUDE_LAUNCH_JSON);
-  return Array.from(new Set(paths));
-}
-
-export function getInstalledSkillProjectionPaths(projectRoot: string): readonly string[] {
-  const markerPath = join(projectRoot, ...INSTALLED_SKILLS_REL);
-  if (!existsSync(markerPath)) return [];
-  try {
-    const marker = parseInstalledSkills(readFileSync(markerPath, 'utf-8'));
-    if (!marker) return [];
-    const paths: string[] = [];
-    for (const [name, entry] of Object.entries(marker.skills)) {
-      if (name === RESERVED_PROJECT_SKILL_NAME) continue;
-      for (const host of entry.hosts) {
-        const root = EDITOR_PROJECT_SKILL_ROOT[host as EditorId];
-        if (root) paths.push(`${root}/${name}/`);
-      }
-    }
-    return Array.from(new Set(paths));
-  } catch {
-    return [];
-  }
+export function getOkArtifactPaths(_projectRoot: string): readonly string[] {
+  return [`${OK_DIR}/`, OK_IGNORE_FILENAME];
 }
 
 export function addOkPathsToGitExclude(
@@ -85,22 +49,7 @@ export function addOkPathsToGitExclude(
   const resolved = resolveExcludePath(projectRoot);
   if (resolved.kind !== 'ok') return resolved.result;
 
-  const rawExisting = existsSync(resolved.path) ? readFileSync(resolved.path, 'utf-8') : '';
-
-  const stale = new Set<string>(getInstalledSkillProjectionPaths(projectRoot));
-  const drained: string[] = [];
-  const existing =
-    stale.size === 0
-      ? rawExisting
-      : rawExisting
-          .split('\n')
-          .filter((line) => {
-            const trimmed = line.trim();
-            if (!stale.has(trimmed)) return true;
-            drained.push(trimmed);
-            return false;
-          })
-          .join('\n');
+  const existing = existsSync(resolved.path) ? readFileSync(resolved.path, 'utf-8') : '';
 
   const presentVariants = collectPresentVariants(existing);
 
@@ -114,20 +63,20 @@ export function addOkPathsToGitExclude(
     }
   }
 
-  if (appended.length === 0 && drained.length === 0) {
+  if (appended.length === 0) {
     return { kind: 'updated', appended, alreadyPresent, removed: [] };
   }
 
   const separator =
     appended.length === 0 || existing.length === 0 || existing.endsWith('\n') ? '' : '\n';
-  const additions = appended.length === 0 ? '' : `${appended.join('\n')}\n`;
+  const additions = `${appended.join('\n')}\n`;
   try {
     writeFileSync(resolved.path, `${existing}${separator}${additions}`, 'utf-8');
   } catch {
     return { kind: 'no-exclude', reason: 'inaccessible' };
   }
 
-  return { kind: 'updated', appended, alreadyPresent, removed: drained };
+  return { kind: 'updated', appended, alreadyPresent, removed: [] };
 }
 
 export function removeOkPathsFromGitExclude(
@@ -147,9 +96,6 @@ export function removeOkPathsFromGitExclude(
   }
   allVariants.add(OK_CARVE_CHILDREN);
   allVariants.add(OK_CARVE_SKILLS_REINCLUDE);
-  for (const p of getInstalledSkillProjectionPaths(projectRoot)) {
-    allVariants.add(p);
-  }
 
   let before: string;
   try {
@@ -222,29 +168,10 @@ export function getExcludedOkPaths(projectRoot: string): readonly string[] {
     return [];
   }
   const present = collectPresentVariants(content);
-  const candidates = [
-    ...getOkArtifactPaths(projectRoot),
-    ...getInstalledSkillProjectionPaths(projectRoot),
-  ];
-  const reported = candidates.filter((p) => hasAnyVariant(present, p));
-
-  const alreadyReported = new Set(reported);
-  const skillRoots: string[] = [];
-  for (const root of Object.values(EDITOR_PROJECT_SKILL_ROOT)) {
-    if (root !== null) skillRoots.push(root);
-  }
-  const orphans: string[] = [];
-  for (const line of present) {
-    if (alreadyReported.has(line)) continue;
-    if (line === OK_CARVE_CHILDREN || line === OK_CARVE_SKILLS_REINCLUDE) {
-      orphans.push(line);
-      continue;
-    }
-    const bare = line.replace(/^\//, '').replace(/\/$/, '');
-    if (skillRoots.some((root) => bare.startsWith(`${root}/`) && bare.length > root.length + 1)) {
-      orphans.push(line);
-    }
-  }
+  const reported = getOkArtifactPaths(projectRoot).filter((p) => hasAnyVariant(present, p));
+  const orphans = [...present].filter(
+    (line) => line === OK_CARVE_CHILDREN || line === OK_CARVE_SKILLS_REINCLUDE,
+  );
   return [...reported, ...orphans];
 }
 
@@ -354,12 +281,4 @@ function collectPresentVariants(excludeFileContent: string): Set<string> {
     present.add(trimmed);
   }
   return present;
-}
-
-function toProjectRelative(absPath: string, projectRoot: string): string {
-  return toPosix(relative(projectRoot, absPath));
-}
-
-function toPosix(p: string): string {
-  return sep === '/' ? p : p.split(sep).join('/');
 }

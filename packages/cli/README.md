@@ -12,17 +12,17 @@ npm install -g @inkeep/open-knowledge
 
 Requires [Node.js 24+](https://nodejs.org) and Git.
 
-To remove OpenKnowledge later, run `ok uninstall` (whole machine) or `ok deinit` (one project).
+To remove it from a project, delete the project's `.ok/` folder.
 
 ## Quick start
 
 ```bash
 cd your-project
-ok init          # scaffold .ok/ and connect supported AI tools
+ok init          # scaffold .ok/
 ok start         # serve the editor and open it in your browser
 ```
 
-- `ok init` — turn a folder into an OpenKnowledge project and register the MCP server with supported AI tools.
+- `ok init` — turn a folder into an OpenKnowledge project.
 - `ok start` — run the local server and web editor, then open it in your browser.
 - `ok open <target>` — open a doc, a folder, or a path to a Markdown file in the editor. It prints the project root it resolved; pass `--project <dir>` anywhere in the command to name one yourself.
 - `ok --help` — list every command.
