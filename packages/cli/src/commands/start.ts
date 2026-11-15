@@ -1,4 +1,3 @@
-import { spawn as nativeSpawn } from 'node:child_process';
 import { existsSync as fsExistsSync, realpathSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import type { Server as HttpServer } from 'node:http';
@@ -35,12 +34,6 @@ import { makeLazyEmbeddingsKeyStore } from '../auth/embeddings-key-store.ts';
 import { detectGh, detectGhAccounts } from '../auth/gh-detect.ts';
 import { makeLazyProbeTokenStore } from '../auth/token-store.ts';
 import { PACKAGE_VERSION } from '../constants.ts';
-import {
-  createRealDetectDeps,
-  detectDesktop,
-  launchDesktop,
-  notFoundMessage,
-} from './desktop-dispatch.ts';
 
 const DEFAULT_IDLE_THRESHOLD_MS = 30 * 60 * 1000;
 
@@ -478,15 +471,13 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
   };
 }
 
-type StartMode = 'browser' | 'app';
-
 interface StartCommandOptions {
+  mode?: string;
   port?: string | number;
   bind?: string[];
   openBrowser?: boolean;
   only?: OnlyModule;
   idleShutdown?: string;
-  mode?: StartMode;
   serveContentAssets?: boolean;
   reactShellDistDir?: string;
   singleFile?: string;
@@ -505,11 +496,6 @@ export function resolveStartConfig(
     }).value,
 ): Config {
   return singleFile !== undefined ? readUserConfig() : config;
-}
-
-function parseStartMode(value: string): StartMode {
-  if (value === 'browser' || value === 'app') return value;
-  throw new InvalidArgumentError("--mode must be 'browser' or 'app'");
 }
 
 export function resolveStartConsoleLevel(env: {
@@ -935,7 +921,7 @@ export function startCommand(getConfig: () => Config): Command {
       "Shut the server down after this long with no connected clients ('off', or a duration like 90s, 30m, 2h; default 30m)",
       parseIdleShutdownFlag,
     )
-    .option('--mode <mode>', "Force dispatch mode: 'browser' or 'app'", parseStartMode)
+    .addOption(new Option('--mode <mode>').hideHelp())
     .option(
       '--serve-content-assets',
       'Serve content assets from this server (now the default; kept for compatibility)',
@@ -968,35 +954,16 @@ export function startCommand(getConfig: () => Config): Command {
         process.exit(2);
       }
 
-      if (opts.projectDir !== undefined && opts.singleFile === undefined) {
-        process.stderr.write("error: option '--project-dir' requires '--single-file'\n");
+      if (opts.mode === 'app') {
+        process.stderr.write(
+          "error: '--mode app' opened the desktop app, which GitQuire does not ship; run 'ok start' to serve the web editor\n",
+        );
         process.exit(2);
       }
 
-      if (opts.mode === 'app') {
-        const ignored: string[] = [];
-        if (opts.port !== undefined) ignored.push('--port');
-        if (opts.bind !== undefined) ignored.push('--bind');
-        if (opts.only !== undefined) ignored.push('--only');
-        if (opts.idleShutdown !== undefined) ignored.push('--idle-shutdown');
-        if (opts.openBrowser === false) ignored.push('--no-open-browser');
-        if (opts.externalUrl !== undefined) ignored.push('--external-url');
-        if (ignored.length > 0) {
-          const logLevel = process.env.OK_LOG_LEVEL ?? 'info';
-          if (logLevel === 'debug' || logLevel === 'trace') {
-            console.error(`--mode=app: ignoring ${ignored.join(', ')}`);
-          }
-        }
-
-        const decision = detectDesktop(createRealDetectDeps());
-
-        if (decision.available) {
-          launchDesktop({ spawn: nativeSpawn }, decision);
-          return;
-        }
-
-        console.error(notFoundMessage(decision.reason));
-        process.exit(1);
+      if (opts.projectDir !== undefined && opts.singleFile === undefined) {
+        process.stderr.write("error: option '--project-dir' requires '--single-file'\n");
+        process.exit(2);
       }
 
       await runStartCommand(config, opts);

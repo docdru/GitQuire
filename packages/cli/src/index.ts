@@ -39,15 +39,6 @@ export {
   parseGitUrl,
 } from './github/url.ts';
 export {
-  PATH_SHIM_BEGIN,
-  PATH_SHIM_BLOCK_RE,
-  PATH_SHIM_END,
-  type PathDiscovery,
-  type PathInstallConsent,
-  type PathInstallMarker,
-  pathInstallMarkerPath,
-} from './integrations/path-shim.ts';
-export {
   type ResolveProjectRootOptions,
   type ResolveProjectRootResult,
   resolveProjectRoot,

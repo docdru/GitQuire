@@ -13,6 +13,15 @@ const migrateHint = (): string =>
 
 export const REMOVED_KEYS: readonly RemovedKey[] = [
   {
+    path: ['bridge', 'backgroundThrottle'],
+    get redirect() {
+      return [
+        'bridge.backgroundThrottle has been removed with the desktop app it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
     path: ['content', 'include'],
     get redirect() {
       return [

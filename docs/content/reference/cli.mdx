@@ -1,10 +1,10 @@
 ---
 title: CLI & web app
 icon: LuTerminal
-description: Install the ok CLI and run the GitQuire web app in your browser — on any platform, including Intel Macs and servers.
+description: Install the ok CLI and run the GitQuire web app in your browser.
 ---
 
-For the smoothest experience, use the [desktop app](/docs/get-started/quickstart) — it ships for **macOS 13 or later**, **Windows**, and **Linux**. Anywhere else (an **Intel Mac**, a server), or when you'd rather stay in the terminal, install the `ok` CLI from npm and run the **same editor as a local web app** in your browser.
+GitQuire normally runs as a server in Docker (see [Run with Docker](/docs/gitquire/run-with-docker)). For local work, install the `ok` CLI and run the editor as a web app in your browser.
 
 <Callout type="info" title="Prerequisites — Verify Node and Git are installed">
 Open a terminal and run:
@@ -48,17 +48,17 @@ ok start
 
 One server on one port serves everything — the editor, the API, the MCP endpoint, and real-time collaboration — and the editor opens in your browser automatically (pass `--no-open-browser` to skip that). Running `ok start` again for the same project while its server is already up prints the running server's URL and exits.
 
-`ok start` also takes `-p/--port` and `--bind` to pick the address, `--idle-shutdown` (`off` or a duration like `30m`) to control when an unused server exits, `--only server` to run without the editor UI, and `--mode app` to hand off to the desktop app instead of running a server in the terminal (with the desktop app installed).
+`ok start` also takes `-p/--port` and `--bind` to pick the address, `--idle-shutdown` (`off` or a duration like `30m`) to control when an unused server exits, and `--only server` to run without the editor UI.
 
-The browser needs no flag: `ok start` always runs the browser server unless you pass `--mode app`. Bare `ok`, with no subcommand, opens the desktop app when it is installed and otherwise runs the same browser server; it also runs the browser server when its output is not an interactive terminal, over SSH, or on Linux without `DISPLAY` or `WAYLAND_DISPLAY`, unless `OK_FORCE_DESKTOP=1` is set. Set `OK_FORCE_BROWSER=1` to make bare `ok` always run the browser server.
+Bare `ok`, with no subcommand, runs `ok start`.
 
 Idle shutdown is on by default at 30 minutes — a server with no connected clients exits so it doesn't linger. If you keep a session open for a long time without interacting, pass `--idle-shutdown off` (or a longer duration) to keep it running.
 
-For a complete list of every file GitQuire creates or changes — during install, at runtime, and in the desktop app — see [What GitQuire writes to your system](/docs/reference/what-gitquire-writes).
+For a complete list of every file GitQuire creates or changes — during install and at runtime — see [What GitQuire writes to your system](/docs/reference/what-gitquire-writes).
 
 ### Overlapping projects and previews
 
-A second project or single-file preview cannot start over content already owned by another server. A verified refusal names the existing live session; close it before opening the overlapping project or preview. An unverified refusal protects only overlapping content. A failed lease probe names the affected content, lease path and underlying failure; an unsupported ownership protocol instead names the compatibility problem. Check access and retry a temporary read failure; unsupported ownership protocols require compatible runtimes, not deleting another runtime's record. In particular, close a loose-file preview before turning its containing folder into a GitQuire project. [Single-file sessions](/docs/features/editor#open-a-single-file) otherwise remain independent when they edit different files.
+A second project or single-file preview cannot start over content already owned by another server. A verified refusal names the existing live session; close it before opening the overlapping project or preview. An unverified refusal protects only overlapping content. A failed lease probe names the affected content, lease path and underlying failure; an unsupported ownership protocol instead names the compatibility problem. Check access and retry a temporary read failure; unsupported ownership protocols require compatible runtimes, not deleting another runtime's record. In particular, close a loose-file preview before turning its containing folder into a GitQuire project. Single-file sessions otherwise remain independent when they edit different files.
 
 A nested project marked by its own `.ok/config.yml` belongs to its own server. The parent cannot read or write the nested project's documents; explicit API requests return 403. If a nested project is created while the parent is running, restart the parent before opening the child. Removing a nested project's marker does not expand a running parent's scope either: restart the parent to adopt that content.
 
@@ -69,20 +69,6 @@ Restart all existing GitQuire servers after updating so every runtime uses the s
 If startup reports a registry version mismatch, update all GitQuire runtimes to compatible versions. For a permissions error, make the OS account's home writable; protection is never silently disabled. The shared registry must be on a local filesystem that honors SQLite file locks. Network-mounted homes and filesystems with broken locks do not provide this protection.
 
 After a server crashes, is forcibly terminated or the computer restarts, its released filesystem lease lets the next server recover ownership automatically on macOS, Windows and Linux. Recovery never depends on a PID, hostname or timeout. A missing or damaged lease leaves only its recorded content protected; disjoint projects can still open. A corrupt registry or a retired, nonempty pre-release format affects the whole registry and needs manual recovery. Run `ok stop all`, or on a machine shared with accounts you do not trust, list servers with `ok ps` and run `ok stop` in each listed project of yours. Either way, confirm **every GitQuire server under that OS account** has exited, including desktop, terminal, MCP-spawned and preview sessions. Then back up and remove the registry file named in the error (`~/.ok/local/server-authority.sqlite`) together with its `-journal` sidecar if present, keeping them together as one backup, and restart the desired projects. Never remove or replace the registry while a server is running: doing so would discard its ownership claim.
-
-## Open a doc, folder, or file
-
-`ok open` takes a doc name, a folder, or a path to a Markdown file.
-
-```bash
-ok open <path-to-your-file.md>
-```
-
-The output names the absolute project root GitQuire resolved for the argument you gave, so you can tell which project it acted on without running a second command. When the resolved root itself sits inside another project, the output names both, once.
-
-To choose the project yourself, pass `--project <dir>`. It is honored wherever it appears: `--project <dir>` or `--project=<dir>`, before or after the target, and with or without the `.md` extension on the path. If it cannot be honored, the command exits non-zero with a message saying why instead of quietly resolving somewhere else.
-
-If you don't have a project initialized, this still works. The file opens directly in the WYSIWYG/source editor without any of the version history or `open with AI` frills.
 
 ## Clone from GitHub
 
