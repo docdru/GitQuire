@@ -52,10 +52,10 @@ const configScopeReadinessCases = [
   },
   {
     scope: 'project-local',
-    seed: 'terminal:\n  enabled: false\n',
-    patch: { terminal: { enabled: true } },
-    initial: { terminal: { enabled: false } },
-    patched: { terminal: { enabled: true } },
+    seed: 'server:\n  allowExternal: false\n',
+    patch: { server: { allowExternal: true } },
+    initial: { server: { allowExternal: false } },
+    patched: { server: { allowExternal: true } },
   },
 ] as const;
 

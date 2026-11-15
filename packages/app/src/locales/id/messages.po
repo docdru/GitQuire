@@ -361,9 +361,6 @@ msgstr "{count, plural, other {Yakin ingin menghapus # berkas/folder berikut bes
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, other {Ditemukan {formattedCount} berkas markdown}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, other {Menyerahkan # masalah ke agen AI Anda, termasuk yang tidak punya perbaikan otomatis.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {Langsung memperbaiki # masalah yang punya perbaikan otomatis yang diketahui.}}"
 
@@ -1339,9 +1336,6 @@ msgstr "Berlaku untuk"
 msgid "Applies to (globs — leading ! excludes; empty means every doc)"
 msgstr "Berlaku untuk (glob — awalan ! mengecualikan; kosong berarti semua dokumen)"
 
-msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
-msgstr "Berlaku untuk semua proyek di mesin ini, pada obrolan Claude Code dan Codex di panel Agen yang dimulai setelah Anda mengaktifkannya. Agen dapat membuka halaman, mengeklik, mengetik, dan mengambil tangkapan layar di jendela Google Chrome miliknya dengan profil baru. Memerlukan Google Chrome dan Node.js yang terpasang. Setiap tindakan browser meminta persetujuan Anda, tanpa opsi untuk selalu mengizinkannya, kecuali mode agen itu sendiri atau pengaturan izinnya melewati persetujuan."
-
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
@@ -1416,9 +1410,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "Tanya AI"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "Minta AI memperbaiki {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4266,9 +4257,6 @@ msgstr "Perbaiki"
 msgid "Fix {flatId}"
 msgstr "Perbaiki {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "Perbaiki semua dengan AI ({count})"
-
 msgid "Fixed"
 msgstr "Tetap"
 
@@ -5344,9 +5332,6 @@ msgstr "Kecualikan tautan rusak yang ditulis di dalam log.md atau log.mdx pada k
 
 msgid "Let {0} know the draft looks good."
 msgstr ""
-
-msgid "Let agent chats use a browser"
-msgstr "Izinkan obrolan agen memakai browser"
 
 msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
@@ -6479,9 +6464,6 @@ msgstr "Tidak ada"
 
 msgid "None of these problems have an automatic fix."
 msgstr "Tidak satu pun masalah ini punya perbaikan otomatis."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "Tidak satu pun masalah ini punya perbaikan otomatis. Coba Perbaiki semua dengan AI."
 
 msgid "Not a base16 theme"
 msgstr "Bukan tema base16"

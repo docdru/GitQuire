@@ -150,8 +150,6 @@ describe('DocPanel — Problems fix wiring', () => {
     renderPanel('problems');
     expect(typeof lastProblemsProps?.onFix).toBe('function');
     expect(typeof lastProblemsProps?.onAutoFix).toBe('function');
-    expect(lastProblemsProps?.onAskAi).toBeUndefined();
-    expect(lastProblemsProps?.onFixWithAi).toBeUndefined();
   });
 
   test('without a matching provider the fix handlers are withheld', () => {

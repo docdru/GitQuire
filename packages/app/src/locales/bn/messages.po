@@ -361,9 +361,6 @@ msgstr "{count, plural, one {আপনি কি নিশ্চিতভাব�
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {{formattedCount}টি markdown ফাইল পাওয়া গেছে} other {{formattedCount}টি markdown ফাইল পাওয়া গেছে}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {# সমস্যাটি আপনার AI এজেন্টের হাতে তুলে দেয়, যার কোনো স্বয়ংক্রিয় সমাধান নেই সেটিসহ।} other {সব # সমস্যা আপনার AI এজেন্টের হাতে তুলে দেয়, যেগুলোর কোনো স্বয়ংক্রিয় সমাধান নেই সেগুলোসহ।}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {যে # সমস্যার পরিচিত স্বয়ংক্রিয় সমাধান আছে তা সঙ্গে সঙ্গে ঠিক করে।} other {যে # সমস্যার পরিচিত স্বয়ংক্রিয় সমাধান আছে সেগুলো সঙ্গে সঙ্গে ঠিক করে।}}"
 
@@ -1339,9 +1336,6 @@ msgstr "যার ক্ষেত্রে প্রযোজ্য"
 msgid "Applies to (globs — leading ! excludes; empty means every doc)"
 msgstr "যার ক্ষেত্রে প্রযোজ্য (গ্লোব — শুরুতে ! থাকলে বাদ দেয়; খালি মানে প্রতিটি নথি)"
 
-msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
-msgstr "এই মেশিনের সব প্রজেক্টে প্রযোজ্য, চালু করার পরে শুরু হওয়া এজেন্ট প্যানেলের Claude Code ও Codex চ্যাটে। এজেন্ট নতুন প্রোফাইলসহ নিজের Google Chrome উইন্ডোতে পেজ খুলতে, ক্লিক করতে, টাইপ করতে ও স্ক্রিনশট নিতে পারে। Google Chrome ও Node.js ইনস্টল থাকা দরকার। ব্রাউজারের প্রতিটি কাজ আপনার অনুমোদন চায়, সবসময় অনুমতি দেওয়ার কোনো বিকল্প ছাড়াই, যদি না এজেন্টের নিজের মোড বা অনুমতি সেটিংস অনুমোদন এড়িয়ে যায়।"
-
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
@@ -1416,9 +1410,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "AI-কে জিজ্ঞেস করুন"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "AI-কে {flatId} ঠিক করতে বলুন"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4266,9 +4257,6 @@ msgstr "ঠিক করুন"
 msgid "Fix {flatId}"
 msgstr "{flatId} ঠিক করুন"
 
-msgid "Fix all with AI ({count})"
-msgstr "AI দিয়ে সব ঠিক করুন ({count})"
-
 msgid "Fixed"
 msgstr "নির্দিষ্ট"
 
@@ -5344,9 +5332,6 @@ msgstr "ফোল্ডারের যেকোনো গভীরতায় 
 
 msgid "Let {0} know the draft looks good."
 msgstr ""
-
-msgid "Let agent chats use a browser"
-msgstr "এজেন্ট চ্যাটকে ব্রাউজার ব্যবহার করতে দিন"
 
 msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
@@ -6479,9 +6464,6 @@ msgstr "কোনোটিই নয়"
 
 msgid "None of these problems have an automatic fix."
 msgstr "এই সমস্যাগুলোর কোনোটিরই স্বয়ংক্রিয় সমাধান নেই।"
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "এই সমস্যাগুলোর কোনোটিরই স্বয়ংক্রিয় সমাধান নেই। AI দিয়ে সব ঠিক করুন চেষ্টা করে দেখুন।"
 
 msgid "Not a base16 theme"
 msgstr "এটি base16 থিম নয়"

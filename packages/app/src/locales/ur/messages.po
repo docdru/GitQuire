@@ -361,9 +361,6 @@ msgstr "{count, plural, one {کیا آپ واقعی درج ذیل # فائل/ف�
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {{formattedCount} Markdown فائل ملی} other {{formattedCount} Markdown فائلیں ملیں}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {# مسئلہ آپ کے AI ایجنٹ کے حوالے کرتا ہے، بشمول وہ جس کا کوئی خودکار حل نہیں۔} other {تمام # مسائل آپ کے AI ایجنٹ کے حوالے کرتا ہے، بشمول وہ جن کا کوئی خودکار حل نہیں۔}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {فوری طور پر وہ # مسئلہ حل کرتا ہے جس کا معلوم خودکار حل موجود ہے۔} other {فوری طور پر وہ # مسائل حل کرتا ہے جن کا معلوم خودکار حل موجود ہے۔}}"
 
@@ -1343,9 +1340,6 @@ msgstr "لاگو ہوتا ہے"
 msgid "Applies to (globs — leading ! excludes; empty means every doc)"
 msgstr "لاگو ہوتا ہے (گلوبز — شروع میں ! خارج کرتا ہے؛ خالی کا مطلب ہر دستاویز)"
 
-msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
-msgstr "اس مشین کے تمام پروجیکٹس پر لاگو ہوتا ہے، ایجنٹ پینل کی ان Claude Code اور Codex چیٹس میں جو اسے آن کرنے کے بعد شروع ہوں۔ ایجنٹ نئی پروفائل والی اپنی Google Chrome ونڈو میں صفحات کھول، کلک کر، ٹائپ کر اور اسکرین شاٹ لے سکتا ہے۔ Google Chrome اور Node.js انسٹال ہونا ضروری ہے۔ براؤزر کی ہر کارروائی آپ کی منظوری مانگتی ہے، ہمیشہ اجازت دینے کے کسی اختیار کے بغیر، جب تک ایجنٹ کا اپنا موڈ یا اس کی اجازت کی ترتیبات منظوری کو نظرانداز نہ کریں۔"
-
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
@@ -1420,9 +1414,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "AI سے پوچھیں"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "AI سے {flatId} ٹھیک کرنے کو کہیں"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4270,9 +4261,6 @@ msgstr "ٹھیک کریں"
 msgid "Fix {flatId}"
 msgstr "{flatId} ٹھیک کریں"
 
-msgid "Fix all with AI ({count})"
-msgstr "AI سے سب ٹھیک کریں ({count})"
-
 msgid "Fixed"
 msgstr "مقررہ"
 
@@ -5348,9 +5336,6 @@ msgstr "کسی بھی فولڈر کی گہرائی میں log.md یا log.mdx ک
 
 msgid "Let {0} know the draft looks good."
 msgstr ""
-
-msgid "Let agent chats use a browser"
-msgstr "ایجنٹ چیٹس کو براؤزر استعمال کرنے دیں"
 
 msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
@@ -6483,9 +6468,6 @@ msgstr "کوئی نہیں"
 
 msgid "None of these problems have an automatic fix."
 msgstr "ان میں سے کسی مسئلے کا خودکار حل نہیں ہے۔"
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "ان میں سے کسی مسئلے کا خودکار حل نہیں ہے۔ «AI سے سب ٹھیک کریں» آزمائیں۔"
 
 msgid "Not a base16 theme"
 msgstr "یہ base16 تھیم نہیں ہے"

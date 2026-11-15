@@ -361,9 +361,6 @@ msgstr "{count, plural, one {¿Seguro que quieres eliminar el siguiente # archiv
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {Se encontró {formattedCount} archivo markdown} many {Se encontraron {formattedCount} archivos markdown} other {Se encontraron {formattedCount} archivos markdown}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {Pasa el # problema a tu agente de IA, incluido lo que no tiene arreglo automático.} many {Pasa los # problemas a tu agente de IA, incluido lo que no tiene arreglo automático.} other {Pasa los # problemas a tu agente de IA, incluido lo que no tiene arreglo automático.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Arregla al instante el # problema que tiene un arreglo automático conocido.} many {Arregla al instante los # problemas que tienen un arreglo automático conocido.} other {Arregla al instante los # problemas que tienen un arreglo automático conocido.}}"
 
@@ -1343,9 +1340,6 @@ msgstr "Se aplica a"
 msgid "Applies to (globs — leading ! excludes; empty means every doc)"
 msgstr "Se aplica a (globs; un ! inicial excluye; vacío significa todos los documentos)"
 
-msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
-msgstr "Se aplica a todos los proyectos de esta máquina, en los chats de Claude Code y Codex del panel de agentes que se inicien después de activarlo. El agente puede abrir páginas, hacer clic, escribir y tomar capturas de pantalla en su propia ventana de Google Chrome con un perfil nuevo. Requiere tener Google Chrome y Node.js instalados. Cada acción del navegador pide tu aprobación, sin opción de permitirla siempre, salvo que el propio modo del agente o su configuración de permisos omitan las aprobaciones."
-
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
@@ -1420,9 +1414,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "Preguntar a la IA"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "Pedir a la IA que arregle {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4270,9 +4261,6 @@ msgstr "Arreglar"
 msgid "Fix {flatId}"
 msgstr "Arreglar {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "Arreglarlo todo con IA ({count})"
-
 msgid "Fixed"
 msgstr "Fijo"
 
@@ -5348,9 +5336,6 @@ msgstr "Deja fuera de Problemas, de los indicadores del explorador de archivos, 
 
 msgid "Let {0} know the draft looks good."
 msgstr ""
-
-msgid "Let agent chats use a browser"
-msgstr "Permitir que los chats con agentes usen un navegador"
 
 msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
@@ -6483,9 +6468,6 @@ msgstr "Ninguno"
 
 msgid "None of these problems have an automatic fix."
 msgstr "Ninguno de estos problemas tiene arreglo automático."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "Ninguno de estos problemas tiene arreglo automático. Prueba Arreglarlo todo con IA."
 
 msgid "Not a base16 theme"
 msgstr "No es un tema base16"

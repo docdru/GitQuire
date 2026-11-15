@@ -361,9 +361,6 @@ msgstr "{count, plural, other {确定要删除以下 # 个文件/文件夹及其
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, other {找到 {formattedCount} 个 markdown 文件}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, other {把这 # 个问题交给你的 AI 智能体，包括没有自动修复方案的部分。}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {立即修复有已知自动修复方案的 # 个问题。}}"
 
@@ -1343,9 +1340,6 @@ msgstr "适用于"
 msgid "Applies to (globs — leading ! excludes; empty means every doc)"
 msgstr "适用于（glob 模式；以 ! 开头表示排除；留空表示所有文档）"
 
-msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
-msgstr "适用于本机上的所有项目，作用于开启后新建的智能体面板中的 Claude Code 和 Codex 对话。智能体可以在它自己的 Google Chrome 窗口中（使用全新的配置文件）打开页面、点击、输入和截图。需要已安装 Google Chrome 和 Node.js。除非智能体自身的模式或权限设置跳过了批准，否则每个浏览器操作都会请求你的批准，且没有“始终允许”的选项。"
-
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
@@ -1420,9 +1414,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "问 AI"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "让 AI 修复 {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4270,9 +4261,6 @@ msgstr "修复"
 msgid "Fix {flatId}"
 msgstr "修复 {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "用 AI 全部修复（{count}）"
-
 msgid "Fixed"
 msgstr "固定"
 
@@ -5348,9 +5336,6 @@ msgstr "无论文件夹层级多深，都不在“问题”、文件资源管理
 
 msgid "Let {0} know the draft looks good."
 msgstr ""
-
-msgid "Let agent chats use a browser"
-msgstr "允许智能体对话使用浏览器"
 
 msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
@@ -6483,9 +6468,6 @@ msgstr "无"
 
 msgid "None of these problems have an automatic fix."
 msgstr "这些问题都没有自动修复方案。"
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "这些问题都没有自动修复方案。可以试试「用 AI 全部修复」。"
 
 msgid "Not a base16 theme"
 msgstr "不是 base16 主题"

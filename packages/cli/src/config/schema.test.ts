@@ -8,7 +8,6 @@ describe('ConfigSchema', () => {
     expect(config.appearance.theme).toBeUndefined();
     expect(config.editor.wordWrap).toBe(true);
     expect(config.autoSync.enabled).toBeNull();
-    expect(config.terminal.enabled).toBeNull();
   });
 
   test('stale dropped fields pass loose-mode without throwing', () => {
@@ -38,21 +37,6 @@ describe('ConfigSchema', () => {
 
   test('autoSync.enabled rejects non-boolean values', () => {
     const result = ConfigSchema.safeParse({ autoSync: { enabled: 'true' } });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].path).toContain('enabled');
-    }
-  });
-
-  test('terminal.enabled accepts boolean true / false / null', () => {
-    for (const enabled of [true, false, null] as const) {
-      const config = ConfigSchema.parse({ terminal: { enabled } });
-      expect(config.terminal.enabled).toBe(enabled);
-    }
-  });
-
-  test('terminal.enabled rejects non-boolean values', () => {
-    const result = ConfigSchema.safeParse({ terminal: { enabled: 'true' } });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].path).toContain('enabled');
