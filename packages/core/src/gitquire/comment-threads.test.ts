@@ -8,6 +8,7 @@ import {
   COMMENT_TRAILER_CLOSE,
   COMMENT_TRAILER_OPEN,
   type CommentThread,
+  checkCommentsAfterOutsideChange,
   convertCommentsToFootnotes,
   joinCommentTrailer,
   pageTextWithoutComments,
@@ -266,5 +267,45 @@ describe('editor guard', () => {
       if (child.type.name === 'gitquireComments') found = true;
     });
     expect(found).toBe(false);
+  });
+});
+
+describe('comment check after an outside change', () => {
+  const second = [
+    '[^c-91bd]: 💬 on "forecast"',
+    '',
+    '    - **@carol** · 2026-11-14 12:00 — March or June?',
+  ].join('\n');
+  const before = `The quarterly numbers[^c-7f3a] look good, the forecast[^c-91bd] is stable.\n\n${trailer}\n\n${second}\n`;
+
+  test('restores a thread an outside commit dropped while its mark is still there', () => {
+    const after = `The quarterly numbers[^c-7f3a] look great, the forecast[^c-91bd] is stable.\n\n${trailer}\n`;
+    const check = checkCommentsAfterOutsideChange(before, after);
+    expect(check.restored).toEqual(['c-91bd']);
+    expect(readCommentThreads(check.markdown).map((t) => t.id)).toEqual(['c-7f3a', 'c-91bd']);
+    expect(check.markdown).toContain('look great');
+  });
+
+  test('accepts a thread removed together with its mark', () => {
+    const after = `The quarterly numbers[^c-7f3a] look good, the forecast is stable.\n\n${trailer}\n`;
+    expect(checkCommentsAfterOutsideChange(before, after)).toEqual({
+      markdown: after,
+      restored: [],
+      relinked: [],
+    });
+  });
+
+  test('puts a lost mark back when the quote is still there once', () => {
+    const after = `Now the quarterly numbers look good, the forecast[^c-91bd] is stable.\n\n${trailer}\n\n${second}\n`;
+    const check = checkCommentsAfterOutsideChange(before, after);
+    expect(check.relinked).toEqual(['c-7f3a']);
+    expect(check.markdown.split('\n')[0]).toBe(
+      'Now the quarterly numbers[^c-7f3a] look good, the forecast[^c-91bd] is stable.',
+    );
+  });
+
+  test('leaves a page alone when nothing about its comments changed', () => {
+    const after = before.replace('stable', 'steady');
+    expect(checkCommentsAfterOutsideChange(before, after).markdown).toBe(after);
   });
 });

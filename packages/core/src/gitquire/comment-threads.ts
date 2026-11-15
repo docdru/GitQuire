@@ -531,3 +531,40 @@ export function normalizeComments(markdown: string): string {
     serializeCommentTrailer(parseCommentTrailer(split.trailer).threads),
   );
 }
+
+export interface OutsideChangeCheck {
+  markdown: string;
+  restored: string[];
+  relinked: string[];
+}
+
+export function checkCommentsAfterOutsideChange(before: string, after: string): OutsideChangeCheck {
+  const unchanged = { markdown: after, restored: [], relinked: [] };
+  const previous = readCommentThreads(before);
+  if (previous.length === 0) return unchanged;
+  const split = splitCommentSource(after);
+  const current = split.trailer === undefined ? [] : parseCommentTrailer(split.trailer).threads;
+  const currentIds = new Set(current.map((thread) => thread.id));
+  const marksAfter = new Set(findCommentMarks(split.body));
+  const marksBefore = new Set(findCommentMarks(splitCommentSource(before).body));
+  const restored = previous.filter(
+    (thread) => !currentIds.has(thread.id) && marksAfter.has(thread.id),
+  );
+  const lostMark = [...current, ...restored].filter(
+    (thread) => marksBefore.has(thread.id) && !marksAfter.has(thread.id),
+  );
+  const body = insertCommentMarks(split.body, lostMark);
+  const marksNow = new Set(findCommentMarks(body));
+  const relinked = lostMark.filter((thread) => marksNow.has(thread.id)).map((thread) => thread.id);
+  if (restored.length === 0 && relinked.length === 0) return unchanged;
+  const threads = [...current, ...restored];
+  const trailer =
+    restored.length === 0 && split.trailer !== undefined
+      ? split.trailer
+      : serializeCommentTrailer(threads);
+  return {
+    markdown: joinCommentTrailer(body, trailer),
+    restored: restored.map((thread) => thread.id),
+    relinked,
+  };
+}
