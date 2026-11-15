@@ -24,7 +24,6 @@ import {
   Link2,
   type LucideIcon,
   RefreshCw,
-  Sparkles,
   Wrench,
 } from 'lucide-react';
 import {
@@ -359,14 +358,12 @@ function ActionTooltip({
 function AutoFixButton({
   count,
   problemCount,
-  aiAvailable,
   disabled,
   onClick,
   children,
 }: {
   count: number;
   problemCount: number;
-  aiAvailable: boolean;
   disabled: boolean;
   onClick: () => void;
   children?: ReactNode;
@@ -384,8 +381,6 @@ function AutoFixButton({
           />
         ) : problemCount === 0 ? (
           <Trans>Auto-fix applies only to problems with a known mechanical fix.</Trans>
-        ) : aiAvailable ? (
-          <Trans>None of these problems have an automatic fix. Try Fix all with AI.</Trans>
         ) : (
           <Trans>None of these problems have an automatic fix.</Trans>
         )
@@ -415,41 +410,6 @@ function AutoFixButton({
   );
 }
 
-function FixWithAiButton({
-  count,
-  disabled,
-  onClick,
-}: {
-  count: number;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <ActionTooltip
-      testId="problems-fix-with-ai-tip"
-      tip={
-        <Plural
-          value={count}
-          one="Hands the # problem to your AI agent, including what has no automatic fix."
-          other="Hands all # problems to your AI agent, including what has no automatic fix."
-        />
-      }
-    >
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-6 shrink-0 px-2 text-xs"
-        disabled={disabled}
-        onClick={onClick}
-        data-testid="problems-fix-with-ai"
-      >
-        <Sparkles aria-hidden="true" className="size-3" />
-        <Trans>Fix all with AI ({count})</Trans>
-      </Button>
-    </ActionTooltip>
-  );
-}
-
 export function ProblemsPanel({
   docName,
   diagnostics,
@@ -457,8 +417,6 @@ export function ProblemsPanel({
   brokenLinkSuppression,
   onFix,
   onAutoFix,
-  onAskAi,
-  onFixWithAi,
   onDestinationComplete,
   onDestinationRequested,
 }: {
@@ -468,8 +426,6 @@ export function ProblemsPanel({
   brokenLinkSuppression?: BrokenLinkSuppression;
   onFix?: (diagnostic: DiagnosticLike) => void;
   onAutoFix?: () => void;
-  onAskAi?: (diagnostic: DiagnosticLike) => void;
-  onFixWithAi?: (scope: PanelScope) => void;
   onDestinationComplete?: (target: HTMLElement) => void;
   onDestinationRequested?: (
     docName: string,
@@ -645,7 +601,7 @@ export function ProblemsPanel({
   function renderDocActions(diagnostic: DiagnosticLike): ReactElement | null {
     const fixable = onFix !== undefined && (diagnostic.fixes?.length ?? 0) > 0;
     const canCreate = canCreateMissingPage(diagnostic) && pageList !== null;
-    if (!fixable && !canCreate && onAskAi === undefined) return null;
+    if (!fixable && !canCreate) return null;
     const flatId = `${diagnostic.source}/${diagnostic.code}`;
     return (
       <>
@@ -668,19 +624,6 @@ export function ProblemsPanel({
           >
             <Wrench aria-hidden="true" className="size-3" />
             <Trans>Fix</Trans>
-          </Button>
-        ) : null}
-        {onAskAi !== undefined ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 shrink-0 px-2 text-xs"
-            onClick={() => onAskAi(diagnostic)}
-            aria-label={t`Ask AI to fix ${flatId}`}
-            data-testid="problems-ask-ai"
-          >
-            <Sparkles aria-hidden="true" className="size-3" />
-            <Trans>Ask AI</Trans>
           </Button>
         ) : null}
       </>
@@ -769,22 +712,14 @@ export function ProblemsPanel({
             )
           ) : (
             <>
-              {onAutoFix !== undefined || onFixWithAi !== undefined ? (
+              {onAutoFix !== undefined ? (
                 <div className="flex flex-wrap items-center justify-end gap-1 px-2 pb-1">
                   {onAutoFix !== undefined && (
                     <AutoFixButton
                       count={docFixableCount}
                       problemCount={sorted.length}
-                      aiAvailable={onFixWithAi !== undefined}
                       disabled={docFixableCount === 0}
                       onClick={onAutoFix}
-                    />
-                  )}
-                  {onFixWithAi !== undefined && (
-                    <FixWithAiButton
-                      count={sorted.length}
-                      disabled={false}
-                      onClick={() => onFixWithAi('doc')}
                     />
                   )}
                 </div>
@@ -817,11 +752,6 @@ export function ProblemsPanel({
           fixing={projectFixing}
           onAutoFix={fixAllProjectFiles}
           onCancelFix={cancelProjectFixSweep}
-          onFixWithAi={
-            onFixWithAi === undefined || audit.status !== 'loaded'
-              ? undefined
-              : () => onFixWithAi('project')
-          }
           onCreateTarget={pageList !== null ? (d) => void createLinkTarget(d) : undefined}
           creatingTarget={creatingTarget}
         />
@@ -839,7 +769,6 @@ function ProjectAuditBody({
   fixing,
   onAutoFix,
   onCancelFix,
-  onFixWithAi,
   onCreateTarget,
   creatingTarget,
 }: {
@@ -851,7 +780,6 @@ function ProjectAuditBody({
   fixing: { done: number; total: number } | null;
   onAutoFix: () => void;
   onCancelFix: () => void;
-  onFixWithAi?: () => void;
   onCreateTarget?: (diagnostic: DiagnosticLike) => void;
   creatingTarget: string | null;
 }) {
@@ -966,7 +894,6 @@ function ProjectAuditBody({
           <AutoFixButton
             count={fixableCount}
             problemCount={problemCount}
-            aiAvailable={onFixWithAi !== undefined}
             disabled={loading || fixing !== null || fixableCount === 0}
             onClick={onAutoFix}
           >
@@ -976,13 +903,6 @@ function ProjectAuditBody({
               </Trans>
             ) : undefined}
           </AutoFixButton>
-          {onFixWithAi !== undefined && problemCount > 0 ? (
-            <FixWithAiButton
-              count={problemCount}
-              disabled={fixing !== null}
-              onClick={onFixWithAi}
-            />
-          ) : null}
         </div>
       </div>
 

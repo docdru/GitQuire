@@ -361,9 +361,6 @@ msgstr "{count, plural, other {Yakin ingin menghapus # berkas/folder berikut bes
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, other {Ditemukan {formattedCount} berkas markdown}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, other {Menyerahkan # masalah ke agen AI Anda, termasuk yang tidak punya perbaikan otomatis.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {Langsung memperbaiki # masalah yang punya perbaikan otomatis yang diketahui.}}"
 
@@ -1416,9 +1413,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "Tanya AI"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "Minta AI memperbaiki {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4266,9 +4260,6 @@ msgstr "Perbaiki"
 msgid "Fix {flatId}"
 msgstr "Perbaiki {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "Perbaiki semua dengan AI ({count})"
-
 msgid "Fixed"
 msgstr "Tetap"
 
@@ -6479,9 +6470,6 @@ msgstr "Tidak ada"
 
 msgid "None of these problems have an automatic fix."
 msgstr "Tidak satu pun masalah ini punya perbaikan otomatis."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "Tidak satu pun masalah ini punya perbaikan otomatis. Coba Perbaiki semua dengan AI."
 
 msgid "Not a base16 theme"
 msgstr "Bukan tema base16"

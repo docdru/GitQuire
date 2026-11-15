@@ -361,9 +361,6 @@ msgstr "{count, plural, other {다음 파일 또는 폴더 #개와 그 내용을
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, other {{formattedCount}개의 markdown 파일을 찾았습니다}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, other {AI 에이전트에 문제 #개를 전달합니다. 자동 수정이 없는 문제도 포함됩니다.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {자동 수정이 알려진 문제 #개를 즉시 수정합니다.}}"
 
@@ -1420,9 +1417,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "AI에게 묻기"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "AI에 {flatId} 수정 요청"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4270,9 +4264,6 @@ msgstr "수정"
 msgid "Fix {flatId}"
 msgstr "{flatId} 수정"
 
-msgid "Fix all with AI ({count})"
-msgstr "AI로 모두 수정 ({count})"
-
 msgid "Fixed"
 msgstr "고정"
 
@@ -6483,9 +6474,6 @@ msgstr "없음"
 
 msgid "None of these problems have an automatic fix."
 msgstr "이 문제들에는 자동 수정이 없습니다."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "이 문제들에는 자동 수정이 없습니다. AI로 모두 수정을 시도하세요."
 
 msgid "Not a base16 theme"
 msgstr "base16 테마가 아님"

@@ -361,9 +361,6 @@ msgstr "{count, plural, one {Tem certeza de que deseja excluir o # arquivo/pasta
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {{formattedCount} arquivo markdown encontrado} many {{formattedCount} arquivos markdown encontrados} other {{formattedCount} arquivos markdown encontrados}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {Entrega o # problema ao seu agente de IA, incluindo o que não tem correção automática.} many {Entrega os # problemas ao seu agente de IA, incluindo o que não tem correção automática.} other {Entrega os # problemas ao seu agente de IA, incluindo o que não tem correção automática.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Corrige na hora o # problema que tem correção automática conhecida.} many {Corrige na hora os # problemas que têm correção automática conhecida.} other {Corrige na hora os # problemas que têm correção automática conhecida.}}"
 
@@ -1416,9 +1413,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "Perguntar à IA"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "Pedir à IA para corrigir {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4266,9 +4260,6 @@ msgstr "Corrigir"
 msgid "Fix {flatId}"
 msgstr "Corrigir {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "Corrigir tudo com IA ({count})"
-
 msgid "Fixed"
 msgstr "Fixa"
 
@@ -6479,9 +6470,6 @@ msgstr "Nenhum"
 
 msgid "None of these problems have an automatic fix."
 msgstr "Nenhum destes problemas tem correção automática."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "Nenhum destes problemas tem correção automática. Tente Corrigir tudo com IA."
 
 msgid "Not a base16 theme"
 msgstr "Não é um tema base16"

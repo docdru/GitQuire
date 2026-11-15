@@ -361,9 +361,6 @@ msgstr "{count, plural, other {確定要刪除以下 # 個檔案/資料夾及其
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, other {找到 {formattedCount} 個 markdown 檔案}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, other {把這 # 個問題交給你的 AI 代理，包括沒有自動修正方式的部分。}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {立即修正有已知自動修正方式的 # 個問題。}}"
 
@@ -1420,9 +1417,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "問 AI"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "請 AI 修正 {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4270,9 +4264,6 @@ msgstr "修正"
 msgid "Fix {flatId}"
 msgstr "修正 {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "用 AI 全部修正（{count}）"
-
 msgid "Fixed"
 msgstr "固定"
 
@@ -6483,9 +6474,6 @@ msgstr "無"
 
 msgid "None of these problems have an automatic fix."
 msgstr "這些問題都沒有自動修正的方式。"
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "這些問題都沒有自動修正的方式。可以試試「用 AI 全部修正」。"
 
 msgid "Not a base16 theme"
 msgstr "不是 base16 主題"

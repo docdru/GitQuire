@@ -361,9 +361,6 @@ msgstr "{count, plural, one {আপনি কি নিশ্চিতভাব�
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {{formattedCount}টি markdown ফাইল পাওয়া গেছে} other {{formattedCount}টি markdown ফাইল পাওয়া গেছে}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {# সমস্যাটি আপনার AI এজেন্টের হাতে তুলে দেয়, যার কোনো স্বয়ংক্রিয় সমাধান নেই সেটিসহ।} other {সব # সমস্যা আপনার AI এজেন্টের হাতে তুলে দেয়, যেগুলোর কোনো স্বয়ংক্রিয় সমাধান নেই সেগুলোসহ।}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {যে # সমস্যার পরিচিত স্বয়ংক্রিয় সমাধান আছে তা সঙ্গে সঙ্গে ঠিক করে।} other {যে # সমস্যার পরিচিত স্বয়ংক্রিয় সমাধান আছে সেগুলো সঙ্গে সঙ্গে ঠিক করে।}}"
 
@@ -1416,9 +1413,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "AI-কে জিজ্ঞেস করুন"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "AI-কে {flatId} ঠিক করতে বলুন"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4266,9 +4260,6 @@ msgstr "ঠিক করুন"
 msgid "Fix {flatId}"
 msgstr "{flatId} ঠিক করুন"
 
-msgid "Fix all with AI ({count})"
-msgstr "AI দিয়ে সব ঠিক করুন ({count})"
-
 msgid "Fixed"
 msgstr "নির্দিষ্ট"
 
@@ -6479,9 +6470,6 @@ msgstr "কোনোটিই নয়"
 
 msgid "None of these problems have an automatic fix."
 msgstr "এই সমস্যাগুলোর কোনোটিরই স্বয়ংক্রিয় সমাধান নেই।"
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "এই সমস্যাগুলোর কোনোটিরই স্বয়ংক্রিয় সমাধান নেই। AI দিয়ে সব ঠিক করুন চেষ্টা করে দেখুন।"
 
 msgid "Not a base16 theme"
 msgstr "এটি base16 থিম নয়"

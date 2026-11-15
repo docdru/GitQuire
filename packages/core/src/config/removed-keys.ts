@@ -13,6 +13,24 @@ const migrateHint = (): string =>
 
 export const REMOVED_KEYS: readonly RemovedKey[] = [
   {
+    path: ['agents'],
+    get redirect() {
+      return [
+        'agents.* has been removed with the in-app agents it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
+    path: ['terminal'],
+    get redirect() {
+      return [
+        'terminal.* has been removed with the in-app terminal it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
     path: ['bridge', 'backgroundThrottle'],
     get redirect() {
       return [

@@ -361,9 +361,6 @@ msgstr "{count, plural, one {Czy na pewno chcesz usunąć # poniższy plik/katal
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {Znaleziono {formattedCount} plik Markdown} few {Znaleziono {formattedCount} pliki Markdown} many {Znaleziono {formattedCount} plików Markdown} other {Znaleziono {formattedCount} pliku Markdown}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {Przekazuje # problem twojemu agentowi AI, łącznie z tym, co nie ma automatycznej poprawki.} few {Przekazuje # problemy twojemu agentowi AI, łącznie z tym, co nie ma automatycznej poprawki.} many {Przekazuje # problemów twojemu agentowi AI, łącznie z tym, co nie ma automatycznej poprawki.} other {Przekazuje # problemu twojemu agentowi AI, łącznie z tym, co nie ma automatycznej poprawki.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Natychmiast naprawia # problem, dla którego istnieje znana automatyczna poprawka.} few {Natychmiast naprawia # problemy, dla których istnieje znana automatyczna poprawka.} many {Natychmiast naprawia # problemów, dla których istnieje znana automatyczna poprawka.} other {Natychmiast naprawia # problemu, dla którego istnieje znana automatyczna poprawka.}}"
 
@@ -1420,9 +1417,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "Zapytaj AI"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "Poproś AI o naprawienie {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4270,9 +4264,6 @@ msgstr "Napraw"
 msgid "Fix {flatId}"
 msgstr "Napraw {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "Napraw wszystko za pomocą AI ({count})"
-
 msgid "Fixed"
 msgstr "Stały"
 
@@ -6483,9 +6474,6 @@ msgstr "Brak"
 
 msgid "None of these problems have an automatic fix."
 msgstr "Żaden z tych problemów nie ma automatycznej poprawki."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "Żaden z tych problemów nie ma automatycznej poprawki. Wypróbuj Napraw wszystko z AI."
 
 msgid "Not a base16 theme"
 msgstr "To nie jest motyw base16"

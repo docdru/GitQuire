@@ -124,12 +124,12 @@ describe('getLeafFieldMeta', () => {
     });
   });
 
-  test('resolves metadata for the project-local terminal.shell leaf', () => {
-    const meta = getLeafFieldMeta(ConfigSchema, ['terminal', 'shell']);
+  test('resolves metadata for the project-local server.bind leaf', () => {
+    const meta = getLeafFieldMeta(ConfigSchema, ['server', 'bind']);
     expect(meta).toEqual({
       scope: 'project-local',
       agentSettable: false,
-      reload: 'live',
+      reload: 'boot',
       defaultScope: 'project-local',
       description: expect.any(String),
     });

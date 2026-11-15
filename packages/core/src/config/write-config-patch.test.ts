@@ -207,53 +207,53 @@ describe('writeConfigPatch — project-local scope', () => {
     expect(existsSync(join(testDir, '.ok', 'config.yml'))).toBe(false);
   });
 
-  test('persists terminal.enabled to .ok/local/config.yml and round-trips across reads', async () => {
+  test('persists server.allowExternal to .ok/local/config.yml and round-trips across reads', async () => {
     const granted = await writeConfigPatch({
       cwd: testDir,
       scope: 'project-local',
-      patch: { terminal: { enabled: true } },
+      patch: { server: { allowExternal: true } },
     });
     expect(granted.ok).toBe(true);
     if (!granted.ok) throw new Error('expected success');
     expect(granted.path).toBe(projectLocalConfigPath());
-    expect(granted.appliedPaths).toContain('terminal.enabled');
+    expect(granted.appliedPaths).toContain('server.allowExternal');
 
     const onDisk = readFileSync(projectLocalConfigPath(), 'utf-8');
-    expect(onDisk).toContain('terminal:');
-    expect(onDisk).toContain('enabled: true');
+    expect(onDisk).toContain('server:');
+    expect(onDisk).toContain('allowExternal: true');
 
     const revoked = await writeConfigPatch({
       cwd: testDir,
       scope: 'project-local',
-      patch: { terminal: { enabled: false } },
+      patch: { server: { allowExternal: false } },
     });
     expect(revoked.ok).toBe(true);
     if (!revoked.ok) throw new Error('expected success');
-    expect(revoked.effective.terminal.enabled).toBe(false);
+    expect(revoked.effective.server.allowExternal).toBe(false);
     const after = readFileSync(projectLocalConfigPath(), 'utf-8');
-    expect(after).toContain('enabled: false');
-    expect(after).not.toContain('enabled: true');
+    expect(after).toContain('allowExternal: false');
+    expect(after).not.toContain('allowExternal: true');
   });
 
-  test('persists terminal.shell only to .ok/local/config.yml', async () => {
+  test('persists server.bind only to .ok/local/config.yml', async () => {
     const result = await writeConfigPatch({
       cwd: testDir,
       scope: 'project-local',
-      patch: { terminal: { shell: 'C:\\Tools\\pwsh.exe' } },
+      patch: { server: { bind: ['0.0.0.0'] } },
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected success');
-    expect(result.appliedPaths).toContain('terminal.shell');
-    expect(result.effective.terminal.shell).toBe('C:\\Tools\\pwsh.exe');
-    expect(readFileSync(projectLocalConfigPath(), 'utf-8')).toContain('shell: C:\\Tools\\pwsh.exe');
+    expect(result.appliedPaths).toContain('server.bind');
+    expect(result.effective.server.bind).toEqual(['0.0.0.0']);
+    expect(readFileSync(projectLocalConfigPath(), 'utf-8')).toContain('0.0.0.0');
     expect(existsSync(projectConfigPath())).toBe(false);
   });
 
-  test('terminal.enabled grant lands ONLY in the gitignored .ok/local/ file, never the committed project file', async () => {
+  test('server.allowExternal grant lands ONLY in the gitignored .ok/local/ file, never the committed project file', async () => {
     await writeConfigPatch({
       cwd: testDir,
       scope: 'project-local',
-      patch: { terminal: { enabled: true } },
+      patch: { server: { allowExternal: true } },
     });
     expect(existsSync(projectLocalConfigPath())).toBe(true);
     expect(existsSync(join(testDir, '.ok', 'config.yml'))).toBe(false);
@@ -561,29 +561,29 @@ describe('writeConfigPatch — scope-violation gate', () => {
     expect(result.error.expectedScope).toBe('user');
   });
 
-  test('project writer rejects terminal.enabled with SCOPE_VIOLATION; no fs write', async () => {
+  test('project writer rejects server.allowExternal with SCOPE_VIOLATION; no fs write', async () => {
     const result = await writeConfigPatch({
       cwd: testDir,
       scope: 'project',
-      patch: { terminal: { enabled: true } },
+      patch: { server: { allowExternal: true } },
     });
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected SCOPE_VIOLATION');
     if (!isKnownConfigError(result.error)) throw new Error('expected known error');
     expect(result.error.code).toBe('SCOPE_VIOLATION');
     if (result.error.code !== 'SCOPE_VIOLATION') throw new Error('wrong code');
-    expect(result.error.path).toEqual(['terminal', 'enabled']);
+    expect(result.error.path).toEqual(['server', 'allowExternal']);
     expect(result.error.expectedScope).toBe('project-local');
     expect(result.error.actualScope).toBe('project');
     expect(existsSync(projectConfigPath())).toBe(false);
   });
 
-  test('user writer rejects terminal.enabled with SCOPE_VIOLATION; no fs write', async () => {
+  test('user writer rejects server.allowExternal with SCOPE_VIOLATION; no fs write', async () => {
     const result = await writeConfigPatch({
       cwd: testDir,
       scope: 'user',
       homedirOverride: testDir,
-      patch: { terminal: { enabled: false } },
+      patch: { server: { allowExternal: false } },
     });
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected SCOPE_VIOLATION');
@@ -596,20 +596,20 @@ describe('writeConfigPatch — scope-violation gate', () => {
   });
 
   test.each(['project', 'user'] as const)(
-    '%s writer rejects terminal.shell with SCOPE_VIOLATION',
+    '%s writer rejects server.bind with SCOPE_VIOLATION',
     async (scope) => {
       const result = await writeConfigPatch({
         cwd: testDir,
         scope,
         homedirOverride: testDir,
-        patch: { terminal: { shell: 'C:\\Tools\\pwsh.exe' } },
+        patch: { server: { bind: ['0.0.0.0'] } },
       });
       expect(result.ok).toBe(false);
       if (result.ok) throw new Error('expected SCOPE_VIOLATION');
       if (!isKnownConfigError(result.error)) throw new Error('expected known error');
       expect(result.error.code).toBe('SCOPE_VIOLATION');
       if (result.error.code !== 'SCOPE_VIOLATION') throw new Error('wrong code');
-      expect(result.error.path).toEqual(['terminal', 'shell']);
+      expect(result.error.path).toEqual(['server', 'bind']);
       expect(result.error.expectedScope).toBe('project-local');
       expect(result.error.actualScope).toBe(scope);
     },

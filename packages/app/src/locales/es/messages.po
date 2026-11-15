@@ -361,9 +361,6 @@ msgstr "{count, plural, one {¿Seguro que quieres eliminar el siguiente # archiv
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {Se encontró {formattedCount} archivo markdown} many {Se encontraron {formattedCount} archivos markdown} other {Se encontraron {formattedCount} archivos markdown}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {Pasa el # problema a tu agente de IA, incluido lo que no tiene arreglo automático.} many {Pasa los # problemas a tu agente de IA, incluido lo que no tiene arreglo automático.} other {Pasa los # problemas a tu agente de IA, incluido lo que no tiene arreglo automático.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Arregla al instante el # problema que tiene un arreglo automático conocido.} many {Arregla al instante los # problemas que tienen un arreglo automático conocido.} other {Arregla al instante los # problemas que tienen un arreglo automático conocido.}}"
 
@@ -1420,9 +1417,6 @@ msgstr ""
 
 msgid "Ask AI"
 msgstr "Preguntar a la IA"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "Pedir a la IA que arregle {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr ""
@@ -4270,9 +4264,6 @@ msgstr "Arreglar"
 msgid "Fix {flatId}"
 msgstr "Arreglar {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "Arreglarlo todo con IA ({count})"
-
 msgid "Fixed"
 msgstr "Fijo"
 
@@ -6483,9 +6474,6 @@ msgstr "Ninguno"
 
 msgid "None of these problems have an automatic fix."
 msgstr "Ninguno de estos problemas tiene arreglo automático."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "Ninguno de estos problemas tiene arreglo automático. Prueba Arreglarlo todo con IA."
 
 msgid "Not a base16 theme"
 msgstr "No es un tema base16"

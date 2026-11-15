@@ -185,32 +185,6 @@ describe('mergeLayered — scope-aware leaf short-circuits', () => {
     expect(merged.autoSync?.enabled).toBe(true);
   });
 
-  test("scope: 'project-local' (terminal.enabled) returns the project-local grant, ignoring project + user", () => {
-    const user = makeConfig({});
-    const project = makeConfig({});
-    const projectLocal = makeConfig({ terminal: { enabled: true } });
-
-    const merged = mergeLayered(user, project, projectLocal);
-    expect(merged.terminal?.enabled).toBe(true);
-  });
-
-  test("scope: 'project-local' (terminal.shell) returns only the machine-local override", () => {
-    const user = makeConfig({ terminal: { shell: 'user-shell.exe' } });
-    const project = makeConfig({ terminal: { shell: 'project-shell.exe' } });
-    const projectLocal = makeConfig({ terminal: { shell: 'C:\\Tools\\pwsh.exe' } });
-
-    const merged = mergeLayered(user, project, projectLocal);
-    expect(merged.terminal?.shell).toBe('C:\\Tools\\pwsh.exe');
-  });
-
-  test('a clone without the project-local layer resolves terminal.enabled to null (grant never inherited)', () => {
-    const user = makeConfig({});
-    const project = makeConfig({});
-
-    const merged = mergeLayered(user, project);
-    expect(merged.terminal?.enabled).toBeNull();
-  });
-
   test("scope: 'project-local' (server.bind) ignores a committed project value; the project-local layer wins", () => {
     const user = makeConfig({});
     const project = makeConfig({ server: { bind: ['0.0.0.0'] } });

@@ -609,32 +609,6 @@ export const ConfigSchema = z.looseObject({
         .default(true),
     })
     .default({ wordWrap: true, previewTabs: true }),
-  agents: z
-    .looseObject({
-      autoApproveOkTools: z
-        .boolean()
-        .register(fieldRegistry, {
-          scope: 'user',
-          agentSettable: false,
-          reload: 'live',
-          defaultScope: 'user',
-          description:
-            "Auto-approve GitQuire's own tools for agents launched from the built-in terminal (plus `ok open` on Claude) and for in-app Agents-panel chats with any ACP agent. Destructive tools (delete/move/share/install/import) still prompt. Per-machine personal preference (user scope).",
-        })
-        .default(true),
-      browserTools: z
-        .boolean()
-        .register(fieldRegistry, {
-          scope: 'user',
-          agentSettable: false,
-          reload: 'live',
-          defaultScope: 'user',
-          description:
-            "Give in-app Claude Code and Codex chats a browser they can drive (Playwright MCP, started through npx from GitQuire's own folder with a fresh in-memory profile), so an agent can open pages, click, and take screenshots. Every browser action asks for approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals. Needs Google Chrome and Node.js. Off by default; takes effect for chats started after the change. Per-machine personal preference (user scope).",
-        })
-        .default(false),
-    })
-    .default({ autoApproveOkTools: true, browserTools: false }),
   autoSync: z
     .looseObject({
       mode: z
@@ -748,33 +722,6 @@ export const ConfigSchema = z.looseObject({
         .catch({}),
     })
     .default({ hosts: {} }),
-  terminal: z
-    .looseObject({
-      enabled: z
-        .boolean()
-        .register(fieldRegistry, {
-          scope: 'project-local',
-          agentSettable: false,
-          reload: 'live',
-          defaultScope: 'project-local',
-          description:
-            'Opt-out for the in-app terminal (a real OS shell at full user privilege). The terminal is on by default; set false to disable it for this project on this machine. Per-machine (project-local) — never shared via git, clone, or sync.',
-        })
-        .nullable()
-        .default(null),
-      shell: z
-        .string()
-        .register(fieldRegistry, {
-          scope: 'project-local',
-          agentSettable: false,
-          reload: 'live',
-          defaultScope: 'project-local',
-          description:
-            'Absolute Windows shell executable override for the in-app terminal. PowerShell, cmd.exe, and Git Bash support GitQuire-managed launches (agent chat tabs and fixed commands such as Resolve in terminal or Install Slidev) and dropped-file path insertion. A different existing executable remains usable for plain terminal tabs and shows a capability notice; requested agent and command launches open only the plain shell without running the agent or command, and dropped-file paths are refused. Empty values use automatic shell discovery. Per-machine (project-local), human-managed, and never shared via git, clone, or sync.',
-        })
-        .optional(),
-    })
-    .default({ enabled: null }),
   slides: z
     .looseObject({
       enabled: z

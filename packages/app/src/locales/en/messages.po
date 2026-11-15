@@ -361,9 +361,6 @@ msgstr "{count, plural, one {Are you sure you want to delete the following # fil
 msgid "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 msgstr "{count, plural, one {Found {formattedCount} markdown file} other {Found {formattedCount} markdown files}}"
 
-msgid "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-msgstr "{count, plural, one {Hands the # problem to your AI agent, including what has no automatic fix.} other {Hands all # problems to your AI agent, including what has no automatic fix.}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 
@@ -1420,9 +1417,6 @@ msgstr "Ask about this page or the wiki"
 
 msgid "Ask AI"
 msgstr "Ask AI"
-
-msgid "Ask AI to fix {flatId}"
-msgstr "Ask AI to fix {flatId}"
 
 msgid "Ask anything about the wiki."
 msgstr "Ask anything about the wiki."
@@ -4270,9 +4264,6 @@ msgstr "Fix"
 msgid "Fix {flatId}"
 msgstr "Fix {flatId}"
 
-msgid "Fix all with AI ({count})"
-msgstr "Fix all with AI ({count})"
-
 msgid "Fixed"
 msgstr "Fixed"
 
@@ -6483,9 +6474,6 @@ msgstr "None"
 
 msgid "None of these problems have an automatic fix."
 msgstr "None of these problems have an automatic fix."
-
-msgid "None of these problems have an automatic fix. Try Fix all with AI."
-msgstr "None of these problems have an automatic fix. Try Fix all with AI."
 
 msgid "Not a base16 theme"
 msgstr "Not a base16 theme"
