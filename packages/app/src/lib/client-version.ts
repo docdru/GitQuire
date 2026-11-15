@@ -14,7 +14,7 @@ export const BROWSER_RUNTIME_VERSION: string =
   importMetaEnv?.VITE_APP_VERSION ?? CLIENT_RUNTIME_VERSION_FALLBACK;
 
 export const CLIENT_SURFACE: ClientSurface = deriveClientSurface({
-  hasDesktopBridge: typeof window !== 'undefined' && window.okDesktop !== undefined,
+  hasDesktopBridge: false,
   embeddedHost: detectEmbeddedHostFromBrowser(),
 });
 

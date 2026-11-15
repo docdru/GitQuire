@@ -3,10 +3,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-vi.doMock('@/hooks/use-theme-bridge', () => ({
-  useThemeBridge: () => {},
-}));
-
 const useThemeColorTransitions = vi.fn();
 vi.doMock('./theme-color-transitions', () => ({ useThemeColorTransitions }));
 

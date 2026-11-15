@@ -1,17 +1,12 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
 import { REDUCED_CHROME_HEADER_HEIGHT } from '@inkeep/open-knowledge-core/constants/chrome';
-import { type CSSProperties, lazy, type ReactNode, Suspense } from 'react';
-import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
+import type { CSSProperties, ReactNode } from 'react';
 import { useDocumentContext } from '@/editor/DocumentContext';
 import { isNoteWindow } from '@/lib/note-window-mode';
 import { useSingleFileMode } from '@/lib/single-file-mode';
 import { cn } from '@/lib/utils';
 import { EditorBreadcrumb } from './EditorBreadcrumb';
-
-const AppMenubar = lazy(() =>
-  import('@/components/AppMenubar').then((m) => ({ default: m.AppMenubar })),
-);
 
 interface EditorHeaderProps {
   children?: ReactNode;
@@ -34,11 +29,7 @@ function ReducedChromeZones({
   noteModeToggle,
 }: ReducedChromeZonesProps) {
   const { activeDocName } = useDocumentContext();
-  const appMenubar = shouldShowAppMenubar() ? (
-    <Suspense fallback={null}>
-      <AppMenubar />
-    </Suspense>
-  ) : null;
+  const appMenubar = null;
 
   return (
     <>
@@ -86,7 +77,7 @@ export function EditorHeader({ children, leading, trailing, noteModeToggle }: Ed
   const noteWindow = isNoteWindow();
   const { activeDocName } = useDocumentContext();
   const reducedChrome = noteWindow;
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const isElectronHost = false;
 
   return (
     <header

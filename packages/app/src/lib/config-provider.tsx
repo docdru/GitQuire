@@ -21,8 +21,6 @@ import { useTheme } from 'next-themes';
 import { type ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import * as Y from 'yjs';
-import { useLanguageBridge } from '@/hooks/use-language-bridge';
-import { useThemeBridge } from '@/hooks/use-theme-bridge';
 import { buildAuthToken } from './auth-token';
 import {
   colorThemeMode,
@@ -147,7 +145,7 @@ function ConfigProviderBody({
   collabTerminal?: boolean;
   children: ReactNode;
 }) {
-  const { themes, loaded: savedThemesLoaded, loadError: savedThemesLoadError } = useSavedThemes();
+  const { themes, loaded: savedThemesLoaded } = useSavedThemes();
   const serverInstanceId = useServerInstanceId();
   const { systemTheme } = useTheme();
   const systemPrefersDark = systemTheme === 'dark';
@@ -319,8 +317,6 @@ function ConfigProviderBody({
     colorThemeEnabled &&
     authoredThemeIds.some((id) => typeof id === 'string' && id.startsWith('saved-'));
   const colorThemeReady = configLayersReady && (!needsSavedThemeRegistry || savedThemesLoaded);
-  const colorThemeBridgeReady =
-    configLayersReady && (!needsSavedThemeRegistry || savedThemesLoaded || savedThemesLoadError);
   const selection = resolveColorThemeSelection(merged?.appearance, themes);
   const slotMode = resolveModePreference(themeValue, systemPrefersDark);
   const activePalette = colorThemeEnabled ? selection[slotMode] : 'default';
@@ -343,27 +339,6 @@ function ConfigProviderBody({
     preference: merged?.appearance?.language,
     userConfigSynced: userState?.synced ?? false,
   });
-
-  useLanguageBridge(
-    typeof window !== 'undefined' ? window.okDesktop : undefined,
-    merged?.appearance?.language,
-    userState?.synced ?? false,
-  );
-
-  const activeRuntimeScheme = activePalette.startsWith('saved-')
-    ? themes.find((theme) => theme.id === activePalette)?.scheme
-    : undefined;
-  const runtimeSchemeKey =
-    activePalette === 'custom'
-      ? JSON.stringify(customSeed ?? null)
-      : activeRuntimeScheme
-        ? JSON.stringify(activeRuntimeScheme)
-        : '';
-  useThemeBridge(
-    colorThemeBridgeReady && typeof window !== 'undefined' ? window.okDesktop : undefined,
-    colorThemeBridgeReady ? (themeValue ?? 'system') : undefined,
-    `${activePalette}:${runtimeSchemeKey}`,
-  );
 
   const value: ConfigContextValue = {
     userBinding: userState?.binding ?? null,

@@ -41,10 +41,6 @@ vi.doMock('@/lib/config-provider', () => ({
   }),
 }));
 
-vi.doMock('@/lib/handoff/use-claude-desktop-integration', () => ({
-  useClaudeDesktopIntegration: () => ({ desktopPresent: false }),
-}));
-
 const { SettingsDialogShell } = await import('./SettingsDialogShell');
 
 describe('SettingsDialogShell link-previews nav item (no file:// renderer)', () => {

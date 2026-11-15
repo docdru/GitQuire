@@ -294,23 +294,6 @@ describe('DocChangeNotice', () => {
     serverNotices = [moved('n-no-timeline', 'notes', 'theirs')];
     renderNotice('notes', false);
     await expectNoTimeline("The outside version was saved to the document's history.");
-    cleanup();
-
-    serverNotices = [
-      moved('n-single-file', 'notes', 'ours'),
-      bothKept('n-single-both', 'plan', NO_BLOCKS),
-    ];
-    const desktop = window.okDesktop;
-    window.okDesktop = { config: { singleFile: true } } as never;
-    try {
-      renderNotice('notes');
-      await expectNoTimeline("Those edits were saved to the document's history.");
-      cleanup();
-      renderNotice('plan');
-      await expectNoTimeline("The earlier versions were saved to the document's history.");
-    } finally {
-      window.okDesktop = desktop;
-    }
   });
 
   test('when no history entry was written, the notice claims none and offers no Open timeline', async () => {

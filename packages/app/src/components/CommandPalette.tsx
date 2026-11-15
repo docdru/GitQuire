@@ -2,7 +2,6 @@
 
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
-import type { WorktreeSelectorEntry } from '@inkeep/open-knowledge-core/git/worktree-selector-model';
 import {
   assertNeverSemanticQueryOutcome,
   classifySemanticProviderError,
@@ -10,21 +9,17 @@ import {
   semanticProviderErrorBlocks,
 } from '@inkeep/open-knowledge-core/schemas/api';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
-import { Check, FileText, Folder, GitBranch, Hash, Sparkles } from 'lucide-react';
+import { Check, FileText, Hash, Sparkles } from 'lucide-react';
 import {
   type Dispatch,
   Fragment,
-  lazy,
   type KeyboardEvent as ReactKeyboardEvent,
   type SetStateAction,
-  Suspense,
   useDeferredValue,
   useEffect,
   useRef,
   useState,
 } from 'react';
-import { toast } from 'sonner';
-import { CreateProjectDialog } from '@/components/CreateProjectDialog';
 import {
   PALETTE_COMMANDS,
   type PaletteCommandContext,
@@ -68,7 +63,6 @@ import { FileEntryIcon } from '@/components/file-entry-icon';
 import { defaultInitialDir } from '@/components/file-tree-utils';
 import { NewItemDialog } from '@/components/NewItemDialog';
 import { usePageList } from '@/components/PageListContext';
-import { ReportBugDialog } from '@/components/ReportBugDialog';
 import { SeedDialog } from '@/components/SeedDialog';
 import { UserText } from '@/components/UserText';
 import {
@@ -86,9 +80,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useDocumentContext, useOpenBlobRunner } from '@/editor/DocumentContext';
 import type { TagSummaryEntry } from '@/editor/extensions/tag-suggestion';
 import { useSemanticSearchStatus } from '@/hooks/use-semantic-search-status';
-import { useWorktrees } from '@/hooks/use-worktrees';
-import { useBugReport } from '@/lib/bug-report-capture';
-import type { OkDesktopBridge, OkMenuAction, RecentProjectEntry } from '@/lib/desktop-bridge-types';
+import type { OkMenuAction } from '@/lib/desktop-bridge-types';
 import { hashFromDocName } from '@/lib/doc-hash';
 import { runWithToast as runWithToastBase } from '@/lib/error-state';
 import { openExternalUrl as openExternalUrlViaHost } from '@/lib/external-link';
@@ -105,12 +97,6 @@ import { useSingleFileMode } from '@/lib/single-file-mode';
 import { useDocumentDirection } from '@/lib/use-document-direction';
 import { cn } from '@/lib/utils.ts';
 import { useViewMenuState } from '@/lib/view-menu-state-store';
-import { worktreeCreateErrorCopy } from '@/lib/worktree-create-error';
-import { refreshWorktrees } from '@/lib/worktree-store';
-import { basenameOf } from './project-switcher-recents';
-import { RecentItemContextMenu, RecentRemoveButton } from './recent-remove-controls';
-
-const BugReportHistoryDialog = lazy(() => import('@/components/BugReportHistoryDialog'));
 
 const COMMAND_PALETTE_SEARCH_WARMING_POLL_MS = 600;
 const COMMAND_PALETTE_SEARCH_MAX_WARMING_POLLS = 20;
@@ -122,7 +108,6 @@ export const runWithToast = (
 ): Promise<void> => runWithToastBase(fn, fallback, toastApi, 'CommandPalette');
 
 interface CommandPaletteProps {
-  bridge?: OkDesktopBridge | null;
   open: boolean;
   onOpenChange: Dispatch<SetStateAction<boolean>>;
 }
@@ -258,7 +243,7 @@ export function computeVisibleSearchResults({
   return fallbackSearchResults;
 }
 
-export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const { t } = useLingui();
   const singleFile = useSingleFileMode();
   const [query, setQuery] = useState('');
@@ -274,15 +259,10 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
   const [semanticResults, setSemanticResults] = useState<WorkspaceSearchEntry[]>([]);
   const [semanticFiredQuery, setSemanticFiredQuery] = useState<string | null>(null);
   const [semanticStatus, setSemanticStatus] = useState<SemanticModeState['status']>('idle');
-  const [projectRecents, setProjectRecents] = useState<RecentProjectEntry[]>([]);
   const [recentNavigation, setRecentNavigation] = useState<OmnibarRecentEntry[]>([]);
   const [createDialogKind, setCreateDialogKind] = useState<'file' | 'folder' | null>(null);
   const [seedDialogOpen, setSeedDialogOpen] = useState(false);
-  const [createProjectOpen, setCreateProjectOpen] = useState(false);
-  const bugReport = useBugReport();
 
-  const [reportBugHistoryOpen, setReportBugHistoryOpen] = useState(false);
-  const [historyEverOpened, setHistoryEverOpened] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const openBlobRunner = useOpenBlobRunner();
   const [tagsList, setTagsList] = useState<TagSummaryEntry[]>([]);
@@ -350,13 +330,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     workspaceEntries.map((entry) => makeOmnibarRecentKey(entry.kind, entry.path)),
   );
   const visibleRecents = filterOmnibarRecents(recentNavigation, validRecentKeys);
-  const currentPath = bridge?.config.projectPath ?? null;
-  const switchableProjects = bridge ? projectRecents.filter((row) => row.path !== currentPath) : [];
-  const worktreeModel = useWorktrees();
-  const switchableWorktrees =
-    bridge && worktreeModel
-      ? worktreeModel.entries.filter((entry) => entry.branch !== null && !entry.isCurrent)
-      : [];
   const initialCreateDir = resolveCreateInitialDir(activeTarget, activeDocName);
   const fallbackSearchResults =
     trimmedDeferredQuery === ''
@@ -378,16 +351,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
   useEffect(() => {
     if (open) {
       setRecentNavigation(loadOmnibarRecents());
-      if (bridge) {
-        let cancelled = false;
-        void runWithToast(async () => {
-          const result = await bridge.project.listRecent();
-          if (!cancelled) setProjectRecents(result);
-        }, t`Failed to load recent projects.`);
-        return () => {
-          cancelled = true;
-        };
-      }
       return;
     }
     setQuery('');
@@ -406,7 +369,7 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     setSemanticResults([]);
     setSemanticFiredQuery(null);
     setSemanticStatus('idle');
-  }, [open, bridge, t]);
+  }, [open]);
 
   useEffect(() => {
     void query;
@@ -568,44 +531,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     }, fallback);
   };
 
-  const onRemoveRecent = (path: string) => {
-    if (!bridge) return;
-    void runWithToast(async () => {
-      await bridge.project.removeRecent(path);
-      setProjectRecents((cur) => cur.filter((r) => r.path !== path));
-    }, t`Failed to remove project.`);
-  };
-
-  const openWorktreeEntry = (entry: WorktreeSelectorEntry) => {
-    if (!bridge) return;
-    const existingPath = entry.worktreePath;
-    if (existingPath !== null) {
-      runAction(
-        () =>
-          bridge.project.open({ path: existingPath, target: 'new-window', entryPoint: 'worktree' }),
-        t`Failed to open worktree.`,
-      );
-      return;
-    }
-    const branch = entry.branch;
-    if (branch === null) return;
-    runAction(async () => {
-      const result = await bridge.worktree.create({ branch, createBranch: false });
-      if (!result.ok) {
-        if (result.reason === 'project-scope-unavailable') refreshWorktrees();
-        toast.error(t(worktreeCreateErrorCopy(result)));
-        return;
-      }
-      refreshWorktrees();
-      await bridge.project.open({
-        path: result.path,
-        target: 'new-window',
-        entryPoint: 'worktree',
-        requireExactManagedProject: true,
-      });
-    }, t`Failed to open worktree.`);
-  };
-
   function rememberNavigation(entry: WorkspaceEntry | OmnibarRecentEntry) {
     const nextEntry = {
       kind: entry.kind,
@@ -642,16 +567,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     searchStatus === 'loading' &&
     !showNavigation &&
     !showSearchPreparing;
-  const rankedProjects = rankRows(switchableProjects, deferredQuery, (row) => ({
-    label: `${row.name} ${row.path}`,
-    keywords: ['open recent project'],
-  })).slice(0, 10);
-  const showProjectRecents = !inExclusiveMode && bridge !== null && rankedProjects.length > 0;
-  const rankedWorktrees = rankRows(switchableWorktrees, deferredQuery, (entry) => ({
-    label: entry.branch ?? '',
-    keywords: ['worktree branch'],
-  })).slice(0, 10);
-  const showWorktrees = !inExclusiveMode && bridge !== null && rankedWorktrees.length > 0;
   const tagListItems =
     paletteMode.kind === 'tag-list' ? filterTagList(tagsList, paletteMode.query) : [];
   const showTagListEmpty =
@@ -667,13 +582,9 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
   };
   const openExternalUrl = (url: string) => {
     onOpenChange(false);
-    openExternalUrlViaHost(
-      url,
-      bridge ? { okDesktop: { shell: bridge.shell } } : { okDesktop: undefined },
-    );
+    openExternalUrlViaHost(url);
   };
   const paletteCtx: PaletteCommandContext = {
-    bridge,
     singleFile,
     activeDocName,
     contextualTargetKind: projectContextualTargetKind(activeTarget),
@@ -685,12 +596,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     closePalette: () => onOpenChange(false),
     openNewItemDialog: (kind) => setCreateDialogKind(kind),
     openSeedDialog: () => setSeedDialogOpen(true),
-    openCreateProjectDialog: () => setCreateProjectOpen(true),
-    reportBug: () => bugReport.start({ launcherBorne: true }, () => onOpenChange(false)),
-    openBugReportHistory: () => {
-      setHistoryEverOpened(true);
-      setReportBugHistoryOpen(true);
-    },
     openFeedbackDialog: () => setFeedbackOpen(true),
     openBlobRun: () => openBlobRunner?.(),
   };
@@ -729,7 +634,7 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
       <CommandGroup key={group} heading={commandGroupHeading(group)}>
         {rows.map(({ cmd, label }) => {
           const shortcut =
-            cmd.shortcutId !== undefined && (cmd.shortcutDesktopOnly !== true || bridge !== null)
+            cmd.shortcutId !== undefined && cmd.shortcutDesktopOnly !== true
               ? formatShortcut(cmd.shortcutId)
               : null;
           return (
@@ -758,7 +663,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
     showNavigation ||
     showSearchLoading ||
     showSearchPreparing ||
-    showProjectRecents ||
     hasVisibleFixedCommand;
 
   function navigateToTagDocs(tagName: string) {
@@ -907,99 +811,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
   const rankedCommandBlocks = [
     commandGroupBlock('commands'),
     commandGroupBlock('project'),
-    {
-      key: 'recent-projects',
-      rank: firstRank(rankedProjects),
-      node:
-        showProjectRecents && bridge ? (
-          <CommandGroup heading={t`Open recent project`}>
-            {rankedProjects.map(({ row }) => {
-              const isWorktree = row.isLinkedWorktree === true;
-              const RowIcon = isWorktree ? GitBranch : Folder;
-              const worktreeOf =
-                isWorktree && row.mainRoot !== undefined ? basenameOf(row.mainRoot) : null;
-              return (
-                <RecentItemContextMenu
-                  key={row.path}
-                  path={row.path}
-                  onRemoveRecent={onRemoveRecent}
-                  testIdPrefix="command-palette-recent"
-                >
-                  <div className="group/recent relative flex items-center">
-                    <CommandItem
-                      value={`${row.name} ${row.path} recent project`}
-                      onSelect={() =>
-                        runAction(
-                          () =>
-                            bridge.project.open({
-                              path: row.path,
-                              target: 'new-window',
-                              entryPoint: 'recents',
-                            }),
-                          t`Failed to open project.`,
-                        )
-                      }
-                      data-testid={`command-palette-recent-${row.path}`}
-                      className="flex-1 items-start pr-8"
-                    >
-                      <RowIcon className="mt-0.5" />
-                      <div className="flex min-w-0 flex-col gap-1">
-                        <UserText className="truncate font-medium">{row.name}</UserText>
-                        {worktreeOf !== null ? (
-                          <span className="truncate text-muted-foreground text-xs">
-                            <Trans>worktree of {worktreeOf}</Trans>
-                          </span>
-                        ) : null}
-                        <UserText className="truncate text-muted-foreground text-xs">
-                          {row.path}
-                        </UserText>
-                      </div>
-                    </CommandItem>
-                    <RecentRemoveButton
-                      path={row.path}
-                      name={row.name}
-                      onRemoveRecent={onRemoveRecent}
-                      testIdPrefix="command-palette-recent"
-                    />
-                  </div>
-                </RecentItemContextMenu>
-              );
-            })}
-          </CommandGroup>
-        ) : null,
-    },
-    {
-      key: 'worktrees',
-      rank: firstRank(rankedWorktrees),
-      node:
-        showWorktrees && bridge ? (
-          <CommandGroup heading={t`Worktrees`}>
-            {rankedWorktrees.map(({ row: entry }) => (
-              <CommandItem
-                key={entry.branch}
-                value={`${entry.branch} worktree branch`}
-                onSelect={() => openWorktreeEntry(entry)}
-                data-testid={`command-palette-worktree-${entry.branch}`}
-                className="items-start"
-              >
-                <GitBranch className="mt-0.5" />
-                <div className="flex min-w-0 flex-col gap-1">
-                  <UserText className="truncate font-medium">{entry.branch}</UserText>
-                  {entry.worktreePath === null ? (
-                    <span className="truncate text-muted-foreground text-xs">
-                      {t`Create worktree`}
-                    </span>
-                  ) : (
-                    <UserText className="truncate text-muted-foreground text-xs">
-                      {entry.worktreePath}
-                    </UserText>
-                  )}
-                </div>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        ) : null,
-    },
     commandGroupBlock('file'),
     commandGroupBlock('view'),
     commandGroupBlock('terminal'),
@@ -1021,7 +832,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
             '[&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4',
         }}
         onEscapeKeyDown={onPaletteEscapeKeyDown}
-        contentAttributes={{ 'data-bug-report-launcher': '' }}
       >
         <CommandInput
           ref={inputRef}
@@ -1396,25 +1206,6 @@ export function CommandPalette({ bridge = null, open, onOpenChange }: CommandPal
         onOpenChange={setSeedDialogOpen}
         onSeedApplied={revealEditor}
       />
-      {bridge ? (
-        <CreateProjectDialog
-          open={createProjectOpen}
-          onOpenChange={setCreateProjectOpen}
-          bridge={bridge}
-        />
-      ) : null}
-      {bridge ? <ReportBugDialog capture={bugReport.capture} onClose={bugReport.close} /> : null}
-      {bridge && historyEverOpened ? (
-        <Suspense fallback={null}>
-          <BugReportHistoryDialog
-            open={reportBugHistoryOpen}
-            onOpenChange={setReportBugHistoryOpen}
-            onReportABug={() =>
-              bugReport.start({ launcherBorne: false }, () => setReportBugHistoryOpen(false))
-            }
-          />
-        </Suspense>
-      ) : null}
       <FeedbackFormDialog
         open={feedbackOpen}
         onOpenChange={setFeedbackOpen}

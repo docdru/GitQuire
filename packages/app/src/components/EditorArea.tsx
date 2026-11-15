@@ -43,7 +43,6 @@ import { NothingOpen } from '@/components/NothingOpen';
 import { OkBlobRunnerPage } from '@/components/OkBlobRunnerPage';
 import { PropertyProvider, useProperties } from '@/components/PropertyContext';
 import { paneLabel } from '@/components/pane-icons';
-import { ShareReceiveMissPanel } from '@/components/ShareReceiveMissPanel';
 import { SkillFileViewer } from '@/components/SkillFileViewer';
 import { SkillPreviewTab } from '@/components/SkillPreviewTab';
 import { SettingsDialogShell } from '@/components/settings/SettingsDialogShell';
@@ -131,7 +130,6 @@ import {
 import { DOC_PANEL_ID, findResidualPanelId } from './editor-area-rail-registry';
 import { computeStickyRepinLayout } from './editor-area-sticky-repin';
 import { GitQuireAskClaude } from './GitQuireAskClaude';
-import { isSlidesHost } from './slides-host-gate';
 
 const LazyActivityModeContent = lazy(async () => {
   const mod = await import('@/components/ActivityModeContent');
@@ -390,7 +388,7 @@ function PaneDocumentToolbar({
   return (
     <EditorToolbar
       activeDocName={docName}
-      activeProvider={isSlidesHost() ? provider : null}
+      activeProvider={null}
       isSourceMode={isSourceMode}
       sourceDisabled={syncStatus !== 'connected' && syncStatus !== 'synced'}
       onModeChange={onModeChange}
@@ -1361,10 +1359,6 @@ function EditorAreaInner({
 
   useEffect(() => {
     setViewMenuState({ docPanelVisible: !isCollapsed || docPanelCover });
-    if (window.okDesktop == null) return;
-    window.okDesktop.editor.notifyViewMenuStateChanged({
-      docPanelVisible: !isCollapsed || docPanelCover,
-    });
   }, [isCollapsed, docPanelCover]);
 
   useEffect(() => {
@@ -1379,7 +1373,6 @@ function EditorAreaInner({
   ]);
 
   useEffect(() => {
-    if (window.okDesktop != null) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!matchesKeyboardShortcut(event, 'toggle-document-panel')) return;
       if (isOverlayLayerOpen()) return;
@@ -1516,8 +1509,6 @@ function EditorAreaInner({
         path={activeTarget.path}
       />
     );
-  } else if (shareReceiveMiss) {
-    viewContent = <ShareReceiveMissPanel key={shareReceiveMiss.path} nav={shareReceiveMiss} />;
   } else if (!activeProvider || !activeDocName) {
     const hashDoc = typeof window !== 'undefined' ? docNameFromHash(window.location.hash) : null;
     if (hashDoc !== null) {

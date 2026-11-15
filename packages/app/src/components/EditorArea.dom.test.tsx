@@ -2040,29 +2040,6 @@ describe('EditorArea editor card rows', () => {
     expect(document.querySelector('[data-editor-inner-panels]')?.firstElementChild).toBe(inner);
   });
 
-  test('a note window keeps the tab row target above the row and renders the flat card', () => {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: {
-        config: { mode: 'note' },
-        editor: { notifyViewMenuStateChanged: () => {} },
-      },
-    });
-    try {
-      render(<EditorArea {...rowProps} />);
-      const panels = document.querySelector('[data-editor-area-panels]');
-      const header = document.querySelector('[data-editor-area-header]');
-      const card = document.querySelector('[data-slot="pane-card"][data-pane="editor"]');
-      expect(header?.nextElementSibling).toBe(panels);
-      expect(panels?.contains(header)).toBe(false);
-      expect(card?.getAttribute('data-variant')).toBe('flat');
-      expect(screen.getByTestId('resizable-group-inner').contains(card)).toBe(false);
-      expect(card?.contains(screen.getByTestId('resizable-group-inner'))).toBe(true);
-    } finally {
-      Reflect.deleteProperty(window, 'okDesktop');
-    }
-  });
-
   test('a single-file window renders the normal editor card', () => {
     Object.defineProperty(window, 'okDesktop', {
       configurable: true,

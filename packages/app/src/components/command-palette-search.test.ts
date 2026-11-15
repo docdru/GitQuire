@@ -1,4 +1,3 @@
-import { COMMAND_IDENTITIES, MENU_LABELS } from '@inkeep/open-knowledge-core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
   buildWorkspaceEntries,
@@ -277,28 +276,6 @@ describe('matchesCommandQuery', () => {
     expect(matchesCommandQuery('Report a bug', 'report cursor', REPORT_BUG_KEYWORDS)).toBe(false);
     expect(matchesCommandQuery('Report a bug', 'cursor bug', REPORT_BUG_KEYWORDS)).toBe(false);
     expect(matchesCommandQuery('New worktree', 'work tree cursor', WORKTREE_KEYWORDS)).toBe(false);
-  });
-
-  test('a destructive phrasing also reaches its reversible sibling', () => {
-    const killTerminal = COMMAND_IDENTITIES.find((command) => command.id === 'kill-terminal');
-    const toggleTerminal = COMMAND_IDENTITIES.find((command) => command.id === 'toggle-terminal');
-    const labelOf = (key: string | undefined) =>
-      key ? ((MENU_LABELS as Record<string, string>)[key] ?? '') : '';
-
-    expect(
-      matchesCommandQuery(
-        labelOf(killTerminal?.labelKey),
-        'close terminal',
-        killTerminal?.keywords ?? [],
-      ),
-    ).toBe(true);
-    expect(
-      matchesCommandQuery(
-        labelOf(toggleTerminal?.labelKey),
-        'close terminal',
-        toggleTerminal?.keywords ?? [],
-      ),
-    ).toBe(true);
   });
 });
 

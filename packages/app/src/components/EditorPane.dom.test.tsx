@@ -1,18 +1,11 @@
-import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@inkeep/open-knowledge-core';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { type Editor, getSchema, isMacOS } from '@tiptap/core';
-import type { Node as PmNode } from '@tiptap/pm/model';
+import { isMacOS } from '@tiptap/core';
 import { type ReactNode, type Ref, useEffect, useImperativeHandle } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
-import { registerEditor, unregisterEditor } from '@/editor/active-editor';
 import { publishSelectionContext } from '@/editor/selection-context';
-import {
-  clearPendingSourceNavigationsForTest,
-  peekPendingSourceNavigation,
-} from '@/editor/source-editor-navigation';
-import { VIEW_IN_SOURCE_EVENT, type ViewInSourceDetail } from '@/editor/view-in-source-event';
+import { clearPendingSourceNavigationsForTest } from '@/editor/source-editor-navigation';
 import {
   type DockArrangement,
   dockArrangementStorageKey,
@@ -23,13 +16,7 @@ import {
   writeDockArrangement,
 } from '@/lib/dock-arrangement-store';
 import { requestDockPaneMove } from '@/lib/dock-move-requests';
-import {
-  bottomTerminalDockTree,
-  DEFAULT_CHAT_SHARE,
-  type DockNode,
-  isDockLeaf,
-  moveDockPane,
-} from '@/lib/dock-tree';
+import { type DockNode, isDockLeaf, moveDockPane } from '@/lib/dock-tree';
 import { narrowWorkspaceSessionKey } from '@/lib/narrow-workspace-session';
 import {
   __resetPaneVisibilityStoreForTests,
@@ -40,24 +27,6 @@ import { RESTORE_SETTLE_TIMEOUT_MS } from '@/lib/restore-settle-timeout';
 import { revealEditor } from '@/lib/reveal-editor';
 
 const TEST_DOC = 'docs/notes';
-
-const jumpMd = new MarkdownManager({ extensions: sharedExtensions });
-const jumpSchema = getSchema(sharedExtensions);
-
-function pmPosOfBlock(doc: PmNode, index: number): number {
-  let pos = 0;
-  for (let i = 0; i < index; i++) pos += doc.child(i).nodeSize;
-  return pos + 1;
-}
-
-function makeJumpEditor(markdown: string, caretBlock: number): Editor {
-  const { body } = stripFrontmatter(markdown);
-  const doc = jumpSchema.nodeFromJSON(jumpMd.parse(body));
-  return {
-    isDestroyed: false,
-    editorView: { state: { doc, selection: { from: pmPosOfBlock(doc, caretBlock) } } },
-  } as unknown as Editor;
-}
 
 function clearSelection(): void {
   publishSelectionContext(TEST_DOC, 'wysiwyg', null);
@@ -145,20 +114,12 @@ let reportedPlacements: MockPlacements | null = null;
 type MockPaneExtents = Record<PaneId, boolean>;
 const PANES_WITH_EXTENT: MockPaneExtents = { editor: true, agents: true, terminal: true };
 let paneExtents: MockPaneExtents = { ...PANES_WITH_EXTENT };
-let reportPaneExtentChange: (() => void) | undefined;
 
 type MockEditorAreaHandle = {
   panesOnScreen(): MockPaneExtents;
 };
 
-function MockPaneExtentHandle({
-  handleRef,
-  onPaneExtentChange,
-}: {
-  handleRef?: Ref<MockEditorAreaHandle>;
-  onPaneExtentChange?: () => void;
-}) {
-  reportPaneExtentChange = onPaneExtentChange;
+function MockPaneExtentHandle({ handleRef }: { handleRef?: Ref<MockEditorAreaHandle> }) {
   useImperativeHandle(handleRef, () => ({
     panesOnScreen: () => ({ ...paneExtents }),
   }));
@@ -513,113 +474,12 @@ describe('EditorPane pane visibility for the header', () => {
     });
   });
 
-  test('desktop host with a working shell reports both panes', async () => {
-    (window as { okDesktop?: unknown }).okDesktop = makeOkDesktopStub().stub;
-    await renderEditorPane();
-
-    expect(paneVisibilityStore.getSnapshot()).toEqual({
-      editor: { open: true, onScreen: true },
-      agents: { open: false, onScreen: false },
-      terminal: { open: false, onScreen: false },
-    });
-  });
-
   test('desktop host without a working shell reports no terminal', async () => {
     (window as { okDesktop?: unknown }).okDesktop = makeOkDesktopStub(undefined, false).stub;
     await renderEditorPane();
 
     expect(paneVisibilityStore.getSnapshot().terminal).toBeNull();
     expect(paneVisibilityStore.getSnapshot().agents).toEqual({ open: false, onScreen: false });
-  });
-
-  test('a note window reports neither pane', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = {
-      ...desk.stub,
-      config: { ...desk.stub.config, mode: 'note' },
-    };
-    await renderEditorPane();
-
-    expect(screen.getByTestId('editor-area')).toBeTruthy();
-    expect(paneVisibilityStore.getSnapshot()).toEqual({
-      editor: null,
-      agents: null,
-      terminal: null,
-    });
-  });
-
-  test('the snapshot follows the other show and hide paths', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    await renderEditorPane();
-    const seen: string[] = [];
-    const stop = paneVisibilityStore.subscribe(() => {
-      const { agents, terminal } = paneVisibilityStore.getSnapshot();
-      seen.push(`agents=${agents?.open} terminal=${terminal?.open}`);
-    });
-
-    act(() => desk.dispatchMenuAction('toggle-agent-panel'));
-    act(() => desk.dispatchMenuAction('toggle-terminal'));
-    act(() => desk.dispatchMenuAction('toggle-agent-panel'));
-    stop();
-
-    expect(seen).toEqual([
-      'agents=true terminal=false',
-      'agents=true terminal=true',
-      'agents=false terminal=true',
-    ]);
-    expect(paneVisibilityStore.getSnapshot().terminal).toEqual({ open: true, onScreen: true });
-  });
-
-  test('a pending extent report reads visibility after the parent rerenders', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    await renderEditorPane();
-    const pendingReport = reportPaneExtentChange;
-    expect(pendingReport).toBeDefined();
-
-    act(() => desk.dispatchMenuAction('toggle-agent-panel'));
-    expect(paneVisibilityStore.getSnapshot().agents).toEqual({ open: true, onScreen: true });
-
-    paneExtents = { ...paneExtents, agents: false };
-    act(() => pendingReport?.());
-    expect(paneVisibilityStore.getSnapshot().agents).toEqual({ open: true, onScreen: false });
-  });
-
-  test('a hidden pane reads off even while the layout still gives it size', async () => {
-    (window as { okDesktop?: unknown }).okDesktop = makeOkDesktopStub().stub;
-    await renderEditorPane();
-
-    expect(paneVisibilityStore.getSnapshot()).toEqual({
-      editor: { open: true, onScreen: true },
-      agents: { open: false, onScreen: false },
-      terminal: { open: false, onScreen: false },
-    });
-  });
-
-  test('a note window ignores header requests', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = {
-      ...desk.stub,
-      config: { ...desk.stub.config, mode: 'note' },
-    };
-    await renderEditorPane();
-    expect(desk.viewMenuPushes).toContainEqual({
-      agentPanelVisible: false,
-      wideIntent: { agentPanelVisible: false },
-    });
-
-    act(() => paneVisibilityStore.request('agents', true));
-    act(() => paneVisibilityStore.request('terminal', true));
-
-    expect(desk.viewMenuPushes).not.toContainEqual({
-      agentPanelVisible: true,
-      wideIntent: { agentPanelVisible: true },
-    });
-    expect(desk.viewMenuPushes).not.toContainEqual({
-      terminalVisible: true,
-      wideIntent: { terminalVisible: true },
-    });
   });
 
   test('a project window shows the editor by default and applies header hide and show requests', async () => {
@@ -635,26 +495,6 @@ describe('EditorPane pane visibility for the header', () => {
     act(() => paneVisibilityStore.request('editor', true));
     expect(editorArea.getAttribute('data-editor-visible')).toBe('true');
     expect(paneVisibilityStore.getSnapshot().editor).toEqual({ open: true, onScreen: true });
-  });
-
-  test('a single-file window keeps its Editor return destination and restricts Hide', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = {
-      ...desk.stub,
-      config: { ...desk.stub.config, singleFile: true },
-    };
-    const { EditorPane } = await import('./EditorPane');
-    const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
-    render(
-      <SingleFileModeProvider>
-        <EditorPane />
-      </SingleFileModeProvider>,
-    );
-    await act(async () => {});
-
-    expect(paneVisibilityStore.getSnapshot().editor).toEqual({ open: true, onScreen: true });
-    act(() => paneVisibilityStore.request('editor', false));
-    expect(screen.getByTestId('editor-area').getAttribute('data-editor-visible')).toBe('true');
   });
 
   test('a narrow single-file window rejects an empty restored selection', async () => {
@@ -753,60 +593,6 @@ describe('EditorPane saves and restores whether the editor is shown', () => {
   const editorVisibleAttr = () =>
     screen.getByTestId('editor-area').getAttribute('data-editor-visible');
 
-  test('desktop: a saved hidden editor comes back hidden, published only once the restore settles', async () => {
-    const desk = makeOkDesktopStub(async () => ({
-      terminalVisible: false,
-      agentPanelVisible: false,
-      editorVisible: false,
-    }));
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    await renderEditorPane();
-
-    expect(editorVisibleAttr()).toBe('false');
-    expect(desk.viewMenuPushes).toContainEqual({
-      editorVisible: false,
-      wideIntent: { editorVisible: false },
-    });
-    expect(desk.viewMenuPushes).not.toContainEqual({
-      editorVisible: true,
-      wideIntent: { editorVisible: true },
-    });
-  });
-
-  test('desktop: a saved hidden editor that lands after the settle bound still comes back hidden', async () => {
-    let release: (value: DockStateResult) => void = () => {};
-    const desk = makeOkDesktopStub(() => {
-      const { promise, resolve } = Promise.withResolvers<DockStateResult>();
-      release = resolve;
-      return promise;
-    });
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    try {
-      await renderEditorPane();
-      await act(async () => {
-        vi.advanceTimersByTime(RESTORE_SETTLE_TIMEOUT_MS + 1);
-      });
-      expect(editorVisibleAttr()).toBe('true');
-
-      await act(async () => {
-        release({ terminalVisible: false, agentPanelVisible: false, editorVisible: false });
-      });
-    } finally {
-      vi.useRealTimers();
-    }
-
-    expect(editorVisibleAttr()).toBe('false');
-    expect(desk.viewMenuPushes).toContainEqual({
-      editorVisible: false,
-      wideIntent: { editorVisible: false },
-    });
-    expect(desk.viewMenuPushes).not.toContainEqual({
-      editorVisible: true,
-      wideIntent: { editorVisible: true },
-    });
-  });
-
   async function renderPastTheSettleBound() {
     let release: (value: DockStateResult) => void = () => {};
     const desk = makeOkDesktopStub(() => {
@@ -838,36 +624,6 @@ describe('EditorPane saves and restores whether the editor is shown', () => {
     expect(desk.viewMenuPushes).not.toContainEqual({
       editorVisible: false,
       wideIntent: { editorVisible: false },
-    });
-  });
-
-  test('desktop: a hide after the settle bound is not undone by a late saved shown editor', async () => {
-    const { desk, land } = await renderPastTheSettleBound();
-    act(() => paneVisibilityStore.request('editor', false));
-    expect(editorVisibleAttr()).toBe('false');
-    await land({ terminalVisible: false, agentPanelVisible: false, editorVisible: true });
-
-    expect(editorVisibleAttr()).toBe('false');
-    const editorPushes = desk.viewMenuPushes.filter((push) => 'editorVisible' in push);
-    expect(editorPushes.at(-1)).toEqual({
-      editorVisible: false,
-      wideIntent: { editorVisible: false },
-    });
-  });
-
-  test("desktop: View menu toggles after the settle bound are the user's choice, and a late saved hidden editor does not undo them", async () => {
-    const { desk, land } = await renderPastTheSettleBound();
-    act(() => desk.dispatchMenuAction('toggle-editor'));
-    expect(editorVisibleAttr()).toBe('false');
-    act(() => desk.dispatchMenuAction('toggle-editor'));
-    expect(editorVisibleAttr()).toBe('true');
-    await land({ terminalVisible: false, agentPanelVisible: false, editorVisible: false });
-
-    expect(editorVisibleAttr()).toBe('true');
-    const editorPushes = desk.viewMenuPushes.filter((push) => 'editorVisible' in push);
-    expect(editorPushes.at(-1)).toEqual({
-      editorVisible: true,
-      wideIntent: { editorVisible: true },
     });
   });
 
@@ -915,34 +671,6 @@ describe('EditorPane saves and restores whether the editor is shown', () => {
     expect(editorVisibleAttr()).toBe('true');
   });
 
-  test('desktop: an explicit hide during restore publishes before settlement', async () => {
-    let release: (value: DockStateResult) => void = () => {};
-    const desk = makeOkDesktopStub(() => {
-      const { promise, resolve } = Promise.withResolvers<DockStateResult>();
-      release = resolve;
-      return promise;
-    });
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    await renderEditorPane();
-
-    act(() => desk.dispatchMenuAction('toggle-editor'));
-    expect(editorVisibleAttr()).toBe('false');
-    expect(desk.viewMenuPushes).toContainEqual({
-      editorVisible: false,
-      wideIntent: { editorVisible: false },
-    });
-
-    await act(async () => {
-      release({ terminalVisible: false, agentPanelVisible: false, editorVisible: true });
-    });
-    expect(editorVisibleAttr()).toBe('false');
-    const editorPushes = desk.viewMenuPushes.filter((push) => 'editorVisible' in push);
-    expect(editorPushes.at(-1)).toEqual({
-      editorVisible: false,
-      wideIntent: { editorVisible: false },
-    });
-  });
-
   test('desktop: a deep link that opens a document before the editor pane mounts keeps a saved-hidden editor shown', async () => {
     const desk = makeOkDesktopStub(async () => ({
       terminalVisible: false,
@@ -961,34 +689,6 @@ describe('EditorPane saves and restores whether the editor is shown', () => {
     });
   });
 
-  test('desktop: a reveal in a single-file window leaves nothing behind for a later project window', async () => {
-    const singleFile = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = {
-      ...singleFile.stub,
-      config: { ...singleFile.stub.config, singleFile: true },
-    };
-    const { EditorPane } = await import('./EditorPane');
-    const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
-    render(
-      <SingleFileModeProvider>
-        <EditorPane />
-      </SingleFileModeProvider>,
-    );
-    await act(async () => {});
-    act(() => revealEditor());
-    cleanup();
-
-    const project = makeOkDesktopStub(async () => ({
-      terminalVisible: false,
-      agentPanelVisible: false,
-      editorVisible: false,
-    }));
-    (window as { okDesktop?: unknown }).okDesktop = project.stub;
-    await renderEditorPane();
-
-    expect(editorVisibleAttr()).toBe('false');
-  });
-
   test('desktop: a document opened during the restore wait keeps a saved-hidden editor shown', async () => {
     let release: (value: DockStateResult) => void = () => {};
     const desk = makeOkDesktopStub(() => {
@@ -1005,42 +705,6 @@ describe('EditorPane saves and restores whether the editor is shown', () => {
     });
 
     expect(editorVisibleAttr()).toBe('true');
-  });
-
-  test('desktop: every pane saved hidden reopens to nothing shown', async () => {
-    const desk = makeOkDesktopStub(async () => ({
-      terminalVisible: false,
-      agentPanelVisible: false,
-      editorVisible: false,
-    }));
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    await renderEditorPane();
-
-    expect(paneVisibilityStore.getSnapshot()).toEqual({
-      editor: { open: false, onScreen: false },
-      agents: { open: false, onScreen: false },
-      terminal: { open: false, onScreen: false },
-    });
-  });
-
-  test('desktop: the View menu toggle hides and shows the editor and publishes the level', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    await renderEditorPane();
-
-    act(() => desk.dispatchMenuAction('toggle-editor'));
-    expect(editorVisibleAttr()).toBe('false');
-    expect(desk.viewMenuPushes).toContainEqual({
-      editorVisible: false,
-      wideIntent: { editorVisible: false },
-    });
-    const pushesWhileHidden = desk.viewMenuPushes.length;
-    act(() => desk.dispatchMenuAction('toggle-editor'));
-    expect(editorVisibleAttr()).toBe('true');
-    expect(desk.viewMenuPushes.slice(pushesWhileHidden)).toContainEqual({
-      editorVisible: true,
-      wideIntent: { editorVisible: true },
-    });
   });
 
   test('web: the editor level survives a reload in both directions, under its own key', async () => {
@@ -1098,21 +762,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
   const shape = (node: DockNode): unknown =>
     isDockLeaf(node) ? node.pane : { [node.direction]: node.items.map((item) => shape(item.node)) };
 
-  test('a request to move Agents to the left edge docks it along the start, saves that, and shows it', async () => {
-    await renderEditorPane();
-    expect(screen.getByTestId('editor-area').getAttribute('data-agents-visible')).toBe('false');
-
-    act(() => requestDockPaneMove({ pane: 'agents', side: 'left' }));
-    await act(async () => {});
-
-    const drawn = drawnDockTrees.at(-1);
-    if (drawn === undefined) throw new Error('the editor area never drew');
-    expect(shape(drawn)).toEqual({ row: ['agents', { column: ['editor', 'terminal'] }] });
-    const saved = readDockArrangement(dockArrangementStorageKey('/tmp/project'));
-    expect(saved === null ? null : shape(saved.tree)).toEqual(shape(drawn));
-    expect(screen.getByTestId('editor-area').getAttribute('data-agents-visible')).toBe('true');
-  });
-
   test('right to left, a request for the right edge docks the pane at the start', async () => {
     document.documentElement.style.direction = 'rtl';
     try {
@@ -1136,43 +785,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
     expect(shape(drawn)).toEqual({ column: [{ row: ['editor', 'agents'] }, 'terminal'] });
   });
 
-  test('a request to move the Terminal to the right edge opens it at the share of the space it last split with the editor', async () => {
-    writeDockArrangement(dockArrangementStorageKey('/tmp/project'), {
-      tree: bottomTerminalDockTree(DEFAULT_CHAT_SHARE, 0.3),
-      terminalShares: { bottom: 0.3, right: 0.45 },
-    });
-    await renderEditorPane();
-    act(() => requestDockPaneMove({ pane: 'terminal', side: 'right' }));
-
-    const drawn = drawnDockTrees.at(-1);
-    if (drawn === undefined || isDockLeaf(drawn)) throw new Error('the editor area never drew');
-    expect(shape(drawn)).toEqual({ row: ['editor', 'agents', 'terminal'] });
-    const [editor, , terminal] = drawn.items.map((item) => item.size);
-    if (editor === undefined || terminal === undefined) throw new Error('the row lost a pane');
-    expect(terminal / (terminal + editor)).toBeCloseTo(0.45, 10);
-  });
-
-  test('a Terminal moved to an edge and back below the editor returns at the height it left with', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    writeDockArrangement(dockArrangementStorageKey('/tmp/project'), {
-      tree: bottomTerminalDockTree(DEFAULT_CHAT_SHARE, 0.5),
-      terminalShares: { bottom: 0.3, right: 0.45 },
-    });
-    await renderEditorPane();
-
-    act(() => requestDockPaneMove({ pane: 'terminal', side: 'left' }));
-    expect(drawnPlacement()).toBe('right');
-    act(() => desk.dispatchMenuAction('move-terminal'));
-
-    const drawn = drawnDockTrees.at(-1);
-    if (drawn === undefined || isDockLeaf(drawn)) throw new Error('the editor area never drew');
-    expect(shape(drawn)).toEqual({ row: [{ column: ['editor', 'terminal'] }, 'agents'] });
-    const column = drawn.items[0]?.node;
-    if (column === undefined || isDockLeaf(column)) throw new Error('the editor column is gone');
-    expect(column.items[1]?.size).toBeCloseTo(0.5, 10);
-  });
-
   test('repeated trips to the right edge and back under the editor by header drag open the same sizes every time', async () => {
     await renderEditorPane();
     const atEdge: number[][] = [];
@@ -1193,51 +805,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
     expect(atEdge[2]).toEqual(atEdge[0]);
   });
 
-  test('the first layout drawn is the arrangement the project stored', async () => {
-    writeDockArrangement(dockArrangementStorageKey('/tmp/project'), rightTerminal());
-    await renderEditorPane();
-
-    const first = drawnDockTrees[0];
-    if (first === undefined) throw new Error('the editor area never drew');
-    expect(dockTerminalPlacement(first)).toBe('right');
-    expect(drawnPlacement()).toBe('right');
-  });
-
-  test('nothing is saved until the layout changes, and a change is saved under the project key', async () => {
-    await renderEditorPane();
-    expect(drawnPlacement()).toBe('bottom');
-    expect(storedDockKeys()).toEqual([]);
-
-    act(() => changeDrawnDockTree?.(moveTerminalRight));
-
-    expect(drawnPlacement()).toBe('right');
-    expect(storedDockKeys()).toEqual([dockArrangementStorageKey('/tmp/project')]);
-    const saved = readDockArrangement(dockArrangementStorageKey('/tmp/project'));
-    expect(saved === null ? null : dockTerminalPlacement(saved.tree)).toBe('right');
-  });
-
-  test('a project switch draws that project’s arrangement, or the same seed a reload gives it', async () => {
-    writeDockArrangement(dockArrangementStorageKey('/tmp/project-b'), rightTerminal());
-    workspaceContentDir = '/tmp/project-a';
-    const view = await renderEditorPane();
-    const { EditorPane } = await import('./EditorPane');
-    expect(drawnPlacement()).toBe('bottom');
-
-    workspaceContentDir = '/tmp/project-b';
-    act(() => view.rerender(<EditorPane />));
-    expect(drawnPlacement()).toBe('right');
-
-    workspaceContentDir = '/tmp/project-c';
-    act(() => view.rerender(<EditorPane />));
-    expect(drawnPlacement()).toBe('bottom');
-    const switched = drawnDockTrees.at(-1);
-
-    cleanup();
-    await renderEditorPane();
-    expect(drawnDockTrees.at(-1)).toEqual(switched);
-    expect(storedDockKeys()).toEqual([dockArrangementStorageKey('/tmp/project-b')]);
-  });
-
   test('on the web the first layout drawn is the one stored for the origin, and it holds when the project becomes known', async () => {
     delete (window as { okDesktop?: unknown }).okDesktop;
     writeDockArrangement(dockArrangementStorageKey(null), rightTerminal());
@@ -1254,20 +821,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
 
     expect(drawnDockTrees.length).toBeGreaterThan(1);
     expect(drawnDockTrees.map(dockTerminalPlacement)).toEqual(drawnDockTrees.map(() => 'right'));
-  });
-
-  test('a layout change in one project stays with it when the window switches to a project with none saved', async () => {
-    workspaceContentDir = '/tmp/project-a';
-    const view = await renderEditorPane();
-    const { EditorPane } = await import('./EditorPane');
-    act(() => changeDrawnDockTree?.(moveTerminalRight));
-    expect(drawnPlacement()).toBe('right');
-
-    workspaceContentDir = '/tmp/project-b';
-    act(() => view.rerender(<EditorPane />));
-
-    expect(drawnPlacement()).toBe('bottom');
-    expect(storedDockKeys()).toEqual([dockArrangementStorageKey('/tmp/project-a')]);
   });
 
   test('on the web a layout change is saved under the origin’s name while the project is still unknown', async () => {
@@ -1428,75 +981,5 @@ describe('EditorPane keeps the Agents pane and view-in-source wiring', () => {
     act(() => paneVisibilityStore.request('agents', false));
     expect(agentsShown()).toBe('false');
     expect(paneVisibilityStore.getSnapshot().agents).toEqual({ open: false, onScreen: false });
-  });
-
-  test('desktop: the toggle-source menu action runs the view-in-source jump', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-
-    const markdown = '# Title\n\nfirst paragraph\n\ntarget paragraph';
-    const ydoc = new Y.Doc();
-    ydoc.getText('source').insert(0, markdown);
-    activeProvider = { document: ydoc };
-    const editor = makeJumpEditor(markdown, 3);
-    registerEditor(TEST_DOC, editor);
-
-    const flips: string[] = [];
-    const onFlip = (e: Event) => flips.push((e as CustomEvent<ViewInSourceDetail>).detail.docName);
-    window.addEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
-
-    await renderEditorPane();
-    act(() => desk.dispatchMenuAction('toggle-source'));
-
-    window.removeEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
-    unregisterEditor(TEST_DOC, editor);
-
-    expect(flips).toEqual([TEST_DOC]);
-    const nav = peekPendingSourceNavigation(TEST_DOC);
-    if (nav?.kind !== 'selection-offset') throw new Error('expected a selection-offset nav');
-    expect(nav.intent).toBe('jump');
-  });
-
-  test('desktop: view in source with the editor hidden shows the editor before it jumps', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-    const markdown = '# Title\n\nfirst paragraph\n\ntarget paragraph';
-    const ydoc = new Y.Doc();
-    ydoc.getText('source').insert(0, markdown);
-    activeProvider = { document: ydoc };
-    const editor = makeJumpEditor(markdown, 3);
-    registerEditor(TEST_DOC, editor);
-    const editorShownAtJump: Array<string | null> = [];
-    const onFlip = () =>
-      editorShownAtJump.push(screen.getByTestId('editor-area').getAttribute('data-editor-visible'));
-    window.addEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
-
-    await renderEditorPane();
-    act(() => paneVisibilityStore.request('editor', false));
-    act(() => desk.dispatchMenuAction('toggle-source'));
-
-    window.removeEventListener(VIEW_IN_SOURCE_EVENT, onFlip);
-    unregisterEditor(TEST_DOC, editor);
-
-    expect(editorShownAtJump).toEqual(['true']);
-  });
-
-  test('desktop: pushes the view-in-source capability for the context-menu row', async () => {
-    const desk = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = desk.stub;
-
-    await renderEditorPane();
-    expect(desk.viewMenuPushes).toContainEqual({ canViewInSource: false });
-    expect(desk.viewMenuPushes).not.toContainEqual({ canViewInSource: true });
-
-    cleanup();
-    const ydoc = new Y.Doc();
-    ydoc.getText('source').insert(0, '# Title\n\nbody');
-    activeProvider = { document: ydoc };
-    const live = makeOkDesktopStub();
-    (window as { okDesktop?: unknown }).okDesktop = live.stub;
-
-    await renderEditorPane();
-    expect(live.viewMenuPushes).toContainEqual({ canViewInSource: true });
   });
 });

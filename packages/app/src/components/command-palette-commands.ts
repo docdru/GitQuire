@@ -13,27 +13,17 @@ import {
   OPEN_KNOWLEDGE_GITHUB_URL,
 } from '@inkeep/open-knowledge-core/constants/menu-labels';
 import type { MessageDescriptor } from '@lingui/core';
-import { msg, t } from '@lingui/core/macro';
+import { msg } from '@lingui/core/macro';
 import {
   ArrowLeftRight,
-  Blocks,
   BookOpen,
-  Bug,
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  Download,
   Eye,
   FilePlus2,
   FileText,
   Folder,
-  FolderOpen,
   FolderPlus,
   FoldVertical,
   Gamepad2,
-  GitBranch,
-  History,
-  LayoutGrid,
   MessageSquare,
   Network,
   Package,
@@ -41,27 +31,18 @@ import {
   PanelLeft,
   PanelRight,
   PanelTop,
-  Pencil,
-  Plus,
-  RefreshCw,
   Settings,
-  SpellCheck,
-  SquareArrowOutUpRight,
-  SquareTerminal,
-  Trash2,
   UnfoldVertical,
-  X,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { requestDocPanelTab } from '@/components/doc-panel-events';
 import { GithubIcon } from '@/components/icons/github';
 import type { ResolvedNavigationTarget } from '@/components/navigation-targets';
 import { PANE_ICON } from '@/components/pane-icons';
-import type { OkDesktopBridge, OkMenuAction } from '@/lib/desktop-bridge-types';
+import type { OkMenuAction } from '@/lib/desktop-bridge-types';
 import { requestDockPaneMove } from '@/lib/dock-move-requests';
 import { i18n } from '@/lib/i18n';
 import type { KeyboardShortcutId } from '@/lib/keyboard-shortcuts';
-import { openDocInNoteWindow } from '@/lib/open-note-window';
 import { paneVisibilityStore } from '@/lib/pane-visibility-store';
 import { moveChatHistory, type PhysicalSide, swapEditorSidebars } from '@/lib/sidebar-side-store';
 import { openSettings } from '@/lib/use-settings-route';
@@ -91,7 +72,6 @@ export function projectContextualTargetKind(
 }
 
 export interface PaletteCommandContext {
-  bridge: OkDesktopBridge | null;
   singleFile: boolean;
   activeDocName: string | null;
   contextualTargetKind: ContextualTargetKind;
@@ -103,9 +83,6 @@ export interface PaletteCommandContext {
   closePalette(): void;
   openNewItemDialog(kind: 'file' | 'folder'): void;
   openSeedDialog(): void;
-  openCreateProjectDialog(): void;
-  reportBug(): void;
-  openBugReportHistory(): void;
   openFeedbackDialog(): void;
   openBlobRun(): void;
 }
@@ -129,32 +106,13 @@ export interface PaletteCommand {
 
 const PALETTE_COMMAND_LABELS = {
   blobRun: msg`Blob Run`,
-  back: msg`Back`,
-  forward: msg`Forward`,
   newFile: msg`New file`,
   newFolder: msg`New folder`,
   openGraph: msg`Open graph`,
-  openInNewWindow: msg`Open in New Window`,
   initializeStarterPack: msg`Initialize starter pack`,
-  newProject: msg`New project`,
-  openFolderOnDisk: msg`Open folder on disk`,
-  openFileOnDisk: msg`Open file on disk`,
-  switchProject: msg`Switch project`,
   settings: msg`Settings`,
-  installClaudeDesktop: msg`Install for Claude Chat & Cowork (Desktop App)`,
-  reportBug: msg`Report a bug`,
-  bugReportHistory: msg`Bug report history`,
   sendFeedback: msg`Send feedback`,
   newFromTemplate: msg`New from template`,
-  rename: msg`Rename`,
-  duplicate: msg`Duplicate`,
-  moveToTrash: msg`Move to Trash`,
-  revealInFinder: msg`Reveal in Finder`,
-  copyFullPath: msg`Copy full path`,
-  copyRelativePath: msg`Copy relative path`,
-  closeTab: msg`Close tab`,
-  newWorktree: msg`New worktree`,
-  switchWorktree: msg`Switch worktree`,
   sidebarShow: msg`Show sidebar`,
   sidebarHide: msg`Hide sidebar`,
   docPanelShow: msg`Show document panel`,
@@ -164,10 +122,6 @@ const PALETTE_COMMAND_LABELS = {
   chatHistoryMoveRight: msg`Move chat history to the right`,
   editorShow: msg`Show Editor`,
   editorHide: msg`Hide Editor`,
-  terminalShow: msg`Show Terminal`,
-  terminalHide: msg`Hide Terminal`,
-  terminalMoveRight: msg`Move Terminal to right`,
-  terminalMoveBottom: msg`Move Terminal to bottom`,
   agentPanelShow: msg`Show Agents`,
   agentPanelHide: msg`Hide Agents`,
   editorMoveToLeftEdge: msg`Move Editor to the left edge of the window`,
@@ -187,11 +141,6 @@ const PALETTE_COMMAND_LABELS = {
   showOnlyMarkdownFiles: msg`Show only markdown files`,
   expandAll: msg`Expand all`,
   collapseAll: msg`Collapse all`,
-  newTerminal: msg`New Terminal`,
-  killTerminal: msg`Kill Terminal`,
-  checkForUpdates: msg`Check for updates`,
-  setUpIntegrations: msg`Set up GitQuire integrations`,
-  checkSpelling: msg`Check spelling while typing`,
   openOnGithub: msg`GitQuire on GitHub`,
   openDocs: msg`Documentation`,
   joinDiscord: msg`Report an issue on GitHub`,
@@ -200,30 +149,7 @@ const PALETTE_COMMAND_LABELS = {
 export type PaletteLabelKey = keyof typeof PALETTE_COMMAND_LABELS;
 export { PALETTE_COMMAND_LABELS };
 
-const PLATFORM_PALETTE_COMMAND_LABELS = {
-  win32: {
-    revealInFinder: msg`Reveal in File Explorer`,
-    moveToTrash: msg`Move to Recycle Bin`,
-  },
-  linux: {
-    revealInFinder: msg`Open containing folder`,
-  },
-} as const satisfies Record<'win32' | 'linux', Partial<Record<PaletteLabelKey, MessageDescriptor>>>;
-
-export { PLATFORM_PALETTE_COMMAND_LABELS };
-
-function paletteLabelDescriptor(
-  key: PaletteLabelKey,
-  platform: string | null | undefined,
-): MessageDescriptor {
-  if (platform === 'win32' || platform === 'linux') {
-    const override = (
-      PLATFORM_PALETTE_COMMAND_LABELS[platform] as Partial<
-        Record<PaletteLabelKey, MessageDescriptor>
-      >
-    )[key];
-    if (override) return override;
-  }
+function paletteLabelDescriptor(key: PaletteLabelKey): MessageDescriptor {
   return PALETTE_COMMAND_LABELS[key];
 }
 
@@ -239,39 +165,18 @@ const COMMAND_ICONS: Record<string, ComponentType<{ className?: string }>> = {
     DOCK_MOVE_COMMANDS.map((command) => [command.id, DOCK_SIDE_ICON[command.side]]),
   ),
   'open-blob-run': Gamepad2,
-  'navigate-back': ChevronLeft,
-  'navigate-forward': ChevronRight,
   'new-file': FilePlus2,
   'new-folder': FolderPlus,
   'open-graph': Network,
-  'open-in-new-window': SquareArrowOutUpRight,
   'initialize-starter-pack': Package,
-  'new-project': Plus,
-  'open-folder': FolderOpen,
-  'open-file': FileText,
-  'switch-project': LayoutGrid,
   settings: Settings,
-  'install-claude-desktop': Download,
-  'report-bug': Bug,
-  'bug-report-history': History,
   'send-feedback': MessageSquare,
   'new-from-template': FilePlus2,
-  rename: Pencil,
-  duplicate: Copy,
-  'move-to-trash': Trash2,
-  'reveal-in-finder': FolderOpen,
-  'copy-full-path': Copy,
-  'copy-relative-path': Copy,
-  'close-tab': X,
-  'new-worktree': GitBranch,
-  'switch-worktree': GitBranch,
   'toggle-sidebar': PanelLeft,
   'toggle-doc-panel': PanelRight,
   'swap-editor-sidebars': ArrowLeftRight,
   'move-chat-history-left': PanelLeft,
   'move-chat-history-right': PanelRight,
-  'toggle-terminal': PANE_ICON.terminal,
-  'move-terminal': SquareTerminal,
   'toggle-agent-panel': PANE_ICON.agents,
   'toggle-editor': PANE_ICON.editor,
   'toggle-show-hidden-files': Eye,
@@ -279,11 +184,6 @@ const COMMAND_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   'toggle-show-only-markdown-files': FileText,
   'expand-all-tree': UnfoldVertical,
   'collapse-all-tree': FoldVertical,
-  'new-terminal': SquareTerminal,
-  'kill-terminal': SquareTerminal,
-  'check-for-updates': RefreshCw,
-  'set-up-integrations': Blocks,
-  'toggle-spell-check': SpellCheck,
   'open-github': GithubIcon,
   'open-docs': BookOpen,
   'open-discord': GithubIcon,
@@ -324,65 +224,15 @@ const COMMAND_DISPATCH: Record<string, (ctx: PaletteCommandContext) => void> = {
     ctx.closePalette();
     requestDocPanelTab('graph');
   },
-  'open-in-new-window': (ctx) => {
-    ctx.closePalette();
-    if (ctx.activeDocName) void openDocInNoteWindow(ctx.activeDocName, 'palette');
-  },
   'initialize-starter-pack': (ctx) => {
     ctx.closePalette();
     ctx.openSeedDialog();
-  },
-  'new-project': (ctx) => {
-    ctx.closePalette();
-    ctx.openCreateProjectDialog();
-  },
-  'open-folder': (ctx) => {
-    const bridge = ctx.bridge;
-    if (!bridge) return;
-    ctx.runAction(async () => {
-      const path = await bridge.dialog.openFolder();
-      if (!path) return;
-      await bridge.project.open({ path, target: 'new-window', entryPoint: 'pick-existing' });
-    });
-  },
-  'open-file': (ctx) => {
-    const bridge = ctx.bridge;
-    if (!bridge) return;
-    ctx.runAction(() => bridge.project.openFile());
-  },
-  'switch-project': (ctx) => {
-    const bridge = ctx.bridge;
-    if (!bridge) return;
-    ctx.runAction(() => bridge.navigator.open(), t`Failed to open Project Navigator.`);
   },
   settings: (ctx) => {
     ctx.closePalette();
     openSettings();
   },
-  'install-claude-desktop': (ctx) => {
-    ctx.closePalette();
-    window.location.hash = '#install-claude-desktop';
-  },
-  'report-bug': (ctx) => {
-    ctx.reportBug();
-  },
-  'bug-report-history': (ctx) => {
-    ctx.closePalette();
-    ctx.openBugReportHistory();
-  },
   'send-feedback': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_DISCORD_URL),
-  'check-for-updates': (ctx) =>
-    ctx.runAction(async () => {
-      await ctx.bridge?.update.checkNow();
-    }),
-  'set-up-integrations': (ctx) =>
-    ctx.runAction(async () => {
-      await ctx.bridge?.mcpWiring.reconfigure();
-    }),
-  'toggle-spell-check': (ctx) =>
-    ctx.runAction(async () => {
-      await ctx.bridge?.spellcheck.toggle();
-    }),
   'open-github': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_GITHUB_URL),
   'open-docs': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_DOCS_URL),
   'open-discord': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_DISCORD_URL),
@@ -398,11 +248,9 @@ const STATE_AVAILABILITY: Readonly<
 
 function paletteCoreContext(ctx: PaletteCommandContext): CommandContext {
   return {
-    host: ctx.bridge !== null ? 'desktop' : 'web',
     activeTargetKind: ctx.contextualTargetKind,
     singleFile: ctx.singleFile,
-    terminalCapable:
-      ctx.bridge !== null && ctx.bridge.terminal != null && ctx.bridge.config.ptyAvailable === true,
+    terminalCapable: false,
     terminalLive: ctx.viewMenuState.terminalLive === true,
     canExpandAll: ctx.viewMenuState.canExpandAll !== false,
     canCollapseAll: ctx.viewMenuState.canCollapseAll !== false,
@@ -412,7 +260,6 @@ function paletteCoreContext(ctx: PaletteCommandContext): CommandContext {
 }
 
 function resolvePaletteLabel(cmd: CommandIdentity, ctx: PaletteCommandContext): string {
-  const platform = ctx.bridge?.platform;
   if (cmd.stateToggle) {
     const { overrideKey, overrideField } = cmd.stateToggle;
     if (
@@ -425,16 +272,16 @@ function resolvePaletteLabel(cmd: CommandIdentity, ctx: PaletteCommandContext): 
     const visible =
       (ctx.viewMenuState[cmd.stateToggle.stateField] ?? cmd.stateToggle.defaultVisible) === true;
     const key = visible ? cmd.stateToggle.hideKey : cmd.stateToggle.showKey;
-    return i18n._(paletteLabelDescriptor(key as PaletteLabelKey, platform));
+    return i18n._(paletteLabelDescriptor(key as PaletteLabelKey));
   }
   if (cmd.placementToggle) {
     const key =
       ctx.viewMenuState.terminalPlacement === 'right'
         ? cmd.placementToggle.rightKey
         : cmd.placementToggle.bottomKey;
-    return i18n._(paletteLabelDescriptor(key as PaletteLabelKey, platform));
+    return i18n._(paletteLabelDescriptor(key as PaletteLabelKey));
   }
-  return i18n._(paletteLabelDescriptor(cmd.labelKey as PaletteLabelKey, platform));
+  return i18n._(paletteLabelDescriptor(cmd.labelKey as PaletteLabelKey));
 }
 
 function busDispatch(cmd: CommandIdentity): (ctx: PaletteCommandContext) => void {

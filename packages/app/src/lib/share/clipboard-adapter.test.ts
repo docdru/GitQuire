@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { isPermissionsPolicyRefusal, scheduleClipboardWrite } from './clipboard-adapter';
 
 interface MockableGlobals {
@@ -46,55 +46,6 @@ beforeEach(() => {
 
 afterEach(() => {
   setGlobals(savedGlobals);
-});
-
-describe('scheduleClipboardWrite — Electron IPC bridge path (preferred when available)', () => {
-  test('routes the URL through window.okDesktop.clipboard.writeText', async () => {
-    const calls: string[] = [];
-    setGlobals({
-      windowOkDesktop: {
-        clipboard: {
-          writeText: async (text) => {
-            calls.push(text);
-          },
-        },
-      },
-      navigatorClipboardWriteText: undefined,
-    });
-
-    await scheduleClipboardWrite('https://openknowledge.ai/d/AAA');
-    expect(calls).toEqual(['https://openknowledge.ai/d/AAA']);
-  });
-
-  test('does NOT touch navigator.clipboard when okDesktop bridge is available', async () => {
-    const navWriteText = vi.fn(async () => undefined);
-    setGlobals({
-      windowOkDesktop: {
-        clipboard: { writeText: async () => undefined },
-      },
-      navigatorClipboardWriteText: navWriteText,
-    });
-
-    await scheduleClipboardWrite('https://openknowledge.ai/d/AAA');
-    expect(navWriteText).not.toHaveBeenCalled();
-  });
-
-  test('propagates the bridge rejection when Electron IPC fails', async () => {
-    setGlobals({
-      windowOkDesktop: {
-        clipboard: {
-          writeText: async () => {
-            throw new Error('ipc-channel-closed');
-          },
-        },
-      },
-      navigatorClipboardWriteText: undefined,
-    });
-
-    await expect(scheduleClipboardWrite('https://openknowledge.ai/d/AAA')).rejects.toThrow(
-      /ipc-channel-closed/,
-    );
-  });
 });
 
 describe('scheduleClipboardWrite — navigator.clipboard.writeText fallback', () => {
@@ -337,17 +288,5 @@ describe('scheduleClipboardWrite — document.execCommand("copy") fallback', () 
     await expect(scheduleClipboardWrite('https://openknowledge.ai/d/GGG')).rejects.toThrow(
       /permissions policy/,
     );
-  });
-
-  test('okDesktop bridge path never touches execCommand', async () => {
-    const { doc, execCalls } = makeFakeDocument({ execResult: true });
-    docHolder.document = doc;
-    setGlobals({
-      windowOkDesktop: { clipboard: { writeText: async () => undefined } },
-      navigatorClipboardWriteText: undefined,
-    });
-
-    await scheduleClipboardWrite('https://openknowledge.ai/d/HHH');
-    expect(execCalls).toEqual([]);
   });
 });

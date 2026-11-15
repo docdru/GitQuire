@@ -27,7 +27,6 @@ import {
   useProjectLintConfig,
   writeMarkdownlintRule,
 } from '@/editor/lint-config-client';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { RuleOptionField, type RuleOptionValue } from './rule-option-field';
 
 type RuleValues = Record<string, MarkdownlintRuleSetting>;
@@ -313,8 +312,6 @@ function RuleRow({
               href={rule.docUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => dispatchExternalLinkClick(e, rule.docUrl)}
-              onAuxClick={(e) => dispatchExternalLinkClick(e, rule.docUrl)}
               aria-label={t`Documentation for ${rule.id} (opens in browser)`}
               className="inline-flex items-center gap-0.5 text-primary underline-offset-2 hover:underline"
             >

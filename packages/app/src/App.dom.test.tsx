@@ -2,11 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import {
-  clearHashWithoutNavigation,
-  hashFromDocName,
-  pushHashWithoutNavigation,
-} from '@/lib/doc-hash';
+import { hashFromDocName, pushHashWithoutNavigation } from '@/lib/doc-hash';
 import { matchesKeyboardShortcut, type ShortcutEventLike } from '@/lib/keyboard-shortcuts';
 import {
   __resetLocalMenuActionBusForTests,
@@ -175,15 +171,8 @@ vi.doMock('@/components/SystemDocSubscriber', () => ({
 vi.doMock('@/editor/EditorLifecycleFlush', () => ({
   EditorLifecycleFlush: () => null,
 }));
-vi.doMock('@/editor/BackgroundThrottleReporter', () => ({
-  BackgroundThrottleReporter: () => null,
-}));
 vi.doMock('@/editor/StaleTabReloadPrompt', () => ({
   StaleTabReloadPrompt: () => null,
-}));
-
-vi.doMock('@/components/McpConsentDialog', () => ({
-  McpConsentDialog: () => <div data-testid="mcp-consent-dialog" />,
 }));
 
 vi.doMock('@/components/CommandPalette', () => ({
@@ -196,32 +185,6 @@ vi.doMock('@/components/AuthModal', () => ({
   AuthModal: ({ open }: { open: boolean }) => (
     <div data-testid="auth-modal" data-open={String(open)} />
   ),
-}));
-
-vi.doMock('@/components/InstallInClaudeDesktopDialog', () => ({
-  InstallInClaudeDesktopDialog: ({ open }: { open: boolean }) => (
-    <div data-testid="install-dialog" data-open={String(open)} />
-  ),
-}));
-
-vi.doMock('@/components/CreateProjectMenuTrigger', () => ({
-  CreateProjectMenuTrigger: () => <div data-testid="create-project-menu-trigger" />,
-}));
-
-vi.doMock('@/components/ReportBugMenuTrigger', () => ({
-  ReportBugMenuTrigger: () => <div data-testid="report-bug-menu-trigger" />,
-}));
-
-vi.doMock('@/components/FeedbackMenuTrigger', () => ({
-  FeedbackMenuTrigger: () => <div data-testid="feedback-menu-trigger" />,
-}));
-
-vi.doMock('@/components/ShareBranchSwitchDialog', () => ({
-  ShareBranchSwitchDialog: () => <div data-testid="share-branch-switch-dialog" />,
-}));
-
-vi.doMock('@/components/ShareReceiveMissDialog', () => ({
-  ShareReceiveMissDialog: () => <div data-testid="share-receive-miss-dialog" />,
 }));
 
 vi.doMock('@/components/NewItemDialog', () => ({
@@ -301,10 +264,6 @@ function createBridge({ ptyAvailable = true }: { ptyAvailable?: boolean } = {}) 
   };
 }
 
-function createNoteWindowBridge() {
-  return { ...createBridge(), config: { mode: 'note' as const, ptyAvailable: true } };
-}
-
 function appMain(): HTMLElement {
   const main = document.querySelector<HTMLElement>('[data-app-main]');
   if (main == null) throw new Error('the app content wrapper is missing');
@@ -381,43 +340,11 @@ describe('App runtime wiring', () => {
   });
 
   describe('note window chrome reduction', () => {
-    test('drops the sidebar, the palette, and agent-driven navigation', () => {
-      renderApp({ bridge: createNoteWindowBridge() as ReturnType<typeof createBridge> });
-
-      expect(screen.queryByTestId('file-sidebar')).toBeNull();
-      expect(screen.queryByTestId('command-palette')).toBeNull();
-      expect(screen.queryByTestId('system-doc-subscriber')).toBeNull();
-      expectVisualClassTokens(appMain().className, ['h-screen']);
-      expectVisualClassTokensAbsent(appMain().className, [
-        'h-[calc(100vh-var(--layout-inset-offset))]',
-      ]);
-    });
-
     test('single-file windows reserve the shared header height like ordinary windows', () => {
       singleFileMode = true;
       renderApp({ bridge: createBridge() });
 
       expect(screen.queryByTestId('file-sidebar')).toBeNull();
-      expectVisualClassTokens(appMain().className, [
-        'h-[calc(100vh-var(--ok-app-header-height,0px))]',
-      ]);
-      expectVisualClassTokensAbsent(appMain().className, ['h-screen']);
-    });
-
-    test('keeps the editor and the connecting banner', () => {
-      renderApp({ bridge: createNoteWindowBridge() as ReturnType<typeof createBridge> });
-
-      expect(screen.getByTestId('editor-pane')).not.toBeNull();
-      expect(screen.getByTestId('connecting-banner')).not.toBeNull();
-    });
-
-    test('an ordinary editor window keeps all of it', () => {
-      renderApp({ bridge: createBridge() });
-
-      expect(screen.getByTestId('file-sidebar')).not.toBeNull();
-      expect(screen.getByTestId('command-palette')).not.toBeNull();
-      expect(screen.getByTestId('system-doc-subscriber')).not.toBeNull();
-      expect(screen.getByTestId('editor-pane')).not.toBeNull();
       expectVisualClassTokens(appMain().className, [
         'h-[calc(100vh-var(--ok-app-header-height,0px))]',
       ]);
@@ -481,22 +408,6 @@ describe('App runtime wiring', () => {
 
     fireEvent.keyDown(window, { key: ',', metaKey: true });
     expect(window.location.hash).toBe('#settings');
-  });
-
-  test('does not claim Cmd+Shift+N from the desktop new-folder accelerator', () => {
-    renderApp({ bridge: createBridge() });
-
-    const event = new KeyboardEvent('keydown', {
-      key: 'N',
-      metaKey: true,
-      shiftKey: true,
-      bubbles: true,
-      cancelable: true,
-    });
-    fireEvent(window, event);
-
-    expect(event.defaultPrevented).toBe(false);
-    expect(screen.getByTestId('new-item-dialog').getAttribute('data-open')).toBe('false');
   });
 
   test('hash navigation opens the downgraded folder-index target, not the pre-downgrade result', async () => {
@@ -629,34 +540,6 @@ describe('App runtime wiring', () => {
     await waitFor(() => {
       expect(openTargetTransitionMock).toHaveBeenCalledWith(
         { kind: 'doc', target: 'page-a', docName: 'page-a' },
-        {
-          deliberate: false,
-          disposition: 'permanent',
-          consumeActiveNewTab: true,
-        },
-      );
-    });
-  });
-
-  test('defers hash navigation until the persisted tab session has restored', async () => {
-    tabSessionLoaded = false;
-    setHash('#/.editorconfig');
-    const view = renderApp({ bridge: createBridge() });
-
-    await Promise.resolve();
-    expect(resolveNavigationTargetMock).not.toHaveBeenCalled();
-    expect(openTargetTransitionMock).not.toHaveBeenCalled();
-
-    tabSessionLoaded = true;
-    view.rerender(<App />);
-
-    await waitFor(() => {
-      expect(openTargetTransitionMock).toHaveBeenCalledWith(
-        {
-          kind: 'doc',
-          target: '.editorconfig',
-          docName: '.editorconfig',
-        },
         {
           deliberate: false,
           disposition: 'permanent',
@@ -973,40 +856,6 @@ describe('App runtime wiring', () => {
     });
   });
 
-  test('a document opened after the install dialog closes is a deliberate open', async () => {
-    await renderOnPageA();
-
-    window.location.hash = '#install-claude-desktop';
-    await waitFor(() => expect(window.location.hash).toBe('#install-claude-desktop'));
-    clearHashWithoutNavigation();
-    window.location.hash = '#/page-b';
-
-    await waitFor(() => {
-      expect(openTargetTransitionMock).toHaveBeenCalledWith(
-        { kind: 'doc', target: 'page-b', docName: 'page-b' },
-        expect.objectContaining({ deliberate: true }),
-      );
-    });
-  });
-
-  test('the first Back after the install dialog closes is a deliberate open', async () => {
-    await renderOnPageA();
-    pushHashWithoutNavigation('#/page-b', 'permanent');
-
-    window.location.hash = '#install-claude-desktop';
-    await waitFor(() => expect(window.location.hash).toBe('#install-claude-desktop'));
-    clearHashWithoutNavigation();
-    window.history.back();
-
-    await waitFor(() => {
-      expect(window.location.hash).toBe('#/page-b');
-      expect(openTargetTransitionMock).toHaveBeenCalledWith(
-        { kind: 'doc', target: 'page-b', docName: 'page-b' },
-        expect.objectContaining({ deliberate: true }),
-      );
-    });
-  });
-
   function editorRequestsFromClick(
     href: string,
     init: MouseEventInit = {},
@@ -1072,92 +921,12 @@ describe('App runtime wiring', () => {
     __resetPaneVisibilityStoreForTests();
   });
 
-  test('active doc and folder targets are pushed to the desktop bridge', async () => {
-    const bridge = createBridge();
-    activeTarget = { kind: 'doc', target: 'docs/readme', docName: 'docs/readme' };
-
-    renderApp({ bridge });
-
-    await waitFor(() => {
-      expect(bridge.editor.notifyActiveTargetChanged).toHaveBeenCalledWith({
-        kind: 'doc',
-        identifier: 'docs/readme',
-      });
-    });
-
-    cleanup();
-    activeTarget = { kind: 'folder', target: 'docs', folderPath: 'docs' };
-
-    renderApp({ bridge });
-
-    await waitFor(() => {
-      expect(bridge.editor.notifyActiveTargetChanged).toHaveBeenCalledWith({
-        kind: 'folder',
-        identifier: 'docs',
-      });
-    });
-  });
-
-  test('active asset targets are pushed to the desktop bridge', async () => {
-    const bridge = createBridge();
-    activeTarget = {
-      kind: 'asset',
-      target: 'images/logo.png',
-      assetPath: 'images/logo.png',
-      mediaKind: 'image',
-    };
-
-    renderApp({ bridge });
-
-    await waitFor(() => {
-      expect(bridge.editor.notifyActiveTargetChanged).toHaveBeenCalledWith({
-        kind: 'asset',
-        identifier: 'images/logo.png',
-      });
-    });
-  });
-
-  test('missing and folder-index targets collapse to the project-scope desktop snapshot', async () => {
-    const bridge = createBridge();
-    activeTarget = { kind: 'missing', target: 'missing/path' };
-
-    renderApp({ bridge });
-
-    await waitFor(() => {
-      expect(bridge.editor.notifyActiveTargetChanged).toHaveBeenCalledWith({ kind: null });
-    });
-  });
-
   test('active-target push is a web-mode no-op without the desktop bridge', () => {
     activeTarget = { kind: 'doc', target: 'docs/readme', docName: 'docs/readme' };
 
     renderApp();
 
     expect(screen.queryByTestId('share-receive-dialog')).toBeNull();
-  });
-
-  test('a note window keeps the drag strip with fixed 8px chrome geometry', () => {
-    renderApp({ bridge: createNoteWindowBridge() as ReturnType<typeof createBridge> });
-
-    const strip = screen.getByTestId('editor-window-chrome-drag-strip');
-    expect(strip.getAttribute('aria-hidden')).toBe('true');
-    expect(strip.getAttribute('data-electron-drag')).toBe('');
-    expectVisualClassTokens(strip.className, [
-      'pointer-events-none',
-      'fixed',
-      'inset-x-0',
-      'top-0',
-      'z-50',
-      'h-2',
-      '[-webkit-app-region:drag]',
-    ]);
-  });
-
-  test('the app header supersedes the drag strip in an ordinary editor window', () => {
-    renderApp({ bridge: createBridge() });
-
-    expect(screen.getByRole('banner')).not.toBeNull();
-    expect(screen.queryByTestId('editor-window-chrome-drag-strip')).toBeNull();
   });
 
   test('web host does not render Electron-only drag or share-receive surfaces', () => {
@@ -1200,18 +969,6 @@ describe('App runtime wiring', () => {
         'h-[calc(100vh-var(--ok-app-header-height,0px))]',
       ]);
       expectVisualClassTokensAbsent(appMain().className, ['overflow-hidden', 'rounded-e-xl']);
-    });
-
-    test('a note window has no application header and no header height to subtract', () => {
-      renderApp({ bridge: createNoteWindowBridge() as ReturnType<typeof createBridge> });
-
-      expect(screen.queryByRole('banner')).toBeNull();
-      const shellRoot = document.querySelector<HTMLElement>('[data-app-shell]');
-      expect(shellRoot?.style.getPropertyValue('--ok-app-header-height')).toBe('');
-      expectVisualClassTokens(appMain().className, ['h-screen']);
-      expectVisualClassTokensAbsent(appMain().className, [
-        'h-[calc(100vh-var(--ok-app-header-height,0px))]',
-      ]);
     });
 
     test('a single-file window shows the shared application header', () => {
@@ -1271,12 +1028,6 @@ describe('App runtime wiring', () => {
       expect(within(stack).getByTestId('feedback-card-mount')).not.toBeNull();
     });
 
-    test('a note window has no stack and no cards', () => {
-      renderApp({ bridge: createNoteWindowBridge() as ReturnType<typeof createBridge> });
-
-      expectNoCornerStack();
-    });
-
     test('a single-file window has no stack and no cards', () => {
       singleFileMode = true;
 
@@ -1302,24 +1053,6 @@ describe('App runtime wiring', () => {
       await Promise.resolve();
       expect(openTargetTransitionMock).not.toHaveBeenCalled();
       expect(window.location.hash).toBe('');
-    });
-
-    test('desktop mode: the suppressed mount drops the hash before the session gate lifts', async () => {
-      recordAppShellCrashTrip(new Error('same shell crash'));
-      recordAppShellCrashTrip(new Error('same shell crash'));
-      tabSessionLoaded = false;
-      setHash('#/poison-doc');
-
-      const view = renderApp({ bridge: createBridge() });
-
-      await Promise.resolve();
-      expect(window.location.hash).toBe('');
-
-      tabSessionLoaded = true;
-      view.rerender(<App />);
-
-      await Promise.resolve();
-      expect(openTargetTransitionMock).not.toHaveBeenCalled();
     });
 
     test('hash navigation resumes immediately after the suppressed mount', async () => {

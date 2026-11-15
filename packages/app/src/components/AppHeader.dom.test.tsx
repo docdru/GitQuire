@@ -1,4 +1,4 @@
-import { getParseHealth, resetParseHealth } from '@inkeep/open-knowledge-core';
+import { resetParseHealth } from '@inkeep/open-knowledge-core';
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps, ReactNode } from 'react';
@@ -289,8 +289,6 @@ const TRAILING_ACTION_QUERIES = [
   () => screen.queryByRole('button', { name: 'Resources' }),
 ] as const;
 
-const FOLDING_BADGES = '[data-testid="beta-badge"], [data-testid="instance-badge"]';
-
 const PANE_HIDDEN: PaneVisibility = { open: false, onScreen: false };
 
 function publishPanes({ terminal = true }: { terminal?: boolean } = {}) {
@@ -313,22 +311,6 @@ function paneControls(): HTMLElement[] {
 
 const CRAMPED: HeaderMetrics = { header: 600, leading: 220, trailing: 420, collapsedTrailing: 44 };
 const ROOMY: HeaderMetrics = { header: 1_280, leading: 220, trailing: 420 };
-const BADGES_FOLD: HeaderMetrics = {
-  header: 600,
-  leading: 300,
-  compactBadgeLeading: 200,
-  badgeLabel: 100,
-  badges: { beta: 40, instance: 150 },
-  trailing: 480,
-  collapsedTrailing: 44,
-};
-const BADGE_CRAMPED: HeaderMetrics = {
-  header: 700,
-  leading: 300,
-  compactBadgeLeading: 200,
-  badgeLabel: 100,
-  trailing: 420,
-};
 
 function follows(earlier: Element, later: Element): boolean {
   return (earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
@@ -451,19 +433,6 @@ describe('AppHeader', () => {
     ]);
   });
 
-  test('is a window-drag region on Electron and opts its controls out of dragging', () => {
-    setElectronHost(true);
-    renderHeader();
-
-    const header = screen.getByRole('banner');
-    expect(header.getAttribute('data-electron-drag')).toBe('');
-    expectVisualClassTokens(header.className, [
-      '[-webkit-app-region:drag]',
-      '[&_button]:[-webkit-app-region:no-drag]',
-      '[&_a]:[-webkit-app-region:no-drag]',
-    ]);
-  });
-
   test('on Electron the pane buttons opt out of dragging and the divider beside them stays draggable', () => {
     setElectronHost(true);
     publishPanes();
@@ -489,14 +458,6 @@ describe('AppHeader', () => {
     }
   });
 
-  test('reserves the Windows caption-button inset at its trailing edge on Electron', () => {
-    setElectronHost(true, { platform: 'win32' });
-    renderHeader();
-
-    const trailing = screen.getByRole('banner').querySelector('[data-app-header-trailing]');
-    expectVisualClassTokens(trailing?.className, ['me-[var(--ok-titlebar-reserve-right,0px)]']);
-  });
-
   test('claims no drag region on a web host', () => {
     renderHeader();
 
@@ -509,22 +470,6 @@ describe('AppHeader', () => {
   });
 
   describe('leading group', () => {
-    test('puts back, forward and search in the leading group, in that order, on desktop', () => {
-      setElectronHost(true);
-      renderHeader();
-
-      const leading = leadingGroup();
-      const back = screen.getByRole('button', { name: 'Back' });
-      const forward = screen.getByRole('button', { name: 'Forward' });
-      const search = screen.getByRole('button', { name: 'Search' });
-
-      expect(leading.contains(back)).toBe(true);
-      expect(leading.contains(forward)).toBe(true);
-      expect(leading.contains(search)).toBe(true);
-      expect(follows(back, forward)).toBe(true);
-      expect(follows(forward, search)).toBe(true);
-    });
-
     test('a web host gets search alone, with no navigation history', () => {
       renderHeader();
 
@@ -546,58 +491,6 @@ describe('AppHeader', () => {
       expect(onOpenSearch).toHaveBeenCalledTimes(1);
     });
 
-    test.each([
-      { channel: 'latest', instanceLabel: undefined, expected: [] },
-      { channel: 'beta', instanceLabel: undefined, expected: ['beta-badge'] },
-      { channel: 'latest', instanceLabel: 'wt-header', expected: ['instance-badge'] },
-      { channel: 'beta', instanceLabel: 'wt-header', expected: ['beta-badge', 'instance-badge'] },
-    ] as const)(
-      'channel $channel with instance label $instanceLabel shows $expected after search',
-      async ({ channel, instanceLabel, expected }) => {
-        setElectronHost(true, { channel, instanceLabel });
-        renderHeader();
-
-        const search = screen.getByRole('button', { name: 'Search' });
-        const searchSlot = Array.from(leadingGroup().children).find((child) =>
-          child.contains(search),
-        ) as Element;
-        await waitFor(() => {
-          const badges = Array.from(leadingGroup().querySelectorAll('[data-testid$="-badge"]'));
-          expect(badges.map((badge) => badge.getAttribute('data-testid'))).toEqual(expected);
-        });
-        const badgeGroup = searchSlot.nextElementSibling;
-        expect(badgeGroup, 'the badge group must follow search').not.toBeNull();
-        expect(badgeGroup?.nextElementSibling ?? null).toBeNull();
-        expect(
-          Array.from(badgeGroup?.children ?? []).map((badge) => badge.getAttribute('data-testid')),
-        ).toEqual(expected);
-      },
-    );
-
-    test('on Windows the app menu leads the header, before search and the badges, and opens from it', async () => {
-      const user = userEvent.setup();
-      const dispatch = vi.fn((request: { kind: string }) =>
-        Promise.resolve(request.kind === 'query' ? null : undefined),
-      );
-      setElectronHost(true, {
-        platform: 'win32',
-        channel: 'beta',
-        instanceLabel: 'wt-header',
-        menu: { dispatch },
-      });
-      renderHeader();
-
-      const menubar = await screen.findByTestId('app-menubar');
-      expect(leadingGroup().firstElementChild).toBe(menubar);
-      expect(follows(menubar, screen.getByRole('button', { name: 'Search' }))).toBe(true);
-      expect(follows(menubar, await screen.findByTestId('beta-badge'))).toBe(true);
-      expect(follows(menubar, screen.getByTestId('instance-badge'))).toBe(true);
-
-      await user.click(screen.getByRole('menuitem', { name: 'File' }));
-      expect(await screen.findByRole('menuitem', { name: /^New file/ })).toBeTruthy();
-      expect(dispatch).toHaveBeenCalledWith({ kind: 'query' });
-    });
-
     test('macOS leaves the app menu to the native menu bar', async () => {
       setElectronHost(true, {
         platform: 'darwin',
@@ -607,25 +500,6 @@ describe('AppHeader', () => {
 
       await screen.findByRole('button', { name: 'Search' });
       expect(screen.queryByTestId('app-menubar')).toBeNull();
-    });
-
-    test('a search button render failure is counted and leaves the rest of the header standing', () => {
-      resetParseHealth();
-      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      searchRender.throws = true;
-      setElectronHost(true);
-      try {
-        renderHeader();
-
-        expect(screen.queryByRole('button', { name: 'Search' })).toBeNull();
-        expect(screen.getByRole('button', { name: 'Back' })).toBeTruthy();
-        expect(screen.getByRole('banner', { name: 'Application' })).toBeTruthy();
-        expect(getParseHealth().jsxRenderFailure.headerSearchPill).toBe(1);
-      } finally {
-        consoleError.mockRestore();
-        consoleWarn.mockRestore();
-      }
     });
 
     test('the search button comes back once the open document changes', () => {
@@ -654,15 +528,6 @@ describe('AppHeader', () => {
   });
 
   describe('centre track', () => {
-    test('holds the project switcher, named for the open project, on desktop', () => {
-      setElectronHost(true);
-      renderHeader();
-
-      const trigger = screen.getByRole('button', { name: 'Open project menu' });
-      expect(centreGroup().contains(trigger)).toBe(true);
-      expect(trigger.textContent).toContain('Field Notes');
-    });
-
     test('stays empty on a web host', () => {
       renderHeader();
 
@@ -779,43 +644,6 @@ describe('AppHeader', () => {
   });
 
   describe('collapse', () => {
-    test('when the trailing group does not fit, its five controls go behind "More actions" and the leading group keeps everything but the BETA and instance badges', async () => {
-      setElectronHost(true, {
-        platform: 'win32',
-        channel: 'beta',
-        instanceLabel: 'wt-header',
-        menu: { dispatch: () => Promise.resolve(null) },
-      });
-      shell.syncStatus = { state: 'idle', conflictCount: 0, hasRemote: true };
-      const restoreMetrics = mockHeaderMetrics(CRAMPED);
-      try {
-        renderHeader();
-
-        const trigger = overflowTrigger();
-        expect(trigger).not.toBeNull();
-        expect(trailingGroup().contains(trigger)).toBe(true);
-        for (const query of TRAILING_ACTION_QUERIES) expect(query()).toBeNull();
-        const staying = [
-          await screen.findByTestId('app-menubar'),
-          ...['Back', 'Forward', 'Search'].map((name) => screen.getByRole('button', { name })),
-        ];
-        for (const control of staying) expect(leadingGroup().contains(control)).toBe(true);
-
-        const panel = await openOverflowPanel();
-        for (const query of TRAILING_ACTION_QUERIES) {
-          expect(panel.contains(query())).toBe(true);
-        }
-        expect(panel.contains(await screen.findByTestId('beta-badge'))).toBe(true);
-        expect(panel.contains(screen.getByTestId('instance-badge'))).toBe(true);
-        for (const control of staying) {
-          expect(panel.contains(control)).toBe(false);
-          expect(leadingGroup().contains(control)).toBe(true);
-        }
-      } finally {
-        restoreMetrics();
-      }
-    });
-
     test('the panel behind "More actions" is a dialog announced by that name, even while sync needs attention', async () => {
       shell.syncStatus = { state: 'conflict', conflictCount: 1, hasRemote: true };
       const restoreMetrics = mockHeaderMetrics(CRAMPED);
@@ -869,122 +697,6 @@ describe('AppHeader', () => {
       }
     });
 
-    test.each(['win32', 'linux'] as const)(
-      'on %s a folded header moves the BETA and instance badges into "More actions", and they return to the leading group when room returns',
-      async (platform) => {
-        setElectronHost(true, { platform, channel: 'beta', instanceLabel: 'wt-header' });
-        const observer = captureResizeObserver();
-        let restoreMetrics = mockHeaderMetrics(BADGES_FOLD);
-        try {
-          renderHeader();
-
-          expect(overflowTrigger()).not.toBeNull();
-          expect(leadingGroup().querySelector(FOLDING_BADGES)).toBeNull();
-          const panel = await openOverflowPanel();
-          expect(panel.contains(await screen.findByTestId('beta-badge'))).toBe(true);
-          const folded = screen.getByTestId('instance-badge');
-          expect(panel.contains(folded)).toBe(true);
-          expectVisualClassTokensAbsent(
-            folded.querySelector('[data-instance-badge-label]')?.className,
-            ['sr-only'],
-          );
-
-          restoreMetrics();
-          restoreMetrics = mockHeaderMetrics({ ...BADGES_FOLD, header: 1_280 });
-          observer.flush();
-
-          expect(overflowTrigger()).toBeNull();
-          const beta = await screen.findByTestId('beta-badge');
-          const instance = screen.getByTestId('instance-badge');
-          expect(leadingGroup().contains(beta)).toBe(true);
-          expect(leadingGroup().contains(instance)).toBe(true);
-          expect(follows(screen.getByRole('button', { name: 'Search' }), beta)).toBe(true);
-          expect(follows(beta, instance)).toBe(true);
-        } finally {
-          restoreMetrics();
-          observer.restore();
-        }
-      },
-    );
-
-    test('on macOS a folded header keeps the BETA and instance badges in the leading group', async () => {
-      setElectronHost(true, { platform: 'darwin', channel: 'beta', instanceLabel: 'wt-header' });
-      const restoreMetrics = mockHeaderMetrics(CRAMPED);
-      try {
-        renderHeader();
-
-        expect(overflowTrigger()).not.toBeNull();
-        const beta = await screen.findByTestId('beta-badge');
-        expect(leadingGroup().contains(beta)).toBe(true);
-        expect(leadingGroup().contains(screen.getByTestId('instance-badge'))).toBe(true);
-        const panel = await openOverflowPanel();
-        expect(panel.querySelector(FOLDING_BADGES)).toBeNull();
-      } finally {
-        restoreMetrics();
-      }
-    });
-
-    test('on macOS a folded single-file header moves the BETA and instance badges into its overflow', async () => {
-      shell.singleFile = true;
-      setElectronHost(true, { platform: 'darwin', channel: 'beta', instanceLabel: 'wt-header' });
-      publishPanes();
-      const restoreMetrics = mockHeaderMetrics(CRAMPED);
-      try {
-        renderHeader();
-
-        expect(overflowTrigger()).not.toBeNull();
-        const panel = await openOverflowPanel();
-        expect(panel.contains(await screen.findByTestId('beta-badge'))).toBe(true);
-        expect(panel.contains(screen.getByTestId('instance-badge'))).toBe(true);
-        expect(leadingGroup().querySelector(FOLDING_BADGES)).toBeNull();
-      } finally {
-        restoreMetrics();
-      }
-    });
-
-    test.each([
-      { path: 'straight from a roomy header', widths: [600] },
-      { path: 'after the instance badge shrank to its icon', widths: [680, 600] },
-    ])(
-      'with the badges folded out of the leading group $path, the fold holds though the leading group got narrower',
-      async ({ widths }) => {
-        setElectronHost(true, { platform: 'win32', channel: 'beta', instanceLabel: 'wt-header' });
-        const observer = captureResizeObserver();
-        let headerWidth = 1_280;
-        const restoreMetrics = mockHeaderMetrics(() => ({
-          ...BADGES_FOLD,
-          header: headerWidth,
-          trailing: 420,
-        }));
-        try {
-          renderHeader();
-          await waitFor(() =>
-            expect(leadingGroup().contains(screen.queryByTestId('beta-badge'))).toBe(true),
-          );
-          observer.flush();
-          expect(overflowTrigger()).toBeNull();
-
-          for (const width of widths) {
-            headerWidth = width;
-            observer.flush();
-          }
-          expect(overflowTrigger()).not.toBeNull();
-          expect(leadingGroup().querySelector(FOLDING_BADGES)).toBeNull();
-
-          for (const pass of [1, 2, 3]) {
-            observer.flush();
-            expect(
-              overflowTrigger(),
-              `re-measurement pass ${pass} unfolded the header because the folded badges no longer counted against the room`,
-            ).not.toBeNull();
-          }
-        } finally {
-          restoreMetrics();
-          observer.restore();
-        }
-      },
-    );
-
     test('when room returns the five come back out and the trigger goes', () => {
       shell.syncStatus = { state: 'idle', conflictCount: 0, hasRemote: true };
       const observer = captureResizeObserver();
@@ -1032,31 +744,6 @@ describe('AppHeader', () => {
       }
     });
 
-    test('the room left for the trailing group keeps the project switcher its icons, whatever the project is called', () => {
-      setElectronHost(true);
-      const verdicts = [110, 400].map((switcherName) => {
-        const restoreMetrics = mockHeaderMetrics({
-          header: 700,
-          leading: 220,
-          trailing: 420,
-          switcher: switcherName + 64,
-          switcherName,
-        });
-        try {
-          renderHeader();
-          return overflowTrigger() !== null;
-        } finally {
-          restoreMetrics();
-          cleanup();
-        }
-      });
-
-      expect(
-        verdicts,
-        'reserving the switcher icons leaves 416px, too little for a 420px group',
-      ).toEqual([true, true]);
-    });
-
     test('a group that fits beside the leading group and the switcher icons stays inline', () => {
       setElectronHost(true);
       const restoreMetrics = mockHeaderMetrics({
@@ -1101,113 +788,6 @@ describe('AppHeader', () => {
       } finally {
         restoreMetrics();
         computedStyle.mockRestore();
-      }
-    });
-
-    test('an Electron host keeps the build label hoverable inside the draggable header', () => {
-      setElectronHost(true, { instanceLabel: 'wt-header' });
-      renderHeader();
-      const header = screen.getByRole('banner');
-      const badge = screen.getByTestId('instance-badge');
-
-      expect(header.contains(badge)).toBe(true);
-      expectVisualClassTokens(header.className, ['[-webkit-app-region:drag]']);
-      expectVisualClassTokens(badge.className, ['[-webkit-app-region:no-drag]']);
-    });
-
-    test('when only the instance badge does not fit, it shrinks to its icon and the trailing group stays inline', () => {
-      setElectronHost(true, { instanceLabel: 'wt-header' });
-      const observer = captureResizeObserver();
-      const restoreMetrics = mockHeaderMetrics(BADGE_CRAMPED);
-      try {
-        renderHeader();
-        const badge = screen.getByTestId('instance-badge');
-
-        for (const pass of [1, 2, 3]) {
-          observer.flush();
-          expectVisualClassTokens(badge.querySelector('[data-instance-badge-label]')?.className, [
-            'sr-only',
-          ]);
-          expect(
-            overflowTrigger(),
-            `re-measurement pass ${pass} folded the trailing group though the compact badge left room for it`,
-          ).toBeNull();
-        }
-        expect(within(badge).getByText('App instance: wt-header').classList).toContain('sr-only');
-      } finally {
-        restoreMetrics();
-        observer.restore();
-      }
-    });
-
-    test('the pass that shrinks the instance badge already counts the room it frees', () => {
-      setElectronHost(true, { instanceLabel: 'wt-header' });
-      const observer = captureResizeObserver();
-      const restoreMetrics = mockHeaderMetrics(BADGE_CRAMPED);
-      try {
-        renderHeader();
-
-        expectVisualClassTokens(
-          screen.getByTestId('instance-badge').querySelector('[data-instance-badge-label]')
-            ?.className,
-          ['sr-only'],
-        );
-        expect(
-          overflowTrigger(),
-          'the first paint folded the trailing group at a width where the compact badge leaves room for it',
-        ).toBeNull();
-      } finally {
-        restoreMetrics();
-        observer.restore();
-      }
-    });
-
-    test('a centre that fills in after mount re-drives the collapse verdict', () => {
-      setElectronHost(true);
-      const observer = captureResizeObserver();
-      let centreWidth = 0;
-      const restoreMetrics = mockHeaderMetrics(() => ({
-        header: 700,
-        leading: 220,
-        trailing: 420,
-        collapsedTrailing: 44,
-        switcher: centreWidth,
-        switcherName: centreWidth > 0 ? 100 : 0,
-      }));
-      try {
-        renderHeader();
-        expect(overflowTrigger()).toBeNull();
-
-        centreWidth = 300;
-        observer.flush(centreGroup());
-
-        expect(
-          overflowTrigger(),
-          'the centre grew after mount and nothing re-measured, so the header kept the verdict it computed for an empty centre',
-        ).not.toBeNull();
-      } finally {
-        restoreMetrics();
-        observer.restore();
-      }
-    });
-
-    test('the instance badge keeps its name while the header has room for it', () => {
-      setElectronHost(true, { instanceLabel: 'wt-header' });
-      const observer = captureResizeObserver();
-      const restoreMetrics = mockHeaderMetrics({ ...BADGE_CRAMPED, header: 1_280 });
-      try {
-        renderHeader();
-        observer.flush();
-
-        expectVisualClassTokensAbsent(
-          screen.getByTestId('instance-badge').querySelector('[data-instance-badge-label]')
-            ?.className,
-          ['sr-only'],
-        );
-        expect(overflowTrigger()).toBeNull();
-      } finally {
-        restoreMetrics();
-        observer.restore();
       }
     });
 

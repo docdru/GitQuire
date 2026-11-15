@@ -3,8 +3,6 @@ export const MIGRATED_MODULES: ReadonlyArray<readonly [path: string, messages: n
   ['src/lib/share/receive-flow.ts', 6],
   ['src/lib/share/publish-wizard.ts', 7],
   ['src/hooks/use-folder-config.ts', 2],
-  ['src/lib/install-onboarding-toast.ts', 9],
-  ['src/lib/install-deep-link-listener.ts', 1],
   ['src/editor/utils/editor-strings.ts', 2],
   ['src/editor/components/IconPickerInput.tsx', 4],
   ['src/editor/components/ColorPickerInput.tsx', 2],

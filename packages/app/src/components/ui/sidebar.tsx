@@ -247,7 +247,6 @@ function SidebarProvider({
   }, [partition, open, canDock, cover, setOpen]);
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && window.okDesktop != null) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!matchesKeyboardShortcut(event, 'toggle-files-sidebar')) return;
       if (isOverlayLayerOpen()) return;

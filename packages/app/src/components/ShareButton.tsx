@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { gitquirePageLink } from '@/lib/gitquire/page-link';
 import { formatShortcutBinding, formatShortcutBindingLabel } from '@/lib/keyboard-shortcuts';
 import { scheduleClipboardWrite } from '@/lib/share/clipboard-adapter';
@@ -125,8 +124,6 @@ export function ShareButton({ input, triggerRef }: ShareButtonProps) {
           href={SHARE_DOCS_URL}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={(e) => dispatchExternalLinkClick(e, SHARE_DOCS_URL)}
-          onAuxClick={(e) => dispatchExternalLinkClick(e, SHARE_DOCS_URL)}
           className="mt-2 flex items-center gap-1.5 self-start text-xs text-muted-foreground transition-colors hover:text-primary"
         >
           <CircleHelp aria-hidden="true" className="size-3.5 shrink-0" />

@@ -64,26 +64,6 @@ describe('viewer error pane — "Open file" handoff', () => {
     expect(control?.closest('a')).toBeNull();
   });
 
-  test('activating the handoff opens the FILE through the desktop bridge', async () => {
-    const openAsset = installDesktopBridge();
-    const { container } = render(
-      <TextViewer
-        src="/api/asset-text?path=logs/huge.csv"
-        assetPath="logs/huge.csv"
-        fileName="huge.csv"
-        extension="csv"
-      />,
-    );
-    await findErrorPane(container, 'data-text-viewer');
-
-    fireEvent.click(openFileControl(container) as HTMLElement);
-
-    await waitFor(() => {
-      expect(openAsset).toHaveBeenCalledTimes(1);
-    });
-    expect(openAsset).toHaveBeenCalledWith('logs/huge.csv');
-  });
-
   test('web host (no desktop bridge) opens a new tab instead of navigating', async () => {
     const openSpy = vi.fn(() => null);
     const originalOpen = window.open;
@@ -200,24 +180,5 @@ describe('viewer error pane — "Open file" handoff', () => {
     } finally {
       window.open = originalOpen;
     }
-  });
-
-  test('the mermaid file viewer shares the same handoff behavior', async () => {
-    const openAsset = installDesktopBridge();
-    const { container } = render(
-      <MermaidFileViewer
-        src="/api/asset-text?path=diagrams/flow.mmd"
-        assetPath="diagrams/flow.mmd"
-        fileName="flow.mmd"
-        extension="mmd"
-      />,
-    );
-    await findErrorPane(container, 'data-mermaid-file-viewer');
-
-    expect(container.querySelector('a[href*="/api/"]')).toBeNull();
-    fireEvent.click(openFileControl(container) as HTMLElement);
-    await waitFor(() => {
-      expect(openAsset).toHaveBeenCalledWith('diagrams/flow.mmd');
-    });
   });
 });

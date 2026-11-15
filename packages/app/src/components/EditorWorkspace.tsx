@@ -381,7 +381,6 @@ export function EditorWorkspace({
     reorderTabsInPane,
     resizePanes,
     splitTab,
-    tabSessionLoaded,
     visibleTabIdsByPane,
   } = useDocumentContext();
   const singleFile = useSingleFileMode();
@@ -392,11 +391,6 @@ export function EditorWorkspace({
     getNoteWindowDeletedDoc,
     () => null,
   );
-  const desktopSessionRestorePending =
-    !singleFile &&
-    !tabSessionLoaded &&
-    typeof window !== 'undefined' &&
-    window.okDesktop?.config.mode === 'editor';
   const [drag, setDrag] = useState<EditorTabDragData | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{
     index: number;
@@ -506,15 +500,6 @@ export function EditorWorkspace({
     document.body.setAttribute('data-editor-tab-dragging', '');
     return () => document.body.removeAttribute('data-editor-tab-dragging');
   }, [drag]);
-
-  if (desktopSessionRestorePending) {
-    return (
-      <>
-        {renderHeader(null)}
-        <div data-editor-workspace-pending="" className="min-h-0 flex-1 bg-background" />
-      </>
-    );
-  }
 
   function registerActivityMount(paneId: string, element: HTMLElement | null) {
     setActivityMounts((current) => {

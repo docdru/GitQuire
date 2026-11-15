@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createContext, type ReactNode, use, useState } from 'react';
 import { FormProvider } from 'react-hook-form';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
@@ -44,14 +44,7 @@ let syncModeWriterCalls: string[] = [];
 let syncModeSelectCalls: string[] = [];
 let syncDefaultWriterCalls: Array<boolean | string | null> = [];
 let okignoreProps: Array<{ binding: unknown; synced: boolean }> = [];
-let installDialogProps: Array<{
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  reinstall: boolean;
-}> = [];
 let publishDialogProps: Array<{ open: boolean }> = [];
-let claudeRefreshCalls = 0;
-let claudeSkillInstalled = false;
 
 const actualFeatureFlags = await import('@inkeep/open-knowledge-core/constants/feature-flags');
 
@@ -239,23 +232,6 @@ vi.doMock('@/components/PublishToGitHubDialog', () => ({
   },
 }));
 
-vi.doMock('@/components/InstallInClaudeDesktopDialog', () => ({
-  InstallInClaudeDesktopDialog: (props: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    reinstall: boolean;
-  }) => {
-    installDialogProps.push(props);
-    return (
-      <div
-        data-open={String(props.open)}
-        data-reinstall={String(props.reinstall)}
-        data-testid="install-claude-dialog"
-      />
-    );
-  },
-}));
-
 vi.doMock('./OkignoreSection', () => ({
   OkignoreSection: (props: { binding: unknown; synced: boolean }) => {
     okignoreProps.push(props);
@@ -332,17 +308,6 @@ vi.doMock('@/components/EnableSyncConfirmDialog', () => ({
   ),
 }));
 
-vi.doMock('@/lib/handoff/use-claude-desktop-integration', () => ({
-  useClaudeDesktopIntegration: () => ({
-    desktopPresent: true,
-    skillInstalled: claudeSkillInstalled,
-    skillVersion: claudeSkillInstalled ? '1.0.0' : null,
-    refresh: () => {
-      claudeRefreshCalls += 1;
-    },
-  }),
-}));
-
 async function renderBody(
   props: {
     activeId: string;
@@ -383,10 +348,7 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     syncModeSelectCalls = [];
     syncDefaultWriterCalls = [];
     okignoreProps = [];
-    installDialogProps = [];
     publishDialogProps = [];
-    claudeRefreshCalls = 0;
-    claudeSkillInstalled = false;
   });
 
   test('body dispatches heavy project sections without owning a Dialog frame', async () => {
@@ -436,21 +398,6 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     expect(screen.getByTestId('settings-scope-badge-user')).not.toBeNull();
   });
 
-  test('the About & updates page shows the installed version', async () => {
-    const w = window as unknown as { okDesktop?: unknown };
-    w.okDesktop = {
-      appVersion: '1.2.3',
-      state: { query: async () => ({ channel: 'latest', schemaIncompatibility: null }) },
-      onUpdateManualCheck: () => () => {},
-    };
-    try {
-      await renderBody({ activeId: 'about' });
-      expect((await screen.findByTestId('settings-about-version')).textContent).toBe('v1.2.3');
-    } finally {
-      w.okDesktop = undefined;
-    }
-  });
-
   test('the Account page mounts the Enterprise hosts card from the user binding', async () => {
     const { bindConfigDoc } = await import('@inkeep/open-knowledge-core');
     const { Doc } = await import('yjs');
@@ -498,55 +445,6 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     });
     expect(screen.getByTestId('settings-scope-badge-user')).not.toBeNull();
     expect(screen.queryByTestId('settings-scope-badge-project')).toBeNull();
-  });
-
-  test('the ok CLI row is wired into the user Preferences page', async () => {
-    Object.defineProperty(window, 'okDesktop', {
-      value: {
-        integrations: {
-          status: async () => ({
-            available: true,
-            editors: [],
-            skills: [],
-            path: { shellDetected: true, rcFilesToTouch: ['~/.zshrc'], installed: false },
-          }),
-          setComponent: async () => ({ ok: true }),
-        },
-      },
-      configurable: true,
-      writable: true,
-    });
-    try {
-      await renderBody({
-        activeId: 'preferences',
-        userBinding: { current: () => ({}), subscribe: () => () => {} },
-      });
-      expect(await screen.findByTestId('ok-cli-path-row')).not.toBeNull();
-    } finally {
-      // biome-ignore lint/suspicious/noExplicitAny: test-only global teardown.
-      (window as any).okDesktop = undefined;
-    }
-  });
-
-  test('sync page stacks the config-sharing block under the sync controls', async () => {
-    syncStatus = { state: 'dormant', hasRemote: false, syncEnabled: false };
-
-    await renderBody({ activeId: 'sync' });
-
-    expect(document.querySelector('[data-field="section:sharing"]')).not.toBeNull();
-
-    const pageTitles = screen.getAllByRole('heading', { level: 3 });
-    expect(pageTitles.map((h) => h.textContent)).toEqual(['Sync & sharing']);
-    const blockTitles = screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent);
-    expect(blockTitles).toContain('Sync');
-    expect(blockTitles).toContain('Config sharing');
-
-    const page = screen.getByTestId('settings-sync-sharing');
-    expect(page.tagName).toBe('SECTION');
-    expect(page.getAttribute('aria-labelledby')).toBe('settings-sync-sharing-title');
-
-    expect(screen.getByTestId('settings-scope-badge-project-local').textContent).toBe('Whole wiki');
-    expect(screen.getByTestId('settings-scope-badge-project').textContent).toBe('Project');
   });
 
   test('sync page says it applies to everyone and what teammates get', async () => {
@@ -913,46 +811,6 @@ describe('SettingsDialogBody section runtime dispatch', () => {
     expect(publishDialogProps.at(-1)?.open).toBe(true);
   });
 
-  test('integrations row reflects shared Claude Desktop state and refreshes when installer closes', async () => {
-    claudeSkillInstalled = false;
-    await renderBody({ activeId: 'claude-desktop' });
-
-    expect(screen.getByText('Install in Claude Desktop')).not.toBeNull();
-    expect(screen.getByTestId('settings-install-claude-desktop').textContent).toBe('Install');
-
-    fireEvent.click(screen.getByTestId('settings-install-claude-desktop'));
-    await waitFor(() => {
-      expect(screen.getByTestId('install-claude-dialog').getAttribute('data-open')).toBe('true');
-    });
-    expect(installDialogProps.at(-1)?.reinstall).toBe(false);
-
-    act(() => {
-      installDialogProps.at(-1)?.onOpenChange(false);
-    });
-    expect(claudeRefreshCalls).toBe(1);
-
-    cleanup();
-    claudeSkillInstalled = true;
-    await renderBody({ activeId: 'claude-desktop' });
-
-    expect(screen.getByTestId('settings-install-claude-desktop').textContent).toBe('Reinstall');
-    expect(screen.getByTestId('install-claude-dialog').getAttribute('data-reinstall')).toBe('true');
-  });
-  test('the Integrations section renders because the feature-flag replacement serves the install-skill flag on', async () => {
-    claudeSkillInstalled = false;
-    const since = servedCore.mark();
-    await renderBody({ activeId: 'claude-desktop' });
-
-    expect(screen.getByText('Install in Claude Desktop')).not.toBeNull();
-    expect(
-      servedCore.readersOf(
-        '@inkeep/open-knowledge-core/constants/feature-flags',
-        'SHOW_INSTALL_SKILL',
-        since,
-      ),
-    ).toEqual(['components/settings/IntegrationsSection.tsx']);
-  });
-
   test('dispatches every lint plugin id built by pluginSettingsSectionId', async () => {
     const { pluginSettingsSectionId } = await import('@/lib/use-settings-route');
     const { LINT_PLUGIN_META } = await import('./lint-plugin-meta');
@@ -962,11 +820,5 @@ describe('SettingsDialogBody section runtime dispatch', () => {
       await renderBody({ activeId: pluginSettingsSectionId(plugin.id) });
       expect(screen.getByTestId(`settings-plugin-${plugin.id}`)).toBeTruthy();
     }
-  });
-
-  test('dispatches plugin:slides to its own panel above the lint-plugin fallthrough', async () => {
-    const { pluginSettingsSectionId } = await import('@/lib/use-settings-route');
-    await renderBody({ activeId: pluginSettingsSectionId('slides') });
-    expect(screen.getByTestId('settings-plugin-slides')).toBeTruthy();
   });
 });

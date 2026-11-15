@@ -24,7 +24,6 @@ const LEVEL_BY_METHOD: Record<ConsoleMethod, ClientLogEntry['level']> = {
 type ConsoleLike = Record<ConsoleMethod, (...args: unknown[]) => void>;
 
 interface ForwarderWindowLike {
-  okDesktop?: unknown;
   fetch: typeof fetch;
   addEventListener(type: string, listener: (event: Event) => void): void;
   removeEventListener(type: string, listener: (event: Event) => void): void;
@@ -78,7 +77,6 @@ export function installClientLogForwarder(
     options.windowObj ??
     (typeof window !== 'undefined' ? (window as unknown as ForwarderWindowLike) : undefined);
   if (!resolvedWin) return undefined;
-  if (resolvedWin.okDesktop) return undefined;
 
   const win: ForwarderWindowLike & { [FORWARDER_MARKER]?: true } = resolvedWin;
   if (win[FORWARDER_MARKER]) return undefined;

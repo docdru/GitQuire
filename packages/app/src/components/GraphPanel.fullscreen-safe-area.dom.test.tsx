@@ -95,19 +95,6 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
     expectVisualClassTokens(titleCluster?.className, ['ml-4']);
   });
 
-  test('fullscreen on Electron scopes window-drag to the header, controls opt out', async () => {
-    setElectronHost(true);
-    await renderExpandedGraphPanel();
-
-    const panel = screen.getByTestId('graph-view').closest('[data-slot="panel"]');
-    const header = panel?.querySelector('[data-slot="panel-header"]');
-    expectVisualClassTokens(header?.className, ['[-webkit-app-region:drag]']);
-    expect(header?.getAttribute('data-electron-drag')).toBe('');
-
-    const controls = header?.querySelector('[data-slot="graph-controls"]');
-    expectVisualClassTokens(controls?.className, ['[&>*]:[-webkit-app-region:no-drag]']);
-  });
-
   test('fullscreen off Electron declares no drag region', async () => {
     await renderExpandedGraphPanel();
 

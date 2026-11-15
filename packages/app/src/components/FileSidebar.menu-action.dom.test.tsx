@@ -1,13 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type ReactNode, useEffect } from 'react';
-import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import {
-  __resetPaneVisibilityStoreForTests,
-  type PaneVisibilityRequest,
-  paneVisibilityStore,
-} from '@/lib/pane-visibility-store';
+import { __resetPaneVisibilityStoreForTests } from '@/lib/pane-visibility-store';
 import type { ResolvedNavigationTarget } from './navigation-targets';
 
 type MenuAction =
@@ -167,41 +163,10 @@ vi.doMock('sonner', () => ({
 }));
 
 const { FileSidebar } = await import('./FileSidebar');
-const {
-  subscribeToFileTreeMenuActionDelete,
-  subscribeToFileTreeMenuActionDuplicate,
-  subscribeToFileTreeMenuActionRename,
-} = await import('@/lib/file-tree-menu-action-events');
 
 function renderSidebar() {
   return render(<FileSidebar />, { wrapper: TooltipProvider });
 }
-
-function actWhenCalled(
-  mock: { mockImplementation(fn: () => void): unknown; mockReset(): unknown },
-  act: () => void,
-): () => void {
-  mock.mockImplementation(act);
-  return () => {
-    mock.mockReset();
-  };
-}
-
-const REVEAL_BEFORE_ACTING: ReadonlyArray<{
-  action: string;
-  observeAct: (act: () => void) => () => void;
-}> = [
-  { action: 'new-doc', observeAct: (act) => actWhenCalled(treeCalls.startCreating, act) },
-  { action: 'new-folder', observeAct: (act) => actWhenCalled(treeCalls.startCreating, act) },
-  {
-    action: 'new-from-template',
-    observeAct: (act) => actWhenCalled(treeCalls.startCreatingFromTemplate, act),
-  },
-  { action: 'rename', observeAct: (act) => subscribeToFileTreeMenuActionRename(act) },
-  { action: 'duplicate', observeAct: (act) => subscribeToFileTreeMenuActionDuplicate(act) },
-  { action: 'move-to-trash', observeAct: (act) => subscribeToFileTreeMenuActionDelete(act) },
-  { action: 'toggle-sidebar', observeAct: (act) => actWhenCalled(toggleSidebarMock, act) },
-];
 
 describe('FileSidebar menu-action runtime routing', () => {
   beforeEach(() => {
@@ -256,194 +221,6 @@ describe('FileSidebar menu-action runtime routing', () => {
     Object.defineProperty(window, 'okDesktop', {
       configurable: true,
       value: undefined,
-    });
-  });
-
-  test.each(REVEAL_BEFORE_ACTING)(
-    '$action shows a hidden editor before acting',
-    async ({ action, observeAct }) => {
-      const log: Array<PaneVisibilityRequest | 'act'> = [];
-      paneVisibilityStore.subscribeRequests((request) => log.push(request));
-      paneVisibilityStore.publish({
-        editor: { open: false, onScreen: false },
-        agents: null,
-        terminal: null,
-      });
-      const stopObserving = observeAct(() => log.push('act'));
-      onTestFinished(stopObserving);
-      renderSidebar();
-      await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-      menuActionCallback?.(action as MenuAction);
-
-      expect(log).toEqual([{ pane: 'editor', open: true }, 'act']);
-    },
-  );
-
-  test('duplicate menu action emits the active target on the FileTree event bus', async () => {
-    const received: ResolvedNavigationTarget[] = [];
-    const unsubscribe = subscribeToFileTreeMenuActionDuplicate((target) => {
-      received.push(target);
-    });
-
-    try {
-      renderSidebar();
-      await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-      menuActionCallback?.('duplicate' as MenuAction);
-
-      expect(received).toEqual([ACTIVE_TARGET]);
-    } finally {
-      unsubscribe();
-    }
-  });
-
-  test('toggle-sidebar menu action invokes useSidebar().toggleSidebar()', async () => {
-    renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('toggle-sidebar' as MenuAction);
-
-    expect(toggleSidebarMock).toHaveBeenCalledTimes(1);
-  });
-
-  test('create and tree-state actions route through the FileTree handle', async () => {
-    renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('new-doc' as MenuAction);
-    menuActionCallback?.('new-folder' as MenuAction);
-    menuActionCallback?.('new-from-template' as MenuAction);
-    menuActionCallback?.('expand-all-tree' as MenuAction);
-    menuActionCallback?.('collapse-all-tree' as MenuAction);
-
-    expect(treeCalls.startCreating).toHaveBeenCalledWith('file', 'notes');
-    expect(treeCalls.startCreating).toHaveBeenCalledWith('folder', 'notes');
-    expect(treeCalls.startCreatingFromTemplate).toHaveBeenCalledWith('notes');
-    expect(treeCalls.expandAll).toHaveBeenCalledTimes(1);
-    expect(treeCalls.collapseAll).toHaveBeenCalledTimes(1);
-  });
-
-  test('rename and move-to-trash menu actions emit the active target on FileTree event buses', async () => {
-    const renamed: ResolvedNavigationTarget[] = [];
-    const deleted: ResolvedNavigationTarget[] = [];
-    const unsubscribeRename = subscribeToFileTreeMenuActionRename((target) => renamed.push(target));
-    const unsubscribeDelete = subscribeToFileTreeMenuActionDelete((target) => deleted.push(target));
-
-    try {
-      renderSidebar();
-      await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-      menuActionCallback?.('rename' as MenuAction);
-      menuActionCallback?.('move-to-trash' as MenuAction);
-
-      expect(renamed).toEqual([ACTIVE_TARGET]);
-      expect(deleted).toEqual([ACTIVE_TARGET]);
-    } finally {
-      unsubscribeRename();
-      unsubscribeDelete();
-    }
-  });
-
-  test('mutating menu actions quietly no-op on a revealed .ok folder while create falls back to root', async () => {
-    activeTarget = {
-      kind: 'folder',
-      target: 'notes/.ok/templates',
-      folderPath: 'notes/.ok/templates',
-    };
-    const renamed: ResolvedNavigationTarget[] = [];
-    const duplicated: ResolvedNavigationTarget[] = [];
-    const deleted: ResolvedNavigationTarget[] = [];
-    const unsubscribeRename = subscribeToFileTreeMenuActionRename((target) => renamed.push(target));
-    const unsubscribeDuplicate = subscribeToFileTreeMenuActionDuplicate((target) =>
-      duplicated.push(target),
-    );
-    const unsubscribeDelete = subscribeToFileTreeMenuActionDelete((target) => deleted.push(target));
-
-    try {
-      renderSidebar();
-      await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-      menuActionCallback?.('rename' as MenuAction);
-      menuActionCallback?.('duplicate' as MenuAction);
-      menuActionCallback?.('move-to-trash' as MenuAction);
-
-      expect(renamed).toEqual([]);
-      expect(duplicated).toEqual([]);
-      expect(deleted).toEqual([]);
-
-      menuActionCallback?.('new-doc' as MenuAction);
-      expect(treeCalls.startCreating).toHaveBeenCalledWith('file', '');
-
-      menuActionCallback?.('copy-relative-path' as MenuAction);
-      await waitFor(() =>
-        expect(navigator.clipboard.writeText).toHaveBeenCalledWith('notes/.ok/templates'),
-      );
-    } finally {
-      unsubscribeRename();
-      unsubscribeDuplicate();
-      unsubscribeDelete();
-    }
-  });
-
-  test('mutating menu actions no-op on an opened .ok asset but stay live for other assets', async () => {
-    activeTarget = {
-      kind: 'asset',
-      target: '.ok/raw-probe.md',
-      assetPath: '.ok/raw-probe.md',
-      mediaKind: null,
-    };
-    const renamed: ResolvedNavigationTarget[] = [];
-    const deleted: ResolvedNavigationTarget[] = [];
-    const unsubscribeRename = subscribeToFileTreeMenuActionRename((target) => renamed.push(target));
-    const unsubscribeDelete = subscribeToFileTreeMenuActionDelete((target) => deleted.push(target));
-
-    try {
-      const rendered = renderSidebar();
-      await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-      menuActionCallback?.('rename' as MenuAction);
-      menuActionCallback?.('move-to-trash' as MenuAction);
-
-      expect(renamed).toEqual([]);
-      expect(deleted).toEqual([]);
-
-      const imageTarget = {
-        kind: 'asset',
-        target: 'images/logo.png',
-        assetPath: 'images/logo.png',
-        mediaKind: 'image',
-      } satisfies ResolvedNavigationTarget;
-      activeTarget = imageTarget;
-      rendered.rerender(<FileSidebar />);
-      await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-      menuActionCallback?.('rename' as MenuAction);
-
-      expect(renamed).toEqual([imageTarget]);
-    } finally {
-      unsubscribeRename();
-      unsubscribeDelete();
-    }
-  });
-
-  test('rejects a native view-toggle action until the project-local binding first syncs', async () => {
-    projectLocalSynced = false;
-    const rendered = renderSidebar();
-    await waitFor(() => expect(menuActionCallback).not.toBeNull());
-
-    menuActionCallback?.('toggle-show-hidden-files' as MenuAction);
-    expect(projectLocalPatch).not.toHaveBeenCalled();
-    expect(toastInfoMock).toHaveBeenCalledWith(
-      'Settings are still loading. Try again in a moment.',
-      { id: 'sidebar-settings-not-ready' },
-    );
-
-    projectLocalSynced = true;
-    rendered.rerender(<FileSidebar />);
-    menuActionCallback?.('toggle-show-hidden-files' as MenuAction);
-    expect(projectLocalPatch).toHaveBeenCalledWith({
-      appearance: { sidebar: { showHiddenFiles: true } },
     });
   });
 

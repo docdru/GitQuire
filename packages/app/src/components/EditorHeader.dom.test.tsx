@@ -1,4 +1,3 @@
-import { REDUCED_CHROME_HEADER_HEIGHT } from '@inkeep/open-knowledge-core';
 import * as actualLinguiMacro from '@lingui/react/macro';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { type ComponentProps, type ReactNode, useEffect, useState } from 'react';
@@ -60,10 +59,6 @@ vi.doMock('@/components/ui/sidebar', () => ({
   ),
 }));
 
-vi.doMock('@/components/AppMenubar', () => ({
-  AppMenubar: () => <div data-testid="app-menubar" />,
-}));
-
 vi.doMock('./SyncStatusBadge', async () => ({
   ...(await vi.importActual<typeof import('./SyncStatusBadge')>('./SyncStatusBadge')),
   SyncStatusBadge: () => <div data-testid="sync-status-badge" />,
@@ -93,18 +88,8 @@ vi.doMock('@/presence/PresenceBar', () => ({
   PresenceBar: () => <div data-testid="presence-bar" />,
 }));
 
-vi.doMock('./BetaBadge', () => ({
-  BetaBadge: () => <div data-testid="beta-badge" />,
-}));
-
 vi.doMock('./HelpPopover', () => ({
   HelpPopover: () => <button type="button">Resources</button>,
-}));
-
-vi.doMock('./InstanceBadge', () => ({
-  InstanceBadge: ({ className }: { className?: string }) => (
-    <span data-testid="instance-badge" className={className} />
-  ),
 }));
 
 function setElectronHost(enabled: boolean) {
@@ -118,13 +103,6 @@ function setWindowsHost() {
   Object.defineProperty(window, 'okDesktop', {
     configurable: true,
     value: { menu: {}, platform: 'win32' },
-  });
-}
-
-function setNoteHost() {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: { config: { mode: 'note' }, menu: {}, platform: 'win32' },
   });
 }
 
@@ -214,15 +192,6 @@ describe('EditorHeader runtime behavior', () => {
     expectVisualClassTokens(header.className, ['h-11']);
   });
 
-  test('a note window alone keeps its reduced titlebar height', async () => {
-    setNoteHost();
-    const header = await renderHeader();
-    expectVisualClassTokens(header.className, ['h-[var(--ok-reduced-chrome-header-height)]']);
-    expect(header.style.getPropertyValue('--ok-reduced-chrome-header-height')).toBe(
-      REDUCED_CHROME_HEADER_HEIGHT,
-    );
-  });
-
   test('a web project window tab row is a plain 44px row without window-drag treatment', async () => {
     setElectronHost(false);
     sidebarState = 'collapsed';
@@ -244,34 +213,6 @@ describe('EditorHeader runtime behavior', () => {
     ]);
     expect(screen.queryByTestId('navigation-history-controls')).toBeNull();
   });
-
-  for (const state of ['expanded', 'collapsed'] as const) {
-    test(`an Electron project window tab row with the file list ${state} opts into the window drag region and holds only the tab strip`, async () => {
-      setElectronHost(true);
-      sidebarState = state;
-      const header = await renderHeader(<div data-testid="editor-tabs">tabs</div>);
-      const tabHost = header.querySelector('[data-editor-header-tabs]') as HTMLElement;
-
-      expect(header.getAttribute('data-electron-drag')).toBe('');
-      expectVisualClassTokens(header.className, ['h-11', '[-webkit-app-region:drag]']);
-      expect(tabHost.getAttribute('data-electron-drag')).toBe('');
-      expectVisualClassTokens(tabHost.className, ['[-webkit-app-region:drag]']);
-      expectVisualClassTokensAbsent(tabHost.className, ['[-webkit-app-region:no-drag]']);
-      expect(Array.from(header.children)).toEqual([tabHost]);
-      expect(tabHost.contains(screen.getByTestId('editor-tabs'))).toBe(true);
-      expect(header.querySelector('[data-editor-header-leading-actions]')).toBeNull();
-      expect(header.querySelector('[data-editor-header-actions]')).toBeNull();
-      expect(
-        screen.queryByTestId('sidebar-trigger'),
-        'the file list toggle rides in the first pane tab strip, not in header chrome laid over it',
-      ).toBeNull();
-      expect(screen.queryByRole('group', { name: 'Workspace navigation' })).toBeNull();
-      expect(screen.queryByRole('button', { name: /^Search/ })).toBeNull();
-      expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
-      expect(screen.queryByRole('button', { name: 'Forward' })).toBeNull();
-      expect(reservationsOn(header)).toEqual(['', '', '']);
-    });
-  }
 
   test('no window kind publishes leading or trailing width reservations for the tab strip', async () => {
     const restoreMetrics = mockHeaderMetrics({
@@ -370,77 +311,6 @@ describe('EditorHeader runtime behavior', () => {
     expect(gitSyncStatusReads.count).toBe(0);
   });
 
-  test('note windows put document context in the titlebar without Resources or sync chrome', async () => {
-    setNoteHost();
-    sidebarState = 'expanded';
-    const restoreMetrics = mockHeaderMetrics({ header: 107, leading: 57, trailing: 218 });
-    try {
-      const { EditorHeader } = await import('./EditorHeader');
-      render(
-        <ConfigContext value={configContextWithTerminal(projectTerminal)}>
-          <TooltipProvider delayDuration={0}>
-            <EditorHeader noteModeToggle={<button type="button">mode switch</button>} />
-          </TooltipProvider>
-        </ConfigContext>,
-      );
-
-      const leadingZone = document.querySelector(
-        '[data-editor-header-leading-actions]',
-      ) as HTMLElement;
-      const header = document.querySelector('header') as HTMLElement;
-      expect(leadingZone.textContent).toContain('docs');
-      expect(leadingZone.textContent).toContain('notes');
-      expect(
-        leadingZone.querySelector('[data-slot="breadcrumb-page"][aria-current="page"]')
-          ?.textContent,
-      ).toBe('notes');
-      expectVisualClassTokens(header.className, ['bg-background']);
-      expectVisualClassTokensAbsent(header.className, ['shadow-[inset_0_-1px_0_var(--border)]']);
-      expectVisualClassTokens(leadingZone.className, [
-        'left-[var(--ok-titlebar-reserve-left,1rem)]',
-      ]);
-      const modeToggle = document.querySelector('[data-note-window-mode-toggle]') as HTMLElement;
-      expect(modeToggle.contains(screen.getByRole('button', { name: 'mode switch' }))).toBe(true);
-      expectVisualClassTokensAbsent(modeToggle.className, [
-        '[&_[data-slot=toggle-group]]:bg-transparent',
-        '[&_[data-slot=toggle-group]]:p-0',
-        '[&_[data-slot=toggle-group-item]]:size-8',
-        '[&_[data-slot=toggle-group-item]]:shadow-none',
-      ]);
-      expect(screen.queryByRole('button', { name: 'Resources' })).toBeNull();
-      expect(screen.queryByTestId('sync-status-badge')).toBeNull();
-      expect(screen.queryByTestId('presence-bar')).toBeNull();
-      expect(screen.queryByTestId('beta-badge')).toBeNull();
-      expect(screen.queryByTestId('app-menubar')).toBeNull();
-      expect(
-        screen.queryByRole('button', { name: 'More actions' }),
-        'a note window has no trailing actions to collapse, so a cramped header must not grow an overflow trigger',
-      ).toBeNull();
-      expect(document.querySelector('[data-header-overflow-actions]')).toBeNull();
-    } finally {
-      restoreMetrics();
-    }
-  });
-
-  test('a note window has no chat or terminal, so it shows no Agents or Terminal buttons even when panes are published', async () => {
-    setNoteHost();
-    publishPanes();
-    const { EditorHeader } = await import('./EditorHeader');
-    render(
-      <ConfigContext value={configContextWithTerminal(projectTerminal)}>
-        <TooltipProvider delayDuration={0}>
-          <EditorHeader />
-        </TooltipProvider>
-      </ConfigContext>,
-    );
-
-    expect(document.querySelector('[data-editor-header-actions]')).not.toBeNull();
-    expect(screen.queryByRole('group', { name: 'Panels' })).toBeNull();
-    expect(screen.queryByTestId('header-pane-divider')).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Agents' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Terminal' })).toBeNull();
-  });
-
   test('a project window tab row leaves the Agents and Terminal buttons to the app header', async () => {
     publishPanes();
     const header = await renderHeader(<div>tabs</div>);
@@ -534,38 +404,6 @@ describe('EditorHeader runtime behavior', () => {
     expect(screen.queryByTestId('open-in-agent-menu')).toBeNull();
     expect(screen.queryByText('projectName')).toBeNull();
     expect(screen.queryByText('assetFileName')).toBeNull();
-  });
-
-  test('a project window tab row holds its trailing slot after the tab strip, a drag region whose controls opt out', async () => {
-    setElectronHost(true);
-    const { EditorHeader } = await import('./EditorHeader');
-    render(
-      <TooltipProvider delayDuration={0}>
-        <EditorHeader trailing={<button type="button">toggle</button>}>
-          <div data-testid="editor-tabs">tabs</div>
-        </EditorHeader>
-      </TooltipProvider>,
-    );
-    const header = document.querySelector('header') as HTMLElement;
-    const tabHost = header.querySelector('[data-editor-header-tabs]') as HTMLElement;
-    const trailing = header.querySelector('[data-editor-header-trailing]') as HTMLElement;
-
-    expect(Array.from(header.children)).toEqual([tabHost, trailing]);
-    expect(trailing.contains(screen.getByRole('button', { name: 'toggle' }))).toBe(true);
-    expect(trailing.getAttribute('data-electron-drag')).toBe('');
-    expectVisualClassTokens(trailing.className, [
-      'absolute',
-      'inset-y-0',
-      'end-0',
-      '[-webkit-app-region:drag]',
-      '[&_button]:[-webkit-app-region:no-drag]',
-      '[&_a]:[-webkit-app-region:no-drag]',
-    ]);
-    expectVisualClassTokensAbsent(trailing.className, ['pe-9', 'shrink-0']);
-    expectVisualClassTokens(tabHost.className, [
-      'min-w-0',
-      'w-[var(--editor-header-tabs-width,100%)]',
-    ]);
   });
 
   test('a project window tab row shows its trailing slot only while the row is at least 240px wide', async () => {

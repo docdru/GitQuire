@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { formatShortcut, formatShortcutLabel } from '@/lib/keyboard-shortcuts';
-import { expectVisualClassTokens } from '@/test-utils/visual-contract';
 
 const { DocPanelToggle } = await import('./DocPanelToggle');
 
@@ -39,17 +38,6 @@ describe('DocPanelToggle', () => {
     );
   });
 
-  test('hides the document-panel toggle in a note window', () => {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: { config: { mode: 'note' } },
-    });
-
-    renderToggle();
-
-    expect(document.querySelector('[data-doc-panel-toggle]')).toBeNull();
-  });
-
   test('exposes the panel state and target for assistive tech and the focus rescue', () => {
     renderToggle(true);
     const toggle = screen.getByRole('button', {
@@ -59,18 +47,5 @@ describe('DocPanelToggle', () => {
     expect(toggle.hasAttribute('data-doc-panel-toggle')).toBe(true);
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     expect(toggle.getAttribute('aria-controls')).toBe('doc-panel');
-  });
-
-  test('opts out of the window drag band on desktop', () => {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: { config: { mode: 'editor' } },
-    });
-
-    renderToggle();
-
-    expectVisualClassTokens(document.querySelector('[data-doc-panel-toggle]')?.className, [
-      '[-webkit-app-region:no-drag]',
-    ]);
   });
 });

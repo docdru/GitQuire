@@ -73,7 +73,6 @@ import {
 } from '@/lib/gitquire/chat-api';
 import { onChatRequest, takeChatRequest } from '@/lib/gitquire/chat-requests';
 import { useCurrentDocName } from '@/lib/gitquire/use-current-doc';
-import { recordOnboardingAskedAi } from '@/lib/onboarding-signals';
 import { openAiChatSettings } from '@/lib/use-settings-route';
 import { cn } from '@/lib/utils';
 import { ChatMarkdown, ChatPlainText } from './ChatMarkdown';
@@ -497,7 +496,6 @@ export function ChatPanel() {
       { kind: 'user', key: nextKey(), text: message, page: currentDoc ?? undefined },
     ]);
     setSending(true);
-    recordOnboardingAskedAi();
     const controller = new AbortController();
     controllerRef.current = controller;
     const failure = await sendChatMessage(

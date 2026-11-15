@@ -9,11 +9,6 @@ import { useFileTreeListing } from './use-file-tree-listing';
 
 const relaunchState = vi.hoisted(() => ({ inFlight: false }));
 
-vi.mock('@/lib/relaunch-store', () => ({
-  getRelaunchInFlightSnapshot: () => relaunchState.inFlight,
-  useRelaunchInFlight: () => relaunchState.inFlight,
-}));
-
 vi.mock('@/lib/documents-events', () => ({
   subscribeToDocumentsChanged: () => () => {},
 }));
@@ -203,49 +198,6 @@ describe('useFileTreeListing', () => {
       documentEntry('.hidden'),
       folderEntry('.ok'),
     ]);
-  });
-
-  test('retries a relaunch outage and self-heals when the server returns', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const { source, pending } = createListingSource();
-    const { result, rerender } = renderListing(source);
-    await waitFor(() => expect(pending).toHaveLength(1));
-    await act(async () => {
-      pending[0]?.resolve({
-        kind: 'entries',
-        entries: [documentEntry('before')],
-        truncated: false,
-      });
-    });
-
-    relaunchState.inFlight = true;
-    rerender(defaultVisibility);
-    await waitFor(() => expect(pending).toHaveLength(2));
-    vi.useFakeTimers();
-    const outage = new TypeError('server restarting');
-    await act(async () => {
-      pending[1]?.resolve({ kind: 'network-error', cause: outage });
-    });
-    expect(result.current.relaunchInFlight).toBe(true);
-    expect(result.current.reconnecting).toBe(true);
-    expect(result.current.error).toBeNull();
-    expect(warn).toHaveBeenLastCalledWith('[FileTree] fetch failed:', outage);
-
-    act(() => vi.advanceTimersByTime(1_999));
-    expect(pending).toHaveLength(2);
-    act(() => vi.advanceTimersByTime(1));
-    expect(pending).toHaveLength(3);
-
-    await act(async () => {
-      pending[2]?.resolve({
-        kind: 'entries',
-        entries: [documentEntry('after')],
-        truncated: false,
-      });
-    });
-    expect(result.current.documents).toEqual([documentEntry('after')]);
-    expect(result.current.reconnecting).toBe(false);
-    expect(result.current.error).toBeNull();
   });
 
   test('normalizes a rejected root source as a network failure', async () => {

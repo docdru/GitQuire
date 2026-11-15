@@ -79,14 +79,6 @@ A conflict doesn't need a remote, though most changes on disk never raise one. W
 
 Another app can also save an exact older copy over an edit GitQuire already acknowledged. In the diff view, **Current** is the protected GitQuire version and **Incoming** is the rejected external save. Choose which to keep. An intentional exact revert can trigger the same confirmation. Both versions stay recoverable after a restart, and keeping current protects against repeated saves from the stale editor. That protection expires after 30 minutes, so update or close the other app rather than relying on that protection.
 
-## Work on multiple branches
-
-In the desktop app you can open several branches of the same project at once, each in its own window. Click the project switcher in the middle of the header at the top of the window, which shows the repository's name, and pick a branch or worktree (open worktrees also appear in the Command Palette); **New worktree** starts a fresh branch or checks out an existing one. The footer at the bottom of the editor shows which checkout a window has open: the project's folder when the project sits inside the repository rather than at its root, then the branch, or the worktree's folder name when no branch is checked out. The switcher discovers Git's complete local worktree list when you open a repository, including checkouts that have never been opened in GitQuire. Each checkout shows its path and a location label: **primary** is the original clone, **internal** is beneath that clone's `.ok/worktrees/` directory, and **external** is anywhere else. A generic **worktree** label means the location could not be resolved yet, such as a recent checkout shown before its inventory loads or a checkout whose directory is unavailable. These labels describe location only.
-
-Opening a branch that has no worktree yet creates one on demand under `.ok/worktrees/`, kept out of `git status`, so each window runs its own editor and server without touching your main working copy. Detached and Git-locked worktrees remain available. A row marked **project missing**, **path unreadable**, or **stale Git entry** is shown for diagnosis but cannot be opened until its filesystem or Git state is repaired.
-
-If the matching GitQuire project cannot be opened safely, or its local setup fails, the checkout is still created under `.ok/worktrees/` and appears in the switcher. It is labelled **project missing** or **path unreadable** when its project folder or `.ok/config.yml` is absent or unreadable; otherwise it appears as an ordinary checkout.
-
 ## Authentication
 
 GitQuire fetches and pushes changes using plain Git operations, so syncing will work against any remote host. If `git push/pull` works in your terminal, then syncing will work in GitQuire.

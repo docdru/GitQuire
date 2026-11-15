@@ -219,8 +219,6 @@ Beta writes the `~/.ok/` entries below under `~/.ok-beta/` instead, except the s
 
 **Auth tokens** (for GitHub sync, sharing, and cloning) are stored in your OS credential store under the service name `open-knowledge` (`open-knowledge-beta` for Beta) — the **Keychain** on macOS, **Credential Manager** on Windows, and the Secret Service keyring (libsecret) on Linux. The `~/.ok/auth.yml` file is only a fallback for headless environments where the credential store isn't reachable; when it becomes available, the token is migrated into it and the file copy is removed.
 
-The **Install for Claude Chat & Cowork** command (command palette or Help menu) builds `~/Downloads/openknowledge.skill` on demand and hands it to Claude Desktop for upload; the build is version-gated via `~/.ok/skill-state.yml`.
-
 </Tab>
 
 <Tab>

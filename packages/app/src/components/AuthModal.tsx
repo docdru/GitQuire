@@ -4,7 +4,6 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowUpRight, Check, Copy } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import {
   type AuthQueryTransport,
   httpAuthQueryTransport,
@@ -158,8 +157,6 @@ function DeviceFlowPanel({ onSuccess, startFlow }: DeviceFlowPanelProps) {
                 href={verificationUri}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => dispatchExternalLinkClick(e, verificationUri)}
-                onAuxClick={(e) => dispatchExternalLinkClick(e, verificationUri)}
                 className="inline-flex items-center gap-0.5 text-foreground hover:text-primary hover:underline"
               >
                 <span>{verificationUri}</span>
@@ -289,8 +286,6 @@ function PatBody({
         href={createUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={(e) => dispatchExternalLinkClick(e, createUrl)}
-        onAuxClick={(e) => dispatchExternalLinkClick(e, createUrl)}
         className="inline-flex w-fit items-center gap-0.5 text-sm text-foreground hover:text-primary hover:underline"
       >
         <Trans>Create a token on {host}</Trans>

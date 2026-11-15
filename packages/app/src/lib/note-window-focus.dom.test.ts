@@ -24,11 +24,6 @@ afterEach(() => {
 });
 
 describe('claimNoteWindowInitialFocus', () => {
-  test('the first editor surface in a note window takes the caret', () => {
-    stubMode('note');
-    expect(claimNoteWindowInitialFocus()).toBe(true);
-  });
-
   test('a later mount finds the claim spent, so focus is never yanked back', () => {
     stubMode('note');
     claimNoteWindowInitialFocus();
@@ -45,13 +40,5 @@ describe('claimNoteWindowInitialFocus', () => {
   test('the web host never autofocuses', () => {
     stubMode(null);
     expect(claimNoteWindowInitialFocus()).toBe(false);
-  });
-
-  test('a non-note window does not spend the claim a later note window would need', () => {
-    stubMode('editor');
-    expect(claimNoteWindowInitialFocus()).toBe(false);
-
-    stubMode('note');
-    expect(claimNoteWindowInitialFocus()).toBe(true);
   });
 });

@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
-import { formatShortcut, KEYBOARD_SHORTCUTS } from '@/lib/keyboard-shortcuts';
+import { KEYBOARD_SHORTCUTS } from '@/lib/keyboard-shortcuts';
 import { HotkeysSection } from './HotkeysSection';
 
 function setDesktopHost(present: boolean): void {
@@ -32,17 +32,6 @@ afterEach(() => {
 });
 
 describe('HotkeysSection host awareness', () => {
-  test('lists the Report a bug chord under General on the desktop host', () => {
-    renderUnderHost(true);
-
-    const row = screen.getByTestId('settings-hotkey-report-bug');
-    expect(row.closest('section')?.getAttribute('aria-labelledby')).toBe(
-      'settings-hotkeys-general',
-    );
-    expect(row.textContent).toContain('Report a bug');
-    expect(row.querySelector('[data-slot="kbd"]')?.textContent).toBe(formatShortcut('report-bug'));
-  });
-
   test('omits the Report a bug shortcut on the web host', () => {
     renderUnderHost(false);
 

@@ -1,9 +1,3 @@
-type OkDesktopClipboard = { writeText: (text: string) => Promise<void> };
-
-interface OkDesktopHost {
-  okDesktop?: { clipboard?: OkDesktopClipboard };
-}
-
 interface NavClipboardHost {
   navigator?: {
     clipboard?: { writeText?: (text: string) => Promise<void> };
@@ -61,12 +55,6 @@ function tryExecCommandCopy(text: string): boolean {
 }
 
 export async function scheduleClipboardWrite(text: string): Promise<void> {
-  const okClipboard = (globalThis as OkDesktopHost).okDesktop?.clipboard;
-  if (okClipboard && typeof okClipboard.writeText === 'function') {
-    await okClipboard.writeText(text);
-    return;
-  }
-
   const navClipboard = (globalThis as NavClipboardHost).navigator?.clipboard;
   if (navClipboard && typeof navClipboard.writeText === 'function') {
     try {

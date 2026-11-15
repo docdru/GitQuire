@@ -101,10 +101,6 @@ vi.doMock('@/components/ui/sidebar', () => ({
   useSidebar: () => ({ state: 'expanded', toggleSidebar: () => {} }),
 }));
 
-vi.doMock('@/components/SkillsSidebarSection', () => ({
-  SkillsSidebarSection: () => null,
-}));
-
 vi.doMock('@/components/ui/context-menu', () => ({
   ContextMenu: PassThrough,
   ContextMenuCheckboxItem: Button,

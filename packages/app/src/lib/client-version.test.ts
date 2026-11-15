@@ -35,13 +35,6 @@ describe('browser client-version reader', () => {
     expect(typeof fields.clientProtocolVersion).toBe('number');
   });
 
-  test('the OK Desktop window sends kind=desktop', async () => {
-    const mod = await loadInSurface({ userAgent: CHROME_UA, okDesktop: {} });
-    expect(mod.CLIENT_SURFACE).toBe('desktop');
-    expect(mod.browserClientVersionHeaders()['x-ok-client-kind']).toBe('desktop');
-    expect(mod.browserClientVersionTokenFields().clientKind).toBe('desktop');
-  });
-
   test('an agent host pane sends its embedded host', async () => {
     const mod = await loadInSurface({ userAgent: CURSOR_PANE_UA });
     expect(mod.CLIENT_SURFACE).toBe('embedded:cursor');

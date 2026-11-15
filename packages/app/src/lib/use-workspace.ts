@@ -3,12 +3,10 @@ import { useEffect, useState } from 'react';
 import type { Workspace } from './workspace-paths';
 
 export function useWorkspace(): Workspace | null {
-  const [workspace, setWorkspace] = useState<Workspace | null>(() => resolveSyncWorkspace());
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
 
   useEffect(() => {
     if (workspace !== null) return;
-    if (window.okDesktop) return;
-
     let active = true;
     fetch('/api/workspace')
       .then(async (res) => {
@@ -31,16 +29,4 @@ export function useWorkspace(): Workspace | null {
   }, [workspace]);
 
   return workspace;
-}
-
-export function resolveSyncWorkspace(
-  windowLike: Window | undefined = typeof window === 'undefined' ? undefined : window,
-): Workspace | null {
-  if (!windowLike) return null;
-  const okDesktop = windowLike.okDesktop;
-  if (!okDesktop) return null;
-  return {
-    contentDir: okDesktop.config.projectPath,
-    pathSeparator: okDesktop.platform === 'win32' ? '\\' : '/',
-  };
 }

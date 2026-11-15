@@ -1,10 +1,8 @@
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { toast } from 'sonner';
 import { OkBlobRunnerEasterEgg } from '@/components/OkBlobRunnerEasterEgg';
-import { ReportBugDialog } from '@/components/ReportBugDialog';
 import { Button } from '@/components/ui/button';
 import { MountAbortError } from '@/editor/mount-promise';
 import {
@@ -15,9 +13,7 @@ import {
   ServerCapabilityMismatchError,
   SyncTimeoutError,
 } from '@/editor/sync-promise';
-import { useBugReport } from '@/lib/bug-report-capture';
-import { recallComponentStack, rememberComponentStack } from '@/lib/component-stack-registry';
-import { restartCollabServer } from '@/lib/restart-collab-server';
+import { rememberComponentStack } from '@/lib/component-stack-registry';
 
 interface ErrorCopy {
   title: string;
@@ -110,10 +106,6 @@ function DocumentErrorFallback({
   const { title, summary } = errorCopy(error);
   const canGoBack = !!previousDocName && !!onNavigateBack;
   const retryRef = useRef<HTMLButtonElement>(null);
-  const bugReport = useBugReport();
-  const [restarting, setRestarting] = useState(false);
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  const restartBridge = bridge && isServerReachError(error) ? bridge : null;
 
   useEffect(() => {
     retryRef.current?.focus();
@@ -137,37 +129,6 @@ function DocumentErrorFallback({
         <Button ref={retryRef} variant="default" onClick={resetErrorBoundary}>
           <Trans>Try again</Trans>
         </Button>
-        {restartBridge ? (
-          <Button
-            variant="outline-mono"
-            disabled={restarting}
-            onClick={() => {
-              setRestarting(true);
-              restartCollabServer(restartBridge)
-                .then((result) => {
-                  if (!result.ok) {
-                    toast.error(result.message, {
-                      id: 'server-restart-error',
-                      duration: Infinity,
-                    });
-                  }
-                })
-                .catch(() => {})
-                .finally(() => setRestarting(false));
-            }}
-          >
-            <Trans>Restart server</Trans>
-          </Button>
-        ) : null}
-        {bridge ? (
-          <Button
-            variant="ghost"
-            className="font-mono uppercase"
-            onClick={() => bugReport.start({ launcherBorne: false })}
-          >
-            <Trans>Report this error</Trans>
-          </Button>
-        ) : null}
         {canGoBack ? (
           <Button
             variant="ghost"
@@ -184,18 +145,6 @@ function DocumentErrorFallback({
           </Button>
         ) : null}
       </div>
-      {bridge ? (
-        <ReportBugDialog
-          capture={bugReport.capture}
-          onClose={bugReport.close}
-          crashContext={{
-            source: 'document view',
-            docName: errorDocName(error) ?? activeDocName,
-            errorMessage: error instanceof Error && error.message ? error.message : String(error),
-            componentStack: recallComponentStack(error),
-          }}
-        />
-      ) : null}
     </div>
   );
 }

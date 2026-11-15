@@ -854,40 +854,6 @@ describe('EditorTabs runtime behavior', () => {
     expect(screen.queryByRole('menuitem', { name: `Rename skill file ${filePath}` })).toBeNull();
   });
 
-  test('Electron host makes tab-strip backgrounds draggable while controls opt out', async () => {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: {},
-    });
-
-    const { container } = await renderEditorTabs();
-    const root = container.firstElementChild as HTMLElement;
-    const overflowRoot = root.firstElementChild as HTMLElement;
-    const scrollViewport = container.querySelector<HTMLElement>(
-      '[data-editor-tab-scroll]',
-    )?.parentElement;
-    const newTabButton = screen.getByTestId('editor-new-tab-button');
-
-    expect(root.getAttribute('data-editor-pane-tabs')).toBe('pane-a');
-    expect(root.getAttribute('data-electron-drag')).toBe('');
-    expectVisualClassTokens(root.className, ['[-webkit-app-region:drag]']);
-    expectVisualClassTokensAbsent(root.className, ['[-webkit-app-region:no-drag]']);
-    expect(overflowRoot.getAttribute('data-electron-drag')).toBe('');
-    expectVisualClassTokens(overflowRoot.className, [
-      'flex',
-      'items-center',
-      'gap-px',
-      'min-w-0',
-      'flex-1',
-      'self-stretch',
-      '[-webkit-app-region:drag]',
-    ]);
-    expectVisualClassTokensAbsent(overflowRoot.className, ['[-webkit-app-region:no-drag]']);
-    expect(scrollViewport).toBeTruthy();
-    expectVisualClassTokens(scrollViewport?.className, ['[-webkit-app-region:no-drag]']);
-    expectVisualClassTokens(newTabButton.className, ['[-webkit-app-region:no-drag]']);
-  });
-
   test('a leading control sits in the tab row ahead of the tabs, as an ordinary row item', async () => {
     const { container } = await renderEditorTabs({
       leading: <button type="button">Files</button>,
@@ -1427,48 +1393,6 @@ describe('EditorTabs runtime behavior', () => {
     const blankTabIndex = visibleTabIds.indexOf(newId);
     fireEvent.click(screen.getAllByTestId('editor-tab-context-split-right')[blankTabIndex]);
     expect(moveTabToNewPane).toHaveBeenCalledWith(newId, 'right');
-  });
-
-  test('offers Open in New Window on document tabs only, and never on the web host', async () => {
-    const { folderId, assetId, newId } = defaultTabs();
-
-    await renderEditorTabs();
-    expect(screen.queryAllByTestId('editor-tab-context-open-in-new-window')).toHaveLength(0);
-
-    cleanup();
-    const openNoteWindow = vi.fn(async () => ({ ok: true as const, outcome: 'created' as const }));
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: { noteWindow: { open: openNoteWindow } },
-    });
-    await renderEditorTabs();
-
-    const items = screen.getAllByTestId('editor-tab-context-open-in-new-window');
-    const docTabCount = visibleTabIds.filter(
-      (id) => id !== folderId && id !== assetId && id !== newId,
-    ).length;
-    expect(items).toHaveLength(docTabCount);
-    expect(docTabCount).toBe(3);
-
-    fireEvent.click(items[0] as HTMLElement);
-    expect(openNoteWindow).toHaveBeenCalledWith('docs/team/notes', 'tab-menu');
-  });
-
-  test('popping a tab out leaves the origin tab list untouched', async () => {
-    const openNoteWindow = vi.fn(async () => ({ ok: true as const, outcome: 'created' as const }));
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: { noteWindow: { open: openNoteWindow } },
-    });
-    await renderEditorTabs();
-
-    fireEvent.click(
-      screen.getAllByTestId('editor-tab-context-open-in-new-window')[0] as HTMLElement,
-    );
-
-    expect(closeTab).not.toHaveBeenCalled();
-    expect(closeTabs).not.toHaveBeenCalled();
-    expect(moveTabToNewPane).not.toHaveBeenCalled();
   });
 
   test('disables move-to-pane actions when the pane has only one tab', async () => {

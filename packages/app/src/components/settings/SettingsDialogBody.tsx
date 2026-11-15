@@ -15,8 +15,6 @@ function lazySection<Props>(load: () => Promise<ComponentType<Props>>) {
   return lazy(async () => ({ default: await load() }));
 }
 
-const AboutSection = lazySection(async () => (await import('./AboutSection')).AboutSection);
-const SharingSection = lazySection(async () => (await import('./SharingSection')).SharingSection);
 const AccountSection = lazySection(async () => (await import('./AccountSection')).AccountSection);
 const AttachmentsSection = lazySection(
   async () => (await import('./AttachmentsSection')).AttachmentsSection,
@@ -26,9 +24,6 @@ const ContentRulesSection = lazySection(
 );
 const SectionSkeleton = lazySection(async () => (await import('./field-controls')).SectionSkeleton);
 const HotkeysSection = lazySection(async () => (await import('./HotkeysSection')).HotkeysSection);
-const IntegrationsSection = lazySection(
-  async () => (await import('./IntegrationsSection')).IntegrationsSection,
-);
 const LinkPreviewsSection = lazySection(
   async () => (await import('./LinkPreviewsSection')).LinkPreviewsSection,
 );
@@ -41,9 +36,6 @@ const ProjectPluginsManageSection = lazySection(
 const UserPluginsManageSection = lazySection(
   async () => (await import('./LintingSection')).UserPluginsManageSection,
 );
-const NetworkAccessSection = lazySection(
-  async () => (await import('./NetworkAccessSection')).NetworkAccessSection,
-);
 const OkignoreSection = lazySection(
   async () => (await import('./OkignoreSection')).OkignoreSection,
 );
@@ -51,9 +43,6 @@ const ProjectTemplatesSection = lazySection(
   async () => (await import('./ProjectTemplatesSection')).ProjectTemplatesSection,
 );
 const SearchSection = lazySection(async () => (await import('./SearchSection')).SearchSection);
-const SlidesPluginSection = lazySection(
-  async () => (await import('./SlidesPluginSection')).SlidesPluginSection,
-);
 const SyncSection = lazySection(async () => (await import('./SyncSection')).SyncSection);
 const ThemePluginSection = lazySection(
   async () => (await import('./ThemePluginSection')).ThemePluginSection,
@@ -70,11 +59,7 @@ const LintPluginSection = lazySection(async () => {
 });
 
 const PreferencesSection = lazyWithPreload(async () => {
-  const [{ BoundSchemaSection }, { OkCliPathRow }, { SpellingSettings }] = await Promise.all([
-    import('./schema-section'),
-    import('./OkCliPathRow'),
-    import('./SpellingSettings'),
-  ]);
+  const { BoundSchemaSection } = await import('./schema-section');
   return {
     default: function PreferencesSection({
       title,
@@ -93,10 +78,6 @@ const PreferencesSection = lazyWithPreload(async () => {
           scopeBadge="user"
           binding={binding}
           fields={FIELDS_USER_PREFERENCES}
-          slotsAfter={{
-            'appearance.theme': <OkCliPathRow />,
-            'appearance.language': <SpellingSettings />,
-          }}
         />
       );
     },
@@ -210,7 +191,6 @@ function SettingsDialogSection({
           </Trans>
         </SettingsSectionHeader>
         <SyncSection />
-        <SharingSection />
       </section>
     );
   }
@@ -233,9 +213,6 @@ function SettingsDialogSection({
       <UserConfigPending loadFailed={userLoadFailed} />
     );
   }
-  if (activeId === 'plugin:slides') {
-    return <SlidesPluginSection />;
-  }
   if (activeId === 'plugin:markdownlint') {
     return <MarkdownlintPluginSection initialRuleQuery={markdownlintRuleQuery ?? null} />;
   }
@@ -247,15 +224,6 @@ function SettingsDialogSection({
   }
   if (activeId === 'okignore') {
     return <OkignoreSection binding={okignoreBinding} synced={okignoreSynced} />;
-  }
-  if (activeId === 'network-access') {
-    return <NetworkAccessSection />;
-  }
-  if (activeId === 'claude-desktop') {
-    return <IntegrationsSection />;
-  }
-  if (activeId === 'about') {
-    return <AboutSection />;
   }
   return null;
 }

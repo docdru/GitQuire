@@ -30,7 +30,6 @@ import {
   emitFileTreeMenuActionDuplicate,
   emitFileTreeMenuActionImportTemplate,
 } from '@/lib/file-tree-menu-action-events';
-import { revealInFileManagerLabel } from '@/lib/platform-labels';
 import { scheduleClipboardWrite } from '@/lib/share/clipboard-adapter';
 import {
   buildDocShareInput,
@@ -96,7 +95,6 @@ export function EditorTabTargetMenuItems({
   const isManaged = hasOkPathSegment(relativePath);
   const isAsset = target.kind === 'asset';
   const isFolder = target.kind === 'folder';
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
   const shareInput = shareInputForTarget(target);
   const canShare = gitSyncStatus?.hasRemote === true && shareInput !== null;
   const okignoreTarget = okignoreTargetForTarget(target, docExt);
@@ -140,8 +138,6 @@ export function EditorTabTargetMenuItems({
     });
   }
 
-  const revealLabel = revealInFileManagerLabel(bridge?.platform ?? 'linux');
-  const noWorkspaceHint = workspace ? null : t`No workspace`;
   const fullPath = workspace
     ? joinWorkspacePath(workspace.contentDir, relativePath, workspace.pathSeparator)
     : '';
@@ -167,20 +163,6 @@ export function EditorTabTargetMenuItems({
                   ItemComponent={ContextMenuItem}
                 />
               ),
-            }
-          : undefined
-      }
-      reveal={
-        bridge
-          ? {
-              label: revealLabel,
-              ariaLabel: noWorkspaceHint ? `${revealLabel}, ${noWorkspaceHint}` : revealLabel,
-              disabled: !workspace,
-              hint: noWorkspaceHint,
-              onSelect: () => {
-                if (!workspace) return;
-                void bridge.shell.showItemInFolder(fullPath);
-              },
             }
           : undefined
       }

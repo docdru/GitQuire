@@ -179,19 +179,8 @@ vi.doMock('@/components/ConflictsSection', () => ({
   ConflictsSection: () => <div data-testid="conflicts-section" />,
 }));
 
-vi.doMock('@/components/ProjectSwitcher', () => ({
-  ProjectSwitcher: () => <button type="button">Project switcher</button>,
-}));
-
 vi.doMock('@/components/UpdateNotices', () => ({
   UpdateNotices: () => <div data-testid="update-notices" />,
-}));
-
-vi.doMock('@/components/OnboardingCard', async () => ({
-  ...(await vi.importActual<typeof import('@/components/OnboardingCard')>(
-    '@/components/OnboardingCard',
-  )),
-  OnboardingCardMount: () => <div data-testid="onboarding-card-mount" />,
 }));
 
 vi.doMock('@/components/FeedbackCard', async () => ({
@@ -505,39 +494,6 @@ describe('FileSidebar runtime behavior', () => {
     });
   }
 
-  test('in an expanded Electron window the file list toolbar opts out of window dragging', async () => {
-    const user = userEvent.setup();
-    installBridge();
-    await renderSidebar();
-
-    const toolbar = screen.getByTestId('sidebar-toolbar');
-    expectVisualClassTokens(toolbar.className, ['[&>*]:[-webkit-app-region:no-drag]']);
-    expect(screen.getByTestId('sidebar-rail').getAttribute('data-enable-toggle')).toBe('false');
-    expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Forward' })).toBeNull();
-
-    await user.hover(screen.getByRole('button', { name: 'New folder' }));
-    const newFolderTooltip = await screen.findByRole('tooltip', {
-      name: `New folder ${formatShortcutLabel('new-folder')}`,
-    });
-    expect(newFolderTooltip.querySelector('[data-slot="kbd"]')?.textContent).toBe(
-      formatShortcut('new-folder'),
-    );
-  });
-
-  test('Electron footer keeps only the onboarding checklist, leaving update notices and feedback to the corner stack and the project switcher to the app header', async () => {
-    installBridge();
-    await renderSidebar();
-
-    const footer = screen.getByTestId('sidebar-footer');
-    expect(Array.from(footer.children).map((child) => child.getAttribute('data-testid'))).toEqual([
-      'onboarding-card-mount',
-    ]);
-    expect(screen.queryByTestId('update-notices')).toBeNull();
-    expect(screen.queryByTestId('feedback-card-mount')).toBeNull();
-    expect(screen.queryByText('Project switcher')).toBeNull();
-  });
-
   test('toolbar buttons name their shortcut as a keycap in the tooltip', async () => {
     const user = userEvent.setup();
     await renderSidebar();
@@ -681,36 +637,5 @@ describe('FileSidebar runtime behavior', () => {
     expect(screen.queryByTestId('empty-space-menu-new-from-template')).toBeNull();
     expect(screen.getByTestId('empty-space-menu-new-file')).toBeTruthy();
     expect(screen.getByTestId('empty-space-menu-new-folder')).toBeTruthy();
-  });
-
-  test('View menu state pushes merged visibility and tree smart-hide state to the desktop bridge', async () => {
-    installBridge();
-    await renderSidebar();
-
-    await waitFor(() =>
-      expect(notifyViewMenuStateChangedMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sidebarVisible: true,
-          canCollapseAll: true,
-          canExpandAll: true,
-          showHiddenFiles: false,
-          showOkFolders: false,
-        }),
-      ),
-    );
-
-    notifyViewMenuStateChangedMock.mockClear();
-    act(() => setFolderState({ folderCount: 2, expandedCount: 2 }));
-    await waitFor(() =>
-      expect(notifyViewMenuStateChangedMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sidebarVisible: true,
-          canCollapseAll: true,
-          canExpandAll: false,
-          showHiddenFiles: false,
-          showOkFolders: false,
-        }),
-      ),
-    );
   });
 });

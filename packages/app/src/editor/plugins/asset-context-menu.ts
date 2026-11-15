@@ -88,19 +88,7 @@ export function createAssetContextMenuPlugin(opts: AssetContextMenuPluginOpts): 
   return new Plugin({
     key: assetContextMenuKey,
     view(editorView: EditorView) {
-      const showAssetMenu =
-        opts.showAssetMenu ??
-        ((params) => {
-          const bridge = globalThis.window?.okDesktop;
-          if (!bridge) {
-            return Promise.resolve();
-          }
-          return bridge.shell.showAssetMenu({
-            relPath: params.relPath,
-            title: params.title,
-            kind: params.kind,
-          });
-        });
+      const showAssetMenu = opts.showAssetMenu ?? (() => Promise.resolve());
 
       const handler = (event: MouseEvent) => {
         if (!(event.target instanceof Element)) return;

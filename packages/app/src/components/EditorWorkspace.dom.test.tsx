@@ -342,38 +342,6 @@ describe('EditorWorkspace', () => {
     expect(secondPane?.getAttribute('aria-current')).toBeNull();
   });
 
-  test('does not paint a temporary desktop pane layout before session restore settles', () => {
-    const previousDesktopBridge = window.okDesktop;
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      writable: true,
-      value: { config: { mode: 'editor' } },
-    });
-    tabSessionLoaded = false;
-
-    const view = renderWorkspace();
-
-    expect(screen.getByTestId('main-editor-header').children).toHaveLength(0);
-    expect(view.container.querySelector('[data-editor-workspace-pending]')).toBeTruthy();
-    expect(view.container.querySelector('[data-editor-pane-id]')).toBeNull();
-
-    tabSessionLoaded = true;
-    view.rerender(
-      <EditorWorkspace
-        renderHeader={(tabs) => <header data-testid="main-editor-header">{tabs}</header>}
-        renderPane={({ pane }) => <div data-testid={`pane-body-${pane.id}`} />}
-      />,
-    );
-
-    expect(view.container.querySelector('[data-editor-workspace-pending]')).toBeNull();
-    expect(view.container.querySelector('[data-editor-pane-id="pane-a"]')).toBeTruthy();
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      writable: true,
-      value: previousDesktopBridge,
-    });
-  });
-
   test('keeps header tab groups on the pane canvas geometry and scroll position', () => {
     const { container } = renderWorkspace();
     const workspace = container.querySelector<HTMLElement>('[data-editor-workspace]');

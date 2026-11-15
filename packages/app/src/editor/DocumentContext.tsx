@@ -36,7 +36,6 @@ import {
   shouldSuppressTabSessionRestore,
 } from '@/lib/tab-session-restore-suppression';
 import { useCollabUrl } from '@/lib/use-collab-url';
-import { resolveSyncWorkspace } from '@/lib/use-workspace';
 import { noteWorkspaceHashWrite } from '@/lib/workspace-hash-writes';
 import { getEditorForDoc } from './active-editor';
 import { handleBranchSwitched } from './branch-invalidation';
@@ -239,7 +238,7 @@ let pool: ProviderPool | null = null;
 export function getPool(collabUrl: string): ProviderPool {
   if (!pool) {
     pool = new ProviderPool(MAX_POOL, collabUrl, {
-      storageNamespace: resolveSyncWorkspace()?.contentDir ?? null,
+      storageNamespace: null,
     });
     subscribePoolEviction(pool);
   }
@@ -262,16 +261,9 @@ const EMPTY_SNAPSHOT: Snapshot = {
   poolEntries: [],
 };
 
-function getDesktopBridge() {
-  if (typeof window === 'undefined') return null;
-  const bridge = window.okDesktop;
-  if (bridge?.config.mode !== 'editor') return null;
-  return bridge;
-}
-
 function getLocalTabSessionKey(): string | null {
   if (typeof window === 'undefined') return null;
-  return localTabSessionKeyForMode(window.okDesktop?.config.mode, window.location.origin);
+  return localTabSessionKeyForMode(undefined, window.location.origin);
 }
 
 function readInitialLocalTabSession() {
@@ -675,14 +667,11 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
       return;
     }
     let cancelled = false;
-    const bridge = getDesktopBridge();
     const localKey = getLocalTabSessionKey();
     const storage = typeof localStorage !== 'undefined' ? localStorage : null;
-    const loaded = bridge
-      ? bridge.project.getSessionState()
-      : Promise.resolve(
-          localKey ? readLocalTabSessionState(storage, localKey) : parseEditorTabSessionState(null),
-        );
+    const loaded = Promise.resolve(
+      localKey ? readLocalTabSessionState(storage, localKey) : parseEditorTabSessionState(null),
+    );
 
     loaded
       .then((raw) => {
@@ -792,13 +781,6 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     if (!tabSessionLoaded) return;
     if (!shouldPersistTabSession(restoreOutcomeRef.current, openTabs.length)) return;
     const state = createEditorTabSessionState(workspace);
-    const bridge = getDesktopBridge();
-    if (bridge) {
-      void bridge.project.setSessionState(state).catch((err: unknown) => {
-        console.warn('[editor-tabs] failed to persist tab session:', err);
-      });
-      return;
-    }
     const localKey = getLocalTabSessionKey();
     if (!localKey) return;
     const storage = typeof localStorage !== 'undefined' ? localStorage : null;

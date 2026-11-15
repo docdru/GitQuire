@@ -1,10 +1,8 @@
 import { parseManagedArtifactName } from '@inkeep/open-knowledge-core/constants/cc1';
 import { APP_HEADER_HEIGHT } from '@inkeep/open-knowledge-core/constants/chrome';
 import { useLingui } from '@lingui/react/macro';
-import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { shouldShowAppMenubar } from '@/components/app-menubar-gate';
-import { BetaBadge } from '@/components/BetaBadge';
 import { GitQuireBrokenLinks } from '@/components/GitQuireBrokenLinks';
 import { GitQuireViews } from '@/components/GitQuireViews';
 import { DraftMenu } from '@/components/gitquire-drafts/DraftMenu';
@@ -15,9 +13,7 @@ import {
 import { HeaderPaneButtons, useHeaderPaneButtonSet } from '@/components/HeaderPaneButtons';
 import { HeaderSearchBar, onPillRenderError } from '@/components/HeaderSearchBar';
 import { HelpPopover } from '@/components/HelpPopover';
-import { InstanceBadge } from '@/components/InstanceBadge';
 import { NavigationHistoryControls } from '@/components/NavigationHistoryControls';
-import { ProjectSwitcher } from '@/components/ProjectSwitcher';
 import { PublishToGitHubDialog } from '@/components/PublishToGitHubDialog';
 import { SettingsButton } from '@/components/SettingsButton';
 import { ShareButton, type ShareButtonProps } from '@/components/ShareButton';
@@ -39,10 +35,6 @@ import { cn } from '@/lib/utils';
 import { PresenceBar } from '@/presence/PresenceBar';
 import { SyncToastHost } from '@/presence/SyncToastHost';
 import { usePresence } from '@/presence/use-presence';
-
-const AppMenubar = lazy(() =>
-  import('@/components/AppMenubar').then((m) => ({ default: m.AppMenubar })),
-);
 
 export { APP_HEADER_HEIGHT };
 
@@ -79,24 +71,6 @@ function leadingBadgesWidth(leading: HTMLElement): number | null {
   return badges.offsetWidth + (Number.parseFloat(getComputedStyle(leading).columnGap) || 0);
 }
 
-function AppHeaderBadges({
-  compact,
-  isElectronHost,
-}: {
-  compact: boolean;
-  isElectronHost: boolean;
-}) {
-  return (
-    <div data-app-header-badges="" className="flex items-center gap-1 empty:hidden">
-      <BetaBadge />
-      <InstanceBadge
-        compact={compact}
-        className={cn(isElectronHost && '[-webkit-app-region:no-drag]')}
-      />
-    </div>
-  );
-}
-
 function centreFloorWidth(centre: HTMLElement): number {
   let width = 0;
   for (const child of centre.children) {
@@ -117,12 +91,9 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
   const singleFile = useSingleFileMode();
   const { activeDocName, activeTarget, activeProvider, systemProvider } = useDocumentContext();
   const presence = usePresence(activeProvider, systemProvider, activeDocName);
-  const desktopBridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  const isElectronHost = desktopBridge != null;
-  const foldsBadges = isElectronHost && desktopBridge.platform !== 'darwin';
+  const isElectronHost = false;
   const [publishOpen, setPublishOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
-  const [badgeCompact, setBadgeCompact] = useState(false);
   const badgeCompactRef = useRef(false);
   const leadingBadgesRef = useRef({ width: 0, labelWidth: 0, hasLabel: false });
   const [header, setHeader] = useState<HTMLElement | null>(null);
@@ -189,7 +160,6 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
           HEADER_OVERFLOW_SLACK_PX >
           headerWidth;
       badgeCompactRef.current = compact;
-      setBadgeCompact(compact);
       const leadingSettledWidth = compact
         ? leadingExpandedWidth - badges.labelWidth
         : leadingExpandedWidth;
@@ -218,7 +188,6 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
       if (ownerDocument.activeElement === control) return;
     }
   });
-  const badgesFolded = (foldsBadges || singleFile) && actionsOverflowed;
 
   const renderTrailingActions = (onClickWhenNoRemote: ShareButtonProps['onClickWhenNoRemote']) => (
     <>
@@ -263,11 +232,6 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         data-app-header-leading=""
         className="flex min-w-0 items-center gap-1 justify-self-start ps-[calc(var(--ok-titlebar-reserve-left,0px)+0.625rem)] rtl:ps-[calc(var(--ok-titlebar-reserve-right,0px)+0.625rem)]"
       >
-        {shouldShowAppMenubar() && (
-          <Suspense fallback={null}>
-            <AppMenubar className="-ms-0.5" />
-          </Suspense>
-        )}
         {isElectronHost && !singleFile && <NavigationHistoryControls />}
         {!singleFile && (
           <ErrorBoundary
@@ -278,18 +242,13 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
             <HeaderSearchBar onClick={onOpenSearch} />
           </ErrorBoundary>
         )}
-        {!badgesFolded && (
-          <AppHeaderBadges compact={badgeCompact} isElectronHost={isElectronHost} />
-        )}
       </div>
       <div
         ref={setCentre}
         data-app-header-center=""
         className="flex min-w-0 items-center justify-center"
       >
-        {singleFile ? null : desktopBridge ? (
-          <ProjectSwitcher bridge={desktopBridge} />
-        ) : (
+        {singleFile ? null : (
           <>
             <WebProjectName />
             <DraftMenu />
@@ -317,7 +276,6 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
             onOpenChange={setOverflowOpen}
             unmountedWhileFocusedRef={overflowFocusRemovedRef}
           >
-            {badgesFolded && <AppHeaderBadges compact={false} isElectronHost={isElectronHost} />}
             {renderTrailingActions(() => {
               setOverflowOpen(false);
               setPublishOpen(true);

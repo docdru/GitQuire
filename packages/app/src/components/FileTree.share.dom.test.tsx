@@ -287,11 +287,6 @@ vi.doMock('@/components/DeleteConfirmationDialog', () => ({
 
 vi.doMock('@/components/NewItemDialog', () => ({ NewItemDialog: () => null }));
 
-vi.doMock('@/components/TrashFailureModal', () => ({
-  TrashFailureModal: () => null,
-  coerceTrashFailureReason: (reason: string) => reason,
-}));
-
 vi.doMock('@/components/use-selection-mirror', () => ({
   asDirectoryHandle: (item: StubItem | null) => (item?.isDirectory() ? item : null),
   useSelectionMirror: () => {},

@@ -12,7 +12,7 @@ export function FileListToggle({ side = 'start' }: { readonly side?: 'start' | '
   const { t } = useLingui();
   const direction = useDocumentDirection();
   const { state } = useSidebar();
-  const isElectronHost = typeof window !== 'undefined' && window.okDesktop != null;
+  const isElectronHost = false;
 
   return (
     <div

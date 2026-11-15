@@ -48,19 +48,6 @@ interface SeedClientShape {
 }
 
 export function seedClient(): SeedClientShape {
-  const okDesktop = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  if (okDesktop?.seed) {
-    const desktopApply = okDesktop.seed.apply;
-    return {
-      plan: okDesktop.seed.plan,
-      apply: async (plan, options) => {
-        const result = await desktopApply(plan, options);
-        if (result.ok) emitSkillsChanged();
-        return result;
-      },
-      listPacks: okDesktop.seed.listPacks,
-    };
-  }
   return {
     plan: async (options?: SeedPlanOptions): Promise<OkSeedPlanResult> => {
       const params = new URLSearchParams();

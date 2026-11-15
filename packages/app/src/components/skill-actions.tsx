@@ -12,7 +12,6 @@ import {
   CopyPlus,
   DownloadCloud,
   FilePlus,
-  FolderOpen,
   PencilLine,
   Trash2,
 } from 'lucide-react';
@@ -51,7 +50,6 @@ import {
 } from '@/components/skill-menu-primitives';
 import { useOpenSkill } from '@/hooks/use-open-skill';
 import { beginSkillWrite, endSkillWrite } from '@/lib/documents-events';
-import { revealInFileManagerLabel } from '@/lib/platform-labels';
 import { scheduleClipboardWrite } from '@/lib/share/clipboard-adapter';
 import { skillDir, useSkillScopeLabels } from '@/lib/skill-scope';
 import {
@@ -323,26 +321,6 @@ export function useSkillActions(): SkillActions {
 
 const EMPTY_NAME_SET: ReadonlySet<string> = new Set();
 
-export function SkillRevealMenuItem({
-  absolutePath,
-  menuKind = 'dropdown',
-}: {
-  absolutePath: string | undefined;
-  menuKind?: SkillMenuKind;
-}) {
-  const bridge = typeof window !== 'undefined' ? window.okDesktop : undefined;
-  if (!bridge || !absolutePath) return null;
-  return (
-    <SkillMenuItem
-      menuKind={menuKind}
-      onSelect={() => void bridge.shell.showItemInFolder(absolutePath)}
-    >
-      <FolderOpen aria-hidden />
-      {revealInFileManagerLabel(bridge.platform)}
-    </SkillMenuItem>
-  );
-}
-
 export function SkillFileContextMenuItems({
   skill,
   filePath,
@@ -379,7 +357,6 @@ export function SkillFileContextMenuItems({
           <PencilLine aria-hidden />
           <Trans>Rename</Trans>
         </SkillMenuItem>
-        <SkillRevealMenuItem absolutePath={absoluteFile} menuKind={menuKind} />
         <SkillMenuSub menuKind={menuKind}>
           <SkillMenuSubTrigger menuKind={menuKind}>
             <Copy aria-hidden />
@@ -439,7 +416,6 @@ export function SkillManagedContextMenuItems({
   return (
     <>
       <SkillMenuGroup menuKind="dropdown">
-        <SkillRevealMenuItem absolutePath={absolutePath} />
         <SkillMenuSub menuKind="dropdown">
           <SkillMenuSubTrigger menuKind="dropdown">
             <Copy aria-hidden />
@@ -547,7 +523,6 @@ function SkillTargetMenuItems({
   return (
     <>
       <SkillMenuGroup menuKind={menuKind}>
-        <SkillRevealMenuItem absolutePath={absolutePath} menuKind={menuKind} />
         {openWithAi}
         <SkillMenuSub menuKind={menuKind}>
           <SkillMenuSubTrigger menuKind={menuKind}>

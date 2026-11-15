@@ -118,7 +118,6 @@ describe('AppErrorBoundary', () => {
 
   test('a shell crash renders the fallback with the error message and focuses Try again', () => {
     shouldThrow = true;
-    installBugReportBridge();
     render(
       <AppErrorBoundary>
         <MaybeThrow label="shell" />
@@ -132,7 +131,6 @@ describe('AppErrorBoundary', () => {
 
     const tryAgain = screen.getByRole('button', { name: 'Try again' });
     expect(document.activeElement).toBe(tryAgain);
-    expect(screen.getByRole('button', { name: /report this error/i })).not.toBeNull();
 
     const sawBoundaryError = consoleErrorSpy.mock.calls.some((call: unknown[]) => {
       const message = call[0];
@@ -184,40 +182,6 @@ describe('AppErrorBoundary', () => {
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(screen.getByTestId('recovered-empty')).not.toBeNull();
     expect(screen.queryByRole('alert')).toBeNull();
-  });
-
-  test('Report this error opens the report dialog with full detail and the shell crash in the note', async () => {
-    shouldThrow = true;
-    const createCalls = installBugReportBridge('navigator');
-    render(
-      <AppErrorBoundary>
-        <MaybeThrow label="shell" />
-      </AppErrorBoundary>,
-    );
-
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /report this error/i }));
-
-    expect(await screen.findByRole('dialog', {}, { timeout: 3000 })).not.toBeNull();
-    const checkbox = screen.getByRole('checkbox', { name: 'Detailed diagnostics' });
-    expect(checkbox.getAttribute('aria-checked')).toBe('true');
-    expect(
-      screen.getByText(
-        'GitQuire logs across projects. No project is open, so project server logs are not included.',
-      ),
-    ).not.toBeNull();
-
-    await user.click(screen.getByRole('button', { name: 'Create report' }));
-    await screen.findByRole('heading', { name: 'Review your report' });
-
-    expect(createCalls).toHaveLength(1);
-    expect(createCalls[0]?.level).toBe('full');
-    const note = createCalls[0]?.note ?? '';
-    expect(note).toContain('Crash source: app shell');
-    expect(note).toContain('Error: MaybeThrow boom: shell');
-    expect(note).toContain('Component stack:');
-    expect(note).toContain('at MaybeThrow');
-    expect(note).not.toContain('/Users/');
   });
 
   test('does not intercept errors the per-document boundary already handles', () => {

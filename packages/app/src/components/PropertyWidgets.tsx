@@ -40,7 +40,6 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { dispatchTagClickEvent } from '@/editor/extensions/tag-click-plugin';
-import { dispatchExternalLinkClick } from '@/lib/external-link';
 import { cn } from '@/lib/utils';
 import { PropertyInlineLinks } from './PropertyInlineLinks';
 import { hasInlineLinks } from './property-inline-link-tokens';
@@ -80,10 +79,6 @@ export function TextWidget({ keyName, value, onCommit, onSubmit }: CommonWidgetP
           href={value}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={(e) => dispatchExternalLinkClick(e, value)}
-          onAuxClick={(e) => {
-            if (e.button === 1) dispatchExternalLinkClick(e, value);
-          }}
           aria-label={t`Open ${keyName} in browser`}
           title={value}
           className="block min-w-0 flex-1 truncate px-2 py-1 text-sm leading-tight text-link underline decoration-link/40 underline-offset-2 hover:decoration-link focus-visible:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring"

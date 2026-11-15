@@ -46,20 +46,6 @@ describe('SidebarProvider web-mode ⌥⌘S shortcut — Electron gate', () => {
     expect(screen.getByTestId('sidebar-state').textContent).toBe('collapsed');
   });
 
-  test('Electron host (window.okDesktop set): ⌥⌘S does NOT toggle (native menu owns it)', () => {
-    setOkDesktop({});
-    render(
-      <SidebarProvider>
-        <StateProbe />
-      </SidebarProvider>,
-    );
-    expect(screen.getByTestId('sidebar-state').textContent).toBe('expanded');
-
-    pressSidebarShortcut();
-
-    expect(screen.getByTestId('sidebar-state').textContent).toBe('expanded');
-  });
-
   test('web host: ⌥⌘S does NOT toggle while an overlay owns the keyboard', async () => {
     const { Dialog, DialogContent, DialogDescription, DialogTitle } = await import(
       '@/components/ui/dialog'

@@ -1,11 +1,8 @@
 import { Plural, useLingui } from '@lingui/react/macro';
 import { ChevronUp, GitBranch, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCurrentBranch } from '@/hooks/use-current-branch';
-import { useWorktrees } from '@/hooks/use-worktrees';
 import type { DocumentStats } from '@/lib/document-stats';
-import { checkoutIdentity } from './checkout-identity';
 
 interface EditorFooterProps {
   stats: DocumentStats;
@@ -22,14 +19,7 @@ export function EditorFooter({
 }: EditorFooterProps) {
   const { t } = useLingui();
   const branch = useCurrentBranch();
-  const worktreeModel = useWorktrees();
-  const desktopConfig = typeof window !== 'undefined' ? window.okDesktop?.config : undefined;
-  const { checkoutDetail } = checkoutIdentity({
-    projectName: desktopConfig?.projectName ?? null,
-    branch,
-    worktreeModel,
-  });
-  const projectPath = desktopConfig?.projectPath ?? null;
+  const checkoutDetail = branch;
   if (!showStats && checkoutDetail === null && composerBadge == null) return null;
   const active = selectionStats ?? stats;
   const isSelection = selectionStats != null;
@@ -63,9 +53,7 @@ export function EditorFooter({
         </Button>
       ) : null}
       <span className="flex min-w-0 items-center gap-3">
-        {checkoutDetail !== null ? (
-          <CheckoutDetail detail={checkoutDetail} projectPath={projectPath} />
-        ) : null}
+        {checkoutDetail !== null ? <CheckoutDetail detail={checkoutDetail} /> : null}
       </span>
       {showStats ? (
         <span className="flex shrink-0 items-center gap-3">
@@ -96,29 +84,11 @@ export function EditorFooter({
   );
 }
 
-function CheckoutDetail({ detail, projectPath }: { detail: string; projectPath: string | null }) {
-  const row = (
+function CheckoutDetail({ detail }: { detail: string }) {
+  return (
     <span className="flex min-w-0 items-center gap-1" data-testid="editor-footer-branch">
       <GitBranch aria-hidden="true" className="size-3 shrink-0" />
       <span className="truncate">{detail}</span>
     </span>
-  );
-  if (projectPath === null) return row;
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- tooltip-on-static-text pattern — focusable span lets keyboard users surface the full project path that mouse users see on hover.
-          tabIndex={0}
-          className="flex min-w-0"
-          data-testid="editor-footer-checkout"
-        >
-          {row}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs break-all">
-        {projectPath}
-      </TooltipContent>
-    </Tooltip>
   );
 }

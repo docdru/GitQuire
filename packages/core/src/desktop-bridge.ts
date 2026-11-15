@@ -182,7 +182,6 @@ export type OkMenuAction =
   | 'kill-terminal'
   | 'new-worktree'
   | 'switch-worktree'
-  | 'report-bug'
   | 'send-feedback';
 
 export interface OkMenuActionOrigin {
@@ -1524,10 +1523,4 @@ export interface OkDesktopBridge {
   debug?: {
     keyringSmoke(): Promise<OkKeyringSmokeResult>;
   };
-}
-
-declare global {
-  interface Window {
-    okDesktop?: OkDesktopBridge;
-  }
 }
