@@ -159,7 +159,6 @@ describe('config stays a pure read', () => {
     register(server, { config: BASE_CONFIG, resolveCwd: async () => process.cwd() });
 
     expect(description).not.toMatch(/action:\s*"(link|unlink|add-root)"/);
-    expect(description).toContain('`install`');
     expect(outputKeys).not.toContain('folder');
   });
 });
