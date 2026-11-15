@@ -160,9 +160,6 @@ msgstr "{0, plural, one {Complemento} many {Complementos} other {Complementos}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, one {La política del proyecto oculta # hallazgo de enlace roto de esta auditoría.} many {La política del proyecto oculta # hallazgos de enlaces rotos de esta auditoría.} other {La política del proyecto oculta # hallazgos de enlaces rotos de esta auditoría.}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, one {Habilidad} many {Habilidades} other {Habilidades}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} ya existe. Elige otro nombre."
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} se inicializó ({projectEntries, plural, one {# entrada} many {# entradas} other {# entradas}})"
 
-msgid "{packName} skill installed."
-msgstr "Habilidad {packName} instalada."
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} ya estaba configurado. No hay nada que hacer."
 
@@ -481,9 +475,6 @@ msgstr "Propiedades de {settingsDescriptorLabel}"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, one {habilidad} many {habilidades} other {habilidades}}"
 
 msgid "{slot} color — {0}"
 msgstr "Color de {slot} — {0}"
@@ -3484,9 +3475,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "Guía a tus agentes de IA sobre cómo trabajar aquí."
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install o https://ejemplo.com"
@@ -6637,12 +6625,6 @@ msgstr "Página única"
 msgid "size limit"
 msgstr "límite de tamaño"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "No se instaló la skill «{conflictName}»: ya tienes una skill propia con ese nombre. Cambia el nombre de la tuya si quieres la versión del paquete."
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "No se instaló la skill «{conflictName}» para {conflictHosts}: ya tienes ahí una skill propia con ese nombre. Cambia el nombre de la tuya si quieres la versión del paquete."
-
 msgid "Skip"
 msgstr "Omitir"
 
@@ -8180,9 +8162,6 @@ msgstr "YAML o JSON, en cualquiera de las dos disposiciones base16."
 
 msgid "yesterday"
 msgstr "ayer"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "Ya tienes una skill propia llamada «{0}»: no se instalará la versión del paquete y la tuya no se modificará. Cambia el nombre de la tuya para instalar la del paquete."
 
 msgid "You are here"
 msgstr ""

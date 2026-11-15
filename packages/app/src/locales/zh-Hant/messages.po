@@ -160,9 +160,6 @@ msgstr "{0, plural, other {外掛程式}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, other {專案政策從此次稽核中隱藏了 # 個失效連結問題。}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, other {技能}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} 已存在。請換一個名稱。"
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} 已初始化（{projectEntries, plural, other {# 個項目}}）"
 
-msgid "{packName} skill installed."
-msgstr "已安裝 {packName} 技能。"
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} 先前已設定完成，不必再操作。"
 
@@ -481,9 +475,6 @@ msgstr "{settingsDescriptorLabel} 屬性"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, other {技能}}"
 
 msgid "{slot} color — {0}"
 msgstr "{slot} 色彩 — {0}"
@@ -3484,9 +3475,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "指引你的 AI 代理在這裡該怎麼做事。"
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install 或 https://example.com"
@@ -6637,12 +6625,6 @@ msgstr "單頁"
 msgid "size limit"
 msgstr "大小限制"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "未安裝技能「{conflictName}」——你已有同名的自有技能。如需使用入門包中的版本，請重新命名你自己的技能。"
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "未為 {conflictHosts} 安裝技能「{conflictName}」——你在那裡已有同名的自有技能。如需使用入門包中的版本，請重新命名你自己的技能。"
-
 msgid "Skip"
 msgstr "略過"
 
@@ -8180,9 +8162,6 @@ msgstr "YAML 或 JSON，兩種 base16 排版都可以。"
 
 msgid "yesterday"
 msgstr "昨天"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "你已有名為「{0}」的自有技能——不會安裝入門包中的版本，你的技能也不會被更動。如需安裝入門包版本，請重新命名你自己的技能。"
 
 msgid "You are here"
 msgstr ""

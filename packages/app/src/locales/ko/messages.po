@@ -160,9 +160,6 @@ msgstr "{0, plural, other {플러그인}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, other {프로젝트 정책이 이 감사에서 깨진 링크 결과 #개를 숨깁니다.}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, other {스킬}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name}이 이미 존재합니다. 다른 이름을 선택하세�
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} 초기화됨 ({projectEntries, plural, other {#개 항목}})"
 
-msgid "{packName} skill installed."
-msgstr "{packName} 스킬이 설치되었습니다."
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName}은 이미 설정되어 있습니다. 수행할 작업이 없습니다."
 
@@ -481,9 +475,6 @@ msgstr "{settingsDescriptorLabel} 속성"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, other {스킬}}"
 
 msgid "{slot} color — {0}"
 msgstr "{slot} 색상, {0}"
@@ -3484,9 +3475,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "AI 에이전트가 여기서 작업하는 방법을 안내합니다."
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install 또는 https://example.com"
@@ -6637,12 +6625,6 @@ msgstr "한 페이지"
 msgid "size limit"
 msgstr "크기 제한"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "스킬 \"{conflictName}\"을 설치하지 않았습니다. 같은 이름의 내 스킬이 이미 있습니다. 팩 버전을 사용하려면 내 스킬 이름을 바꾸세요."
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "스킬 \"{conflictName}\"은 {conflictHosts}에 설치하지 않았습니다. 그곳에 같은 이름의 내 스킬이 이미 있습니다. 팩 버전을 사용하려면 내 스킬 이름을 바꾸세요."
-
 msgid "Skip"
 msgstr "건너뛰기"
 
@@ -8180,9 +8162,6 @@ msgstr "base16 레이아웃에서 YAML 또는 JSON"
 
 msgid "yesterday"
 msgstr "어제"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "이름이 \"{0}\"인 내 스킬이 이미 있습니다. 팩 버전은 설치되지 않고 내 스킬도 변경되지 않습니다. 팩 버전을 설치하려면 내 스킬 이름을 바꾸세요."
 
 msgid "You are here"
 msgstr ""

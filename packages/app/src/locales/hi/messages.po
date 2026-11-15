@@ -160,9 +160,6 @@ msgstr "{0, plural, one {प्लगइन} other {प्लगइन}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, one {प्रोजेक्ट नीति इस ऑडिट से टूटी लिंक का # परिणाम छिपाती है।} other {प्रोजेक्ट नीति इस ऑडिट से टूटी लिंक के # परिणाम छिपाती है।}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, one {स्किल} other {स्किल}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} पहले से मौजूद है। कोई �
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} आरंभ किया गया ({projectEntries, plural, one {# प्रविष्टि} other {# प्रविष्टियाँ}})"
 
-msgid "{packName} skill installed."
-msgstr "{packName} स्किल इंस्टॉल हो गई।"
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} पहले ही सेट अप हो चुका था। कुछ करने को नहीं।"
 
@@ -481,9 +475,6 @@ msgstr "{settingsDescriptorLabel} प्रॉपर्टी"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, one {स्किल} other {स्किल}}"
 
 msgid "{slot} color — {0}"
 msgstr "{slot} रंग — {0}"
@@ -3480,9 +3471,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "आपके AI एजेंट को यहाँ काम करने का तरीका बताता है।"
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install या https://example.com"
@@ -6633,12 +6621,6 @@ msgstr "एक पेज"
 msgid "size limit"
 msgstr "आकार सीमा"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "स्किल “{conflictName}” इंस्टॉल नहीं की गई — उस नाम की आपकी अपनी स्किल पहले से मौजूद है। पैक वाला संस्करण चाहिए तो अपनी स्किल का नाम बदलें।"
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "{conflictHosts} के लिए स्किल “{conflictName}” इंस्टॉल नहीं की गई — वहाँ उस नाम की आपकी अपनी स्किल पहले से मौजूद है। पैक वाला संस्करण चाहिए तो अपनी स्किल का नाम बदलें।"
-
 msgid "Skip"
 msgstr "छोड़ें"
 
@@ -8176,9 +8158,6 @@ msgstr "YAML या JSON, दोनों में से किसी भी b
 
 msgid "yesterday"
 msgstr "कल"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "“{0}” नाम की आपकी अपनी स्किल पहले से मौजूद है — पैक वाला संस्करण इंस्टॉल नहीं होगा और आपकी स्किल में कोई बदलाव नहीं होगा। पैक वाला संस्करण इंस्टॉल करने के लिए अपनी स्किल का नाम बदलें।"
 
 msgid "You are here"
 msgstr ""
