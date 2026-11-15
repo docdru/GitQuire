@@ -140,6 +140,21 @@
       "defining": false,
       "isolating": false
     },
+    "gitquireCommentMark": {
+      "attrs": {
+        "id": {
+          "hasDefault": true,
+          "default": ""
+        }
+      },
+      "content": "",
+      "marks": "_",
+      "group": "inline",
+      "inline": true,
+      "atom": true,
+      "defining": false,
+      "isolating": false
+    },
     "gitquireComments": {
       "attrs": {
         "raw": {

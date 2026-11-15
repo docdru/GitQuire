@@ -56,16 +56,25 @@ describe('mentions', () => {
 });
 
 describe('thread operations', () => {
-  test('create, reply, resolve and reopen', () => {
+  test('create, reply and resolve; resolving removes the thread', () => {
     const created = createThread([], anchor, 'Can @bob check?', alice);
-    expect(created.thread.comments[0]?.mentions).toEqual(['bob']);
+    expect(created.thread.id).toMatch(/^c-[0-9a-f]{4}$/);
+    expect(created.thread.comments[0]).toMatchObject({
+      author: { id: 'alice', login: 'alice' },
+      createdAt: '2026-11-11T12:00:00.000Z',
+      mentions: ['bob'],
+    });
     const replied = addReply(created.threads, created.thread.id, 'Done.', bob);
     expect(replied[0]?.comments.map((c) => c.author.login)).toEqual(['alice', 'bob']);
-    const resolved = setResolved(replied, created.thread.id, true, bob);
-    expect(resolved[0]).toMatchObject({ resolved: true, resolvedBy: 'bob' });
-    const reopened = addReply(resolved, created.thread.id, 'One more thing', alice);
-    expect(reopened[0]?.resolved).toBe(false);
-    expect(reopened[0]?.resolvedBy).toBeUndefined();
+    expect(setResolved(replied, created.thread.id, true)).toEqual([]);
+    expect(setResolved(replied, created.thread.id, false)).toEqual(replied);
+  });
+
+  test('two comments by one person in the same minute get distinct ids', () => {
+    const created = createThread([], anchor, 'One', alice);
+    const twice = addReply(created.threads, created.thread.id, 'Two', alice);
+    const ids = twice[0]?.comments.map((c) => c.id) ?? [];
+    expect(new Set(ids).size).toBe(2);
   });
 
   test('only the author edits or deletes a comment; empty threads disappear', () => {
@@ -121,7 +130,7 @@ describe('editor storage', () => {
     const next = withThreads(state, threads);
     expect(readThreads(next.doc)).toEqual(threads);
     expect(md.serialize(next.doc.toJSON())).toMatch(
-      /^The quarterly numbers look good\.\n\n<!-- gitquire-comments v1\n\{.*\}\n-->\n$/,
+      /^The quarterly numbers look good\.\n\n\[\^c-[0-9a-f]{4}\]: 💬 on "quarterly numbers"\n\n {4}- \*\*@alice\*\* · 2026-11-11 12:00 — Source\?\n$/,
     );
   });
 
@@ -146,7 +155,10 @@ describe('editor storage', () => {
     const two = one.apply(one.tr.insert(one.doc.content.size, block));
     expect(countTrailers(two.doc)).toBe(2);
     const all = readThreads(two.doc);
-    expect(all.map((thread) => thread.comments[0]?.body)).toEqual(['From Alice', 'From Bob']);
+    expect(all.map((thread) => thread.comments[0]?.body).sort()).toEqual([
+      'From Alice',
+      'From Bob',
+    ]);
     const merged = withThreads(two, all);
     expect(countTrailers(merged.doc)).toBe(1);
     expect(readThreads(merged.doc)).toEqual(all);

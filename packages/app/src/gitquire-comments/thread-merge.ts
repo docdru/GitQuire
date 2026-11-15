@@ -4,7 +4,7 @@ import {
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import type { Thread, ThreadComment } from './thread-ops';
 
-function normalizeThreads(threads: readonly Thread[]): Thread[] {
+export function normalizeThreads(threads: readonly Thread[]): Thread[] {
   const raw = serializeCommentTrailer(threads);
   return raw === undefined ? [] : parseCommentTrailer(raw).threads;
 }

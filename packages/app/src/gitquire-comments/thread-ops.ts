@@ -1,8 +1,12 @@
-import type {
-  CommentAnchor,
-  CommentAuthor,
-  CommentThread,
-  ThreadComment as StoredComment,
+import {
+  type CommentAnchor,
+  type CommentAuthor,
+  type CommentThread,
+  commentIdFor,
+  newCommentLabel,
+  normalizeCommentTimes,
+  type ThreadComment as StoredComment,
+  secondIso,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 
 export type Thread = CommentThread;
@@ -49,11 +53,42 @@ export function extractMentions(body: string): string[] {
   return [...seen];
 }
 
-function newComment(body: string, ctx: OpContext): ThreadComment {
+function stamp(ctx: OpContext, iso: string = ctx.now().toISOString()): string {
+  return normalizeCommentTimes({ id: '', author: ctx.author, createdAt: iso, body: '' }).createdAt;
+}
+
+function authorOf(ctx: OpContext): Author {
+  const login = ctx.author.login ?? ctx.author.id;
+  return { id: login.toLowerCase(), login };
+}
+
+function sameAuthorAt(
+  existing: readonly ThreadComment[],
+  login: string,
+  createdAt: string,
+): number {
+  return existing.filter(
+    (comment) =>
+      comment.createdAt === createdAt &&
+      (comment.author.login ?? comment.author.id).toLowerCase() === login.toLowerCase(),
+  ).length;
+}
+
+function newComment(
+  body: string,
+  ctx: OpContext,
+  threadId: string,
+  existing: readonly ThreadComment[],
+): ThreadComment {
+  const author = authorOf(ctx);
+  const login = author.login as string;
+  const now = ctx.now().toISOString();
+  let createdAt = stamp(ctx, now);
+  if (sameAuthorAt(existing, login, createdAt) > 0) createdAt = secondIso(now);
   const comment: ThreadComment = {
-    id: ctx.newId(),
-    author: ctx.author,
-    createdAt: ctx.now().toISOString(),
+    id: commentIdFor(threadId, login, createdAt, sameAuthorAt(existing, login, createdAt)),
+    author,
+    createdAt,
     body,
   };
   const mentions = extractMentions(body);
@@ -67,11 +102,12 @@ export function createThread(
   body: string,
   ctx: OpContext,
 ): { threads: Thread[]; thread: Thread } {
+  const id = newCommentLabel(new Set(threads.map((existing) => existing.id)));
   const thread: Thread = {
-    id: ctx.newId(),
+    id,
     anchor,
     resolved: false,
-    comments: [newComment(body, ctx)],
+    comments: [newComment(body, ctx, id, [])],
   };
   return { threads: [...threads, thread], thread };
 }
@@ -105,7 +141,7 @@ export function addReply(
 ): Thread[] {
   return updateThread(threads, threadId, (thread) => ({
     ...reopened(thread),
-    comments: [...thread.comments, newComment(body, ctx)],
+    comments: [...thread.comments, newComment(body, ctx, thread.id, thread.comments)],
   }));
 }
 
@@ -113,21 +149,17 @@ export function setResolved(
   threads: readonly Thread[],
   threadId: string,
   resolved: boolean,
-  ctx: OpContext,
 ): Thread[] {
-  return updateThread(threads, threadId, (thread) => {
-    if (!resolved) return reopened(thread);
-    return {
-      ...thread,
-      resolved: true,
-      resolvedBy: ctx.author.login ?? ctx.author.id,
-      resolvedAt: ctx.now().toISOString(),
-    };
-  });
+  if (!resolved) return [...threads];
+  return threads.filter((thread) => thread.id !== threadId);
+}
+
+function loginOf(author: Author): string {
+  return (author.login ?? author.id).toLowerCase();
 }
 
 export function canModify(comment: ThreadComment, author: Author): boolean {
-  return comment.author.id === author.id;
+  return loginOf(comment.author) === loginOf(author);
 }
 
 export function editComment(
@@ -144,7 +176,7 @@ export function editComment(
       const edited: ThreadComment = {
         ...comment,
         body,
-        editedAt: ctx.now().toISOString(),
+        editedAt: stamp(ctx),
       };
       const mentions = extractMentions(body);
       if (mentions.length > 0) {

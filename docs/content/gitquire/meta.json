@@ -8,6 +8,7 @@
     "repository-sync",
     "drafts",
     "comments",
+    "comment-format",
     "mentions",
     "ai-chat",
     "connect-ai",

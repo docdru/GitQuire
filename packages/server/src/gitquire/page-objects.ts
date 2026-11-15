@@ -1,5 +1,5 @@
 import { parseFrontmatterRecord, stripFrontmatter } from '@inkeep/open-knowledge-core';
-import { splitCommentTrailer } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { pageTextWithoutComments } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { docNameForPath, type ScannedPage } from './page-scan.ts';
 
 const MAX_KEYS = 50;
@@ -298,7 +298,7 @@ export function pageFacts(path: string, source: string): PageFacts {
   const prefix = markdown.slice(0, markdown.length - stripped.body.length);
   const firstLine = prefix.split('\n').length;
   const read = fieldsOf(markdown);
-  const body = readBody(splitCommentTrailer(stripped.body).body, firstLine, prefix.length);
+  const body = readBody(pageTextWithoutComments(stripped.body), firstLine, prefix.length);
   const tasks = body.tasks.map(({ offset, ...task }) =>
     lineIsAmbiguous(markdown, task.source) && offset !== undefined
       ? { ...task, offset: offset + bom }

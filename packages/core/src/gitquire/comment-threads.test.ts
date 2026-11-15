@@ -5,154 +5,226 @@ import { ALLOW_COMMENT_TRAILER_REMOVAL } from '../extensions/gitquire-comments.t
 import { sharedExtensions } from '../extensions/shared.ts';
 import { MarkdownManager } from '../markdown/index.ts';
 import {
+  COMMENT_TRAILER_CLOSE,
+  COMMENT_TRAILER_OPEN,
   type CommentThread,
+  convertCommentsToFootnotes,
   joinCommentTrailer,
+  pageTextWithoutComments,
   parseCommentTrailer,
   readCommentThreads,
   serializeCommentTrailer,
   splitCommentTrailer,
-  type ThreadComment,
   writeCommentThreads,
 } from './comment-threads.ts';
 
 const thread: CommentThread = {
-  id: 't1',
-  anchor: { exact: 'quarterly numbers', prefix: 'the ', suffix: ' look' },
+  id: 'c-7f3a',
+  anchor: { exact: 'quarterly numbers' },
   resolved: false,
   comments: [
     {
-      id: 'c1',
-      author: { id: 'github-42', login: 'alice', name: 'Alice' },
-      createdAt: '2026-11-11T10:00:00Z',
-      body: 'Is this --> safe? <!-- and -- this',
+      id: 'c-7f3a/alice/2026-11-14T10:32:00.000Z',
+      author: { id: 'alice', login: 'alice' },
+      createdAt: '2026-11-14T10:32:00.000Z',
+      body: 'Where do these come from? @bob',
       mentions: ['bob'],
     },
     {
-      id: 'c2',
-      author: { id: 'github-7', login: 'bob' },
-      createdAt: '2026-11-11T10:05:00Z',
-      body: 'Line one\nline two',
+      id: 'c-7f3a/bob/2026-11-14T11:02:00.000Z',
+      author: { id: 'bob', login: 'bob' },
+      createdAt: '2026-11-14T11:02:00.000Z',
+      editedAt: '2026-11-14T11:05:00.000Z',
+      body: 'From the Q3 controlling export.\nSecond line.',
     },
   ],
 };
 
-const trailer = serializeCommentTrailer([thread]) as string;
+const trailer = [
+  '[^c-7f3a]: 💬 on "quarterly numbers"',
+  '',
+  '    - **@alice** · 2026-11-14 10:32 — Where do these come from? @bob',
+  '    - **@bob** · 2026-11-14 11:02 · edited 2026-11-14 11:05 — From the Q3 controlling export.',
+  '      Second line.',
+].join('\n');
 
-describe('comment trailer format', () => {
-  test('round-trips threads and never closes the HTML comment early', () => {
-    const inner = trailer.slice('<!--'.length, -'-->'.length);
-    expect(inner).not.toContain('--');
-    expect(trailer.split('\n')).toHaveLength(3);
+const page = `The quarterly numbers[^c-7f3a] look good.\n\n${trailer}\n`;
+
+function legacyBlock(threads: unknown[]): string {
+  return `${COMMENT_TRAILER_OPEN}\n${threads.map((t) => JSON.stringify(t)).join('\n')}\n${COMMENT_TRAILER_CLOSE}`;
+}
+
+const legacyThread = {
+  id: 't1',
+  anchor: { exact: 'quarterly numbers', prefix: 'The ', suffix: ' look good.' },
+  resolved: false,
+  comments: [
+    {
+      id: 'c1',
+      author: { id: 'github-42', login: 'alice' },
+      createdAt: '2026-11-14T10:32:07.120Z',
+      body: 'Where do these come from?',
+      mentions: [],
+    },
+  ],
+};
+
+describe('footnote thread format', () => {
+  test('writes the canonical shape and reads it back', () => {
+    expect(serializeCommentTrailer([thread])).toBe(trailer);
     expect(parseCommentTrailer(trailer)).toEqual({ threads: [thread], skippedLines: 0 });
   });
 
-  test('skips malformed lines instead of failing', () => {
-    const damaged = trailer.replace('\n-->', '\nnot json\n{"id":"x"}\n-->');
-    expect(parseCommentTrailer(damaged)).toEqual({ threads: [thread], skippedLines: 2 });
-  });
-
-  test('splits the trailer from the end of the page', () => {
-    const md = `# Title\n\nBody text.\n\n${trailer}\n`;
-    expect(splitCommentTrailer(md)).toEqual({ body: '# Title\n\nBody text.\n', trailer });
-    expect(splitCommentTrailer(`${trailer}\n\nmore text\n`)).toEqual({
-      body: 'more text\n',
+  test('splits comment definitions off the page and leaves real footnotes', () => {
+    const md = `Text[^1] and numbers[^c-7f3a].\n\n[^1]: Real.\n\n${trailer}\n`;
+    expect(splitCommentTrailer(md)).toEqual({
+      body: 'Text[^1] and numbers[^c-7f3a].\n\n[^1]: Real.\n',
       trailer,
     });
-    expect(splitCommentTrailer('plain\n').trailer).toBeUndefined();
-    expect(splitCommentTrailer(`${trailer}\n`)).toEqual({ body: '', trailer });
   });
 
-  test('ignores a trailer inside an unclosed code fence', () => {
-    const md = `\`\`\`md\nexample\n${trailer}\n`;
-    expect(splitCommentTrailer(md).trailer).toBeUndefined();
-  });
-
-  test('folds copies a merge left in the body into one trailer at the end', () => {
-    const body = '# Roadmap\n\nPlan text.\n';
-    const md = `${body}\n${trailer}\n\n${body}\n${trailer}\n\n${body}\n${trailer}\n`;
-    const split = splitCommentTrailer(md);
-    expect(split.trailer).toBe(trailer);
-    expect(split.body).not.toContain('gitquire-comments');
-    expect(split.body.match(/# Roadmap/g)).toHaveLength(3);
-  });
-
-  test('recovers a copy when the file no longer ends with a trailer', () => {
-    const split = splitCommentTrailer(`Intro\n\n${trailer}\n\nMore text\n`);
-    expect(split).toEqual({ body: 'Intro\n\nMore text\n', trailer });
-  });
-
-  test('merges threads that appear in more than one copy', () => {
-    const [first, second] = thread.comments as [ThreadComment, ThreadComment];
-    const older = serializeCommentTrailer([{ ...thread, comments: [first] }]);
-    const newer = serializeCommentTrailer([
-      { ...thread, resolved: true, comments: [second] },
-      { ...thread, id: 't2', comments: [first] },
+  test('reads tolerant forms', () => {
+    const loose = [
+      '[^c-1a2b]: 💬 on "plan"',
+      '    - @hans: plain form',
+      '    - **@ina** — no date',
+      '- @jo: written without indentation',
+    ].join('\n');
+    const [parsed] = parseCommentTrailer(loose).threads;
+    expect(parsed?.comments.map((c) => [c.author.login, c.body, c.createdAt])).toEqual([
+      ['hans', 'plain form', ''],
+      ['ina', 'no date', ''],
+      ['jo', 'written without indentation', ''],
     ]);
-    const split = splitCommentTrailer(`Body\n\n${older}\n\nTail\n\n${newer}\n`);
-    expect(split.body).toBe('Body\n\nTail\n');
-    expect(parseCommentTrailer(split.trailer as string).threads).toEqual([
-      { ...thread, resolved: true },
-      { ...thread, id: 't2', comments: [first] },
-    ]);
-  });
-
-  test('leaves a copy inside a code fence alone', () => {
-    const md = `\`\`\`md\n${trailer}\n\`\`\`\n\n${trailer}\n`;
-    expect(splitCommentTrailer(md)).toEqual({ body: `\`\`\`md\n${trailer}\n\`\`\`\n`, trailer });
-  });
-
-  test('normalizes the join and supports removing every thread', () => {
-    expect(joinCommentTrailer('Body\n\n\n', trailer)).toBe(`Body\n\n${trailer}\n`);
-    const md = writeCommentThreads('Body\n', [thread]);
-    expect(readCommentThreads(md)).toEqual([thread]);
-    expect(writeCommentThreads(md, [])).toBe('Body\n');
-  });
-});
-
-describe('markdown pipeline carries the trailer', () => {
-  const md = new MarkdownManager({ extensions: sharedExtensions });
-  const source = `# Notes\n\nThe quarterly numbers look good.\n\n- one\n- two\n\n${trailer}\n`;
-
-  test('parses into a trailing atom node and serializes byte-identically', () => {
-    const json = md.parse(source);
-    const last = json.content?.at(-1);
-    expect(last?.type).toBe('gitquireComments');
-    expect(last?.attrs?.raw).toBe(trailer);
-    expect(md.serialize(json)).toBe(source);
-  });
-
-  test('keeps the trailer last when content is added after it', () => {
-    const json = md.parse(source);
-    json.content?.push({ type: 'paragraph', content: [{ type: 'text', text: 'Added.' }] });
-    expect(md.serialize(json)).toBe(
-      `# Notes\n\nThe quarterly numbers look good.\n\n- one\n- two\n\nAdded.\n\n${trailer}\n`,
+    expect(serializeCommentTrailer(parsed ? [parsed] : [])).toBe(
+      [
+        '[^c-1a2b]: 💬 on "plan"',
+        '',
+        '    - **@hans** — plain form',
+        '    - **@ina** — no date',
+        '    - **@jo** — written without indentation',
+      ].join('\n'),
     );
   });
 
-  test('exposes the trailer as its own mdast node', () => {
-    const children = md.parseToMdast(source).children;
-    expect(children.at(-1)).toEqual({ type: 'gitquireComments', value: trailer });
-    expect(md.parseToEditorMdast(source).children.at(-1)?.type).toBe('gitquireComments');
+  test('keeps a line it cannot read instead of dropping it', () => {
+    const damaged = `${trailer}\n    some note without author\n    - not a comment`;
+    const parsed = parseCommentTrailer(damaged);
+    expect(parsed.skippedLines).toBe(2);
+    expect(parsed.threads[0]?.unreadable).toEqual(['some note without author', '- not a comment']);
+    const again = serializeCommentTrailer(parsed.threads) as string;
+    expect(again).toContain('    some note without author');
+    expect(parseCommentTrailer(again).threads[0]?.unreadable).toHaveLength(2);
   });
 
-  test('handles a document that only holds comments', () => {
-    const json = md.parse(`${trailer}\n`);
+  test('a definition without the header is still a thread', () => {
+    const [parsed] = parseCommentTrailer('[^c-9]: - @kai: hello').threads;
+    expect(parsed?.anchor.exact).toBe('');
+    expect(parsed?.comments[0]?.body).toBe('hello');
+  });
+
+  test('quotes with quotation marks survive', () => {
+    const quoted: CommentThread = { ...thread, anchor: { exact: 'the "best" plan' } };
+    const raw = serializeCommentTrailer([quoted]) as string;
+    expect(raw.split('\n')[0]).toBe('[^c-7f3a]: 💬 on "the \\"best\\" plan"');
+    expect(parseCommentTrailer(raw).threads[0]?.anchor.exact).toBe('the "best" plan');
+  });
+
+  test('ignores comment definitions inside code fences', () => {
+    const md = `\`\`\`md\n${trailer}\n\`\`\`\n`;
+    expect(splitCommentTrailer(md).trailer).toBeUndefined();
+  });
+
+  test('resolved threads leave the file', () => {
+    expect(serializeCommentTrailer([{ ...thread, resolved: true }])).toBeUndefined();
+    expect(writeCommentThreads(page, [])).toBe('The quarterly numbers[^c-7f3a] look good.\n');
+  });
+
+  test('reads and writes whole pages', () => {
+    expect(readCommentThreads(page)).toEqual([thread]);
+    expect(writeCommentThreads(page, [thread])).toBe(page);
+    expect(joinCommentTrailer('Body\n\n\n', trailer)).toBe(`Body\n\n${trailer}\n`);
+  });
+
+  test('page text without comments drops marks and threads', () => {
+    expect(pageTextWithoutComments(page)).toBe('The quarterly numbers look good.\n');
+  });
+});
+
+describe('v1 blocks', () => {
+  const v1 = `The quarterly numbers look good.\n\n${legacyBlock([legacyThread])}\n`;
+
+  test('convert to footnote threads with a mark at the quote', () => {
+    const out = convertCommentsToFootnotes(v1);
+    expect(out).toMatch(/^The quarterly numbers\[\^c-[0-9a-f]{4}\] look good\.\n\n\[\^c-/);
+    const [converted] = readCommentThreads(out);
+    expect(converted?.comments[0]).toMatchObject({
+      author: { login: 'alice' },
+      createdAt: '2026-11-14T10:32:00.000Z',
+      body: 'Where do these come from?',
+    });
+    expect(convertCommentsToFootnotes(out)).toBe(out);
+    expect(convertCommentsToFootnotes(v1)).toBe(out);
+  });
+
+  test('a quote that occurs twice gets no mark unless the context decides', () => {
+    const twice = `Numbers here. Numbers there.\n\n${legacyBlock([
+      { ...legacyThread, anchor: { exact: 'Numbers' } },
+      { ...legacyThread, id: 't2', anchor: { exact: 'Numbers', prefix: 'here. ' } },
+    ])}\n`;
+    const out = convertCommentsToFootnotes(twice);
+    expect(out.split('\n')[0]).toMatch(/^Numbers here\. Numbers\[\^c-[0-9a-f]+\] there\.$/);
+    expect(readCommentThreads(out)).toHaveLength(2);
+  });
+
+  test('never marks headings or code', () => {
+    const md = `# Plan\n\n\`\`\`\nPlan\n\`\`\`\n\n${legacyBlock([{ ...legacyThread, anchor: { exact: 'Plan' } }])}\n`;
+    const out = convertCommentsToFootnotes(md);
+    expect(out.startsWith('# Plan\n\n```\nPlan\n```\n')).toBe(true);
+    expect(readCommentThreads(out)[0]?.anchor.exact).toBe('Plan');
+  });
+
+  test('drops resolved threads and keeps lines that do not parse', () => {
+    const md = `Body\n\n${legacyBlock([{ ...legacyThread, resolved: true }])}`.replace(
+      `\n${COMMENT_TRAILER_CLOSE}`,
+      `\nnot json\n${COMMENT_TRAILER_CLOSE}`,
+    );
+    const threads = readCommentThreads(md);
+    expect(threads).toHaveLength(1);
+    expect(threads[0]?.unreadable).toEqual(['not json']);
+  });
+});
+
+describe('markdown pipeline', () => {
+  const md = new MarkdownManager({ extensions: sharedExtensions });
+
+  test('round-trips a page with marks, real footnotes and a table byte-identically', () => {
+    const source = `# Notes\n\nThe quarterly numbers[^c-7f3a] look good[^1].\n\n| A | B |\n| --- | --- |\n| North[^c-7f3a] | 1 |\n\n[^1]: Real.\n\n${trailer}\n`;
+    const json = md.parse(source);
     expect(json.content?.at(-1)?.type).toBe('gitquireComments');
-    expect(md.serialize(json)).toBe(`${trailer}\n`);
+    expect(JSON.stringify(json)).toContain('"type":"gitquireCommentMark"');
+    expect(md.serialize(json)).toBe(source);
   });
 
-  test('moves a copied comment section from the middle of a page to the end', () => {
-    const json = md.parse(`Intro\n\n${trailer}\n\nOutro\n`);
-    const out = md.serialize(json);
-    expect(splitCommentTrailer(out)).toEqual({ body: 'Intro\n\nOutro\n', trailer });
-    expect(out.split('gitquire-comments')).toHaveLength(2);
+  test('a mark for an unknown label stays text', () => {
+    const json = md.parse('Text[^c-dead] here.\n');
+    expect(JSON.stringify(json)).not.toContain('gitquireCommentMark');
   });
 
-  test('does not move a hand-written marker that holds no threads', () => {
-    const marker = '<!-- gitquire-comments v1\nnotes\n-->';
-    const json = md.parse(`Intro\n\n${marker}\n\nOutro\n`);
-    expect(json.content?.some((node) => node.type === 'gitquireComments')).toBe(false);
-    expect(md.serialize(json).trimEnd().endsWith('Outro')).toBe(true);
+  test('drops a mark whose thread is gone when writing', () => {
+    const json = md.parse(page);
+    json.content = json.content?.filter((node) => node.type !== 'gitquireComments');
+    expect(md.serialize(json)).toBe('The quarterly numbers look good.\n');
+  });
+
+  test('moves a comment definition from the middle of a page to the end', () => {
+    const out = md.serialize(md.parse(`Intro numbers[^c-7f3a]\n\n${trailer}\n\nOutro\n`));
+    expect(out).toBe(`Intro numbers[^c-7f3a]\n\nOutro\n\n${trailer}\n`);
+  });
+
+  test('converts a v1 page on the next save', () => {
+    const v1 = `The quarterly numbers look good.\n\n${legacyBlock([legacyThread])}\n`;
+    expect(md.serialize(md.parse(v1))).toBe(convertCommentsToFootnotes(v1));
   });
 
   test('leaves ordinary HTML comments alone', () => {
@@ -165,7 +237,7 @@ describe('markdown pipeline carries the trailer', () => {
 describe('editor guard', () => {
   const schema = getSchema(sharedExtensions);
   const md = new MarkdownManager({ extensions: sharedExtensions });
-  const doc = schema.nodeFromJSON(md.parse(`Hello\n\n${trailer}\n`));
+  const doc = schema.nodeFromJSON(md.parse(page));
 
   function stateWithGuard() {
     const extension = sharedExtensions.find((e) => e.name === 'gitquireComments');
@@ -173,10 +245,9 @@ describe('editor guard', () => {
     return EditorState.create({ schema, doc, plugins: create?.call({}) ?? [] });
   }
 
-  test('restores the trailer when an edit deletes everything', () => {
+  test('restores the threads when an edit deletes everything', () => {
     const state = stateWithGuard();
-    const tr = state.tr.delete(0, state.doc.content.size);
-    const next = state.applyTransaction(tr).state;
+    const next = state.applyTransaction(state.tr.delete(0, state.doc.content.size)).state;
     expect(next.doc.lastChild?.type.name).toBe('gitquireComments');
   });
 
@@ -184,9 +255,8 @@ describe('editor guard', () => {
     const state = stateWithGuard();
     const tr = state.tr.delete(0, state.doc.content.size);
     tr.setMeta(ALLOW_COMMENT_TRAILER_REMOVAL, true);
-    const next = state.applyTransaction(tr).state;
     let found = false;
-    next.doc.forEach((child) => {
+    state.applyTransaction(tr).state.doc.forEach((child) => {
       if (child.type.name === 'gitquireComments') found = true;
     });
     expect(found).toBe(false);

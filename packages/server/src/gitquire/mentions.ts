@@ -422,7 +422,8 @@ export function mentionsFor(reader: MentionReader, all: readonly Mention[]): Men
   const seen = new Set<string>();
   const mine: Mention[] = [];
   for (const mention of all) {
-    if (!mention.logins.includes(login) || mention.author.id === self) continue;
+    const by = (mention.author.login ?? '').toLowerCase();
+    if (!mention.logins.includes(login) || mention.author.id === self || by === login) continue;
     if (seen.has(mention.id)) continue;
     seen.add(mention.id);
     mine.push(mention);

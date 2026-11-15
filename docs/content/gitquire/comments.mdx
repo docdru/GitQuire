@@ -16,21 +16,20 @@ that is set up.
 
 ## Stored in the file
 
-Threads are saved in a block at the end of the Markdown file that GitHub doesn't render:
+Each thread is a Markdown footnote: a small mark after the commented passage and the thread at the
+end of the page, one line per comment.
 
 ```markdown
-<!-- gitquire-comments v1
-{"id":"…","anchor":{"exact":"quarterly numbers","prefix":"…","suffix":"…"},"resolved":false,"comments":[…]}
--->
+The quarterly numbers[^c-7f3a] look good.
+
+[^c-7f3a]: 💬 on "quarterly numbers"
+
+    - **@alice** · 2026-11-14 10:32 — Where do these come from?
 ```
 
-Each thread is one JSON line, so diffs and merges stay readable, and comments travel with the page
-through branches and pull requests. A thread finds its passage again by the quoted text and the
-words around it; if that text is gone, the thread says so.
-
-Edits to comments sync live like any other edit and are committed with the page. Anyone with
-write access to the repository can change the file, so "only the author can delete" is a courtesy
-in the app, not a permission.
+GitHub shows threads as footnotes, diffs show one line per reply, and the mark moves with the text.
+Resolving a thread removes it from the file; the Git history keeps it. The details are in
+[Comment format](./comment-format.mdx).
 
 ## Comments and AI agents
 

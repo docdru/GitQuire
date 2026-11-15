@@ -20,6 +20,7 @@ import './mdast-augmentation.ts';
 import { restoreFromMdx } from './autolink-void-html-guard.ts';
 import { restoreBackslashEscapesPlugin } from './backslash-escape-guard.ts';
 import { calloutTransformerPlugin, REMARK_GITHUB_ALERTS_OPTIONS } from './callout-transformer.ts';
+import { commentLabelsOf, dropLooseCommentMarks, promoteCommentMarks } from './comment-marks.ts';
 import { commentPromoterPlugin } from './comment-promoter.ts';
 import { dedentBlockJsxClose } from './dedent-block-jsx-close.ts';
 import { detailsAccordionPromoterPlugin } from './details-accordion-promoter.ts';
@@ -246,6 +247,7 @@ export function parseMd(rawSource: string, processor: Processor): PmNode {
   insertInteriorBlankRunParagraphs(transformed, source);
   const captured = captureDocBoundary(transformed, source, hadBom);
   const boundary = captured ? materializeDocEdgeBlankRuns(transformed, captured) : undefined;
+  promoteCommentMarks(transformed, commentLabelsOf(trailer));
   appendCommentTrailer(transformed, trailer);
   const doc = (processor as unknown as { stringify(tree: unknown): PmNode }).stringify(transformed);
   if (!boundary) return doc;
@@ -276,6 +278,7 @@ function parseToMdast(
   if (materializeBlankRuns) insertInteriorBlankRunParagraphs(transformed, source);
   const captured = captureDocBoundary(transformed, source, hadBom);
   if (materializeBlankRuns && captured) materializeDocEdgeBlankRuns(transformed, captured);
+  promoteCommentMarks(transformed, commentLabelsOf(trailer));
   appendCommentTrailer(transformed, trailer);
   return transformed;
 }
@@ -296,6 +299,8 @@ export function serializeMd(doc: PmNode, processor: Processor, opts: SerializeMd
   pruneZeroEmissionBlocks(mdast);
 
   const hasTrailer = moveCommentTrailerLast(mdast);
+
+  dropLooseCommentMarks(mdast);
 
   const boundary = readDocBoundary(doc.attrs?.sourceDocBoundary);
 

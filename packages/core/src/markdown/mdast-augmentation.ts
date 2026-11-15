@@ -179,6 +179,9 @@ declare module 'mdast' {
   interface HtmlData {
     gitquireComments?: true;
   }
+  interface FootnoteReferenceData {
+    gitquireCommentMark?: true;
+  }
   interface TextData {
     escapedChars?: EscapeProvenanceEntry[];
     sourceRaw?: string;

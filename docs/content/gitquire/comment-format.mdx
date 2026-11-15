@@ -1,0 +1,71 @@
+---
+title: Comment format
+icon: LuFileText
+description: How GitQuire stores comment threads in a Markdown page, so people, agents and other tools can read and write them.
+---
+
+GitQuire stores each comment thread as a Markdown footnote. The page text gets a small mark at the
+end of the commented passage, and the thread is the footnote at the end of the page. GitHub,
+Obsidian, pandoc and most other Markdown tools show it as a footnote.
+
+```markdown
+The quarterly numbers[^c-7f3a] look good.
+
+[^c-7f3a]: 💬 on "quarterly numbers"
+
+    - **@alice** · 2026-11-14 10:32 — Where do these come from?
+    - **@bob** · 2026-11-14 11:02 · edited 2026-11-14 11:05 — From the Q3 controlling export.
+      A second line of the same reply.
+```
+
+## The parts
+
+| Part | Form | Notes |
+| --- | --- | --- |
+| Label | `c-` followed by letters and digits | Footnote labels starting with `c-` are reserved for comments. GitQuire picks 4 hex digits, more when those are taken. |
+| Mark | `[^c-7f3a]` | Directly after the last character of the commented passage. It moves, copies and is deleted with the text. |
+| Header | `💬 on "<passage>"` | The commented text on one line; `"` inside it is written `\"`. `💬 comment` when there is no passage. |
+| Comment | `- **@login** · YYYY-MM-DD HH:MM — text` | Indented 4 spaces. Times are UTC, to the minute (to the second when one person writes twice in the same minute). An edit adds `· edited YYYY-MM-DD HH:MM`. |
+| More lines | indented 6 spaces | Continue the comment above. Blank lines inside a comment are allowed. |
+| Place | last block of the page | After real footnotes, oldest thread first. |
+
+Comments are visible wherever the file is rendered; on GitHub they appear under "Footnotes",
+numbered together with real footnotes.
+
+## Where no mark is placed
+
+GitQuire does not put a mark inside code blocks, inline code, frontmatter or `gitquire-view`
+blocks, nor in headings, because GitHub would add the footnote number to the heading's link anchor.
+A thread on such a passage has no mark and is found by its quoted text. GitHub does not show a
+footnote that nothing refers to, so these threads are visible in the raw file and in GitQuire only.
+
+## Reading is tolerant
+
+GitQuire writes the form above, and reads these as well:
+
+- no blank line between the header and the first comment;
+- `- @name: text`, `- @name — text` or `- @name text`, with or without bold and date;
+- comments written without indentation directly under a thread;
+- a `c-` footnote without the 💬 header.
+
+When it writes the page again, it uses the canonical form. A line it cannot read as a comment is
+kept, word for word, at the end of its thread and shown as unreadable; nothing is dropped.
+
+## Resolving
+
+Resolving a thread removes its mark and its footnote. The Git history keeps both.
+
+## Older pages
+
+Pages written before this format kept threads in a hidden block at the end
+(`<!-- gitquire-comments v1 … -->`, one JSON line per thread). GitQuire reads those forever and
+writes the footnote form the next time the page is saved. Where the quoted text occurs once outside
+code and headings, the thread gets a mark there; otherwise it stays without a mark. Resolved v1
+threads are not carried over.
+
+## Test files
+
+The files in
+[`packages/core/src/gitquire/comment-format-fixtures`](https://github.com/docdru/GitQuire/tree/main/packages/core/src/gitquire/comment-format-fixtures)
+show inputs (`*.input.md`) and what GitQuire writes back (`*.output.md`). A converter for another
+tool can be checked against them.
