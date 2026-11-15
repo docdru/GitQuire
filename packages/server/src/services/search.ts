@@ -1,18 +1,13 @@
-import { type Dirent, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import {
   classifySemanticProviderError,
   createWorkspaceSearchCorpus,
   createWorkspaceSearchDocument,
   isHiddenDocName,
-  LEGACY_SKILL_STORE_ROOT,
-  parseProjectSkillBundleDoc,
   type SearchSemanticStatus,
   type SearchSource,
   type SearchSuccess,
   type SemanticQueryOutcome,
-  SKILL_NAME_REGEX,
   searchWorkspaceCorpus,
   semanticProviderErrorBlocks,
   updateWorkspaceSearchCorpus,
@@ -32,7 +27,6 @@ import {
   type FileIndexEntry,
   fileIndexEntryMembers,
 } from '../file-watcher.ts';
-import { scanInPlaceSkills } from '../in-place-skills.ts';
 import { getLogger } from '../logger.ts';
 import { extractPageTitle } from '../page-identity.ts';
 import { getMeter } from '../telemetry.ts';
@@ -165,7 +159,6 @@ export interface SearchServiceDeps {
   semanticSearch?: SemanticSearchService;
   getSemanticSimilarityFloor?: () => number | undefined;
   ready?: Promise<unknown>;
-  getProjectSkillsRoot: () => string;
   parseFrontmatterDoc: (raw: string) => { frontmatter: Record<string, unknown>; body: string };
 }
 
@@ -249,87 +242,6 @@ export function createSearchService(deps: SearchServiceDeps): SearchService {
     };
   }
 
-  function enumerateProjectSkillStats(): Array<{
-    name: string;
-    absolutePath: string;
-    docPath: string;
-    mtimeMs: number;
-    size: number;
-  }> {
-    const out: Array<{
-      name: string;
-      absolutePath: string;
-      docPath: string;
-      mtimeMs: number;
-      size: number;
-    }> = [];
-    const seen = new Set<string>();
-    for (const skill of scanInPlaceSkills(contentDir)) {
-      const skillMd = resolve(contentDir, skill.dir, 'SKILL.md');
-      try {
-        const st = statSync(skillMd);
-        out.push({
-          name: skill.name,
-          absolutePath: skillMd,
-          docPath: `${skill.dir}/SKILL`,
-          mtimeMs: st.mtimeMs,
-          size: st.size,
-        });
-        seen.add(skill.name);
-      } catch {}
-    }
-    const root = deps.getProjectSkillsRoot();
-    if (!existsSync(root)) return out;
-    let entries: Dirent[];
-    try {
-      entries = readdirSync(root, { withFileTypes: true });
-    } catch {
-      return out;
-    }
-    for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
-      if (!entry.isDirectory() || !SKILL_NAME_REGEX.test(entry.name)) continue;
-      if (seen.has(entry.name)) continue;
-      const skillMd = resolve(root, entry.name, 'SKILL.md');
-      try {
-        const st = statSync(skillMd);
-        out.push({
-          name: entry.name,
-          absolutePath: skillMd,
-          docPath: `${LEGACY_SKILL_STORE_ROOT}/${entry.name}/SKILL`,
-          mtimeMs: st.mtimeMs,
-          size: st.size,
-        });
-      } catch {}
-    }
-    return out;
-  }
-
-  function buildSkillSearchDocuments(): WorkspaceSearchDocument[] {
-    const docs: WorkspaceSearchDocument[] = [];
-    for (const skill of enumerateProjectSkillStats()) {
-      let title = skill.name;
-      let content = '';
-      try {
-        const { frontmatter, body } = deps.parseFrontmatterDoc(
-          readFileSync(skill.absolutePath, 'utf-8'),
-        );
-        if (typeof frontmatter.name === 'string' && frontmatter.name) title = frontmatter.name;
-        const desc = typeof frontmatter.description === 'string' ? frontmatter.description : '';
-        content = `${desc}\n\n${body}`.trim();
-      } catch {}
-      docs.push(
-        createWorkspaceSearchDocument({
-          kind: 'page',
-          path: skill.docPath,
-          title,
-          content,
-          modifiedTs: skill.mtimeMs,
-        }),
-      );
-    }
-    return docs;
-  }
-
   const pageDocCache = new Map<string, { key: string; doc: WorkspaceSearchDocument }>();
 
   async function buildWorkspaceSearchDocumentsFromIndex(): Promise<{
@@ -341,7 +253,6 @@ export function createSearchService(deps: SearchServiceDeps): SearchService {
     const seenPages: Set<string> = new Set();
     for (const [docName, entry] of getAllFilesIndex()) {
       if (isSystemDoc(docName) || isConfigDoc(docName)) continue;
-      if (parseProjectSkillBundleDoc(docName)?.kind === 'skill') continue;
       if (docName.startsWith('.ok/skills/')) continue;
       if (entry.kind === 'file') {
         files.push(
@@ -415,28 +326,21 @@ export function createSearchService(deps: SearchServiceDeps): SearchService {
     }
     const documents = [
       ...pages,
-      ...buildSkillSearchDocuments(),
       ...admittedFiles,
       ...deriveFolderSearchDocuments([...pages, ...admittedFiles]),
     ];
     return { documents, truncated };
   }
 
-  function skillStatFingerprint(): string {
-    return enumerateProjectSkillStats()
-      .map((s) => `${s.name} ${s.mtimeMs} ${s.size}`)
-      .join('');
-  }
-
   function workspaceSearchFingerprint(): string {
     if (getFileIndexGeneration) {
-      return `gen:${getFileIndexGeneration()}|skills${skillStatFingerprint()}`;
+      return `gen:${getFileIndexGeneration()}`;
     }
     return `${[...getAllFilesIndex()]
       .filter(([docName]) => !isSystemDoc(docName) && !isConfigDoc(docName))
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([docName, entry]) => `${docName}\0${entrySearchKey(contentDir, docName, entry)}`)
-      .join('')}|skills${skillStatFingerprint()}`;
+      .join('')}`;
   }
 
   let bootIndexReady = ready === undefined;

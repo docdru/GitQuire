@@ -220,31 +220,6 @@ describe('GET /api/search', () => {
     }
   });
 
-  test('indexes project skills under their content-doc path (findable by content)', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'ok-search-'));
-    try {
-      const skillDir = join(dir, '.ok', 'skills', 'data-pipeline');
-      mkdirSync(skillDir, { recursive: true });
-      writeFileSync(
-        join(skillDir, 'SKILL.md'),
-        '---\nname: data-pipeline\ndescription: Ingest and normalize telemetry.\n---\n\nUse this when wrangling zephyrglyph datasets.\n',
-        'utf-8',
-      );
-
-      const result = await callSearch(dir, '/api/search?query=zephyrglyph&intent=full_text');
-      expect(result.status).toBe(200);
-      const body = JSON.parse(result.body) as {
-        results?: Array<{ kind: string; path: string }>;
-      };
-      const skillHits = (body.results ?? []).filter(
-        (r) => r.path === '.ok/skills/data-pipeline/SKILL',
-      );
-      expect(skillHits).toHaveLength(1);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
   test('returns 400 for malformed POST bodies', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-search-'));
     try {

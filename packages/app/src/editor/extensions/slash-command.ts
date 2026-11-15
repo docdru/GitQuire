@@ -100,12 +100,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
           buildSlashMenuItems({
             sources: extension.options.itemsSources,
             categoryOrder: [
-              ...new Set([
-                'skills',
-                'basic',
-                'insert',
-                ...Object.keys(extension.options.categoryLabels),
-              ]),
+              ...new Set(['basic', 'insert', ...Object.keys(extension.options.categoryLabels)]),
             ],
             query,
             state: editor.state,

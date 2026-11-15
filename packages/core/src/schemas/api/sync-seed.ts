@@ -239,28 +239,6 @@ export const SeedApplySuccessSchema = z
   .loose() satisfies StandardSchemaV1;
 export type SeedApplySuccess = z.infer<typeof SeedApplySuccessSchema>;
 
-export const SeedInstallPackSkillRequestSchema = z
-  .object({
-    packId: z.string().min(1),
-  })
-  .strict() satisfies StandardSchemaV1;
-export type SeedInstallPackSkillRequest = z.infer<typeof SeedInstallPackSkillRequestSchema>;
-
-export const SeedInstallPackSkillSuccessSchema = z
-  .object({
-    installedHosts: z.array(z.string()),
-    skills: z.array(
-      z
-        .object({
-          name: z.string().min(1),
-          created: z.boolean(),
-        })
-        .strict(),
-    ),
-  })
-  .strict() satisfies StandardSchemaV1;
-export type SeedInstallPackSkillSuccess = z.infer<typeof SeedInstallPackSkillSuccessSchema>;
-
 export const SeedPackFolderInfoSchema = z
   .object({
     path: z.string().min(1),
@@ -295,53 +273,3 @@ export const SeedListPacksSuccessSchema = z
   })
   .loose() satisfies StandardSchemaV1;
 export type SeedListPacksSuccess = z.infer<typeof SeedListPacksSuccessSchema>;
-
-export const InstallSkillRequestSchema = z
-  .object({
-    noOpen: z.boolean().optional(),
-    out: z.string().min(1).optional(),
-  })
-  .loose() satisfies StandardSchemaV1;
-export type InstallSkillRequest = z.infer<typeof InstallSkillRequestSchema>;
-
-const InstallSkillHandoffErrorSchema = z
-  .object({
-    reason: z.enum(['unsupported-platform', 'spawn-error']),
-    message: z.string(),
-  })
-  .loose();
-export const InstallSkillSuccessSchema = z.discriminatedUnion('status', [
-  z
-    .object({
-      status: z.literal('installed'),
-      outputPath: z.string(),
-      size: z.number().int().nonnegative(),
-      sha256: z.string(),
-      skillVersion: z.string(),
-    })
-    .loose(),
-  z
-    .object({
-      status: z.literal('built'),
-      outputPath: z.string(),
-      size: z.number().int().nonnegative(),
-      sha256: z.string(),
-      skillVersion: z.string(),
-      handoffError: InstallSkillHandoffErrorSchema.optional(),
-    })
-    .loose(),
-  z
-    .object({
-      status: z.literal('failed'),
-      buildError: z.string(),
-    })
-    .loose(),
-  z
-    .object({
-      status: z.literal('skip-current'),
-      skillVersion: z.string(),
-      recordedAt: z.string().optional(),
-    })
-    .loose(),
-]) satisfies StandardSchemaV1;
-export type InstallSkillSuccess = z.infer<typeof InstallSkillSuccessSchema>;

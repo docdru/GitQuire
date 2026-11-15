@@ -17,12 +17,6 @@
       "types": "./dist/shadow-repo-layout.d.mts",
       "default": "./dist/shadow-repo-layout.mjs"
     },
-    "./skill-folder-state": {
-      "@inkeep/source": "./src/skill-folder-state.ts",
-      "development": "./src/skill-folder-state.ts",
-      "types": "./dist/skill-folder-state.d.mts",
-      "default": "./dist/skill-folder-state.mjs"
-    },
     "./git-repository": {
       "@inkeep/source": "./src/git-repository.ts",
       "development": "./src/git-repository.ts",
@@ -64,12 +58,6 @@
       "development": "./src/helper-bundle.ts",
       "types": "./dist/helper-bundle.d.mts",
       "default": "./dist/helper-bundle.mjs"
-    },
-    "./skills-catalog": {
-      "@inkeep/source": "./src/skills-catalog/index.ts",
-      "development": "./src/skills-catalog/index.ts",
-      "types": "./dist/skills-catalog.d.mts",
-      "default": "./dist/skills-catalog.mjs"
     },
     "./acp/thread-protocol": {
       "@inkeep/source": "./src/acp/thread-protocol.ts",
@@ -251,12 +239,6 @@
       "types": "./dist/constants-embedded-host.d.mts",
       "default": "./dist/constants-embedded-host.mjs"
     },
-    "./constants/feature-flags": {
-      "@inkeep/source": "./src/constants/feature-flags.ts",
-      "development": "./src/constants/feature-flags.ts",
-      "types": "./dist/constants-feature-flags.d.mts",
-      "default": "./dist/constants-feature-flags.mjs"
-    },
     "./constants/github": {
       "@inkeep/source": "./src/constants/github.ts",
       "development": "./src/constants/github.ts",
@@ -322,12 +304,6 @@
       "development": "./src/constants/product.ts",
       "types": "./dist/constants-product.d.mts",
       "default": "./dist/constants-product.mjs"
-    },
-    "./constants/skills": {
-      "@inkeep/source": "./src/constants/skills.ts",
-      "development": "./src/constants/skills.ts",
-      "types": "./dist/constants-skills.d.mts",
-      "default": "./dist/constants-skills.mjs"
     },
     "./constants/uninstall-feedback": {
       "@inkeep/source": "./src/constants/uninstall-feedback.ts",
@@ -616,36 +592,6 @@
       "development": "./src/sharing/index.ts",
       "types": "./dist/sharing.d.mts",
       "default": "./dist/sharing.mjs"
-    },
-    "./skill-targets/schema": {
-      "@inkeep/source": "./src/skill-targets/schema.ts",
-      "development": "./src/skill-targets/schema.ts",
-      "types": "./dist/skill-targets-schema.d.mts",
-      "default": "./dist/skill-targets-schema.mjs"
-    },
-    "./skills-catalog/schema": {
-      "@inkeep/source": "./src/skills-catalog/schema.ts",
-      "development": "./src/skills-catalog/schema.ts",
-      "types": "./dist/skills-catalog-schema.d.mts",
-      "default": "./dist/skills-catalog-schema.mjs"
-    },
-    "./skills-catalog/scope": {
-      "@inkeep/source": "./src/skills-catalog/scope.ts",
-      "development": "./src/skills-catalog/scope.ts",
-      "types": "./dist/skills-catalog-scope.d.mts",
-      "default": "./dist/skills-catalog-scope.mjs"
-    },
-    "./skills-catalog/skill-cost": {
-      "@inkeep/source": "./src/skills-catalog/skill-cost.ts",
-      "development": "./src/skills-catalog/skill-cost.ts",
-      "types": "./dist/skills-catalog-skill-cost.d.mts",
-      "default": "./dist/skills-catalog-skill-cost.mjs"
-    },
-    "./skills-catalog/source-fields": {
-      "@inkeep/source": "./src/skills-catalog/source-fields.ts",
-      "development": "./src/skills-catalog/source-fields.ts",
-      "types": "./dist/skills-catalog-source-fields.d.mts",
-      "default": "./dist/skills-catalog-source-fields.mjs"
     },
     "./sync-paused-reason": {
       "@inkeep/source": "./src/sync-paused-reason.ts",

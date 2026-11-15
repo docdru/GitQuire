@@ -160,9 +160,6 @@ msgstr "{0, plural, one {प्लगइन} other {प्लगइन}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, one {प्रोजेक्ट नीति इस ऑडिट से टूटी लिंक का # परिणाम छिपाती है।} other {प्रोजेक्ट नीति इस ऑडिट से टूटी लिंक के # परिणाम छिपाती है।}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, one {स्किल} other {स्किल}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} पहले से मौजूद है। कोई �
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} आरंभ किया गया ({projectEntries, plural, one {# प्रविष्टि} other {# प्रविष्टियाँ}})"
 
-msgid "{packName} skill installed."
-msgstr "{packName} स्किल इंस्टॉल हो गई।"
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} पहले ही सेट अप हो चुका था। कुछ करने को नहीं।"
 
@@ -481,9 +475,6 @@ msgstr "{settingsDescriptorLabel} प्रॉपर्टी"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, one {स्किल} other {स्किल}}"
 
 msgid "{slot} color — {0}"
 msgstr "{slot} रंग — {0}"
@@ -2139,9 +2130,6 @@ msgstr "फ़ाइल अपलोड नहीं हो सकी। सं�
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "फ़ाइल अपलोड नहीं हो सकी। संलग्नक फ़ोल्डर अज्ञात वेरिएबल {variables} का उपयोग करता है। इसे सेटिंग में संलग्नक के अंतर्गत ठीक करें।"
 
-msgid "Count skill installs publicly"
-msgstr "स्किल इंस्टॉल की गिनती सार्वजनिक रूप से करें"
-
 msgid "Cover focal position"
 msgstr "कवर की फ़ोकल स्थिति"
 
@@ -3480,9 +3468,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "आपके AI एजेंट को यहाँ काम करने का तरीका बताता है।"
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install या https://example.com"
@@ -6633,12 +6618,6 @@ msgstr "एक पेज"
 msgid "size limit"
 msgstr "आकार सीमा"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "स्किल “{conflictName}” इंस्टॉल नहीं की गई — उस नाम की आपकी अपनी स्किल पहले से मौजूद है। पैक वाला संस्करण चाहिए तो अपनी स्किल का नाम बदलें।"
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "{conflictHosts} के लिए स्किल “{conflictName}” इंस्टॉल नहीं की गई — वहाँ उस नाम की आपकी अपनी स्किल पहले से मौजूद है। पैक वाला संस्करण चाहिए तो अपनी स्किल का नाम बदलें।"
-
 msgid "Skip"
 msgstr "छोड़ें"
 
@@ -8099,9 +8078,6 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "जब आप किसी बाहरी लिंक पर माउस ले जाते हैं, तो पेज के पूर्वावलोकन का मेटाडेटा लाने के लिए उसका URL गंतव्य साइट को भेजा जाता है — हर पूर्वावलोकित लिंक के लिए एक अनुरोध।"
 
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "जब आप कोई प्रकाशित स्किल इंस्टॉल करें, तो स्किल निर्देशिका (skills.sh) को बताएँ ताकि उसकी इंस्टॉल गिनती सही रहे। यह स्किल का नाम, उसकी स्रोत रिपॉज़िटरी, और वह किन एजेंट टूल में गई यह भेजता है — फ़ाइलों की सामग्री कभी नहीं, और किसी निजी, स्थानीय या हाथ से लिखे स्रोत की स्किल के लिए कभी नहीं। हर मशीन पर हर स्किल के लिए एक बार।"
-
 msgid "Where should it live?"
 msgstr "यह कहाँ रहना चाहिए?"
 
@@ -8176,9 +8152,6 @@ msgstr "YAML या JSON, दोनों में से किसी भी b
 
 msgid "yesterday"
 msgstr "कल"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "“{0}” नाम की आपकी अपनी स्किल पहले से मौजूद है — पैक वाला संस्करण इंस्टॉल नहीं होगा और आपकी स्किल में कोई बदलाव नहीं होगा। पैक वाला संस्करण इंस्टॉल करने के लिए अपनी स्किल का नाम बदलें।"
 
 msgid "You are here"
 msgstr ""

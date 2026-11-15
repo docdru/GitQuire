@@ -117,20 +117,6 @@ describe('bindConfigDoc — current()', () => {
 });
 
 describe('bindConfigDoc — patch()', () => {
-  test('rejects malformed private-origin patches without changing the synced document', () => {
-    const binding = bindSyncedConfigDoc('user');
-    const origin = 'https://skills.example.com';
-    expect(binding.patch({ skills: { trustedPrivateOrigins: [origin] } }).ok).toBe(true);
-    const before = doc.getText('source').toString();
-    expect(
-      binding.patch({ skills: { trustedPrivateOrigins: [origin, `${origin}/`] } }),
-    ).toMatchObject({
-      ok: false,
-      error: { code: 'SCHEMA_INVALID' },
-    });
-    expect(doc.getText('source').toString()).toBe(before);
-    binding.dispose();
-  });
   test('allows removing providers and hosts without discarding sibling declarations', () => {
     const binding = bindSyncedConfigDoc('user');
     expect(
@@ -216,7 +202,6 @@ describe('bindConfigDoc — patch()', () => {
       appearance: {
         sidebar: {
           showOnlyMarkdownFiles: true,
-          showSkillsSection: false,
           showOkFolders: true,
         },
       },
@@ -226,11 +211,9 @@ describe('bindConfigDoc — patch()', () => {
     if (!result.ok) throw new Error('expected ok');
     expect(result.appliedPaths).toEqual([
       'appearance.sidebar.showOnlyMarkdownFiles',
-      'appearance.sidebar.showSkillsSection',
       'appearance.sidebar.showOkFolders',
     ]);
     expect(result.effective.appearance?.sidebar?.showOnlyMarkdownFiles).toBe(true);
-    expect(result.effective.appearance?.sidebar?.showSkillsSection).toBe(false);
     expect(result.effective.appearance?.sidebar?.showOkFolders).toBe(true);
     binding.dispose();
   });

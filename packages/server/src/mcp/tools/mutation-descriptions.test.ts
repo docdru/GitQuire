@@ -6,13 +6,12 @@ import { afterAll, beforeAll, expect, test } from 'vitest';
 import { ConfigSchema } from '../../config/schema.ts';
 import { installJsonSchemaDialect } from '../json-schema-dialect.ts';
 import { register as registerEdit } from './edit.ts';
-import { register as registerInstall } from './install.ts';
 import { register as registerMove } from './move.ts';
 import { register as registerPalette } from './palette.ts';
 import { register as registerRestoreVersion } from './restore-version.ts';
 import { register as registerWrite } from './write.ts';
 
-const names = ['write', 'edit', 'move', 'install', 'restore_version'];
+const names = ['write', 'edit', 'move', 'restore_version'];
 const client = new Client({ name: 'mutation-contract-test', version: '1' });
 let tools: Awaited<ReturnType<Client['listTools']>>['tools'];
 
@@ -27,7 +26,6 @@ beforeAll(async () => {
     registerWrite,
     registerEdit,
     registerMove,
-    registerInstall,
     registerPalette,
     registerRestoreVersion,
   ]) {
@@ -80,8 +78,6 @@ test('move keeps its identity promise and default summary in the actual listing'
   );
   expect(description('move')).toContain('If omitted');
   expect(description('move')).toContain('Renamed X → Y');
-  expect(description('move')).toContain('moveState');
-  expect(description('move')).toContain('on SUCCESS only');
 });
 
 test('write retains critical guidance even if a client strips parameter descriptions', () => {
@@ -130,45 +126,3 @@ test.each(['write', 'edit'])(
     });
   },
 );
-
-test('install teaches copy refresh and divergence behavior before parameter descriptions are stripped', () => {
-  const text = description('install');
-  for (const pin of [
-    'link = live symlink for source updates',
-    'copy = separate folder, refreshed on watcher/startup sync while unedited',
-    'Hand-edited copies fork; differing copies are preserved and cannot be converted',
-    'editor removal may succeed and leave them in place',
-  ]) {
-    expect(text).toContain(pin);
-  }
-  const schema = tools.find((item) => item.name === 'install')?.inputSchema;
-  expect(schema?.properties?.mode).toMatchObject({
-    description: expect.stringContaining('refreshed on watcher/startup sync while unedited'),
-  });
-  expect(schema?.properties?.remove).toMatchObject({
-    description: expect.stringContaining(
-      'differing copies are preserved and may remain after success',
-    ),
-  });
-  expect(schema?.properties?.convert).toMatchObject({
-    description: expect.stringContaining('a differing copy is refused'),
-  });
-  expect(JSON.stringify({ description: text, inputSchema: schema })).not.toMatch(
-    /not refreshed after source edits|Hand-edited forks are refused/,
-  );
-});
-
-test.each(['edit', 'restore_version'])('%s keeps skill copy expectations accurate', (name) => {
-  expect(description(name)).toContain('unedited copies refresh');
-  expect(description(name)).toContain('watcher/startup sync');
-  expect(description(name)).toContain('Hand-edited copies are preserved');
-});
-
-test('install describes preserved differing copies without attributing an edit to the copy', () => {
-  const schema = tools.find((item) => item.name === 'install')?.outputSchema;
-  expect(schema?.properties?.warningCodes).toMatchObject({
-    description: expect.stringContaining(
-      '`place-fork-refused`: a copy differing from the current source was left alone rather than deleted.',
-    ),
-  });
-});

@@ -14,7 +14,6 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { createContentFilter } from './content-filter.ts';
 import {
   contentHash,
   type DiskEvent,
@@ -24,7 +23,6 @@ import {
   startWatcher,
   type WatcherHandle,
 } from './file-watcher.ts';
-import { scanInPlaceSkillDirs, skillRootPathsFor } from './in-place-skills.ts';
 import { getMetrics } from './metrics.ts';
 import { createManualClock, type ManualClock } from './watcher-clock.test-helper.ts';
 import { createWatcherDouble } from './watcher-double.test-helper.ts';
@@ -415,36 +413,6 @@ describe('timed freshness re-check', () => {
     walkGate.release?.();
     await until(() => getMetrics().freshnessPasses > passesBefore, 'the timed pass to finish');
     expect(eventsFor(events, 'create', 'delivered')).toHaveLength(1);
-  });
-
-  test('a skill folder added outside the app between passes is admitted by the next timed pass', async () => {
-    const filter = createContentFilter({
-      projectDir: contentDir,
-      contentDir,
-      inPlaceSkillDirs: scanInPlaceSkillDirs(contentDir),
-      rescanInPlaceSkillDirs: () => scanInPlaceSkillDirs(contentDir),
-      skillRootPaths: skillRootPathsFor(contentDir),
-    });
-    double = createWatcherDouble();
-    handle = await startWatcher(
-      contentDir,
-      async (event) => {
-        events.push(event);
-      },
-      filter,
-      { nativeBackend: double.backend, clock, freshnessIntervalMs: 5_000 },
-    );
-    const bundle = join(contentDir, '.claude', 'skills', 'added-later');
-    mkdirSync(bundle, { recursive: true });
-    writeFileSync(
-      join(bundle, 'SKILL.md'),
-      '---\nname: added-later\ndescription: fixture\n---\n\n# Added later\n',
-    );
-    expect(filter.isExcluded('.claude/skills/added-later/SKILL.md')).toBe(true);
-
-    await runTimedPass(5_000);
-    expect(eventsFor(events, 'create', '.claude/skills/added-later/SKILL')).toHaveLength(1);
-    expect(handle.getFileIndex().has('.claude/skills/added-later/SKILL')).toBe(true);
   });
 
   test('a change intake applies while a timed pass walks is kept, and the pass walks the tree once', async () => {

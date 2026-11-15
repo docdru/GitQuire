@@ -177,16 +177,12 @@ describe('content.attachmentFolderPath', () => {
 });
 
 describe('appearance.sidebar view toggles', () => {
-  test('sidebar defaults: hidden files off, only-markdown off, Skills section on, .ok folders off, grouping on', () => {
+  test('sidebar defaults: hidden files off, only-markdown off, .ok folders off', () => {
     const sidebar = ConfigSchema.parse({ appearance: { sidebar: {} } }).appearance.sidebar;
     expect(sidebar).toEqual({
       showHiddenFiles: false,
       showOnlyMarkdownFiles: false,
-      showSkillsSection: true,
       showOkFolders: false,
-      showSkillGroups: true,
-      pinnedProjectSkills: [],
-      pinnedGlobalSkills: [],
     });
   });
 
@@ -196,22 +192,14 @@ describe('appearance.sidebar view toggles', () => {
         sidebar: {
           showHiddenFiles: true,
           showOnlyMarkdownFiles: true,
-          showSkillsSection: false,
           showOkFolders: true,
-          showSkillGroups: false,
-          pinnedProjectSkills: ['mine'],
-          pinnedGlobalSkills: ['ponytail'],
         },
       },
     }).appearance.sidebar;
     expect(sidebar).toEqual({
       showHiddenFiles: true,
       showOnlyMarkdownFiles: true,
-      showSkillsSection: false,
       showOkFolders: true,
-      showSkillGroups: false,
-      pinnedProjectSkills: ['mine'],
-      pinnedGlobalSkills: ['ponytail'],
     });
   });
 });
@@ -626,23 +614,5 @@ describe('git.hosts.<host>.provider (declared GitHub Enterprise Server hosts)', 
       agentSettable: false,
       reload: 'boot',
     });
-  });
-});
-
-describe('telemetry.skillInstallReports.enabled', () => {
-  test('defaults to off at every nesting level', () => {
-    expect(ConfigSchema.parse({}).telemetry.skillInstallReports.enabled).toBe(false);
-    expect(ConfigSchema.parse({ telemetry: {} }).telemetry.skillInstallReports.enabled).toBe(false);
-    expect(
-      ConfigSchema.parse({ telemetry: { skillInstallReports: {} } }).telemetry.skillInstallReports
-        .enabled,
-    ).toBe(false);
-  });
-
-  test('an explicit opt-in is kept', () => {
-    expect(
-      ConfigSchema.parse({ telemetry: { skillInstallReports: { enabled: true } } }).telemetry
-        .skillInstallReports.enabled,
-    ).toBe(true);
   });
 });

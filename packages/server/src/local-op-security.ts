@@ -2,7 +2,6 @@ import { lstatSync, realpathSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { homedir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
-import { ALLOWED_GIT_TRANSPORTS } from '@inkeep/open-knowledge-core/skills-catalog';
 import { errorResponse } from './http/error-response.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import { buildIngressPolicy, type IngressPolicy, isPeerAdmitted } from './ingress-policy.ts';
@@ -10,7 +9,12 @@ import { getLogger } from './logger.ts';
 
 const log = getLogger('local-op-security');
 
-const ALLOWED_URL_PATTERNS: readonly RegExp[] = ALLOWED_GIT_TRANSPORTS;
+const ALLOWED_URL_PATTERNS: readonly RegExp[] = [
+  /^https?:\/\//i,
+  /^ssh:\/\//i,
+  /^git:\/\//i,
+  /^git@[^:]+:/,
+];
 
 const BLOCKED_URL_PATTERNS: RegExp[] = [
   /^file:\/\//i,

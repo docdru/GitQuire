@@ -2,7 +2,6 @@ import { planHasOutstandingWork } from '@inkeep/open-knowledge-core/seed-plan-wo
 import { plural } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowLeft } from 'lucide-react';
-import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { CreatedItemsList, CreatedItemsSkeleton } from '@/components/CreatedItemsList';
@@ -165,23 +164,11 @@ export function SeedDialog({ open, onOpenChange, onSeedApplied, initialPackId }:
     if (result.ok) {
       const packName = selectedPack?.name ?? t`starter pack`;
       const projectEntries = result.result.applied;
-      const skillReinstalled = planAtClick.packSkills?.some((s) => s.pending) === true;
       const message =
         projectEntries > 0
           ? t`${packName} initialized (${plural(projectEntries, { one: '# entry', other: '# entries' })})`
-          : skillReinstalled
-            ? t`${packName} skill installed.`
-            : t`${packName} was already set up. Nothing to do.`;
+          : t`${packName} was already set up. Nothing to do.`;
       toast.success(message);
-      for (const conflict of result.result.packSkillConflicts ?? []) {
-        const conflictName = conflict.name;
-        const conflictHosts = conflict.hosts?.join(', ');
-        toast.warning(
-          conflictHosts === undefined || conflictHosts === ''
-            ? t`Skill "${conflictName}" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version.`
-            : t`Skill "${conflictName}" was not installed for ${conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version.`,
-        );
-      }
       onSeedApplied?.();
       onOpenChange(false);
     } else {
@@ -302,7 +289,6 @@ function SeedDialogBody({
             <Trans>The folders and templates are already here, so there's nothing to add.</Trans>
           </p>
         </div>
-        <PackSkillConflicts plan={phase.plan} />
       </div>
     );
   }
@@ -319,24 +305,6 @@ function SeedDialogBody({
           ))}
         </div>
       ) : null}
-      <PackSkillConflicts plan={phase.plan} />
-    </div>
-  );
-}
-
-function PackSkillConflicts({ plan }: { plan: OkScaffoldPlan }): ReactElement | null {
-  const conflicts = plan.packSkills?.filter((s) => s.conflict) ?? [];
-  if (conflicts.length === 0) return null;
-  return (
-    <div className="rounded-md border border-warning/40 p-3 text-xs text-foreground">
-      {conflicts.map((s) => (
-        <p key={s.name}>
-          <Trans>
-            You already have your own skill named "{s.name}" — the pack's version will not be
-            installed, and yours won't be touched. Rename yours to install the pack's version.
-          </Trans>
-        </p>
-      ))}
     </div>
   );
 }

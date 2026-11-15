@@ -10,7 +10,6 @@ import {
   createTargetNamespace,
   type DependencySlug,
   dependencySlug,
-  extractSkillRefs,
   getWikiLinkText,
   type IdentityKey,
   identityKey,
@@ -167,7 +166,6 @@ interface BranchGraphState {
   forward: Map<string, Set<string>>;
   externalForward: Map<string, Map<string, { label: string | null; snippet: string | null }>>;
   externalBackward: Map<string, Map<string, { label: string | null; snippet: string | null }>>;
-  skillRefs: Map<string, Set<string>>;
   sourceLinks: Map<string, readonly ExtractedWikiLink[]>;
   inventoryEpoch: number;
 }
@@ -183,7 +181,6 @@ interface SerializedBranchGraphState {
     string,
     Array<{ url: string; label: string | null; snippet: string | null }>
   >;
-  skillRefs?: Record<string, string[]>;
   sourceLinks?: Record<string, ExtractedWikiLink[]>;
   mtimes?: Record<string, number>;
 }
@@ -202,7 +199,6 @@ function createEmptyState(): BranchGraphState {
     forward: new Map(),
     externalForward: new Map(),
     externalBackward: new Map(),
-    skillRefs: new Map(),
     sourceLinks: new Map(),
     inventoryEpoch: 0,
   };
@@ -1135,9 +1131,6 @@ function serializeState(state: BranchGraphState): SerializedBranchGraphState {
           .sort((a, b) => a.url.localeCompare(b.url)),
       ]),
     ),
-    skillRefs: Object.fromEntries(
-      [...state.skillRefs.entries()].map(([source, names]) => [source, [...names].sort()]),
-    ),
     sourceLinks: Object.fromEntries(
       [...state.sourceLinks.entries()].map(([source, links]) => [
         source,
@@ -1218,9 +1211,6 @@ function deserializeState(data: SerializedBranchGraphState): BranchGraphState {
     ),
     externalForward,
     externalBackward: buildExternalBackward(externalForward),
-    skillRefs: new Map(
-      Object.entries(data.skillRefs ?? {}).map(([source, names]) => [source, new Set(names)]),
-    ),
     sourceLinks: new Map(
       Object.entries(data.sourceLinks ?? {}).map(([source, links]) => [
         source,
@@ -1295,62 +1285,12 @@ export class BacklinkIndex {
     return neighbors;
   }
 
-  private skillRefNeighbors(docName: string, branch = this.activeBranch): Set<string> {
-    const neighbors = new Set<string>();
-    const state = this.getState(branch);
-    if (!state.forward.has(docName)) return neighbors;
-    const parsed = parseSkillBundleDocAnyScope(docName);
-    if (!parsed) return neighbors;
-    const globalScope = docName.startsWith(MANAGED_ARTIFACT_PREFIX_SKILL);
-    const refs = state.skillRefs.get(docName);
-    if (refs) {
-      for (const ref of refs) {
-        if (ref === parsed.name) continue;
-        if (globalScope) {
-          const target = skillLiveDocName('global', ref);
-          if (state.forward.has(target)) neighbors.add(target);
-        } else {
-          for (const candidate of state.forward.keys()) {
-            const other = parseSkillBundleDocAnyScope(candidate);
-            if (
-              other?.kind === 'skill' &&
-              other.name === ref &&
-              !candidate.startsWith(MANAGED_ARTIFACT_PREFIX_SKILL)
-            ) {
-              neighbors.add(candidate);
-            }
-          }
-        }
-      }
-    }
-    if (parsed.kind === 'skill') {
-      for (const [source, names] of state.skillRefs) {
-        if (source === docName || !names.has(parsed.name)) continue;
-        if (source.startsWith(MANAGED_ARTIFACT_PREFIX_SKILL) !== globalScope) continue;
-        if (state.forward.has(source)) neighbors.add(source);
-      }
-    }
-    return neighbors;
-  }
-
   private bundleNeighbors(docName: string, branch = this.activeBranch): ReadonlySet<string> {
     if (docName[0] !== '.' && !docName.startsWith(MANAGED_ARTIFACT_PREFIX_SKILL))
       return EMPTY_BUNDLE_NEIGHBORS;
     if (!parseSkillBundleDocAnyScope(docName)) return EMPTY_BUNDLE_NEIGHBORS;
     const neighbors = this.structuralBundleNeighbors(docName, branch);
-    for (const n of this.skillRefNeighbors(docName, branch)) neighbors.add(n);
     return neighbors;
-  }
-
-  private recordSkillRefs(docName: string, body: string, branch = this.activeBranch): void {
-    this.recordSkillRefsInto(this.getState(branch), docName, body);
-  }
-
-  private recordSkillRefsInto(state: BranchGraphState, docName: string, body: string): void {
-    if (!parseSkillBundleDocAnyScope(docName)) return;
-    const refs = extractSkillRefs(body);
-    if (refs.length === 0) state.skillRefs.delete(docName);
-    else state.skillRefs.set(docName, new Set(refs));
   }
 
   getActiveBranch(): string {
@@ -1507,7 +1447,6 @@ export class BacklinkIndex {
         ...wikiExternalLinks,
         ...mdExternalLinks.filter((link) => !externalSeen.has(link.url)),
       ];
-      this.recordSkillRefs(docName, body, branch);
       this.updateDocument(docName, merged, mergedExternal, branch, [
         ...wikiLinks,
         ...mdLinks,
@@ -1538,7 +1477,6 @@ export class BacklinkIndex {
     }
     const deleted = state.forward.delete(docName);
     state.externalForward.delete(docName);
-    state.skillRefs.delete(docName);
     state.sourceLinks.delete(docName);
     if (deleted) this.inventoryChanged(state, docName, false);
   }
@@ -2297,7 +2235,6 @@ export class BacklinkIndex {
         ];
         const targets = new Set<string>();
         const externalTargets = new Map<string, { label: string | null; snippet: string | null }>();
-        this.recordSkillRefsInto(state, docName, body);
         state.forward.set(docName, targets);
         state.sourceLinks.set(docName, [...wikiLinks, ...mdLinks, ...jsxLinks]);
         state.externalForward.set(docName, externalTargets);
@@ -2513,12 +2450,6 @@ export class BacklinkIndex {
           if (parseGlobalSkillBundleDoc(skillDocName)) {
             this.registerNodeOnly(skillDocName, branch);
             live.add(skillDocName);
-            try {
-              const raw = await readFile(join(dir, 'SKILL.md'), 'utf-8');
-              this.recordSkillRefs(skillDocName, stripFrontmatter(raw).body, branch);
-            } catch (err) {
-              log.warn({ dir, err }, 'global skill ref-scan failed; edges skipped');
-            }
           }
         }
         const refs: Array<{ docName: string }> = [];

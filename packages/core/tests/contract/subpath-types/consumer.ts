@@ -156,7 +156,6 @@ export type {
   detectEmbeddedHostFromBrowser,
   EmbeddedHost,
 } from '@inkeep/open-knowledge-core/constants/embedded-host';
-export type { SHOW_INSTALL_SKILL } from '@inkeep/open-knowledge-core/constants/feature-flags';
 export type { normalizeGitHostname } from '@inkeep/open-knowledge-core/constants/github';
 export type {
   isOrphanMode,
@@ -189,13 +188,6 @@ export type {
   DESKTOP_PRODUCTS,
   desktopChannelLabel,
 } from '@inkeep/open-knowledge-core/constants/product';
-export type {
-  AGENTS_SKILLS_ROOT,
-  isSkillRefCandidate,
-  OPENKNOWLEDGE_SKILLS_REPO,
-  PACK_SKILL_PREFIX,
-  SKILL_REF_RE,
-} from '@inkeep/open-knowledge-core/constants/skills';
 export type {
   UNINSTALL_FEEDBACK_EMAIL_MAX_LEN,
   UNINSTALL_FEEDBACK_NOTE_MAX_LEN,
@@ -473,9 +465,7 @@ export type {
   GitWorktreeStatusSuccess,
   HubEntry,
   HubsSuccessSchema,
-  interpretSkillMoveFailure,
   isSemanticSearchOffered,
-  isSkillMoveRetainedDestinationCode,
   LinkGraphSuccessSchema,
   LinkPreviewMetadata,
   LinkPreviewResponseSchema,
@@ -508,7 +498,6 @@ export type {
   SavedThemeUpdateSuccessSchema,
   SearchSemanticStatus,
   SearchSemanticStatusSchema,
-  SeedInstallPackSkillSuccess,
   SemanticIndexStatus,
   SemanticIndexStatusSchema,
   ServerInfoSuccessSchema,
@@ -528,20 +517,6 @@ export type {
   SharePublishResponseSchema,
   SharePublishVisibility,
   ShareTargetStatusResponse,
-  SKILL_NAME_REGEX,
-  SkillFolderLinkPreview,
-  SkillFolderLinkPreviewSchema,
-  SkillFrontmatter,
-  SkillInstallWarningCode,
-  SkillMoveFailureOutcome,
-  SkillOrigin,
-  SkillScope,
-  SkillsImportBulkSuccess,
-  SkillsListEntry,
-  SkillsListSuccessSchema,
-  SkillsReimportBulkSuccess,
-  SkillTargetsGetSuccess,
-  SkillTargetsGetSuccessSchema,
   SyncConflictContentSuccess,
   SyncConflictContentSuccessSchema,
   SyncConflictsSuccessSchema,
@@ -592,38 +567,6 @@ export type {
   classifyBranchMatch,
   ExpectedShareRepo,
 } from '@inkeep/open-knowledge-core/sharing';
-export type {
-  isSkillInstallTarget,
-  SkillInstallTarget,
-  SkillTargetEditor,
-  SkillTargetEditorSchema,
-  SkillUserTargetEditor,
-  SkillUserTargetEditorSchema,
-} from '@inkeep/open-knowledge-core/skill-targets/schema';
-export type {
-  CatalogSkill,
-  PluginBundleMetadata,
-  PluginSourceMetadata,
-  SkillDetail,
-  SkillDiscover,
-  SkillPreview,
-  SkillRefResolution,
-  SkillSearchResult,
-  SkillsInstalledSuccess,
-  SkillsSearchSuccess,
-} from '@inkeep/open-knowledge-core/skills-catalog/schema';
-export type { catalogRawScopeToOkScope } from '@inkeep/open-knowledge-core/skills-catalog/scope';
-export type {
-  ALWAYS_ON_TOKEN_BUDGET,
-  estimateSkillCost,
-  ON_TRIGGER_TOKEN_BUDGET,
-  SkillCostTiers,
-} from '@inkeep/open-knowledge-core/skills-catalog/skill-cost';
-export type {
-  isLocalSkillSource,
-  parseSkillsShCatalogSource,
-  skillsShSkillLinks,
-} from '@inkeep/open-knowledge-core/skills-catalog/source-fields';
 export type { SyncPausedReason } from '@inkeep/open-knowledge-core/sync-paused-reason';
 export type {
   DEFAULT_TERMINAL_PLACEMENT,

@@ -1,7 +1,7 @@
 ---
 title: OKF
 icon: LuGlobe
-description: Keep a project portable to Google's Open Knowledge Format with advisory rules, agent-readable schemas, an optional index generator, and a companion skill.
+description: Keep a project portable to Google's Open Knowledge Format with advisory rules, agent-readable schemas, and an optional index generator.
 ---
 
 The **OKF** project plugin checks whether a knowledge base stays portable to [Google's Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md) v0.2. Findings are advisory warnings and never block a save or an agent edit.
@@ -14,13 +14,7 @@ The **OKF** project plugin checks whether a knowledge base stays portable to [Go
 
 Open **Settings → Wiki administration → Plugins** and switch on **OKF**. The setting lands in the project's `.ok/config.yml`, so committing it gives every collaborator the same checks. Changes apply immediately, with no restart and no Save button.
 
-The plugin's settings page then holds its controls: a recommended agent skill, optional generated indexes, and one switch per rule.
-
-## Install the agent skill
-
-The plugin recommends **Open Knowledge Format guidance** (`okf-knowledge-base`), a project skill that helps agents choose document types, preserve provenance, and avoid inventing unsupported metadata. Click **Install skill** to add it. The [starter pack](/docs/workflows/supporting-open-knowledge-format) installs the same skill, so it may already be present. In that case the page shows **Already in project** and leaves the existing copy untouched.
-
-The skill is optional. The plugin's checks are the same with or without it.
+The plugin's settings page then holds its controls: optional generated indexes and one switch per rule.
 
 ## Maintain generated indexes
 
@@ -114,7 +108,6 @@ See the [configuration reference](/docs/reference/configuration) for the surroun
 | `.ok/okf/*.schema.json` | The matching frontmatter rule is enabled | Generated and gitignored. Deleted when the rule or plugin is switched off |
 | `**/index.md` | You opt into generated indexes | Generated. Manual edits are replaced |
 | `.gitattributes` | Generated indexes are enabled in a Git project | GitQuire manages only its scoped rule |
-| Project skill directory | You install the recommended skill or seed the OKF pack | Editable project skill |
 
 ## See also
 

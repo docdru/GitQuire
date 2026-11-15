@@ -16,7 +16,6 @@ import {
 } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
-import { applySkillWrite } from './content/skills-write.ts';
 import { getLogger } from './logger.ts';
 import { getMetrics, resetMetrics } from './metrics.ts';
 import {
@@ -2321,37 +2320,6 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
 
     expect(tree).toContain('intro.md');
     expect(tree.filter((p) => p.includes('.tmp.'))).toEqual([]);
-  });
-
-  test('an in-flight skill write is not staged into a checkpoint', async () => {
-    const skillsRoot = resolve(projectRoot, '.ok/skills');
-    const skillFile = resolve(skillsRoot, 'trip-log/SKILL.md');
-    fsTracedRecorder.renameSources.length = 0;
-
-    const written = applySkillWrite({
-      boundary: projectRoot,
-      skillsRoot,
-      name: 'trip-log',
-      body: '# Steps\n\nDo the thing.',
-      frontmatter: { name: 'trip-log', description: 'Use when logging a fishing trip.' },
-    });
-    expect(written.ok).toBe(true);
-
-    const inFlight = fsTracedRecorder.renameSources.find((from) =>
-      from.startsWith(`${skillFile}.`),
-    );
-    expect(inFlight).toBeDefined();
-    writeFileSync(inFlight as string, '# half written\n');
-
-    const result = await saveVersion(shadow, '.', [writer]);
-    const sg = shadowGit(shadow);
-    const tree = (await sg.raw('ls-tree', '-r', '--name-only', result.checkpointRef))
-      .split('\n')
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
-
-    expect(tree).toContain('.ok/skills/trip-log/SKILL.md');
-    expect(tree.filter((p) => p.startsWith('.ok/skills/trip-log/SKILL.md.'))).toEqual([]);
   });
 
   test('a WIP commit drops machine-local paths a previous build had staged', async () => {

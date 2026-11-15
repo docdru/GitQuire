@@ -1,7 +1,4 @@
-import {
-  SKILL_INSTALL_WARNING_CODES,
-  summarizeLintPluginFailures,
-} from '@inkeep/open-knowledge-core';
+import { summarizeLintPluginFailures } from '@inkeep/open-knowledge-core';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import { z } from 'zod';
 
@@ -20,7 +17,6 @@ import {
   hocuspocusNotRunningError,
   httpGet,
   httpPost,
-  INSTALL_WARNING_CODE_GLOSS,
   normalizeDocName,
   okReservedPathRedirect,
   outputSchemaWithText,
@@ -941,15 +937,8 @@ describe('alignWarningCodes — defensive normalization at trust boundary', () =
 });
 
 describe('okReservedPathRedirect', () => {
-  test('.ok/skills/ path → skill-verb redirect naming write-skill', () => {
-    const msg = okReservedPathRedirect('.ok/skills/research/SKILL');
-    expect(msg).not.toBeNull();
-    expect(msg).toContain('`skill` target');
-    expect(msg).toContain('open-knowledge-write-skill');
-  });
-
   test('leading slash is tolerated', () => {
-    expect(okReservedPathRedirect('/.ok/skills/x/SKILL')).toContain('`skill` target');
+    expect(okReservedPathRedirect('/.ok/templates/x')).toContain('`template` target');
   });
 
   test('.ok/templates/ path → template-verb redirect', () => {
@@ -973,11 +962,5 @@ describe('okReservedPathRedirect', () => {
   test('non-.ok path → null (normal docName error stands)', () => {
     expect(okReservedPathRedirect('meetings/standup')).toBeNull();
     expect(okReservedPathRedirect('docs/.hidden/x')).toBeNull();
-  });
-});
-
-describe('INSTALL_WARNING_CODE_GLOSS', () => {
-  test.each([...SKILL_INSTALL_WARNING_CODES])('defines %s', (code) => {
-    expect(INSTALL_WARNING_CODE_GLOSS).toContain(`\`${code}\`:`);
   });
 });

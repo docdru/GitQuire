@@ -1,4 +1,3 @@
-import type { SkillScope } from '@inkeep/open-knowledge-core/schemas/api';
 import { DerivedViewChannelSchema } from '@inkeep/open-knowledge-core/schemas/cc1';
 import type { DerivedViewChannel } from '@/lib/cc1';
 
@@ -102,84 +101,4 @@ export function subscribeToTemplatesChanged(onChange: () => void): () => void {
   const listener = () => onChange();
   window.addEventListener(TEMPLATES_CHANGED_EVENT, listener);
   return () => window.removeEventListener(TEMPLATES_CHANGED_EVENT, listener);
-}
-
-const SKILLS_CHANGED_EVENT = 'open-knowledge:skills-changed';
-
-export function emitSkillsChanged(): void {
-  window.dispatchEvent(new CustomEvent(SKILLS_CHANGED_EVENT));
-}
-
-export function subscribeToSkillsChanged(onChange: () => void): () => void {
-  const listener = () => onChange();
-  window.addEventListener(SKILLS_CHANGED_EVENT, listener);
-  return () => window.removeEventListener(SKILLS_CHANGED_EVENT, listener);
-}
-
-const SKILL_SCOPE_MOVED_EVENT = 'open-knowledge:skill-scope-moved';
-
-export interface SkillScopeMovedDetail {
-  name: string;
-  fromScope: SkillScope;
-  toScope: SkillScope;
-}
-
-export function emitSkillScopeMoved(detail: SkillScopeMovedDetail): void {
-  window.dispatchEvent(new CustomEvent(SKILL_SCOPE_MOVED_EVENT, { detail }));
-}
-
-export function subscribeToSkillScopeMoved(
-  onMove: (detail: SkillScopeMovedDetail) => void,
-): () => void {
-  const listener = (e: Event) => onMove((e as CustomEvent<SkillScopeMovedDetail>).detail);
-  window.addEventListener(SKILL_SCOPE_MOVED_EVENT, listener);
-  return () => window.removeEventListener(SKILL_SCOPE_MOVED_EVENT, listener);
-}
-
-const hiddenMovingSkills = new Set<string>();
-const movingSkillKey = (scope: SkillScope, name: string) => `${scope}\u0000${name}`;
-
-export function beginOptimisticSkillMove(fromScope: SkillScope, name: string): void {
-  hiddenMovingSkills.add(movingSkillKey(fromScope, name));
-  emitSkillsChanged();
-}
-
-export function endOptimisticSkillMove(fromScope: SkillScope, name: string): void {
-  if (hiddenMovingSkills.delete(movingSkillKey(fromScope, name))) emitSkillsChanged();
-}
-
-const pendingSkillWrites = new Map<string, number>();
-
-export function beginSkillWrite(scope: SkillScope, name: string): void {
-  const key = movingSkillKey(scope, name);
-  pendingSkillWrites.set(key, (pendingSkillWrites.get(key) ?? 0) + 1);
-  emitSkillsChanged();
-}
-
-export function endSkillWrite(scope: SkillScope, name: string): void {
-  const key = movingSkillKey(scope, name);
-  const count = pendingSkillWrites.get(key);
-  if (count === undefined) return;
-  if (count <= 1) pendingSkillWrites.delete(key);
-  else pendingSkillWrites.set(key, count - 1);
-  emitSkillsChanged();
-}
-
-export function isSkillWritePending(scope: SkillScope, name: string): boolean {
-  return pendingSkillWrites.has(movingSkillKey(scope, name));
-}
-
-export function pendingSkillWritesKey(): string {
-  return [...pendingSkillWrites.keys()].sort().join('\u0001');
-}
-
-export function isOptimisticallyMoving(scope: SkillScope, name: string): boolean {
-  return hiddenMovingSkills.has(movingSkillKey(scope, name));
-}
-
-export function applyOptimisticSkillMoves<T extends { scope: SkillScope; name: string }>(
-  skills: readonly T[],
-): readonly T[] {
-  if (hiddenMovingSkills.size === 0) return skills;
-  return skills.filter((s) => !hiddenMovingSkills.has(movingSkillKey(s.scope, s.name)));
 }

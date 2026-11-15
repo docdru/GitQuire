@@ -36,11 +36,6 @@ export const FIELDS_USER_PREFERENCES: FieldDef[] = [
     label: msg`Open preview when agent edits`,
     description: msg`When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.).`,
   },
-  {
-    path: ['telemetry', 'skillInstallReports', 'enabled'],
-    label: msg`Count skill installs publicly`,
-    description: msg`When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine.`,
-  },
 ];
 
 export const FIELDS_THEME_PLUGIN: FieldDef[] = [

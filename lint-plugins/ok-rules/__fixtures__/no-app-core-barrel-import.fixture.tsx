@@ -38,7 +38,7 @@ import { startServer } from '@inkeep/open-knowledge-core/server'; // n pre-exist
 import { bootServer } from '@inkeep/open-knowledge-server'; // n sibling package
 import { cliMain } from '@inkeep/open-knowledge'; // n prefix of the barrel name
 import { extra } from '@inkeep/open-knowledge-core-extra'; // n longer package sharing the prefix
-export { SHOW_INSTALL_SKILL } from '@inkeep/open-knowledge-core/constants/feature-flags'; // n subpath re-export
+export { CC1_CONTRACT_VERSION } from '@inkeep/open-knowledge-core/constants/cc1'; // n subpath re-export
 export * from '@inkeep/open-knowledge-core/bridge'; // n subpath star re-export
 export type BridgeModule = typeof import('@inkeep/open-knowledge-core/bridge'); // n subpath import type
 export const nDynamic = () => import('@inkeep/open-knowledge-core/markdown/lint'); // n subpath dynamic import

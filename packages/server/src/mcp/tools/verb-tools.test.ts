@@ -1,6 +1,5 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, test } from 'vitest';
 import { createTempDirFactory } from '../../../../../test-support/temp-dir.test-helper.ts';
 import { type Config, ConfigSchema } from '../../config/schema.ts';
@@ -320,49 +319,5 @@ describe('write({ document }) — template-availability nudge on create', () => 
       expect(r.isError).toBeUndefined();
       expect(textOf(r)).not.toContain('templates you can start from');
     });
-  });
-});
-
-describe('D13 migration meta-test — no retired tool name survives in the skill surface', () => {
-  const RETIRED = [
-    'write_document',
-    'edit_document',
-    'edit_frontmatter',
-    'delete_document',
-    'folder_config',
-    'set_folder_rule',
-    'write_template',
-    'delete_template',
-    'rename_document',
-    'rename_folder',
-    'get_history',
-    'get_config',
-    'get_preview_url',
-    'get_components',
-    'get_authoring_palette',
-    'list_conflicts',
-    'get_conflict_content',
-  ];
-
-  function mdFiles(dir: string): string[] {
-    const out: string[] = [];
-    for (const entry of readdirSync(dir)) {
-      const p = join(dir, entry);
-      if (statSync(p).isDirectory()) out.push(...mdFiles(p));
-      else if (entry.endsWith('.md') || entry.endsWith('.mdx')) out.push(p);
-    }
-    return out;
-  }
-
-  test('packages/server/assets/skills/** teaches only the verb surface', () => {
-    const skillsDir = fileURLToPath(new URL('../../../assets/skills', import.meta.url));
-    const offenders: string[] = [];
-    for (const file of mdFiles(skillsDir)) {
-      const body = readFileSync(file, 'utf-8');
-      for (const name of RETIRED) {
-        if (body.includes(name)) offenders.push(`${file}: ${name}`);
-      }
-    }
-    expect(offenders).toEqual([]);
   });
 });

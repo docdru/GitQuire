@@ -11,8 +11,6 @@ import { register as registerEdit } from './edit.ts';
 import { register as registerExec } from './exec.ts';
 import { register as registerPreviewUrl } from './get-preview-url.ts';
 import { register as registerHistory } from './history.ts';
-import { register as registerImport } from './import.ts';
-import { register as registerInstall } from './install.ts';
 import { register as registerLinks } from './links.ts';
 import { register as registerLint } from './lint.ts';
 import { register as registerMove } from './move.ts';
@@ -21,7 +19,6 @@ import { register as registerRestoreVersion } from './restore-version.ts';
 import { register as registerSearch } from './search.ts';
 import { register as registerShareLink } from './share-link.ts';
 import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';
-import { register as registerSkills } from './skills.ts';
 import { register as registerWrite } from './write.ts';
 
 type ResolveCwd = (explicit?: string) => Promise<string>;
@@ -117,30 +114,13 @@ export function registerAllTools(server: ServerInstance, opts: RegisterAllToolsO
     resolveCwd: named('move'),
     identityRef: opts.identityRef,
   });
-  registerInstall(registrationServer, {
-    serverUrl: opts.serverUrl,
-    config: opts.config,
-    resolveCwd: named('install'),
-    identityRef: opts.identityRef,
-    localApi: opts.localApi,
-  });
-  registerImport(registrationServer, {
-    serverUrl: opts.serverUrl,
-    config: opts.config,
-    resolveCwd: named('import'),
-    identityRef: opts.identityRef,
-    localApi: opts.localApi,
-  });
+
   registerHistory(registrationServer, {
     serverUrl: opts.serverUrl,
     config: opts.config,
     resolveCwd: named('history'),
   });
-  registerSkills(registrationServer, {
-    serverUrl: opts.serverUrl,
-    config: opts.config,
-    resolveCwd: named('skills'),
-  });
+
   registerCheckpoint(registrationServer, {
     serverUrl: opts.serverUrl,
     config: opts.config,

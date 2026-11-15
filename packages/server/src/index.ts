@@ -72,15 +72,6 @@ export {
   formatAuditBrokenLinkSuppressionLine,
 } from './broken-link-suppression.ts';
 export {
-  type BuildSkillZipOptions,
-  type BuildSkillZipResult,
-  type BundleId,
-  buildSkillZip,
-  type ResolveBundledSkillDirOptions,
-  resolveBundledSkillDir,
-  validateSkillZip,
-} from './build-skill-zip.ts';
-export {
   CC1_CONTRACT_VERSION,
   CC1Broadcaster,
   isConfigDoc,
@@ -386,7 +377,6 @@ export { registerAllTools } from './mcp/tools/index.ts';
 export {
   encodeDocName,
   encodeFolderRoute,
-  encodeSkillRoute,
   resolveUiInfo,
 } from './mcp/tools/preview-url.ts';
 export {
@@ -606,57 +596,6 @@ export {
   SingleFileProjectOverrideError,
   seedEphemeralProjectDir,
 } from './single-file-open.ts';
-export {
-  BUNDLE_IDS,
-  BUNDLE_SCOPE,
-  BUNDLE_SKILL_NAME,
-  bundleSkillMdPath,
-  ONBOARDING_BUNDLE_IDS,
-  USER_GLOBAL_BUNDLE_IDS,
-} from './skill-bundles.ts';
-export {
-  type BuildAndOpenSkillOptions,
-  type BuildAndOpenSkillResult,
-  type BuildAndOpenSkillStatus,
-  buildAndOpenSkill,
-  type DetectedSkillHost,
-  detectUserSkillHosts,
-  type InstallUserSkillOptions,
-  type InstallUserSkillResult,
-  installUserSkill,
-  type ResolvedSkillHost,
-  resolveBuiltinSkillHosts,
-  type SkillInstallLogger,
-  type SpawnLike,
-} from './skill-install.ts';
-export {
-  recordSkillInstallEvent,
-  SKILL_INSTALL_EVENTS_FILENAME,
-  type SkillInstallEvent,
-  type SkillInstallEventOutcome,
-  type SkillInstallEventSurface,
-} from './skill-install-events.ts';
-export { resolveSkillInstallReportSettings } from './skill-install-report-config.ts';
-export {
-  readAllTargets,
-  readBundleDecision,
-  readServerPackageVersion,
-  readSkillInstallStateSnapshot,
-  readTargetRecordedAt,
-  readTargetVersion,
-  resolveBundleEnabled,
-  SKILL_STATE_TARGETS,
-  type SkillInstallStateSnapshot,
-  type SkillStateLogger,
-  type SkillStateTarget,
-  writeBundleDecision,
-  writeTargetVersion,
-} from './skill-state.ts';
-export {
-  isSkillInstallReportEnvOptOut,
-  reportSkillInstall,
-  type SkillInstallReport,
-} from './skills-sh-install-report.ts';
 export { type SpawnDetachedOutcome, spawnDetached } from './spawn-detached.ts';
 export {
   assertCompatibleStateManifest,

@@ -160,9 +160,6 @@ msgstr "{0, plural, other {플러그인}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, other {프로젝트 정책이 이 감사에서 깨진 링크 결과 #개를 숨깁니다.}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, other {스킬}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name}이 이미 존재합니다. 다른 이름을 선택하세�
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} 초기화됨 ({projectEntries, plural, other {#개 항목}})"
 
-msgid "{packName} skill installed."
-msgstr "{packName} 스킬이 설치되었습니다."
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName}은 이미 설정되어 있습니다. 수행할 작업이 없습니다."
 
@@ -481,9 +475,6 @@ msgstr "{settingsDescriptorLabel} 속성"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, other {스킬}}"
 
 msgid "{slot} color — {0}"
 msgstr "{slot} 색상, {0}"
@@ -2143,9 +2134,6 @@ msgstr "파일을 업로드할 수 없습니다. 첨부 파일 폴더의 한 폴
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "파일을 업로드할 수 없습니다. 첨부 파일 폴더에 알 수 없는 변수 {variables}가 있습니다. 설정의 첨부 파일에서 수정하세요."
 
-msgid "Count skill installs publicly"
-msgstr "스킬 설치 횟수를 공개적으로 집계"
-
 msgid "Cover focal position"
 msgstr "표지 초점 위치"
 
@@ -3484,9 +3472,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "AI 에이전트가 여기서 작업하는 방법을 안내합니다."
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install 또는 https://example.com"
@@ -6637,12 +6622,6 @@ msgstr "한 페이지"
 msgid "size limit"
 msgstr "크기 제한"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "스킬 \"{conflictName}\"을 설치하지 않았습니다. 같은 이름의 내 스킬이 이미 있습니다. 팩 버전을 사용하려면 내 스킬 이름을 바꾸세요."
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "스킬 \"{conflictName}\"은 {conflictHosts}에 설치하지 않았습니다. 그곳에 같은 이름의 내 스킬이 이미 있습니다. 팩 버전을 사용하려면 내 스킬 이름을 바꾸세요."
-
 msgid "Skip"
 msgstr "건너뛰기"
 
@@ -8103,9 +8082,6 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "외부 링크 위에 마우스를 올리면 미리보기 메타데이터를 가져오기 위해 URL을 대상 사이트로 전송합니다. 미리보기 하나마다 한 번 요청합니다."
 
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "게시된 스킬을 설치하면 skills.sh에 알려 설치 횟수가 정확해집니다. 스킬 이름, 소스 저장소 및 사용된 에이전트 도구를 전송하지만 파일 내용은 전송하지 않으며, 비공개·로컬·직접 입력한 소스의 스킬에는 적용되지 않습니다. 컴퓨터당 스킬별로 한 번만 전송합니다."
-
 msgid "Where should it live?"
 msgstr "어디에 둘까요?"
 
@@ -8180,9 +8156,6 @@ msgstr "base16 레이아웃에서 YAML 또는 JSON"
 
 msgid "yesterday"
 msgstr "어제"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "이름이 \"{0}\"인 내 스킬이 이미 있습니다. 팩 버전은 설치되지 않고 내 스킬도 변경되지 않습니다. 팩 버전을 설치하려면 내 스킬 이름을 바꾸세요."
 
 msgid "You are here"
 msgstr ""

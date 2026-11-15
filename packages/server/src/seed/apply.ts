@@ -1,14 +1,8 @@
 import { existsSync, mkdirSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import type { LintPluginId } from '@inkeep/open-knowledge-core';
 import { tracedWriteFileSync } from '../fs-traced.ts';
-import { scanInPlaceSkills } from '../in-place-skills.ts';
 import { CONFIG_FILENAME } from '../init-project.ts';
-import {
-  installPackSkill,
-  resolvePackSkillHome,
-  resolvePackSkillSources,
-} from './install-pack-skill.ts';
 import { assertEntryPathInProject } from './path-safety.ts';
 import { enableRequiredPlugins } from './required-plugins.ts';
 import { buildStarterFolderFrontmatterYaml, DEFAULT_PACK_ID, resolvePack } from './starter.ts';
@@ -104,18 +98,6 @@ export async function applySeed(plan: ScaffoldPlan, opts: SeedOptions = {}): Pro
     }
   }
 
-  const packSkillInstall = await installPackSkill(projectDir, pack.id);
-
-  if (!('refusal' in resolvePackSkillHome(projectDir))) {
-    const presentNames = new Set(scanInPlaceSkills(projectDir).map((sk) => sk.name));
-    for (const { name } of resolvePackSkillSources(pack.id)) {
-      const inStore = existsSync(join(projectDir, '.ok', 'skills', name, 'SKILL.md'));
-      if (!presentNames.has(name) && !inStore) {
-        errors.push({ path: name, error: 'skill source could not be authored' });
-      }
-    }
-  }
-
   let pluginsEnabled: LintPluginId[] = [];
   try {
     pluginsEnabled = enableRequiredPlugins(projectDir, pack.requiredPlugins ?? []);
@@ -130,8 +112,6 @@ export async function applySeed(plan: ScaffoldPlan, opts: SeedOptions = {}): Pro
     applied,
     errors,
     durationMs: Date.now() - started,
-    packSkillsInstalled: packSkillInstall.editors,
-    packSkillConflicts: packSkillInstall.conflicts,
     pluginsEnabled,
   };
 }

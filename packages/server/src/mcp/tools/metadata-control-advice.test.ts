@@ -83,11 +83,6 @@ test.each([
     args: { template: { path: 'templates/existing', frontmatter: { description: 'Updated' } } },
     kind: 'template',
   },
-  {
-    label: 'skill description',
-    args: { skill: { name: 'existing', description: 'Updated' } },
-    kind: 'skill',
-  },
 ])('$label refusal repairs stored body without naming absent replace', async ({ args, kind }) => {
   const count = writes;
   const result = await client.callTool({ name: 'edit', arguments: args });
@@ -106,16 +101,5 @@ test('template edit description states full-body precondition before a call', as
   const schema = tools.tools.find((tool) => tool.name === 'edit')?.inputSchema;
   expect(schema?.properties?.template).toMatchObject({
     description: expect.stringContaining('Edits resubmit the full stored template body'),
-  });
-});
-
-test('skill edit description distinguishes body and bundle-file preconditions', async () => {
-  const tools = await client.listTools();
-  const schema = tools.tools.find((tool) => tool.name === 'edit')?.inputSchema;
-  expect(schema?.properties?.skill).toMatchObject({
-    description: expect.stringContaining('Without file, edits resubmit the full stored skill body'),
-  });
-  expect(schema?.properties?.skill).toMatchObject({
-    description: expect.stringContaining('With file, edits resubmit the full file content'),
   });
 });

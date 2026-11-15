@@ -1,17 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { currentCliCommandName, OK_PROJECT_MARKER } from '@inkeep/open-knowledge-core';
-import { SKILLS_LOCK_REL } from '@inkeep/open-knowledge-core/skills-catalog';
 import { isProjectRoot } from '../fs/find-project-root.ts';
-import { scanInPlaceSkills } from '../in-place-skills.ts';
-import { readSkillsLockFile } from '../skills-lock-store.ts';
-import {
-  classifyPresentPackSkill,
-  OLD_PACK_SKILL_NAME,
-  type PackSkillHomeRefusal,
-  resolvePackSkillHome,
-  resolvePackSkillSources,
-} from './install-pack-skill.ts';
 import { assertEntryPathInProject } from './path-safety.ts';
 import { isPluginEnabled } from './required-plugins.ts';
 import { DEFAULT_PACK_ID, resolvePack, STARTER_FOLDER_FRONTMATTER_FILENAME } from './starter.ts';
@@ -146,40 +136,6 @@ export async function planSeed(opts: SeedOptions = {}): Promise<ScaffoldPlan> {
     }
   }
 
-  const sources = resolvePackSkillSources(pack.id);
-  const home = sources.length > 0 ? resolvePackSkillHome(projectDir) : null;
-  const homeRefusal: PackSkillHomeRefusal | undefined =
-    home !== null && 'refusal' in home ? home.refusal : undefined;
-  const scan = sources.length > 0 ? scanInPlaceSkills(projectDir) : [];
-  const inPlaceDirByName = new Map(scan.map((sk) => [sk.name, join(projectDir, sk.dir)]));
-  const lock = sources.length > 0 ? readSkillsLockFile(join(projectDir, ...SKILLS_LOCK_REL)) : null;
-  const packSkills = sources.map(({ name }) => {
-    const storeDir = join(projectDir, '.ok', 'skills', name);
-    const legacyName = OLD_PACK_SKILL_NAME[name];
-    const legacyDir =
-      legacyName === undefined
-        ? null
-        : (inPlaceDirByName.get(legacyName) ??
-          (existsSync(join(projectDir, '.ok', 'skills', legacyName, 'SKILL.md'))
-            ? join(projectDir, '.ok', 'skills', legacyName)
-            : null));
-    const presentDir =
-      inPlaceDirByName.get(name) ??
-      legacyDir ??
-      (existsSync(join(storeDir, 'SKILL.md')) ? storeDir : null);
-    const presentName =
-      inPlaceDirByName.has(name) || legacyDir === null ? name : (legacyName as string);
-    const conflict =
-      presentDir !== null &&
-      lock !== null &&
-      classifyPresentPackSkill(pack.id, presentName, presentDir, lock) === 'foreign';
-    return {
-      name,
-      pending: presentDir === null && homeRefusal === undefined,
-      ...(conflict ? { conflict: true } : {}),
-    };
-  });
-
   const requiredPlugins = (pack.requiredPlugins ?? []).map((id) => ({
     id,
     pending: !isPluginEnabled(projectDir, id),
@@ -189,10 +145,6 @@ export async function planSeed(opts: SeedOptions = {}): Promise<ScaffoldPlan> {
     created,
     skipped,
     warnings,
-    ...(packSkills.length > 0 ? { packSkills } : {}),
     ...(requiredPlugins.length > 0 ? { requiredPlugins } : {}),
-    ...(packSkills.length > 0 && homeRefusal !== undefined
-      ? { packSkillHomeRefusal: homeRefusal }
-      : {}),
   };
 }

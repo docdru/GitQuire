@@ -94,20 +94,6 @@ describe('okf pack — minimal starter contract', () => {
       'concepts/getting-started.md',
     ]);
   });
-
-  test('the companion skill targets v0.2 and explains the plugin rather than the scaffold', () => {
-    const skillSource = readFileSync(
-      join(import.meta.dirname, '..', '..', 'assets', 'skills', 'packs', 'okf', 'SKILL.md'),
-      'utf-8',
-    );
-    const { frontmatter, body } = stripFrontmatter(skillSource);
-    const parsed = parseFrontmatterYaml(unwrapFrontmatterFences(frontmatter));
-
-    expect(parsed.map?.description).toContain('v0.2 guidance');
-    expect(body).toContain("## OpenKnowledge's `okf` plugin");
-    expect(body).toContain('continuous portability feedback');
-    expect(body).not.toMatch(/starter pack/i);
-  });
 });
 
 describe('okf pack — OKF §11 conformance by construction', () => {
@@ -117,7 +103,6 @@ describe('okf pack — OKF §11 conformance by construction', () => {
       const docs = collectMarkdown(projectDir).filter((p) => !RESERVED_FILES.has(p));
       expect(docs).toContain('concepts/getting-started.md');
       expect(docs).toContain('concepts/.ok/templates/concept.md');
-      expect(docs.some((path) => path.endsWith('/SKILL.md'))).toBe(true);
 
       for (const relPath of docs) {
         const raw = readFileSync(join(projectDir, relPath), 'utf-8');
@@ -241,43 +226,6 @@ describe('okf pack — OKF §11 conformance by construction', () => {
       await cleanup();
     }
   });
-
-  test('rule 2 holds with an editor present: the installed pack skill markdown carries a non-empty type', async () => {
-    const projectDir = await mkdtemp(join(tmpdir(), 'seed-okf-skill-'));
-    try {
-      mkdirSync(join(projectDir, '.ok'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
-      const platformSkillDir = join(projectDir, '.claude', 'skills', 'open-knowledge');
-      mkdirSync(platformSkillDir, { recursive: true });
-      writeFileSync(
-        join(platformSkillDir, 'SKILL.md'),
-        '---\nname: open-knowledge\n---\n',
-        'utf-8',
-      );
-
-      const plan = await planSeed({ projectDir, packId: 'okf' });
-      const result = await applySeed(plan, { projectDir, packId: 'okf' });
-      expect(result.errors).toEqual([]);
-      expect(result.packSkillsInstalled).toContain('Claude Code');
-
-      const packSkillDir = join(projectDir, '.claude', 'skills', 'okf-knowledge-base');
-      const skillDocs = collectMarkdown(packSkillDir).map((p) => join(packSkillDir, p));
-      expect(skillDocs.length).toBeGreaterThanOrEqual(1);
-      for (const abs of skillDocs) {
-        const raw = readFileSync(abs, 'utf-8');
-        const { frontmatter } = stripFrontmatter(raw);
-        expect(frontmatter, `${abs}: installed skill doc must carry frontmatter`).not.toBe('');
-        const parsed = parseFrontmatterYaml(unwrapFrontmatterFences(frontmatter));
-        const type = parsed.map?.type;
-        expect(
-          typeof type === 'string' && type.trim().length > 0,
-          `${abs}: installed skill doc must carry a non-empty \`type\` (OKF rule 2), got ${JSON.stringify(type)}`,
-        ).toBe(true);
-      }
-    } finally {
-      await rm(projectDir, { recursive: true, force: true });
-    }
-  });
 });
 
 const OKF_LINT_CONFIG: LinterConfig = {
@@ -287,7 +235,7 @@ const OKF_LINT_CONFIG: LinterConfig = {
 };
 
 describe('okf pack — the okf lint rules find nothing in the seeded bundle', () => {
-  test('every produced .md, including the dot-directory templates and pack skill, yields zero okf findings', async () => {
+  test('every produced .md, including the dot-directory templates, yields zero okf findings', async () => {
     const { projectDir, cleanup } = await seedOkf();
     try {
       const files = collectMarkdown(projectDir);
@@ -296,7 +244,6 @@ describe('okf pack — the okf lint rules find nothing in the seeded bundle', ()
       expect(files).not.toContain('log.md');
       expect(files.filter((relPath) => relPath.endsWith('/index.md'))).toEqual([]);
       expect(files.some((relPath) => relPath.includes('.ok/templates/'))).toBe(true);
-      expect(files.some((relPath) => relPath.endsWith('SKILL.md'))).toBe(true);
 
       for (const relPath of files) {
         const source = readFileSync(join(projectDir, relPath), 'utf-8');
@@ -331,21 +278,6 @@ describe('knowledge-base + okf pack compatibility', () => {
         expect(files).toContain('external-sources/.ok/templates/clip.md');
         expect(files).toContain('research/.ok/templates/research-log.md');
         expect(files).toContain('articles/.ok/templates/article.md');
-
-        const installedSkillNames = files
-          .filter((relPath) => relPath.endsWith('/SKILL.md'))
-          .map((relPath) => {
-            const source = readFileSync(join(projectDir, relPath), 'utf-8');
-            const { frontmatter } = stripFrontmatter(source);
-            return parseFrontmatterYaml(unwrapFrontmatterFences(frontmatter)).map?.name;
-          })
-          .sort();
-        expect(installedSkillNames).toEqual([
-          'consolidate-notes',
-          'knowledge-base',
-          'okf-knowledge-base',
-          'research-with-sources',
-        ]);
 
         for (const relPath of files) {
           const source = readFileSync(join(projectDir, relPath), 'utf-8');

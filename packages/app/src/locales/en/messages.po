@@ -160,9 +160,6 @@ msgstr "{0, plural, one {Plugin} other {Plugins}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, one {Skill} other {Skills}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} already exists. Pick a different name."
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 
-msgid "{packName} skill installed."
-msgstr "{packName} skill installed."
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} was already set up. Nothing to do."
 
@@ -481,9 +475,6 @@ msgstr "{settingsDescriptorLabel} properties"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr "{shown, plural, one {# item} other {# items}}"
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, one {skill} other {skills}}"
 
 msgid "{slot} color — {0}"
 msgstr "{slot} color — {0}"
@@ -2143,9 +2134,6 @@ msgstr "Couldn't upload the file. The attachment folder uses {filenameVariable} 
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 
-msgid "Count skill installs publicly"
-msgstr "Count skill installs publicly"
-
 msgid "Cover focal position"
 msgstr "Cover focal position"
 
@@ -3484,9 +3472,6 @@ msgstr "Group by page"
 
 msgid "Group by person"
 msgstr "Group by person"
-
-msgid "Guides your AI agents on how to work here."
-msgstr "Guides your AI agents on how to work here."
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install or https://example.com"
@@ -6637,12 +6622,6 @@ msgstr "Single page"
 msgid "size limit"
 msgstr "size limit"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-
 msgid "Skip"
 msgstr "Skip"
 
@@ -8103,9 +8082,6 @@ msgstr "When this is on, your assistant works in the draft you have open, or in 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-
 msgid "Where should it live?"
 msgstr "Where should it live?"
 
@@ -8180,9 +8156,6 @@ msgstr "YAML or JSON, in either base16 layout."
 
 msgid "yesterday"
 msgstr "yesterday"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
 
 msgid "You are here"
 msgstr "You are here"

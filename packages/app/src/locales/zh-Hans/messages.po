@@ -160,9 +160,6 @@ msgstr "{0, plural, other {插件}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, other {项目策略从此次审计中隐藏了 # 个失效链接问题。}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, other {技能}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} 已存在。请换一个名称。"
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} 已初始化（{projectEntries, plural, other {# 个条目}}）"
 
-msgid "{packName} skill installed."
-msgstr "已安装 {packName} 技能。"
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} 之前已设置好，无需操作。"
 
@@ -481,9 +475,6 @@ msgstr "{settingsDescriptorLabel} 属性"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, other {技能}}"
 
 msgid "{slot} color — {0}"
 msgstr "{slot} 颜色 — {0}"
@@ -2143,9 +2134,6 @@ msgstr "无法上传文件。附件文件夹的同一个文件夹名称中多次
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "无法上传文件。附件文件夹使用了未知变量 {variables}。请在设置的“附件”中修正。"
 
-msgid "Count skill installs publicly"
-msgstr "公开统计技能安装量"
-
 msgid "Cover focal position"
 msgstr "封面焦点位置"
 
@@ -3484,9 +3472,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "指导你的 AI 智能体在这里如何工作。"
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install 或 https://example.com"
@@ -6637,12 +6622,6 @@ msgstr "单页"
 msgid "size limit"
 msgstr "大小限制"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "未安装技能“{conflictName}”——你已有同名的自有技能。如需使用入门包中的版本，请重命名你自己的技能。"
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "未为 {conflictHosts} 安装技能“{conflictName}”——你在那里已有同名的自有技能。如需使用入门包中的版本，请重命名你自己的技能。"
-
 msgid "Skip"
 msgstr "跳过"
 
@@ -8103,9 +8082,6 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "把鼠标悬停在外部链接上时，它的 URL 会发送到目标站点以获取页面的预览元数据——每个被预览的链接一次请求。"
 
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "当你安装一个已发布的技能时，会告知技能目录（skills.sh），让它的安装量统计保持准确。发送的内容包括技能名称、它的来源仓库，以及它被安装到了哪些 AI 工具——绝不包含文件内容，也绝不会为来自私有、本地或手动输入来源的技能发送。每个技能在每台电脑上只发送一次。"
-
 msgid "Where should it live?"
 msgstr "它应该保存在哪里？"
 
@@ -8180,9 +8156,6 @@ msgstr "YAML 或 JSON，两种 base16 布局都可以。"
 
 msgid "yesterday"
 msgstr "昨天"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "你已有名为“{0}”的自有技能——不会安装入门包中的版本，你的技能也不会被改动。如需安装入门包版本，请重命名你自己的技能。"
 
 msgid "You are here"
 msgstr ""

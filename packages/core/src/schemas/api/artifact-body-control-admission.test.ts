@@ -1,10 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import {
-  SkillMoveRequestSchema,
-  SkillPutRequestSchema,
-  TemplateMoveRequestSchema,
-  TemplatePutRequestSchema,
-} from './tags-search.ts';
+import { TemplateMoveRequestSchema, TemplatePutRequestSchema } from './tags-search.ts';
 
 const excludedCodePoints = Array.from({ length: 32 }, (_, code) => code).filter(
   (code) => ![9, 10, 13].includes(code),
@@ -19,16 +14,6 @@ const fields = [
     label: 'TemplateMoveRequestSchema',
     schema: TemplateMoveRequestSchema,
     request: { fromFolder: '', fromName: 'meeting', toFolder: '', toName: 'renamed' },
-  },
-  {
-    label: 'SkillPutRequestSchema',
-    schema: SkillPutRequestSchema,
-    request: { name: 'review', frontmatter: { name: 'review', description: 'Review code' } },
-  },
-  {
-    label: 'SkillMoveRequestSchema',
-    schema: SkillMoveRequestSchema,
-    request: { scope: 'project', fromName: 'review', toName: 'renamed' },
   },
 ] as const;
 const allowed = '\tline\ncarriage\rreturn\r\nPrintable \\u0000 \\u001F \\x00 😀\u007f\u0080\u009f';

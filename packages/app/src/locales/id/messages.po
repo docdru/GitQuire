@@ -160,9 +160,6 @@ msgstr "{0, plural, other {Plugin}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, other {Kebijakan proyek menyembunyikan # temuan tautan rusak dari audit ini.}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, other {Keterampilan}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} sudah ada. Pilih nama lain."
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} diinisialisasi ({projectEntries, plural, other {# entri}})"
 
-msgid "{packName} skill installed."
-msgstr "Keterampilan {packName} terpasang."
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} sudah disiapkan. Tidak ada yang perlu dilakukan."
 
@@ -481,9 +475,6 @@ msgstr "Properti {settingsDescriptorLabel}"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, other {keterampilan}}"
 
 msgid "{slot} color — {0}"
 msgstr "Warna {slot} — {0}"
@@ -2139,9 +2130,6 @@ msgstr "Tidak dapat mengunggah berkas. Folder lampiran memakai {filenameVariable
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Tidak dapat mengunggah berkas. Folder lampiran memakai variabel tak dikenal {variables}. Perbaiki di Lampiran, di Pengaturan."
 
-msgid "Count skill installs publicly"
-msgstr "Hitung pemasangan keterampilan secara publik"
-
 msgid "Cover focal position"
 msgstr "Posisi fokus sampul"
 
@@ -3480,9 +3468,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "Memandu agen AI Anda tentang cara bekerja di sini."
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install atau https://contoh.com"
@@ -6633,12 +6618,6 @@ msgstr "Satu halaman"
 msgid "size limit"
 msgstr "batas ukuran"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "Skill “{conflictName}” tidak dipasang — kamu sudah punya skill sendiri dengan nama itu. Ganti nama milikmu jika ingin versi dari paket."
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "Skill “{conflictName}” tidak dipasang untuk {conflictHosts} — di sana kamu sudah punya skill sendiri dengan nama itu. Ganti nama milikmu jika ingin versi dari paket."
-
 msgid "Skip"
 msgstr "Lewati"
 
@@ -8099,9 +8078,6 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Ketika Anda mengarahkan kursor ke tautan eksternal, URL-nya dikirim ke situs tujuan untuk mengambil metadata pratinjau halaman itu — satu permintaan per tautan yang dipratinjau."
 
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "Ketika Anda memasang keterampilan yang diterbitkan, direktori keterampilan (skills.sh) diberi tahu agar hitungan pemasangannya akurat. Yang dikirim adalah nama keterampilannya, repositori sumbernya, dan alat agen mana yang menerimanya — tidak pernah isi berkas, dan tidak pernah untuk keterampilan dari sumber pribadi, lokal, atau yang diketik manual. Sekali per keterampilan per komputer."
-
 msgid "Where should it live?"
 msgstr "Di mana ia sebaiknya berada?"
 
@@ -8176,9 +8152,6 @@ msgstr "YAML atau JSON, dalam salah satu tata letak base16."
 
 msgid "yesterday"
 msgstr "kemarin"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "Kamu sudah punya skill sendiri bernama “{0}” — versi dari paket tidak akan dipasang, dan milikmu tidak akan diubah. Ganti nama milikmu untuk memasang versi paket."
 
 msgid "You are here"
 msgstr ""

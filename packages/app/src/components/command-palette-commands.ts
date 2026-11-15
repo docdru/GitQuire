@@ -6,7 +6,6 @@ import {
   type DockMoveSide,
   evaluateCommandAvailability,
 } from '@inkeep/open-knowledge-core/commands/command-identity';
-import { SHOW_INSTALL_SKILL } from '@inkeep/open-knowledge-core/constants/feature-flags';
 import {
   OPEN_KNOWLEDGE_DISCORD_URL,
   OPEN_KNOWLEDGE_DOCS_URL,
@@ -252,7 +251,6 @@ function paletteCoreContext(ctx: PaletteCommandContext): CommandContext {
     canExpandAll: ctx.viewMenuState.canExpandAll !== false,
     canCollapseAll: ctx.viewMenuState.canCollapseAll !== false,
     hasActiveDoc: ctx.activeDocName !== null,
-    showInstallSkill: SHOW_INSTALL_SKILL,
   };
 }
 

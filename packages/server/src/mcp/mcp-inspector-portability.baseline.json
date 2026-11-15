@@ -24,12 +24,6 @@
     "rule": "untyped-schema"
   },
   {
-    "tool": "delete",
-    "schema": "outputSchema",
-    "path": "properties.skill.properties.files.items.additionalProperties",
-    "rule": "untyped-schema"
-  },
-  {
     "tool": "edit",
     "schema": "inputSchema",
     "path": "properties.document.properties.frontmatter.additionalProperties.anyOf[3].items",
@@ -381,12 +375,6 @@
     "tool": "write",
     "schema": "outputSchema",
     "path": "properties.documents.items.additionalProperties",
-    "rule": "untyped-schema"
-  },
-  {
-    "tool": "write",
-    "schema": "outputSchema",
-    "path": "properties.skill.properties.files.items.additionalProperties",
     "rule": "untyped-schema"
   },
   {

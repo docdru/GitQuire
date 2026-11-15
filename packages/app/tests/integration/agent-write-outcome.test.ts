@@ -1,15 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import {
-  chmodSync,
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  renameSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
+import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AGENT_WRITE_NEXT_STEPS, AGENT_WRITE_OUTCOMES } from '@inkeep/open-knowledge-core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -393,67 +383,6 @@ describe('what each refusal and each kind of document reports', () => {
       nextStep: 'retry',
     });
     expect(String(answer.body.detail)).toContain('Write the skill or template by its file path');
-  }, 60_000);
-
-  test('a global skill write is merged first, or keeps both, when its file changed outside', async () => {
-    const home = mkdtempSync(join(tmpdir(), 'outcome-skill-home-'));
-    cleanups.push(() => rmSync(home, { recursive: true, force: true }));
-    mkdirSync(join(home, '.agents', 'skills'), { recursive: true });
-    const server = await createTestServer({
-      gitEnabled: true,
-      watcherBackend: createWatcherDouble().backend,
-      debounce: 300_000,
-      maxDebounce: 600_000,
-      configHomedirOverride: home,
-    });
-    cleanups.push(() => server.cleanup());
-    const name = `outcome-skill-${randomUUID().slice(0, 8)}`;
-    const file = join(home, '.agents', 'skills', name, 'SKILL.md');
-    const put = async (body: string): Promise<Answer> => {
-      const response = await fetch(`${server.baseUrl}/api/skill`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scope: 'global',
-          name,
-          body,
-          frontmatter: { name, description: 'Use when checking write outcomes.' },
-          agentId: 'outcome-agent',
-        }),
-      });
-      return { status: response.status, body: (await response.json()) as Record<string, unknown> };
-    };
-    const outside = (find: string, replace: string) =>
-      writeFileSync(file, readFileSync(file, 'utf-8').replace(find, replace));
-
-    const created = await put('## Alpha\n\nAlpha paragraph.\n\n## Beta\n\nBeta paragraph.\n');
-    expect(created.body).toMatchObject({ created: true, outcome: 'applied', saved: true });
-    const edited = await put(
-      '## Alpha\n\nAlpha paragraph.\n\n## Beta\n\nBeta paragraph.\n\n## Gamma\n\nGamma paragraph.\n',
-    );
-    expect(edited.body).toMatchObject({ created: false, outcome: 'applied', saved: true });
-
-    outside('Beta paragraph.', 'Beta paragraph, edited outside.');
-    const merged = await put(
-      '## Alpha\n\nAlpha paragraph, edited by the agent.\n\n## Beta\n\nBeta paragraph.\n\n## Gamma\n\nGamma paragraph.\n',
-    );
-    expect(merged.status).toBe(200);
-    expect(merged.body).toMatchObject({
-      outcome: 'merged-first',
-      saved: true,
-      nextStep: 're-read',
-    });
-    expect(disk(file)).toContain('Alpha paragraph, edited by the agent.');
-    expect(disk(file)).toContain('Beta paragraph, edited outside.');
-
-    outside('Gamma paragraph.', 'Gamma paragraph, edited outside.');
-    const bothKept = await put(
-      '## Alpha\n\nAlpha paragraph, edited by the agent.\n\n## Beta\n\nBeta paragraph, edited outside.\n\n## Gamma\n\nGamma paragraph, edited by the agent.\n',
-    );
-    expect(bothKept.status).toBe(200);
-    expect(bothKept.body).toMatchObject({ outcome: 'both-kept', saved: true, nextStep: 're-read' });
-    expect(disk(file)).toContain('Gamma paragraph, edited by the agent.');
-    expect(disk(file)).toContain('Gamma paragraph, edited outside.');
   }, 60_000);
 });
 

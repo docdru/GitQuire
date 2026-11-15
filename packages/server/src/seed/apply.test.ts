@@ -2,7 +2,6 @@ import {
   existsSync,
   lstatSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
   symlinkSync,
   writeFileSync,
@@ -158,25 +157,6 @@ describe('applySeed — nested .ok/ era', () => {
       ).toBe(true);
     }
     expect(existsSync(join(projectDir, 'brain', 'log.md'))).toBe(true);
-  });
-
-  test('no adopted agent host: pack skills are skipped cleanly, not reported as errors', async () => {
-    const plan = await planSeed({ projectDir });
-    const result = await applySeed(plan, { projectDir });
-
-    expect(result.errors).toEqual([]);
-    expect(result.packSkillsInstalled).toEqual([]);
-    expect(existsSync(join(projectDir, '.claude'))).toBe(false);
-    expect(existsSync(join(projectDir, '.agents'))).toBe(false);
-  });
-
-  test('an adopted agent host receives the pack skills', async () => {
-    mkdirSync(join(projectDir, '.claude', 'skills'), { recursive: true });
-    const plan = await planSeed({ projectDir });
-    const result = await applySeed(plan, { projectDir });
-
-    expect(result.errors).toEqual([]);
-    expect(readdirSync(join(projectDir, '.claude', 'skills')).length).toBeGreaterThan(0);
   });
 
   test('reports an error for unknown template ids without crashing', async () => {

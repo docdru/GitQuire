@@ -80,60 +80,55 @@ afterAll(async () => {
   rmSync(root, { recursive: true, force: true });
 });
 
-describe.each(['template', 'skill'] as const)(
-  '%s new full-PUT input-domain qualification',
-  (kind) => {
-    test('metadata-only and partial-repair MCP edits refuse resubmitted historical controls without mutation', async () => {
-      for (const operation of ['metadata', 'repair']) {
-        const name = nameFor(kind, operation);
-        const path = pathFor(kind, name);
-        const original = readFileSync(path);
-        expect(original.toString('utf8')).toContain(historical);
-        await settleArtifactContributors(server);
-        const contributors = __formatContributorsForTests();
-        const edit =
-          operation === 'metadata'
-            ? kind === 'template'
-              ? { frontmatter: { description: 'Updated' } }
-              : { description: 'Updated' }
-            : { find: '\u0000', replace: '\\u0000' };
-        const target =
-          kind === 'template'
-            ? { template: { path: `templates/${name}`, ...edit } }
-            : { skill: { name, ...edit } };
-        const result = await client.callTool({ name: 'edit', arguments: target });
-        const fullBody =
-          operation === 'metadata' ? historical : historical.replace('\u0000', '\\u0000');
-        const code = operation === 'metadata' ? 0 : 31;
-        expectFullFieldRefusal(result, code, fullBody.indexOf(String.fromCharCode(code)));
-        expect.soft(readFileSync(path)).toEqual(original);
-        expect.soft(__formatContributorsForTests()).toBe(contributors);
-      }
-    });
-
-    test('fully clean full replacement of historical content succeeds byte-exact', async () => {
-      const name = nameFor(kind, 'clean');
+describe.each(['template'] as const)('%s new full-PUT input-domain qualification', (kind) => {
+  test('metadata-only and partial-repair MCP edits refuse resubmitted historical controls without mutation', async () => {
+    for (const operation of ['metadata', 'repair']) {
+      const name = nameFor(kind, operation);
       const path = pathFor(kind, name);
-      expect(readFileSync(path, 'utf8')).toContain(historical);
-      const cleanTarget =
+      const original = readFileSync(path);
+      expect(original.toString('utf8')).toContain(historical);
+      await settleArtifactContributors(server);
+      const contributors = __formatContributorsForTests();
+      const edit =
+        operation === 'metadata'
+          ? kind === 'template'
+            ? { frontmatter: { description: 'Updated' } }
+            : { description: 'Updated' }
+          : { find: '\u0000', replace: '\\u0000' };
+      const target =
         kind === 'template'
-          ? {
-              template: {
-                path: `templates/${name}`,
-                content: fullyClean,
-                frontmatter: { title: 'Clean' },
-              },
-            }
-          : { skill: { name, description: 'Clean', body: fullyClean } };
-      const clean = await client.callTool({ name: 'write', arguments: cleanTarget });
-      expect(clean.isError, JSON.stringify(clean.content)).not.toBe(true);
-      const raw = readFileSync(path, 'utf8');
-      expect(kind === 'template' ? instantiateDoc(raw) : stripFrontmatter(raw).body).toBe(
-        fullyClean,
-      );
-    });
-  },
-);
+          ? { template: { path: `templates/${name}`, ...edit } }
+          : { skill: { name, ...edit } };
+      const result = await client.callTool({ name: 'edit', arguments: target });
+      const fullBody =
+        operation === 'metadata' ? historical : historical.replace('\u0000', '\\u0000');
+      const code = operation === 'metadata' ? 0 : 31;
+      expectFullFieldRefusal(result, code, fullBody.indexOf(String.fromCharCode(code)));
+      expect.soft(readFileSync(path)).toEqual(original);
+      expect.soft(__formatContributorsForTests()).toBe(contributors);
+    }
+  });
+
+  test('fully clean full replacement of historical content succeeds byte-exact', async () => {
+    const name = nameFor(kind, 'clean');
+    const path = pathFor(kind, name);
+    expect(readFileSync(path, 'utf8')).toContain(historical);
+    const cleanTarget =
+      kind === 'template'
+        ? {
+            template: {
+              path: `templates/${name}`,
+              content: fullyClean,
+              frontmatter: { title: 'Clean' },
+            },
+          }
+        : { skill: { name, description: 'Clean', body: fullyClean } };
+    const clean = await client.callTool({ name: 'write', arguments: cleanTarget });
+    expect(clean.isError, JSON.stringify(clean.content)).not.toBe(true);
+    const raw = readFileSync(path, 'utf8');
+    expect(kind === 'template' ? instantiateDoc(raw) : stripFrontmatter(raw).body).toBe(fullyClean);
+  });
+});
 
 test('mixed MCP documents batch persists safe siblings before and after refusal without atomic rollback', async () => {
   const first = 'qualification-batch-safe-first';

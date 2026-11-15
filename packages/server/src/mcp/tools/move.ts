@@ -1,11 +1,5 @@
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  MANAGED_ARTIFACT_SCOPES,
-  SKILL_MOVE_STATE_CODES,
-  SKILL_RETENTION_LEDGER_CODES,
-  SKILL_SOURCE_STATE_CODES,
-} from '@inkeep/open-knowledge-core';
 import { z } from 'zod';
 import { SUPPORTED_DOC_EXTENSIONS } from '../../doc-extensions.ts';
 import type { AgentIdentity } from '../agent-identity.ts';
@@ -30,23 +24,14 @@ import {
   textPlusStructured,
   textResult,
 } from './shared.ts';
-import { moveSkill, moveSkillCrossScope, type SkillScope } from './skill-target.ts';
 import { resolveTemplatePath } from './verb-schemas.ts';
-
-export const CROSS_LEVEL_TRANSFER_CLAUSE =
-  'history does not transfer; the editor locations the destination level can host are re-projected there, while everything else — the `agents` hub, custom roots, and any editor with no skills root at that level — is removed at the source and not re-created at the destination. Re-add the ones the destination level can place with `install` (every removed location comes back as `droppedLocations`) — but only on a success: on a reported failure `droppedLocations` instead lists what this call had already removed at the source, so installing those at the destination spreads a retained copy rather than restoring anything (see `droppedLocations` for the per-`moveState` split).';
-
-export const DROPPED_LOCATIONS_DESCRIPTION =
-  'Skill cross-level move only: locations the skill occupied at the source that the move did not automatically re-project at the destination — the `agents` hub, custom roots, and any editor with no skills root at that level — as `install` location ids. On a SUCCESS they were removed at the source and not re-created at the destination, and the ones the destination level can place (the `agents` hub and custom roots) go back with `install` as `add`, together with `scope` set to the DESTINATION level; an editor with no skills root there cannot be placed at all — `install` accepts its id and projects nothing, so the move\'s own success text names the equivalent (an editor that reads the `agents` hub at that level takes `add: ["agents"]` instead) or states that no destination-level placement exists. Custom roots resolve against that level\'s base — your home directory at the Global level, the project directory at the Project level — not wherever the root lived before the move. On a FAILURE this is instead the set of source-side placements this call had already removed, and whether the skill moved is what `moveState` says: on `nothing-written`, `destination-removed`, `destination-stray` and the two retained states the source is still there, so do not pass these to `install` at the DESTINATION level — re-add them at the SOURCE level, and retry the move only once that state is resolved. On `destination-unreadable` and `partially-applied` the source removal may already have run, so inspect both locations before re-adding anywhere.';
 
 const DESCRIPTION = [
   'For .md/.mdx inspection before or after a move in a project with .ok/, use exec; native Read/Grep/Glob omit wiki context.',
-  'Move/rename a document, folder or asset with `{from, to}`, a template with `{template: {from, to}}`, or a skill with `{skill: {from, to, scope?, toScope?}}`. Choose one form. Requires the Hocuspocus server. Document/folder/asset kind is auto-detected.',
+  'Move/rename a document, folder or asset with `{from, to}`, or a template with `{template: {from, to}}`. Choose one form. Requires the Hocuspocus server. Document/folder/asset kind is auto-detected.',
   "Paths: docs accept optional .md/.mdx; folders are relative with no leading/trailing slash; assets include the extension. Templates use '<folder>/<name>'; inherited templates cannot move (move their local copy or owning folder). Template moves rewrite no inbound links.",
   'Links to the moved document keep pointing to it. The old path stops existing; do not leave a redirect or stub.',
   'Managed moves preserve wiki-link targets and rewrite supported inline Markdown links; renamed assets are reported.',
-  'Skills: scope defaults project; global means your home. Within one scope, rename keeps SKILL.md name in sync. A differing toScope moves between project/global: history does not transfer; supported editor locations are re-projected. Other locations are dropped; on SUCCESS only, use droppedLocations and the response to reinstall at the destination.',
-  'Cross-scope failures can leave partial state. Before retrying or reinstalling, read moveState and recovery text regardless of status. Never remove either copy without comparing source/destination when the outcome is missing or inconsistent.',
   'Optional summary: one-line outcome ≤80 chars. If omitted, defaults to "Renamed X → Y". Avoid secrets or PII; persisted to git history. Invalid/excluded paths, missing sources and existing destinations are refused; collisions report colliding[].',
 ].join('\n');
 
@@ -74,7 +59,6 @@ interface MoveArgs {
   from?: string;
   to?: string;
   template?: { from: string; to: string };
-  skill?: { from: string; to: string; scope?: SkillScope; toScope?: SkillScope };
   summary?: string;
   cwd?: string;
 }
@@ -165,27 +149,6 @@ export function register(server: ServerInstance, deps: MoveDeps): void {
           .describe(
             'Move/rename a TEMPLATE instead: `{ from: "<folder>/<name>", to: "<folder>/<name>" }`. Nested because a flat path cannot disambiguate a template under `.ok/templates/` from a same-named doc. Mutually exclusive with flat `from`/`to`.',
           ),
-        skill: z
-          .object({
-            from: z.string(),
-            to: z.string(),
-            scope: z
-              .enum(MANAGED_ARTIFACT_SCOPES)
-              .optional()
-              .describe(
-                'Source level (default "project"). "project" = this KB; "global" = your user home.',
-              ),
-            toScope: z
-              .enum(MANAGED_ARTIFACT_SCOPES)
-              .optional()
-              .describe(
-                `Destination level. Omit (or set equal to \`scope\`) for a within-level rename. Set to the OTHER level to move the skill across levels (project↔global): ${CROSS_LEVEL_TRANSFER_CLAUSE}`,
-              ),
-          })
-          .optional()
-          .describe(
-            `Move/rename a SKILL: \`{ from: "<name>", to: "<name>", scope?, toScope? }\`. Within one level: renames the skill folder and keeps SKILL.md \`name\` in sync. Across levels (\`toScope\` differs from \`scope\`): moves between Project and Global; ${CROSS_LEVEL_TRANSFER_CLAUSE} Mutually exclusive with flat \`from\`/\`to\`.`,
-          ),
         summary: summaryArgSchema.describe(
           'Optional one-line user-outcome (≤80 chars). Defaults to "Renamed X → Y". Persisted to git history.',
         ),
@@ -194,16 +157,16 @@ export function register(server: ServerInstance, deps: MoveDeps): void {
       outputSchema: outputSchemaWithText({
         ok: z.boolean().describe('Whether the move succeeded.'),
         kind: z
-          .enum(['file', 'folder', 'asset', 'template', 'skill'])
+          .enum(['file', 'folder', 'asset', 'template'])
           .optional()
           .describe(
-            'What was moved (`file`/`folder`/`asset` auto-detected from `from`; `template`/`skill` when that nested target was used).',
+            'What was moved (`file`/`folder`/`asset` auto-detected from `from`; `template` when that nested target was used).',
           ),
         committed: z
           .boolean()
           .optional()
           .describe(
-            'Template move, or a skill move WITHIN one level: `true` = tracked `git mv` (history preserved), `false` = plain disk rename. Always `false` on a cross-level skill move — history does not transfer.',
+            'Template move: `true` = tracked `git mv` (history preserved), `false` = plain disk rename.',
           ),
         renamed: z
           .array(
@@ -231,31 +194,6 @@ export function register(server: ServerInstance, deps: MoveDeps): void {
         colliding: looseObjectArray
           .optional()
           .describe('On a 409 collision: the conflicting from→to pairs.'),
-        crossScope: z
-          .boolean()
-          .optional()
-          .describe(
-            `Skill cross-level move only: \`true\` when the skill was moved between the Project and Global levels. ${CROSS_LEVEL_TRANSFER_CLAUSE}`,
-          ),
-        droppedLocations: z.array(z.string()).optional().describe(DROPPED_LOCATIONS_DESCRIPTION),
-        moveState: z
-          .enum(SKILL_MOVE_STATE_CODES)
-          .optional()
-          .describe(
-            'Skill cross-level move failures only: what is on disk, so you can decide whether to retry. Present on every cross-level skill-move failure this handler reports whose triple this build recognises as consistent, at whatever status it reports it. Do not read it as a 500-only concern: `destination-retained-blocking`, and the `nothing-written` collision that carries a `retentionLedger`, both arrive as 409, while `destination-retained` is the 500. Withheld here, together with `sourceState` and `retentionLedger`, when the three do not form a triple this build recognises as consistent; that case reports "The server returned an unrecognized or inconsistent move outcome. Do not remove either copy before comparing the source and destination." in the text instead, and is to be treated as unknown state, not as an ordinary collision. A request rejected before it runs — wrong method, an oversized or unreadable body, a timeout, or a body that fails schema validation against a differently-versioned server — carries none, as does a transport failure that never reached the server. Treat an absent `moveState` on a failure as unknown state, not as a state that cannot occur. `nothing-written` = THIS call wrote nothing, so it changed neither location; it says nothing about damage an earlier call left behind. Safe to retry once the refusal is addressed. `destination-removed` = the destination copy failed and was cleaned up; the source is intact; safe to retry. `destination-stray` = the destination copy failed and cleanup also failed; the source is intact but a stray copy remains; remove it before retrying. `destination-retained` = source removal failed and the complete destination copy was deliberately kept; a retry will collide with it, so read `sourceState` first. `destination-retained-blocking` = this call refused because the destination is a copy an EARLIER failed move retained; read `sourceState` before touching it — on `intact` it is a redundant duplicate and removing it unblocks the retry, otherwise do not delete it before reconciling it against the source, since it may hold the only copy of files that failed removal already deleted. `destination-unreadable` = the source was removed and the destination is not readable; do not retry, recover from history or a backup. `partially-applied` = an unexpected failure after the copy began left an indeterminate state; inspect both locations before doing anything.',
-          ),
-        sourceState: z
-          .enum(SKILL_SOURCE_STATE_CODES)
-          .optional()
-          .describe(
-            'Skill cross-level move failures only: accompanies both states that report a retained destination — `moveState: destination-retained` (this call kept it) and `moveState: destination-retained-blocking` (an earlier call did, and this retry was refused) — and reports what the SOURCE looked like when its removal failed. Every value is an as-of-then observation: on `destination-retained` this call took it, and on `destination-retained-blocking` it is replayed out of the record the earlier call wrote, so nothing has re-read the source since. `intact` = the source matched the content hash recorded before the move, so the retained destination copy is a redundant duplicate; it is safe to remove before retrying, and removing it is what unblocks the retry. `lossy` = the source no longer matched that hash, so it is partially removed; do not remove either location before recovering the missing source files from the retained copy. `unknown` = the source could not be verified against a known content hash, so whether files were lost is undetermined; do not remove either location before comparing them.',
-          ),
-        retentionLedger: z
-          .enum(SKILL_RETENTION_LEDGER_CODES)
-          .optional()
-          .describe(
-            'Skill cross-level move failures only: present when this call could not determine whether the occupant at the destination is a copy an earlier failed move retained. `unreadable` = the retained-destination ledger itself could not be read. `occupant-unverifiable` = the directory at the destination could not be verified against the copy this server recorded — either it could not be read at all, or it carries no SKILL.md to compare — so this server could not confirm whether it is the copy an earlier failed move retained. It accompanies `moveState: nothing-written` — that code is still true of this call, which wrote nothing — but do NOT read it as an ordinary collision: treat the occupant the way you would a `sourceState` other than `intact` and compare it against the source before deleting it. A triple this MCP process cannot recognise as consistent is withheld whole — `moveState`, `sourceState` and `retentionLedger` together — so once any server on this connection can emit this field, treat an absent `retentionLedger` on a `nothing-written` refusal that reports a destination collision (`urn:ok:error:doc-already-exists`) as unverified rather than as an unconditionally safe retry. The other `nothing-written` refusals — invalid arguments, no project root, no usable skill home — never reached a destination occupant to verify, so they stay safe to retry once the refusal is addressed.',
-          ),
       }),
     },
     async (args: MoveArgs) => {
@@ -305,36 +243,9 @@ export function register(server: ServerInstance, deps: MoveDeps): void {
         );
       }
 
-      if (args.skill !== undefined) {
-        if (args.from !== undefined || args.to !== undefined) {
-          return textResult(
-            'Error: pass EITHER flat `from`/`to` (document/folder/asset) OR `skill: { from, to }` — not both.',
-            true,
-          );
-        }
-        const fromScope = args.skill.scope ?? 'project';
-        if (args.skill.toScope !== undefined && args.skill.toScope !== fromScope) {
-          return moveSkillCrossScope(url, {
-            fromScope,
-            toScope: args.skill.toScope,
-            fromName: args.skill.from,
-            toName: args.skill.to,
-            summary: args.summary,
-            identity: deps.identityRef?.current,
-          });
-        }
-        return moveSkill(url, {
-          fromName: args.skill.from,
-          toName: args.skill.to,
-          scope: args.skill.scope,
-          summary: args.summary,
-          identity: deps.identityRef?.current,
-        });
-      }
-
       if (args.from === undefined || args.to === undefined) {
         return textResult(
-          'Error: provide both `from` and `to` (or use `template: { from, to }` to move a template, or `skill: { from, to }` to move/rename a skill).',
+          'Error: provide both `from` and `to` (or use `template: { from, to }` to move a template).',
           true,
         );
       }

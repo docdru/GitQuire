@@ -82,8 +82,7 @@
     "@parcel/watcher": "^2.5.6"
   },
   "scripts": {
-    "build": "tsdown && pnpm run build:skill-bundles",
-    "build:skill-bundles": "node --import tsx scripts/build-skill-bundles.ts",
+    "build": "tsdown",
     "typecheck": "pnpm run typecheck:bash && pnpm run typecheck:test-helper-callers && tsrs",
     "test": "vitest run",
     "test:shard1": "vitest run --shard=1/4",

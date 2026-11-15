@@ -1,18 +1,9 @@
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { STARTER_PACKS } from '@inkeep/open-knowledge-server';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
 import { runSeed } from './seed.ts';
 
@@ -131,86 +122,6 @@ describe('runSeed — no-op', () => {
     expect(second.status).toBe('no-op');
     expect(second.exitCode).toBe(0);
     expect(second.message).toContain('already seeded');
-  });
-
-  test('is NOT a no-op when a pack skill was deleted from a project that has an agent folder', async () => {
-    scaffoldOkDir(testDir);
-    mkdirSync(join(testDir, '.claude'), { recursive: true });
-    await runSeed({ cwd: testDir, yes: true });
-    rmSync(join(testDir, '.claude', 'skills'), { recursive: true, force: true });
-    rmSync(join(testDir, OK_DIR, 'skills'), { recursive: true, force: true });
-
-    const preview = await runSeed({ cwd: testDir, dryRun: true });
-    expect(preview.status).not.toBe('no-op');
-    const pending = preview.plan?.packSkills?.filter((s) => s.pending) ?? [];
-    expect(pending.length).toBeGreaterThan(0);
-
-    const applied = await runSeed({ cwd: testDir, yes: true });
-    expect(applied.status).toBe('applied');
-    for (const skill of pending) {
-      expect(existsSync(join(testDir, '.claude', 'skills', skill.name, 'SKILL.md'))).toBe(true);
-    }
-  });
-
-  test('with no agent folder, pack skills are not pending and re-runs stay a no-op', async () => {
-    scaffoldOkDir(testDir);
-    await runSeed({ cwd: testDir, yes: true });
-
-    const second = await runSeed({ cwd: testDir, yes: true });
-    expect(second.status).toBe('no-op');
-    expect(second.plan?.packSkills?.some((s) => s.pending)).toBe(false);
-    expect(second.plan?.packSkillHomeRefusal).toBe('no-agent-folder');
-    expect(second.message).toContain('skills were not installed');
-    expect(second.message).toContain('.claude/');
-  });
-
-  test('an agent folder symlinked outside the project gets the symlink-specific guidance', async () => {
-    scaffoldOkDir(testDir);
-    const outside = mkdtempSync(join(tmpdir(), 'ok-seed-outside-'));
-    try {
-      symlinkSync(outside, join(testDir, '.claude'));
-      mkdirSync(join(outside, 'skills'), { recursive: true });
-
-      const result = await runSeed({ cwd: testDir, yes: true });
-
-      expect(result.plan?.packSkillHomeRefusal).toBe('home-escapes-project');
-      expect(result.message).toContain('symlink pointing outside the project');
-      expect(result.message).not.toContain('no agent folder for them');
-      expect(readdirSync(join(outside, 'skills'))).toEqual([]);
-    } finally {
-      rmSync(outside, { recursive: true, force: true });
-    }
-  });
-});
-
-describe('runSeed — refusal notes name the running channel CLI', () => {
-  afterEach(() => vi.unstubAllEnvs());
-
-  test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
-  ])('%s: both refusal notes name %s seed', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
-    scaffoldOkDir(testDir);
-    const noFolder = await runSeed({ cwd: testDir, yes: true });
-    expect(noFolder.message).toContain(
-      `Create the folder your agent uses, then run \`${command} seed\` again to install them.`,
-    );
-
-    const escaped = mkdtempSync(join(tmpdir(), 'ok-seed-escaped-'));
-    const outside = mkdtempSync(join(tmpdir(), 'ok-seed-outside-'));
-    try {
-      scaffoldOkDir(escaped);
-      symlinkSync(outside, join(escaped, '.claude'));
-      mkdirSync(join(outside, 'skills'), { recursive: true });
-      const result = await runSeed({ cwd: escaped, yes: true });
-      expect(result.message).toContain(
-        `Replace it with a real directory inside the project, then run \`${command} seed\` again.`,
-      );
-    } finally {
-      rmSync(escaped, { recursive: true, force: true });
-      rmSync(outside, { recursive: true, force: true });
-    }
   });
 });
 

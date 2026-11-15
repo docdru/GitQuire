@@ -18,18 +18,11 @@ import {
   textPlusStructured,
   textResult,
 } from './shared.ts';
-import { deleteSkill, deleteSkillFile, type SkillScope } from './skill-target.ts';
-import {
-  exactlyOneTargetError,
-  resolveSkillFilePath,
-  resolveTemplatePath,
-  SKILL_NAME_DESCRIBE,
-  SkillScopeArg,
-} from './verb-schemas.ts';
+import { exactlyOneTargetError, resolveTemplatePath } from './verb-schemas.ts';
 
 const BASE_DESCRIPTION = [
-  "Delete exactly one document, folder, template, skill or asset. Requires the Hocuspocus server. Irreversible; deleting a doc leaves inbound redlinks. Call links({kind:'backlinks',document}) BEFORE deleting.",
-  "document: path or paths array; folder: recursive folder path; template: {path:'<folder>/<name>'}; asset: {path:'<folder>/<file.ext>'}. skill: {name} deletes the whole bundle, or {name,files:['references/x.md']} deletes selected files. Template/skill deletion is attributed and cleans empty .ok/ directories.",
+  "Delete exactly one document, folder, template or asset. Requires the Hocuspocus server. Irreversible; deleting a doc leaves inbound redlinks. Call links({kind:'backlinks',document}) BEFORE deleting.",
+  "document: path or paths array; folder: recursive folder path; template: {path:'<folder>/<name>'}; asset: {path:'<folder>/<file.ext>'}. Template deletion is attributed and cleans empty .ok/ directories.",
 ].join('\n');
 
 const DESCRIPTION = BASE_DESCRIPTION;
@@ -108,22 +101,6 @@ export function register(server: ServerInstance, deps: DeleteDeps): void {
           .object({ path: z.string().describe('Template path = `<folder>/<name>`.') })
           .optional()
           .describe('A template to delete.'),
-        skill: z
-          .object({
-            name: z.string().describe(SKILL_NAME_DESCRIBE),
-            files: z
-              .array(z.string())
-              .min(1)
-              .optional()
-              .describe(
-                'Skill-relative bundle file paths to delete (`references/...`/`scripts/...`). Omit to delete the WHOLE skill folder.',
-              ),
-            scope: SkillScopeArg.optional(),
-          })
-          .optional()
-          .describe(
-            'A skill to delete — the whole skill folder, or specific bundle files when `files` is set.',
-          ),
         asset: z
           .object({
             path: z
@@ -158,22 +135,6 @@ export function register(server: ServerInstance, deps: DeleteDeps): void {
           .object({ ok: z.boolean(), existed: z.boolean() })
           .optional()
           .describe('Template delete result.'),
-        skill: z
-          .object({
-            ok: z.boolean(),
-            existed: z.boolean().optional(),
-            files: looseObjectArray
-              .optional()
-              .describe('Per-bundle-file delete results `{ path, ok, existed?, error? }`.'),
-            warnings: z
-              .array(z.string())
-              .optional()
-              .describe(
-                'Whole-skill delete only: what the deletion took with it that a caller would not expect from the name alone — a destination copy an earlier failed cross-level move had retained, whose content the server confirmed matched the record before removing it. Absent when there is nothing to report; never present on a bundle-file delete.',
-              ),
-          })
-          .optional()
-          .describe('Skill delete result (whole skill or specific bundle files).'),
         asset: z
           .object({ ok: z.boolean(), path: z.string() })
           .optional()
@@ -188,7 +149,6 @@ export function register(server: ServerInstance, deps: DeleteDeps): void {
       document?: string | string[] | { path: string | string[] };
       folder?: string | { path: string };
       template?: { path: string };
-      skill?: { name: string; scope?: SkillScope; files?: string[] };
       asset?: { path: string };
       cwd?: string;
     }) => {
@@ -211,55 +171,9 @@ export function register(server: ServerInstance, deps: DeleteDeps): void {
         'document',
         'folder',
         'template',
-        'skill',
         'asset',
       ]);
       if (teaching) return textResult(`Error: ${teaching}`, true);
-
-      if (args.skill !== undefined) {
-        const skill = args.skill;
-        if (skill.files !== undefined && skill.files.length > 0) {
-          for (const f of skill.files) {
-            const check = resolveSkillFilePath(f);
-            if (!check.ok) return textResult(`Error: ${check.error}`, true);
-          }
-          const results: Array<{ path: string; ok: boolean; existed?: boolean; error?: string }> =
-            [];
-          for (const f of skill.files) {
-            const r = await deleteSkillFile(url, {
-              name: skill.name,
-              scope: skill.scope,
-              path: f,
-              identity: deps.identityRef?.current,
-            });
-            const struct = (
-              r as { structuredContent?: { skill?: { file?: { existed?: boolean } } } }
-            ).structuredContent;
-            if (r.isError) {
-              results.push({ path: f, ok: false, error: r.content[0]?.text ?? 'delete failed' });
-            } else {
-              results.push({ path: f, ok: true, existed: struct?.skill?.file?.existed === true });
-            }
-          }
-          const okCount = results.filter((r) => r.ok).length;
-          const allOk = okCount === results.length;
-          const lines = results.map((r) =>
-            r.ok
-              ? `${r.existed ? 'Deleted' : 'No-op (absent)'} ${r.path}.`
-              : `Failed ${r.path}: ${r.error}`,
-          );
-          return textPlusStructured(
-            `${okCount}/${results.length} skill file(s) processed.\n${lines.join('\n')}`,
-            { skill: { ok: allOk, files: results } },
-            !allOk,
-          );
-        }
-        return deleteSkill(url, {
-          name: skill.name,
-          scope: skill.scope,
-          identity: deps.identityRef?.current,
-        });
-      }
 
       if (args.template !== undefined) {
         const resolved = resolveTemplatePath(args.template.path);

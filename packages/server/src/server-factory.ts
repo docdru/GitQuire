@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
-import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import type { Document, Extension } from '@hocuspocus/server';
 import { Hocuspocus, IncomingMessage, MessageType } from '@hocuspocus/server';
 import {
@@ -38,8 +38,6 @@ import {
   modeFromCommittedDefault,
   type PersistedLinterConfig,
   type Principal,
-  parseGlobalSkillBundleDoc,
-  parseManagedArtifactName,
   resolveAutoSyncIntervals,
   resolveLocalAutoSyncMode,
   type SyncMode,
@@ -221,12 +219,6 @@ import type { NativeApiHandle } from './http/http-app.ts';
 import type { LocalApiDispatch } from './http/local-api-dispatch.ts';
 import type { GeneratedIndexSettingsStatus } from './http/workspace-tools-routes.ts';
 import {
-  scanGlobalInPlaceSkillsAsync,
-  scanInPlaceSkillDirs,
-  scanInPlaceSkills,
-  skillRootPathsFor,
-} from './in-place-skills.ts';
-import {
   buildIngressPolicy,
   type IngressPolicy,
   isHostAdmitted,
@@ -247,14 +239,6 @@ import {
   createMaintenanceCoordinator,
   type MaintenanceCoordinator,
 } from './maintenance-coordinator.ts';
-import {
-  applyExternalManagedArtifactChange,
-  homeFor,
-  managedArtifactAbsPath,
-  managedArtifactDocNameForPath,
-  managedArtifactSkillsRoots,
-} from './managed-artifact-persistence.ts';
-import { startManagedArtifactWatcher } from './managed-artifact-watcher.ts';
 import { recoverPendingManagedRename } from './managed-rename-journal.ts';
 import type { NativeTomlMcpEditor } from './mcp-config-reconciler.ts';
 import { mdManager, schema } from './md-manager.ts';
@@ -291,7 +275,6 @@ import {
   StructuralDiskReadError,
 } from './persistence-staleness-watchdog.ts';
 import { loadPrincipal } from './principal.ts';
-import { createPrivateSkillTrustAdmission } from './private-skill-trust-admission.ts';
 import { RecentlyRemovedDocs } from './recently-removed-docs.ts';
 import { type ReconcileOutcome, reconcile } from './reconciliation.ts';
 import { reconcileRecoveredFileTarget } from './recovered-file-target.ts';
@@ -361,8 +344,6 @@ import {
   readDeclaredGitHubHosts,
 } from './share/git-context.ts';
 import { simpleGit } from './simple-git-client.ts';
-import { resyncRecordedSkillCopies } from './skill-placements.ts';
-import { skillStateYamlPath } from './skill-state.ts';
 import { assertCompatibleStateManifest } from './state-manifest.ts';
 import { classifyIntakeAgainstReceipt, receiptIntakeSkipOf } from './store-compare.ts';
 import { assertRealpathWithinDir } from './symlink-guard.ts';
@@ -1251,9 +1232,7 @@ export function createServer(options: ServerOptions): ServerInstance {
   let localApi: LocalApiDispatch;
   let shutdownLocalOps: () => Promise<void>;
   let bridgeLossReporter: BridgeDeriveLossReporter | undefined;
-  let inPlaceRescanTimer: ReturnType<typeof setTimeout> | null = null;
   let shadowWarmupTimer: ReturnType<typeof setTimeout> | null = null;
-  const IN_PLACE_RESCAN_DEBOUNCE_MS = 500;
   let agentFocusBroadcaster: AgentFocusBroadcaster | null = null;
   let agentPresenceBroadcaster: AgentPresenceBroadcaster | null = null;
   let invalidateReferencedAssetsCache: (() => void) | null = null;
@@ -1308,9 +1287,7 @@ export function createServer(options: ServerOptions): ServerInstance {
     let abs: string;
     try {
       if (isConfigDoc(docName)) abs = configDocAbsPath(docName, persistence.configPersistenceCtx);
-      else if (isManagedArtifactDoc(docName)) {
-        abs = managedArtifactAbsPath(docName, persistence.managedArtifactCtx);
-      } else return null;
+      else return null;
     } catch (err) {
       log.debug(
         { err, docName },
@@ -2148,9 +2125,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       },
       singleDocRelPath,
       attachmentFolderPath: initialAttachmentFolderPath,
-      inPlaceSkillDirs: new Set(scanInPlaceSkills(contentDir).map((skill) => skill.dir)),
-      rescanInPlaceSkillDirs: (priorAdmission) => scanInPlaceSkillDirs(contentDir, priorAdmission),
-      skillRootPaths: skillRootPathsFor(contentDir),
       onAfterRebuild: () => {
         void derivedDocumentIndex.refreshContentScope().catch((err) => {
           getLogger('server-factory').warn(
@@ -2185,7 +2159,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       projectDir,
       contentDir,
       contentFilter,
-      getGlobalSkillRoots: () => managedArtifactSkillsRoots(persistence.managedArtifactCtx),
+      getGlobalSkillRoots: () => [],
       signalChannel,
       getLocalTargetInventory: () => localTargetInventoryFromWatcher(watcher, canonicalContentDir),
       onRecoveredFileTarget: (relativePath, exists) => {
@@ -2228,7 +2202,6 @@ export function createServer(options: ServerOptions): ServerInstance {
         })
       : undefined;
 
-    let globalCopyResyncTimer: ReturnType<typeof setTimeout> | null = null;
     const persistenceOpts: PersistenceOptions = {
       contentDir,
       assertContentPath,
@@ -2265,22 +2238,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       onConfigPersisted: (docName) => {
         applyPersistedConfigToConsumers(docName);
         logConfigDiagnostics(docName);
-      },
-      onManagedSkillPersisted: (docName) => {
-        const parsed = parseManagedArtifactName(docName);
-        if (parsed?.kind !== 'skill' || parsed.scope !== 'global') return;
-        if (globalCopyResyncTimer !== null) clearTimeout(globalCopyResyncTimer);
-        globalCopyResyncTimer = setTimeout(() => {
-          globalCopyResyncTimer = null;
-          const home = configHomedirOverride ?? homedir();
-          void scanGlobalInPlaceSkillsAsync(home)
-            .then((inPlace) => resyncRecordedSkillCopies(home, home, inPlace))
-            .then((n) => {
-              if (n > 0) log.info({ refreshed: n }, '[in-place-skills] post-edit copy re-sync');
-            })
-            .catch((err) => log.warn({ err }, '[in-place-skills] post-edit copy re-sync failed'));
-        }, 2000);
-        globalCopyResyncTimer.unref?.();
       },
       isRecentlyRemoved: (docName) => recentlyRemovedDocs.has(docName),
       mdManager: options.mdManager,
@@ -2609,15 +2566,6 @@ export function createServer(options: ServerOptions): ServerInstance {
     };
     hocuspocus.configuration.extensions.push(configDocAdmissionGuard);
     hocuspocus.configuration.extensions.push(
-      createPrivateSkillTrustAdmission((rejectionClass) =>
-        logAuthRejection('config-doc-admission-denied', CONFIG_DOC_NAME_USER, {
-          check: 'private-skill-trust',
-          rejectionClass,
-        }),
-      ),
-    );
-
-    hocuspocus.configuration.extensions.push(
       createSettingsWriteGuard(() =>
         logAuthRejection('config-doc-admission-denied', CONFIG_DOC_NAME_PROJECT_LOCAL, {
           check: 'gitquire-admin',
@@ -2798,9 +2746,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       ready,
       recentlyRemovedDocs,
       serializeDoc,
-      evictManagedArtifactLkg: (docName: string) => {
-        persistence.managedArtifactCtx.lkgCache.delete(docName);
-      },
       semanticSearch,
       getSemanticSimilarityFloor: () => readSemanticSearchConfig().similarityFloor,
       getLinterBaseConfig: () => readLinterBaseConfig(),
@@ -4953,10 +4898,6 @@ export function createServer(options: ServerOptions): ServerInstance {
 
       try {
         try {
-          if (inPlaceRescanTimer) {
-            clearTimeout(inPlaceRescanTimer);
-            inPlaceRescanTimer = null;
-          }
           if (shadowWarmupTimer) {
             clearTimeout(shadowWarmupTimer);
             shadowWarmupTimer = null;
@@ -5471,69 +5412,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       }
     }
 
-    if (!ephemeral) {
-      let globalSkillNodesTimer: NodeJS.Timeout | null = null;
-      const scheduleGlobalSkillNodesRefresh = (docName: string): void => {
-        if (globalSkillNodesTimer !== null) clearTimeout(globalSkillNodesTimer);
-        globalSkillNodesTimer = setTimeout(() => {
-          globalSkillNodesTimer = null;
-          void derivedDocumentIndex.refreshGlobalSkillNodes().catch((err) => {
-            log.warn({ err, docName }, '[backlinks] global skill bundle re-ingest failed');
-          });
-        }, 300);
-      };
-      const reconcileManagedArtifactDisk = async (absPath: string, content: string) => {
-        const docName = managedArtifactDocNameForPath(absPath, persistence.managedArtifactCtx);
-        if (!docName) return;
-        const document = hocuspocus.documents.get(docName);
-        const outcome = await applyExternalManagedArtifactChange(
-          document ?? null,
-          docName,
-          content,
-          persistence.managedArtifactCtx,
-        );
-        log.info({ docName, outcome }, '[managed-artifact-watcher] external change');
-        signalChannel('files');
-        if (parseGlobalSkillBundleDoc(docName)) {
-          scheduleGlobalSkillNodesRefresh(docName);
-        }
-      };
-
-      const handleManagedArtifactUnlink = (absPath: string): void => {
-        const docName = managedArtifactDocNameForPath(absPath, persistence.managedArtifactCtx);
-        signalChannel('files');
-        if (docName && parseGlobalSkillBundleDoc(docName)) {
-          scheduleGlobalSkillNodesRefresh(docName);
-        }
-      };
-
-      try {
-        const skillsRoots = managedArtifactSkillsRoots(persistence.managedArtifactCtx);
-        const skillsCleanup = await startManagedArtifactWatcher(
-          skillsRoots,
-          reconcileManagedArtifactDisk,
-          handleManagedArtifactUnlink,
-        );
-        configFileWatcherCleanups.push({ docName: '__skill-files__', cleanup: skillsCleanup });
-        log.info({ roots: skillsRoots }, '[managed-artifact-watcher] skills started');
-      } catch (err) {
-        log.warn({ err }, '[managed-artifact-watcher] skills failed to start');
-        degraded.push('managed-artifact-watcher:skills');
-      }
-
-      try {
-        const skillStatePath = skillStateYamlPath(homeFor(persistence.managedArtifactCtx));
-        const skillStateCleanup = await startConfigFileWatcher(skillStatePath, () => {
-          signalChannel('files');
-        });
-        configFileWatcherCleanups.push({ docName: '__skill-state__', cleanup: skillStateCleanup });
-        log.info({ path: skillStatePath }, '[skill-state-watcher] started');
-      } catch (err) {
-        log.warn({ err }, '[skill-state-watcher] failed to start');
-        degraded.push('skill-state-watcher');
-      }
-    }
-
     try {
       const okignorePath = resolve(contentDir, '.okignore');
       const gitignorePath = resolve(projectDir, '.gitignore');
@@ -5657,63 +5535,10 @@ export function createServer(options: ServerOptions): ServerInstance {
         const { backlinkIndexDegraded } = await derivedIndexStartup.backlinksReady;
         if (backlinkIndexDegraded) degraded.push('backlink-index');
         const seedWalkStartMono = performance.now();
-        const HOST_SKILLS_EVENT_RE = /^\.(?!ok\/)[A-Za-z0-9_-]+\/skills\//;
-        let lastInPlaceDirs: ReadonlySet<string> = contentFilter
-          ? new Set(scanInPlaceSkills(contentDir).map((skill) => skill.dir))
-          : new Set<string>();
-        const onRawBatch = (absPaths: readonly string[]): void => {
-          if (
-            !absPaths.some((p) =>
-              HOST_SKILLS_EVENT_RE.test(relative(canonicalContentDir, p).split(sep).join('/')),
-            )
-          ) {
-            return;
-          }
-          if (inPlaceRescanTimer) clearTimeout(inPlaceRescanTimer);
-          inPlaceRescanTimer = setTimeout(() => {
-            inPlaceRescanTimer = null;
-            try {
-              void resyncRecordedSkillCopies(projectDir, contentDir)
-                .then((n) => {
-                  if (n > 0) {
-                    log.info({ refreshed: n }, '[in-place-skills] re-synced recorded copies');
-                    cc1Broadcaster?.signal('files');
-                  }
-                })
-                .catch((err) => log.warn({ err }, '[in-place-skills] copy re-sync failed'));
-              const next = scanInPlaceSkillDirs(contentDir, lastInPlaceDirs);
-              const changed =
-                next.size !== lastInPlaceDirs.size ||
-                [...next].some((d) => !lastInPlaceDirs.has(d));
-              if (!changed) return;
-              lastInPlaceDirs = next;
-              void contentFilter
-                .rebuildIgnorePatterns()
-                .then((result) => {
-                  if (result.ok) {
-                    log.info(
-                      { skillDirs: next.size },
-                      '[in-place-skills] canonical set changed — filter rebuilt',
-                    );
-                    cc1Broadcaster?.signal('files');
-                  } else {
-                    log.warn(
-                      { error: result.error.message },
-                      '[in-place-skills] filter rebuild failed after skill re-scan',
-                    );
-                  }
-                })
-                .catch((err) => log.warn({ err }, '[in-place-skills] rebuild threw'));
-            } catch (err) {
-              log.warn({ err }, '[in-place-skills] re-scan trigger failed');
-            }
-          }, IN_PLACE_RESCAN_DEBOUNCE_MS);
-        };
         await adoptWatcher(
           () =>
             withSpan('ok.boot.seed-walk', undefined, async () =>
               startWatcher(canonicalContentDir, onDiskEvent, contentFilter, {
-                onRawBatch,
                 onRecoveryComplete: () => derivedDocumentIndex.recordInventoryReconciled(),
                 onRecoveryPassCompleted: (pass, whole) => settleVanishedDocuments(pass, whole),
                 nativeBackend: options.watcherBackend,
@@ -5729,20 +5554,6 @@ export function createServer(options: ServerOptions): ServerInstance {
           },
           'content',
         );
-        void resyncRecordedSkillCopies(projectDir, contentDir)
-          .then((n) => {
-            if (n > 0) log.info({ refreshed: n }, '[in-place-skills] boot copy re-sync');
-          })
-          .catch((err) => log.warn({ err }, '[in-place-skills] boot copy re-sync failed'));
-        {
-          const home = configHomedirOverride ?? homedir();
-          void scanGlobalInPlaceSkillsAsync(home)
-            .then((inPlace) => resyncRecordedSkillCopies(home, home, inPlace))
-            .then((n) => {
-              if (n > 0) log.info({ refreshed: n }, '[in-place-skills] global boot copy re-sync');
-            })
-            .catch((err) => log.warn({ err }, '[in-place-skills] global copy re-sync failed'));
-        }
         recordBootPhase('seedWalkMs', Math.round(performance.now() - seedWalkStartMono));
 
         {

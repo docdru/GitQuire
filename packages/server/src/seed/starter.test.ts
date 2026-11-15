@@ -1,5 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { parseTemplateFile } from '@inkeep/open-knowledge-core';
 import { describe, expect, test } from 'vitest';
 import {
@@ -135,10 +133,10 @@ describe('LOG_MD_TEMPLATE', () => {
     expect(LOG_MD_TEMPLATE).toContain('# Work Log');
   });
 
-  test('is slim — log discipline lives in the pack skill, not in the log body', () => {
+  test('is slim — no example entry block in the log body', () => {
     expect(LOG_MD_TEMPLATE).not.toContain('<!-- Example entry shape:');
     expect(LOG_MD_TEMPLATE).not.toContain('What to log:');
-    expect(LOG_MD_TEMPLATE).toContain('knowledge-base skill');
+    expect(LOG_MD_TEMPLATE).toContain('Each entry gives the date');
   });
 });
 
@@ -560,15 +558,6 @@ describe('seeded content keeps illustrative example links out of the link graph'
       for (const [name, body] of Object.entries(pack.templates ?? {})) {
         assertNoExampleLeak(`${packId} template ${name}`, parseTemplateFile(body).starterContent);
       }
-    }
-  });
-
-  test('no pack SKILL.md leaks an example placeholder link', () => {
-    const packsDir = join(import.meta.dir, '..', '..', 'assets', 'skills', 'packs');
-    for (const packId of STARTER_PACK_IDS) {
-      const skillPath = join(packsDir, packId, 'SKILL.md');
-      expect(existsSync(skillPath), `${packId} pack is missing SKILL.md`).toBe(true);
-      assertNoExampleLeak(`${packId} SKILL.md`, readFileSync(skillPath, 'utf-8'));
     }
   });
 });

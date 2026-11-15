@@ -358,31 +358,6 @@ test.describe('non-embedded UA', () => {
     await expect(page.locator('[data-doc-panel-toggle]')).toHaveAttribute('aria-expanded', 'true');
   });
 
-  test('QA-020 + QA-033: SHOW_INSTALL_SKILL=false hides install entries; non-embedded shows AI handoff', async ({
-    page,
-    api,
-  }) => {
-    await page.setViewportSize(WIDE);
-    await seedDoc(api, 'qa-033-seed');
-    await page.goto('/');
-    await page.waitForLoadState('domcontentloaded');
-    await expect(
-      page.getByTestId('create-with-agent').or(page.getByTestId('create-no-agents')).first(),
-      'empty-state AI surface (composer button or install nudge) visible when non-embedded',
-    ).toBeVisible();
-    await seedDoc(api, 'qa-020');
-    await page.goto('/#/qa-020');
-    await waitForActiveProviderSynced(page);
-    await page.keyboard.press('ControlOrMeta+KeyK');
-    await page.keyboard.type('install');
-    const installResults = await page
-      .locator('[role="option"], [role="menuitem"], [role="listbox"] *')
-      .filter({ hasText: /install (for )?claude/i })
-      .count();
-    expect(installResults, 'no install-skill items in palette').toBe(0);
-    await page.keyboard.press('Escape');
-  });
-
   test('QA-021: right panel resizing does not animate', async ({ page, api }) => {
     await seedDoc(api, 'qa-021');
     await page.setViewportSize(WIDE);

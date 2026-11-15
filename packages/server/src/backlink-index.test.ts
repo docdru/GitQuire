@@ -863,48 +863,6 @@ describe('BacklinkIndex', () => {
     }
   });
 
-  test('a v1 cache is rejected so skill refs are recorded instead of silently missing', async () => {
-    const projectDir = mkdtempSync(join(tmpdir(), 'ok-backlinks-skillrefs-guard-'));
-    const contentDir = join(projectDir, 'content');
-    mkdirSync(contentDir, { recursive: true });
-    try {
-      const analyze = '.agents/skills/analyze/SKILL';
-      const research = '.agents/skills/research/SKILL';
-      mkdirSync(join(contentDir, '.agents', 'skills', 'analyze'), { recursive: true });
-      mkdirSync(join(contentDir, '.agents', 'skills', 'research'), { recursive: true });
-      writeFileSync(
-        join(contentDir, '.agents', 'skills', 'analyze', 'SKILL.md'),
-        '# Analyze\n\nFor reports use /research.\n',
-      );
-      writeFileSync(join(contentDir, '.agents', 'skills', 'research', 'SKILL.md'), '# Research\n');
-
-      const cacheDir = join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main');
-      mkdirSync(cacheDir, { recursive: true });
-      writeFileSync(
-        join(cacheDir, 'backlinks.json'),
-        JSON.stringify({
-          version: 1,
-          backward: {},
-          forward: { [analyze]: [], [research]: [] },
-          externalForward: {},
-          mtimes: {},
-        }),
-        'utf-8',
-      );
-
-      const index = new BacklinkIndex({ projectDir, contentDir });
-      expect(await index.loadFromDisk()).toBe(false);
-
-      await index.rebuildFromDisk();
-      expect(index.getForwardLinks(analyze)).toEqual([research]);
-      expect(index.getBacklinks(research)).toEqual([
-        { source: analyze, anchor: null, snippet: null },
-      ]);
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
-  });
-
   test.each([
     { version: 3, sourceLinks: undefined, expectedWarnings: [], kept: true },
     {
@@ -1299,35 +1257,6 @@ describe('BacklinkIndex structural skill-bundle edges', () => {
       index.updateDocumentFromMarkdown(otherRef, 'Standalone.\n');
       expect(index.getForwardLinks(skill)).toEqual([ref]);
       expect(index.getForwardLinks(otherRef)).toEqual([]);
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
-  });
-
-  test('/skill-name refs draw same-scope edges to the referenced SKILL doc, both directions', () => {
-    const projectDir = mkdtempSync(join(tmpdir(), 'ok-backlinks-skill-refs-'));
-    const contentDir = join(projectDir, 'content');
-    mkdirSync(contentDir, { recursive: true });
-    try {
-      const index = new BacklinkIndex({ projectDir, contentDir });
-      const analyze = '.agents/skills/analyze/SKILL';
-      const research = '.agents/skills/research/SKILL';
-      index.updateDocumentFromMarkdown(analyze, 'For reports use `/research` or /research.\n');
-      expect(index.getForwardLinks(analyze)).toEqual([]);
-      index.updateDocumentFromMarkdown(research, '# Research skill\n');
-      expect(index.getForwardLinks(analyze)).toEqual([research]);
-      expect(index.getBacklinks(research)).toEqual([
-        { source: analyze, anchor: null, snippet: null },
-      ]);
-      index.updateDocumentFromMarkdown(analyze, 'Files under /tmp and half/way.\n');
-      expect(index.getForwardLinks(analyze)).toEqual([]);
-      index.registerGlobalSkillBundleNode('__skill__/global/deploy/SKILL');
-      index.updateDocumentFromMarkdown(analyze, 'Use /deploy.\n');
-      expect(index.getForwardLinks(analyze)).toEqual([]);
-      index.updateDocumentFromMarkdown(analyze, 'Use /research.\n');
-      expect(index.getForwardLinks(analyze)).toEqual([research]);
-      index.deleteDocument(research);
-      expect(index.getForwardLinks(analyze)).toEqual([]);
     } finally {
       rmSync(projectDir, { recursive: true, force: true });
     }

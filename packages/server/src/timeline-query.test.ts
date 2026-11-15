@@ -428,55 +428,6 @@ describe('getDocumentHistory', () => {
     expect(bShas).not.toContain(a1);
   });
 
-  test('resolves a skill timeline queried by its synthetic doc name', async () => {
-    const { contentDir, shadow } = await setup();
-
-    const writer: WriterIdentity = {
-      id: 'agent-cccccccc-cccc-4ccc-cccc-cccccccccccc',
-      name: 'claude-code',
-      email: 'agent-cccccccc-cccc-4ccc-cccc-cccccccccccc@openknowledge.local',
-    };
-
-    const skillDir = resolve(contentDir, '.ok', 'skills', 'my-skill');
-    mkdirSync(skillDir, { recursive: true });
-    writeFileSync(resolve(skillDir, 'SKILL.md'), '# My Skill v1\n');
-
-    const treeSha = await buildWipTree(shadow, 'content/docs');
-    const actor: OkActorEntry = {
-      v: 1,
-      writer_id: writer.id,
-      principal: null,
-      agent_session: writer.id.slice(6),
-      agent_type: null,
-      client_name: writer.name,
-      client_version: null,
-      label: null,
-      display_name: writer.name,
-      color_seed: writer.id,
-      docs: ['.ok/skills/my-skill'],
-    };
-    const sha = await commitWipFromTree(
-      shadow,
-      writer,
-      treeSha,
-      `wip: skill-edit: my-skill/SKILL.md\n\n${formatOkActor(actor)}`,
-    );
-
-    const result = await getDocumentHistory(
-      shadow,
-      { docName: '__skill__/project/my-skill' },
-      'content/docs',
-    );
-    expect(result.entries.map((e) => e.sha)).toContain(sha);
-
-    const personal = await getDocumentHistory(
-      shadow,
-      { docName: '__skill__/global/my-skill' },
-      'content/docs',
-    );
-    expect(personal.entries).toHaveLength(0);
-  });
-
   test('lists the history entries of a global skill, held in the open project shadow repo', async () => {
     const { shadow } = await setup();
     const docName = '__skill__/global/my-skill';

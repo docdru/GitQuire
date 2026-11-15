@@ -37,7 +37,6 @@ import {
   isConfigDoc,
   isEditableTextDoc,
   isExcalidrawDoc,
-  isManagedArtifactDoc,
   isMermaidDoc,
   isPersistenceExcludedDoc,
   isSystemDoc,
@@ -87,12 +86,10 @@ import {
   OK_PATH_UNRESOLVABLE,
   OK_STORE_HELD,
   OK_STORE_REFUSED,
-  OK_WRITE_DROPPED,
   type StoreFailure,
   type StoreFailureRemoval,
   type StoreIntakeMerge,
   type StorePublishOutcome,
-  type WriteDropCause,
   writtenThroughOf,
 } from './document-durability-state.ts';
 import { refuseStaleExternalWrite } from './external-change.ts';
@@ -121,16 +118,6 @@ import {
   LOSS_EVENT_REPAIR_REBUILD,
   type LossCaptureRing,
 } from './loss-capture.ts';
-import {
-  loadManagedArtifactDoc,
-  type ManagedArtifactCtx,
-  type ManagedArtifactDrop,
-  managedArtifactContributorAttribution,
-  managedArtifactTimelinePaths,
-  type StoreManagedArtifactOutcome,
-  storeManagedArtifactDoc,
-  storeManagedArtifactWroteFile,
-} from './managed-artifact-persistence.ts';
 import { mdManager, schema } from './md-manager.ts';
 import type { MergeHistoryRecorder } from './merge-history.ts';
 import {
@@ -144,8 +131,6 @@ import {
   incrementGitAutoSaveFailure,
   incrementGitWriterCommitFailure,
   incrementHeldSave,
-  incrementManagedArtifactReconcileCheckpointCreated,
-  incrementManagedArtifactReconcileDeduped,
   incrementPersistenceDeferHold,
   incrementPersistenceDiskWrite,
   incrementPersistenceDuplicationBaselineMissing,
@@ -219,34 +204,6 @@ function configSettlement(outcome: StoreConfigDocOutcome, retry: boolean): Store
     case 'no-op':
       return retry ? 'resolved' : 'neutral';
     case 'write-failed':
-      return 'neutral';
-    default:
-      return assertNeverStoreOutcome(outcome);
-  }
-}
-
-function managedArtifactSettlement(
-  outcome: StoreManagedArtifactOutcome,
-  retry: boolean,
-): StoreSettlement {
-  if (typeof outcome === 'object') return outcome;
-  switch (outcome) {
-    case 'persisted':
-    case 'merged':
-    case 'both-kept':
-    case 'kept-live':
-    case 'stash-fallback':
-    case 'applied':
-      return 'resolved';
-    case 'no-op':
-    case 'outside-taken-in':
-    case 'dropped-legacy-name':
-    case 'dropped-unresolvable':
-    case 'dropped-container-gone':
-      return retry ? 'resolved' : 'neutral';
-    case 'unchanged':
-    case 'write-failed':
-    case 'dropped-intake-landed':
       return 'neutral';
     default:
       return assertNeverStoreOutcome(outcome);
@@ -338,24 +295,6 @@ const OUTSIDE_STORE_HOLDS: Readonly<
   'not-utf8': {
     reason: 'pending-not-utf8',
     description: 'its file changed outside to bytes that are not UTF-8 text',
-  },
-};
-
-const OUTSIDE_STORE_DROPS: Readonly<
-  Record<ManagedArtifactDrop, { readonly cause: WriteDropCause; readonly description: string }>
-> = {
-  'dropped-legacy-name': { cause: 'legacy-name', description: 'this name has no file of its own' },
-  'dropped-unresolvable': {
-    cause: 'unresolvable',
-    description: 'its file path could not be resolved',
-  },
-  'dropped-container-gone': {
-    cause: 'container-gone',
-    description: 'its skill folder is gone (deleted or moved)',
-  },
-  'dropped-intake-landed': {
-    cause: 'intake-landed',
-    description: 'an outside change to its file was being taken in when the save ran',
   },
 };
 
@@ -553,7 +492,6 @@ export interface PersistenceOptions {
   configHomedirOverride?: string;
   onConfigRejected?: (docName: string, error: ConfigValidationError) => void;
   onConfigPersisted?: (docName: string) => void;
-  onManagedSkillPersisted?: (docName: string) => void;
   mdManager?: MarkdownManager;
   getLossRing?: () => Pick<LossCaptureRing, 'record'> | undefined;
   isRecentlyRemoved?: (docName: string) => boolean;
@@ -657,7 +595,6 @@ export interface PersistenceHandle {
   forceStore: (document: Y.Doc, documentName: string) => Promise<void>;
   forgetObservedFile: (docName: string) => void;
   readonly configPersistenceCtx: ConfigPersistenceCtx;
-  readonly managedArtifactCtx: ManagedArtifactCtx;
   readonly mermaidPersistenceCtx: MermaidPersistenceCtx;
   retryHeldSave: (document: Y.Doc, documentName: string) => Promise<void>;
   isHeldSaveDue: (documentName: string) => boolean;
@@ -682,7 +619,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
   const onFlushCommit = options?.onFlushCommit;
   const onDiskFlush = options?.onDiskFlush;
   const onConfigPersisted = options?.onConfigPersisted;
-  const onManagedSkillPersisted = options?.onManagedSkillPersisted;
   const mgr = options?.mdManager ?? mdManager;
   const ephemeral = options?.ephemeral ?? false;
   const frozenStatusOf = (
@@ -706,18 +642,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
     onConfigRejected: options?.onConfigRejected,
     ephemeral,
     agreedDisk: new Map<string, string>(),
-    history: options.mergeHistory,
-  };
-
-  const managedArtifactLkgCache = new Map<string, string>();
-  const managedArtifactCtx: ManagedArtifactCtx = {
-    projectDir,
-    homedirOverride: options?.configHomedirOverride,
-    lkgCache: managedArtifactLkgCache,
-    setReconciledBase: (docName, content) => durabilityState.setReconciledBase(docName, content),
-    getReconciledBase: (docName) => durabilityState.getReconciledBase(docName),
-    beforeReconcileDivergence: (document, docName, liveContent, diskContent) =>
-      checkpointBeforeManagedArtifactReconcile(document, docName, liveContent, diskContent),
     history: options.mergeHistory,
   };
 
@@ -1108,7 +1032,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
 
   const PERSISTENCE_PREWRITE_SITE = 'persistence-prewrite';
   const PERSISTENCE_DUPLICATION_SITE = 'persistence-duplication-reset';
-  const MANAGED_ARTIFACT_RECONCILE_SITE = 'managed-artifact-reconcile';
 
   const lastFloorCheckpointPayload = new WeakMap<Y.Doc, string>();
 
@@ -1318,104 +1241,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
           );
         });
     });
-  }
-
-  const lastManagedReconcileCheckpointPayload = new WeakMap<Y.Doc, string>();
-
-  function checkpointBeforeManagedArtifactReconcile(
-    document: Y.Doc,
-    documentName: string,
-    liveContent: string,
-    diskContent: string,
-  ): DeriveLossDetectOptions | undefined {
-    const ring = options?.getLossRing?.();
-    const detect: DeriveLossDetectOptions = {
-      baselineFullMd: diskContent,
-      report: (obs) => {
-        try {
-          const dropped = detectPairedIntakeLoss(obs);
-          if (dropped.length === 0) return;
-          void ring?.record({
-            event: LOSS_EVENT_DETECTOR_TRIP,
-            docName: documentName,
-            writerId: FILE_SYSTEM_WRITER.id,
-            direction: 'b',
-            site: MANAGED_ARTIFACT_RECONCILE_SITE,
-            lostLen: dropped.reduce((n, s) => n + s.length, 0),
-            digest: fnv1aDigest(dropped.join('\n')),
-          });
-        } catch (detectErr) {
-          log.warn(
-            { documentName, err: detectErr },
-            '[persistence] managed-artifact reconcile loss detection failed',
-          );
-        }
-      },
-    };
-
-    const paths = managedArtifactTimelinePaths(documentName);
-    const shadow = shadowRef?.current;
-    if (!shadow || !paths.managed || !paths.versioned) {
-      void ring?.record({
-        event: LOSS_EVENT_CHECKPOINT_WRITE,
-        docName: documentName,
-        writerId: null,
-        direction: 'b',
-        site: MANAGED_ARTIFACT_RECONCILE_SITE,
-        lostLen: liveContent.length,
-      });
-      return detect;
-    }
-    if (lastManagedReconcileCheckpointPayload.get(document) === liveContent) {
-      incrementManagedArtifactReconcileDeduped();
-      return detect;
-    }
-    lastManagedReconcileCheckpointPayload.set(document, liveContent);
-    const branch = getCurrentBranch?.() ?? 'main';
-    const anchorDocName = paths.docKey;
-    queueMicrotask(() => {
-      saveInMemoryCheckpoint(shadow, contentRoot, {
-        kind: 'managed-artifact-reconcile',
-        docName: anchorDocName,
-        contents: liveContent,
-        label: `Before artifact reconcile @ ${new Date().toISOString()}`,
-        branch,
-        metadata: { diskBytes: diskContent.length, discardedBytes: liveContent.length },
-      })
-        .then((sha) => {
-          incrementManagedArtifactReconcileCheckpointCreated();
-          void ring?.record({
-            event: LOSS_EVENT_CHECKPOINT_WRITE,
-            docName: documentName,
-            writerId: null,
-            direction: 'b',
-            site: MANAGED_ARTIFACT_RECONCILE_SITE,
-            lostLen: liveContent.length,
-            checkpointSha: sha,
-          });
-          console.warn(
-            JSON.stringify({
-              event: 'managed-artifact-reconcile-checkpoint-created',
-              docName: documentName,
-              sha,
-              kind: 'managed-artifact-reconcile',
-              timestamp: new Date().toISOString(),
-            }),
-          );
-        })
-        .catch((checkpointErr: unknown) => {
-          if (lastManagedReconcileCheckpointPayload.get(document) === liveContent) {
-            lastManagedReconcileCheckpointPayload.delete(document);
-          }
-          const e =
-            checkpointErr instanceof Error ? checkpointErr : new Error(String(checkpointErr));
-          log.warn(
-            { documentName, err: e },
-            '[persistence] managed-artifact reconcile checkpoint write failed',
-          );
-        });
-    });
-    return detect;
   }
 
   let loadDurationHist: ReturnType<ReturnType<typeof getMeter>['createHistogram']> | null = null;
@@ -2490,10 +2315,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
         loadConfigDoc(document, documentName, configPersistenceCtx);
         return;
       }
-      if (isManagedArtifactDoc(documentName)) {
-        loadManagedArtifactDoc(document, documentName, managedArtifactCtx);
-        return;
-      }
       if (!isRegisteredMarkdownDocName(documentName))
         registerSourceFileExtension(contentDir, documentName);
       options?.assertContentPath?.(safeContentPath(documentName, contentDir));
@@ -2647,11 +2468,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
       lastContext: _lastContext,
     }) {
       if (isSystemDoc(documentName)) return;
-      if (
-        isConfigDoc(documentName) ||
-        isManagedArtifactDoc(documentName) ||
-        isEnginelessDoc(documentName)
-      ) {
+      if (isConfigDoc(documentName) || isEnginelessDoc(documentName)) {
         await storeOutsideContentPipeline(document, documentName, lastTransactionOrigin);
         return;
       }
@@ -2770,38 +2587,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
       return;
     }
     const agentTriggered = durabilityState.consumeAgentWriteStore(documentName);
-    if (isManagedArtifactDoc(documentName)) {
-      const outcome = await storeManagedArtifactDoc(
-        document,
-        documentName,
-        lastTransactionOrigin,
-        managedArtifactCtx,
-      );
-      if (agentTriggered) recordOutsideStoreForAgentWrite(document, documentName, outcome);
-      settleHeldSave(documentName, managedArtifactSettlement(outcome, retry));
-      if (storeManagedArtifactWroteFile(outcome)) {
-        const writer = resolveWriterFromOrigin(lastTransactionOrigin, getPrincipal);
-        if (writer && writer.id !== SERVICE_WRITER.id && !writer.id.startsWith('agent-')) {
-          const attribution = managedArtifactContributorAttribution(documentName);
-          if (attribution) {
-            recordContributor(
-              attribution.docKey,
-              writer.id,
-              writer.name,
-              writer.id,
-              attribution.subject,
-            );
-            scheduleGitCommit();
-          }
-        }
-        try {
-          onManagedSkillPersisted?.(documentName);
-        } catch (err) {
-          log.warn({ err, documentName }, '[persistence] onManagedSkillPersisted callback failed');
-        }
-      }
-      return;
-    }
     options?.assertContentPath?.(safeContentPath(documentName, contentDir));
     const outcome = await storeMermaidDoc(
       document,
@@ -2816,7 +2601,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
   function recordOutsideStoreForAgentWrite(
     document: Y.Doc,
     documentName: string,
-    outcome: StoreMermaidOutcome | StoreManagedArtifactOutcome,
+    outcome: StoreMermaidOutcome,
   ): void {
     if (typeof outcome === 'object') {
       const hold = OUTSIDE_STORE_HOLDS[outcome.cause];
@@ -2830,30 +2615,8 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
     switch (outcome) {
       case 'persisted':
       case 'no-op':
-      case 'unchanged':
-        return;
-      case 'applied':
-      case 'outside-taken-in':
-        durabilityState.recordStoreIntake(documentName, 'clean', writtenThroughOf(document));
-        return;
-      case 'dropped-legacy-name':
-      case 'dropped-unresolvable':
-      case 'dropped-container-gone':
-      case 'dropped-intake-landed': {
-        const drop = OUTSIDE_STORE_DROPS[outcome];
-        durabilityState.recordStoreFailure(documentName, {
-          code: OK_WRITE_DROPPED,
-          message: `${documentName} was not saved: ${drop.description}`,
-          dropped: drop.cause,
-        });
-        return;
-      }
-      case 'merged':
-      case 'both-kept':
-        durabilityState.recordStoreIntake(documentName, outcome, writtenThroughOf(document));
         return;
       case 'kept-live':
-      case 'stash-fallback':
         durabilityState.recordStoreIntake(documentName, 'kept-live', writtenThroughOf(document));
         return;
       case 'write-failed':
@@ -2867,11 +2630,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
   }
 
   async function retryHeldSave(document: Y.Doc, documentName: string): Promise<void> {
-    if (
-      !isConfigDoc(documentName) &&
-      !isManagedArtifactDoc(documentName) &&
-      !isEnginelessDoc(documentName)
-    ) {
+    if (!isConfigDoc(documentName) && !isEnginelessDoc(documentName)) {
       return;
     }
     await storeOutsideContentPipeline(document, documentName, null);
@@ -2904,7 +2663,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
     forceStore,
     forgetObservedFile,
     configPersistenceCtx,
-    managedArtifactCtx,
     mermaidPersistenceCtx,
     retryHeldSave,
     isHeldSaveDue,

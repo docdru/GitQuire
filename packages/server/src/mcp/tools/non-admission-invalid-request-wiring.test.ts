@@ -36,46 +36,6 @@ const cases = [
     args: { template: { path: 'templates/existing', frontmatter: { description: 'Updated' } } },
     detail: 'BAD_TITLE',
   },
-  {
-    label: 'skill write description',
-    tool: 'write',
-    args: { skill: { name: 'existing', description: 'Existing', body: 'Safe.' } },
-    detail: 'DESCRIPTION_TOO_LONG',
-  },
-  {
-    label: 'skill description edit',
-    tool: 'edit',
-    args: { skill: { name: 'existing', description: 'Updated' } },
-    detail: 'DESCRIPTION_HAS_XML',
-  },
-  {
-    label: 'skill body edit summary',
-    tool: 'edit',
-    args: { skill: { name: 'existing', find: 'target', replace: 'replacement' } },
-    detail: 'INVALID_SUMMARY',
-  },
-  {
-    label: 'Markdown bundle write',
-    tool: 'write',
-    args: {
-      skill: { name: 'existing', files: [{ path: 'references/example.md', content: 'Safe.' }] },
-    },
-    detail: 'BAD_PATH',
-    batch: true,
-  },
-  {
-    label: 'Markdown bundle edit',
-    tool: 'edit',
-    args: {
-      skill: {
-        name: 'existing',
-        file: 'references/example.md',
-        find: 'target',
-        replace: 'replacement',
-      },
-    },
-    detail: 'INVALID_SUMMARY',
-  },
 ] as const;
 let root: string;
 let listener: Server;
@@ -98,19 +58,7 @@ beforeAll(async () => {
     req.resume();
     if (req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(
-        JSON.stringify(
-          req.url?.startsWith('/api/skill-file')
-            ? { path: 'references/example.md', kind: 'reference', text: 'Existing target.\n' }
-            : {
-                skill: {
-                  frontmatter: { description: 'Existing' },
-                  body: 'Existing target.\n',
-                  files: [],
-                },
-              },
-        ),
-      );
+      res.end('{}');
       return;
     }
     writes++;
@@ -165,10 +113,7 @@ describe.each([false, true])(
       expect(result.content).toEqual([
         {
           type: 'text',
-          text:
-            'batch' in item
-              ? `0/1 bundle file(s) written.\n  Failed references/example.md: ${expected}`
-              : expected,
+          text: expected,
         },
       ]);
     });

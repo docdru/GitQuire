@@ -1,8 +1,7 @@
-import { PACK_SKILL_PREFIX } from '@inkeep/open-knowledge-core/constants/skills';
 import type { LintPluginId } from '@inkeep/open-knowledge-core/markdown/lint';
 import { plural } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { File, Folder, Hexagon, type LucideIcon, Puzzle } from 'lucide-react';
+import { File, Folder, type LucideIcon, Puzzle } from 'lucide-react';
 import { Fragment } from 'react';
 import { LINT_PLUGIN_META } from '@/components/settings/lint-plugin-meta';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -90,12 +89,10 @@ export function CreatedItemsList({
   const { t } = useLingui();
   const folders = describeFolderCards(plan, selectedPack);
   const files = describeFileCards(plan);
-  const pendingSkills = (plan.packSkills ?? []).filter((s) => s.pending);
   const pendingPlugins = (plan.requiredPlugins ?? []).filter((p) => p.pending);
   const folderCount = folders.length;
   const fileCount = files.length;
   const templateCount = folders.reduce((sum, f) => sum + f.templateCount, 0);
-  const skillCount = pendingSkills.length;
   const pluginCount = pendingPlugins.length;
 
   const fileDescriptions: Record<string, string> = {
@@ -131,13 +128,6 @@ export function CreatedItemsList({
           label: t`${plural(templateCount, { one: 'template', other: 'templates' })}`,
         }
       : null,
-    skillCount > 0
-      ? {
-          key: 'skills',
-          n: skillCount,
-          label: t`${plural(skillCount, { one: 'skill', other: 'skills' })}`,
-        }
-      : null,
     pluginCount > 0
       ? {
           key: 'plugins',
@@ -165,15 +155,6 @@ export function CreatedItemsList({
     title: file.name,
     description: fileDescriptions[file.name],
   }));
-  const skillRows: PreviewRow[] = pendingSkills.map((skill) => ({
-    key: `skill:${skill.name}`,
-    icon: Hexagon,
-    name: skill.name.startsWith(PACK_SKILL_PREFIX)
-      ? skill.name.slice(PACK_SKILL_PREFIX.length)
-      : skill.name,
-    title: skill.name,
-    description: t`Guides your AI agents on how to work here.`,
-  }));
   const pluginDescriptions: Partial<Record<LintPluginId, string>> = {
     okf: t`Checks your project against the Open Knowledge Format. Turn it off any time in Settings.`,
   };
@@ -195,11 +176,6 @@ export function CreatedItemsList({
       key: 'files',
       label: t`${plural(fileRows.length, { one: 'File', other: 'Files' })}`,
       rows: fileRows,
-    },
-    {
-      key: 'skill',
-      label: t`${plural(skillRows.length, { one: 'Skill', other: 'Skills' })}`,
-      rows: skillRows,
     },
     {
       key: 'plugin',

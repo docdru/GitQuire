@@ -71,7 +71,7 @@ afterAll(async () => {
   rmSync(root, { recursive: true, force: true });
 });
 
-describe.each(['template', 'skill'] as const)('%s real admission error basis', (kind) => {
+describe.each(['template'] as const)('%s real admission error basis', (kind) => {
   test('full writes name the submitted field without claiming a replace argument', async () => {
     const name = `basis-new-${kind}`;
     const content = 'x😀\u0000private-tail';
@@ -145,80 +145,4 @@ describe.each(['template', 'skill'] as const)('%s real admission error basis', (
         .toBe(clean);
     },
   );
-});
-
-test('real Markdown bundle admission names the whole submitted content', async () => {
-  const result = await client.callTool({
-    name: 'write',
-    arguments: {
-      skill: {
-        name: 'basis-skill-metadata',
-        files: [
-          { path: 'references/basis.md', content: '---\ntitle: Basis\n---\nx😀\u0000private-tail' },
-        ],
-      },
-    },
-  });
-  expect(result.isError).toBe(true);
-  const text = textOf(result);
-  expectAdmission(text, 0, '---\ntitle: Basis\n---\nx😀'.length);
-  expect.soft(text).toMatch(/offset[^.]*whole submitted file content[^.]*frontmatter/i);
-});
-
-test.each(['references/absent.md', 'scripts/absent.sh', 'assets/absent.svg'])(
-  'real missing-skill failure has no admission offset advice for %s',
-  async (path) => {
-    const result = await client.callTool({
-      name: 'write',
-      arguments: { skill: { name: 'basis-does-not-exist', files: [{ path, content: 'Safe.' }] } },
-    });
-    expect(result.isError).toBe(true);
-    const text = textOf(result);
-    expect.soft(text).toMatch(/not found/i);
-    expect.soft(text).not.toMatch(/(?:body|content) offset|full submitted|whole submitted/i);
-  },
-);
-
-test('real Markdown bundle edit identifies the resubmitted stored file and clean full-write repair', async () => {
-  const path = join(
-    dirname(artifactPath('skill', 'basis-skill-bundle')),
-    'references',
-    'historical.md',
-  );
-  const original = readFileSync(path, 'utf8');
-  const result = await client.callTool({
-    name: 'edit',
-    arguments: {
-      skill: {
-        name: 'basis-skill-bundle',
-        file: 'references/historical.md',
-        find: '\u0001',
-        replace: '\\u0001',
-      },
-    },
-  });
-  expect(result.isError).toBe(true);
-  const text = textOf(result);
-  const resubmitted = original.replace('\u0001', '\\u0001');
-  expectAdmission(text, 31, resubmitted.indexOf('\u001f'));
-  expect
-    .soft(text)
-    .toMatch(
-      /full[^.]*stored[^.]*(?:file|content)[^.]*resubmit|resubmit[^.]*full[^.]*stored[^.]*(?:file|content)/i,
-    );
-  expect.soft(text).toMatch(/clean[^.]*full[^.]*replac/i);
-  expect.soft(text).toMatch(/write\s*\(/i);
-  expect.soft(readFileSync(path, 'utf8')).toBe(original);
-  const cleaned = resubmitted.replace('\u001f', '\\u001F');
-  const repaired = await client.callTool({
-    name: 'write',
-    arguments: {
-      skill: {
-        name: 'basis-skill-bundle',
-        files: [{ path: 'references/historical.md', content: cleaned }],
-      },
-    },
-  });
-  expect.soft(repaired.isError, textOf(repaired)).not.toBe(true);
-  expect.soft(readFileSync(path, 'utf8')).toBe(cleaned);
 });

@@ -106,13 +106,7 @@ export async function createInstallFixture(optionalParent = false) {
         versions,
       });
     }
-    for (const path of [
-      packageDir,
-      packDest,
-      installPrefix,
-      join(packageDir, 'dist/public'),
-      join(packageDir, 'dist/assets/skills'),
-    ]) {
+    for (const path of [packageDir, packDest, installPrefix, join(packageDir, 'dist/public')]) {
       mkdirSync(path, { recursive: true });
     }
     writeFileSync(
@@ -149,7 +143,6 @@ export async function createInstallFixture(optionalParent = false) {
       `#!/usr/bin/env node\nimport { createRequire } from 'node:module';\nconsole.log(JSON.stringify(createRequire(import.meta.url)('${PARENT}')));\n`,
     );
     writeFileSync(join(packageDir, 'dist/public/index.html'), '<title>CLI fixture</title>');
-    writeFileSync(join(packageDir, 'dist/assets/skills/SKILL.md'), '# CLI fixture\n');
     const parentVersion = `1.0.0(${PEER}@1.0.0)`;
     const lock = {
       lockfileVersion: '9.0',

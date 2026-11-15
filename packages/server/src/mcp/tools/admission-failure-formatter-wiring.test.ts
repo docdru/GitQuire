@@ -53,31 +53,6 @@ const cases = [
     tool: 'edit',
     args: { template: { path: 'templates/existing', frontmatter: { description: 'Updated' } } },
   },
-  {
-    label: 'skill write',
-    tool: 'write',
-    args: { skill: { name: 'existing', description: 'Existing', body: 'Safe.' } },
-  },
-  {
-    label: 'skill description edit',
-    tool: 'edit',
-    args: { skill: { name: 'existing', description: 'Updated' } },
-  },
-  {
-    label: 'skill body edit',
-    tool: 'edit',
-    args: { skill: { name: 'existing', find: 'target', replace: 'replacement' } },
-  },
-  ...['references/example.md', 'scripts/example.sh', 'assets/example.svg'].map((path) => ({
-    label: `skill file write ${path}`,
-    tool: 'write',
-    args: { skill: { name: 'existing', files: [{ path, content: 'Safe.' }] } },
-  })),
-  ...['references/example.md', 'scripts/example.sh', 'assets/example.svg'].map((file) => ({
-    label: `skill file edit ${file}`,
-    tool: 'edit',
-    args: { skill: { name: 'existing', file, find: 'target', replace: 'replacement' } },
-  })),
 ] as const;
 let root: string;
 let listener: Server;
@@ -95,25 +70,7 @@ beforeAll(async () => {
     req.resume();
     if (req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      if (req.url?.startsWith('/api/skill-file')) {
-        res.end(
-          JSON.stringify({
-            path: 'references/example.md',
-            kind: 'reference',
-            text: 'Existing target.\n',
-          }),
-        );
-        return;
-      }
-      res.end(
-        JSON.stringify({
-          skill: {
-            frontmatter: { description: 'Existing' },
-            body: 'Existing target.\n',
-            files: [],
-          },
-        }),
-      );
+      res.end('{}');
       return;
     }
     putCount++;
@@ -164,25 +121,5 @@ describe.each(failures)(
         expect.soft(text).not.toMatch(/(?:body|content) offset|full submitted|whole submitted/i);
       },
     );
-  },
-);
-
-test.each(['scripts/example.sh', 'assets/example.svg'])(
-  'controlled invalid-request formatter excludes opaque %s from admission advice',
-  async (path) => {
-    failure = {
-      status: 400,
-      type: 'urn:ok:error:invalid-request',
-      title: 'Invalid path',
-      detail: 'The destination path is invalid.',
-    };
-    const result = await client.callTool({
-      name: 'write',
-      arguments: { skill: { name: 'existing', files: [{ path, content: 'Safe.' }] } },
-    });
-    expect(result.isError).toBe(true);
-    const text = JSON.stringify(result.content);
-    expect.soft(text).toContain(failure.detail);
-    expect.soft(text).not.toMatch(/(?:body|content) offset|full submitted|whole submitted/i);
   },
 );

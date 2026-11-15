@@ -160,9 +160,6 @@ msgstr "{0, plural, one {Extension} many {Extensions} other {Extensions}}"
 msgid "{0, plural, one {Project policy hides # broken-link finding from this audit.} other {Project policy hides # broken-link findings from this audit.}}"
 msgstr "{0, plural, one {La politique du projet masque # résultat de lien rompu de cet audit.} many {La politique du projet masque # résultats de liens rompus de cet audit.} other {La politique du projet masque # résultats de liens rompus de cet audit.}}"
 
-msgid "{0, plural, one {Skill} other {Skills}}"
-msgstr "{0, plural, one {Compétence} many {Compétences} other {Compétences}}"
-
 msgid "{0, plural, one {The live wiki changed since this draft started (# page updated).} other {The live wiki changed since this draft started (# pages updated).}}"
 msgstr ""
 
@@ -437,9 +434,6 @@ msgstr "{owner}/{name} existe déjà. Choisissez un autre nom."
 msgid "{packName} initialized ({projectEntries, plural, one {# entry} other {# entries}})"
 msgstr "{packName} initialisé ({projectEntries, plural, one {# entrée} many {# entrées} other {# entrées}})"
 
-msgid "{packName} skill installed."
-msgstr "Compétence {packName} installée."
-
 msgid "{packName} was already set up. Nothing to do."
 msgstr "{packName} était déjà configuré. Rien à faire."
 
@@ -481,9 +475,6 @@ msgstr "Propriétés de {settingsDescriptorLabel}"
 
 msgid "{shown, plural, one {# item} other {# items}}"
 msgstr ""
-
-msgid "{skillCount, plural, one {skill} other {skills}}"
-msgstr "{skillCount, plural, one {compétence} many {compétences} other {compétences}}"
 
 msgid "{slot} color — {0}"
 msgstr "Couleur {slot} — {0}"
@@ -2143,9 +2134,6 @@ msgstr "Impossible d'envoyer le fichier. Le dossier des pièces jointes utilise 
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Impossible d'envoyer le fichier. Le dossier des pièces jointes utilise la variable inconnue {variables}. Corrigez-le dans Pièces jointes, dans les Paramètres."
 
-msgid "Count skill installs publicly"
-msgstr "Compter publiquement les installations de compétences"
-
 msgid "Cover focal position"
 msgstr "Point focal de la couverture"
 
@@ -3484,9 +3472,6 @@ msgstr ""
 
 msgid "Group by person"
 msgstr ""
-
-msgid "Guides your AI agents on how to work here."
-msgstr "Indique à vos agents IA comment travailler ici."
 
 msgid "guides/install or https://example.com"
 msgstr "guides/install ou https://example.com"
@@ -6637,12 +6622,6 @@ msgstr "Page unique"
 msgid "size limit"
 msgstr "limite de taille"
 
-msgid "Skill \"{conflictName}\" was not installed — you already have your own skill with that name. Rename yours if you want the pack's version."
-msgstr "La compétence « {conflictName} » n’a pas été installée : vous avez déjà votre propre compétence portant ce nom. Renommez la vôtre si vous voulez la version du pack."
-
-msgid "Skill \"{conflictName}\" was not installed for {conflictHosts} — you already have your own skill with that name there. Rename yours if you want the pack's version."
-msgstr "La compétence « {conflictName} » n’a pas été installée pour {conflictHosts} : vous y avez déjà votre propre compétence portant ce nom. Renommez la vôtre si vous voulez la version du pack."
-
 msgid "Skip"
 msgstr "Ignorer"
 
@@ -8103,9 +8082,6 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Quand vous survolez un lien externe, son URL est envoyée au site de destination pour récupérer les métadonnées d'aperçu de la page — une requête par lien prévisualisé."
 
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "Quand vous installez une compétence publiée, en informer l'annuaire de compétences (skills.sh) pour que son nombre d'installations soit exact. Envoie le nom de la compétence, son dépôt source, et les outils d'agent vers lesquels elle est allée — jamais le contenu des fichiers, et jamais pour une compétence provenant d'une source privée, locale ou saisie à la main. Une fois par compétence et par machine."
-
 msgid "Where should it live?"
 msgstr "Où doit-elle résider ?"
 
@@ -8180,9 +8156,6 @@ msgstr "YAML ou JSON, dans l'une ou l'autre disposition base16."
 
 msgid "yesterday"
 msgstr "hier"
-
-msgid "You already have your own skill named \"{0}\" — the pack's version will not be installed, and yours won't be touched. Rename yours to install the pack's version."
-msgstr "Vous avez déjà votre propre compétence nommée « {0} » : la version du pack ne sera pas installée et la vôtre restera intacte. Renommez la vôtre pour installer celle du pack."
 
 msgid "You are here"
 msgstr ""
