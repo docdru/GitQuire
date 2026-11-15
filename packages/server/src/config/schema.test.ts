@@ -8,7 +8,6 @@ describe('ConfigSchema', () => {
     expect(config.appearance.theme).toBeUndefined();
     expect(config.editor.wordWrap).toBe(true);
     expect(config.autoSync.enabled).toBeNull();
-    expect(config.terminal.enabled).toBeNull();
   });
 
   test('stale dropped fields pass loose-mode without throwing', () => {

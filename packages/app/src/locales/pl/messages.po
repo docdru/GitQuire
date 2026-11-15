@@ -1340,9 +1340,6 @@ msgstr "Dotyczy"
 msgid "Applies to (globs — leading ! excludes; empty means every doc)"
 msgstr "Dotyczy (wzorce glob — wyróżnik ! na początku wyklucza; pusty oznacza każdy dokument)"
 
-msgid "Applies to all projects on this machine, in Claude Code and Codex chats in the Agents panel started after you turn it on. The agent can open pages, click, type, and take screenshots in its own Google Chrome window with a fresh profile. Needs Google Chrome and Node.js installed. Every browser action asks for your approval, with no option to always allow it, unless the agent's own mode or permission settings skip approvals."
-msgstr "Dotyczy wszystkich projektów na tym komputerze, w czatach Claude Code i Codex w panelu Agentów uruchomionych po włączeniu tej opcji. Agent może otwierać strony, klikać, pisać i robić zrzuty ekranu w własnym oknie Google Chrome z świeżym profilem. Wymaga zainstalowanych Google Chrome i Node.js. Każde działanie w przeglądarce pyta o Twoją zgodę, bez opcji „zawsze zezwalaj”, chyba że tryb agenta lub ustawienia uprawnień pomijają pytania."
-
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
@@ -5339,9 +5336,6 @@ msgstr "Nie uwzględniaj uszkodzonych linków zapisanych w pliku log.md lub log.
 
 msgid "Let {0} know the draft looks good."
 msgstr ""
-
-msgid "Let agent chats use a browser"
-msgstr "Pozwól czatom z agentem korzystać z przeglądarki"
 
 msgid "Let an AI assistant work in this wiki with you. Its edits appear live for everyone and are committed with you as the author, and it sees the open comment threads on each page."
 msgstr ""
