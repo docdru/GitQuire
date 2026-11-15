@@ -9,7 +9,7 @@ import {
   withHiddenWindowsConsole,
 } from '@inkeep/open-knowledge-server';
 
-export { canonicalizeForCompare, isHomeDir };
+export { isHomeDir };
 
 const ANCESTOR_WALK_DEPTH_LIMIT = 30;
 

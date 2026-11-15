@@ -4,7 +4,7 @@ import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER, type SessionUser } from '.
 import { internalRequestHeaders } from '../internal-request.ts';
 import type { ToolSpec } from './providers.ts';
 
-export const WIKI_TOOL_NAMES = [
+const WIKI_TOOL_NAMES = [
   'search',
   'exec',
   'links',
@@ -22,9 +22,9 @@ const ALLOWED_ARGUMENTS: Readonly<Record<string, ReadonlySet<string>>> = {
   exec: new Set(['command']),
 };
 const HIDDEN_PATH_RE = /(^|[\s/'"=(|:])\.(?!\.?(?:[\s/'"|)]|$))/;
-export const MAX_TOOL_OUTPUT_CHARS = 20_000;
+const MAX_TOOL_OUTPUT_CHARS = 20_000;
 
-export interface WikiToolResult {
+interface WikiToolResult {
   output: string;
   isError: boolean;
 }

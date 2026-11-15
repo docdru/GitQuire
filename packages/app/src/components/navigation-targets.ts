@@ -65,7 +65,7 @@ interface DocumentSizeMeta {
   size?: number;
 }
 
-export function normalizeTargetPath(target: string): {
+function normalizeTargetPath(target: string): {
   normalizedTarget: string;
   expectsFolder: boolean;
 } {

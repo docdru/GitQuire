@@ -1,6 +1,6 @@
 import { type ApiDeps, gitquireRequest } from './branch-api';
 
-export interface MentionAuthor {
+interface MentionAuthor {
   id: string;
   login?: string;
   name?: string;

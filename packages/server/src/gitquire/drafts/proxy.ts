@@ -15,7 +15,7 @@ const HOP_BY_HOP = new Set([
   'upgrade',
 ]);
 
-export function forwardedHeaders(
+function forwardedHeaders(
   req: IncomingMessage,
   extra: Record<string, string> = {},
 ): Record<string, string | string[]> {

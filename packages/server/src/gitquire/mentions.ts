@@ -32,7 +32,7 @@ export interface Mention {
   draft?: { slug: string; title: string };
 }
 
-export interface InboxMention extends Omit<Mention, 'logins' | 'quiet'> {
+interface InboxMention extends Omit<Mention, 'logins' | 'quiet'> {
   read: boolean;
 }
 
@@ -104,9 +104,9 @@ interface UserState {
   confirmationsSent?: string[];
 }
 
-export type ConfirmResult = 'confirmed' | 'none' | 'expired' | 'wrong' | 'locked';
+type ConfirmResult = 'confirmed' | 'none' | 'expired' | 'wrong' | 'locked';
 
-export interface PendingInfo {
+interface PendingInfo {
   email: string;
   sentAt: string;
 }
@@ -412,7 +412,7 @@ export function createMentionReadStore(
   };
 }
 
-export function authorIdForReader(reader: MentionReader): string {
+function authorIdForReader(reader: MentionReader): string {
   return `github-${reader.id}`;
 }
 
@@ -436,7 +436,7 @@ export interface Inbox {
   mentions: InboxMention[];
 }
 
-export const MAX_INBOX_ITEMS = 100;
+const MAX_INBOX_ITEMS = 100;
 
 export function buildInbox(
   reader: MentionReader,

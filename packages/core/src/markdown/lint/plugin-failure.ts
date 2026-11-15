@@ -13,7 +13,7 @@ function lintPluginFailurePrefix(failure: LintPluginFailure): string {
   return `source "${failure.source}" ${failure.phase} failed`;
 }
 
-export function formatLintPluginFailure(failure: LintPluginFailure): string {
+function formatLintPluginFailure(failure: LintPluginFailure): string {
   const location = failure.docName === undefined ? '' : ` on "${failure.docName}"`;
   return `${lintPluginFailurePrefix(failure)}${location}: ${failure.message}`;
 }

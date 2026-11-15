@@ -2,11 +2,7 @@ import { z } from 'zod';
 import { isDisallowedContentControl } from '../../util/content-controls.ts';
 import { validateDocName } from '../../util/doc-name.ts';
 
-export function checkAgentContent(
-  value: string,
-  context: z.RefinementCtx,
-  path: string[] = [],
-): void {
+function checkAgentContent(value: string, context: z.RefinementCtx, path: string[] = []): void {
   for (let offset = 0; offset < value.length; offset++) {
     const codePoint = value.charCodeAt(offset);
     if (isDisallowedContentControl(codePoint)) {

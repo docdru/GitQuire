@@ -583,9 +583,6 @@ msgstr "<0>Trop de références en direct sur cette page.</0> Ce miroir de <1>{s
 msgid "📝 or assets/icon.png"
 msgstr "📝 ou assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 heure"
 
@@ -684,12 +681,6 @@ msgstr "Une variable a besoin de deux accolades de chaque côté, comme {filenam
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "À propos"
-
-msgid "About {appName}"
-msgstr "À propos de {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "Activité de l'agent"
 
 msgid "Agent configuration file"
 msgstr "Fichier de configuration de l'agent"
-
-msgid "Agent connections"
-msgstr "Connexions des agents"
 
 msgid "Agent panel"
 msgstr "Panneau des agents"
@@ -3186,9 +3174,6 @@ msgstr "Rechercher et remplacer"
 msgid "Find field navigation"
 msgstr "Navigation dans le champ de recherche"
 
-msgid "Find in file"
-msgstr "Rechercher dans le fichier"
-
 msgid "Find next match"
 msgstr "Occurrence suivante"
 
@@ -5105,9 +5090,6 @@ msgstr "Ouvre l'invite « Aller à la ligne » de CodeMirror."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Ouvre le panneau de diagnostics de vérification de CodeMirror."
 
-msgid "Open containing folder"
-msgstr "Ouvrir le dossier contenant"
-
 msgid "Open date picker for {keyName}"
 msgstr "Ouvrir le sélecteur de date de {keyName}"
 
@@ -5745,9 +5727,6 @@ msgstr "Reconnexion après le redémarrage du serveur"
 msgid "Recovered content"
 msgstr "Contenu récupéré"
 
-msgid "Recycle Bin"
-msgstr "Corbeille"
-
 msgid "Redo"
 msgstr "Rétablir"
 
@@ -6045,9 +6024,6 @@ msgstr "Réutiliser un même onglet lors des clics dans les barres latérales. D
 
 msgid "Reused if it already exists, created if not."
 msgstr "Réutilisé s'il existe déjà, créé sinon."
-
-msgid "Reveal in File Explorer"
-msgstr "Afficher dans l'Explorateur de fichiers"
 
 msgid "Reveal in Finder"
 msgstr "Afficher dans le Finder"
@@ -7610,9 +7586,6 @@ msgstr "Trop lent"
 
 msgid "Top linked pages"
 msgstr "Pages les plus liées"
-
-msgid "Trash"
-msgstr "corbeille"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Recule dans l'historique de navigation de GitQuire."

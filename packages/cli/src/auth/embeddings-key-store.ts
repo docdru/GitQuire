@@ -1,5 +1,4 @@
 export {
-  clearAllEmbeddingsKeys,
   createEmbeddingsSecretStore,
   EmbeddingsSecretStoreError,
   makeLazyEmbeddingsKeyStore,

@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import type { ChatProvider } from './models.ts';
 
 export const CHAT_RETENTION_DAYS = 90;
-export const MAX_CHATS_LISTED = 200;
+const MAX_CHATS_LISTED = 200;
 const CHAT_ID_RE = /^[A-Za-z0-9_-]{16,32}$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const STALE_TMP_MS = 60 * 60 * 1000;
@@ -58,7 +58,7 @@ export interface ChatRecord {
   usage: ChatUsage;
 }
 
-export interface ChatSummary {
+interface ChatSummary {
   id: string;
   title: string;
   provider: ChatProvider;

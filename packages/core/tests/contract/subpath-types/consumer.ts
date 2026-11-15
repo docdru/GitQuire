@@ -169,9 +169,9 @@ export type {
   SERVER_UNREACHABLE_ERROR_PREFIX,
 } from '@inkeep/open-knowledge-core/constants/mcp';
 export type {
-  OPEN_KNOWLEDGE_DISCORD_URL,
   OPEN_KNOWLEDGE_DOCS_URL,
   OPEN_KNOWLEDGE_GITHUB_URL,
+  OPEN_KNOWLEDGE_ISSUES_URL,
 } from '@inkeep/open-knowledge-core/constants/menu-labels';
 export type { NativeMenuLabelKey } from '@inkeep/open-knowledge-core/constants/native-menu-labels';
 export type {

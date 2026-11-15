@@ -1,9 +1,9 @@
 export const DRAFT_BRANCH_PREFIX = 'draft/';
 export const VIEW_COOKIE = 'gq_view';
-export const MAX_DRAFT_TITLE = 120;
+const MAX_DRAFT_TITLE = 120;
 const MAX_SLUG = 48;
 
-export type DraftStatus = 'draft' | 'review' | 'published' | 'discarded';
+type DraftStatus = 'draft' | 'review' | 'published' | 'discarded';
 
 export interface DraftPerson {
   id: number;
@@ -11,7 +11,7 @@ export interface DraftPerson {
   name?: string;
 }
 
-export interface DraftReview {
+interface DraftReview {
   login: string;
   name?: string;
   verdict: 'approved' | 'changes';
@@ -19,7 +19,7 @@ export interface DraftReview {
   at: string;
 }
 
-export interface ReviewRequest {
+interface ReviewRequest {
   id: string;
   by: DraftPerson;
   logins: string[];

@@ -7,7 +7,7 @@ const tagHandler: ToMarkdownHandle = (node) => {
   return `#${tag.value}`;
 };
 
-export const tagToMarkdown: {
+const tagToMarkdown: {
   handlers: Record<string, ToMarkdownHandle>;
   unsafe: Array<{
     character: string;

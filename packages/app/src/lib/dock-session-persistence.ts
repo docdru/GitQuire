@@ -1,6 +1,6 @@
 export type DockSurface = 'agents';
 
-export interface DockSessionOrder {
+interface DockSessionOrder {
   readonly order: readonly string[];
   readonly activeKey: string | null;
 }

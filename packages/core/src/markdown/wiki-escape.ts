@@ -29,11 +29,7 @@ export function normalizeWikiSeparatorEscapes(
 
 export type WikiSegmentKind = 'separatorAdjacent' | 'alias';
 
-export function rawSegmentMatchesValue(
-  raw: string,
-  current: string,
-  kind: WikiSegmentKind,
-): boolean {
+function rawSegmentMatchesValue(raw: string, current: string, kind: WikiSegmentKind): boolean {
   const trimmed = raw.trim();
   if (trimmed === current) return true;
   return kind === 'alias'

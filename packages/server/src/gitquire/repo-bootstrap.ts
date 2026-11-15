@@ -84,7 +84,7 @@ export async function bootstrapRepository(
   return { action: 'cloned', branch };
 }
 
-export const AUTO_SYNC_MODES = ['off', 'follow', 'full'] as const;
+const AUTO_SYNC_MODES = ['off', 'follow', 'full'] as const;
 export type AutoSyncMode = (typeof AUTO_SYNC_MODES)[number];
 
 export function parseAutoSyncMode(value: string | undefined): AutoSyncMode {

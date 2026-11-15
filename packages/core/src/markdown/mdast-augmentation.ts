@@ -48,7 +48,7 @@ export function hasEscapeProvenance<T>(data: T): data is T & EscapeProvenanceTex
   return validateEscapeProvenance(data).kind === 'valid';
 }
 
-export const PROMOTED_MDAST_TYPES = [
+const PROMOTED_MDAST_TYPES = [
   'wikiLink',
   'wikiLinkEmbed',
   'mdxJsxFlowElement',

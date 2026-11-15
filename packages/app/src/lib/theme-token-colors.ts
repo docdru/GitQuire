@@ -1,7 +1,5 @@
 import { cssColorToHex } from './css-color-to-hex';
 
-export type TokenColorReader = (token: string) => string | null;
-
 function normalizeProbedColor(resolved: string | undefined): string | null {
   if (!resolved || resolved === 'rgba(0, 0, 0, 0)' || resolved === 'transparent') return null;
   if (resolved.includes('var(')) return null;

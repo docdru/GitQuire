@@ -69,7 +69,7 @@ export function parseGitHubRepo(value: string | undefined): GitHubRepoRef | unde
   return { owner: match[1], name: match[2] };
 }
 
-export function isGitHubAuthRequested(env: Readonly<Record<string, string | undefined>>): boolean {
+function isGitHubAuthRequested(env: Readonly<Record<string, string | undefined>>): boolean {
   const mode = nonEmpty(env.GITQUIRE_AUTH)?.toLowerCase();
   if (mode === 'off' || mode === 'none') return false;
   return mode === 'github' || nonEmpty(env.GITHUB_APP_CLIENT_ID) !== undefined;

@@ -1,9 +1,9 @@
 export const CHAT_PROVIDERS = ['claude', 'mistral'] as const;
 export type ChatProvider = (typeof CHAT_PROVIDERS)[number];
 
-export type ModelTier = 'balanced' | 'capable' | 'fast';
+type ModelTier = 'balanced' | 'capable' | 'fast';
 
-export interface ChatModel {
+interface ChatModel {
   id: string;
   label: string;
   tier: ModelTier;

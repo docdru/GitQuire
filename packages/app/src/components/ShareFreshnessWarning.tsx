@@ -33,7 +33,7 @@ export function shareFreshnessRowVisible(
   return true;
 }
 
-export function syncNowActionable(status: GitSyncStatus | null): boolean {
+function syncNowActionable(status: GitSyncStatus | null): boolean {
   if (!status) return false;
   const state = displayState(status);
   return (
@@ -41,7 +41,7 @@ export function syncNowActionable(status: GitSyncStatus | null): boolean {
   );
 }
 
-export function SyncNowPausedNotice({
+function SyncNowPausedNotice({
   status,
   className,
 }: {

@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input';
 import { AgentDraftSetting } from '@/gitquire-settings/AgentDraftSetting';
 import { type GitQuireFeatures, useGitQuireFeatures } from '@/lib/gitquire/features';
 
-export const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
-export const CLAUDE_ORG_CONNECTORS_URL = 'https://claude.ai/admin-settings/connectors';
-export const LE_CHAT_URL = 'https://chat.mistral.ai/';
-export const AGENT_ACCESS_PATH = '/auth/agents';
+const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
+const CLAUDE_ORG_CONNECTORS_URL = 'https://claude.ai/admin-settings/connectors';
+const LE_CHAT_URL = 'https://chat.mistral.ai/';
+const AGENT_ACCESS_PATH = '/auth/agents';
 
 export function connectorUrl(origin: string): string {
   return `${origin.replace(/\/+$/, '')}/mcp`;

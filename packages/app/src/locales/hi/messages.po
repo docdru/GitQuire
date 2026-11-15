@@ -579,9 +579,6 @@ msgstr "<0>इस पेज पर बहुत अधिक लाइव सं
 msgid "📝 or assets/icon.png"
 msgstr "📝 या assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 घंटा"
 
@@ -680,12 +677,6 @@ msgstr "किसी वेरिएबल के हर तरफ़ दो क
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "परिचय"
-
-msgid "About {appName}"
-msgstr "{appName} के बारे में"
 
 msgid "About the folder"
 msgstr ""
@@ -878,9 +869,6 @@ msgstr "एजेंट गतिविधि"
 
 msgid "Agent configuration file"
 msgstr "एजेंट कॉन्फ़िगरेशन फ़ाइल"
-
-msgid "Agent connections"
-msgstr "एजेंट कनेक्शन"
 
 msgid "Agent panel"
 msgstr "एजेंट पैनल"
@@ -3182,9 +3170,6 @@ msgstr "खोजें और बदलें"
 msgid "Find field navigation"
 msgstr "खोज फ़ील्ड नेविगेशन"
 
-msgid "Find in file"
-msgstr "फ़ाइल में खोजें"
-
 msgid "Find next match"
 msgstr "अगला मेल खोजें"
 
@@ -5101,9 +5086,6 @@ msgstr "CodeMirror का पंक्ति-पर-जाएँ प्रॉम
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "CodeMirror का lint निदान पैनल खोलें।"
 
-msgid "Open containing folder"
-msgstr "जिसमें है वह फ़ोल्डर खोलें"
-
 msgid "Open date picker for {keyName}"
 msgstr "{keyName} के लिए तारीख़ चयनकर्ता खोलें"
 
@@ -5741,9 +5723,6 @@ msgstr "सर्वर पुनः आरंभ होने के बाद 
 msgid "Recovered content"
 msgstr "पुनर्प्राप्त सामग्री"
 
-msgid "Recycle Bin"
-msgstr "रीसायकल बिन"
-
 msgid "Redo"
 msgstr "फिर से करें"
 
@@ -6041,9 +6020,6 @@ msgstr "साइडबार से क्लिक करते समय ए�
 
 msgid "Reused if it already exists, created if not."
 msgstr "यदि पहले से मौजूद है तो पुन: उपयोग किया जाता है, वरना बना दिया जाता है।"
-
-msgid "Reveal in File Explorer"
-msgstr "File Explorer में दिखाएँ"
 
 msgid "Reveal in Finder"
 msgstr "Finder में दिखाएँ"
@@ -7606,9 +7582,6 @@ msgstr "बहुत धीमा"
 
 msgid "Top linked pages"
 msgstr "सबसे ज़्यादा लिंक किए गए पेज"
-
-msgid "Trash"
-msgstr "ट्रैश"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "GitQuire के नेविगेशन इतिहास में पीछे जाएँ।"

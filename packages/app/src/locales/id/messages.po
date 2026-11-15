@@ -579,9 +579,6 @@ msgstr "<0>Terlalu banyak referensi langsung di halaman ini.</0> Cermin <1>{src}
 msgid "📝 or assets/icon.png"
 msgstr "📝 atau assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 jam"
 
@@ -680,12 +677,6 @@ msgstr "Variabel memerlukan dua kurung kurawal di setiap sisi, seperti {filename
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "Tentang"
-
-msgid "About {appName}"
-msgstr "Tentang {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -878,9 +869,6 @@ msgstr "Aktivitas agen"
 
 msgid "Agent configuration file"
 msgstr "Berkas konfigurasi agen"
-
-msgid "Agent connections"
-msgstr "Koneksi agen"
 
 msgid "Agent panel"
 msgstr "Panel agen"
@@ -3182,9 +3170,6 @@ msgstr "Cari dan ganti"
 msgid "Find field navigation"
 msgstr "Navigasi bidang pencarian"
 
-msgid "Find in file"
-msgstr "Cari di berkas"
-
 msgid "Find next match"
 msgstr "Cari kecocokan berikutnya"
 
@@ -5101,9 +5086,6 @@ msgstr "Membuka kotak ke-baris CodeMirror."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Membuka panel diagnostik lint CodeMirror."
 
-msgid "Open containing folder"
-msgstr "Buka folder induknya"
-
 msgid "Open date picker for {keyName}"
 msgstr "Buka pemilih tanggal untuk {keyName}"
 
@@ -5741,9 +5723,6 @@ msgstr "Menyambung ulang setelah server dimulai ulang"
 msgid "Recovered content"
 msgstr "Konten yang dipulihkan"
 
-msgid "Recycle Bin"
-msgstr "Recycle Bin"
-
 msgid "Redo"
 msgstr "Ulangi"
 
@@ -6041,9 +6020,6 @@ msgstr "Pakai ulang satu tab saat Anda mengeklik lewat bilah sisi. Bila mati, se
 
 msgid "Reused if it already exists, created if not."
 msgstr "Dipakai ulang jika sudah ada, dibuat jika belum."
-
-msgid "Reveal in File Explorer"
-msgstr "Tampilkan di Penjelajah Berkas"
 
 msgid "Reveal in Finder"
 msgstr "Tampilkan di Finder"
@@ -7606,9 +7582,6 @@ msgstr "Terlalu lambat"
 
 msgid "Top linked pages"
 msgstr "Halaman paling banyak ditaut"
-
-msgid "Trash"
-msgstr "Tempat Sampah"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Menyusuri riwayat navigasi GitQuire ke belakang."

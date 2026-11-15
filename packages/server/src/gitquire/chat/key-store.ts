@@ -7,7 +7,7 @@ const KEY_INFO = 'gitquire-ai-chat-keys-v1';
 const MAX_KEY_LENGTH = 512;
 const KEY_PATTERN = /^[\x21-\x7e]+$/;
 
-export interface StoredKeyInfo {
+interface StoredKeyInfo {
   configured: boolean;
   hint: string | null;
   savedAt: string | null;

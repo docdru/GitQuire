@@ -523,7 +523,7 @@ export function bindFrontmatterDoc(provider: FrontmatterDocProvider): Frontmatte
   };
 }
 
-export function touchesFmRegion(
+function touchesFmRegion(
   event: Pick<Y.YTextEvent, 'delta'>,
   fmLength: number,
   hasOpenFencePrefix: boolean,

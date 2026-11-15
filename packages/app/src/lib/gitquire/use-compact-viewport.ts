@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export const COMPACT_VIEWPORT_QUERY = '(max-width: 639px), (max-height: 499px)';
+const COMPACT_VIEWPORT_QUERY = '(max-width: 639px), (max-height: 499px)';
 
 function query(): MediaQueryList | null {
   return typeof window === 'undefined' || typeof window.matchMedia !== 'function'

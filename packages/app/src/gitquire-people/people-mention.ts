@@ -23,10 +23,10 @@ import { PeopleSuggestionMenu } from './PeopleSuggestionMenu';
 const TRIGGER_RE = /(^|[\s(￼])@([A-Za-z0-9-]{0,39})$/;
 const MENTION_RE = /(?<![\w@])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)(?![\w-])/g;
 
-export const peopleSuggestionKey = new PluginKey('gitquirePeopleSuggestion');
+const peopleSuggestionKey = new PluginKey('gitquirePeopleSuggestion');
 const peopleHighlightKey = new PluginKey<DecorationSet>('gitquirePeopleHighlight');
 
-export function peopleMatcher(config: { $position: ResolvedPos }) {
+function peopleMatcher(config: { $position: ResolvedPos }) {
   const { $position } = config;
   const before = $position.parent.textBetween(0, $position.parentOffset, undefined, '￼');
   const match = TRIGGER_RE.exec(before);
@@ -40,7 +40,7 @@ function isCode(node: PMNode): boolean {
   return node.marks.some((mark) => mark.type.name === 'code');
 }
 
-export function mentionDecorations(doc: PMNode, known: ReadonlySet<string>): DecorationSet {
+function mentionDecorations(doc: PMNode, known: ReadonlySet<string>): DecorationSet {
   if (known.size === 0) return DecorationSet.empty;
   const decorations: Decoration[] = [];
   doc.descendants((node, pos) => {

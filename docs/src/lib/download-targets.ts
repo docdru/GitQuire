@@ -17,7 +17,7 @@ type DownloadArch = 'arm64' | 'x64';
 
 type DownloadFormat = 'dmg' | 'exe' | 'deb' | 'rpm';
 
-export type DownloadTargetId =
+type DownloadTargetId =
   | 'macos-arm64'
   | 'windows-x64'
   | 'windows-arm64'
@@ -106,7 +106,7 @@ const DOWNLOAD_PAGE_ORIGIN = 'https://openknowledge.ai';
 
 export const DOWNLOAD_PAGE_HREF = `${DOWNLOAD_PAGE_ORIGIN}/download`;
 
-export function downloadPageHrefForCta(cta: DownloadCta): string {
+function downloadPageHrefForCta(cta: DownloadCta): string {
   return `${DOWNLOAD_PAGE_HREF}?utm_content=${encodeURIComponent(cta)}`;
 }
 
@@ -114,7 +114,7 @@ export const WEB_APP_HREF = '/docs/reference/cli';
 
 export const WEB_APP_LABEL = 'Run in your browser (npm)';
 
-export function targetById(id: DownloadTargetId): DownloadTarget {
+function targetById(id: DownloadTargetId): DownloadTarget {
   const target = DOWNLOAD_TARGETS.find((candidate) => candidate.id === id);
   if (!target) throw new Error(`Unknown download target: ${id}`);
   return target;
@@ -155,14 +155,6 @@ export function classifyDownloadOs(input: string | null | undefined): DetectedOs
     return 'linux';
   }
   return 'unknown';
-}
-
-export function readPlatformInput(): string | null {
-  if (typeof navigator === 'undefined') return null;
-  const withUaData = navigator as Navigator & {
-    userAgentData?: { platform?: string };
-  };
-  return withUaData.userAgentData?.platform ?? navigator.userAgent ?? null;
 }
 
 export function downloadLabelForOs(os: DetectedOs): string {

@@ -7,9 +7,9 @@ import {
   evaluateCommandAvailability,
 } from '@inkeep/open-knowledge-core/commands/command-identity';
 import {
-  OPEN_KNOWLEDGE_DISCORD_URL,
   OPEN_KNOWLEDGE_DOCS_URL,
   OPEN_KNOWLEDGE_GITHUB_URL,
+  OPEN_KNOWLEDGE_ISSUES_URL,
 } from '@inkeep/open-knowledge-core/constants/menu-labels';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
@@ -224,10 +224,10 @@ const COMMAND_DISPATCH: Record<string, (ctx: PaletteCommandContext) => void> = {
     ctx.closePalette();
     openSettings();
   },
-  'send-feedback': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_DISCORD_URL),
+  'send-feedback': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_ISSUES_URL),
   'open-github': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_GITHUB_URL),
   'open-docs': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_DOCS_URL),
-  'open-discord': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_DISCORD_URL),
+  'open-discord': (ctx) => ctx.openExternalUrl(OPEN_KNOWLEDGE_ISSUES_URL),
 };
 
 const STATE_AVAILABILITY: Readonly<

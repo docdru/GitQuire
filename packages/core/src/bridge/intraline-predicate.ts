@@ -1,4 +1,4 @@
-export function rawLineCounts(doc: string): Map<string, number> {
+function rawLineCounts(doc: string): Map<string, number> {
   const counts = new Map<string, number>();
   for (const line of doc.split('\n')) {
     if (line.trim() === '') continue;

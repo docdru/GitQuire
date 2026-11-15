@@ -28,14 +28,14 @@ import {
 import { createGitQuireRoutes } from './routes.ts';
 import { setAdminResolver } from './settings-admin.ts';
 
-export type { AccessGate, SessionUser } from './access-gate.ts';
-export { noreplyEmail } from './access-gate.ts';
+export type { AccessGate } from './access-gate.ts';
+
 export { GitHubAppConfigError, GitHubUnavailableError } from './github-app.ts';
 export { GitHubAuthConfigError } from './github-auth-config.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
-export function agentTokensFile(env: Env, projectDir: string): string {
+function agentTokensFile(env: Env, projectDir: string): string {
   const override = env.GITQUIRE_AGENT_TOKENS_FILE?.trim();
   if (override !== undefined && override !== '') return override;
   return join(projectDir, '.ok', 'local', 'gitquire', 'agent-tokens.json');
@@ -116,7 +116,7 @@ export function withGitHubAppToken(
   return manager === undefined ? detectGh : manager.wrapDetectGh(detectGh);
 }
 
-export interface GitQuireBootstrapResult {
+interface GitQuireBootstrapResult {
   configured: boolean;
   message: string;
 }

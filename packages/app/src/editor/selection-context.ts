@@ -13,8 +13,6 @@ export interface SelectionSnapshot {
   readonly sourceLineEnd?: number;
 }
 
-export const INLINE_SELECTION_MAX_CHARS = 100;
-
 export function selectionChipLabel(s: SelectionSnapshot, name: string): string {
   if (s.sourceLineStart !== undefined && s.sourceLineEnd !== undefined) {
     const range =

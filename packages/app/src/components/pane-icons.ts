@@ -10,12 +10,12 @@ export const PANE_ICON = {
   agents: Sparkles,
 } as const satisfies Record<PaneId, ComponentType<SVGProps<SVGSVGElement>>>;
 
-export const PANE_LABEL = {
+const PANE_LABEL = {
   editor: msg`Editor`,
   agents: msg`Agents`,
 } as const satisfies Record<PaneId, MessageDescriptor>;
 
-export const AI_CHAT_PANE_LABEL = msg`AI chat`;
+const AI_CHAT_PANE_LABEL = msg`AI chat`;
 
 export function paneLabel(pane: PaneId, agentsPaneIsChat: boolean): MessageDescriptor {
   return pane === 'agents' && agentsPaneIsChat ? AI_CHAT_PANE_LABEL : PANE_LABEL[pane];

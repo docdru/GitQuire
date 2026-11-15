@@ -22,7 +22,7 @@ export type FieldValue =
   | FieldValue[]
   | { [key: string]: FieldValue };
 
-export interface PageTask {
+interface PageTask {
   id: string;
   text: string;
   done: boolean;
@@ -42,7 +42,7 @@ export interface PageFacts {
   clipped: boolean;
 }
 
-export interface PageObject extends PageFacts {
+interface PageObject extends PageFacts {
   path: string;
   modified: string;
 }
@@ -315,7 +315,7 @@ export function pageFacts(path: string, source: string): PageFacts {
   };
 }
 
-export function pageObject(page: ScannedPage<PageFacts>): PageObject {
+function pageObject(page: ScannedPage<PageFacts>): PageObject {
   return {
     ...page.value,
     path: page.path,
@@ -323,7 +323,7 @@ export function pageObject(page: ScannedPage<PageFacts>): PageObject {
   };
 }
 
-export const MAX_LISTED_OBJECTS = 2000;
+const MAX_LISTED_OBJECTS = 2000;
 
 export interface ObjectList {
   pages: PageObject[];

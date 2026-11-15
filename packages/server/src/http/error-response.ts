@@ -48,7 +48,7 @@ export function apiErrorCounter(): Counter {
   return _apiErrorCounter;
 }
 
-export type ErrorExtensions = Record<string, unknown> & {
+type ErrorExtensions = Record<string, unknown> & {
   [K in 'type' | 'title' | 'status' | 'instance' | 'detail']?: never;
 };
 

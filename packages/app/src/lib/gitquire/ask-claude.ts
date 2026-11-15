@@ -3,7 +3,7 @@ import { agentsPaneIsChat, type GitQuireFeatures, hasClaudeAccess } from './feat
 export type ClaudeDestination = 'claude-web' | 'claude-app' | 'claude-code';
 export type AskDestination = ClaudeDestination | 'gitquire-chat';
 
-export const CLAUDE_DESTINATIONS: readonly ClaudeDestination[] = [
+const CLAUDE_DESTINATIONS: readonly ClaudeDestination[] = [
   'claude-web',
   'claude-app',
   'claude-code',

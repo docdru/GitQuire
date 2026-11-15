@@ -11,19 +11,19 @@ import { cn } from '@/lib/utils';
 
 type TargetIconId = Parameters<typeof TargetIcon>[0]['id'];
 
-export function hostLabel(host: string): string {
+function hostLabel(host: string): string {
   if (host === 'agents' || host === '.agents' || host.startsWith('.agents/')) return '.agents';
   if (host.includes('/')) return host;
   return (EDITOR_LABELS as Record<string, string>)[host] ?? host;
 }
 
-export const AGENT_CLUSTER_MAX = 2;
+const AGENT_CLUSTER_MAX = 2;
 
 function targetIconIdForHost(host: string): TargetIconId {
   return (host === 'claude' ? 'claude-code' : host) as TargetIconId;
 }
 
-export function AgentBrandIcon({
+function AgentBrandIcon({
   host,
   ...props
 }: { host: string } & Omit<SVGProps<SVGSVGElement>, 'id'>) {

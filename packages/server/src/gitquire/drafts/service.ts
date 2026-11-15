@@ -7,7 +7,6 @@ import { noreplyEmail } from '../access-gate.ts';
 import type { Mention } from '../mentions.ts';
 import type { RunGit } from '../repo-bootstrap.ts';
 import {
-  type ConflictChunk,
   changedPages,
   commitPending,
   commitsTouching,
@@ -58,7 +57,7 @@ export interface DraftServiceDeps {
   onPublished?: () => void;
 }
 
-export interface DraftSummary {
+interface DraftSummary {
   slug: string;
   title: string;
   status: DraftRecord['status'];
@@ -75,32 +74,30 @@ export interface DraftSummary {
   closedBy: DraftPerson | null;
 }
 
-export interface PageChange extends ChangedPage {
+interface PageChange extends ChangedPage {
   before: string | null;
   after: string | null;
 }
 
-export interface LiveDrift {
+interface LiveDrift {
   behind: number;
   pages: string[];
 }
 
-export type UpdateResult =
+type UpdateResult =
   | { kind: 'up-to-date' | 'updated' }
   | { kind: 'conflicts'; files: FileConflict[] };
-
-export type { ConflictChunk, FileConflict };
 
 const MAX_CHANGE_BYTES = 200_000;
 const PAGES_CACHE_MS = 15_000;
 const RETRO_WINDOW_MS = 12 * 60 * 60 * 1000;
 const CLOSED_KEEP = 50;
 
-export function personOf(user: SessionUser): DraftPerson {
+function personOf(user: SessionUser): DraftPerson {
   return { id: user.id, login: user.login, ...(user.name ? { name: user.name } : {}) };
 }
 
-export function identityOf(user: SessionUser): GitIdentity {
+function identityOf(user: SessionUser): GitIdentity {
   return { name: user.name || user.login, email: noreplyEmail(user) };
 }
 

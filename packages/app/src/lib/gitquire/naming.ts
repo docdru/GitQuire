@@ -21,10 +21,6 @@ export function loadNamingRule(): Promise<void> {
   return loading;
 }
 
-export function currentNamingRule(): NamingRule {
-  return rule;
-}
-
 export function nameLastSegment(path: string, isFile: boolean, active = rule): string {
   if (active === 'off') return path;
   const trailingSlash = path.endsWith('/');

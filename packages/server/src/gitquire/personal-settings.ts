@@ -3,13 +3,13 @@ import { dirname, join } from 'node:path';
 import { ConfigSchema } from '@inkeep/open-knowledge-core';
 import { parseDocument } from 'yaml';
 
-export const MAX_PERSONAL_SETTINGS_BYTES = 32 * 1024;
+const MAX_PERSONAL_SETTINGS_BYTES = 32 * 1024;
 
-export function personalSettingsDir(projectDir: string): string {
+function personalSettingsDir(projectDir: string): string {
   return join(projectDir, '.ok', 'local', 'gitquire', 'users');
 }
 
-export function personalSettingsPath(projectDir: string, userId: number): string {
+function personalSettingsPath(projectDir: string, userId: number): string {
   if (!Number.isSafeInteger(userId) || userId <= 0) {
     throw new Error(`invalid GitHub user id: ${userId}`);
   }

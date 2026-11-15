@@ -583,9 +583,6 @@ msgstr "<0>此頁面的即時引用過多。</0><1>{src}</1> 的此鏡像未載�
 msgid "📝 or assets/icon.png"
 msgstr "📝 或 assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 小時"
 
@@ -684,12 +681,6 @@ msgstr "變數兩側各需要兩個大括號，例如 {filenameVariable}。"
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "關於"
-
-msgid "About {appName}"
-msgstr "關於 {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "代理活動"
 
 msgid "Agent configuration file"
 msgstr "代理設定檔"
-
-msgid "Agent connections"
-msgstr "智慧代理連線"
 
 msgid "Agent panel"
 msgstr "智慧代理面板"
@@ -3186,9 +3174,6 @@ msgstr "尋找並取代"
 msgid "Find field navigation"
 msgstr "尋找欄位導覽"
 
-msgid "Find in file"
-msgstr "在檔案中尋找"
-
 msgid "Find next match"
 msgstr "尋找下一個相符項"
 
@@ -5105,9 +5090,6 @@ msgstr "開啟 CodeMirror 的移至行提示框。"
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "開啟 CodeMirror 的檢查診斷面板。"
 
-msgid "Open containing folder"
-msgstr "開啟所在的資料夾"
-
 msgid "Open date picker for {keyName}"
 msgstr "開啟 {keyName} 的日期選擇器"
 
@@ -5745,9 +5727,6 @@ msgstr "伺服器重新啟動後正在重新連線"
 msgid "Recovered content"
 msgstr "已復原的內容"
 
-msgid "Recycle Bin"
-msgstr "資源回收筒"
-
 msgid "Redo"
 msgstr "重做"
 
@@ -6045,9 +6024,6 @@ msgstr "在側邊欄中一路點下去時重複使用同一個分頁。關掉之
 
 msgid "Reused if it already exists, created if not."
 msgstr "如果已經存在就重複使用，否則就建立。"
-
-msgid "Reveal in File Explorer"
-msgstr "在檔案總管中顯示"
 
 msgid "Reveal in Finder"
 msgstr "在 Finder 中顯示"
@@ -7610,9 +7586,6 @@ msgstr "太慢了"
 
 msgid "Top linked pages"
 msgstr "被連結最多的頁面"
-
-msgid "Trash"
-msgstr "垃圾桶"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "在 GitQuire 的導覽記錄中往回走。"

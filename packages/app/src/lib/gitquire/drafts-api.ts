@@ -2,7 +2,7 @@ import { type ApiDeps, GitQuireApiError, gitquireRequest } from './branch-api';
 
 export type DraftStatus = 'draft' | 'review' | 'published' | 'discarded';
 
-export interface DraftPerson {
+interface DraftPerson {
   id: number;
   login: string;
   name?: string;
@@ -16,7 +16,7 @@ export interface DraftReview {
   at: string;
 }
 
-export interface ReviewRequest {
+interface ReviewRequest {
   id: string;
   by: DraftPerson;
   logins: string[];
@@ -53,7 +53,7 @@ export interface DraftList {
   drafts: DraftSummary[];
 }
 
-export interface LiveDrift {
+interface LiveDrift {
   behind: number;
   pages: string[];
 }

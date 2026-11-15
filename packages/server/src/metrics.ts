@@ -56,7 +56,7 @@ export type EnginelessIntakeOutcome =
   | 'held-no-history-or-backup'
   | 'held-not-utf8';
 
-export type ManagedArtifactMergeOutcome =
+type ManagedArtifactMergeOutcome =
   | 'applied'
   | 'unchanged'
   | 'merged'
@@ -732,26 +732,6 @@ export function incrementReceiptRecordsOtherVersion(count: number): void {
 
 export function incrementReceiptLogRefused(): void {
   counters.receiptLogRefused++;
-}
-
-export function incrementManagedArtifactReconcile(): void {
-  counters.managedArtifactReconcile++;
-}
-
-export function incrementManagedArtifactReconcileCheckpointCreated(): void {
-  counters.managedArtifactReconcileCheckpointCreated++;
-}
-
-export function incrementManagedArtifactReconcileDeduped(): void {
-  counters.managedArtifactReconcileDeduped++;
-}
-
-export function incrementManagedArtifactMerge(
-  site: 'store' | 'intake',
-  outcome: ManagedArtifactMergeOutcome,
-): void {
-  const key: ManagedArtifactMergeKey = `${site}:${outcome}`;
-  counters.managedArtifactMerge[key] = (counters.managedArtifactMerge[key] ?? 0) + 1;
 }
 
 export function incrementEnginelessStore(outcome: EnginelessStoreOutcome): void {

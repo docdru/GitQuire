@@ -1,10 +1,10 @@
 import { toast as sonnerToast } from 'sonner';
 
-export function resolveErrorMessage(err: unknown, fallback: string): string {
+function resolveErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error && err.message ? err.message : fallback;
 }
 
-export async function runWithErrorStatePure(
+async function runWithErrorStatePure(
   fn: () => Promise<void>,
   fallback: string,
   setError: (msg: string | null) => void,

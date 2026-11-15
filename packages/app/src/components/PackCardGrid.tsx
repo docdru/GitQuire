@@ -33,7 +33,7 @@ const PACK_ICONS: Record<OkPackId, React.ComponentType<{ className?: string }>> 
   okf: FileCheck,
 };
 
-export function iconForPack(id: string): React.ComponentType<{ className?: string }> {
+function iconForPack(id: string): React.ComponentType<{ className?: string }> {
   return (PACK_ICONS as Record<string, React.ComponentType<{ className?: string }>>)[id] ?? Library;
 }
 

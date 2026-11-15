@@ -1,21 +1,8 @@
-import { type RefObject, useEffect, useSyncExternalStore } from 'react';
+import { type RefObject, useEffect } from 'react';
 import {
-  getSelectionContext,
   publishSelectionContext,
-  type SelectionSnapshot,
   selectionSnapshotFromFrontmatter,
-  subscribeSelectionContext,
 } from '@/editor/selection-context';
-import type { EditorSurface } from '@/editor/selection-stats';
-
-export function useSelectionContext(
-  activeDocName: string | null,
-  surface: EditorSurface,
-): SelectionSnapshot | null {
-  return useSyncExternalStore(subscribeSelectionContext, () =>
-    getSelectionContext(activeDocName, surface),
-  );
-}
 
 function readFrontmatterSelection(container: HTMLElement): string {
   const active = document.activeElement as

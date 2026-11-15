@@ -130,7 +130,7 @@ export function createSubscribeCardStore(storage?: SubscribeCardStorage): Subscr
   };
 }
 
-export const subscribeCardStore: SubscribeCardStore = createSubscribeCardStore();
+const subscribeCardStore: SubscribeCardStore = createSubscribeCardStore();
 
 export function installSubscribeCardStore(): void {
   subscribeCardStore.install();

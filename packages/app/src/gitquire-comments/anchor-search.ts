@@ -174,14 +174,6 @@ export function captureSelectionContext(
   };
 }
 
-export function findQuoteRange(
-  doc: PMNode,
-  quote: string,
-  context?: AnchorContext,
-): { from: number; to: number } | null {
-  return createAnchorResolver(doc)(quote, context);
-}
-
 export function createAnchorResolver(
   doc: PMNode,
 ): (quote: string, context?: AnchorContext) => { from: number; to: number } | null {

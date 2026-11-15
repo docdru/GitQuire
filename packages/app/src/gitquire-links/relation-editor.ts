@@ -10,7 +10,7 @@ import {
   relationOfLink,
 } from './relation-fields';
 
-export function inlinePieces(block: PMNode): InlinePiece[] {
+function inlinePieces(block: PMNode): InlinePiece[] {
   const pieces: InlinePiece[] = [];
   block.forEach((child) => {
     if (child.isText) {
@@ -68,7 +68,7 @@ function fieldDecorations(field: RelationFieldRange): Decoration[] {
   return decorations;
 }
 
-export function relationDecorations(state: EditorState): DecorationSet {
+function relationDecorations(state: EditorState): DecorationSet {
   const decorations: Decoration[] = [];
   const { from, to } = state.selection;
   state.doc.descendants((node, pos) => {

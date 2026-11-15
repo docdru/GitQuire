@@ -15,7 +15,7 @@ const STOP_GRACE_MS = 20_000;
 const DEFAULT_IDLE_MS = 30 * 60 * 1000;
 const SWEEP_MS = 60_000;
 
-export type SpawnFn = (
+type SpawnFn = (
   command: string,
   args: readonly string[],
   options: {
@@ -66,7 +66,7 @@ export interface DraftInstances {
   stopAll: () => Promise<void>;
 }
 
-export function findFreePort(): Promise<number> {
+function findFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = createServer();
     server.once('error', reject);

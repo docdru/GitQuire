@@ -34,15 +34,12 @@ function restoreLineEndings(merged: string, raw: string): string {
   return crlfCount > lfCount ? merged.replaceAll('\n', '\r\n') : merged;
 }
 
-export interface DocBoundarySplit {
+interface DocBoundarySplit {
   boundary: string;
   text: string;
 }
 
-export function splitLeadingDocBoundary(
-  text: string,
-  carriesDocStartRun: boolean,
-): DocBoundarySplit {
+function splitLeadingDocBoundary(text: string, carriesDocStartRun: boolean): DocBoundarySplit {
   if (carriesDocStartRun) return { boundary: '', text };
   const { frontmatter, body } = stripFrontmatter(text);
   const match = body.match(LEADING_BOUNDARY_RE);
@@ -54,20 +51,20 @@ export function splitLeadingDocBoundary(
   return { boundary: match[0], text: frontmatter + strippedBody };
 }
 
-export function reattachLeadingDocBoundary(text: string, boundary: string): string {
+function reattachLeadingDocBoundary(text: string, boundary: string): string {
   if (boundary === '') return text;
   const { frontmatter, body } = stripFrontmatter(text);
   return frontmatter + boundary + body;
 }
 
-export function projectMergeBoundarySpace(text: string, carriesDocStartRun: boolean): string {
+function projectMergeBoundarySpace(text: string, carriesDocStartRun: boolean): string {
   if (carriesDocStartRun) return text;
   const stripped = splitLeadingDocBoundary(text, carriesDocStartRun).text;
   if (stripFrontmatter(stripped).frontmatter === '') return stripped;
   return reattachLeadingDocBoundary(stripped, '\n');
 }
 
-export function unprojectMergeBoundarySpace(
+function unprojectMergeBoundarySpace(
   merged: string,
   raw: string,
   carriesDocStartRun: boolean,

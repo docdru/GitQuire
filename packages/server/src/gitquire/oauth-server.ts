@@ -6,8 +6,8 @@ import { type AgentTokenStore, cleanLabel, type IssuedConnectorTokens } from './
 import { escapeHtml, isSameOriginRequest, readForm, redirect, sendHtml } from './http-util.ts';
 import { decodeSigned, encodeSigned, safeEqual } from './signed-cookie.ts';
 
-export const PROTECTED_RESOURCE_PATH = '/.well-known/oauth-protected-resource';
-export const AUTHORIZATION_SERVER_PATH = '/.well-known/oauth-authorization-server';
+const PROTECTED_RESOURCE_PATH = '/.well-known/oauth-protected-resource';
+const AUTHORIZATION_SERVER_PATH = '/.well-known/oauth-authorization-server';
 const AUTHORIZE_PATH = '/oauth/authorize';
 const TOKEN_PATH = '/oauth/token';
 const REGISTER_PATH = '/oauth/register';
@@ -19,7 +19,7 @@ const MAX_REDIRECT_URIS = 10;
 const MAX_BODY_BYTES = 16 * 1024;
 const TOKEN_AUTH_METHODS = ['none', 'client_secret_basic', 'client_secret_post'] as const;
 
-export interface OAuthClient {
+interface OAuthClient {
   clientId: string;
   name: string;
   redirectUris: string[];
@@ -174,7 +174,7 @@ function decodeFormComponent(value: string): string {
   }
 }
 
-export function basicClientCredentials(
+function basicClientCredentials(
   header: string | undefined,
 ): { id: string; secret: string } | undefined {
   if (header === undefined || !/^basic /i.test(header)) return undefined;

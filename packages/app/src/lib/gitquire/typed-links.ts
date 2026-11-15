@@ -8,7 +8,7 @@ import {
 import type { SchemaField } from '@/lib/frontmatter-schema-fields';
 import { type ApiDeps, gitquireRequest } from './branch-api';
 
-export type RelationOrigin = 'frontmatter' | 'inline';
+type RelationOrigin = 'frontmatter' | 'inline';
 
 export interface TypedLink {
   source: string;

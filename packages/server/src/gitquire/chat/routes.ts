@@ -26,7 +26,7 @@ import {
 } from './transcript.ts';
 import type { OpenWikiTools } from './wiki-tools.ts';
 
-export const MAX_MESSAGE_CHARS = 20_000;
+const MAX_MESSAGE_CHARS = 20_000;
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_PAGE_CHARS = 300;
 const PURGE_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -92,7 +92,7 @@ export interface ChatRoutes {
   stop(): void;
 }
 
-export const CHAT_API_PREFIX = '/api/gitquire/chat';
+const CHAT_API_PREFIX = '/api/gitquire/chat';
 
 export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
   const now = deps.now ?? (() => new Date());

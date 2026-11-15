@@ -159,7 +159,7 @@ export function isInAppAgentPath(path: string): boolean {
 
 const ADMIN_ONLY_WRITE_PREFIXES = ['/api/generated-index/'];
 
-export function isAdminOnlyApi(path: string, method: string | undefined): boolean {
+function isAdminOnlyApi(path: string, method: string | undefined): boolean {
   if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return false;
   return ADMIN_ONLY_WRITE_PREFIXES.some((prefix) => path.startsWith(prefix));
 }

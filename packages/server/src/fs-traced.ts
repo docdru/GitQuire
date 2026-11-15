@@ -13,13 +13,12 @@ import {
   renameSync,
   rmdirSync,
   rmSync,
-  symlinkSync,
   unlinkSync,
   utimesSync,
   writeFileSync,
   writeSync,
 } from 'node:fs';
-import { appendFile, mkdir, rename, rm, writeFile } from 'node:fs/promises';
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { basename, sep } from 'node:path';
 import type { AtomicWriteFsAdapter } from '@inkeep/open-knowledge-core/server';
 import type { Attributes } from '@opentelemetry/api';
@@ -85,20 +84,6 @@ export async function tracedWriteFile(
     { attributes: buildAttrs('writeFile', path, { 'fs.bytes': byteLength(data) }) },
     async () => {
       await writeFile(path, data, options);
-    },
-  );
-}
-
-export async function tracedAppendFile(
-  path: string,
-  data: string | Uint8Array,
-  options?: WriteFileOptions,
-): Promise<void> {
-  return withSpan(
-    'fs.appendFile',
-    { attributes: buildAttrs('appendFile', path, { 'fs.bytes': byteLength(data) }) },
-    async () => {
-      await appendFile(path, data, options);
     },
   );
 }
@@ -218,12 +203,6 @@ export function tracedCpSync(
   );
 }
 
-function tracedOpenSync(path: string, flags: string, mode: number): number {
-  return withSpanSync('fs.openSync', { attributes: buildAttrs('openSync', path) }, () =>
-    openSync(path, flags, mode),
-  );
-}
-
 export interface ObservedFileRead {
   readonly bytes: Buffer;
   readonly before: BigIntStats;
@@ -254,17 +233,6 @@ export function tracedUnlinkSync(path: string): void {
   });
 }
 
-export function tracedOpenUnlinkedSync(path: string): number {
-  const fd = tracedOpenSync(path, 'wx+', 0o600);
-  try {
-    tracedUnlinkSync(path);
-    return fd;
-  } catch (err) {
-    closeSync(fd);
-    throw err;
-  }
-}
-
 export function tracedLinkSync(existingPath: string, newPath: string): void {
   withSpanSync(
     'fs.linkSync',
@@ -275,24 +243,6 @@ export function tracedLinkSync(existingPath: string, newPath: string): void {
     },
     () => {
       linkSync(existingPath, newPath);
-    },
-  );
-}
-
-export function tracedSymlinkSync(
-  target: string,
-  linkPath: string,
-  type?: 'dir' | 'file' | 'junction',
-): void {
-  withSpanSync(
-    'fs.symlinkSync',
-    {
-      attributes: buildAttrs('symlinkSync', linkPath, {
-        'fs.source_path': normalizeFsPath(target),
-      }),
-    },
-    () => {
-      symlinkSync(target, linkPath, type);
     },
   );
 }

@@ -71,7 +71,3 @@ export function composeWithDerivedFrontmatter(
 
   return settle(frontmatter, frontmatter, body, 'unresolved');
 }
-
-export function composesAmbiguously(frontmatter: string, body: string): boolean {
-  return !isUnambiguous(frontmatter, body);
-}

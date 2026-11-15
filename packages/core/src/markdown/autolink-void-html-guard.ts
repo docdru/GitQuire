@@ -24,14 +24,6 @@ const LITERAL_SENTINEL_ESCAPES: ReadonlyArray<readonly [string, string]> = [
 const HAS_LITERAL_SENTINEL_RE = /[\uE000-\uE004]/;
 const HAS_ESCAPED_LITERAL_SENTINEL_RE = /[\uE005-\uE009]/;
 
-export const R23_GUARD_SUBSTITUTIONS: ReadonlyArray<{ from: string; to: string }> = [
-  { from: '<', to: GUARD_OPEN },
-  { from: '>', to: GUARD_CLOSE },
-  { from: ':', to: GUARD_COLON },
-  { from: '@', to: GUARD_AT },
-  { from: '{', to: GUARD_OPEN_BRACE },
-];
-
 export const R23_SENTINEL_ESCAPE_SUBSTITUTIONS: ReadonlyArray<{ from: string; to: string }> =
   LITERAL_SENTINEL_ESCAPES.map(([from, to]) => ({ from, to }));
 

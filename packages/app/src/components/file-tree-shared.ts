@@ -36,11 +36,6 @@ export function lucideMaskDataUri(iconNode: IconNode): string {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-export function createLucideSpriteSymbol(id: string, iconNode: IconNode): string {
-  const symbolContent = iconNodeToSvg(iconNode);
-  return `<symbol id="${id}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${symbolContent}</symbol>`;
-}
-
 export const FILE_TREE_USER_NAME_DIRECTION_CSS = `
   [data-item-section='content'],
   [data-item-section='content'] [data-truncate-content],
