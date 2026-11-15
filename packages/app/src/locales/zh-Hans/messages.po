@@ -5640,9 +5640,6 @@ msgstr "计划响应格式错误"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "在「设置 → 忽略模式」中管理隐藏文件。"
 
-msgid "Manage skill folders"
-msgstr "管理技能文件夹"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "管理 GitQuire 用来连接你的 git 主机的账户和访问令牌。"
 
@@ -6900,9 +6897,6 @@ msgstr "打开文件夹选择器，选择把仓库克隆到哪里。"
 
 msgid "Opens in a new tab"
 msgstr "在新标签页中打开"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "打开「设置 → 技能工作室」，在那里你可以把整个文件夹链接到另一个文件夹，让两个智能体读取相同的技能，也可以添加自定义技能根目录。"
 
 msgid "or create a new file <0/>"
 msgstr "或者新建一个文件 <0/>"

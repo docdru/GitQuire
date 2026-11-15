@@ -5636,9 +5636,6 @@ msgstr "Resposta de plano malformada"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "Gerencie os arquivos ocultos em Configurações → Padrões de exclusão."
 
-msgid "Manage skill folders"
-msgstr "Gerenciar as pastas de habilidades"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "Gerencie as contas e os tokens de acesso que o GitQuire usa para se conectar aos seus hosts git."
 
@@ -6896,9 +6893,6 @@ msgstr "Abre um seletor de pastas para escolher onde clonar o repositório."
 
 msgid "Opens in a new tab"
 msgstr "Abre em uma nova aba"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "Abre Configurações → Estúdio de habilidades, onde você vincula uma pasta inteira dentro de outra para que os dois agentes leiam as mesmas habilidades, e adiciona raízes de habilidades personalizadas."
 
 msgid "or create a new file <0/>"
 msgstr "ou crie um novo arquivo <0/>"

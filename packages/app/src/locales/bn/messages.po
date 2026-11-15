@@ -5636,9 +5636,6 @@ msgstr "প্ল্যান প্রতিক্রিয়ার গঠন 
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "লুকানো ফাইল Settings → Ignore patterns-এ সামলান।"
 
-msgid "Manage skill folders"
-msgstr "স্কিল ফোল্ডার সামলান"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "GitQuire আপনার git হোস্টগুলোর সঙ্গে সংযোগ করতে যে অ্যাকাউন্ট ও প্রবেশ টোকেন ব্যবহার করে সেগুলো সামলান।"
 
@@ -6896,9 +6893,6 @@ msgstr "রিপোজিটরিটি কোথায় ক্লোন ক
 
 msgid "Opens in a new tab"
 msgstr "নতুন ট্যাবে খোলে"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "Settings → Skills Studio খোলে, যেখানে আপনি একটি পুরো ফোল্ডার আরেকটির সঙ্গে যুক্ত করেন যাতে দুই এজেন্ট একই স্কিল পড়ে, এবং কাস্টম স্কিল রুট যোগ করেন।"
 
 msgid "or create a new file <0/>"
 msgstr "নয়তো একটি নতুন ফাইল তৈরি করুন <0/>"

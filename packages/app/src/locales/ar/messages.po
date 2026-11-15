@@ -5640,9 +5640,6 @@ msgstr "استجابة الخطة مشوّهة"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "أدِر الملفات المخفية من الإعدادات ← أنماط التجاهل."
 
-msgid "Manage skill folders"
-msgstr "إدارة مجلدات المهارات"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "أدر الحسابات ورموز الوصول التي يستخدمها GitQuire للاتصال بمضيفات git الخاصة بك."
 
@@ -6900,9 +6897,6 @@ msgstr "يفتح منتقي مجلدات لاختيار مكان استنساخ 
 
 msgid "Opens in a new tab"
 msgstr "يفتح في تبويب جديد"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "يفتح الإعدادات ← استوديو المهارات، حيث تربط مجلدًا كاملًا بآخر ليقرأ الوكيلان المهارات نفسها، وتضيف جذور مهارات مخصصة."
 
 msgid "or create a new file <0/>"
 msgstr "أو أنشئ ملفًا جديدًا <0/>"

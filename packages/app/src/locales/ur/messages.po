@@ -5640,9 +5640,6 @@ msgstr "پلان کا جواب بگڑا ہوا ہے"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "چھپی ہوئی فائلیں ترتیبات ← نظر انداز کرنے کے پیٹرنز میں سنبھالیں۔"
 
-msgid "Manage skill folders"
-msgstr "مہارت کے فولڈرز سنبھالیں"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "GitQuire آپ کے git ہوسٹس سے جڑنے کے لیے جو اکاؤنٹس اور رسائی ٹوکن استعمال کرتا ہے، انہیں سنبھالیں۔"
 
@@ -6900,9 +6897,6 @@ msgstr "ریپازٹری کہاں کلون کرنی ہے، یہ منتخب کر�
 
 msgid "Opens in a new tab"
 msgstr "نئے ٹیب میں کھلتا ہے"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "ترتیبات ← مہارت اسٹوڈیو کھولتا ہے، جہاں آپ ایک پورا فولڈر دوسرے سے جوڑتے ہیں تاکہ دونوں ایجنٹس ایک ہی مہارتیں پڑھیں، اور حسبِ ضرورت مہارت کی جڑیں شامل کرتے ہیں۔"
 
 msgid "or create a new file <0/>"
 msgstr "یا نئی فائل بنائیں <0/>"

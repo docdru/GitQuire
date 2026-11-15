@@ -5640,9 +5640,6 @@ msgstr "Malformed plan response"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "Manage hidden files in Settings → Ignore patterns."
 
-msgid "Manage skill folders"
-msgstr "Manage skill folders"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 
@@ -6900,9 +6897,6 @@ msgstr "Opens a folder picker to choose where to clone the repository."
 
 msgid "Opens in a new tab"
 msgstr "Opens in a new tab"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
 
 msgid "or create a new file <0/>"
 msgstr "or create a new file <0/>"

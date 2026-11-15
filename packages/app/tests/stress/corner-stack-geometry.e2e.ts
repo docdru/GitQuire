@@ -202,10 +202,6 @@ async function expectCornerPassesClicksTo(page: Page, surface: CornerSurface): P
   await surface.afterClick(page);
 }
 
-function skillsDock(page: Page): Locator {
-  return page.getByTestId('skills-dock');
-}
-
 async function terminalHoldsFocus(page: Page): Promise<boolean> {
   return await page.evaluate(
     (selector) => document.querySelector(selector)?.contains(document.activeElement) === true,
@@ -214,23 +210,6 @@ async function terminalHoldsFocus(page: Page): Promise<boolean> {
 }
 
 const CORNER_SURFACES: readonly CornerSurface[] = [
-  {
-    name: 'the Skills Studio row at the bottom of the open file sidebar',
-    slug: 'skills-row',
-    host: 'web',
-    viewport: WIDE,
-    selector: '[data-testid="skills-dock"]',
-    arrange: async (page) => {
-      await expect(sidebarTrigger(page)).toHaveAttribute('aria-expanded', 'true');
-      await expect(skillsDock(page)).toBeVisible();
-    },
-    beforeClick: async (page) => {
-      await expect(skillsDock(page)).toHaveAttribute('data-state', 'closed');
-    },
-    afterClick: async (page) => {
-      await expect(skillsDock(page)).toHaveAttribute('data-state', 'open');
-    },
-  },
   {
     name: 'the editor with the file sidebar collapsed',
     slug: 'editor',

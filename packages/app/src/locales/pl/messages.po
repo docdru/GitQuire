@@ -5640,9 +5640,6 @@ msgstr "Nieprawidłowa odpowiedź plan"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "Zarządzaj ukrytymi plikami w Ustawieniach → Wzorce ignorowania."
 
-msgid "Manage skill folders"
-msgstr "Zarządzaj folderami umiejętności"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "Zarządzaj kontami i tokenami dostępowymi, których GitQuire używa do łączenia się z Twoimi hostami git."
 
@@ -6900,9 +6897,6 @@ msgstr "Otwiera wybór folderu, w którym ma zostać sklonowane repozytorium."
 
 msgid "Opens in a new tab"
 msgstr "Otwiera się w nowej karcie"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "Otwiera Ustawienia → Studio umiejętności, gdzie łączysz cały folder z innym, aby oba agenci korzystały z tych samych umiejętności, oraz dodajesz własne katalogi nadrzędne umiejętności."
 
 msgid "or create a new file <0/>"
 msgstr "lub utwórz nowy plik <0/>"

@@ -5640,9 +5640,6 @@ msgstr "計畫回應格式錯誤"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "在「設定 → 忽略模式」中管理隱藏的檔案。"
 
-msgid "Manage skill folders"
-msgstr "管理技能資料夾"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "管理 GitQuire 用來連線到你的 git 主機的帳戶和存取權杖。"
 
@@ -6900,9 +6897,6 @@ msgstr "開啟資料夾選擇器，挑一個地方把儲存庫複製過去。"
 
 msgid "Opens in a new tab"
 msgstr "在新分頁中開啟"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "開啟「設定 → 技能工作室」，在那裡你可以把整個資料夾連到另一個資料夾，讓兩個代理讀到相同的技能，也可以新增自訂的技能根目錄。"
 
 msgid "or create a new file <0/>"
 msgstr "或者新增一個檔案 <0/>"

@@ -805,39 +805,6 @@ test('Files opens as a full editor cover and Back preserves docking intent', asy
   await expect(page.locator('[data-files-back]')).toHaveCount(0);
 });
 
-test('Files cover keeps Back in view when its sidebar scrolls in a short window', async ({
-  page,
-  api,
-}) => {
-  const docName = `editor-card-files-cover-short-${test.info().workerIndex}`;
-  await api.seedDocs([{ name: docName, markdown: DOC_MARKDOWN }]);
-  await page.setViewportSize({ width: 390, height: 240 });
-  await page.goto(`/#/${docName}`);
-  await waitForActiveProviderSynced(page);
-
-  await page.locator('[data-sidebar="trigger"]').click();
-  const cover = page.locator('[data-files-cover]');
-  await expect(cover).toBeVisible();
-  await cover.getByText('Skills Studio', { exact: true }).click();
-  const content = cover.locator('[data-sidebar="content"]');
-  await expect
-    .poll(() => content.evaluate((element) => element.scrollHeight - element.clientHeight))
-    .toBeGreaterThan(0);
-  const rowHeight = await cover
-    .locator('[data-sidebar-project-row]')
-    .evaluate((element) => element.getBoundingClientRect().height);
-  await content.evaluate((element) => {
-    element.scrollTop = element.scrollHeight;
-  });
-  await expect
-    .poll(() => content.evaluate((element) => element.scrollTop))
-    .toBeGreaterThanOrEqual(rowHeight);
-  const back = cover.getByRole('button', { name: 'Back to editor', exact: true });
-  await expect.poll(() => ownsItsCentre(back)).toBe(true);
-  await back.click();
-  await expect(cover).toHaveCount(0);
-});
-
 test('Files cover keeps Back as its first row when there are conflicts', async ({ page, api }) => {
   await page.route('**/api/sync/conflicts', async (route) => {
     await route.fulfill({

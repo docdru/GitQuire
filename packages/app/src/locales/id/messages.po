@@ -5636,9 +5636,6 @@ msgstr "Respons plan salah bentuk"
 msgid "Manage hidden files in Settings → Ignore patterns."
 msgstr "Kelola berkas tersembunyi di Pengaturan → Pola abaikan."
 
-msgid "Manage skill folders"
-msgstr "Kelola folder keterampilan"
-
 msgid "Manage the accounts and access tokens GitQuire uses to connect to your git hosts."
 msgstr "Kelola akun dan token akses yang dipakai GitQuire untuk terhubung ke host git Anda."
 
@@ -6896,9 +6893,6 @@ msgstr "Membuka pemilih folder untuk memilih tempat mengkloning repositorinya."
 
 msgid "Opens in a new tab"
 msgstr "Terbuka di tab baru"
-
-msgid "Opens Settings → Skills Studio, where you link a whole folder into another so both agents read the same skills, and add custom skill roots."
-msgstr "Membuka Pengaturan → Studio Keterampilan, tempat Anda menautkan satu folder utuh ke folder lain agar kedua agen membaca keterampilan yang sama, dan menambahkan akar keterampilan khusus."
 
 msgid "or create a new file <0/>"
 msgstr "atau buat berkas baru <0/>"
