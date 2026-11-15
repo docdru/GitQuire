@@ -1002,7 +1002,7 @@ _(LICENSE template present but no copyright line filled in; refer to the package
 
 ## MIT License
 
-Each package in this section is licensed under the MIT License. The full text of the permission notice is reproduced once below and applies to every entry; per-package copyright lines are listed inline.
+Each package and adapted source in this section is licensed under the MIT License. The full text of the permission notice is reproduced once below and applies to every entry; per-entry copyright lines are listed inline.
 
 ```
 MIT License
@@ -1025,6 +1025,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+### GitMarkdown (adapted source)
+Homepage: https://github.com/pooriaarab/gitmarkdown
+
+Parts of the GitHub, branch, pull request and comment features are adapted from this project.
+
+Copyright (c) 2026 Pooria Arab
 
 ### `@antfu/install-pkg@1.1.0`
 Homepage: https://github.com/antfu/install-pkg#readme
