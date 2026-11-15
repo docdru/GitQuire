@@ -1,23 +1,23 @@
 ---
 title: Comments
 icon: LuMessagesSquare
-description: Comment on a passage, reply in a thread, mention teammates and resolve, with everything stored in the page.
+description: Comment on a passage, reply in a thread, mention teammates and resolve, with everything stored in the page as footnotes.
 ---
 
 Select text and choose **Comment** in the toolbar, or press `Cmd+Shift+M` (`Ctrl+Shift+M` on
-Windows and Linux), to start a thread. The panel on the right lists the page's threads: reply,
-mention teammates with `@login`, and resolve a thread when it's done. Highlighted passages open
-their thread when you tap them. Authors can edit and delete their own comments; edited ones are
-marked, and earlier versions stay in the Git history. When two people comment on the same page at
-the same moment, both comments are kept.
+Windows and Linux), to start a thread. A small 💬 appears after the passage; the panel on the right
+lists the page's threads. Reply, mention teammates with `@login`, and resolve a thread when it's
+done. Highlighted passages and the 💬 open their thread when you tap them. Authors can edit and
+delete their own comments; edited ones are marked, and earlier versions stay in the Git history.
+When two people comment on the same page at the same moment, both comments are kept.
 
 Mentioned teammates see it in their [mention inbox](./mentions.mdx), and by email or in team chat if
 that is set up.
 
 ## Stored in the file
 
-Each thread is a Markdown footnote: a small mark after the commented passage and the thread at the
-end of the page, one line per comment.
+Each thread is a Markdown footnote: a mark after the commented passage and the thread at the end of
+the page, one line per comment.
 
 ```markdown
 The quarterly numbers[^c-7f3a] look good.
@@ -25,15 +25,41 @@ The quarterly numbers[^c-7f3a] look good.
 [^c-7f3a]: 💬 on "quarterly numbers"
 
     - **@alice** · 2026-11-14 10:32 — Where do these come from?
+    - **@bob** · 2026-11-14 11:02 — From the Q3 controlling export.
 ```
 
-GitHub shows threads as footnotes, diffs show one line per reply, and the mark moves with the text.
-Resolving a thread removes it from the file; the Git history keeps it. The details are in
-[Comment format](./comment-format.mdx).
+- **On GitHub** threads show as footnotes: a number at the passage, the discussion at the foot of the
+  page, linked both ways.
+- **The mark is part of the text.** It moves when you move the sentence, and it stays when you reword
+  it, so the thread stays with its passage. If the passage is deleted, the thread stays and says the
+  passage is gone.
+- **Headings and code** get no mark (GitHub would change the heading's link). Their threads are
+  found by the quoted text and show in GitQuire and in the raw file.
+- **Resolving** removes the mark and the thread from the file. The Git history keeps both.
+- **Diffs** show one line per reply, and replies made on two branches usually merge without
+  conflict.
+
+The exact rules, the tolerant reading of hand-written replies and example files are in
+[Comment format](./comment-format.mdx). Pages from before this format keep working; they are
+converted the next time they are saved, or all at once with `ok comments convert`.
+
+## When files change outside GitQuire
+
+When someone pushes a commit to GitHub, or an agent or editor writes a page directly, GitQuire checks
+the comments of the open page: a thread deleted while its mark is still in the text is put back, and
+a mark that disappeared while its quoted text is still there once is put back after it. A thread
+deleted together with its mark counts as resolved.
 
 ## Comments and AI agents
 
-When a connected agent reads a page, it also gets the page's open threads: who started each one,
-the first comment, the quoted passage and how many replies it has. Listing a folder shows how many
-open threads each page has. So a comment like "@claude please tighten this paragraph" is a request
-your agent sees the next time it works on the page. Resolve the thread once it's done.
+Agents that edit the files see the marks right where they work, and the threads at the end of the
+page. GitQuire keeps a section in the wiki's `AGENTS.md` that tells them the rules: read the
+comments first, keep the marks when rewriting, reply with one line under the thread, never resolve
+or edit someone else's comment. The rest of `AGENTS.md` belongs to your team; GitQuire only rewrites
+the part between its `gitquire:begin` and `gitquire:end` markers. Set `GITQUIRE_AGENTS_FILE=off` to
+stop GitQuire from writing it.
+
+When a connected agent reads a page through GitQuire, it also gets the page's open threads with all
+their comments, and listing a folder shows how many open threads each page has. So a comment like
+"@claude please tighten this paragraph" is a request your agent sees the next time it works on the
+page. A person resolves the thread once it's done.

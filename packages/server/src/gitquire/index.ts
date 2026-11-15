@@ -6,6 +6,7 @@ import type { AccessGate, GateLogger } from './access-gate.ts';
 import { createAccessGate, principalFromUser } from './access-gate.ts';
 import { createRepoAccessCheck, startAccessSweep } from './agent-access.ts';
 import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
+import { ensureAgentsFile } from './agents-file.ts';
 import { createChatFromEnv } from './chat/setup.ts';
 import { createDrafts, type Drafts, isDraftInstance } from './drafts/setup.ts';
 import {
@@ -166,6 +167,17 @@ export function initProjectWithCli(cliArgs: readonly string[]): (dir: string) =>
 
 const INTERACTIVE_RETRY_DELAYS_MS = [500, 2000] as const;
 
+function writeAgentsFile(env: Env, dir: string, log: GateLogger): void {
+  try {
+    const outcome = ensureAgentsFile(dir, env);
+    if (outcome === 'created' || outcome === 'updated') {
+      log.info({ outcome }, `[gitquire] ${outcome} the GitQuire section of AGENTS.md`);
+    }
+  } catch (err) {
+    log.warn({ err }, '[gitquire] could not write the GitQuire section of AGENTS.md');
+  }
+}
+
 export function createGitQuireHttp(
   env: Env,
   options: {
@@ -203,6 +215,8 @@ export function createGitQuireHttp(
           cli: options.cli ?? [process.execPath, process.argv[1] ?? ''],
           initProject: initProjectWithCli(options.cli ?? [process.execPath, process.argv[1] ?? '']),
         });
+  if (!isDraftInstance(env))
+    writeAgentsFile(env, options.contentDir ?? options.projectDir, options.log);
   let contentFilter: ScanFilter | undefined;
   const routes = createGitQuireRoutes({
     projectDir: options.projectDir,
