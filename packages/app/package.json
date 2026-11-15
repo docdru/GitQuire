@@ -130,7 +130,7 @@
     "@shadcn/react": "^0.2.1",
     "@shikijs/langs": "^3.23.0",
     "@tanstack/react-query": "^5.99.0",
-    "@tiptap/core": "^3.22.3",
+    "@tiptap/core": "^3.30.5",
     "@tiptap/extension-collaboration": "^3.22.3",
     "@tiptap/extension-collaboration-cursor": "3.0.0",
     "@tiptap/extension-drag-handle": "3.22.3",
