@@ -2130,9 +2130,6 @@ msgstr "Não foi possível enviar o arquivo. A pasta de anexos usa {filenameVari
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Não foi possível enviar o arquivo. A pasta de anexos usa a variável desconhecida {variables}. Corrija em Anexos, nas Configurações."
 
-msgid "Count skill installs publicly"
-msgstr "Contar publicamente as instalações de habilidades"
-
 msgid "Cover focal position"
 msgstr "Posição focal da capa"
 
@@ -8080,9 +8077,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Quando você passa o cursor sobre um link externo, a URL dele é enviada ao site de destino para buscar os metadados de pré-visualização da página — uma requisição por link pré-visualizado."
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "Quando você instala uma habilidade publicada, o diretório de habilidades (skills.sh) é avisado para que a contagem de instalações fique correta. São enviados o nome da habilidade, o repositório de origem dela e para quais ferramentas de IA ela foi — nunca o conteúdo dos arquivos, e nunca no caso de uma habilidade de origem privada, local ou digitada à mão. Uma vez por habilidade, por computador."
 
 msgid "Where should it live?"
 msgstr "Onde ela deve ficar?"

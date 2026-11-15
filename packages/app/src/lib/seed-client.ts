@@ -10,7 +10,6 @@ import type {
   OkSeedPackInfo,
   OkSeedPlanResult,
 } from '@/lib/desktop-bridge-types';
-import { emitSkillsChanged } from '@/lib/documents-events';
 
 async function translateSeedError(res: Response): Promise<OkSeedError> {
   const body = (await res.json().catch(() => null)) as unknown;
@@ -82,7 +81,6 @@ export function seedClient(): SeedClientShape {
       if (!body?.result) {
         return { ok: false, error: { kind: 'internal', message: t`Malformed apply response` } };
       }
-      emitSkillsChanged();
       return { ok: true, result: body.result };
     },
     listPacks: async (): Promise<OkSeedListPacksResult> => {

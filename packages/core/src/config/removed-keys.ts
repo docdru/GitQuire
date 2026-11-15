@@ -31,6 +31,60 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     },
   },
   {
+    path: ['skills'],
+    get redirect() {
+      return [
+        'skills.* has been removed with the skills features it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
+    path: ['telemetry', 'skillInstallReports'],
+    get redirect() {
+      return [
+        'telemetry.skillInstallReports has been removed with the skills features it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
+    path: ['appearance', 'sidebar', 'showSkillsSection'],
+    get redirect() {
+      return [
+        'appearance.sidebar.showSkillsSection has been removed with the skills features it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
+    path: ['appearance', 'sidebar', 'showSkillGroups'],
+    get redirect() {
+      return [
+        'appearance.sidebar.showSkillGroups has been removed with the skills features it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
+    path: ['appearance', 'sidebar', 'pinnedProjectSkills'],
+    get redirect() {
+      return [
+        'appearance.sidebar.pinnedProjectSkills has been removed with the skills features it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
+    path: ['appearance', 'sidebar', 'pinnedGlobalSkills'],
+    get redirect() {
+      return [
+        'appearance.sidebar.pinnedGlobalSkills has been removed with the skills features it configured.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
+  {
     path: ['bridge', 'backgroundThrottle'],
     get redirect() {
       return [

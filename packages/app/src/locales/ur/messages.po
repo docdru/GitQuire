@@ -2134,9 +2134,6 @@ msgstr "فائل اپ لوڈ نہیں ہو سکی۔ منسلکات کا فولڈ
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "فائل اپ لوڈ نہیں ہو سکی۔ منسلکات کا فولڈر نامعلوم متغیر {variables} استعمال کرتا ہے۔ اسے ترتیبات میں منسلکات کے تحت درست کریں۔"
 
-msgid "Count skill installs publicly"
-msgstr "مہارت کی تنصیبات عوامی طور پر شمار کریں"
-
 msgid "Cover focal position"
 msgstr "سرورق کی فوکل پوزیشن"
 
@@ -8084,9 +8081,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "جب آپ کسی بیرونی لنک پر ماؤس لے جاتے ہیں تو صفحے کا پیش منظر ڈیٹا لانے کے لیے اس کا URL منزل کی سائٹ کو بھیجا جاتا ہے — ہر پیش منظر والے لنک کے لیے ایک درخواست۔"
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "جب آپ کوئی شائع شدہ مہارت نصب کریں تو مہارتوں کی ڈائریکٹری (skills.sh) کو بتائیں تاکہ اس کی تنصیبات کی تعداد درست رہے۔ مہارت کا نام، اس کا ماخذ ریپازٹری، اور یہ کہ وہ کن ایجنٹ ٹولز میں گئی، بھیجا جاتا ہے — فائلوں کا مواد کبھی نہیں، اور نجی، مقامی یا ہاتھ سے لکھے ماخذ کی مہارت کے لیے کبھی نہیں۔ ہر مشین پر ہر مہارت کے لیے ایک بار۔"
 
 msgid "Where should it live?"
 msgstr "یہ کہاں رہنا چاہیے؟"

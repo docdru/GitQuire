@@ -2134,9 +2134,6 @@ msgstr "Impossible d'envoyer le fichier. Le dossier des pièces jointes utilise 
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Impossible d'envoyer le fichier. Le dossier des pièces jointes utilise la variable inconnue {variables}. Corrigez-le dans Pièces jointes, dans les Paramètres."
 
-msgid "Count skill installs publicly"
-msgstr "Compter publiquement les installations de compétences"
-
 msgid "Cover focal position"
 msgstr "Point focal de la couverture"
 
@@ -8084,9 +8081,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Quand vous survolez un lien externe, son URL est envoyée au site de destination pour récupérer les métadonnées d'aperçu de la page — une requête par lien prévisualisé."
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "Quand vous installez une compétence publiée, en informer l'annuaire de compétences (skills.sh) pour que son nombre d'installations soit exact. Envoie le nom de la compétence, son dépôt source, et les outils d'agent vers lesquels elle est allée — jamais le contenu des fichiers, et jamais pour une compétence provenant d'une source privée, locale ou saisie à la main. Une fois par compétence et par machine."
 
 msgid "Where should it live?"
 msgstr "Où doit-elle résider ?"

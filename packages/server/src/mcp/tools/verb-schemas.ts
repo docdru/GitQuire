@@ -2,9 +2,6 @@ import {
   type FrontmatterValue,
   FrontmatterValueSchema,
   frontmatterRecord,
-  MANAGED_ARTIFACT_SCOPES,
-  SKILL_NAME_REGEX,
-  skillFilePathSegments,
   TEMPLATE_NAME_REGEX,
   TEMPLATE_NAME_RULE,
 } from '@inkeep/open-knowledge-core';
@@ -85,99 +82,10 @@ export function resolveTemplatePath(
   return { ok: true, folder, name };
 }
 
-export const SKILL_NAME_DESCRIBE =
-  'Skill name — the skill\'s identity AND its bundle-dir name, wherever the skill lives (e.g. `.agents/skills/<name>/`). Lowercase letters, digits, hyphens only (≤64 chars; no slashes, dots, spaces, or uppercase). Example: "trip-log".';
-export const SKILL_DESCRIPTION_DESCRIBE =
-  'One-line description (≤1024 chars) — the PRIMARY triggering surface telling an agent WHEN to use this skill. No XML tags (`<...>`), which break the skill loader.';
-export const SKILL_BODY_DESCRIBE =
-  'SKILL.md body (markdown guidance). Authored WITHOUT frontmatter — `name` + `description` are passed separately and composed server-side. Keep under ~500 lines; move depth into one-level-deep `references/`.';
 export const TEMPLATE_EDIT_CONTROL_ADVICE =
   'Any body offset refers to the full stored template body resubmitted by this edit, including any supplied replace. Clean controls in replace, or, if stored controls remain, use a clean full replacement through write({ template: ... }).';
 export const TEMPLATE_METADATA_CONTROL_ADVICE =
   'Any body offset refers to the full stored template body resubmitted by this edit. Remove stored controls through a clean full replacement using write({ template: ... }).';
-export const SKILL_EDIT_CONTROL_ADVICE =
-  'Any body offset refers to the full stored skill body resubmitted by this edit, including any supplied replace. Clean controls in replace, or, if stored controls remain, use a clean full replacement through write({ skill: ... }).';
-export const SKILL_METADATA_CONTROL_ADVICE =
-  'Any body offset refers to the full stored skill body resubmitted by this edit. Remove stored controls through a clean full replacement using write({ skill: ... }).';
-export const SKILL_FILE_EDIT_CONTROL_ADVICE =
-  'Any content offset refers to the full stored file content resubmitted by this edit, including frontmatter and any supplied replace. Clean controls in replace, or, if stored controls remain, use a clean full replacement through write({ skill: { files: ... } }).';
-const SKILL_SCOPE_DESCRIBE =
-  'Level: "project" (default — a Project skill: lives in this KB wherever its folder is, shared with teammates via git) or "global" (a Global skill: lives under your user home, available in every project on this machine — not shared, not version-tracked). Pass the literal value "global" for a Global skill.';
-
-export const SkillScopeArg = z.enum(MANAGED_ARTIFACT_SCOPES).describe(SKILL_SCOPE_DESCRIBE);
-
-export function resolveSkillName(
-  name: string,
-): { ok: true; name: string } | { ok: false; error: string } {
-  if (
-    typeof name !== 'string' ||
-    name.length === 0 ||
-    name.length > 64 ||
-    !SKILL_NAME_REGEX.test(name)
-  ) {
-    return {
-      ok: false,
-      error: `a skill name must be lowercase letters, digits, and hyphens (≤64 chars, no slashes/dots/spaces/uppercase) — ${JSON.stringify(name)} is invalid. e.g. { skill: { name: "trip-log" } }.`,
-    };
-  }
-  return { ok: true, name };
-}
-
-export const SKILL_FILES_DESCRIBE =
-  'Bundle files to write beside `SKILL.md`, as an ARRAY of `{ path, content }` (consistent with `documents`/`asset`). ' +
-  '`path` is SKILL-RELATIVE and must stay inside the skill dir (e.g. "references/tiers.md", "scripts/run.sh", "assets/logo.svg") — ' +
-  'no `../`, no absolute paths. `content` is the full text. Text only (no binary). ' +
-  'Independent of `body`: write one reference without resending SKILL.md.';
-export const SKILL_FILE_DESCRIBE =
-  'A single SKILL-RELATIVE bundle file path (e.g. "references/tiers.md"). ' +
-  'For `edit`, names the one bundle file to find/replace in; for `skills`, the one file to read.';
-
-export type SkillFileKind = 'reference' | 'script';
-
-export function resolveSkillFilePath(
-  path: string,
-): { ok: true; path: string; kind: SkillFileKind } | { ok: false; error: string } {
-  if (typeof path !== 'string' || path.length === 0) {
-    return { ok: false, error: 'a skill file `path` is required (e.g. "references/tiers.md").' };
-  }
-  if (path.includes('\x00')) {
-    return { ok: false, error: 'a skill file `path` may not contain a NUL byte.' };
-  }
-  if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path)) {
-    return {
-      ok: false,
-      error: `a skill file \`path\` must be skill-relative, not absolute — "${path}" is rejected. e.g. { path: "references/tiers.md" }.`,
-    };
-  }
-  const segments = skillFilePathSegments(path);
-  if (segments.some((s) => s === '..')) {
-    return {
-      ok: false,
-      error: `a skill file \`path\` may not contain ".." — "${path}" could escape the skill dir.`,
-    };
-  }
-  if (segments.length === 0) {
-    return { ok: false, error: 'a skill file `path` is required (e.g. "references/tiers.md").' };
-  }
-  if (segments.length === 1 && (segments[0] === 'references' || segments[0] === 'scripts')) {
-    return {
-      ok: false,
-      error: `a skill file \`path\` needs a file under \`${segments[0]}/\` (e.g. "${segments[0]}/notes.md") — "${path}" names only the directory.`,
-    };
-  }
-  if (segments.length === 1 && segments[0]?.toLowerCase() === 'skill.md') {
-    return {
-      ok: false,
-      error: 'SKILL.md is authored via `body`, not as a bundle file.',
-    };
-  }
-  return {
-    ok: true,
-    path: segments.join('/'),
-    kind: segments[0] === 'scripts' ? 'script' : 'reference',
-  };
-}
-
 export function exactlyOneTargetError(
   args: Record<string, unknown>,
   keys: readonly string[],

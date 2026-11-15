@@ -2130,9 +2130,6 @@ msgstr "Tidak dapat mengunggah berkas. Folder lampiran memakai {filenameVariable
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Tidak dapat mengunggah berkas. Folder lampiran memakai variabel tak dikenal {variables}. Perbaiki di Lampiran, di Pengaturan."
 
-msgid "Count skill installs publicly"
-msgstr "Hitung pemasangan keterampilan secara publik"
-
 msgid "Cover focal position"
 msgstr "Posisi fokus sampul"
 
@@ -8080,9 +8077,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Ketika Anda mengarahkan kursor ke tautan eksternal, URL-nya dikirim ke situs tujuan untuk mengambil metadata pratinjau halaman itu — satu permintaan per tautan yang dipratinjau."
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "Ketika Anda memasang keterampilan yang diterbitkan, direktori keterampilan (skills.sh) diberi tahu agar hitungan pemasangannya akurat. Yang dikirim adalah nama keterampilannya, repositori sumbernya, dan alat agen mana yang menerimanya — tidak pernah isi berkas, dan tidak pernah untuk keterampilan dari sumber pribadi, lokal, atau yang diketik manual. Sekali per keterampilan per komputer."
 
 msgid "Where should it live?"
 msgstr "Di mana ia sebaiknya berada?"

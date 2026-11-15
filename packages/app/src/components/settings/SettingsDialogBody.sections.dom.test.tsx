@@ -46,19 +46,7 @@ let syncDefaultWriterCalls: Array<boolean | string | null> = [];
 let okignoreProps: Array<{ binding: unknown; synced: boolean }> = [];
 let publishDialogProps: Array<{ open: boolean }> = [];
 
-const actualFeatureFlags = await import('@inkeep/open-knowledge-core/constants/feature-flags');
-
 import * as actualLinguiMacro from '@lingui/react/macro';
-import { createServedBindingLog } from '@/test-utils/served-binding.test-helper';
-
-const servedCore = createServedBindingLog();
-
-vi.doMock('@inkeep/open-knowledge-core/constants/feature-flags', () =>
-  servedCore.serve('@inkeep/open-knowledge-core/constants/feature-flags', {
-    ...actualFeatureFlags,
-    SHOW_INSTALL_SKILL: true,
-  }),
-);
 
 vi.doMock('@lingui/react/macro', () => ({
   ...actualLinguiMacro,

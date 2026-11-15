@@ -4,19 +4,10 @@ import {
   canonicalTemplateName,
   classifySemanticProviderError,
   findTemplateByName,
-  interpretSkillMoveFailure,
-  isSkillMoveRetainedDestinationCode,
-  isSkillMoveStateCode,
-  isSkillRetentionLedgerCode,
-  isSkillSourceStateCode,
   normalizeApiWarnings,
   SearchSemanticStatusSchema,
   SearchSuccessSchema,
   SemanticIndexStatusSchema,
-  SKILL_MOVE_RETAINED_DESTINATION,
-  SKILL_MOVE_STATE_CODES,
-  SKILL_RETENTION_LEDGER_CODES,
-  SKILL_SOURCE_STATE_CODES,
   semanticProviderErrorBlocks,
   TEMPLATE_NAME_REGEX,
   TemplateGetSuccessSchema,
@@ -110,32 +101,6 @@ describe('API warning compatibility', () => {
   });
 });
 
-describe('move failure compatibility', () => {
-  test.each([
-    {},
-    { moveState: 'nothing-written' },
-    { moveState: 'nothing-written', retentionLedger: 'unreadable' },
-    { moveState: 'destination-retained', sourceState: 'intact' },
-    { moveState: 'destination-retained-blocking', sourceState: 'lossy' },
-    { moveState: 'destination-removed' },
-  ])('preserves coherent outcomes: %j', (body) => {
-    expect(interpretSkillMoveFailure(body)).toEqual({ kind: 'coherent', ...body });
-  });
-
-  test.each([
-    { moveState: 'future-outcome' },
-    { sourceState: 'intact' },
-    { retentionLedger: 'future-reason' },
-    { moveState: 'destination-retained' },
-    { moveState: 'destination-retained', sourceState: 'future-state' },
-    { moveState: 'destination-removed', sourceState: 'intact' },
-    { moveState: 'destination-retained', sourceState: 'intact', retentionLedger: 'unreadable' },
-    { moveState: 'destination-retained', sourceState: 'intact', retentionLedger: 'future-reason' },
-  ])('does not treat incomplete or contradictory peer data as coherent: %j', (body) => {
-    expect(interpretSkillMoveFailure(body).kind).toBe('unverified');
-  });
-});
-
 describe('TemplatePayloadSchema.scope', () => {
   test.each(['local', 'inherited'] as const)('accepts scope=%s', (scope) => {
     const result = TemplatePayloadSchema.safeParse(validPayload(scope));
@@ -171,82 +136,6 @@ describe('TemplateGetSuccessSchema', () => {
       },
     });
     expect(result.success).toBe(true);
-  });
-});
-
-describe('skill move-state, source-state and retention-ledger code guards', () => {
-  test('the move-state enum carries exactly the seven documented codes', () => {
-    expect([...SKILL_MOVE_STATE_CODES]).toEqual([
-      'nothing-written',
-      'destination-removed',
-      'destination-stray',
-      'destination-retained',
-      'destination-retained-blocking',
-      'destination-unreadable',
-      'partially-applied',
-    ]);
-    for (const code of SKILL_MOVE_STATE_CODES) {
-      expect(isSkillMoveStateCode(code)).toBe(true);
-    }
-  });
-
-  test('the source-state enum carries exactly the three documented codes', () => {
-    expect([...SKILL_SOURCE_STATE_CODES]).toEqual(['intact', 'lossy', 'unknown']);
-    for (const code of SKILL_SOURCE_STATE_CODES) {
-      expect(isSkillSourceStateCode(code)).toBe(true);
-    }
-  });
-
-  test('the retention-ledger enum carries exactly the two documented codes', () => {
-    expect([...SKILL_RETENTION_LEDGER_CODES]).toEqual(['unreadable', 'occupant-unverifiable']);
-    for (const code of SKILL_RETENTION_LEDGER_CODES) {
-      expect(isSkillRetentionLedgerCode(code)).toBe(true);
-    }
-  });
-
-  test('every move-state code answers the retained-destination question explicitly', () => {
-    expect(Object.keys(SKILL_MOVE_RETAINED_DESTINATION).sort()).toEqual(
-      [...SKILL_MOVE_STATE_CODES].sort(),
-    );
-    expect(
-      [...SKILL_MOVE_STATE_CODES].filter((code) => isSkillMoveRetainedDestinationCode(code)),
-    ).toEqual(['destination-retained', 'destination-retained-blocking']);
-  });
-
-  test('all three guards reject near-miss spellings and non-string values', () => {
-    const rejected: unknown[] = [
-      '',
-      ' ',
-      'INTACT',
-      'Intact',
-      'destination_retained',
-      'destination-retained ',
-      'destination-retained-blocked',
-      'partially applied',
-      'UNREADABLE',
-      'occupant_unverifiable',
-      'occupant-unverifiable ',
-      null,
-      undefined,
-      0,
-      true,
-      ['intact'],
-      { code: 'intact' },
-    ];
-    for (const value of rejected) {
-      expect(isSkillMoveStateCode(value)).toBe(false);
-      expect(isSkillSourceStateCode(value)).toBe(false);
-      expect(isSkillRetentionLedgerCode(value)).toBe(false);
-    }
-  });
-
-  test('the three enums share no member, so a code identifies which field it came from', () => {
-    const all = [
-      ...SKILL_MOVE_STATE_CODES,
-      ...SKILL_SOURCE_STATE_CODES,
-      ...SKILL_RETENTION_LEDGER_CODES,
-    ];
-    expect(new Set(all).size).toBe(all.length);
   });
 });
 

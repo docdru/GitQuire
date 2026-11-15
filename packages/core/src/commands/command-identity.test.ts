@@ -16,7 +16,6 @@ function ctx(overrides: Partial<CommandContext> = {}): CommandContext {
     canExpandAll: true,
     canCollapseAll: true,
     hasActiveDoc: true,
-    showInstallSkill: true,
     ...overrides,
   };
 }
@@ -59,9 +58,6 @@ describe('evaluateCommandAvailability', () => {
     ).toBe(false);
     expect(
       evaluateCommandAvailability({ requiresActiveDoc: true }, ctx({ hasActiveDoc: false })),
-    ).toBe(false);
-    expect(
-      evaluateCommandAvailability({ requiresInstallSkill: true }, ctx({ showInstallSkill: false })),
     ).toBe(false);
   });
 

@@ -2134,9 +2134,6 @@ msgstr "無法上傳檔案。附件資料夾的同一個資料夾名稱中多次
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "無法上傳檔案。附件資料夾使用了未知變數 {variables}。請在設定的「附件」中修正。"
 
-msgid "Count skill installs publicly"
-msgstr "公開統計技能安裝次數"
-
 msgid "Cover focal position"
 msgstr "封面焦點位置"
 
@@ -8084,9 +8081,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "把游標停在外部連結上時，它的 URL 會送到目標網站，以取得那個頁面的預覽中繼資料——每個被預覽的連結送一次要求。"
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "當你安裝一個已發布的技能時，會告知技能目錄（skills.sh），讓它的安裝次數保持準確。送出的內容包括技能名稱、它的來源儲存庫，以及它被裝到哪些代理工具——絕不包含檔案內容，也絕不會為來自私人、本機或手動輸入來源的技能送出。每個技能在每台電腦只送一次。"
 
 msgid "Where should it live?"
 msgstr "它應該放在哪裡？"

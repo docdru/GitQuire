@@ -25,7 +25,6 @@ import * as constantsDocLifecycleSubpath from '@inkeep/open-knowledge-core/const
 import * as constantsDocumentOpenSubpath from '@inkeep/open-knowledge-core/constants/document-open';
 import * as constantsEditorsSubpath from '@inkeep/open-knowledge-core/constants/editors';
 import * as constantsEmbeddedHostSubpath from '@inkeep/open-knowledge-core/constants/embedded-host';
-import * as constantsFeatureFlagsSubpath from '@inkeep/open-knowledge-core/constants/feature-flags';
 import * as constantsGithubSubpath from '@inkeep/open-knowledge-core/constants/github';
 import * as constantsGraphSubpath from '@inkeep/open-knowledge-core/constants/graph';
 import * as constantsManualUpdateCheckSubpath from '@inkeep/open-knowledge-core/constants/manual-update-check';
@@ -37,7 +36,6 @@ import * as constantsOkUserHomeSubpath from '@inkeep/open-knowledge-core/constan
 import * as constantsPreviewEmbedStartersSubpath from '@inkeep/open-knowledge-core/constants/preview-embed-starters';
 import * as constantsPreviewThemeTokensSubpath from '@inkeep/open-knowledge-core/constants/preview-theme-tokens';
 import * as constantsProductSubpath from '@inkeep/open-knowledge-core/constants/product';
-import * as constantsSkillsSubpath from '@inkeep/open-knowledge-core/constants/skills';
 import * as constantsUninstallFeedbackSubpath from '@inkeep/open-knowledge-core/constants/uninstall-feedback';
 import * as constantsUploadSubpath from '@inkeep/open-knowledge-core/constants/upload';
 import * as extensionsCodeBlockFidelitySubpath from '@inkeep/open-knowledge-core/extensions/code-block-fidelity';
@@ -90,11 +88,6 @@ import * as searchWorkspaceSearchSubpath from '@inkeep/open-knowledge-core/searc
 import * as seedPlanWorkSubpath from '@inkeep/open-knowledge-core/seed-plan-work';
 import * as serverBarrel from '@inkeep/open-knowledge-core/server';
 import * as sharingSubpath from '@inkeep/open-knowledge-core/sharing';
-import * as skillTargetsSchemaSubpath from '@inkeep/open-knowledge-core/skill-targets/schema';
-import * as skillsCatalogSchemaSubpath from '@inkeep/open-knowledge-core/skills-catalog/schema';
-import * as skillsCatalogScopeSubpath from '@inkeep/open-knowledge-core/skills-catalog/scope';
-import * as skillsCatalogSkillCostSubpath from '@inkeep/open-knowledge-core/skills-catalog/skill-cost';
-import * as skillsCatalogSourceFieldsSubpath from '@inkeep/open-knowledge-core/skills-catalog/source-fields';
 import * as syncPausedReasonSubpath from '@inkeep/open-knowledge-core/sync-paused-reason';
 import * as terminalLayoutSubpath from '@inkeep/open-knowledge-core/terminal-layout';
 import * as themeBase16Subpath from '@inkeep/open-knowledge-core/theme/base16';
@@ -135,12 +128,10 @@ import { describe, expect, test } from 'vitest';
 const PRE_EXISTING_KEYS = [
   '.',
   './shadow-repo-layout',
-  './skill-folder-state',
   './git-repository',
   './server',
   './keepalive',
   './helper-bundle',
-  './skills-catalog',
   './acp/thread-protocol',
   './acp/permissive-mode',
   './acp/codex-legacy-notice',
@@ -174,7 +165,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './constants/document-open': constantsDocumentOpenSubpath,
   './constants/editors': constantsEditorsSubpath,
   './constants/embedded-host': constantsEmbeddedHostSubpath,
-  './constants/feature-flags': constantsFeatureFlagsSubpath,
   './constants/github': constantsGithubSubpath,
   './constants/graph': constantsGraphSubpath,
   './constants/manual-update-check': constantsManualUpdateCheckSubpath,
@@ -185,7 +175,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './constants/preview-embed-starters': constantsPreviewEmbedStartersSubpath,
   './constants/preview-theme-tokens': constantsPreviewThemeTokensSubpath,
   './constants/product': constantsProductSubpath,
-  './constants/skills': constantsSkillsSubpath,
   './constants/uninstall-feedback': constantsUninstallFeedbackSubpath,
   './constants/upload': constantsUploadSubpath,
   './extensions/code-block-fidelity': extensionsCodeBlockFidelitySubpath,
@@ -237,11 +226,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './search/workspace-search': searchWorkspaceSearchSubpath,
   './seed-plan-work': seedPlanWorkSubpath,
   './sharing': sharingSubpath,
-  './skill-targets/schema': skillTargetsSchemaSubpath,
-  './skills-catalog/schema': skillsCatalogSchemaSubpath,
-  './skills-catalog/scope': skillsCatalogScopeSubpath,
-  './skills-catalog/skill-cost': skillsCatalogSkillCostSubpath,
-  './skills-catalog/source-fields': skillsCatalogSourceFieldsSubpath,
   './sync-paused-reason': syncPausedReasonSubpath,
   './terminal-layout': terminalLayoutSubpath,
   './theme/base16': themeBase16Subpath,

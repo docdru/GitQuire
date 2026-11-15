@@ -2130,9 +2130,6 @@ msgstr "फ़ाइल अपलोड नहीं हो सकी। सं�
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "फ़ाइल अपलोड नहीं हो सकी। संलग्नक फ़ोल्डर अज्ञात वेरिएबल {variables} का उपयोग करता है। इसे सेटिंग में संलग्नक के अंतर्गत ठीक करें।"
 
-msgid "Count skill installs publicly"
-msgstr "स्किल इंस्टॉल की गिनती सार्वजनिक रूप से करें"
-
 msgid "Cover focal position"
 msgstr "कवर की फ़ोकल स्थिति"
 
@@ -8080,9 +8077,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "जब आप किसी बाहरी लिंक पर माउस ले जाते हैं, तो पेज के पूर्वावलोकन का मेटाडेटा लाने के लिए उसका URL गंतव्य साइट को भेजा जाता है — हर पूर्वावलोकित लिंक के लिए एक अनुरोध।"
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "जब आप कोई प्रकाशित स्किल इंस्टॉल करें, तो स्किल निर्देशिका (skills.sh) को बताएँ ताकि उसकी इंस्टॉल गिनती सही रहे। यह स्किल का नाम, उसकी स्रोत रिपॉज़िटरी, और वह किन एजेंट टूल में गई यह भेजता है — फ़ाइलों की सामग्री कभी नहीं, और किसी निजी, स्थानीय या हाथ से लिखे स्रोत की स्किल के लिए कभी नहीं। हर मशीन पर हर स्किल के लिए एक बार।"
 
 msgid "Where should it live?"
 msgstr "यह कहाँ रहना चाहिए?"

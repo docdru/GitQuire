@@ -2134,9 +2134,6 @@ msgstr "No se pudo subir el archivo. La carpeta de adjuntos usa {filenameVariabl
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "No se pudo subir el archivo. La carpeta de adjuntos usa la variable desconocida {variables}. Corrígela en Adjuntos, en Ajustes."
 
-msgid "Count skill installs publicly"
-msgstr "Contar públicamente las instalaciones de habilidades"
-
 msgid "Cover focal position"
 msgstr "Posición focal de la portada"
 
@@ -8084,9 +8081,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Al pasar el cursor por un enlace externo, su URL se envía al sitio de destino para obtener los metadatos de vista previa de la página: una solicitud por cada enlace previsualizado."
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "Cuando instalas una habilidad publicada, se avisa al directorio de habilidades (skills.sh) para que su recuento de instalaciones sea exacto. Se envía el nombre de la habilidad, su repositorio de origen y a qué herramientas de IA fue; nunca el contenido de los archivos, y nunca en el caso de una habilidad de un origen privado, local o escrito a mano. Una vez por habilidad y equipo."
 
 msgid "Where should it live?"
 msgstr "¿Dónde debería vivir?"

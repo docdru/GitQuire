@@ -61,19 +61,10 @@ let mockOkignoreBinding: OkignoreBinding | null = null;
 let mockOkignoreSynced = false;
 let mockCollabUrl: string | null = 'ws://test.invalid';
 let mockBodyMode: BodyMode = 'probe';
-let mockShowInstallSkill = true;
 let mockProjectConfig: unknown = { contentRules: { markdownlint: { enabled: true } } };
 let mockMerged: unknown = null;
 
 const servedCore = createServedBindingLog();
-
-vi.doMock('@inkeep/open-knowledge-core/constants/feature-flags', () =>
-  servedCore.serve('@inkeep/open-knowledge-core/constants/feature-flags', {
-    get SHOW_INSTALL_SKILL() {
-      return mockShowInstallSkill;
-    },
-  }),
-);
 
 vi.doMock('@inkeep/open-knowledge-core/markdown/lint', () =>
   servedCore.serve('@inkeep/open-knowledge-core/markdown/lint', {
@@ -135,7 +126,6 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     mockOkignoreSynced = false;
     mockCollabUrl = 'ws://test.invalid';
     mockBodyMode = 'probe';
-    mockShowInstallSkill = true;
     mockProjectConfig = { contentRules: { markdownlint: { enabled: true } } };
     mockMerged = null;
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

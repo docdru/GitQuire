@@ -2134,9 +2134,6 @@ msgstr "تعذّر رفع الملف. يستخدم مجلد المرفقات {fi
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "تعذّر رفع الملف. يستخدم مجلد المرفقات المتغير غير المعروف {variables}. أصلحه ضمن المرفقات في الإعدادات."
 
-msgid "Count skill installs publicly"
-msgstr "احتساب تثبيتات المهارة علنًا"
-
 msgid "Cover focal position"
 msgstr "موضع تركيز الغلاف"
 
@@ -8084,9 +8081,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "عند تمرير المؤشر فوق رابط خارجي، يُرسل رابطه إلى الموقع الوجهة لجلب بيانات معاينة الصفحة — طلب واحد لكل رابط معاين."
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "عند تثبيتك مهارة منشورة، أخبر دليل المهارات (skills.sh) ليكون عدد تثبيتاتها دقيقًا. يُرسل اسم المهارة ومستودعها المصدر وأدوات الوكلاء التي ذهبت إليها — ولا تُرسل محتويات الملفات أبدًا، ولا يُرسل شيء لمهارة من مصدر خاص أو محلي أو مكتوب يدويًا. مرة واحدة لكل مهارة على كل جهاز."
 
 msgid "Where should it live?"
 msgstr "أين ينبغي أن يعيش؟"

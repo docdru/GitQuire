@@ -21,7 +21,6 @@ import {
 import { EffectiveAutolinkEntrySchema } from './autolinks-config.ts';
 import { fieldRegistry } from './field-registry.ts';
 import { EffectiveGitHostEntrySchema } from './git-host-config.ts';
-import { EffectiveTrustedPrivateOriginSchema } from './skill-source-config.ts';
 
 function base16SlotFields() {
   return Object.fromEntries(
@@ -524,17 +523,6 @@ export const ConfigSchema = z.looseObject({
                 'Show only markdown documents (.md/.mdx) and folders in the file tree, hiding other file types from view. View-only: hidden files stay on disk and remain reachable via links and search. Per-machine (project-local) — not shared with collaborators.',
             })
             .default(false),
-          showSkillsSection: z
-            .boolean()
-            .register(fieldRegistry, {
-              scope: 'project-local',
-              agentSettable: false,
-              reload: 'live',
-              defaultScope: 'project-local',
-              description:
-                'Show the Skills section in the sidebar. Skill documents remain reachable via links and search while the section is hidden. Per-machine (project-local) — not shared with collaborators.',
-            })
-            .default(true),
           showOkFolders: z
             .boolean()
             .register(fieldRegistry, {
@@ -546,39 +534,6 @@ export const ConfigSchema = z.looseObject({
                 'Show .ok folders (skills, templates, and other GitQuire-managed state) in the file tree as read-only entries. .ok/worktrees and .ok/local never appear. Per-machine (project-local) — not shared with collaborators.',
             })
             .default(false),
-          showSkillGroups: z
-            .boolean()
-            .register(fieldRegistry, {
-              scope: 'project-local',
-              agentSettable: false,
-              reload: 'live',
-              defaultScope: 'project-local',
-              description:
-                'Group skills in the sidebar by where they came from — the publisher they were imported from, or the plugin that ships them. Skills you authored stay ungrouped at the top of their scope. Per-machine (project-local) — not shared with collaborators.',
-            })
-            .default(true),
-          pinnedProjectSkills: z
-            .array(z.string())
-            .register(fieldRegistry, {
-              scope: 'project-local',
-              agentSettable: false,
-              reload: 'live',
-              defaultScope: 'project-local',
-              description:
-                'Project-scope skills pinned to the top of the Skills sidebar, by name. A pinned skill also keeps its normal row, so a provenance group still lists everything from its source. Per-machine (project-local) — not shared with collaborators.',
-            })
-            .default([]),
-          pinnedGlobalSkills: z
-            .array(z.string())
-            .register(fieldRegistry, {
-              scope: 'user',
-              agentSettable: false,
-              reload: 'live',
-              defaultScope: 'user',
-              description:
-                'Global-scope skills pinned to the top of the Skills sidebar, by name. Stored per USER rather than per project, so a pinned global skill follows you into every project.',
-            })
-            .default([]),
         })
         .optional(),
     })
@@ -690,22 +645,6 @@ export const ConfigSchema = z.looseObject({
         .default(null),
     })
     .default({ mode: null, enabled: null, default: null }),
-  skills: z
-    .looseObject({
-      trustedPrivateOrigins: z
-        .array(EffectiveTrustedPrivateOriginSchema)
-        .register(fieldRegistry, {
-          scope: 'user',
-          agentSettable: false,
-          reload: 'live',
-          defaultScope: 'user',
-          description:
-            'Canonical HTTPS origins allowed to serve website skills from private network addresses. Empty by default: website skills require public addresses. Set only in user global.yml, never project configuration or acquisition requests. Use a lowercase hostname and omit credentials, default port 443, trailing slash, path, query, fragment and wildcards. Include nondefault ports when required. Invalid entries are ignored with located config diagnostics; valid siblings remain approved. TLS certificate and hostname checks still apply.',
-        })
-        .default([])
-        .catch([]),
-    })
-    .default({ trustedPrivateOrigins: [] }),
   git: z
     .looseObject({
       hosts: z
@@ -800,21 +739,6 @@ export const ConfigSchema = z.looseObject({
           logs: { maxBytes: DEFAULT_LOGS_MAX_BYTES },
           attributeDenylist: [...DEFAULT_TELEMETRY_ATTRIBUTE_DENYLIST],
         }),
-      skillInstallReports: z
-        .looseObject({
-          enabled: z
-            .boolean()
-            .register(fieldRegistry, {
-              scope: 'user',
-              agentSettable: false,
-              reload: 'live',
-              defaultScope: 'user',
-              description:
-                'Report skill installs to skills.sh so a published skill shows an accurate install count. Sends the skill name, its source repo, and which agent tools it was installed for — never file contents, and never for a private or local source. One report per skill per machine. Default off; when it is on, the DO_NOT_TRACK and DISABLE_TELEMETRY environment variables still turn it off.',
-            })
-            .default(false),
-        })
-        .default({ enabled: false }),
     })
     .default({
       localSink: {
@@ -823,7 +747,6 @@ export const ConfigSchema = z.looseObject({
         logs: { maxBytes: DEFAULT_LOGS_MAX_BYTES },
         attributeDenylist: [...DEFAULT_TELEMETRY_ATTRIBUTE_DENYLIST],
       },
-      skillInstallReports: { enabled: false },
     }),
   lossCapture: z
     .looseObject({

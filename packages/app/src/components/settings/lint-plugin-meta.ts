@@ -5,7 +5,6 @@ export interface LintPluginMeta {
   label: string;
   docUrl: string;
   beta?: boolean;
-  recommendedSkills?: readonly { packId: string; name: string }[];
 }
 
 const DOCS_BASE = 'https://docdru.github.io/GitQuire/docs/advanced/content-rules';
@@ -23,6 +22,5 @@ export const LINT_PLUGIN_META: LintPluginMeta[] = [
     label: 'OKF',
     docUrl: 'https://docdru.github.io/GitQuire/docs/plugins/okf',
     beta: true,
-    recommendedSkills: [{ packId: 'okf', name: 'okf-knowledge-base' }],
   },
 ];

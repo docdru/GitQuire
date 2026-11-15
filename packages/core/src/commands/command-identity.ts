@@ -13,7 +13,6 @@ export interface CommandAvailabilitySpec {
   readonly requiresCanExpandAll?: boolean;
   readonly requiresCanCollapseAll?: boolean;
   readonly requiresActiveDoc?: boolean;
-  readonly requiresInstallSkill?: boolean;
 }
 
 export interface CommandContext {
@@ -24,7 +23,6 @@ export interface CommandContext {
   readonly canExpandAll: boolean;
   readonly canCollapseAll: boolean;
   readonly hasActiveDoc: boolean;
-  readonly showInstallSkill: boolean;
 }
 
 export function evaluateCommandAvailability(
@@ -37,7 +35,6 @@ export function evaluateCommandAvailability(
   if (spec.requiresCanExpandAll && !ctx.canExpandAll) return false;
   if (spec.requiresCanCollapseAll && !ctx.canCollapseAll) return false;
   if (spec.requiresActiveDoc && !ctx.hasActiveDoc) return false;
-  if (spec.requiresInstallSkill && !ctx.showInstallSkill) return false;
   if (spec.requiresTargetKinds && !spec.requiresTargetKinds.includes(ctx.activeTargetKind)) {
     return false;
   }

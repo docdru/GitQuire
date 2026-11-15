@@ -2134,9 +2134,6 @@ msgstr "Couldn't upload the file. The attachment folder uses {filenameVariable} 
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 
-msgid "Count skill installs publicly"
-msgstr "Count skill installs publicly"
-
 msgid "Cover focal position"
 msgstr "Cover focal position"
 
@@ -8084,9 +8081,6 @@ msgstr "When this is on, your assistant works in the draft you have open, or in 
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
 
 msgid "Where should it live?"
 msgstr "Where should it live?"

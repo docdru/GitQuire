@@ -2134,9 +2134,6 @@ msgstr "Nie udało się przesłać pliku. Folder załączników używa {filename
 msgid "Couldn't upload the file. The attachment folder uses the unknown variable {variables}. Fix it under Attachments in Settings."
 msgstr "Nie udało się przesłać pliku. Folder załączników używa nieznanej zmiennej {variables}. Popraw to w sekcji Załączniki w Ustawieniach."
 
-msgid "Count skill installs publicly"
-msgstr "Publicznie zliczaj instalacje umiejętności"
-
 msgid "Cover focal position"
 msgstr "Pozycja punktu ogniskowania okładki"
 
@@ -8084,9 +8081,6 @@ msgstr ""
 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Po najechaniu na link zewnętrzny jego adres URL jest wysyłany do strony docelowej, aby pobrać metadane podglądu strony — jedno żądanie na podglądany link."
-
-msgid "When you install a published skill, tell the skill directory (skills.sh) so its install count is accurate. Sends the skill name, its source repository, and which agent tools it went to — never file contents, and never for a skill from a private, local, or hand-typed source. Once per skill per machine."
-msgstr "Instalując opublikowaną umiejętność, powiadom katalog umiejętności (skills.sh), aby licznik instalacji był dokładny. Wysyłana jest nazwa umiejętności, jej repozytorium źródłowe oraz informacja, do których narzędzi agenta trafiła — nigdy zawartość plików i nigdy dla umiejętności z prywatnego, lokalnego lub ręcznie wprowadzonego źródła. Raz na umiejętność na maszynę."
 
 msgid "Where should it live?"
 msgstr "Gdzie ma się znajdować?"
