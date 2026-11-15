@@ -421,8 +421,11 @@ const SERVER_FIELDS_FOR_GUIDED_RESULT: Readonly<Record<string, AgentWriteOutcome
     message: 'm',
     dropped: 'intake-landed',
   }),
-  '`write-dropped` (409) for a path that does not resolve':
-    outcomeOfStoreFailure({ code: OK_WRITE_DROPPED, message: 'm', dropped: 'container-gone' }),
+  '`write-dropped` (409) for a path that does not resolve': outcomeOfStoreFailure({
+    code: OK_WRITE_DROPPED,
+    message: 'm',
+    dropped: 'container-gone',
+  }),
   '`doc-moved` (409)': outcomeOfStoreFailure({ code: OK_DOC_MOVED, message: 'm' }),
   '`branch-switched` (409)': outcomeOfStoreFailure({ code: OK_STORE_DISCARDED, message: 'm' }),
   '`doc-removed` (409) after a rename': outcomeOfStoreFailure({
