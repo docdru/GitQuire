@@ -1,7 +1,6 @@
 import { existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Page } from '@playwright/test';
-import type { EditorTabSessionState } from '../../src/editor/editor-tabs';
 import {
   type ApiHelpers,
   createFileViaSidebar,
@@ -178,130 +177,6 @@ async function gotoRootAndAwaitSidebar(page: Page): Promise<void> {
   ).toBeVisible({ timeout: 15_000 });
 }
 
-async function installDelayedDesktopSessionBridge(
-  page: Page,
-  workerServer: { baseURL: string; port: number; contentDir: string },
-  initialSession: Omit<EditorTabSessionState, 'updatedAt'>,
-): Promise<void> {
-  await page.addInitScript(
-    ({ baseURL, contentDir, initialSession, port }) => {
-      const sessionKey = '__okFakeDesktopSession';
-      const readSession = () => {
-        const raw = window.localStorage.getItem(sessionKey);
-        return raw ? JSON.parse(raw) : { ...initialSession, updatedAt: '2026-05-08T00:00:00.000Z' };
-      };
-      const unsubscribe = () => {};
-      // STOP: this fixture must implement every OkDesktopBridge member main.tsx invokes at boot; it is outside packages/app/tsconfig.json include, so nothing typechecks it.
-      const okDesktop = {
-        appVersion: 'test',
-        platform: 'darwin',
-        config: {
-          apiOrigin: baseURL,
-          collabUrl: `ws://127.0.0.1:${port}/collab`,
-          mode: 'editor',
-          projectName: 'session-restore-test',
-          projectPath: contentDir,
-        },
-        onProjectSwitched: () => unsubscribe,
-        onMenuAction: () => unsubscribe,
-        onUpdateDownloaded: () => unsubscribe,
-        onUpdateRelaunching: () => unsubscribe,
-        onUpdateFetchingLatest: () => unsubscribe,
-        onUpdateRelaunchFailed: () => unsubscribe,
-        onWhatsNew: () => unsubscribe,
-        onWhatsNewDismissed: () => unsubscribe,
-        onUpdateStuckHint: () => unsubscribe,
-        onUpdateManualCheck: () => unsubscribe,
-        onDeepLink: () => unsubscribe,
-        onShareReceived: () => unsubscribe,
-        onServerVersionDrift: () => unsubscribe,
-        onServerRestarted: () => unsubscribe,
-        onRecentRemovedMissing: () => unsubscribe,
-        restartServer: async () => ({ ok: true }),
-        dialog: {
-          openFolder: async () => null,
-        },
-        shell: {
-          openExternal: async () => {},
-          detectProtocol: async () => ({ installed: false }),
-          spawnCursor: async () => ({ ok: false, reason: 'not-installed' }),
-          recordHandoff: async () => {},
-          openAsset: async () => ({ ok: false, reason: 'not-found' }),
-          revealAsset: async () => ({ ok: false, reason: 'not-found' }),
-          showAssetMenu: async () => {},
-          showItemInFolder: async () => {},
-          trashItem: async () => ({ ok: true as const }),
-        },
-        editor: {
-          notifyActiveTargetChanged: () => {},
-          notifyViewMenuStateChanged: () => {},
-          notifyBackgroundThrottle: () => {},
-        },
-        sidebar: {
-          expandAll: () => unsubscribe,
-          collapseAll: () => unsubscribe,
-        },
-        clipboard: { writeText: async () => {} },
-        project: {
-          listRecent: async () => [],
-          removeRecent: async () => {},
-          getSessionState: () =>
-            new Promise((resolve) => {
-              window.setTimeout(() => resolve(readSession()), 250);
-            }),
-          setSessionState: async (state: unknown) => {
-            window.localStorage.setItem(sessionKey, JSON.stringify(state));
-          },
-          open: async () => {},
-          createNew: async () => {},
-          recordCreateNewBannerShown: async () => {},
-          close: async () => {},
-        },
-        navigator: { open: async () => {} },
-        seed: {
-          plan: async () => ({ ok: false, error: { kind: 'no-project', message: 'test' } }),
-          apply: async () => ({ ok: false, error: { kind: 'no-project', message: 'test' } }),
-        },
-        skill: {
-          detectClaudeDesktop: async () => false,
-          buildAndOpen: async () => ({ ok: false, reason: 'build-failed' }),
-        },
-        update: {
-          relaunchNow: async () => {},
-          checkNow: async () => {},
-          dismissWhatsNew: async () => {},
-          dismissDownloaded: async () => {},
-          setMode: async () => {},
-        },
-        state: {
-          query: async () => ({ channel: 'latest', schemaIncompatibility: null }),
-          resetIncompatible: async () => {},
-        },
-        mcpWiring: {
-          onShow: () => unsubscribe,
-          signalReady: () => {},
-          confirm: async () => ({ ok: true }),
-          skip: async () => ({ ok: true }),
-        },
-        localOp: {
-          auth: {
-            start: () => ({ events: [][Symbol.asyncIterator](), cancel: () => {} }),
-          },
-          clone: {
-            start: () => ({ events: [][Symbol.asyncIterator](), cancel: () => {} }),
-          },
-          authStatus: async () => ({ authenticated: false, host: 'github.com' }),
-          authRepos: async () => ({ ok: true, host: 'github.com', repos: [] }),
-        },
-        setThemeSource: async () => ({ ok: true as const }),
-        signalThemeApplied: () => {},
-      };
-      (window as unknown as { okDesktop: typeof okDesktop }).okDesktop = okDesktop;
-    },
-    { ...workerServer, initialSession },
-  );
-}
-
 test.describe('FileTree sidebar create', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -355,40 +230,6 @@ test.describe('FileTree sidebar create', () => {
       }
     });
   }
-
-  test('desktop refresh preserves restored tabs while hash navigation is opening', async ({
-    page,
-    workerServer,
-  }) => {
-    await installDelayedDesktopSessionBridge(page, workerServer, {
-      panes: [
-        {
-          id: 'pane-main',
-          openTabs: ['test-doc', 'sidebar-folder/nested-doc'],
-          pinnedTabIds: [],
-          activeTabId: 'sidebar-folder/nested-doc',
-          size: 100,
-        },
-      ],
-      focusedPaneId: 'pane-main',
-    });
-
-    await page.goto('/#/test-doc');
-    await expect(page.getByRole('button', { name: 'test-doc.md', exact: true })).toBeVisible({
-      timeout: 10_000,
-    });
-    await expect(
-      page.getByRole('button', { name: 'sidebar-folder/nested-doc.md', exact: true }),
-    ).toBeVisible({ timeout: 10_000 });
-
-    await page.reload();
-    await expect(page.getByRole('button', { name: 'test-doc.md', exact: true })).toBeVisible({
-      timeout: 10_000,
-    });
-    await expect(
-      page.getByRole('button', { name: 'sidebar-folder/nested-doc.md', exact: true }),
-    ).toBeVisible({ timeout: 10_000 });
-  });
 
   test('deletes the selected sidebar items from a selected item context menu', async ({
     page,
@@ -879,22 +720,10 @@ test.describe('FileTree bulk delete with a partial failure', () => {
     {
       name: 'bulk delete closes tabs already deleted before a later delete fails',
       failure: 'response',
-      trashFallback: false,
     },
     {
       name: 'bulk delete preserves completed deletions when a later request disconnects',
       failure: 'disconnect',
-      trashFallback: false,
-    },
-    {
-      name: 'permanent delete fallback preserves completed deletions after a later failure',
-      failure: 'response',
-      trashFallback: true,
-    },
-    {
-      name: 'permanent delete fallback preserves completed deletions when a request disconnects',
-      failure: 'disconnect',
-      trashFallback: true,
     },
   ] as const) {
     test(scenario.name, async ({ page, workerServer, api }) => {
@@ -925,28 +754,7 @@ test.describe('FileTree bulk delete with a partial failure', () => {
       });
 
       try {
-        if (scenario.trashFallback) {
-          await installDelayedDesktopSessionBridge(page, workerServer, {
-            panes: [
-              {
-                id: 'pane-main',
-                openTabs: [firstDoc, secondDoc],
-                pinnedTabIds: [],
-                activeTabId: firstDoc,
-                size: 100,
-              },
-            ],
-            focusedPaneId: 'pane-main',
-          });
-        }
         await gotoRootAndAwaitSidebar(page);
-        if (scenario.trashFallback) {
-          await page.evaluate(() => {
-            const bridge = window.okDesktop;
-            if (!bridge) throw new Error('Desktop session bridge was not installed');
-            bridge.shell.trashItem = async () => ({ ok: false, reason: 'system-error' });
-          });
-        }
 
         await sidebarTreeItem(page, `${firstDoc}.md`).click();
         await expect(page.getByRole('button', { name: `${firstDoc}.md`, exact: true })).toBeVisible(
@@ -983,19 +791,14 @@ test.describe('FileTree bulk delete with a partial failure', () => {
         await page.getByRole('menuitem', { name: /^Delete/ }).click({ timeout: 5_000 });
         await expect(
           page.getByRole('alertdialog', {
-            name: scenario.trashFallback
-              ? /Are you sure you want to delete the following/
-              : /Delete selected items/i,
+            name: /Delete selected items/i,
           }),
         ).toBeVisible({ timeout: 5_000 });
         await page
           .getByRole('button', {
-            name: scenario.trashFallback ? /^Move to Trash$/ : /^Delete$/,
+            name: /^Delete$/,
           })
           .click();
-        if (scenario.trashFallback) {
-          await page.getByTestId('trash-failure-modal-delete-permanently').click();
-        }
 
         await page
           .getByText(

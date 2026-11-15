@@ -179,10 +179,6 @@ vi.doMock('@/components/ConflictsSection', () => ({
   ConflictsSection: () => <div data-testid="conflicts-section" />,
 }));
 
-vi.doMock('@/components/UpdateNotices', () => ({
-  UpdateNotices: () => <div data-testid="update-notices" />,
-}));
-
 vi.doMock('@/components/FeedbackCard', async () => ({
   ...(await vi.importActual<typeof import('@/components/FeedbackCard')>(
     '@/components/FeedbackCard',

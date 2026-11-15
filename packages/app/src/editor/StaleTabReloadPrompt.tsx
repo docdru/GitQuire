@@ -15,7 +15,6 @@ export function StaleTabReloadPrompt(): null {
     if (collabUrl === null) return;
     const pool = getPool(collabUrl);
     return installStaleTabReloadPrompt({
-      bridge: undefined,
       waitForSavedWork: () => waitForSavedWork(pool, SAVE_BEFORE_RELOAD_TIMEOUT_MS),
       watchForSavedWork: (onSaved) => watchForSavedWork(pool, onSaved),
       docNamesToOpen: () => pool.docNamesToOpenForReplay(),

@@ -82,9 +82,6 @@ msgstr "«frontmatter» اسم خاصية محجوز"
 msgid "(a bare folder name needs /** after it to match what's inside)"
 msgstr "(اسم المجلد وحده يحتاج إلى /** بعده ليطابق ما بداخله)"
 
-msgid "(a worktree of {0})"
-msgstr "(شجرة عمل لـ {0})"
-
 msgid "(binary file, not previewable)"
 msgstr "(ملف ثنائي، لا يمكن معاينته)"
 
@@ -237,9 +234,6 @@ msgstr "تم حذف {0} بالفعل."
 
 msgid "{0} was not moved."
 msgstr "لم يتم نقل {0}."
-
-msgid "{0}/{1} {2}"
-msgstr "{0}/{1} {2}"
 
 msgid "{0}d ago"
 msgstr "قبل {0} يوم"
@@ -521,9 +515,6 @@ msgstr ""
 msgid "{percent}% from top"
 msgstr "{percent}% من الأعلى"
 
-msgid "{phase} — {pct}%"
-msgstr "{phase} — {pct}%"
-
 msgid "{plugin} ships {0} other skills"
 msgstr "يتضمن {plugin} {0} مهارات أخرى"
 
@@ -744,9 +735,6 @@ msgstr "قاعدة معرفة تتبع تنسيق Google GitQuire، وهو طر�
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "سطر مع حاشية<0><1>[1]</1></0> وتعريف معروض أدناه."
-
-msgid "A network problem or GitHub outage interrupted the clone."
-msgstr "قطعت مشكلة في الشبكة أو انقطاع في GitHub عملية الاستنساخ."
 
 msgid "a new pane to the left of {0}"
 msgstr "جزء جديد على يسار {0}"
@@ -1464,9 +1452,6 @@ msgstr "تم الاحتفاظ بالنسختين في {fileName}. تغيّر ا�
 msgid "Branch"
 msgstr "فرع"
 
-msgid "Branch {0} no longer exists. Cloned to default branch."
-msgstr "لم يعد الفرع {0} موجودًا. تم الاستنساخ إلى الفرع الافتراضي."
-
 msgid "breadcrumb"
 msgstr "مسار التنقل"
 
@@ -1603,9 +1588,6 @@ msgstr ""
 msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
 msgstr ""
 
-msgid "Check for updates"
-msgstr "التحقق من التحديثات"
-
 msgid "Check for updates every"
 msgstr "التحقق من التحديثات كل"
 
@@ -1626,12 +1608,6 @@ msgstr "يجري التحقق"
 
 msgid "Checking for updates"
 msgstr "يجري التحقق من التحديثات"
-
-msgid "Checking for updates…"
-msgstr "يجري التحقق من التحديثات…"
-
-msgid "Checking GitHub connection..."
-msgstr "يجري التحقق من الاتصال بـ GitHub..."
 
 msgid "Checking links"
 msgstr "جارٍ التحقق من الروابط"
@@ -1735,9 +1711,6 @@ msgstr "استنساخ"
 msgid "Clone complete — opening project"
 msgstr "اكتمل الاستنساخ — يجري فتح المشروع"
 
-msgid "Clone ended unexpectedly."
-msgstr "انتهى الاستنساخ بشكل غير متوقع."
-
 msgid "Clone failed — check the URL and try again ({status})"
 msgstr "فشل الاستنساخ — تحقق من الرابط وحاول مرة أخرى ({status})"
 
@@ -1756,29 +1729,11 @@ msgstr "فشل الاستنساخ: {title}"
 msgid "Clone from GitHub"
 msgstr "استنساخ من GitHub"
 
-msgid "Clone happens in the Project Navigator. Reclick the share link there."
-msgstr "يتم الاستنساخ في متصفح المشاريع. أعد النقر على رابط المشاركة هناك."
-
 msgid "Clone stream ended unexpectedly — check if the clone completed"
 msgstr "انتهى بث الاستنساخ على نحو غير متوقع — تحقق مما إذا كان الاستنساخ قد اكتمل"
 
-msgid "Clone to a new folder"
-msgstr "استنساخ إلى مجلد جديد"
-
-msgid "Cloned {repoName}."
-msgstr "تم استنساخ {repoName}."
-
-msgid "Cloned successfully, but could not open the project."
-msgstr "تم الاستنساخ بنجاح، لكن تعذّر فتح المشروع."
-
 msgid "Cloning"
 msgstr "يجري الاستنساخ"
-
-msgid "Cloning {repoName}..."
-msgstr "يجري استنساخ {repoName}..."
-
-msgid "Cloning..."
-msgstr "يجري الاستنساخ..."
 
 msgid "Close"
 msgstr "إغلاق"
@@ -1990,9 +1945,6 @@ msgstr "متصل — تُرجع نقطة النهاية هذه متجهات بـ
 msgid "Connected as @{login}"
 msgstr "متصل باسم @{login}"
 
-msgid "Connected as <0>@{signedInLogin}</0>"
-msgstr "متصل باسم <0>@{signedInLogin}</0>"
-
 msgid "Connected to"
 msgstr "متصل بـ"
 
@@ -2164,17 +2116,11 @@ msgstr "تعذّر تفعيل المزامنة: {detail}"
 msgid "Could not fix {0} of {total} files."
 msgstr "تعذّر إصلاح {0} من أصل {total} ملفًا."
 
-msgid "Could not initialize {0}."
-msgstr "تعذّرت تهيئة {0}."
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "تعذّر تحميل القوالب: {templatesError}. لا يزال بإمكانك إنشاء ملاحظة فارغة."
 
 msgid "Could not load templates. Try again later."
 msgstr "تعذّر تحميل القوالب. أعد المحاولة لاحقًا."
-
-msgid "Could not open GitHub sign-in. Please try again."
-msgstr "تعذّر فتح تسجيل الدخول إلى GitHub. يرجى المحاولة مرة أخرى."
 
 msgid "Could not reach server"
 msgstr "تعذّر الوصول إلى الخادم"
@@ -2187,9 +2133,6 @@ msgstr "تعذّر بدء إنشاء عنصر جديد"
 
 msgid "Could not update sidebar settings"
 msgstr "تعذّر تحديث إعدادات الشريط الجانبي"
-
-msgid "Could not validate folder. Please try again."
-msgstr "تعذّر التحقق من المجلد. يرجى المحاولة مرة أخرى."
 
 msgid "Couldn't cancel."
 msgstr ""
@@ -2756,9 +2699,6 @@ msgstr "مستندات تطابق {0}"
 msgid "Docs tagged #{tagDocsName}"
 msgstr "مستندات موسومة بـ #{tagDocsName}"
 
-msgid "document"
-msgstr "مستند"
-
 msgid "Document not found"
 msgstr "المستند غير موجود"
 
@@ -2812,9 +2752,6 @@ msgstr "انقر نقرًا مزدوجًا للتحرير"
 
 msgid "Download file"
 msgstr "تنزيل الملف"
-
-msgid "Downloads a fresh copy from GitHub."
-msgstr "ينزّل نسخة جديدة من GitHub."
 
 msgid "Draft"
 msgstr ""
@@ -3171,9 +3108,6 @@ msgstr "المؤسسات"
 
 msgid "Error"
 msgstr "خطأ"
-
-msgid "Error:"
-msgstr "خطأ:"
 
 msgid "Escape"
 msgstr "إفلات"
@@ -3643,9 +3577,6 @@ msgstr "للأمام"
 msgid "Forward-links response did not match expected shape."
 msgstr "لم تطابق استجابة الروابط الصادرة الشكل المتوقع."
 
-msgid "Found the repo but could not open the project. Please try again."
-msgstr "عُثر على المستودع لكن تعذّر فتح المشروع. يرجى المحاولة مرة أخرى."
-
 msgid "From {harnessLabel}"
 msgstr "من {harnessLabel}"
 
@@ -4050,12 +3981,6 @@ msgstr "https://github.com/owner/repo أو owner/repo"
 msgid "Hubs"
 msgstr "المحاور"
 
-msgid "I already have it locally"
-msgstr "لديّ نسخة محلية بالفعل"
-
-msgid "I already have it locally →"
-msgstr "لديّ نسخة محلية بالفعل ←"
-
 msgid "I'm switching to another tool"
 msgstr "أنتقل إلى أداة أخرى"
 
@@ -4209,17 +4134,11 @@ msgstr "تهيئة {selectedPackName}"
 msgid "Initialize a starter pack"
 msgstr "تهيئة حزمة بداية"
 
-msgid "Initialize and open"
-msgstr "التهيئة والفتح"
-
 msgid "Initialize failed: {errorDetail}"
 msgstr "فشلت التهيئة: {errorDetail}"
 
 msgid "Initialize starter pack"
 msgstr "تهيئة حزمة البداية"
-
-msgid "Initialized {0} but could not open it."
-msgstr "تمت تهيئة {0} لكن تعذّر فتحه."
 
 msgid "Initializing project"
 msgstr "تجري تهيئة المشروع"
@@ -4337,9 +4256,6 @@ msgstr "قيمة لون غير صالحة"
 
 msgid "Invalid patch payload"
 msgstr "حمولة تصحيح غير صالحة"
-
-msgid "Invalid share URL."
-msgstr "رابط المشاركة غير صالح."
 
 msgid "Invalid YAML"
 msgstr "YAML غير صالح"
@@ -4700,9 +4616,6 @@ msgstr ""
 
 msgid "Looked at: {detail}"
 msgstr ""
-
-msgid "Looking for <0>{lookingForUrl}</0>."
-msgstr "يجري البحث عن <0>{lookingForUrl}</0>."
 
 msgid "Lost connection to \"{docName}\"."
 msgstr "فُقد الاتصال بـ «{docName}»."
@@ -5487,9 +5400,6 @@ msgstr "ليست قيمة لون بالنظام الست عشري: {0}"
 msgid "Not connected"
 msgstr "غير متصل"
 
-msgid "Not connected to GitHub."
-msgstr "غير متصل بـ GitHub."
-
 msgid "Not great"
 msgstr "ليس رائعًا"
 
@@ -5727,9 +5637,6 @@ msgstr "فتح الرابط"
 msgid "Open link in new tab"
 msgstr "فتح الرابط في تبويب جديد"
 
-msgid "Open Navigator"
-msgstr "فتح المتصفح"
-
 msgid "Open or close visual-editor find."
 msgstr "افتح بحث المحرر المرئي أو أغلقه."
 
@@ -5738,9 +5645,6 @@ msgstr "فتح المعاينة عند تحرير الوكيل"
 
 msgid "Open settings"
 msgstr "فتح الإعدادات"
-
-msgid "Open shared {targetNoun}"
-msgstr "فتح {targetNoun} المشترك"
 
 msgid "Open skill"
 msgstr "مهارة مفتوحة"
@@ -5786,9 +5690,6 @@ msgstr "افتح بحث المحرر المرئي مع توسيع عناصر ا�
 
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "افتح اقتراحات الإكمال في CodeMirror وتنقّل بينها واقبلها أو تجاهلها."
-
-msgid "Opening..."
-msgstr "يجري الفتح..."
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "يفتح منتقي مجلدات لاختيار مكان استنساخ المستودع."
@@ -6046,9 +5947,6 @@ msgstr "اختيار مجلدات"
 
 msgid "Pick folders this schema applies to"
 msgstr "اختر المجلدات التي ينطبق عليها هذا المخطط"
-
-msgid "Pick the folder where you've cloned it."
-msgstr "اختر المجلد الذي استنسخته فيه."
 
 msgid "Pick the skills to install. Each one lands as an editable skill you own; the plugin's hooks, commands, and MCP servers are not installed."
 msgstr "اختر المهارات المراد تثبيتها. تصل كل واحدة كمهارة قابلة للتحرير تملكها؛ ولا تُثبَّت خطافات الإضافة وأوامرها وخوادم MCP الخاصة بها."
@@ -7794,9 +7692,6 @@ msgstr "لا يمكن تحليل هذا بتنسيق YAML أو JSON."
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "لا يمكن استخدام نقطة النهاية تلك. أدخل رابط https:// — لا يُسمح بـ http:// إلا لنقاط نهاية loopback."
 
-msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
-msgstr "ذلك المجلد ليس مشروع GitQuire بعد. هل تهيّئه وتفتحه؟"
-
 msgid "That host is already in the list."
 msgstr "هذا المضيف موجود بالفعل في القائمة."
 
@@ -8001,12 +7896,6 @@ msgstr "استمر حجم المتجه لدى موفر الخدمة في الت�
 msgid "The quoted text is no longer in the page."
 msgstr ""
 
-msgid "The repository is private and your GitHub account doesn't have access to it."
-msgstr "المستودع خاص وحساب GitHub الخاص بك لا يملك صلاحية الوصول إليه."
-
-msgid "The repository was moved, renamed, or deleted."
-msgstr "نُقل المستودع أو أُعيدت تسميته أو حُذف."
-
 msgid "The same text changed in both places"
 msgstr ""
 
@@ -8112,9 +8001,6 @@ msgstr "هذا الوكيل لا يقدم أوامر الشرطة المائلة
 msgid "This agent hasn't announced its commands yet"
 msgstr "لم يعلن هذا الوكيل عن أوامره بعد"
 
-msgid "This branch is checked out in:"
-msgstr "هذا الفرع مسحوب في:"
-
 msgid "This chat is too long for the model. Start a new chat (+) to go on."
 msgstr ""
 
@@ -8187,26 +8073,14 @@ msgstr "تم حذف هذا الملف على الفرع الحالي (تعارض
 msgid "This file was deleted on the incoming branch (modify-delete conflict)."
 msgstr "تم حذف هذا الملف على الفرع الوارد (تعارض تعديل/حذف)."
 
-msgid "This folder doesn't contain a git repository. Pick a different folder?"
-msgstr "لا يحتوي هذا المجلد على مستودع git. هل تختار مجلدًا آخر؟"
-
 msgid "This folder has unpushed changes. Recipients will see the last pushed version."
 msgstr "يحتوي هذا المجلد على تغييرات غير مدفوعة. سيرى المستلمون آخر نسخة مدفوعة."
 
 msgid "This folder hasn't synced to GitHub yet. The link will work after the next sync."
 msgstr "لم يُزامَن هذا المجلد مع GitHub بعد. سيعمل الرابط بعد المزامنة التالية."
 
-msgid "This folder is a clone of {actualOwner}/{actualRepo}, not {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "هذا المجلد نسخة من {actualOwner}/{actualRepo} وليس من {expectedOwner}/{expectedRepo}. هل تختار مجلدًا آخر؟"
-
-msgid "This folder is a clone of {expectedOwner}/{expectedRepo} on {actualHost}, not {expectedHost}. Pick a folder cloned from {expectedHost}?"
-msgstr "هذا المجلد نسخة من {expectedOwner}/{expectedRepo} على {actualHost} وليس على {expectedHost}. هل تختار مجلدًا مستنسخًا من {expectedHost}؟"
-
 msgid "This folder is empty."
 msgstr "هذا المجلد فارغ."
-
-msgid "This folder isn't a clone of {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "هذا المجلد ليس نسخة من {expectedOwner}/{expectedRepo}. هل تختار مجلدًا آخر؟"
 
 msgid "This folder isn't on GitHub yet. The link won't work until it's pushed."
 msgstr "هذا المجلد ليس على GitHub بعد. لن يعمل الرابط حتى يُدفع."
@@ -8351,12 +8225,6 @@ msgstr "تعذّرت قراءة ملف السمة هذا"
 
 msgid "This theme file is too large"
 msgstr "ملف السمة هذا كبير جدًا"
-
-msgid "This update is no longer ready to install."
-msgstr "لم يعد هذا التحديث جاهزًا للتثبيت."
-
-msgid "This usually means one of:"
-msgstr "يعني هذا عادةً أحد الأمور التالية:"
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -8703,9 +8571,6 @@ msgstr "فشل التحديث: {0}"
 msgid "Update from source"
 msgstr "التحديث من المصدر"
 
-msgid "Update GitQuire to open this share."
-msgstr "حدّث GitQuire لفتح هذه المشاركة."
-
 msgid "Update the destination and optional section anchor."
 msgstr "حدّث الوجهة ومرساة القسم الاختيارية."
 
@@ -8723,9 +8588,6 @@ msgstr "تم التحديث {updatedRelative}"
 
 msgid "updated folder properties"
 msgstr "حدّث خصائص المجلد"
-
-msgid "Updates"
-msgstr ""
 
 msgid "Updates flow in"
 msgstr "تتدفق التحديثات إلى الداخل"
@@ -8951,9 +8813,6 @@ msgstr "تحذير"
 
 msgid "We couldn't check your GitHub connection."
 msgstr "تعذّر التحقق من اتصالك بـ GitHub."
-
-msgid "We couldn't clone this repository."
-msgstr "تعذّر علينا استنساخ هذا المستودع."
 
 msgid "We sent a code to {pending}. Enter it to turn on email."
 msgstr ""

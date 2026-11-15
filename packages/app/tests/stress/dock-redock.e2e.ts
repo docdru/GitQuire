@@ -4,11 +4,8 @@ import {
   dockUnitRect,
   expect,
   type HeaderPane,
-  identityOf,
-  openDesktopLayout,
   openWebLayout,
   runPaletteCommand,
-  SAME_NODE,
   setHeaderPane,
   test,
   waitForActiveProviderSynced,
@@ -160,40 +157,5 @@ test.describe('re-docking a pane by its tab strip', () => {
     await runPaletteCommand(page, 'Move Agents to the left', 'move-agents-left');
 
     await expect.poll(() => agentsSitsLeftOfEditor(page)).toBe(true);
-  });
-
-  test('dragging the Terminal tab strip onto the bottom half of Agents docks it under Agents without restarting it', async ({
-    page,
-    api,
-    workerServer,
-  }) => {
-    const docName = await seedDoc(api, 'terminal-under-agents');
-    await openDesktopLayout(page, workerServer, docName, {
-      viewport: VIEWPORT,
-      terminalPlacement: 'bottom',
-    });
-    await setHeaderPane(page, 'agents', true);
-    await setHeaderPane(page, 'terminal', true);
-    const mount = await page.locator('[data-terminal-panel-mount]').elementHandle();
-    if (mount === null) throw new Error('no terminal mount');
-    const agents = await rectOf(page, 'agents');
-
-    await dragHeaderTo(page, 'terminal', {
-      x: agents.x + agents.width / 2,
-      y: agents.y + agents.height - 40,
-    });
-
-    await expect
-      .poll(async () => {
-        const terminal = await rectOf(page, 'terminal');
-        const above = await rectOf(page, 'agents');
-        return (
-          terminal.y >= above.y + above.height &&
-          Math.abs(terminal.x - above.x) <= 1 &&
-          Math.abs(terminal.width - above.width) <= 1
-        );
-      })
-      .toBe(true);
-    expect(await identityOf(mount, page.locator('[data-terminal-panel-mount]'))).toEqual(SAME_NODE);
   });
 });

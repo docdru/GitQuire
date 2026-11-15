@@ -3,7 +3,6 @@ import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { formatContainerAriaLabel } from '@/editor/utils/editor-strings';
 import { presentPublishError, resolveNameCheckStatus } from '@/lib/share/publish-wizard';
-import { mapValidationToToast, presentReceiveError } from '@/lib/share/receive-flow';
 import { mapShareErrorToToast } from '@/lib/share/run-share-action';
 import { extractedMessages } from '../../scripts/lingui-message-origins.mjs';
 import { MIGRATED_MODULES } from './helper-string-catalog-parity.reads';
@@ -55,46 +54,6 @@ describe('helper messages round-trip to a catalog id with named placeholders', (
     ['share error: unshareable path', () => mapShareErrorToToast('invalid-path')],
     ['share error: unsupported share URL', () => mapShareErrorToToast('unsupported-share-url')],
     ['share error: no remote', () => mapShareErrorToToast('no-remote')],
-    [
-      'receive: folder is not a repository',
-      () =>
-        mapValidationToToast(
-          { kind: 'not-git' },
-          { owner: '{expectedOwner}', repo: '{expectedRepo}', host: '{expectedHost}' },
-        ) ?? '',
-    ],
-    [
-      'receive: folder clones the wrong repository',
-      () =>
-        mapValidationToToast(
-          { kind: 'wrong-repo', actualOwner: '{actualOwner}', actualRepo: '{actualRepo}' },
-          { owner: '{expectedOwner}', repo: '{expectedRepo}', host: '{expectedHost}' },
-        ) ?? '',
-    ],
-    [
-      'receive: folder clones from the wrong host',
-      () =>
-        mapValidationToToast(
-          { kind: 'wrong-host', actualHost: '{actualHost}' },
-          { owner: '{expectedOwner}', repo: '{expectedRepo}', host: '{expectedHost}' },
-        ) ?? '',
-    ],
-    [
-      'receive: folder clones nothing recognizable',
-      () =>
-        mapValidationToToast(
-          { kind: 'no-origin' },
-          { owner: '{expectedOwner}', repo: '{expectedRepo}', host: '{expectedHost}' },
-        ) ?? '',
-    ],
-    [
-      'receive: share needs a newer build',
-      () => presentReceiveError({ kind: 'unsupported-version' })?.message ?? '',
-    ],
-    [
-      'receive: share URL is unparseable',
-      () => presentReceiveError({ kind: 'invalid' })?.message ?? '',
-    ],
     [
       'publish: repository name taken',
       () => presentPublishError('name-conflict', '{owner}', '{name}').banner,

@@ -853,7 +853,6 @@ export function EditorPane() {
             onModeChange={handleModeChange}
             activeTab={activeTab}
             onActiveTabChange={setActiveTab}
-            terminalBridge={null}
             editorVisible={effectiveEditorVisible}
             terminalVisible={noteWindow ? false : effectiveTerminalVisible}
             agentsVisible={agentsAvailable ? effectiveAgentsVisible : false}

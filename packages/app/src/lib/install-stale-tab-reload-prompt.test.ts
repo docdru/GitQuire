@@ -1,6 +1,5 @@
 import * as actualSonner from 'sonner';
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
-import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
 
 const toastLoading = vi.fn((_msg: string, _opts?: unknown) => 'loading-id');
 const toastError = vi.fn((_msg: string, _opts?: unknown) => 'error-id');
@@ -160,7 +159,6 @@ async function refuse(reason: SavedWorkResult, options: Partial<InstallOptions> 
   const watch = refusalWatch();
   const reload = vi.fn();
   install({
-    bridge: undefined,
     waitForSavedWork: () => Promise.resolve(reason),
     watchForSavedWork: watch.watchForSavedWork,
     reload,
@@ -174,25 +172,8 @@ async function refuse(reason: SavedWorkResult, options: Partial<InstallOptions> 
 }
 
 describe('stale tab reload prompt', () => {
-  test('stays silent in the desktop app, which runs its own drift prompt', () => {
-    const reload = vi.fn();
-    const cleanup = install({
-      bridge: {} as OkDesktopBridge,
-      waitForSavedWork: () => Promise.resolve('saved'),
-      reload,
-    });
-
-    observeServerVersion(loadedFrom);
-    observeServerVersion(upgraded);
-
-    expect(cleanup).toBeUndefined();
-    expect(toastCustom).not.toHaveBeenCalled();
-    expect(reload).not.toHaveBeenCalled();
-  });
-
   test('a browser tab is prompted to reload when the server changes version', () => {
     install({
-      bridge: undefined,
       waitForSavedWork: () => Promise.resolve('saved'),
       reload: vi.fn(),
     });
@@ -217,7 +198,6 @@ describe('stale tab reload prompt', () => {
 
   test('a restart on the same version does not prompt', () => {
     install({
-      bridge: undefined,
       waitForSavedWork: () => Promise.resolve('saved'),
       reload: vi.fn(),
     });
@@ -231,7 +211,7 @@ describe('stale tab reload prompt', () => {
   test('Reload waits for unsaved edits to reach the server before reloading', async () => {
     const { promise: saving, resolve: finishSaving } = Promise.withResolvers<SavedWorkResult>();
     const reload = vi.fn();
-    install({ bridge: undefined, waitForSavedWork: () => saving, reload });
+    install({ waitForSavedWork: () => saving, reload });
     observeServerVersion(loadedFrom);
     observeServerVersion(upgraded);
 
@@ -274,7 +254,6 @@ describe('stale tab reload prompt', () => {
     try {
       const reload = vi.fn();
       install({
-        bridge: undefined,
         waitForSavedWork: () => Promise.reject(new TypeError('recovery threw')),
         reload,
       });
@@ -305,7 +284,6 @@ describe('stale tab reload prompt', () => {
     try {
       const work = workSource({ unsynced: false });
       install({
-        bridge: undefined,
         waitForSavedWork: () => Promise.reject(new Error('recycle threw')),
         watchForSavedWork: (onSaved) => watchForSavedWork(work.source, onSaved),
         reload: vi.fn(),
@@ -383,7 +361,6 @@ describe('stale tab reload prompt', () => {
     const { promise: saving, resolve: finishSaving } = Promise.withResolvers<SavedWorkResult>();
     const watch = refusalWatch();
     install({
-      bridge: undefined,
       waitForSavedWork: () => saving,
       watchForSavedWork: watch.watchForSavedWork,
       reload: vi.fn(),
@@ -403,7 +380,7 @@ describe('stale tab reload prompt', () => {
 
   test('Not now dismisses without reloading', () => {
     const reload = vi.fn();
-    install({ bridge: undefined, waitForSavedWork: () => Promise.resolve('saved'), reload });
+    install({ waitForSavedWork: () => Promise.resolve('saved'), reload });
     observeServerVersion(loadedFrom);
     observeServerVersion(upgraded);
 
@@ -415,7 +392,6 @@ describe('stale tab reload prompt', () => {
 
   test('the prompt is withdrawn when the server returns to the loaded version', () => {
     install({
-      bridge: undefined,
       waitForSavedWork: () => Promise.resolve('saved'),
       reload: vi.fn(),
     });

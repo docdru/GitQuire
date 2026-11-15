@@ -82,9 +82,6 @@ msgstr "「frontmatter」是保留的屬性名稱"
 msgid "(a bare folder name needs /** after it to match what's inside)"
 msgstr "（僅寫資料夾名稱時需要在後面加上 /** 才能符合其中的內容）"
 
-msgid "(a worktree of {0})"
-msgstr "（{0} 的一個 worktree）"
-
 msgid "(binary file, not previewable)"
 msgstr "（二進位檔案，無法預覽）"
 
@@ -237,9 +234,6 @@ msgstr "{0} 已經被刪除了。"
 
 msgid "{0} was not moved."
 msgstr "未移動 {0}。"
-
-msgid "{0}/{1} {2}"
-msgstr "{0}/{1} {2}"
 
 msgid "{0}d ago"
 msgstr "{0} 天前"
@@ -521,9 +515,6 @@ msgstr ""
 msgid "{percent}% from top"
 msgstr "距頂端 {percent}%"
 
-msgid "{phase} — {pct}%"
-msgstr "{phase} — {pct}%"
-
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin} 還提供另外 {0} 個技能"
 
@@ -744,9 +735,6 @@ msgstr "遵循 Google Open Knowledge Format 的知識庫，一種整理知識的
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "一行帶註腳<0><1>[1]</1></0>的文字，定義顯示在下方。"
-
-msgid "A network problem or GitHub outage interrupted the clone."
-msgstr "網路問題或 GitHub 故障中斷了複製。"
 
 msgid "a new pane to the left of {0}"
 msgstr "{0} 左側的新窗格"
@@ -1464,9 +1452,6 @@ msgstr "{fileName} 的兩個版本都已保留。它在 GitQuire 之外被修改
 msgid "Branch"
 msgstr "分支"
 
-msgid "Branch {0} no longer exists. Cloned to default branch."
-msgstr "分支 {0} 已不存在，已改為複製預設分支。"
-
 msgid "breadcrumb"
 msgstr "階層路徑"
 
@@ -1603,9 +1588,6 @@ msgstr ""
 msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
 msgstr ""
 
-msgid "Check for updates"
-msgstr "檢查更新"
-
 msgid "Check for updates every"
 msgstr "檢查更新的頻率"
 
@@ -1626,12 +1608,6 @@ msgstr "正在檢查"
 
 msgid "Checking for updates"
 msgstr "正在檢查更新"
-
-msgid "Checking for updates…"
-msgstr "正在檢查更新…"
-
-msgid "Checking GitHub connection..."
-msgstr "正在檢查 GitHub 連線…"
 
 msgid "Checking links"
 msgstr "正在檢查連結"
@@ -1735,9 +1711,6 @@ msgstr "複製"
 msgid "Clone complete — opening project"
 msgstr "複製完成——正在開啟專案"
 
-msgid "Clone ended unexpectedly."
-msgstr "複製意外結束。"
-
 msgid "Clone failed — check the URL and try again ({status})"
 msgstr "複製失敗——請檢查 URL 後重試（{status}）"
 
@@ -1756,29 +1729,11 @@ msgstr "複製失敗：{title}"
 msgid "Clone from GitHub"
 msgstr "從 GitHub 複製"
 
-msgid "Clone happens in the Project Navigator. Reclick the share link there."
-msgstr "複製是在「專案導覽器」中進行的。請到那裡重新點一下分享連結。"
-
 msgid "Clone stream ended unexpectedly — check if the clone completed"
 msgstr "複製串流意外中斷——請確認複製是否已完成"
 
-msgid "Clone to a new folder"
-msgstr "複製到新的資料夾"
-
-msgid "Cloned {repoName}."
-msgstr "已複製 {repoName}。"
-
-msgid "Cloned successfully, but could not open the project."
-msgstr "複製成功，但無法開啟專案。"
-
 msgid "Cloning"
 msgstr "正在複製"
-
-msgid "Cloning {repoName}..."
-msgstr "正在複製 {repoName}…"
-
-msgid "Cloning..."
-msgstr "正在複製…"
 
 msgid "Close"
 msgstr "關閉"
@@ -1990,9 +1945,6 @@ msgstr "已連線——這個端點傳回 {0} 維向量。"
 msgid "Connected as @{login}"
 msgstr "已以 @{login} 的身分連接"
 
-msgid "Connected as <0>@{signedInLogin}</0>"
-msgstr "已以 <0>@{signedInLogin}</0> 的身分連接"
-
 msgid "Connected to"
 msgstr "已連接到"
 
@@ -2164,17 +2116,11 @@ msgstr "無法啟用同步：{detail}"
 msgid "Could not fix {0} of {total} files."
 msgstr "無法修復 {total} 個檔案中的 {0} 個。"
 
-msgid "Could not initialize {0}."
-msgstr "無法初始化 {0}。"
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "無法載入範本：{templatesError}。你仍然可以建立空白筆記。"
 
 msgid "Could not load templates. Try again later."
 msgstr "無法載入範本。請稍後再試。"
-
-msgid "Could not open GitHub sign-in. Please try again."
-msgstr "無法開啟 GitHub 登入頁。請再試一次。"
 
 msgid "Could not reach server"
 msgstr "無法連上伺服器"
@@ -2187,9 +2133,6 @@ msgstr "無法開始建立新項目"
 
 msgid "Could not update sidebar settings"
 msgstr "無法更新側邊欄設定"
-
-msgid "Could not validate folder. Please try again."
-msgstr "無法驗證資料夾。請再試一次。"
 
 msgid "Couldn't cancel."
 msgstr ""
@@ -2756,9 +2699,6 @@ msgstr "符合 {0} 的文件"
 msgid "Docs tagged #{tagDocsName}"
 msgstr "標了 #{tagDocsName} 的文件"
 
-msgid "document"
-msgstr "文件"
-
 msgid "Document not found"
 msgstr "找不到文件"
 
@@ -2812,9 +2752,6 @@ msgstr "按兩下即可編輯"
 
 msgid "Download file"
 msgstr "下載檔案"
-
-msgid "Downloads a fresh copy from GitHub."
-msgstr "從 GitHub 下載一份全新的副本。"
 
 msgid "Draft"
 msgstr ""
@@ -3171,9 +3108,6 @@ msgstr "企業版"
 
 msgid "Error"
 msgstr "錯誤"
-
-msgid "Error:"
-msgstr "錯誤："
 
 msgid "Escape"
 msgstr "Esc"
@@ -3643,9 +3577,6 @@ msgstr "前進"
 msgid "Forward-links response did not match expected shape."
 msgstr "外連連結回應的結構與預期不符。"
 
-msgid "Found the repo but could not open the project. Please try again."
-msgstr "找到儲存庫了，但無法開啟專案。請再試一次。"
-
 msgid "From {harnessLabel}"
 msgstr "來自 {harnessLabel}"
 
@@ -4050,12 +3981,6 @@ msgstr "https://github.com/owner/repo 或 owner/repo"
 msgid "Hubs"
 msgstr "樞紐頁"
 
-msgid "I already have it locally"
-msgstr "我本機已經有了"
-
-msgid "I already have it locally →"
-msgstr "我本機已經有了 →"
-
 msgid "I'm switching to another tool"
 msgstr "我要改用別的工具"
 
@@ -4209,17 +4134,11 @@ msgstr "初始化 {selectedPackName}"
 msgid "Initialize a starter pack"
 msgstr "初始化一個入門套件"
 
-msgid "Initialize and open"
-msgstr "初始化並開啟"
-
 msgid "Initialize failed: {errorDetail}"
 msgstr "初始化失敗：{errorDetail}"
 
 msgid "Initialize starter pack"
 msgstr "初始化入門套件"
-
-msgid "Initialized {0} but could not open it."
-msgstr "已初始化 {0}，但無法開啟它。"
 
 msgid "Initializing project"
 msgstr "正在初始化專案"
@@ -4337,9 +4256,6 @@ msgstr "無效的色彩值"
 
 msgid "Invalid patch payload"
 msgstr "修補內容無效"
-
-msgid "Invalid share URL."
-msgstr "分享網址無效。"
 
 msgid "Invalid YAML"
 msgstr "無效的 YAML"
@@ -4700,9 +4616,6 @@ msgstr ""
 
 msgid "Looked at: {detail}"
 msgstr ""
-
-msgid "Looking for <0>{lookingForUrl}</0>."
-msgstr "正在尋找 <0>{lookingForUrl}</0>。"
 
 msgid "Lost connection to \"{docName}\"."
 msgstr "與「{docName}」的連線已中斷。"
@@ -5487,9 +5400,6 @@ msgstr "不是十六進位色彩：{0}"
 msgid "Not connected"
 msgstr "未連接"
 
-msgid "Not connected to GitHub."
-msgstr "尚未連接到 GitHub。"
-
 msgid "Not great"
 msgstr "不太好"
 
@@ -5727,9 +5637,6 @@ msgstr "開啟連結"
 msgid "Open link in new tab"
 msgstr "在新分頁中開啟連結"
 
-msgid "Open Navigator"
-msgstr "開啟導覽器"
-
 msgid "Open or close visual-editor find."
 msgstr "開啟或關閉視覺化編輯器的尋找。"
 
@@ -5738,9 +5645,6 @@ msgstr "代理編輯時開啟預覽"
 
 msgid "Open settings"
 msgstr "開啟設定"
-
-msgid "Open shared {targetNoun}"
-msgstr "開啟分享的{targetNoun}"
 
 msgid "Open skill"
 msgstr "開放技能"
@@ -5786,9 +5690,6 @@ msgstr "開啟視覺化編輯器的尋找，並展開取代控制項。"
 
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "開啟、瀏覽、接受或關閉 CodeMirror 的自動完成建議。"
-
-msgid "Opening..."
-msgstr "正在開啟…"
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "開啟資料夾選擇器，挑一個地方把儲存庫複製過去。"
@@ -6046,9 +5947,6 @@ msgstr "選擇資料夾"
 
 msgid "Pick folders this schema applies to"
 msgstr "選擇這個結構描述適用的資料夾"
-
-msgid "Pick the folder where you've cloned it."
-msgstr "挑你複製下來的那個資料夾。"
 
 msgid "Pick the skills to install. Each one lands as an editable skill you own; the plugin's hooks, commands, and MCP servers are not installed."
 msgstr "挑要安裝的技能。每一個都會變成歸你所有、可以編輯的技能；外掛的掛鉤、指令和 MCP 伺服器不會被安裝。"
@@ -7794,9 +7692,6 @@ msgstr "無法將這段內容解析為 YAML 或 JSON。"
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "無法使用那個端點。請輸入 https:// 的 URL——http:// 只允許用在回環端點。"
 
-msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
-msgstr "那個資料夾還不是 GitQuire 專案。要初始化並開啟它嗎？"
-
 msgid "That host is already in the list."
 msgstr "這個主機已在清單中。"
 
@@ -8001,12 +7896,6 @@ msgstr "提供商的向量大小不斷變動。請重新啟動 GitQuire，再依
 msgid "The quoted text is no longer in the page."
 msgstr ""
 
-msgid "The repository is private and your GitHub account doesn't have access to it."
-msgstr "這個儲存庫是私人的，你的 GitHub 帳戶沒有存取權。"
-
-msgid "The repository was moved, renamed, or deleted."
-msgstr "這個儲存庫被移動、重新命名或刪除了。"
-
 msgid "The same text changed in both places"
 msgstr ""
 
@@ -8112,9 +8001,6 @@ msgstr "此智慧代理不提供斜線指令"
 msgid "This agent hasn't announced its commands yet"
 msgstr "此智慧代理尚未公布其指令"
 
-msgid "This branch is checked out in:"
-msgstr "這個分支已在以下位置簽出："
-
 msgid "This chat is too long for the model. Start a new chat (+) to go on."
 msgstr ""
 
@@ -8187,26 +8073,14 @@ msgstr "此檔案已在目前分支中刪除（delete-modify 衝突）。"
 msgid "This file was deleted on the incoming branch (modify-delete conflict)."
 msgstr "此檔案已在傳入分支中刪除（modify-delete 衝突）。"
 
-msgid "This folder doesn't contain a git repository. Pick a different folder?"
-msgstr "這個資料夾沒有 git 儲存庫。要換一個資料夾嗎？"
-
 msgid "This folder has unpushed changes. Recipients will see the last pushed version."
 msgstr "這個資料夾有尚未推送的變更。收到的人看到的會是最後一次推送的版本。"
 
 msgid "This folder hasn't synced to GitHub yet. The link will work after the next sync."
 msgstr "這個資料夾還沒有同步到 GitHub。下次同步之後連結就會生效。"
 
-msgid "This folder is a clone of {actualOwner}/{actualRepo}, not {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "這個資料夾是 {actualOwner}/{actualRepo} 的複本，而不是 {expectedOwner}/{expectedRepo}。要換一個資料夾嗎？"
-
-msgid "This folder is a clone of {expectedOwner}/{expectedRepo} on {actualHost}, not {expectedHost}. Pick a folder cloned from {expectedHost}?"
-msgstr "這個資料夾是 {actualHost} 上 {expectedOwner}/{expectedRepo} 的複本，而不是 {expectedHost}。要換一個從 {expectedHost} 複製的資料夾嗎？"
-
 msgid "This folder is empty."
 msgstr "這個資料夾是空的。"
-
-msgid "This folder isn't a clone of {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "這個資料夾不是 {expectedOwner}/{expectedRepo} 的複本。要換一個資料夾嗎？"
 
 msgid "This folder isn't on GitHub yet. The link won't work until it's pushed."
 msgstr "這個資料夾還不在 GitHub 上。在推送之前連結不會生效。"
@@ -8351,12 +8225,6 @@ msgstr "無法讀取這個主題檔案"
 
 msgid "This theme file is too large"
 msgstr "這個主題檔案太大"
-
-msgid "This update is no longer ready to install."
-msgstr "此更新已不再可供安裝。"
-
-msgid "This usually means one of:"
-msgstr "這通常代表下列其中之一："
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -8703,9 +8571,6 @@ msgstr "更新失敗：{0}"
 msgid "Update from source"
 msgstr "從來源更新"
 
-msgid "Update GitQuire to open this share."
-msgstr "請更新 GitQuire 以開啟這個分享內容。"
-
 msgid "Update the destination and optional section anchor."
 msgstr "更新目標位置和選填的章節錨點。"
 
@@ -8723,9 +8588,6 @@ msgstr "更新於 {updatedRelative}"
 
 msgid "updated folder properties"
 msgstr "已更新資料夾屬性"
-
-msgid "Updates"
-msgstr ""
 
 msgid "Updates flow in"
 msgstr "更新會自動流入"
@@ -8951,9 +8813,6 @@ msgstr "警告"
 
 msgid "We couldn't check your GitHub connection."
 msgstr "我們無法檢查你的 GitHub 連線。"
-
-msgid "We couldn't clone this repository."
-msgstr "我們無法複製這個儲存庫。"
 
 msgid "We sent a code to {pending}. Enter it to turn on email."
 msgstr ""

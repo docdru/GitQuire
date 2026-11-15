@@ -4,7 +4,6 @@ import { plural, t } from '@lingui/core/macro';
 import { createElement } from 'react';
 import { toast } from 'sonner';
 import { ServerDriftToast } from '@/components/ServerDriftToast';
-import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
 import {
   type ServerVersion,
   type ServerVersionChange,
@@ -125,14 +124,11 @@ export function staleTabReloadRefusal(
 }
 
 export function installStaleTabReloadPrompt(opts: {
-  bridge: OkDesktopBridge | undefined;
   waitForSavedWork: () => Promise<SavedWorkResult>;
   watchForSavedWork: (onSaved: () => void) => () => void;
   docNamesToOpen: () => readonly string[];
   reload: () => void;
 }): (() => void) | undefined {
-  if (opts.bridge) return undefined;
-
   let latest: ServerVersionChange | null = null;
   let stopWatching = () => {};
 

@@ -6,7 +6,6 @@ import { APP_HEADER_HEIGHT, AppHeader } from '@/components/AppHeader';
 import { BranchRecycleBanner } from '@/components/BranchRecycleBanner';
 import { CommandPalette } from '@/components/CommandPalette';
 import { ConnectingBanner } from '@/components/ConnectingBanner';
-import { CornerCardStack } from '@/components/CornerCardStack';
 import { EditorPane } from '@/components/EditorPane';
 import { FileListHostProvider } from '@/components/FileListHost';
 import { FileSidebar } from '@/components/FileSidebar';
@@ -531,7 +530,6 @@ function AppBody() {
             </div>
           </FileListHostProvider>
         </SidebarProvider>
-        {!singleFile && <CornerCardStack />}
         {!singleFile ? <DraftBar /> : null}
       </PageListProvider>
     </div>

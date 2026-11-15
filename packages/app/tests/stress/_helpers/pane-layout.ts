@@ -3,7 +3,6 @@ import {
   TERMINAL_PLACEMENT_KEY,
   type TerminalPlacement,
 } from '../../../src/lib/terminal-placement-store';
-import { openDesktopHeader } from './app-header-host.ts';
 import { expect } from './fixtures.ts';
 import { waitForActiveProviderSynced } from './provider.ts';
 
@@ -120,18 +119,6 @@ export async function openWebLayout(
   await page.goto(`/#/${docName}`);
   await waitForActiveProviderSynced(page);
   await expect(headerPaneButton(page, 'editor')).toBeVisible({ timeout: BOOT_TIMEOUT_MS });
-}
-
-export async function openDesktopLayout(
-  page: Page,
-  workerServer: { baseURL: string; contentDir: string },
-  docName: string,
-  { viewport, terminalPlacement }: DesktopLayoutOptions,
-): Promise<void> {
-  await presetTerminalPlacement(page, terminalPlacement);
-  await page.setViewportSize(viewport);
-  await openDesktopHeader(page, workerServer, docName, {});
-  await expect(headerPaneButton(page, 'terminal')).toBeVisible({ timeout: BOOT_TIMEOUT_MS });
 }
 
 export async function setHeaderPane(page: Page, pane: HeaderPane, on: boolean): Promise<void> {

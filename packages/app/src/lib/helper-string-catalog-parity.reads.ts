@@ -1,6 +1,5 @@
 export const MIGRATED_MODULES: ReadonlyArray<readonly [path: string, messages: number]> = [
   ['src/lib/share/run-share-action.ts', 11],
-  ['src/lib/share/receive-flow.ts', 6],
   ['src/lib/share/publish-wizard.ts', 7],
   ['src/hooks/use-folder-config.ts', 2],
   ['src/editor/utils/editor-strings.ts', 2],

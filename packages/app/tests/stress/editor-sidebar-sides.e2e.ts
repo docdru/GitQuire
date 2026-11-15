@@ -3,7 +3,6 @@ import type { ApiHelpers } from './_helpers';
 import {
   expect,
   headerPaneButton,
-  openDesktopHeader,
   runPaletteCommand,
   test,
   waitForActiveProviderSynced,
@@ -209,38 +208,5 @@ test.describe('swapping the editor sidebars', () => {
       await page.mouse.up();
       await expect.poll(() => widthOf(page, FILE_LIST)).toBeGreaterThan(before + 40);
     }
-  });
-
-  test('in a desktop project window the empty tab row is not a window drag region, so a right-click there offers the swap', async ({
-    page,
-    api,
-    workerServer,
-  }) => {
-    const name = `editor-sidebar-sides-desktop-${test.info().workerIndex}`;
-    await api.seedDocs([{ name, markdown: `# ${name}\n\n${DOC_TEXT}\n` }]);
-    await page.setViewportSize({ width: 1600, height: 900 });
-    await openDesktopHeader(page, workerServer, name, {});
-    await expect(page.locator('.tiptap-editor .ProseMirror').first()).toContainText(DOC_TEXT, {
-      timeout: BOOT_TIMEOUT_MS,
-    });
-    const regions = await page.evaluate(() =>
-      ['[data-editor-pane-tabs]', '[data-editor-tab-overflow-root]'].map((selector) => {
-        const element = document.querySelector(selector);
-        if (!(element instanceof HTMLElement)) return `${selector}: missing`;
-        const declared = element.closest('[data-electron-drag]') !== null;
-        return `${selector}: ${declared ? 'declared' : 'undeclared'} ${getComputedStyle(element).getPropertyValue('-webkit-app-region') || 'unset'}`;
-      }),
-    );
-    expect(regions).toEqual([
-      '[data-editor-pane-tabs]: declared no-drag',
-      '[data-editor-tab-overflow-root]: declared no-drag',
-    ]);
-
-    const strip = await page.locator('[data-editor-pane-tabs]').first().boundingBox();
-    if (strip === null) throw new Error('the editor tab row has no layout box');
-    await page.mouse.click(strip.x + strip.width * 0.6, strip.y + strip.height / 2, {
-      button: 'right',
-    });
-    await expect(page.getByRole('menuitem', { name: SWAP_LABEL })).toBeVisible();
   });
 });

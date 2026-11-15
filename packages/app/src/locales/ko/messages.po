@@ -82,9 +82,6 @@ msgstr "\"frontmatter\"는 예약된 속성 이름입니다"
 msgid "(a bare folder name needs /** after it to match what's inside)"
 msgstr "(폴더 이름만 입력하면 내부 항목과 일치하도록 뒤에 /**가 필요합니다)"
 
-msgid "(a worktree of {0})"
-msgstr "({0}의 워크트리)"
-
 msgid "(binary file, not previewable)"
 msgstr "(바이너리 파일, 미리볼 수 없음)"
 
@@ -237,9 +234,6 @@ msgstr "{0}은 이미 삭제되었습니다."
 
 msgid "{0} was not moved."
 msgstr "{0}을 이동하지 못했습니다."
-
-msgid "{0}/{1} {2}"
-msgstr "{0}/{1} {2}"
 
 msgid "{0}d ago"
 msgstr "{0}일 전"
@@ -521,9 +515,6 @@ msgstr ""
 msgid "{percent}% from top"
 msgstr "위에서부터 {percent}%"
 
-msgid "{phase} — {pct}%"
-msgstr "{phase}: {pct}%"
-
 msgid "{plugin} ships {0} other skills"
 msgstr "{plugin}에 다른 스킬 {0}개가 더 있습니다"
 
@@ -744,9 +735,6 @@ msgstr "Google의 Open Knowledge Format을 따르는 지식 베이스입니다. 
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "각주<0><1>[1]</1></0>와 아래에 표시되는 정의가 있는 줄입니다."
-
-msgid "A network problem or GitHub outage interrupted the clone."
-msgstr "네트워크 문제 또는 GitHub 장애로 클론이 중단되었습니다."
 
 msgid "a new pane to the left of {0}"
 msgstr "{0} 왼쪽의 새 패널"
@@ -1464,9 +1452,6 @@ msgstr "{fileName}에 두 버전이 모두 유지되었습니다. 이 파일이 
 msgid "Branch"
 msgstr "브랜치"
 
-msgid "Branch {0} no longer exists. Cloned to default branch."
-msgstr "브랜치 {0}는 더 이상 존재하지 않습니다. 기본 브랜치로 클론했습니다."
-
 msgid "breadcrumb"
 msgstr "이동 경로"
 
@@ -1603,9 +1588,6 @@ msgstr ""
 msgid "Chat with Claude or Mistral right inside the wiki. The assistant can search and read pages and, when you ask, change them; its changes are saved as your edits. It uses your own API key, so you pay the provider for what you use."
 msgstr ""
 
-msgid "Check for updates"
-msgstr "업데이트 확인"
-
 msgid "Check for updates every"
 msgstr "업데이트 확인 주기"
 
@@ -1626,12 +1608,6 @@ msgstr "확인 중"
 
 msgid "Checking for updates"
 msgstr "업데이트 확인 중"
-
-msgid "Checking for updates…"
-msgstr "업데이트 확인 중…"
-
-msgid "Checking GitHub connection..."
-msgstr "GitHub 연결 확인 중…"
 
 msgid "Checking links"
 msgstr "링크 확인 중"
@@ -1735,9 +1711,6 @@ msgstr "클론"
 msgid "Clone complete — opening project"
 msgstr "클론 완료. 프로젝트 여는 중"
 
-msgid "Clone ended unexpectedly."
-msgstr "클론이 예기치 않게 종료되었습니다."
-
 msgid "Clone failed — check the URL and try again ({status})"
 msgstr "클론 실패, URL을 확인하고 다시 시도하세요 ({status})"
 
@@ -1756,29 +1729,11 @@ msgstr "클론 실패: {title}"
 msgid "Clone from GitHub"
 msgstr "GitHub에서 클론"
 
-msgid "Clone happens in the Project Navigator. Reclick the share link there."
-msgstr "클론은 프로젝트 탐색기에서 진행됩니다. 그곳에서 공유 링크를 다시 클릭하세요."
-
 msgid "Clone stream ended unexpectedly — check if the clone completed"
 msgstr "클론 스트림이 예기치 않게 종료되었습니다. 클론이 완료됐는지 확인하세요."
 
-msgid "Clone to a new folder"
-msgstr "새 폴더에 클론"
-
-msgid "Cloned {repoName}."
-msgstr "{repoName} 클론 완료."
-
-msgid "Cloned successfully, but could not open the project."
-msgstr "클론에 성공했지만 프로젝트를 열 수 없습니다."
-
 msgid "Cloning"
 msgstr "클론 중"
-
-msgid "Cloning {repoName}..."
-msgstr "{repoName} 클론 중…"
-
-msgid "Cloning..."
-msgstr "클론 중…"
 
 msgid "Close"
 msgstr "닫기"
@@ -1990,9 +1945,6 @@ msgstr "연결됨. 이 엔드포인트가 {0}차원 벡터를 반환합니다."
 msgid "Connected as @{login}"
 msgstr "계정 @{login}으로 연결됨"
 
-msgid "Connected as <0>@{signedInLogin}</0>"
-msgstr "계정 <0>@{signedInLogin}</0>으로 연결됨"
-
 msgid "Connected to"
 msgstr "연결 대상"
 
@@ -2164,17 +2116,11 @@ msgstr "동기화를 활성화할 수 없습니다: {detail}"
 msgid "Could not fix {0} of {total} files."
 msgstr "{0}/{total}개 파일을 수정하지 못했습니다."
 
-msgid "Could not initialize {0}."
-msgstr "{0} 초기화에 실패했습니다."
-
 msgid "Could not load templates: {templatesError}. You can still create a blank note."
 msgstr "템플릿을 불러오지 못했습니다: {templatesError}. 빈 노트는 계속 만들 수 있습니다."
 
 msgid "Could not load templates. Try again later."
 msgstr "템플릿을 불러오지 못했습니다. 나중에 다시 시도하세요."
-
-msgid "Could not open GitHub sign-in. Please try again."
-msgstr "GitHub 로그인 화면을 열 수 없습니다. 다시 시도하세요."
 
 msgid "Could not reach server"
 msgstr "서버에 연결하지 못했습니다"
@@ -2187,9 +2133,6 @@ msgstr "새 항목 만들기를 시작하지 못했습니다"
 
 msgid "Could not update sidebar settings"
 msgstr "사이드바 설정을 업데이트하지 못했습니다"
-
-msgid "Could not validate folder. Please try again."
-msgstr "폴더를 확인할 수 없습니다. 다시 시도하세요."
 
 msgid "Couldn't cancel."
 msgstr ""
@@ -2756,9 +2699,6 @@ msgstr "{0}과 일치하는 문서"
 msgid "Docs tagged #{tagDocsName}"
 msgstr "#{tagDocsName} 태그가 지정된 문서"
 
-msgid "document"
-msgstr "문서"
-
 msgid "Document not found"
 msgstr "문서를 찾을 수 없음"
 
@@ -2812,9 +2752,6 @@ msgstr "편집하려면 두 번 클릭"
 
 msgid "Download file"
 msgstr "파일 다운로드"
-
-msgid "Downloads a fresh copy from GitHub."
-msgstr "GitHub에서 최신 사본을 다운로드합니다."
 
 msgid "Draft"
 msgstr ""
@@ -3171,9 +3108,6 @@ msgstr "엔터프라이즈"
 
 msgid "Error"
 msgstr "오류"
-
-msgid "Error:"
-msgstr "오류:"
 
 msgid "Escape"
 msgstr "Escape"
@@ -3643,9 +3577,6 @@ msgstr "앞으로"
 msgid "Forward-links response did not match expected shape."
 msgstr "포워드 링크 응답 형식이 예상과 일치하지 않습니다."
 
-msgid "Found the repo but could not open the project. Please try again."
-msgstr "저장소를 찾았지만 프로젝트를 열 수 없습니다. 다시 시도하세요."
-
 msgid "From {harnessLabel}"
 msgstr "{harnessLabel}에서"
 
@@ -4050,12 +3981,6 @@ msgstr "https://github.com/owner/repo 또는 owner/repo"
 msgid "Hubs"
 msgstr "허브"
 
-msgid "I already have it locally"
-msgstr "이미 로컬에 있음"
-
-msgid "I already have it locally →"
-msgstr "이미 로컬에 있음 →"
-
 msgid "I'm switching to another tool"
 msgstr "다른 도구로 전환하려고 합니다"
 
@@ -4209,17 +4134,11 @@ msgstr "{selectedPackName} 초기화"
 msgid "Initialize a starter pack"
 msgstr "스타터 팩 초기화"
 
-msgid "Initialize and open"
-msgstr "초기화 후 열기"
-
 msgid "Initialize failed: {errorDetail}"
 msgstr "초기화 실패: {errorDetail}"
 
 msgid "Initialize starter pack"
 msgstr "스타터 팩 초기화"
-
-msgid "Initialized {0} but could not open it."
-msgstr "{0} 초기화 완료. 열기에 실패했습니다."
 
 msgid "Initializing project"
 msgstr "프로젝트 초기화 중"
@@ -4337,9 +4256,6 @@ msgstr "잘못된 색상 값"
 
 msgid "Invalid patch payload"
 msgstr "잘못된 패치 페이로드"
-
-msgid "Invalid share URL."
-msgstr "잘못된 공유 URL입니다."
 
 msgid "Invalid YAML"
 msgstr "잘못된 YAML"
@@ -4700,9 +4616,6 @@ msgstr ""
 
 msgid "Looked at: {detail}"
 msgstr ""
-
-msgid "Looking for <0>{lookingForUrl}</0>."
-msgstr "<0>{lookingForUrl}</0> 찾는 중입니다."
 
 msgid "Lost connection to \"{docName}\"."
 msgstr "\"{docName}\" 연결이 끊겼습니다."
@@ -5487,9 +5400,6 @@ msgstr "16진수 색상이 아닙니다: {0}"
 msgid "Not connected"
 msgstr "연결되지 않음"
 
-msgid "Not connected to GitHub."
-msgstr "GitHub에 연결되지 않음"
-
 msgid "Not great"
 msgstr "별로 좋지 않음"
 
@@ -5727,9 +5637,6 @@ msgstr "링크 열기"
 msgid "Open link in new tab"
 msgstr "새 탭에서 링크 열기"
 
-msgid "Open Navigator"
-msgstr "탐색기 열기"
-
 msgid "Open or close visual-editor find."
 msgstr "비주얼 편집기 찾기를 열거나 닫습니다."
 
@@ -5738,9 +5645,6 @@ msgstr "에이전트가 편집할 때 미리보기를 엽니다."
 
 msgid "Open settings"
 msgstr "설정 열기"
-
-msgid "Open shared {targetNoun}"
-msgstr "공유된 {targetNoun} 열기"
 
 msgid "Open skill"
 msgstr "스킬 열기"
@@ -5786,9 +5690,6 @@ msgstr "교체 컨트롤을 확장한 상태로 비주얼 편집기 찾기를 �
 
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror 자동 완성 제안을 열고 탐색하고 수락하거나 닫습니다."
-
-msgid "Opening..."
-msgstr "여는 중…"
 
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "저장소를 클론할 위치를 선택하는 폴더 선택기를 엽니다."
@@ -6046,9 +5947,6 @@ msgstr "폴더 선택"
 
 msgid "Pick folders this schema applies to"
 msgstr "이 스키마를 적용할 폴더 선택"
-
-msgid "Pick the folder where you've cloned it."
-msgstr "클론한 폴더 선택"
 
 msgid "Pick the skills to install. Each one lands as an editable skill you own; the plugin's hooks, commands, and MCP servers are not installed."
 msgstr "설치할 스킬을 선택하세요. 각 스킬은 편집 가능한 내 소유 스킬로 설치되며, 플러그인의 hooks, commands, MCP 서버는 설치되지 않습니다."
@@ -7794,9 +7692,6 @@ msgstr "YAML 또는 JSON으로 해석할 수 없습니다."
 msgid "That endpoint can't be used. Enter an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "이 엔드포인트는 사용할 수 없습니다. https:// URL을 입력합니다. http://는 루프백 엔드포인트에만 사용할 수 있습니다."
 
-msgid "That folder isn't a GitQuire project yet. Initialize it and open?"
-msgstr "해당 폴더는 아직 GitQuire 프로젝트가 아닙니다. 초기화하고 여시겠습니까?"
-
 msgid "That host is already in the list."
 msgstr "이미 목록에 있는 호스트입니다."
 
@@ -8001,12 +7896,6 @@ msgstr "제공업체의 벡터 크기가 계속 변경되었습니다. 의미로
 msgid "The quoted text is no longer in the page."
 msgstr ""
 
-msgid "The repository is private and your GitHub account doesn't have access to it."
-msgstr "비공개 저장소에 접근 권한이 없습니다. 접근 권한이 있는 GitHub 계정으로 로그인하세요."
-
-msgid "The repository was moved, renamed, or deleted."
-msgstr "저장소가 이동, 이름 변경 또는 삭제됐습니다."
-
 msgid "The same text changed in both places"
 msgstr ""
 
@@ -8112,9 +8001,6 @@ msgstr "이 에이전트는 슬래시 명령을 제공하지 않습니다"
 msgid "This agent hasn't announced its commands yet"
 msgstr "이 에이전트는 아직 명령을 알리지 않았습니다"
 
-msgid "This branch is checked out in:"
-msgstr "이 브랜치의 체크아웃 위치:"
-
 msgid "This chat is too long for the model. Start a new chat (+) to go on."
 msgstr ""
 
@@ -8187,26 +8073,14 @@ msgstr "이 파일은 현재 브랜치에서 삭제되었습니다 (delete-modif
 msgid "This file was deleted on the incoming branch (modify-delete conflict)."
 msgstr "이 파일은 수신 브랜치에서 삭제되었습니다 (modify-delete 충돌)."
 
-msgid "This folder doesn't contain a git repository. Pick a different folder?"
-msgstr "이 폴더에 git 저장소가 없습니다. 다른 폴더를 선택하시겠습니까?"
-
 msgid "This folder has unpushed changes. Recipients will see the last pushed version."
 msgstr "이 폴더에는 푸시되지 않은 변경 사항이 있습니다. 수신자는 마지막으로 푸시된 버전을 보게 됩니다."
 
 msgid "This folder hasn't synced to GitHub yet. The link will work after the next sync."
 msgstr "이 폴더는 아직 GitHub와 동기화되지 않았습니다. 다음 동기화 후 링크가 작동합니다."
 
-msgid "This folder is a clone of {actualOwner}/{actualRepo}, not {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "이 폴더는 {actualOwner}/{actualRepo} 클론이며 {expectedOwner}/{expectedRepo} 클론이 아닙니다. 다른 폴더를 선택하시겠습니까?"
-
-msgid "This folder is a clone of {expectedOwner}/{expectedRepo} on {actualHost}, not {expectedHost}. Pick a folder cloned from {expectedHost}?"
-msgstr "이 폴더는 {actualHost}의 {expectedOwner}/{expectedRepo} 클론이며 {expectedHost} 클론이 아닙니다. {expectedHost}에서 클론한 폴더를 선택하시겠습니까?"
-
 msgid "This folder is empty."
 msgstr "이 폴더는 비어 있습니다."
-
-msgid "This folder isn't a clone of {expectedOwner}/{expectedRepo}. Pick a different folder?"
-msgstr "이 폴더는 {expectedOwner}/{expectedRepo} 클론이 아닙니다. 다른 폴더를 선택하시겠습니까?"
 
 msgid "This folder isn't on GitHub yet. The link won't work until it's pushed."
 msgstr "이 폴더는 아직 GitHub에 없습니다. 푸시해야 링크가 작동합니다."
@@ -8351,12 +8225,6 @@ msgstr "이 테마 파일을 읽지 못했습니다"
 
 msgid "This theme file is too large"
 msgstr "이 테마 파일은 너무 큽니다"
-
-msgid "This update is no longer ready to install."
-msgstr "이 업데이트는 더 이상 설치할 준비가 되어 있지 않습니다."
-
-msgid "This usually means one of:"
-msgstr "일반적으로 다음 중 하나입니다:"
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -8703,9 +8571,6 @@ msgstr "업데이트 실패: {0}"
 msgid "Update from source"
 msgstr "소스에서 업데이트"
 
-msgid "Update GitQuire to open this share."
-msgstr "이 공유를 열려면 GitQuire를 업데이트하세요."
-
 msgid "Update the destination and optional section anchor."
 msgstr "대상과 선택적 섹션 앵커를 업데이트하세요."
 
@@ -8723,9 +8588,6 @@ msgstr "{updatedRelative} 업데이트됨"
 
 msgid "updated folder properties"
 msgstr "폴더 속성 업데이트됨"
-
-msgid "Updates"
-msgstr ""
 
 msgid "Updates flow in"
 msgstr "업데이트가 들어옴"
@@ -8951,9 +8813,6 @@ msgstr "경고"
 
 msgid "We couldn't check your GitHub connection."
 msgstr "GitHub 연결을 확인하지 못했습니다."
-
-msgid "We couldn't clone this repository."
-msgstr "이 저장소를 클론할 수 없습니다."
 
 msgid "We sent a code to {pending}. Enter it to turn on email."
 msgstr ""

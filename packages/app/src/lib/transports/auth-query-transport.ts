@@ -2,7 +2,6 @@ import { type ProblemDetails, ProblemDetailsSchema } from '@inkeep/open-knowledg
 import { t } from '@lingui/core/macro';
 import { z } from 'zod';
 import type {
-  OkDesktopBridge,
   OkLocalOpAuthReposResponse,
   OkLocalOpAuthSignoutResponse,
   OkLocalOpAuthStatusResponse,
@@ -156,12 +155,5 @@ export function httpAuthQueryTransport(): AuthQueryTransport {
       }
       return { ok: true };
     },
-  };
-}
-
-export function ipcAuthQueryTransport(bridge: OkDesktopBridge): AuthQueryTransport {
-  return {
-    status: (request) => bridge.localOp.authStatus(request),
-    repos: (request) => bridge.localOp.authRepos(request),
   };
 }
