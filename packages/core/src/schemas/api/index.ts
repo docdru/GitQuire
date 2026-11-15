@@ -1,5 +1,4 @@
 export * from './_envelope.ts';
-export * from './agent-integrations.ts';
 export * from './agent-write.ts';
 export * from './agent-write-outcome.ts';
 export * from './client-logs.ts';

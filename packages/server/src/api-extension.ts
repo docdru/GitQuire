@@ -1,5 +1,4 @@
 import { filesystemIdentity, statMtimeMs } from '@inkeep/open-knowledge-core/server';
-import { createAgentIntegrationsRoutes } from './http/agent-integrations-routes.ts';
 import { createAgentWriteRoutes } from './http/agent-write-routes.ts';
 import { createTestRoutes } from './http/test-routes.ts';
 
@@ -72,7 +71,6 @@ import {
 import { captureEffect } from './activity-log.ts';
 import type { AgentFocusBroadcaster } from './agent-focus.ts';
 import type { AgentPresenceBroadcaster } from './agent-presence.ts';
-import type { AgentRegistryHostSeam } from './agent-registry-apply.ts';
 import {
   AgentSessionCapacityError,
   type AgentSessionManager,
@@ -120,12 +118,6 @@ import {
   isContainmentRejection,
   PathContainmentError,
 } from './fs-safety.ts';
-import {
-  createInstalledAgentsProbe,
-  createOsProbe,
-  type InstalledAgentScheme,
-} from './handoff-api.ts';
-import { createHandoffInstallRoutes } from './http/handoff-install-routes.ts';
 import { createSkillsDocumentRoutes } from './http/skills-document-routes.ts';
 import { createSkillsFileRoutes } from './http/skills-file-routes.ts';
 import { createSkillsImportRoutes } from './http/skills-import-routes.ts';
@@ -1356,10 +1348,8 @@ interface ApiExtensionBaseOptions {
   homeDirOverride?: string;
   resetSettingsForTest?: () => void;
   settleDiskEventsForTest?: () => Promise<void>;
-  agentIntegrations?: AgentRegistryHostSeam;
   savedThemeLockTimeoutMs?: number;
   contentFilter?: ContentFilter;
-  installedAgentsProbe?: (scheme: InstalledAgentScheme) => Promise<boolean>;
   forceUnloadDocument?: (document: Document) => Promise<void>;
   onNamespaceCreateAccepted?: (docName: string) => void;
   captureNamespaceMove?: (docName: string) => () => void;
@@ -1805,10 +1795,8 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     homeDirOverride,
     resetSettingsForTest,
     settleDiskEventsForTest,
-    agentIntegrations,
     savedThemeLockTimeoutMs,
     contentFilter,
-    installedAgentsProbe,
     forceUnloadDocument,
     onNamespaceCreateAccepted,
     captureNamespaceMove,
@@ -1937,10 +1925,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       });
     }
   }
-
-  const installedAgentsCache = createInstalledAgentsProbe({
-    probe: installedAgentsProbe ?? createOsProbe(process.platform),
-  });
 
   function resolveDocPath(docName: string): string | null {
     if (isManagedArtifactDocName(docName)) {
@@ -5314,7 +5298,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     getConfigDiagnostics,
     isRoutePeerAdmitted,
     isAllowedWorkspaceHostHeader,
-    checkLocalOpSecurity,
     getPrincipal,
     semanticSearch,
     readSemanticProviderConfig,
@@ -5323,7 +5306,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     shadowRef,
     getCurrentBranch,
     getReportedBranch,
-    installedAgentsCache,
   });
   const lintRoutes = createLintRoutes({
     hocuspocus,
@@ -5596,11 +5578,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     checkLocalOpSecurity,
   });
   const systemActionsRoutes = createSystemActionsRoutes({
-    contentDir,
-    log,
     checkLocalOpSecurity,
-    installedAgentsCache,
-    agentIntegrations,
   });
   const folderTemplateRoutes = createFolderTemplateRoutes({
     contentDir,
@@ -5635,15 +5613,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     mutateFileIndex,
   });
   const assetRoutes = createAssetRoutes({ assetService, log });
-  const agentIntegrationsRoutes = createAgentIntegrationsRoutes({
-    log,
-    checkLocalOpSecurity,
-    getPrincipal,
-    homeDirOverride,
-    projectDir,
-    agentIntegrations,
-  });
-  const handoffInstallRoutes = createHandoffInstallRoutes({ checkLocalOpSecurity });
   const documentRefreshRoutes = createDocumentRefreshRoutes({
     refreshDocumentsFromDisk: options.refreshDocumentsFromDisk,
   });
@@ -5772,13 +5741,11 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   });
   const nativeGroups = [
     assetRoutes,
-    agentIntegrationsRoutes,
     agentWriteRoutes,
     ...(enableTestRoutes ? [testRoutes] : []),
     skillsTrackingRoutes,
     skillsRecoveryRoutes,
     skillsInstallRoutes,
-    handoffInstallRoutes,
     skillsImportRoutes,
     skillsFileRoutes,
     linkGraphRoutes,

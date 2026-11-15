@@ -1,9 +1,8 @@
-import type { CreateScenario } from '@inkeep/open-knowledge-core/handoff';
 import { useLingui } from '@lingui/react/macro';
 import { Bird, FileCode2, ListTree, Network, Telescope } from 'lucide-react';
 import type { ComponentType } from 'react';
 
-export type { CreateScenario };
+export type CreateScenario = 'new-project' | 'existing-repo' | 'skill';
 
 export interface CreateSuggestion {
   readonly id: string;

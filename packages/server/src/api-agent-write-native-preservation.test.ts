@@ -61,9 +61,7 @@ test('native ownership is exclusive and the remaining legacy registry matches it
       expect(server.serverInstance.nativeApi.paths.filter((entry) => entry === path)).toHaveLength(
         1,
       );
-    expect(
-      server.serverInstance.nativeApi.paths.filter((entry) => entry === AGENT_INTEGRATIONS_APPLY),
-    ).toHaveLength(1);
+    expect(server.serverInstance.nativeApi.paths).not.toContain(AGENT_INTEGRATIONS_APPLY);
     for (const path of RESIDUAL) expect(server.serverInstance.nativeApi.paths).not.toContain(path);
   }
   for (const path of TEST_PATHS) {

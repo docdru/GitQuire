@@ -151,7 +151,6 @@ export interface BootServerOptions
     | 'enableTestRoutes'
     | 'lockKind'
     | 'detectGh'
-    | 'agentIntegrations'
     | 'detectGhAccounts'
     | 'tokenStore'
     | 'embeddingsKeyStore'
@@ -436,7 +435,6 @@ async function bootServerInner(
     checkPushPermissionFn: withGitHubAppPushCheck(gitHubAppTokens),
     detectGhAccounts: opts.detectGhAccounts,
     tokenStore: opts.tokenStore,
-    agentIntegrations: opts.agentIntegrations,
     embeddingsKeyStore: opts.embeddingsKeyStore,
     singleDocRelPath: opts.singleDocRelPath,
     ephemeral: opts.ephemeral,

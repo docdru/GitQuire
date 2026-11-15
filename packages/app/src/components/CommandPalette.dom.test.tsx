@@ -1,4 +1,3 @@
-import type { HandoffHostPlatform } from '@inkeep/open-knowledge-core/agent-registry';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -11,7 +10,6 @@ import {
   paneVisibilityStore,
 } from '@/lib/pane-visibility-store';
 import { __resetViewMenuStateForTests, setViewMenuState } from '@/lib/view-menu-state-store';
-import { withRestrictableHandoffPlatforms } from '@/test-utils/handoff-platforms.test-helper';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 
 const toastError = vi.fn((_message: string) => {});
@@ -176,12 +174,6 @@ vi.doMock('@/lib/use-workspace', () => ({
   useWorkspace: () => workspaceValue,
 }));
 
-vi.doMock('@inkeep/open-knowledge-core/agent-registry', async (importOriginal) =>
-  withRestrictableHandoffPlatforms(
-    await importOriginal<typeof import('@inkeep/open-knowledge-core/agent-registry')>(),
-  ),
-);
-
 vi.doMock('@/components/command-palette-tag-search', () => ({
   TAG_QUERY_PREFIX: 'tag:',
   parseTagPaletteQuery: () => ({ kind: 'normal' }),
@@ -255,7 +247,7 @@ async function renderPalette({
   docName = 'docs/active',
   withSingleFileModeProvider = false,
 }: {
-  bridge?: (ReturnType<typeof createBridge> & { platform?: HandoffHostPlatform }) | null;
+  bridge?: (ReturnType<typeof createBridge> & { platform?: string }) | null;
   docName?: string | null;
   withSingleFileModeProvider?: boolean;
 } = {}) {

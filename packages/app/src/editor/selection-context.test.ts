@@ -3,14 +3,12 @@ import type { EditorView } from '@codemirror/view';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   getSelectionContext,
-  INLINE_SELECTION_MAX_CHARS,
   lightRenderMarkdownPreview,
   publishSelectionContext,
   type SelectionSnapshot,
   selectionChipLabel,
   selectionSnapshotFromFrontmatter,
   selectionSnapshotFromSource,
-  selectionSnapshotToCompose,
   subscribeSelectionContext,
 } from './selection-context';
 
@@ -105,49 +103,6 @@ describe('selectionSnapshotFromSource', () => {
 
   test('collapsed selection → null', () => {
     expect(selectionSnapshotFromSource(sourceView(doc, 5, 5), 'notes')).toBeNull();
-  });
-});
-
-describe('selectionSnapshotToCompose (inline vs reference rule)', () => {
-  test('single line under the char limit → inline verbatim', () => {
-    const out = selectionSnapshotToCompose(snap({ markdown: 'short', charLen: 5, lineCount: 1 }));
-    expect(out).toEqual({ kind: 'inline', markdown: 'short' });
-  });
-
-  test('single line at/over the char limit → reference (source → lines)', () => {
-    const long = 'a'.repeat(INLINE_SELECTION_MAX_CHARS);
-    const out = selectionSnapshotToCompose(
-      snap({
-        surface: 'source',
-        markdown: long,
-        charLen: long.length,
-        lineCount: 1,
-        sourceLineStart: 4,
-        sourceLineEnd: 4,
-      }),
-    );
-    expect(out).toEqual({ kind: 'lines', startLine: 4, endLine: 4 });
-  });
-
-  test('multi-line in source mode → line range', () => {
-    const out = selectionSnapshotToCompose(
-      snap({
-        surface: 'source',
-        markdown: 'a\nb\nc',
-        charLen: 5,
-        lineCount: 3,
-        sourceLineStart: 10,
-        sourceLineEnd: 12,
-      }),
-    );
-    expect(out).toEqual({ kind: 'lines', startLine: 10, endLine: 12 });
-  });
-
-  test('multi-line in rich text (no line numbers) → anchor', () => {
-    const out = selectionSnapshotToCompose(
-      snap({ surface: 'wysiwyg', markdown: 'a\nb\nc', charLen: 5, lineCount: 3 }),
-    );
-    expect(out).toEqual({ kind: 'anchor', markdown: 'a\nb\nc' });
   });
 });
 

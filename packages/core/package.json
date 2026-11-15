@@ -77,12 +77,6 @@
       "types": "./dist/acp-thread-protocol.d.mts",
       "default": "./dist/acp-thread-protocol.mjs"
     },
-    "./acp/agent-posture": {
-      "@inkeep/source": "./src/acp/agent-posture.ts",
-      "development": "./src/acp/agent-posture.ts",
-      "types": "./dist/acp-agent-posture.d.mts",
-      "default": "./dist/acp-agent-posture.mjs"
-    },
     "./acp/permissive-mode": {
       "@inkeep/source": "./src/acp/permissive-mode.ts",
       "development": "./src/acp/permissive-mode.ts",
@@ -106,12 +100,6 @@
       "development": "./src/desktop-bridge.ts",
       "types": "./dist/desktop-bridge.d.mts",
       "default": "./dist/desktop-bridge.mjs"
-    },
-    "./agent-registry": {
-      "@inkeep/source": "./src/agent-registry/index.ts",
-      "development": "./src/agent-registry/index.ts",
-      "types": "./dist/agent-registry.d.mts",
-      "default": "./dist/agent-registry.mjs"
     },
     "./bridge": {
       "@inkeep/source": "./src/bridge/index.ts",
@@ -478,12 +466,6 @@
       "development": "./src/git/worktree-selector-model.ts",
       "types": "./dist/git-worktree-selector-model.d.mts",
       "default": "./dist/git-worktree-selector-model.mjs"
-    },
-    "./handoff": {
-      "@inkeep/source": "./src/handoff/index.ts",
-      "development": "./src/handoff/index.ts",
-      "types": "./dist/handoff.d.mts",
-      "default": "./dist/handoff.mjs"
     },
     "./i18n/browser-locale-provider": {
       "@inkeep/source": "./src/i18n/browser-locale-provider.ts",

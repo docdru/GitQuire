@@ -1,4 +1,3 @@
-import type { TargetData } from '@inkeep/open-knowledge-core/handoff';
 import {
   AGENT_ICON_COLORS,
   AGENT_ICON_COLORS_DARK,
@@ -16,7 +15,19 @@ import { OpenCodeIcon } from '@/components/icons/opencode';
 import { PiIcon } from '@/components/icons/pi';
 import { cn } from '@/lib/utils';
 
-const TARGET_ICON_KEY: Record<TargetData['id'], string> = {
+export type AgentTargetId =
+  | 'claude-cowork'
+  | 'claude-code'
+  | 'codex'
+  | 'cursor'
+  | 'copilot'
+  | 'opencode'
+  | 'pi'
+  | 'antigravity'
+  | 'openclaw'
+  | 'hermes';
+
+const TARGET_ICON_KEY: Record<AgentTargetId, string> = {
   'claude-cowork': 'claude',
   'claude-code': 'claude',
   codex: 'openai',
@@ -34,7 +45,7 @@ export function TargetIcon({
   style,
   className,
   ...props
-}: { id: TargetData['id'] } & SVGProps<SVGSVGElement>): ReactNode {
+}: { id: AgentTargetId } & SVGProps<SVGSVGElement>): ReactNode {
   const { resolvedTheme } = useTheme();
   const iconKey = TARGET_ICON_KEY[id];
   const isDark = resolvedTheme === 'dark';

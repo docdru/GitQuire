@@ -8,16 +8,6 @@ export { AgentFocusBroadcaster } from './agent-focus.ts';
 export { AGENT_ID_MAX_LEN, AGENT_ID_RE, toBroadcasterKey, validateAgentId } from './agent-id.ts';
 export { AgentPresenceBroadcaster } from './agent-presence.ts';
 export {
-  type ObserveReadinessInput,
-  observeReadiness,
-  type ReadinessObservationLogger,
-} from './agent-registry-gate.ts';
-export {
-  collectServerHostSnapshot,
-  createServerProbeResolver,
-  type ServerProbeOptions,
-} from './agent-registry-probes.ts';
-export {
   AGENT_WRITE_ORIGIN,
   type AgentDirectConnection,
   AgentSessionCapacityError,
@@ -252,12 +242,6 @@ export {
   initProjectWithCli,
   runGitQuireBootstrap,
 } from './gitquire/index.ts';
-export {
-  createOsProbe,
-  type ExecFileLike,
-  INSTALLED_AGENTS_SCHEMES,
-  type InstalledAgentScheme,
-} from './handoff-api.ts';
 export { type ProjectHeadState, readProjectHeadState } from './head-watcher.ts';
 export {
   assertSafeProjectRoot,
@@ -673,15 +657,6 @@ export {
   reportSkillInstall,
   type SkillInstallReport,
 } from './skills-sh-install-report.ts';
-export {
-  CURSOR_BUNDLE_PATHS_BY_PLATFORM,
-  type HandleSpawnCursorDeps,
-  handleSpawnCursor,
-  isPathWithinDir,
-  resolveCursorBinaryDefault,
-  resolveCursorSpawnInvocation,
-  type SpawnCursorOutcome,
-} from './spawn-cursor-api.ts';
 export { type SpawnDetachedOutcome, spawnDetached } from './spawn-detached.ts';
 export {
   assertCompatibleStateManifest,

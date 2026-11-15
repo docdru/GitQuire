@@ -46,7 +46,6 @@ const PREVIEW_DOCUMENT_MUTATIONS = new Set([
   '/api/lint/fix',
   '/api/folder-config',
   '/api/template',
-  '/api/agent-integrations/apply',
 ]);
 
 export interface ApiRouteTable {

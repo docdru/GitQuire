@@ -63,7 +63,6 @@ import {
 import type { Doc } from 'yjs';
 import { AgentFocusBroadcaster } from './agent-focus.ts';
 import { AgentPresenceBroadcaster } from './agent-presence.ts';
-import type { AgentRegistryHostSeam } from './agent-registry-apply.ts';
 import { AgentSessionManager } from './agent-sessions.ts';
 import { createApiExtension, isSafeDocName } from './api-extension.ts';
 import { assetReferencesChanged } from './asset-references.ts';
@@ -417,7 +416,6 @@ export interface ServerOptions {
   configHomedirOverride?: string;
   mdManager?: MarkdownManager;
   detectGh?: DetectGhFn;
-  agentIntegrations?: AgentRegistryHostSeam;
   detectGhAccounts?: DetectGhAccountsFn;
   tokenStore?: ProbeTokenStore | null;
   checkPushPermissionFn?: (opts: CheckPushPermissionOptions) => Promise<PushPermission>;
@@ -2781,7 +2779,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       resolveEmbed,
       getBridgeLossReporter: () => bridgeLossReporter,
       getPrincipal: () => loadedPrincipal,
-      agentIntegrations: options.agentIntegrations,
       homeDirOverride: configHomedirOverride,
       resetSettingsForTest:
         configHomedirOverride === undefined

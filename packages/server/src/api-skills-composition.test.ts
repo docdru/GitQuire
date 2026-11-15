@@ -2,15 +2,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { createApiExtension } from './api-extension.test-helper.ts';
 import type { BootedServer } from './boot.ts';
-import {
-  bootCompositionRig,
-  makeCaptureRes,
-  makeSyntheticReq,
-  parseProblem,
-  rawRequest,
-} from './composition-rig.test-helper.ts';
+import { bootCompositionRig, parseProblem, rawRequest } from './composition-rig.test-helper.ts';
 
 const LOOPBACK_ORIGIN = 'http://localhost:5173';
 
@@ -30,7 +23,6 @@ const SKILL_METHODS = [
   ['/api/skills/reimport-bulk', 'POST'],
   ['/api/skill/revert', 'POST'],
   ['/api/skill/track-in-git', 'POST'],
-  ['/api/install-skill', 'POST'],
 ] as const;
 
 let contentDir: string;
@@ -73,28 +65,8 @@ describe('skills contracts over the composed listener', () => {
     });
   });
 
-  test('handoff admission refuses an absent peer before consuming the body', async () => {
-    const extension = createApiExtension({
-      contentDir,
-      projectDir: contentDir,
-      hocuspocus: server.serverInstance.hocuspocus,
-      sessionManager: server.serverInstance.sessionManager,
-    });
-    const request = makeSyntheticReq({ method: 'POST', url: '/api/install-skill' });
-    Object.defineProperty(request.socket, 'remoteAddress', { value: undefined });
-    const { res, captured } = makeCaptureRes();
-    await extension.onRequest({ request, response: res });
-    expect(captured.status).toBe(403);
-    expect(parseProblem(captured.body)).toMatchObject({
-      type: 'urn:ok:error:loopback-required',
-      title: 'Local-op endpoints require a loopback connection.',
-    });
-    expect(request.readableEnded).toBe(false);
-    request.destroy();
-  });
-
   test('null Origin is refused by the shared origin gate on every write, JSON included', async () => {
-    for (const path of ['/api/skill/install', '/api/skill/import', '/api/install-skill']) {
+    for (const path of ['/api/skill/install', '/api/skill/import']) {
       const res = await rawRequest(server.port, path, {
         method: 'POST',
         headers: { Origin: 'null', 'Content-Type': 'application/json' },
@@ -132,16 +104,6 @@ describe('skills contracts over the composed listener', () => {
     try {
       await external.ready;
       const headers = { Origin: 'https://skills.example.com', 'Content-Type': 'application/json' };
-      const handoff = await rawRequest(external.port, '/api/install-skill', {
-        method: 'POST',
-        headers,
-        body: '{',
-      });
-      expect(handoff.status).toBe(400);
-      expect(parseProblem(handoff.body)).toMatchObject({
-        type: 'urn:ok:error:invalid-request',
-        title: 'Request body is not valid JSON.',
-      });
       const catalog = await rawRequest(external.port, '/api/skill/install', {
         method: 'POST',
         headers,
@@ -155,7 +117,7 @@ describe('skills contracts over the composed listener', () => {
     }
   });
 
-  test('catalog install requires a name while handoff validates its output path', async () => {
+  test('catalog install requires a name', async () => {
     const body = JSON.stringify({
       noOpen: true,
       out: resolve(homedir(), '..', 'ok-skills-contract-output.skill'),
@@ -169,13 +131,6 @@ describe('skills contracts over the composed listener', () => {
     expect(catalog.status).toBe(400);
     expect(parseProblem(catalog.body)).toMatchObject({ title: 'Request body is invalid.' });
     expect(parseProblem(catalog.body).detail).toContain('name');
-    const handoff = await rawRequest(server.port, '/api/install-skill', {
-      method: 'POST',
-      headers,
-      body,
-    });
-    expect(handoff.status).toBe(400);
-    expect(parseProblem(handoff.body).title).toBe('Output path must be within home directory.');
   });
 
   test('JSON skill writes preserve the one-megabyte limit', async () => {

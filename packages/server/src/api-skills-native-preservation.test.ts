@@ -34,7 +34,6 @@ const FAMILIES = {
   'skills-file': ['/api/skill-file', '/api/skill-file/rename'],
   'skills-import': ['/api/skill/import', '/api/skills/import-bulk', '/api/skill-upload'],
   'skills-install': ['/api/skill/install'],
-  'handoff-install': ['/api/install-skill'],
   'skills-recovery': [
     '/api/skill/restore',
     '/api/skill/reimport',
@@ -71,8 +70,8 @@ afterAll(async () => {
   rmSync(root, { recursive: true, force: true });
 });
 
-test('all seventeen paths have exclusive native ownership while uninstall remains legacy', async () => {
-  expect(PATHS).toHaveLength(17);
+test('all sixteen paths have exclusive native ownership while uninstall remains legacy', async () => {
+  expect(PATHS).toHaveLength(16);
   const nativePaths = server.serverInstance.nativeApi.paths;
   for (const path of PATHS)
     expect(
