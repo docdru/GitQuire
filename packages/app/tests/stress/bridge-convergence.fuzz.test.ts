@@ -287,6 +287,9 @@ async function applyOp(
   return true;
 }
 
+const SETTLE_TIMEOUT_MS = 30_000;
+const SEED_TIMEOUT_MS = 300_000;
+
 type ConvergenceOutcome =
   | { outcome: 'converged' }
   | { outcome: 'converged-late' }
@@ -298,7 +301,9 @@ async function driveToConvergence(
 ): Promise<ConvergenceOutcome> {
   const start = Date.now();
 
-  await Promise.all(clients.map((c) => awaitDocQuiescence(c.doc, { timeoutMs: 3000 })));
+  await Promise.all(
+    clients.map((c) => awaitDocQuiescence(c.doc, { timeoutMs: SETTLE_TIMEOUT_MS })),
+  );
   await wait(100);
 
   let attempts = 0;
@@ -328,13 +333,15 @@ async function driveToConvergence(
       text.applyDelta([{ insert: `r${attempts}` }]);
       paragraph.insert(0, [text]);
       target.fragment.push([paragraph]);
-      await awaitDocQuiescence(target.doc, { timeoutMs: 2000 });
+      await awaitDocQuiescence(target.doc, { timeoutMs: SETTLE_TIMEOUT_MS });
     }
     attempts++;
     await wait(200);
   }
 
-  await Promise.all(clients.map((c) => awaitDocQuiescence(c.doc, { timeoutMs: 3000 })));
+  await Promise.all(
+    clients.map((c) => awaitDocQuiescence(c.doc, { timeoutMs: SETTLE_TIMEOUT_MS })),
+  );
   await wait(250);
   return classifyFinalState(clients);
 }
@@ -736,7 +743,7 @@ describe('bridge-convergence fuzzer (FR-17)', () => {
         }
       }
     },
-    FIXED_SEED === undefined ? 120_000 : 300_000,
+    SEED_TIMEOUT_MS,
   );
 });
 

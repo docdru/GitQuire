@@ -100,11 +100,26 @@ jobs:
           - suite: server 4/4
             build: pnpm exec turbo run build --filter=@gitquire/server^...
             run: pnpm --dir packages/server exec vitest run --shard=4/4
-          - suite: app unit
+          - suite: app unit 1/4
             build: >-
               pnpm exec turbo run build --filter=@gitquire/app^...
               && pnpm --dir packages/app exec playwright install --with-deps chromium
-            run: pnpm --dir packages/app exec vitest run --config vitest.config.ts
+            run: pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=1/4
+          - suite: app unit 2/4
+            build: >-
+              pnpm exec turbo run build --filter=@gitquire/app^...
+              && pnpm --dir packages/app exec playwright install --with-deps chromium
+            run: pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=2/4
+          - suite: app unit 3/4
+            build: >-
+              pnpm exec turbo run build --filter=@gitquire/app^...
+              && pnpm --dir packages/app exec playwright install --with-deps chromium
+            run: pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=3/4
+          - suite: app unit 4/4
+            build: >-
+              pnpm exec turbo run build --filter=@gitquire/app^...
+              && pnpm --dir packages/app exec playwright install --with-deps chromium
+            run: pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=4/4
           - suite: app DOM
             build: pnpm exec turbo run build --filter=@gitquire/app^...
             run: pnpm --dir packages/app exec vitest run --config vitest.dom.config.ts
