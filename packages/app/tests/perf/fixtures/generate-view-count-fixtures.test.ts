@@ -64,7 +64,7 @@ describe('generateFixture — convergence', () => {
     });
   });
 
-  test('writes both FIXTURE.md and .ok/config.yml', async () => {
+  test('writes both FIXTURE.md and .gitquire/config.yml', async () => {
     await withTempDir('gen-fixtures-shape-', (tmp) => {
       const outDir = resolve(tmp, 'shape-bucket');
       generateFixture(50, outDir);

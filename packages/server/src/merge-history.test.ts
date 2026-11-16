@@ -200,8 +200,8 @@ describe('createMergeHistoryRecorder', () => {
     });
     const entry = 'd'.repeat(40);
     const backup = {
-      abs: '/home/me/.ok/edit-backups/discarded/flow.mmd/x.mmd',
-      display: '~/.ok/edit-backups/discarded/flow.mmd/x.mmd',
+      abs: '/home/me/.gitquire/edit-backups/discarded/flow.mmd/x.mmd',
+      display: '~/.gitquire/edit-backups/discarded/flow.mmd/x.mmd',
     };
 
     history.noticeNoEngine('__config__/project', 'ours', 'config', { where: 'history', entry });
@@ -277,7 +277,7 @@ describe('createMergeHistoryRecorder', () => {
       where: 'backup',
       backup: {
         display: expect.stringMatching(
-          /^~\/\.ok\/edit-backups\/discarded\/projects\/[0-9a-f]+\/flow\.mmd\/.+\.mmd$/,
+          /^~\/\.gitquire\/edit-backups\/discarded\/projects\/[0-9a-f]+\/flow\.mmd\/.+\.mmd$/,
         ),
       },
     });

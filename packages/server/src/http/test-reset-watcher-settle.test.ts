@@ -53,7 +53,7 @@ function postServerReset(server: BootedServer): Promise<Response> {
 }
 
 function fencesIn(contentDir: string): string[] {
-  return readdirSync(join(contentDir, '.ok')).filter((name) =>
+  return readdirSync(join(contentDir, '.gitquire')).filter((name) =>
     name.startsWith('watcher-settle-fence-'),
   );
 }
@@ -66,7 +66,7 @@ test('a server-scope reset runs once the watcher has handled its settle fence', 
   const [fence] = fencesIn(contentDir);
   expect(readFileSync(join(contentDir, 'test-doc.md'), 'utf-8')).toBe(KEPT);
   await nativeSubscriptionOn(contentDir).deliver([
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   const response = await reset;
 
@@ -86,7 +86,7 @@ test('after a watcher error, a server-scope reset runs on the new subscription o
   await expect.poll(() => fencesIn(contentDir)).toHaveLength(1);
   const [fence] = fencesIn(contentDir);
   await latestNativeSubscriptionOn(contentDir).deliver([
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   const response = await reset;
 

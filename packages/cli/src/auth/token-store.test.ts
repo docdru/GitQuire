@@ -769,16 +769,16 @@ describe('credentials per channel', () => {
     rmSync(fakeHome, { recursive: true, force: true });
   });
 
-  test('Stable keeps the open-knowledge keychain service and ~/.ok/auth.yml', async () => {
+  test('Stable keeps the open-knowledge keychain service and ~/.gitquire/auth.yml', async () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     const { createTokenStore, FileBackend: ChannelFileBackend } = await import('./token-store.ts');
     await (await createTokenStore(join(fakeHome, 'unused.yml'))).set('github.com', 'a', 't');
     expect(keyringMockState.setPasswordCalls.map((c) => c.service)).toEqual(['open-knowledge']);
     await new ChannelFileBackend().set('github.com', 'a', 't');
-    expect(readFileSync(join(fakeHome, '.ok', 'auth.yml'), 'utf-8')).toContain('github.com');
+    expect(readFileSync(join(fakeHome, '.gitquire', 'auth.yml'), 'utf-8')).toContain('github.com');
   });
 
-  test('Beta uses its own keychain service and ~/.ok-beta/auth.yml, sharing nothing', async () => {
+  test('Beta uses its own keychain service and ~/.gitquire-beta/auth.yml, sharing nothing', async () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const { createTokenStore, FileBackend: ChannelFileBackend } = await import('./token-store.ts');
     await (await createTokenStore(join(fakeHome, 'unused.yml'))).set('github.com', 'a', 't');
@@ -786,8 +786,10 @@ describe('credentials per channel', () => {
       'open-knowledge-beta',
     ]);
     await new ChannelFileBackend().set('github.com', 'a', 't');
-    expect(readFileSync(join(fakeHome, '.ok-beta', 'auth.yml'), 'utf-8')).toContain('github.com');
-    expect(() => readFileSync(join(fakeHome, '.ok', 'auth.yml'), 'utf-8')).toThrow();
+    expect(readFileSync(join(fakeHome, '.gitquire-beta', 'auth.yml'), 'utf-8')).toContain(
+      'github.com',
+    );
+    expect(() => readFileSync(join(fakeHome, '.gitquire', 'auth.yml'), 'utf-8')).toThrow();
   });
 
   test('Beta reads, clears and clears-all only its own keychain service', async () => {

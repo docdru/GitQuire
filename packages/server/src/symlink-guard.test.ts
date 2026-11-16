@@ -13,8 +13,8 @@ describe('assertRealpathWithinDir', () => {
     root = mkdtempSync(join(tmpdir(), 'symlink-guard-'));
     mkdirSync(join(root, '.git', 'hooks'), { recursive: true });
     writeFileSync(join(root, '.git', 'config'), '[core]\n');
-    mkdirSync(join(root, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(root, '.ok', 'local', 'config.yml'), 'autoSync:\n  mode: full\n');
+    mkdirSync(join(root, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(join(root, '.gitquire', 'local', 'config.yml'), 'autoSync:\n  mode: full\n');
     mkdirSync(join(root, 'notes'), { recursive: true });
   });
 
@@ -46,8 +46,8 @@ describe('assertRealpathWithinDir', () => {
     );
   });
 
-  it('refuses a symlink pointing into the .ok state dir (config hijack)', () => {
-    symlinkSync('../.ok/local/config.yml', join(root, 'notes', 'okcfg.md'));
+  it('refuses a symlink pointing into the .gitquire state dir (config hijack)', () => {
+    symlinkSync('../.gitquire/local/config.yml', join(root, 'notes', 'okcfg.md'));
     expect(() => assertRealpathWithinDir(join(root, 'notes', 'okcfg.md'), root)).toThrow(
       SymlinkEscapeError,
     );
@@ -74,7 +74,7 @@ describe('assertRealpathWithinDir', () => {
   });
 });
 
-describe('assertRealpathWithinDir — shareable .ok exemption', () => {
+describe('assertRealpathWithinDir — shareable .gitquire exemption', () => {
   let root: string;
   const opts = { allowShareableOkArtifact: isShareableOkArtifact };
 
@@ -82,9 +82,9 @@ describe('assertRealpathWithinDir — shareable .ok exemption', () => {
     root = mkdtempSync(join(tmpdir(), 'symlink-guard-ok-'));
     mkdirSync(join(root, '.git', 'hooks'), { recursive: true });
     writeFileSync(join(root, '.git', 'config'), '[core]\n');
-    mkdirSync(join(root, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(root, '.ok', 'local', 'config.yml'), 'autoSync:\n  mode: full\n');
-    mkdirSync(join(root, '.ok', 'templates'), { recursive: true });
+    mkdirSync(join(root, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(join(root, '.gitquire', 'local', 'config.yml'), 'autoSync:\n  mode: full\n');
+    mkdirSync(join(root, '.gitquire', 'templates'), { recursive: true });
     mkdirSync(join(root, 'notes'), { recursive: true });
   });
 
@@ -93,59 +93,59 @@ describe('assertRealpathWithinDir — shareable .ok exemption', () => {
   });
 
   it('allows an existing shareable artifact', () => {
-    writeFileSync(join(root, '.ok', 'config.yml'), 'shared: base\n');
+    writeFileSync(join(root, '.gitquire', 'config.yml'), 'shared: base\n');
     expect(() =>
-      assertRealpathWithinDir(join(root, '.ok', 'config.yml'), root, opts),
+      assertRealpathWithinDir(join(root, '.gitquire', 'config.yml'), root, opts),
     ).not.toThrow();
   });
 
   it('allows a shareable artifact that does not exist yet', () => {
     expect(() =>
-      assertRealpathWithinDir(join(root, '.ok', 'templates', 'project.md'), root, opts),
+      assertRealpathWithinDir(join(root, '.gitquire', 'templates', 'project.md'), root, opts),
     ).not.toThrow();
   });
 
-  it('refuses a symlink NAMED like a shareable artifact that resolves to private .ok state', () => {
-    symlinkSync('./local/config.yml', join(root, '.ok', 'config.yml'));
-    expect(() => assertRealpathWithinDir(join(root, '.ok', 'config.yml'), root, opts)).toThrow(
-      SymlinkEscapeError,
-    );
+  it('refuses a symlink NAMED like a shareable artifact that resolves to private .gitquire state', () => {
+    symlinkSync('./local/config.yml', join(root, '.gitquire', 'config.yml'));
+    expect(() =>
+      assertRealpathWithinDir(join(root, '.gitquire', 'config.yml'), root, opts),
+    ).toThrow(SymlinkEscapeError);
   });
 
-  it('refuses a DANGLING shareable-named symlink into private .ok state', () => {
-    symlinkSync('./local/not-yet-created.yml', join(root, '.ok', 'config.yml'));
-    expect(() => assertRealpathWithinDir(join(root, '.ok', 'config.yml'), root, opts)).toThrow(
-      SymlinkEscapeError,
-    );
+  it('refuses a DANGLING shareable-named symlink into private .gitquire state', () => {
+    symlinkSync('./local/not-yet-created.yml', join(root, '.gitquire', 'config.yml'));
+    expect(() =>
+      assertRealpathWithinDir(join(root, '.gitquire', 'config.yml'), root, opts),
+    ).toThrow(SymlinkEscapeError);
   });
 
   it('refuses a shareable-named symlink into .git even with a permissive predicate', () => {
-    symlinkSync('../.git/hooks/post-checkout', join(root, '.ok', 'config.yml'));
+    symlinkSync('../.git/hooks/post-checkout', join(root, '.gitquire', 'config.yml'));
     expect(() =>
-      assertRealpathWithinDir(join(root, '.ok', 'config.yml'), root, {
+      assertRealpathWithinDir(join(root, '.gitquire', 'config.yml'), root, {
         allowShareableOkArtifact: () => true,
       }),
     ).toThrow(SymlinkEscapeError);
   });
 
-  it('refuses a content-named symlink resolving to private .ok state', () => {
-    symlinkSync('../.ok/local/config.yml', join(root, 'notes', 'innocent.md'));
+  it('refuses a content-named symlink resolving to private .gitquire state', () => {
+    symlinkSync('../.gitquire/local/config.yml', join(root, 'notes', 'innocent.md'));
     expect(() => assertRealpathWithinDir(join(root, 'notes', 'innocent.md'), root, opts)).toThrow(
       SymlinkEscapeError,
     );
   });
 
-  it('still refuses every .ok path when no predicate is passed', () => {
-    writeFileSync(join(root, '.ok', 'config.yml'), 'shared: base\n');
-    expect(() => assertRealpathWithinDir(join(root, '.ok', 'config.yml'), root)).toThrow(
+  it('still refuses every .gitquire path when no predicate is passed', () => {
+    writeFileSync(join(root, '.gitquire', 'config.yml'), 'shared: base\n');
+    expect(() => assertRealpathWithinDir(join(root, '.gitquire', 'config.yml'), root)).toThrow(
       SymlinkEscapeError,
     );
   });
 
   it('still refuses escapes outside the root regardless of the predicate', () => {
-    symlinkSync(join(tmpdir(), 'outside.yml'), join(root, '.ok', 'config.yml'));
+    symlinkSync(join(tmpdir(), 'outside.yml'), join(root, '.gitquire', 'config.yml'));
     expect(() =>
-      assertRealpathWithinDir(join(root, '.ok', 'config.yml'), root, {
+      assertRealpathWithinDir(join(root, '.gitquire', 'config.yml'), root, {
         allowShareableOkArtifact: () => true,
       }),
     ).toThrow(SymlinkEscapeError);

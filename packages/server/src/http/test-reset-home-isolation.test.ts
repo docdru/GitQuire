@@ -56,7 +56,7 @@ function seedSavedSettings(
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, SAVED_SETTINGS, 'utf-8');
   }
-  writeFileSync(join(contentDir, '.ok', '.gitignore'), '', 'utf-8');
+  writeFileSync(join(contentDir, '.gitquire', '.gitignore'), '', 'utf-8');
   return { settingsFiles, userSettingsFile };
 }
 

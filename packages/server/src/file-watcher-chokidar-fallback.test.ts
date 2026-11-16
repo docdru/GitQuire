@@ -314,24 +314,24 @@ describe('chokidar backend — templates-as-content watching (forceBackend)', ()
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  test('a template created in a brand-new .ok/templates folder dispatches a DiskEvent', async () => {
+  test('a template created in a brand-new .gitquire/templates folder dispatches a DiskEvent', async () => {
     const filter = createContentFilter({ projectDir: tmpDir, contentDir });
     const events: DiskEvent[] = [];
     const handle = await startWatcher(contentDir, async (e) => void events.push(e), filter, {
       forceBackend: 'chokidar',
     });
     try {
-      const target = resolve(contentDir, 'notes', '.ok', 'templates', 'standup.md');
+      const target = resolve(contentDir, 'notes', '.gitquire', 'templates', 'standup.md');
       mkdirSync(resolve(target, '..'), { recursive: true });
       const src = '---\ntitle: Standup\ndescription: a standup template\n---\n\n# {{date}}\n';
       await waitWithinTestBudget(
-        "a create or update DiskEvent for 'notes/.ok/templates/standup'",
+        "a create or update DiskEvent for 'notes/.gitquire/templates/standup'",
         () => {
           writeFileSync(target, src);
           return events.some(
             (e) =>
               (e.kind === 'create' || e.kind === 'update') &&
-              e.docName === 'notes/.ok/templates/standup',
+              e.docName === 'notes/.gitquire/templates/standup',
           );
         },
         { timeoutMs: 6_000, pollMs: 40 },
@@ -340,7 +340,7 @@ describe('chokidar backend — templates-as-content watching (forceBackend)', ()
         events.some(
           (e) =>
             (e.kind === 'create' || e.kind === 'update') &&
-            e.docName === 'notes/.ok/templates/standup',
+            e.docName === 'notes/.gitquire/templates/standup',
         ),
       ).toBe(true);
     } finally {
@@ -349,23 +349,24 @@ describe('chokidar backend — templates-as-content watching (forceBackend)', ()
   });
 
   test('conflict markers in a template file dispatch a conflict DiskEvent', async () => {
-    mkdirSync(resolve(contentDir, '.ok', 'templates'), { recursive: true });
+    mkdirSync(resolve(contentDir, '.gitquire', 'templates'), { recursive: true });
     const filter = createContentFilter({ projectDir: tmpDir, contentDir });
     const events: DiskEvent[] = [];
     const handle = await startWatcher(contentDir, async (e) => void events.push(e), filter, {
       forceBackend: 'chokidar',
     });
     try {
-      const target = resolve(contentDir, '.ok', 'templates', 'daily.md');
+      const target = resolve(contentDir, '.gitquire', 'templates', 'daily.md');
       const conflicted = '# Daily\n\n<<<<<<< HEAD\nours\n=======\ntheirs\n>>>>>>> branch\n';
       writeFileSync(target, conflicted);
       await waitWithinTestBudget(
-        "a conflict DiskEvent for '.ok/templates/daily'",
-        () => events.some((e) => e.kind === 'conflict' && e.docName === '.ok/templates/daily'),
+        "a conflict DiskEvent for '.gitquire/templates/daily'",
+        () =>
+          events.some((e) => e.kind === 'conflict' && e.docName === '.gitquire/templates/daily'),
         { timeoutMs: 6_000, pollMs: 40 },
       );
       expect(events).toContainEqual(
-        expect.objectContaining({ kind: 'conflict', docName: '.ok/templates/daily' }),
+        expect.objectContaining({ kind: 'conflict', docName: '.gitquire/templates/daily' }),
       );
     } finally {
       await handle.unsubscribe();

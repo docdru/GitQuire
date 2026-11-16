@@ -583,7 +583,7 @@ function FileSidebarInner() {
                                   }
                                   data-testid="tree-options-show-ok-folders"
                                 >
-                                  <Trans>.ok folders</Trans>
+                                  <Trans>.gitquire folders</Trans>
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuCheckboxItem
                                   checked={showOnlyMarkdownFiles}
@@ -744,7 +744,7 @@ function FileSidebarInner() {
                 aria-describedby={pendingSettingsReason ? settingsLoadingReasonId : undefined}
                 data-testid="empty-space-menu-show-ok-folders"
               >
-                <Trans>Show .ok folders</Trans>
+                <Trans>Show .gitquire folders</Trans>
               </ContextMenuCheckboxItem>
               <ContextMenuCheckboxItem
                 checked={showOnlyMarkdownFiles}

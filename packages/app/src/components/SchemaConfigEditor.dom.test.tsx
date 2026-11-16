@@ -23,10 +23,10 @@ if (globalWithDomShims.ResizeObserver === undefined) {
 }
 
 const VIEW_MODE_KEY = 'ok-lint-config-view-mode-v1';
-const MAPPED_SCHEMA = '.ok/schemas/doc.schema.json';
-const OTHER_MAPPED_SCHEMA = '.ok/schemas/blog.schema.json';
-const UNMAPPED_SCHEMA = '.ok/schemas/orphan.schema.json';
-const DRAIN_SENTINEL = '.ok/schemas/__drain__.schema.json';
+const MAPPED_SCHEMA = '.gitquire/schemas/doc.schema.json';
+const OTHER_MAPPED_SCHEMA = '.gitquire/schemas/blog.schema.json';
+const UNMAPPED_SCHEMA = '.gitquire/schemas/orphan.schema.json';
+const DRAIN_SENTINEL = '.gitquire/schemas/__drain__.schema.json';
 
 let mockMappedFiles: string[] = [];
 

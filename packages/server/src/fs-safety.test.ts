@@ -65,12 +65,19 @@ describe('assertNoSymlinkEscape refuses links into private repository state', ()
   function withRepo(run: (contentDir: string) => void): void {
     const contentDir = mkdtempSync(join(tmpdir(), 'fs-safety-private-'));
     try {
-      for (const dir of ['.ok/local', '.ok/templates', '.git', 'notes', 'shared', 'docs/.ok']) {
+      for (const dir of [
+        '.gitquire/local',
+        '.gitquire/templates',
+        '.git',
+        'notes',
+        'shared',
+        'docs/.gitquire',
+      ]) {
         mkdirSync(join(contentDir, dir), { recursive: true });
       }
-      writeFileSync(join(contentDir, '.ok/local/principal.json'), '{"secret":true}');
-      writeFileSync(join(contentDir, '.ok/config.yml'), '');
-      writeFileSync(join(contentDir, '.ok/templates/t.md'), '# T');
+      writeFileSync(join(contentDir, '.gitquire/local/principal.json'), '{"secret":true}');
+      writeFileSync(join(contentDir, '.gitquire/config.yml'), '');
+      writeFileSync(join(contentDir, '.gitquire/templates/t.md'), '# T');
       writeFileSync(join(contentDir, '.git/config'), '[core]');
       writeFileSync(join(contentDir, 'shared/a.md'), '# A');
       run(contentDir);
@@ -92,11 +99,11 @@ describe('assertNoSymlinkEscape refuses links into private repository state', ()
     [
       'a file link to machine-local state',
       'notes/leak.md',
-      '../.ok/local/principal.json',
+      '../.gitquire/local/principal.json',
       'notes/leak.md',
     ],
     ['a file link to the git config', 'notes/cfg.md', '../.git/config', 'notes/cfg.md'],
-    ['a link to the config dir itself', 'notes/ok', '../.ok', 'notes/ok'],
+    ['a link to the config dir itself', 'notes/ok', '../.gitquire', 'notes/ok'],
     [
       'a descent into .git through a link to the root',
       'notes/root',
@@ -114,10 +121,10 @@ describe('assertNoSymlinkEscape refuses links into private repository state', ()
   });
 
   test.each([
-    ['the config file', '.ok/config.yml'],
-    ['the templates dir', '.ok/templates'],
-    ['a nested folder config dir', 'docs/.ok'],
-    ['a missing nested folder config dir', 'notes/.ok'],
+    ['the config file', '.gitquire/config.yml'],
+    ['the templates dir', '.gitquire/templates'],
+    ['a nested folder config dir', 'docs/.gitquire'],
+    ['a missing nested folder config dir', 'notes/.gitquire'],
   ])('direct access to %s still passes', (_label, requested) => {
     withRepo((contentDir) => {
       expect(refusal(join(contentDir, requested), contentDir)).toBeNull();
@@ -136,16 +143,16 @@ describe('assertNoSymlinkEscape refuses links into private repository state', ()
   test("a symlinked folder's own config dir classifies like the folder it links to", () => {
     withRepo((contentDir) => {
       symlinkSync('../docs', join(contentDir, 'notes/docs-link'));
-      expect(refusal(join(contentDir, 'notes/docs-link/.ok'), contentDir)).toBeNull();
+      expect(refusal(join(contentDir, 'notes/docs-link/.gitquire'), contentDir)).toBeNull();
       expect(
-        refusal(join(contentDir, 'notes/docs-link/.ok/frontmatter.yml'), contentDir),
+        refusal(join(contentDir, 'notes/docs-link/.gitquire/frontmatter.yml'), contentDir),
       ).toBeNull();
     });
   });
 
   test('a link whose own target is a config dir stays refused', () => {
     withRepo((contentDir) => {
-      symlinkSync('../docs/.ok', join(contentDir, 'notes/cfg'));
+      symlinkSync('../docs/.gitquire', join(contentDir, 'notes/cfg'));
       expect(refusal(join(contentDir, 'notes/cfg'), contentDir)).toBeInstanceOf(SymlinkEscapeError);
     });
   });
@@ -162,11 +169,11 @@ describe('canonicalRelPathForNewTarget', () => {
   test('ascends past a missing leaf and canonicalizes through a symlinked ancestor', () => {
     const realpath = ((p: string): string => {
       if (p === '/c') return '/c';
-      if (p === '/c/sneaky') return '/c/.ok';
+      if (p === '/c/sneaky') return '/c/.gitquire';
       throw errno('ENOENT');
     }) as unknown as typeof import('node:fs').realpathSync;
     expect(canonicalRelPathForNewTarget('/c/sneaky/phantom.md', '/c', log, realpath)).toBe(
-      '.ok/phantom.md',
+      '.gitquire/phantom.md',
     );
   });
 
@@ -187,7 +194,7 @@ describe('canonicalRelPathForNewTarget', () => {
   test('win32: a symlinked-ancestor result still satisfies the /-split consumer', () => {
     const realpath = ((p: string): string => {
       if (p === 'C:\\c') return 'C:\\c';
-      if (p === 'C:\\c\\sneaky') return 'C:\\c\\.ok';
+      if (p === 'C:\\c\\sneaky') return 'C:\\c\\.gitquire';
       throw errno('ENOENT');
     }) as unknown as typeof import('node:fs').realpathSync;
     const out = canonicalRelPathForNewTarget('C:\\c\\sneaky\\phantom.md', 'C:\\c', log, realpath, {
@@ -196,7 +203,7 @@ describe('canonicalRelPathForNewTarget', () => {
       dirname: win32.dirname,
       sep: win32.sep,
     });
-    expect(out).toBe('.ok/phantom.md');
+    expect(out).toBe('.gitquire/phantom.md');
     expect(isReservedProjectStatePath(out)).toBe(true);
   });
 
@@ -204,13 +211,13 @@ describe('canonicalRelPathForNewTarget', () => {
     const realpath = ((): string => {
       throw errno('EACCES');
     }) as unknown as typeof import('node:fs').realpathSync;
-    const out = canonicalRelPathForNewTarget('C:\\c\\.ok\\x.md', 'C:\\c', log, realpath, {
+    const out = canonicalRelPathForNewTarget('C:\\c\\.gitquire\\x.md', 'C:\\c', log, realpath, {
       join: win32.join,
       relative: win32.relative,
       dirname: win32.dirname,
       sep: win32.sep,
     });
-    expect(out).toBe('.ok/x.md');
+    expect(out).toBe('.gitquire/x.md');
     expect(isReservedProjectStatePath(out)).toBe(true);
   });
 
@@ -218,13 +225,19 @@ describe('canonicalRelPathForNewTarget', () => {
     const realpath = ((): string => {
       throw errno('ENOENT');
     }) as unknown as typeof import('node:fs').realpathSync;
-    const out = canonicalRelPathForNewTarget('C:\\c\\.ok\\deep\\x.md', 'C:\\c', log, realpath, {
-      join: win32.join,
-      relative: win32.relative,
-      dirname: win32.dirname,
-      sep: win32.sep,
-    });
-    expect(out).toBe('.ok/deep/x.md');
+    const out = canonicalRelPathForNewTarget(
+      'C:\\c\\.gitquire\\deep\\x.md',
+      'C:\\c',
+      log,
+      realpath,
+      {
+        join: win32.join,
+        relative: win32.relative,
+        dirname: win32.dirname,
+        sep: win32.sep,
+      },
+    );
+    expect(out).toBe('.gitquire/deep/x.md');
     expect(isReservedProjectStatePath(out)).toBe(true);
   });
 });

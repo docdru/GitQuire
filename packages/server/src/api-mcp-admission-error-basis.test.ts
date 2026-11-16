@@ -20,7 +20,7 @@ let client: Client;
 
 function artifactPath(kind: 'template' | 'skill', name: string) {
   return kind === 'template'
-    ? join(root, 'templates', '.ok', 'templates', `${name}.md`)
+    ? join(root, 'templates', '.gitquire', 'templates', `${name}.md`)
     : join(root, '.agents', 'skills', name, 'SKILL.md');
 }
 

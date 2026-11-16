@@ -347,7 +347,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'boot',
           defaultScope: 'project',
           description:
-            'Folder GitQuire reads and writes documents under, relative to the project root (the folder that contains .ok/). Defaults to the project root. Exclude paths with .okignore. Read at server start; changing it requires a restart.',
+            'Folder GitQuire reads and writes documents under, relative to the project root (the folder that contains .gitquire/). Defaults to the project root. Exclude paths with .okignore. Read at server start; changing it requires a restart.',
         })
         .default('.'),
       attachmentFolderPath: z
@@ -509,7 +509,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                'Show dot-prefixed entries (e.g. .ok/, .okignore) in the file tree. Per-machine (project-local) — not shared with collaborators.',
+                'Show dot-prefixed entries (e.g. .gitquire/, .okignore) in the file tree. Per-machine (project-local) — not shared with collaborators.',
             })
             .default(false),
           showOnlyMarkdownFiles: z
@@ -531,7 +531,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                'Show .ok folders (skills, templates, and other GitQuire-managed state) in the file tree as read-only entries. .ok/worktrees and .ok/local never appear. Per-machine (project-local) — not shared with collaborators.',
+                'Show .gitquire folders (skills, templates, and other GitQuire-managed state) in the file tree as read-only entries. .gitquire/worktrees and .gitquire/local never appear. Per-machine (project-local) — not shared with collaborators.',
             })
             .default(false),
         })
@@ -655,7 +655,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'boot',
           defaultScope: 'user',
           description:
-            "Per-git-host declarations, keyed by hostname (for example ghes.example.com). Each entry says how GitQuire should treat remotes on that host; today the only key an entry carries is `provider`. Hosts absent from this map are treated as generic git remotes. Per-machine (user scope, global.yml in the GitQuire home folder); a value in a project's `.ok/config.yml` is ignored. Declarations take effect when GitQuire next starts.",
+            "Per-git-host declarations, keyed by hostname (for example ghes.example.com). Each entry says how GitQuire should treat remotes on that host; today the only key an entry carries is `provider`. Hosts absent from this map are treated as generic git remotes. Per-machine (user scope, global.yml in the GitQuire home folder); a value in a project's `.gitquire/config.yml` is ignored. Declarations take effect when GitQuire next starts.",
         })
         .default({})
         .catch({}),
@@ -758,7 +758,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'live',
           defaultScope: 'project',
           description:
-            'Record bridge loss-class events (content-free) under .ok/local/loss-capture/ for `gq diagnose bundle`. Local-only — never leaves the machine until you run bundle. Set false for sensitive workspaces. Shared across collaborators.',
+            'Record bridge loss-class events (content-free) under .gitquire/local/loss-capture/ for `gq diagnose bundle`. Local-only — never leaves the machine until you run bundle. Set false for sensitive workspaces. Shared across collaborators.',
         })
         .default(true),
       maxBytes: z
@@ -1134,7 +1134,7 @@ export const ConfigSchema = z.looseObject({
       reload: 'live',
       defaultScope: 'project',
       description:
-        'Turn ticket references into links; today they apply to Agents-panel chat messages. Each entry pairs a `prefix` (for example `PRD-`) with a `url` template containing `<num>` (for example `https://linear.app/inkeep/issue/PRD-<num>`); the prefix followed by digits links to that URL with the digits in place of `<num>`. Matching is case-sensitive. An invalid entry is skipped with a warning and the others still apply. Shared with collaborators (project scope, `.ok/config.yml`).',
+        'Turn ticket references into links; today they apply to Agents-panel chat messages. Each entry pairs a `prefix` (for example `PRD-`) with a `url` template containing `<num>` (for example `https://linear.app/inkeep/issue/PRD-<num>`); the prefix followed by digits links to that URL with the digits in place of `<num>`. Matching is case-sensitive. An invalid entry is skipped with a warning and the others still apply. Shared with collaborators (project scope, `.gitquire/config.yml`).',
     })
     .default([])
     .catch([]),
@@ -1178,7 +1178,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'boot',
           defaultScope: 'project-local',
           description:
-            'Addresses the server binds, e.g. [127.0.0.1] or [0.0.0.0]. Default loopback-only ([127.0.0.1]): nothing off this machine can connect. A non-loopback bind additionally requires the server.allowExternal consent interlock. Per-machine (project-local): a value committed to .ok/config.yml is ignored, so one machine exposing the server can never break local clones for the rest of the team — the exposing host sets it via GITQUIRE_BIND, --bind, or .ok/local/config.yml. Lists replace, never merge. Read at server start; changing it requires a restart.',
+            'Addresses the server binds, e.g. [127.0.0.1] or [0.0.0.0]. Default loopback-only ([127.0.0.1]): nothing off this machine can connect. A non-loopback bind additionally requires the server.allowExternal consent interlock. Per-machine (project-local): a value committed to .gitquire/config.yml is ignored, so one machine exposing the server can never break local clones for the rest of the team — the exposing host sets it via GITQUIRE_BIND, --bind, or .gitquire/local/config.yml. Lists replace, never merge. Read at server start; changing it requires a restart.',
         })
         .default([...DEFAULT_SERVER_BIND]),
       externalUrl: z

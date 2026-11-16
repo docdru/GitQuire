@@ -62,13 +62,16 @@ describe('clone initialization', () => {
 
     const ancestor = join(home, 'outer');
     initializeRepository(ancestor);
-    mkdirSync(join(ancestor, '.ok'));
-    writeFileSync(join(ancestor, '.ok', 'config.yml'), 'content:\n  dir: .\n');
+    mkdirSync(join(ancestor, '.gitquire'));
+    writeFileSync(join(ancestor, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
     const ignore = 'user-rule/\n.claude/skills/open-knowledge/\n.cursor/skills/open-knowledge/\n';
     const localIgnore = 'local/\n';
     writeFileSync(join(ancestor, '.gitignore'), ignore);
-    writeFileSync(join(ancestor, '.ok', '.gitignore'), localIgnore);
-    git(ancestor, ['add', ...pathspecArgs(['.gitignore', '.ok/config.yml', '.ok/.gitignore'])]);
+    writeFileSync(join(ancestor, '.gitquire', '.gitignore'), localIgnore);
+    git(ancestor, [
+      'add',
+      ...pathspecArgs(['.gitignore', '.gitquire/config.yml', '.gitquire/.gitignore']),
+    ]);
     git(ancestor, ['commit', '-m', 'Seed enclosing project']);
 
     const url = 'http://127.0.0.1:1/fixture/source.git';
@@ -92,7 +95,7 @@ describe('clone initialization', () => {
     expect(result).toBe(target);
     expect(readFileSync(join(target, 'README.md'), 'utf8')).toBe('# Cloned content\n');
     expect.soft(readFileSync(join(ancestor, '.gitignore'), 'utf8')).toBe(ignore);
-    expect.soft(readFileSync(join(ancestor, '.ok', '.gitignore'), 'utf8')).toBe(localIgnore);
-    expect.soft(existsSync(join(target, '.ok', 'config.yml'))).toBe(true);
+    expect.soft(readFileSync(join(ancestor, '.gitquire', '.gitignore'), 'utf8')).toBe(localIgnore);
+    expect.soft(existsSync(join(target, '.gitquire', 'config.yml'))).toBe(true);
   });
 });

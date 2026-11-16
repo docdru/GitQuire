@@ -357,7 +357,7 @@ describe('a settings file notice inside the Settings dialog', () => {
   const NOTICE: DocNoticeWire = {
     id: 'n-local',
     docName: '__local__/project',
-    file: '.ok/local/config.yml',
+    file: '.gitquire/local/config.yml',
     kind: 'moved-to-history',
     side: 'ours',
     reason: 'outside-settings-applied',
@@ -413,7 +413,7 @@ describe('a settings file notice inside the Settings dialog', () => {
     renderWithNotices(onOpenChange);
 
     const notice = await screen.findByRole('region', { name: 'File change notice' });
-    expect(notice.textContent).toContain('Settings in .ok/local/config.yml changed outside');
+    expect(notice.textContent).toContain('Settings in .gitquire/local/config.yml changed outside');
     const content = screen.getByRole('region', { name: 'Settings content' });
     content.focus();
     await user.tab();

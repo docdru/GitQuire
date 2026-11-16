@@ -75,7 +75,7 @@ describe('gq config-sharing unshare → share round-trip', () => {
       await sharingUnshareCommand().parseAsync(['node', 'unshare', '--project', dir]);
     });
     const exclude = readExclude(dir);
-    expect(exclude).toContain('.ok/');
+    expect(exclude).toContain('.gitquire/');
     expect(exclude).toContain('.okignore');
     expect(process.exitCode).not.toBe(1);
   });
@@ -88,7 +88,7 @@ describe('gq config-sharing unshare → share round-trip', () => {
     });
     const afterUnshare = readExclude(dir);
     expect(afterUnshare.startsWith(original)).toBe(true);
-    expect(afterUnshare).toContain('.ok/');
+    expect(afterUnshare).toContain('.gitquire/');
 
     await capture(async () => {
       await sharingShareCommand().parseAsync(['node', 'share', '--project', dir]);
@@ -143,7 +143,7 @@ describe('gq config-sharing unshare — §5.5 tracked-files refusal', () => {
     expect(stderr).toContain('your teammates will see a deletion on their next pull');
 
     const after = readExclude(dir);
-    expect(after).not.toContain('.ok/');
+    expect(after).not.toContain('.gitquire/');
     expect(after).not.toContain('.okignore');
   });
 
@@ -184,7 +184,7 @@ describe('gq config-sharing unshare — §5.5 tracked-files refusal', () => {
     });
     expect(process.exitCode).not.toBe(1);
     expect(readExclude(dir)).toContain('.okignore');
-    expect(readExclude(dir)).toContain('.ok/');
+    expect(readExclude(dir)).toContain('.gitquire/');
   });
 });
 

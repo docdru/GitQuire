@@ -451,7 +451,7 @@ export function createWorkspaceToolsRoutes(deps: WorkspaceToolsRouteDeps): ApiRo
   const LINK_PREVIEW_HANDLER = 'link-preview';
   const linkPreviewCacheDir = ephemeral
     ? null
-    : resolve(projectDir ?? contentDir, '.ok', 'local', 'link-previews');
+    : resolve(projectDir ?? contentDir, '.gitquire', 'local', 'link-previews');
   const linkPreviewCache = new LinkPreviewCache({ cacheDir: linkPreviewCacheDir });
   let linkPreviewCacheInit: Promise<void> | null = null;
   const ensureLinkPreviewCacheReady = (): Promise<void> => {

@@ -27,9 +27,9 @@ import { getLogger } from './logger.ts';
 import { ServerLockCollisionError } from './server-lock.ts';
 
 function seedProject(projectDir: string): void {
-  mkdirSync(join(projectDir, '.ok'), { recursive: true });
-  writeFileSync(join(projectDir, '.ok', 'config.yml'), '');
-  writeFileSync(join(projectDir, '.ok', '.gitignore'), '');
+  mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+  writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '');
+  writeFileSync(join(projectDir, '.gitquire', '.gitignore'), '');
 }
 
 test('missing cached documents wait for offline removal reconciliation, not existing documents', async () => {
@@ -263,7 +263,7 @@ test('a failed project lock releases the new content claim before retry', async 
   const project = join(root, 'project');
   mkdirSync(content);
   seedProject(project);
-  const local = join(project, '.ok', 'local');
+  const local = join(project, '.gitquire', 'local');
   mkdirSync(local);
   const lock = join(local, 'server.lock');
   writeFileSync(
@@ -341,15 +341,15 @@ async function authenticate(port: number, documentName: string): Promise<string>
 test('nested servers cannot acquire authority over each other’s documents', async () => {
   const root = mkdtempSync(join(tmpdir(), 'ok-nested-authority-'));
   const nested = join(root, 'public', 'knowledge');
-  mkdirSync(join(root, '.ok'), { recursive: true });
-  mkdirSync(join(nested, '.ok'), { recursive: true });
-  writeFileSync(join(root, '.ok', 'config.yml'), '');
-  writeFileSync(join(nested, '.ok', 'config.yml'), '');
+  mkdirSync(join(root, '.gitquire'), { recursive: true });
+  mkdirSync(join(nested, '.gitquire'), { recursive: true });
+  writeFileSync(join(root, '.gitquire', 'config.yml'), '');
+  writeFileSync(join(nested, '.gitquire', 'config.yml'), '');
   writeFileSync(join(root, 'parent.md'), '# Parent\n');
   writeFileSync(join(nested, 'child.md'), '# Child\n');
-  mkdirSync(join(root, '.ok', 'local'));
+  mkdirSync(join(root, '.gitquire', 'local'));
   writeFileSync(
-    join(root, '.ok', 'local', 'conflicts.json'),
+    join(root, '.gitquire', 'local', 'conflicts.json'),
     JSON.stringify({
       version: 2,
       branch: 'main',
@@ -453,7 +453,7 @@ test('nested servers cannot acquire authority over each other’s documents', as
     });
     expect(ownParentWrite.status).toBe(200);
 
-    unlinkSync(join(nested, '.ok', 'config.yml'));
+    unlinkSync(join(nested, '.gitquire', 'config.yml'));
     const form = new FormData();
     form.set('file', new Blob(['asset bytes'], { type: 'text/plain' }), 'note.txt');
     form.set('parentDocName', 'public/knowledge/child');
@@ -483,8 +483,8 @@ test('nested servers cannot acquire authority over each other’s documents', as
       agentId: 'cached-owner',
     };
     expect((await request(parent.port, '/api/agent-write-md', lateBody)).status).toBe(200);
-    mkdirSync(join(root, 'late', '.ok'));
-    writeFileSync(join(root, 'late', '.ok', 'config.yml'), '');
+    mkdirSync(join(root, 'late', '.gitquire'));
+    writeFileSync(join(root, 'late', '.gitquire', 'config.yml'), '');
     expect((await request(parent.port, '/api/document?docName=late/note')).status).toBe(403);
     expect(
       (await request(parent.port, '/api/agent-write-md', { ...lateBody, markdown: '# After\n' }))
@@ -559,11 +559,11 @@ test.each(['parent-first', 'child-first'])(
       await first.ready;
       first.serverInstance.conflicts.raise({
         kind: 'working-tree',
-        file: '.ok/config.yml',
+        file: '.gitquire/config.yml',
         theirsSha: 'unread-blob',
       });
       await expect(
-        first.serverInstance.conflicts.resolve('.ok/config.yml', 'mine'),
+        first.serverInstance.conflicts.resolve('.gitquire/config.yml', 'mine'),
       ).resolves.toBeUndefined();
       await expect(boot(secondContent, 'second')).rejects.toThrow(
         /content ownership is already held/i,

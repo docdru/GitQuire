@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { Page } from '@playwright/test';
 import { expect, test } from './_helpers';
 
-const SCHEMA_PATH = '.ok/schemas/blog.schema.json';
+const SCHEMA_PATH = '.gitquire/schemas/blog.schema.json';
 
 const SETTINGS_FRONTMATTER_HASH = '#settings/plugin:frontmatter';
 
@@ -45,13 +45,13 @@ async function openFrontmatterSettings(page: Page): Promise<void> {
 
 test.describe('schema Edit lands on the Fields view — running-app E2E (PRD-7650)', () => {
   test.beforeEach(({ workerServer }) => {
-    mkdirSync(join(workerServer.contentDir, '.ok', 'schemas'), { recursive: true });
+    mkdirSync(join(workerServer.contentDir, '.gitquire', 'schemas'), { recursive: true });
     writeFileSync(join(workerServer.contentDir, SCHEMA_PATH), SCHEMA_BYTES, 'utf-8');
-    writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), CONFIG_YML, 'utf-8');
+    writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), CONFIG_YML, 'utf-8');
   });
 
   test.afterEach(({ workerServer }) => {
-    writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), '', 'utf-8');
+    writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
     rmSync(join(workerServer.contentDir, SCHEMA_PATH), { force: true });
   });
 

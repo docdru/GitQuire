@@ -90,7 +90,7 @@ export function prepareSingleFileOpen(
     if (!isProjectRoot(projectRoot)) {
       throw new SingleFileProjectOverrideError(
         projectRoot,
-        'no .ok/config.yml there, so it is not a GitQuire project root',
+        'no .gitquire/config.yml there, so it is not a GitQuire project root',
       );
     }
     const projectContentDir = resolveProjectContentDir(projectRoot);

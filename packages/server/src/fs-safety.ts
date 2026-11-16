@@ -119,8 +119,8 @@ export type SymlinkLeafCheck =
   | { kind: 'symlink' }
   | { kind: 'unverifiable'; code: string | undefined };
 
-/* STOP: an `<folder>/.ok` artifact path (the `frontmatter.yml` leaf or the
-   `.ok` directory itself) must never be a symlink on the arms this guard
+/* STOP: an `<folder>/.gitquire` artifact path (the `frontmatter.yml` leaf or the
+   `.gitquire` directory itself) must never be a symlink on the arms this guard
    fronts — the folder-config, template, and folder-history HTTP arms plus
    the `readFolderFrontmatter` / `collectFromFolder` readers they share with
    directory enrichment — even though the sync plane admits in-root
@@ -137,7 +137,7 @@ export type SymlinkLeafCheck =
    never assert "it is a symlink" for a path that is not one; read arms
    surface it as a warning, the template ancestor walk fails loud (500
    carrying the errno) except for ENOTDIR, which it treats as absent and
-   walks past (a non-directory `.ok` / `templates` provably holds no
+   walks past (a non-directory `.gitquire` / `templates` provably holds no
    templates, matching the menu's skip), and everywhere else the follow-on
    syscall (containment realpath, or the write itself) fails on the same
    errno. `lstat` differs from open/stat only in not following the FINAL

@@ -41,12 +41,12 @@ async function startTemplateMoveScenario(
   metadataChange: MetadataChange,
 ) {
   const contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-stale-template-move-')));
-  const fromName = 'source/.ok/templates/before';
-  const toName = 'destination/.ok/templates/after';
+  const fromName = 'source/.gitquire/templates/before';
+  const toName = 'destination/.gitquire/templates/after';
   const fromPath = join(contentDir, `${fromName}.md`);
   const toPath = join(contentDir, `${toName}.md`);
-  mkdirSync(join(contentDir, 'source', '.ok', 'templates'), { recursive: true });
-  mkdirSync(join(contentDir, 'destination', '.ok', 'templates'), { recursive: true });
+  mkdirSync(join(contentDir, 'source', '.gitquire', 'templates'), { recursive: true });
+  mkdirSync(join(contentDir, 'destination', '.gitquire', 'templates'), { recursive: true });
   writeFileSync(fromPath, SOURCE, { flag: 'wx' });
   writeFileSync(toPath, OLD_DESTINATION, { flag: 'wx' });
   const deleted = Promise.withResolvers<void>();
@@ -223,8 +223,8 @@ async function startTemplateMoveScenario(
   } else {
     expect(response.status, JSON.stringify(responseBody)).toBe(200);
     expect(responseBody).toMatchObject({
-      from: 'source/.ok/templates/before.md',
-      to: 'destination/.ok/templates/after.md',
+      from: 'source/.gitquire/templates/before.md',
+      to: 'destination/.gitquire/templates/after.md',
     });
   }
   const published = metadataChange === 'updated' ? UPDATED : SOURCE;

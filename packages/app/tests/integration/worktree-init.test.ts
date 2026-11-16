@@ -14,21 +14,21 @@ afterEach(() => {
 });
 
 describe('initContent in a linked worktree (FR4 / D7)', () => {
-  test('fresh worktree (P3): scaffolds .ok/ on first invocation', () => {
+  test('fresh worktree (P3): scaffolds .gitquire/ on first invocation', () => {
     handle = createLinkedWorktree({ seedOkScaffold: false });
-    expect(existsSync(resolve(handle.worktreePath, '.ok'))).toBe(false);
+    expect(existsSync(resolve(handle.worktreePath, '.gitquire'))).toBe(false);
 
     const result = initContent(handle.worktreePath);
 
-    expect(existsSync(resolve(handle.worktreePath, '.ok/config.yml'))).toBe(true);
-    expect(existsSync(resolve(handle.worktreePath, '.ok/.gitignore'))).toBe(true);
+    expect(existsSync(resolve(handle.worktreePath, '.gitquire/config.yml'))).toBe(true);
+    expect(existsSync(resolve(handle.worktreePath, '.gitquire/.gitignore'))).toBe(true);
     expect(result.created).toContain('config.yml');
     expect(result.created).toContain('.gitignore');
   });
 
   test('committed config.yml (P1): writeIfMissing skip leaves bytes unchanged on second init', () => {
     handle = createLinkedWorktree({ seedOkScaffold: false });
-    const okDir = resolve(handle.worktreePath, '.ok');
+    const okDir = resolve(handle.worktreePath, '.gitquire');
     const customConfig = '# user-customized\nlogLevel: debug\n';
     const customGitignore = '# user-customized\nprincipal.json\n';
     mkdirSync(okDir, { recursive: true });

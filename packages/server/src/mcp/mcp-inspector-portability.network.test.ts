@@ -261,7 +261,7 @@ describe('MCP Inspector schema portability lint over the served /mcp tool list',
   beforeAll(async () => {
     const projectDir = mkdtempSync(join(tmpdir(), 'ok-mcp-inspector-project-'));
     tempDirs.push(projectDir);
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
     const stateDir = mkdtempSync(join(tmpdir(), 'ok-mcp-inspector-state-'));
     tempDirs.push(stateDir);
     let baseUrl = '';

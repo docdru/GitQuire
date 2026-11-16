@@ -13,8 +13,8 @@ page lists them: what each one is, whether it is committed to Git, and what it h
 <Callout type="info" title="The short version">
   Everything GitQuire writes stays in the data volume, except the draft copies (their own folder,
   see below) and the server log inside the container. Committed are your pages, the project
-  settings in `.ok/`, `.okignore`, and the GitQuire section of `AGENTS.md`. Personal data (keys,
-  chats, mentions, personal settings) stays in `.ok/local/` and is never committed.
+  settings in `.gitquire/`, `.okignore`, and the GitQuire section of `AGENTS.md`. Personal data (keys,
+  chats, mentions, personal settings) stays in `.gitquire/local/` and is never committed.
 </Callout>
 
 ## Committed to Git
@@ -24,38 +24,38 @@ These are part of the wiki and travel with the repository.
 | Path | What it is |
 | --- | --- |
 | Your pages (`*.md`, `*.mdx`), Mermaid (`*.mmd`), Excalidraw and other files | The content, including [comment threads](../gitquire/comment-format.mdx) as footnotes inside each page |
-| `.ok/config.yml` | Project settings, changed in **Wiki administration** ([Configuration](./configuration.mdx)) |
-| `.ok/.gitignore` | Keeps `.ok/local/` and other server state out of Git |
-| `.ok/templates/` and `<folder>/.ok/templates/` | Page templates ([Folders and templates](../advanced/folders-and-templates.mdx)) |
+| `.gitquire/config.yml` | Project settings, changed in **Wiki administration** ([Configuration](./configuration.mdx)) |
+| `.gitquire/.gitignore` | Keeps `.gitquire/local/` and other server state out of Git |
+| `.gitquire/templates/` and `<folder>/.gitquire/templates/` | Page templates ([Folders and templates](../advanced/folders-and-templates.mdx)) |
 | `.okignore` | Paths hidden from the editor, search and agents ([Ignore patterns](../features/ignore-patterns.mdx)) |
 | `AGENTS.md` | A marked GitQuire section written on server start; the rest of the file is left alone |
 
 Commits made for a signed-in person carry that person as author. Commits not made for anyone use
 `GITQUIRE_GIT_NAME` and `GITQUIRE_GIT_EMAIL`.
 
-## On the server only (`.ok/local/`)
+## On the server only (`.gitquire/local/`)
 
-`.ok/local/` is listed in `.ok/.gitignore` and never committed. No `/mcp` client and no AI chat
+`.gitquire/local/` is listed in `.gitquire/.gitignore` and never committed. No `/mcp` client and no AI chat
 can read it through `exec` or the document tools.
 
 | Path | What it is |
 | --- | --- |
-| `.ok/local/gitquire/users/<GitHub user id>.yml` | Personal settings of each person |
-| `.ok/local/gitquire/people.json` | People who signed in, for mentions and the people list |
-| `.ok/local/gitquire/mentions.json` | Read state of mentions and email settings |
-| `.ok/local/gitquire/agent-tokens.json` | Personal agent tokens, stored hashed |
-| `.ok/local/gitquire/ai-keys/` | Each person's AI chat key, encrypted with a key derived from `GITQUIRE_SESSION_SECRET` |
-| `.ok/local/gitquire/chats/<GitHub user id>/` | AI chats, deleted 90 days after their last message |
-| `.ok/local/gitquire/chat-usage/<GitHub user id>.json` | Tokens per day and per chat, kept 90 days |
-| `.ok/local/gitquire/drafts.json` | The drafts the server knows about |
-| `.ok/local/config.yml` | Settings that belong to this server, such as sync and link previews |
-| `.ok/local/embeddings/`, `.ok/local/cache/` | Search-by-meaning index and link, tag and backlink caches; safe to delete, they are rebuilt |
-| `.ok/local/sync-state.json` | State of the GitHub sync |
-| `.ok/local/conflicts.json` | Documents held because of an unresolved conflict. A row can contain full copies of a page, so keep the file while a conflict is open |
-| `.ok/local/stale-external-writes.json` | Recovery copy of an outside save that was refused because it was out of date |
-| `.ok/local/doc-notices.json` | Notices shown on a page after both versions of an edit were kept; names and times, no page text |
-| `.ok/local/receipts.jsonl` | A hash, size and modification time per document, used to notice outside edits; no page text |
-| `.ok/local/server.lock`, `.ok/local/state.json`, `.ok/local/last-server-crash.json` | The running server's address, the state format version, and the last crash the server recorded |
+| `.gitquire/local/gitquire/users/<GitHub user id>.yml` | Personal settings of each person |
+| `.gitquire/local/gitquire/people.json` | People who signed in, for mentions and the people list |
+| `.gitquire/local/gitquire/mentions.json` | Read state of mentions and email settings |
+| `.gitquire/local/gitquire/agent-tokens.json` | Personal agent tokens, stored hashed |
+| `.gitquire/local/gitquire/ai-keys/` | Each person's AI chat key, encrypted with a key derived from `GITQUIRE_SESSION_SECRET` |
+| `.gitquire/local/gitquire/chats/<GitHub user id>/` | AI chats, deleted 90 days after their last message |
+| `.gitquire/local/gitquire/chat-usage/<GitHub user id>.json` | Tokens per day and per chat, kept 90 days |
+| `.gitquire/local/gitquire/drafts.json` | The drafts the server knows about |
+| `.gitquire/local/config.yml` | Settings that belong to this server, such as sync and link previews |
+| `.gitquire/local/embeddings/`, `.gitquire/local/cache/` | Search-by-meaning index and link, tag and backlink caches; safe to delete, they are rebuilt |
+| `.gitquire/local/sync-state.json` | State of the GitHub sync |
+| `.gitquire/local/conflicts.json` | Documents held because of an unresolved conflict. A row can contain full copies of a page, so keep the file while a conflict is open |
+| `.gitquire/local/stale-external-writes.json` | Recovery copy of an outside save that was refused because it was out of date |
+| `.gitquire/local/doc-notices.json` | Notices shown on a page after both versions of an edit were kept; names and times, no page text |
+| `.gitquire/local/receipts.jsonl` | A hash, size and modification time per document, used to notice outside edits; no page text |
+| `.gitquire/local/server.lock`, `.gitquire/local/state.json`, `.gitquire/local/last-server-crash.json` | The running server's address, the state format version, and the last crash the server recorded |
 
 ## Inside `.git/`
 
@@ -68,7 +68,7 @@ can read it through `exec` or the document tools.
 | Path | What it is |
 | --- | --- |
 | `GITQUIRE_DRAFTS_DIR` (default `.gitquire-drafts/<folder>` next to the project, `/.gitquire-drafts/data` in the container) | One working copy per open draft. They can be recreated from GitHub, but mount a volume there to keep unpublished drafts across container updates |
-| The container's home folder (`~/.ok/logs/`) | Server logs, rotated by size. They are lost when the container is recreated; `docker compose logs` shows the same output |
+| The container's home folder (`~/.gitquire/logs/`) | Server logs, rotated by size. They are lost when the container is recreated; `docker compose logs` shows the same output |
 
 ## What leaves the server
 

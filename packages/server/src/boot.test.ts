@@ -60,7 +60,7 @@ afterEach(async () => {
 });
 
 describe('bootServer — MissingOkConfigError pre-listen check', () => {
-  test('rejects with kind=okdir when .ok/ directory is absent (State A)', async () => {
+  test('rejects with kind=okdir when .gitquire/ directory is absent (State A)', async () => {
     const contentDir = mkdtempSync(resolve(tmpDir, 'state-a-'));
     await execFileAsync('git', ['init', '--initial-branch=main', contentDir]);
     configureTestGitRepository(contentDir);
@@ -84,16 +84,16 @@ describe('bootServer — MissingOkConfigError pre-listen check', () => {
     expect(e.name).toBe('MissingOkConfigError');
     expect(e.kind).toBe('okdir');
     expect(e.projectDir).toBe(contentDir);
-    expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
+    expect(e.message).toContain('GitQuire config not found at .gitquire/config.yml');
     expect(e.message).toContain('Run gq init');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 
-  test('rejects with kind=config when .ok/ exists but config.yml is missing (State B)', async () => {
+  test('rejects with kind=config when .gitquire/ exists but config.yml is missing (State B)', async () => {
     const contentDir = mkdtempSync(resolve(tmpDir, 'state-b-'));
     await execFileAsync('git', ['init', '--initial-branch=main', contentDir]);
     configureTestGitRepository(contentDir);
-    const okDir = resolve(contentDir, '.ok');
+    const okDir = resolve(contentDir, '.gitquire');
     writeFileSync(resolve(contentDir, 'placeholder'), '');
     await execFileAsync('mkdir', [okDir]);
 
@@ -115,18 +115,18 @@ describe('bootServer — MissingOkConfigError pre-listen check', () => {
     const e = caught as Error & { kind?: string };
     expect(e.name).toBe('MissingOkConfigError');
     expect(e.kind).toBe('config');
-    expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
+    expect(e.message).toContain('GitQuire config not found at .gitquire/config.yml');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 
-  test('preflight checks projectDir/.ok/config.yml when projectDir != contentDir', async () => {
+  test('preflight checks projectDir/.gitquire/config.yml when projectDir != contentDir', async () => {
     const projectDir = mkdtempSync(resolve(tmpDir, 'projectdir-preflight-'));
     await execFileAsync('git', ['init', '--initial-branch=main', projectDir]);
     configureTestGitRepository(projectDir);
     seedOkScaffold(projectDir);
     const contentDir = resolve(projectDir, 'docs');
     mkdirSync(contentDir, { recursive: true });
-    expect(existsSync(resolve(contentDir, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(resolve(contentDir, '.gitquire', 'config.yml'))).toBe(false);
 
     let booted: Awaited<ReturnType<typeof bootServer>> | null = null;
     try {
@@ -146,7 +146,7 @@ describe('bootServer — MissingOkConfigError pre-listen check', () => {
     }
   });
 
-  test('rejects when projectDir/.ok/config.yml is missing even though contentDir/.ok/config.yml exists', async () => {
+  test('rejects when projectDir/.gitquire/config.yml is missing even though contentDir/.gitquire/config.yml exists', async () => {
     const projectDir = mkdtempSync(resolve(tmpDir, 'projectdir-only-content-'));
     await execFileAsync('git', ['init', '--initial-branch=main', projectDir]);
     configureTestGitRepository(projectDir);
@@ -176,11 +176,11 @@ describe('bootServer — MissingOkConfigError pre-listen check', () => {
     expect(e.projectDir).toBe(projectDir);
   });
 
-  test('proceeds and emits a one-time stderr warning when only .ok/.gitignore is missing (State C)', async () => {
+  test('proceeds and emits a one-time stderr warning when only .gitquire/.gitignore is missing (State C)', async () => {
     const contentDir = mkdtempSync(resolve(tmpDir, 'state-c-'));
     await execFileAsync('git', ['init', '--initial-branch=main', contentDir]);
     configureTestGitRepository(contentDir);
-    const okDir = resolve(contentDir, '.ok');
+    const okDir = resolve(contentDir, '.gitquire');
     await execFileAsync('mkdir', [okDir]);
     writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
 
@@ -200,7 +200,7 @@ describe('bootServer — MissingOkConfigError pre-listen check', () => {
         .map((call) => String(call[1] ?? ''))
         .filter((w) => w.includes('.gitignore is missing'));
       expect(bootWarnings.length).toBe(1);
-      expect(bootWarnings[0]).toContain('.ok/.gitignore');
+      expect(bootWarnings[0]).toContain('.gitquire/.gitignore');
       expect(bootWarnings[0]).toContain('Run `gq init` to add the recommended ignore entries.');
     } finally {
       warnSpy.mockRestore();
@@ -231,10 +231,10 @@ describe('bootServer — runtime state lives at projectDir, not contentDir', () 
     try {
       await booted.ready;
 
-      const contentLocalDir = resolve(contentDir, '.ok');
+      const contentLocalDir = resolve(contentDir, '.gitquire');
       expect(existsSync(contentLocalDir)).toBe(false);
 
-      const projectLocalDir = resolve(projectDir, '.ok', 'local');
+      const projectLocalDir = resolve(projectDir, '.gitquire', 'local');
       expect(existsSync(resolve(projectLocalDir, 'server.lock'))).toBe(true);
       expect(existsSync(resolve(projectLocalDir, 'principal.json'))).toBe(true);
       expect(existsSync(resolve(projectLocalDir, 'state.json'))).toBe(true);
@@ -271,7 +271,7 @@ describe('bootServer — tolerance-telemetry writer wired through the real boot 
       else process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = prevFlag;
     }
 
-    const logPath = resolve(projectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(projectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     expect(existsSync(logPath)).toBe(true);
     const record = JSON.parse(readFileSync(logPath, 'utf-8').trim().split('\n')[0] ?? '');
     expect(record.event).toBe('bridge-tolerance-fire');
@@ -334,13 +334,13 @@ describe('bootServer — reactShellDistDir + server.lock ui advertisement', () =
     });
     try {
       await booted.ready;
-      const serverLockPath = resolve(projectDir, '.ok', 'local', 'server.lock');
+      const serverLockPath = resolve(projectDir, '.gitquire', 'local', 'server.lock');
       const raw = await import('node:fs/promises').then((m) => m.readFile(serverLockPath, 'utf-8'));
       const parsed = JSON.parse(raw) as { port: number; pid: number; capabilities?: string[] };
       expect(parsed.capabilities).toContain('ui');
       expect(parsed.port).toBe(booted.port);
       expect(parsed.pid).toBe(process.pid);
-      expect(existsSync(resolve(projectDir, '.ok', 'local', 'ui.lock'))).toBe(false);
+      expect(existsSync(resolve(projectDir, '.gitquire', 'local', 'ui.lock'))).toBe(false);
     } finally {
       await booted.destroy();
     }
@@ -364,7 +364,7 @@ describe('bootServer — reactShellDistDir + server.lock ui advertisement', () =
     });
     try {
       await booted.ready;
-      const serverLockPath = resolve(projectDir, '.ok', 'local', 'server.lock');
+      const serverLockPath = resolve(projectDir, '.gitquire', 'local', 'server.lock');
       const raw = await import('node:fs/promises').then((m) => m.readFile(serverLockPath, 'utf-8'));
       const parsed = JSON.parse(raw) as { capabilities?: string[] };
       expect(parsed.capabilities ?? []).not.toContain('ui');
@@ -452,7 +452,7 @@ describe('bootServer — reactShellDistDir end-to-end HTTP shape', () => {
       expect(apiRes.status).toBe(404);
       expect(apiRes.headers.get('content-type')).toBe('application/problem+json');
 
-      const serverLockPath = resolve(projectDir, '.ok', 'local', 'server.lock');
+      const serverLockPath = resolve(projectDir, '.gitquire', 'local', 'server.lock');
       expect(existsSync(serverLockPath)).toBe(true);
       const lockRaw = await import('node:fs/promises').then((m) =>
         m.readFile(serverLockPath, 'utf-8'),
@@ -938,7 +938,7 @@ describe('bootServer — exposure consent interlock', () => {
     expect(e.constructor.name).toBe('ExposureConsentError');
     expect(e.message).toContain('would bind a non-loopback address');
     expect(e.message).toContain('GITQUIRE_ALLOW_EXTERNAL=1');
-    expect(e.message).toContain('.ok/local/config.yml');
+    expect(e.message).toContain('.gitquire/local/config.yml');
   });
 
   test('a committed externalUrl under a loopback bind is inert — boots, no lockout (CLI path)', async () => {

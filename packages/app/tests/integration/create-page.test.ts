@@ -121,12 +121,14 @@ describe('/api/create-page — reserved name (QA-010)', () => {
     expect(body.title).toMatch(/reserved/i);
   });
 
-  test('rejects a raw create into .ok/templates so templates keep their validating route (QA-013)', async () => {
-    const { status, body } = await createPage('.ok/templates/greeting.md');
+  test('rejects a raw create into .gitquire/templates so templates keep their validating route (QA-013)', async () => {
+    const { status, body } = await createPage('.gitquire/templates/greeting.md');
     expect(status).toBe(400);
     expect(body.type).toBe('urn:ok:error:reserved-doc-name');
     expect(body.title).toMatch(/reserved/i);
-    expect(existsSync(join(server.contentDir, '.ok', 'templates', 'greeting.md'))).toBe(false);
+    expect(existsSync(join(server.contentDir, '.gitquire', 'templates', 'greeting.md'))).toBe(
+      false,
+    );
   });
 });
 
@@ -142,7 +144,7 @@ describe('/api/create-page — template seeding', () => {
   }
 
   function seedRootTemplate(name: string, contents: string) {
-    const dir = join(server.contentDir, '.ok', 'templates');
+    const dir = join(server.contentDir, '.gitquire', 'templates');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, `${name}.md`), contents, 'utf-8');
   }

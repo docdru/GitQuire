@@ -30,7 +30,7 @@ describe('TagIndex snapshot save interrupted mid-write', () => {
   test('leaves the previous good snapshot intact and loadable', async () => {
     const projectDir = mkdtempSync(join(tmpdir(), 'ok-tag-interrupted-'));
     const contentDir = join(projectDir, 'content');
-    const snapshotPath = join(projectDir, '.ok', 'local', 'cache', 'tags.json');
+    const snapshotPath = join(projectDir, '.gitquire', 'local', 'cache', 'tags.json');
     mkdirSync(contentDir, { recursive: true });
     try {
       writeFileSync(join(contentDir, 'alpha.md'), 'Tag #before.\n');

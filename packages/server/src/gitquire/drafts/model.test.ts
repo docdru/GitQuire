@@ -91,7 +91,7 @@ describe('changed pages', () => {
 
   it('ignores hidden and tool files', () => {
     expect(isPagePath('notes/a.md')).toBe(true);
-    expect(isPagePath('.ok/config.yml')).toBe(false);
+    expect(isPagePath('.gitquire/config.yml')).toBe(false);
     expect(isPagePath('.claude/skills/x.md')).toBe(false);
     expect(isPagePath('notes/.draft.md')).toBe(false);
     expect(isPagePath('../etc/passwd')).toBe(false);

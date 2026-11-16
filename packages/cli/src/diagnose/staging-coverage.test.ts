@@ -78,9 +78,9 @@ describe('staged-content coverage', () => {
     const currentDir = okProjectLogsDir(contentDir);
     mkdirSync(currentDir, { recursive: true });
     const diagnosticFamilies = [
-      ['server-current.jsonl', join(contentDir, '.ok', 'local', 'logs')],
-      ['spans-current.jsonl', join(contentDir, '.ok', 'local', 'telemetry')],
-      ['last-spawn-error.log', join(contentDir, '.ok', 'local')],
+      ['server-current.jsonl', join(contentDir, '.gitquire', 'local', 'logs')],
+      ['spans-current.jsonl', join(contentDir, '.gitquire', 'local', 'telemetry')],
+      ['last-spawn-error.log', join(contentDir, '.gitquire', 'local')],
     ] as const;
     for (const [filename, legacyDir] of diagnosticFamilies) {
       mkdirSync(legacyDir, { recursive: true });

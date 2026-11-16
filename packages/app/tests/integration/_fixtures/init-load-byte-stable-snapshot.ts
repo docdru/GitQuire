@@ -17,7 +17,7 @@ export function sha256(buf: Buffer): string {
 }
 
 const SNAPSHOT_EXCLUDED_DIRS = new Set([
-  '.ok',
+  '.gitquire',
   '.git',
   'node_modules',
   '.claude',

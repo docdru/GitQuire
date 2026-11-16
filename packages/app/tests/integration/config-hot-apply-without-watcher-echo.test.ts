@@ -104,7 +104,7 @@ describe('PRD-7260 — persisted config change reaches in-process consumers with
   });
 
   test('sync engine hot-applies autoSync.enabled from a client patch', async () => {
-    const configPath = join(srv.contentDir, '.ok', 'local', 'config.yml');
+    const configPath = join(srv.contentDir, '.gitquire', 'local', 'config.yml');
     expect(srv.instance.syncEngine?.getStatus().syncEnabled).toBe(false);
 
     const result = binding.patch({ autoSync: { enabled: true } });
@@ -135,7 +135,7 @@ describe('PRD-7260 — persisted config change reaches in-process consumers with
   }, 90_000);
 
   test('attachment-folder admission hot-applies from a project config patch', async () => {
-    const configPath = join(srv.contentDir, '.ok', 'config.yml');
+    const configPath = join(srv.contentDir, '.gitquire', 'config.yml');
     expect(srv.instance.contentFilter.isExcluded('assets/new.png')).toBe(true);
 
     const result = projectBinding.patch({ content: { attachmentFolderPath: 'assets' } });
@@ -210,7 +210,7 @@ describe('configured attachment folder composes into real Git sync without the w
   });
 
   test('a live fixed-folder choice pushes the doc-less attachment lifecycle to origin', async () => {
-    const configPath = join(srv.contentDir, '.ok', 'config.yml');
+    const configPath = join(srv.contentDir, '.gitquire', 'config.yml');
     expect(srv.instance.contentFilter.isExcluded('assets/diagram.png')).toBe(true);
 
     const result = binding.patch({ content: { attachmentFolderPath: 'assets' } });
@@ -272,7 +272,7 @@ describe('PRD-7260 — reconciled config change reaches in-process consumers wit
   });
 
   test('sync engine hot-applies the reconciled (disk) autoSync.enabled after a client patch', async () => {
-    const configPath = join(srv.contentDir, '.ok', 'local', 'config.yml');
+    const configPath = join(srv.contentDir, '.gitquire', 'local', 'config.yml');
     expect(srv.instance.syncEngine?.getStatus().syncEnabled).toBe(false);
 
     mkdirSync(dirname(configPath), { recursive: true });

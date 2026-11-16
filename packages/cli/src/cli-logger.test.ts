@@ -11,8 +11,8 @@ function tmp(prefix: string): string {
   return dir;
 }
 function makeProject(root: string): void {
-  mkdirSync(join(root, '.ok'), { recursive: true });
-  writeFileSync(join(root, '.ok', 'config.yml'), 'content:\n  dir: .\n', 'utf-8');
+  mkdirSync(join(root, '.gitquire'), { recursive: true });
+  writeFileSync(join(root, '.gitquire', 'config.yml'), 'content:\n  dir: .\n', 'utf-8');
 }
 
 afterEach(() => {

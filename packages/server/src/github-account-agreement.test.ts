@@ -33,7 +33,7 @@ beforeEach(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'gh-account-agreement-'));
   projectDir = join(tmpDir, 'project');
   contentDir = join(tmpDir, 'content');
-  mkdirSync(join(projectDir, '.ok', LOCAL_DIR), { recursive: true });
+  mkdirSync(join(projectDir, '.gitquire', LOCAL_DIR), { recursive: true });
 });
 
 afterEach(() => {

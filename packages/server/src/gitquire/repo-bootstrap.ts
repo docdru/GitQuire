@@ -97,7 +97,7 @@ export function parseAutoSyncMode(value: string | undefined): AutoSyncMode {
 }
 
 export function ensureAutoSyncMode(dir: string, mode: AutoSyncMode): 'written' | 'kept' {
-  const file = join(dir, '.ok', 'local', 'config.yml');
+  const file = join(dir, '.gitquire', 'local', 'config.yml');
   if (existsSync(file)) {
     const current = readFileSync(file, 'utf8');
     if (/^autoSync\s*:/m.test(current)) return 'kept';

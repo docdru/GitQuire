@@ -44,7 +44,7 @@ function ownHome(): string {
 }
 
 function backupsIn(home: string): string[] {
-  const root = join(home, '.ok', 'edit-backups', 'discarded');
+  const root = join(home, '.gitquire', 'edit-backups', 'discarded');
   if (!existsSync(root)) return [];
   return readdirSync(root, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
@@ -52,12 +52,12 @@ function backupsIn(home: string): string[] {
 }
 
 function blockBackups(home: string): void {
-  mkdirSync(join(home, '.ok'), { recursive: true });
-  writeFileSync(join(home, '.ok', 'edit-backups'), 'not a folder');
+  mkdirSync(join(home, '.gitquire'), { recursive: true });
+  writeFileSync(join(home, '.gitquire', 'edit-backups'), 'not a folder');
 }
 
 function unblockBackups(home: string): void {
-  rmSync(join(home, '.ok', 'edit-backups'), { force: true });
+  rmSync(join(home, '.gitquire', 'edit-backups'), { force: true });
 }
 
 interface Rig {
@@ -275,7 +275,7 @@ describe('an outside version that history cannot take', () => {
         side: 'theirs',
         reason: 'no-merge-engine',
         backup: expect.stringMatching(
-          /^~\/\.ok\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/diagrams__flow\.mmd\/.+\.mmd$/,
+          /^~\/\.gitquire\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/diagrams__flow\.mmd\/.+\.mmd$/,
         ),
       }),
     ]);

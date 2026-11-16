@@ -25,8 +25,8 @@ msgstr " 已恢复你的选择。"
 msgid "— except"
 msgstr "— 除了"
 
-msgid ".ok folders"
-msgstr ".ok 文件夹"
+msgid ".gitquire folders"
+msgstr ".gitquire 文件夹"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1027,7 +1027,7 @@ msgstr "适用于（glob 模式；以 ! 开头表示排除；留空表示所有�
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2687,8 +2687,8 @@ msgstr "嵌入"
 msgid "Embeddings API key"
 msgstr "嵌入服务 API 密钥"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "嵌入向量只在执行搜索时计算，并缓存在本地的 <0>.ok/local</0> 下。"
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "嵌入向量只在执行搜索时计算，并缓存在本地的 <0>.gitquire/local</0> 下。"
 
 msgid "Emoji"
 msgstr "表情符号"
@@ -3159,8 +3159,8 @@ msgstr "文件过大（{sizeKb} KB）— 每个附件上限为 {limitKb} KB。�
 msgid "File name"
 msgstr "文件名"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "文件名（创建在 .ok/schemas/ 中）"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "文件名（创建在 .gitquire/schemas/ 中）"
 
 msgid "File sidebar"
 msgstr "文件侧边栏"
@@ -6475,8 +6475,8 @@ msgstr "让编辑器带上"
 msgid "Show"
 msgstr "显示"
 
-msgid "Show .ok folders"
-msgstr "显示 .ok 文件夹"
+msgid "Show .gitquire folders"
+msgstr "显示 .gitquire 文件夹"
 
 msgid "Show {0} more"
 msgstr "再显示 {0} 个"
@@ -6778,8 +6778,8 @@ msgstr "已停止修复。已修复的文件保持已修复状态。"
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "保存在这个项目的 <0>.ok/templates/</0> 中。在所有文件夹中都可用（文件夹范围的模板可按文件名覆盖它）。"
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "保存在这个项目的 <0>.gitquire/templates/</0> 中。在所有文件夹中都可用（文件夹范围的模板可按文件名覆盖它）。"
 
 msgid "Strikethrough"
 msgstr "删除线"

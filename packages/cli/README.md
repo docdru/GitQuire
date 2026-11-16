@@ -16,13 +16,13 @@ cd packages/cli && pnpm pack && npm install -g ./gitquire-cli-*.tgz
 
 Requires [Node.js 24+](https://nodejs.org), pnpm and Git.
 
-To remove GitQuire from a project, delete the project's `.ok/` folder.
+To remove GitQuire from a project, delete the project's `.gitquire/` folder.
 
 ## Quick start
 
 ```bash
 cd your-project
-gq init          # scaffold .ok/
+gq init          # scaffold .gitquire/
 gq start         # serve the editor and open it in your browser
 ```
 

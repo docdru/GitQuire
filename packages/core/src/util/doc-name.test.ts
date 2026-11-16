@@ -16,8 +16,8 @@ describe('isHiddenDocName', () => {
     'a/.b',
     'opencode.json',
     'config/opencode.json',
-    '.ok/templates/daily-standup',
-    'notes/.ok/templates/meeting',
+    '.gitquire/templates/daily-standup',
+    'notes/.gitquire/templates/meeting',
   ])
     test(`hidden: ${JSON.stringify(name)}`, () => expect(isHiddenDocName(name)).toBe(true));
   for (const name of [
@@ -30,7 +30,7 @@ describe('isHiddenDocName', () => {
     '.agents/skills/consolidate-notes/SKILL',
     '.claude/skills/consolidate-notes/references/deep-dive',
     '.codex/skills/consolidate-notes/scripts/run',
-    '.ok/skills/stored-skill/SKILL',
+    '.gitquire/skills/stored-skill/SKILL',
   ])
     test(`visible: ${JSON.stringify(name)}`, () => expect(isHiddenDocName(name)).toBe(false));
 
@@ -85,7 +85,7 @@ describe('isProjectSkillBundlePath', () => {
     '.agents/skills/consolidate-notes/SKILL',
     '.claude/skills/a/references/b/c',
     '.codex/skills/a/scripts/run.sh',
-    '.ok/skills/a/SKILL',
+    '.gitquire/skills/a/SKILL',
   ])
     test(`bundle file: ${JSON.stringify(name)}`, () =>
       expect(isProjectSkillBundlePath(name)).toBe(true));

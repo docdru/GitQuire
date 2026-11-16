@@ -264,7 +264,7 @@ interface ChatState {
 }
 
 export function chatStatePath(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'chat.json');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'chat.json');
 }
 
 function loadChatState(file: string, log: Pick<GateLogger, 'warn'>): ChatState | undefined {

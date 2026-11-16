@@ -1,3 +1,5 @@
 export function frontmatterYamlPath(folderPath: string): string {
-  return folderPath === '' ? '.ok/frontmatter.yml' : `${folderPath}/.ok/frontmatter.yml`;
+  return folderPath === ''
+    ? '.gitquire/frontmatter.yml'
+    : `${folderPath}/.gitquire/frontmatter.yml`;
 }

@@ -9,11 +9,11 @@ import type { FileEntry, ScaffoldPlan, SeedOptions, SkipEntry } from './types.ts
 import { SeedPrerequisiteError, SeedRootDirError } from './types.ts';
 
 function frontmatterTemplateId(folderPath: string): string {
-  return `${folderPath}/.ok/frontmatter.yml`;
+  return `${folderPath}/.gitquire/frontmatter.yml`;
 }
 
 function templateFileTemplateId(folderPath: string, templateName: string): string {
-  return `${folderPath}/.ok/templates/${templateName}.md`;
+  return `${folderPath}/.gitquire/templates/${templateName}.md`;
 }
 
 function normalizeRootDir(rootDir: string | undefined, projectDir: string): string {
@@ -71,7 +71,7 @@ export async function planSeed(opts: SeedOptions = {}): Promise<ScaffoldPlan> {
       created.push({ path: folderPath, kind: 'folder' });
     }
 
-    const okSubDir = `${folderPath}/.ok`;
+    const okSubDir = `${folderPath}/.gitquire`;
     const okSubAbs = join(projectDir, okSubDir);
     if (existsSync(okSubAbs)) {
       skipped.push({ path: okSubDir, reason: 'already-exists' });

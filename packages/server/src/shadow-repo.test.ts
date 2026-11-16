@@ -2124,8 +2124,8 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
 
   beforeEach(async () => {
     projectRoot = resolve(tmpDir, 'project');
-    mkdirSync(resolve(projectRoot, '.ok/local/cache/main'), { recursive: true });
-    mkdirSync(resolve(projectRoot, '.ok/worktrees/feature'), { recursive: true });
+    mkdirSync(resolve(projectRoot, '.gitquire/local/cache/main'), { recursive: true });
+    mkdirSync(resolve(projectRoot, '.gitquire/worktrees/feature'), { recursive: true });
 
     const git = simpleGit(projectRoot);
     await git.init();
@@ -2134,14 +2134,14 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
     await git.raw('config', 'user.email', 'test@test.com');
 
     writeFileSync(resolve(projectRoot, 'intro.md'), '# Hello\n');
-    writeFileSync(resolve(projectRoot, '.ok/config.yml'), 'content:\n  dir: .\n');
+    writeFileSync(resolve(projectRoot, '.gitquire/config.yml'), 'content:\n  dir: .\n');
     writeFileSync(
-      resolve(projectRoot, '.ok/local/principal.json'),
+      resolve(projectRoot, '.gitquire/local/principal.json'),
       '{"email":"ada@example.com"}\n',
     );
-    writeFileSync(resolve(projectRoot, '.ok/local/server.lock'), '{"pid":1}\n');
-    writeFileSync(resolve(projectRoot, '.ok/local/cache/main/backlinks.json'), '{}\n');
-    writeFileSync(resolve(projectRoot, '.ok/worktrees/feature/scratch.md'), '# scratch\n');
+    writeFileSync(resolve(projectRoot, '.gitquire/local/server.lock'), '{"pid":1}\n');
+    writeFileSync(resolve(projectRoot, '.gitquire/local/cache/main/backlinks.json'), '{}\n');
+    writeFileSync(resolve(projectRoot, '.gitquire/worktrees/feature/scratch.md'), '# scratch\n');
 
     shadow = await initShadowRepo(projectRoot);
   });
@@ -2227,7 +2227,7 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       .filter((path) => path.length > 0);
   }
 
-  test('the shadow does not see .ok/local or .ok/worktrees as content', async () => {
+  test('the shadow does not see .gitquire/local or .gitquire/worktrees as content', async () => {
     const sg = shadowGit(shadow);
     const status = await sg.raw('status', '--porcelain', '--untracked-files=all');
     const paths = status
@@ -2236,9 +2236,9 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       .filter((p) => p.length > 0);
 
     expect(paths).toContain('intro.md');
-    expect(paths).toContain('.ok/config.yml');
-    expect(paths.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
-    expect(paths.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+    expect(paths).toContain('.gitquire/config.yml');
+    expect(paths.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
+    expect(paths.filter((p) => p.startsWith('.gitquire/worktrees/'))).toEqual([]);
   });
 
   test('a checkpoint keeps machine-local state out of version history', async () => {
@@ -2250,15 +2250,15 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       .filter((p) => p.length > 0);
 
     expect(tree).toContain('intro.md');
-    expect(tree).toContain('.ok/config.yml');
-    expect(tree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
-    expect(tree.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+    expect(tree).toContain('.gitquire/config.yml');
+    expect(tree.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
+    expect(tree.filter((p) => p.startsWith('.gitquire/worktrees/'))).toEqual([]);
   });
 
-  test('a nested content dir keeps its own .ok/local out of the staged tree', async () => {
-    mkdirSync(resolve(projectRoot, 'docs/.ok/local'), { recursive: true });
+  test('a nested content dir keeps its own .gitquire/local out of the staged tree', async () => {
+    mkdirSync(resolve(projectRoot, 'docs/.gitquire/local'), { recursive: true });
     writeFileSync(resolve(projectRoot, 'docs/note.md'), '# note\n');
-    writeFileSync(resolve(projectRoot, 'docs/.ok/local/comments.json'), '{}\n');
+    writeFileSync(resolve(projectRoot, 'docs/.gitquire/local/comments.json'), '{}\n');
 
     const result = await saveVersion(shadow, 'docs', [writer]);
     const sg = shadowGit(shadow);
@@ -2268,10 +2268,10 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       .filter((p) => p.length > 0);
 
     expect(tree).toContain('docs/note.md');
-    expect(tree.filter((p) => p.startsWith('docs/.ok/local/'))).toEqual([]);
+    expect(tree.filter((p) => p.startsWith('docs/.gitquire/local/'))).toEqual([]);
   });
 
-  test('legacy machine-local files at the .ok root stay out of a checkpoint', async () => {
+  test('legacy machine-local files at the .gitquire root stay out of a checkpoint', async () => {
     const legacyRootFiles = [
       'principal.json',
       'state.json',
@@ -2283,11 +2283,11 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
     ];
     const legacyRootDirs = ['local', 'worktrees', 'cache', 'tmp'];
     for (const name of legacyRootFiles) {
-      writeFileSync(resolve(projectRoot, '.ok', name), '{"legacy":true}\n');
+      writeFileSync(resolve(projectRoot, '.gitquire', name), '{"legacy":true}\n');
     }
     for (const name of legacyRootDirs) {
-      mkdirSync(resolve(projectRoot, '.ok', name), { recursive: true });
-      writeFileSync(resolve(projectRoot, '.ok', name, 'residue.json'), '{}\n');
+      mkdirSync(resolve(projectRoot, '.gitquire', name), { recursive: true });
+      writeFileSync(resolve(projectRoot, '.gitquire', name, 'residue.json'), '{}\n');
     }
 
     const result = await saveVersion(shadow, '.', [writer]);
@@ -2297,13 +2297,13 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
 
-    expect(tree).toContain('.ok/config.yml');
+    expect(tree).toContain('.gitquire/config.yml');
     expect(tree).toContain('intro.md');
     for (const name of legacyRootFiles) {
-      expect(tree).not.toContain(`.ok/${name}`);
+      expect(tree).not.toContain(`.gitquire/${name}`);
     }
     for (const name of legacyRootDirs) {
-      expect(tree.filter((p) => p.startsWith(`.ok/${name}/`))).toEqual([]);
+      expect(tree.filter((p) => p.startsWith(`.gitquire/${name}/`))).toEqual([]);
     }
   });
 
@@ -2329,7 +2329,7 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       email: 'cursor@openknowledge.local',
     };
     await seedStaleWipRef(shadow, agentWriter.id);
-    expect(await wipTreePaths(shadow, agentWriter.id)).toContain('.ok/local/principal.json');
+    expect(await wipTreePaths(shadow, agentWriter.id)).toContain('.gitquire/local/principal.json');
 
     const reinit = await initShadowRepo(projectRoot);
     writeFileSync(resolve(projectRoot, 'intro.md'), '# Hello again\n');
@@ -2337,27 +2337,30 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
     const freshTree = await wipTreePaths(reinit, agentWriter.id);
 
     expect(freshTree).toContain('intro.md');
-    expect(freshTree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+    expect(freshTree.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
   });
 
   test('paths that only share a prefix with a machine-local name stay in a checkpoint', async () => {
-    mkdirSync(resolve(projectRoot, 'docs/.ok'), { recursive: true });
-    writeFileSync(resolve(projectRoot, '.ok/state.json'), '{"machine":true}\n');
-    writeFileSync(resolve(projectRoot, '.ok/state.jsonl'), '{"content":true}\n');
-    writeFileSync(resolve(projectRoot, '.ok/principal.json'), '{"machine":true}\n');
-    writeFileSync(resolve(projectRoot, '.ok/principal.json.bak'), '{"content":true}\n');
-    writeFileSync(resolve(projectRoot, 'docs/.ok/server.lock'), '{"machine":true}\n');
-    writeFileSync(resolve(projectRoot, 'docs/.ok/server.lock.disabled'), '{"content":true}\n');
+    mkdirSync(resolve(projectRoot, 'docs/.gitquire'), { recursive: true });
+    writeFileSync(resolve(projectRoot, '.gitquire/state.json'), '{"machine":true}\n');
+    writeFileSync(resolve(projectRoot, '.gitquire/state.jsonl'), '{"content":true}\n');
+    writeFileSync(resolve(projectRoot, '.gitquire/principal.json'), '{"machine":true}\n');
+    writeFileSync(resolve(projectRoot, '.gitquire/principal.json.bak'), '{"content":true}\n');
+    writeFileSync(resolve(projectRoot, 'docs/.gitquire/server.lock'), '{"machine":true}\n');
+    writeFileSync(
+      resolve(projectRoot, 'docs/.gitquire/server.lock.disabled'),
+      '{"content":true}\n',
+    );
 
     const result = await saveVersion(shadow, '.', [writer]);
     const tree = await checkpointTreePaths(result.checkpointRef);
 
-    expect(tree).toContain('.ok/state.jsonl');
-    expect(tree).toContain('.ok/principal.json.bak');
-    expect(tree).toContain('docs/.ok/server.lock.disabled');
-    expect(tree).not.toContain('.ok/state.json');
-    expect(tree).not.toContain('.ok/principal.json');
-    expect(tree).not.toContain('docs/.ok/server.lock');
+    expect(tree).toContain('.gitquire/state.jsonl');
+    expect(tree).toContain('.gitquire/principal.json.bak');
+    expect(tree).toContain('docs/.gitquire/server.lock.disabled');
+    expect(tree).not.toContain('.gitquire/state.json');
+    expect(tree).not.toContain('.gitquire/principal.json');
+    expect(tree).not.toContain('docs/.gitquire/server.lock');
   });
 
   test('a staged path whose name begins with a dash is still dropped', async () => {
@@ -2386,26 +2389,29 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       email: 'bulk@openknowledge.local',
     };
     const leaf = 'q'.repeat(160);
-    const threadsDir = resolve(projectRoot, '.ok/local/threads');
+    const threadsDir = resolve(projectRoot, '.gitquire/local/threads');
     mkdirSync(threadsDir, { recursive: true });
     const bulk = Array.from(
       { length: 8_000 },
       (_unused, i) => `${String(i).padStart(6, '0')}-${leaf}.ndjson`,
     );
     for (const name of bulk) writeFileSync(resolve(threadsDir, name), '{}\n');
-    const argvBytes = bulk.reduce((acc, name) => acc + `.ok/local/threads/${name}`.length + 1, 0);
+    const argvBytes = bulk.reduce(
+      (acc, name) => acc + `.gitquire/local/threads/${name}`.length + 1,
+      0,
+    );
     expect(argvBytes).toBeGreaterThan(1_500_000);
 
     await seedStaleWipRef(shadow, agentWriter.id);
     const staleTree = await wipTreePaths(shadow, agentWriter.id);
-    expect(staleTree.filter((p) => p.startsWith('.ok/local/threads/'))).toHaveLength(8_000);
+    expect(staleTree.filter((p) => p.startsWith('.gitquire/local/threads/'))).toHaveLength(8_000);
 
     const reinit = await initShadowRepo(projectRoot);
     await commitWip(reinit, agentWriter, '.', 'WIP: post-upgrade');
     const freshTree = await wipTreePaths(reinit, agentWriter.id);
 
     expect(freshTree).toContain('intro.md');
-    expect(freshTree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+    expect(freshTree.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
   }, 120_000);
 
   test('a repair the index sweep cannot run does not abort initialization, but degrades the shadow', async () => {
@@ -2436,7 +2442,7 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
   test('an index sweep blocked partway reports how many machine-local entries it left staged', async () => {
     const fanoutIndex = seedStaleFanoutIndex(shadow);
     const machineLocalStaged = indexPaths(shadow, fanoutIndex).filter(
-      (path) => path.startsWith('.ok/local/') || path.startsWith('.ok/worktrees/'),
+      (path) => path.startsWith('.gitquire/local/') || path.startsWith('.gitquire/worktrees/'),
     );
     expect(machineLocalStaged.length).toBeGreaterThan(0);
     writeFileSync(`${fanoutIndex}.lock`, '');
@@ -2452,7 +2458,7 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       expect(getMetrics().shadowExcludeIndexEntriesDropped).toBe(0);
       expect(
         indexPaths(reinit, fanoutIndex).filter(
-          (path) => path.startsWith('.ok/local/') || path.startsWith('.ok/worktrees/'),
+          (path) => path.startsWith('.gitquire/local/') || path.startsWith('.gitquire/worktrees/'),
         ),
       ).toEqual(machineLocalStaged);
       const warnings = warnSpy.mock.calls.map((call) => String(call[1] ?? ''));
@@ -2480,9 +2486,9 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
     const tree = await checkpointTreePaths(result.checkpointRef);
 
     expect(tree).toContain('intro.md');
-    expect(tree).toContain('.ok/config.yml');
-    expect(tree.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
-    expect(tree.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+    expect(tree).toContain('.gitquire/config.yml');
+    expect(tree.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
+    expect(tree.filter((p) => p.startsWith('.gitquire/worktrees/'))).toEqual([]);
   });
 
   test('a shadow whose exclude file cannot be written reports itself degraded', async () => {
@@ -2601,7 +2607,7 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
 
   test('re-initializing drops a fan-out index that already staged machine-local state', async () => {
     const fanoutIndex = seedStaleFanoutIndex(shadow);
-    expect(indexPaths(shadow, fanoutIndex)).toContain('.ok/local/principal.json');
+    expect(indexPaths(shadow, fanoutIndex)).toContain('.gitquire/local/principal.json');
 
     const reinit = await initShadowRepo(projectRoot);
     const freshTree = await buildWipTree(reinit, '.');
@@ -2612,7 +2618,7 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
       .filter((p) => p.length > 0);
 
     expect(freshNames).toContain('intro.md');
-    expect(freshNames.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
+    expect(freshNames.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
   });
 
   test('a fan-out WIP tree stays clean even when the shadow exclude file is gone', async () => {
@@ -2622,8 +2628,8 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
     const names = await checkpointTreePaths(tree);
 
     expect(names).toContain('intro.md');
-    expect(names.filter((p) => p.startsWith('.ok/local/'))).toEqual([]);
-    expect(names.filter((p) => p.startsWith('.ok/worktrees/'))).toEqual([]);
+    expect(names.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
+    expect(names.filter((p) => p.startsWith('.gitquire/worktrees/'))).toEqual([]);
   });
 
   test('re-initializing an existing shadow restores the exclusions', async () => {
@@ -2633,7 +2639,7 @@ describe('shadow repo excludes OpenKnowledge machine-local state', () => {
     const sg = shadowGit(reinit);
     const status = await sg.raw('status', '--porcelain', '--untracked-files=all');
 
-    expect(status).not.toContain('.ok/local/');
+    expect(status).not.toContain('.gitquire/local/');
   });
 });
 

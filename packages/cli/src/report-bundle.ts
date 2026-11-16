@@ -61,7 +61,7 @@ export interface ReportBundleResult {
 }
 
 function resolveContentDir(projectDir: string, logger?: BundleLogger): string {
-  const configPath = join(projectDir, '.ok', 'config.yml');
+  const configPath = join(projectDir, '.gitquire', 'config.yml');
   if (existsSync(configPath)) {
     try {
       const parsed: unknown = parseYaml(readFileSync(configPath, 'utf-8'));
@@ -73,7 +73,7 @@ function resolveContentDir(projectDir: string, logger?: BundleLogger): string {
     } catch (err) {
       logger?.warn(
         { configPath, err },
-        'bug-report: failed to read .ok/config.yml; falling back to project root as content dir',
+        'bug-report: failed to read .gitquire/config.yml; falling back to project root as content dir',
       );
     }
   }

@@ -287,8 +287,8 @@ test.each(['write', 'edit'] as const)(
     const contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-link-advisory-ignored-')));
     let ignoredServer: TestServer | undefined;
     try {
-      mkdirSync(join(contentDir, '.ok'));
-      writeFileSync(join(contentDir, '.ok', 'config.yml'), '');
+      mkdirSync(join(contentDir, '.gitquire'));
+      writeFileSync(join(contentDir, '.gitquire', 'config.yml'), '');
       writeFileSync(join(contentDir, '.gitignore'), 'ignored-by-git/\n');
       writeFileSync(join(contentDir, '.okignore'), 'ignored-by-ok/\n');
       for (const folder of ['ignored-by-git', 'ignored-by-ok']) {

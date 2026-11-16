@@ -37,7 +37,7 @@ let lockDir: string;
 let lockPath: string;
 
 beforeEach(() => {
-  lockDir = resolve(tempDir('ok-process-lock-successor-'), '.ok', LOCAL_DIR);
+  lockDir = resolve(tempDir('ok-process-lock-successor-'), '.gitquire', LOCAL_DIR);
   lockPath = lockFilePath(lockDir, LOCK_NAME);
   mkdirSync(lockDir, { recursive: true });
 });

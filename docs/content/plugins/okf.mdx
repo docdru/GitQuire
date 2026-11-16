@@ -12,7 +12,7 @@ The **OKF** project plugin checks whether a knowledge base stays portable to [Go
 
 ## Turn on the plugin
 
-Open **Settings → Wiki administration → Plugins** and switch on **OKF**. The setting lands in the project's `.ok/config.yml`, so committing it gives every collaborator the same checks. Changes apply immediately, with no restart and no Save button.
+Open **Settings → Wiki administration → Plugins** and switch on **OKF**. The setting lands in the project's `.gitquire/config.yml`, so committing it gives every collaborator the same checks. Changes apply immediately, with no restart and no Save button.
 
 The plugin's settings page then holds its controls: optional generated indexes and one switch per rule.
 
@@ -67,15 +67,15 @@ Project rules need the whole file tree, which is why they run only on project-sc
 
 ## Generated schema files
 
-While a frontmatter rule is enabled, GitQuire writes its JSON Schema under `.ok/okf/` so agents can read the exact field contract rather than guess:
+While a frontmatter rule is enabled, GitQuire writes its JSON Schema under `.gitquire/okf/` so agents can read the exact field contract rather than guess:
 
 ```text
-.ok/okf/required.schema.json
-.ok/okf/recommended.schema.json
-.ok/okf/provenance.schema.json
-.ok/okf/computation.schema.json
-.ok/okf/reserved-index.schema.json
-.ok/okf/root-index.schema.json
+.gitquire/okf/required.schema.json
+.gitquire/okf/recommended.schema.json
+.gitquire/okf/provenance.schema.json
+.gitquire/okf/computation.schema.json
+.gitquire/okf/reserved-index.schema.json
+.gitquire/okf/root-index.schema.json
 ```
 
 The directory mirrors the rule switches: toggling a rule off deletes its schema, and disabling the plugin removes them all. The files are generated and gitignored. The plugin validates from its own compiled copy and never reads them back, so editing one changes nothing. Tune the rule switches instead.
@@ -104,8 +104,8 @@ See the [configuration reference](/docs/reference/configuration) for the surroun
 
 | Path | When | Ownership |
 | --- | --- | --- |
-| `.ok/config.yml` | You change a plugin setting | Project configuration, committed when you want to share it |
-| `.ok/okf/*.schema.json` | The matching frontmatter rule is enabled | Generated and gitignored. Deleted when the rule or plugin is switched off |
+| `.gitquire/config.yml` | You change a plugin setting | Project configuration, committed when you want to share it |
+| `.gitquire/okf/*.schema.json` | The matching frontmatter rule is enabled | Generated and gitignored. Deleted when the rule or plugin is switched off |
 | `**/index.md` | You opt into generated indexes | Generated. Manual edits are replaced |
 | `.gitattributes` | Generated indexes are enabled in a Git project | GitQuire manages only its scoped rule |
 

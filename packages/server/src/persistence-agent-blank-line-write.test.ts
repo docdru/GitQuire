@@ -20,7 +20,7 @@ beforeAll(async () => {
   server = await bootCompositionRig(contentDir);
   await server.ready;
   appendFileSync(
-    resolve(contentDir, '.ok', 'config.yml'),
+    resolve(contentDir, '.gitquire', 'config.yml'),
     '\ncontentRules:\n  enabled: true\n  markdownlint:\n    enabled: true\n',
   );
 

@@ -51,14 +51,14 @@ function byId(entries: SavedThemeEntry[]): Map<string | undefined, SavedThemeEnt
 }
 
 describe('savedThemesDir', () => {
-  test('resolves the store under <home>/.ok/themes', () => {
-    expect(savedThemesDir(home)).toBe(join(home, '.ok', 'themes'));
+  test('resolves the store under <home>/.gitquire/themes', () => {
+    expect(savedThemesDir(home)).toBe(join(home, '.gitquire', 'themes'));
   });
 
-  test('resolves Beta themes under <home>/.ok-beta/themes', () => {
+  test('resolves Beta themes under <home>/.gitquire-beta/themes', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     try {
-      expect(savedThemesDir(home)).toBe(join(home, '.ok-beta', 'themes'));
+      expect(savedThemesDir(home)).toBe(join(home, '.gitquire-beta', 'themes'));
     } finally {
       vi.unstubAllEnvs();
     }

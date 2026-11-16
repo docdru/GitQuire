@@ -152,8 +152,8 @@ test('a direct managed rename rewrite adopts a recreated reference before its ol
 
   writeFileSync(filePath, ORIGINAL, { flag: 'wx' });
   writeFileSync(join(contentDir, 'source.md'), '# Source\n', { flag: 'wx' });
-  mkdirSync(join(contentDir, '.ok', 'templates'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'templates', 'same-reference.md'), ORIGINAL, {
+  mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'templates', 'same-reference.md'), ORIGINAL, {
     flag: 'wx',
   });
   server = await createTestServer({ contentDir });

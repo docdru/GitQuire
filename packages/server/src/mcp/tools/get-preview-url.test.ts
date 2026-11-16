@@ -458,7 +458,7 @@ function mockOffCwdDeps(
   candidates: Array<{ contentDir: string; baseUrl: string; alive?: boolean }>,
 ): OffCwdResolverDeps {
   const cands = candidates.map((c) => ({
-    lockDir: `${c.contentDir}/.ok/local`,
+    lockDir: `${c.contentDir}/.gitquire/local`,
     contentDir: c.contentDir,
     baseUrl: c.baseUrl,
     alive: c.alive ?? true,
@@ -511,11 +511,11 @@ describe('preview_url tool — file branch boot-on-demand', () => {
   test('boots a session when none serves the file yet, then resolves its URL', async () => {
     let candidate: { contentDir: string; baseUrl: string } | null = null;
     const liveDeps: OffCwdResolverDeps = {
-      discover: async () => (candidate ? [`${candidate.contentDir}/.ok/local`] : []),
+      discover: async () => (candidate ? [`${candidate.contentDir}/.gitquire/local`] : []),
       inspect: async () =>
         candidate
           ? {
-              lockDir: `${candidate.contentDir}/.ok/local`,
+              lockDir: `${candidate.contentDir}/.gitquire/local`,
               contentDir: candidate.contentDir,
               baseUrl: candidate.baseUrl,
               alive: true,

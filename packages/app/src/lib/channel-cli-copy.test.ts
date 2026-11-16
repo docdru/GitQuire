@@ -8,7 +8,7 @@ afterEach(() => {
 describe('channel CLI copy', () => {
   test('names Stable without a desktop bridge', () => {
     expect(okCliCommandName()).toBe('gq');
-    expect(okUserHomeLabel('secrets.yml')).toBe('~/.ok/secrets.yml');
+    expect(okUserHomeLabel('secrets.yml')).toBe('~/.gitquire/secrets.yml');
   });
 
   test('falls back to Stable for a command no channel owns', () => {

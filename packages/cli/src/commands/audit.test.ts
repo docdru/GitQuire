@@ -102,7 +102,7 @@ describe('runAudit', () => {
 
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), 'ok-audit-test-'));
-    const lockDir = join(dir, '.ok', 'local');
+    const lockDir = join(dir, '.gitquire', 'local');
     mkdirSync(lockDir, { recursive: true });
     writeFileSync(
       join(lockDir, 'server.lock'),
@@ -165,7 +165,7 @@ describe('runAudit', () => {
     expect(text).toContain('does NOT prove every link resolves');
     expect(text).toContain('http://127.0.0.1:54321/api/dead-links');
     expect(text).toContain('validation.suppressLogLinkAdvisories: false');
-    expect(text).toContain('.ok/config.yml');
+    expect(text).toContain('.gitquire/config.yml');
     expect(text).toContain('Settings ▸ This project ▸ Preferences ▸ Content rules');
     expect(text).not.toContain('links({ kind: "dead" })');
     expect(text).toContain('not as a repair queue');
@@ -299,7 +299,7 @@ describe('runAudit', () => {
   });
 
   test('errors with `gq start` guidance when no server lock is live', async () => {
-    rmSync(join(dir, '.ok', 'local', 'server.lock'));
+    rmSync(join(dir, '.gitquire', 'local', 'server.lock'));
     const { io, err } = collectIo();
 
     const code = await runAudit(undefined, {}, minimalConfig, dir, dir, io);
@@ -314,7 +314,7 @@ describe('runAudit', () => {
     ['beta', 'gq-beta'],
   ])('no-server guidance names the %s command', async (channel, command) => {
     vi.stubEnv('GITQUIRE_CHANNEL', channel);
-    rmSync(join(dir, '.ok', 'local', 'server.lock'));
+    rmSync(join(dir, '.gitquire', 'local', 'server.lock'));
     const { io, err } = collectIo();
 
     expect(await runAudit(undefined, {}, minimalConfig, dir, dir, io)).toBe(1);

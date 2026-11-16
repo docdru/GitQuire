@@ -6,7 +6,7 @@ import { parseDocument } from 'yaml';
 const MAX_PERSONAL_SETTINGS_BYTES = 32 * 1024;
 
 function personalSettingsDir(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'users');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'users');
 }
 
 function personalSettingsPath(projectDir: string, userId: number): string {

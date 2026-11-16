@@ -283,8 +283,8 @@ describe('auth-login stream displacement (a second start orphans the first clien
       const res = await postJson(baseUrl, '/api/local-op/auth/status', {});
       expect(res.status).toBe(409);
       const body = (await res.json()) as { detail: string };
-      expect(body.detail).toContain('as github in ~/.ok-beta/global.yml and restart');
-      expect(body.detail).not.toContain('~/.ok/');
+      expect(body.detail).toContain('as github in ~/.gitquire-beta/global.yml and restart');
+      expect(body.detail).not.toContain('~/.gitquire/');
     } finally {
       vi.unstubAllEnvs();
       rmSync(projectDir, { recursive: true, force: true });

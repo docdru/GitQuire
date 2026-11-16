@@ -162,7 +162,7 @@ export function collectTreeFolderPathsFromDocuments(
         ? entry.path
         : entry.docName;
     const segments = path.split('/').filter(Boolean);
-    if (!options.includeOkFolders && segments.includes('.ok')) continue;
+    if (!options.includeOkFolders && segments.includes('.gitquire')) continue;
     if (isFolderEntry(entry)) {
       const folderPath = folderPathToTreeDirectoryPath(entry.path);
       if (folderPath) folderPaths.add(folderPath);

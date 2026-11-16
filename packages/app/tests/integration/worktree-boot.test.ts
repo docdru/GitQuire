@@ -47,7 +47,7 @@ describe('bootServer in a linked git worktree (FR2)', () => {
 });
 
 describe('bootServer pre-listen check in a linked worktree (FR3)', () => {
-  test('State A: rejects with MissingOkConfigError when .ok/ is absent', async () => {
+  test('State A: rejects with MissingOkConfigError when .gitquire/ is absent', async () => {
     handle = createLinkedWorktree({ seedOkScaffold: false });
 
     let caught: unknown;
@@ -72,9 +72,9 @@ describe('bootServer pre-listen check in a linked worktree (FR3)', () => {
     expect(existsSync(shadowDir)).toBe(false);
   });
 
-  test('State B: rejects with MissingOkConfigError when .ok/config.yml is missing', async () => {
+  test('State B: rejects with MissingOkConfigError when .gitquire/config.yml is missing', async () => {
     handle = createLinkedWorktree({ seedOkScaffold: false });
-    mkdirSync(resolve(handle.worktreePath, '.ok'), { recursive: true });
+    mkdirSync(resolve(handle.worktreePath, '.gitquire'), { recursive: true });
 
     let caught: unknown;
     try {
@@ -98,9 +98,9 @@ describe('bootServer pre-listen check in a linked worktree (FR3)', () => {
     expect(existsSync(shadowDir)).toBe(false);
   });
 
-  test('State C: proceeds with one-time stderr warning when only .ok/.gitignore is missing', async () => {
+  test('State C: proceeds with one-time stderr warning when only .gitquire/.gitignore is missing', async () => {
     handle = createLinkedWorktree({ seedOkScaffold: false });
-    const okDir = resolve(handle.worktreePath, '.ok');
+    const okDir = resolve(handle.worktreePath, '.gitquire');
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
 
@@ -121,7 +121,7 @@ describe('bootServer pre-listen check in a linked worktree (FR3)', () => {
         .map((call) => String(call[1] ?? ''))
         .filter((w) => w.includes('.gitignore is missing'));
       expect(bootWarnings.length).toBe(1);
-      expect(bootWarnings[0]).toContain('.ok/.gitignore');
+      expect(bootWarnings[0]).toContain('.gitquire/.gitignore');
     } finally {
       warnSpy.mockRestore();
       if (booted) await booted.destroy();
@@ -207,7 +207,7 @@ describe('bootServer pre-listen check on main worktree (FR3)', () => {
     await rm(mainTmp, { recursive: true, force: true });
   });
 
-  test('State A: rejects with MissingOkConfigError when .ok/ is absent', async () => {
+  test('State A: rejects with MissingOkConfigError when .gitquire/ is absent', async () => {
     const contentDir = mkdtempSync(resolve(mainTmp, 'state-a-'));
 
     let caught: unknown;
@@ -229,14 +229,14 @@ describe('bootServer pre-listen check on main worktree (FR3)', () => {
     expect(e.name).toBe('MissingOkConfigError');
     expect(e.kind).toBe('okdir');
     expect(e.projectDir).toBe(contentDir);
-    expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
+    expect(e.message).toContain('GitQuire config not found at .gitquire/config.yml');
     expect(e.message).toContain('Run gq init');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 
-  test('State B: rejects with MissingOkConfigError when .ok/ exists but config.yml is missing', async () => {
+  test('State B: rejects with MissingOkConfigError when .gitquire/ exists but config.yml is missing', async () => {
     const contentDir = mkdtempSync(resolve(mainTmp, 'state-b-'));
-    mkdirSync(resolve(contentDir, '.ok'), { recursive: true });
+    mkdirSync(resolve(contentDir, '.gitquire'), { recursive: true });
 
     let caught: unknown;
     try {
@@ -256,7 +256,7 @@ describe('bootServer pre-listen check on main worktree (FR3)', () => {
     const e = caught as Error & { name?: string; kind?: string };
     expect(e.name).toBe('MissingOkConfigError');
     expect(e.kind).toBe('config');
-    expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
+    expect(e.message).toContain('GitQuire config not found at .gitquire/config.yml');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 });

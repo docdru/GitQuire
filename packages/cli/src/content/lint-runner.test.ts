@@ -24,7 +24,7 @@ function write(rel: string, content: string): void {
 
 beforeEach(() => {
   root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-lint-run-')));
-  write('.ok/config.yml', 'content:\n  dir: .\n');
+  write('.gitquire/config.yml', 'content:\n  dir: .\n');
 });
 
 afterEach(() => {
@@ -68,11 +68,11 @@ describe('runLint — walk + lint', () => {
 
   test('the walk skips hidden segments; an explicit hidden file target still lints', async () => {
     write('visible.md', '# A\n\ntext with a\ttab\n');
-    write('.ok/skills/pack/SKILL.md', '# S\n\ntext with a\ttab\n');
+    write('.gitquire/skills/pack/SKILL.md', '# S\n\ntext with a\ttab\n');
     const swept = await run();
     expect(swept.files.map((f) => f.file)).toEqual(['visible.md']);
-    const explicit = await run({ targetPath: join(root, '.ok/skills/pack/SKILL.md') });
-    expect(explicit.files.map((f) => f.file)).toEqual(['.ok/skills/pack/SKILL.md']);
+    const explicit = await run({ targetPath: join(root, '.gitquire/skills/pack/SKILL.md') });
+    expect(explicit.files.map((f) => f.file)).toEqual(['.gitquire/skills/pack/SKILL.md']);
   });
 
   test('lints every in-scope doc and counts problems', async () => {
@@ -95,7 +95,7 @@ describe('runLint — walk + lint', () => {
     expect(result.files.find((f) => f.file === 'clean.md')?.diagnostics).toEqual([]);
   });
 
-  test('skips files under ignored/.ok and non-doc files', async () => {
+  test('skips files under ignored/.gitquire and non-doc files', async () => {
     write('keep.md', '# Keep\n');
     write('notes.txt', 'not markdown\n');
     const result = await run();
@@ -165,7 +165,7 @@ describe('runLint — scope', () => {
           ...DEFAULT_LINTER_CONFIG.plugins,
           frontmatter: {
             enabled: true,
-            schemas: [{ appliesTo: '**', file: '.ok/schemas/missing.json' }],
+            schemas: [{ appliesTo: '**', file: '.gitquire/schemas/missing.json' }],
           },
         },
       },
@@ -298,12 +298,12 @@ describe('runLint — frontmatter schemas', () => {
   }
 
   test('matching docs report frontmatter diagnostics with server-identical anchors', async () => {
-    write('.ok/schemas/doc.schema.json', DOC_SCHEMA);
+    write('.gitquire/schemas/doc.schema.json', DOC_SCHEMA);
     write('docs/guide.md', '---\nstatus: shipped\n---\n\n# Guide\n');
     write('docs/index.md', '---\nstatus: shipped\n---\n\n# Index\n');
     const result = await run({
       baseConfig: frontmatterBase([
-        { appliesTo: ['docs/**', '!**/{index,log}'], file: '.ok/schemas/doc.schema.json' },
+        { appliesTo: ['docs/**', '!**/{index,log}'], file: '.gitquire/schemas/doc.schema.json' },
       ]),
     });
     expect(result.warnings).toEqual([]);
@@ -318,7 +318,7 @@ describe('runLint — frontmatter schemas', () => {
 
   test('a 2020-12 schema validates through the CLI path too', async () => {
     write(
-      '.ok/schemas/modern.schema.json',
+      '.gitquire/schemas/modern.schema.json',
       JSON.stringify({
         $schema: 'https://json-schema.org/draft/2020-12/schema',
         type: 'object',
@@ -330,7 +330,7 @@ describe('runLint — frontmatter schemas', () => {
     write('docs/guide.md', '---\nstatus: shipped\n---\n\n# Guide\n');
     const result = await run({
       baseConfig: frontmatterBase([
-        { appliesTo: 'docs/**', file: '.ok/schemas/modern.schema.json' },
+        { appliesTo: 'docs/**', file: '.gitquire/schemas/modern.schema.json' },
       ]),
     });
     expect(result.warnings).toEqual([]);
@@ -342,16 +342,20 @@ describe('runLint — frontmatter schemas', () => {
   test('schemaError surfaces as a report warning and never flips diagnostics', async () => {
     write('docs/guide.md', '---\nstatus: draft\n---\n');
     const result = await run({
-      baseConfig: frontmatterBase([{ appliesTo: 'docs/**', file: '.ok/schemas/missing.json' }]),
+      baseConfig: frontmatterBase([
+        { appliesTo: 'docs/**', file: '.gitquire/schemas/missing.json' },
+      ]),
     });
     expect(result.warnings).toEqual([expect.stringContaining('missing.json')]);
     expect(result.files.every((f) => f.diagnostics.length === 0)).toBe(true);
   });
 
   test('--fix leaves frontmatter diagnostics untouched while fixing markdownlint issues', async () => {
-    write('.ok/schemas/doc.schema.json', DOC_SCHEMA);
+    write('.gitquire/schemas/doc.schema.json', DOC_SCHEMA);
     write('docs/guide.md', '---\nstatus: shipped\n---\n\n# G\n\na\tb\n');
-    const base = frontmatterBase([{ appliesTo: 'docs/**', file: '.ok/schemas/doc.schema.json' }]);
+    const base = frontmatterBase([
+      { appliesTo: 'docs/**', file: '.gitquire/schemas/doc.schema.json' },
+    ]);
     base.plugins = {
       ...base.plugins,
       markdownlint: { ...DEFAULT_LINTER_CONFIG.plugins.markdownlint, enabled: true },

@@ -2945,8 +2945,8 @@ test.each([
     const originalBytes = '# Original\n\nEarlier bytes.\n';
     const recreatedBytes =
       bytes === 'original' ? originalBytes : '# Recreated\n\nDifferent bytes now.\n';
-    mkdirSync(join(contentDir, '.ok', 'templates'), { recursive: true });
-    writeFileSync(join(contentDir, '.ok', 'templates', 'recreated.md'), recreatedBytes);
+    mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
+    writeFileSync(join(contentDir, '.gitquire', 'templates', 'recreated.md'), recreatedBytes);
     const first = writeDoc('first.md', '# First\n\nSeparate content.\n');
     const later = writeDoc('later.md', originalBytes);
     const moved = join(contentDir, 'moved.md');
@@ -3080,8 +3080,8 @@ test.each(['before', 'during'] as const)(
     });
     configureTestGitRepository(contentDir);
     const recreatedBytes = '# Recreated\n\nContent after the supplied deletes.\n';
-    mkdirSync(join(contentDir, '.ok', 'templates'), { recursive: true });
-    writeFileSync(join(contentDir, '.ok', 'templates', 'recreated.md'), recreatedBytes);
+    mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
+    writeFileSync(join(contentDir, '.gitquire', 'templates', 'recreated.md'), recreatedBytes);
     const first = writeDoc('first.md', '# First\n');
     const later = writeDoc('later.md', '# Earlier later\n');
     let server: Awaited<ReturnType<typeof bootCompositionRig>> | undefined;

@@ -52,7 +52,7 @@ test('test flush waits for accepted artifact attribution before acknowledging se
     });
     expect(write.status, write.body).toBe(200);
     await started;
-    expect(__formatContributorsForTests()).toContain('templates/.ok/templates/example');
+    expect(__formatContributorsForTests()).toContain('templates/.gitquire/templates/example');
     const { promise: requestReceived, resolve: received } = Promise.withResolvers<void>();
     server.httpServer.prependListener('request', (req) => {
       if (req.url === '/api/test-flush-git') received();

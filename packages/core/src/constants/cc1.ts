@@ -23,7 +23,7 @@ export function isManagedArtifactDocName(name: string): boolean {
   return name.startsWith(MANAGED_ARTIFACT_PREFIX_TEMPLATE);
 }
 
-export const LEGACY_SKILL_STORE_ROOT = '.ok/skills';
+export const LEGACY_SKILL_STORE_ROOT = '.gitquire/skills';
 
 export function stripMdExt(path: string): string {
   return path.replace(/\.mdx?$/i, '');
@@ -41,13 +41,13 @@ function decodeManagedSegments(encoded: string): string {
   }
 }
 
-const TEMPLATE_FILE_TARGET_RE = /^(?:(.+)\/)?\.ok\/templates\/([^/]+?)(?:\.md)?$/;
+const TEMPLATE_FILE_TARGET_RE = /^(?:(.+)\/)?\.gitquire\/templates\/([^/]+?)(?:\.md)?$/;
 
 export type ParsedTemplateName = { folder: string; name: string };
 
 export function templateContentDocName(folderRel: string, name: string): string {
   const folder = folderRel.replace(/^\/+|\/+$/g, '');
-  return folder ? `${folder}/.ok/templates/${name}` : `.ok/templates/${name}`;
+  return folder ? `${folder}/.gitquire/templates/${name}` : `.gitquire/templates/${name}`;
 }
 
 export function parseTemplateContentDocName(docName: string): ParsedTemplateName | null {

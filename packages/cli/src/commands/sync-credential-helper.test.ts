@@ -997,10 +997,10 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       .toEqual([]);
   });
 
-  test("with origin on an Enterprise host declared in ~/.ok/global.yml, gq sync presents the gh CLI's token through OpenKnowledge's helper and never asks the user's own helpers", async () => {
-    mkdirSync(join(home, '.ok'), { recursive: true });
+  test("with origin on an Enterprise host declared in ~/.gitquire/global.yml, gq sync presents the gh CLI's token through OpenKnowledge's helper and never asks the user's own helpers", async () => {
+    mkdirSync(join(home, '.gitquire'), { recursive: true });
     writeFileSync(
-      join(home, '.ok', 'global.yml'),
+      join(home, '.gitquire', 'global.yml'),
       `git:\n  hosts:\n    ${ENTERPRISE_HOST}:\n      provider: github\n`,
     );
     const server = await arrange({
@@ -1033,9 +1033,9 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with origin on a declared Enterprise host at a non-default port, gq sync keeps the user's own credential and hands no relay to their helpers", async () => {
     const portedHost = `${ENTERPRISE_HOST}:8443`;
-    mkdirSync(join(home, '.ok'), { recursive: true });
+    mkdirSync(join(home, '.gitquire'), { recursive: true });
     writeFileSync(
-      join(home, '.ok', 'global.yml'),
+      join(home, '.gitquire', 'global.yml'),
       `git:\n  hosts:\n    ${ENTERPRISE_HOST}:\n      provider: github\n`,
     );
     const server = await arrange({

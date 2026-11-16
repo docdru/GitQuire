@@ -18,12 +18,12 @@ const EDITOR = '.ProseMirror:not(.composer-prosemirror)';
 const PATH_START = 'Folder path must start with ./ or / and cannot contain ..';
 
 function writeProjectConfig(contentDir: string, body: string): void {
-  mkdirSync(join(contentDir, '.ok'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'config.yml'), body);
+  mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'config.yml'), body);
 }
 
 function readProjectConfig(contentDir: string): string {
-  const path = join(contentDir, '.ok', 'config.yml');
+  const path = join(contentDir, '.gitquire', 'config.yml');
   return existsSync(path) ? readFileSync(path, 'utf-8') : '';
 }
 

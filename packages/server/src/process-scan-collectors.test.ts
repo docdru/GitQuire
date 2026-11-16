@@ -63,7 +63,7 @@ function emptyOutput(program: string): Output {
 beforeEach(() => {
   directory = realpathSync(mkdtempSync(join(tmpdir(), 'ok-process-collectors-')));
   project = join(directory, 'project');
-  lockDir = join(project, '.ok', 'local');
+  lockDir = join(project, '.gitquire', 'local');
   mkdirSync(lockDir, { recursive: true });
   writeFileSync(join(lockDir, 'server.lock'), '{}');
   const caller = join(directory, 'caller');
@@ -317,7 +317,7 @@ describe('listener enumeration', () => {
     expect(await scanLockProcesses()).toEqual({
       candidates: [
         { lockDir, pid: fixturePid, source: 'listener-cwd' },
-        { lockDir: join(project, '.ok'), pid: fixturePid, source: 'listener-cwd' },
+        { lockDir: join(project, '.gitquire'), pid: fixturePid, source: 'listener-cwd' },
       ],
       unavailable: [],
     });

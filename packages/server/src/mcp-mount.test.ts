@@ -389,7 +389,7 @@ describe('mountMcpAndApi content-asset middleware', () => {
   async function startWithAssets(contentDir: string): Promise<{ port: number }> {
     const httpServer = createServer();
     const filter = {
-      isPathIgnored: (rel: string) => rel.startsWith('.ok/') || rel === 'excluded.png',
+      isPathIgnored: (rel: string) => rel.startsWith('.gitquire/') || rel === 'excluded.png',
     };
     const mount = mountMcpAndApi({
       httpServer,

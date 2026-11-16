@@ -25,8 +25,8 @@ msgstr " आपका चयन बहाल कर दिया गया ह�
 msgid "— except"
 msgstr "— सिवाय"
 
-msgid ".ok folders"
-msgstr ".ok फ़ोल्डर"
+msgid ".gitquire folders"
+msgstr ".gitquire फ़ोल्डर"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1023,7 +1023,7 @@ msgstr "किस पर लागू (ग्लोब — शुरू मे�
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2683,8 +2683,8 @@ msgstr "एम्बेडिंग"
 msgid "Embeddings API key"
 msgstr "एम्बेडिंग API कुंजी"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "एम्बेडिंग केवल तभी बनाई जाती हैं जब कोई खोज चलती है, और वे <0>.ok/local</0> के अंतर्गत स्थानीय रूप से कैश की जाती हैं।"
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "एम्बेडिंग केवल तभी बनाई जाती हैं जब कोई खोज चलती है, और वे <0>.gitquire/local</0> के अंतर्गत स्थानीय रूप से कैश की जाती हैं।"
 
 msgid "Emoji"
 msgstr "इमोजी"
@@ -3155,8 +3155,8 @@ msgstr "फ़ाइल बहुत बड़ी है ({sizeKb} KB) — ह�
 msgid "File name"
 msgstr "फ़ाइल का नाम"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "फ़ाइल का नाम (.ok/schemas/ में बनाई गई)"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "फ़ाइल का नाम (.gitquire/schemas/ में बनाई गई)"
 
 msgid "File sidebar"
 msgstr "फ़ाइल साइडबार"
@@ -6471,8 +6471,8 @@ msgstr "संपादक को इसके साथ भेजें"
 msgid "Show"
 msgstr "दिखाएँ"
 
-msgid "Show .ok folders"
-msgstr ".ok फ़ोल्डर दिखाएँ"
+msgid "Show .gitquire folders"
+msgstr ".gitquire फ़ोल्डर दिखाएँ"
 
 msgid "Show {0} more"
 msgstr "{0} और दिखाएँ"
@@ -6774,8 +6774,8 @@ msgstr "ठीक करना रोक दिया गया। जो फ़
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "इस प्रोजेक्ट में <0>.ok/templates/</0> पर सहेजा गया। हर फ़ोल्डर में उपलब्ध (फ़ोल्डर-सीमित टेम्पलेट फ़ाइल-नाम से इसे अधिरोहित कर सकते हैं)।"
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "इस प्रोजेक्ट में <0>.gitquire/templates/</0> पर सहेजा गया। हर फ़ोल्डर में उपलब्ध (फ़ोल्डर-सीमित टेम्पलेट फ़ाइल-नाम से इसे अधिरोहित कर सकते हैं)।"
 
 msgid "Strikethrough"
 msgstr "काटा हुआ"

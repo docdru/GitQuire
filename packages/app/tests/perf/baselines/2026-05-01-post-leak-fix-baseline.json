@@ -137,7 +137,7 @@
   },
   "notes": [
     "Captured 2026-05-01 against worktree feat/perf-constant-overrides @ d2e649c3 (post-merge integration of origin/main; UndoManager closure-leak fix from PR #397 included).",
-    "Anchored to merge commit that integrates origin/main containing PR #397 (TipTap+Yjs leak fix), PR #408 (perf-harness headless default + ACTIVITY_MOUNT_LIMIT=1 fix), PR #401 (.open-knowledge/ \u2192 .ok/ rename), and PR #403 (RHF settings refactor).",
+    "Anchored to merge commit that integrates origin/main containing PR #397 (TipTap+Yjs leak fix), PR #408 (perf-harness headless default + ACTIVITY_MOUNT_LIMIT=1 fix), PR #401 (.open-knowledge/ \u2192 .gitquire/ rename), and PR #403 (RHF settings refactor).",
     "Supersedes 2026-04-30-post-merge-baseline.json (commitSha 2abe8249) as the pre-G4 anchor for chip-virtualization-and-cv-auto spec measurements.",
     "Sweep protocol: 4 scenarios \u00d7 3 docs \u00d7 (1 warmup + 3 measurement) = 48 reps. Warmup reps captured but excluded from p50/p95.",
     "Bun 1.3.13; Vite 8.0.8; dev server VITE_PORT=5179 (this worktree). Repo-rooted content (PR #376 tripwire blocks doc-doubling).",

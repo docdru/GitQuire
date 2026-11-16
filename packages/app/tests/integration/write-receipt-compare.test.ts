@@ -254,7 +254,10 @@ describe('compare before every Markdown write', () => {
     await first.server.cleanup();
     server = undefined;
 
-    const receiptLog = readFileSync(join(contentDir, '.ok', 'local', 'receipts.jsonl'), 'utf-8');
+    const receiptLog = readFileSync(
+      join(contentDir, '.gitquire', 'local', 'receipts.jsonl'),
+      'utf-8',
+    );
     expect(receiptLog).toContain(contentHash(saved));
 
     const editedWhileStopped =
@@ -355,9 +358,9 @@ describe('compare before every Markdown write', () => {
       25,
       'the late echo to reach the intake',
     );
-    expect(readFileSync(join(contentDir, '.ok', 'local', 'receipts.jsonl'), 'utf-8')).toContain(
-      contentHash(final),
-    );
+    expect(
+      readFileSync(join(contentDir, '.gitquire', 'local', 'receipts.jsonl'), 'utf-8'),
+    ).toContain(contentHash(final));
   });
 
   test('a store whose merge of the outside edit fails to apply holds the save and never writes over the outside bytes', async () => {

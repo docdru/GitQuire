@@ -230,10 +230,10 @@ describe('exec — happy path', () => {
     expect(result.content[0].text).toMatch(/most recent:.*\d{4}-\d{2}-\d{2}/);
   });
 
-  test('ls with explicit dir arg surfaces nested .ok/frontmatter.yml folder defaults', async () => {
+  test('ls with explicit dir arg surfaces nested .gitquire/frontmatter.yml folder defaults', async () => {
     const project = await bootstrap();
     const specs = resolve(project, 'specs');
-    const specsOk = resolve(specs, '.ok');
+    const specsOk = resolve(specs, '.gitquire');
     mkdirSync(specsOk, { recursive: true });
     writeFileSync(resolve(specs, 'foo.md'), '# Foo\n');
     writeFileSync(
@@ -261,7 +261,7 @@ describe('exec — happy path', () => {
   test("ls <dir> surfaces the folder's own well-known frontmatter keys + templates_available", async () => {
     const project = await bootstrap();
     const specs = resolve(project, 'specs');
-    const specsOk = resolve(specs, '.ok');
+    const specsOk = resolve(specs, '.gitquire');
     const specsOkTemplates = resolve(specsOk, 'templates');
     mkdirSync(specsOkTemplates, { recursive: true });
     writeFileSync(resolve(specs, 'foo.md'), '# Foo\n');
@@ -789,10 +789,10 @@ describe('exec — per-row route-only previewUrl (FR-2.2)', () => {
     expect(s.enrichedPaths).toEqual([]);
   });
 
-  test('FR13: nested .ok/ paths are filtered from enrichedPaths (not surfaced as listings)', async () => {
+  test('FR13: nested .gitquire/ paths are filtered from enrichedPaths (not surfaced as listings)', async () => {
     const project = await bootstrap();
     const meetings = resolve(project, 'meetings');
-    const meetingsOkTpls = resolve(meetings, '.ok', 'templates');
+    const meetingsOkTpls = resolve(meetings, '.gitquire', 'templates');
     mkdirSync(meetingsOkTpls, { recursive: true });
     writeFileSync(resolve(meetingsOkTpls, 'prep-notes.md'), '---\ntitle: Prep\n---\nbody\n');
     writeFileSync(resolve(meetings, '2026-05-01.md'), '---\ntitle: Meeting\n---\nbody\n');
@@ -804,7 +804,7 @@ describe('exec — per-row route-only previewUrl (FR-2.2)', () => {
     const s = structured(result);
     const paths = s.enrichedPaths.map((e) => e.path);
     expect(paths).toContain('meetings/2026-05-01.md');
-    expect(paths.some((p) => p.includes('.ok/'))).toBe(false);
+    expect(paths.some((p) => p.includes('.gitquire/'))).toBe(false);
   });
 });
 
@@ -812,7 +812,7 @@ describe('exec — explicit subdirectory cwd', () => {
   function walkUpResolveCwd(start: string): string {
     let dir = resolve(start);
     for (;;) {
-      if (existsSync(resolve(dir, '.ok', 'config.yml'))) return dir;
+      if (existsSync(resolve(dir, '.gitquire', 'config.yml'))) return dir;
       const parent = resolve(dir, '..');
       if (parent === dir) throw new Error(`no OK project at or above ${start}`);
       dir = parent;
@@ -821,8 +821,8 @@ describe('exec — explicit subdirectory cwd', () => {
 
   async function bootstrapWithMarker(): Promise<{ project: string; subdir: string }> {
     const project = await bootstrap();
-    mkdirSync(resolve(project, '.ok'), { recursive: true });
-    writeFileSync(resolve(project, '.ok', 'config.yml'), 'content:\n  dir: .\n');
+    mkdirSync(resolve(project, '.gitquire'), { recursive: true });
+    writeFileSync(resolve(project, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
     const subdir = resolve(project, 'subdir');
     mkdirSync(subdir, { recursive: true });
     return { project, subdir };
@@ -1189,7 +1189,7 @@ describe('exec — frontmatter schemas_applicable read-time advertisement', () =
     contentRules: {
       frontmatter: {
         enabled: true,
-        schemas: [{ appliesTo: 'content/**', file: '.ok/schemas/doc.schema.json' }],
+        schemas: [{ appliesTo: 'content/**', file: '.gitquire/schemas/doc.schema.json' }],
       },
     },
   });
@@ -1206,7 +1206,7 @@ describe('exec — frontmatter schemas_applicable read-time advertisement', () =
     )) as ExecResult;
 
     const files = fileEntries(structured(result));
-    expect(files[0]?.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
+    expect(files[0]?.schemas_applicable).toEqual(['.gitquire/schemas/doc.schema.json']);
   });
 
   test('a doc outside the appliesTo scope carries no schemas_applicable', async () => {
@@ -1258,10 +1258,10 @@ describe('exec — OKF schemas_applicable read-time advertisement', () => {
 
     const files = fileEntries(structured(result));
     expect(files[0]?.schemas_applicable).toEqual([
-      '.ok/okf/required.schema.json',
-      '.ok/okf/recommended.schema.json',
-      '.ok/okf/provenance.schema.json',
-      '.ok/okf/computation.schema.json',
+      '.gitquire/okf/required.schema.json',
+      '.gitquire/okf/recommended.schema.json',
+      '.gitquire/okf/provenance.schema.json',
+      '.gitquire/okf/computation.schema.json',
     ]);
   });
 
@@ -1275,7 +1275,7 @@ describe('exec — OKF schemas_applicable read-time advertisement', () => {
     )) as ExecResult;
 
     const files = fileEntries(structured(result));
-    expect(files[0]?.schemas_applicable).toEqual(['.ok/okf/root-index.schema.json']);
+    expect(files[0]?.schemas_applicable).toEqual(['.gitquire/okf/root-index.schema.json']);
   });
 
   test('a log advertises nothing — OKF does not constrain its frontmatter', async () => {
@@ -1312,8 +1312,8 @@ describe('exec — OKF schemas_applicable read-time advertisement', () => {
 
     const files = fileEntries(structured(result));
     expect(files[0]?.schemas_applicable).toEqual([
-      '.ok/okf/required.schema.json',
-      '.ok/okf/recommended.schema.json',
+      '.gitquire/okf/required.schema.json',
+      '.gitquire/okf/recommended.schema.json',
     ]);
   });
 
@@ -1413,11 +1413,11 @@ describe('exec — mutation-sweep scoping and honesty', () => {
 describe('exec — the local data folder is not readable', () => {
   async function withSecrets(): Promise<string> {
     const project = await bootstrap();
-    for (const dir of ['.ok/local', '.gitquire/local']) {
+    for (const dir of ['.gitquire/local', '.ok/local']) {
       mkdirSync(resolve(project, dir, 'chat'), { recursive: true });
       writeFileSync(resolve(project, dir, 'chat', 'keys.json'), '{"key":"secret-token-123"}');
     }
-    writeFileSync(resolve(project, '.ok', 'config.yml'), 'content:\n  dir: .\n');
+    writeFileSync(resolve(project, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
     writeFileSync(resolve(project, 'notes.md'), 'mentions secret-token-123 in prose\n');
     return project;
   }
@@ -1430,11 +1430,11 @@ describe('exec — the local data folder is not readable', () => {
   }
 
   test.each([
-    'cat .ok/local/chat/keys.json',
     'cat .gitquire/local/chat/keys.json',
-    'cat ./.ok/../.ok/local/chat/keys.json',
+    'cat .gitquire/local/chat/keys.json',
+    'cat ./.gitquire/../.gitquire/local/chat/keys.json',
     'head .OK/LOCAL/chat/keys.json',
-    'ls .ok/local',
+    'ls .gitquire/local',
   ])('%s is refused as if the folder did not exist', async (command) => {
     const project = await withSecrets();
     const result = await run(project, command);
@@ -1445,10 +1445,10 @@ describe('exec — the local data folder is not readable', () => {
   });
 
   test.each([
-    'grep -r secret-token-123 .ok',
+    'grep -r secret-token-123 .gitquire',
     'grep -rn secret-token-123 .',
     'find . -name keys.json',
-    'ls -R .ok',
+    'ls -R .gitquire',
     'find .gitquire',
   ])('%s does not list the folder or its files', async (command) => {
     const project = await withSecrets();
@@ -1463,7 +1463,7 @@ describe('exec — the local data folder is not readable', () => {
     const project = await withSecrets();
     const grep = await run(project, 'grep -rn secret-token-123 .');
     expect(grep.content[0].text).toContain('notes.md');
-    const ls = await run(project, 'ls .ok');
+    const ls = await run(project, 'ls .gitquire');
     expect(ls.content[0].text).toContain('config.yml');
   });
 
@@ -1496,13 +1496,19 @@ describe('exec — the local data folder is not readable', () => {
   test('the listing summary does not describe pages in the folder', async () => {
     const project = await withSecrets();
     writeFileSync(
-      resolve(project, '.ok/local/chat/conv.md'),
+      resolve(project, '.gitquire/local/chat/conv.md'),
       '---\ntitle: SECRETTITLE\n---\n# SECRETTITLE\n',
     );
     mkdirSync(resolve(project, 'docs'), { recursive: true });
-    symlinkSync('../.ok/local/chat/conv.md', resolve(project, 'docs', 'link.md'));
-    symlinkSync('../.ok/local/chat', resolve(project, 'docs', 'dirlink'));
-    for (const command of ['ls .ok', 'ls -d .ok', 'ls .gitquire', 'ls docs', 'cat docs/link.md']) {
+    symlinkSync('../.gitquire/local/chat/conv.md', resolve(project, 'docs', 'link.md'));
+    symlinkSync('../.gitquire/local/chat', resolve(project, 'docs', 'dirlink'));
+    for (const command of [
+      'ls .gitquire',
+      'ls -d .gitquire',
+      'ls .ok',
+      'ls docs',
+      'cat docs/link.md',
+    ]) {
       const result = await run(project, command);
       const text = result.content.map((part) => part.text).join('\n');
       expect(text, command).not.toContain('SECRETTITLE');
@@ -1512,7 +1518,7 @@ describe('exec — the local data folder is not readable', () => {
 
   test('exec cannot run from inside the folder', async () => {
     const project = await withSecrets();
-    const result = await run(project, 'ls', resolve(project, '.ok/local'));
+    const result = await run(project, 'ls', resolve(project, '.gitquire/local'));
     expect(result.isError).toBe(true);
     expect(result.content[0].text).not.toContain('chat');
   });

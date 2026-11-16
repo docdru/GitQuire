@@ -176,9 +176,9 @@ function isolatedCliRunner(prefix: string) {
   const ghShim = join(root, 'gh');
   writeFileSync(ghShim, '#!/bin/sh\nprintf token-for-e2e\n', 'utf8');
   chmodSync(ghShim, 0o755);
-  mkdirSync(join(fakeHome, '.ok'), { recursive: true });
+  mkdirSync(join(fakeHome, '.gitquire'), { recursive: true });
   writeFileSync(
-    join(fakeHome, '.ok', 'skill-state.yml'),
+    join(fakeHome, '.gitquire', 'skill-state.yml'),
     'schema: 1\nbundles:\n  open-knowledge-discovery:\n    enabled: true\n    decidedAt: 2026-01-01T00:00:00.000Z\n',
     'utf8',
   );
@@ -262,7 +262,7 @@ beforeAll(async () => {
   execFileSync('git', ['init', '-q'], { cwd: H.contentDir });
   execFileSync('git', ['config', 'user.email', 'e2e@ok.test'], { cwd: H.contentDir });
   execFileSync('git', ['config', 'user.name', 'OK E2E'], { cwd: H.contentDir });
-  H.lockPath = join(H.contentDir, '.ok', 'local', 'server.lock');
+  H.lockPath = join(H.contentDir, '.gitquire', 'local', 'server.lock');
 }, 240_000);
 
 afterAll(async () => {
@@ -325,10 +325,10 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
     240_000,
   );
 
-  test('2. gq init scaffolds .ok/ in the content dir', () => {
+  test('2. gq init scaffolds .gitquire/ in the content dir', () => {
     const r = runOk(['init', '--no-mcp'], { timeoutMs: 60_000 });
     expect(r.status).toBe(0);
-    expect(existsSync(join(H.contentDir, '.ok'))).toBe(true);
+    expect(existsSync(join(H.contentDir, '.gitquire'))).toBe(true);
   });
 
   test('2c. gq clone --json keeps fresh clone stdout parseable as JSONL', async () => {
@@ -449,7 +449,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
 
   test('8. a lock whose pid now belongs to another process reads stale, is pruned, and is never signalled', async () => {
     const projectDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-e2e-reused-pid-')));
-    const lockPath = join(projectDir, '.ok', 'local', 'server.lock');
+    const lockPath = join(projectDir, '.gitquire', 'local', 'server.lock');
     const standIn = await startOwnedProcess();
     let server: ChildProcess | null = null;
     let serverLog = '';

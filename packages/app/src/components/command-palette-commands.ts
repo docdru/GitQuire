@@ -129,7 +129,7 @@ const PALETTE_COMMAND_LABELS = {
   agentsMoveToTopEdge: msg`Move Agents to the top edge of the window`,
   agentsMoveToBottomEdge: msg`Move Agents to the bottom edge of the window`,
   showHiddenFiles: msg`Show hidden files`,
-  showOkFolders: msg`Show .ok folders`,
+  showOkFolders: msg`Show .gitquire folders`,
   showOnlyMarkdownFiles: msg`Show only markdown files`,
   expandAll: msg`Expand all`,
   collapseAll: msg`Collapse all`,

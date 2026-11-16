@@ -25,7 +25,7 @@ export function listProjectSchemaFiles(projectRoot: string): {
   schemas: string[];
   truncated: boolean;
 } {
-  const dir = join(projectRoot, '.ok', 'schemas');
+  const dir = join(projectRoot, '.gitquire', 'schemas');
   let names: string[];
   try {
     names = readdirSync(dir, { withFileTypes: true })
@@ -37,13 +37,13 @@ export function listProjectSchemaFiles(projectRoot: string): {
     if (code !== 'ENOENT' && code !== 'ENOTDIR') {
       getLogger('frontmatter-schemas').warn(
         { err, code, dir },
-        'could not enumerate .ok/schemas; the schema picker will show an empty list',
+        'could not enumerate .gitquire/schemas; the schema picker will show an empty list',
       );
     }
     return { schemas: [], truncated: false };
   }
   const truncated = names.length > SCHEMA_LIST_CAP;
-  const schemas = names.slice(0, SCHEMA_LIST_CAP).map((name) => `.ok/schemas/${name}`);
+  const schemas = names.slice(0, SCHEMA_LIST_CAP).map((name) => `.gitquire/schemas/${name}`);
   return { schemas, truncated };
 }
 

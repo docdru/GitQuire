@@ -50,7 +50,7 @@ function storeLockPath(baseDir: string): string {
 }
 
 async function withContendedStoreLock<T>(fn: () => Promise<T>): Promise<T> {
-  const lockDir = join(home, '.ok');
+  const lockDir = join(home, '.gitquire');
   mkdirSync(lockDir, { recursive: true });
   const lockPath = storeLockPath(lockDir);
   writeFileSync(lockPath, '', { flag: 'wx', mode: 0o600 });
@@ -476,7 +476,7 @@ describe('deleteSavedTheme', () => {
       scheme: scheme('Gone'),
     });
     expect(storeFiles()).toEqual([]);
-    expect(readdirSync(join(home, '.ok'))).toEqual(['themes']);
+    expect(readdirSync(join(home, '.gitquire'))).toEqual(['themes']);
   });
 
   test('resolves and removes a hand-dropped .yml file', async () => {
@@ -563,7 +563,7 @@ describe('deleteSavedTheme', () => {
 
     expect(result).toEqual({ ok: true, existed: false });
     expect(existsSync(savedThemesDir(home))).toBe(false);
-    expect(readdirSync(join(home, '.ok'))).toEqual([]);
+    expect(readdirSync(join(home, '.gitquire'))).toEqual([]);
   });
 
   test('a malformed id is refused with a distinct code', async () => {

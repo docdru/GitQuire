@@ -17,7 +17,7 @@ export const DESKTOP_PRODUCTS = {
     mcpServerName: 'open-knowledge',
     mcpChainTag: '',
     npmDistTag: 'latest',
-    userHomeDirName: '.ok',
+    userHomeDirName: '.gitquire',
     keyringService: 'open-knowledge',
   },
   beta: {
@@ -38,7 +38,7 @@ export const DESKTOP_PRODUCTS = {
     mcpServerName: 'open-knowledge-beta',
     mcpChainTag: '-beta',
     npmDistTag: 'beta',
-    userHomeDirName: '.ok-beta',
+    userHomeDirName: '.gitquire-beta',
     keyringService: 'open-knowledge-beta',
   },
   dev: {
@@ -59,7 +59,7 @@ export const DESKTOP_PRODUCTS = {
     mcpServerName: 'open-knowledge-dev',
     mcpChainTag: '-dev',
     npmDistTag: 'latest',
-    userHomeDirName: '.ok-dev',
+    userHomeDirName: '.gitquire-dev',
     keyringService: 'open-knowledge-dev',
   },
 } as const;

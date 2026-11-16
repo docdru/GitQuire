@@ -64,8 +64,8 @@ describe('create-folder envelope (RFC 9457)', () => {
     }
   });
 
-  test('reserved .ok prefix emits urn:ok:error:reserved-doc-name', async () => {
-    const res = await postCreate({ path: '.ok/cache' });
+  test('reserved .gitquire prefix emits urn:ok:error:reserved-doc-name', async () => {
+    const res = await postCreate({ path: '.gitquire/cache' });
     expect(res.status).toBe(400);
     const body = await res.json();
     const parsed = ProblemDetailsSchema.safeParse(body);

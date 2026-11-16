@@ -6,7 +6,7 @@ import { readProjectLocalSemanticConfig } from './semantic-config.ts';
 
 function makeProject(): string {
   const dir = mkdtempSync(join(tmpdir(), 'ok-semcfg-'));
-  mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
+  mkdirSync(join(dir, '.gitquire', 'local'), { recursive: true });
   return dir;
 }
 
@@ -15,7 +15,7 @@ describe('readProjectLocalSemanticConfig', () => {
     const dir = makeProject();
     try {
       writeFileSync(
-        join(dir, '.ok', 'local', 'config.yml'),
+        join(dir, '.gitquire', 'local', 'config.yml'),
         'search:\n  semantic:\n    enabled: true\n    model: text-embedding-3-large\n    maxBatchSize: 2\n    maxBatchChars: 16000\n    docTimeoutMs: 120000\n',
       );
       const cfg = readProjectLocalSemanticConfig(dir);
@@ -33,7 +33,7 @@ describe('readProjectLocalSemanticConfig', () => {
     const dir = makeProject();
     try {
       writeFileSync(
-        join(dir, '.ok', 'config.yml'),
+        join(dir, '.gitquire', 'config.yml'),
         'search:\n  semantic:\n    enabled: true\n    maxBatchSize: 2\n    maxBatchChars: 16000\n    docTimeoutMs: 120000\n',
       );
       expect(readProjectLocalSemanticConfig(dir)).toMatchObject({

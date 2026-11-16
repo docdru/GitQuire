@@ -44,7 +44,7 @@ function unrecordedStartWarnings(warn: MockInstance<(data: unknown, message: str
 }
 
 function acquireServerLock(): ProcessLockMetadata {
-  const lockDir = resolve(tempDir('ok-unrecorded-start-'), '.ok', LOCAL_DIR);
+  const lockDir = resolve(tempDir('ok-unrecorded-start-'), '.gitquire', LOCAL_DIR);
   const handle = acquireProcessLock({
     lockName: 'server',
     lockDir,

@@ -2782,7 +2782,9 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
             isReservedProjectStatePath(fromPath) ||
             isReservedProjectStatePath(destinationAssetPath)
           ) {
-            throw new ManagedRenameReservedPathError('.ok and .git are reserved directories.');
+            throw new ManagedRenameReservedPathError(
+              '.gitquire and .git are reserved directories.',
+            );
           }
           if (contentFilter?.isPathIgnored(destinationAssetPath)) {
             throw new ManagedRenameInvalidRequestError(
@@ -2876,7 +2878,9 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
             throw new ManagedRenameReservedPathError('Reserved document names cannot be renamed.');
           }
           if (isReservedProjectStatePath(fromPath) || isReservedProjectStatePath(toPath)) {
-            throw new ManagedRenameReservedPathError('.ok and .git are reserved directories.');
+            throw new ManagedRenameReservedPathError(
+              '.gitquire and .git are reserved directories.',
+            );
           }
           if (contentFilter?.isPathIgnored(toPath)) {
             throw new ManagedRenameInvalidRequestError(
@@ -3594,8 +3598,8 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   ): string {
     const base = folder.replace(/\/$/, '');
     const prefix = base === '' ? '' : `${base}/`;
-    if (kind === 'template') return `${prefix}.ok/templates/${name}`;
-    if (kind === 'folder-frontmatter') return `${prefix}.ok/frontmatter`;
+    if (kind === 'template') return `${prefix}.gitquire/templates/${name}`;
+    if (kind === 'folder-frontmatter') return `${prefix}.gitquire/frontmatter`;
     return base === '' ? '.' : base;
   }
 
@@ -4286,21 +4290,21 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       return null;
     }
     /* STOP: the escape asserts below admit an IN-ROOT symlinked
-       `<folder>/.ok` OR `<folder>/.ok/templates` (their realpaths stay
+       `<folder>/.gitquire` OR `<folder>/.gitquire/templates` (their realpaths stay
        inside the content root), which would alias every folder-config and
        template arm — including the WRITE arms (`applyTemplateWrite`'s
        rename lands wherever `templates` points; `applyTemplateDelete`
        unlinks through it) — into another directory. Refuse by identity —
-       same posture as `initContent`'s `assertNotSymlink` on the root `.ok/`
+       same posture as `initContent`'s `assertNotSymlink` on the root `.gitquire/`
        and the templates resolver's gates. The `templates` component is
        checked only for the template arms (`components: 'ok-and-templates'`).
-       The folder-config arms DO reach `.ok/templates` — through
+       The folder-config arms DO reach `.gitquire/templates` — through
        `collectFromFolder` (content/templates-resolver.ts), which gates it by
        identity and degrades, skipping a symlinked templates dir (and
        reporting it via `onRefused`) rather than failing the folder payload.
        Do not hard-fail here for those arms or the per-field degrade contract
        breaks; do not delete the resolver-side gate, which is what makes the
-       degrade safe. The same unconditional `.ok` identity check also gates
+       degrade safe. The same unconditional `.gitquire` identity check also gates
        the folder-history arm (http/history-routes.ts) for a uniform
        refuse-by-identity posture, even though that arm only uses the path as
        a `git log` pathspec and the aliasing risk above does not apply there.
@@ -4309,24 +4313,24 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
        (`unverifiable`) is left to the `assertNoSymlinkEscape` asserts below,
        which classify it (ELOOP → path-escape, other errnos → 500) rather
        than mislabel a non-symlink path as a symlink. */
-    const okDir = resolve(candidateAbs, '.ok');
+    const okDir = resolve(candidateAbs, '.gitquire');
     if (checkSymlinkLeaf(okDir).kind === 'symlink') {
       errorResponse(
         res,
         400,
         'urn:ok:error:symlink-refused',
-        `${folderRel || '.'}/.ok is a symlink — refusing to operate through it. Replace the symlink with a real file or directory and retry.`,
+        `${folderRel || '.'}/.gitquire is a symlink — refusing to operate through it. Replace the symlink with a real file or directory and retry.`,
         { handler, detail: folderRel || '.' },
       );
       return null;
     }
-    const okTemplatesDir = resolve(candidateAbs, '.ok', 'templates');
+    const okTemplatesDir = resolve(candidateAbs, '.gitquire', 'templates');
     if (components === 'ok-and-templates' && checkSymlinkLeaf(okTemplatesDir).kind === 'symlink') {
       errorResponse(
         res,
         400,
         'urn:ok:error:symlink-refused',
-        `${folderRel || '.'}/.ok/templates is a symlink — refusing to operate through it. Replace the symlink with a real file or directory and retry.`,
+        `${folderRel || '.'}/.gitquire/templates is a symlink — refusing to operate through it. Replace the symlink with a real file or directory and retry.`,
         { handler, detail: folderRel || '.' },
       );
       return null;

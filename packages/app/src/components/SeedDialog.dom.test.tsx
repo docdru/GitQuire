@@ -58,9 +58,9 @@ const applyCalls: Array<{ plan: OkScaffoldPlan; packId?: OkPackId }> = [];
 const knowledgeBasePlan: OkScaffoldPlan = {
   created: [
     { kind: 'folder', path: 'notes' },
-    { kind: 'folder', path: 'notes/.ok' },
-    { kind: 'folder', path: 'notes/.ok/templates' },
-    { kind: 'file', path: 'notes/.ok/templates/note.md' },
+    { kind: 'folder', path: 'notes/.gitquire' },
+    { kind: 'folder', path: 'notes/.gitquire/templates' },
+    { kind: 'file', path: 'notes/.gitquire/templates/note.md' },
     { kind: 'file', path: 'log.md' },
   ],
   skipped: [],
@@ -70,9 +70,9 @@ const knowledgeBasePlan: OkScaffoldPlan = {
 const plainNotesPlan: OkScaffoldPlan = {
   created: [
     { kind: 'folder', path: 'daily' },
-    { kind: 'folder', path: 'daily/.ok' },
-    { kind: 'folder', path: 'daily/.ok/templates' },
-    { kind: 'file', path: 'daily/.ok/templates/daily.md' },
+    { kind: 'folder', path: 'daily/.gitquire' },
+    { kind: 'folder', path: 'daily/.gitquire/templates' },
+    { kind: 'file', path: 'daily/.gitquire/templates/daily.md' },
   ],
   skipped: [],
   warnings: [],

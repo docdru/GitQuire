@@ -69,23 +69,23 @@ const SECRET = `ghp_${'a'.repeat(40)}`;
 
 function makeStandardProjectDir(slug = 'report-proj'): string {
   const projectDir = makeTmpDir();
-  writeAt(projectDir, '.ok/config.yml', `name: ${slug}\n`);
-  writeAt(projectDir, '.ok/local/server.lock', '{"pid":1234}\n');
-  writeAt(projectDir, '.ok/local/last-spawn-error.log', 'spawn failed\n');
-  writeAt(projectDir, '.ok/local/logs/server-current.jsonl', '{"level":30}\n');
+  writeAt(projectDir, '.gitquire/config.yml', `name: ${slug}\n`);
+  writeAt(projectDir, '.gitquire/local/server.lock', '{"pid":1234}\n');
+  writeAt(projectDir, '.gitquire/local/last-spawn-error.log', 'spawn failed\n');
+  writeAt(projectDir, '.gitquire/local/logs/server-current.jsonl', '{"level":30}\n');
   return projectDir;
 }
 
 function makeFullProjectDir(slug = 'full-proj'): string {
   const projectDir = makeTmpDir();
-  writeAt(projectDir, '.ok/config.yml', `name: ${slug}\n`);
+  writeAt(projectDir, '.gitquire/config.yml', `name: ${slug}\n`);
   const span = JSON.stringify({
     name: 'doc.write',
     attributes: [{ key: 'doc.name', value: { stringValue: 'secret-notes/plan' } }],
   });
   const leak = JSON.stringify({ msg: `token ${SECRET}` });
-  writeAt(projectDir, '.ok/local/telemetry/spans-current.jsonl', `${span}\n${leak}\n`);
-  writeAt(projectDir, '.ok/local/logs/server-current.jsonl', '{"level":30,"msg":"boot"}\n');
+  writeAt(projectDir, '.gitquire/local/telemetry/spans-current.jsonl', `${span}\n${leak}\n`);
+  writeAt(projectDir, '.gitquire/local/logs/server-current.jsonl', '{"level":30,"msg":"boot"}\n');
   return projectDir;
 }
 
@@ -103,7 +103,7 @@ const PLANTED_NOTE = `it died right after I pasted ${STANDARD_PLANTS['note.txt']
 function makePlantedStandardProject(): { projectDir: string; userLogsDir: string } {
   const projectDir = makeTmpDir();
   const userLogsDir = makeTmpDir();
-  writeAt(projectDir, '.ok/config.yml', 'name: planted-proj\n');
+  writeAt(projectDir, '.gitquire/config.yml', 'name: planted-proj\n');
   writeAt(
     userLogsDir,
     'desktop.log',
@@ -111,22 +111,22 @@ function makePlantedStandardProject(): { projectDir: string; userLogsDir: string
   );
   writeAt(
     projectDir,
-    '.ok/local/logs/server-current.jsonl',
+    '.gitquire/local/logs/server-current.jsonl',
     `{"level":50,"source":"renderer-console","msg":"push failed ${STANDARD_PLANTS['local-logs/server-current.jsonl']}"}\n`,
   );
   writeAt(
     projectDir,
-    '.ok/local/last-spawn-error.log',
+    '.gitquire/local/last-spawn-error.log',
     `spawn failed: Authorization: Bearer ${STANDARD_PLANTS['lockdir/last-spawn-error.log']}\n`,
   );
   writeAt(
     projectDir,
-    '.ok/local/server.lock',
+    '.gitquire/local/server.lock',
     `{"pid":1234,"remote":"https://ci:${STANDARD_PLANTS['lockdir/server.lock']}@github.com/o/r.git"}\n`,
   );
   writeAt(
     projectDir,
-    `.ok/local/${SERVER_CRASH_LOG}`,
+    `.gitquire/local/${SERVER_CRASH_LOG}`,
     `{"reason":"boot failed","env":"ANTHROPIC_API_KEY=${STANDARD_PLANTS[`lockdir/${SERVER_CRASH_LOG}`]}"}\n`,
   );
   return { projectDir, userLogsDir };
@@ -779,7 +779,7 @@ describe('collectReportBundle — full level', () => {
 
   test('omits telemetry entirely when the sink has never written', async () => {
     const projectDir = makeTmpDir();
-    writeAt(projectDir, '.ok/config.yml', 'name: bare-proj\n');
+    writeAt(projectDir, '.gitquire/config.yml', 'name: bare-proj\n');
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { zipPath } = await collectReportBundle({
@@ -827,12 +827,12 @@ describe('collectReportBundle — full level', () => {
     const projectDir = makeFullProjectDir();
     writeAt(
       projectDir,
-      '.ok/local/logs/server-current.jsonl',
+      '.gitquire/local/logs/server-current.jsonl',
       `{"level":50,"msg":"auth failed for ${SECRET}"}\n`,
     );
     writeAt(
       projectDir,
-      '.ok/local/loss-capture/loss-current.jsonl',
+      '.gitquire/local/loss-capture/loss-current.jsonl',
       `${JSON.stringify({
         ts: 1,
         schemaVersion: 1,
@@ -864,7 +864,7 @@ describe('collectReportBundle — full level', () => {
     const projectDir = makeFullProjectDir();
     writeAt(
       projectDir,
-      '.ok/local/loss-capture/loss-current.jsonl',
+      '.gitquire/local/loss-capture/loss-current.jsonl',
       `${JSON.stringify({ ts: 1, schemaVersion: 1, seq: 1, event: 'checkpoint-write', docName: 'd' })}\n`,
     );
 
@@ -978,7 +978,7 @@ describe('collectReportBundle — full level', () => {
 
   test('resolves content.dir from the project config for the full capture', async () => {
     const projectDir = makeTmpDir();
-    writeAt(projectDir, '.ok/config.yml', 'name: split-proj\ncontent:\n  dir: docs\n');
+    writeAt(projectDir, '.gitquire/config.yml', 'name: split-proj\ncontent:\n  dir: docs\n');
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { zipPath } = await collectReportBundle({

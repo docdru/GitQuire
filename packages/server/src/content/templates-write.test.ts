@@ -16,7 +16,7 @@ describe('applyTemplateWrite', () => {
     await rm(projectDir, { recursive: true, force: true });
   });
 
-  test('lazy-creates .ok/templates/ and writes the file', () => {
+  test('lazy-creates .gitquire/templates/ and writes the file', () => {
     const result = applyTemplateWrite({
       projectDir,
       folder: 'meetings',
@@ -32,10 +32,10 @@ describe('applyTemplateWrite', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.created).toBe(true);
-    expect(result.path).toBe('meetings/.ok/templates/prep-notes.md');
+    expect(result.path).toBe('meetings/.gitquire/templates/prep-notes.md');
     expect(result.warnings).toEqual([]);
 
-    const abs = join(projectDir, 'meetings', '.ok', 'templates', 'prep-notes.md');
+    const abs = join(projectDir, 'meetings', '.gitquire', 'templates', 'prep-notes.md');
     const content = readFileSync(abs, 'utf-8');
     expect(content).toContain('title: Meeting Prep');
     expect(content).toContain('description: Use before a meeting.');
@@ -62,7 +62,7 @@ describe('applyTemplateWrite', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.created).toBe(false);
-    const abs = join(projectDir, 'meetings', '.ok', 'templates', 'prep.md');
+    const abs = join(projectDir, 'meetings', '.gitquire', 'templates', 'prep.md');
     const content = readFileSync(abs, 'utf-8');
     expect(content).toContain('title: V2');
     expect(content).toContain('second');
@@ -144,7 +144,9 @@ describe('applyTemplateWrite', () => {
       frontmatter: { title: '議事録', description: 'Minutes' },
     });
     expect(result.ok).toBe(true);
-    expect(existsSync(join(projectDir, 'meetings', '.ok', 'templates', '議事録.md'))).toBe(true);
+    expect(existsSync(join(projectDir, 'meetings', '.gitquire', 'templates', '議事録.md'))).toBe(
+      true,
+    );
   });
 
   test('rejects a name hidden behind an invisible character (BAD_NAME)', () => {
@@ -196,8 +198,8 @@ describe('applyTemplateWrite', () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.path).toBe('.ok/templates/global.md');
-    expect(existsSync(join(projectDir, '.ok', 'templates', 'global.md'))).toBe(true);
+    expect(result.path).toBe('.gitquire/templates/global.md');
+    expect(existsSync(join(projectDir, '.gitquire', 'templates', 'global.md'))).toBe(true);
   });
 
   test('writes a minimal-frontmatter template (title only — description optional)', () => {
@@ -210,7 +212,7 @@ describe('applyTemplateWrite', () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const abs = join(projectDir, 'meetings', '.ok', 'templates', 'minimal.md');
+    const abs = join(projectDir, 'meetings', '.gitquire', 'templates', 'minimal.md');
     const content = readFileSync(abs, 'utf-8');
     expect(content).toContain('---\ntemplate:\n  title: Minimal\n---');
     expect(content).toContain('just body');
@@ -241,7 +243,7 @@ describe('applyTemplateDelete', () => {
     await rm(projectDir, { recursive: true, force: true });
   });
 
-  test('removes existing template + auto-cleans empty templates/ + .ok/', () => {
+  test('removes existing template + auto-cleans empty templates/ + .gitquire/', () => {
     applyTemplateWrite({
       projectDir,
       folder: 'meetings',
@@ -249,7 +251,9 @@ describe('applyTemplateDelete', () => {
       body: 'b',
       frontmatter: { title: 'Only', description: 'Only one' },
     });
-    expect(existsSync(join(projectDir, 'meetings', '.ok', 'templates', 'only.md'))).toBe(true);
+    expect(existsSync(join(projectDir, 'meetings', '.gitquire', 'templates', 'only.md'))).toBe(
+      true,
+    );
 
     const result = applyTemplateDelete({ projectDir, folder: 'meetings', name: 'only' });
     expect(result.ok).toBe(true);
@@ -257,7 +261,7 @@ describe('applyTemplateDelete', () => {
     expect(result.existed).toBe(true);
     expect(result.cleanedEmpty.templatesDir).toBe(true);
     expect(result.cleanedEmpty.okDir).toBe(true);
-    expect(existsSync(join(projectDir, 'meetings', '.ok'))).toBe(false);
+    expect(existsSync(join(projectDir, 'meetings', '.gitquire'))).toBe(false);
   });
 
   test('idempotent: deleting non-existent template returns existed: false', () => {
@@ -267,7 +271,7 @@ describe('applyTemplateDelete', () => {
     expect(result.existed).toBe(false);
   });
 
-  test('does NOT remove .ok/ when frontmatter.yml still lives there', () => {
+  test('does NOT remove .gitquire/ when frontmatter.yml still lives there', () => {
     applyTemplateWrite({
       projectDir,
       folder: 'meetings',
@@ -275,14 +279,17 @@ describe('applyTemplateDelete', () => {
       body: 'b',
       frontmatter: { title: 'T', description: 'D' },
     });
-    writeFileSync(join(projectDir, 'meetings', '.ok', 'frontmatter.yml'), 'tags: [meeting]\n');
+    writeFileSync(
+      join(projectDir, 'meetings', '.gitquire', 'frontmatter.yml'),
+      'tags: [meeting]\n',
+    );
 
     const result = applyTemplateDelete({ projectDir, folder: 'meetings', name: 'tpl' });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.cleanedEmpty.templatesDir).toBe(true);
     expect(result.cleanedEmpty.okDir).toBe(false);
-    expect(existsSync(join(projectDir, 'meetings', '.ok', 'frontmatter.yml'))).toBe(true);
+    expect(existsSync(join(projectDir, 'meetings', '.gitquire', 'frontmatter.yml'))).toBe(true);
   });
 
   test('keeps siblings when removing one of multiple templates', () => {
@@ -302,8 +309,12 @@ describe('applyTemplateDelete', () => {
     });
 
     applyTemplateDelete({ projectDir, folder: 'meetings', name: 'prep' });
-    expect(existsSync(join(projectDir, 'meetings', '.ok', 'templates', 'prep.md'))).toBe(false);
-    expect(existsSync(join(projectDir, 'meetings', '.ok', 'templates', 'post.md'))).toBe(true);
+    expect(existsSync(join(projectDir, 'meetings', '.gitquire', 'templates', 'prep.md'))).toBe(
+      false,
+    );
+    expect(existsSync(join(projectDir, 'meetings', '.gitquire', 'templates', 'post.md'))).toBe(
+      true,
+    );
   });
 
   test('rejects bad name', () => {
@@ -339,7 +350,7 @@ describe('applyTemplateMove', () => {
     applyTemplateWrite({ projectDir, folder, name, body, frontmatter: { title: 'T' } });
   }
   const tplPath = (folder: string, name: string) =>
-    join(projectDir, folder, '.ok', 'templates', `${name}.md`);
+    join(projectDir, folder, '.gitquire', 'templates', `${name}.md`);
 
   test('renames within the same folder', async () => {
     seed('research', 'a', '# A');
@@ -359,7 +370,7 @@ describe('applyTemplateMove', () => {
     expect(readFileSync(tplPath('research', 'b'), 'utf-8')).toContain('# A');
   });
 
-  test('moves across folders and auto-cleans the emptied source .ok/', async () => {
+  test('moves across folders and auto-cleans the emptied source .gitquire/', async () => {
     seed('research', 'scorecard');
     const result = await applyTemplateMove({
       projectDir,
@@ -374,7 +385,7 @@ describe('applyTemplateMove', () => {
     expect(existsSync(tplPath('projects', 'scorecard'))).toBe(true);
     expect(result.cleanedEmpty.templatesDir).toBe(true);
     expect(result.cleanedEmpty.okDir).toBe(true);
-    expect(existsSync(join(projectDir, 'research', '.ok'))).toBe(false);
+    expect(existsSync(join(projectDir, 'research', '.gitquire'))).toBe(false);
   });
 
   test('propagates committed=true from a git-mv relocator', async () => {

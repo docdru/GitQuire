@@ -19,8 +19,13 @@ export interface TemplateEntry {
 }
 
 type TemplateDirRefusal =
-  | { kind: 'symlink'; folder: string; component: '.ok' | '.ok/templates' }
-  | { kind: 'unverifiable'; folder: string; component: '.ok/templates'; code: string | undefined };
+  | { kind: 'symlink'; folder: string; component: '.gitquire' | '.gitquire/templates' }
+  | {
+      kind: 'unverifiable';
+      folder: string;
+      component: '.gitquire/templates';
+      code: string | undefined;
+    };
 
 export type TemplateDirRefusalListener = (refusal: TemplateDirRefusal) => void;
 
@@ -146,29 +151,29 @@ function collectFromFolder(
   out: TemplateEntry[],
   onRefused?: TemplateDirRefusalListener,
 ): void {
-  const okDir = join(projectDir, folderRelPath, '.ok');
+  const okDir = join(projectDir, folderRelPath, '.gitquire');
   const templatesDir = join(okDir, 'templates');
 
   /* STOP: `lstat` below refuses only when `templates` ITSELF is the link —
-     the kernel dereferences a symlinked `.ok` on the way there, so the `.ok`
-     component needs its own identity check or an in-root `.ok` alias is
+     the kernel dereferences a symlinked `.gitquire` on the way there, so the `.gitquire`
+     component needs its own identity check or an in-root `.gitquire` alias is
      enumerated here while the fetch-by-name walk
      (`findTemplateLeafToRoot` in folder-template-routes.ts) refuses it.
      `onRefused` fires only for a symlink or a non-ENOTDIR lstat failure: a
      non-directory `templates` (a regular file, or ENOTDIR under a
-     non-directory `.ok`) provably holds no templates, so it degrades to a
+     non-directory `.gitquire`) provably holds no templates, so it degrades to a
      log warn with no refusal and no API warning code — matching the
      ANCESTOR walk's ENOTDIR carve-out in `findTemplateLeafToRoot`. On the
      TEMPLATE arms the entry gate (`validateFolderRel`, `'ok-and-templates'`)
-     has no such carve-out for a non-directory `.ok` on the REQUESTED folder:
+     has no such carve-out for a non-directory `.gitquire` on the REQUESTED folder:
      `assertNoSymlinkEscape(okTemplatesDir)` raises ENOTDIR and the gate
      500s. The folder-config arm skips that assert, so the same shape reaches
      this function and degrades here. The folder-history arm skips it too
      (same `'ok'` scope) but never reaches this function — `getFolderTimeline`
-     uses `<folder>/.ok` only as a `git log` pathspec — so the shape produces
+     uses `<folder>/.gitquire` only as a `git log` pathspec — so the shape produces
      no signal there. */
   if (checkSymlinkLeaf(okDir).kind === 'symlink') {
-    onRefused?.({ kind: 'symlink', folder: folderRelPath, component: '.ok' });
+    onRefused?.({ kind: 'symlink', folder: folderRelPath, component: '.gitquire' });
     if (!templateMetaWarnedPaths.has(okDir)) {
       templateMetaWarnedPaths.add(okDir);
       getLogger('templates').warn(
@@ -189,7 +194,7 @@ function collectFromFolder(
       onRefused?.({
         kind: 'unverifiable',
         folder: folderRelPath,
-        component: '.ok/templates',
+        component: '.gitquire/templates',
         code,
       });
     }
@@ -205,7 +210,7 @@ function collectFromFolder(
   }
   if (!dirStat.isDirectory()) {
     if (dirStat.isSymbolicLink()) {
-      onRefused?.({ kind: 'symlink', folder: folderRelPath, component: '.ok/templates' });
+      onRefused?.({ kind: 'symlink', folder: folderRelPath, component: '.gitquire/templates' });
     }
     if (!templateMetaWarnedPaths.has(templatesDir)) {
       templateMetaWarnedPaths.add(templatesDir);
@@ -266,8 +271,8 @@ function collectFromFolder(
 
     const meta = readTemplateMeta(absPath);
     const relPath = folderRelPath
-      ? posix.join(folderRelPath, '.ok', 'templates', entryName)
-      : posix.join('.ok', 'templates', entryName);
+      ? posix.join(folderRelPath, '.gitquire', 'templates', entryName)
+      : posix.join('.gitquire', 'templates', entryName);
 
     const tplEntry: TemplateEntry = {
       name,

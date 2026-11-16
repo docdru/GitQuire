@@ -469,7 +469,7 @@ describe('selectCandidate', () => {
     }
   });
 
-  test('sole ghost candidate (gitDirKind absent, no .ok/config.yml) is never crowned a branch-match', async () => {
+  test('sole ghost candidate (gitDirKind absent, no .gitquire/config.yml) is never crowned a branch-match', async () => {
     const ghost = recent({ path: '/moved-away/CollaborationUX' });
     const bridge = makeBridge({
       recents: [ghost],

@@ -162,9 +162,9 @@ function presenceEntry(displayName: string): AgentPresenceEntry {
 
 function presenceResetRig() {
   const contentDir = contentDirWithTestDoc('kept\n');
-  mkdirSync(join(contentDir, '.ok'), { recursive: true });
+  mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
   writeFileSync(
-    join(contentDir, '.ok', 'config.yml'),
+    join(contentDir, '.gitquire', 'config.yml'),
     'contentRules:\n  markdownlint:\n    enabled: true\n',
     'utf-8',
   );
@@ -255,7 +255,7 @@ describe('POST /api/test-reset scope=presence', () => {
     );
     expect(rig.settingsResets()).toBe(0);
     expect(readFileSync(join(rig.contentDir, 'test-doc.md'), 'utf-8')).toBe('kept\n');
-    expect(readFileSync(join(rig.contentDir, '.ok', 'config.yml'), 'utf-8')).toBe(
+    expect(readFileSync(join(rig.contentDir, '.gitquire', 'config.yml'), 'utf-8')).toBe(
       'contentRules:\n  markdownlint:\n    enabled: true\n',
     );
     expect(readFileSync(join(rig.contentDir, '.okignore'), 'utf-8')).toBe('kept-by-caller/\n');

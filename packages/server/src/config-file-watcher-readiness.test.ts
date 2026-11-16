@@ -74,7 +74,7 @@ describe.skipIf(process.platform === 'win32')(
     async function changeTheFile({ entry, scenario }: ConfigReadinessCase, timing: MutationTiming) {
       const project = join(root, 'project');
       const target =
-        entry === 'config' ? join(project, '.ok', 'config.yml') : join(project, '.okignore');
+        entry === 'config' ? join(project, '.gitquire', 'config.yml') : join(project, '.okignore');
       const watch = entry === 'config' ? [target] : [target, join(project, '.gitignore')];
       mkdirSync(dirname(target), { recursive: true });
       if (entry === 'multi-config') writeFileSync(join(project, '.gitignore'), 'dist/\n', 'utf-8');

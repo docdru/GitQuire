@@ -21,7 +21,7 @@ function entryPath(e: ListedEntry): string {
 }
 
 function hasOkSegment(p: string): boolean {
-  return p.split('/').includes('.ok');
+  return p.split('/').includes('.gitquire');
 }
 
 beforeAll(async () => {
@@ -30,14 +30,17 @@ beforeAll(async () => {
     join(contentDir, `${VISIBLE_TOKEN}.md`),
     `# ${SHARED_TOKEN}\n\n${VISIBLE_TOKEN} body\n`,
   );
-  mkdirSync(join(contentDir, '.ok', 'templates'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'config.yml'), 'content:\n  dir: .\n');
+  mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
   writeFileSync(
-    join(contentDir, '.ok', 'templates', `${OK_TOKEN}.md`),
+    join(contentDir, '.gitquire', 'templates', `${OK_TOKEN}.md`),
     `# ${SHARED_TOKEN}\n\n${OK_TOKEN} body\n`,
   );
-  mkdirSync(join(contentDir, '.ok', 'worktrees', 'checkout'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'worktrees', 'checkout', 'README.md'), '# checkout\n');
+  mkdirSync(join(contentDir, '.gitquire', 'worktrees', 'checkout'), { recursive: true });
+  writeFileSync(
+    join(contentDir, '.gitquire', 'worktrees', 'checkout', 'README.md'),
+    '# checkout\n',
+  );
   server = await createTestServer({ contentDir, keepContentDir: false });
 }, 60_000);
 
@@ -46,17 +49,17 @@ afterAll(async () => {
 });
 
 describe('showOk reveal on GET /api/documents', () => {
-  test('showAll+showOk buffered listing reveals .ok rows minus worktrees/local', async () => {
+  test('showAll+showOk buffered listing reveals .gitquire rows minus worktrees/local', async () => {
     const res = await fetch(documentsUrl('?showAll=true&showOk=true'));
     expect(res.ok).toBe(true);
     const body = DocumentListSuccessSchema.parse(await res.json());
     const paths = body.documents.map(entryPath);
-    expect(paths).toContain('.ok');
-    expect(paths).toContain('.ok/config.yml');
-    expect(paths).toContain('.ok/templates');
-    expect(paths).toContain(`.ok/templates/${OK_TOKEN}`);
-    expect(paths.some((p) => p.startsWith('.ok/worktrees'))).toBe(false);
-    expect(paths.some((p) => p.startsWith('.ok/local'))).toBe(false);
+    expect(paths).toContain('.gitquire');
+    expect(paths).toContain('.gitquire/config.yml');
+    expect(paths).toContain('.gitquire/templates');
+    expect(paths).toContain(`.gitquire/templates/${OK_TOKEN}`);
+    expect(paths.some((p) => p.startsWith('.gitquire/worktrees'))).toBe(false);
+    expect(paths.some((p) => p.startsWith('.gitquire/local'))).toBe(false);
   }, 30_000);
 
   test('showAll without showOk stays .ok-free (default listing unchanged)', async () => {
@@ -80,29 +83,31 @@ describe('showOk reveal on GET /api/documents', () => {
       .map((line) => JSON.parse(line) as ListedEntry & { type?: string });
     const entries = rows.filter((row) => row.type === undefined);
     const paths = entries.map(entryPath);
-    expect(paths).toContain(`.ok/templates/${OK_TOKEN}`);
-    expect(paths.some((p) => p.startsWith('.ok/worktrees'))).toBe(false);
-    expect(paths.some((p) => p.startsWith('.ok/local'))).toBe(false);
+    expect(paths).toContain(`.gitquire/templates/${OK_TOKEN}`);
+    expect(paths.some((p) => p.startsWith('.gitquire/worktrees'))).toBe(false);
+    expect(paths.some((p) => p.startsWith('.gitquire/local'))).toBe(false);
   }, 30_000);
 
-  test('lazy .ok expansion composes showOk with dir + depth', async () => {
+  test('lazy .gitquire expansion composes showOk with dir + depth', async () => {
     const res = await fetch(
-      documentsUrl(`?showAll=true&showOk=true&dir=${encodeURIComponent('.ok')}&depth=1`),
+      documentsUrl(`?showAll=true&showOk=true&dir=${encodeURIComponent('.gitquire')}&depth=1`),
     );
     expect(res.ok).toBe(true);
     const body = DocumentListSuccessSchema.parse(await res.json());
     const paths = body.documents.map(entryPath);
-    expect(paths).toContain('.ok/config.yml');
-    expect(paths).toContain('.ok/templates');
-    expect(paths.some((p) => p.startsWith('.ok/worktrees'))).toBe(false);
-    expect(paths.some((p) => p.startsWith('.ok/local'))).toBe(false);
-    const templates = body.documents.find((d) => d.kind === 'folder' && d.path === '.ok/templates');
+    expect(paths).toContain('.gitquire/config.yml');
+    expect(paths).toContain('.gitquire/templates');
+    expect(paths.some((p) => p.startsWith('.gitquire/worktrees'))).toBe(false);
+    expect(paths.some((p) => p.startsWith('.gitquire/local'))).toBe(false);
+    const templates = body.documents.find(
+      (d) => d.kind === 'folder' && d.path === '.gitquire/templates',
+    );
     expect(templates?.kind === 'folder' && templates.hasChildren).toBe(true);
   }, 30_000);
 });
 
 describe('showOk is a tree-only reveal; template content docs are searchable and link-target-able', () => {
-  test('with showOk in use, the watcher index keeps non-skill/template .ok content out', async () => {
+  test('with showOk in use, the watcher index keeps non-skill/template .gitquire content out', async () => {
     await (await fetch(documentsUrl('?showAll=true&showOk=true'))).json();
     const res = await fetch(documentsUrl(''));
     expect(res.ok).toBe(true);
@@ -111,10 +116,10 @@ describe('showOk is a tree-only reveal; template content docs are searchable and
     const nonCarveOutOkPaths = paths.filter(
       (p) =>
         hasOkSegment(p) &&
-        p !== '.ok' &&
-        !p.startsWith('.ok/skills/') &&
-        p !== '.ok/templates' &&
-        !p.startsWith('.ok/templates/'),
+        p !== '.gitquire' &&
+        !p.startsWith('.gitquire/skills/') &&
+        p !== '.gitquire/templates' &&
+        !p.startsWith('.gitquire/templates/'),
     );
     expect(nonCarveOutOkPaths).toEqual([]);
     expect(paths).toContain(VISIBLE_TOKEN);
@@ -132,7 +137,7 @@ describe('showOk is a tree-only reveal; template content docs are searchable and
     const okRes = await fetch(`http://127.0.0.1:${server.port}/api/search?query=${OK_TOKEN}`);
     expect(okRes.ok).toBe(true);
     const okBody = SearchSuccessSchema.parse(await okRes.json());
-    expect(okBody.results.some((r) => r.path === `.ok/templates/${OK_TOKEN}`)).toBe(true);
+    expect(okBody.results.some((r) => r.path === `.gitquire/templates/${OK_TOKEN}`)).toBe(true);
 
     const sharedRes = await fetch(
       `http://127.0.0.1:${server.port}/api/search?query=${SHARED_TOKEN}&intent=omnibar`,
@@ -141,7 +146,7 @@ describe('showOk is a tree-only reveal; template content docs are searchable and
     const shared = SearchSuccessSchema.parse(await sharedRes.json());
     const paths = shared.results.map((r) => r.path);
     const visibleRank = paths.indexOf(VISIBLE_TOKEN);
-    const templateRank = paths.indexOf(`.ok/templates/${OK_TOKEN}`);
+    const templateRank = paths.indexOf(`.gitquire/templates/${OK_TOKEN}`);
     expect(visibleRank).toBeGreaterThanOrEqual(0);
     expect(templateRank).toBeGreaterThanOrEqual(0);
     expect(templateRank).toBeGreaterThan(visibleRank);
@@ -153,6 +158,6 @@ describe('showOk is a tree-only reveal; template content docs are searchable and
     const body = PagesSuccessSchema.parse(await res.json());
     const docNames = body.pages.map((p) => p.docName);
     expect(docNames).toContain(VISIBLE_TOKEN);
-    expect(docNames).toContain(`.ok/templates/${OK_TOKEN}`);
+    expect(docNames).toContain(`.gitquire/templates/${OK_TOKEN}`);
   }, 30_000);
 });

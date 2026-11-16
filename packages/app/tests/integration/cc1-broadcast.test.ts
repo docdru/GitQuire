@@ -92,7 +92,7 @@ describe('CC1 broadcast — L1 integration', () => {
       new Set(['files', 'lint-config']),
     );
     const markdownlintFile = join(server.contentDir, '.markdownlint.json');
-    const schemaFile = `.ok/schemas/cc1-${crypto.randomUUID()}.schema.json`;
+    const schemaFile = `.gitquire/schemas/cc1-${crypto.randomUUID()}.schema.json`;
     const schemaPath = join(server.contentDir, schemaFile);
     try {
       await waitForSync(provider);

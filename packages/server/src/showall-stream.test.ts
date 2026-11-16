@@ -549,24 +549,24 @@ describe('streamShowAllEntries — showOk reveal', () => {
   function makeOkFixture(): string {
     const dir = realpathSync(makeTempDir('ok-showall-showok-'));
     writeFileSync(join(dir, 'note.md'), '# note\n');
-    mkdirSync(join(dir, '.ok', 'templates'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'config.yml'), 'content:\n  dir: .\n');
-    writeFileSync(join(dir, '.ok', 'templates', 'daily.md'), '# Daily\n');
-    mkdirSync(join(dir, '.ok', 'skills', 'demo'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'skills', 'demo', 'SKILL.md'), '# Demo skill\n');
-    mkdirSync(join(dir, '.ok', 'worktrees', 'checkout'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'worktrees', 'checkout', 'README.md'), '# checkout\n');
-    mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'local', 'server.lock'), '{}\n');
-    mkdirSync(join(dir, 'notes', '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire', 'templates'), { recursive: true });
+    writeFileSync(join(dir, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
+    writeFileSync(join(dir, '.gitquire', 'templates', 'daily.md'), '# Daily\n');
+    mkdirSync(join(dir, '.gitquire', 'skills', 'demo'), { recursive: true });
+    writeFileSync(join(dir, '.gitquire', 'skills', 'demo', 'SKILL.md'), '# Demo skill\n');
+    mkdirSync(join(dir, '.gitquire', 'worktrees', 'checkout'), { recursive: true });
+    writeFileSync(join(dir, '.gitquire', 'worktrees', 'checkout', 'README.md'), '# checkout\n');
+    mkdirSync(join(dir, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(join(dir, '.gitquire', 'local', 'server.lock'), '{}\n');
+    mkdirSync(join(dir, 'notes', '.gitquire'), { recursive: true });
     writeFileSync(join(dir, 'notes', 'page.md'), '# page\n');
-    writeFileSync(join(dir, 'notes', '.ok', 'frontmatter.yml'), 'title: Notes\n');
+    writeFileSync(join(dir, 'notes', '.gitquire', 'frontmatter.yml'), 'title: Notes\n');
     mkdirSync(join(dir, 'node_modules', 'pkg'), { recursive: true });
     writeFileSync(join(dir, 'node_modules', 'pkg', 'x.md'), '# x\n');
     return dir;
   }
 
-  test('showOk surfaces .ok rows in place, excluding worktrees and local at every depth', async () => {
+  test('showOk surfaces .gitquire rows in place, excluding worktrees and local at every depth', async () => {
     const dir = makeOkFixture();
     const { entries, truncated } = await drain(
       streamShowAllEntries({ ...streamOptsFor(dir, 50_000), showOk: true }),
@@ -575,58 +575,62 @@ describe('streamShowAllEntries — showOk reveal', () => {
 
     const paths = entries.map(entryPath);
     expect(paths).toContain('note');
-    expect(paths).toContain('.ok');
-    expect(paths).toContain('.ok/config.yml');
-    expect(paths).toContain('.ok/templates');
-    expect(paths).toContain('.ok/templates/daily');
-    expect(paths).toContain('.ok/skills/demo/SKILL');
-    expect(paths).toContain('notes/.ok');
-    expect(paths).toContain('notes/.ok/frontmatter.yml');
-    expect(paths.some((p) => p.startsWith('.ok/worktrees'))).toBe(false);
-    expect(paths.some((p) => p.startsWith('.ok/local'))).toBe(false);
+    expect(paths).toContain('.gitquire');
+    expect(paths).toContain('.gitquire/config.yml');
+    expect(paths).toContain('.gitquire/templates');
+    expect(paths).toContain('.gitquire/templates/daily');
+    expect(paths).toContain('.gitquire/skills/demo/SKILL');
+    expect(paths).toContain('notes/.gitquire');
+    expect(paths).toContain('notes/.gitquire/frontmatter.yml');
+    expect(paths.some((p) => p.startsWith('.gitquire/worktrees'))).toBe(false);
+    expect(paths.some((p) => p.startsWith('.gitquire/local'))).toBe(false);
     expect(paths.some((p) => p.startsWith('node_modules'))).toBe(false);
 
-    const daily = entries.find((e) => e.kind === 'document' && e.docName === '.ok/templates/daily');
+    const daily = entries.find(
+      (e) => e.kind === 'document' && e.docName === '.gitquire/templates/daily',
+    );
     expect(daily).toBeDefined();
-    const config = entries.find((e) => e.kind === 'asset' && e.path === '.ok/config.yml');
+    const config = entries.find((e) => e.kind === 'asset' && e.path === '.gitquire/config.yml');
     expect(config).toBeDefined();
   });
 
-  test('without showOk the same fixture yields no .ok rows (default unchanged)', async () => {
+  test('without showOk the same fixture yields no .gitquire rows (default unchanged)', async () => {
     const dir = makeOkFixture();
     const { entries } = await drain(streamShowAllEntries(streamOptsFor(dir, 50_000)));
     const paths = entries.map(entryPath);
-    expect(paths.some((p) => p === '.ok' || p.includes('.ok/') || p.endsWith('/.ok'))).toBe(false);
+    expect(
+      paths.some((p) => p === '.gitquire' || p.includes('.gitquire/') || p.endsWith('/.gitquire')),
+    ).toBe(false);
     expect(paths).toContain('note');
     expect(paths).toContain('notes/page');
   });
 
-  test('maxDepth=1 with showOk yields the .ok folder and its probe sees admitted children', async () => {
+  test('maxDepth=1 with showOk yields the .gitquire folder and its probe sees admitted children', async () => {
     const dir = makeOkFixture();
     const { entries } = await drain(
       streamShowAllEntries({ ...streamOptsFor(dir, 50_000), showOk: true, maxDepth: 1 }),
     );
-    expect(entries.map(entryPath).toSorted()).toEqual(['.ok', 'note', 'notes']);
-    const okFolder = entries.find((e) => e.kind === 'folder' && e.path === '.ok');
+    expect(entries.map(entryPath).toSorted()).toEqual(['.gitquire', 'note', 'notes']);
+    const okFolder = entries.find((e) => e.kind === 'folder' && e.path === '.gitquire');
     expect(okFolder?.kind === 'folder' && okFolder.hasChildren).toBe(true);
   });
 
-  test('dirFilter=.ok with showOk lists the .ok children lazily, minus the excluded pair', async () => {
+  test('dirFilter=.gitquire with showOk lists the .gitquire children lazily, minus the excluded pair', async () => {
     const dir = makeOkFixture();
     const { entries } = await drain(
       streamShowAllEntries({
         ...streamOptsFor(dir, 50_000),
         showOk: true,
-        dirFilter: '.ok',
+        dirFilter: '.gitquire',
         maxDepth: 1,
       }),
     );
     expect(entries.map(entryPath).toSorted()).toEqual([
-      '.ok/config.yml',
-      '.ok/skills',
-      '.ok/templates',
+      '.gitquire/config.yml',
+      '.gitquire/skills',
+      '.gitquire/templates',
     ]);
-    const templates = entries.find((e) => e.kind === 'folder' && e.path === '.ok/templates');
+    const templates = entries.find((e) => e.kind === 'folder' && e.path === '.gitquire/templates');
     expect(templates?.kind === 'folder' && templates.hasChildren).toBe(true);
   });
 });

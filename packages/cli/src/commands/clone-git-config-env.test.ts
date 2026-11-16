@@ -445,7 +445,7 @@ describe('gq clone checks symlinks before checking anything out', () => {
   test('a repository with unsafe links is refused and leaves no clone behind', async () => {
     seedBareRepoWithLinks(join(workspace, 'o', 'r.git'), {
       'notes/leak.md': '../.git/config',
-      'notes/q"uote.md': '../.ok/local/principal.json',
+      'notes/q"uote.md': '../.gitquire/local/principal.json',
     });
     const url = 'https://127.0.0.1:1/o/r.git';
 

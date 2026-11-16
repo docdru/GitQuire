@@ -215,7 +215,7 @@ function createBridge({ ptyAvailable = true }: { ptyAvailable?: boolean } = {}) 
       create: vi.fn(() =>
         Promise.resolve({
           ok: true as const,
-          path: '/projects/current/.ok/worktrees/feature-x',
+          path: '/projects/current/.gitquire/worktrees/feature-x',
           created: true,
         }),
       ),

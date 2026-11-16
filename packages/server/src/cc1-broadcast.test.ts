@@ -582,9 +582,9 @@ describe('isLinkIndexExcludedDoc', () => {
 
   test('admits managed-artifact skills and template content docs as link-index sources', () => {
     expect(isLinkIndexExcludedDoc('__skill__/project/my-skill')).toBe(false);
-    expect(isLinkIndexExcludedDoc('.ok/templates/daily')).toBe(false);
-    expect(isLinkIndexExcludedDoc('docs/.ok/templates/meeting')).toBe(false);
-    expect(isLinkIndexExcludedDoc('a/b/c/.ok/templates/note')).toBe(false);
+    expect(isLinkIndexExcludedDoc('.gitquire/templates/daily')).toBe(false);
+    expect(isLinkIndexExcludedDoc('docs/.gitquire/templates/meeting')).toBe(false);
+    expect(isLinkIndexExcludedDoc('a/b/c/.gitquire/templates/note')).toBe(false);
     expect(isLinkIndexExcludedDoc('__template__/docs/my-template')).toBe(false);
   });
 
@@ -601,7 +601,7 @@ describe('isProblemsPlaneExcludedDoc', () => {
       true,
     );
     expect(isProblemsPlaneExcludedDoc('.github/skills/record-a-decision/SKILL')).toBe(true);
-    expect(isProblemsPlaneExcludedDoc('.ok/skills/record-a-decision/SKILL')).toBe(true);
+    expect(isProblemsPlaneExcludedDoc('.gitquire/skills/record-a-decision/SKILL')).toBe(true);
     expect(isProblemsPlaneExcludedDoc('.claude/skills/record-a-decision/scripts/notes')).toBe(true);
   });
 
@@ -617,9 +617,9 @@ describe('isProblemsPlaneExcludedDoc', () => {
   });
 
   test('keeps folder-local templates, which are authored content under a dot dir', () => {
-    expect(isProblemsPlaneExcludedDoc('.ok/templates/daily')).toBe(false);
-    expect(isProblemsPlaneExcludedDoc('docs/.ok/templates/meeting')).toBe(false);
-    expect(isProblemsPlaneExcludedDoc('a/b/c/.ok/templates/note')).toBe(false);
+    expect(isProblemsPlaneExcludedDoc('.gitquire/templates/daily')).toBe(false);
+    expect(isProblemsPlaneExcludedDoc('docs/.gitquire/templates/meeting')).toBe(false);
+    expect(isProblemsPlaneExcludedDoc('a/b/c/.gitquire/templates/note')).toBe(false);
   });
 
   test('keeps ordinary documents, including a visible-path skills root', () => {

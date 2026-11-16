@@ -26,7 +26,7 @@ Click **Add a property**, give it a name and a value, and it's saved to the fold
 
 A template is a reusable starting point for a new document: a heading skeleton, a checklist, a layout you fill in every time, optionally with starting properties baked in. Create a template once, and every new document made from it starts with that content. Templates are available both to you (in the New file dialog) and to AI assistants working in your project.
 
-A template is just a markdown file. It lives at `.ok/templates/<name>.md` inside your project, with a little information at the top: its title and description.
+A template is just a markdown file. It lives at `.gitquire/templates/<name>.md` inside your project, with a little information at the top: its title and description.
 
 ### Create a template
 
@@ -55,7 +55,7 @@ A template body may use two placeholders, filled in automatically when a documen
 - `{{date}}`: today's date in the time zone of the computer running GitQuire, in `YYYY-MM-DD` form. A self-hosted server uses its [`TZ` environment variable](/docs/remote-control/methods/docker#the-environment-surface).
 - `{{user}}`: the display name of the person or agent creating the document.
 
-```md title=".ok/templates/standup.md"
+```md title=".gitquire/templates/standup.md"
 ---
 template:
   title: Daily standup
@@ -81,7 +81,7 @@ The standup template above produces documents with just a body. To give every ne
 
 On disk it all lives in one frontmatter block: the template's own identity sits under a reserved `template:` key, and every other top-level key is a property new documents start with:
 
-```md title=".ok/templates/daily.md"
+```md title=".gitquire/templates/daily.md"
 ---
 template:
   title: Daily entry
@@ -106,7 +106,7 @@ The `template:` block is the template's own info (the title and description show
 
 In both the folder card and the Settings list, click a template row (or its menu's **Edit**) to open the template as a document tab: the body is the starter content, and the **Properties** panel holds its title, description, and name — change the name to rename the template file. The row's menu also has **Delete**. Editing an **inherited** template edits the file in the ancestor folder that owns it, which affects every folder under that ancestor; the row's **inherited** badge names the owning folder, and the opened tab shows that folder read-only in its Properties.
 
-Deleting a template removes the `.ok/templates/<name>.md` file. Folders and agents that referenced it fall back to an inherited template of the same name, if one exists, or report the template as missing.
+Deleting a template removes the `.gitquire/templates/<name>.md` file. Folders and agents that referenced it fall back to an inherited template of the same name, if one exists, or report the template as missing.
 
 ## How templates reach subfolders
 
@@ -115,7 +115,7 @@ Templates flow **downhill**: a template on `posts/` applies to `posts/`, `posts/
 - Templates from the document's **own folder** are marked **local**.
 - Templates from a **folder above it** are marked **inherited**.
 
-When two folders offer a template with the same filename, the **closest folder wins**. So a template at the project root (`.ok/templates/`) is available everywhere; a template in `marketing/posts/.ok/templates/` is available only under `marketing/posts/`.
+When two folders offer a template with the same filename, the **closest folder wins**. So a template at the project root (`.gitquire/templates/`) is available everywhere; a template in `marketing/posts/.gitquire/templates/` is available only under `marketing/posts/`.
 
 Folder *properties* do not behave this way: they describe only their own folder (no inheritance up or down).
 
@@ -135,26 +135,26 @@ When an agent creates a document without a template in a folder that offers them
 
 You never have to edit these files by hand (the folder overview page is the front door), but for the curious:
 
-- A folder's own properties live in `<folder>/.ok/frontmatter.yml` (open-shape: any keys; `title` / `description` / `tags` are the conventional ones).
-- Templates live in `<folder>/.ok/templates/<name>.md`.
+- A folder's own properties live in `<folder>/.gitquire/frontmatter.yml` (open-shape: any keys; `title` / `description` / `tags` are the conventional ones).
+- Templates live in `<folder>/.gitquire/templates/<name>.md`.
 
-A folder only gets a `.ok/` directory once you give it a description or its first template; folders with nothing special stay plain. `<folder>/.ok` and `<folder>/.ok/templates` must be real directories, and `frontmatter.yml` and each template real files.
+A folder only gets a `.gitquire/` directory once you give it a description or its first template; folders with nothing special stay plain. `<folder>/.gitquire` and `<folder>/.gitquire/templates` must be real directories, and `frontmatter.yml` and each template real files.
 
-Only one malformation stops the page from loading: a symlink at the folder's own `.ok`. Everything else still loads and shows less — though editing properties can still fail where the table says so:
+Only one malformation stops the page from loading: a symlink at the folder's own `.gitquire`. Everything else still loads and shows less — though editing properties can still fail where the table says so:
 
 | What is wrong | What the folder loses |
 |---|---|
-| A symlink at `.ok/templates` — on this folder or on an ancestor it inherits from, wherever it points and whether or not its target exists — or at an ancestor's `.ok` | That directory's templates, for this folder and every folder inheriting from it. Properties keep working, and the response warnings name the directory. |
+| A symlink at `.gitquire/templates` — on this folder or on an ancestor it inherits from, wherever it points and whether or not its target exists — or at an ancestor's `.gitquire` | That directory's templates, for this folder and every folder inheriting from it. Properties keep working, and the response warnings name the directory. |
 | A symlink at `frontmatter.yml` | Only this folder's properties; the warnings name it. Saving a property edit also fails until you replace it. |
 | `frontmatter.yml` is a real file but is not valid YAML | Only this folder's properties; the warnings name it. Saving a property edit also fails until you fix the syntax. |
 | A symlink at a single template | Only that template. |
-| `.ok` is a plain file, or a directory the server cannot read — on this folder or on an ancestor it inherits from | If it is this folder's, its properties and its own templates, and saving a property edit here fails until you fix it; if an ancestor's, that ancestor's templates for every folder inheriting from it, while this folder's own properties keep saving. Templates from unaffected ancestors still resolve. |
-| `.ok/templates` is a plain file, or a directory the server cannot read — on this folder or on an ancestor it inherits from | That directory's templates, for this folder or for every folder inheriting from the affected ancestor. |
+| `.gitquire` is a plain file, or a directory the server cannot read — on this folder or on an ancestor it inherits from | If it is this folder's, its properties and its own templates, and saving a property edit here fails until you fix it; if an ancestor's, that ancestor's templates for every folder inheriting from it, while this folder's own properties keep saving. Templates from unaffected ancestors still resolve. |
+| `.gitquire/templates` is a plain file, or a directory the server cannot read — on this folder or on an ancestor it inherits from | That directory's templates, for this folder or for every folder inheriting from the affected ancestor. |
 
-Those last two rows may drop templates with nothing in the warnings, so a folder that quietly loses templates — its own or an inherited set — is the signal to check `.ok` and `.ok/templates` on that folder and on every ancestor above it. To restore what broke: replace a symlink or a plain file with a real directory or file, copying in whatever the link pointed at if you want that content back; if the directory is already there, restore read access for the GitQuire process rather than replacing it. See the [Configuration reference](/docs/reference/configuration#folder-properties) for the file formats, and the [MCP reference](/docs/reference/mcp) for the `write` and `edit` tools (with `folder` and `template` targets) that set the same things from an AI agent.
+Those last two rows may drop templates with nothing in the warnings, so a folder that quietly loses templates — its own or an inherited set — is the signal to check `.gitquire` and `.gitquire/templates` on that folder and on every ancestor above it. To restore what broke: replace a symlink or a plain file with a real directory or file, copying in whatever the link pointed at if you want that content back; if the directory is already there, restore read access for the GitQuire process rather than replacing it. See the [Configuration reference](/docs/reference/configuration#folder-properties) for the file formats, and the [MCP reference](/docs/reference/mcp) for the `write` and `edit` tools (with `folder` and `template` targets) that set the same things from an AI agent.
 
 ## See also
 
 - [Editor](/docs/features/editor): the Properties panel and the file sidebar.
-- [Configuration](/docs/reference/configuration): the `.ok/` file formats behind these settings.
+- [Configuration](/docs/reference/configuration): the `.gitquire/` file formats behind these settings.
 - [MCP reference](/docs/reference/mcp): the `write` tool and templates.

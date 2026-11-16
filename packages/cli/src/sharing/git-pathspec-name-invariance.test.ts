@@ -17,8 +17,8 @@ function git(args: string[]): string {
 }
 
 function writeSkillFile(name: string, body: string): string {
-  const rel = `.ok/skills/${name}/SKILL.md`;
-  mkdirSync(join(projectRoot, '.ok', 'skills', name), { recursive: true });
+  const rel = `.gitquire/skills/${name}/SKILL.md`;
+  mkdirSync(join(projectRoot, '.gitquire', 'skills', name), { recursive: true });
   writeFileSync(join(projectRoot, rel), body, 'utf-8');
   return rel;
 }

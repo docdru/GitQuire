@@ -25,8 +25,8 @@ msgstr " 선택 영역을 복원했습니다."
 msgid "— except"
 msgstr "제외"
 
-msgid ".ok folders"
-msgstr ".ok 폴더"
+msgid ".gitquire folders"
+msgstr ".gitquire 폴더"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1027,7 +1027,7 @@ msgstr "적용 대상 (glob, 앞의 !는 제외, 비워 두면 모든 문서)"
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2687,8 +2687,8 @@ msgstr "임베딩"
 msgid "Embeddings API key"
 msgstr "임베딩 API 키"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "검색을 실행할 때만 임베딩을 계산하며, <0>.ok/local</0>에 로컬로 캐시합니다."
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "검색을 실행할 때만 임베딩을 계산하며, <0>.gitquire/local</0>에 로컬로 캐시합니다."
 
 msgid "Emoji"
 msgstr "이모지"
@@ -3159,8 +3159,8 @@ msgstr "파일이 너무 큽니다({sizeKb} KB). 첨부 파일은 각각 {limitK
 msgid "File name"
 msgstr "파일 이름"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "파일 이름 (.ok/schemas/에 생성됨)"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "파일 이름 (.gitquire/schemas/에 생성됨)"
 
 msgid "File sidebar"
 msgstr "파일 사이드바"
@@ -6475,8 +6475,8 @@ msgstr "편집기를 다음과 함께 제공"
 msgid "Show"
 msgstr "표시"
 
-msgid "Show .ok folders"
-msgstr ".ok 폴더 표시"
+msgid "Show .gitquire folders"
+msgstr ".gitquire 폴더 표시"
 
 msgid "Show {0} more"
 msgstr "{0}개 더 보기"
@@ -6778,8 +6778,8 @@ msgstr "수정을 중지했습니다. 이미 수정된 파일은 그대로 유�
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "이 프로젝트의 <0>.ok/templates/</0>에 저장됩니다. 모든 폴더에서 사용할 수 있으며, 폴더 범위 템플릿은 파일 이름으로 재정의할 수 있습니다."
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "이 프로젝트의 <0>.gitquire/templates/</0>에 저장됩니다. 모든 폴더에서 사용할 수 있으며, 폴더 범위 템플릿은 파일 이름으로 재정의할 수 있습니다."
 
 msgid "Strikethrough"
 msgstr "취소선"

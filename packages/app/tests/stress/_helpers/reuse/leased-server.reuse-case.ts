@@ -22,13 +22,13 @@ const CREATED_PAGE = 'reuse-created';
 const CREATED_FOLDER_PAGE = 'sidebar-folder/reuse-created-inside';
 const NESTED_FIXTURE = 'sidebar-folder/nested-doc';
 const SETTING_SCOPES = [
-  { docName: CONFIG_DOC_NAME_PROJECT, scope: 'project', file: ['.ok', 'config.yml'] },
+  { docName: CONFIG_DOC_NAME_PROJECT, scope: 'project', file: ['.gitquire', 'config.yml'] },
   {
     docName: CONFIG_DOC_NAME_PROJECT_LOCAL,
     scope: 'project-local',
-    file: ['.ok', 'local', 'config.yml'],
+    file: ['.gitquire', 'local', 'config.yml'],
   },
-  { docName: CONFIG_DOC_NAME_USER, scope: 'user', file: ['.ok', 'global.yml'] },
+  { docName: CONFIG_DOC_NAME_USER, scope: 'user', file: ['.gitquire', 'global.yml'] },
 ] as const satisfies ReadonlyArray<{ docName: string; scope: WriteScope; file: readonly string[] }>;
 
 async function withConfigBinding<T>(
@@ -130,7 +130,10 @@ test('a later run finds none of an earlier run’s settings, content or browser 
 
 test('a run leaves server state that no reset can account for', async ({ workerServer }) => {
   test.info().annotations.push({ type: CASE_SERVER_ANNOTATION, description: workerServer.baseURL });
-  writeFileSync(join(workerServer.contentDir, '.ok', 'local', 'unrecognised-state.json'), '{}\n');
+  writeFileSync(
+    join(workerServer.contentDir, '.gitquire', 'local', 'unrecognised-state.json'),
+    '{}\n',
+  );
 });
 
 test('the supervisor shuts down while a test holds its lease', async ({ workerServer }) => {

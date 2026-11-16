@@ -131,10 +131,10 @@ describe('NotInSidebarIndicator', () => {
     expect(indicator()).toBeNull();
   });
 
-  test('renders nothing for docs structurally outside the tree (skills, templates, .ok)', () => {
+  test('renders nothing for docs structurally outside the tree (skills, templates, .gitquire)', () => {
     mergedConfig = { appearance: { sidebar: { showOnlyMarkdownFiles: true } } };
     for (const docName of [
-      '.ok/skills/writer/SKILL',
+      '.gitquire/skills/writer/SKILL',
       '__skill__/global/writer',
       '__template__/.private/meeting-notes',
     ]) {

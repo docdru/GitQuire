@@ -303,13 +303,13 @@ describe('handleUploadAsset', () => {
     expect(existsSync(join(contentDir, 'docs', 'config-error.png'))).toBe(false);
   });
 
-  test('a configured attachmentFolderPath naming .ok is refused at the resolved destination', async () => {
-    attachmentFolderPath = '/.ok/skills';
+  test('a configured attachmentFolderPath naming .gitquire is refused at the resolved destination', async () => {
+    attachmentFolderPath = '/.gitquire/skills';
     const res = await uploadImage(createPngBuffer(), 'planted.png', 'docs/guide.md');
     const body = (await res.json()) as { type: string; status: number };
     expect(res.status).toBe(400);
     expect(body.type).toBe('urn:ok:error:reserved-doc-name');
-    expect(existsSync(join(contentDir, '.ok', 'skills', 'planted.png'))).toBe(false);
+    expect(existsSync(join(contentDir, '.gitquire', 'skills', 'planted.png'))).toBe(false);
   });
 
   test('parent-dir placement keeps explicit sidebar folder drops in the target folder', async () => {

@@ -27,7 +27,7 @@ const SEED_CONFIG = [
   '    enabled: true',
   '    schemas:',
   '      - appliesTo: "audit-epoch/**"',
-  '        file: ".ok/schemas/audit-epoch.schema.json"',
+  '        file: ".gitquire/schemas/audit-epoch.schema.json"',
   '',
 ].join('\n');
 
@@ -117,7 +117,7 @@ describe('GET /api/audit across a lint-config change', () => {
     'an in-flight audit is superseded when the committed project config changes',
     async () => {
       const folder = join(server.contentDir, SCOPE);
-      const configPath = join(server.contentDir, '.ok', 'config.yml');
+      const configPath = join(server.contentDir, '.gitquire', 'config.yml');
       seedTabbedCorpus(folder);
       writeFileSync(join(folder, 'log.md'), '# Log\n\n[[missing-history-target]]\n', 'utf-8');
 
@@ -210,9 +210,9 @@ describe('GET /api/audit across a lint-config change', () => {
     async () => {
       const scope = `${SCOPE}/frontmatter`;
       const folder = join(server.contentDir, scope);
-      const schemaPath = join(server.contentDir, '.ok', 'schemas', 'audit-epoch.schema.json');
+      const schemaPath = join(server.contentDir, '.gitquire', 'schemas', 'audit-epoch.schema.json');
       seedTabbedCorpus(folder);
-      mkdirSync(join(server.contentDir, '.ok', 'schemas'), { recursive: true });
+      mkdirSync(join(server.contentDir, '.gitquire', 'schemas'), { recursive: true });
       writeFileSync(schemaPath, JSON.stringify({ type: 'object', properties: {} }), 'utf-8');
       const auditBarrier = pauseAuditAtDocument(`${scope}/doc-1.md`);
       try {
@@ -222,7 +222,7 @@ describe('GET /api/audit across a lint-config change', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            file: '.ok/schemas/audit-epoch.schema.json',
+            file: '.gitquire/schemas/audit-epoch.schema.json',
             field: 'owner',
             constraint: { type: 'string', required: true },
           }),

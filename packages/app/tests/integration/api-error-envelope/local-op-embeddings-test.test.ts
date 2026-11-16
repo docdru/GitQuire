@@ -42,14 +42,14 @@ beforeAll(async () => {
   contentDir = mkdtempSync(join(tmpdir(), 'ok-emb-test-content-'));
   homeDir = mkdtempSync(join(tmpdir(), 'ok-emb-test-home-'));
 
-  mkdirSync(join(contentDir, '.ok', 'local'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(join(contentDir, '.gitquire', 'local'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
   writeFileSync(
-    join(contentDir, '.ok', 'local', 'config.yml'),
+    join(contentDir, '.gitquire', 'local', 'config.yml'),
     `search:\n  semantic:\n    enabled: true\n    baseUrl: ${provider.baseUrl}\n    model: ${MODEL}\n`,
     'utf-8',
   );
-  mkdirSync(join(homeDir, '.ok'), { recursive: true });
+  mkdirSync(join(homeDir, '.gitquire'), { recursive: true });
 
   server = await createTestServer({ contentDir, configHomedirOverride: homeDir });
   await fetch(`http://127.0.0.1:${server.port}/api/local-op/embeddings/set-key`, {
@@ -134,14 +134,14 @@ describe('local-op-embeddings-test — provider failure', () => {
     failing = await startFakeEmbeddingsServer({ dims: PROVIDER_DIMS, failWithStatus: 401 });
     failingContentDir = mkdtempSync(join(tmpdir(), 'ok-emb-test-content-'));
     failingHomeDir = mkdtempSync(join(tmpdir(), 'ok-emb-test-home-'));
-    mkdirSync(join(failingContentDir, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(failingContentDir, '.ok', 'config.yml'), '', 'utf-8');
+    mkdirSync(join(failingContentDir, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(join(failingContentDir, '.gitquire', 'config.yml'), '', 'utf-8');
     writeFileSync(
-      join(failingContentDir, '.ok', 'local', 'config.yml'),
+      join(failingContentDir, '.gitquire', 'local', 'config.yml'),
       `search:\n  semantic:\n    enabled: true\n    baseUrl: ${failing.baseUrl}\n`,
       'utf-8',
     );
-    mkdirSync(join(failingHomeDir, '.ok'), { recursive: true });
+    mkdirSync(join(failingHomeDir, '.gitquire'), { recursive: true });
     failingServer = await createTestServer({
       contentDir: failingContentDir,
       configHomedirOverride: failingHomeDir,
@@ -184,14 +184,14 @@ describe('local-op-embeddings-test — no key configured', () => {
   beforeAll(async () => {
     noKeyContentDir = mkdtempSync(join(tmpdir(), 'ok-emb-test-content-'));
     noKeyHomeDir = mkdtempSync(join(tmpdir(), 'ok-emb-test-home-'));
-    mkdirSync(join(noKeyContentDir, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(noKeyContentDir, '.ok', 'config.yml'), '', 'utf-8');
+    mkdirSync(join(noKeyContentDir, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(join(noKeyContentDir, '.gitquire', 'config.yml'), '', 'utf-8');
     writeFileSync(
-      join(noKeyContentDir, '.ok', 'local', 'config.yml'),
+      join(noKeyContentDir, '.gitquire', 'local', 'config.yml'),
       'search:\n  semantic:\n    enabled: true\n    baseUrl: https://api.openai.com/v1\n',
       'utf-8',
     );
-    mkdirSync(join(noKeyHomeDir, '.ok'), { recursive: true });
+    mkdirSync(join(noKeyHomeDir, '.gitquire'), { recursive: true });
     noKeyServer = await createTestServer({
       contentDir: noKeyContentDir,
       configHomedirOverride: noKeyHomeDir,

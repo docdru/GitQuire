@@ -37,7 +37,7 @@ const latches: Array<() => void> = [];
 
 beforeEach(() => {
   contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-watcher-settle-')));
-  mkdirSync(join(contentDir, '.ok'));
+  mkdirSync(join(contentDir, '.gitquire'));
   writeFileSync(join(contentDir, 'left.md'), '# Left\n');
 });
 
@@ -68,7 +68,7 @@ async function watchContent(
 }
 
 function fencesOnDisk(): string[] {
-  return readdirSync(join(contentDir, '.ok')).filter((name) =>
+  return readdirSync(join(contentDir, '.gitquire')).filter((name) =>
     name.startsWith('watcher-settle-fence-'),
   );
 }
@@ -126,7 +126,7 @@ test('settle resolves only after the watcher has finished handling a deletion th
   expect(fence).toMatch(/^watcher-settle-fence-/);
   const delivered = nativeSubscriptionOn(contentDir).deliver([
     { type: 'delete', path: left },
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   await expect.poll(() => events).toEqual([{ kind: 'delete', path: left, docName: 'left' }]);
   await new Promise<void>((flushed) => setImmediate(flushed));
@@ -152,7 +152,7 @@ test('settle waits for its own fence, not for whichever batch arrives next', asy
   expect(events).toEqual([{ kind: 'delete', path: left, docName: 'left' }]);
   expect(settle.done()).toBe(false);
   await nativeSubscriptionOn(contentDir).deliver([
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   await settle.promise;
   expect(settle.done()).toBe(true);
@@ -223,7 +223,7 @@ test('a settle whose fence the watcher never reports ends after the no-progress 
   const later = observed(watcher.settle());
   const [fence] = fencesOnDisk();
   await nativeSubscriptionOn(contentDir).deliver([
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   expect(later()).toBe('resolved');
   expect(fencesOnDisk()).toEqual([]);
@@ -254,7 +254,7 @@ test('a watcher that keeps handling batches is not ended by the no-progress wind
     })),
   );
   await nativeSubscriptionOn(contentDir).deliver([
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   expect(settle()).toBe('resolved');
 });
@@ -276,7 +276,7 @@ test('a batch whose handling never finishes ends a pending settle at the no-prog
   const [fence] = fencesOnDisk();
   void nativeSubscriptionOn(contentDir).deliver([
     { type: 'delete', path: left },
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   await reached.promise;
   for (const name of ['first', 'second']) {
@@ -295,22 +295,22 @@ test('a batch whose handling never finishes ends a pending settle at the no-prog
 });
 
 test('a settle whose fence cannot be written fails with that error and leaves nothing behind', async () => {
-  rmSync(join(contentDir, '.ok'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok'), 'not a directory\n');
+  rmSync(join(contentDir, '.gitquire'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire'), 'not a directory\n');
   const { watcher } = await watchContent('parcel');
 
   await expect(watcher.settle()).rejects.toMatchObject({ code: 'EEXIST' });
-  expect(readFileSync(join(contentDir, '.ok'), 'utf8')).toBe('not a directory\n');
+  expect(readFileSync(join(contentDir, '.gitquire'), 'utf8')).toBe('not a directory\n');
 });
 
-test('with no settle pending, a batch and a dropped-events recovery are handled as before settling existed, and nothing is written under .ok', async () => {
+test('with no settle pending, a batch and a dropped-events recovery are handled as before settling existed, and nothing is written under .gitquire', async () => {
   const fresh = join(contentDir, 'fresh.md');
   const left = join(contentDir, 'left.md');
   const guides = join(contentDir, 'guides');
   const start = join(guides, 'start.md');
   const notes = join(contentDir, 'notes.txt');
   const strayName = 'watcher-settle-fence-left-by-an-earlier-run';
-  const stray = join(contentDir, '.ok', strayName);
+  const stray = join(contentDir, '.gitquire', strayName);
   const { watcher, events } = await watchContent('parcel');
   writeFileSync(fresh, '# Fresh\n');
   writeFileSync(left, '# Left again\n');
@@ -356,19 +356,19 @@ test('with no settle pending, a batch and a dropped-events recovery are handled 
   expect(decisionsFor(strayName)).toEqual([{ decision: 'drop-filter-excluded', kind: 'create' }]);
   expect(indexOf(watcher)).toEqual({
     files: ['left', 'fresh', 'guides/start'],
-    folders: ['.ok', 'guides'],
+    folders: ['.gitquire', 'guides'],
   });
-  expect(readdirSync(join(contentDir, '.ok'))).toEqual([strayName]);
+  expect(readdirSync(join(contentDir, '.gitquire'))).toEqual([strayName]);
 });
 
-test('a settle fence reaches no consumer of .ok files, while a template edit in the same batch is still dispatched', async () => {
-  const template = join(contentDir, '.ok', 'templates', 'note.md');
-  mkdirSync(join(contentDir, '.ok', 'templates'));
-  mkdirSync(join(contentDir, '.ok', 'schemas'));
-  mkdirSync(join(contentDir, 'docs', '.ok'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'config.yml'), 'content:\n  dir: .\n');
-  writeFileSync(join(contentDir, '.ok', 'schemas', 'frontmatter.json'), '{}\n');
-  writeFileSync(join(contentDir, 'docs', '.ok', 'frontmatter.yml'), 'type: doc\n');
+test('a settle fence reaches no consumer of .gitquire files, while a template edit in the same batch is still dispatched', async () => {
+  const template = join(contentDir, '.gitquire', 'templates', 'note.md');
+  mkdirSync(join(contentDir, '.gitquire', 'templates'));
+  mkdirSync(join(contentDir, '.gitquire', 'schemas'));
+  mkdirSync(join(contentDir, 'docs', '.gitquire'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
+  writeFileSync(join(contentDir, '.gitquire', 'schemas', 'frontmatter.json'), '{}\n');
+  writeFileSync(join(contentDir, 'docs', '.gitquire', 'frontmatter.yml'), 'type: doc\n');
   writeFileSync(template, '# Note template\n');
   const { watcher, events } = await watchContent('parcel');
   const indexBefore = indexOf(watcher);
@@ -378,19 +378,19 @@ test('a settle fence reaches no consumer of .ok files, while a template edit in 
   writeFileSync(template, '# Note template, revised\n');
   await nativeSubscriptionOn(contentDir).deliver([
     { type: 'update', path: template },
-    { type: 'create', path: join(contentDir, '.ok', fence) },
+    { type: 'create', path: join(contentDir, '.gitquire', fence) },
   ]);
   expect(settle()).toBe('resolved');
   expect(fencesOnDisk()).toEqual([]);
   await nativeSubscriptionOn(contentDir).deliver([
-    { type: 'delete', path: join(contentDir, '.ok', fence) },
+    { type: 'delete', path: join(contentDir, '.gitquire', fence) },
   ]);
 
   expect(events).toEqual([
     {
       kind: 'update',
       path: template,
-      docName: '.ok/templates/note',
+      docName: '.gitquire/templates/note',
       content: '# Note template, revised\n',
       previousIndexedFields: { title: 'Note template' },
     },
@@ -400,13 +400,13 @@ test('a settle fence reaches no consumer of .ok files, while a template edit in 
     { decision: 'drop-filter-excluded', kind: 'delete' },
   ]);
   expect(indexOf(watcher)).toEqual(indexBefore);
-  expect(readdirSync(join(contentDir, '.ok')).sort()).toEqual([
+  expect(readdirSync(join(contentDir, '.gitquire')).sort()).toEqual([
     'config.yml',
     'schemas',
     'templates',
   ]);
-  expect(isShareableOkArtifact(`.ok/${fence}`)).toBe(false);
-  expect(isShareableOkArtifact('.ok/config.yml')).toBe(true);
+  expect(isShareableOkArtifact(`.gitquire/${fence}`)).toBe(false);
+  expect(isShareableOkArtifact('.gitquire/config.yml')).toBe(true);
 });
 
 test('a chokidar watcher refuses to settle, since it cannot order its batches', async () => {

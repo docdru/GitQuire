@@ -404,7 +404,9 @@ function templatePaths(
   folderRel: string,
   name: string,
 ): { okDir: string; templatesDir: string; filePath: string } {
-  const okDir = folderRel ? join(projectDir, folderRel, '.ok') : join(projectDir, '.ok');
+  const okDir = folderRel
+    ? join(projectDir, folderRel, '.gitquire')
+    : join(projectDir, '.gitquire');
   const templatesDir = join(okDir, 'templates');
   const filePath = join(templatesDir, `${name}.md`);
   return { okDir, templatesDir, filePath };

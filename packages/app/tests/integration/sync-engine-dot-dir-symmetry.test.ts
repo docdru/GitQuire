@@ -23,8 +23,8 @@ function makeRepo(): { projectDir: string; originDir: string } {
   configureTestGitRepository(projectDir);
   git(projectDir, ['config', 'user.name', 'Test User']);
   git(projectDir, ['config', 'user.email', 'test@example.com']);
-  mkdirSync(join(projectDir, '.ok'), { recursive: true });
-  writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+  writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
   mkdirSync(join(projectDir, '.cursor', 'skills', 'open-knowledge'), { recursive: true });
   writeFileSync(
     join(projectDir, '.cursor', 'skills', 'open-knowledge', 'SKILL.md'),

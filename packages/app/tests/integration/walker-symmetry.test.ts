@@ -13,7 +13,7 @@ const corpus = [
   '.github/PULL_REQUEST_TEMPLATE.md',
   '.vscode/notes.md',
   '.git/config',
-  '.ok/config.yml',
+  '.gitquire/config.yml',
   'node_modules/foo/README.md',
   '.next/build.md',
   'packages/.cursor/skills/SKILL.md',
@@ -23,7 +23,7 @@ const corpus = [
   '.claude/settings.local.json',
 ];
 
-const syncOnlyArtifacts = new Set(['.ok/config.yml']);
+const syncOnlyArtifacts = new Set(['.gitquire/config.yml']);
 
 let contentDir: string | null = null;
 let server: TestServer | null = null;
@@ -45,8 +45,8 @@ afterEach(async () => {
 describe('walker symmetry', () => {
   test('sync-engine and file-watcher walks agree outside sync-only artifacts', async () => {
     contentDir = mkdtempSync(join(tmpdir(), 'ok-walker-symmetry-'));
-    mkdirSync(join(contentDir, '.ok'), { recursive: true });
-    writeFileSync(join(contentDir, '.ok', 'config.yml'), '', 'utf-8');
+    mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
     seed('test-doc.md');
     for (const path of corpus) {
       if (path.startsWith('.git/')) continue;
@@ -98,19 +98,27 @@ describe('walker symmetry', () => {
     const projectDir = mkdtempSync(join(tmpdir(), 'ok-walker-subfolder-'));
     contentDir = projectDir;
     const nestedContentDir = join(projectDir, 'content');
-    mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-    mkdirSync(join(nestedContentDir, '.ok', 'schemas'), { recursive: true });
-    mkdirSync(join(nestedContentDir, '.ok', 'templates'), { recursive: true });
-    mkdirSync(join(nestedContentDir, 'docs', '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+    mkdirSync(join(nestedContentDir, '.gitquire', 'schemas'), { recursive: true });
+    mkdirSync(join(nestedContentDir, '.gitquire', 'templates'), { recursive: true });
+    mkdirSync(join(nestedContentDir, 'docs', '.gitquire'), { recursive: true });
     writeFileSync(join(projectDir, '.gitignore'), '/content/ignored.md\n', 'utf-8');
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'content:\n  dir: content\n', 'utf-8');
-    writeFileSync(join(projectDir, '.ok', '.gitignore'), 'local/\n', 'utf-8');
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'root.json'), '{}\n', 'utf-8');
-    writeFileSync(join(nestedContentDir, '.ok', 'config.yml'), 'not: root\n', 'utf-8');
-    writeFileSync(join(nestedContentDir, '.ok', '.gitignore'), 'local/\n', 'utf-8');
-    writeFileSync(join(nestedContentDir, '.ok', 'schemas', 'nested.json'), '{}\n', 'utf-8');
-    writeFileSync(join(nestedContentDir, '.ok', 'templates', 'daily.md'), '# Daily\n', 'utf-8');
-    writeFileSync(join(nestedContentDir, 'docs', '.ok', 'frontmatter.yml'), 'icon: book\n');
+    writeFileSync(
+      join(projectDir, '.gitquire', 'config.yml'),
+      'content:\n  dir: content\n',
+      'utf-8',
+    );
+    writeFileSync(join(projectDir, '.gitquire', '.gitignore'), 'local/\n', 'utf-8');
+    writeFileSync(join(projectDir, '.gitquire', 'schemas', 'root.json'), '{}\n', 'utf-8');
+    writeFileSync(join(nestedContentDir, '.gitquire', 'config.yml'), 'not: root\n', 'utf-8');
+    writeFileSync(join(nestedContentDir, '.gitquire', '.gitignore'), 'local/\n', 'utf-8');
+    writeFileSync(join(nestedContentDir, '.gitquire', 'schemas', 'nested.json'), '{}\n', 'utf-8');
+    writeFileSync(
+      join(nestedContentDir, '.gitquire', 'templates', 'daily.md'),
+      '# Daily\n',
+      'utf-8',
+    );
+    writeFileSync(join(nestedContentDir, 'docs', '.gitquire', 'frontmatter.yml'), 'icon: book\n');
     writeFileSync(join(nestedContentDir, 'ignored.md'), '# Ignored\n', 'utf-8');
 
     const contentFilter = createContentFilter({ projectDir, contentDir: nestedContentDir });
@@ -134,11 +142,11 @@ describe('walker symmetry', () => {
 
     expect(gathered).toEqual(
       new Set([
-        '.ok/.gitignore',
-        '.ok/config.yml',
-        '.ok/schemas/root.json',
-        'content/.ok/templates/daily.md',
-        'content/docs/.ok/frontmatter.yml',
+        '.gitquire/.gitignore',
+        '.gitquire/config.yml',
+        '.gitquire/schemas/root.json',
+        'content/.gitquire/templates/daily.md',
+        'content/docs/.gitquire/frontmatter.yml',
       ]),
     );
   });

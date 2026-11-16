@@ -242,11 +242,11 @@ describe('persistence refuses links into private repository state', () => {
 
   beforeEach(() => {
     contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-private-link-persistence-')));
-    mkdirSync(join(contentDir, '.ok', 'local'), { recursive: true });
+    mkdirSync(join(contentDir, '.gitquire', 'local'), { recursive: true });
     mkdirSync(join(contentDir, '.git'), { recursive: true });
     mkdirSync(join(contentDir, 'notes'), { recursive: true });
     mkdirSync(join(contentDir, 'shared'), { recursive: true });
-    writeFileSync(join(contentDir, '.ok', 'local', 'principal.json'), SECRET);
+    writeFileSync(join(contentDir, '.gitquire', 'local', 'principal.json'), SECRET);
     writeFileSync(join(contentDir, '.git', 'config'), GIT_CONFIG);
   });
 
@@ -319,7 +319,7 @@ describe('persistence refuses links into private repository state', () => {
   }
 
   test('load leaves a doc linked to machine-local state empty', async () => {
-    symlinkSync('../.ok/local/principal.json', join(contentDir, 'notes', 'leak.md'));
+    symlinkSync('../.gitquire/local/principal.json', join(contentDir, 'notes', 'leak.md'));
     const persistence = createPersistence();
     const document = new Y.Doc();
 
@@ -378,15 +378,15 @@ describe('persistence refuses links into private repository state', () => {
     const write = tracedFs.tracedWriteFile;
     const staging = vi.spyOn(tracedFs, 'tracedWriteFile').mockImplementation(async (...args) => {
       await write(...args);
-      mkdirSync(join(contentDir, 'notes', '.ok'), { recursive: true });
-      writeFileSync(join(contentDir, 'notes', '.ok', 'config.yml'), '');
+      mkdirSync(join(contentDir, 'notes', '.gitquire'), { recursive: true });
+      writeFileSync(join(contentDir, 'notes', '.gitquire', 'config.yml'), '');
     });
     try {
       await expect(storeDocument(persistence, document, docName)).rejects.toThrow(
         /nested project/i,
       );
       expect(readFileSync(docPath, 'utf8')).toBe(before);
-      expect(readdirSync(join(contentDir, 'notes')).sort()).toEqual(['.ok', 'race.md']);
+      expect(readdirSync(join(contentDir, 'notes')).sort()).toEqual(['.gitquire', 'race.md']);
     } finally {
       staging.mockRestore();
       document.destroy();
@@ -431,7 +431,7 @@ describe('persistence refuses links into private repository state', () => {
 
   test('store neither reads nor replaces a Mermaid doc linked into machine-local state', async () => {
     const linkPath = join(contentDir, 'notes', 'leak.mmd');
-    symlinkSync('../.ok/local/principal.json', linkPath);
+    symlinkSync('../.gitquire/local/principal.json', linkPath);
     const persistence = createPersistence();
     const document = new Y.Doc();
     document.getText('source').insert(0, 'graph TD; A-->B;\n');
@@ -440,7 +440,9 @@ describe('persistence refuses links into private repository state', () => {
 
     expect(document.getText('source').toString()).toBe('graph TD; A-->B;\n');
     expect(lstatSync(linkPath).isSymbolicLink()).toBe(true);
-    expect(readFileSync(join(contentDir, '.ok', 'local', 'principal.json'), 'utf-8')).toBe(SECRET);
+    expect(readFileSync(join(contentDir, '.gitquire', 'local', 'principal.json'), 'utf-8')).toBe(
+      SECRET,
+    );
     document.destroy();
   });
 

@@ -183,7 +183,7 @@ export function buildMeasurementResult(options: BuildMeasurementResultOptions) {
 }
 
 function writeFixture(projectDir: string, documentCount: number, directoryCount: number): void {
-  const okDir = join(projectDir, '.ok');
+  const okDir = join(projectDir, '.gitquire');
   mkdirSync(okDir, { recursive: true });
   writeFileSync(
     join(okDir, 'config.yml'),

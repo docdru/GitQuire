@@ -19,8 +19,8 @@ export function useIsolatedHome(): () => string {
 }
 
 export function writeUserConfig(home: string, body: string): void {
-  mkdirSync(join(home, '.ok'), { recursive: true });
-  writeFileSync(join(home, '.ok', 'global.yml'), body, 'utf-8');
+  mkdirSync(join(home, '.gitquire'), { recursive: true });
+  writeFileSync(join(home, '.gitquire', 'global.yml'), body, 'utf-8');
 }
 
 export function gitHostsYaml(...hosts: string[]): string {

@@ -404,7 +404,7 @@ describe('runStop durable record', () => {
   test('records the resolved lock dir and every signalled pid', async () => {
     const { logger, records } = captureLogger();
     await runStop({
-      lockDir: '/tmp/target/.ok/local',
+      lockDir: '/tmp/target/.gitquire/local',
       inspect: () => aliveLock(100, 3001),
       ...verifiedWriter,
       kill: () => {},
@@ -416,7 +416,7 @@ describe('runStop durable record', () => {
 
     const record = records.find((r) => r.msg === 'stop signalled processes');
     expect(record).toBeDefined();
-    expect(record?.obj.lockDir).toBe('/tmp/target/.ok/local');
+    expect(record?.obj.lockDir).toBe('/tmp/target/.gitquire/local');
     expect(record?.obj.signalled).toEqual([{ name: 'server', pid: 100, port: 3001 }]);
     expect(record?.obj.forced).toBe(false);
   });
@@ -424,7 +424,7 @@ describe('runStop durable record', () => {
   test('records a decline with the client count and the target', async () => {
     const { logger, records } = captureLogger();
     await runStop({
-      lockDir: '/tmp/other/.ok/local',
+      lockDir: '/tmp/other/.gitquire/local',
       inspect: () => aliveLock(7, 3001),
       kill: () => {},
       log: () => {},
@@ -435,12 +435,16 @@ describe('runStop durable record', () => {
 
     const record = records.find((r) => r.msg === 'stop declined: live collaboration clients');
     expect(record?.level).toBe('warn');
-    expect(record?.obj).toMatchObject({ lockDir: '/tmp/other/.ok/local', clients: 1, pids: [7] });
+    expect(record?.obj).toMatchObject({
+      lockDir: '/tmp/other/.gitquire/local',
+      clients: 1,
+      pids: [7],
+    });
   });
 });
 
 describe('runStop identity check at the signal', () => {
-  const lockDir = '/tmp/gate/.ok/local';
+  const lockDir = '/tmp/gate/.gitquire/local';
   const lockPath = `${lockDir}/server.lock`;
   const lockWrittenAt = '2026-04-16T00:00:00Z';
   const startedLongAfterTheLock = () => ({
@@ -1124,7 +1128,7 @@ describe('gq stop on a project whose live lock records no owning machine', () =>
     await once(holder, 'spawn');
     const pid = holder.pid;
     if (pid === undefined) throw new Error('holder did not start');
-    const lockDir = join(project, '.ok', 'local');
+    const lockDir = join(project, '.gitquire', 'local');
     mkdirSync(lockDir, { recursive: true });
     writeFileSync(lockFilePath(lockDir, 'server'), JSON.stringify({ pid }), 'utf-8');
     const errors: string[] = [];

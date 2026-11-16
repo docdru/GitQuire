@@ -62,14 +62,17 @@ export async function createRestartableServer(
   let port: number;
   try {
     home ??= mkdtempSync(join(tmpdir(), 'ok-restart-home-'));
-    mkdirSync(join(contentDir, '.ok'), { recursive: true });
+    mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
     if (options.contentDir === undefined) {
       writeFileSync(join(contentDir, 'test-doc.md'), '');
     }
-    if (!existsSync(join(contentDir, '.ok', 'config.yml'))) {
-      writeFileSync(join(contentDir, '.ok', 'config.yml'), options.seedProjectConfigYml ?? '');
+    if (!existsSync(join(contentDir, '.gitquire', 'config.yml'))) {
+      writeFileSync(
+        join(contentDir, '.gitquire', 'config.yml'),
+        options.seedProjectConfigYml ?? '',
+      );
     }
-    writeFileSync(join(contentDir, '.ok', '.gitignore'), '*\n');
+    writeFileSync(join(contentDir, '.gitquire', '.gitignore'), '*\n');
     await ensureProjectGit(contentDir);
     configureTestGitRepository(contentDir);
     port = options.port ?? (await getFreePort());

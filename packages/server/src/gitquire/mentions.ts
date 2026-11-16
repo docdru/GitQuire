@@ -157,7 +157,7 @@ export interface ConfirmationRules {
 }
 
 export function mentionStatePath(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'mentions.json');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'mentions.json');
 }
 
 function stringList(value: unknown): string[] {

@@ -14,7 +14,7 @@ function makeProvider(source: string): { provider: HocuspocusProvider; ytext: Y.
   ytext.insert(0, source);
   const provider = {
     document,
-    configuration: { name: 'notes/.ok/templates/meeting' },
+    configuration: { name: 'notes/.gitquire/templates/meeting' },
     on: () => {},
     off: () => {},
   } as unknown as HocuspocusProvider;

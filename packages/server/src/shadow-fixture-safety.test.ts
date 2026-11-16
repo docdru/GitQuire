@@ -94,7 +94,7 @@ function pendingFence(resultDir: string): string | undefined {
   if (!existsSync(workDir)) return undefined;
   for (const entry of readdirSync(workDir, { withFileTypes: true })) {
     if (!entry.isDirectory() || !entry.name.startsWith('ok-shadow-settle-fence-')) continue;
-    const ok = join(workDir, entry.name, '.ok');
+    const ok = join(workDir, entry.name, '.gitquire');
     if (!existsSync(ok)) continue;
     const name = readdirSync(ok).find((file) => file.startsWith('watcher-settle-fence-'));
     if (name) return join(ok, name);

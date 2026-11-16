@@ -331,7 +331,7 @@ describe('createFileExistsOracle', () => {
     '.ssh/id_rsa',
     '.aws/credentials',
     '.git/config',
-    '.ok/config.yml',
+    '.gitquire/config.yml',
     '.claude/settings.json',
     'node_modules/pkg/index.js',
     '__system__.md',

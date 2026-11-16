@@ -11,8 +11,8 @@ export function ProjectTemplatesSection() {
         scopeBadge: 'project',
         description: (
           <Trans>
-            Stored at <code className="font-mono">.ok/templates/</code> in this project. Available
-            in every folder (folder-scoped templates can override by filename).
+            Stored at <code className="font-mono">.gitquire/templates/</code> in this project.
+            Available in every folder (folder-scoped templates can override by filename).
           </Trans>
         ),
         emptyMessage: t`No project templates yet. Create one to make it available everywhere in this project. Folder-scoped templates live on each folder's overview page.`,

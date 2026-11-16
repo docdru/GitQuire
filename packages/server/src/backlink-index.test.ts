@@ -270,12 +270,12 @@ describe('BacklinkIndex', () => {
       const index = new BacklinkIndex({ projectDir, contentDir });
       index.updateDocumentFromMarkdown(
         'work-log',
-        'Touched [the skill](.ok/skills/my-skill/SKILL.md) and [the tpl](notes/.ok/templates/daily.md).\n',
+        'Touched [the skill](.gitquire/skills/my-skill/SKILL.md) and [the tpl](notes/.gitquire/templates/daily.md).\n',
       );
-      expect(index.getBacklinks('.ok/skills/my-skill/SKILL')).toEqual([
+      expect(index.getBacklinks('.gitquire/skills/my-skill/SKILL')).toEqual([
         expect.objectContaining({ source: 'work-log' }),
       ]);
-      expect(index.getBacklinks('notes/.ok/templates/daily')).toEqual([
+      expect(index.getBacklinks('notes/.gitquire/templates/daily')).toEqual([
         expect.objectContaining({ source: 'work-log' }),
       ]);
       expect(index.getBacklinks('__skill__/project/my-skill')).toEqual([]);
@@ -754,7 +754,7 @@ describe('BacklinkIndex', () => {
       index.updateDocumentFromMarkdown('alpha', '# Alpha\n\nSee [[ghost]].\n');
       await index.saveToDisk();
       const raw = readFileSync(
-        join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main', 'backlinks.json'),
+        join(projectDir, '.gitquire', LOCAL_DIR, 'cache', 'main', 'backlinks.json'),
         'utf-8',
       );
       expect(raw).toBe(JSON.stringify(JSON.parse(raw)));
@@ -774,7 +774,7 @@ describe('BacklinkIndex', () => {
     const contentDir = join(projectDir, 'content');
     mkdirSync(contentDir, { recursive: true });
     try {
-      const cacheDir = join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main');
+      const cacheDir = join(projectDir, '.gitquire', LOCAL_DIR, 'cache', 'main');
       mkdirSync(cacheDir, { recursive: true });
       writeFileSync(
         join(cacheDir, 'backlinks.json'),
@@ -867,7 +867,7 @@ describe('BacklinkIndex', () => {
     try {
       writeFileSync(join(contentDir, 'alpha.md'), '[[beta]]');
       writeFileSync(join(contentDir, 'beta.md'), '# Beta');
-      const cacheDir = join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main');
+      const cacheDir = join(projectDir, '.gitquire', LOCAL_DIR, 'cache', 'main');
       mkdirSync(cacheDir, { recursive: true });
       writeFileSync(
         join(cacheDir, 'backlinks.json'),
@@ -909,7 +909,7 @@ describe('BacklinkIndex', () => {
     async ({ corrupt }) => {
       const projectDir = mkdtempSync(join(tmpdir(), 'ok-backlinks-torn-cache-'));
       const contentDir = join(projectDir, 'content');
-      const cachePath = join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main', 'backlinks.json');
+      const cachePath = join(projectDir, '.gitquire', LOCAL_DIR, 'cache', 'main', 'backlinks.json');
       mkdirSync(contentDir, { recursive: true });
       try {
         writeFileSync(join(contentDir, 'alpha.md'), 'See [[beta]].\n');
@@ -940,15 +940,15 @@ describe('BacklinkIndex', () => {
     const contentDir = join(projectDir, 'content');
     mkdirSync(contentDir, { recursive: true });
     try {
-      const templateDoc = 'notes/.ok/templates/daily';
-      mkdirSync(join(contentDir, 'notes', '.ok', 'templates'), { recursive: true });
+      const templateDoc = 'notes/.gitquire/templates/daily';
+      mkdirSync(join(contentDir, 'notes', '.gitquire', 'templates'), { recursive: true });
       writeFileSync(
         join(contentDir, 'alpha.md'),
-        '# Alpha\n\nSee [[notes/.ok/templates/daily]].\n',
+        '# Alpha\n\nSee [[notes/.gitquire/templates/daily]].\n',
       );
-      writeFileSync(join(contentDir, 'notes', '.ok', 'templates', 'daily.md'), '# Daily\n');
+      writeFileSync(join(contentDir, 'notes', '.gitquire', 'templates', 'daily.md'), '# Daily\n');
 
-      const cacheDir = join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main');
+      const cacheDir = join(projectDir, '.gitquire', LOCAL_DIR, 'cache', 'main');
       mkdirSync(cacheDir, { recursive: true });
       writeFileSync(
         join(cacheDir, 'backlinks.json'),
@@ -1009,7 +1009,7 @@ describe('BacklinkIndex', () => {
 
       await index.saveToDisk();
       const cacheRaw = readFileSync(
-        join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main', 'backlinks.json'),
+        join(projectDir, '.gitquire', LOCAL_DIR, 'cache', 'main', 'backlinks.json'),
         'utf-8',
       );
       expect(cacheRaw).toContain('"beta"');

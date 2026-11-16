@@ -117,10 +117,10 @@ describe('scaffold writers refuse $HOME', () => {
     expect(existsSync(join(home, '.git'))).toBe(false);
   });
 
-  test('initContent does not scaffold into the user-global ~/.ok', () => {
+  test('initContent does not scaffold into the user-global ~/.gitquire', () => {
     vi.stubEnv('HOME', home);
     expect(() => initContent(home)).toThrow(HomeProjectRootError);
-    expect(existsSync(join(home, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(join(home, '.gitquire', 'config.yml'))).toBe(false);
     expect(existsSync(join(home, '.okignore'))).toBe(false);
   });
 

@@ -8,8 +8,8 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import { Bash, OverlayFs } from 'just-bash';
 import { HiddenPathsFs } from './hidden-paths-fs.ts';
 
-const EXEC_HIDDEN_DIRS: readonly string[] = ['.ok/local', '.gitquire/local'];
-const EXEC_LOCAL_DATA_PARENTS: readonly string[] = ['.ok', '.gitquire'];
+const EXEC_HIDDEN_DIRS: readonly string[] = ['.gitquire/local', '.ok/local'];
+const EXEC_LOCAL_DATA_PARENTS: readonly string[] = ['.gitquire', '.ok'];
 
 const MAX_STDOUT_BYTES = 16 * 1024 * 1024;
 

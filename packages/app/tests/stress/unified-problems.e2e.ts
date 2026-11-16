@@ -42,9 +42,9 @@ let lintDocName = '';
 let linkDocName = '';
 
 test.beforeEach(async ({ page, api, workerServer }) => {
-  mkdirSync(join(workerServer.contentDir, '.ok'), { recursive: true });
+  mkdirSync(join(workerServer.contentDir, '.gitquire'), { recursive: true });
   writeFileSync(
-    join(workerServer.contentDir, '.ok', 'config.yml'),
+    join(workerServer.contentDir, '.gitquire', 'config.yml'),
     'contentRules:\n  markdownlint:\n    enabled: true\n',
     'utf-8',
   );
@@ -77,7 +77,7 @@ test.afterEach(() => {
 });
 
 test.afterAll(({ workerServer }) => {
-  writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), '', 'utf-8');
+  writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
 });
 
 test.describe('unified Problems — project scope', () => {
@@ -276,8 +276,8 @@ test.describe('unified Problems — file-tree indicators', () => {
 
     const suffix = randomUUID().slice(0, 8);
     const fmDoc = `uv-fm-${suffix}`;
-    const schemaRel = join('.ok', 'schemas', `uv-fm-${suffix}.schema.json`);
-    mkdirSync(join(workerServer.contentDir, '.ok', 'schemas'), { recursive: true });
+    const schemaRel = join('.gitquire', 'schemas', `uv-fm-${suffix}.schema.json`);
+    mkdirSync(join(workerServer.contentDir, '.gitquire', 'schemas'), { recursive: true });
     writeFileSync(
       join(workerServer.contentDir, schemaRel),
       JSON.stringify({
@@ -288,7 +288,7 @@ test.describe('unified Problems — file-tree indicators', () => {
       'utf-8',
     );
     writeFileSync(
-      join(workerServer.contentDir, '.ok', 'config.yml'),
+      join(workerServer.contentDir, '.gitquire', 'config.yml'),
       [
         'contentRules:',
         '  markdownlint:',

@@ -27,7 +27,7 @@ import {
 import { resolveTemplatePath } from './verb-schemas.ts';
 
 const DESCRIPTION = [
-  'For .md/.mdx inspection before or after a move in a project with .ok/, use exec; native Read/Grep/Glob omit wiki context.',
+  'For .md/.mdx inspection before or after a move in a project with .gitquire/, use exec; native Read/Grep/Glob omit wiki context.',
   'Move/rename a document, folder or asset with `{from, to}`, or a template with `{template: {from, to}}`. Choose one form. Requires the Hocuspocus server. Document/folder/asset kind is auto-detected.',
   "Paths: docs accept optional .md/.mdx; folders are relative with no leading/trailing slash; assets include the extension. Templates use '<folder>/<name>'; inherited templates cannot move (move their local copy or owning folder). Template moves rewrite no inbound links.",
   'Links to the moved document keep pointing to it. The old path stops existing; do not leave a redirect or stub.',
@@ -147,7 +147,7 @@ export function register(server: ServerInstance, deps: MoveDeps): void {
           .object({ from: z.string(), to: z.string() })
           .optional()
           .describe(
-            'Move/rename a TEMPLATE instead: `{ from: "<folder>/<name>", to: "<folder>/<name>" }`. Nested because a flat path cannot disambiguate a template under `.ok/templates/` from a same-named doc. Mutually exclusive with flat `from`/`to`.',
+            'Move/rename a TEMPLATE instead: `{ from: "<folder>/<name>", to: "<folder>/<name>" }`. Nested because a flat path cannot disambiguate a template under `.gitquire/templates/` from a same-named doc. Mutually exclusive with flat `from`/`to`.',
           ),
         summary: summaryArgSchema.describe(
           'Optional one-line user-outcome (≤80 chars). Defaults to "Renamed X → Y". Persisted to git history.',
@@ -238,7 +238,7 @@ export function register(server: ServerInstance, deps: MoveDeps): void {
         const fromLabel = typeof result.from === 'string' ? result.from : args.template.from;
         const toLabel = typeof result.to === 'string' ? result.to : args.template.to;
         return textPlusStructured(
-          `${committed ? 'Renamed' : 'Moved'} template ${fromLabel} → ${toLabel}.${committed ? '' : ' (Untracked `.ok/` — moved on disk without git history.)'}`,
+          `${committed ? 'Renamed' : 'Moved'} template ${fromLabel} → ${toLabel}.${committed ? '' : ' (Untracked `.gitquire/` — moved on disk without git history.)'}`,
           { ok: true, kind: 'template', committed },
         );
       }
@@ -256,7 +256,7 @@ export function register(server: ServerInstance, deps: MoveDeps): void {
         const split = resolveTemplatePath(args.from);
         if (
           split.ok &&
-          existsSync(join(contentDir, split.folder, '.ok', 'templates', `${split.name}.md`))
+          existsSync(join(contentDir, split.folder, '.gitquire', 'templates', `${split.name}.md`))
         ) {
           return textResult(
             `Error: \`${args.from}\` is a template, not a doc/folder/asset. Move it with \`move({ template: { from: "${args.from}", to: "<folder>/<newName>" } })\`.`,

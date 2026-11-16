@@ -34,7 +34,7 @@ export interface ActionItemMentionDeps {
 }
 
 export function actionItemStatePath(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'action-item-mentions.json');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'action-item-mentions.json');
 }
 
 function clip(text: string): string {

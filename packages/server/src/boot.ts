@@ -43,6 +43,10 @@ import {
   withGitHubAppPushCheck,
   withGitHubAppToken,
 } from './gitquire/index.ts';
+import {
+  describeLegacyDataFolderMigration,
+  migrateLegacyDataFolders,
+} from './gitquire/legacy-data-folder.ts';
 import { createShellHeaderSetter } from './http/shell-csp.ts';
 import {
   attachCollabClientCounter,
@@ -287,7 +291,7 @@ async function bootServerInner(
       ? serverRuntime.bind
       : effectiveBindAddresses;
     throw new ExposureConsentError(
-      `refusing to start: the server would bind a non-loopback address (${exposingAddresses.join(', ')}), which exposes this server beyond this machine. Consent with GITQUIRE_ALLOW_EXTERNAL=1, or server.allowExternal: true in .ok/local/config.yml.`,
+      `refusing to start: the server would bind a non-loopback address (${exposingAddresses.join(', ')}), which exposes this server beyond this machine. Consent with GITQUIRE_ALLOW_EXTERNAL=1, or server.allowExternal: true in .gitquire/local/config.yml.`,
     );
   }
 
@@ -345,6 +349,9 @@ async function bootServerInner(
   }
 
   const projectDir = opts.projectDir ?? opts.contentDir;
+  for (const line of describeLegacyDataFolderMigration(migrateLegacyDataFolders(projectDir))) {
+    getLogger('boot').warn({ projectDir }, line);
+  }
   const okDir = resolve(projectDir, OK_DIR);
   const configPath = resolve(okDir, 'config.yml');
   if (!existsSync(configPath)) {

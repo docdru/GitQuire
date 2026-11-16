@@ -58,7 +58,7 @@ const LIVE_STATUS: SemanticIndexStatus = {
 
 function readLocalConfig(dir: string): string {
   try {
-    return readFileSync(join(dir, '.ok', 'local', 'config.yml'), 'utf-8');
+    return readFileSync(join(dir, '.gitquire', 'local', 'config.yml'), 'utf-8');
   } catch {
     return '';
   }
@@ -187,9 +187,9 @@ describe('gq embeddings status transport settings', () => {
     { maxBatchSize: 2, maxBatchChars: 16_000, docTimeoutMs: 120_000 },
     { maxBatchSize: 96, maxBatchChars: 96_000, docTimeoutMs: 30_000 },
   ])('JSON exposes resolved transport settings: %j', async (transport) => {
-    mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire', 'local'), { recursive: true });
     writeFileSync(
-      join(dir, '.ok', 'local', 'config.yml'),
+      join(dir, '.gitquire', 'local', 'config.yml'),
       stringify({ search: { semantic: { ...transport, baseUrl: 'http://localhost:11434/v1' } } }),
     );
 
@@ -309,7 +309,7 @@ describe('embeddings hints name the running channel CLI', () => {
     );
     await embeddingsCommand().parseAsync(['set-key', '--cwd', dir], { from: 'user' });
     expect(readFileSync(join(dir, 'secrets.yml'), 'utf8')).toContain('sk-test');
-    expect(stderr).toContain('file fallback: ~/.ok/secrets.yml, 0600');
+    expect(stderr).toContain('file fallback: ~/.gitquire/secrets.yml, 0600');
     expect(stderr).not.toContain('OS credential store');
   });
 

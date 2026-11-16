@@ -17,14 +17,14 @@ function resolveFileContent(
     return pack.rootFiles[templateId];
   }
 
-  const fmMatch = /^(.+)\/\.ok\/frontmatter\.yml$/.exec(templateId);
+  const fmMatch = /^(.+)\/\.gitquire\/frontmatter\.yml$/.exec(templateId);
   if (fmMatch) {
     const folder = pack.folders.find((f) => f.path === fmMatch[1]);
     if (!folder) return undefined;
     return buildStarterFolderFrontmatterYaml(folder);
   }
 
-  const tplMatch = /^(.+)\/\.ok\/templates\/([^/]+)\.md$/.exec(templateId);
+  const tplMatch = /^(.+)\/\.gitquire\/templates\/([^/]+)\.md$/.exec(templateId);
   if (tplMatch) {
     const templateName = tplMatch[2] ?? '';
     return pack.templates[templateName];
@@ -103,7 +103,7 @@ export async function applySeed(plan: ScaffoldPlan, opts: SeedOptions = {}): Pro
     pluginsEnabled = enableRequiredPlugins(projectDir, pack.requiredPlugins ?? []);
   } catch (err) {
     errors.push({
-      path: `.ok/${CONFIG_FILENAME}`,
+      path: `.gitquire/${CONFIG_FILENAME}`,
       error: `could not enable required plugin(s): ${err instanceof Error ? err.message : String(err)}`,
     });
   }

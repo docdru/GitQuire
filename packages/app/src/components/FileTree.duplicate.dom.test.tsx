@@ -633,8 +633,8 @@ describe('FileTree duplicate action runtime behavior', () => {
     expect(screen.getByRole('menuitem', { name: /copy path/i })).toBeTruthy();
   });
 
-  test('.ok file row menu keeps read-only actions and drops every mutate action', async () => {
-    menuItem = { kind: 'file', path: '.ok/templates/greeting.md' };
+  test('.gitquire file row menu keeps read-only actions and drops every mutate action', async () => {
+    menuItem = { kind: 'file', path: '.gitquire/templates/greeting.md' };
     okignoreBindingMock = {
       current: () => '',
       patch: vi.fn(() => ({ ok: true })),
@@ -650,8 +650,8 @@ describe('FileTree duplicate action runtime behavior', () => {
     expect(screen.queryByTestId('file-tree-menu-hide')).toBeNull();
   });
 
-  test('.ok folder row menu drops create and mutate sections, keeps path/tree actions', async () => {
-    menuItem = { kind: 'directory', path: '.ok/' };
+  test('.gitquire folder row menu drops create and mutate sections, keeps path/tree actions', async () => {
+    menuItem = { kind: 'directory', path: '.gitquire/' };
     okignoreBindingMock = {
       current: () => '',
       patch: vi.fn(() => ({ ok: true })),
@@ -909,13 +909,13 @@ describe('FileTree duplicate action runtime behavior', () => {
     expect(duplicateCalls()).toHaveLength(0);
   });
 
-  test('Cmd/Ctrl+D ignores revealed .ok rows', async () => {
+  test('Cmd/Ctrl+D ignores revealed .gitquire rows', async () => {
     renderFileTree();
     await screen.findByRole('menuitem', { name: /duplicate/i });
     fetchCalls = [];
 
-    model.focusedPath = '.ok/templates/greeting.md';
-    model.selectedPaths = ['.ok/templates/greeting.md'];
+    model.focusedPath = '.gitquire/templates/greeting.md';
+    model.selectedPaths = ['.gitquire/templates/greeting.md'];
     screen.getByTestId('tree-focus-target').focus();
     fireEvent.keyDown(document, { key: 'd', ctrlKey: true });
 
@@ -923,13 +923,13 @@ describe('FileTree duplicate action runtime behavior', () => {
     expect(duplicateCalls()).toHaveLength(0);
   });
 
-  test('Cmd/Ctrl+C on a revealed .ok row keeps native copy and enqueues no paste target', async () => {
+  test('Cmd/Ctrl+C on a revealed .gitquire row keeps native copy and enqueues no paste target', async () => {
     renderFileTree();
     await screen.findByRole('menuitem', { name: /duplicate/i });
     fetchCalls = [];
 
-    model.focusedPath = 'notes/.ok/';
-    model.selectedPaths = ['notes/.ok/'];
+    model.focusedPath = 'notes/.gitquire/';
+    model.selectedPaths = ['notes/.gitquire/'];
     screen.getByTestId('tree-focus-target').focus();
     const copyEvent = new KeyboardEvent('keydown', {
       key: 'c',
@@ -1023,11 +1023,11 @@ describe('FileTree duplicate action runtime behavior', () => {
     );
   });
 
-  test('Delete on a revealed .ok row opens no delete confirmation', async () => {
+  test('Delete on a revealed .gitquire row opens no delete confirmation', async () => {
     renderFileTree();
     await screen.findByRole('menuitem', { name: /duplicate/i });
 
-    model.focusedPath = '.ok/';
+    model.focusedPath = '.gitquire/';
     model.selectedPaths = [];
     screen.getByTestId('tree-focus-target').focus();
     fireEvent.keyDown(document, { key: 'Delete' });
@@ -1042,7 +1042,7 @@ describe('FileTree duplicate action runtime behavior', () => {
     await screen.findByRole('menuitem', { name: /duplicate/i });
 
     model.focusedPath = null;
-    model.selectedPaths = ['notes/source.mdx', 'notes/.ok/'];
+    model.selectedPaths = ['notes/source.mdx', 'notes/.gitquire/'];
     screen.getByTestId('tree-focus-target').focus();
     fireEvent.keyDown(document, { key: 'Delete' });
 
@@ -1211,7 +1211,7 @@ describe('FileTree duplicate action runtime behavior', () => {
     await waitFor(() => expect(deletePathCalls()).toHaveLength(1));
   });
 
-  test('delete event bus drops .ok targets before opening confirmation', async () => {
+  test('delete event bus drops .gitquire targets before opening confirmation', async () => {
     renderFileTree();
     await screen.findByRole('menuitem', { name: /duplicate/i });
     fetchCalls = [];
@@ -1219,8 +1219,8 @@ describe('FileTree duplicate action runtime behavior', () => {
     act(() => {
       emitFileTreeMenuActionDelete({
         kind: 'folder',
-        target: '.ok',
-        folderPath: '.ok',
+        target: '.gitquire',
+        folderPath: '.gitquire',
       } satisfies ResolvedNavigationTarget);
     });
 

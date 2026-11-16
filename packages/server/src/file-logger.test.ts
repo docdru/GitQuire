@@ -204,11 +204,11 @@ describe('logs dir per channel', () => {
     expect(() => mod.getLogsDir()).toThrow(/GITQUIRE_CHANNEL/);
   });
 
-  test('Beta resolves logs under ~/.ok-beta/logs', async () => {
+  test('Beta resolves logs under ~/.gitquire-beta/logs', async () => {
     vi.stubEnv('HOME', '/tmp/ok-logs-home');
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     vi.resetModules();
     const { getLogsDir } = await import('./file-logger.ts');
-    expect(getLogsDir()).toBe(join('/tmp/ok-logs-home', '.ok-beta', 'logs'));
+    expect(getLogsDir()).toBe(join('/tmp/ok-logs-home', '.gitquire-beta', 'logs'));
   });
 });

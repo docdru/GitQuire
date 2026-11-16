@@ -55,7 +55,7 @@ describe('Managed rename — crash recovery via boot-time initAsync (QA-006)', (
         { docName: 'docs/index', content: preRenameDocsIndex },
       ],
     });
-    mkdirSync(join(contentDir, '.ok'), { recursive: true });
+    mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
     writeManagedRenameJournal(contentDir, journal);
 
     expect(existsSync(managedRenameJournalPath(contentDir))).toBe(true);
@@ -101,7 +101,7 @@ describe('Managed rename — crash recovery via boot-time initAsync (QA-006)', (
       affectedDocs: [{ from: 'articles/a', to: 'essays/a' }],
       snapshots: [{ docName: 'articles/a', content: '# A\n' }],
     });
-    mkdirSync(join(contentDir, '.ok'), { recursive: true });
+    mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
     writeManagedRenameJournal(contentDir, journal);
 
     const server = await createRestartableServer({ contentDir });

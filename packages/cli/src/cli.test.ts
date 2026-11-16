@@ -195,8 +195,8 @@ describe('committed project-local key startup warning', () => {
 
   beforeEach(() => {
     projectDir = mkdtempSync(join(tmpdir(), 'ok-committed-bind-'));
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'server:\n  bind:\n    - 0.0.0.0\n');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'server:\n  bind:\n    - 0.0.0.0\n');
   });
 
   afterEach(() => {
@@ -229,7 +229,7 @@ describe('committed project-local key startup warning', () => {
 
     const stderr = result.stderr.toString();
     expect(stderr).toContain('server.bind is a per-machine (project-local) setting');
-    expect(stderr).toContain('.ok/local/config.yml');
+    expect(stderr).toContain('.gitquire/local/config.yml');
     expect(stderr).toContain('GITQUIRE_BIND');
     expect(stderr).not.toContain('ExposureConsentError');
   }, 30_000);

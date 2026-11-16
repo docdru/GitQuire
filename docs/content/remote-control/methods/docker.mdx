@@ -27,7 +27,7 @@ cd GitQuire
 docker build -t gitquire:local .
 ```
 
-The image's entrypoint runs every time the container starts. `gitquire start` needs an initialized project, but no one is inside the container to run `gitquire init`, so the entrypoint does it: the first boot initializes the project on the empty volume, later boots find `.ok/` and start the server directly. `gitquire init` only scaffolds the project; the server provides its `/mcp` endpoint for AI assistants. See [Run with Docker](/docs/gitquire/run-with-docker) for the full setup with Docker Compose.
+The image's entrypoint runs every time the container starts. `gitquire start` needs an initialized project, but no one is inside the container to run `gitquire init`, so the entrypoint does it: the first boot initializes the project on the empty volume, later boots find `.gitquire/` and start the server directly. `gitquire init` only scaffolds the project; the server provides its `/mcp` endpoint for AI assistants. See [Run with Docker](/docs/gitquire/run-with-docker) for the full setup with Docker Compose.
 
 Test it locally:
 

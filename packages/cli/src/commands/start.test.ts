@@ -342,7 +342,7 @@ describe('bootStartServer (integration)', () => {
 
   beforeEach(async () => {
     tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-start-boot-'));
-    const okDir = resolve(tmpDir, '.ok');
+    const okDir = resolve(tmpDir, '.gitquire');
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
     writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');
@@ -674,13 +674,13 @@ describe('bootStartServer (integration)', () => {
       expect(ephemeralRoot).not.toBe(tmpDir);
       expect(booted.lockDir.startsWith(tmpDir)).toBe(false);
       expect(basename(ephemeralRoot).startsWith('ok-ephemeral-')).toBe(true);
-      expect(existsSync(join(ephemeralRoot, '.ok', 'config.yml'))).toBe(true);
+      expect(existsSync(join(ephemeralRoot, '.gitquire', 'config.yml'))).toBe(true);
 
       await booted.destroy();
       booted = null;
       expect(existsSync(ephemeralRoot)).toBe(false);
       expect(existsSync(sentinel)).toBe(true);
-      expect(existsSync(join(tmpDir, '.ok', 'config.yml'))).toBe(true);
+      expect(existsSync(join(tmpDir, '.gitquire', 'config.yml'))).toBe(true);
     } finally {
       await rm(looseDir, { recursive: true, force: true });
     }
@@ -738,8 +738,8 @@ describe('bootStartServer (integration)', () => {
         projectDir: providedDir,
       });
       await booted.ready;
-      expect(existsSync(join(providedDir, '.ok', 'config.yml'))).toBe(true);
-      expect(existsSync(join(providedDir, '.ok', '.gitignore'))).toBe(true);
+      expect(existsSync(join(providedDir, '.gitquire', 'config.yml'))).toBe(true);
+      expect(existsSync(join(providedDir, '.gitquire', '.gitignore'))).toBe(true);
 
       await booted.destroy();
       booted = null;
@@ -765,7 +765,7 @@ describe('bootStartServer (integration)', () => {
           projectDir: ordinaryDir,
         }),
       ).rejects.toThrow(EphemeralProjectDirNotThrowawayError);
-      expect(existsSync(join(ordinaryDir, '.ok'))).toBe(false);
+      expect(existsSync(join(ordinaryDir, '.gitquire'))).toBe(false);
     } finally {
       await rm(looseDir, { recursive: true, force: true });
       await rm(ordinaryDir, { recursive: true, force: true });
@@ -777,8 +777,8 @@ describe('bootStartServer (integration)', () => {
     const realProject = await mkdtemp(resolve(tmpdir(), 'ok-start-realproj-'));
     try {
       writeFileSync(join(looseDir, 'note.md'), '# loose note\n', 'utf-8');
-      mkdirSync(join(realProject, '.ok'), { recursive: true });
-      writeFileSync(join(realProject, '.ok', 'config.yml'), 'content:\n  dir: .\n', 'utf-8');
+      mkdirSync(join(realProject, '.gitquire'), { recursive: true });
+      writeFileSync(join(realProject, '.gitquire', 'config.yml'), 'content:\n  dir: .\n', 'utf-8');
       writeFileSync(join(realProject, 'KEEP.md'), 'keep me', 'utf-8');
       await expect(
         bootStartServer({
@@ -791,7 +791,7 @@ describe('bootStartServer (integration)', () => {
         }),
       ).rejects.toThrow(EphemeralProjectDirNotThrowawayError);
       expect(existsSync(join(realProject, 'KEEP.md'))).toBe(true);
-      expect(existsSync(join(realProject, '.ok', 'local'))).toBe(false);
+      expect(existsSync(join(realProject, '.gitquire', 'local'))).toBe(false);
     } finally {
       await rm(looseDir, { recursive: true, force: true });
       await rm(realProject, { recursive: true, force: true });
@@ -838,7 +838,7 @@ describe('bootStartServer — no auto git-init from gq start (US-004)', () => {
 
   beforeEach(async () => {
     tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-start-git-'));
-    const okDir = resolve(tmpDir, '.ok');
+    const okDir = resolve(tmpDir, '.gitquire');
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
     writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');
@@ -891,7 +891,7 @@ describe('bootStartServer — no auto git-init from gq start (US-004)', () => {
   });
 });
 
-describe('bootStartServer — rejects with init-required when .ok/config.yml is absent', () => {
+describe('bootStartServer — rejects with init-required when .gitquire/config.yml is absent', () => {
   let tmpDir: string;
   let originalHome: string | undefined;
 
@@ -910,7 +910,7 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  test('fresh dir (no .ok/) → bootStartServer throws OkDirMissingError', async () => {
+  test('fresh dir (no .gitquire/) → bootStartServer throws OkDirMissingError', async () => {
     await expect(
       bootStartServer({
         config: makeTestConfig(),
@@ -921,7 +921,7 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
     ).rejects.toBeInstanceOf(OkDirMissingError);
   });
 
-  test('fresh dir (no .ok/) → OkDirMissingError message contains "gq init"', async () => {
+  test('fresh dir (no .gitquire/) → OkDirMissingError message contains "gq init"', async () => {
     await expect(
       bootStartServer({
         config: makeTestConfig(),
@@ -931,10 +931,10 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
       }),
     ).rejects.toThrow('gq init');
 
-    expect(existsSync(join(tmpDir, '.ok'))).toBe(false);
+    expect(existsSync(join(tmpDir, '.gitquire'))).toBe(false);
   });
 
-  test('fresh dir (no .ok/) → bootStartServer does not create config.yml', async () => {
+  test('fresh dir (no .gitquire/) → bootStartServer does not create config.yml', async () => {
     await expect(
       bootStartServer({
         config: makeTestConfig(),
@@ -943,11 +943,11 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
         skipAutoInit: false,
       }),
     ).rejects.toBeInstanceOf(OkDirMissingError);
-    expect(existsSync(join(tmpDir, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(join(tmpDir, '.gitquire', 'config.yml'))).toBe(false);
   });
 
-  test('bare .ok/ without config.yml is NOT a project root — bootStartServer still throws', async () => {
-    mkdirSync(join(tmpDir, '.ok'), { recursive: true });
+  test('bare .gitquire/ without config.yml is NOT a project root — bootStartServer still throws', async () => {
+    mkdirSync(join(tmpDir, '.gitquire'), { recursive: true });
     await expect(
       bootStartServer({
         config: makeTestConfig(),
@@ -956,11 +956,11 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
         skipAutoInit: false,
       }),
     ).rejects.toBeInstanceOf(OkDirMissingError);
-    expect(existsSync(join(tmpDir, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(join(tmpDir, '.gitquire', 'config.yml'))).toBe(false);
   });
 
   test('skipAutoInit: true bypasses the CLI guard — server requires config.yml to be pre-seeded', async () => {
-    const okDir = join(tmpDir, '.ok');
+    const okDir = join(tmpDir, '.gitquire');
     mkdirSync(okDir, { recursive: true });
     writeFileSync(join(okDir, 'config.yml'), '', 'utf-8');
     writeFileSync(join(okDir, '.gitignore'), '', 'utf-8');
@@ -998,7 +998,7 @@ describe('tryDescribeLockCollision', () => {
     async () => {
       const serverModule = await import('@gitquire/server');
       const projectDir = await mkdtemp(join(tmpdir(), 'ok-start-unreadable-lock-'));
-      const lockDir = join(projectDir, '.ok', 'local');
+      const lockDir = join(projectDir, '.gitquire', 'local');
       const lockPath = join(lockDir, 'server.lock');
       try {
         mkdirSync(lockDir, { recursive: true });
@@ -1033,7 +1033,7 @@ describe('tryDescribeLockCollision', () => {
     class ServerLockCollisionError extends Error {}
     return {
       ServerLockCollisionError,
-      resolveLockDir: (projectDir: string) => join(projectDir, '.ok', 'local'),
+      resolveLockDir: (projectDir: string) => join(projectDir, '.gitquire', 'local'),
       readServerLock: () => {
         if (opts.throwOnRead) throw new Error('synthetic read failure');
         return opts.meta;

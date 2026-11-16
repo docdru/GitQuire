@@ -18,7 +18,7 @@ import { getLogger } from '../logger.ts';
 const IGNORE_LINE = 'okf/';
 
 const IGNORE_BLOCK = `
-# .ok/okf/ holds the OKF lint plugin's schemas, rendered from the plugin on
+# .gitquire/okf/ holds the OKF lint plugin's schemas, rendered from the plugin on
 # boot so agents can read the contract they are told governs a document. A
 # generated artifact — regenerated whenever the plugin's copy changes, and
 # never read back — so it is not committed.
@@ -26,7 +26,7 @@ ${IGNORE_LINE}
 `;
 
 function ensureGitignored(projectDir: string): void {
-  const ignorePath = join(projectDir, '.ok', '.gitignore');
+  const ignorePath = join(projectDir, '.gitquire', '.gitignore');
   let current: string;
   try {
     current = readFileSync(ignorePath, 'utf8');
@@ -34,7 +34,7 @@ function ensureGitignored(projectDir: string): void {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
       getLogger('okf-schemas').warn(
         { err: error, projectDir },
-        '[okf] could not read .ok/.gitignore; generated schemas may show as untracked',
+        '[okf] could not read .gitquire/.gitignore; generated schemas may show as untracked',
       );
     }
     return;
@@ -44,7 +44,7 @@ function ensureGitignored(projectDir: string): void {
   tracedWriteFileSync(ignorePath, `${current.replace(/\n*$/, '\n')}${IGNORE_BLOCK}`, 'utf8');
   getLogger('okf-schemas').debug(
     { projectDir },
-    '[okf] added okf/ to .ok/.gitignore so generated schemas stay uncommitted',
+    '[okf] added okf/ to .gitquire/.gitignore so generated schemas stay uncommitted',
   );
 }
 

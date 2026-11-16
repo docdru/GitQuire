@@ -118,9 +118,12 @@ class GitOperationInProgressError extends Error {
 
 class ShareableOkEnumerationError extends Error {
   constructor(relDir: string, cause: unknown) {
-    super(`Shareable .ok subtree "${relDir}" could not be fully enumerated; sync staging aborted`, {
-      cause,
-    });
+    super(
+      `Shareable .gitquire subtree "${relDir}" could not be fully enumerated; sync staging aborted`,
+      {
+        cause,
+      },
+    );
     this.name = 'ShareableOkEnumerationError';
   }
 }
@@ -248,7 +251,7 @@ interface MergePreparation {
 }
 
 /**
- * ContentFilter read-opts for the two staging-path consultations, admitting the shareable `.ok`
+ * ContentFilter read-opts for the two staging-path consultations, admitting the shareable `.gitquire`
  * artifact allow-list. Both must consult the identical predicate (precedent #55): a HEAD path the
  * listing admits but the gather walk refuses commits as a spurious deletion on every push.
  */
@@ -399,7 +402,7 @@ export class SyncEngine {
   private contentFilter: ContentFilter;
   private contentRoot: string;
   /**
-   * The push cycle then runs a second enumeration rooted at the project root so shareable `.ok`
+   * The push cycle then runs a second enumeration rooted at the project root so shareable `.gitquire`
    * artifacts still stage and deletion-track; gather and head listing consult this flag in
    * lock-step (precedent #55).
    */
@@ -3319,7 +3322,7 @@ export class SyncEngine {
         if (file.toLowerCase() === projectConfigRelPath.toLowerCase()) {
           log.warn(
             { file },
-            '[sync] auto-resolved .ok/config.yml conflict with theirs: local project config edits were overwritten by the remote version',
+            '[sync] auto-resolved .gitquire/config.yml conflict with theirs: local project config edits were overwritten by the remote version',
           );
         } else {
           log.info({ file }, '[sync] auto-resolved non-content conflict with theirs');

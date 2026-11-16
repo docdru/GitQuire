@@ -23,9 +23,9 @@ let projectDir: string;
 let home: string;
 
 function declareInUserConfig(host: string): void {
-  mkdirSync(join(home, '.ok'));
+  mkdirSync(join(home, '.gitquire'));
   writeFileSync(
-    join(home, '.ok', 'global.yml'),
+    join(home, '.gitquire', 'global.yml'),
     `git:\n  hosts:\n    ${host}:\n      provider: github\n`,
   );
 }

@@ -14,7 +14,7 @@ import { findOkProcessPids, scanLockProcesses } from './process-scan.ts';
 
 const originalPlatform = process.platform;
 const fixturePid = 24680;
-const lockDir = resolve('/missing/notes-é/.ok/local');
+const lockDir = resolve('/missing/notes-é/.gitquire/local');
 const command = `node --ok-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
 const row = `${fixturePid} ${command}`;
 const enobufs = Object.assign(new Error('output exceeds the buffered reader'), { code: 'ENOBUFS' });
@@ -113,8 +113,12 @@ describe('process enumeration', () => {
 
     expect(await scanLockProcesses()).toEqual({
       candidates: [
-        { lockDir: join(project, '.ok', 'local'), pid: fixturePid, source: 'project-argument' },
-        { lockDir: join(project, '.ok'), pid: fixturePid, source: 'project-argument' },
+        {
+          lockDir: join(project, '.gitquire', 'local'),
+          pid: fixturePid,
+          source: 'project-argument',
+        },
+        { lockDir: join(project, '.gitquire'), pid: fixturePid, source: 'project-argument' },
       ],
       unavailable: [],
     });
@@ -181,8 +185,8 @@ describe('process enumeration', () => {
     expect(await scanLockProcesses()).toEqual({
       candidates: [
         { lockDir, pid: fixturePid, source: 'lock-dir-argument' },
-        { lockDir: join(project, '.ok', 'local'), pid: devPid, source: 'process-cwd' },
-        { lockDir: join(project, '.ok'), pid: devPid, source: 'process-cwd' },
+        { lockDir: join(project, '.gitquire', 'local'), pid: devPid, source: 'process-cwd' },
+        { lockDir: join(project, '.gitquire'), pid: devPid, source: 'process-cwd' },
       ],
       unavailable: [],
     });

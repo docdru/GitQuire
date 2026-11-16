@@ -34,7 +34,7 @@ function emitMonitor(err: unknown, origin: string): void {
   (process as unknown as NodeJS.EventEmitter).emit('uncaughtExceptionMonitor', err, origin);
 }
 
-const crashJsonPath = () => join(projectDir, '.ok', 'local', SERVER_CRASH_LOG);
+const crashJsonPath = () => join(projectDir, '.gitquire', 'local', SERVER_CRASH_LOG);
 const logsPath = () => logsCurrentPath(projectDir);
 
 describe('buildCrashRecord', () => {
@@ -106,8 +106,8 @@ describe('writeCrashArtifacts', () => {
   });
 
   test('swallows write failures instead of throwing', () => {
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'local'), 'not a directory');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'local'), 'not a directory');
     mkdirSync(dirname(dirname(logsPath())), { recursive: true });
     writeFileSync(dirname(logsPath()), 'not a directory');
     expect(() =>

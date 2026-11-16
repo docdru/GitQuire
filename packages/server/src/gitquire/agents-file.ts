@@ -58,7 +58,7 @@ Comments are footnotes whose label starts with \`c-\`.
 ## Committing
 - One commit per request, with a message saying what changed and why.
 - Pull before you start and before you push; do not force-push.
-- Never touch hidden folders such as \`.ok/\`.`;
+- Never touch hidden folders such as \`.gitquire/\`.`;
 
 function block(): string {
   return `${AGENTS_SECTION_BEGIN}\n${AGENTS_SECTION}\n${AGENTS_SECTION_END}`;

@@ -50,7 +50,7 @@ export function refusedArguments(name: string, input: Record<string, unknown>): 
     }
   }
   if (name === 'exec' && typeof input.command === 'string' && HIDDEN_PATH_RE.test(input.command)) {
-    return 'In this chat, exec cannot look into hidden folders such as .ok or .git.';
+    return 'In this chat, exec cannot look into hidden folders such as .gitquire or .git.';
   }
   return undefined;
 }

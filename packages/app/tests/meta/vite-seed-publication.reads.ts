@@ -8,7 +8,7 @@ export const ROUND_READS = {
     'packages/server/**',
     'test-support/**',
     'pnpm-lock.yaml',
-    '.ok/config.yml',
+    '.gitquire/config.yml',
     'package.json',
   ],
 };

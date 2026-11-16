@@ -824,10 +824,10 @@ describe('POST /api/test-rescan-backlinks', () => {
     try {
       writeFileSync(
         join(contentDir, 'alpha.md'),
-        '# Alpha\n\nSee [[.ok/skills/my-skill/SKILL]].\n',
+        '# Alpha\n\nSee [[.gitquire/skills/my-skill/SKILL]].\n',
         'utf-8',
       );
-      const skillDir = join(contentDir, '.ok', 'skills', 'my-skill');
+      const skillDir = join(contentDir, '.gitquire', 'skills', 'my-skill');
       mkdirSync(skillDir, { recursive: true });
       writeFileSync(join(skillDir, 'SKILL.md'), '# My Skill\n\nGuidance.\n', 'utf-8');
 
@@ -843,7 +843,7 @@ describe('POST /api/test-rescan-backlinks', () => {
           },
         ],
         [
-          '.ok/skills/my-skill/SKILL',
+          '.gitquire/skills/my-skill/SKILL',
           {
             size: 10,
             modified: new Date(0).toISOString(),
@@ -861,7 +861,9 @@ describe('POST /api/test-rescan-backlinks', () => {
           .body,
       ) as { forwardLinks: Array<{ kind: string; docName: string; title: string }> };
 
-      const skillLink = forward.forwardLinks.find((l) => l.docName === '.ok/skills/my-skill/SKILL');
+      const skillLink = forward.forwardLinks.find(
+        (l) => l.docName === '.gitquire/skills/my-skill/SKILL',
+      );
       expect(skillLink).toBeDefined();
       expect(skillLink?.title).toBe('My Skill');
     } finally {

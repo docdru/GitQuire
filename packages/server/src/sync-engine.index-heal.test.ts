@@ -57,7 +57,7 @@ let okDir = '';
 beforeEach(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'sync-engine-index-heal-'));
   projectDir = join(tmpDir, 'project');
-  okDir = join(projectDir, '.ok', LOCAL_DIR);
+  okDir = join(projectDir, '.gitquire', LOCAL_DIR);
   mkdirSync(projectDir, { recursive: true });
   mkdirSync(okDir, { recursive: true });
 });
@@ -67,7 +67,7 @@ afterEach(() => {
 });
 
 function ignoreOkDir(): void {
-  appendFileSync(join(projectDir, '.git', 'info', 'exclude'), '\n.ok/\n', 'utf-8');
+  appendFileSync(join(projectDir, '.git', 'info', 'exclude'), '\n.gitquire/\n', 'utf-8');
 }
 
 function lockPath(): string {

@@ -1,8 +1,8 @@
 import { currentDesktopProduct, userHomeDisplayPath } from './product.ts';
 
-export const OK_DIR = '.ok';
+export const OK_DIR = '.gitquire';
 
-export const OK_PROJECT_MARKER = '.ok/config.yml';
+export const OK_PROJECT_MARKER = '.gitquire/config.yml';
 
 export const LOCAL_DIR = 'local';
 

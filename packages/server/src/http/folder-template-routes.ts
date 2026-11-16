@@ -208,17 +208,17 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
         continue;
       }
       /* STOP: identity, not containment — an IN-ROOT symlinked ancestor
-         `.ok` / `.ok/templates` realpaths inside the content root and defeats
+         `.gitquire` / `.gitquire/templates` realpaths inside the content root and defeats
          every root-anchored check, exactly like the leaf case. The invariant
          is one-directional: this walk must never SERVE what the menu
          (`collectFromFolder` in templates-resolver.ts) hides; refusing more
          than the menu is permitted. A symlink aborts loudly (400). ENOTDIR is
-         treated as absent and the walk continues — a non-directory `.ok` or
+         treated as absent and the walk continues — a non-directory `.gitquire` or
          `templates` provably holds no templates, matching the menu's skip.
          Every OTHER lstat errno (EACCES/ELOOP) aborts loudly (500): an
          unreadable ancestor COULD hold a shadowing name, so resolving past it
          from a higher folder would be a silent wrong answer. */
-      const okAbs = resolve(ancestorAbs, '.ok');
+      const okAbs = resolve(ancestorAbs, '.gitquire');
       const okCheck = checkSymlinkLeaf(okAbs);
       if (okCheck.kind === 'symlink') {
         return { kind: 'refused', folder: ancestorFolder };
@@ -281,7 +281,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
           'ok',
         );
         if (!validated) return;
-        const folderOkDir = resolve(validated.resolvedContentDir, validated.folderRel, '.ok');
+        const folderOkDir = resolve(validated.resolvedContentDir, validated.folderRel, '.gitquire');
         const localFmPath = resolve(folderOkDir, 'frontmatter.yml');
         const warnings: string[] = [];
         const warningCodes: FolderConfigWarningCode[] = [];
@@ -310,7 +310,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
                 case 'unverifiable':
                   addWarning(
                     'templates-unverifiable',
-                    `${where} could not be inspected (${refusal.code ?? 'unknown errno'}) — its templates are not enumerated. The errno may come from ${refusal.folder || '.'}/.ok itself; check its permissions.`,
+                    `${where} could not be inspected (${refusal.code ?? 'unknown errno'}) — its templates are not enumerated. The errno may come from ${refusal.folder || '.'}/.gitquire itself; check its permissions.`,
                   );
                   log.warn(
                     { path, folder: validated.folderRel || '.', code: refusal.code },
@@ -332,16 +332,16 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
         if (leafCheck.kind === 'symlink') {
           addWarning(
             'symlink-refused',
-            `${validated.folderRel || '.'}/.ok/frontmatter.yml is a symlink — refusing to read through it. Replace the symlink with a real file or directory and retry.`,
+            `${validated.folderRel || '.'}/.gitquire/frontmatter.yml is a symlink — refusing to read through it. Replace the symlink with a real file or directory and retry.`,
           );
           log.warn(
             { path: localFmPath, folder: validated.folderRel || '.' },
-            `[folder-config:get] ${validated.folderRel || '.'}/.ok/frontmatter.yml is a symlink — refusing to read through it.`,
+            `[folder-config:get] ${validated.folderRel || '.'}/.gitquire/frontmatter.yml is a symlink — refusing to read through it.`,
           );
         } else if (leafCheck.kind === 'unverifiable') {
           addWarning(
             'unverifiable',
-            `${validated.folderRel || '.'}/.ok/frontmatter.yml could not be inspected (${leafCheck.code ?? 'unknown errno'}) — folder properties skipped.`,
+            `${validated.folderRel || '.'}/.gitquire/frontmatter.yml could not be inspected (${leafCheck.code ?? 'unknown errno'}) — folder properties skipped.`,
           );
           log.warn(
             { path: localFmPath, code: leafCheck.code },
@@ -360,7 +360,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
             const reason = err instanceof Error ? err.message : String(err);
             addWarning(
               'malformed-yaml',
-              `${validated.folderRel || '.'}/.ok/frontmatter.yml has malformed YAML.`,
+              `${validated.folderRel || '.'}/.gitquire/frontmatter.yml has malformed YAML.`,
             );
             log.warn(
               { path: localFmPath, reason },
@@ -511,7 +511,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
             res,
             400,
             'urn:ok:error:symlink-refused',
-            `"${found.folder || '.'}/.ok" or its templates directory is a symlink — refusing to resolve templates through it. Replace the symlink with a real file or directory and retry.`,
+            `"${found.folder || '.'}/.gitquire" or its templates directory is a symlink — refusing to resolve templates through it. Replace the symlink with a real file or directory and retry.`,
             { handler: 'template-get', detail: found.folder || '.' },
           );
           return;
@@ -521,7 +521,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
             res,
             500,
             'urn:ok:error:internal-server-error',
-            `Cannot inspect "${found.folder || '.'}/.ok" (${found.code ?? 'unknown errno'}) — refusing to resolve templates through it.`,
+            `Cannot inspect "${found.folder || '.'}/.gitquire" (${found.code ?? 'unknown errno'}) — refusing to resolve templates through it.`,
             { handler: 'template-get', detail: found.code ?? 'unknown-errno' },
           );
           return;
@@ -535,8 +535,8 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
         }
         const { abs: foundAbs, folder: foundFolder, scope: foundScope } = found;
 
-        /* STOP: the walk above refuses symlinked ancestor `.ok` /
-           `.ok/templates` dirs BY IDENTITY (in-root included); the two checks
+        /* STOP: the walk above refuses symlinked ancestor `.gitquire` /
+           `.gitquire/templates` dirs BY IDENTITY (in-root included); the two checks
            below cover the remaining shapes — a symlinked `<name>.md` leaf,
            and (defence in depth) a resolved path escaping the content root.
            The fetch-by-name arm bypasses the resolver's guarded enumeration
@@ -546,7 +546,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
             res,
             400,
             'urn:ok:error:symlink-refused',
-            `Template "${name}" at "${foundFolder || '.'}/.ok/templates/${name}.md" is a symlink — refusing to read through it. Replace the symlink with a real file or directory and retry.`,
+            `Template "${name}" at "${foundFolder || '.'}/.gitquire/templates/${name}.md" is a symlink — refusing to read through it. Replace the symlink with a real file or directory and retry.`,
             { handler: 'template-get', detail: foundFolder || '.' },
           );
           return;
@@ -641,7 +641,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
         const templateFilePath = resolve(
           validated.resolvedContentDir,
           validated.folderRel,
-          '.ok',
+          '.gitquire',
           'templates',
           `${name}.md`,
         );
@@ -655,7 +655,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
             res,
             400,
             'urn:ok:error:symlink-refused',
-            `${validated.folderRel || '.'}/.ok/templates/${name}.md is a symlink — refusing to write through it. Replace the symlink with a real file or directory and retry.`,
+            `${validated.folderRel || '.'}/.gitquire/templates/${name}.md is a symlink — refusing to write through it. Replace the symlink with a real file or directory and retry.`,
             { handler: 'template-put', detail: validated.folderRel || '.' },
           );
           return;
@@ -913,7 +913,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
                 res,
                 400,
                 'urn:ok:error:symlink-refused',
-                `"${found.folder || '.'}/.ok" or its templates directory is a symlink — refusing to resolve templates through it. Replace the symlink with a real file or directory and retry.`,
+                `"${found.folder || '.'}/.gitquire" or its templates directory is a symlink — refusing to resolve templates through it. Replace the symlink with a real file or directory and retry.`,
                 { handler: 'template-move', detail: found.folder || '.' },
               );
               return;
@@ -923,7 +923,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
                 res,
                 500,
                 'urn:ok:error:internal-server-error',
-                `Cannot inspect "${found.folder || '.'}/.ok" (${found.code ?? 'unknown errno'}) — refusing to resolve templates through it.`,
+                `Cannot inspect "${found.folder || '.'}/.gitquire" (${found.code ?? 'unknown errno'}) — refusing to resolve templates through it.`,
                 { handler: 'template-move', detail: found.code ?? 'unknown-errno' },
               );
               return;
@@ -1212,7 +1212,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
         const templatesDir = resolve(
           validated.resolvedContentDir,
           validated.folderRel,
-          '.ok',
+          '.gitquire',
           'templates',
         );
         if (!body.name) {
@@ -1228,7 +1228,7 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
             res,
             400,
             'urn:ok:error:symlink-refused',
-            `${validated.folderRel || '.'}/.ok/templates/${name}.md is a symlink — refusing to write through it. Replace the symlink with a real file or directory and retry.`,
+            `${validated.folderRel || '.'}/.gitquire/templates/${name}.md is a symlink — refusing to write through it. Replace the symlink with a real file or directory and retry.`,
             { handler: 'template-import', detail: validated.folderRel || '.' },
           );
           return;

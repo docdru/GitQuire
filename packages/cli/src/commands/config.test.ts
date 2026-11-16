@@ -56,7 +56,7 @@ describe('runValidate', () => {
       loadConfigFn: () =>
         ({
           config: {} as never,
-          sources: ['/home/test/project/.ok/config.yml'],
+          sources: ['/home/test/project/.gitquire/config.yml'],
           diagnostics: [],
           sidelined: [],
         }) as never,
@@ -65,7 +65,7 @@ describe('runValidate', () => {
     });
     expect(outcome.ok).toBe(true);
     expect(stderr.some((m) => m.includes('✓ Configuration valid'))).toBe(true);
-    expect(stderr.some((m) => m.includes('/home/test/project/.ok/config.yml'))).toBe(true);
+    expect(stderr.some((m) => m.includes('/home/test/project/.gitquire/config.yml'))).toBe(true);
     expect(stdout).toEqual([]);
   });
 
@@ -76,12 +76,12 @@ describe('runValidate', () => {
       loadConfigFn: () =>
         ({
           config: {} as never,
-          sources: ['/home/test/project/.ok/config.yml'],
+          sources: ['/home/test/project/.gitquire/config.yml'],
           diagnostics: [{ code: 'YAML_PARSE', detail: 'unexpected end of flow sequence' }],
           sidelined: [
             {
-              from: '/home/test/.ok/global.yml',
-              to: '/home/test/.ok/global.yml.invalid-2026-01-01T00-00-00-000Z',
+              from: '/home/test/.gitquire/global.yml',
+              to: '/home/test/.gitquire/global.yml.invalid-2026-01-01T00-00-00-000Z',
             },
           ],
         }) as never,
@@ -94,7 +94,7 @@ describe('runValidate', () => {
     expect(joined).toContain('config layer(s) had issues');
     expect(joined).not.toContain('could not be read');
     expect(joined).toContain('unexpected end of flow sequence');
-    expect(joined).toContain('/home/test/.ok/global.yml.invalid-2026-01-01T00-00-00-000Z');
+    expect(joined).toContain('/home/test/.gitquire/global.yml.invalid-2026-01-01T00-00-00-000Z');
   });
 
   test('removed keys alone do not qualify the headline', () => {
@@ -104,7 +104,7 @@ describe('runValidate', () => {
       loadConfigFn: () =>
         ({
           config: {} as never,
-          sources: ['/home/test/project/.ok/config.yml'],
+          sources: ['/home/test/project/.gitquire/config.yml'],
           diagnostics: [{ code: 'REMOVED_KEY', path: ['server', 'host'], redirect: 'Use --host.' }],
           sidelined: [],
         }) as never,
@@ -183,7 +183,7 @@ describe('runValidate', () => {
     const outcome = runValidate({
       readProjectLocalFn: () => [],
       loadConfigFn: () => {
-        throw new Error('Invalid configuration at /tmp/.ok/config.yml:7:18\n  ...');
+        throw new Error('Invalid configuration at /tmp/.gitquire/config.yml:7:18\n  ...');
       },
       error: (msg) => stderr.push(msg),
     });

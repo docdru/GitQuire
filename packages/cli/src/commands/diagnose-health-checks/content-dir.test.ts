@@ -17,14 +17,14 @@ function makeProject(initOk = true): string {
   const dir = mkdtempSync(join(tmpdir(), 'ok-health-contentdir-'));
   tmpDirs.push(dir);
   if (initOk) {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'config.yml'), 'content:\n  dir: ./content\n');
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
+    writeFileSync(join(dir, '.gitquire', 'config.yml'), 'content:\n  dir: ./content\n');
   }
   return dir;
 }
 
 describe('content-dir check', () => {
-  test('emits warn when .ok/config.yml is missing', async () => {
+  test('emits warn when .gitquire/config.yml is missing', async () => {
     const cwd = makeProject(false);
     const def = makeContentDirCheck();
     const result = await def.run({ cwd });

@@ -3,7 +3,7 @@ import { currentCliCommandName } from '@gitquire/core';
 export type MissingOkConfigKind = 'okdir' | 'config';
 
 export function missingOkConfigMessage(): string {
-  return `GitQuire config not found at .ok/config.yml. Run ${currentCliCommandName()} init to scaffold OK in this directory.`;
+  return `GitQuire config not found at .gitquire/config.yml. Run ${currentCliCommandName()} init to scaffold OK in this directory.`;
 }
 
 export class MissingOkConfigError extends Error {

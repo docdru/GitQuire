@@ -570,12 +570,12 @@ describe('one directory identity for watcher keys and linked documents', () => {
       const { projectDir, contentDir, canonicalContentDir } = root;
       const original = '# Target\n\nTarget body.\n';
       const edited = '# Target\n\nTarget body.\n\nAppended.\n';
-      mkdirSync(join(canonicalContentDir, '.ok', 'local'), { recursive: true });
+      mkdirSync(join(canonicalContentDir, '.gitquire', 'local'), { recursive: true });
       const targets = {
         'root-spelled': join(contentDir, 'root-target.md'),
         'native-spelled': join(canonicalContentDir, 'native-target.md'),
         outside: join(projectDir, 'outside-target.md'),
-        private: join(contentDir, '.ok', 'local', 'private-target.md'),
+        private: join(contentDir, '.gitquire', 'local', 'private-target.md'),
       };
       for (const [docName, target] of Object.entries(targets)) {
         writeFileSync(target, original);

@@ -399,7 +399,7 @@ describe('personal settings', () => {
         request('/api/gitquire/me/settings', { method: 'PUT', body: { yaml } }),
       );
       expect(saved.status).toBe(200);
-      expect(readFileSync(join(dir, '.ok/local/gitquire/users/42.yml'), 'utf8')).toBe(yaml);
+      expect(readFileSync(join(dir, '.gitquire/local/gitquire/users/42.yml'), 'utf8')).toBe(yaml);
       expect((await call(alice, request('/api/gitquire/me/settings'))).body.yaml).toBe(yaml);
       expect((await call(bob, request('/api/gitquire/me/settings'))).body.yaml).toBe('');
     }),
@@ -424,7 +424,7 @@ describe('personal settings', () => {
         request('/api/gitquire/me/settings', { method: 'PUT', body: { yaml: '' } }),
       );
       expect(anonymous.status).toBe(401);
-      expect(existsSync(join(dir, '.ok/local/gitquire/users'))).toBe(false);
+      expect(existsSync(join(dir, '.gitquire/local/gitquire/users'))).toBe(false);
     }),
   );
 

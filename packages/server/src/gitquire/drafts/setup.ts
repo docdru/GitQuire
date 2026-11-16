@@ -22,7 +22,7 @@ import { createDraftStore, draftsDir, draftsStatePath } from './store.ts';
 type Env = Readonly<Record<string, string | undefined>>;
 
 const FOLLOW_REMOTE_MS = 2 * 60 * 1000;
-const PROJECT_FILES = ['.ok/config.yml', '.okignore'];
+const PROJECT_FILES = ['.gitquire/config.yml', '.okignore'];
 
 export interface DraftsSetupDeps {
   env: Env;

@@ -44,7 +44,7 @@ function describeFolderCards(
 ): FolderCard[] {
   const folders: FolderCard[] = [];
   for (const folder of selectedPack?.folders ?? []) {
-    const templatesNeedle = `${folder.path}/.ok/templates/`;
+    const templatesNeedle = `${folder.path}/.gitquire/templates/`;
     const templates = plan.created
       .filter(
         (e) =>
@@ -65,7 +65,7 @@ function describeFolderCards(
 
 function describeFileCards(plan: OkScaffoldPlan): Array<{ path: string; name: string }> {
   return plan.created
-    .filter((e) => e.kind === 'file' && !e.path.split('/').includes('.ok'))
+    .filter((e) => e.kind === 'file' && !e.path.split('/').includes('.gitquire'))
     .map((e) => ({ path: e.path, name: basename(e.path) }));
 }
 

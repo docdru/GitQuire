@@ -222,15 +222,15 @@ describe('switching back to a branch that has a tombstoned document', () => {
       git(contentDir, 'init --initial-branch=main');
       await ensureProjectGit(contentDir);
       configureTestGitRepository(contentDir);
-      mkdirSync(join(contentDir, '.ok', 'local'), { recursive: true });
-      writeFileSync(join(contentDir, '.ok', 'local', 'private.md'), '# Private\n', 'utf-8');
+      mkdirSync(join(contentDir, '.gitquire', 'local'), { recursive: true });
+      writeFileSync(join(contentDir, '.gitquire', 'local', 'private.md'), '# Private\n', 'utf-8');
       writeFileSync(join(contentDir, 'note.md'), '# Note\n\nOn main.\n', 'utf-8');
       writeFileSync(join(contentDir, 'other.md'), '# Other\n\nOn main.\n', 'utf-8');
       git(contentDir, 'add note.md other.md');
       git(contentDir, 'commit -m main');
       git(contentDir, 'checkout -b feature');
       git(contentDir, 'rm -q note.md');
-      symlinkSync('.ok/local/private.md', join(contentDir, 'note.md'));
+      symlinkSync('.gitquire/local/private.md', join(contentDir, 'note.md'));
       writeFileSync(join(contentDir, 'other.md'), '# Other\n\nOn feature.\n', 'utf-8');
       git(contentDir, 'add note.md other.md');
       git(contentDir, 'commit -m feature');

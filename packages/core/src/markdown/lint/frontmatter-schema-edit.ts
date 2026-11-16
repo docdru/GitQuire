@@ -20,8 +20,8 @@ export function emptyFrontmatterSchemaText(): string {
 
 export function isToolManagedSchemaPath(file: string): boolean {
   const normalized = file.trim().replace(/^\.\//, '');
-  if (!normalized.startsWith('.ok/schemas/')) return false;
-  const name = normalized.slice('.ok/schemas/'.length);
+  if (!normalized.startsWith('.gitquire/schemas/')) return false;
+  const name = normalized.slice('.gitquire/schemas/'.length);
   return (
     name.length > 0 && !name.includes('/') && !name.includes('\\') && name !== '.' && name !== '..'
   );

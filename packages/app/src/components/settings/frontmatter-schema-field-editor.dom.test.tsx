@@ -59,7 +59,7 @@ vi.doMock('@/editor/lint-config-client', () => ({
 
 const { FrontmatterSchemaFieldEditor } = await import('./frontmatter-schema-field-editor.tsx');
 
-const FILE = '.ok/schemas/doc.schema.json';
+const FILE = '.gitquire/schemas/doc.schema.json';
 
 function lintDataWithSchema(schema: Record<string, unknown> | undefined) {
   return {

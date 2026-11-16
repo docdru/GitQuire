@@ -39,7 +39,7 @@ async function promptSharingMode(
   defaultMode: 'shared' | 'local-only',
 ): Promise<'shared' | 'local-only'> {
   return select<'shared' | 'local-only'>({
-    message: 'How do you want to handle GitQuire config files (.ok/)?',
+    message: 'How do you want to handle GitQuire config files (.gitquire/)?',
     default: defaultMode,
     choices: [
       {
@@ -357,7 +357,7 @@ export async function runInit(options: InitCommandOptions = {}): Promise<InitCom
   } else if (resolution.gitRootPromoted && willScaffold && contentDirScope === '.') {
     process.stderr.write(
       `${warning(`[ok] Content scope promoted to the git repo root: ${projectRoot}`)}\n` +
-        `      Ran in ${promotedFromDir}/, but .ok/ lives at the git root (one .ok/ per git repo),\n` +
+        `      Ran in ${promotedFromDir}/, but .gitquire/ lives at the git root (one .gitquire/ per git repo),\n` +
         `      so the whole repo is now the content scope. To narrow it, re-run with\n` +
         `      \`${currentCliCommandName()} init --content-dir .\`, or set content.dir: ${promotedFromDir} in ${OK_DIR}/config.yml.\n`,
     );
@@ -477,7 +477,7 @@ export function formatInitResult(result: InitCommandResult, cwd: string): string
     lines.push('');
     lines.push(warning('⚠ Content scope promoted to the git repo root'));
     lines.push(
-      `  .ok/ was initialized at ${cwd} because it contains a .git folder (one .ok/ per git repo),`,
+      `  .gitquire/ was initialized at ${cwd} because it contains a .git folder (one .gitquire/ per git repo),`,
     );
     lines.push(
       `  not the sub-folder you ran \`${currentCliCommandName()} init\` in${result.promotedFromDir ? ` (${result.promotedFromDir})` : ''}. The whole repo is now the content scope.`,

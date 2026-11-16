@@ -504,7 +504,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
             {
               handler: 'create-page',
               detail:
-                'Cannot create a page inside .ok or .git — skills and templates are authored through their own validating flows.',
+                'Cannot create a page inside .gitquire or .git — skills and templates are authored through their own validating flows.',
             },
           );
           return;
@@ -655,7 +655,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
             res,
             400,
             'urn:ok:error:reserved-doc-name',
-            '.ok and .git are reserved directories.',
+            '.gitquire and .git are reserved directories.',
             { handler: 'create-folder' },
           );
           return;
@@ -933,7 +933,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
             res,
             400,
             'urn:ok:error:reserved-doc-name',
-            '.ok and .git are reserved directories.',
+            '.gitquire and .git are reserved directories.',
             {
               handler: 'rename-path',
             },
@@ -1214,7 +1214,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
             res,
             400,
             'urn:ok:error:reserved-doc-name',
-            '.ok and .git are reserved directories.',
+            '.gitquire and .git are reserved directories.',
             { handler: 'delete-path' },
           );
           return;
@@ -1463,7 +1463,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
         res,
         400,
         'urn:ok:error:reserved-doc-name',
-        '.ok and .git are reserved directories.',
+        '.gitquire and .git are reserved directories.',
         { handler: 'upload-asset' },
       );
       return;
@@ -1517,8 +1517,8 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
             cause: outcome.cause,
             detail:
               outcome.cause instanceof AttachmentFolderPathConfigError
-                ? `content.attachmentFolderPath in .ok/config.yml: ${outcome.cause.reasons.join('; ')}`
-                : 'content.attachmentFolderPath in .ok/config.yml could not be read.',
+                ? `content.attachmentFolderPath in .gitquire/config.yml: ${outcome.cause.reasons.join('; ')}`
+                : 'content.attachmentFolderPath in .gitquire/config.yml could not be read.',
             extensions: {
               attachmentFolderIssue: {
                 kind: 'invalid-config',
@@ -1551,7 +1551,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           res,
           400,
           'urn:ok:error:reserved-doc-name',
-          '.ok and .git are reserved directories.',
+          '.gitquire and .git are reserved directories.',
           { handler: 'upload-asset' },
         );
         return;

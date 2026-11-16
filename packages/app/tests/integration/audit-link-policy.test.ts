@@ -49,7 +49,7 @@ describe('GET /api/audit under the reserved-log advisory policy', () => {
     'the reserved log is suppressed by default and returns live when the policy is switched off',
     async () => {
       const folder = join(server.contentDir, SCOPE);
-      const configPath = join(server.contentDir, '.ok', 'config.yml');
+      const configPath = join(server.contentDir, '.gitquire', 'config.yml');
       const wikiLink = `# Doc\n\nSee [[${GHOST_TARGET}]].\n`;
       mkdirSync(join(folder, 'upper'), { recursive: true });
       writeFileSync(join(folder, 'log.md'), wikiLink, 'utf-8');

@@ -10,7 +10,7 @@ vi.mock('node:path', async (importOriginal) => {
 });
 
 function writeTemplate(projectDir: string, folder: string, name: string, title: string) {
-  const directory = join(projectDir, folder, '.ok', 'templates');
+  const directory = join(projectDir, folder, '.gitquire', 'templates');
   mkdirSync(directory, { recursive: true });
   writeFileSync(join(directory, `${name}.md`), `---\ntitle: ${title}\n---\n# ${title}\n`);
 }
@@ -27,7 +27,7 @@ describe('enrichment with win32 relative paths and native filesystem paths', () 
         {
           name: 'setup-categories',
           title: 'Setup categories',
-          path: 'Setup/.ok/templates/setup-categories.md',
+          path: 'Setup/.gitquire/templates/setup-categories.md',
           source_folder: 'Setup',
           scope: 'inherited',
         },

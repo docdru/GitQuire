@@ -52,13 +52,13 @@ describe('applyOkInitOutcome', () => {
   test('initializing + init-failed → error carries reason + message', () => {
     const result = applyOkInitOutcome(
       { phase: 'initializing', seed: SEED },
-      { ok: false, reason: 'init-failed', message: 'symlink at .ok/' },
+      { ok: false, reason: 'init-failed', message: 'symlink at .gitquire/' },
     );
     expect(result).toEqual({
       phase: 'error',
       seed: SEED,
       reason: 'init-failed',
-      message: 'symlink at .ok/',
+      message: 'symlink at .gitquire/',
     });
   });
 

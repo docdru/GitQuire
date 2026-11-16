@@ -85,7 +85,7 @@ export function attachmentFolderRefusalMessage(problem: ProblemDetails): string 
     }
     case 'invalid-config': {
       const settingKey = leftToRight('content.attachmentFolderPath');
-      const configFile = leftToRight('.ok/config.yml');
+      const configFile = leftToRight('.gitquire/config.yml');
       return t`Couldn't upload the file. The ${settingKey} value in ${configFile} can't be used. Fix it in that file.`;
     }
   }

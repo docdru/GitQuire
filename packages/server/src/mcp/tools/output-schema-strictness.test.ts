@@ -66,7 +66,7 @@ function captureRegistration<TDeps>(
 
 function newProject(): string {
   const cwd = makeTempDir('ok-output-strict-');
-  mkdirSync(join(cwd, '.ok'), { recursive: true });
+  mkdirSync(join(cwd, '.gitquire'), { recursive: true });
   return cwd;
 }
 
@@ -347,7 +347,7 @@ describe('audit and lint emitted coverage validates against the client schema', 
         resolveCwd: async () => cwd,
         serverUrl: 'http://127.0.0.1:31337',
       });
-      const refused = 'refusing audit scope under a hidden path segment: .ok';
+      const refused = 'refusing audit scope under a hidden path segment: .gitquire';
       vi.stubGlobal(
         'fetch',
         vi.fn(async () =>

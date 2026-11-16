@@ -50,7 +50,7 @@ describe('initToleranceTelemetryWriter', () => {
 
     emitToleranceFire(['crlf'], 'a\r\n', 'a\n', 'test-doc');
 
-    const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(tmpProjectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     expect(existsSync(logPath)).toBe(false);
   });
 
@@ -61,7 +61,7 @@ describe('initToleranceTelemetryWriter', () => {
     emitToleranceFire(['crlf'], 'a\r\n', 'a\n', 'notes/meeting');
 
     await teardownToleranceTelemetryWriter();
-    const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(tmpProjectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     expect(existsSync(logPath)).toBe(true);
 
     const content = readFileSync(logPath, 'utf-8');
@@ -85,7 +85,7 @@ describe('initToleranceTelemetryWriter', () => {
     emitToleranceFire(['bom'], '﻿hello', 'hello', 'doc-2');
 
     await teardownToleranceTelemetryWriter();
-    const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(tmpProjectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     const lines = readFileSync(logPath, 'utf-8').trim().split('\n');
     expect(lines).toHaveLength(2);
     expect(JSON.parse(lines[0] ?? '').class).toBe('crlf');
@@ -99,7 +99,7 @@ describe('initToleranceTelemetryWriter', () => {
     emitToleranceFire(['bom', 'crlf', 'trailing-whitespace'], '﻿a   \r\n', 'a\n', 'doc');
 
     await teardownToleranceTelemetryWriter();
-    const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(tmpProjectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     const lines = readFileSync(logPath, 'utf-8').trim().split('\n');
     expect(lines).toHaveLength(3);
 
@@ -114,14 +114,14 @@ describe('initToleranceTelemetryWriter', () => {
     emitToleranceFire(['trailing-newline'], 'hello\n', 'hello', undefined);
 
     await teardownToleranceTelemetryWriter();
-    const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(tmpProjectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     const record = JSON.parse(readFileSync(logPath, 'utf-8').trim());
     expect(record.document).toBeNull();
   });
 
   test('append-failure warning re-arms after teardown (per-boot warn budget)', async () => {
     process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
-    const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(tmpProjectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     mkdirSync(logPath, { recursive: true });
 
     const warnSpy = vi.spyOn(getLogger('tolerance-telemetry'), 'warn');
@@ -148,7 +148,7 @@ describe('initToleranceTelemetryWriter', () => {
     await teardownToleranceTelemetryWriter();
     emitToleranceFire(['crlf'], 'b\r', 'b', 'doc');
 
-    const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
+    const logPath = resolve(tmpProjectDir, '.gitquire', 'local', 'tolerance-telemetry.jsonl');
     const lines = readFileSync(logPath, 'utf-8').trim().split('\n');
     expect(lines).toHaveLength(1);
   });

@@ -65,17 +65,17 @@ test('checkpoints omit a pending settle fence in a nested content directory', as
     vi.unstubAllEnvs();
   });
   vi.stubEnv('GITQUIRE_FILE_WATCHER_BACKEND', 'parcel');
-  mkdirSync(join(content, '.ok/templates'), { recursive: true });
-  mkdirSync(join(content, '.ok/local'), { recursive: true });
+  mkdirSync(join(content, '.gitquire/templates'), { recursive: true });
+  mkdirSync(join(content, '.gitquire/local'), { recursive: true });
   const expected = (document: string) => [
     ['docs/note.md', document],
-    ['docs/.ok/config.yml', CONFIGURATION],
-    ['docs/.ok/templates/note.md', TEMPLATE],
+    ['docs/.gitquire/config.yml', CONFIGURATION],
+    ['docs/.gitquire/templates/note.md', TEMPLATE],
     ['docs/watcher-settle-fence-note.md', ORDINARY_NEIGHBOR],
-    ['docs/.ok/templates/watcher-settle-fence-note.md', TEMPLATE_NEIGHBOR],
+    ['docs/.gitquire/templates/watcher-settle-fence-note.md', TEMPLATE_NEIGHBOR],
   ];
   for (const [path, bytes] of expected(INITIAL_DOCUMENT)) writeFileSync(join(root, path), bytes);
-  writeFileSync(join(content, '.ok/local/fixture-state.json'), '{}\n');
+  writeFileSync(join(content, '.gitquire/local/fixture-state.json'), '{}\n');
   execFileSync('git', ['init', '--initial-branch=main', root], {
     env: Object.fromEntries(
       Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
@@ -120,7 +120,7 @@ test('checkpoints omit a pending settle fence in a nested content directory', as
         expect(paths).toContain(path);
         expect(await git.raw('show', `${object}:${path}`)).toBe(bytes);
       }
-      expect(paths).not.toContain('docs/.ok/local/fixture-state.json');
+      expect(paths).not.toContain('docs/.gitquire/local/fixture-state.json');
       snapshots.push({ object, paths });
     }
     return snapshots;
@@ -150,7 +150,7 @@ test('checkpoints omit a pending settle fence in a nested content directory', as
   await expect.poll(minted, { timeout: 10_000 }).toHaveLength(1);
   const fences = minted();
   for (const fence of fences) {
-    expect(dirname(join(root, fence))).toBe(join(content, '.ok'));
+    expect(dirname(join(root, fence))).toBe(join(content, '.gitquire'));
     expect(readFileSync(join(root, fence)).length).toBe(0);
   }
   expect(settleState).toBe('pending');

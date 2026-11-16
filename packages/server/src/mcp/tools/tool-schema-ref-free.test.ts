@@ -55,7 +55,7 @@ describe('MCP tool schema portability — no intra-schema $ref (LM Studio / Gemi
   let cwd: string;
   beforeAll(() => {
     cwd = makeTempDir('ok-reffree-');
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
   });
   const registrations = captureAllRegistrations(() => cwd);
 

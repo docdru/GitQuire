@@ -51,7 +51,7 @@ let writes = 0;
 
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'ok-non-admission-wiring-'));
-  const templates = join(root, 'templates', '.ok', 'templates');
+  const templates = join(root, 'templates', '.gitquire', 'templates');
   mkdirSync(templates, { recursive: true });
   writeFileSync(join(templates, 'existing.md'), '---\ntitle: Existing\n---\nExisting target.\n');
   listener = createServer((req, res) => {

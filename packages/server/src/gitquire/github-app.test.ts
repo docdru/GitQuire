@@ -450,7 +450,7 @@ describe('auto-sync mode', () => {
 
   it('writes the mode once and keeps a later choice', () => {
     const dir = mkdtempSync(join(tmpdir(), 'gq-sync-'));
-    const file = join(dir, '.ok', 'local', 'config.yml');
+    const file = join(dir, '.gitquire', 'local', 'config.yml');
     expect(ensureAutoSyncMode(dir, 'full')).toBe('written');
     expect(readFileSync(file, 'utf8')).toBe('autoSync:\n  mode: full\n');
     expect(ensureAutoSyncMode(dir, 'off')).toBe('kept');
@@ -459,7 +459,7 @@ describe('auto-sync mode', () => {
 
   it('appends to an existing local config without autoSync', () => {
     const dir = mkdtempSync(join(tmpdir(), 'gq-sync-'));
-    const file = join(dir, '.ok', 'local', 'config.yml');
+    const file = join(dir, '.gitquire', 'local', 'config.yml');
     ensureAutoSyncMode(dir, 'full');
     writeFileSync(file, 'server:\n  port: 8080');
     expect(ensureAutoSyncMode(dir, 'follow')).toBe('written');

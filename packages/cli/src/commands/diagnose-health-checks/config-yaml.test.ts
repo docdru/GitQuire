@@ -20,7 +20,7 @@ function makeProject(): string {
 }
 
 describe('config-yaml check', () => {
-  test('emits warn when .ok/config.yml is missing (project not initialized)', async () => {
+  test('emits warn when .gitquire/config.yml is missing (project not initialized)', async () => {
     const cwd = makeProject();
     const def = makeConfigYamlCheck();
     const result = await def.run({ cwd });
@@ -32,12 +32,12 @@ describe('config-yaml check', () => {
 
   test('passes when config parses; summary surfaces content.dir', async () => {
     const cwd = makeProject();
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
-    writeFileSync(join(cwd, '.ok', 'config.yml'), 'content:\n  dir: ./content\n');
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
+    writeFileSync(join(cwd, '.gitquire', 'config.yml'), 'content:\n  dir: ./content\n');
 
     const def = makeConfigYamlCheck({
       loader: () => ({
-        sources: [join(cwd, '.ok/config.yml')],
+        sources: [join(cwd, '.gitquire/config.yml')],
         config: { content: { dir: './content' } },
       }),
     });
@@ -49,8 +49,8 @@ describe('config-yaml check', () => {
 
   test('fails when loader throws (schema invalid)', async () => {
     const cwd = makeProject();
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
-    writeFileSync(join(cwd, '.ok', 'config.yml'), 'content:\n  dir: 42\n');
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
+    writeFileSync(join(cwd, '.gitquire', 'config.yml'), 'content:\n  dir: 42\n');
 
     const def = makeConfigYamlCheck({
       loader: () => {

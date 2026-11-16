@@ -148,13 +148,13 @@ export async function createTestServer(options: CreateTestServerOptions = {}): P
       }
 
       if (options.contentDir === undefined) {
-        mkdirSync(join(contentDir, '.ok'), { recursive: true });
+        mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
         const seedConfig =
           options.seedProjectConfigYml ??
           (options.markdownlintEnabled
             ? 'contentRules:\n  markdownlint:\n    enabled: true\n'
             : '');
-        writeFileSync(join(contentDir, '.ok', 'config.yml'), seedConfig, 'utf-8');
+        writeFileSync(join(contentDir, '.gitquire', 'config.yml'), seedConfig, 'utf-8');
       }
 
       if (options.contentDir === undefined && (options.seedSkillHostRoot ?? true)) {
@@ -1469,10 +1469,14 @@ export async function createSyncWiredTestServer(
   await runGit(contentDir, ['config', 'user.email', 'follower@example.com']);
   await runGit(contentDir, ['config', 'user.name', 'Follower']);
 
-  mkdirSync(join(contentDir, '.ok', LOCAL_DIR), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'config.yml'), options.projectConfigYml ?? '', 'utf-8');
+  mkdirSync(join(contentDir, '.gitquire', LOCAL_DIR), { recursive: true });
   writeFileSync(
-    join(contentDir, '.ok', LOCAL_DIR, 'config.yml'),
+    join(contentDir, '.gitquire', 'config.yml'),
+    options.projectConfigYml ?? '',
+    'utf-8',
+  );
+  writeFileSync(
+    join(contentDir, '.gitquire', LOCAL_DIR, 'config.yml'),
     `autoSync:\n  mode: ${mode}\n`,
     'utf-8',
   );

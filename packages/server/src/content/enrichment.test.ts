@@ -156,12 +156,12 @@ describe('enrichPath — rich (single-path) shape', () => {
 });
 
 describe('enrichPath — folder frontmatter does NOT cascade into docs (self-only)', () => {
-  test('a doc with no frontmatter, inside a folder whose .ok sets tags, returns {} / []', async () => {
+  test('a doc with no frontmatter, inside a folder whose .gitquire sets tags, returns {} / []', async () => {
     const project = await bootstrapProject();
-    mkdirSync(resolve(project, 'specs/.ok'), { recursive: true });
+    mkdirSync(resolve(project, 'specs/.gitquire'), { recursive: true });
     writeFileSync(resolve(project, 'specs/foo.md'), '# foo\n');
     writeFileSync(
-      resolve(project, 'specs/.ok/frontmatter.yml'),
+      resolve(project, 'specs/.gitquire/frontmatter.yml'),
       'title: Specs\ndescription: Spec docs\ntags:\n  - spec\n',
     );
 
@@ -172,15 +172,15 @@ describe('enrichPath — folder frontmatter does NOT cascade into docs (self-onl
     expect(meta.frontmatter).toEqual({});
   });
 
-  test("a doc's own frontmatter is returned unmodified by the folder's .ok/frontmatter.yml", async () => {
+  test("a doc's own frontmatter is returned unmodified by the folder's .gitquire/frontmatter.yml", async () => {
     const project = await bootstrapProject();
-    mkdirSync(resolve(project, 'specs/.ok'), { recursive: true });
+    mkdirSync(resolve(project, 'specs/.gitquire'), { recursive: true });
     writeFileSync(
       resolve(project, 'specs/foo.md'),
       '---\ntitle: File\ntags:\n  - file-tag\n---\nBody\n',
     );
     writeFileSync(
-      resolve(project, 'specs/.ok/frontmatter.yml'),
+      resolve(project, 'specs/.gitquire/frontmatter.yml'),
       'title: Nested\ndescription: Nested desc\ntags:\n  - nested-tag\n',
     );
 
@@ -191,11 +191,14 @@ describe('enrichPath — folder frontmatter does NOT cascade into docs (self-onl
     expect(meta.frontmatter).toEqual({ title: 'File', tags: ['file-tag'] });
   });
 
-  test('a root doc does not inherit the project-root .ok/frontmatter.yml', async () => {
+  test('a root doc does not inherit the project-root .gitquire/frontmatter.yml', async () => {
     const project = await bootstrapProject();
-    mkdirSync(resolve(project, '.ok'), { recursive: true });
+    mkdirSync(resolve(project, '.gitquire'), { recursive: true });
     writeFileSync(resolve(project, 'top.md'), '# top\n');
-    writeFileSync(resolve(project, '.ok/frontmatter.yml'), 'title: Root Default\ntags:\n  - kb\n');
+    writeFileSync(
+      resolve(project, '.gitquire/frontmatter.yml'),
+      'title: Root Default\ntags:\n  - kb\n',
+    );
 
     const meta = await enrichPath('top.md', { projectDir: project });
     expect(meta.title).toBe('top');
@@ -205,7 +208,7 @@ describe('enrichPath — folder frontmatter does NOT cascade into docs (self-onl
 });
 
 describe('enrichDirectory — self-only folder frontmatter', () => {
-  test('no nested .ok/frontmatter.yml → DirectoryMeta has no title/description/tags', async () => {
+  test('no nested .gitquire/frontmatter.yml → DirectoryMeta has no title/description/tags', async () => {
     const project = await bootstrapProject();
     mkdirSync(resolve(project, 'specs'), { recursive: true });
     writeFileSync(resolve(project, 'specs/foo.md'), '---\ntitle: Foo\n---\nBody\n');
@@ -218,12 +221,12 @@ describe('enrichDirectory — self-only folder frontmatter', () => {
     expect(meta.recursiveMdCount).toBe(1);
   });
 
-  test("the folder's own .ok/frontmatter.yml attaches title/description/tags to the directory", async () => {
+  test("the folder's own .gitquire/frontmatter.yml attaches title/description/tags to the directory", async () => {
     const project = await bootstrapProject();
-    mkdirSync(resolve(project, 'specs/.ok'), { recursive: true });
+    mkdirSync(resolve(project, 'specs/.gitquire'), { recursive: true });
     writeFileSync(resolve(project, 'specs/foo.md'), '---\ntitle: Foo\n---\nBody\n');
     writeFileSync(
-      resolve(project, 'specs/.ok/frontmatter.yml'),
+      resolve(project, 'specs/.gitquire/frontmatter.yml'),
       'title: Specs\ndescription: Spec docs\ntags:\n  - spec\n',
     );
 
@@ -236,10 +239,13 @@ describe('enrichDirectory — self-only folder frontmatter', () => {
 
   test('does NOT inherit folder frontmatter from ancestor directories', async () => {
     const project = await bootstrapProject();
-    mkdirSync(resolve(project, 'a/.ok'), { recursive: true });
-    mkdirSync(resolve(project, 'a/b/.ok'), { recursive: true });
-    writeFileSync(resolve(project, 'a/.ok/frontmatter.yml'), 'description: A desc\ntags:\n  - a\n');
-    writeFileSync(resolve(project, 'a/b/.ok/frontmatter.yml'), 'title: B\n');
+    mkdirSync(resolve(project, 'a/.gitquire'), { recursive: true });
+    mkdirSync(resolve(project, 'a/b/.gitquire'), { recursive: true });
+    writeFileSync(
+      resolve(project, 'a/.gitquire/frontmatter.yml'),
+      'description: A desc\ntags:\n  - a\n',
+    );
+    writeFileSync(resolve(project, 'a/b/.gitquire/frontmatter.yml'), 'title: B\n');
     writeFileSync(resolve(project, 'a/b/foo.md'), '# foo\n');
 
     const meta = await enrichDirectory('a/b', { projectDir: project });
@@ -308,8 +314,8 @@ describe('computeGraphRole', () => {
 
 describe('schemas_applicable — read-time schema advertisement', () => {
   const MAPPINGS = [
-    { appliesTo: ['docs/**', '!**/{index,log}'], file: '.ok/schemas/doc.schema.json' },
-    { appliesTo: 'specs/**', file: '.ok/schemas/spec.schema.json' },
+    { appliesTo: ['docs/**', '!**/{index,log}'], file: '.gitquire/schemas/doc.schema.json' },
+    { appliesTo: 'specs/**', file: '.gitquire/schemas/spec.schema.json' },
   ];
 
   test('a doc matching one mapping advertises that schema file', async () => {
@@ -320,7 +326,7 @@ describe('schemas_applicable — read-time schema advertisement', () => {
       projectDir: project,
       frontmatterSchemas: MAPPINGS,
     });
-    expect(meta.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
+    expect(meta.schemas_applicable).toEqual(['.gitquire/schemas/doc.schema.json']);
   });
 
   test('the OKF profile advertises by path, scoped per document', async () => {
@@ -340,13 +346,13 @@ describe('schemas_applicable — read-time schema advertisement', () => {
       ).schemas_applicable;
 
     expect(await advertise('notes/concept.md')).toEqual([
-      '.ok/okf/required.schema.json',
-      '.ok/okf/recommended.schema.json',
-      '.ok/okf/provenance.schema.json',
-      '.ok/okf/computation.schema.json',
+      '.gitquire/okf/required.schema.json',
+      '.gitquire/okf/recommended.schema.json',
+      '.gitquire/okf/provenance.schema.json',
+      '.gitquire/okf/computation.schema.json',
     ]);
-    expect(await advertise('index.md')).toEqual(['.ok/okf/root-index.schema.json']);
-    expect(await advertise('notes/index.md')).toEqual(['.ok/okf/reserved-index.schema.json']);
+    expect(await advertise('index.md')).toEqual(['.gitquire/okf/root-index.schema.json']);
+    expect(await advertise('notes/index.md')).toEqual(['.gitquire/okf/reserved-index.schema.json']);
     expect(await advertise('log.md')).toBeUndefined();
   });
 
@@ -362,8 +368,8 @@ describe('schemas_applicable — read-time schema advertisement', () => {
       }),
     });
     expect(meta.schemas_applicable).toEqual([
-      '.ok/okf/required.schema.json',
-      '.ok/okf/recommended.schema.json',
+      '.gitquire/okf/required.schema.json',
+      '.gitquire/okf/recommended.schema.json',
     ]);
   });
 
@@ -374,7 +380,7 @@ describe('schemas_applicable — read-time schema advertisement', () => {
     const meta = await enrichPath('docs/guide.md', {
       projectDir: project,
       frontmatterSchemas: [
-        { appliesTo: 'docs/**', file: '.ok/schemas/doc.schema.json', enabled: false },
+        { appliesTo: 'docs/**', file: '.gitquire/schemas/doc.schema.json', enabled: false },
       ],
     });
     expect(meta.schemas_applicable).toBeUndefined();
@@ -405,7 +411,7 @@ describe('schemas_applicable — read-time schema advertisement', () => {
       projectDir: project,
       frontmatterSchemas: MAPPINGS,
     });
-    expect(dir.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
+    expect(dir.schemas_applicable).toEqual(['.gitquire/schemas/doc.schema.json']);
     const other = await enrichDirectory('', { projectDir: project, frontmatterSchemas: MAPPINGS });
     expect(other.schemas_applicable).toBeUndefined();
   });
@@ -420,7 +426,7 @@ describe('schemas_applicable — read-time schema advertisement', () => {
       contentDir,
       frontmatterSchemas: MAPPINGS,
     });
-    expect(meta.schemas_applicable).toEqual(['.ok/schemas/doc.schema.json']);
+    expect(meta.schemas_applicable).toEqual(['.gitquire/schemas/doc.schema.json']);
   });
 });
 

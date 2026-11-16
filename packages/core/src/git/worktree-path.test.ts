@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { WORKTREES_PARENT_DIR, worktreeRelativeDir } from './worktree-path.ts';
 
 describe('worktreeRelativeDir', () => {
-  test('places a simple branch under .ok/worktrees/', () => {
+  test('places a simple branch under .gitquire/worktrees/', () => {
     expect(worktreeRelativeDir('feature-x')).toBe(`${WORKTREES_PARENT_DIR}/feature-x`);
   });
 

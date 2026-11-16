@@ -193,7 +193,7 @@ describe('content-rule (lint) violations on the agent write path', () => {
   test('markdownlint violations ride warnings[] so agents see what the GUI shows', async () => {
     const { writeFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const cfgPath = join(server.contentDir, '.ok', 'config.yml');
+    const cfgPath = join(server.contentDir, '.gitquire', 'config.yml');
     writeFileSync(cfgPath, 'contentRules:\n  markdownlint:\n    enabled: true\n', 'utf-8');
     try {
       const docName = uniqueDoc('rw-lint-style');
@@ -241,7 +241,7 @@ describe('content-rule (lint) violations on the agent write path', () => {
 
     const { writeFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const cfgPath = join(server.contentDir, '.ok', 'config.yml');
+    const cfgPath = join(server.contentDir, '.gitquire', 'config.yml');
     writeFileSync(cfgPath, 'validation:\n  links: off\n', 'utf-8');
     try {
       const silenced = await writeMd(
@@ -262,7 +262,7 @@ describe('content-rule (lint) violations on the agent write path', () => {
   test('the reserved-log policy moves both link channels together, not just brokenLinks', async () => {
     const { writeFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const cfgPath = join(server.contentDir, '.ok', 'config.yml');
+    const cfgPath = join(server.contentDir, '.gitquire', 'config.yml');
     const target = `rw-log-ghost-${crypto.randomUUID().slice(0, 8)}`;
     const body = `# Log\n\nSee [[${target}]].\n`;
     const logDoc = `${uniqueDoc('rw-logdir')}/log`;

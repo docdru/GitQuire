@@ -103,7 +103,7 @@ export interface StandardBundleResult {
 }
 
 export function resolveProjectSlug(cwd: string, logger?: BundleLogger): string | null {
-  const configPath = join(cwd, '.ok', 'config.yml');
+  const configPath = join(cwd, '.gitquire', 'config.yml');
   if (existsSync(configPath)) {
     try {
       const content = readFileSync(configPath, 'utf8');
@@ -112,12 +112,12 @@ export function resolveProjectSlug(cwd: string, logger?: BundleLogger): string |
     } catch (err) {
       logger?.warn(
         { configPath, err },
-        'bug-report: failed to read .ok/config.yml for project slug; using path-hash fallback',
+        'bug-report: failed to read .gitquire/config.yml for project slug; using path-hash fallback',
       );
     }
   }
 
-  if (existsSync(join(cwd, '.ok'))) {
+  if (existsSync(join(cwd, '.gitquire'))) {
     return createHash('sha256').update(resolve(cwd)).digest('hex').slice(0, 12);
   }
 
@@ -279,7 +279,7 @@ function collectLogs(
 }
 
 function collectLockDir(cwd: string): { files: string[] } {
-  const lockDir = join(cwd, '.ok', 'local');
+  const lockDir = join(cwd, '.gitquire', 'local');
   if (!existsSync(lockDir)) return { files: [] };
 
   const candidates = ['server.lock', SERVER_CRASH_LOG, ACP_LAUNCH_FAILURE_LOG];
@@ -407,14 +407,14 @@ export async function collectStandardBundle(
     ? collectProjectDiagnostics(
         opts.projectDir,
         [PROJECT_DIAGNOSTIC_FILES.logsCurrent, PROJECT_DIAGNOSTIC_FILES.logsPrevious],
-        join(opts.projectDir, '.ok', 'local', 'logs'),
+        join(opts.projectDir, '.gitquire', 'local', 'logs'),
       )
     : { files: [], legacyFiles: [] };
   const { files: spawnErrorFiles, legacyFiles: legacySpawnErrorFiles } = opts.projectDir
     ? collectProjectDiagnostics(
         opts.projectDir,
         [SPAWN_ERROR_LOG],
-        join(opts.projectDir, '.ok', 'local'),
+        join(opts.projectDir, '.gitquire', 'local'),
       )
     : { files: [], legacyFiles: [] };
   const shipItFiles = opts.shipItLogFiles ?? [];

@@ -81,7 +81,7 @@ function makeCtx(
 function backupsFor(docName: string): string[] {
   const dir = join(
     home,
-    '.ok',
+    '.gitquire',
     'edit-backups',
     'discarded',
     'projects',
@@ -93,8 +93,8 @@ function backupsFor(docName: string): string[] {
 }
 
 function blockBackups(): void {
-  mkdirSync(join(home, '.ok'), { recursive: true });
-  writeFileSync(join(home, '.ok', 'edit-backups'), 'not a folder');
+  mkdirSync(join(home, '.gitquire'), { recursive: true });
+  writeFileSync(join(home, '.gitquire', 'edit-backups'), 'not a folder');
 }
 
 const DOC = 'assets/flow.mmd';
@@ -129,8 +129,8 @@ describe('storeMermaidDoc', () => {
     const write = tracedAtomicFs.writeFile;
     const staged = vi.spyOn(tracedAtomicFs, 'writeFile').mockImplementation(async (...args) => {
       await write(...args);
-      mkdirSync(join(contentDir, 'assets', '.ok'));
-      writeFileSync(join(contentDir, 'assets', '.ok', 'config.yml'), '');
+      mkdirSync(join(contentDir, 'assets', '.gitquire'));
+      writeFileSync(join(contentDir, 'assets', '.gitquire', 'config.yml'), '');
     });
     try {
       expect(await storeMermaidDoc(doc, DOC, 'agent', ctx)).toBe('write-failed');
@@ -303,7 +303,7 @@ describe.each(ENGINELESS_CASES)('an outside write under unsaved edits to $docNam
     const [notice] = ctx.notices;
     expect(notice?.copy.where).toBe('backup');
     expect(notice?.copy.where === 'backup' && notice.copy.backup.display).toMatch(
-      /^~\/\.ok\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/.+/,
+      /^~\/\.gitquire\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/.+/,
     );
     expect(getMetrics().displacedVersionBackups).toBe(1);
   });

@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { revealBundle } from './bug-report-reveal.ts';
 
 describe('revealBundle argv shape', () => {
-  const SPACED = '/Users/Jane Doe/.ok/bug-reports/2026-08-04-bugreport.zip';
+  const SPACED = '/Users/Jane Doe/.gitquire/bug-reports/2026-08-04-bugreport.zip';
 
   test('darwin selects the file via open -R', () => {
     const spawn = vi.fn();
@@ -13,7 +13,7 @@ describe('revealBundle argv shape', () => {
 
   test('win32 opens the containing folder — never the /select, verb', () => {
     const spawn = vi.fn();
-    revealBundle('C:\\Users\\Jane Doe\\.ok\\bug-reports\\report.zip', 'win32', spawn);
+    revealBundle('C:\\Users\\Jane Doe\\.gitquire\\bug-reports\\report.zip', 'win32', spawn);
     expect(spawn).toHaveBeenCalledTimes(1);
     const [command, args] = spawn.mock.calls[0] as [string, string[]];
     expect(command).toBe('explorer.exe');
@@ -26,7 +26,7 @@ describe('revealBundle argv shape', () => {
     const spawn = vi.fn();
     revealBundle(SPACED, 'linux', spawn);
     expect(spawn).toHaveBeenCalledTimes(1);
-    expect(spawn).toHaveBeenCalledWith('xdg-open', ['/Users/Jane Doe/.ok/bug-reports']);
+    expect(spawn).toHaveBeenCalledWith('xdg-open', ['/Users/Jane Doe/.gitquire/bug-reports']);
   });
 
   test('a throwing spawner is swallowed — reveal is a best-effort nicety', () => {

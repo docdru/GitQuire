@@ -47,7 +47,7 @@ export function keyHint(key: string): string {
 }
 
 export function chatKeysDir(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'ai-keys');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'ai-keys');
 }
 
 function fileFor(projectDir: string, userId: number): string {

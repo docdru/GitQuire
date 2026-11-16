@@ -194,11 +194,11 @@ function scopeConfigFile(scope: FieldScope): string {
     case 'user':
       return okUserHomeDisplayPath('global.yml');
     case 'project':
-      return '.ok/config.yml';
+      return '.gitquire/config.yml';
     case 'project-local':
-      return '.ok/local/config.yml';
+      return '.gitquire/local/config.yml';
     case 'either':
-      return `.ok/config.yml or ${okUserHomeDisplayPath('global.yml')}`;
+      return `.gitquire/config.yml or ${okUserHomeDisplayPath('global.yml')}`;
   }
 }
 

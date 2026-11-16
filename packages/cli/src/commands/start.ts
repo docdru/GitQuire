@@ -936,7 +936,7 @@ export function startCommand(getConfig: () => Config): Command {
     .addOption(
       new Option(
         '--project-dir <dir>',
-        'Throwaway project root for --single-file (where ephemeral .ok/ state lives)',
+        'Throwaway project root for --single-file (where ephemeral .gitquire/ state lives)',
       ).hideHelp(),
     )
     .option(

@@ -278,7 +278,7 @@ describe('server scope admission and coverage', () => {
   test('a resolved file scope never reports project-wide unmatched schema globs', async () => {
     write('notes/a.md', '# A\n');
     write(
-      '.ok/schemas/doc.schema.json',
+      '.gitquire/schemas/doc.schema.json',
       JSON.stringify({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object' }),
     );
     const config: LinterConfig = {
@@ -287,12 +287,12 @@ describe('server scope admission and coverage', () => {
         ...baseConfig.plugins,
         frontmatter: {
           enabled: true,
-          schemas: [{ file: '.ok/schemas/doc.schema.json', appliesTo: ['specs/**'] }],
+          schemas: [{ file: '.gitquire/schemas/doc.schema.json', appliesTo: ['specs/**'] }],
         },
       },
     };
     const unmatched =
-      'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .ok/schemas/doc.schema.json)';
+      'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .gitquire/schemas/doc.schema.json)';
     const whole = await auditProject({ projectDir: root, contentDir: root, baseConfig: config });
     expect(whole.warnings).toContain(unmatched);
     const resolution = resolveAuditScope('notes/a.md', root);

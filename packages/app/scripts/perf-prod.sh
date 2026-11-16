@@ -38,7 +38,7 @@ What it does:
   1. Runs `pnpm run build` from the repo root (turbo-cached; a no-op when clean).
   2. Starts ONE CLI process on a kernel-assigned port —
      `node packages/cli/dist/cli.mjs start --port 0`, the project server (React
-     shell + Hocuspocus + /api/* on one listener) — and polls .ok/local/server.lock
+     shell + Hocuspocus + /api/* on one listener) — and polls .gitquire/local/server.lock
      for up to 30s for the bound port. perf:profile targets that same port.
   3. Runs `pnpm run perf:profile --scenario=<name> --target=http://localhost:<port>
      --headless` N times. Results land at
@@ -60,7 +60,7 @@ Exit codes:
   1   usage error: unknown argument, missing --scenario, or --runs < 1
   2   --runs is not a non-negative integer, `pnpm run build` failed, or the CLI
       binary is missing after the build
-  3   jq is not installed, or the server never populated .ok/local/server.lock
+  3   jq is not installed, or the server never populated .gitquire/local/server.lock
       with a bound port
   4   the workspace-root markers are missing, or all N perf:profile runs failed
   5   no result files found for the scenario
@@ -105,7 +105,7 @@ require_jq
 REPO_ROOT="$(resolve_repo_root)"
 
 CLI_BIN="$REPO_ROOT/packages/cli/dist/cli.mjs"
-SERVER_LOCK="$REPO_ROOT/.ok/local/server.lock"
+SERVER_LOCK="$REPO_ROOT/.gitquire/local/server.lock"
 RESULTS_DIR="$REPO_ROOT/packages/app/tests/perf/results"
 
 echo "[perf-prod] Building app + cli (turbo cache-friendly; no-op when clean)…"

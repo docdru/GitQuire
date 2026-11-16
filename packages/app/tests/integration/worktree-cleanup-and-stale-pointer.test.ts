@@ -58,7 +58,7 @@ describe('MalformedGitPointerError at boot when .git pointer is stale (FR7)', ()
     adhocDirs.push(projectRoot);
     const missingTarget = resolve(tmpdir(), 'ok-stale-target-does-not-exist');
     writeFileSync(resolve(projectRoot, '.git'), `gitdir: ${missingTarget}\n`);
-    const okDir = resolve(projectRoot, '.ok');
+    const okDir = resolve(projectRoot, '.gitquire');
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
     writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');
@@ -110,7 +110,7 @@ describe('MalformedGitPointerError at boot when .git pointer is stale (FR7)', ()
     adhocDirs.push(projectRoot);
     const missingTarget = resolve(tmpdir(), 'ok-stale-recover-target-does-not-exist');
     writeFileSync(resolve(projectRoot, '.git'), `gitdir: ${missingTarget}\n`);
-    const okDir = resolve(projectRoot, '.ok');
+    const okDir = resolve(projectRoot, '.gitquire');
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
     writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');

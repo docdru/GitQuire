@@ -179,7 +179,7 @@ then only sent to `localhost`. Mail is limited to 20 per person per day and 100 
 the counts start over when the server restarts. People who have not opened GitQuire for 30 days get
 no mail. The link in the mail is built from `GITQUIRE_EXTERNAL_URL`; without it, the mail has no link.
 
-Read state and email settings are kept on the server in `/data/.ok/local/gitquire/mentions.json`,
+Read state and email settings are kept on the server in `/data/.gitquire/local/gitquire/mentions.json`,
 outside Git.
 
 ## People you can mention
@@ -187,7 +187,7 @@ outside Git.
 Typing `@` in a comment or a page offers the people who use this wiki: everyone who has signed in,
 the repository's collaborators with write access (read through the GitHub App, cached for ten
 minutes; if GitHub refuses, only the other two sources are used) and `GITQUIRE_ALLOWED_USERS`. The
-list of people who signed in is kept in `.ok/local/gitquire/people.json` on the data volume.
+list of people who signed in is kept in `.gitquire/local/gitquire/people.json` on the data volume.
 
 Action items that mention someone (`- [ ] … @alice`) notify them like comments do. When this
 first runs, existing open action items are recorded as already seen, so nobody gets a burst of old
@@ -247,7 +247,7 @@ public internet over HTTPS.
 
 ### Token storage
 
-Tokens are stored hashed in `.ok/local/gitquire/agent-tokens.json` on the data volume, never in
+Tokens are stored hashed in `.gitquire/local/gitquire/agent-tokens.json` on the data volume, never in
 the repository. Revoke one from `/auth/agents`; admins (`GITQUIRE_ADMINS`) can revoke anyone's.
 Every ten minutes the server checks that token owners can still write to `GITQUIRE_REPO` (using
 the GitHub App when it is configured) and revokes the tokens of people who lost access.
@@ -264,7 +264,7 @@ People can chat with Claude or Mistral in the ✨ pane (⌘L) and from the box u
 assistant searches, reads and, when asked, edits pages through the same tools as `/mcp`, so its
 changes appear live, are credited to the person chatting, and follow their **Put my AI assistant's
 edits into a draft** setting. It cannot delete pages, change settings, read hidden folders such as
-`.ok` (where keys and chats are kept) or run commands. No `/mcp` client can read `.ok/local`
+`.gitquire` (where keys and chats are kept) or run commands. No `/mcp` client can read `.gitquire/local`
 through `exec`; the server enforces that for connectors, agent tokens and the chat alike.
 
 It is on whenever GitHub sign-in is on; the ✨ pane
@@ -273,18 +273,18 @@ shows the chat. Nothing runs until someone adds a key:
 - **Each person uses their own API key** from the [Claude Console](https://platform.claude.com) or
   [Mistral La Plateforme](https://console.mistral.ai), entered under **Settings → AI chat**. GitQuire
   checks the key with the provider, then stores it encrypted (AES-256-GCM, key derived from
-  `GITQUIRE_SESSION_SECRET`) in `/data/.ok/local/gitquire/ai-keys/`. It never sends a key anywhere
+  `GITQUIRE_SESSION_SECRET`) in `/data/.gitquire/local/gitquire/ai-keys/`. It never sends a key anywhere
   but to its provider and never shows it again. Changing `GITQUIRE_SESSION_SECRET` makes saved keys
   unreadable; people then paste them again.
 - **Spending is each person's responsibility.** They pay their provider per use and should set a
   monthly spending limit there; the settings page links to it. Each message is capped at 16,000
   output tokens (thinking included) and 12 tool steps, older tool results are shortened in long
   chats, and the chat shows the tokens a conversation has used.
-- **Chats are kept per person** in `/data/.ok/local/gitquire/chats/<GitHub user id>/`, outside Git,
+- **Chats are kept per person** in `/data/.gitquire/local/gitquire/chats/<GitHub user id>/`, outside Git,
   and deleted 90 days after their last message. Only their owner sees them in the app; whoever runs
   the server can read the files. **Save as page** writes a chat into the wiki.
 - **Token counts** per day and per chat are kept per person in
-  `/data/.ok/local/gitquire/chat-usage/<GitHub user id>.json` for the same 90 days (also after a
+  `/data/.gitquire/local/gitquire/chat-usage/<GitHub user id>.json` for the same 90 days (also after a
   chat is deleted) and shown in **Settings → AI chat**. Tokens only, no prices.
 - Answers are **streamed** from the provider and passed on as they arrive. Behind nginx, the chat
   response already sends `X-Accel-Buffering: no`; a gateway set with the variables below may ignore
@@ -325,7 +325,7 @@ Know what you're choosing:
 - **One key, billed per use.** Pages are embedded the first time someone searches by meaning and
   again when they change. With OpenAI's small model, a typical team wiki costs cents.
 - **Changing the URL or model re-embeds every page.** Vectors are cached on the data volume in
-  `.ok/local/embeddings/`.
+  `.gitquire/local/embeddings/`.
 
 The key is only ever sent to `GITQUIRE_EMBEDDINGS_URL`. There is no Search page in the app's
 settings: the environment is the only place to change this.
@@ -333,12 +333,12 @@ settings: the environment is the only place to change this.
 ## Wiki administration
 
 Settings under **User** in the app are personal: with GitHub sign-in on, each person's are saved
-on the data volume in `.ok/local/gitquire/users/<GitHub user id>.yml`, outside Git.
+on the data volume in `.gitquire/local/gitquire/users/<GitHub user id>.yml`, outside Git.
 
 Settings under **Wiki administration** apply to everyone: attachments, content rules, sync, link
 previews, plugins, templates, skills and ignore patterns. Most are saved in the repository
-(`.ok/config.yml`, `.okignore`, `.ok/templates/`); sync and link previews are saved on the data
-volume in `.ok/local/config.yml`.
+(`.gitquire/config.yml`, `.okignore`, `.gitquire/templates/`); sync and link previews are saved on the data
+volume in `.gitquire/local/config.yml`.
 
 Wiki admins are the logins in `GITQUIRE_ADMINS` and everyone with the **Admin** or **Maintain**
 role on `GITQUIRE_REPO`. Everyone else sees these pages greyed out and read-only, with a note

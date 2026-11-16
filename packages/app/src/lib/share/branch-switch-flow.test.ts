@@ -641,12 +641,12 @@ describe('applyWorktreeCheckoutOutcome (worktree leg)', () => {
   test('successful create transitions to opening-worktree carrying the worktree path (no toast)', () => {
     const result = applyWorktreeCheckoutOutcome(creating, {
       ok: true,
-      path: '/repo/.ok/worktrees/feat-x',
+      path: '/repo/.gitquire/worktrees/feat-x',
       created: true,
     });
     expect(result.state).toEqual({
       phase: 'opening-worktree',
-      path: '/repo/.ok/worktrees/feat-x',
+      path: '/repo/.gitquire/worktrees/feat-x',
     });
     expect(result.sideEffect).toBeUndefined();
   });
@@ -654,12 +654,12 @@ describe('applyWorktreeCheckoutOutcome (worktree leg)', () => {
   test('locate (created: false) also transitions to opening-worktree — the existing window opens, no duplicate', () => {
     const result = applyWorktreeCheckoutOutcome(creating, {
       ok: true,
-      path: '/repo/.ok/worktrees/feat-x',
+      path: '/repo/.gitquire/worktrees/feat-x',
       created: false,
     });
     expect(result.state).toEqual({
       phase: 'opening-worktree',
-      path: '/repo/.ok/worktrees/feat-x',
+      path: '/repo/.gitquire/worktrees/feat-x',
     });
     expect(result.sideEffect).toBeUndefined();
   });
@@ -708,7 +708,7 @@ describe('applyWorktreeCheckoutOutcome (worktree leg)', () => {
       ok: false,
       reason: 'project-scope-unavailable',
       issue: 'unsafe-setup-path',
-      path: '/repo/.ok/worktrees/unsafe',
+      path: '/repo/.gitquire/worktrees/unsafe',
       created: true,
     });
     expect(result.state).toEqual({ phase: 'ready', info: cleanInfo() });
@@ -796,14 +796,14 @@ describe('worktree leg — stale-result and cross-phase identity guards', () => 
         otherWorktreePath: '/tmp/wt/feat-bar',
         pendingDoc: 'docs/foo.md',
       },
-      { phase: 'opening-worktree', path: '/repo/.ok/worktrees/feat-x' },
+      { phase: 'opening-worktree', path: '/repo/.gitquire/worktrees/feat-x' },
       { phase: 'error' },
       { phase: 'dismissed', reason: 'branch-not-found' },
     ];
     for (const state of wrongPhases) {
       const lateSuccess = applyWorktreeCheckoutOutcome(state, {
         ok: true,
-        path: '/repo/.ok/worktrees/feat-x',
+        path: '/repo/.gitquire/worktrees/feat-x',
         created: true,
       });
       expect(lateSuccess.state).toBe(state);
@@ -836,7 +836,7 @@ describe('worktree leg — stale-result and cross-phase identity guards', () => 
         pendingDoc: 'docs/foo.md',
       },
       { phase: 'creating-worktree', info: cleanInfo() },
-      { phase: 'opening-worktree', path: '/repo/.ok/worktrees/feat-x' },
+      { phase: 'opening-worktree', path: '/repo/.gitquire/worktrees/feat-x' },
       { phase: 'error' },
       { phase: 'dismissed', reason: 'branch-not-found' },
     ];
@@ -860,7 +860,7 @@ describe('worktree leg — stale-result and cross-phase identity guards', () => 
   test('opening-worktree is a reducer terminal — every transition is identity', () => {
     const opening: BranchSwitchDialogState = {
       phase: 'opening-worktree',
-      path: '/repo/.ok/worktrees/feat-x',
+      path: '/repo/.gitquire/worktrees/feat-x',
     };
     expect(applyBranchInfo(opening, cleanInfo())).toBe(opening);
     expect(applyBranchInfo(opening, null)).toBe(opening);

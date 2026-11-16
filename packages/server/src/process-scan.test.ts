@@ -126,7 +126,7 @@ describe('findOkProcessPids with Windows Unix tools', () => {
   });
 
   it('finds Electron utility processes by explicit lock-dir marker', async () => {
-    const encoded = Buffer.from('/Users/mike/notes/.ok/local', 'utf8').toString('base64url');
+    const encoded = Buffer.from('/Users/mike/notes/.gitquire/local', 'utf8').toString('base64url');
     spawnSyncSpy.mockReturnValue(
       makeSpawnResult({
         stdout: `24680 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper --type=utility --ok-lock-dir-b64=${encoded}\n`,
@@ -381,12 +381,13 @@ describe('discoverLockDirs', () => {
 
     existsSyncSpy.mockImplementation(
       (p: unknown) =>
-        p === '/Users/mike/notes/.ok/local' || p === '/Users/mike/notes/.ok/local/server.lock',
+        p === '/Users/mike/notes/.gitquire/local' ||
+        p === '/Users/mike/notes/.gitquire/local/server.lock',
     );
 
     const dirs = await discoverLockDirs();
     expect(dirs).toHaveLength(1);
-    expect(dirs[0]).toContain('.ok/local');
+    expect(dirs[0]).toContain('.gitquire/local');
 
     const calls = spawnSyncSpy.mock.calls as [string, string[]][];
     expect(calls[0]?.[0]).toBe('ps');
@@ -406,7 +407,7 @@ describe('discoverLockDirs', () => {
   });
 
   it('discovers Electron utility lock dirs from the explicit argv marker', async () => {
-    const lockDir = '/Users/mike/notes with spaces/.ok/local';
+    const lockDir = '/Users/mike/notes with spaces/.gitquire/local';
     const encoded = Buffer.from(lockDir, 'utf8').toString('base64url');
     spawnSyncSpy
       .mockReturnValueOnce(
@@ -436,7 +437,7 @@ describe('discoverLockDirs', () => {
 
   it('discovers desktop project locks from renderer --ok-project-path argv', async () => {
     const projectPath = '/Users/mike/Documents/OpenKnowledge/garth_nix';
-    const lockDir = `${projectPath}/.ok/local`;
+    const lockDir = `${projectPath}/.gitquire/local`;
 
     spawnSyncSpy
       .mockReturnValueOnce(
@@ -476,7 +477,7 @@ describe('discoverLockDirs', () => {
 
   it('does not discover lock dirs holding only a legacy ui.lock', async () => {
     const projectPath = '/Users/mike/notes';
-    const lockDir = `${projectPath}/.ok/local`;
+    const lockDir = `${projectPath}/.gitquire/local`;
 
     spawnSyncSpy
       .mockReturnValueOnce(
@@ -515,7 +516,7 @@ describe('discoverLockDirs', () => {
   });
 
   it('ignores Electron marker with a relative-path payload', async () => {
-    const encoded = Buffer.from('relative/path/.ok/local', 'utf8').toString('base64url');
+    const encoded = Buffer.from('relative/path/.gitquire/local', 'utf8').toString('base64url');
     spawnSyncSpy
       .mockReturnValueOnce(
         makeSpawnResult({
@@ -538,7 +539,7 @@ describe('discoverLockDirs', () => {
     const cwdSpy = vi.spyOn(process, 'cwd');
     const parent = '/Users/mike/Documents/OpenKnowledge';
     const child = `${parent}/garth_nix`;
-    const lockDir = `${child}/.ok/local`;
+    const lockDir = `${child}/.gitquire/local`;
 
     spawnSyncSpy
       .mockReturnValueOnce(
@@ -574,9 +575,9 @@ describe('discoverLockDirs', () => {
     const cwdSpy = vi.spyOn(process, 'cwd');
     const parent = '/Users/mike/Documents/OpenKnowledge';
     const directProject = '/Users/mike/direct-notes';
-    const directLockDir = `${directProject}/.ok/local`;
+    const directLockDir = `${directProject}/.gitquire/local`;
     const childProject = `${parent}/garth_nix`;
-    const childLockDir = `${childProject}/.ok/local`;
+    const childLockDir = `${childProject}/.gitquire/local`;
 
     spawnSyncSpy
       .mockReturnValueOnce(
@@ -698,7 +699,7 @@ describe('lock recovery process evidence', () => {
     ]);
   });
   it('keeps explicit process provenance even without a lock file on disk', async () => {
-    const lockDir = '/missing/project/.ok/local';
+    const lockDir = '/missing/project/.gitquire/local';
     spawnSyncMock
       .mockReturnValueOnce(
         makeSpawnResult({
@@ -721,7 +722,7 @@ describe('lock recovery process evidence', () => {
       .mockReturnValueOnce(makeSpawnResult({ status: 1 }))
       .mockReturnValueOnce(makeSpawnResult({ stdout: `p${process.pid}\nfcwd\nn/notes\n` }));
     expect((await scanLockProcesses()).candidates).toContainEqual({
-      lockDir: '/notes/.ok/local',
+      lockDir: '/notes/.gitquire/local',
       pid: process.pid,
       source: 'process-cwd',
     });
@@ -927,7 +928,7 @@ describe('lock recovery process evidence', () => {
     expect(cwdQueries[0]?.[1]).toContain(pids.join(','));
     for (const pid of pids) {
       expect(scan.candidates).toContainEqual({
-        lockDir: `/notes-${pid}/.ok/local`,
+        lockDir: `/notes-${pid}/.gitquire/local`,
         pid,
         source: 'process-cwd',
       });
@@ -941,7 +942,7 @@ describe('lock recovery process evidence', () => {
       )
       .mockReturnValueOnce(makeSpawnResult({ stdout: `p${process.pid}\nfcwd\nn/notes\n` }));
     expect((await scanLockProcesses()).candidates).toContainEqual({
-      lockDir: '/notes/.ok/local',
+      lockDir: '/notes/.gitquire/local',
       pid: process.pid,
       source: 'listener-cwd',
     });

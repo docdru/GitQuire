@@ -566,13 +566,13 @@ describe('wiki tool guards', () => {
     expect(refusedArguments('search', { anything: 1 })).toBeUndefined();
   });
 
-  it('keeps exec out of hidden folders such as .ok', () => {
+  it('keeps exec out of hidden folders such as .gitquire', () => {
     for (const command of [
-      'cat .ok/local/gitquire/chats/7/x.json',
-      'ls .ok',
+      'cat .gitquire/local/gitquire/chats/7/x.json',
+      'ls .gitquire',
       'grep -r key notes/.secret',
       'head -1 ".git/config"',
-      'cat notes/a.md | grep .ok',
+      'cat notes/a.md | grep .gitquire',
     ]) {
       expect(refusedArguments('exec', { command }), command).toContain('hidden folders');
     }
@@ -587,7 +587,7 @@ describe('wiki tool guards', () => {
     ]) {
       expect(refusedArguments('exec', { command }), command).toBeUndefined();
     }
-    expect(refusedArguments('exec', { command: 'ls', cwd: '/data/.ok' })).toContain('cwd');
+    expect(refusedArguments('exec', { command: 'ls', cwd: '/data/.gitquire' })).toContain('cwd');
   });
 
   it('shortens long tool output', () => {
@@ -624,7 +624,7 @@ describe('saving a chat as a page', () => {
     expect(normalizePagePath(' AI chats/Plan review.md ')).toBe('AI chats/Plan review');
     expect(() => normalizePagePath('../outside')).toThrow();
     expect(() => normalizePagePath('notes//x')).toThrow();
-    expect(() => normalizePagePath('.ok/config')).toThrow();
+    expect(() => normalizePagePath('.gitquire/config')).toThrow();
     expect(() => normalizePagePath('a/b<c')).toThrow();
   });
 });

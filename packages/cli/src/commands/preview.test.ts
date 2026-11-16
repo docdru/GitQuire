@@ -25,7 +25,7 @@ describe('preview command', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('works pre-init (no .ok/) using schema defaults', () => {
+  it('works pre-init (no .gitquire/) using schema defaults', () => {
     writeFileSync(join(testDir, 'a.md'), '# A');
     writeFileSync(join(testDir, 'b.md'), '# B');
     writeFileSync(join(testDir, 'c.md'), '# C');

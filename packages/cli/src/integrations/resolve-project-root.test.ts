@@ -40,12 +40,12 @@ const stubGitTopLevel =
   };
 
 const writeOkConfig = (dir: string): void => {
-  mkdirSync(resolve(dir, '.ok'), { recursive: true });
-  writeFileSync(resolve(dir, '.ok/config.yml'), '$schema: x\n');
+  mkdirSync(resolve(dir, '.gitquire'), { recursive: true });
+  writeFileSync(resolve(dir, '.gitquire/config.yml'), '$schema: x\n');
 };
 
 describe('resolveProjectRoot — ancestor walk wins', () => {
-  test('returns cwd as projectRoot when .ok/config.yml is at cwd', () => {
+  test('returns cwd as projectRoot when .gitquire/config.yml is at cwd', () => {
     const project = resolve(fakeHome, 'project');
     mkdirSync(project, { recursive: true });
     writeOkConfig(project);
@@ -63,7 +63,7 @@ describe('resolveProjectRoot — ancestor walk wins', () => {
     });
   });
 
-  test('promotes to ancestor when .ok/ is one level up', () => {
+  test('promotes to ancestor when .gitquire/ is one level up', () => {
     const project = resolve(fakeHome, 'project');
     const sub = resolve(project, 'sub');
     mkdirSync(sub, { recursive: true });
@@ -97,7 +97,7 @@ describe('resolveProjectRoot — ancestor walk wins', () => {
     expect(result.defaultContentDir).toBe('.');
   });
 
-  test('walk excludes home itself — picking home does not match home/.ok/', () => {
+  test('walk excludes home itself — picking home does not match home/.gitquire/', () => {
     writeOkConfig(fakeHome);
 
     const result = resolveProjectRoot(fakeHome, {
@@ -110,7 +110,7 @@ describe('resolveProjectRoot — ancestor walk wins', () => {
     expect(result.gitRootPromoted).toBe(false);
   });
 
-  test('legacy .ok/ below git root wins over git-root promotion', () => {
+  test('legacy .gitquire/ below git root wins over git-root promotion', () => {
     const repo = resolve(fakeHome, 'repo');
     const docs = resolve(repo, 'docs');
     const api = resolve(docs, 'api');
@@ -130,7 +130,7 @@ describe('resolveProjectRoot — ancestor walk wins', () => {
 });
 
 describe('resolveProjectRoot — git-root promotion', () => {
-  test('promotes to gitRoot when cwd is sub-folder of a git repo without .ok/', () => {
+  test('promotes to gitRoot when cwd is sub-folder of a git repo without .gitquire/', () => {
     const repo = resolve(fakeHome, 'myrepo');
     const docs = resolve(repo, 'docs');
     mkdirSync(docs, { recursive: true });

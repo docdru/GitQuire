@@ -63,7 +63,7 @@ function foldPath(path: string): string {
 
 const CONFIG_DIR_NAMES: ReadonlySet<string> = new Set(
   [
-    '.ok',
+    '.gitquire',
     '.open-knowledge',
     '.openknowledge',
     ...Object.values(DESKTOP_PRODUCTS).map(({ userHomeDirName }) => userHomeDirName),

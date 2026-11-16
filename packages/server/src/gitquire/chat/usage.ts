@@ -58,7 +58,7 @@ export interface ChatUsageStore {
 }
 
 function usageDir(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'chat-usage');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'chat-usage');
 }
 
 function fileFor(projectDir: string, userId: number): string {

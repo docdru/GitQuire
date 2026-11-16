@@ -35,48 +35,52 @@ describe('resolveNavigationTarget', () => {
   test('redirects a stale `__template__/…` deep-link to the content doc', () => {
     expect(resolveNavigationTarget('__template__/notes/daily', { pages: new Set() })).toEqual({
       kind: 'doc',
-      target: 'notes/.ok/templates/daily',
-      docName: 'notes/.ok/templates/daily',
+      target: 'notes/.gitquire/templates/daily',
+      docName: 'notes/.gitquire/templates/daily',
     });
     expect(resolveNavigationTarget('__template__/daily', { pages: new Set() })).toEqual({
       kind: 'doc',
-      target: '.ok/templates/daily',
-      docName: '.ok/templates/daily',
+      target: '.gitquire/templates/daily',
+      docName: '.gitquire/templates/daily',
     });
     expect(resolveNavigationTarget('__template__/My%20Notes/daily', { pages: new Set() })).toEqual({
       kind: 'doc',
-      target: 'My Notes/.ok/templates/daily',
-      docName: 'My Notes/.ok/templates/daily',
+      target: 'My Notes/.gitquire/templates/daily',
+      docName: 'My Notes/.gitquire/templates/daily',
     });
   });
 
   test('resolves skill and template file-path links as content docs', () => {
-    const skillDoc = '.ok/skills/open-knowledge-pack-knowledge-base/SKILL';
+    const skillDoc = '.gitquire/skills/open-knowledge-pack-knowledge-base/SKILL';
     expect(resolveNavigationTarget(skillDoc, { pages: new Set([skillDoc]) })).toEqual({
       kind: 'doc',
       target: skillDoc,
       docName: skillDoc,
     });
-    expect(resolveNavigationTarget('notes/.ok/templates/daily', { pages: new Set() })).toEqual({
+    expect(
+      resolveNavigationTarget('notes/.gitquire/templates/daily', { pages: new Set() }),
+    ).toEqual({
       kind: 'doc',
-      target: 'notes/.ok/templates/daily',
-      docName: 'notes/.ok/templates/daily',
+      target: 'notes/.gitquire/templates/daily',
+      docName: 'notes/.gitquire/templates/daily',
     });
   });
 
   test('resolves a template content doc structurally, normalizing a .md link to ext-less', () => {
-    expect(resolveNavigationTarget('projects/.ok/templates/plan', { pages: new Set() })).toEqual({
+    expect(
+      resolveNavigationTarget('projects/.gitquire/templates/plan', { pages: new Set() }),
+    ).toEqual({
       kind: 'doc',
-      target: 'projects/.ok/templates/plan',
-      docName: 'projects/.ok/templates/plan',
+      target: 'projects/.gitquire/templates/plan',
+      docName: 'projects/.gitquire/templates/plan',
     });
-    expect(resolveNavigationTarget('projects/.ok/templates/plan.md', { pages: new Set() })).toEqual(
-      {
-        kind: 'doc',
-        target: 'projects/.ok/templates/plan',
-        docName: 'projects/.ok/templates/plan',
-      },
-    );
+    expect(
+      resolveNavigationTarget('projects/.gitquire/templates/plan.md', { pages: new Set() }),
+    ).toEqual({
+      kind: 'doc',
+      target: 'projects/.gitquire/templates/plan',
+      docName: 'projects/.gitquire/templates/plan',
+    });
   });
 
   test('prefers an exact document over folder landing notes', () => {
@@ -342,117 +346,119 @@ describe('resolveNavigationTarget', () => {
   });
 });
 
-describe('okContentNavigationTarget (read-only .ok routing)', () => {
-  const pages = new Set(['notes/real', '.ok/skills/writer/SKILL']);
+describe('okContentNavigationTarget (read-only .gitquire routing)', () => {
+  const pages = new Set(['notes/real', '.gitquire/skills/writer/SKILL']);
 
-  test('targets without a .ok path segment are not governed', () => {
+  test('targets without a .gitquire path segment are not governed', () => {
     expect(okContentNavigationTarget('notes/real', { pages })).toBeNull();
     expect(okContentNavigationTarget('brand-new/idea', { pages })).toBeNull();
     expect(okContentNavigationTarget('docs/ok/guide', { pages })).toBeNull();
   });
 
   test('a template content doc keeps the normal doc flow even when it lags the page index', () => {
-    expect(okContentNavigationTarget('.ok/templates/meeting', { pages })).toBeNull();
-    expect(okContentNavigationTarget('team/.ok/templates/spec', { pages })).toBeNull();
+    expect(okContentNavigationTarget('.gitquire/templates/meeting', { pages })).toBeNull();
+    expect(okContentNavigationTarget('team/.gitquire/templates/spec', { pages })).toBeNull();
   });
 
   test('page-list members stay normal content docs (skills carve-out)', () => {
-    expect(okContentNavigationTarget('.ok/skills/writer/SKILL', { pages })).toBeNull();
+    expect(okContentNavigationTarget('.gitquire/skills/writer/SKILL', { pages })).toBeNull();
   });
 
-  test('doc-shaped .ok targets resolve to the read-only text viewer on their .md path', () => {
-    expect(okContentNavigationTarget('.ok/raw-probe', { pages })).toEqual({
+  test('doc-shaped .gitquire targets resolve to the read-only text viewer on their .md path', () => {
+    expect(okContentNavigationTarget('.gitquire/raw-probe', { pages })).toEqual({
       kind: 'asset',
-      target: '.ok/raw-probe.md',
-      assetPath: '.ok/raw-probe.md',
+      target: '.gitquire/raw-probe.md',
+      assetPath: '.gitquire/raw-probe.md',
       mediaKind: 'text',
     });
-    expect(okContentNavigationTarget('notes/.ok/frontmatter', { pages })).toEqual({
+    expect(okContentNavigationTarget('notes/.gitquire/frontmatter', { pages })).toEqual({
       kind: 'asset',
-      target: 'notes/.ok/frontmatter.md',
-      assetPath: 'notes/.ok/frontmatter.md',
+      target: 'notes/.gitquire/frontmatter.md',
+      assetPath: 'notes/.gitquire/frontmatter.md',
       mediaKind: 'text',
     });
   });
 
   test('a known on-disk extension overrides the .md default', () => {
-    expect(okContentNavigationTarget('.ok/templates/a/b', { pages, docExt: '.mdx' })).toEqual({
-      kind: 'asset',
-      target: '.ok/templates/a/b.mdx',
-      assetPath: '.ok/templates/a/b.mdx',
-      mediaKind: 'text',
-    });
+    expect(okContentNavigationTarget('.gitquire/templates/a/b', { pages, docExt: '.mdx' })).toEqual(
+      {
+        kind: 'asset',
+        target: '.gitquire/templates/a/b.mdx',
+        assetPath: '.gitquire/templates/a/b.mdx',
+        mediaKind: 'text',
+      },
+    );
   });
 
   test('nested template paths are not template files — they land on the viewer', () => {
-    expect(okContentNavigationTarget('.ok/templates/a/b', { pages })).toMatchObject({
+    expect(okContentNavigationTarget('.gitquire/templates/a/b', { pages })).toMatchObject({
       kind: 'asset',
-      assetPath: '.ok/templates/a/b.md',
+      assetPath: '.gitquire/templates/a/b.md',
     });
   });
 
-  test('extension-carrying .ok leaves resolve as their own asset path', () => {
-    expect(okContentNavigationTarget('.ok/config.yml', { pages })).toEqual({
+  test('extension-carrying .gitquire leaves resolve as their own asset path', () => {
+    expect(okContentNavigationTarget('.gitquire/config.yml', { pages })).toEqual({
       kind: 'asset',
-      target: '.ok/config.yml',
-      assetPath: '.ok/config.yml',
+      target: '.gitquire/config.yml',
+      assetPath: '.gitquire/config.yml',
       mediaKind: 'text',
     });
-    expect(okContentNavigationTarget('.ok/assets/logo.png', { pages })).toMatchObject({
+    expect(okContentNavigationTarget('.gitquire/assets/logo.png', { pages })).toMatchObject({
       kind: 'asset',
-      assetPath: '.ok/assets/logo.png',
+      assetPath: '.gitquire/assets/logo.png',
       mediaKind: 'image',
     });
   });
 
   test('worktrees and local paths land read-only even though listings exclude them', () => {
-    for (const target of ['.ok/worktrees/checkout/README', '.ok/local/config.yml']) {
+    for (const target of ['.gitquire/worktrees/checkout/README', '.gitquire/local/config.yml']) {
       expect(okContentNavigationTarget(target, { pages })?.kind).toBe('asset');
     }
   });
 
   test('the docName contract is file-shaped: a leaf still gains its .md extension', () => {
-    expect(okContentNavigationTarget('articles/.ok', { pages })).toMatchObject({
+    expect(okContentNavigationTarget('articles/.gitquire', { pages })).toMatchObject({
       kind: 'asset',
-      assetPath: 'articles/.ok.md',
+      assetPath: 'articles/.gitquire.md',
     });
   });
 });
 
-describe('resolveNavigationTarget — folder-shaped .ok targets', () => {
+describe('resolveNavigationTarget — folder-shaped .gitquire targets', () => {
   const options = {
     pages: new Set(['articles/intro']),
     folderPaths: new Set(['articles']),
   };
 
-  test('a revealed .ok directory does not resolve to a phantom .md asset', () => {
-    for (const target of ['articles/.ok/', 'articles/.ok/templates/', '.ok/']) {
+  test('a revealed .gitquire directory does not resolve to a phantom .md asset', () => {
+    for (const target of ['articles/.gitquire/', 'articles/.gitquire/templates/', '.gitquire/']) {
       expect(resolveNavigationTarget(target, options).kind).not.toBe('asset');
     }
   });
 
-  test('folder-shaped misses resolve the same inside and outside .ok', () => {
+  test('folder-shaped misses resolve the same inside and outside .gitquire', () => {
     expect(resolveNavigationTarget('articles/nope/', options)).toEqual({
       kind: 'missing',
       target: 'articles/nope',
     });
-    expect(resolveNavigationTarget('articles/.ok/', options)).toEqual({
+    expect(resolveNavigationTarget('articles/.gitquire/', options)).toEqual({
       kind: 'missing',
-      target: 'articles/.ok',
+      target: 'articles/.gitquire',
     });
-    expect(resolveNavigationTarget('articles/.ok/templates/', options)).toEqual({
+    expect(resolveNavigationTarget('articles/.gitquire/templates/', options)).toEqual({
       kind: 'missing',
-      target: 'articles/.ok/templates',
+      target: 'articles/.gitquire/templates',
     });
-    expect(resolveNavigationTarget('.ok/', options)).toEqual({
+    expect(resolveNavigationTarget('.gitquire/', options)).toEqual({
       kind: 'missing',
-      target: '.ok',
+      target: '.gitquire',
     });
   });
 
-  test('.ok folders backed by indexed skill docs still resolve as folders', () => {
-    const skillOptions = { pages: new Set(['.ok/skills/writer/SKILL']) };
-    for (const folderPath of ['.ok', '.ok/skills', '.ok/skills/writer']) {
+  test('.gitquire folders backed by indexed skill docs still resolve as folders', () => {
+    const skillOptions = { pages: new Set(['.gitquire/skills/writer/SKILL']) };
+    for (const folderPath of ['.gitquire', '.gitquire/skills', '.gitquire/skills/writer']) {
       expect(resolveNavigationTarget(`${folderPath}/`, skillOptions)).toEqual({
         kind: 'folder',
         target: folderPath,
@@ -461,72 +467,72 @@ describe('resolveNavigationTarget — folder-shaped .ok targets', () => {
     }
   });
 
-  test('doc-shaped .ok targets keep their read-only routing', () => {
-    expect(resolveNavigationTarget('articles/.ok/templates/meeting', options)).toEqual({
+  test('doc-shaped .gitquire targets keep their read-only routing', () => {
+    expect(resolveNavigationTarget('articles/.gitquire/templates/meeting', options)).toEqual({
       kind: 'doc',
-      target: 'articles/.ok/templates/meeting',
-      docName: 'articles/.ok/templates/meeting',
+      target: 'articles/.gitquire/templates/meeting',
+      docName: 'articles/.gitquire/templates/meeting',
     });
     expect(
-      resolveNavigationTarget('.ok/skills/writer/SKILL', {
-        pages: new Set(['.ok/skills/writer/SKILL']),
+      resolveNavigationTarget('.gitquire/skills/writer/SKILL', {
+        pages: new Set(['.gitquire/skills/writer/SKILL']),
       }),
     ).toEqual({
       kind: 'doc',
-      target: '.ok/skills/writer/SKILL',
-      docName: '.ok/skills/writer/SKILL',
+      target: '.gitquire/skills/writer/SKILL',
+      docName: '.gitquire/skills/writer/SKILL',
     });
-    expect(resolveNavigationTarget('articles/.ok', options)).toMatchObject({
+    expect(resolveNavigationTarget('articles/.gitquire', options)).toMatchObject({
       kind: 'asset',
-      assetPath: 'articles/.ok.md',
+      assetPath: 'articles/.gitquire.md',
     });
   });
 
   test('a trailing-slash template path returns missing (folder-shaped, not a doc)', () => {
-    expect(resolveNavigationTarget('articles/.ok/templates/meeting/', options)).toEqual({
+    expect(resolveNavigationTarget('articles/.gitquire/templates/meeting/', options)).toEqual({
       kind: 'missing',
-      target: 'articles/.ok/templates/meeting',
+      target: 'articles/.gitquire/templates/meeting',
     });
   });
 });
 
-describe('resolveNavigationTarget .ok guard', () => {
-  const options = { pages: new Set(['notes/real', '.ok/skills/writer/SKILL']) };
+describe('resolveNavigationTarget .gitquire guard', () => {
+  const options = { pages: new Set(['notes/real', '.gitquire/skills/writer/SKILL']) };
 
-  test('doc-shaped .ok targets never resolve to missing — the viewer replaces create-mode', () => {
-    expect(resolveNavigationTarget('.ok/raw-probe', options)).toEqual({
+  test('doc-shaped .gitquire targets never resolve to missing — the viewer replaces create-mode', () => {
+    expect(resolveNavigationTarget('.gitquire/raw-probe', options)).toEqual({
       kind: 'asset',
-      target: '.ok/raw-probe.md',
-      assetPath: '.ok/raw-probe.md',
+      target: '.gitquire/raw-probe.md',
+      assetPath: '.gitquire/raw-probe.md',
       mediaKind: 'text',
     });
-    expect(resolveNavigationTarget('notes/.ok/frontmatter', options)).toMatchObject({
+    expect(resolveNavigationTarget('notes/.gitquire/frontmatter', options)).toMatchObject({
       kind: 'asset',
-      assetPath: 'notes/.ok/frontmatter.md',
+      assetPath: 'notes/.gitquire/frontmatter.md',
     });
-    expect(resolveNavigationTarget('.ok/worktrees/checkout/README', options)).toMatchObject({
+    expect(resolveNavigationTarget('.gitquire/worktrees/checkout/README', options)).toMatchObject({
       kind: 'asset',
     });
   });
 
-  test('sanctioned .ok resolutions: skills and templates both stay content docs', () => {
-    expect(resolveNavigationTarget('.ok/skills/writer/SKILL', options)).toEqual({
+  test('sanctioned .gitquire resolutions: skills and templates both stay content docs', () => {
+    expect(resolveNavigationTarget('.gitquire/skills/writer/SKILL', options)).toEqual({
       kind: 'doc',
-      target: '.ok/skills/writer/SKILL',
-      docName: '.ok/skills/writer/SKILL',
+      target: '.gitquire/skills/writer/SKILL',
+      docName: '.gitquire/skills/writer/SKILL',
     });
-    expect(resolveNavigationTarget('.ok/templates/meeting', options)).toEqual({
+    expect(resolveNavigationTarget('.gitquire/templates/meeting', options)).toEqual({
       kind: 'doc',
-      target: '.ok/templates/meeting',
-      docName: '.ok/templates/meeting',
+      target: '.gitquire/templates/meeting',
+      docName: '.gitquire/templates/meeting',
     });
   });
 
-  test('.ok folder targets keep resolving to the folder overview', () => {
-    expect(resolveNavigationTarget('.ok', options)).toEqual({
+  test('.gitquire folder targets keep resolving to the folder overview', () => {
+    expect(resolveNavigationTarget('.gitquire', options)).toEqual({
       kind: 'folder',
-      target: '.ok',
-      folderPath: '.ok',
+      target: '.gitquire',
+      folderPath: '.gitquire',
     });
   });
 

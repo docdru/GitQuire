@@ -31,7 +31,7 @@ describe('BacklinkIndex cache save interrupted mid-write', () => {
   test('leaves the previous good snapshot intact and loadable', async () => {
     const projectDir = mkdtempSync(join(tmpdir(), 'ok-backlinks-interrupted-'));
     const contentDir = join(projectDir, 'content');
-    const cachePath = join(projectDir, '.ok', LOCAL_DIR, 'cache', 'main', 'backlinks.json');
+    const cachePath = join(projectDir, '.gitquire', LOCAL_DIR, 'cache', 'main', 'backlinks.json');
     mkdirSync(contentDir, { recursive: true });
     try {
       writeFileSync(join(contentDir, 'alpha.md'), 'See [[beta]].\n');

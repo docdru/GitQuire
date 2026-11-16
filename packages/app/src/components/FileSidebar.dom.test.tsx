@@ -341,7 +341,7 @@ function templateEntries(folderPath: string | null) {
     return [
       {
         name: 'root-daily',
-        path: '.ok/templates/root-daily.md',
+        path: '.gitquire/templates/root-daily.md',
         scope: 'local',
         source_folder: '',
         title: 'Root daily',
@@ -351,7 +351,7 @@ function templateEntries(folderPath: string | null) {
   return [
     {
       name: 'daily',
-      path: `${folderPath ?? ''}/.ok/templates/daily.md`,
+      path: `${folderPath ?? ''}/.gitquire/templates/daily.md`,
       scope: 'local',
       source_folder: folderPath ?? '',
       title: 'Daily',
@@ -534,8 +534,8 @@ describe('FileSidebar runtime behavior', () => {
     expect(screen.queryByRole('button', { name: 'Collapse all' })).toBeNull();
   });
 
-  test('toolbar create actions fall back to the workspace root for a revealed .ok folder', async () => {
-    activeTarget = { kind: 'folder', folderPath: 'notes/.ok/templates' };
+  test('toolbar create actions fall back to the workspace root for a revealed .gitquire folder', async () => {
+    activeTarget = { kind: 'folder', folderPath: 'notes/.gitquire/templates' };
     await renderSidebar();
     await waitFor(() => expect(treeListeners.size).toBe(1));
 

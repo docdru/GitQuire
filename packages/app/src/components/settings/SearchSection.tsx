@@ -1300,7 +1300,10 @@ function EnableSemanticSearchConfirmDialog({
               <li>
                 <Trans>
                   Embeddings are computed only when a search runs and are cached locally under{' '}
-                  <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">.ok/local</code>.
+                  <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                    .gitquire/local
+                  </code>
+                  .
                 </Trans>
               </li>
               <li>

@@ -21,7 +21,7 @@ let path: string;
 beforeEach(() => {
   resetMetrics();
   dir = mkdtempSync(join(tmpdir(), 'ok-disk-receipts-'));
-  path = join(dir, '.ok', 'local', 'receipts.jsonl');
+  path = join(dir, '.gitquire', 'local', 'receipts.jsonl');
 });
 
 afterEach(() => {
@@ -101,7 +101,7 @@ describe('DiskReceiptLog', () => {
   });
 
   test('torn and malformed records are skipped and counted, records from another schema version are kept unread, and the rest still load', () => {
-    mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire', 'local'), { recursive: true });
     const valid = {
       v: 1,
       doc: 'good',
@@ -139,7 +139,7 @@ describe('DiskReceiptLog', () => {
   });
 
   test('a symbolic link at the receipt log path is neither followed nor replaced, and receipts stay in memory', () => {
-    mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire', 'local'), { recursive: true });
     const target = join(dir, 'outside-target.jsonl');
     symlinkSync(target, path);
 

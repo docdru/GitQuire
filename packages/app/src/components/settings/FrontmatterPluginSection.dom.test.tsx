@@ -113,9 +113,9 @@ beforeEach(() => {
   lintConfigChangedCount = 0;
   mockLintData = null;
   mockPageListValue = null;
-  mockDiscovered = ['.ok/schemas/doc.schema.json', 'schemas/local.schema.json'];
+  mockDiscovered = ['.gitquire/schemas/doc.schema.json', 'schemas/local.schema.json'];
   mockProjectConfig = configWithMappings([
-    { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+    { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
   ]);
   window.location.hash = '';
 });
@@ -149,7 +149,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     renderSection();
     fireEvent.click(screen.getByTestId('frontmatter-schema-toggle-schemas/local.schema.json'));
     expect(lastSchemas()).toEqual([
-      { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+      { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
       { file: 'schemas/local.schema.json', enabled: true },
     ]);
     expect(lintConfigChangedCount).toBe(1);
@@ -159,7 +159,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     renderSection();
     fireEvent.click(screen.getByTestId('frontmatter-schema-toggle-.ok/schemas/doc.schema.json'));
     expect(lastSchemas()).toEqual([
-      { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json', enabled: false },
+      { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: false },
     ]);
   });
 
@@ -171,18 +171,18 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
   test('re-enabling a disabled mapping keeps the globs it was disabled with', () => {
     mockProjectConfig = configWithMappings([
-      { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json', enabled: false },
+      { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: false },
     ]);
     renderSection();
     fireEvent.click(screen.getByTestId('frontmatter-schema-toggle-.ok/schemas/doc.schema.json'));
     expect(lastSchemas()).toEqual([
-      { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+      { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
   });
 
   test('a mapping with no enabled field reads as on, and toggling off pins enabled: false', () => {
     mockProjectConfig = configWithMappings([
-      { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json' },
+      { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json' },
     ]);
     renderSection();
     const toggle = screen.getByTestId(
@@ -191,7 +191,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     expect(toggle.getAttribute('aria-checked')).toBe('true');
     fireEvent.click(toggle);
     expect(lastSchemas()).toEqual([
-      { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json', enabled: false },
+      { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: false },
     ]);
   });
 
@@ -234,8 +234,8 @@ describe('FrontmatterPluginSection — schema browser', () => {
   test('the Edit button opens the file via hash and banks the Fields-view intent', () => {
     renderSection();
     fireEvent.click(screen.getByTestId('frontmatter-schema-edit-.ok/schemas/doc.schema.json'));
-    expect(window.location.hash).toBe('#/__asset__/.ok/schemas/doc.schema.json');
-    expect(consumeSchemaFieldsView('.ok/schemas/doc.schema.json')).toBe(true);
+    expect(window.location.hash).toBe('#/__asset__/.gitquire/schemas/doc.schema.json');
+    expect(consumeSchemaFieldsView('.gitquire/schemas/doc.schema.json')).toBe(true);
   });
 
   test('the schema name is plain text — Edit is the only way into the file', () => {
@@ -254,7 +254,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
   test('the appliesTo input names the pattern grammar with an example glob', () => {
     mockProjectConfig = configWithMappings([
-      { file: '.ok/schemas/doc.schema.json', enabled: true },
+      { file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     renderSection();
     const input = document.getElementById('frontmatter-schema-applies-.ok/schemas/doc.schema.json');
@@ -262,7 +262,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     expect(input?.getAttribute('placeholder')).toContain('pattern');
   });
 
-  test('create-schema creates the file in .ok/schemas and maps it enabled', async () => {
+  test('create-schema creates the file in .gitquire/schemas and maps it enabled', async () => {
     renderSection();
     fireEvent.click(screen.getByTestId('frontmatter-create-schema'));
     fireEvent.change(screen.getByTestId('frontmatter-create-schema-name'), {
@@ -270,10 +270,10 @@ describe('FrontmatterPluginSection — schema browser', () => {
     });
     fireEvent.click(screen.getByTestId('frontmatter-create-schema-save'));
     await Promise.resolve();
-    expect(created).toEqual(['.ok/schemas/release.schema.json']);
+    expect(created).toEqual(['.gitquire/schemas/release.schema.json']);
     expect(lastSchemas()).toEqual([
-      { appliesTo: ['docs/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
-      { file: '.ok/schemas/release.schema.json', enabled: true },
+      { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
+      { file: '.gitquire/schemas/release.schema.json', enabled: true },
     ]);
   });
 
@@ -281,9 +281,9 @@ describe('FrontmatterPluginSection — schema browser', () => {
     mockLintData = {
       effective: null,
       configProblems: [
-        'frontmatter schema .ok/schemas/doc.schema.json: cannot read (ENOENT)',
-        'frontmatter schema .ok/schemas/unmapped.json: cannot read (ENOENT)',
-        'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .ok/schemas/doc.schema.json)',
+        'frontmatter schema .gitquire/schemas/doc.schema.json: cannot read (ENOENT)',
+        'frontmatter schema .gitquire/schemas/unmapped.json: cannot read (ENOENT)',
+        'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .gitquire/schemas/doc.schema.json)',
         '[.markdownlint.json] malformed markdownlint config',
       ],
     };
@@ -302,7 +302,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await Promise.resolve();
     await Promise.resolve();
-    expect(deleted).toEqual(['.ok/schemas/doc.schema.json']);
+    expect(deleted).toEqual(['.gitquire/schemas/doc.schema.json']);
     expect(lastSchemas()).toEqual([]);
   });
 
@@ -310,7 +310,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     mockProjectConfig = configWithMappings([
       {
         appliesTo: ['blogs/**/*', '!**/index'],
-        file: '.ok/schemas/doc.schema.json',
+        file: '.gitquire/schemas/doc.schema.json',
         enabled: true,
       },
     ]);
@@ -326,7 +326,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
   test('empty globs read as every doc', () => {
     mockProjectConfig = configWithMappings([
-      { file: '.ok/schemas/doc.schema.json', enabled: true },
+      { file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     renderSection();
     expect(
@@ -347,7 +347,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
 describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
   const UNMATCHED_DOCS =
-    'unmatched appliesTo glob "docs/**" — matches no docs in this project (frontmatter mapping for .ok/schemas/doc.schema.json)';
+    'unmatched appliesTo glob "docs/**" — matches no docs in this project (frontmatter mapping for .gitquire/schemas/doc.schema.json)';
 
   test('an authored pattern carries its own finding instead of the flat list', () => {
     mockLintData = { effective: null, configProblems: [UNMATCHED_DOCS] };
@@ -365,7 +365,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
       effective: null,
       configProblems: [
         UNMATCHED_DOCS,
-        'frontmatter schema .ok/schemas/doc.schema.json: cannot read (ENOENT)',
+        'frontmatter schema .gitquire/schemas/doc.schema.json: cannot read (ENOENT)',
       ],
     };
     renderSection();
@@ -388,7 +388,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
 
   test('a finding for a glob that is no longer authored stays out of the list', () => {
     mockProjectConfig = configWithMappings([
-      { appliesTo: ['other/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+      { appliesTo: ['other/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     mockLintData = { effective: null, configProblems: [UNMATCHED_DOCS] };
     renderSection();
@@ -400,7 +400,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
 
   test('a stale finding does not redden whichever glob happens to remain', () => {
     mockProjectConfig = configWithMappings([
-      { appliesTo: ['other/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+      { appliesTo: ['other/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     mockLintData = { effective: null, configProblems: [UNMATCHED_DOCS] };
     renderSection();
@@ -417,14 +417,14 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
     mockProjectConfig = configWithMappings([
       {
         appliesTo: ['blog', '!blog/drafts/**'],
-        file: '.ok/schemas/doc.schema.json',
+        file: '.gitquire/schemas/doc.schema.json',
         enabled: true,
       },
     ]);
     mockLintData = {
       effective: null,
       configProblems: [
-        'unmatched appliesTo glob "blog" — matches no docs in this project (frontmatter mapping for .ok/schemas/doc.schema.json)',
+        'unmatched appliesTo glob "blog" — matches no docs in this project (frontmatter mapping for .gitquire/schemas/doc.schema.json)',
       ],
     };
     renderSection();
@@ -442,7 +442,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
     expect(lastSchemas()).toEqual([
       {
         appliesTo: ['blog/**', '!blog/drafts/**'],
-        file: '.ok/schemas/doc.schema.json',
+        file: '.gitquire/schemas/doc.schema.json',
         enabled: true,
       },
     ]);
@@ -451,12 +451,12 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
 
 describe('FrontmatterPluginSection — findings with no pill to land on', () => {
   const UNMATCHED_B =
-    'unmatched appliesTo glob "b/**" — matches no docs in this project (frontmatter mapping for .ok/schemas/doc.schema.json)';
+    'unmatched appliesTo glob "b/**" — matches no docs in this project (frontmatter mapping for .gitquire/schemas/doc.schema.json)';
 
   test('a second mapping for the same file keeps its finding in the list', () => {
     mockProjectConfig = configWithMappings([
-      { appliesTo: ['a/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
-      { appliesTo: ['b/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+      { appliesTo: ['a/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
+      { appliesTo: ['b/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     mockLintData = { effective: null, configProblems: [UNMATCHED_B] };
     renderSection();
@@ -471,8 +471,8 @@ describe('FrontmatterPluginSection — findings with no pill to land on', () => 
 
   test('an enabled mapping behind a disabled first one keeps its finding in the list', () => {
     mockProjectConfig = configWithMappings([
-      { file: '.ok/schemas/doc.schema.json', enabled: false },
-      { appliesTo: ['b/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+      { file: '.gitquire/schemas/doc.schema.json', enabled: false },
+      { appliesTo: ['b/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     mockLintData = { effective: null, configProblems: [UNMATCHED_B] };
     renderSection();
@@ -486,7 +486,7 @@ describe('FrontmatterPluginSection — findings with no pill to land on', () => 
 
   test('a pattern the bound enabled mapping carries stays out of the list', () => {
     mockProjectConfig = configWithMappings([
-      { appliesTo: ['b/**'], file: '.ok/schemas/doc.schema.json', enabled: true },
+      { appliesTo: ['b/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     mockLintData = { effective: null, configProblems: [UNMATCHED_B] };
     renderSection();
@@ -500,7 +500,7 @@ describe('FrontmatterPluginSection — findings with no pill to land on', () => 
 });
 
 describe('FrontmatterPluginSection — folder picker + live match count', () => {
-  const FILE = '.ok/schemas/doc.schema.json';
+  const FILE = '.gitquire/schemas/doc.schema.json';
 
   function withPages() {
     mockPageListValue = {

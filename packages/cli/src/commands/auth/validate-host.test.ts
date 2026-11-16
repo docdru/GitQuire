@@ -13,8 +13,8 @@ function hostsYaml(provider: string, ...hostnames: string[]): string {
 }
 
 function writeOkFile(dir: string, file: string, body: string): void {
-  mkdirSync(join(dir, '.ok'), { recursive: true });
-  writeFileSync(join(dir, '.ok', file), body, 'utf-8');
+  mkdirSync(join(dir, '.gitquire'), { recursive: true });
+  writeFileSync(join(dir, '.gitquire', file), body, 'utf-8');
 }
 
 let home: string;
@@ -67,7 +67,7 @@ describe('gitHubHostRejection', () => {
   test('rejects an undeclared self-hosted host and names the config key as the remedy', () => {
     const rejection = gitHubHostRejection('git.example.internal');
     expect(rejection).toContain('git.example.internal is not a known GitHub host');
-    expect(rejection).toContain('~/.ok/global.yml');
+    expect(rejection).toContain('~/.gitquire/global.yml');
     expect(rejection).toContain(
       'git:\n    hosts:\n      git.example.internal:\n        provider: github',
     );
@@ -77,7 +77,7 @@ describe('gitHubHostRejection', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', '');
     expect(gitHubHostRejection('git.example.internal')).toBe(
       `${errorColor('Error:')} git.example.internal is not a known GitHub host.\n` +
-        'To use a GitHub Enterprise Server host, declare it in ~/.ok/global.yml:\n\n  git:\n    hosts:\n      git.example.internal:\n        provider: github\n\n' +
+        'To use a GitHub Enterprise Server host, declare it in ~/.gitquire/global.yml:\n\n  git:\n    hosts:\n      git.example.internal:\n        provider: github\n\n' +
         'If git.example.internal is not a GitHub host, store an access token for git with:\n\n  gq auth token --host git.example.internal --username <username>\n',
     );
   });
@@ -85,8 +85,8 @@ describe('gitHubHostRejection', () => {
   test('names the Beta user config when the running channel is Beta', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const rejection = gitHubHostRejection('git.example.internal');
-    expect(rejection).toContain('declare it in ~/.ok-beta/global.yml:\n');
-    expect(rejection).not.toContain('~/.ok/');
+    expect(rejection).toContain('declare it in ~/.gitquire-beta/global.yml:\n');
+    expect(rejection).not.toContain('~/.gitquire/');
     expect(rejection).toContain(
       '  gq-beta auth token --host git.example.internal --username <username>\n',
     );
@@ -110,7 +110,7 @@ describe('gitHubHostRejection', () => {
     },
   );
 
-  test("ignores a declaration in the project's .ok/config.yml", () => {
+  test("ignores a declaration in the project's .gitquire/config.yml", () => {
     writeOkFile(projectDir, 'config.yml', hostsYaml('github', 'ghes.example.com'));
     expect(gitHubHostRejection('ghes.example.com')).not.toBeNull();
   });

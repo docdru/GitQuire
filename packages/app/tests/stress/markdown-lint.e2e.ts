@@ -47,9 +47,9 @@ const errors: LogEntry[] = [];
 let testDocName = '';
 
 test.beforeEach(async ({ page, api, workerServer }) => {
-  mkdirSync(join(workerServer.contentDir, '.ok'), { recursive: true });
+  mkdirSync(join(workerServer.contentDir, '.gitquire'), { recursive: true });
   writeFileSync(
-    join(workerServer.contentDir, '.ok', 'config.yml'),
+    join(workerServer.contentDir, '.gitquire', 'config.yml'),
     'contentRules:\n  markdownlint:\n    enabled: true\n',
     'utf-8',
   );
@@ -80,7 +80,7 @@ test.afterEach(() => {
 });
 
 test.afterAll(({ workerServer }) => {
-  writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), '', 'utf-8');
+  writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
 });
 
 test.describe('markdown lint — source-mode decorations', () => {

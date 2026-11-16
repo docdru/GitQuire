@@ -88,8 +88,8 @@ describe('createShareRoutes table', () => {
       git('init', '--initial-branch=main');
       configureTestGitRepository(projectDir);
       git('remote', 'add', 'origin', 'https://ghes.example.com/team/kb.git');
-      mkdirSync(join(home(), '.ok'));
-      const config = join(home(), '.ok', 'global.yml');
+      mkdirSync(join(home(), '.gitquire'));
+      const config = join(home(), '.gitquire', 'global.yml');
       writeFileSync(config, 'git:\n  hosts:\n    ghes.example.com:\n      provider: github\n');
       const initial = buildGroup({ projectDir });
       const refused = buildGroup({ projectDir, declaredGitHubHosts: new Set() });

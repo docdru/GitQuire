@@ -64,7 +64,7 @@ export function applyFolderFrontmatterPatch(
     };
   }
 
-  const okDir = join(targetAbs, '.ok');
+  const okDir = join(targetAbs, '.gitquire');
   const fmPath = join(okDir, 'frontmatter.yml');
 
   if (checkSymlinkLeaf(fmPath).kind === 'symlink') {
@@ -72,7 +72,7 @@ export function applyFolderFrontmatterPatch(
       ok: false,
       error: {
         code: 'SYMLINK_REFUSED',
-        message: `Refusing to operate on "${folderRel === '' ? '' : `${folderRel}/`}.ok/frontmatter.yml": it is a symlink. Replace the symlink with a real file or directory and retry.`,
+        message: `Refusing to operate on "${folderRel === '' ? '' : `${folderRel}/`}.gitquire/frontmatter.yml": it is a symlink. Replace the symlink with a real file or directory and retry.`,
       },
     };
   }

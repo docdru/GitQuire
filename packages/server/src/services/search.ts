@@ -253,7 +253,7 @@ export function createSearchService(deps: SearchServiceDeps): SearchService {
     const seenPages: Set<string> = new Set();
     for (const [docName, entry] of getAllFilesIndex()) {
       if (isSystemDoc(docName) || isConfigDoc(docName)) continue;
-      if (docName.startsWith('.ok/skills/')) continue;
+      if (docName.startsWith('.gitquire/skills/')) continue;
       if (entry.kind === 'file') {
         files.push(
           createWorkspaceSearchDocument({

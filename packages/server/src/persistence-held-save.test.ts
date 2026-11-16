@@ -78,12 +78,12 @@ async function store(rig: Rig, document: Y.Doc, documentName: string): Promise<v
 }
 
 function blockBackups(): void {
-  mkdirSync(join(home, '.ok'), { recursive: true });
-  writeFileSync(join(home, '.ok', 'edit-backups'), 'not a folder');
+  mkdirSync(join(home, '.gitquire'), { recursive: true });
+  writeFileSync(join(home, '.gitquire', 'edit-backups'), 'not a folder');
 }
 
 function unblockBackups(): void {
-  rmSync(join(home, '.ok', 'edit-backups'), { force: true });
+  rmSync(join(home, '.gitquire', 'edit-backups'), { force: true });
 }
 
 beforeEach(() => {
@@ -164,8 +164,8 @@ describe('a held save of a file with no merge engine', () => {
 describe('a held settings save', () => {
   test('goes through the rejection channel with its cause and the file it names, not a notice', async () => {
     const rig = makeRig();
-    const path = join(contentDir, '.ok', 'config.yml');
-    mkdirSync(join(contentDir, '.ok'), { recursive: true });
+    const path = join(contentDir, '.gitquire', 'config.yml');
+    mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
     writeFileSync(path, 'mcp:\n  autoStart: true\n');
     const document = await open(rig, CONFIG_DOC_NAME_PROJECT);
     edit(document, 'mcp:\n  autoStart: false\n');
@@ -178,7 +178,7 @@ describe('a held settings save', () => {
     expect(rig.rejections).toEqual([
       {
         docName: CONFIG_DOC_NAME_PROJECT,
-        error: { code: 'SAVE_HELD', cause: 'no-history-or-backup', file: '.ok/config.yml' },
+        error: { code: 'SAVE_HELD', cause: 'no-history-or-backup', file: '.gitquire/config.yml' },
       },
     ]);
     expect(rig.held).toEqual([]);
@@ -186,8 +186,8 @@ describe('a held settings save', () => {
 
   test('is sent again when its cause changes, and only then', async () => {
     const rig = makeRig();
-    const path = join(contentDir, '.ok', 'config.yml');
-    mkdirSync(join(contentDir, '.ok'), { recursive: true });
+    const path = join(contentDir, '.gitquire', 'config.yml');
+    mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
     writeFileSync(path, 'mcp:\n  autoStart: true\n');
     const document = await open(rig, CONFIG_DOC_NAME_PROJECT);
     edit(document, 'mcp:\n  autoStart: false\n');
@@ -201,8 +201,8 @@ describe('a held settings save', () => {
     await rig.persistence.retryHeldSave(document, CONFIG_DOC_NAME_PROJECT);
 
     expect(rig.rejections.map(({ error }) => error)).toEqual([
-      { code: 'SAVE_HELD', cause: 'no-history-or-backup', file: '.ok/config.yml' },
-      { code: 'SAVE_HELD', cause: 'not-utf8', file: '.ok/config.yml' },
+      { code: 'SAVE_HELD', cause: 'no-history-or-backup', file: '.gitquire/config.yml' },
+      { code: 'SAVE_HELD', cause: 'not-utf8', file: '.gitquire/config.yml' },
     ]);
   });
 });

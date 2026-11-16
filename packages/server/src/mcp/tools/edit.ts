@@ -318,7 +318,7 @@ function templateFilePath(
 ): { ok: true; abs: string } | { ok: false } {
   const contained = resolveWithinRoot(
     cwd,
-    `${folder.replace(/\/+$/, '')}/.ok/templates/${name}.md`,
+    `${folder.replace(/\/+$/, '')}/.gitquire/templates/${name}.md`,
   );
   return contained.ok ? { ok: true, abs: contained.abs } : { ok: false };
 }
@@ -467,7 +467,7 @@ async function handleFolder(
   const action = entry.action ?? 'written';
   const verb = action === 'deleted' ? 'Cleared' : action === 'noop' ? 'No change to' : 'Updated';
   return textPlusStructured(`${verb} folder properties for ${folder.path}.`, {
-    folder: { ok: true, path: entry.path ?? `${folder.path}/.ok/frontmatter.yml`, action },
+    folder: { ok: true, path: entry.path ?? `${folder.path}/.gitquire/frontmatter.yml`, action },
   });
 }
 

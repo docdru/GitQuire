@@ -17,7 +17,7 @@ function configFor(schema: Record<string, unknown>): LinterConfig {
       markdownlint: { ...DEFAULT_LINTER_CONFIG.plugins.markdownlint, enabled: false },
       frontmatter: {
         enabled: true,
-        schemas: [{ appliesTo: 'docs/**', file: '.ok/schemas/probe.schema.json', schema }],
+        schemas: [{ appliesTo: 'docs/**', file: '.gitquire/schemas/probe.schema.json', schema }],
       },
     },
   };

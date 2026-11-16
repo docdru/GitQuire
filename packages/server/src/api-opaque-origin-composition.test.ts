@@ -31,7 +31,7 @@ let server: BootedServer;
 
 function contentFiles(): string[] {
   return readdirSync(contentDir, { recursive: true, encoding: 'utf-8' })
-    .filter((entry) => !entry.startsWith('.ok') && !entry.startsWith('.git'))
+    .filter((entry) => !entry.startsWith('.gitquire') && !entry.startsWith('.git'))
     .sort();
 }
 

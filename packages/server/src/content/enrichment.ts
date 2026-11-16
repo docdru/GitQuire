@@ -568,7 +568,7 @@ export async function enrichDirectoryRecursive(
 
 const RECURSIVE_LISTING_SKIP_DIRS = new Set<string>([
   '.git',
-  '.ok',
+  '.gitquire',
   'node_modules',
   '.venv',
   'venv',

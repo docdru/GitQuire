@@ -27,16 +27,16 @@ function freshSlot(): string {
   write(root, 'test-doc.md');
   write(root, 'sidebar-folder/nested-doc.md');
   mkdirSync(join(root, '.claude', 'skills'), { recursive: true });
-  mkdirSync(join(root, '.ok', 'skills'), { recursive: true });
-  write(root, '.ok/local/cache/main/backlinks.json', '{}');
-  write(root, '.ok/local/cache/tags.json', '{}');
-  write(root, '.ok/local/principal.json', '{}');
-  write(root, '.ok/local/server.lock', '{}');
-  write(root, '.ok/local/state.json', '{}');
-  write(root, '.ok/local/acp-registry-cache.json', '{}');
-  write(root, '.ok/local/stale-external-writes.json', '{}');
-  write(root, '.ok/local/receipts.jsonl', '');
-  write(root, '.ok/local/removed-docs.json', '{}');
+  mkdirSync(join(root, '.gitquire', 'skills'), { recursive: true });
+  write(root, '.gitquire/local/cache/main/backlinks.json', '{}');
+  write(root, '.gitquire/local/cache/tags.json', '{}');
+  write(root, '.gitquire/local/principal.json', '{}');
+  write(root, '.gitquire/local/server.lock', '{}');
+  write(root, '.gitquire/local/state.json', '{}');
+  write(root, '.gitquire/local/acp-registry-cache.json', '{}');
+  write(root, '.gitquire/local/stale-external-writes.json', '{}');
+  write(root, '.gitquire/local/receipts.jsonl', '');
+  write(root, '.gitquire/local/removed-docs.json', '{}');
   write(root, '.git/HEAD', 'ref: refs/heads/main\n');
   return root;
 }
@@ -48,16 +48,16 @@ describe('a reset slot is compared with what a freshly booted server holds', () 
 
   test('saved settings of every scope are residue', () => {
     const root = freshSlot();
-    write(root, '.ok/config.yml', 'content: {}\n');
-    write(root, '.ok/local/config.yml', 'search: {}\n');
-    write(root, '.ok/global.yml', 'appearance:\n  theme: dark\n');
-    write(root, '.ok/themes/mine.yaml', 'scheme: mine\n');
+    write(root, '.gitquire/config.yml', 'content: {}\n');
+    write(root, '.gitquire/local/config.yml', 'search: {}\n');
+    write(root, '.gitquire/global.yml', 'appearance:\n  theme: dark\n');
+    write(root, '.gitquire/themes/mine.yaml', 'scheme: mine\n');
 
     expect(freshSlotResidue(root, FIXTURE_DOCS)).toEqual([
-      '.ok/config.yml is not in a freshly booted slot',
-      '.ok/global.yml is not in a freshly booted slot',
-      '.ok/local/config.yml is not in a freshly booted slot',
-      '.ok/themes is not in a freshly booted slot',
+      '.gitquire/config.yml is not in a freshly booted slot',
+      '.gitquire/global.yml is not in a freshly booted slot',
+      '.gitquire/local/config.yml is not in a freshly booted slot',
+      '.gitquire/themes is not in a freshly booted slot',
     ]);
   });
 

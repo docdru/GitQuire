@@ -38,7 +38,7 @@ let okDir = '';
 beforeEach(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'sync-engine-stamps-'));
   projectDir = join(tmpDir, 'project');
-  okDir = join(projectDir, '.ok', LOCAL_DIR);
+  okDir = join(projectDir, '.gitquire', LOCAL_DIR);
   mkdirSync(projectDir, { recursive: true });
   mkdirSync(okDir, { recursive: true });
 });

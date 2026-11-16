@@ -24,7 +24,7 @@ export function makeServerLockCheck(deps: ServerLockCheckDeps = {}): CheckDefini
         return {
           name: 'server-lock',
           status: 'pass',
-          summary: 'no server lock (no `.ok/local/` yet)',
+          summary: 'no server lock (no `.gitquire/local/` yet)',
         };
       }
       const state = inspect(lockDir);

@@ -166,16 +166,16 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "[measure-sweep] copying fixture → $SCRATCH …"
-rsync -a --exclude='.git' --exclude='.ok/local' "$FIXTURE/" "$SCRATCH/"
+rsync -a --exclude='.git' --exclude='.gitquire/local' "$FIXTURE/" "$SCRATCH/"
 
-NAV_MD="$(find "$SCRATCH" -name '*.md' -not -path '*/.ok/*' | sort | head -1 || true)"
+NAV_MD="$(find "$SCRATCH" -name '*.md' -not -path '*/.gitquire/*' | sort | head -1 || true)"
 if [[ -z "$NAV_MD" ]]; then
   echo "error: no markdown docs found under $SCRATCH" >&2
   exit 5
 fi
 NAV_DOC="${NAV_MD#"$SCRATCH"/}"
 NAV_DOC="${NAV_DOC%.md}"
-DOC_COUNT="$(find "$SCRATCH" -name '*.md' -not -path '*/.ok/*' | wc -l | tr -d ' ')"
+DOC_COUNT="$(find "$SCRATCH" -name '*.md' -not -path '*/.gitquire/*' | wc -l | tr -d ' ')"
 echo "[measure-sweep] fixture: $DOC_COUNT docs · nav-doc: $NAV_DOC"
 
 echo "[measure-sweep] starting ok server on a kernel-assigned port…"
@@ -184,7 +184,7 @@ SERVER_PID=$!
 
 read_server_port() {
   local lock port
-  lock="$(find "$SCRATCH/.ok" -name server.lock 2>/dev/null | head -1 || true)"
+  lock="$(find "$SCRATCH/.gitquire" -name server.lock 2>/dev/null | head -1 || true)"
   [[ -z "$lock" ]] && return 1
   port="$(jq -r '.port // 0' "$lock" 2>/dev/null || echo 0)"
   [[ "$port" =~ ^[0-9]+$ ]] && (( port > 0 )) && { printf '%s\n' "$port"; return 0; }

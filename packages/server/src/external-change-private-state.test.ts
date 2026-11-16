@@ -22,8 +22,11 @@ describe('reconcile before an agent write', () => {
 
   beforeEach(() => {
     contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-reconcile-private-')));
-    mkdirSync(join(contentDir, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(contentDir, '.ok', 'local', 'secret.md'), '# Secret\n\nprivate bytes\n');
+    mkdirSync(join(contentDir, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(
+      join(contentDir, '.gitquire', 'local', 'secret.md'),
+      '# Secret\n\nprivate bytes\n',
+    );
   });
 
   afterEach(() => {
@@ -45,7 +48,7 @@ describe('reconcile before an agent write', () => {
       }, 'seed');
 
       unlinkSync(join(contentDir, 'note.md'));
-      symlinkSync('.ok/local/secret.md', join(contentDir, 'note.md'));
+      symlinkSync('.gitquire/local/secret.md', join(contentDir, 'note.md'));
 
       const result = await reconcileDiskBeforeAgentWrite(
         durabilityState,

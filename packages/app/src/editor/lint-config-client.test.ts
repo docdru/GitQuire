@@ -103,25 +103,27 @@ describe('frontmatter schema writes', () => {
       eventCount += 1;
     });
     try {
-      await expect(createEmptyFrontmatterSchema('.ok/schemas/doc.schema.json')).resolves.toEqual({
+      await expect(
+        createEmptyFrontmatterSchema('.gitquire/schemas/doc.schema.json'),
+      ).resolves.toEqual({
         ok: true,
         response: CONFIG_RESPONSE,
       });
       await expect(
         writeFrontmatterSchemaField(
-          '.ok/schemas/doc.schema.json',
+          '.gitquire/schemas/doc.schema.json',
           'name',
           { type: 'string', required: true },
           ['items', { items: true }],
         ),
       ).resolves.toEqual({ ok: true, response: CONFIG_RESPONSE });
       await expect(
-        removeFrontmatterSchemaField('.ok/schemas/doc.schema.json', 'name', ['items']),
+        removeFrontmatterSchemaField('.gitquire/schemas/doc.schema.json', 'name', ['items']),
       ).resolves.toEqual({ ok: true, response: CONFIG_RESPONSE });
       await expect(
-        renameFrontmatterSchemaField('.ok/schemas/doc.schema.json', 'name', 'title'),
+        renameFrontmatterSchemaField('.gitquire/schemas/doc.schema.json', 'name', 'title'),
       ).resolves.toEqual({ ok: true, response: CONFIG_RESPONSE });
-      await expect(deleteFrontmatterSchema('.ok/schemas/doc.schema.json')).resolves.toEqual({
+      await expect(deleteFrontmatterSchema('.gitquire/schemas/doc.schema.json')).resolves.toEqual({
         ok: true,
         response: CONFIG_RESPONSE,
       });
@@ -134,21 +136,21 @@ describe('frontmatter schema writes', () => {
         Array.from({ length: 5 }, () => 'POST'),
       );
       expect(calls.map((call) => JSON.parse(String(call.init?.body)))).toEqual([
-        { file: '.ok/schemas/doc.schema.json' },
+        { file: '.gitquire/schemas/doc.schema.json' },
         {
-          file: '.ok/schemas/doc.schema.json',
+          file: '.gitquire/schemas/doc.schema.json',
           field: 'name',
           constraint: { type: 'string', required: true },
           parentPath: ['items', { items: true }],
         },
         {
-          file: '.ok/schemas/doc.schema.json',
+          file: '.gitquire/schemas/doc.schema.json',
           field: 'name',
           removeField: true,
           parentPath: ['items'],
         },
-        { file: '.ok/schemas/doc.schema.json', field: 'name', renameTo: 'title' },
-        { file: '.ok/schemas/doc.schema.json', delete: true },
+        { file: '.gitquire/schemas/doc.schema.json', field: 'name', renameTo: 'title' },
+        { file: '.gitquire/schemas/doc.schema.json', delete: true },
       ]);
     } finally {
       unsubscribe();
@@ -166,11 +168,13 @@ describe('frontmatter schema writes', () => {
       eventCount += 1;
     });
     try {
-      await expect(createEmptyFrontmatterSchema('.ok/schemas/doc.schema.json')).resolves.toEqual({
+      await expect(
+        createEmptyFrontmatterSchema('.gitquire/schemas/doc.schema.json'),
+      ).resolves.toEqual({
         ok: false,
         errorDetail: 'Schema cannot be rewritten.',
       });
-      await expect(deleteFrontmatterSchema('.ok/schemas/doc.schema.json')).resolves.toEqual({
+      await expect(deleteFrontmatterSchema('.gitquire/schemas/doc.schema.json')).resolves.toEqual({
         ok: false,
         errorDetail: 'Schema cannot be rewritten.',
       });
@@ -185,7 +189,9 @@ describe('frontmatter schema writes', () => {
     ['a schema-invalid body', new Response(JSON.stringify({ unexpected: true }), { status: 200 })],
   ])('rejects a successful response with %s', async (_label, response) => {
     stubFetch(async () => response.clone());
-    await expect(createEmptyFrontmatterSchema('.ok/schemas/doc.schema.json')).resolves.toEqual({
+    await expect(
+      createEmptyFrontmatterSchema('.gitquire/schemas/doc.schema.json'),
+    ).resolves.toEqual({
       ok: false,
       errorDetail: null,
     });
@@ -195,7 +201,9 @@ describe('frontmatter schema writes', () => {
     stubFetch(async () => {
       throw new TypeError('fetch failed');
     });
-    await expect(createEmptyFrontmatterSchema('.ok/schemas/doc.schema.json')).resolves.toEqual({
+    await expect(
+      createEmptyFrontmatterSchema('.gitquire/schemas/doc.schema.json'),
+    ).resolves.toEqual({
       ok: false,
       errorDetail: null,
     });

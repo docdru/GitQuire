@@ -240,12 +240,12 @@ describe('editor tab state', () => {
 
   test('filterOpenTabsForKnownTargets keeps a template content tab once it lands in pages', () => {
     expect(
-      filterOpenTabsForKnownTargets(['docs/.ok/templates/spec'], {
-        pages: new Set(['docs/.ok/templates/spec']),
+      filterOpenTabsForKnownTargets(['docs/.gitquire/templates/spec'], {
+        pages: new Set(['docs/.gitquire/templates/spec']),
         folderPaths: new Set(),
         assetPaths: new Set(),
       }),
-    ).toEqual(['docs/.ok/templates/spec']);
+    ).toEqual(['docs/.gitquire/templates/spec']);
   });
 
   test('filterOpenTabsForKnownTargets drops stale asset tabs', () => {
@@ -724,14 +724,14 @@ describe('tabParts — non-`.md` call-site shapes (folder + asset)', () => {
     });
   });
 
-  test('template content doc labels name-only, hiding the `.ok/templates/` prefix', () => {
-    expect(tabParts('docs/.ok/templates/note', '.md')).toEqual({
+  test('template content doc labels name-only, hiding the `.gitquire/templates/` prefix', () => {
+    expect(tabParts('docs/.gitquire/templates/note', '.md')).toEqual({
       baseName: 'note',
       extension: '',
       label: 'note',
       prefix: '',
     });
-    expect(tabParts('.ok/templates/daily', '.md')).toEqual({
+    expect(tabParts('.gitquire/templates/daily', '.md')).toEqual({
       baseName: 'daily',
       extension: '',
       label: 'daily',
@@ -821,7 +821,7 @@ describe('persisted tab ids are repaired on read', () => {
   });
 
   test('folder and asset tab ids keep their path verbatim', () => {
-    const ids = [folderTabId('specs/demo'), assetTabId('.ok/local/notes.md')];
+    const ids = [folderTabId('specs/demo'), assetTabId('.gitquire/local/notes.md')];
     expect(parseEditorTabSessionState(session(ids)).panes[0].openTabs).toEqual(ids);
   });
 

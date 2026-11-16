@@ -33,7 +33,7 @@ describe('isNotionExport', () => {
   });
 
   test('ignores signals inside dot-directories', () => {
-    const root = makeTree({ [`.ok/cache/x ${ID}.md`]: 'x', 'plain.md': '# plain\n' });
+    const root = makeTree({ [`.gitquire/cache/x ${ID}.md`]: 'x', 'plain.md': '# plain\n' });
     expect(isNotionExport(root)).toBe(false);
   });
 });

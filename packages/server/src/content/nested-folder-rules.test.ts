@@ -16,21 +16,21 @@ describe('readFolderFrontmatter — self-only (no cascade)', () => {
     await rm(projectDir, { recursive: true, force: true });
   });
 
-  test('returns empty for project root when no .ok/frontmatter.yml exists there', () => {
+  test('returns empty for project root when no .gitquire/frontmatter.yml exists there', () => {
     expect(readFolderFrontmatter(projectDir, '')).toEqual({});
     expect(readFolderFrontmatter(projectDir, '.')).toEqual({});
     expect(readFolderFrontmatter(projectDir, '/')).toEqual({});
   });
 
-  test('returns empty when the folder has no .ok/frontmatter.yml', () => {
+  test('returns empty when the folder has no .gitquire/frontmatter.yml', () => {
     expect(readFolderFrontmatter(projectDir, 'meetings')).toEqual({});
     expect(readFolderFrontmatter(projectDir, 'meetings/prep-notes')).toEqual({});
   });
 
-  test("reads a folder's own .ok/frontmatter.yml", () => {
-    mkdirSync(join(projectDir, 'meetings', '.ok'), { recursive: true });
+  test("reads a folder's own .gitquire/frontmatter.yml", () => {
+    mkdirSync(join(projectDir, 'meetings', '.gitquire'), { recursive: true });
     writeFileSync(
-      join(projectDir, 'meetings', '.ok', 'frontmatter.yml'),
+      join(projectDir, 'meetings', '.gitquire', 'frontmatter.yml'),
       'title: Meetings\ndescription: Meeting notes\ntags: [meeting]\n',
     );
 
@@ -44,25 +44,25 @@ describe('readFolderFrontmatter — self-only (no cascade)', () => {
   test('treats a symlinked frontmatter.yml leaf as absent', () => {
     const secret = join(projectDir, 'secret.yml');
     writeFileSync(secret, 'title: Stolen\ndescription: exfiltrated\n');
-    mkdirSync(join(projectDir, 'linked', '.ok'), { recursive: true });
-    symlinkSync(secret, join(projectDir, 'linked', '.ok', 'frontmatter.yml'));
+    mkdirSync(join(projectDir, 'linked', '.gitquire'), { recursive: true });
+    symlinkSync(secret, join(projectDir, 'linked', '.gitquire', 'frontmatter.yml'));
     expect(readFolderFrontmatter(projectDir, 'linked')).toEqual({});
   });
 
-  test('treats a leaf behind an IN-ROOT symlinked .ok as absent', () => {
+  test('treats a leaf behind an IN-ROOT symlinked .gitquire as absent', () => {
     mkdirSync(join(projectDir, 'secretdir'), { recursive: true });
     writeFileSync(join(projectDir, 'secretdir', 'frontmatter.yml'), 'title: AliasedInRoot\n');
     mkdirSync(join(projectDir, 'aliased'), { recursive: true });
-    symlinkSync('../secretdir', join(projectDir, 'aliased', '.ok'), 'dir');
+    symlinkSync('../secretdir', join(projectDir, 'aliased', '.gitquire'), 'dir');
     expect(readFolderFrontmatter(projectDir, 'aliased')).toEqual({});
   });
 
-  test('treats a leaf behind an out-of-root symlinked .ok ancestor as absent', async () => {
+  test('treats a leaf behind an out-of-root symlinked .gitquire ancestor as absent', async () => {
     const outside = await mkdtemp(join(tmpdir(), 'folder-frontmatter-outside-'));
     try {
       writeFileSync(join(outside, 'frontmatter.yml'), 'title: OutsideSecret\n');
       mkdirSync(join(projectDir, 'escaped'), { recursive: true });
-      symlinkSync(outside, join(projectDir, 'escaped', '.ok'), 'dir');
+      symlinkSync(outside, join(projectDir, 'escaped', '.gitquire'), 'dir');
       expect(readFolderFrontmatter(projectDir, 'escaped')).toEqual({});
     } finally {
       await rm(outside, { recursive: true, force: true });
@@ -70,13 +70,13 @@ describe('readFolderFrontmatter — self-only (no cascade)', () => {
   });
 
   test('does NOT inherit from ancestor folders (self-only)', () => {
-    mkdirSync(join(projectDir, 'a', '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, 'a', '.gitquire'), { recursive: true });
     writeFileSync(
-      join(projectDir, 'a', '.ok', 'frontmatter.yml'),
+      join(projectDir, 'a', '.gitquire', 'frontmatter.yml'),
       'title: A\ndescription: A desc\ntags: [a]\n',
     );
-    mkdirSync(join(projectDir, 'a', 'b', '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, 'a', 'b', '.ok', 'frontmatter.yml'), 'title: B\n');
+    mkdirSync(join(projectDir, 'a', 'b', '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, 'a', 'b', '.gitquire', 'frontmatter.yml'), 'title: B\n');
 
     expect(readFolderFrontmatter(projectDir, 'a/b')).toEqual({ title: 'B' });
     expect(readFolderFrontmatter(projectDir, 'a')).toEqual({
@@ -86,18 +86,18 @@ describe('readFolderFrontmatter — self-only (no cascade)', () => {
     });
   });
 
-  test('a child with no .ok/frontmatter.yml returns empty even when an ancestor has one', () => {
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'frontmatter.yml'), 'title: Project\ntags: [kb]\n');
+  test('a child with no .gitquire/frontmatter.yml returns empty even when an ancestor has one', () => {
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'frontmatter.yml'), 'title: Project\ntags: [kb]\n');
 
     expect(readFolderFrontmatter(projectDir, 'meetings')).toEqual({});
     expect(readFolderFrontmatter(projectDir, '')).toEqual({ title: 'Project', tags: ['kb'] });
   });
 
   test('malformed YAML returns empty (read paths must not throw)', () => {
-    mkdirSync(join(projectDir, 'broken', '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, 'broken', '.gitquire'), { recursive: true });
     writeFileSync(
-      join(projectDir, 'broken', '.ok', 'frontmatter.yml'),
+      join(projectDir, 'broken', '.gitquire', 'frontmatter.yml'),
       'title: [malformed\nno closing\n',
     );
 
@@ -105,9 +105,9 @@ describe('readFolderFrontmatter — self-only (no cascade)', () => {
   });
 
   test('non-string title dropped; non-string tags filtered (well-known narrowing)', () => {
-    mkdirSync(join(projectDir, 'mixed', '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, 'mixed', '.gitquire'), { recursive: true });
     writeFileSync(
-      join(projectDir, 'mixed', '.ok', 'frontmatter.yml'),
+      join(projectDir, 'mixed', '.gitquire', 'frontmatter.yml'),
       'title: 42\ndescription: ok\ntags: [a, 1, b, true]\n',
     );
 
@@ -118,9 +118,9 @@ describe('readFolderFrontmatter — self-only (no cascade)', () => {
   });
 
   test('arbitrary (non-well-known) keys pass through with their natural types', () => {
-    mkdirSync(join(projectDir, 'rfcs', '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, 'rfcs', '.gitquire'), { recursive: true });
     writeFileSync(
-      join(projectDir, 'rfcs', '.ok', 'frontmatter.yml'),
+      join(projectDir, 'rfcs', '.gitquire', 'frontmatter.yml'),
       'title: RFCs\nstatus: draft\nreview_cycle: 30\nowners: [alice, bob]\n',
     );
 
@@ -144,17 +144,17 @@ describe('parentFolderOf', () => {
 });
 
 describe('nestedOkPath', () => {
-  test('joins folder + .ok + member', () => {
+  test('joins folder + .gitquire + member', () => {
     expect(nestedOkPath('/proj', 'meetings', 'frontmatter.yml')).toBe(
-      '/proj/meetings/.ok/frontmatter.yml',
+      '/proj/meetings/.gitquire/frontmatter.yml',
     );
     expect(nestedOkPath('/proj', 'meetings/prep-notes', 'templates')).toBe(
-      '/proj/meetings/prep-notes/.ok/templates',
+      '/proj/meetings/prep-notes/.gitquire/templates',
     );
   });
 
   test('treats empty / "." as project root', () => {
-    expect(nestedOkPath('/proj', '', 'frontmatter.yml')).toBe('/proj/.ok/frontmatter.yml');
-    expect(nestedOkPath('/proj', '.', 'frontmatter.yml')).toBe('/proj/.ok/frontmatter.yml');
+    expect(nestedOkPath('/proj', '', 'frontmatter.yml')).toBe('/proj/.gitquire/frontmatter.yml');
+    expect(nestedOkPath('/proj', '.', 'frontmatter.yml')).toBe('/proj/.gitquire/frontmatter.yml');
   });
 });

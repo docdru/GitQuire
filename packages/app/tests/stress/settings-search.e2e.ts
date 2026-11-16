@@ -202,7 +202,7 @@ test.describe('Settings → Search — embedding request settings', () => {
       await page.getByTestId('settings-search-semantic-toggle').click();
       await page.getByTestId('settings-search-confirm-enable').click();
 
-      const configPath = join(workerServer.contentDir, '.ok', 'local', 'config.yml');
+      const configPath = join(workerServer.contentDir, '.gitquire', 'local', 'config.yml');
       const readConfig = () => (existsSync(configPath) ? readFileSync(configPath, 'utf8') : '');
       await expect.poll(readConfig, { timeout: 10_000 }).toMatch(/enabled:\s*true/);
 

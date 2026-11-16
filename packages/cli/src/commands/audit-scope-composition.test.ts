@@ -160,7 +160,7 @@ beforeAll(() => {
   root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-cli-scope-')));
   headless = realpathSync(mkdtempSync(join(tmpdir(), 'ok-headless-scope-')));
   for (const directory of [root, headless]) {
-    seed(directory, '.ok/config.yml', CONFIG);
+    seed(directory, '.gitquire/config.yml', CONFIG);
     seed(directory, 'guides/solo.md', TABBED);
     seed(directory, 'guides/dual.md', '# MD\n\n\tMD tab.\n');
     seed(directory, 'guides/dual.mdx', TABBED);
@@ -316,7 +316,7 @@ describe('CLI child supervision', () => {
 describe('CLI scope parity across real process, HTTP and MCP boundaries', () => {
   beforeAll(async () => {
     server = await bootCompositionRig(root, { config: ConfigSchema.parse({}) });
-    seed(root, '.ok/config.yml', CONFIG);
+    seed(root, '.gitquire/config.yml', CONFIG);
     await server.ready;
     client = await connectMcpTestClient(`http://127.0.0.1:${server.port}/mcp`);
     expect(readServerLock(server.lockDir)?.port).toBe(server.port);
@@ -332,7 +332,7 @@ describe('CLI scope parity across real process, HTTP and MCP boundaries', () => 
   }) => {
     const project = realpathSync(mkdtempSync(join(tmpdir(), 'ok-missing-lint-content-')));
     try {
-      seed(project, '.ok/config.yml', 'content:\n  dir: missing-content\n');
+      seed(project, '.gitquire/config.yml', 'content:\n  dir: missing-content\n');
       expect(existsSync(join(project, 'missing-content'))).toBe(false);
       expect(resolveAuditScope(undefined, join(project, 'missing-content')).ok).toBe(false);
       for (const args of [
@@ -386,13 +386,13 @@ describe('CLI scope parity across real process, HTTP and MCP boundaries', () => 
       );
     });
     try {
-      seed(project, '.ok/config.yml', 'content:\n  dir: missing-content\n');
+      seed(project, '.gitquire/config.yml', 'content:\n  dir: missing-content\n');
       await new Promise<void>((resolveListen) => httpServer.listen(0, '127.0.0.1', resolveListen));
       const address = httpServer.address();
       if (address === null || typeof address === 'string') throw new Error('Missing HTTP port');
       seed(
         project,
-        '.ok/local/server.lock',
+        '.gitquire/local/server.lock',
         JSON.stringify({ pid: process.pid, hostname: hostname(), port: address.port }),
       );
       for (const args of [

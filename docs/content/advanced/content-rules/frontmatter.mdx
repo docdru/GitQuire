@@ -18,14 +18,14 @@ contentRules:
     enabled: true
     schemas:
       - appliesTo: "docs/**"
-        file: ".ok/schemas/doc.schema.json"
+        file: ".gitquire/schemas/doc.schema.json"
       - appliesTo:
           - "specs/**"
           - "!**/index"
-        file: ".ok/schemas/spec.schema.json"
+        file: ".gitquire/schemas/spec.schema.json"
 ```
 
-- **`file`** is a project-root-relative path to a JSON Schema file. Schemas can live anywhere in the project; `.ok/schemas/` is the default home the settings editor creates them in.
+- **`file`** is a project-root-relative path to a JSON Schema file. Schemas can live anywhere in the project; `.gitquire/schemas/` is the default home the settings editor creates them in.
 - **`appliesTo`** is a glob or list of globs matched against content-relative, extension-less doc paths (`docs/guide`, not `docs/guide.md`). A leading `!` excludes, and a doc is in scope when it matches a positive glob and no negated one. A list with no positive glob gains an implicit `**`, so `["!drafts/**"]` means every doc except drafts; an absent or empty `appliesTo` means **every doc**.
 - **Bad globs surface on the config channel, never per-doc.** One that can't compile matches nothing and is reported as a configuration problem — it never silently widens a mapping. One that compiles but can't match a normalized doc path gets an advisory instead: a trailing slash (`docs/`), a leading slash (`/docs/**`), or a file extension (`docs/**/*.md`), none of which appear in the paths being matched.
 - **Every matching mapping validates.** Two schemas both in scope for a doc act as a conjunction — the frontmatter must satisfy both. One file mapped from several entries still validates once.
@@ -94,20 +94,20 @@ As a diagnostic in `gq lint --json` or the MCP `lint` tool's structured content 
 **Anchoring.** A violation on a key underlines that key's line (the `enum` finding above sits on line 2, where `status:` is written); a missing `required` field anchors to the opening `---` fence; a doc with no fence anchors to the top. And a broken schema file is never a per-doc finding — it rides the configuration channel instead, as a `!` line in `gq lint`:
 
 ```text
-! frontmatter schema .ok/schemas/missing.schema.json: cannot read (ENOENT: no such file or directory, …)
+! frontmatter schema .gitquire/schemas/missing.schema.json: cannot read (ENOENT: no such file or directory, …)
 ```
 
 Frontmatter findings are always **warnings** — there's no severity promotion yet, so `gq lint --errors-only` won't gate on them — and none carry `fixes` (choosing the right value is a human decision), so `gq lint --fix` and the MCP `fix: true` leave them in place, still reported.
 
 ## The settings editor
 
-**Settings ▸ Plugins ▸ Frontmatter schemas** (once the plugin is enabled) lists the project's schema files: search, and **New schema** to scaffold a fresh file in `.ok/schemas/`. Each entry shows a plain-language summary of its scope ("everything under docs/ — except any doc named index") with a live match count ("Matches 12 of 40 docs right now"), a **Pick folders** button, an editor for the `appliesTo` globs, an enable toggle, and delete for schema files OK manages. **Pick folders** scopes a schema to folders without hand-writing glob syntax: checking a folder authors its recursive `folder/**` pattern into the glob editor, and unchecking removes it. The live count is the immediate tell when a hand-typed pattern misses (a bare folder name like `blog` matches only a doc literally named `blog`, so it reads "Matches 0 of N docs right now" until it becomes `blog/**`).
+**Settings ▸ Plugins ▸ Frontmatter schemas** (once the plugin is enabled) lists the project's schema files: search, and **New schema** to scaffold a fresh file in `.gitquire/schemas/`. Each entry shows a plain-language summary of its scope ("everything under docs/ — except any doc named index") with a live match count ("Matches 12 of 40 docs right now"), a **Pick folders** button, an editor for the `appliesTo` globs, an enable toggle, and delete for schema files OK manages. **Pick folders** scopes a schema to folders without hand-writing glob syntax: checking a folder authors its recursive `folder/**` pattern into the glob editor, and unchecking removes it. The live count is the immediate tell when a hand-typed pattern misses (a bare folder name like `blog` matches only a doc literally named `blog`, so it reads "Matches 0 of N docs right now" until it becomes `blog/**`).
 
 The toggle is the only control over whether a schema validates. Turning it off keeps the schema's `appliesTo` globs, so turning it back on restores them — the toggle never discards the mapping. To drop a schema from `config.yml` entirely, edit `config.yml` directly. (Deleting a schema file is the one destructive action here: it removes the file and, with it, its `config.yml` mapping.)
 
 ## The schema editor
 
-Opening a schema file in the editor (any `*.schema.json`, or a `.json` under `.ok/schemas/`) gets a **Source / Fields** toggle, like the markdownlint config's rule browser. **Source** shows the raw JSON; **Fields** is a no-code editor: each frontmatter field as a row with its type (string, number, boolean, enum, array, object), required toggle, description, allowed values, and pattern — recursing into object fields and array-of-object elements for nested frontmatter.
+Opening a schema file in the editor (any `*.schema.json`, or a `.json` under `.gitquire/schemas/`) gets a **Source / Fields** toggle, like the markdownlint config's rule browser. **Source** shows the raw JSON; **Fields** is a no-code editor: each frontmatter field as a row with its type (string, number, boolean, enum, array, object), required toggle, description, allowed values, and pattern — recursing into object fields and array-of-object elements for nested frontmatter.
 
 Edits are **non-destructive**: the editor merges only the field you changed, and keywords it doesn't model (`allOf`, `if`/`then`, `x-` extensions, …) survive verbatim — with a note when the schema carries root-level advanced rules the Fields view doesn't show. Your hand-written schema stays yours.
 
@@ -122,8 +122,8 @@ Adding a property is schema-aware too. The **Add properties** button carries a b
 Beyond the shared `lint` tool and write advisories (see the [overview](/docs/advanced/content-rules/overview#ai-agents)), reads advertise the contract up front: `exec` listings and reads carry a `schemas:` entry naming the schema files that govern each doc — and each folder, so an agent learns the expected shape **before** writing the first doc there. An `exec("ls docs/")` comes back with:
 
 ```text
-- **docs/** (directory) — schemas: .ok/schemas/doc.schema.json — 2 md files — most recent: guide.md (docs/guide.md, 2026-07-21)
-- **docs/guide.md** (docs/guide.md) — status: shipped — schemas: .ok/schemas/doc.schema.json — backlinks: 0
+- **docs/** (directory) — schemas: .gitquire/schemas/doc.schema.json — 2 md files — most recent: guide.md (docs/guide.md, 2026-07-21)
+- **docs/guide.md** (docs/guide.md) — status: shipped — schemas: .gitquire/schemas/doc.schema.json — backlinks: 0
 ```
 
 The server resolves the globs; agents never evaluate `appliesTo` themselves. And when a write violates a governing schema, the write still lands and the response carries the violations as `lint-violation` advisories (1-based `line`/`column`), so the agent can correct its own frontmatter in a follow-up edit:

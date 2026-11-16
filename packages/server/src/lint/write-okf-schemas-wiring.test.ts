@@ -23,9 +23,9 @@ afterEach(async () => {
 
 function seedProject(okfEnabled: boolean, okfExtraYaml = ''): string {
   const project = resolve(tmpDir, 'project');
-  mkdirSync(join(project, '.ok'), { recursive: true });
+  mkdirSync(join(project, '.gitquire'), { recursive: true });
   writeFileSync(
-    join(project, '.ok', 'config.yml'),
+    join(project, '.gitquire', 'config.yml'),
     okfEnabled ? `contentRules:\n  okf:\n    enabled: true\n${okfExtraYaml}` : 'contentRules: {}\n',
     'utf8',
   );
@@ -51,7 +51,7 @@ async function boot(project: string): Promise<BootedServer> {
 }
 
 describe('OKF schemas reach disk through a real server', () => {
-  test('an audit request materializes them under .ok/okf/', async () => {
+  test('an audit request materializes them under .gitquire/okf/', async () => {
     const project = seedProject(true);
     const server = await boot(project);
 
@@ -66,7 +66,7 @@ describe('OKF schemas reach disk through a real server', () => {
       'reserved-index',
       'root-index',
     ]) {
-      const path = join(project, '.ok', 'okf', `${name}.schema.json`);
+      const path = join(project, '.gitquire', 'okf', `${name}.schema.json`);
       expect(existsSync(path), path).toBe(true);
     }
   });
@@ -88,8 +88,8 @@ describe('OKF schemas reach disk through a real server', () => {
     const server = await boot(project);
     await fetch(`http://127.0.0.1:${server.port}/api/audit`);
 
-    expect(existsSync(join(project, '.ok', 'okf', 'provenance.schema.json'))).toBe(false);
-    expect(existsSync(join(project, '.ok', 'okf', 'required.schema.json'))).toBe(true);
+    expect(existsSync(join(project, '.gitquire', 'okf', 'provenance.schema.json'))).toBe(false);
+    expect(existsSync(join(project, '.gitquire', 'okf', 'required.schema.json'))).toBe(true);
   });
 
   test('with the plugin off, nothing is written', async () => {
@@ -98,6 +98,6 @@ describe('OKF schemas reach disk through a real server', () => {
 
     await fetch(`http://127.0.0.1:${server.port}/api/audit`);
 
-    expect(existsSync(join(project, '.ok', 'okf'))).toBe(false);
+    expect(existsSync(join(project, '.gitquire', 'okf'))).toBe(false);
   });
 });

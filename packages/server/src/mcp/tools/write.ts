@@ -467,7 +467,7 @@ async function handleFolder(
         { folder: { ok: true, path: folder.path, frontmatterError: String(fm.error) } },
       );
     }
-    lines.push(`Set folder properties (${folder.path}/.ok/frontmatter.yml).`);
+    lines.push(`Set folder properties (${folder.path}/.gitquire/frontmatter.yml).`);
   }
   return textPlusStructured(lines.join('\n'), { folder: { ok: true, path: folder.path } });
 }

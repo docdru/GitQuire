@@ -76,14 +76,14 @@ describe('document/pages group over the composed listener — served natively', 
   });
 
   test('document read refuses a doc linked into machine-local OpenKnowledge state', async () => {
-    mkdirSync(resolve(contentDir, '.ok', 'local'), { recursive: true });
+    mkdirSync(resolve(contentDir, '.gitquire', 'local'), { recursive: true });
     writeFileSync(
-      resolve(contentDir, '.ok', 'local', 'leak-fixture.json'),
+      resolve(contentDir, '.gitquire', 'local', 'leak-fixture.json'),
       '{"token":"machine-local-secret"}',
       'utf-8',
     );
     mkdirSync(resolve(contentDir, 'linked'), { recursive: true });
-    symlinkSync('../.ok/local/leak-fixture.json', resolve(contentDir, 'linked', 'leak.md'));
+    symlinkSync('../.gitquire/local/leak-fixture.json', resolve(contentDir, 'linked', 'leak.md'));
 
     const res = await fetch(`http://127.0.0.1:${server.port}/api/document?docName=linked/leak`);
     expect(res.status).toBe(500);

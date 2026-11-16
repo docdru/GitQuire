@@ -25,8 +25,8 @@ msgstr " Pilihan Anda telah dipulihkan."
 msgid "— except"
 msgstr "— kecuali"
 
-msgid ".ok folders"
-msgstr "Folder .ok"
+msgid ".gitquire folders"
+msgstr "Folder .gitquire"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1023,7 +1023,7 @@ msgstr "Berlaku untuk (glob — awalan ! mengecualikan; kosong berarti semua dok
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2683,8 +2683,8 @@ msgstr "embedding"
 msgid "Embeddings API key"
 msgstr "Kunci API embedding"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "Embedding hanya dihitung ketika sebuah pencarian berjalan dan disimpan dalam cache lokal di <0>.ok/local</0>."
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "Embedding hanya dihitung ketika sebuah pencarian berjalan dan disimpan dalam cache lokal di <0>.gitquire/local</0>."
 
 msgid "Emoji"
 msgstr "Emoji"
@@ -3155,8 +3155,8 @@ msgstr "Berkas terlalu besar ({sizeKb} KB) — setiap lampiran dibatasi {limitKb
 msgid "File name"
 msgstr "Nama berkas"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "Nama berkas (dibuat di .ok/schemas/)"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "Nama berkas (dibuat di .gitquire/schemas/)"
 
 msgid "File sidebar"
 msgstr "Bilah sisi berkas"
@@ -6471,8 +6471,8 @@ msgstr "Rilis penyuntingnya dengan sebuah"
 msgid "Show"
 msgstr "Tampilkan"
 
-msgid "Show .ok folders"
-msgstr "Tampilkan folder .ok"
+msgid "Show .gitquire folders"
+msgstr "Tampilkan folder .gitquire"
 
 msgid "Show {0} more"
 msgstr "Tampilkan {0} lagi"
@@ -6774,8 +6774,8 @@ msgstr "Perbaikan dihentikan. Berkas yang sudah diperbaiki tetap terperbaiki."
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "Disimpan di <0>.ok/templates/</0> pada proyek ini. Tersedia di setiap folder (templat khusus folder bisa menimpanya berdasarkan nama berkas)."
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "Disimpan di <0>.gitquire/templates/</0> pada proyek ini. Tersedia di setiap folder (templat khusus folder bisa menimpanya berdasarkan nama berkas)."
 
 msgid "Strikethrough"
 msgstr "Coret"

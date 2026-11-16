@@ -221,32 +221,32 @@ describe('file-tree-adapter', () => {
     ).toEqual(['docs/', 'docs/nested/', 'empty/', 'empty/child/']);
   });
 
-  test('excludes .ok/** from collected folder paths (skills are not tree folders)', () => {
+  test('excludes .gitquire/** from collected folder paths (skills are not tree folders)', () => {
     expect(
       collectTreeFolderPathsFromDocuments([
         doc('docs/guide'),
-        doc('.ok/skills/my-skill/SKILL'),
-        { kind: 'folder', path: '.ok/skills/my-skill', size: 0, modified: '' },
-        doc('notes/.ok/templates/daily'),
+        doc('.gitquire/skills/my-skill/SKILL'),
+        { kind: 'folder', path: '.gitquire/skills/my-skill', size: 0, modified: '' },
+        doc('notes/.gitquire/templates/daily'),
       ]),
     ).toEqual(['docs/']);
   });
 
-  test('includeOkFolders admits .ok folder paths for the revealed tree', () => {
+  test('includeOkFolders admits .gitquire folder paths for the revealed tree', () => {
     const entries = [
       doc('docs/guide'),
-      doc('.ok/skills/my-skill/SKILL'),
-      { kind: 'folder' as const, path: '.ok/skills/my-skill', size: 0, modified: '' },
-      doc('notes/.ok/templates/daily'),
+      doc('.gitquire/skills/my-skill/SKILL'),
+      { kind: 'folder' as const, path: '.gitquire/skills/my-skill', size: 0, modified: '' },
+      doc('notes/.gitquire/templates/daily'),
     ];
     expect(collectTreeFolderPathsFromDocuments(entries, { includeOkFolders: true })).toEqual([
-      '.ok/',
-      '.ok/skills/',
-      '.ok/skills/my-skill/',
+      '.gitquire/',
+      '.gitquire/skills/',
+      '.gitquire/skills/my-skill/',
       'docs/',
       'notes/',
-      'notes/.ok/',
-      'notes/.ok/templates/',
+      'notes/.gitquire/',
+      'notes/.gitquire/templates/',
     ]);
     expect(collectTreeFolderPathsFromDocuments(entries)).toEqual(['docs/']);
   });

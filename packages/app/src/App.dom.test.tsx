@@ -429,12 +429,15 @@ describe('App runtime wiring', () => {
       kind: 'missing' as const,
       target: docName.replace(/\/+$/, ''),
     }));
-    setHash('#/articles/.ok/');
+    setHash('#/articles/.gitquire/');
 
     renderApp();
 
     await waitFor(() => {
-      expect(resolveNavigationTargetMock).toHaveBeenCalledWith('articles/.ok/', expect.anything());
+      expect(resolveNavigationTargetMock).toHaveBeenCalledWith(
+        'articles/.gitquire/',
+        expect.anything(),
+      );
     });
     expect(openTargetTransitionMock).not.toHaveBeenCalled();
     expect(clearTargetMock).not.toHaveBeenCalled();

@@ -74,12 +74,12 @@ async function createFixture(context: TestContext, holdConsumer: boolean) {
     vi.unstubAllEnvs();
   });
   vi.stubEnv('GITQUIRE_FILE_WATCHER_BACKEND', 'parcel');
-  mkdirSync(join(root, '.ok/templates'), { recursive: true });
-  mkdirSync(join(root, '.ok/local'), { recursive: true });
+  mkdirSync(join(root, '.gitquire/templates'), { recursive: true });
+  mkdirSync(join(root, '.gitquire/local'), { recursive: true });
   writeFileSync(join(root, 'doc.md'), INITIAL_DOCUMENT);
-  writeFileSync(join(root, '.ok/config.yml'), CONFIGURATION);
-  writeFileSync(join(root, '.ok/templates/note.md'), TEMPLATE);
-  writeFileSync(join(root, '.ok/local/fixture-state.json'), '{}\n');
+  writeFileSync(join(root, '.gitquire/config.yml'), CONFIGURATION);
+  writeFileSync(join(root, '.gitquire/templates/note.md'), TEMPLATE);
+  writeFileSync(join(root, '.gitquire/local/fixture-state.json'), '{}\n');
   execFileSync('git', ['init', '--initial-branch=main', root], {
     env: Object.fromEntries(
       Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
@@ -166,13 +166,13 @@ async function inspectCapture(fixture: Fixture, objects: readonly string[], docu
       .filter(Boolean);
     for (const [path, content] of [
       ['doc.md', document],
-      ['.ok/config.yml', CONFIGURATION],
-      ['.ok/templates/note.md', TEMPLATE],
+      ['.gitquire/config.yml', CONFIGURATION],
+      ['.gitquire/templates/note.md', TEMPLATE],
     ]) {
       expect(paths).toContain(path);
       expect(await git.raw('show', `${object}:${path}`)).toBe(content);
     }
-    expect(paths).not.toContain('.ok/local/fixture-state.json');
+    expect(paths).not.toContain('.gitquire/local/fixture-state.json');
     snapshots.push({ object, paths });
   }
   return snapshots;
@@ -233,7 +233,7 @@ async function assertNoPendingContentPreserved(context: TestContext, producer: P
     CHANGED_DOCUMENT,
   );
   for (const { paths } of snapshots) {
-    expect(paths.sort()).toEqual(['.ok/config.yml', '.ok/templates/note.md', 'doc.md']);
+    expect(paths.sort()).toEqual(['.gitquire/config.yml', '.gitquire/templates/note.md', 'doc.md']);
   }
   expect(diskFiles(fixture.root).sort()).toEqual(before);
   expect(fixture.settleState()).toBe('not-started');
