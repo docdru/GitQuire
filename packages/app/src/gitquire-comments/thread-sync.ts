@@ -3,7 +3,12 @@ import type { Editor } from '@tiptap/react';
 import { ySyncPluginKey } from '@tiptap/y-tiptap';
 import { useEffect } from 'react';
 import { commentBlockKey, countTrailers, readThreads, writeThreads } from './editor-threads';
-import { notePendingWrite, type PendingWrite, reconcileThreads } from './thread-merge';
+import {
+  normalizeThreads,
+  notePendingWrite,
+  type PendingWrite,
+  reconcileThreads,
+} from './thread-merge';
 import type { Thread } from './thread-ops';
 
 const pendingWrites = new WeakMap<Editor, PendingWrite[]>();
@@ -19,9 +24,10 @@ function syncedCommentChange(transaction: Transaction): SyncedChange {
   return meta.isUndoRedoOperation === true ? 'undo' : 'remote';
 }
 
-export function writeAndTrack(editor: Editor, threads: readonly Thread[]): boolean {
+export function writeAndTrack(editor: Editor, next: readonly Thread[]): boolean {
   if (editor.isDestroyed) return false;
   const base = readThreads(editor.state.doc);
+  const threads = normalizeThreads(next);
   const tr = writeThreads(editor.state, threads);
   if (tr === undefined) return false;
   const pending = pendingWrites.get(editor) ?? [];

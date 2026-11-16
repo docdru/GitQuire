@@ -54,7 +54,11 @@ describe('mergeThreads', () => {
     const { base } = seed();
     const mine = createThread(base, { exact: 'look good' }, 'Mine', alice).threads;
     const theirs = createThread(base, { exact: 'numbers' }, 'Theirs', bob).threads;
-    expect(bodies(mergeThreads(base, mine, theirs))).toEqual([['Source?'], ['Mine'], ['Theirs']]);
+    expect(bodies(mergeThreads(base, mine, theirs)).sort()).toEqual([
+      ['Mine'],
+      ['Source?'],
+      ['Theirs'],
+    ]);
   });
 
   test('gives both sides the same result', () => {
@@ -63,7 +67,7 @@ describe('mergeThreads', () => {
     const fromAlice = addReply(withAliceThread, threadId, 'From Alice', alice);
     const withBobThread = createThread(base, { exact: 'numbers' }, 'Theirs', bob).threads;
     const bobReplied = addReply(withBobThread, threadId, 'From Bob', bob);
-    const fromBob = setResolved(bobReplied, threadId, true, bob);
+    const fromBob = setResolved(bobReplied, threadId, true);
     const seenByAlice = mergeThreads(base, fromAlice, fromBob);
     const seenByBob = mergeThreads(base, fromBob, fromAlice);
     expect(seenByAlice).toEqual(seenByBob);
@@ -79,21 +83,54 @@ describe('mergeThreads', () => {
     expect(mergeThreads(base, base, theirs)).toEqual([]);
   });
 
-  test('takes an edit from either side and my resolve', () => {
+  test('an edit made while the other side resolves keeps the thread with the edit', () => {
     const { base, threadId, commentId } = seed();
-    const mine = setResolved(base, threadId, true, alice);
+    const mine = setResolved(base, threadId, true);
     const theirs = editComment(base, threadId, commentId, 'Which source?', alice);
-    const merged = mergeThreads(base, mine, theirs);
-    expect(merged[0]).toMatchObject({ resolved: true, resolvedBy: 'alice' });
-    expect(bodies(merged)).toEqual([['Which source?']]);
+    expect(bodies(mergeThreads(base, mine, theirs))).toEqual([['Which source?']]);
+    expect(mergeThreads(base, mine, base)).toEqual([]);
   });
 
-  test('leaves a thread open when one side reopens and the other resolves', () => {
+  test('a reply made while the other side resolves keeps the thread with the reply', () => {
     const { base, threadId } = seed();
-    const resolved = setResolved(base, threadId, true, alice);
-    const mine = setResolved(resolved, threadId, false, alice);
-    const theirs = setResolved(resolved, threadId, true, bob);
-    expect(mergeThreads(resolved, mine, theirs)[0]?.resolved).toBe(false);
+    const mine = addReply(base, threadId, 'Not done yet', bob);
+    const theirs = setResolved(base, threadId, true);
+    expect(bodies(mergeThreads(base, mine, theirs))).toEqual([['Not done yet']]);
+  });
+});
+
+describe('review cases', () => {
+  test('keeps unreadable lines and threads that only hold them', () => {
+    const { base, threadId } = seed();
+    const withNote = base.map((thread) => ({ ...thread, unreadable: ['note: see ticket 12'] }));
+    const onlyNote = {
+      id: 'c-1',
+      anchor: { exact: '' },
+      resolved: false,
+      comments: [],
+      unreadable: ['x'],
+    };
+    const start = [...withNote, onlyNote];
+    const mine = addReply(start, threadId, 'From Alice', alice);
+    const theirs = addReply(start, threadId, 'From Bob', bob);
+    const merged = mergeThreads(start, mine, theirs);
+    expect(merged.find((thread) => thread.id === threadId)?.unreadable).toEqual([
+      'note: see ticket 12',
+    ]);
+    expect(merged.find((thread) => thread.id === 'c-1')?.unreadable).toEqual(['x']);
+  });
+
+  test('two tabs of one person replying in the same minute keep both replies', () => {
+    const { base, threadId } = seed();
+    const tabA = context('alice', 1, '2026-11-11T12:05:10Z');
+    const tabB = context('alice', 1, '2026-11-11T12:05:40Z');
+    const mine = addReply(base, threadId, 'from tab A', tabA);
+    const theirs = addReply(base, threadId, 'from tab B', tabB);
+    expect(
+      bodies(mergeThreads(base, mine, theirs))[0]
+        ?.slice(1)
+        .sort(),
+    ).toEqual(['from tab A', 'from tab B']);
   });
 });
 

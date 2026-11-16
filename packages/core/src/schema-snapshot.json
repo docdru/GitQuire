@@ -531,6 +531,17 @@
       "group": "block",
       "inline": false,
       "atom": true
+    },
+    "gitquireCommentMark": {
+      "attrs": {
+        "id": {
+          "hasDefault": true
+        }
+      },
+      "content": "",
+      "group": "inline",
+      "inline": true,
+      "atom": true
     }
   },
   "marks": {
@@ -725,6 +736,7 @@
     "commentBlock",
     "footnoteReference",
     "footnoteDefinition",
-    "gitquireComments"
+    "gitquireComments",
+    "gitquireCommentMark"
   ]
 }

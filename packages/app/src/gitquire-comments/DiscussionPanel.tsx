@@ -392,7 +392,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   }
 
   function resolve(threadId: string, resolved: boolean) {
-    run((current, ctx) => setResolved(current, threadId, resolved, ctx)).catch(ignore);
+    run((current) => setResolved(current, threadId, resolved)).catch(ignore);
   }
 
   function remove(threadId: string, commentId: string) {

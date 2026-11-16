@@ -1,6 +1,7 @@
 import { Node } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { renderInlineObjectText } from './input-rule-text.ts';
 
 export const GITQUIRE_COMMENTS_NODE = 'gitquireComments';
 
@@ -67,6 +68,51 @@ export const GitQuireComments = Node.create({
           return tr;
         },
       }),
+    ];
+  },
+});
+
+export const GITQUIRE_COMMENT_MARK_NODE = 'gitquireCommentMark';
+
+export const GitQuireCommentMark = Node.create({
+  name: GITQUIRE_COMMENT_MARK_NODE,
+  group: 'inline',
+  inline: true,
+  atom: true,
+  selectable: false,
+  draggable: false,
+  marks: '_',
+  priority: 60,
+
+  renderText: renderInlineObjectText,
+
+  addAttributes() {
+    return {
+      id: { default: '' },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'sup[data-gitquire-comment-mark]',
+        getAttrs: (element) => ({
+          id: (element as HTMLElement).getAttribute('data-gitquire-comment-mark') ?? '',
+        }),
+      },
+    ];
+  },
+
+  renderHTML({ node }) {
+    return [
+      'sup',
+      {
+        'data-gitquire-comment-mark': String(node.attrs.id ?? ''),
+        class: 'gitquire-comment-mark',
+        contenteditable: 'false',
+        'aria-label': 'Comment',
+      },
+      '💬',
     ];
   },
 });

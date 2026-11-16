@@ -15,7 +15,7 @@ import {
 
 function thread(id: string, resolved: boolean, bodies: string[]): CommentThread {
   return {
-    id,
+    id: `c-${id}`,
     anchor: { exact: `passage ${id}` },
     resolved,
     comments: bodies.map((body, index) => ({
@@ -53,13 +53,13 @@ describe('openCommentThreads', () => {
   test('lists unresolved threads with author, first comment, quote and reply count', () => {
     expect(openCommentThreads(PAGE)).toEqual([
       {
-        threadId: 't1',
+        threadId: 'c-t1',
         author: '@alice',
         body: '@claude please tighten this',
         quote: 'passage t1',
         replies: 1,
       },
-      { threadId: 't3', author: '@alice', body: 'source?', quote: 'passage t3', replies: 0 },
+      { threadId: 'c-t3', author: '@alice', body: 'source?', quote: 'passage t3', replies: 0 },
     ]);
   });
 

@@ -265,6 +265,7 @@ const tagHandler: Handler = (state, node) => {
 
 const footnoteReferenceHandler: Handler = (state, node) => {
   const ref = node as FootnoteReference;
+  if (ref.data?.gitquireCommentMark === true) return undefined;
   const id = ref.identifier;
   const result: Element = {
     type: 'element',

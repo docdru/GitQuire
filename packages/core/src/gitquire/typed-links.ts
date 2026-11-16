@@ -2,7 +2,7 @@ import { stripFrontmatter } from '../extensions/frontmatter.ts';
 import { parseWikiLink } from '../extensions/wiki-link.ts';
 import { parseFrontmatterRecord } from '../frontmatter/record.ts';
 import { classifyWikiLinkTarget } from '../utils/link-targets.ts';
-import { splitCommentTrailer } from './comment-threads.ts';
+import { pageTextWithoutComments } from './comment-threads.ts';
 
 export type RelationOrigin = 'frontmatter' | 'inline';
 
@@ -184,7 +184,7 @@ export function frontmatterRelationLinks(markdown: string): RelationLink[] {
 export function inlineRelationLinks(markdown: string): RelationLink[] {
   const { frontmatter, body } = stripFrontmatter(markdown);
   const lineOffset = frontmatter === '' ? 0 : frontmatter.split(/\r?\n/).length - 1;
-  const lines = splitCommentTrailer(body).body.split(/\r?\n/);
+  const lines = pageTextWithoutComments(body).split(/\r?\n/);
   const links: RelationLink[] = [];
   let fence: { char: string; length: number } | undefined;
   for (const [index, line] of lines.entries()) {

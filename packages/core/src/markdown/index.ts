@@ -1064,10 +1064,12 @@ function buildMdastToPmHandlers(
 
   if (n.footnoteReference) {
     handlers.footnoteReference = (node: FootnoteReference) =>
-      n.footnoteReference.create({
-        identifier: node.identifier,
-        label: node.label ?? node.identifier,
-      });
+      n.gitquireCommentMark && node.data?.gitquireCommentMark === true
+        ? n.gitquireCommentMark.create({ id: node.identifier })
+        : n.footnoteReference.create({
+            identifier: node.identifier,
+            label: node.label ?? node.identifier,
+          });
   } else {
     handlers.footnoteReference ||= (node: FootnoteReference) => {
       console.warn(
@@ -1608,6 +1610,18 @@ function buildPmToMdastHandlers(
     }));
   }
 
+  if (n.gitquireCommentMark) {
+    nodeHandlers.gitquireCommentMark = (pmNode: PmNode) => {
+      const identifier = String(pmNode.attrs.id ?? '');
+      const node: FootnoteReference = {
+        type: 'footnoteReference',
+        identifier,
+        label: identifier,
+        data: { gitquireCommentMark: true },
+      };
+      return node as unknown as MdastNodes;
+    };
+  }
   if (n.footnoteReference) {
     nodeHandlers.footnoteReference = (pmNode: PmNode) => {
       const identifier = String(pmNode.attrs.identifier ?? '');

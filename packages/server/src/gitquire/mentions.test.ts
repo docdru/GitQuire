@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   type CommentThread,
+  commentIdFor,
+  normalizeCommentTimes,
   writeCommentThreads,
 } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { describe, expect, it } from 'vitest';
@@ -31,8 +33,20 @@ import { createGitQuireRoutes } from './routes.ts';
 const alice = { id: 1, login: 'Alice' };
 const bob = { id: 2, login: 'bob' };
 
+const fixtureComments = new Map<string, { login: string; createdAt: string }>();
+
+function label(threadId: string): string {
+  return `c-${threadId}`;
+}
+
+function key(threadId: string, commentId: string): string {
+  const fixture = fixtureComments.get(commentId);
+  if (fixture === undefined) return `${threadId}:${commentId}`;
+  return `${label(threadId)}:${commentIdFor(label(threadId), fixture.login, fixture.createdAt, 0)}`;
+}
+
 function thread(id: string, comments: CommentThread['comments'], resolved = false): CommentThread {
-  return { id, anchor: { exact: 'quarterly numbers' }, resolved, comments };
+  return { id: label(id), anchor: { exact: 'quarterly numbers' }, resolved, comments };
 }
 
 function comment(
@@ -42,13 +56,15 @@ function comment(
   createdAt: string,
   mentions: string[],
 ): CommentThread['comments'][number] {
-  return {
+  const normalized = normalizeCommentTimes({
     id,
-    author: { id: `github-${author.id}`, login: author.login, name: author.login },
+    author: { id: author.login.toLowerCase(), login: author.login },
     createdAt,
     body,
     mentions,
-  };
+  });
+  fixtureComments.set(id, { login: author.login, createdAt: normalized.createdAt });
+  return normalized;
 }
 
 function page(threads: CommentThread[]): string {
@@ -70,7 +86,7 @@ function project(): string {
   const own = comment('c4', alice, 'Note to self @alice', '2026-11-11T09:00:00Z', ['alice']);
   const hidden = comment('c9', bob, '@alice', '2026-11-11T08:00:00Z', ['alice']);
   const report = page([thread('t1', [ask, answer])]);
-  const plan = page([thread('t2', [shared], true), thread('t3', [own])]);
+  const plan = page([thread('t2', [shared]), thread('t3', [own])]);
   writeFileSync(join(dir, 'notes', 'report.md'), report);
   writeFileSync(join(dir, 'plan.md'), plan);
   writeFileSync(join(dir, 'node_modules', 'pkg', 'readme.md'), report);
@@ -84,7 +100,7 @@ describe('mention index', () => {
     const [found, ...rest] = mentionsInMarkdown('a.md', page([thread('t1', [greeting])]));
     expect(rest).toEqual([]);
     expect(found).toMatchObject({
-      id: 't1:c1',
+      id: key('t1', 'c1'),
       path: 'a.md',
       docName: 'a',
       quote: 'quarterly numbers',
@@ -98,7 +114,9 @@ describe('mention index', () => {
     const dir = project();
     try {
       const index = createMentionIndex(dir);
-      expect(ids(index.all())).toEqual(['t1:c1', 't1:c2', 't2:c3', 't3:c4']);
+      expect(ids(index.all())).toEqual(
+        [key('t1', 'c1'), key('t1', 'c2'), key('t2', 'c3'), key('t3', 'c4')].sort(),
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -114,7 +132,7 @@ describe('mention index', () => {
       clock += 1000;
       expect(index.all()).toHaveLength(4);
       clock += 5000;
-      expect(ids(index.all())).toEqual(['t1:c1', 't1:c2']);
+      expect(ids(index.all())).toEqual([key('t1', 'c1'), key('t1', 'c2')].sort());
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -141,14 +159,17 @@ describe('inbox', () => {
     const dir = project();
     try {
       const all = createMentionIndex(dir).all();
-      expect(mentionsFor(alice, all).map((mention) => mention.id)).toEqual(['t2:c3', 't1:c1']);
-      expect(mentionsFor(bob, all).map((mention) => mention.id)).toEqual(['t1:c2']);
-      const inbox = buildInbox(alice, all, new Set(['t1:c1']));
+      expect(mentionsFor(alice, all).map((mention) => mention.id)).toEqual([
+        key('t2', 'c3'),
+        key('t1', 'c1'),
+      ]);
+      expect(mentionsFor(bob, all).map((mention) => mention.id)).toEqual([key('t1', 'c2')]);
+      const inbox = buildInbox(alice, all, new Set([key('t1', 'c1')]));
       expect(inbox.unread).toBe(1);
       const rows = inbox.mentions.map((mention) => [mention.id, mention.read, mention.resolved]);
       expect(rows).toEqual([
-        ['t2:c3', false, true],
-        ['t1:c1', true, false],
+        [key('t2', 'c3'), false, false],
+        [key('t1', 'c1'), true, false],
       ]);
       expect(inbox.mentions[0]).not.toHaveProperty('logins');
     } finally {
@@ -161,15 +182,15 @@ describe('inbox', () => {
     try {
       const file = mentionStatePath(dir);
       const store = createMentionReadStore(file);
-      store.markRead(1, ['t1:c1', 'unknown'], new Set(['t1:c1', 't2:c3']));
-      expect([...store.readIds(1)]).toEqual(['t1:c1']);
+      store.markRead(1, [key('t1', 'c1'), 'unknown'], new Set([key('t1', 'c1'), key('t2', 'c3')]));
+      expect([...store.readIds(1)]).toEqual([key('t1', 'c1')]);
       expect([...store.readIds(2)]).toEqual([]);
-      expect([...createMentionReadStore(file).readIds(1)]).toEqual(['t1:c1']);
-      store.markRead(1, ['t2:c3'], new Set(['t2:c3']));
-      expect([...store.readIds(1)]).toEqual(['t1:c1', 't2:c3']);
+      expect([...createMentionReadStore(file).readIds(1)]).toEqual([key('t1', 'c1')]);
+      store.markRead(1, [key('t2', 'c3')], new Set([key('t2', 'c3')]));
+      expect([...store.readIds(1)]).toEqual([key('t1', 'c1'), key('t2', 'c3')]);
       expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual({
         version: 1,
-        users: { '1': { read: ['t1:c1', 't2:c3'] } },
+        users: { '1': { read: [key('t1', 'c1'), key('t2', 'c3')] } },
       });
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -242,7 +263,7 @@ describe('mention routes', () => {
       expect(first.body).toMatchObject({ enabled: true, login: 'Alice', unread: 2 });
       const one = await call(routes, '/api/gitquire/mentions/read', {
         method: 'POST',
-        body: { ids: ['t1:c1', 't1:c2'] },
+        body: { ids: [key('t1', 'c1'), key('t1', 'c2')] },
       });
       expect(one.body).toEqual({ unread: 1 });
       const all = await call(routes, '/api/gitquire/mentions/read', {
@@ -419,9 +440,9 @@ describe('confirmation store', () => {
       const start = new Date('2026-11-12T10:00:00Z');
       store.reserveConfirmation(alice, 'to-old', start);
       store.startConfirmation(alice, 'old@example.com', 'hash-1', start);
-      expect(store.confirm(alice, 'hash-1', ['t1:c1'], start)).toBe('confirmed');
+      expect(store.confirm(alice, 'hash-1', [key('t1', 'c1')], start)).toBe('confirmed');
       expect(store.emailOf(alice.id)).toBe('old@example.com');
-      expect([...store.mailedIds(alice.id)]).toEqual(['t1:c1']);
+      expect([...store.mailedIds(alice.id)]).toEqual([key('t1', 'c1')]);
       store.reserveConfirmation(alice, 'to-new', start);
       store.startConfirmation(alice, 'new@example.com', 'hash-2', start);
       expect(store.emailOf(alice.id)).toBe('old@example.com');
@@ -538,7 +559,7 @@ describe('mention mailer', () => {
     try {
       const { store, state, sent, warnings, mailer } = mailerFor(dir);
       expect(await mailer.round()).toBe(0);
-      store.setEmail(alice, 'alice@example.com', ['t1:c1'], subscribedAt);
+      store.setEmail(alice, 'alice@example.com', [key('t1', 'c1')], subscribedAt);
       expect(await mailer.round()).toBe(1);
       expect(sent.map((mail) => mail.subject)).toEqual(['bob mentioned you in plan']);
       expect(await mailer.round()).toBe(0);
@@ -556,7 +577,7 @@ describe('mention mailer', () => {
 
       addPage(dir, 'seen.md', '8');
       state.scanClock += 60_000;
-      store.markRead(alice.id, ['t8:c8'], new Set(['t8:c8']));
+      store.markRead(alice.id, [key('t8', 'c8')], new Set([key('t8', 'c8')]));
       expect(await mailer.round()).toBe(0);
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -573,7 +594,7 @@ describe('mention mailer', () => {
       state.failWith = null;
       expect(await mailer.round()).toBe(0);
       expect(sent).toEqual([]);
-      expect([...store.mailedIds(alice.id)]).toEqual(['t2:c3']);
+      expect([...store.mailedIds(alice.id)]).toEqual([key('t2', 'c3')]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -607,7 +628,7 @@ describe('mention mailer', () => {
     const dir = project();
     try {
       const { store, state, mailer } = mailerFor(dir);
-      store.setEmail(alice, 'alice@example.com', ['t1:c1', 't2:c3'], subscribedAt);
+      store.setEmail(alice, 'alice@example.com', [key('t1', 'c1'), key('t2', 'c3')], subscribedAt);
       const old = comment('c40', bob, 'Old, @alice', '2026-10-01T08:00:00Z', ['alice']);
       writeFileSync(join(dir, 'restored.md'), page([thread('t40', [old])]));
       state.scanClock += 60_000;
