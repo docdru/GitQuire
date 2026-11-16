@@ -28,6 +28,7 @@ import type {
   DetectGhFn,
   PushPermission,
 } from './github-permissions.ts';
+import { migrateLegacyDataFolders } from './gitquire/legacy-data-folder.ts';
 import { getLogger } from './logger.ts';
 import { createSyncCredentialConfigResolver } from './share/git-context.ts';
 import { declareGitHubHosts, useIsolatedHome } from './share/git-host-declarations.test-helper.ts';
@@ -3377,6 +3378,41 @@ describe('SyncEngine push cycle stages shareable .gitquire artifacts (sync scope
       }
     },
   );
+
+  test('commits the move of an old .ok folder as a rename and keeps the moved local state out', async () => {
+    const { git } = await initSharedRepoWithBareRemote();
+    mkdirSync(join(projectDir, '.ok', 'local'), { recursive: true });
+    mkdirSync(join(projectDir, 'docs', '.ok', 'templates'), { recursive: true });
+    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: full\n');
+    writeFileSync(join(projectDir, '.ok', '.gitignore'), 'local/\n');
+    writeFileSync(join(projectDir, 'docs', '.ok', 'templates', 'article.md'), '# Template\n');
+    await git.add(['-f', '.ok/config.yml', '.ok/.gitignore', 'docs/.ok/templates/article.md']);
+    await git.commit('old data folder');
+    await git.push(['origin', 'main']);
+    rmSync(join(projectDir, '.gitquire'), { recursive: true, force: true });
+    writeFileSync(join(projectDir, '.ok', 'local', 'principal.json'), '{}\n');
+
+    migrateLegacyDataFolders(projectDir);
+    const engine = makeShareableEngine();
+    try {
+      await engine.start();
+      await engine.trigger('push');
+      const tracked = (await git.raw(['ls-tree', '-r', '--name-only', 'origin/main']))
+        .split('\n')
+        .filter(Boolean);
+      expect(tracked.filter((p) => p.includes('.ok/'))).toEqual([]);
+      expect(tracked).toEqual(
+        expect.arrayContaining([
+          '.gitquire/config.yml',
+          '.gitquire/.gitignore',
+          'docs/.gitquire/templates/article.md',
+        ]),
+      );
+      expect(tracked.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
+    } finally {
+      await engine.destroy();
+    }
+  });
 
   test('never stages .gitquire local state, worktrees, or legacy root state files', async () => {
     const { git } = await initSharedRepoWithBareRemote();

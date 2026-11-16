@@ -160,7 +160,7 @@ describe('CLI preAction project anchoring (cold spawn)', () => {
     const { exitCode, stdout, stderr } = spawnCli(['--cwd', sub, 'status', '--json']);
 
     expect(exitCode).toBe(0);
-    expect(stderr).toContain(`[ok] Using GitQuire project at ${realpathSync(root)}`);
+    expect(stderr).toContain(`[gitquire] Using GitQuire project at ${realpathSync(root)}`);
     const report = JSON.parse(stdout);
     expect(report).toHaveProperty('server');
   }, 30_000);
@@ -176,7 +176,7 @@ describe('CLI preAction project anchoring (cold spawn)', () => {
     const { exitCode, stdout, stderr } = spawnCli(['--cwd', sub, 'preview']);
 
     expect(exitCode).toBe(0);
-    expect(stderr).toContain(`[ok] Using GitQuire project at ${realpathSync(root)}`);
+    expect(stderr).toContain(`[gitquire] Using GitQuire project at ${realpathSync(root)}`);
     expect(stdout).toContain('hello.md');
   }, 30_000);
 
@@ -213,7 +213,7 @@ describe('CLI preAction project anchoring (cold spawn)', () => {
       const { exitCode, stdout, stderr } = spawnCli(['--cwd', sub, 'stop', './target']);
 
       expect(exitCode).toBe(0);
-      expect(stderr).toContain(`[ok] Using GitQuire project at ${realpathSync(root)}`);
+      expect(stderr).toContain(`[gitquire] Using GitQuire project at ${realpathSync(root)}`);
       expect(stdout).toContain(`Stopped: server (pid=${sleeper.pid}, port=4242)`);
     } finally {
       sleeper.kill();

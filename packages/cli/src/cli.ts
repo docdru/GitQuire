@@ -117,7 +117,7 @@ program
     if (anchorRoot !== null) {
       recordInvocationCwd(process.cwd());
       process.chdir(anchorRoot);
-      console.error(`[ok] Using GitQuire project at ${anchorRoot}`);
+      console.error(`[gitquire] Using GitQuire project at ${anchorRoot}`);
     }
 
     const loaded = loadConfig(anchorRoot ?? cwd);
@@ -125,11 +125,11 @@ program
     if (shouldAnnounceRemovedKeys(subcommandName)) {
       for (const diagnostic of loaded.diagnostics) {
         if (diagnostic.code !== 'REMOVED_KEY') continue;
-        console.error(`[ok] ${humanFormat(diagnostic)}`);
+        console.error(`[gitquire] ${humanFormat(diagnostic)}`);
       }
     }
     for (const key of loaded.ignoredCommittedKeys) {
-      console.error(`[ok] ${formatIgnoredCommittedKey(key)}`);
+      console.error(`[gitquire] ${formatIgnoredCommittedKey(key)}`);
     }
     resolvedConfig = config;
 

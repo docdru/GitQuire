@@ -5,6 +5,7 @@ import type { GateLogger, SessionUser } from '../access-gate.ts';
 import type { GitHubAppConfig } from '../github-app.ts';
 import type { GitHubDraftsClient } from '../github-pulls.ts';
 import { internalRequestHeaders, internalSecret } from '../internal-request.ts';
+import { migrateLegacyDataFolders } from '../legacy-data-folder.ts';
 import {
   authHeaderEnv,
   ensureAutoSyncMode,
@@ -106,6 +107,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
       authEnv(),
     );
     runGit(['config', 'fetch.prune', 'true'], dir);
+    migrateLegacyDataFolders(dir);
     for (const file of PROJECT_FILES) {
       const source = join(deps.projectDir, file);
       const target = join(dir, file);

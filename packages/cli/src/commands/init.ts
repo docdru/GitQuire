@@ -353,10 +353,10 @@ export async function runInit(options: InitCommandOptions = {}): Promise<InitCom
       ? resolveRequestedContentDir(options.contentDir, projectRoot, cwd)
       : resolution.defaultContentDir;
   if (resolution.ancestorPromoted) {
-    console.log(`[ok] Opened existing project at ${projectRoot}`);
+    console.log(`[gitquire] Opened existing project at ${projectRoot}`);
   } else if (resolution.gitRootPromoted && willScaffold && contentDirScope === '.') {
     process.stderr.write(
-      `${warning(`[ok] Content scope promoted to the git repo root: ${projectRoot}`)}\n` +
+      `${warning(`[gitquire] Content scope promoted to the git repo root: ${projectRoot}`)}\n` +
         `      Ran in ${promotedFromDir}/, but .gitquire/ lives at the git root (one .gitquire/ per git repo),\n` +
         `      so the whole repo is now the content scope. To narrow it, re-run with\n` +
         `      \`${currentCliCommandName()} init --content-dir .\`, or set content.dir: ${promotedFromDir} in ${OK_DIR}/config.yml.\n`,
@@ -393,7 +393,7 @@ export async function runInit(options: InitCommandOptions = {}): Promise<InitCom
       rootGitignoreCreated = writeRootGitignoreForNewRepo(projectRoot) === 'created';
     } catch (err) {
       console.warn(
-        `[ok] Skipping .gitignore seed at ${projectRoot}: ${err instanceof Error ? err.message : String(err)}`,
+        `[gitquire] Skipping .gitignore seed at ${projectRoot}: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

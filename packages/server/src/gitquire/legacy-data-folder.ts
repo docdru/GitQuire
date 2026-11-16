@@ -14,7 +14,7 @@ const DATA_DIR = '.gitquire';
 
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['.git', 'node_modules', DATA_DIR]);
 const MAX_DEPTH = 32;
-const LEGACY_PATH_RE = /(^|[\\/!*])\.ok(?=$|[\\/])/g;
+const LEGACY_PATH_RE = /(^|[\\/!*])\.ok(?=$|[\\/\r])/g;
 
 export interface LegacyDataFolderMigration {
   readonly moved: readonly { readonly from: string; readonly to: string }[];
@@ -104,19 +104,48 @@ function moveEach(candidates: readonly string[]) {
   return { moved, kept };
 }
 
+const LEGACY_HOME_DIRS: readonly (readonly [string, string])[] = [
+  [LEGACY_DATA_DIR, DATA_DIR],
+  ['.ok-beta', '.gitquire-beta'],
+  ['.ok-dev', '.gitquire-dev'],
+];
+
 export function migrateLegacyHomeFolder(homeDir: string): LegacyDataFolderMigration {
-  const home = join(resolve(homeDir), LEGACY_DATA_DIR);
-  return { ...moveEach(isRealDirectory(home) ? [home] : []), rewrittenIgnoreFiles: [] };
+  const moved: { from: string; to: string }[] = [];
+  const kept: string[] = [];
+  for (const [legacy, current] of LEGACY_HOME_DIRS) {
+    const from = join(resolve(homeDir), legacy);
+    if (!isRealDirectory(from)) continue;
+    const to = join(resolve(homeDir), current);
+    if (existsSync(to)) {
+      kept.push(from);
+      continue;
+    }
+    renameSync(from, to);
+    moved.push({ from, to });
+  }
+  return { moved, kept, rewrittenIgnoreFiles: [] };
+}
+
+export function isMovedLegacyDataPath(projectDir: string, relativePath: string): boolean {
+  const segments = relativePath.split('/');
+  const index = segments.indexOf(LEGACY_DATA_DIR);
+  if (index === -1 || index === segments.length - 1) return false;
+  const legacyDir = join(projectDir, ...segments.slice(0, index + 1));
+  return (
+    !existsSync(legacyDir) && existsSync(join(projectDir, ...segments.slice(0, index), DATA_DIR))
+  );
 }
 
 export function migrateLegacyDataFolders(projectDir: string): LegacyDataFolderMigration {
   const root = resolve(projectDir);
-  const { moved, kept } = moveEach(legacyFoldersUnder(root));
+  const { moved, kept } = isRealDirectory(join(root, LEGACY_DATA_DIR))
+    ? moveEach(legacyFoldersUnder(root))
+    : { moved: [], kept: [] };
   const rewrittenIgnoreFiles: string[] = [];
   if (moved.length > 0) {
-    for (const path of [join(root, '.gitignore'), join(root, '.git', 'info', 'exclude')]) {
-      if (rewriteIgnoreFile(path)) rewrittenIgnoreFiles.push(path);
-    }
+    const exclude = join(root, '.git', 'info', 'exclude');
+    if (rewriteIgnoreFile(exclude)) rewrittenIgnoreFiles.push(exclude);
     repairMovedWorktrees(root, join(root, DATA_DIR));
   }
   return { moved, kept, rewrittenIgnoreFiles };

@@ -6,6 +6,7 @@ import { afterEach, expect, test } from 'vitest';
 import {
   describeLegacyDataFolderMigration,
   findLegacyProjectRoot,
+  isMovedLegacyDataPath,
   migrateLegacyDataFolders,
   migrateLegacyHomeFolder,
 } from './legacy-data-folder.ts';
@@ -63,21 +64,55 @@ test('leaves an old folder in place when the new one already exists', () => {
   expect(describeLegacyDataFolderMigration(result)[0]).toContain('already exists');
 });
 
-test('rewrites ignore entries that name the old folder, and nothing else', () => {
+test('rewrites .git/info/exclude entries that name the old folder, and nothing else', () => {
   const project = scratch();
   write(project, '.ok/config.yml', 'x\n');
+  write(project, '.gitignore', '.ok/local/\n');
   write(
     project,
-    '.gitignore',
-    '.DS_Store\n.ok/local/\n/docs/.ok/cache\n!.ok/templates\n# .ok/ is the data folder\nbook.okay\n',
+    '.git/info/exclude',
+    '.DS_Store\r\n.ok\r\n/docs/.ok/cache\n!.ok/templates\n# .ok/ is the data folder\nbook.okay\n',
   );
 
   const result = migrateLegacyDataFolders(project);
 
-  expect(readFileSync(join(project, '.gitignore'), 'utf8')).toBe(
-    '.DS_Store\n.gitquire/local/\n/docs/.gitquire/cache\n!.gitquire/templates\n# .ok/ is the data folder\nbook.okay\n',
+  expect(readFileSync(join(project, '.git/info/exclude'), 'utf8')).toBe(
+    '.DS_Store\r\n.gitquire\r\n/docs/.gitquire/cache\n!.gitquire/templates\n# .ok/ is the data folder\nbook.okay\n',
   );
-  expect(result.rewrittenIgnoreFiles).toEqual([join(project, '.gitignore')]);
+  expect(readFileSync(join(project, '.gitignore'), 'utf8')).toBe('.ok/local/\n');
+  expect(result.rewrittenIgnoreFiles).toEqual([join(project, '.git/info/exclude')]);
+});
+
+test('moves the home folders of every channel', () => {
+  const home = scratch();
+  write(home, '.ok/auth.yml', 'a\n');
+  write(home, '.ok-beta/auth.yml', 'b\n');
+  write(home, '.ok-dev/auth.yml', 'd\n');
+  write(home, '.gitquire-dev/auth.yml', 'new\n');
+
+  const result = migrateLegacyHomeFolder(home);
+
+  expect(result.moved.map(({ to }) => to)).toEqual([
+    join(home, '.gitquire'),
+    join(home, '.gitquire-beta'),
+  ]);
+  expect(result.kept).toEqual([join(home, '.ok-dev')]);
+});
+
+test('names the old tracked paths whose folder has moved, so sync removes them', () => {
+  const project = scratch();
+  write(project, '.ok/config.yml', 'x\n');
+  write(project, 'marketing/.ok/templates/post.md', '# Post\n');
+  write(project, 'kept/.ok/a.md', 'a\n');
+  write(project, 'kept/.gitquire/a.md', 'a\n');
+
+  migrateLegacyDataFolders(project);
+
+  expect(isMovedLegacyDataPath(project, '.ok/config.yml')).toBe(true);
+  expect(isMovedLegacyDataPath(project, 'marketing/.ok/templates/post.md')).toBe(true);
+  expect(isMovedLegacyDataPath(project, 'kept/.ok/a.md')).toBe(false);
+  expect(isMovedLegacyDataPath(project, 'notes/ok.md')).toBe(false);
+  expect(isMovedLegacyDataPath(project, '.gitquire/config.yml')).toBe(false);
 });
 
 test('does nothing in a project that already uses the new folder', () => {
@@ -95,11 +130,14 @@ test('does nothing in a project that already uses the new folder', () => {
 
 test('skips git internals, dependencies and draft folders', () => {
   const project = scratch();
+  write(project, '.ok/config.yml', 'x\n');
   write(project, '.git/ok-internal/.ok/x', 'x');
   write(project, 'node_modules/pkg/.ok/x', 'x');
   write(project, '.gitquire-drafts/alice/.ok/x', 'x');
 
-  expect(migrateLegacyDataFolders(project).moved).toEqual([]);
+  expect(migrateLegacyDataFolders(project).moved.map(({ to }) => to)).toEqual([
+    join(project, '.gitquire'),
+  ]);
   expect(existsSync(join(project, 'node_modules/pkg/.ok/x'))).toBe(true);
 });
 

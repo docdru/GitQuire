@@ -63,6 +63,7 @@ import {
   type ProbeTokenStore,
   type PushPermission,
 } from './github-permissions.ts';
+import { isMovedLegacyDataPath } from './gitquire/legacy-data-folder.ts';
 import {
   commitAuthorEnv,
   restoreCommitAuthors,
@@ -3089,7 +3090,10 @@ export class SyncEngine {
     try {
       const headPaths = await listNames(handle.git, ['ls-tree', '-r', '--name-only', headSha]);
       for (const projRelPath of headPaths) {
-        if (this.isSyncScopedPath(projRelPath)) {
+        if (
+          this.isSyncScopedPath(projRelPath) ||
+          isMovedLegacyDataPath(this.projectDir, projRelPath)
+        ) {
           paths.add(projRelPath);
         }
       }
