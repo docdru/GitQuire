@@ -15,10 +15,10 @@ import { createDerivedDocumentIndexApiPortStub } from './api-extension.test-help
 import { createApiExtension } from './api-extension.ts';
 import {
   DocumentDurabilityState,
-  OK_DOC_REMOVED,
-  OK_STORE_DISCARDED,
-  OK_STORE_HELD,
-  OK_STORE_REFUSED,
+  GQ_DOC_REMOVED,
+  GQ_STORE_DISCARDED,
+  GQ_STORE_HELD,
+  GQ_STORE_REFUSED,
 } from './document-durability-state.ts';
 
 interface CapturedResponse {
@@ -110,7 +110,7 @@ describe('agent-write-batch — store-refused flush failure rendering', () => {
     }, AGENT_WRITE_ORIGIN);
 
     durabilityState.recordStoreFailure(docName, {
-      code: OK_STORE_REFUSED,
+      code: GQ_STORE_REFUSED,
       message: `duplication tripwire baseline unavailable for ${docName}; store refused (fail-closed)`,
     });
 
@@ -140,7 +140,7 @@ describe('agent-write-batch — store-refused flush failure rendering', () => {
   test('a held save renders the save-held contract on the batch endpoint', async () => {
     const docName = 'batch-held';
     durabilityState.recordStoreFailure(docName, {
-      code: OK_STORE_HELD,
+      code: GQ_STORE_HELD,
       message: `${docName} was not saved: its file changed and could not be merged, so a conflict was raised`,
       held: { reason: 'pending-conflict' },
     });
@@ -175,7 +175,7 @@ describe('agent-write-batch — store-refused flush failure rendering', () => {
   test('a doc-removed flush failure keeps the doc-removed contract on the batch endpoint', async () => {
     const docName = 'batch-doc-removed';
     durabilityState.recordStoreFailure(docName, {
-      code: OK_DOC_REMOVED,
+      code: GQ_DOC_REMOVED,
       message: 'the document is no longer on disk',
     });
 
@@ -196,7 +196,7 @@ describe('agent-write-batch — store-refused flush failure rendering', () => {
   test('a store discarded by a branch switch reports branch-switched on the batch endpoint', async () => {
     const docName = 'batch-branch-switched';
     durabilityState.recordStoreFailure(docName, {
-      code: OK_STORE_DISCARDED,
+      code: GQ_STORE_DISCARDED,
       message: `A Git branch switch discarded the pending save of ${docName}`,
     });
 

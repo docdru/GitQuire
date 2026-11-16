@@ -15,7 +15,7 @@ import {
 import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { type Config, ConfigSchema } from '@gitquire/server';
 import { type Document, parseDocument } from 'yaml';
-import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
+import { CONFIG_FILENAME, GQ_DIR } from '../constants.ts';
 import { isObject } from '../utils/is-object.ts';
 import { normalizeCwd } from '../utils/normalize-cwd.ts';
 
@@ -147,7 +147,7 @@ export function loadConfig(cwd?: string): LoadConfigResult {
     return value;
   };
 
-  const projectPath = resolve(workingDir, OK_DIR, CONFIG_FILENAME);
+  const projectPath = resolve(workingDir, GQ_DIR, CONFIG_FILENAME);
   const projectRaw = loadRawLayer(projectPath, true);
   const localRaw = loadRawLayer(resolveConfigPath('project-local', workingDir));
 

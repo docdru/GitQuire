@@ -1,10 +1,10 @@
-// oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
-// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+// oxlint-disable gq/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-html-interactive-element
+// oxlint-disable gq/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-physical-direction-utility
 
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { useEffect, useState } from 'react';
-import { OkBlob } from '@/components/OkBlob';
+import { GqBlob } from '@/components/OkBlob';
 import { useDocumentContext, useOpenBlobRunner } from '@/editor/DocumentContext';
 import { okCliCommandName } from '@/lib/channel-cli-copy';
 
@@ -69,7 +69,7 @@ export function ConnectingBanner() {
       <div
         role="alert"
         aria-live="assertive"
-        className="fixed top-[var(--ok-app-header-height,0px)] inset-x-0 z-50 bg-destructive text-background text-sm text-center py-2 px-4 pl-[var(--ok-titlebar-reserve-left,1rem)] shadow-md flex items-center justify-center gap-3 flex-wrap"
+        className="fixed top-[var(--gq-app-header-height,0px)] inset-x-0 z-50 bg-destructive text-background text-sm text-center py-2 px-4 pl-[var(--gq-titlebar-reserve-left,1rem)] shadow-md flex items-center justify-center gap-3 flex-wrap"
       >
         <span>
           {isNoCollabServer ? (
@@ -102,7 +102,7 @@ export function ConnectingBanner() {
             title={t`Play Blob Run`}
             className="ml-1 flex items-center rounded bg-background/20 px-1.5 py-1 transition-colors hover:bg-background/30"
           >
-            <OkBlob size={22} trackMouse={false} variant="sleeping" />
+            <GqBlob size={22} trackMouse={false} variant="sleeping" />
           </button>
         ) : null}
       </div>
@@ -113,7 +113,7 @@ export function ConnectingBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-[var(--ok-app-header-height,0px)] inset-x-0 z-50 bg-warning text-background text-sm text-center py-2 px-4 pl-[var(--ok-titlebar-reserve-left,1rem)] shadow-md"
+      className="fixed top-[var(--gq-app-header-height,0px)] inset-x-0 z-50 bg-warning text-background text-sm text-center py-2 px-4 pl-[var(--gq-titlebar-reserve-left,1rem)] shadow-md"
     >
       <Trans>Connecting — waiting for collab server</Trans>
     </div>

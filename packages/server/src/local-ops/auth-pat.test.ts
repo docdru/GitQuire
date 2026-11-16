@@ -1,11 +1,11 @@
-import { OkCliCommand } from '@gitquire/core';
+import { GqCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runPatSubprocess } from './auth-pat.ts';
 
 const okCli = (
   cliArgs: readonly string[],
   cliEnv?: Readonly<Record<string, string | undefined>>,
-): OkCliCommand => OkCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 

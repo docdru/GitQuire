@@ -2,7 +2,7 @@ import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { createElement, type ReactNode, useLayoutEffect, useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { subscribeToDocPanelTabRequests } from '@/components/doc-panel-events';
-import { OK_PROBLEM_BADGE_ATTR } from '@/components/file-tree-problem-indicators';
+import { GQ_PROBLEM_BADGE_ATTR } from '@/components/file-tree-problem-indicators';
 import { emitDocumentsChanged } from '@/lib/documents-events';
 import { replaceValidationFromCounts } from '@/lib/validation-store';
 import type { FileEntry } from './file-tree-utils';
@@ -297,7 +297,7 @@ function findBadge(rowPath: string): HTMLElement | null {
   return (
     shadowRoot()
       .querySelector(`[data-item-path="${rowPath}"]`)
-      ?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`) ?? null
+      ?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`) ?? null
   );
 }
 

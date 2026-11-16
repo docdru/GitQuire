@@ -26,10 +26,10 @@ export const OPEN_KNOWLEDGE_MCP_TOOLS = [
   'restore_version',
 ] as const;
 
-export const OK_HOSTED_AGENT_ENV = 'GITQUIRE_HOSTED_AGENT';
+export const GQ_HOSTED_AGENT_ENV = 'GITQUIRE_HOSTED_AGENT';
 
-export const OK_DESKTOP_TERMINAL_ENV = 'GITQUIRE_DESKTOP_TERMINAL';
+export const GQ_DESKTOP_TERMINAL_ENV = 'GITQUIRE_DESKTOP_TERMINAL';
 
 export function resolveIsHostedAgent(env: Record<string, string | undefined>): boolean {
-  return env[OK_DESKTOP_TERMINAL_ENV] === '1' || env[OK_HOSTED_AGENT_ENV] === '1';
+  return env[GQ_DESKTOP_TERMINAL_ENV] === '1' || env[GQ_HOSTED_AGENT_ENV] === '1';
 }

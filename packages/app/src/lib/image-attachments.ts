@@ -1,8 +1,8 @@
 import {
   BUG_REPORT_ATTACHMENT_CONTENT_TYPES,
+  type GqImageAttachmentContentType,
   MAX_BUG_REPORT_ATTACHMENTS,
   MAX_BUG_REPORT_ATTACHMENTS_TOTAL_BYTES,
-  type OkImageAttachmentContentType,
 } from '@gitquire/core/logger-types';
 
 export const MAX_IMAGE_ATTACHMENTS = MAX_BUG_REPORT_ATTACHMENTS;
@@ -11,7 +11,7 @@ export const MAX_IMAGE_ATTACHMENTS_TOTAL_BYTES = MAX_BUG_REPORT_ATTACHMENTS_TOTA
 
 export const ACCEPTED_IMAGE_TYPES = BUG_REPORT_ATTACHMENT_CONTENT_TYPES;
 
-export type ImageAttachmentType = OkImageAttachmentContentType;
+export type ImageAttachmentType = GqImageAttachmentContentType;
 
 export type ImageAttachmentProblem = 'count' | 'type' | 'total';
 

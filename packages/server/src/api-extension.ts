@@ -167,16 +167,16 @@ import {
   type DeferredStoreDiscardCause,
   type DocumentDurabilityState,
   editWasCarried,
+  GQ_DOC_MOVED,
+  GQ_DOC_REMOVED,
+  GQ_PATH_UNRESOLVABLE,
+  GQ_SERVER_STOPPED,
+  GQ_STORE_DISCARDED,
+  GQ_STORE_HELD,
+  GQ_STORE_REFUSED,
+  GQ_WRITE_DROPPED,
+  GQ_WRITE_REPLACED,
   type HeldSaveReason,
-  OK_DOC_MOVED,
-  OK_DOC_REMOVED,
-  OK_PATH_UNRESOLVABLE,
-  OK_SERVER_STOPPED,
-  OK_STORE_DISCARDED,
-  OK_STORE_HELD,
-  OK_STORE_REFUSED,
-  OK_WRITE_DROPPED,
-  OK_WRITE_REPLACED,
   type StoreFailure,
   type WriteDropCause,
   type WrittenThrough,
@@ -1422,12 +1422,12 @@ function discardedStoreFailure(docName: string, cause: DeferredStoreDiscardCause
   switch (cause.kind) {
     case 'branch-switch':
       return {
-        code: OK_STORE_DISCARDED,
+        code: GQ_STORE_DISCARDED,
         message: `A Git branch switch discarded the pending save of ${docName}`,
       };
     case 'renamed-outside':
       return {
-        code: OK_DOC_REMOVED,
+        code: GQ_DOC_REMOVED,
         message: `${docName} was moved outside the app to ${cause.to}, and its open document followed`,
         removal: {
           kind: 'renamed',
@@ -1437,13 +1437,13 @@ function discardedStoreFailure(docName: string, cause: DeferredStoreDiscardCause
       };
     case 'deleted-outside':
       return {
-        code: OK_DOC_REMOVED,
+        code: GQ_DOC_REMOVED,
         message: `${docName} was deleted outside the app before the edit reached disk`,
         removal: { kind: 'deleted-outside' },
       };
     case 'shutdown':
       return {
-        code: OK_SERVER_STOPPED,
+        code: GQ_SERVER_STOPPED,
         message: `The server stopped while the file of ${docName} was missing`,
       };
     default: {
@@ -1570,23 +1570,23 @@ function storeFailureProblem(
     problem: { ...problem, ...fields },
   });
   switch (failure.code) {
-    case OK_STORE_REFUSED:
+    case GQ_STORE_REFUSED:
       return withOutcome(503, refusedStoreProblem(failure));
-    case OK_STORE_HELD:
+    case GQ_STORE_HELD:
       return withOutcome(503, heldSaveProblem(failure));
-    case OK_DOC_REMOVED:
+    case GQ_DOC_REMOVED:
       return withOutcome(409, removedDocProblem(failure));
-    case OK_STORE_DISCARDED:
+    case GQ_STORE_DISCARDED:
       return withOutcome(409, discardedStoreProblem(failure));
-    case OK_DOC_MOVED:
+    case GQ_DOC_MOVED:
       return withOutcome(409, movedDocProblem(failure));
-    case OK_SERVER_STOPPED:
+    case GQ_SERVER_STOPPED:
       return withOutcome(503, stoppedServerProblem(failure));
-    case OK_PATH_UNRESOLVABLE:
+    case GQ_PATH_UNRESOLVABLE:
       return withOutcome(400, pathFaultProblem(failure));
-    case OK_WRITE_REPLACED:
+    case GQ_WRITE_REPLACED:
       return withOutcome(409, replacedWriteProblem(failure));
-    case OK_WRITE_DROPPED:
+    case GQ_WRITE_DROPPED:
       return withOutcome(409, droppedWriteProblem(failure));
     default:
       return undefined;
@@ -1970,7 +1970,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   function heldUnsettled(docName: string, reason: HeldSaveReason, message: string): FlushOutcome {
     return {
       kind: 'failure',
-      failure: { code: OK_STORE_HELD, message: `${docName} ${message}`, held: { reason } },
+      failure: { code: GQ_STORE_HELD, message: `${docName} ${message}`, held: { reason } },
     };
   }
 
@@ -1979,7 +1979,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     failure: StoreFailure,
     writtenThrough: WrittenThrough | undefined,
   ): Promise<FlushOutcome> {
-    if (failure.code !== OK_DOC_REMOVED || failure.removal?.kind !== 'renamed') {
+    if (failure.code !== GQ_DOC_REMOVED || failure.removal?.kind !== 'renamed') {
       return { kind: 'failure', failure };
     }
     const answer = await durabilityState.awaitRenameCarry(docName, failure.removal.carry);
@@ -1995,7 +1995,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
         return {
           kind: 'failure',
           failure: {
-            code: OK_SERVER_STOPPED,
+            code: GQ_SERVER_STOPPED,
             message: `The server stopped while ${docName} was being moved outside the app to ${renamedTo}`,
             removal: { kind: 'renamed', renamedTo },
           },
@@ -2004,7 +2004,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
         return {
           kind: 'failure',
           failure: editWasCarried(writtenThrough, answer.carried)
-            ? { ...failure, code: OK_DOC_MOVED }
+            ? { ...failure, code: GQ_DOC_MOVED }
             : failure,
         };
       default: {
@@ -2100,7 +2100,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       return {
         kind: 'failure',
         failure: {
-          code: OK_WRITE_REPLACED,
+          code: GQ_WRITE_REPLACED,
           message: `${docName} changed on disk, and its file replaced the document`,
         },
       };
@@ -3623,7 +3623,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     );
   }
 
-  type OkArtifactFlush = 'flushed' | 'unavailable' | 'failed';
+  type GqArtifactFlush = 'flushed' | 'unavailable' | 'failed';
   let okArtifactFlushChain: Promise<void> = Promise.resolve();
   function scheduleOkArtifactFlush(context: string): void {
     okArtifactFlushChain = okArtifactFlushChain
@@ -3632,7 +3632,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
       })
       .catch(() => {});
   }
-  async function commitOkArtifactWrite(context: string): Promise<OkArtifactFlush> {
+  async function commitOkArtifactWrite(context: string): Promise<GqArtifactFlush> {
     if (!flushContributors) return 'unavailable';
     try {
       await flushContributors();

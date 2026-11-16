@@ -1,5 +1,5 @@
-// oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
-// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+// oxlint-disable gq/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-html-interactive-element
+// oxlint-disable gq/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-physical-direction-utility
 
 import { isOrphanMode, ORPHAN_MODES, type OrphanMode } from '@gitquire/core/constants/graph';
 import {
@@ -419,7 +419,7 @@ export function GraphPanel({
         data-electron-drag={isExpanded && isElectronHost ? '' : undefined}
         className={cn(
           isExpanded
-            ? 'mt-2 h-12 gap-3 py-0 pl-[var(--ok-titlebar-reserve-left,1rem)]'
+            ? 'mt-2 h-12 gap-3 py-0 pl-[var(--gq-titlebar-reserve-left,1rem)]'
             : 'flex-wrap gap-3',
           isExpanded && isElectronHost && '[-webkit-app-region:drag]',
         )}
@@ -427,7 +427,7 @@ export function GraphPanel({
         <div
           /**
            * The fullscreen chrome row reserves the macOS traffic-light footprint via
-           * `--ok-titlebar-reserve-left` (precedent #49).
+           * `--gq-titlebar-reserve-left` (precedent #49).
            */
           data-slot="graph-title-cluster"
           className={cn('flex min-w-0 items-center gap-1.5', isExpanded && 'ml-4')}

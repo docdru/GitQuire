@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { currentCliCommandName, OK_PROJECT_MARKER } from '@gitquire/core';
+import { currentCliCommandName, GQ_PROJECT_MARKER } from '@gitquire/core';
 import { isProjectRoot } from '../fs/find-project-root.ts';
 import { assertEntryPathInProject } from './path-safety.ts';
 import { isPluginEnabled } from './required-plugins.ts';
@@ -42,7 +42,7 @@ export async function planSeed(opts: SeedOptions = {}): Promise<ScaffoldPlan> {
 
   if (!opts.skipPrerequisite && !isProjectRoot(projectDir)) {
     throw new SeedPrerequisiteError(
-      `No ${OK_PROJECT_MARKER} found at ${projectDir}. Run \`${currentCliCommandName()} init\` first to scaffold the tool config.`,
+      `No ${GQ_PROJECT_MARKER} found at ${projectDir}. Run \`${currentCliCommandName()} init\` first to scaffold the tool config.`,
     );
   }
 

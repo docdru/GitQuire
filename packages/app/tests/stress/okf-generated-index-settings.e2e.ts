@@ -14,7 +14,7 @@ import {
 } from './_helpers';
 
 test.use({
-  workerServerEnv: { OK_TEST_OKF_GENERATED_INDEX_SETTINGS: 'isolated-content-v1' },
+  workerServerEnv: { GQ_TEST_OKF_GENERATED_INDEX_SETTINGS: 'isolated-content-v1' },
 });
 
 type OkfProjectConfig = {

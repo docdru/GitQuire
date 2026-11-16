@@ -14,7 +14,7 @@ import { dirname, join, resolve } from 'node:path';
 import {
   currentDesktopProduct,
   DEFAULT_EMBEDDINGS_BASE_URL,
-  OK_USER_HOME_SECRETS_FILE,
+  GQ_USER_HOME_SECRETS_FILE,
 } from '@gitquire/core';
 import { okUserHomeDir } from '@gitquire/core/server';
 import { parse as yamlParse, stringify as yamlStringify } from 'yaml';
@@ -73,7 +73,7 @@ export function canonicalProjectKey(projectDir: string): string {
 }
 
 export function secretsFilePath(homedirOverride?: string): string {
-  return join(okUserHomeDir(homedirOverride ?? homedir()), OK_USER_HOME_SECRETS_FILE);
+  return join(okUserHomeDir(homedirOverride ?? homedir()), GQ_USER_HOME_SECRETS_FILE);
 }
 
 export interface EmbeddingsKeyPresence {

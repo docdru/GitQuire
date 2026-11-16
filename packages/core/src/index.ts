@@ -217,14 +217,14 @@ export {
 } from './constants/mcp-launcher.ts';
 export { MENU_LABELS } from './constants/menu-labels.ts';
 export {
+  GQ_DIR,
+  GQ_LEGACY_MACHINE_LOCAL_ROOT_DIRS,
+  GQ_MACHINE_LOCAL_ROOT_DIRS,
+  GQ_MACHINE_LOCAL_ROOT_FILES,
+  GQ_PROJECT_MARKER,
+  GQ_USER_HOME_CREDENTIAL_FILES,
+  GQ_USER_HOME_SECRETS_FILE,
   LOCAL_DIR,
-  OK_DIR,
-  OK_LEGACY_MACHINE_LOCAL_ROOT_DIRS,
-  OK_MACHINE_LOCAL_ROOT_DIRS,
-  OK_MACHINE_LOCAL_ROOT_FILES,
-  OK_PROJECT_MARKER,
-  OK_USER_HOME_CREDENTIAL_FILES,
-  OK_USER_HOME_SECRETS_FILE,
   okUserHomeDisplayPath,
   SAVED_THEMES_DIRNAME,
   WORKTREES_DIRNAME,
@@ -245,8 +245,8 @@ export {
   desktopChannelLabel,
   desktopWindowsExecutableName,
   envWithoutDevChannel,
-  OkCliCommand,
-  type OkCliRefusal,
+  GqCliCommand,
+  type GqCliRefusal,
   PACKAGED_DESKTOP_PRODUCT_NAMES,
   resolveDesktopProductName,
 } from './constants/product.ts';
@@ -339,8 +339,8 @@ export {
 export type {
   BundleManifest,
   BundleRedaction,
+  GqBugReportCreateResult,
   Loggable,
-  OkBugReportCreateResult,
   ReportBundleLevel,
   ReportBundleSummary,
   SerializedError,

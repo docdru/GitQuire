@@ -5,7 +5,7 @@ import { createHighlighterCore } from 'shiki/core';
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { okSyntaxHighlight } from '@/editor/extensions/cm-theme';
-import { OK_SYNTAX_THEME_NAME, okSyntaxTheme } from './ok-syntax-theme';
+import { GQ_SYNTAX_THEME_NAME, okSyntaxTheme } from './ok-syntax-theme';
 
 function slotOf(color: string | undefined): string | null {
   const match = color?.match(/^var\(--([a-z0-9-]+)\)$/);
@@ -50,7 +50,7 @@ function compare(source: string): Array<{ text: string; shiki: string | null; cm
   const cm = cmSlots(source);
   const { tokens } = highlighter.codeToTokens(source, {
     lang: 'tsx',
-    theme: OK_SYNTAX_THEME_NAME,
+    theme: GQ_SYNTAX_THEME_NAME,
   });
   const rows: Array<{ text: string; shiki: string | null; cm: string | null }> = [];
   for (const line of tokens) {

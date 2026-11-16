@@ -58,7 +58,7 @@ function Host({ ydoc, onEditor }: { ydoc: Y.Doc; onEditor: (editor: Editor) => v
   }, [portalTarget]);
   if (editor) onEditor(editor);
   return createPortal(
-    // oxlint-disable-next-line ok/no-unportaled-editor-content -- portalled per the H6 contract, with a per-render exclusive target owned by this harness
+    // oxlint-disable-next-line gq/no-unportaled-editor-content -- portalled per the H6 contract, with a per-render exclusive target owned by this harness
     <EditorContent editor={editor} />,
     portalTarget,
   );

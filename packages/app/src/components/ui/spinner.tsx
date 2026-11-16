@@ -13,7 +13,7 @@ function Spinner({
     <Icon
       role="status"
       aria-label={t`Loading`}
-      // oxlint-disable-next-line ok/no-hand-rolled-spinner -- this is the primitive the rule points callers to
+      // oxlint-disable-next-line gq/no-hand-rolled-spinner -- this is the primitive the rule points callers to
       className={cn('size-4 animate-spin motion-reduce:animate-none', className)}
       {...props}
     />

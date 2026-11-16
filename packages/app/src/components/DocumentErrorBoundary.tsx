@@ -2,7 +2,7 @@ import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { useEffect, useRef } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { OkBlobRunnerEasterEgg } from '@/components/OkBlobRunnerEasterEgg';
+import { GqBlobRunnerEasterEgg } from '@/components/OkBlobRunnerEasterEgg';
 import { Button } from '@/components/ui/button';
 import { MountAbortError } from '@/editor/mount-promise';
 import {
@@ -118,7 +118,7 @@ function DocumentErrorFallback({
       data-slot="document-error-boundary"
       className="flex h-full flex-col items-center justify-center gap-8 p-8 text-center"
     >
-      <OkBlobRunnerEasterEgg keyboard={isServerReachError(error)} />
+      <GqBlobRunnerEasterEgg keyboard={isServerReachError(error)} />
       <div className="flex flex-col items-center gap-1">
         <h2 id="document-error-title" className="text-2xl font-light tracking-tighter text-balance">
           {title}

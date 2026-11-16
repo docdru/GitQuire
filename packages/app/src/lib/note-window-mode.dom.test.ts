@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, test } from 'vitest';
 import { isNoteWindow } from './note-window-mode.ts';
 
-type OkDesktopStub = { config: { mode: string } };
+type GqDesktopStub = { config: { mode: string } };
 
 function stubMode(mode: string | null): void {
   if (mode === null) {
-    (window as unknown as { okDesktop?: OkDesktopStub }).okDesktop = undefined;
+    (window as unknown as { okDesktop?: GqDesktopStub }).okDesktop = undefined;
     return;
   }
-  (window as unknown as { okDesktop?: OkDesktopStub }).okDesktop = { config: { mode } };
+  (window as unknown as { okDesktop?: GqDesktopStub }).okDesktop = { config: { mode } };
 }
 
 afterEach(() => {

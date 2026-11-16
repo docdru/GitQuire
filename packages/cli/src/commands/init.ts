@@ -17,7 +17,7 @@ import {
 } from '@gitquire/server';
 import select from '@inquirer/select';
 import { Command, Option } from 'commander';
-import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
+import { CONFIG_FILENAME, GQ_DIR } from '../constants.ts';
 import { formatPreviewBlock, type PreviewResult } from '../content/preview.ts';
 import {
   isHomeDir,
@@ -346,7 +346,7 @@ export async function runInit(options: InitCommandOptions = {}): Promise<InitCom
   if (isFilesystemRoot(projectRoot)) {
     throw new FilesystemRootProjectError(projectRoot);
   }
-  const willScaffold = !existsSync(join(projectRoot, OK_DIR));
+  const willScaffold = !existsSync(join(projectRoot, GQ_DIR));
   const promotedFromDir = resolution.gitRootPromoted ? relative(projectRoot, cwd) : undefined;
   const contentDirScope =
     options.contentDir !== undefined
@@ -359,7 +359,7 @@ export async function runInit(options: InitCommandOptions = {}): Promise<InitCom
       `${warning(`[gitquire] Content scope promoted to the git repo root: ${projectRoot}`)}\n` +
         `      Ran in ${promotedFromDir}/, but .gitquire/ lives at the git root (one .gitquire/ per git repo),\n` +
         `      so the whole repo is now the content scope. To narrow it, re-run with\n` +
-        `      \`${currentCliCommandName()} init --content-dir .\`, or set content.dir: ${promotedFromDir} in ${OK_DIR}/config.yml.\n`,
+        `      \`${currentCliCommandName()} init --content-dir .\`, or set content.dir: ${promotedFromDir} in ${GQ_DIR}/config.yml.\n`,
     );
   }
 
@@ -436,7 +436,7 @@ export function formatInitResult(result: InitCommandResult, cwd: string): string
     lines.push(`Seeded .gitignore at ${cwd}/.gitignore (.DS_Store)`);
   }
 
-  const okDir = join(cwd, OK_DIR);
+  const okDir = join(cwd, GQ_DIR);
   if (result.contentError) {
     lines.push(warning(result.contentError));
   } else if (result.contentCreated.length > 0 || result.contentUpdated.length > 0) {
@@ -462,13 +462,13 @@ export function formatInitResult(result: InitCommandResult, cwd: string): string
     lines.push('');
     lines.push(
       warning(
-        `⚠ --content-dir ${result.contentDirRequested} ignored — ${OK_DIR}/config.yml already exists`,
+        `⚠ --content-dir ${result.contentDirRequested} ignored — ${GQ_DIR}/config.yml already exists`,
       ),
     );
-    lines.push(`  Edit ${OK_DIR}/config.yml → content.dir directly to change the content scope.`);
+    lines.push(`  Edit ${GQ_DIR}/config.yml → content.dir directly to change the content scope.`);
   } else if (result.contentDir !== undefined && result.contentDir !== '.') {
     lines.push('');
-    lines.push(`Content scope set to ${result.contentDir}/ (content.dir in ${OK_DIR}/config.yml).`);
+    lines.push(`Content scope set to ${result.contentDir}/ (content.dir in ${GQ_DIR}/config.yml).`);
   } else if (
     result.gitRootPromoted &&
     result.contentDir === '.' &&
@@ -486,7 +486,7 @@ export function formatInitResult(result: InitCommandResult, cwd: string): string
       lines.push(
         `  To scope to just that sub-folder, re-run \`${currentCliCommandName()} init --content-dir .\` from there, or set`,
       );
-      lines.push(`  content.dir: ${result.promotedFromDir} in ${OK_DIR}/config.yml.`);
+      lines.push(`  content.dir: ${result.promotedFromDir} in ${GQ_DIR}/config.yml.`);
     }
   }
 
@@ -545,10 +545,10 @@ export function buildInitJsonSummary(
 
 export function initCommand(): Command {
   return new Command('init')
-    .description(`Scaffold ${OK_DIR}/ in the current directory`)
+    .description(`Scaffold ${GQ_DIR}/ in the current directory`)
     .option(
       '--content-dir <dir>',
-      `Limit content to <dir> instead of the whole project. <dir> is interpreted relative to your current directory (e.g. "." = the folder you run the command in), then saved to ${OK_DIR}/config.yml as content.dir.`,
+      `Limit content to <dir> instead of the whole project. <dir> is interpreted relative to your current directory (e.g. "." = the folder you run the command in), then saved to ${GQ_DIR}/config.yml as content.dir.`,
     )
     .option('--json', 'Emit a structured JSON summary to stdout (diagnostics stay on stderr)')
     .addOption(new Option('--no-mcp').hideHelp())

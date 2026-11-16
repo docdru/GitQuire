@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { LOCAL_DIR, OK_DIR } from '@gitquire/core';
+import { GQ_DIR, LOCAL_DIR } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   acquireServerLock,
@@ -15,7 +15,7 @@ let lockDir: string;
 
 beforeEach(async () => {
   tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-preview-url-'));
-  lockDir = resolve(tmpDir, OK_DIR, LOCAL_DIR);
+  lockDir = resolve(tmpDir, GQ_DIR, LOCAL_DIR);
 });
 
 afterEach(async () => {

@@ -195,9 +195,9 @@ describe('EditorHeader runtime behavior', () => {
     ]);
     expectVisualClassTokensAbsent(header.className, [
       'shadow-[inset_0_-1px_0_var(--border)]',
-      'h-[var(--ok-reduced-chrome-header-height)]',
+      'h-[var(--gq-reduced-chrome-header-height)]',
       '[-webkit-app-region:drag]',
-      'pl-[var(--ok-titlebar-reserve-left,1rem)]',
+      'pl-[var(--gq-titlebar-reserve-left,1rem)]',
     ]);
     expect(screen.queryByTestId('navigation-history-controls')).toBeNull();
   });

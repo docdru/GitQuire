@@ -10,7 +10,7 @@ import {
   SOURCE_LOCALE,
 } from './check-i18n-new-string-translations.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const LOCALES_TS = 'packages/core/src/i18n/locales.ts';
 const GLOSSARY_MD = 'packages/app/src/locales/GLOSSARY.md';
 const REVIEW_MD = 'packages/app/src/locales/REVIEW.md';
@@ -380,7 +380,7 @@ export function buildPacket({
     .trim()}\n`;
 }
 
-export function collectSourceReferences(root = OK_ROOT) {
+export function collectSourceReferences(root = GQ_ROOT) {
   return messageOrigins(
     join(root, 'packages/app'),
     CHROME_SURFACES.flatMap((surface) => surface.files),
@@ -391,7 +391,7 @@ export function withSourceReferences(entries, references) {
   return entries.map((entry) => ({ ...entry, references: [...(references.get(entry.id) ?? [])] }));
 }
 
-export function generate({ locale, root = OK_ROOT, references }) {
+export function generate({ locale, root = GQ_ROOT, references }) {
   if (!(references instanceof Map)) {
     throw new Error(
       'generate() needs the source references from collectSourceReferences(), because the .po catalogs no longer carry them',

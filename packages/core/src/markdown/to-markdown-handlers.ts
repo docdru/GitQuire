@@ -84,7 +84,7 @@ export const toMarkdownHandlers = {
     if (
       escapeProvenance.kind === 'malformed' &&
       typeof process !== 'undefined' &&
-      process.env?.OK_DEBUG_POSITION_SLICE === '1'
+      process.env?.GQ_DEBUG_POSITION_SLICE === '1'
     ) {
       console.warn(
         '[escape-provenance] malformed escapedChars metadata: CommonMark-safe serialization applies',

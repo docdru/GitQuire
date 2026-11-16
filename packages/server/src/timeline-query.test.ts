@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { templateContentDocName } from '@gitquire/core';
-import { formatOkActor, type OkActorEntry } from '@gitquire/core/shadow-repo-layout';
+import { formatOkActor, type GqActorEntry } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { getLogger } from './logger.ts';
@@ -389,7 +389,7 @@ describe('getDocumentHistory', () => {
 
     const commitWriter = async (writer: WriterIdentity, docs: string[], subject: string) => {
       const treeSha = await buildWipTree(shadow, 'content/docs');
-      const actor: OkActorEntry = {
+      const actor: GqActorEntry = {
         v: 1,
         writer_id: writer.id,
         principal: null,
@@ -1041,7 +1041,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
     const abs = resolve(contentDir, `${docKey}.md`);
     mkdirSync(dirname(abs), { recursive: true });
     writeFileSync(abs, body);
-    const actor: OkActorEntry = {
+    const actor: GqActorEntry = {
       v: 1,
       writer_id: writer.id,
       principal: null,

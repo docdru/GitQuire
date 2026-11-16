@@ -60,7 +60,7 @@ export default {
     'packages/app/src/editor/http-client.ts': ['types'],
     '.{agents,codex}/skills/**': ['files'],
     'lint-plugins/no-comments/__fixtures__/**': ['files'],
-    'lint-plugins/ok-rules/__fixtures__/**': ['files', 'exports'],
+    'lint-plugins/gq-rules/__fixtures__/**': ['files', 'exports'],
     '**/*.reads.{ts,mjs}': ['files', 'exports'],
     'scripts/assert-smoke-not-vacuous.mjs': ['files'],
     'scripts/assert-app-built.mjs': ['files'],

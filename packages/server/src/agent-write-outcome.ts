@@ -1,15 +1,15 @@
 import type { AgentWriteOutcomeFields, ProblemType, ReconcileMergeOutcome } from '@gitquire/core';
 import {
+  GQ_DOC_MOVED,
+  GQ_DOC_REMOVED,
+  GQ_PATH_UNRESOLVABLE,
+  GQ_SERVER_STOPPED,
+  GQ_STORE_DISCARDED,
+  GQ_STORE_HELD,
+  GQ_STORE_REFUSED,
+  GQ_WRITE_DROPPED,
+  GQ_WRITE_REPLACED,
   type HeldSaveReason,
-  OK_DOC_MOVED,
-  OK_DOC_REMOVED,
-  OK_PATH_UNRESOLVABLE,
-  OK_SERVER_STOPPED,
-  OK_STORE_DISCARDED,
-  OK_STORE_HELD,
-  OK_STORE_REFUSED,
-  OK_WRITE_DROPPED,
-  OK_WRITE_REPLACED,
   type StoreFailure,
 } from './document-durability-state.ts';
 
@@ -95,22 +95,22 @@ export const REFUSAL_OUTCOMES = {
 
 export function outcomeOfStoreFailure(failure: StoreFailure): AgentWriteOutcomeFields {
   switch (failure.code) {
-    case OK_STORE_HELD:
+    case GQ_STORE_HELD:
       return failure.held?.noBase === true
         ? REFUSED_NONE
         : HELD_SAVE_OUTCOMES[failure.held?.reason ?? 'pending-unreadable'];
-    case OK_DOC_MOVED:
-    case OK_STORE_DISCARDED:
+    case GQ_DOC_MOVED:
+    case GQ_STORE_DISCARDED:
       return PROJECTION_HELD;
-    case OK_DOC_REMOVED:
-    case OK_SERVER_STOPPED:
+    case GQ_DOC_REMOVED:
+    case GQ_SERVER_STOPPED:
       return failure.removal?.kind === 'renamed' ? REFUSED_RE_READ : REFUSED_NONE;
-    case OK_PATH_UNRESOLVABLE:
+    case GQ_PATH_UNRESOLVABLE:
       return REFUSED_NONE;
-    case OK_STORE_REFUSED:
-    case OK_WRITE_REPLACED:
+    case GQ_STORE_REFUSED:
+    case GQ_WRITE_REPLACED:
       return REFUSED_RE_READ;
-    case OK_WRITE_DROPPED:
+    case GQ_WRITE_DROPPED:
       if (failure.dropped === 'legacy-name') return REFUSED_RETRY;
       return failure.dropped === 'intake-landed' ? REFUSED_RE_READ : REFUSED_NONE;
     default:
@@ -120,8 +120,8 @@ export function outcomeOfStoreFailure(failure: StoreFailure): AgentWriteOutcomeF
 
 export function answeredWithSuccessOnAppRoutes(failure: StoreFailure): boolean {
   return (
-    failure.code === OK_WRITE_REPLACED ||
-    (failure.code === OK_STORE_HELD &&
+    failure.code === GQ_WRITE_REPLACED ||
+    (failure.code === GQ_STORE_HELD &&
       (failure.held?.reason === 'pending-unsettled' || failure.held?.reason === 'pending-rename'))
   );
 }

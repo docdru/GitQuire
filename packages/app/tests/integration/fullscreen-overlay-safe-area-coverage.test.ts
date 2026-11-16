@@ -7,8 +7,8 @@ import {
   OVERLAY_SCAN_ROOT,
 } from './fullscreen-overlay-safe-area-coverage.reads';
 
-const OK_ROOT = join(import.meta.dir, '..', '..', '..', '..');
-const APP_SRC = join(OK_ROOT, OVERLAY_SCAN_ROOT);
+const GQ_ROOT = join(import.meta.dir, '..', '..', '..', '..');
+const APP_SRC = join(GQ_ROOT, OVERLAY_SCAN_ROOT);
 const REPO_RELATIVE_PREFIX = OVERLAY_SCAN_ROOT;
 
 interface ClassPattern {
@@ -36,8 +36,8 @@ const CLASS_PATTERNS: readonly ClassPattern[] = [
 ];
 
 const SAFE_AREA_AFFORDANCE_MARKERS = [
-  'pl-[var(--ok-titlebar-reserve-left,1rem)]',
-  'ps-[var(--ok-titlebar-reserve-left,1rem)]',
+  'pl-[var(--gq-titlebar-reserve-left,1rem)]',
+  'ps-[var(--gq-titlebar-reserve-left,1rem)]',
 ];
 
 const SAFE_AREA_WRAPPER_FILES = new Set<string>();

@@ -14,7 +14,7 @@ export function mergedPostParseWalkerPlugin() {
   return (tree: Root, file: VFile) => {
     const source = typeof file.value === 'string' ? file.value : '';
 
-    const debug = typeof process !== 'undefined' && process.env?.OK_DEBUG_POSITION_SLICE === '1';
+    const debug = typeof process !== 'undefined' && process.env?.GQ_DEBUG_POSITION_SLICE === '1';
 
     let sawNestedRawSourceMdx = false;
     visit(tree, (node, index, parent) => {

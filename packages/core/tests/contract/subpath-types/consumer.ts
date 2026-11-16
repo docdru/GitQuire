@@ -137,7 +137,7 @@ export type {
   OPEN_KNOWLEDGE_ISSUES_URL,
 } from '@gitquire/core/constants/menu-labels';
 export type {
-  OK_USER_HOME_AUTH_FILE,
+  GQ_USER_HOME_AUTH_FILE,
   okUserHomeDisplayPath,
 } from '@gitquire/core/constants/ok-dir';
 export type { okUserHomeDir } from '@gitquire/core/constants/ok-user-home';
@@ -254,17 +254,17 @@ export type {
   BUG_REPORT_ATTACHMENT_CONTENT_TYPES,
   BUG_REPORT_ATTACHMENT_EXTENSIONS,
   BUG_REPORT_SCREENSHOT_ZIP_ENTRY,
+  GqBugReportCrashDetectedEvent,
+  GqBugReportListRow,
+  GqBugReportScreenshot,
+  GqBugReportSendMetadata,
+  GqBugReportSendResult,
+  GqImageAttachmentContentType,
   isBugReportAgentChatEntry,
   isBugReportAttachmentEntry,
   isBugReportCrashDumpEntry,
   MAX_BUG_REPORT_ATTACHMENTS,
   MAX_BUG_REPORT_ATTACHMENTS_TOTAL_BYTES,
-  OkBugReportCrashDetectedEvent,
-  OkBugReportListRow,
-  OkBugReportScreenshot,
-  OkBugReportSendMetadata,
-  OkBugReportSendResult,
-  OkImageAttachmentContentType,
   ReportBundleSummary,
 } from '@gitquire/core/logger-types';
 export type {

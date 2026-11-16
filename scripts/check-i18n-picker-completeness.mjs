@@ -11,7 +11,7 @@ import {
   SOURCE_LOCALE,
 } from './check-i18n-new-string-translations.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const LOCALES_TS = 'packages/core/src/i18n/locales.ts';
 const CATALOG_REL = (locale) => `packages/app/src/locales/${locale}/messages.po`;
 
@@ -89,15 +89,15 @@ export function formatShortfalls(rows) {
 }
 
 function main() {
-  const localesSource = readFileSync(join(OK_ROOT, LOCALES_TS), 'utf8');
+  const localesSource = readFileSync(join(GQ_ROOT, LOCALES_TS), 'utf8');
   const locales = readSupportedLocales(localesSource);
   const picker = new Set(readPickerLocales(localesSource));
 
-  const sourcePath = join(OK_ROOT, CATALOG_REL(SOURCE_LOCALE));
+  const sourcePath = join(GQ_ROOT, CATALOG_REL(SOURCE_LOCALE));
   const sourceMessages = parsePoCatalog(readFileSync(sourcePath, 'utf8'));
 
   const rows = locales.map((locale) => {
-    const path = join(OK_ROOT, CATALOG_REL(locale));
+    const path = join(GQ_ROOT, CATALOG_REL(locale));
     const catalog = existsSync(path) ? parsePoCatalog(readFileSync(path, 'utf8')) : undefined;
     return {
       ...measureCoverage({

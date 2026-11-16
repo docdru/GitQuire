@@ -79,13 +79,13 @@ export const okSyntaxHighlight = HighlightStyle.define([
   { tag: tags.invalid, color: 'var(--destructive)' },
 ]);
 
-export interface OkCmThemeOptions {
+export interface GqCmThemeOptions {
   dark: boolean;
   background?: string;
   gutterBackground?: string;
 }
 
-function createOkCmTheme(options: OkCmThemeOptions): Extension {
+function createOkCmTheme(options: GqCmThemeOptions): Extension {
   const background = options.background ?? 'transparent';
   const gutterBackground = options.gutterBackground ?? 'transparent';
   return EditorView.theme(
@@ -125,6 +125,6 @@ function createOkCmTheme(options: OkCmThemeOptions): Extension {
   );
 }
 
-export function okCmTheme(options: OkCmThemeOptions): Extension[] {
+export function okCmTheme(options: GqCmThemeOptions): Extension[] {
   return [createOkCmTheme(options), syntaxHighlighting(okSyntaxHighlight, { fallback: true })];
 }

@@ -38,7 +38,7 @@ import { requestDocPanelTab } from '@/components/doc-panel-events';
 import { GithubIcon } from '@/components/icons/github';
 import type { ResolvedNavigationTarget } from '@/components/navigation-targets';
 import { PANE_ICON } from '@/components/pane-icons';
-import type { OkMenuAction } from '@/lib/desktop-bridge-types';
+import type { GqMenuAction } from '@/lib/desktop-bridge-types';
 import { requestDockPaneMove } from '@/lib/dock-move-requests';
 import { i18n } from '@/lib/i18n';
 import type { KeyboardShortcutId } from '@/lib/keyboard-shortcuts';
@@ -73,7 +73,7 @@ export interface PaletteCommandContext {
   contextualTargetKind: ContextualTargetKind;
   viewMenuState: ViewMenuState;
   chatHistorySide: PhysicalSide;
-  emitMenuAction(action: OkMenuAction): void;
+  emitMenuAction(action: GqMenuAction): void;
   runAction(fn: () => Promise<void> | void, fallback?: string): void;
   openExternalUrl(url: string): void;
   closePalette(): void;
@@ -87,7 +87,7 @@ export type PaletteCommandGroup = 'commands' | 'project' | 'file' | 'view' | 'ap
 
 export interface PaletteCommand {
   id: string;
-  menuActionId?: OkMenuAction;
+  menuActionId?: GqMenuAction;
   label(ctx: PaletteCommandContext): string;
   keywords: readonly string[];
   icon: ComponentType<{ className?: string }>;
@@ -267,7 +267,7 @@ function resolvePaletteLabel(cmd: CommandIdentity, ctx: PaletteCommandContext): 
 }
 
 function busDispatch(cmd: CommandIdentity): (ctx: PaletteCommandContext) => void {
-  const action = cmd.menuActionId as OkMenuAction;
+  const action = cmd.menuActionId as GqMenuAction;
   return (ctx) => ctx.emitMenuAction(action);
 }
 
@@ -279,7 +279,7 @@ function toPaletteCommand(cmd: CommandIdentity): PaletteCommand {
   const checkField = cmd.checkField;
   return {
     id: cmd.id,
-    menuActionId: cmd.menuActionId as OkMenuAction | undefined,
+    menuActionId: cmd.menuActionId as GqMenuAction | undefined,
     label: (ctx) => resolvePaletteLabel(cmd, ctx),
     keywords: cmd.keywords,
     icon,

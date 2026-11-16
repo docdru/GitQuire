@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { type AsyncState, useAllTemplates } from '@/hooks/use-folder-config';
 import { useIsEmbedded } from '@/hooks/use-is-embedded';
 import { emitCreateTopLevelFile } from '@/lib/create-file-events';
-import type { OkPackId } from '@/lib/desktop-bridge-types';
+import type { GqPackId } from '@/lib/desktop-bridge-types';
 import { subscribeToDocumentsChanged } from '@/lib/documents-events';
 import { fetchDocumentListShared } from '@/lib/documents-fetch';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,7 @@ export function EmptyEditorState({
 }) {
   const templatesState = useAllTemplates();
   const [seedDialogOpen, setSeedDialogOpen] = useState(false);
-  const [seedDialogInitialPackId, setSeedDialogInitialPackId] = useState<OkPackId | undefined>(
+  const [seedDialogInitialPackId, setSeedDialogInitialPackId] = useState<GqPackId | undefined>(
     undefined,
   );
   const [documentCount, setDocumentCount] = useState<number | null>(null);
@@ -196,7 +196,7 @@ function OnboardingView({
   onRageStreak,
 }: {
   celebrateSignal: number;
-  onPackSelect: (packId: OkPackId) => void;
+  onPackSelect: (packId: GqPackId) => void;
   onRageStreak?: () => void;
 }) {
   const { t } = useLingui();

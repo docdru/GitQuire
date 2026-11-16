@@ -10,8 +10,8 @@ import {
   readPickerLocales,
 } from './check-i18n-picker-completeness.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
-const LOCALES_TS = join(OK_ROOT, 'packages/core/src/i18n/locales.ts');
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const LOCALES_TS = join(GQ_ROOT, 'packages/core/src/i18n/locales.ts');
 
 const catalogOf = (entries) => new Map(Object.entries(entries));
 
@@ -171,7 +171,7 @@ describe('reporting', () => {
 describe('the gate against the real catalogs', () => {
   test('passes on the committed catalogs', () => {
     const result = spawnSync('node', ['scripts/check-i18n-picker-completeness.mjs'], {
-      cwd: OK_ROOT,
+      cwd: GQ_ROOT,
       encoding: 'utf8',
     });
     expect(result.error).toBeUndefined();

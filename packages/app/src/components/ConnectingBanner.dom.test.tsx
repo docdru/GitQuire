@@ -38,7 +38,7 @@ describe('ConnectingBanner placement', () => {
 
     expectVisualClassTokens(screen.getByRole('alert').className, [
       'fixed',
-      'top-[var(--ok-app-header-height,0px)]',
+      'top-[var(--gq-app-header-height,0px)]',
       'inset-x-0',
     ]);
   });
@@ -53,7 +53,7 @@ describe('ConnectingBanner placement', () => {
 
     expectVisualClassTokens(screen.getByRole('status').className, [
       'fixed',
-      'top-[var(--ok-app-header-height,0px)]',
+      'top-[var(--gq-app-header-height,0px)]',
       'inset-x-0',
     ]);
   });

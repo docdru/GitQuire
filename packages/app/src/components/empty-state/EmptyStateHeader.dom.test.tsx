@@ -7,7 +7,7 @@ import {
 } from '@/test-utils/visual-contract';
 
 vi.doMock('@/components/OkBlob', () => ({
-  OkBlob: ({
+  GqBlob: ({
     celebrateSignal,
     size,
     onRage,

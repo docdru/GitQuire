@@ -2,12 +2,12 @@ import type { ServerResponse } from 'node:http';
 import { describe, expect, test } from 'vitest';
 import { respondPersistenceFailure } from './api-extension.ts';
 import {
-  OK_DOC_MOVED,
-  OK_DOC_REMOVED,
-  OK_SERVER_STOPPED,
-  OK_STORE_DISCARDED,
-  OK_STORE_HELD,
-  OK_STORE_REFUSED,
+  GQ_DOC_MOVED,
+  GQ_DOC_REMOVED,
+  GQ_SERVER_STOPPED,
+  GQ_STORE_DISCARDED,
+  GQ_STORE_HELD,
+  GQ_STORE_REFUSED,
   type StoreFailure,
 } from './document-durability-state.ts';
 
@@ -37,7 +37,7 @@ describe('respondPersistenceFailure — store-refused', () => {
   test('an OK_STORE_REFUSED failure renders a 503 with the store-refused URN and re-read guidance', () => {
     const { res, writeHeadCalls, endCalls } = makeMockRes();
     const failure: StoreFailure = {
-      code: OK_STORE_REFUSED,
+      code: GQ_STORE_REFUSED,
       message: 'duplication tripwire baseline unavailable for notes; store refused (fail-closed)',
     };
 
@@ -75,7 +75,7 @@ describe('respondPersistenceFailure: a held save', () => {
   test('an OK_STORE_HELD failure renders a 503 save-held problem with its reason, cause and the projection-held outcome', () => {
     const { res, writeHeadCalls, endCalls } = makeMockRes();
     const failure: StoreFailure = {
-      code: OK_STORE_HELD,
+      code: GQ_STORE_HELD,
       message: 'notes was not saved: its file could not be read for the compare before the write',
       held: { reason: 'pending-unreadable', causeCode: 'EBUSY' },
     };
@@ -111,7 +111,7 @@ describe('respondPersistenceFailure: a held save', () => {
       const { res, endCalls } = makeMockRes();
       respondPersistenceFailure(
         res,
-        { code: OK_STORE_HELD, message: 'notes was not saved', held },
+        { code: GQ_STORE_HELD, message: 'notes was not saved', held },
         'agent-write-md',
       );
       const body = JSON.parse(endCalls[0] ?? '{}') as Record<string, unknown>;
@@ -172,7 +172,7 @@ describe('respondPersistenceFailure: a held save', () => {
     const { res, endCalls } = makeMockRes();
     respondPersistenceFailure(
       res,
-      { code: OK_STORE_HELD, message: 'notes was not saved', held: { reason } },
+      { code: GQ_STORE_HELD, message: 'notes was not saved', held: { reason } },
       'agent-write-md',
     );
     const body = JSON.parse(endCalls[0] ?? '{}') as Record<string, unknown>;
@@ -185,7 +185,7 @@ describe('respondPersistenceFailure: a held save', () => {
     const { res, endCalls } = makeMockRes();
     respondPersistenceFailure(
       res,
-      { code: OK_STORE_HELD, message: 'chart was not saved', held: { reason: 'pending-not-utf8' } },
+      { code: GQ_STORE_HELD, message: 'chart was not saved', held: { reason: 'pending-not-utf8' } },
       'agent-write-md',
     );
     const body = JSON.parse(endCalls[0] ?? '{}') as Record<string, unknown>;
@@ -205,7 +205,7 @@ describe('respondPersistenceFailure: a held save', () => {
   test('a held save with no errno names its reason and carries no cause code', () => {
     const { res, endCalls } = makeMockRes();
     const failure: StoreFailure = {
-      code: OK_STORE_HELD,
+      code: GQ_STORE_HELD,
       message: 'notes was not saved: its file kept changing while it was being saved',
       held: { reason: 'pending-exhausted' },
     };
@@ -224,7 +224,7 @@ describe('respondPersistenceFailure: store discarded by a branch switch', () => 
   test('an OK_STORE_DISCARDED failure renders a 409 telling the agent the edit stays in the open document', () => {
     const { res, writeHeadCalls, endCalls } = makeMockRes();
     const failure: StoreFailure = {
-      code: OK_STORE_DISCARDED,
+      code: GQ_STORE_DISCARDED,
       message: 'A Git branch switch discarded the pending save of notes',
     };
 
@@ -242,7 +242,7 @@ describe('respondPersistenceFailure: the save of a document whose file went miss
   test('a move followed outside the app renders a 409 doc-moved that names the new name', () => {
     const { res, writeHeadCalls, endCalls } = makeMockRes();
     const failure: StoreFailure = {
-      code: OK_DOC_MOVED,
+      code: GQ_DOC_MOVED,
       message: 'notes was moved outside the app to archive/notes, and its open document followed',
       removal: { kind: 'renamed', renamedTo: 'archive/notes' },
     };
@@ -259,7 +259,7 @@ describe('respondPersistenceFailure: the save of a document whose file went miss
   test('a delete that stood renders a 409 doc-removed saying the edit is in the history', () => {
     const { res, writeHeadCalls, endCalls } = makeMockRes();
     const failure: StoreFailure = {
-      code: OK_DOC_REMOVED,
+      code: GQ_DOC_REMOVED,
       message: 'notes was deleted outside the app before the edit reached disk',
       removal: { kind: 'deleted-outside' },
     };
@@ -278,7 +278,7 @@ describe('respondPersistenceFailure: the save of a document whose file went miss
     respondPersistenceFailure(
       res,
       {
-        code: OK_SERVER_STOPPED,
+        code: GQ_SERVER_STOPPED,
         message: 'The server stopped while notes was being moved outside the app to archive/notes',
         removal: { kind: 'renamed', renamedTo: 'archive/notes' },
       },
@@ -303,7 +303,7 @@ describe('respondPersistenceFailure: the save of a document whose file went miss
     respondPersistenceFailure(
       res,
       {
-        code: OK_STORE_HELD,
+        code: GQ_STORE_HELD,
         message:
           'notes was still being moved outside the app to archive/notes when the write stopped waiting',
         held: { reason: 'pending-rename' },
@@ -320,7 +320,7 @@ describe('respondPersistenceFailure: the save of a document whose file went miss
   test('a shutdown while the file was missing renders a 503 server-stopped', () => {
     const { res, writeHeadCalls, endCalls } = makeMockRes();
     const failure: StoreFailure = {
-      code: OK_SERVER_STOPPED,
+      code: GQ_SERVER_STOPPED,
       message: 'The server stopped while the file of notes was missing',
     };
 
@@ -339,7 +339,7 @@ describe('respondPersistenceFailure: a document renamed outside the app', () => 
     respondPersistenceFailure(
       res,
       {
-        code: OK_DOC_MOVED,
+        code: GQ_DOC_MOVED,
         message: 'notes was renamed to archive/notes on disk',
         removal: { kind: 'renamed', renamedTo: 'archive/notes' },
       },
@@ -358,7 +358,7 @@ describe('respondPersistenceFailure: a document renamed outside the app', () => 
     respondPersistenceFailure(
       res,
       {
-        code: OK_DOC_REMOVED,
+        code: GQ_DOC_REMOVED,
         message: 'notes was renamed to archive/notes on disk',
         removal: { kind: 'renamed', renamedTo: 'archive/notes' },
       },

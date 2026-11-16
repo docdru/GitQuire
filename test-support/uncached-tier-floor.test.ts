@@ -8,7 +8,7 @@ import tierConfig from '../vitest.uncached.config';
 import { type ChildRun, runChildWithSilenceBound } from './child-silence-bound.test-helper';
 import { uncachedTierFloor } from './uncached-tier-floor';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const VITEST_CLI = resolve(
   dirname(fileURLToPath(import.meta.resolve('vitest/package.json'))),
   'vitest.mjs',
@@ -46,7 +46,7 @@ function runVitest(
 }
 
 function runRealTier(signal: AbortSignal, args: string[]): Promise<ChildRun> {
-  return runVitest(signal, OK_ROOT, 'vitest.uncached.config.ts', args);
+  return runVitest(signal, GQ_ROOT, 'vitest.uncached.config.ts', args);
 }
 
 function refusedCounts(run: ChildRun): { executed: number; collected: number } {
@@ -109,7 +109,7 @@ describe('the real uncached tier fails a run in which a collected test did not e
       const { executed, collected } = refusedCounts(run);
       expect(
         executed,
-        'precondition: -t "rule is registered" must still select at least one tier test, the ok-rules registration tests',
+        'precondition: -t "rule is registered" must still select at least one tier test, the gq-rules registration tests',
       ).toBeGreaterThan(0);
       expect(executed).toBeLessThan(collected);
       expect(run.output).toMatch(/-t "rule is registered" skipped tests by name/);
@@ -699,16 +699,16 @@ describe('the floor fails closed', () => {
   }
 
   test('one Vitest instance gets one floor, however many of its projects carry the plugin', () => {
-    const vitest = { config: { reporters: [], root: OK_ROOT, testNamePattern: undefined } };
+    const vitest = { config: { reporters: [], root: GQ_ROOT, testNamePattern: undefined } };
     installFloor(vitest);
     expect(installFloor(vitest)).toHaveLength(1);
   });
 
   test('a result the floor cannot read fails the run instead of passing it', () => {
-    const vitest = { config: { reporters: [], root: OK_ROOT, testNamePattern: undefined } };
+    const vitest = { config: { reporters: [], root: GQ_ROOT, testNamePattern: undefined } };
     const [floor] = installFloor(vitest);
     const unreadable = {
-      moduleId: join(OK_ROOT, 'unreadable.uncached.test.ts'),
+      moduleId: join(GQ_ROOT, 'unreadable.uncached.test.ts'),
       children: {
         *allTests() {
           yield {
@@ -737,10 +737,10 @@ describe('the floor fails closed', () => {
   });
 
   test('a reader that breaks on a changed Vitest API fails the run and keeps the error class and stack', () => {
-    const vitest = { config: { reporters: [], root: OK_ROOT, testNamePattern: undefined } };
+    const vitest = { config: { reporters: [], root: GQ_ROOT, testNamePattern: undefined } };
     const [floor] = installFloor(vitest);
     const drifted = {
-      moduleId: join(OK_ROOT, 'drifted.uncached.test.ts'),
+      moduleId: join(GQ_ROOT, 'drifted.uncached.test.ts'),
       children: { allTestCases: () => [] },
     } as unknown as TestModule;
     const previous = process.exitCode;

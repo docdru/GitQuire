@@ -30,7 +30,7 @@ vi.mock('node:fs', async (importOriginal) => {
 
 const actualFs = await vi.importActual<typeof import('node:fs')>('node:fs');
 
-const OK_TREE: Readonly<Record<string, string>> = {
+const GQ_TREE: Readonly<Record<string, string>> = {
   'package.json': '{"name":"open-knowledge"}\n',
   'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
   'packages/app/package.json': '{"name":"@gitquire/app"}\n',
@@ -55,7 +55,7 @@ function write(root: string, path: string, content: string): void {
 
 function okTree(): string {
   const root = scratch('ok-prebuilt-prune-tree-');
-  for (const [path, content] of Object.entries(OK_TREE)) write(root, path, content);
+  for (const [path, content] of Object.entries(GQ_TREE)) write(root, path, content);
   return root;
 }
 

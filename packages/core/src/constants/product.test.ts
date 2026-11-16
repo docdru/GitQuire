@@ -7,8 +7,8 @@ import {
   desktopChannelLabel,
   desktopProductForCliCommand,
   envWithoutDevChannel,
+  GqCliCommand,
   isDevChannel,
-  OkCliCommand,
   PACKAGED_DESKTOP_PRODUCT_NAMES,
   resolveDesktopProductName,
   userHomeDisplayPath,
@@ -237,11 +237,11 @@ describe('envWithoutDevChannel', () => {
   });
 });
 
-describe('OkCliCommand', () => {
+describe('GqCliCommand', () => {
   const checkoutCli = ['node', '/src/cli.mjs'];
 
   it('pins dev only on a CLI the host supplies', () => {
-    const cli = OkCliCommand.resolve({
+    const cli = GqCliCommand.resolve({
       host: { cliArgs: checkoutCli },
       env: { GITQUIRE_CHANNEL: 'dev' },
     });
@@ -253,7 +253,7 @@ describe('OkCliCommand', () => {
   });
 
   it('never hands dev to the CLI on PATH, which a released build may be', () => {
-    const cli = OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
+    const cli = GqCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
     expect(cli.runnerInvocation(['auth', 'status'])).toEqual({
       cliArgs: ['gitquire', 'auth', 'status'],
       cliEnv: {},
@@ -273,7 +273,7 @@ describe('OkCliCommand', () => {
     [['clone', '--json', 'https://github.com/o/r.git', '/tmp/r']],
     [['start', '--port', '0']],
   ])('refuses %j on every path when a dev build falls back to the CLI on PATH', (args) => {
-    const cli = OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
+    const cli = GqCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
     expect(cli.refusalFor(args)).toBe(DEV_FALLBACK_CLI_REFUSAL);
     expect(cli.runnerInvocation(args)).toEqual({ refused: DEV_FALLBACK_CLI_REFUSAL });
     expect(cli.spawn(args, {})).toEqual({ refused: DEV_FALLBACK_CLI_REFUSAL });
@@ -288,7 +288,7 @@ describe('OkCliCommand', () => {
   });
 
   it('lets a fallback dev build read through the CLI on PATH', () => {
-    const cli = OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
+    const cli = GqCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
     expect(cli.refusalFor(['auth', 'status'])).toBeUndefined();
     expect(cli.refusalFor(['auth', 'git-credential'])).toBeUndefined();
     expect(cli.refusalFor(['share', 'owners', '--json'])).toBeUndefined();
@@ -296,7 +296,7 @@ describe('OkCliCommand', () => {
 
   it('pins a shipped non-Stable channel on any CLI', () => {
     expect(
-      OkCliCommand.resolve({
+      GqCliCommand.resolve({
         host: { cliArgs: [] },
         env: { GITQUIRE_CHANNEL: 'beta' },
       }).runnerInvocation([]),
@@ -307,7 +307,7 @@ describe('OkCliCommand', () => {
   });
 
   it('pins nothing on Stable and refuses nothing', () => {
-    const cli = OkCliCommand.resolve({
+    const cli = GqCliCommand.resolve({
       host: { cliArgs: ['ok'] },
       env: { GITQUIRE_CHANNEL: 'stable' },
     });
@@ -316,7 +316,7 @@ describe('OkCliCommand', () => {
   });
 
   it('carries the channel with the argv into every form a caller can take', () => {
-    const cli = OkCliCommand.resolve({
+    const cli = GqCliCommand.resolve({
       host: { cliArgs: checkoutCli },
       env: { GITQUIRE_CHANNEL: 'dev' },
     });
@@ -336,7 +336,7 @@ describe('OkCliCommand', () => {
   });
 
   it('applies a host overlay, where undefined removes an inherited key', () => {
-    const cli = OkCliCommand.resolve({
+    const cli = GqCliCommand.resolve({
       host: {
         cliArgs: ['/app/OpenKnowledge.exe', 'cli.mjs'],
         cliEnv: { ELECTRON_RUN_AS_NODE: '1', NODE_OPTIONS: undefined },

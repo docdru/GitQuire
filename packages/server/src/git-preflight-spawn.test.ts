@@ -2,13 +2,13 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 
 const SERVER_PACKAGE_ROOT = resolve(import.meta.dir, '..');
 
 function seedOkScaffold(projectDir: string): void {
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
   writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');

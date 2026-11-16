@@ -1,6 +1,6 @@
 import { Trans } from '@lingui/react/macro';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { OkBlob } from '@/components/OkBlob';
+import { GqBlob } from '@/components/OkBlob';
 import { Kbd } from '@/components/ui/kbd';
 import { focusIsOnAControl, gameMayHandleKey } from '@/lib/blob-run-keyboard';
 import { MASCOT_VIEW_TRANSITION_NAME } from '@/lib/view-transition';
@@ -33,7 +33,7 @@ const SCORE_DIGITS = 4;
 
 const DUCK_BAND_FRACTION = 0.45;
 
-interface OkBlobRunnerProps {
+interface GqBlobRunnerProps {
   autoStart?: boolean;
 }
 
@@ -41,7 +41,7 @@ function HintKey({ children }: { children: ReactNode }) {
   return <Kbd className="h-4 min-w-4 px-1.5 align-middle text-[10px]">{children}</Kbd>;
 }
 
-export function OkBlobRunner({ autoStart = false }: OkBlobRunnerProps = {}) {
+export function GqBlobRunner({ autoStart = false }: GqBlobRunnerProps = {}) {
   const stateRef = useRef(createRunnerState());
   const trackRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -187,7 +187,7 @@ export function OkBlobRunner({ autoStart = false }: OkBlobRunnerProps = {}) {
     setDucking(stateRef.current, false);
   }
 
-  if (reduceMotion) return <OkBlob size={PLAYER_SIZE} variant="sleeping" />;
+  if (reduceMotion) return <GqBlob size={PLAYER_SIZE} variant="sleeping" />;
 
   const asleep = phase !== 'running' && !beatBest;
 
@@ -216,7 +216,7 @@ export function OkBlobRunner({ autoStart = false }: OkBlobRunnerProps = {}) {
             ...(autoStart ? { viewTransitionName: MASCOT_VIEW_TRANSITION_NAME } : {}),
           }}
         >
-          <OkBlob
+          <GqBlob
             size={PLAYER_SIZE}
             trackMouse={false}
             variant={asleep ? 'sleeping' : 'default'}
@@ -231,7 +231,7 @@ export function OkBlobRunner({ autoStart = false }: OkBlobRunnerProps = {}) {
             ref={(node) => {
               obstacleRefs.current[i] = node;
             }}
-            // oxlint-disable-next-line ok/no-physical-direction-utility -- physical origin is load-bearing here
+            // oxlint-disable-next-line gq/no-physical-direction-utility -- physical origin is load-bearing here
             className="absolute bottom-0 left-0 rounded-sm bg-muted-foreground/70 will-change-transform"
             style={{ opacity: 0 }}
           />

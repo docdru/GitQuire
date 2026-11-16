@@ -12,12 +12,12 @@ export type LoopMarkerClass = keyof typeof LOOP_MARKER_SOURCES;
 
 export const EXPECTED_LOOP_MARKERS_ENV = 'GITQUIRE_TEST_LOOP_EXPECTED_MARKERS';
 
-const OK_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
+const GQ_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
 const MARKER_SOURCE = /^export const [A-Z_]+ = '([a-z0-9-]+)';\n$/;
 
 function markerOnDisk(markerClass: LoopMarkerClass): string {
   const path = LOOP_MARKER_SOURCES[markerClass];
-  const match = MARKER_SOURCE.exec(readFileSync(join(OK_ROOT, path), 'utf8'));
+  const match = MARKER_SOURCE.exec(readFileSync(join(GQ_ROOT, path), 'utf8'));
   if (match === null) throw new Error(`${path} is not a single exported marker literal`);
   return match[1];
 }

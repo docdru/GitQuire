@@ -10,7 +10,7 @@ import { configureTestGitRepository } from '../../../../test-support/configure-g
 import type { ExecFileSyncFn, GhDetectResult } from '../auth/gh-detect.ts';
 import { detectGh } from '../auth/gh-detect.ts';
 import { FileBackend, type TokenStore } from '../auth/token-store.ts';
-import { OK_DIR } from '../constants.ts';
+import { GQ_DIR } from '../constants.ts';
 import {
   buildCloneArgs,
   buildCloneAuthEnv,
@@ -775,7 +775,7 @@ describe('ensureOkExcludedFromGit', () => {
 
     expect(ensureOkExcludedFromGit(testDir)).toBe('appended');
     const after = readFileSync(excludePath, 'utf-8');
-    expect(after).toContain(`${OK_DIR}/`);
+    expect(after).toContain(`${GQ_DIR}/`);
     expect(after.startsWith(defaultTemplate)).toBe(true);
   });
 
@@ -784,7 +784,7 @@ describe('ensureOkExcludedFromGit', () => {
     writeFileSync(excludePath, '', 'utf-8');
 
     expect(ensureOkExcludedFromGit(testDir)).toBe('appended');
-    expect(readFileSync(excludePath, 'utf-8')).toBe(`${OK_DIR}/\n`);
+    expect(readFileSync(excludePath, 'utf-8')).toBe(`${GQ_DIR}/\n`);
   });
 
   it('inserts a newline before appending when existing file has no trailing newline', () => {
@@ -792,20 +792,20 @@ describe('ensureOkExcludedFromGit', () => {
     writeFileSync(excludePath, '*.tmp', 'utf-8');
 
     expect(ensureOkExcludedFromGit(testDir)).toBe('appended');
-    expect(readFileSync(excludePath, 'utf-8')).toBe(`*.tmp\n${OK_DIR}/\n`);
+    expect(readFileSync(excludePath, 'utf-8')).toBe(`*.tmp\n${GQ_DIR}/\n`);
   });
 
   it('is idempotent — re-running returns "already-present"', () => {
     const excludePath = join(testDir, '.git', 'info', 'exclude');
-    writeFileSync(excludePath, `${OK_DIR}/\n`, 'utf-8');
+    writeFileSync(excludePath, `${GQ_DIR}/\n`, 'utf-8');
 
     expect(ensureOkExcludedFromGit(testDir)).toBe('already-present');
-    expect(readFileSync(excludePath, 'utf-8')).toBe(`${OK_DIR}/\n`);
+    expect(readFileSync(excludePath, 'utf-8')).toBe(`${GQ_DIR}/\n`);
   });
 
   it('recognizes leading-slash and no-trailing-slash variants', () => {
     const excludePath = join(testDir, '.git', 'info', 'exclude');
-    for (const variant of [OK_DIR, `/${OK_DIR}`, `/${OK_DIR}/`]) {
+    for (const variant of [GQ_DIR, `/${GQ_DIR}`, `/${GQ_DIR}/`]) {
       writeFileSync(excludePath, `${variant}\n`, 'utf-8');
       expect(ensureOkExcludedFromGit(testDir)).toBe('already-present');
     }
@@ -847,7 +847,7 @@ describe('ensureOkExcludedFromGit', () => {
       expect(result).toBe('appended');
 
       const mainExclude = readFileSync(join(mainRepoDir, '.git', 'info', 'exclude'), 'utf-8');
-      expect(mainExclude).toContain(`${OK_DIR}/`);
+      expect(mainExclude).toContain(`${GQ_DIR}/`);
     } finally {
       rmSync(linkedDir, { recursive: true, force: true });
       rmSync(mainRepoDir, { recursive: true, force: true });

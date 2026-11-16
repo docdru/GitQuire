@@ -2,11 +2,11 @@ import type { LintPluginId } from './markdown/lint/types.ts';
 
 export type { RecentProjectEntry } from './sharing/index.ts';
 
-export interface OkMenuActionOrigin {
+export interface GqMenuActionOrigin {
   readonly launcherBorne: boolean;
 }
 
-export type OkMenuAction =
+export type GqMenuAction =
   | 'new-doc'
   | 'new-folder'
   | 'new-project'
@@ -40,15 +40,15 @@ export type OkMenuAction =
   | 'switch-worktree'
   | 'send-feedback';
 
-export type OkCheckTargetExistsResult = 'exists' | 'missing' | 'unreadable';
+export type GqCheckTargetExistsResult = 'exists' | 'missing' | 'unreadable';
 
-export interface OkHeadBranchInfo {
+export interface GqHeadBranchInfo {
   readonly currentBranch: string | null;
   readonly headSha: string | null;
   readonly detached: boolean;
 }
 
-export interface OkUpdateRelaunchFailedInfo {
+export interface GqUpdateRelaunchFailedInfo {
   readonly version: string;
   readonly message?: string;
   readonly downloadUrl?: string;
@@ -60,42 +60,42 @@ export type ShareTarget =
   | { readonly kind: 'doc'; readonly docPath: string }
   | { readonly kind: 'folder'; readonly folderPath: string };
 
-export interface OkScaffoldFileEntry {
+export interface GqScaffoldFileEntry {
   path: string;
   kind: 'folder' | 'file';
   contentPreview?: string;
 }
 
-export interface OkScaffoldSkipEntry {
+export interface GqScaffoldSkipEntry {
   path: string;
   reason: 'already-exists' | 'user-content' | 'glob-collision';
 }
 
-export interface OkScaffoldPlan {
-  created: OkScaffoldFileEntry[];
-  skipped: OkScaffoldSkipEntry[];
+export interface GqScaffoldPlan {
+  created: GqScaffoldFileEntry[];
+  skipped: GqScaffoldSkipEntry[];
   warnings: string[];
   requiredPlugins?: { id: LintPluginId; pending: boolean }[];
 }
 
-export interface OkScaffoldApplyError {
+export interface GqScaffoldApplyError {
   path: string;
   error: string;
 }
 
-export interface OkScaffoldApplyResult {
+export interface GqScaffoldApplyResult {
   applied: number;
-  errors: OkScaffoldApplyError[];
+  errors: GqScaffoldApplyError[];
   durationMs: number;
   pluginsEnabled: LintPluginId[];
 }
 
-export interface OkSeedError {
+export interface GqSeedError {
   kind: 'no-project' | 'prerequisite-missing' | 'invalid-root' | 'internal';
   message: string;
 }
 
-export type OkPackId =
+export type GqPackId =
   | 'knowledge-base'
   | 'software-lifecycle'
   | 'codebase-wiki'
@@ -105,40 +105,40 @@ export type OkPackId =
   | 'entity-vault'
   | 'okf';
 
-export interface OkSeedPackFolderInfo {
+export interface GqSeedPackFolderInfo {
   path: string;
   summary: string;
 }
 
-export interface OkSeedPackEntryCounts {
+export interface GqSeedPackEntryCounts {
   files: number;
   folders: number;
 }
 
-export interface OkSeedPackInfo {
-  id: OkPackId;
+export interface GqSeedPackInfo {
+  id: GqPackId;
   name: string;
   description: string;
   defaultSubfolder?: string;
-  folders: OkSeedPackFolderInfo[];
-  entryCounts: OkSeedPackEntryCounts;
+  folders: GqSeedPackFolderInfo[];
+  entryCounts: GqSeedPackEntryCounts;
 }
 
-export type OkSeedPlanResult =
-  | { ok: true; plan: OkScaffoldPlan }
-  | { ok: false; error: OkSeedError };
+export type GqSeedPlanResult =
+  | { ok: true; plan: GqScaffoldPlan }
+  | { ok: false; error: GqSeedError };
 
-export type OkSeedApplyResult =
-  | { ok: true; result: OkScaffoldApplyResult }
-  | { ok: false; error: OkSeedError };
+export type GqSeedApplyResult =
+  | { ok: true; result: GqScaffoldApplyResult }
+  | { ok: false; error: GqSeedError };
 
-export type OkSeedListPacksResult =
-  | { ok: true; packs: OkSeedPackInfo[] }
+export type GqSeedListPacksResult =
+  | { ok: true; packs: GqSeedPackInfo[] }
   | { ok: false; error: { kind: 'internal'; message: string } };
 
-export type OkLocalOpAuthSignoutResponse = { ok: true } | { ok: false; error?: string };
+export type GqLocalOpAuthSignoutResponse = { ok: true } | { ok: false; error?: string };
 
-export type OkLocalOpAuthEvent =
+export type GqLocalOpAuthEvent =
   | {
       type: 'verification';
       user_code: string;
@@ -155,7 +155,7 @@ export type OkLocalOpAuthEvent =
     }
   | { type: 'error'; message: string };
 
-export type OkLocalOpCloneEvent =
+export type GqLocalOpCloneEvent =
   | { type: 'progress'; phase: string; pct: number }
   | { type: 'complete'; dir: string }
   | { type: 'branch-fallback'; branch: string }
@@ -166,7 +166,7 @@ export type OkLocalOpCloneEvent =
       refusedSymlinkPaths?: string[];
     };
 
-export type OkLocalOpAuthStatusResponse =
+export type GqLocalOpAuthStatusResponse =
   | {
       authenticated: true;
       host: string;
@@ -178,17 +178,17 @@ export type OkLocalOpAuthStatusResponse =
     }
   | { authenticated: false; host: string; error?: string; ghAvailable?: boolean };
 
-export interface OkLocalOpRepoEntry {
+export interface GqLocalOpRepoEntry {
   full_name: string;
   clone_url: string;
   private: boolean;
 }
 
-export type OkLocalOpAuthReposResponse =
-  | { ok: true; host: string; repos: OkLocalOpRepoEntry[] }
+export type GqLocalOpAuthReposResponse =
+  | { ok: true; host: string; repos: GqLocalOpRepoEntry[] }
   | { ok: false; error: string; authenticated?: false };
 
-export interface OkEditorViewMenuStateSnapshot {
+export interface GqEditorViewMenuStateSnapshot {
   readonly showHiddenFiles: boolean;
   readonly showOkFolders: boolean;
   readonly showOnlyMarkdownFiles: boolean;
@@ -202,39 +202,39 @@ export interface OkEditorViewMenuStateSnapshot {
   readonly hasEditorSelection?: boolean;
 }
 
-export interface OkEditorWideVisibility {
+export interface GqEditorWideVisibility {
   readonly editorVisible?: boolean;
   readonly agentPanelVisible?: boolean;
 }
 
-type OkEditorDockVisibilityKey = keyof OkEditorWideVisibility;
+type GqEditorDockVisibilityKey = keyof GqEditorWideVisibility;
 
-type OkEditorOnlyPane<K extends OkEditorDockVisibilityKey> = { readonly [P in K]: boolean } & {
-  readonly [P in Exclude<OkEditorDockVisibilityKey, K>]?: never;
+type GqEditorOnlyPane<K extends GqEditorDockVisibilityKey> = { readonly [P in K]: boolean } & {
+  readonly [P in Exclude<GqEditorDockVisibilityKey, K>]?: never;
 };
 
-type OkEditorDockVisibilityChange = {
-  [K in OkEditorDockVisibilityKey]: OkEditorOnlyPane<K> & {
-    readonly wideIntent: OkEditorOnlyPane<K>;
+type GqEditorDockVisibilityChange = {
+  [K in GqEditorDockVisibilityKey]: GqEditorOnlyPane<K> & {
+    readonly wideIntent: GqEditorOnlyPane<K>;
   };
-}[OkEditorDockVisibilityKey];
+}[GqEditorDockVisibilityKey];
 
-export type OkEditorViewMenuStateChange = Partial<
-  Omit<OkEditorViewMenuStateSnapshot, OkEditorDockVisibilityKey>
+export type GqEditorViewMenuStateChange = Partial<
+  Omit<GqEditorViewMenuStateSnapshot, GqEditorDockVisibilityKey>
 > &
   (
-    | OkEditorDockVisibilityChange
-    | ({ readonly [K in OkEditorDockVisibilityKey]?: never } & { readonly wideIntent?: never })
+    | GqEditorDockVisibilityChange
+    | ({ readonly [K in GqEditorDockVisibilityKey]?: never } & { readonly wideIntent?: never })
   );
 
-export type OkAssetOpenRefusalReason =
+export type GqAssetOpenRefusalReason =
   | 'extension-blocked'
   | 'not-a-file'
   | 'path-escape'
   | 'not-found'
   | 'resolve-error';
 
-export function assetOpenRefusalRevealsInstead(reason: OkAssetOpenRefusalReason): boolean {
+export function assetOpenRefusalRevealsInstead(reason: GqAssetOpenRefusalReason): boolean {
   switch (reason) {
     case 'extension-blocked':
     case 'not-a-file':

@@ -6,8 +6,8 @@ import {
   specPath,
 } from './e2e-coverage.ts';
 
-const OK_ROOT = '/work/My Repo/public/open-knowledge';
-const APP_DIR = `${OK_ROOT}/packages/app`;
+const GQ_ROOT = '/work/My Repo/public/open-knowledge';
+const APP_DIR = `${GQ_ROOT}/packages/app`;
 const ran = (url: string, count = 1) => ({
   url,
   functions: [
@@ -31,7 +31,7 @@ describe('browser coverage to recorded files', () => {
           ran('http://127.0.0.1:4100/@fs/tmp/ok-w0-vite/deps/yjs.js'),
         ],
         APP_DIR,
-        OK_ROOT,
+        GQ_ROOT,
       ),
     ).toEqual(['packages/app/src/main.tsx', 'packages/core/src/index.ts']);
   });
@@ -39,7 +39,7 @@ describe('browser coverage to recorded files', () => {
 
 describe('coverage records', () => {
   test('a spec is named by its path under the Open Knowledge root', () => {
-    expect(specPath(`${APP_DIR}/tests/stress/docs-open.e2e.ts`, OK_ROOT)).toBe(
+    expect(specPath(`${APP_DIR}/tests/stress/docs-open.e2e.ts`, GQ_ROOT)).toBe(
       'packages/app/tests/stress/docs-open.e2e.ts',
     );
   });

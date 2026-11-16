@@ -438,8 +438,8 @@ describe('QA canary — cold-reopen / concurrent-peer / idempotence (Observer-A 
   });
 });
 
-const OK_ROOT = join(import.meta.dirname, '..', '..', '..', '..');
-const QUICKSTART = join(OK_ROOT, 'docs', 'content', 'get-started', 'quickstart.mdx');
+const GQ_ROOT = join(import.meta.dirname, '..', '..', '..', '..');
+const QUICKSTART = join(GQ_ROOT, 'docs', 'content', 'get-started', 'quickstart.mdx');
 
 describe('QA canary — real repo docs with <Steps>', () => {
   test('live source edit inside a real Step fires no Observer-A re-indent; disk cold-reopen clean', async () => {

@@ -1,4 +1,4 @@
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import shellQuote from 'shell-quote';
 import { shellEscape } from './shell-escape.ts';
 
@@ -38,7 +38,7 @@ export const WIKI_EXCLUDE_DIRS: readonly string[] = [
   '.cache',
   '.parcel-cache',
   '.vercel',
-  OK_DIR,
+  GQ_DIR,
   '.claude',
 ];
 

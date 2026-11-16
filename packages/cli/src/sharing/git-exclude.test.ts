@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import {
@@ -50,7 +50,7 @@ describe('getOkArtifactPaths', () => {
   });
 
   it('returns `.gitquire/` and `.okignore` when no config.yml exists', () => {
-    expect(getOkArtifactPaths(dir)).toEqual([`${OK_DIR}/`, '.okignore']);
+    expect(getOkArtifactPaths(dir)).toEqual([`${GQ_DIR}/`, '.okignore']);
   });
 
   it('preserves a stable order so `gq config-sharing status` and unit-test snapshots are deterministic', () => {
@@ -60,8 +60,8 @@ describe('getOkArtifactPaths', () => {
   });
 
   it('emits unanchored `.gitquire/` / `.okignore` regardless of content.dir', () => {
-    mkdirSync(join(dir, OK_DIR), { recursive: true });
-    writeFileSync(join(dir, OK_DIR, 'config.yml'), 'content:\n  dir: docs\n', 'utf-8');
+    mkdirSync(join(dir, GQ_DIR), { recursive: true });
+    writeFileSync(join(dir, GQ_DIR, 'config.yml'), 'content:\n  dir: docs\n', 'utf-8');
     const paths = getOkArtifactPaths(dir);
     expect(paths).toEqual(['.gitquire/', '.okignore']);
   });
@@ -90,8 +90,8 @@ describe('root + nested .gitquire coverage for a non-default content.dir', () =>
   }
 
   it('excludes the ROOT `.gitquire/` config dir AND folder-nested `.gitquire/` / `.okignore` (content.dir = docs)', () => {
-    mkdirSync(join(dir, OK_DIR), { recursive: true });
-    writeFileSync(join(dir, OK_DIR, 'config.yml'), 'content:\n  dir: docs\n', 'utf-8');
+    mkdirSync(join(dir, GQ_DIR), { recursive: true });
+    writeFileSync(join(dir, GQ_DIR, 'config.yml'), 'content:\n  dir: docs\n', 'utf-8');
     writeFileSync(join(dir, '.okignore'), '', 'utf-8');
     mkdirSync(join(dir, 'docs', 'guides', '.gitquire'), { recursive: true });
     writeFileSync(join(dir, 'docs', 'guides', '.gitquire', 'frontmatter.yml'), '', 'utf-8');

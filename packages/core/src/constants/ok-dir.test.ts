@@ -1,6 +1,6 @@
 import { posix } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { OK_BIN_DIRNAME, OK_DIR, okUserHomeDisplayPath, posixOkManagedBinDir } from './ok-dir.ts';
+import { GQ_BIN_DIRNAME, GQ_DIR, okUserHomeDisplayPath, posixOkManagedBinDir } from './ok-dir.ts';
 
 describe('okUserHomeDisplayPath', () => {
   afterEach(() => {
@@ -31,7 +31,7 @@ describe('posixOkManagedBinDir', () => {
   });
 
   test('is the OK dir plus the bin dirname, under the given home', () => {
-    expect(posixOkManagedBinDir('/Users/alice')).toBe(`/Users/alice/${OK_DIR}/${OK_BIN_DIRNAME}`);
+    expect(posixOkManagedBinDir('/Users/alice')).toBe(`/Users/alice/${GQ_DIR}/${GQ_BIN_DIRNAME}`);
     expect(posixOkManagedBinDir('/Users/alice')).toBe('/Users/alice/.gitquire/bin');
   });
 
@@ -55,7 +55,7 @@ describe('posixOkManagedBinDir', () => {
 
   test('stays byte-identical to the posix join both call sites used before they shared it', () => {
     for (const home of ['/Users/alice', '/Users/alice/', '/home/a\\b', '/']) {
-      expect(posixOkManagedBinDir(home)).toBe(posix.join(home, OK_DIR, OK_BIN_DIRNAME));
+      expect(posixOkManagedBinDir(home)).toBe(posix.join(home, GQ_DIR, GQ_BIN_DIRNAME));
     }
   });
 });

@@ -3,9 +3,9 @@ import { lstat, readlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
   DESKTOP_PRODUCTS,
-  OK_MACHINE_LOCAL_ROOT_DIRS,
-  OK_MACHINE_LOCAL_ROOT_FILES,
-  OK_USER_HOME_CREDENTIAL_FILES,
+  GQ_MACHINE_LOCAL_ROOT_DIRS,
+  GQ_MACHINE_LOCAL_ROOT_FILES,
+  GQ_USER_HOME_CREDENTIAL_FILES,
   REFUSED_SYMLINK_PATHS_CAP,
 } from '@gitquire/core';
 import type { SimpleGit } from 'simple-git';
@@ -74,9 +74,9 @@ const CONFIG_DIR_NAMES: ReadonlySet<string> = new Set(
 );
 const MACHINE_LOCAL_NAMES: ReadonlySet<string> = new Set(
   [
-    ...OK_MACHINE_LOCAL_ROOT_DIRS,
-    ...OK_MACHINE_LOCAL_ROOT_FILES,
-    ...OK_USER_HOME_CREDENTIAL_FILES,
+    ...GQ_MACHINE_LOCAL_ROOT_DIRS,
+    ...GQ_MACHINE_LOCAL_ROOT_FILES,
+    ...GQ_USER_HOME_CREDENTIAL_FILES,
   ].map(foldName),
 );
 

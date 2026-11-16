@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { isMap, isSeq, type ParsedNode, parseDocument } from 'yaml';
-import { LOCAL_DIR, OK_DIR } from '../constants/ok-dir.ts';
+import { GQ_DIR, LOCAL_DIR } from '../constants/ok-dir.ts';
 import { okUserHomeDir } from '../constants/ok-user-home.ts';
 import { atomicWriteFile } from '../util/atomic-yaml-write.ts';
 import { FileLockTimeoutError, withFileLock } from '../util/file-lock.ts';
@@ -61,9 +61,9 @@ export function resolveConfigPath(
   }
   const absCwd = isAbsolute(cwd) ? cwd : resolve(cwd);
   if (scope === 'project-local') {
-    return resolve(absCwd, OK_DIR, LOCAL_DIR, CONFIG_FILENAME);
+    return resolve(absCwd, GQ_DIR, LOCAL_DIR, CONFIG_FILENAME);
   }
-  return resolve(absCwd, OK_DIR, CONFIG_FILENAME);
+  return resolve(absCwd, GQ_DIR, CONFIG_FILENAME);
 }
 
 function err(error: ConfigValidationError): Err<ConfigValidationError> {

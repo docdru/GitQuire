@@ -1,4 +1,4 @@
-// oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
+// oxlint-disable gq/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-html-interactive-element
 import { Trans, useLingui } from '@lingui/react/macro';
 import {
   ArrowRight,
@@ -18,11 +18,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { OkPackId, OkSeedPackInfo } from '@/lib/desktop-bridge-types';
+import type { GqPackId, GqSeedPackInfo } from '@/lib/desktop-bridge-types';
 import { seedClient } from '@/lib/seed-client';
 import { cn } from '@/lib/utils';
 
-const PACK_ICONS: Record<OkPackId, React.ComponentType<{ className?: string }>> = {
+const PACK_ICONS: Record<GqPackId, React.ComponentType<{ className?: string }>> = {
   'knowledge-base': Library,
   'software-lifecycle': GitBranch,
   'codebase-wiki': BookMarked,
@@ -38,11 +38,11 @@ function iconForPack(id: string): React.ComponentType<{ className?: string }> {
 }
 
 interface PackCardGridProps {
-  onPackSelect: (packId: OkPackId) => void;
+  onPackSelect: (packId: GqPackId) => void;
   onCreateBlankFile?: () => void;
-  collapsedPackIds?: readonly OkPackId[];
+  collapsedPackIds?: readonly GqPackId[];
   className?: string;
-  packs?: OkSeedPackInfo[] | null;
+  packs?: GqSeedPackInfo[] | null;
 }
 
 export function PackCardGrid({
@@ -53,7 +53,7 @@ export function PackCardGrid({
   packs: externalPacks,
 }: PackCardGridProps) {
   const { t } = useLingui();
-  const [internalPacks, setInternalPacks] = useState<OkSeedPackInfo[] | null>(null);
+  const [internalPacks, setInternalPacks] = useState<GqSeedPackInfo[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const useInternalFetch = externalPacks === undefined;
@@ -182,7 +182,7 @@ export function PackCardGrid({
 }
 
 interface PackCardProps {
-  pack: OkSeedPackInfo;
+  pack: GqSeedPackInfo;
   onSelect: () => void;
 }
 

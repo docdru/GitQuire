@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { STARTER_PACKS } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
+import { CONFIG_FILENAME, GQ_DIR } from '../constants.ts';
 import { runSeed } from './seed.ts';
 
 const STARTER_FOLDERS = STARTER_PACKS['knowledge-base'].folders;
@@ -20,8 +20,8 @@ afterEach(() => {
 });
 
 function scaffoldOkDir(dir: string, configYml = 'content:\n  dir: .\n'): void {
-  mkdirSync(join(dir, OK_DIR), { recursive: true });
-  writeFileSync(join(dir, OK_DIR, CONFIG_FILENAME), configYml, 'utf-8');
+  mkdirSync(join(dir, GQ_DIR), { recursive: true });
+  writeFileSync(join(dir, GQ_DIR, CONFIG_FILENAME), configYml, 'utf-8');
 }
 
 function yes(): NodeJS.ReadableStream {
@@ -101,7 +101,7 @@ describe('runSeed — --dry-run', () => {
     for (const folder of STARTER_FOLDERS) {
       expect(existsSync(join(testDir, folder.path))).toBe(false);
     }
-    expect(existsSync(join(testDir, OK_DIR, CONFIG_FILENAME))).toBe(false);
+    expect(existsSync(join(testDir, GQ_DIR, CONFIG_FILENAME))).toBe(false);
   });
 
   test('returns no-op (not dry-run) when the directory is already fully seeded', async () => {

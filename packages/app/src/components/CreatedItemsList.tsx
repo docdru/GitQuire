@@ -6,7 +6,7 @@ import { Fragment } from 'react';
 import { LINT_PLUGIN_META } from '@/components/settings/lint-plugin-meta';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { OkScaffoldPlan, OkSeedPackInfo } from '@/lib/desktop-bridge-types';
+import type { GqScaffoldPlan, GqSeedPackInfo } from '@/lib/desktop-bridge-types';
 
 function basename(path: string): string {
   return path.split('/').pop() ?? path;
@@ -39,8 +39,8 @@ interface FolderCard {
 }
 
 function describeFolderCards(
-  plan: OkScaffoldPlan,
-  selectedPack: OkSeedPackInfo | undefined,
+  plan: GqScaffoldPlan,
+  selectedPack: GqSeedPackInfo | undefined,
 ): FolderCard[] {
   const folders: FolderCard[] = [];
   for (const folder of selectedPack?.folders ?? []) {
@@ -63,7 +63,7 @@ function describeFolderCards(
   return folders;
 }
 
-function describeFileCards(plan: OkScaffoldPlan): Array<{ path: string; name: string }> {
+function describeFileCards(plan: GqScaffoldPlan): Array<{ path: string; name: string }> {
   return plan.created
     .filter((e) => e.kind === 'file' && !e.path.split('/').includes('.gitquire'))
     .map((e) => ({ path: e.path, name: basename(e.path) }));
@@ -83,8 +83,8 @@ export function CreatedItemsList({
   plan,
   selectedPack,
 }: {
-  plan: OkScaffoldPlan;
-  selectedPack: OkSeedPackInfo | undefined;
+  plan: GqScaffoldPlan;
+  selectedPack: GqSeedPackInfo | undefined;
 }) {
   const { t } = useLingui();
   const folders = describeFolderCards(plan, selectedPack);

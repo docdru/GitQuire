@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { createTestServer, type TestServer } from './test-harness';
 
 const VISIBLE_TOKEN = 'zzcontroltoken';
-const OK_TOKEN = 'zzoktemplatetoken';
+const GQ_TOKEN = 'zzoktemplatetoken';
 const SHARED_TOKEN = 'zzsharedranktoken';
 let server: TestServer;
 
@@ -33,8 +33,8 @@ beforeAll(async () => {
   mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
   writeFileSync(join(contentDir, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
   writeFileSync(
-    join(contentDir, '.gitquire', 'templates', `${OK_TOKEN}.md`),
-    `# ${SHARED_TOKEN}\n\n${OK_TOKEN} body\n`,
+    join(contentDir, '.gitquire', 'templates', `${GQ_TOKEN}.md`),
+    `# ${SHARED_TOKEN}\n\n${GQ_TOKEN} body\n`,
   );
   mkdirSync(join(contentDir, '.gitquire', 'worktrees', 'checkout'), { recursive: true });
   writeFileSync(
@@ -57,7 +57,7 @@ describe('showOk reveal on GET /api/documents', () => {
     expect(paths).toContain('.gitquire');
     expect(paths).toContain('.gitquire/config.yml');
     expect(paths).toContain('.gitquire/templates');
-    expect(paths).toContain(`.gitquire/templates/${OK_TOKEN}`);
+    expect(paths).toContain(`.gitquire/templates/${GQ_TOKEN}`);
     expect(paths.some((p) => p.startsWith('.gitquire/worktrees'))).toBe(false);
     expect(paths.some((p) => p.startsWith('.gitquire/local'))).toBe(false);
   }, 30_000);
@@ -83,7 +83,7 @@ describe('showOk reveal on GET /api/documents', () => {
       .map((line) => JSON.parse(line) as ListedEntry & { type?: string });
     const entries = rows.filter((row) => row.type === undefined);
     const paths = entries.map(entryPath);
-    expect(paths).toContain(`.gitquire/templates/${OK_TOKEN}`);
+    expect(paths).toContain(`.gitquire/templates/${GQ_TOKEN}`);
     expect(paths.some((p) => p.startsWith('.gitquire/worktrees'))).toBe(false);
     expect(paths.some((p) => p.startsWith('.gitquire/local'))).toBe(false);
   }, 30_000);
@@ -134,10 +134,10 @@ describe('showOk is a tree-only reveal; template content docs are searchable and
     const control = SearchSuccessSchema.parse(await controlRes.json());
     expect(control.results.length).toBeGreaterThan(0);
 
-    const okRes = await fetch(`http://127.0.0.1:${server.port}/api/search?query=${OK_TOKEN}`);
+    const okRes = await fetch(`http://127.0.0.1:${server.port}/api/search?query=${GQ_TOKEN}`);
     expect(okRes.ok).toBe(true);
     const okBody = SearchSuccessSchema.parse(await okRes.json());
-    expect(okBody.results.some((r) => r.path === `.gitquire/templates/${OK_TOKEN}`)).toBe(true);
+    expect(okBody.results.some((r) => r.path === `.gitquire/templates/${GQ_TOKEN}`)).toBe(true);
 
     const sharedRes = await fetch(
       `http://127.0.0.1:${server.port}/api/search?query=${SHARED_TOKEN}&intent=omnibar`,
@@ -146,7 +146,7 @@ describe('showOk is a tree-only reveal; template content docs are searchable and
     const shared = SearchSuccessSchema.parse(await sharedRes.json());
     const paths = shared.results.map((r) => r.path);
     const visibleRank = paths.indexOf(VISIBLE_TOKEN);
-    const templateRank = paths.indexOf(`.gitquire/templates/${OK_TOKEN}`);
+    const templateRank = paths.indexOf(`.gitquire/templates/${GQ_TOKEN}`);
     expect(visibleRank).toBeGreaterThanOrEqual(0);
     expect(templateRank).toBeGreaterThanOrEqual(0);
     expect(templateRank).toBeGreaterThan(visibleRank);
@@ -158,6 +158,6 @@ describe('showOk is a tree-only reveal; template content docs are searchable and
     const body = PagesSuccessSchema.parse(await res.json());
     const docNames = body.pages.map((p) => p.docName);
     expect(docNames).toContain(VISIBLE_TOKEN);
-    expect(docNames).toContain(`.gitquire/templates/${OK_TOKEN}`);
+    expect(docNames).toContain(`.gitquire/templates/${GQ_TOKEN}`);
   }, 30_000);
 });

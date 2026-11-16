@@ -10,9 +10,9 @@ import { mark } from '@/lib/perf';
 
 export const chunkWrapperDecorationKey = new PluginKey('chunkWrapperDecoration');
 
-export const OK_CHUNK_WRAPPER_CLASS = 'ok-chunk-wrapper';
+export const GQ_CHUNK_WRAPPER_CLASS = 'ok-chunk-wrapper';
 
-const CHUNK_WRAPPER_ATTRS = { class: OK_CHUNK_WRAPPER_CLASS };
+const CHUNK_WRAPPER_ATTRS = { class: GQ_CHUNK_WRAPPER_CLASS };
 
 const SELECTION_BLOCK_ATTRS = { ...CHUNK_WRAPPER_ATTRS, 'data-ok-selection-block': '' };
 

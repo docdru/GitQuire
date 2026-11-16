@@ -3,8 +3,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import {
   EmptyRequestSchema,
   encodeShareUrl,
+  GqCliCommand,
   InvalidShareUrlError,
-  OkCliCommand,
   parseCanonicalGitHubShareUrl,
   ShareConstructUrlRequestSchema,
   ShareConstructUrlResponseSchema,
@@ -95,7 +95,7 @@ export function createShareRoutes(deps: ShareRouteDeps): ApiRouteGroup {
     toGitRelativePath,
   } = deps;
   const declaredGitHubHosts = deps.declaredGitHubHosts ?? readDeclaredGitHubHosts();
-  const okCli = OkCliCommand.resolve({
+  const okCli = GqCliCommand.resolve({
     host: localOpCliArgs === undefined ? undefined : { cliArgs: localOpCliArgs },
   });
 

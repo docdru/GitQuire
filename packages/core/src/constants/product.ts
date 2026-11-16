@@ -86,14 +86,14 @@ export function desktopWindowsInstallDirNames(product: DesktopProduct): readonly
 
 export const PRODUCT_NAME = DESKTOP_PRODUCTS.stable.productName;
 
-export const OK_CHANNEL_ENV = 'GITQUIRE_CHANNEL';
+export const GQ_CHANNEL_ENV = 'GITQUIRE_CHANNEL';
 
 function isDesktopProductName(value: string): value is DesktopProductName {
   return Object.hasOwn(DESKTOP_PRODUCTS, value);
 }
 
 function channelOverride(env: Record<string, string | undefined>): string | undefined {
-  return env[OK_CHANNEL_ENV]?.trim().toLowerCase() || undefined;
+  return env[GQ_CHANNEL_ENV]?.trim().toLowerCase() || undefined;
 }
 
 export function isDevChannel(
@@ -103,7 +103,7 @@ export function isDevChannel(
 }
 
 export function defaultToDevChannel(env: Record<string, string | undefined>): void {
-  if (channelOverride(env) === undefined) env[OK_CHANNEL_ENV] = DEV_CHANNEL;
+  if (channelOverride(env) === undefined) env[GQ_CHANNEL_ENV] = DEV_CHANNEL;
 }
 
 export function desktopChannelLabel(channel: string): string {
@@ -125,7 +125,7 @@ export function resolveDesktopProductName(
   if (override) {
     if (isDesktopProductName(override)) return override;
     throw new Error(
-      `Unsupported ${OK_CHANNEL_ENV}=${JSON.stringify(override)}. Expected ${Object.keys(DESKTOP_PRODUCTS).join(' or ')}.`,
+      `Unsupported ${GQ_CHANNEL_ENV}=${JSON.stringify(override)}. Expected ${Object.keys(DESKTOP_PRODUCTS).join(' or ')}.`,
     );
   }
   const exe = executableBaseName(execPath);
@@ -167,7 +167,7 @@ export const CHECKOUT_CLI_COMMAND = 'node <checkout>/packages/cli/dist/cli.mjs';
 export const DEV_FALLBACK_CLI_REFUSAL = `This dev build has no built CLI, so it will not sign in, sign out, store a token, clone a project or start a project server through the installed OpenKnowledge (Stable) CLI. Run pnpm build in the checkout, then restart this dev build.`;
 
 function isChannelKey(key: string): boolean {
-  return key.toUpperCase() === OK_CHANNEL_ENV;
+  return key.toUpperCase() === GQ_CHANNEL_ENV;
 }
 
 function carriesDevChannel(env: Readonly<Record<string, string | undefined>>): boolean {
@@ -204,18 +204,18 @@ export interface HostCliInvocation {
   readonly cliEnv?: EnvOverlay | undefined;
 }
 
-export interface OkCliSpawn {
+export interface GqCliSpawn {
   readonly command: string;
   readonly args: string[];
   readonly env: Record<string, string>;
 }
 
-export interface OkCliRunnerInvocation {
+export interface GqCliRunnerInvocation {
   readonly cliArgs: readonly string[];
   readonly cliEnv: EnvOverlay;
 }
 
-export interface OkCliRefusal {
+export interface GqCliRefusal {
   readonly refused: string;
 }
 
@@ -224,7 +224,7 @@ export interface ResolveOkCliCommandInput {
   readonly env?: Readonly<Record<string, string | undefined>>;
 }
 
-export class OkCliCommand {
+export class GqCliCommand {
   readonly #argv: readonly [string, ...string[]];
   readonly #overlay: EnvOverlay;
   readonly #fallsBackToStable: boolean;
@@ -239,7 +239,7 @@ export class OkCliCommand {
     this.#fallsBackToStable = fallsBackToStable;
   }
 
-  static resolve(input: ResolveOkCliCommandInput = {}): OkCliCommand {
+  static resolve(input: ResolveOkCliCommandInput = {}): GqCliCommand {
     const env = input.env ?? globalThis.process?.env ?? {};
     const [first, ...rest] = input.host?.cliArgs ?? [];
     const channel = resolveDesktopProductName(env);
@@ -248,9 +248,9 @@ export class OkCliCommand {
     );
     const hostCli = first !== undefined;
     const pinned = channel !== 'stable' && (hostCli || released);
-    return new OkCliCommand(
+    return new GqCliCommand(
       hostCli ? [first, ...rest] : ['gitquire'],
-      { ...input.host?.cliEnv, ...(pinned ? { [OK_CHANNEL_ENV]: channel } : {}) },
+      { ...input.host?.cliEnv, ...(pinned ? { [GQ_CHANNEL_ENV]: channel } : {}) },
       channel === DEV_CHANNEL && !hostCli,
     );
   }
@@ -263,13 +263,13 @@ export class OkCliCommand {
     return refused ? DEV_FALLBACK_CLI_REFUSAL : undefined;
   }
 
-  runnerInvocation(trailingArgs: readonly string[]): OkCliRunnerInvocation | OkCliRefusal {
+  runnerInvocation(trailingArgs: readonly string[]): GqCliRunnerInvocation | GqCliRefusal {
     const refused = this.refusalFor(trailingArgs);
     if (refused !== undefined) return { refused };
     return { cliArgs: [...this.#argv, ...trailingArgs], cliEnv: { ...this.#overlay } };
   }
 
-  spawn(trailingArgs: readonly string[], baseEnv: EnvOverlay): OkCliSpawn | OkCliRefusal {
+  spawn(trailingArgs: readonly string[], baseEnv: EnvOverlay): GqCliSpawn | GqCliRefusal {
     const refused = this.refusalFor(trailingArgs);
     if (refused !== undefined) return { refused };
     const [command, ...args] = this.#argv;
@@ -281,7 +281,7 @@ export class OkCliCommand {
     return { command, args: [...args, ...trailingArgs], env };
   }
 
-  stdioServer(trailingArgs: readonly string[]): OkCliSpawn {
+  stdioServer(trailingArgs: readonly string[]): GqCliSpawn {
     this.#assertNotRefused(trailingArgs);
     const [command, ...args] = this.#argv;
     return { command, args: [...args, ...trailingArgs], env: definedEntries(this.#overlay) };

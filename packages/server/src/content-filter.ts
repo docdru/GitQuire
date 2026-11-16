@@ -8,11 +8,11 @@ import {
   attachmentFolderSegmentMatcher,
   BESIDE_DOCUMENT_ATTACHMENT_FOLDER_PATH,
   DEFAULT_ATTACHMENT_FOLDER_PATH,
+  GQ_DIR,
   isValidAttachmentFolderPath,
   LEGACY_SKILL_STORE_ROOT,
   LINKABLE_ASSET_EXTENSIONS,
   normalizeAttachmentFolderPath,
-  OK_DIR,
 } from '@gitquire/core';
 import ignore, { type Ignore } from 'ignore';
 import { isReservedForUserTree } from './cc1-broadcast.ts';
@@ -70,7 +70,7 @@ const ALWAYS_SKIP_DIRS = new Set<string>([
   ...EDITOR_HOST_DIRS,
 ]);
 
-const OK_ALWAYS_SKIP_CHILDREN = new Set(['worktrees', 'local']);
+const GQ_ALWAYS_SKIP_CHILDREN = new Set(['worktrees', 'local']);
 
 function isBuiltinSkipDirName(name: string): boolean {
   return BUILTIN_SKIP_DIRS.has(name) || ALWAYS_SKIP_DIRS.has(name.toLowerCase());
@@ -159,8 +159,8 @@ function pathHasAlwaysSkipSegment(relativePath: string, showOk?: boolean): boole
     if (!ALWAYS_SKIP_DIRS.has(canonicalSegment)) continue;
     if (
       showOk &&
-      canonicalSegment === OK_DIR &&
-      !OK_ALWAYS_SKIP_CHILDREN.has((segments[i + 1] ?? '').toLowerCase())
+      canonicalSegment === GQ_DIR &&
+      !GQ_ALWAYS_SKIP_CHILDREN.has((segments[i + 1] ?? '').toLowerCase())
     ) {
       continue;
     }
@@ -192,7 +192,7 @@ function isSkillContentAncestorDir(relativePath: string): boolean {
   );
 }
 
-const WATCHER_CARVE_OUT_CAPABLE_DIRS = new Set<string>([OK_DIR, ...EDITOR_HOST_DIRS]);
+const WATCHER_CARVE_OUT_CAPABLE_DIRS = new Set<string>([GQ_DIR, ...EDITOR_HOST_DIRS]);
 const WATCHER_SAFE_BUILTIN_SKIP_DIRS = new Set(
   [...BUILTIN_SKIP_DIRS].filter((dir) => !WATCHER_CARVE_OUT_CAPABLE_DIRS.has(dir)),
 );
@@ -221,8 +221,8 @@ function watcherPatternIsConfinedToAlwaysSkippedTree(pattern: string): boolean {
 
   return segments.some(
     (segment, index) =>
-      segment.toLowerCase() === OK_DIR &&
-      OK_ALWAYS_SKIP_CHILDREN.has((segments[index + 1] ?? '').toLowerCase()),
+      segment.toLowerCase() === GQ_DIR &&
+      GQ_ALWAYS_SKIP_CHILDREN.has((segments[index + 1] ?? '').toLowerCase()),
   );
 }
 
@@ -279,7 +279,7 @@ function isTemplateContentFile(relativePath: string): boolean {
   const n = segments.length;
   if (n < 3) return false;
   if (
-    segments[n - 3] !== OK_DIR ||
+    segments[n - 3] !== GQ_DIR ||
     segments[n - 2] !== 'templates' ||
     extname(segments[n - 1]) !== '.md'
   ) {
@@ -291,10 +291,10 @@ function isTemplateContentFile(relativePath: string): boolean {
 function isTemplateContentAncestorDir(relativePath: string): boolean {
   const segments = relativePath.split('/');
   const n = segments.length;
-  if (segments[n - 1] === OK_DIR) {
+  if (segments[n - 1] === GQ_DIR) {
     return !templateFolderPrefixIsSkipped(segments, n - 1);
   }
-  if (n >= 2 && segments[n - 1] === 'templates' && segments[n - 2] === OK_DIR) {
+  if (n >= 2 && segments[n - 1] === 'templates' && segments[n - 2] === GQ_DIR) {
     return !templateFolderPrefixIsSkipped(segments, n - 2);
   }
   return false;
@@ -308,21 +308,21 @@ function isTemplateContentAncestorDir(relativePath: string): boolean {
 export function isShareableOkArtifact(relativePath: string): boolean {
   const segments = relativePath.split('/');
   const n = segments.length;
-  if (segments[0] === OK_DIR) {
+  if (segments[0] === GQ_DIR) {
     if (n === 2 && (segments[1] === 'config.yml' || segments[1] === '.gitignore')) return true;
     if (n === 3 && segments[1] === 'schemas' && segments[2].toLowerCase().endsWith('.json')) {
       return true;
     }
   }
   if (isTemplateContentFile(relativePath)) return true;
-  if (n >= 2 && segments[n - 1] === 'frontmatter.yml' && segments[n - 2] === OK_DIR) {
+  if (n >= 2 && segments[n - 1] === 'frontmatter.yml' && segments[n - 2] === GQ_DIR) {
     return !templateFolderPrefixIsSkipped(segments, n - 2);
   }
   return false;
 }
 
 function isShareableOkArtifactAncestorDir(relativePath: string): boolean {
-  if (relativePath === OK_DIR || relativePath === `${OK_DIR}/schemas`) return true;
+  if (relativePath === GQ_DIR || relativePath === `${GQ_DIR}/schemas`) return true;
   return isTemplateContentAncestorDir(relativePath);
 }
 

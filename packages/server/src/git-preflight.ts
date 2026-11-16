@@ -157,7 +157,7 @@ function probeGit(command: string): ProbeResult {
     timeout: PROBE_TIMEOUT_MS,
     env: { ...process.env, LANG: 'C', LC_ALL: 'C' },
   });
-  // oxlint-disable-next-line ok/require-windowshide-on-spawn -- windowsHide is set on `opts` via withHiddenWindowsConsole above; the rule can't see through the by-reference options variable.
+  // oxlint-disable-next-line gq/require-windowshide-on-spawn -- windowsHide is set on `opts` via withHiddenWindowsConsole above; the rule can't see through the by-reference options variable.
   const result = spawnSync(command, ['--version'], opts);
   if (result.error) {
     if ('signal' in result && result.signal === 'SIGTERM')

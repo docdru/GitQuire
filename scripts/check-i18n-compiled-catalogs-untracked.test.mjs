@@ -15,12 +15,12 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../test-support/configure-git-fixture.test-helper.ts';
 import { gitCleanEnv } from './git-clean-env.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const GUARD = 'scripts/check-i18n-compiled-catalogs-untracked.mjs';
 const GUARD_IMPORTS = ['scripts/git-clean-env.mjs'];
 const LOCALES = 'packages/app/src/locales';
 const APP_GITIGNORE = 'packages/app/.gitignore';
-const REAL_APP_GITIGNORE = readFileSync(join(OK_ROOT, APP_GITIGNORE), 'utf8');
+const REAL_APP_GITIGNORE = readFileSync(join(GQ_ROOT, APP_GITIGNORE), 'utf8');
 const SCRATCH_PREFIX_WITH_A_QUOTE = "i18n-compiled-untracked-quote'd-";
 
 const scratch = [];
@@ -64,7 +64,7 @@ function scratchDir(okDir = '.') {
   scratch.push(root);
   for (const script of [GUARD, ...GUARD_IMPORTS]) {
     mkdirSync(dirname(join(root, okDir, script)), { recursive: true });
-    copyFileSync(join(OK_ROOT, script), join(root, okDir, script));
+    copyFileSync(join(GQ_ROOT, script), join(root, okDir, script));
   }
   return root;
 }
@@ -283,7 +283,7 @@ describe('check-i18n-compiled-catalogs-untracked fails rather than passing when 
 describe('the paths the check rejects are exactly the ones packages/app/.gitignore ignores', () => {
   test('replaying the real ignore file through git agrees with the check on every locale path, both ways', () => {
     const realTracked = spawnSync('git', ['ls-files', '-z', '--', LOCALES], {
-      cwd: OK_ROOT,
+      cwd: GQ_ROOT,
       env: gitCleanEnv(),
       encoding: 'utf8',
     })
@@ -341,7 +341,7 @@ describe('the paths the check rejects are exactly the ones packages/app/.gitigno
 describe('this tree', () => {
   test('tracks no generated catalog, and the check examines every tracked path under the locales directory', () => {
     const tracked = spawnSync('git', ['ls-files', '-z', '--', LOCALES], {
-      cwd: OK_ROOT,
+      cwd: GQ_ROOT,
       env: gitCleanEnv(),
       encoding: 'utf8',
     })
@@ -349,8 +349,8 @@ describe('this tree', () => {
       .filter(Boolean);
     expect(tracked).toContain(`${LOCALES}/en/messages.po`);
 
-    const result = spawnSync(process.execPath, [join(OK_ROOT, GUARD)], {
-      cwd: OK_ROOT,
+    const result = spawnSync(process.execPath, [join(GQ_ROOT, GUARD)], {
+      cwd: GQ_ROOT,
       env: gitCleanEnv(),
       encoding: 'utf8',
     });

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ConfigSchema, getLeafFieldMeta, REMOVED_KEYS } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
+import { CONFIG_FILENAME, GQ_DIR } from '../constants.ts';
 import {
   buildClearPatchForTest,
   configCommand,
@@ -31,15 +31,15 @@ function makeTempProject(): { cwd: string; userHome: string; cleanup: () => void
 }
 
 function projectConfigPath(cwd: string): string {
-  return join(cwd, OK_DIR, CONFIG_FILENAME);
+  return join(cwd, GQ_DIR, CONFIG_FILENAME);
 }
 
 function projectLocalConfigPath(cwd: string): string {
-  return join(cwd, OK_DIR, 'local', CONFIG_FILENAME);
+  return join(cwd, GQ_DIR, 'local', CONFIG_FILENAME);
 }
 
 function userConfigPath(home: string): string {
-  return join(home, OK_DIR, 'global.yml');
+  return join(home, GQ_DIR, 'global.yml');
 }
 
 function writeConfigYaml(absPath: string, content: string): void {

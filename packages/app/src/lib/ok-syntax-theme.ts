@@ -1,9 +1,9 @@
 import type { ThemeRegistration } from 'shiki/core';
 
-export const OK_SYNTAX_THEME_NAME = 'ok-syntax';
+export const GQ_SYNTAX_THEME_NAME = 'ok-syntax';
 
 export const okSyntaxTheme: ThemeRegistration & { name: string } = {
-  name: OK_SYNTAX_THEME_NAME,
+  name: GQ_SYNTAX_THEME_NAME,
   type: 'dark',
   colors: {
     'editor.foreground': 'var(--foreground)',

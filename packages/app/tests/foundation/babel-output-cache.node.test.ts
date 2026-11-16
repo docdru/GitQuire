@@ -26,7 +26,7 @@ import {
 } from './babel-output-cache';
 
 const APP_ROOT = fileURLToPath(new URL('../../', import.meta.url));
-const OK_ROOT = join(APP_ROOT, '..', '..');
+const GQ_ROOT = join(APP_ROOT, '..', '..');
 const PRODUCT_MODULE = '/src/components/OutlinePanel.tsx';
 const TEST_MODULE = '/tests/foundation/outline-panel.browser.test.tsx';
 
@@ -37,8 +37,8 @@ function unseenIds(): [string, string] {
 const COMPILE_TIMEOUT_MS = 60_000;
 
 const REQUIRED_KEY_FILES = [
-  join(OK_ROOT, 'pnpm-lock.yaml'),
-  join(OK_ROOT, 'node_modules', '.pnpm', 'lock.yaml'),
+  join(GQ_ROOT, 'pnpm-lock.yaml'),
+  join(GQ_ROOT, 'node_modules', '.pnpm', 'lock.yaml'),
   join(APP_ROOT, 'vite.react-babel.ts'),
   join(APP_ROOT, 'vitest.browser.config.ts'),
   join(APP_ROOT, 'tests', 'foundation', 'browser-node-compat.ts'),
@@ -178,7 +178,7 @@ describe('the browser tier Babel output cache key', () => {
   });
 
   test.each(
-    REQUIRED_KEY_FILES.map((required) => ({ required, label: relative(OK_ROOT, required) })),
+    REQUIRED_KEY_FILES.map((required) => ({ required, label: relative(GQ_ROOT, required) })),
   )('editing $label makes the next compile miss', async ({ required }) => {
     const { keyFiles, fresh } = keyedScratch();
     await compileOnce(fresh());

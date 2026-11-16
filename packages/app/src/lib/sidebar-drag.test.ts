@@ -1,9 +1,9 @@
 import { DOCUMENT_OPEN_BYTE_LIMIT } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
+  GQ_SIDEBAR_DRAG_MIME,
   hasSidebarDragType,
   navigationForSidebarDragPayload,
-  OK_SIDEBAR_DRAG_MIME,
   parseSidebarDragPayload,
   type SidebarDragPayload,
   serializeSidebarDragPayload,
@@ -20,7 +20,7 @@ describe('sidebar drag payload', () => {
   test('recognizes sidebar drags from the MIME type before payload bytes are readable', () => {
     expect(
       hasSidebarDragType({
-        types: [OK_SIDEBAR_DRAG_MIME],
+        types: [GQ_SIDEBAR_DRAG_MIME],
       }),
     ).toBe(true);
     expect(hasSidebarDragType({ types: ['text/plain'] })).toBe(false);
@@ -37,7 +37,7 @@ describe('sidebar drag payload', () => {
     for (const payload of payloads) {
       expect(
         parseSidebarDragPayload(
-          dataTransfer({ [OK_SIDEBAR_DRAG_MIME]: serializeSidebarDragPayload(payload) }),
+          dataTransfer({ [GQ_SIDEBAR_DRAG_MIME]: serializeSidebarDragPayload(payload) }),
         ),
       ).toEqual(payload);
     }
@@ -47,11 +47,11 @@ describe('sidebar drag payload', () => {
     expect(parseSidebarDragPayload(null)).toBeNull();
     expect(parseSidebarDragPayload(undefined)).toBeNull();
     expect(parseSidebarDragPayload(dataTransfer({ 'text/plain': 'notes/Intro.md' }))).toBeNull();
-    expect(parseSidebarDragPayload(dataTransfer({ [OK_SIDEBAR_DRAG_MIME]: '{' }))).toBeNull();
+    expect(parseSidebarDragPayload(dataTransfer({ [GQ_SIDEBAR_DRAG_MIME]: '{' }))).toBeNull();
     expect(
       parseSidebarDragPayload(
         dataTransfer({
-          [OK_SIDEBAR_DRAG_MIME]: JSON.stringify({
+          [GQ_SIDEBAR_DRAG_MIME]: JSON.stringify({
             v: 1,
             kind: 'doc',
             docName: '',
@@ -63,7 +63,7 @@ describe('sidebar drag payload', () => {
     expect(
       parseSidebarDragPayload(
         dataTransfer({
-          [OK_SIDEBAR_DRAG_MIME]: JSON.stringify({
+          [GQ_SIDEBAR_DRAG_MIME]: JSON.stringify({
             v: 1,
             kind: 'unknown',
           }),
@@ -73,7 +73,7 @@ describe('sidebar drag payload', () => {
     expect(
       parseSidebarDragPayload(
         dataTransfer({
-          [OK_SIDEBAR_DRAG_MIME]: JSON.stringify({
+          [GQ_SIDEBAR_DRAG_MIME]: JSON.stringify({
             v: 1,
             kind: 'asset',
             assetPath: 'media/cat.png',
@@ -85,7 +85,7 @@ describe('sidebar drag payload', () => {
     expect(
       parseSidebarDragPayload(
         dataTransfer({
-          [OK_SIDEBAR_DRAG_MIME]: JSON.stringify({
+          [GQ_SIDEBAR_DRAG_MIME]: JSON.stringify({
             v: 1,
             kind: 'asset',
             assetPath: 'media/cat.png',

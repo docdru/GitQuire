@@ -15,7 +15,7 @@ import { findOkProcessPids, scanLockProcesses } from './process-scan.ts';
 const originalPlatform = process.platform;
 const fixturePid = 24680;
 const lockDir = resolve('/missing/notes-é/.gitquire/local');
-const command = `node --ok-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
+const command = `node --gq-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
 const row = `${fixturePid} ${command}`;
 const enobufs = Object.assign(new Error('output exceeds the buffered reader'), { code: 'ENOBUFS' });
 const unavailable = Object.assign(new Error('command not found'), { code: 'ENOENT' });
@@ -107,7 +107,7 @@ describe('process enumeration', () => {
   it('retains project paths split across byte chunks and an unterminated final row', async () => {
     const project = resolve('/missing/notes-é');
     const output = Buffer.from(
-      `PID COMMAND\n12345 /usr/bin/unrelated-service\n${fixturePid} node --ok-project-path=${project}`,
+      `PID COMMAND\n12345 /usr/bin/unrelated-service\n${fixturePid} node --gq-project-path=${project}`,
     );
     providePsOutput(Array.from(output, (byte) => Buffer.from([byte])));
 

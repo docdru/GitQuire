@@ -1,4 +1,4 @@
-// oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
+// oxlint-disable gq/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-error-toast
 import { getWikiLinkText, normalizeNullableString } from '@gitquire/core/extensions/wiki-link';
 import { resolveWikiLinkTarget } from '@gitquire/core/utils/wiki-link-resolve';
 import { Trans, useLingui } from '@lingui/react/macro';

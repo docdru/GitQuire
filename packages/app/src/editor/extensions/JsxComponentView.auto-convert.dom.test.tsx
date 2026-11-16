@@ -37,7 +37,7 @@ function Host({ source, onEditor }: { source: string; onEditor: (editor: Editor)
     return () => target.remove();
   }, [target]);
   return createPortal(
-    // oxlint-disable-next-line ok/no-unportaled-editor-content -- Each test editor owns its portal target.
+    // oxlint-disable-next-line gq/no-unportaled-editor-content -- Each test editor owns its portal target.
     <EditorContent editor={editor} />,
     target,
   );

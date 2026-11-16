@@ -327,9 +327,9 @@ import {
   configureShadowGc,
   destroyShadowRepo,
   FILE_SYSTEM_WRITER,
+  GQ_GENERATOR_WRITER,
   initShadowRepo,
   isShadowExcludesDegraded,
-  OK_GENERATOR_WRITER,
   type ParkableDoc,
   parkBranch,
   SERVICE_WRITER,
@@ -1638,7 +1638,7 @@ export function createServer(options: ServerOptions): ServerInstance {
   let generatedAttributionPending = false;
   const generatedArtifactEnv: GeneratedArtifactEnv = {
     origin: GENERATED_ARTIFACT_ORIGIN,
-    writer: OK_GENERATOR_WRITER,
+    writer: GQ_GENERATOR_WRITER,
     isConflict: (docName) => conflicts.has(docName),
     getDocument: (docName) => hocuspocus.documents.get(docName),
     writeDisk: async (absPath, markdown) => {

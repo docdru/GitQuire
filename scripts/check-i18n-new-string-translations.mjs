@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gitCleanEnv } from './git-clean-env.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 export const SOURCE_LOCALE = 'en';
 const LOCALES_TS = 'packages/core/src/i18n/locales.ts';
@@ -162,7 +162,7 @@ export function formatReport({ gaps, missingCatalogs }) {
   return lines.join('\n');
 }
 
-function git(args, { cwd = OK_ROOT } = {}) {
+function git(args, { cwd = GQ_ROOT } = {}) {
   const result = spawnSync('git', args, { cwd, env: gitCleanEnv(), encoding: 'utf8' });
   return {
     ok: result.status === 0,
@@ -210,19 +210,19 @@ function main(argv) {
     return 1;
   }
 
-  const locales = readSupportedLocales(readFileSync(join(OK_ROOT, LOCALES_TS), 'utf8'));
+  const locales = readSupportedLocales(readFileSync(join(GQ_ROOT, LOCALES_TS), 'utf8'));
   const targetLocales = locales.filter((locale) => locale !== SOURCE_LOCALE);
 
   const catalogs = new Map();
   for (const locale of targetLocales) {
-    const path = join(OK_ROOT, CATALOG_REL(locale));
+    const path = join(GQ_ROOT, CATALOG_REL(locale));
     if (!existsSync(path)) continue;
     catalogs.set(locale, parsePoCatalog(readFileSync(path, 'utf8')));
   }
 
   const result = findTranslationGaps({
     baseMessages: parsePoCatalog(basePo.stdout),
-    headMessages: parsePoCatalog(readFileSync(join(OK_ROOT, CATALOG_REL(SOURCE_LOCALE)), 'utf8')),
+    headMessages: parsePoCatalog(readFileSync(join(GQ_ROOT, CATALOG_REL(SOURCE_LOCALE)), 'utf8')),
     catalogs,
     targetLocales,
   });

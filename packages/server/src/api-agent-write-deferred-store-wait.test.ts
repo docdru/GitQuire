@@ -12,7 +12,7 @@ import {
 } from './api-extension.test-helper.ts';
 import {
   DocumentDurabilityState,
-  OK_DOC_REMOVED,
+  GQ_DOC_REMOVED,
   type RenameCarryAnswer,
   WRITE_WAIT_BUDGET_MS,
   writtenThroughOf,
@@ -300,7 +300,7 @@ describe('agent-write flush: a document renamed outside the app while the write 
 
   function refusedAsRenamed(docName: string, movedTo: string, carry: Promise<RenameCarryAnswer>) {
     return {
-      code: OK_DOC_REMOVED,
+      code: GQ_DOC_REMOVED,
       message: `${docName} was renamed to ${movedTo} on disk`,
       removal: { kind: 'renamed' as const, renamedTo: movedTo, carry },
     };

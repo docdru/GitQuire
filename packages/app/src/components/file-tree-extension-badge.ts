@@ -1,20 +1,20 @@
 import { getFileExtension } from '@/components/file-tree-rename-validation';
 
-export const OK_EXT_BADGE_ATTR = 'data-ok-ext-badge';
-export const OK_EXT_ROW_ATTR = 'data-ok-ext-row';
-export const OK_FULLNAME_ROW_ATTR = 'data-ok-fullname-row';
+export const GQ_EXT_BADGE_ATTR = 'data-ok-ext-badge';
+export const GQ_EXT_ROW_ATTR = 'data-ok-ext-row';
+export const GQ_FULLNAME_ROW_ATTR = 'data-ok-fullname-row';
 
 export const FILE_TREE_EXT_BADGE_CSS = `
   [data-item-selected='true'] [data-icon-token='markdown'] {
     color: var(--trees-selected-fg);
   }
-  [data-type='item'][${OK_EXT_ROW_ATTR}] [data-truncate-segment-priority]:last-child {
+  [data-type='item'][${GQ_EXT_ROW_ATTR}] [data-truncate-segment-priority]:last-child {
     display: none;
   }
-  [data-type='item'][${OK_FULLNAME_ROW_ATTR}] [data-truncate-segment-priority]:last-child {
+  [data-type='item'][${GQ_FULLNAME_ROW_ATTR}] [data-truncate-segment-priority]:last-child {
     display: none;
   }
-  [${OK_EXT_BADGE_ATTR}] {
+  [${GQ_EXT_BADGE_ATTR}] {
     display: inline-block;
     margin-left: 0.375rem;
     margin-right: 0.25rem;
@@ -49,8 +49,8 @@ export function applyExtensionBadges(root: ParentNode): void {
     const basenameSeg = resolveBasenameSegment(row);
     if (!basenameSeg) continue;
 
-    row.setAttribute(OK_EXT_ROW_ATTR, '');
-    row.removeAttribute(OK_FULLNAME_ROW_ATTR);
+    row.setAttribute(GQ_EXT_ROW_ATTR, '');
+    row.removeAttribute(GQ_FULLNAME_ROW_ATTR);
     trimTrailingDotInBasenameSegment(basenameSeg);
 
     const isMarkdown = ext.toLowerCase() === '.md';
@@ -63,13 +63,13 @@ export function applyExtensionBadges(root: ParentNode): void {
 }
 
 function removeStaleBadge(row: HTMLElement): void {
-  const badge = row.querySelector<HTMLElement>(`[${OK_EXT_BADGE_ATTR}]`);
+  const badge = row.querySelector<HTMLElement>(`[${GQ_EXT_BADGE_ATTR}]`);
   if (badge) badge.remove();
 }
 
 function clearExtensionRow(row: HTMLElement): void {
-  row.removeAttribute(OK_EXT_ROW_ATTR);
-  row.removeAttribute(OK_FULLNAME_ROW_ATTR);
+  row.removeAttribute(GQ_EXT_ROW_ATTR);
+  row.removeAttribute(GQ_FULLNAME_ROW_ATTR);
   removeStaleBadge(row);
 }
 
@@ -82,18 +82,18 @@ function resolveBasenameSegment(row: HTMLElement): HTMLElement | null {
 }
 
 function applyFullNameEndTruncation(row: HTMLElement, treePath: string): void {
-  row.removeAttribute(OK_EXT_ROW_ATTR);
+  row.removeAttribute(GQ_EXT_ROW_ATTR);
   removeStaleBadge(row);
 
   const basenameSeg = resolveBasenameSegment(row);
   const name = leafName(treePath);
   if (!basenameSeg || !name) {
-    row.removeAttribute(OK_FULLNAME_ROW_ATTR);
+    row.removeAttribute(GQ_FULLNAME_ROW_ATTR);
     return;
   }
 
   setSegmentText(basenameSeg, name);
-  row.setAttribute(OK_FULLNAME_ROW_ATTR, '');
+  row.setAttribute(GQ_FULLNAME_ROW_ATTR, '');
 }
 
 function leafName(treePath: string): string {
@@ -122,10 +122,10 @@ function trimTrailingDotInBasenameSegment(basenameSeg: HTMLElement): void {
 }
 
 function upsertBadge(row: HTMLElement, label: string): void {
-  let badge = row.querySelector<HTMLSpanElement>(`[${OK_EXT_BADGE_ATTR}]`);
+  let badge = row.querySelector<HTMLSpanElement>(`[${GQ_EXT_BADGE_ATTR}]`);
   if (!badge) {
     badge = row.ownerDocument.createElement('span');
-    badge.setAttribute(OK_EXT_BADGE_ATTR, '');
+    badge.setAttribute(GQ_EXT_BADGE_ATTR, '');
     badge.setAttribute('aria-hidden', 'true');
     const actionSection = row.querySelector('[data-item-section="action"]');
     if (actionSection) {

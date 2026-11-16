@@ -1,6 +1,6 @@
 import { realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@gitquire/core';
+import { DEV_FALLBACK_CLI_REFUSAL, GqCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { type RunDeviceFlowController, runDeviceFlowSubprocess } from './auth-flow.ts';
 import type { AuthEvent } from './types.ts';
@@ -8,7 +8,7 @@ import type { AuthEvent } from './types.ts';
 const okCli = (
   cliArgs: readonly string[],
   cliEnv?: Readonly<Record<string, string | undefined>>,
-): OkCliCommand => OkCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 
@@ -280,7 +280,7 @@ describe('runDeviceFlowSubprocess', () => {
   test('a dev build without its workspace CLI refuses to sign in instead of running the CLI on PATH', async () => {
     const events: AuthEvent[] = [];
     const ctrl = runDeviceFlowSubprocess({
-      cli: OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
+      cli: GqCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
       onEvent: (e) => events.push(e),
     });
     await ctrl.done;

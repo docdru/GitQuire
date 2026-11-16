@@ -72,7 +72,7 @@ test('both variants start below the application header rather than over it', asy
   await renderBanner();
   expectVisualClassTokens(screen.getByTestId('branch-recycle-banner-switch').className, [
     'fixed',
-    'top-[var(--ok-app-header-height,0px)]',
+    'top-[var(--gq-app-header-height,0px)]',
     'inset-x-0',
   ]);
 
@@ -81,7 +81,7 @@ test('both variants start below the application header rather than over it', asy
   await renderBanner();
   expectVisualClassTokens(screen.getByTestId('branch-recycle-banner-refused').className, [
     'fixed',
-    'top-[var(--ok-app-header-height,0px)]',
+    'top-[var(--gq-app-header-height,0px)]',
     'inset-x-0',
   ]);
 });

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { OK_USER_HOME_AUTH_FILE, okUserHomeDisplayPath } from '@gitquire/core/constants/ok-dir';
+import { GQ_USER_HOME_AUTH_FILE, okUserHomeDisplayPath } from '@gitquire/core/constants/ok-dir';
 import { okUserHomeDir } from '@gitquire/core/constants/ok-user-home';
 import { currentDesktopProduct } from '@gitquire/core/constants/product';
 import { atomicWriteFileSync } from '@gitquire/core/util/atomic-yaml-write';
@@ -27,7 +27,7 @@ export interface TokenStore {
 }
 
 export function authFileDisplayPath(): string {
-  return okUserHomeDisplayPath(OK_USER_HOME_AUTH_FILE);
+  return okUserHomeDisplayPath(GQ_USER_HOME_AUTH_FILE);
 }
 
 function keyringService(): string {
@@ -115,7 +115,7 @@ export class FileBackend implements TokenStore {
   private readonly authFile: string;
 
   constructor(authFile?: string) {
-    this.authFile = authFile ?? join(okUserHomeDir(), OK_USER_HOME_AUTH_FILE);
+    this.authFile = authFile ?? join(okUserHomeDir(), GQ_USER_HOME_AUTH_FILE);
   }
 
   private read(): Record<string, TokenEntry> {

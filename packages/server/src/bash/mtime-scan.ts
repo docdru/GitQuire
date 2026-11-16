@@ -1,7 +1,7 @@
 import type { Dirent } from 'node:fs';
 import { readdir, stat } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import { argsOf } from './extract-paths.ts';
 import {
   attachedValueMayNamePath,
@@ -16,7 +16,7 @@ export const SCAN_WHOLE_TREE = '';
 
 const SKIP_DIRS: ReadonlySet<string> = new Set([
   '.git',
-  OK_DIR,
+  GQ_DIR,
   'node_modules',
   '.changeset',
   '.claude',

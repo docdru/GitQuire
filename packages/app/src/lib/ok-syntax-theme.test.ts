@@ -2,7 +2,7 @@ import langTsx from '@shikijs/langs/tsx';
 import { createHighlighterCore } from 'shiki/core';
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
 import { beforeAll, describe, expect, test } from 'vitest';
-import { OK_SYNTAX_THEME_NAME, okSyntaxTheme } from './ok-syntax-theme';
+import { GQ_SYNTAX_THEME_NAME, okSyntaxTheme } from './ok-syntax-theme';
 
 let highlighter: Awaited<ReturnType<typeof createHighlighterCore>>;
 
@@ -17,14 +17,14 @@ beforeAll(async () => {
 function colorOf(code: string, content: string): string | undefined {
   const { tokens } = highlighter.codeToTokens(code, {
     lang: 'tsx',
-    theme: OK_SYNTAX_THEME_NAME,
+    theme: GQ_SYNTAX_THEME_NAME,
   });
   return tokens.flat().find((token) => token.content.trim() === content)?.color;
 }
 
 describe('okSyntaxTheme', () => {
   test('loads under its registered name', () => {
-    expect(highlighter.getLoadedThemes()).toContain(OK_SYNTAX_THEME_NAME);
+    expect(highlighter.getLoadedThemes()).toContain(GQ_SYNTAX_THEME_NAME);
   });
 
   test('paints tokens with the custom properties the CodeMirror theme uses', () => {
@@ -41,7 +41,7 @@ describe('okSyntaxTheme', () => {
   test('resolves the editor foreground to an app token, not a baked color', () => {
     const { fg, bg } = highlighter.codeToTokens('x\n', {
       lang: 'tsx',
-      theme: OK_SYNTAX_THEME_NAME,
+      theme: GQ_SYNTAX_THEME_NAME,
     });
     expect(fg).toBe('var(--foreground)');
     expect(bg).toBe('var(--background)');
@@ -67,7 +67,7 @@ describe('okSyntaxTheme', () => {
     ].join('\n');
     const { tokens } = highlighter.codeToTokens(code, {
       lang: 'tsx',
-      theme: OK_SYNTAX_THEME_NAME,
+      theme: GQ_SYNTAX_THEME_NAME,
     });
     const colors = tokens.flat().map((token) => token.color);
     expect(colors.length).toBeGreaterThan(30);

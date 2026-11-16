@@ -88,8 +88,8 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
     const header = panel?.querySelector('[data-slot="panel-header"]');
     expectVisualClassTokens(header?.className, ['mt-2', 'h-12', 'py-0']);
 
-    expectVisualClassTokens(header?.className, ['pl-[var(--ok-titlebar-reserve-left,1rem)]']);
-    expectVisualClassTokensAbsent(header?.className, ['pl-[var(--ok-titlebar-reserve-left)]']);
+    expectVisualClassTokens(header?.className, ['pl-[var(--gq-titlebar-reserve-left,1rem)]']);
+    expectVisualClassTokensAbsent(header?.className, ['pl-[var(--gq-titlebar-reserve-left)]']);
 
     const titleCluster = header?.querySelector('[data-slot="graph-title-cluster"]');
     expectVisualClassTokens(titleCluster?.className, ['ml-4']);
@@ -117,7 +117,7 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
     const panel = screen.getByTestId('graph-view').closest('[data-slot="panel"]');
     const header = panel?.querySelector('[data-slot="panel-header"]');
     expectVisualClassTokensAbsent(header?.className, [
-      'pl-[var(--ok-titlebar-reserve-left,1rem)]',
+      'pl-[var(--gq-titlebar-reserve-left,1rem)]',
       'mt-2',
       'h-12',
     ]);

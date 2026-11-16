@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import {
-  OK_DIR,
-  OK_MACHINE_LOCAL_ROOT_DIRS,
-  OK_MACHINE_LOCAL_ROOT_FILES,
+  GQ_DIR,
+  GQ_MACHINE_LOCAL_ROOT_DIRS,
+  GQ_MACHINE_LOCAL_ROOT_FILES,
   pathspecArgs,
   SYSTEM_WRITER_DISPLAY_NAMES,
 } from '@gitquire/core';
@@ -19,8 +19,8 @@ import {
   formatImportSubject,
   formatOkActor,
   formatParkSubject,
-  OK_GENERATOR_WRITER_ID,
-  type OkActorEntry,
+  GQ_GENERATOR_WRITER_ID,
+  type GqActorEntry,
   type ParsedCheckpoint,
   parseCheckpoint,
   parseWriterId,
@@ -83,14 +83,14 @@ const CORPUS_STAGE_GIT_TIMEOUT_MS = (() => {
 
 const SHADOW_GC_AUTO = 512;
 
-const MACHINE_LOCAL_DIRS = OK_MACHINE_LOCAL_ROOT_DIRS.map((name) => `${OK_DIR}/${name}/`);
+const MACHINE_LOCAL_DIRS = GQ_MACHINE_LOCAL_ROOT_DIRS.map((name) => `${GQ_DIR}/${name}/`);
 
-const MACHINE_LOCAL_FILES = OK_MACHINE_LOCAL_ROOT_FILES.map((name) => `${OK_DIR}/${name}`);
+const MACHINE_LOCAL_FILES = GQ_MACHINE_LOCAL_ROOT_FILES.map((name) => `${GQ_DIR}/${name}`);
 
 const SHADOW_EXCLUDE_PATTERNS: readonly string[] = [
   ...MACHINE_LOCAL_DIRS.map((dir) => `**/${dir}`),
   ...MACHINE_LOCAL_FILES.map((file) => `**/${file}`),
-  `**/${OK_DIR}/watcher-settle-fence-*`,
+  `**/${GQ_DIR}/watcher-settle-fence-*`,
   ATOMIC_TEMP_GLOB,
 ];
 
@@ -670,10 +670,10 @@ export const SERVICE_WRITER: WriterIdentity = {
  * Deliberately NOT `SERVICE_WRITER`: that one is the fallback for work with no contributor behind
  * it, and precedent #25 reserves it for exactly that.
  */
-export const OK_GENERATOR_WRITER: WriterIdentity = {
-  id: OK_GENERATOR_WRITER_ID,
+export const GQ_GENERATOR_WRITER: WriterIdentity = {
+  id: GQ_GENERATOR_WRITER_ID,
   name: SYSTEM_WRITER_DISPLAY_NAMES.generator,
-  email: `${OK_GENERATOR_WRITER_ID}@openknowledge.local`,
+  email: `${GQ_GENERATOR_WRITER_ID}@openknowledge.local`,
 };
 
 const UPSTREAM_WRITER: WriterIdentity = GIT_UPSTREAM_WRITER;
@@ -700,7 +700,7 @@ async function commitUpstreamImportInner(
   branch = 'main',
 ): Promise<string> {
   const subject = formatImportSubject(oldHead, newHead);
-  const actorEntry: OkActorEntry = {
+  const actorEntry: GqActorEntry = {
     v: 1,
     writer_id: UPSTREAM_WRITER.id,
     principal: null,
@@ -731,7 +731,7 @@ export async function safetyCheckpoint(
   branch = 'main',
 ): Promise<string> {
   const subject = formatCheckpointSubject(`pre-${params.action}`);
-  const actorEntry: OkActorEntry = {
+  const actorEntry: GqActorEntry = {
     v: 1,
     writer_id: SAFETY_WRITER.id,
     principal: null,
@@ -1614,7 +1614,7 @@ async function parkBranchInner(
       parentSha = (await sg.raw('rev-parse', ref)).trim();
     } catch {}
 
-    const parkActorEntry: OkActorEntry = {
+    const parkActorEntry: GqActorEntry = {
       v: 1,
       writer_id: SERVICE_WRITER.id,
       principal: null,
@@ -1774,7 +1774,7 @@ async function saveVersionInner(
       );
     }
 
-    const checkpointActorEntry: OkActorEntry = {
+    const checkpointActorEntry: GqActorEntry = {
       v: 1,
       writer_id: SERVICE_WRITER.id,
       principal: null,

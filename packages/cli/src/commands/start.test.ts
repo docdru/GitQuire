@@ -25,10 +25,10 @@ import {
   EphemeralProjectDirNotThrowawayError,
   formatServerReuseNotice,
   formatShutdownNotice,
+  GqDirMissingError,
   isLoopbackHost,
   isReapableEphemeralProjectDir,
   isServerLockCollision,
-  OkDirMissingError,
   parseExternalUrlFlag,
   parseIdleShutdownFlag,
   parseOnlyModule,
@@ -918,7 +918,7 @@ describe('bootStartServer — rejects with init-required when .gitquire/config.y
         host: TEST_HOST,
         skipAutoInit: false,
       }),
-    ).rejects.toBeInstanceOf(OkDirMissingError);
+    ).rejects.toBeInstanceOf(GqDirMissingError);
   });
 
   test('fresh dir (no .gitquire/) → OkDirMissingError message contains "gq init"', async () => {
@@ -942,7 +942,7 @@ describe('bootStartServer — rejects with init-required when .gitquire/config.y
         host: TEST_HOST,
         skipAutoInit: false,
       }),
-    ).rejects.toBeInstanceOf(OkDirMissingError);
+    ).rejects.toBeInstanceOf(GqDirMissingError);
     expect(existsSync(join(tmpDir, '.gitquire', 'config.yml'))).toBe(false);
   });
 
@@ -955,7 +955,7 @@ describe('bootStartServer — rejects with init-required when .gitquire/config.y
         host: TEST_HOST,
         skipAutoInit: false,
       }),
-    ).rejects.toBeInstanceOf(OkDirMissingError);
+    ).rejects.toBeInstanceOf(GqDirMissingError);
     expect(existsSync(join(tmpDir, '.gitquire', 'config.yml'))).toBe(false);
   });
 
@@ -1645,7 +1645,7 @@ describe('start messages name the running channel command', () => {
 
   test('Stable keeps gq in the missing-setup error and the reuse notice', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
-    expect(new OkDirMissingError('/p').message).toBe(
+    expect(new GqDirMissingError('/p').message).toBe(
       "This directory isn't set up yet. Run `gq init` first, then `gq start` again.",
     );
     expect(formatServerReuseNotice({ url: 'u', pid: 7, servesUi: true })[2]).toBe(
@@ -1655,7 +1655,7 @@ describe('start messages name the running channel command', () => {
 
   test('Beta names gq-beta in the missing-setup error and the reuse notice', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
-    expect(new OkDirMissingError('/p').message).toBe(
+    expect(new GqDirMissingError('/p').message).toBe(
       "This directory isn't set up yet. Run `gq-beta init` first, then `gq-beta start` again.",
     );
     expect(formatServerReuseNotice({ url: 'u', pid: 7, servesUi: true })[2]).toBe(

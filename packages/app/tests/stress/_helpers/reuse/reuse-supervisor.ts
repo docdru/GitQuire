@@ -9,13 +9,13 @@ import { launchOwnedDevServer } from './owned-dev-server.ts';
 import { WorkerServerSupervisor } from './server-supervisor.ts';
 import { connectLeaseClient, serveSupervisor } from './supervisor-socket.ts';
 
-const OK_ROOT = realpathSync(join(APP_PACKAGE_ROOT, '..', '..'));
+const GQ_ROOT = realpathSync(join(APP_PACKAGE_ROOT, '..', '..'));
 const SUPERVISOR_CALL_MS = 60_000;
 const IDENTITY_TIMEOUT_MS = 5_000;
 
 export const DEFAULT_SUPERVISOR_SOCKET = join(
   tmpdir(),
-  `ok-e2e-reuse-${createHash('sha256').update(OK_ROOT).digest('hex').slice(0, 12)}`,
+  `ok-e2e-reuse-${createHash('sha256').update(GQ_ROOT).digest('hex').slice(0, 12)}`,
   'supervisor.sock',
 );
 
@@ -42,7 +42,7 @@ async function main(argv: readonly string[]): Promise<number> {
   switch (positionals[0]) {
     case 'serve': {
       const supervisor = new WorkerServerSupervisor({
-        okRoot: OK_ROOT,
+        okRoot: GQ_ROOT,
         launch: launchOwnedDevServer,
         identityTimeoutMs: IDENTITY_TIMEOUT_MS,
       });

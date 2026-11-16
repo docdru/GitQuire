@@ -134,15 +134,15 @@ export function assertNeverDeferredStoreWait(wait: never): never {
   throw new Error(`[DeferredStoreWait] unhandled variant: ${JSON.stringify(wait)}`);
 }
 
-export const OK_DOC_REMOVED = 'OK_DOC_REMOVED';
-export const OK_PATH_UNRESOLVABLE = 'OK_PATH_UNRESOLVABLE';
-export const OK_STORE_REFUSED = 'OK_STORE_REFUSED';
-export const OK_STORE_HELD = 'OK_STORE_HELD';
-export const OK_STORE_DISCARDED = 'OK_STORE_DISCARDED';
-export const OK_DOC_MOVED = 'OK_DOC_MOVED';
-export const OK_SERVER_STOPPED = 'OK_SERVER_STOPPED';
-export const OK_WRITE_REPLACED = 'OK_WRITE_REPLACED';
-export const OK_WRITE_DROPPED = 'OK_WRITE_DROPPED';
+export const GQ_DOC_REMOVED = 'GQ_DOC_REMOVED';
+export const GQ_PATH_UNRESOLVABLE = 'GQ_PATH_UNRESOLVABLE';
+export const GQ_STORE_REFUSED = 'GQ_STORE_REFUSED';
+export const GQ_STORE_HELD = 'GQ_STORE_HELD';
+export const GQ_STORE_DISCARDED = 'GQ_STORE_DISCARDED';
+export const GQ_DOC_MOVED = 'GQ_DOC_MOVED';
+export const GQ_SERVER_STOPPED = 'GQ_SERVER_STOPPED';
+export const GQ_WRITE_REPLACED = 'GQ_WRITE_REPLACED';
+export const GQ_WRITE_DROPPED = 'GQ_WRITE_DROPPED';
 
 const IN_FLIGHT_FLUSH_TTL_MS = 60_000;
 

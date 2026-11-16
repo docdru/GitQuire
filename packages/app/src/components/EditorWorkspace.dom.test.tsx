@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { EditorPaneState } from '@/editor/editor-panes';
-import { OK_SIDEBAR_DRAG_MIME, serializeSidebarDragPayload } from '@/lib/sidebar-drag';
+import { GQ_SIDEBAR_DRAG_MIME, serializeSidebarDragPayload } from '@/lib/sidebar-drag';
 import { swapEditorSidebars } from '@/lib/sidebar-side-store';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 import {
@@ -672,9 +672,9 @@ describe('EditorWorkspace', () => {
     const pane = container.querySelector<HTMLElement>('[data-editor-pane-id="pane-b"]');
     let payloadReadable = false;
     const dataTransfer = {
-      types: [OK_SIDEBAR_DRAG_MIME],
+      types: [GQ_SIDEBAR_DRAG_MIME],
       getData: (type: string) =>
-        type === OK_SIDEBAR_DRAG_MIME && payloadReadable
+        type === GQ_SIDEBAR_DRAG_MIME && payloadReadable
           ? serializeSidebarDragPayload({
               v: 1,
               kind: 'doc',
@@ -719,9 +719,9 @@ describe('EditorWorkspace', () => {
     const portaledPaneBody = screen.getByTestId('portaled-pane-body');
     portaledPaneBody.addEventListener('drop', consumeDrop);
     const dataTransfer = {
-      types: [OK_SIDEBAR_DRAG_MIME],
+      types: [GQ_SIDEBAR_DRAG_MIME],
       getData: (type: string) =>
-        type === OK_SIDEBAR_DRAG_MIME
+        type === GQ_SIDEBAR_DRAG_MIME
           ? serializeSidebarDragPayload({
               v: 1,
               kind: 'doc',
@@ -757,7 +757,7 @@ describe('EditorWorkspace', () => {
     const nestedDrop = vi.fn();
     nestedPaneBody.addEventListener('drop', nestedDrop);
     const dataTransfer = {
-      types: [OK_SIDEBAR_DRAG_MIME],
+      types: [GQ_SIDEBAR_DRAG_MIME],
       getData: () => '{',
       dropEffect: 'none',
     };
@@ -778,7 +778,7 @@ describe('EditorWorkspace', () => {
     const { container } = renderWorkspace();
     const pane = container.querySelector<HTMLElement>('[data-editor-pane-id="pane-b"]');
     const dataTransfer = {
-      types: [OK_SIDEBAR_DRAG_MIME],
+      types: [GQ_SIDEBAR_DRAG_MIME],
       getData: () => '',
       dropEffect: 'none',
     };

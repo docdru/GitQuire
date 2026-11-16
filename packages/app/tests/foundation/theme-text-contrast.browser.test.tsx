@@ -24,7 +24,7 @@ import { ActivityPanelDiffView } from '@/components/ActivityPanelDiffView';
 import { ConflictView } from '@/components/ConflictView';
 import { FileTreeEmptyState } from '@/components/FileTree';
 import { createFileTreeStyle, FILE_TREE_DENSITY_OPTIONS } from '@/components/file-tree-density';
-import { OK_FILE_TREE_READONLY_UNSAFE_CSS } from '@/components/file-tree-shared';
+import { GQ_FILE_TREE_READONLY_UNSAFE_CSS } from '@/components/file-tree-shared';
 import { MermaidDocEditor } from '@/components/MermaidDocEditor';
 import { ColorThemePicker } from '@/components/settings/ColorThemePicker';
 import { SettingsDialogShell } from '@/components/settings/SettingsDialogShell';
@@ -274,7 +274,7 @@ function richEditorPortal(editor: Editor) {
   const target = document.createElement('div');
   target.className = 'tiptap-editor-portal-content';
   const content = createPortal(
-    // oxlint-disable-next-line ok/no-unportaled-editor-content -- This fixture gives each editor an exclusive portal target.
+    // oxlint-disable-next-line gq/no-unportaled-editor-content -- This fixture gives each editor an exclusive portal target.
     <EditorContent editor={editor} />,
     target,
   );
@@ -484,7 +484,7 @@ describe('rendered theme text contrast', () => {
       const wrapper = container.querySelector('[data-contrast="tree"]') as HTMLElement;
       const tree = new FileTree({
         ...FILE_TREE_DENSITY_OPTIONS,
-        unsafeCSS: OK_FILE_TREE_READONLY_UNSAFE_CSS,
+        unsafeCSS: GQ_FILE_TREE_READONLY_UNSAFE_CSS,
         paths: ['note.md'],
         initialExpansion: 'open',
       });

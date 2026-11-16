@@ -1,12 +1,12 @@
 import { Trans } from '@lingui/react/macro';
 import { useEffect, useRef } from 'react';
-import { OkBlobRunner } from '@/components/OkBlobRunner';
+import { GqBlobRunner } from '@/components/OkBlobRunner';
 
-interface OkBlobRunnerPageProps {
+interface GqBlobRunnerPageProps {
   autoStart?: boolean;
 }
 
-export function OkBlobRunnerPage({ autoStart = false }: OkBlobRunnerPageProps = {}) {
+export function GqBlobRunnerPage({ autoStart = false }: GqBlobRunnerPageProps = {}) {
   const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function OkBlobRunnerPage({ autoStart = false }: OkBlobRunnerPageProps = 
         </p>
       </div>
       <div className="w-full">
-        <OkBlobRunner autoStart={autoStart} />
+        <GqBlobRunner autoStart={autoStart} />
       </div>
     </div>
   );

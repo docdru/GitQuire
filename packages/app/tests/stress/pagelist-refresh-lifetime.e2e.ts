@@ -20,7 +20,7 @@ const ABANDONMENT_TEST_TIMEOUT_MS =
   HOLD_LIVENESS_CEILING_MS +
   PROVIDER_SYNC_WAITS_PER_ABANDONMENT_TEST * PROVIDER_SYNC_BUDGET_MS;
 const SERVICE_UNAVAILABLE = 503;
-const OK_STATUS = 200;
+const GQ_STATUS = 200;
 const DOCUMENTS_ROUTE = '**/api/documents';
 const DOCUMENTS_PATH = '/api/documents';
 const LOAD_ASSETS_FAILURE = '[PageListContext] Failed to load referenced assets';
@@ -94,11 +94,11 @@ function loadAssetsFailures(probe: AssetsProbe): LogEntry[] {
 }
 
 function servedPageListsSince(probe: ServedPageListsView, mark: number): number {
-  return probe.pagesResponseStatuses.slice(mark).filter((status) => status === OK_STATUS).length;
+  return probe.pagesResponseStatuses.slice(mark).filter((status) => status === GQ_STATUS).length;
 }
 
 function servedDocumentListsSince(probe: AssetsProbe, mark: number): number {
-  return probe.documentsResponseStatuses.slice(mark).filter((status) => status === OK_STATUS)
+  return probe.documentsResponseStatuses.slice(mark).filter((status) => status === GQ_STATUS)
     .length;
 }
 

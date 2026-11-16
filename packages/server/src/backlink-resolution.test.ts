@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { LOCAL_DIR, OK_DIR } from '@gitquire/core';
+import { GQ_DIR, LOCAL_DIR } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { BacklinkIndex } from './backlink-index.ts';
 
@@ -193,7 +193,7 @@ describe('resolved document relationships', () => {
       await index.saveToDisk();
       snapshots.push(
         readFileSync(
-          join(projectDir, OK_DIR, LOCAL_DIR, 'cache', 'main', 'backlinks.json'),
+          join(projectDir, GQ_DIR, LOCAL_DIR, 'cache', 'main', 'backlinks.json'),
           'utf8',
         ),
       );
@@ -314,7 +314,7 @@ describe('resolved document relationships', () => {
 
   test('versioned raw-key snapshots query and reconcile without changing their persisted keys', async () => {
     const { index, projectDir } = createIndex();
-    const cache = join(projectDir, OK_DIR, LOCAL_DIR, 'cache/main/backlinks.json');
+    const cache = join(projectDir, GQ_DIR, LOCAL_DIR, 'cache/main/backlinks.json');
     mkdirSync(dirname(cache), { recursive: true });
     writeFileSync(
       cache,

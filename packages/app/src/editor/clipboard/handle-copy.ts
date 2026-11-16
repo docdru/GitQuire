@@ -2,7 +2,7 @@ import type { MarkdownManager } from '@gitquire/core/markdown';
 import { TextSelection } from '@tiptap/pm/state';
 import { CellSelection } from '@tiptap/pm/tables';
 import type { EditorView } from '@tiptap/pm/view';
-import { OK_INTERNAL_CLIPBOARD_MIME, sliceContainsClipboardOmitted } from './comment-scrub.ts';
+import { GQ_INTERNAL_CLIPBOARD_MIME, sliceContainsClipboardOmitted } from './comment-scrub.ts';
 import { logSerializeFail } from './instrument.ts';
 import {
   createClipboardTextSerializer,
@@ -39,7 +39,7 @@ export function createCopyCutHandler(deps: CopyCutHandlerDeps) {
           internalSlice = stripEnclosingMarkerWrappers(slice, view.state);
         }
         const internalMarkdown = deps.mdManager.serialize(sliceToDocJson(internalSlice, schema));
-        data.setData(OK_INTERNAL_CLIPBOARD_MIME, internalMarkdown);
+        data.setData(GQ_INTERNAL_CLIPBOARD_MIME, internalMarkdown);
       }
 
       if (isCut && view.editable) {

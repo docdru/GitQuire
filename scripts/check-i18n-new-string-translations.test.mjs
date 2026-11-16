@@ -17,8 +17,8 @@ import {
 } from './check-i18n-new-string-translations.mjs';
 import { gitCleanEnv } from './git-clean-env.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
-const LOCALES_TS = join(OK_ROOT, 'packages/core/src/i18n/locales.ts');
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const LOCALES_TS = join(GQ_ROOT, 'packages/core/src/i18n/locales.ts');
 
 const catalogOf = (entries) => new Map(Object.entries(entries));
 
@@ -45,7 +45,7 @@ describe('locale enumeration', () => {
 
   test('every enumerated locale has a catalog on disk', () => {
     const missing = locales.filter(
-      (locale) => !existsSync(join(OK_ROOT, `packages/app/src/locales/${locale}/messages.po`)),
+      (locale) => !existsSync(join(GQ_ROOT, `packages/app/src/locales/${locale}/messages.po`)),
     );
     expect(missing).toEqual([]);
   });
@@ -261,7 +261,7 @@ describe('wiring', () => {
     const result = spawnSync(
       process.execPath,
       ['scripts/check-i18n-new-string-translations.mjs', '--base', 'HEAD'],
-      { cwd: OK_ROOT, encoding: 'utf8' },
+      { cwd: GQ_ROOT, encoding: 'utf8' },
     );
     expect(result.error).toBeUndefined();
     expect(result.stdout + result.stderr).toContain('0 new message(s)');
@@ -269,30 +269,30 @@ describe('wiring', () => {
   });
 
   test('is part of the drift-guard chain', () => {
-    const pkg = JSON.parse(readFileSync(join(OK_ROOT, 'package.json'), 'utf8'));
+    const pkg = JSON.parse(readFileSync(join(GQ_ROOT, 'package.json'), 'utf8'));
     expect(pkg.scripts['check:drift:guards']).toContain(
       'node scripts/check-i18n-new-string-translations.mjs',
     );
   });
 
   test('the source locale is the one Lingui extracts from', () => {
-    expect(readLinguiConfig(join(OK_ROOT, 'packages/app/lingui.config.ts')).sourceLocale).toBe(
+    expect(readLinguiConfig(join(GQ_ROOT, 'packages/app/lingui.config.ts')).sourceLocale).toBe(
       SOURCE_LOCALE,
     );
   });
 });
 
 describe('invocation environment', () => {
-  const SCRIPT = join(OK_ROOT, 'scripts/check-i18n-new-string-translations.mjs');
+  const SCRIPT = join(GQ_ROOT, 'scripts/check-i18n-new-string-translations.mjs');
 
-  const runCheck = ({ cwd = OK_ROOT, env = {} } = {}) =>
+  const runCheck = ({ cwd = GQ_ROOT, env = {} } = {}) =>
     spawnSync(process.execPath, [SCRIPT, '--base', 'HEAD'], {
       cwd,
       encoding: 'utf8',
       env: { ...process.env, ...env },
     });
 
-  const gitAt = (args, cwd = OK_ROOT) =>
+  const gitAt = (args, cwd = GQ_ROOT) =>
     spawnSync('git', args, { cwd, encoding: 'utf8', env: gitCleanEnv() }).stdout.trim();
 
   test('reads the base catalog when invoked from the repo root, not only from the subtree', () => {
@@ -344,10 +344,10 @@ describe('invocation environment', () => {
 });
 
 function readLinguiConfig(configPath) {
-  const fromApp = createRequire(join(OK_ROOT, 'packages/app/package.json'));
+  const fromApp = createRequire(join(GQ_ROOT, 'packages/app/package.json'));
   const fromCli = createRequire(fromApp.resolve('@lingui/cli'));
   try {
-    return fromCli('@lingui/conf').getConfig({ configPath, cwd: join(OK_ROOT, 'packages/app') });
+    return fromCli('@lingui/conf').getConfig({ configPath, cwd: join(GQ_ROOT, 'packages/app') });
   } catch (cause) {
     if (!existsSync(configPath)) throw cause;
     throw new Error(`${configPath} exists but Lingui could not load or validate it`, { cause });

@@ -1,8 +1,8 @@
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
-import type { OkPackId } from '@/lib/desktop-bridge-types';
+import type { GqPackId } from '@/lib/desktop-bridge-types';
 
-export const PACK_BLURBS: Partial<Record<OkPackId, MessageDescriptor>> = {
+export const PACK_BLURBS: Partial<Record<GqPackId, MessageDescriptor>> = {
   'knowledge-base': msg`Turn the things you read into clear, trusted articles. Save a source, figure out what it means, then keep the final version so you can rely on it later.`,
   'software-lifecycle': msg`Keep a written record of how your product gets built. A home for proposing ideas, recording decisions, writing specs, and capturing what you learned after something broke.`,
   'codebase-wiki': msg`Explain how your codebase works so teammates and AI agents can find their way around. Good for documenting the architecture, the main parts, and the questions new contributors always ask.`,

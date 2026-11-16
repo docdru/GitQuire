@@ -18,7 +18,7 @@ export type WriterClassification =
 
 export const GIT_AUTHOR_WRITER_PREFIX = 'git-author-';
 
-export const OK_GENERATOR_WRITER_ID = 'ok-generator';
+export const GQ_GENERATOR_WRITER_ID = 'ok-generator';
 
 export function gitAuthorWriterId(email: string): string {
   return `${GIT_AUTHOR_WRITER_PREFIX}${fnv1aDigest(email.trim().toLowerCase())}`;
@@ -281,16 +281,16 @@ export interface ShadowContributor {
   summaries?: string[];
 }
 
-const OK_CONTRIBUTORS_PREFIX = 'ok-contributors: ';
+const GQ_CONTRIBUTORS_PREFIX = 'ok-contributors: ';
 
 export function parseContributors(body: string): ShadowContributor[] {
   if (!body) return [];
   const contributors: ShadowContributor[] = [];
   for (const line of body.split('\n')) {
     const trimmed = line.trim();
-    if (!trimmed.startsWith(OK_CONTRIBUTORS_PREFIX)) continue;
+    if (!trimmed.startsWith(GQ_CONTRIBUTORS_PREFIX)) continue;
     try {
-      const parsed = JSON.parse(trimmed.slice(OK_CONTRIBUTORS_PREFIX.length)) as unknown;
+      const parsed = JSON.parse(trimmed.slice(GQ_CONTRIBUTORS_PREFIX.length)) as unknown;
       if (
         parsed !== null &&
         typeof parsed === 'object' &&
@@ -338,7 +338,7 @@ export {
   parseCheckpoint,
 } from './checkpoint-kinds.ts';
 
-export interface OkActorEntry {
+export interface GqActorEntry {
   v: 1;
   writer_id: string;
   principal: string | null;
@@ -354,17 +354,17 @@ export interface OkActorEntry {
   previous_paths?: Array<{ from: string; to: string }>;
 }
 
-const OK_ACTOR_PREFIX = 'ok-actor: ';
+const GQ_ACTOR_PREFIX = 'ok-actor: ';
 
-export function formatOkActor(entry: OkActorEntry): string {
+export function formatOkActor(entry: GqActorEntry): string {
   const { summaries, previous_paths, ...rest } = entry;
   const payload: Record<string, unknown> = { ...rest };
   if (summaries && summaries.length > 0) payload.summaries = summaries;
   if (previous_paths && previous_paths.length > 0) payload.previous_paths = previous_paths;
-  return `${OK_ACTOR_PREFIX}${JSON.stringify(payload)}`;
+  return `${GQ_ACTOR_PREFIX}${JSON.stringify(payload)}`;
 }
 
-function parseOkActorObject(obj: Record<string, unknown>): OkActorEntry | null {
+function parseOkActorObject(obj: Record<string, unknown>): GqActorEntry | null {
   if (obj.v !== 1) return null;
   if (!('display_name' in obj) || typeof obj.display_name !== 'string') return null;
   if (!('docs' in obj) || !Array.isArray(obj.docs)) return null;
@@ -428,14 +428,14 @@ function parsePreviousPaths(
   return out;
 }
 
-export function parseOkActor(body: string): OkActorEntry | null {
+export function parseOkActor(body: string): GqActorEntry | null {
   if (!body) return null;
   for (const line of body.split('\n')) {
     const trimmed = line.trim();
-    if (!trimmed.startsWith(OK_ACTOR_PREFIX)) continue;
+    if (!trimmed.startsWith(GQ_ACTOR_PREFIX)) continue;
     let parsed: unknown;
     try {
-      parsed = JSON.parse(trimmed.slice(OK_ACTOR_PREFIX.length));
+      parsed = JSON.parse(trimmed.slice(GQ_ACTOR_PREFIX.length));
     } catch {
       return null;
     }
@@ -445,15 +445,15 @@ export function parseOkActor(body: string): OkActorEntry | null {
   return null;
 }
 
-export function parseOkActors(body: string): OkActorEntry[] {
+export function parseOkActors(body: string): GqActorEntry[] {
   if (!body) return [];
-  const out: OkActorEntry[] = [];
+  const out: GqActorEntry[] = [];
   for (const line of body.split('\n')) {
     const trimmed = line.trim();
-    if (!trimmed.startsWith(OK_ACTOR_PREFIX)) continue;
+    if (!trimmed.startsWith(GQ_ACTOR_PREFIX)) continue;
     let parsed: unknown;
     try {
-      parsed = JSON.parse(trimmed.slice(OK_ACTOR_PREFIX.length));
+      parsed = JSON.parse(trimmed.slice(GQ_ACTOR_PREFIX.length));
     } catch {
       continue;
     }
@@ -464,7 +464,7 @@ export function parseOkActors(body: string): OkActorEntry[] {
   return out;
 }
 
-export function okActorToShadowContributor(a: OkActorEntry): ShadowContributor {
+export function okActorToShadowContributor(a: GqActorEntry): ShadowContributor {
   const shadow: ShadowContributor = {
     v: 1,
     id: a.writer_id,
@@ -551,7 +551,7 @@ export function parseWriterId(id: string): ParsedWriter {
     return { id, classification: 'classified-git-upstream', isAgent: null };
   if (id === 'openknowledge-service')
     return { id, classification: 'classified-openknowledge-service', isAgent: null };
-  if (id === OK_GENERATOR_WRITER_ID)
+  if (id === GQ_GENERATOR_WRITER_ID)
     return { id, classification: 'classified-ok-generator', isAgent: null };
   return { id, classification: 'unknown', isAgent: null };
 }

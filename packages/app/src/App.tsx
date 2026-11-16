@@ -1,4 +1,4 @@
-// oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
+// oxlint-disable gq/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-error-toast
 import { mediaKindForSidebarAssetExtension } from '@gitquire/core/constants/upload';
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -443,7 +443,7 @@ function AppBody() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const singleFile = useSingleFileMode();
   const appHeaderStyle: CSSProperties = {
-    '--ok-app-header-height': APP_HEADER_HEIGHT,
+    '--gq-app-header-height': APP_HEADER_HEIGHT,
   } as CSSProperties;
 
   return (
@@ -458,11 +458,11 @@ function AppBody() {
         {!singleFile && <SettingsShortcutHandler />}
         <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
         <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />
-        <SidebarProvider className="h-[calc(100vh-var(--ok-app-header-height,0px))] min-h-[calc(100svh-var(--ok-app-header-height,0px))]">
+        <SidebarProvider className="h-[calc(100vh-var(--gq-app-header-height,0px))] min-h-[calc(100svh-var(--gq-app-header-height,0px))]">
           <FileListHostProvider enabled={!singleFile} fileList={<FileSidebar />}>
             <div
               data-app-main=""
-              className="relative flex w-full flex-1 flex-col ps-2 pe-2 pb-2 h-[calc(100vh-var(--ok-app-header-height,0px))]"
+              className="relative flex w-full flex-1 flex-col ps-2 pe-2 pb-2 h-[calc(100vh-var(--gq-app-header-height,0px))]"
             >
               <EditorPane />
             </div>

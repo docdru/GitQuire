@@ -98,7 +98,7 @@ function docTarget(docName: string): EditorTabFileTarget {
   return { kind: 'doc', target: docName, docName };
 }
 
-const OK_GATED_ACTIONS = ['Import as template', 'Duplicate', 'Rename', 'Hide this file', 'Delete'];
+const GQ_GATED_ACTIONS = ['Import as template', 'Duplicate', 'Rename', 'Hide this file', 'Delete'];
 
 afterEach(() => {
   cleanup();
@@ -108,7 +108,7 @@ afterEach(() => {
 describe('EditorTabTargetMenuItems — template doc tab', () => {
   test('the five .ok-gated mutation actions are withheld', () => {
     renderMenu(docTarget('docs/.gitquire/templates/note'));
-    for (const label of OK_GATED_ACTIONS) {
+    for (const label of GQ_GATED_ACTIONS) {
       expect(screen.queryByRole('menuitem', { name: label })).toBeNull();
     }
   });
@@ -127,7 +127,7 @@ describe('EditorTabTargetMenuItems — template doc tab', () => {
 
   test('a project-root template tab is gated identically', () => {
     renderMenu(docTarget('.gitquire/templates/daily'));
-    for (const label of OK_GATED_ACTIONS) {
+    for (const label of GQ_GATED_ACTIONS) {
       expect(screen.queryByRole('menuitem', { name: label })).toBeNull();
     }
     expect(screen.getByRole('menuitem', { name: 'Relative path' })).toBeTruthy();
@@ -137,7 +137,7 @@ describe('EditorTabTargetMenuItems — template doc tab', () => {
 describe('EditorTabTargetMenuItems — ordinary doc control', () => {
   test('the same actions DO appear for a non-.ok doc, proving the gate is the .gitquire shape', () => {
     renderMenu(docTarget('docs/note'));
-    for (const label of OK_GATED_ACTIONS) {
+    for (const label of GQ_GATED_ACTIONS) {
       expect(screen.getByRole('menuitem', { name: label })).toBeTruthy();
     }
   });

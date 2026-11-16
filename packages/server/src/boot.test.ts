@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { emitToleranceFire, OK_DIR, resolveServerRuntimeConfig } from '@gitquire/core';
+import { emitToleranceFire, GQ_DIR, resolveServerRuntimeConfig } from '@gitquire/core';
 import { context, metrics, propagation, trace } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
@@ -31,7 +31,7 @@ afterEach(() => {
 });
 
 function seedOkScaffold(projectDir: string): void {
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
   writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');
@@ -1071,7 +1071,7 @@ describe('bootServer — multi-address bind', () => {
       expect(String(fields.url)).toContain(String(booted.port));
 
       const lock = JSON.parse(
-        readFileSync(resolve(contentDir, OK_DIR, 'local', 'server.lock'), 'utf-8'),
+        readFileSync(resolve(contentDir, GQ_DIR, 'local', 'server.lock'), 'utf-8'),
       ) as { port: number };
       expect(fields.port).toBe(lock.port);
     } finally {

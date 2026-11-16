@@ -2,9 +2,9 @@ import { cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   applyExtensionBadges,
-  OK_EXT_BADGE_ATTR,
-  OK_EXT_ROW_ATTR,
-  OK_FULLNAME_ROW_ATTR,
+  GQ_EXT_BADGE_ATTR,
+  GQ_EXT_ROW_ATTR,
+  GQ_FULLNAME_ROW_ATTR,
 } from './file-tree-extension-badge';
 
 interface PierreRowInit {
@@ -95,7 +95,7 @@ function extensionTextOf(row: HTMLElement): string {
 }
 
 function badgeOf(row: HTMLElement): HTMLElement | null {
-  return row.querySelector<HTMLElement>(`[${OK_EXT_BADGE_ATTR}]`);
+  return row.querySelector<HTMLElement>(`[${GQ_EXT_BADGE_ATTR}]`);
 }
 
 describe('applyExtensionBadges — extension badge injection', () => {
@@ -112,7 +112,7 @@ describe('applyExtensionBadges — extension badge injection', () => {
     applyExtensionBadges(root);
 
     const row = root.firstElementChild as HTMLElement;
-    expect(row.hasAttribute(OK_EXT_ROW_ATTR)).toBe(true);
+    expect(row.hasAttribute(GQ_EXT_ROW_ATTR)).toBe(true);
     expect(basenameTextOf(row)).toBe('AGENTS');
     expect(badgeOf(row)).toBeNull();
   });
@@ -126,7 +126,7 @@ describe('applyExtensionBadges — extension badge injection', () => {
     applyExtensionBadges(root);
 
     const row = root.firstElementChild as HTMLElement;
-    expect(row.hasAttribute(OK_EXT_ROW_ATTR)).toBe(true);
+    expect(row.hasAttribute(GQ_EXT_ROW_ATTR)).toBe(true);
     expect(basenameTextOf(row)).toBe('ideas');
     const badge = badgeOf(row);
     expect(badge).not.toBeNull();
@@ -210,7 +210,7 @@ describe('applyExtensionBadges — extension badge injection', () => {
     applyExtensionBadges(root);
 
     const row = root.firstElementChild as HTMLElement;
-    expect(row.hasAttribute(OK_EXT_ROW_ATTR)).toBe(false);
+    expect(row.hasAttribute(GQ_EXT_ROW_ATTR)).toBe(false);
     expect(badgeOf(row)).toBeNull();
     expect(basenameTextOf(row)).toBe('notes');
   });
@@ -222,7 +222,7 @@ describe('applyExtensionBadges — extension badge injection', () => {
     applyExtensionBadges(root);
 
     const row = root.firstElementChild as HTMLElement;
-    expect(row.hasAttribute(OK_EXT_ROW_ATTR)).toBe(false);
+    expect(row.hasAttribute(GQ_EXT_ROW_ATTR)).toBe(false);
     expect(badgeOf(row)).toBeNull();
     expect(basenameTextOf(row)).toBe('LICENSE');
   });
@@ -235,7 +235,7 @@ describe('applyExtensionBadges — extension badge injection', () => {
       applyExtensionBadges(root);
 
       const row = root.firstElementChild as HTMLElement;
-      expect(row.hasAttribute(OK_EXT_ROW_ATTR)).toBe(false);
+      expect(row.hasAttribute(GQ_EXT_ROW_ATTR)).toBe(false);
       expect(badgeOf(row)).toBeNull();
       expect(basenameTextOf(row)).toBe('.');
       expect(`${basenameTextOf(row)}${extensionTextOf(row)}`).toBe(filename);
@@ -322,8 +322,8 @@ describe('applyExtensionBadges — extension badge injection', () => {
     applyExtensionBadges(root);
 
     const row = root.firstElementChild as HTMLElement;
-    expect(row.hasAttribute(OK_FULLNAME_ROW_ATTR)).toBe(true);
-    expect(row.hasAttribute(OK_EXT_ROW_ATTR)).toBe(false);
+    expect(row.hasAttribute(GQ_FULLNAME_ROW_ATTR)).toBe(true);
+    expect(row.hasAttribute(GQ_EXT_ROW_ATTR)).toBe(false);
     expect(badgeOf(row)).toBeNull();
     expect(basenameTextOf(row)).toBe('open-knowledge');
   });
@@ -369,8 +369,8 @@ describe('applyExtensionBadges — extension badge injection', () => {
 
     applyExtensionBadges(root);
 
-    expect(row.hasAttribute(OK_FULLNAME_ROW_ATTR)).toBe(false);
-    expect(row.hasAttribute(OK_EXT_ROW_ATTR)).toBe(false);
+    expect(row.hasAttribute(GQ_FULLNAME_ROW_ATTR)).toBe(false);
+    expect(row.hasAttribute(GQ_EXT_ROW_ATTR)).toBe(false);
     expect(badgeOf(row)).toBeNull();
   });
 });
