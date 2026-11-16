@@ -146,7 +146,7 @@ describe('ConfigValidationErrorSchema', () => {
 
 describe('humanFormat', () => {
   beforeEach(() => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
   });
 
   afterEach(() => {
@@ -283,7 +283,7 @@ describe('humanFormat', () => {
   });
 
   test('SCOPE_VIOLATION names the Beta user config when the running channel is Beta', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     try {
       const out = humanFormat({
         code: 'SCOPE_VIOLATION',

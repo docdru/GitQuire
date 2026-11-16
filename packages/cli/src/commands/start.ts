@@ -499,10 +499,10 @@ export function resolveStartConfig(
 }
 
 export function resolveStartConsoleLevel(env: {
-  OK_CONSOLE_LEVEL?: string | undefined;
+  GITQUIRE_CONSOLE_LEVEL?: string | undefined;
   LOG_LEVEL?: string | undefined;
 }): string | null {
-  if (env.OK_CONSOLE_LEVEL !== undefined || env.LOG_LEVEL !== undefined) return null;
+  if (env.GITQUIRE_CONSOLE_LEVEL !== undefined || env.LOG_LEVEL !== undefined) return null;
   return 'warn';
 }
 
@@ -520,7 +520,7 @@ export function formatShutdownNotice(signal: NodeJS.Signals): string[] {
 export async function runStartCommand(configArg: Config, opts: StartCommandOptions): Promise<void> {
   const config = resolveStartConfig(configArg, opts.singleFile);
   const startConsoleLevel = resolveStartConsoleLevel(process.env);
-  if (startConsoleLevel !== null) process.env.OK_CONSOLE_LEVEL = startConsoleLevel;
+  if (startConsoleLevel !== null) process.env.GITQUIRE_CONSOLE_LEVEL = startConsoleLevel;
 
   const { renderBanner } = await import('../ui/banner.ts');
   const { accent, dim, error, warning } = await import('../ui/colors.ts');
@@ -544,7 +544,7 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
   }
   const envConfig = applyConfigOverlay(config, envLayer.layer) as Config;
 
-  const okBindSet = envLayer.overrides.some((o) => o.envVar === 'OK_BIND');
+  const okBindSet = envLayer.overrides.some((o) => o.envVar === 'GITQUIRE_BIND');
   const flagBind = opts.bind !== undefined && opts.bind.length > 0 ? opts.bind : undefined;
   const hostEnvRaw = process.env.HOST;
   const hostEnv = hostEnvRaw !== undefined && hostEnvRaw.trim() !== '' ? hostEnvRaw : undefined;
@@ -562,7 +562,7 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
   ) {
     console.warn(
       warning(
-        `[config] HOST=${hostEnv} overrides server.bind — dropping the file-configured addresses (${envFileRuntime.bind.join(', ')}). Use OK_BIND with a space-separated list to keep multiple binds.`,
+        `[config] HOST=${hostEnv} overrides server.bind — dropping the file-configured addresses (${envFileRuntime.bind.join(', ')}). Use GITQUIRE_BIND with a space-separated list to keep multiple binds.`,
       ),
     );
   }
@@ -941,7 +941,7 @@ export function startCommand(getConfig: () => Config): Command {
     )
     .option(
       '--external-url <url>',
-      'Canonical external origin clients dial (sets server.externalUrl for this run) — its host joins the Host/Origin allowlists (CORS + external-Host admission). External exposure additionally requires consent (OK_ALLOW_EXTERNAL=1 or server.allowExternal).',
+      'Canonical external origin clients dial (sets server.externalUrl for this run) — its host joins the Host/Origin allowlists (CORS + external-Host admission). External exposure additionally requires consent (GITQUIRE_ALLOW_EXTERNAL=1 or server.allowExternal).',
       parseExternalUrlFlag,
     )
     .action(async (opts: StartCommandOptions) => {

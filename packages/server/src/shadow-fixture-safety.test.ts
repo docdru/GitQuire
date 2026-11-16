@@ -21,7 +21,7 @@ const CALLER = fileURLToPath(new URL('./shadow-fixture-caller.test-helper.mjs', 
 const VITEST = fileURLToPath(new URL('vitest.mjs', import.meta.resolve('vitest/package.json')));
 
 function createOwner(context: TestContext, args = [SUBJECT], configuration = {}, caller = false) {
-  const evidenceRoot = process.env.OK_SHADOW_SAFETY_EVIDENCE_DIR ?? tmpdir();
+  const evidenceRoot = process.env.GITQUIRE_SHADOW_SAFETY_EVIDENCE_DIR ?? tmpdir();
   mkdirSync(evidenceRoot, { recursive: true });
   const resultDir = mkdtempSync(join(evidenceRoot, 'ok-shadow-safety-result-'));
   const owner = fork(caller ? CALLER : OWNER, [], {
@@ -60,7 +60,7 @@ function createOwner(context: TestContext, args = [SUBJECT], configuration = {},
   context.onTestFinished(async () => {
     if (owner.connected) owner.send({ type: 'release' });
     await closed;
-    if (!process.env.OK_SHADOW_SAFETY_EVIDENCE_DIR)
+    if (!process.env.GITQUIRE_SHADOW_SAFETY_EVIDENCE_DIR)
       rmSync(resultDir, { recursive: true, force: true });
   });
   owner.send({
@@ -70,7 +70,7 @@ function createOwner(context: TestContext, args = [SUBJECT], configuration = {},
       args,
       cwd: process.cwd(),
       maxLifetimeMs: 20_000,
-      env: { OK_SHADOW_SUBJECT_RESULT: join(resultDir, 'result.json') },
+      env: { GITQUIRE_SHADOW_SUBJECT_RESULT: join(resultDir, 'result.json') },
       ...configuration,
     },
   });

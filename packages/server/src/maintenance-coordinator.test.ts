@@ -190,16 +190,16 @@ describe('MaintenanceCoordinator.runGc (PRD-6972 FR4)', () => {
   });
 
   test('master kill switch disables maintenance (D18)', async () => {
-    const prev = process.env.OK_SHADOW_MAINTENANCE_DISABLED;
-    process.env.OK_SHADOW_MAINTENANCE_DISABLED = '1';
+    const prev = process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED;
+    process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED = '1';
     try {
       const coord = createMaintenanceCoordinator({ getShadow: () => shadow });
       const result = await coord.runGc('test');
       expect(result.ran).toBe(false);
       expect(result.skipped).toBe('disabled');
     } finally {
-      if (prev === undefined) delete process.env.OK_SHADOW_MAINTENANCE_DISABLED;
-      else process.env.OK_SHADOW_MAINTENANCE_DISABLED = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED;
+      else process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED = prev;
     }
   });
 
@@ -243,16 +243,16 @@ describe('MaintenanceCoordinator triggers (PRD-6972 FR4 / D8 / D12)', () => {
   });
 
   test('noteFlushCommit no-ops when maintenance is disabled', () => {
-    const prev = process.env.OK_SHADOW_MAINTENANCE_DISABLED;
-    process.env.OK_SHADOW_MAINTENANCE_DISABLED = '1';
+    const prev = process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED;
+    process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED = '1';
     try {
       const coord = createMaintenanceCoordinator({ getShadow: () => shadow });
       const spy = spyScheduledMaintenance(coord);
       for (let i = 0; i < FLUSH_GC_INTERVAL + 5; i++) coord.noteFlushCommit();
       expect(spy).toHaveBeenCalledTimes(0);
     } finally {
-      if (prev === undefined) delete process.env.OK_SHADOW_MAINTENANCE_DISABLED;
-      else process.env.OK_SHADOW_MAINTENANCE_DISABLED = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED;
+      else process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED = prev;
     }
   });
 
@@ -295,16 +295,16 @@ describe('MaintenanceCoordinator triggers (PRD-6972 FR4 / D8 / D12)', () => {
   });
 
   test('runBootMaintenance no-ops when maintenance is disabled', async () => {
-    const prev = process.env.OK_SHADOW_MAINTENANCE_DISABLED;
-    process.env.OK_SHADOW_MAINTENANCE_DISABLED = '1';
+    const prev = process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED;
+    process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED = '1';
     try {
       const coord = createMaintenanceCoordinator({ getShadow: () => shadow });
       const spy = spyScheduledMaintenance(coord);
       await coord.runBootMaintenance();
       expect(spy).toHaveBeenCalledTimes(0);
     } finally {
-      if (prev === undefined) delete process.env.OK_SHADOW_MAINTENANCE_DISABLED;
-      else process.env.OK_SHADOW_MAINTENANCE_DISABLED = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED;
+      else process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED = prev;
     }
   });
 

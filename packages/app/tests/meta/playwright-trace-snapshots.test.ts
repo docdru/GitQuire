@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 async function loadE2eConfig(traceSnapshots: string | undefined) {
-  vi.stubEnv('OK_E2E_TRACE_SNAPSHOTS', traceSnapshots);
+  vi.stubEnv('GITQUIRE_E2E_TRACE_SNAPSHOTS', traceSnapshots);
   vi.resetModules();
   return (await import('../../playwright.config')).default;
 }

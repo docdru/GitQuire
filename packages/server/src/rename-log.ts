@@ -284,7 +284,7 @@ export function serializeIndexToString(index: RenameLogIndex): string {
 }
 
 function parseGitTimeoutMs(): number {
-  const raw = process.env.OK_GIT_TIMEOUT_MS;
+  const raw = process.env.GITQUIRE_GIT_TIMEOUT_MS;
   if (!raw) return 30_000;
   const parsed = Number.parseInt(raw, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 30_000;

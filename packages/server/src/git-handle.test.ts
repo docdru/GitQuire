@@ -99,22 +99,22 @@ describe('buildGitEnv', () => {
     });
   });
 
-  test('emits OK_GH_TOKEN/OK_GH_TOKEN_HOST only when a relay token is supplied', () => {
+  test('emits GITQUIRE_GH_TOKEN/GITQUIRE_GH_TOKEN_HOST only when a relay token is supplied', () => {
     const without = buildGitEnv();
-    expect('OK_GH_TOKEN' in without).toBe(false);
-    expect('OK_GH_TOKEN_HOST' in without).toBe(false);
+    expect('GITQUIRE_GH_TOKEN' in without).toBe(false);
+    expect('GITQUIRE_GH_TOKEN_HOST' in without).toBe(false);
 
     const withToken = buildGitEnv({ token: 'gho_relayed', host: 'github.com' });
-    expect(withToken.OK_GH_TOKEN).toBe('gho_relayed');
-    expect(withToken.OK_GH_TOKEN_HOST).toBe('github.com');
+    expect(withToken.GITQUIRE_GH_TOKEN).toBe('gho_relayed');
+    expect(withToken.GITQUIRE_GH_TOKEN_HOST).toBe('github.com');
   });
 
-  test('emits OK_GH_TOKEN_LOGIN only when the relay names its account', () => {
+  test('emits GITQUIRE_GH_TOKEN_LOGIN only when the relay names its account', () => {
     const named = buildGitEnv({ token: 'gho_relayed', host: 'github.com', login: 'alice' });
-    expect(named.OK_GH_TOKEN_LOGIN).toBe('alice');
+    expect(named.GITQUIRE_GH_TOKEN_LOGIN).toBe('alice');
 
     const anonymous = buildGitEnv({ token: 'gho_relayed', host: 'github.com' });
-    expect('OK_GH_TOKEN_LOGIN' in anonymous).toBe(false);
+    expect('GITQUIRE_GH_TOKEN_LOGIN' in anonymous).toBe(false);
   });
 });
 
@@ -424,14 +424,14 @@ describe('buildSyncCredentialConfig()', () => {
     expect(argvFromHelper(config)).toEqual([...argv, 'auth', 'git-credential']);
   });
 
-  test('Beta channel from OK_CHANNEL under a node execPath pins OK_CHANNEL=beta into the helper', () => {
-    withEnvEntries({ OK_CHANNEL: 'beta' }, () => {
+  test('Beta channel from GITQUIRE_CHANNEL under a node execPath pins GITQUIRE_CHANNEL=beta into the helper', () => {
+    withEnvEntries({ GITQUIRE_CHANNEL: 'beta' }, () => {
       const argv = ['/usr/local/bin/node', '/opt/ok/cli.mjs'];
       const config = buildSyncCredentialConfig(argv, { resetAmbient: true });
       const helper = config.at(-1)?.slice('credential.helper=!'.length) ?? '';
       const parsed = shellQuote.parse(helper);
-      expect(parsed).toEqual(['OK_CHANNEL=beta', ...argv, 'auth', 'git-credential']);
-      const helperEnv = { OK_CHANNEL: String(parsed[0]).split('=')[1] };
+      expect(parsed).toEqual(['GITQUIRE_CHANNEL=beta', ...argv, 'auth', 'git-credential']);
+      const helperEnv = { GITQUIRE_CHANNEL: String(parsed[0]).split('=')[1] };
       expect(DESKTOP_PRODUCTS[resolveDesktopProductName(helperEnv, argv[0])].keyringService).toBe(
         'open-knowledge-beta',
       );
@@ -439,10 +439,10 @@ describe('buildSyncCredentialConfig()', () => {
   });
 
   test('dev channel pins dev only on the CLI the host supplies, never on the CLI on PATH', () => {
-    withEnvEntries({ OK_CHANNEL: 'dev' }, () => {
+    withEnvEntries({ GITQUIRE_CHANNEL: 'dev' }, () => {
       const argv = ['/usr/local/bin/node', '/src/ok/packages/cli/dist/cli.mjs'];
       expect(argvFromHelper(buildSyncCredentialConfig(argv, { resetAmbient: true }))).toEqual([
-        'OK_CHANNEL=dev',
+        'GITQUIRE_CHANNEL=dev',
         ...argv,
         'auth',
         'git-credential',
@@ -454,7 +454,7 @@ describe('buildSyncCredentialConfig()', () => {
   });
 
   test('Stable channel keeps the helper unpinned', () => {
-    withEnvEntries({ OK_CHANNEL: undefined }, () => {
+    withEnvEntries({ GITQUIRE_CHANNEL: undefined }, () => {
       const config = buildSyncCredentialConfig(['/usr/local/bin/node', '/opt/ok/cli.mjs'], {
         resetAmbient: true,
       });

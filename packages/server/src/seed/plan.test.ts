@@ -34,11 +34,11 @@ describe('planSeed — nested .ok/ era', () => {
   test('the missing-config error names the running channel init command', async () => {
     const bare = await mkdtemp(join(tmpdir(), 'seed-bare-'));
     try {
-      vi.stubEnv('OK_CHANNEL', 'stable');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
       await expect(planSeed({ projectDir: bare })).rejects.toThrow(
         'Run `gq init` first to scaffold the tool config.',
       );
-      vi.stubEnv('OK_CHANNEL', 'beta');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
       await expect(planSeed({ projectDir: bare })).rejects.toThrow(
         'Run `gq-beta init` first to scaffold the tool config.',
       );

@@ -15,7 +15,11 @@ const CLIENT_ORIGIN = { client: 'simulated-y-prosemirror-client' };
 const SOURCE = 'Para one.\n\n<Foo>broken</Bar>\n\nPara two.\n';
 const BROKEN_BLOCK = '<Foo>broken</Bar>';
 
-const ENV_KEYS = ['NODE_ENV', 'OK_BRIDGE_THROW_ON_VIOLATION', 'OK_RETHROW_BRIDGE_LOSS'] as const;
+const ENV_KEYS = [
+  'NODE_ENV',
+  'GITQUIRE_BRIDGE_THROW_ON_VIOLATION',
+  'GITQUIRE_RETHROW_BRIDGE_LOSS',
+] as const;
 let savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>>;
 
 beforeEach(() => {
@@ -24,8 +28,8 @@ beforeEach(() => {
     savedEnv[key] = process.env[key];
   }
   process.env.NODE_ENV = 'production';
-  delete process.env.OK_BRIDGE_THROW_ON_VIOLATION;
-  delete process.env.OK_RETHROW_BRIDGE_LOSS;
+  delete process.env.GITQUIRE_BRIDGE_THROW_ON_VIOLATION;
+  delete process.env.GITQUIRE_RETHROW_BRIDGE_LOSS;
   resetMetrics();
   __resetBridgeWatchdogForTests();
 });

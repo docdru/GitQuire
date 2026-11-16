@@ -40,8 +40,8 @@ owner.send({
     resultDir,
     cwd: resolve(packageDirectory),
     args: command,
-    scratchRoot: process.env.OK_SHADOW_SCRATCH_ROOT,
-    maxLifetimeMs: Number(process.env.OK_SHADOW_MAX_LIFETIME_MS ?? 540_000),
+    scratchRoot: process.env.GITQUIRE_SHADOW_SCRATCH_ROOT,
+    maxLifetimeMs: Number(process.env.GITQUIRE_SHADOW_MAX_LIFETIME_MS ?? 540_000),
   },
 });
 for (const signal of ['SIGINT', 'SIGTERM']) {

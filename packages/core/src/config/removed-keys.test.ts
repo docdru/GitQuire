@@ -172,7 +172,7 @@ describe('removed-key redirects name the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: the migrate and start hints name %s', (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const [diagnostic] = detectRemovedKeys({ value: { preview: { baseUrl: 'x' } } });
     expect(diagnostic?.code === 'REMOVED_KEY' ? diagnostic.redirect : '').toBe(
       `preview URLs now resolve only to the running server — start one with \`${command} start\`. Run \`${command} config migrate\` to strip the obsolete key automatically, or remove it by hand.`,

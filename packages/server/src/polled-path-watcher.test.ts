@@ -161,7 +161,7 @@ function runChild(script: string, args: readonly string[]): Promise<ChildOutcome
     ],
     {
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, OK_CONSOLE_LEVEL: 'silent', OK_FILE_LEVEL: 'trace' },
+      env: { ...process.env, GITQUIRE_CONSOLE_LEVEL: 'silent', GITQUIRE_FILE_LEVEL: 'trace' },
     },
   );
   let stdout = '';

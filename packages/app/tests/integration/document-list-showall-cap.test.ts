@@ -36,24 +36,24 @@ async function fetchDefaultRaw(): Promise<Record<string, unknown>> {
 }
 
 describe('GET /api/documents?showAll=true entry cap', () => {
-  test('a low OK_SHOWALL_MAX_ENTRIES truncates the walk and reports truncated:true', async () => {
+  test('a low GITQUIRE_SHOWALL_MAX_ENTRIES truncates the walk and reports truncated:true', async () => {
     const cap = 5;
-    const prev = process.env.OK_SHOWALL_MAX_ENTRIES;
-    process.env.OK_SHOWALL_MAX_ENTRIES = String(cap);
+    const prev = process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+    process.env.GITQUIRE_SHOWALL_MAX_ENTRIES = String(cap);
     try {
       const body = await fetchShowAll();
       expect(body.truncated).toBe(true);
       expect(body.documents.length).toBeLessThanOrEqual(cap);
       expect(body.documents.length).toBeGreaterThan(0);
     } finally {
-      if (prev === undefined) delete process.env.OK_SHOWALL_MAX_ENTRIES;
-      else process.env.OK_SHOWALL_MAX_ENTRIES = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+      else process.env.GITQUIRE_SHOWALL_MAX_ENTRIES = prev;
     }
   });
 
   test('the default cap leaves a small fixture untruncated', async () => {
-    const prev = process.env.OK_SHOWALL_MAX_ENTRIES;
-    delete process.env.OK_SHOWALL_MAX_ENTRIES;
+    const prev = process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+    delete process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
     try {
       const body = await fetchShowAll();
       expect(body.truncated).toBeUndefined();
@@ -61,8 +61,8 @@ describe('GET /api/documents?showAll=true entry cap', () => {
       expect(docNames).toContain('file-00');
       expect(docNames).toContain('file-24');
     } finally {
-      if (prev === undefined) delete process.env.OK_SHOWALL_MAX_ENTRIES;
-      else process.env.OK_SHOWALL_MAX_ENTRIES = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+      else process.env.GITQUIRE_SHOWALL_MAX_ENTRIES = prev;
     }
   });
 

@@ -135,34 +135,34 @@ describe('parseSweepRunOptions', () => {
   });
 
   it('parses a single fixture override', () => {
-    const options = parseSweepRunOptions({ OK_SWEEP_FIXTURE: 'tight' });
+    const options = parseSweepRunOptions({ GITQUIRE_SWEEP_FIXTURE: 'tight' });
     expect(options.fixtures).toEqual(['tight']);
   });
 
   it('honors the all-keyword for fixtures', () => {
-    const options = parseSweepRunOptions({ OK_SWEEP_FIXTURE: 'ALL' });
+    const options = parseSweepRunOptions({ GITQUIRE_SWEEP_FIXTURE: 'ALL' });
     expect(options.fixtures).toEqual(['tight', 'broad', 'asymmetric']);
   });
 
   it('rejects an unknown fixture token', () => {
-    expect(() => parseSweepRunOptions({ OK_SWEEP_FIXTURE: 'huge' })).toThrow(
+    expect(() => parseSweepRunOptions({ GITQUIRE_SWEEP_FIXTURE: 'huge' })).toThrow(
       /tight, broad, asymmetric, all/,
     );
   });
 
   it('parses a single stage override', () => {
-    const options = parseSweepRunOptions({ OK_SWEEP_STAGE: '2' });
+    const options = parseSweepRunOptions({ GITQUIRE_SWEEP_STAGE: '2' });
     expect(options.stages).toEqual([2]);
   });
 
   it('rejects an unknown stage token', () => {
-    expect(() => parseSweepRunOptions({ OK_SWEEP_STAGE: '7' })).toThrow(/1, 2, 3, 4, all/);
+    expect(() => parseSweepRunOptions({ GITQUIRE_SWEEP_STAGE: '7' })).toThrow(/1, 2, 3, 4, all/);
   });
 
   it('parses resume + prod-validation flags', () => {
     const options = parseSweepRunOptions({
-      OK_SWEEP_RESUME: '1',
-      OK_SWEEP_PROD_VALIDATION: '1',
+      GITQUIRE_SWEEP_RESUME: '1',
+      GITQUIRE_SWEEP_PROD_VALIDATION: '1',
     });
     expect(options.resume).toBe(true);
     expect(options.prodValidation).toBe(true);
@@ -170,8 +170,8 @@ describe('parseSweepRunOptions', () => {
 
   it('treats non-"1" values as falsy for boolean flags', () => {
     const options = parseSweepRunOptions({
-      OK_SWEEP_RESUME: 'true',
-      OK_SWEEP_PROD_VALIDATION: 'yes',
+      GITQUIRE_SWEEP_RESUME: 'true',
+      GITQUIRE_SWEEP_PROD_VALIDATION: 'yes',
     });
     expect(options.resume).toBe(false);
     expect(options.prodValidation).toBe(false);

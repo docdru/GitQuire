@@ -84,13 +84,13 @@ export function resolveGitHubAuthConfig(
   const clientId = nonEmpty(env.GITHUB_APP_CLIENT_ID);
   const clientSecret = nonEmpty(env.GITHUB_APP_CLIENT_SECRET);
   const sessionSecret = nonEmpty(env.GITQUIRE_SESSION_SECRET);
-  const externalUrlRaw = nonEmpty(runtime.externalUrl) ?? nonEmpty(env.OK_EXTERNAL_URL);
+  const externalUrlRaw = nonEmpty(runtime.externalUrl) ?? nonEmpty(env.GITQUIRE_EXTERNAL_URL);
 
   const missing: string[] = [];
   if (clientId === undefined) missing.push('GITHUB_APP_CLIENT_ID');
   if (clientSecret === undefined) missing.push('GITHUB_APP_CLIENT_SECRET');
   if (sessionSecret === undefined) missing.push('GITQUIRE_SESSION_SECRET');
-  if (externalUrlRaw === undefined) missing.push('OK_EXTERNAL_URL');
+  if (externalUrlRaw === undefined) missing.push('GITQUIRE_EXTERNAL_URL');
   if (
     clientId === undefined ||
     clientSecret === undefined ||
@@ -112,10 +112,12 @@ export function resolveGitHubAuthConfig(
   try {
     externalUrl = new URL(externalUrlRaw);
   } catch {
-    throw new GitHubAuthConfigError(`OK_EXTERNAL_URL is not a valid URL: "${externalUrlRaw}".`);
+    throw new GitHubAuthConfigError(
+      `GITQUIRE_EXTERNAL_URL is not a valid URL: "${externalUrlRaw}".`,
+    );
   }
   if (externalUrl.protocol !== 'https:' && externalUrl.protocol !== 'http:') {
-    throw new GitHubAuthConfigError('OK_EXTERNAL_URL must start with https:// or http://.');
+    throw new GitHubAuthConfigError('GITQUIRE_EXTERNAL_URL must start with https:// or http://.');
   }
 
   const repo = parseGitHubRepo(env.GITQUIRE_REPO);

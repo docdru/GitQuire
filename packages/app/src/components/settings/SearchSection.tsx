@@ -782,7 +782,7 @@ function EmbeddingsKeyField({
           <Trans>
             Using the{' '}
             <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-              OK_EMBEDDINGS_API_KEY
+              GITQUIRE_EMBEDDINGS_API_KEY
             </code>{' '}
             environment variable (managed outside GitQuire).
           </Trans>

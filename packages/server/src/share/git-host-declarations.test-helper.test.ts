@@ -4,7 +4,7 @@ import { readDeclaredGitHubHosts } from './git-context.ts';
 import { declareGitHubHosts, useIsolatedHome } from './git-host-declarations.test-helper.ts';
 
 const home = useIsolatedHome();
-vi.stubEnv('OK_CHANNEL', 'beta');
+vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
 afterEach(() => vi.unstubAllEnvs());
 
 test('reads declarations from the isolated home', () => {

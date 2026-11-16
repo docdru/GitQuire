@@ -291,7 +291,7 @@ describe('mention routes', () => {
       env: {
         GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
         GITQUIRE_MAIL_FROM: 'wiki@example.com',
-        OK_EXTERNAL_URL: 'https://brain.example.com/',
+        GITQUIRE_EXTERNAL_URL: 'https://brain.example.com/',
       },
       sendMail: async (_config, message) => {
         if (failing.on) throw new Error('mail server down');

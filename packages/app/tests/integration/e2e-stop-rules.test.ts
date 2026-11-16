@@ -93,7 +93,10 @@ function listAppSrcTsFiles(relativePath: typeof relative = relative): FileLines[
   return out;
 }
 
-const SPAWN_REQUIRED_ENV_KEYS = ['OK_TEST_VITE_CACHE_DIR', 'OK_TEST_SKIP_I18N_COMPILE'] as const;
+const SPAWN_REQUIRED_ENV_KEYS = [
+  'GITQUIRE_TEST_VITE_CACHE_DIR',
+  'GITQUIRE_TEST_SKIP_I18N_COMPILE',
+] as const;
 type RequiredSpawnEnvKey = (typeof SPAWN_REQUIRED_ENV_KEYS)[number];
 const SPAWN_CALLEE_NAMES = new Set(['spawn', 'spawnSync']);
 const DEV_SERVER_ARGV_TOKEN = 'dev';
@@ -873,7 +876,7 @@ describe('E2E STOP rule — zero allowlist', () => {
     }
     expect(
       violations,
-      `dev-server spawn without shared-state isolation — pass OK_TEST_VITE_CACHE_DIR (via prepareViteCacheDir from ./_helpers, removeAllDuringTeardown in teardown) and OK_TEST_SKIP_I18N_COMPILE: '1' in the spawn env. A line reported as unconfirmed rather than missing is one this guard could not settle: either it cannot read the spawn's env at all, so inline the env object at the call, or the key is absent from the env object's own properties while a spread may carry it, so declare the key at the call instead of leaving it to the spread, or the key is declared but a spread that follows it may replace it, so move the declaration after the last spread:\n${violations.join('\n')}`,
+      `dev-server spawn without shared-state isolation — pass GITQUIRE_TEST_VITE_CACHE_DIR (via prepareViteCacheDir from ./_helpers, removeAllDuringTeardown in teardown) and GITQUIRE_TEST_SKIP_I18N_COMPILE: '1' in the spawn env. A line reported as unconfirmed rather than missing is one this guard could not settle: either it cannot read the spawn's env at all, so inline the env object at the call, or the key is absent from the env object's own properties while a spread may carry it, so declare the key at the call instead of leaving it to the spread, or the key is declared but a spread that follows it may replace it, so move the declaration after the last spread:\n${violations.join('\n')}`,
     ).toEqual([]);
   });
 
@@ -919,7 +922,7 @@ describe('E2E STOP rule — zero allowlist', () => {
 
     const compliant = [
       spawnCallHead,
-      "  env: { OK_TEST_VITE_CACHE_DIR: dir, OK_TEST_SKIP_I18N_COMPILE: '1' },",
+      "  env: { GITQUIRE_TEST_VITE_CACHE_DIR: dir, GITQUIRE_TEST_SKIP_I18N_COMPILE: '1' },",
       '});',
     ];
     expect(scanPlantedSpawnIsolation(compliant).violations).toEqual([]);
@@ -932,14 +935,14 @@ describe('E2E STOP rule — zero allowlist', () => {
     const notASpawn = ["const cmd = 'pnpm run dev --host 127.0.0.1';"];
     expect(scanPlantedSpawnIsolation(notASpawn).devServerSpawnLines).toEqual([]);
 
-    const halfCompliant = [spawnCallHead, '  env: { OK_TEST_VITE_CACHE_DIR: dir },', '});'];
+    const halfCompliant = [spawnCallHead, '  env: { GITQUIRE_TEST_VITE_CACHE_DIR: dir },', '});'];
     expect(missingKeysOf(scanPlantedSpawnIsolation(halfCompliant))).toEqual([
-      'OK_TEST_SKIP_I18N_COMPILE',
+      'GITQUIRE_TEST_SKIP_I18N_COMPILE',
     ]);
 
     const compliantSibling = [
       spawnCallHead,
-      "  env: { OK_TEST_VITE_CACHE_DIR: d, OK_TEST_SKIP_I18N_COMPILE: '1' },",
+      "  env: { GITQUIRE_TEST_VITE_CACHE_DIR: d, GITQUIRE_TEST_SKIP_I18N_COMPILE: '1' },",
       '});',
     ];
     const secondSpawnUnisolated = [
@@ -1057,7 +1060,7 @@ describe('E2E STOP rule — zero allowlist', () => {
         label: 'options spread after env',
         lines: [
           spawnCallHead,
-          "  env: { OK_TEST_VITE_CACHE_DIR: d, OK_TEST_SKIP_I18N_COMPILE: '1' },",
+          "  env: { GITQUIRE_TEST_VITE_CACHE_DIR: d, GITQUIRE_TEST_SKIP_I18N_COMPILE: '1' },",
           '  ...overrides,',
           '});',
         ],
@@ -1067,7 +1070,7 @@ describe('E2E STOP rule — zero allowlist', () => {
         label: 'computed env key',
         lines: [
           spawnCallHead,
-          "  env: { [CACHE_DIR_VAR]: d, OK_TEST_SKIP_I18N_COMPILE: '1' },",
+          "  env: { [CACHE_DIR_VAR]: d, GITQUIRE_TEST_SKIP_I18N_COMPILE: '1' },",
           '});',
         ],
         detailIncludes: 'computed key',
@@ -1076,7 +1079,7 @@ describe('E2E STOP rule — zero allowlist', () => {
         label: 'call extent never closes',
         lines: [
           spawnCallHead,
-          "  env: { OK_TEST_VITE_CACHE_DIR: d, OK_TEST_SKIP_I18N_COMPILE: '1',",
+          "  env: { GITQUIRE_TEST_VITE_CACHE_DIR: d, GITQUIRE_TEST_SKIP_I18N_COMPILE: '1',",
         ],
         detailIncludes: 'does not parse',
       },
@@ -1098,7 +1101,7 @@ describe('E2E STOP rule — zero allowlist', () => {
 
     const unparseable = scanPlantedSpawnIsolation([
       spawnCallHead,
-      "  env: { OK_TEST_VITE_CACHE_DIR: d, OK_TEST_SKIP_I18N_COMPILE: '1',",
+      "  env: { GITQUIRE_TEST_VITE_CACHE_DIR: d, GITQUIRE_TEST_SKIP_I18N_COMPILE: '1',",
     ]);
     expect(
       unparseable.devServerSpawnLines,
@@ -1276,8 +1279,8 @@ describe('E2E STOP rule — zero allowlist', () => {
       spawnCallHead,
       '  env: {',
       '    ...process.env,',
-      '    OK_TEST_VITE_CACHE_DIR: viteCacheDir,',
-      "    OK_TEST_SKIP_I18N_COMPILE: '1',",
+      '    GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir,',
+      "    GITQUIRE_TEST_SKIP_I18N_COMPILE: '1',",
       '    OK_TEST_BOOT_BUDGET_MS: String(budgetMs(workerCount) / 2),',
       '  },',
       '});',
@@ -1291,8 +1294,8 @@ describe('E2E STOP rule — zero allowlist', () => {
       spawnCallHead,
       '  env: {',
       '    ...process.env,',
-      '    OK_TEST_VITE_CACHE_DIR: viteCacheDir,',
-      "    OK_TEST_SKIP_I18N_COMPILE: '1',",
+      '    GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir,',
+      "    GITQUIRE_TEST_SKIP_I18N_COMPILE: '1',",
       '    OK_TEST_BANNER: `worker boot',
       `      port \${port}`,
       `      cache \${viteCacheDir}\`,`,
@@ -1419,7 +1422,7 @@ describe('E2E STOP rule — zero allowlist', () => {
     expect(isRemoteImageHost("const s = 'picsumXphotos';")).toBe(false);
   });
 
-  test('predev routes i18n compile through the OK_TEST_SKIP_I18N_COMPILE guard (not a direct compile)', () => {
+  test('predev routes i18n compile through the GITQUIRE_TEST_SKIP_I18N_COMPILE guard (not a direct compile)', () => {
     const pkgPath = join(__dirname, '..', '..', 'package.json');
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as {
       scripts?: Record<string, string>;
@@ -1429,13 +1432,13 @@ describe('E2E STOP rule — zero allowlist', () => {
     if (!predev.includes('i18n-compile-unless-skipped.sh')) {
       errors.push(
         'packages/app/package.json "predev" must route the i18n compile through ' +
-          'scripts/i18n-compile-unless-skipped.sh (the OK_TEST_SKIP_I18N_COMPILE guard).',
+          'scripts/i18n-compile-unless-skipped.sh (the GITQUIRE_TEST_SKIP_I18N_COMPILE guard).',
       );
     }
     if (/i18n:compile|\blingui compile\b/.test(predev)) {
       errors.push(
         'packages/app/package.json "predev" invokes the i18n compile directly, bypassing the ' +
-          'OK_TEST_SKIP_I18N_COMPILE guard — every concurrent e2e dev-server boot then rewrites ' +
+          'GITQUIRE_TEST_SKIP_I18N_COMPILE guard — every concurrent e2e dev-server boot then rewrites ' +
           'src/locales/<locale>/messages.json and Vite full-page-reloads running tests mid-evaluate.',
       );
     }

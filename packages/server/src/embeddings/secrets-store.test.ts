@@ -224,9 +224,9 @@ describe('secrets file per channel', () => {
   });
 
   test('Stable keeps ~/.ok/secrets.yml and Beta uses ~/.ok-beta/secrets.yml', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     expect(secretsFilePath('/home/me')).toBe(join('/home/me', '.ok', 'secrets.yml'));
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     expect(secretsFilePath('/home/me')).toBe(join('/home/me', '.ok-beta', 'secrets.yml'));
   });
 });

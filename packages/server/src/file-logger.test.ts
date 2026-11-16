@@ -113,8 +113,8 @@ describe('file logger', () => {
   test('flushFileLogger persists a record logged immediately before exit', async () => {
     mkdirSync(TEST_DIR, { recursive: true });
     const filePath = join(TEST_DIR, 'flush.log');
-    const prev = process.env.OK_LOG_LEVEL;
-    process.env.OK_LOG_LEVEL = 'info';
+    const prev = process.env.GITQUIRE_LOG_LEVEL;
+    process.env.GITQUIRE_LOG_LEVEL = 'info';
     try {
       const logger = createFileLogger({ name: 'flush', filePath });
       logger.warn({ outcome: 'absent', host: 'github.com' }, '[auth] git-credential get');
@@ -123,8 +123,8 @@ describe('file logger', () => {
       expect(content).toContain('git-credential get');
       expect(content).toContain('"outcome":"absent"');
     } finally {
-      if (prev === undefined) delete process.env.OK_LOG_LEVEL;
-      else process.env.OK_LOG_LEVEL = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_LOG_LEVEL;
+      else process.env.GITQUIRE_LOG_LEVEL = prev;
     }
   });
 
@@ -197,16 +197,16 @@ describe('logs dir per channel', () => {
     vi.resetModules();
   });
 
-  test('importing under an unsupported OK_CHANNEL does not throw', async () => {
-    vi.stubEnv('OK_CHANNEL', 'bogus');
+  test('importing under an unsupported GITQUIRE_CHANNEL does not throw', async () => {
+    vi.stubEnv('GITQUIRE_CHANNEL', 'bogus');
     vi.resetModules();
     const mod = await import('./file-logger.ts');
-    expect(() => mod.getLogsDir()).toThrow(/OK_CHANNEL/);
+    expect(() => mod.getLogsDir()).toThrow(/GITQUIRE_CHANNEL/);
   });
 
   test('Beta resolves logs under ~/.ok-beta/logs', async () => {
     vi.stubEnv('HOME', '/tmp/ok-logs-home');
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     vi.resetModules();
     const { getLogsDir } = await import('./file-logger.ts');
     expect(getLogsDir()).toBe(join('/tmp/ok-logs-home', '.ok-beta', 'logs'));

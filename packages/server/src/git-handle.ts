@@ -85,9 +85,9 @@ export function buildGitEnv(ghToken?: RelayGhToken): Record<string, string> {
     if (value !== undefined) env[key] = value;
   }
   if (ghToken) {
-    env.OK_GH_TOKEN = ghToken.token;
-    env.OK_GH_TOKEN_HOST = ghToken.host;
-    if (ghToken.login) env.OK_GH_TOKEN_LOGIN = ghToken.login;
+    env.GITQUIRE_GH_TOKEN = ghToken.token;
+    env.GITQUIRE_GH_TOKEN_HOST = ghToken.host;
+    if (ghToken.login) env.GITQUIRE_GH_TOKEN_LOGIN = ghToken.login;
   }
   return env;
 }

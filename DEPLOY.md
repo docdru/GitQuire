@@ -21,7 +21,7 @@ agent access. For what GitQuire does, see the [README](./README.md).
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e OK_ALLOW_EXTERNAL=1 \
+  -e GITQUIRE_ALLOW_EXTERNAL=1 \
   -v gitquire-data:/data \
   ghcr.io/docdru/gitquire:latest
 # then open http://localhost:8080
@@ -30,13 +30,13 @@ docker run --rm -p 8080:8080 \
 > **Warning:** without GitHub sign-in (below), anyone who can reach the port can read and edit
 > everything. Turn sign-in on before exposing GitQuire beyond localhost.
 
-Behind a real domain, also set `OK_EXTERNAL_URL=https://your.domain`. Run exactly one container per
+Behind a real domain, also set `GITQUIRE_EXTERNAL_URL=https://your.domain`. Run exactly one container per
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
 
 For nginx, start from [`deploy/nginx/sites-available/gitquire.conf`](./deploy/nginx/sites-available/gitquire.conf).
 It forwards WebSocket upgrades (live editing needs them) and allows uploads up to 50 MB. Publish the
 container port on loopback only (`-p 127.0.0.1:8080:8080`) so nginx is the only way in, and set
-`OK_EXTERNAL_URL` to the address people open: `http://` until certbot has added HTTPS, then
+`GITQUIRE_EXTERNAL_URL` to the address people open: `http://` until certbot has added HTTPS, then
 `https://` (restart the container after changing it).
 
 To keep these options in a file, use [`deploy/compose.yaml`](./deploy/compose.yaml). Put it in a
@@ -58,9 +58,9 @@ GitQuire as `smtp://mailpit:1025?starttls=off`.
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `PORT` | `8080` | Listen port |
-| `OK_BIND` | `0.0.0.0` | Bind address |
-| `OK_ALLOW_EXTERNAL` | unset | Must be `1` to accept non-local connections |
-| `OK_EXTERNAL_URL` | unset | Public origin, required behind a domain or proxy |
+| `GITQUIRE_BIND` | `0.0.0.0` | Bind address |
+| `GITQUIRE_ALLOW_EXTERNAL` | unset | Must be `1` to accept non-local connections |
+| `GITQUIRE_EXTERNAL_URL` | unset | Public origin, required behind a domain or proxy |
 | `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits not made by a signed-in person |
 | `GITQUIRE_AGENTS_FILE` | on | `off` stops GitQuire from writing its section of `AGENTS.md` (rules for AI agents) at the root of the wiki |
 
@@ -70,7 +70,7 @@ With sign-in on, every page, API call and live-editing connection needs a GitHub
 People with write access to `GITQUIRE_REPO` (or listed in `GITQUIRE_ALLOWED_USERS`) can sign in.
 
 1. Create a GitHub App (GitHub → Settings → Developer settings → GitHub Apps → New):
-   - **Callback URL:** `https://brain.example.com/auth/github/callback` (your `OK_EXTERNAL_URL`
+   - **Callback URL:** `https://brain.example.com/auth/github/callback` (your `GITQUIRE_EXTERNAL_URL`
      plus `/auth/github/callback`). Add `http://localhost:8080/auth/github/callback` too for local use.
    - **Repository permissions:** Contents read and write, Pull requests read and write,
      Metadata read.
@@ -80,8 +80,8 @@ People with write access to `GITQUIRE_REPO` (or listed in `GITQUIRE_ALLOWED_USER
 
 ```bash
 docker run -d --name gitquire -p 8080:8080 \
-  -e OK_ALLOW_EXTERNAL=1 \
-  -e OK_EXTERNAL_URL=https://brain.example.com \
+  -e GITQUIRE_ALLOW_EXTERNAL=1 \
+  -e GITQUIRE_EXTERNAL_URL=https://brain.example.com \
   -e GITHUB_APP_CLIENT_ID=Iv1.xxxxxxxx \
   -e GITHUB_APP_CLIENT_SECRET=xxxxxxxx \
   -e GITQUIRE_SESSION_SECRET="$(openssl rand -hex 32)" \
@@ -177,7 +177,7 @@ not read yet are mailed; mentions that already existed when the address was conf
 With `smtp://`, STARTTLS is required; add `?starttls=off` only for a local relay, and a password is
 then only sent to `localhost`. Mail is limited to 20 per person per day and 100 per hour in total;
 the counts start over when the server restarts. People who have not opened GitQuire for 30 days get
-no mail. The link in the mail is built from `OK_EXTERNAL_URL`; without it, the mail has no link.
+no mail. The link in the mail is built from `GITQUIRE_EXTERNAL_URL`; without it, the mail has no link.
 
 Read state and email settings are kept on the server in `/data/.ok/local/gitquire/mentions.json`,
 outside Git.
@@ -364,11 +364,32 @@ docker build -t gitquire:local .
 CI builds and smoke-tests the image on every pull request and publishes it to
 `ghcr.io/docdru/gitquire` from `main` (see [`.github/workflows/docker.yml`](./.github/workflows/docker.yml)).
 
+## Upgrading from the old names
+
+Older versions read `OK_*` environment variables (`OK_ALLOW_EXTERNAL`, `OK_EXTERNAL_URL`,
+`OK_BIND`, `OK_FILE_WATCHER_BACKEND`, …). They are now `GITQUIRE_*` with the same rest of the name.
+The old names still work for now: at start, each `OK_*` variable whose `GITQUIRE_*` twin is not set
+is used under the new name, and the log shows one line per variable, for example
+`The environment variable OK_ALLOW_EXTERNAL is now GITQUIRE_ALLOW_EXTERNAL.` When both are set, the
+`GITQUIRE_*` value wins.
+
+To upgrade, rename the variables in your `gitquire.env` or compose file and restart:
+
+```bash
+sed -i 's/^OK_/GITQUIRE_/' gitquire.env
+```
+
+One case needs this rename before the old name takes effect: the image itself sets
+`GITQUIRE_BIND=0.0.0.0`, so an `OK_BIND` of your own is ignored. Rename it to `GITQUIRE_BIND`.
+
+The `ok` and `open-knowledge` commands are now `gq` and `gitquire`; the old commands still work and
+print a notice.
+
 ## Environment variable reference
 
 | Variable | Section |
 | --- | --- |
-| `PORT`, `OK_BIND`, `OK_ALLOW_EXTERNAL`, `OK_EXTERNAL_URL` | [Quick start](#quick-start) |
+| `PORT`, `GITQUIRE_BIND`, `GITQUIRE_ALLOW_EXTERNAL`, `GITQUIRE_EXTERNAL_URL` | [Quick start](#quick-start) |
 | `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | [Quick start](#quick-start) |
 | `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET`, `GITQUIRE_SESSION_SECRET` | [GitHub sign-in](#github-sign-in) |
 | `GITQUIRE_REPO`, `GITQUIRE_ALLOWED_USERS`, `GITQUIRE_ADMINS`, `GITQUIRE_SESSION_DAYS`, `GITQUIRE_AUTH` | [GitHub sign-in](#github-sign-in) |

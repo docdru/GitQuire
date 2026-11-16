@@ -10,7 +10,7 @@ with write access to `GITQUIRE_REPO`, or listed in `GITQUIRE_ALLOWED_USERS`, can
 ## Create the GitHub App
 
 1. Go to **GitHub → Settings → Developer settings → GitHub Apps → New GitHub App**.
-2. **Callback URL:** your `OK_EXTERNAL_URL` plus `/auth/github/callback`, for example
+2. **Callback URL:** your `GITQUIRE_EXTERNAL_URL` plus `/auth/github/callback`, for example
    `https://brain.example.com/auth/github/callback`. Add
    `http://localhost:8080/auth/github/callback` too if you also run it locally.
 3. **Repository permissions:** Contents *read and write*, Pull requests *read and write*, Metadata
@@ -22,8 +22,8 @@ with write access to `GITQUIRE_REPO`, or listed in `GITQUIRE_ALLOWED_USERS`, can
 
 ```bash
 docker run -d --name gitquire -p 8080:8080 \
-  -e OK_ALLOW_EXTERNAL=1 \
-  -e OK_EXTERNAL_URL=https://brain.example.com \
+  -e GITQUIRE_ALLOW_EXTERNAL=1 \
+  -e GITQUIRE_EXTERNAL_URL=https://brain.example.com \
   -e GITHUB_APP_CLIENT_ID=Iv1.xxxxxxxx \
   -e GITHUB_APP_CLIENT_SECRET=xxxxxxxx \
   -e GITQUIRE_SESSION_SECRET="$(openssl rand -hex 32)" \

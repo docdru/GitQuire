@@ -3,17 +3,19 @@ import { installLongtaskObserver } from '../lib/longtask-observer.ts';
 import { defineScenario } from '../lib/scenario.ts';
 
 const DOC_BUCKETS = (
-  process.env.OK_PERF_M1_DOCS
-    ? process.env.OK_PERF_M1_DOCS.split(',')
+  process.env.GITQUIRE_PERF_M1_DOCS
+    ? process.env.GITQUIRE_PERF_M1_DOCS.split(',')
         .map((s) => s.trim())
         .filter(Boolean)
     : ['README', 'AGENTS', 'perf-fixtures/big-doc']
 ) as readonly string[];
-const LEAK_CYCLES = Number(process.env.OK_PERF_M1_LEAK_CYCLES ?? 10);
-const MOUNT_TEN_COUNT = Number(process.env.OK_PERF_M1_MOUNT_COUNT ?? 10);
+const LEAK_CYCLES = Number(process.env.GITQUIRE_PERF_M1_LEAK_CYCLES ?? 10);
+const MOUNT_TEN_COUNT = Number(process.env.GITQUIRE_PERF_M1_MOUNT_COUNT ?? 10);
 const HEAP_SNAPSHOT_TOP_N = 20;
 const WAIT_CONTENT_MS = 60_000;
-const HEAP_SNAPSHOT_TIMEOUT_MS = Number(process.env.OK_PERF_M1_SNAPSHOT_TIMEOUT_MS ?? 120_000);
+const HEAP_SNAPSHOT_TIMEOUT_MS = Number(
+  process.env.GITQUIRE_PERF_M1_SNAPSHOT_TIMEOUT_MS ?? 120_000,
+);
 
 interface CdpHeapSnapshotChunkEvent {
   chunk: string;

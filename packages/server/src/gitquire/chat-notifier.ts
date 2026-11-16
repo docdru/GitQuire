@@ -64,7 +64,7 @@ export function resolveChatConfig(env: Env): ChatConfigResult {
       reason: `GITQUIRE_CHAT_FORMAT must be one of ${FORMATS.join(', ')}.`,
     };
   }
-  const externalUrl = env.OK_EXTERNAL_URL?.trim().replace(/\/+$/, '');
+  const externalUrl = env.GITQUIRE_EXTERNAL_URL?.trim().replace(/\/+$/, '');
   return {
     kind: 'on',
     config: {

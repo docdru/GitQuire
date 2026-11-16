@@ -57,4 +57,4 @@ Open the browser URL first to confirm the editor loads. Then follow [Connect rem
 
 ## Turn off remote access
 
-Remove `allowExternal: true` from `.ok/local/config.yml`, or remove `OK_ALLOW_EXTERNAL=1`, then restart GitQuire. The Docker setup on this site uses `OK_BIND=0.0.0.0`, so the container will refuse to start without external-access consent. Stop the tunnel or disable the public domain to close network access. If a public URL was exposed, regenerate it or rotate the domain at your tunnel or hosting provider.
+Remove `allowExternal: true` from `.ok/local/config.yml`, or remove `GITQUIRE_ALLOW_EXTERNAL=1`, then restart GitQuire. The Docker setup on this site uses `GITQUIRE_BIND=0.0.0.0`, so the container will refuse to start without external-access consent. Stop the tunnel or disable the public domain to close network access. If a public URL was exposed, regenerate it or rotate the domain at your tunnel or hosting provider.

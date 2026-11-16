@@ -12,11 +12,11 @@ function paths(value: unknown): string[] {
 }
 
 describe('detectCommittedProjectLocalKeys', () => {
-  test('flags a committed server.bind — the clone-breaking case — with the OK_BIND fix', () => {
+  test('flags a committed server.bind — the clone-breaking case — with the GITQUIRE_BIND fix', () => {
     const findings = detectCommittedProjectLocalKeys({ value: { server: { bind: ['0.0.0.0'] } } });
     expect(findings).toHaveLength(1);
     expect(findings[0]?.path).toEqual(['server', 'bind']);
-    expect(findings[0]?.envVar).toBe('OK_BIND');
+    expect(findings[0]?.envVar).toBe('GITQUIRE_BIND');
   });
 
   test('flags a committed loopback bind too — placement, not value, is the fault', () => {
@@ -29,7 +29,7 @@ describe('detectCommittedProjectLocalKeys', () => {
     });
     expect(findings).toHaveLength(1);
     expect(findings[0]?.path).toEqual(['server', 'allowExternal']);
-    expect(findings[0]?.envVar).toBe('OK_ALLOW_EXTERNAL');
+    expect(findings[0]?.envVar).toBe('GITQUIRE_ALLOW_EXTERNAL');
   });
 
   test('flags a project-local leaf with no env surface, and omits envVar', () => {
@@ -98,11 +98,11 @@ describe('detectCommittedProjectLocalKeys', () => {
 
 describe('formatIgnoredCommittedKey', () => {
   test('names the key, says it is ignored, and points at the per-machine fix + env var', () => {
-    const msg = formatIgnoredCommittedKey({ path: ['server', 'bind'], envVar: 'OK_BIND' });
+    const msg = formatIgnoredCommittedKey({ path: ['server', 'bind'], envVar: 'GITQUIRE_BIND' });
     expect(msg).toContain('server.bind');
     expect(msg).toContain('ignored');
     expect(msg).toContain('.ok/local/config.yml');
-    expect(msg).toContain('OK_BIND');
+    expect(msg).toContain('GITQUIRE_BIND');
   });
 
   test('omits the env hint when the leaf has no env surface', () => {
@@ -115,7 +115,7 @@ describe('formatIgnoredCommittedKey', () => {
   test('prefixes file:line:column when the finding was source-located', () => {
     const msg = formatIgnoredCommittedKey({
       path: ['server', 'bind'],
-      envVar: 'OK_BIND',
+      envVar: 'GITQUIRE_BIND',
       source: { file: '/repo/.ok/config.yml', line: 3, column: 5 },
     });
     expect(msg.startsWith('/repo/.ok/config.yml:3:5: ')).toBe(true);
@@ -123,7 +123,7 @@ describe('formatIgnoredCommittedKey', () => {
   });
 
   test('omits the location prefix when no source is attached', () => {
-    const msg = formatIgnoredCommittedKey({ path: ['server', 'bind'], envVar: 'OK_BIND' });
+    const msg = formatIgnoredCommittedKey({ path: ['server', 'bind'], envVar: 'GITQUIRE_BIND' });
     expect(msg.startsWith('server.bind')).toBe(true);
   });
 });

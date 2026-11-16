@@ -162,7 +162,7 @@ Serve this project's web UI and `/mcp` endpoint to your other devices through an
 
 | Command | What it does |
 | --- | --- |
-| `gq start --external-url <url>` | Declare the canonical external origin clients dial (sets `server.externalUrl` for this run) — its host joins the Host/Origin allowlists and issued URLs. External exposure additionally requires consent (`OK_ALLOW_EXTERNAL=1` or `server.allowExternal`). For remote MCP use also set `OK_IDLE_SHUTDOWN=off` — the idle timer only counts editor (WS) connections and would stop the server under a live remote agent. Add `--bind <address>` to serve a non-loopback listen address. |
+| `gq start --external-url <url>` | Declare the canonical external origin clients dial (sets `server.externalUrl` for this run) — its host joins the Host/Origin allowlists and issued URLs. External exposure additionally requires consent (`GITQUIRE_ALLOW_EXTERNAL=1` or `server.allowExternal`). For remote MCP use also set `GITQUIRE_IDLE_SHUTDOWN=off` — the idle timer only counts editor (WS) connections and would stop the server under a live remote agent. Add `--bind <address>` to serve a non-loopback listen address. |
 
 ## More commands
 

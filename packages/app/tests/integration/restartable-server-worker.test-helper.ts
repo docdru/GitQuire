@@ -23,7 +23,7 @@ process.once('disconnect', () => {
 });
 
 const { bootServer, ConfigSchema }: typeof import('@gitquire/server') = await import(
-  process.env.OK_TEST_RESTART_SERVER_MODULE ?? '@gitquire/server'
+  process.env.GITQUIRE_TEST_RESTART_SERVER_MODULE ?? '@gitquire/server'
 );
 
 process.once('message', async (options: RestartWorkerOptions) => {

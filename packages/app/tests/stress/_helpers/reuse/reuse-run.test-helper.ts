@@ -95,7 +95,7 @@ export async function runReuseCase(socketPath: string, ...titles: string[]): Pro
     env: (runDir) =>
       createNestedPlaywrightEnv({
         [REUSE_SOCKET_ENV]: socketPath,
-        OK_REUSE_CASE_RUN_DIR: runDir,
+        GITQUIRE_REUSE_CASE_RUN_DIR: runDir,
         PLAYWRIGHT_HTML_OPEN: 'never',
       }),
   });

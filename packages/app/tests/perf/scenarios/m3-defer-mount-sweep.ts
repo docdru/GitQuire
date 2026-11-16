@@ -6,12 +6,12 @@ const DEFAULT_THRESHOLDS = [Number.MAX_SAFE_INTEGER, 1_500_000, 500_000, 200_000
 const DEFAULT_DOCS = ['README', 'AGENTS', 'perf-fixtures/medium-doc'];
 
 const THRESHOLDS = (
-  process.env.OK_PERF_M3_THRESHOLDS
-    ? process.env.OK_PERF_M3_THRESHOLDS.split(',').map((s) => Number(s.trim()))
+  process.env.GITQUIRE_PERF_M3_THRESHOLDS
+    ? process.env.GITQUIRE_PERF_M3_THRESHOLDS.split(',').map((s) => Number(s.trim()))
     : DEFAULT_THRESHOLDS
 ).filter((n) => Number.isFinite(n));
 
-const DOCS = (process.env.OK_PERF_M3_DOCS ?? DEFAULT_DOCS.join(','))
+const DOCS = (process.env.GITQUIRE_PERF_M3_DOCS ?? DEFAULT_DOCS.join(','))
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);

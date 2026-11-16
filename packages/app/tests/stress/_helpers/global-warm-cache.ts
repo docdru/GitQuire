@@ -86,14 +86,14 @@ async function buildSeedOnce(key: string): Promise<void> {
     env: {
       ...process.env,
       ...request.environment,
-      OK_WARM_CACHE_OWNER_PID: String(process.pid),
+      GITQUIRE_WARM_CACHE_OWNER_PID: String(process.pid),
       NODE_OPTIONS: appendNodeOption(
         process.env.NODE_OPTIONS,
         `--require=${JSON.stringify(OWNER_GUARD)}`,
       ),
-      OK_TEST_CONTENT_DIR: contentDir,
-      OK_TEST_VITE_CACHE_DIR: buildDir,
-      OK_TEST_SKIP_I18N_COMPILE: '1',
+      GITQUIRE_TEST_CONTENT_DIR: contentDir,
+      GITQUIRE_TEST_VITE_CACHE_DIR: buildDir,
+      GITQUIRE_TEST_SKIP_I18N_COMPILE: '1',
       NO_COLOR: process.env.NO_COLOR ?? '1',
     },
     stdio: ['ignore', log.fd, log.fd],

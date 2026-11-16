@@ -868,7 +868,7 @@ describe('channel metadata (one writer per project across channels)', () => {
   });
 
   test('the lock names the channel that wrote it, and both readers return it', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     acquireProcessLock({
       lockName: LOCK_NAME,
       lockDir,
@@ -882,7 +882,7 @@ describe('channel metadata (one writer per project across channels)', () => {
   });
 
   test('a dev build records the dev channel, not Stable', () => {
-    vi.stubEnv('OK_CHANNEL', 'dev');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'dev');
     acquireProcessLock({
       lockName: LOCK_NAME,
       lockDir,
@@ -941,8 +941,8 @@ describe('channel metadata (one writer per project across channels)', () => {
     }
   });
 
-  test('an unsupported OK_CHANNEL still acquires the lock, without a channel', () => {
-    vi.stubEnv('OK_CHANNEL', 'cloud');
+  test('an unsupported GITQUIRE_CHANNEL still acquires the lock, without a channel', () => {
+    vi.stubEnv('GITQUIRE_CHANNEL', 'cloud');
     acquireProcessLock({
       lockName: LOCK_NAME,
       lockDir,

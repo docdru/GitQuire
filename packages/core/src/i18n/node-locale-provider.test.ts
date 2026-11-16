@@ -109,38 +109,38 @@ describe('the GNU LANGUAGE list', () => {
   });
 });
 
-describe('the OK_LANG override', () => {
+describe('the GITQUIRE_LANG override', () => {
   test('is reported as the override tier rather than folded into the signal', () => {
-    const signal = readNodeLocaleSignal({ OK_LANG: 'es', LANG: 'fr_FR.UTF-8' });
+    const signal = readNodeLocaleSignal({ GITQUIRE_LANG: 'es', LANG: 'fr_FR.UTF-8' });
     expect(signal.override).toBe('es');
     expect([...signal.preferenceList]).toEqual(['fr-FR']);
   });
 
   test('wins over both the environment signal and a saved choice', () => {
-    expect(resolveFor({ OK_LANG: 'ar', LANG: 'fr_FR.UTF-8' }, 'es')).toEqual({
+    expect(resolveFor({ GITQUIRE_LANG: 'ar', LANG: 'fr_FR.UTF-8' }, 'es')).toEqual({
       locale: 'ar',
       source: 'override',
     });
   });
 
   test('is negotiated like any other tag, so a region tag reaches its script', () => {
-    expect(resolveFor({ OK_LANG: 'zh-TW' }).locale).toBe('zh-Hant');
+    expect(resolveFor({ GITQUIRE_LANG: 'zh-TW' }).locale).toBe('zh-Hant');
   });
 
   test('falls through to the environment when it is not a language tag', () => {
-    expect(resolveFor({ OK_LANG: 'not a locale', LANG: 'fr_FR.UTF-8' })).toEqual({
+    expect(resolveFor({ GITQUIRE_LANG: 'not a locale', LANG: 'fr_FR.UTF-8' })).toEqual({
       locale: 'fr',
       source: 'system',
     });
   });
 
   test('falls through when it names a language with no catalog', () => {
-    expect(resolveFor({ OK_LANG: 'ja', LANG: 'fr_FR.UTF-8' }).locale).toBe('fr');
+    expect(resolveFor({ GITQUIRE_LANG: 'ja', LANG: 'fr_FR.UTF-8' }).locale).toBe('fr');
   });
 
   test('is absent when unset or empty', () => {
     expect(readNodeLocaleSignal({}).override).toBeUndefined();
-    expect(readNodeLocaleSignal({ OK_LANG: '  ' }).override).toBeUndefined();
+    expect(readNodeLocaleSignal({ GITQUIRE_LANG: '  ' }).override).toBeUndefined();
   });
 });
 
@@ -183,7 +183,7 @@ describe('hostile environments', () => {
 
   for (const value of values) {
     test(`a value of ${JSON.stringify(value)} resolves without throwing`, () => {
-      for (const variable of ['OK_LANG', 'LC_ALL', 'LC_MESSAGES', 'LANG', 'LANGUAGE']) {
+      for (const variable of ['GITQUIRE_LANG', 'LC_ALL', 'LC_MESSAGES', 'LANG', 'LANGUAGE']) {
         expect(() => resolveFor({ [variable]: value })).not.toThrow();
       }
     });
@@ -196,7 +196,7 @@ describe('the ambient environment', () => {
   });
 
   test('is read when no environment is supplied', () => {
-    for (const variable of ['OK_LANG', 'LC_ALL', 'LC_MESSAGES', 'LANGUAGE']) {
+    for (const variable of ['GITQUIRE_LANG', 'LC_ALL', 'LC_MESSAGES', 'LANGUAGE']) {
       vi.stubEnv(variable, undefined);
     }
     vi.stubEnv('LANG', 'fr_FR.UTF-8');

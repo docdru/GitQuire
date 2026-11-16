@@ -3,7 +3,7 @@ export const CONTRACT_SERVER_FORGE_PATH = '/__contract-server/forge-identity';
 export const CONTRACT_SERVER_FAIL_READINESS_PATH = '/__contract-server/fail-readiness';
 export const CONTRACT_SERVER_RESTART_PATH = '/__contract-server/restart';
 export const CONTRACT_SERVER_GENERATION_PATH = '/__contract-server/generation';
-export const CONTRACT_SERVER_EXCLUSIVE_RESOURCE_ENV = 'OK_CONTRACT_SERVER_EXCLUSIVE_RESOURCE';
+export const CONTRACT_SERVER_EXCLUSIVE_RESOURCE_ENV = 'GITQUIRE_CONTRACT_SERVER_EXCLUSIVE_RESOURCE';
 
 export const CONTRACT_SERVER_READINESS_CHECKS = ['api-config', 'collab'] as const;
 

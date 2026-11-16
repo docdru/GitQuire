@@ -124,10 +124,10 @@ const test = base.extend<object, { firstLoadObservation: FirstLoadObservation }>
         marks: { ...marks },
         requests: [...requests],
       };
-      const out = process.env.OK_MEASURE_OBSERVATION_OUT;
+      const out = process.env.GITQUIRE_MEASURE_OBSERVATION_OUT;
       if (!out) {
         throw new Error(
-          'OK_MEASURE_OBSERVATION_OUT must name the file this observation is written to',
+          'GITQUIRE_MEASURE_OBSERVATION_OUT must name the file this observation is written to',
         );
       }
       writeFileSync(out, `${JSON.stringify(observation)}\n`);

@@ -246,7 +246,12 @@ describe('gq pull without a running server', () => {
   test('gq pull --json keeps stdout to JSON lines and reports the refused path in its error record', async () => {
     await pushSymlink('notes/leak.md', '../.git/config');
     const env = { ...process.env };
-    for (const variable of ['NODE_ENV', 'LOG_LEVEL', 'OK_CONSOLE_LEVEL', 'OK_FILE_LEVEL']) {
+    for (const variable of [
+      'NODE_ENV',
+      'LOG_LEVEL',
+      'GITQUIRE_CONSOLE_LEVEL',
+      'GITQUIRE_FILE_LEVEL',
+    ]) {
       delete env[variable];
     }
 

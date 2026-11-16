@@ -12,7 +12,7 @@ import {
   type WatcherTarget,
 } from './server-factory.init-join-deadline.test-helper.ts';
 
-const retainedEvidenceRoot = process.env.OK_FACTORY_NATIVE_EVIDENCE_DIR;
+const retainedEvidenceRoot = process.env.GITQUIRE_FACTORY_NATIVE_EVIDENCE_DIR;
 const evidenceRoot = retainedEvidenceRoot ?? tmpdir();
 const HARNESS = fileURLToPath(
   new URL('./server-factory.init-join-deadline.test-helper.ts', import.meta.url),
@@ -22,9 +22,9 @@ async function prepareFactoryProbe(ctx: TestContext) {
   mkdirSync(evidenceRoot, { recursive: true });
   const runRoot = realpathSync(mkdtempSync(join(evidenceRoot, 'run-')));
   const root = realpathSync(mkdtempSync(join(runRoot, 'fixture-')));
-  const env = { ...process.env, OK_FILE_WATCHER_BACKEND: 'chokidar' };
+  const env = { ...process.env, GITQUIRE_FILE_WATCHER_BACKEND: 'chokidar' };
   delete env.NODE_OPTIONS;
-  delete env.OK_VITEST_RUN_EVIDENCE_OWNER;
+  delete env.GITQUIRE_VITEST_RUN_EVIDENCE_OWNER;
   delete env.GATE_BASE_SHA;
   delete env.CLAUDE_ENV_FILE;
   const { child, commandResult } = spawnUnderOwnerLifeline(

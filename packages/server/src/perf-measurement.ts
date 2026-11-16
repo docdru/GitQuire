@@ -42,7 +42,7 @@ export function captureServerMemorySnapshot(): ServerMemorySnapshot {
 function isRouteEnabled(): boolean {
   const nodeEnv = process.env.NODE_ENV;
   if (nodeEnv !== 'development' && nodeEnv !== 'test') return false;
-  return process.env.OK_PERF_SERVER_MEMORY_ENABLED === 'true';
+  return process.env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED === 'true';
 }
 
 function urlPathOf(rawUrl: string | undefined): string | null {

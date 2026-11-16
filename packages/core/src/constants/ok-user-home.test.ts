@@ -12,14 +12,14 @@ afterEach(() => {
 
 describe('per-channel user home', () => {
   it('keeps Stable on ~/.ok exactly as before', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     expect(okUserHomeDir(HOME)).toBe(join(HOME, '.ok'));
     expect(posixOkManagedBinDir(HOME)).toBe('/Users/someone/.ok/bin');
     expect(resolveConfigPath('user', '/project', HOME)).toBe(resolve(HOME, '.ok', 'global.yml'));
   });
 
   it('gives Beta a sibling ~/.ok-beta root for its home, PATH shims, and user config', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     expect(okUserHomeDir(HOME)).toBe(join(HOME, '.ok-beta'));
     expect(posixOkManagedBinDir(HOME)).toBe('/Users/someone/.ok-beta/bin');
     expect(resolveConfigPath('user', '/project', HOME)).toBe(
@@ -28,16 +28,16 @@ describe('per-channel user home', () => {
   });
 
   it('never nests one channel root inside the other', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     const stable = okUserHomeDir(HOME);
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const beta = okUserHomeDir(HOME);
     expect(relative(stable, beta).startsWith('..')).toBe(true);
     expect(relative(beta, stable).startsWith('..')).toBe(true);
   });
 
   it('resolves the channel from a Beta executable without an override', () => {
-    vi.stubEnv('OK_CHANNEL', undefined);
+    vi.stubEnv('GITQUIRE_CHANNEL', undefined);
     const execPath = process.execPath;
     Object.defineProperty(process, 'execPath', {
       value: '/Applications/OpenKnowledge Beta.app/Contents/MacOS/OpenKnowledge Beta',

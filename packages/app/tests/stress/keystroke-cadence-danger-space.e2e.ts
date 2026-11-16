@@ -8,7 +8,7 @@ import {
   waitForActiveProviderSynced as waitForProvider,
 } from './_helpers';
 
-test.use({ workerServerEnv: { OK_RETHROW_BRIDGE_LOSS: '1' } });
+test.use({ workerServerEnv: { GITQUIRE_RETHROW_BRIDGE_LOSS: '1' } });
 
 const CALLOUT = ['<Callout type="info">', '', 'Note:', '', '</Callout>', ''].join('\n');
 const INDENTED_CALLOUT = /\n[ \t]+<\/?Callout\b/;

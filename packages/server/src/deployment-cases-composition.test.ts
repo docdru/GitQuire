@@ -13,15 +13,15 @@ let case2: BootedServer;
 let case3: BootedServer;
 
 const CASE2_ENV = {
-  OK_BIND: '127.0.0.1 100.64.0.7',
-  OK_ALLOW_EXTERNAL: '1',
-  OK_EXTERNAL_URL: 'http://laptop.tail:55222',
+  GITQUIRE_BIND: '127.0.0.1 100.64.0.7',
+  GITQUIRE_ALLOW_EXTERNAL: '1',
+  GITQUIRE_EXTERNAL_URL: 'http://laptop.tail:55222',
 };
 
 const CASE3_ENV = {
   PORT: '8080',
-  OK_EXTERNAL_URL: 'https://notes.example.com',
-  OK_ALLOW_EXTERNAL: '1',
+  GITQUIRE_EXTERNAL_URL: 'https://notes.example.com',
+  GITQUIRE_ALLOW_EXTERNAL: '1',
 };
 
 beforeAll(async () => {
@@ -54,7 +54,7 @@ afterAll(async () => {
 });
 
 describe('deck env spellings resolve to the booted config', () => {
-  test('Case 2: OK_BIND (space-separated) + OK_ALLOW_EXTERNAL=1 + OK_EXTERNAL_URL', () => {
+  test('Case 2: GITQUIRE_BIND (space-separated) + GITQUIRE_ALLOW_EXTERNAL=1 + GITQUIRE_EXTERNAL_URL', () => {
     expect(resolveEnvConfigLayer(CASE2_ENV).layer).toEqual({
       server: {
         bind: ['127.0.0.1', '100.64.0.7'],
@@ -64,7 +64,7 @@ describe('deck env spellings resolve to the booted config', () => {
     });
   });
 
-  test('Case 3: platform PORT + OK_EXTERNAL_URL + OK_ALLOW_EXTERNAL=1', () => {
+  test('Case 3: platform PORT + GITQUIRE_EXTERNAL_URL + GITQUIRE_ALLOW_EXTERNAL=1', () => {
     expect(resolveEnvConfigLayer(CASE3_ENV).layer).toEqual({
       server: {
         port: 8080,

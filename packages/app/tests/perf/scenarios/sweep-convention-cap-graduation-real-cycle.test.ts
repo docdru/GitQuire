@@ -6,8 +6,8 @@ import {
   getLatencyProfile,
 } from './sweep-convention-cap-graduation.ts';
 
-const INTEGRATION_GATE = process.env.OK_SWEEP_INTEGRATION === '1';
-const DEFAULT_TARGET = process.env.OK_SWEEP_INTEGRATION_TARGET ?? 'http://localhost:5173';
+const INTEGRATION_GATE = process.env.GITQUIRE_SWEEP_INTEGRATION === '1';
+const DEFAULT_TARGET = process.env.GITQUIRE_SWEEP_INTEGRATION_TARGET ?? 'http://localhost:5173';
 const SAMPLE_TIMEOUT_MS = 60_000;
 
 async function isDevServerReachable(target: string): Promise<boolean> {
@@ -29,7 +29,7 @@ describe('convention-cap-graduation sweep — real-cycle integration', () => {
       const reachable = await isDevServerReachable(DEFAULT_TARGET);
       ctx.skip(
         !reachable,
-        `OK_SWEEP_INTEGRATION=1 but ${DEFAULT_TARGET} is not reachable — start the dev server with: cd packages/app && pnpm dev`,
+        `GITQUIRE_SWEEP_INTEGRATION=1 but ${DEFAULT_TARGET} is not reachable — start the dev server with: cd packages/app && pnpm dev`,
       );
 
       const browser = await chromium.launch({
@@ -67,7 +67,7 @@ describe('convention-cap-graduation sweep — real-cycle integration', () => {
   );
 
   test('integration gate is opt-in — bare bun run check does not require a dev server', () => {
-    const gateActive = process.env.OK_SWEEP_INTEGRATION === '1';
+    const gateActive = process.env.GITQUIRE_SWEEP_INTEGRATION === '1';
     expect(typeof gateActive).toBe('boolean');
   });
 });

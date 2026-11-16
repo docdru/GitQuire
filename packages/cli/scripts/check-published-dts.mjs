@@ -4,10 +4,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readJsoncOrError } from '../../../scripts/read-jsonc.mjs';
 
-const PACKAGE_ROOT = process.env.OK_PUBLISHED_DTS_ROOT
-  ? resolve(process.env.OK_PUBLISHED_DTS_ROOT)
+const PACKAGE_ROOT = process.env.GITQUIRE_PUBLISHED_DTS_ROOT
+  ? resolve(process.env.GITQUIRE_PUBLISHED_DTS_ROOT)
   : resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PACKAGE_ROOT_SOURCE = process.env.OK_PUBLISHED_DTS_ROOT ? 'OK_PUBLISHED_DTS_ROOT' : null;
+const PACKAGE_ROOT_SOURCE = process.env.GITQUIRE_PUBLISHED_DTS_ROOT
+  ? 'GITQUIRE_PUBLISHED_DTS_ROOT'
+  : null;
 const PUBLISHED_DECLARATION_NAME = 'dist/index.d.mts';
 const PUBLISHED_DECLARATION = join(PACKAGE_ROOT, PUBLISHED_DECLARATION_NAME);
 const CHECK_PROJECT = 'tsconfig.check.json';

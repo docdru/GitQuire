@@ -51,7 +51,7 @@ export async function runAssertionTimeoutCases(
     runDirPrefix: 'ok-assertion-timeout-',
     env: (runDir) => {
       const env = createNestedPlaywrightEnv({
-        OK_ASSERTION_TIMEOUT_RUN_DIR: runDir,
+        GITQUIRE_ASSERTION_TIMEOUT_RUN_DIR: runDir,
         PLAYWRIGHT_HTML_OPEN: 'never',
       });
       if (mode === 'ci') env.CI = '1';

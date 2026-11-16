@@ -111,7 +111,7 @@ gq start
 The server prints a warning banner naming the public origin on every exposed start. For a one-off session, the environment does the same job without touching config files:
 
 ```bash
-OK_ALLOW_EXTERNAL=1 OK_IDLE_SHUTDOWN=off gq start --external-url https://<your-tunnel-url> --port 8080
+GITQUIRE_ALLOW_EXTERNAL=1 GITQUIRE_IDLE_SHUTDOWN=off gq start --external-url https://<your-tunnel-url> --port 8080
 ```
 
 If the URL is public, [add access control](/docs/remote-control/authentication) before opening it. Tailscale Serve already limits access to your tailnet. Once the route is protected, [try it out](/docs/remote-control/overview#try-it-out).

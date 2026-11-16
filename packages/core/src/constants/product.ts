@@ -86,7 +86,7 @@ export function desktopWindowsInstallDirNames(product: DesktopProduct): readonly
 
 export const PRODUCT_NAME = DESKTOP_PRODUCTS.stable.productName;
 
-export const OK_CHANNEL_ENV = 'OK_CHANNEL';
+export const OK_CHANNEL_ENV = 'GITQUIRE_CHANNEL';
 
 function isDesktopProductName(value: string): value is DesktopProductName {
   return Object.hasOwn(DESKTOP_PRODUCTS, value);

@@ -66,7 +66,7 @@ async function invokeExtensionOnRequest(
   )({ request, response });
 }
 
-const ENV_KEYS = ['NODE_ENV', 'OK_PERF_SERVER_MEMORY_ENABLED'] as const;
+const ENV_KEYS = ['NODE_ENV', 'GITQUIRE_PERF_SERVER_MEMORY_ENABLED'] as const;
 type MutableEnv = Record<string, string | undefined>;
 const env = process.env as MutableEnv;
 
@@ -117,7 +117,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('GET /__ok_perf/server-memory with env=true + NODE_ENV=development returns 200 + structured JSON', async () => {
     env.NODE_ENV = 'development';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -144,7 +144,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('GET with NODE_ENV undefined returns 404 (Bun fail-closed contract)', async () => {
     delete env.NODE_ENV;
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -158,9 +158,9 @@ describe('installPerfMeasurementHttpRoute', () => {
     expect(JSON.parse(captured.body)).toEqual({ error: 'route disabled' });
   });
 
-  test('GET with OK_PERF_SERVER_MEMORY_ENABLED unset returns 404 (not 403, not 200)', async () => {
+  test('GET with GITQUIRE_PERF_SERVER_MEMORY_ENABLED unset returns 404 (not 403, not 200)', async () => {
     env.NODE_ENV = 'development';
-    delete env.OK_PERF_SERVER_MEMORY_ENABLED;
+    delete env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED;
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -176,7 +176,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('GET with NODE_ENV=production returns 404 even when env var is set', async () => {
     env.NODE_ENV = 'production';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -190,9 +190,9 @@ describe('installPerfMeasurementHttpRoute', () => {
     expect(JSON.parse(captured.body)).toEqual({ error: 'route disabled' });
   });
 
-  test('GET with OK_PERF_SERVER_MEMORY_ENABLED=false (string) returns 404', async () => {
+  test('GET with GITQUIRE_PERF_SERVER_MEMORY_ENABLED=false (string) returns 404', async () => {
     env.NODE_ENV = 'development';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'false';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'false';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -207,7 +207,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('GET on an unrelated URL is a silent no-op (falls through to next extension)', async () => {
     env.NODE_ENV = 'development';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -223,7 +223,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('non-GET on the perf route is a silent no-op (404 is reserved for disabled state)', async () => {
     env.NODE_ENV = 'development';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -243,7 +243,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('GET on perf route with query string still matches (?cell=42 etc.)', async () => {
     env.NODE_ENV = 'development';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -264,7 +264,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('GET from a non-loopback peer returns 403 even when DEV gates pass', async () => {
     env.NODE_ENV = 'development';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];
@@ -284,7 +284,7 @@ describe('installPerfMeasurementHttpRoute', () => {
 
   test('GET from loopback with a non-localhost Host header returns 403 (DNS-rebinding defense)', async () => {
     env.NODE_ENV = 'development';
-    env.OK_PERF_SERVER_MEMORY_ENABLED = 'true';
+    env.GITQUIRE_PERF_SERVER_MEMORY_ENABLED = 'true';
     const stub = makeHocuspocusStub();
     installPerfMeasurementHttpRoute(stub as unknown as Hocuspocus);
     const extension = stub.configuration.extensions[0];

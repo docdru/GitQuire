@@ -50,7 +50,7 @@ describe('gq diagnose bundle --pid help names the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: names %s diagnose process', (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const pid = bundleCommand().options.find((option) => option.long === '--pid');
     expect(pid?.description).toBe(
       `Include \`${command} diagnose process <pid>\` output under process/ in the bundle`,

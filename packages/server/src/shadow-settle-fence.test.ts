@@ -73,7 +73,7 @@ async function createFixture(context: TestContext, holdConsumer: boolean) {
   context.onTestFinished(() => {
     vi.unstubAllEnvs();
   });
-  vi.stubEnv('OK_FILE_WATCHER_BACKEND', 'parcel');
+  vi.stubEnv('GITQUIRE_FILE_WATCHER_BACKEND', 'parcel');
   mkdirSync(join(root, '.ok/templates'), { recursive: true });
   mkdirSync(join(root, '.ok/local'), { recursive: true });
   writeFileSync(join(root, 'doc.md'), INITIAL_DOCUMENT);

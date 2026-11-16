@@ -8,7 +8,7 @@ import { createTestServer, type TestServer, wait } from './test-harness.ts';
 let server: TestServer | undefined;
 
 afterEach(async () => {
-  delete process.env.OK_TEST_STORE_FAULT;
+  delete process.env.GITQUIRE_TEST_STORE_FAULT;
   if (server) {
     await server.cleanup();
     server = undefined;
@@ -40,10 +40,10 @@ describe('persistence staleness watchdog (integration)', () => {
     const forcedBefore = getMetrics().persistenceStalenessForcedStores;
     const detectedBefore = getMetrics().persistenceStalenessDetected;
 
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     const res = await writeMd(server.port, docName, '# persisted content\n');
     expect(res.status).toBe(507);
-    delete process.env.OK_TEST_STORE_FAULT;
+    delete process.env.GITQUIRE_TEST_STORE_FAULT;
 
     expect(existsSync(filePath)).toBe(false);
 
@@ -63,10 +63,10 @@ describe('persistence staleness watchdog (integration)', () => {
     const detectedBefore = getMetrics().persistenceStalenessDetected;
     const forcedBefore = getMetrics().persistenceStalenessForcedStores;
 
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     const res = await writeMd(server.port, docName, '# never flushed here\n');
     expect(res.status).toBe(507);
-    delete process.env.OK_TEST_STORE_FAULT;
+    delete process.env.GITQUIRE_TEST_STORE_FAULT;
 
     await wait(1_500);
     expect(existsSync(filePath)).toBe(false);
@@ -89,10 +89,10 @@ describe('persistence staleness watchdog (integration)', () => {
 
     const forcedBefore = getMetrics().persistenceStalenessForcedStores;
     const stoodDownBefore = getMetrics().persistenceStalenessStoodDown;
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     const second = await writeMd(server.port, docName, '# version two\n');
     expect(second.status).toBe(507);
-    delete process.env.OK_TEST_STORE_FAULT;
+    delete process.env.GITQUIRE_TEST_STORE_FAULT;
     writeFileSync(filePath, '# external native edit\n', 'utf-8');
 
     const bothKept = '# version two\n\n# external native edit\n';

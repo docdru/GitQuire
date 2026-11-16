@@ -217,17 +217,17 @@ describe('reconcileDiskBeforeAgentWrite — own persistence flush is not foreign
     await loadDocument(persistence, document, docName);
     document.transact(() => replaceDocParagraphs(document, FLUSHED_PARAGRAPHS), BROWSER_ORIGIN);
 
-    const prevFault = process.env.OK_TEST_STORE_FAULT;
-    process.env.OK_TEST_STORE_FAULT = docName;
+    const prevFault = process.env.GITQUIRE_TEST_STORE_FAULT;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     try {
       await expect(storeDocument(persistence, document, docName)).rejects.toThrow(
-        'OK_TEST_STORE_FAULT',
+        'GITQUIRE_TEST_STORE_FAULT',
       );
     } finally {
       if (prevFault === undefined) {
-        delete process.env.OK_TEST_STORE_FAULT;
+        delete process.env.GITQUIRE_TEST_STORE_FAULT;
       } else {
-        process.env.OK_TEST_STORE_FAULT = prevFault;
+        process.env.GITQUIRE_TEST_STORE_FAULT = prevFault;
       }
     }
 

@@ -1435,7 +1435,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       try {
         const RETRY_BUDGET = 30;
         const retryIntervalMs =
-          Number.parseInt(process.env.OK_BOOT_RENAME_GC_RETRY_INTERVAL_MS ?? '', 10) || 1_000;
+          Number.parseInt(process.env.GITQUIRE_BOOT_RENAME_GC_RETRY_INTERVAL_MS ?? '', 10) || 1_000;
         let rebuilt = false;
         for (let attempt = 0; attempt < RETRY_BUDGET; attempt++) {
           const gc = await gcRenameLog(shadow, bootRenameLogIndex, { rebuild: true });

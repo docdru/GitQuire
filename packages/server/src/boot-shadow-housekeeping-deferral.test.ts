@@ -173,8 +173,8 @@ describe('createServer() — boot shadow housekeeping is deferred past ready', (
   }, 30_000);
 
   test('an exhausted rebuild retry budget logs, gives up, and the chain continues', async () => {
-    const prevInterval = process.env.OK_BOOT_RENAME_GC_RETRY_INTERVAL_MS;
-    process.env.OK_BOOT_RENAME_GC_RETRY_INTERVAL_MS = '10';
+    const prevInterval = process.env.GITQUIRE_BOOT_RENAME_GC_RETRY_INTERVAL_MS;
+    process.env.GITQUIRE_BOOT_RENAME_GC_RETRY_INTERVAL_MS = '10';
     try {
       gates.renameGcSkipFirst = Number.MAX_SAFE_INTEGER;
       gates.gcConfig.release();
@@ -197,8 +197,8 @@ describe('createServer() — boot shadow housekeeping is deferred past ready', (
       expect(gates.renameGc.calls).toBe(30);
       gates.maintenance.release();
     } finally {
-      if (prevInterval === undefined) delete process.env.OK_BOOT_RENAME_GC_RETRY_INTERVAL_MS;
-      else process.env.OK_BOOT_RENAME_GC_RETRY_INTERVAL_MS = prevInterval;
+      if (prevInterval === undefined) delete process.env.GITQUIRE_BOOT_RENAME_GC_RETRY_INTERVAL_MS;
+      else process.env.GITQUIRE_BOOT_RENAME_GC_RETRY_INTERVAL_MS = prevInterval;
     }
   }, 30_000);
 

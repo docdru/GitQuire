@@ -105,7 +105,7 @@ export function resolveMailConfig(env: Env): MailConfigResult {
   if (!Number.isInteger(port) || port < 1 || port > 65_535) {
     return { kind: 'invalid', reason: 'GITQUIRE_SMTP_URL has an invalid port.' };
   }
-  const externalUrl = env.OK_EXTERNAL_URL?.trim().replace(/\/+$/, '');
+  const externalUrl = env.GITQUIRE_EXTERNAL_URL?.trim().replace(/\/+$/, '');
   return {
     kind: 'on',
     config: {

@@ -2,8 +2,8 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { NESTED_RUN_DEADLINE_MS } from './nested-run-budget';
 
-export const BROWSER_FIXTURE_ORDER_ENV = 'OK_BROWSER_FIXTURE_ORDER';
-export const BROWSER_FIXTURE_CACHE_DIR_ENV = 'OK_BROWSER_FIXTURE_CACHE_DIR';
+export const BROWSER_FIXTURE_ORDER_ENV = 'GITQUIRE_BROWSER_FIXTURE_ORDER';
+export const BROWSER_FIXTURE_CACHE_DIR_ENV = 'GITQUIRE_BROWSER_FIXTURE_CACHE_DIR';
 
 export type BrowserFixtureRequest = {
   readonly files: readonly string[];

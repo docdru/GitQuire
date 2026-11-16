@@ -43,12 +43,12 @@ beforeEach(() => {
   vi.stubEnv('USERPROFILE', home);
   vi.stubEnv('CODEX_HOME', join(home, '.codex'));
   vi.stubEnv('CLAUDE_CONFIG_DIR', join(home, '.claude'));
-  vi.stubEnv('OK_CHANNEL', 'stable');
-  vi.stubEnv('OK_DISABLE_LOCAL_SINK', '0');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_DISABLE_LOCAL_SINK', '0');
   vi.stubEnv('OTEL_SDK_DISABLED', 'true');
   vi.stubEnv('LOG_LEVEL', 'silent');
-  vi.stubEnv('OK_CONSOLE_LEVEL', 'silent');
-  vi.stubEnv('OK_FILE_LEVEL', 'debug');
+  vi.stubEnv('GITQUIRE_CONSOLE_LEVEL', 'silent');
+  vi.stubEnv('GITQUIRE_FILE_LEVEL', 'debug');
   vi.stubEnv('GIT_CONFIG_NOSYSTEM', '1');
   vi.stubEnv('GIT_CONFIG_GLOBAL', join(home, 'gitconfig'));
   vi.stubEnv('GIT_TERMINAL_PROMPT', '0');

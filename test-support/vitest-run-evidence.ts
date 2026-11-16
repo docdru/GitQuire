@@ -6,7 +6,7 @@ import type { Plugin } from 'vitest/config';
 import type { Reporter, TestCase, VitestPluginContext } from 'vitest/node';
 import { executed, sumAcrossFiles, tallyVitestRun, type VitestFileTally } from './vitest-run-tally';
 
-export const VITEST_RUN_EVIDENCE_OWNER_ENV = 'OK_VITEST_RUN_EVIDENCE_OWNER';
+export const VITEST_RUN_EVIDENCE_OWNER_ENV = 'GITQUIRE_VITEST_RUN_EVIDENCE_OWNER';
 
 type Vitest = VitestPluginContext['vitest'];
 

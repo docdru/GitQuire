@@ -23,7 +23,7 @@ import {
 import { ServerAuthorityLeaseVerificationError } from './server-authority-lease.ts';
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
 });
 
 afterEach(() => {
@@ -304,9 +304,9 @@ describe('acquireServerAuthority', () => {
     writeFileSync(join(directory, 'corrupt.sqlite'), 'not a SQLite database');
     registryPath = join(directory, 'corrupt.sqlite');
     try {
-      vi.stubEnv('OK_CHANNEL', 'stable');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
       expect(() => claim(tree())).toThrow(/Run gq stop all and confirm/);
-      vi.stubEnv('OK_CHANNEL', 'beta');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
       expect(() => claim(tree())).toThrow(/Run gq-beta stop all and confirm/);
     } finally {
       vi.unstubAllEnvs();

@@ -139,7 +139,7 @@ async function interruptedPruneThenRevisit(removedBeforeTheStop: readonly string
   expect(readFileSync(join(again.distDir, 'index.html'), 'utf8')).toContain('App = () => 1');
   expect(readFileSync(join(again.distDir, 'assets', 'app.js'), 'utf8')).toContain('App = () => 1');
   expect(prebuiltServerCommand('127.0.0.1', workerServing(again.outputDir), okRoot).env).toEqual({
-    OK_TEST_PREBUILT_OUT_DIR: again.distDir,
+    GITQUIRE_TEST_PREBUILT_OUT_DIR: again.distDir,
   });
 }
 

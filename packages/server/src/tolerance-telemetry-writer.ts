@@ -25,7 +25,7 @@ let appendFailureWarned = false;
 export function isToleranceTelemetryEnabled(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
-  return env.OK_BRIDGE_TOLERANCE_TELEMETRY === '1';
+  return env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY === '1';
 }
 
 export function initToleranceTelemetryWriter(projectDir: string): void {

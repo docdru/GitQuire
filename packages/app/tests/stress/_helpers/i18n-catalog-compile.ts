@@ -13,6 +13,6 @@ export default function globalCompileI18nCatalogs(): void {
   });
   if (compiled.error === undefined && compiled.status === 0) return;
   throw new Error(
-    `could not compile the i18n catalogs before this run. Every dev server it boots sets OK_TEST_SKIP_I18N_COMPILE, so without this compile they would serve missing or stale src/locales/*/messages.json. node ${COMPILE_SCRIPT} exited ${String(compiled.status)}${compiled.signal ? ` on ${compiled.signal}` : ''}${compiled.error ? ` (${String(compiled.error)})` : ''}:\n${compiled.stderr ?? ''}${compiled.stdout ?? ''}`,
+    `could not compile the i18n catalogs before this run. Every dev server it boots sets GITQUIRE_TEST_SKIP_I18N_COMPILE, so without this compile they would serve missing or stale src/locales/*/messages.json. node ${COMPILE_SCRIPT} exited ${String(compiled.status)}${compiled.signal ? ` on ${compiled.signal}` : ''}${compiled.error ? ` (${String(compiled.error)})` : ''}:\n${compiled.stderr ?? ''}${compiled.stdout ?? ''}`,
   );
 }

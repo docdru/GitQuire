@@ -200,7 +200,7 @@ describe('Producer guard (FR6) — dev/test posture throws (M2)', () => {
 });
 
 describe('Producer guard (FR6) — packaged posture logs + checkpoints, never throws/corrects (QA-010)', () => {
-  const SAVED_ENV = ['NODE_ENV', 'OK_RETHROW_BRIDGE_LOSS'] as const;
+  const SAVED_ENV = ['NODE_ENV', 'GITQUIRE_RETHROW_BRIDGE_LOSS'] as const;
   let savedEnv: Partial<Record<(typeof SAVED_ENV)[number], string | undefined>>;
   let projectRoot: string;
   let shadow: ShadowHandle;
@@ -209,7 +209,7 @@ describe('Producer guard (FR6) — packaged posture logs + checkpoints, never th
     savedEnv = {};
     for (const key of SAVED_ENV) savedEnv[key] = process.env[key];
     process.env.NODE_ENV = 'production';
-    delete process.env.OK_RETHROW_BRIDGE_LOSS;
+    delete process.env.GITQUIRE_RETHROW_BRIDGE_LOSS;
 
     projectRoot = await mkdtemp(resolve(tmpdir(), 'ok-producer-guard-'));
     mkdirSync(resolve(projectRoot, 'content'), { recursive: true });

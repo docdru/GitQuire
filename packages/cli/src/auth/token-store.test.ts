@@ -770,7 +770,7 @@ describe('credentials per channel', () => {
   });
 
   test('Stable keeps the open-knowledge keychain service and ~/.ok/auth.yml', async () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     const { createTokenStore, FileBackend: ChannelFileBackend } = await import('./token-store.ts');
     await (await createTokenStore(join(fakeHome, 'unused.yml'))).set('github.com', 'a', 't');
     expect(keyringMockState.setPasswordCalls.map((c) => c.service)).toEqual(['open-knowledge']);
@@ -779,7 +779,7 @@ describe('credentials per channel', () => {
   });
 
   test('Beta uses its own keychain service and ~/.ok-beta/auth.yml, sharing nothing', async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const { createTokenStore, FileBackend: ChannelFileBackend } = await import('./token-store.ts');
     await (await createTokenStore(join(fakeHome, 'unused.yml'))).set('github.com', 'a', 't');
     expect(keyringMockState.setPasswordCalls.map((c) => c.service)).toEqual([
@@ -791,7 +791,7 @@ describe('credentials per channel', () => {
   });
 
   test('Beta reads, clears and clears-all only its own keychain service', async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     keyringMockState.getPasswordReturns.set(
       'open-knowledge:github.com',
       JSON.stringify({ login: 'stable', token: 'gho_stable' }),

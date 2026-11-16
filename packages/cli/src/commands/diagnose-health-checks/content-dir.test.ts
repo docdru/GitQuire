@@ -104,7 +104,7 @@ describe('content-dir remediation names the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: an uninitialized project names %s init', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const result = await makeContentDirCheck().run({ cwd: makeProject(false) });
     expect(result.remediation).toBe(`Run \`${command} init\` to scaffold the project.`);
   });

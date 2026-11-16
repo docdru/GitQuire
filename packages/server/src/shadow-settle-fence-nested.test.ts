@@ -64,7 +64,7 @@ test('checkpoints omit a pending settle fence in a nested content directory', as
   context.onTestFinished(() => {
     vi.unstubAllEnvs();
   });
-  vi.stubEnv('OK_FILE_WATCHER_BACKEND', 'parcel');
+  vi.stubEnv('GITQUIRE_FILE_WATCHER_BACKEND', 'parcel');
   mkdirSync(join(content, '.ok/templates'), { recursive: true });
   mkdirSync(join(content, '.ok/local'), { recursive: true });
   const expected = (document: string) => [

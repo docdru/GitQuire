@@ -82,7 +82,7 @@ function runFixture(testNamePattern: string, run: FixtureRun = {}): Promise<Fixt
           ...process.env,
           FORCE_COLOR: '0',
           NO_COLOR: '1',
-          OK_FIXTURE_COLLECTION_BLOCK: '',
+          GITQUIRE_FIXTURE_COLLECTION_BLOCK: '',
           ...run.env,
         },
         timeout: FIXTURE_TIMEOUT_MS,
@@ -226,7 +226,7 @@ describe('no-net-connect lifecycle fixture', () => {
 
   test('a collection-time block is reported alongside a suite-hook block', async () => {
     const result = await runFixture('suite setup swallowed block fails', {
-      env: { OK_FIXTURE_COLLECTION_BLOCK: '1' },
+      env: { GITQUIRE_FIXTURE_COLLECTION_BLOCK: '1' },
       reporter: 'default',
     });
     assertLaunched(result);

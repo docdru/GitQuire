@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { defaultToDevChannel, isDevChannel } from '@gitquire/core/constants/product';
 
 export function applyDevServerChannel(env: Record<string, string | undefined>): void {
-  if (env.OK_TEST_CONTENT_DIR) return;
+  if (env.GITQUIRE_TEST_CONTENT_DIR) return;
   defaultToDevChannel(env);
 }
 

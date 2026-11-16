@@ -5101,8 +5101,8 @@ describe('SyncEngine declared-account resolution', () => {
 
     expect(detect.logins()).toEqual(['alice']);
     expect(detect.lastHost()).toBe('github.com');
-    expect(handle.env.OK_GH_TOKEN).toBe('gho_alice');
-    expect(handle.env.OK_GH_TOKEN_LOGIN).toBe('alice');
+    expect(handle.env.GITQUIRE_GH_TOKEN).toBe('gho_alice');
+    expect(handle.env.GITQUIRE_GH_TOKEN_LOGIN).toBe('alice');
     expect(urlMatch.calls()).toBe(0);
   });
 
@@ -5116,8 +5116,8 @@ describe('SyncEngine declared-account resolution', () => {
 
     expect(detect.logins()).toEqual([undefined]);
     expect(detect.lastHost()).toBe('github.com');
-    expect(handle.env.OK_GH_TOKEN).toBe('gho_active');
-    expect('OK_GH_TOKEN_LOGIN' in handle.env).toBe(false);
+    expect(handle.env.GITQUIRE_GH_TOKEN).toBe('gho_active');
+    expect('GITQUIRE_GH_TOKEN_LOGIN' in handle.env).toBe(false);
   });
 
   test('the credential-config lookup runs once per window across many handles', async () => {
@@ -5141,9 +5141,9 @@ describe('SyncEngine declared-account resolution', () => {
     const engine = makeAccountEngine(detect.fn, countingUrlMatch(null).fn);
     const internal = engine as unknown as { gitHandle: () => GitHandle };
 
-    expect(internal.gitHandle().env.OK_GH_TOKEN_LOGIN).toBe('alice');
+    expect(internal.gitHandle().env.GITQUIRE_GH_TOKEN_LOGIN).toBe('alice');
     await git.raw('remote', 'set-url', 'origin', 'https://bob@github.com/mona/kb.git');
-    expect(internal.gitHandle().env.OK_GH_TOKEN_LOGIN).toBe('bob');
+    expect(internal.gitHandle().env.GITQUIRE_GH_TOKEN_LOGIN).toBe('bob');
     expect(detect.logins()).toEqual(['alice', 'bob']);
   });
 
@@ -5173,12 +5173,12 @@ describe('SyncEngine declared-account resolution', () => {
         declaredLogin: 'alice',
         declaredSource: 'remote-url',
       });
-      expect(handle.env.OK_GH_TOKEN).toBe('gho_active');
-      expect('OK_GH_TOKEN_LOGIN' in handle.env).toBe(false);
+      expect(handle.env.GITQUIRE_GH_TOKEN).toBe('gho_active');
+      expect('GITQUIRE_GH_TOKEN_LOGIN' in handle.env).toBe(false);
 
       honor = true;
       await engine.notifyCredentialsChanged();
-      expect(internal.gitHandle().env.OK_GH_TOKEN_LOGIN).toBe('alice');
+      expect(internal.gitHandle().env.GITQUIRE_GH_TOKEN_LOGIN).toBe('alice');
       expect(missWarns()).toHaveLength(1);
 
       honor = false;
@@ -5210,7 +5210,7 @@ describe('SyncEngine declared-account resolution', () => {
         declaredLogin: 'alice',
         declaredSource: 'remote-url',
       });
-      expect('OK_GH_TOKEN' in handle.env).toBe(false);
+      expect('GITQUIRE_GH_TOKEN' in handle.env).toBe(false);
     } finally {
       logs.restore();
     }
@@ -5255,7 +5255,7 @@ describe('SyncEngine declared-account resolution', () => {
 
     try {
       const handle = internal.gitHandle();
-      expect(handle.env.OK_GH_TOKEN).toBe('gho_active');
+      expect(handle.env.GITQUIRE_GH_TOKEN).toBe('gho_active');
       const miss = logs.entries.find(
         (e) => e.level === 'warn' && e.msg.includes('declared GitHub account'),
       );

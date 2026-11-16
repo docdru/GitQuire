@@ -270,7 +270,7 @@ describe('auth-login stream displacement (a second start orphans the first clien
   test('the undeclared-host refusal names the Beta user config when the running channel is Beta', async () => {
     const projectDir = mkdtempSync(join(tmpdir(), 'ok-local-op-beta-home-'));
     const home = mkdtempSync(join(tmpdir(), 'ok-local-op-beta-user-'));
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     vi.stubEnv('HOME', home);
     vi.stubEnv('USERPROFILE', home);
     try {
@@ -379,7 +379,7 @@ describe('auth-login stream displacement (a second start orphans the first clien
   });
 
   test('a dev build without its workspace CLI answers every Stable-changing route with the same refusal', async () => {
-    vi.stubEnv('OK_CHANNEL', 'dev');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'dev');
     vi.stubEnv('PATH', join(tmpdir(), 'ok-no-cli-on-path'));
     const homeDir = mkdtempSync(join(tmpdir(), 'ok-dev-fallback-clone-'));
     try {

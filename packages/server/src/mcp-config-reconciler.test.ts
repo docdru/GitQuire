@@ -215,7 +215,7 @@ describe('reconcileTrackedMcpConfig', () => {
     }
 
     test('upgrades only its own JSON entry and leaves the Stable neighbour byte-for-byte', () => {
-      vi.stubEnv('OK_CHANNEL', 'beta');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
       const base = both(betaV1);
       const plan = reconcileTrackedMcpConfig({
         target: '.mcp.json',
@@ -231,7 +231,7 @@ describe('reconcileTrackedMcpConfig', () => {
     });
 
     test('treats a config holding only the Stable entry as having no Beta entry', () => {
-      vi.stubEnv('OK_CHANNEL', 'beta');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
       const raw = config(v2);
       expect(
         reconcileTrackedMcpConfig({
@@ -242,7 +242,7 @@ describe('reconcileTrackedMcpConfig', () => {
     });
 
     test('addresses only the Beta key in TOML', () => {
-      vi.stubEnv('OK_CHANNEL', 'beta');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
       const touched: string[] = [];
       const editor: NativeTomlMcpEditor = {
         parseToObject: (raw) => ({

@@ -152,7 +152,7 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
       env: {
         ...deps.env,
         PORT: String(port),
-        OK_BIND: '127.0.0.1',
+        GITQUIRE_BIND: '127.0.0.1',
         GITQUIRE_BRANCH: draft.branch,
         [DRAFT_INSTANCE_ENV]: draft.slug,
         [DRAFT_TITLE_ENV]: draft.title,

@@ -17,7 +17,10 @@ function identifyAll(pids, eventsPath, runId) {
           ...process.env,
           ...(eventsPath === undefined
             ? {}
-            : { OK_LIFETIME_IDENTITY_EVENTS: eventsPath, OK_LIFETIME_IDENTITY_RUN: runId }),
+            : {
+                GITQUIRE_LIFETIME_IDENTITY_EVENTS: eventsPath,
+                GITQUIRE_LIFETIME_IDENTITY_RUN: runId,
+              }),
         },
       },
     );

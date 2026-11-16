@@ -148,7 +148,7 @@ describe('shadow-health remediation names the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: both uninitialized states name %s start', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const remediation = `Run \`${command} start\` once to initialize the shadow repo.`;
     const bare = mkdtempSync(join(tmpdir(), 'ok-health-nogit-'));
     tmpDirs.push(bare);

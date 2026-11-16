@@ -109,7 +109,7 @@ describe('mail settings', () => {
     const result = resolveMailConfig({
       GITQUIRE_SMTP_URL: 'smtp://wiki%40example.com:p%40ss@mail.example.com',
       GITQUIRE_MAIL_FROM: ' wiki@example.com ',
-      OK_EXTERNAL_URL: 'https://brain.example.com/',
+      GITQUIRE_EXTERNAL_URL: 'https://brain.example.com/',
     });
     expect(result).toEqual({
       kind: 'on',

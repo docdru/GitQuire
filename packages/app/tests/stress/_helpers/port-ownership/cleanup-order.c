@@ -25,7 +25,7 @@ __attribute__((noreturn)) static void fail(const char *step, long result, int er
 }
 
 static void rendezvous(const char *phase, int pid) {
-  const char *port = getenv("OK_PORT_OWNERSHIP_SCHEDULE_PORT");
+  const char *port = getenv("GITQUIRE_PORT_OWNERSHIP_SCHEDULE_PORT");
   if (!port) return;
   int saved_errno = errno;
   int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -49,7 +49,7 @@ static void rendezvous(const char *phase, int pid) {
 }
 
 static void before_remove(const char *target) {
-  const char *run_dir = getenv("OK_PORT_OWNERSHIP_SCHEDULE_RUN_DIR");
+  const char *run_dir = getenv("GITQUIRE_PORT_OWNERSHIP_SCHEDULE_RUN_DIR");
   if (!run_dir || strcmp(target, run_dir)) return;
   DIR *directory = opendir(target);
   if (!directory) return;

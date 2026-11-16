@@ -173,7 +173,7 @@ describe('formatPreviewBlock names the running channel CLI', () => {
     ['stable', 'gitquire'],
     ['beta', 'gitquire-beta'],
   ])('%s: the init and re-check hints name %s', (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const cwd = resolve(
       tmpdir(),
       `preview-hint-${Date.now()}-${Math.random().toString(36).slice(2)}`,

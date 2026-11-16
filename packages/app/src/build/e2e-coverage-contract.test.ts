@@ -40,8 +40,8 @@ describe('which functions count as executed', () => {
 describe('the coverage directory switch', () => {
   test('only a non-empty directory turns recording on', () => {
     expect(e2eCoverageDir({})).toBeUndefined();
-    expect(e2eCoverageDir({ OK_E2E_COVERAGE_DIR: '' })).toBeUndefined();
-    expect(e2eCoverageDir({ OK_E2E_COVERAGE_DIR: '/tmp/cov' })).toBe('/tmp/cov');
+    expect(e2eCoverageDir({ GITQUIRE_E2E_COVERAGE_DIR: '' })).toBeUndefined();
+    expect(e2eCoverageDir({ GITQUIRE_E2E_COVERAGE_DIR: '/tmp/cov' })).toBe('/tmp/cov');
   });
 });
 

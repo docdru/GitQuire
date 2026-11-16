@@ -87,10 +87,10 @@ test('warm-cache chain terminates when its setup owner exits', async () => {
   const env = {
     ...process.env,
     NODE_OPTIONS: `--require=${JSON.stringify(guard)}`,
-    OK_TEST_WARM_CACHE_OWNER_LOSS_CLEANUP: cleanupPath,
-    OK_TEST_WARM_CACHE_OWNER_LOSS_EVENTS: eventsPath,
-    OK_TEST_WARM_CACHE_OWNER_LOSS_SOURCE: SOURCE,
-    OK_TEST_VITE_SEED_DIR: join(runDir, 'seed'),
+    GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_CLEANUP: cleanupPath,
+    GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_EVENTS: eventsPath,
+    GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_SOURCE: SOURCE,
+    GITQUIRE_TEST_VITE_SEED_DIR: join(runDir, 'seed'),
     TMPDIR: runtimeTmp,
     OTEL_SDK_DISABLED: 'true',
   };

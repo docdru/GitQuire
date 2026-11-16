@@ -75,7 +75,7 @@ function writeCredentialHelper(helperPath: string, reply: string): string {
     [
       "import { appendFileSync, readFileSync } from 'node:fs';",
       'readFileSync(0);',
-      'const call = { argv: process.argv.slice(2), relayToken: process.env.OK_GH_TOKEN ?? null };',
+      'const call = { argv: process.argv.slice(2), relayToken: process.env.GITQUIRE_GH_TOKEN ?? null };',
       "appendFileSync(process.argv[1] + '.calls', JSON.stringify(call) + '\\n');",
       `if (process.argv.at(-1) === 'get') process.stdout.write(${JSON.stringify(`username=${reply}\npassword=${reply}-secret\n`)});`,
       '',

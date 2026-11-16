@@ -197,7 +197,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
   {
     path: ['mcp', 'autoStart'],
     get redirect() {
-      return ['To disable MCP auto-start, set OK_MCP_AUTOSTART=0.', migrateHint()].join(' ');
+      return ['To disable MCP auto-start, set GITQUIRE_MCP_AUTOSTART=0.', migrateHint()].join(' ');
     },
   },
   {

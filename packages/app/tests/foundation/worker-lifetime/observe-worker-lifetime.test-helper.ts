@@ -193,11 +193,11 @@ export async function observeWorkerLifetime(
     cwd: APP_DIR,
     args,
     environment: {
-      OK_TEST_LIFETIME_DIR: run.dir,
-      OK_TEST_E2E_SERVING: mode,
-      OK_TEST_E2E_REUSE_SOCKET: '',
-      OK_TEST_E2E_REUSE_RUN: '',
-      OK_TEST_PREBUILT_APP: '',
+      GITQUIRE_TEST_LIFETIME_DIR: run.dir,
+      GITQUIRE_TEST_E2E_SERVING: mode,
+      GITQUIRE_TEST_E2E_REUSE_SOCKET: '',
+      GITQUIRE_TEST_E2E_REUSE_RUN: '',
+      GITQUIRE_TEST_PREBUILT_APP: '',
       PLAYWRIGHT_JSON_OUTPUT_FILE: join(run.dir, 'native.json'),
       PLAYWRIGHT_JSON_OUTPUT_NAME: '',
       PLAYWRIGHT_JSON_OUTPUT_DIR: '',
@@ -246,7 +246,7 @@ export async function observeWorkerLifetime(
       for (const event of events) {
         if (event.event !== 'spawn' && event.event !== 'runtime') continue;
         if (
-          event.environment?.OK_TEST_CONTENT_DIR !== ready[kind].server.contentDir ||
+          event.environment?.GITQUIRE_TEST_CONTENT_DIR !== ready[kind].server.contentDir ||
           !event.identity?.found
         )
           continue;
@@ -259,7 +259,7 @@ export async function observeWorkerLifetime(
     const prebuiltDirectories = [
       ...new Set(
         events
-          .map((event) => event.environment?.OK_TEST_PREBUILT_APP)
+          .map((event) => event.environment?.GITQUIRE_TEST_PREBUILT_APP)
           .filter((path): path is string => path !== undefined && path !== ''),
       ),
     ];

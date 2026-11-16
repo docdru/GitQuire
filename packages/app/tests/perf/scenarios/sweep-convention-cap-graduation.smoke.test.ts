@@ -1194,11 +1194,11 @@ describe('detectHostFingerprint', () => {
 
   test('reads OK_HOST_* env vars when present', () => {
     const fp = detectHostFingerprint({
-      OK_HOST_CPU: 'Apple M3 Pro',
-      OK_HOST_RAM_GB: '36',
-      OK_HOST_DEV_SERVER_LOAD: 'idle',
-      OK_HOST_DEV_SERVER_UPTIME_MINUTES: '45',
-      OK_HOST_FIXTURE_DOC_SIZE_BYTES: '12345',
+      GITQUIRE_HOST_CPU: 'Apple M3 Pro',
+      GITQUIRE_HOST_RAM_GB: '36',
+      GITQUIRE_HOST_DEV_SERVER_LOAD: 'idle',
+      GITQUIRE_HOST_DEV_SERVER_UPTIME_MINUTES: '45',
+      GITQUIRE_HOST_FIXTURE_DOC_SIZE_BYTES: '12345',
     });
     expect(fp.cpu).toBe('Apple M3 Pro');
     expect(fp.ramGb).toBe(36);
@@ -1233,8 +1233,8 @@ describe('buildFullCellResults — full end-to-end shape (US-011)', () => {
       cycleResult,
       {
         hostFingerprintEnv: {
-          OK_HOST_CPU: 'Apple M3 Pro',
-          OK_HOST_RAM_GB: '36',
+          GITQUIRE_HOST_CPU: 'Apple M3 Pro',
+          GITQUIRE_HOST_RAM_GB: '36',
         },
       },
     );

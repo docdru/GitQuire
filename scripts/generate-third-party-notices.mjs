@@ -703,13 +703,13 @@ function main() {
     );
   }
 
-  if (build.lastAuditCount > 0 && process.env.OK_NOTICES_ALLOW_AUDIT_BUCKET !== '1') {
+  if (build.lastAuditCount > 0 && process.env.GITQUIRE_NOTICES_ALLOW_AUDIT_BUCKET !== '1') {
     console.error('');
     console.error(
       `Audit-needed bucket is non-empty (${build.lastAuditCount} package(s) with unrecognized SPDX).`,
     );
     console.error(
-      'Review and either (a) add explicit handling in `categorize()` and re-run, or (b) re-run with `OK_NOTICES_ALLOW_AUDIT_BUCKET=1` after auditing.',
+      'Review and either (a) add explicit handling in `categorize()` and re-run, or (b) re-run with `GITQUIRE_NOTICES_ALLOW_AUDIT_BUCKET=1` after auditing.',
     );
     exit(1);
   }

@@ -6,7 +6,7 @@ description: Start the GitQuire container, keep its data in a volume, and put it
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e OK_ALLOW_EXTERNAL=1 \
+  -e GITQUIRE_ALLOW_EXTERNAL=1 \
   -v gitquire-data:/data \
   ghcr.io/docdru/gitquire:latest
 ```
@@ -21,7 +21,7 @@ Then open `http://localhost:8080`.
 ## Behind a domain
 
 Put GitQuire behind a reverse proxy that terminates HTTPS and forwards WebSocket upgrades, and set
-`OK_EXTERNAL_URL` to the public origin, for example `https://brain.example.com`.
+`GITQUIRE_EXTERNAL_URL` to the public origin, for example `https://brain.example.com`.
 
 Run exactly **one container per volume**: the collaboration server is the single writer of the
 working copy. Health checks are `GET /healthz` (process up) and `GET /readyz` (ready to serve).
@@ -31,9 +31,9 @@ working copy. Health checks are `GET /healthz` (process up) and `GET /readyz` (r
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `PORT` | `8080` | Listen port |
-| `OK_BIND` | `0.0.0.0` | Bind address |
-| `OK_ALLOW_EXTERNAL` | unset | Must be `1` to accept connections from other machines |
-| `OK_EXTERNAL_URL` | unset | Public origin; required behind a domain or proxy |
+| `GITQUIRE_BIND` | `0.0.0.0` | Bind address |
+| `GITQUIRE_ALLOW_EXTERNAL` | unset | Must be `1` to accept connections from other machines |
+| `GITQUIRE_EXTERNAL_URL` | unset | Public origin; required behind a domain or proxy |
 | `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Fallback Git identity for commits nobody signed in made |
 | `GITQUIRE_NAMING` | `slug` | `off` keeps new page names exactly as typed ([page names](./page-names.mdx)) |
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM` | unset | Mail server and sender for mention email ([mentions](./mentions.mdx#set-up-email)) |

@@ -78,7 +78,10 @@ function readMaxBytes(
 }
 
 export function resolveLocalSinkConfig(args: ResolveLocalSinkArgs): ResolvedLocalSink | null {
-  if (process.env.OK_DISABLE_LOCAL_SINK === '1' || process.env.OK_DISABLE_LOCAL_SINK === 'true') {
+  if (
+    process.env.GITQUIRE_DISABLE_LOCAL_SINK === '1' ||
+    process.env.GITQUIRE_DISABLE_LOCAL_SINK === 'true'
+  ) {
     return null;
   }
 

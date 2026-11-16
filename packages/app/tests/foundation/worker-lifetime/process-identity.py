@@ -42,12 +42,12 @@ def identify(pid):
     }
 
 
-destination = os.environ.get("OK_LIFETIME_IDENTITY_EVENTS")
+destination = os.environ.get("GITQUIRE_LIFETIME_IDENTITY_EVENTS")
 if destination:
     with open(destination, "a") as stream:
         stream.write(json.dumps({
             "event": "sampler-start", "identity": identify(os.getpid()),
-            "runId": os.environ["OK_LIFETIME_IDENTITY_RUN"],
+            "runId": os.environ["GITQUIRE_LIFETIME_IDENTITY_RUN"],
         }) + "\n")
 
 print(json.dumps([identify(int(value)) for value in sys.argv[1:]]))
@@ -56,5 +56,5 @@ if destination:
     with open(destination, "a") as stream:
         stream.write(json.dumps({
             "event": "sampler-settled", "pid": os.getpid(), "code": 0,
-            "runId": os.environ["OK_LIFETIME_IDENTITY_RUN"],
+            "runId": os.environ["GITQUIRE_LIFETIME_IDENTITY_RUN"],
         }) + "\n")

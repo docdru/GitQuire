@@ -52,7 +52,7 @@ function toleranceRateKey(site: BridgeInvariantSite, cls: BridgeToleranceSignal)
 }
 
 function readDebounceMs(): number {
-  const raw = process.env.OK_BRIDGE_VIOLATION_DEBOUNCE_S;
+  const raw = process.env.GITQUIRE_BRIDGE_VIOLATION_DEBOUNCE_S;
   if (raw === undefined) return DEFAULT_DEBOUNCE_S * 1000;
   const parsed = Number.parseInt(raw, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_DEBOUNCE_S * 1000;
@@ -174,7 +174,7 @@ export function __getSplitBrainRateTupleCountForTests(): number {
 export function shouldThrowOnBridgeInvariantViolation(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
-  return env.NODE_ENV === 'test' || env.OK_BRIDGE_THROW_ON_VIOLATION === '1';
+  return env.NODE_ENV === 'test' || env.GITQUIRE_BRIDGE_THROW_ON_VIOLATION === '1';
 }
 
 type DocParseSurface = Pick<
@@ -302,7 +302,7 @@ export function assertBridgeInvariant(
       opts.docName ? ` for '${opts.docName}'` : ''
     }`,
   );
-  const verbose = process.env.OK_TELEMETRY_VERBOSE === '1';
+  const verbose = process.env.GITQUIRE_TELEMETRY_VERBOSE === '1';
   console.warn(JSON.stringify(toBridgeInvariantLog(violation, { verbose })));
   return false;
 }

@@ -9,10 +9,10 @@ const { createOwnerLossHandler } = require('./owner-lifetime.cjs');
 const createServer = net.createServer;
 const spawn = childProcess.spawn;
 const listenHttp = http.Server.prototype.listen;
-const caller = process.env.OK_PORT_OWNERSHIP_CALLER;
-const records = process.env.OK_PORT_OWNERSHIP_RECORDS;
+const caller = process.env.GITQUIRE_PORT_OWNERSHIP_CALLER;
+const records = process.env.GITQUIRE_PORT_OWNERSHIP_RECORDS;
 const occupants = new Map();
-const controlPort = Number(process.env.OK_PORT_OWNERSHIP_CONTROL_PORT);
+const controlPort = Number(process.env.GITQUIRE_PORT_OWNERSHIP_CONTROL_PORT);
 
 function record(event, values = {}) {
   if (records)
@@ -80,7 +80,7 @@ childProcess.spawn = function (...args) {
 
 let bindTakeoverComplete = false;
 http.Server.prototype.listen = function (...args) {
-  const rawRequest = process.env.OK_TEST_VITE_START_REQUEST;
+  const rawRequest = process.env.GITQUIRE_TEST_VITE_START_REQUEST;
   if (!rawRequest || bindTakeoverComplete) return listenHttp.apply(this, args);
   const request = JSON.parse(rawRequest);
   const port = args[0];

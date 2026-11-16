@@ -658,7 +658,7 @@ describe('renderTable stop hint names the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: the footer names %s stop', (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const output = renderTable([
       {
         directory: '/tmp/notes',

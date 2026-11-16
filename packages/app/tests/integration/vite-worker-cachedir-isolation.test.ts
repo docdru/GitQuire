@@ -8,7 +8,7 @@ const APP_PACKAGE_ROOT = resolve(import.meta.dirname, '../..');
 const APP_VITE_CONFIG = resolve(APP_PACKAGE_ROOT, 'vite.config.ts');
 const WORKER_FIXTURES = resolve(APP_PACKAGE_ROOT, 'tests/stress/_helpers/fixtures.ts');
 
-const CACHE_DIR_ENV_VAR = 'OK_TEST_VITE_CACHE_DIR';
+const CACHE_DIR_ENV_VAR = 'GITQUIRE_TEST_VITE_CACHE_DIR';
 
 function readWorkerCacheGraph(entry: string): Record<string, string> {
   const modules: Record<string, string> = {};
@@ -580,7 +580,7 @@ function inspectWorkerCache(
       continue;
     }
     if (!unique(cache)) nonUnique++;
-    const content = property(env, 'OK_TEST_CONTENT_DIR');
+    const content = property(env, 'GITQUIRE_TEST_CONTENT_DIR');
     for (const path of ['failure', 'normal'] as const) {
       const removals = reclaims
         .filter((reclaim) => reclaim.path === path)
@@ -640,7 +640,7 @@ async function withEnv<T>(
 }
 
 describe('per-worker Vite cacheDir isolation — vite.config.ts side', () => {
-  test('A1: resolves cacheDir from OK_TEST_VITE_CACHE_DIR env var', async () => {
+  test('A1: resolves cacheDir from GITQUIRE_TEST_VITE_CACHE_DIR env var', async () => {
     const expected = '/tmp/ok-vite-cachedir-isolation-test-a1';
     await withEnv(CACHE_DIR_ENV_VAR, expected, async () => {
       const result = await loadConfigFromFile(
@@ -652,7 +652,7 @@ describe('per-worker Vite cacheDir isolation — vite.config.ts side', () => {
     });
   });
 
-  test('A2: distinct OK_TEST_VITE_CACHE_DIR values produce distinct resolved cacheDirs (anti-vacuousness)', async () => {
+  test('A2: distinct GITQUIRE_TEST_VITE_CACHE_DIR values produce distinct resolved cacheDirs (anti-vacuousness)', async () => {
     const pathW0 = '/tmp/ok-vite-cachedir-isolation-test-a2-w0';
     const pathW1 = '/tmp/ok-vite-cachedir-isolation-test-a2-w1';
     const cacheW0 = await withEnv(CACHE_DIR_ENV_VAR, pathW0, async () => {
@@ -717,7 +717,7 @@ const workerFixture = `import { test as base } from '@playwright/test';
   export const test = base.extend({ workerServer: [async ({}, use, workerInfo) => {
     const contentDir = mkdtempSync('content');
     const viteCacheDir = mkdtempSync('cache');
-    spawn('pnpm', [], { env: { OK_TEST_CONTENT_DIR: contentDir, OK_TEST_VITE_CACHE_DIR: viteCacheDir } });
+    spawn('pnpm', [], { env: { GITQUIRE_TEST_CONTENT_DIR: contentDir, GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir } });
     try { await use(); } catch { rmSync(contentDir); rmSync(viteCacheDir); }
     rmSync(contentDir); rmSync(viteCacheDir);
   }, { scope: 'worker' }] });`;
@@ -732,7 +732,7 @@ const phasedFixture = `import { test as base } from '@playwright/test';
       const contentDir = mkdtempSync('content');
       const viteCacheDir = mkdtempSync('cache');
       const log = () => { return 0; };
-      try { spawn('pnpm', [], { env: { OK_TEST_CONTENT_DIR: contentDir, OK_TEST_VITE_CACHE_DIR: viteCacheDir } }); }
+      try { spawn('pnpm', [], { env: { GITQUIRE_TEST_CONTENT_DIR: contentDir, GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir } }); }
       catch { rmSync(contentDir); rmSync(viteCacheDir); }
       return { contentDir, viteCacheDir };
     });
@@ -745,7 +745,7 @@ const helperFixture = `import { test as base } from '@playwright/test';
   import { spawn } from 'node:child_process';
   import { mkdtempSync, rmSync } from 'node:fs';
   function startServer(contentDir, viteCacheDir) {
-    return spawn('pnpm', [], { env: { OK_TEST_CONTENT_DIR: contentDir, OK_TEST_VITE_CACHE_DIR: viteCacheDir } });
+    return spawn('pnpm', [], { env: { GITQUIRE_TEST_CONTENT_DIR: contentDir, GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir } });
   }
   export const test = base.extend({ workerServer: [async ({}, use, workerInfo) => {
     const contentDir = mkdtempSync('content');
@@ -821,10 +821,10 @@ describe('worker cache rule self-test', () => {
   });
   test('examines an additional bad spawn and helper call outside the runtime sample', () => {
     const spawn =
-      "spawn('pnpm', [], { env: { OK_TEST_CONTENT_DIR: contentDir, OK_TEST_VITE_CACHE_DIR: viteCacheDir } });";
+      "spawn('pnpm', [], { env: { GITQUIRE_TEST_CONTENT_DIR: contentDir, GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir } });";
     const added = workerFixture.replace(
       spawn,
-      `if (workerInfo.workerIndex === 999) { ${spawn.replace('OK_TEST_VITE_CACHE_DIR: viteCacheDir', "OK_TEST_VITE_CACHE_DIR: 'shared'")} } ${spawn}`,
+      `if (workerInfo.workerIndex === 999) { ${spawn.replace('GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir', "GITQUIRE_TEST_VITE_CACHE_DIR: 'shared'")} } ${spawn}`,
     );
     expect(inspectWorkerCache(added)).toMatchObject({
       census: [],
@@ -858,7 +858,7 @@ describe('worker cache rule self-test', () => {
     const command = resolve(APP_PACKAGE_ROOT, 'tests/stress/_helpers/worker-server-command.ts');
     const adapter = resolve(APP_PACKAGE_ROOT, 'tests/stress/_helpers/worker-server-lifetime.ts');
     const owner = resolve(APP_PACKAGE_ROOT, 'tests/stress/_helpers/worker-server-lifetime.cjs');
-    const absentKey = graph[command].replaceAll('OK_TEST_VITE_CACHE_DIR:', 'OTHER_CACHE:');
+    const absentKey = graph[command].replaceAll('GITQUIRE_TEST_VITE_CACHE_DIR:', 'OTHER_CACHE:');
     expect(absentKey).not.toBe(graph[command]);
     expect(
       inspectWorkerCache(source, { ...graph, [command]: absentKey }, WORKER_FIXTURES).missingEnv,
@@ -890,8 +890,8 @@ describe('worker cache rule self-test', () => {
         {
           ...graph,
           [command]: graph[command].replaceAll(
-            'OK_TEST_VITE_CACHE_DIR: viteCacheDir',
-            "OK_TEST_VITE_CACHE_DIR: 'shared'",
+            'GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir',
+            "GITQUIRE_TEST_VITE_CACHE_DIR: 'shared'",
           ),
         },
         WORKER_FIXTURES,
@@ -923,8 +923,11 @@ describe('worker cache rule self-test', () => {
     expect(
       inspectWorkerCache(
         workerFixture
-          .replace("mkdtempSync('cache')", "'shared'; const OK_TEST_VITE_CACHE_DIR = viteCacheDir")
-          .replace('OK_TEST_VITE_CACHE_DIR: viteCacheDir', 'OK_TEST_VITE_CACHE_DIR'),
+          .replace(
+            "mkdtempSync('cache')",
+            "'shared'; const GITQUIRE_TEST_VITE_CACHE_DIR = viteCacheDir",
+          )
+          .replace('GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir', 'GITQUIRE_TEST_VITE_CACHE_DIR'),
       ),
     ).toMatchObject({ missingEnv: 0, nonUnique: 1, missingCleanup: 0 });
     for (const shared of [
@@ -939,7 +942,8 @@ describe('worker cache rule self-test', () => {
   });
   test('requires the spawn entry and both cleanup sites', () => {
     expect(
-      inspectWorkerCache(workerFixture.replace('OK_TEST_VITE_CACHE_DIR:', 'OTHER:')).missingEnv,
+      inspectWorkerCache(workerFixture.replace('GITQUIRE_TEST_VITE_CACHE_DIR:', 'OTHER:'))
+        .missingEnv,
     ).toBe(1);
     expect(
       inspectWorkerCache(workerFixture.replace('rmSync(viteCacheDir);', '')).missingCleanup,
@@ -978,8 +982,8 @@ describe('worker cache rule self-test', () => {
     expect(
       inspectWorkerCache(
         helperFixture.replace(
-          'OK_TEST_VITE_CACHE_DIR: viteCacheDir',
-          "OK_TEST_VITE_CACHE_DIR: 'shared'",
+          'GITQUIRE_TEST_VITE_CACHE_DIR: viteCacheDir',
+          "GITQUIRE_TEST_VITE_CACHE_DIR: 'shared'",
         ),
       ).nonUnique,
     ).toBe(1);
@@ -998,7 +1002,7 @@ describe('worker cache rule self-test', () => {
   });
   test('ignores comments and refuses a forwarding or unparseable fixture', () => {
     expect(
-      inspectWorkerCache(`${workerFixture} /* OK_TEST_VITE_CACHE_DIR: 'shared' */`).nonUnique,
+      inspectWorkerCache(`${workerFixture} /* GITQUIRE_TEST_VITE_CACHE_DIR: 'shared' */`).nonUnique,
     ).toBe(0);
     expect(inspectWorkerCache("export {test} from './moved.ts';").census).toEqual([
       'test',

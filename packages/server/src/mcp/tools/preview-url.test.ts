@@ -60,17 +60,17 @@ describe('resolvePreviewUrl — lock edges', () => {
   });
 
   test('never emits openknowledge:// scheme — the url is a bare route', () => {
-    const prior = process.env.OK_ELECTRON_PROTOCOL_HOST;
+    const prior = process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST;
     try {
-      process.env.OK_ELECTRON_PROTOCOL_HOST = '1';
+      process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST = '1';
       seedUiServer(5173);
       const result = resolvePreviewUrl('docs/a', { lockDir });
       expect(result?.source).toBe('lock');
       expect(result?.url.startsWith('/#/')).toBe(true);
       expect(result?.url.startsWith('openknowledge://')).toBe(false);
     } finally {
-      if (prior === undefined) delete process.env.OK_ELECTRON_PROTOCOL_HOST;
-      else process.env.OK_ELECTRON_PROTOCOL_HOST = prior;
+      if (prior === undefined) delete process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST;
+      else process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST = prior;
     }
   });
 });
@@ -199,7 +199,7 @@ describe('buildPreviewAttachWarning — names the running channel command', () =
   });
 
   test('Stable text is byte-identical', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     expect(buildPreviewAttachWarning(null, true).message).toBe(
       'No UI is running for this project. Start one to see the preview: `gq start` (terminal), or open the project in OK Electron.',
     );
@@ -209,7 +209,7 @@ describe('buildPreviewAttachWarning — names the running channel command', () =
   });
 
   test('Beta names gq-beta', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     expect(buildPreviewAttachWarning(null, true).message).toContain('`gq-beta start` (terminal)');
     expect(buildPreviewAttachWarning({ url: '/#/a' }, true).message).toMatch(
       /on a stdio CLI with no browser, `gq-beta open <doc>`\.$/,

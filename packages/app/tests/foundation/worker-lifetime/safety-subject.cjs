@@ -3,7 +3,7 @@ const { writeFileSync } = require('node:fs');
 const { createServer } = require('node:http');
 const { join } = require('node:path');
 
-const dir = process.env.OK_LIFETIME_SAFETY_DIR;
+const dir = process.env.GITQUIRE_LIFETIME_SAFETY_DIR;
 const role = process.argv[2] ?? 'parent';
 const server = createServer((_request, response) => response.end(role));
 server.listen(0, '127.0.0.1', () => {

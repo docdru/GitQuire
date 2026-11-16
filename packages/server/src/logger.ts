@@ -92,14 +92,14 @@ export class PinoLogger {
     instanceLevel: string;
   } {
     const baseLevel = (this.options.level as string | undefined) ?? 'info';
-    const envFile = process.env.OK_FILE_LEVEL?.toLowerCase();
+    const envFile = process.env.GITQUIRE_FILE_LEVEL?.toLowerCase();
     const fileLevel =
       envFile && VALID_LOG_LEVELS.has(envFile)
         ? envFile
         : baseLevel === 'silent'
           ? 'silent'
           : mostVerboseLevel(baseLevel, 'debug');
-    const envConsole = process.env.OK_CONSOLE_LEVEL?.toLowerCase();
+    const envConsole = process.env.GITQUIRE_CONSOLE_LEVEL?.toLowerCase();
     const consoleLevel = envConsole && VALID_LOG_LEVELS.has(envConsole) ? envConsole : baseLevel;
     return { fileLevel, consoleLevel, instanceLevel: mostVerboseLevel(fileLevel, consoleLevel) };
   }
