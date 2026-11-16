@@ -390,7 +390,7 @@ templates or settings, and `~/.ok` in the home folder). Nothing to do by hand: o
 after the upgrade, GitQuire moves each `.ok/` to `.gitquire/`, updates `.ok/` lines in `.gitignore`
 and `.git/info/exclude`, and logs one line per move. With GitHub sync on, the move reaches the
 repository with the next sync as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates
-likewise). Two things to know:
+likewise). Before and after:
 
 - **Back up the volume first** (`docker run --rm -v gitquire-data:/data -v "$PWD":/b alpine tar czf
   /b/gitquire-data.tgz -C /data .`). The move is a plain rename and can be undone by renaming back,
