@@ -1,4 +1,4 @@
-// oxlint-disable ok/no-raw-html-interactive-element -- matches the existing PropertyWidgets.tsx posture — raw `<input>` is the typed-input affordance shared across every frontmatter widget; migrating to shadcn `<Input>` is the file-wide pre-rule backlog described in PropertyWidgets.tsx's top-of-file ignore comment.
+// oxlint-disable gq/no-raw-html-interactive-element -- matches the existing PropertyWidgets.tsx posture — raw `<input>` is the typed-input affordance shared across every frontmatter widget; migrating to shadcn `<Input>` is the file-wide pre-rule backlog described in PropertyWidgets.tsx's top-of-file ignore comment.
 
 import { ALLOWED_IMAGE_MIME_TYPES } from '@gitquire/core/constants/upload';
 import { useLingui } from '@lingui/react/macro';

@@ -3,7 +3,7 @@ import {
   hasSupportedDocumentExtension,
 } from '@/components/file-tree-rename-validation';
 
-export const OK_RENAMING_ATTR = 'data-ok-renaming';
+export const GQ_RENAMING_ATTR = 'data-ok-renaming';
 const RENAME_SELECTION_MARKER = 'data-ok-rename-selection-applied';
 
 let activeRenameExt: string | null = null;
@@ -21,16 +21,16 @@ export const FILE_TREE_RENAME_INPUT_CSS = `
      the row to an extensionless path, then clears it when the path next
      includes the saved extension (settle / cancel / row recycle to a settled
      file). */
-  [${OK_RENAMING_ATTR}='.md'] [data-item-section="icon"],
-  [${OK_RENAMING_ATTR}='.mdx'] [data-item-section="icon"] {
+  [${GQ_RENAMING_ATTR}='.md'] [data-item-section="icon"],
+  [${GQ_RENAMING_ATTR}='.mdx'] [data-item-section="icon"] {
     position: relative;
   }
-  [${OK_RENAMING_ATTR}='.md'] [data-item-section="icon"] [data-icon-token]:not([data-icon-token='markdown']),
-  [${OK_RENAMING_ATTR}='.mdx'] [data-item-section="icon"] [data-icon-token]:not([data-icon-token='markdown']) {
+  [${GQ_RENAMING_ATTR}='.md'] [data-item-section="icon"] [data-icon-token]:not([data-icon-token='markdown']),
+  [${GQ_RENAMING_ATTR}='.mdx'] [data-item-section="icon"] [data-icon-token]:not([data-icon-token='markdown']) {
     visibility: hidden;
   }
-  [${OK_RENAMING_ATTR}='.md'] [data-item-section="icon"]::before,
-  [${OK_RENAMING_ATTR}='.mdx'] [data-item-section="icon"]::before {
+  [${GQ_RENAMING_ATTR}='.md'] [data-item-section="icon"]::before,
+  [${GQ_RENAMING_ATTR}='.mdx'] [data-item-section="icon"]::before {
     content: '';
     display: block;
     position: absolute;
@@ -81,22 +81,22 @@ export function __resetRenameInputAffordanceForTesting(): void {
 }
 
 function syncRenameOverlay(root: ParentNode): void {
-  const markedRows = root.querySelectorAll<HTMLElement>(`[${OK_RENAMING_ATTR}]`);
+  const markedRows = root.querySelectorAll<HTMLElement>(`[${GQ_RENAMING_ATTR}]`);
   for (const row of markedRows) {
     if (row.querySelector('[data-item-rename-input]')) continue;
-    const savedExt = row.getAttribute(OK_RENAMING_ATTR);
+    const savedExt = row.getAttribute(GQ_RENAMING_ATTR);
     if (!savedExt) {
-      row.removeAttribute(OK_RENAMING_ATTR);
+      row.removeAttribute(GQ_RENAMING_ATTR);
       continue;
     }
     const currentPath = row.dataset.itemPath ?? '';
     if (currentPath.toLowerCase().endsWith(savedExt.toLowerCase())) {
-      row.removeAttribute(OK_RENAMING_ATTR);
+      row.removeAttribute(GQ_RENAMING_ATTR);
       continue;
     }
     const currentExt = getFileExtension(currentPath);
     if (currentExt && currentExt.toLowerCase() !== savedExt.toLowerCase()) {
-      row.removeAttribute(OK_RENAMING_ATTR);
+      row.removeAttribute(GQ_RENAMING_ATTR);
     }
   }
 
@@ -112,9 +112,9 @@ function syncRenameOverlay(root: ParentNode): void {
       hasExtensionlessRow = true;
       if (
         row.getAttribute('data-item-selected') === 'true' &&
-        row.getAttribute(OK_RENAMING_ATTR) !== activeRenameExt
+        row.getAttribute(GQ_RENAMING_ATTR) !== activeRenameExt
       ) {
-        row.setAttribute(OK_RENAMING_ATTR, activeRenameExt);
+        row.setAttribute(GQ_RENAMING_ATTR, activeRenameExt);
       }
     }
   }

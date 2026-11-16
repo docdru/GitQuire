@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getLastKnownSignedIn, setLastKnownSignedIn } from '@/lib/auth-state-cache';
-import type { OkLocalOpAuthEvent, OkLocalOpAuthStatusResponse } from '@/lib/desktop-bridge-types';
+import type { GqLocalOpAuthEvent, GqLocalOpAuthStatusResponse } from '@/lib/desktop-bridge-types';
 import type { AuthQueryTransport } from '@/lib/transports/auth-query-transport';
 import type { AuthTransport } from '@/lib/transports/auth-transport';
 import { AccountSection, hostFromRemoteLabel } from './AccountSection';
@@ -29,24 +29,24 @@ if (globalWithDomShims.ResizeObserver === undefined) {
   globalWithDomShims.ResizeObserver = NoopResizeObserver;
 }
 
-const CONNECTED: OkLocalOpAuthStatusResponse = {
+const CONNECTED: GqLocalOpAuthStatusResponse = {
   authenticated: true,
   host: 'github.com',
   login: 'octocat',
   tier: 'B',
 };
-const CONNECTED_GH_CLI: OkLocalOpAuthStatusResponse = {
+const CONNECTED_GH_CLI: GqLocalOpAuthStatusResponse = {
   authenticated: true,
   host: 'github.com',
   login: 'octocat',
   tier: 'A',
 };
-const CONNECTED_NO_TIER: OkLocalOpAuthStatusResponse = {
+const CONNECTED_NO_TIER: GqLocalOpAuthStatusResponse = {
   authenticated: true,
   host: 'github.com',
   login: 'octocat',
 };
-const NOT_CONNECTED: OkLocalOpAuthStatusResponse = { authenticated: false, host: 'github.com' };
+const NOT_CONNECTED: GqLocalOpAuthStatusResponse = { authenticated: false, host: 'github.com' };
 
 function makeQueryTransport(parts: {
   status: AuthQueryTransport['status'];
@@ -63,7 +63,7 @@ const noopAuthTransport: AuthTransport = {
   start: () => ({
     events: {
       [Symbol.asyncIterator]() {
-        return { next: () => new Promise<IteratorResult<OkLocalOpAuthEvent>>(() => {}) };
+        return { next: () => new Promise<IteratorResult<GqLocalOpAuthEvent>>(() => {}) };
       },
     },
     cancel() {},

@@ -16,7 +16,7 @@ export { todayUtc };
 
 const ts = createRequire(import.meta.url)('typescript');
 
-export const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+export const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const ALLOWLIST_PATH = fileURLToPath(
   new URL('./known-reds-allowlist.json', import.meta.url),
 );
@@ -1774,7 +1774,7 @@ export function render(report, violations, upcoming, today, { all, lapsed = [] }
 function main(argv) {
   try {
     const rootAt = argv.indexOf('--root');
-    const root = rootAt === -1 ? OK_ROOT : resolve(argv[rootAt + 1] ?? '');
+    const root = rootAt === -1 ? GQ_ROOT : resolve(argv[rootAt + 1] ?? '');
     const today = todayUtc();
     const report = scanTree(root);
     const allowlist = loadAllowlist();

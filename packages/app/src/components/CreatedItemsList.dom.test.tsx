@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import type { OkScaffoldPlan, OkSeedPackInfo } from '@/lib/desktop-bridge-types';
+import type { GqScaffoldPlan, GqSeedPackInfo } from '@/lib/desktop-bridge-types';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 
 vi.doMock('@lingui/react/macro', () => ({
@@ -20,7 +20,7 @@ vi.doMock('@lingui/core/macro', () => ({
     (value === 1 ? options.one : options.other).replace('#', String(value)),
 }));
 
-function pack(folders: Array<{ path: string; summary: string }>): OkSeedPackInfo {
+function pack(folders: Array<{ path: string; summary: string }>): GqSeedPackInfo {
   return {
     id: 'knowledge-base',
     name: 'Knowledge base',
@@ -30,7 +30,7 @@ function pack(folders: Array<{ path: string; summary: string }>): OkSeedPackInfo
   };
 }
 
-async function renderList(plan: OkScaffoldPlan, selectedPack: OkSeedPackInfo) {
+async function renderList(plan: GqScaffoldPlan, selectedPack: GqSeedPackInfo) {
   const { CreatedItemsList } = await import('./CreatedItemsList');
   render(
     <TooltipProvider>
@@ -48,7 +48,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
   afterEach(cleanup);
 
   test('subfolder mode: the parent folder gets no card and the count matches the cards', async () => {
-    const plan: OkScaffoldPlan = {
+    const plan: GqScaffoldPlan = {
       created: [
         { kind: 'folder', path: 'brain' },
         { kind: 'folder', path: 'brain/external-sources' },
@@ -74,7 +74,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
   });
 
   test('a fully-present folder (not in created) is dropped from cards and the count', async () => {
-    const plan: OkScaffoldPlan = {
+    const plan: GqScaffoldPlan = {
       created: [
         { kind: 'folder', path: 'notes' },
         { kind: 'file', path: 'notes/.gitquire/templates/note.md' },
@@ -96,7 +96,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
   });
 
   test('template-only reinstall (no folder entry) still shows the folder card', async () => {
-    const plan: OkScaffoldPlan = {
+    const plan: GqScaffoldPlan = {
       created: [{ kind: 'file', path: 'notes/.gitquire/templates/note.md' }],
       skipped: [],
       warnings: [],
@@ -108,7 +108,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
   });
 
   test('template files under .gitquire/ do not render as file cards', async () => {
-    const plan: OkScaffoldPlan = {
+    const plan: GqScaffoldPlan = {
       created: [
         { kind: 'folder', path: 'notes' },
         { kind: 'file', path: 'notes/.gitquire/templates/note.md' },
@@ -126,7 +126,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
 
 describe('CreatedItemsList — required plugins', () => {
   test('a pending required plugin renders with its label and an undo pointer', async () => {
-    const plan: OkScaffoldPlan = {
+    const plan: GqScaffoldPlan = {
       created: [],
       skipped: [],
       warnings: [],
@@ -139,7 +139,7 @@ describe('CreatedItemsList — required plugins', () => {
   });
 
   test('an already-enabled required plugin renders no row', async () => {
-    const plan: OkScaffoldPlan = {
+    const plan: GqScaffoldPlan = {
       created: [{ kind: 'file', path: 'log.md' }],
       skipped: [],
       warnings: [],

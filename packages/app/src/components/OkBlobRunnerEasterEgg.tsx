@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { OkBlob } from '@/components/OkBlob';
-import { OkBlobRunner } from '@/components/OkBlobRunner';
+import { GqBlob } from '@/components/OkBlob';
+import { GqBlobRunner } from '@/components/OkBlobRunner';
 import { focusIsOnAControl, gameMayHandleKey } from '@/lib/blob-run-keyboard';
 import { MASCOT_VIEW_TRANSITION_NAME, withViewTransition } from '@/lib/view-transition';
 
 const RESTING_BLOB_SIZE = 80;
 
-interface OkBlobRunnerEasterEggProps {
+interface GqBlobRunnerEasterEggProps {
   keyboard?: boolean;
 }
 
-export function OkBlobRunnerEasterEgg({ keyboard = true }: OkBlobRunnerEasterEggProps = {}) {
+export function GqBlobRunnerEasterEgg({ keyboard = true }: GqBlobRunnerEasterEggProps = {}) {
   const [awake, setAwake] = useState(false);
   const awakeRef = useRef(false);
 
@@ -37,9 +37,9 @@ export function OkBlobRunnerEasterEgg({ keyboard = true }: OkBlobRunnerEasterEgg
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [reduceMotion, keyboard]);
 
-  if (awake) return <OkBlobRunner autoStart />;
+  if (awake) return <GqBlobRunner autoStart />;
 
-  if (reduceMotion) return <OkBlob size={RESTING_BLOB_SIZE} variant="sleeping" />;
+  if (reduceMotion) return <GqBlob size={RESTING_BLOB_SIZE} variant="sleeping" />;
 
   return (
     <div
@@ -53,7 +53,7 @@ export function OkBlobRunnerEasterEgg({ keyboard = true }: OkBlobRunnerEasterEgg
         withViewTransition(() => setAwake(true));
       }}
     >
-      <OkBlob size={RESTING_BLOB_SIZE} variant="sleeping" />
+      <GqBlob size={RESTING_BLOB_SIZE} variant="sleeping" />
     </div>
   );
 }

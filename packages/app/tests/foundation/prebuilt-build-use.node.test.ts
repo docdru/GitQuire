@@ -8,7 +8,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { resolvePrebuiltDevApp } from '../stress/_helpers/prebuilt/prebuilt-dev-app';
 import { PREBUILT_BUILD_OPTIONS } from '../stress/_helpers/prebuilt/prebuilt-serving';
 
-const OK_TREE: Readonly<Record<string, string>> = {
+const GQ_TREE: Readonly<Record<string, string>> = {
   'package.json': '{"name":"open-knowledge"}\n',
   'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
   'packages/app/package.json': '{"name":"@gitquire/app"}\n',
@@ -46,7 +46,7 @@ function write(root: string, path: string, content: string): void {
 
 function okTree(): string {
   const root = scratch('ok-prebuilt-use-tree-');
-  for (const [path, content] of Object.entries(OK_TREE)) write(root, path, content);
+  for (const [path, content] of Object.entries(GQ_TREE)) write(root, path, content);
   return root;
 }
 

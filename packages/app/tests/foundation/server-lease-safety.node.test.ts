@@ -297,8 +297,8 @@ describe('a discarded slot whose lease connection fails as the worker releases i
 describe('a worker environment change on a held slot', () => {
   test('a run with a different worker environment is refused as busy while the slot is held, and restarts it once the slot is idle', async () => {
     const rig = makeRig();
-    const env = { OK_TEST_FEATURE: 'on' };
-    const changed = { OK_TEST_FEATURE: 'off' };
+    const env = { GQ_TEST_FEATURE: 'on' };
+    const changed = { GQ_TEST_FEATURE: 'off' };
     const held = granted(await rig.supervisor.acquire(rig.request({ workerServerEnv: env })));
     const nonce = await identityNonce(held.baseURL);
 

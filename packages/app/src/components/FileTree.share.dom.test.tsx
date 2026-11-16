@@ -8,7 +8,7 @@ import {
   useRef,
 } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { OK_SIDEBAR_DRAG_MIME, parseSidebarDragPayload } from '@/lib/sidebar-drag';
+import { GQ_SIDEBAR_DRAG_MIME, parseSidebarDragPayload } from '@/lib/sidebar-drag';
 import type { FileEntry } from './file-tree-utils';
 
 let hasRemote = true;
@@ -421,7 +421,7 @@ describe('FileTree context-menu Share action', () => {
     await waitFor(() => {
       const probe = createTestDataTransfer();
       row?.dispatchEvent(new TestDragEvent('dragstart', probe));
-      expect(probe.getData(OK_SIDEBAR_DRAG_MIME)).not.toBe('');
+      expect(probe.getData(GQ_SIDEBAR_DRAG_MIME)).not.toBe('');
     });
 
     const dataTransfer = createTestDataTransfer();

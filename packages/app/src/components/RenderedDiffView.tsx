@@ -90,7 +90,7 @@ export function RenderedDiffView({ diff, docName }: { diff: RenderedDiff; docNam
         <div ref={portalSlotRef} style={{ display: 'contents' }} />
       </div>
       {createPortal(
-        // oxlint-disable-next-line ok/no-unportaled-editor-content -- portaled site — view.dom parent is the exclusively-owned portalTarget per the H6 contract (PRECEDENTS.md #44)
+        // oxlint-disable-next-line gq/no-unportaled-editor-content -- portaled site — view.dom parent is the exclusively-owned portalTarget per the H6 contract (PRECEDENTS.md #44)
         <EditorContent editor={editor} className="tiptap-editor-portal-content" />,
         portalTarget,
       )}

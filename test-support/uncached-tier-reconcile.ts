@@ -6,7 +6,7 @@ import type { TestProject } from 'vitest/node';
 import { gitCleanEnv } from '../scripts/git-clean-env.mjs';
 import { EXTENSIONS, isUncachedTestFile, UNCACHED_TIER_CONFIG } from './uncached-tier';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const RECONCILED = Symbol.for('open-knowledge.uncached-tier.reconciled');
 const TEST_NAME = new RegExp(`\\.(?:test|e2e)\\.(?:${EXTENSIONS.join('|')})$`);
 
@@ -102,15 +102,15 @@ export default async function reconcile(project: TestProject): Promise<void> {
       `${UNCACHED_TIER_CONFIG}: the --project filter (${project.vitest.config.project.join(', ')}) keeps ${project.vitest.projects.length} of the tier's ${declared} projects, so the tier cannot show that it runs every suffixed file git lists. Drop --project, and narrow the run with a file filter instead.`,
     );
   }
-  const listed = listUncachedTestFiles(OK_ROOT);
+  const listed = listUncachedTestFiles(GQ_ROOT);
   const projects = await Promise.all(
     project.vitest.projects.map(async (each) => ({
       name: each.name,
-      dir: gitPath(OK_ROOT, each.config.root) || '.',
-      collected: (await each.globTestFiles()).testFiles.map((file) => gitPath(OK_ROOT, file)),
+      dir: gitPath(GQ_ROOT, each.config.root) || '.',
+      collected: (await each.globTestFiles()).testFiles.map((file) => gitPath(GQ_ROOT, file)),
     })),
   );
-  const problems = uncachedTierProblems(OK_ROOT, listed, projects);
+  const problems = uncachedTierProblems(GQ_ROOT, listed, projects);
   console.log(
     `uncached tier: ${listed.filter(isUncachedTestFile).length} suffixed test files listed by git, ${new Set(projects.flatMap(({ collected }) => collected)).size} collected (${projects
       .map(({ name, collected }) => `${name}: ${collected.length}`)

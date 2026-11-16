@@ -92,21 +92,21 @@ export async function waitForLandingSettled(
 
 export async function injectForcedEstimateError(page: Page, cvHeightPx = 400): Promise<void> {
   const value = `${cvHeightPx}px`;
-  await page.addStyleTag({ content: `:root{--ok-cv-h:${value};}` });
+  await page.addStyleTag({ content: `:root{--gq-cv-h:${value};}` });
   const applied = await page.evaluate(
     ([wrapperSelector]) => {
-      const root = getComputedStyle(document.documentElement).getPropertyValue('--ok-cv-h').trim();
+      const root = getComputedStyle(document.documentElement).getPropertyValue('--gq-cv-h').trim();
       const wrapper = document.querySelector<HTMLElement>(wrapperSelector);
       const onWrapper = wrapper
-        ? getComputedStyle(wrapper).getPropertyValue('--ok-cv-h').trim()
+        ? getComputedStyle(wrapper).getPropertyValue('--gq-cv-h').trim()
         : null;
       return { root, onWrapper };
     },
     [CHUNK_WRAPPER_SELECTOR] as const,
   );
-  expect(applied.root, 'forced --ok-cv-h did not apply on :root at runtime').toBe(value);
+  expect(applied.root, 'forced --gq-cv-h did not apply on :root at runtime').toBe(value);
   if (applied.onWrapper !== null) {
-    expect(applied.onWrapper, 'forced --ok-cv-h did not inherit to the chunk wrapper').toBe(value);
+    expect(applied.onWrapper, 'forced --gq-cv-h did not inherit to the chunk wrapper').toBe(value);
   }
 }
 

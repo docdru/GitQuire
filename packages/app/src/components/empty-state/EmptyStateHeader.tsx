@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { OkBlob } from '@/components/OkBlob';
+import { GqBlob } from '@/components/OkBlob';
 import { nextRageStreak, RAGE_STREAK_TO_REVEAL } from '@/components/ok-blob-runner-logic';
 import { MASCOT_VIEW_TRANSITION_NAME } from '@/lib/view-transition';
 
@@ -36,7 +36,7 @@ export function EmptyStateHeader({
 
   return (
     <div className="flex flex-col items-start gap-3 @md/emptystate:flex-row @md/emptystate:items-center @md/emptystate:gap-4">
-      <OkBlob
+      <GqBlob
         size={64}
         celebrateSignal={celebrateSignal}
         onRage={onRageStreak ? handleRage : undefined}

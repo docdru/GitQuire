@@ -2,10 +2,10 @@ import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   CONFIG_SCHEMA_MAJOR_PATH,
+  GQ_DIR,
+  GQ_LEGACY_MACHINE_LOCAL_ROOT_DIRS,
+  GQ_MACHINE_LOCAL_ROOT_FILES,
   LOCAL_DIR,
-  OK_DIR,
-  OK_LEGACY_MACHINE_LOCAL_ROOT_DIRS,
-  OK_MACHINE_LOCAL_ROOT_FILES,
   WORKTREES_DIRNAME,
 } from '@gitquire/core';
 import { atomicTempPath } from '@gitquire/core/server';
@@ -68,15 +68,15 @@ export function buildConfigYmlContent(_version: string, options?: BuildConfigYml
 #
 # Precedence (lowest -> highest):
 #   Built-in defaults
-#     -> ~/${OK_DIR}/global.yml         (user defaults)
-#     -> ./${OK_DIR}/config.yml         (this file)
+#     -> ~/${GQ_DIR}/global.yml         (user defaults)
+#     -> ./${GQ_DIR}/config.yml         (this file)
 #
 # Schema reference: packages/core/src/config/schema.ts
 
 
 # --- Content ---------------------------------------------------------------
 # dir: where the CRDT editor reads/writes documents. Relative to the project
-# root (the directory containing ${OK_DIR}/), NOT to this file.
+# root (the directory containing ${GQ_DIR}/), NOT to this file.
 #
 # Path exclusions live in .okignore (gitignore syntax) at the project root,
 # with nested .okignore files honored at any folder depth.
@@ -213,7 +213,7 @@ export function removeProjectSkillGitignoreBlock(projectDir: string): 'removed' 
   return 'removed';
 }
 
-const OK_GITIGNORE_CONTENT = `# .gitquire/local/ holds per-machine runtime state. Anything inside is
+const GQ_GITIGNORE_CONTENT = `# .gitquire/local/ holds per-machine runtime state. Anything inside is
 # machine-local and never committed. New runtime files (caches, locks,
 # manifests, telemetry, error logs) are auto-ignored — no edit needed here.
 ${LOCAL_DIR}/
@@ -227,16 +227,16 @@ ${WORKTREES_DIRNAME}/
 # Machine-local directories left behind by projects that predate .gitquire/local/.
 # Nothing writes them anymore, but a project that has them keeps them until
 # someone deletes them, so they stay ignored.
-${OK_LEGACY_MACHINE_LOCAL_ROOT_DIRS.map((name) => `${name}/`).join('\n')}
+${GQ_LEGACY_MACHINE_LOCAL_ROOT_DIRS.map((name) => `${name}/`).join('\n')}
 
 # Per-machine runtime state at the .gitquire/ root. Contains PII (principal email,
 # UUID), hostnames, and absolute filesystem paths — never commit. The only
 # file at .gitquire/ root that SHOULD be committed is \`config.yml\` (project
 # configuration), which is explicitly NOT in this ignore list.
-${OK_MACHINE_LOCAL_ROOT_FILES.join('\n')}
+${GQ_MACHINE_LOCAL_ROOT_FILES.join('\n')}
 `;
 
-export const OK_OKIGNORE_TEMPLATE = `# .okignore — paths to exclude from the OpenKnowledge document index.
+export const GQ_OKIGNORE_TEMPLATE = `# .okignore — paths to exclude from the OpenKnowledge document index.
 # Uses gitignore syntax (parsed by the \`ignore\` npm library), evaluated
 # alongside .gitignore in a single ignore-lib instance.
 #
@@ -273,7 +273,7 @@ export interface InitContentResult {
 
 export function initContent(projectDir: string, options?: InitContentOptions): InitContentResult {
   assertSafeProjectRoot(projectDir);
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   const created: string[] = [];
   const updated: string[] = [];
   const skipped: string[] = [];
@@ -281,7 +281,7 @@ export function initContent(projectDir: string, options?: InitContentOptions): I
   assertNotSymlink(okDir, '.gitquire/');
   tracedMkdirSync(okDir, { recursive: true });
 
-  const gitignoreAction = ensureGitignoreEntries(join(okDir, '.gitignore'), OK_GITIGNORE_CONTENT);
+  const gitignoreAction = ensureGitignoreEntries(join(okDir, '.gitignore'), GQ_GITIGNORE_CONTENT);
   if (gitignoreAction === 'created') {
     created.push('.gitignore');
   } else if (gitignoreAction === 'updated') {
@@ -304,7 +304,7 @@ export function initContent(projectDir: string, options?: InitContentOptions): I
     skipped.push(CONFIG_FILENAME);
   }
 
-  if (writeIfMissing(join(projectDir, '.okignore'), OK_OKIGNORE_TEMPLATE, '.okignore')) {
+  if (writeIfMissing(join(projectDir, '.okignore'), GQ_OKIGNORE_TEMPLATE, '.okignore')) {
     created.push('.okignore');
   } else {
     skipped.push('.okignore');

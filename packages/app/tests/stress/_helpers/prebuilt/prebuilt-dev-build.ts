@@ -7,7 +7,7 @@ import { killGroup } from '../server-process.ts';
 import { type PrebuiltDevApp, resolvePrebuiltDevApp } from './prebuilt-dev-app.ts';
 import { PREBUILT_BUILD_OPTIONS } from './prebuilt-serving.ts';
 
-export const OK_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
+export const GQ_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
 
 export const PREBUILT_OUT_ROOT = join(
   APP_PACKAGE_ROOT,
@@ -119,7 +119,7 @@ export async function preparePrebuiltDevApp(): Promise<PrebuiltDevApp> {
     GITQUIRE_TEST_SKIP_I18N_COMPILE: '1',
   });
   return resolvePrebuiltDevApp({
-    okRoot: OK_ROOT,
+    okRoot: GQ_ROOT,
     outRoot: PREBUILT_OUT_ROOT,
     options: PREBUILT_BUILD_OPTIONS,
     build: buildPrebuiltDist,

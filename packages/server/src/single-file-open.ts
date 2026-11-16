@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { isSupportedDocFile, stripDocExtension } from './doc-extensions.ts';
 import { findEnclosingProjectRoot, isProjectRoot } from './fs/find-project-root.ts';
@@ -145,7 +145,7 @@ function resolveProjectContentDir(projectRoot: string): string {
 export const EPHEMERAL_PROJECT_DIR_PREFIX = 'ok-ephemeral-';
 
 export function seedEphemeralProjectDir(projectDir: string, contentDir: string): string {
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(
     resolve(okDir, 'config.yml'),

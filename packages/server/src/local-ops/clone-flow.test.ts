@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@gitquire/core';
+import { DEV_FALLBACK_CLI_REFUSAL, GqCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { classifyCloneError } from './clone-error-classify.ts';
 import {
@@ -14,7 +14,7 @@ import {
 const okCli = (
   cliArgs: readonly string[],
   cliEnv?: Readonly<Record<string, string | undefined>>,
-): OkCliCommand => OkCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
 
 const HOME_PATH = join(homedir(), 'open-knowledge-test-clone');
 
@@ -45,7 +45,7 @@ describe('runCloneSubprocess', () => {
   test('a dev build without its workspace CLI reports the refusal and clones nothing', async () => {
     const events: RawCloneEvent[] = [];
     const ctrl = runCloneSubprocess({
-      cli: OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
+      cli: GqCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
       url: 'https://github.com/octocat/hello.git',
       dir: '/tmp/cloned-repo',
       onEvent: (e) => events.push(e),

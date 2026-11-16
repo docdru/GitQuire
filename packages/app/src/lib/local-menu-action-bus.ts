@@ -1,8 +1,8 @@
-import type { OkMenuAction, OkMenuActionOrigin } from './desktop-bridge-types';
+import type { GqMenuAction, GqMenuActionOrigin } from './desktop-bridge-types';
 
-type Listener = (action: OkMenuAction, origin: OkMenuActionOrigin) => void;
+type Listener = (action: GqMenuAction, origin: GqMenuActionOrigin) => void;
 
-const LAUNCHER_FREE_ORIGIN: OkMenuActionOrigin = Object.freeze({ launcherBorne: false });
+const LAUNCHER_FREE_ORIGIN: GqMenuActionOrigin = Object.freeze({ launcherBorne: false });
 
 const listeners = new Set<Listener>();
 
@@ -14,8 +14,8 @@ export function subscribeLocalMenuAction(cb: Listener): () => void {
 }
 
 export function emitLocalMenuAction(
-  action: OkMenuAction,
-  origin: OkMenuActionOrigin = LAUNCHER_FREE_ORIGIN,
+  action: GqMenuAction,
+  origin: GqMenuActionOrigin = LAUNCHER_FREE_ORIGIN,
 ): void {
   for (const cb of listeners) {
     try {

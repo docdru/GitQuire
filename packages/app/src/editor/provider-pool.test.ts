@@ -2666,22 +2666,22 @@ function makeFakeNode(): FakeContainer {
   return node;
 }
 
-interface OkPerfCountersShape {
+interface GqPerfCountersShape {
   providerObserverFires: Record<string, number>;
 }
 
 function readFireCount(docName: string): number {
-  const counters = (globalThis as { __okPerfCounters?: OkPerfCountersShape }).__okPerfCounters;
+  const counters = (globalThis as { __okPerfCounters?: GqPerfCountersShape }).__okPerfCounters;
   return counters?.providerObserverFires[docName] ?? 0;
 }
 
 function hasFireCountEntry(docName: string): boolean {
-  const counters = (globalThis as { __okPerfCounters?: OkPerfCountersShape }).__okPerfCounters;
+  const counters = (globalThis as { __okPerfCounters?: GqPerfCountersShape }).__okPerfCounters;
   return counters !== undefined && docName in counters.providerObserverFires;
 }
 
 function resetFireCounts(): void {
-  const counters = (globalThis as { __okPerfCounters?: OkPerfCountersShape }).__okPerfCounters;
+  const counters = (globalThis as { __okPerfCounters?: GqPerfCountersShape }).__okPerfCounters;
   if (counters) counters.providerObserverFires = {};
 }
 
@@ -2809,7 +2809,7 @@ describe('US-003 (cap-calibration-probes): observer-fire counter for M5', () => 
     if (!entry) throw new Error('expected entry');
     Y.applyUpdate(entry.provider.document, Y.encodeStateAsUpdate(peer));
 
-    const counters = (globalThis as { __okPerfCounters?: OkPerfCountersShape }).__okPerfCounters;
+    const counters = (globalThis as { __okPerfCounters?: GqPerfCountersShape }).__okPerfCounters;
     expect(counters).toBeDefined();
     expect(typeof counters?.providerObserverFires).toBe('object');
     expect(counters?.providerObserverFires['doc-shape']).toBeGreaterThanOrEqual(1);

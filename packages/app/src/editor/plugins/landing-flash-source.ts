@@ -2,12 +2,12 @@ import { type Extension, StateEffect, StateField } from '@codemirror/state';
 import { Decoration, type DecorationSet, EditorView, ViewPlugin } from '@codemirror/view';
 import type { ResolveConfidence } from '../mode-switch-position-resolver';
 import { FLASH_DURATION_MS } from './flash-shared';
-import { clampFlashRange, OK_LANDING_FLASH_CLASS } from './landing-flash-shared';
+import { clampFlashRange, GQ_LANDING_FLASH_CLASS } from './landing-flash-shared';
 
 const addLandingFlash = StateEffect.define<{ from: number; to: number }>();
 const removeLandingFlash = StateEffect.define<null>();
 
-const landingMark = Decoration.mark({ class: OK_LANDING_FLASH_CLASS });
+const landingMark = Decoration.mark({ class: GQ_LANDING_FLASH_CLASS });
 
 export const landingFlashField = StateField.define<DecorationSet>({
   create() {

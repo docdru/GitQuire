@@ -66,7 +66,7 @@ function Host({
     <Activity mode={visible ? 'visible' : 'hidden'}>
       {mounted &&
         createPortal(
-          // oxlint-disable-next-line ok/no-unportaled-editor-content -- portalled per the H6 contract, into a per-render exclusive target
+          // oxlint-disable-next-line gq/no-unportaled-editor-content -- portalled per the H6 contract, into a per-render exclusive target
           <EditorContent key={contentKey} editor={show === 'first' ? first : second} />,
           portalTarget,
         )}
@@ -96,7 +96,7 @@ function EditorPane({ onEditor }: { onEditor: (editor: Editor) => void }) {
   }, [editor, onEditor]);
 
   return createPortal(
-    // oxlint-disable-next-line ok/no-unportaled-editor-content -- portalled per the H6 contract, into a per-render exclusive target
+    // oxlint-disable-next-line gq/no-unportaled-editor-content -- portalled per the H6 contract, into a per-render exclusive target
     <EditorContent editor={editor} />,
     portalTarget,
   );

@@ -121,7 +121,7 @@ function closeWebSocketServer(wss: WebSocketServer): Promise<void> {
   });
 }
 
-type OkServerHost = Pick<ViteDevServer, 'httpServer' | 'middlewares'>;
+type GqServerHost = Pick<ViteDevServer, 'httpServer' | 'middlewares'>;
 
 type RuntimeTeardowns = Set<() => Promise<void>>;
 
@@ -168,7 +168,7 @@ export function prebuiltHocuspocusPlugin(): Plugin {
 }
 
 async function attachOkServer(
-  server: OkServerHost,
+  server: GqServerHost,
   assetRouting: AssetRouting,
   activeRuntimeTeardowns: RuntimeTeardowns,
 ): Promise<() => Promise<void>> {

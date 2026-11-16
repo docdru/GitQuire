@@ -18,33 +18,33 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
-import type { OkPackId, OkScaffoldPlan, OkSeedPackInfo } from '@/lib/desktop-bridge-types';
+import type { GqPackId, GqScaffoldPlan, GqSeedPackInfo } from '@/lib/desktop-bridge-types';
 import { PACK_BLURBS } from '@/lib/pack-copy';
 import { seedClient } from '@/lib/seed-client';
 
-const DEFAULT_PACK_ID: OkPackId = 'knowledge-base';
+const DEFAULT_PACK_ID: GqPackId = 'knowledge-base';
 
 interface SeedDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSeedApplied?: () => void;
-  initialPackId?: OkPackId;
+  initialPackId?: GqPackId;
 }
 
 type DialogPhase =
   | { kind: 'loading' }
-  | { kind: 'plan'; plan: OkScaffoldPlan }
-  | { kind: 'already-seeded'; plan: OkScaffoldPlan }
+  | { kind: 'plan'; plan: GqScaffoldPlan }
+  | { kind: 'already-seeded'; plan: GqScaffoldPlan }
   | { kind: 'error'; message: string }
-  | { kind: 'applying'; plan: OkScaffoldPlan };
+  | { kind: 'applying'; plan: GqScaffoldPlan };
 
 type DialogStep = 'pick' | 'configure';
 
 export function SeedDialog({ open, onOpenChange, onSeedApplied, initialPackId }: SeedDialogProps) {
   const { t } = useLingui();
   const [phase, setPhase] = useState<DialogPhase>({ kind: 'loading' });
-  const [packs, setPacks] = useState<OkSeedPackInfo[] | null>(null);
-  const [selectedPackId, setSelectedPackId] = useState<OkPackId>(initialPackId ?? DEFAULT_PACK_ID);
+  const [packs, setPacks] = useState<GqSeedPackInfo[] | null>(null);
+  const [selectedPackId, setSelectedPackId] = useState<GqPackId>(initialPackId ?? DEFAULT_PACK_ID);
   const [rootChoice, setRootChoice] = useState<SeedRootChoice>('project-root');
   const [subfolder, setSubfolder] = useState<string>('');
   const [step, setStep] = useState<DialogStep>(initialPackId !== undefined ? 'configure' : 'pick');
@@ -192,7 +192,7 @@ export function SeedDialog({ open, onOpenChange, onSeedApplied, initialPackId }:
         : selectedPack.description
       : t`Ready-made folders and templates to get you started quickly.`;
 
-  function handlePackSelect(id: OkPackId) {
+  function handlePackSelect(id: GqPackId) {
     setSelectedPackId(id);
     setStep('configure');
     isFirstLoadRef.current = true;
@@ -264,7 +264,7 @@ function SeedDialogBody({
   selectedPack,
 }: {
   phase: DialogPhase;
-  selectedPack: OkSeedPackInfo | undefined;
+  selectedPack: GqSeedPackInfo | undefined;
 }) {
   if (phase.kind === 'loading') {
     return <CreatedItemsSkeleton rowCount={selectedPack?.folders.length ?? 6} />;

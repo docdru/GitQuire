@@ -1,7 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useEffect, useRef } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { OkBlobRunnerEasterEgg } from '@/components/OkBlobRunnerEasterEgg';
+import { GqBlobRunnerEasterEgg } from '@/components/OkBlobRunnerEasterEgg';
 import { Button } from '@/components/ui/button';
 import { rememberComponentStack } from '@/lib/component-stack-registry';
 import { recordAppShellCrashTrip } from '@/lib/tab-session-restore-suppression';
@@ -23,7 +23,7 @@ function AppErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
       data-slot="app-error-boundary"
       className="flex h-screen flex-col items-center justify-center gap-8 p-8 text-center"
     >
-      <OkBlobRunnerEasterEgg keyboard={false} />
+      <GqBlobRunnerEasterEgg keyboard={false} />
       <div className="flex flex-col items-center gap-1">
         <h1 id="app-error-title" className="text-2xl font-light tracking-tighter text-balance">
           <Trans>Something went wrong</Trans>

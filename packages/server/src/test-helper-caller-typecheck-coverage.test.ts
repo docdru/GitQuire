@@ -11,8 +11,8 @@ import {
   CALLERS_TSCONFIG as TSCONFIG,
 } from './test-helper-caller-typecheck-coverage.reads.ts';
 
-const OK_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const PACKAGE_ROOT = resolve(OK_ROOT, SERVER_DIR);
+const GQ_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const PACKAGE_ROOT = resolve(GQ_ROOT, SERVER_DIR);
 const TYPECHECK_SCRIPT = 'typecheck:test-helper-callers';
 
 const HELPERS = [

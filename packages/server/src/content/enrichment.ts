@@ -4,7 +4,7 @@ import { basename, relative, resolve } from 'node:path';
 import {
   compileAppliesTo,
   type FrontmatterSchemaMapping,
-  OK_DIR,
+  GQ_DIR,
   parseFrontmatterRecord,
   stripFrontmatter,
 } from '@gitquire/core';
@@ -30,7 +30,7 @@ const DIRECTORY_SCAN_CAP = 1000;
 
 const DIR_SKIP: ReadonlySet<string> = new Set([
   '.git',
-  OK_DIR,
+  GQ_DIR,
   'node_modules',
   '.changeset',
   '.claude',

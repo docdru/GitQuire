@@ -4,7 +4,7 @@ import { request as httpRequest } from 'node:http';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { Readable } from 'node:stream';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import { testAuthorityRegistryPath } from '../../../test-support/server-authority-registry.test-helper.ts';
 import { type BootedServer, type BootServerOptions, bootServer } from './boot.ts';
 import { ConfigSchema } from './config/schema.ts';
@@ -20,7 +20,7 @@ export function assertPathAbsentFromLegacyRegistry(source: string, path: string)
 }
 
 function seedOkScaffold(projectDir: string): void {
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
   writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');

@@ -1,6 +1,6 @@
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import type { OkLocalOpAuthEvent, OkLocalOpAuthStatusResponse } from '@/lib/desktop-bridge-types';
+import type { GqLocalOpAuthEvent, GqLocalOpAuthStatusResponse } from '@/lib/desktop-bridge-types';
 import type { AuthQueryStatus, AuthQueryTransport } from '@/lib/transports/auth-query-transport';
 import type { AuthTransport } from '@/lib/transports/auth-transport';
 import { AuthModal } from './AuthModal';
@@ -24,7 +24,7 @@ if (globalWithDomShims.ResizeObserver === undefined) {
   globalWithDomShims.ResizeObserver = NoopResizeObserver;
 }
 
-const CONNECTED: OkLocalOpAuthStatusResponse = {
+const CONNECTED: GqLocalOpAuthStatusResponse = {
   authenticated: true,
   host: 'github.com',
   login: 'octocat',
@@ -32,7 +32,7 @@ const CONNECTED: OkLocalOpAuthStatusResponse = {
   name: 'Octo Cat',
   email: 'octo@github.com',
 };
-const NOT_CONNECTED: OkLocalOpAuthStatusResponse = { authenticated: false, host: 'github.com' };
+const NOT_CONNECTED: GqLocalOpAuthStatusResponse = { authenticated: false, host: 'github.com' };
 
 function makeQueryTransport(status: AuthQueryStatus): AuthQueryTransport {
   return {
@@ -46,7 +46,7 @@ const noopAuthTransport: AuthTransport = {
   start: () => ({
     events: {
       [Symbol.asyncIterator]() {
-        return { next: () => new Promise<IteratorResult<OkLocalOpAuthEvent>>(() => {}) };
+        return { next: () => new Promise<IteratorResult<GqLocalOpAuthEvent>>(() => {}) };
       },
     },
     cancel() {},
@@ -68,7 +68,7 @@ function completingAuthTransport(result: {
             login: result.login,
             name: result.name,
             email: result.email,
-          } satisfies OkLocalOpAuthEvent;
+          } satisfies GqLocalOpAuthEvent;
         },
       },
       cancel() {},

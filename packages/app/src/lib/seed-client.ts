@@ -1,17 +1,17 @@
 import { ProblemDetailsSchema } from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 import type {
-  OkPackId,
-  OkScaffoldApplyResult,
-  OkScaffoldPlan,
-  OkSeedApplyResult,
-  OkSeedError,
-  OkSeedListPacksResult,
-  OkSeedPackInfo,
-  OkSeedPlanResult,
+  GqPackId,
+  GqScaffoldApplyResult,
+  GqScaffoldPlan,
+  GqSeedApplyResult,
+  GqSeedError,
+  GqSeedListPacksResult,
+  GqSeedPackInfo,
+  GqSeedPlanResult,
 } from '@/lib/desktop-bridge-types';
 
-async function translateSeedError(res: Response): Promise<OkSeedError> {
+async function translateSeedError(res: Response): Promise<GqSeedError> {
   const body = (await res.json().catch(() => null)) as unknown;
   const parsed = ProblemDetailsSchema.safeParse(body);
   if (!parsed.success) {
@@ -33,22 +33,22 @@ async function translateSeedError(res: Response): Promise<OkSeedError> {
 
 interface SeedPlanOptions {
   rootDir?: string;
-  packId?: OkPackId;
+  packId?: GqPackId;
   preview?: { skillsInstallable: boolean };
 }
 interface SeedApplyOptions {
-  packId?: OkPackId;
+  packId?: GqPackId;
 }
 
 interface SeedClientShape {
-  plan: (options?: SeedPlanOptions) => Promise<OkSeedPlanResult>;
-  apply: (plan: OkScaffoldPlan, options?: SeedApplyOptions) => Promise<OkSeedApplyResult>;
-  listPacks: () => Promise<OkSeedListPacksResult>;
+  plan: (options?: SeedPlanOptions) => Promise<GqSeedPlanResult>;
+  apply: (plan: GqScaffoldPlan, options?: SeedApplyOptions) => Promise<GqSeedApplyResult>;
+  listPacks: () => Promise<GqSeedListPacksResult>;
 }
 
 export function seedClient(): SeedClientShape {
   return {
-    plan: async (options?: SeedPlanOptions): Promise<OkSeedPlanResult> => {
+    plan: async (options?: SeedPlanOptions): Promise<GqSeedPlanResult> => {
       const params = new URLSearchParams();
       if (options?.rootDir) params.set('rootDir', options.rootDir);
       if (options?.packId) params.set('packId', options.packId);
@@ -57,13 +57,13 @@ export function seedClient(): SeedClientShape {
       if (!res.ok) {
         return { ok: false, error: await translateSeedError(res) };
       }
-      const body = (await res.json().catch(() => null)) as { plan?: OkScaffoldPlan } | null;
+      const body = (await res.json().catch(() => null)) as { plan?: GqScaffoldPlan } | null;
       if (!body?.plan) {
         return { ok: false, error: { kind: 'internal', message: t`Malformed plan response` } };
       }
       return { ok: true, plan: body.plan };
     },
-    apply: async (plan: OkScaffoldPlan, options?: SeedApplyOptions): Promise<OkSeedApplyResult> => {
+    apply: async (plan: GqScaffoldPlan, options?: SeedApplyOptions): Promise<GqSeedApplyResult> => {
       const res = await fetch('/api/seed/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,19 +76,19 @@ export function seedClient(): SeedClientShape {
         return { ok: false, error: await translateSeedError(res) };
       }
       const body = (await res.json().catch(() => null)) as {
-        result?: OkScaffoldApplyResult;
+        result?: GqScaffoldApplyResult;
       } | null;
       if (!body?.result) {
         return { ok: false, error: { kind: 'internal', message: t`Malformed apply response` } };
       }
       return { ok: true, result: body.result };
     },
-    listPacks: async (): Promise<OkSeedListPacksResult> => {
+    listPacks: async (): Promise<GqSeedListPacksResult> => {
       const res = await fetch('/api/seed/packs');
       if (!res.ok) {
         return { ok: false, error: { kind: 'internal', message: `HTTP ${res.status}` } };
       }
-      const body = (await res.json().catch(() => null)) as { packs?: OkSeedPackInfo[] } | null;
+      const body = (await res.json().catch(() => null)) as { packs?: GqSeedPackInfo[] } | null;
       if (!body || !Array.isArray(body.packs)) {
         return {
           ok: false,

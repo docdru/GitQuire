@@ -7,6 +7,7 @@ import {
   DEFAULT_EMBEDDINGS_BASE_URL,
   DEFAULT_EMBEDDINGS_MODEL,
   EmptyRequestSchema,
+  GqCliCommand,
   LocalOpAuthCancelRequestSchema,
   LocalOpAuthEmptySuccessSchema,
   type LocalOpAuthHostRequest,
@@ -25,7 +26,6 @@ import {
   LocalOpEmbeddingsTestResponseSchema,
   LocalOpOkInitRequestSchema,
   LocalOpOkInitResponseSchema,
-  OkCliCommand,
   okUserHomeDisplayPath,
   type ProblemType,
 } from '@gitquire/core';
@@ -125,7 +125,7 @@ export function createLocalOpRoutes(
     readSemanticProviderConfig,
     semanticSearch,
   } = deps;
-  const okCli = OkCliCommand.resolve({
+  const okCli = GqCliCommand.resolve({
     host: localOpCliArgs === undefined ? undefined : { cliArgs: localOpCliArgs },
   });
 

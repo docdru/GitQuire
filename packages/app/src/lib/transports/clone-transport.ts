@@ -1,13 +1,13 @@
 import { ProblemDetailsSchema } from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
-import type { OkLocalOpCloneEvent } from '@/lib/desktop-bridge-types';
+import type { GqLocalOpCloneEvent } from '@/lib/desktop-bridge-types';
 import { createBufferedAsyncStream } from './buffered-async-stream';
 
 type HttpCloneCompleteEvent = { type: 'complete'; port: number; dir: string };
 
 type CloneBranchFallbackEvent = { type: 'branch-fallback'; branch: string };
 
-type CloneEvent = OkLocalOpCloneEvent | HttpCloneCompleteEvent | CloneBranchFallbackEvent;
+type CloneEvent = GqLocalOpCloneEvent | HttpCloneCompleteEvent | CloneBranchFallbackEvent;
 
 interface CloneTransportHandle {
   readonly events: AsyncIterable<CloneEvent>;

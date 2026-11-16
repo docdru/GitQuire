@@ -46,8 +46,8 @@
     "//#typecheck:lint-plugins": {
       "env": ["TSRS_BINARY"],
       "inputs": [
-        "lint-plugins/ok-rules/**/*.ts",
-        "lint-plugins/ok-rules/tsconfig.json",
+        "lint-plugins/gq-rules/**/*.ts",
+        "lint-plugins/gq-rules/tsconfig.json",
         "test-support/*.ts",
         "tsconfig.json"
       ]

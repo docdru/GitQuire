@@ -16,7 +16,7 @@ import { configureTestGitRepository } from '../../../../test-support/configure-g
 import { isTestOnlySourceFile } from '../../../../test-support/test-only-source-file.mjs';
 import { getRegisteredDescriptors } from '../../src/editor/registry/index.ts';
 
-const OK_ROOT = resolve(import.meta.dirname, '../../../..');
+const GQ_ROOT = resolve(import.meta.dirname, '../../../..');
 const SELF_FILE = resolve(import.meta.dirname, 'substrate-vocabulary-drift.uncached.test.ts');
 
 const TEST_FIXTURE_KNOWN_NONREGISTERED: Record<string, string> = {
@@ -122,7 +122,7 @@ function runGit(root: string, args: readonly string[]): void {
 
 describe('substrate vocabulary drift — every test reference must resolve', () => {
   test('every `data-component-type="<name>"` literal is a registered descriptor or a known exception', () => {
-    const references = findReferences(listPackageTestFiles(OK_ROOT));
+    const references = findReferences(listPackageTestFiles(GQ_ROOT));
     expect(
       references.length,
       'git lists no test file under packages/ that holds a data-component-type literal, so this ' +

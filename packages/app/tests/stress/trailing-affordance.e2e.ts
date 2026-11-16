@@ -199,7 +199,7 @@ test.describe('trailing affordance geometry', () => {
         paddingBottom: Number.parseFloat(style.paddingBottom),
         composer: px('--ask-composer-height'),
         zone:
-          Number.parseFloat(style.getPropertyValue('--ok-trailing-zone') || '0') *
+          Number.parseFloat(style.getPropertyValue('--gq-trailing-zone') || '0') *
           Number.parseFloat(getComputedStyle(document.documentElement).fontSize),
       };
     }, EDITOR);

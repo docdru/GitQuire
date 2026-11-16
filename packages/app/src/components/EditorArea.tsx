@@ -36,7 +36,7 @@ import { FolderOverview } from '@/components/FolderOverview';
 import { LargeFileEditorState } from '@/components/LargeFileEditorState';
 import { MountStalledAffordance } from '@/components/MountStalledAffordance';
 import { NothingOpen } from '@/components/NothingOpen';
-import { OkBlobRunnerPage } from '@/components/OkBlobRunnerPage';
+import { GqBlobRunnerPage } from '@/components/OkBlobRunnerPage';
 import { PropertyProvider, useProperties } from '@/components/PropertyContext';
 import { paneLabel } from '@/components/pane-icons';
 import { SettingsDialogShell } from '@/components/settings/SettingsDialogShell';
@@ -1451,11 +1451,11 @@ function EditorAreaInner({
       docSlotHeldForLoad = true;
       skeletonReplacesWorkspace = true;
     } else if (isBlobRunnerNewTabId(activeNewTabId)) {
-      viewContent = <OkBlobRunnerPage />;
+      viewContent = <GqBlobRunnerPage />;
     } else {
       viewContent =
         blobRunRevealedTabId !== null && blobRunRevealedTabId === activeNewTabId ? (
-          <OkBlobRunnerPage autoStart />
+          <GqBlobRunnerPage autoStart />
         ) : (
           <EmptyEditorState
             agentsOpen={agentsVisible}

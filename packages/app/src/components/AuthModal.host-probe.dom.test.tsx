@@ -1,6 +1,6 @@
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import type { OkLocalOpAuthEvent } from '@/lib/desktop-bridge-types';
+import type { GqLocalOpAuthEvent } from '@/lib/desktop-bridge-types';
 import type { AuthQueryStatus, AuthQueryTransport } from '@/lib/transports/auth-query-transport';
 import type { AuthTransport } from '@/lib/transports/auth-transport';
 
@@ -42,7 +42,7 @@ const noopAuthTransport: AuthTransport = {
   start: () => ({
     events: {
       [Symbol.asyncIterator]() {
-        return { next: () => new Promise<IteratorResult<OkLocalOpAuthEvent>>(() => {}) };
+        return { next: () => new Promise<IteratorResult<GqLocalOpAuthEvent>>(() => {}) };
       },
     },
     cancel() {},

@@ -8,7 +8,7 @@ import { promisify } from 'node:util';
 import {
   DocumentListSuccessSchema,
   DocumentReadSuccessSchema,
-  OK_DIR,
+  GQ_DIR,
   SyncConflictsSuccessSchema,
 } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -31,14 +31,14 @@ const CONTROL_MARKER = 'stored while the batch was down';
 const DEFERRED_MARKER = 'drained by the resolve';
 
 function seedOkScaffold(projectDir: string): void {
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
   writeFileSync(resolve(okDir, '.gitignore'), 'local/\n', 'utf-8');
 }
 
 function seedConflictsJson(projectDir: string, file: string): void {
-  const localDir = resolve(projectDir, OK_DIR, 'local');
+  const localDir = resolve(projectDir, GQ_DIR, 'local');
   mkdirSync(localDir, { recursive: true });
   writeFileSync(
     resolve(localDir, 'conflicts.json'),

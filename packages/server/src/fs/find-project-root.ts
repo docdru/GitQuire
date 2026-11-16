@@ -1,12 +1,12 @@
 import { statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { OK_PROJECT_MARKER } from '@gitquire/core/constants/ok-dir';
+import { GQ_PROJECT_MARKER } from '@gitquire/core/constants/ok-dir';
 
 const ANCESTOR_WALK_DEPTH_LIMIT = 30;
 
 export function isProjectRoot(dir: string): boolean {
   try {
-    return statSync(resolve(dir, OK_PROJECT_MARKER)).isFile();
+    return statSync(resolve(dir, GQ_PROJECT_MARKER)).isFile();
   } catch (err) {
     const code = (err as NodeJS.ErrnoException | undefined)?.code;
     if (code === 'ENOENT' || code === 'ENOTDIR') return false;

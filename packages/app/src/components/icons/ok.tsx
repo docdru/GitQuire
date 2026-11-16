@@ -1,7 +1,7 @@
 import { type SVGProps, useId } from 'react';
 import { iconLabel } from './icon-label';
 
-export function OkIcon(props: SVGProps<SVGSVGElement>) {
+export function GqIcon(props: SVGProps<SVGSVGElement>) {
   const gradientId = `gq-bg-${useId().replace(/:/g, '')}`;
   return (
     <svg

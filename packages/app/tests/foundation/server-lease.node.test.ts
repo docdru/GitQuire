@@ -204,11 +204,11 @@ describe('worker server leases', () => {
 
   test('a run whose worker environment differs restarts the idle slot with that environment', async () => {
     const rig = makeRig();
-    const env: WorkerServerEnv = { OK_TEST_FEATURE: 'on' };
+    const env: WorkerServerEnv = { GQ_TEST_FEATURE: 'on' };
     const first = granted(await rig.supervisor.acquire(rig.request({ workerServerEnv: env })));
     await rig.supervisor.release(first.token, false);
 
-    const changed: WorkerServerEnv = { OK_TEST_FEATURE: 'off' };
+    const changed: WorkerServerEnv = { GQ_TEST_FEATURE: 'off' };
     const differing = granted(
       await rig.supervisor.acquire(rig.request({ run: 'run-b', workerServerEnv: changed })),
     );
@@ -247,13 +247,13 @@ describe('worker server leases', () => {
   test('an admission whose discard of the previous server fails is refused with that failure and leaves the slot unleased', async () => {
     const rig = makeRig({ launch: failingRelease, releaseFailure: RELEASE_FAILURE });
     const first = granted(
-      await rig.supervisor.acquire(rig.request({ workerServerEnv: { OK_TEST_FEATURE: 'on' } })),
+      await rig.supervisor.acquire(rig.request({ workerServerEnv: { GQ_TEST_FEATURE: 'on' } })),
     );
     await rig.supervisor.release(first.token, false);
 
     const failed = refusal(
       await rig.supervisor.acquire(
-        rig.request({ run: 'run-b', workerServerEnv: { OK_TEST_FEATURE: 'off' } }),
+        rig.request({ run: 'run-b', workerServerEnv: { GQ_TEST_FEATURE: 'off' } }),
       ),
     );
     expect(failed.reason).toBe('launch-failed');
@@ -262,7 +262,7 @@ describe('worker server leases', () => {
 
     const next = granted(
       await rig.supervisor.acquire(
-        rig.request({ run: 'run-c', workerServerEnv: { OK_TEST_FEATURE: 'off' } }),
+        rig.request({ run: 'run-c', workerServerEnv: { GQ_TEST_FEATURE: 'off' } }),
       ),
     );
     expect(next.launched).toBe(true);

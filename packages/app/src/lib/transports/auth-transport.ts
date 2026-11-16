@@ -1,11 +1,11 @@
 import { ProblemDetailsSchema } from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 import { consumeAuthEventStream } from '@/components/auth-event-stream';
-import type { OkLocalOpAuthEvent } from '@/lib/desktop-bridge-types';
+import type { GqLocalOpAuthEvent } from '@/lib/desktop-bridge-types';
 import { httpAuthQueryTransport } from './auth-query-transport';
 import { createBufferedAsyncStream } from './buffered-async-stream';
 
-type AuthEvent = OkLocalOpAuthEvent;
+type AuthEvent = GqLocalOpAuthEvent;
 
 type AuthStreamChannel = 'login' | 'gh-login';
 

@@ -10,7 +10,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { defaultScheduler, LOCAL_DIR, OK_DIR } from '@gitquire/core';
+import { defaultScheduler, GQ_DIR, LOCAL_DIR } from '@gitquire/core';
 import { type BootedServer, bootServer, ConfigSchema, ensureProjectGit } from '@gitquire/server';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { afterAll, beforeAll, expect, onTestFinished, test, vi } from 'vitest';
@@ -54,7 +54,7 @@ beforeAll(async () => {
   contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-idle-multi-')));
   await ensureProjectGit(contentDir);
   configureTestGitRepository(contentDir);
-  const okDir = join(contentDir, OK_DIR);
+  const okDir = join(contentDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(join(okDir, 'config.yml'), '', 'utf-8');
   writeFileSync(join(okDir, '.gitignore'), '', 'utf-8');
@@ -74,7 +74,7 @@ beforeAll(async () => {
     },
   });
   expect(attachSpy).toHaveBeenCalledOnce();
-  lockPath = resolve(contentDir, OK_DIR, LOCAL_DIR, 'server.lock');
+  lockPath = resolve(contentDir, GQ_DIR, LOCAL_DIR, 'server.lock');
 }, HARNESS_BOOT_TIMEOUT_MS);
 
 afterAll(async () => {

@@ -13,7 +13,7 @@ import type { WorkerServer } from '../fixtures.ts';
 import { APP_PACKAGE_ROOT } from '../seed-key.ts';
 
 export const COVERAGE_RECORD_SCHEMA = 'ok-e2e-coverage-record/1';
-const OK_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
+const GQ_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
 const SERVER_CALL_TIMEOUT_MS = 10_000;
 
 export interface CoverageRecord {
@@ -57,7 +57,7 @@ export function coverageRecordLine(record: CoverageRecord): string {
   return `${JSON.stringify(record)}\n`;
 }
 
-export function specPath(testFile: string, okRoot: string = OK_ROOT): string {
+export function specPath(testFile: string, okRoot: string = GQ_ROOT): string {
   return relative(okRoot, testFile).split(sep).join('/');
 }
 
@@ -99,7 +99,7 @@ class TestCoverage implements E2eCoverage {
     this.sessions.delete(page);
     try {
       const { result } = await session.send('Profiler.takePreciseCoverage');
-      for (const file of browserCoverageFiles(result, APP_PACKAGE_ROOT, OK_ROOT))
+      for (const file of browserCoverageFiles(result, APP_PACKAGE_ROOT, GQ_ROOT))
         this.browser.add(file);
       await session.detach();
     } catch {

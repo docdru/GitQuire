@@ -30,7 +30,7 @@ import { GitPluginError, type SimpleGitOptions } from 'simple-git';
 import type { GhDetectResult } from '../auth/gh-detect.ts';
 import { type ResolvedAuth, resolveAuth } from '../auth/resolve-auth.ts';
 import { makeLazyTokenStore, type TokenStore } from '../auth/token-store.ts';
-import { OK_DIR } from '../constants.ts';
+import { GQ_DIR } from '../constants.ts';
 import { parseGitUrl } from '../github/url.ts';
 import { isGitHubRepoPublic } from '../github/visibility.ts';
 import { addOkPathsToGitExclude } from '../sharing/git-exclude.ts';
@@ -396,7 +396,7 @@ export async function runClone(
 export function ensureOkExcludedFromGit(
   projectDir: string,
 ): 'appended' | 'already-present' | 'no-exclude' {
-  const result = addOkPathsToGitExclude(projectDir, [`${OK_DIR}/`]);
+  const result = addOkPathsToGitExclude(projectDir, [`${GQ_DIR}/`]);
   if (result.kind === 'no-exclude') return 'no-exclude';
   if (result.kind === 'refused-tracked') return 'already-present';
   if (result.appended.length > 0) return 'appended';

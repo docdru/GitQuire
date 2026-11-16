@@ -9,11 +9,11 @@ import { withoutTurboAgentDetection } from '../test-support/turbo-agent-env.test
 import { CACHE_KEY_FILE, cacheKey, writeCacheKey } from './create-turbo-cache-key.mjs';
 import { gitCleanEnv } from './git-clean-env.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
-const TURBO_BIN = join(OK_ROOT, 'node_modules', '.bin', 'turbo');
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const TURBO_BIN = join(GQ_ROOT, 'node_modules', '.bin', 'turbo');
 const TIMEOUT = 90_000;
 
-const readJson = (p) => JSON.parse(readFileSync(join(OK_ROOT, p), 'utf-8'));
+const readJson = (p) => JSON.parse(readFileSync(join(GQ_ROOT, p), 'utf-8'));
 
 const LINUX = { platform: 'linux', arch: 'x64', version: 'v24.18.0' };
 

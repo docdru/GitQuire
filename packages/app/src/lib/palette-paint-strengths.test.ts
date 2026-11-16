@@ -32,11 +32,11 @@ function declared(body: string, pattern: RegExp): number {
 
 describe('paint strengths the palette derivation assumes', () => {
   test.each([
-    ['.ProseMirror .ok-find-match', 'ok-find-match', EDITOR_FIND_TINT],
-    ['.ProseMirror .ok-find-match-active', 'ok-find-match-active', EDITOR_FIND_ACTIVE_TINT],
-    ['::highlight(ok-find)', 'ok-viewer-find-match', VIEWER_FIND_TINT],
-    ['::highlight(ok-find-active)', 'ok-viewer-find-match', VIEWER_FIND_ACTIVE_TINT],
-    ['.ProseMirror .ok-diff-del', 'ok-diff-del', DIFF_DELETION_TINT],
+    ['.ProseMirror .ok-find-match', 'gq-find-match', EDITOR_FIND_TINT],
+    ['.ProseMirror .ok-find-match-active', 'gq-find-match-active', EDITOR_FIND_ACTIVE_TINT],
+    ['::highlight(ok-find)', 'gq-viewer-find-match', VIEWER_FIND_TINT],
+    ['::highlight(ok-find-active)', 'gq-viewer-find-match', VIEWER_FIND_ACTIVE_TINT],
+    ['.ProseMirror .ok-diff-del', 'gq-diff-del', DIFF_DELETION_TINT],
     ['.callout', 'callout-type-color', CALLOUT_WASH_TINT],
   ] as const)('%s mixes --%s at the derived strength', (selector, token, strength) => {
     const percent = declared(

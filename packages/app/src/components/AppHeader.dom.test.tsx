@@ -365,7 +365,7 @@ describe('AppHeader', () => {
     renderHeader();
 
     expectVisualClassTokens(screen.getByRole('banner').className, [
-      `h-[var(--ok-app-header-height,${APP_HEADER_HEIGHT})]`,
+      `h-[var(--gq-app-header-height,${APP_HEADER_HEIGHT})]`,
     ]);
   });
 
@@ -384,7 +384,7 @@ describe('AppHeader', () => {
     renderHeader();
 
     expectVisualClassTokens(leadingGroup().className, [
-      'ps-[calc(var(--ok-titlebar-reserve-left,0px)+0.625rem)]',
+      'ps-[calc(var(--gq-titlebar-reserve-left,0px)+0.625rem)]',
     ]);
   });
 
@@ -420,7 +420,7 @@ describe('AppHeader', () => {
     expect(header.getAttribute('data-electron-drag')).toBeNull();
     expectVisualClassTokensAbsent(header.className, ['[-webkit-app-region:drag]']);
     expectVisualClassTokensAbsent(header.querySelector('[data-app-header-trailing]')?.className, [
-      'me-[var(--ok-titlebar-reserve-right,0px)]',
+      'me-[var(--gq-titlebar-reserve-right,0px)]',
     ]);
   });
 

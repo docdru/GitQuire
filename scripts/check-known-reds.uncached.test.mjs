@@ -20,7 +20,7 @@ import {
   loadAllowlist,
   MAX_HORIZON_DAYS,
   MIN_SIGNATURE_LITERAL,
-  OK_ROOT,
+  GQ_ROOT,
   OWNERS,
   QUARANTINE_TAG,
   render,
@@ -1657,10 +1657,10 @@ describe('an expired date through the real invocation', () => {
 });
 
 describe('known-reds on this tree', () => {
-  const files = listTestFiles(OK_ROOT);
+  const files = listTestFiles(GQ_ROOT);
   let scanned;
   const tree = () => {
-    scanned ??= scanTree(OK_ROOT);
+    scanned ??= scanTree(GQ_ROOT);
     return scanned;
   };
 
@@ -1709,7 +1709,7 @@ describe('known-reds on this tree', () => {
   });
 
   test('the convention doc and the guard cite each other', () => {
-    const doc = readFileSync(join(OK_ROOT, CONVENTION_DOC), 'utf8');
+    const doc = readFileSync(join(GQ_ROOT, CONVENTION_DOC), 'utf8');
     for (const cited of [
       'scripts/check-known-reds.uncached.test.mjs',
       'scripts/known-reds.mjs',
@@ -1726,7 +1726,7 @@ describe('known-reds on this tree', () => {
   });
 
   test('pnpm known-reds runs this command', () => {
-    const manifest = JSON.parse(readFileSync(join(OK_ROOT, 'package.json'), 'utf8'));
+    const manifest = JSON.parse(readFileSync(join(GQ_ROOT, 'package.json'), 'utf8'));
     expect(manifest.scripts['known-reds']).toBe('node scripts/known-reds.mjs');
   });
 });

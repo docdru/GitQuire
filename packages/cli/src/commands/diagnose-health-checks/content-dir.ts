@@ -2,7 +2,7 @@ import { accessSync, existsSync, constants as fsConstants, statSync } from 'node
 import { resolve } from 'node:path';
 import { currentCliCommandName } from '@gitquire/core';
 import { loadConfig } from '../../config/loader.ts';
-import { CONFIG_FILENAME, OK_DIR } from '../../constants.ts';
+import { CONFIG_FILENAME, GQ_DIR } from '../../constants.ts';
 import type { CheckContext, CheckDefinition, CheckResult } from './types.ts';
 
 interface ContentDirCheckDeps {
@@ -25,7 +25,7 @@ export function makeContentDirCheck(deps: ContentDirCheckDeps = {}): CheckDefini
   return {
     name: 'content-dir',
     run: async (ctx: CheckContext): Promise<CheckResult> => {
-      const configPath = resolve(ctx.cwd, OK_DIR, CONFIG_FILENAME);
+      const configPath = resolve(ctx.cwd, GQ_DIR, CONFIG_FILENAME);
       if (!existsSync(configPath)) {
         return {
           name: 'content-dir',
@@ -51,7 +51,7 @@ export function makeContentDirCheck(deps: ContentDirCheckDeps = {}): CheckDefini
           name: 'content-dir',
           status: 'fail',
           summary: `content.dir does not exist: ${contentDir}`,
-          remediation: `Create the directory or fix \`content.dir\` in ${OK_DIR}/${CONFIG_FILENAME}.`,
+          remediation: `Create the directory or fix \`content.dir\` in ${GQ_DIR}/${CONFIG_FILENAME}.`,
         };
       }
       const st = statSync(contentDir);

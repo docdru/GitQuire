@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PINNED = '0.18.0-abeeaeb';
 
 describe('the Excalidraw pin', () => {
   test('is declared as the exact prerelease snapshot, not a range and not the released version', () => {
     const manifest = JSON.parse(
-      readFileSync(new URL('packages/app/package.json', `file://${OK_ROOT}`), 'utf8'),
+      readFileSync(new URL('packages/app/package.json', `file://${GQ_ROOT}`), 'utf8'),
     );
 
     const declared = manifest.dependencies['@excalidraw/excalidraw'];
@@ -20,7 +20,7 @@ describe('the Excalidraw pin', () => {
   });
 
   test('resolves to that same snapshot, so no override or second declaration can move it', () => {
-    const lock = readFileSync(new URL('pnpm-lock.yaml', `file://${OK_ROOT}`), 'utf8');
+    const lock = readFileSync(new URL('pnpm-lock.yaml', `file://${GQ_ROOT}`), 'utf8');
 
     const resolved = [
       ...new Set(

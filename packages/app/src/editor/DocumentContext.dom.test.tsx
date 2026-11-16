@@ -4,7 +4,7 @@ import { type ReactNode, useLayoutEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';
-import type { OkDesktopBridge } from '@/lib/desktop-bridge-types';
+import type { GqDesktopBridge } from '@/lib/desktop-bridge-types';
 import { emitLocalMenuAction } from '@/lib/local-menu-action-bus';
 import {
   __resetPaneVisibilityStoreForTests,
@@ -175,12 +175,12 @@ function seedCloseFallbackPaneSession(leftPinned = false) {
 type MenuActionLike = 'close-active-tab-or-window' | 'new-doc';
 
 interface EditorBridgeStub {
-  bridge: OkDesktopBridge;
+  bridge: GqDesktopBridge;
   fire(action: MenuActionLike): void;
 }
 
 interface DeferredSessionBridgeStub {
-  bridge: OkDesktopBridge;
+  bridge: GqDesktopBridge;
   resolveSession(): void;
 }
 
@@ -200,7 +200,7 @@ function makeEditorBridgeStub(
       getSessionState: async () => sessionState,
       setSessionState: async () => undefined,
     },
-  } as unknown as OkDesktopBridge;
+  } as unknown as GqDesktopBridge;
 
   return {
     bridge,
@@ -230,7 +230,7 @@ function makeDeferredSessionBridgeStub(
       getSessionState: async () => sessionLoaded,
       setSessionState: async () => undefined,
     },
-  } as unknown as OkDesktopBridge;
+  } as unknown as GqDesktopBridge;
 
   return {
     bridge,
@@ -337,7 +337,7 @@ function HiddenEditorRevealHarness() {
   );
 }
 
-function BridgeHiddenEditorRevealHarness({ bridge }: { bridge: OkDesktopBridge }) {
+function BridgeHiddenEditorRevealHarness({ bridge }: { bridge: GqDesktopBridge }) {
   useLayoutEffect(() => {
     window.okDesktop = bridge;
     return () => {
@@ -357,7 +357,7 @@ function hideEditorAndRecordRequests(): PaneVisibilityRequest[] {
   return requests;
 }
 
-function BridgeCloseActiveHarness({ bridge }: { bridge: OkDesktopBridge }) {
+function BridgeCloseActiveHarness({ bridge }: { bridge: GqDesktopBridge }) {
   useLayoutEffect(() => {
     window.okDesktop = bridge;
     return () => {

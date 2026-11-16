@@ -85,7 +85,7 @@ afterEach(() => {
 
 describe('process listing producers', () => {
   it.each(['Toybox', 'procps'])('discovers marked processes with %s ps', async (producer) => {
-    const command = `node --ok-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
+    const command = `node --gq-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
     provideOutput((program, args) => {
       if (program === 'pgrep') return { stdout: [`${fixturePid} ${command}\n`] };
       if (program !== 'ps') return emptyOutput(program);
@@ -121,7 +121,7 @@ describe('process listing producers', () => {
 
   it('retains trailing command arguments with procps ps under a narrow display width', async () => {
     const displayWidth = 20;
-    const row = `${fixturePid} node /srv/fixture.cjs --ok-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
+    const row = `${fixturePid} node /srv/fixture.cjs --gq-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
     provideOutput((program, args) => {
       if (program !== 'ps') return emptyOutput(program);
       const format = args[args.indexOf('-o') + 1] ?? '';
@@ -241,7 +241,7 @@ describe('BusyBox process listing', () => {
         pid: fixturePid,
         comm: 'MainThread',
         exe: '/usr/local/bin/node',
-        cmdline: `node /srv/fixture.cjs --ok-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`,
+        cmdline: `node /srv/fixture.cjs --gq-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`,
       };
       provideBusyBox([shell, ordinary, lookalike, marked], reject);
 
@@ -345,7 +345,7 @@ describe('process listing diagnostics', () => {
     spawn.mockImplementation(() =>
       fakeChildProcess({
         stdout: (async function* () {
-          yield `PID COMMAND\n${fixturePid} node --ok-project-path=${project}\n`;
+          yield `PID COMMAND\n${fixturePid} node --gq-project-path=${project}\n`;
           throw Object.assign(new Error('output read failed'), { code: 'EIO' });
         })(),
       }),

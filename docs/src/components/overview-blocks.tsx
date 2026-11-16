@@ -43,7 +43,7 @@ export function LayerStack() {
         >
           <span
             className="grid size-[38px] shrink-0 place-items-center rounded-[10px] shadow-[0_0_0_5px_var(--color-fd-card)]"
-            style={{ background: 'var(--ok-accent-soft)', color: 'var(--ok-accent-ink)' }}
+            style={{ background: 'var(--gq-accent-soft)', color: 'var(--gq-accent-ink)' }}
           >
             <layer.Icon className="size-[19px]" strokeWidth={1.7} aria-hidden="true" />
           </span>
@@ -98,11 +98,11 @@ export function WhereToStart() {
         <Link
           key={path.href}
           href={path.href}
-          className="group flex items-center gap-4 rounded-xl border border-fd-border bg-fd-card px-[18px] py-4 no-underline shadow-sm transition hover:-translate-y-px hover:border-[var(--ok-accent)]"
+          className="group flex items-center gap-4 rounded-xl border border-fd-border bg-fd-card px-[18px] py-4 no-underline shadow-sm transition hover:-translate-y-px hover:border-[var(--gq-accent)]"
         >
           <span
             className="grid size-7 shrink-0 place-items-center rounded-lg font-mono text-[13px] font-semibold"
-            style={{ background: 'var(--ok-accent-soft)', color: 'var(--ok-accent-ink)' }}
+            style={{ background: 'var(--gq-accent-soft)', color: 'var(--gq-accent-ink)' }}
           >
             {i + 1}
           </span>
@@ -114,7 +114,7 @@ export function WhereToStart() {
               {path.desc}
             </span>
           </span>
-          <ArrowRight className="size-4 shrink-0 text-fd-muted-foreground transition-colors group-hover:text-[var(--ok-accent)]" />
+          <ArrowRight className="size-4 shrink-0 text-fd-muted-foreground transition-colors group-hover:text-[var(--gq-accent)]" />
         </Link>
       ))}
     </div>

@@ -8,8 +8,8 @@ import { UNCACHED_TEST_GLOBS, UNCACHED_TIER_CONFIG } from './test-support/uncach
 import { uncachedTierFloor } from './test-support/uncached-tier-floor';
 import scriptsConfig from './vitest.scripts.config';
 
-const okRulesFixtureLint = fileURLToPath(
-  new URL('./test-support/ok-rules-fixture-lint.ts', import.meta.url),
+const gqRulesFixtureLint = fileURLToPath(
+  new URL('./test-support/gq-rules-fixture-lint.ts', import.meta.url),
 );
 
 const SOURCES = [
@@ -21,7 +21,7 @@ const SOURCES = [
     name: 'vitest.scripts.config.ts',
     dir: '.',
     config: scriptsConfig,
-    tierSetup: [okRulesFixtureLint],
+    tierSetup: [gqRulesFixtureLint],
   },
 ];
 

@@ -10,9 +10,9 @@ import {
   DEFAULT_SERVER_HOST,
   type EnvConfigLayer,
   EnvVarError,
+  GQ_DIR,
   IDLE_SHUTDOWN_DURATION_RE,
   idleShutdownToMs,
-  OK_DIR,
   resolveEnvConfigLayer,
   resolveServerRuntimeConfig,
   type ServerRuntimeConfig,
@@ -142,13 +142,13 @@ export function deriveServerProcessTitle(cwd: string): string {
   return `open-knowledge-server ${projectName}`;
 }
 
-export class OkDirMissingError extends Error {
+export class GqDirMissingError extends Error {
   readonly cwd: string;
   constructor(cwd: string) {
     super(
       `This directory isn't set up yet. Run \`${currentCliCommandName()} init\` first, then \`${currentCliCommandName()} start\` again.`,
     );
-    this.name = 'OkDirMissingError';
+    this.name = 'GqDirMissingError';
     this.cwd = cwd;
   }
 }
@@ -338,7 +338,7 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
       if (!isReapableEphemeralProjectDir(ephemeralProjectDir)) {
         throw new EphemeralProjectDirNotThrowawayError(ephemeralProjectDir);
       }
-      if (!existsSync(resolve(ephemeralProjectDir, OK_DIR, 'config.yml'))) {
+      if (!existsSync(resolve(ephemeralProjectDir, GQ_DIR, 'config.yml'))) {
         seedEphemeralProjectDir(ephemeralProjectDir, ephemeralContentDir);
       }
     } else {
@@ -368,7 +368,7 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
 
   if (!ephemeral) {
     if (!skipAutoInit && !isProjectRoot(cwd)) {
-      throw new OkDirMissingError(cwd);
+      throw new GqDirMissingError(cwd);
     }
   }
 
@@ -633,7 +633,7 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
       ...(opts.projectDir ? { projectDir: opts.projectDir } : {}),
     });
   } catch (err) {
-    if (err instanceof OkDirMissingError) {
+    if (err instanceof GqDirMissingError) {
       console.error(error(err.message));
       process.exit(1);
     }

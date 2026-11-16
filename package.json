@@ -47,7 +47,7 @@
     "measure:observer-a-drain": "pnpm --dir packages/server run measure:observer-a-drain",
 
     "prepare": "bash scripts/husky-prepare.sh",
-    "typecheck:lint-plugins": "tsrs --noEmit -p lint-plugins/ok-rules/tsconfig.json",
+    "typecheck:lint-plugins": "tsrs --noEmit -p lint-plugins/gq-rules/tsconfig.json",
     "typecheck:no-net-connect": "tsrs --noEmit -p test-support/tsconfig.no-net-connect.json"
   },
   "lint-staged": {

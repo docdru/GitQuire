@@ -10,8 +10,8 @@ import {
   sourceRegions,
 } from './e2e-coverage-contract';
 
-const OK_ROOT = '/work/My Repo/public/open-knowledge';
-const APP_DIR = `${OK_ROOT}/packages/app`;
+const GQ_ROOT = '/work/My Repo/public/open-knowledge';
+const APP_DIR = `${GQ_ROOT}/packages/app`;
 
 const script = (url: string, functions: Array<[string, number, number]>): ScriptCoverage => ({
   url,
@@ -47,26 +47,26 @@ describe('the coverage directory switch', () => {
 
 describe('which files are recorded', () => {
   test('source files under the root are recorded by their root-relative path', () => {
-    expect(recordableSource(`${APP_DIR}/src/editor/Tiptap.tsx`, OK_ROOT)).toBe(
+    expect(recordableSource(`${APP_DIR}/src/editor/Tiptap.tsx`, GQ_ROOT)).toBe(
       'packages/app/src/editor/Tiptap.tsx',
     );
-    expect(recordableSource(`${OK_ROOT}/packages/server/src/api-extension.ts`, OK_ROOT)).toBe(
+    expect(recordableSource(`${GQ_ROOT}/packages/server/src/api-extension.ts`, GQ_ROOT)).toBe(
       'packages/server/src/api-extension.ts',
     );
   });
 
   test('dependencies, build output, test helpers, tests and paths outside the root are not', () => {
     for (const path of [
-      `${OK_ROOT}/node_modules/.pnpm/react/index.js`,
+      `${GQ_ROOT}/node_modules/.pnpm/react/index.js`,
       `${APP_DIR}/node_modules/.vite/deps/react.js`,
-      `${OK_ROOT}/packages/server/dist/index.mjs`,
+      `${GQ_ROOT}/packages/server/dist/index.mjs`,
       `${APP_DIR}/tests/stress/_helpers/fixtures.ts`,
       `${APP_DIR}/src/build/app-version.test.ts`,
-      `${OK_ROOT}/test-support/vitest.base.ts`,
+      `${GQ_ROOT}/test-support/vitest.base.ts`,
       '/tmp/ok-vite-cache/deps/yjs.js',
-      OK_ROOT,
+      GQ_ROOT,
     ])
-      expect(recordableSource(path, OK_ROOT), path).toBeUndefined();
+      expect(recordableSource(path, GQ_ROOT), path).toBeUndefined();
   });
 });
 
@@ -83,7 +83,7 @@ describe('mapping a browser script URL to a file', () => {
         'http://127.0.0.1:4100/@fs/work/My%20Repo/public/open-knowledge/packages/core/src/index.ts?v=1',
         APP_DIR,
       ),
-    ).toBe(`${OK_ROOT}/packages/core/src/index.ts`);
+    ).toBe(`${GQ_ROOT}/packages/core/src/index.ts`);
   });
 
   test('Vite internals, optimized dependencies, the page itself and non-HTTP scripts map to nothing', () => {

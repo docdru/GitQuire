@@ -5,13 +5,13 @@ import { realpathSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gitCleanEnv } from './git-clean-env.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const LOCALES_DIR = 'packages/app/src/locales';
 const GENERATED_CATALOG =
   /^packages\/app\/src\/locales\/(?:[^/]+\/messages\.json|pseudo\/messages\.po)$/;
 
 function git(args) {
-  return spawnSync('git', args, { cwd: OK_ROOT, env: gitCleanEnv(), encoding: 'utf8' });
+  return spawnSync('git', args, { cwd: GQ_ROOT, env: gitCleanEnv(), encoding: 'utf8' });
 }
 
 function failureOf(result) {
@@ -58,7 +58,7 @@ function main() {
   console.error('');
   console.error('  Fix: take them out of the index, keeping the files on disk,');
   console.error(
-    `    git -C ${shellQuote(OK_ROOT)} rm --cached -- ${generated.map(shellQuote).join(' ')}`,
+    `    git -C ${shellQuote(GQ_ROOT)} rm --cached -- ${generated.map(shellQuote).join(' ')}`,
   );
   console.error('  then commit.');
   console.error('  A merge conflict on these paths resolved with git add keeps them tracked;');

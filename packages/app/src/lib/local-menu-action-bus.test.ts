@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import type { OkMenuActionOrigin } from './desktop-bridge-types';
+import type { GqMenuActionOrigin } from './desktop-bridge-types';
 import {
   __resetLocalMenuActionBusForTests,
   emitLocalMenuAction,
@@ -106,7 +106,7 @@ describe('local menu-action bus', () => {
   });
 
   test('an emitter that declares nothing is launcher-free, not unclassified', () => {
-    let seen: OkMenuActionOrigin | undefined;
+    let seen: GqMenuActionOrigin | undefined;
     subscribeLocalMenuAction((_action, origin) => {
       seen = origin;
     });

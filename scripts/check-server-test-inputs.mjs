@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { isTestOnlySourceFile } from '../test-support/test-only-source-file.mjs';
 import { isUncachedTestFile } from '../test-support/uncached-tier.ts';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PKG_REL = 'packages/server';
 const TASK = '@gitquire/server#test';
 
@@ -46,7 +46,7 @@ function existsOnDisk(absolutePath) {
   }
 }
 
-export function escapingReads(okRoot = OK_ROOT) {
+export function escapingReads(okRoot = GQ_ROOT) {
   const packageDir = join(okRoot, PKG_REL);
   const byTarget = new Map();
   for (const file of walkTestFiles(packageDir)) {
@@ -97,12 +97,12 @@ function globToAnchoredRegex(escaped) {
   return new RegExp(`^${pattern}(/|$)`);
 }
 
-export function packageRelativeGlobCovers(entry, targetFromOkRoot, okRoot = OK_ROOT) {
+export function packageRelativeGlobCovers(entry, targetFromOkRoot, okRoot = GQ_ROOT) {
   const fromOkRoot = relative(okRoot, resolve(join(okRoot, PKG_REL), entry));
   return globToAnchoredRegex(escapeGlobLiterals(fromOkRoot)).test(targetFromOkRoot);
 }
 
-export function uncoveredReads(okRoot = OK_ROOT) {
+export function uncoveredReads(okRoot = GQ_ROOT) {
   const turbo = JSON.parse(readFileSync(join(okRoot, 'turbo.json'), 'utf-8'));
   const inputs = (turbo.tasks?.[TASK]?.inputs ?? []).filter(
     (entry) => !entry.startsWith('!') && entry !== '$TURBO_DEFAULT$',
@@ -135,7 +135,7 @@ export function knownUnsweptWitness(glob) {
   return glob.replace(/\/\*\*$/, '');
 }
 
-export function missingKnownUnswept(okRoot = OK_ROOT) {
+export function missingKnownUnswept(okRoot = GQ_ROOT) {
   const turbo = JSON.parse(readFileSync(join(okRoot, 'turbo.json'), 'utf-8'));
   const inputs = turbo.tasks?.[TASK]?.inputs ?? [];
   return Object.keys(KNOWN_UNSWEPT).filter((glob) => {

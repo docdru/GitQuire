@@ -24,7 +24,7 @@ await vi.doMock('node:os', async () => {
   };
 });
 
-const { OK_DIR } = await import('../constants.ts');
+const { GQ_DIR } = await import('../constants.ts');
 const { createProjectConfigResolver, loadConfig } = await import('./loader');
 
 beforeEach(() => {
@@ -43,19 +43,19 @@ afterEach(() => {
 });
 
 function writeWorkspaceConfig(yaml: string) {
-  const configDir = resolve(testDir, OK_DIR);
+  const configDir = resolve(testDir, GQ_DIR);
   mkdirSync(configDir, { recursive: true });
   writeFileSync(resolve(configDir, 'config.yml'), yaml, 'utf-8');
 }
 
 function writeLocalConfig(yaml: string) {
-  const localDir = resolve(testDir, OK_DIR, 'local');
+  const localDir = resolve(testDir, GQ_DIR, 'local');
   mkdirSync(localDir, { recursive: true });
   writeFileSync(resolve(localDir, 'config.yml'), yaml, 'utf-8');
 }
 
 function writeWorkspaceConfigAt(dir: string, yaml: string) {
-  const configDir = resolve(dir, OK_DIR);
+  const configDir = resolve(dir, GQ_DIR);
   mkdirSync(configDir, { recursive: true });
   writeFileSync(resolve(configDir, 'config.yml'), yaml, 'utf-8');
 }
@@ -138,7 +138,7 @@ describe('loadConfig', () => {
     expect(joined).toContain('OPEN_KNOWLEDGE_GITHUB_CLIENT_ID');
     expect(joined).toContain('GITQUIRE_MCP_AUTOSTART');
     expect(joined).toContain('streaming uploads have no user-facing cap');
-    const expectedPath = resolve(testDir, OK_DIR, 'config.yml');
+    const expectedPath = resolve(testDir, GQ_DIR, 'config.yml');
     for (const d of diagnostics) {
       if (d.code === 'REMOVED_KEY') {
         expect(d.source?.file).toBe(expectedPath);
@@ -313,7 +313,7 @@ folders:
       caught = e as Error;
     }
     expect(caught).toBeDefined();
-    const expectedPath = resolve(testDir, OK_DIR, 'config.yml');
+    const expectedPath = resolve(testDir, GQ_DIR, 'config.yml');
     expect(caught?.message).toContain(`${expectedPath}:2:`);
     expect(caught?.message).toContain('server.port');
   });
@@ -335,7 +335,7 @@ folders:
   });
 
   test('user-global reads from `~/.gitquire/global.yml` (not `config.yml`)', () => {
-    const okDir = resolve(fakeHome, OK_DIR);
+    const okDir = resolve(fakeHome, GQ_DIR);
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'global.yml'), 'appearance:\n  theme: dark\n', 'utf-8');
     const { config, sources } = loadConfig(testDir);
@@ -344,7 +344,7 @@ folders:
   });
 
   test('user-global strip-and-continue: sibling survives the merge, key is reported', () => {
-    const okDir = resolve(fakeHome, OK_DIR);
+    const okDir = resolve(fakeHome, GQ_DIR);
     mkdirSync(okDir, { recursive: true });
     writeFileSync(
       resolve(okDir, 'global.yml'),
@@ -483,7 +483,7 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
     writeLocalConfig('server:\n  allowExternal: true\n');
     const { config, sources } = loadConfig(testDir);
     expect(config.server.allowExternal).toBe(true);
-    expect(sources).toContain(resolve(testDir, OK_DIR, 'local', 'config.yml'));
+    expect(sources).toContain(resolve(testDir, GQ_DIR, 'local', 'config.yml'));
   });
 
   test('a committed server.allowExternal: true never arms exposure (clone-leak guarantee)', () => {
@@ -500,7 +500,7 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
   });
 
   test('an explicit user-global value survives an empty project file (precedence, not clobber)', () => {
-    const okDir = resolve(fakeHome, OK_DIR);
+    const okDir = resolve(fakeHome, GQ_DIR);
     mkdirSync(okDir, { recursive: true });
     writeFileSync(
       resolve(okDir, 'global.yml'),

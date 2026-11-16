@@ -38,7 +38,7 @@ import {
 import { runSync } from './sync.ts';
 
 const ORIGIN_URL = `https://${GITHUB_HOST}/alice/demo.git`;
-const OK_TOKEN = 'ok-test-sync-token-in-openknowledges-own-store';
+const GQ_TOKEN = 'ok-test-sync-token-in-openknowledges-own-store';
 const GH_TOKEN = 'ok-test-sync-token-the-gh-cli-supplies';
 const STALE_PASSWORD = 'ok-test-sync-stale-password-in-an-ambient-helper';
 const REVOKED_OK_TOKEN = 'ok-test-sync-revoked-token-in-openknowledges-own-store';
@@ -477,22 +477,22 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
   }
 
   test("with OpenKnowledge signed in and no ambient credential, gq sync pulls and pushes with OpenKnowledge's token", async () => {
-    const server = await arrange({ gitHubAccepts: OK_TOKEN, okStoreToken: OK_TOKEN });
+    const server = await arrange({ gitHubAccepts: GQ_TOKEN, okStoreToken: GQ_TOKEN });
 
     const outcome = await syncWith({
       tokenStore: new FileBackend(authFile),
       _detectGhFn: ghUnavailable,
     });
 
-    expectSyncCompletedWith(outcome, server, OK_TOKEN);
-    expectCredentialConfinedToCliHelper(OK_TOKEN);
+    expectSyncCompletedWith(outcome, server, GQ_TOKEN);
+    expectCredentialConfinedToCliHelper(GQ_TOKEN);
   });
 
   test("with a stale credential in an ambient helper, OpenKnowledge's helper wins and the ambient helpers are never asked or told", async () => {
     const stale = { username: 'x-access-token', password: STALE_PASSWORD };
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       ambientCredential: stale,
     });
 
@@ -501,7 +501,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       _detectGhFn: ghUnavailable,
     });
 
-    expectSyncCompletedWith(outcome, server, OK_TOKEN);
+    expectSyncCompletedWith(outcome, server, GQ_TOKEN);
     expect
       .soft(
         server.requests.filter((request) => request.credential?.password === STALE_PASSWORD),
@@ -514,7 +514,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
         "the stale entry still in the user's credential store",
       )
       .toHaveLength(1);
-    expectCredentialConfinedToCliHelper(OK_TOKEN);
+    expectCredentialConfinedToCliHelper(GQ_TOKEN);
   });
 
   test("with only the gh CLI's token available, gq sync pulls and pushes with it through OpenKnowledge's helper", async () => {
@@ -569,8 +569,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     {
       variable: 'GIT_CONFIG_GLOBAL',
       signIn: "OpenKnowledge's own store",
-      token: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      token: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       detectGh: ghUnavailable,
       stubEnvironment: () => {
         const homeConfig = join(home, '.gitconfig');
@@ -595,8 +595,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     {
       variable: 'GIT_CONFIG_KEY_3=protocol.file.allow',
       signIn: "OpenKnowledge's own store",
-      token: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      token: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       detectGh: ghUnavailable,
       stubEnvironment: () => {
         vi.stubEnv('GIT_CONFIG_COUNT', '4');
@@ -621,7 +621,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
   );
 
   test("with an GITQUIRE_GH_TOKEN relay for github.com already in its environment, gq sync signed in to OpenKnowledge pulls and pushes with OpenKnowledge's token and never presents the relay's", async () => {
-    const server = await arrange({ gitHubAccepts: OK_TOKEN, okStoreToken: OK_TOKEN });
+    const server = await arrange({ gitHubAccepts: GQ_TOKEN, okStoreToken: GQ_TOKEN });
     vi.stubEnv('GITQUIRE_GH_TOKEN', INHERITED_RELAY_TOKEN);
     vi.stubEnv('GITQUIRE_GH_TOKEN_HOST', GITHUB_HOST);
     vi.stubEnv('GITQUIRE_GH_TOKEN_LOGIN', 'inherited-relay-login');
@@ -631,14 +631,14 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       _detectGhFn: ghUnavailable,
     });
 
-    expectSyncCompletedWith(outcome, server, OK_TOKEN);
+    expectSyncCompletedWith(outcome, server, GQ_TOKEN);
     expect
       .soft(
         server.requests.filter((request) => request.credential?.password === INHERITED_RELAY_TOKEN),
         "requests presenting the inherited relay's token",
       )
       .toEqual([]);
-    expectCredentialConfinedToCliHelper(OK_TOKEN);
+    expectCredentialConfinedToCliHelper(GQ_TOKEN);
   });
 
   function signedInSeam(): SyncCredentialSeam {
@@ -663,7 +663,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(server.requests, "the pull's fetch from github.com")
       .toContainEqual(
-        authenticatedRequest('fetch', { username: expect.any(String), password: OK_TOKEN }),
+        authenticatedRequest('fetch', { username: expect.any(String), password: GQ_TOKEN }),
       );
     expect
       .soft(enterpriseRequests, "the push's receive-pack on the Enterprise host")
@@ -683,25 +683,25 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       .toEqual([]);
     expect
       .soft(
-        enterpriseRequests.filter((request) => request.credential?.password === OK_TOKEN),
+        enterpriseRequests.filter((request) => request.credential?.password === GQ_TOKEN),
         "Enterprise requests presenting OpenKnowledge's token",
       )
       .toEqual([]);
     expect
       .soft(
-        linesCarrying(readFileSync(helperLog, 'utf-8'), OK_TOKEN),
+        linesCarrying(readFileSync(helperLog, 'utf-8'), GQ_TOKEN),
         "ambient helper calls carrying OpenKnowledge's token",
       )
       .toEqual([]);
     expect
       .soft(
-        linesCarrying(readFileSync(credentialStore, 'utf-8'), OK_TOKEN),
+        linesCarrying(readFileSync(credentialStore, 'utf-8'), GQ_TOKEN),
         'the ambient git-credential-store file',
       )
       .toEqual([]);
     expect
       .soft(
-        linesCarrying(trace, OK_TOKEN),
+        linesCarrying(trace, GQ_TOKEN),
         'argv of git pull, git push and their children (GIT_TRACE)',
       )
       .toEqual([]);
@@ -709,8 +709,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with the branch's push remote on an Enterprise host, the pull presents OpenKnowledge's token to github.com and the push the user's own Enterprise credential", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       enterpriseAccepts: ENTERPRISE_USER.password,
       enterpriseAmbientCredential: ENTERPRISE_USER,
       repository: (git, github) => {
@@ -728,8 +728,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with origin's pushurl on an Enterprise host, the push's credential follows the push URL", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       enterpriseAccepts: ENTERPRISE_USER.password,
       enterpriseAmbientCredential: ENTERPRISE_USER,
       repository: (git, github) => {
@@ -746,8 +746,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with an insteadOf rewrite of github.com to an Enterprise host, gq sync keeps the user's own Enterprise credential and never asks OpenKnowledge's helper", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       enterpriseAccepts: ENTERPRISE_USER.password,
       enterpriseAmbientCredential: ENTERPRISE_USER,
       repository: (git, github) => {
@@ -782,19 +782,19 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       .toEqual([]);
     expect
       .soft(
-        enterpriseRequests.filter((request) => request.credential?.password === OK_TOKEN),
+        enterpriseRequests.filter((request) => request.credential?.password === GQ_TOKEN),
         "Enterprise requests presenting OpenKnowledge's token",
       )
       .toEqual([]);
     expect
       .soft(
-        linesCarrying(readFileSync(helperLog, 'utf-8'), OK_TOKEN),
+        linesCarrying(readFileSync(helperLog, 'utf-8'), GQ_TOKEN),
         "ambient helper calls carrying OpenKnowledge's token",
       )
       .toEqual([]);
     expect
       .soft(
-        linesCarrying(trace, OK_TOKEN),
+        linesCarrying(trace, GQ_TOKEN),
         'argv of git pull, git push and their children (GIT_TRACE)',
       )
       .toEqual([]);
@@ -802,8 +802,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with a single remote not named origin and no upstream, gq push presents OpenKnowledge's token to that remote", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       repository: (git, github) => {
         git('remote', 'add', 'upstream', ORIGIN_URL);
         git('push', github.repositoryDir('alice/demo.git'), 'main:main');
@@ -821,11 +821,11 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(server.requests, "the push's authenticated receive-pack")
       .toContainEqual(
-        authenticatedRequest('push', { username: expect.any(String), password: OK_TOKEN }),
+        authenticatedRequest('push', { username: expect.any(String), password: GQ_TOKEN }),
       );
     const main = localAndRemoteMain(server.repositoryDir('alice/demo.git'));
     expect.soft(main.remote, "the remote's main after the push").toBe(main.local);
-    expectCredentialConfinedToCliHelper(OK_TOKEN, {
+    expectCredentialConfinedToCliHelper(GQ_TOKEN, {
       tracedCommand: 'push',
       remoteName: 'upstream',
     });
@@ -833,8 +833,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with origin and another remote and no upstream, gq push presents OpenKnowledge's token to origin", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       enterpriseAccepts: ENTERPRISE_USER.password,
       enterpriseAmbientCredential: ENTERPRISE_USER,
       repository: (git, github) => {
@@ -856,14 +856,14 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(server.requests, "the push's authenticated receive-pack on github.com")
       .toContainEqual(
-        authenticatedRequest('push', { username: expect.any(String), password: OK_TOKEN }),
+        authenticatedRequest('push', { username: expect.any(String), password: GQ_TOKEN }),
       );
     const main = localAndRemoteMain(server.repositoryDir('alice/demo.git'));
     expect.soft(main.remote, "github.com's main after the push").toBe(main.local);
     expect
       .soft(server.requestsTo(ENTERPRISE_HOST), 'requests reaching the Enterprise host')
       .toEqual([]);
-    expectCredentialConfinedToCliHelper(OK_TOKEN, { tracedCommand: 'push' });
+    expectCredentialConfinedToCliHelper(GQ_TOKEN, { tracedCommand: 'push' });
   });
 
   test.each([
@@ -874,8 +874,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     async ({ urlOf }) => {
       const localRemote = join(workspace, 'local-remote.git');
       const server = await arrange({
-        gitHubAccepts: OK_TOKEN,
-        okStoreToken: OK_TOKEN,
+        gitHubAccepts: GQ_TOKEN,
+        okStoreToken: GQ_TOKEN,
         repository: (git) => {
           execFileSync('git', ['init', '--quiet', '--bare', '--initial-branch=main', localRemote]);
           configureTestGitRepository(localRemote);
@@ -907,8 +907,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     const onPath = await startPlainHttpInterceptor();
     interceptor = onPath;
     await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       repository: (git, github) => {
         originUpstreamOnGitHub(git, github);
         git('remote', 'set-url', 'origin', `http://${GITHUB_HOST}/alice/demo.git`);
@@ -924,7 +924,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect.soft(outcome.error, 'the error runSync threw').not.toBeNull();
     expect
       .soft(
-        onPath.requests.filter((request) => request.basicCredential?.includes(OK_TOKEN)),
+        onPath.requests.filter((request) => request.basicCredential?.includes(GQ_TOKEN)),
         "plain-http requests carrying OpenKnowledge's token",
       )
       .toEqual([]);
@@ -951,7 +951,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with origin on an Enterprise host that is not declared, gq sync keeps the user's own credential even when the gh CLI holds a token for that host", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
       enterpriseAccepts: ENTERPRISE_USER.password,
       enterpriseAmbientCredential: ENTERPRISE_USER,
       repository: originUpstreamOnEnterprise,
@@ -1004,7 +1004,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       `git:\n  hosts:\n    ${ENTERPRISE_HOST}:\n      provider: github\n`,
     );
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
       enterpriseAccepts: GH_TOKEN,
       enterpriseAmbientCredential: ENTERPRISE_USER,
       repository: originUpstreamOnEnterprise,
@@ -1039,7 +1039,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       `git:\n  hosts:\n    ${ENTERPRISE_HOST}:\n      provider: github\n`,
     );
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
       enterpriseAccepts: ENTERPRISE_USER.password,
       repository: (git, github) => {
         git('remote', 'add', 'origin', `https://${portedHost}/alice/demo.git`);
@@ -1371,8 +1371,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     const onPath = await startPlainHttpInterceptor();
     interceptor = onPath;
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       repository: (git, github) => {
         originUpstreamOnGitHub(git, github);
         git('config', '--add', 'remote.origin.pushurl', ORIGIN_URL);
@@ -1384,7 +1384,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     const outcome = await syncWith(signedInSeam(), 'push');
 
     expect(server.requests, "the https push URL's receive-pack").toContainEqual(
-      authenticatedRequest('push', { username: expect.any(String), password: OK_TOKEN }),
+      authenticatedRequest('push', { username: expect.any(String), password: GQ_TOKEN }),
     );
     expect(
       onPath.requests.map((request) => request.url),
@@ -1398,7 +1398,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect.soft(message, 'a renewal command in the message').not.toContain('auth login');
     expect
       .soft(
-        onPath.requests.filter((request) => request.basicCredential?.includes(OK_TOKEN)),
+        onPath.requests.filter((request) => request.basicCredential?.includes(GQ_TOKEN)),
         "plain-http requests carrying OpenKnowledge's token",
       )
       .toEqual([]);
@@ -1429,10 +1429,10 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
   ] as const)(
     "with a second push URL that writes the signed-in host $spelling, gq push answers it from OpenKnowledge's helper with the $source token and never asks the user's own helpers",
     async ({ writtenHost, source }) => {
-      const token = source === 'stored' ? OK_TOKEN : GH_TOKEN;
+      const token = source === 'stored' ? GQ_TOKEN : GH_TOKEN;
       const server = await arrange({
         gitHubAccepts: token,
-        ...(source === 'stored' ? { okStoreToken: OK_TOKEN } : {}),
+        ...(source === 'stored' ? { okStoreToken: GQ_TOKEN } : {}),
         repository: (git, github) => {
           originUpstreamOnGitHub(git, github);
           git('config', '--add', 'remote.origin.pushurl', ORIGIN_URL);
@@ -1477,7 +1477,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
   );
 
   test("with OpenKnowledge signed in and no ambient credential, gq pull authenticates its fetch with OpenKnowledge's token", async () => {
-    const server = await arrange({ gitHubAccepts: OK_TOKEN, okStoreToken: OK_TOKEN });
+    const server = await arrange({ gitHubAccepts: GQ_TOKEN, okStoreToken: GQ_TOKEN });
 
     const outcome = await syncWith(signedInSeam(), 'pull');
 
@@ -1489,13 +1489,13 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(server.requests, "the pull's authenticated fetch")
       .toContainEqual(
-        authenticatedRequest('fetch', { username: expect.any(String), password: OK_TOKEN }),
+        authenticatedRequest('fetch', { username: expect.any(String), password: GQ_TOKEN }),
       );
-    expectCredentialConfinedToCliHelper(OK_TOKEN, { tracedCommand: 'pull' });
+    expectCredentialConfinedToCliHelper(GQ_TOKEN, { tracedCommand: 'pull' });
   });
 
   test("with OpenKnowledge signed in and no ambient credential, gq push authenticates with OpenKnowledge's token", async () => {
-    const server = await arrange({ gitHubAccepts: OK_TOKEN, okStoreToken: OK_TOKEN });
+    const server = await arrange({ gitHubAccepts: GQ_TOKEN, okStoreToken: GQ_TOKEN });
 
     const outcome = await syncWith(signedInSeam(), 'push');
 
@@ -1507,18 +1507,18 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(server.requests, "the push's authenticated receive-pack")
       .toContainEqual(
-        authenticatedRequest('push', { username: expect.any(String), password: OK_TOKEN }),
+        authenticatedRequest('push', { username: expect.any(String), password: GQ_TOKEN }),
       );
     const main = localAndRemoteMain(server.repositoryDir('alice/demo.git'));
     expect.soft(main.remote, "the remote's main after the push").toBe(main.local);
-    expectCredentialConfinedToCliHelper(OK_TOKEN, { tracedCommand: 'push' });
+    expectCredentialConfinedToCliHelper(GQ_TOKEN, { tracedCommand: 'push' });
   });
 
   test("with origin at an https URL whose path OpenKnowledge's credential chain cannot read, gq sync keeps the user's own credential and never asks OpenKnowledge's helper", async () => {
     const nestedRepository = 'team/alice/demo.git';
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       enterpriseAccepts: ENTERPRISE_USER.password,
       enterpriseAmbientCredential: ENTERPRISE_USER,
       repository: (git, github) => {
@@ -1565,8 +1565,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("with no remote configured, gq sync still runs git's own pull and reports its failure", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       repository: () => {},
     });
 
@@ -1584,8 +1584,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
 
   test("on a detached HEAD, gq sync's fetch presents OpenKnowledge's token to the only remote", async () => {
     const server = await arrange({
-      gitHubAccepts: OK_TOKEN,
-      okStoreToken: OK_TOKEN,
+      gitHubAccepts: GQ_TOKEN,
+      okStoreToken: GQ_TOKEN,
       repository: (git, github) => {
         originUpstreamOnGitHub(git, github);
         git('checkout', '--quiet', '--detach');
@@ -1597,8 +1597,8 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(server.requests, "the pull's authenticated fetch")
       .toContainEqual(
-        authenticatedRequest('fetch', { username: expect.any(String), password: OK_TOKEN }),
+        authenticatedRequest('fetch', { username: expect.any(String), password: GQ_TOKEN }),
       );
-    expectCredentialConfinedToCliHelper(OK_TOKEN, { tracedCommand: 'fetch' });
+    expectCredentialConfinedToCliHelper(GQ_TOKEN, { tracedCommand: 'fetch' });
   });
 });

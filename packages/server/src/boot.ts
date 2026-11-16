@@ -6,12 +6,12 @@ import {
   currentCliCommandName,
   DEFAULT_SERVER_HOST,
   EXECUTABLE_BLOCKLIST_EXTENSIONS,
+  GQ_DIR,
+  GQ_LEGACY_MACHINE_LOCAL_ROOT_DIRS,
+  GQ_MACHINE_LOCAL_ROOT_FILES,
   INLINE_RENDERABLE_EXTENSIONS,
   isLoopbackOnlyBind,
   LOCAL_DIR,
-  OK_DIR,
-  OK_LEGACY_MACHINE_LOCAL_ROOT_DIRS,
-  OK_MACHINE_LOCAL_ROOT_FILES,
   requiresExternalConsent,
   resolveServerRuntimeConfig,
   type ServerRuntimeConfig,
@@ -88,10 +88,10 @@ export function findLegacyRuntimeFiles(okDir: string): string[] {
   if (!localDirEmpty) return [];
 
   const found: string[] = [];
-  for (const name of OK_MACHINE_LOCAL_ROOT_FILES) {
+  for (const name of GQ_MACHINE_LOCAL_ROOT_FILES) {
     if (existsSync(resolve(okDir, name))) found.push(name);
   }
-  for (const name of OK_LEGACY_MACHINE_LOCAL_ROOT_DIRS) {
+  for (const name of GQ_LEGACY_MACHINE_LOCAL_ROOT_DIRS) {
     const candidate = resolve(okDir, name);
     try {
       if (existsSync(candidate) && statSync(candidate).isDirectory()) {
@@ -352,7 +352,7 @@ async function bootServerInner(
   for (const line of describeLegacyDataFolderMigration(migrateLegacyDataFolders(projectDir))) {
     getLogger('boot').warn({ projectDir }, line);
   }
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   const configPath = resolve(okDir, 'config.yml');
   if (!existsSync(configPath)) {
     const okDirExists = existsSync(okDir);
@@ -362,7 +362,7 @@ async function bootServerInner(
   if (!existsSync(gitignorePath)) {
     getLogger('boot').warn(
       { path: gitignorePath },
-      `Note: ${OK_DIR}/.gitignore is missing — per-machine state files in ${OK_DIR}/ may show up as untracked changes. Run \`${currentCliCommandName()} init\` to add the recommended ignore entries.`,
+      `Note: ${GQ_DIR}/.gitignore is missing — per-machine state files in ${GQ_DIR}/ may show up as untracked changes. Run \`${currentCliCommandName()} init\` to add the recommended ignore entries.`,
     );
   }
 
@@ -400,7 +400,7 @@ async function bootServerInner(
   if (legacyFound.length > 0) {
     getLogger('boot').warn(
       { files: legacyFound },
-      `Found legacy runtime files at ${OK_DIR}/${legacyFound.join(', ')}. Delete ${OK_DIR}/ and re-init — these files moved to ${OK_DIR}/${LOCAL_DIR}/.`,
+      `Found legacy runtime files at ${GQ_DIR}/${legacyFound.join(', ')}. Delete ${GQ_DIR}/ and re-init — these files moved to ${GQ_DIR}/${LOCAL_DIR}/.`,
     );
   }
 

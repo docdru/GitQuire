@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { currentCliCommandName } from '@gitquire/core';
 import { loadConfig } from '../../config/loader.ts';
-import { CONFIG_FILENAME, OK_DIR } from '../../constants.ts';
+import { CONFIG_FILENAME, GQ_DIR } from '../../constants.ts';
 import type { CheckContext, CheckDefinition, CheckResult } from './types.ts';
 
 interface ConfigYamlCheckDeps {
@@ -14,12 +14,12 @@ export function makeConfigYamlCheck(deps: ConfigYamlCheckDeps = {}): CheckDefini
   return {
     name: 'config-yaml',
     run: async (ctx: CheckContext): Promise<CheckResult> => {
-      const configPath = resolve(ctx.cwd, OK_DIR, CONFIG_FILENAME);
+      const configPath = resolve(ctx.cwd, GQ_DIR, CONFIG_FILENAME);
       if (!existsSync(configPath)) {
         return {
           name: 'config-yaml',
           status: 'warn',
-          summary: `${OK_DIR}/${CONFIG_FILENAME} not found (project not initialized)`,
+          summary: `${GQ_DIR}/${CONFIG_FILENAME} not found (project not initialized)`,
           remediation: `Run \`${currentCliCommandName()} init\` to scaffold the project.`,
         };
       }
@@ -36,7 +36,7 @@ export function makeConfigYamlCheck(deps: ConfigYamlCheckDeps = {}): CheckDefini
         return {
           name: 'config-yaml',
           status: 'fail',
-          summary: `${OK_DIR}/${CONFIG_FILENAME} failed to parse`,
+          summary: `${GQ_DIR}/${CONFIG_FILENAME} failed to parse`,
           detail: message,
         };
       }

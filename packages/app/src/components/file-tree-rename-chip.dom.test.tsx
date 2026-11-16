@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   __resetRenameInputAffordanceForTesting,
   applyRenameInputAffordance,
-  OK_RENAMING_ATTR,
+  GQ_RENAMING_ATTR,
 } from './file-tree-rename-chip';
 
 interface PierreRenameRowInit {
@@ -215,7 +215,7 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
     });
     applyRenameInputAffordance(document);
 
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
   });
 
   test('non-markdown asset renames never stamp the overlay marker', () => {
@@ -224,14 +224,14 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
       initialValue: '.mcp.json',
     });
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
 
     input.remove();
     row.setAttribute('data-item-path', '.mcp');
     row.setAttribute('data-item-selected', 'true');
     applyRenameInputAffordance(document);
 
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
   });
 
   test('after Pierre commits — selected extensionless row gets the marker reapplied', () => {
@@ -240,15 +240,15 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
       initialValue: 'AGENTS.md',
     });
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
 
     input.remove();
     row.setAttribute('data-item-path', 'AGENTS-RENAMED');
     row.setAttribute('data-item-selected', 'true');
-    row.removeAttribute(OK_RENAMING_ATTR);
+    row.removeAttribute(GQ_RENAMING_ATTR);
 
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBe('.md');
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBe('.md');
   });
 
   test('legitimate extensionless files NEVER pick up the marker mid-rename', () => {
@@ -266,7 +266,7 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
     input.remove();
 
     applyRenameInputAffordance(document);
-    expect(makefileRow.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(makefileRow.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
 
     const renamedRow = document.body.querySelector(
       '[data-item-path="docs/photo.md"]',
@@ -275,12 +275,12 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
     if (!renamedRow) return;
     renamedRow.setAttribute('data-item-path', 'docs/photo-renamed');
     renamedRow.setAttribute('data-item-selected', 'true');
-    renamedRow.removeAttribute(OK_RENAMING_ATTR);
+    renamedRow.removeAttribute(GQ_RENAMING_ATTR);
 
     applyRenameInputAffordance(document);
 
-    expect(renamedRow.getAttribute(OK_RENAMING_ATTR)).toBe('.md');
-    expect(makefileRow.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(renamedRow.getAttribute(GQ_RENAMING_ATTR)).toBe('.md');
+    expect(makefileRow.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
   });
 
   test('disk-truth refresh — marker is dropped once the path includes the saved extension', () => {
@@ -289,18 +289,18 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
       initialValue: 'AGENTS.md',
     });
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
 
     input.remove();
     row.setAttribute('data-item-path', 'AGENTS-RENAMED');
     row.setAttribute('data-item-selected', 'true');
-    row.removeAttribute(OK_RENAMING_ATTR);
+    row.removeAttribute(GQ_RENAMING_ATTR);
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBe('.md');
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBe('.md');
 
     row.setAttribute('data-item-path', 'AGENTS-RENAMED.md');
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
   });
 
   test('row recycled to an unrelated file (different extension) — marker is dropped', () => {
@@ -309,12 +309,12 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
       initialValue: 'AGENTS.md',
     });
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
 
     input.remove();
     row.setAttribute('data-item-path', 'images/cat.jpg');
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
   });
 
   test('post-settle: module-level activeRenameExt is cleared (Makefile selected later gets no marker)', () => {
@@ -323,12 +323,12 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
       initialValue: 'AGENTS.md',
     });
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
 
     input.remove();
     row.setAttribute('data-item-path', 'AGENTS-RENAMED.md');
     applyRenameInputAffordance(document);
-    expect(row.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(row.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
 
     const makefileRow = document.createElement('div');
     makefileRow.setAttribute('data-type', 'item');
@@ -337,6 +337,6 @@ describe('applyRenameInputAffordance — overlay marker for symptom 2 (icon-flas
     document.body.appendChild(makefileRow);
 
     applyRenameInputAffordance(document);
-    expect(makefileRow.getAttribute(OK_RENAMING_ATTR)).toBeNull();
+    expect(makefileRow.getAttribute(GQ_RENAMING_ATTR)).toBeNull();
   });
 });

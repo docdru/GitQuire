@@ -220,11 +220,11 @@ describe('base16ToTokens', () => {
     expect(t['syntax-string']).toBe(p.base0B);
     expect(t['syntax-keyword']).toBe(p.base0E);
     expect(t['syntax-comment']).toBe(p.base03);
-    expect(t['ok-editor-text']).toBe(p.base05);
-    expect(t['ok-table-resize-handle']).toBe(p.base0D);
-    expect(t['ok-diff-ins']).toBe(p.base0B);
-    expect(t['ok-diff-del']).toBe(p.base08);
-    expect(t['ok-agent-thread-text']).toBe(p.base05);
+    expect(t['gq-editor-text']).toBe(p.base05);
+    expect(t['gq-table-resize-handle']).toBe(p.base0D);
+    expect(t['gq-diff-ins']).toBe(p.base0B);
+    expect(t['gq-diff-del']).toBe(p.base08);
+    expect(t['gq-agent-thread-text']).toBe(p.base05);
   });
 
   test('muted text is the palette slot meant for it while that slot reads on pages and cards', () => {
@@ -236,7 +236,7 @@ describe('base16ToTokens', () => {
   test('the file tree muted color is the comment slot while it reads on the sidebar', () => {
     const palette = paletteOf({ base01: '#ffffff', base03: '#8a8a8a' });
     const t = base16ToTokens({ name: 'T', variant: 'light', palette });
-    expect(t['ok-tree-muted']).toBe('#8a8a8a');
+    expect(t['gq-tree-muted']).toBe('#8a8a8a');
   });
 
   test('find highlights and unresolved links keep the palette color when text already reads', () => {
@@ -248,9 +248,9 @@ describe('base16ToTokens', () => {
       base0A: '#806020',
     };
     const t = base16ToTokens({ name: 'Readable', variant: 'dark', palette });
-    expect(t['ok-find-match']).toBe(palette.base0A);
-    expect(t['ok-viewer-find-match']).toBe(palette.base0A);
-    expect(t['ok-unresolved-link']).toBe(palette.base08);
+    expect(t['gq-find-match']).toBe(palette.base0A);
+    expect(t['gq-viewer-find-match']).toBe(palette.base0A);
+    expect(t['gq-unresolved-link']).toBe(palette.base08);
     expect(t['broken-link-color']).toBe(palette.base08);
   });
 

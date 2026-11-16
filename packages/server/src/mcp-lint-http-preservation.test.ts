@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -70,7 +70,7 @@ function resultText(result: ToolResult): string {
 beforeAll(async () => {
   tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-mcp-lint-http-'));
   contentDir = resolve(tmpDir, 'project');
-  const okDir = resolve(contentDir, OK_DIR);
+  const okDir = resolve(contentDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(
     resolve(okDir, 'config.yml'),

@@ -18,12 +18,12 @@ import {
   formatRollbackSubject,
   formatWipSubject,
   GitDirAccessError,
+  GQ_GENERATOR_WRITER_ID,
+  type GqActorEntry,
   getShadowRepoPath,
   getWipRefPattern,
   gitAuthorWriterId,
   MalformedGitPointerError,
-  OK_GENERATOR_WRITER_ID,
-  type OkActorEntry,
   parseCheckpoint,
   parseContributors,
   parseOkActor,
@@ -217,13 +217,13 @@ describe('parseWriterId (D34 taxonomy)', () => {
   });
 
   test('"ok-generator" → classified-ok-generator, isAgent null', () => {
-    const p = parseWriterId(OK_GENERATOR_WRITER_ID);
+    const p = parseWriterId(GQ_GENERATOR_WRITER_ID);
     expect(p.classification).toBe('classified-ok-generator');
     expect(p.isAgent).toBe(null);
   });
 
   test('the generator writer id is classified, never "unknown"', () => {
-    expect(parseWriterId(OK_GENERATOR_WRITER_ID).classification).not.toBe('unknown');
+    expect(parseWriterId(GQ_GENERATOR_WRITER_ID).classification).not.toBe('unknown');
   });
 
   test('gitAuthorWriterId is stable per email and case/space-insensitive', () => {
@@ -973,7 +973,7 @@ describe('formatWipSubject', () => {
 });
 
 describe('parseOkActor / formatOkActor (US-015, FR-8, D13)', () => {
-  const baseEntry: OkActorEntry = {
+  const baseEntry: GqActorEntry = {
     v: 1,
     writer_id: 'agent-conn-abc123',
     principal: null,
@@ -1004,7 +1004,7 @@ describe('parseOkActor / formatOkActor (US-015, FR-8, D13)', () => {
   });
 
   test('round-trips an entry with all nullable fields null', () => {
-    const sparse: OkActorEntry = {
+    const sparse: GqActorEntry = {
       v: 1,
       writer_id: 'openknowledge-service',
       principal: null,
@@ -1076,7 +1076,7 @@ describe('parseOkActor / formatOkActor (US-015, FR-8, D13)', () => {
 
 describe('OkActorEntry writer_id field + derivation back-compat', () => {
   test('formatOkActor emits writer_id inline', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       v: 1,
       writer_id: 'agent-abc123',
       principal: null,
@@ -1135,7 +1135,7 @@ describe('OkActorEntry writer_id field + derivation back-compat', () => {
 
 describe('OkActorEntry summaries field (consolidated from ok-contributors:)', () => {
   test('formatOkActor elides summaries when empty/absent (legacy byte-identity)', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       v: 1,
       writer_id: 'agent-a',
       principal: null,
@@ -1152,7 +1152,7 @@ describe('OkActorEntry summaries field (consolidated from ok-contributors:)', ()
   });
 
   test('formatOkActor elides summaries when explicitly empty array', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       v: 1,
       writer_id: 'agent-a',
       principal: null,
@@ -1170,7 +1170,7 @@ describe('OkActorEntry summaries field (consolidated from ok-contributors:)', ()
   });
 
   test('formatOkActor includes summaries when populated', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       v: 1,
       writer_id: 'agent-a',
       principal: null,
@@ -1189,7 +1189,7 @@ describe('OkActorEntry summaries field (consolidated from ok-contributors:)', ()
   });
 
   test('parseOkActor round-trips summaries', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       v: 1,
       writer_id: 'agent-a',
       principal: null,
@@ -1225,7 +1225,7 @@ describe('OkActorEntry summaries field (consolidated from ok-contributors:)', ()
 });
 
 describe('OkActorEntry previous_paths field (timeline rename-history mitigation)', () => {
-  const baseEntry: OkActorEntry = {
+  const baseEntry: GqActorEntry = {
     v: 1,
     writer_id: 'agent-a',
     principal: null,
@@ -1244,12 +1244,12 @@ describe('OkActorEntry previous_paths field (timeline rename-history mitigation)
   });
 
   test('formatOkActor elides previous_paths when explicitly empty array', () => {
-    const entry: OkActorEntry = { ...baseEntry, previous_paths: [] };
+    const entry: GqActorEntry = { ...baseEntry, previous_paths: [] };
     expect(formatOkActor(entry)).not.toContain('previous_paths');
   });
 
   test('formatOkActor includes previous_paths when populated', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       ...baseEntry,
       previous_paths: [{ from: 'articles/auth', to: 'essays/auth' }],
     };
@@ -1258,7 +1258,7 @@ describe('OkActorEntry previous_paths field (timeline rename-history mitigation)
   });
 
   test('formatOkActor includes previous_paths after summaries when both present', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       ...baseEntry,
       summaries: ['rename'],
       previous_paths: [{ from: 'articles/auth', to: 'essays/auth' }],
@@ -1271,7 +1271,7 @@ describe('OkActorEntry previous_paths field (timeline rename-history mitigation)
   });
 
   test('parseOkActor round-trips previous_paths chain', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       ...baseEntry,
       previous_paths: [
         { from: 'articles/auth', to: 'docs/auth' },
@@ -1358,13 +1358,13 @@ describe('OkActorEntry previous_paths field (timeline rename-history mitigation)
     for (const legacyLine of corpus) {
       const parsed = parseOkActor(legacyLine);
       expect(parsed).not.toBeNull();
-      const reformatted = formatOkActor(parsed as OkActorEntry);
+      const reformatted = formatOkActor(parsed as GqActorEntry);
       expect(reformatted).toBe(legacyLine);
     }
   });
 
   test('byte-identity: round-trip preserves previous_paths exactly', () => {
-    const entry: OkActorEntry = {
+    const entry: GqActorEntry = {
       ...baseEntry,
       previous_paths: [
         { from: 'a', to: 'b' },
@@ -1375,7 +1375,7 @@ describe('OkActorEntry previous_paths field (timeline rename-history mitigation)
     const line = formatOkActor(entry);
     const parsed = parseOkActor(line);
     expect(parsed).not.toBeNull();
-    const relined = formatOkActor(parsed as OkActorEntry);
+    const relined = formatOkActor(parsed as GqActorEntry);
     expect(relined).toBe(line);
   });
 });

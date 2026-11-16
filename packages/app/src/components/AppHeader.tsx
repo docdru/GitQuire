@@ -219,7 +219,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
       data-app-header=""
       data-electron-drag={isElectronHost ? '' : undefined}
       className={cn(
-        'grid h-[var(--ok-app-header-height,2.75rem)] w-full shrink-0 items-center',
+        'grid h-[var(--gq-app-header-height,2.75rem)] w-full shrink-0 items-center',
         'grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] grid-rows-1',
         'bg-desk',
         isElectronHost &&
@@ -229,7 +229,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
       <div
         ref={setLeading}
         data-app-header-leading=""
-        className="flex min-w-0 items-center gap-1 justify-self-start ps-[calc(var(--ok-titlebar-reserve-left,0px)+0.625rem)] rtl:ps-[calc(var(--ok-titlebar-reserve-right,0px)+0.625rem)]"
+        className="flex min-w-0 items-center gap-1 justify-self-start ps-[calc(var(--gq-titlebar-reserve-left,0px)+0.625rem)] rtl:ps-[calc(var(--gq-titlebar-reserve-right,0px)+0.625rem)]"
       >
         {isElectronHost && !singleFile && <NavigationHistoryControls />}
         {!singleFile && (
@@ -264,7 +264,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
           'flex min-w-0 items-center justify-end gap-1 justify-self-end pe-2.5',
           '[&_[data-slot=presence-bar]]:px-0',
           isElectronHost &&
-            'me-[var(--ok-titlebar-reserve-right,0px)] rtl:me-[var(--ok-titlebar-reserve-left,0px)]',
+            'me-[var(--gq-titlebar-reserve-right,0px)] rtl:me-[var(--gq-titlebar-reserve-left,0px)]',
         )}
       >
         {actionsOverflowed ? (

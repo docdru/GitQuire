@@ -4,13 +4,13 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const APP_ROOT = fileURLToPath(new URL('../../', import.meta.url));
-const OK_ROOT = join(APP_ROOT, '..', '..');
+const GQ_ROOT = join(APP_ROOT, '..', '..');
 
 export const BABEL_OUTPUT_CACHE_DIR = join(APP_ROOT, 'node_modules', '.cache', 'ok-browser-babel');
 
 export const BABEL_OUTPUT_KEY_FILES: readonly string[] = [
-  join(OK_ROOT, 'pnpm-lock.yaml'),
-  join(OK_ROOT, 'node_modules', '.pnpm', 'lock.yaml'),
+  join(GQ_ROOT, 'pnpm-lock.yaml'),
+  join(GQ_ROOT, 'node_modules', '.pnpm', 'lock.yaml'),
   join(APP_ROOT, 'vite.react-babel.ts'),
   join(APP_ROOT, 'vitest.browser.config.ts'),
   join(APP_ROOT, 'tests', 'foundation', 'browser-node-compat.ts'),

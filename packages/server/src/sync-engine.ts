@@ -12,7 +12,7 @@ import { join, relative, resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import {
-  OK_DIR,
+  GQ_DIR,
   type PullOutcome,
   pathspecArgs,
   REFUSED_SYMLINK_PATHS_CAP,
@@ -497,7 +497,7 @@ export class SyncEngine {
     this.contentFilter = options.contentFilter;
     this.contentRoot = options.contentRoot ?? '';
     this.rootOkOutsideContentWalk = toPosix(
-      relative(this.contentDir, join(this.projectDir, OK_DIR)),
+      relative(this.contentDir, join(this.projectDir, GQ_DIR)),
     ).startsWith('..');
     this.pullIntervalSeconds = options.pullIntervalSeconds ?? 30;
     this.pushIntervalSeconds = options.pushIntervalSeconds ?? 60;
@@ -2985,7 +2985,7 @@ export class SyncEngine {
     const refusedDirs = [...refused].filter((p) => p.endsWith('/'));
     const isRefused = (p: string) => refused.has(p) || refusedDirs.some((d) => p.startsWith(d));
     const stageable = probeOk ? files.filter((f) => !isRefused(f.projectRelPath)) : files;
-    const hasOkSegment = (p: string) => p.startsWith(`${OK_DIR}/`) || p.includes(`/${OK_DIR}/`);
+    const hasOkSegment = (p: string) => p.startsWith(`${GQ_DIR}/`) || p.includes(`/${GQ_DIR}/`);
     const forced = probeOk ? stageable.filter((f) => hasOkSegment(f.projectRelPath)) : [];
     const plain = probeOk ? stageable.filter((f) => !hasOkSegment(f.projectRelPath)) : stageable;
     for (const [addArgs, group] of [
@@ -3031,7 +3031,7 @@ export class SyncEngine {
             continue;
           const entersOkSubtree = dirRelPath
             .split('/')
-            .some((segment) => segment.toLowerCase() === OK_DIR);
+            .some((segment) => segment.toLowerCase() === GQ_DIR);
           walk(
             fullPath,
             filterBase,
@@ -3056,10 +3056,10 @@ export class SyncEngine {
       walk(this.contentDir, this.contentDir, CONTENT_SYNC_STAGING_SCOPE);
     }
     if (this.rootOkOutsideContentWalk) {
-      const rootOkDir = join(this.projectDir, OK_DIR);
+      const rootOkDir = join(this.projectDir, GQ_DIR);
       if (
         existsSync(rootOkDir) &&
-        !this.contentFilter.isDirExcluded(OK_DIR, PROJECT_SYNC_STAGING_SCOPE)
+        !this.contentFilter.isDirExcluded(GQ_DIR, PROJECT_SYNC_STAGING_SCOPE)
       ) {
         walk(rootOkDir, this.projectDir, PROJECT_SYNC_STAGING_SCOPE, failUnreadableOkSubtree);
       }
@@ -3080,7 +3080,7 @@ export class SyncEngine {
       !this.contentFilter.isExcluded(contentRelPath, CONTENT_SYNC_STAGING_SCOPE);
     const inRootOkWalk =
       this.rootOkOutsideContentWalk &&
-      projRelPath.startsWith(`${OK_DIR}/`) &&
+      projRelPath.startsWith(`${GQ_DIR}/`) &&
       !this.contentFilter.isExcluded(projRelPath, PROJECT_SYNC_STAGING_SCOPE);
     return inContentWalk || inRootOkWalk;
   }

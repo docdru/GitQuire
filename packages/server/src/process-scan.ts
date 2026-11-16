@@ -12,34 +12,34 @@ import { isValidLockPid, type ProcessLiveness, readProcessLiveness } from './pro
 const SPAWN_TIMEOUT_MS = 2000;
 const LOCK_SCAN_MAX_DEPTH = 3;
 const LOCK_SCAN_MAX_ENTRIES = 2000;
-const OK_LOCK_DIR_ARG_PREFIX = '--ok-lock-dir-b64=';
-const OK_PROJECT_PATH_ARG_PREFIX = '--ok-project-path=';
+const GQ_LOCK_DIR_ARG_PREFIX = '--gq-lock-dir-b64=';
+const GQ_PROJECT_PATH_ARG_PREFIX = '--gq-project-path=';
 const LISTENER_QUERY_ARGS = ['-iTCP', '-sTCP:LISTEN', '-nP'];
-const OK_PROCESS_PGREP_QUERY =
-  'cli\\.mjs|open-knowledge|Open ?Knowledge(\\.app| Helper)|--ok-lock-dir-b64=|--ok-project-path=|(^|[ /])ok[ ]+(start|mcp|ui)([ ]|$)|packages/(cli|app)|hocuspocus|vite';
+const GQ_PROCESS_PGREP_QUERY =
+  'cli\\.mjs|open-knowledge|Open ?Knowledge(\\.app| Helper)|--gq-lock-dir-b64=|--gq-project-path=|(^|[ /])ok[ ]+(start|mcp|ui)([ ]|$)|packages/(cli|app)|hocuspocus|vite';
 
-const OK_PROCESS_PATTERNS: RegExp[] = [
+const GQ_PROCESS_PATTERNS: RegExp[] = [
   /^open-knowledge-server(?:\s|$)/,
   /cli\.mjs/,
   /(^|[\s/])(open-knowledge|ok)\s+(start|mcp|ui)(\s|$)/,
   /Open ?Knowledge(?:\.app| Helper)/,
   /(^|[\s/])bun([\s/]).*?(run dev|packages\/app|vite|hocuspocus)/,
   /(^|[\s/])node([\s/]).*?(packages\/(cli|app)|vite|hocuspocus)/,
-  /(^|\s)--ok-lock-dir-b64=/,
-  /(^|\s)--ok-project-path=/,
+  /(^|\s)--gq-lock-dir-b64=/,
+  /(^|\s)--gq-project-path=/,
 ];
 
 function isOkProcess(command: string): boolean {
-  return OK_PROCESS_PATTERNS.some((re) => re.test(command));
+  return GQ_PROCESS_PATTERNS.some((re) => re.test(command));
 }
 
 function extractMarkedLockDir(command: string): string | null {
   const token = command
     .trim()
     .split(/\s+/)
-    .find((part) => part.startsWith(OK_LOCK_DIR_ARG_PREFIX));
+    .find((part) => part.startsWith(GQ_LOCK_DIR_ARG_PREFIX));
   if (token == null) return null;
-  const encoded = token.slice(OK_LOCK_DIR_ARG_PREFIX.length);
+  const encoded = token.slice(GQ_LOCK_DIR_ARG_PREFIX.length);
   if (!encoded) return null;
   try {
     const decoded = Buffer.from(encoded, 'base64url').toString('utf8');
@@ -50,9 +50,9 @@ function extractMarkedLockDir(command: string): string | null {
 }
 
 function extractProjectPathArg(command: string): string | null {
-  const markerIdx = command.indexOf(OK_PROJECT_PATH_ARG_PREFIX);
+  const markerIdx = command.indexOf(GQ_PROJECT_PATH_ARG_PREFIX);
   if (markerIdx === -1) return null;
-  const valueStart = markerIdx + OK_PROJECT_PATH_ARG_PREFIX.length;
+  const valueStart = markerIdx + GQ_PROJECT_PATH_ARG_PREFIX.length;
   const rest = command.slice(valueStart);
   const nextArgIdx = rest.search(/\s--/);
   const raw = (nextArgIdx === -1 ? rest : rest.slice(0, nextArgIdx)).trim();
@@ -60,13 +60,13 @@ function extractProjectPathArg(command: string): string | null {
   return isAbsolute(raw) ? raw : null;
 }
 
-interface OkProcessEntry {
+interface GqProcessEntry {
   pid: number;
   command: string;
 }
 
-function parsePgrepOutput(output: string): OkProcessEntry[] {
-  const entries: OkProcessEntry[] = [];
+function parsePgrepOutput(output: string): GqProcessEntry[] {
+  const entries: GqProcessEntry[] = [];
   for (const line of output.split('\n')) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -169,8 +169,8 @@ class PsListingError extends Error {
   }
 }
 
-async function readPsEntries(args: string[]): Promise<OkProcessEntry[]> {
-  const entries: OkProcessEntry[] = [];
+async function readPsEntries(args: string[]): Promise<GqProcessEntry[]> {
+  const entries: GqProcessEntry[] = [];
   let header = true;
   const result = await readCommandLines('ps', args, (line) => {
     if (header) {
@@ -191,13 +191,13 @@ async function readPsEntries(args: string[]): Promise<OkProcessEntry[]> {
   return entries;
 }
 
-async function findOkProcessEntries(strict = false): Promise<OkProcessEntry[]> {
+async function findOkProcessEntries(strict = false): Promise<GqProcessEntry[]> {
   const failures: string[] = [];
   const unix = process.platform === 'darwin' || process.platform === 'linux';
   if (!unix) {
     const pgrepResult = spawnSync(
       'pgrep',
-      ['-a', '-f', OK_PROCESS_PGREP_QUERY],
+      ['-a', '-f', GQ_PROCESS_PGREP_QUERY],
       withHiddenWindowsConsole({
         encoding: 'utf-8',
         timeout: SPAWN_TIMEOUT_MS,
@@ -572,7 +572,7 @@ export async function scanLockProcesses(
   probeOptions: (pid: number) => ProcessProbeOptions = createProbeFailureReporter(),
 ): Promise<LockProcessScan> {
   const scan: LockProcessScan = { candidates: [], unavailable: [] };
-  let entries: OkProcessEntry[];
+  let entries: GqProcessEntry[];
   try {
     entries = await findOkProcessEntries(true);
   } catch (error) {

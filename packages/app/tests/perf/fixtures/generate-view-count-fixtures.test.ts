@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { MarkdownManager, OK_DIR, sharedExtensions } from '@gitquire/core';
+import { GQ_DIR, MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { withTempDir } from '../../temp-dir.test-helper.ts';
 import { generateFixture } from './generate-view-count-fixtures.ts';
@@ -69,7 +69,7 @@ describe('generateFixture — convergence', () => {
       const outDir = resolve(tmp, 'shape-bucket');
       generateFixture(50, outDir);
       expect(existsSync(resolve(outDir, 'FIXTURE.md'))).toBe(true);
-      expect(existsSync(resolve(outDir, OK_DIR, 'config.yml'))).toBe(true);
+      expect(existsSync(resolve(outDir, GQ_DIR, 'config.yml'))).toBe(true);
     });
   });
 

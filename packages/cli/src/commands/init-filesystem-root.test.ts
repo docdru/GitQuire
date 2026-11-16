@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OK_DIR } from '../constants.ts';
+import { GQ_DIR } from '../constants.ts';
 
 const rootLike = vi.hoisted(() => ({ dir: '' }));
 
@@ -52,7 +52,7 @@ describe('gq init refuses the top of a drive', () => {
     ).rejects.toBeInstanceOf(FilesystemRootProjectError);
 
     expect(existsSync(join(driveRoot, '.git'))).toBe(false);
-    expect(existsSync(join(driveRoot, OK_DIR))).toBe(false);
+    expect(existsSync(join(driveRoot, GQ_DIR))).toBe(false);
     expect(existsSync(join(driveRoot, '.okignore'))).toBe(false);
   });
 
@@ -68,7 +68,7 @@ describe('gq init refuses the top of a drive', () => {
       expect(process.exitCode).toBe(64);
       const printed = stderrSpy.mock.calls.map((call) => String(call[0])).join('');
       expect(printed).toContain('Refusing to set up a GitQuire project at the top of a drive');
-      expect(existsSync(join(driveRoot, OK_DIR))).toBe(false);
+      expect(existsSync(join(driveRoot, GQ_DIR))).toBe(false);
     } finally {
       process.chdir(savedCwd);
       process.exitCode = savedExitCode;

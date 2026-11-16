@@ -4,8 +4,8 @@ import { dirname, isAbsolute, normalize, relative, resolve, sep } from 'node:pat
 import { DatabaseSync } from 'node:sqlite';
 import {
   currentCliCommandName,
+  GQ_DIR,
   LOCAL_DIR,
-  OK_DIR,
   SERVER_AUTHORITY_REGISTRY_FILENAME,
 } from '@gitquire/core';
 import { z } from 'zod';
@@ -240,7 +240,7 @@ function resolveServerAuthorityRegistryPath(override?: string): string {
     osHome = dirname(override);
   }
   return pathSchema.parse(
-    override ?? resolve(osHome, OK_DIR, LOCAL_DIR, SERVER_AUTHORITY_REGISTRY_FILENAME),
+    override ?? resolve(osHome, GQ_DIR, LOCAL_DIR, SERVER_AUTHORITY_REGISTRY_FILENAME),
   );
 }
 

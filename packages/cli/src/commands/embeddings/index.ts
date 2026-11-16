@@ -5,9 +5,9 @@ import {
   currentCliCommandName,
   DEFAULT_EMBEDDINGS_BASE_URL,
   DEFAULT_EMBEDDINGS_MODEL,
+  GQ_USER_HOME_SECRETS_FILE,
   humanFormat,
   isSemanticSearchOffered,
-  OK_USER_HOME_SECRETS_FILE,
   okUserHomeDisplayPath,
   type SemanticIndexStatus,
   SemanticIndexStatusSchema,
@@ -157,7 +157,7 @@ function setKeyCommand(): Command {
       }
       process.stderr.write(
         `✓ Embeddings API key stored for ${baseUrl}\n` +
-          `  (${store.backend === 'keyring' ? 'OS credential store' : `file fallback: ${okUserHomeDisplayPath(OK_USER_HOME_SECRETS_FILE)}, 0600`}; never in the project).\n` +
+          `  (${store.backend === 'keyring' ? 'OS credential store' : `file fallback: ${okUserHomeDisplayPath(GQ_USER_HOME_SECRETS_FILE)}, 0600`}; never in the project).\n` +
           `  Enable semantic search with \`${currentCliCommandName()} embeddings enable\`, or in\n` +
           '  OK Desktop → Settings → This project → Search.\n',
       );
@@ -482,7 +482,7 @@ function statusCommand(): Command {
         keySource === 'env'
           ? `environment (${EMBEDDINGS_API_KEY_ENV})`
           : keyStorage === 'file'
-            ? `file fallback: ${okUserHomeDisplayPath(OK_USER_HOME_SECRETS_FILE)}`
+            ? `file fallback: ${okUserHomeDisplayPath(GQ_USER_HOME_SECRETS_FILE)}`
             : 'OS credential store';
       const keyLabel = keyUnavailable
         ? 'unavailable (saved key presence is unknown)'

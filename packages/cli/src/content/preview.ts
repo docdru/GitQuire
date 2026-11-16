@@ -2,7 +2,7 @@ import { existsSync, lstatSync, readdirSync, realpathSync, statSync } from 'node
 import { join, relative } from 'node:path';
 import { currentDesktopProduct } from '@gitquire/core';
 import { createContentFilter } from '@gitquire/server';
-import { OK_DIR } from '../constants.ts';
+import { GQ_DIR } from '../constants.ts';
 
 interface PreviewOptions {
   projectDir: string;
@@ -138,10 +138,10 @@ export function formatPreviewBlock(result: PreviewResult, cwd: string): string {
   }
 
   lines.push('');
-  const configPath = join(cwd, OK_DIR, 'config.yml');
+  const configPath = join(cwd, GQ_DIR, 'config.yml');
   if (existsSync(configPath)) {
     lines.push('  To adjust scope, add patterns to .okignore at the project root.');
-    lines.push(`  To change the content root, edit ${OK_DIR}/config.yml → content.dir.`);
+    lines.push(`  To change the content root, edit ${GQ_DIR}/config.yml → content.dir.`);
   } else {
     lines.push(
       `  Run \`${currentDesktopProduct().cliCommandNames[1]} init\` to scaffold config + .okignore.`,

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { expectVisualClassTokens } from '@/test-utils/visual-contract';
 
 vi.doMock('@/components/OkBlob', () => ({
-  OkBlob: ({ size, variant }: { size: number; variant?: string }) => (
+  GqBlob: ({ size, variant }: { size: number; variant?: string }) => (
     <div data-testid="ok-blob-probe" data-size={String(size)} data-variant={variant ?? 'default'} />
   ),
 }));
@@ -31,7 +31,7 @@ function hint() {
 const JUMP_BAND_Y = 10;
 const DUCK_BAND_Y = 90;
 
-describe('OkBlobRunner', () => {
+describe('GqBlobRunner', () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -39,23 +39,23 @@ describe('OkBlobRunner', () => {
   });
 
   test('starts asleep, exactly as the static mascot it replaces', async () => {
-    const { OkBlobRunner } = await import('./OkBlobRunner');
-    render(<OkBlobRunner />);
+    const { GqBlobRunner } = await import('./OkBlobRunner');
+    render(<GqBlobRunner />);
 
     expect(screen.getByTestId('ok-blob-probe').dataset.variant).toBe('sleeping');
     expect(hint()).toBe('Press Space or tap the blob to start');
   });
 
   test('the play area is decorative and hidden from assistive tech', async () => {
-    const { OkBlobRunner } = await import('./OkBlobRunner');
-    render(<OkBlobRunner />);
+    const { GqBlobRunner } = await import('./OkBlobRunner');
+    render(<GqBlobRunner />);
 
     expect(root().getAttribute('aria-hidden')).toBe('true');
   });
 
   test('poking the play area wakes the blob and starts a run', async () => {
-    const { OkBlobRunner } = await import('./OkBlobRunner');
-    render(<OkBlobRunner />);
+    const { GqBlobRunner } = await import('./OkBlobRunner');
+    render(<GqBlobRunner />);
 
     fireEvent.pointerDown(track(), { clientY: JUMP_BAND_Y });
 
@@ -64,8 +64,8 @@ describe('OkBlobRunner', () => {
   });
 
   test('a low-band press ducks the blob, and releasing stands it back up', async () => {
-    const { OkBlobRunner } = await import('./OkBlobRunner');
-    render(<OkBlobRunner />);
+    const { GqBlobRunner } = await import('./OkBlobRunner');
+    render(<GqBlobRunner />);
 
     fireEvent.pointerDown(track(), { clientY: JUMP_BAND_Y });
     fireEvent.pointerUp(track());
@@ -86,18 +86,18 @@ describe('OkBlobRunner', () => {
   });
 
   test('autoStart begins a run without any input', async () => {
-    const { OkBlobRunner } = await import('./OkBlobRunner');
-    render(<OkBlobRunner autoStart />);
+    const { GqBlobRunner } = await import('./OkBlobRunner');
+    render(<GqBlobRunner autoStart />);
 
     await waitFor(() => expect(hint()).toBe('Space to jump · ↓ to duck'));
   });
 
   test('a press in the lower band ducks, and releasing stands the blob back up', async () => {
-    const { OkBlobRunner } = await import('./OkBlobRunner');
+    const { GqBlobRunner } = await import('./OkBlobRunner');
     const { createRunnerState, isDucked, setDucking, startRunner } = await import(
       './ok-blob-runner-logic'
     );
-    render(<OkBlobRunner />);
+    render(<GqBlobRunner />);
 
     fireEvent.pointerDown(track(), { clientY: JUMP_BAND_Y });
     fireEvent.pointerUp(track());
@@ -113,9 +113,9 @@ describe('OkBlobRunner', () => {
   });
 
   test('anchors the score to the player physically, not logically', async () => {
-    const { OkBlobRunner } = await import('./OkBlobRunner');
+    const { GqBlobRunner } = await import('./OkBlobRunner');
     const { PLAYER_X } = await import('./ok-blob-runner-logic');
-    render(<OkBlobRunner />);
+    render(<GqBlobRunner />);
 
     const score = document.querySelector<HTMLElement>('[data-slot="ok-blob-runner-score"]');
     if (!score) throw new Error('score not rendered');
@@ -125,9 +125,9 @@ describe('OkBlobRunner', () => {
 
   test('keeps the anchor with a stored best, which adds a second span', async () => {
     localStorage.setItem('ok-blob-runner-best', '421');
-    const { OkBlobRunner } = await import('./OkBlobRunner');
+    const { GqBlobRunner } = await import('./OkBlobRunner');
     const { PLAYER_X } = await import('./ok-blob-runner-logic');
-    render(<OkBlobRunner />);
+    render(<GqBlobRunner />);
 
     const score = document.querySelector<HTMLElement>('[data-slot="ok-blob-runner-score"]');
     if (!score) throw new Error('score not rendered');
@@ -137,8 +137,8 @@ describe('OkBlobRunner', () => {
   });
 
   test('renders the full obstacle pool up front so no obstacle can go unpainted', async () => {
-    const { OkBlobRunner, OBSTACLE_POOL_SIZE } = await import('./OkBlobRunner');
-    render(<OkBlobRunner />);
+    const { GqBlobRunner, OBSTACLE_POOL_SIZE } = await import('./OkBlobRunner');
+    render(<GqBlobRunner />);
 
     const pool = root().querySelectorAll('[data-slot="ok-blob-runner-obstacle"]');
     expect(pool).toHaveLength(OBSTACLE_POOL_SIZE);
@@ -159,8 +159,8 @@ describe('OkBlobRunner', () => {
         }) as unknown as MediaQueryList,
     );
 
-    const { OkBlobRunner } = await import('./OkBlobRunner');
-    render(<OkBlobRunner autoStart />);
+    const { GqBlobRunner } = await import('./OkBlobRunner');
+    render(<GqBlobRunner autoStart />);
 
     expect(document.querySelector('[data-slot="ok-blob-runner-track"]')).toBeNull();
     expect(screen.getByTestId('ok-blob-probe').dataset.variant).toBe('sleeping');
@@ -181,8 +181,8 @@ describe('OkBlobRunner', () => {
         }) as unknown as MediaQueryList,
     );
 
-    const { OkBlobRunner } = await import('./OkBlobRunner');
-    render(<OkBlobRunner />);
+    const { GqBlobRunner } = await import('./OkBlobRunner');
+    render(<GqBlobRunner />);
 
     expect(screen.getByTestId('ok-blob-probe').dataset.variant).toBe('sleeping');
     expect(document.querySelector('[data-slot="ok-blob-runner"]')).toBeNull();

@@ -1,6 +1,6 @@
 import { expect, REQUIRED_FIXTURE_ENTRY_NAMES, test } from './_helpers';
 
-test.use({ workerServerEnv: { OK_TEST_WARMTH_CONTRACT: '1' } });
+test.use({ workerServerEnv: { GQ_TEST_WARMTH_CONTRACT: '1' } });
 
 const APP_READY_TIMEOUT_MS = 90_000;
 const WARM_FLOOR_MS = 250;

@@ -311,14 +311,14 @@ describe('buildOverlaidEnv — case handling across the overlay and the PATH com
 
   test('win32 assignment replaces a differently-cased inherited key instead of leaving a stale twin', () => {
     expect(
-      buildOverlaidEnv({ Ok_Marker: 'inherited' }, { OK_MARKER: 'overlay' }, undefined, 'win32'),
-    ).toEqual({ OK_MARKER: 'overlay' });
+      buildOverlaidEnv({ Gq_Marker: 'inherited' }, { GQ_MARKER: 'overlay' }, undefined, 'win32'),
+    ).toEqual({ GQ_MARKER: 'overlay' });
   });
 
   test('non-win32 assignment keeps a differently-cased POSIX variable as a distinct entry', () => {
     expect(
-      buildOverlaidEnv({ Ok_Marker: 'inherited' }, { OK_MARKER: 'overlay' }, undefined, 'linux'),
-    ).toEqual({ Ok_Marker: 'inherited', OK_MARKER: 'overlay' });
+      buildOverlaidEnv({ Gq_Marker: 'inherited' }, { GQ_MARKER: 'overlay' }, undefined, 'linux'),
+    ).toEqual({ Gq_Marker: 'inherited', GQ_MARKER: 'overlay' });
   });
 
   test('win32 extraPathDirs folds an inherited Path into one PATH entry and keeps its value', () => {
@@ -352,60 +352,60 @@ describe('buildOverlaidEnv — case handling across the overlay and the PATH com
   });
 
   test('the base environment is copied, not mutated', () => {
-    const base = { PATH: '/base', Ok_Marker: 'inherited' };
-    buildOverlaidEnv(base, { OK_MARKER: 'overlay' }, ['/opt/one'], 'win32');
-    expect(base).toEqual({ PATH: '/base', Ok_Marker: 'inherited' });
+    const base = { PATH: '/base', Gq_Marker: 'inherited' };
+    buildOverlaidEnv(base, { GQ_MARKER: 'overlay' }, ['/opt/one'], 'win32');
+    expect(base).toEqual({ PATH: '/base', Gq_Marker: 'inherited' });
   });
 });
 
 describe('runSubprocess — the win32-folded environment reaches the child', () => {
   const caseVariantsCli = fixtureCli(
-    `process.stdout.write(JSON.stringify(Object.fromEntries(Object.entries(process.env).filter(([k]) => k.toLowerCase() === 'ok_test_case_marker'))))`,
+    `process.stdout.write(JSON.stringify(Object.fromEntries(Object.entries(process.env).filter(([k]) => k.toLowerCase() === 'gq_test_case_marker'))))`,
   );
 
   test('win32 assignment hands the child one folded key, not a stale twin', async () => {
-    const previous = process.env.Ok_Test_Case_Marker;
-    process.env.Ok_Test_Case_Marker = 'inherited';
+    const previous = process.env.Gq_Test_Case_Marker;
+    process.env.Gq_Test_Case_Marker = 'inherited';
     try {
       const lines: { parsed: Record<string, unknown> | null }[] = [];
       const proc = runSubprocess({
         cliArgs: caseVariantsCli,
-        cliEnv: { OK_TEST_CASE_MARKER: 'overlay' },
+        cliEnv: { GQ_TEST_CASE_MARKER: 'overlay' },
         platform: 'win32',
         trailingArgs: [],
         timeoutMs: 5000,
         onLine: (line) => lines.push(line),
       });
       await proc.done;
-      expect(lines[0]?.parsed).toEqual({ OK_TEST_CASE_MARKER: 'overlay' });
+      expect(lines[0]?.parsed).toEqual({ GQ_TEST_CASE_MARKER: 'overlay' });
     } finally {
-      if (previous === undefined) delete process.env.Ok_Test_Case_Marker;
-      else process.env.Ok_Test_Case_Marker = previous;
+      if (previous === undefined) delete process.env.Gq_Test_Case_Marker;
+      else process.env.Gq_Test_Case_Marker = previous;
     }
   });
 
   test.runIf(process.platform !== 'win32')(
     'POSIX: the default platform keeps both inherited casings, so the overlay adds rather than folds',
     async () => {
-      const previous = process.env.Ok_Test_Case_Marker;
-      process.env.Ok_Test_Case_Marker = 'inherited';
+      const previous = process.env.Gq_Test_Case_Marker;
+      process.env.Gq_Test_Case_Marker = 'inherited';
       try {
         const lines: { parsed: Record<string, unknown> | null }[] = [];
         const proc = runSubprocess({
           cliArgs: caseVariantsCli,
-          cliEnv: { OK_TEST_CASE_MARKER: 'overlay' },
+          cliEnv: { GQ_TEST_CASE_MARKER: 'overlay' },
           trailingArgs: [],
           timeoutMs: 5000,
           onLine: (line) => lines.push(line),
         });
         await proc.done;
         expect(lines[0]?.parsed).toEqual({
-          Ok_Test_Case_Marker: 'inherited',
-          OK_TEST_CASE_MARKER: 'overlay',
+          Gq_Test_Case_Marker: 'inherited',
+          GQ_TEST_CASE_MARKER: 'overlay',
         });
       } finally {
-        if (previous === undefined) delete process.env.Ok_Test_Case_Marker;
-        else process.env.Ok_Test_Case_Marker = previous;
+        if (previous === undefined) delete process.env.Gq_Test_Case_Marker;
+        else process.env.Gq_Test_Case_Marker = previous;
       }
     },
   );

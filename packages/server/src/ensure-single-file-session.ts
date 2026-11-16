@@ -78,7 +78,7 @@ export function createEnsureSingleFileSession(): (absFile: string) => Promise<bo
       }
       const env: NodeJS.ProcessEnv = {
         ...process.env,
-        OK_SINGLE_FILE_NO_OPEN: '1',
+        GQ_SINGLE_FILE_NO_OPEN: '1',
         ELECTRON_RUN_AS_NODE: '1',
       };
       const child = spawn(

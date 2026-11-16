@@ -1,14 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { LEGACY_SKILL_STORE_ROOT, OK_DIR, pathspecArgs, toPathspec } from '@gitquire/core';
+import { GQ_DIR, LEGACY_SKILL_STORE_ROOT, pathspecArgs, toPathspec } from '@gitquire/core';
 import { discoverGitRepository } from '@gitquire/core/git-repository';
 import { withHiddenWindowsConsole } from '@gitquire/server';
 
-const OK_IGNORE_FILENAME = '.okignore';
+const GQ_IGNORE_FILENAME = '.okignore';
 
-const OK_CARVE_CHILDREN = `**/${OK_DIR}/*`;
-const OK_CARVE_SKILLS_REINCLUDE = `!**/${LEGACY_SKILL_STORE_ROOT}/`;
+const GQ_CARVE_CHILDREN = `**/${GQ_DIR}/*`;
+const GQ_CARVE_SKILLS_REINCLUDE = `!**/${LEGACY_SKILL_STORE_ROOT}/`;
 
 export type ExcludeWriteResult =
   | { kind: 'updated'; appended: string[]; alreadyPresent: string[]; removed: string[] }
@@ -26,7 +26,7 @@ export interface TrackedRefusal {
 export type SharingMode = 'shared' | 'local-only' | 'no-git';
 
 export function getOkArtifactPaths(_projectRoot: string): readonly string[] {
-  return [`${OK_DIR}/`, OK_IGNORE_FILENAME];
+  return [`${GQ_DIR}/`, GQ_IGNORE_FILENAME];
 }
 
 export function addOkPathsToGitExclude(
@@ -89,8 +89,8 @@ export function removeOkPathsFromGitExclude(
   for (const set of variantsByPath) {
     for (const v of set) allVariants.add(v);
   }
-  allVariants.add(OK_CARVE_CHILDREN);
-  allVariants.add(OK_CARVE_SKILLS_REINCLUDE);
+  allVariants.add(GQ_CARVE_CHILDREN);
+  allVariants.add(GQ_CARVE_SKILLS_REINCLUDE);
 
   let before: string;
   try {
@@ -148,7 +148,7 @@ export function readSharingMode(projectRoot: string): SharingMode {
   for (const p of artifacts) {
     if (hasAnyVariant(present, p)) return 'local-only';
   }
-  if (present.has(OK_CARVE_CHILDREN)) return 'local-only';
+  if (present.has(GQ_CARVE_CHILDREN)) return 'local-only';
   return 'shared';
 }
 
@@ -165,7 +165,7 @@ export function getExcludedOkPaths(projectRoot: string): readonly string[] {
   const present = collectPresentVariants(content);
   const reported = getOkArtifactPaths(projectRoot).filter((p) => hasAnyVariant(present, p));
   const orphans = [...present].filter(
-    (line) => line === OK_CARVE_CHILDREN || line === OK_CARVE_SKILLS_REINCLUDE,
+    (line) => line === GQ_CARVE_CHILDREN || line === GQ_CARVE_SKILLS_REINCLUDE,
   );
   return [...reported, ...orphans];
 }

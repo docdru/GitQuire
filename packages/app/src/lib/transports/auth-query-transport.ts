@@ -2,9 +2,9 @@ import { type ProblemDetails, ProblemDetailsSchema } from '@gitquire/core/schema
 import { t } from '@lingui/core/macro';
 import { z } from 'zod';
 import type {
-  OkLocalOpAuthReposResponse,
-  OkLocalOpAuthSignoutResponse,
-  OkLocalOpAuthStatusResponse,
+  GqLocalOpAuthReposResponse,
+  GqLocalOpAuthSignoutResponse,
+  GqLocalOpAuthStatusResponse,
 } from '@/lib/desktop-bridge-types';
 
 const DEFAULT_AUTH_QUERY_HOST = 'github.com';
@@ -28,7 +28,7 @@ async function extractProblem(res: Response): Promise<ProblemDetails | undefined
 }
 
 type AuthStatusMember<Authenticated extends boolean> = Extract<
-  OkLocalOpAuthStatusResponse,
+  GqLocalOpAuthStatusResponse,
   { authenticated: Authenticated }
 >;
 
@@ -38,8 +38,8 @@ export type AuthQueryStatus =
 
 export interface AuthQueryTransport {
   status(request?: { host?: string }): Promise<AuthQueryStatus>;
-  repos(request?: { host?: string }): Promise<OkLocalOpAuthReposResponse>;
-  signout?(request?: { host?: string }): Promise<OkLocalOpAuthSignoutResponse>;
+  repos(request?: { host?: string }): Promise<GqLocalOpAuthReposResponse>;
+  signout?(request?: { host?: string }): Promise<GqLocalOpAuthSignoutResponse>;
 }
 
 async function postJson(path: string, body: unknown): Promise<Response> {

@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MarkdownManager, OK_DIR, sharedExtensions } from '@gitquire/core';
+import { GQ_DIR, MarkdownManager, sharedExtensions } from '@gitquire/core';
 
 const TARGET_BYTES = 50_000;
 
@@ -138,7 +138,7 @@ function convergeOnTarget(targetViews: number): ConvergeResult {
   return lastResult;
 }
 
-const OK_CONFIG_YML = `content:
+const GQ_CONFIG_YML = `content:
   dir: .
   include:
     - "**/*.md"
@@ -146,9 +146,9 @@ const OK_CONFIG_YML = `content:
 `;
 
 function writeFixture(outDir: string, markdown: string): void {
-  mkdirSync(resolve(outDir, OK_DIR), { recursive: true });
+  mkdirSync(resolve(outDir, GQ_DIR), { recursive: true });
   writeFileSync(resolve(outDir, 'FIXTURE.md'), markdown);
-  writeFileSync(resolve(outDir, OK_DIR, 'config.yml'), OK_CONFIG_YML);
+  writeFileSync(resolve(outDir, GQ_DIR, 'config.yml'), GQ_CONFIG_YML);
 }
 
 interface Args {

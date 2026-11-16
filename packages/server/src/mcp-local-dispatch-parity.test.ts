@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { BootedServer } from './boot.ts';
@@ -21,7 +21,7 @@ type ToolResult = {
 };
 
 function seedOkScaffold(projectDir: string): void {
-  const okDir = resolve(projectDir, OK_DIR);
+  const okDir = resolve(projectDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
   writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');

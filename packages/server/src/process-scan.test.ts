@@ -129,7 +129,7 @@ describe('findOkProcessPids with Windows Unix tools', () => {
     const encoded = Buffer.from('/Users/mike/notes/.gitquire/local', 'utf8').toString('base64url');
     spawnSyncSpy.mockReturnValue(
       makeSpawnResult({
-        stdout: `24680 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper --type=utility --ok-lock-dir-b64=${encoded}\n`,
+        stdout: `24680 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper --type=utility --gq-lock-dir-b64=${encoded}\n`,
         status: 0,
       }),
     );
@@ -412,7 +412,7 @@ describe('discoverLockDirs', () => {
     spawnSyncSpy
       .mockReturnValueOnce(
         makeSpawnResult({
-          stdout: `PID COMMAND\n77 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper --type=utility --ok-lock-dir-b64=${encoded}\n`,
+          stdout: `PID COMMAND\n77 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper --type=utility --gq-lock-dir-b64=${encoded}\n`,
           status: 0,
         }),
       )
@@ -435,14 +435,14 @@ describe('discoverLockDirs', () => {
     expect(calls[2]?.[0]).toBe('lsof');
   });
 
-  it('discovers desktop project locks from renderer --ok-project-path argv', async () => {
+  it('discovers desktop project locks from renderer --gq-project-path argv', async () => {
     const projectPath = '/Users/mike/Documents/OpenKnowledge/garth_nix';
     const lockDir = `${projectPath}/.gitquire/local`;
 
     spawnSyncSpy
       .mockReturnValueOnce(
         makeSpawnResult({
-          stdout: `PID COMMAND\n93943 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper (Renderer).app/Contents/MacOS/OpenKnowledge Helper (Renderer) --type=renderer --ok-collab-url=ws://localhost:51473/collab --ok-project-path=${projectPath} --ok-project-name=garth_nix --seatbelt-client=53\n`,
+          stdout: `PID COMMAND\n93943 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper (Renderer).app/Contents/MacOS/OpenKnowledge Helper (Renderer) --type=renderer --gq-collab-url=ws://localhost:51473/collab --gq-project-path=${projectPath} --gq-project-name=garth_nix --seatbelt-client=53\n`,
           status: 0,
         }),
       )
@@ -457,12 +457,12 @@ describe('discoverLockDirs', () => {
     expect(dirs).toEqual([lockDir]);
   });
 
-  it('ignores renderer --ok-project-path argv with a relative path', async () => {
+  it('ignores renderer --gq-project-path argv with a relative path', async () => {
     spawnSyncSpy
       .mockReturnValueOnce(
         makeSpawnResult({
           stdout:
-            'PID COMMAND\n93943 /Applications/OpenKnowledge Helper (Renderer) --type=renderer --ok-project-path=relative/notes --ok-project-name=notes\n',
+            'PID COMMAND\n93943 /Applications/OpenKnowledge Helper (Renderer) --type=renderer --gq-project-path=relative/notes --gq-project-name=notes\n',
           status: 0,
         }),
       )
@@ -500,7 +500,7 @@ describe('discoverLockDirs', () => {
       .mockReturnValueOnce(
         makeSpawnResult({
           stdout:
-            'PID COMMAND\n42 /Applications/OpenKnowledge.app/Contents/Frameworks/Helper --ok-lock-dir-b64=\n',
+            'PID COMMAND\n42 /Applications/OpenKnowledge.app/Contents/Frameworks/Helper --gq-lock-dir-b64=\n',
           status: 0,
         }),
       )
@@ -520,7 +520,7 @@ describe('discoverLockDirs', () => {
     spawnSyncSpy
       .mockReturnValueOnce(
         makeSpawnResult({
-          stdout: `PID COMMAND\n42 /Applications/Helper --ok-lock-dir-b64=${encoded}\n`,
+          stdout: `PID COMMAND\n42 /Applications/Helper --gq-lock-dir-b64=${encoded}\n`,
           status: 0,
         }),
       )
@@ -703,7 +703,7 @@ describe('lock recovery process evidence', () => {
     spawnSyncMock
       .mockReturnValueOnce(
         makeSpawnResult({
-          stdout: `PID COMMAND\n${process.pid} node --ok-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}\n`,
+          stdout: `PID COMMAND\n${process.pid} node --gq-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}\n`,
         }),
       )
       .mockReturnValueOnce(makeSpawnResult({ status: 1 }));
@@ -874,7 +874,7 @@ describe('lock recovery process evidence', () => {
     spawnSyncMock
       .mockReturnValueOnce(
         makeSpawnResult({
-          stdout: `PID COMMAND\n${process.pid} open-knowledge-server notes\n${process.pid} node cli.mjs --ok-project-path=/notes\n`,
+          stdout: `PID COMMAND\n${process.pid} open-knowledge-server notes\n${process.pid} node cli.mjs --gq-project-path=/notes\n`,
         }),
       )
       .mockReturnValueOnce(makeSpawnResult({ status: 1 }))

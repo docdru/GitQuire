@@ -18,8 +18,8 @@ import { configureTestGitRepository } from '../../../test-support/configure-git-
 import { composeAndWriteRawBody } from './bridge-intake.ts';
 import {
   DocumentDurabilityState,
-  OK_PATH_UNRESOLVABLE,
-  OK_STORE_REFUSED,
+  GQ_PATH_UNRESOLVABLE,
+  GQ_STORE_REFUSED,
 } from './document-durability-state.ts';
 import { expectStable } from './expect-stable.test-helper.ts';
 import { getLogger } from './logger.ts';
@@ -583,7 +583,7 @@ describe('persistence tripwire with an absent reconciled base', () => {
 
       const failure = durabilityState.takeStoreFailure(docName);
       expect(failure).not.toBeNull();
-      expect(failure?.code).toBe(OK_PATH_UNRESOLVABLE);
+      expect(failure?.code).toBe(GQ_PATH_UNRESOLVABLE);
       expect(durabilityState.isStoreRefused(docName)).toBe(true);
       expect(readFileSync(secretPath, 'utf-8')).toBe(secretContent);
     } finally {
@@ -622,7 +622,7 @@ describe('persistence tripwire with an absent reconciled base', () => {
 
     const failure = durabilityState.takeStoreFailure(docName);
     expect(failure).not.toBeNull();
-    expect(failure?.code).toBe(OK_STORE_REFUSED);
+    expect(failure?.code).toBe(GQ_STORE_REFUSED);
     expect(durabilityState.isStoreRefused(docName)).toBe(true);
     expect(statSync(docPath).isDirectory()).toBe(true);
   });

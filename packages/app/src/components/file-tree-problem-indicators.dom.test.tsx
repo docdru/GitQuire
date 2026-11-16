@@ -3,8 +3,8 @@ import { afterEach, describe, expect, test } from 'vitest';
 import {
   applyProblemIndicators,
   FILE_TREE_PROBLEM_CSS,
-  OK_PROBLEM_BADGE_ATTR,
-  OK_PROBLEM_ROW_ATTR,
+  GQ_PROBLEM_BADGE_ATTR,
+  GQ_PROBLEM_ROW_ATTR,
 } from './file-tree-problem-indicators';
 
 afterEach(() => {
@@ -48,8 +48,8 @@ describe('applyProblemIndicators', () => {
     );
 
     const errorRow = rows.get('a.md');
-    expect(errorRow?.getAttribute(OK_PROBLEM_ROW_ATTR)).toBe('error');
-    const errorBadge = errorRow?.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    expect(errorRow?.getAttribute(GQ_PROBLEM_ROW_ATTR)).toBe('error');
+    const errorBadge = errorRow?.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(errorBadge?.textContent).toBe('3');
     expect(errorBadge?.getAttribute('aria-label')).toBe(
       '3 problems. 2 errors and 1 warning in this file. Open the Problems panel for details.',
@@ -57,32 +57,32 @@ describe('applyProblemIndicators', () => {
     expect(errorBadge?.hasAttribute('aria-hidden')).toBe(false);
 
     const warningRow = rows.get('guides/b.md');
-    expect(warningRow?.getAttribute(OK_PROBLEM_ROW_ATTR)).toBe('warning');
-    const warningBadge = warningRow?.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    expect(warningRow?.getAttribute(GQ_PROBLEM_ROW_ATTR)).toBe('warning');
+    const warningBadge = warningRow?.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(warningBadge?.textContent).toBe('4');
     expect(warningBadge?.getAttribute('aria-label')).toBe(
       '4 problems. 4 warnings in this file. Open the Problems panel for details.',
     );
 
     const cleanRow = rows.get('clean.md');
-    expect(cleanRow?.hasAttribute(OK_PROBLEM_ROW_ATTR)).toBe(false);
-    expect(cleanRow?.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`)).toBeNull();
+    expect(cleanRow?.hasAttribute(GQ_PROBLEM_ROW_ATTR)).toBe(false);
+    expect(cleanRow?.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`)).toBeNull();
   });
 
   test('healed rows lose tint and badge on the next apply', () => {
     const { root, rows } = buildTree(['a.md']);
     applyProblemIndicators(root, new Map([['a', { errorCount: 1, warningCount: 0 }]]));
-    expect(rows.get('a.md')?.getAttribute(OK_PROBLEM_ROW_ATTR)).toBe('error');
+    expect(rows.get('a.md')?.getAttribute(GQ_PROBLEM_ROW_ATTR)).toBe('error');
 
     applyProblemIndicators(root, new Map());
-    expect(rows.get('a.md')?.hasAttribute(OK_PROBLEM_ROW_ATTR)).toBe(false);
-    expect(rows.get('a.md')?.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`)).toBeNull();
+    expect(rows.get('a.md')?.hasAttribute(GQ_PROBLEM_ROW_ATTR)).toBe(false);
+    expect(rows.get('a.md')?.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`)).toBeNull();
   });
 
   test('folder rows are never tinted even when a same-named doc has problems', () => {
     const { root, rows } = buildTree(['guides/']);
     applyProblemIndicators(root, new Map([['guides', { errorCount: 1, warningCount: 0 }]]));
-    expect(rows.get('guides/')?.hasAttribute(OK_PROBLEM_ROW_ATTR)).toBe(false);
+    expect(rows.get('guides/')?.hasAttribute(GQ_PROBLEM_ROW_ATTR)).toBe(false);
   });
 
   test('severity downgrades in place when errors heal but warnings remain', () => {
@@ -90,8 +90,8 @@ describe('applyProblemIndicators', () => {
     applyProblemIndicators(root, new Map([['a', { errorCount: 1, warningCount: 2 }]]));
     applyProblemIndicators(root, new Map([['a', { errorCount: 0, warningCount: 2 }]]));
     const row = rows.get('a.md');
-    expect(row?.getAttribute(OK_PROBLEM_ROW_ATTR)).toBe('warning');
-    expect(row?.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`)?.textContent).toBe('2');
+    expect(row?.getAttribute(GQ_PROBLEM_ROW_ATTR)).toBe('warning');
+    expect(row?.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`)?.textContent).toBe('2');
   });
 
   test('repeated applies are idempotent (one badge, same attrs)', () => {
@@ -99,7 +99,7 @@ describe('applyProblemIndicators', () => {
     const counts = new Map([['a', { errorCount: 0, warningCount: 1 }]]);
     applyProblemIndicators(root, counts);
     applyProblemIndicators(root, counts);
-    expect(rows.get('a.md')?.querySelectorAll(`[${OK_PROBLEM_BADGE_ATTR}]`)).toHaveLength(1);
+    expect(rows.get('a.md')?.querySelectorAll(`[${GQ_PROBLEM_BADGE_ATTR}]`)).toHaveLength(1);
   });
 
   test('a recycled row rebinds its existing badge to the current file', () => {
@@ -108,12 +108,12 @@ describe('applyProblemIndicators', () => {
     const activated: string[] = [];
     const onActivate = (treePath: string) => activated.push(treePath);
     applyProblemIndicators(root, new Map([['a', { errorCount: 1, warningCount: 0 }]]), onActivate);
-    const badge = row?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = row?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
 
     if (row) row.dataset.itemPath = 'b.md';
     applyProblemIndicators(root, new Map([['b', { errorCount: 0, warningCount: 2 }]]), onActivate);
 
-    const reboundBadge = row?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const reboundBadge = row?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(reboundBadge).toBe(badge);
     expect(reboundBadge?.textContent).toBe('2');
     expect(reboundBadge?.getAttribute('aria-label')).toBe(
@@ -126,7 +126,7 @@ describe('applyProblemIndicators', () => {
   test('counts above 99 clamp the badge label', () => {
     const { root, rows } = buildTree(['a.md']);
     applyProblemIndicators(root, new Map([['a', { errorCount: 100, warningCount: 50 }]]));
-    const badge = rows.get('a.md')?.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = rows.get('a.md')?.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(badge?.textContent).toBe('99+');
     expect(badge?.getAttribute('aria-label')).toBe(
       '99+ problems. 100 errors and 50 warnings in this file. Open the Problems panel for details.',
@@ -136,7 +136,7 @@ describe('applyProblemIndicators', () => {
   test('badge carries its own hover tooltip and leads its accessible name with the visible count', () => {
     const { root, rows } = buildTree(['a.md']);
     applyProblemIndicators(root, new Map([['a', { errorCount: 0, warningCount: 1 }]]));
-    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(badge?.title).toBe('1 warning in this file. Open the Problems panel for details.');
     expect(badge?.getAttribute('aria-label')).toBe(
       '1 problem. 1 warning in this file. Open the Problems panel for details.',
@@ -149,7 +149,7 @@ describe('applyProblemIndicators', () => {
     const row = rows.get('guides/a.md');
     if (row) row.title = 'guides/a.md';
     applyProblemIndicators(root, new Map([['guides/a', { errorCount: 1, warningCount: 0 }]]));
-    const badge = row?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = row?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(badge?.title).toBe('1 error in this file. Open the Problems panel for details.');
     expect(badge?.title).not.toBe(row?.title);
   });
@@ -157,7 +157,7 @@ describe('applyProblemIndicators', () => {
   test('badge stays a pointer hit target so its tooltip can surface', () => {
     const withoutComments = FILE_TREE_PROBLEM_CSS.replace(/\/\*[\s\S]*?\*\//g, '');
     const badgeRule = withoutComments.match(
-      new RegExp(`\\[${OK_PROBLEM_BADGE_ATTR}\\]\\s*\\{([^}]*)\\}`),
+      new RegExp(`\\[${GQ_PROBLEM_BADGE_ATTR}\\]\\s*\\{([^}]*)\\}`),
     )?.[1];
     expect(badgeRule).toBeDefined();
     expect(badgeRule).not.toMatch(/pointer-events:\s*none/);
@@ -176,7 +176,7 @@ describe('applyProblemIndicators', () => {
     );
     rows
       .get('guides/a.md')
-      ?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`)
+      ?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`)
       ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 
     expect(activated).toEqual(['guides/a.md']);
@@ -191,7 +191,7 @@ describe('applyProblemIndicators', () => {
       new Map([['guides/a', { errorCount: 1, warningCount: 0 }]]),
       (treePath) => activated.push(treePath),
     );
-    const badge = rows.get('guides/a.md')?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = rows.get('guides/a.md')?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
 
     const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
     badge?.dispatchEvent(enter);
@@ -215,7 +215,7 @@ describe('applyProblemIndicators', () => {
     );
     rows
       .get('a.md')
-      ?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`)
+      ?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`)
       ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
 
     expect(activated).toHaveLength(0);
@@ -228,13 +228,13 @@ describe('applyProblemIndicators', () => {
     applyProblemIndicators(inert.root, counts);
     const inertBadge = inert.rows
       .get('a.md')
-      ?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+      ?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
 
     const operable = buildTree(['a.md']);
     applyProblemIndicators(operable.root, counts, () => {});
     const operableBadge = operable.rows
       .get('a.md')
-      ?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+      ?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
 
     expect(operableBadge?.getAttribute('role')).toBe('button');
     expect(operableBadge?.getAttribute('tabindex')).toBe('0');
@@ -245,7 +245,7 @@ describe('applyProblemIndicators', () => {
   test('a focused badge gets a ring instead of the outline reset it inherits', () => {
     const withoutComments = FILE_TREE_PROBLEM_CSS.replace(/\/\*[\s\S]*?\*\//g, '');
     const focusRule = withoutComments.match(
-      new RegExp(`\\[${OK_PROBLEM_BADGE_ATTR}\\]:focus-visible\\s*\\{([^}]*)\\}`),
+      new RegExp(`\\[${GQ_PROBLEM_BADGE_ATTR}\\]:focus-visible\\s*\\{([^}]*)\\}`),
     )?.[1];
     expect(focusRule).toBeDefined();
     expect(focusRule).toMatch(/outline:/);
@@ -256,11 +256,11 @@ describe('applyProblemIndicators', () => {
     const withoutComments = FILE_TREE_PROBLEM_CSS.replace(/\/\*[\s\S]*?\*\//g, '');
     expect(withoutComments).toMatch(
       new RegExp(
-        `@media\\s*\\(hover:\\s*hover\\)[\\s\\S]*\\[${OK_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]:hover`,
+        `@media\\s*\\(hover:\\s*hover\\)[\\s\\S]*\\[${GQ_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]:hover`,
       ),
     );
     expect(withoutComments).toMatch(
-      new RegExp(`\\[${OK_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]:active\\s*\\{`),
+      new RegExp(`\\[${GQ_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]:active\\s*\\{`),
     );
   });
 
@@ -271,10 +271,10 @@ describe('applyProblemIndicators', () => {
     )?.[1];
     expect(forcedColorsBlock).toBeDefined();
     expect(forcedColorsBlock).toMatch(
-      new RegExp(`\\[${OK_PROBLEM_BADGE_ATTR}\\]\\s*\\{[^}]*border:[^}]*CanvasText`),
+      new RegExp(`\\[${GQ_PROBLEM_BADGE_ATTR}\\]\\s*\\{[^}]*border:[^}]*CanvasText`),
     );
     expect(forcedColorsBlock).toMatch(
-      new RegExp(`${OK_PROBLEM_ROW_ATTR}='error'[^{]*\\{[^}]*border-width:`),
+      new RegExp(`${GQ_PROBLEM_ROW_ATTR}='error'[^{]*\\{[^}]*border-width:`),
     );
   });
 
@@ -287,7 +287,7 @@ describe('applyProblemIndicators', () => {
     }
     rows
       .get('a.md')
-      ?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`)
+      ?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`)
       ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 
     expect(activated).toEqual(['a.md']);
@@ -302,7 +302,7 @@ describe('applyProblemIndicators', () => {
     applyProblemIndicators(root, counts, (treePath) => fresh.push(treePath));
     rows
       .get('a.md')
-      ?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`)
+      ?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`)
       ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 
     expect(stale).toHaveLength(0);
@@ -318,7 +318,7 @@ describe('applyProblemIndicators', () => {
     applyProblemIndicators(root, new Map([['a', { errorCount: 1, warningCount: 0 }]]), (treePath) =>
       activated.push(treePath),
     );
-    const badge = row?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = row?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
 
     for (const modifier of ['metaKey', 'ctrlKey', 'shiftKey', 'altKey'] as const) {
       badge?.dispatchEvent(
@@ -339,7 +339,7 @@ describe('applyProblemIndicators', () => {
     applyProblemIndicators(root, new Map([['a', { errorCount: 1, warningCount: 0 }]]), (treePath) =>
       activated.push(treePath),
     );
-    const badge = row?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = row?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
 
     const chord = new KeyboardEvent('keydown', {
       key: ' ',
@@ -362,7 +362,7 @@ describe('applyProblemIndicators', () => {
       new Map([['a', { errorCount: 1, warningCount: 0 }]]),
       (treePath, source) => activated.push({ treePath, source }),
     );
-    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
 
     badge?.dispatchEvent(
       new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }),
@@ -379,14 +379,14 @@ describe('applyProblemIndicators', () => {
   test('the operable badge claims a hit area the painted chip is too small for', () => {
     const withoutComments = FILE_TREE_PROBLEM_CSS.replace(/\/\*[\s\S]*?\*\//g, '');
     const hitArea = withoutComments.match(
-      new RegExp(`\\[${OK_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]::after\\s*\\{([^}]*)\\}`),
+      new RegExp(`\\[${GQ_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]::after\\s*\\{([^}]*)\\}`),
     )?.[1];
     expect(hitArea).toBeDefined();
     expect(hitArea).toMatch(/position:\s*absolute/);
     expect(hitArea).toMatch(/inset:\s*-\d/);
     expect(
       withoutComments.match(
-        new RegExp(`\\[${OK_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]\\s*\\{([^}]*)\\}`),
+        new RegExp(`\\[${GQ_PROBLEM_BADGE_ATTR}\\]\\[role='button'\\]\\s*\\{([^}]*)\\}`),
       )?.[1],
     ).toMatch(/position:\s*relative/);
   });
@@ -398,7 +398,7 @@ describe('applyProblemIndicators', () => {
     applyProblemIndicators(root, counts, (treePath) => activated.push(treePath));
     applyProblemIndicators(root, counts);
 
-    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(badge?.getAttribute('role')).toBe('img');
     expect(badge?.hasAttribute('tabindex')).toBe(false);
     badge?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
@@ -413,7 +413,7 @@ describe('applyProblemIndicators', () => {
     applyProblemIndicators(root, new Map(), onActivate);
 
     const row = rows.get('a.md');
-    expect(row?.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`)).toBeNull();
+    expect(row?.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`)).toBeNull();
     row?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     expect(activated).toHaveLength(0);
   });
@@ -431,13 +431,13 @@ describe('applyProblemIndicators', () => {
     shadow.appendChild(row);
 
     applyProblemIndicators(shadow, new Map([['a', { errorCount: 1, warningCount: 0 }]]), () => {});
-    const badge = row.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = row.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     badge?.focus();
     expect(shadow.activeElement).toBe(badge);
 
     applyProblemIndicators(shadow, new Map(), () => {});
 
-    expect(row.querySelector(`[${OK_PROBLEM_BADGE_ATTR}]`)).toBeNull();
+    expect(row.querySelector(`[${GQ_PROBLEM_BADGE_ATTR}]`)).toBeNull();
     expect(shadow.activeElement).toBe(row);
     host.remove();
   });
@@ -445,7 +445,7 @@ describe('applyProblemIndicators', () => {
   test('tooltip tracks the counts as they change', () => {
     const { root, rows } = buildTree(['a.md']);
     applyProblemIndicators(root, new Map([['a', { errorCount: 1, warningCount: 0 }]]));
-    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${OK_PROBLEM_BADGE_ATTR}]`);
+    const badge = rows.get('a.md')?.querySelector<HTMLElement>(`[${GQ_PROBLEM_BADGE_ATTR}]`);
     expect(badge?.title).toBe('1 error in this file. Open the Problems panel for details.');
     expect(badge?.getAttribute('aria-label')).toBe(
       '1 problem. 1 error in this file. Open the Problems panel for details.',

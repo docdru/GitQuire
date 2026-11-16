@@ -5,7 +5,7 @@ import {
 } from '@/components/navigation-targets';
 import { hashFromAssetPath, hashFromDocName, hashFromFolderPath } from '@/lib/doc-hash';
 
-export const OK_SIDEBAR_DRAG_MIME = 'application/x-open-knowledge-sidebar-item+json';
+export const GQ_SIDEBAR_DRAG_MIME = 'application/x-open-knowledge-sidebar-item+json';
 
 export type SidebarDragPayload =
   | { v: 1; kind: 'doc'; docName: string; size: number | null }
@@ -29,7 +29,7 @@ export function serializeSidebarDragPayload(payload: SidebarDragPayload): string
 export function hasSidebarDragType(
   dataTransfer: Pick<DataTransfer, 'types'> | null | undefined,
 ): boolean {
-  return dataTransfer ? Array.from(dataTransfer.types).includes(OK_SIDEBAR_DRAG_MIME) : false;
+  return dataTransfer ? Array.from(dataTransfer.types).includes(GQ_SIDEBAR_DRAG_MIME) : false;
 }
 
 export function navigationForSidebarDragPayload(payload: SidebarDragPayload): {
@@ -68,7 +68,7 @@ export function parseSidebarDragPayload(
 ): SidebarDragPayload | null {
   if (!dataTransfer || !hasSidebarDragType(dataTransfer)) return null;
 
-  const raw = dataTransfer.getData(OK_SIDEBAR_DRAG_MIME);
+  const raw = dataTransfer.getData(GQ_SIDEBAR_DRAG_MIME);
   if (!raw) return null;
 
   let parsed: unknown;

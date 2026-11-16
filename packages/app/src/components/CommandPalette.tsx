@@ -1,6 +1,6 @@
-// oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
+// oxlint-disable gq/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-html-interactive-element
 
-// oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
+// oxlint-disable gq/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-physical-direction-utility
 
 import {
   assertNeverSemanticQueryOutcome,
@@ -80,7 +80,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useDocumentContext, useOpenBlobRunner } from '@/editor/DocumentContext';
 import type { TagSummaryEntry } from '@/editor/extensions/tag-suggestion';
 import { useSemanticSearchStatus } from '@/hooks/use-semantic-search-status';
-import type { OkMenuAction } from '@/lib/desktop-bridge-types';
+import type { GqMenuAction } from '@/lib/desktop-bridge-types';
 import { hashFromDocName } from '@/lib/doc-hash';
 import { runWithToast as runWithToastBase } from '@/lib/error-state';
 import { openExternalUrl as openExternalUrlViaHost } from '@/lib/external-link';
@@ -576,7 +576,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   const viewMenuState = useViewMenuState();
   const chatHistorySide = physicalSide(useChatHistorySide(), useDocumentDirection());
-  const runMenuAction = (action: OkMenuAction) => {
+  const runMenuAction = (action: GqMenuAction) => {
     onOpenChange(false);
     emitLocalMenuAction(action, { launcherBorne: true });
   };

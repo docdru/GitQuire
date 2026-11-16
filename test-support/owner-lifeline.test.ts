@@ -9,7 +9,7 @@ import {
   spawnUnderOwnerLifeline,
 } from './owner-lifeline';
 
-const OK_ROOT = fileURLToPath(new URL('../', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('../', import.meta.url));
 const FALLBACK_MS = 20_000;
 const LEAKED = 'L';
 
@@ -65,7 +65,7 @@ describe('owner lifeline', () => {
     const { child, commandResult } = spawnUnderOwnerLifeline(
       process.execPath,
       ['-e', "process.stdout.write('done'); process.exitCode = 3;"],
-      { cwd: OK_ROOT, env: childEnv() },
+      { cwd: GQ_ROOT, env: childEnv() },
     );
     expect(await finish(child)).toEqual({ signal: 'SIGKILL', stdout: 'done' });
     expect(await commandResult).toEqual({ code: 3, signal: null });
@@ -75,7 +75,7 @@ describe('owner lifeline', () => {
     const { child, commandResult } = spawnUnderOwnerLifeline(
       process.execPath,
       ['-e', `${grandchild('G')}.unref();`],
-      { cwd: OK_ROOT, env: childEnv() },
+      { cwd: GQ_ROOT, env: childEnv() },
     );
     const finished = await finish(child);
     expect(finished.signal).toBe('SIGKILL');
@@ -87,7 +87,7 @@ describe('owner lifeline', () => {
     const { child, commandResult } = spawnUnderOwnerLifeline(
       process.execPath,
       ['-e', `${grandchild('G')};\n${announceThenIdle('C')}`],
-      { cwd: OK_ROOT, env: childEnv() },
+      { cwd: GQ_ROOT, env: childEnv() },
     );
     const finished = await finish(child, (stdout) => {
       if (stdout.includes('G') && stdout.includes('C')) child.stdin.end();

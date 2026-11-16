@@ -8,7 +8,7 @@ export const FINAL_FAILURE_ANNOTATIONS = fileURLToPath(import.meta.url);
 
 export const GITHUB_TITLE_LIMIT = 255;
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const TRUNCATION_MARK = '…';
 const NOT_A_VERDICT = new Set(['skipped', 'interrupted']);
 const REJECTED_CASES_RECORD_ENV = 'GITQUIRE_PLAYWRIGHT_REJECTED_CASES_FILE';
@@ -105,7 +105,7 @@ export default class FinalFailureAnnotations {
   private readonly runErrors: string[] = [];
   private readonly rejectedCasesRecord = env[REJECTED_CASES_RECORD_ENV];
   private readonly roots: SourceRoots = {
-    okRoot: OK_ROOT,
+    okRoot: GQ_ROOT,
     workspace: env.GITHUB_WORKSPACE ?? cwd(),
     override: env.GITQUIRE_ANNOTATION_SOURCE_ROOT,
     pathApi: path,

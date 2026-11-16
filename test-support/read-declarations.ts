@@ -32,7 +32,7 @@ import {
 } from './read-declarations-observer';
 
 const runGit = childProcess.spawnSync;
-const OK_ROOT = realpathSync(join(dirname(fileURLToPath(import.meta.url)), '..'));
+const GQ_ROOT = realpathSync(join(dirname(fileURLToPath(import.meta.url)), '..'));
 const DECLARATION_MODULE = /\.reads\.(?:ts|mjs)$/;
 const LISTING_BUFFER_BYTES = 256 * 1024 * 1024;
 const PUBLIC_TREE_OMITS = '*.private.*';
@@ -45,7 +45,7 @@ function isGlobList(value: unknown): value is string[] {
 }
 
 function display(path: string): string {
-  const within = relative(OK_ROOT, path);
+  const within = relative(GQ_ROOT, path);
   return within.startsWith('..') || isAbsolute(within) ? path : within.split(sep).join('/');
 }
 
@@ -59,7 +59,7 @@ function entriesOf(dir: string): Dirent[] {
 }
 
 function holdsOnDiskAFileThePublicTreeOmits(): boolean {
-  const pending = [OK_ROOT];
+  const pending = [GQ_ROOT];
   for (const dir of pending) {
     for (const entry of entriesOf(dir)) {
       if (entry.isFile() && matchesGlob(entry.name, PUBLIC_TREE_OMITS)) return true;
@@ -73,7 +73,7 @@ function holdsOnDiskAFileThePublicTreeOmits(): boolean {
 
 function holdsAPathThePublicTreeOmits(): boolean {
   const listed = runGit('git', ['ls-files', '-z', '--', PUBLIC_TREE_OMITS], {
-    cwd: OK_ROOT,
+    cwd: GQ_ROOT,
     encoding: 'utf8',
     maxBuffer: LISTING_BUFFER_BYTES,
   });
@@ -112,13 +112,13 @@ async function declarationFor(testPath: string): Promise<Declared | null> {
 
 function listedPaths(): Set<string> {
   const listed = runGit('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {
-    cwd: OK_ROOT,
+    cwd: GQ_ROOT,
     encoding: 'utf8',
     maxBuffer: LISTING_BUFFER_BYTES,
   });
   if (listed.error !== undefined || listed.status !== 0) {
     throw new Error(
-      `git ls-files could not list the files under ${OK_ROOT} (${listed.error?.message ?? listed.stderr.trim()}), so no read declaration can be checked.`,
+      `git ls-files could not list the files under ${GQ_ROOT} (${listed.error?.message ?? listed.stderr.trim()}), so no read declaration can be checked.`,
     );
   }
   return new Set(listed.stdout.split('\0').filter((path) => path !== ''));
@@ -134,7 +134,7 @@ function undeclaredReads(declared: Declared, logDir: string, testPath: string): 
   const listed = listedPaths();
   const coverage = withDerivedReads(
     declared.declaration,
-    derivedReads(OK_ROOT, declared.roots, listed, (glob, path) =>
+    derivedReads(GQ_ROOT, declared.roots, listed, (glob, path) =>
       declares({ include: [glob] }, path),
     ),
   );
@@ -145,7 +145,7 @@ function undeclaredReads(declared: Declared, logDir: string, testPath: string): 
   };
   for (const path of read) {
     const real = existsSync(path) ? realpathSync(path) : path;
-    const within = relative(OK_ROOT, real);
+    const within = relative(GQ_ROOT, real);
     if (within === '' || within.startsWith('..') || isAbsolute(within)) continue;
     const okPath = within.split(sep).join('/');
     if (existsSync(real) && statSync(real).isDirectory()) {
@@ -176,7 +176,7 @@ if (testPath !== undefined && declared !== null) {
   const saved = [READ_LOG_ENV, READ_ROOT_ENV, 'NODE_OPTIONS'].map(
     (name) => [name, process.env[name]] as const,
   );
-  process.env[READ_ROOT_ENV] = OK_ROOT;
+  process.env[READ_ROOT_ENV] = GQ_ROOT;
   process.env[READ_LOG_ENV] = logDir;
   process.env.NODE_OPTIONS = observerNodeOptions(process.env.NODE_OPTIONS);
   installReadObserver(logDir);

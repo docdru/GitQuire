@@ -23,7 +23,7 @@ import {
   composeCommitSubject,
   formatOkActor,
   formatWipSubject,
-  type OkActorEntry,
+  type GqActorEntry,
 } from '@gitquire/core/shadow-repo-layout';
 import type { Extension } from '@hocuspocus/server';
 import type { JSONContent } from '@tiptap/core';
@@ -82,12 +82,12 @@ import {
   type DeferredStoreOutcome,
   type DeferredStoreSettlement,
   DocumentDurabilityState,
+  GQ_DOC_REMOVED,
+  GQ_PATH_UNRESOLVABLE,
+  GQ_STORE_HELD,
+  GQ_STORE_REFUSED,
+  GQ_WRITE_DROPPED,
   type HeldSaveReason,
-  OK_DOC_REMOVED,
-  OK_PATH_UNRESOLVABLE,
-  OK_STORE_HELD,
-  OK_STORE_REFUSED,
-  OK_WRITE_DROPPED,
   type StoreFailure,
   type StoreFailureRemoval,
   type StoreIntakeMerge,
@@ -306,7 +306,7 @@ function assertNeverStoreIntake(intake: never): never {
 
 class StoreHeldPendingError extends Error {
   readonly reason: StorePendingReason;
-  readonly code = OK_STORE_HELD;
+  readonly code = GQ_STORE_HELD;
   readonly causeCode: string | undefined;
   readonly noBase: boolean;
 
@@ -559,7 +559,7 @@ function probeDocumentFileOnDisk(path: string): DocumentFileProbe {
 function toStoreFailure(err: unknown): StoreFailure {
   if (err instanceof StoreHeldPendingError) {
     return {
-      code: OK_STORE_HELD,
+      code: GQ_STORE_HELD,
       message: err.message,
       held: {
         reason: err.reason,
@@ -712,7 +712,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
       const branch = getCurrentBranch?.() ?? 'main';
 
       if (snapshot.size === 0) {
-        const serviceActorEntry: OkActorEntry = {
+        const serviceActorEntry: GqActorEntry = {
           v: 1,
           writer_id: SERVICE_WRITER.id,
           principal: null,
@@ -787,7 +787,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
         const a = entry.actor;
         const summaries = [...entry.summaries];
         const previousPaths = [...entry.previousPaths];
-        const actorEntry: OkActorEntry = {
+        const actorEntry: GqActorEntry = {
           v: 1,
           writer_id: writerId,
           principal: a?.principalId ?? null,
@@ -1282,7 +1282,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
       documentName,
       pathIsUnrepairable
         ? {
-            code: OK_PATH_UNRESOLVABLE,
+            code: GQ_PATH_UNRESOLVABLE,
             message: `the path for ${documentName} could not be resolved inside the content directory${
               errno === undefined ? '' : ` (${errno})`
             }`,
@@ -1315,18 +1315,18 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
         documentName,
         frozen?.removal?.kind === 'path-occupied'
           ? {
-              code: OK_DOC_REMOVED,
+              code: GQ_DOC_REMOVED,
               message: `${documentName} was ${frozen.status === 'renamed' ? 'renamed' : 'deleted'} on disk and the file now at its path has not been loaded into it, so the store was refused rather than overwriting that file`,
               removal: frozen.removal,
             }
           : frozen?.removal?.kind === 'renamed'
             ? {
-                code: OK_DOC_REMOVED,
+                code: GQ_DOC_REMOVED,
                 message: `${documentName} was renamed to ${frozen.removal.renamedTo} on disk, so the store was refused rather than recreating the file under its old name`,
                 removal: frozen.removal,
               }
             : {
-                code: OK_DOC_REMOVED,
+                code: GQ_DOC_REMOVED,
                 message: `${documentName} is no longer on disk, so the store was refused rather than recreating the removed file`,
               },
       );
@@ -1642,7 +1642,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
               case 'read-failed':
                 if (agentTriggeredStore) {
                   durabilityState.recordStoreFailure(documentName, {
-                    code: OK_STORE_REFUSED,
+                    code: GQ_STORE_REFUSED,
                     message: refusal.message,
                   });
                 }
@@ -2522,7 +2522,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
   function refuseLegacyNameStore(documentName: string): void {
     if (!durabilityState.consumeAgentWriteStore(documentName)) return;
     durabilityState.recordStoreFailure(documentName, {
-      code: OK_WRITE_DROPPED,
+      code: GQ_WRITE_DROPPED,
       message: `${documentName} was not saved: this name has no file of its own`,
       dropped: 'legacy-name',
     });
@@ -2624,7 +2624,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
     if (typeof outcome === 'object') {
       const hold = OUTSIDE_STORE_HOLDS[outcome.cause];
       durabilityState.recordStoreFailure(documentName, {
-        code: OK_STORE_HELD,
+        code: GQ_STORE_HELD,
         message: `${documentName} was not saved: ${hold.description}`,
         held: { reason: hold.reason },
       });

@@ -1285,7 +1285,7 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
       {!isSourceMode && <TableCellHandles editor={editor} />}
       <div ref={portalSlotRef} style={{ display: 'contents' }} />
       {createPortal(
-        // oxlint-disable-next-line ok/no-unportaled-editor-content -- canonical portaled site — H6 fix per PRECEDENTS.md #44
+        // oxlint-disable-next-line gq/no-unportaled-editor-content -- canonical portaled site — H6 fix per PRECEDENTS.md #44
         <EditorContent
           key={editorContentRevision}
           editor={editor}

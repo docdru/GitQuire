@@ -36,9 +36,9 @@ const LINT_CALLOUT_MAX_WIDTH = '22rem';
 
 const markdownLintDecorationKey = new PluginKey<DecorationSet>('markdownLintDecorations');
 
-const OK_LINT_BLOCK_CLASS = 'ok-lint-block';
-const OK_LINT_BLOCK_ERROR_CLASS = 'ok-lint-block-error';
-const OK_LINT_BLOCK_ATOM_CLASS = 'ok-lint-block-atom';
+const GQ_LINT_BLOCK_CLASS = 'ok-lint-block';
+const GQ_LINT_BLOCK_ERROR_CLASS = 'ok-lint-block-error';
+const GQ_LINT_BLOCK_ATOM_CLASS = 'ok-lint-block-atom';
 
 const RECOMPUTE_DEBOUNCE_MS = 400;
 
@@ -84,9 +84,9 @@ function buildDecorationSet(
     if (!diagnostics || diagnostics.length === 0) return;
     const hasError = diagnostics.some((d) => d.severity === 'error');
     const tooltip = diagnostics.map((d) => `${d.source}/${d.code}: ${d.message}`).join('\n');
-    const classNames = [OK_LINT_BLOCK_CLASS];
-    if (node.textContent.length === 0) classNames.push(OK_LINT_BLOCK_ATOM_CLASS);
-    if (hasError) classNames.push(OK_LINT_BLOCK_ERROR_CLASS);
+    const classNames = [GQ_LINT_BLOCK_CLASS];
+    if (node.textContent.length === 0) classNames.push(GQ_LINT_BLOCK_ATOM_CLASS);
+    if (hasError) classNames.push(GQ_LINT_BLOCK_ERROR_CLASS);
     const attrs: Record<string, string> = {
       class: classNames.join(' '),
       [LINT_TOOLTIP_ATTR]: tooltip,
@@ -230,7 +230,7 @@ function createLintTooltip(
   function onOver(event: Event) {
     const pe = event as PointerEvent;
     const target = event.target as HTMLElement | null;
-    const block = target?.closest<HTMLElement>(`.${OK_LINT_BLOCK_CLASS}`) ?? null;
+    const block = target?.closest<HTMLElement>(`.${GQ_LINT_BLOCK_CLASS}`) ?? null;
     if (block) {
       if (block !== current) {
         anchorX = pe.clientX;
@@ -255,7 +255,7 @@ function createLintTooltip(
       cancelHide();
       return;
     }
-    if (!related?.closest(`.${OK_LINT_BLOCK_CLASS}`)) scheduleHide();
+    if (!related?.closest(`.${GQ_LINT_BLOCK_CLASS}`)) scheduleHide();
   }
 
   function onTooltipEnter() {
@@ -265,7 +265,7 @@ function createLintTooltip(
   function onTooltipLeave(event: Event) {
     overTooltip = false;
     const related = (event as PointerEvent).relatedTarget as HTMLElement | null;
-    if (related !== current && !related?.closest(`.${OK_LINT_BLOCK_CLASS}`)) scheduleHide();
+    if (related !== current && !related?.closest(`.${GQ_LINT_BLOCK_CLASS}`)) scheduleHide();
   }
 
   function onKeyDown() {

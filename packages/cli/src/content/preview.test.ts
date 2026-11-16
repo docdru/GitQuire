@@ -2,7 +2,7 @@ import { mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OK_DIR } from '../constants.ts';
+import { GQ_DIR } from '../constants.ts';
 import { formatPreviewBlock, previewContent } from './preview.ts';
 
 describe('previewContent', () => {
@@ -95,7 +95,7 @@ describe('previewContent', () => {
   });
 
   it('skips .gitquire/ entirely (BUILTIN_SKIP_DIRS coverage)', () => {
-    const okDir = join(testDir, OK_DIR);
+    const okDir = join(testDir, GQ_DIR);
     mkdirSync(okDir, { recursive: true });
     writeFileSync(join(okDir, 'AGENTS.md'), '# Agents');
     mkdirSync(join(okDir, 'cache'));

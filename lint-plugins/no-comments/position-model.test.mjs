@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
-const OK_ROOT = join(MODULE_DIR, '..', '..');
+const GQ_ROOT = join(MODULE_DIR, '..', '..');
 
 const SELF = 'position-model.test.mjs';
 
@@ -12,9 +12,9 @@ const FAMILY = [
   ...readdirSync(MODULE_DIR)
     .filter((name) => name.endsWith('.mjs') && name !== SELF)
     .map((name) => join(MODULE_DIR, name)),
-  ...readdirSync(join(OK_ROOT, 'scripts'))
+  ...readdirSync(join(GQ_ROOT, 'scripts'))
     .filter((name) => /^(?:no-comments-|comment-)/.test(name) && name.endsWith('.mjs'))
-    .map((name) => join(OK_ROOT, 'scripts', name)),
+    .map((name) => join(GQ_ROOT, 'scripts', name)),
 ];
 
 const SOURCE_NAME = '(?:this\\.)?(?:source|text|content|src|input|markdown|body)';
@@ -36,7 +36,7 @@ describe('one position model: UTF-16 code units, never code points', () => {
     const offenders = [];
     for (const file of FAMILY) {
       const text = readFileSync(file, 'utf8');
-      if (iteratesByCodePoint(text)) offenders.push(file.slice(OK_ROOT.length + 1));
+      if (iteratesByCodePoint(text)) offenders.push(file.slice(GQ_ROOT.length + 1));
     }
     expect(offenders).toEqual([]);
   });

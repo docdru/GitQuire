@@ -109,7 +109,7 @@ async function startEstimateDrift(page: Page): Promise<void> {
     let lastEstimatePx = SHORT_PX;
     const apply = (): void => {
       lastEstimatePx = (tall ? TALL_PX : SHORT_PX) + steps * STEP_PX;
-      root.style.setProperty('--ok-cv-h', `${lastEstimatePx}px`);
+      root.style.setProperty('--gq-cv-h', `${lastEstimatePx}px`);
     };
     const advance = (): void => {
       steps += 1;
@@ -130,7 +130,7 @@ async function startEstimateDrift(page: Page): Promise<void> {
         : null;
       const length = intrinsicHeight ? /(-?\d+(?:\.\d+)?)px\s*$/.exec(intrinsicHeight) : null;
       const intrinsicHeightPx = length ? Number(length[1]) : null;
-      root.style.removeProperty('--ok-cv-h');
+      root.style.removeProperty('--gq-cv-h');
       return { frames, steps, intrinsicHeight, intrinsicHeightPx, lastEstimatePx };
     };
     // STOP: this must stay a capture-phase registration on an ancestor of the scroll container, because landing-controller.ts measures from its own capture listener on that container.

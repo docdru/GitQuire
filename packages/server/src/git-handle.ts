@@ -1,7 +1,7 @@
 import { existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter, resolve } from 'node:path';
-import { augmentGitSpawnPath, OkCliCommand } from '@gitquire/core';
+import { augmentGitSpawnPath, GqCliCommand } from '@gitquire/core';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import { shellEscape } from './bash/shell-escape.ts';
 import { simpleGit } from './simple-git-client.ts';
@@ -135,7 +135,7 @@ export function buildSyncCredentialConfig(
   localOpCliArgs: string[] | undefined,
   opts: { resetAmbient: boolean },
 ): string[] {
-  const cli = OkCliCommand.resolve({
+  const cli = GqCliCommand.resolve({
     host: localOpCliArgs === undefined ? undefined : { cliArgs: localOpCliArgs },
   });
   const helper = `credential.helper=!${cli.shellCommand(['auth', 'git-credential'], shellEscape)}`;

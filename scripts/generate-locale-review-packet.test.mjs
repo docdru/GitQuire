@@ -20,8 +20,8 @@ import {
   withSourceReferences,
 } from './generate-locale-review-packet.mjs';
 
-const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
-const read = (rel) => readFileSync(join(OK_ROOT, rel), 'utf8');
+const GQ_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const read = (rel) => readFileSync(join(GQ_ROOT, rel), 'utf8');
 
 const LOCALES_TS = read('packages/core/src/i18n/locales.ts');
 const REVIEW_MD = read('packages/app/src/locales/REVIEW.md');
@@ -535,7 +535,7 @@ describe('against the real catalogs', () => {
 
   test('runs from the command line', () => {
     const result = spawnSync('node', ['scripts/generate-locale-review-packet.mjs', 'bn'], {
-      cwd: OK_ROOT,
+      cwd: GQ_ROOT,
       encoding: 'utf8',
     });
     expect(result.status).toBe(0);
@@ -544,7 +544,7 @@ describe('against the real catalogs', () => {
 
   test('explains itself rather than throwing a stack trace when given no locale', () => {
     const result = spawnSync('node', ['scripts/generate-locale-review-packet.mjs'], {
-      cwd: OK_ROOT,
+      cwd: GQ_ROOT,
       encoding: 'utf8',
     });
     expect(result.status).toBe(1);

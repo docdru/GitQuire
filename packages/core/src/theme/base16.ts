@@ -350,35 +350,35 @@ export function base16ToTokens(scheme: Base16Scheme): Record<string, string> {
     'diff-removed': p.base08,
     'diff-modified': p.base0D,
 
-    'ok-editor-text': p.base05,
-    'ok-codeblock-title-bg': codeblockTitle,
-    'ok-codeblock-title-foreground': minimumContrastForeground(
+    'gq-editor-text': p.base05,
+    'gq-codeblock-title-bg': codeblockTitle,
+    'gq-codeblock-title-foreground': minimumContrastForeground(
       [codeblockTitle],
       p.base04,
       MINIMUM_CONTRAST_RATIO.text,
     ),
-    'ok-comment-hue': commentHue(p.base00, p.base0D),
-    'ok-find-match': findHighlight([EDITOR_FIND_TINT]),
-    'ok-find-match-active': highlightBehindText(p.base00, p.base05, p.base0D, [
+    'gq-comment-hue': commentHue(p.base00, p.base0D),
+    'gq-find-match': findHighlight([EDITOR_FIND_TINT]),
+    'gq-find-match-active': highlightBehindText(p.base00, p.base05, p.base0D, [
       EDITOR_FIND_ACTIVE_TINT,
     ]),
-    'ok-viewer-find-match': findHighlight([
+    'gq-viewer-find-match': findHighlight([
       VIEWER_FIND_TINT,
       1 - (1 - VIEWER_FIND_TINT) * (1 - VIEWER_FIND_ACTIVE_TINT),
     ]),
-    'ok-unresolved-link': brokenLink,
-    'ok-table-cell-selected': mixHex(p.base00, p.base0D, TABLE_SELECTION_TINT),
-    'ok-table-resize-handle': p.base0D,
-    'ok-diff-ins': p.base0B,
-    'ok-diff-del': p.base08,
-    'ok-diff-del-foreground': fadedForeground(
+    'gq-unresolved-link': brokenLink,
+    'gq-table-cell-selected': mixHex(p.base00, p.base0D, TABLE_SELECTION_TINT),
+    'gq-table-resize-handle': p.base0D,
+    'gq-diff-ins': p.base0B,
+    'gq-diff-del': p.base08,
+    'gq-diff-del-foreground': fadedForeground(
       p.base00,
       deletionTint,
       p.base08,
       DIFF_DELETION_OPACITY,
     ),
-    'ok-agent-thread-text': p.base05,
-    'ok-tree-muted': minimumContrastForeground(
+    'gq-agent-thread-text': p.base05,
+    'gq-tree-muted': minimumContrastForeground(
       [p.base01],
       p.base03,
       MINIMUM_CONTRAST_RATIO.graphical,

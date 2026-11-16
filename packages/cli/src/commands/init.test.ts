@@ -15,7 +15,7 @@ import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { loadConfig } from '../config/loader.ts';
-import { OK_DIR } from '../constants.ts';
+import { GQ_DIR } from '../constants.ts';
 import { previewContent } from '../content/preview.ts';
 import {
   applySharingMode,
@@ -76,15 +76,15 @@ describe('runInit', () => {
 
   it('scaffolds .gitquire/ and points at gq start', async () => {
     const result = await runInitForTest();
-    expect(existsSync(join(testDir, OK_DIR, 'config.yml'))).toBe(true);
+    expect(existsSync(join(testDir, GQ_DIR, 'config.yml'))).toBe(true);
     expect(formatInitResult(result, testDir)).toContain('start');
   });
 
   it('is idempotent — running twice produces the same end state', async () => {
     await runInitForTest();
-    const config = readFileSync(join(testDir, OK_DIR, 'config.yml'), 'utf-8');
+    const config = readFileSync(join(testDir, GQ_DIR, 'config.yml'), 'utf-8');
     const second = await runInitForTest();
-    expect(readFileSync(join(testDir, OK_DIR, 'config.yml'), 'utf-8')).toBe(config);
+    expect(readFileSync(join(testDir, GQ_DIR, 'config.yml'), 'utf-8')).toBe(config);
     expect(second.contentCreated).toEqual([]);
   });
 
@@ -243,7 +243,7 @@ describe('runInit', () => {
 
       expect(result.didGitInit).toBe(true);
       expect(result.rootGitignoreCreated).toBe(false);
-      expect(existsSync(join(testDir, OK_DIR, 'config.yml'))).toBe(true);
+      expect(existsSync(join(testDir, GQ_DIR, 'config.yml'))).toBe(true);
       expect(readFileSync(sentinel, 'utf-8')).toBe('do-not-clobber');
     });
 
@@ -266,7 +266,7 @@ describe('runInit', () => {
         process.env.PATH = originalPath;
       }
 
-      expect(existsSync(join(testDir, OK_DIR))).toBe(false);
+      expect(existsSync(join(testDir, GQ_DIR))).toBe(false);
       expect(existsSync(join(testDir, '.git'))).toBe(false);
     });
   });
@@ -319,8 +319,8 @@ describe('runInit — projectRoot threading', () => {
     });
 
     expect(result.projectRoot).toBe(repo);
-    expect(existsSync(join(repo, OK_DIR))).toBe(true);
-    expect(existsSync(join(sub, OK_DIR))).toBe(false);
+    expect(existsSync(join(repo, GQ_DIR))).toBe(true);
+    expect(existsSync(join(sub, GQ_DIR))).toBe(false);
     expect(result.gitRootPromoted).toBe(true);
     expect(result.promotedFromDir).toBe('sub');
     const output = formatInitResult(result, result.projectRoot);
@@ -340,7 +340,7 @@ describe('runInit — projectRoot threading', () => {
     });
 
     expect(result.projectRoot).toBe(repo);
-    expect(existsSync(join(repo, OK_DIR))).toBe(true);
+    expect(existsSync(join(repo, GQ_DIR))).toBe(true);
     expect(result.gitRootPromoted).toBe(false);
     expect(result.promotedFromDir).toBeUndefined();
     const output = formatInitResult(result, result.projectRoot);
@@ -360,7 +360,7 @@ describe('runInit — projectRoot threading', () => {
     });
 
     expect(result.projectRoot).toBe(repo);
-    expect(existsSync(join(repo, OK_DIR, 'config.yml'))).toBe(true);
+    expect(existsSync(join(repo, GQ_DIR, 'config.yml'))).toBe(true);
     const { config: rootConfig } = loadConfig(result.projectRoot);
     expect(rootConfig).toBeDefined();
     expect(rootConfig.content.dir).toBe('.');
@@ -422,7 +422,7 @@ describe('runInit — projectRoot threading', () => {
         contentDir: '..',
       }),
     ).rejects.toBeInstanceOf(ContentDirError);
-    expect(existsSync(join(repo, OK_DIR))).toBe(false);
+    expect(existsSync(join(repo, GQ_DIR))).toBe(false);
   });
 
   it('--content-dir on re-init is ignored (config.yml already exists) and warns', async () => {
@@ -583,7 +583,7 @@ describe('runInit — refuses the home directory as a project root', () => {
     await expect(runAtHome(fakeHome)).rejects.toThrow();
 
     expect(existsSync(join(fakeHome, '.git'))).toBe(false);
-    expect(existsSync(join(fakeHome, OK_DIR))).toBe(false);
+    expect(existsSync(join(fakeHome, GQ_DIR))).toBe(false);
     expect(existsSync(join(fakeHome, '.okignore'))).toBe(false);
     for (const hostDir of ['.claude', '.cursor', '.codex']) {
       expect(existsSync(join(fakeHome, hostDir, 'skills', 'open-knowledge'))).toBe(false);
@@ -630,7 +630,7 @@ describe('runInit — refuses the home directory as a project root', () => {
     });
 
     expect(result.projectRoot).toBe(project);
-    expect(existsSync(join(project, OK_DIR, 'config.yml'))).toBe(true);
+    expect(existsSync(join(project, GQ_DIR, 'config.yml'))).toBe(true);
   });
 });
 

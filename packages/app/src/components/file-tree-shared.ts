@@ -52,7 +52,7 @@ export const FILE_TREE_FRACTIONAL_ZOOM_TRUNCATION_GUARD_CSS = `
   }
 `;
 
-export const OK_FILE_TREE_READONLY_UNSAFE_CSS = [
+export const GQ_FILE_TREE_READONLY_UNSAFE_CSS = [
   FILE_TREE_EXT_BADGE_CSS,
   FILE_TREE_INDENT_GUIDE_CSS,
   FILE_TREE_STICKY_HEADER_CSS,
@@ -60,7 +60,7 @@ export const OK_FILE_TREE_READONLY_UNSAFE_CSS = [
   FILE_TREE_FRACTIONAL_ZOOM_TRUNCATION_GUARD_CSS,
 ].join('\n');
 
-export interface OkFileTreeOptionsInput {
+export interface GqFileTreeOptionsInput {
   readonly paths: readonly string[];
   readonly initialExpansion?: FileTreeInitialExpansion;
   readonly initialVisibleRowCount?: number;
@@ -74,7 +74,7 @@ export interface OkFileTreeOptionsInput {
   readonly unsafeCSS?: string;
 }
 
-export function buildOkFileTreeOptions(input: OkFileTreeOptionsInput): FileTreeOptions {
+export function buildOkFileTreeOptions(input: GqFileTreeOptionsInput): FileTreeOptions {
   const spriteSheet = `<svg data-icon-sprite aria-hidden="true" width="0" height="0">${input.extraSpriteSymbols ?? ''}${MARKDOWN_FILE_ICON_SYMBOL}</svg>`;
   const markdownIcon = { name: MARKDOWN_FILE_ICON_ID, viewBox: MARKDOWN_FILE_ICON_VIEWBOX };
   return {
@@ -89,7 +89,7 @@ export function buildOkFileTreeOptions(input: OkFileTreeOptionsInput): FileTreeO
       spriteSheet,
       byFileExtension: { md: markdownIcon, mdx: markdownIcon },
     },
-    unsafeCSS: input.unsafeCSS ?? OK_FILE_TREE_READONLY_UNSAFE_CSS,
+    unsafeCSS: input.unsafeCSS ?? GQ_FILE_TREE_READONLY_UNSAFE_CSS,
     composition: input.enableContextMenu
       ? { contextMenu: { enabled: true, triggerMode: 'both', buttonVisibility: 'when-needed' } }
       : undefined,

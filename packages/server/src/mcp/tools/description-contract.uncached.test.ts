@@ -19,15 +19,15 @@ import {
 } from '../../agent-write-outcome.ts';
 import { ConfigSchema } from '../../config/schema.ts';
 import {
-  OK_DOC_MOVED,
-  OK_DOC_REMOVED,
-  OK_PATH_UNRESOLVABLE,
-  OK_SERVER_STOPPED,
-  OK_STORE_DISCARDED,
-  OK_STORE_HELD,
-  OK_STORE_REFUSED,
-  OK_WRITE_DROPPED,
-  OK_WRITE_REPLACED,
+  GQ_DOC_MOVED,
+  GQ_DOC_REMOVED,
+  GQ_PATH_UNRESOLVABLE,
+  GQ_SERVER_STOPPED,
+  GQ_STORE_DISCARDED,
+  GQ_STORE_HELD,
+  GQ_STORE_REFUSED,
+  GQ_WRITE_DROPPED,
+  GQ_WRITE_REPLACED,
   type StoreFailure,
 } from '../../document-durability-state.ts';
 import { installJsonSchemaDialect, JSON_SCHEMA_DIALECT_2020_12 } from '../json-schema-dialect.ts';
@@ -371,7 +371,7 @@ function guidedResultRows(text: string): Array<{ result: string; cells: string[]
 }
 
 function held(reason: StoreFailure extends { held?: infer H } ? NonNullable<H>['reason'] : never) {
-  return outcomeOfStoreFailure({ code: OK_STORE_HELD, message: 'm', held: { reason } });
+  return outcomeOfStoreFailure({ code: GQ_STORE_HELD, message: 'm', held: { reason } });
 }
 
 const SERVER_FIELDS_FOR_GUIDED_RESULT: Readonly<Record<string, AgentWriteOutcomeFields>> = {
@@ -392,48 +392,48 @@ const SERVER_FIELDS_FOR_GUIDED_RESULT: Readonly<Record<string, AgentWriteOutcome
   '`stale-external-write` (409)': REFUSAL_OUTCOMES['urn:ok:error:stale-external-write'],
   '`save-held` (503) with `pending-conflict`': held('pending-conflict'),
   '`save-held` (503) on a file with no agreed version': outcomeOfStoreFailure({
-    code: OK_STORE_HELD,
+    code: GQ_STORE_HELD,
     message: 'm',
     held: { reason: 'pending-intake-failed-no-base', noBase: true },
   }),
   '`save-held` (503) with `pending-not-utf8`': held('pending-not-utf8'),
   '`save-held` (503) with any other `reason`': held('pending-unreadable'),
   '`write-dropped` (409) for a name with no file of its own': outcomeOfStoreFailure({
-    code: OK_WRITE_DROPPED,
+    code: GQ_WRITE_DROPPED,
     message: 'm',
     dropped: 'legacy-name',
   }),
   '`write-dropped` (409) while an outside change was being taken in': outcomeOfStoreFailure({
-    code: OK_WRITE_DROPPED,
+    code: GQ_WRITE_DROPPED,
     message: 'm',
     dropped: 'intake-landed',
   }),
   '`write-dropped` (409) for a path that does not resolve': outcomeOfStoreFailure({
-    code: OK_WRITE_DROPPED,
+    code: GQ_WRITE_DROPPED,
     message: 'm',
     dropped: 'container-gone',
   }),
-  '`doc-moved` (409)': outcomeOfStoreFailure({ code: OK_DOC_MOVED, message: 'm' }),
-  '`branch-switched` (409)': outcomeOfStoreFailure({ code: OK_STORE_DISCARDED, message: 'm' }),
+  '`doc-moved` (409)': outcomeOfStoreFailure({ code: GQ_DOC_MOVED, message: 'm' }),
+  '`branch-switched` (409)': outcomeOfStoreFailure({ code: GQ_STORE_DISCARDED, message: 'm' }),
   '`doc-removed` (409) after a rename': outcomeOfStoreFailure({
-    code: OK_DOC_REMOVED,
+    code: GQ_DOC_REMOVED,
     message: 'm',
     removal: { kind: 'renamed', renamedTo: 'b' },
   }),
   '`doc-removed` (409) after a delete': outcomeOfStoreFailure({
-    code: OK_DOC_REMOVED,
+    code: GQ_DOC_REMOVED,
     message: 'm',
     removal: { kind: 'deleted-outside' },
   }),
-  '`server-stopped` (503)': outcomeOfStoreFailure({ code: OK_SERVER_STOPPED, message: 'm' }),
+  '`server-stopped` (503)': outcomeOfStoreFailure({ code: GQ_SERVER_STOPPED, message: 'm' }),
   '`server-stopped` (503) during a move': outcomeOfStoreFailure({
-    code: OK_SERVER_STOPPED,
+    code: GQ_SERVER_STOPPED,
     message: 'm',
     removal: { kind: 'renamed', renamedTo: 'b' },
   }),
-  '`path-escape` (400)': outcomeOfStoreFailure({ code: OK_PATH_UNRESOLVABLE, message: 'm' }),
-  '`store-refused` (503)': outcomeOfStoreFailure({ code: OK_STORE_REFUSED, message: 'm' }),
-  '`write-replaced` (409)': outcomeOfStoreFailure({ code: OK_WRITE_REPLACED, message: 'm' }),
+  '`path-escape` (400)': outcomeOfStoreFailure({ code: GQ_PATH_UNRESOLVABLE, message: 'm' }),
+  '`store-refused` (503)': outcomeOfStoreFailure({ code: GQ_STORE_REFUSED, message: 'm' }),
+  '`write-replaced` (409)': outcomeOfStoreFailure({ code: GQ_WRITE_REPLACED, message: 'm' }),
   '`storage-full` (507), `storage-readonly` or `storage-error` (500)': outcomeOfStoreFailure({
     code: 'ENOSPC',
     message: 'm',

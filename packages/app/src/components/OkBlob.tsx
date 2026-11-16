@@ -10,7 +10,7 @@ import {
   nextClickLevel,
 } from './ok-blob-logic';
 
-interface OkBlobProps {
+interface GqBlobProps {
   size?: number;
   className?: string;
   style?: CSSProperties;
@@ -70,7 +70,7 @@ function particleStyle(p: FireworkParticle): CSSProperties {
   };
 }
 
-export function OkBlob({
+export function GqBlob({
   size = 48,
   className,
   style,
@@ -78,7 +78,7 @@ export function OkBlob({
   variant = 'default',
   celebrateSignal = 0,
   onRage,
-}: OkBlobProps) {
+}: GqBlobProps) {
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const eyesGroupRef = useRef<SVGGElement>(null);

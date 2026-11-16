@@ -1,4 +1,4 @@
-// oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
+// oxlint-disable gq/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-error-toast
 
 import type { OkignoreBinding } from '@gitquire/core/config/bind-okignore-doc';
 import { isDocumentOverOpenByteLimit } from '@gitquire/core/constants/document-open';
@@ -115,8 +115,8 @@ import {
 import {
   applyProblemIndicators,
   FILE_TREE_PROBLEM_CSS,
-  OK_PROBLEM_BADGE_ATTR,
-  OK_PROBLEM_ROW_ATTR,
+  GQ_PROBLEM_BADGE_ATTR,
+  GQ_PROBLEM_ROW_ATTR,
 } from '@/components/file-tree-problem-indicators';
 import {
   applyRenameInputAffordance,
@@ -132,7 +132,7 @@ import {
   resolveFileTreeSelection,
   resolveFileTreeSelectionAction,
 } from '@/components/file-tree-selection';
-import { OK_FILE_TREE_READONLY_UNSAFE_CSS } from '@/components/file-tree-shared';
+import { GQ_FILE_TREE_READONLY_UNSAFE_CSS } from '@/components/file-tree-shared';
 import { selectTrashConfirmCopy, trashTargetDisplayName } from '@/components/file-tree-trash-copy';
 import {
   classifyEmptyTree,
@@ -213,8 +213,8 @@ import {
   type ShareTargetInput,
 } from '@/lib/share/run-share-action';
 import {
+  GQ_SIDEBAR_DRAG_MIME,
   hasSidebarDragType,
-  OK_SIDEBAR_DRAG_MIME,
   serializeSidebarDragPayload,
 } from '@/lib/sidebar-drag';
 import { cn } from '@/lib/utils';
@@ -394,13 +394,13 @@ const FILE_TREE_CREATION_CLEARED_CSS = `
 `;
 
 const FILE_TREE_NAME_FOREGROUND_CSS = `
-  [data-type="item"]:not([data-item-selected="true"]):not([data-item-git-status]):not([${OK_PROBLEM_ROW_ATTR}]) > [data-item-section="content"] {
+  [data-type="item"]:not([data-item-selected="true"]):not([data-item-git-status]):not([${GQ_PROBLEM_ROW_ATTR}]) > [data-item-section="content"] {
     color: var(--file-tree-foreground, var(--trees-fg));
   }
 `;
 
 const FILE_TREE_UNSAFE_CSS = [
-  OK_FILE_TREE_READONLY_UNSAFE_CSS,
+  GQ_FILE_TREE_READONLY_UNSAFE_CSS,
   FILE_TREE_DRAFT_BADGE_CSS,
   FILE_TREE_NAME_FOREGROUND_CSS,
   FILE_TREE_PROBLEM_CSS,
@@ -961,7 +961,7 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
         sidebarDragClearTimerRef.current = null;
       }
       sidebarDragInProgressRef.current = true;
-      event.dataTransfer?.setData(OK_SIDEBAR_DRAG_MIME, serializeSidebarDragPayload(payload));
+      event.dataTransfer?.setData(GQ_SIDEBAR_DRAG_MIME, serializeSidebarDragPayload(payload));
     }
 
     function finalizeSidebarDragStart(event: Event) {
@@ -3133,7 +3133,7 @@ function findTreeItemElement(event: MouseEvent): HTMLElement | null {
 
 function eventPathHasProblemBadge(event: MouseEvent): boolean {
   for (const entry of event.composedPath()) {
-    if (entry instanceof HTMLElement && entry.hasAttribute(OK_PROBLEM_BADGE_ATTR)) {
+    if (entry instanceof HTMLElement && entry.hasAttribute(GQ_PROBLEM_BADGE_ATTR)) {
       return true;
     }
   }

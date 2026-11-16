@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { OK_DIR, OK_MACHINE_LOCAL_ROOT_DIRS, OK_MACHINE_LOCAL_ROOT_FILES } from '@gitquire/core';
+import { GQ_DIR, GQ_MACHINE_LOCAL_ROOT_DIRS, GQ_MACHINE_LOCAL_ROOT_FILES } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   buildConfigYmlContent,
@@ -40,7 +40,7 @@ describe('initContent', () => {
   it('creates config-only .gitquire/ scaffold from scratch', () => {
     const result = initContent(testDir);
 
-    const okDir = join(testDir, OK_DIR);
+    const okDir = join(testDir, GQ_DIR);
     expect(existsSync(okDir)).toBe(true);
     expect(existsSync(join(okDir, 'local'))).toBe(false);
     expect(existsSync(join(okDir, 'cache'))).toBe(false);
@@ -60,7 +60,7 @@ describe('initContent', () => {
   it('is idempotent — does not clobber existing files', () => {
     initContent(testDir);
 
-    const configPath = join(testDir, OK_DIR, 'config.yml');
+    const configPath = join(testDir, GQ_DIR, 'config.yml');
     writeFileSync(configPath, 'custom content');
 
     const result = initContent(testDir);
@@ -72,7 +72,7 @@ describe('initContent', () => {
   it('generates files with expected content', () => {
     initContent(testDir);
 
-    const okDir = join(testDir, OK_DIR);
+    const okDir = join(testDir, GQ_DIR);
 
     const gitignore = readFileSync(join(okDir, '.gitignore'), 'utf-8');
     expect(gitignore).toContain('local/');
@@ -91,7 +91,7 @@ describe('initContent', () => {
 
   it('config.yml first line is the schema-version-pinned $schema magic comment', () => {
     initContent(testDir);
-    const configYml = readFileSync(join(testDir, OK_DIR, 'config.yml'), 'utf-8');
+    const configYml = readFileSync(join(testDir, GQ_DIR, 'config.yml'), 'utf-8');
     const firstLine = configYml.split('\n')[0];
     expect(firstLine).toMatch(
       /^# yaml-language-server: \$schema=https:\/\/unpkg\.com\/@inkeep\/open-knowledge@latest\/dist\/schemas\/v\d+\/config\.project\.schema\.json$/,
@@ -102,7 +102,7 @@ describe('initContent', () => {
 
   it('config.yml scaffold does not teach the removed folders: key or a folder-metadata block', () => {
     initContent(testDir);
-    const configYml = readFileSync(join(testDir, OK_DIR, 'config.yml'), 'utf-8');
+    const configYml = readFileSync(join(testDir, GQ_DIR, 'config.yml'), 'utf-8');
     expect(configYml).not.toContain('# folders:');
     expect(configYml).not.toContain("#   - match: 'external-sources/**'");
     expect(configYml).not.toContain('Picomatch glob cheatsheet');
@@ -112,7 +112,7 @@ describe('initContent', () => {
 
   it('config.yml scaffold describes the suggested three-tier lifecycle', () => {
     initContent(testDir);
-    const configYml = readFileSync(join(testDir, OK_DIR, 'config.yml'), 'utf-8');
+    const configYml = readFileSync(join(testDir, GQ_DIR, 'config.yml'), 'utf-8');
     expect(configYml).toContain('Suggested lifecycle');
     expect(configYml).toContain('external-sources');
     expect(configYml).toContain('research');
@@ -120,7 +120,7 @@ describe('initContent', () => {
   });
 
   it('appends missing scaffold entries to a stale legacy .gitignore (upgrade path)', () => {
-    const okDir = join(testDir, OK_DIR);
+    const okDir = join(testDir, GQ_DIR);
     mkdirSync(okDir, { recursive: true });
     const stale = `cache/\nserver.lock\nui.lock\nsync-state.json\n`;
     writeFileSync(join(okDir, '.gitignore'), stale, 'utf-8');
@@ -136,7 +136,7 @@ describe('initContent', () => {
   });
 
   it('preserves user-added .gitignore entries during scaffold merge', () => {
-    const okDir = join(testDir, OK_DIR);
+    const okDir = join(testDir, GQ_DIR);
     mkdirSync(okDir, { recursive: true });
     const userCustomized = `cache/\nserver.lock\nmy-custom-ignore.tmp\n`;
     writeFileSync(join(okDir, '.gitignore'), userCustomized, 'utf-8');
@@ -150,7 +150,7 @@ describe('initContent', () => {
 
   describe('symlink-guard against malicious upstream scaffold paths', () => {
     it('refuses to follow .gitquire/.gitignore symlink with existing target (read-modify-write)', () => {
-      const okDir = join(testDir, OK_DIR);
+      const okDir = join(testDir, GQ_DIR);
       mkdirSync(okDir, { recursive: true });
       const victim = resolve(testDir, 'victim-rc');
       const victimContent = '#!/bin/sh\nexec /usr/local/bin/realprog\n';
@@ -163,7 +163,7 @@ describe('initContent', () => {
     });
 
     it('refuses to follow .gitquire/.gitignore symlink with non-existent target (write-creates-file)', () => {
-      const okDir = join(testDir, OK_DIR);
+      const okDir = join(testDir, GQ_DIR);
       mkdirSync(okDir, { recursive: true });
       const phantomTarget = resolve(testDir, 'phantom-victim');
       symlinkSync(phantomTarget, join(okDir, '.gitignore'));
@@ -173,7 +173,7 @@ describe('initContent', () => {
     });
 
     it('refuses to follow .gitquire/config.yml symlink (writeIfMissing path)', () => {
-      const okDir = join(testDir, OK_DIR);
+      const okDir = join(testDir, GQ_DIR);
       mkdirSync(okDir, { recursive: true });
       const phantomTarget = resolve(testDir, 'phantom-config');
       symlinkSync(phantomTarget, join(okDir, 'config.yml'));
@@ -193,7 +193,7 @@ describe('initContent', () => {
     it('refuses to operate when .gitquire/ itself is a symlink (would redirect every scaffold write)', () => {
       const decoy = resolve(testDir, 'decoy-dir');
       mkdirSync(decoy, { recursive: true });
-      symlinkSync(decoy, join(testDir, OK_DIR));
+      symlinkSync(decoy, join(testDir, GQ_DIR));
 
       expect(() => initContent(testDir)).toThrow(/symlink/i);
       expect(existsSync(join(decoy, '.gitignore'))).toBe(false);
@@ -203,14 +203,14 @@ describe('initContent', () => {
 
   it('ignores every machine-local name the product can leave at the .gitquire/ root', () => {
     initContent(testDir);
-    const lines = readFileSync(join(testDir, OK_DIR, '.gitignore'), 'utf-8')
+    const lines = readFileSync(join(testDir, GQ_DIR, '.gitignore'), 'utf-8')
       .split('\n')
       .map((l) => l.trim());
 
-    for (const name of OK_MACHINE_LOCAL_ROOT_FILES) {
+    for (const name of GQ_MACHINE_LOCAL_ROOT_FILES) {
       expect(lines, `${name} must be ignored`).toContain(name);
     }
-    for (const name of OK_MACHINE_LOCAL_ROOT_DIRS) {
+    for (const name of GQ_MACHINE_LOCAL_ROOT_DIRS) {
       expect(lines, `${name}/ must be ignored`).toContain(`${name}/`);
     }
     expect(lines).not.toContain('config.yml');
@@ -221,7 +221,7 @@ describe('initContent', () => {
     initContent(testDir);
     initContent(testDir);
 
-    const gitignore = readFileSync(join(testDir, OK_DIR, '.gitignore'), 'utf-8');
+    const gitignore = readFileSync(join(testDir, GQ_DIR, '.gitignore'), 'utf-8');
     const matches = gitignore.split('\n').filter((l) => l.trim() === 'local/').length;
     expect(matches).toBe(1);
   });
@@ -229,13 +229,13 @@ describe('initContent', () => {
   it('writes config.yml with content.dir override when contentDir option is set', () => {
     const result = initContent(testDir, { contentDir: 'docs' });
     expect(result.created).toContain('config.yml');
-    const configYml = readFileSync(join(testDir, OK_DIR, 'config.yml'), 'utf-8');
+    const configYml = readFileSync(join(testDir, GQ_DIR, 'config.yml'), 'utf-8');
     expect(configYml).toContain('content:\n  dir: docs');
   });
 
   it('writes config.yml with default commented content.dir when contentDir is "."', () => {
     initContent(testDir, { contentDir: '.' });
-    const configYml = readFileSync(join(testDir, OK_DIR, 'config.yml'), 'utf-8');
+    const configYml = readFileSync(join(testDir, GQ_DIR, 'config.yml'), 'utf-8');
     expect(configYml).toContain('# content:\n#   dir: .');
   });
 });

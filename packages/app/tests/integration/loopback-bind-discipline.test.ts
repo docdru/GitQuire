@@ -7,8 +7,8 @@ import { LOOPBACK_SCAN_ROOTS } from './loopback-bind-discipline.reads';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = join(__dirname, '..', '..');
-const OK_ROOT = join(PACKAGE_ROOT, '..', '..');
-const SCAN_ROOTS = LOOPBACK_SCAN_ROOTS.map((root) => join(OK_ROOT, root));
+const GQ_ROOT = join(PACKAGE_ROOT, '..', '..');
+const SCAN_ROOTS = LOOPBACK_SCAN_ROOTS.map((root) => join(GQ_ROOT, root));
 
 const SELF_BASENAME = basename(fileURLToPath(import.meta.url));
 

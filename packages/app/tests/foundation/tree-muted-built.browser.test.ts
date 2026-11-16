@@ -68,7 +68,7 @@ async function renderColor(mode: 'light' | 'dark', theme: string, consumer: stri
 }
 
 function themeTreeMuted(theme: string) {
-  const hex = resolveColorTheme(theme).toTokens?.()['ok-tree-muted'];
+  const hex = resolveColorTheme(theme).toTokens?.()['gq-tree-muted'];
   if (!hex) throw new Error(`${theme} declares no file tree muted color`);
   const [red, green, blue] = [1, 3, 5].map((start) =>
     Number.parseInt(hex.slice(start, start + 2), 16),

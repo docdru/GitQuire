@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 vi.doMock('@/components/OkBlob', () => ({
-  OkBlob: ({ size, variant }: { size: number; variant?: string }) => (
+  GqBlob: ({ size, variant }: { size: number; variant?: string }) => (
     <div data-testid="ok-blob-probe" data-size={String(size)} data-variant={variant ?? 'default'} />
   ),
 }));
@@ -10,15 +10,15 @@ vi.doMock('@/components/OkBlob', () => ({
 const resting = () => document.querySelector('[data-slot="ok-blob-runner-easter-egg"]');
 const game = () => document.querySelector('[data-slot="ok-blob-runner"]');
 
-describe('OkBlobRunnerEasterEgg', () => {
+describe('GqBlobRunnerEasterEgg', () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
   });
 
   test('shows only the resting mascot — no track, no score, no hint', async () => {
-    const { OkBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
-    render(<OkBlobRunnerEasterEgg />);
+    const { GqBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
+    render(<GqBlobRunnerEasterEgg />);
 
     expect(resting()).toBeTruthy();
     expect(game()).toBeNull();
@@ -27,16 +27,16 @@ describe('OkBlobRunnerEasterEgg', () => {
   });
 
   test('ArrowUp wakes it', async () => {
-    const { OkBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
-    render(<OkBlobRunnerEasterEgg />);
+    const { GqBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
+    render(<GqBlobRunnerEasterEgg />);
 
     fireEvent.keyDown(window, { key: 'ArrowUp' });
     expect(game()).toBeTruthy();
   });
 
   test('clicking the mascot wakes it', async () => {
-    const { OkBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
-    render(<OkBlobRunnerEasterEgg />);
+    const { GqBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
+    render(<GqBlobRunnerEasterEgg />);
 
     const node = resting();
     if (!node) throw new Error('resting mascot missing');
@@ -45,19 +45,19 @@ describe('OkBlobRunnerEasterEgg', () => {
   });
 
   test('Space wakes it when nothing owns the keyboard', async () => {
-    const { OkBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
-    render(<OkBlobRunnerEasterEgg />);
+    const { GqBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
+    render(<GqBlobRunnerEasterEgg />);
 
     fireEvent.keyDown(window, { key: ' ' });
     expect(game()).toBeTruthy();
   });
 
   test('Space does NOT wake it while a button holds focus', async () => {
-    const { OkBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
+    const { GqBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
     render(
       <div>
         <button type="button">Try again</button>
-        <OkBlobRunnerEasterEgg />
+        <GqBlobRunnerEasterEgg />
       </div>,
     );
 
@@ -75,8 +75,8 @@ describe('OkBlobRunnerEasterEgg', () => {
 
 describe('keyboard={false} (crash screens)', () => {
   test('ArrowUp and Space are both ignored', async () => {
-    const { OkBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
-    render(<OkBlobRunnerEasterEgg keyboard={false} />);
+    const { GqBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
+    render(<GqBlobRunnerEasterEgg keyboard={false} />);
 
     fireEvent.keyDown(window, { key: 'ArrowUp' });
     fireEvent.keyDown(window, { key: ' ' });
@@ -84,8 +84,8 @@ describe('keyboard={false} (crash screens)', () => {
   });
 
   test('but clicking the mascot still opens it', async () => {
-    const { OkBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
-    render(<OkBlobRunnerEasterEgg keyboard={false} />);
+    const { GqBlobRunnerEasterEgg } = await import('./OkBlobRunnerEasterEgg');
+    render(<GqBlobRunnerEasterEgg keyboard={false} />);
 
     const node = resting();
     if (!node) throw new Error('resting mascot missing');

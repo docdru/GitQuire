@@ -1,11 +1,11 @@
-import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@gitquire/core';
+import { DEV_FALLBACK_CLI_REFUSAL, GqCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runAuthTokenSubprocess } from './auth-token.ts';
 
 const okCli = (
   cliArgs: readonly string[],
   cliEnv?: Readonly<Record<string, string | undefined>>,
-): OkCliCommand => OkCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 
@@ -170,7 +170,7 @@ describe('runAuthTokenSubprocess', () => {
 
   test('a dev build without its workspace CLI refuses to store a token instead of running the CLI on PATH', async () => {
     const result = await runAuthTokenSubprocess({
-      cli: OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
+      cli: GqCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
       host: 'github.com',
       username: 'octocat',
       token: 'test-token',

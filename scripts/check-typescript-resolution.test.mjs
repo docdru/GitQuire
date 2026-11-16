@@ -39,9 +39,9 @@ import {
 } from './check-typescript-resolution.mjs';
 import { stripJsonc } from './read-jsonc.mjs';
 
-const OK_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const GQ_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const realConfig = (pkg) =>
-  fs.readFileSync(path.join(OK_ROOT, 'packages', pkg, 'tsdown.config.ts'), 'utf8');
+  fs.readFileSync(path.join(GQ_ROOT, 'packages', pkg, 'tsdown.config.ts'), 'utf8');
 const withoutLinesMatching = (text, pattern) =>
   text
     .split('\n')
@@ -769,7 +769,7 @@ describe('evaluate wires every probe into the verdict', () => {
   const rangePinned = {
     name: 'open-knowledge',
     dir: '/ok',
-    scripts: { 'typecheck:lint-plugins': 'tsrs --noEmit -p lint-plugins/ok-rules/tsconfig.json' },
+    scripts: { 'typecheck:lint-plugins': 'tsrs --noEmit -p lint-plugins/gq-rules/tsconfig.json' },
     tsrsDeclared: '^0.18.0-ts7.1.0-dev.20260929',
     tsrsResolved: '0.18.0-ts7.1.0-dev.20260929',
     tsrsBinVersion: '7.1.0-dev.20260930.4',
@@ -1156,12 +1156,12 @@ describe('declarationEmitConfigs', () => {
 
   it('enrols every real tsdown builder in the workspace', () => {
     const onDisk = memberDirs(
-      OK_ROOT,
-      fs.readFileSync(path.join(OK_ROOT, 'pnpm-workspace.yaml'), 'utf8'),
+      GQ_ROOT,
+      fs.readFileSync(path.join(GQ_ROOT, 'pnpm-workspace.yaml'), 'utf8'),
       () => {},
       () => {},
     );
-    const entries = declarationEmitConfigs(OK_ROOT, onDisk);
+    const entries = declarationEmitConfigs(GQ_ROOT, onDisk);
 
     expect(entries.map(([file]) => file).sort()).toEqual([
       'packages/cli/tsdown.config.ts',
@@ -1175,7 +1175,7 @@ describe('declarationEmitConfigs', () => {
 describe('main() refuses rather than passing', () => {
   const run = (root) =>
     spawnSync('node', ['scripts/check-typescript-resolution.mjs'], {
-      cwd: OK_ROOT,
+      cwd: GQ_ROOT,
       encoding: 'utf8',
       env: { ...process.env, GITQUIRE_RESOLUTION_ROOT: root },
     });
@@ -1472,8 +1472,8 @@ describe('sourceConditionSites', () => {
 
   it('classifies every real workspace package that declares an exports field', () => {
     const onDisk = memberDirs(
-      OK_ROOT,
-      fs.readFileSync(path.join(OK_ROOT, 'pnpm-workspace.yaml'), 'utf8'),
+      GQ_ROOT,
+      fs.readFileSync(path.join(GQ_ROOT, 'pnpm-workspace.yaml'), 'utf8'),
       () => {},
       () => {},
     );
@@ -1759,7 +1759,7 @@ describe('tsconfigFiles', () => {
     expect(rules.prefixes).toEqual(['report-']);
   });
 
-  const rootGitignore = path.join(OK_ROOT, '.gitignore');
+  const rootGitignore = path.join(GQ_ROOT, '.gitignore');
 
   it.runIf(fs.existsSync(rootGitignore))(
     'derives real rules from whichever gitignore sits beside the walk root',
@@ -1771,7 +1771,7 @@ describe('tsconfigFiles', () => {
     },
   );
 
-  const nativeConfigGitignore = path.join(OK_ROOT, 'packages/native-config/.gitignore');
+  const nativeConfigGitignore = path.join(GQ_ROOT, 'packages/native-config/.gitignore');
 
   it.runIf(fs.existsSync(nativeConfigGitignore))(
     'carves out the one nested build output its own gitignore anchors without a trailing slash',
@@ -1780,7 +1780,7 @@ describe('tsconfigFiles', () => {
     },
   );
 
-  it.runIf(fs.existsSync(path.join(OK_ROOT, 'specs')))(
+  it.runIf(fs.existsSync(path.join(GQ_ROOT, 'specs')))(
     'derives the subtree record in full when the walk root is the subtree itself',
     () => {
       const real = outputDirRules(fs.readFileSync(rootGitignore, 'utf8'));
@@ -1859,8 +1859,8 @@ describe('tsconfigConditions', () => {
 
 describe('the tsconfigs on disk', () => {
   it('declares customConditions only in the base config and in configs that reset it', () => {
-    const listed = tsconfigFiles(OK_ROOT);
-    const declared = tsconfigConditions(OK_ROOT, listed.files);
+    const listed = tsconfigFiles(GQ_ROOT);
+    const declared = tsconfigConditions(GQ_ROOT, listed.files);
 
     expect(listed.blind).toEqual([]);
     expect(declared.blind).toEqual([]);

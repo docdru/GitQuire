@@ -14,7 +14,7 @@ import { OPT_OUT_ATTR } from '../clipboard/index.ts';
 import { insertParagraphAt } from '../selection/place-caret.ts';
 import { GUTTER_PLUS_SVG } from './gutter-plus-icon.ts';
 
-export const OK_TRAILING_AFFORDANCE_CLASS = 'ok-trailing-affordance';
+export const GQ_TRAILING_AFFORDANCE_CLASS = 'ok-trailing-affordance';
 
 export const trailingAffordanceKey = new PluginKey<boolean>('trailingAffordance');
 
@@ -45,7 +45,7 @@ function inTrailingZone(view: EditorView, event: MouseEvent): boolean {
   if (!view.editable) return false;
   if (!docNeedsTrailingAffordance(view.state.doc)) return false;
   const target = event.target;
-  if (target instanceof Element && target.closest(`.${OK_TRAILING_AFFORDANCE_CLASS}`)) return true;
+  if (target instanceof Element && target.closest(`.${GQ_TRAILING_AFFORDANCE_CLASS}`)) return true;
   const top = lastBlockBottom(view);
   if (top == null) return false;
   const dom = view.dom.getBoundingClientRect();
@@ -65,12 +65,12 @@ export function appendTrailingParagraph(view: EditorView): void {
 
 export function renderHint(): HTMLElement {
   const row = document.createElement('div');
-  row.className = OK_TRAILING_AFFORDANCE_CLASS;
+  row.className = GQ_TRAILING_AFFORDANCE_CLASS;
   row.setAttribute(OPT_OUT_ATTR, 'true');
   row.setAttribute('contenteditable', 'false');
   row.setAttribute('aria-hidden', 'true');
   const plus = document.createElement('span');
-  plus.className = `${OK_TRAILING_AFFORDANCE_CLASS}-plus`;
+  plus.className = `${GQ_TRAILING_AFFORDANCE_CLASS}-plus`;
   plus.innerHTML = GUTTER_PLUS_SVG;
   row.append(plus);
   return row;

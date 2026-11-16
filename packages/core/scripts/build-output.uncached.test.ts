@@ -21,12 +21,12 @@ import { withoutTurboAgentDetection } from '../../../test-support/turbo-agent-en
 import { MANIFEST_NAME } from './build-output.mjs';
 
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const OK_ROOT = join(PACKAGE_ROOT, '..', '..');
-const TURBO_BIN = join(OK_ROOT, 'node_modules', 'turbo', 'bin', 'turbo');
+const GQ_ROOT = join(PACKAGE_ROOT, '..', '..');
+const TURBO_BIN = join(GQ_ROOT, 'node_modules', 'turbo', 'bin', 'turbo');
 const CORE_MANIFEST = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'package.json'), 'utf8'));
-const OK_MANIFEST = JSON.parse(readFileSync(join(OK_ROOT, 'package.json'), 'utf8'));
+const GQ_MANIFEST = JSON.parse(readFileSync(join(GQ_ROOT, 'package.json'), 'utf8'));
 const CORE = CORE_MANIFEST.name as string;
-const REAL_TURBO = JSON.parse(readFileSync(join(OK_ROOT, 'turbo.json'), 'utf8'));
+const REAL_TURBO = JSON.parse(readFileSync(join(GQ_ROOT, 'turbo.json'), 'utf8'));
 const PRODUCER_TASK_ID = `${CORE}#build:output`;
 const COMPLETION_TASK_ID = `${CORE}#build`;
 const RUN_TIMEOUT_MS = 60_000;
@@ -101,7 +101,7 @@ function createWorkspace(): string {
   writeJson(join(root, 'package.json'), {
     name: 'core-build-output-fixture',
     private: true,
-    packageManager: OK_MANIFEST.packageManager,
+    packageManager: GQ_MANIFEST.packageManager,
   });
   writeFileSync(join(root, 'pnpm-workspace.yaml'), "packages:\n  - 'packages/*'\n");
   writeFileSync(
@@ -110,7 +110,7 @@ function createWorkspace(): string {
   );
   mkdirSync(join(root, 'node_modules'), { recursive: true });
   symlinkSync(
-    join(OK_ROOT, 'node_modules', 'turbo'),
+    join(GQ_ROOT, 'node_modules', 'turbo'),
     join(root, 'node_modules', 'turbo'),
     'junction',
   );

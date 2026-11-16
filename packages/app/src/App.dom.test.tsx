@@ -331,7 +331,7 @@ describe('App runtime wiring', () => {
 
       expect(screen.queryByTestId('file-sidebar')).toBeNull();
       expectVisualClassTokens(appMain().className, [
-        'h-[calc(100vh-var(--ok-app-header-height,0px))]',
+        'h-[calc(100vh-var(--gq-app-header-height,0px))]',
       ]);
       expectVisualClassTokensAbsent(appMain().className, ['h-screen']);
     });
@@ -929,16 +929,16 @@ describe('App runtime wiring', () => {
       renderApp();
 
       const shellRoot = document.querySelector<HTMLElement>('[data-app-shell]');
-      expect(shellRoot?.style.getPropertyValue('--ok-app-header-height')).toBe('2.75rem');
+      expect(shellRoot?.style.getPropertyValue('--gq-app-header-height')).toBe('2.75rem');
       expectVisualClassTokens(screen.getByTestId('sidebar-provider').className, [
-        'h-[calc(100vh-var(--ok-app-header-height,0px))]',
-        'min-h-[calc(100svh-var(--ok-app-header-height,0px))]',
+        'h-[calc(100vh-var(--gq-app-header-height,0px))]',
+        'min-h-[calc(100svh-var(--gq-app-header-height,0px))]',
       ]);
       expectVisualClassTokens(appMain().className, [
         'ps-2',
         'pb-2',
         'pe-2',
-        'h-[calc(100vh-var(--ok-app-header-height,0px))]',
+        'h-[calc(100vh-var(--gq-app-header-height,0px))]',
       ]);
       expectVisualClassTokensAbsent(appMain().className, ['overflow-hidden', 'rounded-e-xl']);
     });

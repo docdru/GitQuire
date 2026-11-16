@@ -94,7 +94,7 @@ function spawnCli(cwd: string, args: string[]) {
 function spawnCliProcess(entry: string, args: string[]) {
   return spawn(process.execPath, ['--import', CLI_OWNER_PRELOAD, entry, ...args], {
     cwd: CLI_PACKAGE_ROOT,
-    env: { ...process.env, NO_COLOR: '1', OK_BUNDLE_PROXY: '0' },
+    env: { ...process.env, NO_COLOR: '1', GQ_BUNDLE_PROXY: '0' },
     stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
   }) as ChildProcessByStdio<null, Readable, Readable>;
 }

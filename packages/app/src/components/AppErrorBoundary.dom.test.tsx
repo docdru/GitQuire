@@ -1,4 +1,4 @@
-import type { OkBugReportCreateResult } from '@gitquire/core';
+import type { GqBugReportCreateResult } from '@gitquire/core';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -47,7 +47,7 @@ function installBugReportBridge(mode: 'editor' | 'navigator' = 'editor'): Create
     bugReport: {
       create: (request: CreateRequest) => {
         createCalls.push(request);
-        const result: OkBugReportCreateResult = {
+        const result: GqBugReportCreateResult = {
           ok: true,
           zipPath: '/tmp/report.zip',
           zipSizeBytes: 1024,

@@ -3,7 +3,7 @@ import { EditorState, type TransactionSpec } from '@codemirror/state';
 import { type DecorationSet, EditorView } from '@codemirror/view';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { FLASH_DURATION_MS } from './flash-shared';
-import { OK_LANDING_FLASH_CLASS } from './landing-flash-shared';
+import { GQ_LANDING_FLASH_CLASS } from './landing-flash-shared';
 import { flashSourceLanding, landingFlashField, landingFlashSource } from './landing-flash-source';
 
 function drivenView(doc: string, selection?: { anchor: number; head?: number }) {
@@ -109,7 +109,7 @@ describe('landing flash — source', () => {
     });
     try {
       flashSourceLanding(view, 0, 5, 'exact');
-      expect(view.dom.querySelector(`.${OK_LANDING_FLASH_CLASS}`)?.textContent).toBe('alpha');
+      expect(view.dom.querySelector(`.${GQ_LANDING_FLASH_CLASS}`)?.textContent).toBe('alpha');
     } finally {
       view.destroy();
     }
@@ -123,9 +123,9 @@ describe('landing flash — source', () => {
     });
     try {
       flashSourceLanding(view, 0, 5, 'exact');
-      expect(view.dom.querySelector(`.${OK_LANDING_FLASH_CLASS}`)).not.toBeNull();
+      expect(view.dom.querySelector(`.${GQ_LANDING_FLASH_CLASS}`)).not.toBeNull();
       vi.advanceTimersByTime(FLASH_DURATION_MS);
-      expect(view.dom.querySelector(`.${OK_LANDING_FLASH_CLASS}`)).toBeNull();
+      expect(view.dom.querySelector(`.${GQ_LANDING_FLASH_CLASS}`)).toBeNull();
     } finally {
       view.destroy();
     }

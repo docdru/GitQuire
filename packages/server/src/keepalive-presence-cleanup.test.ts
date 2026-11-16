@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { OK_DIR } from '@gitquire/core';
+import { GQ_DIR } from '@gitquire/core';
 import { afterAll, describe, expect, test } from 'vitest';
 import { WebSocket as WsClient } from 'ws';
 import { type BootedServer, bootServer } from '../../../test-support/boot-server.test-helper.ts';
@@ -28,7 +28,7 @@ async function bootTestServer(
 ): Promise<{ booted: BootedServer; contentDir: string }> {
   const contentDir = mkdtempSync(join(tmpdir(), 'ok-keepalive-test-'));
   writeFileSync(join(contentDir, 'test-doc.md'), '', 'utf-8');
-  const okDir = join(contentDir, OK_DIR);
+  const okDir = join(contentDir, GQ_DIR);
   mkdirSync(okDir, { recursive: true });
   writeFileSync(join(okDir, 'config.yml'), '', 'utf-8');
   writeFileSync(join(okDir, '.gitignore'), '', 'utf-8');

@@ -1,4 +1,4 @@
-// oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — the filename navigate target is a raw <button> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
+// oxlint-disable gq/no-raw-html-interactive-element -- pre-rule backlog — the filename navigate target is a raw <button> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/gq-rules/README.md#no-raw-html-interactive-element
 import { t } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useEffect, useState } from 'react';

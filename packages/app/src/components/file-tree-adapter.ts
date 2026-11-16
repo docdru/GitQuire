@@ -14,7 +14,7 @@ import {
   isDocumentEntry,
   isFolderEntry,
 } from '@/components/file-tree-utils';
-import { OK_SIDEBAR_DRAG_MIME } from '@/lib/sidebar-drag';
+import { GQ_SIDEBAR_DRAG_MIME } from '@/lib/sidebar-drag';
 
 const DEFAULT_TREE_EXTENSION = '.md';
 const TREE_EXTENSION_PATTERN = /\.(md|mdx)$/i;
@@ -382,7 +382,7 @@ export function isExternalFileDrag(event: ExternalFileDragLike): boolean {
   const types = event.dataTransfer?.types;
   if (!types) return false;
   const list = Array.from(types);
-  return list.includes('Files') && !list.includes(OK_SIDEBAR_DRAG_MIME);
+  return list.includes('Files') && !list.includes(GQ_SIDEBAR_DRAG_MIME);
 }
 
 export function filesFromExternalDrop(event: ExternalFileDropLike): File[] {

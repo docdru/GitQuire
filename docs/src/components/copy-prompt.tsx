@@ -35,12 +35,12 @@ export function CopyPrompt({ children }: CopyPromptProps) {
       onClick={copy}
       aria-label="Copy prompt to clipboard"
       data-copied={copied}
-      className="ok-overview not-prose group my-2.5 flex w-full cursor-pointer items-start gap-3 rounded-lg border border-fd-border bg-fd-card px-4 py-3 text-start text-[0.9375rem] leading-relaxed text-fd-foreground shadow-sm transition hover:border-[var(--ok-accent)] hover:bg-fd-accent/40"
+      className="ok-overview not-prose group my-2.5 flex w-full cursor-pointer items-start gap-3 rounded-lg border border-fd-border bg-fd-card px-4 py-3 text-start text-[0.9375rem] leading-relaxed text-fd-foreground shadow-sm transition hover:border-[var(--gq-accent)] hover:bg-fd-accent/40"
     >
       <span className="flex-1 whitespace-pre-wrap italic">“{text}”</span>
       <span
-        className="mt-px inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium text-fd-muted-foreground transition-colors group-hover:text-[var(--ok-accent)]"
-        style={copied ? { color: 'var(--ok-accent)' } : undefined}
+        className="mt-px inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium text-fd-muted-foreground transition-colors group-hover:text-[var(--gq-accent)]"
+        style={copied ? { color: 'var(--gq-accent)' } : undefined}
       >
         {copied ? (
           <Check className="size-3.5" aria-hidden="true" />

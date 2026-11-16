@@ -1,13 +1,13 @@
 import { realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { OkCliCommand } from '@gitquire/core';
+import { GqCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runAuthReposSubprocess, runAuthStatusSubprocess } from './auth-query.ts';
 
 const okCli = (
   cliArgs: readonly string[],
   cliEnv?: Readonly<Record<string, string | undefined>>,
-): OkCliCommand => OkCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 

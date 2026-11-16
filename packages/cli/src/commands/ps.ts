@@ -2,8 +2,8 @@ import { basename, dirname } from 'node:path';
 import {
   currentCliCommandName,
   formatRelativeAge,
+  GQ_DIR,
   LOCAL_DIR,
-  OK_DIR,
   RELATIVE_TIME_UNKNOWN,
 } from '@gitquire/core';
 import { lockAdvertisesUi } from '@gitquire/server';
@@ -57,8 +57,8 @@ export function startedCell(isoString: string | null, now = Date.now()): string 
 
 function projectDirectoryForLockDir(lockDir: string): string | null {
   const parent = dirname(lockDir);
-  if (basename(lockDir) === LOCAL_DIR && basename(parent) === OK_DIR) return dirname(parent);
-  if (basename(lockDir) === OK_DIR) return parent;
+  if (basename(lockDir) === LOCAL_DIR && basename(parent) === GQ_DIR) return dirname(parent);
+  if (basename(lockDir) === GQ_DIR) return parent;
   return null;
 }
 

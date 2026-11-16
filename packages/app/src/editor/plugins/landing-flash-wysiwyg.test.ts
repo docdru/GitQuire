@@ -4,7 +4,7 @@ import { EditorState, TextSelection } from '@tiptap/pm/state';
 import { EditorView } from '@tiptap/pm/view';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { FLASH_DURATION_MS } from './flash-shared';
-import { OK_LANDING_FLASH_CLASS } from './landing-flash-shared';
+import { GQ_LANDING_FLASH_CLASS } from './landing-flash-shared';
 import {
   createLandingFlashPlugin,
   flashWysiwygLanding,
@@ -138,7 +138,7 @@ describe('landing flash — wysiwyg rendering', () => {
     const view = mountedView();
     try {
       flashWysiwygLanding(view, 1, 6, 'exact');
-      expect(view.dom.querySelector(`.${OK_LANDING_FLASH_CLASS}`)?.textContent).toBe('alpha');
+      expect(view.dom.querySelector(`.${GQ_LANDING_FLASH_CLASS}`)?.textContent).toBe('alpha');
     } finally {
       view.destroy();
     }
@@ -149,9 +149,9 @@ describe('landing flash — wysiwyg rendering', () => {
     const view = mountedView();
     try {
       flashWysiwygLanding(view, 1, 6, 'exact');
-      expect(view.dom.querySelector(`.${OK_LANDING_FLASH_CLASS}`)).not.toBeNull();
+      expect(view.dom.querySelector(`.${GQ_LANDING_FLASH_CLASS}`)).not.toBeNull();
       vi.advanceTimersByTime(FLASH_DURATION_MS);
-      expect(view.dom.querySelector(`.${OK_LANDING_FLASH_CLASS}`)).toBeNull();
+      expect(view.dom.querySelector(`.${GQ_LANDING_FLASH_CLASS}`)).toBeNull();
     } finally {
       view.destroy();
     }

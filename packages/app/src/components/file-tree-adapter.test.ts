@@ -1,6 +1,6 @@
 import type { ContextMenuItem, FileTreeDropTarget } from '@pierre/trees';
 import { describe, expect, test } from 'vitest';
-import { OK_SIDEBAR_DRAG_MIME } from '@/lib/sidebar-drag';
+import { GQ_SIDEBAR_DRAG_MIME } from '@/lib/sidebar-drag';
 import {
   appendSidebarUploadFields,
   collectTreeFolderPathsFromDocuments,
@@ -357,10 +357,10 @@ describe('file-tree-adapter', () => {
 
   test('detects external file drags without swallowing sidebar drags', () => {
     expect(isExternalFileDrag({ dataTransfer: { types: ['Files'] } })).toBe(true);
-    expect(isExternalFileDrag({ dataTransfer: { types: ['Files', OK_SIDEBAR_DRAG_MIME] } })).toBe(
+    expect(isExternalFileDrag({ dataTransfer: { types: ['Files', GQ_SIDEBAR_DRAG_MIME] } })).toBe(
       false,
     );
-    expect(isExternalFileDrag({ dataTransfer: { types: [OK_SIDEBAR_DRAG_MIME] } })).toBe(false);
+    expect(isExternalFileDrag({ dataTransfer: { types: [GQ_SIDEBAR_DRAG_MIME] } })).toBe(false);
     expect(isExternalFileDrag({ dataTransfer: null })).toBe(false);
   });
 
