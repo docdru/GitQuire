@@ -1,9 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  AUDIT_EMPTY_SCOPE_WARNING,
-  RE_LINT_FAILED_WARNING_PREFIX,
-} from '@inkeep/open-knowledge-core';
+import { AUDIT_EMPTY_SCOPE_WARNING, RE_LINT_FAILED_WARNING_PREFIX } from '@gitquire/core';
 import { normalizeObjectSchema } from '@modelcontextprotocol/sdk/server/zod-compat.js';
 import { toJsonSchemaCompat } from '@modelcontextprotocol/sdk/server/zod-json-schema-compat.js';
 import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv';

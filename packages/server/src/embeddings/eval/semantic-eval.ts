@@ -6,7 +6,7 @@ import {
   searchWorkspaceCorpus,
   type WorkspaceSearchCorpus,
   type WorkspaceSearchDocument,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { chunkDocument } from '../chunking.ts';
 import { cosineSimilarity, type Embedder, loadOpenAiEmbedder } from '../embedder.ts';
 

@@ -1,9 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import {
-  type FrontmatterPatch,
-  stripFrontmatter,
-  unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
+import { type FrontmatterPatch, stripFrontmatter, unwrapFrontmatterFences } from '@gitquire/core';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 import { formatBrokenLinkSuppressionLine } from '../../broken-link-suppression.ts';

@@ -9,7 +9,7 @@ import {
   type GitWorktreeOpenTarget,
   GitWorktreeStatusSuccessSchema,
   type Principal,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { ContentFilter } from '../content-filter.ts';
 import { stripDocExtension } from '../doc-extensions.ts';
 import { extractActorIdentity } from '../extract-actor-identity.ts';

@@ -1,5 +1,5 @@
 // oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
-import { mediaKindForSidebarAssetExtension } from '@inkeep/open-knowledge-core/constants/upload';
+import { mediaKindForSidebarAssetExtension } from '@gitquire/core/constants/upload';
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { APP_HEADER_HEIGHT, AppHeader } from '@/components/AppHeader';

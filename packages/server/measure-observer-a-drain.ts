@@ -1,7 +1,7 @@
 import { arch, cpus, platform } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { sharedExtensions } from '@inkeep/open-knowledge-core';
+import { sharedExtensions } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import * as Y from 'yjs';
 import { loadLargeRealistic } from '../core/src/markdown/fixtures/index.ts';

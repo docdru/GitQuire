@@ -1,6 +1,6 @@
 import type { RestartWorkerOptions } from './restartable-server.test-helper.ts';
 
-let booting: Promise<import('@inkeep/open-knowledge-server').BootedServer> | undefined;
+let booting: Promise<import('@gitquire/server').BootedServer> | undefined;
 let stopping: Promise<void> | undefined;
 function stop(code: number): Promise<void> {
   stopping ??= (async () => {
@@ -22,8 +22,8 @@ process.once('disconnect', () => {
   void stop(1);
 });
 
-const { bootServer, ConfigSchema }: typeof import('@inkeep/open-knowledge-server') = await import(
-  process.env.OK_TEST_RESTART_SERVER_MODULE ?? '@inkeep/open-knowledge-server'
+const { bootServer, ConfigSchema }: typeof import('@gitquire/server') = await import(
+  process.env.OK_TEST_RESTART_SERVER_MODULE ?? '@gitquire/server'
 );
 
 process.once('message', async (options: RestartWorkerOptions) => {

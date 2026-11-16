@@ -5,7 +5,7 @@ import {
   AGENT_WRITE_OUTCOMES,
   type NormalizedAgentWriteOutcome,
   normalizeAgentWriteOutcome,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import { textPlusStructured, textResult } from './shared.ts';
 

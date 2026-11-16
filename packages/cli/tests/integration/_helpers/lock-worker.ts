@@ -1,6 +1,6 @@
 #!/usr/bin/env -S npx tsx
 
-import { acquireProcessLock } from '@inkeep/open-knowledge-server';
+import { acquireProcessLock } from '@gitquire/server';
 
 const [, , lockDirArg, serverPortArg] = process.argv;
 

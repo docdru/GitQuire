@@ -1,4 +1,4 @@
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 
 export const mdManager = new MarkdownManager({

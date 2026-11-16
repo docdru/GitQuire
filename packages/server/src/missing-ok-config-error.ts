@@ -1,4 +1,4 @@
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 
 export type MissingOkConfigKind = 'okdir' | 'config';
 

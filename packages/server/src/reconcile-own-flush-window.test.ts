@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { normalizeBridge } from '@gitquire/core';
 import type { Hocuspocus } from '@hocuspocus/server';
-import { normalizeBridge } from '@inkeep/open-knowledge-core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { RECONCILE_TEST_CONFLICTS } from './conflict-authority.test-helper.ts';

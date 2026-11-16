@@ -5,8 +5,8 @@ import {
   clientVersionHeaders,
   clientVersionTokenFields,
   deriveClientSurface,
-} from '@inkeep/open-knowledge-core/client-version';
-import { detectEmbeddedHostFromBrowser } from '@inkeep/open-knowledge-core/constants/embedded-host';
+} from '@gitquire/core/client-version';
+import { detectEmbeddedHostFromBrowser } from '@gitquire/core/constants/embedded-host';
 
 const importMetaEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
 

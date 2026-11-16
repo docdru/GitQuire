@@ -1,5 +1,5 @@
+import type { AgentPresenceEntry } from '@gitquire/core';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import type { AgentPresenceEntry } from '@inkeep/open-knowledge-core';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import type { AwarenessUser } from './identity';

@@ -2,11 +2,7 @@ import { readFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import {
-  normalizeBridge,
-  pendingContentLines,
-  stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+import { normalizeBridge, pendingContentLines, stripFrontmatter } from '@gitquire/core';
 import { updateYFragment } from '@tiptap/y-tiptap';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import * as Y from 'yjs';

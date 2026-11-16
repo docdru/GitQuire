@@ -5,12 +5,12 @@ import {
   DOCK_MOVE_COMMANDS,
   type DockMoveSide,
   evaluateCommandAvailability,
-} from '@inkeep/open-knowledge-core/commands/command-identity';
+} from '@gitquire/core/commands/command-identity';
 import {
   OPEN_KNOWLEDGE_DOCS_URL,
   OPEN_KNOWLEDGE_GITHUB_URL,
   OPEN_KNOWLEDGE_ISSUES_URL,
-} from '@inkeep/open-knowledge-core/constants/menu-labels';
+} from '@gitquire/core/constants/menu-labels';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
 import {

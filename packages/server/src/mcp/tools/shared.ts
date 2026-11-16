@@ -11,7 +11,7 @@ import {
   SERVER_UNREACHABLE_ERROR_PREFIX,
   UNREADABLE_WARNINGS_TEXT,
   validateDocName,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import type { Config } from '../../config/schema.ts';

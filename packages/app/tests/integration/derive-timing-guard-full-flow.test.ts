@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { getSchema, type JSONContent } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { afterEach, describe, expect, test, vi } from 'vitest';

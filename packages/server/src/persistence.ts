@@ -2,8 +2,7 @@ import { existsSync, lstatSync, readFileSync, realpathSync, statSync } from 'nod
 import { realpath } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
-import type { Extension } from '@hocuspocus/server';
-import type { MarkdownManager } from '@inkeep/open-knowledge-core';
+import type { MarkdownManager } from '@gitquire/core';
 import {
   addsBlankLines,
   BridgeInvariantViolationError,
@@ -18,14 +17,15 @@ import {
   pendingContentLines,
   prependFrontmatter,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { atomicTempPath } from '@gitquire/core/server';
 import {
   composeCommitSubject,
   formatOkActor,
   formatWipSubject,
   type OkActorEntry,
-} from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core/shadow-repo-layout';
+import type { Extension } from '@hocuspocus/server';
 import type { JSONContent } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import * as Y from 'yjs';

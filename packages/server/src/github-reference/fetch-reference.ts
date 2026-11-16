@@ -1,7 +1,4 @@
-import {
-  type GitHubReferencePreview,
-  GitHubReferencePreviewSchema,
-} from '@inkeep/open-knowledge-core';
+import { type GitHubReferencePreview, GitHubReferencePreviewSchema } from '@gitquire/core';
 import { isGitHubRateLimited } from '../github-permissions.ts';
 import { getLogger } from '../logger.ts';
 import type { GitHubReferenceTarget } from './reference-target.ts';

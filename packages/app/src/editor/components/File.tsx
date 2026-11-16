@@ -1,4 +1,4 @@
-import { toDesktopAssetHref } from '@inkeep/open-knowledge-core/utils/asset-href';
+import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 import { FileUp } from 'lucide-react';
 
 interface FileProps {

@@ -1,6 +1,5 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   bindConfigDoc,
   CONFIG_DOC_NAME_PROJECT,
@@ -9,7 +8,8 @@ import {
   type ConfigBinding,
   ConfigSchema,
   type WriteScope,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import { expect } from '@playwright/test';
 import * as Y from 'yjs';
 import { test, type WorkerServer } from '../fixtures.ts';

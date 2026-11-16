@@ -1,4 +1,4 @@
-import type { TimelineEntry } from '@inkeep/open-knowledge-core';
+import type { TimelineEntry } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { allSummariesFor, contributorIconKind } from './TimelinePanel.tsx';
 

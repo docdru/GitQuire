@@ -15,7 +15,7 @@ import {
   DEFAULT_SCHEMA_DIALECT,
   type LinterConfig,
   SUPPORTED_SCHEMA_DIALECTS,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { runningAsRoot } from '../../../../test-support/capabilities.test-helper.ts';
 import {

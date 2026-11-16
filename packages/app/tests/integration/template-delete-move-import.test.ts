@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parseAuthRejectionWire } from '@gitquire/server';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { parseAuthRejectionWire } from '@inkeep/open-knowledge-server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import {

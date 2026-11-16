@@ -1,5 +1,5 @@
 import { homedir } from 'node:os';
-import { ProblemDetailsSchema, StreamingProblemEventSchema } from '@inkeep/open-knowledge-core';
+import { ProblemDetailsSchema, StreamingProblemEventSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from '../harness-boot-timeout';
 import { createTestServer, type TestServer } from '../test-harness';

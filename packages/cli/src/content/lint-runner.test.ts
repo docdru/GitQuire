@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { AUDIT_EMPTY_SCOPE_WARNING, DEFAULT_LINTER_CONFIG } from '@inkeep/open-knowledge-core';
+import { AUDIT_EMPTY_SCOPE_WARNING, DEFAULT_LINTER_CONFIG } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { lintDoc } from '../../../server/src/lint/audit.ts';
 import { runLint } from './lint-runner.ts';

@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { createServer, type Server as HttpServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEV_FALLBACK_CLI_REFUSAL } from '@inkeep/open-knowledge-core';
+import { DEV_FALLBACK_CLI_REFUSAL } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { createConcurrencyGuard } from '../local-op-security.ts';

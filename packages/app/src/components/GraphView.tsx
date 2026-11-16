@@ -1,7 +1,4 @@
-import {
-  LinkGraphSuccessSchema,
-  ProblemDetailsSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import { LinkGraphSuccessSchema, ProblemDetailsSchema } from '@gitquire/core/schemas/api';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';

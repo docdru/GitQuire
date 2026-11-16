@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import * as actualServerPkg from '@inkeep/open-knowledge-server';
+import * as actualServerPkg from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resolveContentConfig } from './hocuspocus-plugin.ts';
 
@@ -105,7 +105,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       destroy: destroyServer,
     }));
 
-    vi.doMock('@inkeep/open-knowledge-server', () => ({
+    vi.doMock('@gitquire/server', () => ({
       ...actualServerPkg,
       createAssetServeMiddleware: createAssetServeMiddlewareSpy,
       createCollaborationHost: createCollaborationHostSpy,
@@ -226,7 +226,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
     }));
     let serverIndex = 0;
     let hostIndex = 0;
-    vi.doMock('@inkeep/open-knowledge-server', () => ({
+    vi.doMock('@gitquire/server', () => ({
       ...actualServerPkg,
       createAssetServeMiddleware: () => () => {},
       createCollaborationHost: () => {
@@ -311,7 +311,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       const destroy = vi.fn(async () => {
         order.push('server');
       });
-      vi.doMock('@inkeep/open-knowledge-server', () => ({
+      vi.doMock('@gitquire/server', () => ({
         ...actualServerPkg,
         createAssetServeMiddleware: () => () => {},
         createCollaborationHost: () => host,
@@ -395,7 +395,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       order.push('server');
       throw new Error('server failed');
     });
-    vi.doMock('@inkeep/open-knowledge-server', () => ({
+    vi.doMock('@gitquire/server', () => ({
       ...actualServerPkg,
       createAssetServeMiddleware: () => () => {},
       createCollaborationHost: () => host,

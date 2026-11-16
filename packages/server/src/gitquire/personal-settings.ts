@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { ConfigSchema } from '@inkeep/open-knowledge-core';
+import { ConfigSchema } from '@gitquire/core';
 import { parseDocument } from 'yaml';
 
 const MAX_PERSONAL_SETTINGS_BYTES = 32 * 1024;

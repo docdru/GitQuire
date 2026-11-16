@@ -1,9 +1,4 @@
-import {
-  type Config,
-  type ConfigBinding,
-  OKF_RULE_GROUPS,
-  OKF_RULE_IDS,
-} from '@inkeep/open-knowledge-core';
+import { type Config, type ConfigBinding, OKF_RULE_GROUPS, OKF_RULE_IDS } from '@gitquire/core';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

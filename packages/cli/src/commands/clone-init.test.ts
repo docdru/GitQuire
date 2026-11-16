@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { pathspecArgs } from '@inkeep/open-knowledge-core';
+import { pathspecArgs } from '@gitquire/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { loadConfig } from '../config/loader.ts';

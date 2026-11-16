@@ -1,4 +1,4 @@
-import type { LintDiagnostic } from '@inkeep/open-knowledge-core';
+import type { LintDiagnostic } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { partitionFrontmatterProblems } from './useFrontmatterDiagnostics.ts';
 

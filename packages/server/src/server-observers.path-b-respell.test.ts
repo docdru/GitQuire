@@ -3,7 +3,7 @@ import {
   MarkdownManager,
   type SerializeCallOptions,
   sharedExtensions,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment } from '@tiptap/y-tiptap';
 import { describe, expect, test, vi } from 'vitest';

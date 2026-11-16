@@ -13,7 +13,7 @@ import {
   LINKABLE_ASSET_EXTENSIONS,
   normalizeAttachmentFolderPath,
   OK_DIR,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import ignore, { type Ignore } from 'ignore';
 import { isReservedForUserTree } from './cc1-broadcast.ts';
 import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';

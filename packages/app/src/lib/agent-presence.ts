@@ -1,4 +1,4 @@
-import type { AgentPresenceEntry } from '@inkeep/open-knowledge-core/types/awareness';
+import type { AgentPresenceEntry } from '@gitquire/core/types/awareness';
 
 export const AGENT_PRESENCE_STALE_MS = 5_000;
 

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { MarkdownManager, OK_DIR, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, OK_DIR, sharedExtensions } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { withTempDir } from '../../temp-dir.test-helper.ts';
 import { generateFixture } from './generate-view-count-fixtures.ts';

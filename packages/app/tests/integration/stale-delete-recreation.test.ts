@@ -14,7 +14,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
-import { PagesSuccessSchema } from '@inkeep/open-knowledge-core';
+import { PagesSuccessSchema } from '@gitquire/core';
 import { afterEach, expect, test, vi } from 'vitest';
 import { hasAdmittedMarkdownFile } from '../../../server/src/file-watcher.ts';
 import { runTeardownPhases } from '../stress/_helpers/teardown-fs.ts';

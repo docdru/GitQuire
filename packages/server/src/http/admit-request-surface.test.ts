@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { ServerRuntimeConfig } from '@inkeep/open-knowledge-core';
+import type { ServerRuntimeConfig } from '@gitquire/core';
 import { beforeEach, describe, expect, test } from 'vitest';
 import {
   __resetWarnedForwardedHeaderRefusalForTests,

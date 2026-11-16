@@ -11,9 +11,9 @@ import {
   locateIssue,
   mergeLayered,
   stripRemovedKeys,
-} from '@inkeep/open-knowledge-core';
-import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
-import { type Config, ConfigSchema } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
+import { type Config, ConfigSchema } from '@gitquire/server';
 import { type Document, parseDocument } from 'yaml';
 import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
 import { isObject } from '../utils/is-object.ts';

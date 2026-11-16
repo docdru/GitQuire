@@ -1,6 +1,6 @@
 import { realpath as fsRealpath } from 'node:fs/promises';
 import { dirname, relative, resolve, sep } from 'node:path';
-import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { isProcessAlive } from './process-alive.ts';
 import { lockBaseUrl } from './process-lock.ts';
 import { discoverLockDirs } from './process-scan.ts';

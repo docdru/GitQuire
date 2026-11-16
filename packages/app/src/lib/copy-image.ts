@@ -1,4 +1,4 @@
-import type { CopyImageRequest, CopyImageResult } from '@inkeep/open-knowledge-core/desktop-bridge';
+import type { CopyImageRequest, CopyImageResult } from '@gitquire/core/desktop-bridge';
 
 export type CopyImageOutcome =
   | { ok: true; via: 'desktop' | 'browser'; desktopFailure?: CopyImageDesktopFailure }

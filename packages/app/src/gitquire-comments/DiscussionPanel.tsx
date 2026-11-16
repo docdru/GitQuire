@@ -1,4 +1,4 @@
-import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
+import { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
 import { Check, MessagesSquare, Pencil, Trash2, X } from 'lucide-react';

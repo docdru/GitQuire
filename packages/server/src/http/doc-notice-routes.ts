@@ -3,7 +3,7 @@ import {
   DismissDocNoticeRequestSchema,
   DismissDocNoticeSuccessSchema,
   DocNoticesSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { DocNoticeLedger } from '../doc-notices.ts';
 import { type ApiRouteGroup, type ApiRouteRecord, createApiRouteGroup } from './api-pipeline.ts';
 import { errorResponse } from './error-response.ts';

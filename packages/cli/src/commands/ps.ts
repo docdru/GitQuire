@@ -5,8 +5,8 @@ import {
   LOCAL_DIR,
   OK_DIR,
   RELATIVE_TIME_UNKNOWN,
-} from '@inkeep/open-knowledge-core';
-import { lockAdvertisesUi } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { lockAdvertisesUi } from '@gitquire/server';
 import { Command } from 'commander';
 import pc from 'picocolors';
 import {

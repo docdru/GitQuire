@@ -1,4 +1,4 @@
-import type { ConfigDocProvider } from '@inkeep/open-knowledge-core/config/bind-config-doc';
+import type { ConfigDocProvider } from '@gitquire/core/config/bind-config-doc';
 import * as Y from 'yjs';
 
 const SETTINGS_URL = '/api/gitquire/me/settings';

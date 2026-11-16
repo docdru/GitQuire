@@ -1,4 +1,4 @@
-import { isManagedArtifactDocName } from '@inkeep/open-knowledge-core/constants/cc1';
+import { isManagedArtifactDocName } from '@gitquire/core/constants/cc1';
 import type { ApiDeps } from './branch-api';
 
 const AGENT_FOLDERS = new Set(['.agents', '.claude', '.cursor']);

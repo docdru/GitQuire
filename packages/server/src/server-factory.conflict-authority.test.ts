@@ -10,7 +10,7 @@ import {
   DocumentReadSuccessSchema,
   OK_DIR,
   SyncConflictsSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { bootServer } from '../../../test-support/boot-server.test-helper.ts';

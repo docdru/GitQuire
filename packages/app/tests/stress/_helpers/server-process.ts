@@ -13,8 +13,8 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
+import { SYSTEM_DOC_NAME } from '@gitquire/core';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { SYSTEM_DOC_NAME } from '@inkeep/open-knowledge-core';
 import * as Y from 'yjs';
 import {
   TEST_SERVER_CANDIDATE_PORTS,

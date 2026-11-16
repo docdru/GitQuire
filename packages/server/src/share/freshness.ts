@@ -1,4 +1,4 @@
-import { pathspecArgs, type ShareFreshness } from '@inkeep/open-knowledge-core';
+import { pathspecArgs, type ShareFreshness } from '@gitquire/core';
 import { truncateError } from '../error-format.ts';
 import { createGitInstance } from '../git-handle.ts';
 import { PORCELAIN_STATUS_ARGS } from '../git-paths.ts';

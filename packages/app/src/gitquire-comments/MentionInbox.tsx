@@ -1,4 +1,4 @@
-import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
+import { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import { AtSign } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';

@@ -1,8 +1,4 @@
-import type {
-  LintDiagnostic,
-  LintPosition,
-  LintTextEdit,
-} from '@inkeep/open-knowledge-core/markdown/lint';
+import type { LintDiagnostic, LintPosition, LintTextEdit } from '@gitquire/core/markdown/lint';
 import type * as Y from 'yjs';
 import { requestPreviewTabPromotion } from './preview-tab-promotion';
 

@@ -128,7 +128,7 @@ fi
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
   echo "[measure-sweep] building cli + app (turbo-cached)…"
   ( cd "$REPO_ROOT" && pnpm exec turbo run build \
-      --filter=@inkeep/open-knowledge --filter=@inkeep/open-knowledge-app ) \
+      --filter=@gitquire/cli --filter=@gitquire/app ) \
     || { echo "error: build failed — re-run 'pnpm build' to see output" >&2; exit 4; }
 fi
 if [[ ! -f "$CLI_BIN" ]]; then

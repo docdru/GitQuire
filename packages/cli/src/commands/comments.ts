@@ -1,8 +1,8 @@
 import type { Dirent } from 'node:fs';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
-import { convertCommentsToFootnotes } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
-import { type Config, resolveContentDir, simpleGit } from '@inkeep/open-knowledge-server';
+import { convertCommentsToFootnotes } from '@gitquire/core/gitquire/comment-threads';
+import { type Config, resolveContentDir, simpleGit } from '@gitquire/server';
 import { Command } from 'commander';
 
 const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', 'out', 'vendor']);

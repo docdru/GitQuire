@@ -1,4 +1,4 @@
-import { ServerInfoSuccessSchema } from '@inkeep/open-knowledge-core/schemas/api';
+import { ServerInfoSuccessSchema } from '@gitquire/core/schemas/api';
 import { handleBranchSwitched } from '../editor/branch-invalidation';
 import type { ProviderPool } from '../editor/provider-pool';
 import { emitBranchChanged } from './documents-events';

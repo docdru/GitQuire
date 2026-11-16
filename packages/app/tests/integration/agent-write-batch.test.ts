@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { AgentWriteBatchSuccessSchema } from '@inkeep/open-knowledge-core';
-import { parseWriterId, resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { AgentWriteBatchSuccessSchema } from '@gitquire/core';
+import { parseWriterId, resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, describe, expect, test } from 'vitest';
 import { createTestServer, getServerState, type TestServer } from './test-harness';
 

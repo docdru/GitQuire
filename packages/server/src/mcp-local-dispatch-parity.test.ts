@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { OK_DIR } from '@inkeep/open-knowledge-core';
+import { OK_DIR } from '@gitquire/core';
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { BootedServer } from './boot.ts';

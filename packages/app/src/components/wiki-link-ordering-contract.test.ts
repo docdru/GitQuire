@@ -4,7 +4,7 @@ import {
   resolveWikiLinkTargetDocName,
   toWikiLinkSlug,
   type WikiLinkLookupIndex,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { docNameForNavigationTarget, resolveNavigationTarget } from './navigation-targets';
 

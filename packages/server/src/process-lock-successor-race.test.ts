@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR } from '@gitquire/core';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import {
   legacyServerLock,

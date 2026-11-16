@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { MalformedGitPointerError } from '@inkeep/open-knowledge-server';
+import { MalformedGitPointerError } from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { makeShadowRepoCheck } from './shadow-repo.ts';
 

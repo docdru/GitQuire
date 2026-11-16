@@ -15,8 +15,8 @@ import {
   currentDesktopProduct,
   DEFAULT_EMBEDDINGS_BASE_URL,
   OK_USER_HOME_SECRETS_FILE,
-} from '@inkeep/open-knowledge-core';
-import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { okUserHomeDir } from '@gitquire/core/server';
 import { parse as yamlParse, stringify as yamlStringify } from 'yaml';
 import {
   tracedMkdirSync,

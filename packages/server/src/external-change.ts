@@ -1,5 +1,4 @@
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   BridgeInvariantViolationError,
   BridgeMergeContentLossError,
@@ -10,9 +9,10 @@ import {
   type ReconcileMergeOutcome,
   stripFrontmatter,
   toBridgeInvariantLog,
-} from '@inkeep/open-knowledge-core';
-import { checkCommentsAfterOutsideChange } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
-import { formatReconcileSubject } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core';
+import { checkCommentsAfterOutsideChange } from '@gitquire/core/gitquire/comment-threads';
+import { formatReconcileSubject } from '@gitquire/core/shadow-repo-layout';
+import type { Hocuspocus } from '@hocuspocus/server';
 import type * as Y from 'yjs';
 import type { PrecomputedParse } from './bridge-intake.ts';
 import {

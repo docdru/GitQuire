@@ -2,7 +2,7 @@ import {
   DismissDocNoticeSuccessSchema,
   DocNoticesSuccessSchema,
   type DocNoticeWire,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { createContext, type ReactNode, use, useEffect, useRef, useState } from 'react';
 import { subscribeToBranchChanged, subscribeToDocumentsChanged } from '@/lib/documents-events';
 

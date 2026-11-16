@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { LOCAL_DIR, OK_DIR } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR, OK_DIR } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { BacklinkIndex } from './backlink-index.ts';
 

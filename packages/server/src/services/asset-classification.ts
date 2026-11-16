@@ -1,5 +1,5 @@
 import { extname } from 'node:path';
-import { SANDBOXED_HTML_CSP, SANDBOXED_HTML_EXTENSIONS } from '@inkeep/open-knowledge-core';
+import { SANDBOXED_HTML_CSP, SANDBOXED_HTML_EXTENSIONS } from '@gitquire/core';
 import { mimes } from 'mrmime';
 
 export interface AssetDisposition {

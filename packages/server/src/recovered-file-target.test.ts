@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
+import { filesystemIdentity } from '@gitquire/core/server';
 import { describe, expect, test, vi } from 'vitest';
 import type { DiskEvent, WatcherHandle } from './file-watcher.ts';
 import { getLogger } from './logger.ts';

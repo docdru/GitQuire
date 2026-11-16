@@ -189,7 +189,7 @@ Ideas and bug reports are welcome in [Issues](https://github.com/docdru/GitQuire
 ```bash
 pnpm install
 pnpm run check
-pnpm --filter @inkeep/open-knowledge-app run dev
+pnpm --filter @gitquire/app run dev
 ```
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) and [AGENTS.md](./AGENTS.md) for the repository layout and

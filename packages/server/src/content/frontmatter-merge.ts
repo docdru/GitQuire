@@ -1,4 +1,4 @@
-import { type FrontmatterValue, isFrontmatterValueEmpty } from '@inkeep/open-knowledge-core';
+import { type FrontmatterValue, isFrontmatterValueEmpty } from '@gitquire/core';
 
 export type FrontmatterRecord = Record<string, unknown>;
 

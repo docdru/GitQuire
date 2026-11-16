@@ -1,4 +1,4 @@
-import { renderThemeBlock } from '@inkeep/open-knowledge-core/theme/theme-plugins';
+import { renderThemeBlock } from '@gitquire/core/theme/theme-plugins';
 import { useEffect } from 'react';
 import {
   base16ToTokens,

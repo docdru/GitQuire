@@ -1,11 +1,11 @@
 {
-  "name": "@inkeep/open-knowledge-app",
+  "name": "@gitquire/app",
   "version": "0.0.0-unknown",
   "license": "GPL-3.0-or-later",
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "turbo run build --filter=@inkeep/open-knowledge-core --filter=@inkeep/open-knowledge-server && sh scripts/i18n-compile-unless-skipped.sh && node scripts/copy-excalidraw-assets.mjs",
+    "predev": "turbo run build --filter=@gitquire/core --filter=@gitquire/server && sh scripts/i18n-compile-unless-skipped.sh && node scripts/copy-excalidraw-assets.mjs",
     "dev": "vite",
     "build": "node scripts/compile-i18n-catalogs.ts && node scripts/copy-excalidraw-assets.mjs && tsc --noEmit && vite build && pnpm run check:no-dev-harness",
     "check:no-dev-harness": "node scripts/check-dev-harness-absent.mjs",
@@ -56,7 +56,7 @@
     "gen:color-themes": "node --import tsx scripts/gen-color-themes.ts",
     "audit:strings": "node --import tsx scripts/audit-strings/extract.ts",
     "audit:strings:casing": "node --import tsx scripts/audit-strings/check-casing.ts",
-    "size": "turbo run build --filter=@inkeep/open-knowledge-app && size-limit"
+    "size": "turbo run build --filter=@gitquire/app && size-limit"
   },
   "size-limit": [
     {
@@ -109,8 +109,8 @@
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@hocuspocus/provider": "4.0.0-rc.1",
     "@hookform/resolvers": "^5.0.0",
-    "@inkeep/open-knowledge-core": "workspace:*",
-    "@inkeep/open-knowledge-server": "workspace:*",
+    "@gitquire/core": "workspace:*",
+    "@gitquire/server": "workspace:*",
     "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.6.3",
     "@lingui/core": "^6.0.1",

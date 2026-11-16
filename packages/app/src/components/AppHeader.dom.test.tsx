@@ -1,4 +1,4 @@
-import { resetParseHealth } from '@inkeep/open-knowledge-core';
+import { resetParseHealth } from '@gitquire/core';
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps, ReactNode } from 'react';

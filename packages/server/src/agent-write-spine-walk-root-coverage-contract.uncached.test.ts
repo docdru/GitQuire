@@ -18,7 +18,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 const monorepoRoot = join(here, '..', '..', '..');
 
-const SERVER_PACKAGE_NAME = '@inkeep/open-knowledge-server';
+const SERVER_PACKAGE_NAME = '@gitquire/server';
 
 const SPINE_HELPER_SPECIFIER = './agent-write-spine-files.test-helper.ts';
 

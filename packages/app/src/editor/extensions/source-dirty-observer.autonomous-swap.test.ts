@@ -1,4 +1,4 @@
-import { sharedExtensions as coreExtensions, MarkdownManager } from '@inkeep/open-knowledge-core';
+import { sharedExtensions as coreExtensions, MarkdownManager } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import { EditorState, type Plugin, TextSelection } from '@tiptap/pm/state';

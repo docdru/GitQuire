@@ -17,7 +17,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
-import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
+import { filesystemIdentity } from '@gitquire/core/server';
 import type { Event } from '@parcel/watcher';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';

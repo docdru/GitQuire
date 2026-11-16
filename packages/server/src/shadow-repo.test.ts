@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+import { atomicTempPath } from '@gitquire/core/server';
 import {
   CHECKPOINT_KIND_REGISTRY,
   CHECKPOINT_KINDS,
@@ -13,7 +13,7 @@ import {
   formatCheckpointBodyLine,
   parseCheckpoint,
   parseOkActor,
-} from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core/shadow-repo-layout';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { getLogger } from './logger.ts';
@@ -1283,7 +1283,7 @@ describe('saveInMemoryCheckpoint (bridge-correctness SPEC §6 R7a)', () => {
       'ok-checkpoint-v1: {"kind":"bridge-merge-loss","docName":"intro.md","size":16,"metadata":{"lostSubstrings":["x"]}}',
     ].join('\n');
 
-    const { parseContributors } = await import('@inkeep/open-knowledge-core/shadow-repo-layout');
+    const { parseContributors } = await import('@gitquire/core/shadow-repo-layout');
     const contributors = parseContributors(body);
     expect(contributors).toHaveLength(1);
     expect(contributors[0]?.id).toBe('human-a');

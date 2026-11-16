@@ -1,4 +1,4 @@
-import { LinkFidelity, MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { LinkFidelity, MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { Editor, Extension } from '@tiptap/core';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';

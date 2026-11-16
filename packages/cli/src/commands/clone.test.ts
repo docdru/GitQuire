@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { type Config, simpleGit, UnsafeIncomingSymlinkError } from '@inkeep/open-knowledge-server';
+import { type Config, simpleGit, UnsafeIncomingSymlinkError } from '@gitquire/server';
 import type { SimpleGitOptions } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
@@ -1551,7 +1551,7 @@ describe('runClone git preflight', () => {
       configurable: true,
     });
     try {
-      const { GitNotAvailableError } = await import('@inkeep/open-knowledge-server');
+      const { GitNotAvailableError } = await import('@gitquire/server');
       const cwd = join(
         tmpdir(),
         `ok-clone-preflight-${Date.now()}-${Math.random().toString(36).slice(2)}`,

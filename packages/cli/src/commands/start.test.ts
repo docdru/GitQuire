@@ -15,8 +15,8 @@ import { request as httpRequest } from 'node:http';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { idleShutdownToMs } from '@inkeep/open-knowledge-core';
-import { type Config, ConfigSchema } from '@inkeep/open-knowledge-server';
+import { idleShutdownToMs } from '@gitquire/core';
+import { type Config, ConfigSchema } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   type BootedStartServer,
@@ -290,7 +290,7 @@ describe('withIdleShutdownProcessExit (idle-path zombie prevention)', () => {
 
 describe('isServerLockCollision (D1/C3 gate)', () => {
   test('same-project authority refusal is reusable before its discovery record appears', async () => {
-    const mod = await import('@inkeep/open-knowledge-server');
+    const mod = await import('@gitquire/server');
     const fixture = mkdtempSync(join(tmpdir(), 'ok-reuse-authority-'));
     const cwd = join(fixture, 'project');
     const other = join(fixture, 'other-project');
@@ -320,7 +320,7 @@ describe('isServerLockCollision (D1/C3 gate)', () => {
   class FakeServerLockErr extends Error {}
   const fakeModule = {
     ServerLockCollisionError: FakeServerLockErr,
-  } as unknown as typeof import('@inkeep/open-knowledge-server');
+  } as unknown as typeof import('@gitquire/server');
 
   test('true for a ServerLockCollisionError instance', () => {
     expect(isServerLockCollision(new FakeServerLockErr('held'), fakeModule, tmpdir())).toBe(true);
@@ -330,7 +330,7 @@ describe('isServerLockCollision (D1/C3 gate)', () => {
     expect(isServerLockCollision('not-an-error', fakeModule, tmpdir())).toBe(false);
   });
   test('false (never throws) when the module lacks the class export', () => {
-    const empty = {} as unknown as typeof import('@inkeep/open-knowledge-server');
+    const empty = {} as unknown as typeof import('@gitquire/server');
     expect(isServerLockCollision(new Error('boom'), empty, tmpdir())).toBe(false);
   });
 });
@@ -982,7 +982,7 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
 
 describe('tryDescribeLockCollision', () => {
   test('overlapping content ownership has an actionable message without a stack', async () => {
-    const serverModule = await import('@inkeep/open-knowledge-server');
+    const serverModule = await import('@gitquire/server');
     const err = new serverModule.ServerAuthorityCollisionError({
       projectDir: '/holder',
       scope: { kind: 'tree', path: '/content', excluded: [] },
@@ -996,7 +996,7 @@ describe('tryDescribeLockCollision', () => {
   test.runIf(process.platform !== 'win32' && process.getuid?.() !== 0)(
     'a lock acquisition cannot read has its remedy as the message, without a stack',
     async () => {
-      const serverModule = await import('@inkeep/open-knowledge-server');
+      const serverModule = await import('@gitquire/server');
       const projectDir = await mkdtemp(join(tmpdir(), 'ok-start-unreadable-lock-'));
       const lockDir = join(projectDir, '.ok', 'local');
       const lockPath = join(lockDir, 'server.lock');
@@ -1038,7 +1038,7 @@ describe('tryDescribeLockCollision', () => {
         if (opts.throwOnRead) throw new Error('synthetic read failure');
         return opts.meta;
       },
-    } as unknown as typeof import('@inkeep/open-knowledge-server');
+    } as unknown as typeof import('@gitquire/server');
   }
 
   test('non-lock-collision error → null (caller falls back to generic)', () => {
@@ -1088,7 +1088,7 @@ describe('tryDescribeLockCollision', () => {
   test('serverModule.ServerLockCollisionError missing → null (back-compat)', () => {
     const fm = {
       readServerLock: () => null,
-    } as unknown as typeof import('@inkeep/open-knowledge-server');
+    } as unknown as typeof import('@gitquire/server');
     const err = new Error('any');
     const result = tryDescribeLockCollision(err, '/tmp/proj', fm);
     expect(result).toBeNull();

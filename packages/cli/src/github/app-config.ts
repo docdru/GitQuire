@@ -1,4 +1,4 @@
-import { DEFAULT_GITHUB_OAUTH_CLIENT_ID } from '@inkeep/open-knowledge-core';
+import { DEFAULT_GITHUB_OAUTH_CLIENT_ID } from '@gitquire/core';
 
 export function getOAuthClientId(): string {
   return process.env.OPEN_KNOWLEDGE_GITHUB_CLIENT_ID ?? DEFAULT_GITHUB_OAUTH_CLIENT_ID;

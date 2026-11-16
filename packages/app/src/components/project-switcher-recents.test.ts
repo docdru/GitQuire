@@ -1,4 +1,4 @@
-import type { WorktreeInventoryModel, WorktreeSelectorModel } from '@inkeep/open-knowledge-core';
+import type { WorktreeInventoryModel, WorktreeSelectorModel } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import type { RecentProjectEntry } from '@/lib/desktop-bridge-types';
 import {

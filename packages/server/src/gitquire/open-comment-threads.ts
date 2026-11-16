@@ -5,7 +5,7 @@ import {
   type CommentAuthor,
   type CommentThread,
   readCommentThreads,
-} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+} from '@gitquire/core/gitquire/comment-threads';
 import { docNameForPath } from './page-scan.ts';
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024;

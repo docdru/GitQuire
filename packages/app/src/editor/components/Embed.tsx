@@ -1,4 +1,4 @@
-import { rewriteEmbedUrl } from '@inkeep/open-knowledge-core/utils/embed-url-rewrite';
+import { rewriteEmbedUrl } from '@gitquire/core/utils/embed-url-rewrite';
 import { t } from '@lingui/core/macro';
 import { useEffect, useRef } from 'react';
 import { useJsxComponentHost } from './jsx-host-context.tsx';

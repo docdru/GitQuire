@@ -3,11 +3,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
+import { DEFAULT_LINKS_VALIDATION, DEFAULT_SUPPRESS_LOG_LINK_ADVISORIES } from '@gitquire/core';
 import { Hocuspocus } from '@hocuspocus/server';
-import {
-  DEFAULT_LINKS_VALIDATION,
-  DEFAULT_SUPPRESS_LOG_LINK_ADVISORIES,
-} from '@inkeep/open-knowledge-core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   AGENT_WRITE_ORIGIN,

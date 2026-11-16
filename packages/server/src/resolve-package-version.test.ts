@@ -7,13 +7,13 @@ import { resolvePackageVersion } from './resolve-package-version.ts';
 
 describe('resolvePackageVersion', () => {
   test('resolves the server package via its own import.meta.url', async () => {
-    const v = await resolvePackageVersion('@inkeep/open-knowledge-server', import.meta.url);
+    const v = await resolvePackageVersion('@gitquire/server', import.meta.url);
     expect(v).toMatch(/^\d+\.\d+\.\d+/);
   });
 
   test('returns undefined for an unresolvable package name', async () => {
     const v = await resolvePackageVersion(
-      '@inkeep/this-package-does-not-exist-xyz',
+      '@gitquire/this-package-does-not-exist-xyz',
       import.meta.url,
     );
     expect(v).toBeUndefined();
@@ -48,7 +48,7 @@ describe('resolvePackageVersion', () => {
   test('throws non-MODULE_NOT_FOUND errors instead of swallowing them', async () => {
     let threw = false;
     try {
-      await resolvePackageVersion('@inkeep/open-knowledge-server', 42 as unknown as string);
+      await resolvePackageVersion('@gitquire/server', 42 as unknown as string);
     } catch {
       threw = true;
     }

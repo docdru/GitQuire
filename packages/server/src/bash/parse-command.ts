@@ -1,4 +1,4 @@
-import { OK_DIR } from '@inkeep/open-knowledge-core';
+import { OK_DIR } from '@gitquire/core';
 import shellQuote from 'shell-quote';
 import { shellEscape } from './shell-escape.ts';
 

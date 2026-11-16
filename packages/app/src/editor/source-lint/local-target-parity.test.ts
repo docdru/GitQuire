@@ -1,6 +1,6 @@
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { EditorState } from '@codemirror/state';
-import { toWikiLinkSlug, type ValidationDocResult } from '@inkeep/open-knowledge-core';
+import { toWikiLinkSlug, type ValidationDocResult } from '@gitquire/core';
 import { GFM } from '@lezer/markdown';
 import { describe, expect, test } from 'vitest';
 import { computeLinkResolutionState } from '../extensions/link-resolution';

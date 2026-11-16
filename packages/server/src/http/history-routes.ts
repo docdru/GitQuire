@@ -4,7 +4,7 @@ import {
   HistorySuccessSchema,
   HistoryVersionSuccessSchema,
   isValidBranchName,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getLogger, type PinoLogger } from '../logger.ts';
 import {
   createAncestorShaSetCache,

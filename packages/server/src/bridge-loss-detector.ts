@@ -1,4 +1,4 @@
-import { findDroppedContent, fnv1aDigest, pendingContentLines } from '@inkeep/open-knowledge-core';
+import { findDroppedContent, fnv1aDigest, pendingContentLines } from '@gitquire/core';
 import { getLogger } from './logger.ts';
 import { LOSS_EVENT_DETECTOR_TRIP, type LossCaptureRing } from './loss-capture.ts';
 import { type ShadowHandle, saveInMemoryCheckpoint } from './shadow-repo.ts';

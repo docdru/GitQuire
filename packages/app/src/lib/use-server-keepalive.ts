@@ -1,4 +1,4 @@
-import { startKeepalive as defaultStartKeepalive } from '@inkeep/open-knowledge-core/keepalive';
+import { startKeepalive as defaultStartKeepalive } from '@gitquire/core/keepalive';
 import { useEffect, useRef } from 'react';
 
 export function keepaliveBaseFromCollabUrl(collabUrl: string | null): string | undefined {

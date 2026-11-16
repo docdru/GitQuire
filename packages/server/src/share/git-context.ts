@@ -3,12 +3,9 @@ import {
   declaredGitHubHostsFrom,
   isGitHubHost,
   normalizeGitHostname,
-} from '@inkeep/open-knowledge-core';
-import {
-  type GitRepository,
-  inspectGitRepository,
-} from '@inkeep/open-knowledge-core/git-repository';
-import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { type GitRepository, inspectGitRepository } from '@gitquire/core/git-repository';
+import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { buildSyncCredentialConfig } from '../git-handle.ts';
 import { getLogger } from '../logger.ts';
 

@@ -1,4 +1,4 @@
-import { DEV_FALLBACK_CLI_REFUSAL } from '@inkeep/open-knowledge-core';
+import { DEV_FALLBACK_CLI_REFUSAL } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { httpCloneTransport } from './clone-transport';
 

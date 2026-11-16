@@ -5,7 +5,7 @@ import {
   type LockRemoval,
   removeLockIfUnchanged,
   resolveLockDir,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command } from 'commander';
 import { describeLockOwnershipRefusal, inspectLock, type LockState } from './lock-state.ts';
 

@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, isAbsolute, join } from 'node:path';
-import { OkCliCommand } from '@inkeep/open-knowledge-core';
+import { OkCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   __resetResolveOnPathCacheForTests,

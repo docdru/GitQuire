@@ -7,7 +7,7 @@ import {
   SUPPORTED_DOC_EXTENSIONS,
   ValidationAuditCountsResponseSchema,
   ValidationAuditResponseSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { BacklinkIndex } from '../backlink-index.ts';
 import { createContentFilter } from '../content-filter.ts';

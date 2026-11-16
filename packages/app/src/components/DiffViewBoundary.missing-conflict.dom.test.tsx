@@ -1,4 +1,4 @@
-import type { ConflictEntryWire } from '@inkeep/open-knowledge-core';
+import type { ConflictEntryWire } from '@gitquire/core';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';

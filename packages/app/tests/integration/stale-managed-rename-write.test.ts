@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ForwardLinksSuccessSchema } from '@inkeep/open-knowledge-core';
+import { ForwardLinksSuccessSchema } from '@gitquire/core';
 import { afterEach, expect, test, vi } from 'vitest';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';
 import * as fsTraced from '../../../server/src/fs-traced.ts';

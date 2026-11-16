@@ -1,4 +1,4 @@
-import { type DocumentListEntry, DocumentListEntrySchema } from '@inkeep/open-knowledge-core';
+import { type DocumentListEntry, DocumentListEntrySchema } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   attributeTreeHiddenAxes,

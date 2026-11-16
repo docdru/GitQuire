@@ -7,7 +7,7 @@ import {
   commentIdFor,
   normalizeCommentTimes,
   writeCommentThreads,
-} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+} from '@gitquire/core/gitquire/comment-threads';
 import { describe, expect, it } from 'vitest';
 import {
   confirmationMail,

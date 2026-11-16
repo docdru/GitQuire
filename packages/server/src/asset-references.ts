@@ -7,7 +7,7 @@ import {
   LINKABLE_ASSET_EXTENSIONS,
   mediaKindForSidebarAssetExtension,
   resolveAssetProjectPath,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { isWithinContentDir } from './content-path.ts';
 import type { FileIndexEntry } from './file-watcher.ts';
 import { matchMarkdownLinks, matchWikiLinks } from './link-syntax.ts';

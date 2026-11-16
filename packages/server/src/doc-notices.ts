@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join } from 'node:path';
-import { type DocNoticeWire, DocNoticeWireSchema } from '@inkeep/open-knowledge-core';
+import { type DocNoticeWire, DocNoticeWireSchema } from '@gitquire/core';
 import { z } from 'zod';
 import { isSystemDoc } from './cc1-broadcast.ts';
 import { getLocalDir } from './config/paths.ts';

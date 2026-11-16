@@ -45,7 +45,7 @@ jobs:
       - name: Translation catalogs are up to date
         id: catalogs
         run: |
-          pnpm --filter @inkeep/open-knowledge-app run i18n:extract
+          pnpm --filter @gitquire/app run i18n:extract
           untracked=$(git ls-files --others --exclude-standard -- packages/app/src/locales)
           if [ -n "$untracked" ] || ! git diff --quiet -I '^"POT-Creation-Date' -- packages/app/src/locales; then
             git add -N -- packages/app/src/locales
@@ -53,7 +53,7 @@ jobs:
             echo "CATALOG-PATCH-BEGIN"
             git --no-pager diff -- packages/app/src/locales
             echo "CATALOG-PATCH-END"
-            echo "::error::UI strings changed. Run: pnpm --filter @inkeep/open-knowledge-app run i18n:extract"
+            echo "::error::UI strings changed. Run: pnpm --filter @gitquire/app run i18n:extract"
             exit 1
           fi
 
@@ -67,12 +67,12 @@ jobs:
       - name: Typecheck server and CLI
         run: >-
           pnpm exec turbo run typecheck
-          --filter=@inkeep/open-knowledge-core
-          --filter=@inkeep/open-knowledge-server
-          --filter=@inkeep/open-knowledge
+          --filter=@gitquire/core
+          --filter=@gitquire/server
+          --filter=@gitquire/cli
 
       - name: Typecheck app
-        run: pnpm exec turbo run typecheck --filter=@inkeep/open-knowledge-app
+        run: pnpm exec turbo run typecheck --filter=@gitquire/app
 
   tests:
     name: tests (${{ matrix.suite }})
@@ -83,36 +83,36 @@ jobs:
       matrix:
         include:
           - suite: core
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-core
+            build: pnpm exec turbo run build --filter=@gitquire/core
             run: pnpm --dir packages/core run test
           - suite: server 1/4
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...
+            build: pnpm exec turbo run build --filter=@gitquire/server^...
             run: pnpm --dir packages/server exec vitest run --shard=1/4
           - suite: server 2/4
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...
+            build: pnpm exec turbo run build --filter=@gitquire/server^...
             run: pnpm --dir packages/server exec vitest run --shard=2/4
           - suite: server 3/4
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...
+            build: pnpm exec turbo run build --filter=@gitquire/server^...
             run: pnpm --dir packages/server exec vitest run --shard=3/4
           - suite: server 4/4
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server^...
+            build: pnpm exec turbo run build --filter=@gitquire/server^...
             run: pnpm --dir packages/server exec vitest run --shard=4/4
           - suite: app unit
             build: >-
-              pnpm exec turbo run build --filter=@inkeep/open-knowledge-app^...
+              pnpm exec turbo run build --filter=@gitquire/app^...
               && pnpm --dir packages/app exec playwright install --with-deps chromium
             run: pnpm --dir packages/app exec vitest run --config vitest.config.ts
           - suite: app DOM
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-app^...
+            build: pnpm exec turbo run build --filter=@gitquire/app^...
             run: pnpm --dir packages/app exec vitest run --config vitest.dom.config.ts
           - suite: cli
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge...
+            build: pnpm exec turbo run build --filter=@gitquire/cli...
             run: pnpm --dir packages/cli run test
           - suite: docs
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-docs^...
+            build: pnpm exec turbo run build --filter=@gitquire/docs^...
             run: pnpm --dir docs run test
           - suite: uncached
-            build: pnpm exec turbo run build --filter=@inkeep/open-knowledge-server...
+            build: pnpm exec turbo run build --filter=@gitquire/server...
             run: pnpm run test:uncached
     steps:
       - uses: actions/checkout@v7

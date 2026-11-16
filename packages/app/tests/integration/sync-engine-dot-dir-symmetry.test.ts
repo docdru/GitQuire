@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createContentFilter } from '@inkeep/open-knowledge-server';
+import { createContentFilter } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { createTestConflictAuthority } from '../../../server/src/conflict-authority.test-helper.ts';

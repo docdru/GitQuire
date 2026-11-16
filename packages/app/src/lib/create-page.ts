@@ -1,4 +1,4 @@
-import { CreatePageSuccessSchema } from '@inkeep/open-knowledge-core/schemas/api';
+import { CreatePageSuccessSchema } from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 import { emitDocumentsChanged } from './documents-events';
 import { parseServerResponse, parseSuccessOrWarn } from './parse-server-response';

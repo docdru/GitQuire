@@ -1,8 +1,4 @@
-import {
-  parseFrontmatterYaml,
-  stripFrontmatter,
-  unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
+import { parseFrontmatterYaml, stripFrontmatter, unwrapFrontmatterFences } from '@gitquire/core';
 
 export function splitPayloadFrontmatter(markdown: string): {
   frontmatter: string;

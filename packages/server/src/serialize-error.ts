@@ -1,4 +1,4 @@
-import type { SerializedError, SerializedErrorTruncation } from '@inkeep/open-knowledge-core';
+import type { SerializedError, SerializedErrorTruncation } from '@gitquire/core';
 
 const MAX_CAUSE_DEPTH = 5;
 

@@ -1,4 +1,4 @@
-import { COMMAND_IDENTITIES, MENU_LABELS } from '@inkeep/open-knowledge-core';
+import { COMMAND_IDENTITIES, MENU_LABELS } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { matchesCommandQuery } from '@/components/command-palette-search';
 

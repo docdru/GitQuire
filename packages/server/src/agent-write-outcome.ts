@@ -1,8 +1,4 @@
-import type {
-  AgentWriteOutcomeFields,
-  ProblemType,
-  ReconcileMergeOutcome,
-} from '@inkeep/open-knowledge-core';
+import type { AgentWriteOutcomeFields, ProblemType, ReconcileMergeOutcome } from '@gitquire/core';
 import {
   type HeldSaveReason,
   OK_DOC_MOVED,

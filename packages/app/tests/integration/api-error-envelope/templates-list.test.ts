@@ -1,4 +1,4 @@
-import { TemplatesListSuccessSchema } from '@inkeep/open-knowledge-core';
+import { TemplatesListSuccessSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from '../harness-boot-timeout';
 import { createTestServer, type TestServer } from '../test-harness';

@@ -3,12 +3,12 @@ import { createServer, type Server as HttpServer, request as httpRequest } from 
 import { connect as createNetConnection } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   ASSET_EXTENSIONS,
   EXECUTABLE_BLOCKLIST_EXTENSIONS,
   INLINE_RENDERABLE_EXTENSIONS,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import sirv from 'sirv';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { WebSocket } from 'ws';

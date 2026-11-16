@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { instantiateDoc, stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { instantiateDoc, stripFrontmatter } from '@gitquire/core';
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {

@@ -408,7 +408,7 @@ export function buildCustomSchemeUrl(sharedUrl: string, token?: string): string 
     : `openknowledge://share?token=${token}`;
 }
 
-export const SPLASH_INSTALL_COMMAND = 'npm install -g @inkeep/open-knowledge';
+export const SPLASH_INSTALL_COMMAND = 'npm install -g @gitquire/cli';
 
 function shellSingleQuoteShareArg(s: string): string {
   return `'${s.replace(/'/g, "'\\''")}'`;

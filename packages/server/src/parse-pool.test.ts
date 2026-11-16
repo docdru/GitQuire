@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { stripFrontmatter } from '@gitquire/core';
 import type { Document } from '@hocuspocus/server';
-import { stripFrontmatter } from '@inkeep/open-knowledge-core';
 import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';

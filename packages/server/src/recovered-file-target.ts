@@ -1,6 +1,6 @@
 import { realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { filesystemIdentity, statMtimeMs } from '@inkeep/open-knowledge-core/server';
+import { filesystemIdentity, statMtimeMs } from '@gitquire/core/server';
 import type { WatcherHandle } from './file-watcher.ts';
 import { getLogger } from './logger.ts';
 

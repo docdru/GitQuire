@@ -7,8 +7,8 @@ import {
   OK_LEGACY_MACHINE_LOCAL_ROOT_DIRS,
   OK_MACHINE_LOCAL_ROOT_FILES,
   WORKTREES_DIRNAME,
-} from '@inkeep/open-knowledge-core';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { atomicTempPath } from '@gitquire/core/server';
 import {
   tracedMkdirSync,
   tracedRenameSync,
@@ -220,7 +220,7 @@ ${LOCAL_DIR}/
 
 # .ok/worktrees/ holds git worktrees created from the desktop worktree
 # selector — per-machine checkouts, never committed (WORKTREES_PARENT_DIR in
-# @inkeep/open-knowledge-core). Worktree creation also appends this path to
+# @gitquire/core). Worktree creation also appends this path to
 # .git/info/exclude so projects whose committed rule predates it stay clean.
 ${WORKTREES_DIRNAME}/
 

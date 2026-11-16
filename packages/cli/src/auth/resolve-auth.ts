@@ -1,4 +1,4 @@
-import { shellSingleQuote } from '@inkeep/open-knowledge-core';
+import { shellSingleQuote } from '@gitquire/core';
 import { detectGh } from './gh-detect.ts';
 import type { TokenStore } from './token-store.ts';
 

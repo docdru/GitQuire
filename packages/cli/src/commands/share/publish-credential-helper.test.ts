@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { shellSingleQuote } from '@inkeep/open-knowledge-core';
+import { shellSingleQuote } from '@gitquire/core';
 import type { Octokit } from '@octokit/rest';
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../../test-support/configure-git-fixture.test-helper.ts';

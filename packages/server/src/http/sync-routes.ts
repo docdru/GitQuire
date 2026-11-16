@@ -1,8 +1,7 @@
 import { readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
-import type { Hocuspocus } from '@hocuspocus/server';
-import type { Principal } from '@inkeep/open-knowledge-core';
+import type { Principal } from '@gitquire/core';
 import {
   type ConflictEntryWire,
   SyncConflictContentSuccessSchema,
@@ -14,7 +13,8 @@ import {
   SyncStatusSchema,
   SyncTriggerRequestSchema,
   SyncTriggerSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import type { ConflictAuthority } from '../conflict-authority.ts';
 import {
   ConflictMarkersInContentError,

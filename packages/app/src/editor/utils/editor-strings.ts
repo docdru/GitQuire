@@ -1,4 +1,4 @@
-import type { PropDef } from '@inkeep/open-knowledge-core/registry/types';
+import type { PropDef } from '@gitquire/core/registry/types';
 import { plural, t } from '@lingui/core/macro';
 
 export function formatContainerAriaLabel(

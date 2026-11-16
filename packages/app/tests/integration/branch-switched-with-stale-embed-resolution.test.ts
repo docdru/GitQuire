@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { ensureProjectGit } from '@inkeep/open-knowledge-server';
+import { ensureProjectGit } from '@gitquire/server';
 import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { afterEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';

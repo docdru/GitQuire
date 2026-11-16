@@ -4,7 +4,7 @@ import {
   SavedThemeDeleteSuccessSchema,
   SavedThemeSaveSuccessSchema,
   SavedThemesListSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type ReactNode, useState } from 'react';

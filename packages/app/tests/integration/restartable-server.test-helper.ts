@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { ensureProjectGit } from '@inkeep/open-knowledge-server';
+import { ensureProjectGit } from '@gitquire/server';
 import { z } from 'zod';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { testAuthorityRegistryPath } from '../../../../test-support/server-authority-registry.test-helper.ts';

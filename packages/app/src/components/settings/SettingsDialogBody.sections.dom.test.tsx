@@ -383,7 +383,7 @@ describe('SettingsDialogBody section runtime dispatch', () => {
   });
 
   test('the Account page mounts the Enterprise hosts card from the user binding', async () => {
-    const { bindConfigDoc } = await import('@inkeep/open-knowledge-core');
+    const { bindConfigDoc } = await import('@gitquire/core');
     const { Doc } = await import('yjs');
     const listeners = new Set<() => void>();
     const binding = bindConfigDoc(

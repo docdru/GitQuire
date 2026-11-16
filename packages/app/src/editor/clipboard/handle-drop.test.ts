@@ -1,12 +1,12 @@
-import * as actualHtmlToMdast from '@inkeep/open-knowledge-core/markdown/html-to-mdast';
+import * as actualHtmlToMdast from '@gitquire/core/markdown/html-to-mdast';
 import * as actualSonner from 'sonner';
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createServedBindingLog } from '@/test-utils/served-binding.test-helper';
 
 const servedCore = createServedBindingLog();
 
-vi.doMock('@inkeep/open-knowledge-core/markdown/html-to-mdast', () => {
-  return servedCore.serve('@inkeep/open-knowledge-core/markdown/html-to-mdast', {
+vi.doMock('@gitquire/core/markdown/html-to-mdast', () => {
+  return servedCore.serve('@gitquire/core/markdown/html-to-mdast', {
     ...actualHtmlToMdast,
     htmlToMdast: vi.fn((_html: string) => ({ type: 'root', children: [] })),
     mdastToMarkdown: vi.fn((_tree: unknown) => '**bold**'),
@@ -360,9 +360,9 @@ describe('WYSIWYG drop dispatcher — core replacement liveness', () => {
     expect(drop(fakeView(), evt)).toBe(true);
     expect(md.parse).toHaveBeenCalledWith('**bold**');
     for (const member of ['htmlToMdast', 'mdastToMarkdown']) {
-      expect(
-        servedCore.readersOf('@inkeep/open-knowledge-core/markdown/html-to-mdast', member, since),
-      ).toEqual(['editor/clipboard/handle-paste.ts']);
+      expect(servedCore.readersOf('@gitquire/core/markdown/html-to-mdast', member, since)).toEqual([
+        'editor/clipboard/handle-paste.ts',
+      ]);
     }
   });
 });

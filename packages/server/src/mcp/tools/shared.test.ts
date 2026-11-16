@@ -1,4 +1,4 @@
-import { summarizeLintPluginFailures } from '@inkeep/open-knowledge-core';
+import { summarizeLintPluginFailures } from '@gitquire/core';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import { z } from 'zod';
 

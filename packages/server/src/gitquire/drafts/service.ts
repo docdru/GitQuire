@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { pathspecArgs } from '@inkeep/open-knowledge-core';
+import { pathspecArgs } from '@gitquire/core';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { noreplyEmail } from '../access-gate.ts';
 import type { Mention } from '../mentions.ts';

@@ -7,7 +7,7 @@ import {
   OK_DIR,
   parseFrontmatterRecord,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   countOpenCommentThreadsUnder,
   type OpenCommentSummary,

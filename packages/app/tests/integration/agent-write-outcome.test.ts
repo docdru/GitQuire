@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { AGENT_WRITE_NEXT_STEPS, AGENT_WRITE_OUTCOMES } from '@inkeep/open-knowledge-core';
+import { AGENT_WRITE_NEXT_STEPS, AGENT_WRITE_OUTCOMES } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {

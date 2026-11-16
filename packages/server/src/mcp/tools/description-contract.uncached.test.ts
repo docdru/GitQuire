@@ -6,7 +6,7 @@ import {
   LINT_PLUGIN_IDS,
   OPEN_KNOWLEDGE_MCP_TOOLS,
   VALIDATION_SOURCES,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';

@@ -1,8 +1,4 @@
-import {
-  DEFAULT_LINTER_CONFIG,
-  type LinterConfig,
-  lintDocument,
-} from '@inkeep/open-knowledge-core';
+import { DEFAULT_LINTER_CONFIG, type LinterConfig, lintDocument } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { computeBrokenOutboundLinks } from '../backlink-index.ts';
 import { buildIndexMarkdown, type IndexEntry } from './generate-index.ts';

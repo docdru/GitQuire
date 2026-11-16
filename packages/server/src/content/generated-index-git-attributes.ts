@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { relative, resolve, sep } from 'node:path';
-import { atomicWriteFile } from '@inkeep/open-knowledge-core/server';
+import { atomicWriteFile } from '@gitquire/core/server';
 import { normalizeFsPath, tracedAtomicFs, tracedRm } from '../fs-traced.ts';
 import { escapeGitPatternSegment, realpathOrResolved } from '../git-paths.ts';
 import { getLogger } from '../logger.ts';

@@ -1,4 +1,4 @@
-import { RENDERER_LOG_MAX_ENTRIES } from '@inkeep/open-knowledge-core';
+import { RENDERER_LOG_MAX_ENTRIES } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
 import { fetchWithHostHeader } from './host-header-request.test-helper';

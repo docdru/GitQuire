@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { parseCheckpoint } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { parseCheckpoint } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { gcShadowBranches } from './shadow-branch-gc';

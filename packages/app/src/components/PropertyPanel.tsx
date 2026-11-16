@@ -12,15 +12,14 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import type { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   bindFrontmatterDoc,
   type FrontmatterBinding,
   type FrontmatterSnapshot,
   readFmKeys,
   readFmRegionWithError,
-} from '@inkeep/open-knowledge-core/bridge';
-import { fieldErrorsFromError } from '@inkeep/open-knowledge-core/frontmatter/errors';
+} from '@gitquire/core/bridge';
+import { fieldErrorsFromError } from '@gitquire/core/frontmatter/errors';
 import {
   type FrontmatterPatch,
   type FrontmatterType,
@@ -28,7 +27,8 @@ import {
   frontmatterValuesEqual,
   inferType,
   isFrontmatterValueEmpty,
-} from '@inkeep/open-knowledge-core/frontmatter/schema';
+} from '@gitquire/core/frontmatter/schema';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { type ReactNode, useEffect, useRef, useState } from 'react';

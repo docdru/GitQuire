@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { isAbsolute, join, resolve, sep } from 'node:path';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+import { atomicTempPath } from '@gitquire/core/server';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { checkSymlinkLeaf } from '../fs-safety.ts';
 import { type FrontmatterRecord, mergePatch } from './frontmatter-merge.ts';

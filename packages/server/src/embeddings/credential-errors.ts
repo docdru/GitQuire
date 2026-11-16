@@ -1,4 +1,4 @@
-import type { SemanticIndexStatus } from '@inkeep/open-knowledge-core/schemas/api';
+import type { SemanticIndexStatus } from '@gitquire/core/schemas/api';
 
 type EmbeddingsSecretStoreErrorCode = NonNullable<SemanticIndexStatus['keyStoreError']>;
 

@@ -1,5 +1,5 @@
 import { dirname, join } from 'node:path';
-import type { LinterConfig, MarkdownlintRuleSetting } from '@inkeep/open-knowledge-core';
+import type { LinterConfig, MarkdownlintRuleSetting } from '@gitquire/core';
 import { resolveFrontmatterSchemas } from './frontmatter-schemas.ts';
 import {
   type DiscoveredMarkdownlintConfig,

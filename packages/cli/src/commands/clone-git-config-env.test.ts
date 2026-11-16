@@ -12,8 +12,8 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { shellSingleQuote } from '@inkeep/open-knowledge-core';
-import { simpleGit, UnsafeIncomingSymlinkError } from '@inkeep/open-knowledge-server';
+import { shellSingleQuote } from '@gitquire/core';
+import { simpleGit, UnsafeIncomingSymlinkError } from '@gitquire/server';
 import { GitPluginError, type SimpleGitOptions } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';

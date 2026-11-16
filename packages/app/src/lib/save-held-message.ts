@@ -1,8 +1,5 @@
-import {
-  type ConfigValidationError,
-  isKnownConfigError,
-} from '@inkeep/open-knowledge-core/config/errors';
-import type { DocNoticeWire } from '@inkeep/open-knowledge-core/schemas/api';
+import { type ConfigValidationError, isKnownConfigError } from '@gitquire/core/config/errors';
+import type { DocNoticeWire } from '@gitquire/core/schemas/api';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
 

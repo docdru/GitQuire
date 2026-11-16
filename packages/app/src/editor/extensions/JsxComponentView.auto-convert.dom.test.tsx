@@ -3,7 +3,7 @@ import {
   MarkdownManager,
   resetParseHealth,
   sharedExtensions,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Editor } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';

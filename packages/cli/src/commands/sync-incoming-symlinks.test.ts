@@ -16,7 +16,7 @@ import {
   type Config,
   simpleGit,
   UnsafeIncomingSymlinkError,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import type { SimpleGit } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
@@ -252,7 +252,7 @@ describe('ok pull without a running server', () => {
 
     const result = spawnSync(
       process.execPath,
-      ['--conditions=@inkeep/source', CLI_ENTRY, 'pull', '--json'],
+      ['--conditions=@gitquire/source', CLI_ENTRY, 'pull', '--json'],
       { cwd: projectDir, encoding: 'utf-8', env },
     );
 

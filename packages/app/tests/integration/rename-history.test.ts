@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   loadRenameLogIndex,

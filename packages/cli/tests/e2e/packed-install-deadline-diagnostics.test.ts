@@ -43,7 +43,7 @@ test('retains npm debug logs exactly once in a fresh acquisition deadline error 
     writeFileSync(
       join(packageDir, 'package.json'),
       JSON.stringify({
-        name: '@inkeep/open-knowledge',
+        name: '@gitquire/cli',
         version: '1.0.0',
         dependencies: { 'ok-deadline-snapshot-fixture': '1.0.0' },
       }),

@@ -256,7 +256,7 @@ describe('runInit', () => {
         configurable: true,
       });
       try {
-        const { GitNotAvailableError } = await import('@inkeep/open-knowledge-server');
+        const { GitNotAvailableError } = await import('@gitquire/server');
         await expect(runInitForTest()).rejects.toBeInstanceOf(GitNotAvailableError);
       } finally {
         Object.defineProperty(process, 'platform', {

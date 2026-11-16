@@ -2,7 +2,7 @@ import { type SpawnSyncOptions, spawnSync } from 'node:child_process';
 import { accessSync, existsSync, constants as fsConstants, readFileSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { isAbsolute, join, delimiter as PATH_DELIM } from 'node:path';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 
 export const MIN_GIT_VERSION = '2.31.0';

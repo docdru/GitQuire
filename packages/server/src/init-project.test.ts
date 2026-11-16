@@ -11,11 +11,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import {
-  OK_DIR,
-  OK_MACHINE_LOCAL_ROOT_DIRS,
-  OK_MACHINE_LOCAL_ROOT_FILES,
-} from '@inkeep/open-knowledge-core';
+import { OK_DIR, OK_MACHINE_LOCAL_ROOT_DIRS, OK_MACHINE_LOCAL_ROOT_FILES } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   buildConfigYmlContent,

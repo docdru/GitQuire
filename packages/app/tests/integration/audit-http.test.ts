@@ -7,7 +7,7 @@ import {
   ValidationAuditCountsResponseSchema,
   type ValidationAuditResponse,
   ValidationAuditResponseSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
 import {

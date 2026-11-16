@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { Principal } from '@inkeep/open-knowledge-core';
+import type { Principal } from '@gitquire/core';
 import { getLocalDir } from './config/paths.ts';
 import { sanitizeGitIdentity } from './git-identity-sanitize.ts';
 import { simpleGit } from './simple-git-client.ts';

@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { formatOkActor, type OkActorEntry } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { formatOkActor, type OkActorEntry } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import {

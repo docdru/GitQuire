@@ -10,7 +10,7 @@ import {
   prependFrontmatter,
   sharedExtensions,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { beforeEach, describe, expect, test } from 'vitest';

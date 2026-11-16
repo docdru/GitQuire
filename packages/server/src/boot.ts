@@ -15,9 +15,9 @@ import {
   requiresExternalConsent,
   resolveServerRuntimeConfig,
   type ServerRuntimeConfig,
-} from '@inkeep/open-knowledge-core';
-import { okProjectLogsDir } from '@inkeep/open-knowledge-core/server';
-import { resolveGitDirDetailed } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core';
+import { okProjectLogsDir } from '@gitquire/core/server';
+import { resolveGitDirDetailed } from '@gitquire/core/shadow-repo-layout';
 import { context, propagation } from '@opentelemetry/api';
 import sirv from 'sirv';
 import { createAssetServeMiddleware } from './asset-serve-middleware.ts';

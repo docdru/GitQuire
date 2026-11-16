@@ -1,4 +1,4 @@
-import { encodeShareUrl, isValidBranchName } from '@inkeep/open-knowledge-core';
+import { encodeShareUrl, isValidBranchName } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import fixture from '../../../test-support/fixtures/share-url-v1-v2.json';
 import { STABLE_DMG_URL } from './download-links.ts';
@@ -453,7 +453,7 @@ describe('SPLASH_DOWNLOAD_URL', () => {
 
 describe('SPLASH_INSTALL_COMMAND', () => {
   test('is the published CLI install command (global npm install)', () => {
-    expect(SPLASH_INSTALL_COMMAND).toBe('npm install -g @inkeep/open-knowledge');
+    expect(SPLASH_INSTALL_COMMAND).toBe('npm install -g @gitquire/cli');
   });
 });
 

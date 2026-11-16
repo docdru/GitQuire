@@ -11,7 +11,7 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+import { resolveConfigPath } from '@gitquire/core/server';
 import { afterEach, describe, expect, test } from 'vitest';
 
 const FIXTURE = fileURLToPath(
@@ -65,7 +65,7 @@ async function startResetServer(homeMode: HomeMode): Promise<ResetServer> {
   const home = scratchDir('ok-reset-home-');
   const seeded = seedSavedSettings(contentDir, home);
   const child = fork(FIXTURE, [contentDir, home, homeMode], {
-    execArgv: ['--import', 'tsx', '--conditions=@inkeep/source'],
+    execArgv: ['--import', 'tsx', '--conditions=@gitquire/source'],
     silent: true,
     env: {
       ...process.env,

@@ -1,7 +1,7 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fnv1aDigest } from '@inkeep/open-knowledge-core';
+import { fnv1aDigest } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { backUpDisplacedVersion } from './edit-backups.ts';
 

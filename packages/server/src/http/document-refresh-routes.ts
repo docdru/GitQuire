@@ -1,7 +1,4 @@
-import {
-  DocumentRefreshRequestSchema,
-  DocumentRefreshSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+import { DocumentRefreshRequestSchema, DocumentRefreshSuccessSchema } from '@gitquire/core';
 import type { RefreshDocumentsFromDisk } from '../document-refresh.ts';
 import { type ApiRouteGroup, createApiRouteGroup } from './api-pipeline.ts';
 import { errorResponse } from './error-response.ts';

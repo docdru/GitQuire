@@ -1,5 +1,5 @@
 {
-  "name": "@inkeep/open-knowledge-docs",
+  "name": "@gitquire/docs",
   "version": "0.0.0-unknown",
   "license": "GPL-3.0-or-later",
   "private": true,
@@ -19,7 +19,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@inkeep/open-knowledge-core": "workspace:*",
+    "@gitquire/core": "workspace:*",
     "@types/mdx": "^2.0.13",
     "fumadocs-core": "~16.1.0",
     "fumadocs-mdx": "~14.0.3",

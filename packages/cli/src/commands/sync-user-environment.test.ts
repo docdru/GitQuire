@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { simpleGit } from '@inkeep/open-knowledge-server';
+import { simpleGit } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { withUserGitEnvironment } from './sync.ts';
 

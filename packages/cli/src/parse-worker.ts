@@ -1,1 +1,1 @@
-import '@inkeep/open-knowledge-server/parse-worker';
+import '@gitquire/server/parse-worker';

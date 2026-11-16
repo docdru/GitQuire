@@ -1,6 +1,6 @@
-import { isRelativeUrl, SAFE_URL_SCHEMES } from '@inkeep/open-knowledge-core/markdown/safe-url';
-import { incrementJsxPropDropped } from '@inkeep/open-knowledge-core/metrics/parse-health';
-import { componentPropsBudgetError } from '@inkeep/open-knowledge-core/registry';
+import { isRelativeUrl, SAFE_URL_SCHEMES } from '@gitquire/core/markdown/safe-url';
+import { incrementJsxPropDropped } from '@gitquire/core/metrics/parse-health';
+import { componentPropsBudgetError } from '@gitquire/core/registry';
 
 const URL_SCHEME_ALLOWLIST = new Set(SAFE_URL_SCHEMES.map((s) => `${s}:`));
 

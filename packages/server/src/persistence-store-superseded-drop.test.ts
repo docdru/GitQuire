@@ -8,7 +8,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ATOMIC_TEMP_PATH_RE } from '@inkeep/open-knowledge-core/server';
+import { ATOMIC_TEMP_PATH_RE } from '@gitquire/core/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { __setQuiescentOverrideForTests } from './bridge-quiescence.ts';

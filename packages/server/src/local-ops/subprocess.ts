@@ -1,10 +1,6 @@
 import { spawn } from 'node:child_process';
 import { posix, win32 } from 'node:path';
-import {
-  envWithoutDevChannel,
-  type OkCliCommand,
-  type OkCliRefusal,
-} from '@inkeep/open-knowledge-core';
+import { envWithoutDevChannel, type OkCliCommand, type OkCliRefusal } from '@gitquire/core';
 import { withHiddenWindowsConsole } from '../child-process-windows-hide.ts';
 import type { LocalOpSubprocessLifetime } from './subprocess-lifetime.ts';
 

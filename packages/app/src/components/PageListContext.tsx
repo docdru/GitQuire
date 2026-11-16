@@ -1,8 +1,5 @@
-import { toWikiLinkSlug } from '@inkeep/open-knowledge-core/utils/slug';
-import {
-  asTargetNamespace,
-  createTargetNamespace,
-} from '@inkeep/open-knowledge-core/utils/target-namespace';
+import { toWikiLinkSlug } from '@gitquire/core/utils/slug';
+import { asTargetNamespace, createTargetNamespace } from '@gitquire/core/utils/target-namespace';
 import { t } from '@lingui/core/macro';
 import { createContext, type ReactNode, use, useEffect, useRef, useState } from 'react';
 import {

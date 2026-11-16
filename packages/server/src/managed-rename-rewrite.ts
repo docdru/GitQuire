@@ -11,7 +11,7 @@ import {
   resolveName,
   resolveWikiLinkTargetDocName,
   type WikiLinkLookupIndex,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { Nodes as MdastNodes } from 'mdast';
 import {
   createJsxSrcAttrRe,

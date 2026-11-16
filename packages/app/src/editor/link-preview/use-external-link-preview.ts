@@ -1,4 +1,4 @@
-import type { LinkPreviewMetadata } from '@inkeep/open-knowledge-core/schemas/api';
+import type { LinkPreviewMetadata } from '@gitquire/core/schemas/api';
 import { useEffect, useState } from 'react';
 import { loadLinkPreview } from './external-link-preview.ts';
 

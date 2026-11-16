@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { hostname } from 'node:os';
 import { resolve } from 'node:path';
-import { resolveDesktopProductName } from '@inkeep/open-knowledge-core';
+import { resolveDesktopProductName } from '@gitquire/core';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
 import { getMachineId } from './machine-id.ts';

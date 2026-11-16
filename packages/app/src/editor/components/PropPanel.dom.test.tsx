@@ -1,4 +1,4 @@
-import { ALLOWED_IMAGE_MIME_TYPES, type PropDef } from '@inkeep/open-knowledge-core';
+import { ALLOWED_IMAGE_MIME_TYPES, type PropDef } from '@gitquire/core';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { JsxComponentDescriptor } from '../registry/types.ts';

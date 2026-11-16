@@ -1,4 +1,4 @@
-import type { AgentPresenceEntry } from '@inkeep/open-knowledge-core';
+import type { AgentPresenceEntry } from '@gitquire/core';
 import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';

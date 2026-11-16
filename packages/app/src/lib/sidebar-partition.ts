@@ -1,4 +1,4 @@
-import type { EmbeddedHost } from '@inkeep/open-knowledge-core/constants/embedded-host';
+import type { EmbeddedHost } from '@gitquire/core/constants/embedded-host';
 
 export type Partition = 'above' | 'below' | 'embedded';
 export type SidebarState = 'open' | 'collapsed';

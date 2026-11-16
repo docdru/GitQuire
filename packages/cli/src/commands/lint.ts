@@ -8,13 +8,13 @@ import {
   type ProblemDetails,
   toEffectiveBase,
   validationCoverageLines,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   auditScopeNotFoundTitle,
   type Config,
   resolveAuditScope,
   resolveContentDir,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command } from 'commander';
 import { type LintRunResult, runLint } from '../content/lint-runner.ts';
 import { getInvocationCwd } from '../project-anchor.ts';

@@ -5,7 +5,7 @@ import {
   resolveLocalAutoSyncMode,
   SYNC_INTERVAL_PRESET_SECONDS,
   type SyncMode,
-} from '@inkeep/open-knowledge-core/config/auto-sync-mode';
+} from '@gitquire/core/config/auto-sync-mode';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowUpRight, ChevronRight } from 'lucide-react';
 import { type RefObject, useEffect, useRef, useState } from 'react';

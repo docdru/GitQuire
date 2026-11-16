@@ -1,7 +1,7 @@
 import { lstatSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { SERVER_AUTHORITY_LEASES_DIRNAME } from '@inkeep/open-knowledge-core';
+import { SERVER_AUTHORITY_LEASES_DIRNAME } from '@gitquire/core';
 import { z } from 'zod';
 import { tracedMkdirSync, tracedUnlinkSync, tracedWriteFileSync } from './fs-traced.ts';
 import { getLogger } from './logger.ts';

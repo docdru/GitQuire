@@ -233,7 +233,7 @@ export function reconcile(diagnostics, pinned) {
 
 const NAMED_EXPORT_BLOCK = /^export\s+(?:type\s+)?\{([^}]*)\}/gm;
 const STAR_EXPORT = /^export\s+(?:type\s+)?\*/m;
-const INKEEP_SPECIFIER = /@inkeep\//;
+const INKEEP_SPECIFIER = /@gitquire\//;
 
 export function readPublishedSurface(text) {
   const declarations = stripTrivia(text);
@@ -326,7 +326,7 @@ export function checkSurface(surface, baseline) {
   }
   if (surface.inkeepLines.length > 0) {
     violations.push(
-      `${surface.inkeepLines.length} line(s) reference \`@inkeep/\`, so the published declaration is not self-contained. Sibling packages are devDependencies and are \`private: true\`, so an npm consumer cannot resolve them:\n\n  ${surface.inkeepLines.slice(0, 5).join('\n  ')}`,
+      `${surface.inkeepLines.length} line(s) reference \`@gitquire/\`, so the published declaration is not self-contained. Sibling packages are devDependencies and are \`private: true\`, so an npm consumer cannot resolve them:\n\n  ${surface.inkeepLines.slice(0, 5).join('\n  ')}`,
     );
   }
   if (surface.anyCount > baseline.anyCeiling) {
@@ -429,7 +429,7 @@ export function evaluate({ declarationText, run, pins, baseline, root, rootSourc
       surfaceViolations,
       err: [],
       out: [
-        `check:dts: OK at ${root}${rootSource === null ? '' : ` [from ${rootSource}]`} — ${PUBLISHED_DECLARATION_NAME} type-checks standalone with skipLibCheck disabled (${pinnedOccurrences(pins)} pinned third-party inlining artifacts across ${pins.length} pin(s), 0 unexpected) and keeps the published surface (${baseline.exportedSymbols.length}/${baseline.exportedSymbols.length} baseline symbols present of ${surface.exported.size} exported, 0 \`@inkeep/\` references, any ${surface.anyCount}/${baseline.anyCeiling}, unknown ${surface.unknownCount}/${baseline.unknownCeiling}).`,
+        `check:dts: OK at ${root}${rootSource === null ? '' : ` [from ${rootSource}]`} — ${PUBLISHED_DECLARATION_NAME} type-checks standalone with skipLibCheck disabled (${pinnedOccurrences(pins)} pinned third-party inlining artifacts across ${pins.length} pin(s), 0 unexpected) and keeps the published surface (${baseline.exportedSymbols.length}/${baseline.exportedSymbols.length} baseline symbols present of ${surface.exported.size} exported, 0 \`@gitquire/\` references, any ${surface.anyCount}/${baseline.anyCeiling}, unknown ${surface.unknownCount}/${baseline.unknownCeiling}).`,
       ],
     };
   }

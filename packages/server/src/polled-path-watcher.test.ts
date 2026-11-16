@@ -153,7 +153,7 @@ function runChild(script: string, args: readonly string[]): Promise<ChildOutcome
     [
       '--import',
       'tsx',
-      '--conditions=@inkeep/source',
+      '--conditions=@gitquire/source',
       '--input-type=module',
       '--eval',
       script,

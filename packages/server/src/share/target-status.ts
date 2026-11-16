@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { pathspecArgs, type ShareTargetStatusResponse } from '@inkeep/open-knowledge-core';
+import { pathspecArgs, type ShareTargetStatusResponse } from '@gitquire/core';
 import { truncateError } from '../error-format.ts';
 import { createGitInstance } from '../git-handle.ts';
 import { listNameStatus, type NameStatusRow } from '../git-paths.ts';

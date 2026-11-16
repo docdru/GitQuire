@@ -9,7 +9,7 @@ import {
   LAYOUT_DEFERRED_LOCALES,
   PICKER_LOCALES,
   SavedThemesListSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { type Attributes, type Tracer, trace } from '@opentelemetry/api';
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

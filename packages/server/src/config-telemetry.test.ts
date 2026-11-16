@@ -6,8 +6,8 @@ import {
   CONFIG_DOC_NAME_PROJECT,
   type ConfigDocProvider,
   type ConfigPatch,
-} from '@inkeep/open-knowledge-core';
-import { writeConfigPatch } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { writeConfigPatch } from '@gitquire/core/server';
 import { context, metrics, trace } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import {

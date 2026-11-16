@@ -1,6 +1,6 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
-import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
+import type { ConfigBinding } from '@gitquire/core/config/bind-config-doc';
 import {
   BASE16_SLOT_ROLES,
   BASE16_SLOTS,
@@ -9,7 +9,7 @@ import {
   type Base16Slot,
   base16ToYaml,
   parseBase16Scheme,
-} from '@inkeep/open-knowledge-core/theme/base16';
+} from '@gitquire/core/theme/base16';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';

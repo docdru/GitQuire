@@ -1,4 +1,4 @@
-import type { SearchSource, SemanticQueryOutcome } from '@inkeep/open-knowledge-core';
+import type { SearchSource, SemanticQueryOutcome } from '@gitquire/core';
 import type { Counter, Histogram } from '@opentelemetry/api';
 import { getLogger } from '../logger.ts';
 import { getMeter } from '../telemetry.ts';

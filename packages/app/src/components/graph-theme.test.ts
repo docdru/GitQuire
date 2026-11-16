@@ -1,4 +1,4 @@
-import { contrastRatio, relativeLuminance } from '@inkeep/open-knowledge-core/theme/base16';
+import { contrastRatio, relativeLuminance } from '@gitquire/core/theme/base16';
 import { describe, expect, test } from 'vitest';
 import {
   fallbackGraphPalette,

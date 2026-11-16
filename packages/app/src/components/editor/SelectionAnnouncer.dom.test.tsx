@@ -1,4 +1,4 @@
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { act, cleanup, render } from '@testing-library/react';
 import { type Content, Editor } from '@tiptap/core';
 import Collaboration from '@tiptap/extension-collaboration';

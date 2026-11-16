@@ -3,7 +3,7 @@ import {
   JSX_SRC_REF_TAGS,
   type JsxSrcRefTagSpec,
   normalizeDocRelativeAssetUrl,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 
 const JSX_SRC_REF_TAG_AT_RE = new RegExp(
   `<(${JSX_SRC_REF_TAGS.map((tag) => tag.tagName).join('|')})\\b([^>]*)\\/>`,

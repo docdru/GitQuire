@@ -1,5 +1,5 @@
-import type { LintDiagnostic, LinterConfig } from '@inkeep/open-knowledge-core';
-import { DEFAULT_LINTER_CONFIG } from '@inkeep/open-knowledge-core';
+import type { LintDiagnostic, LinterConfig } from '@gitquire/core';
+import { DEFAULT_LINTER_CONFIG } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { AuditCache } from './audit-cache.ts';
 

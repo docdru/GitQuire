@@ -1,10 +1,10 @@
 import type { IncomingMessage } from 'node:http';
-import type { Extension } from '@hocuspocus/server';
 import {
   CONFIG_DOC_NAME_OKIGNORE,
   CONFIG_DOC_NAME_PROJECT,
   CONFIG_DOC_NAME_PROJECT_LOCAL,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Extension } from '@hocuspocus/server';
 import { parseDocument } from 'yaml';
 import * as Y from 'yjs';
 import { cookieFromBag } from './principal-directory.ts';

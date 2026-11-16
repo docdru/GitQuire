@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   EmptyRequestSchema,
   getParseHealth,
@@ -10,7 +9,8 @@ import {
   MetricsReconciliationSuccessSchema,
   type MetricsWatcherRecentSuccess,
   MetricsWatcherRecentSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import type { EffectValue } from '../activity-log.ts';
 import { type AgentPresenceBroadcaster, BROADCASTER_EVICTION_MS } from '../agent-presence.ts';
 import { isConfigDoc, isSystemDoc } from '../cc1-broadcast.ts';

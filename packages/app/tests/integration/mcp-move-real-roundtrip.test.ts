@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ConfigSchema } from '@inkeep/open-knowledge-server';
+import { ConfigSchema } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import { register as registerMove } from '../../../server/src/mcp/tools/move';
 import type { ServerInstance } from '../../../server/src/mcp/tools/shared';

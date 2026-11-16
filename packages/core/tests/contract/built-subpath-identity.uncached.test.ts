@@ -5,7 +5,7 @@ import { describe, expect, test } from 'vitest';
 
 const PACKAGE_ROOT = realpathSync(fileURLToPath(new URL('../../', import.meta.url)));
 const PACKAGE_URL = pathToFileURL(`${PACKAGE_ROOT}/`);
-const PACKAGE_NAME = '@inkeep/open-knowledge-core';
+const PACKAGE_NAME = '@gitquire/core';
 
 const STATEFUL_SUBPATHS = {
   fieldRegistry: 'config/field-registry',
@@ -88,7 +88,7 @@ describe('built core entries share one runtime across the barrel and its subpath
       const target = builtTarget(subpath);
       expect(
         existsSync(target),
-        `${fileURLToPath(target)} is missing; build core first (pnpm --filter @inkeep/open-knowledge-core build)`,
+        `${fileURLToPath(target)} is missing; build core first (pnpm --filter @gitquire/core build)`,
       ).toBe(true);
     }
   });

@@ -7,7 +7,7 @@ import {
   type StreamingProblemEvent,
   StreamingProblemEventSchema,
   stripPathspecMagic,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { Counter } from '@opentelemetry/api';
 import { PrivateStateSymlinkError, SymlinkEscapeError } from '../fs-safety.ts';
 import { getLogger } from '../logger.ts';

@@ -15,8 +15,8 @@ import {
   currentDesktopProduct,
   formatIgnoredCommittedKey,
   humanFormat,
-} from '@inkeep/open-knowledge-core';
-import { type Config, loggerFactory, trustSystemCertificates } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { type Config, loggerFactory, trustSystemCertificates } from '@gitquire/server';
 import { Command } from 'commander';
 import { getCliLogger, initCliLogger } from './cli-logger.ts';
 import { auditCommand } from './commands/audit.ts';

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { hostname } from 'node:os';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 import {
   assessLockHolder,
   isLockFromThisMachine,
@@ -13,7 +13,7 @@ import {
   type ProcessStartReader,
   recordsLockOwner,
   toProcessLockMetadata,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { escapeDisplayPath } from '../utils/escape-display-path.ts';
 
 export type LockState =

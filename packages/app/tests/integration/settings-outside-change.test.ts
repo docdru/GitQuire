@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CONFIG_DOC_NAME_PROJECT } from '@inkeep/open-knowledge-core';
+import { CONFIG_DOC_NAME_PROJECT } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {

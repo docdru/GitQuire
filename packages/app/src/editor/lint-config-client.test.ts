@@ -1,4 +1,4 @@
-import { DEFAULT_LINTER_CONFIG } from '@inkeep/open-knowledge-core';
+import { DEFAULT_LINTER_CONFIG } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createEmptyFrontmatterSchema,

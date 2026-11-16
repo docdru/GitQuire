@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { CommentAuthor } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import type { CommentAuthor } from '@gitquire/core/gitquire/comment-threads';
 import type { Mention, MentionIndex } from './mentions.ts';
 import type { PageFacts } from './page-objects.ts';
 

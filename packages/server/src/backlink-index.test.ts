@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createTargetNamespace, encodeHrefPath, LOCAL_DIR } from '@inkeep/open-knowledge-core';
+import { createTargetNamespace, encodeHrefPath, LOCAL_DIR } from '@gitquire/core';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   BacklinkIndex,

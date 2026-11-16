@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { parseCheckpoint } from '@inkeep/open-knowledge-core';
+import { parseCheckpoint } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
 import { createTestClient, createTestServer, type TestServer } from './test-harness.ts';

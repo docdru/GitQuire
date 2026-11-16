@@ -1,5 +1,5 @@
 import type { ServerResponse } from 'node:http';
-import type { AgentWriteOutcomeFields } from '@inkeep/open-knowledge-core';
+import type { AgentWriteOutcomeFields } from '@gitquire/core';
 import { errorResponse } from './error-response.ts';
 
 const BOTH_KEPT_TITLE = 'Edit saved; both versions of a block changed here and outside were kept.';

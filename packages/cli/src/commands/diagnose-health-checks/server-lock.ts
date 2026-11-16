@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
-import { LOCK_FILE_ACCESS_REMEDY, resolveLockDir } from '@inkeep/open-knowledge-server';
+import { currentCliCommandName } from '@gitquire/core';
+import { LOCK_FILE_ACCESS_REMEDY, resolveLockDir } from '@gitquire/server';
 import {
   describeForeignHostRemedy,
   describeForeignOwner,

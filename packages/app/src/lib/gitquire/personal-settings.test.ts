@@ -1,4 +1,4 @@
-import { bindConfigDoc } from '@inkeep/open-knowledge-core/config/bind-config-doc';
+import { bindConfigDoc } from '@gitquire/core/config/bind-config-doc';
 import { describe, expect, test, vi } from 'vitest';
 import { createPersonalSettingsProvider, probePersonalSettings } from './personal-settings';
 

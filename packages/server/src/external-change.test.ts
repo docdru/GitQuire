@@ -1,12 +1,12 @@
 import { mkdirSync, mkdtempSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { Hocuspocus } from '@hocuspocus/server';
 import {
   BridgeInvariantViolationError,
   BridgeMergeContentLossError,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import { Hocuspocus } from '@hocuspocus/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { DocumentDurabilityState } from './document-durability-state.ts';

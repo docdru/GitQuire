@@ -6,7 +6,7 @@ vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'light' }),
 }));
 
-import type { ParsedCheckpoint, TimelineEntry } from '@inkeep/open-knowledge-core';
+import type { ParsedCheckpoint, TimelineEntry } from '@gitquire/core';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const { TimelineContent } = await import('./TimelinePanel');

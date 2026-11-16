@@ -1,4 +1,4 @@
-import { createBasenameIndex, createTargetNamespace } from '@inkeep/open-knowledge-core';
+import { createBasenameIndex, createTargetNamespace } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   assessLocalTargetOccurrences,

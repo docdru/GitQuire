@@ -1,8 +1,5 @@
-import type { FrontmatterType } from '@inkeep/open-knowledge-core/frontmatter/schema';
-import {
-  type LinterConfig,
-  selectGoverningFrontmatterSchemas,
-} from '@inkeep/open-knowledge-core/markdown/lint';
+import type { FrontmatterType } from '@gitquire/core/frontmatter/schema';
+import { type LinterConfig, selectGoverningFrontmatterSchemas } from '@gitquire/core/markdown/lint';
 
 export interface SchemaField {
   type: FrontmatterType;

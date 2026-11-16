@@ -1,11 +1,7 @@
-import type { AwarenessUser } from '@inkeep/open-knowledge-core/types/awareness';
-import type { Identity } from '@inkeep/open-knowledge-core/types/identity';
-import type { Principal } from '@inkeep/open-knowledge-core/types/principal';
-import {
-  colorFromSeed,
-  formatPresenceLabel,
-  HUMAN_COLORS,
-} from '@inkeep/open-knowledge-core/utils/identity';
+import type { AwarenessUser } from '@gitquire/core/types/awareness';
+import type { Identity } from '@gitquire/core/types/identity';
+import type { Principal } from '@gitquire/core/types/principal';
+import { colorFromSeed, formatPresenceLabel, HUMAN_COLORS } from '@gitquire/core/utils/identity';
 
 type AwarenessUserPayload = AwarenessUser & { type: 'human' };
 

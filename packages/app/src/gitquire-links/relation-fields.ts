@@ -1,7 +1,4 @@
-import {
-  inlineRelationFields,
-  normalizeRelation,
-} from '@inkeep/open-knowledge-core/gitquire/typed-links';
+import { inlineRelationFields, normalizeRelation } from '@gitquire/core/gitquire/typed-links';
 
 const WIKI_LINK_PLACEHOLDER = '[[@]]';
 const ATOM_PLACEHOLDER = '￼';

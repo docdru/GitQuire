@@ -5,7 +5,7 @@
  */
 
 import { setTimeout as wait } from 'node:timers/promises';
-import { MarkdownManager } from '@inkeep/open-knowledge-core';
+import { MarkdownManager } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment } from '@tiptap/y-tiptap';
 import { describe, expect, test } from 'vitest';

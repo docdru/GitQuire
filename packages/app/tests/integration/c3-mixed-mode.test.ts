@@ -1,5 +1,5 @@
 import { setTimeout as wait } from 'node:timers/promises';
-import { getMetrics } from '@inkeep/open-knowledge-server';
+import { getMetrics } from '@gitquire/server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';

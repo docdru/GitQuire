@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { pathspecArgs } from '@inkeep/open-knowledge-core';
+import { pathspecArgs } from '@gitquire/core';
 import type { RunGit } from '../repo-bootstrap.ts';
 import { type ChangedPage, isPagePath, parseNameStatus } from './model.ts';
 

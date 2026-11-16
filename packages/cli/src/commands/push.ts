@@ -1,4 +1,4 @@
-import type { Config } from '@inkeep/open-knowledge-server';
+import type { Config } from '@gitquire/server';
 import { Command } from 'commander';
 import { runSync } from './sync.ts';
 

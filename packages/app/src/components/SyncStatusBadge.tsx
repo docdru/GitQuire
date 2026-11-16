@@ -1,14 +1,14 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
-import { isSyncMode } from '@inkeep/open-knowledge-core/config/auto-sync-mode';
+import { isSyncMode } from '@gitquire/core/config/auto-sync-mode';
 import type {
   GitStatusCode,
   GitWorktreeEntry,
   GitWorktreeOpenTarget,
   PushPermissionWire,
   SyncErrorCode,
-} from '@inkeep/open-knowledge-core/schemas/api';
-import type { SyncPausedReason } from '@inkeep/open-knowledge-core/sync-paused-reason';
+} from '@gitquire/core/schemas/api';
+import type { SyncPausedReason } from '@gitquire/core/sync-paused-reason';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg, plural, t } from '@lingui/core/macro';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';

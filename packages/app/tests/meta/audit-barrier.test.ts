@@ -1,6 +1,6 @@
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import * as core from '@inkeep/open-knowledge-core';
+import * as core from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { pauseAuditAtDocument } from '../integration/audit-barrier.test-helper.ts';
 import { HARNESS_BOOT_TIMEOUT_MS } from '../integration/harness-boot-timeout.ts';

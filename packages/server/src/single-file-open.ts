@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
-import { OK_DIR } from '@inkeep/open-knowledge-core';
-import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+import { OK_DIR } from '@gitquire/core';
+import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { isSupportedDocFile, stripDocExtension } from './doc-extensions.ts';
 import { findEnclosingProjectRoot, isProjectRoot } from './fs/find-project-root.ts';
 

@@ -1,5 +1,5 @@
-import type { Config } from '@inkeep/open-knowledge-core/config/schema';
-import { normalizeGitHostname } from '@inkeep/open-knowledge-core/constants/github';
+import type { Config } from '@gitquire/core/config/schema';
+import { normalizeGitHostname } from '@gitquire/core/constants/github';
 
 export type EnterpriseHostInputResult =
   | { ok: true; host: string }

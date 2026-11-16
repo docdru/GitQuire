@@ -14,7 +14,7 @@ import {
 } from 'node:fs';
 import { arch as osArch, platform as osPlatform, tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
-import type { BundleRedaction as SecretScrubEntry } from '@inkeep/open-knowledge-core';
+import type { BundleRedaction as SecretScrubEntry } from '@gitquire/core';
 import {
   ACP_LAUNCH_FAILURE_LOG,
   okUserHomeDisplayPath,
@@ -23,20 +23,20 @@ import {
   SERVER_CRASH_LOG,
   SERVER_EXIT_LOG,
   SPAWN_ERROR_LOG,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   DEFAULT_LOGS_MAX_BYTES,
   DEFAULT_SPANS_MAX_BYTES,
   projectSpawnErrorLogPath,
   resolveConfigPath,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';
 import {
   logsCurrentPath,
   logsPreviousPath,
   spansCurrentPath,
   spansPreviousPath,
   withHiddenWindowsConsole,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { parse as parseYaml } from 'yaml';
 import { ZipFile } from 'yazl';
 import {

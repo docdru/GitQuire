@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import {
   TemplateDeleteSuccessSchema,
   TemplatesListSuccessSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { REQUIRED_FIXTURE_DOC_NAMES, REQUIRED_FIXTURE_ENTRY_NAMES } from './fixtures.ts';
 
 async function readTemplateInventory(baseURL: string, requestTimeoutMs: number) {

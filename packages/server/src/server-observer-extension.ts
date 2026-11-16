@@ -1,5 +1,5 @@
+import type { MarkdownManager } from '@gitquire/core';
 import type { Extension } from '@hocuspocus/server';
-import type { MarkdownManager } from '@inkeep/open-knowledge-core';
 import type { Schema } from '@tiptap/pm/model';
 import type * as Y from 'yjs';
 import {

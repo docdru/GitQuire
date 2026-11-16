@@ -1,6 +1,6 @@
-import { bindConfigDoc } from '@inkeep/open-knowledge-core/config/bind-config-doc';
-import type { SavedThemeListEntry } from '@inkeep/open-knowledge-core/schemas/api';
-import { deriveSavedThemeName } from '@inkeep/open-knowledge-core/theme/theme-plugins';
+import { bindConfigDoc } from '@gitquire/core/config/bind-config-doc';
+import type { SavedThemeListEntry } from '@gitquire/core/schemas/api';
+import { deriveSavedThemeName } from '@gitquire/core/theme/theme-plugins';
 import { act, cleanup, prettyDOM, screen, waitFor, within } from '@testing-library/react';
 import {
   afterAll,

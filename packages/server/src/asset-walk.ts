@@ -2,12 +2,8 @@ import type { BigIntStats, Dirent } from 'node:fs';
 import { readdirSync } from 'node:fs';
 import { lstat, readdir, realpath, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
-import {
-  ASSET_EXTENSIONS,
-  type BasenameIndex,
-  LINKABLE_ASSET_EXTENSIONS,
-} from '@inkeep/open-knowledge-core';
-import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
+import { ASSET_EXTENSIONS, type BasenameIndex, LINKABLE_ASSET_EXTENSIONS } from '@gitquire/core';
+import { filesystemIdentity } from '@gitquire/core/server';
 import type { ContentFilter } from './content-filter.ts';
 import { resolveDirectoryRoot } from './directory-root.ts';
 import { isSupportedAssetFile } from './doc-extensions.ts';

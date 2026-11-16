@@ -5,7 +5,7 @@ import {
   currentCliCommandName,
   isGitHubHost,
   normalizeGitHostname,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   assertIncomingSymlinksSafe,
   assertMergeNameResolvesTo,
@@ -18,7 +18,7 @@ import {
   simpleGit,
   UnsafeIncomingSymlinkError,
   type UnsafeSymlinkReason,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command } from 'commander';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import type { GhDetectResult } from '../auth/gh-detect.ts';

@@ -1,4 +1,4 @@
-import type { LinkPreviewMetadata } from '@inkeep/open-knowledge-core';
+import type { LinkPreviewMetadata } from '@gitquire/core';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Editor } from '@tiptap/core';
 import type { ReactNode } from 'react';

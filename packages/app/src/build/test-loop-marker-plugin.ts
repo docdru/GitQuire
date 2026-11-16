@@ -1,5 +1,5 @@
 import type { ServerResponse } from 'node:http';
-import { TEST_LOOP_CORE_MARKER, TEST_LOOP_SERVER_MARKER } from '@inkeep/open-knowledge-server';
+import { TEST_LOOP_CORE_MARKER, TEST_LOOP_SERVER_MARKER } from '@gitquire/server';
 import type { Connect, Plugin } from 'vite';
 import { TEST_LOOP_MARKERS_PATH } from './test-loop-marker-contract';
 

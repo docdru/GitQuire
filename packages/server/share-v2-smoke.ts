@@ -4,7 +4,7 @@ import {
   decodeShareUrl,
   type ShareConstructUrlResponse,
   ShareConstructUrlResponseSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { EndpointRig } from './src/share/endpoint-http.test-helper.ts';
 
 type ShareSuccess = Extract<ShareConstructUrlResponse, { ok: true }>;

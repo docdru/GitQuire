@@ -1,4 +1,4 @@
-import { MathInline as BaseMathInline } from '@inkeep/open-knowledge-core/extensions/math-inline';
+import { MathInline as BaseMathInline } from '@gitquire/core/extensions/math-inline';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import { MathInlineView } from './MathInlineView';
 

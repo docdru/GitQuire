@@ -3,4 +3,4 @@ export {
   EmbeddingsSecretStoreError,
   makeLazyEmbeddingsKeyStore,
   resolveEmbeddingsCredential,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';

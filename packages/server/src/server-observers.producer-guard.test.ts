@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

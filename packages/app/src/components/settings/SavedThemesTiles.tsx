@@ -1,7 +1,4 @@
-import {
-  deriveSavedThemeName,
-  parseSavedThemeId,
-} from '@inkeep/open-knowledge-core/theme/theme-plugins';
+import { deriveSavedThemeName, parseSavedThemeId } from '@gitquire/core/theme/theme-plugins';
 import { useLingui } from '@lingui/react/macro';
 import { TriangleAlert } from 'lucide-react';
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react';

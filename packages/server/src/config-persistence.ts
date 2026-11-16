@@ -14,13 +14,13 @@ import {
   type WriteScope,
   withConfigSpan,
   withConfigSpanSync,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   atomicTempPath,
   FileLockTimeoutError,
   resolveConfigPath,
   withFileLock,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';
 import type { Counter } from '@opentelemetry/api';
 import { parseDocument, stringify } from 'yaml';
 import type * as Y from 'yjs';

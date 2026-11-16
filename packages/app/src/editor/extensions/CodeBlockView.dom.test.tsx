@@ -1,4 +1,4 @@
-import type { Config } from '@inkeep/open-knowledge-core';
+import type { Config } from '@gitquire/core';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import type { NodeViewProps } from '@tiptap/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';

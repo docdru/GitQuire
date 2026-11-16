@@ -1,4 +1,4 @@
-import type { LintDiagnostic, ValidationAuditResponse } from '@inkeep/open-knowledge-core';
+import type { LintDiagnostic, ValidationAuditResponse } from '@gitquire/core';
 import {
   act,
   cleanup,

@@ -1,4 +1,4 @@
-import type { ConfigBinding, OkignoreBinding } from '@inkeep/open-knowledge-core';
+import type { ConfigBinding, OkignoreBinding } from '@gitquire/core';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -67,10 +67,10 @@ const FAKE_RULE_CATALOG = [
 
 const servedCore = createServedBindingLog();
 
-vi.doMock('@inkeep/open-knowledge-core/markdown/lint', async () =>
-  servedCore.serve('@inkeep/open-knowledge-core/markdown/lint', {
-    ...(await vi.importActual<typeof import('@inkeep/open-knowledge-core/markdown/lint')>(
-      '@inkeep/open-knowledge-core/markdown/lint',
+vi.doMock('@gitquire/core/markdown/lint', async () =>
+  servedCore.serve('@gitquire/core/markdown/lint', {
+    ...(await vi.importActual<typeof import('@gitquire/core/markdown/lint')>(
+      '@gitquire/core/markdown/lint',
     )),
     MARKDOWNLINT_RULE_CATALOG: FAKE_RULE_CATALOG,
   }),
@@ -202,11 +202,7 @@ describe('settings dialog search', () => {
     });
     expect(screen.queryByTestId('settings-search-result-rule:MD009')).toBeNull();
     expect(
-      servedCore.readersOf(
-        '@inkeep/open-knowledge-core/markdown/lint',
-        'MARKDOWNLINT_RULE_CATALOG',
-        since,
-      ),
+      servedCore.readersOf('@gitquire/core/markdown/lint', 'MARKDOWNLINT_RULE_CATALOG', since),
     ).toEqual(['components/settings/settings-search-index.ts']);
   });
 

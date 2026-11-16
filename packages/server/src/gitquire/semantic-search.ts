@@ -1,4 +1,4 @@
-import { DEFAULT_EMBEDDINGS_BASE_URL, DEFAULT_EMBEDDINGS_MODEL } from '@inkeep/open-knowledge-core';
+import { DEFAULT_EMBEDDINGS_BASE_URL, DEFAULT_EMBEDDINGS_MODEL } from '@gitquire/core';
 import type { ResolvedSemanticConfig } from '../embeddings/semantic-config.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;

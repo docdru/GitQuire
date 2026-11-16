@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CONFIG_DOC_NAME_PROJECT, type ConfigValidationError } from '@inkeep/open-knowledge-core';
+import { CONFIG_DOC_NAME_PROJECT, type ConfigValidationError } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import * as fsTraced from './fs-traced.ts';

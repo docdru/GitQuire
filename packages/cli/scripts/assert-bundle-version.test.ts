@@ -30,10 +30,7 @@ function scratch(): string {
 
 function cliPackage(version: string, chunks: Record<string, string>): string {
   const dir = scratch();
-  writeFileSync(
-    join(dir, 'package.json'),
-    JSON.stringify({ name: '@inkeep/open-knowledge', version }),
-  );
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: '@gitquire/cli', version }));
   mkdirSync(join(dir, BUNDLE_DIR), { recursive: true });
   for (const [path, source] of Object.entries(chunks)) {
     const file = join(dir, BUNDLE_DIR, path);
@@ -81,14 +78,14 @@ describe('judgeBundle', () => {
       'assets/telemetry-impl-c.js': viteEnv('0.82.4'),
     });
     expect(judgeBundle(readBundle(dir))).toEqual([
-      `${BUNDLE_DIR} was built for 0.82.4 (${join(BUNDLE_DIR, 'assets/client-version-b.js')}, ${join(BUNDLE_DIR, 'assets/telemetry-impl-c.js')}), but this is @inkeep/open-knowledge@0.83.2, so its browser bundle would send x-ok-client-runtime 0.82.4. The app was built before the version override; build it after the override`,
+      `${BUNDLE_DIR} was built for 0.82.4 (${join(BUNDLE_DIR, 'assets/client-version-b.js')}, ${join(BUNDLE_DIR, 'assets/telemetry-impl-c.js')}), but this is @gitquire/cli@0.83.2, so its browser bundle would send x-ok-client-runtime 0.82.4. The app was built before the version override; build it after the override`,
     ]);
   });
 
   it('refuses a bundle that bakes no version, pointing at the reader rather than the build order', () => {
     const dir = cliPackage('0.83.2', { 'assets/index-a.js': 'export const x = 1;' });
     expect(judgeBundle(readBundle(dir))).toEqual([
-      `none of the 1 scripts in ${BUNDLE_DIR} carries a VITE_APP_VERSION literal, so the version its browser bundle reports cannot be checked against @inkeep/open-knowledge@0.83.2. If the app build changed how it inlines import.meta.env, teach bakedVersions in packages/cli/scripts/assert-bundle-version.mjs the new form`,
+      `none of the 1 scripts in ${BUNDLE_DIR} carries a VITE_APP_VERSION literal, so the version its browser bundle reports cannot be checked against @gitquire/cli@0.83.2. If the app build changed how it inlines import.meta.env, teach bakedVersions in packages/cli/scripts/assert-bundle-version.mjs the new form`,
     ]);
   });
 
@@ -102,7 +99,7 @@ describe('judgeBundle', () => {
   it('refuses a package with no version', () => {
     const dir = cliPackage('', { 'assets/index-a.js': viteEnv('0.83.2') });
     expect(judgeBundle(readBundle(dir))).toEqual([
-      `@inkeep/open-knowledge has no version in its package.json, so there is nothing to compare ${BUNDLE_DIR} against`,
+      `@gitquire/cli has no version in its package.json, so there is nothing to compare ${BUNDLE_DIR} against`,
     ]);
   });
 });
@@ -114,7 +111,7 @@ describe('the release step, run from a lone copy as the workflow runs it', () =>
     );
     expect(result.status).toBe(1);
     expect(result.stdout).toContain(
-      `::error::bundle-version: ${BUNDLE_DIR} was built for 0.82.4 (${join(BUNDLE_DIR, 'assets/client-version-b.js')}), but this is @inkeep/open-knowledge@0.83.2`,
+      `::error::bundle-version: ${BUNDLE_DIR} was built for 0.82.4 (${join(BUNDLE_DIR, 'assets/client-version-b.js')}), but this is @gitquire/cli@0.83.2`,
     );
     expect(result.stdout.trimEnd().split('\n').at(-1)).toBe(RECOVERY_LINE);
   });
@@ -124,7 +121,7 @@ describe('the release step, run from a lone copy as the workflow runs it', () =>
       cliPackage('0.83.2', { 'assets/client-version-b.js': viteEnv('0.83.2') }),
     );
     expect(result.stdout).toContain(
-      `bundle-version ok: 1 of 1 scripts in ${BUNDLE_DIR} bake VITE_APP_VERSION 0.83.2, the version of @inkeep/open-knowledge`,
+      `bundle-version ok: 1 of 1 scripts in ${BUNDLE_DIR} bake VITE_APP_VERSION 0.83.2, the version of @gitquire/cli`,
     );
     expect(result.status).toBe(0);
   });
@@ -133,7 +130,7 @@ describe('the release step, run from a lone copy as the workflow runs it', () =>
     const dir = scratch();
     writeFileSync(
       join(dir, 'package.json'),
-      JSON.stringify({ name: '@inkeep/open-knowledge', version: '0.83.2' }),
+      JSON.stringify({ name: '@gitquire/cli', version: '0.83.2' }),
     );
     const result = runAlone(dir);
     expect(result.status).toBe(1);

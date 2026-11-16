@@ -11,9 +11,9 @@ USER_BUNDLE="$HOME/Applications/OpenKnowledge.app/Contents/Resources/cli/bin/ok.
 [ -f "$USER_BUNDLE" ] && [ -x "$USER_BUNDLE" ] && exec "$USER_BUNDLE" mcp
 BUNDLE="/Applications/OpenKnowledge.app/Contents/Resources/cli/bin/ok.sh"
 [ -f "$BUNDLE" ] && [ -x "$BUNDLE" ] && exec "$BUNDLE" mcp
-command -v npx >/dev/null 2>&1 && exec npx -y @inkeep/open-knowledge@latest mcp
+command -v npx >/dev/null 2>&1 && exec npx -y @gitquire/cli@latest mcp
 for d in "$HOME/.nvm/versions/node"/*/bin "$HOME/.fnm/node-versions"/*/installation/bin "$HOME/.asdf/installs/nodejs"/*/bin /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin" "$HOME/.volta/bin"; do
-  [ -f "$d/npx" ] && [ -x "$d/npx" ] && exec "$d/npx" -y @inkeep/open-knowledge@latest mcp
+  [ -f "$d/npx" ] && [ -x "$d/npx" ] && exec "$d/npx" -y @gitquire/cli@latest mcp
 done
 echo "OpenKnowledge: install OK Desktop or Node.js 24+, then restart your editor" >&2
 exit 127`;
@@ -27,7 +27,7 @@ if ($env:APPDATA) {
 $ok = Get-Command ok.cmd -CommandType Application -ErrorAction SilentlyContinue
 if ($ok) { & $ok.Source mcp; exit $LASTEXITCODE }
 $npx = Get-Command npx.cmd -CommandType Application -ErrorAction SilentlyContinue
-if ($npx) { & $npx.Source -y '@inkeep/open-knowledge@latest' mcp; exit $LASTEXITCODE }
+if ($npx) { & $npx.Source -y '@gitquire/cli@latest' mcp; exit $LASTEXITCODE }
 $dirs = @()
 if ($env:ProgramFiles) { $dirs += Join-Path $env:ProgramFiles 'nodejs' }
 if ($env:NVM_SYMLINK) { $dirs += $env:NVM_SYMLINK }
@@ -39,9 +39,9 @@ if ($env:LOCALAPPDATA) {
 if ($env:USERPROFILE) { $dirs += Join-Path $env:USERPROFILE 'scoop\\shims' }
 foreach ($d in $dirs) {
   $probe = Join-Path $d 'npx.cmd'
-  if (Test-Path -LiteralPath $probe -PathType Leaf) { & $probe -y '@inkeep/open-knowledge@latest' mcp; exit $LASTEXITCODE }
+  if (Test-Path -LiteralPath $probe -PathType Leaf) { & $probe -y '@gitquire/cli@latest' mcp; exit $LASTEXITCODE }
 }
-[Console]::Error.WriteLine('OpenKnowledge: install Node.js 24+ (npm i -g @inkeep/open-knowledge), then restart your editor')
+[Console]::Error.WriteLine('OpenKnowledge: install Node.js 24+ (npm i -g @gitquire/cli), then restart your editor')
 exit 127`;
 
 const TEST_CATALOG_WITH_WINDOWS_V2 = {
@@ -106,7 +106,7 @@ describe('classifyMcpLauncherEntry', () => {
     expect(
       classifyMcpLauncherEntry({
         command: '/bin/sh',
-        args: ['-l', '-c', '# ok-mcp-v2\nexec npx -y @inkeep/open-knowledge@latest mcp'],
+        args: ['-l', '-c', '# ok-mcp-v2\nexec npx -y @gitquire/cli@latest mcp'],
       }),
     ).toEqual({
       kind: 'recognized',

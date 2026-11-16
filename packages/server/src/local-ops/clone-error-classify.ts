@@ -1,4 +1,4 @@
-import { scrubSecrets } from '@inkeep/open-knowledge-core';
+import { scrubSecrets } from '@gitquire/core';
 import { redactShareSubprocessStderr } from '../share/publish.ts';
 
 export interface CloneErrorClassification {

@@ -276,7 +276,7 @@ export function forkWatcherProcess(spec: ContractSpec): ForkedContractProcess;
 export function forkWatcherProcess(spec: ReadinessSpec): ForkedWatcherProcess;
 export function forkWatcherProcess(spec: WatcherProcessSpec): ForkedContractProcess {
   const child = fork(WATCHER_PROCESS, [JSON.stringify(spec)], {
-    execArgv: ['--import', 'tsx', '--conditions=@inkeep/source'],
+    execArgv: ['--import', 'tsx', '--conditions=@gitquire/source'],
     silent: true,
     env: { ...process.env, UV_THREADPOOL_SIZE: '1' },
   });

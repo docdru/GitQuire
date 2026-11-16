@@ -1,4 +1,4 @@
-import { type LineEnding, spellLineEndings } from '@inkeep/open-knowledge-core';
+import { type LineEnding, spellLineEndings } from '@gitquire/core';
 import {
   isConfigDoc,
   isEditableTextDoc,

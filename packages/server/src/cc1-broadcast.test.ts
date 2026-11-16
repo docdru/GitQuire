@@ -1,5 +1,4 @@
 import { setTimeout as wait } from 'node:timers/promises';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   CC1_CHANNEL_BRANCH_SWITCHED,
   CC1_CHANNEL_CONFIG_IGNORE_NESTED_ERROR,
@@ -18,7 +17,8 @@ import {
   CONFIG_DOC_NAME_USER,
   CONFIG_DOC_NAMES,
   SYSTEM_DOC_NAME,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   CC1Broadcaster,

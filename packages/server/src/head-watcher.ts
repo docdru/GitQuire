@@ -1,7 +1,4 @@
-import {
-  discoverGitRepository,
-  type GitRepository,
-} from '@inkeep/open-knowledge-core/git-repository';
+import { discoverGitRepository, type GitRepository } from '@gitquire/core/git-repository';
 import { getLogger } from './logger.ts';
 import { incrementWatcherErrors } from './metrics.ts';
 import { classifyParcelNotification } from './parcel-recovery.ts';

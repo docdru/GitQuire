@@ -4,7 +4,7 @@ import {
   SeedApplySuccessSchema,
   SeedListPacksSuccessSchema,
   SeedPlanSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   applySeed,
   coercePackId,

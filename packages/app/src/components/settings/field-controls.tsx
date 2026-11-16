@@ -1,9 +1,6 @@
-import {
-  type ConfigValidationError,
-  isKnownConfigError,
-} from '@inkeep/open-knowledge-core/config/errors';
-import { getFieldMeta } from '@inkeep/open-knowledge-core/config/field-registry';
-import { type Config, ConfigSchema } from '@inkeep/open-knowledge-core/config/schema';
+import { type ConfigValidationError, isKnownConfigError } from '@gitquire/core/config/errors';
+import { getFieldMeta } from '@gitquire/core/config/field-registry';
+import { type Config, ConfigSchema } from '@gitquire/core/config/schema';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { Check, RotateCcw } from 'lucide-react';
 import { useTheme } from 'next-themes';

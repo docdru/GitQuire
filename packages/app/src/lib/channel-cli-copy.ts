@@ -2,7 +2,7 @@ import {
   type DesktopProduct,
   desktopProductForCliCommand,
   userHomeDisplayPath,
-} from '@inkeep/open-knowledge-core/constants/product';
+} from '@gitquire/core/constants/product';
 
 function rendererDesktopProduct(): DesktopProduct {
   return desktopProductForCliCommand(null);

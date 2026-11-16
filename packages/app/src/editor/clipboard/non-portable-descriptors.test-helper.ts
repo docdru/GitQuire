@@ -1,4 +1,4 @@
-import { builtInComponents } from '@inkeep/open-knowledge-core';
+import { builtInComponents } from '@gitquire/core';
 
 const NON_PORTABLE_CANONICALS: ReadonlySet<string> = new Set(['Math', 'MermaidFence']);
 

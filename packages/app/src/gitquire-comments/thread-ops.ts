@@ -8,7 +8,7 @@ import {
   normalizeCommentTimes,
   type ThreadComment as StoredComment,
   secondIso,
-} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+} from '@gitquire/core/gitquire/comment-threads';
 
 export type Thread = CommentThread;
 export type ThreadComment = StoredComment;

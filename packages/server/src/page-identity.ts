@@ -1,8 +1,4 @@
-import {
-  stripFrontmatter,
-  toWikiLinkSlug,
-  unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
+import { stripFrontmatter, toWikiLinkSlug, unwrapFrontmatterFences } from '@gitquire/core';
 
 export interface PageIdentity {
   docName: string;

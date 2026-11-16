@@ -1,4 +1,4 @@
-import { APP_HEADER_HEIGHT } from '@inkeep/open-knowledge-core/constants/chrome';
+import { APP_HEADER_HEIGHT } from '@gitquire/core/constants/chrome';
 import { useLingui } from '@lingui/react/macro';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';

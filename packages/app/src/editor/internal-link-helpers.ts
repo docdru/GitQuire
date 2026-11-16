@@ -1,13 +1,13 @@
 import {
   ASSET_EXTENSIONS,
   mediaKindForSidebarAssetExtension,
-} from '@inkeep/open-knowledge-core/constants/upload';
+} from '@gitquire/core/constants/upload';
 import {
   buildRelativeMarkdownHref,
   type ClassifiedLinkTarget,
   classifyMarkdownHref,
   type DocLinkTarget,
-} from '@inkeep/open-knowledge-core/utils/link-targets';
+} from '@gitquire/core/utils/link-targets';
 import { hashFromAssetPath, hashFromDocName, isSameHash } from '../lib/doc-hash';
 import { openExternalUrl } from '../lib/external-link';
 import { requestRepeatAnchorNavigation } from './anchor-navigation-event';

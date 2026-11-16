@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { MetricsReconciliationSuccessSchema } from '@inkeep/open-knowledge-core';
+import { MetricsReconciliationSuccessSchema } from '@gitquire/core';
 import { afterEach, expect, test, vi } from 'vitest';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';
 import * as headWatcher from '../../../server/src/head-watcher.ts';

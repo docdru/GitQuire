@@ -44,7 +44,7 @@ function writeLocalPackage(packageDir: string, failingInstall = false) {
   writeFileSync(
     join(packageDir, 'package.json'),
     JSON.stringify({
-      name: '@inkeep/open-knowledge',
+      name: '@gitquire/cli',
       version: '1.0.0',
       bin: { ok: 'dist/cli.mjs' },
       ...(failingInstall ? { scripts: { postinstall: 'node install-failure.cjs' } } : {}),

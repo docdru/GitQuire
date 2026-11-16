@@ -1,4 +1,4 @@
-import type { ProblemType } from '@inkeep/open-knowledge-core/schemas/api';
+import type { ProblemType } from '@gitquire/core/schemas/api';
 
 export const SWEEP_PROGRESS_CHUNK = 50;
 

@@ -1,4 +1,4 @@
-import type { ParsedCheckpoint } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import type { ParsedCheckpoint } from '@gitquire/core/shadow-repo-layout';
 import type { DocNoticeSink, MoveReason } from './doc-notices.ts';
 import { type BackupCopy, backUpDisplacedVersion } from './edit-backups.ts';
 import { getLogger } from './logger.ts';

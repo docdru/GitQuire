@@ -1,9 +1,9 @@
-import type { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   canonicalTemplateName,
   TEMPLATE_NAME_REGEX,
   templateRenameTarget,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { FolderGit2, Type } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';

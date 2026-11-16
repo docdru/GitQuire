@@ -4,7 +4,7 @@
  * gate's `FORBIDDEN` regex array.
  */
 
-import type { MarkdownManager } from '@inkeep/open-knowledge-core';
+import type { MarkdownManager } from '@gitquire/core';
 import {
   type BridgeInvariantSite,
   type BridgeInvariantViolation,
@@ -17,7 +17,7 @@ import {
   normalizeBridge,
   PARSE_EQUIVALENCE_TOLERANCE,
   toBridgeInvariantLog,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getLogger } from './logger.ts';
 import {
   incrementBridgeInvariantViolations,

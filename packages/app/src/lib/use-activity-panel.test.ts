@@ -1,4 +1,4 @@
-import type { AgentPresenceEntry } from '@inkeep/open-knowledge-core';
+import type { AgentPresenceEntry } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { computeWritingDocs } from './use-activity-panel';
 

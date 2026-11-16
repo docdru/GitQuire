@@ -1,5 +1,5 @@
 /** Each session creates its own frozen LocalTransactionOrigin at birth (precedent #1). */
-import type { DirectConnection, Document, Hocuspocus } from '@hocuspocus/server';
+
 import {
   applyPatchToFm,
   detectFmRegion,
@@ -7,10 +7,11 @@ import {
   prependFrontmatter,
   stripFrontmatter,
   unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { DirectConnection, Document, Hocuspocus } from '@hocuspocus/server';
 import { splitPayloadFrontmatter } from './payload-frontmatter.ts';
 
-export { colorFromSeed } from '@inkeep/open-knowledge-core';
+export { colorFromSeed } from '@gitquire/core';
 
 import * as Y from 'yjs';
 import type { YjsStackItemShape } from './agent-activity.ts';
@@ -67,7 +68,7 @@ export const AGENT_WRITE_ORIGIN = {
   context: { origin: 'agent-write', paired: true },
 } as const satisfies PairedWriteOrigin;
 
-export { iconFromClientName } from '@inkeep/open-knowledge-core';
+export { iconFromClientName } from '@gitquire/core';
 
 function docNameToFile(docName: string): string {
   if (docName.endsWith('.md') || docName.endsWith('.mdx')) return docName;

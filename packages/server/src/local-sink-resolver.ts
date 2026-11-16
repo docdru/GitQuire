@@ -4,7 +4,7 @@ import {
   DEFAULT_SPANS_MAX_BYTES,
   DEFAULT_TELEMETRY_ATTRIBUTE_DENYLIST,
   resolveConfigPath,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';
 import { parse as parseYaml } from 'yaml';
 
 export interface ResolveLocalSinkArgs {

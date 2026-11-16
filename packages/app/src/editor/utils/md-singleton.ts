@@ -3,8 +3,8 @@
  * safely serves every call.
  */
 
-import { sharedExtensions } from '@inkeep/open-knowledge-core/extensions/shared';
-import { MarkdownManager } from '@inkeep/open-knowledge-core/markdown';
+import { sharedExtensions } from '@gitquire/core/extensions/shared';
+import { MarkdownManager } from '@gitquire/core/markdown';
 
 let manager: MarkdownManager | null = null;
 

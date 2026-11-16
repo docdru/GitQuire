@@ -1,4 +1,4 @@
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { Editor, Extension, type JSONContent } from '@tiptap/core';
 import { Plugin, TextSelection } from '@tiptap/pm/state';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { Principal } from '@inkeep/open-knowledge-core';
+import type { Principal } from '@gitquire/core';
 import { Node, Project, type SourceFile, SyntaxKind } from 'ts-morph';
 import { describe, expect, test } from 'vitest';
 import { extractActorIdentity } from './extract-actor-identity.ts';

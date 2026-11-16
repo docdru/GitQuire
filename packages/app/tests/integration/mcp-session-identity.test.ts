@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as wait } from 'node:timers/promises';
-import { toBroadcasterKey } from '@inkeep/open-knowledge-server';
+import { toBroadcasterKey } from '@gitquire/server';
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import type { EffectValue } from '../../../../packages/server/src/activity-log.ts';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';

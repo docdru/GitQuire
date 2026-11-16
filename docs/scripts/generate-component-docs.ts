@@ -3,8 +3,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { PropDef } from '@inkeep/open-knowledge-core';
-import { builtInComponents, propDescription } from '@inkeep/open-knowledge-core';
+import type { PropDef } from '@gitquire/core';
+import { builtInComponents, propDescription } from '@gitquire/core';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.resolve(HERE, '../content/reference/components');
@@ -225,7 +225,7 @@ const PREVIEWS: Partial<Record<string, string>> = {
   Tabs: `<ComponentPreview>
   <TabsPreview>
     <TabPreview label="Install">
-      Run \`npm install @inkeep/open-knowledge\` to add the CLI to your project.
+      Run \`npm install @gitquire/cli\` to add the CLI to your project.
     </TabPreview>
     <TabPreview label="Configure">
       Point \`.ok/config.yml\` at your content directory. Frontmatter, ignore

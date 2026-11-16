@@ -1,4 +1,4 @@
-import { ImageSrcFidelity } from '@inkeep/open-knowledge-core/extensions/image-src-fidelity';
+import { ImageSrcFidelity } from '@gitquire/core/extensions/image-src-fidelity';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import { ImageInlineZoomView } from './ImageInlineZoomView';
 

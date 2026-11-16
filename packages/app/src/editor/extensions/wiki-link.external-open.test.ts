@@ -1,4 +1,4 @@
-import { toWikiLinkSlug } from '@inkeep/open-knowledge-core';
+import { toWikiLinkSlug } from '@gitquire/core';
 import { Editor } from '@tiptap/core';
 import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';

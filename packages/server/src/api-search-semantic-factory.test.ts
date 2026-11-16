@@ -3,12 +3,12 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
-import type { Extension } from '@hocuspocus/server';
 import {
   CONFIG_DOC_NAME_PROJECT_LOCAL,
   type SemanticProviderErrorReason,
   type SemanticQueryOutcome,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Extension } from '@hocuspocus/server';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 import { EmbeddingDimsMismatchError } from './embeddings/embedder.ts';
 import * as embeddingServices from './embeddings/index.ts';

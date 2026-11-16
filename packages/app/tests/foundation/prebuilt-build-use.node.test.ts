@@ -11,7 +11,7 @@ import { PREBUILT_BUILD_OPTIONS } from '../stress/_helpers/prebuilt/prebuilt-ser
 const OK_TREE: Readonly<Record<string, string>> = {
   'package.json': '{"name":"open-knowledge"}\n',
   'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
-  'packages/app/package.json': '{"name":"@inkeep/open-knowledge-app"}\n',
+  'packages/app/package.json': '{"name":"@gitquire/app"}\n',
   'packages/app/index.html': '<!doctype html><div id="root"></div>\n',
   'packages/app/src/App.tsx': 'export const App = () => 1;\n',
   'packages/core/src/index.ts': 'export const core = 1;\n',

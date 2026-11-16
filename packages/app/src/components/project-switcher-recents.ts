@@ -3,8 +3,8 @@ import type {
   WorktreeInventoryLocation,
   WorktreeInventoryModel,
   WorktreeInventoryOpenRequest,
-} from '@inkeep/open-knowledge-core/git/worktree-inventory-model';
-import type { WorktreeSelectorModel } from '@inkeep/open-knowledge-core/git/worktree-selector-model';
+} from '@gitquire/core/git/worktree-inventory-model';
+import type { WorktreeSelectorModel } from '@gitquire/core/git/worktree-selector-model';
 import type { RecentProjectEntry } from '@/lib/desktop-bridge-types';
 
 export interface RecentRepoGroup {

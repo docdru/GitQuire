@@ -6,7 +6,7 @@ import {
   type ReLintFailure,
   ReLintFailureSchema,
   validationCoverageLines,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import type { AgentIdentity } from '../agent-identity.ts';
 import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';

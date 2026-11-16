@@ -1,11 +1,8 @@
 // oxlint-disable ok/no-raw-html-interactive-element -- pre-rule backlog — file uses raw <button>/<input>/<textarea> awaiting shadcn migration; tracked at https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-html-interactive-element
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
-import {
-  PageHeadingsSuccessSchema,
-  ProblemDetailsSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
-import type { HeadingEntry } from '@inkeep/open-knowledge-core/utils/slug';
+import { PageHeadingsSuccessSchema, ProblemDetailsSchema } from '@gitquire/core/schemas/api';
+import type { HeadingEntry } from '@gitquire/core/utils/slug';
 import { t } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

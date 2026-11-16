@@ -10,7 +10,7 @@ import {
   parseFrontmatterYaml,
   stripFrontmatter,
   unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import { computeBrokenOutboundLinks } from '../backlink-index.ts';

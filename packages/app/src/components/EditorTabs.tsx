@@ -4,7 +4,7 @@
 
 import { useDndContext } from '@dnd-kit/core';
 import { horizontalListSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable';
-import { isMarkdownDocFile } from '@inkeep/open-knowledge-core/constants/upload';
+import { isMarkdownDocFile } from '@gitquire/core/constants/upload';
 import { Trans, useLingui } from '@lingui/react/macro';
 import {
   AlertTriangle,

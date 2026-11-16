@@ -1,4 +1,4 @@
-import { getLocalDir } from '@inkeep/open-knowledge-server';
+import { getLocalDir } from '@gitquire/server';
 import { describe, expect, test } from 'vitest';
 import { resolveContentDir, resolveLockDir } from './paths.ts';
 import type { Config } from './schema.ts';

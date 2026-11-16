@@ -137,7 +137,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     path: ['upload', 'maxBytes'],
     get redirect() {
       return [
-        'streaming uploads have no user-facing cap; the value is hardcoded in @inkeep/open-knowledge-core.',
+        'streaming uploads have no user-facing cap; the value is hardcoded in @gitquire/core.',
         migrateHint(),
       ].join(' ');
     },
@@ -203,20 +203,20 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
   {
     path: ['mcp', 'tools', 'read_document', 'historyDepth'],
     get redirect() {
-      return ['This value is hardcoded in @inkeep/open-knowledge-core.', migrateHint()].join(' ');
+      return ['This value is hardcoded in @gitquire/core.', migrateHint()].join(' ');
     },
   },
   {
     path: ['mcp', 'tools', 'grep', 'maxResults'],
     get redirect() {
-      return ['This value is hardcoded in @inkeep/open-knowledge-core.', migrateHint()].join(' ');
+      return ['This value is hardcoded in @gitquire/core.', migrateHint()].join(' ');
     },
   },
   {
     path: ['mcp', 'tools', 'search', 'maxResults'],
     get redirect() {
       return [
-        'The search result cap is hardcoded in @inkeep/open-knowledge-core; this config key was removed.',
+        'The search result cap is hardcoded in @gitquire/core; this config key was removed.',
         migrateHint(),
       ].join(' ');
     },

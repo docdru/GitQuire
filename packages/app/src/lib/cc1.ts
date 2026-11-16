@@ -1,4 +1,4 @@
-import { CC1_CONTRACT_VERSION, SYSTEM_DOC_NAME } from '@inkeep/open-knowledge-core/constants/cc1';
+import { CC1_CONTRACT_VERSION, SYSTEM_DOC_NAME } from '@gitquire/core/constants/cc1';
 import {
   CC1_CHANNEL_BRANCH_SWITCHED,
   CC1_CHANNEL_CONFIG_IGNORE_NESTED_ERROR,
@@ -16,7 +16,7 @@ import {
   type CC1ServerInfoPayload,
   CC1ServerInfoPayloadSchema,
   type DerivedViewChannel,
-} from '@inkeep/open-knowledge-core/schemas/cc1';
+} from '@gitquire/core/schemas/cc1';
 import type { z } from 'zod';
 
 export {

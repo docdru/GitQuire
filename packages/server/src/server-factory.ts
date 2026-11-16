@@ -12,8 +12,6 @@ import {
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
-import type { Document, Extension } from '@hocuspocus/server';
-import { Hocuspocus, IncomingMessage, MessageType } from '@hocuspocus/server';
 import {
   type BasenameIndex,
   CONFIG_DOC_NAME_OKIGNORE,
@@ -43,21 +41,23 @@ import {
   type SyncMode,
   type SyncModeChangeSource,
   toEffectiveBase,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   atomicWriteFile,
   collectConfigDiagnostics,
   readConfigSafely,
   resolveConfigPath,
   writeConfigPatch,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';
 import {
   type CheckpointKind,
   formatReconcileSubject,
   gitAuthorWriterId,
   resolveGitDir,
   resolveShadowDir,
-} from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core/shadow-repo-layout';
+import type { Document, Extension } from '@hocuspocus/server';
+import { Hocuspocus, IncomingMessage, MessageType } from '@hocuspocus/server';
 import type { Doc } from 'yjs';
 import { AgentFocusBroadcaster } from './agent-focus.ts';
 import { AgentPresenceBroadcaster } from './agent-presence.ts';

@@ -13,7 +13,7 @@ import {
   HocuspocusAuthRejection,
   parseAuthRejectionWire,
   resetMetrics,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
 import { createTestServer, type TestServer } from './test-harness';

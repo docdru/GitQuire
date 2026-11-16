@@ -1,6 +1,6 @@
 import { realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@inkeep/open-knowledge-core';
+import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { type RunDeviceFlowController, runDeviceFlowSubprocess } from './auth-flow.ts';
 import type { AuthEvent } from './types.ts';

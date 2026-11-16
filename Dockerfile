@@ -22,7 +22,7 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 
 RUN cd packages/app && pnpm run i18n:compile
-RUN pnpm exec turbo run build --filter=@inkeep/open-knowledge
+RUN pnpm exec turbo run build --filter=@gitquire/cli
 RUN mkdir -p /out && cd packages/cli && pnpm pack --pack-destination /out \
  && mv /out/*.tgz /out/gitquire.tgz
 

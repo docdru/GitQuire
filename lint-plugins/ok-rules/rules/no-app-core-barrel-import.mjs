@@ -2,7 +2,7 @@ import { docsUrl } from '../docs.mjs';
 
 const URL = docsUrl('no-app-core-barrel-import');
 
-const CORE_BARREL = '@inkeep/open-knowledge-core';
+const CORE_BARREL = '@gitquire/core';
 
 const MESSAGE = `Bare ${CORE_BARREL} import in app production source — it pulls core's whole barrel into the editor's module graph. Import each binding from the core subpath of the module that exports it (${CORE_BARREL}/<module>, declared in packages/core/package.json exports). See ${URL}`;
 

@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
-import { isGitHubHost } from '@inkeep/open-knowledge-core';
+import { isGitHubHost } from '@gitquire/core';
 import password from '@inquirer/password';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { FileBackend } from '../../auth/token-store.ts';

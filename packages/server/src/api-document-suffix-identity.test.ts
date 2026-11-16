@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DocumentReadSuccessSchema } from '@inkeep/open-knowledge-core';
+import { DocumentReadSuccessSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { BootedServer } from './boot.ts';
 import { bootCompositionRig } from './composition-rig.test-helper.ts';
