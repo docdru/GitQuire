@@ -153,7 +153,7 @@ function isEventStream(response: Response): boolean {
   return (response.headers.get('content-type') ?? '').includes('text/event-stream');
 }
 
-export interface StreamEvent {
+interface StreamEvent {
   event: string | undefined;
   data: string;
 }
