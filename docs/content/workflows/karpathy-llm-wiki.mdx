@@ -64,8 +64,8 @@ Either way, by the end of this guide you'll have a working source-grounded knowl
 
 You need:
 
-- **The GitQuire desktop app.** The desktop app (macOS 13+, Windows, Linux) is the canonical surface: WYSIWYG editor, file sidebar, agent activity panel, version timeline, and the starter-pack picker all live there. Install it from the [Quickstart](../get-started/quickstart.mdx).
-- **An MCP-capable agent assistant.** [Claude Code](../gitquire/connect-ai.mdx), [Cursor](../gitquire/connect-ai.mdx), [Codex](../gitquire/connect-ai.mdx), [OpenCode](../gitquire/connect-ai.mdx), or [OpenClaw](../gitquire/connect-ai.mdx). The OK desktop app's first-launch flow detects them and offers to wire them up.
+- **A GitQuire server** with a repository connected. See the [Quickstart](../get-started/quickstart.mdx).
+- **An AI assistant connected over MCP**, such as Claude or Le Chat. See [Connect AI](../gitquire/connect-ai.mdx).
 - **A read of the source pattern.** Andrej Karpathy's [LLM wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) is the canonical description of what we're implementing here. It's a 10-minute read and worth doing first; this guide builds on it directly.
 
 If you're brand new to OK, run the [Quickstart](../get-started/quickstart.mdx) (≤5 minutes to first agent-driven edit) and come back here.
@@ -147,11 +147,9 @@ The templates use [OKF-compatible metadata](../plugins/okf.mdx): `draft` and `st
 
 ## Step-by-step: getting to the scenario above
 
-### 1. Open the desktop app and pick a project folder
+### 1. Open the wiki
 
-Launch the **GitQuire** desktop app. Either drag-and-drop a folder, click **Open folder on disk**, or click **Create new project** to start a new vault. The first-launch consent dialog scaffolds `.ok/` and offers to wire up any MCP-capable editors it detects (Claude Code, Cursor, Codex, OpenCode, OpenClaw).
-
-Don't have the desktop app yet? See the [Quickstart](../get-started/quickstart.mdx).
+Open your GitQuire server in the browser and sign in.
 
 ### 2. Initialize the Knowledge base starter pack
 
@@ -161,17 +159,13 @@ You'll get `external-sources/`, `research/`, `articles/`, the three matching tem
 
 The starter-pack picker is idempotent (safe to re-run on the same project).
 
-<Callout type="info" title="Seeding also installs skills">
-  `ok seed --pack knowledge-base` (or the desktop starter-pack picker) installs three project skills: `knowledge-base`, `research-with-sources`, and `consolidate-notes`. They carry the layer discipline and provisional-to-canonical promotion described below; the platform skill carries the `ingest` procedure. Each lands as a real `SKILL.md` in your agent editors' skills dirs (`.claude/skills`, `.cursor/skills`, …), versioned with your repo — one canonical copy mirrored into each editor already set up for the project. See [what GitQuire writes to disk](../reference/what-gitquire-writes.mdx).
-</Callout>
-
 ### 3. Confirm your agent host is wired
 
-If you accepted the desktop app's first-launch offer to wire up your agent assistant, you're done. If not, in your agent assistant, ask:
+Connect your assistant as described in [Connect AI](../gitquire/connect-ai.mdx), then ask it:
 
 <CopyPrompt>list the GitQuire tools available</CopyPrompt>
 
-You should see the standard reads/writes (`exec`, `search`, `write`, `edit`, `links`, etc.). The `ingest` / `research` / `consolidate` procedures aren't tools: `ingest` ships in the platform skill, while `research` and `consolidate` ship in the pack's member skills.
+You should see the standard reads/writes (`exec`, `search`, `write`, `edit`, `links`, etc.). `ingest`, `research` and `consolidate` are not tools: they are ways of working that the folder descriptions and templates spell out for the agent.
 
 ### 4. Ingest the five sources
 
@@ -179,7 +173,7 @@ For each source, paste the URL into your agent and say:
 
 <CopyPrompt>ingest this: https://github.com/example/framework</CopyPrompt>
 
-The agent fetches the URL, follows the platform skill's `ingest` procedure, and writes the verbatim content to `external-sources/framework-readme.md` with `type: source` frontmatter capturing the URL, fetch date, and any author metadata it can extract. **Never copy-paste raw URLs into chat as "sources" without ingesting.** The knowledge base is closed-loop. Every claim must cite a local doc.
+The agent fetches the URL, follows the `external-sources/` folder description, and writes the verbatim content to `external-sources/framework-readme.md` with `type: source` frontmatter capturing the URL, fetch date, and any author metadata it can extract. **Never copy-paste raw URLs into chat as "sources" without ingesting.** The knowledge base is closed-loop. Every claim must cite a local doc.
 
 Five ingests, five files. After the fifth, ask:
 
@@ -191,7 +185,7 @@ Your agent uses `exec("ls external-sources/")` to read frontmatter and per-file 
 
 <CopyPrompt>research the agent-framework question; synthesize the five sources in external-sources/</CopyPrompt>
 
-That kicks off the pack skill's step-by-step research procedure: it confirms scoping, lists what's covered by the existing sources, identifies gaps (maybe one source you haven't ingested yet), and produces a `research/agent-framework-evaluation.md` with `type: research-note`, `status: draft`, and `sources:` entries shaped as `- resource: ../external-sources/<file>.md`.
+That kicks off a step-by-step research pass: it confirms scoping, lists what's covered by the existing sources, identifies gaps (maybe one source you haven't ingested yet), and produces a `research/agent-framework-evaluation.md` with `type: research-note`, `status: draft`, and `sources:` entries shaped as `- resource: ../external-sources/<file>.md`.
 
 Every claim in the log cites a specific source path. You can now ask:
 
@@ -217,7 +211,7 @@ You don't consolidate yet in our scenario; the team hasn't decided. Maybe in two
 
 The `consolidate` procedure starts with a STOP gate asking whether the decision is actually made. If yes, it writes `articles/agent-framework-evaluation.md` with `type: article`, `status: stable`, and a `supersedes:` chain pointing back to the research log. That `research/` doc isn't deleted; it becomes `status: deprecated` and points forward with `superseded_by`, so the evidence chain stays intact.
 
-**What just composed.** Five sources became one canonical article via: the **Knowledge base starter pack** (three folders, three templates, agent-readable folder frontmatter, one click), the platform skill's **`ingest`** procedure and the pack's **`research` / `consolidate`** skills (mapping 1:1 to Karpathy's layers), the **agent activity panel** (every fetch + write attributed), the **wikilink graph + frontmatter `sources:` arrays** (citation chain audit-able doc by doc), and the **WYSIWYG editor** (review and refine without leaving the same surface). The same vault, the same product, the whole stack working as one thing.
+**What just composed.** Five sources became one canonical article via: the **Knowledge base starter pack** (three folders, three templates, agent-readable folder frontmatter, one click), the **`ingest` / `research` / `consolidate`** ways of working the folders describe (mapping 1:1 to Karpathy's layers), the **agent activity panel** (every fetch + write attributed), the **wikilink graph + frontmatter `sources:` arrays** (citation chain audit-able doc by doc), and the **WYSIWYG editor** (review and refine without leaving the same surface). The same vault, the same product, the whole stack working as one thing.
 
 ## The promotion rhythm
 
@@ -240,7 +234,7 @@ When to use each tool, and when *not* to:
 
 | When | Do | Composes |
 |---|---|---|
-| **As sources arrive** | `ingest` (30 sec per source) | pack-skill procedure + `external-sources/.ok/` frontmatter + `clip` template + agent activity panel |
+| **As sources arrive** | `ingest` (30 sec per source) | `external-sources/.ok/` frontmatter + `clip` template + agent activity panel |
 | **Weekly** | A `research` pass to synthesize recent ingests; ask the agent to flag contradictions | `research` procedure + folder frontmatter discipline + wikilink graph |
 | **Per-decision** | `consolidate` to canonical | `consolidate` procedure + supersedes chain + `articles/` template |
 | **Monthly** | *"find stale claims in `articles/`, orphans, missing cross-refs"* | `links` (orphans, dead links, backlinks) |

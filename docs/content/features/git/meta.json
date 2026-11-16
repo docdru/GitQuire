@@ -1,5 +1,5 @@
 {
   "title": "Git",
   "icon": "LuGitBranch",
-  "pages": ["sync", "github"]
+  "pages": ["sync"]
 }

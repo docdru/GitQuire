@@ -38,16 +38,6 @@ ok migrate notion /path/to/unzipped-export
 ok migrate notion /path/to/unzipped-export --apply
 ```
 
-<Callout type="info">
-  The desktop app ships the `ok` CLI. The Windows installer puts it on your
-  `PATH` on its own. On macOS and Linux it installs to `$HOME/.ok/bin`, and a
-  toggle in the first-launch dialog puts it on your `PATH` when you tick it (on
-  Linux the package's install script also links `/usr/bin/ok` either way). If
-  `ok` isn't found, add it from **File → Set up GitQuire
-  integrations…**, then open a new terminal window. If it's still missing,
-  add `$HOME/.ok/bin` to your `PATH` manually.
-</Callout>
-
 Every transform is **idempotent**, so re-running is safe. See the tables below for a full list of differences between the Notion export and what GitQuire supports.
 
 **Options:**
@@ -67,13 +57,7 @@ Every transform is **idempotent**, so re-running is safe. See the tables below f
 
 ## Open the export in GitQuire
 
-### Desktop app
-
-Open GitQuire, choose **Open folder on disk**, select the unzipped export folder, and proceed through the **Setup** screen with defaults selected.
-
-### Web app
-
-`cd` into the unzipped folder and run `ok init && ok start`.
+Commit the cleaned-up folder to a GitHub repository, then point a GitQuire server at it as described in [Repository sync](/docs/gitquire/repository-sync).
 
 ## What exports cleanly
 

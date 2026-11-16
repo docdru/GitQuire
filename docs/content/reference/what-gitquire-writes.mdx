@@ -1,338 +1,98 @@
 ---
-title: What GitQuire writes to your system
+title: What GitQuire writes
 sidebarTitle: Installation details
 icon: LuHardDrive
-description: Every file GitQuire creates or changes — when, where, in-project vs. your home directory — plus the opt-outs and what leaves your machine (nothing by default).
+description: Every file a GitQuire server creates or changes, what is committed to Git and what stays on the server, and what leaves the server.
 ---
 
-GitQuire keeps your knowledge base as plain markdown in your own project directory, but the tooling around it — the CLI, the MCP server, and the desktop app — also writes a handful of supporting files, some of them **outside the project**, in your home directory, your shell startup files, your editors' configs, and the OS credential store.
-
-This page lists every one of them: **when** each write happens, **what** it is, and **where** it is written.
-
-<Callout type="warn" title="On a GitQuire server">
-  The GitQuire Docker image writes only inside its data volume: your content with its `.ok/`
-  project files, and the server's own state. The home-directory, shell, editor-config and
-  desktop-app entries below, and the Stable and Beta builds, come from the upstream desktop app and
-  `ok` CLI, which GitQuire does not ship. They apply only if you also run the CLI on your own
-  computer.
-</Callout>
+GitQuire runs as one Docker image with all of its state in the `/data` volume (see
+[Run with Docker](../gitquire/run-with-docker.mdx)). Your pages are plain Markdown files in a Git
+working copy inside that volume. Next to them, GitQuire keeps a small set of its own files. This
+page lists them: what each one is, whether it is committed to Git, and what it holds.
 
 <Callout type="info" title="The short version">
-  **Nothing about your content leaves your machine by default.** Diagnostic logs and telemetry stay on your machine. The things that *can* send data off it — semantic search, a diagnostic or bug-report bundle, and GitHub sync — are opt-in or on-demand. Two automatic exceptions, neither of which touches your documents: the desktop app checks for updates (sending its app version and channel), and on its first launch it opens your browser once to check for a pending share link. All of them are listed under [What leaves your machine](#what-leaves-your-machine).
+  Everything GitQuire writes stays in the data volume, except the draft copies (their own folder,
+  see below) and the server log inside the container. Committed are your pages, the project
+  settings in `.ok/`, `.okignore`, and the GitQuire section of `AGENTS.md`. Personal data (keys,
+  chats, mentions, personal settings) stays in `.ok/local/` and is never committed.
 </Callout>
 
-## How to read this page
+## Committed to Git
 
-Writes fall into two buckets, and each table's **Scope** column tells you which:
+These are part of the wiki and travel with the repository.
 
-- **In-project** — inside your project folder. Either **committed** (shared through git with your team) or **gitignored** (this machine only, under `.ok/local/` or `.git/`).
-- **Outside-project** — your **home directory** (`~/.ok/`, `~/Library/...`), your **shell startup files** (`~/.zshrc` and friends), your editors' **user-level configs**, or the OS credential store.
-
-#### Stable and Beta home folders
-
-Every `~/.ok/` path on this page belongs to Stable, except the shared entries listed below. GitQuire Beta, and the `ok-beta` CLI, write the other files under `~/.ok-beta/` instead, and keep credentials in the OS credential store under the service `open-knowledge-beta` rather than `open-knowledge`. These entries stay under `~/.ok/` for both products:
-
-- `~/.ok/machine-id`, a random id that identifies this machine to project server locks.
-- `~/.ok/local/server-authority.sqlite`, its SQLite rollback journal `~/.ok/local/server-authority.sqlite-journal`, and `~/.ok/local/server-authority-leases/`, created when a server starts to prevent overlapping projects or previews from writing the same content. The registry and lease files are owner-only (`0600`); Stable and Beta share them. A lease is held while its server owns the content and removed on successful shutdown or crash recovery. Uninstall keeps these shared coordination files. Never delete them while a server is running; see [Ownership registry recovery](./cli.mdx#ownership-registry-recovery).
-
-No product's uninstall removes `~/.ok/machine-id`, and Stable's `ok uninstall` keeps every entry in this list.
-
-If you run the desktop app or the `packages/app` dev server from source, it runs as a third product, `dev`, which keeps its files under `~/.ok-dev/` and its credentials under the service `open-knowledge-dev`, and shares the entries above. A CLI run from source stays Stable unless you set `OK_CHANNEL=dev`. See [how a process picks its product](#beta-uses-its-own-entry).
-
-GitQuire installs one of two ways, and the footprint differs a little between them. Pick yours below — each tab lists the complete set of writes for that path. The [opt-outs](#opt-outs-in-one-place) and [what leaves your machine](#what-leaves-your-machine) at the end apply to both.
-
-<Tabs groupId="ok-install" persist className="ok-flush-tabs ok-tabs-h2" items={['Desktop app', 'CLI']}>
-
-<Tab>
-
-### Installing and launching the app
-
-How the app lands depends on your platform:
-
-- **macOS** — a signed `.dmg` you drag into `/Applications`. Because a `.dmg` app can't put a CLI on your `PATH` on its own, first launch asks, in one dialog, whether to register the MCP server with your AI editors and whether to add `ok` to your shell's `PATH` (both covered below, both with your consent).
-- **Windows** — a per-user installer: the app lands under `%LOCALAPPDATA%\Programs\`, with no admin prompt. Stable adds `ok` to your **user** `PATH` and registers `openknowledge://`; Beta adds `ok-beta` and `open-knowledge-beta` and registers `openknowledge-beta://`. These are registry values under `HKCU\Environment` and `HKCU\Software\Classes`, removed by the matching uninstaller. Each product also registers itself for `.md` and `.mdx` files under `HKCU\Software\Classes`, which can make it the default opener when you have not explicitly chosen one in Windows. Uninstall removes that product's Open With and file-handler registrations but does not restore a previous file-type default. To choose another opener, use **Settings → Apps → Default apps**. Your shell startup files are never touched.
-- **Linux** — a deb or rpm package: Stable installs to `/opt/OpenKnowledge/` and symlinks `/usr/bin/ok`, `/usr/bin/open-knowledge`, and `/usr/bin/openknowledge`; Beta installs to `/opt/OpenKnowledge Beta/` and symlinks `/usr/bin/ok-beta`, `/usr/bin/open-knowledge-beta`, and `/usr/bin/openknowledge-beta`. Their desktop entries register `openknowledge://` and `openknowledge-beta://` respectively, and each installs its own AppArmor profile on Ubuntu 24.04+ so the Chromium sandbox keeps working. Your shell startup files are touched only with your consent, as described below.
-
-On every platform the app writes app-level state and logs on launch. The table below shows the macOS locations; Beta substitutes `OpenKnowledge Beta` for the app-data directory and uses its own updater cache. On Windows, Stable app state lives under `%APPDATA%\OpenKnowledge\` and Beta under `%APPDATA%\OpenKnowledge Beta\`. On Linux, the corresponding defaults are `~/.config/OpenKnowledge/` and `~/.config/OpenKnowledge Beta/` (or the matching XDG directories). Stable keeps its command-line shortcuts under `~/.ok/` and Beta keeps its own under `~/.ok-beta/`. When Beta sets up its `PATH` shim, it removes the `~/.ok/variants/beta/` folder that earlier Beta builds used.
-
-On Linux, Stable keeps its `PATH` marker at `$XDG_CONFIG_HOME/OpenKnowledge/path-install.json` (default `~/.config/OpenKnowledge/path-install.json`). On startup after upgrading, it migrates a valid legacy marker from `~/Library/Application Support/OpenKnowledge/path-install.json` when the new marker is absent, preserving the recorded setup choices and removing only empty legacy folders.
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `~/Library/Application Support/OpenKnowledge/state.json` | Recent projects, window/view state, update channel, and your automatic-updates preference | Outside-project (home dir) |
-| `~/Library/Application Support/OpenKnowledge/path-install.json` | Records the `PATH`/shell changes it made and your `PATH`-consent choice, so they can be reverted | Outside-project (home dir) |
-| `~/Library/Application Support/OpenKnowledge Beta/state.json` | Beta's separate recent projects, window/view state, update channel, and automatic-updates preference | Outside-project (home dir) |
-| `~/.ok-beta/path-install.json` | Records Beta's separate `PATH`/shell changes and consent choice | Outside-project (home dir) |
-| `~/.ok/logs/desktop.<date>.log` | Desktop app + renderer log | Outside-project (home dir) |
-| `~/.ok/mcp-status.json` | Records your first-launch MCP-setup consent choice | Outside-project (home dir) |
-| `~/Library/Caches/com.inkeep.open-knowledge.ShipIt/` | Install log of the macOS update helper (Squirrel's ShipIt), which swaps the app bundle after the app has quit. The only record of why an update failed to install, so a bug report you send collects it — only this app's, never those of other applications that use the same update mechanism | Outside-project (home dir) |
-| `~/Library/Logs/DiagnosticReports/` | Not written by GitQuire at all — this is macOS's own crash-report directory, shared by every application on the machine. When the OS ends one of this app's processes it records why there, which is sometimes the only account of a session that stopped without a crash dump, so a bug report you send at the **Detailed diagnostics** level collects the reports macOS wrote for this app and its helper processes — only ours, never those of any other application, and never at the standard level. A report of ours still names the processes it was running alongside. A report also carries machine details macOS puts in every one of them — the account uid, the Mac model, and the name of the process that launched the app, which on a managed machine can be internal tooling — while the identifiers that would link your bundles to each other are replaced before bundling. `ok diagnose bundle` collects them too, on every run: that command produces the Detailed superset by design, and its summary tells you what the search found before it writes the zip | Outside-project (home dir) |
-| `/Library/Logs/DiagnosticReports/JetsamEvent-*.ips`; on Linux, the system journal and your own user journal; on Windows, the System and Application event logs | Written by the operating system, not by GitQuire, with the one Linux exception described below. These are the operating system's own records, shared by every application on the machine, of the times it ended a process from outside: macOS's low-memory kills (jetsam), the Linux kernel's out-of-memory killer and `systemd-oomd`, and on Windows the crash and hang records of applications plus the system's records of shutdowns, restarts, power losses, and low-memory warnings. A process ended that way runs none of its own code, so this is often the only account of a session that stopped with no crash dump. A bug report you send at the **Detailed diagnostics** level reads the past week of these records, and `ok diagnose bundle` reads them on every run. From macOS and Linux it keeps only the records that name this app's processes. On macOS it keeps, for each of this app's processes in a report, the process id, its memory use and peak, and whether macOS ended it. On Linux it keeps the time, the action, the process name and id, and the unit name, and drops the machine name, the cgroup paths, and the account uid the journal line carries. The user journal is the one exception that GitQuire itself writes to: when the Linux display server drops the app, its desktop process prints a display-connection error just before it exits, and your user journal records it. From your user journal it keeps only those errors from this app's own desktop process, matched against the process ids in its desktop logs, with the time, the process id, and the message cut to 200 characters. From the Windows Application log it keeps only this app's crash and hang records, with any value that looks like a file path removed. From the Windows System log it keeps the time and kind of every shutdown, restart, power loss, and low-memory warning on the machine, planned or not and whichever application they concerned, with no other detail. The result is `state/os-termination-evidence.json` in the zip, which a project's zip lists in `manifest.json`. A system-wide zip's README names it whenever records were kept | Machine-wide (OS logs) |
-| `~/Library/Application Support/OpenKnowledge/Crashpad/` | Native crash minidumps, written by the OS crash handler (Electron's Crashpad) if the app ever crashes. Local-only: the crash reporter runs with `uploadToServer: false`, so no dump is ever uploaded automatically | Outside-project (home dir) |
-| `~/Library/Application Support/OpenKnowledge/bug-report-dirty-shutdown.json` | Dirty-shutdown sentinel — written on **every** launch, refreshed as it runs, and removed on a clean quit. The next launch reads it to tell an app crash (prompts you) from the endings that are not a crash: a reboot, an OS shutdown, or dying asleep (all suppressed and logged instead), an update install shutting the app down to replace its files (logged either way, and suppressed in almost every case: a shutdown the app had no chance to record, or one it cannot date because the previous session left no heartbeat, can still prompt so you are able to report it), and a death the app can date to more than a week ago, which is too stale to report usefully — the diagnostics a report would gather describe the day you sent it rather than the day it happened. A fresh crash dump still overrides those, the same as it does for a reboot, a suspend or an OS shutdown — except in the first 30 seconds after the app committed to quitting for an update install, where a dump is part of that same shutdown rather than a crash you could act on. A session that left neither a heartbeat nor a crash dump cannot be dated, so it is never treated as stale | Outside-project (home dir) |
-| `~/Library/Application Support/OpenKnowledge/bug-report-crash-acks.json` | Records which crash-report invitations you already answered or dismissed, so the same crash never re-prompts. Answering is what retires a crash: an invitation you simply never saw — because it went unanswered for a day, or the window it was waiting on never appeared — is dropped rather than answered, so that crash can be offered again the next time you open the app | Outside-project (home dir) |
-| `~/Library/Application Support/OpenKnowledge/bug-report-main-thread-liveness.json` | Main-thread liveness witness. A background worker rewrites it every five seconds while the app runs. The next launch can identify a main-thread block that had lasted at least 15 seconds at the last successful sample. A sample below that threshold does not rule out a shorter or recovered block, or a block after the worker stopped writing. Read only at the next launch; left in place on a clean quit and overwritten on the next run, through a `.tmp-` sibling during each write. The verdict lands in the desktop log a bug report carries; it does not change whether the app prompts you | Outside-project (home dir) |
-| `~/Library/Application Support/OpenKnowledge/bug-report-main-thread-stall.json` | Main-thread stall snapshot. When the liveness witness first sees the main thread blocked for at least 15 seconds, the same background worker writes this file at once, then briefly pauses the main thread to read where it is and resumes it straight away. It holds function names and script locations from the app's own code, and the Node.js runtime beneath it, at the moment of a freeze: at most 24 frames, never document content. A freeze inside native code only lets the pause land once the main thread returns to the app's code, so the file records how long that took, and a session that ended before then keeps the record written when the freeze was first seen. One snapshot per freeze; a later freeze in the same session overwrites it, through a `.tmp-` sibling during each write. A freeze the app recovers from is also noted in the desktop log as it recovers. Read at the next launch; left in place on a clean quit and overwritten by the next freeze. It does not change whether the app prompts you | Outside-project (home dir) |
-| `~/Library/Application Support/OpenKnowledge/bug-report-main-exit.json` | Main-process exit record. Written only when the main process exits without the app having marked a clean quit, for example when code ends the process directly instead of going through the normal quit path. It holds the session's identifier, the time, and the exit code. A crash or a forced kill never gets to write it, which is how the next launch tells those endings apart from an exit the app ran itself. Read only at the next launch, where the result lands in the desktop log a bug report carries; left in place and overwritten by the next such exit. It does not change whether the app prompts you | Outside-project (home dir) |
-
-Stable registers `openknowledge://`; Beta registers `openknowledge-beta://`. Unless you turn off **Download and install updates automatically** in **Settings → About & updates** (see [Desktop updates](/docs/reference/configuration#desktop-updates)), both check for updates — on launch and periodically while running — against separate Stable/Beta paths on the OpenKnowledge update service at `openknowledge.ai/updates`, which redirects to the matching GitHub release asset and counts the update per version and channel (Stable alone can fall back to GitHub directly if the proxy is unreachable). On macOS and Windows an update on your channel downloads in the background and installs on the next quit; on Linux — where there is no apt/rpm repository — the app downloads the new deb/rpm from the release feed and asks you to authorize the install (a `pkexec` password prompt) each time. You can also check on demand from **Check for updates…** in the app and Help menus, from **Check for updates** in the Help (**?**) popover once the updater has started, or from **Settings → About & updates**, which also shows the installed version and opens its release notes. If the check finds a new version but its download fails, the app tells you so you can try again. The channel is fixed by the product you installed. Older Beta installations named `OpenKnowledge` continue receiving Beta updates in place, preserving their existing settings and CLI commands; they do not silently become the separately installed `OpenKnowledge Beta` app. Reinstall Stable from `openknowledge.ai/download` or Beta from `openknowledge.ai/download/beta`; Windows and Linux installers are available from [GitHub Releases](https://github.com/inkeep/open-knowledge/releases). Override the feed with `OK_UPDATER_FEED_URL`.
-
-On its first launch the app also opens your default browser once to `openknowledge.ai/continue`, to check whether you installed from a share link and redeem it if so; the exchange completes over a short-lived local loopback listener.
-
-### Shell and `PATH`
-
-So `ok` can work in your terminal too, the packaged app manages a `PATH` shim. **This is macOS and Linux only, packaged-build-only, and disabled by `OK_RECLAIM_DISABLE=1`.** It never uses `sudo`, never runs an admin prompt, and never installs a login item. (Windows doesn't need it: the Windows installer adds the bundled CLI to your user `PATH` itself, and never edits your shell files. GitQuire no longer ships a Linux AppImage, but a build launched from one skips the shim too, because an AppImage has no fixed install location to link to.)
-
-The first two rows below live in GitQuire's own `~/.ok/` directory and are maintained automatically. The third — the only write into files GitQuire doesn't own — happens **only with your consent**: the first-launch dialog has an "Add the `ok` command to your terminal" toggle (unchecked by default), and nothing is written to your shell config unless you check it.
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `~/.ok/bin/ok`, `~/.ok/bin/open-knowledge` | Symlinks to the CLI bundled inside the app | Outside-project (home dir) |
-| `~/.ok/env.sh` | A managed shim that prepends `~/.ok/bin` to your `PATH` | Outside-project (home dir) |
-| `~/.zshrc`, `~/.bash_profile`, `~/.bashrc` (Linux), `~/.config/fish/conf.d/open-knowledge.fish` | A **fenced managed block** that sources `~/.ok/env.sh` — written **only if you consent** in the first-launch dialog. The block is created in the startup file for your login shell, and maintained in any of these that already exists, except `~/.bashrc`, which is only ever touched on Linux | Outside-project (shell config) |
-| `~/.ok-beta/bin/ok-beta`, `~/.ok-beta/bin/open-knowledge-beta` | Beta-only symlinks to the CLI bundled inside GitQuire Beta | Outside-project (home dir) |
-| `~/.ok-beta/env.sh`, `~/.config/fish/conf.d/open-knowledge-beta.fish` | Beta's separate environment shim and fish startup file; other shells receive a separately fenced `open-knowledge beta cli` block | Outside-project (home dir / shell config) |
-
-If you decline, only `ok` typed in an *external* terminal (Terminal, iTerm) is affected — the MCP server works without it. You can add it later from **File → Set up GitQuire integrations…**. Machines that already had the block from a version before the consent dialog are treated as consented: the block is left in place and maintained.
-
-The managed block is clearly fenced so you can see and remove it:
-
-```bash
-# >>> open-knowledge cli >>>
-# ! Contents within this block are managed by OpenKnowledge. Do not edit.
-# ! Delete this whole block to opt out — OpenKnowledge will not re-add it.
-[ -f "$HOME/.ok/env.sh" ] && . "$HOME/.ok/env.sh"
-# <<< open-knowledge cli <<<
-```
-
-Delete the block and the app **won't re-add it** — the removal is recorded and respected. Or set `OK_RECLAIM_DISABLE=1` to disable all of this before first launch.
-
-### Setting up a project
-
-When you initialize or open a project, the app scaffolds the same project files the CLI's `ok init` creates, and registers the `open-knowledge` MCP server with the AI editors it detects. The MCP registration is **surgical** — it touches only its own entry and leaves your other settings, comments, and formatting byte-for-byte intact. "Its own entry" means the one named `open-knowledge`; if that name is already taken by something GitQuire does not recognize, see [Opt-outs in one place](#opt-outs-in-one-place).
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `.ok/`, `.ok/config.yml` | Project directory and its [config](./configuration.mdx) | In-project, committed |
-| `.ok/.gitignore` | Keeps machine-local runtime state (`local/`, `principal.json`, `server.lock`, …) out of git | In-project, committed |
-| `.okignore` | Paths excluded from the editor, search, and agents — see [Ignore patterns](../features/ignore-patterns.mdx) | In-project, committed |
-| `.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `opencode.json` | Project-scoped MCP registration for the four MCP-capable project editors (Claude, Cursor, Codex, OpenCode), written regardless of what's installed so the repo is ready for teammates | In-project, committed |
-| `.pi/extensions/open-knowledge.ts` | Managed bridge extension connecting [Pi](../gitquire/connect-ai.mdx) (which has no MCP support) to the project | In-project, committed |
-| `~/.claude.json`, `~/Library/Application Support/Claude/claude_desktop_config.json`, `~/.cursor/mcp.json`, `~/.codex/config.toml`, `~/.copilot/mcp-config.json`, `~/.config/opencode/opencode.json`, `~/.openclaw/openclaw.json`, `~/.gemini/config/mcp_config.json`, `~/.lmstudio/mcp.json`, `~/.hermes/config.yaml` | User-level `open-knowledge` MCP registration, one per detected editor, so it's available in every project (`~/.copilot/mcp-config.json` only when `~/.copilot/` exists; `~/.openclaw/openclaw.json` only when `~/.openclaw/` exists; `~/.gemini/config/mcp_config.json` is Antigravity's shared IDE + `agy` config, only when `~/.gemini/` exists; `~/.lmstudio/mcp.json` and `~/.hermes/config.yaml` only when those apps are installed) | Outside-project (editor config) |
-
-The **Scope** column assumes you share this setup with your team. New projects don't: they keep GitQuire's config to yourself, adding every in-project path above to `.git/info/exclude`, so those files are written but stay out of git.
-
-#### Beta uses its own entry
-
-Each product registers under its own name, so Stable and Beta can both be connected to the same editor without overwriting each other. Stable uses `open-knowledge`; Beta uses `open-knowledge-beta`, with its own launcher that runs GitQuire Beta and falls back to `npx @inkeep/open-knowledge@beta`. Everywhere this page names the `open-knowledge` entry, Beta's app, repair sweeps, and `ok-beta init` act only on `open-knowledge-beta`, and Beta's Pi bridge is `.pi/extensions/open-knowledge-beta.ts`. Agents see Beta's tools as `mcp__open-knowledge-beta__*`, and Pi sees them as `ok-beta_*`. The two apps do not share a project's server, though; see [Stable and Beta on the same project](#stable-and-beta-on-the-same-project).
-
-Earlier releases of the separately installed `OpenKnowledge Beta` app registered under `open-knowledge`, and updating does not move that entry. If an editor's config has no `open-knowledge-beta` entry, reconnect that editor from **Settings → Agent connections** in GitQuire Beta, then remove the old `open-knowledge` entry from the file listed under [`ok init`](#ok-init) if you don't also run Stable. An older Beta install still named `OpenKnowledge` keeps using `open-knowledge`; leave that entry in place.
-
-A CLI process decides which product it belongs to in this order: the `OK_CHANNEL` environment variable (`stable`, `beta`, or `dev`; any other value is an error), then the name of the executable it runs as, and otherwise Stable. The CLI bundled in GitQuire Beta resolves as Beta from its executable name, and Beta's launcher sets `OK_CHANNEL=beta` before it falls back to npx. A CLI run under plain Node, such as `npx @inkeep/open-knowledge@beta init` typed by hand, resolves as Stable and writes the `open-knowledge` entry unless you set `OK_CHANNEL=beta`.
-
-`dev` is the product for building GitQuire from source. An unpackaged desktop build and the `packages/app` dev server select it when `OK_CHANNEL` is unset, and `ok init --dev-mcp` does too. It registers as `open-knowledge-dev`, in project config only, never in your user-level editor config. A dev build claims the `openknowledge-dev://` link scheme only when you set `OK_DEV_PROTOCOL=1`. Set `OK_CHANNEL=stable` to run a source build as Stable on purpose. A dev build never writes an MCP launcher for an installed product, and never hands `OK_CHANNEL=dev` to a CLI it does not control: its own CLI calls run the checkout's `packages/cli/dist/cli.mjs`, while terminals and agents it starts get no `OK_CHANNEL`. Build the checkout first: without `packages/cli/dist/cli.mjs`, those calls run the `open-knowledge` on your PATH as Stable, and the dev build refuses anything that would change Stable: signing in or out, storing a token, and cloning a project. Run `pnpm build` in the checkout, then restart the dev build. `ok uninstall` from an installed product leaves the dev footprint in place; delete `~/.ok-dev/` and the `open-knowledge-dev` credential yourself.
-
-#### Upgrading Beta to its own home folder
-
-Beta now keeps its data in `~/.ok-beta/` (see [Stable and Beta home folders](#stable-and-beta-home-folders)), so the first launch after this change starts fresh: settings, logs, saved themes, agent chat history, and your user config in `global.yml`, including any GitHub Enterprise Server host declarations, all begin empty. Beta also reads credentials from its own credential-store service, so sign in again. The data an earlier Beta wrote to `~/.ok/` stays there for Stable; copy `~/.ok/global.yml` or `~/.ok/themes/` into `~/.ok-beta/` yourself if you want them in Beta too.
-
-An earlier Beta stored its GitHub token in the OS credential store under the service `open-knowledge`. That token stays there and now belongs to Stable: signing out of Beta and uninstalling Beta both leave it in place. Remove it with Stable's `ok auth signout`, or delete it from your credential store directly.
-
-### While a project is open
-
-The app runs a collaboration server for the open project. It keeps coordination state gitignored under `.ok/local/`, diagnostics in the product's user-level `logs/projects/<project-hash>/`, and a shadow git repo that powers the timeline and recovery features:
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `.ok/local/server.lock` | Advertise the running server's URL and capabilities (the `ui` capability marks a UI-serving server), and the product that started it (`channel`: `stable`, `beta`, or `dev` for a source build); see [Stable and Beta on the same project](#stable-and-beta-on-the-same-project) | In-project, gitignored |
-| `.ok/local/principal.json` | Your local identity (id, email) for edit attribution | In-project, gitignored |
-| `.ok/local/sync-state.json` | GitHub-sync engine state | In-project, gitignored |
-| `.ok/local/conflicts.json` | Every conflict the app is holding a document for, including conflicts that involve no remote. A row for GitQuire's own merge of the editor against disk embeds up to three full copies of the document body, so **keep this file while any conflict is open**. Deleting it loses those copies. If the app cannot read the file, it renames it to `conflicts.json.corrupt-<timestamp>` and leaves it in place | In-project, gitignored |
-| `.ok/local/stale-external-writes.json` | Recovery snapshot for a rejected stale external save. It can hold the acknowledged, rejected, and retained document text. Protection expires after 30 minutes, but an unresolved snapshot stays until you resolve the conflict | In-project, gitignored |
-| `.ok/local/doc-notices.json` | The notice a document or settings file shows after both versions of an edit were kept, or a version was saved to its history or the backup folder instead of merged, and, for a document but not a settings file, a separate notice while a save of it is held, removed once that save lands or GitQuire restarts with nothing held: document names, file paths, times, causes, and history entry ids, never document text. A notice is removed when you dismiss it, when its document is deleted, when the version it names leaves the timeline, or when more than 200 newer notices, counted across all branches, push it out. It follows its document through a rename, and each branch keeps its own. If the app cannot read the file, it starts with no notices | In-project, gitignored |
-| `.ok/local/receipts.jsonl` | One record per document GitQuire has opened or saved: a hash of the version it and the file last agreed on, its size, and the file's identity and modification time. No document text. GitQuire keeps the same record in memory while it runs, and a save of a Markdown, Mermaid, Excalidraw or plain-text document compares the file with that record first, so an outside edit is merged, or saved to history, instead of written over; settings files compare against the last version GitQuire read or wrote instead, and other writers do not check it yet. After a restart the file is only used to count documents changed while GitQuire was closed. Safe to delete: the next load rebuilds it | In-project, gitignored |
-| `.ok/local/state.json` | State-schema manifest | In-project, gitignored |
-| `~/.ok/logs/projects/<project-hash>/last-spawn-error.log` | Startup stderr from detached servers; starts over on the next attempt after reaching 256 KB | Outside-project (home dir) |
-| `.ok/local/last-server-exit.json` | Why the collaboration server the app started last exited — a timestamp, its process id, the exit code, the signal that ended it, and which part of the app was watching. One record, overwritten on each exit; a server the app only attached to, or one you started yourself with `ok start`, leaves none. No document content or paths | In-project, gitignored |
-| `.ok/local/last-server-crash.json` | The collaboration server's own account of a crash it did not survive — a timestamp, the error message and stack, its process id, and how long it had been running. Written by the server itself, so it covers `ok start` too. Holds the most recent crash only | In-project, gitignored |
-| `~/.ok/logs/projects/<project-hash>/spans-*.jsonl` | Local diagnostic spans, rotated at ~50 MB | Outside-project (home dir) |
-| `~/.ok/logs/projects/<project-hash>/server-*.jsonl` | Local server logs, rotated at ~25 MB | Outside-project (home dir) |
-| `.ok/local/cache/<branch>/backlinks.json` | Backlink-graph cache | In-project, gitignored |
-| `.ok/worktrees/<branch>/` | Git worktree checkout created when you open a branch in its own window (project switcher); the path is also added to `.git/info/exclude` | In-project, gitignored |
-| `.git/ok/` — or `.git/worktrees/<name>/ok/` in a linked worktree, or the enclosing repo's `.git/ok-<slug>/` when your project is a subfolder of a larger repo | Shadow git repo holding per-writer work-in-progress refs, plus the versions GitQuire set aside when an outside change could not be merged: of documents, Mermaid, Excalidraw and plain-text files, and the project, per-machine (`.ok/local/config.yml`) and user (`~/.ok/global.yml`) settings files. Those are saved as their own history entries, which `info/exclude` does not filter, so a copy of this folder can carry per-machine settings, and your user settings; each kind keeps its 50 newest per document, with no time limit. Always inside a git admin dir, never in your content tree. Its own `info/exclude` file, written when GitQuire opens the repo, keeps machine-local runtime state — `.ok/local/` and `.ok/worktrees/`, plus the pre-`.ok/local/` equivalents that older projects still keep at the `.ok/` root (`.ok/principal.json`, `.ok/server.lock`, `.ok/cache/`, …) — the `.tmp.<uuid>` files an in-flight atomic write leaves behind, and your project's `.git` when it resolves to a directory inside the project under another name (a `.git.nosync` symlink or a separate git dir), out of every work-in-progress version, the way `.ok/.gitignore` keeps them out of git | In-project, gitignored (inside `.git/`) |
-
-The project hash comes from the canonical project-folder path, so projects with the same name keep separate logs. Existing project-local diagnostic files are left in place; support bundles still collect them, using `legacy/` entries when both old and current files exist.
-
-When local diagnostic sinks are enabled, server startup removes inactive project log directories only when the directory and all recognized diagnostic files are older than seven days. With `telemetry.localSink.enabled: false` or `OK_DISABLE_LOCAL_SINK=1`, startup skips this cleanup; detached-server launch only refreshes its own stderr directory. Live servers remain protected even when quiet; uncertain ownership, symlinks, or unfamiliar contents prevent cleanup. This runs on later launches, not on a timer. `ok deinit` leaves these user-level diagnostics for that cleanup rather than deleting them immediately.
-
-Diagnostic logs and telemetry are **on by default but local-only** — credential-bearing attributes are redacted (`[REDACTED]`) before anything is written, the files rotate at the size caps above, and the files stay local unless shared, including in a support bundle. Turn the local sink off with `telemetry.localSink.enabled: false`; see [Configuration](./configuration.mdx).
-
-On each launch and project open, the app also runs **repair sweeps**: it rewrites *existing* `open-knowledge` MCP entries (in the editor configs above) to the current canonical form, and removes any stale `open-knowledge-ui` entry left in `.claude/launch.json` by an older OK version. It **never adds** an MCP entry to an editor that doesn't already have one. Same `OK_RECLAIM_DISABLE=1` opt-out.
-
-#### Stable and Beta on the same project
-
-Only one GitQuire app serves a project at a time. `server.lock` records which product started the server, resolved the same way a [CLI process picks its product](#beta-uses-its-own-entry). When GitQuire Beta opens a project that Stable is serving, or the other way round, it does not connect to that server, take it over, or stop it on its own. It shows **This project is open in another GitQuire app**, naming the app that holds it (for example **GitQuire (Stable)**), and **Restart server** reports that the other app keeps the project. A lock that names a product this app does not know gets the same treatment. A server started by an unpackaged desktop build or the `packages/app` dev server names `dev`, so installed Stable and Beta treat it as another app too. The same dialog appears when another app's lock blocks the open in other ways too: its server is not answering, a server of this app collided with that lock, or a new server timed out because that lock was already held. This dialog is the only way the app stops another app's server.
-
-Closing the other app's window does not free the project, because its server keeps running in the background. To move the project, choose the dialog's **Stop … Server & Open Here** button (for example **Stop GitQuire (Stable) Server & Open Here**). Every window, editor, or agent connected to that server loses its connection to the project. Cancel is the default and stops nothing. From a terminal, `ok stop --force` in the project folder does the same. Without `--force`, `ok stop` declines, and exits `1`, when the lock names a different app than the one its CLI resolves to.
-
-A server you start with `ok start`, or one an editor's MCP connection starts, counts as the product its CLI resolves to. Under plain Node that is Stable unless `OK_CHANNEL=beta` is set, so GitQuire Beta also refuses a project served that way. A server an editor's MCP connection started does not stop when that session ends. It stops on its own once nothing has had the project open for a while (30 minutes by default), so you can also wait for it. Stopping it from the dialog interrupts whatever the agent or editor is doing right now, and the agent's next request reaches the server the app opened.
-
-A lock written by an earlier release has no `channel`, and both apps attach to it as before. An app from an earlier release does not read `channel` at all, so the rule holds only once both apps are on this release.
-
-### Home directory and credentials (`~/.ok/`)
-
-Beta writes the `~/.ok/` entries below under `~/.ok-beta/` instead except the shared entries listed in [Stable and Beta home folders](#stable-and-beta-home-folders).
-
-| Path | What it is | Sensitive? |
-| --- | --- | --- |
-| `~/.ok/global.yml` | User-global [config](./configuration.mdx) (applies to every project) | No |
-| OS credential store | Embeddings provider keys for [semantic search](./configuration.mdx#semantic-search), isolated by release channel, project and endpoint; service names and recovery are in [credential store troubleshooting](./configuration.mdx#credential-store-troubleshooting) | **Yes** |
-| `~/.ok/secrets.yml` | Legacy embeddings keys awaiting verified migration, or the file fallback when no supported credential store is available. Written `0600`; never in `config.yml` | **Yes** (`0600`) |
-| `~/.ok/secrets.yml.embeddings-index`, `~/.ok/secrets.yml.embeddings-index.required`, `~/.ok/secrets.yml.embeddings-lock.sqlite` | Credential inventory and cross-process coordination; contains project paths and endpoint names, never API keys | Local metadata (`0600`) |
-| `~/.ok/auth.yml` | Auth-token fallback, used only when the Keychain is unavailable. Written `0600` | **Yes** (`0600`) |
-| `~/.ok/agent-browser/<chat>/` | Only while **Let agent chats use a browser** is on: `npm/`, the folder that chat's browser server starts from, rebuilt each time it launches, and `files/`, everything the browser saves. Removed when you delete the chat in GitQuire, or when you close a chat you never sent a message to; turning the setting off keeps it, and a closed chat you did message keeps it until you delete that chat, so delete the folder yourself to remove every chat's saved files at once | No |
-| `~/.ok/themes/` | Your saved color themes from the [Themes plugin](../plugins/themes.mdx), one Tinted Theming base16 YAML file per theme, written when you create or edit a theme | No |
-| `~/.ok/edit-backups/discarded/projects/<project>/<document>/` | A copy of a version GitQuire set aside but could not save to the project's history, for example in a project with no shadow repo: the outside version of a Mermaid, Excalidraw or plain-text file, or a settings version that was replaced. Each copy is named for the time it was kept, and the five newest per folder stay. The notice on the document, or in Settings, names the file | No |
-| `~/.ok/mcp-status.json` | First-launch MCP consent record | No |
-| `~/.ok/logs/` (including `projects/<project-hash>/`), `~/.ok/bug-reports/` | Desktop and CLI logs, and bug-report bundles from `ok bug-report` and the app's **Help → Report a bug…** dialog (`ok diagnose bundle` writes into the project, under `.ok/local/diagnostics/`). Each report from the dialog also gets a small YAML record holding its send state and a secret-redacted copy of the note you wrote, so report history can still show what a report was about. The zip is deleted once the report is sent; the record is kept, and both go when you delete the report from report history. If that record ever can't be read back, GitQuire leaves it exactly as it is rather than overwriting your note, and writes a second tiny `.sent.yaml` file beside it when a report does send, so history still shows it as sent instead of offering to send it again | No |
-| `~/.ok/bin/`, `~/.ok/env.sh` | `PATH` shim (see [Shell and `PATH`](#shell-and-path) above) | No |
-
-**Auth tokens** (for GitHub sync, sharing, and cloning) are stored in your OS credential store under the service name `open-knowledge` (`open-knowledge-beta` for Beta) — the **Keychain** on macOS, **Credential Manager** on Windows, and the Secret Service keyring (libsecret) on Linux. The `~/.ok/auth.yml` file is only a fallback for headless environments where the credential store isn't reachable; when it becomes available, the token is migrated into it and the file copy is removed.
-
-</Tab>
-
-<Tab>
-
-### Installing the package
-
-Installing `@inkeep/open-knowledge` from npm (or invoking it with `npx`) drops the two CLI binaries plus a bundled native addon. **Nothing is written to your home directory at install time** — no lifecycle scripts run.
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `ok`, `open-knowledge` (on your `PATH`) | The two CLI binaries (identical entry point) | Outside-project (npm global/bin) |
-| `<pkg>/dist/native/` | Bundled native addon, shipped inside the package: TOML editing on all platforms, plus a Windows-only reader of a process's creation time, which confirms that the process a server lock names is the server that wrote it | Outside-project (package dir) |
-
-<Callout type="info" title="Opt out">
-  Installing the package writes nothing outside its own directory, so there is nothing to opt out of here.
-</Callout>
-
-### `ok init`
-
-`ok init` turns a folder into a GitQuire project. It scaffolds the project's `.ok/` directory and touches nothing outside the project.
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `.ok/`, `.ok/config.yml` | Project directory and its [config](./configuration.mdx) | In-project, committed |
-| `.ok/.gitignore` | Keeps machine-local runtime state (`local/`, `principal.json`, `server.lock`, …) out of git | In-project, committed |
-| `.okignore` | Paths excluded from the editor, search, and agents — see [Ignore patterns](../features/ignore-patterns.mdx) | In-project, committed |
-| `.gitignore` (project root) | Seeded (with `.DS_Store`) **only** when `ok init` creates a new git repo | In-project, committed |
-
-For a project it is setting up for the first time, `ok init` adds `.ok/` and `.okignore` to `.git/info/exclude` so they stay off your remote. Pass `--shared` to commit them instead. Re-running `ok init` on a project you already set up keeps that project's current choice. Switch modes later with `ok config-sharing share` / `unshare` (`unshare` refuses if one of those files is already tracked); `ok config-sharing status` prints the current mode and the excluded paths.
-
-### `ok start`
-
-`ok start` runs the collaboration server. Most of what it writes stays **inside your project**, gitignored under `.ok/local/`, plus a shadow git repo for the timeline and recovery features:
-
-| Path | What it is | Scope |
-| --- | --- | --- |
-| `.ok/local/server.lock` | Advertise the running server's URL and capabilities (the `ui` capability marks a UI-serving server), and the product that started it (`channel`: `stable`, `beta`, or `dev` for a source build); see [Stable and Beta on the same project](#stable-and-beta-on-the-same-project) | In-project, gitignored |
-| `.ok/local/principal.json` | Your local identity (id, email) for edit attribution | In-project, gitignored |
-| `.ok/local/sync-state.json` | GitHub-sync engine state | In-project, gitignored |
-| `.ok/local/conflicts.json` | Every conflict the app is holding a document for, including conflicts that involve no remote. A row for GitQuire's own merge of the editor against disk embeds up to three full copies of the document body, so **keep this file while any conflict is open**. Deleting it loses those copies. If the app cannot read the file, it renames it to `conflicts.json.corrupt-<timestamp>` and leaves it in place | In-project, gitignored |
-| `.ok/local/stale-external-writes.json` | Recovery snapshot for a rejected stale external save. It can hold the acknowledged, rejected, and retained document text. Protection expires after 30 minutes, but an unresolved snapshot stays until you resolve the conflict | In-project, gitignored |
-| `.ok/local/doc-notices.json` | The notice a document or settings file shows after both versions of an edit were kept, or a version was saved to its history or the backup folder instead of merged, and, for a document but not a settings file, a separate notice while a save of it is held, removed once that save lands or GitQuire restarts with nothing held: document names, file paths, times, causes, and history entry ids, never document text. A notice is removed when you dismiss it, when its document is deleted, when the version it names leaves the timeline, or when more than 200 newer notices, counted across all branches, push it out. It follows its document through a rename, and each branch keeps its own. If the app cannot read the file, it starts with no notices | In-project, gitignored |
-| `.ok/local/receipts.jsonl` | One record per document GitQuire has opened or saved: a hash of the version it and the file last agreed on, its size, and the file's identity and modification time. No document text. GitQuire keeps the same record in memory while it runs, and a save of a Markdown, Mermaid, Excalidraw or plain-text document compares the file with that record first, so an outside edit is merged, or saved to history, instead of written over; settings files compare against the last version GitQuire read or wrote instead, and other writers do not check it yet. After a restart the file is only used to count documents changed while GitQuire was closed. Safe to delete: the next load rebuilds it | In-project, gitignored |
-| `.ok/local/state.json` | State-schema manifest | In-project, gitignored |
-| `~/.ok/logs/projects/<project-hash>/last-spawn-error.log` | Startup stderr from detached servers; starts over on the next attempt after reaching 256 KB | Outside-project (home dir) |
-| `.ok/local/last-server-crash.json` | The server's own account of a crash it did not survive — a timestamp, the error message and stack, its process id, and how long it had been running. Holds the most recent crash only | In-project, gitignored |
-| `~/.ok/logs/projects/<project-hash>/spans-*.jsonl` | Local diagnostic spans, rotated at ~50 MB | Outside-project (home dir) |
-| `~/.ok/logs/projects/<project-hash>/server-*.jsonl` | Local server logs, rotated at ~25 MB | Outside-project (home dir) |
-| `.ok/local/cache/<branch>/backlinks.json` | Backlink-graph cache | In-project, gitignored |
-| `.git/ok/` — or `.git/worktrees/<name>/ok/` in a linked worktree, or the enclosing repo's `.git/ok-<slug>/` when your project is a subfolder of a larger repo | Shadow git repo holding per-writer work-in-progress refs (powers the timeline), plus the versions GitQuire set aside when an outside change could not be merged: of documents, Mermaid, Excalidraw and plain-text files, and the project, per-machine (`.ok/local/config.yml`) and user (`~/.ok/global.yml`) settings files. Those are saved as their own history entries, which `info/exclude` does not filter, so a copy of this folder can carry per-machine settings, and your user settings; each kind keeps its 50 newest per document, with no time limit. Always inside a git admin dir, never in your content tree. Its own `info/exclude` file, written when GitQuire opens the repo, keeps machine-local runtime state — `.ok/local/` and `.ok/worktrees/`, plus the pre-`.ok/local/` equivalents that older projects still keep at the `.ok/` root (`.ok/principal.json`, `.ok/server.lock`, `.ok/cache/`, …) — the `.tmp.<uuid>` files an in-flight atomic write leaves behind, and your project's `.git` when it resolves to a directory inside the project under another name (a `.git.nosync` symlink or a separate git dir), out of every work-in-progress version, the way `.ok/.gitignore` keeps them out of git | In-project, gitignored (inside `.git/`) |
-
-The project hash comes from the canonical project-folder path, so projects with the same name keep separate logs. Existing project-local diagnostic files are left in place; support bundles still collect them, using `legacy/` entries when both old and current files exist.
-
-When local diagnostic sinks are enabled, server startup removes inactive project log directories only when the directory and all recognized diagnostic files are older than seven days. With `telemetry.localSink.enabled: false` or `OK_DISABLE_LOCAL_SINK=1`, startup skips this cleanup; detached-server launch only refreshes its own stderr directory. Live servers remain protected even when quiet; uncertain ownership, symlinks, or unfamiliar contents prevent cleanup. This runs on later launches, not on a timer. `ok deinit` leaves these user-level diagnostics for that cleanup rather than deleting them immediately.
-
-Diagnostic logs and telemetry are **on by default but local-only** — credential-bearing attributes are redacted (`[REDACTED]`) before anything is written, the files rotate at the size caps above, and the files stay local unless shared, including in a support bundle. Turn the local sink off with `telemetry.localSink.enabled: false`; see [Configuration](./configuration.mdx).
-
-Projects initialized by an older CLI may lack the `local/` rule in `.ok/.gitignore`, which leaves these runtime files visible in `git status`. Add `local/` to that file or open the project in the desktop app, which updates it automatically. 
-
-### Home directory and credentials (`~/.ok/`)
-
-Beta writes the `~/.ok/` entries below under `~/.ok-beta/` instead except the shared entries listed in [Stable and Beta home folders](#stable-and-beta-home-folders). Upgrading from an earlier Beta that used `~/.ok/`? See [Upgrading Beta to its own home folder](#upgrading-beta-to-its-own-home-folder).
-
-| Path | What it is | Sensitive? |
-| --- | --- | --- |
-| `~/.ok/global.yml` | User-global [config](./configuration.mdx) (applies to every project) | No |
-| OS credential store | Embeddings provider keys for [semantic search](./configuration.mdx#semantic-search), isolated by release channel, project and endpoint | **Yes** |
-| `~/.ok/secrets.yml` | Legacy embeddings keys awaiting verified migration, or the file fallback when no supported credential store is available. Written `0600`; never in `config.yml` | **Yes** (`0600`) |
-| `~/.ok/secrets.yml.embeddings-index`, `~/.ok/secrets.yml.embeddings-index.required`, `~/.ok/secrets.yml.embeddings-lock.sqlite` | Credential inventory and cross-process coordination; contains project paths and endpoint names, never API keys | Local metadata (`0600`) |
-| `~/.ok/auth.yml` | Auth-token fallback, used when no OS credential store is reachable. Written `0600` | **Yes** (`0600`) |
-| `~/.ok/agent-browser/<chat>/` | Only while **Let agent chats use a browser** is on: `npm/`, the folder that chat's browser server starts from, rebuilt each time it launches, and `files/`, everything the browser saves. Removed when you delete the chat in GitQuire, or when you close a chat you never sent a message to; turning the setting off keeps it, and a closed chat you did message keeps it until you delete that chat, so delete the folder yourself to remove every chat's saved files at once | No |
-| `~/.ok/themes/` | Your saved color themes from the [Themes plugin](../plugins/themes.mdx), one Tinted Theming base16 YAML file per theme, written when you create or edit a theme | No |
-| `~/.ok/edit-backups/discarded/projects/<project>/<document>/` | A copy of a version GitQuire set aside but could not save to the project's history, for example in a project with no shadow repo: the outside version of a Mermaid, Excalidraw or plain-text file, or a settings version that was replaced. Files of a project go in a folder for that project (`<project>` is a short hash of its content folder), so two projects with the same file keep separate copies. Each copy is named for the time it was kept, and the five newest per folder stay. The notice on the document, or in Settings, names the file | No |
-| `~/.ok/logs/` | CLI logs (`cli.<date>.log`), size- and age-capped, plus per-project server logs, spans, and startup stderr under `projects/<project-hash>/` | No |
-| `~/.ok/bug-reports/` | Bug-report bundles from `ok bug-report` — the desktop app's **Help → Report a bug…** dialog writes here too (`ok diagnose bundle` writes into the project, under `.ok/local/diagnostics/`). A report filed from the dialog also leaves a small YAML record beside its bundle, holding the report's send state and a secret-redacted copy of the note you wrote so report history can name it. That record outlives the bundle: the zip is deleted once the report is sent, and the record is kept until you delete the report from report history. If the record ever can't be read back, GitQuire leaves it exactly as it is rather than overwriting your note, and writes a second tiny `.sent.yaml` file beside it when a report does send. That marker holds only the send time and the report's reference, never your note, and it is removed with the rest of the report | No |
-
-**Auth tokens** (for GitHub sync, sharing, and cloning) are stored in your operating system's secure credential store when one is available — the macOS **Keychain** (service `open-knowledge`, or `open-knowledge-beta` for Beta), or the platform equivalent (Windows Credential Manager, Linux Secret Service) — falling back to a `0600` `~/.ok/auth.yml` file on headless systems (a Linux server, CI) where none is reachable.
-
-</Tab>
-
-</Tabs>
-
-## Versions saved before the shadow exclusions
-
-The shadow repo's `info/exclude` is forward-only. Versions saved by an earlier GitQuire build, and the work-in-progress commits folded into them, still carry the machine-local paths in their trees: the contents of `.ok/local/`, including `principal.json` and `server.lock`, and the caches and logs beside them. A project that predates `.ok/local/` carries the same runtime state at the `.ok/` root instead — `.ok/principal.json`, `.ok/state.json`, `.ok/server.lock`, `.ok/ui.lock`, `.ok/sync-state.json`, `.ok/conflicts.json` and `.ok/last-spawn-error.log`, alongside `.ok/cache/` and `.ok/tmp/`. Opening the project on a current build drops those paths from the shadow repo's staging index and stops adding them to new versions; it does not rewrite the versions already written, and those older commits stay reachable from the versions that folded them. The same forward-only rule covers a git dir that resolves inside your project under a name other than `.git` (a `.git.nosync` symlink or a separate git dir): a current build stops staging it and drops it from the index, but versions an earlier build already wrote keep its contents.
-
-All of it stays in the shadow git repo inside your own `.git/` directory, which GitQuire never pushes anywhere. A version you saved yourself is kept rather than expired, so this does not age out on its own. `ok deinit` removes the shadow repo along with the rest of a project's GitQuire state.
-
-## Opt-outs in one place
-
-| To skip… | Do this |
+| Path | What it is |
 | --- | --- |
-| The shell-config `PATH` block (macOS and Linux app) | Leave "Add the `ok` command to your terminal" unchecked in the first-launch dialog (the default) |
-| Committing `.ok/` to git | Off by default for a new project; `ok init --shared` commits it instead |
-| The repair sweeps and the desktop app's shell / `PATH` changes | `OK_RECLAIM_DISABLE=1` (also delete the managed block from your shell config to remove the `PATH` entry) |
-| Local diagnostic logs and telemetry | `telemetry.localSink.enabled: false` in config |
+| Your pages (`*.md`, `*.mdx`), Mermaid (`*.mmd`), Excalidraw and other files | The content, including [comment threads](../gitquire/comment-format.mdx) as footnotes inside each page |
+| `.ok/config.yml` | Project settings, changed in **Wiki administration** ([Configuration](./configuration.mdx)) |
+| `.ok/.gitignore` | Keeps `.ok/local/` and other server state out of Git |
+| `.ok/templates/` and `<folder>/.ok/templates/` | Page templates ([Folders and templates](../advanced/folders-and-templates.mdx)) |
+| `.okignore` | Paths hidden from the editor, search and agents ([Ignore patterns](../features/ignore-patterns.mdx)) |
+| `AGENTS.md` | A marked GitQuire section written on server start; the rest of the file is left alone |
 
-To review the footprint after the fact, `ok diagnose` reports what's on disk. To remove GitQuire from a project, delete its `.ok/` directory; see the [CLI reference](./cli.mdx#remove-gitquire-from-a-project).
+Commits made for a signed-in person carry that person as author. Commits not made for anyone use
+`GITQUIRE_GIT_NAME` and `GITQUIRE_GIT_EMAIL`.
 
-In the desktop app you don't need the CLI for finer control, and the split follows what each thing is. **Settings → Agent connections** lists every agent GitQuire can wire up, grouped by how you reach it — In app, Terminal, External apps. Each row says whether GitQuire can reach that agent's tools and offers the action that fits: **Add MCP** when nothing is set up, **Manage** when something is, and **Remove** when the tool itself is present but you have turned it off. A tool that is not on this machine always leads with **Install**, or **How to set up** when GitQuire has no download link for it; neither writes anything. When GitQuire files are still on disk for a tool that is not on this machine, the row keeps whichever of **Install** or **How to set up** it already had, and adds a muted **Remove** link beside the hint — `Not installed · OpenKnowledge files present`, or `Not detected on this machine · OpenKnowledge files present` for a tool GitQuire cannot launch directly. Where one tool has two rows — a CLI and its editor, sharing a single setup — that hint and link appear only when GitQuire can confirm the other row's tool is also absent, so the row for the half you do not have never offers to delete a setup the other half is using — and when it cannot tell, it says nothing rather than guess. Both scopes are chosen in the same place: the dialog behind those actions groups what it writes under *This project* and *This machine*, so a project-scoped MCP config and a user-global one sit side by side, each naming the file it touches. Removal keeps the guest discipline you would expect: only entries GitQuire recognizably wrote are removed, and anything you customized is left intact.
+## On the server only (`.ok/local/`)
 
-One case works differently, and it is the only place GitQuire replaces something it did not write. If the entry named `open-knowledge` is there but GitQuire does not recognize it, because you edited it by hand or another tool claimed the name, that row is offered as an overwrite rather than left dead. It opens unticked with a warning naming the file, so nothing happens until you ask for it, and ticking it replaces that one entry outright rather than merging into it. Other servers in the file are untouched. This is offered only where the config is JSON; for Codex, Hermes, and Pi the entry is left alone, because on those formats GitQuire merges its own keys into an existing entry instead of replacing it, and a merge would leave part of the entry you edited attached to a server GitQuire starts. Removal never takes an unrecognized entry away, in any format.
+`.ok/local/` is listed in `.ok/.gitignore` and never committed. No `/mcp` client and no AI chat
+can read it through `exec` or the document tools.
 
-## What leaves your machine
+| Path | What it is |
+| --- | --- |
+| `.ok/local/gitquire/users/<GitHub user id>.yml` | Personal settings of each person |
+| `.ok/local/gitquire/people.json` | People who signed in, for mentions and the people list |
+| `.ok/local/gitquire/mentions.json` | Read state of mentions and email settings |
+| `.ok/local/gitquire/agent-tokens.json` | Personal agent tokens, stored hashed |
+| `.ok/local/gitquire/ai-keys/` | Each person's AI chat key, encrypted with a key derived from `GITQUIRE_SESSION_SECRET` |
+| `.ok/local/gitquire/chats/<GitHub user id>/` | AI chats, deleted 90 days after their last message |
+| `.ok/local/gitquire/chat-usage/<GitHub user id>.json` | Tokens per day and per chat, kept 90 days |
+| `.ok/local/gitquire/drafts.json` | The drafts the server knows about |
+| `.ok/local/config.yml` | Settings that belong to this server, such as sync and link previews |
+| `.ok/local/embeddings/`, `.ok/local/cache/` | Search-by-meaning index and link, tag and backlink caches; safe to delete, they are rebuilt |
+| `.ok/local/sync-state.json` | State of the GitHub sync |
+| `.ok/local/conflicts.json` | Documents held because of an unresolved conflict. A row can contain full copies of a page, so keep the file while a conflict is open |
+| `.ok/local/stale-external-writes.json` | Recovery copy of an outside save that was refused because it was out of date |
+| `.ok/local/doc-notices.json` | Notices shown on a page after both versions of an edit were kept; names and times, no page text |
+| `.ok/local/receipts.jsonl` | A hash, size and modification time per document, used to notice outside edits; no page text |
+| `.ok/local/server.lock`, `.ok/local/state.json`, `.ok/local/last-server-crash.json` | The running server's address, the state format version, and the last crash the server recorded |
 
-None of your content, by default. Everything above is written to your own disk. The only ways data leaves your machine are these — all opt-in or on-demand, except two automatic actions that carry no document content (the desktop update check and a one-time share-link check on first launch):
+## Inside `.git/`
+
+| Path | What it is |
+| --- | --- |
+| `.git/ok/` | A second Git repository used for the page timeline and recovery: work-in-progress versions and the versions GitQuire set aside when an outside change could not be merged. It is never pushed |
+
+## Outside the data volume
+
+| Path | What it is |
+| --- | --- |
+| `GITQUIRE_DRAFTS_DIR` (default `.gitquire-drafts/<folder>` next to the project, `/.gitquire-drafts/data` in the container) | One working copy per open draft. They can be recreated from GitHub, but mount a volume there to keep unpublished drafts across container updates |
+| The container's home folder (`~/.ok/logs/`) | Server logs, rotated by size. They are lost when the container is recreated; `docker compose logs` shows the same output |
+
+## What leaves the server
 
 | What | When | Where it goes |
 | --- | --- | --- |
-| Diagnostic bundle | Only when you run `ok diagnose bundle` (you can inspect it first). On macOS it also carries the crash reports the OS recorded for this app and its helper processes (listed above), which are machine-wide rather than project-scoped; only this app's are collected, never another application's, though a report of ours still names the processes it was running alongside, and the summary printed before the zip is written says what that search found even when the answer is nothing. On every platform it also carries the past week of the operating system's records of this app being ended from outside (listed above), and the same summary says what that read found | Wherever you send it |
-| In-app bug report | Only when you click **Send** in the desktop app's **Help → Report a bug…** dialog, or the `Cmd+Shift+D` / `Ctrl+Shift+D` shortcut that opens the same dialog — it builds a secret-redacted zip you can reveal and inspect first, and nothing is sent without that explicit click. The zip carries a picture of the app window unless you uncheck **Screenshot** in that dialog, and the preview there is the picture that would be sent. You can also attach up to three images by dropping them on the **What happened?** box, pasting them anywhere in the dialog (`Cmd+V` / `Ctrl+V`), or browsing with the paperclip in that box. Neither these images nor the screenshot are scanned or redacted, so review them before sending. A report started from an agent chat's **Report a problem with this chat…** also carries, unless you uncheck **This conversation**, the newest 4 MB of that chat's messages, tool calls, and their output, and the chat's metadata file, which names the chat's title, the project folder's path, the document the chat started from, and the agent and its settings. Known secrets are scrubbed from both. Images and other binary content in the chat, including images pasted into a message, are replaced by a note of their type and size, while text files attached to a message are included and scrubbed the same way. If the chat's messages can't be added, the review step says so and the report goes without the conversation. If only the metadata file can't be read, the report carries the messages without it, and the review step doesn't say so. A report started from the command palette, the Help popover, the Windows and Linux menu bar, or an agent chat's **Settings** menu photographs the screen with that palette or menu left out, and carries no marker, because the pointer was only choosing the command. To photograph the command palette itself, press the shortcut while it is open. Every other report you start yourself photographs the screen as it is, so an open menu or another person's document visible at the time is in the picture, and carries a marker drawn where your pointer was, since a screenshot never includes the cursor. No marker is drawn either if the pointer has not moved since the window loaded, or has since left the window. The invitation that appears on its own after a crash is the exception to all of this: it carries no picture at all. When the app holds a crash dump, the same dialog adds a **Crash dump** checkbox. It starts checked on the invitation that follows a crash with a dump available, and unchecked on a report you open yourself. A crash dump is a memory snapshot that can contain document content and can't be redacted, so it is attached only if that box is checked when you create the report, and you review the result before anything is sent. The invitation attaches the dump of the crash it was raised for, never a newer one; if that dump can't be added, the review step says so and the report goes without it. On macOS the zip also carries the update helper's install log (listed above), which is machine-wide rather than project-scoped; the zip's own README names it and says where it came from. At the **Detailed diagnostics** level — pre-checked on the invitation that follows a crash — it additionally carries the crash reports macOS itself recorded for this app and its helpers (also listed above), which are machine-wide for the same reason and named in the same README; only this app's are collected, never another application's, though a report of ours still names the processes it was running alongside, and the zip always says what that search found even when the answer is nothing. On every platform the same level also adds the past week of the operating system's records of this app being ended from outside (also listed above), listed in `manifest.json` for a project's zip and named in the same README for a system-wide zip whenever records were kept. The zip also carries a short send history of the bug reports previously generated on this machine — when each was generated and whether sending it succeeded — which is what makes a report that failed to send diagnosable at all. That history is machine-wide too, so it names the other projects you have filed reports from; it carries no document content, and the README names it the same way | Send uploads the zip to the bug-report intake: `openknowledge.ai` unless [`OK_BUG_REPORT_INTAKE_URL`](./configuration.mdx#environment-variables) points elsewhere. If the upload fails, Send falls back to a prefilled email draft to support@inkeep.com that you send yourself, naming the zip to attach. If you gave an email address, GitQuire also emails it when a fix for what you reported reaches a stable release, and first when it reaches a beta if it ships in one before stable, from `updates@updates.openknowledge.ai` through its mail provider (Resend); replies go to the team |
-| Uninstall feedback | Only if you answer the optional "Before you go" screen or prompt. The macOS desktop asks after you confirm removal, before the app quits and cleanup starts; feedback can be sent even if cleanup later fails. Interactive `ok uninstall` asks only after successful cleanup. Skipping sends nothing; CLI runs with `--yes`, `--json`, or non-interactive input never ask | `openknowledge.ai/api/feedback` — the reason you picked, your note, your email address if you gave one, plus the app version and platform. It files one ticket for the team; nothing from your notes is included. If you gave an email address, GitQuire also emails it when a fix for what you reported reaches a stable release, and first when it reaches a beta if it ships in one before stable, from `updates@updates.openknowledge.ai` through its mail provider (Resend); replies go to the team |
-| Feedback form | Only when you click **Send** in the feedback form, opened from **Help → Send feedback**, the command palette's **Send feedback** command, or the feedback card in the window's bottom-left corner. Images you drop on, paste into, or attach to the message box go with it; like bug report images, they are not scanned or redacted | `openknowledge.ai/api/feedback` — your rating, the reasons you picked, your note, your email address if you gave one, up to three attached images, plus the app version and platform. In the desktop app the images upload first to the bug-report intake (`openknowledge.ai` unless [`OK_BUG_REPORT_INTAKE_URL`](./configuration.mdx#environment-variables) points elsewhere) and the feedback carries links to them. If an image upload fails, the images go inline with the feedback to `openknowledge.ai/api/feedback` instead. If you gave an email address, GitQuire also emails it when a fix for what you reported reaches a stable release, and first when it reaches a beta if it ships in one before stable, from `updates@updates.openknowledge.ai` through its mail provider (Resend); replies go to the team |
-| Semantic search embeddings | Only when you enable [semantic search](./configuration.mdx#semantic-search) **and** set a key — off by default | Your configured embeddings provider (OpenAI by default) |
-| GitHub sync / share | When you sync, clone, publish, or share | GitHub |
-| Update check | Automatically — on launch and periodically while the desktop app runs | GitQuire update service (`openknowledge.ai/updates`), which redirects to GitHub; sends the app version and channel |
-| First-launch share check | Once, automatically, on the desktop app's first launch | `openknowledge.ai/continue` — redeems a share link if you installed from one |
-| npm/`npx` fetch | During CLI installation, including package downloads and cache revalidation | Your configured npm registry (the public npm registry by default); package names, version constraints, and configured registry credentials, without document content |
+| Git pushes and pulls, pull requests | Sync and drafts, through the GitHub App | GitHub |
+| Sign-in | When someone signs in | GitHub |
+| AI chat messages, with the page text the assistant reads | Only when a person who added their own key chats | `api.anthropic.com` or `api.mistral.ai`, or the gateway set in `GITQUIRE_ANTHROPIC_BASE_URL` / `GITQUIRE_MISTRAL_BASE_URL` |
+| Page text for search by meaning | Only when the operator turns it on with `GITQUIRE_SEMANTIC_SEARCH` | The configured embeddings provider |
+| Mention emails and team chat messages | Only when mail or a chat webhook is configured | Your mail server, your team chat |
+| Link previews | When a page shows a preview of an outside link | The linked site |
 
-Local diagnostic logs and telemetry are scrubbed of credential-bearing attributes and never sent anywhere on their own.
+GitQuire sends no telemetry, update checks or bug reports anywhere.
 
 ## See also
 
 <Cards>
+  <Card title="Run with Docker" href="/docs/gitquire/run-with-docker">
+    The image, the data volume and the environment variables.
+  </Card>
   <Card title="Configuration" href="/docs/reference/configuration">
-    Every config key and environment variable, including the telemetry and semantic-search settings referenced here.
+    Every setting and environment variable.
   </Card>
-  <Card title="CLI &amp; web app" href="/docs/reference/cli">
-    Install the CLI, run `ok init` / `ok start`, and the commands behind these writes.
-  </Card>
-  <Card title="Ignore patterns" href="/docs/features/ignore-patterns">
-    Control which files the editor, search, and agents can see.
-  </Card>
-  <Card title="Core Concepts" href="/docs/reference/core-concepts">
-    Why the file system is the database, and how attribution works.
+  <Card title="Security" href="/docs/gitquire/security">
+    Who can read and change what.
   </Card>
 </Cards>
