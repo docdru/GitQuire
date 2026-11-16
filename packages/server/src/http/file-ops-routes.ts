@@ -451,10 +451,9 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           return;
         }
         if (
-          filePath.includes('..') ||
-          filePath.startsWith('/') ||
-          filePath.includes('\x00') ||
-          filePath.includes('\\')
+          [body.path, filePath].some(
+            (candidate) => candidate.includes('..') || !isValidRelativeContentPath(candidate),
+          )
         ) {
           errorResponse(res, 400, 'urn:ok:error:path-escape', 'Invalid path.', {
             handler: 'create-page',
@@ -640,7 +639,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           return;
         }
         const folderPath = nameRequestedPath(contentDir, body.path, false);
-        if (!isValidRelativeContentPath(folderPath)) {
+        if (!isValidRelativeContentPath(body.path) || !isValidRelativeContentPath(folderPath)) {
           errorResponse(
             res,
             400,
@@ -893,7 +892,11 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
         }
         const { kind, fromPath } = body;
         const toPath = nameRequestedPath(contentDir, body.toPath, kind !== 'folder');
-        if (!isValidRelativeContentPath(fromPath) || !isValidRelativeContentPath(toPath)) {
+        if (
+          !isValidRelativeContentPath(fromPath) ||
+          !isValidRelativeContentPath(body.toPath) ||
+          !isValidRelativeContentPath(toPath)
+        ) {
           errorResponse(
             res,
             400,
